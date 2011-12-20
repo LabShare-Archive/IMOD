@@ -63,8 +63,8 @@ public abstract class ReconUIExpert implements UIExpert {
    * @return false if the com scripts where never created in Tomogram Setup.
    */
   final boolean canShowDialog() {
-    //  Check to see if the com files are present otherwise pop up a dialog
-    //  box informing the user to run the setup process
+    // Check to see if the com files are present otherwise pop up a dialog
+    // box informing the user to run the setup process
     if (!UIExpertUtilities.INSTANCE.areScriptsCreated(manager, metaData, axisID)) {
       mainPanel.showBlankProcess(axisID);
       return false;
@@ -164,10 +164,12 @@ public abstract class ReconUIExpert implements UIExpert {
    * Run processchunks.
    * @param axisID
    */
-  final void processchunks(BaseManager manager, AbstractParallelDialog dialog,
-      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries,
-      String processName, FileType outputImageFileType,
-      ProcessingMethod processingMethod) {
+  final void processchunks(final BaseManager manager,
+      final AbstractParallelDialog dialog,
+      final ProcessResultDisplay processResultDisplay,
+      final ConstProcessSeries processSeries, final String processName,
+      final FileType outputImageFileType, final ProcessingMethod processingMethod,
+      final boolean multiLineMessages) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
@@ -183,10 +185,10 @@ public abstract class ReconUIExpert implements UIExpert {
       return;
     }
     setDialogState(ProcessState.INPROGRESS);
-    //param should never be set to resume
+    // param should never be set to resume
     parallelPanel.getParallelProgressDisplay().resetResults();
     manager.processchunks(axisID, param, processResultDisplay, processSeries, true,
-        processingMethod);
+        processingMethod, multiLineMessages);
   }
 
   final ParallelPanel getParallelPanel() {

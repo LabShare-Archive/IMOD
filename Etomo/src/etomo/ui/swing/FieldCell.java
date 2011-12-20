@@ -3,6 +3,7 @@ package etomo.ui.swing;
 import java.awt.Component;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.io.File;
 
 import javax.swing.BorderFactory;
 import javax.swing.JTextField;
@@ -12,6 +13,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.ParsedArray;
 import etomo.type.ParsedElementType;
 import etomo.type.UITestFieldType;
+import etomo.util.FilePath;
 
 /**
  * <p>Description: </p>
@@ -147,66 +149,69 @@ import etomo.type.UITestFieldType;
  * <p> field is disabled).
  * <p> </p>
  */
-final class FieldCell extends InputCell {
+final class FieldCell extends InputCell implements ActionTarget {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField;
   private final boolean editable;
   private final ParsedElementType parsedElementType;
+  private final String rootDir;
 
-  private String hiddenValue = null;
-  private boolean hideValue = false;
-  private boolean range = false;
   private int endValue = EtomoNumber.INTEGER_NULL_VALUE;
-  private String contractedValue = null;
-  private String expandedValue = null;
-  private boolean fixedValues = false;
+  private String path = null;
   private boolean inUse = true;
+  private boolean expanded = false;
 
-  private FieldCell(boolean editable, ParsedElementType parsedElementType) {
+  private FieldCell(final boolean editable, final ParsedElementType parsedElementType,
+      final String rootDir) {
     this.editable = editable;
     this.parsedElementType = parsedElementType;
-    //construction
+    this.rootDir = rootDir;
+    // construction
     textField = new JTextField();
-    //field
+    // field
     textField.setBorder(BorderFactory.createEtchedBorder());
-    //color
+    // color
     setBackground();
     setForeground();
     setFont();
+    setExpanded();
+  }
+
+  static FieldCell getInstance(final FieldCell fieldCell) {
+    FieldCell instance = new FieldCell(fieldCell.editable, fieldCell.parsedElementType,
+        fieldCell.rootDir);
+    instance.endValue = fieldCell.endValue;
+    instance.path = fieldCell.path;
+    instance.inUse = fieldCell.inUse;
+    instance.expanded = fieldCell.expanded;
+    instance.setValue(fieldCell.getExpandedValue());
+    instance.addListeners();
+    instance.setToolTipText(fieldCell.textField.getToolTipText());
+    return instance;
   }
 
   static FieldCell getEditableInstance() {
-    FieldCell instance = new FieldCell(true, ParsedElementType.NON_MATLAB_NUMBER);
+    FieldCell instance = new FieldCell(true, ParsedElementType.NON_MATLAB_NUMBER, null);
     instance.addListeners();
     return instance;
   }
 
   static FieldCell getEditableMatlabInstance() {
-    FieldCell instance = new FieldCell(true, ParsedElementType.MATLAB_NUMBER);
+    FieldCell instance = new FieldCell(true, ParsedElementType.MATLAB_NUMBER, null);
     instance.addListeners();
     return instance;
   }
 
   static FieldCell getIneditableInstance() {
-    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB_NUMBER);
+    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB_NUMBER, null);
     instance.setEditable(false);
     instance.addListeners();
     return instance;
   }
 
-  static FieldCell getIneditableInstance(String value) {
-    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB_NUMBER);
-    instance.setEditable(false);
-    instance.setValue(value);
-    instance.addListeners();
-    return instance;
-  }
-
-  static FieldCell getExpandableInstance() {
-    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB_NUMBER);
-    instance.setEditable(false);
-    instance.fixedValues = true;
+  static FieldCell getExpandableInstance(String rootDir) {
+    FieldCell instance = new FieldCell(true, ParsedElementType.NON_MATLAB_NUMBER, rootDir);
     instance.addListeners();
     return instance;
   }
@@ -235,11 +240,8 @@ final class FieldCell extends InputCell {
   }
 
   void setEditable(boolean editable) {
-    //if this is not an editable instance, it can't be made editable
+    // if this is not an editable instance, it can't be made editable
     if (!this.editable && editable) {
-      return;
-    }
-    if (fixedValues && editable) {
       return;
     }
     super.setEditable(editable);
@@ -248,39 +250,6 @@ final class FieldCell extends InputCell {
   void setInUse(final boolean inUse) {
     this.inUse = inUse;
     setForeground();
-  }
-
-  void clearExpandableValues() {
-    contractedValue = null;
-    expandedValue = null;
-    setValue();
-  }
-
-  /**
-   * Sets contracted value and expanded value.
-   * @param contractedValue
-   * @param expandedValue
-   */
-  void setExpandableValues(final String contractedValue, final String expandedValue) {
-    this.contractedValue = contractedValue;
-    this.expandedValue = expandedValue;
-  }
-
-  void setHideValue(final boolean hideValue) {
-    if (this.hideValue == hideValue) {
-      return;
-    }
-    this.hideValue = hideValue;
-    if (hiddenValue == null) {
-      return;
-    }
-    if (hideValue) {
-      hiddenValue = textField.getText();
-      textField.setText("");
-    }
-    else {
-      textField.setText(hiddenValue);
-    }
   }
 
   boolean isEmpty() {
@@ -292,47 +261,127 @@ final class FieldCell extends InputCell {
     return textField;
   }
 
-  private void setValue(String value, boolean range) {
-    this.range = range;
-    hiddenValue = value;
-    if (!hideValue) {
-      textField.setText(value);
+  public void setTargetFile(final File file) {
+    setFile(file);
+  }
+
+  public void setFile(final File file) {
+    setValue(file);
+  }
+
+  void setValue(final File file) {
+    if (rootDir == null) {
+      setValue(file.getAbsoluteFile());
+    }
+    else {
+      setValue(FilePath.getRelativePath(rootDir, file));
     }
   }
 
-  void setValue(String value) {
-    setValue(value, false);
+  /**
+   * Places value in the text field, except when value is a file path and the instance is
+   * contracted. In that case it places the value's file name in the text field.  When the
+   * instance is contracted the value is stored in the path member variable.
+   * @param value
+   */
+  void setValue(final String value) {
+    if (expanded || !FilePath.isPath(value)) {
+      // Set value as is, unless the field is contracted and its a file path.
+      textField.setText(value);
+    }
+    else {
+      // Set a contracted file path.
+      textField.setText(FilePath.getFileName(value));
+    }
+    if (!expanded) {
+      path = value;
+    }
+  }
+
+  String getContractedValue() {
+    if (!expanded) {
+      return textField.getText();
+    }
+    return FilePath.getFileName(textField.getText());
+  }
+
+  String getExpandedValue() {
+    if (expanded || path == null) {
+      return textField.getText();
+    }
+    return path;
+  }
+
+  void expand(final boolean expand) {
+    if (expanded == expand) {
+      return;
+    }
+    expanded = expand;
+    setExpanded();
+  }
+
+  /**
+   * When expand is true, show the file path.  When expand is false, show the file name.
+   * Handle changes: a new file name is appended to the original path.  A new path
+   * replaces the original path.
+   * @param expand
+   */
+  void setExpanded() {
+    if (!expanded) {
+      // Contract
+      // Save the path when contracting.
+      path = textField.getText();
+      // Set the contracted form of the text
+      textField.setText(FilePath.getFileName(path));
+    }
+    else {
+      // Expand
+      if (path != null && !path.matches("\\s*")) {
+        String oldName = FilePath.getFileName(path);
+        String newName = textField.getText();
+        if (newName.equals(oldName)) {
+          // The text hasn't changed.
+          textField.setText(path);
+        }
+        else if (!FilePath.isPath(newName)) {
+          // The text has changed, but is doesn't include a path, so replace the old file
+          // name with the new one in the path.
+          textField.setText(FilePath.replaceName(path, newName));
+        }
+        // A path has been entered while the field was contracted - nothing to do.
+      }
+      // Nothing is saved while the field is expanded.
+      path = null;
+    }
   }
 
   void setValue(ConstEtomoNumber value) {
-    setValue(value.toString(), false);
+    setValue(value.toString());
   }
 
   void setRangeValue(int start, int end) {
     endValue = end;
-    setValue(new Integer(start).toString() + " - " + new Integer(end).toString(), true);
+    setValue(new Integer(start).toString() + " - " + new Integer(end).toString());
   }
 
   void setValue() {
-    setValue("", false);
+    textField.setText("");
+    path = null;
   }
 
   void setValue(int value) {
-    setValue(new Integer(value).toString(), false);
+    setValue(new Integer(value).toString());
   }
 
   void setValue(double value) {
-    setValue(new Double(value).toString(), false);
+    setValue(new Double(value).toString());
   }
 
   void setValue(long value) {
-    setValue(new Long(value).toString(), false);
+    setValue(new Long(value).toString());
   }
 
   int getEndValue() {
-    if (!range) {
-      throw new IllegalStateException("range not in use");
-    }
     return endValue;
   }
 
@@ -413,31 +462,8 @@ final class FieldCell extends InputCell {
     textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 
-  void expand(boolean expanded) {
-    if (expanded && expandedValue != null) {
-      setValue(expandedValue);
-    }
-    else if (!expanded && contractedValue != null) {
-      setValue(contractedValue);
-    }
-  }
-
   boolean equals(String comp) {
     return getValue().equals(comp);
-  }
-
-  String getContractedValue() {
-    if (contractedValue == null) {
-      return "";
-    }
-    return contractedValue;
-  }
-
-  String getExpandedValue() {
-    if (expandedValue == null) {
-      return "";
-    }
-    return expandedValue;
   }
 
   private static final class TextFieldFocusListener implements FocusListener {

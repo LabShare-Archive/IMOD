@@ -377,7 +377,7 @@ public class Utilities {
     int minutes = (int) Math.floor(milliseconds / 60000);
     int seconds = (int) Math.floor((milliseconds - minutes * 60000) / 1000.0);
     String strSeconds = "";
-    //  Add a leading zero if less than 10 seconds
+    // Add a leading zero if less than 10 seconds
     if (seconds < 10) {
       strSeconds = "0";
     }
@@ -491,7 +491,7 @@ public class Utilities {
       return;
     }
     // Delete the existing backup file if it exists, otherwise the call will
-    // fail on windows 
+    // fail on windows
     if (destination.exists()) {
       Utilities.debugPrint(destination.getAbsolutePath() + " exists, deleting");
       if (!destination.delete()) {
@@ -614,7 +614,7 @@ public class Utilities {
         destBuffer.write(byteIn);
     }
 
-    //  TODO: does each object need to be closed indivudually
+    // TODO: does each object need to be closed indivudually
     if (sourceBuffer != null) {
       sourceBuffer.close();
     }
@@ -1027,7 +1027,7 @@ public class Utilities {
     if (label == null) {
       return null;
     }
-    //Place the label into a tokenizer
+    // Place the label into a tokenizer
     String name = label.trim().toLowerCase();
     PrimativeTokenizer tokenizer = new PrimativeTokenizer(name);
     StringBuffer buffer = new StringBuffer();
@@ -1045,20 +1045,20 @@ public class Utilities {
       e.printStackTrace();
       return label;
     }
-    //Remove unnecessary symbols and strings from the label.
+    // Remove unnecessary symbols and strings from the label.
     boolean ignoreParen = false;
     boolean ignoreBracket = false;
     while (token != null && !token.is(Token.Type.EOF) && !token.is(Token.Type.EOL)) {
       if (token.equals(Token.Type.SYMBOL, '(')) {
-        //ignore parenthesis and everything in them
+        // ignore parenthesis and everything in them
         ignoreParen = true;
       }
       else if (token.equals(Token.Type.SYMBOL, ')')) {
         ignoreParen = false;
       }
       else if (token.equals(Token.Type.SYMBOL, '<')) {
-        //Replace html (angle brackets and contents) with a space.  The space is
-        //necessary when a <br> is used.
+        // Replace html (angle brackets and contents) with a space. The space is
+        // necessary when a <br> is used.
         ignoreBracket = true;
         buffer.append(' ');
       }
@@ -1066,18 +1066,18 @@ public class Utilities {
         ignoreBracket = false;
       }
       else if (token.equals(Token.Type.SYMBOL, ':')) {
-        //ignore colons and everything after them
+        // ignore colons and everything after them
         break;
       }
       else if (!ignoreParen && !ignoreBracket) {
-        //Convert a dash to a space so that any mix of dashes and whitespace
-        //in the original label gets converted to a single dash in the next
-        //loop.  If the '-' is the first token, keep it
+        // Convert a dash to a space so that any mix of dashes and whitespace
+        // in the original label gets converted to a single dash in the next
+        // loop. If the '-' is the first token, keep it
         if (token.equals(Token.Type.SYMBOL, '-') && !firstToken) {
           buffer.append(' ');
         }
-        //Remove "." because it is recognized by autodoc.  Assuming that the "."
-        //is from an abbreviation.
+        // Remove "." because it is recognized by autodoc. Assuming that the "."
+        // is from an abbreviation.
         else if (!token.equals(Token.Type.SYMBOL, '.')) {
           buffer.append(token.getValue());
         }
@@ -1091,9 +1091,9 @@ public class Utilities {
         break;
       }
     }
-    //Load the processed string into the tokenizer
+    // Load the processed string into the tokenizer
     name = buffer.toString().trim();
-    //handle a string with nothing but strippable characters in it
+    // handle a string with nothing but strippable characters in it
     if (name.length() == 0) {
       return "-";
     }
@@ -1111,7 +1111,7 @@ public class Utilities {
       e.printStackTrace();
       return label;
     }
-    //Convert interior whitespace to a single dash
+    // Convert interior whitespace to a single dash
     while (token != null && !token.is(Token.Type.EOF) && !token.is(Token.Type.EOL)) {
       if (token.is(Token.Type.WHITESPACE)) {
         buffer.append('-');
@@ -1145,7 +1145,7 @@ public class Utilities {
       }
     }
     catch (InvalidParameterException e) {
-      //missing file
+      // missing file
       e.printStackTrace();
       return 1;
     }

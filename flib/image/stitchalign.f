@@ -119,8 +119,7 @@ c       Get various options
       ifMaxSize = PipGetTwoIntegers('SizeOfOutputFramesXandY', nxout, nyout)
 c       
 c       Open the smi file and make a list of Z values there
-      if (AdocRead(infofile) .lt. 0) call exitError
-     &    ('READING THE SUPERMONTAGE INFO FILE')
+      if (AdocRead(infofile) .lt. 0) call exitError('READING THE SUPERMONTAGE INFO FILE')
       numAllVols = AdocGetNumberOfSections('Piece')
       if (numAllVols .lt. 2) call exitError(
      &    'THERE IS ONLY ONE VOLUME LISTED IN THE SMI FILE')
@@ -224,8 +223,7 @@ c             A valid edge has a patch file - get shifts and x/y index
 c             
 c             read the patches in
             istrVector(numEdge) = indVec
-            call readConsensusVectors(i, listString, indVec, residCrit,
-     &          outlierCrit)
+            call readConsensusVectors(i, listString, indVec, residCrit, outlierCrit)
             numVectors(numEdge) = indVec - istrVector(numEdge)
             call setVectorGrid(numEdge)
             maxNumVecZ = max(maxNumVecZ, numVecGrid(3,numEdge))
@@ -251,10 +249,10 @@ c             Look up lower and upper piece in volume list
 c
 c         Check that each volume is connected - just quit if not
         do i = 1, numVols
-          if (iVolUpper(1,i) + iVolUpper(2,i) + iVolLower(1,i) +
-     &        iVolLower(2,i) .eq. 0) then
-            write(listString,'(a,3i4,a)')'THE VOLUME AT',ixPiece(i), iyPiece(
-     &          i), izval ,' HAS NO EDGES WITH OTHER VOLUMES'
+          if (iVolUpper(1,i) + iVolUpper(2,i) + iVolLower(1,i) + iVolLower(2,i) .eq. 0)
+     &        then
+            write(listString,'(a,3i4,a)')'THE VOLUME AT',ixPiece(i), iyPiece( i), izval,
+     &        ' HAS NO EDGES WITH OTHER VOLUMES'
             call exitError(trim(listString))
           endif
         enddo
@@ -280,8 +278,7 @@ c         find the rotation angle unless it was set
             enddo
           enddo
           xyRotation = -angsum / nsum
-          write(*,'(a,f6.1,a)')'Rotating all pieces by',xyRotation,
-     &        ' in X/Y plane'
+          write(*,'(a,f6.1,a)')'Rotating all pieces by',xyRotation, ' in X/Y plane'
         endif
 c
 c         Rotate the shifts if rotation is non-zero (don't need to keep old?)
@@ -314,8 +311,7 @@ c               print *,iv,iexy,dx,dy,(edgeShift(i,j),i=1,3)
               endif
               edgeShift(1,j) = dx
               edgeShift(2,j) = dy
-              edgeShift(3,j) = edgeShift(3,j) + nxyzin(3,iv) / 2. - 
-     &            nxyzin(3,jv) / 2.
+              edgeShift(3,j) = edgeShift(3,j) + nxyzin(3,iv) / 2. -  nxyzin(3,jv) / 2.
 c               print *,edgeShift(1,j),edgeShift(2,j),edgeShift(3,j)
               if (iexy .eq. 1) then
                 xsum = xsum - edgeShift(1,j)
@@ -332,8 +328,7 @@ c               print *,edgeShift(1,j),edgeShift(2,j),edgeShift(3,j)
         enddo
         intervalX = nint(xsum / max(1,nxsum))
         intervalY = nint(ysum / max(1,nysum))
-        print *,'Spacing between aligned pieces in X and Y:', intervalX,
-     &      intervalY
+        print *,'Spacing between aligned pieces in X and Y:', intervalX, intervalY
 c         
 c         If no output size entered, use the max size
         if (ifMaxSize .ne. 0) then
@@ -484,8 +479,7 @@ c             For errors except limit reached, give warning message and restart
             if (ierr .ne. 0 .and. ierr .ne. 3) then
               print *
               if (ierr.eq.1) print *,'Minimization error #1 - DG > 0'
-              if (ierr.eq.2) print *,
-     &            'Minimization error #2 - Linear search lost'
+              if (ierr.eq.2) print *, 'Minimization error #2 - Linear search lost'
               if (ierr.eq.4) print *,
      &            'Minimization error #4 - Matrix non-positive definite'
               if (ierr.eq.3) call exitError(
@@ -494,8 +488,7 @@ c             For errors except limit reached, give warning message and restart
      &            'metro step factor of ', facMetro * trialScale(metroLoop)
             endif
           enddo
-          if(ierr.ne.0)
-     &        call exitError('Search failed even after varying step factor')
+          if(ierr.ne.0) call exitError('Search failed even after varying step factor')
 c
           call stitchfunc(nvarsrch,var,finalErr,Grad)
           write(6,101)finalErr,ncycle
@@ -521,10 +514,8 @@ c             it - these will work the same as shift displacements
         enddo
         if (pairwise) then
 c           
-          write(*,'(/,a)')
-     &        'Resolving pairwise solution to solution for all volumes:'
-          call resolveEdgesToVolumes(edgeGeomVars, 7, volGeomVars, 7, maxvols,
-     &        1)
+          write(*,'(/,a)') 'Resolving pairwise solution to solution for all volumes:'
+          call resolveEdgesToVolumes(edgeGeomVars, 7, volGeomVars, 7, maxvols, 1)
 c           
 c           Get mag and comp back, then set up so stitchfunc can compute
 c           dxyz from the existing variable values
@@ -549,8 +540,7 @@ c         compute full transform and output to file
           enddo
           call xfmult3d(rmat, volShift(1,iv), fitMat(1,1,iv), fitdxyz(1,iv),
      &        fullMat(1,1,iv), fullDxyz(1,iv))
-          call xfInv3d(fullMat(1,1,iv), fullDxyz(1,iv), finvMat(1,1,iv),
-     &        finvDxyz(1,iv))
+          call xfInv3d(fullMat(1,1,iv), fullDxyz(1,iv), finvMat(1,1,iv), finvDxyz(1,iv))
           if (AdocGetSectionName('Piece', indSection(iv), listString) .lt. 0)
      &        call exitError('GETTING ADOC SECTION NAME FOR A PIECE')
           call rootAndExtension(listString, 'matxf', filename)
@@ -558,8 +548,8 @@ c         compute full transform and output to file
           write(1,104)((fullMat(i,j,iv),j=1,3), fullDxyz(i,iv),i=1,3)
 104       format(3f10.6,f10.3)
           close(1)
-          if (AdocSetKeyValue('Piece', indSection(iv), 'matxf', filename)
-     &        .ne. 0) call exitError('SETTING NEW KEY-VALUE PAIR')
+          if (AdocSetKeyValue('Piece', indSection(iv), 'matxf', filename) .ne. 0)
+     &        call exitError('SETTING NEW KEY-VALUE PAIR')
         enddo
 c         
 c         Transform the vectors to the new alignments then get some summary
@@ -583,20 +573,20 @@ c               Transform each position in lower and upper volume with added
 c               transform, and get vector from difference.  This matches the
 c               scaled residuals
 c              print *,'Volume, upper vol, xy, edge #:',iv,jv,iexy,j
-c             print *,numVectors(j),' positions'
+c             print *,numVectors(j),' positions',kstr,kend
               do k = kstr, kend
-                call transformPos(cenRot(1,k), fitMat(1,1,iv), fitdxyz(1,iv), 
-     &              nxyzout, nxyzout, poslo(1,k))
+                call transformPos(cenRot(1,k), fitMat(1,1,iv), fitdxyz(1,iv), nxyzout,
+     &             nxyzout, poslo(1,k))
+                
                 do i = 1, 3
                   var(i) = cenRot(i,k) + vecRot(i,k) - intervals(iexy,i)
                 enddo
-                call transformPos(var, fitMat(1,1,jv), fitdxyz(1,jv), 
-     &              nxyzout, nxyzout, posup(1,k))
+                call transformPos(var, fitMat(1,1,jv), fitdxyz(1,jv), nxyzout, nxyzout,
+     &              posup(1,k))
                 do i = 1, 3
                   cenRot(i,k) = poslo(i,k)
                   vecRot(i,k) = posup(i,k) + intervals(iexy,i) - poslo(i,k)
                 enddo
-c               write(*,'(3i6,4f9.2)')(nint(cenRot(i,k)),i=1,3),(vecRot(i,k),i=1,3)
               enddo
 c              
               do i = 1, 3
@@ -811,8 +801,7 @@ c
           call rootAndExtension(listString, 'patch', filename)
           call dopen(1, filename, 'new', 'f')
           write(1,'(i8,a)')numVecOut,' positions'
-          write(1,'(3i6,4f9.2)')((iposOut(i,j),i=1,3),(vecOut(i,j),i=1,4),
-     &        j=1,numVecOut)
+          write(1,'(3i6,4f9.2)')((iposOut(i,j),i=1,3),(vecOut(i,j),i=1,4), j=1,numVecOut)
           close(1)
           if (AdocSetKeyValue('Piece', indSection(iv), 'vectors', filename)
      &        .ne. 0) call exitError('SETTING NEW KEY-VALUE PAIR')
@@ -836,11 +825,9 @@ c         Add the output size and spacing for the section
      &      call exitError('SETTING NEW KEY-VALUE PAIR')
         endif
 
-        if (AdocSetThreeIntegers('Section', ix, 'outsize', nxout, nyout, nzout)
-     &      .ne. 0 .or.
-     &      AdocSetTwoIntegers('Section', ix, 'spacing', intervalX, intervalY)
-     &      .ne. 0 .or.
-     &      AdocSetFloat('Section', ix, 'intervalFactor', sampleFactor) .ne. 0)
+        if (AdocSetThreeIntegers('Section', ix, 'outsize', nxout, nyout, nzout) .ne. 0
+     &      .or. AdocSetTwoIntegers('Section', ix, 'spacing', intervalX, intervalY) .ne. 0
+     &      .or. AdocSetFloat('Section', ix, 'intervalFactor', sampleFactor) .ne. 0)
      &      call exitError('SETTING NEW KEY-VALUE PAIR')
       enddo
 c
@@ -854,8 +841,7 @@ c       Refinematch and residual vector file from Findwarp if they exist.
 c       Stores a vector in the arrays if it is still in all files and if
 c       its residual and outlier fraction are less than the criteria
 c
-      subroutine readConsensusVectors(iedge, patchfile, indVec, residCrit,
-     &    outlierCrit)
+      subroutine readConsensusVectors(iedge, patchfile, indVec, residCrit, outlierCrit)
       use stitchvars
       implicit none
       integer*4 iedge, indVec
@@ -880,8 +866,7 @@ c
         read(2, *, end=98,err=98) numReduce
         if (numReduce .gt. 0) then
           allocate(reduceCen(3,numReduce), stat = ierr)
-          if (ierr .ne. 0) call exitError(
-     &        'ALLOCATING MEMORY FOR REDUCED PATCHES')
+          call memoryError(ierr, 'ALLOCATING MEMORY FOR REDUCED PATCHES')
           do j = 1, numReduce
             read(2, *, end=98,err=98)(reduceCen(k, j), k = 1,3)
           enddo
@@ -894,8 +879,7 @@ c
         read(2, *, end=98,err=98) numResid
         if (numResid .gt. 0) then
           allocate(residCen(3,numResid), stat = ierr)
-          if (ierr .ne. 0) call exitError(
-     &        'ALLOCATING MEMORY FOR RESIDUAL PATCH DATA')
+          call memoryError(ierr, 'ALLOCATING MEMORY FOR RESIDUAL PATCH DATA')
 c           
 c           Read the residual vectors and eliminate outliers right here
           numResLeft = 0
@@ -918,9 +902,8 @@ c       Read in the vectors
       filename = patchfile
       do j = 1, numVecs
         if (indVec .ge. maxvecs) call exitError(
-     &    'TOO MANY PATCH VECTORS IN EDGES FOR ARRAYS')
-        read(1, *, end=98,err=98)(center(k,indVec),k=1,3),
-     &      (vector(k,indVec), k=1,3)
+     &      'TOO MANY PATCH VECTORS IN EDGES FOR ARRAYS')
+        read(1, *, end=98,err=98)(center(k,indVec),k=1,3), (vector(k,indVec), k=1,3)
 c         
 c         Look the vector up in the reduced vectors
         keep = .true.
@@ -1213,15 +1196,12 @@ c               for real variables, get the appropriate gradient sums
                     kstr = istrVector(indVector(iexy,ivf))
                     kend = kstr + numVectors(indVector(iexy,ivf)) - 1
                     if (ivs .eq. ivar) then
-                      dsum = dsum + gradientSum(da, resid, poslo, kstr, kend,
-     &                    -2.)
+                      dsum = dsum + gradientSum(da, resid, poslo, kstr, kend, -2.)
                     else if (jvs .eq. ivar) then
-                      dsum = dsum + gradientSum(da, resid, posup, kstr, kend,
-     &                    2.)
+                      dsum = dsum + gradientSum(da, resid, posup, kstr, kend, 2.)
                     endif
                     if (jvs .eq. numSolve) then
-                     dsum = dsum + gradientSum(dan, resid, posup, kstr, kend,
-     &                    -2.)
+                     dsum = dsum + gradientSum(dan, resid, posup, kstr, kend, -2.)
                     endif
                   endif
                 enddo
@@ -1528,9 +1508,8 @@ c
                 vecRot(i,k) = ysum + edgeShift(i,j) + volShift(i,jv) -
      &              volShift(i,iv) + intervals(iexy,i)
                 poslo(i,k) = scalexyz * (cenRot(i,k) - nxyzout(i) / 2.)
-                posup(i,k) = poslo(i,k) + scalexyz *
-     &              (vecRot(i,k) - intervals(iexy,i))
-c                 if (iv.eq.1.and.iexy.eq.2. .and. k .lt. kstr+5) print *,i,
+                posup(i,k) = poslo(i,k) + scalexyz * (vecRot(i,k) - intervals(iexy,i))
+c                 if (iv.eq.1.and.iexy.eq.2. .and. k .lt. kstr+1) print *,i,k
 c     &                center(i,k),vector(i,k),cenrot(i,k),vecrot(i,k),
 c     &                poslo(i,k)/scalexyz,posup(i,k)/scalexyz, intervals(iexy,i),
 c     &                ysum,edgeShift(i,j),volShift(i,iv),volShift(i,jv),
@@ -1586,8 +1565,7 @@ c       Get mean residuals
             kstr = istrVector(j)
             kend = kstr + numVectors(j) - 1
             do k = kstr, kend
-              dist = sqrt(resid(1,k)**2 + resid(2,k)**2 + resid(3,k)**2) /
-     &            scalexyz
+              dist = sqrt(resid(1,k)**2 + resid(2,k)**2 + resid(3,k)**2) / scalexyz
               dsum = dsum + dist
               dsumsq = dsumsq + dist**2
               nsum = nsum + 1

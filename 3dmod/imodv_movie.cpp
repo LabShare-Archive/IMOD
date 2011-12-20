@@ -27,27 +27,21 @@
 #include "control.h"
 #include "scalebar.h"
 
-/* The movie control structure  */
-struct imodvMovieDialogStruct
-{
-  imodvMovieForm *dia;
-  ImodvApp  *a;
-  int saved;
-  int reverse;
-  int longway;
-  int montage;
-  int file_format;
-  int fullaxis;
-  int abort;
-  int frames;
-  int montFrames;
-  int overlap;
-};
-
-/* The resident structure and pointer to it */
-static struct imodvMovieDialogStruct movieStruct = 
-  {NULL, NULL, 0,0,0,0,0,0,0,0,0,0};
-static struct imodvMovieDialogStruct *movie = &movieStruct;
+// Static variables with new naming convention
+static imodvMovieForm *sDia = NULL;
+static ImodvApp  *sApp = NULL;
+static int sSaved = 0;
+static int sReverse = 0;
+static int sLongway = 0;
+static int sMontage = 0;
+static int sFile_format = 0;
+static int sFullaxis = 0;
+static int sAbort = 0;
+static int sFrames = 0;
+static int sMontFrames = 0;
+static int sOverlap = 0;
+static IclipPlanes sStartClips;
+static IclipPlanes sEndClips;
 
 /* Local functions */
 static void imodvMakeMontage(int frames, int overlap);
@@ -71,44 +65,46 @@ static void xinput(void)
 void imodvMovieSetStart()
 {
   Iview *vw = &Imodv->imod->view[0];
-  movie->fullaxis = 0;
+  sFullaxis = 0;
 
-  movie->dia->setStart(0, vw->rot.x);
-  movie->dia->setStart(1, vw->rot.y);
-  movie->dia->setStart(2, vw->rot.z);
-  movie->dia->setStart(3, vw->trans.x);
-  movie->dia->setStart(4, vw->trans.y);
-  movie->dia->setStart(5, vw->trans.z);
-  movie->dia->setStart(6, vw->rad);
+  sDia->setStart(0, vw->rot.x);
+  sDia->setStart(1, vw->rot.y);
+  sDia->setStart(2, vw->rot.z);
+  sDia->setStart(3, vw->trans.x);
+  sDia->setStart(4, vw->trans.y);
+  sDia->setStart(5, vw->trans.z);
+  sDia->setStart(6, vw->rad);
   if (!Imodv->standalone) {
-    movie->dia->setStart(7, (int)(Imodv->vi->xmouse + 1.5));
-    movie->dia->setStart(8, (int)(Imodv->vi->ymouse + 1.5));
-    movie->dia->setStart(9, (int)(Imodv->vi->zmouse + 1.5));
-    movie->dia->setStart(10, imodvImageGetTransparency());
-    movie->dia->setStart(11, imodvImageGetThickness());
+    sDia->setStart(7, (int)(Imodv->vi->xmouse + 1.5));
+    sDia->setStart(8, (int)(Imodv->vi->ymouse + 1.5));
+    sDia->setStart(9, (int)(Imodv->vi->zmouse + 1.5));
+    sDia->setStart(10, imodvImageGetTransparency());
+    sDia->setStart(11, imodvImageGetThickness());
   }
+  imodClipsCopy(&vw->clips, &sStartClips);
 }
 
 // Set the ending values to the current display values
 void imodvMovieSetEnd()
 {
   Iview *vw = &Imodv->imod->view[0];
-  movie->fullaxis = 0;
+  sFullaxis = 0;
 
-  movie->dia->setEnd(0, vw->rot.x);
-  movie->dia->setEnd(1, vw->rot.y);
-  movie->dia->setEnd(2, vw->rot.z);
-  movie->dia->setEnd(3, vw->trans.x);
-  movie->dia->setEnd(4, vw->trans.y);
-  movie->dia->setEnd(5, vw->trans.z);
-  movie->dia->setEnd(6, vw->rad);
+  sDia->setEnd(0, vw->rot.x);
+  sDia->setEnd(1, vw->rot.y);
+  sDia->setEnd(2, vw->rot.z);
+  sDia->setEnd(3, vw->trans.x);
+  sDia->setEnd(4, vw->trans.y);
+  sDia->setEnd(5, vw->trans.z);
+  sDia->setEnd(6, vw->rad);
   if (!Imodv->standalone) {
-    movie->dia->setEnd(7, (int)(Imodv->vi->xmouse + 1.5));
-    movie->dia->setEnd(8, (int)(Imodv->vi->ymouse + 1.5));
-    movie->dia->setEnd(9, (int)(Imodv->vi->zmouse + 1.5));
-    movie->dia->setEnd(10, imodvImageGetTransparency());
-    movie->dia->setEnd(11, imodvImageGetThickness());
+    sDia->setEnd(7, (int)(Imodv->vi->xmouse + 1.5));
+    sDia->setEnd(8, (int)(Imodv->vi->ymouse + 1.5));
+    sDia->setEnd(9, (int)(Imodv->vi->zmouse + 1.5));
+    sDia->setEnd(10, imodvImageGetTransparency());
+    sDia->setEnd(11, imodvImageGetThickness());
   }
+  imodClipsCopy(&vw->clips, &sEndClips);
 }
 
 // Do full axis rotation: set start and end both to same values
@@ -116,43 +112,43 @@ void imodvMovieFullAxis(int ixy)
 {
   imodvMovieSetStart();
   imodvMovieSetEnd();
-  movie->fullaxis = ixy;
+  sFullaxis = ixy;
 }
 
 // The dialog say it wants to close, so send it close signal
 void imodvMovieQuit()
 {
-  movie->dia->close();
+  sDia->close();
 }
 
 // When the dialog actually closes, get button states, clean up and stop movie
 void imodvMovieClosing()
 {
-  movie->dia->getButtonStates(movie->longway, movie->reverse, movie->montage,
-                              movie->file_format, movie->saved);
-  movie->dia->getFrameBoxes(movie->frames, movie->montFrames);
-  imodvDialogManager.remove((QWidget *)movie->dia);
-  movie->dia = NULL;
-  movie->abort = 1;
+  sDia->getButtonStates(sLongway, sReverse, sMontage,
+                              sFile_format, sSaved);
+  sDia->getFrameBoxes(sFrames, sMontFrames);
+  imodvDialogManager.remove((QWidget *)sDia);
+  sDia = NULL;
+  sAbort = 1;
 }
 
 void imodvMovieStop()
 {
-  movie->abort = 1;
+  sAbort = 1;
 }
 
 void imodvMovieMake()
 {
-  movie->dia->getButtonStates(movie->longway, movie->reverse, movie->montage,
-                              movie->file_format, movie->saved);
-  movie->dia->getFrameBoxes(movie->frames, movie->montFrames);
+  sDia->getButtonStates(sLongway, sReverse, sMontage,
+                              sFile_format, sSaved);
+  sDia->getFrameBoxes(sFrames, sMontFrames);
 
   /* DNM: only make if not already making */
-  if (movie->abort) {
-    if (movie->montage)
-      imodvMakeMontage(movie->montFrames, movie->overlap);
+  if (sAbort) {
+    if (sMontage)
+      imodvMakeMontage(sMontFrames, sOverlap);
     else
-      imodvMakeMovie(movie->frames);
+      imodvMakeMovie(sFrames);
   }
 }
 
@@ -164,35 +160,35 @@ void imodvMovieDialog(ImodvApp *a, int state)
 
   // Initialize first time, save between invocations
   if (first){
-    movie->dia = NULL;
-    movie->reverse = 0;
-    movie->longway = 0;
-    movie->file_format = 0;
-    movie->montage = 0;
-    movie->frames = 10;
-    movie->montFrames = 2;
-    movie->overlap = 4;
+    sDia = NULL;
+    sReverse = 0;
+    sLongway = 0;
+    sFile_format = 0;
+    sMontage = 0;
+    sFrames = 10;
+    sMontFrames = 2;
+    sOverlap = 4;
     first = 0;
   }
 
   if (!state){
-    if (movie->dia) 
-      movie->dia->close();
+    if (sDia) 
+      sDia->close();
     return;
   }
-  if (movie->dia){
-    movie->dia->raise();
+  if (sDia){
+    sDia->raise();
     return;
   }
 
   // Initialize these every time
-  movie->a = a;
-  movie->saved   = 0;
-  movie->abort = 1;   /* DNM: make this a flag that not making movie */
+  sApp = a;
+  sSaved   = 0;
+  sAbort = 1;   /* DNM: make this a flag that not making movie */
 
-  movie->dia = new imodvMovieForm(imodvDialogManager.parent(IMODV_DIALOG), 
+  sDia = new imodvMovieForm(imodvDialogManager.parent(IMODV_DIALOG), 
                                   Qt::Window);
-  if (!movie->dia){
+  if (!sDia){
     dia_err("Failed to create 3dmodv movie window!");
     return;
   }
@@ -203,43 +199,43 @@ void imodvMovieDialog(ImodvApp *a, int state)
   if (window_name)
     free(window_name);
   if (!qstr.isEmpty())
-    movie->dia->setWindowTitle(qstr);
+    sDia->setWindowTitle(qstr);
 
   // Set the states
   imodvMovieSetStart();
   imodvMovieSetEnd();
-  movie->dia->setButtonStates(movie->longway, movie->reverse, movie->montage,
-                              movie->file_format, movie->saved);
-  movie->dia->setFrameBoxes(movie->frames, movie->montFrames);
-  imodvDialogManager.add((QWidget *)movie->dia, IMODV_DIALOG);
-  adjustGeometryAndShow((QWidget *)movie->dia, IMODV_DIALOG);
+  sDia->setButtonStates(sLongway, sReverse, sMontage,
+                              sFile_format, sSaved);
+  sDia->setFrameBoxes(sFrames, sMontFrames);
+  imodvDialogManager.add((QWidget *)sDia, IMODV_DIALOG);
+  adjustGeometryAndShow((QWidget *)sDia, IMODV_DIALOG);
 }
 
 static void setstep(int index, int frame, int loLim, int hiLim, float *start,
                     float *step)
 {
   float tmin, tmax;
-  movie->dia->readStartEnd(index, tmin, tmax);
+  sDia->readStartEnd(index, tmin, tmax);
 
   // If the item has a limit, make sure it is between 1 and limit
   if (hiLim && tmin < loLim) {
     tmin = (float)loLim;
-    movie->dia->setStart(index, tmin);
+    sDia->setStart(index, tmin);
   }
   if (hiLim && tmin > hiLim) {
     tmin = (float)hiLim;
-    movie->dia->setStart(index, tmin);
+    sDia->setStart(index, tmin);
   } 
   if (hiLim && tmax < loLim) {
     tmax = (float)loLim;
-    movie->dia->setEnd(index, tmax);
+    sDia->setEnd(index, tmax);
   }
   if (hiLim && tmax > hiLim) {
     tmax = (float)hiLim;
-    movie->dia->setEnd(index, tmax);
+    sDia->setEnd(index, tmax);
   }
 
-  if (movie->reverse){
+  if (sReverse){
     *start = tmax;
     *step  = (tmin - tmax) / (float)frame;
   }else{
@@ -250,16 +246,16 @@ static void setstep(int index, int frame, int loLim, int hiLim, float *start,
 
 void imodvMovieUpdate()
 {
-  if (movie->dia)
-    movie->dia->setNonTifLabel();
+  if (sDia)
+    sDia->setNonTifLabel();
 }
 
 static void imodvMakeMovie(int frames)
 {
-  ImodvApp *a = movie->a;
+  ImodvApp *a = sApp;
   Iview *vw;
   
-  int frame;
+  int frame, pl, nsteps;
   float astart, astep;
   float bstart, bstep;
   float gstart, gstep;
@@ -276,32 +272,32 @@ static void imodvMakeMovie(int frames)
 
   if (frames <= 0)
     return;
-  frame = frames - 1;
-  if (!frame)
-    frame = 1;
+  nsteps = frames - 1;
+  if (!nsteps)
+    nsteps = 1;
 
   xImStep = yImStep = zImStep = 0.;
-  setstep(0, frame, 0, 0, &astart, &astep);
-  setstep(1, frame, 0, 0, &bstart, &bstep);
-  setstep(2, frame, 0, 0, &gstart, &gstep);
-  setstep(3, frame, 0, 0, &xtstart, &xtstep);
-  setstep(4, frame, 0, 0, &ytstart, &ytstep);
-  setstep(5, frame, 0, 0, &ztstart, &ztstep);
-  setstep(6, frame, 0, 0, &zstart, &zstep);
+  setstep(0, nsteps, 0, 0, &astart, &astep);
+  setstep(1, nsteps, 0, 0, &bstart, &bstep);
+  setstep(2, nsteps, 0, 0, &gstart, &gstep);
+  setstep(3, nsteps, 0, 0, &xtstart, &xtstep);
+  setstep(4, nsteps, 0, 0, &ytstart, &ytstep);
+  setstep(5, nsteps, 0, 0, &ztstart, &ztstep);
+  setstep(6, nsteps, 0, 0, &zstart, &zstep);
   if (!a->standalone) {
-    setstep(7, frame, 1, a->vi->xsize, &xImStart, &xImStep);
-    setstep(8, frame, 1, a->vi->ysize, &yImStart, &yImStep);
-    setstep(9, frame, 1, a->vi->zsize, &zImStart, &zImStep);
-    setstep(10, frame, 0, 100, &transpStart, &transpStep);
-    setstep(11, frame, 1, a->vi->zsize, &thickStart, &thickStep);
+    setstep(7, nsteps, 1, a->vi->xsize, &xImStart, &xImStep);
+    setstep(8, nsteps, 1, a->vi->ysize, &yImStart, &yImStep);
+    setstep(9, nsteps, 1, a->vi->zsize, &zImStart, &zImStep);
+    setstep(10, nsteps, 0, 100, &transpStart, &transpStep);
+    setstep(11, nsteps, 1, a->vi->zsize, &thickStart, &thickStep);
   }
 
   a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
   a->movie = 0;
   a->moveall = 0;
 
-  zfac = pow ((double)(zstart + zstep * frame) / zstart,
-              1.0 / (double)frame);
+  zfac = pow ((double)(zstart + zstep * nsteps) / zstart,
+              1.0 / (double)nsteps);
 
   vw = a->imod->view;
   vw->rad   = zstart;
@@ -311,6 +307,7 @@ static void imodvMakeMovie(int frames)
   vw->trans.x = xtstart;
   vw->trans.y = ytstart;
   vw->trans.z = ztstart;
+  imodClipsCopy(&sStartClips, &vw->clips);
   mat = imodMatNew(3);
   mati = imodMatNew(3);
   matp = imodMatNew(3);
@@ -325,12 +322,12 @@ static void imodvMakeMovie(int frames)
   /* get incremental rotation matrix */
 
   delangle = 360. / frames;
-  if (movie->reverse)
+  if (sReverse)
     delangle *= -1.0;
 
-  if(movie->fullaxis == IMODV_MOVIE_FULLAXIS_X)
+  if(sFullaxis == IMODV_MOVIE_FULLAXIS_X)
     imodMatRot(mati, delangle, b3dX);
-  else if(movie->fullaxis == IMODV_MOVIE_FULLAXIS_Y)
+  else if(sFullaxis == IMODV_MOVIE_FULLAXIS_Y)
     imodMatRot(mati, delangle, b3dY);
   else {
 
@@ -341,37 +338,43 @@ static void imodvMakeMovie(int frames)
     imodMatRot(mat, (double)-astart, b3dX);
     imodMatRot(mat, (double)-bstart, b3dY);
     imodMatRot(mat, (double)-gstart, b3dZ);
-    imodMatRot(mat, (double)(gstart + frame * gstep), b3dZ);
-    imodMatRot(mat, (double)(bstart + frame * bstep), b3dY);
-    imodMatRot(mat, (double)(astart + frame * astep), b3dX);
+    imodMatRot(mat, (double)(gstart + nsteps * gstep), b3dZ);
+    imodMatRot(mat, (double)(bstart + nsteps * bstep), b3dY);
+    imodMatRot(mat, (double)(astart + nsteps * astep), b3dX);
     imodMatFindVector(mat, &angle, &v);
-    delangle = angle / frame;
-    if (movie->longway)
-      delangle = (angle - 360.) / frame;
+    delangle = angle / nsteps;
+    if (sLongway)
+      delangle = (angle - 360.) / nsteps;
     imodMatRotateVector(mati, delangle, &v);
   }
 
-  /* Return if nothing is going to change */
-  if (fabs((double)delangle) < 1.e-3 && !zstep && !xtstep && !ytstep &&
+  /* Evaluate whether clip planes change and return if nothing is going to change */
+  frame = 0;
+  for (pl = 0; pl < B3DMIN(sStartClips.count, sEndClips.count); pl++)
+    if (sEndClips.point[pl].x != sStartClips.point[pl].x ||
+        sEndClips.point[pl].y != sStartClips.point[pl].y ||
+        sEndClips.point[pl].z != sStartClips.point[pl].z)
+      frame = 1;
+
+  if (fabs((double)delangle) < 1.e-3 && !frame && !zstep && !xtstep && !ytstep &&
       !ztstep && !xImStep && !yImStep && !zImStep && !thickStep && !transpStep)
     return;
 
-
-  movie->abort = 0;
+  sAbort = 0;
   for(frame = 1; frame <= frames; frame++){
-    if (movie->saved) {
-      if (movie->file_format == 2)
+    if (sSaved) {
+      if (sFile_format == 2)
         ImodPrefs->set2ndSnapFormat();
-      imodv_auto_snapshot(QString::null, movie->file_format ? SnapShot_RGB : 
+      imodv_auto_snapshot(QString::null, sFile_format ? SnapShot_RGB : 
                           SnapShot_TIF);
-      if (movie->file_format == 2)
+      if (sFile_format == 2)
         ImodPrefs->restoreSnapFormat();
     } else
       imodvDraw(a);
 
     xinput(); 
 
-    if (movie->abort)
+    if (sAbort)
       break;
 
     /* DNM: don't change the angle after the last step */
@@ -402,9 +405,17 @@ static void imodvMakeMovie(int frames)
         imodvImageSetThickTrans((int)(thickStart + frame * thickStep + 0.5),
                                 (int)(transpStart + frame * transpStep + 0.5));
       }
+      for (pl = 0; pl < B3DMIN(sStartClips.count, sEndClips.count); pl++) {
+        vw->clips.point[pl].x = sStartClips.point[pl].x + 
+          frame * (sEndClips.point[pl].x - sStartClips.point[pl].x) / frames;
+        vw->clips.point[pl].y = sStartClips.point[pl].y + 
+          frame * (sEndClips.point[pl].y - sStartClips.point[pl].y) / frames;
+        vw->clips.point[pl].z = sStartClips.point[pl].z + 
+          frame * (sEndClips.point[pl].z - sStartClips.point[pl].z) / frames;
+      }
     }
   }
-  movie->abort = 1;
+  sAbort = 1;
 
   imodMatDelete(mat);
   imodMatDelete(mati);
@@ -422,7 +433,7 @@ typedef struct {
 /* Routine to make a montage */
 static void imodvMakeMontage(int frames, int overlap)
 {
-  ImodvApp *a = movie->a;
+  ImodvApp *a = sApp;
   Iview *vw;
   MontModelData *mmd;
   Imat *mat;
@@ -464,7 +475,7 @@ static void imodvMakeMontage(int frames, int overlap)
   a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
   a->movie = 0;
   a->moveall = 0;
-  movie->abort = 0;
+  sAbort = 0;
   mmd = B3DMALLOC(MontModelData, a->nm);
   if (!mmd) {
     imodError(NULL, "Failed to get memory for saving data per model.\n");
@@ -565,7 +576,7 @@ static void imodvMakeMontage(int frames, int overlap)
         return;
       }
 
-      if (movie->abort)
+      if (sAbort)
         break;
 
       /* Each X, advance along row */
@@ -584,14 +595,14 @@ static void imodvMakeMontage(int frames, int overlap)
       vw->trans.y -= mmd[m].yunit.y - frames * mmd[m].xunit.y;
       vw->trans.z -= mmd[m].yunit.z - frames * mmd[m].xunit.z;
     }
-    if (movie->abort)
+    if (sAbort)
       break;
   }
 
   /* If not aborted, then get snapshot name and save data */
-  if (!movie->abort)
+  if (!sAbort)
     utilFinishMontSnap(linePtrs, xFullSize, yFullSize, 
-                       movie->file_format, a->snap_fileno, 4, zoom,
+                       sFile_format, a->snap_fileno, 4, zoom,
                        "modv", "3dmodv: Saving");
   
   utilFreeMontSnapArrays(fullPix, numChunks, framePix, linePtrs);
@@ -600,7 +611,7 @@ static void imodvMakeMontage(int frames, int overlap)
     imodv_swapbuffers(a);
     a->mainWin->mCurGLw->setBufferSwapAuto(true);
   }
-  movie->abort = 1;
+  sAbort = 1;
   for (m = mstart; m <= mend; m++) {
     vw = a->mod[m]->view;
     vw->rad = mmd[m].radsave;

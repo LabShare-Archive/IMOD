@@ -295,7 +295,10 @@ final class ExpandButton extends MultiLineButton {
 
   void add(final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints) {
+    double oldWeightx = constraints.weightx;
+    constraints.weightx = 0.0;
     layout.setConstraints(getComponent(), constraints);
+    constraints.weightx = oldWeightx;
     panel.add(getComponent());
     jpanelContainer = panel;
   }

@@ -5,7 +5,7 @@ if.var.quick.run.function.quick=
 if.var.quick.return=
 if.var.test-gui.run.function.test-gui=
 run.function.compute-alignment=
-format.bn.done=
+bn.done=
 
 
 [function = quick]
@@ -181,15 +181,20 @@ copy.file=%{dataset}%{axis}.zfac
 
 
 [function = test-gui]
-run.function.general-test-gui=
-run.function.global-variables-test-gui=
-run.function.local-variables-test-gui=
+run.function.general-test-gui-basic=
+run.function.global-variables-test-gui-basic=
+run.function.local-variables-test-gui-basic=
+bn.advanced=
+run.function.general-test-gui-advanced=
+run.function.global-variables-test-gui-advanced=
+run.function.local-variables-test-gui-advanced=
+bn.basic=
   
   
 # General tab test gui
 
 
-[function = general-test-gui]
+[function = general-test-gui-basic]
 tb.general=
 assert.tf.list-of-views-to-exclude=
 assert.tf.separate-view-groups=
@@ -212,14 +217,20 @@ assert.enabled.bn.view/edit-fiducial-model=
 assert.enabled.bn.view-3d-model=
 assert.enabled.bn.view-residual-vectors=
 # test panels
-run.function.residual-reporting-test-gui=
-run.function.volume-position-parameters-test-gui=
-run.function.minimization-parameters-test-gui=
-run.function.local-alignment-parameters-test-gui=
+run.function.residual-reporting-test-gui-basic=
+run.function.volume-position-parameters-test-gui-basic=
+run.function.local-alignment-parameters-test-gui-basic=
 
 
-[function = residual-reporting-test-gui]
+[function = general-test-gui-advanced]
 tb.general=
+# test panels
+run.function.minimization-parameters-test-gui-advanced=
+run.function.local-alignment-parameters-test-gui-advanced=
+
+
+
+[function = residual-reporting-test-gui-basic]
 assert.tf.threshold-for-residual-report=3.0
 assert.rb.all-views=on
 assert.rb.neighboring-views=off
@@ -229,8 +240,7 @@ assert.enabled.rb.all-views=
 assert.enabled.rb.neighboring-views=
 
 
-[function = volume-position-parameters-test-gui]
-tb.general=
+[function = volume-position-parameters-test-gui-basic]
 # check values
 assert.tf.total-tilt-angle-offset=0.0
 assert.tf.tilt-axis-z-shift=0.0
@@ -239,20 +249,16 @@ assert.enabled.tf.total-tilt-angle-offset=
 assert.enabled.tf.tilt-axis-z-shift=
 
 
-[function = minimization-parameters-test-gui]
-tb.general=
-bn.advanced=
+[function = minimization-parameters-test-gui-advanced]
 # check values
 assert.tf.metro-factor=0.25
 assert.tf.cycle-limit=1000
 # check enabled/disabled
 assert.enabled.tf.metro-factor=
 assert.enabled.tf.cycle-limit=
-format.bn.basic=
 
 
-[function = local-alignment-parameters-test-gui]
-tb.general=
+[function = local-alignment-parameters-test-gui-basic]
 # check values
 assert.cb.enable-local-alignments=0
 assert.rb.target-patch-size=on
@@ -260,16 +266,6 @@ assert.tf.target-patch-size=700,700
 assert.rb.#-of-local-patches=off
 assert.tf.#-of-local-patches=5,5
 assert.tf.min-#-of-fiducials=8,3
-bn.advanced=
-assert.tf.overlap-factor=0.5,0.5
-cb.enable-local-alignments=on
-rb.#-of-local-patches=
-assert.tf.min-local-patch-size-or-overlap-factor=0.5,0.5
-rb.target-patch-size=
-cb.enable-local-alignments=off
-if.var.single.assert.cb.use-global-x-y-z-coordinates=off
-if.var.dual.assert.cb.use-global-x-y-z-coordinates=on
-format.bn.basic=
 # check enabled/disabled
 cb.enable-local-alignments=off
 assert.enabled.cb.enable-local-alignments=
@@ -278,10 +274,6 @@ assert.disabled.tf.target-patch-size=
 assert.disabled.rb.#-of-local-patches=
 assert.disabled.tf.#-of-local-patches=
 assert.disabled.tf.min-#-of-fiducials=
-bn.advanced=
-assert.disabled.tf.overlap-factor=
-assert.disabled.cb.use-global-x-y-z-coordinates=
-format.bn.basic=
 cb.enable-local-alignments=on
 rb.target-patch-size=
 assert.enabled.rb.target-patch-size=
@@ -289,10 +281,6 @@ assert.enabled.tf.target-patch-size=
 assert.enabled.rb.#-of-local-patches=
 assert.disabled.tf.#-of-local-patches=
 assert.enabled.tf.min-#-of-fiducials=
-bn.advanced=
-assert.enabled.tf.overlap-factor=
-assert.enabled.cb.use-global-x-y-z-coordinates=
-bn.basic=
 rb.#-of-local-patches=
 assert.disabled.tf.target-patch-size=
 assert.enabled.tf.#-of-local-patches=
@@ -300,28 +288,54 @@ rb.target-patch-size=
 cb.enable-local-alignments=off
 
 
+[function = local-alignment-parameters-test-gui-advanced]
+# check values
+assert.tf.overlap-factor=0.5,0.5
+cb.enable-local-alignments=on
+rb.#-of-local-patches=
+assert.tf.min-local-patch-size-or-overlap-factor=0.5,0.5
+rb.target-patch-size=
+cb.enable-local-alignments=off
+if.var.single.assert.cb.use-global-x-y-z-coordinates=off
+if.var.dual.assert.cb.use-global-x-y-z-coordinates=on
+# check enabled/disabled
+cb.enable-local-alignments=off
+assert.disabled.tf.overlap-factor=
+assert.disabled.cb.use-global-x-y-z-coordinates=
+cb.enable-local-alignments=on
+rb.target-patch-size=
+assert.enabled.tf.overlap-factor=
+assert.enabled.cb.use-global-x-y-z-coordinates=
+cb.enable-local-alignments=off
+
+
+
 # Global Variables tab test gui
 
 
-[function = global-variables-test-gui]
+[function = global-variables-test-gui-basic]
 tb.general.1=
-# check values
-bn.advanced=
-assert.cb.solve-for-single-stretch-during-projection=off
-format.bn.basic=
 # check enabled/disabled
-bn.advanced=
-assert.enabled.cb.solve-for-single-stretch-during-projection=
-format.bn.basic=
-run.function.rotation-solution-type-test-gui=
-run.function.magnification-solution-type-test-gui=
-run.function.tilt-angle-solution-type-test-gui=
-run.function.distortion-solution-type-test-gui=
+run.function.rotation-solution-type-test-gui-basic=
+run.function.magnification-solution-type-test-gui-basic=
+run.function.tilt-angle-solution-type-test-gui-basic=
+run.function.distortion-solution-type-test-gui-basic=
 run.function.beam-tilt-test-gui=
 
 
-[function = rotation-solution-type-test-gui]
+[function = global-variables-test-gui-advanced]
 tb.general.1=
+# check values
+assert.cb.solve-for-single-stretch-during-projection=off
+# check enabled/disabled
+assert.enabled.cb.solve-for-single-stretch-during-projection=
+run.function.rotation-solution-type-test-gui-advanced=
+run.function.magnification-solution-type-test-gui-advanced=
+run.function.tilt-angle-solution-type-test-gui-advanced=
+run.function.distortion-solution-type-test-gui-advanced=
+
+
+[function = rotation-solution-type-test-gui-basic]
 # check values
 assert.rb.no-rotation=off
 assert.rb.one-rotation=off
@@ -329,9 +343,6 @@ assert.rb.group-rotations=off
 assert.rb.solve-for-all-rotations=on
 assert.tf.rotation-angle=%{image-rotation}
 assert.tf.group-size=5
-bn.advanced=
-assert.tf.non-default-grouping=
-format.bn.basic=
 # check enabled/disabled
 assert.enabled.rb.no-rotation=
 assert.enabled.rb.one-rotation=
@@ -340,151 +351,143 @@ assert.enabled.rb.solve-for-all-rotations=
 rb.no-rotation=
 assert.enabled.tf.rotation-angle=
 assert.disabled.tf.group-size=
-bn.advanced=
-assert.disabled.tf.non-default-grouping=
-format.bn.basic=
 rb.one-rotation=
 assert.disabled.tf.rotation-angle=
 assert.disabled.tf.group-size=
-bn.advanced=
-assert.disabled.tf.non-default-grouping=
-bn.basic=
 rb.group-rotations=
 assert.disabled.tf.rotation-angle=
 assert.enabled.tf.group-size=
-bn.advanced=
-assert.enabled.tf.non-default-grouping=
-format.bn.basic=
 rb.solve-for-all-rotations=
 assert.disabled.tf.rotation-angle=
 assert.disabled.tf.group-size=
-bn.advanced=
+
+
+[function = rotation-solution-type-test-gui-advanced]
+# check values
+assert.tf.non-default-grouping=
+# check enabled/disabled
+rb.no-rotation=
 assert.disabled.tf.non-default-grouping=
-format.bn.basic=
+rb.one-rotation=
+assert.disabled.tf.non-default-grouping=
+rb.group-rotations=
+assert.enabled.tf.non-default-grouping=
+rb.solve-for-all-rotations=
+assert.disabled.tf.non-default-grouping=
 
 
-[function = magnification-solution-type-test-gui]
-tb.general.1=
+[function = magnification-solution-type-test-gui-basic]
 # check values
 assert.rb.fixed-magnification-at-10=off
 assert.rb.group-magnifications=off
 assert.rb.solve-for-all-magnifications=on
 assert.tf.group-size.1=4
-bn.advanced=
-assert.tf.reference-view=1
-assert.tf.non-default-grouping.1=
-format.bn.basic=
 # check enabled/disabled
 rb.fixed-magnification-at-10=
 assert.enabled.rb.fixed-magnification-at-10=
 assert.enabled.rb.group-magnifications=
 assert.enabled.rb.solve-for-all-magnifications=
-bn.advanced=
-assert.enabled.tf.reference-view=
-format.bn.basic=
 rb.fixed-magnification-at-10=
 assert.disabled.tf.group-size.1=
-bn.advanced=
-assert.disabled.tf.non-default-grouping.1=
-format.bn.basic=
 rb.group-magnifications=
 assert.enabled.tf.group-size.1=
-bn.advanced=
-assert.enabled.tf.non-default-grouping.1=
-format.bn.basic=
 rb.solve-for-all-magnifications=
 assert.disabled.tf.group-size.1=
-bn.advanced=
+
+
+[function = magnification-solution-type-test-gui-advanced]
+# check values
+assert.tf.reference-view=1
+assert.tf.non-default-grouping.1=
+# check enabled/disabled
+rb.fixed-magnification-at-10=
+assert.enabled.tf.reference-view=
+rb.fixed-magnification-at-10=
 assert.disabled.tf.non-default-grouping.1=
-format.bn.basic=
+rb.group-magnifications=
+assert.enabled.tf.non-default-grouping.1=
+rb.solve-for-all-magnifications=
+assert.disabled.tf.non-default-grouping.1=
 
 
-[function = tilt-angle-solution-type-test-gui]
-tb.general.1=
+[function = tilt-angle-solution-type-test-gui-basic]
 # check values
 assert.rb.fixed-tilt-angles=off
 assert.rb.group-tilt-angles=on
 assert.rb.solve-for-all-except-minimum-tilt=off
 assert.tf.group-size.2=5
-bn.advanced=
-assert.tf.non-default-grouping.2=
-format.bn.basic=
 # check enabled/disabled
 assert.enabled.rb.fixed-tilt-angles=
 assert.enabled.rb.group-tilt-angles=
 assert.enabled.rb.solve-for-all-except-minimum-tilt=
 rb.fixed-tilt-angles=
 assert.disabled.tf.group-size.2=
-bn.advanced=
-assert.disabled.tf.non-default-grouping.2=
-format.bn.basic=
 rb.group-tilt-angles=
 assert.enabled.tf.group-size.2=
-bn.advanced=
-assert.enabled.tf.non-default-grouping.2=
-bn.basic=
 rb.solve-for-all-except-minimum-tilt=
 assert.disabled.tf.group-size.2=
-bn.advanced=
-assert.disabled.tf.non-default-grouping.2=
-format.bn.basic=
 rb.group-tilt-angles=
 
 
-[function = distortion-solution-type-test-gui]
-tb.general.1=
-bn.advanced=
-rb.no-beam-tilt=
-format.bn.basic=
+[function = tilt-angle-solution-type-test-gui-advanced]
+# check values
+assert.tf.non-default-grouping.2=
+# check enabled/disabled
+rb.fixed-tilt-angles=
+assert.disabled.tf.non-default-grouping.2=
+rb.group-tilt-angles=
+assert.enabled.tf.non-default-grouping.2=
+rb.solve-for-all-except-minimum-tilt=
+assert.disabled.tf.non-default-grouping.2=
+rb.group-tilt-angles=
+
+
+[function = distortion-solution-type-test-gui-basic]
 # check values
 assert.rb.disabled=on
 assert.rb.full-solution=off
 assert.rb.skew-only=off
 assert.tf.x-stretch-group-size=7
 assert.tf.skew-group-size=11
-bn.advanced=
-assert.tf.x-stretch-non-default-grouping=
-assert.tf.skew-non-default-grouping=
-format.bn.basic=
 # check enabled/disabled
 assert.enabled.rb.disabled=
 assert.enabled.rb.full-solution=
 assert.enabled.rb.skew-only=
-bn.advanced=
-rb.solve-for-beam-tilt=
-format.bn.basic=
-assert.enabled.rb.disabled=
-assert.disabled.rb.full-solution=
-assert.disabled.rb.skew-only=
-bn.advanced=
-rb.no-beam-tilt=
-format.bn.basic=
 rb.disabled=
 assert.disabled.tf.x-stretch-group-size=
 assert.disabled.tf.skew-group-size=
-bn.advanced=
-assert.disabled.tf.x-stretch-non-default-grouping=
-assert.disabled.tf.skew-non-default-grouping=
-format.bn.basic=
 rb.full-solution=
 assert.enabled.tf.x-stretch-group-size=
 assert.enabled.tf.skew-group-size=
-bn.advanced=
-assert.enabled.tf.x-stretch-non-default-grouping=
-assert.enabled.tf.skew-non-default-grouping=
-format.bn.basic=
 rb.skew-only=
 assert.disabled.tf.x-stretch-group-size=
 assert.enabled.tf.skew-group-size=
-bn.advanced=
+rb.disabled=
+
+
+[function = distortion-solution-type-test-gui-advanced]
+# check values
+assert.tf.x-stretch-non-default-grouping=
+assert.tf.skew-non-default-grouping=
+# check enabled/disabled
+rb.solve-for-beam-tilt=
+assert.enabled.rb.disabled=
+assert.disabled.rb.full-solution=
+assert.disabled.rb.skew-only=
+rb.no-beam-tilt=
+rb.disabled=
+assert.disabled.tf.x-stretch-non-default-grouping=
+assert.disabled.tf.skew-non-default-grouping=
+rb.full-solution=
+assert.enabled.tf.x-stretch-non-default-grouping=
+assert.enabled.tf.skew-non-default-grouping=
+rb.skew-only=
 assert.disabled.tf.x-stretch-non-default-grouping=
 assert.enabled.tf.skew-non-default-grouping=
-format.bn.basic=
 rb.disabled=
 
 
 [function = beam-tilt-test-gui]
-tb.general.1=
 mb.beam-tilt=A
 rb.disabled=
 # check values
@@ -513,98 +516,107 @@ mb.beam-tilt=B
 # Local Variables tab gui test
 
 
-[function = local-variables-test-gui]
+[function = local-variables-test-gui-basic]
 tb.general=
 cb.enable-local-alignments=
 tb.general.2=
 # box functions
-run.function.local-rotation-solution-type-test-gui=
-run.function.local-magnification-solution-type-test-gui=
-run.function.local-tilt-angle-solution-type-test-gui=
-run.function.local-distortion-solution-type-test-gui=
+run.function.local-rotation-solution-type-test-gui-basic=
+run.function.local-magnification-solution-type-test-gui-basic=
+run.function.local-tilt-angle-solution-type-test-gui-basic=
+run.function.local-distortion-solution-type-test-gui-basic=
 
 
-[function = local-rotation-solution-type-test-gui]
+[function = local-variables-test-gui-advanced]
+tb.general=
+cb.enable-local-alignments=
 tb.general.2=
+# box functions
+run.function.local-rotation-solution-type-test-gui-advanced=
+run.function.local-magnification-solution-type-test-gui-advanced=
+run.function.local-tilt-angle-solution-type-test-gui-advanced=
+run.function.local-distortion-solution-type-test-gui-advanced=
+
+
+[function = local-rotation-solution-type-test-gui-basic]
 # check values
 assert.cb.enable=on
 assert.tf.group-size=6
-bn.advanced=
-assert.tf.non-default-grouping=
-format.bn.basic=
 # check enabled/disabled
 assert.enabled.cb.enable=
 cb.enable=on
 assert.enabled.tf.group-size=
-bn.advanced=
-assert.enabled.tf.non-default-grouping=
-format.bn.basic=
 cb.enable=off
 assert.disabled.tf.group-size=
-bn.advanced=
-assert.disabled.tf.non-default-grouping=
-format.bn.basic=
 cb.enable=on
 
 
-[function = local-magnification-solution-type-test-gui]
-tb.general.2=
+[function = local-rotation-solution-type-test-gui-advanced]
+# check values
+assert.tf.non-default-grouping=
+# check enabled/disabled
+cb.enable=on
+assert.enabled.tf.non-default-grouping=
+cb.enable=off
+assert.disabled.tf.non-default-grouping=
+cb.enable=on
+
+
+[function = local-magnification-solution-type-test-gui-basic]
 # check values
 assert.cb.enable.1=on
 assert.tf.group-size.1=7
-bn.advanced=
-assert.tf.non-default-grouping.1=
-format.bn.basic=
 # check enabled/disabled
 assert.enabled.cb.enable.1=
 cb.enable.1=on
 assert.enabled.tf.group-size.1=
-bn.advanced=
-assert.enabled.tf.non-default-grouping.1=
-format.bn.basic=
 cb.enable.1=off
 assert.disabled.tf.group-size.1=
-bn.advanced=
-assert.disabled.tf.non-default-grouping.1=
-format.bn.basic=
 cb.enable.1=on
 
 
-[function = local-tilt-angle-solution-type-test-gui]
-tb.general.2=
+[function = local-magnification-solution-type-test-gui-advanced]
+# check values
+assert.tf.non-default-grouping.1=
+# check enabled/disabled
+cb.enable.1=on
+assert.enabled.tf.non-default-grouping.1=
+cb.enable.1=off
+assert.disabled.tf.non-default-grouping.1=
+cb.enable.1=on
+
+
+[function = local-tilt-angle-solution-type-test-gui-basic]
 # check values
 assert.cb.enable.2=on
 assert.tf.group-size.2=6
-bn.advanced=
-assert.tf.non-default-grouping.2=
-format.bn.basic=
 # check enabled/disabled
 assert.enabled.cb.enable.2=
 cb.enable.2=on
 assert.enabled.tf.group-size.2=
-bn.advanced=
-assert.enabled.tf.non-default-grouping.2=
-format.bn.basic=
 cb.enable.2=off
 assert.disabled.tf.group-size.2=
-bn.advanced=
-assert.disabled.tf.non-default-grouping.2=
-format.bn.basic=
 cb.enable.2=on
 
 
-[function = local-distortion-solution-type-test-gui]
-tb.general.2=
+[function = local-tilt-angle-solution-type-test-gui-advanced]
+# check values
+assert.tf.non-default-grouping.2=
+# check enabled/disabled
+cb.enable.2=on
+assert.enabled.tf.non-default-grouping.2=
+cb.enable.2=off
+assert.disabled.tf.non-default-grouping.2=
+cb.enable.2=on
+
+
+[function = local-distortion-solution-type-test-gui-basic]
 # check values
 assert.rb.disabled=on
 assert.rb.full-solution=off
 assert.rb.skew-only=off
 assert.tf.x-stretch-group-size=7
 assert.tf.skew-group-size=11
-bn.advanced=
-assert.tf.x-stretch-non-default-grouping=
-assert.tf.skew-non-default-grouping=
-format.bn.basic=
 # check enabled/disabled
 assert.enabled.rb.disabled=
 assert.enabled.rb.full-solution=
@@ -612,22 +624,28 @@ assert.enabled.rb.skew-only=
 rb.disabled=
 assert.disabled.tf.x-stretch-group-size=
 assert.disabled.tf.skew-group-size=
-bn.advanced=
-assert.disabled.tf.x-stretch-non-default-grouping=
-assert.disabled.tf.skew-non-default-grouping=
-format.bn.basic=
 rb.full-solution=
 assert.enabled.tf.x-stretch-group-size=
 assert.enabled.tf.skew-group-size=
-bn.advanced=
-assert.enabled.tf.x-stretch-non-default-grouping=
-assert.enabled.tf.skew-non-default-grouping=
-format.bn.basic=
 rb.skew-only=
 assert.disabled.tf.x-stretch-group-size=
 assert.enabled.tf.skew-group-size=
-bn.advanced=
+rb.full-solution=
+
+
+[function = local-distortion-solution-type-test-gui-advanced]
+# check values
+assert.tf.x-stretch-non-default-grouping=
+assert.tf.skew-non-default-grouping=
+# check enabled/disabled
+rb.disabled=
+assert.disabled.tf.x-stretch-non-default-grouping=
+assert.disabled.tf.skew-non-default-grouping=
+rb.full-solution=
+assert.enabled.tf.x-stretch-non-default-grouping=
+assert.enabled.tf.skew-non-default-grouping=
+rb.skew-only=
 assert.disabled.tf.x-stretch-non-default-grouping=
 assert.enabled.tf.skew-non-default-grouping=
-bn.basic=
 rb.full-solution=
+

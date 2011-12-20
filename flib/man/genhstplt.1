@@ -43,9 +43,11 @@ DDEESSCCRRIIPPTTIIOONN
 
   Entries to the program are:
 
-  0 for plots in the graphics window, or 1 for plots only on the terminal.
-     Note that if you need to use terminal plots, you will need to specify
-     that option each time that you do a plot.
+  0 for plots in the graphics window, 1 for plots only on the terminal, or -1
+     for plots always in the graphics window.  If you enter -1, this question
+     will not be asked again and BSPLT will not ask about doing terminal plots
+     either.  Note that if you need to use terminal plots, you will need to
+     specify that option each time that you do a plot.
   
   0 if there are just data values, or 1 if there are also types
   
@@ -87,7 +89,8 @@ DDEESSCCRRIIPPTTIIOONN
   You are now at an option point, which you may return to repeatedly
   while running the program.  Your choices are:
   
-     1 to examine a new data column
+     1 to examine a new data column, first saving the current column as
+       the "previous" column
      2 to enter BSPLT and plot the column just examined as a set of Y
         values versus the previous column, as a set of X values.
      3 to plot the column just examined versus the previous column,
@@ -108,6 +111,9 @@ DDEESSCCRRIIPPTTIIOONN
        current column by the average of some other column
      12 to select subsets of the data based on the values in some
        other column than the ones being plotted
+     13 to divide the current data column by another column
+     14 to examine a new data column while retaining the existing X values,
+       i.e., without copying the current column into the "previous" column
   
   If you select option 3, you first choose whether to plot error bars
   as a multiple of standard deviation or standard error of the mean,
@@ -163,6 +169,12 @@ DDEESSCCRRIIPPTTIIOONN
   After entering one or more selection criteria, you must select data
   by specifying columns with option 1.  To cancel all of the criteria,
   specify option 12 and enter 0 for the column.
+
+  If you select option 13, first enter the number of the column to divide by,
+  then enter lower and upper limits for the quotient, or 0,0 not to limit the
+  quotient.  The current data column is not replaced, so you can use this
+  option repeatedly to divide the current data column by different other
+  columns.
 
 HHIISSTTOORRYY
 	  Written by David Mastronarde, has wandered from one computer to the

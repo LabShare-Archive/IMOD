@@ -11,7 +11,6 @@ c
 c       David Mastronarde, February 2006
 c
 c       $Id$
-c       Log at end
 c
       implicit none
       integer maxImDim, maxGrids, iGridDim, msiz, maxVars, matLim
@@ -279,7 +278,7 @@ c
           else
             call int_iwrite(endvStr, izShift + 1, lenEndv)
             write(comString, 101)
-     &          'tiltxcorr -first 0. -inc 0. -rot 0. -radius2 ', radius2,
+     &          'tiltxcorr -excl -first 0. -inc 0. -rot 0. -radius2 ', radius2,
      &          ' -sigma1 ', sigma1, ' -sigma2 ', sigma2, ' -pad ',
      &          nx / 2, ',', ypadStr(1:lenYpad), ' -views ',
      &          izRef + 1, ',', endvStr(1:lenEndv),
@@ -1028,81 +1027,4 @@ c
       return
       end
 
-
-c$$$c       ADDVALUETOROW: Adds one value and its column to the current data row
-c$$$c
-c$$$      subroutine addValueToRow(val, icol, valRow, icolRow, numInRow)
-c$$$      implicit none
-c$$$      real*4 val, valRow(*)
-c$$$      integer*4 numInRow, icolRow(*), icol
-c$$$      numInRow = numInRow + 1
-c$$$      valRow(numInRow) = val
-c$$$      icolRow(numInRow) = icol
-c$$$      return
-c$$$      end
-
-
-c$$$c       SPARSEPROD: Performs a product of the designated mode in the sparse
-c$$$c       matrix
-c$$$c
-c$$$      subroutine sparseProd(mode, m, n, x, y, leniw, lenrw, iw, rw)
-c$$$      implicit none
-c$$$      integer*4 mode, m, n, leniw, lenrw, iw(leniw)
-c$$$      double precision x(n), y(m)
-c$$$      real*4 rw(lenrw)
-c$$$      integer*4 icol, irow, jaofs, ind
-c$$$c       
-c$$$*       If mode = 1, compute  y = y + A*x.
-c$$$*       If mode = 2, compute  x = x + A(transpose)*y.
-c$$$c       First number in iw is the offset to the JA values, the column
-c$$$c       number of each data value
-c$$$c       Then IW contains the I values, the starting index for each row
-c$$$*       
-c$$$      jaofs = iw(1)
-c$$$      if (mode .eq. 1) then
-c$$$        do irow = 1, m
-c$$$          do ind = iw(irow + 1), iw(irow + 2) - 1
-c$$$            icol = iw(jaofs + ind)
-c$$$            y(irow) = y(irow) + rw(ind) * x(icol)
-c$$$          enddo
-c$$$        enddo
-c$$$      else
-c$$$        do irow = 1, m
-c$$$          do ind = iw(irow + 1), iw(irow + 2) - 1
-c$$$            icol = iw(jaofs + ind)
-c$$$            x(icol) = x(icol) + rw(ind) * y(irow)
-c$$$          enddo
-c$$$        enddo
-c$$$      endif
-c$$$      return
-c$$$      end
-
-c
-c       $Log$
-c       Revision 1.16  2010/09/26 17:51:45  mast
-c       Fixed it to give stretch of 1 when it has numerical problem solving for
-c       stretch
-c
-c       Revision 1.15  2010/06/23 23:35:15  mast
-c       Call lsqr with double 0. and use default btol
-c
-c       Revision 1.14  2008/12/30 04:45:16  mast
-c       Switched to using C library functions
-c
-c       Revision 1.13  2007/11/18 04:58:07  mast
-c       Redeclared concat at 320
-c
-c       Revision 1.12  2007/04/10 15:51:07  mast
-c       Added arguments to setgridchars call
-c
-c       Revision 1.11  2006/03/07 16:06:38  mast
-c       Switched to new model of stretch transformation
-c
-c       Revision 1.10  2006/03/04 00:55:11  mast
-c       Added edge function shift to upper piece position as indicated by
-c       latest equations, added option to get coverage image, and fixed
-c       extent of sample data to have one more column
-c
-c       Revision 1.9  2006/02/10 05:22:08  mast
-c       Added header to file
-c
+c       12/1/11: deleted fortran sparseprod and addvaluetorow

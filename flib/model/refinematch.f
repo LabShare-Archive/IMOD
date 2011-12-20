@@ -15,13 +15,7 @@ c       See man page for details
 c
 c       David Mastronarde, 1995
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       Log at end
+c       $Id$
 c       
       implicit none
       include 'statsize.inc'
@@ -101,7 +95,7 @@ C
       ncont = 0
       if (filename .ne. ' ') then
         call get_region_contours(filename, 'REFINEMATCH', xvert, yvert, nvert,
-     &    indvert, zcont, ncont, ifflip, idim, limvert)
+     &    indvert, zcont, ncont, ifflip, idim, limvert, 0)
       else
         ifflip = 0
         if (nxyz(2) .lt. nxyz(3)) ifflip = 1
@@ -276,35 +270,3 @@ c         or ordered data
       endif
       call exit(0)
       end
-
-c       $Log$
-c       Revision 3.8  2006/08/21 23:05:39  mast
-c       Needed to clear out filename before getting model name
-c
-c       Revision 3.7  2006/08/21 16:39:09  mast
-c       Converted to PIP, made it handle both orientations of volume better,
-c       changed outlier output to be a summary, added option for getting
-c       residual output, allowed 100000 patches
-c
-c       Revision 3.6  2005/10/19 16:43:31  mast
-c       Increased patch limit to 40000
-c	
-c       Revision 3.5  2004/06/11 00:13:39  mast
-c       Added error exit if fewer than 4 data points for fit
-c	
-c       Revision 3.4  2003/12/24 19:03:53  mast
-c       Changed to fit new form of get_nxyz
-c	
-c       Revision 3.3  2002/10/23 15:40:22  mast
-c       Added ability to get a solution with only one layer of patches in
-c       one of the dimensions, but fixing the column of the matrix for that
-c       dimension.
-c	
-c       Revision 3.2  2002/09/09 21:36:00  mast
-c       Eliminate stat_source: and nimp_source: from all includes
-c	
-c       Revision 3.1  2002/07/21 00:06:46  mast
-c       Standardized error outputs, added declarations for implicit none, and
-c       added model scaling in case image file has a non-unitary scale.
-c	
-c       12/24/98: added outlier elimination; 6/6/99: added error exit

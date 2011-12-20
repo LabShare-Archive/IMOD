@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EnumeratedType;
+import etomo.type.ParsedElement;
 
 /**
  * <p>Description: </p>
@@ -89,13 +90,10 @@ final class RadioTextField implements RadioButtonInterface {
    * @param radioValue
    * @return
    */
-  /*static RadioTextField getInstance(final String label,
-   final ButtonGroup group, EnumeratedType enumeratedType) {
-   RadioTextField radioTextField = new RadioTextField(label, group,
-   enumeratedType);
-   radioTextField.addListeners();
-   return radioTextField;
-   }*/
+  /* static RadioTextField getInstance(final String label, final ButtonGroup group,
+   * EnumeratedType enumeratedType) { RadioTextField radioTextField = new
+   * RadioTextField(label, group, enumeratedType); radioTextField.addListeners(); return
+   * radioTextField; } */
 
   private RadioTextField(final String label, final ButtonGroup group) {
     radioButton = new RadioButton(label);
@@ -108,12 +106,9 @@ final class RadioTextField implements RadioButtonInterface {
    * @param label
    * @param group
    */
-  /* private RadioTextField(final String label, final ButtonGroup group,
-   EnumeratedType enumeratedType) {
-   radioButton = new RadioButton(label, enumeratedType);
-   textField = new TextField(label);
-   init(group);
-   }*/
+  /* private RadioTextField(final String label, final ButtonGroup group, EnumeratedType
+   * enumeratedType) { radioButton = new RadioButton(label, enumeratedType); textField =
+   * new TextField(label); init(group); } */
 
   private void init(final ButtonGroup group) {
     radioButton.setModel(new RadioButton.RadioButtonModel(this));
@@ -133,9 +128,22 @@ final class RadioTextField implements RadioButtonInterface {
   Container getContainer() {
     return rootPanel;
   }
+  
+  void setText(final int value) {
+    textField.setText(String.valueOf(value));
+  }
 
   void setText(final float value) {
     textField.setText(String.valueOf(value));
+  }
+
+  void setText(final ParsedElement value) {
+    if (value == null) {
+      textField.setText("");
+    }
+    else {
+      textField.setText(value.getRawString());
+    }
   }
 
   void setText(final String text) {
@@ -164,6 +172,11 @@ final class RadioTextField implements RadioButtonInterface {
 
   boolean isSelected() {
     return radioButton.isSelected();
+  }
+
+  boolean isEmpty() {
+    String text = textField.getText();
+    return text == null || text.matches("\\s*");
   }
 
   void setEnabled(final boolean enable) {

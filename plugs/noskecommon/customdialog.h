@@ -223,28 +223,28 @@ public:     //## METHODS:
 	
 	
   DialogElement& addNewElement(DlgType _type, QString caption, QString tooltip, bool makeLabel);
-  int addLabel( QString caption, bool bold=false, QString tooltip=0 );
-  int addHtmlLabel( QString caption, QString tooltip=0 );
-  int addCheckBox( QString caption, bool *checked, QString tooltip=0 );
-  int addLineEdit( QString caption, string *stringValue, QString tooltip=0 );
-  int addReadOnlyLineEdit( QString caption, QString text, QString tooltip=0 );
-	int addLineEditF( QString caption, float min, float max, float *value, float decimals,  QString tooltip=0, QString unitsStr=0 );
-  int addSpinBox( QString caption, int min, int max, int *value, int step, QString tooltip=0 );
-  int addDblSpinBoxF( QString caption, float min, float max, float *value, int decimals, float step=0.1, QString tooltip=0 );
-  int addComboBox( QString caption, QString barSepList, int *selIdx, QString tooltip=0 );
-  int addRadioGrp( QString caption, QString barSepList, int *selIdx, QString tooltip=0, QString tooltipArr=0, bool checkable=false, bool *checked=0 );
-  int addColorSel( QString caption, QColor *color, QString tooltip=0 );
-	int addMinMaxSpinBoxPair( QString caption, QString middleCaption, int min, int max, int *minValue, int *maxValue, int step=1, QString tooltip=0 );
-	int addTextEdit( string *text, bool richText, bool readOnly, int minHeight=90, QString tooltip=0 );
-	int addReadOnlyTextEdit( QString text, bool richText, int minHeight=90, QString tooltip=0 );
-	int addProgressBar( QString caption, int percent, int width, bool showValue, QString tooltip=0 );
-	int addPercentBar( QString caption, QString valueLabel, float percent, int width, QColor colorBar, QString tooltip=0, QFrame::Shape shape = QFrame::StyledPanel, QFrame::Shadow shadow = QFrame::Sunken );
+  int addLabel( QString caption, bool bold=false, QString tooltip="" );
+  int addHtmlLabel( QString caption, QString tooltip="" );
+  int addCheckBox( QString caption, bool *checked, QString tooltip="" );
+  int addLineEdit( QString caption, string *stringValue, QString tooltip="" );
+  int addReadOnlyLineEdit( QString caption, QString text, QString tooltip="" );
+	int addLineEditF( QString caption, float min, float max, float *value, float decimals,  QString tooltip="", QString unitsStr="" );
+  int addSpinBox( QString caption, int min, int max, int *value, int step, QString tooltip="" );
+  int addDblSpinBoxF( QString caption, float min, float max, float *value, int decimals, float step=0.1, QString tooltip="" );
+  int addComboBox( QString caption, QString barSepList, int *selIdx, QString tooltip="" );
+  int addRadioGrp( QString caption, QString barSepList, int *selIdx, QString tooltip="", QString tooltipArr="", bool checkable=false, bool *checked=0 );
+  int addColorSel( QString caption, QColor *color, QString tooltip="" );
+	int addMinMaxSpinBoxPair( QString caption, QString middleCaption, int min, int max, int *minValue, int *maxValue, int step=1, QString tooltip="" );
+	int addTextEdit( string *text, bool richText, bool readOnly, int minHeight=90, QString tooltip="" );
+	int addReadOnlyTextEdit( QString text, bool richText, int minHeight=90, QString tooltip="" );
+	int addProgressBar( QString caption, int percent, int width, bool showValue, QString tooltip="" );
+	int addPercentBar( QString caption, QString valueLabel, float percent, int width, QColor colorBar, QString tooltip="", QFrame::Shape shape = QFrame::StyledPanel, QFrame::Shadow shadow = QFrame::Sunken );
 	int addVSpacer( int minHeight=0 );
 	
-	int beginGroupBox( QString caption, bool flat=false, QString tooltip=0, bool checkable=false, bool *checked=0 );
+	int beginGroupBox( QString caption, bool flat=false, QString tooltip="", bool checkable=false, bool *checked=0 );
   void endGroupBox();
   
-	int addCheckPrev( QString caption, bool *checked, chkbehav chkBeh, bool removeLabel, QString tooltip=0 );
+	int addCheckPrev( QString caption, bool *checked, chkbehav chkBeh, bool removeLabel, QString tooltip="" );
 	int addAutoCompletePrev( QStringList wordList, bool caseSensitive=false );
   bool setStyleElem( int idx, string styleStr, bool bold=false );
   void setStylePrev( string styleStr, bool bold=false );

@@ -309,11 +309,16 @@ public final class MatlabParam {
   public static final String rcsid = "$Id$";
 
   public static final String REFERENCE_KEY = "reference";
+  public static final int REFERENCE_FLG_FAIR_REFERENCE_GROUPS_DEFAULT = 10;
+  public static final int REFERENCE_FLG_FAIR_REFERENCE_PARTICLES_DEFAULT = 10;
   public static final String FN_VOLUME_KEY = "fnVolume";
   public static final String FN_MOD_PARTICLE_KEY = "fnModParticle";
   public static final String INIT_MOTL_KEY = "initMOTL";
   public static final String TILT_RANGE_KEY = "tiltRange";
-  public static final String RELATIVE_ORIENT_KEY = "relativeOrient";
+  /**
+   * @deprecated
+   */
+  private static final String RELATIVE_ORIENT_KEY = "relativeOrient";
   public static final String SZ_VOL_KEY = "szVol";
   public static final int X_INDEX = 0;
   public static final int Y_INDEX = 1;
@@ -330,7 +335,9 @@ public final class MatlabParam {
   public static final String REF_THRESHOLD_KEY = "refThreshold";
   public static final String REF_FLAG_ALL_TOM_KEY = "refFlagAllTom";
   public static final String EDGE_SHIFT_KEY = "edgeShift";
-  public static final int EDGE_SHIFT_DEFAULT = 2;
+  public static final int EDGE_SHIFT_DEFAULT = 1;
+  public static final int EDGE_SHIFT_MIN = 0;
+  public static final int EDGE_SHIFT_MAX = 3;
   public static final String LST_THRESHOLDS_KEY = "lstThresholds";
   public static final String LST_FLAG_ALL_TOM_KEY = "lstFlagAllTom";
   /**
@@ -357,7 +364,6 @@ public final class MatlabParam {
   public static final String YAXIS_CONTOUR_KEY = "yaxisContour";
   public static final String YAXIS_OBJECT_NUM_KEY = "yaxisObjectNum";
   public static final String YAXIS_CONTOUR_NUM_KEY = "yaxisContourNum";
-  public static final boolean REFERENCE_FILE_DEFAULT = false;
   public static final String FLG_WEDGE_WEIGHT_KEY = "flgWedgeWeight";
   public static final boolean FLG_WEDGE_WEIGHT_DEFAULT = false;
   public static final String SAMPLE_SPHERE_KEY = "sampleSphere";
@@ -368,15 +374,16 @@ public final class MatlabParam {
   public static final String OUTSIDE_MASK_RADIUS_KEY = "outsideMaskRadius";
   public static final String N_WEIGHT_GROUP_KEY = "nWeightGroup";
   public static final int N_WEIGHT_GROUP_DEFAULT = 8;
-  public static final int N_WEIGHT_GROUP_MIN = 2;
+  public static final int N_WEIGHT_GROUP_MIN = 0;
+  public static final int N_WEIGHT_GROUP_MAX = 32;
   public static final String FLG_REMOVE_DUPLICATES_KEY = "flgRemoveDuplicates";
   public static final String DUPLICATE_SHIFT_TOLERANCE_KEY = "duplicateShiftTolerance";
   public static final String DUPLICATE_ANGULAR_TOLERANCE_KEY = "duplicateAngularTolerance";
   public static final String FLG_ALIGN_AVERAGES_KEY = "flgAlignAverages";
+  public static final String FLG_FAIR_REFERENCE_KEY = "flgFairReference";
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
-  private static final int RELATIVE_ORIENT_DEFAULT = 0;
   private static final int Z_ROTATION_INDEX = 0;
   private static final int Y_ROTATION_INDEX = 1;
 
@@ -411,13 +418,13 @@ public final class MatlabParam {
   private final ParsedNumber nWeightGroup = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgRemoveDuplicates = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgAlignAverages = ParsedNumber.getMatlabInstance();
+  private final ParsedNumber flgFairReference = ParsedNumber.getMatlabInstance();
 
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
   private CCMode ccMode = CCMode.DEFAULT;
-  private boolean useReferenceFile = REFERENCE_FILE_DEFAULT;
+  private boolean useReferenceFile = false;
   private YAxisType yAxisType = YAxisType.DEFAULT;
-  private boolean useNWeightGroup = false;
   private boolean tiltRangeEmpty = false;
 
   private boolean newFile;
@@ -429,6 +436,9 @@ public final class MatlabParam {
     nWeightGroup.setDefault(N_WEIGHT_GROUP_DEFAULT);
     nWeightGroup.setFloor(N_WEIGHT_GROUP_MIN);
     flgMeanFill.setDefault(FLG_MEAN_FILL_DEFAULT);
+    flgFairReference.setDefault(false);
+    edgeShift.setDefault(EDGE_SHIFT_DEFAULT);
+    edgeShift.setFloor(EDGE_SHIFT_MIN);
   }
 
   /**
@@ -683,8 +693,16 @@ public final class MatlabParam {
     return flgAlignAverages.getRawBoolean();
   }
 
+  public boolean isFlgFairReference() {
+    return flgFairReference.getRawBoolean();
+  }
+
   public void setFlgAlignAverages(final boolean input) {
     flgAlignAverages.setRawString(input);
+  }
+
+  public void setFlgFairReference(final boolean input) {
+    flgFairReference.setRawString(input);
   }
 
   public String getLstFlagAllTom() {
@@ -707,17 +725,17 @@ public final class MatlabParam {
     this.alignedBaseName.setRawString(alignedBaseName);
   }
 
-  public void setReferenceVolume(final Number referenceVolume) {
+  public void setReferenceVolume(final Number input) {
+    setReferenceVolume(input.toString());
+  }
+
+  public void setReferenceVolume(final String input) {
     useReferenceFile = false;
-    reference.setRawString(VOLUME_INDEX, referenceVolume.toString());
+    reference.setRawString(VOLUME_INDEX, input);
   }
 
   public void setNWeightGroup(final Number input) {
     nWeightGroup.setRawString(input);
-  }
-
-  public void setUseNWeightGroup(final boolean input) {
-    useNWeightGroup = input;
   }
 
   public void setMaskModelPtsZRotation(final String input) {
@@ -756,7 +774,7 @@ public final class MatlabParam {
     return maskType.getRawString();
   }
 
-  public void setEdgeShift(final String edgeShift) {
+  public void setEdgeShift(final Number edgeShift) {
     this.edgeShift.setRawString(edgeShift);
   }
 
@@ -790,18 +808,18 @@ public final class MatlabParam {
     insideMaskRadius.clear();
     outsideMaskRadius.clear();
     nWeightGroup.clear();
-    useNWeightGroup = false;
     tiltRangeEmpty = false;
     flgRemoveDuplicates.clear();
     flgAlignAverages.clear();
+    flgFairReference.setRawString(false);
   }
 
   public void clearEdgeShift() {
     edgeShift.clear();
   }
 
-  public String getEdgeShift() {
-    return edgeShift.getRawString();
+  public ParsedElement getEdgeShift() {
+    return edgeShift;
   }
 
   public String getSampleInterval() {
@@ -916,6 +934,11 @@ public final class MatlabParam {
   public void setReferenceParticle(final String referenceParticle) {
     useReferenceFile = false;
     reference.setRawString(PARTICLE_INDEX, referenceParticle);
+  }
+
+  public void setReferenceParticle(final Number input) {
+    useReferenceFile = false;
+    reference.setRawString(PARTICLE_INDEX, input.toString());
   }
 
   public void setMaskModelPtsYRotation(final String input) {
@@ -1078,6 +1101,8 @@ public final class MatlabParam {
     flgRemoveDuplicates.parse(autodoc.getAttribute(FLG_REMOVE_DUPLICATES_KEY));
     // flgAlignAverages
     flgAlignAverages.parse(autodoc.getAttribute(FLG_ALIGN_AVERAGES_KEY));
+    // flgFairReference
+    flgFairReference.parse(autodoc.getAttribute(FLG_FAIR_REFERENCE_KEY));
   }
 
   /**
@@ -1087,11 +1112,6 @@ public final class MatlabParam {
   private void parseVolumeData(final ReadOnlyAutodoc autodoc) {
     volumeList.clear();
     int size = 0;
-    // relativeOrient
-    ParsedList relativeOrient = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
-    relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
-    relativeOrient.parse(autodoc.getAttribute(RELATIVE_ORIENT_KEY));
-    size = Math.max(size, relativeOrient.size());
     // fnVolume
     ParsedList fnVolume = ParsedList.getStringInstance();
     fnVolume.parse(autodoc.getAttribute(FN_VOLUME_KEY));
@@ -1119,7 +1139,6 @@ public final class MatlabParam {
     // Add elements to volumeList
     for (int i = 0; i < size; i++) {
       Volume volume = new Volume();
-      volume.setRelativeOrient(relativeOrient.getElement(i));
       volume.setFnVolume(fnVolume.getElement(i));
       volume.setFnModParticle(fnModParticle.getElement(i));
       if (initMotlCode == null) {
@@ -1243,11 +1262,10 @@ public final class MatlabParam {
     valueMap.put(MASK_MODEL_PTS_KEY, maskModelPts.getParsableString());
     valueMap.put(INSIDE_MASK_RADIUS_KEY, insideMaskRadius.getParsableString());
     valueMap.put(OUTSIDE_MASK_RADIUS_KEY, outsideMaskRadius.getParsableString());
-    if (useNWeightGroup) {
-      valueMap.put(N_WEIGHT_GROUP_KEY, nWeightGroup.getParsableString());
-    }
+    valueMap.put(N_WEIGHT_GROUP_KEY, nWeightGroup.getParsableString());
     valueMap.put(FLG_REMOVE_DUPLICATES_KEY, flgRemoveDuplicates.getParsableString());
     valueMap.put(FLG_ALIGN_AVERAGES_KEY, flgAlignAverages.getParsableString());
+    valueMap.put(FLG_FAIR_REFERENCE_KEY, flgFairReference.getParsableString());
   }
 
   /**
@@ -1263,8 +1281,6 @@ public final class MatlabParam {
       initMotlFile = ParsedList.getStringInstance();
     }
     ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
-    ParsedList relativeOrient = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
-    relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
     // build the lists
     for (int i = 0; i < volumeList.size(); i++) {
       Volume volume = (Volume) volumeList.get(i);
@@ -1274,7 +1290,6 @@ public final class MatlabParam {
         initMotlFile.addElement(volume.getInitMotl());
       }
       tiltRange.addElement(volume.getTiltRange());
-      relativeOrient.addElement(volume.getRelativeOrient());
     }
     valueMap.put(FN_VOLUME_KEY, fnVolume.getParsableString());
     valueMap.put(FN_MOD_PARTICLE_KEY, fnModParticle.getParsableString());
@@ -1285,7 +1300,6 @@ public final class MatlabParam {
       tiltRange.clear();
     }
     valueMap.put(TILT_RANGE_KEY, tiltRange.getParsableString());
-    valueMap.put(RELATIVE_ORIENT_KEY, relativeOrient.getParsableString());
   }
 
   /**
@@ -1412,17 +1426,14 @@ public final class MatlabParam {
         (String) valueMap.get(INSIDE_MASK_RADIUS_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, OUTSIDE_MASK_RADIUS_KEY,
         (String) valueMap.get(OUTSIDE_MASK_RADIUS_KEY), commentMap);
-    if (useNWeightGroup) {
-      setNameValuePairValue(manager, autodoc, N_WEIGHT_GROUP_KEY,
-          (String) valueMap.get(N_WEIGHT_GROUP_KEY), commentMap);
-    }
-    else {
-      removeNameValuePair(autodoc, N_WEIGHT_GROUP_KEY);
-    }
+    setNameValuePairValue(manager, autodoc, N_WEIGHT_GROUP_KEY,
+        (String) valueMap.get(N_WEIGHT_GROUP_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, FLG_REMOVE_DUPLICATES_KEY,
         (String) valueMap.get(FLG_REMOVE_DUPLICATES_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, FLG_ALIGN_AVERAGES_KEY,
         (String) valueMap.get(FLG_ALIGN_AVERAGES_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_FAIR_REFERENCE_KEY,
+        (String) valueMap.get(FLG_FAIR_REFERENCE_KEY), commentMap);
   }
 
   /**
@@ -1441,8 +1452,6 @@ public final class MatlabParam {
         (String) valueMap.get(INIT_MOTL_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, TILT_RANGE_KEY,
         (String) valueMap.get(TILT_RANGE_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, RELATIVE_ORIENT_KEY,
-        (String) valueMap.get(RELATIVE_ORIENT_KEY), commentMap);
   }
 
   /**
@@ -1570,9 +1579,13 @@ public final class MatlabParam {
 
   public static final class InitMotlCode implements EnumeratedType {
     public static final InitMotlCode ZERO = new InitMotlCode(0);
+    /**
+     * @deprecated convert 1 to 2
+     */
     public static final InitMotlCode Z_AXIS = new InitMotlCode(1);
     public static final InitMotlCode X_AND_Z_AXIS = new InitMotlCode(2);
     public static final InitMotlCode RANDOM_ROTATIONS = new InitMotlCode(3);
+    public static final InitMotlCode RANDOM_AXIAL_ROTATIONS = new InitMotlCode(4);
     public static final InitMotlCode DEFAULT = ZERO;
 
     private final EtomoNumber value = new EtomoNumber();
@@ -1604,7 +1617,7 @@ public final class MatlabParam {
         return ZERO;
       }
       if (Z_AXIS.value.equals(value)) {
-        return Z_AXIS;
+        return X_AND_Z_AXIS;
       }
       if (X_AND_Z_AXIS.value.equals(value)) {
         return X_AND_Z_AXIS;
@@ -1613,6 +1626,9 @@ public final class MatlabParam {
     }
 
     public ConstEtomoNumber getValue() {
+      if (this == Z_AXIS) {
+        return X_AND_Z_AXIS.getValue();
+      }
       return value;
     }
   }
@@ -1819,14 +1835,11 @@ public final class MatlabParam {
     private static final int END_INDEX = 1;
     private final ParsedArray tiltRange = ParsedArray
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
-    private final ParsedArray relativeOrient = ParsedArray
-        .getMatlabInstance(EtomoNumber.Type.FLOAT);
     private final ParsedQuotedString fnVolume = ParsedQuotedString.getInstance();
     private final ParsedQuotedString fnModParticle = ParsedQuotedString.getInstance();
     private final ParsedQuotedString initMotl = ParsedQuotedString.getInstance();
 
     private Volume() {
-      relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
     }
 
     public void setFnVolume(final ParsedElement fnVolume) {
@@ -1881,30 +1894,6 @@ public final class MatlabParam {
       tiltRange.setRawString(END_INDEX, tiltRangeEnd);
     }
 
-    public String getRelativeOrientX() {
-      return relativeOrient.getRawString(X_INDEX);
-    }
-
-    public void setRelativeOrientX(final String relativeOrientX) {
-      relativeOrient.setRawString(X_INDEX, relativeOrientX);
-    }
-
-    public String getRelativeOrientY() {
-      return relativeOrient.getRawString(Y_INDEX);
-    }
-
-    public void setRelativeOrientY(final String relativeOrientY) {
-      relativeOrient.setRawString(Y_INDEX, relativeOrientY);
-    }
-
-    public String getRelativeOrientZ() {
-      return relativeOrient.getRawString(Z_INDEX);
-    }
-
-    public void setRelativeOrientZ(final String relativeOrientZ) {
-      relativeOrient.setRawString(Z_INDEX, relativeOrientZ);
-    }
-
     private ParsedQuotedString getFnVolume() {
       return fnVolume;
     }
@@ -1925,16 +1914,8 @@ public final class MatlabParam {
       return tiltRange;
     }
 
-    private ParsedArray getRelativeOrient() {
-      return relativeOrient;
-    }
-
     private void setTiltRange(final ParsedElement tiltRange) {
       this.tiltRange.set(tiltRange);
-    }
-
-    private void setRelativeOrient(final ParsedElement relativeOrient) {
-      this.relativeOrient.set(relativeOrient);
     }
   }
 
