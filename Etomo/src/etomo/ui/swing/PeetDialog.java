@@ -624,6 +624,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent, manPagelabel,
         manPage, logFileLabel, logFile, true, manager, axisID);
   }
+  
+  public void pack() {
+    volumeTable.pack();
+  }
 
   public DialogType getDialogType() {
     return DIALOG_TYPE;
