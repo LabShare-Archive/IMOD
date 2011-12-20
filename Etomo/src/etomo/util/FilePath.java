@@ -1,7 +1,6 @@
 package etomo.util;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +24,8 @@ public final class FilePath {
 
   private static boolean debug = false;
 
+  private final String regExpSeparator;
+
   private String drive = null;
   private List<String> pathArray = null;
   private StringBuffer path = null;
@@ -33,6 +34,12 @@ public final class FilePath {
    * Deep copy constructor.
    */
   private FilePath(final FilePath filePath) {
+    if (File.separator.equals("\\")) {
+      regExpSeparator = "\\" + File.separator;
+    }
+    else {
+      regExpSeparator = File.separator;
+    }
     drive = filePath.drive;
     if (filePath.pathArray != null) {
       pathArray = new ArrayList<String>(filePath.pathArray.size());
@@ -44,6 +51,12 @@ public final class FilePath {
   }
 
   private FilePath(final String filePath) {
+    if (File.separator.equals("\\")) {
+      regExpSeparator = "\\" + File.separator;
+    }
+    else {
+      regExpSeparator = File.separator;
+    }
     if (filePath == null) {
       return;
     }
@@ -61,12 +74,7 @@ public final class FilePath {
     else {
       tempPath = path.toString();
     }
-    if (File.separator.equals("\\")) {
-      tempArray = tempPath.split("\\" + File.separator);
-    }
-    else {
-      tempArray = tempPath.split(File.separator);
-    }
+    tempArray = tempPath.split(regExpSeparator);
     pathArray = new ArrayList(tempArray.length);
     for (int i = 0; i < tempArray.length; i++) {
       pathArray.add(tempArray[i]);
@@ -79,7 +87,7 @@ public final class FilePath {
     }
     int amountToRemove = pathArray.remove(pathArray.size() - 1).length();
     if (path.toString().endsWith(File.separator)) {
-      amountToRemove += File.separator.length();
+      amountToRemove += 1;
     }
     path.delete(path.length() - amountToRemove, path.length());
   }
@@ -88,26 +96,25 @@ public final class FilePath {
     if (pathArray == null || pathArray.size() == 0) {
       return;
     }
-    int amountToRemove = pathArray.remove(0).length() + File.separator.length();
+    int amountToRemove = pathArray.remove(0).length() + 1;
     if (path.toString().startsWith(File.separator)) {
-      amountToRemove += File.separator.length();
+      amountToRemove += 1;
     }
     path.delete(0, amountToRemove);
   }
 
+  /**
+   * Returns true if name contains the file separator.  In Windows also returns true if
+   * name contain ":".
+   * @param name
+   * @return
+   */
   public static boolean isPath(final String name) {
     if (name == null || name.matches("\\s*")) {
       return false;
     }
-    try {
-      new File(name).getCanonicalFile();
-    }
-    catch (IOException e) {
-      // Not a valid file name or path
-      return false;
-    }
-    return name.indexOf(File.separator) != -1
-        || (Utilities.isWindowsOS() && name.indexOf(":") > 0);
+    return name.indexOf(File.separator) != -1 || (Utilities.isWindowsOS() && name
+        .indexOf(":") > 0);
   }
 
   public static String getFileName(final String path) {
