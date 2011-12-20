@@ -399,9 +399,9 @@ public final class PeetManager extends BaseManager {
   public boolean canSnapshot() {
     return false;
   }
-  
+
   public void pack() {
-    if (peetDialog!=null) {
+    if (peetDialog != null) {
       peetDialog.pack();
     }
   }
