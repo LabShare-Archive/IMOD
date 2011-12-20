@@ -399,6 +399,12 @@ public final class PeetManager extends BaseManager {
   public boolean canSnapshot() {
     return false;
   }
+  
+  public void pack() {
+    if (peetDialog!=null) {
+      peetDialog.pack();
+    }
+  }
 
   public InterfaceType getInterfaceType() {
     return InterfaceType.PEET;
