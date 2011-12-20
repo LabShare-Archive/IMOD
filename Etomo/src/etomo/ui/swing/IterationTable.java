@@ -139,23 +139,23 @@ final class IterationTable implements Highlightable {
   public static final String rcsid = "$Id$";
   static final String D_PHI_D_THETA_D_PSI_HEADER1 = "Angular Search Range";
   static final String D_PHI_HEADER2 = "Phi";
-  static final String INCR_HEADER3 = "Incr.";
+  static final String INCR_HEADER3 = "Step";
   static final String D_THETA_HEADER2 = "Theta";
   static final String D_PSI_HEADER2 = "Psi";
   static final String SEARCH_RADIUS_HEADER1 = "Search";
-  static final String SEARCH_RADIUS_HEADER2 = "Radius";
+  static final String SEARCH_RADIUS_HEADER2 = "Distance";
   static final String LABEL = "Iteration Table";
   static final String MAX_HEADER3 = "Max";
-  static final String CUTOFF_HEADER1 = "High Freq.";
+  static final String CUTOFF_HEADER1 = "Hi Freq";
   static final String CUTOFF_HEADER2 = "Filter";
   static final String HI_CUTOFF_HEADER3 = "Cutoff";
   static final String LOW_CUTOFF_HEADER3 = "Sigma";
-  static final String REF_THRESHOLD_HEADER1 = "Reference";
+  static final String REF_THRESHOLD_HEADER1 = "Ref";
   static final String REF_THRESHOLD_HEADER2 = "Threshold";
   static final String DUPLICATE_TOLERANCE_HEADER1 = "Duplicate";
   static final String DUPLICATE_TOLERANCE_HEADER2 = "Tolerance";
   static final String DUPLICATE_SHIFT_TOLERANCE_HEADER3 = "Shift";
-  static final String DUPLICATE_ANGULAR_TOLERANCE_HEADER3 = "Angular";
+  static final String DUPLICATE_ANGULAR_TOLERANCE_HEADER3 = "Angle";
 
   private final JPanel rootPanel = new JPanel();
   private final JPanel pnlTable = new JPanel();
@@ -195,9 +195,6 @@ final class IterationTable implements Highlightable {
   private final HeaderCell header1RefThreshold = new HeaderCell(REF_THRESHOLD_HEADER1);
   private final HeaderCell header2RefThreshold = new HeaderCell(REF_THRESHOLD_HEADER2);
   private final HeaderCell header3RefThreshold = new HeaderCell();
-  private final MultiLineButton btnAddRow = new MultiLineButton("Add Row");
-  private final MultiLineButton btnCopyRow = new MultiLineButton("Copy Row");
-  private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete Row");
   private final HeaderCell header1DuplicateTolerance = new HeaderCell(
       DUPLICATE_TOLERANCE_HEADER1);
   private final HeaderCell header2DuplicateTolerance = new HeaderCell(
@@ -206,8 +203,11 @@ final class IterationTable implements Highlightable {
       DUPLICATE_SHIFT_TOLERANCE_HEADER3);
   private final HeaderCell header3DuplicateAngularTolerance = new HeaderCell(
       DUPLICATE_ANGULAR_TOLERANCE_HEADER3);
-  private final MultiLineButton btnMoveUp = new MultiLineButton("Move Up");
-  private final MultiLineButton btnMoveDown = new MultiLineButton("Move Down");
+  private final MultiLineButton btnMoveUp = new MultiLineButton("Up");
+  private final MultiLineButton btnMoveDown = new MultiLineButton("Down");
+  private final MultiLineButton btnAddRow = new MultiLineButton("Insert");
+  private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete");
+  private final MultiLineButton btnCopyRow = new MultiLineButton("Dup");
 
   private final BaseManager manager;
   private final IterationParent parent;
@@ -420,11 +420,8 @@ final class IterationTable implements Highlightable {
   }
 
   private void createTable() {
-    // initialize
-    btnMoveUp.setSize();
-    btnMoveDown.setSize();
     // local panels
-    JPanel pnlButtons2 = new JPanel();
+    JPanel pnlButtons = new JPanel();
     // table
     pnlTable.setLayout(layout);
     pnlTable.setBorder(LineBorder.createBlackLineBorder());
@@ -432,29 +429,22 @@ final class IterationTable implements Highlightable {
     constraints.anchor = GridBagConstraints.CENTER;
     constraints.gridheight = 1;
     // button panel
-    JPanel pnlButtons = new JPanel();
-    pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
-    btnAddRow.setSize();
+    pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.Y_AXIS));
     pnlButtons.add(btnAddRow.getComponent());
-    // button panel 2
-    pnlButtons2.setLayout(new BoxLayout(pnlButtons2, BoxLayout.X_AXIS));
-    btnCopyRow.setSize();
-    pnlButtons2.add(btnCopyRow.getComponent());
-    pnlButtons2.add(btnMoveUp.getComponent());
-    pnlButtons2.add(btnMoveDown.getComponent());
-    btnDeleteRow.setSize();
-    pnlButtons2.add(btnDeleteRow.getComponent());
+    pnlButtons.add(btnCopyRow.getComponent());
+    pnlButtons.add(btnMoveUp.getComponent());
+    pnlButtons.add(btnMoveDown.getComponent());
+    pnlButtons.add(btnDeleteRow.getComponent());
     // border
     SpacedPanel pnlBorder = SpacedPanel.getInstance();
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
     pnlBorder.setBorder(new EtchedBorder(LABEL).getBorder());
     pnlBorder.add(pnlTable);
     // root
-    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.X_AXIS));
     rootPanel.setBorder(BorderFactory.createEtchedBorder());
     rootPanel.add(pnlBorder.getContainer());
     rootPanel.add(pnlButtons);
-    rootPanel.add(pnlButtons2);
   }
 
   private void display() {
