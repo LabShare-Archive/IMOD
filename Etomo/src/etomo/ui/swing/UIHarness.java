@@ -237,6 +237,7 @@ public final class UIHarness {
       AbstractFrame abstractFrame = getFrame(manager);
       abstractFrame.repaint();
       abstractFrame.pack(force);
+      manager.pack();
       if (manager != null) {
         Component focusComponent = manager.getFocusComponent();
         if (focusComponent != null) {
@@ -251,6 +252,7 @@ public final class UIHarness {
       AbstractFrame abstractFrame = getFrame(manager);
       abstractFrame.repaint(axisID);
       abstractFrame.pack(axisID);
+      manager.pack();
       Component focusComponent = manager.getFocusComponent();
       // System.out.println("focusComponent=" + focusComponent);
       if (focusComponent != null) {
@@ -267,6 +269,7 @@ public final class UIHarness {
       AbstractFrame abstractFrame = getFrame(manager);
       abstractFrame.repaint(axisID);
       abstractFrame.pack(axisID, force);
+      manager.pack();
       Component focusComponent = manager.getFocusComponent();
       // System.out.println("focusComponent=" + focusComponent);
       if (focusComponent != null) {
