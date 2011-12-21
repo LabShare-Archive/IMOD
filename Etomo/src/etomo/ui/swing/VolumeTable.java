@@ -235,7 +235,6 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
 
   private final RowList rowList = new RowList();
   private final JPanel rootPanel = new JPanel();
-  private final MultiLineButton btnInsertRow = new MultiLineButton("Insert");
   private final MultiLineButton btnReadTiltFile = new MultiLineButton("Read tilt file");
   private final Run3dmodButton r3bVolume;
   private final HeaderCell header1VolumeNumber = new HeaderCell("Vol #");
@@ -256,10 +255,11 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   private final GridBagConstraints constraints = new GridBagConstraints();
   private final Column initMotlFileColumn = new Column();
   private final Column tiltRangeColumn = new Column();
-  private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete");
   private final TomogramFileFilter tomogramFileFilter = new TomogramFileFilter();
   private final MultiLineButton btnMoveUp = new MultiLineButton("Up");
   private final MultiLineButton btnMoveDown = new MultiLineButton("Down");
+  private final MultiLineButton btnInsertRow = new MultiLineButton("Insert");
+  private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete");
   private final MultiLineButton btnCopyRow = new MultiLineButton("Dup");
   private final JPanel pnlTableButtons = new JPanel();
   private final JPanel pnlBottomButtons = new JPanel();
@@ -491,11 +491,16 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     // root
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.X_AXIS));
     rootPanel.setBorder(new EtchedBorder(LABEL).getBorder());
-    rootPanel.add(Box.createRigidArea(FixedDim.x3_y0));
+    rootPanel.add(Box.createRigidArea(FixedDim.x5_y0));
     rootPanel.add(pnlTableButtons);
     refreshHorizontalPadding();
   }
 
+  /**
+   * Pad the table on the right side based on the number of character in the three columns
+   * that change size.  6.3 is an estimate of how much the table grows on average with
+   * each character.
+   */
   private void refreshHorizontalPadding() {
     if (horizontalRigidArea1 != null) {
       rootPanel.remove(horizontalRigidArea2);
@@ -503,15 +508,12 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
       rootPanel.remove(horizontalRigidArea1);
     }
     int maxRowTextSize = rowList.getMaxRowTextSize();
-    if (maxRowTextSize <= 40) {
-      horizontalRigidArea1 = Box.createRigidArea(new Dimension(182, 0));
-    }
-    else if (maxRowTextSize == 41) {
+    if (maxRowTextSize <= 50) {
       horizontalRigidArea1 = Box.createRigidArea(new Dimension(181, 0));
     }
     else {
-      int dim = Math.max(181 - ((maxRowTextSize - 41) * 8), 5);
-      horizontalRigidArea1 = Box.createRigidArea(new Dimension(dim, 0));
+      horizontalRigidArea1 = Box.createRigidArea(new Dimension(Math.max(
+          Math.round((float) (181 - (maxRowTextSize - 50) * 6.3)), 8), 0));
     }
     rootPanel.add(horizontalRigidArea1);
     rootPanel.add(pnlSideButtons);
@@ -521,15 +523,12 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   private void refreshVerticalPadding() {
     int size = rowList.size();
     int noPadding = 3;
-    if (size > noPadding) {
-      return;
-    }
     if (verticalRigidArea1 != null) {
       pnlTableButtons.remove(verticalRigidArea1);
       pnlTableButtons.remove(pnlBottomButtons);
       pnlTableButtons.remove(verticalRigidArea2);
     }
-    int height = 10 + (noPadding - size) * 20;
+    int height = Math.max(10 + (noPadding - size) * 20, 10);
     verticalRigidArea1 = Box.createRigidArea(new Dimension(0, height));
     pnlTableButtons.add(verticalRigidArea1);
     pnlTableButtons.add(pnlBottomButtons);
@@ -661,11 +660,13 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     viewport.adjustViewport(rowList.size() - 1);
     rowList.remove();
     rowList.display(viewport);
-    refreshVerticalPadding();
-    refreshHorizontalPadding();
     updateDisplay();
     parent.msgVolumeTableSizeChanged();
     UIHarness.INSTANCE.pack(manager);
+  }
+
+  void pack() {
+    refreshHorizontalPadding();
   }
 
   /**
@@ -1061,7 +1062,6 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
       return null;
     }
 
-    // TODO
     private int getMaxRowTextSize() {
       int maxRowTextSize = 0;
       for (int i = 0; i < list.size(); i++) {

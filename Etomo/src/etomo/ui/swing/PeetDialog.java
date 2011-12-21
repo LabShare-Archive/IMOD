@@ -506,7 +506,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
   private final EtomoPanel pnlCcMode = new EtomoPanel();
   private final Run3dmodButton btnRef = Run3dmodButton.get3dmodInstance(
       "Open Reference Volumes in 3dmod", this);
-  private final CheckBox cbFlgRemoveDuplicates = new CheckBox("Remove duplicates");
   private final MultiLineButton btnAverageAll = new MultiLineButton(AVERAGE_ALL_LABEL);
   private final CheckBox cbflgAlignAverages = new CheckBox(
       "Align averages to have their Y axes vertical");
@@ -623,6 +622,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     logFile[1] = ltfFnOutput.getText() + "-start.log";
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent, manPagelabel,
         manPage, logFileLabel, logFile, true, manager, axisID);
+  }
+
+  public void pack() {
+    volumeTable.pack();
   }
 
   public DialogType getDialogType() {
@@ -821,7 +824,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
         missingWedgeCompensationPanel.isTiltRangeRequired(), importDir);
     sphericalSamplingForThetaAndPsiPanel.setParameters(matlabParam);
     maskingPanel.setParameters(matlabParam);
-    cbFlgRemoveDuplicates.setSelected(matlabParam.isFlgRemoveDuplicates());
     cbflgAlignAverages.setSelected(matlabParam.isFlgAlignAverages());
     updateDisplay();
   }
@@ -851,7 +853,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     yAxisTypePanel.getParameters(matlabParam);
     sphericalSamplingForThetaAndPsiPanel.getParameters(matlabParam);
     maskingPanel.getParameters(matlabParam);
-    matlabParam.setFlgRemoveDuplicates(cbFlgRemoveDuplicates.isSelected());
     matlabParam.setFlgAlignAverages(cbflgAlignAverages.isSelected());
   }
 
@@ -928,7 +929,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     volumeTable.reset();
     iterationTable.reset();
     sphericalSamplingForThetaAndPsiPanel.reset();
-    cbFlgRemoveDuplicates.setSelected(false);
     cbflgAlignAverages.setSelected(false);
     setDefaults();
     updateDisplay();
@@ -1005,9 +1005,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
         + "cutoff.  Values less <= 0 disable low frequency filtering.");
     lsDebugLevel.setToolTipText("Larger numbers result in more debug information in the "
         + "log files.");
-    cbFlgRemoveDuplicates
-        .setToolTipText("Remove mulitple references to the same particle after"
-            + "each iteration.");
     String tooltip = "Start, Incr, and End determine the numbers of particles in an "
         + "arithmetic sequence for which averages will be created.  I.e. "
         + "averages will be created containing Start particles, Start + Incr, "
@@ -1040,7 +1037,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
   }
 
   private void createSetupPanel() {
-    //panels
+    // panels
     JPanel pnlInitMotlX = new JPanel();
     // project
     JPanel pnlProject = new JPanel();
@@ -1056,11 +1053,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlReferenceAndMissingWedgeCompensation.add(referencePanel.getComponent());
     pnlReferenceAndMissingWedgeCompensation.add(missingWedgeCompensationPanel
         .getComponent());
-    //init motl x
+    // init motl x
     pnlInitMotlX.setLayout(new BoxLayout(pnlInitMotlX, BoxLayout.X_AXIS));
     pnlInitMotlX.setBorder(new EtchedBorder("Initial Motive List").getBorder());
     pnlInitMotlX.add(pnlInitMotl);
-    pnlInitMotlX.add(Box.createRigidArea(new Dimension(167,0)));
+    pnlInitMotlX.add(Box.createRigidArea(new Dimension(167, 0)));
     // init MOTL
     pnlInitMotl.setLayout(new BoxLayout(pnlInitMotl, BoxLayout.Y_AXIS));
     pnlInitMotl.add(rbInitMotlZero.getComponent());
@@ -1145,7 +1142,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlFlgRemoveDuplicates.setLayout(new BoxLayout(pnlFlgRemoveDuplicates,
         BoxLayout.X_AXIS));
     pnlFlgRemoveDuplicates.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlFlgRemoveDuplicates.add(cbFlgRemoveDuplicates);
     pnlFlgRemoveDuplicates.add(Box.createHorizontalGlue());
     pnlRunBody.add(pnlFlgRemoveDuplicates);
     JPanel pnlRefFlagAllTom = new JPanel();
@@ -1196,8 +1192,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
         || actionCommand.equals(rbInitAlignParticleYAxes.getActionCommand())
         || actionCommand.equals(rbInitMotlRandomRotations.getActionCommand())
         || actionCommand.equals(rbInitMotlRandomAxialRotations.getActionCommand())
-        || actionCommand.equals(rbInitMotlFiles.getActionCommand())
-        || actionCommand.equals(cbFlgRemoveDuplicates.getActionCommand())) {
+        || actionCommand.equals(rbInitMotlFiles.getActionCommand())) {
       updateDisplay();
     }
     else if (actionCommand.equals(btnAvgVol.getActionCommand())) {
@@ -1327,15 +1322,18 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     missingWedgeCompensationPanel.updateDisplay();
     sphericalSamplingForThetaAndPsiPanel.updateDisplay();
     // iteration table - spherical sampling and FlgRemoveDuplicates
-    iterationTable.updateDisplay(
-        !sphericalSamplingForThetaAndPsiPanel.isSampleSphereNoneSelected(),
-        cbFlgRemoveDuplicates.isSelected());
+    iterationTable.updateDisplay(!sphericalSamplingForThetaAndPsiPanel
+        .isSampleSphereNoneSelected());
     // volume table
     volumeTable.updateDisplay(rbInitMotlFiles.isSelected(),
         missingWedgeCompensationPanel.isTiltRangeRequired());
     maskingPanel.updateDisplay();
     cbflgAlignAverages
         .setEnabled(yAxisTypePanel.getYAxisType() != MatlabParam.YAxisType.Y_AXIS);
+  }
+
+  public boolean isSampleSphere() {
+    return !sphericalSamplingForThetaAndPsiPanel.isSampleSphereNoneSelected();
   }
 
   private void chooseDirectory() {
@@ -1360,7 +1358,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     tabPane.addChangeListener(new TabChangeListener(this));
     btnAvgVol.addActionListener(actionListener);
     btnRef.addActionListener(actionListener);
-    cbFlgRemoveDuplicates.addActionListener(actionListener);
     btnAverageAll.addActionListener(actionListener);
     btnCopyProject.addActionListener(actionListener);
   }

@@ -1,6 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 12/20/11: IMOD_4-4-3
+12/20/11: In eTomo - PEET, upgraded the Interations table.(Bug# 1570)
+
 12/19/11: IMOD_4-3-4
 12/19/11: Updated program list for hyperlinks in man page (In 4.3).
 

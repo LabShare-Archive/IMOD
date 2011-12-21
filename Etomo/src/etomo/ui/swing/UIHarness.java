@@ -213,6 +213,7 @@ public final class UIHarness {
 
   public void pack(BaseManager manager) {
     if (isHead()) {
+      manager.pack();
       AbstractFrame abstractFrame = getFrame(manager);
       abstractFrame.repaint();
       abstractFrame.pack();
@@ -234,6 +235,7 @@ public final class UIHarness {
 
   public void pack(boolean force, BaseManager manager) {
     if (isHead()) {
+      manager.pack();
       AbstractFrame abstractFrame = getFrame(manager);
       abstractFrame.repaint();
       abstractFrame.pack(force);
@@ -248,6 +250,7 @@ public final class UIHarness {
 
   public void pack(AxisID axisID, BaseManager manager) {
     if (isHead()) {
+      manager.pack();
       AbstractFrame abstractFrame = getFrame(manager);
       abstractFrame.repaint(axisID);
       abstractFrame.pack(axisID);
@@ -264,6 +267,7 @@ public final class UIHarness {
 
   public void pack(AxisID axisID, boolean force, BaseManager manager) {
     if (isHead()) {
+      manager.pack();
       AbstractFrame abstractFrame = getFrame(manager);
       abstractFrame.repaint(axisID);
       abstractFrame.pack(axisID, force);

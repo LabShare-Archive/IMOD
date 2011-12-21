@@ -293,6 +293,9 @@ public abstract class BaseManager {
     return oldPropertyUserDir;
   }
 
+  public void pack() {
+  }
+
   void initializeUIParameters(File dataFile, AxisID axisID,
       boolean loadedFromADifferentFile) {
     if (!headless) {

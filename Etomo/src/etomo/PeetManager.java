@@ -400,6 +400,12 @@ public final class PeetManager extends BaseManager {
     return false;
   }
 
+  public void pack() {
+    if (peetDialog != null) {
+      peetDialog.pack();
+    }
+  }
+
   public InterfaceType getInterfaceType() {
     return InterfaceType.PEET;
   }
