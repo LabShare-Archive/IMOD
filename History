@@ -1,6 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 12/20/11: IMOD_4-4-3
+12/20/11: In eTomo - PEET, upgraded the Interations table.(Bug# 1570)
+
 12/19/11: Programs Clonevolume and Clonemodel were added to allow multiple
 copies of a rotated volume or model to be inserted into a tomogram or composed
 into one model.

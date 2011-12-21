@@ -22,4 +22,5 @@ interface IterationParent {
   public static final String rcsid = "$Id$";
 
   public void updateDisplay();
+  public boolean isSampleSphere();
 }
