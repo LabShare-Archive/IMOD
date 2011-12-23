@@ -234,7 +234,7 @@ string analysis_outputBranchingAnalysis( int objMainLen, int objBranches,
                                          bool showMatches );
 vector<int> analysis_findBranches( Iobj *obj, Icont *contRoot, float maxDistBranch,
                                    float zScale );
-string analysis_outputVolumeWithinXAnalysis( int objToAnalyse,
+string analysis_outputVolumeWithinXAnalysis( int objToAnalyze,
                                              int objInIdx, int objOut1Idx, int objOut2Idx,
                                              float distThres,
                                              int  numRandomPts, 
