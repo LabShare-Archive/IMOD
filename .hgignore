@@ -27,7 +27,8 @@ lib
 pylib
 buildlib
 qtlib
-bk--
+bk--*
+.DS_Store
 man
 html/man
 html/libhelp
