@@ -3036,15 +3036,15 @@ Stereology::Stereology(QWidget *parent, const char *name) :
 	
 	//** ROW 6:
 	
-	chkChangeDefLimits = new QCheckBox("change default limits", widGridSetup);
+	chkChangeDefLimits = new QCheckBox("change grid limits", widGridSetup);
   chkChangeDefLimits->setChecked( plug.changeDefLimits );
   QObject::connect(chkChangeDefLimits,SIGNAL(clicked()),this,SLOT(changeGridChk()));
   chkChangeDefLimits->setToolTip
 	  ( "If on: the limits of the grid will be shifted so that they fall within \n"
 		  "the values you specify below (the boxes which appear when this is ticked). \n"
 		  "If off: the minimum x, y and z limits are set to the boundaries of the \n"
-		  "model. These should be the same as the reconstruction used to create the \n"
-		  "model.");
+		  "model. These should be the same as the reconstruction (image volume) \n"
+		  "used to create the model.");
 	layGridSetup->addWidget(chkChangeDefLimits);
 	
 	//** ROW 7:
@@ -7613,7 +7613,6 @@ void Stereology::modifyExistingGridViaObjectLabels()
 		catLabel.push_back( getObjLabel(catObjIdx).toStdString() );
 	}
 	
-	bool addNewCategories = false;
 	
 	//## SHOW A CUSTOM DIALOG WITH A LIST OF ALL OBJECT LABELS:
 	
@@ -7678,11 +7677,6 @@ void Stereology::modifyExistingGridViaObjectLabels()
 		
 		ds.setStylePrev("background-color: rgb(255, 230, 110);");			// yellowish
 	}
-	
-	ds.addCheckBox( "add more categories", 
-								  &addNewCategories,
-								  "Will popup a new dialog which will allows you to \n"
-								  "add up to three extra categories" );
 	
 	ds.exec();
 	
@@ -7762,7 +7756,7 @@ void Stereology::addExtraGridCategoriesToImodModel()
 	for( int c=0; c<MAX_NEW_OBJECTS; c++ )
 	{
 		newCatName[c] = "";
-		addCat[c]     = (c == 1);
+		addCat[c]     = (c == 0);
 	}
 	
 	CustomDialog ds("Add Extra Categories:", this, BS_CUSTOM );
@@ -9734,7 +9728,7 @@ void Stereology::setSpacingUsingUnits()
 	
 	CustomDialog ds("Change Grid Spacing Using Units", this);
 	
-	ds.addLabel   ( "--- NUMBER OF POINTS DONE: ---", true );
+	ds.addLabel   ( "--- SELECT UNITS TO CHANGE: ---", true );
 	
 	if( unitsNotSetup )			// if units don't appear setup: display warning message
 	{
@@ -10913,7 +10907,7 @@ void Stereology::calculateResults()
 	if( !g->countingStarted )
 	{
 		QMessageBox::warning( this, "...",
-												  "You cannot calulate results until you have finalized the "
+												  "You cannot calculate results until you have finalized the "
 												  "grid, finalized categories and started counting.");
 		return;
 	}
