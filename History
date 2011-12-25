@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/24/11: Fixed test in simplex search routine that terminated searches with
+only one variable very early, maybe terminated other searches a bit early.
+
 12/20/11: IMOD_4-4-3
 12/20/11: In eTomo - PEET, upgraded the Interations table.(Bug# 1570)
 
