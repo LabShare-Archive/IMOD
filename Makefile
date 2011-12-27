@@ -366,13 +366,13 @@ etomosrc :
 #
 tests : ImodTests
 	cd Etomo ; $(MAKE) tests
-	cd ImodTests ; cvs update ; $(MAKE) tests
+	cd ImodTests ; hg pull -u ; $(MAKE) tests
 
 uitestinstall : 
 	cd Etomo ; $(MAKE) $@
 
 ImodTests : 
-	cvs co ImodTests 
+	hg clone ssh://simba.colorado.edu//home/hg/ImodTests 
 
 ALWAYS:
 
