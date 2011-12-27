@@ -57,7 +57,7 @@ imod2vrml2$(E) : imod2vrml2.$(O)
 	$(CC) -o imod2vrml2 imod2vrml2.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imod2obj$(E) : imod2obj.$(O)
-	$(CC) -o imod2obj imod2obj.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+	$(CXX) -o imod2obj imod2obj.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imod2ccdbxml $(E) : imod2ccdbxml.$(O)
 	$(CC) -o imod2ccdbxml imod2ccdbxml.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
