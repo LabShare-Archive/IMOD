@@ -269,7 +269,9 @@ run.function.iteration-table=
 [[]]
 cb.for-new-references=on
 run.function.number-of-particles-to-average=
-run.function.optional-advanced-features=
+[[if = test-gui]]
+  run.function.optional-advanced-features=
+[[]]
 cb.for-average-volumes=on
 sp.particles-per-cpu=1
 bn.run=
@@ -430,6 +432,7 @@ run.function.initial-motive-list-check-prm=
 tb.setup.1=
 run.function.spherical-sampling-for-theta-and-psi-check-prm=
 run.function.number-of-particles-to-average-check-prm=
+run.function.optional-advanced-features-check-prm=
 #check remove duplicates
 cb.remove-duplicate-particles-after-each-iteration=on
 bn.insert=
