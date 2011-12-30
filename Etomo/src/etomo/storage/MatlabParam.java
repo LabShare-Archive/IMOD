@@ -1454,6 +1454,8 @@ public final class MatlabParam {
         (String) valueMap.get(FLG_ALIGN_AVERAGES_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, FLG_FAIR_REFERENCE_KEY,
         (String) valueMap.get(FLG_FAIR_REFERENCE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_ABS_VALUE_KEY,
+        (String) valueMap.get(FLG_ABS_VALUE_KEY), commentMap);
   }
 
   /**
