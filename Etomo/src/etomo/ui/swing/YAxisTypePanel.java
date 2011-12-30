@@ -1,7 +1,6 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
@@ -97,14 +96,14 @@ final class YAxisTypePanel {
     pnlRoot.setBoxLayout(BoxLayout.X_AXIS);
     pnlRoot.setBorder(new EtchedBorder(Y_AXIS_TYPE_LABEL).getBorder());
     pnlRoot.add(pnlYaxisType);
-    pnlRoot.add(Box.createRigidArea(new Dimension(197,0)));
+    pnlRoot.add(Box.createRigidArea(FixedDim.x197_y0));
     // YaxisType
     pnlYaxisType.setBoxLayout(BoxLayout.Y_AXIS);
     pnlYaxisType.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
     pnlYaxisType.add(rbYAxisTypeYAxis);
     pnlYaxisType.add(rbYAxisTypeParticleModel);
     pnlYaxisType.add(pnlYAxisContour);
-    pnlYaxisType.add(Box.createRigidArea(new Dimension(0,23)));
+    pnlYaxisType.add(Box.createRigidArea(FixedDim.x0_y23));
     // YaxisContour
     pnlYAxisContour.setLayout(new BoxLayout(pnlYAxisContour, BoxLayout.X_AXIS));
     pnlYAxisContour.add(rbYAxisTypeContour.getComponent());

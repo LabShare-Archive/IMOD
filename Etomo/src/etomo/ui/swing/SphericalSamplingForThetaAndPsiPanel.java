@@ -55,7 +55,7 @@ final class SphericalSamplingForThetaAndPsiPanel {
   private final RadioButton rbSampleSphereHalf = new RadioButton(
       SAMPLE_SPHERE_HALF_LABEL, MatlabParam.SampleSphere.HALF, bgSampleSphere);
   private final LabeledTextField ltfSampleInterval = new LabeledTextField(
-      SAMPLE_INTERVAL_LABEL + ": ");
+      SAMPLE_INTERVAL_LABEL + " (degrees) : ");
 
   private final BaseManager manager;
   private final SphericalSamplingForThetaAndPsiParent parent;
@@ -85,14 +85,18 @@ final class SphericalSamplingForThetaAndPsiPanel {
   }
 
   private void createPanel() {
+    //init
+    ltfSampleInterval.setPreferredWidth(60);
+    //root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
     pnlRoot.setBorder(new EtchedBorder(SPHERICAL_SAMPLING_LABEL).getBorder());
+    pnlRoot.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlRoot.add(rbSampleSphereNone.getComponent());
-    pnlRoot.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlRoot.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlRoot.add(rbSampleSphereFull.getComponent());
-    pnlRoot.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlRoot.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlRoot.add(rbSampleSphereHalf.getComponent());
-    pnlRoot.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlRoot.add(Box.createRigidArea(FixedDim.x70_y0));
     pnlRoot.add(ltfSampleInterval.getContainer());
     pnlRoot.add(Box.createHorizontalGlue());
   }

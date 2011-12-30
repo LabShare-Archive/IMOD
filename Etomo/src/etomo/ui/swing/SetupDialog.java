@@ -496,7 +496,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     if (fileFilter != null) {
       chooser.setFileFilter(fileFilter);
     }
-    chooser.setPreferredSize(new Dimension(400, 400));
+    chooser.setPreferredSize(FixedDim.fileChooser);
     chooser.setFileSelectionMode(selectionMode);
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -676,7 +676,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlMagGradientInfo.setLayout(new BoxLayout(pnlMagGradientInfo, BoxLayout.X_AXIS));
     pnlMagGradientInfo.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlMagGradientInfo.add(ftfMagGradientFile.getContainer());
-    pnlMagGradientInfo.add(Box.createRigidArea(new Dimension(119, 0)));
+    pnlMagGradientInfo.add(Box.createRigidArea(FixedDim.x119_y0));
 
     JPanel pnlParallelProcess = new JPanel();
     pnlParallelProcess.setLayout(new BoxLayout(pnlParallelProcess, BoxLayout.X_AXIS));
