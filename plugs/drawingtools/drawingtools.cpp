@@ -3409,6 +3409,185 @@ void DrawingTools::printModelPointInfo()
 }
 
 
+//------------------------
+//-- Prints an summary of the tube length traced using open contours.
+//-- If different point sizes are used for each point, information about
+//-- tube thickness is printed too.
+//-- 
+//-- NOTE: This function is almost identical to the function:
+//-- "analysis_outputTubeSizeAnalysis" in plugs/analysistools/analysistools.cpp
+//-- except that the user is given options to include or omit the radius
+//-- of the first and last points in calculating the "full length".
+
+void DrawingTools::analyzeTubes()
+{
+  Imod *imod  = ivwGetModel(plug.view);
+  int nObjs   = osize(imod);
+	int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+	
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+  static int minObjNum     = objIdx+1;
+	static int maxObjNum     = objIdx+1;
+  static bool incFirstRad  = true;
+  static bool incLastRad   = true;
+  
+	static bool outputEachCont = true;
+	static bool convertUnits   = true;
+	
+	
+	CustomDialog ds("Tube Analysis", this);
+  ds.addLabel   ( "object range:" );
+	
+	ds.addMinMaxSpinBoxPair ( " > object:", "to", 1, nObjs, &minObjNum, &maxObjNum,1,
+								 "The range of objects you wish to analyze" );
+	
+	ds.addLabel   ( "length calculation:" );
+	
+	ds.addCheckBox( "include radius of first point", &incFirstRad,
+								 "If true will include the radius of the first  \n"
+								 "point in the total length." );
+	ds.addCheckBox( "include radius of last point", &incLastRad,
+								 "If true will include the radius of the last  \n"
+								 "point in the total length." );
+	
+	ds.addLabel   ( "output options:" );
+	
+	ds.addCheckBox( "output each contour's length", &outputEachCont,
+								 "If true, will output the length of each contour... \n"
+								 "if false, outputs a summary only." );
+	ds.addCheckBox( "output in units", &convertUnits,
+								 "If true will output all measurements in the units specified \n"
+								 "under 'Edit > Model > Header' (instead of pixels)." );
+	
+	ds.exec();
+	if( ds.wasCancelled() )
+		return;
+	
+	
+	//## PRINT TUBE SUMMARY
+	
+	int minObj = MAX( minObjNum-1, 0       );
+	int maxObj = MIN( maxObjNum-1, nObjs-1 );
+	
+	float pixelSize = imodGetPixelSize(imod);
+  float zScale    = imodGetZScale(imod);
+  float scaleValues = (convertUnits) ? pixelSize : 1.0f;
+	string unitsStr   = (convertUnits) ? toString( imodUnits(imod) ) : "pixels";
+	QString qEndStrUnits = " " + QString(unitsStr.c_str()) + "\n";
+	QString SEP = "\t";			// seperator character
+	
+	QString outStr = "TUBE SUMMARY\n";
+  
+  for( int o=minObj; o<=maxObj; o++ )
+  {
+		float OopenL   = 0.0f;		// tally open length
+		float OfullL   = 0.0f;		// tally end-to-end length (includes first and/or last pt)
+		float OtotR    = 0.0f;		// tally the total radius as multiplied by open length
+    int   OemptyConts = 0;		// tally the number of empty contours
+    
+    Iobj *obj = getObj(imod,o);
+    
+		outStr += "\nOBJECT " + QStr(o+1) +"\n";
+    
+    if( csize(obj)==0 )
+    {
+      outStr += " ... empty\n";
+      continue;
+    }
+    
+		if( isObjClosed(obj) )
+		{
+      outStr += " WARNING: this object has closed contours\n";
+			outStr += "  The analyze tube function should be used on open contours only\n";
+		}
+		
+		if(outputEachCont)
+		{
+			outStr += "cont#"+SEP+"pts"+SEP+SEP+"openLength"+SEP+"fullLength"+SEP+SEP;
+			outStr += "avgRadius"+SEP+"firstR"+SEP+"lastR"+SEP;
+			outStr += "minR"+SEP+"maxR"+SEP+"minMidR"+"\n";
+		}
+		
+    for( int c=0; c<csize(obj); c++ )
+    {
+      Icont *cont   = getCont(obj,c);
+      int nPts      = psize(cont);
+			
+			float openL, fullL, avgR;
+			float firstR, lastR, minR, maxR, minMidR, openVol, fullVol, surfaceA;
+			
+			cont_calcPtsizeInfo( obj, cont, zScale, scaleValues, openL,fullL,
+													 avgR,firstR,lastR,minR,maxR,minMidR,
+													 openVol,fullVol,surfaceA );
+			
+			fullL = openL;
+			if( incFirstRad )	fullL += firstR;
+			if( incLastRad  )	fullL += lastR;
+			
+			if(outputEachCont)
+			{
+				outStr += QStr(c+1)   + SEP + QStr(nPts)   + SEP+SEP;
+				outStr += QStr(openL) + SEP + QStr(fullL)  + SEP+SEP;
+				outStr += QStr(avgR)  + SEP + QStr(firstR) + SEP  + QStr(lastR) + SEP;
+				outStr += QStr(minR)  + SEP + QStr(maxR)   + SEP  + QStr(minMidR) +"\n";
+			}
+			
+			OopenL += openL;
+      OfullL += fullL;
+      OtotR  += (openL * avgR);
+			
+			if(nPts==0)
+				OemptyConts++;
+		}
+    
+		int OnumConts = csize(obj) - OemptyConts;
+		
+    float OavgOpenL    = fDiv(OopenL, OnumConts);
+		float OavgFullL    = fDiv(OfullL, OnumConts);
+		float OavgDiameter = fDiv(OtotR, OopenL) * 2.0f;
+		
+    outStr += "\n\n";
+    if(OemptyConts > 0)
+      outStr += "# EMPTY CONTOURS = " + QStr(OemptyConts) + "\n";
+    outStr += "total   open length  = " + QStr(OopenL)    + qEndStrUnits;
+		outStr += "average open length  = " + QStr(OavgOpenL) + qEndStrUnits;
+		outStr += "   (where 'open length' does not include any radius values) \n\n";
+		
+		if( incFirstRad || incLastRad )
+		{
+			outStr += "total   full length = " + QStr(OfullL)    + qEndStrUnits;
+			outStr += "average full length = " + QStr(OavgFullL) + qEndStrUnits;
+			outStr += "   (where 'full length' includes the radius of each ";
+			if     ( incFirstRad && incLastRad )		outStr += "first and last point)\n\n";
+			else if( incFirstRad )									outStr += "first point)\n\n";
+			else if( incLastRad  )									outStr += "last point)\n\n";
+		}
+		
+		outStr += "average diameter = " + QStr(OavgDiameter) + qEndStrUnits;
+  }
+	
+	
+  //## SHOW OUTPUT IN BIG BOX:
+  
+	CustomDialog dsR("Tube Analysis Results", this);
+  dsR.addLabel    ( "results:" );
+	
+	dsR.addReadOnlyTextEdit ( outStr, false, 400,
+													 "Use copy [ctrl+c] and paste [ctrl]+[v] to paste \n"
+													 "this into a spreadsheet or text editor."  );
+	
+	dsR.setMinimumWidth(500);
+	dsR.exec();
+	
+	if( dsR.wasCancelled() )
+		return;
+}
+
+
+
 
 //------------------------
 //-- Gives a choice of several other options for the user.
@@ -3431,7 +3610,8 @@ void DrawingTools::moreActions()
                   "move point|"
                   "expand contours|"
 								  "round points|"
-                  "print basic model info|"
+                  "analyze tubes|"
+								  "print basic model info|"
                   "print detailed object info|"
                   "print detailed contour info|"
                   "reset values",
@@ -3467,7 +3647,10 @@ void DrawingTools::moreActions()
                   "Use this to expand a ring around a range of \n"
                     "open or closed contours within the current object|"
 								  "Use this to round all points to an integer and/or multiple of \n"
-								   "a decimal value in x, y and/or z|"
+								    "a decimal value in x, y and/or z|"
+								  "Prints an summary of the tube length traced using open \n"
+								    "contours. If different point sizes are used for each point \n"
+								    "information about tube thickness is printed too.|"
 								  "Prints some basic information about the current \n"
                     "object including the average distance between \n"
                     "points; average points contour; and number of \n"
@@ -3521,16 +3704,19 @@ void DrawingTools::moreActions()
     case(11):      // round points
       roundPoints();
       break;
-		case(12):      // print basic model info
+		case(12):      // analyze tubes
+      analyzeTubes();
+      break;
+		case(13):      // print basic model info
       printModelPointInfo();
       break;
-    case(13):      // print detailed object info
+    case(14):      // print detailed object info
       printObjectDetailedInfo();
       break;
-    case(14):      // print detailed contour info
+    case(15):      // print detailed contour info
       printContourDetailedInfo();
       break;
-    case(15):      // reset values
+    case(16):      // reset values
       if( !MsgBoxYesNo(this, "Restore all default settings for this plugin?" ) )
         return;
       plug.window->initValues();

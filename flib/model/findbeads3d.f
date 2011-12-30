@@ -5,7 +5,6 @@ c
 c       For details, see man page
 *       
 c       $Id$
-c       Log at end of file
 c       
       implicit none
       integer maxPiece, limPeak, maxArray, limHisto
@@ -22,9 +21,10 @@ c
       integer*4 minYsize, minZsize, maxZ, maxYZ, numXpieces, numYpieces
       integer*4 numZpieces, numPeaks, maxPeaks, numCorrs, indPlanes
       integer*4 ixStart, ixEnd, iyStart, iyEnd, izStart, izEnd
-      real*4 bb, cc, elongation, radius, rad, distMin, xpeak, ypeak, zpeak
-      real*4 dmin,dmax,dmean,polarity, peakCorr, sum, fracAvg
-      integer*4 ix, iy, iz, ixPiece, iyPiece, izPiece, minInside, maxXsize
+      real*4 elongation, radius, distMin, xpeak, ypeak, zpeak
+      real*4 dmin,dmax,dmean,polarity, peakCorr, fracAvg
+c      integer*4 iy, iz
+      integer*4 ix, ixPiece, iyPiece, izPiece, minInside, maxXsize
       integer*4 ixpeak, iypeak, izpeak, numSave, ix0,ix1,iy0,iy1,iz0,iz1
       integer*4 numPass, minGuess, iVerbose, ibinning
       real*4 sumXoffset, sumYoffset, sumZoffset, storeThresh,beadSize,dtor
@@ -152,7 +152,7 @@ c
       if (yElongated) then
         nyCorr = nzCorr
         nzCorr = nxCorr
-      endif	 
+      endif
       maxVol = maxArray - nxCorr * nyCorr * nzCorr
 c       
 c       Given correlation dimensions, set up the overlaps and minimum sizes
@@ -165,7 +165,7 @@ c
       maxZ = maxVol / (nx * ny) - 3
       maxYZ = (sqrt(9. + 4. * maxVol / nx) - 3.) / 2.
       if (iVerbose .gt. 0)print *,maxVol,nxOverlap,minYsize,minZsize,maxZ,maxYZ
-c	
+c
       if (maxZ .ge. nz) then
 c         
 c         the entire load will fit at once, set min's to ny and nz
@@ -361,7 +361,7 @@ c                   print *,i,xpeak,ypeak,zpeak
                     call loadvol(1, array, lenPiece(ixPiece,1),
      &                  lenPiece(iyPiece,2),
      &                  ind0(ixPiece,1), ind1(ixPiece,1), ind0(iyPiece,2),
-     &			ind1(iyPiece,2), ind0(izPiece,3), ind1(izPiece,3))
+     &                  ind1(iyPiece,2), ind0(izPiece,3), ind1(izPiece,3))
                     loaded = .true.
                   endif
 
@@ -544,7 +544,7 @@ c
       integer*4 nxdim,nydim,ix0,ix1,iy0,iy1,iz0,iz1,iunit,indz,iz
       real*4 array(nxdim,nydim,*)
 c       
-c	print *,iunit,nxdim,nydim,ix0,ix1,iy0,iy1,iz0,iz1
+c       print *,iunit,nxdim,nydim,ix0,ix1,iy0,iy1,iz0,iz1
       indz=0
       do iz=iz0,iz1
         indz=indz+1
@@ -629,8 +629,8 @@ c
         index(i) = index(i - 1)
       enddo
       index(newOrder) = newIndex
-c	print *,'Inserted ',valNew,' at',newOrder,', index',newIndex
-c	write(*,'(4(2i5,f9.0))')(i, index(i), values(index(i)), i =1, numVals)
+c       print *,'Inserted ',valNew,' at',newOrder,', index',newIndex
+c       write(*,'(4(2i5,f9.0))')(i, index(i), values(index(i)), i =1, numVals)
       return
       end
 
@@ -1009,7 +1009,7 @@ c
       integer*4 idxglb,idyglb,idzglb,ix,iy,iz,iseq,idy,idz
       integer*4 idycor,idzcor,idxcor,minseq
       integer*4 indmax,idxmax,idymax,idzmax
-      real*4 cx,y1,y2,y3,denom,cy,cz
+      real*4 cx,y1,y2,y3,cy,cz
       real*8 parabolicFitPosition
 c       
 c       Minimum # of rows to do in sequence before shifting center
@@ -1017,7 +1017,7 @@ c       Minimum # of rows to do in sequence before shifting center
 c       
 c       get global displacement of b
 c       
-c	print *,'findbest',nxa,nya,nza,
+c       print *,'findbest',nxa,nya,nza,
 c     &    nxb,nyb,nzb,ixStart,ixEnd,iyStart,iyEnd, izStart,izEnd,
 c     &    dxadj, dyadj,dzadj,maxshift
       idxglb=nint(dxadj)
@@ -1040,7 +1040,7 @@ c
       do while(iseq.le.9)
         idy=idyseq(iseq)
         idz=idzseq(iseq)
-c	  print *,iseq,idy,idz
+c         print *,iseq,idy,idz
         if(.not.(done(-1,idy,idz).and.done(0,idy,idz).and.
      &      done(1,idy,idz)))then
 c           
@@ -1084,7 +1084,7 @@ c
           idxglb=idxglb+idxmax
           idyglb=idyglb+idymax
           idzglb=idzglb+idzmax
-c	    print *,'moving by',idxmax,idymax,idzmax
+c           print *,'moving by',idxmax,idymax,idzmax
 c           
 c           but if beyond the limit, return failure
 c           
@@ -1093,7 +1093,7 @@ c
      &        idyglb .lt. iyStart .or. idyglb .gt. iyEnd .or.
      &        idzglb .lt. izStart .or. idzglb .gt. izEnd)then
             found=.false.
-c	      print *,'outside'
+c             print *,'outside'
             return
           endif
           do iz=-1,1
@@ -1148,7 +1148,7 @@ c
       dzadj=idzglb+cz
       peakCorr = y2
       found=.true.
-c	print *,'returning a peak', peakCorr, dxadj, dyadj, dzadj
+c       print *,'returning a peak', peakCorr, dxadj, dyadj, dzadj
       return
       end
 
@@ -1165,7 +1165,8 @@ c
       subroutine threecorrs(array,nxa,nya,brray,nxb,nyb,ix0,ix1,
      &    iy0,iy1,iz0,iz1,idx,idy,idz,corr1,corr2,corr3)
       implicit none
-      real*4 array(*),brray(*), first, prev
+      real*4 array(*),brray(*)
+c       real*4 first, prev
       real*8 sum1,sum2,sum3,corr1,corr2,corr3,bsumt,bsumsqt
       real*8 asum, bsum1, bsum2, bsum3, asumsq, bsumsq1, bsumsq2, bsumsq3
       integer*4 ix0,ix1,iy0,iy1, iz0,iz1,idx,idy,idz,nxa,nxb,nya,nyb
@@ -1199,32 +1200,32 @@ c
 c             All this computes correlation coefficients and is too precious
 c             to delete, but not right for featureless particles
 c             In fact this routine is the same as in corrsearch3d without this
-c	      asum = asum + array(ix)
-c	      asumsq = asumsq + array(ix)**2
-c	      bsumt = bsumt + brray(ixb)
-c	      bsumsqt = bsumsqt + brray(ixb)**2
+c             asum = asum + array(ix)
+c             asumsq = asumsq + array(ix)**2
+c             bsumt = bsumt + brray(ixb)
+c             bsumsqt = bsumsqt + brray(ixb)**2
           enddo
 c           bsum2 = bsum2 + bsumt
 c           bsumsq2 = bsumsq2 + bsumsqt
-c	    first = brray(indbasea+ix0+inddelb)
-c	    prev = brray(indbasea+ix0+inddelb - 1)
-c	    bsum1 = bsum1 + bsumt + prev - brray(ixb)
-c	    bsum3 = bsum3 + bsumt - first + brray(ixb+1)
-c	    bsumsq1 = bsumsq1 + bsumsqt + prev**2 - brray(ixb)**2
-c	    bsumsq3 = bsumsq3 + bsumsqt - first**2 + brray(ixb+1)**2
+c           first = brray(indbasea+ix0+inddelb)
+c           prev = brray(indbasea+ix0+inddelb - 1)
+c           bsum1 = bsum1 + bsumt + prev - brray(ixb)
+c           bsum3 = bsum3 + bsumt - first + brray(ixb+1)
+c           bsumsq1 = bsumsq1 + bsumsqt + prev**2 - brray(ixb)**2
+c           bsumsq3 = bsumsq3 + bsumsqt - first**2 + brray(ixb+1)**2
         enddo
-      enddo	
+      enddo     
       nsum=(iz1+1-iz0)*(iy1+1-iy0)*(ix1+1-ix0)
-c	corr1 = (nsum * sum1 - asum * bsum1) /
-c       &	    sqrt((nsum * asumsq - asum**2) * (nsum * bsumsq1 - bsum1**2))
-c	corr2 = (nsum * sum2 - asum * bsum2) /
-c       &	    sqrt((nsum * asumsq - asum**2) * (nsum * bsumsq2 - bsum2**2))
-c	corr3 = (nsum * sum3 - asum * bsum3) /
-c       &	    sqrt((nsum * asumsq - asum**2) * (nsum * bsumsq3 - bsum3**2))
+c       corr1 = (nsum * sum1 - asum * bsum1) /
+c       &           sqrt((nsum * asumsq - asum**2) * (nsum * bsumsq1 - bsum1**2))
+c       corr2 = (nsum * sum2 - asum * bsum2) /
+c       &           sqrt((nsum * asumsq - asum**2) * (nsum * bsumsq2 - bsum2**2))
+c       corr3 = (nsum * sum3 - asum * bsum3) /
+c       &           sqrt((nsum * asumsq - asum**2) * (nsum * bsumsq3 - bsum3**2))
       corr1=sum1/nsum
       corr2=sum2/nsum
       corr3=sum3/nsum
-c	print *,idx,idy,idz,corr1,corr2,corr3
+c       print *,idx,idy,idz,corr1,corr2,corr3
       return
       end
 
@@ -1252,7 +1253,6 @@ c
       real*4 peakVal(*), peakPos(3,*), delta(*), origin(*), radius, blackThresh
       real*4  peak, peakmin, peakmax
       integer*4 ind(3)/1,2,3/
-      logical flipyz
       integer*4 putContValue, putImodFlag, putValBlackWhite, putImageRef
       integer*4 putImodMaxes
 
@@ -1331,21 +1331,3 @@ c
       call imclose(iunit)
       return
       end
-
-c       
-c       $Log$
-c       Revision 3.5  2010/05/26 21:48:21  mast
-c       Output image size in model header so sortbeadsurfs has it
-c
-c       Revision 3.4  2010/03/09 03:35:54  mast
-c       Allow entry of unbinned bead diameter and binning
-c
-c       Revision 3.3  2009/08/12 23:37:38  mast
-c       Increase radius by one to help small beads
-c
-c       Revision 3.2  2009/01/22 05:55:27  mast
-c       Set mean of average to zero for correlations
-c
-c       Revision 3.1  2008/12/11 06:05:43  mast
-c       Added to package
-c

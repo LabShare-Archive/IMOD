@@ -1384,6 +1384,8 @@ bool line_twoKiss( Ipoint *a1, Ipoint *a2, Ipoint *a3,
 
 
 //------------------------
+//-- This function is used to generate a pattern using a 16 segment
+//-- display as per the following diagram.
 //-- 
 //--         __0___ ___1__            a _______b_______c
 //--       |\_     |     _/|           |\_     |     _/|
@@ -1395,6 +1397,10 @@ bool line_twoKiss( Ipoint *a1, Ipoint *a2, Ipoint *a3,
 //--       | _/15  11  14_ |           | _/    |    \_ |
 //--       |/______|______\|           |/______|______\|          
 //--          5        4              g        f        e             
+//--
+//-- Each segment (s0-s15) with a non-zero value will result
+//-- in another two point contour getting added to the corresponding
+//-- segment at the origin of the given object (obj).
 
 void cont_gen16SegDisplay( Iobj *obj,int s0,int s1,int s2,int s3,int s4,int s5,int s6,
           int s7,int s8,int s9,int s10,int s11,int s12,int s13,int s14,int s15, int z )
@@ -1426,6 +1432,10 @@ void cont_gen16SegDisplay( Iobj *obj,int s0,int s1,int s2,int s3,int s4,int s5,i
   if( s14) cont_addTwoPointContourToObj(obj, e, i);   // seg 12
   if( s15) cont_addTwoPointContourToObj(obj, g, i);   // seg 13 
 }
+
+//------------------------
+//-- Inputs a single character (ch) and generates that character into
+//-- the given object (obj) using a 16 segment display pattern.
 
 int cont_generateDigitUsing16SegDisplay( Iobj *obj, char ch, int z )
 {
@@ -1515,7 +1525,8 @@ int cont_generateDigitUsing16SegDisplay( Iobj *obj, char ch, int z )
 
 
 //------------------------
-//-- 
+//-- Generates a number (number) into the given object (obj) by drawing
+//-- each character using contours in a 7 segment display configuration.
 
 int cont_generateDigitUsing7SegDisplay( Iobj *obj, int number, int z )
 {
@@ -1548,8 +1559,13 @@ int cont_generateDigitUsing7SegDisplay( Iobj *obj, int number, int z )
 }
 
 //------------------------
-//-- 
-//-- 
+//-- Generates a single line of text (text) at a given position (pos) of the
+//-- given object (obj). 
+//-- It does this by generating contour in the form of a 16 segment display
+//-- and then moving and scaling these contours according to the values of
+//-- (fontSize), (textAlign) and (pos). If (smallCaps) is true, then lowercase
+//-- letters will be printed as slightly shrunk versions of their uppercase
+//-- form, else will be normal sized lowercase characters.
 
 int cont_generateTextAsConts( Iobj *obj, string text, Ipoint pos,
                                  float fontSize, int textAlign, bool smallCaps )
@@ -1594,8 +1610,8 @@ int cont_generateTextAsConts( Iobj *obj, string text, Ipoint pos,
 }
 
 //------------------------
-//-- 
-//-- 
+//-- Generates a multiple lines of text (text) into the given object (obj)
+//-- by outputting each character as contours in a 16 segment display configuration.
 
 int cont_generateTextAreaAsConts( Iobj *obj, string text, Ipoint pos, float fontSize,
                        int alignHoriz, int alignVert, bool smallCaps, float lineSpacing )

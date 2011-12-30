@@ -315,7 +315,7 @@ csrc : ALWAYS
 	3dmod/*.[ch] 3dmod/*.cpp 3dmod/*.ui 3dmod/3dmod.pro \
 	3dmod/*.bits 3dmod/*.png 3dmod/*.xpm 3dmod/*.qrc \
 	3dmod/3dmod.dsw 3dmod/Makefile.dummy 3dmod/b3dicon.i* \
-	imodutil/*.[ch] imodutil/Makefile \
+	imodutil/*.[ch] imodutil/*.cpp imodutil/Makefile \
 	mrc/*.[ch] mrc/*.cpp   mrc/Makefile \
 	clip/*.[ch]   clip/Makefile \
 	midas/*.[ch] midas/*.cpp midas/midas.pro \
@@ -366,13 +366,13 @@ etomosrc :
 #
 tests : ImodTests
 	cd Etomo ; $(MAKE) tests
-	cd ImodTests ; cvs update ; $(MAKE) tests
+	cd ImodTests ; hg pull -u ; $(MAKE) tests
 
 uitestinstall : 
 	cd Etomo ; $(MAKE) $@
 
 ImodTests : 
-	cvs co ImodTests 
+	hg clone ssh://simba.colorado.edu//home/hg/ImodTests 
 
 ALWAYS:
 

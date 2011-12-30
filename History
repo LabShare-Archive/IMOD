@@ -1,6 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/24/11: Fixed test in simplex search routine that terminated searches with
+only one variable very early, maybe terminated other searches a bit early.
+
+12/20/11: IMOD_4-4-3
 12/20/11: In eTomo - PEET, upgraded the Interations table.(Bug# 1570)
+
+12/19/11: Programs Clonevolume and Clonemodel were added to allow multiple
+copies of a rotated volume or model to be inserted into a tomogram or composed
+into one model.
 
 12/19/11: IMOD_4-3-4
 12/19/11: Updated program list for hyperlinks in man page (In 4.3).
