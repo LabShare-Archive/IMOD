@@ -404,12 +404,12 @@ tf.end=9
 
 
 [function = optional-advanced-features]
-assert.cb.align-averages-to-have-their-y-axes-verticle=off
+assert.cb.align-averages-to-have-their-y-axes-vertical=off
 assert.cb.use-absolute-value-of-cross-correlation=off
 assert.cb.save-individual-aligned-particles=off
 assert.sp.particles-per-cpu=5
 assert.sp.debug-level=3
-assert.tf.low-frquency-cutoff=0
+assert.tf.low-frequency-cutoff=0
 assert.tf.sigma=
 
 
@@ -593,14 +593,20 @@ assert.contains.file=%{dataset}.prm|lstThresholds = [3:3:9, 4]
 
 
 [function = optional-advanced-features-check-prm]
+tb.setup=
+rb.particle-model-points=
+tb.setup.1=
 cb.align-averages-to-have-their-y-axes-vertical=on
 save=
 assert.contains.file=%{dataset}.prm|flgAlignAverages = 1
 cb.align-averages-to-have-their-y-axes-vertical=off
-cb.use-absolute-value-of-cross-correlation=on
-save=
-assert.contains.file=%{dataset}.prm|flgAbsValue = 1
+tb.setup=
+rb.tomogram-y-axis=
+tb.setup.1=
 cb.use-absolute-value-of-cross-correlation=off
+save=
+assert.contains.file=%{dataset}.prm|flgAbsValue = 0
+cb.use-absolute-value-of-cross-correlation=on
 cb.save-individual-aligned-particles=on
 save=
 assert.contains.file=%{dataset}.prm|alignedBaseName = aligned
