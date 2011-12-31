@@ -447,12 +447,6 @@ assert.contains.file=%{dataset}.prm|duplicateAngularTolerance = [2, 0]
 cb.remove-duplicate-particles-after-each-iteration=off
 #flgAlignAverages is always saved
 assert.contains.file=%{dataset}.prm|flgAlignAverages = 0
-#aligned base name
-mb.run.1=A
-tf.aligned-base-name=bob
-save=
-assert.contains.file=%{dataset}.prm|alignedBaseName = 'bob'
-mb.run.1=B
 
 
 [function = volume-table-check-prm]
@@ -609,7 +603,7 @@ assert.contains.file=%{dataset}.prm|flgAbsValue = 0
 cb.use-absolute-value-of-cross-correlation=on
 cb.save-individual-aligned-particles=on
 save=
-assert.contains.file=%{dataset}.prm|alignedBaseName = aligned
+assert.contains.file=%{dataset}.prm|alignedBaseName = 'aligned'
 cb.save-individual-aligned-particles=off
 sp.particles-per-cpu=20
 save=
