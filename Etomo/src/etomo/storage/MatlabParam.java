@@ -385,7 +385,7 @@ public final class MatlabParam {
   public static final String FLG_ALIGN_AVERAGES_KEY = "flgAlignAverages";
   public static final String FLG_FAIR_REFERENCE_KEY = "flgFairReference";
   public static final String FLG_ABS_VALUE_KEY = "flgAbsValue";
-  public static final int FLG_ABS_VALUE_DEFAULT = 1;
+  public static final boolean FLG_ABS_VALUE_DEFAULT = true;
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
@@ -443,7 +443,6 @@ public final class MatlabParam {
     flgMeanFill.setDefault(FLG_MEAN_FILL_DEFAULT);
     flgFairReference.setDefault(false);
     flgAbsValue.setDefault(FLG_ABS_VALUE_DEFAULT);
-    flgAbsValue.setRawString(FLG_ABS_VALUE_DEFAULT);
     edgeShift.setDefault(EDGE_SHIFT_DEFAULT);
     edgeShift.setFloor(EDGE_SHIFT_MIN);
   }
