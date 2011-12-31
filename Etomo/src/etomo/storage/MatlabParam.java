@@ -443,6 +443,7 @@ public final class MatlabParam {
     flgMeanFill.setDefault(FLG_MEAN_FILL_DEFAULT);
     flgFairReference.setDefault(false);
     flgAbsValue.setDefault(FLG_ABS_VALUE_DEFAULT);
+    flgAbsValue.setRawString(FLG_ABS_VALUE_DEFAULT);
     edgeShift.setDefault(EDGE_SHIFT_DEFAULT);
     edgeShift.setFloor(EDGE_SHIFT_MIN);
   }
