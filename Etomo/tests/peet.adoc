@@ -614,7 +614,7 @@ cb.save-individual-aligned-particles=off
 sp.particles-per-cpu=20
 save=
 assert.contains.file=%{dataset}.prm|particlePerCPU = 20
-sp.particles-per-cpu=5
+sp.particles-per-cpu=1
 sp.debug-level=2
 save=
 assert.contains.file=%{dataset}.prm|debugLevel = 2
