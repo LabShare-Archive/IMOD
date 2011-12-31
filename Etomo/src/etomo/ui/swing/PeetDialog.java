@@ -867,6 +867,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
 
   /**
    * Reset values and set defaults.
+   * Is this still needed?
    */
   public void reset() {
     referencePanel.reset();
@@ -1062,6 +1063,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     ltfLstThresholdsEnd.setPreferredWidth(60);
     lsParticlePerCPU.setPreferredWidth(60);
     lsDebugLevel.setPreferredWidth(40);
+    cbFlgAbsValue.setSelected(MatlabParam.FLG_ABS_VALUE_DEFAULT);
     // panel for tab
     pnlRun.setLayout(new BoxLayout(pnlRun, BoxLayout.Y_AXIS));
     pnlRun.setBorder(BorderFactory.createEtchedBorder());
