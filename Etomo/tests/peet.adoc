@@ -405,7 +405,7 @@ tf.end=9
 
 [function = optional-advanced-features]
 assert.cb.align-averages-to-have-their-y-axes-vertical=off
-assert.cb.use-absolute-value-of-cross-correlation=off
+assert.cb.use-absolute-value-of-cross-correlation=on
 assert.cb.save-individual-aligned-particles=off
 assert.sp.particles-per-cpu=5
 assert.sp.debug-level=3
