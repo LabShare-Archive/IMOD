@@ -3,11 +3,6 @@
  *
  *  $Id$
  *
- *  $Log$
- *  Revision 1.7  2009/08/10 22:34:39  mast
- *  General reworking of program
- *
- *
  */
 #ifndef PLOTTER_H
 #define PLOTTER_H
@@ -21,7 +16,7 @@
 class QLabel;
 class QToolButton;
 class PlotSettings;
-class RangeDialog;
+class FittingDialog;
 class AngleDialog;
 class MyApp;
 class QPushButton;
@@ -39,11 +34,11 @@ public:
     QSize sizeHint() const;
     void manageLabels(double zero, double defocus, double def2, double defAvg,
                       int type);
-    QToolButton *tileButton;
-    RangeDialog *rDialog;
-    AngleDialog *aDialog;
-    QVector<PlotSettings> zoomStack;
-    int curZoom;
+    QToolButton *mTileButton;
+    FittingDialog *mFittingDia;
+    AngleDialog *mAngleDia;
+    QVector<PlotSettings> mZoomStack;
+    int mCurZoom;
 
 public slots:
     void zoomIn();
@@ -72,22 +67,22 @@ private:
     enum { Margin = 40 };
 
     MyApp *mApp;
-    QLabel* zeroLabel;
-    QLabel* defocusLabel;
-    QLabel* defoc2Label;
-    QLabel* defocAvgLabel;
-    QToolButton *zoomInButton;
-    QToolButton *zoomOutButton;
-    QToolButton *printButton;
-    QPushButton *rangeButton;
-    QPushButton *angleButton;
-    QToolButton *saveButton;
-    QToolButton *helpButton;
-    QMap<int, QVector<QPointF> > curveMap;
-    bool rubberBandIsShown;
-    QRect rubberBandRect;
-    QPixmap pixmap;
-    QPrinter *printer;
+    QLabel* mZeroLabel;
+    QLabel* mDefocusLabel;
+    QLabel* mDefoc2Label;
+    QLabel* mDefocAvgLabel;
+    QToolButton *mZoomInButton;
+    QToolButton *mZoomOutButton;
+    QToolButton *mPrintButton;
+    QPushButton *mRangeButton;
+    QPushButton *mAngleButton;
+    QToolButton *mSaveButton;
+    QToolButton *mHelpButton;
+    QMap<int, QVector<QPointF> > mCurveMap;
+    bool mRubberBandIsShown;
+    QRect mRubberBandRect;
+    QPixmap mPixmap;
+    QPrinter *mPrinter;
 };
 
 class PlotSettings
