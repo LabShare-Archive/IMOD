@@ -49,7 +49,7 @@ Plotter::Plotter(QWidget *parent) : QWidget(parent)
   connect(mZoomOutButton, SIGNAL(clicked()), this, SLOT(zoomOut()));
 
   mPrintButton= new QToolButton(this);
-  mPrintButton->setIcon( QIcon(":/images/mPrinter.png") );
+  mPrintButton->setIcon( QIcon(":/images/printer.png") );
   mPrintButton->adjustSize();
   mPrintButton->setToolTip("Print");
   connect(mPrintButton, SIGNAL(clicked()), this, SLOT(printIt()) );
