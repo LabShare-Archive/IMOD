@@ -613,10 +613,11 @@ sp.debug-level=2
 save=
 assert.contains.file=%{dataset}.prm|debugLevel = 2
 sp.debug-level=3
+assert.contains.file=%{dataset}.prm|lowCutoff = {[0, NaN]}
 tf.low-frequency-cutoff=1
 tf.sigma=2
 save=
-assert.contains.file=%{dataset}.prm|lowCutoff = [1,0]
+assert.contains.file=%{dataset}.prm|lowCutoff = {[1,2]}
 tf.low-frequency-cutoff=0
 tf.sigma=
 save=
