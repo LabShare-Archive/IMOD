@@ -9,7 +9,6 @@
 *  Colorado.  See dist/COPYRIGHT for full copyright notice.
 * 
 *  $Id$
-*  Log at end of file
 */
 
 #include <math.h>
@@ -50,8 +49,8 @@ int main(int argc, char *argv[])
 
   char *cfgFn, *stackFn, *angleFn, *defFn;
   float tiltAxisAngle;
-  int volt, nDim, tileSize, cacheSize;
-  float defocusTol, pixelSize, lowAngle, highAngle;
+  int volt, nDim, tileSize, cacheSize, ifAutofit;
+  float defocusTol, pixelSize, lowAngle, highAngle, autoRange, autoStep;
   float expectedDef, leftDefTol, rightDefTol;
   float ampContrast, cs, dataOffset = 0.;
   int invertAngles = 0, ifOffset = 0;
@@ -118,6 +117,8 @@ int main(int argc, char *argv[])
     exitError("No AngleRange specified");
   PipGetBoolean("InvertTiltAngles", &invertAngles);
   ifOffset = 1 - PipGetFloat("OffsetToAdd", &dataOffset);
+  autoStep = (float)fabs((double)highAngle - lowAngle) / 2.f;
+  ifAutofit = 1 - PipGetTwoFloats("AutoFitRangeAndStep", &autoRange, &autoStep);
  
   double *rAvg=(double *)malloc(nDim*sizeof(double));
 
@@ -128,11 +129,14 @@ int main(int argc, char *argv[])
             (double)leftDefTol, (double)rightDefTol, cacheSize, invertAngles);
   //set the angle range for noise PS computing;
   app.setPS(rAvg);
+  app.setRangeStep((double)autoStep);
   
   QMainWindow mainWin;
   Plotter plotter(&mainWin);
   plotter.setWindowTitle(QObject::tr("CTF Plot"));
   app.setPlotter(&plotter);
+  if (ifAutofit)
+    app.setInitTileOption(1);
   
   /*****begin of computing noise PS;**********/
   FILE *fpCfg;
@@ -256,7 +260,7 @@ int main(int argc, char *argv[])
            "32768 is not being added\nbecause the minimum of the file is positive.\n\n"
            "You may need to specify an offset to make the\n"
            "values be proportional to recorded electrons.",
-           QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton);
+           QMessageBox::Ok, QMessageBox::Ok);
         qApp->processEvents();
       }
     } else {
@@ -267,7 +271,7 @@ int main(int argc, char *argv[])
            "mean,\nso an offset of 32768 is being added.\n\n"
            "You may need to specify a different offset to make\n"
            "the values be proportional to recorded electrons.",
-           QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton);
+           QMessageBox::Ok, QMessageBox::Ok);
         qApp->processEvents();
       } else if (header->amean < 0)
         exitError("The mean of the input stack is negative.  You need to specify an "
@@ -306,11 +310,14 @@ int main(int argc, char *argv[])
 
   mainWin.show();
   plotter.angleDiag();
+  if (ifAutofit) {
+    app.autoFitToRanges(app.getMinAngle(), app.getMaxAngle(), autoRange, autoStep, 3);
+  }
   app.exec();
   if (app.getSaveModified()) {
     int retval =   QMessageBox::information
       (0, "Save File?", "There are unsaved changes to the defocus table - "
-       "save before exiting?", QMessageBox::Yes, QMessageBox::No,
+       "save before exiting?", QMessageBox::Yes | QMessageBox::No,
        QMessageBox::NoButton);
     if (retval == QMessageBox::Yes)
       app.writeDefocusFile();
@@ -329,43 +336,3 @@ int ctfShowHelpPage(const char *page)
     return 1;
 }
 
-/*
-
-$Log$
-Revision 1.18  2010/04/02 00:17:12  mast
-Cleanup for warnings
-
-Revision 1.17  2010/03/14 19:32:57  mast
-Ask about writing defocus file before exiting
-
-Revision 1.16  2010/03/09 06:24:22  mast
-Allow use of relative paths in config file
-
-Revision 1.15  2009/09/18 14:56:13  mast
-Changed to skip blank lines in noise file
-
-Revision 1.14  2009/08/10 22:14:59  mast
-Adjust to changes in other modules, add inversion option
-
-Revision 1.13  2009/01/15 16:31:36  mast
-Qt 4 port
-
-Revision 1.12  2008/11/11 16:19:20  xiongq
-delete qsplashscreen.h
-
-Revision 1.11  2008/11/10 22:43:44  xiongq
-improved splash display
-
-Revision 1.10  2008/11/08 21:54:04  xiongq
-adjust plotter setting for initializaion
-
-Revision 1.9  2008/11/07 20:34:34  xiongq
-call fflush to sync log  for each slice
-
-Revision 1.8  2008/11/07 20:20:41  xiongq
-add splash screen
-
-Revision 1.7  2008/11/07 17:26:24  xiongq
-add the copyright heading
-
-*/
