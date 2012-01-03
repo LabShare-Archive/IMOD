@@ -2,11 +2,11 @@ TEMPLATE = app
 CONFIG += qt assistant
 CONFIG       += exceptions
 HEADERS       += defocusfinder.h linearfitting.h simplexfitting.h myapp.h plotter.h \
-                 rangedialog.h angledialog.h imod_assistant.h slicecache.h ctfmain.h
+                 fittingdialog.h angledialog.h imod_assistant.h slicecache.h ctfmain.h
 SOURCES       = main.cpp \
                 myapp.cpp \
                 plotter.cpp \
-                rangedialog.cpp\
+                fittingdialog.cpp\
                 angledialog.cpp \
                 simplexfitting.cpp \
                 linearfitting.cpp \
