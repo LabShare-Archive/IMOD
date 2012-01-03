@@ -3,17 +3,6 @@
  *
  *  $Id$
  *
- *  $Log$
- *  Revision 1.8  2010/03/14 19:34:53  mast
- *  Changes associated with reading in angles, keeping table of results, etc
- *
- *  Revision 1.7  2010/03/09 06:24:52  mast
- *  Change arguments to const char* to take latin1 from QString
- *
- *  Revision 1.6  2009/08/10 22:34:39  mast
- *  General reworking of program
- *
- *
  */
 #ifndef MYAPP_H
 #define MYAPP_H
@@ -57,10 +46,19 @@ class MyApp : public QApplication
     double getAxisAngle(){return mTiltAxisAngle;}
     void setLowAngle(double lAngle){ mLowAngle=lAngle;}
     void setHighAngle(double hAngle){ mHighAngle=hAngle;}
+    void setRangeStep(double step){ mRangeStep=step;}
+    void setAutoFromAngle(double from){ mAutoFromAngle = from;}
+    void setAutoToAngle(double to){ mAutoToAngle = to;}
+    double getRangeStep(){return mRangeStep;}
+    double getAutoFromAngle(){return mAutoFromAngle;}
+    double getAutoToAngle(){return mAutoToAngle;}
+    
     void setPS(double *rAvg){mRAverage=rAvg;}
     double* getPS(){return mRAverage;}
     //recompute mRAverage for the central strips after calling setSlice();
     int computeInitPS();  
+    int autoFitToRanges(float minAngle, float maxAngle, float rangeSize, 
+                        float rangeStep, int numIter);
     void setNoiseForMean(double mean);
     void setNumNoiseFiles(int num) {mNumNoiseFiles = num;};
     void setNoiseIndexes(int *indexes) {mNoiseIndexes = indexes;};
@@ -88,6 +86,7 @@ class MyApp : public QApplication
     void setSaveModified() {mSaveModified = true;};
     bool getSaveModified() {return mSaveModified;};
     SliceCache *getCache() {return &mCache;};
+    void showHideWidget(QWidget *widget, bool state);
     
     MyApp(int &argc, char *argv[], int volt, double pSize, 
           double ampRatio, float cs, char *defFn, int dim, int hyper, 
@@ -108,6 +107,7 @@ class MyApp : public QApplication
     void setVaryCtfPowerInFit(bool value){mVaryCtfPowerInFit=value;}
     void setDefOption(int index){mDefocusOption=index;}
     void setInitTileOption(int index);
+    int getInitTileOption(){return mInitialTileOption;}
     void scaleAndAddStrip
       (double *psSum, double *stripAvg, int *stripCounter,
        int counter, double mean, double xScale, 
@@ -131,7 +131,11 @@ class MyApp : public QApplication
     double mHighAngle;  // in degrees;
     double mLeftDefTol; // in nm;
     double mRightDefTol; //in nm;
+    double mRangeStep;
+    double mAutoFromAngle;
+    double mAutoToAngle;
     float *mTiltAngles;  // Array of tilt angles
+    float *mSortedAngles;  // Tilt angles sorted
     float mAngleSign;     // -1 to invert angles, 1 not to
     float mMinAngle, mMaxAngle;   // Min and max tilt angles
     int mNxx;  //x dimension;
