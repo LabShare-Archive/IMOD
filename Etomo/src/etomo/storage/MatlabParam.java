@@ -330,6 +330,7 @@ public final class MatlabParam {
   public static final String SEARCH_RADIUS_KEY = "searchRadius";
   public static final String LOW_CUTOFF_KEY = "lowCutoff";
   public static final String LOW_CUTOFF_DEFAULT = "0";
+  public static final String LOW_CUTOFF_SIGMA_DEFAULT = "";
   public static final String HI_CUTOFF_KEY = "hiCutoff";
   /**
    * @deprecated
@@ -427,6 +428,7 @@ public final class MatlabParam {
   private final ParsedNumber flgAbsValue = ParsedNumber.getMatlabInstance();
 
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
+  private String lowCutoffSigma = LOW_CUTOFF_SIGMA_DEFAULT;
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
   private boolean useReferenceFile = false;
   private YAxisType yAxisType = YAxisType.DEFAULT;
@@ -584,7 +586,7 @@ public final class MatlabParam {
     Iteration iteration;
     if (index == iterationList.size()) {
       iteration = new Iteration();
-      iteration.setLowCutoff(lowCutoff, "");
+      iteration.setLowCutoff(lowCutoff, lowCutoffSigma);
       iterationList.add(iteration);
       return iteration;
     }
@@ -804,6 +806,7 @@ public final class MatlabParam {
     referenceFile.clear();
     reference.clear();
     lowCutoff = LOW_CUTOFF_DEFAULT;
+    lowCutoffSigma=LOW_CUTOFF_SIGMA_DEFAULT;
     initMotlCode = InitMotlCode.DEFAULT;
     useReferenceFile = false;
     yAxisType = YAxisType.DEFAULT;
@@ -899,7 +902,7 @@ public final class MatlabParam {
    */
   public String getLowCutoffSigma() {
     if (iterationList.size() == 0) {
-      return "";
+      return lowCutoffSigma;
     }
     return ((Iteration) iterationList.get(0)).getLowCutoffSigmaString();
   }
@@ -912,8 +915,9 @@ public final class MatlabParam {
    */
   public void setLowCutoff(final String cutoff, final String sigma) {
     lowCutoff = cutoff;
+    lowCutoffSigma=sigma;
     for (int i = 0; i < iterationList.size(); i++) {
-      ((Iteration) iterationList.get(i)).setLowCutoff(lowCutoff, sigma);
+      ((Iteration) iterationList.get(i)).setLowCutoff(lowCutoff, lowCutoffSigma);
     }
   }
 
