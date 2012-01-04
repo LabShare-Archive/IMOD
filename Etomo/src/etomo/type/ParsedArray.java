@@ -777,7 +777,8 @@ public final class ParsedArray extends ParsedElement {
     // Array descriptors don't have their own open and close symbols, so they
     // look like numbers until to you get to the first divider (":"or "-").
     if (debug) {
-      System.out.println("ParsedArray.parseElement:token=" + token + ",type=" + type);
+      System.out.println("ParsedArray.parseElement:token=" + token + ",type=" + type
+          + ",index:" + index);
     }
     ParsedElement element;
     // First assume that there might be an array descriptor.
@@ -789,7 +790,12 @@ public final class ParsedArray extends ParsedElement {
       // create the correct type of element
       if (descriptor.isEmpty()) {
         // There's nothing there, so its an empty element
-        array.addEmptyElement();
+        if (index == -1) {
+          array.addEmptyElement();
+        }
+        else {
+          array.setEmptyElement(index);
+        }
         return token;
       }
       else if (descriptor.wasDividerParsed()) {
