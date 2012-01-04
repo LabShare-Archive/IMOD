@@ -617,7 +617,7 @@ assert.contains.file=%{dataset}.prm|lowCutoff = {[0, NaN]}
 tf.low-frequency-cutoff=1
 tf.sigma=2
 save=
-assert.contains.file=%{dataset}.prm|lowCutoff = {[1,2]}
+assert.contains.file=%{dataset}.prm|lowCutoff = {[1, 2]}
 tf.low-frequency-cutoff=0
 tf.sigma=
 save=
