@@ -181,13 +181,29 @@ tooltip =
 manpage = Starting and ending tilt angles for initial analysis.  Views with a
 tilt angle within this range are used to compute the CTF curve.
 
+[Field = AutoFitRangeAndStep]
+short = autoFit
+type = FP
+usage = Range of angles and step between ranges for initial autofitting
+tooltip =
+manpage = Do initial autofitting over the whole tilt series with the given
+range of angles and step size between ranges.  A value of zero for the step
+will make it fit to each single image separate, regardless of the value for
+the range.  This autofitting differs from that invoked through the Angles
+dialog in several respects: 1) All tiles will be used for fits; the "All
+tiles" radio button will be selected at the end. 2) Three fitting iterations
+will be done, with the expected defocus used the first time and the current
+defocus estimate used for the next two iterations.  3) The size of the range
+is determined by the parameter entered here, not by the starting and ending
+angles entered with the -range option.
+
 [Field = DebugLevel ]
 short = debug
 type = I
 usage = 0-3, debug level, 3 means printing all messages
 tooltip =
-manpage = Debug level, 0-3. 0: quiet.  1: user messages.  2: cache, tile iteration messages.
-3: additional fitting messages. the default is 1.
+manpage = Debug level, 0-3. 0: quiet.  1: user messages.  2: cache, tile
+iteration messages.  3: additional fitting messages. The default is 1.
 
 [Field = Parameter]
 short = param

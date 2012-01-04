@@ -8,14 +8,13 @@
 *  Colorado.  See dist/COPYRIGHT for full copyright notice.
 * 
 *  $Id$
-*  Log at end of file
 */
 
 #include <QtGui>
 
 #include <cmath>
 
-#include "rangedialog.h"
+#include "fittingdialog.h"
 #include "angledialog.h"
 #include "plotter.h"
 #include "myapp.h"
@@ -33,119 +32,119 @@ Plotter::Plotter(QWidget *parent) : QWidget(parent)
   setAutoFillBackground(true);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   setFocusPolicy(Qt::StrongFocus);
-  rubberBandIsShown = false;
-  rDialog=NULL;
-  aDialog=NULL;
+  mRubberBandIsShown = false;
+  mFittingDia=NULL;
+  mAngleDia=NULL;
 
-  zoomInButton = new QToolButton(this);
-  zoomInButton->setIcon(QIcon(":/images/zoomin.png"));
-  zoomInButton->adjustSize();
-  zoomInButton->setToolTip("Zoom in");
-  connect(zoomInButton, SIGNAL(clicked()), this, SLOT(zoomIn()));
+  mZoomInButton = new QToolButton(this);
+  mZoomInButton->setIcon(QIcon(":/images/zoomin.png"));
+  mZoomInButton->adjustSize();
+  mZoomInButton->setToolTip("Zoom in");
+  connect(mZoomInButton, SIGNAL(clicked()), this, SLOT(zoomIn()));
 
-  zoomOutButton = new QToolButton(this);
-  zoomOutButton->setIcon( QIcon(":/images/zoomout.png"));
-  zoomOutButton->adjustSize();
-  zoomOutButton->setToolTip("Zoom out");
-  connect(zoomOutButton, SIGNAL(clicked()), this, SLOT(zoomOut()));
+  mZoomOutButton = new QToolButton(this);
+  mZoomOutButton->setIcon( QIcon(":/images/zoomout.png"));
+  mZoomOutButton->adjustSize();
+  mZoomOutButton->setToolTip("Zoom out");
+  connect(mZoomOutButton, SIGNAL(clicked()), this, SLOT(zoomOut()));
 
-  printButton= new QToolButton(this);
-  printButton->setIcon( QIcon(":/images/printer.png") );
-  printButton->adjustSize();
-  printButton->setToolTip("Print");
-  connect(printButton, SIGNAL(clicked()), this, SLOT(printIt()) );
+  mPrintButton= new QToolButton(this);
+  mPrintButton->setIcon( QIcon(":/images/printer.png") );
+  mPrintButton->adjustSize();
+  mPrintButton->setToolTip("Print");
+  connect(mPrintButton, SIGNAL(clicked()), this, SLOT(printIt()) );
 
-  helpButton= new QToolButton(this);
-  helpButton->setIcon( QIcon(":/images/ctfhelp.png") );
-  helpButton->adjustSize();
-  helpButton->setToolTip("Open Ctfplotter help");
-  connect(helpButton, SIGNAL(clicked()), this, SLOT(ctfHelp()) );
+  mHelpButton= new QToolButton(this);
+  mHelpButton->setIcon( QIcon(":/images/ctfhelp.png") );
+  mHelpButton->adjustSize();
+  mHelpButton->setToolTip("Open Ctfplotter help");
+  connect(mHelpButton, SIGNAL(clicked()), this, SLOT(ctfHelp()) );
 
-  rangeButton = new QPushButton("Fitting", this);
-  rangeButton->setToolTip( "Open Fitting Ranges and Methods dialog");
-  connect(rangeButton, SIGNAL(clicked()), this, SLOT(rangeDiag()) );
+  mRangeButton = new QPushButton("Fitting", this);
+  mRangeButton->setToolTip( "Open Fitting Ranges and Methods dialog");
+  connect(mRangeButton, SIGNAL(clicked()), this, SLOT(rangeDiag()) );
 
-  angleButton = new QPushButton("Angles", this);
-  angleButton->setToolTip("Open Angle Range and Tile Selection dialog");
-  connect(angleButton, SIGNAL(clicked()), this, SLOT(angleDiag()) );
+  mAngleButton = new QPushButton("Angles", this);
+  mAngleButton->setToolTip("Open Angle Range and Tile Selection dialog");
+  connect(mAngleButton, SIGNAL(clicked()), this, SLOT(angleDiag()) );
 #ifdef Q_OSMACX  
-  added = (int)(1.5 * rangeButton->fontMetrics().height());
+  added = (int)(1.5 * mRangeButton->fontMetrics().height());
 #endif
-  width = (int)(1.2 * angleButton->fontMetrics().width("Angles") +0.5)+added;
-  angleButton->setFixedWidth(width);
-  rangeButton->setFixedWidth(width);
+  width = (int)(1.2 * mAngleButton->fontMetrics().width("Angles") +0.5)+added;
+  mAngleButton->setFixedWidth(width);
+  mRangeButton->setFixedWidth(width);
 
-  tileButton=new QToolButton(this);
-  tileButton->setIcon(QIcon(":/images/moreTile.png") );
-  tileButton->adjustSize();
-  tileButton->setToolTip("Include all of the rest of the tiles");
-  connect(tileButton, SIGNAL(clicked()), mApp, SLOT(moreTileCenterIncluded()));
+  mTileButton=new QToolButton(this);
+  mTileButton->setIcon(QIcon(":/images/moreTile.png") );
+  mTileButton->adjustSize();
+  mTileButton->setToolTip("Include all of the rest of the tiles");
+  connect(mTileButton, SIGNAL(clicked()), mApp, SLOT(moreTileCenterIncluded()));
 
-  zeroLabel=new QLabel( tr("Z: NA       "), this);
-  zeroLabel->adjustSize();
-  defocusLabel=new QLabel( tr("D: NA        "), this);
-  defocusLabel->adjustSize();
-  defoc2Label=new QLabel( tr("D2: NA       "), this);
-  defoc2Label->adjustSize();
-  defocAvgLabel=new QLabel( tr("D-avg: NA       "), this);
-  defocAvgLabel->adjustSize();
+  mZeroLabel=new QLabel( tr("Z: NA       "), this);
+  mZeroLabel->adjustSize();
+  mDefocusLabel=new QLabel( tr("D: NA        "), this);
+  mDefocusLabel->adjustSize();
+  mDefoc2Label=new QLabel( tr("D2: NA       "), this);
+  mDefoc2Label->adjustSize();
+  mDefocAvgLabel=new QLabel( tr("D-avg: NA       "), this);
+  mDefocAvgLabel->adjustSize();
 
-  printer= new QPrinter;
-  printer->setOrientation(QPrinter::Landscape);
+  mPrinter= new QPrinter;
+  mPrinter->setOrientation(QPrinter::Landscape);
   setPlotSettings(PlotSettings());
 }
 
 Plotter::~Plotter(){
-  delete printer;
+  delete mPrinter;
 }
 
 void Plotter::setPlotSettings(const PlotSettings &settings)
 {
-  zoomStack.clear();
-  zoomStack.append(settings);
-  curZoom = 0;
-  zoomInButton->hide();
-  zoomOutButton->hide();
+  mZoomStack.clear();
+  mZoomStack.append(settings);
+  mCurZoom = 0;
+  mZoomInButton->hide();
+  mZoomOutButton->hide();
   refreshPixmap();
 }
 
 void Plotter::zoomOut()
 {
-  if (curZoom > 0) {
-    --curZoom;
-    zoomOutButton->setEnabled(curZoom > 0);
-    zoomInButton->setEnabled(true);
-    zoomInButton->show();
+  if (mCurZoom > 0) {
+    --mCurZoom;
+    mZoomOutButton->setEnabled(mCurZoom > 0);
+    mZoomInButton->setEnabled(true);
+    mZoomInButton->show();
     refreshPixmap();
   }
 }
 
 void Plotter::zoomIn()
 {
-  if (curZoom < zoomStack.count() - 1) {
-    ++curZoom;
-    zoomInButton->setEnabled(
-                             curZoom < (int)zoomStack.size() - 1);
-    zoomOutButton->setEnabled(true);
-    zoomOutButton->show();
+  if (mCurZoom < mZoomStack.count() - 1) {
+    ++mCurZoom;
+    mZoomInButton->setEnabled(
+                             mCurZoom < (int)mZoomStack.size() - 1);
+    mZoomOutButton->setEnabled(true);
+    mZoomOutButton->show();
     refreshPixmap();
   }
 }
 
 void Plotter::rangeDiag()
 {
-  if(!rDialog) {
-    rDialog=new RangeDialog(this);
-    connect(rDialog, SIGNAL( range(double, double, double, double) ), qApp,
+  if(!mFittingDia) {
+    mFittingDia=new FittingDialog(this);
+    connect(mFittingDia, SIGNAL( range(double, double, double, double) ), qApp,
             SLOT( rangeChanged(double, double, double, double)) );
-    connect(rDialog, SIGNAL( x1MethodChosen(int) ), qApp,
+    connect(mFittingDia, SIGNAL( x1MethodChosen(int) ), qApp,
             SLOT(setX1Method(int)) );
-    connect(rDialog, SIGNAL( x2MethodChosen(int) ), qApp,
+    connect(mFittingDia, SIGNAL( x2MethodChosen(int) ), qApp,
             SLOT(setX2Method(int)) );    
   }
-  rDialog->show();
-  rDialog->raise();
-  rDialog->activateWindow();
+  mFittingDia->show();
+  mFittingDia->raise();
+  mFittingDia->activateWindow();
 }
 
 /* 
@@ -154,15 +153,16 @@ void Plotter::rangeDiag()
 void Plotter::angleDiag()
 {
   QSize hint;
-  if(!aDialog){
-    aDialog=new AngleDialog(this);
-    connect(aDialog, SIGNAL(angle(double,double,double,double,int,double,
+  bool newDia = !mAngleDia;
+  if(!mAngleDia){
+    mAngleDia=new AngleDialog(this);
+    connect(mAngleDia, SIGNAL(angle(double,double,double,double,int,double,
                                   double,double) ), 
             qApp, SLOT(angleChanged(double,double,double,double,int,double,
                                     double,double)));
-    connect(aDialog, SIGNAL( defocusMethod(int)), qApp, 
+    connect(mAngleDia, SIGNAL( defocusMethod(int)), qApp, 
             SLOT( setDefOption(int)) );
-    connect(aDialog, SIGNAL( initialTileChoice(int)), qApp,
+    connect(mAngleDia, SIGNAL( initialTileChoice(int)), qApp,
             SLOT( setInitTileOption(int)) );
     double expDefocus=((MyApp *)qApp)->defocusFinder.getExpDefocus();
     double lowAngle=mApp->getLowAngle();
@@ -174,36 +174,45 @@ void Plotter::angleDiag()
     double rightTol=mApp->getRightTol();
     char tmpStr[20];
     sprintf(tmpStr, "%6.2f", expDefocus); 
-    aDialog->defocusEdit->setText(tmpStr);
+    mAngleDia->mDefocusEdit->setText(tmpStr);
     sprintf(tmpStr, "%6.1f", lowAngle); 
-    aDialog->lowAngleEdit->setText(tmpStr);
+    mAngleDia->mLowAngleEdit->setText(tmpStr);
     sprintf(tmpStr, "%6.1f", highAngle); 
-    aDialog->highAngleEdit->setText(tmpStr);
+    mAngleDia->mHighAngleEdit->setText(tmpStr);
     sprintf(tmpStr, "%6d", B3DNINT(defTol)); 
-    aDialog->defTolEdit->setText(tmpStr);
+    mAngleDia->mDefTolEdit->setText(tmpStr);
     sprintf(tmpStr, "%6d", tSize);
-    aDialog->tileSizeEdit->setText(tmpStr);
+    mAngleDia->mTileSizeEdit->setText(tmpStr);
     sprintf(tmpStr, "%6.2f", axisAngle); 
-    aDialog->axisAngleEdit->setText(tmpStr);
+    mAngleDia->mAxisAngleEdit->setText(tmpStr);
     sprintf(tmpStr, "%6d", B3DNINT(leftTol)); 
-    aDialog->leftTolEdit->setText(tmpStr);
+    mAngleDia->mLeftTolEdit->setText(tmpStr);
     sprintf(tmpStr, "%6d", B3DNINT(rightTol)); 
-    aDialog->rightTolEdit->setText(tmpStr);
-    aDialog->updateTable();
+    mAngleDia->mRightTolEdit->setText(tmpStr);
+    sprintf(tmpStr, "%6.2f", mApp->getMinAngle()); 
+    mAngleDia->mAutoFromEdit->setText(tmpStr);
+    sprintf(tmpStr, "%6.2f", mApp->getMaxAngle()); 
+    mAngleDia->mAutoToEdit->setText(tmpStr);
+    sprintf(tmpStr, "%6.1f", mApp->getRangeStep()); 
+    mAngleDia->mRangeStepEdit->setText(tmpStr);
+    
+    mAngleDia->updateTable();
   }
-  aDialog->show();
-  aDialog->raise();
-  aDialog->activateWindow();
+  mAngleDia->show();
+  mAngleDia->raise();
+  mAngleDia->activateWindow();
+  if (newDia)
+    mAngleDia->tileParamsClicked();
 }
 
 void Plotter::printIt()
 {
-  QPrintDialog printDialog(printer, this);
+  QPrintDialog printDialog(mPrinter, this);
   printDialog.setWindowTitle("Printing plot");
 
   if ( printDialog.exec() ) {
     QPainter painter;
-    if( !painter.begin( printer ) ) return;
+    if( !painter.begin( mPrinter ) ) return;
     painter.setWindow(0, 0, width(), height() );
     drawGrid(&painter, false);
     drawCurves(&painter);
@@ -217,8 +226,8 @@ void Plotter::ctfHelp()
 
 void Plotter::setCurveData(int id, const QVector<QPointF> &data)
 {
-    curveMap[id] = data;
-   // int n=curveMap[id].size() / 2;
+    mCurveMap[id] = data;
+   // int n=mCurveMap[id].size() / 2;
    // int i;
    // double min, max;
 
@@ -235,8 +244,8 @@ void Plotter::setCurveData(int id, const QVector<QPointF> &data)
         if( data[2*i]>max ) max=data[2*i];
         else if( data[2*i]<min ) min=data[2*i];
       }
-      if( min<zoomStack[0].minX ) zoomStack[0].minX=min;
-      if( max>zoomStack[0].maxX ) zoomStack[0].maxX=max; 
+      if( min<mZoomStack[0].minX ) mZoomStack[0].minX=min;
+      if( max>mZoomStack[0].maxX ) mZoomStack[0].maxX=max; 
 
       if( data[1]>data[3] ){
         max=data[1];
@@ -249,8 +258,8 @@ void Plotter::setCurveData(int id, const QVector<QPointF> &data)
         if( data[2*i+1]>max ) max=data[2*i+1];
         else if( data[2*i+1]<min ) min=data[2*i+1];
       }
-      if( min<zoomStack[0].minY ) zoomStack[0].minY=min;
-      if( max>zoomStack[0].maxY ) zoomStack[0].maxY=max;
+      if( min<mZoomStack[0].minY ) mZoomStack[0].minY=min;
+      if( max>mZoomStack[0].maxY ) mZoomStack[0].maxY=max;
     }*/
     
     refreshPixmap();
@@ -258,7 +267,7 @@ void Plotter::setCurveData(int id, const QVector<QPointF> &data)
 
 void Plotter::clearCurve(int id)
 {
-  curveMap.remove(id);
+  mCurveMap.remove(id);
   refreshPixmap();
 }
 
@@ -275,13 +284,13 @@ QSize Plotter::sizeHint() const
 void Plotter::paintEvent(QPaintEvent *event)
 {
   QStylePainter painter(this);
-  painter.drawPixmap(0,0, pixmap);
+  painter.drawPixmap(0,0, mPixmap);
 
 
-  if (rubberBandIsShown) {
+  if (mRubberBandIsShown) {
     //painter.setPen(palette().light().color());
     painter.setPen(Qt::white);
-    painter.drawRect(rubberBandRect.normalized().adjusted(0,0,-1,-1));
+    painter.drawRect(mRubberBandRect.normalized().adjusted(0,0,-1,-1));
 
   }
   if (hasFocus()) {
@@ -295,35 +304,35 @@ void Plotter::paintEvent(QPaintEvent *event)
 
 void Plotter::resizeEvent(QResizeEvent *)
 {
-  int x = width() - (zoomInButton->width()
-                     + zoomOutButton->width() +printButton->width() +
-                     +zeroLabel->width()+
-                     defocusLabel->width() + tileButton->width()+
-                     defoc2Label->width() + defocAvgLabel->width() + 75);
+  int x = width() - (mZoomInButton->width()
+                     + mZoomOutButton->width() +mPrintButton->width() +
+                     +mZeroLabel->width()+
+                     mDefocusLabel->width() + mTileButton->width()+
+                     mDefoc2Label->width() + mDefocAvgLabel->width() + 75);
 
   // Put text buttons on left
-  angleButton->move(10, 5);
-  rangeButton->move(15 + angleButton->width(), 5);
+  mAngleButton->move(10, 5);
+  mRangeButton->move(15 + mAngleButton->width(), 5);
 
   // Then lay out the labels and tool buttons at fixed distance from right edge
-  zeroLabel->move(x, 5);
-  x += zeroLabel->width()+5;
-  defocusLabel->move(x, 5);
-  x += defocusLabel->width()+5;
-  defoc2Label->move(x, 5);
-  x += defoc2Label->width()+5;
-  defocAvgLabel->move(x, 5);
-  x += defocAvgLabel->width()+5;
+  mZeroLabel->move(x, 5);
+  x += mZeroLabel->width()+5;
+  mDefocusLabel->move(x, 5);
+  x += mDefocusLabel->width()+5;
+  mDefoc2Label->move(x, 5);
+  x += mDefoc2Label->width()+5;
+  mDefocAvgLabel->move(x, 5);
+  x += mDefocAvgLabel->width()+5;
     
-  zoomInButton->move(x, 5);
-  x += zoomInButton->width() + 5;
-  zoomOutButton->move(x, 5);
-  x += zoomOutButton->width() + 5;
-  tileButton->move(x, 5);
-  x += tileButton->width() + 5;
-  printButton->move(x, 5);
-  x += printButton->width() + 5;
-  helpButton->move(x, 5);
+  mZoomInButton->move(x, 5);
+  x += mZoomInButton->width() + 5;
+  mZoomOutButton->move(x, 5);
+  x += mZoomOutButton->width() + 5;
+  mTileButton->move(x, 5);
+  x += mTileButton->width() + 5;
+  mPrintButton->move(x, 5);
+  x += mPrintButton->width() + 5;
+  mHelpButton->move(x, 5);
   refreshPixmap();
 }
 
@@ -335,9 +344,9 @@ void Plotter::mousePressEvent(QMouseEvent *event)
   QRect rect(Margin, Margin, width()-2*Margin, height()-2*Margin);
   if (event->button() ==Qt::LeftButton) {
     if(rect.contains(event->pos() ) ){
-      rubberBandIsShown = true;
-      rubberBandRect.setTopLeft(event->pos());
-      rubberBandRect.setBottomRight(event->pos());
+      mRubberBandIsShown = true;
+      mRubberBandRect.setTopLeft(event->pos());
+      mRubberBandRect.setBottomRight(event->pos());
       updateRubberBandRegion();
       setCursor(Qt::CrossCursor);
     }
@@ -346,26 +355,26 @@ void Plotter::mousePressEvent(QMouseEvent *event)
 
 void Plotter::mouseMoveEvent(QMouseEvent *event)
 {
-  if (rubberBandIsShown) {
+  if (mRubberBandIsShown) {
     updateRubberBandRegion();
-    rubberBandRect.setBottomRight(event->pos());
+    mRubberBandRect.setBottomRight(event->pos());
     updateRubberBandRegion();
   }
 }
 
 void Plotter::mouseReleaseEvent(QMouseEvent *event)
 {
-  if (event->button() == Qt::LeftButton && rubberBandIsShown) {
-    rubberBandIsShown = false;
+  if (event->button() == Qt::LeftButton && mRubberBandIsShown) {
+    mRubberBandIsShown = false;
     updateRubberBandRegion();
     unsetCursor();
 
-    QRect rect = rubberBandRect.normalized();
+    QRect rect = mRubberBandRect.normalized();
     if (rect.width() < 4 || rect.height() < 4)
       return;
     rect.translate(-Margin, -Margin);
 
-    PlotSettings prevSettings = zoomStack[curZoom];
+    PlotSettings prevSettings = mZoomStack[mCurZoom];
     PlotSettings settings;
     double dx = prevSettings.spanX() / (width() - 2 * Margin);
     double dy = prevSettings.spanY() / (height() - 2 * Margin);
@@ -375,8 +384,8 @@ void Plotter::mouseReleaseEvent(QMouseEvent *event)
     settings.maxY = prevSettings.maxY - dy * rect.top();
     settings.adjust();
 
-    zoomStack.resize(curZoom + 1);
-    zoomStack.append(settings);
+    mZoomStack.resize(mCurZoom + 1);
+    mZoomStack.append(settings);
     zoomIn();
   }
 }
@@ -387,7 +396,7 @@ void Plotter::mouseReleaseEvent(QMouseEvent *event)
 void Plotter::mouseDoubleClickEvent(QMouseEvent *event)
 {
   DefocusFinder *finder = &mApp->defocusFinder;
-  PlotSettings settings=zoomStack[curZoom];
+  PlotSettings settings=mZoomStack[mCurZoom];
   double dx=settings.spanX()/(width()-2*Margin);
   double zero=settings.minX + dx*(event->x()-Margin);
   double defocus, defoc2, defocAvg;
@@ -422,18 +431,19 @@ void Plotter::manageLabels(double zero, double defocus, double def2,
   QString defocusString = "D: NA ";
   QString defoc2String = "D2: NA ";
   QString defocAvgString = "D-avg: NA ";
+  // FREQUENCY SCALE CHANGE: " / 2."
   if (type >= 0) {
-    zeroString.sprintf("Z: %4.3f", zero);
+    zeroString.sprintf("Z: %4.3f", zero / 2.);
     defocusString.sprintf("D%s: %4.2f", type ? "1" : "", defocus);
   }
   if (type > 0) {
     defoc2String.sprintf("D2: %4.2f", def2);
     defocAvgString.sprintf("D-avg: %4.2f", defAvg);
   }
-  zeroLabel->setText(zeroString);
-  defocusLabel->setText(defocusString);
-  defoc2Label->setText(defoc2String);
-  defocAvgLabel->setText(defocAvgString);
+  mZeroLabel->setText(zeroString);
+  mDefocusLabel->setText(defocusString);
+  mDefoc2Label->setText(defoc2String);
+  mDefocAvgLabel->setText(defocAvgString);
 }
 
 /*
@@ -451,19 +461,19 @@ void Plotter::keyPressEvent(QKeyEvent *event)
     zoomOut();
     break;
   case Qt::Key_Left:
-    zoomStack[curZoom].scroll(-1, 0);
+    mZoomStack[mCurZoom].scroll(-1, 0);
     refreshPixmap();
     break;
   case Qt::Key_Right:
-    zoomStack[curZoom].scroll(+1, 0);
+    mZoomStack[mCurZoom].scroll(+1, 0);
     refreshPixmap();
     break;
   case Qt::Key_Down:
-    zoomStack[curZoom].scroll(0, -1);
+    mZoomStack[mCurZoom].scroll(0, -1);
     refreshPixmap();
     break;
   case Qt::Key_Up:
-    zoomStack[curZoom].scroll(0, +1);
+    mZoomStack[mCurZoom].scroll(0, +1);
     refreshPixmap();
     break;
   default:
@@ -480,15 +490,15 @@ void Plotter::wheelEvent(QWheelEvent *event)
   int numTicks = numDegrees / 15;
 
   if (event->orientation() == Qt::Horizontal)
-    zoomStack[curZoom].scroll(numTicks, 0);
+    mZoomStack[mCurZoom].scroll(numTicks, 0);
   else
-    zoomStack[curZoom].scroll(0, numTicks);
+    mZoomStack[mCurZoom].scroll(0, numTicks);
   refreshPixmap();
 }
 
 void Plotter::updateRubberBandRegion()
 {
-    QRect rect = rubberBandRect.normalized();
+    QRect rect = mRubberBandRect.normalized();
     update(rect.left(), rect.top(), rect.width(), 1);
     update(rect.left(), rect.top(), 1, rect.height());
     update(rect.left(), rect.bottom(), rect.width(), 1);
@@ -497,10 +507,10 @@ void Plotter::updateRubberBandRegion()
 
 void Plotter::refreshPixmap()
 {
-    pixmap=QPixmap(size());
-    //pixmap.fill(this, 0, 0);
-    pixmap.fill(QColor(64,64,64));
-    QPainter painter(&pixmap);
+    mPixmap=QPixmap(size());
+    //mPixmap.fill(this, 0, 0);
+    mPixmap.fill(QColor(64,64,64));
+    QPainter painter(&mPixmap);
     painter.initFrom(this);
     drawGrid(&painter, true);
     drawCurves(&painter);
@@ -512,10 +522,9 @@ void Plotter::refreshPixmap()
  */
 void Plotter::drawGrid(QPainter *painter, bool onScreen)
 {
-  QRect rect(Margin, Margin,
-             width() - 2 * Margin, height() - 2 * Margin);
+  QRect rect(Margin, Margin, width() - 2 * Margin, height() - 2 * Margin);
   if(!rect.isValid()) return;
-  PlotSettings settings = zoomStack[curZoom];
+  PlotSettings settings = mZoomStack[mCurZoom];
   //QPen quiteDark = palette().dark().color().light();
   //QPen light = palette().light().color();
   //QPen quiteDark=QPen(Qt::white);
@@ -538,10 +547,13 @@ void Plotter::drawGrid(QPainter *painter, bool onScreen)
     painter->drawLine(x, rect.top(), x, rect.bottom());
     painter->setPen(light);
     painter->drawLine(x, rect.bottom(), x, rect.bottom() + 5);
+    // FREQUENCY SCALE CHANGE: " / 2."
     painter->drawText(x - 50, rect.bottom() + 5, 100, 15,
                       Qt::AlignHCenter | Qt::AlignTop,
-                      QString::number(label));
+                      QString::number(label / 2.));
   }
+  painter->drawText(rect.left() + rect.width() / 2 - 100, rect.bottom() + 20, 200, 15,
+                    Qt::AlignHCenter | Qt::AlignTop, "Frequency (1/pixel)");
   for (int j = 0; j <= settings.numYTicks; ++j) {
     int y = rect.bottom() - (j * (rect.height() - 1)
                              / settings.numYTicks);
@@ -567,7 +579,7 @@ void Plotter::drawCurves(QPainter *painter)
   static const QColor colorForIds[6] = {
     Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::yellow
   };
-  PlotSettings settings = zoomStack[curZoom];
+  PlotSettings settings = mZoomStack[mCurZoom];
   QRect rect(Margin, Margin,
              width() - 2 * Margin, height() - 2 * Margin);
 
@@ -575,7 +587,7 @@ void Plotter::drawCurves(QPainter *painter)
 
   painter->setClipRect(rect.adjusted(+1, +1, -1, -1) );
     
-  QMapIterator<int, QVector<QPointF> > i(curveMap);
+  QMapIterator<int, QVector<QPointF> > i(mCurveMap);
   while (i.hasNext() ) {
     i.next();
     int id = i.key();
@@ -640,24 +652,3 @@ void PlotSettings::adjustAxis(double &min, double &max,
   min = floor(min / step) * step;
   max = ceil(max / step) * step;
 }
-
-/*
-
-   $Log$
-   Revision 1.12  2009/08/10 22:21:35  mast
-   Added click for second zero, eliminated bias in treatment of locations
-   versus power spectrum bins.
-
-   Revision 1.11  2009/02/24 23:24:50  xiongq
-   fix printing color
-
-   Revision 1.10  2009/01/15 16:31:36  mast
-   Qt 4 port
-
-   Revision 1.9  2008/11/08 21:54:04  xiongq
-   adjust plotter setting for initializaion
-
-   Revision 1.8  2008/11/07 17:26:24  xiongq
-   add the copyright heading
-
-*/
