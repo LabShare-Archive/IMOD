@@ -51,6 +51,7 @@ MyApp::MyApp(int &argc, char *argv[], int volt, double pSize,
    mCache(maxCacheSize)
 {
   mSaveModified = false;
+  mSaveAndExit = false;
   mDim=dim;
   mHyperRes = hyper;
   mDefocusTol=focusTol;
@@ -894,13 +895,17 @@ int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
 
   // Confirm and remove
   if (numDel > 0) {
-    QString str;
-    str.sprintf("Do you want to remove existing defocus values listed in the \n"
-                "table with midpoint tilt angles from %.2f to %.2f degrees?", minMid,
-                maxMid);
-    i = QMessageBox::question(NULL, QString("Ctfplotter"), str, 
-                              QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
-                              QMessageBox::Yes);
+    if (mSaveAndExit) {
+      i = QMessageBox::Yes;
+    } else {
+      QString str;
+      str.sprintf("Do you want to remove existing defocus values listed in the \n"
+                  "table with midpoint tilt angles from %.2f to %.2f degrees?", minMid,
+                  maxMid);
+      i = QMessageBox::question(NULL, QString("Ctfplotter"), str, 
+                                QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
+                                QMessageBox::Yes);
+    }
     if (i == QMessageBox::Cancel)
       return 0;
     if (i == QMessageBox::Yes) {
@@ -1018,6 +1023,8 @@ void MyApp::writeDefocusFile()
   mBackedUp = true;
   fp = fopen(mFnDefocus,"w");
   if (!fp) {
+    if (mSaveAndExit)
+      exitError("Cannot open output file for saving defocus values");
     QMessageBox::critical(NULL, "Ctfplotter: File save error",
                           "Can not open output file");
     return;
