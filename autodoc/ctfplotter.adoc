@@ -77,19 +77,20 @@ counter-clockwise is positive.
 [Field = PSResolution]
 short = psRes
 type = I
-usage = The number of points over which CTF will be computed 
+usage = The number of points over which CTF will be computed (default 101)
 tooltip =
 manpage = The number of points over which CTF will be computed.  The Nyquist 
-frequency is divided into equal intervals delineated by these points.
+frequency is divided into equal intervals delineated by these points.  The default
+is 101.
 
 [Field = TileSize]
 short = tileSize
 type = I
-usage = The tile size each strip will be tessellated into
+usage = The tile size each strip will be tessellated into (default 256)
 tooltip =
 manpage = The tile size each strip will be tessellated into.  The size is in
 pixels and the tiles are square.  Each view is first divided into strips 
-that are considered to have constant defocus.
+that are considered to have constant defocus.  The deafult is 256.
 
 [Field = Voltage]
 short = volt
@@ -119,14 +120,14 @@ manpage = Microscope spherical aberration in millimeters
 [Field = DefocusTol]
 short = defTol
 type = I
-usage = Defocus tolerance in nanometers defining the center strips
+usage = Defocus tolerance in nanometers defining the center strips (default 200)
 tooltip =
 manpage = Defocus tolerance in nanometers defining the center strips.  The
 center strips are taken from the 
 central region of a view that has defocus difference less than this tolerance.
 These kind of center strips from all views within AngleRange 
 are considered to have a constant defocus and are used to compute the initial
-CTF after being further tessellated into tiles.
+CTF after being further tessellated into tiles.  The default is 200.
 
 [Field = PixelSize]
 short = pixelSize
@@ -138,10 +139,10 @@ manpage = Image pixel size in nanometers.
 [Field = AmplitudeContrast]
 short = ampContrast
 type = F
-usage = The fraction of amplitude contrast.
+usage = The fraction of amplitude contrast (default 0.07)
 tooltip =
 manpage = The fraction of amplitude contrast. For Cryo-EM, 
-it should be between 0.07 and 0.14.
+it should be between 0.07 and 0.14.  The default is 0.07.
 
 [Field = ExpectedDefocus]
 short = expDef
@@ -156,30 +157,32 @@ curve of the input stack around that frequency are selected to be fitted.
 [Field = LeftDefTol]
 short = leftTol 
 type = F
-usage = Defocus tolerance in nanometers for strips to the left of center
+usage = Defocus tolerance in nm for strips to the left of center (default 2000)
 tooltip =
 manpage = Defocus tolerance in nanometers for strips to the left of 
 the center strip.  When non-center strips are included in the average, strips
 to the left of center are included if their defocus difference is less than 
-the given value.
+the given value.  The default is 2000.
 
 [Field = RightDefTol]
 short = rightTol
 type = F
-usage = Defocus tolerance in nanometers for strips to the right of center
+usage = Defocus tolerance in nm for strips to the right of center (default 2000)
 tooltip =
 manpage = Defocus tolerance in nanometers for strips to the right of 
 the center strip.  When non-center strips are included in the average, strips
 to the right of center are included if their defocus difference is less than 
-the given value.
+the given value.  The default is 2000.
 
 [Field = AngleRange]
 short = range
 type = FP
-usage = Starting and ending tilt angles for initial analysis
+usage = Starting and ending tilt angles for initial analysis or autofitting
 tooltip =
-manpage = Starting and ending tilt angles for initial analysis.  Views with a
-tilt angle within this range are used to compute the CTF curve.
+manpage = When the -autoFit option is not entered, this entry set the starting
+and ending tilt angles for the initial analysis and is a required entry.  Views with a
+tilt angle within this range are used to compute the CTF curve.  When -autoFit
+is entered, this entry sets the extent over which steps will be taken in autofitting.
 
 [Field = AutoFitRangeAndStep]
 short = autoFit
@@ -196,6 +199,31 @@ will be done, with the expected defocus used the first time and the current
 defocus estimate used for the next two iterations.  3) The size of the range
 is determined by the parameter entered here, not by the starting and ending
 angles entered with the -range option.
+
+[Field = FrequencyRangeToFit]
+short = frequency
+type = FP
+usage = Starting and ending frequencies of range to fit in power spectrum
+tooltip =
+manpage = Starting and ending frequencies of range to fit in power spectrum.
+The two values will be used to set the "X1 starts" and "X2 ends" fields in the
+fitting dialog.
+
+[Field = VaryExponentInFit]
+short = vary
+type = B
+usage = Vary exponent of CTF function when fitting a CTF-like curve
+tooltip =
+manpage = 
+
+[Field = SaveAndExit]
+short = save
+type = B
+usage = Save defocus values to file and exit after autofitting
+tooltip =
+manpage = Save defocus values to file and exit after autofitting.  The program
+will not ask for confirmation before removing existing entries in the defocus
+table.
 
 [Field = DebugLevel ]
 short = debug
