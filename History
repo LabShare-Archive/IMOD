@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/9/12: Fixed tests for a view-number bug that made Ctfphaseflip fail with
+one image per range.
+
 1/4/12: In Ctfplotter, added defaults so some options aren't required, added
 options for controlling the curve fitting, and added an option for saving
 autofit results and exiting. 
