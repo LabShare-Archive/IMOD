@@ -7,6 +7,8 @@ one image per range.
 options for controlling the curve fitting, and added an option for saving
 autofit results and exiting. 
 
+1/3/12: In Etomo - PEET upgraded the Run tab.(Bug# 1571)
+
 1/3/12: Add options to Ctfphaseflip to adjust for the shift of images during 
 alignment.
 

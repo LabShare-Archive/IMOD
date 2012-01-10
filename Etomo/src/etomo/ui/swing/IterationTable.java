@@ -227,6 +227,7 @@ final class IterationTable implements Highlightable {
     rowList.add(this, pnlTable, layout, constraints);
     display();
     updateDisplay();
+    refreshVerticalPadding();
     setToolTipText();
   }
 

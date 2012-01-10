@@ -1,7 +1,6 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
@@ -125,7 +124,7 @@ final class ReferencePanel {
     pnlParticle.add(rtfParticle.getContainer());
     pnlParticle.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlParticle.add(sVolume.getContainer());
-    pnlParticle.add(Box.createRigidArea(new Dimension(130,0)));
+    pnlParticle.add(Box.createRigidArea(FixedDim.x130_y0));
     // file panel
     pnlFile.setLayout(new BoxLayout(pnlFile, BoxLayout.X_AXIS));
     pnlFile.add(rbFile.getComponent());
