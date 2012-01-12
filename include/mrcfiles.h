@@ -119,7 +119,7 @@ typedef struct MRCheader
   b3dFloat   amax;
   b3dFloat   amean;
   
-  /* 1/12/12: Removed nsymbt and made ispg be 4 bytes to reduce confusion */
+  /* 1/12/12: Removed nsymbt and made ispg be 4 bytes to match standard */
   b3dInt32   ispg;       /* space group number in the standard */
 
   /* 64 bytes */
