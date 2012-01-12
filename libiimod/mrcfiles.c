@@ -562,6 +562,7 @@ void mrc_swap_header(MrcHeader *hdata)
   mrc_swap_floats(&hdata->xlen, 6);
   mrc_swap_longs(&hdata->mapc, 3);
   mrc_swap_floats(&hdata->amin, 3);
+  /* 1/12/12: removed nsymbt, made ispg 4 bytes */
   mrc_swap_longs(&hdata->ispg, 1);
   mrc_swap_longs(&hdata->next, 1);
   mrc_swap_shorts(&hdata->creatid, 1);

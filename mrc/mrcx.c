@@ -7,6 +7,8 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
  */
 
 /* 
@@ -37,53 +39,6 @@
  *                                 which direction to do the conversion in.
  *                                 Eliminated bit modes as hopeless.
  ******************************************************************************/
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.13  2007/06/13 17:14:03  sueh
-bug# 1019 In main, setting hdata.sectionSkip to 0.
-
-Revision 3.12  2005/11/11 23:04:13  mast
-Changes to call size test routine and for unsigned ints
-
-Revision 3.11  2005/02/11 01:42:34  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.10  2004/11/05 18:53:10  mast
-Include local files with quotes, not brackets
-
-Revision 3.9  2004/09/10 21:33:31  mast
-Eliminated long variables
-
-Revision 3.7.2.1  2004/07/07 19:26:21  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.7  2004/01/17 20:38:26  mast
-Add define for rewind call
-
-Revision 3.6  2003/11/18 19:29:32  mast
-changes to call b3dF* functions for 2GB problem on Windows
-
-Revision 3.5  2003/10/24 02:28:42  mast
-strip directory from program name and/or use routine to make backup file
-
-Revision 3.4  2003/03/28 05:07:51  mast
-Use new unique little endian flag
-
-Revision 3.3  2003/02/21 22:22:34  mast
-Changed all types to use new b3d types
-
-Revision 3.2  2002/07/31 20:16:35  mast
-*** empty log message ***
-
-Revision 3.1  2002/07/31 20:07:33  mast
-Changes to accommodate new or old style MRC headers
-
-*/
 
 /******************************************************************************
  *   Include Files

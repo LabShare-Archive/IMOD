@@ -2,7 +2,6 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
@@ -172,7 +171,7 @@ final class PanelHeader implements Expandable {
     }
     // rootPanel
     rootPanel.add(northPanel);
-    separator.setMaximumSize(new Dimension(100, 1));
+    separator.setMaximumSize(FixedDim.separator);
     separator.setAlignmentX(Component.CENTER_ALIGNMENT);
     if (titled) {
       rootPanel.add(separator);
