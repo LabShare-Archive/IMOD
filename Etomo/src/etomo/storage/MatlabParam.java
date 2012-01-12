@@ -330,7 +330,11 @@ public final class MatlabParam {
   public static final String SEARCH_RADIUS_KEY = "searchRadius";
   public static final String LOW_CUTOFF_KEY = "lowCutoff";
   public static final String LOW_CUTOFF_DEFAULT = "0";
+  public static final String LOW_CUTOFF_SIGMA_DEFAULT = "";
   public static final String HI_CUTOFF_KEY = "hiCutoff";
+  /**
+   * @deprecated
+   */
   public static final String CC_MODE_KEY = "CCMode";
   public static final String REF_THRESHOLD_KEY = "refThreshold";
   public static final String REF_FLAG_ALL_TOM_KEY = "refFlagAllTom";
@@ -381,6 +385,8 @@ public final class MatlabParam {
   public static final String DUPLICATE_ANGULAR_TOLERANCE_KEY = "duplicateAngularTolerance";
   public static final String FLG_ALIGN_AVERAGES_KEY = "flgAlignAverages";
   public static final String FLG_FAIR_REFERENCE_KEY = "flgFairReference";
+  public static final String FLG_ABS_VALUE_KEY = "flgAbsValue";
+  public static final boolean FLG_ABS_VALUE_DEFAULT = true;
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
@@ -419,10 +425,11 @@ public final class MatlabParam {
   private final ParsedNumber flgRemoveDuplicates = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgAlignAverages = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgFairReference = ParsedNumber.getMatlabInstance();
+  private final ParsedNumber flgAbsValue = ParsedNumber.getMatlabInstance();
 
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
+  private String lowCutoffSigma = LOW_CUTOFF_SIGMA_DEFAULT;
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
-  private CCMode ccMode = CCMode.DEFAULT;
   private boolean useReferenceFile = false;
   private YAxisType yAxisType = YAxisType.DEFAULT;
   private boolean tiltRangeEmpty = false;
@@ -437,6 +444,7 @@ public final class MatlabParam {
     nWeightGroup.setFloor(N_WEIGHT_GROUP_MIN);
     flgMeanFill.setDefault(FLG_MEAN_FILL_DEFAULT);
     flgFairReference.setDefault(false);
+    flgAbsValue.setDefault(FLG_ABS_VALUE_DEFAULT);
     edgeShift.setDefault(EDGE_SHIFT_DEFAULT);
     edgeShift.setFloor(EDGE_SHIFT_MIN);
   }
@@ -578,7 +586,7 @@ public final class MatlabParam {
     Iteration iteration;
     if (index == iterationList.size()) {
       iteration = new Iteration();
-      iteration.setLowCutoff(lowCutoff);
+      iteration.setLowCutoff(lowCutoff, lowCutoffSigma);
       iterationList.add(iteration);
       return iteration;
     }
@@ -601,10 +609,6 @@ public final class MatlabParam {
     return initMotlCode;
   }
 
-  public CCMode getCcMode() {
-    return ccMode;
-  }
-
   public YAxisType getYAxisType() {
     return yAxisType;
   }
@@ -612,11 +616,7 @@ public final class MatlabParam {
   public void setInitMotlCode(EnumeratedType enumeratedType) {
     initMotlCode = (InitMotlCode) enumeratedType;
   }
-
-  public void setCcMode(EnumeratedType enumeratedType) {
-    ccMode = (CCMode) enumeratedType;
-  }
-
+  
   public void setYaxisType(EnumeratedType enumeratedType) {
     yAxisType = (YAxisType) enumeratedType;
   }
@@ -697,12 +697,20 @@ public final class MatlabParam {
     return flgFairReference.getRawBoolean();
   }
 
+  public boolean isFlgAbsValue() {
+    return flgAbsValue.getRawBoolean();
+  }
+
   public void setFlgAlignAverages(final boolean input) {
     flgAlignAverages.setRawString(input);
   }
 
   public void setFlgFairReference(final boolean input) {
     flgFairReference.setRawString(input);
+  }
+
+  public void setFlgAbsValue(final boolean input) {
+    flgAbsValue.setRawString(input);
   }
 
   public String getLstFlagAllTom() {
@@ -717,12 +725,16 @@ public final class MatlabParam {
     return flgWedgeWeight.getRawBoolean();
   }
 
-  public String getAlignedBaseName() {
-    return alignedBaseName.getRawString();
+  public boolean isAlignedBaseNameEmpty() {
+    return alignedBaseName.isEmpty();
   }
 
   public void setAlignedBaseName(String alignedBaseName) {
     this.alignedBaseName.setRawString(alignedBaseName);
+  }
+
+  public void resetAlignedBaseName() {
+    this.alignedBaseName.clear();
   }
 
   public void setReferenceVolume(final Number input) {
@@ -794,8 +806,8 @@ public final class MatlabParam {
     referenceFile.clear();
     reference.clear();
     lowCutoff = LOW_CUTOFF_DEFAULT;
+    lowCutoffSigma=LOW_CUTOFF_SIGMA_DEFAULT;
     initMotlCode = InitMotlCode.DEFAULT;
-    ccMode = CCMode.DEFAULT;
     useReferenceFile = false;
     yAxisType = YAxisType.DEFAULT;
     yaxisObjectNum.clear();
@@ -812,6 +824,7 @@ public final class MatlabParam {
     flgRemoveDuplicates.clear();
     flgAlignAverages.clear();
     flgFairReference.setRawString(false);
+    flgAbsValue.setRawString(FLG_ABS_VALUE_DEFAULT);
   }
 
   public void clearEdgeShift() {
@@ -875,11 +888,23 @@ public final class MatlabParam {
    * at the first index
    * @return
    */
-  public String getLowCutoff() {
+  public String getLowCutoffCutoff() {
     if (iterationList.size() == 0) {
       return lowCutoff;
     }
-    return ((Iteration) iterationList.get(0)).getLowCutoffString();
+    return ((Iteration) iterationList.get(0)).getLowCutoffCutoffString();
+  }
+
+  /**
+   * LowCutoff is an iteration value, but it is only set once, so get the value
+   * at the first index
+   * @return
+   */
+  public String getLowCutoffSigma() {
+    if (iterationList.size() == 0) {
+      return lowCutoffSigma;
+    }
+    return ((Iteration) iterationList.get(0)).getLowCutoffSigmaString();
   }
 
   /**
@@ -888,10 +913,11 @@ public final class MatlabParam {
    * from lowCutoff when they are.
    * @param input
    */
-  public void setLowCutoff(final String input) {
-    lowCutoff = input;
+  public void setLowCutoff(final String cutoff, final String sigma) {
+    lowCutoff = cutoff;
+    lowCutoffSigma=sigma;
     for (int i = 0; i < iterationList.size(); i++) {
-      ((Iteration) iterationList.get(i)).setLowCutoff(lowCutoff);
+      ((Iteration) iterationList.get(i)).setLowCutoff(lowCutoff, lowCutoffSigma);
     }
   }
 
@@ -989,7 +1015,7 @@ public final class MatlabParam {
     // if iteration list is too small, add new Iterations
     for (int i = iterationList.size(); i < size; i++) {
       Iteration iteration = new Iteration();
-      iteration.setLowCutoff(lowCutoff);
+      iteration.setLowCutoff(lowCutoff, "");
       iterationList.add(iteration);
     }
     // if iteration list is too big, remove Iterations from the end
@@ -1061,8 +1087,6 @@ public final class MatlabParam {
     szVol.parse(autodoc.getAttribute(SZ_VOL_KEY));
     // fnOutput
     fnOutput.parse(autodoc.getAttribute(FN_OUTPUT_KEY));
-    // CCMode
-    ccMode = CCMode.getInstance(autodoc.getAttribute(CC_MODE_KEY));
     // refFlagAllTom
     refFlagAllTom.parse(autodoc.getAttribute(REF_FLAG_ALL_TOM_KEY));
     // edgeShift
@@ -1103,6 +1127,8 @@ public final class MatlabParam {
     flgAlignAverages.parse(autodoc.getAttribute(FLG_ALIGN_AVERAGES_KEY));
     // flgFairReference
     flgFairReference.parse(autodoc.getAttribute(FLG_FAIR_REFERENCE_KEY));
+    // flgAbsValue
+    flgAbsValue.parse(autodoc.getAttribute(FLG_ABS_VALUE_KEY));
   }
 
   /**
@@ -1241,7 +1267,6 @@ public final class MatlabParam {
     if (!isTiltRangeEmpty() && !edgeShift.isEmpty()) {
       valueMap.put(EDGE_SHIFT_KEY, edgeShift.getParsableString());
     }
-    valueMap.put(CC_MODE_KEY, ccMode.toString());
     if (initMotlCode != null) {
       valueMap.put(INIT_MOTL_KEY, initMotlCode.toString());
     }
@@ -1266,6 +1291,7 @@ public final class MatlabParam {
     valueMap.put(FLG_REMOVE_DUPLICATES_KEY, flgRemoveDuplicates.getParsableString());
     valueMap.put(FLG_ALIGN_AVERAGES_KEY, flgAlignAverages.getParsableString());
     valueMap.put(FLG_FAIR_REFERENCE_KEY, flgFairReference.getParsableString());
+    valueMap.put(FLG_ABS_VALUE_KEY, flgAbsValue.getParsableString());
   }
 
   /**
@@ -1389,8 +1415,6 @@ public final class MatlabParam {
       setNameValuePairValue(manager, autodoc, EDGE_SHIFT_KEY,
           (String) valueMap.get(EDGE_SHIFT_KEY), commentMap);
     }
-    setNameValuePairValue(manager, autodoc, CC_MODE_KEY,
-        (String) valueMap.get(CC_MODE_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, FLG_MEAN_FILL_KEY,
         (String) valueMap.get(FLG_MEAN_FILL_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, ALIGNED_BASE_NAME_KEY,
@@ -1434,6 +1458,8 @@ public final class MatlabParam {
         (String) valueMap.get(FLG_ALIGN_AVERAGES_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, FLG_FAIR_REFERENCE_KEY,
         (String) valueMap.get(FLG_FAIR_REFERENCE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_ABS_VALUE_KEY,
+        (String) valueMap.get(FLG_ABS_VALUE_KEY), commentMap);
   }
 
   /**
@@ -1789,47 +1815,6 @@ public final class MatlabParam {
     }
   }
 
-  public static final class CCMode implements EnumeratedType {
-    public static final CCMode NORMALIZED = new CCMode(0);
-    public static final CCMode LOCAL = new CCMode(1);
-    public static final CCMode DEFAULT = LOCAL;
-
-    private final EtomoNumber value = new EtomoNumber();
-
-    private CCMode(final int value) {
-      this.value.set(value);
-    }
-
-    public boolean isDefault() {
-      return this == DEFAULT;
-    }
-
-    private static CCMode getInstance(final ReadOnlyAttribute attribute) {
-      if (attribute == null) {
-        return DEFAULT;
-      }
-      String value = attribute.getValue();
-      if (value == null) {
-        return DEFAULT;
-      }
-      if (NORMALIZED.value.equals(value)) {
-        return NORMALIZED;
-      }
-      if (LOCAL.value.equals(value)) {
-        return LOCAL;
-      }
-      return DEFAULT;
-    }
-
-    public ConstEtomoNumber getValue() {
-      return value;
-    }
-
-    public String toString() {
-      return value.toString();
-    }
-  }
-
   public static final class Volume {
     private static final int START_INDEX = 0;
     private static final int END_INDEX = 1;
@@ -2146,8 +2131,9 @@ public final class MatlabParam {
       hiCutoff.set(input);
     }
 
-    private void setLowCutoff(final String input) {
-      lowCutoff.setRawString(input);
+    private void setLowCutoff(final String cutoff, final String sigma) {
+      lowCutoff.setRawString(CUTOFF_INDEX, cutoff);
+      lowCutoff.setRawString(SIGMA_INDEX, sigma);
     }
 
     private ParsedElement getLowCutoff() {
@@ -2158,11 +2144,15 @@ public final class MatlabParam {
       return hiCutoff;
     }
 
-    private String getLowCutoffString() {
+    private String getLowCutoffCutoffString() {
       if (lowCutoff.isEmpty()) {
         return LOW_CUTOFF_DEFAULT;
       }
-      return lowCutoff.getRawString();
+      return lowCutoff.getRawString(CUTOFF_INDEX);
+    }
+
+    private String getLowCutoffSigmaString() {
+      return lowCutoff.getRawString(SIGMA_INDEX);
     }
 
     private ParsedElement getRefThreshold() {

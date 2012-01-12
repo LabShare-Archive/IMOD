@@ -66,18 +66,33 @@ import java.awt.Dimension;
 public class FixedDim {
   public static final String rcsid = "$Id$";
 
+  public final static Dimension x0_y0 = new Dimension(0, 0);
   public final static Dimension x3_y0 = new Dimension(3, 0);
   public final static Dimension x5_y0 = new Dimension(5, 0);
   public final static Dimension x10_y0 = new Dimension(10, 0);
+  public final static Dimension x15_y0 = new Dimension(15, 0);
   public final static Dimension x20_y0 = new Dimension(20, 0);
+  public final static Dimension x30_y0 = new Dimension(30, 0);
   public final static Dimension x40_y0 = new Dimension(40, 0);
+  public final static Dimension x50_y0 = new Dimension(50, 0);
   public final static Dimension x70_y0 = new Dimension(70, 0);
+  public final static Dimension x119_y0 = new Dimension(119, 0);
+  public final static Dimension x130_y0 = new Dimension(130,0);
+  public final static Dimension x167_y0 = new Dimension(167, 0);
+  public final static Dimension x181_y0 = new Dimension(181, 0);
+  public final static Dimension x197_y0 = new Dimension(197,0);
   public final static Dimension x200_y0 = new Dimension(200, 0);
+  public final static Dimension x0_y3 = new Dimension(0, 3);
   public final static Dimension x0_y5 = new Dimension(0, 5);
   public final static Dimension x0_y10 = new Dimension(0, 10);
   public final static Dimension x0_y15 = new Dimension(0, 15);
   public final static Dimension x0_y20 = new Dimension(0, 20);
+  public final static Dimension x0_y23 = new Dimension(0,23);
   public final static Dimension x0_y40 = new Dimension(0, 40);
   public final static Dimension x0_y200 = new Dimension(0, 200);
   public final static Dimension folderButton = new Dimension(25, 25);
+  public final static Dimension fileChooser = new Dimension(400, 400);
+  public final static Dimension frameBorder = new Dimension(10, 48);
+  public final static Dimension separator = new Dimension(100, 1);
+  public final static Dimension processPanel = new Dimension(80, 130);
 }

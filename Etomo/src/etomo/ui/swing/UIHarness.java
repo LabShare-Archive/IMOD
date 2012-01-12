@@ -330,7 +330,7 @@ public final class UIHarness {
     if (isHead()) {
       return getFrame(manager).getSize();
     }
-    return new Dimension(0, 0);
+    return FixedDim.x0_y0;
   }
 
   public Point getLocation(BaseManager manager) {

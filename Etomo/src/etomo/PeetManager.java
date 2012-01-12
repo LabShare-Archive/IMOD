@@ -598,7 +598,6 @@ public final class PeetManager extends BaseManager {
 
     if (metaData.isValid()) {
       peetDialog.setParameters(metaData);
-      peetDialog.setParameters(screenState);
     }
     matlabParam = param;
     // Always load from matlabParam after loading the data file because some
@@ -954,7 +953,6 @@ public final class PeetManager extends BaseManager {
     if (paramFile != null && metaData.isValid()) {
       if (metaDataLoaded) {
         peetDialog.setParameters(metaData);
-        peetDialog.setParameters(screenState);
       }
       // Always load from matlabParam after loading the data file because some
       // values are in both places (maskModelPts) and the .prm values take
@@ -981,7 +979,6 @@ public final class PeetManager extends BaseManager {
       return false;
     }
     peetDialog.getParameters(metaData);
-    peetDialog.getParameters(screenState);
     saveStorables(AXIS_ID);
     peetDialog.getParameters(matlabParam);
     matlabParam.write(this);

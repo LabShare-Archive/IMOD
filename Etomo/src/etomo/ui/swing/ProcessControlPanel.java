@@ -81,7 +81,7 @@ import etomo.util.InvalidParameterException;
 public class ProcessControlPanel {
   public static final String rcsid = "$Id$";
 
-  static Dimension dimPanelProcess = new Dimension(80, 130);
+  static Dimension dimPanelProcess = FixedDim.processPanel;
   static String[] textStates = { "Not Started", "In Progress", "Complete" };
   static final Color colorNotStarted = new Color(0.75f, 0.0f, 0.0f);
   static Color colorInProgress = new Color(0.75f, 0.0f, 0.75f);

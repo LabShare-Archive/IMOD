@@ -486,7 +486,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   public static final String rcsid = "$Id$";
 
   static final int EXTRA_SCREEN_WIDTH_MULTIPLIER = 2;
-  static final Dimension FRAME_BORDER = new Dimension(10, 48);
+  static final Dimension FRAME_BORDER = FixedDim.frameBorder;
   public static final String ETOMO_TITLE = "Etomo";
   public static final String NAME = "main-frame";
 
