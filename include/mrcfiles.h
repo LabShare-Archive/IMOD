@@ -119,13 +119,12 @@ typedef struct MRCheader
   b3dFloat   amax;
   b3dFloat   amean;
   
-  b3dInt16   ispg;       /* image type */
-  b3dInt16   nsymbt;     /* space group number */
-
+  /* 1/12/12: Removed nsymbt and made ispg be 4 bytes to reduce confusion */
+  b3dInt32   ispg;       /* space group number in the standard */
 
   /* 64 bytes */
 
-  b3dInt32   next;
+  b3dInt32   next;     /* This is nsymbt in the MRC standard */
   b3dInt16   creatid;  /* Used to be creator id, hvem = 1000, now 0 */
 
   b3dByte    blank[30];

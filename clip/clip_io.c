@@ -620,8 +620,6 @@ int mrc_head_print(MrcHeader *data)
   printf("Sections are  = axis %d\n",data->maps) ;
   if (data->ispg)
     printf("ispg =\t\t%d\n",data->ispg) ;
-  if (data->nsymbt)
-    printf("nsymbt =\t%d\n",data->nsymbt) ;
   if (data->next)
     printf("extra header = \t%d\n", data->next);
   if (data->idtype){

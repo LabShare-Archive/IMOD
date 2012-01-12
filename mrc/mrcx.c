@@ -538,8 +538,7 @@ void convertHeader(void (*floatFunc)(),
   floatFunc(infp, (b3dUByte *)&header->amin, 1, direction);
   floatFunc(infp, (b3dUByte *)&header->amax, 1, direction);
   floatFunc(infp, (b3dUByte *)&header->amean, 1, direction);
-  convertShorts(infp, (b3dUByte *)&header->ispg, 1, direction);
-  convertShorts(infp, (b3dUByte *)&header->nsymbt, 1, direction);
+  convertLongs(infp, (b3dUByte *)&header->ispg, 1, direction);
   /*     convertLongs(infp, (b3dUByte *)header->extra, 16, direction); */
   convertLongs(infp, (b3dUByte *)&header->next, 1, direction);
   convertShorts(infp, (b3dUByte *)&header->creatid, 1, direction);

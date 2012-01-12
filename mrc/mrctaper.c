@@ -147,7 +147,6 @@ int main( int argc, char *argv[] )
     hout = hdata;
     /* DNM: eliminate extra header info in the output, and mark it as not swapped  */
     mrcInitOutputHeader(&hout);
-    hout.nsymbt = 0;
     hptr = &hout;
     hout.nz = zmax + 1 - zmin;
     hout.mz = hout.nz;
