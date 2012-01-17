@@ -209,17 +209,32 @@ public final class FilePath {
   }
 
   /**
-   * Gets a File instance of filePath, if filePath is an absolute path or dir is empty.
-   * Otherwise gets a File instance of dir/filePath.
+   * Builds and returns an absolute file if possible.  Returns a File instance of filePath
+   * if filePath is an absolute path or dir is empty, otherwise returns a File instance of
+   * dir/filePath.
+   * @param dir
    * @param filePath
    * @return
    */
-  public static File getFileFromPath(final String dir, final String filePath) {
+  public static File buildAbsoluteFile(final String dir, final String filePath) {
     File file = new File(filePath);
     if (file.isAbsolute() || dir == null || dir.matches("\\s*")) {
       return file;
     }
     return new File(dir, filePath);
+  }
+  
+  /**
+   * Builds and returns an absolute file if possible.  Return file if file is absolute or
+   * dir is empty, otherwise returns a File instance of dir/file.
+   * @param filePath
+   * @return
+   */
+  public static File buildAbsoluteFile(final String dir, final File file) {
+    if (file.isAbsolute() || dir == null || dir.matches("\\s*")) {
+      return file;
+    }
+    return new File(dir, file.getPath());
   }
 
   /**
