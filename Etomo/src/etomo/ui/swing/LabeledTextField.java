@@ -412,6 +412,10 @@ final class LabeledTextField {
   String getLabel() {
     return label.getText();
   }
+  
+  String getQuotedLabel() {
+    return Utilities.quoteLabel(label.getText());
+  }
 
   void setLabel(final String label) {
     this.label.setText(label);
