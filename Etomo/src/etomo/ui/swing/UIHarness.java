@@ -226,7 +226,7 @@ public final class UIHarness {
     }
   }
 
-  private AbstractFrame getFrame(BaseManager manager) {
+  public AbstractFrame getFrame(BaseManager manager) {
     if (manager == null || !manager.isInManagerFrame()) {
       return mainFrame;
     }
