@@ -28,7 +28,6 @@ import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
-import etomo.storage.PeetAndMatlabParamFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.storage.autodoc.ReadOnlySection;
@@ -426,7 +425,7 @@ import etomo.util.Utilities;
  */
 
 public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
-    Run3dmodButtonContainer, FileContainer, UseExistingProjectParent, ReferenceParent,
+    Run3dmodButtonContainer, FileContainer, ReferenceParent,
     MissingWedgeCompensationParent, IterationParent, MaskingParent, YAxisTypeParent,
     SphericalSamplingForThetaAndPsiParent, ProcessInterface {
   public static final String rcsid = "$Id$";
@@ -445,7 +444,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private static final String SETUP_TAB_LABEL = "Setup";
   private static final String RUN_TAB_LABEL = "Run";
   private final EtomoPanel rootPanel = new EtomoPanel();
-  private final FileTextField ftfDirectory = new FileTextField(DIRECTORY_LABEL + ": ");
+  private final LabeledTextField ltfDirectory = new LabeledTextField(DIRECTORY_LABEL
+      + ": ");
   private final LabeledTextField ltfFnOutput = new LabeledTextField(FN_OUTPUT_LABEL
       + ": ");
   private final SpacedPanel pnlSetupBody = SpacedPanel.getInstance();
@@ -498,7 +498,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final MultiLineButton btnAverageAll = new MultiLineButton(AVERAGE_ALL_LABEL);
   private final CheckBox cbflgAlignAverages = new CheckBox(
       "Align averages to have their Y axes vertical");
-  private final SimpleButton btnCopyProject = new SimpleButton("Copy existing project");
   private final CheckBox cbFlgAbsValue = new CheckBox(
       "Use absolute value of cross-correlation");
 
@@ -585,8 +584,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
    * @param paramFileSet
    */
   public void updateDisplay(final boolean paramFileSet) {
-    ftfDirectory.setEditable(!paramFileSet);
-    btnCopyProject.setEnabled(!paramFileSet);
+    ltfDirectory.setEditable(!paramFileSet);
     ltfFnOutput.setEditable(!paramFileSet);
     btnRun.setEnabled(paramFileSet);
   }
@@ -846,19 +844,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     return ltfFnOutput.getText();
   }
 
-  public void expand(final GlobalExpandButton button) {
-  }
-
-  public FileTextField getDirectory() {
-    return ftfDirectory;
-  }
-
   public String getDirectoryString() {
-    return ftfDirectory.getText();
+    return ltfDirectory.getText();
   }
 
   public void setDirectory(final String directory) {
-    ftfDirectory.setText(directory);
+    ltfDirectory.setText(directory);
   }
 
   public void setFnOutput(final String output) {
@@ -942,7 +933,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         MatlabParam.FLG_ABS_VALUE_KEY);
     cbFlgAbsValue.setToolTipText(section, "1");
 
-    ftfDirectory.setToolTipText("The directory which will contain the parameter and "
+    ltfDirectory.setToolTipText("The directory which will contain the parameter and "
         + "project files, logs, intermediate files, and results. Data files "
         + "can also be located in this directory, but are not required to be.");
     ltfFnOutput.setToolTipText("The base name of the output files for the average "
@@ -980,10 +971,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         .setToolTipText("Additional numbers of particles for which averages are "
             + "desired.  Values must be listed in increasing order and must be "
             + "larger than End.");
-    btnCopyProject
-        .setToolTipText("Create a new PEET project from an existing parameter or "
-            + "project file, duplicating all parameters except root name and "
-            + "location.");
   }
 
   private void setDefaults() {
@@ -1016,10 +1003,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlSetupBody.add(pnlInitMotlAndYAxisType);
     // project
     pnlProject.setLayout(new BoxLayout(pnlProject, BoxLayout.X_AXIS));
-    pnlProject.add(ftfDirectory.getContainer());
+    pnlProject.add(ltfDirectory.getContainer());
     pnlProject.add(ltfFnOutput.getContainer());
     pnlProject.add(Box.createHorizontalStrut(20));
-    pnlProject.add(btnCopyProject);
     // reference and missing wedge compensation
     pnlReferenceAndMissingWedgeCompensation.setLayout(new BoxLayout(
         pnlReferenceAndMissingWedgeCompensation, BoxLayout.X_AXIS));
@@ -1150,10 +1136,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
 
   private void action(final String actionCommand,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (actionCommand.equals(ftfDirectory.getActionCommand())) {
-      chooseDirectory();
-    }
-    else if (actionCommand.equals(btnRun.getActionCommand())) {
+    if (actionCommand.equals(btnRun.getActionCommand())) {
       if (validateRun()) {
         manager.peetParser(null, DIALOG_TYPE,
             mediator.getRunMethodForProcessInterface(getProcessingMethod()));
@@ -1175,15 +1158,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     else if (actionCommand.equals(btnAverageAll.getActionCommand())) {
       manager.averageAll(null, DIALOG_TYPE);
     }
-    else if (actionCommand.equals(btnCopyProject.getActionCommand())) {
-      copyDataset();
-    }
   }
 
   private boolean validateRun() {
     // Setup tab
     // Must have a directory
-    if (ftfDirectory.isEmpty()) {
+    if (ltfDirectory.isEmpty()) {
       gotoSetupTab();
       UIHarness.INSTANCE.openMessageDialog(manager, "Please set the "
           + PeetDialog.DIRECTORY_LABEL + " field.", "Entry Error");
@@ -1307,19 +1287,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     return !sphericalSamplingForThetaAndPsiPanel.isSampleSphereNoneSelected();
   }
 
-  private void chooseDirectory() {
-    JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
-    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-    int returnVal = chooser.showOpenDialog(rootPanel);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      ftfDirectory.setText(chooser.getSelectedFile().getAbsolutePath());
-    }
-  }
-
   private void addListeners() {
     PDActionListener actionListener = new PDActionListener(this);
-    ftfDirectory.addActionListener(actionListener);
     rbInitMotlZero.addActionListener(actionListener);
     rbInitAlignParticleYAxes.addActionListener(actionListener);
     rbInitMotlRandomRotations.addActionListener(actionListener);
@@ -1330,35 +1299,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     btnAvgVol.addActionListener(actionListener);
     btnRef.addActionListener(actionListener);
     btnAverageAll.addActionListener(actionListener);
-    btnCopyProject.addActionListener(actionListener);
-  }
-
-  private void copyDataset() {
-    String path = getDirectory().getText();
-    if (path == null || path.matches("\\s*")) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Please set the "
-          + PeetDialog.DIRECTORY_LABEL + " field before importing a .prm file.",
-          "Entry Error");
-      return;
-    }
-    File dir = new File(getDirectory().getText());
-    if (!dir.exists()) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Please create " + dir.getAbsolutePath() + " before importing a file.",
-          "Entry Error");
-      return;
-    }
-    File file = null;
-    JFileChooser chooser = new FileChooser(dir);
-    chooser.setFileFilter(new PeetAndMatlabParamFileFilter());
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(rootPanel);
-    if (returnVal != JFileChooser.APPROVE_OPTION) {
-      return;
-    }
-    file = chooser.getSelectedFile();
-    manager.copyDataset(file);
   }
 
   private static final class PDActionListener implements ActionListener {
