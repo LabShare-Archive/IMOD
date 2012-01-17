@@ -24,20 +24,21 @@ AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
   mParamsOpen = true;
   mApp = (MyApp *)qApp;
   setWindowTitle(tr("Angle Range & Tile Selection"));
-  mDefocusLabel = new QLabel(tr("Expected defocus (um): "), this);
+  mDefocusLabel = new QLabel(tr("E&xpected defocus (um): "), this);
   mDefocusEdit = new QLineEdit("6.0", this);
 
   // Buddy means the accelerator key for the label sets focus to the text box
+  // This is meaningless if there is no unique & included in the label!
   mDefocusLabel->setBuddy(mDefocusEdit);
   mDefocusEdit->setFixedWidth(fontMetrics().width("    99.99"));
   mDefocusEdit->setToolTip("Nominal defocus value in microns");
 
-  mLowAngleLabel = new QLabel(tr("Starting tilt angle: "), this);
+  mLowAngleLabel = new QLabel(tr("Starti&ng tilt angle: "), this);
   mLowAngleEdit = new QLineEdit(tr("-90.0"), this);
   mLowAngleLabel->setBuddy(mLowAngleEdit);
   mLowAngleEdit->setToolTip("Tilt angle at negative end of range to include in fit");
 
-  mHighAngleLabel = new QLabel(tr("Ending tilt angle:  "), this);
+  mHighAngleLabel = new QLabel(tr("Endin&g tilt angle:  "), this);
   mHighAngleEdit = new QLineEdit(tr("90.0"), this);
   mHighAngleLabel->setBuddy(mHighAngleEdit);
   mHighAngleEdit->setToolTip("Tilt angle at positive end of range to include in fit");
@@ -51,17 +52,17 @@ AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
   mStepDownButton->setFixedWidth(width);
   mStepUpButton->setFixedWidth(width);
  
-  mAutofitButton = new QPushButton( tr("&Autofit All Steps"), this);
+  mAutofitButton = new QPushButton( tr("Autofit A&ll Steps"), this);
   mAutofitButton->setEnabled(false);
   mAutofitButton->setToolTip("Fit to all tilt angle ranges that fit within limits below");
 
-  mRangeStepLabel = new QLabel(tr("Step angle range by:  "), this);
+  mRangeStepLabel = new QLabel(tr("Ste&p angle range by:  "), this);
   mRangeStepEdit = new QLineEdit(tr("90.0"), this);
   mRangeStepLabel->setBuddy(mRangeStepEdit);
   mRangeStepEdit->setToolTip("Amount to change starting and ending tilt angles with the"
                              " Step buttons");
 
-  mAutoFromLabel = new QLabel(tr("Autofit: "), this);
+  mAutoFromLabel = new QLabel(tr("Autof&it: "), this);
   mAutoFromEdit = new QLineEdit(tr("90.0"), this);
   mAutoFromLabel->setBuddy(mAutoFromEdit);
   mAutoFromEdit->setToolTip("Starting angle of range to cover with autofitting to "
@@ -69,7 +70,7 @@ AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
   width = mAutoFromEdit->fontMetrics().width("   -99.99");
   mAutoFromEdit->setFixedWidth(width);
 
-  mAutoToLabel = new QLabel(tr("to"), this);
+  mAutoToLabel = new QLabel(tr("t&o"), this);
   mAutoToEdit = new QLineEdit(tr("90.0"), this);
   mAutoToEdit->setFixedWidth(width);
   mAutoToLabel->setBuddy(mAutoToEdit);
@@ -190,8 +191,8 @@ AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
     mTable->setColumnWidth(i, width);
   
   mDeleteButton = new QPushButton( tr("Delete Row"), this);
-  mReturnButton = new QPushButton( tr("Set Tilt Angles"), this);
-  mToFileButton = new QPushButton( tr("Save to File"), this);
+  mReturnButton = new QPushButton( tr("Set &Tilt Angles"), this);
+  mToFileButton = new QPushButton( tr("Sa&ve to File"), this);
   mDeleteButton->setToolTip("Remove this row from the table");
   mReturnButton->setToolTip("Set starting and ending angles from this row and "
                             "recompute spectrum");

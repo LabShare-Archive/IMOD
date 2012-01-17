@@ -2389,9 +2389,11 @@ void cont_addChamferPts( Icont *cont, Ipoint *ptPrev, Ipoint *ptCurr, Ipoint *pt
     else            // if extra points are needed to smooth the corner:
     {               //   add multiple points in an arc around the current (central) pt
       float angleBetweenPts = angleCurveSpan / (numMidPtsToAdd+1);
-      for(int i=0; i<numMidPtsToAdd+1; i++)
-        imodPointAppend( cont, &line_getPtRelativeToEnd( ptPrev, ptCurr, distOffset, 
-                                                         90-(i*angleBetweenPts) ) );
+      for(int i=0; i<numMidPtsToAdd+1; i++) {
+        Ipoint tmpPt = line_getPtRelativeToEnd( ptPrev, ptCurr, distOffset, 
+                                                90-(i*angleBetweenPts) );
+        imodPointAppend( cont, &tmpPt);
+      }
     }
   }
   else          // else if angle on outside is <= 180 degrees (obtuse or acute) then:
@@ -2444,10 +2446,11 @@ void cont_expandOpenCont( Icont *contOrig, Icont *contR,
                         thickness, minAngleForChamfers);
   }
   else  {
-    imodPointAppend(contR,
-        &line_getPtRelativeToEnd( getPt(cont,0),getPt(cont,1),thickness,-90 ) );
-    imodPointAppend(contR,
-        &line_getPtRelativeToEnd( getPt(cont,0),getPt(cont,1),thickness, 90 ) );
+    Ipoint tmpPt = line_getPtRelativeToEnd( getPt(cont,0),getPt(cont,1),thickness,-90 );
+    imodPointAppend(contR, &tmpPt);
+        
+    tmpPt = line_getPtRelativeToEnd( getPt(cont,0),getPt(cont,1),thickness, 90 );
+    imodPointAppend(contR, &tmpPt);
   }
   
   //## ADD POINTS AROUND OUTSIDE:
@@ -2461,10 +2464,11 @@ void cont_expandOpenCont( Icont *contOrig, Icont *contR,
                         thickness,minAngleForChamfers);
   }
   else  {
-    imodPointAppend(contR,
-          &line_getPtRelativeToEnd( getPt(cont,N-1), getPt(cont,N-2), thickness, -90 ) );
-    imodPointAppend(contR,
-          &line_getPtRelativeToEnd( getPt(cont,N-1), getPt(cont,N-2), thickness,  90 ) );
+    Ipoint tmpPt = line_getPtRelativeToEnd( getPt(cont,N-1), getPt(cont,N-2), thickness,
+                                            -90 );
+    imodPointAppend(contR, &tmpPt);
+    tmpPt = line_getPtRelativeToEnd( getPt(cont,N-1), getPt(cont,N-2), thickness,  90 );
+    imodPointAppend(contR, &tmpPt);
   }
   
   //## ADD POINTS AROUND INSIDE:

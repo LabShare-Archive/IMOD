@@ -189,9 +189,9 @@ void Plotter::angleDiag()
     mAngleDia->mLeftTolEdit->setText(tmpStr);
     sprintf(tmpStr, "%6d", B3DNINT(rightTol)); 
     mAngleDia->mRightTolEdit->setText(tmpStr);
-    sprintf(tmpStr, "%6.2f", mApp->getMinAngle()); 
+    sprintf(tmpStr, "%6.2f", mApp->getAutoFromAngle()); 
     mAngleDia->mAutoFromEdit->setText(tmpStr);
-    sprintf(tmpStr, "%6.2f", mApp->getMaxAngle()); 
+    sprintf(tmpStr, "%6.2f", mApp->getAutoToAngle()); 
     mAngleDia->mAutoToEdit->setText(tmpStr);
     sprintf(tmpStr, "%6.1f", mApp->getRangeStep()); 
     mAngleDia->mRangeStepEdit->setText(tmpStr);

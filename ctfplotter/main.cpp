@@ -49,14 +49,26 @@ int main(int argc, char *argv[])
 
   char *cfgFn, *stackFn, *angleFn, *defFn;
   float tiltAxisAngle;
-  int volt, nDim, tileSize, cacheSize, ifAutofit;
+  int volt, nDim, tileSize, cacheSize, ifAutofit, ifAngleRange, ifFreqRange;
   float defocusTol, pixelSize, lowAngle, highAngle, autoRange, autoStep;
+  float autoFromAngle, autoToAngle, x1Start, x2End;
   float expectedDef, leftDefTol, rightDefTol;
   float ampContrast, cs, dataOffset = 0.;
-  int invertAngles = 0, ifOffset = 0;
+  int invertAngles = 0, ifOffset = 0, saveAndExit = 0, varyExp = 0;
   QString noiseCfgDir, noiseFile;
   SliceCache *cache;
   MrcHeader *header;
+
+  // Set some sensible defaults
+  defocusTol = 200;
+  leftDefTol = rightDefTol = 2000;
+  ampContrast = 0.07;
+  nDim = 101;
+  tileSize = 256;
+
+  // These are used for a pointless initial fit if doing auto and no range entered
+  lowAngle = -10.;
+  highAngle = 10.;
 
   // This amount of hyperresolution in the stored PS gave < 0.1% difference
   // in the final PS from ones computed directly from summed FFTs for 
@@ -95,30 +107,34 @@ int main(int argc, char *argv[])
   }
   if (PipGetFloat("SphericalAberration", &cs) )
       exitError("Spherical Aberration is not specified");
-  if (PipGetInteger("PSResolution", &nDim))
-    exitError("PS Resolution is not specified");
-  if (PipGetInteger("TileSize", &tileSize))
-    exitError("No TileSize specified");
-  if (PipGetFloat("DefocusTol", &defocusTol))
-    exitError("No DefousTol specified");
+  PipGetInteger("PSResolution", &nDim);
+  PipGetInteger("TileSize", &tileSize);
+  PipGetFloat("DefocusTol", &defocusTol);
   if (PipGetFloat("PixelSize", &pixelSize))
     exitError("No PixelSize specified");
-  if (PipGetFloat("AmplitudeContrast", &ampContrast))
-    exitError("No AmplitudeContrast is specified");
+  PipGetFloat("AmplitudeContrast", &ampContrast);
   if( PipGetFloat("AxisAngle", &tiltAxisAngle) )
      exitError("No AxisAngle specified"); 
   if(PipGetFloat("ExpectedDefocus", &expectedDef))
     exitError("No expected defocus is specified");
-  if(PipGetFloat("LeftDefTol", &leftDefTol))
-    exitError("No left defocus  tolerance is specified");
-  if(PipGetFloat("RightDefTol", &rightDefTol))
-    exitError("No right defocus  tolerance is specified");
-  if(PipGetTwoFloats("AngleRange", &lowAngle, &highAngle))
-    exitError("No AngleRange specified");
+  PipGetFloat("LeftDefTol", &leftDefTol);
+  PipGetFloat("RightDefTol", &rightDefTol);
+  ifAutofit = 1 - PipGetTwoFloats("AutoFitRangeAndStep", &autoRange, &autoStep);
+  if (ifAutofit) {
+    ifAngleRange = 1 - PipGetTwoFloats("AngleRange", &autoFromAngle, &autoToAngle);
+  } else {
+    if (PipGetTwoFloats("AngleRange", &lowAngle, &highAngle))
+      exitError("No AngleRange specified");
+    autoStep = (float)fabs((double)highAngle - lowAngle) / 2.f;
+  }
   PipGetBoolean("InvertTiltAngles", &invertAngles);
   ifOffset = 1 - PipGetFloat("OffsetToAdd", &dataOffset);
-  autoStep = (float)fabs((double)highAngle - lowAngle) / 2.f;
-  ifAutofit = 1 - PipGetTwoFloats("AutoFitRangeAndStep", &autoRange, &autoStep);
+  ifFreqRange = 1 - PipGetTwoFloats("FrequencyRangeToFit", &x1Start, &x2End);
+  if (ifFreqRange && (x1Start < 0.01 || x2End > 0.48 || x2End - x1Start < 0.03))
+    exitError("Fitting range values are too extreme, out of order, or too close together"
+              );
+  PipGetBoolean("SaveAndExit", &saveAndExit);
+  PipGetBoolean("VaryExponentInFit", &varyExp);
  
   double *rAvg=(double *)malloc(nDim*sizeof(double));
 
@@ -130,6 +146,8 @@ int main(int argc, char *argv[])
   //set the angle range for noise PS computing;
   app.setPS(rAvg);
   app.setRangeStep((double)autoStep);
+  app.setSaveAndExit(ifAutofit != 0 && saveAndExit != 0);
+  app.setVaryCtfPowerInFit(varyExp != 0);
   
   QMainWindow mainWin;
   Plotter plotter(&mainWin);
@@ -247,6 +265,12 @@ int main(int argc, char *argv[])
   app.setHighAngle(highAngle);
   app.setSlice(stackFn, angleFn);
 
+  // If doing auto and range was entered, now fix the auto from and to angles
+  if (ifAutofit && ifAngleRange) {
+    app.setAutoFromAngle((double)autoFromAngle);
+    app.setAutoToAngle((double)autoToAngle);
+  }
+
   // Now determine and set data offset if necessary
   cache = app.getCache();
   if (!ifOffset) {
@@ -295,8 +319,13 @@ int main(int argc, char *argv[])
                                 secondZero);
   int secZeroIndex=B3DMIN(nDim - 1, B3DNINT(secondZero * (nDim - 1)));
   int firstZeroIndex=B3DMIN(secZeroIndex - 3, B3DNINT(firstZero * (nDim - 1)));
-  app.setX1Range(firstZeroIndex-12, firstZeroIndex-1);
-  app.setX2Range(firstZeroIndex+1, secZeroIndex);
+  if (ifFreqRange) {
+    app.setX1Range(B3DNINT(2. * x1Start * (nDim - 1)), firstZeroIndex-1);
+    app.setX2Range(firstZeroIndex+1, B3DNINT(2. * x2End * (nDim - 1)));
+  } else {
+    app.setX1Range(firstZeroIndex-12, firstZeroIndex-1);
+    app.setX2Range(firstZeroIndex+1, secZeroIndex);
+  }
   app.simplexEngine=new SimplexFitting(nDim);
   app.linearEngine=new LinearFitting(nDim);
   app.plotFitPS(true); //fit and plot the stack PS;
@@ -311,7 +340,12 @@ int main(int argc, char *argv[])
   mainWin.show();
   plotter.angleDiag();
   if (ifAutofit) {
-    app.autoFitToRanges(app.getMinAngle(), app.getMaxAngle(), autoRange, autoStep, 3);
+    app.autoFitToRanges(app.getAutoFromAngle(), app.getAutoToAngle(), autoRange, autoStep,
+                        3);
+    if (saveAndExit) {
+      app.writeDefocusFile();
+      exit(0);
+    }
   }
   app.exec();
   if (app.getSaveModified()) {

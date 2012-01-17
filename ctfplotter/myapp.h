@@ -85,6 +85,8 @@ class MyApp : public QApplication
     Ilist *getSavedList() {return mSaved;};
     void setSaveModified() {mSaveModified = true;};
     bool getSaveModified() {return mSaveModified;};
+    void setSaveAndExit(bool val) {mSaveAndExit = val;};
+    bool getSaveAndExit() {return mSaveAndExit;};
     SliceCache *getCache() {return &mCache;};
     void showHideWidget(QWidget *widget, bool state);
     
@@ -124,6 +126,7 @@ class MyApp : public QApplication
     Ilist *mSaved;
     bool mSaveModified;
     bool mBackedUp;
+    bool mSaveAndExit;
     char *mFnStack;
     char *mFnAngle;
     char *mFnDefocus;

@@ -3456,15 +3456,16 @@ getLinearInterpConts( int c1Idx, int c2Idx )
 	{
 		float fractBetweenKeyContour = float(z - getZ( contLNew )) / float(zDistApart);
 		
-    Icont *contNew = imodContourNew();
+		Icont *contNew = imodContourNew();
 		setInterpolated( contNew, 1 );
-		for(int i=0; i<psize( contLNew ) && i<psize( contUNew ); i++)
-			imodPointAppend( contNew,
-                       &line_findPtFractBetweenPts( getPt(contLNew,i), getPt(contUNew,i),
-                                                    fractBetweenKeyContour ) );
+		for(int i=0; i<psize( contLNew ) && i<psize( contUNew ); i++) {
+			Ipoint tmpPt = line_findPtFractBetweenPts( getPt(contLNew,i), getPt(contUNew,i),
+							    fractBetweenKeyContour );
+			imodPointAppend( contNew, &tmpPt);
+		}
 		
 		newInterpolatedConts.push_back( IcontPtr(contNew) );
-    imodContourDelete( contNew );
+		imodContourDelete( contNew );
 	}
 	
 	imodContourDelete( contLNew );
