@@ -78,6 +78,7 @@ public class FixedDim {
   public final static Dimension x70_y0 = new Dimension(70, 0);
   public final static Dimension x119_y0 = new Dimension(119, 0);
   public final static Dimension x130_y0 = new Dimension(130,0);
+  public final static Dimension x142_y0 = new Dimension(142,0);
   public final static Dimension x167_y0 = new Dimension(167, 0);
   public final static Dimension x181_y0 = new Dimension(181, 0);
   public final static Dimension x197_y0 = new Dimension(197,0);
