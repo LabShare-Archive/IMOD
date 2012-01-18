@@ -634,11 +634,12 @@ public class EtomoDirector {
     else {
       manager = PeetManager.getInstance(peetFileName);
     }
-    if (!manager.isValid()) {
-      return null;
-    }
     ManagerKey key = setManager(manager, makeCurrent);
     manager.display();
+    if (!manager.isValid()) {
+      closeCurrentManager(AxisID.ONLY, false);
+      return null;
+    }
     return key;
   }
 
