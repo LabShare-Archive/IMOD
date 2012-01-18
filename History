@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/18/12: In eTomo - PEET, added a startup popup.(Bug# 1585)
+
+1/18/12: In eTomo - PEET, avoiding the problems caused by entering a "." for
+the PEET dataset directory.(Bug# 1584)
+
 1/9/12: Fixed tests for a view-number bug that made Ctfphaseflip fail with
 one image per range.
 
