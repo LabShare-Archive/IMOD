@@ -1004,6 +1004,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     // project
     pnlProject.setLayout(new BoxLayout(pnlProject, BoxLayout.X_AXIS));
     pnlProject.add(ltfDirectory.getContainer());
+    pnlProject.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlProject.add(ltfFnOutput.getContainer());
     pnlProject.add(Box.createHorizontalStrut(20));
     // reference and missing wedge compensation
