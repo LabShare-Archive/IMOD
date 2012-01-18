@@ -32,7 +32,7 @@ public final class PeetStartupData {
 
   /**
    * Sets directory to an absolute path.  If input isn't an absolute path, it uses the
-   * directory in which etomo was run to make an absolute path.
+   * directory in which etomo was run to make an absolute path.  Null has no effect.
    * @param input
    */
   public void setDirectory(final String input) {
@@ -45,7 +45,7 @@ public final class PeetStartupData {
 
   /**
    * Sets copyFrom to an absolute path.  If input isn't an absolute path, it uses the
-   * directory in which etomo was run to make an absolute path.
+   * directory in which etomo was run to make an absolute path.  Null has no effect.
    * @param input
    */
   public void setCopyFrom(final String input) {
@@ -65,6 +65,12 @@ public final class PeetStartupData {
    * @return an error message or null if valid
    */
   public String validate() {
+    if (directory == null) {
+      return "Missing required entry:  directory" + ".";
+    }
+    if (baseName == null || baseName.matches("\\s*")) {
+      return "Missing required entry:  baseName" + ".";
+    }
     // Only one .epe file per directory
     // OK to use directory if it contains an .epe file of the same name
     File[] paramFiles = directory.listFiles(new PeetFileFilter(false));
@@ -91,6 +97,9 @@ public final class PeetStartupData {
    * @return
    */
   public String getDirectory() {
+    if (directory == null) {
+      return null;
+    }
     return directory.getAbsolutePath();
   }
 
@@ -100,6 +109,9 @@ public final class PeetStartupData {
    * @return
    */
   public String getCopyFrom() {
+    if (copyFrom == null) {
+      return null;
+    }
     return copyFrom.getAbsolutePath();
   }
 
@@ -112,6 +124,9 @@ public final class PeetStartupData {
    * @return
    */
   public File getParamFile() {
+    if (directory == null || baseName == null) {
+      return null;
+    }
     return new File(directory, baseName + DatasetFiles.PEET_DATA_FILE_EXT);
   }
 }
