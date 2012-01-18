@@ -167,7 +167,14 @@ public class FilePathTest extends TestCase {
         .getRelativePath(drive + xPath, new File(drive + aPath)).equals(relUp1 + aPath));
   }
 
-  public void testbuildAbsoluteFile() {
+  public void testBuildAbsoluteFile() {
+    assertEquals("'.' should be returned as the absolute path to the current directory",
+        new File("").getAbsolutePath(),
+        FilePath.buildAbsoluteFile(new File("").getAbsolutePath(), ".").getPath());
+    assertEquals("'.' should be returned as the absolute path to the current directory",
+        new File("").getAbsolutePath(),
+        FilePath.buildAbsoluteFile(new File("").getAbsolutePath(), new File("."))
+            .getPath());
     if (!Utilities.isWindowsOS()) {
       assertEquals("Absolute filePath is returned",
           FilePath.buildAbsoluteFile(xPath, xyPath).getPath(), xyPath);
