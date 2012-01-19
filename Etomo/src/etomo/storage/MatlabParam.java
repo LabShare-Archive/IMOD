@@ -330,7 +330,7 @@ public final class MatlabParam {
   public static final String SEARCH_RADIUS_KEY = "searchRadius";
   public static final String LOW_CUTOFF_KEY = "lowCutoff";
   public static final String LOW_CUTOFF_DEFAULT = "0";
-  public static final String LOW_CUTOFF_SIGMA_DEFAULT = "";
+  public static final String LOW_CUTOFF_SIGMA_DEFAULT = "0.05";
   public static final String HI_CUTOFF_KEY = "hiCutoff";
   /**
    * @deprecated
@@ -616,7 +616,7 @@ public final class MatlabParam {
   public void setInitMotlCode(EnumeratedType enumeratedType) {
     initMotlCode = (InitMotlCode) enumeratedType;
   }
-  
+
   public void setYaxisType(EnumeratedType enumeratedType) {
     yAxisType = (YAxisType) enumeratedType;
   }
@@ -806,7 +806,7 @@ public final class MatlabParam {
     referenceFile.clear();
     reference.clear();
     lowCutoff = LOW_CUTOFF_DEFAULT;
-    lowCutoffSigma=LOW_CUTOFF_SIGMA_DEFAULT;
+    lowCutoffSigma = LOW_CUTOFF_SIGMA_DEFAULT;
     initMotlCode = InitMotlCode.DEFAULT;
     useReferenceFile = false;
     yAxisType = YAxisType.DEFAULT;
@@ -915,7 +915,7 @@ public final class MatlabParam {
    */
   public void setLowCutoff(final String cutoff, final String sigma) {
     lowCutoff = cutoff;
-    lowCutoffSigma=sigma;
+    lowCutoffSigma = sigma;
     for (int i = 0; i < iterationList.size(); i++) {
       ((Iteration) iterationList.get(i)).setLowCutoff(lowCutoff, lowCutoffSigma);
     }
@@ -2152,6 +2152,9 @@ public final class MatlabParam {
     }
 
     private String getLowCutoffSigmaString() {
+      if (lowCutoff.isEmpty() || lowCutoff.isEmpty(SIGMA_INDEX)) {
+        return LOW_CUTOFF_SIGMA_DEFAULT;
+      }
       return lowCutoff.getRawString(SIGMA_INDEX);
     }
 
