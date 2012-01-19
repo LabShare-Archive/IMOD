@@ -421,7 +421,7 @@ assert.cb.save-individual-aligned-particles=off
 assert.sp.particles-per-cpu=5
 assert.sp.debug-level=3
 assert.tf.low-frequency-cutoff=0
-assert.tf.sigma=
+assert.tf.sigma=0.05
 
 
 [function = check-prm]
@@ -624,14 +624,8 @@ sp.debug-level=2
 save=
 assert.contains.file=%{dataset}.prm|debugLevel = 2
 sp.debug-level=3
-assert.contains.file=%{dataset}.prm|lowCutoff = {[0, NaN]}
-tf.low-frequency-cutoff=1
-tf.sigma=2
 save=
-assert.contains.file=%{dataset}.prm|lowCutoff = {[1, 2]}
-tf.low-frequency-cutoff=0
-tf.sigma=
-save=
+assert.contains.file=%{dataset}.prm|lowCutoff = {[0, 0.05]}
 
 
 [function = cross-correlation-measure-check-prm]
