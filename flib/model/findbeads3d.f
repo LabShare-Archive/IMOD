@@ -7,15 +7,15 @@ c       For details, see man page
 c       $Id$
 c       
       implicit none
-      integer maxPiece, limPeak, maxArray, limHisto
-      parameter (maxPiece= 200, limPeak = 50000, maxArray = 100000000)
+      integer maxPiece, maxArray, limHisto
+      parameter (maxPiece= 400, maxArray = 200000000)
       parameter (limHisto = 10000)
       integer*4 lenPiece(maxPiece,3), ind0(maxPiece,3), ind1(maxPiece,3)
-      integer*4 nx,ny,nz,nxyz(3),nxCorr, nyCorr, nzCorr
+      integer*4 nx,ny,nz,nxyz(3),nxCorr, nyCorr, nzCorr, limPeak
       equivalence (nx,nxyz(1)),(ny,nxyz(2)),(nz,nxyz(3))
-      integer*4 indPeak(limPeak), indCorr(limPeak)
-      real*4 peakVal(limPeak), peakPos(3,limPeak), histo(limHisto)
-      real*4 corrVal(limPeak),corrPos(3, limPeak), origin(3), delta(3)
+      integer*4, allocatable :: indPeak(:), indCorr(:)
+      real*4, allocatable :: peakVal(:), peakPos(:,:), corrVal(:),corrPos(:, :)
+      real*4 origin(3), delta(3), histo(limHisto)
       integer*4 MXYZ(3), mode, maxShift, i, index, loopCorr, numLook
       integer*4 nsum, nxOverlap, nyOverlap, nzOverlap, ierr, maxVol
       integer*4 minYsize, minZsize, maxZ, maxYZ, numXpieces, numYpieces
@@ -71,7 +71,7 @@ c
       fracAvg = 0.5
       peakRelMin = 0.05
       numPass = 1
-      maxPeaks = limPeak
+      maxPeaks = 50000
       sepMin = 0.9
       avgThresh = -2.
       storeThresh = 0.
@@ -141,6 +141,11 @@ c         Elongation factor from Radermacher 1988 paper
      &      (dzadj - cos(dzadj) * sin(dzadj)))
         print *,'Elongation factor is', elongation
       endif
+      if (maxPeaks .lt. 3) call exitError('-maxPeaks entry is negative or too small')
+      limPeak = maxPeaks + 10
+      allocate(indPeak(limPeak), indCorr(limPeak), peakVal(limPeak), peakPos(3, limPeak), 
+     &    corrVal(limPeak),corrPos(3, limPeak), stat=ierr)
+      call memoryError(ierr, 'ALLOCATING ARRAYS FOR PEAKS')
 c       
       call PipDone()
 c       
