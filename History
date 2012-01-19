@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/18/12: In eTomo - PEET, defaulted low cutoff sigma.(Bug# 1588)
+
 1/18/12: In eTomo - PEET, added a startup popup.(Bug# 1585)
 
 1/18/12: In eTomo - PEET, avoiding the problems caused by entering a "." for
