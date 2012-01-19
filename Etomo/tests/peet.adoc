@@ -20,12 +20,23 @@ run.function.runtab=
 [function = setup]
 tb.setup=
 #check empty directory error
-run.function.setup-test-run-error=
+[[if = test-gui]]
+  bn.ok=
+  wait.popup.entry-error=OK
+[[]]
 bn.directory=
 wait.file-chooser.open=%{testdir}
-#check empty root name error
-run.function.setup-test-run-error=
-tf.root-name-for-output=%{dataset}
+[[if = test-gui]]
+  cb.copy-project-from=on
+  bn.ok=
+  wait.popup.entry-error=OK
+  cb.copy-project-from=off
+  #check empty root name error
+  bn.ok=
+  wait.popup.entry-error=OK
+[[]]
+tf.base-name=%{dataset}
+bn.ok=
 run.function.volume-table=
 run.function.reference=
 run.function.volume-size=

@@ -667,6 +667,40 @@ public class Utilities {
   }
 
   /**
+   * @param file - a bad file causes null to be returned
+   * @return the name of file, stripped of its extension
+   */
+  public static String getStrippedFileName(final File file) {
+    if (file == null) {
+      return null;
+    }
+    String name = file.getName();
+    if (name == null || name.matches("\\s*")) {
+      return null;
+    }
+    int extIndex = name.lastIndexOf('.');
+    if (extIndex == -1) {
+      return name;
+    }
+    return name.substring(0, extIndex);
+  }
+
+  /**
+   * Strips the last colon (and anything following it) and returns the string in single
+   * quotes.
+   * @param string
+   * @return
+   */
+  public static String quoteLabel(final String string) {
+    int colonIndex = string.lastIndexOf(':');
+    char quote = '\'';
+    if (colonIndex == -1) {
+      return quote + string + quote;
+    }
+    return quote + string.substring(0, colonIndex) + quote;
+  }
+
+  /**
    * 
    * @param file
    * @param strings
