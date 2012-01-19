@@ -173,14 +173,6 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
       + ".YRotation");
   private final StringProperty maskTypeVolume = new StringProperty("MastType."
       + VOLUME_KEY);
-  /**
-   * @deprecated
-   * Need to continue to update this in the file because it is being used for backwards
-   * compatibility.
-   * !useNWeighGroup => (nWeightGroup = 0)
-   * !nWeightGroup => (useNWeightGroup = false)
-   */
-  private final EtomoBoolean2 useNWeightGroup = new EtomoBoolean2("UseNWeightGroup");
   private final EtomoNumber nWeightGroup = new EtomoNumber("NWeightGroup");
   private final EtomoBoolean2 tiltRange = new EtomoBoolean2("TiltRange");
 
@@ -212,7 +204,6 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     maskModelPtsZRotation.set(input.maskModelPtsZRotation);
     maskModelPtsYRotation.set(input.maskModelPtsYRotation);
     maskTypeVolume.set(input.maskTypeVolume);
-    useNWeightGroup.set(input.useNWeightGroup);
     nWeightGroup.set(input.nWeightGroup);
     tiltRange.set(input.tiltRange);
     revisionNumber.set(input.revisionNumber);
@@ -280,7 +271,6 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     referenceVolume.reset();
     referenceParticle.reset();
     referenceFile.reset();
-    useNWeightGroup.reset();
     nWeightGroup.reset();
     tiltRange.reset();
     revisionNumber.reset();
@@ -302,7 +292,6 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     maskModelPtsZRotation.load(props, prepend);
     maskModelPtsYRotation.load(props, prepend);
     maskTypeVolume.load(props, prepend);
-    useNWeightGroup.load(props, prepend);
     nWeightGroup.load(props, prepend);
     tiltRange.load(props, prepend);
     referenceMultiparticleGroups.load(props, prepend);
@@ -350,7 +339,6 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     maskModelPtsParticle.remove(props, prepend);
     maskModelPtsYRotation.store(props, prepend);
     maskTypeVolume.store(props, prepend);
-    useNWeightGroup.store(props, prepend);
     nWeightGroup.store(props, prepend);
     tiltRange.store(props, prepend);
     revisionNumber.store(props, prepend);
@@ -464,9 +452,6 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   }
 
   public ConstEtomoNumber getNWeightGroup() {
-    if (!useNWeightGroup.is()) {
-      nWeightGroup.set(0);
-    }
     return nWeightGroup;
   }
 
@@ -508,9 +493,6 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
 
   public void setNWeightGroup(final Number input) {
     nWeightGroup.set(input);
-    if (nWeightGroup.equals(0)) {
-      useNWeightGroup.set(false);
-    }
   }
 
   String createPrepend(final String prepend) {
