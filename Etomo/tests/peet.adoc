@@ -164,6 +164,12 @@ if.not.var.test-values.return=
 #check empty tilt range error
 #tilt range required with averaging
 [[if = test-gui]]
+  assert.cb.enabled=off
+  assert.sp.edge-shift=1
+  assert.sp.weight-groups=8
+  assert.enabled.cb.enabled=
+  assert.disabled.sp.edge-shift=
+  assert.disabled.sp.weight-groups=
   assert.disabled.tf.volume-table-2-tilt-range=
   assert.disabled.tf.volume-table-2-tilt-range.1=
 [[]]
@@ -182,6 +188,8 @@ tf.volume-table-2-tilt-range.1=
 tf.volume-table-3-tilt-range=
 tf.volume-table-3-tilt-range.1=
 [[if = test-gui]]
+  assert.enabled.sp.edge-shift=
+  assert.enabled.sp.weight-groups=
   assert.enabled.tf.volume-table-2-tilt-range=
   assert.enabled.tf.volume-table-2-tilt-range.1=
 [[]]
@@ -497,6 +505,8 @@ assert.contains.file=%{dataset}.prm|edgeShift = 1
 assert.contains.file=%{dataset}.prm|nWeightGroup = 8
 assert.contains.file=%{dataset}.prm|flgWedgeWeight = 1
 cb.enabled=off
+assert.contains.file=%{dataset}.prm|nWeightGroup = 0
+save=
 
 
 [function = masking-check-prm]
