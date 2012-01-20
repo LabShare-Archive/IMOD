@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/19/12: Fixed problem with trying to do more than 50000 peaks in Findbeads3d.
+
 1/19/12: In eTomo - PEET, setting nWeightGroup to 0 in the .prm file when the
 'Weight groups' spinner is off in the dialog.(Bug# 1589)
 
@@ -9,6 +11,8 @@ IMOD History
 
 1/18/12: In eTomo - PEET, avoiding the problems caused by entering a "." for
 the PEET dataset directory.(Bug# 1584)
+
+1/17/12: Added cygcheck back in to tomosnapshot.
 
 1/9/12: Fixed tests for a view-number bug that made Ctfphaseflip fail with
 one image per range.
