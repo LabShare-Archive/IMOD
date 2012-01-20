@@ -14,7 +14,9 @@ DDEESSCCRRIIPPTTIIOONN
   the extent of the padding region, i.e., from the edge of the actual excised
   pixels to the edge of the new volume.  None of the original excised pixels
   are attenuated by this method.  The resulting volume will have dimensions
-  suitable for taking the FFT unless the -nofft option is entered.
+  suitable for taking the FFT unless the -nofft option is entered.  Its origin 
+  will be set so that a model built on this subvolume in 3dmod(1) should load
+  correctly on the full volume.
 
   Taperoutvol uses the PIP package for input (see the manual page for pip(1))
   and can still take sequential input interactively, to maintain compatibility
