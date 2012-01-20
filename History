@@ -1,11 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/19/12: Fixed problem with trying to do more than 50000 peaks in Findbeads3d.
+
 1/18/12: In eTomo - PEET, defaulted low cutoff sigma.(Bug# 1588)
 
 1/18/12: In eTomo - PEET, added a startup popup.(Bug# 1585)
 
 1/18/12: In eTomo - PEET, avoiding the problems caused by entering a "." for
 the PEET dataset directory.(Bug# 1584)
+
+1/17/12: Added cygcheck back in to tomosnapshot.
 
 1/9/12: Fixed tests for a view-number bug that made Ctfphaseflip fail with
 one image per range.
