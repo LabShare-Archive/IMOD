@@ -8,14 +8,21 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.filechooser.FileFilter;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
+import etomo.storage.PeetAndMatlabParamFileFilter;
 import etomo.util.FilePath;
+import etomo.util.Utilities;
 
 /**
 * <p>Description: Like FileTextField but handles relative paths</p>
@@ -38,7 +45,6 @@ final class FileTextField2 implements FileTextFieldInterface {
   private final JPanel panel = new JPanel();
   private final GridBagLayout layout = new GridBagLayout();
   private final GridBagConstraints constraints = new GridBagConstraints();
-  private final boolean peet;
 
   private final SimpleButton button;
   private final TextField field;
@@ -46,11 +52,13 @@ final class FileTextField2 implements FileTextFieldInterface {
   private final boolean labeled;
   private final BaseManager manager;
 
-  private String currentDirectory = null;
+  private List<ResultListener> resultListenerList = null;
+  private int fileSelectionMode = -1;
+  private FileFilter fileFilter = null;
+  private boolean absolutePath = false;
 
   private FileTextField2(final BaseManager manager, final String label,
       final boolean labeled, final boolean peet) {
-    this.peet = peet;
     if (!peet) {
       button = new SimpleButton(new ImageIcon(
           ClassLoader.getSystemResource("images/openFile.gif")));
@@ -59,19 +67,21 @@ final class FileTextField2 implements FileTextFieldInterface {
       button = new SimpleButton(new ImageIcon(
           ClassLoader.getSystemResource("images/openFilePeet.png")));
     }
+    button.setName(label);
     field = new TextField(label);
     this.label = new JLabel(label);
     this.labeled = labeled;
     this.manager = manager;
   }
 
-  static FileTextField2 getUnlabeledInstance(final BaseManager manager, final String name) {
-    FileTextField2 instance = new FileTextField2(manager, name, false, false);
-    instance.createPanel();
-    instance.addListeners();
-    return instance;
-  }
-
+  /**
+   * Get an unlabeled instance with a PEET-style button.  The starting directory for the
+   * file chooser and the origin of relative files is the manager's property user
+   * directory.
+   * @param manager
+   * @param name
+   * @return
+   */
   static FileTextField2 getUnlabeledPeetInstance(final BaseManager manager,
       final String name) {
     FileTextField2 instance = new FileTextField2(manager, name, false, true);
@@ -80,6 +90,14 @@ final class FileTextField2 implements FileTextFieldInterface {
     return instance;
   }
 
+  /**
+   * Get a labeled instance with a regular button.  The starting directory for the
+   * file chooser and the origin of relative files is the manager's property user
+   * directory.
+   * @param manager
+   * @param name
+   * @return
+   */
   static FileTextField2 getInstance(final BaseManager manager, final String name) {
     FileTextField2 instance = new FileTextField2(manager, name, true, false);
     instance.createPanel();
@@ -87,6 +105,14 @@ final class FileTextField2 implements FileTextFieldInterface {
     return instance;
   }
 
+  /**
+   * Get a labeled instance with a PEET-style button.  The starting directory for the
+   * file chooser and the origin of relative files is the manager's property user
+   * directory.
+   * @param manager
+   * @param name
+   * @return
+   */
   static FileTextField2 getPeetInstance(final BaseManager manager, final String name) {
     FileTextField2 instance = new FileTextField2(manager, name, true, true);
     instance.createPanel();
@@ -124,18 +150,61 @@ final class FileTextField2 implements FileTextFieldInterface {
     button.addActionListener(new FileTextField2ActionListener(this));
   }
 
+  /**
+   * Adds a result listener to a list of result listeners.  A null listener has no effect.
+   * @param listener
+   */
+  void addResultListener(final ResultListener listener) {
+    if (listener == null) {
+      return;
+    }
+    if (resultListenerList == null) {
+      resultListenerList = new ArrayList<ResultListener>();
+    }
+    resultListenerList.add(listener);
+  }
+
   Component getRootPanel() {
     return panel;
   }
 
+  /**
+   * @return a label suitable for a message - in single quotes and truncated at the colon.
+   */
+  String getQuotedLabel() {
+    return Utilities.quoteLabel(label.getText());
+  }
+
+  /**
+   * Opens a file chooser and notifies the result listener list.
+   */
   private void action() {
-    JFileChooser chooser = new FileChooser(new File(
-        currentDirectory == null ? manager.getPropertyUserDir() : currentDirectory));
+    String filePath = null;
+    if (manager != null) {
+      filePath = manager.getPropertyUserDir();
+    }
+    else {
+      filePath = EtomoDirector.INSTANCE.getOriginalUserDir();
+    }
+    JFileChooser chooser = new FileChooser(new File(filePath));
     chooser.setDialogTitle(label.getText());
+    if (fileSelectionMode != -1) {
+      chooser.setFileSelectionMode(fileSelectionMode);
+    }
+    if (fileFilter != null) {
+      chooser.setFileFilter(fileFilter);
+    }
+    chooser.setFileFilter(new PeetAndMatlabParamFileFilter());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     int returnVal = chooser.showOpenDialog(panel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       setFile(chooser.getSelectedFile());
+    }
+    if (resultListenerList != null && resultListenerList.size() > 0) {
+      Iterator<ResultListener> i = resultListenerList.iterator();
+      while (i.hasNext()) {
+        i.next().processResult(this);
+      }
     }
   }
 
@@ -147,21 +216,58 @@ final class FileTextField2 implements FileTextFieldInterface {
     field.setTextPreferredWidth(width * UIParameters.INSTANCE.getFontSizeAdjustment());
   }
 
+  void setAbsolutePath(final boolean input) {
+    this.absolutePath = input;
+  }
+
   boolean isEmpty() {
     return field.getText() == null || field.getText().matches("\\s*");
   }
 
   boolean exists() {
-    return FilePath.getFileFromPath(manager.getPropertyUserDir(), field.getText())
-        .exists();
+    return FilePath.buildAbsoluteFile(
+        manager == null ? EtomoDirector.INSTANCE.getOriginalUserDir()
+            : manager.getPropertyUserDir(), field.getText()).exists();
   }
 
   public File getFile() {
-    return FilePath.getFileFromPath(manager.getPropertyUserDir(), field.getText());
+    return FilePath.buildAbsoluteFile(
+        manager == null ? EtomoDirector.INSTANCE.getOriginalUserDir() : manager
+            .getPropertyUserDir(), field.getText());
   }
 
+  /**
+   * Adds the text of the file path to the field.  If a manager is defined, the file path
+   * is relative to the manager's property user directory.  If not, the file path will be
+   * an absolute path.  If file is relative and the manager is not defined, the resulting
+   * absolute path will originate in the directory in which eTomo was run.
+   * @param file
+   */
   public void setFile(final File file) {
-    field.setText(FilePath.getRelativePath(manager.getPropertyUserDir(), file));
+    if (manager == null || absolutePath) {
+      field.setText(FilePath.buildAbsoluteFile(
+          EtomoDirector.INSTANCE.getOriginalUserDir(), file).getPath());
+    }
+    else {
+      field.setText(FilePath.getRelativePath(manager.getPropertyUserDir(), file));
+    }
+  }
+
+  /**
+   * Sets the file selection mode to be used in the file chooser.
+   * @param input
+   */
+  void setFileSelectionMode(final int input) {
+    if (input != FileChooser.FILES_ONLY && input != FileChooser.DIRECTORIES_ONLY
+        && input != FileChooser.FILES_AND_DIRECTORIES) {
+      System.err.println("WARNING: Incorrect file chooser file selection mode: " + input);
+      return;
+    }
+    fileSelectionMode = input;
+  }
+
+  void setFileFilter(final FileFilter input) {
+    fileFilter = input;
   }
 
   String getText() {

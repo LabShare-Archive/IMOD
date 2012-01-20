@@ -167,37 +167,44 @@ public class FilePathTest extends TestCase {
         .getRelativePath(drive + xPath, new File(drive + aPath)).equals(relUp1 + aPath));
   }
 
-  public void testGetFileFromPath() {
+  public void testBuildAbsoluteFile() {
+    assertEquals("'.' should be returned as the absolute path to the current directory",
+        new File("").getAbsolutePath(),
+        FilePath.buildAbsoluteFile(new File("").getAbsolutePath(), ".").getPath());
+    assertEquals("'.' should be returned as the absolute path to the current directory",
+        new File("").getAbsolutePath(),
+        FilePath.buildAbsoluteFile(new File("").getAbsolutePath(), new File("."))
+            .getPath());
     if (!Utilities.isWindowsOS()) {
       assertEquals("Absolute filePath is returned",
-          FilePath.getFileFromPath(xPath, xyPath).getPath(), xyPath);
+          FilePath.buildAbsoluteFile(xPath, xyPath).getPath(), xyPath);
     }
     else {
       assertEquals("Absolute filePath is returned",
-          FilePath.getFileFromPath(xyzPathWithADrive, xyzPathWithBDrive).getPath(),
+          FilePath.buildAbsoluteFile(xyzPathWithADrive, xyzPathWithBDrive).getPath(),
           xyzPathWithBDrive);
     }
     assertEquals("Null dir causes filePath to be returns",
-        FilePath.getFileFromPath(null, relZPath).getPath(), relZPath);
+        FilePath.buildAbsoluteFile(null, relZPath).getPath(), relZPath);
     assertEquals("Empty dir causes filePath to be returns",
-        FilePath.getFileFromPath("", relZPath).getPath(), relZPath);
+        FilePath.buildAbsoluteFile("", relZPath).getPath(), relZPath);
     assertEquals("Empty dir causes filePath to be returns",
-        FilePath.getFileFromPath(empty, relZPath).getPath(), relZPath);
+        FilePath.buildAbsoluteFile(empty, relZPath).getPath(), relZPath);
     if (!Utilities.isWindowsOS()) {
       assertEquals(
           "Relative filePath causes a file created from dir and filePath to be returned",
-          FilePath.getFileFromPath(xPath, relZPath).getPath(), xPath + File.separator
+          FilePath.buildAbsoluteFile(xPath, relZPath).getPath(), xPath + File.separator
               + relZPath);
     }
     else {
       assertEquals(
           "Relative filePath causes a file created from dir and filePath to be returned",
-          FilePath.getFileFromPath(xyzPathWithADrive, relZPath).getPath(),
+          FilePath.buildAbsoluteFile(xyzPathWithADrive, relZPath).getPath(),
           xyzPathWithADrive + File.separator + relZPath);
     }
     assertEquals(
         "Relative filePath causes a file created from a relative dir and filePath to be returned",
-        FilePath.getFileFromPath(xyzPath, relZPath).getPath(), xyzPath + File.separator
+        FilePath.buildAbsoluteFile(xyzPath, relZPath).getPath(), xyzPath + File.separator
             + relZPath);
   }
 
