@@ -666,6 +666,11 @@ public final class JoinManager extends BaseManager {
       createEmptyXfFile(metaData.getDatasetName());
     }
     mainPanel.showProcess(joinDialog.getContainer(), AxisID.ONLY);
+    String actionMessage = Utilities.prepareDialogActionMessage(DialogType.JOIN,
+        AxisID.ONLY, null);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   /**

@@ -40,6 +40,7 @@ import etomo.ui.swing.ToolsDialog;
 import etomo.ui.swing.WarpVolDisplay;
 import etomo.util.DatasetFiles;
 import etomo.util.MRCHeader;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -104,7 +105,7 @@ public final class ToolsManager extends BaseManager {
     createState();
     processMgr = new ToolsProcessManager(this);
     initializeUIParameters(null, AXIS_ID);
-    //Frame hasn't been created yet so stop here.
+    // Frame hasn't been created yet so stop here.
   }
 
   /**
@@ -150,12 +151,12 @@ public final class ToolsManager extends BaseManager {
     metaData.setRootName(inputFile);
     mainPanel.setStatusBarText(paramFile, metaData, null);
     uiHarness.setTitle(this, toolType.toString() + " - " + getName());
-    //Open dialog tasks for for Flatten Volume
+    // Open dialog tasks for for Flatten Volume
     if (toolType == ToolType.FLATTEN_VOLUME) {
       comScriptMgr.loadFlatten(AxisID.ONLY);
-      //Set from dataset_flatten.com.  Dataset_flatten.com would only exist if
-      //the Tools flatten functionality was used before on the same file in the
-      //same directory.
+      // Set from dataset_flatten.com. Dataset_flatten.com would only exist if
+      // the Tools flatten functionality was used before on the same file in the
+      // same directory.
       if (comScriptMgr.isWarpVolParamInFlatten(AxisID.ONLY)) {
         toolsDialog.setParameters(comScriptMgr.getWarpVolParamFromFlatten(AxisID.ONLY));
       }
@@ -167,6 +168,11 @@ public final class ToolsManager extends BaseManager {
       toolsDialog = ToolsDialog.getInstance(this, AXIS_ID, DIALOG_TYPE, toolType);
     }
     mainPanel.showProcess(toolsDialog.getContainer(), AXIS_ID);
+    String actionMessage = Utilities.prepareDialogActionMessage(DialogType.TOOLS,
+        AxisID.ONLY, null);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   /**
@@ -184,7 +190,7 @@ public final class ToolsManager extends BaseManager {
     if (param == null) {
       return;
     }
-    //Run process
+    // Run process
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
@@ -244,9 +250,9 @@ public final class ToolsManager extends BaseManager {
 
   public void imodMakeSurfaceModel(Run3dmodMenuOptions menuOptions, AxisID axisID,
       int binning, File file) {
-    //Pick ImodManager key
-    //Need to look at tomogram edge on.  Use -Y, unless using squeezevol and it
-    //is not flipped.
+    // Pick ImodManager key
+    // Need to look at tomogram edge on. Use -Y, unless using squeezevol and it
+    // is not flipped.
     String key = ImodManager.FLATTEN_INPUT_KEY;
     boolean useSwapYZ = isFlipped(file);
     try {
@@ -254,8 +260,9 @@ public final class ToolsManager extends BaseManager {
       imodManager.setOpenContours(key, axisID, true);
       imodManager.setStartNewContoursAtNewZ(key, axisID, true);
       imodManager.setBinningXY(key, binning);
-      imodManager.open(key, file, FileType.FLATTEN_WARP_INPUT_MODEL.getFileName(this,
-          AXIS_ID), true, menuOptions);
+      imodManager
+          .open(key, file, FileType.FLATTEN_WARP_INPUT_MODEL.getFileName(this, AXIS_ID),
+              true, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -278,8 +285,8 @@ public final class ToolsManager extends BaseManager {
    * @return
    */
   private boolean isFlipped(File mrcFile) {
-    MRCHeader header = MRCHeader.getInstance(getPropertyUserDir(), mrcFile
-        .getAbsolutePath(), AXIS_ID);
+    MRCHeader header = MRCHeader.getInstance(getPropertyUserDir(),
+        mrcFile.getAbsolutePath(), AXIS_ID);
     try {
       if (!header.read(this)) {
         return false;
@@ -317,7 +324,7 @@ public final class ToolsManager extends BaseManager {
     if (param == null) {
       return;
     }
-    //Run process
+    // Run process
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
@@ -333,8 +340,8 @@ public final class ToolsManager extends BaseManager {
       return;
     }
     setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Running " + param.getProcessName(), axisID, param
-        .getProcessName());
+    mainPanel.startProgressBar("Running " + param.getProcessName(), axisID,
+        param.getProcessName());
   }
 
   private FlattenWarpParam updateFlattenWarpParam(FlattenWarpDisplay display,
@@ -356,8 +363,8 @@ public final class ToolsManager extends BaseManager {
    */
   public void imodViewModel(AxisID axisID, FileType modelFileType) {
     try {
-      imodManager.open(modelFileType.getImodManagerKey(this), axisID, modelFileType
-          .getFileName(this, axisID));
+      imodManager.open(modelFileType.getImodManagerKey(this), axisID,
+          modelFileType.getFileName(this, axisID));
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -536,10 +543,10 @@ public final class ToolsManager extends BaseManager {
      * @return true if file is in conflict with compareFileName
      */
     public boolean accept(final File file) {
-      //If this file has one of the three exclusive dataset extensions and the
-      //left side of the file name is equal to compareFileName, then
-      //compareFileName is in conflict with the dataset in this directory and
-      //may cause file name collisions.
+      // If this file has one of the three exclusive dataset extensions and the
+      // left side of the file name is equal to compareFileName, then
+      // compareFileName is in conflict with the dataset in this directory and
+      // may cause file name collisions.
       if (file.isFile()) {
         String fileName = file.getName();
         if (fileName.endsWith(DatasetFiles.RECON_DATA_FILE_EXT)
