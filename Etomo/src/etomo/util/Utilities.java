@@ -507,7 +507,7 @@ public class Utilities {
     int max = 1;
     int stdMax = 0;
     if (command.endsWith(ProcessName.CLIP.toString())
-        || command.indexOf("vmstocsh") != -1) {
+        || command.indexOf("vmstocsh") != -1 || command.endsWith("cmd.exe")) {
       max = 2;
     }
     else if (command.endsWith("python") || command.endsWith("bash")) {
