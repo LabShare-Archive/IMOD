@@ -377,6 +377,7 @@ public final class MatlabParam {
   public static final String INSIDE_MASK_RADIUS_KEY = "insideMaskRadius";
   public static final String OUTSIDE_MASK_RADIUS_KEY = "outsideMaskRadius";
   public static final String N_WEIGHT_GROUP_KEY = "nWeightGroup";
+  public static final int N_WEIGHT_GROUP_OFF = 0;
   public static final int N_WEIGHT_GROUP_DEFAULT = 8;
   public static final int N_WEIGHT_GROUP_MIN = 0;
   public static final int N_WEIGHT_GROUP_MAX = 32;
@@ -749,7 +750,7 @@ public final class MatlabParam {
   public void setNWeightGroup(final Number input) {
     nWeightGroup.setRawString(input);
   }
-
+  
   public void setMaskModelPtsZRotation(final String input) {
     maskModelPts.setRawString(Z_ROTATION_INDEX, input);
   }

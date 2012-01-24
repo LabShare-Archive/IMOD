@@ -132,8 +132,7 @@ final class MissingWedgeCompensationPanel {
 
   public void getParameters(final PeetMetaData metaData) {
     metaData.setEdgeShift(sEdgeShift.getValue());
-    int nWeightGroup = metaData.getNWeightGroup().getInt();
-    metaData.setNWeightGroup(nWeightGroup);
+    metaData.setNWeightGroup(sNWeightGroup.getValue());
     if (cbTiltRange.isVisible()) {
       metaData.setTiltRange(cbTiltRange.isSelected());
       metaData.setFlgWedgeWeight(cbFlgWedgeWeight.isSelected());
@@ -216,6 +215,9 @@ final class MissingWedgeCompensationPanel {
     if (sNWeightGroup.isEnabled()) {
       matlabParam.setNWeightGroup(sNWeightGroup.getValue());
     }
+    else {
+      matlabParam.setNWeightGroup(MatlabParam.N_WEIGHT_GROUP_OFF);
+    }
   }
 
   public void updateDisplay() {
@@ -225,7 +227,8 @@ final class MissingWedgeCompensationPanel {
         || (cbTiltRange.isVisible() && !parent.isVolumeTableEmpty()
             && cbTiltRange.isSelected() && cbFlgWedgeWeight.isSelected()
             && parent.isReferenceParticleSelected() && cbFlgWedgeWeight.isSelected()));
-    //Get the new checkbox and the old backward compatibility checkboxes to sync to each other.
+    // Get the new checkbox and the old backward compatibility checkboxes to sync to each
+    // other.
     if (cbMissingWedgeCompensation.isSelected()) {
       cbTiltRange.setSelected(true);
       cbFlgWedgeWeight.setSelected(true);
