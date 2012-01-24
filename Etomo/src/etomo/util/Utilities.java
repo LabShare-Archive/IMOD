@@ -493,17 +493,19 @@ public class Utilities {
 
   public static String prepareCommandActionMessage(final String[] commandArray,
       final String[] stdInput) {
-    if (!EtomoDirector.INSTANCE.getArguments().isActions()
-        || commandArray == null
-        || commandArray.length == 0
-        || (commandArray.length == 1 && (commandArray[0].equals("env")
-            || commandArray[0].equals("hostname") || commandArray[0].equals("ssh")))
-        || commandArray[0].equals("ps") || commandArray[0].equals("3dmod")) {
+    if (!EtomoDirector.INSTANCE.getArguments().isActions() || commandArray == null
+        || commandArray.length == 0) {
+      return null;
+    }
+    String command = commandArray[0].trim();
+    if ((commandArray.length == 1
+        && (command.equals("env") || command.equals("hostname")) || (command
+        .equals("tcsh") && (stdInput == null || stdInput.length == 0)))
+        || command.endsWith("ssh") || command.equals("ps") || command.endsWith("3dmod")) {
       return null;
     }
     int max = 1;
     int stdMax = 0;
-    String command = commandArray[0].trim();
     if (command.endsWith(ProcessName.CLIP.toString())
         || command.indexOf("vmstocsh") != -1) {
       max = 2;
@@ -566,11 +568,15 @@ public class Utilities {
     return ACTION_TAG + "Ran " + buffer;
   }
 
-  public static String prepareCommandActionMessage(final String commandLine) {
+  public static String prepareCommandActionMessage(String commandLine) {
     if (!EtomoDirector.INSTANCE.getArguments().isActions() || commandLine == null
-        || commandLine.length() == 0 || commandLine.equals("env")
-        || commandLine.equals("hostname") || commandLine.equals("ssh")
-        || commandLine.startsWith("ps") || commandLine.startsWith("3dmod")) {
+        || commandLine.length() == 0) {
+      return null;
+    }
+    commandLine = commandLine.trim();
+    if (commandLine.equals("env") || commandLine.equals("hostname")
+        || commandLine.indexOf("ssh") != -1 || commandLine.indexOf("ps") != -1
+        || commandLine.indexOf("3dmod") != -1) {
       return null;
     }
     return ACTION_TAG + "Ran " + commandLine;
