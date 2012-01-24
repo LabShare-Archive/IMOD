@@ -341,6 +341,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.ui.swing.Token;
@@ -348,6 +349,8 @@ import etomo.ui.swing.UIHarness;
 import etomo.comscript.ComScript;
 
 public class Utilities {
+  public static final String ACTION_TAG = "Etomo Action: ";
+
   private static boolean retrievedDebug = false;
   private static boolean debug = false;
   private static boolean retrievedSelfTest = false;
@@ -481,6 +484,119 @@ public class Utilities {
     renameFile(source, new File(source.getAbsolutePath() + "~"));
   }
 
+  public static String prepareRenameActionMessage(final File from, final File to) {
+    if (!EtomoDirector.INSTANCE.getArguments().isActions()) {
+      return null;
+    }
+    return ACTION_TAG + "Renamed " + from.getName() + " to " + to.getName();
+  }
+
+  public static String prepareCommandActionMessage(final String[] commandArray,
+      final String[] stdInput) {
+    if (!EtomoDirector.INSTANCE.getArguments().isActions()
+        || commandArray == null
+        || commandArray.length == 0
+        || (commandArray.length == 1 && (commandArray[0].equals("env")
+            || commandArray[0].equals("hostname") || commandArray[0].equals("ssh")))
+        || commandArray[0].equals("ps") || commandArray[0].equals("3dmod")) {
+      return null;
+    }
+    int max = 1;
+    int stdMax = 0;
+    String command = commandArray[0].trim();
+    if (command.endsWith(ProcessName.CLIP.toString())
+        || command.indexOf("vmstocsh") != -1) {
+      max = 2;
+    }
+    else if (command.endsWith("python") || command.endsWith("bash")) {
+      max = 4;
+    }
+    else if (command.endsWith("tcsh")) {
+      stdMax = 2;
+    }
+    else if (command.endsWith("cp") || command.endsWith("mv")) {
+      max = 3;
+    }
+    int length = Math.min(max, commandArray.length);
+    StringBuffer buffer = new StringBuffer();
+    String param = null;
+    int chIndex = -1;
+    boolean showDash = false;
+    for (int i = 0; i < length; i++) {
+      param = commandArray[i];
+      if (param.endsWith("alignlog")) {
+        showDash = true;
+      }
+      if (!showDash && param.startsWith("-")) {
+        continue;
+      }
+      chIndex = param.lastIndexOf(File.separator);
+      if (chIndex != -1) {
+        param = param.substring(chIndex + 1);
+      }
+      else {
+        chIndex = param.indexOf(".log");
+        if (chIndex != -1) {
+          param = param.substring(0, chIndex);
+        }
+      }
+      if (param != null) {
+        buffer.append(param + " ");
+      }
+    }
+    if (stdInput != null) {
+      length = Math.min(stdMax, stdInput.length);
+      for (int i = 0; i < length; i++) {
+        param = stdInput[i];
+        if (param.startsWith("#") || param.startsWith("nohup")) {
+          continue;
+        }
+        if (param.startsWith("if")) {
+          chIndex = param.indexOf(".log");
+          int quoteIndex = param.indexOf("\"");
+          if (chIndex != -1 && quoteIndex != -1) {
+            param = param.substring(quoteIndex + 1, chIndex);
+          }
+        }
+        if (param != null) {
+          buffer.append(param + " ");
+        }
+      }
+    }
+    return ACTION_TAG + "Ran " + buffer;
+  }
+
+  public static String prepareCommandActionMessage(final String commandLine) {
+    if (!EtomoDirector.INSTANCE.getArguments().isActions() || commandLine == null
+        || commandLine.length() == 0 || commandLine.equals("env")
+        || commandLine.equals("hostname") || commandLine.equals("ssh")
+        || commandLine.startsWith("ps") || commandLine.startsWith("3dmod")) {
+      return null;
+    }
+    return ACTION_TAG + "Ran " + commandLine;
+  }
+
+  /**
+   * Returns an action messages if this functionality is turned on and the dialog type has
+   * changed.
+   * @param dialogType
+   * @param axisID
+   * @param oldDialogType
+   * @return
+   */
+  public static String prepareDialogActionMessage(final DialogType dialogType,
+      final AxisID axisID, final DialogType oldDialogType) {
+    if (!EtomoDirector.INSTANCE.getArguments().isActions() || dialogType == null
+        || dialogType == oldDialogType) {
+      return null;
+    }
+    String axis = "";
+    if (axisID != AxisID.ONLY) {
+      axis = " in " + axisID.toString() + " axis";
+    }
+    return ACTION_TAG + "Opened dialog " + dialogType.toString() + axis;
+  }
+
   /**
    * Rename a file working around the Windows bug
    * This need serious work arounds because of the random failure bugs on
@@ -509,7 +625,7 @@ public class Utilities {
     // Rename the existing log file
     if (source.exists()) {
       Utilities.debugPrint(source.getAbsolutePath() + " exists");
-
+      String actionMessage = Utilities.prepareRenameActionMessage(source, destination);
       if (!source.renameTo(destination)) {
         if (source.exists()) {
           System.err.println(source.getAbsolutePath() + " still exists");
@@ -531,6 +647,9 @@ public class Utilities {
           message.append("\nIf either of these files is open in 3dmod, close 3dmod.");
         }
         throw (new IOException(message.toString()));
+      }
+      else if (actionMessage != null) {
+        System.err.println(actionMessage);
       }
     }
   }
