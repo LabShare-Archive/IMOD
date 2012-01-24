@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/24/12: In eTomo, finished implementing the --actions parameter (causes messages documenting eTomo actions to be printed).(Bug# 1441)
+
 1/19/12: Fixed problem with trying to do more than 50000 peaks in Findbeads3d.
 
 1/19/12: In eTomo - PEET, setting nWeightGroup to 0 in the .prm file when the
