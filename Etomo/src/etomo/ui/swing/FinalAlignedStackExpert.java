@@ -191,7 +191,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (!canShowDialog()) {
       return;
     }
-    if (showDialog(dialog)) {
+    String actionMessage = manager.setCurrentDialogType(dialogType, axisID);
+    if (showDialog(dialog,actionMessage)) {
       return;
     }
     // Create the dialog and show it.
@@ -317,7 +318,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     dialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
     dialog.setImageRotation(metaData.getImageRotation(axisID).toString());
     dialog.setTiltState(state, metaData);
-    openDialog(dialog);
+    openDialog(dialog,actionMessage);
   }
 
   public void updateDialog() {
