@@ -32,17 +32,17 @@ enum.3.tooltip = Initialize with uniform random rotations.
 enum.4.tooltip = Random axial rotations around the particle y axis.
 
 [Field = flgFairReference]
-comment = If 1, create a multi-particle reference. Otherwise, choose a single
+comment = If 1, create a multiparticle reference. Otherwise, choose a single
 ^particle reference or use the user-specified volume.
-tooltip =  Generate a multi-particle reference.
+tooltip =  Generate a multiparticle reference.
 
 [Field = reference]
 KeyValueDelimiter = ==
-comment == If flgFairReference = 1, a pair of integers [m, n] specifying
-^m groups, each with n particles, be used to generate a multi-particle
-^reference. Otherwise, if a string, the name of an MRC file containing 
-^the reference volume, or if [i  j], specifies that the jth particle of 
-^the ith volume will be used as the initial reference.
+comment == If flgFairReference = 1, an integer k specifying that a
+^binary search using k levels will be used to generate a multiparticle
+^reference containing 2^k particles. Otherwise, if a string, the name 
+^of an MRC file containing the reference volume, or if [i  j], 
+^specifies the jth particle of ^the ith volume as the reference.
 KeyValueDelimiter == =
 
 [Field = maskType]
