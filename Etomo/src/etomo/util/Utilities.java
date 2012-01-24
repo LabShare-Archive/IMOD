@@ -513,14 +513,14 @@ public class Utilities {
         || command.indexOf("vmstocsh") != -1) {
       max = 2;
     }
-    else if (command.endsWith("python") || command.endsWith("bash")
-        || command.endsWith("cmd.exe")) {
+    else if (command.endsWith("python") || command.endsWith("bash")) {
       max = 4;
     }
     else if (command.endsWith("tcsh")) {
       stdMax = 2;
     }
-    else if (command.endsWith("cp") || command.endsWith("mv")) {
+    else if (command.endsWith("cp") || command.endsWith("mv")
+        || command.endsWith("cmd.exe")) {
       max = 3;
     }
     int length = Math.min(max, commandArray.length);
