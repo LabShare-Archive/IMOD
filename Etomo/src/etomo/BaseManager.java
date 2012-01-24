@@ -1583,14 +1583,21 @@ public abstract class BaseManager {
    * 
    * @param dialogType
    * @param axisID
+   * @return the action message
    */
-  public void setCurrentDialogType(DialogType dialogType, AxisID axisID) {
+  public String setCurrentDialogType(DialogType dialogType, AxisID axisID) {
+    String actionMessage = null;
     if (axisID == AxisID.SECOND) {
+      actionMessage = Utilities.prepareDialogActionMessage(dialogType, axisID,
+          currentDialogTypeB);
       currentDialogTypeB = dialogType;
     }
     else {
+      actionMessage = Utilities.prepareDialogActionMessage(dialogType, axisID,
+          currentDialogTypeA);
       currentDialogTypeA = dialogType;
     }
+    return actionMessage;
   }
 
   /**

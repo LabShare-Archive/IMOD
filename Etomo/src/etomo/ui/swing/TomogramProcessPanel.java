@@ -242,55 +242,38 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     String command = event.getActionCommand();
     Utilities.buttonTimestamp(command);
     applicationManager.saveCurrentDialog(axisID);
-    ProcessControlPanel currentProcess = null;
-    if (EtomoDirector.INSTANCE.getArguments().isActions()) {
-      System.err.println(EtomoDirector.ACTION_TAG + command + " dialog");
-    }
-
     if (command.equals(procCtlPreProc.getCommand())) {
       applicationManager.openPreProcDialog(axisID);
-      return;
     }
-    if (command.equals(procCtlCoarseAlign.getCommand())) {
+    else if (command.equals(procCtlCoarseAlign.getCommand())) {
       applicationManager.openCoarseAlignDialog(axisID);
-      return;
     }
-    if (command.equals(procCtlFiducialModel.getCommand())) {
+    else if (command.equals(procCtlFiducialModel.getCommand())) {
       applicationManager.openFiducialModelDialog(axisID);
-      return;
     }
-    if (command.equals(procCtlFineAlignment.getCommand())) {
+    else if (command.equals(procCtlFineAlignment.getCommand())) {
       applicationManager.openFineAlignmentDialog(axisID);
-      return;
     }
-    if (command.equals(procCtlTomogramPositioning.getCommand())) {
+    else if (command.equals(procCtlTomogramPositioning.getCommand())) {
       ((TomogramPositioningExpert) applicationManager.getUIExpert(
           DialogType.TOMOGRAM_POSITIONING, axisID)).openDialog();
-      return;
     }
-    if (command.equals(procCtlFinalAlignedStack.getCommand())) {
+    else if (command.equals(procCtlFinalAlignedStack.getCommand())) {
       ((FinalAlignedStackExpert) applicationManager.getUIExpert(
           DialogType.FINAL_ALIGNED_STACK, axisID)).openDialog();
-      return;
-
     }
-    if (command.equals(procCtlTomogramGeneration.getCommand())) {
+    else if (command.equals(procCtlTomogramGeneration.getCommand())) {
       ((TomogramGenerationExpert) applicationManager.getUIExpert(
           DialogType.TOMOGRAM_GENERATION, axisID)).openDialog();
-      return;
-
     }
-    if (command.equals(procCtlTomogramCombination.getCommand())) {
+    else if (command.equals(procCtlTomogramCombination.getCommand())) {
       applicationManager.openTomogramCombinationDialog();
-      return;
     }
-    if (command.equals(procCtlPostProcessing.getCommand())) {
+    else if (command.equals(procCtlPostProcessing.getCommand())) {
       applicationManager.openPostProcessingDialog();
-      return;
     }
-    if (command.equals(procCtlCleanUp.getCommand())) {
+    else if (command.equals(procCtlCleanUp.getCommand())) {
       applicationManager.openCleanUpDialog();
-      return;
     }
   }
 

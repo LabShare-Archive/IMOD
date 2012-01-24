@@ -969,6 +969,11 @@ public final class PeetManager extends BaseManager {
     }
     setPeetDialogParameters(null, true);
     mainPanel.showProcess(peetDialog.getContainer(), AXIS_ID);
+    String actionMessage = Utilities.prepareDialogActionMessage(DialogType.PEET,
+        AxisID.ONLY, null);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   /**
