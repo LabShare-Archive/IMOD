@@ -2,6 +2,9 @@ IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 1/19/12: Fixed problem with trying to do more than 50000 peaks in Findbeads3d.
 
+1/19/12: In eTomo - PEET, setting nWeightGroup to 0 in the .prm file when the
+'Weight groups' spinner is off in the dialog.(Bug# 1589)
+
 1/18/12: In eTomo - PEET, defaulted low cutoff sigma.(Bug# 1588)
 
 1/18/12: In eTomo - PEET, added a startup popup.(Bug# 1585)
