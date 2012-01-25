@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/25/12: Made Midas able to read files with DOS line endings on other systems.
+
 1/19/12: Fixed problem with trying to do more than 50000 peaks in Findbeads3d.
 
 1/19/12: In eTomo - PEET, setting nWeightGroup to 0 in the .prm file when the
