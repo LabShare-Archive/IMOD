@@ -6,7 +6,6 @@
  *   Colorado.
  *
  *   $Id$
- *   Log at end
  */                                                                           
 
 #include <stdio.h>
@@ -588,7 +587,7 @@ int mrcHugeSeek(FILE *fp, int base, int x, int y, int z, int nx, int ny,
 
 /*!
  * Reads a line of characters from the file pointed to by [fp] and places it 
- * into array [s] of size [limit].  Replaces newline with a null or 
+ * into array [s] of size [limit].  Replaces newline or return-newline with a null or 
  * terminates the string with null if reading stops because the array limit is
  * reached.  Returns the length of the string, -1 for an error, -2 for end of 
  * file after a newline, or the negative of the length 
@@ -610,6 +609,10 @@ int fgetline(FILE *fp, char s[], int limit)
      
   for (i=0; ( ((c = getc(fp)) != EOF) && (i < (limit-1)) && (c != '\n') ); i++)
     s[i]=c;
+
+  /* 1/25/12: Take off a return too! */
+  if (i > 0 && s[i-1] == '\r')
+    i--;
 
   /* A \n or EOF on the first character leaves i at 0, so there is nothing
      special to be handled about i being 1, 9/18/09 */
@@ -854,129 +857,3 @@ int b3dompthreadnum()
 {
   return b3dOMPthreadNum() + 1;
 }
-
-/*
-
-$Log$
-Revision 1.23  2011/07/25 02:34:39  mast
-Changes for working with signed bytes
-
-Revision 1.22  2011/04/06 04:55:04  mast
-Added some consts
-
-Revision 1.21  2011/03/08 06:02:28  mast
-Added fortran wrapper for sleep function
-
-Revision 1.20  2011/03/01 22:57:18  mast
-Function to print the PID to stderr to standardize and allow from fortran
-
-Revision 1.19  2011/02/12 04:39:45  mast
-Added line pointer routine
-
-Revision 1.18  2011/02/10 04:36:34  mast
-Added function to get thread number, and made function that gives number of
-threads return 1 if no openmp
-
-Revision 1.17  2010/12/30 01:20:01  mast
-Tested version of sleep now
-
-Revision 1.16  2010/12/30 01:07:49  mast
-Test checkin for sleep function
-
-Revision 1.15  2010/06/23 17:20:35  mast
-Added getpid function
-
-Revision 1.14  2010/05/20 23:43:44  mast
-Fixed default IMOD_DIR for Mac
-
-Revision 1.13  2010/03/24 02:20:32  mast
-Added function get IMOD_DIR or default
-
-Revision 1.12  2010/01/05 18:46:51  mast
-Made wallTime work for Windows
-
-Revision 1.11  2009/09/18 15:02:40  mast
-Changed fgetline to return 0 for empty string and negative for error/eof
-
-Revision 1.10  2009/06/22 22:46:22  mast
-Add function to compute thread number
-
-Revision 1.9  2009/06/08 19:27:57  mast
-Fixed time functions for Windows, added commented out high-res for linux
-
-Revision 1.8  2009/06/08 17:56:14  mast
-Add time tools for fortran
-
-Revision 1.7  2008/11/18 21:42:42  mast
-doc fix
-
-Revision 1.6  2008/11/15 21:51:20  mast
-Add function for setting flags
-
-Revision 1.5  2008/05/31 03:11:04  mast
-Added option to redirect errors from stderr to stdout
-
-Revision 1.4  2008/04/03 15:37:02  mast
-Changed b3dFread to call up to 5 times for stdin
-
-Revision 1.3  2008/04/02 14:47:16  mast
-Rearrange statements for windows
-
-Revision 1.2  2008/04/02 02:52:05  mast
-Made the seek routine a no-op if file is stdin
-
-Revision 1.1  2007/09/20 02:43:08  mast
-Moved to new library
-
-Revision 1.17  2007/05/19 00:00:55  mast
-Added note about header bytes
-
-Revision 1.16  2006/10/16 16:03:25  mast
-Fixed a leak in case removal of backup file fails
-
-Revision 1.15  2006/09/28 21:12:16  mast
-Added huge seek routine that can handle images of any size
-
-Revision 1.14  2006/09/20 23:03:01  mast
-Added header usage function to be used as callback from PIP
-
-Revision 1.13  2006/09/19 16:38:08  mast
-Clean up warnings
-
-Revision 1.12  2006/09/13 02:42:07  mast
-Fixed leak in backup filename
-
-Revision 1.11  2006/08/27 23:45:08  mast
-Added fgetline
-
-Revision 1.10  2006/06/08 03:13:15  mast
-Add va_end to the error function
-
-Revision 1.9  2006/01/23 06:40:23  mast
-Documented
-
-Revision 1.8  2005/02/11 01:40:44  mast
-Added some includes, switched to simple b3dIMin/Max functions
-
-Revision 1.7  2004/11/12 15:21:56  mast
-Added min and max functions with variable arguments
-
-Revision 1.6  2004/06/10 22:47:43  mast
-Reserved a bunch of extra header flags to avoid transition problems
-
-Revision 1.5  2004/03/18 17:55:32  mast
-Added routine with extra header byte information
-
-Revision 1.4  2004/01/17 20:35:48  mast
-Move file I/O and seek routines here, add rewind routine
-
-Revision 1.3  2003/11/01 16:41:56  mast
-changed to use new error processing routine
-
-Revision 1.2  2003/10/24 19:53:25  mast
-Add stdlib.h for SGI
-
-Revision 1.1  2003/10/24 03:01:34  mast
-initial creation, consolidating routines from elsewhere
-
-*/
