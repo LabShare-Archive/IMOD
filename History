@@ -5,6 +5,9 @@ Qt application to prevent errors reading floating point numbers.
 
 1/25/12: Made Midas able to read files with DOS line endings on other systems.
 
+1/25/12: In eTomo - PEET - Reference, converted the  multi-particle  reference
+fields to a single combo-box.(Bug# 1592)
+
 1/24/12: In eTomo, finished implementing the --actions parameter (causes
 messages documenting eTomo actions to be printed).(Bug# 1441)
 
