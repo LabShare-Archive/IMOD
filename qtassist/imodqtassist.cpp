@@ -7,19 +7,14 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id: processchunks.cpp,v e5ab12a1256a 2011/08/23 05:58:24 sueh 
  */
 
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    Log at end of file
-*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 #ifndef _WIN32
 #include <sys/select.h>
 #include <sys/time.h>
@@ -62,6 +57,7 @@ int main(int argc, char *argv[])
 
   // Start the application 
   QApplication qapp(argc, argv);
+  setlocale(LC_NUMERIC, "C");
 
   if (argc < 2) {
     fprintf(stderr, "Usage: imodqtassist [options] path_to_documents\n");

@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <locale.h>
 
 #include "qtplax.h"
 //Added by qt3to4:
@@ -362,6 +363,7 @@ static void exitQAppOnExit()
 static int startPlaxApp()
 {
   PlaxApp = new QApplication(argc, argv);
+  setlocale(LC_NUMERIC, "C");
 
 #ifdef QTPLAX_ATEXIT_HACK
   atexit(exitQAppOnExit);
