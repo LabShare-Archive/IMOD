@@ -14,6 +14,7 @@
 #include "processchunks.h"
 #include "parse_params.h"
 #include <signal.h>
+#include <locale.h>
 #include <QTimer>
 #include <QSet>
 #include <QDirIterator>
@@ -62,6 +63,7 @@ Processchunks *processchunksInstance;
 
 int main(int argc, char **argv) {
   Processchunks pc(argc, argv);
+  setlocale(LC_NUMERIC, "C");
   processchunksInstance = &pc;
   pc.printOsInformation();
   pc.loadParams(argc, argv);

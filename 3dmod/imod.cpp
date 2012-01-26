@@ -16,6 +16,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
+#include <locale.h>
 #include <qfiledialog.h>
 #include <qapplication.h>
 #include <qdir.h>
@@ -245,6 +246,7 @@ int main( int argc, char *argv[])
   /* Set title for error dialogs, and set up to store error strings */
   diaSetTitle("3dmod");
   b3dSetStoreError(1);
+  setlocale(LC_NUMERIC, "C");
 
   ImodPrefs = new ImodPreferences(cmdLineStyle);
   ImodHelp = new ImodAssistant("html/3dmodHelp", "3dmod.adp", "3dmod");

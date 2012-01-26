@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/25/12: Made all Qt-based programs reset the locale after starting the
+Qt application to prevent errors reading floating point numbers.
+
 12/19/11: IMOD_4-3-4
 12/19/11: Updated program list for hyperlinks in man page (In 4.3).
 
