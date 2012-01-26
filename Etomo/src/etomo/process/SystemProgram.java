@@ -340,9 +340,9 @@ public class SystemProgram implements Runnable {
     commandArray = new String[command.size()];
     for (int i = 0; i < command.size(); i++) {
       commandArray[i] = (String) command.get(i);
-      //System.out.print(commandArray[i]+" ");
+      // System.out.print(commandArray[i]+" ");
     }
-    //System.out.println();
+    // System.out.println();
   }
 
   /**
@@ -395,10 +395,8 @@ public class SystemProgram implements Runnable {
    */
   public void run() {
     started = true;
-    /*for (int i = 0; i < commandArray.length; i++) {
-     System.out.print(commandArray[i] + " ");
-     }
-     System.out.println();*/
+    /* for (int i = 0; i < commandArray.length; i++) { System.out.print(commandArray[i] +
+     * " "); } System.out.println(); */
     if (debug) {
       System.err.println("");
       System.err.println("SystemProgram: command array: ");
@@ -415,7 +413,7 @@ public class SystemProgram implements Runnable {
       }
     }
 
-    //  Setup the Process object and run the command
+    // Setup the Process object and run the command
     process = null;
     try {
       if (debug)
@@ -425,10 +423,10 @@ public class SystemProgram implements Runnable {
           && !propertyUserDir.matches("\\s*+")) {
         workingDirectory = new File(propertyUserDir);
       }
-      //timestamp
+      // timestamp
       StringBuffer timestampString = new StringBuffer(3);
       if (commandArray == null) {
-        exitValue = 1204;//bug# 1204
+        exitValue = 1204;// bug# 1204
         return;
       }
       for (int i = 0; i < Math.min(2, commandArray.length); i++) {
@@ -437,6 +435,8 @@ public class SystemProgram implements Runnable {
       Utilities.timestamp(timestampString.toString(), Utilities.STARTED_STATUS);
       runTimestamp = new Date();
 
+      String actionMessage = Utilities
+          .prepareCommandActionMessage(commandArray, stdInput);
       if (workingDirectory == null) {
         process = Runtime.getRuntime().exec(commandArray, null);
       }
@@ -447,8 +447,8 @@ public class SystemProgram implements Runnable {
       if (debug)
         System.err.println("returned, process started");
 
-      //  Create a buffered writer to handle the stdin, stdout and stderr
-      //  streams of the process
+      // Create a buffered writer to handle the stdin, stdout and stderr
+      // streams of the process
       cmdInputStream = process.getOutputStream();
       cmdInBuffer = new BufferedWriter(new OutputStreamWriter(cmdInputStream));
 
@@ -470,8 +470,8 @@ public class SystemProgram implements Runnable {
       Thread stderrReaderThread = new Thread(stderr);
       stderrReaderThread.start();
 
-      //  Write out to the program's stdin pipe each line of the
-      //  stdInput array if it is not null
+      // Write out to the program's stdin pipe each line of the
+      // stdInput array if it is not null
       if (stdInput != null) {
         for (int i = 0; i < stdInput.length; i++) {
           cmdInBuffer.write(stdInput[i]);
@@ -500,8 +500,8 @@ public class SystemProgram implements Runnable {
         }
       }
 
-      //  Wait for the process to exit
-      //  why can we read the stdout and stderr above before this completes
+      // Wait for the process to exit
+      // why can we read the stdout and stderr above before this completes
       if (debug)
         System.err.print("SystemProgram: Waiting for process to end...");
 
@@ -521,11 +521,14 @@ public class SystemProgram implements Runnable {
         System.err.println("done");
 
       exitValue = getProcessExitValue(process);
+      if (actionMessage != null && exitValue == 0) {
+        System.err.println(actionMessage);
+      }
 
       if (debug)
         System.err.println("SystemProgram: Exit value: " + String.valueOf(exitValue));
 
-      //  Wait for the manager threads to complete
+      // Wait for the manager threads to complete
       try {
         stderrReaderThread.join(1000);
         stdoutReaderThread.join(1000);
@@ -595,7 +598,7 @@ public class SystemProgram implements Runnable {
       processMessages.print();
     }
 
-    //close standard input if it wasn't closed before
+    // close standard input if it wasn't closed before
     if (acceptInputWhileRunning) {
       try {
         cmdInputStream.close();
@@ -605,7 +608,7 @@ public class SystemProgram implements Runnable {
       }
     }
 
-    //  Set the done flag for the thread
+    // Set the done flag for the thread
     done = true;
   }
 

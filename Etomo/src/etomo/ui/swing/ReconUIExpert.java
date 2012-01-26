@@ -78,13 +78,15 @@ public abstract class ReconUIExpert implements UIExpert {
    * @param dialog
    * @return true an existing, up to date dialog is shown.
    */
-  final boolean showDialog(ProcessDialog dialog) {
-    manager.setCurrentDialogType(dialogType, axisID);
+  final boolean showDialog(ProcessDialog dialog, final String actionMessage) {
     mainPanel.selectButton(axisID, dialogType.toString());
     if (dialogOutOfDate || dialog == null) {
       return false;
     }
     mainPanel.showProcess(dialog.getContainer(), axisID);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
     return true;
   }
 
@@ -93,9 +95,12 @@ public abstract class ReconUIExpert implements UIExpert {
    * when a dialog has just been created.
    * @param dialog
    */
-  final void openDialog(ProcessDialog dialog) {
+  final void openDialog(ProcessDialog dialog, final String actionMessage) {
     dialogOutOfDate = false;
     mainPanel.showProcess(dialog.getContainer(), axisID);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   final void sendMsgProcessStarting(ProcessResultDisplay processResultDisplay) {

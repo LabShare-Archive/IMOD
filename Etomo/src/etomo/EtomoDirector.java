@@ -68,7 +68,6 @@ public class EtomoDirector {
   public static final double MIN_AVAILABLE_MEMORY_REQUIRED = 2 * TO_BYTES * TO_BYTES;
   public static final int NUMBER_STORABLES = 2;
   private static final String JAVA_MEMORY_LIMIT_ENV_VAR = "ETOMO_MEM_LIM";
-  public static final String ACTION_TAG = "Etomo Action: ";
 
   public static final EtomoDirector INSTANCE = new EtomoDirector();
 
