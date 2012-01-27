@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/27/12: Added a Python script startprocess to run jobs in background for
+eTomo.
+
 1/25/12: Made all Qt-based programs reset the locale after starting the
 Qt application to prevent errors reading floating point numbers.
 
