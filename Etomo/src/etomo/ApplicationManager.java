@@ -397,7 +397,7 @@ public final class ApplicationManager extends BaseManager implements
   public void openSetupDialog() {
     // Open the dialog in the appropriate mode for the current state of
     // processing
-    setCurrentDialogType(DialogType.SETUP_RECON, AxisID.ONLY);
+    String actionMessage = setCurrentDialogType(DialogType.SETUP_RECON, AxisID.ONLY);
     if (setupDialogExpert == null) {
       Utilities.timestamp("new", "SetupDialog", Utilities.STARTED_STATUS);
       // check for distortion directory
@@ -414,6 +414,9 @@ public final class ApplicationManager extends BaseManager implements
       Dimension frameSize = mainPanel.getSize();
       mainPanel.setLocation((screenSize.width - frameSize.width) / 2,
           (screenSize.height - frameSize.height) / 2);
+    }
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
     }
   }
 
@@ -628,14 +631,14 @@ public final class ApplicationManager extends BaseManager implements
       mainPanel.showBlankProcess(axisID);
       return;
     }
-    setCurrentDialogType(DialogType.PRE_PROCESSING, axisID);
+    String actionMessage = setCurrentDialogType(DialogType.PRE_PROCESSING, axisID);
     mainPanel.selectButton(axisID, "Pre-processing");
     // TODO: When a panel is overwriten by another should it be nulled and
     // closed or left and and reshown when needed?
     // Problem with stale data for align and tilt info since they are on
     // multiple panels
     // Check to see if the dialog panel is already open
-    if (showIfExists(preProcDialogA, preProcDialogB, axisID)) {
+    if (showIfExists(preProcDialogA, preProcDialogB, axisID, actionMessage)) {
       return;
     }
     Utilities.timestamp("new", "PreProcessingDialog", Utilities.STARTED_STATUS);
@@ -654,6 +657,9 @@ public final class ApplicationManager extends BaseManager implements
         CCDEraserParam.Mode.X_RAYS));
     preProcDialog.setParameters(getScreenState(axisID));
     mainPanel.showProcess(preProcDialog.getContainer(), axisID);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   /**
@@ -1232,9 +1238,9 @@ public final class ApplicationManager extends BaseManager implements
       mainPanel.showBlankProcess(axisID);
       return;
     }
-    setCurrentDialogType(DialogType.COARSE_ALIGNMENT, axisID);
+    String actionMessage = setCurrentDialogType(DialogType.COARSE_ALIGNMENT, axisID);
     mainPanel.selectButton(axisID, "Coarse Alignment");
-    if (showIfExists(coarseAlignDialogA, coarseAlignDialogB, axisID)) {
+    if (showIfExists(coarseAlignDialogA, coarseAlignDialogB, axisID, actionMessage)) {
       return;
     }
     Utilities.timestamp("new", "CoarseAlignDialog", Utilities.STARTED_STATUS);
@@ -1270,6 +1276,9 @@ public final class ApplicationManager extends BaseManager implements
     coarseAlignDialog.setImageRotation(metaData.getImageRotation(axisID).toString());
     coarseAlignDialog.setParameters(getScreenState(axisID));
     mainPanel.showProcess(coarseAlignDialog.getContainer(), axisID);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   /**
@@ -1983,9 +1992,9 @@ public final class ApplicationManager extends BaseManager implements
       mainPanel.showBlankProcess(axisID);
       return;
     }
-    setCurrentDialogType(DialogType.FIDUCIAL_MODEL, axisID);
+    String actionMessage = setCurrentDialogType(DialogType.FIDUCIAL_MODEL, axisID);
     mainPanel.selectButton(axisID, "Fiducial Model Gen.");
-    if (showIfExists(fiducialModelDialogA, fiducialModelDialogB, axisID)) {
+    if (showIfExists(fiducialModelDialogA, fiducialModelDialogB, axisID, actionMessage)) {
       return;
     }
     // Create a new dialog panel and map it the generic reference
@@ -2030,6 +2039,9 @@ public final class ApplicationManager extends BaseManager implements
     fiducialModelDialog.setParameters(tiltXcorrPtParam);
     fiducialModelDialog.setParameters(getScreenState(axisID));
     mainPanel.showProcess(fiducialModelDialog.getContainer(), axisID);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   /**
@@ -2529,9 +2541,9 @@ public final class ApplicationManager extends BaseManager implements
       mainPanel.showBlankProcess(axisID);
       return;
     }
-    setCurrentDialogType(DialogType.FINE_ALIGNMENT, axisID);
+    String actionMessage = setCurrentDialogType(DialogType.FINE_ALIGNMENT, axisID);
     mainPanel.selectButton(axisID, "Fine Alignment");
-    if (showIfExists(fineAlignmentDialogA, fineAlignmentDialogB, axisID)) {
+    if (showIfExists(fineAlignmentDialogA, fineAlignmentDialogB, axisID, actionMessage)) {
       return;
     }
     // Create a new dialog panel and map it the generic reference
@@ -2574,6 +2586,9 @@ public final class ApplicationManager extends BaseManager implements
     metaData.setFineExists(axisID, true);
     // Create a default transferfid object to populate the alignment dialog
     mainPanel.showProcess(fineAlignmentDialog.getContainer(), axisID);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   /**
@@ -5370,7 +5385,8 @@ public final class ApplicationManager extends BaseManager implements
       mainPanel.showBlankProcess(AxisID.ONLY);
       return;
     }
-    setCurrentDialogType(DialogType.TOMOGRAM_COMBINATION, AxisID.FIRST);
+    String actionMessage = setCurrentDialogType(DialogType.TOMOGRAM_COMBINATION,
+        AxisID.FIRST);
     mainPanel.selectButton(AxisID.FIRST, "Tomogram Combination");
     if (tomogramCombinationDialog == null) {
       Utilities.timestamp("new", "TomogramCombinationDialog", Utilities.STARTED_STATUS);
@@ -5469,6 +5485,9 @@ public final class ApplicationManager extends BaseManager implements
     tomogramCombinationDialog.setParameters(getScreenState(AxisID.ONLY));
     // Show the process panel
     mainPanel.showProcess(tomogramCombinationDialog.getContainer(), AxisID.FIRST);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   /**
@@ -6577,7 +6596,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     // Open the dialog in the appropriate mode for the current state of
     // processing
-    setCurrentDialogType(DialogType.POST_PROCESSING, AxisID.ONLY);
+    String actionMessage = setCurrentDialogType(DialogType.POST_PROCESSING, AxisID.ONLY);
     mainPanel.selectButton(AxisID.ONLY, DialogType.POST_PROCESSING.toString());
     boolean dialogExists = true;
     if (postProcessingDialog == null) {
@@ -6638,6 +6657,9 @@ public final class ApplicationManager extends BaseManager implements
           .getWarpVolParamFromFlatten(AxisID.ONLY));
     }
     mainPanel.showProcess(postProcessingDialog.getContainer(), AxisID.ONLY);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   /**
@@ -6652,7 +6674,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     // Open the dialog in the appropriate mode for the current state of
     // processing
-    setCurrentDialogType(DialogType.CLEAN_UP, AxisID.ONLY);
+    String actionMessage = setCurrentDialogType(DialogType.CLEAN_UP, AxisID.ONLY);
     mainPanel.selectButton(AxisID.ONLY, "Clean Up");
     if (cleanUpDialog == null) {
       Utilities.timestamp("new", "CleanUpDialog", Utilities.STARTED_STATUS);
@@ -6661,6 +6683,9 @@ public final class ApplicationManager extends BaseManager implements
     }
     updateArchiveDisplay();
     mainPanel.showProcess(cleanUpDialog.getContainer(), AxisID.ONLY);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   /**
@@ -7312,14 +7337,14 @@ public final class ApplicationManager extends BaseManager implements
   //
   // Utility functions
   //
-  private boolean showIfExists(ProcessDialog panelA, ProcessDialog panelB, AxisID axisID) {
+  private boolean showIfExists(ProcessDialog panelA, ProcessDialog panelB, AxisID axisID,
+      final String actionMessage) {
     if (axisID == AxisID.SECOND) {
       if (panelB == null) {
         return false;
       }
       else {
         mainPanel.showProcess(panelB.getContainer(), axisID);
-        return true;
       }
     }
     else {
@@ -7328,9 +7353,12 @@ public final class ApplicationManager extends BaseManager implements
       }
       else {
         mainPanel.showProcess(panelA.getContainer(), axisID);
-        return true;
       }
     }
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
+    return true;
   }
 
   /**

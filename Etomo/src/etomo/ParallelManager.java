@@ -47,6 +47,7 @@ import etomo.ui.swing.ProcessDisplay;
 import etomo.ui.swing.UIHarness;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -288,6 +289,11 @@ public final class ParallelManager extends BaseManager {
       parallelDialog.updateDisplay(false);
     }
     mainPanel.showProcess(parallelDialog.getContainer(), AXIS_ID);
+    String actionMessage = Utilities.prepareDialogActionMessage(DialogType.PARALLEL,
+        AxisID.ONLY, null);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   public void openAnisotropicDiffusionDialog() {
@@ -299,6 +305,11 @@ public final class ParallelManager extends BaseManager {
       anisotropicDiffusionDialog.setParameters(metaData);
     }
     mainPanel.showProcess(anisotropicDiffusionDialog.getContainer(), AXIS_ID);
+    String actionMessage = Utilities.prepareDialogActionMessage(
+        DialogType.ANISOTROPIC_DIFFUSION, AxisID.ONLY, null);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   private void saveParallelDialog() {

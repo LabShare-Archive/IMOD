@@ -225,6 +225,12 @@ public final class DialogType {
         return "Clean Up";
       }
     }
+    else if (dataFileType ==DataFileType.JOIN) {
+      switch (index) {
+      case joinIndex:
+        return "Join";
+      }
+    }
     else if (dataFileType == DataFileType.PARALLEL) {
       switch (index) {
       case parallelIndex:

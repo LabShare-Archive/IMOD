@@ -228,6 +228,7 @@ public final class LogFile {
       }
     }
     Utilities.debugPrint(file.getAbsolutePath() + " exists");
+    String actionMessage = Utilities.prepareRenameActionMessage(file, backupFile);
     if (!file.renameTo(backupFile)) {
       if (file.exists()) {
         System.err.println(file.getAbsolutePath() + " still exists");
@@ -252,6 +253,9 @@ public final class LogFile {
         message.append("\nIf either of these files is open in 3dmod, close 3dmod.");
       }
       throw new LockException(this, fileId, message.toString());
+    }
+    else if (actionMessage != null) {
+      System.err.println(actionMessage);
     }
     // reset the File variables sinces the file names may have changed.
     file = null;
@@ -410,7 +414,11 @@ public final class LogFile {
     FileId targetFileId = new FileId();
     target.lock.lock(LockType.FILE, targetFileId);
     target.createFile();
+    String actionMessage = Utilities.prepareRenameActionMessage(file, target.file);
     boolean success = file.renameTo(target.file);
+    if (actionMessage != null && success) {
+      System.err.println(actionMessage);
+    }
     try {
       Thread.sleep(500);
     }
