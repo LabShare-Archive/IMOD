@@ -946,10 +946,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         .setToolTipText("Use the Initial MOTL file(s) specified in the Volume "
             + "Table.");
     lsParticlePerCPU
-        .setToolTipText("Specifies the maximum number of particles to distribute "
-            + "to each CPU selected in the Parallel Processing table.");
-    cbAlignedBaseName.setToolTipText("Sets the base from which output filenames will be "
-        + "constructed to 'aligned'.");
+        .setToolTipText("The maximum number of particles distributed "
+            + "simultaneously to a single CPU during parallel processing.");
+    cbAlignedBaseName.setToolTipText("Save individual aligned particles to "
+        + "files aligned*.mrc.");
     ltfLowCutoff.setToolTipText("Two numbers to control low frequency filtering: 1) The "
         + "normalized frequency below which low frequencies will be "
         + "attenuated.  2) The width (standard deviation) in normalized "
