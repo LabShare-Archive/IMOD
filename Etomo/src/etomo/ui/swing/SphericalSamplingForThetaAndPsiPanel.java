@@ -186,24 +186,23 @@ final class SphericalSamplingForThetaAndPsiPanel {
   private void setTooltips() {
     rbSampleSphereNone
         .setToolTipText("Use the angular search parameters specified in the "
-            + "Iteration Table for the first alignment search.");
+            + "Iteration Table for the first iteration.");
     rbSampleSphereFull
-        .setToolTipText("During the first alignment search, perform an optimized "
-            + "180 degree search in Theta and 360 degree search for Psi, "
-            + "ignoring the values specified in the Iteration Table for these "
-            + "parameters.  Optimization prevents over-sampling near the poles "
-            + "(on the X axis).  Phi Max should be set to 180 degrees for "
-            + "spherical sampling.");
+        .setToolTipText("At the first iteration, perform an optimized "
+            + "search with Theta varying from -90 to 90 degrees and Psi, "
+            + "varying from -180 to 180 degrees. Optimization prevents "
+            + "over-sampling near the poles. Phi Max should be set to "
+            + "180 degrees.");
     rbSampleSphereHalf
-        .setToolTipText("During the first alignment search, perform a optimized "
-            + "search spanning 180 degrees Theta and 180 degrees in Psi, "
-            + "ignoring the values specified in the Iteration Table for these "
-            + "parameters.  Optimization prevents over-sampling near the poles "
-            + "Phi Max should be set to 180 degrees for spherical sampling.");
+        .setToolTipText("At the first iteration, perform an optimized "
+            + "search with Theta and Psi both varying from -90 to 90 degrees. "
+            + "Optimization prevents over-sampling near the poles. Phi Max "
+            + "should be set to 180 degrees.");
+
     ltfSampleInterval.setToolTipText("The interval, in degrees, at which theta will be "
-        + "sampled when using spherical sampling.  Psi will also be sampled "
+        + "sampled when using spherical sampling. Psi will also be sampled "
         + "at this interval at the equator, and with decreasing frequency "
-        + "near the poles (on the X axis).");
+        + "near the poles.");
   }
 
   private static final class SphericalSamplingForThetaAndPsiActionListener implements
