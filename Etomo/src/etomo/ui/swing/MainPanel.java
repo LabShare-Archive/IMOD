@@ -454,6 +454,14 @@ public abstract class MainPanel extends EtomoPanel {
     axisPanel.setProgressBar(label, nSteps, pauseEnabled);
     axisPanel.setProgressBarValue(0);
   }
+  
+  public void setStaticProgressBar(final String label, final AxisID axisID) {
+    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
+    if (axisPanel == null) {
+      return;
+    }
+    axisPanel.setStaticProgressBar(label);
+  }
 
   public void endThreads() {
     AxisProcessPanel axisPanel = mapBaseAxis(AxisID.FIRST);
