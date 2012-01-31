@@ -799,7 +799,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     updateDisplay();
   }
 
-  public void getParameters(final MatlabParam matlabParam) {
+  public boolean getParameters(final MatlabParam matlabParam, final boolean forRun) {
+    if (!matlabParam.validate(forRun)) {
+      return false;
+    }
     matlabParam.clear();
     volumeTable.getParameters(matlabParam);
     iterationTable.getParameters(matlabParam);
@@ -830,6 +833,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     maskingPanel.getParameters(matlabParam);
     matlabParam.setFlgAlignAverages(cbflgAlignAverages.isSelected());
     matlabParam.setFlgAbsValue(cbFlgAbsValue.isSelected());
+    return true;
   }
 
   public boolean isReferenceFileSelected() {
@@ -957,11 +961,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     cbFlgStrictSearchLimits
         .setToolTipText("When checked, the overall change for any parameter will be "
             + "limited to the largest change specified at any single iteration.");
-    ltfLowCutoff.setToolTipText("Two numbers to control low frequency filtering: 1) The "
-        + "normalized frequency below which low frequencies will be "
-        + "attenuated.  2) The width (standard deviation) in normalized "
-        + "frequency units of the Gaussian falloff in response below the "
-        + "cutoff.  Values less <= 0 disable low frequency filtering.");
+    ltfLowCutoff
+        .setToolTipText("The normalized frequency below which low frequencies will be "
+            + "attenuated.  Values less <= 0 disable low frequency filtering.");
     ltfLowCutoffSigma
         .setToolTipText("An optional parameter which defines the transition "
             + "width of the low frequency filter.");
@@ -1116,10 +1118,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlOptionalLeft.add(cbAlignedBaseName);
     pnlOptionalLeft.add(cbFlgStrictSearchLimits);
     // optional right
-    pnlOptionalRight.setLayout(new GridLayout(3, 1, 0, 5));
+    pnlOptionalRight.setLayout(new GridLayout(4, 1, 0, 5));
     pnlOptionalRight.add(lsParticlePerCPU.getContainer());
     pnlOptionalRight.add(lsDebugLevel.getContainer());
     pnlOptionalRight.add(pnlLowCutoff);
+    pnlOptionalRight.add(Box.createRigidArea(FixedDim.x0_y3));
     // low cutoff
     pnlLowCutoff.setLayout(new BoxLayout(pnlLowCutoff, BoxLayout.X_AXIS));
     pnlLowCutoff.add(ltfLowCutoff.getContainer());
