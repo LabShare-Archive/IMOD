@@ -79,6 +79,7 @@ public final class PeetStartupDialog {
     ftfDirectory.setAdjustedFieldWidth(175);
     ftfDirectory.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
     ftfDirectory.setAbsolutePath(true);
+    ftfDirectory.setFile(new File(""));
     ftfCopyFrom.setAdjustedFieldWidth(225);
     ftfCopyFrom.setFileFilter(new PeetAndMatlabParamFileFilter());
     ftfCopyFrom.setAbsolutePath(true);
