@@ -334,7 +334,8 @@ final class VolumeRow implements Highlightable {
    * changeable field (volume, model, and MOTL).
    */
   int getTextSize() {
-    return Math.max(fnVolume.getValue().length(), 6) + Math.max(fnModParticle.getValue().length(), 5)
+    return Math.max(fnVolume.getValue().length(), 6)
+        + Math.max(fnModParticle.getValue().length(), 5)
         + Math.max(initMotlFile.getValue().length(), 5);
   }
 
@@ -693,10 +694,10 @@ final class VolumeRow implements Highlightable {
         + "list with orientations and shifts.");
     fbInitMotlFile
         .setToolTipText("Select a .csv file with initial orientations and shifts");
-    String tooltip = "The minimum and maximum tilt angle (in degrees) used "
+    String tooltip = " tilt angle (in degrees) used "
         + "during image acquisition for this tomogram.  Used only if missing "
         + "wedge compensation is enabled.";
-    tiltRangeMin.setToolTipText(tooltip);
-    tiltRangeMax.setToolTipText(tooltip);
+    tiltRangeMin.setToolTipText("The minimum" + tooltip);
+    tiltRangeMax.setToolTipText("The maximum" + tooltip);
   }
 }
