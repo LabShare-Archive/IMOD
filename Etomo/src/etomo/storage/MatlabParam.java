@@ -344,14 +344,6 @@ public final class MatlabParam {
   public static final int EDGE_SHIFT_MAX = 3;
   public static final String LST_THRESHOLDS_KEY = "lstThresholds";
   public static final String LST_FLAG_ALL_TOM_KEY = "lstFlagAllTom";
-  /**
-   * @deprecated
-   */
-  public static final String FLG_MEAN_FILL_KEY = "flgMeanFill";
-  /**
-   * @deprecated
-   */
-  private static final boolean FLG_MEAN_FILL_DEFAULT = true;
   public static final String ALIGNED_BASE_NAME_KEY = "alignedBaseName";
   public static final String DEBUG_LEVEL_KEY = "debugLevel";
   public static final int DEBUG_LEVEL_MIN = 0;
@@ -401,10 +393,6 @@ public final class MatlabParam {
   private final ParsedNumber edgeShift = ParsedNumber.getMatlabInstance();
   private final ParsedArray lstThresholds = ParsedArray.getMatlabInstance();
   private final ParsedNumber lstFlagAllTom = ParsedNumber.getMatlabInstance();
-  /**
-   * @deprecated always on
-   */
-  private final ParsedNumber flgMeanFill = ParsedNumber.getMatlabInstance();
   private final ParsedQuotedString alignedBaseName = ParsedQuotedString.getInstance();
   private final ParsedNumber debugLevel = ParsedNumber.getMatlabInstance();
   private final List volumeList = new ArrayList();
@@ -443,7 +431,6 @@ public final class MatlabParam {
     this.newFile = newFile;
     nWeightGroup.setDefault(N_WEIGHT_GROUP_DEFAULT);
     nWeightGroup.setFloor(N_WEIGHT_GROUP_MIN);
-    flgMeanFill.setDefault(FLG_MEAN_FILL_DEFAULT);
     flgFairReference.setDefault(false);
     flgAbsValue.setDefault(FLG_ABS_VALUE_DEFAULT);
     edgeShift.setDefault(EDGE_SHIFT_DEFAULT);
@@ -799,7 +786,6 @@ public final class MatlabParam {
     edgeShift.clear();
     lstThresholds.clear();
     lstFlagAllTom.clear();
-    flgMeanFill.clear();
     alignedBaseName.clear();
     debugLevel.clear();
     volumeList.clear();
@@ -1271,7 +1257,6 @@ public final class MatlabParam {
     if (initMotlCode != null) {
       valueMap.put(INIT_MOTL_KEY, initMotlCode.toString());
     }
-    valueMap.put(FLG_MEAN_FILL_KEY, flgMeanFill.getParsableString());
     valueMap.put(ALIGNED_BASE_NAME_KEY, alignedBaseName.getParsableString());
     valueMap.put(DEBUG_LEVEL_KEY, debugLevel.getParsableString());
     valueMap.put(LST_THRESHOLDS_KEY, lstThresholds.getParsableString());
@@ -1416,8 +1401,6 @@ public final class MatlabParam {
       setNameValuePairValue(manager, autodoc, EDGE_SHIFT_KEY,
           (String) valueMap.get(EDGE_SHIFT_KEY), commentMap);
     }
-    setNameValuePairValue(manager, autodoc, FLG_MEAN_FILL_KEY,
-        (String) valueMap.get(FLG_MEAN_FILL_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, ALIGNED_BASE_NAME_KEY,
         (String) valueMap.get(ALIGNED_BASE_NAME_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, DEBUG_LEVEL_KEY,
