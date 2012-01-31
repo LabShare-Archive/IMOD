@@ -32,6 +32,7 @@ public class LogicTests {
     TestSuite suite = new TestSuite("Tests:  " + TEST_DIR);
     // $JUnit-BEGIN$
     suite.addTestSuite(PeetStartupDataTest.class);
+    suite.addTestSuite(TextFieldStateTest.class);
     // $JUnit-END$
     return suite;
   }
