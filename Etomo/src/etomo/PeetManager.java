@@ -958,9 +958,10 @@ public final class PeetManager extends BaseManager {
    */
   private void openPeetDialog(final PeetStartupData startupData) {
     if (!loadedParamFile && startupData == null) {
-      UIHarness.INSTANCE.openMessageDialog(this,
-          "Failed to load the parameter file, unable to continue.", "Failed",
-          AxisID.ONLY);
+      UIHarness.INSTANCE
+          .openMessageDialog(this,
+              "Failed to load the parameter file, unable to continue.", "Failed",
+              AxisID.ONLY);
       valid = false;
       return;
     }
@@ -982,11 +983,13 @@ public final class PeetManager extends BaseManager {
    */
   private void openPeetStartupDialog() {
     if (peetStartupDialog == null) {
+      mainPanel.setStaticProgressBar("Starting PEET interface", AXIS_ID);
       peetStartupDialog = PeetStartupDialog.getInstance(this, AXIS_ID);
     }
   }
 
   public void cancelStartup() {
+    mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.KILLED);
     EtomoDirector.INSTANCE.closeCurrentManager(AxisID.ONLY, false);
   }
 
@@ -1000,12 +1003,14 @@ public final class PeetManager extends BaseManager {
       setParamFile(startupData);
     }
     if (!loadedParamFile) {
+      mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.FAILED);
       UIHarness.INSTANCE.openMessageDialog(this,
           "Failed to load or create parameter file, unable to continue.", "Failed",
           AxisID.ONLY);
       valid = false;
       return;
     }
+    mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.DONE);
   }
 
   private void setPeetDialogParameters(final File importDir, final boolean metaDataLoaded) {
