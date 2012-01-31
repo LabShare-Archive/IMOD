@@ -123,6 +123,13 @@ public final class FilePath {
     }
     return path;
   }
+  
+  public static File getFileParent(final String path) {
+    if (isPath(path)) {
+      return new File(path).getParentFile();
+    }
+    return null;
+  }
 
   /**
    * Replace the filename in the path
