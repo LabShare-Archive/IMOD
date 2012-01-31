@@ -9,12 +9,12 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 
 #include "midas.h"
 #include "mrcc.h"
@@ -131,6 +131,7 @@ int main (int argc, char **argv)
   QApplication myapp(argc, argv);
   diaSetTitle("Midas");
   b3dSetStoreError(1);
+  setlocale(LC_NUMERIC, "C");
 
   if (argc < 2)
     usage();
@@ -1061,122 +1062,3 @@ void midas_error(const char *tmsg, const char *bmsg, int retval)
 
   return;
 }
-
-/*
-
-$Log$
-Revision 3.30  2011/06/17 05:44:08  mast
-Fixed chunk mode
-
-Revision 3.29  2011/06/10 04:25:28  mast
-Changes for warping and keeping ref/current together with ref file
-
-Revision 3.28  2010/12/28 18:23:10  mast
-Added robust fitting and checkbox to exclude edges
-
-Revision 3.27  2010/06/29 22:31:11  mast
-New X and Y frame buttons, cross-correlate button and spin boxes, options
-to skip excluded edges and skip computing correlations
-
-Revision 3.26  2009/12/07 17:09:50  mast
-Remove requirement for existing ecd file with montage mode
-
-Revision 3.25  2009/03/06 05:39:39  mast
-Fixed loading of global rotation box
-
-Revision 3.24  2009/01/16 21:48:29  mast
-Fixed assignment to Y radio button
-
-Revision 3.23  2009/01/15 16:30:19  mast
-Qt 4 port
-
-Revision 3.22  2008/11/02 15:00:45  mast
-Changed so cosine stretch option is not on by default
-
-Revision 3.21  2008/10/13 04:36:00  mast
-Added cosine stretch, switched to 3 lines of mouse reminders, got rid of
-larger font
-
-Revision 3.20  2007/10/03 21:36:10  mast
-Added ImodAssistant help object
-
-Revision 3.19  2006/06/26 15:48:19  mast
-Added autocontrast function
-
-Revision 3.18  2006/05/20 16:07:56  mast
-Changes to allow mirroring around X axis
-
-Revision 3.17  2006/05/13 22:52:52  mast
-Changes to allow overlay colors to be specified
-
-Revision 3.16  2006/03/01 19:16:03  mast
-Fixed bug in setting window size and eliminated debug output, called 
-library routines for limiting window size and position
-
-Revision 3.15  2005/03/10 21:04:14  mast
-Added -q option for use from etomo
-
-Revision 3.14  2004/11/05 18:53:22  mast
-Include local files with quotes, not brackets
-
-Revision 3.13  2004/10/25 18:51:52  mast
-Added optoin to output to different file from input file
-
-Revision 3.12  2004/07/12 18:42:30  mast
-Changes for chunk alignment and for switching to spin boxes
-
-Revision 3.11  2004/07/07 19:25:31  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.10  2004/05/28 18:56:13  mast
-needed to parse gloabal rotation as float
-
-Revision 3.9  2003/12/17 21:44:19  mast
-Changes to implement global rotations
-
-Revision 3.8  2003/11/01 16:43:10  mast
-changed to put out virtually all error messages to a window
-
-Revision 3.7  2003/06/20 19:35:41  mast
-Connected top error buttons to mapper
-
-Revision 3.6  2003/05/26 01:02:33  mast
-Added label to show mouse action
-
-Revision 3.5  2003/02/28 21:36:08  mast
-connect to focusLost signal of ToolEdit
-
-Revision 3.4  2003/02/28 18:10:58  mast
-Fix include fiddling
-
-Revision 3.3  2003/02/27 23:06:51  mast
-Fiddling with includes some more
-
-Revision 3.2  2003/02/27 20:19:10  mast
-Changes in includes for Windows
-
-Revision 3.1  2003/02/10 20:49:57  mast
-Merge Qt source
-
-Revision 1.1.2.4  2003/01/30 01:10:25  mast
-Move fork to before starting application
-
-Revision 1.1.2.3  2003/01/26 23:20:33  mast
-using new library
-
-Revision 1.1.2.2  2002/12/06 19:05:01  mast
-Changes for binary file reading under windows
-
-Revision 1.1.2.1  2002/12/05 03:13:02  mast
-New Qt version
-
-Revision 3.4  2002/11/05 23:54:24  mast
-Changed to get a visual then pass it to GLw.
-
-Revision 3.3  2002/11/05 23:29:13  mast
-Changed to call imodCopyright
-
-Revision 3.2  2002/08/19 04:46:10  mast
-Changed number of columns in edge number text box to 4
-
-*/

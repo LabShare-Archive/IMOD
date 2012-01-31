@@ -207,7 +207,9 @@ int load_transforms(MidasView *vw, char *filename)
 
       // An error occurred: return unless it is a simple xf file
       if (warpFile != -3 || warpVersion != 0) {
-        midas_error("Error reading a warping file.", 
+        qline.sprintf("Error %d (version value %d) reading the transform file as a "
+                      "warping file.", warpFile, warpVersion);
+        midas_error(LATIN1(qline),
                     "It does not appear to be a simple transform file", 0);
         return(-4);
       }
@@ -223,7 +225,7 @@ int load_transforms(MidasView *vw, char *filename)
 
       if (!(warpFlags & WARP_INVERSE)) {
         midas_error("The warping file does not appear to have inverse warpings.",
-                    "That forward warpings are not supported yet.", 0);
+                    "Forward warpings are not supported yet.", 0);
         err = -6;
       }
 

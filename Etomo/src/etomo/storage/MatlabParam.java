@@ -383,6 +383,7 @@ public final class MatlabParam {
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
+  private static final int LEVEL_INDEX = 0;
   private static final int Z_ROTATION_INDEX = 0;
   private static final int Y_ROTATION_INDEX = 1;
 
@@ -737,7 +738,7 @@ public final class MatlabParam {
   public void setNWeightGroup(final Number input) {
     nWeightGroup.setRawString(input);
   }
-  
+
   public void setMaskModelPtsZRotation(final String input) {
     maskModelPts.setRawString(Z_ROTATION_INDEX, input);
   }
@@ -752,6 +753,10 @@ public final class MatlabParam {
 
   public String getReferenceParticle() {
     return reference.getRawString(PARTICLE_INDEX);
+  }
+
+  public String getReferenceLevel() {
+    return reference.getRawString(LEVEL_INDEX);
   }
 
   public ParsedElement getReferenceVolume() {
@@ -947,6 +952,11 @@ public final class MatlabParam {
   public void setReferenceParticle(final String referenceParticle) {
     useReferenceFile = false;
     reference.setRawString(PARTICLE_INDEX, referenceParticle);
+  }
+
+  public void setReferenceLevel(final String input) {
+    useReferenceFile = false;
+    reference.setRawString(LEVEL_INDEX, input);
   }
 
   public void setReferenceParticle(final Number input) {

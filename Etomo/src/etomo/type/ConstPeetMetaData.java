@@ -76,6 +76,8 @@ public interface ConstPeetMetaData {
   public ConstEtomoNumber getReferenceParticle();
 
   public ConstEtomoNumber getReferenceVolume();
+  
+  public int getReferenceMultiparticleLevel();
 
   public ConstEtomoNumber getEdgeShift();
 
@@ -90,10 +92,6 @@ public interface ConstPeetMetaData {
   public ConstEtomoNumber getNWeightGroup();
 
   public boolean isTiltRange();
-
-  public String getReferenceMultiparticleGroups();
-
-  public String getReferenceMultiparticleParticles();
 
   public boolean isManualCylinderOrientation();
 }

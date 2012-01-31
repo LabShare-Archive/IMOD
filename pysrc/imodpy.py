@@ -12,6 +12,8 @@
 This module provides the following functions:
   runcmd(cmd[, input][,outfile][, inStderr]) - spawn a command with optional input,
                                    return its output or print to stdout or a file
+  bkgdProcess(commandArr, [outfile] [, errfile]) - Run a process in background
+                                                   with optional redirection
   getmrcsize(file)     - run the 'header' command on <file>.
                          returns a triple of x,y,z size integers
   getmrc(file, doAll)  - run the 'header' command on <file>.
@@ -249,6 +251,55 @@ def passOnKeyInterrupt(passOn = True):
 def getLastExitStatus():
    return errStatus
 
+
+# Run a process in background with optional redirection of all output
+def bkgdProcess(commandArr, outfile=None, errfile='stdout'):
+   """bkgdProcess(commandArr, [outfile] [, errfile]) - Run a process in background
+   with optional redirection of standard output to a file, and of standard error
+   to a separate file or to standard out by default.
+   """
+   # If subprocess is allowed, open the files if any
+   if useSubprocess:
+      outf = None
+      errf = None
+      errToFile = False
+      if errfile == 'stdout':
+         errf = STDOUT
+      try:
+         if outfile:
+            action = 'Opening ' + outfile + ' for output'
+            outf = open(outfile, 'w')
+            errToFile = errfile == 'stdout'
+         if errfile and errfile != 'stdout':
+            action = 'Opening ' + errfile + ' for output'
+            errf = open(errfile, 'w')
+            errToFile = True
+      except IOError:
+         exitError(action + "  - " + str(sys.exc_info()[1]))
+
+      # Use detached flag on Windows, although it may not be needed
+      # In fact, unless stderr is going to a file it keeps it from running there
+      if sys.platform.find('win32') >= 0 and errToFile:
+         DETACHED_PROCESS = 0x00000008
+         Popen(commandArr, shell=False, stdout=outf, stderr=errf,
+               creationflags=DETACHED_PROCESS)
+      else:
+         Popen(commandArr, shell=False, stdout=outf, stderr=errf)
+      return
+
+   # Otherwise use system call: wrap all args in quotes and add the redirects
+   comstr = commandArr[0]
+   for i in range(1, len(commandArr)):
+      comstr += ' "' + commandArr[i] + '"'
+   if outfile:
+      comstr += ' > "' + outfile + '"'
+   if errfile == 'stdout':
+      comstr += ' 2>&1'
+   elif errfile:
+      comstr += ' 2> "' + errfile + '"'
+   comstr += ' &'
+   os.system(comstr)
+         
 
 # Get essential data from the header of an MRC file
 def getmrc(file, doAll = False):

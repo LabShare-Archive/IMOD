@@ -41,12 +41,21 @@ import etomo.util.Utilities;
 final class ComboBox extends JComboBox {
   public static final String rcsid = "$Id$";
 
+  ComboBox() {
+  }
+
   ComboBox(String label) {
     setName(label);
   }
 
   ComboBox(JLabel label) {
     setName(label.getText());
+  }
+
+  static ComboBox getUnlabeledInstance(String name) {
+    ComboBox instance = new ComboBox();
+    instance.setName(name);
+    return instance;
   }
 
   public void setName(String text) {

@@ -13,6 +13,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <locale.h>
 #include <QtGui>
 
 #include "simplexfitting.h"
@@ -143,6 +144,8 @@ int main(int argc, char *argv[])
             (int)nDim, hyperRes, (double)defocusTol, tileSize, 
             (double)tiltAxisAngle, -90.0, 90.0, (double)expectedDef, 
             (double)leftDefTol, (double)rightDefTol, cacheSize, invertAngles);
+  setlocale(LC_NUMERIC, "C");
+
   //set the angle range for noise PS computing;
   app.setPS(rAvg);
   app.setRangeStep((double)autoStep);

@@ -493,17 +493,22 @@ public class Utilities {
 
   public static String prepareCommandActionMessage(final String[] commandArray,
       final String[] stdInput) {
-    if (!EtomoDirector.INSTANCE.getArguments().isActions()
-        || commandArray == null
-        || commandArray.length == 0
-        || (commandArray.length == 1 && (commandArray[0].equals("env")
-            || commandArray[0].equals("hostname") || commandArray[0].equals("ssh")))
-        || commandArray[0].equals("ps") || commandArray[0].equals("3dmod")) {
+    if (!EtomoDirector.INSTANCE.getArguments().isActions() || commandArray == null
+        || commandArray.length == 0) {
+      return null;
+    }
+    String command = commandArray[0].trim();
+    if ((commandArray.length == 1
+        && (command.equals("env") || command.equals("hostname")) || (command
+        .equals("tcsh") && (stdInput == null || stdInput.length == 0)))
+        || command.endsWith("ssh")
+        || command.equals("ps")
+        || command.endsWith("3dmod")
+        || command.endsWith("imodsendevent")) {
       return null;
     }
     int max = 1;
     int stdMax = 0;
-    String command = commandArray[0].trim();
     if (command.endsWith(ProcessName.CLIP.toString())
         || command.indexOf("vmstocsh") != -1) {
       max = 2;
@@ -514,7 +519,8 @@ public class Utilities {
     else if (command.endsWith("tcsh")) {
       stdMax = 2;
     }
-    else if (command.endsWith("cp") || command.endsWith("mv")) {
+    else if (command.endsWith("cp") || command.endsWith("mv")
+        || command.endsWith("cmd.exe")) {
       max = 3;
     }
     int length = Math.min(max, commandArray.length);
@@ -527,7 +533,8 @@ public class Utilities {
       if (param.endsWith("alignlog")) {
         showDash = true;
       }
-      if (!showDash && param.startsWith("-")) {
+      if (!showDash
+          && (param.startsWith("-") || (param.length() == 2 && param.startsWith("/")))) {
         continue;
       }
       chIndex = param.lastIndexOf(File.separator);
@@ -566,11 +573,16 @@ public class Utilities {
     return ACTION_TAG + "Ran " + buffer;
   }
 
-  public static String prepareCommandActionMessage(final String commandLine) {
+  public static String prepareCommandActionMessage(String commandLine) {
     if (!EtomoDirector.INSTANCE.getArguments().isActions() || commandLine == null
-        || commandLine.length() == 0 || commandLine.equals("env")
-        || commandLine.equals("hostname") || commandLine.equals("ssh")
-        || commandLine.startsWith("ps") || commandLine.startsWith("3dmod")) {
+        || commandLine.length() == 0) {
+      return null;
+    }
+    commandLine = commandLine.trim();
+    if (commandLine.equals("env") || commandLine.equals("hostname")
+        || commandLine.indexOf("ssh") != -1 || commandLine.indexOf("ps") != -1
+        || commandLine.indexOf("3dmod") != -1
+        || commandLine.indexOf("imodsendevent") != -1) {
       return null;
     }
     return ACTION_TAG + "Ran " + commandLine;
