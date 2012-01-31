@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/31/12: Finished the eTomo - PEET interface upgrade.(Bug# 1592)
+
 1/27/12: Added a Python script startprocess to run jobs in background for
 eTomo.
 
