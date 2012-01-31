@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -398,7 +399,7 @@ public final class MatlabParam {
   private final ParsedNumber lstFlagAllTom = ParsedNumber.getMatlabInstance();
   private final ParsedQuotedString alignedBaseName = ParsedQuotedString.getInstance();
   private final ParsedNumber debugLevel = ParsedNumber.getMatlabInstance();
-  private final List volumeList = new ArrayList();
+  private final List<Volume> volumeList = new ArrayList<Volume>();
   private final List iterationList = new ArrayList();
   private final ParsedQuotedString referenceFile = ParsedQuotedString.getInstance();
   private final ParsedArray reference = ParsedArray.getMatlabInstance();
@@ -420,6 +421,9 @@ public final class MatlabParam {
   private final ParsedNumber flgAbsValue = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgStrictSearchLimits = ParsedNumber.getMatlabInstance();
 
+  private final BaseManager manager;
+  private final AxisID axisID;
+
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
   private String lowCutoffSigma = LOW_CUTOFF_SIGMA_DEFAULT;
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
@@ -430,7 +434,10 @@ public final class MatlabParam {
   private boolean newFile;
   private File file;
 
-  public MatlabParam(File file, boolean newFile) {
+  public MatlabParam(final BaseManager manager, final AxisID axisID, File file,
+      boolean newFile) {
+    this.manager = manager;
+    this.axisID = axisID;
     this.file = file;
     this.newFile = newFile;
     nWeightGroup.setDefault(N_WEIGHT_GROUP_DEFAULT);
@@ -568,7 +575,7 @@ public final class MatlabParam {
   public Volume getVolume(final int index) {
     Volume volume;
     if (index == volumeList.size()) {
-      volume = new Volume();
+      volume = new Volume(manager, axisID);
       volumeList.add(volume);
       return volume;
     }
@@ -1013,7 +1020,7 @@ public final class MatlabParam {
   public void setVolumeListSize(final int size) {
     // if volume list is too small, add new Volumes
     for (int i = volumeList.size(); i < size; i++) {
-      volumeList.add(new Volume());
+      volumeList.add(new Volume(manager, axisID));
     }
     // if volume list is too big, remove Volumes from the end
     for (int i = size; i < volumeList.size(); i++) {
@@ -1143,6 +1150,16 @@ public final class MatlabParam {
     flgStrictSearchLimits.parse(autodoc.getAttribute(FLG_STRICT_SEARCH_LIMITS_KEY));
   }
 
+  public boolean validate(final boolean forRun) {
+    Iterator<Volume> i = volumeList.iterator();
+    while (i.hasNext()) {
+      if (!i.next().validate(forRun)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /**
    * Parses data from the the file.
    * @param autodoc
@@ -1150,6 +1167,10 @@ public final class MatlabParam {
   private void parseVolumeData(final ReadOnlyAutodoc autodoc) {
     volumeList.clear();
     int size = 0;
+    // relativeOrient
+    ParsedList relativeOrient = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
+    relativeOrient.parse(autodoc.getAttribute(RELATIVE_ORIENT_KEY));
+    size = Math.max(size, relativeOrient.size());
     // fnVolume
     ParsedList fnVolume = ParsedList.getStringInstance();
     fnVolume.parse(autodoc.getAttribute(FN_VOLUME_KEY));
@@ -1176,7 +1197,8 @@ public final class MatlabParam {
     size = Math.max(size, tiltRange.size());
     // Add elements to volumeList
     for (int i = 0; i < size; i++) {
-      Volume volume = new Volume();
+      Volume volume = new Volume(manager, axisID);
+      volume.setRelativeOrient(relativeOrient.getElement(i));
       volume.setFnVolume(fnVolume.getElement(i));
       volume.setFnModParticle(fnModParticle.getElement(i));
       if (initMotlCode == null) {
@@ -1832,11 +1854,41 @@ public final class MatlabParam {
     private static final int END_INDEX = 1;
     private final ParsedArray tiltRange = ParsedArray
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
+    /**
+     * @deprecated - only for validation
+     */
+    private final ParsedArray relativeOrient = ParsedArray
+        .getInstance(EtomoNumber.Type.FLOAT);
     private final ParsedQuotedString fnVolume = ParsedQuotedString.getInstance();
     private final ParsedQuotedString fnModParticle = ParsedQuotedString.getInstance();
     private final ParsedQuotedString initMotl = ParsedQuotedString.getInstance();
 
-    private Volume() {
+    private final BaseManager manager;
+    private final AxisID axisID;
+
+    private Volume(final BaseManager manager, final AxisID axisID) {
+      this.manager = manager;
+      this.axisID = axisID;
+    }
+
+    private boolean validate(final boolean forRun) {
+      if (!forRun || relativeOrient.isEmpty()) {
+        return true;
+      }
+      for (int i = 0; i < relativeOrient.size(); i++) {
+        if (!relativeOrient.isEmpty(i) && !relativeOrient.getElement(i).equals(0)) {
+          UIHarness.INSTANCE.openMessageDialog(manager,
+              "Relative orientations are no longer supported in PEET. This "
+                  + "functionality is now handled via initial motive lists. If you are "
+                  + "already using initial motive list(s), use the PEET program "
+                  + "modifyMotiveList to generate new one(s) incorporating the "
+                  + "relative orientation rotation(s). If you do not yet have initial "
+                  + "motive list(s), use PEET program slicer2MOTL to generate them.",
+              "Incompatible .prm File", axisID);
+          return false;
+        }
+      }
+      return true;
     }
 
     public void setFnVolume(final ParsedElement fnVolume) {
@@ -1909,6 +1961,10 @@ public final class MatlabParam {
 
     private ParsedArray getTiltRange() {
       return tiltRange;
+    }
+
+    private void setRelativeOrient(final ParsedElement relativeOrient) {
+      this.relativeOrient.set(relativeOrient);
     }
 
     private void setTiltRange(final ParsedElement tiltRange) {
