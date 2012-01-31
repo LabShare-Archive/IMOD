@@ -3,6 +3,8 @@ package etomo.ui.swing;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 
 import javax.swing.Box;
@@ -10,6 +12,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.WindowConstants;
 
 import etomo.PeetManager;
 import etomo.logic.PeetStartupData;
@@ -55,6 +58,7 @@ public final class PeetStartupDialog {
     ftfDirectory = FileTextField2.getPeetInstance(manager, "Directory: ");
     ftfCopyFrom = FileTextField2.getUnlabeledPeetInstance(manager, COPY_FROM_LABEL);
     dialog = new JDialog(UIHarness.INSTANCE.getFrame(manager), "Starting PEET", true);
+    dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
   }
 
   public static PeetStartupDialog getInstance(final PeetManager manager,
@@ -132,6 +136,7 @@ public final class PeetStartupDialog {
   }
 
   private void addListeners() {
+    dialog.addWindowListener(new PeetStartupWindowListener(this));
     ftfCopyFrom.addResultListener(new PeetStartupResultListener(this));
     ActionListener listener = new PeetStartupActionListener(this);
     cbCopyFrom.addActionListener(listener);
@@ -183,7 +188,8 @@ public final class PeetStartupDialog {
     if (errorMessage == null) {
       return true;
     }
-    UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, "Entry Error", axisID);
+    UIHarness.INSTANCE.openMessageDialog(manager, dialog, errorMessage, "Entry Error",
+        axisID);
     return false;
   }
 
@@ -213,6 +219,11 @@ public final class PeetStartupDialog {
       dispose();
       manager.cancelStartup();
     }
+  }
+
+  private void windowClosing() {
+    dispose();
+    manager.cancelStartup();
   }
 
   private void processResult(final Object resultOrigin) {
@@ -259,6 +270,36 @@ public final class PeetStartupDialog {
 
     public void processResult(final Object resultOrigin) {
       dialog.processResult(resultOrigin);
+    }
+  }
+
+  private static final class PeetStartupWindowListener implements WindowListener {
+    private final PeetStartupDialog dialog;
+
+    private PeetStartupWindowListener(final PeetStartupDialog dialog) {
+      this.dialog = dialog;
+    }
+
+    public void windowActivated(final WindowEvent event) {
+    }
+
+    public void windowClosed(final WindowEvent event) {
+    }
+
+    public void windowClosing(final WindowEvent event) {
+      dialog.windowClosing();
+    }
+
+    public void windowDeactivated(final WindowEvent event) {
+    }
+
+    public void windowDeiconified(final WindowEvent event) {
+    }
+
+    public void windowIconified(final WindowEvent event) {
+    }
+
+    public void windowOpened(final WindowEvent event) {
     }
   }
 }
