@@ -8,12 +8,12 @@ import java.io.File;
 import javax.swing.BorderFactory;
 import javax.swing.JTextField;
 
+import etomo.logic.TextFieldState;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.ParsedArray;
 import etomo.type.ParsedElementType;
 import etomo.type.UITestFieldType;
-import etomo.util.FilePath;
 
 /**
  * <p>Description: </p>
@@ -153,20 +153,26 @@ final class FieldCell extends InputCell implements ActionTarget {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField;
-  private final boolean editable;
-  private final ParsedElementType parsedElementType;
-  private final String rootDir;
+  private final TextFieldState state;
 
-  private int endValue = EtomoNumber.INTEGER_NULL_VALUE;
-  private String path = null;
   private boolean inUse = true;
-  private boolean expanded = false;
 
   private FieldCell(final boolean editable, final ParsedElementType parsedElementType,
       final String rootDir) {
-    this.editable = editable;
-    this.parsedElementType = parsedElementType;
-    this.rootDir = rootDir;
+    state = new TextFieldState(editable, parsedElementType, rootDir);
+    // construction
+    textField = new JTextField();
+    // field
+    textField.setBorder(BorderFactory.createEtchedBorder());
+    // color
+    setBackground();
+    setForeground();
+    setFont();
+    setExpanded();
+  }
+
+  private FieldCell(final TextFieldState state) {
+    this.state = new TextFieldState(state);
     // construction
     textField = new JTextField();
     // field
@@ -179,12 +185,8 @@ final class FieldCell extends InputCell implements ActionTarget {
   }
 
   static FieldCell getInstance(final FieldCell fieldCell) {
-    FieldCell instance = new FieldCell(fieldCell.editable, fieldCell.parsedElementType,
-        fieldCell.rootDir);
-    instance.endValue = fieldCell.endValue;
-    instance.path = fieldCell.path;
+    FieldCell instance = new FieldCell(fieldCell.state);
     instance.inUse = fieldCell.inUse;
-    instance.expanded = fieldCell.expanded;
     instance.setValue(fieldCell.getExpandedValue());
     instance.addListeners();
     instance.setToolTipText(fieldCell.textField.getToolTipText());
@@ -240,11 +242,9 @@ final class FieldCell extends InputCell implements ActionTarget {
   }
 
   void setEditable(boolean editable) {
-    // if this is not an editable instance, it can't be made editable
-    if (!this.editable && editable) {
-      return;
+    if (state.isEditableField()) {
+      super.setEditable(editable);
     }
-    super.setEditable(editable);
   }
 
   void setInUse(final boolean inUse) {
@@ -270,89 +270,27 @@ final class FieldCell extends InputCell implements ActionTarget {
   }
 
   void setValue(final File file) {
-    if (rootDir == null) {
-      setValue(file.getAbsoluteFile());
-    }
-    else {
-      setValue(FilePath.getRelativePath(rootDir, file));
-    }
+    textField.setText(state.convertToFieldText(file));
   }
 
-  /**
-   * Places value in the text field, except when value is a file path and the instance is
-   * contracted. In that case it places the value's file name in the text field.  When the
-   * instance is contracted the value is stored in the path member variable.
-   * @param value
-   */
   void setValue(final String value) {
-    if (expanded || !FilePath.isPath(value)) {
-      // Set value as is, unless the field is contracted and its a file path.
-      textField.setText(value);
-    }
-    else {
-      // Set a contracted file path.
-      textField.setText(FilePath.getFileName(value));
-    }
-    if (!expanded) {
-      path = value;
-    }
+    textField.setText(state.convertToFieldText(value));
   }
 
   String getContractedValue() {
-    if (!expanded) {
-      return textField.getText();
-    }
-    return FilePath.getFileName(textField.getText());
+    return state.convertToContractedString(textField.getText());
   }
 
   String getExpandedValue() {
-    if (expanded || path == null) {
-      return textField.getText();
-    }
-    return path;
+    return state.convertToExpandedString(textField.getText());
   }
 
   void expand(final boolean expand) {
-    if (expanded == expand) {
-      return;
-    }
-    expanded = expand;
-    setExpanded();
+    textField.setText(state.expandFieldText(expand, textField.getText()));
   }
 
-  /**
-   * When expand is true, show the file path.  When expand is false, show the file name.
-   * Handle changes: a new file name is appended to the original path.  A new path
-   * replaces the original path.
-   * @param expand
-   */
   void setExpanded() {
-    if (!expanded) {
-      // Contract
-      // Save the path when contracting.
-      path = textField.getText();
-      // Set the contracted form of the text
-      textField.setText(FilePath.getFileName(path));
-    }
-    else {
-      // Expand
-      if (path != null && !path.matches("\\s*")) {
-        String oldName = FilePath.getFileName(path);
-        String newName = textField.getText();
-        if (newName.equals(oldName)) {
-          // The text hasn't changed.
-          textField.setText(path);
-        }
-        else if (!FilePath.isPath(newName)) {
-          // The text has changed, but is doesn't include a path, so replace the old file
-          // name with the new one in the path.
-          textField.setText(FilePath.replaceName(path, newName));
-        }
-        // A path has been entered while the field was contracted - nothing to do.
-      }
-      // Nothing is saved while the field is expanded.
-      path = null;
-    }
+    textField.setText(state.applyExpandedToFieldText(textField.getText()));
   }
 
   void setValue(ConstEtomoNumber value) {
@@ -360,13 +298,12 @@ final class FieldCell extends InputCell implements ActionTarget {
   }
 
   void setRangeValue(int start, int end) {
-    endValue = end;
-    setValue(new Integer(start).toString() + " - " + new Integer(end).toString());
+    textField.setText(state.convertRangeToFieldText(start, end));
   }
 
   void setValue() {
+    state.msgResettingFieldText();
     textField.setText("");
-    path = null;
   }
 
   void setValue(int value) {
@@ -382,7 +319,7 @@ final class FieldCell extends InputCell implements ActionTarget {
   }
 
   int getEndValue() {
-    return endValue;
+    return state.extractEndValue(textField.getText());
   }
 
   UITestFieldType getFieldType() {
@@ -412,31 +349,19 @@ final class FieldCell extends InputCell implements ActionTarget {
   }
 
   ConstEtomoNumber getEtomoNumber() {
-    EtomoNumber number = new EtomoNumber();
-    number.set(textField.getText());
-    return number;
+    return state.convertToEtomoNumber(textField.getText());
   }
 
   ParsedArray getParsedArray() {
-    ParsedArray array = ParsedArray.getInstance(parsedElementType);
-    array.setRawString(textField.getText());
-    return array;
+    return state.convertToParsedArray(textField.getText());
   }
 
   ConstEtomoNumber getEtomoNumber(EtomoNumber.Type type) {
-    EtomoNumber number = new EtomoNumber(type);
-    number.set(textField.getText());
-    return number;
+    return state.convertToEtomoNumber(type, textField.getText());
   }
 
   long getLongValue() {
-
-    try {
-      return new Long(textField.getText()).longValue();
-    }
-    catch (NumberFormatException e) {
-      return 0;
-    }
+    return state.convertToLong(textField.getText());
   }
 
   void setForeground() {
