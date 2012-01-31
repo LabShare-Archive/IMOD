@@ -429,6 +429,7 @@ final class MaskingPanel {
     ltfInsideMaskRadius.setToolTipText("Inner radius of the mask region in pixels.");
     ltfOutsideMaskRadius
         .setToolTipText("Inner and outer radii of the mask region in pixels.");
+    cbCylinderOrientation.setToolTipText("Manually specify cylindrical mask orientation.");
   }
 
   private static final class MaskingActionListener implements ActionListener {
