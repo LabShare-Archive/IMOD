@@ -380,6 +380,8 @@ public final class MatlabParam {
   public static final String FLG_FAIR_REFERENCE_KEY = "flgFairReference";
   public static final String FLG_ABS_VALUE_KEY = "flgAbsValue";
   public static final boolean FLG_ABS_VALUE_DEFAULT = true;
+  public static final String FLG_STRICT_SEARCH_LIMITS_KEY = "flgStrictSearchLimits";
+  public static final boolean FLG_STRICT_SEARCH_LIMITS_DEFAULT = false;
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
@@ -416,6 +418,7 @@ public final class MatlabParam {
   private final ParsedNumber flgAlignAverages = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgFairReference = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgAbsValue = ParsedNumber.getMatlabInstance();
+  private final ParsedNumber flgStrictSearchLimits = ParsedNumber.getMatlabInstance();
 
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
   private String lowCutoffSigma = LOW_CUTOFF_SIGMA_DEFAULT;
@@ -434,6 +437,7 @@ public final class MatlabParam {
     nWeightGroup.setFloor(N_WEIGHT_GROUP_MIN);
     flgFairReference.setDefault(false);
     flgAbsValue.setDefault(FLG_ABS_VALUE_DEFAULT);
+    flgStrictSearchLimits.setDefault(FLG_STRICT_SEARCH_LIMITS_DEFAULT);
     edgeShift.setDefault(EDGE_SHIFT_DEFAULT);
     edgeShift.setFloor(EDGE_SHIFT_MIN);
   }
@@ -690,6 +694,10 @@ public final class MatlabParam {
     return flgAbsValue.getRawBoolean();
   }
 
+  public boolean isFlgStrictSearchLimits() {
+    return flgStrictSearchLimits.getRawBoolean();
+  }
+
   public void setFlgAlignAverages(final boolean input) {
     flgAlignAverages.setRawString(input);
   }
@@ -700,6 +708,10 @@ public final class MatlabParam {
 
   public void setFlgAbsValue(final boolean input) {
     flgAbsValue.setRawString(input);
+  }
+
+  public void setFlgStrictSearchLimits(final boolean input) {
+    flgStrictSearchLimits.setRawString(input);
   }
 
   public String getLstFlagAllTom() {
@@ -817,6 +829,7 @@ public final class MatlabParam {
     flgAlignAverages.clear();
     flgFairReference.setRawString(false);
     flgAbsValue.setRawString(FLG_ABS_VALUE_DEFAULT);
+    flgStrictSearchLimits.setRawString(FLG_STRICT_SEARCH_LIMITS_DEFAULT);
   }
 
   public void clearEdgeShift() {
@@ -1126,6 +1139,8 @@ public final class MatlabParam {
     flgFairReference.parse(autodoc.getAttribute(FLG_FAIR_REFERENCE_KEY));
     // flgAbsValue
     flgAbsValue.parse(autodoc.getAttribute(FLG_ABS_VALUE_KEY));
+    // flgStrictSearchLimits
+    flgStrictSearchLimits.parse(autodoc.getAttribute(FLG_STRICT_SEARCH_LIMITS_KEY));
   }
 
   /**
@@ -1288,6 +1303,7 @@ public final class MatlabParam {
     valueMap.put(FLG_ALIGN_AVERAGES_KEY, flgAlignAverages.getParsableString());
     valueMap.put(FLG_FAIR_REFERENCE_KEY, flgFairReference.getParsableString());
     valueMap.put(FLG_ABS_VALUE_KEY, flgAbsValue.getParsableString());
+    valueMap.put(FLG_STRICT_SEARCH_LIMITS_KEY, flgStrictSearchLimits.getParsableString());
   }
 
   /**
@@ -1454,6 +1470,8 @@ public final class MatlabParam {
         (String) valueMap.get(FLG_FAIR_REFERENCE_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, FLG_ABS_VALUE_KEY,
         (String) valueMap.get(FLG_ABS_VALUE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_STRICT_SEARCH_LIMITS_KEY,
+        (String) valueMap.get(FLG_STRICT_SEARCH_LIMITS_KEY), commentMap);
   }
 
   /**
