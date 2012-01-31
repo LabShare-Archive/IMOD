@@ -451,6 +451,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final SpacedPanel pnlSetupBody = SpacedPanel.getInstance();
   private final CheckBox cbAlignedBaseName = new CheckBox(
       "Save individual aligned particles");
+  private final CheckBox cbFlgStrictSearchLimits = new CheckBox(
+      "Strict search limit checking");
   private final LabeledTextField ltfLowCutoff = new LabeledTextField(
       "Low frequency cutoff:", 5);
   private final LabeledTextField ltfLowCutoffSigma = new LabeledTextField("Sigma: ");
@@ -776,6 +778,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       rbInitMotlRandomAxialRotations.setSelected(true);
     }
     cbAlignedBaseName.setSelected(!matlabParam.isAlignedBaseNameEmpty());
+    cbFlgStrictSearchLimits.setSelected(matlabParam.isFlgStrictSearchLimits());
     ltfLowCutoff.setText(matlabParam.getLowCutoffCutoff());
     ltfLowCutoffSigma.setText(matlabParam.getLowCutoffSigma());
     lsDebugLevel.setValue(matlabParam.getDebugLevel());
@@ -812,6 +815,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     else {
       matlabParam.resetAlignedBaseName();
     }
+    matlabParam.setFlgStrictSearchLimits(cbFlgStrictSearchLimits.isSelected());
     matlabParam.setLowCutoff(ltfLowCutoff.getText(), ltfLowCutoffSigma.getText());
     matlabParam.setDebugLevel(lsDebugLevel.getValue());
     matlabParam.setLstThresholdsStart(ltfLstThresholdsStart.getText());
@@ -864,6 +868,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     referencePanel.reset();
     missingWedgeCompensationPanel.reset();
     cbAlignedBaseName.setSelected(false);
+    cbFlgStrictSearchLimits.setSelected(false);
     ltfLowCutoff.clear();
     ltfLowCutoffSigma.clear();
     cbRefFlagAllTom.setSelected(false);
@@ -945,11 +950,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     rbInitMotlFiles
         .setToolTipText("Use the Initial MOTL file(s) specified in the Volume "
             + "Table.");
-    lsParticlePerCPU
-        .setToolTipText("The maximum number of particles distributed "
-            + "simultaneously to a single CPU during parallel processing.");
+    lsParticlePerCPU.setToolTipText("The maximum number of particles distributed "
+        + "simultaneously to a single CPU during parallel processing.");
     cbAlignedBaseName.setToolTipText("Save individual aligned particles to "
         + "files aligned*.mrc.");
+    cbFlgStrictSearchLimits
+        .setToolTipText("When checked, the overall change for any parameter will be "
+            + "limited to the largest change specified at any single iteration.");
     ltfLowCutoff.setToolTipText("Two numbers to control low frequency filtering: 1) The "
         + "normalized frequency below which low frequencies will be "
         + "attenuated.  2) The width (standard deviation) in normalized "
@@ -1107,6 +1114,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlOptionalLeft.add(cbflgAlignAverages);
     pnlOptionalLeft.add(cbFlgAbsValue);
     pnlOptionalLeft.add(cbAlignedBaseName);
+    pnlOptionalLeft.add(cbFlgStrictSearchLimits);
     // optional right
     pnlOptionalRight.setLayout(new GridLayout(3, 1, 0, 5));
     pnlOptionalRight.add(lsParticlePerCPU.getContainer());
