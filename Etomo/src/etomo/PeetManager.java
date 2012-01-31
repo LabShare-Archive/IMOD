@@ -578,7 +578,7 @@ public final class PeetManager extends BaseManager {
       BaseProcessManager.touch(destMatlabFile.getAbsolutePath(), this);
     }
     // Load the .prm file
-    MatlabParam param = new MatlabParam(destMatlabFile, false);
+    MatlabParam param = new MatlabParam(this, AXIS_ID, destMatlabFile, false);
     if (param.read(this)) {
       param.setFnOutput(fnOutput);
       param.setFile(destDir.getAbsolutePath());
@@ -715,7 +715,7 @@ public final class PeetManager extends BaseManager {
   public void save() throws LogFile.LockException, IOException {
     super.save();
     mainPanel.done();
-    savePeetDialog();
+    savePeetDialog(false);
   }
 
   public int getParallelProcessingDefaultNice() {
@@ -795,7 +795,9 @@ public final class PeetManager extends BaseManager {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
-    savePeetDialog();
+    if (!savePeetDialog(true)) {
+      return;
+    }
     if (matlabParam == null) {
       uiHarness.openMessageDialog(this, "Must set " + PeetDialog.DIRECTORY_LABEL
           + " and " + PeetDialog.FN_OUTPUT_LABEL, "Entry Error");
@@ -831,7 +833,9 @@ public final class PeetManager extends BaseManager {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
-    savePeetDialog();
+    if (!savePeetDialog(true)) {
+      return;
+    }
     if (matlabParam == null) {
       uiHarness.openMessageDialog(this, "Must set " + PeetDialog.DIRECTORY_LABEL
           + " and " + PeetDialog.FN_OUTPUT_LABEL, "Entry Error");
@@ -936,7 +940,8 @@ public final class PeetManager extends BaseManager {
     if (!loadedParamFile || matlabParam != null || paramFile == null) {
       return;
     }
-    matlabParam = new MatlabParam(DatasetFiles.getMatlabParamFile(this), newFile);
+    matlabParam = new MatlabParam(this, AXIS_ID, DatasetFiles.getMatlabParamFile(this),
+        newFile);
     matlabParam.read(this);
   }
 
@@ -1030,7 +1035,7 @@ public final class PeetManager extends BaseManager {
     }
   }
 
-  private boolean savePeetDialog() {
+  private boolean savePeetDialog(final boolean forRun) {
     if (peetDialog == null) {
       return false;
     }
@@ -1044,7 +1049,8 @@ public final class PeetManager extends BaseManager {
     }
     peetDialog.getParameters(metaData);
     saveStorables(AXIS_ID);
-    peetDialog.getParameters(matlabParam);
+    if (!peetDialog.getParameters(matlabParam, forRun))
+      return false;
     matlabParam.write(this);
     return true;
   }
