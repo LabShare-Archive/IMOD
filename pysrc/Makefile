@@ -3,14 +3,13 @@ include ../configure
 # to pylib
 #
 # $Id$
-# No more Log
 #
 
 SCRIPTS = vmstopy tomostitch edgepatches fitpatches sirtsetup splitblend setupcombine \
 splittilt imodcpuload gpumonitor splitcombine copytomocoms squeezevol tomosnapshot \
 trimvol makejoincom finishjoin chunksetup collectmmm sampletilt matchorwarp alignlog \
 gputilttest b3dremove b3dcopy b3dcatfiles findsirtdiffs dm2mrc archiveorig runraptor \
-splitcorrection transferfid xfalign
+splitcorrection transferfid xfalign startprocess
 MODULES = imodpy.py pysed.py supermont.py pip.py
 
 all:
