@@ -950,7 +950,6 @@ public abstract class BaseProcessManager {
     // Run the script as a thread in the background
     comScriptProcess.setWorkingDirectory(new File(manager.getPropertyUserDir()));
     comScriptProcess.setDebug(etomoDirector.getArguments().isDebug());
-    comScriptProcess.setDemoMode(etomoDirector.getArguments().isDemo());
     manager.saveStorables(axisID);
     comScriptProcess.start();
 
@@ -963,12 +962,6 @@ public abstract class BaseProcessManager {
     }
 
     Thread processMonitorThread = null;
-    // Replace the process monitor with a DemoProcessMonitor if demo mode is on
-    if (etomoDirector.getArguments().isDemo()) {
-      processMonitor = new DemoProcessMonitor(manager, axisID, command,
-          comScriptProcess.getDemoTime());
-    }
-
     // Start the process monitor thread if a runnable process is provided
     if (processMonitor != null) {
       // Wait for the started flag within the comScriptProcess, this ensures
@@ -1003,7 +996,6 @@ public abstract class BaseProcessManager {
     comScriptProcess.closeOutputImageFile();
     comScriptProcess.setWorkingDirectory(new File(manager.getPropertyUserDir()));
     comScriptProcess.setDebug(etomoDirector.getArguments().isDebug());
-    comScriptProcess.setDemoMode(etomoDirector.getArguments().isDemo());
     comScriptProcess.setNonBlocking();
     manager.saveStorables(axisID);
     comScriptProcess.start();
@@ -1691,7 +1683,6 @@ public abstract class BaseProcessManager {
       final BackgroundProcess backgroundProcess, final String commandLine,
       final AxisID axisID, final Runnable processMonitor) throws SystemProcessException {
     backgroundProcess.setWorkingDirectory(new File(manager.getPropertyUserDir()));
-    backgroundProcess.setDemoMode(etomoDirector.getArguments().isDemo());
     backgroundProcess.setDebug(etomoDirector.getArguments().isDebug());
     manager.saveStorables(axisID);
     isAxisBusy(axisID, backgroundProcess.getProcessResultDisplay());
