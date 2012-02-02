@@ -89,8 +89,8 @@ if.var.build.return=
 assert.exists.file=%{final-align-comscript}%{axis}.com
 assert.exists.file=%{final-align-comscript}%{axis}.log
 assert.exists.file=%{dataset}%{axis}.ali
- assert.exists.file=%{final-align-comscript}%{axis}.log~
- assert.exists.file=%{dataset}%{axis}.ali~
+assert.exists.file=%{final-align-comscript}%{axis}.log~
+assert.exists.file=%{dataset}%{axis}.ali~
 # run unbinned with increased size
 sp.aligned-image-stack-binning=1
 mb.%{final-align-command}=A
@@ -179,15 +179,42 @@ run.function.ctf-phase-flip=
 cb.parallel-processing=on
 mb.parallel-processing = -
 cb.use-expected-defocus-instead-of-ctfplotter-output=on
+[[if = test-gui]]
+  #check binned pixel size
+  tb.create=
+  sp.aligned-image-stack-binning=2
+  bn.create-full-aligned-stack=
+  if.not.var.montage.wait.process.creating-aligned-stack = done
+  if.var.montage.wait.process.full-alignment = done
+  tb.create.1=
+[[]]
 bn.correct-ctf=
 wait.process.processchunks-ctfcorrection%{axis} = done
+[[if = test-gui]]
+  #check binned pixel size
+  assert.contains.file=ctfcorrection%{axis}.com|PixelSize*%{ctfcorrection-binned-pixel-size}
+[[]]
 # check files
 assert.exists.file = ctfcorrection%{axis}.log
 assert.exists.file = %{dataset}%{axis}_simple.defocus
 assert.exists.file = %{dataset}%{axis}_ctfcorr.ali
+[[if = test-gui]]
+  #check unbinned pixel size
+  tb.create=
+  wait.popup.entry-warning=OK
+  sp.aligned-image-stack-binning=1
+  bn.create-full-aligned-stack=
+  if.not.var.montage.wait.process.creating-aligned-stack = done
+  if.var.montage.wait.process.full-alignment = done
+  tb.create.1=
+[[]]
 # run again with parallel processing
 bn.correct-ctf=
 wait.process.processchunks-ctfcorrection%{axis} = done
+[[if = test-gui]]
+  #check unbinned pixel size
+  assert.contains.file=ctfcorrection%{axis}.com|PixelSize*%{pixel-size}
+[[]]
 # check files
 assert.exists.file = ctfcorrection%{axis}.log
 assert.exists.file = %{dataset}%{axis}_simple.defocus
