@@ -60,6 +60,7 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam, CommandP
   public static final String AMPLITUDE_CONTRAST_OPTION = "AmplitudeContrast";
   public static final String INTERPOLATION_WIDTH_OPTION = "InterpolationWidth";
   public static final String DEFOCUS_TOL_OPTION = "DefocusTol";
+  public static final String PIXEL_SIZE_OPTION = "PixelSize";
 
   private final ScriptParameter voltage = new ScriptParameter(VOLTAGE_OPTION);
   private final ScriptParameter sphericalAberration = new ScriptParameter(
@@ -73,6 +74,8 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam, CommandP
       INTERPOLATION_WIDTH_OPTION);
   private final ScriptParameter defocusTol = new ScriptParameter(DEFOCUS_TOL_OPTION);
   private final StringParameter outputFileName = new StringParameter("OutputFileName");
+  private final ScriptParameter pixelSize = new ScriptParameter(EtomoNumber.Type.DOUBLE,
+      PIXEL_SIZE_OPTION);
 
   private final BaseManager manager;
   private final AxisID axisID;
@@ -105,6 +108,7 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam, CommandP
     interpolationWidth.updateComScript(scriptCommand);
     defocusTol.updateComScript(scriptCommand);
     outputFileName.updateComScript(scriptCommand);
+    pixelSize.updateComScript(scriptCommand);
   }
 
   public void initializeDefaults() {
@@ -186,6 +190,10 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam, CommandP
 
   public void setDefocusTol(String input) {
     defocusTol.set(input);
+  }
+  
+  public void setPixelSize(double input) {
+    pixelSize.set(input);
   }
 
   public AxisID getAxisID() {
