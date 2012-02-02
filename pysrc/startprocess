@@ -70,10 +70,11 @@ while argind < len(sys.argv) - 1:
 if argind >= len(sys.argv):
    exitError("No command was included")
 
-try:
-   os.chdir(workdir)
-except:
-   exitError('Changing working directory to ' + workdir)
+if workdir:
+   try:
+      os.chdir(workdir)
+   except:
+      exitError('Changing working directory to ' + workdir)
    
 bkgdProcess(sys.argv[argind:], outfile, errfile)
 sys.exit(0)
