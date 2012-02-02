@@ -33,7 +33,10 @@ package etomo.process;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
-
+/**
+ * @deprecated
+ * @author sueh
+ */
 public class DemoProcessMonitor implements Runnable {
   public static final String rcsid = "$Id$";
   BaseManager manager;
