@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <qclipboard.h>
@@ -18,6 +17,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <locale.h>
 #include <imodconfig.h>
 #include <imodsendevent.h>
 
@@ -94,6 +94,7 @@ int main(int argc, char **argv)
 
   // Create the application
   ImodSendEvent a(argc, argv);
+  setlocale(LC_NUMERIC, "C");
 
   // Pack the arguments into a QString
   timeStr.sprintf(" %d ", timeStamp);
@@ -202,49 +203,3 @@ void ImodSendEvent::clipboardChanged()
           "executing it\n");
   QApplication::exit(3);
 }
-
-/*
-
-$Log$
-Revision 1.10  2009/01/15 16:31:44  mast
-Qt 4 port
-
-Revision 1.9  2004/07/07 19:25:31  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 1.8  2004/06/04 03:14:46  mast
-Fixed probelm with trailing space after filename
-
-Revision 1.7  2004/05/31 19:54:00  mast
-change name in error message from imod to 3dmod
-
-Revision 1.6  2004/05/31 02:17:40  mast
-Allowed multiple arguments after the action
-
-Revision 1.5  2004/04/18 22:33:45  mast
-Allowed SENDEVENT_RETRY_HACK to be defined as zero to set data a second time
-after processing events.
-
-Revision 1.4  2003/09/24 16:20:37  mast
-Add include of imodconfig.h and add resending message for debug output
-
-Revision 1.3  2003/09/24 15:05:58  mast
-Switched to ::exit(), set selection mode false, added retry
-
-Revision 1.2  2003/09/13 16:17:36  mast
-Added option for debug output
-
-Revision 1.1  2003/02/27 00:55:39  mast
-qt clipboard version
-
-Revision 3.3  2002/09/17 18:49:14  mast
-Added a signature entry in the action packet because there seem to be
-other events around that imod gets
-
-Revision 3.2  2002/09/14 00:13:43  mast
-SGI compiler flushed out a bug.
-
-Revision 3.1  2002/09/13 21:56:06  mast
-Initial addition to package
-
-*/

@@ -101,7 +101,10 @@ final class HighlighterButton {
 
   void add(final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints) {
+    double oldWeightx = constraints.weightx;
+    constraints.weightx = 0.0;
     cell.add(panel, layout, constraints);
+    constraints.weightx = oldWeightx;
   }
 
   void remove() {

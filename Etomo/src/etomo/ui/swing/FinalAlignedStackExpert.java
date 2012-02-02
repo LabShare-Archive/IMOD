@@ -191,7 +191,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (!canShowDialog()) {
       return;
     }
-    if (showDialog(dialog)) {
+    String actionMessage = manager.setCurrentDialogType(dialogType, axisID);
+    if (showDialog(dialog,actionMessage)) {
       return;
     }
     // Create the dialog and show it.
@@ -317,7 +318,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     dialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
     dialog.setImageRotation(metaData.getImageRotation(axisID).toString());
     dialog.setTiltState(state, metaData);
-    openDialog(dialog);
+    openDialog(dialog,actionMessage);
   }
 
   public void updateDialog() {
@@ -333,7 +334,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
       processchunks(manager, dialog, processResultDisplay, processSeries, process
           .getSubprocessName().toString() + axisID.getExtension(),
-          process.getOutputImageFileType(), process.getProcessingMethod());
+          process.getOutputImageFileType(), process.getProcessingMethod(), false);
     }
     else if (process.equals(ProcessName.TILT_3D_FIND.toString())) {
       manager.tilt3dFindAction(processResultDisplay, processSeries, null, null,

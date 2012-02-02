@@ -1,5 +1,5 @@
 /*
-* rangedialog.cpp - callbacks for the fitting range dialog.
+* fittingdialog.cpp - callbacks for the fitting range and parameters dialog.
 *
 *  Author: Quanren Xiong
 *
@@ -8,25 +8,25 @@
 *  Colorado.  See dist/COPYRIGHT for full copyright notice.
 * 
 *  $Id$
-*  Log at end of file
 */
 
 #include <QtGui>
 #include <stdio.h>
 
-#include "rangedialog.h"
+#include "fittingdialog.h"
 #include "myapp.h"
 #define PRECISION 0.00005
 
-  RangeDialog::RangeDialog(QWidget *parent) :QDialog(parent)
+FittingDialog::FittingDialog(QWidget *parent) :QDialog(parent)
 {
-  float nDim=((MyApp *)qApp)->getDim()-1;
-  float x1Idx1=((MyApp *)qApp)->getX1RangeLow()/nDim;
-  float x1Idx2=((MyApp *)qApp)->getX1RangeHigh()/nDim;
-  float x2Idx1=((MyApp *)qApp)->getX2RangeLow()/nDim;
-  float x2Idx2=((MyApp *)qApp)->getX2RangeHigh()/nDim;
+  mApp = (MyApp *)qApp;
+  float nDim=mApp->getDim()-1;
+  float x1Idx1=mApp->getX1RangeLow()/nDim;
+  float x1Idx2=mApp->getX1RangeHigh()/nDim;
+  float x2Idx1=mApp->getX2RangeLow()/nDim;
+  float x2Idx2=mApp->getX2RangeHigh()/nDim;
   char tmpStr[20];
-  int which = ((MyApp *)qApp)->getZeroFitMethod();
+  int which = mApp->getZeroFitMethod();
 
   setWindowTitle(tr("Fitting Range & Method"));
 
@@ -39,19 +39,26 @@
   QRadioButton *radio = new QRadioButton(tr("Fit to CTF-like curve"));
   zeroButGroup->addButton(radio, 0);
   vbox->addWidget(radio);
+  radio->setToolTip("Fit to a function based on a CTF curve over the selected range");
   radio = new QRadioButton(tr("Fit polynomial to dip"));
   zeroButGroup->addButton(radio, 1);
   vbox->addWidget(radio);
+  radio->setToolTip("Fit a polynomial over the selected range and take the minimum as "
+                    "the zero");
   radio = new QRadioButton(tr("Find intersection of 2 curves"));
   zeroButGroup->addButton(radio, 2);
   vbox->addWidget(radio);
+  radio->setToolTip("Fit curves or lines over two frequency ranges and take the zero as "
+                    "their intersection");
   zeroGrpBox->setLayout(vbox);
   QAbstractButton *button = zeroButGroup->button(which);
   button->setChecked(true);
 
   // Checkbox for finding power and polynomial order spin button
   mPowerCheckBox = new QCheckBox(tr("Vary exponent of CTF function"), this);
-  mPowerCheckBox->setChecked(((MyApp *)qApp)->getVaryCtfPowerInFit());
+  mPowerCheckBox->setChecked(mApp->getVaryCtfPowerInFit());
+  mPowerCheckBox->setToolTip("Add a fifth parameter to the fit to vary the exponent of "
+                             "the function being fit");
 
   QHBoxLayout *orderHbox = new QHBoxLayout;
   mOrderLabel = new QLabel(tr("Order of polynomial:"), this);
@@ -59,20 +66,27 @@
   mOrderSpinBox = new QSpinBox(this);
   mOrderSpinBox->setRange(2, 6);
   mOrderSpinBox->setSingleStep(1);
-  mOrderSpinBox->setValue(((MyApp *)qApp)->getPolynomialOrder());
+  mOrderSpinBox->setValue(mApp->getPolynomialOrder());
   orderHbox->addWidget(mOrderSpinBox);
+  mOrderSpinBox->setToolTip("Set the order for the polynomial fit, e.g., 3 for cubic");
+
+  // FREQUENCY SCALE CHANGE: FOUR " / 2." AND %4.2f -> %4.3f
 
   // X1 start and end fields
   mX1_label_1=new QLabel(tr("X1 &Starts:"), this);
-  sprintf(tmpStr, "%4.2f", x1Idx1);
+  sprintf(tmpStr, "%4.3f", x1Idx1 / 2.);
   mX1_edit_1=new QLineEdit(tmpStr, this);
   mX1_label_1->setBuddy(mX1_edit_1);
+  mX1_edit_1->setToolTip("Starting frequency (in 1/pixel) of range for CTF-like, "
+                         "polynomial, or first curve fit");
 
   //printf("??????????%f \n", x1Idx1);
   mX1_label_2=new QLabel(tr("X1 &Ends:"), this);
-  sprintf(tmpStr, "%4.2f", x1Idx2);
+  sprintf(tmpStr, "%4.3f", x1Idx2 / 2.);
   mX1_edit_2=new QLineEdit(tmpStr, this);
   mX1_label_2->setBuddy(mX1_edit_1);
+  mX1_edit_2->setToolTip("Ending frequency (in 1/pixel) of range for "
+                         "first curve fit");
 
   // Set up the X1 fitting radio group
   mX1Group=new QGroupBox(tr("X1 fitting method"), this);
@@ -87,16 +101,22 @@
   vbox->addWidget(mX1LinearRadio);
   vbox->addWidget(mX1SimplexRadio);
   mX1Group->setLayout(vbox);
+  vbox->setSpacing(0);
+  vbox->setContentsMargins(5, 2, 5, 5);
 
-  mX2_label_1=new QLabel(tr("X2 &Starts:"), this);
-  sprintf(tmpStr, "%4.2f", x2Idx1);
+  mX2_label_1=new QLabel(tr("X2 S&tarts:"), this);
+  sprintf(tmpStr, "%4.3f", x2Idx1 / 2.);
   mX2_edit_1=new  QLineEdit(tmpStr, this);
   mX2_label_1->setBuddy(mX2_edit_1);
+  mX2_edit_1->setToolTip("Starting frequency (in 1/pixel) of range for "
+                         "second curve fit");
 
-  mX2_label_2=new QLabel(tr("X2 &Ends:"), this);
-  sprintf(tmpStr, "%4.2f", x2Idx2);
+  mX2_label_2=new QLabel(tr("X2 E&nds:"), this);
+  sprintf(tmpStr, "%4.3f", x2Idx2 / 2.);
   mX2_edit_2=new QLineEdit(tmpStr, this);
   mX2_label_2->setBuddy(mX2_edit_2);
+  mX2_edit_2->setToolTip("Ending frequency (in 1/pixel) of range for CTF-like, "
+                         "polynomial, or second curve fit");
 
   mX2Group=new QGroupBox(tr("X2 fitting method"), this);
   mX2LinearRadio=new QRadioButton(tr("Line"));
@@ -110,6 +130,8 @@
   vbox2->addWidget(mX2LinearRadio);
   vbox2->addWidget(mX2SimplexRadio);
   mX2Group->setLayout(vbox2);
+  vbox2->setSpacing(0);
+  vbox2->setContentsMargins(5, 2, 5, 5);
 
 
   mApplyButton= new QPushButton( tr("&Apply"), this);
@@ -189,18 +211,19 @@
   manageWidgets(which);
 }
 
-void RangeDialog::rangeSetted()
+void FittingDialog::rangeSetted()
 {
+  // FREQUENCY SCALE CHANGE: FOUR "2. * "
   bool x1_ok_1;
-  double x1_1=mX1_edit_1->text().toDouble(&x1_ok_1)+PRECISION;
+  double x1_1 = 2. * mX1_edit_1->text().toDouble(&x1_ok_1)+PRECISION;
   bool x1_ok_2;
-  double x1_2=mX1_edit_2->text().toDouble(&x1_ok_2)+PRECISION;
+  double x1_2 = 2. * mX1_edit_2->text().toDouble(&x1_ok_2)+PRECISION;
 
   bool x2_ok_1;
-  double x2_1=mX2_edit_1->text().toDouble(&x2_ok_1)+PRECISION;
+  double x2_1 = 2. * mX2_edit_1->text().toDouble(&x2_ok_1)+PRECISION;
   bool x2_ok_2;
-  double x2_2=mX2_edit_2->text().toDouble(&x2_ok_2)+PRECISION;
-  int which = ((MyApp *)qApp)->getZeroFitMethod();
+  double x2_2 = 2.* mX2_edit_2->text().toDouble(&x2_ok_2)+PRECISION;
+  int which = mApp->getZeroFitMethod();
 
   if( x1_ok_1 && x1_ok_2 && x1_1>=0.0 && x1_2>0.0 && x1_2<=1.0+PRECISION && 
       x2_ok_1 && x2_ok_2 && x2_1>=0.0 && x2_2>0.0 && 
@@ -213,7 +236,7 @@ void RangeDialog::rangeSetted()
 }
 
 
-void RangeDialog::enableApplyButton(const QString &text)
+void FittingDialog::enableApplyButton(const QString &text)
 {
   mApplyButton->setEnabled(!text.isEmpty() );
 }
@@ -222,91 +245,69 @@ void RangeDialog::enableApplyButton(const QString &text)
 // got there first and changed the selected method, so need to take care of
 // the enables here
 
-void RangeDialog::x1LinearChecked()
+void FittingDialog::x1LinearChecked()
 {
-  if (((MyApp *)qApp)->getX1Method() != 0)
+  if (mApp->getX1Method() != 0)
     mApplyButton->setEnabled(true);
   emit x1MethodChosen(0);
 }
 
-void RangeDialog::x1SimplexChecked()
+void FittingDialog::x1SimplexChecked()
 {
-  if (((MyApp *)qApp)->getX1Method() != 1)
+  if (mApp->getX1Method() != 1)
     mApplyButton->setEnabled(true);
   emit x1MethodChosen(1);
 }
 
-void RangeDialog::x2LinearChecked()
+void FittingDialog::x2LinearChecked()
 {
-  if (((MyApp *)qApp)->getX2Method() != 0)
+  if (mApp->getX2Method() != 0)
     mApplyButton->setEnabled(true);
   emit x2MethodChosen(0);
 }
 
-void RangeDialog::x2SimplexChecked()
+void FittingDialog::x2SimplexChecked()
 {
-  if (((MyApp *)qApp)->getX2Method() != 1)
+  if (mApp->getX2Method() != 1)
     mApplyButton->setEnabled(true);
   emit x2MethodChosen(1);
 }
 
-void RangeDialog::RangeDialog::zeroMethodClicked(int which)
+void FittingDialog::FittingDialog::zeroMethodClicked(int which)
 {
   mApplyButton->setEnabled(true);
   manageWidgets(which);
-  ((MyApp *)qApp)->setZeroFitMethod(which);
+  mApp->setZeroFitMethod(which);
 }
 
 // Refit automatically for simple changes like exponent and power
-void RangeDialog::fitPowerClicked(bool state)
+void FittingDialog::fitPowerClicked(bool state)
 {
-  ((MyApp *)qApp)->setVaryCtfPowerInFit(state);
+  mApp->setVaryCtfPowerInFit(state);
   rangeSetted();
 }
 
-void RangeDialog::orderChanged(int value)
+void FittingDialog::orderChanged(int value)
 {
-  ((MyApp *)qApp)->setPolynomialOrder(value);
+  mApp->setPolynomialOrder(value);
   rangeSetted();
 }
 
-void RangeDialog::showHideWidget(QWidget *widget, bool state)
+void FittingDialog::manageWidgets(int which)
 {
-  if (state)
-    widget->show();
-  else
-    widget->hide();
-}
-
-void RangeDialog::manageWidgets(int which)
-{
-  showHideWidget(mPowerCheckBox, which == 0);
-  showHideWidget(mOrderLabel, which == 1);
-  showHideWidget(mOrderSpinBox, which == 1);
-  showHideWidget(mX1_label_2, which == 2);
-  showHideWidget(mX2_label_1, which == 2);
-  showHideWidget(mX1_edit_2, which == 2);
-  showHideWidget(mX2_edit_1, which == 2);
-  showHideWidget(mX1Group, which == 2);
-  showHideWidget(mX1LinearRadio, which == 2);
-  showHideWidget(mX1LinearRadio, which == 2);
-  showHideWidget(mX2Group, which == 2);
-  showHideWidget(mX2LinearRadio, which == 2);
-  showHideWidget(mX2LinearRadio, which == 2);
+  mApp->showHideWidget(mPowerCheckBox, which == 0);
+  mApp->showHideWidget(mOrderLabel, which == 1);
+  mApp->showHideWidget(mOrderSpinBox, which == 1);
+  mApp->showHideWidget(mX1_label_2, which == 2);
+  mApp->showHideWidget(mX2_label_1, which == 2);
+  mApp->showHideWidget(mX1_edit_2, which == 2);
+  mApp->showHideWidget(mX2_edit_1, which == 2);
+  mApp->showHideWidget(mX1Group, which == 2);
+  mApp->showHideWidget(mX1LinearRadio, which == 2);
+  mApp->showHideWidget(mX1LinearRadio, which == 2);
+  mApp->showHideWidget(mX2Group, which == 2);
+  mApp->showHideWidget(mX2LinearRadio, which == 2);
+  mApp->showHideWidget(mX2LinearRadio, which == 2);
   QApplication::processEvents();
   adjustSize();
 }
-
-/*
-
-   $Log$
-   Revision 1.5  2009/08/10 22:10:42  mast
-   Modified for three methods of fitting
-
-   Revision 1.4  2009/01/15 16:31:36  mast
-   Qt 4 port
-
-   Revision 1.3  2008/11/07 17:26:24  xiongq
-   add the copyright heading
-
-*/

@@ -666,6 +666,11 @@ public final class JoinManager extends BaseManager {
       createEmptyXfFile(metaData.getDatasetName());
     }
     mainPanel.showProcess(joinDialog.getContainer(), AxisID.ONLY);
+    String actionMessage = Utilities.prepareDialogActionMessage(DialogType.JOIN,
+        AxisID.ONLY, null);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   /**
@@ -1455,7 +1460,7 @@ public final class JoinManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY);
+    reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, false);
   }
 
   /**

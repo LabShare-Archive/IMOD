@@ -1,5 +1,5 @@
 /* XPM */
-static char *pegged[]={
+static const char *pegged[]={
 "16 16 196 2",
 ".V c #000004",
 "#e c #00000b",

@@ -1,12 +1,7 @@
 /*
- * rangedialog.h - Header for RangeDialog class
+ * rangedialog.h - Header for FittingDialog class
  *
  *  $Id$
- *
- *  $Log$
- *  Revision 1.4  2009/08/10 22:34:39  mast
- *  General reworking of program
- *
  *
  */
 #ifndef RANGEDIALOG_H
@@ -21,12 +16,13 @@ class QGroupBox;
 class QRadioButton;
 class QCheckBox;
 class QSpinBox;
+class MyApp;
 
-class RangeDialog :public QDialog
+class FittingDialog :public QDialog
 {
   Q_OBJECT
   public:
-    RangeDialog(QWidget *parent=0);
+    FittingDialog(QWidget *parent=0);
 signals:
     void range(double lowX, double highX, double, double );
     void x1MethodChosen(int );
@@ -42,8 +38,8 @@ private slots:
     void fitPowerClicked(bool state);
     void orderChanged(int value);
  private:
-    void showHideWidget(QWidget *widget, bool state);
     void manageWidgets(int which);
+    MyApp *mApp;
     QLabel *mX1_label_1;
     QLabel *mX1_label_2;
     QGroupBox *mX1Group; 

@@ -146,6 +146,11 @@ abstract class AbstractFrame extends JFrame {
     openMessageDialog(manager, axisID, message, title);
   }
 
+  void displayMessage(final BaseManager manager, final Component parentComponent,
+      final String message, final String title, final AxisID axisID) {
+    openMessageDialog(manager, parentComponent, axisID, message, title);
+  }
+
   /**
    * Open a message dialog
    * @param message
@@ -205,6 +210,12 @@ abstract class AbstractFrame extends JFrame {
    */
   void openMessageDialog(BaseManager manager, AxisID axisID, String message, String title) {
     showOptionPane(manager, axisID, wrap(manager, message), title,
+        JOptionPane.ERROR_MESSAGE);
+  }
+
+  void openMessageDialog(final BaseManager manager, final Component parentComponent,
+      final AxisID axisID, final String message, final String title) {
+    showOptionPane(manager, parentComponent, axisID, wrap(manager, message), title,
         JOptionPane.ERROR_MESSAGE);
   }
 
@@ -413,11 +424,27 @@ abstract class AbstractFrame extends JFrame {
         messageType, null, null, new String[] { OK });
   }
 
+  private void showOptionPane(final BaseManager manager, final Component parentComponent,
+      final AxisID axisID, final String[] message, final String title,
+      final int messageType) {
+    showOptionPane(manager, parentComponent, axisID, message, title,
+        JOptionPane.DEFAULT_OPTION, messageType, null, null, new String[] { OK });
+  }
+
   private int showOptionPane(BaseManager manager, AxisID axisID, String[] message,
       String title, int optionType, int messageType, Object[] options,
       Object initialValue, String[] optionStrings) {
     int result = showOptionDialog(manager, axisID, this, message, title, optionType,
         messageType, null, options, initialValue, optionStrings);
+    return result;
+  }
+
+  private int showOptionPane(final BaseManager manager, final Component parentComponent,
+      final AxisID axisID, final String[] message, final String title,
+      final int optionType, final int messageType, final Object[] options,
+      final Object initialValue, final String[] optionStrings) {
+    int result = showOptionDialog(manager, axisID, parentComponent, message, title,
+        optionType, messageType, null, options, initialValue, optionStrings);
     return result;
   }
 

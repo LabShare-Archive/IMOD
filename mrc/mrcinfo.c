@@ -122,8 +122,6 @@ main( int argc, char *argv[] )
      
      if (data->ispg)
 	  printf("ispg =\t\t%d\n",data->ispg) ;
-     if (data->nsymbt)
-	  printf("nsymbt =\t%d\n",data->nsymbt) ;
      if (data->idtype){
 	  printf("idtype =\t%d\n", data->idtype);
 

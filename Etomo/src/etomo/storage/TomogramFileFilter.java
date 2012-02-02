@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.filechooser.FileFilter;
-
 /**
  * <p>Description: </p>
  * 
@@ -40,7 +38,7 @@ import javax.swing.filechooser.FileFilter;
  * <p> bug# 520 A file filter for .rec files
  * <p> </p>
  */
-public class TomogramFileFilter extends FileFilter implements java.io.FileFilter {
+public class TomogramFileFilter extends ExtensibleFileFilter implements java.io.FileFilter {
   public static final String rcsid = "$Id$";
 
   private static final List extraExtensionList = new ArrayList();

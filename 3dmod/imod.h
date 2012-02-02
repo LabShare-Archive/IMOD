@@ -1,5 +1,3 @@
-//Added by qt3to4:
-#include <QKeyEvent>
 /*  imod.h - public header file for 3dmod
  *
  *  Original author: James Kremer
@@ -10,12 +8,12 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 #ifndef IMOD_H
 #define IMOD_H
 
-class QKeyEvent;
+/* This include is needed for various other items to compile */
+#include <QKeyEvent>
 
 #ifndef IMODP_H
 #include "imodP.h"
@@ -169,6 +167,10 @@ void DLL_EX_IM imodError(FILE *out, const char *format, ...);
   This function will flush stderr under Windows */
 void DLL_EX_IM imodPrintStderr(const char *format, ...);
 
+/*! Prints a message using @imodPrintStderr if the letter [key] is entered as 
+  a debug key letter with -D */
+void DLL_EX_IM imodTrace(char key, const char *format, ...);
+
 /*! Puts [message] to standard error like puts, but flushes under Windows */
 void DLL_EX_IM imodPuts(const char *message);
 
@@ -190,78 +192,3 @@ int DLL_EX_IM imodShowHelpPage(const char *page);
 }
 #endif /* IMOD_H */
 
-/*
-    $Log$
-    Revision 3.20  2008/07/17 05:01:35  mast
-    Add new model notificaton to plugins
-
-    Revision 3.19  2008/05/28 14:57:28  mast
-    Added z scale to draw model function
-
-    Revision 3.18  2008/05/22 20:58:33  mast
-    Documentation of IMOD_DRAW flags
-
-    Revision 3.17  2008/02/06 16:14:09  sueh
-    bug# 1065 Changed wprint(char *) to wprint(const char*).
-
-    Revision 3.16  2008/01/17 22:33:54  mast
-    Added reason define for plugin update call
-
-    Revision 3.15  2008/01/14 19:46:55  mast
-    moved toggle flag to public file
-
-    Revision 3.14  2007/12/04 22:02:41  mast
-    Changes for documentation
-
-    Revision 3.13  2007/11/30 06:51:50  mast
-    Changes for linking slicer to model view
-
-    Revision 3.12  2007/06/04 15:02:33  mast
-    Added argument to draw model function
-
-    Revision 3.11  2006/02/13 05:13:36  mast
-    Define mouse flag for plugins
-
-    Revision 3.10  2004/12/24 02:19:11  mast
-    Removed argument from help page call
-
-    Revision 3.9  2004/11/22 00:22:48  mast
-    Added definition for showing help page
-
-    Revision 3.8  2004/09/24 18:10:04  mast
-    Added new definition for plugins that can execute messages
-
-    Revision 3.7  2004/05/31 23:10:56  mast
-    Added macros for exporting/importing under Windows
-
-    Revision 3.6  2003/10/01 05:04:44  mast
-    Changes for creation of imodview.h
-
-    Revision 3.5  2003/09/16 02:49:06  mast
-    Changed declarations ofr functions that return image line pointers
-
-    Revision 3.4  2003/06/27 19:24:45  mast
-    Add function to get extra object
-
-    Revision 3.3  2003/02/27 18:13:59  mast
-    Add ImodView argument to imodDrawModel so that times can be detected
-
-    Revision 3.2  2003/02/10 20:41:55  mast
-    Merge Qt source
-
-    Revision 3.1.2.4  2003/01/29 01:43:00  mast
-    add colormap draw flag
-
-    Revision 3.1.2.3  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
-
-    Revision 3.1.2.2  2003/01/13 01:15:42  mast
-    changes for Qt version of info window
-
-    Revision 3.1.2.1  2003/01/02 15:38:16  mast
-    remove declarations for control.c functions
-
-    Revision 3.1  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
-*/

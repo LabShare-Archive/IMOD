@@ -28,7 +28,7 @@ package etomo.ui.swing;
 interface ReferenceParent {
   public static final String rcsid = "$Id$";
 
-  public boolean fixIncorrectPath(FileTextField fileTextField, boolean choosePath);
+  public boolean fixIncorrectPath(FileTextFieldInterface fileTextField, boolean choosePath);
 
   public int getVolumeTableSize();
 

@@ -1079,7 +1079,8 @@ vector<long> GridSetObj::getIdxPtsInRadius( Ipoint *center, float radius )
 		for(int x=xIdxMin; x<=xIdxMax; x++)								// for each column:
 		{
 			long ptIdx    = getPtIdx(x,y,z);
-			float distSq = line_sqDistBetweenPts2D( center, &getPos(ptIdx) );
+                        Ipoint tmpPt = getPos(ptIdx);
+			float distSq = line_sqDistBetweenPts2D( center, &tmpPt );
 			if( distSq <= radSq )
 				ptIdxInRad.push_back(ptIdx);
 		}
@@ -1146,7 +1147,8 @@ bool GridSetObj::isPtInRadius( Ipoint *center, float radius, long *closestPtIdx 
 		for(int x=xIdxMin; x<=xIdxMax; x++)								// for each column:
 		{
 			long ptIdx   = getPtIdx(x,y,z);
-			float distSq = line_sqDistBetweenPts2D( center, &getPos(ptIdx) );
+                        Ipoint tmpPt = getPos(ptIdx);
+			float distSq = line_sqDistBetweenPts2D( center, &tmpPt );
 			if( distSq <= minDistSq )
 			{
 				minDistSq = distSq;
@@ -3036,15 +3038,15 @@ Stereology::Stereology(QWidget *parent, const char *name) :
 	
 	//** ROW 6:
 	
-	chkChangeDefLimits = new QCheckBox("change default limits", widGridSetup);
+	chkChangeDefLimits = new QCheckBox("change grid limits", widGridSetup);
   chkChangeDefLimits->setChecked( plug.changeDefLimits );
   QObject::connect(chkChangeDefLimits,SIGNAL(clicked()),this,SLOT(changeGridChk()));
   chkChangeDefLimits->setToolTip
 	  ( "If on: the limits of the grid will be shifted so that they fall within \n"
 		  "the values you specify below (the boxes which appear when this is ticked). \n"
 		  "If off: the minimum x, y and z limits are set to the boundaries of the \n"
-		  "model. These should be the same as the reconstruction used to create the \n"
-		  "model.");
+		  "model. These should be the same as the reconstruction (image volume) \n"
+		  "used to create the model.");
 	layGridSetup->addWidget(chkChangeDefLimits);
 	
 	//** ROW 7:
@@ -4771,7 +4773,7 @@ void Stereology::initValues()
 	
 	
 	plug.showLoadingInConsole = true;
-	plug.maxContsRend         = 10000;
+	plug.maxContsRend         = 100000;
 	plug.numRandPtsToAdd			= 1000;
 	plug.jumpToGridOnUpdate   = true;
 	
@@ -4779,6 +4781,16 @@ void Stereology::initValues()
 	plug.randomSymbols        = false;
 	plug.agreeFinalizeDlg     = false;
 	plug.showBigIntercCH      = false;
+	
+	
+	//## IF BIG IMAGE THEN INCREASE DEFAULT SIZE
+	
+	if( plug.xsize > 2000 && plug.ysize > 2000 )		// if big image:
+	{
+		plug.defSpacingX = 500;
+		plug.defSpacingY = 500;
+		plug.gridSymbolSize = 20;
+	}
 	
 	
 	//## TRANSIENT VALUES:
@@ -4865,18 +4877,6 @@ void Stereology::loadSettings()
 		plug.randomSymbols        = savedValues[38];
 		plug.agreeFinalizeDlg     = savedValues[39];
 		plug.showBigIntercCH      = savedValues[40];
-		
-		
-		if( plug.defSpacingX==50 && plug.defSpacingY==50 && plug.defSpacingZ==30
-		 && plug.gridSymbolSize==5 )		// if original values:
-		{
-			if( plug.ysize > 2000 && plug.ysize > 2000 )		// if big image:
-			{
-				plug.defSpacingX = 500;
-				plug.defSpacingY = 500;
-				plug.gridSymbolSize = 20;
-			}
-		}
 		
 		
 		if(plug.paintRadius <= 0)
@@ -6757,23 +6757,23 @@ bool Stereology::updateGridFromGridGui( bool checkCheckboxes, bool updatePtSelSp
 	
 	GridSetObj *g = getCurrGridSetObj();
 	
+	
+	//## DISPLAY OPTIONS:
+	
+	plug.gridSymbolSize    = spnGridSymbolSize->value();
+	plug.gridLineThickness = spnLineWidth->value();
+	plug.gridColorR        = colGridColor->getColor().red();
+	plug.gridColorB        = colGridColor->getColor().blue();
+	plug.gridColorG        = colGridColor->getColor().green();
+	plug.showDashes        = chkShowDashes->isChecked();
+	plug.subRectDisplayOpt = cmbSubRectDisplay->currentIndex();
+	
+	plug.window->drawGridObject(false);
+	plug.window->drawSubsampleRects(true);
+	
+	
 	if( g->countingStarted )
-	{
-		//## DISPLAY OPTIONS:
-		
-		plug.gridSymbolSize    = spnGridSymbolSize->value();
-		plug.gridLineThickness = spnLineWidth->value();
-		plug.gridColorR        = colGridColor->getColor().red();
-		plug.gridColorB        = colGridColor->getColor().blue();
-		plug.gridColorG        = colGridColor->getColor().green();
-		plug.showDashes        = chkShowDashes->isChecked();
-		plug.subRectDisplayOpt = cmbSubRectDisplay->currentIndex();
-		
-		plug.window->drawGridObject(false);
-		plug.window->drawSubsampleRects(true);
-		
 		return (false);
-	}
 	
 	
 	//## GET CHECKBOX VALUES AND SHOW/HIDE RELEVANT ELEMENTS
@@ -7615,7 +7615,6 @@ void Stereology::modifyExistingGridViaObjectLabels()
 		catLabel.push_back( getObjLabel(catObjIdx).toStdString() );
 	}
 	
-	bool addNewCategories = false;
 	
 	//## SHOW A CUSTOM DIALOG WITH A LIST OF ALL OBJECT LABELS:
 	
@@ -7680,11 +7679,6 @@ void Stereology::modifyExistingGridViaObjectLabels()
 		
 		ds.setStylePrev("background-color: rgb(255, 230, 110);");			// yellowish
 	}
-	
-	ds.addCheckBox( "add more categories", 
-								  &addNewCategories,
-								  "Will popup a new dialog which will allows you to \n"
-								  "add up to three extra categories" );
 	
 	ds.exec();
 	
@@ -7764,7 +7758,7 @@ void Stereology::addExtraGridCategoriesToImodModel()
 	for( int c=0; c<MAX_NEW_OBJECTS; c++ )
 	{
 		newCatName[c] = "";
-		addCat[c]     = (c == 1);
+		addCat[c]     = (c == 0);
 	}
 	
 	CustomDialog ds("Add Extra Categories:", this, BS_CUSTOM );
@@ -9736,7 +9730,7 @@ void Stereology::setSpacingUsingUnits()
 	
 	CustomDialog ds("Change Grid Spacing Using Units", this);
 	
-	ds.addLabel   ( "--- NUMBER OF POINTS DONE: ---", true );
+	ds.addLabel   ( "--- SELECT UNITS TO CHANGE: ---", true );
 	
 	if( unitsNotSetup )			// if units don't appear setup: display warning message
 	{
@@ -10915,7 +10909,7 @@ void Stereology::calculateResults()
 	if( !g->countingStarted )
 	{
 		QMessageBox::warning( this, "...",
-												  "You cannot calulate results until you have finalized the "
+												  "You cannot calculate results until you have finalized the "
 												  "grid, finalized categories and started counting.");
 		return;
 	}

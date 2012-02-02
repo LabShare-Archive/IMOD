@@ -82,6 +82,7 @@ HEADERS	+= autox.h \
 	imodv_mcubescpp.h \
 	imodv_surfpieces.h \
 	imodv_mappingtable.h \
+        vertexbuffer.h \
 	form_object_edit.h \
 	formv_control.h \
 	formv_movie.h \
@@ -171,6 +172,7 @@ SOURCES	+= autox.cpp \
 	finegrain.cpp \
 	scalebar.cpp \
 	imodv_mappingtable.cpp \
+        vertexbuffer.cpp \
 	form_object_edit.cpp \
 	formv_control.cpp \
 	formv_movie.cpp \

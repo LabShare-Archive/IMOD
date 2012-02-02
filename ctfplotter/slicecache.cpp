@@ -8,7 +8,6 @@
 *  Colorado.  See dist/COPYRIGHT for full copyright notice.
 * 
 *  $Id$
-*  Log at end of file
 */
 
 /**************how to use this class  **********************
@@ -167,6 +166,7 @@ void SliceCache::whatIsNeeded(float lowLimit, float highLimit, int &start, int
   mNeededSlices.clear();
 
   int k;
+  float eps = 0.02f;
   float currAngle;
   float *angles = ((MyApp *)qApp)->getTiltAngles();
   for (k = 0; k < mHeader.nz; k++) {
@@ -175,7 +175,7 @@ void SliceCache::whatIsNeeded(float lowLimit, float highLimit, int &start, int
     } else {
       currAngle = 0.0;
     }
-    if( currAngle<lowLimit || currAngle>highLimit) 
+    if (currAngle < lowLimit - eps || currAngle > highLimit + eps) 
       continue;
     mNeededSlices.push_back(k);
   }
@@ -371,29 +371,3 @@ float SliceCache::getAngle(int whichSlice)
     return mSliceAngles[sliceIdx];
   return readAngle(whichSlice);
 }
-
-/*
-
-$Log$
-Revision 1.8  2010/03/14 19:11:03  mast
-Changed to use array of tilt angles already read in
-
-Revision 1.7  2010/03/09 06:24:52  mast
-Change arguments to const char* to take latin1 from QString
-
-Revision 1.6  2009/08/10 22:24:20  mast
-Turned it into a cache of power spectra at hyperresolution
-
-Revision 1.5  2009/01/15 16:31:36  mast
-Qt 4 port
-
-Revision 1.4  2008/11/10 18:10:27  xiongq
-call exitError when angle file is not found
-
-Revision 1.3  2008/11/07 20:34:34  xiongq
-call fflush to sync log  for each slice
-
-Revision 1.2  2008/11/07 17:26:24  xiongq
-add the copyright heading
-
-*/

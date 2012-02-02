@@ -47,6 +47,7 @@ import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
 import etomo.ui.swing.FileChooser;
+import etomo.ui.swing.FixedDim;
 import etomo.ui.swing.LogInterface;
 import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainPanel;
@@ -291,6 +292,9 @@ public abstract class BaseManager {
     String oldPropertyUserDir = this.propertyUserDir;
     this.propertyUserDir = propertyUserDir;
     return oldPropertyUserDir;
+  }
+
+  public void pack() {
   }
 
   void initializeUIParameters(File dataFile, AxisID axisID,
@@ -1423,7 +1427,8 @@ public abstract class BaseManager {
    * @throws RuntimeException
    *           if any Throwable is caught
    */
-  public boolean reconnect(ProcessData processData, AxisID axisID) {
+  public boolean reconnect(final ProcessData processData, final AxisID axisID,
+      final boolean multiLineMessages) {
     try {
       if (isReconnectRun(axisID)) {
         // Just in case
@@ -1444,7 +1449,7 @@ public abstract class BaseManager {
         if (processData.isRunning()) {
           System.err.println("\nAttempting to reconnect in Axis " + axisID.toString()
               + "\n" + processData);
-          if (!reconnectProcesschunks(processData, axisID)) {
+          if (!reconnectProcesschunks(processData, axisID, multiLineMessages)) {
             System.err.println("\nReconnect in Axis" + axisID.toString() + " failed");
           }
           getProcessManager().unblockAxis(axisID);
@@ -1461,7 +1466,8 @@ public abstract class BaseManager {
     return false;
   }
 
-  public boolean reconnectProcesschunks(ProcessData processData, AxisID axisID) {
+  public boolean reconnectProcesschunks(final ProcessData processData,
+      final AxisID axisID, final boolean multiLineMessages) {
     ProcessResultDisplayFactoryInterface factory = getProcessResultDisplayFactoryInterface(axisID);
     ProcessResultDisplay display = getProcessResultDisplayFactoryInterface(axisID)
         .getProcessResultDisplay(processData.getDisplayKey().getInt());
@@ -1477,7 +1483,7 @@ public abstract class BaseManager {
       processSeries.setLastProcess(lastProcess);
     }
     boolean ret = getProcessManager().reconnectProcesschunks(axisID, processData,
-        display, processSeries);
+        display, processSeries, multiLineMessages);
     setThreadName(processData.getProcessName().toString(), axisID);
     return ret;
   }
@@ -1487,9 +1493,10 @@ public abstract class BaseManager {
    * 
    * @param axisID
    */
-  public void processchunks(AxisID axisID, ProcesschunksParam param,
-      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries,
-      boolean popupChunkWarnings, ProcessingMethod processingMethod) {
+  public void processchunks(final AxisID axisID, final ProcesschunksParam param,
+      final ProcessResultDisplay processResultDisplay,
+      final ConstProcessSeries processSeries, final boolean popupChunkWarnings,
+      final ProcessingMethod processingMethod, final boolean multiLineMessages) {
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
     BaseMetaData metaData = getBaseMetaData();
     metaData.setCurrentProcesschunksRootName(axisID, param.getRootName().toString());
@@ -1499,7 +1506,7 @@ public abstract class BaseManager {
     try {
       threadName = getProcessManager().processchunks(axisID, param,
           parallelPanel.getParallelProgressDisplay(), processResultDisplay,
-          processSeries, popupChunkWarnings, processingMethod);
+          processSeries, popupChunkWarnings, processingMethod, multiLineMessages);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1576,14 +1583,21 @@ public abstract class BaseManager {
    * 
    * @param dialogType
    * @param axisID
+   * @return the action message
    */
-  public void setCurrentDialogType(DialogType dialogType, AxisID axisID) {
+  public String setCurrentDialogType(DialogType dialogType, AxisID axisID) {
+    String actionMessage = null;
     if (axisID == AxisID.SECOND) {
+      actionMessage = Utilities.prepareDialogActionMessage(dialogType, axisID,
+          currentDialogTypeB);
       currentDialogTypeB = dialogType;
     }
     else {
+      actionMessage = Utilities.prepareDialogActionMessage(dialogType, axisID,
+          currentDialogTypeA);
       currentDialogTypeA = dialogType;
     }
+    return actionMessage;
   }
 
   /**
@@ -1668,7 +1682,7 @@ public abstract class BaseManager {
         EtomoDirector.INSTANCE.getOriginalUserDir()));
     ChunkComscriptFileFilter filter = new ChunkComscriptFileFilter();
     chooser.setFileFilter(filter);
-    chooser.setPreferredSize(new Dimension(400, 400));
+    chooser.setPreferredSize(FixedDim.fileChooser);
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(root);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -1694,10 +1708,11 @@ public abstract class BaseManager {
    * @param root
    * @param subcommandDetails
    */
-  public void resume(AxisID axisID, ProcesschunksParam param,
-      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      Container root, CommandDetails subcommandDetails, boolean popupChunkWarnings,
-      ProcessingMethod processingMethod) {
+  public void resume(final AxisID axisID, ProcesschunksParam param,
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final Container root, final CommandDetails subcommandDetails,
+      final boolean popupChunkWarnings, final ProcessingMethod processingMethod,
+      final boolean multiLineMessages) {
     sendMsgProcessStarting(processResultDisplay);
     BaseMetaData metaData = getBaseMetaData();
     if (param == null) {
@@ -1727,7 +1742,7 @@ public abstract class BaseManager {
     try {
       threadName = getProcessManager().processchunks(axisID, param,
           parallelPanel.getParallelProgressDisplay(), processResultDisplay,
-          processSeries, popupChunkWarnings, processingMethod);
+          processSeries, popupChunkWarnings, processingMethod, multiLineMessages);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();

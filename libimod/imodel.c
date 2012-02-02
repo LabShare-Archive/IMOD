@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include <math.h>
@@ -183,7 +182,7 @@ void imodSetIndex(Imod *imod, int object, int contour, int point)
    model; also actually stop on first point (3/18/05). */
 
 /*!
- * Returns the maximum coordinates of the model [imod] in [pnt], or -1,-1,-1
+ * Returns the maximum coordinates of contour points in model [imod] in [pnt], or -1,-1,-1
  * if there are no points 
  */
 void imodel_maxpt(Imod *imod, Ipoint *pnt)
@@ -231,9 +230,10 @@ void imodel_maxpt(Imod *imod, Ipoint *pnt)
   return;
 }
 
+/* DMN 11/29/11: Change this to return real limits of contourless models with meshes */
 /*!
- * Returns the minimum coordinates of the model [imod] in [pnt], or -1,-1,-1
- * if there are no points
+ * Returns the minimum coordinates of contour points in the model [imod] in [pnt], or 
+ * -1,-1,-1 if there are no points
  */
 void imodel_minpt(Imod *imod, Ipoint *pnt)
 {
@@ -282,58 +282,34 @@ void imodel_minpt(Imod *imod, Ipoint *pnt)
 
 /*!
  * Returns the minimum and maximum coordinates of the model [imod] in [min] 
- * and [max], or -1,-1,-1 if there are no points 
+ * and [max], based either on the coordinates of points in contours, or on mesh vertices 
+ * for objects with no contours.  Returns -1,-1,-1 if there are no points or meshes.
  */
 void imodGetBoundingBox(Imod *imod, Ipoint *min, Ipoint *max)
 {
-  int ob, co, pt;
-  Iobj *obj;
-  Icont *cont;
+  int ob;
+  Ipoint obmin, obmax;
   int gotOne = 0;
 
   min->x = min->y = min->z = -1.;
   max->x = max->y = max->z = -1.;
      
-  /* Get first point */
-  for (ob = 0; ob < imod->objsize; ob++){
-    obj = &(imod->obj[ob]);
-    for(co = 0; co < obj->contsize; co++){
-      cont = &(obj->cont[co]);
-      if (cont->psize) {
-        min->x = max->x = cont->pts->x;
-        min->y = max->y = cont->pts->y;
-        min->z = max->z = cont->pts->z;
-        co = obj->contsize;
-        ob = imod->objsize;
+  for (ob = 0; ob < imod->objsize; ob++) {
+    if (imodObjectGetBBox(&(imod->obj[ob]), &obmin, &obmax) >= 0) {
+      if (gotOne) {
+        min->x = B3DMIN(min->x, obmin.x);
+        min->y = B3DMIN(min->y, obmin.y);
+        min->z = B3DMIN(min->z, obmin.z);
+        max->x = B3DMAX(max->x, obmax.x);
+        max->y = B3DMAX(max->y, obmax.y);
+        max->z = B3DMAX(max->z, obmax.z);
+      } else {
+        *min = obmin;
+        *max = obmax;
         gotOne = 1;
-        break;
-      }
-    }
-    if (gotOne)
-      break;
-  }
-
-  for (ob = 0; ob < imod->objsize; ob++){
-    obj = &(imod->obj[ob]);
-    for(co = 0; co < obj->contsize; co++){
-      cont = &(obj->cont[co]);
-      for (pt = 0; pt < cont->psize; pt++){
-        if (cont->pts[pt].x < min->x)
-          min->x = cont->pts[pt].x;
-        if (cont->pts[pt].y < min->y)
-          min->y = cont->pts[pt].y;
-        if (cont->pts[pt].z < min->z)
-          min->z = cont->pts[pt].z;
-        if (cont->pts[pt].x > max->x)
-          max->x = cont->pts[pt].x;
-        if (cont->pts[pt].y > max->y)
-          max->y = cont->pts[pt].y;
-        if (cont->pts[pt].z > max->z)
-          max->z = cont->pts[pt].z;
       }
     }
   }
-  return;
 }
 
 /* Returns distance of current point from origin - unused and unsafe */
@@ -1781,6 +1757,94 @@ void imodTransFromMats(Imod *imod, Imat *mat, Imat *matNorm, Imat *matClip)
   }
 }
 
+/* Exchange floats */
+static void exchangef(float *a, float *b)
+{
+  float tmp = *a;
+  *a = *b;
+  *b = tmp;
+}
+
+/*!
+ * Transforms [model] with the 3D matrix in [mat], which includes translations. ^
+ * [normMat] is a 3D matrix for normal transformations, or NULL if none are needed.  ^
+ * [newCen] are the center coordinates of the volume being transformed to; the center
+ * coordinates for the transformation are taken from the {xmax}, {ymax}, and {zmax} 
+ * members of the model structure.  ^
+ * [zscale] is the Z scale factor, or 1 to not apply any Z scaling.
+ * [doflip] should be nonzero if the model is in Y-Z flipped coordinates
+ */
+void imodTransModel3D(Imod *model, Imat *mat, Imat *normMat, Ipoint newCen, float zscale,
+                     int doflip)
+{
+  int i, ob, co, pt, me;
+  Iobj *obj;
+  Icont *cont;
+  Imesh *mesh;
+  Imat *matWork = imodMatNew(3);
+  Imat *matWork2 = imodMatNew(3);
+  Imat *matUse = imodMatNew(3);
+  Imat *clipMat = imodMatNew(3);
+  Ipoint oldCen, tmpPt;
+  oldCen.x = -model->xmax * 0.5f;
+  oldCen.y = -model->ymax * 0.5f;
+  oldCen.z = -model->zmax * 0.5f;
+
+  /* If data are flipped, exchange Y and Z columns then Y and Z rows */
+  if (doflip) {
+    exchangef(&mat->data[4], &mat->data[8]);
+    exchangef(&mat->data[1], &mat->data[2]);
+    exchangef(&mat->data[6], &mat->data[9]);
+    exchangef(&mat->data[5], &mat->data[10]);
+    exchangef(&mat->data[13], &mat->data[14]);
+    if (normMat) {
+      exchangef(&normMat->data[4], &normMat->data[8]);
+      exchangef(&normMat->data[1], &normMat->data[2]);
+      exchangef(&normMat->data[6], &normMat->data[9]);
+      exchangef(&normMat->data[5], &normMat->data[10]);
+      exchangef(&normMat->data[13], &normMat->data[14]);
+    }
+  }
+
+  /* Compute a transformation by translating to origin, applying the given
+     transform, then translating back to new center.
+     Apply the zscale after translating, then de-scale after applying the
+     transform. */
+  imodMatTrans(matWork, &oldCen);
+  tmpPt.x = 1.;
+  tmpPt.y = 1.;
+  tmpPt.z = zscale;
+  imodMatScale(matWork, &tmpPt);
+  imodMatMult(matWork, mat, matUse);
+  tmpPt.z = 1. / zscale;
+  imodMatScale(matUse, &tmpPt);
+  imodMatTrans(matUse, &newCen);
+
+  /* If no normal transform supplied, set up transform for normals as copy of 
+     original transform, no shifts, then take the inverse and transpose it. */
+  if (!normMat) {
+    imodMatCopy(mat, matWork);
+    matWork->data[12] = 0.;
+    matWork->data[13] = 0.;
+    matWork->data[14] = 0.;
+    matWork->data[15] = 1.;
+    normMat = imodMatInverse(matWork);
+    exchangef(&normMat->data[1], &normMat->data[4]);
+    exchangef(&normMat->data[2], &normMat->data[8]);
+    exchangef(&normMat->data[6], &normMat->data[9]);
+  }
+
+  /* The mesh normals already contain the Z scaling, but the clip normals 
+     require a matrix that is prescaled by 1/zscale and post-scaled by 
+     z-scale */
+  imodMatScale(matWork2, &tmpPt);
+  imodMatMult(matWork2, normMat, clipMat);
+  tmpPt.z = zscale;
+  imodMatScale(clipMat, &tmpPt);
+
+  imodTransFromMats(model, matUse, normMat, clipMat);
+}
+
 /* Flip clipping planes */
 static void flipClips(IclipPlanes *clips)
 {
@@ -1817,110 +1881,3 @@ const char *imodGetFilename(Imod *imod)
 /*! Returns non-zero if model [imod] is flipped */
 int   imodGetFlipped(Imod *imod) 
 { return(imod->flags & IMODF_FLIPYZ); }
-
-/*
-$Log$
-Revision 3.34  2011/02/28 05:29:28  mast
-Initialized all components of image ref structure
-
-Revision 3.33  2010/11/09 00:24:22  mast
-Fix model clean to not remove isosurface objects
-
-Revision 3.32  2008/03/03 18:24:04  mast
-Fixed bum checkin
-
-Revision 3.30  2008/01/27 06:19:51  mast
-Changes for object groups
-
-Revision 3.29  2007/09/25 15:44:47  mast
-Added function to set refimage from MRC header
-
-Revision 3.28  2007/09/22 00:07:01  mast
-Removed model locking code, changed mat3b2 to matflags2
-
-Revision 3.27  2007/05/25 05:18:26  mast
-Changes for slicer angle storage
-
-Revision 3.26  2006/09/13 02:42:38  mast
-Clarify documentation
-
-Revision 3.25  2006/09/12 15:24:44  mast
-Handled member renames
-
-Revision 3.24  2006/08/31 21:11:29  mast
-Changed mat1 and mt3 to real names
-
-Revision 3.23  2005/10/16 20:26:04  mast
-Split transformation function into two
-
-Revision 3.22  2005/10/14 22:45:52  mast
-Moved clip transformation to iplane.c
-
-Revision 3.21  2005/10/13 20:04:00  mast
-Added model transformation function from 3dmod, and proper flipping of
-clipping planes
-
-Revision 3.20  2005/06/29 05:35:32  mast
-Changed a store function call
-
-Revision 3.19  2005/06/26 19:21:09  mast
-Added storage handling to contour deletion routine
-
-Revision 3.18  2005/04/23 23:37:02  mast
-Moved some functions here
-
-Revision 3.17  2005/03/22 16:46:33  mast
-Fixed return type of imodDeleteObject
-
-Revision 3.16  2005/03/20 20:01:13  mast
-Fixed a mod/imod problem from copying code
-
-Revision 3.15  2005/03/20 19:56:43  mast
-Documenting and eliminating duplicate functions
-
-Revision 3.14  2004/12/03 17:26:00  mast
-Changed behavior of imodDeletePoint, removed DelPoint
-
-Revision 3.13  2004/11/20 04:17:43  mast
-Added object move function and other changes for undo/redo structure
-
-Revision 3.12  2004/09/21 20:13:40  mast
-Changes for multiple and global clipping planes (i.e. checksum)
-
-Revision 3.11  2004/09/10 21:33:46  mast
-Eliminated long variables
-
-Revision 3.10  2004/04/27 21:44:47  mast
-Eliminated rotation angle fo first view from checksum
-
-Revision 3.9  2004/01/05 17:27:17  mast
-Added initialization of xybin and zbin
-
-Revision 3.8  2003/11/01 16:41:56  mast
-changed to use new error processing routine
-
-Revision 3.7  2003/10/24 03:02:14  mast
-move routines to new b3dutil file
-
-Revision 3.6  2003/09/16 02:06:08  mast
-*** empty log message ***
-
-Revision 3.5  2003/07/31 21:41:25  mast
-Delete object view and view data when deleting model, also delete
-object view data when deleting a single object
-
-Revision 3.4  2003/06/27 20:19:48  mast
-Made min and max functions return (-1,-1,-1) if there are no model points,
-and improved the checksum computation to include real and integer values
-and include all view data.
-
-Revision 3.3  2003/03/13 01:18:49  mast
-Add new default object color scheme
-
-Revision 3.2  2003/02/27 00:34:40  mast
-add projects' *.dsw *.dsp
-
-Revision 3.1  2002/11/05 23:28:23  mast
-Changed imodCopyright to use defined lab name
-
-*/

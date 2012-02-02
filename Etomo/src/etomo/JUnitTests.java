@@ -6,6 +6,7 @@ import java.util.Enumeration;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import etomo.comscript.ComScriptTests;
+import etomo.logic.LogicTests;
 import etomo.process.ProcessTests;
 import etomo.storage.StorageTests;
 import etomo.storage.autodoc.AutodocTests;
@@ -85,6 +86,15 @@ public class JUnitTests {
     }
 
     testSuite = (TestSuite) ComScriptTests.suite();
+    tests = testSuite.tests();
+    while (tests.hasMoreElements()) {
+      test = tests.nextElement();
+      if (test instanceof Test) {
+        suite.addTest((Test) test);
+      }
+    }
+    
+    testSuite = (TestSuite) LogicTests.suite();
     tests = testSuite.tests();
     while (tests.hasMoreElements()) {
       test = tests.nextElement();

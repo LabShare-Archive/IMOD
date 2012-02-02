@@ -526,6 +526,16 @@ public abstract class AxisProcessPanel implements ContextMenu {
       parallelPanel.setPauseEnabled(enablePause);
     }
   }
+  
+  /**
+   * Setup the progress bar for a state, not a process (with no moving bar, or percentage,
+   * and without the kill button being enabled.
+   * @param label
+   * @param nSteps
+   */
+  final void setStaticProgressBar(String label) {
+    progressPanel.setLabel(label);
+  }
 
   /**
    * 

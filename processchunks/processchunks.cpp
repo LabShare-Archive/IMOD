@@ -14,6 +14,7 @@
 #include "processchunks.h"
 #include "parse_params.h"
 #include <signal.h>
+#include <locale.h>
 #include <QTimer>
 #include <QSet>
 #include <QDirIterator>
@@ -62,6 +63,7 @@ Processchunks *processchunksInstance;
 
 int main(int argc, char **argv) {
   Processchunks pc(argc, argv);
+  setlocale(LC_NUMERIC, "C");
   processchunksInstance = &pc;
   pc.printOsInformation();
   pc.loadParams(argc, argv);
@@ -1538,7 +1540,7 @@ void Processchunks::handleFileSystemBug() {
   mLsProcess->start("ls", mLsParamList);
   mLsProcess->waitForFinished(10000);
 }
-
+/* CSH -> PY
 //Return if csh file is made
 void Processchunks::makeCshFile(ProcessHandler *process) {
   QString cshFileName = process->getCshFile();
@@ -1581,6 +1583,49 @@ void Processchunks::makeCshFile(ProcessHandler *process) {
       << process->getLogFileName() << endl;
 
   cshFile.close();
+}
+*/
+
+void Processchunks::makeCshFile(ProcessHandler *process) {
+  QString cshFileName = process->getCshFile();
+  if (cshFileName.isEmpty()) {
+    *mOutStream << "Warning: no .csh file name available " << endl;
+    return;
+  }
+  QString comFileName = process->getComFileName();
+  QString command("vmstopy");
+#ifdef _WIN32
+  command += ".cmd";
+#endif
+  QStringList paramList;
+  paramList.append("-c");
+  if (!mQueue) {
+    paramList << "-n" << QString("%1").arg(mNice);
+  }
+  paramList.append(comFileName);
+  paramList.append(process->getLogFileName());
+  paramList.append(cshFileName);
+  mVmstocsh->start(command, paramList);
+  // A command not found results in waitForFinished and waitForStarted both returning
+  // false, but with 0 forexitStatus and exitCode;  error() seems reliable
+  if (!mVmstocsh->waitForFinished()) {
+    *mOutStream << "Warning: vmstopy conversion of " << comFileName;
+    if (mVmstocsh->error() == QProcess::FailedToStart) {
+      *mOutStream << " failed to start: ";
+    } else if (mVmstocsh->error() == QProcess::Crashed) {
+      *mOutStream << " crashed after starting: ";
+    } else if (mVmstocsh->error() == QProcess::Timedout) {
+      *mOutStream << " timed out after 30 seconds: ";
+    } else {
+      *mOutStream << " failed with an unknown error: ";
+    }
+    *mOutStream << mVmstocsh->readAllStandardError().data() << endl;
+
+  } else if (mVmstocsh->exitCode() > 0) {
+    *mOutStream << "Warning: vmstopy conversion of " << comFileName
+                << " exited with error code " << mVmstocsh->exitCode() << " "
+                << mVmstocsh->readAllStandardOutput().data() << endl;
+  }
 }
 
 //Returns true if its parameters match the verbose member variables.  If print

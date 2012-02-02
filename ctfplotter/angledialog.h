@@ -1,3 +1,9 @@
+/*
+ * angledialog.h - Header for AngleDialog class
+ *
+ *  $Id$
+ *
+ */
 #ifndef ANGLEDIALOG_H
 #define ANGLEDIALOG_H
 
@@ -16,55 +22,77 @@ class AngleDialog :public QDialog
   public:
     AngleDialog(QWidget *parent=0);
     void updateTable();
-    QLineEdit *defocusEdit;
-    QLineEdit *lowAngleEdit;
-    QLineEdit *highAngleEdit;
-    QLineEdit *defTolEdit;
-    QLineEdit *leftTolEdit;
-    QLineEdit *rightTolEdit;
-    QLineEdit *tileSizeEdit;
-    QLineEdit *axisAngleEdit;
+    bool getTileTolerances(double &defTol, int &tSize, double &axisAngle,
+                           double &leftTol, double &rightTol);
+    bool getAnglesAndStep(int doStep, double &lowAngle, double &highAngle,
+                          double &rangeStep, bool &stepOk);
+    void anglesSet(int step);
+    QLineEdit *mDefocusEdit;
+    QLineEdit *mLowAngleEdit;
+    QLineEdit *mHighAngleEdit;
+    QLineEdit *mDefTolEdit;
+    QLineEdit *mLeftTolEdit;
+    QLineEdit *mRightTolEdit;
+    QLineEdit *mTileSizeEdit;
+    QLineEdit *mAxisAngleEdit;
+    QLineEdit *mRangeStepEdit;
+    QLineEdit *mAutoFromEdit;
+    QLineEdit *mAutoToEdit;
+    
 signals:
     void angle(double lAngle, double hAngle, double expDef, double defTol, 
         int tileSize, double axisAngle, double leftTol, double rightTol);
     void defocusMethod(int );
     void initialTileChoice(int );
+public slots:
+    void setAnglesClicked();
+    void tileParamsClicked();
 private slots:
-    void anglesSet();
+    void applyClicked();
     void enableApplyButton(const QString &text);
     void allAtOnceChecked();
     void onlyCenterChecked();
     void currDefocusChecked();
     void expDefocusChecked();
     void deleteClicked();
-    void setAnglesClicked();
+    void stepUpClicked();
+    void stepDownClicked();
+    void autofitClicked();
 
 protected:
     void closeEvent( QCloseEvent * e );
 
   private:
     MyApp *mApp;
-    QLabel *defocusLabel;
-    QLabel *lowAngleLabel;
-    QLabel *highAngleLabel;
-    QLabel *defTolLabel;
-    QLabel *leftTolLabel;
-    QLabel *rightTolLabel;
-    QLabel *tileSizeLabel;
-    QLabel *axisAngleLabel;
-    QGroupBox *ifAllGroup;
-    QRadioButton *allAtOnceRadio;
-    QRadioButton *onlyCenterRadio;
-    QGroupBox *defocusGroup;
-    QRadioButton *currDefocusRadio;
-    QRadioButton *expDefocusRadio;
+    QLabel *mDefocusLabel;
+    QLabel *mLowAngleLabel;
+    QLabel *mHighAngleLabel;
+    QLabel *mDefTolLabel;
+    QLabel *mLeftTolLabel;
+    QLabel *mRightTolLabel;
+    QLabel *mTileSizeLabel;
+    QLabel *mAxisAngleLabel;
+    QGroupBox *mIfAllGroup;
+    QRadioButton *mAllAtOnceRadio;
+    QRadioButton *mOnlyCenterRadio;
+    QGroupBox *mDefocusGroup;
+    QRadioButton *mCurrDefocusRadio;
+    QRadioButton *mExpDefocusRadio;
     QTableWidget *mTable;
     QPushButton *mDeleteButton;
     QPushButton *mReturnButton;
     QPushButton *mToFileButton;
    
-    QPushButton *saveButton; 
-    QPushButton *applyButton;
-    QPushButton *closeButton;
+    QPushButton *mSaveButton; 
+    QPushButton *mApplyButton;
+    QPushButton *mCloseButton;
+    QLabel *mRangeStepLabel;
+    QLabel *mAutoFromLabel;
+    QLabel *mAutoToLabel;
+    QPushButton *mStepUpButton;
+    QPushButton *mStepDownButton;
+    QPushButton *mAutofitButton;
+    QPushButton *mTileParamButton;
+    bool mParamsOpen;
 };
 #endif

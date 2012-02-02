@@ -2,14 +2,18 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import etomo.type.ConstStringParameter;
 
@@ -90,19 +94,24 @@ import etomo.type.ConstStringParameter;
  * <p> can be shared.
  * <p> </p>
  */
-final class FileTextField {
+final class FileTextField implements FileTextFieldInterface {
   public static final String rcsid = "$Id$";
 
-  private final SimpleButton button = new SimpleButton(new ImageIcon(ClassLoader
-      .getSystemResource("images/openFile.gif")));
-  private final SpacedPanel panel = SpacedPanel.getInstance();
+  private final static Dimension FOLDER_BUTTON_SIZE = FixedDim.folderButton;
+
+  private final SimpleButton button = new SimpleButton(new ImageIcon(
+      ClassLoader.getSystemResource("images/openFile.gif")));
+  private final JPanel panel = new JPanel();
+  private final GridBagLayout layout = new GridBagLayout();
+  private final GridBagConstraints constraints = new GridBagConstraints();
+
   private final TextField field;
 
   private JLabel label = null;
 
   private boolean debug = false;
-  //Must have file because the field may display a shortened name.  Keep file
-  //up to date.
+  // Must have file because the field may display a shortened name. Keep file
+  // up to date.
   private File file = null;
   private String propertyUserDir = null;
   private Component parent = null;
@@ -125,23 +134,39 @@ final class FileTextField {
       String propertyUserDir, boolean showPartialPath) {
     this.propertyUserDir = propertyUserDir;
     this.showPartialPath = showPartialPath;
-    panel.setBoxLayout(BoxLayout.X_AXIS);
+    panel.setLayout(layout);
+    constraints.fill = GridBagConstraints.BOTH;
+    constraints.weightx = 0.0;
+    constraints.weighty = 0.0;
+    constraints.gridheight = 1;
+    constraints.gridwidth = 1;
     if (labeled) {
       this.label = new JLabel(label);
+      layout.setConstraints(this.label, constraints);
       panel.add(this.label);
     }
     field = new TextField(label);
-    panel.add(field);
+    field.setTextPreferredSize(new Dimension(250 * Math.round(UIParameters.INSTANCE
+        .getFontSizeAdjustment()), FOLDER_BUTTON_SIZE.height));
+    constraints.insets = new Insets(0, 0, 0, -1);
+    layout.setConstraints(field.getComponent(), constraints);
+    panel.add(field.getComponent());
     button.setActionCommand(label);
     button.setName(label);
+    constraints.insets = new Insets(0, -1, 0, 0);
+    layout.setConstraints(button, constraints);
     panel.add(button);
-    button.setPreferredSize(FixedDim.folderButton);
-    button.setMaximumSize(FixedDim.folderButton);
-    //showPartialPath allows the class to hide the whole absolute path of a file
-    //to save display space.  Permanantly make the field ineditable.
+    button.setPreferredSize(FOLDER_BUTTON_SIZE);
+    button.setMaximumSize(FOLDER_BUTTON_SIZE);
+    // showPartialPath allows the class to hide the whole absolute path of a file
+    // to save display space. Permanantly make the field ineditable.
     if (showPartialPath) {
       field.setEditable(false);
     }
+  }
+
+  void setTextPreferredWidth(final int width) {
+    field.setTextPreferredSize(new Dimension(width, field.getPreferredSize().height));
   }
 
   static FileTextField getUnlabeledInstance(final String actionCommand) {
@@ -172,7 +197,7 @@ final class FileTextField {
   }
 
   Container getContainer() {
-    return panel.getContainer();
+    return panel;
   }
 
   void addActionListener(final ActionListener actionListener) {
@@ -192,7 +217,7 @@ final class FileTextField {
   }
 
   private void action() {
-    //  Open up the file chooser in the current working directory
+    // Open up the file chooser in the current working directory
     JFileChooser chooser = new FileChooser(new File(propertyUserDir));
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     if (fileSelectionMode != -1) {
@@ -217,7 +242,7 @@ final class FileTextField {
 
   void setFieldEditable(final boolean editable) {
     if (showPartialPath) {
-      //Cannot make the field editable if showPartialPath is on.
+      // Cannot make the field editable if showPartialPath is on.
       return;
     }
     field.setEditable(editable);
@@ -229,7 +254,7 @@ final class FileTextField {
 
   void setEditable(final boolean editable) {
     if (!showPartialPath) {
-      //Cannot make the field editable if showPartialPath is on.
+      // Cannot make the field editable if showPartialPath is on.
       field.setEditable(editable);
     }
     button.setEnabled(editable);
@@ -237,10 +262,14 @@ final class FileTextField {
 
   void setEnabled(final boolean enabled) {
     if (!showPartialPath || !enabled) {
-      //Cannot enable the field if showPartialPath is on.
+      // Cannot enable the field if showPartialPath is on.
       field.setEnabled(enabled);
     }
     button.setEnabled(enabled);
+  }
+
+  void setVisible(final boolean visible) {
+    panel.setVisible(visible);
   }
 
   void setButtonEnabled(final boolean enabled) {
@@ -264,11 +293,11 @@ final class FileTextField {
     return file.exists();
   }
 
-  void setFile(final File file) {
+  public void setFile(final File file) {
     setInternalValues(file);
   }
 
-  File getFile() {
+  public File getFile() {
     updateInternalValues();
     return file;
   }
@@ -330,7 +359,7 @@ final class FileTextField {
       field.setText(inputFile.getAbsolutePath());
       return;
     }
-    //Showing partial path
+    // Showing partial path
     String parent = inputFile.getParent();
     int separatorIndex = parent.toString().lastIndexOf(File.separatorChar);
     if (separatorIndex != -1) {
@@ -365,6 +394,19 @@ final class FileTextField {
     if (label != null) {
       label.setToolTipText(text);
     }
+  }
+
+  void setFieldToolTipText(String text) {
+    field.setToolTipText(text);
+    panel.setToolTipText(text);
+    text = TooltipFormatter.INSTANCE.format(text);
+    if (label != null) {
+      label.setToolTipText(text);
+    }
+  }
+
+  void setButtonToolTipText(String text) {
+    button.setToolTipText(text);
   }
 
   private final class FileTextFieldActionListener implements ActionListener {

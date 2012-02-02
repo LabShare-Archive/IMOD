@@ -13,7 +13,7 @@ C       3 = Fourier Transform   Integer*2
 C       4 = Fourier Transform   Reals
 C       DMIN,DMAX,DMEAN   : Min, Max, & Mean densities
 c       
-c       stuff(1) = ispg and the real nbsym
+c       stuff(1) = ispg
 c       stuff(2) = next # of extra header bytes (stored here as nbsym)
 c       stuff(3) = first int*2 used to be creator ID
 c       stuff(11) = bytes per section and flags for type of extended data
@@ -28,16 +28,9 @@ c       OLD HEADER
 c       stuff(28) - stuff(30)  wavelength info #wavele, values - 5 max
 c       stuff(31) = zorig
 C       
-c       DNM 10/26/00: There was confusion about the meaning of nbsym.
-c       Officially, ispg and nbsym are supposed to be two bytes, followed
-c       by the 4-byte "next".  The code here reads ispg as 2 bytes, skips
-c       the next two bytes, then
-c       reads the next 4 bytes and calls it nbsym, but it is really next,
-c       the number of bytes of extra header.  This is essential to allow
-c       big enough extra headers, but it means values in the true locations
-c       of ispg and nbsym will not be treated correctly.
 c       DNM 7/21/11: It's now clear that officially nbsym is where it is but it
 c       was an Agard extension to allow it to be other than 0 or 80.
+c       DNM 1/12/12: Switched to ispg being 4 bytes; remove confused comment from 2000
 c       
 c       $Id$
 c
@@ -120,8 +113,7 @@ c
         if(mrcflip(j))then
           call swap_mrc_header(j)
         endif
-        call move(idat,stuff(1,j),2)
-        ispg = idat(1)
+        ispg = istuff(1,j)
         nbs = istuff(2,j)
 c         
 c         11/27/11: if the map indexes are wrong just fix them
@@ -173,21 +165,10 @@ c
       DMIN = DENMMM(1,J)
       DMAX = DENMMM(2,J)
       DMEAN = DENMMM(3,J)
-      if (ispg .ge. 0 .and. ispg .lt. 220 .and. nbs .gt. 0 ) then
-        nbsym(j) = nbs
-        istuff(2,j) = nbs
-c         
-c         New extra header stuff: don't read it in anymore
-c         
-c         if (nbs .le.1024) then
-c         call qread(ibsym(1,j),nbs,ier)  !read in symmetry (or angle) info
-c         c          take a guess on their being long integers
-c         if(mrcflip(j))call convert_longs(ibsym(1,j),nbs/4)
-      else
-        ispg = 0
-        nbsym(j) = 0
-        istuff(2,j) = 0
-      endif
+c       
+c       1/12/12: Eliminated zeroing of nbsym if ispg was not between 0 and 220!
+      nbsym(j) = nbs
+      istuff(2,j) = nbs
       if (nxyz(1,j) .eq. 0 .or. cel(1,j) .lt. 1.e-5) then
         do k = 1,3
           mxyz(k) = 1
@@ -1264,8 +1245,7 @@ c
       call convert_floats(cel(1,j),6)
       call convert_longs(mapcrs(1,j),3)
       call convert_floats(denmmm(1,j),3)
-      call convert_shorts(stuff(1,j),2)
-      call convert_longs(stuff(2,j),1)
+      call convert_longs(stuff(1,j),2)
       call convert_shorts(stuff(3,j),1)
       call convert_shorts(stuff(11,j),4)
       call convert_floats(stuff(13,j),4)

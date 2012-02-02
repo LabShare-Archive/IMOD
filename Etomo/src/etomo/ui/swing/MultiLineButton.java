@@ -464,10 +464,6 @@ class MultiLineButton implements ProcessResultDisplay {
   }
 
   final String getActionCommand() {
-    if (EtomoDirector.INSTANCE.getArguments().isActions()) {
-      System.err
-          .println(EtomoDirector.ACTION_TAG + button.getActionCommand() + " button");
-    }
     return button.getActionCommand();
   }
 

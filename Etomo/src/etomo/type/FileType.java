@@ -7,7 +7,6 @@ import java.util.Vector;
 import java.util.regex.Pattern;
 
 import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.process.ImodManager;
 
 /**
@@ -676,11 +675,7 @@ public final class FileType {
     if (composite && (subFileType == null || extension == null)) {
       return getChildFileType(manager).getFileName(manager, axisID, true);
     }
-    String fileName = getLeftSide(manager, axisID) + extension;
-    if (EtomoDirector.INSTANCE.getArguments().isActions()) {
-      System.err.println(EtomoDirector.ACTION_TAG + fileName);
-    }
-    return fileName;
+    return getLeftSide(manager, axisID) + extension;
   }
 
   /**

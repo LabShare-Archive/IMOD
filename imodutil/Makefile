@@ -11,13 +11,21 @@ E = $(BINEXT)
 IILIBS    = $(LIIMOD) $(LIMOD) $(LCFSHR) $(TIFFLIBS)
 MODLIBS   = $(LIMOD) $(LCFSHR)
 
-PROGS = imodauto$(E) imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) \
- rec2imod$(E) imod2rib$(E) imod2vrml$(E) imod2vrml2$(E) imod2meta$(E) \
- wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) imodexplode$(E) \
- patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) imodcurvature$(E) \
- imodfindbeads$(E) point2model$(E) flattenwarp$(E) $(IMODWINCPU)
+PROGS = clonemodel$(E) clonevolume$(E) imodauto$(E) \
+ imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) rec2imod$(E) \
+ imod2rib$(E) imod2vrml$(E) imod2vrml2$(E) imod2obj$(E) \
+ imod2meta$(E) wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) \
+ imodexplode$(E) patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) \
+ imodcurvature$(E) imodfindbeads$(E) point2model$(E) flattenwarp$(E) \
+ $(IMODWINCPU)
 
 all : $(PROGS)
+
+clonemodel$(E) : clonemodel.$(O)
+	$(CC) -o clonemodel clonemodel.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+
+clonevolume$(E) : clonevolume.$(O)
+	$(CC) -o clonevolume clonevolume.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
 
 imodinfo$(E) : imodinfo.$(O)
 	$(CC) -o imodinfo imodinfo.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
@@ -47,6 +55,9 @@ imod2vrml$(E) : imod2vrml.$(O)
 
 imod2vrml2$(E) : imod2vrml2.$(O)
 	$(CC) -o imod2vrml2 imod2vrml2.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+
+imod2obj$(E) : imod2obj.$(O)
+	$(CXX) -o imod2obj imod2obj.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imod2ccdbxml $(E) : imod2ccdbxml.$(O)
 	$(CC) -o imod2ccdbxml imod2ccdbxml.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)

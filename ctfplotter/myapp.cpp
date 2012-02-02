@@ -8,7 +8,6 @@
 *  Colorado.  See dist/COPYRIGHT for full copyright notice.
 * 
 *  $Id$
-*  Log at end of file
 */
 
 #include <QtGui>
@@ -22,7 +21,7 @@
 #include <math.h>
 
 #include "plotter.h"
-#include "rangedialog.h"
+#include "fittingdialog.h"
 #include "angledialog.h"
 #include "myapp.h"
 #include "simplexfitting.h"
@@ -52,6 +51,7 @@ MyApp::MyApp(int &argc, char *argv[], int volt, double pSize,
    mCache(maxCacheSize)
 {
   mSaveModified = false;
+  mSaveAndExit = false;
   mDim=dim;
   mHyperRes = hyper;
   mDefocusTol=focusTol;
@@ -78,10 +78,19 @@ MyApp::MyApp(int &argc, char *argv[], int volt, double pSize,
   mNumNoiseFiles = 0;
   mNoisePS = (double *)malloc(mDim * sizeof(double));
   mTiltAngles = NULL;
+  mSortedAngles = NULL;
   mAngleSign = invertAngles ? -1. : 1.;
 
   // read in existing defocus data 
   mSaved = readDefocusFile(mFnDefocus);
+}
+
+MyApp::~MyApp()
+{
+  delete simplexEngine;
+  delete linearEngine;
+  //if(mSaveFp) fclose(mSaveFp);
+  //for(int k=0;k<MAXSLICENUM;k++) if(slice[k]) sliceFree(slice[k]);
 }
 
 //save all PS in text file for plotting in Matlab
@@ -107,7 +116,7 @@ void MyApp::saveAllPs()
   int ii;
   double *ps=(double*)malloc(mDim*sizeof(double) );
   setNoiseForMean(mStackMean);
-  PlotSettings settings=mPlotter->zoomStack[mPlotter->curZoom];
+  PlotSettings settings=mPlotter->mZoomStack[mPlotter->mCurZoom];
 
   for(ii=0;ii<mDim;ii++){
       if( settings.minX>ii/100.0 || settings.maxX< ii/100.0) continue;
@@ -156,6 +165,9 @@ void MyApp::plotFitPS(bool flagSetInitSetting)
   free(ps);
 }
 
+/*
+ * Fits the power spectrum by thechosen method and finds the zero
+ */
 void MyApp::fitPsFindZero()
 {
   QVector<QPointF> data, data1;
@@ -272,14 +284,21 @@ void MyApp::setSlice(const char *stackFile, char *angleFile)
   mCache.initCache(stackFile, mDim, mHyperRes, mTileSize, mNxx, mNyy, mNzz);
 
   // Read in array of tilt angles once from file
-  if (mTiltAngles)
-    free(mTiltAngles);
+  B3DFREE(mTiltAngles);
   mTiltAngles = NULL;
   mMinAngle = 10000.;
   mMaxAngle = -10000.;
   if (angleFile) {
     mTiltAngles = readTiltAngles(angleFile, mNzz, mAngleSign, mMinAngle, 
                                  mMaxAngle);
+    B3DFREE(mSortedAngles);
+    mSortedAngles = B3DMALLOC(float, mNzz);
+    if (!mSortedAngles)
+      exitError("Allocating array for sorted angles");
+    memcpy(mSortedAngles, mTiltAngles, mNzz * sizeof(float));
+    rsSortFloats(mSortedAngles, mNzz);
+    mAutoFromAngle = mSortedAngles[0];
+    mAutoToAngle = mSortedAngles[mNzz-1];
 
     // Now that we finally know z size, we can check the starting and ending
     // slices and fix them if they are off by 1 or otherwise inconsistent
@@ -289,8 +308,7 @@ void MyApp::setSlice(const char *stackFile, char *angleFile)
         (0, "Warning: Inconsistent view numbers", 
          "The view numbers in the existing defocus file were not all\n"
          "consistent with the angular ranges.  You should find the defocus\n"
-         "again in all of the ranges and save the new data.",
-         QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton);
+         "again in all of the ranges and save the new data.");
       qApp->processEvents();
     }                               
   }
@@ -418,6 +436,9 @@ int  MyApp::computeInitPS()
   return 0;
 }
 
+/*
+ * Slot for adding more tiles
+ */
 void MyApp::moreTileCenterIncluded()
 {
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
@@ -469,7 +490,7 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
   }
   //defocusFinder.setDefocus(defocusFinder.getExpDefocus());
 
-  mPlotter->tileButton->setEnabled(false);
+  mPlotter->mTileButton->setEnabled(false);
  
   tileMax=(tileMax-1)*(tileMax-1);
   
@@ -740,14 +761,9 @@ void MyApp::scaleAndAddStrip
   mTotalTileIncluded += counter;
 }
 
-MyApp::~MyApp()
-{
-  delete simplexEngine;
-  delete linearEngine;
-  //if(mSaveFp) fclose(mSaveFp);
-  //for(int k=0;k<MAXSLICENUM;k++) if(slice[k]) sliceFree(slice[k]);
-}
-
+/*
+ * Slot that is called when the fitting range changes or some other parameters change
+ */
 void MyApp::rangeChanged(double x1_1, double x1_2, double x2_1, double x2_2)
 {
   mX1Idx1 = x1_1 * (mDim-1);
@@ -757,7 +773,10 @@ void MyApp::rangeChanged(double x1_1, double x1_2, double x2_1, double x2_2)
   fitPsFindZero();
 }
 
-
+/*
+ * Slot for responding to angle range change or change in tile definition by 
+ * computing tile PS if needed and recomputing the PS curves
+ */
 void MyApp::angleChanged(double lAngle, double hAngle, double expDefocus, 
    double defTol, int tSize, double axisAngle, double leftTol, double rightTol)
 {  
@@ -802,18 +821,153 @@ void MyApp::angleChanged(double lAngle, double hAngle, double expDefocus,
   }
   else {
     computeInitPS();
-    mPlotter->tileButton->setEnabled(true);
+    mPlotter->mTileButton->setEnabled(true);
     plotFitPS(false); // only plot;
   }
   
   QApplication::restoreOverrideCursor();
 }
 
-void MyApp::setInitTileOption(int index){
-     mPlotter->tileButton->setEnabled(false);
-     mInitialTileOption=index;
+/*
+ * Does multiple fits to ranges of size rangeSize, at intervals of rangeStep,
+ * for all ranges that fit between minAngle and maxAngle.  The fit is iterated
+ * numIter times, with the current defocus estimate used after the first iteration.
+ * If rangeStep is 0, it does a fit to every individual picture, regardless of of the
+ * value of rangeSize.
+ */
+int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize, 
+                           float rangeStep, int numIter)
+{
+  int tSize, numSteps, i, step, sortInd, indLo, indHi, lastIndLo, lastIndHi, numDel, iter;
+  float eps = 0.02f;
+  double expDefocus = defocusFinder.getExpDefocus();
+  int saveOption = mDefocusOption;
+  SavedDefocus *item;
+  double defTol, axisAngle, leftTol, rightTol;
+  double trueStep, minDel, maxDel, mid, minMid, maxMid, loAngle, hiAngle;
+  bool tolOk = mPlotter->mAngleDia->getTileTolerances(defTol, tSize, axisAngle, leftTol,
+                                                      rightTol);
+
+  if (!tolOk)
+    return 1;
+
+  // Determine how many ranges to do
+  if (rangeStep > 0) {
+    numSteps = B3DNINT((maxAngle - minAngle - rangeSize) / rangeStep + 1.);
+    trueStep = rangeStep;
+    if (numSteps > 1)
+      trueStep = (maxAngle - minAngle - rangeSize) / (numSteps - 1);
+    else
+      rangeSize = maxAngle - minAngle;
+    minDel = minAngle + 0.25 * rangeSize;
+    maxDel = maxAngle - 0.25 * rangeSize;
+  } else {
+    numSteps = 0;
+    for (i = 0; i < mNzz; i++) {
+      if (mSortedAngles[i] >= minAngle - eps && mSortedAngles[i] <= maxAngle + eps) {
+        if (!numSteps)
+          sortInd = 0;
+        numSteps++;
+      }
+    }
+    if (numSteps) {
+      minDel = mSortedAngles[sortInd] - eps;
+      maxDel = mSortedAngles[sortInd + numSteps - 1] + eps;
+    }
+  }
+
+  if (!numSteps)
+    return 2;
+
+  // Remove existing items from the table - first count them
+  numDel = 0;
+  minMid = 100000.;
+  maxMid = -100000.;
+  for (i = 0; i < ilistSize(mSaved); i++) {
+    item = (SavedDefocus *)ilistItem(mSaved, i);
+    mid = (item->hAngle + item->lAngle) / 2.;
+    if (mid >= minDel && mid <= maxDel) {
+      numDel++;
+      minMid = B3DMIN(minMid, mid);
+      maxMid = B3DMAX(maxMid, mid);
+    }
+  }
+
+  // Confirm and remove
+  if (numDel > 0) {
+    if (mSaveAndExit) {
+      i = QMessageBox::Yes;
+    } else {
+      QString str;
+      str.sprintf("Do you want to remove existing defocus values listed in the \n"
+                  "table with midpoint tilt angles from %.2f to %.2f degrees?", minMid,
+                  maxMid);
+      i = QMessageBox::question(NULL, QString("Ctfplotter"), str, 
+                                QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
+                                QMessageBox::Yes);
+    }
+    if (i == QMessageBox::Cancel)
+      return 0;
+    if (i == QMessageBox::Yes) {
+      for (i = 0; i < ilistSize(mSaved); i++) {
+        item = (SavedDefocus *)ilistItem(mSaved, i);
+        mid = (item->hAngle + item->lAngle) / 2.;
+        if (mid >= minDel && mid <= maxDel)
+          ilistRemove(mSaved, i--);
+      }
+    }
+  }
+
+  // Loop on the ranges
+  lastIndLo = -1;
+  lastIndHi = -1;
+  for (step = 0; step < numSteps; step++) {
+
+    // Get the low and high angles, make sure it is nonempty and unique
+    if (rangeStep > 0) {
+      loAngle = minAngle + step * trueStep;
+      hiAngle = loAngle + rangeSize;
+      indLo = -1;
+      for (i = 0; i < mNzz; i++) {
+        if (mSortedAngles[i] >= loAngle - eps && mSortedAngles[i] <= hiAngle + eps) {
+          if (indLo < 0)
+            indLo = i;
+          indHi = i;
+        }
+      }
+      if (indLo < 0 || indLo - lastIndLo && indHi == lastIndHi)
+        continue;
+      lastIndLo = indLo;
+      lastIndHi = indHi;
+    } else {
+      loAngle = hiAngle = mSortedAngles[sortInd++];
+    }
+
+    // Iterate
+    for (iter = 0; iter < numIter; iter++) {
+      angleChanged(loAngle, hiAngle, expDefocus, defTol, tSize, axisAngle, leftTol, 
+                   rightTol);
+      mDefocusOption = 1;
+    }
+    mDefocusOption = saveOption;
+
+    // Save in table
+    saveCurrentDefocus();
+  }
+  mPlotter->mAngleDia->setAnglesClicked();
+  return 0;
 }
 
+void MyApp::setInitTileOption(int index) 
+{
+  mPlotter->mTileButton->setEnabled(false);
+  mInitialTileOption=index;
+}
+
+/*
+ * Determine the noise images to interpolate between and computethe noise PS for
+ * the given mean level
+ */
 void MyApp::setNoiseForMean(double mean) 
 {
   int i, highInd = mNumNoiseFiles - 1;
@@ -827,8 +981,8 @@ void MyApp::setNoiseForMean(double mean)
   }
   lowMean = mNoiseMeans[highInd - 1];
   highMean = mNoiseMeans[highInd];
-  printf("For mean %f  noise index %d noise means %f %f\n", mean, highInd-1,
-       lowMean, highMean);
+  //printf("For mean %f  noise index %d noise means %f %f\n", mean, highInd-1,
+  //     lowMean, highMean);
   lowPs = mAllNoisePS + mNoiseIndexes[highInd - 1] * mDim;
   highPs = mAllNoisePS + mNoiseIndexes[highInd] * mDim;
   for (i = 0; i < mDim; i++)
@@ -836,6 +990,9 @@ void MyApp::setNoiseForMean(double mean)
               (highMean - lowMean);
 }
 
+/*
+ * Save the current defocus and angular range in the list and display in table
+ */
 void MyApp::saveCurrentDefocus()
 {
   SavedDefocus toSave;
@@ -847,10 +1004,13 @@ void MyApp::saveCurrentDefocus()
   toSave.defocus=defocusFinder.getDefocus();
   addItemToDefocusList(mSaved, toSave);
   mSaveModified = true;
-  if (mPlotter->aDialog)
-    mPlotter->aDialog->updateTable();
+  if (mPlotter->mAngleDia)
+    mPlotter->mAngleDia->updateTable();
 }
 
+/*
+ * Write out the defocus file
+ */
 void MyApp::writeDefocusFile()
 {
   SavedDefocus *item;
@@ -861,10 +1021,12 @@ void MyApp::writeDefocusFile()
   if (!mBackedUp)
     imodBackupFile(mFnDefocus);
   mBackedUp = true;
-  fp=fopen(mFnDefocus,"w");
-  if(!fp){
-    QErrorMessage* errorMessage = new QErrorMessage();
-    errorMessage->showMessage( "Can not open output file" );
+  fp = fopen(mFnDefocus,"w");
+  if (!fp) {
+    if (mSaveAndExit)
+      exitError("Cannot open output file for saving defocus values");
+    QMessageBox::critical(NULL, "Ctfplotter: File save error",
+                          "Can not open output file");
     return;
   }
   
@@ -878,35 +1040,13 @@ void MyApp::writeDefocusFile()
   mSaveModified = false;
 }
 
-
-
 /*
-
-$Log$
-Revision 1.16  2010/04/02 00:19:29  mast
-Moved some functionality into utility functions, which can adjust for
-view numbers being off by 1
-
-Revision 1.15  2010/03/14 19:34:10  mast
-Changes for reading in tilt angles into array, keeping found values in
-a table and svaing from the table
-
-Revision 1.14  2010/03/09 06:24:52  mast
-Change arguments to const char* to take latin1 from QString
-
-Revision 1.13  2009/08/10 22:19:48  mast
-Implemented storing of power spectra with hyperresolution and more exact
-shifting of off-center tile spectra, used exact zero-defocus relations,
-added fitting to polynomial and CTF-like curve, switched to storing
-divided PS, added second zero clickability
-
-Revision 1.12  2009/01/15 16:31:36  mast
-Qt 4 port
-
-Revision 1.11  2008/11/08 21:54:04  xiongq
-adjust mPlotter setting for initializaion
-
-Revision 1.10  2008/11/07 17:26:24  xiongq
-add the copyright heading
-
-*/
+ * Convenience function.  Note that libdiaqt depends on OpenGL so can't be used
+ */
+void MyApp::showHideWidget(QWidget *widget, bool state)
+{
+  if (state)
+    widget->show();
+  else
+    widget->hide();
+}

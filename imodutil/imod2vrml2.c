@@ -23,17 +23,21 @@
 
 //## GLOBAL VARIABLES AND CONSTANTS:
 
-//static int tabLevel;
-static int lowRes         = 0;
-static int printAllObjs   = 0;
-static int rotateModel    = 0;
-static int dontNameGeoms  = 0;
-static int printNormals   = 0;
-static int showContours   = 0;
+static int  numObjs     = 0;		// tallies the number of objects turned on
+static long numVertices = 0;		// tallies the number of vertex points added
+static long numFaces    = 0;		// tallies the number of faces added
+static int  numSpheres  = 0;		// tallies the number of spheres printed
+
+static int lowRes         = 0;		// if we want to use low res version
+static int printAllObjs   = 0;		// print all objects (not just those on)
+static int rotateModel    = 0;		// "rotate" (flip Y and Z axis)
+static int dontNameGeoms  = 0;		// don't assign names to child geometries
+static int printNormals   = 0;		// print normals
+static int showContours   = 0;		// show all contour lines
 
 //## FUNCTION DECLARATION:
 
-int imod_to_vrml2(Imod *imod, FILE *fout);
+void imod_to_vrml2(Imod *imod, FILE *fout);
 
 static void printObject(Imod *imod, int ob, FILE *fout);
 static void printMaterial(Imod *imod, int ob, int *lastuse, int usefill, FILE *fout);
@@ -124,23 +128,31 @@ int main( int argc, char *argv[])
 
   if (argc - i != 2)
     usage(-1);
-
-  fout = fopen( argv[i + 1] , "w");
-  if (fout == NULL){
-    printf("Couldn't open output file %s.\n", argv[i + 1]);
-    exit(10);
-  }
-     
+	
   imod = imodRead(argv[i]);
   if (!imod){
     fprintf(stderr, "%s: Error reading imod model %s\n", argv[0], 
             argv[i]);
     exit(3);
   }
-     
+	
+	//## OPEN/CREATE .OBJ FILE FOR WRITING:
+	
+	fout = fopen( argv[i + 1] , "w");
+  if (fout == NULL){
+    printf("Couldn't open output file %s.\n", argv[i + 1]);
+    exit(10);
+  }
+	
   imod_to_vrml2(imod, fout);
 
   fclose(fout);
+	
+	fprintf(stdout, "Finished writing '%s' \n", argv[i] );
+	fprintf(stdout, "  # objects on: %d\n", numObjs     );	
+	fprintf(stdout, "  # spheres:    %d\n", numSpheres  );
+	fprintf(stdout, "  # vertices:   %d\n", numVertices );
+	fprintf(stdout, "  # faces:      %d\n", numFaces    );
   exit(0);
 }
 
@@ -151,7 +163,7 @@ int main( int argc, char *argv[])
 //-- > http://graphcomp.com/info/specs/sgi/vrml/spec/        (official specs)   OR
 //-- > http://www.andrewnoske.com/wiki/index.php?title=VRML  (author's notes)
 
-int imod_to_vrml2(Imod *imod, FILE *fout)
+void imod_to_vrml2(Imod *imod, FILE *fout)
 {
 	int ob;
   fprintf(fout,"#VRML V2.0 utf8\n");
@@ -167,7 +179,6 @@ int imod_to_vrml2(Imod *imod, FILE *fout)
   fprintf(fout,"\n");
 	fprintf(fout,"  ]\n");
 	fprintf(fout,"}\n");
-  return 0;
 }
 
 //------------------------
@@ -244,18 +255,19 @@ static void printObject(Imod *imod, int ob, FILE *fout)
 	fprintf(fout," Transform {\n");
 	fprintf(fout,"  children [\n");
 	
-  if (hasSpheres) {
-    printScatContours(imod, ob, fout);
-  }
-  if( !objScattered )
+	if( !objScattered )
 	{
     if (iobjMesh(obj->flags))
       printMesh(imod, ob, fout);
 	}
+  if (hasSpheres) {
+    printScatContours(imod, ob, fout);
+  }
 	
   fprintf(fout,"  ]\n", ob);
 	fprintf(fout,"}\n", ob);
-  return;
+	
+  numObjs++;
 }
 
 
@@ -343,6 +355,8 @@ static void printScatContours(Imod *imod, int ob, FILE *fout)
 				fprintf(fout,"        DEF obj%d_cont%d_pt%d Transform {\n", ob+1, c+1, p+1 );
 				fprintf(fout,"          translation %g %g %g \n",
 											      cont->pts[p].x, cont->pts[p].y, (cont->pts[p].z * zscale) );
+				if(rotateModel)
+					fprintf(fout,"          rotation 1 0 0 1.570796 \n");		// rotate 90 degs
 			  fprintf(fout,"          children [ Shape {\n");
 				fprintf(fout,"              appearance USE MAT_");
 				printVrmlSafeUniqueObjectName(imod, ob, fout );
@@ -353,6 +367,7 @@ static void printScatContours(Imod *imod, int ob, FILE *fout)
 					fprintf(fout,"geometry DEF cont%d_pt%d Sphere { radius %f } } ]\n", 
 																									ob+1, c+1, p+1, radius);
 				fprintf(fout,"        }\n", radius);
+				numSpheres++;
 			}
     }
   }
@@ -424,15 +439,6 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
 			
 			//## OUTPUT POINTS:
 			printMeshPoints( mesh, zscale, fout );
-			//fprintf(fout,"        coord Coordinate {\n");
-			//fprintf(fout,"          point [   # list of all points\n");
-			//for(i = 0; i < mesh->vsize; i+=2)
-			//{
-			//	fprintf(fout,"            %.5g %.5g %.5g,\n",
-			//					mesh->vert[i].x, mesh->vert[i].y, (mesh->vert[i].z * zscale) );
-			//}
-			//fprintf(fout,"          ]\n");
-			//fprintf(fout,"        }\n");
 			
 			//## OUTPUT NORMALS (IF SPECIFIED):
 			if (printNormals)
@@ -458,8 +464,7 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
 				if ( !imodMeshPolyNormFactors(mesh->list[i], &listInc, &vertBase, &normAdd) )
 					continue;
 				
-				// Copy the indices to the new index array numbered from 0
-				lsize = 0;
+				lsize = 0;		// copy the indices to the new index array numbered from 0:
 				i++;
 				while (mesh->list[i] != IMOD_MESH_ENDPOLY)
 				{
@@ -477,7 +482,8 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
 				{
 					ind = 3 * index;
 					fprintf(fout,"          %d,%d,%d,-1,\n", 
-									ilist[ind], ilist[ind + 1], ilist[ind + 2]);
+									ilist[ind+2], ilist[ind+1], ilist[ind]);
+					numFaces++;
 				}
 			}
 			fprintf(fout,"        ]\n");
@@ -551,6 +557,8 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
 			{
 				fprintf(fout,"            %.5g %.5g %.5g,\n",
 								cont->pts[p].x, cont->pts[p].y, (cont->pts[p].z * zscale) );
+				
+				numVertices++;
 			}
 			fprintf(fout,"          ]\n");
 			fprintf(fout,"        }\n");
@@ -584,6 +592,8 @@ static void printMeshPoints(Imesh *mesh, float zscale, FILE *fout)
 	{
 		fprintf(fout,"            %.5g %.5g %.5g,\n",
 						mesh->vert[i].x, mesh->vert[i].y, (mesh->vert[i].z * zscale) );
+		
+		numVertices++;
 	}
 	fprintf(fout,"          ]\n");
 	fprintf(fout,"        }\n");

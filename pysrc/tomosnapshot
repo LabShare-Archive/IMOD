@@ -336,8 +336,8 @@ for k, v in os.environ.items():
    unameOut.append(k + '=' + v)
 
 # Should we do the registry with -r?  It takes 3 seconds
-#if (sys.platform.find('cygwin') >= 0 or sys.platform.find('win32') >= 0) and not winOnly:
-#   unameOut += runcmd('cygcheck -s -v -r', None, None, STDOUT)
+if (sys.platform.find('cygwin') >= 0 or sys.platform.find('win32') >= 0) and not winOnly:
+   unameOut += runcmd('cygcheck -s -v -r', None, None, STDOUT)
 
 # Type-specific additions to lists here:
 #

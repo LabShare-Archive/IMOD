@@ -294,7 +294,7 @@ public abstract class MainPanel extends EtomoPanel {
 
   private static final int estimatedMenuHeight = 60;
   private static final int extraScreenWidthMultiplier = 2;
-  private static final Dimension frameBorder = new Dimension(10, 48);
+  private static final Dimension frameBorder = FixedDim.frameBorder;
 
   abstract void createAxisPanelA(AxisID axisID);
 
@@ -453,6 +453,14 @@ public abstract class MainPanel extends EtomoPanel {
     }
     axisPanel.setProgressBar(label, nSteps, pauseEnabled);
     axisPanel.setProgressBarValue(0);
+  }
+  
+  public void setStaticProgressBar(final String label, final AxisID axisID) {
+    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
+    if (axisPanel == null) {
+      return;
+    }
+    axisPanel.setStaticProgressBar(label);
   }
 
   public void endThreads() {

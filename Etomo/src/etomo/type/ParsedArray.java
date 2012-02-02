@@ -304,9 +304,9 @@ public final class ParsedArray extends ParsedElement {
     if (descriptor == null) {
       ParsedNumber number = ParsedNumber.getInstance(type, etomoNumberType, debug,
           defaultValue);
-      //If the string doesn't have a number in it, don't bother to create the
-      //descriptor.  Descriptors can't use "NaN", so there is no point to
-      //creating an empty one.
+      // If the string doesn't have a number in it, don't bother to create the
+      // descriptor. Descriptors can't use "NaN", so there is no point to
+      // creating an empty one.
       number.setRawString(addIfNumber);
       if (number.isEmpty()) {
         return null;
@@ -360,8 +360,8 @@ public final class ParsedArray extends ParsedElement {
     Token token = null;
     try {
       token = tokenizer.next();
-      //raw strings shouldn't have brackets
-      //place input into array starting from the beginning of the list
+      // raw strings shouldn't have brackets
+      // place input into array starting from the beginning of the list
       parseArray(token, tokenizer);
     }
     catch (IOException e) {
@@ -381,7 +381,7 @@ public final class ParsedArray extends ParsedElement {
     Token token = null;
     try {
       token = tokenizer.next();
-      //raw strings shouldn't have brackets so start with parseArray, not parse.
+      // raw strings shouldn't have brackets so start with parseArray, not parse.
       parseArray(token, tokenizer);
     }
     catch (IOException e) {
@@ -390,10 +390,7 @@ public final class ParsedArray extends ParsedElement {
     }
   }
 
-  /*
-   public void setMinArraySize(int input) {
-   array.setMinSize(input);
-   }*/
+  /* public void setMinArraySize(int input) { array.setMinSize(input); } */
 
   public void clear() {
     array.clear();
@@ -450,7 +447,7 @@ public final class ParsedArray extends ParsedElement {
   public void setRawString(int index, String string) {
     PrimativeTokenizer tokenizer = createTokenizer(string);
     try {
-      parseElement(tokenizer.next(), tokenizer);
+      parseElement(tokenizer.next(), tokenizer, index);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -661,7 +658,7 @@ public final class ParsedArray extends ParsedElement {
         return token;
       }
       token = tokenizer.next();
-      //Remove any whitespace before the first element.
+      // Remove any whitespace before the first element.
       if (token != null && token.is(Token.Type.WHITESPACE)) {
         token = tokenizer.next();
       }
@@ -699,7 +696,7 @@ public final class ParsedArray extends ParsedElement {
       startIndex = 0;
     }
     StringBuffer buffer = new StringBuffer();
-    boolean emptyString = true;//for adding the divider symbols
+    boolean emptyString = true;// for adding the divider symbols
     for (int i = startIndex; i < array.size(); i++) {
       if (exclusionIndex != i) {
         ParsedElement element = array.get(i);
@@ -728,9 +725,9 @@ public final class ParsedArray extends ParsedElement {
       return null;
     }
     boolean dividerFound = true;
-    //loop until the end of the array
-    //can't just check dividerFound, because whitespace can act as a divider,
-    //but isn't always the divider
+    // loop until the end of the array
+    // can't just check dividerFound, because whitespace can act as a divider,
+    // but isn't always the divider
     while (dividerFound && !isFailed() && token != null && !token.is(Token.Type.EOL)
         && !token.is(Token.Type.EOF)
         && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
@@ -738,11 +735,11 @@ public final class ParsedArray extends ParsedElement {
         System.out.println("ParsedArray.parseArray:while");
       }
       try {
-        //parse an element
+        // parse an element
         token = parseElement(token, tokenizer);
-        //Find the divider.
-        //Whitespace may be used as a divider or the divider may be preceded by
-        //whitespace.
+        // Find the divider.
+        // Whitespace may be used as a divider or the divider may be preceded by
+        // whitespace.
         dividerFound = false;
         if (token != null
             && (token.is(Token.Type.WHITESPACE) || token.equals(Token.Type.SYMBOL,
@@ -751,14 +748,14 @@ public final class ParsedArray extends ParsedElement {
           token = tokenizer.next();
         }
         if (dividerFound) {
-          //If whitespace was found, it may precede the divider.
+          // If whitespace was found, it may precede the divider.
           if (token != null
               && token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
             token = tokenizer.next();
           }
         }
-        //Don't worry about whitespace after the divider.  It should be handled
-        //by the element.
+        // Don't worry about whitespace after the divider. It should be handled
+        // by the element.
       }
       catch (IOException e) {
         e.printStackTrace();
@@ -775,41 +772,62 @@ public final class ParsedArray extends ParsedElement {
    * @param index adds element when index is -1
    * @return current token when done parsing the element
    */
-  private Token parseElement(Token token, PrimativeTokenizer tokenizer) {
-    //parse element
-    //Array descriptors don't have their own open and close symbols, so they
-    //look like numbers until to you get to the first divider (":"or "-").
+  private Token parseElement(Token token, PrimativeTokenizer tokenizer, final int index) {
+    // parse element
+    // Array descriptors don't have their own open and close symbols, so they
+    // look like numbers until to you get to the first divider (":"or "-").
     if (debug) {
-      System.out.println("ParsedArray.parseElement:token=" + token + ",type=" + type);
+      System.out.println("ParsedArray.parseElement:token=" + token + ",type=" + type
+          + ",index:" + index);
     }
     ParsedElement element;
-    //First assume that there might be an array descriptor.
+    // First assume that there might be an array descriptor.
     ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type, etomoNumberType,
         debug, defaultValue);
     if (descriptor != null) {
       descriptor.setDebug(debug);
       token = descriptor.parse(token, tokenizer);
-      //create the correct type of element
+      // create the correct type of element
       if (descriptor.isEmpty()) {
-        //There's nothing there, so its an empty element
-        array.addEmptyElement();
+        // There's nothing there, so its an empty element
+        if (index == -1) {
+          array.addEmptyElement();
+        }
+        else {
+          array.setEmptyElement(index);
+        }
         return token;
       }
       else if (descriptor.wasDividerParsed()) {
         element = descriptor;
       }
       else {
-        //If the divider was not found then it is not a descriptor.
+        // If the divider was not found then it is not a descriptor.
         element = descriptor.getElement(0);
       }
     }
     else {
-      //ParsedDescriptor would not return an instance so the type is not a type
-      //that can have an array descriptor or iterator.
+      // ParsedDescriptor would not return an instance so the type is not a type
+      // that can have an array descriptor or iterator.
       element = ParsedNumber.getInstance(type, etomoNumberType, debug, defaultValue);
       token = element.parse(token, tokenizer);
     }
-    array.add(element);
+    if (index == -1) {
+      array.add(element);
+    }
+    else {
+      array.set(index, element);
+    }
     return token;
+  }
+
+  /**
+   * Adds either a ParsedArrayDescriptor or a ParsedNumber.
+   * @param token
+   * @param tokenizer
+   * @return current token when done parsing the element
+   */
+  private Token parseElement(Token token, PrimativeTokenizer tokenizer) {
+    return parseElement(token, tokenizer, -1);
   }
 }
