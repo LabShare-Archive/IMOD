@@ -323,6 +323,9 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   private String commandLine = null;
   private String[] commandArray = null;
   private File workingDirectory = null;
+  /**
+   * @deprecated
+   */
   private boolean demoMode = false;
   private boolean debug = false;
   private String[] stdOutput;

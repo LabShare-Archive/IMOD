@@ -43,30 +43,29 @@ package etomo.process;
  */
 public class ParsePID implements Runnable {
   public static final String rcsid = "$Id$";
-  private final SystemProgram csh;
+  private final SystemProgram process;
   private final StringBuffer PID;
   private final ProcessData processData;
 
-  public ParsePID(SystemProgram cshProcess, StringBuffer bufPID,
-      ProcessData processData) {
-    csh = cshProcess;
+  public ParsePID(SystemProgram process, StringBuffer bufPID, ProcessData processData) {
+    this.process = process;
     PID = bufPID;
     this.processData = processData;
   }
 
   public final void run() {
-    //  Wait for the csh thread to start
-    while (!csh.isStarted()) {
+    // Wait for the csh thread to start
+    while (!process.isStarted()) {
       try {
         Thread.sleep(100);
       }
       catch (InterruptedException except) {
         return;
-      } 
+      }
     }
 
     // Once it is started scan the stderr output for the appropriate string
-    while (PID.length() == 0 && !csh.isDone()) {
+    while (PID.length() == 0 && !process.isDone()) {
       try {
         parsePIDString();
         Thread.sleep(100);
@@ -87,12 +86,13 @@ public class ParsePID implements Runnable {
    * Walk the standard error output to parse the PID string
    */
   protected void parsePIDString() {
-    String[] stderr = csh.getStdError();
+    String[] stderr = process.getStdError();
     if (stderr == null) {
       return;
     }
     for (int i = 0; i < stderr.length; i++) {
-      if (stderr[i].startsWith("Shell PID:")) {
+      if (stderr[i].startsWith("Shell PID:") || stderr[i].startsWith("Python PID:")
+          || stderr[i].startsWith("Windows PID:") || stderr[i].startsWith("Cygwin PID:")) {
         String[] tokens = stderr[i].split("\\s+");
         if (tokens.length > 2) {
           PID.append(tokens[2]);

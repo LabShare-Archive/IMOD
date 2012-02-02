@@ -263,8 +263,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    */
   protected boolean isComScriptBusy() {
     String osName = System.getProperty("os.name").toLowerCase();
-    //lsof does not exist in Windows.  In Windows, a busy log file will be
-    //detected when the rename fails.
+    // lsof does not exist in Windows. In Windows, a busy log file will be
+    // detected when the rename fails.
     if (osName.indexOf("linux") == -1 && osName.indexOf("mac os") == -1) {
       return false;
     }
@@ -290,7 +290,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     }
     String header = stdout[0].trim();
     int nameIndex = header.indexOf(" NAME") + 1;
-    //Return false if the NAME field is not found
+    // Return false if the NAME field is not found
     if (nameIndex == 0) {
       return false;
     }
@@ -305,7 +305,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
       return false;
     }
     for (int i = 1; i < stdout.length; i++) {
-      //check for missing size entry - assume name is last
+      // check for missing size entry - assume name is last
       if (stdout[i].substring(nameIndex).trim().equals(comscriptLog.getAbsolutePath())) {
         if (getMonitor() != null) {
           getMonitor().kill(this, axisID);
@@ -332,9 +332,11 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     int index = startCommand;
     while (index <= endCommand) {
       try {
-        renameFiles(comscriptState.getWatchedFile(index), getWorkingDirectory(), LogFile
-            .getInstance(manager.getPropertyUserDir(), getAxisID(), comscriptState
-                .getCommand(index)));
+        renameFiles(
+            comscriptState.getWatchedFile(index),
+            getWorkingDirectory(),
+            LogFile.getInstance(manager.getPropertyUserDir(), getAxisID(),
+                comscriptState.getCommand(index)));
       }
       catch (LogFile.LockException e) {
         getProcessMessages().addError(e.getMessage());
@@ -351,6 +353,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
   /**
    * Places commmands in the .csh file.  Creates and runs a file containing
    * commands to execute the .csh file in the background.  
+   * @deprecated
    */
   void execCsh(String[] commands) throws IOException, SystemProcessException,
       LogFile.LockException {
@@ -367,9 +370,9 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     Utilities.writeFile(cshFile, commands, true);
     makeRunCshFile(runCshFile, cshFileName, getWatchedFileName());
 
-    // Do not use the -e flag for tcsh since David's scripts handle the failure 
-    // of commands and then report appropriately.  The exception to this is the
-    // com scripts which require the -e flag.  RJG: 2003-11-06 
+    // Do not use the -e flag for tcsh since David's scripts handle the failure
+    // of commands and then report appropriately. The exception to this is the
+    // com scripts which require the -e flag. RJG: 2003-11-06
     String[] command = { "tcsh", "-f", runCshFile.getAbsolutePath() };
     BackgroundSystemProgram program = new BackgroundSystemProgram(manager, command,
         getDetachedMonitor(), getAxisID());
@@ -381,12 +384,56 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
         getProcessData());
     Thread parsePIDThread = new Thread(parsePID);
     parsePIDThread.start();
-    //make sure nothing else is writing or backing up the log files
+    // make sure nothing else is writing or backing up the log files
     LogFile.WritingId logWritingId = getLogFile().openForWriting();
 
     program.run();
 
-    //release the log files
+    // release the log files
+    getLogFile().closeForWriting(logWritingId);
+    // Check the exit value, if it is non zero, parse the warnings and errors
+    // from the log file.
+    if (program.getExitValue() != 0) {
+      throw new SystemProcessException("");
+    }
+  }
+
+  /**
+   * Places commmands in the .csh file.  Creates and runs a file containing
+   * commands to execute the .csh file in the background.  
+   */
+  void execPython(String[] commands) throws IOException, SystemProcessException,
+      LogFile.LockException {
+    File workingDirectory = getWorkingDirectory();
+    String runName = parseBaseName(getComScriptName(), ".com");
+    String pythonFileName = runName + ".py";
+    File pythonFile = new File(workingDirectory, pythonFileName);
+    File outFile = new File(workingDirectory, getWatchedFileName());
+    Utilities.writeFile(pythonFile, commands, true);
+    // makeRunPythonFile(runPythonFile, pythonFileName, getWatchedFileName());
+
+    // Do not use the -e flag for tcsh since David's scripts handle the failure
+    // of commands and then report appropriately. The exception to this is the
+    // com scripts which require the -e flag. RJG: 2003-11-06
+    String[] command = { "python", "-u",
+        "/home/sueh/workspace/Development3/pysrc/" + "startprocess", "-o",
+        getWatchedFileName(), "-e", "None", "python", "-u", pythonFileName };
+    BackgroundSystemProgram program = new BackgroundSystemProgram(manager, command,
+        getDetachedMonitor(), getAxisID());
+    setSystemProgram(program);
+    program.setWorkingDirectory(workingDirectory);
+    program.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
+
+    ParseBackgroundPID parsePID = new ParseBackgroundPID(program, processID, outFile,
+        getProcessData());
+    Thread parsePIDThread = new Thread(parsePID);
+    parsePIDThread.start();
+    // make sure nothing else is writing or backing up the log files
+    LogFile.WritingId logWritingId = getLogFile().openForWriting();
+
+    program.run();
+
+    // release the log files
     getLogFile().closeForWriting(logWritingId);
     // Check the exit value, if it is non zero, parse the warnings and errors
     // from the log file.
@@ -403,6 +450,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * create a csh file to run commandname.csh (created from commandname.com).
    * To avoid hangups when quitting Etomo or logging out, put nohup on the first
    * line and send the output to a file.
+   * @deprecated
    * @param runCshFile
    * @param cshFileName
    * @param runName
@@ -420,6 +468,31 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     bufferedWriter.write("nohup");
     bufferedWriter.newLine();
     bufferedWriter.write("tcsh -f " + cshFileName + ">&" + outFileName + "&");
+    bufferedWriter.newLine();
+    bufferedWriter.close();
+  }
+
+  /**
+   * create a py file to run commandname.py (created from commandname.com).
+   * To avoid hangups when quitting Etomo or logging out, put nohup on the first
+   * line and send the output to a file.
+   * @param runCshFile
+   * @param cshFileName
+   * @param runName
+   * @throws IOException
+   */
+  private void makeRunPythonFile(File runPythonFile, String pythonFileName,
+      String outFileName) throws IOException {
+    if (runPythonFile == null) {
+      throw new IOException("unable to create " + pythonFileName);
+    }
+    if (runPythonFile.exists()) {
+      return;
+    }
+    BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(runPythonFile));
+    bufferedWriter.write("nohup");
+    bufferedWriter.newLine();
+    bufferedWriter.write("python -u " + pythonFileName + ">&" + outFileName + "&");
     bufferedWriter.newLine();
     bufferedWriter.close();
   }
@@ -470,7 +543,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     String line;
     try {
       if ((line = bufferedReader.readLine()) != null) {
-        if (line.startsWith("Shell PID:")) {
+        if (line.startsWith("Shell PID:") || line.startsWith("Python PID:")
+            || line.startsWith("Windows PID:") || line.startsWith("Cygwin PID:")) {
           String[] tokens = line.split("\\s+");
           if (tokens.length > 2) {
             PID.append(tokens[2]);
