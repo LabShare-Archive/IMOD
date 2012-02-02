@@ -298,7 +298,7 @@ QMAKE_LFLAGS_RELEASE += -Wl,-E
 EOF
 
 # This is needed for linking with gfortran on FC 14; see if it works everywhere
-echo "LIBS += -lstdc++" >! $ctfplot_qconf
+echo "LIBS += $Ltifflib -lstdc++" >! $ctfplot_qconf
 echo " " >! $prochunk_qconf
 if ("$qmcxxFlags" != "") then
     foreach i ($midas_qconf $imod_qconf $ctfplot_qconf $prochunk_qconf)
