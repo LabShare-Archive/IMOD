@@ -83,6 +83,9 @@ public final class Arguments {
   private static final String MEMORY_TAG = "--memory";
   private static final String NEWSTUFF_TAG = "--newstuff";
   private static final String TIMESTAMP_TAG = "--timestamp";
+  /**
+   * @deprecated
+   */
   private static final String DEMO_TAG = "--demo";
   private static final String DIR_TAG = "--dir";
   private static final String DATASET_TAG = "--dataset";
@@ -204,7 +207,6 @@ public final class Arguments {
 
   private boolean debug = false;
   private int debugLevel = 0;
-  private boolean demo = false;
   /**
    * If arguments hasn't been initialized yet, then
    * assume that this is a test because UITest does alot of work before it can
@@ -260,8 +262,12 @@ public final class Arguments {
     return selfTest;
   }
 
+  /**
+   * @deprecated
+   * @return
+   */
   public boolean isDemo() {
-    return demo;
+    return false;
   }
 
   public AxisType getAxis() {
@@ -362,9 +368,6 @@ public final class Arguments {
       }
       else if (args[i].equals(HELP1_TAG) || args[i].equals(HELP2_TAG)) {
         help = true;
-      }
-      else if (args[i].equals(DEMO_TAG)) {
-        demo = true;
       }
       else if (args[i].equals(TEST_TAG)) {
         test = true;
