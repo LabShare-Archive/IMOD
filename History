@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/1/12: IMOD_4-4-4
+2/1/12: Fixed crash from failure to clear vertex buffers when model view is
+closed.
+
 2/1/12: Increased limit on number of views for tiltalign and beadtrack to
 1440.
 

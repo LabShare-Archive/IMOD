@@ -40,6 +40,7 @@
 #include "undoredo.h"
 #include "imod_assistant.h"
 #include "sslice.h"
+#include "vertexbuffer.h"
 
 #include "b3dicon.xpm"
 
@@ -794,6 +795,7 @@ void imodvQuit()
   ImodvClosed = 1;
   onceOpened = 1;
   lastGeom = ivwRestorableGeometry(a->mainWin);
+  vbCleanupVBD(Imodv->imod);
 
   if (a->boundBoxExtraObj > 0)
     ivwFreeExtraObject(a->vi, a->boundBoxExtraObj);
