@@ -331,6 +331,7 @@ set.var.incremental-shift-to-center-simple-align.a=-12.4
 set.var.incremental-shift-to-center-simple-align.b=-13.9
 set.var.final-align-comscript=newst
 set.var.final-align-command=newstack
+set.var.ctfcorrection-binned-pixel-size=4.04
 #TomoGen
 set.var.output-density-scaling-factor=1000.0
 set.var.linear-density-scaling-factor=0.2
@@ -385,6 +386,7 @@ set.var.incremental-shift-to-center.a=28.9
 set.var.incremental-shift-to-center.b=38.7
 set.var.final-align-comscript=blend
 set.var.final-align-command=blendmont
+set.var.ctfcorrection-binned-pixel-size=2.84
 #TomoGen
 set.var.output-density-scaling-factor.a=500.0
 set.var.output-density-scaling-factor.b=1000.0

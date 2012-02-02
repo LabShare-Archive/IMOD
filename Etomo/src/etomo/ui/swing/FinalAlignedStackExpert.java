@@ -192,7 +192,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return;
     }
     String actionMessage = manager.setCurrentDialogType(dialogType, axisID);
-    if (showDialog(dialog,actionMessage)) {
+    if (showDialog(dialog, actionMessage)) {
       return;
     }
     // Create the dialog and show it.
@@ -318,7 +318,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     dialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
     dialog.setImageRotation(metaData.getImageRotation(axisID).toString());
     dialog.setTiltState(state, metaData);
-    openDialog(dialog,actionMessage);
+    openDialog(dialog, actionMessage);
   }
 
   public void updateDialog() {
@@ -831,7 +831,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     dialog.setConfigFile(param.getConfigFile());
     dialog.setExpectedDefocus(param.getExpectedDefocus());
-    dialog.setOffsetToAdd(param.getOffsetToAdd()); 
+    dialog.setOffsetToAdd(param.getOffsetToAdd());
   }
 
   private void getParameters(CtfPlotterParam param) {
@@ -886,6 +886,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     param.setInterpolationWidth(dialog.getInterpolationWidth());
     param.setDefocusTol(dialog.getDefocusTol());
     param.setOutputFileName(DatasetFiles.getCtfCorrectionFileName(manager, axisID));
+    param.setPixelSize(metaData.getPixelSize()
+        * Utilities.getStackBinning(manager, axisID, FileType.ALIGNED_STACK));
   }
 
   private void setParameters(ConstMTFFilterParam mtfFilterParam) {

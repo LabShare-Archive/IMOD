@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/2/12: In eTomo changed the pixel size in ctfcorrection.com to take the
+binning of the aligned stack into account.(Bug# 1594)
+
 2/1/12: IMOD_4-4-4
 2/1/12: Fixed crash from failure to clear vertex buffers when model view is
 closed.
