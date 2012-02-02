@@ -2,7 +2,6 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -887,7 +886,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     JFileChooser chooser = new FileChooser(new File(currentMtfDirectory));
     MtfFileFilter mtfFileFilter = new MtfFileFilter();
     chooser.setFileFilter(mtfFileFilter);
-    chooser.setPreferredSize(new Dimension(400, 400));
+    chooser.setPreferredSize(FixedDim.fileChooser);
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {

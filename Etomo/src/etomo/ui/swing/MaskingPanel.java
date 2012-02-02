@@ -1,7 +1,6 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
@@ -149,7 +148,7 @@ final class MaskingPanel {
     pnlSphereCylinder.add(pnlRadius);
     pnlSphereCylinder.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlSphereCylinder.add(pnlCylinderOrientationX);
-    pnlSphereCylinder.add(Box.createRigidArea(new Dimension(0, 3)));
+    pnlSphereCylinder.add(Box.createRigidArea(FixedDim.x0_y3));
     // MaskTypeNone
     pnlMaskTypeNone.setLayout(new BoxLayout(pnlMaskTypeNone, BoxLayout.X_AXIS));
     pnlMaskTypeNone.setAlignmentX(Box.RIGHT_ALIGNMENT);
@@ -182,7 +181,7 @@ final class MaskingPanel {
         BoxLayout.X_AXIS));
     pnlCylinderOrientationX.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlCylinderOrientationX.add(pnlCylinderOrientation);
-    pnlCylinderOrientationX.add(Box.createRigidArea(new Dimension(30, 0)));
+    pnlCylinderOrientationX.add(Box.createRigidArea(FixedDim.x30_y0));
     // CylinderOrientation
     pnlCylinderOrientation.setLayout(new BoxLayout(pnlCylinderOrientation,
         BoxLayout.Y_AXIS));
@@ -430,6 +429,7 @@ final class MaskingPanel {
     ltfInsideMaskRadius.setToolTipText("Inner radius of the mask region in pixels.");
     ltfOutsideMaskRadius
         .setToolTipText("Inner and outer radii of the mask region in pixels.");
+    cbCylinderOrientation.setToolTipText("Manually specify cylindrical mask orientation.");
   }
 
   private static final class MaskingActionListener implements ActionListener {

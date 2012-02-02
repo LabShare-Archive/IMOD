@@ -1014,7 +1014,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     chooser.setDialogTitle("Choose a section");
     TomogramFileFilter tomogramFilter = new TomogramFileFilter();
     chooser.setFileFilter(tomogramFilter);
-    chooser.setPreferredSize(new Dimension(400, 400));
+    chooser.setPreferredSize(FixedDim.fileChooser);
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(pnlBorder.getContainer());
     if (returnVal == JFileChooser.APPROVE_OPTION) {

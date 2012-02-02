@@ -1,0 +1,79 @@
+#!/usr/bin/python -u
+# startprocess - runs a process in background with redirection of output/error
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+progname = 'startprocess'
+prefix = 'ERROR: ' + progname + ' - '
+
+# load System Libraries
+import sys, os, os.path, signal
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except Exception:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import exitError, setExitPrefix
+
+setExitPrefix(prefix)
+
+if len(sys.argv) < 2:
+   prnstr("Usage: " + progname + \
+             """ [-o outfile] [-e errfile] [-d dir] command arguments...
+   Runs a process in the background with optional redirection of the output
+      outfile is a file for standard output
+      errfile is a file for standard error, or 'None' for no redirection
+      dir is a working directory to set before running the command; errfile
+          and outfile are relative to this directory
+   The default is no redirection of standard output, and redirection of
+      standard error into standard output (use '-e None' to override)""")
+   sys.exit(0)
+
+argind = 1
+outfile = None
+errfile = 'stdout'
+workdir = None
+while argind < len(sys.argv) - 1:
+   if sys.argv[argind] == '-o':
+      outfile = sys.argv[argind + 1]
+      argind += 2
+      continue
+   elif sys.argv[argind] == '-e':
+      errfile = sys.argv[argind + 1]
+      argind += 2
+      if errfile == 'None':
+         errfile = None
+      continue
+   if sys.argv[argind] == '-d':
+      workdir = sys.argv[argind + 1]
+      argind += 2
+      continue
+   else:
+      break
+   
+if argind >= len(sys.argv):
+   exitError("No command was included")
+
+try:
+   os.chdir(workdir)
+except:
+   exitError('Changing working directory to ' + workdir)
+   
+bkgdProcess(sys.argv[argind:], outfile, errfile)
+sys.exit(0)

@@ -27,7 +27,8 @@ lib
 pylib
 buildlib
 qtlib
-bk--
+bk--*
+.DS_Store
 man
 html/man
 html/libhelp
@@ -221,6 +222,7 @@ imodutil/clonevolume
 imodutil/echo2
 imodutil/flattenwarp
 imodutil/imod2meta
+imodutil/imod2obj
 imodutil/imod2patch
 imodutil/imod2rib
 imodutil/imod2vrml

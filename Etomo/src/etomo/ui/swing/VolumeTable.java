@@ -509,7 +509,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     }
     int maxRowTextSize = rowList.getMaxRowTextSize();
     if (maxRowTextSize <= 50) {
-      horizontalRigidArea1 = Box.createRigidArea(new Dimension(181, 0));
+      horizontalRigidArea1 = Box.createRigidArea(FixedDim.x181_y0);
     }
     else {
       horizontalRigidArea1 = Box.createRigidArea(new Dimension(Math.max(

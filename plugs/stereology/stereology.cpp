@@ -1079,7 +1079,8 @@ vector<long> GridSetObj::getIdxPtsInRadius( Ipoint *center, float radius )
 		for(int x=xIdxMin; x<=xIdxMax; x++)								// for each column:
 		{
 			long ptIdx    = getPtIdx(x,y,z);
-			float distSq = line_sqDistBetweenPts2D( center, &getPos(ptIdx) );
+                        Ipoint tmpPt = getPos(ptIdx);
+			float distSq = line_sqDistBetweenPts2D( center, &tmpPt );
 			if( distSq <= radSq )
 				ptIdxInRad.push_back(ptIdx);
 		}
@@ -1146,7 +1147,8 @@ bool GridSetObj::isPtInRadius( Ipoint *center, float radius, long *closestPtIdx 
 		for(int x=xIdxMin; x<=xIdxMax; x++)								// for each column:
 		{
 			long ptIdx   = getPtIdx(x,y,z);
-			float distSq = line_sqDistBetweenPts2D( center, &getPos(ptIdx) );
+                        Ipoint tmpPt = getPos(ptIdx);
+			float distSq = line_sqDistBetweenPts2D( center, &tmpPt );
 			if( distSq <= minDistSq )
 			{
 				minDistSq = distSq;

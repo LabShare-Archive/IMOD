@@ -55,7 +55,7 @@ final class SphericalSamplingForThetaAndPsiPanel {
   private final RadioButton rbSampleSphereHalf = new RadioButton(
       SAMPLE_SPHERE_HALF_LABEL, MatlabParam.SampleSphere.HALF, bgSampleSphere);
   private final LabeledTextField ltfSampleInterval = new LabeledTextField(
-      SAMPLE_INTERVAL_LABEL + ": ");
+      SAMPLE_INTERVAL_LABEL + " (degrees) : ");
 
   private final BaseManager manager;
   private final SphericalSamplingForThetaAndPsiParent parent;
@@ -85,14 +85,18 @@ final class SphericalSamplingForThetaAndPsiPanel {
   }
 
   private void createPanel() {
+    //init
+    ltfSampleInterval.setPreferredWidth(60);
+    //root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
     pnlRoot.setBorder(new EtchedBorder(SPHERICAL_SAMPLING_LABEL).getBorder());
+    pnlRoot.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlRoot.add(rbSampleSphereNone.getComponent());
-    pnlRoot.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlRoot.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlRoot.add(rbSampleSphereFull.getComponent());
-    pnlRoot.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlRoot.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlRoot.add(rbSampleSphereHalf.getComponent());
-    pnlRoot.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlRoot.add(Box.createRigidArea(FixedDim.x70_y0));
     pnlRoot.add(ltfSampleInterval.getContainer());
     pnlRoot.add(Box.createHorizontalGlue());
   }
@@ -182,24 +186,23 @@ final class SphericalSamplingForThetaAndPsiPanel {
   private void setTooltips() {
     rbSampleSphereNone
         .setToolTipText("Use the angular search parameters specified in the "
-            + "Iteration Table for the first alignment search.");
+            + "Iteration Table for the first iteration.");
     rbSampleSphereFull
-        .setToolTipText("During the first alignment search, perform an optimized "
-            + "180 degree search in Theta and 360 degree search for Psi, "
-            + "ignoring the values specified in the Iteration Table for these "
-            + "parameters.  Optimization prevents over-sampling near the poles "
-            + "(on the X axis).  Phi Max should be set to 180 degrees for "
-            + "spherical sampling.");
+        .setToolTipText("At the first iteration, perform an optimized "
+            + "search with Theta varying from -90 to 90 degrees and Psi, "
+            + "varying from -180 to 180 degrees. Optimization prevents "
+            + "over-sampling near the poles. Phi Max should be set to "
+            + "180 degrees.");
     rbSampleSphereHalf
-        .setToolTipText("During the first alignment search, perform a optimized "
-            + "search spanning 180 degrees Theta and 180 degrees in Psi, "
-            + "ignoring the values specified in the Iteration Table for these "
-            + "parameters.  Optimization prevents over-sampling near the poles "
-            + "Phi Max should be set to 180 degrees for spherical sampling.");
+        .setToolTipText("At the first iteration, perform an optimized "
+            + "search with Theta and Psi both varying from -90 to 90 degrees. "
+            + "Optimization prevents over-sampling near the poles. Phi Max "
+            + "should be set to 180 degrees.");
+
     ltfSampleInterval.setToolTipText("The interval, in degrees, at which theta will be "
-        + "sampled when using spherical sampling.  Psi will also be sampled "
+        + "sampled when using spherical sampling. Psi will also be sampled "
         + "at this interval at the equator, and with decreasing frequency "
-        + "near the poles (on the X axis).");
+        + "near the poles.");
   }
 
   private static final class SphericalSamplingForThetaAndPsiActionListener implements

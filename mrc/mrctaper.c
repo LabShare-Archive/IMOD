@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <stdlib.h>
@@ -147,7 +146,6 @@ int main( int argc, char *argv[] )
     hout = hdata;
     /* DNM: eliminate extra header info in the output, and mark it as not swapped  */
     mrcInitOutputHeader(&hout);
-    hout.nsymbt = 0;
     hptr = &hout;
     hout.nz = zmax + 1 - zmin;
     hout.mz = hout.nz;
@@ -203,38 +201,3 @@ int main( int argc, char *argv[] )
 
   return(0);
 }
-
-
-/*
-$Log$
-Revision 3.10  2008/05/20 22:01:18  mast
-Changed to make taper length be 1% of image size between 16 and 127
-
-Revision 3.9  2007/06/13 17:13:42  sueh
-bug# 1019 In main, setting hout.sectionSkip to 0.
-
-Revision 3.8  2007/05/27 20:22:36  mast
-Added taper routine to library
-
-Revision 3.7  2007/02/04 21:12:20  mast
-Function name changes from mrcslice cleanup
-
-Revision 3.6  2005/11/11 21:55:53  mast
-Allow unsigned data and standardize ERROR messages
-
-Revision 3.5  2005/02/11 01:42:34  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.4  2004/07/07 19:25:30  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.3  2003/10/24 02:28:42  mast
-strip directory from program name and/or use routine to make backup file
-
-Revision 3.2  2002/11/05 23:52:15  mast
-Changed to call imodCopyright, fixed bug in outputting usage
-
-Revision 3.1  2002/06/26 16:50:03  mast
-Allowed writing back to byte-swapped files
-
-*/

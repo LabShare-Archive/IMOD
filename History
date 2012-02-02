@@ -1,5 +1,58 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/1/12: Increased limit on number of views for tiltalign and beadtrack to
+1440.
+
+1/31/12: Finished the eTomo - PEET interface upgrade.(Bug# 1592)
+
+1/27/12: Added a Python script startprocess to run jobs in background for
+eTomo.
+
+1/25/12: Made all Qt-based programs reset the locale after starting the
+Qt application to prevent errors reading floating point numbers.
+
+1/25/12: Made Midas able to read files with DOS line endings on other systems.
+
+1/25/12: In eTomo - PEET - Reference, converted the  multi-particle  reference
+fields to a single combo-box.(Bug# 1592)
+
+1/24/12: In eTomo, finished implementing the --actions parameter (causes
+messages documenting eTomo actions to be printed).(Bug# 1441)
+
+1/19/12: Fixed problem with trying to do more than 50000 peaks in Findbeads3d.
+
+1/19/12: In eTomo - PEET, setting nWeightGroup to 0 in the .prm file when the
+'Weight groups' spinner is off in the dialog.(Bug# 1589)
+
+1/18/12: In eTomo - PEET, defaulted low cutoff sigma.(Bug# 1588)
+
+1/18/12: In eTomo - PEET, added a startup popup.(Bug# 1585)
+
+1/18/12: In eTomo - PEET, avoiding the problems caused by entering a "." for
+the PEET dataset directory.(Bug# 1584)
+
+1/17/12: Added cygcheck back in to tomosnapshot.
+
+1/9/12: Fixed tests for a view-number bug that made Ctfphaseflip fail with
+one image per range.
+
+1/4/12: In Ctfplotter, added defaults so some options aren't required, added
+options for controlling the curve fitting, and added an option for saving
+autofit results and exiting. 
+
+1/3/12: In Etomo - PEET upgraded the Run tab.(Bug# 1571)
+
+1/3/12: Add options to Ctfphaseflip to adjust for the shift of images during 
+alignment.
+
+1/3/12: In Ctfplotter, added ability to step the angular range up or down,
+ability to fit automatically to a whole set of ranges, and an option to start
+the program with automatic fitting.  Also switched frequency units to be
+cycles/pixel going from 0 to 0.5.
+
+12/24/11: Fixed test in simplex search routine that terminated searches with
+only one variable very early, maybe terminated other searches a bit early.
+
 12/20/11: IMOD_4-4-3
 12/20/11: In eTomo - PEET, upgraded the Interations table.(Bug# 1570)
 

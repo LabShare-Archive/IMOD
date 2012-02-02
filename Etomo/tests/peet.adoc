@@ -20,12 +20,23 @@ run.function.runtab=
 [function = setup]
 tb.setup=
 #check empty directory error
-run.function.setup-test-run-error=
+[[if = test-gui]]
+  bn.ok=
+  wait.popup.entry-error=OK
+[[]]
 bn.directory=
 wait.file-chooser.open=%{testdir}
-#check empty root name error
-run.function.setup-test-run-error=
-tf.root-name-for-output=%{dataset}
+[[if = test-gui]]
+  cb.copy-project-from=on
+  bn.ok=
+  wait.popup.entry-error=OK
+  cb.copy-project-from=off
+  #check empty root name error
+  bn.ok=
+  wait.popup.entry-error=OK
+[[]]
+tf.base-name=%{dataset}
+bn.ok=
 run.function.volume-table=
 run.function.reference=
 run.function.volume-size=
@@ -122,17 +133,48 @@ wait.file-chooser.initial-motl=%{dataset}-a-initMOTL.csv
 
 
 [function = reference]
+[[if = test-gui]]
+  #values
+  assert.rb.particle=on
+  assert.tf.particle=
+  assert.sp.in-volume=1
+  assert.rb.user-supplied-file=off
+  assert.tf.user-supplied-file=
+  assert.rb.multiparticle-reference=off
+  assert.cbb.multiparticle-reference=32
+  #enabled
+  assert.enabled.rb.particle=
+  assert.enabled.tf.particle=
+  assert.enabled.sp.in-volume=
+  assert.enabled.rb.user-supplied-file=
+  assert.disabled.tf.user-supplied-file=
+  assert.enabled.rb.multiparticle-reference=
+  assert.disabled.cbb.multiparticle-reference=
+[[]]
 #check empty particle # error
 run.function.setup-test-run-error=
 tf.particle=2
-#check empty reference file error
-[[if = test-values]]
-  assert.tf.multiparticle-reference=10
-  assert.tf.groups-of=10
-	rb.user-supplied-file=
-	assert.enabled.tf.user-supplied-file=
-	run.function.setup-test-run-error=
-	rb.particle=
+[[if = test-gui]]
+  #behavior
+  rb.user-supplied-file=
+  assert.disabled.tf.particle=
+  assert.disabled.sp.in-volume=
+  assert.enabled.rb.user-supplied-file=
+  assert.enabled.tf.user-supplied-file=
+  rb.multiparticle-reference=
+  assert.disabled.tf.user-supplied-file=
+  assert.enabled.cbb.multiparticle-reference=
+  #check empty reference file error
+  assert.enabled.tf.user-supplied-file=
+  run.function.setup-test-run-error=
+  #behavior
+  rb.multiparticle-reference=
+  assert.disabled.tf.user-supplied-file=
+  assert.enabled.cbb.multiparticle-reference=
+  rb.particle=
+  assert.enabled.tf.particle=
+  assert.enabled.sp.in-volume=
+  assert.disabled.cbb.multiparticle-reference=
 [[]]
 
 
@@ -153,6 +195,12 @@ if.not.var.test-values.return=
 #check empty tilt range error
 #tilt range required with averaging
 [[if = test-gui]]
+  assert.cb.enabled=off
+  assert.sp.edge-shift=1
+  assert.sp.weight-groups=8
+  assert.enabled.cb.enabled=
+  assert.disabled.sp.edge-shift=
+  assert.disabled.sp.weight-groups=
   assert.disabled.tf.volume-table-2-tilt-range=
   assert.disabled.tf.volume-table-2-tilt-range.1=
 [[]]
@@ -171,6 +219,8 @@ tf.volume-table-2-tilt-range.1=
 tf.volume-table-3-tilt-range=
 tf.volume-table-3-tilt-range.1=
 [[if = test-gui]]
+  assert.enabled.sp.edge-shift=
+  assert.enabled.sp.weight-groups=
   assert.enabled.tf.volume-table-2-tilt-range=
   assert.enabled.tf.volume-table-2-tilt-range.1=
 [[]]
@@ -263,32 +313,24 @@ assert.enabled.rb.random-axial-rotations=
 [function = runtab]
 tb.setup.1=
 mb.parallel-processing=-
-[[if = test-gui]]
-	mb.run=-
-	mb.run=+
-[[]]
-[[if = test-values]]
-	#ccmode should have changed when flgwedgeweight was checked
-	mb.run.1=A
-	assert.rb.normalized-cross-correlation=on
-	rb.local-energy-normalized-cross-correlation=
-	mb.run.1=B
-[[]]
 run.function.iteration-table=
 [[if = test-gui]]
 	run.function.spherical-sampling-for-theta-and-psi=
 [[]]
-cb.use-equal-numbers-of-particles-from-all-tomograms-for-new-reference=on
-run.function.number-of-particles-in-averages=
-cb.use-equal-numbers-of-particles-from-all-tomograms-for-averages=on
+cb.for-new-references=on
+run.function.number-of-particles-to-average=
+[[if = test-gui]]
+  run.function.optional-advanced-features=
+[[]]
+cb.for-average-volumes=on
 sp.particles-per-cpu=1
 bn.run=
 wait.process.processchunks-%{dataset}=done
 [[if = test-gui]]
 	#test remake averages
-  bn.remake-averaged-volumes=
+  bn.remake-averages=
 	wait.process.running-averageall=done
-	bn.open-averaged-volumes-in-3dmod=
+	bn.open-averages-in-3dmod=
 [[]]
 
 
@@ -399,7 +441,7 @@ run.function.test-run-error=
 rb.none=
 
 
-[function = number-of-particles-in-averages]
+[function = number-of-particles-to-average]
 #check number of particles empty error
 run.function.test-run-error=
 tf.start=3
@@ -409,6 +451,17 @@ tf.incr=3
 #check missing end empty error
 run.function.test-run-error=
 tf.end=9
+
+
+[function = optional-advanced-features]
+assert.cb.align-averages-to-have-their-y-axes-vertical=off
+assert.cb.use-absolute-value-of-cross-correlation=on
+assert.cb.save-individual-aligned-particles=off
+assert.sp.particles-per-cpu=5
+assert.sp.debug-level=3
+assert.tf.low-frequency-cutoff=0
+assert.tf.sigma=0.05
+
 
 [function = check-prm]
 run.function.setup-check-prm=
@@ -428,6 +481,8 @@ run.function.initial-motive-list-check-prm=
 [function = runtab-check-prm]
 tb.setup.1=
 run.function.spherical-sampling-for-theta-and-psi-check-prm=
+run.function.number-of-particles-to-average-check-prm=
+run.function.optional-advanced-features-check-prm=
 #check remove duplicates
 cb.remove-duplicate-particles-after-each-iteration=on
 bn.insert=
@@ -442,12 +497,6 @@ assert.contains.file=%{dataset}.prm|duplicateAngularTolerance = [2, 0]
 cb.remove-duplicate-particles-after-each-iteration=off
 #flgAlignAverages is always saved
 assert.contains.file=%{dataset}.prm|flgAlignAverages = 0
-#aligned base name
-mb.run.1=A
-tf.aligned-base-name=bob
-save=
-assert.contains.file=%{dataset}.prm|alignedBaseName = 'bob'
-mb.run.1=B
 
 
 [function = volume-table-check-prm]
@@ -472,11 +521,13 @@ sleep=2000
 assert.tf.user-supplied-file=unMasked%{dataset}_Ref1.mrc
 save=
 assert.contains.file=%{dataset}.prm|reference = 'unMasked%{dataset}_Ref1.mrc'
-rb.multiparticle-reference=
+rb.multiparticle-reference-with=
+cbb.multiparticle-reference-with=128
 save=
 assert.contains.file=%{dataset}.prm|flgFairReference = 1
-assert.contains.file=%{dataset}.prm|reference = [10, 10]
+assert.contains.file=%{dataset}.prm|reference = [7]
 rb.particle=
+save=
 
 
 [function = missing-wedge-compensation-check-prm]
@@ -487,6 +538,8 @@ assert.contains.file=%{dataset}.prm|edgeShift = 1
 assert.contains.file=%{dataset}.prm|nWeightGroup = 8
 assert.contains.file=%{dataset}.prm|flgWedgeWeight = 1
 cb.enabled=off
+assert.contains.file=%{dataset}.prm|nWeightGroup = 0
+save=
 
 
 [function = masking-check-prm]
@@ -581,10 +634,41 @@ assert.contains.file=%{dataset}.prm|sampleInterval = 3
 rb.none=
 
 
-[function = number-of-particles-in-averages-check-prm]
+[function = number-of-particles-to-average-check-prm]
 tf.additional-numbers=4
 save=
 assert.contains.file=%{dataset}.prm|lstThresholds = [3:3:9, 4]
+
+
+[function = optional-advanced-features-check-prm]
+tb.setup=
+rb.particle-model-points=
+tb.setup.1=
+cb.align-averages-to-have-their-y-axes-vertical=on
+save=
+assert.contains.file=%{dataset}.prm|flgAlignAverages = 1
+cb.align-averages-to-have-their-y-axes-vertical=off
+tb.setup=
+rb.tomogram-y-axis=
+tb.setup.1=
+cb.use-absolute-value-of-cross-correlation=off
+save=
+assert.contains.file=%{dataset}.prm|flgAbsValue = 0
+cb.use-absolute-value-of-cross-correlation=on
+cb.save-individual-aligned-particles=on
+save=
+assert.contains.file=%{dataset}.prm|alignedBaseName = 'aligned'
+cb.save-individual-aligned-particles=off
+sp.particles-per-cpu=20
+save=
+assert.contains.file=%{dataset}.prm|particlePerCPU = 20
+sp.particles-per-cpu=1
+sp.debug-level=2
+save=
+assert.contains.file=%{dataset}.prm|debugLevel = 2
+sp.debug-level=3
+save=
+assert.contains.file=%{dataset}.prm|lowCutoff = {[0, 0.05]}
 
 
 [function = cross-correlation-measure-check-prm]

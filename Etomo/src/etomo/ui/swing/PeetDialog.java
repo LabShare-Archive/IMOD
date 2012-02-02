@@ -2,7 +2,7 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -28,17 +28,14 @@ import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
-import etomo.storage.PeetAndMatlabParamFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
-import etomo.type.ConstPeetScreenState;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
-import etomo.type.PeetScreenState;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.Utilities;
@@ -427,8 +424,8 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 
-public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Expandable,
-    Run3dmodButtonContainer, FileContainer, UseExistingProjectParent, ReferenceParent,
+public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
+    Run3dmodButtonContainer, FileContainer, ReferenceParent,
     MissingWedgeCompensationParent, IterationParent, MaskingParent, YAxisTypeParent,
     SphericalSamplingForThetaAndPsiParent, ProcessInterface {
   public static final String rcsid = "$Id$";
@@ -436,27 +433,30 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
   public static final String FN_OUTPUT_LABEL = "Root name for output";
   public static final String DIRECTORY_LABEL = "Directory";
   public static final String RUN_LABEL = "Run";
-  public static final String AVERAGE_ALL_LABEL = "Remake Averaged Volumes";
+  public static final String AVERAGE_ALL_LABEL = "Remake Averages";
 
   private static final DialogType DIALOG_TYPE = DialogType.PEET;
   private static final String LST_THRESHOLD_START_TITLE = "Start";
   private static final String LST_THRESHOLD_INCREMENT_TITLE = "Incr.";
   private static final String LST_THRESHOLD_END_TITLE = "End";
   private static final String LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE = "Additional numbers";
-  private static final String LST_THRESHOLDS_LABEL = "Number of Particles in Averages";
+  private static final String LST_THRESHOLDS_LABEL = "Number of Particles to Average";
   private static final String SETUP_TAB_LABEL = "Setup";
   private static final String RUN_TAB_LABEL = "Run";
   private final EtomoPanel rootPanel = new EtomoPanel();
-  private final FileTextField ftfDirectory = new FileTextField(DIRECTORY_LABEL + ": ");
+  private final LabeledTextField ltfDirectory = new LabeledTextField(DIRECTORY_LABEL
+      + ": ");
   private final LabeledTextField ltfFnOutput = new LabeledTextField(FN_OUTPUT_LABEL
       + ": ");
   private final SpacedPanel pnlSetupBody = SpacedPanel.getInstance();
-  private final LabeledTextField ltfAlignedBaseName = new LabeledTextField(
-      "Aligned base name: ");
+  private final CheckBox cbAlignedBaseName = new CheckBox(
+      "Save individual aligned particles");
+  private final CheckBox cbFlgStrictSearchLimits = new CheckBox(
+      "Strict search limit checking");
   private final LabeledTextField ltfLowCutoff = new LabeledTextField(
-      "Low frequency filter: ");
-  private final CheckBox cbRefFlagAllTom = new CheckBox(
-      "Use equal numbers of particles from all tomograms for new reference");
+      "Low frequency cutoff:", 5);
+  private final LabeledTextField ltfLowCutoffSigma = new LabeledTextField("Sigma: ");
+  private final CheckBox cbRefFlagAllTom = new CheckBox("For new references");
   private final LabeledTextField ltfLstThresholdsStart = new LabeledTextField(
       LST_THRESHOLD_START_TITLE + ": ");
   private final LabeledTextField ltfLstThresholdsIncrement = new LabeledTextField(
@@ -465,15 +465,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
       LST_THRESHOLD_END_TITLE + ": ");
   private final LabeledTextField ltfLstThresholdsAdditional = new LabeledTextField(" "
       + LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE + ": ");
-  private final CheckBox cbLstFlagAllTom = new CheckBox(
-      "Use equal numbers of particles from all tomograms for averages");
+  private final CheckBox cbLstFlagAllTom = new CheckBox("For average volumes");
   private final SpacedPanel pnlRunBody = SpacedPanel.getInstance(true);
   private final MultiLineButton btnRun = new MultiLineButton(RUN_LABEL);
-  private final JPanel pnlAdvanced = new JPanel();
   private final LabeledSpinner lsParticlePerCPU = new LabeledSpinner(
       "Particles per CPU: ", new SpinnerNumberModel(MatlabParam.PARTICLE_PER_CPU_DEFAULT,
           MatlabParam.PARTICLE_PER_CPU_MIN, MatlabParam.PARTICLE_PER_CPU_MAX, 1),
-      MatlabParam.PARTICLE_PER_CPU_DEFAULT);
+      MatlabParam.PARTICLE_PER_CPU_DEFAULT, 28);
   private final IterationTable iterationTable;
   private final ButtonGroup bgInitMotl = new ButtonGroup();
   private final RadioButton rbInitMotlZero = new RadioButton("Set all angles to 0",
@@ -487,37 +485,29 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
       bgInitMotl);
   private final RadioButton rbInitMotlFiles = new RadioButton("User supplied csv files",
       bgInitMotl);
-  private final ButtonGroup bgCcMode = new ButtonGroup();
-  private final RadioButton rbCcModeNormalized = new RadioButton(
-      "Local energy normalized cross-correlation", MatlabParam.CCMode.NORMALIZED,
-      bgCcMode);
-  private final RadioButton rbCcModeLocal = new RadioButton(
-      "Normalized cross-correlation", MatlabParam.CCMode.LOCAL, bgCcMode);
   private final LabeledSpinner lsDebugLevel = new LabeledSpinner("Debug level: ",
       new SpinnerNumberModel(MatlabParam.DEBUG_LEVEL_DEFAULT,
           MatlabParam.DEBUG_LEVEL_MIN, MatlabParam.DEBUG_LEVEL_MAX, 1),
-      MatlabParam.DEBUG_LEVEL_DEFAULT);
+      MatlabParam.DEBUG_LEVEL_DEFAULT, 59);
   private final Run3dmodButton btnAvgVol = Run3dmodButton.get3dmodInstance(
-      "Open Averaged Volumes in 3dmod", this);
+      "Open averages in 3dmod", this);
   private final EtomoPanel pnlInitMotl = new EtomoPanel();
   private final TabbedPane tabPane = new TabbedPane();
   private final SpacedPanel pnlSetup = SpacedPanel.getInstance();
   private final EtomoPanel pnlRun = new EtomoPanel();
-  private final EtomoPanel pnlCcMode = new EtomoPanel();
   private final Run3dmodButton btnRef = Run3dmodButton.get3dmodInstance(
-      "Open Reference Volumes in 3dmod", this);
+      "Open references in 3dmod", this);
   private final MultiLineButton btnAverageAll = new MultiLineButton(AVERAGE_ALL_LABEL);
   private final CheckBox cbflgAlignAverages = new CheckBox(
       "Align averages to have their Y axes vertical");
-  private final SimpleButton btnCopyProject = new SimpleButton("Copy existing project");
+  private final CheckBox cbFlgAbsValue = new CheckBox(
+      "Use absolute value of cross-correlation");
 
   private final SphericalSamplingForThetaAndPsiPanel sphericalSamplingForThetaAndPsiPanel;
   private final YAxisTypePanel yAxisTypePanel;
   private final MaskingPanel maskingPanel;
   private final MissingWedgeCompensationPanel missingWedgeCompensationPanel;
   private final ReferencePanel referencePanel;
-  private final PanelHeader phRun;
-  private final PanelHeader phSetup;
   private final VolumeTable volumeTable;
   private final PeetManager manager;
   private final AxisID axisID;
@@ -539,9 +529,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     fixPathsPanel = FixPathsPanel.getInstance(this, manager, axisID, DIALOG_TYPE);
     sphericalSamplingForThetaAndPsiPanel = SphericalSamplingForThetaAndPsiPanel
         .getInstance(manager, this);
-    phSetup = PanelHeader.getUntitledInstance(SETUP_TAB_LABEL, this, DIALOG_TYPE);
-    phRun = PanelHeader
-        .getUntitledAdvancedBasicInstance(RUN_TAB_LABEL, this, DIALOG_TYPE);
     volumeTable = VolumeTable.getInstance(manager, this);
     iterationTable = IterationTable.getInstance(manager, this);
     // panels
@@ -556,7 +543,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     changeTab();
     setDefaults();
     updateDisplay();
-    updateAdvanceRunParameters(phRun.isAdvanced());
     setTooltipText();
     mediator.register(this);
     mediator.setMethod(this, getProcessingMethod());
@@ -600,8 +586,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
    * @param paramFileSet
    */
   public void updateDisplay(final boolean paramFileSet) {
-    ftfDirectory.setEditable(!paramFileSet);
-    btnCopyProject.setEnabled(!paramFileSet);
+    ltfDirectory.setEditable(!paramFileSet);
     ltfFnOutput.setEditable(!paramFileSet);
     btnRun.setEnabled(paramFileSet);
   }
@@ -732,16 +717,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
   }
 
-  public void getParameters(final PeetScreenState screenState) {
-    phSetup.getState(screenState.getPeetSetupHeaderState());
-    phRun.getState(screenState.getPeetRunHeaderState());
-  }
-
-  public void setParameters(final ConstPeetScreenState screenState) {
-    phSetup.setState(screenState.getPeetSetupHeaderState());
-    phRun.setState(screenState.getPeetRunHeaderState());
-  }
-
   public void getParameters(final PeetMetaData metaData) {
     volumeTable.getParameters(metaData);
     referencePanel.getParameters(metaData);
@@ -802,15 +777,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     else if (initMotlCode == MatlabParam.InitMotlCode.RANDOM_AXIAL_ROTATIONS) {
       rbInitMotlRandomAxialRotations.setSelected(true);
     }
-    MatlabParam.CCMode ccMode = matlabParam.getCcMode();
-    if (ccMode == MatlabParam.CCMode.NORMALIZED) {
-      rbCcModeNormalized.setSelected(true);
-    }
-    else if (ccMode == MatlabParam.CCMode.LOCAL) {
-      rbCcModeLocal.setSelected(true);
-    }
-    ltfAlignedBaseName.setText(matlabParam.getAlignedBaseName());
-    ltfLowCutoff.setText(matlabParam.getLowCutoff());
+    cbAlignedBaseName.setSelected(!matlabParam.isAlignedBaseNameEmpty());
+    cbFlgStrictSearchLimits.setSelected(matlabParam.isFlgStrictSearchLimits());
+    ltfLowCutoff.setText(matlabParam.getLowCutoffCutoff());
+    ltfLowCutoffSigma.setText(matlabParam.getLowCutoffSigma());
     lsDebugLevel.setValue(matlabParam.getDebugLevel());
     ltfLstThresholdsStart.setText(matlabParam.getLstThresholdsStart());
     ltfLstThresholdsIncrement.setText(matlabParam.getLstThresholdsIncrement());
@@ -825,10 +795,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     sphericalSamplingForThetaAndPsiPanel.setParameters(matlabParam);
     maskingPanel.setParameters(matlabParam);
     cbflgAlignAverages.setSelected(matlabParam.isFlgAlignAverages());
+    cbFlgAbsValue.setSelected(matlabParam.isFlgAbsValue());
     updateDisplay();
   }
 
-  public void getParameters(final MatlabParam matlabParam) {
+  public boolean getParameters(final MatlabParam matlabParam, final boolean forRun) {
+    if (!matlabParam.validate(forRun)) {
+      return false;
+    }
     matlabParam.clear();
     volumeTable.getParameters(matlabParam);
     iterationTable.getParameters(matlabParam);
@@ -838,10 +812,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     matlabParam
         .setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl.getSelection())
             .getEnumeratedType());
-    matlabParam.setCcMode(((RadioButton.RadioButtonModel) bgCcMode.getSelection())
-        .getEnumeratedType());
-    matlabParam.setAlignedBaseName(ltfAlignedBaseName.getText());
-    matlabParam.setLowCutoff(ltfLowCutoff.getText());
+    if (cbAlignedBaseName.isSelected()) {
+      matlabParam.setAlignedBaseName("aligned");
+    }
+    else {
+      matlabParam.resetAlignedBaseName();
+    }
+    matlabParam.setFlgStrictSearchLimits(cbFlgStrictSearchLimits.isSelected());
+    matlabParam.setLowCutoff(ltfLowCutoff.getText(), ltfLowCutoffSigma.getText());
     matlabParam.setDebugLevel(lsDebugLevel.getValue());
     matlabParam.setLstThresholdsStart(ltfLstThresholdsStart.getText());
     matlabParam.setLstThresholdsIncrement(ltfLstThresholdsIncrement.getText());
@@ -854,6 +832,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     sphericalSamplingForThetaAndPsiPanel.getParameters(matlabParam);
     maskingPanel.getParameters(matlabParam);
     matlabParam.setFlgAlignAverages(cbflgAlignAverages.isSelected());
+    matlabParam.setFlgAbsValue(cbFlgAbsValue.isSelected());
+    return true;
   }
 
   public boolean isReferenceFileSelected() {
@@ -872,32 +852,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     return ltfFnOutput.getText();
   }
 
-  public void expand(final GlobalExpandButton button) {
-  }
-
-  public void expand(final ExpandButton button) {
-    if (phSetup.equalsOpenClose(button)) {
-      pnlSetupBody.setVisible(button.isExpanded());
-    }
-    else if (phRun.equalsAdvancedBasic(button)) {
-      updateAdvanceRunParameters(button.isExpanded());
-    }
-    else if (phRun.equalsOpenClose(button)) {
-      pnlRunBody.setVisible(button.isExpanded());
-    }
-    UIHarness.INSTANCE.pack(axisID, manager);
-  }
-
-  public FileTextField getDirectory() {
-    return ftfDirectory;
-  }
-
   public String getDirectoryString() {
-    return ftfDirectory.getText();
+    return ltfDirectory.getText();
   }
 
   public void setDirectory(final String directory) {
-    ftfDirectory.setText(directory);
+    ltfDirectory.setText(directory);
   }
 
   public void setFnOutput(final String output) {
@@ -906,12 +866,15 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
 
   /**
    * Reset values and set defaults.
+   * Is this still needed?
    */
   public void reset() {
     referencePanel.reset();
     missingWedgeCompensationPanel.reset();
-    ltfAlignedBaseName.clear();
+    cbAlignedBaseName.setSelected(false);
+    cbFlgStrictSearchLimits.setSelected(false);
     ltfLowCutoff.clear();
+    ltfLowCutoffSigma.clear();
     cbRefFlagAllTom.setSelected(false);
     ltfLstThresholdsStart.clear();
     ltfLstThresholdsIncrement.clear();
@@ -924,12 +887,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     rbInitMotlRandomRotations.setSelected(false);
     rbInitMotlRandomAxialRotations.setSelected(false);
     rbInitMotlFiles.setSelected(false);
-    rbCcModeNormalized.setSelected(false);
-    rbCcModeLocal.setSelected(false);
     volumeTable.reset();
     iterationTable.reset();
     sphericalSamplingForThetaAndPsiPanel.reset();
     cbflgAlignAverages.setSelected(false);
+    cbFlgAbsValue.setSelected(false);
     setDefaults();
     updateDisplay();
   }
@@ -965,11 +927,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     rbInitMotlRandomRotations.setToolTipText(section);
     rbInitMotlRandomAxialRotations.setToolTipText(section);
 
-    section = autodoc
-        .getSection(EtomoAutodoc.FIELD_SECTION_NAME, MatlabParam.CC_MODE_KEY);
-    rbCcModeNormalized.setToolTipText(section);
-    rbCcModeLocal.setToolTipText(section);
-
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         MatlabParam.REF_FLAG_ALL_TOM_KEY);
     cbRefFlagAllTom.setToolTipText(section, "0");
@@ -981,7 +938,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     cbflgAlignAverages.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         MatlabParam.FLG_ALIGN_AVERAGES_KEY));
 
-    ftfDirectory.setToolTipText("The directory which will contain the parameter and "
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+        MatlabParam.FLG_ABS_VALUE_KEY);
+    cbFlgAbsValue.setToolTipText(section, "1");
+
+    ltfDirectory.setToolTipText("The directory which will contain the parameter and "
         + "project files, logs, intermediate files, and results. Data files "
         + "can also be located in this directory, but are not required to be.");
     ltfFnOutput.setToolTipText("The base name of the output files for the average "
@@ -993,16 +954,19 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     rbInitMotlFiles
         .setToolTipText("Use the Initial MOTL file(s) specified in the Volume "
             + "Table.");
-    lsParticlePerCPU
-        .setToolTipText("Specifies the maximum number of particles to distribute "
-            + "to each CPU selected in the Parallel Processing table.");
-    ltfAlignedBaseName.setToolTipText("The base from which output filenames will be "
-        + "constructed.");
-    ltfLowCutoff.setToolTipText("Two numbers to control low frequency filtering: 1) The "
-        + "normalized frequency below which low frequencies will be "
-        + "attenuated.  2) The width (standard deviation) in normalized "
-        + "frequency units of the Gaussian falloff in response below the "
-        + "cutoff.  Values less <= 0 disable low frequency filtering.");
+    lsParticlePerCPU.setToolTipText("The maximum number of particles distributed "
+        + "simultaneously to a single CPU during parallel processing.");
+    cbAlignedBaseName.setToolTipText("Save individual aligned particles to "
+        + "files aligned*.mrc.");
+    cbFlgStrictSearchLimits
+        .setToolTipText("When checked, the overall change for any parameter will be "
+            + "limited to the largest change specified at any single iteration.");
+    ltfLowCutoff
+        .setToolTipText("The normalized frequency below which low frequencies will be "
+            + "attenuated.  Values less <= 0 disable low frequency filtering.");
+    ltfLowCutoffSigma
+        .setToolTipText("An optional parameter which defines the transition "
+            + "width of the low frequency filter.");
     lsDebugLevel.setToolTipText("Larger numbers result in more debug information in the "
         + "log files.");
     String tooltip = "Start, Incr, and End determine the numbers of particles in an "
@@ -1016,14 +980,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
         .setToolTipText("Additional numbers of particles for which averages are "
             + "desired.  Values must be listed in increasing order and must be "
             + "larger than End.");
-    btnCopyProject
-        .setToolTipText("Create a new PEET project from an existing parameter or "
-            + "project file, duplicating all parameters except root name and "
-            + "location.");
-  }
-
-  private void updateAdvanceRunParameters(boolean advanced) {
-    pnlAdvanced.setVisible(advanced);
   }
 
   private void setDefaults() {
@@ -1038,40 +994,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
 
   private void createSetupPanel() {
     // panels
-    JPanel pnlInitMotlX = new JPanel();
-    // project
     JPanel pnlProject = new JPanel();
-    pnlProject.setLayout(new BoxLayout(pnlProject, BoxLayout.X_AXIS));
-    pnlProject.add(ftfDirectory.getContainer());
-    pnlProject.add(ltfFnOutput.getContainer());
-    pnlProject.add(Box.createHorizontalStrut(20));
-    pnlProject.add(btnCopyProject);
-    // reference and missing wedge compensation
     JPanel pnlReferenceAndMissingWedgeCompensation = new JPanel();
-    pnlReferenceAndMissingWedgeCompensation.setLayout(new BoxLayout(
-        pnlReferenceAndMissingWedgeCompensation, BoxLayout.X_AXIS));
-    pnlReferenceAndMissingWedgeCompensation.add(referencePanel.getComponent());
-    pnlReferenceAndMissingWedgeCompensation.add(missingWedgeCompensationPanel
-        .getComponent());
-    // init motl x
-    pnlInitMotlX.setLayout(new BoxLayout(pnlInitMotlX, BoxLayout.X_AXIS));
-    pnlInitMotlX.setBorder(new EtchedBorder("Initial Motive List").getBorder());
-    pnlInitMotlX.add(pnlInitMotl);
-    pnlInitMotlX.add(Box.createRigidArea(new Dimension(167, 0)));
-    // init MOTL
-    pnlInitMotl.setLayout(new BoxLayout(pnlInitMotl, BoxLayout.Y_AXIS));
-    pnlInitMotl.add(rbInitMotlZero.getComponent());
-    pnlInitMotl.add(rbInitAlignParticleYAxes.getComponent());
-    pnlInitMotl.add(rbInitMotlFiles.getComponent());
-    pnlInitMotl.add(rbInitMotlRandomRotations.getComponent());
-    pnlInitMotl.add(rbInitMotlRandomAxialRotations.getComponent());
-    // init MOTL and Y axis type
     JPanel pnlInitMotlAndYAxisType = new JPanel();
-    pnlInitMotlAndYAxisType.setLayout(new BoxLayout(pnlInitMotlAndYAxisType,
-        BoxLayout.X_AXIS));
-    pnlInitMotlAndYAxisType.add(yAxisTypePanel.getComponent());
-    pnlInitMotlAndYAxisType.add(Box.createHorizontalGlue());
-    pnlInitMotlAndYAxisType.add(pnlInitMotlX);
+    JPanel pnlInitMotlX = new JPanel();
+    // tab panel
+    pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlSetup.setBorder(BorderFactory.createEtchedBorder());
     // body
     pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetupBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
@@ -1081,95 +1010,135 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlSetupBody.add(pnlReferenceAndMissingWedgeCompensation);
     pnlSetupBody.add(maskingPanel.getComponent());
     pnlSetupBody.add(pnlInitMotlAndYAxisType);
-    // main panel
-    pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlSetup.setBorder(BorderFactory.createEtchedBorder());
-    pnlSetup.add(phSetup);
+    // project
+    pnlProject.setLayout(new BoxLayout(pnlProject, BoxLayout.X_AXIS));
+    pnlProject.add(ltfDirectory.getContainer());
+    pnlProject.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlProject.add(ltfFnOutput.getContainer());
+    pnlProject.add(Box.createHorizontalStrut(20));
+    // reference and missing wedge compensation
+    pnlReferenceAndMissingWedgeCompensation.setLayout(new BoxLayout(
+        pnlReferenceAndMissingWedgeCompensation, BoxLayout.X_AXIS));
+    pnlReferenceAndMissingWedgeCompensation.add(referencePanel.getComponent());
+    pnlReferenceAndMissingWedgeCompensation.add(missingWedgeCompensationPanel
+        .getComponent());
+    // init MOTL and Y axis type
+    pnlInitMotlAndYAxisType.setLayout(new BoxLayout(pnlInitMotlAndYAxisType,
+        BoxLayout.X_AXIS));
+    pnlInitMotlAndYAxisType.add(yAxisTypePanel.getComponent());
+    pnlInitMotlAndYAxisType.add(Box.createHorizontalGlue());
+    pnlInitMotlAndYAxisType.add(pnlInitMotlX);
+    // init motl x
+    pnlInitMotlX.setLayout(new BoxLayout(pnlInitMotlX, BoxLayout.X_AXIS));
+    pnlInitMotlX.setBorder(new EtchedBorder("Initial Motive List").getBorder());
+    pnlInitMotlX.add(pnlInitMotl);
+    pnlInitMotlX.add(Box.createRigidArea(FixedDim.x167_y0));
+    // init MOTL
+    pnlInitMotl.setLayout(new BoxLayout(pnlInitMotl, BoxLayout.Y_AXIS));
+    pnlInitMotl.add(rbInitMotlZero.getComponent());
+    pnlInitMotl.add(rbInitAlignParticleYAxes.getComponent());
+    pnlInitMotl.add(rbInitMotlFiles.getComponent());
+    pnlInitMotl.add(rbInitMotlRandomRotations.getComponent());
+    pnlInitMotl.add(rbInitMotlRandomAxialRotations.getComponent());
   }
 
   private void createRunPanel() {
-    // initialize
-    btnAverageAll.setSize();
-    // lstThresholds
+    // panels
     SpacedPanel pnlLstThresholds = SpacedPanel.getInstance();
-    pnlLstThresholds.setBoxLayout(BoxLayout.X_AXIS);
-    pnlLstThresholds.setBorder(new EtchedBorder(LST_THRESHOLDS_LABEL).getBorder());
-    pnlLstThresholds.add(ltfLstThresholdsStart.getContainer());
-    pnlLstThresholds.add(ltfLstThresholdsIncrement.getContainer());
-    pnlLstThresholds.add(ltfLstThresholdsEnd.getContainer());
-    pnlLstThresholds.add(ltfLstThresholdsAdditional.getContainer());
-    // CCMode
-    pnlCcMode.setLayout(new BoxLayout(pnlCcMode, BoxLayout.Y_AXIS));
-    pnlCcMode.setBorder(new EtchedBorder("Cross correlation measure").getBorder());
-    pnlCcMode.add(rbCcModeLocal.getComponent());
-    pnlCcMode.add(rbCcModeNormalized.getComponent());
-    // ParticlePerCPU
-    JPanel pnlParticlePerCPU = new JPanel();
-    pnlParticlePerCPU.setLayout(new BoxLayout(pnlParticlePerCPU, BoxLayout.X_AXIS));
-    pnlParticlePerCPU.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlParticlePerCPU.add(lsParticlePerCPU.getContainer());
-    pnlParticlePerCPU.add(Box.createHorizontalGlue());
-    // advanced right panel
-    JPanel pnlAdvancedRight = new JPanel();
-    pnlAdvancedRight.setLayout(new BoxLayout(pnlAdvancedRight, BoxLayout.Y_AXIS));
-    pnlAdvancedRight.add(ltfAlignedBaseName.getContainer());
-    pnlAdvancedRight.add(ltfLowCutoff.getContainer());
-    pnlAdvancedRight.add(lsDebugLevel.getContainer());
-    // advanced panel
-    pnlAdvanced.setLayout(new BoxLayout(pnlAdvanced, BoxLayout.X_AXIS));
-    pnlAdvanced.add(pnlCcMode);
-    pnlAdvanced.add(Box.createRigidArea(FixedDim.x40_y0));
-    pnlAdvanced.add(pnlAdvancedRight);
-    // button panel
+    JPanel pnlEqualNumber = new JPanel();
+    JPanel pnlOptional = new JPanel();
+    JPanel pnlOptionalLeft = new JPanel();
+    JPanel pnlOptionalRight = new JPanel();
     JPanel pnlButton = new JPanel();
-    pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
-    btnRun.setSize();
-    pnlButton.add(btnRun.getComponent());
-    pnlButton.add(Box.createRigidArea(FixedDim.x5_y0));
-    btnAvgVol.setSize();
-    pnlButton.add(btnAvgVol.getComponent());
-    pnlButton.add(Box.createRigidArea(FixedDim.x5_y0));
-    btnRef.setSize();
-    pnlButton.add(btnRef.getComponent());
-    pnlButton.add(Box.createRigidArea(FixedDim.x5_y0));
-    pnlButton.add(btnAverageAll.getComponent());
+    JPanel pnlRefFlagAllTom = new JPanel();
+    JPanel pnlLstFlagAllTom = new JPanel();
+    JPanel pnlLowCutoff = new JPanel();
+    // initialize
+    ltfLstThresholdsStart.setPreferredWidth(60);
+    ltfLstThresholdsIncrement.setPreferredWidth(60);
+    ltfLstThresholdsEnd.setPreferredWidth(60);
+    lsParticlePerCPU.setPreferredWidth(60);
+    lsDebugLevel.setPreferredWidth(40);
+    cbFlgAbsValue.setSelected(MatlabParam.FLG_ABS_VALUE_DEFAULT);
+    // panel for tab
+    pnlRun.setLayout(new BoxLayout(pnlRun, BoxLayout.Y_AXIS));
+    pnlRun.setBorder(BorderFactory.createEtchedBorder());
     // body
     pnlRunBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRunBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRunBody.add(iterationTable.getContainer());
     pnlRunBody.add(sphericalSamplingForThetaAndPsiPanel.getComponent());
-    JPanel pnlFlgRemoveDuplicates = new JPanel();
-    pnlFlgRemoveDuplicates.setLayout(new BoxLayout(pnlFlgRemoveDuplicates,
-        BoxLayout.X_AXIS));
-    pnlFlgRemoveDuplicates.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlFlgRemoveDuplicates.add(Box.createHorizontalGlue());
-    pnlRunBody.add(pnlFlgRemoveDuplicates);
-    JPanel pnlRefFlagAllTom = new JPanel();
-    pnlRefFlagAllTom.setLayout(new BoxLayout(pnlRefFlagAllTom, BoxLayout.X_AXIS));
-    pnlRefFlagAllTom.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlRefFlagAllTom.add(cbRefFlagAllTom);
-    pnlRefFlagAllTom.add(Box.createHorizontalGlue());
-    pnlRunBody.add(pnlRefFlagAllTom);
     pnlRunBody.add(pnlLstThresholds);
-    JPanel pnlLstFlagAllTom = new JPanel();
+    pnlRunBody.add(pnlEqualNumber);
+    pnlRunBody.add(pnlOptional);
+    pnlRunBody.add(Box.createRigidArea(FixedDim.x0_y20));
+    pnlRunBody.add(pnlButton);
+    // lstThresholds
+    pnlLstThresholds.setBoxLayout(BoxLayout.X_AXIS);
+    pnlLstThresholds.setBorder(new EtchedBorder(LST_THRESHOLDS_LABEL).getBorder());
+    pnlLstThresholds.add(Box.createRigidArea(FixedDim.x20_y0));
+    pnlLstThresholds.add(ltfLstThresholdsStart.getContainer());
+    pnlLstThresholds.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlLstThresholds.add(ltfLstThresholdsIncrement.getContainer());
+    pnlLstThresholds.add(Box.createHorizontalGlue());
+    pnlLstThresholds.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlLstThresholds.add(ltfLstThresholdsEnd.getContainer());
+    pnlLstThresholds.add(Box.createRigidArea(FixedDim.x20_y0));
+    pnlLstThresholds.add(ltfLstThresholdsAdditional.getContainer());
+    pnlLstThresholds.add(Box.createHorizontalGlue());
+    // equals numbers
+    pnlEqualNumber.setLayout(new BoxLayout(pnlEqualNumber, BoxLayout.X_AXIS));
+    pnlEqualNumber.setBorder(new EtchedBorder(
+        "Use equal numbers of particles from all tomograms").getBorder());
+    pnlEqualNumber.add(Box.createHorizontalGlue());
+    pnlEqualNumber.add(pnlLstFlagAllTom);
+    pnlEqualNumber.add(pnlRefFlagAllTom);
+    // LstFlagAllTom
     pnlLstFlagAllTom.setLayout(new BoxLayout(pnlLstFlagAllTom, BoxLayout.X_AXIS));
     pnlLstFlagAllTom.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlLstFlagAllTom.add(cbLstFlagAllTom);
     pnlLstFlagAllTom.add(Box.createHorizontalGlue());
-    pnlRunBody.add(pnlLstFlagAllTom);
-    JPanel pnlflgAlignAverages = new JPanel();
-    pnlflgAlignAverages.setLayout(new BoxLayout(pnlflgAlignAverages, BoxLayout.X_AXIS));
-    pnlflgAlignAverages.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlflgAlignAverages.add(cbflgAlignAverages);
-    pnlflgAlignAverages.add(Box.createHorizontalGlue());
-    pnlRunBody.add(pnlflgAlignAverages);
-    pnlRunBody.add(pnlParticlePerCPU);
-    pnlRunBody.add(pnlAdvanced);
-    pnlRunBody.add(pnlButton);
-    // main panel
-    pnlRun.setLayout(new BoxLayout(pnlRun, BoxLayout.Y_AXIS));
-    pnlRun.setBorder(BorderFactory.createEtchedBorder());
-    pnlRun.add(phRun);
+    // RefFlagAllTom
+    pnlRefFlagAllTom.setLayout(new BoxLayout(pnlRefFlagAllTom, BoxLayout.X_AXIS));
+    pnlRefFlagAllTom.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlRefFlagAllTom.add(cbRefFlagAllTom);
+    pnlRefFlagAllTom.add(Box.createHorizontalGlue());
+    // optional
+    pnlOptional.setLayout(new BoxLayout(pnlOptional, BoxLayout.X_AXIS));
+    pnlOptional.setBorder(new EtchedBorder("Optional / Advanced features").getBorder());
+    pnlOptional.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlOptional.add(pnlOptionalLeft);
+    pnlOptional.add(Box.createRigidArea(FixedDim.x30_y0));
+    pnlOptional.add(pnlOptionalRight);
+    pnlOptional.add(Box.createRigidArea(FixedDim.x15_y0));
+    // optional left
+    pnlOptionalLeft.setLayout(new BoxLayout(pnlOptionalLeft, BoxLayout.Y_AXIS));
+    pnlOptionalLeft.add(cbflgAlignAverages);
+    pnlOptionalLeft.add(cbFlgAbsValue);
+    pnlOptionalLeft.add(cbAlignedBaseName);
+    pnlOptionalLeft.add(cbFlgStrictSearchLimits);
+    // optional right
+    pnlOptionalRight.setLayout(new GridLayout(4, 1, 0, 5));
+    pnlOptionalRight.add(lsParticlePerCPU.getContainer());
+    pnlOptionalRight.add(lsDebugLevel.getContainer());
+    pnlOptionalRight.add(pnlLowCutoff);
+    pnlOptionalRight.add(Box.createRigidArea(FixedDim.x0_y3));
+    // low cutoff
+    pnlLowCutoff.setLayout(new BoxLayout(pnlLowCutoff, BoxLayout.X_AXIS));
+    pnlLowCutoff.add(ltfLowCutoff.getContainer());
+    pnlLowCutoff.add(Box.createRigidArea(FixedDim.x15_y0));
+    pnlLowCutoff.add(ltfLowCutoffSigma.getContainer());
+    // button panel
+    pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
+    pnlButton.add(Box.createRigidArea(FixedDim.x30_y0));
+    pnlButton.add(btnRun.getComponent());
+    pnlButton.add(Box.createRigidArea(FixedDim.x40_y0));
+    pnlButton.add(btnAvgVol.getComponent());
+    pnlButton.add(Box.createRigidArea(FixedDim.x30_y0));
+    pnlButton.add(btnRef.getComponent());
+    pnlButton.add(Box.createRigidArea(FixedDim.x30_y0));
+    pnlButton.add(btnAverageAll.getComponent());
+    pnlButton.add(Box.createRigidArea(FixedDim.x30_y0));
   }
 
   public void action(final Run3dmodButton button,
@@ -1179,10 +1148,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
 
   private void action(final String actionCommand,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (actionCommand.equals(ftfDirectory.getActionCommand())) {
-      chooseDirectory();
-    }
-    else if (actionCommand.equals(btnRun.getActionCommand())) {
+    if (actionCommand.equals(btnRun.getActionCommand())) {
       if (validateRun()) {
         manager.peetParser(null, DIALOG_TYPE,
             mediator.getRunMethodForProcessInterface(getProcessingMethod()));
@@ -1204,15 +1170,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     else if (actionCommand.equals(btnAverageAll.getActionCommand())) {
       manager.averageAll(null, DIALOG_TYPE);
     }
-    else if (actionCommand.equals(btnCopyProject.getActionCommand())) {
-      copyDataset();
-    }
   }
 
   private boolean validateRun() {
     // Setup tab
     // Must have a directory
-    if (ftfDirectory.isEmpty()) {
+    if (ltfDirectory.isEmpty()) {
       gotoSetupTab();
       UIHarness.INSTANCE.openMessageDialog(manager, "Please set the "
           + PeetDialog.DIRECTORY_LABEL + " field.", "Entry Error");
@@ -1336,19 +1299,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     return !sphericalSamplingForThetaAndPsiPanel.isSampleSphereNoneSelected();
   }
 
-  private void chooseDirectory() {
-    JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
-    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-    int returnVal = chooser.showOpenDialog(rootPanel);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      ftfDirectory.setText(chooser.getSelectedFile().getAbsolutePath());
-    }
-  }
-
   private void addListeners() {
     PDActionListener actionListener = new PDActionListener(this);
-    ftfDirectory.addActionListener(actionListener);
     rbInitMotlZero.addActionListener(actionListener);
     rbInitAlignParticleYAxes.addActionListener(actionListener);
     rbInitMotlRandomRotations.addActionListener(actionListener);
@@ -1359,35 +1311,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     btnAvgVol.addActionListener(actionListener);
     btnRef.addActionListener(actionListener);
     btnAverageAll.addActionListener(actionListener);
-    btnCopyProject.addActionListener(actionListener);
-  }
-
-  private void copyDataset() {
-    String path = getDirectory().getText();
-    if (path == null || path.matches("\\s*")) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Please set the "
-          + PeetDialog.DIRECTORY_LABEL + " field before importing a .prm file.",
-          "Entry Error");
-      return;
-    }
-    File dir = new File(getDirectory().getText());
-    if (!dir.exists()) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Please create " + dir.getAbsolutePath() + " before importing a file.",
-          "Entry Error");
-      return;
-    }
-    File file = null;
-    JFileChooser chooser = new FileChooser(dir);
-    chooser.setFileFilter(new PeetAndMatlabParamFileFilter());
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(rootPanel);
-    if (returnVal != JFileChooser.APPROVE_OPTION) {
-      return;
-    }
-    file = chooser.getSelectedFile();
-    manager.copyDataset(file);
   }
 
   private static final class PDActionListener implements ActionListener {

@@ -72,6 +72,22 @@ public final class UIHarness {
     }
   }
 
+  /**
+   * Open a message dialog
+   * @param message
+   * @param title
+   */
+  public synchronized void openMessageDialog(final BaseManager manager,
+      final Component parentComponent, final String message, final String title,
+      final AxisID axisID) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
+      getFrame(manager).displayMessage(manager, parentComponent, message, title, axisID);
+    }
+    else {
+      log("openMessageDialog", message, title, axisID);
+    }
+  }
+
   public synchronized void openInfoMessageDialog(BaseManager manager, String message,
       String title, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
@@ -226,7 +242,7 @@ public final class UIHarness {
     }
   }
 
-  private AbstractFrame getFrame(BaseManager manager) {
+  public AbstractFrame getFrame(BaseManager manager) {
     if (manager == null || !manager.isInManagerFrame()) {
       return mainFrame;
     }
@@ -330,7 +346,7 @@ public final class UIHarness {
     if (isHead()) {
       return getFrame(manager).getSize();
     }
-    return new Dimension(0, 0);
+    return FixedDim.x0_y0;
   }
 
   public Point getLocation(BaseManager manager) {

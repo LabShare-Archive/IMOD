@@ -23,6 +23,7 @@ else:
 # load IMOD Libraries
 from imodpy import *
 from pip import exitError, setExitPrefix
+setExitPrefix(prefix)
 
 numfiles = len(sys.argv) - 1
 if numfiles < 3:

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -330,7 +331,11 @@ public final class MatlabParam {
   public static final String SEARCH_RADIUS_KEY = "searchRadius";
   public static final String LOW_CUTOFF_KEY = "lowCutoff";
   public static final String LOW_CUTOFF_DEFAULT = "0";
+  public static final String LOW_CUTOFF_SIGMA_DEFAULT = "0.05";
   public static final String HI_CUTOFF_KEY = "hiCutoff";
+  /**
+   * @deprecated
+   */
   public static final String CC_MODE_KEY = "CCMode";
   public static final String REF_THRESHOLD_KEY = "refThreshold";
   public static final String REF_FLAG_ALL_TOM_KEY = "refFlagAllTom";
@@ -340,14 +345,6 @@ public final class MatlabParam {
   public static final int EDGE_SHIFT_MAX = 3;
   public static final String LST_THRESHOLDS_KEY = "lstThresholds";
   public static final String LST_FLAG_ALL_TOM_KEY = "lstFlagAllTom";
-  /**
-   * @deprecated
-   */
-  public static final String FLG_MEAN_FILL_KEY = "flgMeanFill";
-  /**
-   * @deprecated
-   */
-  private static final boolean FLG_MEAN_FILL_DEFAULT = true;
   public static final String ALIGNED_BASE_NAME_KEY = "alignedBaseName";
   public static final String DEBUG_LEVEL_KEY = "debugLevel";
   public static final int DEBUG_LEVEL_MIN = 0;
@@ -373,6 +370,7 @@ public final class MatlabParam {
   public static final String INSIDE_MASK_RADIUS_KEY = "insideMaskRadius";
   public static final String OUTSIDE_MASK_RADIUS_KEY = "outsideMaskRadius";
   public static final String N_WEIGHT_GROUP_KEY = "nWeightGroup";
+  public static final int N_WEIGHT_GROUP_OFF = 0;
   public static final int N_WEIGHT_GROUP_DEFAULT = 8;
   public static final int N_WEIGHT_GROUP_MIN = 0;
   public static final int N_WEIGHT_GROUP_MAX = 32;
@@ -381,9 +379,14 @@ public final class MatlabParam {
   public static final String DUPLICATE_ANGULAR_TOLERANCE_KEY = "duplicateAngularTolerance";
   public static final String FLG_ALIGN_AVERAGES_KEY = "flgAlignAverages";
   public static final String FLG_FAIR_REFERENCE_KEY = "flgFairReference";
+  public static final String FLG_ABS_VALUE_KEY = "flgAbsValue";
+  public static final boolean FLG_ABS_VALUE_DEFAULT = true;
+  public static final String FLG_STRICT_SEARCH_LIMITS_KEY = "flgStrictSearchLimits";
+  public static final boolean FLG_STRICT_SEARCH_LIMITS_DEFAULT = false;
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
+  private static final int LEVEL_INDEX = 0;
   private static final int Z_ROTATION_INDEX = 0;
   private static final int Y_ROTATION_INDEX = 1;
 
@@ -394,13 +397,9 @@ public final class MatlabParam {
   private final ParsedNumber edgeShift = ParsedNumber.getMatlabInstance();
   private final ParsedArray lstThresholds = ParsedArray.getMatlabInstance();
   private final ParsedNumber lstFlagAllTom = ParsedNumber.getMatlabInstance();
-  /**
-   * @deprecated always on
-   */
-  private final ParsedNumber flgMeanFill = ParsedNumber.getMatlabInstance();
   private final ParsedQuotedString alignedBaseName = ParsedQuotedString.getInstance();
   private final ParsedNumber debugLevel = ParsedNumber.getMatlabInstance();
-  private final List volumeList = new ArrayList();
+  private final List<Volume> volumeList = new ArrayList<Volume>();
   private final List iterationList = new ArrayList();
   private final ParsedQuotedString referenceFile = ParsedQuotedString.getInstance();
   private final ParsedArray reference = ParsedArray.getMatlabInstance();
@@ -419,10 +418,15 @@ public final class MatlabParam {
   private final ParsedNumber flgRemoveDuplicates = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgAlignAverages = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgFairReference = ParsedNumber.getMatlabInstance();
+  private final ParsedNumber flgAbsValue = ParsedNumber.getMatlabInstance();
+  private final ParsedNumber flgStrictSearchLimits = ParsedNumber.getMatlabInstance();
+
+  private final BaseManager manager;
+  private final AxisID axisID;
 
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
+  private String lowCutoffSigma = LOW_CUTOFF_SIGMA_DEFAULT;
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
-  private CCMode ccMode = CCMode.DEFAULT;
   private boolean useReferenceFile = false;
   private YAxisType yAxisType = YAxisType.DEFAULT;
   private boolean tiltRangeEmpty = false;
@@ -430,13 +434,17 @@ public final class MatlabParam {
   private boolean newFile;
   private File file;
 
-  public MatlabParam(File file, boolean newFile) {
+  public MatlabParam(final BaseManager manager, final AxisID axisID, File file,
+      boolean newFile) {
+    this.manager = manager;
+    this.axisID = axisID;
     this.file = file;
     this.newFile = newFile;
     nWeightGroup.setDefault(N_WEIGHT_GROUP_DEFAULT);
     nWeightGroup.setFloor(N_WEIGHT_GROUP_MIN);
-    flgMeanFill.setDefault(FLG_MEAN_FILL_DEFAULT);
     flgFairReference.setDefault(false);
+    flgAbsValue.setDefault(FLG_ABS_VALUE_DEFAULT);
+    flgStrictSearchLimits.setDefault(FLG_STRICT_SEARCH_LIMITS_DEFAULT);
     edgeShift.setDefault(EDGE_SHIFT_DEFAULT);
     edgeShift.setFloor(EDGE_SHIFT_MIN);
   }
@@ -567,7 +575,7 @@ public final class MatlabParam {
   public Volume getVolume(final int index) {
     Volume volume;
     if (index == volumeList.size()) {
-      volume = new Volume();
+      volume = new Volume(manager, axisID);
       volumeList.add(volume);
       return volume;
     }
@@ -578,7 +586,7 @@ public final class MatlabParam {
     Iteration iteration;
     if (index == iterationList.size()) {
       iteration = new Iteration();
-      iteration.setLowCutoff(lowCutoff);
+      iteration.setLowCutoff(lowCutoff, lowCutoffSigma);
       iterationList.add(iteration);
       return iteration;
     }
@@ -601,20 +609,12 @@ public final class MatlabParam {
     return initMotlCode;
   }
 
-  public CCMode getCcMode() {
-    return ccMode;
-  }
-
   public YAxisType getYAxisType() {
     return yAxisType;
   }
 
   public void setInitMotlCode(EnumeratedType enumeratedType) {
     initMotlCode = (InitMotlCode) enumeratedType;
-  }
-
-  public void setCcMode(EnumeratedType enumeratedType) {
-    ccMode = (CCMode) enumeratedType;
   }
 
   public void setYaxisType(EnumeratedType enumeratedType) {
@@ -697,12 +697,28 @@ public final class MatlabParam {
     return flgFairReference.getRawBoolean();
   }
 
+  public boolean isFlgAbsValue() {
+    return flgAbsValue.getRawBoolean();
+  }
+
+  public boolean isFlgStrictSearchLimits() {
+    return flgStrictSearchLimits.getRawBoolean();
+  }
+
   public void setFlgAlignAverages(final boolean input) {
     flgAlignAverages.setRawString(input);
   }
 
   public void setFlgFairReference(final boolean input) {
     flgFairReference.setRawString(input);
+  }
+
+  public void setFlgAbsValue(final boolean input) {
+    flgAbsValue.setRawString(input);
+  }
+
+  public void setFlgStrictSearchLimits(final boolean input) {
+    flgStrictSearchLimits.setRawString(input);
   }
 
   public String getLstFlagAllTom() {
@@ -717,12 +733,16 @@ public final class MatlabParam {
     return flgWedgeWeight.getRawBoolean();
   }
 
-  public String getAlignedBaseName() {
-    return alignedBaseName.getRawString();
+  public boolean isAlignedBaseNameEmpty() {
+    return alignedBaseName.isEmpty();
   }
 
   public void setAlignedBaseName(String alignedBaseName) {
     this.alignedBaseName.setRawString(alignedBaseName);
+  }
+
+  public void resetAlignedBaseName() {
+    this.alignedBaseName.clear();
   }
 
   public void setReferenceVolume(final Number input) {
@@ -752,6 +772,10 @@ public final class MatlabParam {
 
   public String getReferenceParticle() {
     return reference.getRawString(PARTICLE_INDEX);
+  }
+
+  public String getReferenceLevel() {
+    return reference.getRawString(LEVEL_INDEX);
   }
 
   public ParsedElement getReferenceVolume() {
@@ -786,7 +810,6 @@ public final class MatlabParam {
     edgeShift.clear();
     lstThresholds.clear();
     lstFlagAllTom.clear();
-    flgMeanFill.clear();
     alignedBaseName.clear();
     debugLevel.clear();
     volumeList.clear();
@@ -794,8 +817,8 @@ public final class MatlabParam {
     referenceFile.clear();
     reference.clear();
     lowCutoff = LOW_CUTOFF_DEFAULT;
+    lowCutoffSigma = LOW_CUTOFF_SIGMA_DEFAULT;
     initMotlCode = InitMotlCode.DEFAULT;
-    ccMode = CCMode.DEFAULT;
     useReferenceFile = false;
     yAxisType = YAxisType.DEFAULT;
     yaxisObjectNum.clear();
@@ -812,6 +835,8 @@ public final class MatlabParam {
     flgRemoveDuplicates.clear();
     flgAlignAverages.clear();
     flgFairReference.setRawString(false);
+    flgAbsValue.setRawString(FLG_ABS_VALUE_DEFAULT);
+    flgStrictSearchLimits.setRawString(FLG_STRICT_SEARCH_LIMITS_DEFAULT);
   }
 
   public void clearEdgeShift() {
@@ -875,11 +900,23 @@ public final class MatlabParam {
    * at the first index
    * @return
    */
-  public String getLowCutoff() {
+  public String getLowCutoffCutoff() {
     if (iterationList.size() == 0) {
       return lowCutoff;
     }
-    return ((Iteration) iterationList.get(0)).getLowCutoffString();
+    return ((Iteration) iterationList.get(0)).getLowCutoffCutoffString();
+  }
+
+  /**
+   * LowCutoff is an iteration value, but it is only set once, so get the value
+   * at the first index
+   * @return
+   */
+  public String getLowCutoffSigma() {
+    if (iterationList.size() == 0) {
+      return lowCutoffSigma;
+    }
+    return ((Iteration) iterationList.get(0)).getLowCutoffSigmaString();
   }
 
   /**
@@ -888,10 +925,11 @@ public final class MatlabParam {
    * from lowCutoff when they are.
    * @param input
    */
-  public void setLowCutoff(final String input) {
-    lowCutoff = input;
+  public void setLowCutoff(final String cutoff, final String sigma) {
+    lowCutoff = cutoff;
+    lowCutoffSigma = sigma;
     for (int i = 0; i < iterationList.size(); i++) {
-      ((Iteration) iterationList.get(i)).setLowCutoff(lowCutoff);
+      ((Iteration) iterationList.get(i)).setLowCutoff(lowCutoff, lowCutoffSigma);
     }
   }
 
@@ -936,6 +974,11 @@ public final class MatlabParam {
     reference.setRawString(PARTICLE_INDEX, referenceParticle);
   }
 
+  public void setReferenceLevel(final String input) {
+    useReferenceFile = false;
+    reference.setRawString(LEVEL_INDEX, input);
+  }
+
   public void setReferenceParticle(final Number input) {
     useReferenceFile = false;
     reference.setRawString(PARTICLE_INDEX, input.toString());
@@ -977,7 +1020,7 @@ public final class MatlabParam {
   public void setVolumeListSize(final int size) {
     // if volume list is too small, add new Volumes
     for (int i = volumeList.size(); i < size; i++) {
-      volumeList.add(new Volume());
+      volumeList.add(new Volume(manager, axisID));
     }
     // if volume list is too big, remove Volumes from the end
     for (int i = size; i < volumeList.size(); i++) {
@@ -989,7 +1032,7 @@ public final class MatlabParam {
     // if iteration list is too small, add new Iterations
     for (int i = iterationList.size(); i < size; i++) {
       Iteration iteration = new Iteration();
-      iteration.setLowCutoff(lowCutoff);
+      iteration.setLowCutoff(lowCutoff, "");
       iterationList.add(iteration);
     }
     // if iteration list is too big, remove Iterations from the end
@@ -1061,8 +1104,6 @@ public final class MatlabParam {
     szVol.parse(autodoc.getAttribute(SZ_VOL_KEY));
     // fnOutput
     fnOutput.parse(autodoc.getAttribute(FN_OUTPUT_KEY));
-    // CCMode
-    ccMode = CCMode.getInstance(autodoc.getAttribute(CC_MODE_KEY));
     // refFlagAllTom
     refFlagAllTom.parse(autodoc.getAttribute(REF_FLAG_ALL_TOM_KEY));
     // edgeShift
@@ -1103,6 +1144,20 @@ public final class MatlabParam {
     flgAlignAverages.parse(autodoc.getAttribute(FLG_ALIGN_AVERAGES_KEY));
     // flgFairReference
     flgFairReference.parse(autodoc.getAttribute(FLG_FAIR_REFERENCE_KEY));
+    // flgAbsValue
+    flgAbsValue.parse(autodoc.getAttribute(FLG_ABS_VALUE_KEY));
+    // flgStrictSearchLimits
+    flgStrictSearchLimits.parse(autodoc.getAttribute(FLG_STRICT_SEARCH_LIMITS_KEY));
+  }
+
+  public boolean validate(final boolean forRun) {
+    Iterator<Volume> i = volumeList.iterator();
+    while (i.hasNext()) {
+      if (!i.next().validate(forRun)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -1112,6 +1167,10 @@ public final class MatlabParam {
   private void parseVolumeData(final ReadOnlyAutodoc autodoc) {
     volumeList.clear();
     int size = 0;
+    // relativeOrient
+    ParsedList relativeOrient = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
+    relativeOrient.parse(autodoc.getAttribute(RELATIVE_ORIENT_KEY));
+    size = Math.max(size, relativeOrient.size());
     // fnVolume
     ParsedList fnVolume = ParsedList.getStringInstance();
     fnVolume.parse(autodoc.getAttribute(FN_VOLUME_KEY));
@@ -1138,7 +1197,8 @@ public final class MatlabParam {
     size = Math.max(size, tiltRange.size());
     // Add elements to volumeList
     for (int i = 0; i < size; i++) {
-      Volume volume = new Volume();
+      Volume volume = new Volume(manager, axisID);
+      volume.setRelativeOrient(relativeOrient.getElement(i));
       volume.setFnVolume(fnVolume.getElement(i));
       volume.setFnModParticle(fnModParticle.getElement(i));
       if (initMotlCode == null) {
@@ -1241,11 +1301,9 @@ public final class MatlabParam {
     if (!isTiltRangeEmpty() && !edgeShift.isEmpty()) {
       valueMap.put(EDGE_SHIFT_KEY, edgeShift.getParsableString());
     }
-    valueMap.put(CC_MODE_KEY, ccMode.toString());
     if (initMotlCode != null) {
       valueMap.put(INIT_MOTL_KEY, initMotlCode.toString());
     }
-    valueMap.put(FLG_MEAN_FILL_KEY, flgMeanFill.getParsableString());
     valueMap.put(ALIGNED_BASE_NAME_KEY, alignedBaseName.getParsableString());
     valueMap.put(DEBUG_LEVEL_KEY, debugLevel.getParsableString());
     valueMap.put(LST_THRESHOLDS_KEY, lstThresholds.getParsableString());
@@ -1266,6 +1324,8 @@ public final class MatlabParam {
     valueMap.put(FLG_REMOVE_DUPLICATES_KEY, flgRemoveDuplicates.getParsableString());
     valueMap.put(FLG_ALIGN_AVERAGES_KEY, flgAlignAverages.getParsableString());
     valueMap.put(FLG_FAIR_REFERENCE_KEY, flgFairReference.getParsableString());
+    valueMap.put(FLG_ABS_VALUE_KEY, flgAbsValue.getParsableString());
+    valueMap.put(FLG_STRICT_SEARCH_LIMITS_KEY, flgStrictSearchLimits.getParsableString());
   }
 
   /**
@@ -1389,10 +1449,6 @@ public final class MatlabParam {
       setNameValuePairValue(manager, autodoc, EDGE_SHIFT_KEY,
           (String) valueMap.get(EDGE_SHIFT_KEY), commentMap);
     }
-    setNameValuePairValue(manager, autodoc, CC_MODE_KEY,
-        (String) valueMap.get(CC_MODE_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, FLG_MEAN_FILL_KEY,
-        (String) valueMap.get(FLG_MEAN_FILL_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, ALIGNED_BASE_NAME_KEY,
         (String) valueMap.get(ALIGNED_BASE_NAME_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, DEBUG_LEVEL_KEY,
@@ -1434,6 +1490,10 @@ public final class MatlabParam {
         (String) valueMap.get(FLG_ALIGN_AVERAGES_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, FLG_FAIR_REFERENCE_KEY,
         (String) valueMap.get(FLG_FAIR_REFERENCE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_ABS_VALUE_KEY,
+        (String) valueMap.get(FLG_ABS_VALUE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_STRICT_SEARCH_LIMITS_KEY,
+        (String) valueMap.get(FLG_STRICT_SEARCH_LIMITS_KEY), commentMap);
   }
 
   /**
@@ -1789,57 +1849,46 @@ public final class MatlabParam {
     }
   }
 
-  public static final class CCMode implements EnumeratedType {
-    public static final CCMode NORMALIZED = new CCMode(0);
-    public static final CCMode LOCAL = new CCMode(1);
-    public static final CCMode DEFAULT = LOCAL;
-
-    private final EtomoNumber value = new EtomoNumber();
-
-    private CCMode(final int value) {
-      this.value.set(value);
-    }
-
-    public boolean isDefault() {
-      return this == DEFAULT;
-    }
-
-    private static CCMode getInstance(final ReadOnlyAttribute attribute) {
-      if (attribute == null) {
-        return DEFAULT;
-      }
-      String value = attribute.getValue();
-      if (value == null) {
-        return DEFAULT;
-      }
-      if (NORMALIZED.value.equals(value)) {
-        return NORMALIZED;
-      }
-      if (LOCAL.value.equals(value)) {
-        return LOCAL;
-      }
-      return DEFAULT;
-    }
-
-    public ConstEtomoNumber getValue() {
-      return value;
-    }
-
-    public String toString() {
-      return value.toString();
-    }
-  }
-
   public static final class Volume {
     private static final int START_INDEX = 0;
     private static final int END_INDEX = 1;
     private final ParsedArray tiltRange = ParsedArray
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
+    /**
+     * @deprecated - only for validation
+     */
+    private final ParsedArray relativeOrient = ParsedArray
+        .getInstance(EtomoNumber.Type.FLOAT);
     private final ParsedQuotedString fnVolume = ParsedQuotedString.getInstance();
     private final ParsedQuotedString fnModParticle = ParsedQuotedString.getInstance();
     private final ParsedQuotedString initMotl = ParsedQuotedString.getInstance();
 
-    private Volume() {
+    private final BaseManager manager;
+    private final AxisID axisID;
+
+    private Volume(final BaseManager manager, final AxisID axisID) {
+      this.manager = manager;
+      this.axisID = axisID;
+    }
+
+    private boolean validate(final boolean forRun) {
+      if (!forRun || relativeOrient.isEmpty()) {
+        return true;
+      }
+      for (int i = 0; i < relativeOrient.size(); i++) {
+        if (!relativeOrient.isEmpty(i) && !relativeOrient.getElement(i).equals(0)) {
+          UIHarness.INSTANCE.openMessageDialog(manager,
+              "Relative orientations are no longer supported in PEET. This "
+                  + "functionality is now handled via initial motive lists. If you are "
+                  + "already using initial motive list(s), use the PEET program "
+                  + "modifyMotiveList to generate new one(s) incorporating the "
+                  + "relative orientation rotation(s). If you do not yet have initial "
+                  + "motive list(s), use PEET program slicer2MOTL to generate them.",
+              "Incompatible .prm File", axisID);
+          return false;
+        }
+      }
+      return true;
     }
 
     public void setFnVolume(final ParsedElement fnVolume) {
@@ -1912,6 +1961,10 @@ public final class MatlabParam {
 
     private ParsedArray getTiltRange() {
       return tiltRange;
+    }
+
+    private void setRelativeOrient(final ParsedElement relativeOrient) {
+      this.relativeOrient.set(relativeOrient);
     }
 
     private void setTiltRange(final ParsedElement tiltRange) {
@@ -2146,8 +2199,9 @@ public final class MatlabParam {
       hiCutoff.set(input);
     }
 
-    private void setLowCutoff(final String input) {
-      lowCutoff.setRawString(input);
+    private void setLowCutoff(final String cutoff, final String sigma) {
+      lowCutoff.setRawString(CUTOFF_INDEX, cutoff);
+      lowCutoff.setRawString(SIGMA_INDEX, sigma);
     }
 
     private ParsedElement getLowCutoff() {
@@ -2158,11 +2212,18 @@ public final class MatlabParam {
       return hiCutoff;
     }
 
-    private String getLowCutoffString() {
+    private String getLowCutoffCutoffString() {
       if (lowCutoff.isEmpty()) {
         return LOW_CUTOFF_DEFAULT;
       }
-      return lowCutoff.getRawString();
+      return lowCutoff.getRawString(CUTOFF_INDEX);
+    }
+
+    private String getLowCutoffSigmaString() {
+      if (lowCutoff.isEmpty() || lowCutoff.isEmpty(SIGMA_INDEX)) {
+        return LOW_CUTOFF_SIGMA_DEFAULT;
+      }
+      return lowCutoff.getRawString(SIGMA_INDEX);
     }
 
     private ParsedElement getRefThreshold() {

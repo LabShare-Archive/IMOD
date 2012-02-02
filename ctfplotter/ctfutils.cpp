@@ -8,7 +8,6 @@
 *  Colorado.  See dist/COPYRIGHT for full copyright notice.
 * 
 *  $Id$
-*  Log at end of file
 */
 
 #include <stdio.h>
@@ -158,29 +157,31 @@ int checkAndFixDefocusList(Ilist *list, float *angles, int nz)
       // Find first and last slice whose angle is within the range
       for (i = 0; i < nz; i++) {
 
-        if (item->lAngle <= angles[i] && angles[i] <= item->hAngle) {
+        if (item->lAngle - tol < angles[i] && angles[i] < item->hAngle + tol) {
           if (start < 0)
             start = i;
           end = i;
         }
 
         // But also see if there could be ambiguity about an angle near one
-        // end of the range
-        if (fabs((double)(item->lAngle - angles[i])) < tol) {
-          if (angles[0] <= angles[nz-1])
-            startAmbig = 1;
-          else
-            endAmbig = 1;
-          /*printf("Angle %d, %f ambiguous to low angle %f, start %d end %d\n"
-            ,i, angles[i], item->lAngle, startAmbig, endAmbig); */
-        }
-        if (fabs((double)(item->hAngle - angles[i])) < tol) {
-          if (angles[0] <= angles[nz-1])
-            endAmbig = 1;
-          else
-            startAmbig = 1;
-          /*printf("Angle %d, %f ambiguous to high angle %f, start %d end %d\n"
-            ,i, angles[i], item->hAngle, startAmbig, endAmbig);*/
+        // end of the range, provided this is not a single-image range
+        if (!fabs(item->hAngle - item->lAngle) < tol) {
+          if (fabs((double)(item->lAngle - angles[i])) < 1.01 * tol) {
+            if (angles[0] <= angles[nz-1])
+              startAmbig = 1;
+            else
+              endAmbig = 1;
+            /*printf("Angle %d, %f ambiguous to low angle %f, start %d end %d\n"
+               ,i, angles[i], item->lAngle, startAmbig, endAmbig); */
+          }
+          if (fabs((double)(item->hAngle - angles[i])) < 1.01 * tol) {
+            if (angles[0] <= angles[nz-1])
+              endAmbig = 1;
+            else
+              startAmbig = 1;
+            /*printf("Angle %d, %f ambiguous to high angle %f, start %d end %d\n"
+              ,i, angles[i], item->hAngle, startAmbig, endAmbig);*/
+          }
         }
       }
       /*printf("item %d  start %d end %d low %f high %f  implied start %d "
@@ -221,12 +222,3 @@ int checkAndFixDefocusList(Ilist *list, float *angles, int nz)
     return 0;
   return 1;
 }
-
-/*
-
-$Log$
-Revision 1.1  2010/04/02 00:18:39  mast
-Added to provide common functions for adjusting for old bug in ctfplotter
-
-
-*/

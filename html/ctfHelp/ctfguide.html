@@ -27,11 +27,12 @@ is provided as input to Ctfphaseflip.
 <h2>The CTF Graph</h2>
 <OL>
 <LI> The plotter shows graphs of image power as a function of spatial
-frequency.  The X coordinate is normalized frequency.
-1.0 equals the Nyquist frequency determined by the pixel size. <br>
-If the pixel size is in nanometers, and the Nyquist frequency in
-1/nm would be 0.5/pixel_size. <br> The Y coordinate is the logarithm of image
-power.</li>
+frequency.  The X coordinate is in cycles per pixel (also referred to as 
+reciprocal pixels).
+0.5 equals the Nyquist frequency determined by the pixel size.
+If the pixel size is in nanometers, any frequency on the X axis can be
+converted to 1/nm by dividing by the pixel size. 
+<br> The Y coordinate is the logarithm of image power.</li>
 <li> The red curve is the logarithm of the power spectrum
 of the selected views after subtracting the noise floor. <br>
 If you use a fitting method that fits just one curve, the green curve fits the 
@@ -114,7 +115,7 @@ the radio buttons at the top.  After changing parameters, either press
 recomputed with the current parameters.
 <p>
 <img alt="rangeDialog" src="rangeCTF-like.png">
-<br>
+</P><P>
 Fitting to a CTF-like curve involves finding four parameters, or five if the
 option <B>Vary exponent of CTF function</B> is selected.  Varying the exponent
 can allow the curve to fit better to the width of the dip around the first
@@ -125,7 +126,7 @@ defocus.
 <p>
 The range of the curve is set from the entries <B>X1 Starts</B> and 
 <B>X2 Ends</B>.  When the program first starts, it sets these values to be
-about 0.1 frequency unit before the first zero, and close to the second zero,
+about 0.05/pixel before the first zero, and close to the second zero,
 respectively, based on the expected defocus.  If necessary, you should adjust
 the starting value so that it is to the right of where the fitted curve
 strongly deviates from the actual.  If the red curve become noisy and falls
@@ -144,7 +145,7 @@ defocus estimate and make sure that estimate is approximately correct.
 </P>
 <p>
 <img src="rangePolynomial.png">
-<br>
+</P><P>
 You can also fit a polynomial to the region around the first zero.
 The <B>Order of polynomial</B> spin button allows you to select an order
 between 2 and 6, which involves finding 3 to 7 parameters.  The goal here is
@@ -160,7 +161,7 @@ good fit there.
 
 <p>
 <img src="rangeIntersect.png">
-<br>
+</P><P>
 Finding the zero at the intersection of two curves involves fitting two
 separate curves, before and after the first zero.  Each can be fit to either a
 straight line or a Gaussian over the selected range.  The program finds the
@@ -179,7 +180,7 @@ radio button to
 fit to a straight line or to a Gaussian.
 </P>
 
-<h2>Angle Range and Tilt Selection Dialog<br>
+<h2>Angle Range and Tile Selection Dialog<br>
 </h2>
 This dialog presents the various parameters that control how the power
 spectrum is computed.  After changing parameters, either press
@@ -188,7 +189,81 @@ recomputed with the current parameters.  The dialog also shows the table of
 defocus values and allows it to be manipulated.  Because of the importance of
 this dialog, it is opened automatically when the program starts.
 <P>
-<img alt="angleDialog" src="angleDialog.png"><br>
+<img alt="angleDialog" src="angleDialog.png">
+</P><P>
+<B>Starting tilt angle</B><br>
+<B>Ending tilt angle</B>: <br>
+The views with tilt angle
+greater than or equal to the starting angle but less than or equal to the
+ending angle will be included in the estimation.  If you enter a value beyond
+the end of the range of angles in the tilt series, it will be adjusted to the
+starting or ending angle of the series.
+</P><P>
+<B>Step angle range</B>:<br>
+Pressing <B>Step Up</b> or <B>Step Down</B> will shift the angular range by
+the amount in the <B>Step angle range by</B> text box.  This step size will be
+added to or subtracted from both the starting and ending tilt angles.  If the
+shift would make one of the limiting angles go outside the bounds of the
+tilt series, both angles are changed by a lesser amount so as to keep the
+range the same size.  The power spectrum is computed and fit to at the new
+angular range.  The step size is initialized to be half the original angular
+range.
+</P><P>
+<B>Autofitting</B>:<br>
+Once fitting parameters have been set optimally and an appropriate angular
+range has been chosen, the <B>Autofit All Steps</B> button can be used to step
+automatically to a series of angular ranges, find the defocus, and store the
+defocus in the table.
+<UL>
+<LI>The angular range will be the same as the range between the <B>Starting
+    tilt angle</B> and <B>Ending tilt angle</B> entries.</LI>
+<LI>Ranges will span the angular extent specified in the <B>Autofit:</B>
+  and <b>to</b> text boxes.  Specifically, the first range will start at the
+  angle in the <B>Autofit:</B> box and the last range will end at the value in
+  the <b>to</b> box.  These boxes are initialized with the starting and
+  ending tilt angles of the series.</LI>
+<LI>The spacing between ranges will be approximately that specified in the 
+<B>Step angle range by</B> entry, adjusted to span the desired angular
+extent.</LI>
+<LI>With a step size of 0, each image in the desired angular extent will be
+  fit separately, regardless of the size of the current angular range.</LI>
+<LI>The current settings for <B>Which defocus to use</B> and <B>Initial tiles
+    to include</B> are used in computing and fitting the power spectra.  If
+    the current defocus is selected for use, each power spectrum fit will be
+    iterated three times to reach a consistent defocus value.</LI>
+<LI>If there are already values in the defocus table, the program will ask
+  whether you want to remove or retain ones that are already present in the extent being
+  analyzed.  The message will list the middle of the tilt angle range for the
+  first and last one to be removed.  If existing entries get deleted, look
+  carefully at the end of the range for ones that might not have been deleted.</LI>
+</UL>
+</P><P>
+<B>Tile parameters</B>:<br>
+The <B>+</B> pushbutton will open up a section of the dialog for parameters
+that are rarely adjusted; they include:
+<ul>
+<LI>
+<B>Tile size</B>: the tile size in pixels.</li>
+<li><B>Tilt axis angle</B>: 
+The amount in degrees that the tilt axis deviates from being vertical
+(Y axis)</li>
+<li><b>Center defocus tol</B>: 
+The image region with defocus difference less than this tolerance is
+defined as the center region.</li>
+<li><B>Left defocus tol</B> and <B>Right defocus tol</B>:
+These two entries set the maximum defocus difference for adding in
+tiles from image regions to the left and right of the center region,
+respectively,
+after the "Adding Noncenter Tiles" button is pushed,
+or if the <B>All tiles</B> radio
+button is selected.
+You can set one to be small and the other large in order to 
+assess the results of
+adding in tiles from only one side of the image, but this will mix tiles at
+lower and higher defocuses unless the tilt angles are all positive or all
+negative.</li>
+</ul>
+</P><P>
 <B>Expected defocus</B>: <br>
 This field starts out with the expected defocus value
 specified in the parameter file, but you can change it.  Initially, this value
@@ -203,39 +278,6 @@ tiles with the CTF curve of center tiles. With the radio button group
 whether to use the expected defocus shown in the <B>Expected defocus
 (um)</B> Edit field or the defocus previously found by the
 program as the defocus for computing the shifts.
-</P><P>
-<B>Starting tilt angle</B><br>
-<B>Ending tilt angle</B>: <br>
-The views with tilt angle
-greater than or equal to the starting angle but less than or equal to the
-ending angle will be included in the estimation.  If you enter a value beyond
-the end of the range of angles in the tilt series, it will be adjusted to the
-starting or ending angle of the series.
-</P><P>
-<B>Center defocus tol</B>: <br>
-The image region with defocus difference less than this tolerance is
-defined as the center region.
-</P><P>
-<B>Left defocus tol:</B> <br>
-<B>Right defocus tol</B>: <br>
-These two entries set the maximum defocus difference for adding in
-tiles from image regions to the left and right of the center region,
-respectively,
-after the "Adding Noncenter Tiles" button is pushed,
-or if the <B>All tiles</B> radio
-button is selected.
-You can set one to be small and the other large in order to 
-assess the results of
-adding in tiles from only one side of the image, but this will mix tiles at
-lower and higher defocuses unless the tilt angles are all positive or all
-negative. 
-</P><P>
-<B>Tile size</B>: <br>
-The tile size in pixels.
-</P><P>
-<B>Tilt axis angle</B>:<br>
-The amount in degrees that the tilt axis deviates from being vertical
-(Y axis).
 </P><P>
 <B>Initial tiles to include</B> radio
 button group:<br>
@@ -280,7 +322,12 @@ results.
 </P><P>
 Push the <B>Set Tilt Angles</B> button to reset the starting and ending tilt
 angles to the values on the currently selected row of the table and recompute
-the power spectrum.
+the power spectrum.  To conveniently step through a series of angular ranges,
+click the mouse anywhere on a row to select that row of the table.
+Then press the <B>Set Tilt Angles</B> button with the mouse, or using the
+keyboard accelerator Alt-T.  Thereafter, you can type an up
+or down arrow key to move up or down in the table and press this button again,
+without moving the mouse.
 </P><P>
 Push the <B>Save to File</B> button to write the contents of the angles and
 defocus table to the output file.
@@ -292,7 +339,8 @@ from bovine papilloma virus, taken at a nominal defocus of 3 microns and a
 pixel size of 0.76 nm.  When the program is started with the default
 angular range in the command file, the window looks like this:
 </P><P>
-<img src="plotStartup.png"><br>
+<img src="plotStartup.png">
+</P><P>
 The range of the display in Y is dominated by the power at low frequencies, so
 it is essential to zoom the display.  This graph was zoomed by pressing the
 left mouse button with the cursor just at the place where the green and red
@@ -300,7 +348,8 @@ curves diverge (at ~0.25 in X), then dragging the mouse to just below the
 curves and just to the left of 0.8 to set the lower right corner of the rubber
 band.  Then the window looks like this:
 </P><P>
-<img src="plotCenterZoom.png"><br>
+<img src="plotCenterZoom.png">
+</P><P>
 Now we can see more clearly that the background subtraction is giving a
 reasonable power spectrum that is close to flat at high frequencies.
 The next step is to add in all of tiles, either by pushing the "Adding
@@ -308,15 +357,16 @@ Non-center Tiles" button or by opening the Angle range dialog and switching to
 the <B>All tiles</B> option.  These two methods will give slightly different
 results, and the latter is actually preferable.
 </P><P>
-<img src="plotAllTiles.png"><br>
+<img src="plotAllTiles.png">
+</P><P>
 The power spectrum is much smoother and it is now easier to see that it has a
 discernable dip, but that the green
 curve does not fit very well. If we open the Fitting Range & Method dialog, we
-see that it is fitting from 0.43 to 0.78, a range that was determined from the
+see that it is fitting from 0.215 to 0.39, a range that was determined from the
 nominal defocus but is not quite appropriate for the actual defocus.  The
 range was changed to what was shown above in the dialog: the left side was
-moved to 0.38 to include more of the falling phase of the power spectrum, and the
-right side was reduced to 0.58 because the power spectrum drops off after that
+moved to 0.19 to include more of the falling phase of the power spectrum, and the
+right side was reduced to 0.29 because the power spectrum drops off after that
 point, well before its second zero.  At this point it is also clear that the
 actual defocus is different from 3 microns, so we select the <B>Current
 defocus estimate</B> radio button in the Angle Range dialog so that the
@@ -326,26 +376,40 @@ change the <B>Expected defocus</B> entry.
 After recomputing the curves and zooming the display again, it looks
 like this:
 </P><P>
-<img src="plotFixRange.png"><br>
+<img src="plotFixRange.png">
+</P><P>
 Here we see that the
 CTF-like fitting works fairly well near the bottom of the dip, and that it
 leads to a defocus estimate significantly different from the nominal defocus.
 Turning on the <B>Vary exponent of CTF function</B> gives a slightly better
 fit:
 </P><P>
-<img src="plotPower.png"><br>
+<img src="plotPower.png">
+</P><P>
 This fitting method can now be used over different angular ranges, and the
-results can be stored from each range.  Although there is no need to try the
+results can be stored from each range.  If <B>Autofit All Steps</B> is
+used over the full extent of the tilt series, four ranges have defocus values
+near 3.5 but the last one has a value of only 2.5 microns.  The curve for this
+range lacks a dip, so this value is wrong.  This problem is solved by
+restricting the high end of the extent analyzed to 57 degrees.  After running
+with this extent and loading the last range to verify that its spectrum has a
+dip, the angle dialog looks like this:
+</P><P>
+<img src="angleAutofit.png">
+</P><P>
+Although there is no need to try the
 different fitting methods with this data set, they are illustrated next.
 </P><P>
-<img src="plotPolynomial.png"><br>
+<img src="plotPolynomial.png">
+</P><P>
 This panel shows the power spectrum for a different angular range (-50 to -10
 degrees) with a
 fourth-order polynomial fit to the frequency range shown in the dialog above.
-As is typical of polynomials, the green curves goes off wildly outside the
+As is typical of polynomials, the green curve goes off wildly outside the
 fitting range.
 </P><P>
-<img src="plotIntersect.png"><br>
+<img src="plotIntersect.png">
+</P><P>
 This panel shows the power spectrum for the original angular range with
 determination of the zero from the intersection of two curves, with the
 frequency range as shown in the dialog above.

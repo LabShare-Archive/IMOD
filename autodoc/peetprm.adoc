@@ -32,17 +32,17 @@ enum.3.tooltip = Initialize with uniform random rotations.
 enum.4.tooltip = Random axial rotations around the particle y axis.
 
 [Field = flgFairReference]
-comment = If 1, create a multi-particle reference. Otherwise, choose a single
+comment = If 1, create a multiparticle reference. Otherwise, choose a single
 ^particle reference or use the user-specified volume.
-tooltip =  Generate a multi-particle reference.
+tooltip =  Generate a multiparticle reference.
 
 [Field = reference]
 KeyValueDelimiter = ==
-comment == If flgFairReference = 1, a pair of integers [m, n] specifying
-^m groups, each with n particles, be used to generate a multi-particle
-^reference. Otherwise, if a string, the name of an MRC file containing 
-^the reference volume, or if [i  j], specifies that the jth particle of 
-^the ith volume will be used as the initial reference.
+comment == If flgFairReference = 1, an integer k specifying that a
+^binary search using k levels will be used to generate a multiparticle
+^reference containing 2^k particles. Otherwise, if a string, the name 
+^of an MRC file containing the reference volume, or if [i  j], 
+^specifies the jth particle of ^the ith volume as the reference.
 KeyValueDelimiter == =
 
 [Field = maskType]
@@ -57,7 +57,7 @@ comment = Controls optional masking of the reference.
 
 [Field = maskModelPts]
 KeyValueDelimiter = ==
-comment == manually specify cylindrical mask orientation.
+comment == Manually specify cylindrical mask orientation.
 ^If not empty, determines the axis of the cylindrical mask.
 ^The format is [Z Y], where Z and Y are Slicer angles specifying rotations
 ^in integer degrees around the tomogram Z and Y axes. These rotations
@@ -79,15 +79,14 @@ comment = specifies the particle's Y axis.
 ^1: particle model points determine the particle Y axis.
 ^2: end points of the contour containing the particle determine the
 ^   particle Y axis.
-enum.0.tooltip = use volume's Y axis as the particle Y axis.
-enum.1.tooltip = use vector between neighboring model points as the particle Y axis.
-enum.2.tooltip = use end points of the contour containing the particle as the particle
+enum.0.tooltip = Use volume's Y axis as the particle Y axis.
+enum.1.tooltip = Use vector between neighboring model points as the particle Y axis.
+enum.2.tooltip = Use end points of the contour containing the particle as the particle
 Y axis.
 
 [Field = particlePerCPU]
-comment = controls how the workload is distributed when multiple
-^cpus are available. The number of particles to process in a single chunk 
-^on a single cpu.
+comment = The maximum number of particles distributed simultaneously to 
+^a single cpu during parallel processing.
 
 [Field = szVol]
 comment = The size of the volume to be averaged in voxels.
@@ -157,9 +156,9 @@ comment = Controls particle selection during reference generation.
 ^   particles of all tomos when creating new references.
 ^0: prefer equal numbers of particles from each tomogram
 ^   when creating new references.
-enum.1.tooltip =use particles with the best correlation scores among all
+enum.1.tooltip = Use particles with the best correlation scores among all
 particles of all tomos when creating new references.
-enum.0.tooltip = prefer equal numbers of particles from each tomogram
+enum.0.tooltip = Prefer equal numbers of particles from each tomogram
 when creating new references.
 
 [Field = tiltRange]
@@ -190,9 +189,9 @@ comment = Controls particle selection during final averaging.
 ^   of all tomos when creating final averages.
 ^0: prefer equal number of particles from each tomo when creating 
 ^   final averages.
-enum.1.tooltip =: use particles with best correlation scores among all particles
+enum.1.tooltip =: Use particles with best correlation scores among all particles
 of all tomos when creating final averages.
-enum.0.tooltip = prefer equal number of particles from each tomo when creating 
+enum.0.tooltip = Prefer equal number of particles from each tomo when creating 
 final averages.
 
 [Field = alignedBaseName]
@@ -238,8 +237,8 @@ comment =  If 1 (default), maximize the absolute value of the cross-correlation
 ^of some  highly repetitive patterns (e.g. checkerboard or zebra
 ^stripe patterns) in which in which in- and  out-of-phase alignments
 ^become indistinguishable.
-enum.0.tooltip = maximize cross-correlation
-enum.1.tooltip = maximize absolute value of cross-correlation
+enum.0.tooltip = Maximize cross-correlation
+enum.1.tooltip = Maximize absolute value of cross-correlation
 
 [Field = flgStrictSearchLimits]
 comment = If 0 (default) or missing, radial and

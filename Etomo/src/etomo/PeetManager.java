@@ -9,6 +9,7 @@ import java.util.List;
 import etomo.comscript.AverageAllParam;
 import etomo.comscript.PeetParserParam;
 import etomo.comscript.ProcesschunksParam;
+import etomo.logic.PeetStartupData;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.PeetProcessManager;
@@ -48,6 +49,7 @@ import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.MainPeetPanel;
 import etomo.ui.swing.ParallelPanel;
 import etomo.ui.swing.PeetDialog;
+import etomo.ui.swing.PeetStartupDialog;
 import etomo.ui.swing.ProcessDisplay;
 import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
@@ -341,12 +343,17 @@ public final class PeetManager extends BaseManager {
   private PeetDialog peetDialog = null;
   private MatlabParam matlabParam = null;
   private MainPeetPanel mainPanel;
+  private PeetStartupDialog peetStartupDialog = null;
+  /**
+   * valid is for handling failure before the manager key is set in EtomoDirector.
+   */
+  private boolean valid = true;
 
-  PeetManager() {
+  private PeetManager() {
     this("");
   }
 
-  PeetManager(final String paramFileName) {
+  private PeetManager(final String paramFileName) {
     super();
     metaData = new PeetMetaData();
     state = new PeetState();
@@ -356,11 +363,41 @@ public final class PeetManager extends BaseManager {
     if (loadedParamFile) {
       setMatlabParam(false);
     }
+  }
+
+  static PeetManager getInstance() {
+    PeetManager instance = new PeetManager();
+    instance.openDialog();
+    return instance;
+  }
+
+  static PeetManager getInstance(final String paramFileName) {
+    PeetManager instance = new PeetManager(paramFileName);
+    instance.openDialog();
+    return instance;
+  }
+
+  private void openDialog() {
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       openProcessingPanel();
       mainPanel.setStatusBarText(paramFile, metaData, logPanel);
-      openPeetDialog();
+      if (loadedParamFile) {
+        openPeetDialog(null);
+      }
+      else {
+        openPeetStartupDialog();
+      }
     }
+  }
+
+  void display() {
+    if (peetStartupDialog != null) {
+      peetStartupDialog.display();
+    }
+  }
+
+  boolean isValid() {
+    return valid;
   }
 
   void initializeUIParameters(final String paramFileName, final AxisID axisID) {
@@ -454,61 +491,22 @@ public final class PeetManager extends BaseManager {
   }
 
   /**
-   * Only one .epe file per directory
-   * @param userDir
-   * @param name
-   * @return
-   */
-  private boolean isUserDirValid(final File userDir, final String name) {
-    File[] paramFiles = userDir.listFiles(new PeetFileFilter(false));
-    if (paramFiles == null || paramFiles.length == 0) {
-      return true;
-    }
-    // OK to use directory if it contains an .epe file of the same name
-    if (paramFiles.length == 1
-        && DatasetFiles.getPeetRootName(paramFiles[0].getName()).equals(name)) {
-      return true;
-    }
-    uiHarness.openMessageDialog(this, "The directory " + userDir.getAbsolutePath()
-        + " can contain only one " + DatasetFiles.PEET_DATA_FILE_EXT + " file.",
-        "Entry Error");
-    return false;
-  }
-
-  /**
    * Copy the .prm file, and the .epe file if requested.  Modify them, and load the
    * dataset into the manager and the dialog.
    * @param file .epe or .prm file from an existing dataset
    * @param parametersOnly
    */
-  public void copyDataset(final File file) {
-    if (file == null || peetDialog == null) {
+  public void copyDataset(final PeetStartupData startupData) {
+    if (startupData == null) {
       return;
     }
+    File file = new File(startupData.getCopyFrom());
     // Create and correct the .epe file the new dataset directory.
     // Get the root name for this dataset
-    String fnOutput = peetDialog.getFnOutput();
-    if (fnOutput == null || fnOutput.matches("\\s*")) {
-      String fileName = file.getName();
-      int extIndex = fileName.lastIndexOf('.');
-      if (extIndex != -1) {
-        fnOutput = fileName.substring(0, extIndex);
-      }
-      else {
-        fnOutput = fileName;
-      }
-    }
-    File destDir = new File(peetDialog.getDirectoryString());
-    if (file.getParentFile().equals(destDir)) {
-      uiHarness.openMessageDialog(this,
-          "Cannot duplicate a project in the same directory.", "Entry Error");
-      return;
-    }
-    if (!isUserDirValid(destDir, fnOutput)) {
-      return;
-    }
+    String fnOutput = startupData.getBaseName();
+    File destDir = new File(startupData.getDirectory());
     // Create the new file
-    File destPeetFile = new File(destDir, fnOutput + DatasetFiles.PEET_DATA_FILE_EXT);
+    File destPeetFile = startupData.getParamFile();
     boolean peetFileCopied = false;
     if (new PeetFileFilter().accept(file)) {
       // Copy the .epe file
@@ -580,7 +578,7 @@ public final class PeetManager extends BaseManager {
       BaseProcessManager.touch(destMatlabFile.getAbsolutePath(), this);
     }
     // Load the .prm file
-    MatlabParam param = new MatlabParam(destMatlabFile, false);
+    MatlabParam param = new MatlabParam(this, AXIS_ID, destMatlabFile, false);
     if (param.read(this)) {
       param.setFnOutput(fnOutput);
       param.setFile(destDir.getAbsolutePath());
@@ -594,23 +592,29 @@ public final class PeetManager extends BaseManager {
           "Unable to load " + destPeetFile.getAbsolutePath() + ".", "Entry Error");
       return;
     }
-    peetDialog.setFnOutput(fnOutput);
+    if (peetDialog != null) {
+      peetDialog.setFnOutput(fnOutput);
+      peetDialog.setDirectory(startupData.getDirectory());
 
-    if (metaData.isValid()) {
-      peetDialog.setParameters(metaData);
-      peetDialog.setParameters(screenState);
+      if (metaData.isValid()) {
+        peetDialog.setParameters(metaData);
+      }
     }
     matlabParam = param;
     // Always load from matlabParam after loading the data file because some
     // values are in both places (maskModelPts) and the .prm values take
     // precedence over the .epe values.
-    peetDialog.setParameters(matlabParam,
-        peetFileCopied ? null : sourceMatlabFile.getParentFile());
-    peetDialog.updateDisplay(true);
+    if (peetDialog != null) {
+      peetDialog.setParameters(matlabParam,
+          peetFileCopied ? null : sourceMatlabFile.getParentFile());
+      peetDialog.updateDisplay(true);
+    }
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
-    peetDialog.convertCopiedPaths(file.getParentFile().getAbsolutePath());
-    peetDialog.checkIncorrectPaths();
+    if (peetDialog != null) {
+      peetDialog.convertCopiedPaths(file.getParentFile().getAbsolutePath());
+      peetDialog.checkIncorrectPaths();
+    }
   }
 
   public void setParamFile(final File paramFile) {
@@ -632,28 +636,36 @@ public final class PeetManager extends BaseManager {
   }
 
   /**
+   * The param file should already be set.
+   * @return
+   */
+  public boolean setParamFile() {
+    return loadedParamFile;
+  }
+
+  /**
    * Tries to set paramFile.  Returns true if able to set paramFile.
    * If paramFile is already set, returns true.  Returns false if unable
    * to set paramFile.  Updates the peet dialog display if paramFile
    * was set successfully.
    * @return
    */
-  public boolean setParamFile() {
+  public boolean setParamFile(final PeetStartupData startupData) {
     if (loadedParamFile) {
       return true;
     }
-    if (peetDialog == null) {
+    if (startupData == null) {
       return false;
     }
-    String name = peetDialog.getFnOutput();
-    if (name == null || name.matches("\\s*")) {
-      return false;
+    String name = startupData.getBaseName();
+    if (peetDialog != null) {
+      peetDialog.setFnOutput(name);
     }
-    String dirName = peetDialog.getDirectoryString();
-    if (!isUserDirValid(new File(dirName), name)) {
-      return false;
+    String dirName = startupData.getDirectory();
+    if (peetDialog != null) {
+      peetDialog.setDirectory(dirName);
     }
-    File paramFile = new File(dirName, name + DatasetFiles.PEET_DATA_FILE_EXT);
+    File paramFile = startupData.getParamFile();
     if (!paramFile.exists()) {
       processMgr.createNewFile(paramFile.getAbsolutePath());
     }
@@ -674,7 +686,9 @@ public final class PeetManager extends BaseManager {
     if (matlabParam == null) {
       setMatlabParam(true);
     }
-    peetDialog.updateDisplay(true);
+    if (peetDialog != null) {
+      peetDialog.updateDisplay(true);
+    }
     return true;
   }
 
@@ -701,7 +715,7 @@ public final class PeetManager extends BaseManager {
   public void save() throws LogFile.LockException, IOException {
     super.save();
     mainPanel.done();
-    savePeetDialog();
+    savePeetDialog(false);
   }
 
   public int getParallelProcessingDefaultNice() {
@@ -781,7 +795,9 @@ public final class PeetManager extends BaseManager {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
-    savePeetDialog();
+    if (!savePeetDialog(true)) {
+      return;
+    }
     if (matlabParam == null) {
       uiHarness.openMessageDialog(this, "Must set " + PeetDialog.DIRECTORY_LABEL
           + " and " + PeetDialog.FN_OUTPUT_LABEL, "Entry Error");
@@ -817,7 +833,9 @@ public final class PeetManager extends BaseManager {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
-    savePeetDialog();
+    if (!savePeetDialog(true)) {
+      return;
+    }
     if (matlabParam == null) {
       uiHarness.openMessageDialog(this, "Must set " + PeetDialog.DIRECTORY_LABEL
           + " and " + PeetDialog.FN_OUTPUT_LABEL, "Entry Error");
@@ -922,7 +940,8 @@ public final class PeetManager extends BaseManager {
     if (!loadedParamFile || matlabParam != null || paramFile == null) {
       return;
     }
-    matlabParam = new MatlabParam(DatasetFiles.getMatlabParamFile(this), newFile);
+    matlabParam = new MatlabParam(this, AXIS_ID, DatasetFiles.getMatlabParamFile(this),
+        newFile);
     matlabParam.read(this);
   }
 
@@ -942,19 +961,67 @@ public final class PeetManager extends BaseManager {
    * Create (if necessary) and show the peet dialog.  Update data if the param
    * file has been set.
    */
-  private void openPeetDialog() {
+  private void openPeetDialog(final PeetStartupData startupData) {
+    if (!loadedParamFile && startupData == null) {
+      UIHarness.INSTANCE
+          .openMessageDialog(this,
+              "Failed to load the parameter file, unable to continue.", "Failed",
+              AxisID.ONLY);
+      valid = false;
+      return;
+    }
     if (peetDialog == null) {
       peetDialog = PeetDialog.getInstance(this, AXIS_ID);
     }
     setPeetDialogParameters(null, true);
     mainPanel.showProcess(peetDialog.getContainer(), AXIS_ID);
+    String actionMessage = Utilities.prepareDialogActionMessage(DialogType.PEET,
+        AxisID.ONLY, null);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
+  }
+
+  /**
+   * Create (if necessary) and show the peet dialog.  Update data if the param
+   * file has been set.
+   */
+  private void openPeetStartupDialog() {
+    if (peetStartupDialog == null) {
+      mainPanel.setStaticProgressBar("Starting PEET interface", AXIS_ID);
+      peetStartupDialog = PeetStartupDialog.getInstance(this, AXIS_ID);
+    }
+  }
+
+  public void cancelStartup() {
+    mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.KILLED);
+    EtomoDirector.INSTANCE.closeCurrentManager(AxisID.ONLY, false);
+  }
+
+  public void setStartupData(final PeetStartupData startupData) {
+    peetStartupDialog = null;
+    openPeetDialog(startupData);
+    if (startupData.isCopyFrom()) {
+      copyDataset(startupData);
+    }
+    else {
+      setParamFile(startupData);
+    }
+    if (!loadedParamFile) {
+      mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.FAILED);
+      UIHarness.INSTANCE.openMessageDialog(this,
+          "Failed to load or create parameter file, unable to continue.", "Failed",
+          AxisID.ONLY);
+      valid = false;
+      return;
+    }
+    mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.DONE);
   }
 
   private void setPeetDialogParameters(final File importDir, final boolean metaDataLoaded) {
     if (paramFile != null && metaData.isValid()) {
       if (metaDataLoaded) {
         peetDialog.setParameters(metaData);
-        peetDialog.setParameters(screenState);
       }
       // Always load from matlabParam after loading the data file because some
       // values are in both places (maskModelPts) and the .prm values take
@@ -968,7 +1035,7 @@ public final class PeetManager extends BaseManager {
     }
   }
 
-  private boolean savePeetDialog() {
+  private boolean savePeetDialog(final boolean forRun) {
     if (peetDialog == null) {
       return false;
     }
@@ -981,9 +1048,9 @@ public final class PeetManager extends BaseManager {
       return false;
     }
     peetDialog.getParameters(metaData);
-    peetDialog.getParameters(screenState);
     saveStorables(AXIS_ID);
-    peetDialog.getParameters(matlabParam);
+    if (!peetDialog.getParameters(matlabParam, forRun))
+      return false;
     matlabParam.write(this);
     return true;
   }

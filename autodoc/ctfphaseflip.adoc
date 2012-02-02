@@ -52,6 +52,17 @@ defocus value, if the angle is beyond the range of the available midpoint
 angles.  To correct a tilt series with a single value of defocus, supply a
 file with a single line containing "20 20 0. 0. defocus_value".
 
+[Field = TransformFile]
+short = xform
+type = FN
+usage = File with linear transformations used to align images
+tooltip = 
+manpage = File with the linear transformations that were used to align the
+images.  With this option, the program will use the shifts in X to adjust the
+middle position that is considered to be at the nominal defocus value for each
+image.  Whether this is appropriate or not needs to be determined by
+experimentation.
+
 [Field = DefocusTol]
 short = defTol
 type = I

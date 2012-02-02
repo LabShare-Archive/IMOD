@@ -47,6 +47,7 @@ import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
 import etomo.ui.swing.FileChooser;
+import etomo.ui.swing.FixedDim;
 import etomo.ui.swing.LogInterface;
 import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainPanel;
@@ -1582,14 +1583,21 @@ public abstract class BaseManager {
    * 
    * @param dialogType
    * @param axisID
+   * @return the action message
    */
-  public void setCurrentDialogType(DialogType dialogType, AxisID axisID) {
+  public String setCurrentDialogType(DialogType dialogType, AxisID axisID) {
+    String actionMessage = null;
     if (axisID == AxisID.SECOND) {
+      actionMessage = Utilities.prepareDialogActionMessage(dialogType, axisID,
+          currentDialogTypeB);
       currentDialogTypeB = dialogType;
     }
     else {
+      actionMessage = Utilities.prepareDialogActionMessage(dialogType, axisID,
+          currentDialogTypeA);
       currentDialogTypeA = dialogType;
     }
+    return actionMessage;
   }
 
   /**
@@ -1674,7 +1682,7 @@ public abstract class BaseManager {
         EtomoDirector.INSTANCE.getOriginalUserDir()));
     ChunkComscriptFileFilter filter = new ChunkComscriptFileFilter();
     chooser.setFileFilter(filter);
-    chooser.setPreferredSize(new Dimension(400, 400));
+    chooser.setPreferredSize(FixedDim.fileChooser);
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(root);
     if (returnVal == JFileChooser.APPROVE_OPTION) {

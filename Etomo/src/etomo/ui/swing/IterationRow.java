@@ -535,7 +535,7 @@ final class IterationRow implements Highlightable {
             + "steps of (Psi Incr).");
     searchRadius.setToolTipText("The number of pixels to search in the X, Y, and Z "
         + "directions.  A single, integer number of pixels can be specified, "
-        + "which will be applied to a 3 dimensions, or a vector of 3 "
+        + "which will be applied to all 3 dimensions, or a vector of 3 "
         + "integers can be specified, giving the X, Y, and Z search "
         + "distances individually. E.g. '3' is equivalent to '3 3 3'.");
     hiCutoff.setToolTipText("The normalized spatial frequency above which high "

@@ -93,22 +93,16 @@ public final class ParsedElementList {
     return "[map:" + map + "]";
   }
 
-  /*
-   * Don't call this function with the class since it uses minSize instead of
-   * giving the real size and would cause new elements to be added after minSize
-   * in an empty list.
-   */
+  /* Don't call this function with the class since it uses minSize instead of giving the
+   * real size and would cause new elements to be added after minSize in an empty list. */
   public int size() {
-    //if (size < minSize) {
-    //  return minSize;
-    //}
+    // if (size < minSize) {
+    // return minSize;
+    // }
     return size;
   }
 
-  /*
-   void setMinSize(int input) {
-   minSize = input;
-   }*/
+  /*void setMinSize(int input) { minSize = input; } */
 
   /**
    * Add an element.  The key is the current size.  Size is incremented by one.
@@ -143,11 +137,11 @@ public final class ParsedElementList {
    */
   synchronized void set(int index, ParsedElement element) {
     map.put(getKey(index), element);
-    //if index is equal to size, this is the same a calling add()
+    // if index is equal to size, this is the same a calling add()
     if (index == size) {
       size++;
     }
-    //if index is ahead of size
+    // if index is ahead of size
     else if (index > size) {
       size = index + 1;
     }
@@ -162,7 +156,7 @@ public final class ParsedElementList {
     return setEmptyElement(size);
   }
 
-  private ParsedElement setEmptyElement(int index) {
+  ParsedElement setEmptyElement(int index) {
     ParsedElement element;
     if (type == ParsedElementType.STRING) {
       element = ParsedQuotedString.getInstance(debug);

@@ -334,7 +334,8 @@ final class VolumeRow implements Highlightable {
    * changeable field (volume, model, and MOTL).
    */
   int getTextSize() {
-    return Math.max(fnVolume.getValue().length(), 6) + Math.max(fnModParticle.getValue().length(), 5)
+    return Math.max(fnVolume.getValue().length(), 6)
+        + Math.max(fnModParticle.getValue().length(), 5)
         + Math.max(initMotlFile.getValue().length(), 5);
   }
 
@@ -438,17 +439,17 @@ final class VolumeRow implements Highlightable {
    */
   boolean isIncorrectPaths() {
     if (!fnVolume.isEmpty()
-        && !FilePath.getFileFromPath(manager.getPropertyUserDir(),
+        && !FilePath.buildAbsoluteFile(manager.getPropertyUserDir(),
             fnVolume.getExpandedValue()).exists()) {
       return true;
     }
     if (!fnModParticle.isEmpty()
-        && !FilePath.getFileFromPath(manager.getPropertyUserDir(),
+        && !FilePath.buildAbsoluteFile(manager.getPropertyUserDir(),
             fnModParticle.getExpandedValue()).exists()) {
       return true;
     }
     if (!initMotlFile.isEmpty()
-        && !FilePath.getFileFromPath(manager.getPropertyUserDir(),
+        && !FilePath.buildAbsoluteFile(manager.getPropertyUserDir(),
             initMotlFile.getExpandedValue()).exists()) {
       return true;
     }
@@ -457,21 +458,21 @@ final class VolumeRow implements Highlightable {
 
   boolean fixIncorrectPaths(boolean choosePathEveryRow) {
     if (!fnVolume.isEmpty()
-        && !FilePath.getFileFromPath(manager.getPropertyUserDir(),
+        && !FilePath.buildAbsoluteFile(manager.getPropertyUserDir(),
             fnVolume.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(fnVolume, choosePathEveryRow, table.isFnVolumeExpanded())) {
         return false;
       }
     }
     if (!fnModParticle.isEmpty()
-        && !FilePath.getFileFromPath(manager.getPropertyUserDir(),
+        && !FilePath.buildAbsoluteFile(manager.getPropertyUserDir(),
             fnModParticle.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(fnModParticle, false, table.isFnModParticleExpanded())) {
         return false;
       }
     }
     if (!initMotlFile.isEmpty()
-        && !FilePath.getFileFromPath(manager.getPropertyUserDir(),
+        && !FilePath.buildAbsoluteFile(manager.getPropertyUserDir(),
             initMotlFile.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(initMotlFile, false, table.isInitMotlFileExpanded())) {
         return false;
@@ -495,7 +496,7 @@ final class VolumeRow implements Highlightable {
       if (table.isCorrectPathNull() || choosePath
           || (newFile != null && !newFile.exists())) {
         JFileChooser fileChooser = table.getFileChooserInstance();
-        fileChooser.setSelectedFile(FilePath.getFileFromPath(
+        fileChooser.setSelectedFile(FilePath.buildAbsoluteFile(
             manager.getPropertyUserDir(), fieldCell.getExpandedValue()));
         fileChooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -639,7 +640,7 @@ final class VolumeRow implements Highlightable {
     if (fnVolume.isEmpty()) {
       return null;
     }
-    return FilePath.getFileFromPath(manager.getPropertyUserDir(),
+    return FilePath.buildAbsoluteFile(manager.getPropertyUserDir(),
         fnVolume.getExpandedValue());
   }
 
@@ -647,7 +648,7 @@ final class VolumeRow implements Highlightable {
     if (fnModParticle.isEmpty()) {
       return null;
     }
-    return FilePath.getFileFromPath(manager.getPropertyUserDir(),
+    return FilePath.buildAbsoluteFile(manager.getPropertyUserDir(),
         fnModParticle.getExpandedValue());
   }
 
@@ -693,10 +694,10 @@ final class VolumeRow implements Highlightable {
         + "list with orientations and shifts.");
     fbInitMotlFile
         .setToolTipText("Select a .csv file with initial orientations and shifts");
-    String tooltip = "The minimum and maximum tilt angle (in degrees) used "
+    String tooltip = " tilt angle (in degrees) used "
         + "during image acquisition for this tomogram.  Used only if missing "
         + "wedge compensation is enabled.";
-    tiltRangeMin.setToolTipText(tooltip);
-    tiltRangeMax.setToolTipText(tooltip);
+    tiltRangeMin.setToolTipText("The minimum" + tooltip);
+    tiltRangeMax.setToolTipText("The maximum" + tooltip);
   }
 }

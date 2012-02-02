@@ -121,7 +121,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     if (!canShowDialog()) {
       return;
     }
-    if (showDialog(dialog)) {
+    String actionMessage = manager.setCurrentDialogType(dialogType, axisID);
+    if (showDialog(dialog, actionMessage)) {
       return;
     }
     // Create the dialog and show it.
@@ -172,7 +173,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     dialog.setImageRotation(metaData.getImageRotation(axisID).toString());
     setButtonState(manager.getScreenState(axisID));
     fiducialessAction();
-    openDialog(dialog);
+    openDialog(dialog, actionMessage);
     metaData.setPosExists(axisID, true);
   }
 

@@ -113,8 +113,8 @@ public final class FilePath {
     if (name == null || name.matches("\\s*")) {
       return false;
     }
-    return name.indexOf(File.separator) != -1 || (Utilities.isWindowsOS() && name
-        .indexOf(":") > 0);
+    return name.indexOf(File.separator) != -1
+        || (Utilities.isWindowsOS() && name.indexOf(":") > 0);
   }
 
   public static String getFileName(final String path) {
@@ -122,6 +122,13 @@ public final class FilePath {
       return new File(path).getName();
     }
     return path;
+  }
+  
+  public static File getFileParent(final String path) {
+    if (isPath(path)) {
+      return new File(path).getParentFile();
+    }
+    return null;
   }
 
   /**
@@ -209,17 +216,44 @@ public final class FilePath {
   }
 
   /**
-   * Gets a File instance of filePath, if filePath is an absolute path or dir is empty.
-   * Otherwise gets a File instance of dir/filePath.
+   * Builds and returns an absolute file if possible.  Returns a File instance of filePath
+   * if filePath is an absolute path or dir is empty, otherwise returns a File instance of
+   * dir/filePath.
+   * @param dir
    * @param filePath
    * @return
    */
-  public static File getFileFromPath(final String dir, final String filePath) {
-    File file = new File(filePath);
+  public static File buildAbsoluteFile(final String dir, final String filePath) {
+    File file;
+    if (filePath.equals(".")) {
+      file = new File("");
+    }
+    else {
+      file = new File(filePath);
+    }
     if (file.isAbsolute() || dir == null || dir.matches("\\s*")) {
       return file;
     }
+    if (filePath.equals(".")) {
+      return new File(dir, file.getPath());
+    }
     return new File(dir, filePath);
+  }
+
+  /**
+   * Builds and returns an absolute file if possible.  Return file if file is absolute or
+   * dir is empty, otherwise returns a File instance of dir/file.
+   * @param filePath
+   * @return
+   */
+  public static File buildAbsoluteFile(final String dir,  File file) {
+    if (file.getPath().equals(".")) {
+      file = new File("");
+    }
+    if (file.isAbsolute() || dir == null || dir.matches("\\s*")) {
+      return file;
+    }
+    return new File(dir, file.getPath());
   }
 
   /**

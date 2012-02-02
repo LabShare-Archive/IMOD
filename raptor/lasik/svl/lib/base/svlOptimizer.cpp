@@ -42,6 +42,7 @@
 #include <iomanip>
 
 // Eigen library
+using std::ptrdiff_t;
 #include "Eigen/Core"
 
 #define USE_EXTERNAL_LBFGS
