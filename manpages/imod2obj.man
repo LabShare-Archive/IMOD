@@ -1,0 +1,62 @@
+.na
+.nh
+.TH imod2obj 1 2.00 BL3DEMC
+.SH NAME
+imod2obj \- Make a OBJ model from an IMOD model file.
+.SH SYNOPSIS
+imod2obj [options] <IMOD model> <obj file> [mtl file]
+.SH DESCRIPTION
+Convert an IMOD model file to the Wavefront .obj text file format which
+a very simple but common format for interchange of 3D meshes between
+various 3D graphics programs.  OBJ files are generally much more limited
+than VRML 2.0 and other 3D file formats as there is no object hierarchy and they
+lack support for primitives like spheres. As a result, all spheres are
+converted  to meshes and all meshes are listed in a flat array of "groups".
+OBJ files do not store material properties, but they do allow materials to
+be referenced in a separate "Material Template Library" (MTL) file which is
+generated if you include a second output file (mtl_file.mtl) on the end of
+the command. While OBJ files are widely used, not all computer programs will
+know how to interpret MTL file and thus it's likely your color and material
+information will be lost. 
+.P
+The model produced will generally have similar attributes to those set in
+3dmod's ModelView before the conversion. Specifically, objects that are turned
+off will not be included in the OBJ file. OBJ files can and do not allow
+contours to be rendered as contours, thus only objects which have been meshed
+will appear in the OBJ file.
+.SS Options
+.TP 
+.B -l
+Use low-resolution meshes, if any are available.  The default is to use the
+highest resolution meshes contained in the model.  Low resolution meshes can
+be produced with the 
+.B -l
+option to imodmesh(1).
+.TP 
+.B -a
+Output all objects (by default those switched off are omitted).
+.TP 
+.B -r
+Rotates the entire model such that the Z axis becomes up in Y.
+This feature is useful when exporting to animation programs
+.TP 
+.B -n
+Output normals (off by default as most 3d programs which import OBJ can
+generate their own normals if missing).
+.TP
+.B -s #
+Specifies number of segments to render per sphere - the more segments the
+nicer the sphere, but the more faces and thus longer to load. Think of this
+number as the number of lines of longitude (the ones that go up and down).
+The default value is 8 and the number of (horizontal) lines of latitude is
+made half this value.
+.TP
+.B -i
+Print spheres as icosahedrons (a surface with 20 equilateral triangles)
+instead of "standard spheres".
+.SH AUTHORS
+Andrew Noske
+.SH SEE ALSO
+3dmodv(1), imodmesh(1), imod2vrml(1), imod2vrml2(1)
+.SH BUGS
+Email bug reports to mast@colorado.edu, and CC to andrew_noske<AT>yahoo<DOT>com.
