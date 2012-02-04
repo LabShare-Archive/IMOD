@@ -1089,7 +1089,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     // equals numbers
     pnlEqualNumber.setLayout(new BoxLayout(pnlEqualNumber, BoxLayout.X_AXIS));
     pnlEqualNumber.setBorder(new EtchedBorder(
-        "Use equal numbers of particles from all tomograms").getBorder());
+        "Use Equal Numbers of Particles from All Tomograms").getBorder());
     pnlEqualNumber.add(Box.createHorizontalGlue());
     pnlEqualNumber.add(pnlLstFlagAllTom);
     pnlEqualNumber.add(pnlRefFlagAllTom);
@@ -1105,7 +1105,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlRefFlagAllTom.add(Box.createHorizontalGlue());
     // optional
     pnlOptional.setLayout(new BoxLayout(pnlOptional, BoxLayout.X_AXIS));
-    pnlOptional.setBorder(new EtchedBorder("Optional / Advanced features").getBorder());
+    pnlOptional.setBorder(new EtchedBorder("Optional / Advanced Features").getBorder());
     pnlOptional.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlOptional.add(pnlOptionalLeft);
     pnlOptional.add(Box.createRigidArea(FixedDim.x30_y0));
