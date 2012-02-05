@@ -443,7 +443,11 @@ public class SystemProgram implements Runnable {
       else if (commandArray != null) {
         process = Runtime.getRuntime().exec(commandArray, null, workingDirectory);
       }
-      waitForProcess();
+      try {
+        Thread.sleep(100);
+      }
+      catch (InterruptedException except) {
+      }
       if (debug)
         System.err.println("returned, process started");
 
@@ -504,7 +508,7 @@ public class SystemProgram implements Runnable {
       // why can we read the stdout and stderr above before this completes
       if (debug)
         System.err.print("SystemProgram: Waiting for process to end...");
-
+      waitForProcess();
       try {
         process.waitFor();
       }
@@ -641,12 +645,6 @@ public class SystemProgram implements Runnable {
    *
    */
   void waitForProcess() {
-    try {
-      Thread.sleep(100);
-    }
-    catch (InterruptedException except) {
-
-    }
   }
 
   /**
