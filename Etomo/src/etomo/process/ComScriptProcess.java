@@ -808,6 +808,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     return logFile;
   }
 
+  public String toString() {
+    return systemProgram.getCommandLine();
+  }
+
   /**
    * Execute the specified com script. This can be initiated by the start()
    * function for the thread.
@@ -1014,8 +1018,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     // Do not use the -e flag for tcsh since David's scripts handle the failure
     // of commands and then report appropriately. The exception to this is the
     // com scripts which require the -e flag. RJG: 2003-11-06
-    systemProgram = new SystemProgram(manager, manager.getPropertyUserDir(), new String[] { "tcsh",
-        "-ef" }, axisID);
+    systemProgram = new SystemProgram(manager, manager.getPropertyUserDir(),
+        new String[] { "tcsh", "-ef" }, axisID);
     systemProgram.setWorkingDirectory(workingDirectory);
     systemProgram.setStdInput(commands);
     systemProgram.setDebug(debug);
@@ -1035,7 +1039,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       throw new SystemProcessException("");
     }
   }
-  
+
   /**
    * Execute the python commands.
    */
@@ -1045,8 +1049,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     // Do not use the -e flag for tcsh since David's scripts handle the failure
     // of commands and then report appropriately. The exception to this is the
     // com scripts which require the -e flag. RJG: 2003-11-06
-    systemProgram = new SystemProgram(manager, manager.getPropertyUserDir(), new String[] { "python",
-        "-u" }, axisID);
+    systemProgram = new SystemProgram(manager, manager.getPropertyUserDir(),
+        new String[] { "python", "-u" }, axisID);
     systemProgram.setWorkingDirectory(workingDirectory);
     systemProgram.setStdInput(commands);
     systemProgram.setDebug(debug);
