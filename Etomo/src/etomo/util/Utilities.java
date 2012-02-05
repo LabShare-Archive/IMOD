@@ -520,7 +520,7 @@ public class Utilities {
         stdMax = -1;
       }
       else {
-        max = 4;
+        max = 10;
       }
     }
     else if (command.endsWith("tcsh")) {
@@ -538,6 +538,9 @@ public class Utilities {
     boolean showDash = false;
     for (int i = 0; i < length; i++) {
       param = commandArray[i];
+      if (param.equals("None")) {
+        continue;
+      }
       if (param.endsWith("alignlog")) {
         showDash = true;
       }
