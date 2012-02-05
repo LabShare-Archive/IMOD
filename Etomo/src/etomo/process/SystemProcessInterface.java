@@ -25,6 +25,7 @@ import etomo.type.ProcessingMethod;
 public interface SystemProcessInterface {
   public static final String rcsid = "$Id$";
 
+  public String toString();
   public String[] getStdOutput();
 
   public String[] getStdError();
