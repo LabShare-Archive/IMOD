@@ -526,6 +526,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
       throw new NullPointerException("logFile");
     }
     boolean newLogFile = false;
+    boolean debug = EtomoDirector.INSTANCE.getArguments().isDebug();
     while (!newLogFile) {
       // Check to see if the log file exists that signifies that the process
       // has started
@@ -537,7 +538,10 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
           String[] array = process.getStdError();
           if (array != null) {
             for (int i = 0; i < array.length; i++) {
-              if (array[i].startsWith("Traceback")) {
+              if (debug) {
+                System.err.println(array[i]);
+              }
+              if (array[i].startsWith("Traceback") || array[i].indexOf("Errno") != -1) {
                 endMonitor(ProcessEndState.FAILED);
                 return;
               }
@@ -546,7 +550,10 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
           array = process.getStdOutput();
           if (array != null) {
             for (int i = 0; i < array.length; i++) {
-              if (array[i].startsWith("Traceback")) {
+              if (debug) {
+                System.err.println(array[i]);
+              }
+              if (array[i].startsWith("Traceback") || array[i].indexOf("Errno") != -1) {
                 endMonitor(ProcessEndState.FAILED);
                 return;
               }
