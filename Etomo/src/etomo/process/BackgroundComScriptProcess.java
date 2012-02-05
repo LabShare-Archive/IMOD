@@ -410,14 +410,10 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     File pythonFile = new File(workingDirectory, pythonFileName);
     File outFile = new File(workingDirectory, getWatchedFileName());
     Utilities.writeFile(pythonFile, commands, true);
-    // makeRunPythonFile(runPythonFile, pythonFileName, getWatchedFileName());
-
-    // Do not use the -e flag for tcsh since David's scripts handle the failure
-    // of commands and then report appropriately. The exception to this is the
-    // com scripts which require the -e flag. RJG: 2003-11-06
+    // Bin contains a broken startprocess
     String[] command = { "python", "-u",
-        "/home/sueh/workspace/Development3/pysrc/" + "startprocess", "-o",
-        getWatchedFileName(), "-e", "None", "python", "-u", pythonFileName };
+        BaseManager.getIMODBinPath()/* "/home/sueh/bin/"*/ + "startprocess", "-o",
+        getWatchedFileName(), "python", "-u", pythonFileName };
     BackgroundSystemProgram program = new BackgroundSystemProgram(manager, command,
         getDetachedMonitor(), getAxisID());
     setSystemProgram(program);
@@ -438,7 +434,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     // Check the exit value, if it is non zero, parse the warnings and errors
     // from the log file.
     if (program.getExitValue() != 0) {
-      throw new SystemProcessException("");
+      throw new SystemProcessException(command[0] + " process died immediately");
     }
   }
 
@@ -468,31 +464,6 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     bufferedWriter.write("nohup");
     bufferedWriter.newLine();
     bufferedWriter.write("tcsh -f " + cshFileName + ">&" + outFileName + "&");
-    bufferedWriter.newLine();
-    bufferedWriter.close();
-  }
-
-  /**
-   * create a py file to run commandname.py (created from commandname.com).
-   * To avoid hangups when quitting Etomo or logging out, put nohup on the first
-   * line and send the output to a file.
-   * @param runCshFile
-   * @param cshFileName
-   * @param runName
-   * @throws IOException
-   */
-  private void makeRunPythonFile(File runPythonFile, String pythonFileName,
-      String outFileName) throws IOException {
-    if (runPythonFile == null) {
-      throw new IOException("unable to create " + pythonFileName);
-    }
-    if (runPythonFile.exists()) {
-      return;
-    }
-    BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(runPythonFile));
-    bufferedWriter.write("nohup");
-    bufferedWriter.newLine();
-    bufferedWriter.write("python -u " + pythonFileName + ">&" + outFileName + "&");
     bufferedWriter.newLine();
     bufferedWriter.close();
   }
