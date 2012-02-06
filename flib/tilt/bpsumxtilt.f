@@ -5,7 +5,6 @@
 
 	n8 = n / 8
 	nleft=n - 8*n8
-	ipp1=ipoint+1
 
 	DO J=1,n8
 	  xproj2=xproj1 + cbeta
