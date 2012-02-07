@@ -348,7 +348,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     processData.setDisplayKey(processResultDisplay);
-    if (processSeries!=null) {
+    if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries.getLastProcess());
     }
@@ -371,7 +371,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
-    if (processSeries!=null) {
+    if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries.getLastProcess());
     }
@@ -391,7 +391,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
-    if (processSeries!=null) {
+    if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries.getLastProcess());
     }
@@ -412,7 +412,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
-    if (processSeries!=null) {
+    if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries.getLastProcess());
     }
@@ -437,7 +437,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     this.processResultDisplay = processResultDisplay;
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
-    if (processSeries!=null) {
+    if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries.getLastProcess());
     }
@@ -458,7 +458,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     this.forceNextProcess = forceNextProcess;
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
-    if (processSeries!=null) {
+    if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries.getLastProcess());
     }
@@ -481,7 +481,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     processData.setDisplayKey(processResultDisplay);
-    if (processSeries!=null) {
+    if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries.getLastProcess());
     }
@@ -504,7 +504,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     processData.setDisplayKey(processResultDisplay);
-    if (processSeries!=null) {
+    if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries.getLastProcess());
     }
@@ -525,7 +525,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
-    if (processSeries!=null) {
+    if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries.getLastProcess());
     }
@@ -550,7 +550,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     processData.setDisplayKey(processResultDisplay);
-    if (processSeries!=null) {
+    if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries.getLastProcess());
     }
@@ -638,6 +638,13 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
    */
   public boolean isNohup() {
     return false;
+  }
+  
+  public boolean isDone() {
+    if (program==null) {
+      return false;
+    }
+    return program.isDone();
   }
 
   /**
@@ -741,8 +748,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
           axisID);
     }
     else if (command != null) {
-      program = new SystemProgram(manager, manager.getPropertyUserDir(), command
-          .getCommandArray(), axisID);
+      program = new SystemProgram(manager, manager.getPropertyUserDir(),
+          command.getCommandArray(), axisID);
     }
     else if (commandArrayList != null) {
       program = new SystemProgram(manager, manager.getPropertyUserDir(),
@@ -776,23 +783,11 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     program.setWorkingDirectory(workingDirectory);
     program.setDebug(debug);
 
-    if (demoMode) {
-      try {
-        sleep(3000);
-        program.setExitValue(0);
-      }
-      catch (InterruptedException except) {
-        except.printStackTrace();
-        System.err.println("Sleep interrupted");
-      }
-    }
-    else {
-      // Execute the command
-      waitForPid();
-      program.run();
-    }
+    // Execute the command
+    waitForPid();
+    program.run();
 
-    //  Get any output from the command
+    // Get any output from the command
     stdError = program.getStdError();
     stdOutput = program.getStdOutput();
 
@@ -803,18 +798,18 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   final void processDone(final int exitValue) {
     ProcessMessages processMessages = getProcessMessages();
     ProcessMessages monitorMessages = getMonitorMessages();
-    //  Check to see if the exit value is non-zero
+    // Check to see if the exit value is non-zero
     ProcessEndState endState = getProcessEndState();
     boolean errorFound = false;
     if (exitValue == 0) {
-      //treate any error message as a failure
-      //popup error messages from the process
+      // treate any error message as a failure
+      // popup error messages from the process
       if (processMessages.isError()) {
         errorFound = true;
         UIHarness.INSTANCE.openErrorMessageDialog(manager, processMessages,
             "Process Error", axisID);
       }
-      //popup error messages from the monitor
+      // popup error messages from the monitor
       if (monitorMessages != null && monitorMessages.isError()) {
         errorFound = true;
         UIHarness.INSTANCE.openErrorMessageDialog(manager, monitorMessages,
@@ -824,8 +819,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
         }
       }
       if (!errorFound && monitorMessages != null && popupChunkWarnings) {
-        //TODO start using CHUNK WARNING: tag after processchunks starts
-        //putting one out.
+        // TODO start using CHUNK WARNING: tag after processchunks starts
+        // putting one out.
         String lastWarningMessage = monitorMessages.getLastWarning();
         if (lastWarningMessage != null) {
           ProcessMessages warningMessage = ProcessMessages.getInstance();
@@ -841,14 +836,14 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     else if (endState != ProcessEndState.KILLED && endState != ProcessEndState.PAUSED) {
       errorFound = true;
       ProcessMessages errorMessage = ProcessMessages.getInstance();
-      //add the stderr
+      // add the stderr
       errorMessage.addError("<html>Command failed: " + getCommandLine());
       if (stdError != null && stdError.length > 0) {
         errorMessage.addError();
         errorMessage.addError("<html><U>Standard error output:</U>");
         errorMessage.addError(stdError);
       }
-      //add the last chunk error
+      // add the last chunk error
       if (monitorMessages != null) {
         String chunkErrorMessage = monitorMessages.getLastChunkError();
         if (chunkErrorMessage != null) {
@@ -856,7 +851,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
           errorMessage.addError("<html><U>Last chunk error:</U>");
           errorMessage.addError(chunkErrorMessage);
         }
-        //add any monitor error messages
+        // add any monitor error messages
         if (monitorMessages.isError()) {
           errorMessage.addError();
           errorMessage.addError("<html><U>Monitor error messages:</U>");
@@ -864,9 +859,9 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
         }
       }
       errorMessage.addProcessOutput(stdOutput);
-      //make sure script knows about failure
+      // make sure script knows about failure
       setProcessEndState(ProcessEndState.FAILED);
-      //popup error messages
+      // popup error messages
       UIHarness.INSTANCE.openErrorMessageDialog(manager, errorMessage, getProcessName()
           + " terminated", axisID);
     }
@@ -897,6 +892,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
    * @return String[]
    */
   public final String[] getStdError() {
+    stdError = program.getStdError();
     return stdError;
   }
 
@@ -905,6 +901,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
    * @return String[]
    */
   public final String[] getStdOutput() {
+    stdOutput = program.getStdOutput();
     return stdOutput;
   }
 
