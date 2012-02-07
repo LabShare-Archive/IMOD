@@ -26,11 +26,14 @@ public interface SystemProcessInterface {
   public static final String rcsid = "$Id$";
 
   public String toString();
+
   public String[] getStdOutput();
 
   public String[] getStdError();
 
   public boolean isStarted();
+
+  public boolean isDone();
 
   public String getShellProcessID();
 
