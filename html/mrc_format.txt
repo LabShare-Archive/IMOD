@@ -1,7 +1,7 @@
 <pre>
 The MRC file format used by IMOD.
 
-The MRC header. length 1024 bytes
+The MRC header, length 1024 bytes.  Names are the the names used in C code.
 
 OFFSET  SIZE DATA    NAME	Description
 
@@ -46,9 +46,9 @@ OFFSET  SIZE DATA    NAME	Description
  80 120  4   float   amax;       Maximum pixel value.
  84 124  4   float   amean;      Mean pixel value.
 
- 88 130  2   short   ispg;       image type 
- 90 132  2   short   nsymbt;     space group number 
- 92 134  4   int     next;       number of bytes in extended header 
+ 88 130  4   int     ispg;       space group number (ignored by IMOD)
+ 92 134  4   int     next;       number of bytes in extended header (called nsymbt in
+                                   MRC standard)
  96 140  2   short   creatid;    used to be an ID number, is 0 as of IMOD 4.2.23
  98 142  30  ---     extra data  (not used, first two bytes should be 0)
 

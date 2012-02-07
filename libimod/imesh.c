@@ -52,6 +52,7 @@ Imesh *imodMeshesNew(int size)
     mesh[sh].time  = 0;
     mesh[sh].surf  = 0;
     mesh[sh].store = NULL;
+    mesh[sh].vertBuf = NULL;
   }
   return(mesh);
 }
@@ -116,7 +117,6 @@ int imodMeshCopy(Imesh *from, Imesh *to)
 /*! Returns a duplicate of [mesh], including all data, or NULL for error. */
 Imesh *imodMeshDup(Imesh *mesh)
 {
-  int i;
   Imesh *newMesh = imodMeshNew();
   if (!newMesh)
     return(NULL);
@@ -130,6 +130,7 @@ Imesh *imodMeshDup(Imesh *mesh)
   memcpy(newMesh->vert, mesh->vert, mesh->vsize * sizeof(Ipoint));
   memcpy(newMesh->list, mesh->list, mesh->lsize * sizeof(b3dInt32));
   newMesh->store = ilistDup(mesh->store);
+  newMesh->vertBuf = NULL;
   return newMesh;
 }
 
@@ -337,28 +338,16 @@ Imesh *imodel_mesh_add(Imesh *nmesh,
     return(mray);
   }
 
-  if ((mray == NULL) && (!*size)){
-      
+  if ((mray == NULL) && (!*size)) {
     nmray = (Imesh *)malloc(sizeof(Imesh));
-
-  }else{
-
-    nmray = (Imesh *) 
-      realloc((Imesh *)mray,
-              (*size + 1) * sizeof(Imesh));
+  } else {
+    nmray = (Imesh *)realloc((Imesh *)mray, (*size + 1) * sizeof(Imesh));
   }
 
   if (nmray == NULL)
     return(mray);
      
-  nmray[*size].vert  = nmesh->vert;
-  nmray[*size].list  = nmesh->list;
-  nmray[*size].vsize = nmesh->vsize;
-  nmray[*size].lsize = nmesh->lsize;
-  nmray[*size].flag  = nmesh->flag;
-  nmray[*size].time  = nmesh->time;
-  nmray[*size].surf  = nmesh->surf;
-  nmray[*size].store = nmesh->store;
+  imodMeshCopy(nmesh, &nmray[*size]);
   (*size)++;
   return(nmray);
 }
@@ -375,7 +364,7 @@ Imesh *imodel_mesh_add(Imesh *nmesh,
 void imodMeshInterpCont(int *listp, Ipoint *vertp, int ntriang, int firstv, int listInc,
                          int zadd, Icont *cont)
 {
-  int ind, ind1, ind2, jnd1, jnd2, jnd3, indv, jndv, done, j;
+  int ind1, ind2, jnd1, jnd2, jnd3, indv, jndv, done, j;
   float z1, z2;      /* z values of two candidate vertices */
   float frac;        /* interpolation fraction */
   int itri, jtri;    /* triangle indexes */
@@ -470,7 +459,7 @@ float imeshVolume(Imesh *mesh, Ipoint *scale, Ipoint *center)
   int listInc, vertBase, normAdd;
   double xsum, ysum, zsum, abx,aby,abz,bcx,bcy,bcz,cdx,cdy,cdz, dx, dy, dz;
 
-  Ipoint *p1, *p2, *p3, *p;
+  Ipoint *p1, *p2, *p3;
   float zs = 1.0f;
 
   if ((!mesh) || (!mesh->lsize))

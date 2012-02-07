@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdio.h>
@@ -41,6 +40,7 @@
 #include "undoredo.h"
 #include "imod_assistant.h"
 #include "sslice.h"
+#include "vertexbuffer.h"
 
 #include "b3dicon.xpm"
 
@@ -176,6 +176,7 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->linkSlicerCenter = 1;
   a->boundBoxExtraObj = 0;
   a->curPointExtraObj = 0;
+  a->vertBufOK = -2;
 
   // DNM 6/6/04: Get rid of stereo command initialization
 
@@ -794,6 +795,7 @@ void imodvQuit()
   ImodvClosed = 1;
   onceOpened = 1;
   lastGeom = ivwRestorableGeometry(a->mainWin);
+  vbCleanupVBD(Imodv->imod);
 
   if (a->boundBoxExtraObj > 0)
     ivwFreeExtraObject(a->vi, a->boundBoxExtraObj);
@@ -820,210 +822,3 @@ void imodvQuit()
   }
   return;
 }
-
-/*
-$Log$
-Revision 4.51  2011/03/14 23:39:13  mast
-Changes for ushort loading
-
-Revision 4.50  2010/12/20 03:29:20  mast
-Added flag and menu item to invert model in Z
-
-Revision 4.49  2010/12/18 17:36:44  mast
-Changes for stereo image display
-
-Revision 4.48  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 4.47  2010/03/31 03:43:34  mast
-Just raise main window, general raise call crashed
-
-Revision 4.46  2010/03/31 03:31:40  mast
-Raise window after startup on Mac
-
-Revision 4.45  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.44  2008/12/17 17:49:13  mast
-Make warning about no DB visual more nuanced
-
-Revision 4.43  2008/12/15 21:22:43  mast
-Make separate widgets for stereo so they are used only when stereo is on
-
-Revision 4.42  2008/12/01 15:42:01  mast
-Changes for undo/redo and selection in 3dmodv standalone
-
-Revision 4.41  2008/11/28 06:41:13  mast
-Manage extra objects
-
-Revision 4.40  2008/11/14 19:28:00  mast
-Only warn on no depth buffer if actually using visual with none.
-
-Revision 4.39  2008/10/02 22:43:51  mast
-Call window constructor with stereo capabilities
-
-Revision 4.38  2008/06/10 05:49:19  mast
-Add flag for drawing the light vector
-
-Revision 4.37  2008/05/27 05:48:41  mast
-Changes for linking slicer center of rotation
-
-Revision 4.36  2008/05/22 15:42:57  mast
-Changed for extra object editability
-
-Revision 4.35  2008/04/01 23:44:09  mast
-initialized new flag
-
-Revision 4.34  2008/01/25 20:22:58  mast
-Changes for new scale bar
-
-Revision 4.33  2007/11/30 06:51:50  mast
-Changes for linking slicer to model view
-
-Revision 4.32  2007/09/20 22:06:55  mast
-Changes for visualizing clipping plane
-
-Revision 4.31  2006/09/12 15:46:32  mast
-Handled contour member renames
-
-Revision 4.30  2006/07/03 19:52:05  mast
-Request disconnect of message handler on exit
-
-Revision 4.29  2006/06/19 05:29:14  mast
-Added -L option to use stdin for messages; delete clipboard object on exit
-
-Revision 4.28  2006/03/01 19:13:06  mast
-Moved window size/position routines from xzap to dia_qtutils
-
-Revision 4.27  2005/10/16 20:27:07  mast
-INitialize scaling of all views in standalone mode too
-
-Revision 4.26  2005/10/14 22:01:56  mast
-Allow imod to disable access to model while it is being replaced
-
-Revision 4.25  2005/10/13 20:07:25  mast
-Scale all views upon startup or new model and provide bin scaling
-
-Revision 4.24  2004/11/22 00:24:46  mast
-Added deletion of ImodHelp on exit
-
-Revision 4.23  2004/11/21 06:02:17  mast
-Provided window opening by key letter and routines for undo calls
-
-Revision 4.22  2004/11/12 01:20:55  mast
-Fixed bug that made it impossible to turn off stored low res mode
-
-Revision 4.21  2004/09/21 20:30:52  mast
-Added call to synchronize object color change to info window
-
-Revision 4.20  2004/07/07 19:25:29  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 4.19  2004/06/06 21:27:21  mast
-Eliminated stereo-command related items
-
-Revision 4.18  2004/05/31 23:35:26  mast
-Switched to new standard error functions for all debug and user output
-
-Revision 4.17  2004/03/30 18:57:19  mast
-Did initial size-setting and coordinate limiting the same as for Zap window,
-which made it work right under Windows
-
-Revision 4.16  2003/12/30 06:32:16  mast
-Make snap_fileno be part of imodvApp structure
-
-Revision 4.15  2003/11/26 18:16:07  mast
-Add function to determine if byte images exist
-
-Revision 4.14  2003/11/25 01:14:36  mast
-Repeat the window move after the show for Mac OS 10.3 when reopening window
-
-Revision 4.13  2003/11/12 18:54:23  mast
-Add ability to receive messages & save and restore window position from 3dmod
-
-Revision 4.12  2003/11/04 04:41:32  mast
-Initialize rotation speed
-
-Revision 4.11  2003/11/01 18:12:17  mast
-changed to put out virtually all error messages to a window
-
-Revision 4.10  2003/07/17 14:41:32  mast
-Go back to scaling and centering model when opening imodv
-
-Revision 4.9  2003/06/27 20:04:47  mast
-Changes for new scheme in which there is always a view 1: initialize
-views when reading in a model; adjust scaling when opening model view
-from imod
-
-Revision 4.8  2003/05/18 22:58:33  mast
-simplify creating icon pixmap
-
-Revision 4.7  2003/05/18 22:06:37  mast
-Changed to start QApplication before calling, and to create icon pixmap
-
-Revision 4.6  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 4.5  2003/04/17 21:48:44  mast
-simplify -imodv option processing
-
-Revision 4.4  2003/03/26 23:22:00  mast
-Set up to use preferences
-
-Revision 4.3  2003/03/04 21:41:05  mast
-Added function for refreshing imod windows from imodv
-
-Revision 4.2  2003/02/27 17:42:38  mast
-Remove include of unistd for windows
-
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
-
-Revision 1.1.2.11  2003/01/29 17:50:58  mast
-Fork now happens before imodv_main is called
-
-Revision 1.1.2.10  2003/01/29 01:29:42  mast
-add call for imod to close imodv
-
-Revision 1.1.2.9  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.8  2003/01/01 19:12:31  mast
-changes to start Qt application in standalone mode
-
-Revision 1.1.2.7  2003/01/01 05:46:29  mast
-changes for qt version of stereo
-
-Revision 1.1.2.6  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.5  2002/12/17 22:28:20  mast
-cleanup of unused variables and SGI errors
-
-Revision 1.1.2.4  2002/12/17 18:42:22  mast
-Qt version, incorporating ximodv startup code
-
-Revision 1.1.2.3  2002/12/14 05:41:08  mast
-Got qxt startup in the right place
-
-Revision 1.1.2.2  2002/12/06 21:58:40  mast
-*** empty log message ***
-
-Revision 1.1.2.1  2002/12/05 16:28:37  mast
-Open a qxt application
-
-Revision 3.5  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.4  2002/11/30 06:07:22  mast
-Corrected tables after addition of true-15 visual
-
-Revision 3.3  2002/11/27 03:29:45  mast
-Made it look for both single and double buffer visuals as long as they
-are both RGB or both color index.  Added a true 15 visual, better than
-pseudo 12 (present on O2).
-
-Revision 3.2  2002/09/04 00:24:48  mast
-Added CVS header.  Changed to getting visuals then passing them to GLw.
-
-*/

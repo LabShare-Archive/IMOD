@@ -2,7 +2,6 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
@@ -48,33 +47,45 @@ final class PanelHeader implements Expandable {
 
   private final GlobalExpandButton globalAdvancedButton;
 
+  private boolean titled = true;
+
   static PanelHeader getInstance(final String title, final Expandable expandable,
       final DialogType dialogType) {
-    return new PanelHeader(title, expandable, false, false, dialogType, true, null);
+    return new PanelHeader(title, expandable, false, false, dialogType, true, null, true);
+  }
+
+  static PanelHeader getUntitledInstance(final String title, final Expandable expandable,
+      final DialogType dialogType) {
+    return new PanelHeader(title, expandable, false, false, dialogType, true, null, false);
   }
 
   static PanelHeader getAdvancedBasicInstance(final String title,
       final Expandable expandable, final DialogType dialogType) {
-    return new PanelHeader(title, expandable, true, false, dialogType, true, null);
+    return new PanelHeader(title, expandable, true, false, dialogType, true, null, true);
+  }
+
+  static PanelHeader getUntitledAdvancedBasicInstance(final String title,
+      final Expandable expandable, final DialogType dialogType) {
+    return new PanelHeader(title, expandable, true, false, dialogType, true, null, false);
   }
 
   static PanelHeader getAdvancedBasicInstance(final String title,
       final Expandable expandable, final DialogType dialogType,
       final GlobalExpandButton globalAdvancedButton) {
     return new PanelHeader(title, expandable, true, false, dialogType, true,
-        globalAdvancedButton);
+        globalAdvancedButton, true);
   }
 
   static PanelHeader getAdvancedBasicOnlyInstance(final String title,
       final Expandable expandable, final DialogType dialogType,
       final GlobalExpandButton globalAdvancedButton) {
     return new PanelHeader(title, expandable, true, false, dialogType, false,
-        globalAdvancedButton);
+        globalAdvancedButton, true);
   }
 
   static PanelHeader getMoreLessInstance(final String title, final Expandable expandable,
       final DialogType dialogType) {
-    return new PanelHeader(title, expandable, false, true, dialogType, true, null);
+    return new PanelHeader(title, expandable, false, true, dialogType, true, null, true);
   }
 
   /**
@@ -89,15 +100,17 @@ final class PanelHeader implements Expandable {
    */
   private PanelHeader(final String title, final Expandable expandable,
       final boolean advancedBasic, final boolean moreLess, final DialogType dialogType,
-      boolean openClose, final GlobalExpandButton globalAdvancedButton) {
+      boolean openClose, final GlobalExpandButton globalAdvancedButton,
+      final boolean titled) {
     this.dialogType = dialogType;
     this.title = title;
     this.globalAdvancedButton = globalAdvancedButton;
-    //panels
+    this.titled = titled;
+    // panels
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     JPanel northPanel = new JPanel();
     northPanel.setLayout(layout);
-    //northPanel
+    // northPanel
     constraints.fill = GridBagConstraints.BOTH;
     constraints.anchor = GridBagConstraints.CENTER;
     constraints.weightx = 0.0;
@@ -105,7 +118,7 @@ final class PanelHeader implements Expandable {
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
     if (openClose) {
-      //open/close button - default: open
+      // open/close button - default: open
       btnOpenClose = ExpandButton.getExpandedInstance(expandable, this,
           ExpandButton.Type.OPEN);
       btnOpenClose.setName(title);
@@ -115,14 +128,19 @@ final class PanelHeader implements Expandable {
     else {
       btnOpenClose = null;
     }
-    //title
+    // title
     constraints.weightx = 1.0;
     constraints.weighty = 1.0;
-    cellTitle = new HeaderCell(title, false);
+    if (titled) {
+      cellTitle = new HeaderCell(title, false);
+    }
+    else {
+      cellTitle = new HeaderCell("", false);
+    }
     cellTitle.setBorderPainted(false);
     cellTitle.add(northPanel, layout, constraints);
     boolean expanded;
-    //advanced/basic button - default: basic
+    // advanced/basic button - default: basic
     if (advancedBasic) {
       constraints.weightx = 0.0;
       constraints.weighty = 0.0;
@@ -138,7 +156,7 @@ final class PanelHeader implements Expandable {
     else {
       btnAdvancedBasic = null;
     }
-    //more/less button - default: more
+    // more/less button - default: more
     if (moreLess) {
       constraints.weightx = 0.0;
       constraints.weighty = 0.0;
@@ -151,11 +169,13 @@ final class PanelHeader implements Expandable {
     else {
       btnMoreLess = null;
     }
-    //rootPanel
+    // rootPanel
     rootPanel.add(northPanel);
-    separator.setMaximumSize(new Dimension(100, 1));
+    separator.setMaximumSize(FixedDim.separator);
     separator.setAlignmentX(Component.CENTER_ALIGNMENT);
-    rootPanel.add(separator);
+    if (titled) {
+      rootPanel.add(separator);
+    }
   }
 
   void setText(final String text) {
@@ -217,7 +237,7 @@ final class PanelHeader implements Expandable {
    * Hide the separator when expand is called on an open/close button
    */
   public void expand(final ExpandButton button) {
-    if (button == btnOpenClose) {
+    if (button == btnOpenClose && titled) {
       separator.setVisible(button.isExpanded());
     }
   }
@@ -266,8 +286,8 @@ final class PanelHeader implements Expandable {
       return;
     }
     if (btnOpenClose != null) {
-      btnOpenClose.setButtonState(screenState.getButtonState(btnOpenClose
-          .createButtonStateKey(dialogType), defaultIsOpen));
+      btnOpenClose.setButtonState(screenState.getButtonState(
+          btnOpenClose.createButtonStateKey(dialogType), defaultIsOpen));
     }
     if (btnAdvancedBasic != null) {
       btnAdvancedBasic.setButtonState(screenState.getButtonState(btnAdvancedBasic
@@ -284,16 +304,16 @@ final class PanelHeader implements Expandable {
       return;
     }
     if (btnOpenClose != null) {
-      screenState.setButtonState(btnOpenClose.getButtonStateKey(), btnOpenClose
-          .getButtonState());
+      screenState.setButtonState(btnOpenClose.getButtonStateKey(),
+          btnOpenClose.getButtonState());
     }
     if (btnAdvancedBasic != null) {
-      screenState.setButtonState(btnAdvancedBasic.getButtonStateKey(), btnAdvancedBasic
-          .getButtonState());
+      screenState.setButtonState(btnAdvancedBasic.getButtonStateKey(),
+          btnAdvancedBasic.getButtonState());
     }
     if (btnMoreLess != null) {
-      screenState.setButtonState(btnMoreLess.getButtonStateKey(), btnMoreLess
-          .getButtonState());
+      screenState.setButtonState(btnMoreLess.getButtonStateKey(),
+          btnMoreLess.getButtonState());
     }
   }
 }

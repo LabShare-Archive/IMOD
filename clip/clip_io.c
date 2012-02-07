@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <stdlib.h>
@@ -620,8 +619,6 @@ int mrc_head_print(MrcHeader *data)
   printf("Sections are  = axis %d\n",data->maps) ;
   if (data->ispg)
     printf("ispg =\t\t%d\n",data->ispg) ;
-  if (data->nsymbt)
-    printf("nsymbt =\t%d\n",data->nsymbt) ;
   if (data->next)
     printf("extra header = \t%d\n", data->next);
   if (data->idtype){
@@ -654,40 +651,3 @@ int mrc_head_print(MrcHeader *data)
     printf("%s\n",data->labels[i]) ;
   return(0);
 }
-
-/*
-$Log$
-Revision 3.10  2007/02/04 21:10:15  mast
-Function name changes from mrcslice cleanup
-
-Revision 3.9  2007/01/31 16:17:43  mast
-Transfer nxyzstart info in header to new file
-
-Revision 3.8  2005/11/11 22:14:56  mast
-Changes for unsigned file mode
-
-Revision 3.7  2005/01/17 17:10:33  mast
-Fully implemented 2D processing scheme to match 3D behavior
-
-Revision 3.6  2005/01/07 20:08:55  mast
-Set up section list for 3D case; do not adjust Z origin in 2D case
-
-Revision 3.5  2004/11/05 18:53:16  mast
-Include local files with quotes, not brackets
-
-Revision 3.4  2004/04/22 19:08:45  mast
-Added error checks and returns on mrc I/O calls
-
-Revision 3.3  2003/11/18 19:29:50  mast
-changes to call b3dF* functions for 2GB problem on Windows
-
-Revision 3.2  2002/09/14 01:01:18  mast
-Fixed output of scale factors in header output to correspond to proper
-usage, and fixed attempt to adjust zlen when overwriting or appending
-
-Revision 3.1  2002/06/26 16:48:52  mast
-Fixed problems with header being reinitialized when appending or
-overwriting to an output file
-
-*/
-

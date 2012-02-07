@@ -3,13 +3,23 @@ package etomo.ui.swing;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
+import etomo.BaseManager;
+import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.storage.autodoc.ReadOnlySection;
+import etomo.type.AxisID;
 import etomo.type.EnumeratedType;
+import etomo.type.EtomoAutodoc;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -43,32 +53,29 @@ import etomo.type.Run3dmodMenuOptions;
 final class YAxisTypePanel {
   public static final String rcsid = "$Id$";
 
-  private static final String Y_AXIS_TYPE_LABEL = "Y Axis Type";
+  private static final String Y_AXIS_TYPE_LABEL = "Particle Y Axis";
   private static final String Y_AXIS_CONTOUR_LABEL = "End points of contour";
-  private static final String YAXIS_OBJECT_NUM_LABEL = "Object #";
-  private static final String YAXIS_CONTOUR_NUM_LABEL = "Contour #";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final ButtonGroup bgYAxisType = new ButtonGroup();
-  private final RadioButton rbYAxisTypeYAxis = new RadioButton("Original Y axis",
+  private final RadioButton rbYAxisTypeYAxis = new RadioButton("Tomogram Y axis",
       MatlabParam.YAxisType.Y_AXIS, bgYAxisType);
   private final RadioButton rbYAxisTypeParticleModel = new RadioButton(
       "Particle model points", MatlabParam.YAxisType.PARTICLE_MODEL, bgYAxisType);
   private final RadioButton rbYAxisTypeContour = new RadioButton(Y_AXIS_CONTOUR_LABEL
       + ":  ", MatlabParam.YAxisType.CONTOUR, bgYAxisType);
-  private final LabeledTextField ltfYaxisObjectNum = new LabeledTextField(" "
-      + YAXIS_OBJECT_NUM_LABEL + ": ");
-  private final LabeledTextField ltfYaxisContourNum = new LabeledTextField(" "
-      + YAXIS_CONTOUR_NUM_LABEL + ": ");
 
   private final YAxisTypeParent parent;
+  private final BaseManager manager;
 
-  private YAxisTypePanel(YAxisTypeParent parent) {
+  private YAxisTypePanel(final BaseManager manager, final YAxisTypeParent parent) {
+    this.manager = manager;
     this.parent = parent;
   }
 
-  static YAxisTypePanel getInstance(YAxisTypeParent parent) {
-    YAxisTypePanel instance = new YAxisTypePanel(parent);
+  static YAxisTypePanel getInstance(final BaseManager manager,
+      final YAxisTypeParent parent) {
+    YAxisTypePanel instance = new YAxisTypePanel(manager, parent);
     instance.createPanel();
     instance.setTooltips();
     instance.addListeners();
@@ -83,36 +90,27 @@ final class YAxisTypePanel {
   }
 
   private void createPanel() {
-    //local panels
+    // local panels
     JPanel pnlYAxisContour = new JPanel();
-    //YaxisType
-    pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
+    SpacedPanel pnlYaxisType =  SpacedPanel.getInstance();
+    pnlRoot.setBoxLayout(BoxLayout.X_AXIS);
     pnlRoot.setBorder(new EtchedBorder(Y_AXIS_TYPE_LABEL).getBorder());
-    pnlRoot.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
-    pnlRoot.add(rbYAxisTypeYAxis);
-    pnlRoot.add(rbYAxisTypeParticleModel);
-    pnlRoot.add(pnlYAxisContour);
-    //YaxisContour
+    pnlRoot.add(pnlYaxisType);
+    pnlRoot.add(Box.createRigidArea(FixedDim.x197_y0));
+    // YaxisType
+    pnlYaxisType.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlYaxisType.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
+    pnlYaxisType.add(rbYAxisTypeYAxis);
+    pnlYaxisType.add(rbYAxisTypeParticleModel);
+    pnlYaxisType.add(pnlYAxisContour);
+    pnlYaxisType.add(Box.createRigidArea(FixedDim.x0_y23));
+    // YaxisContour
     pnlYAxisContour.setLayout(new BoxLayout(pnlYAxisContour, BoxLayout.X_AXIS));
     pnlYAxisContour.add(rbYAxisTypeContour.getComponent());
-    ltfYaxisObjectNum.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
-    pnlYAxisContour.add(ltfYaxisObjectNum.getContainer());
-    ltfYaxisContourNum.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
-    pnlYAxisContour.add(ltfYaxisContourNum.getContainer());
   }
 
   Component getComponent() {
     return pnlRoot.getContainer();
-  }
-
-  /**
-   * Called from parent.updateDisplay(). Enabled/disables fields.
-   */
-  void updateDisplay() {
-    boolean volumeRows = !parent.isVolumeTableEmpty();
-    rbYAxisTypeContour.setEnabled(volumeRows);
-    ltfYaxisObjectNum.setEnabled(volumeRows && rbYAxisTypeContour.isSelected());
-    ltfYaxisContourNum.setEnabled(volumeRows && rbYAxisTypeContour.isSelected());
   }
 
   /**
@@ -126,7 +124,7 @@ final class YAxisTypePanel {
    * @param matlabParamFile
    * @param paramatersOnly 
    */
-  void setParameters(final MatlabParam matlabParam, boolean parametersOnly) {
+  void setParameters(final MatlabParam matlabParam) {
     MatlabParam.YAxisType yaxisType = matlabParam.getYAxisType();
     if (yaxisType == MatlabParam.YAxisType.Y_AXIS) {
       rbYAxisTypeYAxis.setSelected(true);
@@ -137,17 +135,11 @@ final class YAxisTypePanel {
     else if (yaxisType == MatlabParam.YAxisType.CONTOUR) {
       rbYAxisTypeContour.setSelected(true);
     }
-    if (!parametersOnly) {
-      ltfYaxisObjectNum.setText(matlabParam.getYaxisObjectNum());
-      ltfYaxisContourNum.setText(matlabParam.getYaxisContourNum());
-    }
   }
 
   void getParameters(final MatlabParam matlabParam) {
     matlabParam.setYaxisType(((RadioButton.RadioButtonModel) bgYAxisType.getSelection())
         .getEnumeratedType());
-    matlabParam.setYaxisObjectNum(ltfYaxisObjectNum.getText());
-    matlabParam.setYaxisContourNum(ltfYaxisContourNum.getText());
   }
 
   EnumeratedType getYAxisType() {
@@ -156,27 +148,9 @@ final class YAxisTypePanel {
   }
 
   void reset() {
-    ltfYaxisObjectNum.clear();
-    ltfYaxisContourNum.clear();
     rbYAxisTypeYAxis.setSelected(false);
     rbYAxisTypeParticleModel.setSelected(false);
     rbYAxisTypeContour.setSelected(false);
-  }
-
-  /**
-   * Validation for run.
-   * @return null if valid, error message if invalid
-   */
-  String validateRun() {
-    //If end points of contour is checked, must have object # and contour#
-    if (rbYAxisTypeContour.isSelected()
-        && ((ltfYaxisObjectNum.isEnabled() && ltfYaxisObjectNum.getText().matches("\\s*")) || (ltfYaxisContourNum
-            .isEnabled() && ltfYaxisContourNum.getText().matches("\\s*")))) {
-      return "In " + Y_AXIS_TYPE_LABEL + ", " + YAXIS_OBJECT_NUM_LABEL + " and "
-          + YAXIS_CONTOUR_NUM_LABEL + " are required when " + Y_AXIS_CONTOUR_LABEL
-          + " is selected.";
-    }
-    return null;
   }
 
   private void action(final String actionCommand,
@@ -189,18 +163,27 @@ final class YAxisTypePanel {
   }
 
   private void setTooltips() {
+    ReadOnlyAutodoc autodoc = null;
+    try {
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    ReadOnlySection section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+        MatlabParam.YAXIS_TYPE_KEY);
     rbYAxisTypeYAxis
-        .setToolTipText("Use volume's Y axis as particle's Y axis (the phi axis of the search).");
+        .setToolTipText(section);
     rbYAxisTypeParticleModel
-        .setToolTipText("Use the vector between neighboring model points as the "
-            + "particle's Y axis (the phi axis of the search).");
+        .setToolTipText(section);
     rbYAxisTypeContour
-        .setToolTipText("Use the end points of the specified contour in each "
-            + "volume as the particle's Y axis (the phi axis of the search).");
-    ltfYaxisObjectNum.setToolTipText("The number of the object used to determine the "
-        + "particle's Y axis in each volume.");
-    ltfYaxisContourNum.setToolTipText("The number of the contour used to determine the "
-        + "particle's Y axis in each volume.");
+        .setToolTipText(section);
   }
 
   private static final class YAxisTypeActionListener implements ActionListener {

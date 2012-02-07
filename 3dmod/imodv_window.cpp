@@ -31,6 +31,7 @@
 #include "imodv_gfx.h"
 #include "imodv_input.h"
 #include "control.h"
+#include "vertexbuffer.h"
 
 #define ADD_ACTION(a, b, c) mActions[c] = a##Menu->addAction(b); \
 connect(mActions[c], SIGNAL(triggered()), a##Mapper, SLOT(map())); \
@@ -251,6 +252,8 @@ ImodvGL *ImodvWindow::addGLWidgetToStack(QGLFormat *glFormat, bool db,
   glFormat->setDepth(enableDepth > 0);
   glFormat->setStereo(stereo);
   glFormat->setAlpha(alpha);
+  if (!imodDebug('M'))
+    glFormat->setSampleBuffers(true);
   GLw = new ImodvGL(*glFormat, mStack);
   id = mStack->addWidget(GLw);
   if (Imod_debug)
@@ -311,6 +314,10 @@ int ImodvWindow::setGLWidget(ImodvApp *a, int db, int stereo, int alpha)
     if (Imodv->enableDepthSBst >= 0 && !mSBstw)
       mSBstw = addGLWidgetToStack(&glFormat, false, a->enableDepthSBst, true, false);
   }
+
+  // Remove vertex buffer data from all models
+  for (int m = 0; m < a->nm; m++)
+    vbCleanupVBD(&a->imod[m]);
 
   // Get the desired widget to top of stack
   if (db && !stereo && !alpha && mDBw)

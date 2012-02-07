@@ -3,10 +3,12 @@ package etomo.ui.swing;
 import java.awt.Component;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.io.File;
 
 import javax.swing.BorderFactory;
 import javax.swing.JTextField;
 
+import etomo.logic.TextFieldState;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.ParsedArray;
@@ -147,66 +149,71 @@ import etomo.type.UITestFieldType;
  * <p> field is disabled).
  * <p> </p>
  */
-final class FieldCell extends InputCell {
+final class FieldCell extends InputCell implements ActionTarget {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField;
-  private final boolean editable;
-  private final ParsedElementType parsedElementType;
+  private final TextFieldState state;
 
-  private String hiddenValue = null;
-  private boolean hideValue = false;
-  private boolean range = false;
-  private int endValue = EtomoNumber.INTEGER_NULL_VALUE;
-  private String contractedValue = null;
-  private String expandedValue = null;
-  private boolean fixedValues = false;
   private boolean inUse = true;
 
-  private FieldCell(boolean editable, ParsedElementType parsedElementType) {
-    this.editable = editable;
-    this.parsedElementType = parsedElementType;
-    //construction
+  private FieldCell(final boolean editable, final ParsedElementType parsedElementType,
+      final String rootDir) {
+    state = new TextFieldState(editable, parsedElementType, rootDir);
+    // construction
     textField = new JTextField();
-    //field
+    // field
     textField.setBorder(BorderFactory.createEtchedBorder());
-    //color
+    // color
     setBackground();
     setForeground();
     setFont();
+    setExpanded();
+  }
+
+  private FieldCell(final TextFieldState state) {
+    this.state = new TextFieldState(state);
+    // construction
+    textField = new JTextField();
+    // field
+    textField.setBorder(BorderFactory.createEtchedBorder());
+    // color
+    setBackground();
+    setForeground();
+    setFont();
+    setExpanded();
+  }
+
+  static FieldCell getInstance(final FieldCell fieldCell) {
+    FieldCell instance = new FieldCell(fieldCell.state);
+    instance.inUse = fieldCell.inUse;
+    instance.setValue(fieldCell.getExpandedValue());
+    instance.addListeners();
+    instance.setToolTipText(fieldCell.textField.getToolTipText());
+    return instance;
   }
 
   static FieldCell getEditableInstance() {
-    FieldCell instance = new FieldCell(true, ParsedElementType.NON_MATLAB_NUMBER);
+    FieldCell instance = new FieldCell(true, ParsedElementType.NON_MATLAB_NUMBER, null);
     instance.addListeners();
     return instance;
   }
 
   static FieldCell getEditableMatlabInstance() {
-    FieldCell instance = new FieldCell(true, ParsedElementType.MATLAB_NUMBER);
+    FieldCell instance = new FieldCell(true, ParsedElementType.MATLAB_NUMBER, null);
     instance.addListeners();
     return instance;
   }
 
   static FieldCell getIneditableInstance() {
-    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB_NUMBER);
+    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB_NUMBER, null);
     instance.setEditable(false);
     instance.addListeners();
     return instance;
   }
 
-  static FieldCell getIneditableInstance(String value) {
-    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB_NUMBER);
-    instance.setEditable(false);
-    instance.setValue(value);
-    instance.addListeners();
-    return instance;
-  }
-
-  static FieldCell getExpandableInstance() {
-    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB_NUMBER);
-    instance.setEditable(false);
-    instance.fixedValues = true;
+  static FieldCell getExpandableInstance(String rootDir) {
+    FieldCell instance = new FieldCell(true, ParsedElementType.NON_MATLAB_NUMBER, rootDir);
     instance.addListeners();
     return instance;
   }
@@ -235,52 +242,14 @@ final class FieldCell extends InputCell {
   }
 
   void setEditable(boolean editable) {
-    //if this is not an editable instance, it can't be made editable
-    if (!this.editable && editable) {
-      return;
+    if (state.isEditableField()) {
+      super.setEditable(editable);
     }
-    if (fixedValues && editable) {
-      return;
-    }
-    super.setEditable(editable);
   }
 
   void setInUse(final boolean inUse) {
     this.inUse = inUse;
     setForeground();
-  }
-
-  void clearExpandableValues() {
-    contractedValue = null;
-    expandedValue = null;
-    setValue();
-  }
-
-  /**
-   * Sets contracted value and expanded value.
-   * @param contractedValue
-   * @param expandedValue
-   */
-  void setExpandableValues(final String contractedValue, final String expandedValue) {
-    this.contractedValue = contractedValue;
-    this.expandedValue = expandedValue;
-  }
-
-  void setHideValue(final boolean hideValue) {
-    if (this.hideValue == hideValue) {
-      return;
-    }
-    this.hideValue = hideValue;
-    if (hiddenValue == null) {
-      return;
-    }
-    if (hideValue) {
-      hiddenValue = textField.getText();
-      textField.setText("");
-    }
-    else {
-      textField.setText(hiddenValue);
-    }
   }
 
   boolean isEmpty() {
@@ -292,48 +261,65 @@ final class FieldCell extends InputCell {
     return textField;
   }
 
-  private void setValue(String value, boolean range) {
-    this.range = range;
-    hiddenValue = value;
-    if (!hideValue) {
-      textField.setText(value);
-    }
+  public void setTargetFile(final File file) {
+    setFile(file);
   }
 
-  void setValue(String value) {
-    setValue(value, false);
+  public void setFile(final File file) {
+    setValue(file);
+  }
+
+  void setValue(final File file) {
+    textField.setText(state.convertToFieldText(file));
+  }
+
+  void setValue(final String value) {
+    textField.setText(state.convertToFieldText(value));
+  }
+
+  String getContractedValue() {
+    return state.convertToContractedString(textField.getText());
+  }
+
+  String getExpandedValue() {
+    return state.convertToExpandedString(textField.getText());
+  }
+
+  void expand(final boolean expand) {
+    textField.setText(state.expandFieldText(expand, textField.getText()));
+  }
+
+  void setExpanded() {
+    textField.setText(state.applyExpandedToFieldText(textField.getText()));
   }
 
   void setValue(ConstEtomoNumber value) {
-    setValue(value.toString(), false);
+    setValue(value.toString());
   }
 
   void setRangeValue(int start, int end) {
-    endValue = end;
-    setValue(new Integer(start).toString() + " - " + new Integer(end).toString(), true);
+    textField.setText(state.convertRangeToFieldText(start, end));
   }
 
   void setValue() {
-    setValue("", false);
+    state.msgResettingFieldText();
+    textField.setText("");
   }
 
   void setValue(int value) {
-    setValue(new Integer(value).toString(), false);
+    setValue(new Integer(value).toString());
   }
 
   void setValue(double value) {
-    setValue(new Double(value).toString(), false);
+    setValue(new Double(value).toString());
   }
 
   void setValue(long value) {
-    setValue(new Long(value).toString(), false);
+    setValue(new Long(value).toString());
   }
 
   int getEndValue() {
-    if (!range) {
-      throw new IllegalStateException("range not in use");
-    }
-    return endValue;
+    return state.extractEndValue(textField.getText());
   }
 
   UITestFieldType getFieldType() {
@@ -363,31 +349,19 @@ final class FieldCell extends InputCell {
   }
 
   ConstEtomoNumber getEtomoNumber() {
-    EtomoNumber number = new EtomoNumber();
-    number.set(textField.getText());
-    return number;
+    return state.convertToEtomoNumber(textField.getText());
   }
 
   ParsedArray getParsedArray() {
-    ParsedArray array = ParsedArray.getInstance(parsedElementType);
-    array.setRawString(textField.getText());
-    return array;
+    return state.convertToParsedArray(textField.getText());
   }
 
   ConstEtomoNumber getEtomoNumber(EtomoNumber.Type type) {
-    EtomoNumber number = new EtomoNumber(type);
-    number.set(textField.getText());
-    return number;
+    return state.convertToEtomoNumber(type, textField.getText());
   }
 
   long getLongValue() {
-
-    try {
-      return new Long(textField.getText()).longValue();
-    }
-    catch (NumberFormatException e) {
-      return 0;
-    }
+    return state.convertToLong(textField.getText());
   }
 
   void setForeground() {
@@ -413,31 +387,8 @@ final class FieldCell extends InputCell {
     textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 
-  void expand(boolean expanded) {
-    if (expanded && expandedValue != null) {
-      setValue(expandedValue);
-    }
-    else if (!expanded && contractedValue != null) {
-      setValue(contractedValue);
-    }
-  }
-
   boolean equals(String comp) {
     return getValue().equals(comp);
-  }
-
-  String getContractedValue() {
-    if (contractedValue == null) {
-      return "";
-    }
-    return contractedValue;
-  }
-
-  String getExpandedValue() {
-    if (expandedValue == null) {
-      return "";
-    }
-    return expandedValue;
   }
 
   private static final class TextFieldFocusListener implements FocusListener {

@@ -2,8 +2,6 @@
 # A script to submit a .csh file to a queue and delete or kill a job
 #  $Id$
 #
-#  Log at end of file
-#
 
 # Leave the connection timeout out of these options, there should not be
 # connection problems the way there are with 
@@ -162,16 +160,22 @@ if [[ $action == "R" || $action == "S" ]] ; then
     #
     jobname=$comroot.job
     cshname=$comroot.csh
+    pyname=$comroot.py
+    runcom="csh -ef"
 
-    # If it is a sync run, add a chunk done statement
-    #
-    if [ $action == "S" ] ; then echo "echo CHUNK DONE >> $comroot.log" >> $cshname ; fi
+    # Use a .py file as long as .csh is not present
+    if [[ -e $pyname && ! -e $cshname ]] ; then
+        cshname=$pyname
+        runcom="python -u"
+    fi
+
+    # 12/7/11: no longer need to add a chunk done statement for sync runs
 
     # Prepare the job file
     #
     cat <<EOF > $jobname
 cd $curdir
-csh -ef $cshname
+$runcom $cshname
 rm -f $cshname
 EOF
 
@@ -313,20 +317,3 @@ fi
 
 exit 0
 
-#
-#  $Log$
-#  Revision 3.6  2009/08/18 04:27:04  mast
-#  Add pbs-maui type for better load command
-#
-#  Revision 3.5  2009/04/11 00:44:28  mast
-#  At least report load as a number if no max is available
-#
-#  Revision 3.4  2007/09/28 21:11:13  mast
-#  Needed to request resurce on pbs queue to avoid all jobs on one node
-#
-#  Revision 3.2  2007/09/24 22:04:23  mast
-#  Fixes in qstat: test for non-zero file, not existence, and use right column
-#
-#  Revision 3.1  2007/09/14 21:55:16  mast
-#  Added to package
-#

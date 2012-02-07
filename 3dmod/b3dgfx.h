@@ -8,14 +8,34 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  No more Log
  */
 
 #ifndef B3DGFX_H
 #define B3DGFX_H
 
+#define GL_GLEXT_PROTOTYPES
 #include <qgl.h>
 #include <qstring.h>
+
+// Wrapper functions for "extensions" on Windows (past GL 1.2)
+#ifdef _WIN32
+#include "glext_for_win.h"
+void b3dDeleteBuffers(GLsizei n, const GLuint *buffers);
+void b3dGenBuffers(GLsizei n, GLuint *buffers);
+void b3dBindBuffer(GLenum target, GLuint buffer);
+void b3dBufferData(GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage);
+void b3dBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, 
+                        const GLvoid *data);
+#else
+#define b3dDeleteBuffers glDeleteBuffers
+#define b3dGenBuffers glGenBuffers
+#define b3dBindBuffer glBindBuffer
+#define b3dBufferData glBufferData
+#define b3dBufferSubData glBufferSubData
+#endif
+
+// Extension enabled flags in return from b3dInitializeGL
+#define B3DGLEXT_VERTBUF (1l << 0)
 
 #define SnapShot_Default 0
 #define SnapShot_RGB     1
@@ -50,8 +70,9 @@ typedef struct b3d_ci_image
 
 /* functions */
 
+int b3dInitializeGL();
 
-  void b3dSetCurSize(int width, int height);
+void b3dSetCurSize(int width, int height);
 void b3dResizeViewportXY(int winx, int winy);
 void b3dSubareaViewport(int xstart, int ystart, int xsize, int ysize);
 void b3dColorIndex(int pix);

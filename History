@@ -4,16 +4,109 @@ IMOD History
 2/2/12: Fixed ctfplotter to link against the libtiff distributed in package
 (In 4.3).
 
+2/2/12: In eTomo changed the pixel size in ctfcorrection.com to take the
+binning of the aligned stack into account.(Bug# 1594)
+
+2/1/12: IMOD_4-4-4
+2/1/12: Fixed crash from failure to clear vertex buffers when model view is
+closed.
+
+2/1/12: Increased limit on number of views for tiltalign and beadtrack to
+1440.
+
+1/31/12: Finished the eTomo - PEET interface upgrade.(Bug# 1592)
+
+1/27/12: Added a Python script startprocess to run jobs in background for
+eTomo.
+
 1/25/12: Made all Qt-based programs reset the locale after starting the
 Qt application to prevent errors reading floating point numbers (In 4.3).
+
+1/25/12: Made Midas able to read files with DOS line endings on other systems.
+
+1/25/12: In eTomo - PEET - Reference, converted the  multi-particle  reference
+fields to a single combo-box.(Bug# 1592)
+
+1/24/12: In eTomo, finished implementing the --actions parameter (causes
+messages documenting eTomo actions to be printed).(Bug# 1441)
+
+1/19/12: Fixed problem with trying to do more than 50000 peaks in Findbeads3d.
+
+1/19/12: In eTomo - PEET, setting nWeightGroup to 0 in the .prm file when the
+'Weight groups' spinner is off in the dialog.(Bug# 1589)
+
+1/18/12: In eTomo - PEET, defaulted low cutoff sigma.(Bug# 1588)
+
+1/18/12: In eTomo - PEET, added a startup popup.(Bug# 1585)
+
+1/18/12: In eTomo - PEET, avoiding the problems caused by entering a "." for
+the PEET dataset directory.(Bug# 1584)
+
+1/17/12: Added cygcheck back in to tomosnapshot.
+
+1/9/12: Fixed tests for a view-number bug that made Ctfphaseflip fail with
+one image per range.
+
+1/4/12: In Ctfplotter, added defaults so some options aren't required, added
+options for controlling the curve fitting, and added an option for saving
+autofit results and exiting. 
+
+1/3/12: In Etomo - PEET upgraded the Run tab.(Bug# 1571)
+
+1/3/12: Add options to Ctfphaseflip to adjust for the shift of images during 
+alignment.
+
+1/3/12: In Ctfplotter, added ability to step the angular range up or down,
+ability to fit automatically to a whole set of ranges, and an option to start
+the program with automatic fitting.  Also switched frequency units to be
+cycles/pixel going from 0 to 0.5.
+
+12/24/11: Fixed test in simplex search routine that terminated searches with
+only one variable very early, maybe terminated other searches a bit early.
+
+12/20/11: IMOD_4-4-3
+12/20/11: In eTomo - PEET, upgraded the Interations table.(Bug# 1570)
+
+12/19/11: Programs Clonevolume and Clonemodel were added to allow multiple
+copies of a rotated volume or model to be inserted into a tomogram or composed
+into one model.
 
 12/19/11: IMOD_4-3-4
 12/19/11: Updated program list for hyperlinks in man page (In 4.3).
 
 12/19/11: IMOD_4-3-3
+12/19/11: Added options to Genhstplt for dividing by column and loading new
+column while retaining X values in previous column.
+
 12/18/11: IMOD_4-3-2
 12/18/11: Fixed imodpsview and install script for change in tcsh behavior
 (In 4.3).
+
+12/15/11: Edit-Object-Move will move meshes from one saved isosurface object
+to another; multiple saved isosurface objects can be selected in Model view
+with Ctrl-right mouse; and Edit-Object-Combine will combine them.
+
+12/15/11: In eTomo - PEET, upgraded Y axis and initial motive list panels.
+(Bug# 1569)
+
+2/15/11: Made movie making work when only the clip planes change.
+
+12/9/11: Fixed problem with vmstopy when command line ends in a quote.
+
+12/9/11: Fixed problems with division by zero in routine that solves linear
+equations with outlier removal for solvematch, findwarp, and refinematch.
+
+12/9/11: In eTomo - PEET upgraded the masking panel.(Bug# 1568)
+
+12/8/11: Made processchunks run programs with python.  Added options to
+vmstopy for setting nice and environment variables.
+
+12/8/11: Made bead fixer run tiltalign with vmstopy.
+
+12/6/11: Fixed eTomo - PEET copy project functionality so that it continues to
+point to the same files.
+
+12/5/11: Improved the appearance of eTomo - PEET.(Bug# 1583)
 
 12/2/11: Fixed test for whether copying from current object in object edit 
 dialog (In 4.3).
@@ -23,6 +116,19 @@ objects or moving all contours from one to another (In 4.3).
 
 12/1/11: Fixed 3dmod crash when deleting object with no current contour is set
 (In 4.3).
+
+12/1/11: In eTomo - PEET, getting some tooltips from peetprm.adoc.(Bug# 1577)
+
+11/30/11: IMOD_4-4-2
+11/30/11: Changed Corrsearch3d to scale boundary models to image file
+coordinates, so a model from unbinned data can be used on binned data in
+Edgepatches.
+
+11/30/11: Used vector buffer objects to speed up model view graphics for
+lighted surfaces and wireframe meshes.  Turned on multisampling (full-scene
+antialiasing) in model view to give smoother lines and polygon edges.
+
+11/29/11: In eTomo - PEET improved the error messages.(Bug# 1563)
 
 11/29/11: Fixed crash when current surface only is selected in Model View Edit
 Objects window and there are empty contours (In 4.3).
@@ -36,8 +142,12 @@ Objects window and there are empty contours (In 4.3).
 
 11/22/11: Fixed pysed.py to allow ^ and + in filenames again (In 4.3).
 
+11/18/11: IMOD_4-4-1
 11/18/11: In eTomo - Final Aligned Stack, added OffsetToAdd to the Ctfplotter
 dialog (In 4.3).(Bug# 1581)
+
+11/17/11: In eTomo - PEET, upgraded the volume table with an improved format
+and embedded file buttons.(Bug# 1561)
 
 11/17/11: Added option to Ctfplotter to specify a data offset, and made it
 detect need for offset automatically with FEI data (In 4.3).
@@ -47,7 +157,7 @@ detect need for offset automatically with FEI data (In 4.3).
 11/9/11: In eTomo - Fiducial Model, fixed failure in patch tracking when the
 there is an existing tilt file (In 4.3).(Bug# 1547)
 
-11/9/11: IMOD_4-3-1
+11/9/11: IMOD_4-3-1 released
 11/9/11: In Beadfixer, fixed extra redraws when moving by residual in all 
 local areas (In 4.3).
 
@@ -57,17 +167,40 @@ xcorr.com into xcorr_pt.com (In 4.3).(Bug# 1547)
 11/5/11: In Processchunks, fixed very long delay when many chunks fail right
 away and problem recognizing when all machines have failed (In 4.3).
 
+11/4/11: In eTomo - PEET, defaulting reference in the .prm file to 10,10 when
+flgFairReference is on.(Bug# 1565)
+
+11/4/11: In eTomo - PEET, defaulting to relative directory paths.  Continuing
+to allow absolute directory paths.(Bug# 1575)
+
+11/3/11: Added ability to have global clip planes change position during movie
+making in Model View.
+
 11/2/11: Fixed problem with Edgepatches/Tomostitch when there are tabs in the
 info file (In 4.3).
 
 11/2/11: Changed compiler flags to keep programs like Tilt from crashing on
 Mac when doing large vector operations (In 4.3).
 
+10/31/11: In eTomo - PEET, removed the "Use Existing Project" panel and
+replaced it with one button - "Copy existing project".(Bug# 1560)
+
 10/29/11: Fixed the way Nda finds points inside the boundary to reject only
 points in closed coplanar contours (In 4.3).
 
 10/28/11: In eTomo - Join, fixed the finishjoin rejoin function, which was
 missing the -ref parameter (In 4.3).(Bug# 1574)
+
+10/28/11: In eTomo - Join, fixed the finishjoin rejoin function, which was
+missing the -ref parameter (In 4.3).(Bug# 1574)
+
+10/27/11: In eTomo - PEET improved the file chooser button.(Bug# 1562)
+
+10/26/11: In eTomo - PEET moved the volume size panel to the Setup tab.
+(Bug# 1566)
+
+10/26/11: In eTomo - PEET upgraded the Missing Wedge Compensation panel.
+(Bug# 1567)
 
 10/25/11: Fixed formatting in Xfsimplex to keep Transferfid from failing with
 a rotation angle <= -100 degrees (In 4.3).
@@ -77,6 +210,8 @@ a rotation angle <= -100 degrees (In 4.3).
 10/23/11: IMOD_4-4-0 and branch to IMOD_4-3-0
 10/22/11: Made Gputilttest run tilt with debug output and leave log file if
 the GUP fails.
+
+10/21/11: In eTomo - PEET upgraded the Reference panel.(Bug# 1565)
 
 10/20/11: Fixed etomo tutorial to display correctly in Qt Assistant.
 

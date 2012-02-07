@@ -7,7 +7,6 @@ c       output only the pieces that intersect a defined subset of the image
 c       area. 
 c
 c       $Id$
-c       Log at end of file
 c       
       implicit none
       include 'smallmodel.inc'
@@ -33,7 +32,6 @@ C
      &    8191., 16383.,32767./
       logical rescale
       integer(kind =8) i8, npix
-      character*3 instat
       character dat*9,tim*8
       integer*2 temp
       character*80 titlech
@@ -45,16 +43,16 @@ C
       integer*4 numOutValues, numToGet,nfileout,noutot,numOutEntries
       integer*4 numOutputFiles,noutXpiece,noutYpiece,minxinc,maxxinc,minyinc
       integer*4 maxyinc,minFrame,maxFrame,knocks,ifknock,iobj,ipt,ifmean
-      integer*4 iffloat,izbase,ifrenumb,ifshiftxy,ibinning,maxBinning,nxbin
+      integer*4 iffloat,ifrenumb,ifshiftxy,ibinning,maxBinning,nxbin
       integer*4 nxbOverlap, ixst, nybin, nybOverlap, iyst, lentemp,ilis,indsec
       real*4 fraczero, zmin, zmax, dmin2,dmax2, avg, sd,tmpmin, tmpmax,dmaxout
       real*8 sum8,sumsq8,tsum8, tsumsq8,dmean2
       real*4 optin,optout,bottomin,bottomout,sum,zminsec,zmaxsec,dminout
-      real*4 denoutmin,sclfac, const,den,sdmin,dmax,dmean,dmin,dminin
+      real*4 denoutmin,sclfac, const,den,dmax,dmean,dmin,dminin
       integer*4 nsecred,ifanyout,ipc,isec,isecout,ifileout,ipcout,kti,npclist
       integer*4 nbytexout,nbsymout,indxout,minSubXpiece,minSubYpiece,nbcopy
       integer*4 nbclear,nbytexin,iflagxin,numPLfileOut,maxsecout,ind
-      integer*4 maxexout, maxnumsec, maxNumXpc, maxNumYpc, maxbytexin
+      integer*4 maxexout, maxNumXpc, maxNumYpc, maxbytexin
       character*100000 listString
       
       logical readSmallMod,notKnock
@@ -656,7 +654,7 @@ c                 if not scaling, just need new mean
               print *,'frame',isec-1,': min&max before and after, mean:'
               write(*,'(5f10.2)')tmpmin,tmpmax,dmin2,dmax2,dmean2
 c               see if need to open an output file
-80            if(ipcout.eq.0)then
+              if(ipcout.eq.0)then
 C                 
 C                 Create output file, transfer header from currently open
 c                 file, fix it enough to get going
@@ -893,26 +891,6 @@ c       same file on two channels
       return
       end
 
-c       $Log$
-c       Revision 3.2  2010/07/16 03:42:34  mast
-c       Adjusted pixel size for binning, adjusted origin if shift X/Y to 0
-c
-c       Revision 3.1  2010/07/02 17:04:29  mast
-c       PIP conversion, memory allocation, added default section lists, model
-c       instead of point file, subsets by frame number, binning, better checks
-c       and ability to combine data laterally, better floating
-c
-c       Revision 3.4  2006/07/08 13:53:16  mast
-c       Changed stops to exitError
-c       
-c       Revision 3.3  2006/07/08 13:47:48  mast
-c       Raised maxextra again and some other limits, put big array in common
-c       
-c       Revision 3.2  2005/12/09 04:45:32  mast
-c       gfortran: .xor., continuation, or byte fixes
-c       
-c       Revision 3.1  2005/07/27 03:31:00  mast
-c       Redimensioned maxextra to handle mistakenly large extra header
 *       
 *       Early history
 *       David Mastronarde for VAX       5/9/89

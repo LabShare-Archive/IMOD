@@ -12,6 +12,8 @@
 This module provides the following functions:
   runcmd(cmd[, input][,outfile][, inStderr]) - spawn a command with optional input,
                                    return its output or print to stdout or a file
+  bkgdProcess(commandArr, [outfile] [, errfile]) - Run a process in background
+                                                   with optional redirection
   getmrcsize(file)     - run the 'header' command on <file>.
                          returns a triple of x,y,z size integers
   getmrc(file, doAll)  - run the 'header' command on <file>.
@@ -29,6 +31,7 @@ This module provides the following functions:
   completeAndCheckComFile(comfile) - returns complete com file name and root
   cleanChunkFiles(rootname[, logOnly]) - cleans up log and com files from chunks
   cleanupFiles(files) - Removes a list of files with multiple trials if it fails
+  imodNice(niceInc) - Sets niceness of process, even on Windows
   imodTempDir() - returns a temporary directory: IMOD_TEMPDIR, /usr/tmp, or /tmp
   fmtstr(string, *args) - formats a string with replacement fields
   prnstr(string, file = sys.stdout, end = '\n') - replaces print function
@@ -248,6 +251,55 @@ def passOnKeyInterrupt(passOn = True):
 def getLastExitStatus():
    return errStatus
 
+
+# Run a process in background with optional redirection of all output
+def bkgdProcess(commandArr, outfile=None, errfile='stdout'):
+   """bkgdProcess(commandArr, [outfile] [, errfile]) - Run a process in background
+   with optional redirection of standard output to a file, and of standard error
+   to a separate file or to standard out by default.
+   """
+   # If subprocess is allowed, open the files if any
+   if useSubprocess:
+      outf = None
+      errf = None
+      errToFile = False
+      if errfile == 'stdout':
+         errf = STDOUT
+      try:
+         if outfile:
+            action = 'Opening ' + outfile + ' for output'
+            outf = open(outfile, 'w')
+            errToFile = errfile == 'stdout'
+         if errfile and errfile != 'stdout':
+            action = 'Opening ' + errfile + ' for output'
+            errf = open(errfile, 'w')
+            errToFile = True
+      except IOError:
+         exitError(action + "  - " + str(sys.exc_info()[1]))
+
+      # Use detached flag on Windows, although it may not be needed
+      # In fact, unless stderr is going to a file it keeps it from running there
+      if sys.platform.find('win32') >= 0 and errToFile:
+         DETACHED_PROCESS = 0x00000008
+         Popen(commandArr, shell=False, stdout=outf, stderr=errf,
+               creationflags=DETACHED_PROCESS)
+      else:
+         Popen(commandArr, shell=False, stdout=outf, stderr=errf)
+      return
+
+   # Otherwise use system call: wrap all args in quotes and add the redirects
+   comstr = commandArr[0]
+   for i in range(1, len(commandArr)):
+      comstr += ' "' + commandArr[i] + '"'
+   if outfile:
+      comstr += ' > "' + outfile + '"'
+   if errfile == 'stdout':
+      comstr += ' 2>&1'
+   elif errfile:
+      comstr += ' 2> "' + errfile + '"'
+   comstr += ' &'
+   os.system(comstr)
+         
 
 # Get essential data from the header of an MRC file
 def getmrc(file, doAll = False):
@@ -601,6 +653,26 @@ def getCygpath(windows, path):
    return path
 
 
+# Function to increment nice value of current process; for Windows Python it uses psutil
+# and sets to below normal priority between 4 and 15, idle priority above 15
+def imodNice(niceInc):
+   if sys.platform.find('win32') < 0:
+      os.nice(niceInc)
+      return 0
+   if niceInc < 4:
+      return 0
+   try:
+      import psutil
+      p = psutil.Process(os.getpid())
+      if niceInc <= 15:
+         p.nice = psutil.BELOW_NORMAL_PRIORITY_CLASS
+      else:
+         p.nice = psutil.IDLE_PRIORITY_CLASS
+      return 0
+   except ImportError:
+      return 1
+
+                  
 # Function to return the IMOD temporary directory
 def imodTempDir():
    """imodTempDir() - returns a temporary directory: IMOD_TEMPDIR, /usr/tmp, or /tmp

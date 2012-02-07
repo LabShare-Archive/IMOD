@@ -8,7 +8,6 @@
    fortran to C.
 
  * $Id$
- * Log at end of file
 */
 
 #include <math.h>
@@ -122,11 +121,10 @@ void amoeba(float *p, float *y, int mp, int ndim, float ftol,
     for (ipt = 1; ipt < npts && near; ipt++) {
       for (idim = 0; idim < ndim; idim++) {
         ind = index[ipt];
-        if (fabs((double)(p[ipt + idim*mp] - p[ilow + idim*mp])) >= ptol[idim])
-          {
-            near = 0;
-            break;
-          }
+        if (fabs((double)(p[ind + idim*mp] - p[ilow + idim*mp])) >= ptol[idim]) {
+          near = 0;
+          break;
+        }
       }
     }
     if (near)
@@ -256,36 +254,3 @@ void amoebainitfwrap(float *p, float *y, int *mp, int *ndim, float *delfac,
 {
   amoebaInit(p, y, *mp, *ndim, *delfac, *ptolFac, a, da, funk, ptol);
 }
-
-/*
-
-$Log$
-Revision 1.3  2007/10/01 15:26:09  mast
-*** empty log message ***
-
-Revision 1.2  2007/09/20 15:42:32  mast
-Documentation fixes
-
-Revision 1.1  2007/09/20 02:43:08  mast
-Moved to new library
-
-Revision 3.6  2006/06/18 19:36:46  mast
-Changed to take a function that returns the value as an argument because
-it is more portable than the return value (float failed on 64-bit)
-Also modified fortran wrapper to eliminate useless argument
-
-Revision 3.5  2006/06/08 05:13:05  mast
-Added defines on init function fwrap
-
-Revision 3.4  2006/06/08 03:12:02  mast
-Added termination on 1000 iterations; probably not needed.
-
-Revision 3.3  2006/06/06 16:22:15  mast
-Added initialization func and documentation
-
-  
-Revision 3.1  2006/06/05 16:29:38  mast
-Added to libimod
-
-*/
-

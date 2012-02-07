@@ -64,15 +64,19 @@ needSocket = 0
 needPID = 0
 windows = sys.platform.find('win32') >= 0 or sys.platform.find('cygwin') >= 0
 if lenarg < 2:
-   prnstr("Usage: vmstopy [-x|-q|-c] comfile logfile [pyscript]")
+   prnstr("Usage: vmstopy [options] comfile logfile [pyscript]")
    prnstr("  Converts an IMOD command file to a python script")
-   prnstr('  Outputs script on standard out if "pyscript" is not given')
+   prnstr('  Outputs script on standard out if neither "pyscript" nor "-x" is given')
    prnstr('  Options:')
    prnstr('    -x will execute the script')
    prnstr('    -q will suppress messages')
    prnstr('    -c will add output of CHUNK DONE at end')
+   prnstr('    -e VAR=val or -e VAR will set an environment variable')
+   prnstr('    -n #  will set niceness of job to #')
    sys.exit(0)
 
+envars = []
+niceVal = None
 while lenarg - argind > 2:
    oarg = sys.argv[argind]
    if oarg.startswith('-'):
@@ -82,6 +86,23 @@ while lenarg - argind > 2:
          quiet = 1
       elif oarg == '-c':
          chunk = 1
+      elif oarg == '-e':
+         argind += 1
+         var = sys.argv[argind]
+         val = ''
+         ind = var.find('=')
+         if ind >= 0:
+            varsplit = var.split('=')
+            var = varsplit[0]
+            val = varsplit[1]
+         envars.append((var, val))
+      elif oarg == '-n':
+         argind += 1
+         try:
+            niceVal = int(sys.argv[argind])
+         except ValueError:
+            prnstr('ERROR: vmstopy - Converting "nice" value to integer')
+            sys.exit(1)
       else:
          prnstr("ERROR: vmstopy - Unrecognized argument " + oarg)
          sys.exit(1)
@@ -142,6 +163,11 @@ prnstr("  sys.exit(1)", file=out)
 prnstr("if os.getenv('IMOD_QTLIBDIR') != None and os.getenv('LD_LIBRARY_PATH') != None:", file=out)
 prnstr("  os.environ['LD_LIBRARY_PATH'] = os.environ['IMOD_QTLIBDIR'] + os.pathsep + os.environ['LD_LIBRARY_PATH']", file=out)
 prnstr("os.environ['PIP_PRINT_ENTRIES'] = '1'", file=out)
+
+# Set environment variables
+for envpair in envars:
+   prnstr("os.environ['" + envpair[0] + "'] = '" + envpair[1] + "'", file=out)
+
 prnstr("from imodpy import *", file=out)
 prnstr("# Back up and open log file", file=out)
 prnstr("makeBackupFile('" + logname + "')", file=out)
@@ -150,6 +176,12 @@ prnstr("  log = open('" + logname + "', 'wb')", file=out)
 prnstr("except Exception:", file=out)
 prnstr("  prnstr('ERROR: Cannot open log file " + logname + " for writing')", file=out)
 prnstr("  sys.exit(1)", file=out)
+
+#Set niceness if any
+if niceVal:
+   prnstr(fmtstr('if imodNice({}):', niceVal), file=out)
+   prnstr("  prnstr('INFO: Cannot change process priority; psutil is not installed', "
+          "file=log)", file=out)
 
 # Output the PID, flush stderr needed for Windows Python
 prnstr("PID = 'Python PID: ' + str(os.getpid()) + '\\n'", file=out)
@@ -444,7 +476,12 @@ while ind < len(lines):
                comfile.close()
             except Exception:
                pass
-            
+
+         # Escape a terminal quote then wrap command in """
+         if line.endswith('"'):
+            linelen = len(line)
+            if linelen > 2 and line[linelen-2] != '\\':
+               line = line[:linelen-1] + '\\"'
          line = quoteSubstitute(line)
             
          prnstr("  " + indent + "command = " + line, file=out)

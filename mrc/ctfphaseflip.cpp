@@ -28,6 +28,7 @@
 #define MIN_ANGLE 1.0e-6  //tilt Angle less than this is treated as 0.0;
 #define MY_PI 3.1415926
 #define UNUSED_DEFOCUS -2000000.0
+#define MAXLINE 160
 
 using namespace std;
 
@@ -36,20 +37,18 @@ int main(int argc, char *argv[])
   int numOptArgs, numNonOptArgs;
 
   // Fallbacks from   ../manpages/autodoc2man 2 1 ctfphaseflip
-  int numOptions = 16;
+  int numOptions = 17;
   char *options[] = {
-    "input:InputStack:FN:", "output:OutputFileName:FN:",
-    "angleFn:AngleFile:FN:", "invert:InvertTiltAngles:B:",
-    "defFn:DefocusFile:FN:", "defTol:DefocusTol:I:",
-    "iWidth:InterpolationWidth:I:", "pixelSize:PixelSize:F:",
-    "volt:Voltage:I:", "cs:SphericalAberration:F:",
-    "ampContrast:AmplitudeContrast:F:", "views:StartingEndingViews:IP:",
-    "totalViews:TotalViews:IP:", "boundary:BoundaryInfoFile:FN:",
-    "aAngle:AxisAngle:F:", "param:Parameter:PF:"};
+    "input:InputStack:FN:", "output:OutputFileName:FN:", "angleFn:AngleFile:FN:",
+    "invert:InvertTiltAngles:B:", "defFn:DefocusFile:FN:", "xform:TransformFile:FN:",
+    "defTol:DefocusTol:I:", "iWidth:InterpolationWidth:I:", "pixelSize:PixelSize:F:",
+    "volt:Voltage:I:", "cs:SphericalAberration:F:", "ampContrast:AmplitudeContrast:F:",
+    "views:StartingEndingViews:IP:", "totalViews:TotalViews:IP:",
+    "boundary:BoundaryInfoFile:FN:", "aAngle:AxisAngle:F:", "param:Parameter:PF:"};
 
-  char *stackFn, *angleFn, *outFn, *defFn;
+  char *stackFn, *angleFn, *outFn, *defFn, *xformFn = NULL;
   char *boundFn = NULL;
-  int volt, iWidth, defocusTol;
+  int volt, iWidth, defocusTol, ii, ierr;
   float pixelSize, cs, ampContrast, stripDefocus;
   int startingView, endingView, startingTotal, endingTotal;
   bool isSingleRun = false;
@@ -57,7 +56,9 @@ int main(int argc, char *argv[])
   double angleSign;
   float minAngle, maxAngle;
   float *tiltAngles = NULL;
+  float *xShifts = NULL;
   Ilist *defocusList;
+  char line[MAXLINE];
   char *progname = imodProgName(argv[0]);
 
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
@@ -74,7 +75,7 @@ int main(int argc, char *argv[])
   //if (PipGetFloat("AxisAngle", &tiltAxisAngle) )
   //  exitError("No AxisAngle specified"); 
   if (PipGetInteger("DefocusTol", &defocusTol))
-    exitError("No DefousTol specified");
+    exitError("No DefocusTol specified");
   if (PipGetInteger("InterpolationWidth", &iWidth) )
     exitError("No interpolationWidth specified");
   if (PipGetFloat("PixelSize", &pixelSize))
@@ -90,6 +91,7 @@ int main(int argc, char *argv[])
   if (PipGetString("OutputFileName", &outFn) )
     exitError("OutputFileName is not specified");
   PipGetString("BoundaryInfoFile", &boundFn);
+  PipGetString("TransformFile", &xformFn);
   PipGetBoolean("InvertTiltAngles", &invertAngles);
   angleSign = invertAngles ? -1. : 1.;
   
@@ -117,6 +119,32 @@ int main(int argc, char *argv[])
   
   if (mrc_head_read(fpStack, &outHeader)) 
     exitError("reading header of input file %s",  stackFn);
+
+  xShifts = B3DMALLOC(float, header.nz);
+  if (!xShifts)
+    exitError("Allocating array for X shifts");
+  for (ii = 0; ii < header.nz; ii++)
+    xShifts[ii] = 0.;
+
+  if (xformFn) {
+    float dum1, dum2, dum3, dum4;
+    FILE *fpXF = fopen(xformFn, "r");
+    if (!fpXF)
+      exitError("Opening transform file %s", xformFn);
+    for (ii = 0; ii < header.nz; ii++) {
+      ierr = fgetline(fpXF, line, MAXLINE);
+      if (ierr == -1)
+        exitError("Reading transform file %s", xformFn);
+      if (ierr == -2)
+        exitError("End of file after reading %d transforms; not enough transforms in "
+                  "file", ii);
+      ierr = sscanf(line, "%f %f %f %f %f", &dum1, &dum2, &dum3, &dum4, &xShifts[ii]);
+      if (ierr <= 0) {
+        ii--;
+        continue;
+      }
+    }
+  }
 
   startingView = 1;
   endingView = header.nz;
@@ -344,7 +372,7 @@ int main(int argc, char *argv[])
       //printf("stripIdx=%d stripBegin=%d stripEnd=%d \n", 
       //stripIdx, stripBegin, stripEnd); 
       
-      stripDefocus = defocus[k-1]*1000.0 - ( nx/2-stripMid )*
+      stripDefocus = defocus[k-1]*1000.0 - ( nx/2 + xShifts[k-1] - stripMid ) *
         tan(currAngle)*pixelSize; //in nm;
       //printf("defocus is %6.1f\n", stripDefocus);
 

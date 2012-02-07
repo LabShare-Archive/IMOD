@@ -62,23 +62,24 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     if (!canShowDialog()) {
       return;
     }
-    if (showDialog(dialog)) {
+    String actionMessage = manager.setCurrentDialogType(dialogType, axisID);
+    if (showDialog(dialog, actionMessage)) {
       return;
     }
-    //Create the dialog and show it.
+    // Create the dialog and show it.
     Utilities.timestamp("new", "TomogramGenerationDialog", Utilities.STARTED_STATUS);
     dialog = TomogramGenerationDialog.getInstance(manager, this, axisID);
     Utilities.timestamp("new", "TomogramGenerationDialog", Utilities.FINISHED_STATUS);
     // no longer managing image size
     setParameters(metaData);
     setParameters(screenState);
-    //load SIRT first because the resume radio buttons disable tilt fields
+    // load SIRT first because the resume radio buttons disable tilt fields
     SirtsetupParam sirtsetupParam;
     if (comScriptMgr.loadSirtsetup(axisID)) {
       sirtsetupParam = comScriptMgr.getSirtsetupParam(axisID);
     }
     else {
-      //create an empty param to get the defaults.
+      // create an empty param to get the defaults.
       sirtsetupParam = new SirtsetupParam(manager, axisID);
     }
     setParameters(sirtsetupParam);
@@ -97,7 +98,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     // Set the fidcialess state and tilt axis angle
     setTiltState();
     metaData.setGenExists(axisID, true);
-    openDialog(dialog);
+    openDialog(dialog, actionMessage);
   }
 
   public void msgSirtsetupSucceeded() {
@@ -128,12 +129,12 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       if (process.getSubprocessName() == ProcessName.TILT) {
         processchunks(manager, dialog, processResultDisplay, processSeries,
             ProcessName.TILT.toString() + axisID.getExtension(),
-            process.getOutputImageFileType(), process.getProcessingMethod());
+            process.getOutputImageFileType(), process.getProcessingMethod(), false);
       }
       else {
         processchunks(manager, dialog, processResultDisplay, processSeries,
             ProcessName.TILT.toString() + axisID.getExtension() + "_sirt",
-            process.getOutputImageFileType(), process.getProcessingMethod());
+            process.getOutputImageFileType(), process.getProcessingMethod(), false);
       }
     }
     else if (process.equals(SIRT_DONE)) {
@@ -168,8 +169,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
     // Clean up the existing dialog
     leaveDialog(exitState);
-    //Hold onto the finished dialog in case anything is running that needs it or
-    //there are next processes that need it.
+    // Hold onto the finished dialog in case anything is running that needs it or
+    // there are next processes that need it.
   }
 
   void saveDialog() {

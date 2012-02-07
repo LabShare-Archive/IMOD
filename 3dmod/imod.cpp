@@ -181,6 +181,7 @@ int main( int argc, char *argv[])
   App->cvi = &vi;
   App->base = Rampbase;
   App->convertSnap = 0;
+  App->glInitialized = 0;
 
   /* Set up fixed indexes */
   App->background   = IMOD_BACKGROUND;
