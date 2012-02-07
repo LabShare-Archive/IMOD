@@ -46,7 +46,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
   private ProcessMessages messages = null;
   private LogFile logFile;
   private String logSuccessTag = null;
-  //When true the process is being controlled by the monitor.
+  // When true the process is being controlled by the monitor.
   private boolean monitorControl = false;
 
   private ReconnectProcess(BaseManager manager, BaseProcessManager processManager,
@@ -102,7 +102,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
   }
 
   public void setProcessingMethod(ProcessingMethod processingMethod) {
-    //already have processing method from process data
+    // already have processing method from process data
   }
 
   public ProcessingMethod getProcessingMethod() {
@@ -248,6 +248,13 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
    */
   public boolean isNohup() {
     return true;
+  }
+
+  public boolean isDone() {
+    if (monitor == null) {
+      return false;
+    }
+    return !monitor.isRunning();
   }
 
   /**
