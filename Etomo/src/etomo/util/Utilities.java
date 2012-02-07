@@ -498,9 +498,8 @@ public class Utilities {
       return null;
     }
     String command = commandArray[0].trim();
-    if ((commandArray.length == 1
-        && (command.equals("env") || command.equals("hostname")) || (command
-        .equals("tcsh") && (stdInput == null || stdInput.length == 0)))
+    if ((commandArray.length == 1 && (command.equals("env") || command.equals("hostname") || (command
+        .equals("tcsh") && (stdInput == null || stdInput.length == 0))))
         || command.endsWith("ssh")
         || command.equals("ps")
         || command.endsWith("3dmod")
@@ -510,13 +509,22 @@ public class Utilities {
     int max = 1;
     int stdMax = 0;
     if (command.endsWith(ProcessName.CLIP.toString())
-        || command.indexOf("vmstocsh") != -1) {
+        || command.indexOf("vmstocsh") != -1 || command.indexOf("vmstopy") != -1) {
       max = 2;
     }
-    else if (command.endsWith("python") || command.endsWith("bash")) {
+    else if (command.endsWith("bash")) {
       max = 4;
     }
+    else if (command.endsWith("python")) {
+      if (commandArray.length < 3) {
+        stdMax = -1;
+      }
+      else {
+        max = 10;
+      }
+    }
     else if (command.endsWith("tcsh")) {
+      max = 3;
       stdMax = 2;
     }
     else if (command.endsWith("cp") || command.endsWith("mv")
@@ -530,6 +538,9 @@ public class Utilities {
     boolean showDash = false;
     for (int i = 0; i < length; i++) {
       param = commandArray[i];
+      if (param.equals("None")) {
+        continue;
+      }
       if (param.endsWith("alignlog")) {
         showDash = true;
       }
@@ -540,6 +551,10 @@ public class Utilities {
       chIndex = param.lastIndexOf(File.separator);
       if (chIndex != -1) {
         param = param.substring(chIndex + 1);
+        chIndex = param.indexOf(".com");
+        if (chIndex != -1) {
+          param = param.substring(0, chIndex);
+        }
       }
       else {
         chIndex = param.indexOf(".log");
@@ -552,13 +567,33 @@ public class Utilities {
       }
     }
     if (stdInput != null) {
-      length = Math.min(stdMax, stdInput.length);
+      if (stdMax == -1) {
+        // Unlimited search
+        length = stdInput.length;
+      }
+      else {
+        length = Math.min(stdMax, stdInput.length);
+      }
+      boolean done = false;
       for (int i = 0; i < length; i++) {
-        param = stdInput[i];
+        param = stdInput[i].trim();
         if (param.startsWith("#") || param.startsWith("nohup")) {
           continue;
         }
-        if (param.startsWith("if")) {
+        if (command.endsWith("python")) {
+          if (param.startsWith("makeBackupFile")) {
+            chIndex = param.indexOf(".log");
+            int quoteIndex = param.indexOf("\'");
+            if (chIndex != -1 && quoteIndex != -1) {
+              param = param.substring(quoteIndex + 1, chIndex);
+            }
+            done = true;
+          }
+          else {
+            continue;
+          }
+        }
+        else if (param.startsWith("if")) {
           chIndex = param.indexOf(".log");
           int quoteIndex = param.indexOf("\"");
           if (chIndex != -1 && quoteIndex != -1) {
@@ -567,6 +602,9 @@ public class Utilities {
         }
         if (param != null) {
           buffer.append(param + " ");
+        }
+        if (done) {
+          break;
         }
       }
     }

@@ -21,6 +21,7 @@ public interface DetachedCommandDetails extends CommandDetails {
    * @return
    */
   public String getCommandString();
+  public String[] getCommandArray();
   public boolean isValid();
   public boolean isCommandNiced();
   public String getNiceCommand();

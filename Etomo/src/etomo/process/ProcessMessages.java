@@ -37,6 +37,7 @@ public final class ProcessMessages {
   private static final String INFO_TAG = "INFO:";
   private static final String PIP_WARNING_END_TAG = "Using fallback options in main program";
   private static final int MAX_MESSAGE_SIZE = 10;
+  private static final String IGNORE_TAG = "prnstr('ERROR:";
 
   private final boolean chunks;
 
@@ -495,6 +496,9 @@ public final class ProcessMessages {
     }
     // look for a message
     int errorIndex = line.indexOf(ERROR_TAG);
+    if (errorIndex != -1 && line.indexOf(IGNORE_TAG) != -1) {
+      errorIndex = -1;
+    }
     int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
     int warningIndex = line.indexOf(WARNING_TAG);
     int infoIndex = line.indexOf(INFO_TAG);
@@ -556,6 +560,9 @@ public final class ProcessMessages {
     }
     // look for a message
     int errorIndex = line.indexOf(ERROR_TAG);
+    if (errorIndex != -1 && line.indexOf(IGNORE_TAG) != -1) {
+      errorIndex = -1;
+    }
     int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
     int warningIndex = line.indexOf(WARNING_TAG);
     int infoIndex = line.indexOf(INFO_TAG);
