@@ -541,7 +541,8 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
               if (debug) {
                 System.err.println(array[i]);
               }
-              if (array[i].startsWith("Traceback") || array[i].indexOf("Errno") != -1) {
+              if (array[i].startsWith("ERROR:") || array[i].startsWith("Traceback")
+                  || array[i].indexOf("Errno") != -1) {
                 endMonitor(ProcessEndState.FAILED);
                 return;
               }
@@ -553,7 +554,8 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
               if (debug) {
                 System.err.println(array[i]);
               }
-              if (array[i].startsWith("Traceback") || array[i].indexOf("Errno") != -1) {
+              if (array[i].startsWith("ERROR:") || array[i].startsWith("Traceback")
+                  || array[i].indexOf("Errno") != -1) {
                 endMonitor(ProcessEndState.FAILED);
                 return;
               }
