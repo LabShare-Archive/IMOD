@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/7/11: IMOD_4-3-5
+2/2/12: Fixed ctfplotter to link against the libtiff distributed in package
+(In 4.3).
+
 2/2/12: In eTomo changed the pixel size in ctfcorrection.com to take the
 binning of the aligned stack into account.(Bug# 1594)
 
@@ -16,7 +20,7 @@ closed.
 eTomo.
 
 1/25/12: Made all Qt-based programs reset the locale after starting the
-Qt application to prevent errors reading floating point numbers.
+Qt application to prevent errors reading floating point numbers (In 4.3).
 
 1/25/12: Made Midas able to read files with DOS line endings on other systems.
 
