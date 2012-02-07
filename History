@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/7/12: In eTomo running comscripts and processchunks with python.(Bug# 1591)
+
 2/2/12: In eTomo changed the pixel size in ctfcorrection.com to take the
 binning of the aligned stack into account.(Bug# 1594)
 
