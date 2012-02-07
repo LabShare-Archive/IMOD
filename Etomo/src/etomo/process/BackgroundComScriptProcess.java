@@ -410,10 +410,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     File pythonFile = new File(workingDirectory, pythonFileName);
     File outFile = new File(workingDirectory, getWatchedFileName());
     Utilities.writeFile(pythonFile, commands, true);
-    // Bin contains a broken startprocess
-    String[] command = { "python", "-u",
-        BaseManager.getIMODBinPath()/* "/home/sueh/bin/"*/ + "startprocess", "-o",
-        getWatchedFileName(), "python", "-u", pythonFileName };
+    String[] command = { "python", "-u", BaseManager.getIMODBinPath() + "startprocess",
+        "-o", getWatchedFileName(), "python", "-u", pythonFileName };
     BackgroundSystemProgram program = new BackgroundSystemProgram(manager, command,
         getDetachedMonitor(), getAxisID());
     setSystemProgram(program);
