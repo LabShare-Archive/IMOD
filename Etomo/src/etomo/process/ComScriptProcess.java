@@ -988,6 +988,13 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public boolean isDebug() {
     return debug;
   }
+  
+  public boolean isDone() {
+    if (systemProgram==null) {
+      return false;
+    }
+    return systemProgram.isDone();
+  }
 
   /**
    * Set the debug state.
