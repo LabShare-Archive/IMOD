@@ -1,7 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/7/11: IMOD_4-3-5
+2/2/12: Fixed ctfplotter to link against the libtiff distributed in package
+(In 4.3).
+
 1/25/12: Made all Qt-based programs reset the locale after starting the
-Qt application to prevent errors reading floating point numbers.
+Qt application to prevent errors reading floating point numbers (In 4.3).
 
 12/19/11: IMOD_4-3-4
 12/19/11: Updated program list for hyperlinks in man page (In 4.3).
