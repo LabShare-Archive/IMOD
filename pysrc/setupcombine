@@ -4,7 +4,6 @@
 # Author: David Mastronarde
 #
 # $Id$
-# Log at end
 #
 progname = 'setupcombine'
 prefix = 'ERROR: ' + progname + ' - '
@@ -37,7 +36,7 @@ def readTiltOptions(tilt):
       offset = tiltarr[0]
    tiltarr = optionValue(comlines, 'shift', 2, True)
    zshift = 0.
-   if tiltarr:
+   if tiltarr and len(tiltarr) > 1:
       zshift = tiltarr[1]
    tiltarr = optionValue(comlines, 'imagebinned', 1, True)
    if tiltarr:
@@ -514,12 +513,3 @@ except:
    exitError('Opening or writing to ' + volcombine)
 
 sys.exit(0)
-
-#
-# $Log$
-# Revision 1.2  2010/12/03 01:02:25  mast
-# Fixed matchatob output, fixed line wraps
-#
-# Revision 1.1  2010/12/02 02:27:27  mast
-# Initial checkin
-#

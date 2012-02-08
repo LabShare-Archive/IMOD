@@ -22,6 +22,9 @@ syntax: glob
 ./mac.cshrc
 ./mac.profile
 
+recentStub.txt
+3dmod/golgi.mrc
+3dmod/ivem1M.rec
 bin
 lib
 pylib

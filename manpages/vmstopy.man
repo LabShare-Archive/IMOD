@@ -49,14 +49,15 @@ consider any lines between a command line and the next command line or Python
 statement as lines to be fed to the command's standard input.
 
 .SS Indentation and Quoting
-Indentation is significant, not only in the Python statements but also in the
-command lines.  Any commands that occur in a Python block must have the
+If there are any Python statements starting with >, then indentation is
+significant, not only in the Python statements but also in the command lines.
+Any commands that occur in a Python block must have the
 appropriate indentation; i.e., with extra indentation if they follow a
 statement that starts a block; with the same indentation as the last statement
 if it is part of the same block, or with less indentation if it ends a block.
-If you use no Python at all, all command lines must have the same amount of
-space between the $ and the command.  Standard input lines need not be
-indented.
+If you use no Python at all, spaces between the $ and the command will be
+removed from command lines to avoid indentation errors.  Standard input lines
+need not be indented.
 .P
 The program will enclose the text that used to run a command, in single
 quotes (' ') and text that is input to programs in triple quotes (""" """).  
