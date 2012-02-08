@@ -62,6 +62,8 @@ chunk = 0
 needShutil = 0
 needSocket = 0
 needPID = 0
+hasPython = 0
+indentedCom = 0
 windows = sys.platform.find('win32') >= 0 or sys.platform.find('cygwin') >= 0
 if lenarg < 2:
    prnstr("Usage: vmstopy [options] comfile logfile [pyscript]")
@@ -232,6 +234,10 @@ try:
          needShutil = 1
       if not needPID and line.find('$$') >= 0:
          needPID = 1
+      if not hasPython and line.startswith('>'):
+         hasPython = 1
+      if not indentedCom and line.startswith('$ '):
+         indentedCom = 1
          
       # If we've reached the error label, start saving lines and looking for exit
       if seekError and re.sub(labelMatch, r'\1', line) == seekError:
@@ -280,6 +286,8 @@ if needShutil:
    prnstr("import shutil", file=out)
 if needSocket:
    prnstr("import socket", file=out)
+if hasPython:
+   indentedCom = 0
    
 prnstr("", file=out)
 prnstr("def closeExit(exitCode):", file=out)
@@ -322,6 +330,10 @@ while ind < len(lines):
    line = lines[ind]
    ind += 1
 
+   # If there are indented command lines and no python statements, remove the spaces
+   if indentedCom and line.startswith('$ '):
+      line = re.sub('^\$ *', '$', line)
+   
    # Replace $echo with >print and substitute variable
    if re.search('^\$ *echo', line):
       if re.search(echoMatch, line):
