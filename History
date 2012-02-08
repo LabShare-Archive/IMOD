@@ -1,7 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2/7/11: Fixed Setupcombine problem there is only one number in SHIFT entry in
-tilt.com.
+2/8/11: Changed Vmstopy to remove spaces between $ and command when there are
+no Python statements in a command file, to avoid indentation errors.
+
+2/7/11: Fixed Setupcombine problem when there is only one number in SHIFT
+entry in tilt.com.
 
 2/7/11: IMOD_4-3-5
 2/2/12: Fixed ctfplotter to link against the libtiff distributed in package
