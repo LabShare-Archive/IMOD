@@ -7,7 +7,7 @@ $xftoxg
 g5a.prexf
 g5a.prexg
 #
-$blendmont -StandardInput
+$ blendmont -StandardInput
 ImageInputFile		g5a.st
 PieceListInput		g5a.pl
 ImageOutputFile		g5a.preali
