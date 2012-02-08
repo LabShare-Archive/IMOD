@@ -2,7 +2,7 @@
 #
 ####CreatedVersion#### 3.10.23
 #
-$ blendmont -StandardInput
+$blendmont -StandardInput
 ImageInputFile		g5a.st
 PieceListInput		g5a.pl
 ImageOutputFile		g5a.ali
