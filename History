@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/8/11: In eTomo added file names to the print actions functionality (the
+--actions parameter).(Bug# 1441)
+
 2/8/11: Changed Vmstopy to remove spaces between $ and command when there are
 no Python statements in a command file, to avoid indentation errors.
 
