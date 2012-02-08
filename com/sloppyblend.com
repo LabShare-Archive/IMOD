@@ -7,7 +7,7 @@
 #
 # Use VerySloppyMontage for stage montages 
 #
-$ blendmont -StandardInput
+$blendmont -StandardInput
 ImageInputFile          g5a.st
 PieceListInput          g5a.pl
 ImageOutputFile         g5a.bl
