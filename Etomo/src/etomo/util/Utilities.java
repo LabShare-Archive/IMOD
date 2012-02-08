@@ -506,37 +506,39 @@ public class Utilities {
         || command.endsWith("imodsendevent")) {
       return null;
     }
-    int max = 1;
+    int commandLength = 1;
     int stdMax = 0;
-    if (command.endsWith(ProcessName.CLIP.toString())
-        || command.indexOf("vmstocsh") != -1 || command.indexOf("vmstopy") != -1) {
-      max = 2;
+    if (command.endsWith(ProcessName.CLIP.toString())) {
+      commandLength = 2;
     }
     else if (command.endsWith("bash")) {
-      max = 4;
+      commandLength = 4;
     }
     else if (command.endsWith("python")) {
       if (commandArray.length < 3) {
         stdMax = -1;
       }
       else {
-        max = 10;
+        if (commandArray.length >= 3 && commandArray[2].endsWith("startprocess")) {
+          commandLength = 6;
+        }
+        else {
+          commandLength = 4;
+        }
       }
     }
     else if (command.endsWith("tcsh")) {
-      max = 3;
+      commandLength = 3;
       stdMax = 2;
     }
-    else if (command.endsWith("cp") || command.endsWith("mv")
-        || command.endsWith("cmd.exe")) {
-      max = 3;
+    else if (command.endsWith("cmd.exe")) {
+      commandLength = 3;
     }
-    int length = Math.min(max, commandArray.length);
     StringBuffer buffer = new StringBuffer();
     String param = null;
     int chIndex = -1;
     boolean showDash = false;
-    for (int i = 0; i < length; i++) {
+    for (int i = 0; i < commandArray.length; i++) {
       param = commandArray[i];
       if (param.equals("None")) {
         continue;
@@ -545,21 +547,56 @@ public class Utilities {
         showDash = true;
       }
       if (!showDash
-          && (param.startsWith("-") || (param.length() == 2 && param.startsWith("/")))) {
+          && (param.startsWith("-") || (isWindowsOS() && param.length() == 2 && param
+              .startsWith("/")))) {
         continue;
       }
-      chIndex = param.lastIndexOf(File.separator);
-      if (chIndex != -1) {
-        param = param.substring(chIndex + 1);
-        chIndex = param.indexOf(".com");
-        if (chIndex != -1) {
-          param = param.substring(0, chIndex);
+      if (i >= commandLength) {
+        // print file names after the command is printed
+        // Eliminate strings that aren't file names.
+        // Unable to print files that don't have an extension
+        if (param.indexOf(".") == -1) {
+          continue;
+        }
+        else {
+          // Eliminate numbers
+          try {
+            Double.parseDouble(param);
+            continue;
+          }
+          catch (NumberFormatException e) {
+            // Eliminate lists of numbers
+            if (param.indexOf(",") != -1 || param.indexOf("-") != -1) {
+              boolean listOfNumbers = true;
+              String[] list = param.split("\\s*[,-]\\s*");
+              if (list != null) {
+                for (int j = 0; j < list.length; j++) {
+                  try {
+                    if (list[j] != null && list[j].length() > 0) {
+                      Double.parseDouble(list[j]);
+                    }
+                  }
+                  catch (NumberFormatException f) {
+                    listOfNumbers = false;
+                  }
+                }
+              }
+              if (listOfNumbers) {
+                continue;
+              }
+            }
+            // Probably a file - remove the file path
+            chIndex = param.lastIndexOf(File.separator);
+            if (chIndex != -1) {
+              param = param.substring(chIndex + 1);
+            }
+          }
         }
       }
       else {
-        chIndex = param.indexOf(".log");
+        chIndex = param.lastIndexOf(File.separator);
         if (chIndex != -1) {
-          param = param.substring(0, chIndex);
+          param = param.substring(chIndex + 1);
         }
       }
       if (param != null) {
@@ -567,6 +604,7 @@ public class Utilities {
       }
     }
     if (stdInput != null) {
+      int length;
       if (stdMax == -1) {
         // Unlimited search
         length = stdInput.length;

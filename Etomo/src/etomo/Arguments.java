@@ -95,7 +95,7 @@ public final class Arguments {
   private static final String SCAN_TAG = "--scan";
   private static final String CREATE_TAG = "--create";
   private static final String EXIT_TAG = "--exit";
-  private static final String FG_TAG = "--fg";//foreground
+  private static final String FG_TAG = "--fg";// foreground
   private static final String LISTEN_TAG = "--listen";
   private static final String AUTO_CLOSE_3DMOD_TAG = "--autoclose3dmod";
   private static final String IGNORE_LOC_TAG = "--ignoreloc";
@@ -175,10 +175,11 @@ public final class Arguments {
       + "\n\n"
       + "Diagnostic Options:\n  "
       + ACTIONS_TAG
-      + "\tPrint most actions and file names, without printing other debug\n\t\tinformation.\n\n  "
-      + DEBUG_TAG + " [level]" + "\n\t\tSend extra information to standard error.  The "
-      + DEBUG_TAG + " option" + "\n\t\tincludes the following options:  " + MEMORY_TAG
-      + " and " + TIMESTAMP_TAG
+      + "\tPrint actions and file names, without printing other debug\n\t\tinformation.  "
+      + "Files names which do not contain an extension or\n\t\tare entirely numeric will "
+      + "not be printed.\n\n  " + DEBUG_TAG + " [level]"
+      + "\n\t\tSend extra information to standard error.  The " + DEBUG_TAG + " option"
+      + "\n\t\tincludes the following options:  " + MEMORY_TAG + " and " + TIMESTAMP_TAG
       + ".\n\t\tLevel can be 0 (debug is off), 1 (default) or 2 (more "
       + "\n\t\tinformation)." + "\n\n  " + IGNORE_SETTINGS_TAG
       + "\n\t\tPrevents the .etomo from loading from and saving to the .etomo "
@@ -341,7 +342,7 @@ public final class Arguments {
   public boolean isIgnoreSettings() {
     return ignoreSettings;
   }
-  
+
   public boolean isActions() {
     return actions;
   }
@@ -358,7 +359,7 @@ public final class Arguments {
   ArrayList parse(String[] args) {
     test = false;
     selfTest = false;
-    //  Parse the command line arguments
+    // Parse the command line arguments
     int i = 0;
     while (i < args.length) {
       // Filename argument should be the only one not beginning with at least
@@ -383,10 +384,10 @@ public final class Arguments {
       }
       else if (args[i].equals(MEMORY_TAG)) {
         displayMemory = true;
-        //--memory can be used alone, or followed by an integer
-        //(displayMemoryInterval).  If displayMemoryInterval is set, then the
-        //memory usage will be sent to etomo_err.log every displayMemoryInterval
-        //minutes.
+        // --memory can be used alone, or followed by an integer
+        // (displayMemoryInterval). If displayMemoryInterval is set, then the
+        // memory usage will be sent to etomo_err.log every displayMemoryInterval
+        // minutes.
         if (i < args.length - 1) {
           try {
             displayMemoryInterval = Math.abs(Integer.parseInt(args[i + 1]));
@@ -399,8 +400,8 @@ public final class Arguments {
       }
       else if (args[i].equals(DEBUG_TAG)) {
         debug = true;
-        //--debug can be used alone, or followed by an integer
-        //(debugLevel).
+        // --debug can be used alone, or followed by an integer
+        // (debugLevel).
         if (i < args.length - 1) {
           try {
             debugLevel = Math.abs(Integer.parseInt(args[i + 1]));
@@ -430,7 +431,7 @@ public final class Arguments {
       else if (args[i].equals(DIR_TAG)) {
         reconAutomation = true;
         if (i < args.length - 1) {
-          //the quotes will be stripped by the program
+          // the quotes will be stripped by the program
           dir = args[i + 1];
           i++;
         }
