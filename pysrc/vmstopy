@@ -311,7 +311,6 @@ if tryline:
    prnstr('def errorFunc():', file = out)
    lines = errlines + lines
 
-ind = 0
 echoMatch = re.compile('^\$( *)echo *([^ ].*)')
 setenvMatch = re.compile('^\$( *)setenv +(\S* *)')
 continueMatch = re.compile(r'\\ *$')
@@ -330,6 +329,7 @@ if indentedCom:
       if lines[ind].startswith('$ '):
          lines[ind] = re.sub('^\$ *', '$', lines[ind])
 
+ind = 0
 while ind < len(lines):
    if ind == tryline:
       prnstr("", file=out)
