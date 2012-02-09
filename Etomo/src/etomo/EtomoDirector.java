@@ -728,6 +728,9 @@ public class EtomoDirector {
 
   public boolean closeCurrentManager(AxisID axisID, boolean exiting) {
     BaseManager currentManager = getCurrentManager();
+    if (currentManager == null) {
+      return true;
+    }
     if (exiting) {
       if (!currentManager.exitProgram(axisID)) {
         return false;
