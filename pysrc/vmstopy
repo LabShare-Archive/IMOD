@@ -322,6 +322,14 @@ vmsMatch = re.compile('.*vmstocsh +(\w+.log) *< *(\w+.com).*')
 backupMatch = re.compile(r'^\$( *)if *\( *-e +([^) ]+) *\) *\\?mv +([^ ]*) +([^ ~]*)~ *')
 copyMatch = re.compile(r'\\?cp -?f? ?')
 mkdirMatch = re.compile('^\$( *)mkdir *')
+
+# If there are indented command lines and no python statements, remove the spaces
+# before trying to process the lines
+if indentedCom:
+   for ind in range(len(lines)):
+      if lines[ind].startswith('$ '):
+         lines[ind] = re.sub('^\$ *', '$', lines[ind])
+
 while ind < len(lines):
    if ind == tryline:
       prnstr("", file=out)
@@ -329,10 +337,6 @@ while ind < len(lines):
 
    line = lines[ind]
    ind += 1
-
-   # If there are indented command lines and no python statements, remove the spaces
-   if indentedCom and line.startswith('$ '):
-      line = re.sub('^\$ *', '$', line)
    
    # Replace $echo with >print and substitute variable
    if re.search('^\$ *echo', line):
