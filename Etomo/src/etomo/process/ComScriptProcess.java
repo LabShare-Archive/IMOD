@@ -988,9 +988,9 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public boolean isDebug() {
     return debug;
   }
-  
+
   public boolean isDone() {
-    if (systemProgram==null) {
+    if (systemProgram == null) {
       return false;
     }
     return systemProgram.isDone();
@@ -1110,7 +1110,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
    */
   private String[] vmsToPy() throws IOException, SystemProcessException {
     // vmstopy doesn't use stdin
-    String[] command = new String[] { ApplicationManager.getIMODBinPath() + "vmstopy",
+    String[] command = new String[] {
+        "python" + "-u" + ApplicationManager.getIMODBinPath() + "vmstopy",
         workingDirectory.getAbsolutePath() + "/" + comScriptName, logFile.getName() };
     // parseBaseName(comScriptName, ".com") + ".log" };
     vmstopy = new SystemProgram(manager, manager.getPropertyUserDir(), command, axisID);
