@@ -30,7 +30,8 @@ import etomo.storage.LogFile;
 public final class ProcessMessages {
   public static final String rcsid = "$Id$";
 
-  public static final String ERROR_TAG = "ERROR:";
+  private static final String[] ERROR_TAGS = { "ERROR:", "Errno", "Traceback" };
+  private static final boolean[] ALWAYS_MULTI_LINE = { false, false, true, false };
   public static final String WARNING_TAG = "WARNING:";
   private static final String CHUNK_ERROR_TAG = "CHUNK ERROR:";
   private static final String PIP_WARNING_TAG = "PIP WARNING:";
@@ -495,15 +496,28 @@ public final class ProcessMessages {
       return false;
     }
     // look for a message
-    int errorIndex = line.indexOf(ERROR_TAG);
+    int errorIndex = -1;
+    int errorTagIndex = -1;
+    for (int i = 0; i < ERROR_TAGS.length; i++) {
+      errorIndex = line.indexOf(ERROR_TAGS[i]);
+      errorTagIndex = i;
+      if (errorIndex != -1) {
+        break;
+      }
+    }
     if (errorIndex != -1 && line.indexOf(IGNORE_TAG) != -1) {
       errorIndex = -1;
+      errorTagIndex = -1;
+    }
+    if (errorTagIndex != -1 && ALWAYS_MULTI_LINE[errorTagIndex]) {
+      return parseMultiLineMessage();
     }
     int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
     int warningIndex = line.indexOf(WARNING_TAG);
     int infoIndex = line.indexOf(INFO_TAG);
     // error is true if ERROR: found, but not CHUNK ERROR:
-    boolean error = errorIndex != -1 && !(chunks && chunkErrorIndex != -1);
+    boolean error = errorIndex != -1 && errorTagIndex != -1
+        && !(chunks && chunkErrorIndex != -1);
     boolean warning = warningIndex != -1;
     boolean info = infoIndex != -1;
     if (!error && !warning && !info) {
@@ -511,7 +525,7 @@ public final class ProcessMessages {
     }
     // message found - add to list
     if (error) {
-      addElement(getErrorList(), line, errorIndex, ERROR_TAG.length());
+      addElement(getErrorList(), line, errorIndex, ERROR_TAGS[errorTagIndex].length());
     }
     else if (warning) {
       addElement(getWarningList(), line, warningIndex, WARNING_TAG.length());
@@ -547,6 +561,17 @@ public final class ProcessMessages {
     return true;
   }
 
+  public static int getErrorIndex(String line) {
+    int index = -1;
+    for (int j = 0; j < ProcessMessages.ERROR_TAGS.length; j++) {
+      index = line.indexOf(ProcessMessages.ERROR_TAGS[j]);
+      if (index != -1) {
+        return index;
+      }
+    }
+    return -1;
+  }
+
   /**
    * Looks for multi-line errors, warnings, and info messages.
    * Messages have start tags and may start in the middle of the line.
@@ -559,7 +584,7 @@ public final class ProcessMessages {
       return false;
     }
     // look for a message
-    int errorIndex = line.indexOf(ERROR_TAG);
+    int errorIndex = getErrorIndex(line);
     if (errorIndex != -1 && line.indexOf(IGNORE_TAG) != -1) {
       errorIndex = -1;
     }
