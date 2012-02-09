@@ -1110,8 +1110,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
    */
   private String[] vmsToPy() throws IOException, SystemProcessException {
     // vmstopy doesn't use stdin
-    String[] command = new String[] {
-        "python" + "-u" + ApplicationManager.getIMODBinPath() + "vmstopy",
+    String[] command = new String[] { "python", "-u",
+        ApplicationManager.getIMODBinPath() + "vmstopy",
         workingDirectory.getAbsolutePath() + "/" + comScriptName, logFile.getName() };
     // parseBaseName(comScriptName, ".com") + ".log" };
     vmstopy = new SystemProgram(manager, manager.getPropertyUserDir(), command, axisID);
