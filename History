@@ -1,12 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/9/12: In eTomo running comscripts and processchunks with python.(Bug# 1591)
+
 2/8/11: In eTomo added file names to the print actions functionality (the
 --actions parameter).(Bug# 1441)
 
 2/8/11: Changed Vmstopy to remove spaces between $ and command when there are
 no Python statements in a command file, to avoid indentation errors.
-
-2/7/12: In eTomo running comscripts and processchunks with python.(Bug# 1591)
 
 2/7/11: Fixed Setupcombine problem when there is only one number in SHIFT
 entry in tilt.com.
