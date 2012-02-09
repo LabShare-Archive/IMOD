@@ -1,8 +1,38 @@
 Version = 1.2
 
+[dialog = starting-peet]
+pnl.starting-peet =
+set.adoc.function=peet.adoc
+run.function.start =
+goto.frame.pnl.main-frame =
+
+
 [dialog = peet]
+pnl.main-frame =
 set.adoc.function=peet.adoc
 run.function.main =
+
+
+[function = start]
+#check empty directory error
+tf.directory=
+[[if = test-gui]]
+  bn.ok=
+  wait.popup.entry-error=OK
+[[]]
+bn.directory=
+wait.file-chooser.directory=%{testdir}
+[[if = test-gui]]
+  cb.copy-project-from=on
+  bn.ok=
+  wait.popup.entry-error=OK
+  cb.copy-project-from=off
+  #check empty root name error
+  bn.ok=
+  wait.popup.entry-error=OK
+[[]]
+tf.base-name=%{dataset}
+bn.ok=
 
 
 [function = main]
@@ -19,24 +49,6 @@ run.function.runtab=
 
 [function = setup]
 tb.setup=
-#check empty directory error
-[[if = test-gui]]
-  bn.ok=
-  wait.popup.entry-error=OK
-[[]]
-bn.directory=
-wait.file-chooser.open=%{testdir}
-[[if = test-gui]]
-  cb.copy-project-from=on
-  bn.ok=
-  wait.popup.entry-error=OK
-  cb.copy-project-from=off
-  #check empty root name error
-  bn.ok=
-  wait.popup.entry-error=OK
-[[]]
-tf.base-name=%{dataset}
-bn.ok=
 run.function.volume-table=
 run.function.reference=
 run.function.volume-size=
