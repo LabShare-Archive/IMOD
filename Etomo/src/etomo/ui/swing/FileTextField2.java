@@ -20,7 +20,6 @@ import javax.swing.filechooser.FileFilter;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.storage.PeetAndMatlabParamFileFilter;
 import etomo.util.FilePath;
 import etomo.util.Utilities;
 
@@ -85,21 +84,6 @@ final class FileTextField2 implements FileTextFieldInterface {
   static FileTextField2 getUnlabeledPeetInstance(final BaseManager manager,
       final String name) {
     FileTextField2 instance = new FileTextField2(manager, name, false, true);
-    instance.createPanel();
-    instance.addListeners();
-    return instance;
-  }
-
-  /**
-   * Get a labeled instance with a regular button.  The starting directory for the
-   * file chooser and the origin of relative files is the manager's property user
-   * directory.
-   * @param manager
-   * @param name
-   * @return
-   */
-  static FileTextField2 getInstance(final BaseManager manager, final String name) {
-    FileTextField2 instance = new FileTextField2(manager, name, true, false);
     instance.createPanel();
     instance.addListeners();
     return instance;
@@ -187,14 +171,13 @@ final class FileTextField2 implements FileTextFieldInterface {
       filePath = EtomoDirector.INSTANCE.getOriginalUserDir();
     }
     JFileChooser chooser = new FileChooser(new File(filePath));
-    chooser.setDialogTitle(label.getText());
+    chooser.setDialogTitle(Utilities.stripLabel(label.getText()));
     if (fileSelectionMode != -1) {
       chooser.setFileSelectionMode(fileSelectionMode);
     }
     if (fileFilter != null) {
       chooser.setFileFilter(fileFilter);
     }
-    chooser.setFileFilter(new PeetAndMatlabParamFileFilter());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     int returnVal = chooser.showOpenDialog(panel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
