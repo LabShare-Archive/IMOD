@@ -1250,8 +1250,6 @@ final class AutodocTester extends Assert implements VariableList {
         }
         // Decide if this is the right process
         String progressBarName = Utilities.convertLabelToName(progressBarLabel.getText());
-        /* if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-         * System.err.println("progressBarName=" + progressBarName); } */
         if (!progressBarName.equals(subjectName)) {
           return true;
         }
@@ -1278,6 +1276,11 @@ final class AutodocTester extends Assert implements VariableList {
       else {
         fail("unexpected command (" + command.toString() + ")");
       }
+    }
+    // WRITE
+    // write.file
+    else if (actionType == UITestActionType.WRITE) {
+      appendStringToFile(command.getValue(0), command.getValue(1));
     }
     else if (!actionType.isNoOp()) {
       fail("unexpected command (" + command.toString() + ")");
@@ -1607,10 +1610,42 @@ final class AutodocTester extends Assert implements VariableList {
   }
 
   /**
+   * Appends a new line and writeString to the file called fileName.  Fails if the file
+   * does not exist or the  .
+   * @param fileName
+   * @param writeString
+   * @throws LogFile.LockException
+   * @throws IOException
+   */
+  private void appendStringToFile(final String fileName, final String writeString)
+      throws LogFile.LockException, IOException {
+    // Create dataset file from fileName
+    if (fileName == null) {
+      // One or more of the files are missing.
+      fail("Missing fileName.  (" + command + ")\n");
+    }
+    File file = new File(System.getProperty("user.dir"), fileName);
+    assertTrue(file.getAbsolutePath() + " does not exist.  (" + command + ")\n",
+        file.exists());
+    assertTrue(file.getAbsolutePath() + " is not a file.  (" + command + ")\n",
+        file.isFile());
+    assertFalse("Target string is empty.  (" + command + ")\n", writeString == null
+        || writeString.matches(""));
+    // write string
+    LogFile logFile = LogFile.getInstance(file);
+    LogFile.WriterId writerId = logFile.openWriter(true);
+    assertFalse("Unable to write to " + fileName + "(" + command + ")\n",
+        writerId.isEmpty());
+    logFile.newLine(writerId);
+    logFile.write(writeString, writerId);
+    logFile.closeWriter(writerId);
+  }
+
+  /**
    * Looks for a string in a file.  Fails if the file does not exist or the 
    * string is not found.
    * @param fileName
-   * @param stargetString
+   * @param targetString
    * @throws LogFile.LockException
    * @throws FileNotFoundException
    * @throws IOException
