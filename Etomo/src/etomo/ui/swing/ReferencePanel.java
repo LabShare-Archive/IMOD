@@ -109,11 +109,11 @@ final class ReferencePanel {
     for (int i = 0; i < nEntries; i++) {
       cmbMultiparticle.addItem(MultiparticleReference.getParticleCount(i));
     }
+    cmbMultiparticle.setSelectedIndex(MultiparticleReference.getDefaultIndex());
     // local panels
     JPanel pnlParticle = new JPanel();
     JPanel pnlFile = new JPanel();
     JPanel pnlMultiparticle = new JPanel();
-    // initalization
     // Root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new EtchedBorder(TITLE).getBorder());
@@ -281,18 +281,6 @@ final class ReferencePanel {
           + " is selected.";
     }
     return null;
-  }
-
-  /**
-   * Reset values.
-   */
-  void reset() {
-    rtfParticle.setSelected(false);
-    sVolume.reset();
-    rbFile.setSelected(false);
-    ftfFile.clear();
-    rbMultiparticle.setSelected(false);
-    cmbMultiparticle.setSelectedIndex(MultiparticleReference.getDefaultIndex());
   }
 
   void setDefaults() {
