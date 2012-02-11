@@ -191,7 +191,7 @@ button (\fBbn\fR) is to push it.
 .TP 4
 .I subject_type
 .B adoc\fR, \fBdataset\fR, \fBdebug\fR, \fBdialog\fR, \fBfile\fR, \fBfile-chooser\fR,
-\fBframe\fR, \fBfunction\fR, \fBinterface\fR, \fBparam\fR, \fBpopup\fR,
+\fBframe\fR, \fBfunction\fR, \fBindex\fR, \fBinterface\fR, \fBparam\fR, \fBpopup\fR,
 \fBprocess\fR, \fBsection\fR, \fBtest\fR, \fBtestdir\fR, \fBvar
 
 .TP 4
@@ -811,6 +811,10 @@ cb.parallel-processing = on
 .RE
 
 .TP 4
+.B cbb.\fIcombo_box_name\fR[\fB.\fIindex\fR]\fB = \fIvalue
+Add a new \fIvalue\fR in a combo box and select it.
+
+.TP 4
 .B copy\fR[\fB.always\fR]\fB.file = \fIfile_name\fR[\fB|\fIto_file_name\fR]
 Causes a file called \fIfile_name\fR to be copied from \fIdataset_dir\fR (see
 UITest Autodoc - Dataset Section) to \fItest_directory\fR (see
@@ -1009,6 +1013,10 @@ debug prints because class instances may have been created with debug while it
 was on.  Debug in Etomo can also be turned on by using the \fBset.param\fR
 command in the Test Section.  Turning debug off with the \fBset.debug\fR command
 will always turn off debug in Etomo.
+
+.TP 4
+.B set.index.cbb_field = \fIindex
+Select an existing \fIindex\fR in a combo box.
 
 .TP 4
 .B set.var.\fIvariable_name\fB = \fR[\fIvariable_value\fR]
