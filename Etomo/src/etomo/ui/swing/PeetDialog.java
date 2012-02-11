@@ -864,38 +864,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     ltfFnOutput.setText(output);
   }
 
-  /**
-   * Reset values and set defaults.
-   * Is this still needed?
-   */
-  public void reset() {
-    referencePanel.reset();
-    missingWedgeCompensationPanel.reset();
-    cbAlignedBaseName.setSelected(false);
-    cbFlgStrictSearchLimits.setSelected(false);
-    ltfLowCutoff.clear();
-    ltfLowCutoffSigma.clear();
-    cbRefFlagAllTom.setSelected(false);
-    ltfLstThresholdsStart.clear();
-    ltfLstThresholdsIncrement.clear();
-    ltfLstThresholdsEnd.clear();
-    ltfLstThresholdsAdditional.clear();
-    yAxisTypePanel.reset();
-    cbLstFlagAllTom.setSelected(false);
-    rbInitMotlZero.setSelected(false);
-    rbInitAlignParticleYAxes.setSelected(false);
-    rbInitMotlRandomRotations.setSelected(false);
-    rbInitMotlRandomAxialRotations.setSelected(false);
-    rbInitMotlFiles.setSelected(false);
-    volumeTable.reset();
-    iterationTable.reset();
-    sphericalSamplingForThetaAndPsiPanel.reset();
-    cbflgAlignAverages.setSelected(false);
-    cbFlgAbsValue.setSelected(false);
-    setDefaults();
-    updateDisplay();
-  }
-
   void msgVolumeTableSizeChanged() {
     updateDisplay();
   }
@@ -1043,6 +1011,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   }
 
   private void createRunPanel() {
+    // init
+    ltfLowCutoffSigma.setText(MatlabParam.LOW_CUTOFF_SIGMA_DEFAULT);
     // panels
     SpacedPanel pnlLstThresholds = SpacedPanel.getInstance();
     JPanel pnlEqualNumber = new JPanel();
