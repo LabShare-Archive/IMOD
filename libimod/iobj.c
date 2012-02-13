@@ -99,7 +99,8 @@ void imodObjectDefault(Iobj *obj)
   obj->label = NULL;
   obj->meshParam = NULL;
   obj->store = NULL;
-  return;
+  obj->vertBufCont = NULL;
+  obj->vertBufSphere = NULL;
 }
 
 /*!
