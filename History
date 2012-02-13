@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/13/11: Fixed Vmstopy initial scanning for goto, etc, in files with DOS 
+line endings in Cygwin.
+
 2/8/11: Changed Vmstopy to remove spaces between $ and command when there are
 no Python statements in a command file, to avoid indentation errors.
 
