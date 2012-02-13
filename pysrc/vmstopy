@@ -201,7 +201,6 @@ exitMatch = re.compile('^\$ *exit *$')
 errexitMatch = re.compile('^\$( *)exit *([0-9]*) *$')
 gotoMatch = re.compile('^\$ *goto +(\w+) *$')
 statgoMatch = re.compile('^\$ *if +\( *\$status *\) *goto +(\w+) *$')
-endMatch = re.compile('[\r\n]')
 commentMatch = re.compile('^ *#|\$!')
 setMatch = re.compile('^\$( *)set +([^=]+= *)([^ ].*)')
 nonoMatch = re.compile('^\$( *)set +nonomatch')
@@ -217,6 +216,9 @@ errlines = []
 try:
    line = com.readline()
    while line:
+
+      # Need to strip line endings right away; DOS endings confuse cygwin python
+      line = line.rstrip('\r\n')
       keep = 1
 
       # Find out if there is an error function to be made
@@ -272,7 +274,6 @@ try:
          keep = 0
 
       if keep:
-         line = re.sub(endMatch, '', line)
          lines.append(line)
       line = com.readline()
 
