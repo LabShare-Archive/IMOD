@@ -52,12 +52,14 @@ static bool    sStippleNextLine = false;
 static float   sZoomDownCrit = 0.8f;
 static int     sExtFlags = 0;
 
+// These function typedefs are found in IMOD/include/glext_for_win.h
 #ifdef _WIN32
 static PFNGLDELETEBUFFERSPROC sGlDeleteBuffers;
 static PFNGLGENBUFFERSPROC sGlGenBuffers;
 static PFNGLBINDBUFFERPROC sGlBindBuffer;
 static PFNGLBUFFERDATAPROC sGlBufferData;
 static PFNGLBUFFERSUBDATAPROC sGlBufferSubData;
+static PFNGLPRIMITIVERESTARTINDEXPROC sGlPrimitiveRestartIndex;
 #endif
 
 // "Initialization" function to determine OpenGL version and resolve extension pointers
@@ -73,15 +75,21 @@ int b3dInitializeGL()
     imodPrintStderr("GL version %f\n", glVersion);
   if (glVersion >= 1.5)
     sExtFlags |= B3DGLEXT_VERTBUF;
+  if (glVersion >= 3.1)
+    sExtFlags |= B3DGLEXT_PRIM_RESTART;
 #ifdef _WIN32
   sGlDeleteBuffers = (PFNGLDELETEBUFFERSPROC)wglGetProcAddress("glDeleteBuffers");
   sGlGenBuffers = (PFNGLGENBUFFERSPROC)wglGetProcAddress("glGenBuffers");
   sGlBindBuffer = (PFNGLBINDBUFFERPROC)wglGetProcAddress("glBindBuffer");
   sGlBufferData = (PFNGLBUFFERDATAPROC)wglGetProcAddress("glBufferData");
   sGlBufferSubData = (PFNGLBUFFERSUBDATAPROC)wglGetProcAddress("glBufferSubData");
+  sGlPrimitiveRestartIndex = (PFNGLPRIMITIVERESTARTINDEXPROC)wglGetProcAddress
+    ("glPrimitiveRestartIndex");
   if (!sGlDeleteBuffers || !sGlGenBuffers || !sGlBindBuffer || !sGlBufferData ||
       !sGlBufferSubData) 
     sExtFlags &= ~B3DGLEXT_VERTBUF;
+  if (!sGlPrimitiveRestartIndex)
+    sExtFlags &= ~B3DGLEXT_PRIM_RESTART;    
 #endif
   App->glInitialized = 1;
   return sExtFlags;
@@ -113,6 +121,12 @@ void b3dBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size,
 {
   sGlBufferSubData(target, offset, size, data);
 }
+
+void b3dPrimitiveRestartIndex(GLuint index)
+{
+  sGlPrimitiveRestartIndex(index);
+}
+
 #endif
 
 

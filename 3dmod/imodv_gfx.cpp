@@ -214,6 +214,7 @@ void imodvPaintGL()
   if (a->vertBufOK < -1) {
     color = b3dInitializeGL();
     a->vertBufOK = (color & B3DGLEXT_VERTBUF) ? 1 : -1;
+    a->primRestartOK = (color & B3DGLEXT_PRIM_RESTART) ? 1 : 0;
   }
 
   //if (Imod_debug)
