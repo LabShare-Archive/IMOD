@@ -428,6 +428,8 @@ typedef struct Mod_Object
   Ilabel *label;      /* Labels for surfaces */
   MeshParams *meshParam; /* Meshing parameters */
   Ilist  *store;
+  VertBufData *vertBufCont;    /* Vertex buffer data for contours */
+  VertBufData *vertBufSphere;  /* Vertex buffer data for spheres */
 }Iobj;
 
 
