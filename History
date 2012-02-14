@@ -1,17 +1,22 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/13/12: Fixed Vmstopy to convert backslash to / for Windows.
+
+2/13/12: Fixed Vmstopy initial scanning for goto, etc, in files with DOS 
+line endings in Cygwin.
+
 2/9/12: In eTomo running comscripts and processchunks with python.(Bug# 1591)
 
-2/8/11: In eTomo added file names to the print actions functionality (the
+2/8/12: In eTomo added file names to the print actions functionality (the
 --actions parameter).(Bug# 1441)
 
-2/8/11: Changed Vmstopy to remove spaces between $ and command when there are
+2/8/12: Changed Vmstopy to remove spaces between $ and command when there are
 no Python statements in a command file, to avoid indentation errors.
 
-2/7/11: Fixed Setupcombine problem when there is only one number in SHIFT
+2/7/12: Fixed Setupcombine problem when there is only one number in SHIFT
 entry in tilt.com.
 
-2/7/11: IMOD_4-3-5
+2/7/12: IMOD_4-3-5
 2/2/12: Fixed ctfplotter to link against the libtiff distributed in package
 (In 4.3).
 
