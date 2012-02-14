@@ -597,7 +597,8 @@ Interface Section associated with the dataset.
 
 .TP 4
 .B use.dataset = \fIdataset_dir
-Take all the settings from another dataset section.
+Take all the settings, except the \fIdataset_dir\fR, from another dataset
+section.
 .RE
 
 .TP 4
