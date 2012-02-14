@@ -26,7 +26,9 @@ def quoteSubstitute(lin):
    if anyset:
       lin = lin.replace('\\$', '%')
       lin = lin.replace('$', '%')
-   lin = "\"\"\"" + lin + "\"\"\""
+
+   # Enclose in quotes and replace \ with /
+   lin = '\"\"\"' + lin.replace('\\', '/') + '\"\"\"'
    indv = lin.find('%')
    while indv >= 0:
       envar = re.search('%\{([A-Z0-9_]+)\}', lin)
