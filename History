@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/13/12: Fixed default object properties in 3dmod when there is no setting 
+saved.
+
 2/13/12: Fixed Vmstopy to convert backslash to / for Windows.
 
 2/13/12: Fixed Vmstopy initial scanning for goto, etc, in files with DOS 
