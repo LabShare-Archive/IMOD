@@ -134,8 +134,8 @@ set.var.run_sirt=
 set.interface.Recon=
 
 
-[Test = dual-test-test-gui]
-set.testdir = dual-test-gui
+[Test = dual-testBB-test-gui]
+set.testdir = dual-testBB-test-gui
 #set.keep.testdir = dual-test-gui
 set.adoc.dialog.a=recon.adoc
 set.adoc.bdialog.b=recon.adoc
@@ -230,6 +230,38 @@ set.var.montage=
 set.var.run_sirt=
 set.var.patch-tracking=
 
+
+[Test = single-testmontage-test-gui]
+set.testdir = single-testmontage-test-gui
+set.adoc.dialog = recon.adoc
+set.var.dataset = testmidzone2a
+set.dataset = testmidzone2
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.param = --actions
+set.var.single=
+set.var.montage=
+set.var.run_sirt=
+set.var.test-gui=
+#set.var.quick=
+
+[Test = dual-testmontage-patch-tracking]
+set.testdir = dual-testmontage-patch-tracking
+#set.keep.testdir = dual-montage-patch-tracking
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.var.dataset = testmidzone2
+set.dataset = testmidzone2
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.param = --actions
+#set.param = midzone2.edf
+set.var.dual=
+set.var.montage=
+set.var.run_sirt=
+set.var.patch-tracking=
+
+
 [Test = join]
 set.testdir = join
 set.adoc.tab = join.adoc
@@ -256,6 +288,21 @@ set.param = --ignoreloc
 set.param = --actions
 set.interface.Join=
 
+
+[Test = join-testunicross-test-gui]
+set.testdir = join-testunicross-test-gui
+set.adoc.tab = join.adoc
+set.var.dataset = testunicross
+set.dataset = testunicross
+set.var.test-gui=
+copy.file = %{dataset}2.rec
+copy.file = %{dataset}3.rec
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.param = --actions
+set.interface.Join=
+
+
 [Test = generic]
 set.testdir = generic
 set.adoc.dialog = generic.adoc
@@ -276,6 +323,19 @@ set.param = --ignoreloc
 set.param = --actions
 set.var.volume=unicross1.rec
 set.interface.Nad=
+
+
+[Test = nad-testunicross]
+set.testdir = nad-testunicross
+set.adoc.dialog = nad.adoc
+set.var.dataset = testunicross
+set.dataset = testunicross
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.param = --actions
+set.var.volume=unicross1.rec
+set.interface.Nad=
+
 
 [Test = peet]
 set.testdir = peet
@@ -426,8 +486,14 @@ set.var.scaling-z-min=28
 set.var.scaling-z-max=56
 set.interface.Recon=
 
+[dataset = testmidzone2]
+use.dataset = midzone2
+
 [dataset = unicross]
 copy.file = %{dataset}1.rec
+
+[dataset = testunicross]
+use.dataset = unicross
 
 [dataset = pi]
 copy.file = %{dataset}-a.rec
