@@ -893,18 +893,27 @@ public class Utilities {
   }
 
   /**
+   * Strips the last colon (and anything following it) and returns it.
+   * @param string
+   * @return
+   */
+  public static String stripLabel(final String label) {
+    int colonIndex = label.lastIndexOf(':');
+    if (colonIndex == -1) {
+      return label;
+    }
+    return label.substring(0, colonIndex);
+  }
+
+  /**
    * Strips the last colon (and anything following it) and returns the string in single
    * quotes.
    * @param string
    * @return
    */
-  public static String quoteLabel(final String string) {
-    int colonIndex = string.lastIndexOf(':');
+  public static String quoteLabel(final String label) {
     char quote = '\'';
-    if (colonIndex == -1) {
-      return quote + string + quote;
-    }
-    return quote + string.substring(0, colonIndex) + quote;
+    return quote + stripLabel(label) + quote;
   }
 
   /**
