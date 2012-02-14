@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/14/12: In uitests added testBB, testmidzone2, and testunicross datasets.
+(Bug# 1596)
+
 2/13/12: Fixed Vmstopy to convert backslash to / for Windows.
 
 2/13/12: Fixed Vmstopy initial scanning for goto, etc, in files with DOS 
