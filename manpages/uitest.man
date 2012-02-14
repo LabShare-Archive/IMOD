@@ -171,7 +171,7 @@ button (\fBbn\fR) is to push it.
 .I action
 .B assert\fR, \fBcopy\fR, \fBend\fR, \fBformat\fR, \fBif\fR, \fBgoto\fR, \fBopen\fR,
 \fBreturn\fR, \fBrun\fR, \fBset\fR, \fBskipto\fR, \fBsleep\fR, \fBstart\fR, \fBunset\fR,
-\fBwait
+\fBuse\fR, \fBwait
 
 .TP 4
 .I subcommand_action
@@ -593,6 +593,11 @@ only set for that axis.
 .B set.interface.\fIinterface_section_name\fB =
 Required to be in either the Test section or the Dataset section.  Sets the
 Interface Section associated with the dataset.
+.RE
+
+.TP 4
+.B use.dataset = \fIdataset_dir
+Take all the settings from another dataset section.
 .RE
 
 .TP 4
