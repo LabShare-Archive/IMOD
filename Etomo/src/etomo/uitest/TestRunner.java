@@ -328,6 +328,12 @@ public final class TestRunner extends JFCTestCase implements VariableList {
             fail("unexpected command (" + command.toString() + ")");
           }
         }
+        // USE
+        else if (actionType == UITestActionType.USE
+            && subjectType == UITestSubjectType.DATASET) {
+          // use.dataset
+          executeDatasetSection(autodoc, value);
+        }
         else {
           fail("unexpected command (" + command.toString() + ")");
         }
