@@ -4,7 +4,7 @@
 #include "b3dgfx.h"
 
 #define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
-#define RESTART_INDEX 0xffff
+#define RESTART_INDEX 0x7fffffff
 
 /*
  * Definition of data structure for drawing with VBO's

@@ -17,7 +17,7 @@
 #include <map>
 using namespace std;
 
-typedef struct QuadsAndFans {
+struct QuadsAndFans {
   int numFanInds;
   int numQuadInds;
 };
@@ -41,7 +41,8 @@ static void vbDataClear(VertBufData *vbd);
 static void vbDataDelete(VertBufData *vbd);
 static int vbLoadVertexNormalArray(Imesh *mesh, float zscale, int fillType);
 static int allocateSpecialSets(VertBufData *vbd, int numSets, int cumInd, int sphere);
-static void processSimpleMap(VertBufData *vbd, RGBTmap *colors, int &cumInd);
+static void processSimpleMap(VertBufData *vbd, RGBTmap *colors, int &cumInd,
+                             int indPerItem);
 static VertBufData *allocateVBDIfNeeded(VertBufData **vbdp);
 static int genAndBindBuffers(VertBufData *vbd, int numVerts, int cumInd) ;
 static int allocateTempVerts(int numVerts);
@@ -53,8 +54,8 @@ static int vbSphere(float radius, int slices, int stacks, GLfloat *vertex, GLuin
                     int &indVert, int &indQuad, int &indFan, int needNorm, float xadd,
                     float yadd, float zadd);
 static int sphereCounts(int slices, int stacks, int &numQuad, int &numFan);
-static void copyDefaultSphere(GLfloat *defVert, GLuint *defInd, int numVert, int numFan, 
-                              int numQuad, int needNorm, GLfloat *vertex, GLuint *index, 
+static void copyDefaultSphere(GLfloat *defVert, GLuint *defInd, int numVert, int numQuad,
+                              int numFan, int needNorm, GLfloat *vertex, GLuint *index, 
                               int &indVert, int &indQuad, int &indFan, float xadd, 
                               float yadd, float zadd);
 static int checkSelectedAreRemnants(VertBufData *vbd, int obNum);
@@ -157,7 +158,6 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, int fillType, int useFillColor,
   RGBTmap colors;
   pair<RGBTmap::iterator,bool> mapret;
   RGBTmap::iterator mapit;
-  GLenum error;
   VertBufData *vbd = mesh->vertBuf;
   Istore *stp;
   Istore store;
@@ -302,7 +302,7 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, int fillType, int useFillColor,
   }
       
   // Add up the special set sizes and re-initialize the counts to be starting indexes
-  processSimpleMap(vbd, &colors, cumInd);
+  processSimpleMap(vbd, &colors, cumInd, 3);
   imodTrace('b',"dfltInd %d  spec sets %d cumind %d  remnant %d", vbd->numIndDefault,
             vbd->numSpecialSets, cumInd, numMixedTri);
 
@@ -462,7 +462,6 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, int fillType, int useFillColor,
   }
   b3dBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, cumInd * sizeof(GLuint), sInds);
   b3dBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
   return 0;
 }
 
@@ -476,10 +475,10 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
   QuadsAndFans qf;
   DrawProps defProps, contProps;
   b3dUInt32 contRGBT;
-  VertBufData *vbd;
+  VertBufData *vbd = obj->vertBufSphere;
   Icont *cont;
-  int handleFlags, nonVboFlags, numRemnant, fullState, skip, numVerts, co, pt, i;
-  int colorType, cumFanInd, cumQuadInd, numFan, numQuad, surfState, contState, stepRes;
+  int handleFlags, nonVboFlags = 0, numRemnant, fullState, skip, numVerts, co, pt, i;
+  int colorType, cumFanInd, cumQuadInd, surfState, contState, stepRes;
   float drawsize;
   int numDefSphVert, numDefSphQuad, numDefSphFan, numTriples,indVert, indQuad, indFan;
   int indQuadDef, indFanDef, irem;
@@ -501,7 +500,7 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
       && quality == vbd->quality && obj->pdrawsize == vbd->pdrawsize &&
       checkTime == vbd->checkTime && fabs((double)(scrnScale - vbd->scrnScale)) < 1.e-4 &&
       fabs((double)(zscale - vbd->zscale)) < 1.e-4 && thickenCont == vbd->thickenCont) {
-    if (thickenCont && checkSelectedAreRemnants(vbd, obNum))
+    if (!thickenCont || checkSelectedAreRemnants(vbd, obNum))
       return -1;
   }
 
@@ -512,6 +511,8 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
   for (co = 0; co < obj->contsize; co++) {
     cont = &obj->cont[co];
     setOrClearFlags(&cont->flags, ICONT_TEMPUSE, 0);
+    if (!imodvCheckContourDraw(cont, co, checkTime))
+      continue;
     fullState = istoreContSurfDrawProps(obj->store, &defProps, &contProps, co, 
                                           cont->surf, &contState, &surfState);
 
@@ -519,7 +520,7 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
     if (contProps.gap)
       continue;
     skip = 0;
-    if ((fullState & nonVboFlags) || thickenCont && imodvCheckThickerContour(co))
+    if ((fullState & nonVboFlags) || (thickenCont && imodvCheckThickerContour(co)))
       skip = 1;
 
     // Check for point changes that would need to be handled
@@ -548,20 +549,20 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
         continue;
       stepRes = sphereResForSize(drawsize);
       numVerts += sphereCounts(2 * stepRes, stepRes, qf.numQuadInds, qf.numFanInds);
-    }
 
-    // For a special contour, add to list of RGBT values with the counts if it
-    // is not on the list; if it is already on the list increment its count;
-    if (fullState & handleFlags) {
-      vbPackRGBT(&contProps, useFillColor, contRGBT);
-      mapret = colors.insert(pair<b3dUInt32,QuadsAndFans>(contRGBT, qf));
-      if (mapret.second == false) {
-        mapret.first->second.numQuadInds += qf.numQuadInds;
-        mapret.first->second.numFanInds += qf.numFanInds;
+      // For a special contour, add to list of RGBT values with the counts if it
+      // is not on the list; if it is already on the list increment its count;
+      if (fullState & handleFlags) {
+        vbPackRGBT(&contProps, useFillColor, contRGBT);
+        mapret = colors.insert(pair<b3dUInt32,QuadsAndFans>(contRGBT, qf));
+        if (mapret.second == false) {
+          mapret.first->second.numQuadInds += qf.numQuadInds;
+          mapret.first->second.numFanInds += qf.numFanInds;
+        }
+      } else {
+        cumFanInd += qf.numFanInds;
+        cumQuadInd += qf.numQuadInds;
       }
-    } else {
-      cumFanInd += qf.numFanInds;
-      cumQuadInd += qf.numQuadInds;
     }
   }      
 
@@ -572,11 +573,21 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
   drawsize = obj->pdrawsize / xybin;
   stepRes = sphereResForSize(drawsize);
   numDefSphVert = sphereCounts(2 * stepRes, stepRes, numDefSphQuad, numDefSphFan);
+  imodTrace('b', "numverts %d cumfan %d cumquad %d def vert %d quad %d fan %d rem %d",
+            numVerts, cumFanInd, cumQuadInd, numDefSphVert,numDefSphQuad, numDefSphFan,
+            numRemnant);
 
   vbd = allocateVBDIfNeeded(&obj->vertBufSphere); 
   if (!vbd || drawsize < 0)
     return 1;
   vbd->numFanIndDefault = cumFanInd;
+  vbd->numRemnant = numRemnant;
+
+  // Now allocate whatever pieces are needed in VBD
+  if (allocateSpecialSets(vbd, colors.size(), cumQuadInd, 1)) {
+    vbCleanupSphereVBD(obj);
+    return 1;
+  }
 
   // Add up the special set sizes and re-initialize the counts to be starting indexes
   mapit = colors.begin();
@@ -585,6 +596,7 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
     vbd->numIndSpecial[i] = mapit->second.numQuadInds;
     mapit->second.numQuadInds = cumQuadInd;
     cumQuadInd += vbd->numIndSpecial[i];
+    mapit++;
   }
   cumFanInd += cumQuadInd;
   mapit = colors.begin();
@@ -592,20 +604,19 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
     vbd->numFanIndSpecial[i] = mapit->second.numFanInds;
     mapit->second.numFanInds = cumFanInd;
     cumFanInd += vbd->numFanIndSpecial[i];
+    mapit++;
   }
   vbd->fanIndStart = cumQuadInd;
 
-  // Now allocate whatever pieces are needed in VBD, plus default sphere
-  vbd->numRemnant = numRemnant;
-  if (allocateSpecialSets(vbd, colors.size(), cumQuadInd, 1) || 
-      allocateTempVerts(numVerts) || allocateTempInds(cumFanInd) ||
+  // Now allocate temps plus default sphere
+  numTriples = (1 + (fillType ? 1 : 0)) * numVerts;
+  if (allocateTempVerts(numTriples) || allocateTempInds(cumFanInd) ||
       allocateDefaultSphere(numDefSphVert, numDefSphQuad + numDefSphFan, fillType)) {
     vbCleanupSphereVBD(obj);
     return 1;
   }
     
-  numTriples = (1 + (fillType ? 1 : 0)) * numVerts;
-  if (genAndBindBuffers(vbd, numTriples, cumFanInd + cumQuadInd)) {
+  if (genAndBindBuffers(vbd, numTriples, cumFanInd)) {
     vbCleanupSphereVBD(obj);
     return 1;
   }
@@ -616,6 +627,13 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
   indFan = numDefSphQuad;
   vbSphere(drawsize, 2 * stepRes, stepRes, sDefSphVerts, sDefSphInds, indVert, indQuad, 
            indFan, fillType, 0., 0., 0.);
+  imodTrace('b', "numtriples %d cumfan %d after def vert %d quad %d fan %d", 
+            numTriples, cumFanInd, indVert, indQuad,
+            indFan);
+  /*for (pt = 0; pt < indFan; pt++) {
+    imodPrintStderr(" %d", sDefSphInds[pt]);
+    if ((pt + 1) % 16 == 0 || pt == indFan - 1) imodPrintStderr("\n");
+    } */
 
   // Set the identifiers of this vb data
   vbd->zscale = zscale;
@@ -689,6 +707,13 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
     }
   }
 
+  imodTrace('b', "cumfan %d after load vert %d quad %d fan %d  irem %d", 
+            cumFanInd, indVert, indQuad, indFan, irem);
+  /*for (pt = 0; pt < cumFanInd; pt++) {
+    imodPrintStderr(" %d", sInds[pt]);
+    if ((pt + 1) % 16 == 0 || pt == cumFanInd - 1) imodPrintStderr("\n");
+    }*/
+
   // Transfer to GL
   b3dBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, cumFanInd * sizeof(GLuint), sInds);
   b3dBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -704,7 +729,7 @@ int vbAnalyzeConts(Iobj *obj, int obNum, int thickenCont, int checkStipple, int 
   pair<RGBTmap::iterator,bool> mapret;
   RGBTmap::iterator mapit;
   DrawProps defProps, contProps;
-  VertBufData *vbd;
+  VertBufData *vbd = obj->vertBufCont;
   b3dUInt32 contRGBT;
   Icont *cont;
   int handleFlags, nonVboFlags, numRemnant, fullState, skip, numVerts, cumInd, co;
@@ -796,16 +821,18 @@ int vbAnalyzeConts(Iobj *obj, int obNum, int thickenCont, int checkStipple, int 
     return 1;
 
   vbd->numRemnant = numRemnant;
-  if (allocateSpecialSets(vbd, colors.size(), cumInd, 0) ||
-      allocateTempVerts(numVerts) || allocateTempInds(numInds)) {
+  if (allocateSpecialSets(vbd, colors.size(), cumInd, 0)) {
     vbCleanupContVBD(obj);
     return 1;
   }
       
   // Add up the special set sizes and re-initialize the counts to be starting indexes
-  processSimpleMap(vbd, &colors, cumInd);
+  processSimpleMap(vbd, &colors, cumInd, 1);
+  imodTrace('b',"dfltInd %d  spec sets %d cumind %d  remnant %d", vbd->numIndDefault,
+            vbd->numSpecialSets, cumInd, numRemnant);
   
-  if (genAndBindBuffers(vbd, numVerts, cumInd)) {
+  if (genAndBindBuffers(vbd, numVerts, cumInd) ||
+      allocateTempVerts(numVerts) || allocateTempInds(cumInd)) {
     vbCleanupContVBD(obj);
     return 1;
   }
@@ -857,11 +884,20 @@ int vbAnalyzeConts(Iobj *obj, int obNum, int thickenCont, int checkStipple, int 
     // Set up indices to all points, add one if closed, add restart index;
     for (pt = 0; pt < psize; pt++)
       sInds[ind + pt] = ivert + pt;
-    if (numInds > psize + 1)
+    if (numInds > psize + 1) {
       sInds[ind + psize] = ivert;
-    sInds[ind + psize + 1] = RESTART_INDEX;
-    ivert += 3 * psize;
+      sInds[ind + psize + 1] = RESTART_INDEX;
+    } else
+      sInds[ind + psize] = RESTART_INDEX;
+    ivert += psize;
   }
+  imodTrace('b',"ivert %d  numVerts*3 %d idefind %d cumind %d", ivert, numVerts * 3,
+            iDefInd, cumInd);
+  /*for (pt = 0; pt < cumInd; pt++) {
+    imodPrintStderr(" %d", sInds[pt]);
+    if ((pt + 1) % 16 == 0) imodPrintStderr("\n");
+  }
+  imodPrintStderr("\n"); */
 
   // Transfer to GL
   b3dBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, cumInd * sizeof(GLuint), sInds);
@@ -1015,13 +1051,14 @@ static int allocateSpecialSets(VertBufData *vbd, int numSets, int cumInd, int sp
   return 0;
 }
 
-static void processSimpleMap(VertBufData *vbd, RGBTmap *colors, int &cumInd)
+static void processSimpleMap(VertBufData *vbd, RGBTmap *colors, int &cumInd, 
+                             int indPerItem)
 {
   RGBTmap::iterator mapit;
   mapit = colors->begin();
   for (int i = 0; i < vbd->numSpecialSets; i++) {
     vbd->rgbtSpecial[i] = mapit->first;
-    vbd->numIndSpecial[i] = mapit->second;
+    vbd->numIndSpecial[i] = mapit->second * indPerItem;
     mapit->second = cumInd;
     cumInd += vbd->numIndSpecial[i];
     mapit++;
@@ -1083,7 +1120,7 @@ static int allocateTempInds(int cumInd)
   if (cumInd > sIndSize) {
     B3DFREE(sInds);
     sIndSize = cumInd;
-    sInds = B3DMALLOC(GLuint,  cumInd);
+    sInds = B3DMALLOC(GLuint, sIndSize);
     if (!sInds) {
       sIndSize = 0;
       return 1;
@@ -1094,10 +1131,11 @@ static int allocateTempInds(int cumInd)
 
 static int allocateDefaultSphere(int numVerts, int numInds, int needNorm)
 {
-  if (numVerts > sDefSphVertSize) {
+  int needed = numVerts * (1 + (needNorm ? 1 : 0));
+  if (needed > sDefSphVertSize) {
     B3DFREE(sDefSphVerts);
-    sDefSphVertSize = numVerts;
-    sDefSphVerts = B3DMALLOC(GLfloat, 3 * numVerts * (1 + (needNorm ? 1 : 0)));
+    sDefSphVertSize = needed;
+    sDefSphVerts = B3DMALLOC(GLfloat, 3 * needed);
     if (!sDefSphVerts) {
       sDefSphVertSize = 0;
       return 1;
@@ -1121,15 +1159,16 @@ static float sXadd, sYadd, sZadd;
 static int sNormOffset;
 static void loadNormal(float x, float y, float z)
 {
-  sVertex[3*sIndVert] = x;
-  sVertex[3*sIndVert+1] = y;
-  sVertex[3*sIndVert+2] = z;
+  sVertex[6*sIndVert] = x;
+  sVertex[6*sIndVert+1] = y;
+  sVertex[6*sIndVert+2] = z;
 }
 static void loadVertex(float x, float y, float z)
 {
-  sVertex[3*sIndVert+sNormOffset] = x + sXadd;
-  sVertex[3*sIndVert+1+sNormOffset] = y + sYadd;
-  sVertex[3*sIndVert+2+sNormOffset] = z + sZadd;
+  int indBase = (3 + sNormOffset) * sIndVert + sNormOffset;
+  sVertex[indBase] = x + sXadd;
+  sVertex[indBase+1] = y + sYadd;
+  sVertex[indBase+2] = z + sZadd;
   sIndVert++;
 }
 
@@ -1150,9 +1189,9 @@ static int vbSphere(float radius, int slices, int stacks, GLfloat *vertex, GLuin
   float sinCache2b[CACHE_SIZE];
   float cosCache2b[CACHE_SIZE];
   float angle;
-  float zLow, zHigh;
-  float sintemp1 = 0.0, sintemp2 = 0.0, sintemp3 = 0.0, sintemp4 = 0.0;
-  float costemp1 = 0.0, costemp2 = 0.0, costemp3 = 0.0, costemp4 = 0.0;
+  float zHigh;
+  float sintemp2 = 0.0, sintemp3 = 0.0;
+  float costemp3 = 0.0;
   int start, finish;
 
   if (slices >= CACHE_SIZE) slices = CACHE_SIZE-1;
@@ -1201,14 +1240,14 @@ static int vbSphere(float radius, int slices, int stacks, GLfloat *vertex, GLuin
   zHigh = cosCache1b[1];
   sintemp3 = sinCache2b[1];
   costemp3 = cosCache2b[1];
-  index[indFan++] = indVert;
+  index[indFan++] = sIndVert;
   if (needNorm)
     loadNormal(sinCache2a[0] * sinCache2b[0],
                cosCache2a[0] * sinCache2b[0],
                cosCache2b[0]);
   loadVertex(0., 0., radius);
   for (i = slices; i >= 0; i--) {
-    index[indFan++] = indVert;
+    index[indFan++] = sIndVert;
     if (needNorm)
       loadNormal(sinCache2a[i] * sintemp3,
                  cosCache2a[i] * sintemp3,
@@ -1219,41 +1258,46 @@ static int vbSphere(float radius, int slices, int stacks, GLfloat *vertex, GLuin
   index[indFan++] = RESTART_INDEX;
 
   for (j = start; j < finish; j++) {
-    zLow = cosCache1b[j];
     zHigh = cosCache1b[j+1];
-    sintemp1 = sinCache1b[j];
     sintemp2 = sinCache1b[j+1];
     sintemp3 = sinCache2b[j+1];
     costemp3 = cosCache2b[j+1];
-    sintemp4 = sinCache2b[j];
-    costemp4 = cosCache2b[j];
 
     // QUAD STRIP
     for (i = 0; i <= slices; i++) {
-      index[indQuad++] = indVert;
+      index[indQuad++] = sIndVert;
       if (needNorm)
         loadNormal(sinCache2a[i] * sintemp3,
                    cosCache2a[i] * sintemp3,
                    costemp3);
       loadVertex(sintemp2 * sinCache1a[i],
                  sintemp2 * cosCache1a[i], zHigh);
-      if (!i)
-        index[indQuad++] = indVert - 2 * i - 2;
+
+      // Reverse the order of the previous disk of points the first time because it
+      // was added in inverse order
+      if (j == start)
+        index[indQuad++] = sIndVert - 2 * i - 2;
       else
-        index[indQuad++] = indVert - slices - 2;
+        index[indQuad++] = sIndVert - slices - 2;
     }
     index[indQuad++] = RESTART_INDEX;
   }
 
   /* High end last (j == stacks-1 iteration) */
-  index[indFan++] = indVert;
+  index[indFan++] = sIndVert;
   if (needNorm)
     loadNormal(sinCache2a[stacks] * sinCache2b[stacks],
                cosCache2a[stacks] * sinCache2b[stacks],
                cosCache2b[stacks]);
   loadVertex(0.0, 0.0, -radius);
-  for (i = 0; i <= slices; i++)
-    index[indFan++] = indVert + i - slices - 2;
+  for (i = 0; i <= slices; i++) {
+
+    // Reverse the order of the points if they are the first disk
+    if (start < finish)
+      index[indFan++] = sIndVert + i - slices - 2;
+    else
+      index[indFan++] = sIndVert - i - 2;
+  }
   index[indFan++] = RESTART_INDEX;
   indVert = sIndVert;
   return 0;
@@ -1271,12 +1315,13 @@ static int sphereCounts(int slices, int stacks, int &numQuad, int &numFan)
   return numVert;
 }
 
-static void copyDefaultSphere(GLfloat *defVert, GLuint *defInd, int numVert, int numFan, 
-                              int numQuad, int needNorm, GLfloat *vertex, GLuint *index, 
+static void copyDefaultSphere(GLfloat *defVert, GLuint *defInd, int numVert, int numQuad,
+                              int numFan,  int needNorm, GLfloat *vertex, GLuint *index, 
                               int &indVert, int &indQuad, int &indFan, float xadd, 
                               float yadd, float zadd)
 {
   int i, idef;
+  int trueIndex;
   sVertex = vertex;
   sIndVert = indVert;
   sXadd = xadd;
@@ -1286,11 +1331,14 @@ static void copyDefaultSphere(GLfloat *defVert, GLuint *defInd, int numVert, int
   idef = 0;
 
   // Assume the quad indexes are right before the fan indexes
-  for (i = 0; i < numQuad; i++)
-    index[indQuad++] = defInd[idef++] + indVert;
-  for (i = 0; i < numFan; i++)
-    index[indFan++] = defInd[idef++] + indVert;
-
+  for (i = 0; i < numQuad; i++) {
+    trueIndex = defInd[idef] != RESTART_INDEX ? 1 : 0;
+    index[indQuad++] = defInd[idef++] + indVert * trueIndex;
+  }
+  for (i = 0; i < numFan; i++) {
+    trueIndex = defInd[idef] != RESTART_INDEX ? 1 : 0;
+    index[indFan++] = defInd[idef++] + indVert * trueIndex;
+  }
   idef = 0;
   for (int i = 0; i < numVert; i++) {
     if (needNorm) {

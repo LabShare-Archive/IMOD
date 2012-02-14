@@ -625,6 +625,7 @@ static void imodvSetObject(Imod *imod, Iobj *obj, int style, int drawTrans)
       glEnable(GL_LINE_SMOOTH);
       drawTrans = 1;
     }
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glLineWidth((float)obj->linewidth);
     glColor4f(obj->red, obj->green, obj->blue, trans);
@@ -686,7 +687,7 @@ static void imodvSetObject(Imod *imod, Iobj *obj, int style, int drawTrans)
   if (drawTrans){
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    if (!(obj->flags & IMOD_OBJFLAG_TWO_SIDE))
+    if (!(obj->flags & IMOD_OBJFLAG_TWO_SIDE) && style == DRAW_FILL)
       glEnable(GL_CULL_FACE);
   }
   return;
@@ -1095,7 +1096,6 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
   DrawProps contProps, ptProps;
   int nextChange, stateFlags, changeFlags, changeFlags2, cumInd, remInd, nextRemnant;
   int defTrans = obj->trans ? 1 : 0;
-  int contsize = obj->contsize;
   bool vbOK;
   VertBufData *vbd;
   float red, green, blue;
@@ -1280,7 +1280,6 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
         utilEnableStipple(Imodv->vi, cont);
       glLineWidth(ptProps.linewidth + thickAdd);
       glBegin(GL_LINE_STRIP);
-
       for (; pt < cont->psize; pt++) {
 
         // Get change at point then add point so color changes during line
@@ -1511,10 +1510,10 @@ static void imodvDraw_filled_contours(Iobj *obj, int drawTrans)
         gluTessBeginPolygon(tobj, NULL);
         gluTessBeginContour(tobj);
         for(pt = ptstr; pt < psize; pt++){
-          v[0] = cont->pts[pt].x;
-          v[1] = cont->pts[pt].y;
-          v[2] = cont->pts[pt].z;
-          gluTessVertex(tobj, v, &(cont->pts[pt]));
+          v[0] = pts[pt].x;
+          v[1] = pts[pt].y;
+          v[2] = pts[pt].z;
+          gluTessVertex(tobj, v, &(pts[pt]));
         }
         gluTessEndContour(tobj);
         gluTessEndPolygon(tobj);
@@ -1523,10 +1522,10 @@ static void imodvDraw_filled_contours(Iobj *obj, int drawTrans)
           gluTessBeginPolygon(tobj, NULL);
           gluTessBeginContour(tobj);
           for(pt = psize; pt < ptend; pt++){
-            v[0] = cont->pts[pt].x;
-            v[1] = cont->pts[pt].y;
-            v[2] = cont->pts[pt].z;
-            gluTessVertex(tobj, v, &(cont->pts[pt]));
+            v[0] = pts[pt].x;
+            v[1] = pts[pt].y;
+            v[2] = pts[pt].z;
+            gluTessVertex(tobj, v, &(pts[pt]));
           }
           gluTessEndContour(tobj);
           gluTessEndPolygon(tobj);
@@ -1637,6 +1636,7 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
 
   sScaleSphere = 0.5 * (Imodv->winx > Imodv->winy ? Imodv->winy : Imodv->winx) / 
     Imodv->mod[sModBeingDrawn]->view->rad;
+  //printf("quality  %d  scale %f\n", sQualitySphere, sScaleSphere);
 
   if (!sCTime)
     checkTime = 0;
@@ -1733,15 +1733,16 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
     b3dPrimitiveRestartIndex(RESTART_INDEX);
 
     // Draw default if it matches trans state
-    if (vbd->numIndDefault) {
+    if (vbd->numFanIndDefault) {
       if (drawTrans == defTrans) {
         imodTrace('v', "VB sphere default, %s  %d %u %u", drawTrans ? "trans" : "solid", 
                   vbd->numIndDefault, vbd->vbObj, vbd->ebObj);
-        glDrawElements(style == DRAW_POINTS ? GL_POINTS : GL_QUAD_STRIP, 
-                       vbd->numIndDefault, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+        if (vbd->numIndDefault)
+          glDrawElements(style == DRAW_POINTS ? GL_POINTS : GL_QUAD_STRIP, 
+                         vbd->numIndDefault, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
         glDrawElements(style == DRAW_POINTS ? GL_POINTS : GL_TRIANGLE_FAN, 
-                       vbd->numFanIndDefault, GL_UNSIGNED_INT, 
-                       BUFFER_OFFSET(vbd->fanIndStart));
+                     vbd->numFanIndDefault, GL_UNSIGNED_INT, 
+                     BUFFER_OFFSET(vbd->fanIndStart * sizeof(GLuint)));
       } else
         obj->flags |= IMOD_OBJFLAG_TEMPUSE;
     }
@@ -1752,12 +1753,15 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
     for (j = 0; j < vbd->numSpecialSets; j++) {
       vbUnpackRGBT(vbd->rgbtSpecial[j], red, green, blue, trans);
       if ((trans ? 1 : 0) == drawTrans) {
-        imodTrace('v', "VB sphere special %d, %s, %.2f %.2f %.2f %d", j, 
-                  drawTrans ? "trans" : "solid", red, green, blue, trans);
+        imodTrace('v', "VB sphere special %d, %s, %.2f %.2f %.2f %d  numquad %d ind %d"
+                  " numfan %d ind %d", j, drawTrans ? "trans" : "solid", red, green, blue,
+                  trans, vbd->numIndSpecial[j], cumQuadInd, vbd->numFanIndSpecial[j],
+                  cumFanInd);
         ifgHandleColorTrans(obj, red, green, blue, trans);
-        glDrawElements(style == DRAW_POINTS ? GL_POINTS : GL_QUAD_STRIP,
-                       vbd->numIndSpecial[j], GL_UNSIGNED_INT,
-                       BUFFER_OFFSET(cumQuadInd * sizeof(GLuint)));
+        if (vbd->numIndSpecial[j])
+          glDrawElements(style == DRAW_POINTS ? GL_POINTS : GL_QUAD_STRIP,
+                         vbd->numIndSpecial[j], GL_UNSIGNED_INT,
+                         BUFFER_OFFSET(cumQuadInd * sizeof(GLuint)));
         glDrawElements(style == DRAW_POINTS ? GL_POINTS : GL_TRIANGLE_FAN,
                        vbd->numFanIndSpecial[j], GL_UNSIGNED_INT,
                        BUFFER_OFFSET(cumFanInd * sizeof(GLuint)));
@@ -1778,16 +1782,21 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
     else 
       nextRemnant = vbd->remnantIndList[0];
     remInd = 1;
+    //imodTrace('b', "obj %d contsize %d  numrem %d nextrem %d remind %d", sObjBeingDrawn,
+    //        contsize, vbd->numRemnant, nextRemnant, remInd);
   }
 
   /* DNM: Get a display list to draw the default size.  Helps a lot on PC,
      only a bit on the SGI */
   drawsize = obj->pdrawsize / xybin;
   stepRes = sphereResForSize(drawsize);
+  //imodPrintStderr("drawsize  %f stepRes %d\n", drawsize, stepRes);
   listIndex = glGenLists(1);
   glNewList(listIndex, GL_COMPILE);
   gluSphere(qobj, drawsize , stepRes * 2, stepRes);
   glEndList();
+  /*imodTrace('b', "obj %d contsize %d  nextrem %d remind %d", sObjBeingDrawn,
+    contsize, nextRemnant, remInd);*/
 
   for (co = 0; co < contsize; co++) {
 
@@ -2581,7 +2590,7 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 
   int useLight = Imodv->lighting;
 
-  GLenum polyStyle, normStyle;
+  GLenum polyStyle;
 
   if ((!mesh) || (!mesh->lsize))
     return;
@@ -2596,14 +2605,11 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 
   if (iobjFill(obj->flags)){
     polyStyle = GL_POLYGON;
-    normStyle = GL_TRIANGLES;
   }else if (iobjLine(obj->flags)){
     polyStyle = GL_LINE_STRIP;
-    normStyle = GL_LINE_LOOP;
     zscale = 1.0;
   }else{
     polyStyle = GL_POINTS;
-    normStyle = GL_POINTS;
     zscale = 1.0;
   }
 
@@ -2777,7 +2783,7 @@ void imodvSelectVisibleConts(ImodvApp *a, int &pickedOb, int &pickedCo)
   int co, pt, checkTime;
   Iobj *obj;
   Icont *cont;
-  int nextChange, stateFlags, handleFlags = 0;
+  int stateFlags, handleFlags = 0;
   DrawProps contProps, ptProps;
   Iindex cindex;
   int numSel = 0;
@@ -2812,7 +2818,7 @@ void imodvSelectVisibleConts(ImodvApp *a, int &pickedOb, int &pickedCo)
     if (!imodvCheckContourDraw(cont, co, checkTime))
       continue;
     //imodPuts("passed draw check");
-    nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
+    ifgHandleContChange(obj, co, &contProps, &ptProps, 
                                      &stateFlags, handleFlags, 0);
     if (contProps.gap)
       continue;

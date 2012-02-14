@@ -280,6 +280,7 @@ void imodvKeyPress(QKeyEvent *event)
   case Qt::Key_V:
     if (shifted && ctrl && a->vertBufOK >= 0) {
       a->vertBufOK = 1 - a->vertBufOK;
+      imodPrintStderr("Vertex buffers %s\n", a->vertBufOK ? "ON" : "OFF");
       imodvDraw(a);
     } else if (shifted)
       imodvViewEditDialog(a, 1);
