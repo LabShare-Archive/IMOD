@@ -134,6 +134,25 @@ set.var.run_sirt=
 set.interface.Recon=
 
 
+[Test = dual-test-test-gui]
+set.testdir = dual-test-gui
+#set.keep.testdir = dual-test-gui
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.var.dataset = testBB
+set.dataset = testBB
+copy.file.a = %{dataset}a.st
+copy.file.b = %{dataset}b.st
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.param = --actions
+#set.param = %{dataset}.edf
+set.var.dual=
+set.var.test-gui=
+set.var.run_sirt=
+set.interface.Recon=
+
+
 [Test = single-montage]
 set.testdir = single-montage
 #set.keep.testdir = single-montage
@@ -346,6 +365,11 @@ set.var.scaling-z-min=25
 set.var.scaling-z-max=50
 set.var.scaling-z-min-patch-tracking=29
 set.var.scaling-z-max-patch-tracking=58
+
+
+[dataset = testBB]
+use.dataset = BB
+
 
 [dataset = midzone2]
 copy.file = %{dataset}.st
