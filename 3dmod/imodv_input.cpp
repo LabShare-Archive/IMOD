@@ -117,7 +117,7 @@ void imodvKeyPress(QKeyEvent *event)
   // Increase step size for shift, except not when moving a point
   if (shifted && !ctrl)
     tstep = 10;
-  if (shifted && ctrl && (keysym == Qt::Key_PageDown) || (keysym == Qt::Key_PageUp)) {
+  if (shifted && ctrl && (keysym == Qt::Key_PageDown || keysym == Qt::Key_PageUp)) {
     tstep = (int)(0.5 * B3DMIN(a->winx, a->winy) / a->imod->view->rad);
     tstep = B3DMAX(1, tstep);
   }
@@ -848,7 +848,7 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
 
   imodvResolveRotation(mat, 0.1f * x, 0.1f * y, 0.1f * z);
 
-  if (!(maskr & Qt::ControlModifier)){
+  if (!(maskr & Qt::ControlModifier) || a->movie){
 
     /* Regular rotation of one or all models */
 
