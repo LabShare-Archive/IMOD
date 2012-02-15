@@ -72,6 +72,8 @@ needSocket = 0
 needPID = 0
 hasPython = 0
 indentedCom = 0
+testDummyProg = ''
+testOpt = ''
 windows = sys.platform.find('win32') >= 0 or sys.platform.find('cygwin') >= 0
 if lenarg < 2:
    prnstr("Usage: vmstopy [options] comfile logfile [pyscript]")
@@ -96,6 +98,9 @@ while lenarg - argind > 2:
          quiet = 1
       elif oarg == '-c':
          chunk = 1
+      elif oarg == '-t':
+         testDummyProg = 'echo2 '
+         testOpt = '-t '
       elif oarg == '-e':
          argind += 1
          var = sys.argv[argind]
@@ -458,8 +463,8 @@ while ind < len(lines):
             line = lines[ind]
             ind += 1
          prnstr("  " + indent + 'try:', file=out)
-         prnstr("  " + indent + fmtstr('  runcmd("vmstopy {} {} {}")', vmscom, vmslog,
-                                       vmspy), file=out)
+         prnstr("  " + indent + fmtstr('  runcmd("vmstopy {}{} {} {}")', testOpt, vmscom,
+                                       vmslog, vmspy), file=out)
          prnstr("  " + indent + "except ImodpyError:", file=out)
          prnstr("  " + indent + '  printErrorExit(1)', file=out)
          prnstr("  " + indent + "command = 'python -u " + vmspy + "'",  file=out)
@@ -507,7 +512,7 @@ while ind < len(lines):
             linelen = len(line)
             if linelen > 2 and line[linelen-2] != '\\':
                line = line[:linelen-1] + '\\"'
-         line = quoteSubstitute(line)
+         line = quoteSubstitute(testDummyProg + line)
             
          prnstr("  " + indent + "command = " + line, file=out)
 
