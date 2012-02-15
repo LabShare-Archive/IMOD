@@ -140,6 +140,58 @@ int imodObjectsDelete(Iobj *obj, int size)
 }
 
 /*!
+ * Computes a checksum from the coordinates, properties, and general storage information
+ * for object [obj] and its contours.
+ */
+double imodObjectChecksum(Iobj *obj, int obNum)
+{
+  int i, co, pt;
+  Icont *cont;
+  IclipPlanes *clips;
+  double osum, psum;
+  osum = obNum;
+  psum = 0.;
+  osum += obj->red + obj->green + obj->blue;
+  osum += obj->flags;
+  osum += obj->pdrawsize;
+  osum += obj->symbol;
+  osum += obj->symsize;
+  osum += obj->linewidth2;
+  osum += obj->linewidth;
+  osum += obj->symflags;
+  osum += obj->trans;     
+  osum += obj->contsize;      
+  osum += obj->ambient + obj->diffuse + obj->specular + obj->shininess;
+  clips = &obj->clips;
+  osum += clips->count + clips->flags + clips->trans;
+  osum += clips->plane + obj->mat2;
+  for (i = 0; i < clips->count; i++) {
+    osum += clips->normal[i].x + clips->normal[i].y + 
+      clips->normal[i].z;
+    osum += clips->point[i].x + clips->point[i].y + 
+      clips->point[i].z;
+  }
+  osum += obj->fillred + obj->fillgreen + obj->fillblue + obj->quality;
+  osum += obj->valblack + obj->valwhite + obj->matflags2 + obj->mat3b3;
+  osum += istoreChecksum(obj->store);
+  for(co = 0; co < obj->contsize; co++){
+    cont = &(obj->cont[co]);
+    psum += cont->surf;
+    psum += cont->psize;
+    for(pt = 0; pt < cont->psize; pt++){
+      psum += cont->pts[pt].x;
+      psum += cont->pts[pt].y;
+      psum += cont->pts[pt].z;
+    }
+    psum += istoreChecksum(cont->store);
+    if (cont->sizes)
+      for(pt = 0; pt < cont->psize; pt++)
+        psum += cont->sizes[pt];
+  }
+  return osum + psum;
+}
+
+/*!
  * Copies object structure from object [from] to object [to].  Returns -1 if 
  * error.
  */
