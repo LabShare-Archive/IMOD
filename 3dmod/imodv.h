@@ -31,6 +31,7 @@ class ImodvWindow;
 #endif
 class QColor;
 class QPixmap;
+class VertBufManager;
 
 /* Number of frames to determine frame rate over */
 #define MAX_MOVIE_TIMES  10
@@ -115,6 +116,7 @@ typedef struct __imodv_struct
   Iview view;
   int vertBufOK;   /* Flag for whether vertex buffers are possible and enabled */
   int primRestartOK;  /* Flag for primitive restarts being possible (GL 3.1) */
+  VertBufManager *vbManager;  /* Class for managingthe VBO's */
 
   /* texture mapping */
   int    texMap;

@@ -2,6 +2,9 @@
  *  $Id$
  */
 #include "b3dgfx.h"
+#include <map>
+using namespace std;
+typedef map<b3dUInt32,int> RGBTmap;
 
 #define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
 #define RESTART_INDEX 0x7fffffff
@@ -39,24 +42,69 @@ typedef struct Vert_Buf_Data {
   double checksum;         // Checksum of the store
 } VertBufData;
 
-void vbPackRGBT(float red, float green, float blue, int trans, b3dUInt32 &rgbtVal);
-void vbPackRGBT(DrawProps *props, int useFill, b3dUInt32 &rgbtVal);
-void vbUnpackRGBT(b3dUInt32 rgbtVal, float &red, float &green, float &blue, int &trans);
-void vbUnpackRGBT(b3dUInt32 rgbtVal, int useFill, DrawProps *props);
-
+// Global functions for cleaning up VBD's
 void vbCleanupVBD(Imesh *mesh);
 void vbCleanupVBD(Iobj *obj);
 void vbCleanupVBD(Imod *mod);
 void vbCleanupSphereVBD(Iobj *obj);
 void vbCleanupContVBD(Iobj *obj);
 void vbCleanupMeshVBD(Iobj *obj);
-int vbAnalyzeMesh(Imesh *mesh, float zscale, int fillType, int useFillColor,
+
+class VertBufManager {
+ public:
+  VertBufManager();
+  ~VertBufManager() {clearTempArrays();};
+  void unpackRGBT(b3dUInt32 rgbtVal, float &red, float &green, float &blue, int &trans);
+  void unpackRGBT(b3dUInt32 rgbtVal, int useFill, DrawProps *props);
+
+  int analyzeMesh(Imesh *mesh, float zscale, int fillType, int useFillColor,
                   DrawProps *defProps);
-int vbAnalyzeConts(Iobj *obj, int obNum, int thickenCont, int checkStipple,
+  int analyzeConts(Iobj *obj, int obNum, int thickenCont, int checkStipple,
                    int checkTime);
-int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnScale,
+  int analyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnScale,
                      int quality, int fillType, int useFillColor, int thickenCont,
                      int checkTime);
-void vbClearTempArrays();
-int vbCheckAllTrans(Iobj *obj, VertBufData *vbd, int &remnantMatchesTrans);
+  void clearTempArrays();
+  int checkAllTrans(Iobj *obj, VertBufData *vbd, int &remnantMatchesTrans);
 
+ private:
+  void packRGBT(float red, float green, float blue, int trans, b3dUInt32 &rgbtVal);
+  void packRGBT(DrawProps *props, int useFill, b3dUInt32 &rgbtVal);
+  int loadVertexNormalArray(Imesh *mesh, float zscale, int fillType);
+  int allocateSpecialSets(VertBufData *vbd, int numSets, int cumInd, int sphere);
+  void processSimpleMap(VertBufData *vbd, RGBTmap *colors, int &cumInd,
+                        int indPerItem);
+  VertBufData *allocateVBDIfNeeded(VertBufData **vbdp);
+  int genAndBindBuffers(VertBufData *vbd, int numVerts, int cumInd) ;
+  int allocateTempVerts(int numVerts);
+  int allocateTempInds(int cumInd) ;
+  int allocateDefaultSphere(int numVerts, int numInds, int needNorm);
+  void loadNormal(float x, float y, float z);
+  void loadVertex(float x, float y, float z);
+  int makeSphere(float radius, int slices, int stacks, GLfloat *vertex, GLuint *index,
+                 int &indVert, int &indQuad, int &indFan, int needNorm, float xadd,
+                 float yadd, float zadd);
+  int sphereCounts(int slices, int stacks, int fillType, int &numQuad, int &numFan);
+  void copyDefaultSphere(GLfloat *defVert, GLuint *defInd, int numVert, int numQuad,
+                         int numFan, int needNorm, GLfloat *vertex, GLuint *index, 
+                         int &indVert, int &indQuad, int &indFan, float xadd, 
+                         float yadd, float zadd);
+  int checkSelectedAreRemnants(VertBufData *vbd, int obNum);
+
+  // Arrays to be allocated as needed during a draw and freed once at end
+  GLuint *mInds;
+  int mIndSize;
+  GLfloat *mVerts;
+  int mVertSize;
+  GLuint *mDefSphInds;
+  int mDefSphIndSize;
+  GLfloat *mDefSphVerts;
+  int mDefSphVertSize;
+
+  // Variables to be set when building spheres
+  GLfloat *mVertex;
+  int mIndVert;
+  float mXadd, mYadd, mZadd;
+  int mNormOffset;
+
+};

@@ -278,7 +278,7 @@ void imodvPaintGL()
     break;
   }
 
-  vbClearTempArrays();
+  a->vbManager->clearTempArrays();
   b3dResizeViewportXY(a->winx, a->winy);
   if (a->drawLight)
     drawLightVector(a);

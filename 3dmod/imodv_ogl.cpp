@@ -1119,9 +1119,9 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
   // first time in, try to set up vertex buffer drawing if it is OK and this is not
   // the line draw of fill outline
   if (!drawTrans && vbOK) {
-    pt = vbAnalyzeConts(obj, sObjBeingDrawn, sThickCont >= 0 ? 1 : 0, 
-                       (!Imodv->standalone && Imodv->vi->drawStipple) ? 1 : 0,
-                       checkTime ? sCTime : 0);
+    pt = Imodv->vbManager->analyzeConts
+      (obj, sObjBeingDrawn, sThickCont >= 0 ? 1 : 0, 
+       (!Imodv->standalone && Imodv->vi->drawStipple) ? 1 : 0, checkTime ? sCTime : 0);
     if (pt != -1)
       imodTrace('b', "vbAnalyzeConts returned %d", pt);
   }
@@ -1170,7 +1170,7 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
 
     // Draw special sets, keeping cumulative index for offset
     for (pt = 0; pt < vbd->numSpecialSets; pt++) {
-      vbUnpackRGBT(vbd->rgbtSpecial[pt], red, green, blue, trans);
+      Imodv->vbManager->unpackRGBT(vbd->rgbtSpecial[pt], red, green, blue, trans);
       if ((trans ? 1 : 0) == drawTrans) {
         imodTrace('v', "VB cont special %d, %s, %.2f %.2f %.2f %d", pt, 
                   drawTrans ? "trans" : "solid", red, green, blue, trans);
@@ -1662,9 +1662,10 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
     i = style == DRAW_FILL ? 1 : 0;
     if (style == DRAW_POINTS)
       i = -1;
-    i = vbAnalyzeSpheres(obj, sObjBeingDrawn, z, xybin, sScaleSphere, sQualitySphere, i, 
-                         style == DRAW_FILL && (obj->flags & IMOD_OBJFLAG_FCOLOR) ? 1 : 0,
-                         needThick ? 1 : 0, checkTime ? sCTime : 0);
+    i = Imodv->vbManager->analyzeSpheres
+      (obj, sObjBeingDrawn, z, xybin, sScaleSphere, sQualitySphere, i, 
+       style == DRAW_FILL && (obj->flags & IMOD_OBJFLAG_FCOLOR) ? 1 : 0,
+       needThick ? 1 : 0, checkTime ? sCTime : 0);
     if (i != -1)
       imodTrace('b', "vbAnalyzeSpheres returned %d", i);
   }
@@ -1754,7 +1755,7 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
 
     // Draw special sets, keeping cumulative indices for offset
     for (j = 0; j < vbd->numSpecialSets; j++) {
-      vbUnpackRGBT(vbd->rgbtSpecial[j], red, green, blue, trans);
+      Imodv->vbManager->unpackRGBT(vbd->rgbtSpecial[j], red, green, blue, trans);
       if ((trans ? 1 : 0) == drawTrans) {
         imodTrace('v', "VB sphere special %d, %s, %.2f %.2f %.2f %d  numquad %d ind %d"
                   " numfan %d ind %d", j, drawTrans ? "trans" : "solid", red, green, blue,
@@ -1966,7 +1967,7 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
   
   // first time in, try to set up vertex buffer drawing if it is OK
   if (!drawTrans && vbOK) {
-    i = vbAnalyzeMesh(mesh, 1., 0, 0, &defProps);
+    i = Imodv->vbManager->analyzeMesh(mesh, 1., 0, 0, &defProps);
     if (i != -1)
       imodTrace('b', "vbAnalyzeMesh returned %d", i);
   }
@@ -1976,7 +1977,8 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
   if (vbd && vbd->vbObj) {
 
     // First time in, If everything is trans, set flag and skip out
-    if (!drawTrans && defTrans && vbCheckAllTrans(obj, vbd, remnantMatchesTrans))
+    if (!drawTrans && defTrans && 
+        Imodv->vbManager->checkAllTrans(obj, vbd, remnantMatchesTrans))
       return;
   }
 
@@ -2008,7 +2010,7 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
 
     // Draw special sets, keeping cumulative index for offset
     for (j = 0; j < vbd->numSpecialSets; j++) {
-      vbUnpackRGBT(vbd->rgbtSpecial[j], red, green, blue, trans);
+      Imodv->vbManager->unpackRGBT(vbd->rgbtSpecial[j], red, green, blue, trans);
       if ((trans ? 1 : 0) == drawTrans) {
         imodTrace('v', "VB special %d, %s, %.2f %.2f %.2f %d", j, 
                   drawTrans ? "trans" : "solid", red, green, blue, trans);
@@ -2286,7 +2288,8 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
 
   // first time in, try to set up vertex buffer drawing if it is OK
   if (!drawTrans && vbOK) {
-    i = vbAnalyzeMesh(mesh, z, 1, obj->flags & IMOD_OBJFLAG_FCOLOR, &defProps);
+    i = Imodv->vbManager->analyzeMesh(mesh, z, 1, obj->flags & IMOD_OBJFLAG_FCOLOR,
+                                      &defProps);
     if (i != -1)
       imodTrace('b', "vbAnalyzeMesh returned %d", i);
   }
@@ -2296,7 +2299,8 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
   if (vbd && vbd->vbObj) {
 
     // First time in, If everything is trans, set flag and skip out
-    if (!drawTrans && defTrans && vbCheckAllTrans(obj, vbd, remnantMatchesTrans)) {
+    if (!drawTrans && defTrans && 
+        Imodv->vbManager->checkAllTrans(obj, vbd, remnantMatchesTrans)) {
       obj->flags |= IMOD_OBJFLAG_TEMPUSE;
       return;
     }
@@ -2323,7 +2327,7 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
 
     // Draw special sets, keeping cumulative index for offset
     for (j = 0; j < vbd->numSpecialSets; j++) {
-      vbUnpackRGBT(vbd->rgbtSpecial[j], red, green, blue, trans);
+      Imodv->vbManager->unpackRGBT(vbd->rgbtSpecial[j], red, green, blue, trans);
       if ((trans ? 1 : 0) == drawTrans) {
         imodTrace('v', "VB special %d, %s, %.2f %.2f %.2f %d", j, 
                   drawTrans ? "trans" : "solid", red, green, blue, trans);

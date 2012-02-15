@@ -178,6 +178,7 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->curPointExtraObj = 0;
   a->vertBufOK = -2;
   a->primRestartOK = 0;
+  a->vbManager = new VertBufManager;
 
   // DNM 6/6/04: Get rid of stereo command initialization
 
