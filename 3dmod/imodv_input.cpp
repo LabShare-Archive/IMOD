@@ -35,6 +35,7 @@
 #include "preferences.h"
 #include "control.h"
 #include "undoredo.h"
+#include "vertexbuffer.h"
 #include "imodv_menu.h"
 #include "imodv_ogl.h"
 #include "imodv_gfx.h"
@@ -477,6 +478,8 @@ void imodvKeyPress(QKeyEvent *event)
         ((a->imod->cindex.object == pickedObject && 
           a->imod->cindex.contour == pickedContour) || 
          imodSelectionListQuery(a->vi, pickedObject, pickedContour) > -2)) {
+
+      // This routine removes VBD's of all objects cont's removed from
       inputDeleteContour(a->vi);
       pickedContour = -1;
     } else if (!shifted) {

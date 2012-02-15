@@ -472,7 +472,7 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
 
   /* DNM: move the call to "SetView" into the model loop in order to have
      it handle all models independently; this requires the additional
-     steps for stereo display to happen inside thsi routine */
+     steps for stereo display to happen inside this routine */
 
   imodvSetViewbyModel(a, imod);
 
@@ -1199,9 +1199,10 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
         return;
       if (co < nextRemnant)
         co = nextRemnant;
-      if (remInd < vbd->numRemnant)
-        nextRemnant = vbd->remnantIndList[remInd++];
-      else
+      if (remInd < vbd->numRemnant) {
+        nextRemnant =  vbd->remnantIndList[remInd++];
+        B3DCLAMP(nextRemnant, 0 , obj->contsize - 1);
+      } else
         nextRemnant = -1;
     }
     cont = &(obj->cont[co]);
@@ -1658,22 +1659,19 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
   // first time in, try to set up vertex buffer drawing if it is OK and this is not
   // the line draw of fill outline
   if (!drawTrans && vbOK && !outlineDraw) {
-    i = vbAnalyzeSpheres(obj, sObjBeingDrawn, z, xybin, sScaleSphere, sQualitySphere, 
-                         style == DRAW_FILL ? 1 : 0, 
+    i = style == DRAW_FILL ? 1 : 0;
+    if (style == DRAW_POINTS)
+      i = -1;
+    i = vbAnalyzeSpheres(obj, sObjBeingDrawn, z, xybin, sScaleSphere, sQualitySphere, i, 
                          style == DRAW_FILL && (obj->flags & IMOD_OBJFLAG_FCOLOR) ? 1 : 0,
                          needThick ? 1 : 0, checkTime ? sCTime : 0);
     if (i != -1)
       imodTrace('b', "vbAnalyzeSpheres returned %d", i);
   }
 
-  // VBO cannot be used for pick draw
-  vbd = (vbOK && !Imodv->doPick && obj->vertBufSphere && obj->vertBufSphere->vbObj) ?
-    obj->vertBufSphere : NULL;
-
-  // VBO cannot be used on the outline draw if there are special sets with fill color
-  // embedded in them, since this draw needs to be a different color
-  if (vbd && outlineDraw && vbd->numSpecialSets && (obj->flags & IMOD_OBJFLAG_FCOLOR))
-    vbd = NULL;
+  // VBO cannot be used for pick draw or for any outline draw
+  vbd = (vbOK && !Imodv->doPick && !outlineDraw && obj->vertBufSphere && 
+         obj->vertBufSphere->vbObj) ? obj->vertBufSphere : NULL;
 
   // When drawing solids, if object has transparency, then check whether any 
   // contour or point stores set transparency to 0 and if not, skip
@@ -1733,16 +1731,21 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
     b3dPrimitiveRestartIndex(RESTART_INDEX);
 
     // Draw default if it matches trans state
-    if (vbd->numFanIndDefault) {
+    if (vbd->numFanIndDefault || vbd->numIndDefault) {
       if (drawTrans == defTrans) {
         imodTrace('v', "VB sphere default, %s  %d %u %u", drawTrans ? "trans" : "solid", 
                   vbd->numIndDefault, vbd->vbObj, vbd->ebObj);
-        if (vbd->numIndDefault)
-          glDrawElements(style == DRAW_POINTS ? GL_POINTS : GL_QUAD_STRIP, 
+        if (style == DRAW_FILL) {
+          if (vbd->numIndDefault)
+            glDrawElements(style == DRAW_POINTS ? GL_POINTS : GL_QUAD_STRIP, 
+                           vbd->numIndDefault, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+          glDrawElements(style == DRAW_POINTS ? GL_POINTS : GL_TRIANGLE_FAN, 
+                         vbd->numFanIndDefault, GL_UNSIGNED_INT, 
+                         BUFFER_OFFSET(vbd->fanIndStart * sizeof(GLuint)));
+        } else {
+          glDrawElements(style == DRAW_POINTS ? GL_POINTS : GL_LINE_STRIP, 
                          vbd->numIndDefault, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
-        glDrawElements(style == DRAW_POINTS ? GL_POINTS : GL_TRIANGLE_FAN, 
-                     vbd->numFanIndDefault, GL_UNSIGNED_INT, 
-                     BUFFER_OFFSET(vbd->fanIndStart * sizeof(GLuint)));
+        }
       } else
         obj->flags |= IMOD_OBJFLAG_TEMPUSE;
     }
@@ -1758,13 +1761,19 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
                   trans, vbd->numIndSpecial[j], cumQuadInd, vbd->numFanIndSpecial[j],
                   cumFanInd);
         ifgHandleColorTrans(obj, red, green, blue, trans);
-        if (vbd->numIndSpecial[j])
-          glDrawElements(style == DRAW_POINTS ? GL_POINTS : GL_QUAD_STRIP,
+        if (style == DRAW_FILL) {
+          if (vbd->numIndSpecial[j])
+            glDrawElements(style == DRAW_POINTS ? GL_POINTS : GL_QUAD_STRIP,
+                           vbd->numIndSpecial[j], GL_UNSIGNED_INT,
+                           BUFFER_OFFSET(cumQuadInd * sizeof(GLuint)));
+          glDrawElements(style == DRAW_POINTS ? GL_POINTS : GL_TRIANGLE_FAN,
+                         vbd->numFanIndSpecial[j], GL_UNSIGNED_INT,
+                         BUFFER_OFFSET(cumFanInd * sizeof(GLuint)));
+        } else {
+          glDrawElements(style == DRAW_POINTS ? GL_POINTS : GL_LINE_STRIP,
                          vbd->numIndSpecial[j], GL_UNSIGNED_INT,
                          BUFFER_OFFSET(cumQuadInd * sizeof(GLuint)));
-        glDrawElements(style == DRAW_POINTS ? GL_POINTS : GL_TRIANGLE_FAN,
-                       vbd->numFanIndSpecial[j], GL_UNSIGNED_INT,
-                       BUFFER_OFFSET(cumFanInd * sizeof(GLuint)));
+        }
       } else
         obj->flags |= IMOD_OBJFLAG_TEMPUSE;
       cumQuadInd += vbd->numIndSpecial[j];
@@ -1806,9 +1815,10 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
         break;
       if (co < nextRemnant)
         co = nextRemnant;
-      if (remInd < vbd->numRemnant)
-        nextRemnant = vbd->remnantIndList[remInd++];
-      else
+      if (remInd < vbd->numRemnant) {
+        nextRemnant =  vbd->remnantIndList[remInd++];
+        B3DCLAMP(nextRemnant, 0 , obj->contsize - 1);
+      } else
         nextRemnant = -1;
     }
 

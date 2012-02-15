@@ -53,7 +53,7 @@ static void loadVertex(float x, float y, float z);
 static int vbSphere(float radius, int slices, int stacks, GLfloat *vertex, GLuint *index,
                     int &indVert, int &indQuad, int &indFan, int needNorm, float xadd,
                     float yadd, float zadd);
-static int sphereCounts(int slices, int stacks, int &numQuad, int &numFan);
+static int sphereCounts(int slices, int stacks, int fillType, int &numQuad, int &numFan);
 static void copyDefaultSphere(GLfloat *defVert, GLuint *defInd, int numVert, int numQuad,
                               int numFan, int needNorm, GLfloat *vertex, GLuint *index, 
                               int &indVert, int &indQuad, int &indFan, float xadd, 
@@ -481,9 +481,9 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
   int colorType, cumFanInd, cumQuadInd, surfState, contState, stepRes;
   float drawsize;
   int numDefSphVert, numDefSphQuad, numDefSphFan, numTriples,indVert, indQuad, indFan;
-  int indQuadDef, indFanDef, irem;
+  int indQuadDef, indFanDef, irem, match;
 
-  if (fillType)
+  if (fillType > 0)
     handleFlags = (useFillColor ? CHANGED_FCOLOR : CHANGED_COLOR) | CHANGED_TRANS;
   else {
     handleFlags = CHANGED_COLOR | CHANGED_TRANS;
@@ -499,8 +499,15 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
   if (vbd && vbd->vbObj && fillType == vbd->fillType && vbd->useFillColor == useFillColor
       && quality == vbd->quality && obj->pdrawsize == vbd->pdrawsize &&
       checkTime == vbd->checkTime && fabs((double)(scrnScale - vbd->scrnScale)) < 1.e-4 &&
-      fabs((double)(zscale - vbd->zscale)) < 1.e-4 && thickenCont == vbd->thickenCont) {
-    if (!thickenCont || checkSelectedAreRemnants(vbd, obNum))
+      fabs((double)(zscale - vbd->zscale)) < 1.e-4 && 
+      (fillType != 0 || thickenCont == vbd->thickenCont)) {
+    match = 1;
+    if (fillType == 0 && thickenCont)
+      match = checkSelectedAreRemnants(vbd, obNum);
+    if (match && !Imodv->standalone && obNum == Imodv->imod->cindex.object && 
+        vbd->checksum != imodObjectChecksum(obj, obNum))
+      match = 0;
+    if (match)
       return -1;
   }
 
@@ -528,7 +535,7 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
       if (istoreCountItems(cont->store, colorType, 1) || 
           istoreCountItems(cont->store, GEN_STORE_TRANS, 1))
         skip = 1;
-      if (!skip && !fillType && istoreCountItems(cont->store, GEN_STORE_3DWIDTH, 1))
+      if (!skip && fillType <= 0 && istoreCountItems(cont->store, GEN_STORE_3DWIDTH, 1))
         skip = 1;
     }
     if (skip) {
@@ -548,7 +555,8 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
       if (!iobjScat(obj->flags) && !drawsize)
         continue;
       stepRes = sphereResForSize(drawsize);
-      numVerts += sphereCounts(2 * stepRes, stepRes, qf.numQuadInds, qf.numFanInds);
+      numVerts += sphereCounts(2 * stepRes, stepRes, fillType, qf.numQuadInds,
+                               qf.numFanInds);
 
       // For a special contour, add to list of RGBT values with the counts if it
       // is not on the list; if it is already on the list increment its count;
@@ -572,7 +580,8 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
   // Get parameters for default sphere
   drawsize = obj->pdrawsize / xybin;
   stepRes = sphereResForSize(drawsize);
-  numDefSphVert = sphereCounts(2 * stepRes, stepRes, numDefSphQuad, numDefSphFan);
+  numDefSphVert = sphereCounts(2 * stepRes, stepRes, fillType, numDefSphQuad, 
+                               numDefSphFan);
   imodTrace('b', "numverts %d cumfan %d cumquad %d def vert %d quad %d fan %d rem %d",
             numVerts, cumFanInd, cumQuadInd, numDefSphVert,numDefSphQuad, numDefSphFan,
             numRemnant);
@@ -609,7 +618,7 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
   vbd->fanIndStart = cumQuadInd;
 
   // Now allocate temps plus default sphere
-  numTriples = (1 + (fillType ? 1 : 0)) * numVerts;
+  numTriples = (1 + (fillType > 0 ? 1 : 0)) * numVerts;
   if (allocateTempVerts(numTriples) || allocateTempInds(cumFanInd) ||
       allocateDefaultSphere(numDefSphVert, numDefSphQuad + numDefSphFan, fillType)) {
     vbCleanupSphereVBD(obj);
@@ -627,8 +636,8 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
   indFan = numDefSphQuad;
   vbSphere(drawsize, 2 * stepRes, stepRes, sDefSphVerts, sDefSphInds, indVert, indQuad, 
            indFan, fillType, 0., 0., 0.);
-  imodTrace('b', "numtriples %d cumfan %d after def vert %d quad %d fan %d", 
-            numTriples, cumFanInd, indVert, indQuad,
+  imodTrace('b', "numtriples %d cumquad %d cumfan %d after def vert %d quad %d fan %d", 
+            numTriples, cumQuadInd, cumFanInd, indVert, indQuad,
             indFan);
   /*for (pt = 0; pt < indFan; pt++) {
     imodPrintStderr(" %d", sDefSphInds[pt]);
@@ -645,6 +654,7 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
   vbd->quality = quality;
   vbd->pdrawsize = obj->pdrawsize;
   vbd->thickenCont = thickenCont;
+  vbd->checksum = imodObjectChecksum(obj, obNum);
 
   // Process contours and points in them
   indVert = 0;
@@ -709,10 +719,10 @@ int vbAnalyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnSc
 
   imodTrace('b', "cumfan %d after load vert %d quad %d fan %d  irem %d", 
             cumFanInd, indVert, indQuad, indFan, irem);
-  /*for (pt = 0; pt < cumFanInd; pt++) {
+  /* for (pt = 0; pt < cumFanInd; pt++) {
     imodPrintStderr(" %d", sInds[pt]);
     if ((pt + 1) % 16 == 0 || pt == cumFanInd - 1) imodPrintStderr("\n");
-    }*/
+    } */
 
   // Transfer to GL
   b3dBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, cumFanInd * sizeof(GLuint), sInds);
@@ -754,6 +764,9 @@ int vbAnalyzeConts(Iobj *obj, int obNum, int thickenCont, int checkStipple, int 
         }
       }
     }
+    if (match && !Imodv->standalone && obNum == Imodv->imod->cindex.object && 
+        vbd->checksum != imodObjectChecksum(obj, obNum))
+      match = 0;
 
     if (match)
       return -1;
@@ -842,6 +855,7 @@ int vbAnalyzeConts(Iobj *obj, int obNum, int thickenCont, int checkStipple, int 
   vbd->checkTime = checkTime;
   vbd->checkStipple = checkStipple;
   vbd->thickenCont = thickenCont;
+  vbd->checksum = imodObjectChecksum(obj, obNum);
 
   // Load the vertex and index temp arrays
   ivert = 0;
@@ -1131,7 +1145,7 @@ static int allocateTempInds(int cumInd)
 
 static int allocateDefaultSphere(int numVerts, int numInds, int needNorm)
 {
-  int needed = numVerts * (1 + (needNorm ? 1 : 0));
+  int needed = numVerts * (1 + (needNorm > 0 ? 1 : 0));
   if (needed > sDefSphVertSize) {
     B3DFREE(sDefSphVerts);
     sDefSphVertSize = needed;
@@ -1233,29 +1247,35 @@ static int vbSphere(float radius, int slices, int stacks, GLfloat *vertex, GLuin
   sXadd = xadd;
   sYadd = yadd;
   sZadd = zadd;
-  sNormOffset = needNorm ? 3 : 0;
+  sNormOffset = needNorm > 0 ? 3 : 0;
 
   /* Low end first (j == 0 iteration) */
   sintemp2 = sinCache1b[1];
   zHigh = cosCache1b[1];
   sintemp3 = sinCache2b[1];
   costemp3 = cosCache2b[1];
-  index[indFan++] = sIndVert;
-  if (needNorm)
+  if (needNorm > 0) {
+    index[indFan++] = sIndVert;
     loadNormal(sinCache2a[0] * sinCache2b[0],
                cosCache2a[0] * sinCache2b[0],
                cosCache2b[0]);
+  }
   loadVertex(0., 0., radius);
-  for (i = slices; i >= 0; i--) {
-    index[indFan++] = sIndVert;
-    if (needNorm)
+  if (needNorm > 0) {
+    for (i = slices; i >= 0; i--) {
+      index[indFan++] = sIndVert;
       loadNormal(sinCache2a[i] * sintemp3,
                  cosCache2a[i] * sintemp3,
                  costemp3);
-    loadVertex(sintemp2 * sinCache1a[i],
-               sintemp2 * cosCache1a[i], zHigh);
+      loadVertex(sintemp2 * sinCache1a[i],
+                 sintemp2 * cosCache1a[i], zHigh);
+    }
+    index[indFan++] = RESTART_INDEX;
+  } else {
+    for (i = 0; i <= slices; i++) 
+      loadVertex(sintemp2 * sinCache1a[i],
+                 sintemp2 * cosCache1a[i], zHigh);
   }
-  index[indFan++] = RESTART_INDEX;
 
   for (j = start; j < finish; j++) {
     zHigh = cosCache1b[j+1];
@@ -1264,41 +1284,74 @@ static int vbSphere(float radius, int slices, int stacks, GLfloat *vertex, GLuin
     costemp3 = cosCache2b[j+1];
 
     // QUAD STRIP
-    for (i = 0; i <= slices; i++) {
-      index[indQuad++] = sIndVert;
-      if (needNorm)
+    if (needNorm > 0) {
+      for (i = 0; i <= slices; i++) {
+        index[indQuad++] = sIndVert;
         loadNormal(sinCache2a[i] * sintemp3,
                    cosCache2a[i] * sintemp3,
                    costemp3);
-      loadVertex(sintemp2 * sinCache1a[i],
-                 sintemp2 * cosCache1a[i], zHigh);
-
-      // Reverse the order of the previous disk of points the first time because it
-      // was added in inverse order
-      if (j == start)
-        index[indQuad++] = sIndVert - 2 * i - 2;
-      else
-        index[indQuad++] = sIndVert - slices - 2;
+        loadVertex(sintemp2 * sinCache1a[i],
+                   sintemp2 * cosCache1a[i], zHigh);
+        
+        // Reverse the order of the previous disk of points the first time because it
+        // was added in inverse order
+        if (j == start)
+          index[indQuad++] = sIndVert - 2 * i - 2;
+        else
+          index[indQuad++] = sIndVert - slices - 2;
+      }
+      index[indQuad++] = RESTART_INDEX;
+    } else {
+      for (i = 0; i <= slices; i++)
+        loadVertex(sintemp2 * sinCache1a[i],
+                   sintemp2 * cosCache1a[i], zHigh);
     }
-    index[indQuad++] = RESTART_INDEX;
   }
 
   /* High end last (j == stacks-1 iteration) */
-  index[indFan++] = sIndVert;
-  if (needNorm)
+  if (needNorm > 0) {
+    index[indFan++] = sIndVert;
     loadNormal(sinCache2a[stacks] * sinCache2b[stacks],
                cosCache2a[stacks] * sinCache2b[stacks],
                cosCache2b[stacks]);
-  loadVertex(0.0, 0.0, -radius);
-  for (i = 0; i <= slices; i++) {
+    loadVertex(0.0, 0.0, -radius);
+    for (i = 0; i <= slices; i++) {
+      
+      // Reverse the order of the points if they are the first disk
+      if (start < finish)
+        index[indFan++] = sIndVert + i - slices - 2;
+      else
+        index[indFan++] = sIndVert - i - 2;
+    }
+    index[indFan++] = RESTART_INDEX;
+  } else {
 
-    // Reverse the order of the points if they are the first disk
-    if (start < finish)
-      index[indFan++] = sIndVert + i - slices - 2;
-    else
-      index[indFan++] = sIndVert - i - 2;
+    // Now make the indices for a line strip along all longitude lines
+    loadVertex(0.0, 0.0, -radius);
+    index[indQuad++] = indVert;
+    for (i = 0; i < slices; i++) {
+      if (i % 2) {
+        for (j = stacks - 2; j >= 0; j--)
+          index[indQuad++] = indVert + 1 + i + j * (slices + 1);
+        index[indQuad++] = indVert;
+      } else {
+        for (j = 0; j <= stacks - 2; j++)
+          index[indQuad++] = indVert + 1 + i + j * (slices + 1);
+        index[indQuad++] = sIndVert - 1;
+      }     
+    }
+    index[indQuad++] = RESTART_INDEX;
+    
+    // And indexes for line strips along each disk unless doing points
+    if (needNorm == 0) {
+      for (j = 0; j <= stacks - 2; j++) {
+        for (i = 0; i <= slices; i++)
+          index[indQuad++] = indVert + 1 + i + j * (slices + 1);
+        index[indQuad++] = RESTART_INDEX;
+      }
+    }
+    
   }
-  index[indFan++] = RESTART_INDEX;
   indVert = sIndVert;
   return 0;
 }
@@ -1306,11 +1359,18 @@ static int vbSphere(float radius, int slices, int stacks, GLfloat *vertex, GLuin
 // Returns the number of vertices in a sphere with the given number of slices and
 // stacks, and the number of indices for quadrilaterals and triangle fans, including
 // restart indices
-static int sphereCounts(int slices, int stacks, int &numQuad, int &numFan)
+static int sphereCounts(int slices, int stacks, int fillType, int &numQuad, int &numFan)
 {
   int numVert;
-  numQuad = (2 * (slices + 1) + 1) * (stacks - 2);
-  numFan = 2 * (slices + 3);
+  if (fillType > 0 ) {
+    numQuad = (2 * (slices + 1) + 1) * (stacks - 2);
+    numFan = 2 * (slices + 3);
+  } else {
+    numQuad = stacks * slices + 2;
+    if (fillType == 0)
+      numQuad += (stacks - 1) * (slices + 2);
+    numFan = 0;
+  }
   numVert = (slices + 1)  * (stacks - 1) + 2;
   return numVert;
 }
@@ -1327,7 +1387,7 @@ static void copyDefaultSphere(GLfloat *defVert, GLuint *defInd, int numVert, int
   sXadd = xadd;
   sYadd = yadd;
   sZadd = zadd;
-  sNormOffset = needNorm ? 3 : 0;
+  sNormOffset = needNorm > 0 ? 3 : 0;
   idef = 0;
 
   // Assume the quad indexes are right before the fan indexes
@@ -1341,7 +1401,7 @@ static void copyDefaultSphere(GLfloat *defVert, GLuint *defInd, int numVert, int
   }
   idef = 0;
   for (int i = 0; i < numVert; i++) {
-    if (needNorm) {
+    if (needNorm > 0) {
       loadNormal(defVert[idef], defVert[idef+1], defVert[idef+2]);
       idef += 3;
     }
