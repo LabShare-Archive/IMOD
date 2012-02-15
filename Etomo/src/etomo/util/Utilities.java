@@ -543,6 +543,7 @@ public class Utilities {
       if (param.equals("None")) {
         continue;
       }
+      System.err.println(param);
       if (param.endsWith("alignlog")) {
         showDash = true;
       }
@@ -622,6 +623,7 @@ public class Utilities {
         if (param.startsWith("#") || param.startsWith("nohup")) {
           continue;
         }
+        System.err.println(param);
         if (command.endsWith("python")) {
           if (param.startsWith("makeBackupFile")) {
             chIndex = param.indexOf(".log");
