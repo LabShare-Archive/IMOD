@@ -543,7 +543,6 @@ public class Utilities {
       if (param.equals("None")) {
         continue;
       }
-      System.out.println("A:"+param);
       if (param.endsWith("alignlog")) {
         showDash = true;
       }
@@ -588,11 +587,9 @@ public class Utilities {
             }
             // Probably a file - remove the file path
             chIndex = param.lastIndexOf(File.separator);
-            System.out.println("B:chIndex:"+chIndex);
             if (isWindowsOS()) {
               //Windows paths are sometimes built with /.
               chIndex = Math.max(chIndex, param.lastIndexOf("/"));
-              System.out.println("C:chIndex:"+chIndex+",param.lastIndexOf:"+param.lastIndexOf("/"));
             }
             if (chIndex != -1) {
               param = param.substring(chIndex + 1);
@@ -602,6 +599,10 @@ public class Utilities {
       }
       else {
         chIndex = param.lastIndexOf(File.separator);
+        if (isWindowsOS()) {
+          //Windows paths are sometimes built with /.
+          chIndex = Math.max(chIndex, param.lastIndexOf("/"));
+        }
         if (chIndex != -1) {
           param = param.substring(chIndex + 1);
         }
