@@ -587,6 +587,10 @@ public class Utilities {
             }
             // Probably a file - remove the file path
             chIndex = param.lastIndexOf(File.separator);
+            if (isWindowsOS()) {
+              //Windows paths are sometimes built with "/".
+              chIndex = Math.max(chIndex, param.lastIndexOf("/"));
+            }
             if (chIndex != -1) {
               param = param.substring(chIndex + 1);
             }
