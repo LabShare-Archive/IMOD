@@ -543,7 +543,7 @@ public class Utilities {
       if (param.equals("None")) {
         continue;
       }
-      System.out.println(param);
+      System.out.println("A:"+param);
       if (param.endsWith("alignlog")) {
         showDash = true;
       }
@@ -623,7 +623,7 @@ public class Utilities {
         if (param.startsWith("#") || param.startsWith("nohup")) {
           continue;
         }
-        System.out.println(param);
+        System.out.println("B:"+param);
         if (command.endsWith("python")) {
           if (param.startsWith("makeBackupFile")) {
             chIndex = param.indexOf(".log");
