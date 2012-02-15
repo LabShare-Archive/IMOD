@@ -100,26 +100,26 @@ void imodv_setbuffer(ImodvApp *a, int db, int stereo, int alpha)
 
   // Skip if the requested change doesn't have a visual
   if (db >= 0) {
-    if ((db && (!inStereo && a->enableDepthSB < 0 || 
-                inStereo && a->enableDepthSBst < 0 || useAlpha)) ||
-        (!db && (!inStereo && a->enableDepthDB < 0 && a->enableDepthDBal < 0 || 
-                 inStereo && a->enableDepthDBst < 0 && a->enableDepthDBstAl < 0)))
+    if ((db && ((!inStereo && a->enableDepthSB < 0) || 
+                (inStereo && a->enableDepthSBst < 0) || useAlpha)) ||
+        (!db && ((!inStereo && a->enableDepthDB < 0 && a->enableDepthDBal < 0) || 
+                 (inStereo && a->enableDepthDBst < 0 && a->enableDepthDBstAl < 0))))
       return;
     useStereo = inStereo;
     useDb = db;
   } else if (alpha >= 0) {
-    if ((alpha && (!inStereo && a->enableDepthDB < 0 || 
-                   inStereo && a->enableDepthDBst < 0)) ||
-        (!alpha && (!inStereo && a->enableDepthDBal < 0 ||
-                    inStereo && a->enableDepthDBstAl < 0 || !useDb)))
+    if ((alpha && ((!inStereo && a->enableDepthDB < 0) || 
+                   (inStereo && a->enableDepthDBst < 0))) ||
+        (!alpha && ((!inStereo && a->enableDepthDBal < 0) ||
+                    (inStereo && a->enableDepthDBstAl < 0) || !useDb)))
       return;
     useStereo = inStereo;
     useAlpha = alpha;
   } else {
-    if ((a->db && (!stereo && a->enableDepthDB < 0 && a->enableDepthDBal < 0 || 
-                   stereo && a->enableDepthDBst < 0 && a->enableDepthDBstAl < 0)) ||
-        (!a->db && (!stereo && a->enableDepthSB < 0 || 
-                    stereo && a->enableDepthSBst < 0 )))
+    if ((a->db && ((!stereo && a->enableDepthDB < 0 && a->enableDepthDBal < 0) || 
+                   (stereo && a->enableDepthDBst < 0 && a->enableDepthDBstAl < 0))) ||
+        (!a->db && ((!stereo && a->enableDepthSB < 0) || 
+                    (stereo && a->enableDepthSBst < 0 ))))
       return;
     useStereo = stereo;
   }
@@ -208,7 +208,7 @@ void imodvPaintGL()
   ImodvApp *a = Imodv;
   static int drawcount = 0;
   int color;
-  float scale, glVersion;
+  float scale;
 
   // First time in, find the OpenGL version and set vertBufOK to -1 or 1
   if (a->vertBufOK < -1) {
@@ -218,7 +218,8 @@ void imodvPaintGL()
   }
 
   //if (Imod_debug)
-  //  imodPrintStderr("drawing %d\n", drawcount++);
+  //  imodPrintStderr("drawing %d\n", drawcount);
+  drawcount++;
 
   if (!a->imod)
     return;

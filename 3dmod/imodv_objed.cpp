@@ -402,8 +402,8 @@ static void objset(ImodvApp *a)
         ob = a->ob + dir * diff;
         if (ob < 0 || ob >= a->imod->objsize)
           continue;
-        if (Imodv_objed_all == editOns && !iobjOff(a->imod->obj[ob].flags) ||
-            Imodv_objed_all == editGroup && imodvOlistObjInGroup(a, ob)) {
+        if ((Imodv_objed_all == editOns && !iobjOff(a->imod->obj[ob].flags)) ||
+            (Imodv_objed_all == editGroup && imodvOlistObjInGroup(a, ob))) {
           a->ob = ob;
           type = 1;
           break;

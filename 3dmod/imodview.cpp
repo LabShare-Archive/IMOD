@@ -3157,7 +3157,7 @@ void ivwSetOverlayMode(ImodView *vw, int sec, int reverse,
 {
 
   // If changing state, change color ramps
-  if (vw->overlaySec && !sec || !vw->overlaySec && sec) {
+  if ((vw->overlaySec && !sec) || (!vw->overlaySec && sec)) {
     if (vw->overlayRamp < 0) {
 
       // The first time, save the ramp index, and initialize the next ramp

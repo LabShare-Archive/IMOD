@@ -238,8 +238,8 @@ void ModelHeaderWindow::setPixelClicked()
 // The draw box has been toggled
 void ModelHeaderWindow::drawToggled(bool state)
 {
-  if (state && sData.vw->imod->drawmode <= 0 ||
-      !state &&sData.vw->imod->drawmode > 0)
+  if ((state && sData.vw->imod->drawmode <= 0) ||
+      (!state &&sData.vw->imod->drawmode > 0))
     sData.vw->imod->drawmode = -sData.vw->imod->drawmode;
   imodDraw(sData.vw, IMOD_DRAW_MOD);
 }

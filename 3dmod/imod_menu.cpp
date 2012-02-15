@@ -127,7 +127,7 @@ void InfoWindow::fileSlot(int item)
     imod_info_forbid();
     imod_info_input();
     releaseKeyboard();
-    if (SaveModel(App->cvi->imod));
+    SaveModel(App->cvi->imod);
     /*         wprint("Error Saving Model."); DNM: it already has message*/
     imod_info_enable();
     break;
