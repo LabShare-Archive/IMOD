@@ -62,7 +62,9 @@ need not be indented.
 The program will enclose the text that used to run a command, in single
 quotes (' ') and text that is input to programs in triple quotes (""" """).  
 If you need to pass a command line argument containing spaces
-to a program, enclose it in double quotes (" ").
+to a program, enclose it in double quotes (" ").  Do not escape spaces with
+backslashes.  Backslashes should appear only in Windows file paths.  These
+will be converted to forward slashes.
 .SS Translations
 The following translations will occur.  Some of these are generally useful,
 some are needed to support constructs in existing command files for tomogram
@@ -200,6 +202,10 @@ entered as many times as needed.
 .TP
 .B -n #
 Increment the process niceness by the given # at the beginning of the script.
+.TP
+.B -t
+Run in test mode where all commands are prefixed by "echo2"; the output should
+be runnable in Python.
 .SH EXAMPLES
 .nf
 # Example 1: Command file to align an image stack
