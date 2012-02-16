@@ -4,7 +4,14 @@
 #include "b3dgfx.h"
 #include <map>
 using namespace std;
-typedef map<b3dUInt32,int> RGBTmap;
+
+struct RGBTindices {
+  int firstElement;
+  int numInds;
+  int numFanInds;
+};
+
+typedef map<b3dUInt32,RGBTindices> RGBTmap;
 
 #define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
 #define RESTART_INDEX 0x7fffffff
@@ -50,6 +57,7 @@ void vbCleanupSphereVBD(Iobj *obj);
 void vbCleanupContVBD(Iobj *obj);
 void vbCleanupMeshVBD(Iobj *obj);
 
+// The class for mangaging VBO's
 class VertBufManager {
  public:
   VertBufManager();
@@ -72,15 +80,15 @@ class VertBufManager {
   void packRGBT(DrawProps *props, int useFill, b3dUInt32 &rgbtVal);
   int loadVertexNormalArray(Imesh *mesh, float zscale, int fillType);
   int allocateSpecialSets(VertBufData *vbd, int numSets, int cumInd, int sphere);
-  void processSimpleMap(VertBufData *vbd, RGBTmap *colors, int &cumInd,
-                        int indPerItem);
+  int processMap(VertBufData *vbd, RGBTmap *colors, int &cumInd,
+                  int indPerItem, int &cumFanInd);
   VertBufData *allocateVBDIfNeeded(VertBufData **vbdp);
   int genAndBindBuffers(VertBufData *vbd, int numVerts, int cumInd) ;
   int allocateTempVerts(int numVerts);
   int allocateTempInds(int cumInd) ;
   int allocateDefaultSphere(int numVerts, int numInds, int needNorm);
-  void loadNormal(float x, float y, float z);
-  void loadVertex(float x, float y, float z);
+  inline void loadNormal(float x, float y, float z);
+  inline void loadVertex(float x, float y, float z);
   int makeSphere(float radius, int slices, int stacks, GLfloat *vertex, GLuint *index,
                  int &indVert, int &indQuad, int &indFan, int needNorm, float xadd,
                  float yadd, float zadd);

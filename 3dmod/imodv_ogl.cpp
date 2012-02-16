@@ -141,6 +141,7 @@ static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
   if (a->curPointExtraObj > 0) {
     xobj = ivwGetAnExtraObject(a->vi, a->curPointExtraObj);
     if (xobj) {
+      vbCleanupVBD(xobj);
       curPnt = imodPointGet(imod);
       if (curPnt && imod->mousemode == IMOD_MMODEL) 
         xobj->cont[0].pts[0] = *curPnt;

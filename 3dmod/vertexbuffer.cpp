@@ -15,12 +15,7 @@
 #include "vertexbuffer.h"
 #include "imodv_ogl.h"
 
-struct QuadsAndFans {
-  int numFanInds;
-  int numQuadInds;
-};
-
-typedef map<b3dUInt32,QuadsAndFans> SphereMap;
+typedef map<int,b3dUInt32> ReverseMap;
 
 // Declarations of local functions for dealing with VBD's
 static VertBufData *vbDataNew();
@@ -134,6 +129,9 @@ VertBufManager::VertBufManager()
 
 }
 
+/*
+ * Analyze a mesh and pack it into VBOs if it qualifies
+ */
 int VertBufManager::analyzeMesh(Imesh *mesh, float zscale, int fillType, int useFillColor,
                   DrawProps *defProps)
 {
@@ -142,6 +140,7 @@ int VertBufManager::analyzeMesh(Imesh *mesh, float zscale, int fillType, int use
   pair<RGBTmap::iterator,bool> mapret;
   RGBTmap::iterator mapit;
   VertBufData *vbd = mesh->vertBuf;
+  RGBTindices rInd;
   Istore *stp;
   Istore store;
   int *mlist = mesh->list;
@@ -151,13 +150,14 @@ int VertBufManager::analyzeMesh(Imesh *mesh, float zscale, int fillType, int use
   int remInd, curSave, curNext;
   int numDefaultTri = 0, numMixedTri = 0;
   int handleFlags, nonVboFlags = 0;
+  
   if (fillType)
     handleFlags = (useFillColor ? CHANGED_FCOLOR : CHANGED_COLOR) | CHANGED_TRANS;
   else {
     handleFlags = CHANGED_COLOR | CHANGED_TRANS;
     nonVboFlags = CHANGED_3DWIDTH;
   }
-
+  rInd.numFanInds = 0;
 
   // Check if there is a current VBO and it is all still valid 
   packRGBT(defProps, useFillColor, firstRGBT);
@@ -252,9 +252,11 @@ int VertBufManager::analyzeMesh(Imesh *mesh, float zscale, int fillType, int use
             
             // For a special triangle, add to list of RGBT values with a count of 1 if it
             // is not on the list; if it is already on the list increment its count;
-            mapret = colors.insert(pair<b3dUInt32,int>(firstRGBT, 1));
+            rInd.firstElement = i;
+            rInd.numInds = 1;
+            mapret = colors.insert(pair<b3dUInt32,RGBTindices>(firstRGBT, rInd));
             if (mapret.second == false)
-              mapret.first->second++;
+              mapret.first->second.numInds++;
           }
         }
       }
@@ -275,17 +277,18 @@ int VertBufManager::analyzeMesh(Imesh *mesh, float zscale, int fillType, int use
     return 1;
 
   // Now allocate whatever pieces are needed in there.  Set remnant value in vbd first
+  // Add up the special set sizes and re-initialize the counts to be starting indexes
   cumInd = numDefaultTri * 3;
   vbd->numRemnant = 0;
   if (numMixedTri)
     vbd->numRemnant = numMixedTri * 3 + 3;
-  if (allocateSpecialSets(vbd, colors.size(), cumInd, 0)) {
+  i = -1;
+  if (allocateSpecialSets(vbd, colors.size(), cumInd, 0) ||
+      processMap(vbd, &colors, cumInd, 3, i)) {
     vbCleanupVBD(mesh);
     return 1;
   }
       
-  // Add up the special set sizes and re-initialize the counts to be starting indexes
-  processSimpleMap(vbd, &colors, cumInd, 3);
   imodTrace('b',"dfltInd %d  spec sets %d cumind %d  remnant %d", vbd->numIndDefault,
             vbd->numSpecialSets, cumInd, numMixedTri);
 
@@ -402,9 +405,9 @@ int VertBufManager::analyzeMesh(Imesh *mesh, float zscale, int fillType, int use
             mInds[defInd++] = mlist[i++] / 2;
           } else if (firstDflt == 0) {
             mapit = colors.find(firstRGBT);
-            mInds[mapit->second++] = mlist[i++] / 2;
-            mInds[mapit->second++] = mlist[i++] / 2;
-            mInds[mapit->second++] = mlist[i++] / 2;
+            mInds[mapit->second.numInds++] = mlist[i++] / 2;
+            mInds[mapit->second.numInds++] = mlist[i++] / 2;
+            mInds[mapit->second.numInds++] = mlist[i++] / 2;
           } else {
 
             // For mixed triangle, save the current pointer, copy the index for each 
@@ -448,19 +451,23 @@ int VertBufManager::analyzeMesh(Imesh *mesh, float zscale, int fillType, int use
   return 0;
 }
 
-int VertBufManager::analyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin, float scrnScale,
-                     int quality, int fillType, int useFillColor, int thickenCont,
-                     int checkTime)
+/*
+ * Analyze spherical points in the given object and convert them to vectors and
+ * normals for faster drawing
+ */
+int VertBufManager::analyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin,
+                                   float scrnScale, int quality, int fillType,
+                                   int useFillColor, int thickenCont, int checkTime)
 {
-  SphereMap colors;
-  pair<SphereMap::iterator,bool> mapret;
-  SphereMap::iterator mapit;
-  QuadsAndFans qf;
+  RGBTmap colors;
+  pair<RGBTmap::iterator,bool> mapret;
+  RGBTmap::iterator mapit;
+  RGBTindices rInd;
   DrawProps defProps, contProps;
   b3dUInt32 contRGBT;
   VertBufData *vbd = obj->vertBufSphere;
   Icont *cont;
-  int handleFlags, nonVboFlags = 0, numRemnant, fullState, skip, numVerts, co, pt, i;
+  int handleFlags, nonVboFlags = 0, numRemnant, fullState, skip, numVerts, co, pt;
   int colorType, cumFanInd, cumQuadInd, surfState, contState, stepRes;
   float drawsize;
   int numDefSphVert, numDefSphQuad, numDefSphFan, numTriples,indVert, indQuad, indFan;
@@ -529,8 +536,8 @@ int VertBufManager::analyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin
 
     // Loop on the points and determine number of vertices and indices needed for each
     // Since we don't skip point drawing, this doesn't need store changes checked
-    qf.numFanInds = 0;
-    qf.numQuadInds = 0;
+    rInd.numInds = 0;
+    rInd.numFanInds = 0;
     for (pt = 0; pt < cont->psize; pt++) {
 
       // Only draw zero-size points with scattered point objects
@@ -538,21 +545,22 @@ int VertBufManager::analyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin
       if (!iobjScat(obj->flags) && !drawsize)
         continue;
       stepRes = sphereResForSize(drawsize);
-      numVerts += sphereCounts(2 * stepRes, stepRes, fillType, qf.numQuadInds,
-                               qf.numFanInds);
+      numVerts += sphereCounts(2 * stepRes, stepRes, fillType, rInd.numInds,
+                               rInd.numFanInds);
 
       // For a special contour, add to list of RGBT values with the counts if it
       // is not on the list; if it is already on the list increment its count;
       if (fullState & handleFlags) {
+        rInd.firstElement = co;
         packRGBT(&contProps, useFillColor, contRGBT);
-        mapret = colors.insert(pair<b3dUInt32,QuadsAndFans>(contRGBT, qf));
+        mapret = colors.insert(pair<b3dUInt32,RGBTindices>(contRGBT, rInd));
         if (mapret.second == false) {
-          mapret.first->second.numQuadInds += qf.numQuadInds;
-          mapret.first->second.numFanInds += qf.numFanInds;
+          mapret.first->second.numInds += rInd.numInds;
+          mapret.first->second.numFanInds += rInd.numFanInds;
         }
       } else {
-        cumFanInd += qf.numFanInds;
-        cumQuadInd += qf.numQuadInds;
+        cumQuadInd += rInd.numInds;
+        cumFanInd += rInd.numFanInds;
       }
     }
   }      
@@ -576,27 +584,11 @@ int VertBufManager::analyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin
   vbd->numRemnant = numRemnant;
 
   // Now allocate whatever pieces are needed in VBD
-  if (allocateSpecialSets(vbd, colors.size(), cumQuadInd, 1)) {
+  // Add up the special set sizes and re-initialize the counts to be starting indexes
+  if (allocateSpecialSets(vbd, colors.size(), cumQuadInd, 1) ||
+      processMap(vbd, &colors, cumQuadInd, 1, cumFanInd)) {
     vbCleanupSphereVBD(obj);
     return 1;
-  }
-
-  // Add up the special set sizes and re-initialize the counts to be starting indexes
-  mapit = colors.begin();
-  for (i = 0; i < vbd->numSpecialSets; i++) {
-    vbd->rgbtSpecial[i] = mapit->first;
-    vbd->numIndSpecial[i] = mapit->second.numQuadInds;
-    mapit->second.numQuadInds = cumQuadInd;
-    cumQuadInd += vbd->numIndSpecial[i];
-    mapit++;
-  }
-  cumFanInd += cumQuadInd;
-  mapit = colors.begin();
-  for (i = 0; i < vbd->numSpecialSets; i++) {
-    vbd->numFanIndSpecial[i] = mapit->second.numFanInds;
-    mapit->second.numFanInds = cumFanInd;
-    cumFanInd += vbd->numFanIndSpecial[i];
-    mapit++;
   }
   vbd->fanIndStart = cumQuadInd;
 
@@ -664,13 +656,14 @@ int VertBufManager::analyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin
     if (fullState & handleFlags) {
       packRGBT(&contProps, useFillColor, contRGBT);
       mapit = colors.find(contRGBT);
-      indQuad = mapit->second.numQuadInds;
+      indQuad = mapit->second.numInds;
       indFan = mapit->second.numFanInds;
     } else {
       indQuad = indQuadDef;
       indFan = indFanDef;
     }
 
+    // Loop on the points and make sohere or copy the default
     for (pt = 0; pt < cont->psize; pt++) {
 
       drawsize = imodPointGetSize(obj, cont, pt);
@@ -692,7 +685,7 @@ int VertBufManager::analyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin
 
     // Save the new indices back where they came from
     if (fullState & handleFlags) {
-      mapit->second.numQuadInds = indQuad;
+      mapit->second.numInds = indQuad;
       mapit->second.numFanInds = indFan;
     } else {
       indQuadDef = indQuad;
@@ -716,18 +709,24 @@ int VertBufManager::analyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin
   return 0;
 }
 
-int VertBufManager::analyzeConts(Iobj *obj, int obNum, int thickenCont, int checkStipple, int checkTime)
+/*
+ * Analyze the given object and set up for contour drawing with VBOs
+ */
+int VertBufManager::analyzeConts(Iobj *obj, int obNum, int thickenCont, int checkStipple,
+                                 int checkTime)
 {
   RGBTmap colors;
   pair<RGBTmap::iterator,bool> mapret;
   RGBTmap::iterator mapit;
   DrawProps defProps, contProps;
   VertBufData *vbd = obj->vertBufCont;
+  RGBTindices rInd;
   b3dUInt32 contRGBT;
   Icont *cont;
   int handleFlags, nonVboFlags, numRemnant, fullState, skip, numVerts, cumInd, co;
   int numInds, ivert, irem, iDefInd, contState, surfState, ind, pt, psize, match;
 
+  rInd.numFanInds = 0;
   handleFlags = CHANGED_COLOR | CHANGED_TRANS;
   nonVboFlags = CHANGED_3DWIDTH;
 
@@ -800,10 +799,12 @@ int VertBufManager::analyzeConts(Iobj *obj, int obNum, int thickenCont, int chec
     // For a special contour, add to list of RGBT values with the index count if it
     // is not on the list; if it is already on the list add to its count;
     if (fullState & handleFlags) {
+      rInd.firstElement = co;
+      rInd.numInds = numInds;
       packRGBT(&contProps, 0, contRGBT);
-      mapret = colors.insert(pair<b3dUInt32,int>(contRGBT, numInds));
+      mapret = colors.insert(pair<b3dUInt32,RGBTindices>(contRGBT, rInd));
       if (mapret.second == false)
-        mapret.first->second += numInds;
+        mapret.first->second.numInds += numInds;
     } else {
       cumInd += numInds;
     }
@@ -816,14 +817,15 @@ int VertBufManager::analyzeConts(Iobj *obj, int obNum, int thickenCont, int chec
   if (!vbd)
     return 1;
 
+  // Add up the special set sizes and re-initialize the counts to be starting indexes
   vbd->numRemnant = numRemnant;
-  if (allocateSpecialSets(vbd, colors.size(), cumInd, 0)) {
+  co = -1;
+  if (allocateSpecialSets(vbd, colors.size(), cumInd, 0) || 
+      processMap(vbd, &colors, cumInd, 1, co)) {
     vbCleanupContVBD(obj);
     return 1;
   }
       
-  // Add up the special set sizes and re-initialize the counts to be starting indexes
-  processSimpleMap(vbd, &colors, cumInd, 1);
   imodTrace('b',"dfltInd %d  spec sets %d cumind %d  remnant %d", vbd->numIndDefault,
             vbd->numSpecialSets, cumInd, numRemnant);
   
@@ -871,8 +873,8 @@ int VertBufManager::analyzeConts(Iobj *obj, int obNum, int thickenCont, int chec
     if (fullState & handleFlags) {
       packRGBT(&contProps, 0, contRGBT);
       mapit = colors.find(contRGBT);
-      ind = mapit->second;
-      mapit->second += numInds;
+      ind = mapit->second.numInds;
+      mapit->second.numInds += numInds;
     } else {
       ind = iDefInd;
       iDefInd += numInds;
@@ -901,6 +903,51 @@ int VertBufManager::analyzeConts(Iobj *obj, int obNum, int thickenCont, int chec
   b3dBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   b3dBufferSubData(GL_ARRAY_BUFFER, 0, numVerts * 3 * sizeof(GLfloat), mVerts);
   b3dBindBuffer(GL_ARRAY_BUFFER, 0);
+  return 0;
+}
+
+/*
+ * Returns 1 if all contours in the remnant list are on selection list
+ */
+int VertBufManager::checkSelectedAreRemnants(VertBufData *vbd, int obNum)
+{
+  Iindex *index;
+  if (Imodv->imod->cindex.object == obNum && Imodv->imod->cindex.contour >= 0 &&
+      !numberInList(Imodv->imod->cindex.contour, vbd->remnantIndList, vbd->numRemnant, 0))
+    return 0;
+  for (int i = 0; i < ilistSize(Imodv->vi->selectionList); i++) {
+    index = (Iindex *)ilistItem(Imodv->vi->selectionList, i);
+    if (index->object == obNum && index->contour >= 0 &&
+        !numberInList(index->contour, vbd->remnantIndList, vbd->numRemnant, 0))
+      return 0;
+  }
+  return 1;
+}
+
+/*
+ * When drawing nontrans and default is trans, call this to check the remnants;
+ * if it is all trans, then check all the special sets for any non-trans;
+ * If everything is trans, set flag and give nonzero return
+ */
+int VertBufManager::checkAllTrans(Iobj *obj, VertBufData *vbd, int &remnantMatchesTrans)
+{
+  float red, green, blue;
+  int trans, j, specialNonTrans = 0;
+
+  remnantMatchesTrans = istoreTransStateMatches(vbd->remnantStore, 0);
+  if (!remnantMatchesTrans) {
+    for (j = 0; j < vbd->numSpecialSets; j++) {
+      unpackRGBT(vbd->rgbtSpecial[j], red, green, blue, trans);
+      if (!trans) {
+        specialNonTrans = 1;
+        break;
+      }
+    }
+    if (!specialNonTrans) {
+      obj->flags |= IMOD_OBJFLAG_TEMPUSE;
+      return 1;
+    }
+  }
   return 0;
 }
 
@@ -980,6 +1027,9 @@ void VertBufManager::unpackRGBT(b3dUInt32 rgbtVal, int useFill, DrawProps *props
     unpackRGBT(rgbtVal, props->red, props->green, props->blue, props->trans);
 }
 
+/*
+ * Free all the temporary arrays after drawing if any were used
+ */
 void VertBufManager::clearTempArrays()
 {
   B3DFREE(mInds);
@@ -996,33 +1046,12 @@ void VertBufManager::clearTempArrays()
   mDefSphVertSize = 0;
 }
 
-
-// When drawing nontrans and default is trans, call this to check the remnants;
-// if it is all trans, then check all the special sets for any non-trans;
-// If everything is trans, set flag and give nonzero return
-int VertBufManager::checkAllTrans(Iobj *obj, VertBufData *vbd, int &remnantMatchesTrans)
-{
-  float red, green, blue;
-  int trans, j, specialNonTrans = 0;
-
-  remnantMatchesTrans = istoreTransStateMatches(vbd->remnantStore, 0);
-  if (!remnantMatchesTrans) {
-    for (j = 0; j < vbd->numSpecialSets; j++) {
-      unpackRGBT(vbd->rgbtSpecial[j], red, green, blue, trans);
-      if (!trans) {
-        specialNonTrans = 1;
-        break;
-      }
-    }
-    if (!specialNonTrans) {
-      obj->flags |= IMOD_OBJFLAG_TEMPUSE;
-      return 1;
-    }
-  }
-  return 0;
-}
-
-int VertBufManager::allocateSpecialSets(VertBufData *vbd, int numSets, int cumInd, int sphere)
+/*
+ * Allocate arrays in the VBD for the special sets and the remnants and set some values
+ * in the VBD
+ */
+int VertBufManager::allocateSpecialSets(VertBufData *vbd, int numSets, int cumInd,
+                                        int sphere)
 {
   vbd->numSpecialSets = numSets;
   vbd->numIndDefault = cumInd;
@@ -1048,20 +1077,57 @@ int VertBufManager::allocateSpecialSets(VertBufData *vbd, int numSets, int cumIn
   return 0;
 }
 
-void VertBufManager::processSimpleMap(VertBufData *vbd, RGBTmap *colors, int &cumInd, 
-                             int indPerItem)
+/*
+ * Take the map from RGB to index counts produced during initial scan, save the index
+ * counts in the VBD, and convert the index counts to starting indices (for quads and fans
+ * if doing spheres).
+ */
+int VertBufManager::processMap(VertBufData *vbd, RGBTmap *colors, int &cumInd, 
+                             int indPerItem, int &cumFanInd)
 {
+  ReverseMap elements;
+  ReverseMap::iterator revit;
   RGBTmap::iterator mapit;
-  mapit = colors->begin();
-  for (int i = 0; i < vbd->numSpecialSets; i++) {
-    vbd->rgbtSpecial[i] = mapit->first;
-    vbd->numIndSpecial[i] = mapit->second * indPerItem;
-    mapit->second = cumInd;
-    cumInd += vbd->numIndSpecial[i];
-    mapit++;
+  pair<ReverseMap::iterator,bool> mret;
+  int i;
+
+  // Build a reverse map: this will put them in order by the first index where the RGBT
+  // was encountered
+  for (mapit = colors->begin(); mapit != colors->end(); mapit++) {
+    mret = elements.insert(pair<int,b3dUInt32>(mapit->second.firstElement, mapit->first));
+    if (!mret.second)
+      return 1;
   }
+
+  // Now going in order by first index, assign the starting points for each portion
+  // of index array
+  revit = elements.begin();
+  for (i = 0; i < vbd->numSpecialSets; i++) {
+    mapit = colors->find(revit->second);
+    vbd->rgbtSpecial[i] = mapit->first;
+    vbd->numIndSpecial[i] = mapit->second.numInds * indPerItem;
+    mapit->second.numInds = cumInd;
+    cumInd += vbd->numIndSpecial[i];
+    revit++;
+  }
+
+  if (cumFanInd < 0)
+    return 0;
+  
+  // Do same for the fan indices if any
+  cumFanInd += cumInd;
+  revit = elements.begin();
+  for (i = 0; i < vbd->numSpecialSets; i++) {
+    mapit = colors->find(revit->second);
+    vbd->numFanIndSpecial[i] = mapit->second.numFanInds;
+    mapit->second.numFanInds = cumFanInd;
+    cumFanInd += vbd->numFanIndSpecial[i];
+    revit++;
+  }
+  return 0;
 }
 
+// Does just that
 VertBufData *VertBufManager::allocateVBDIfNeeded(VertBufData **vbdp)
 {
   if (!*vbdp)
@@ -1069,6 +1135,10 @@ VertBufData *VertBufManager::allocateVBDIfNeeded(VertBufData **vbdp)
   return *vbdp;
 }
 
+/*
+ * If there are no existing buffers or they are not big enough, generate vertex buffers 
+ * and allocate to needed size.  In any case, bind them.
+ */
 int VertBufManager::genAndBindBuffers(VertBufData *vbd, int numVerts, int cumInd) 
 {
   if (!vbd->vbObj || 3 * numVerts > vbd->vboSize) {
@@ -1098,6 +1168,9 @@ int VertBufManager::genAndBindBuffers(VertBufData *vbd, int numVerts, int cumInd
   return 0;
 }
 
+/*
+ * Routines for allocating temporrary arrays, for vertices and indexes
+ */
 int VertBufManager::allocateTempVerts(int numVerts) 
 {
   if (3 * numVerts > mVertSize) {
@@ -1126,6 +1199,7 @@ int VertBufManager::allocateTempInds(int cumInd)
   return 0;
 }
 
+// Allocate arrays for the default sized sphere
 int VertBufManager::allocateDefaultSphere(int numVerts, int numInds, int needNorm)
 {
   int needed = numVerts * (1 + (needNorm > 0 ? 1 : 0));
@@ -1150,13 +1224,14 @@ int VertBufManager::allocateDefaultSphere(int numVerts, int numInds, int needNor
   return  0;
 }
 
-void VertBufManager::loadNormal(float x, float y, float z)
+// Convenience functions for putting normals and vertices in the arrays
+inline void VertBufManager::loadNormal(float x, float y, float z)
 {
   mVertex[6*mIndVert] = x;
   mVertex[6*mIndVert+1] = y;
   mVertex[6*mIndVert+2] = z;
 }
-void VertBufManager::loadVertex(float x, float y, float z)
+inline void VertBufManager::loadVertex(float x, float y, float z)
 {
   int indBase = (3 + mNormOffset) * mIndVert + mNormOffset;
   mVertex[indBase] = x + mXadd;
@@ -1170,9 +1245,28 @@ void VertBufManager::loadVertex(float x, float y, float z)
 #define sinCache2a sinCache1a
 #define cosCache2a cosCache1a
 
-int VertBufManager::makeSphere(float radius, int slices, int stacks, GLfloat *vertex, GLuint *index,
-                    int &indVert, int &indQuad, int &indFan, int needNorm, float xadd,
-                    float yadd, float zadd)
+/*
+ * Makes vertices and indices for a sphere.
+ * This was abstracted and heavily adapted from gluSphere in quad.c of the mesa library.
+ * That file was marked:
+ *
+ * SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008)
+ * Copyright (C) 1991-2000 Silicon Graphics, Inc. All Rights Reserved.
+ *
+ * but I don't consider what is left from there to be a "substantial portion of the 
+ * Software" so I don't see the need to propagate this information with the binaries.
+ *
+ * If needNorm is 1 it creates vertices and normals just as in the original gluSphere
+ * If needNorm is 0 it creates a set of line strips to avoid double-drawing lines
+ * and creating intensity differences with transparency
+ * if needNorm is -1 is just makes one line strip for longitudinal lines, for point 
+ * drawing.
+ * It packs the data sequentially in the given arrays, maintaining the indices for
+ * the next elements, and adds the given coordinates.
+ */
+int VertBufManager::makeSphere(float radius, int slices, int stacks, GLfloat *vertex, 
+                               GLuint *index, int &indVert, int &indQuad, int &indFan,
+                               int needNorm, float xadd, float yadd, float zadd)
 {
   int i,j;
   float sinCache1a[CACHE_SIZE];
@@ -1335,10 +1429,14 @@ int VertBufManager::makeSphere(float radius, int slices, int stacks, GLfloat *ve
   return 0;
 }
 
-// Returns the number of vertices in a sphere with the given number of slices and
-// stacks, and the number of indices for quadrilaterals and triangle fans, including
-// restart indices
-int VertBufManager::sphereCounts(int slices, int stacks, int fillType, int &numQuad, int &numFan)
+/*
+ * Returns the number of vertices in a sphere with the given number of slices and
+ * stacks, and the number of indices for quadrilaterals and triangle fans, including
+ * restart indices.  Quads and fans are assumed if fillType > 0, otherwise line strips
+ * for lines or points
+ */
+int VertBufManager::sphereCounts(int slices, int stacks, int fillType, int &numQuad,
+                                 int &numFan)
 {
   int numVert;
   if (fillType > 0 ) {
@@ -1354,10 +1452,15 @@ int VertBufManager::sphereCounts(int slices, int stacks, int fillType, int &numQ
   return numVert;
 }
 
-void VertBufManager::copyDefaultSphere(GLfloat *defVert, GLuint *defInd, int numVert, int numQuad,
-                              int numFan,  int needNorm, GLfloat *vertex, GLuint *index, 
-                              int &indVert, int &indQuad, int &indFan, float xadd, 
-                              float yadd, float zadd)
+/*
+ * Copies the default sized sphere into the running vertex and index arrays, adjusting
+ * coordinates and indices as appropriate
+ */
+void VertBufManager::copyDefaultSphere(GLfloat *defVert, GLuint *defInd, int numVert,
+                                       int numQuad, int numFan,  int needNorm,
+                                       GLfloat *vertex, GLuint *index, int &indVert,
+                                       int &indQuad, int &indFan, float xadd, float yadd,
+                                       float zadd)
 {
   int i, idef;
   int trueIndex;
@@ -1390,18 +1493,3 @@ void VertBufManager::copyDefaultSphere(GLfloat *defVert, GLuint *defInd, int num
   indVert = mIndVert;
 }
 
-// Return 1 if all contours on selection list
-int VertBufManager::checkSelectedAreRemnants(VertBufData *vbd, int obNum)
-{
-  Iindex *index;
-  if (Imodv->imod->cindex.object == obNum && Imodv->imod->cindex.contour >= 0 &&
-      !numberInList(Imodv->imod->cindex.contour, vbd->remnantIndList, vbd->numRemnant, 0))
-    return 0;
-  for (int i = 0; i < ilistSize(Imodv->vi->selectionList); i++) {
-    index = (Iindex *)ilistItem(Imodv->vi->selectionList, i);
-    if (index->object == obNum && index->contour >= 0 &&
-        !numberInList(index->contour, vbd->remnantIndList, vbd->numRemnant, 0))
-      return 0;
-  }
-  return 1;
-}
