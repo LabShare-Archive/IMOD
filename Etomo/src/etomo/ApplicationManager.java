@@ -57,6 +57,7 @@ import etomo.comscript.SplitcombineParam;
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TiltParam;
+import etomo.comscript.TiltalignLog;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TiltxcorrParam;
 import etomo.comscript.TransferfidParam;
@@ -2483,8 +2484,8 @@ public final class ApplicationManager extends BaseManager implements
     else {
       tiltParam.setLocalAlignFile("");
     }
-    tiltParam.setExcludeList(tiltalignParam.getExcludeList());
     UIExpertUtilities.INSTANCE.rollTiltComAngles(this, currentAxis);
+    updateExcludeList(tiltParam,currentAxis);
     comScriptMgr.saveTilt(tiltParam, currentAxis);
     metaData.setFiducialess(currentAxis, tiltParam.isFiducialess());
   }
@@ -4913,6 +4914,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       tiltParam = comScriptMgr.getTiltParamFromTilt3dFindReproject(axisID);
       getParametersForTilt3dFindReproject(tiltParam, axisID);
+      updateExcludeList(tiltParam, axisID);
       comScriptMgr.saveTilt3dFindReproject(tiltParam, axisID);
     }
     catch (NumberFormatException except) {
@@ -4934,6 +4936,7 @@ public final class ApplicationManager extends BaseManager implements
       if (display != null) {
         display.getParameters(tiltParam);
       }
+      updateExcludeList(tiltParam, axisID);
       comScriptMgr.saveTilt3dFindReproject(tiltParam, axisID);
     }
     catch (NumberFormatException except) {
@@ -4967,6 +4970,18 @@ public final class ApplicationManager extends BaseManager implements
     return tiltParam;
   }
 
+  public void updateExcludeList(final TiltParam param, final AxisID axisID) {
+    TiltalignLog log = TiltalignLog.getInstance(this, axisID);
+    if (!log.exists() || !log.isSuccess()) {
+      comScriptMgr.loadAlign(axisID);
+      TiltalignParam tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
+      param.setExcludeList1(tiltalignParam);
+    }
+    else {
+      param.setExcludeList1(log);
+    }
+  }
+
   /**
    * Update the tilt_3dfind.com from the TomogramGenerationDialog
    * 
@@ -4988,6 +5003,7 @@ public final class ApplicationManager extends BaseManager implements
       if (!display.getParameters(tiltParam)) {
         return null;
       }
+      updateExcludeList(tiltParam, axisID);
       comScriptMgr.saveTilt3dFind(tiltParam, axisID);
     }
     catch (NumberFormatException except) {
@@ -5060,6 +5076,7 @@ public final class ApplicationManager extends BaseManager implements
         // tomogramGenerationDialog.getBinning());
       }
       UIExpertUtilities.INSTANCE.rollTiltComAngles(this, axisID);
+      updateExcludeList(tiltParam, axisID);
       comScriptMgr.saveTilt(tiltParam, axisID);
       metaData.setFiducialess(axisID, tiltParam.isFiducialess());
     }
@@ -5125,6 +5142,7 @@ public final class ApplicationManager extends BaseManager implements
         // tomogramGenerationDialog.getBinning());
       }
       UIExpertUtilities.INSTANCE.rollTiltComAngles(this, axisID);
+      updateExcludeList(tiltParam, axisID);
       comScriptMgr.saveTilt(tiltParam, axisID);
       metaData.setFiducialess(axisID, tiltParam.isFiducialess());
     }
