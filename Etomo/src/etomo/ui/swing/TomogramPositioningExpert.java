@@ -258,6 +258,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       getZShift(tiltParam);
     }
     tiltParam.resetSubsetStart();
+    manager.updateExcludeList(tiltParam, axisID);
     comScriptMgr.saveTilt(tiltParam, axisID);
     metaData.setFiducialess(axisID, tiltParam.isFiducialess());
     UIHarness.INSTANCE.pack(axisID, manager);
@@ -549,6 +550,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
         // tomogramPositioningDialog.getBinning());
       }
       rollTiltComAngles();
+      manager.updateExcludeList(tiltParam, axisID);
       comScriptMgr.saveTilt(tiltParam, axisID);
       metaData.setFiducialess(axisID, tiltParam.isFiducialess());
     }
