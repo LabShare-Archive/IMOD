@@ -5,6 +5,7 @@ Version = 1.2
   run.function.sirt=
 [[]]
 run.function.tilt=
+if.var.test-gui.run.function.test-files=
 if.var.build.bn.done=
 if.var.build.return=
 bn.done=
@@ -19,6 +20,12 @@ bn.done=
   assert.tf.tomogram-thickness-in-z=%{tomogram-thickness-in-z}
     assert.tf.x-axis-tilt=%{x-axis-tilt}
 [[]]
+
+
+[function = test-files]
+assert.contains.file=tilt%{axis}.com|ExcludeList*1
+assert.contains.file=tilt%{axis}_sirt.com|ExcludeList*1
+assert.contains.file=tilt%{axis}_for_sirt.com|ExcludeList*1
 
 
 [function = tilt]
