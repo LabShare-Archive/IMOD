@@ -1069,6 +1069,10 @@ final class AutodocTester extends Assert implements VariableList {
         debug = convertToBoolean(value);
         testRunner.setDebug(debug);
       }
+      // set.index
+      else if (subjectType == UITestSubjectType.INDEX) {
+        executeField(command);
+      }
       // set.var.variable_name
       else if (subjectType == UITestSubjectType.VAR) {
         assertNotNull("missing variable name (" + command + ")", subjectName);
@@ -1963,9 +1967,20 @@ final class AutodocTester extends Assert implements VariableList {
         fail("can't find field - " + command.getField().getName() + " (" + command + ")");
         return;
       }
-      // cbb.combo_box_label
-      comboBox.addItem(value);
-      comboBox.setSelectedItem(value);
+      if (command.getActionType() == UITestActionType.SET
+          && command.getSubjectType() == UITestSubjectType.INDEX) {
+        // set.index.cbb.combo_box_label
+        EtomoNumber nValue = new EtomoNumber();
+        nValue.set(value);
+        assertTrue("value isn't a valid index - " + command.getField().getName() + " ("
+            + command + ")", nValue.isValid());
+        comboBox.setSelectedIndex(nValue.getInt());
+      }
+      else {
+        // cbb.combo_box_label
+        comboBox.addItem(value);
+        comboBox.setSelectedItem(value);
+      }
     }
     // MENU_ITEM
     else if (fieldType == UITestFieldType.MENU_ITEM) {

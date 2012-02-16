@@ -1,7 +1,7 @@
 Version = 1.2
 
 [function = main]
-copy.file = unicross_refine.mod
+copy.file = %{dataset}_refine.mod
 bn.find-transformations=
 wait.process.xfjointomo=done
 [[if = test-gui]]

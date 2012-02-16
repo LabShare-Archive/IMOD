@@ -26,7 +26,15 @@ def quoteSubstitute(lin):
    if anyset:
       lin = lin.replace('\\$', '%')
       lin = lin.replace('$', '%')
-   lin = "\"\"\"" + lin + "\"\"\""
+
+   # Take care of replacing \ with / as long as it is not escaping a "
+   if lin.find('\\'):
+      lin = re.sub(r'\\([^"])', r'/\1', lin)
+      if lin.endswith('\\'):
+         lin = lin[:len(lin)-1] + '/'
+         
+   # Enclose in quotes
+   lin = '\"\"\"' + lin + '\"\"\"'
    indv = lin.find('%')
    while indv >= 0:
       envar = re.search('%\{([A-Z0-9_]+)\}', lin)
@@ -64,6 +72,8 @@ needSocket = 0
 needPID = 0
 hasPython = 0
 indentedCom = 0
+testDummyProg = ''
+testOpt = ''
 windows = sys.platform.find('win32') >= 0 or sys.platform.find('cygwin') >= 0
 if lenarg < 2:
    prnstr("Usage: vmstopy [options] comfile logfile [pyscript]")
@@ -88,6 +98,9 @@ while lenarg - argind > 2:
          quiet = 1
       elif oarg == '-c':
          chunk = 1
+      elif oarg == '-t':
+         testDummyProg = 'echo2 '
+         testOpt = '-t '
       elif oarg == '-e':
          argind += 1
          var = sys.argv[argind]
@@ -201,7 +214,6 @@ exitMatch = re.compile('^\$ *exit *$')
 errexitMatch = re.compile('^\$( *)exit *([0-9]*) *$')
 gotoMatch = re.compile('^\$ *goto +(\w+) *$')
 statgoMatch = re.compile('^\$ *if +\( *\$status *\) *goto +(\w+) *$')
-endMatch = re.compile('[\r\n]')
 commentMatch = re.compile('^ *#|\$!')
 setMatch = re.compile('^\$( *)set +([^=]+= *)([^ ].*)')
 nonoMatch = re.compile('^\$( *)set +nonomatch')
@@ -217,6 +229,9 @@ errlines = []
 try:
    line = com.readline()
    while line:
+
+      # Need to strip line endings right away; DOS endings confuse cygwin python
+      line = line.rstrip('\r\n')
       keep = 1
 
       # Find out if there is an error function to be made
@@ -272,7 +287,6 @@ try:
          keep = 0
 
       if keep:
-         line = re.sub(endMatch, '', line)
          lines.append(line)
       line = com.readline()
 
@@ -311,7 +325,6 @@ if tryline:
    prnstr('def errorFunc():', file = out)
    lines = errlines + lines
 
-ind = 0
 echoMatch = re.compile('^\$( *)echo *([^ ].*)')
 setenvMatch = re.compile('^\$( *)setenv +(\S* *)')
 continueMatch = re.compile(r'\\ *$')
@@ -322,6 +335,15 @@ vmsMatch = re.compile('.*vmstocsh +(\w+.log) *< *(\w+.com).*')
 backupMatch = re.compile(r'^\$( *)if *\( *-e +([^) ]+) *\) *\\?mv +([^ ]*) +([^ ~]*)~ *')
 copyMatch = re.compile(r'\\?cp -?f? ?')
 mkdirMatch = re.compile('^\$( *)mkdir *')
+
+# If there are indented command lines and no python statements, remove the spaces
+# before trying to process the lines
+if indentedCom:
+   for ind in range(len(lines)):
+      if lines[ind].startswith('$ '):
+         lines[ind] = re.sub('^\$ *', '$', lines[ind])
+
+ind = 0
 while ind < len(lines):
    if ind == tryline:
       prnstr("", file=out)
@@ -329,10 +351,6 @@ while ind < len(lines):
 
    line = lines[ind]
    ind += 1
-
-   # If there are indented command lines and no python statements, remove the spaces
-   if indentedCom and line.startswith('$ '):
-      line = re.sub('^\$ *', '$', line)
    
    # Replace $echo with >print and substitute variable
    if re.search('^\$ *echo', line):
@@ -445,8 +463,8 @@ while ind < len(lines):
             line = lines[ind]
             ind += 1
          prnstr("  " + indent + 'try:', file=out)
-         prnstr("  " + indent + fmtstr('  runcmd("vmstopy {} {} {}")', vmscom, vmslog,
-                                       vmspy), file=out)
+         prnstr("  " + indent + fmtstr('  runcmd("vmstopy {}{} {} {}")', testOpt, vmscom,
+                                       vmslog, vmspy), file=out)
          prnstr("  " + indent + "except ImodpyError:", file=out)
          prnstr("  " + indent + '  printErrorExit(1)', file=out)
          prnstr("  " + indent + "command = 'python -u " + vmspy + "'",  file=out)
@@ -494,7 +512,7 @@ while ind < len(lines):
             linelen = len(line)
             if linelen > 2 and line[linelen-2] != '\\':
                line = line[:linelen-1] + '\\"'
-         line = quoteSubstitute(line)
+         line = quoteSubstitute(testDummyProg + line)
             
          prnstr("  " + indent + "command = " + line, file=out)
 

@@ -39,6 +39,7 @@ public final class UITestSubjectType {
       "file-chooser");
   public static final UITestSubjectType FRAME = new UITestSubjectType("frame");
   public static final UITestSubjectType FUNCTION = new UITestSubjectType("function");
+  public static final UITestSubjectType INDEX = new UITestSubjectType("index");
   public static final UITestSubjectType INTERFACE = new UITestSubjectType("interface");
   public static final UITestSubjectType PARAM = new UITestSubjectType("param");
   public static final UITestSubjectType POPUP = new UITestSubjectType("popup");
@@ -81,6 +82,9 @@ public final class UITestSubjectType {
     }
     if (string.equals(FUNCTION.toString())) {
       return FUNCTION;
+    }
+    if (string.equals(INDEX.toString())) {
+      return INDEX;
     }
     if (string.equals(INTERFACE.toString())) {
       return INTERFACE;
