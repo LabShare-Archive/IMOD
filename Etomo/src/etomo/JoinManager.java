@@ -879,7 +879,7 @@ public final class JoinManager extends BaseManager {
       String result = null;
       for (int i = 0; i < results.size(); i++) {
         result = (String) results.get(i);
-        if (result.indexOf(ProcessMessages.ERROR_TAG) != -1
+        if (ProcessMessages.getErrorIndex(result) != -1
             || result.indexOf(ProcessMessages.WARNING_TAG) != -1) {
           messageArray.add(result);
         }

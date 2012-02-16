@@ -498,53 +498,113 @@ public class Utilities {
       return null;
     }
     String command = commandArray[0].trim();
-    if ((commandArray.length == 1
-        && (command.equals("env") || command.equals("hostname")) || (command
-        .equals("tcsh") && (stdInput == null || stdInput.length == 0)))
+    if ((commandArray.length == 1 && (command.equals("env") || command.equals("hostname") || (command
+        .equals("tcsh") && (stdInput == null || stdInput.length == 0))))
         || command.endsWith("ssh")
         || command.equals("ps")
         || command.endsWith("3dmod")
         || command.endsWith("imodsendevent")) {
       return null;
     }
-    int max = 1;
+    int commandLength = 1;
     int stdMax = 0;
-    if (command.endsWith(ProcessName.CLIP.toString())
-        || command.indexOf("vmstocsh") != -1) {
-      max = 2;
+    if (command.endsWith(ProcessName.CLIP.toString())) {
+      commandLength = 2;
     }
-    else if (command.endsWith("python") || command.endsWith("bash")) {
-      max = 4;
+    else if (command.endsWith("bash")) {
+      commandLength = 4;
+    }
+    else if (command.endsWith("python")) {
+      if (commandArray.length < 3) {
+        stdMax = -1;
+      }
+      else {
+        if (commandArray.length >= 3 && commandArray[2].endsWith("startprocess")) {
+          commandLength = 6;
+        }
+        else {
+          commandLength = 4;
+        }
+      }
     }
     else if (command.endsWith("tcsh")) {
+      commandLength = 3;
       stdMax = 2;
     }
-    else if (command.endsWith("cp") || command.endsWith("mv")
-        || command.endsWith("cmd.exe")) {
-      max = 3;
+    else if (command.endsWith("cmd.exe")) {
+      commandLength = 3;
     }
-    int length = Math.min(max, commandArray.length);
     StringBuffer buffer = new StringBuffer();
     String param = null;
     int chIndex = -1;
     boolean showDash = false;
-    for (int i = 0; i < length; i++) {
+    for (int i = 0; i < commandArray.length; i++) {
       param = commandArray[i];
+      if (param.equals("None")) {
+        continue;
+      }
       if (param.endsWith("alignlog")) {
         showDash = true;
       }
       if (!showDash
-          && (param.startsWith("-") || (param.length() == 2 && param.startsWith("/")))) {
+          && (param.startsWith("-") || (isWindowsOS() && param.length() == 2 && param
+              .startsWith("/")))) {
         continue;
       }
-      chIndex = param.lastIndexOf(File.separator);
-      if (chIndex != -1) {
-        param = param.substring(chIndex + 1);
+      if (i >= commandLength) {
+        // print file names after the command is printed
+        // Eliminate strings that aren't file names.
+        // Unable to print files that don't have an extension
+        if (param.indexOf(".") == -1) {
+          continue;
+        }
+        else {
+          // Eliminate numbers
+          try {
+            Double.parseDouble(param);
+            continue;
+          }
+          catch (NumberFormatException e) {
+            // Eliminate lists of numbers
+            if (param.indexOf(",") != -1 || param.indexOf("-") != -1) {
+              boolean listOfNumbers = true;
+              String[] list = param.split("\\s*[,-]\\s*");
+              if (list != null) {
+                for (int j = 0; j < list.length; j++) {
+                  try {
+                    if (list[j] != null && list[j].length() > 0) {
+                      Double.parseDouble(list[j]);
+                    }
+                  }
+                  catch (NumberFormatException f) {
+                    listOfNumbers = false;
+                  }
+                }
+              }
+              if (listOfNumbers) {
+                continue;
+              }
+            }
+            // Probably a file - remove the file path
+            chIndex = param.lastIndexOf(File.separator);
+            if (isWindowsOS()) {
+              //Windows paths are sometimes built with /.
+              chIndex = Math.max(chIndex, param.lastIndexOf("/"));
+            }
+            if (chIndex != -1) {
+              param = param.substring(chIndex + 1);
+            }
+          }
+        }
       }
       else {
-        chIndex = param.indexOf(".log");
+        chIndex = param.lastIndexOf(File.separator);
+        if (isWindowsOS()) {
+          //Windows paths are sometimes built with /.
+          chIndex = Math.max(chIndex, param.lastIndexOf("/"));
+        }
         if (chIndex != -1) {
-          param = param.substring(0, chIndex);
+          param = param.substring(chIndex + 1);
         }
       }
       if (param != null) {
@@ -552,13 +612,34 @@ public class Utilities {
       }
     }
     if (stdInput != null) {
-      length = Math.min(stdMax, stdInput.length);
+      int length;
+      if (stdMax == -1) {
+        // Unlimited search
+        length = stdInput.length;
+      }
+      else {
+        length = Math.min(stdMax, stdInput.length);
+      }
+      boolean done = false;
       for (int i = 0; i < length; i++) {
-        param = stdInput[i];
+        param = stdInput[i].trim();
         if (param.startsWith("#") || param.startsWith("nohup")) {
           continue;
         }
-        if (param.startsWith("if")) {
+        if (command.endsWith("python")) {
+          if (param.startsWith("makeBackupFile")) {
+            chIndex = param.indexOf(".log");
+            int quoteIndex = param.indexOf("\'");
+            if (chIndex != -1 && quoteIndex != -1) {
+              param = param.substring(quoteIndex + 1, chIndex);
+            }
+            done = true;
+          }
+          else {
+            continue;
+          }
+        }
+        else if (param.startsWith("if")) {
           chIndex = param.indexOf(".log");
           int quoteIndex = param.indexOf("\"");
           if (chIndex != -1 && quoteIndex != -1) {
@@ -567,6 +648,9 @@ public class Utilities {
         }
         if (param != null) {
           buffer.append(param + " ");
+        }
+        if (done) {
+          break;
         }
       }
     }
@@ -817,18 +901,27 @@ public class Utilities {
   }
 
   /**
+   * Strips the last colon (and anything following it) and returns it.
+   * @param string
+   * @return
+   */
+  public static String stripLabel(final String label) {
+    int colonIndex = label.lastIndexOf(':');
+    if (colonIndex == -1) {
+      return label;
+    }
+    return label.substring(0, colonIndex);
+  }
+
+  /**
    * Strips the last colon (and anything following it) and returns the string in single
    * quotes.
    * @param string
    * @return
    */
-  public static String quoteLabel(final String string) {
-    int colonIndex = string.lastIndexOf(':');
+  public static String quoteLabel(final String label) {
     char quote = '\'';
-    if (colonIndex == -1) {
-      return quote + string + quote;
-    }
-    return quote + string.substring(0, colonIndex) + quote;
+    return quote + stripLabel(label) + quote;
   }
 
   /**

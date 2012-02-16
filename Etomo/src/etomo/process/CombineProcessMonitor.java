@@ -199,15 +199,15 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
 
   private final ApplicationManager manager;
   private AxisID axisID = null;
-  //private BufferedReader logFileReader = null;
+  // private BufferedReader logFileReader = null;
   private LogFile.ReaderId logFileReaderId = null;
   private long sleepCount = 0;
   private ProcessEndState endState = null;
 
-  //if processRunning is false at any time before the process ends, it can
-  //cause wait loops to end prematurely.  This is because the wait loop can
-  //start very repidly for a background process.
-  //See BackgroundSystemProgram.waitForProcess().
+  // if processRunning is false at any time before the process ends, it can
+  // cause wait loops to end prematurely. This is because the wait loop can
+  // start very repidly for a background process.
+  // See BackgroundSystemProgram.waitForProcess().
   private boolean processRunning = true;
 
   private LogFile logFile = null;
@@ -260,7 +260,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    */
   public boolean isProcessRunning() {
     if (!processRunning) {
-      //give run a chance to finish
+      // give run a chance to finish
       try {
         Thread.sleep(SLEEP);
       }
@@ -313,7 +313,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
           }
         }
       }
-      else if (line.startsWith("ERROR:")) {
+      else if (line.startsWith("ERROR:") || line.startsWith("Traceback")) {
         process.setProcessResultDisplay(processResultDisplay);
         endMonitor(ProcessEndState.FAILED);
       }
@@ -428,7 +428,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
       runThread.interrupt();
       runThread = null;
     }
-    processRunning = false;//the only place that this should be changed
+    processRunning = false;// the only place that this should be changed
   }
 
   /**
@@ -441,7 +441,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     CombineProcessType combineProcessType = CombineProcessType
         .getInstance(childCommandName);
     if (combineProcessType == null) {
-      //must be a command that is not monitored
+      // must be a command that is not monitored
       return;
     }
     setNextProcessResultDisplay(null);
@@ -467,13 +467,17 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     running = true;
     runThread = Thread.currentThread();
     initializeProgressBar();
-    //  Instantiate the logFile object
+    // Instantiate the logFile object
     try {
       logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
           CombineComscriptState.COMSCRIPT_NAME);
 
-      //  Wait for the log file to exist
+      // Wait for the log file to exist
       waitForLogFile();
+      if (!processRunning) {
+        running = false;
+        return;
+      }
       initializeProgressBar();
 
       while (processRunning && !stop) {
@@ -498,7 +502,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
       endMonitor(ProcessEndState.FAILED);
       e.printStackTrace();
     }
-    //  Close the log file reader
+    // Close the log file reader
     Utilities.debugPrint("LogFileProcessMonitor: Closing the log file reader for "
         + logFile.getAbsolutePath());
     if (logFile != null) {
@@ -522,6 +526,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
       throw new NullPointerException("logFile");
     }
     boolean newLogFile = false;
+    boolean debug = EtomoDirector.INSTANCE.getArguments().isDebug();
     while (!newLogFile) {
       // Check to see if the log file exists that signifies that the process
       // has started
@@ -529,12 +534,40 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
         newLogFile = true;
       }
       else {
+        if (process != null) {
+          String[] array = process.getStdError();
+          if (array != null) {
+            for (int i = 0; i < array.length; i++) {
+              if (debug) {
+                System.err.println(array[i]);
+              }
+              if (array[i].startsWith("ERROR:") || array[i].startsWith("Traceback")
+                  || array[i].indexOf("Errno") != -1) {
+                endMonitor(ProcessEndState.FAILED);
+                return;
+              }
+            }
+          }
+          array = process.getStdOutput();
+          if (array != null) {
+            for (int i = 0; i < array.length; i++) {
+              if (debug) {
+                System.err.println(array[i]);
+              }
+              if (array[i].startsWith("ERROR:") || array[i].startsWith("Traceback")
+                  || array[i].indexOf("Errno") != -1) {
+                endMonitor(ProcessEndState.FAILED);
+                return;
+              }
+            }
+          }
+        }
         Thread.sleep(SLEEP);
       }
     }
-    //  Open the log file
+    // Open the log file
     logFileReaderId = logFile.openReader();
-    //logFileReader = new BufferedReader(new FileReader(logFile));
+    // logFileReader = new BufferedReader(new FileReader(logFile));
     runSelfTest(WAITED_FOR_LOG_STATE);
   }
 

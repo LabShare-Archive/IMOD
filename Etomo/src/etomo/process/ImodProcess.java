@@ -1147,7 +1147,7 @@ public class ImodProcess {
   public void setStartNewContoursAtNewZ() {
     setMoreObjectPropertiesMessage(1, -1, 1, -1);
   }
-  
+
   public void setInterpolation(final boolean input) {
     sendArguments.add(MESSAGE_INTERPOLATION);
     sendArguments.add(input ? TRUE : FALSE);
@@ -1461,7 +1461,7 @@ public class ImodProcess {
   protected boolean parseError(String line, Vector errorMessage) {
     // Currently assuming that an error or warning message will be only one
     // line and contain ERROR_STRING or WARNING_STRING.
-    int index = line.indexOf(ProcessMessages.ERROR_TAG);
+    int index = ProcessMessages.getErrorIndex(line);
     if (index != -1) {
       errorMessage.add(line.substring(index));
       return true;
@@ -2088,7 +2088,7 @@ public class ImodProcess {
       // Currently assuming that each user error or warning messages will be
       // only one
       // line and contain ERROR_STRING or WARNING_STRING.
-      int index = line.indexOf(ProcessMessages.ERROR_TAG);
+      int index = ProcessMessages.getErrorIndex(line);
       if (index != -1) {
         userMessages.append(line + "\n");
         return true;

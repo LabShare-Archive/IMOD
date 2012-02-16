@@ -83,8 +83,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     this.rootName = rootName;
     this.computerMap = computerMap;
     this.multiLineMessages = multiLineMessages;
-    messages = ProcessMessages
-    .getInstanceForParallelProcessing(multiLineMessages);
+    messages = ProcessMessages.getInstanceForParallelProcessing(multiLineMessages);
     mediator = manager.getProcessingMethodMediator(axisID);
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
   }
@@ -151,6 +150,11 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     // Turn on the Kill Process button and Pause button.
     initializeProgressBar();
     try {
+      try {
+        Thread.sleep(1000);
+      }
+      catch (InterruptedException e) {
+      }
       while (processRunning && !stop) {
         try {
           if (updateState() || setProgressBarTitle) {
@@ -313,6 +317,44 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   }
 
   public final boolean isProcessRunning() {
+    if (!processRunning) {
+      return false;
+    }
+    String[] array;
+    if (process != null) {
+      if (process.isDone()) {
+        processRunning = false;
+      }
+      else {
+        boolean debug = EtomoDirector.INSTANCE.getArguments().isDebug();
+        array = process.getStdError();
+        if (array != null) {
+          for (int i = 0; i < array.length; i++) {
+            if (debug) {
+              System.err.println(array[i]);
+            }
+            if (array[i].startsWith("ERROR:") || array[i].startsWith("Traceback")
+                || array[i].indexOf("Errno") != -1) {
+              endMonitor(ProcessEndState.FAILED);
+              processRunning = false;
+            }
+          }
+        }
+        array = process.getStdOutput();
+        if (array != null) {
+          for (int i = 0; i < array.length; i++) {
+            if (debug) {
+              System.err.println(array[i]);
+            }
+            if (array[i].startsWith("ERROR:") || array[i].startsWith("Traceback")
+                || array[i].indexOf("Errno") != -1) {
+              endMonitor(ProcessEndState.FAILED);
+              processRunning = false;
+            }
+          }
+        }
+      }
+    }
     return processRunning;
   }
 
@@ -359,15 +401,17 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 
   boolean updateState() throws LogFile.LockException, FileNotFoundException, IOException {
     createProcessOutput();
-    if (processOutputReaderId == null || processOutputReaderId.isEmpty()) {
+    boolean returnValue = false;
+    boolean failed = false;
+    if (isProcessRunning()
+        && (processOutputReaderId == null || processOutputReaderId.isEmpty())) {
       processOutputReaderId = processOutput.openReader();
     }
-    boolean returnValue = false;
+
     if (processOutputReaderId == null || processOutputReaderId.isEmpty()) {
       return returnValue;
     }
     String line;
-    boolean failed = false;
     while ((line = processOutput.readLine(processOutputReaderId)) != null) {
       line = line.trim();
       System.err.println(line);

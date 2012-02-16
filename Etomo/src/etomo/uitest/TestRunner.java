@@ -271,7 +271,13 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     return interfaceSection;
   }
 
-  private void executeDatasetSection(ReadOnlyAutodoc autodoc, String sectionName) {
+  /**
+   * Sets the data directory names and executes the commands in a dataset section.
+   * @param autodoc
+   * @param sectionName
+   */
+  private void executeDatasetSection(final ReadOnlyAutodoc autodoc,
+      final String sectionName) {
     assertNotNull("sectionName is required", sectionName);
     CommandReader datasetSectionReader = CommandReader.getSectionReader(autodoc,
         SectionType.DATASET.toString(), sectionName, AxisID.ONLY, this);
@@ -283,6 +289,18 @@ public final class TestRunner extends JFCTestCase implements VariableList {
         "IMOD_UITEST_IMAGE_DATA", AxisID.ONLY), sectionName);
     System.err.println("uitestDataDir=" + uitestDataDir);
     System.err.println("uitestImageDataDir=" + uitestImageDataDir);
+    processDatasetSection(autodoc, sectionName);
+  }
+
+  /**
+   * Executes the commands in a dataset section.
+   * @param autodoc
+   * @param sectionName
+   */
+  private void processDatasetSection(ReadOnlyAutodoc autodoc, String sectionName) {
+    assertNotNull("sectionName is required", sectionName);
+    CommandReader datasetSectionReader = CommandReader.getSectionReader(autodoc,
+        SectionType.DATASET.toString(), sectionName, AxisID.ONLY, this);
     Command command = null;
     while (!datasetSectionReader.isDone()) {
       command = datasetSectionReader.nextCommand(command);
@@ -327,6 +345,12 @@ public final class TestRunner extends JFCTestCase implements VariableList {
           else {
             fail("unexpected command (" + command.toString() + ")");
           }
+        }
+        // USE
+        else if (actionType == UITestActionType.USE
+            && subjectType == UITestSubjectType.DATASET) {
+          // use.dataset
+          processDatasetSection(autodoc, value);
         }
         else {
           fail("unexpected command (" + command.toString() + ")");

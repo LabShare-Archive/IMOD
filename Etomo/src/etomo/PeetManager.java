@@ -988,8 +988,13 @@ public final class PeetManager extends BaseManager {
    */
   private void openPeetStartupDialog() {
     if (peetStartupDialog == null) {
+      String actionMessage = Utilities.prepareDialogActionMessage(
+          DialogType.PEET_STARTUP, AxisID.ONLY, null);
       mainPanel.setStaticProgressBar("Starting PEET interface", AXIS_ID);
       peetStartupDialog = PeetStartupDialog.getInstance(this, AXIS_ID);
+      if (actionMessage != null) {
+        System.err.println(actionMessage);
+      }
     }
   }
 

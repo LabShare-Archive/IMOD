@@ -75,7 +75,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     this.manager = manager;
     this.axisID = axisID;
     this.rootName = rootName;
-    subcommandProcessName=rootName;
+    subcommandProcessName = rootName;
     this.outputImageFileType = outputImageFileType;
     init();
   }
@@ -98,8 +98,8 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
 
   private void init() {
     nice.set(manager.getParallelProcessingDefaultNice());
-    nice.setFloor(CpuAdoc.INSTANCE.getMinNice(manager, axisID, manager
-        .getPropertyUserDir()));
+    nice.setFloor(CpuAdoc.INSTANCE.getMinNice(manager, axisID,
+        manager.getPropertyUserDir()));
     nice.setCeiling(NICE_CEILING);
   }
 
@@ -188,7 +188,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
   public void setQueueCommand(final String command) {
     queueCommand = command;
   }
-  
+
   public void setCPUNumber(final String input) {
     cpuNumber.set(input);
   }
@@ -334,19 +334,19 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     boolean foundDir = false;
     for (int i = 0; i < commandArray.length; i++) {
       String command = commandArray[i];
-      //add back slashes to the spaces in any directory path
+      // add back slashes to the spaces in any directory path
       boolean foundDirOption = false;
       if (command.equals(WORKING_DIR_OPTION)) {
-        //found an option which takes a directory path
+        // found an option which takes a directory path
         foundDirOption = true;
         foundDir = true;
       }
       if (!foundDirOption && foundDir) {
-        //add back slashes to the spaces in this directory path
+        // add back slashes to the spaces in this directory path
         foundDir = false;
         command = backSlashSpaces(command);
       }
-      //add each option to the buffer
+      // add each option to the buffer
       if (i == 0) {
         buffer.append(command);
       }
@@ -384,7 +384,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
   }
 
   public ProcessName getProcessName() {
-    if (cpuNumber.isNull()) {
+    if (cpuNumber.isNull() || queueCommand != null) {
       return ProcessName.PROCESSCHUNKS;
     }
     if (Utilities.isWindowsOS()) {
@@ -413,8 +413,8 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     }
     String remoteUserDir = null;
     try {
-      remoteUserDir = RemotePath.INSTANCE.getRemotePath(manager, manager
-          .getPropertyUserDir(), axisID);
+      remoteUserDir = RemotePath.INSTANCE.getRemotePath(manager,
+          manager.getPropertyUserDir(), axisID);
     }
     catch (InvalidMountRuleException e) {
       UIHarness.INSTANCE.openMessageDialog(manager, "ERROR:  Remote path error.  "
@@ -444,7 +444,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     command.add(commandsFileName.toString());
     command.add("-P");
     if (queueCommand == null) {
-      //add machine names
+      // add machine names
       buildMachineList();
       if (machineList != null) {
         command.add(machineList.toString());
@@ -494,10 +494,10 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     if (directoryPath == null) {
       return null;
     }
-    //see if directory path has any spaces
+    // see if directory path has any spaces
     int spaceIndex = directoryPath.indexOf(' ');
     while (spaceIndex != -1) {
-      //find each space and add a backslash to it
+      // find each space and add a backslash to it
       directoryPath = directoryPath.substring(0, spaceIndex) + "\\ "
           + directoryPath.substring(spaceIndex + 1);
       int startingIndex = spaceIndex + 2;

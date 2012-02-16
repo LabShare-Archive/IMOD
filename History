@@ -1,9 +1,19 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/14/12: In uitests added testBB, testmidzone2, and testunicross datasets.
+(Bug# 1596)
+
 2/13/12: Fixed Vmstopy to convert backslash to / for Windows.
 
 2/13/12: Fixed Vmstopy initial scanning for goto, etc, in files with DOS 
 line endings in Cygwin.
+
+2/9/12: In the uitest package, got peet tests running.(Bug# 1590)
+
+2/9/12: In eTomo running comscripts and processchunks with python.(Bug# 1591)
+
+2/8/12: In eTomo added file names to the print actions functionality (the
+--actions parameter).(Bug# 1441)
 
 2/8/12: Changed Vmstopy to remove spaces between $ and command when there are
 no Python statements in a command file, to avoid indentation errors.

@@ -17,7 +17,9 @@ import javax.swing.WindowConstants;
 import etomo.PeetManager;
 import etomo.logic.PeetStartupData;
 import etomo.storage.PeetAndMatlabParamFileFilter;
+import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
+import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
 /**
@@ -39,6 +41,7 @@ public final class PeetStartupDialog {
   public static final String rcsid = "$Id:$";
 
   private static final String COPY_FROM_LABEL = "Copy project from ";
+  private static final String NAME = "Starting PEET";
 
   private final JPanel pnlRoot = new JPanel();
   private final CheckBox cbCopyFrom = new CheckBox(COPY_FROM_LABEL);
@@ -57,8 +60,11 @@ public final class PeetStartupDialog {
     this.manager = manager;
     ftfDirectory = FileTextField2.getPeetInstance(manager, "Directory: ");
     ftfCopyFrom = FileTextField2.getUnlabeledPeetInstance(manager, COPY_FROM_LABEL);
-    dialog = new JDialog(UIHarness.INSTANCE.getFrame(manager), "Starting PEET", true);
+    dialog = new JDialog(UIHarness.INSTANCE.getFrame(manager), NAME, true);
     dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+    String name = Utilities.convertLabelToName(NAME);
+    pnlRoot.setName(UITestFieldType.PANEL.toString() + AutodocTokenizer.SEPARATOR_CHAR
+        + name);
   }
 
   public static PeetStartupDialog getInstance(final PeetManager manager,
