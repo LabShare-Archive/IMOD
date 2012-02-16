@@ -2485,7 +2485,7 @@ public final class ApplicationManager extends BaseManager implements
       tiltParam.setLocalAlignFile("");
     }
     UIExpertUtilities.INSTANCE.rollTiltComAngles(this, currentAxis);
-    updateExcludeList(tiltParam,currentAxis);
+    updateExcludeList(tiltParam, currentAxis);
     comScriptMgr.saveTilt(tiltParam, currentAxis);
     metaData.setFiducialess(currentAxis, tiltParam.isFiducialess());
   }
@@ -4975,10 +4975,10 @@ public final class ApplicationManager extends BaseManager implements
     if (!log.exists() || !log.isSuccess()) {
       comScriptMgr.loadAlign(axisID);
       TiltalignParam tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
-      param.setExcludeList1(tiltalignParam);
+      param.setExcludeList(tiltalignParam.getExcludeList());
     }
     else {
-      param.setExcludeList1(log);
+      param.setExcludeList(log.getExcludeList());
     }
   }
 
