@@ -263,6 +263,7 @@ EXPORTS
 	PUTSCATSIZE
 	imodPutByte
 	imodPlanesClip
+	imodObjectChecksum
 	PUTCONTPOINTSIZES
 	imodContoursDeleteToEnd
 	imodClipsTrans
