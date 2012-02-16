@@ -18,6 +18,7 @@ sp.aligned-image-stack-binning=1
 bn.create-full-aligned-stack=
 if.not.var.montage.wait.process.creating-aligned-stack = done
 if.var.montage.wait.process.full-alignment = done
+if.var.test-gui.run.function.test-files=
 bn.done =
 if.var.fidless.return=
 
@@ -29,6 +30,11 @@ bn.create-full-aligned-stack=
 if.not.var.montage.wait.process.creating-aligned-stack = done
 if.var.montage.wait.process.full-alignment = done
 bn.done=
+
+
+[function = test-files]
+assert.contains.file=tilt_3dfind%{axis}.com|ExcludeList*1
+assert.contains.file=tilt_3dfind_reproject%{axis}.com|ExcludeList*1
 
 
 ## Create tab
