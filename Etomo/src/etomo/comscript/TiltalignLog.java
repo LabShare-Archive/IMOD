@@ -103,7 +103,7 @@ public final class TiltalignLog {
    * not found.
    * @return
    */
-  String getExcludeList() {
+  public String getExcludeList() {
     if (log == null) {
       return null;
     }
