@@ -7,7 +7,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include <string.h>
@@ -770,7 +769,7 @@ int getWarpGridSize(int iz, int *nxMax, int *nyMax, int *prodMax)
     warp = ilistItem(sCurWarpFile->warpings, iz);
     *nxMax = B3DMAX(*nxMax, warp->nxGrid);
     *nyMax = B3DMAX(*nyMax, warp->nyGrid);
-    *prodMax = B3DMAX(*prodMax, warp->nxGrid * warp->nxGrid);
+    *prodMax = B3DMAX(*prodMax, warp->nxGrid * warp->nyGrid);
   }
   return 0;
 }
@@ -1341,19 +1340,3 @@ static int readLineOfValues(FILE *fp, char *line, int limit, void *values, int f
     return length < 0 ? 1 : 0;
   }
 }
-
-/*
-
-$Log$
-Revision 1.3  2011/06/23 14:15:54  mast
-Added routine to get file size; changed default border to spacing/10
-
-Revision 1.2  2011/06/10 04:04:42  mast
-Added ability to skip recomputation of spacing, better sorting, and parameters
-for pruning
-
-Revision 1.1  2011/05/26 22:28:41  mast
-Added to package
-
-
-*/
