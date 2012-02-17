@@ -1,5 +1,5 @@
 /*
- *  imodel.c -- Library funcions for handling model structures.
+ *  imodel.c -- Library functions for handling model structures.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -1567,6 +1567,43 @@ int imodSetRefImage(Imod *imod, MrcHeader *hdata)
   ref->orot.x = ref->orot.y = ref->orot.z = 0.;
   ref->otrans.x = ref->otrans.y = ref->otrans.z = 0.;
   return 0;
+}
+
+/*!
+ * Shifts the model [imod] back to full volume coordinates if it was saved after being 
+ * loaded on a subset of the image whose header is in [hdata], and also shifts it to the
+ * coordinates of a subset currently being loaded, using the {xmin}, {ymin}, and {zmin}
+ * elements in [li], if [li] is not NULL.
+ */
+void imodTransForSubsetLoad(Imod *imod, MrcHeader *hdata, IloadInfo *li)
+{
+  int ob, co, pt;
+  Ipoint *pts;
+  float xload = 0., yload = 0., zload = 0.;
+  IrefImage *ref = imod->refImage;
+  
+  if (ref && ref->cscale.x && ref->cscale.y && ref->cscale.z) {
+    xload = (hdata->xorg - ref->ctrans.x) / ref->cscale.x;
+    yload = (hdata->yorg - ref->ctrans.y) / ref->cscale.y;
+    zload = (hdata->zorg - ref->ctrans.z) / ref->cscale.z;
+  }
+  if (li) {
+    xload -= li->xmin;
+    yload -= li->ymin;
+    zload -= li->zmin;
+  }
+  if (xload || yload || zload) {
+    for (ob = 0; ob < imod->objsize; ob++) {
+      for (co = 0; co < imod->obj[ob].contsize; co++) {
+        pts = imod->obj[ob].cont[co].pts;
+        for (pt = 0; pt < imod->obj[ob].cont[co].psize; pt++) {
+          pts[pt].x += xload;
+          pts[pt].y += yload;
+          pts[pt].z += zload;
+        }
+      }
+    }
+  }
 }
 
 /*!
