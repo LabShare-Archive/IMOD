@@ -7,7 +7,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include <string.h>
@@ -528,7 +527,7 @@ int extrapolateGrid(float *dxGrid, float *dyGrid, char *solved, int xdim, int nx
                 }
                 
                 /* For boundary or min point, add to weighted sum */
-                if (boundary || (jx == minx && jy == miny) && thrNeighbors[thread]) {
+                if (boundary || ((jx == minx && jy == miny) && thrNeighbors[thread])) {
                   sNumNeigh[lind]++;
                   if (thrNumAllNeigh[thread] >= thrMaxNeigh[thread]) {
                     thrMaxNeigh[thread] += quantum;
@@ -998,24 +997,3 @@ static int adjustSizeAndStart(int nxwarp, int ixgdim, float xmin, float xmax,
   *xGridStrt -= B3DNINT((*xGridStrt - gstr) / xGridIntrv) * xGridIntrv;
   return nxgr;
 }
-
-/*
-
-$Log$
-Revision 1.5  2011/06/18 13:22:56  mast
-Fix x/y bug in finding max grid size
-
-Revision 1.4  2011/06/17 21:06:17  mast
-Needed an else in the checker routine
-
-Revision 1.3  2011/06/17 05:47:10  mast
-Add routines for common fortran tasks
-
-Revision 1.2  2011/06/10 04:07:15  mast
-A bunch of fixes after things were tested
-
-Revision 1.1  2011/05/26 22:28:41  mast
-Added to package
-
-
-*/
