@@ -9,9 +9,9 @@ sp.boundary-table-2-&-3-adjusted=up
 bn.rejoin=
 wait.process.remapmodel=done
 [[if = test-gui]]
-	copy.file=unicross_join.mod
-	tf.model-file=unicross_join.mod
-	tf.output-file=unicross_join-transformed.mod
+	copy.file=%{dataset}_join.mod
+	tf.model-file=%{dataset}_join.mod
+	tf.output-file=%{dataset}_join-transformed.mod
 	bn.transform-model=
 	wait.process.remapmodel=done
 [[]]

@@ -443,7 +443,11 @@ public class SystemProgram implements Runnable {
       else if (commandArray != null) {
         process = Runtime.getRuntime().exec(commandArray, null, workingDirectory);
       }
-      waitForProcess();
+      try {
+        Thread.sleep(100);
+      }
+      catch (InterruptedException except) {
+      }
       if (debug)
         System.err.println("returned, process started");
 
@@ -504,7 +508,7 @@ public class SystemProgram implements Runnable {
       // why can we read the stdout and stderr above before this completes
       if (debug)
         System.err.print("SystemProgram: Waiting for process to end...");
-
+      waitForProcess();
       try {
         process.waitFor();
       }
@@ -564,10 +568,17 @@ public class SystemProgram implements Runnable {
       if (exceptionMessage.indexOf("Cannot run program \"tcsh\"") != -1) {
         UIHarness.INSTANCE.openMessageDialog(manager, exceptionMessage, "System Error");
       }
-      if (exceptionMessage.indexOf("Cannot run program \"python\"") != -1) {
+      else if (exceptionMessage.indexOf("Cannot run program \"python\"") != -1) {
         UIHarness.INSTANCE.openMessageDialog(manager,
             "Unable to run python.  Please see the IMOD Users Guide.\n"
                 + exceptionMessage, "System Error");
+      }
+      else if (exceptionMessage.indexOf("not found") != -1) {
+        UIHarness.INSTANCE.openMessageDialog(manager, "Unable to run command.\n"
+            + exceptionMessage, "System Error");
+        exitValue = -3;
+        done = true;
+        return;
       }
     }
     processMessages.addProcessOutput(stdout);
@@ -607,7 +618,6 @@ public class SystemProgram implements Runnable {
         e.printStackTrace();
       }
     }
-
     // Set the done flag for the thread
     done = true;
   }
@@ -641,12 +651,6 @@ public class SystemProgram implements Runnable {
    *
    */
   void waitForProcess() {
-    try {
-      Thread.sleep(100);
-    }
-    catch (InterruptedException except) {
-
-    }
   }
 
   /**
@@ -658,12 +662,7 @@ public class SystemProgram implements Runnable {
     return process.exitValue();
   }
 
-  /**    if (commandLine == null) {
-   commandLine = new StringBuffer();
-   for (int i = 0;i<command.size();i++) {
-   }
-   return commandLine.toString();
-   }
+  /**
    * Get the standard output from the execution of the program.
    * @return String[] An array of strings containing the standard output from
    * the program.  Each line of standard out is stored in a String.

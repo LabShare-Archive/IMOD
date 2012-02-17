@@ -1,8 +1,38 @@
 Version = 1.2
 
+[dialog = starting-peet]
+pnl.starting-peet =
+set.adoc.function=peet.adoc
+run.function.start =
+goto.frame.pnl.main-frame =
+
+
 [dialog = peet]
+pnl.main-frame =
 set.adoc.function=peet.adoc
 run.function.main =
+
+
+[function = start]
+#check empty directory error
+tf.directory=
+[[if = test-gui]]
+  bn.ok=
+  wait.popup.entry-error=OK
+[[]]
+bn.directory=
+wait.file-chooser.directory=%{testdir}
+[[if = test-gui]]
+  cb.copy-project-from=on
+  bn.ok=
+  wait.popup.entry-error=OK
+  cb.copy-project-from=off
+  #check empty root name error
+  bn.ok=
+  wait.popup.entry-error=OK
+[[]]
+tf.base-name=%{dataset}
+bn.ok=
 
 
 [function = main]
@@ -19,24 +49,6 @@ run.function.runtab=
 
 [function = setup]
 tb.setup=
-#check empty directory error
-[[if = test-gui]]
-  bn.ok=
-  wait.popup.entry-error=OK
-[[]]
-bn.directory=
-wait.file-chooser.open=%{testdir}
-[[if = test-gui]]
-  cb.copy-project-from=on
-  bn.ok=
-  wait.popup.entry-error=OK
-  cb.copy-project-from=off
-  #check empty root name error
-  bn.ok=
-  wait.popup.entry-error=OK
-[[]]
-tf.base-name=%{dataset}
-bn.ok=
 run.function.volume-table=
 run.function.reference=
 run.function.volume-size=
@@ -140,16 +152,16 @@ wait.file-chooser.initial-motl=%{dataset}-a-initMOTL.csv
   assert.sp.in-volume=1
   assert.rb.user-supplied-file=off
   assert.tf.user-supplied-file=
-  assert.rb.multiparticle-reference=off
-  assert.cbb.multiparticle-reference=32
+  assert.rb.multiparticle-reference-with=off
+  assert.cbb.multiparticle-reference-with=32
   #enabled
   assert.enabled.rb.particle=
   assert.enabled.tf.particle=
   assert.enabled.sp.in-volume=
   assert.enabled.rb.user-supplied-file=
   assert.disabled.tf.user-supplied-file=
-  assert.enabled.rb.multiparticle-reference=
-  assert.disabled.cbb.multiparticle-reference=
+  assert.enabled.rb.multiparticle-reference-with=
+  assert.disabled.cbb.multiparticle-reference-with=
 [[]]
 #check empty particle # error
 run.function.setup-test-run-error=
@@ -161,20 +173,20 @@ tf.particle=2
   assert.disabled.sp.in-volume=
   assert.enabled.rb.user-supplied-file=
   assert.enabled.tf.user-supplied-file=
-  rb.multiparticle-reference=
+  rb.multiparticle-reference-with=
   assert.disabled.tf.user-supplied-file=
-  assert.enabled.cbb.multiparticle-reference=
+  assert.enabled.cbb.multiparticle-reference-with=
   #check empty reference file error
-  assert.enabled.tf.user-supplied-file=
+  rb.user-supplied-file=
   run.function.setup-test-run-error=
   #behavior
-  rb.multiparticle-reference=
+  rb.multiparticle-reference-with=
   assert.disabled.tf.user-supplied-file=
-  assert.enabled.cbb.multiparticle-reference=
+  assert.enabled.cbb.multiparticle-reference-with=
   rb.particle=
   assert.enabled.tf.particle=
   assert.enabled.sp.in-volume=
-  assert.disabled.cbb.multiparticle-reference=
+  assert.disabled.cbb.multiparticle-reference-with=
 [[]]
 
 
@@ -324,6 +336,10 @@ run.function.number-of-particles-to-average=
 [[]]
 cb.for-average-volumes=on
 sp.particles-per-cpu=1
+#temporary workaround
+#save=
+#write.file = %{dataset}.prm|flgMeanFill = 1
+#
 bn.run=
 wait.process.processchunks-%{dataset}=done
 [[if = test-gui]]
@@ -522,7 +538,7 @@ assert.tf.user-supplied-file=unMasked%{dataset}_Ref1.mrc
 save=
 assert.contains.file=%{dataset}.prm|reference = 'unMasked%{dataset}_Ref1.mrc'
 rb.multiparticle-reference-with=
-cbb.multiparticle-reference-with=128
+set.index.cbb.multiparticle-reference-with=5
 save=
 assert.contains.file=%{dataset}.prm|flgFairReference = 1
 assert.contains.file=%{dataset}.prm|reference = [7]
@@ -538,6 +554,7 @@ assert.contains.file=%{dataset}.prm|edgeShift = 1
 assert.contains.file=%{dataset}.prm|nWeightGroup = 8
 assert.contains.file=%{dataset}.prm|flgWedgeWeight = 1
 cb.enabled=off
+save=
 assert.contains.file=%{dataset}.prm|nWeightGroup = 0
 save=
 

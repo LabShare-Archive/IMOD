@@ -49,9 +49,9 @@ public final class ParseBackgroundPID extends ParsePID {
 
   private final File outFile;
 
-  public ParseBackgroundPID(SystemProgram cshProcess, StringBuffer bufPID, File outFile,
+  public ParseBackgroundPID(SystemProgram process, StringBuffer bufPID, File outFile,
       ProcessData processData) {
-    super(cshProcess, bufPID, processData);
+    super(process, bufPID, processData);
     this.outFile = outFile;
   }
 
@@ -67,7 +67,8 @@ public final class ParseBackgroundPID extends ParsePID {
     String line;
     try {
       if ((line = bufferedReader.readLine()) != null) {
-        if (line.startsWith("Shell PID:")) {
+        if (line.startsWith("Shell PID:") || line.startsWith("Python PID:")
+            || line.startsWith("Windows PID:") || line.startsWith("Cygwin PID:")) {
           String[] tokens = line.split("\\s+");
           if (tokens.length > 2) {
             appendPID(tokens[2]);

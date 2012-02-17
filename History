@@ -1,5 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/16/12: In eTomo added file names to the print actions functionality (the
+--actions parameter).(Bug# 1441)
+
+2/16/12: In the uitest package, got peet tests running.(Bug# 1590)
+
+2/16/12: In uitests added testBB, testmidzone2, and testunicross datasets.
+(Bug# 1596)
+
+2/16/12: In eTomo running comscripts and processchunks with python.(Bug# 1591)
+
 2/13/12: Fixed 3dmod model view movieing when Ctrl key is pressed.
 
 2/13/12: Fixed default object properties in 3dmod when there is no setting 
