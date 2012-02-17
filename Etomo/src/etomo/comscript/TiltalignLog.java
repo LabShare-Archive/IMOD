@@ -78,23 +78,22 @@ public final class TiltalignLog {
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
-      return false;
     }
     catch (LogFile.LockException e) {
-      return false;
     }
-    if (id == null || id.isEmpty()) {
-      return false;
+    if (id != null && !id.isEmpty()) {
+      try {
+        boolean sucess = log.searchForLastLine(id, "SUCCESSFULLY COMPLETED");
+        log.closeRead(id);
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+      catch (LogFile.LockException e) {
+        e.printStackTrace();
+      }
     }
-    try {
-      return log.searchForLastLine(id, "SUCCESSFULLY COMPLETED");
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-    }
+    log.closeRead(id);
     return false;
   }
 
@@ -107,55 +106,56 @@ public final class TiltalignLog {
     if (log == null) {
       return null;
     }
-    LogFile.ReaderId id;
+    LogFile.ReaderId id = null;
     try {
       id = log.openReader();
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
-      return null;
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      return null;
     }
-    if (id == null || id.isEmpty()) {
-      return null;
-    }
-    boolean foundParamList = false;
-    try {
-      String line = log.readLine(id).trim();
-      while (line != null) {
-        if (line.equals("*** End of entries ***")) {
-          return null;
-        }
-        if (foundParamList) {
-          if (line.indexOf(ConstTiltalignParam.EXCLUDE_LIST_KEY) != -1) {
-            // May be the right parameter - make sure by matching it exactly
-            String[] pair = line.split("\\s*=\\s*");
-            if (pair != null && pair.length > 0
-                && pair[0].equals(ConstTiltalignParam.EXCLUDE_LIST_KEY)) {
-              if (pair.length > 1) {
-                return pair[1];
-              }
-              else {
-                return null;
+    if (id != null && !id.isEmpty()) {
+      boolean foundParamList = false;
+      try {
+        String line = log.readLine(id).trim();
+        while (line != null) {
+          if (line.equals("*** End of entries ***")) {
+            log.closeRead(id);
+            return null;
+          }
+          if (foundParamList) {
+            if (line.indexOf(ConstTiltalignParam.EXCLUDE_LIST_KEY) != -1) {
+              // May be the right parameter - make sure by matching it exactly
+              String[] pair = line.split("\\s*=\\s*");
+              if (pair != null && pair.length > 0
+                  && pair[0].equals(ConstTiltalignParam.EXCLUDE_LIST_KEY)) {
+                if (pair.length > 1) {
+                  log.closeRead(id);
+                  return pair[1];
+                }
+                else {
+                  log.closeRead(id);
+                  return null;
+                }
               }
             }
           }
+          else if (line.equals("*** Entries to program tiltalign ***")) {
+            foundParamList = true;
+          }
+          line = log.readLine(id).trim();
         }
-        else if (line.equals("*** Entries to program tiltalign ***")) {
-          foundParamList = true;
-        }
-        line = log.readLine(id).trim();
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+      catch (LogFile.LockException e) {
+        e.printStackTrace();
       }
     }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-    }
+    log.closeRead(id);
     return null;
   }
 }
