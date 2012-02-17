@@ -23,15 +23,9 @@
 #include "undoredo.h"
 
 /* Local functions */
-static void auto_patch(Autox *ax, int xsize, int ysize);
-static void auto_patch_fill_outside(Autox *ax, int xsize, int xmin, int xmax,
-                             int ymin, int ymax, int x, int y);
 static int autox_flood(Autox *ax);
 static void autox_clear(Autox *ax, unsigned char bit);
-static void autox_shrink(Autox *ax);
-static void autox_expand(Autox *ax);
 static int allocate_arrays(ImodView *vw, Autox *ax);
-static int nay8(Autox *ax, int i, int j);
 static void continueNext(void);
 
 /* The current data that is being contoured. */
@@ -129,7 +123,8 @@ void autoxFill()
   else
     autox_clear(vw->ax, AUTOX_ALL);
   autox_flood(vw->ax);
-  auto_patch(vw->ax, vw->xsize, vw->ysize);
+  imodAutoPatch(vw->ax->data, vw->ax->xlist, vw->ax->ylist, vw->ax->listsize, vw->xsize,
+                vw->ysize);
   vw->ax->filled = TRUE;
   vw->ax->cz = (int)(vw->zmouse + 0.5);
   imodDraw(vw, IMOD_DRAW_IMAGE);
@@ -224,7 +219,7 @@ void autoxClear()
 void autoxShrink()
 {
   ImodView *vw = App->cvi;
-  autox_shrink(vw->ax);
+  imodAutoShrink(vw->ax->data, vw->xsize, vw->ysize);
   vw->ax->threshUsed = -1;
   imodDraw(vw, IMOD_DRAW_IMAGE);
 }
@@ -232,8 +227,9 @@ void autoxShrink()
 void autoxExpand()
 {
   ImodView *vw = App->cvi;
-  autox_expand(vw->ax);
-  auto_patch(vw->ax, vw->xsize, vw->ysize);
+  imodAutoExpand(vw->ax->data, vw->xsize, vw->ysize);
+  imodAutoPatch(vw->ax->data, vw->ax->xlist, vw->ax->ylist, vw->ax->listsize, vw->xsize, 
+                vw->ysize);
   vw->ax->threshUsed = -1;
   imodDraw(vw, IMOD_DRAW_IMAGE);
 }
@@ -241,9 +237,10 @@ void autoxExpand()
 void autoxSmooth()
 {
   ImodView *vw = App->cvi;
-  autox_expand(vw->ax);
-  autox_shrink(vw->ax);
-  auto_patch(vw->ax, vw->xsize, vw->ysize);
+  imodAutoExpand(vw->ax->data, vw->xsize, vw->ysize);
+  imodAutoShrink(vw->ax->data, vw->xsize, vw->ysize);
+  imodAutoPatch(vw->ax->data, vw->ax->xlist, vw->ax->ylist, vw->ax->listsize, vw->xsize,
+                vw->ysize);
   vw->ax->threshUsed = -1;
   imodDraw(vw, IMOD_DRAW_IMAGE);
 }
@@ -393,7 +390,7 @@ int autox_open(ImodView *vw)
 
   autoWindow = new AutoxWindow(imodDialogManager.parent(IMOD_DIALOG),
                                Qt::Window);
-			       
+                               
   if (!autoWindow){
     free(ax);
     wprint("AutoContour Open failed: No window available.");
@@ -408,7 +405,7 @@ int autox_open(ImodView *vw)
   }
 
   autoWindow->setStates(ax->contrast, ax->threshold, (int)(100. * ax->shave),
-			ax->altmouse, ax->diagonal);
+                        ax->altmouse, ax->diagonal);
   autox_clear(ax, AUTOX_ALL);
   imodDialogManager.add((QWidget *)autoWindow, IMOD_DIALOG);
   adjustGeometryAndShow((QWidget *)autoWindow, IMOD_DIALOG);
@@ -425,7 +422,7 @@ void autoxCrampSelected(ImodView *vw)
   vw->ax->contrast = vw->cramp->clevel == 1 ? 1 : 0;
   autoWindow->setStates(vw->ax->contrast, vw->ax->threshold, 
                         (int)(100. * vw->ax->shave),
-			vw->ax->altmouse, vw->ax->diagonal);
+                        vw->ax->altmouse, vw->ax->diagonal);
 }
 
 int autox_setlow(ImodView *vw, int x, int y)
@@ -530,7 +527,7 @@ static int autox_flood(Autox *ax)
   /* DNM: exclude rgba visual */
   if (App->depth == 8 && !App->rgba){
     threshold = (int)((((float)ax->vw->rampsize/256.0f)
-		       * threshold) + ax->vw->rampbase);
+                       * threshold) + ax->vw->rampbase);
   }
   ax->threshUsed = threshold - 0.5;
 
@@ -554,72 +551,72 @@ static int autox_flood(Autox *ax)
     pixind = x + y * xsize;
     if (ax->reverse)
       test = (autoImage[y][x] < threshold) ||
-	(data[pixind] & AUTOX_BLACK);
+        (data[pixind] & AUTOX_BLACK);
     else
       test = ((autoImage[y][x] >= threshold) ||
-	      (data[pixind] & AUTOX_WHITE)) &&
-	(~data[pixind] & AUTOX_BLACK);
+              (data[pixind] & AUTOX_WHITE)) &&
+        (~data[pixind] & AUTOX_BLACK);
     if (test) {
 
       /* If point passes test, mark as flood */ 
       data[pixind] |= AUTOX_FLOOD;
 
       /* add each of four neighbors on list if coordinate is legal
-	 and they are not already on list or in flood */
+         and they are not already on list or in flood */
       if (x > 0 && !(data[pixind - 1] & neighflag)) {
-	xlist[ringfree] = x - 1;
-	ylist[ringfree++] = y;
-	ringfree %= ax->listsize;
-	data[pixind - 1] |= AUTOX_CHECK;
+        xlist[ringfree] = x - 1;
+        ylist[ringfree++] = y;
+        ringfree %= ax->listsize;
+        data[pixind - 1] |= AUTOX_CHECK;
       }
       if (x < xsize - 1 && !(data[pixind + 1] & neighflag)) {
-	xlist[ringfree] = x + 1;
-	ylist[ringfree++] = y;
-	ringfree %= ax->listsize;
-	data[pixind + 1] |= AUTOX_CHECK;
+        xlist[ringfree] = x + 1;
+        ylist[ringfree++] = y;
+        ringfree %= ax->listsize;
+        data[pixind + 1] |= AUTOX_CHECK;
       }
       if (y > 0 && !(data[pixind - xsize] & neighflag)) {
-	xlist[ringfree] = x;
-	ylist[ringfree++] = y - 1;
-	ringfree %= ax->listsize;
-	data[pixind - xsize] |= AUTOX_CHECK;
+        xlist[ringfree] = x;
+        ylist[ringfree++] = y - 1;
+        ringfree %= ax->listsize;
+        data[pixind - xsize] |= AUTOX_CHECK;
       }
       if (y < ysize - 1 && !(data[pixind + xsize] & neighflag)) {
-	xlist[ringfree] = x;
-	ylist[ringfree++] = y + 1;
-	ringfree %= ax->listsize;
-	data[pixind + xsize] |= AUTOX_CHECK;
+        xlist[ringfree] = x;
+        ylist[ringfree++] = y + 1;
+        ringfree %= ax->listsize;
+        data[pixind + xsize] |= AUTOX_CHECK;
       }
 
       if (diagonal) {
-	if (x > 0 && y > 0 && 
-	    !(data[pixind - 1 - xsize] & neighflag)) {
-	  xlist[ringfree] = x - 1;
-	  ylist[ringfree++] = y - 1;
-	  ringfree %= ax->listsize;
-	  data[pixind - 1 - xsize] |= AUTOX_CHECK;
-	}
-	if (x < xsize - 1 && y > 0 && 
-	    !(data[pixind + 1 - xsize] & neighflag)) {
-	  xlist[ringfree] = x + 1;
-	  ylist[ringfree++] = y - 1;
-	  ringfree %= ax->listsize;
-	  data[pixind + 1 - xsize] |= AUTOX_CHECK;
-	}
-	if (x > 0 && y < ysize - 1 && 
-	    !(data[pixind - 1 + xsize] & neighflag)) {
-	  xlist[ringfree] = x - 1;
-	  ylist[ringfree++] = y + 1;
-	  ringfree %= ax->listsize;
-	  data[pixind - 1 + xsize] |= AUTOX_CHECK;
-	}
-	if (x < xsize - 1 && y < ysize - 1 && 
-	    !(data[pixind + 1 + xsize] & neighflag)) {
-	  xlist[ringfree] = x + 1;
-	  ylist[ringfree++] = y + 1;
-	  ringfree %= ax->listsize;
-	  data[pixind + 1 + xsize] |= AUTOX_CHECK;
-	}
+        if (x > 0 && y > 0 && 
+            !(data[pixind - 1 - xsize] & neighflag)) {
+          xlist[ringfree] = x - 1;
+          ylist[ringfree++] = y - 1;
+          ringfree %= ax->listsize;
+          data[pixind - 1 - xsize] |= AUTOX_CHECK;
+        }
+        if (x < xsize - 1 && y > 0 && 
+            !(data[pixind + 1 - xsize] & neighflag)) {
+          xlist[ringfree] = x + 1;
+          ylist[ringfree++] = y - 1;
+          ringfree %= ax->listsize;
+          data[pixind + 1 - xsize] |= AUTOX_CHECK;
+        }
+        if (x > 0 && y < ysize - 1 && 
+            !(data[pixind - 1 + xsize] & neighflag)) {
+          xlist[ringfree] = x - 1;
+          ylist[ringfree++] = y + 1;
+          ringfree %= ax->listsize;
+          data[pixind - 1 + xsize] |= AUTOX_CHECK;
+        }
+        if (x < xsize - 1 && y < ysize - 1 && 
+            !(data[pixind + 1 + xsize] & neighflag)) {
+          xlist[ringfree] = x + 1;
+          ylist[ringfree++] = y + 1;
+          ringfree %= ax->listsize;
+          data[pixind + 1 + xsize] |= AUTOX_CHECK;
+        }
       }
     }
 
@@ -633,207 +630,7 @@ static int autox_flood(Autox *ax)
 }
 
 /* DNM: removed recursive functions for flood fill and patch fill */
-
-/* auto_patch fills area outside the flood with the patch flag, then makes
-   unmarked pixels be part of the flood */
-static void auto_patch(Autox *ax, int xsize, int ysize)
-{
-  unsigned char *data = ax->data;
-  int i, x, y;
-  int xysize;
-  int xmax = -1;
-  int xmin = xsize;
-  int ymax = -1;
-  int ymin = ysize;
-
-  /* get min and max of flooded area */
-  for (y = 0; y < ysize; y++)
-    for (x = 0; x < xsize; x++)
-      if (data[x + y * xsize] & AUTOX_FLOOD) {
-	if (x < xmin)
-	  xmin = x;
-	if (x > xmax)
-	  xmax = x;
-	if (y < ymin)
-	  ymin = y;
-	if (y > ymax)
-	  ymax = y;
-      }
-
-  /* Start a patch from every point along the four sides, because there
-     may be isolated patches */
-  for(x = xmin ; x <= xmax; x++){
-    auto_patch_fill_outside(ax, xsize, xmin, xmax, ymin, ymax, x, ymin);
-    auto_patch_fill_outside(ax, xsize, xmin, xmax, ymin, ymax, x, ymax);
-  }
-  for (y = ymin ; y <= ymax; y++){
-    auto_patch_fill_outside(ax, xsize, xmin, xmax, ymin, ymax, xmin, y);
-    auto_patch_fill_outside(ax, xsize, xmin, xmax, ymin, ymax, xmax, y);
-  }
-
-  xysize = xsize * ysize;
-
-  /* Mark everything now not in a patch as in the flood */
-  for(y = ymin; y <= ymax; y++)
-    for(x = xmin; x <= xmax; x++){
-      i = x + y * xsize;
-      if (!(data[i] & (AUTOX_FLOOD | AUTOX_PATCH)))
-	data[i] |= AUTOX_FLOOD;
-    }
-     
-  /* Clear the patch flags */
-  for ( i = 0; i < xysize; i++)
-    if (data[i] & AUTOX_PATCH)
-      data[i] &= ~AUTOX_PATCH;
-}
-
-/* To build a patch from a single point */
-static void auto_patch_fill_outside(Autox *ax, int xsize, int xmin, int xmax,
-                             int ymin, int ymax, int x, int y)
-{
-  unsigned char *data = ax->data;
-  int *xlist = ax->xlist;
-  int *ylist = ax->ylist;
-  int ringnext = 0;
-  int ringfree = 1;
-  int pixind;
-  unsigned char neighflag;
- 
-  /* Don't even start if this point is a patch or a flood */
-  pixind = x + y * xsize;
-  if (data[pixind] & (AUTOX_FLOOD | AUTOX_PATCH))
-    return;
-
-  /* initialize the ring buffer */
-  xlist[0] = x;
-  ylist[0] = y;
-  data[pixind] |= (AUTOX_CHECK | AUTOX_PATCH);
-  neighflag  = AUTOX_FLOOD | AUTOX_CHECK | AUTOX_PATCH;
-
-  while (ringnext != ringfree) {
-
-    /* the next point on list got there by being neither patch nor
-       flood, so it needs no checking or marking */
-    x = xlist[ringnext];
-    y = ylist[ringnext];
-    pixind = x + y * xsize;
-
-    /* add each of four neighbors on list if coordinate is legal
-       and they are not already on list or in flood or patch. 
-       Mark each as on list and in patch */
-    if (x > xmin && !(data[pixind - 1] & neighflag)) {
-      xlist[ringfree] = x - 1;
-      ylist[ringfree++] = y;
-      ringfree %= ax->listsize;
-      data[pixind - 1] |= (AUTOX_CHECK | AUTOX_PATCH);
-    }
-    if (x < xmax && !(data[pixind + 1] & neighflag)) {
-      xlist[ringfree] = x + 1;
-      ylist[ringfree++] = y;
-      ringfree %= ax->listsize;
-      data[pixind + 1] |= (AUTOX_CHECK | AUTOX_PATCH);
-    }
-    if (y > ymin && !(data[pixind - xsize] & neighflag)) {
-      xlist[ringfree] = x;
-      ylist[ringfree++] = y - 1;
-      ringfree %= ax->listsize;
-      data[pixind - xsize] |= (AUTOX_CHECK | AUTOX_PATCH);
-    }
-    if (y < ymax && !(data[pixind + xsize] & neighflag)) {
-      xlist[ringfree] = x;
-      ylist[ringfree++] = y + 1;
-      ringfree %= ax->listsize;
-      data[pixind + xsize] |= (AUTOX_CHECK | AUTOX_PATCH);
-    }
-          
-    /* Take point off list, advance next pointer */
-    data[pixind] &= ~AUTOX_CHECK;
-    ringnext++;
-    ringnext %= ax->listsize;
-  }
-}
-
-static int nay8(Autox *ax, int i, int j)
-{
-  int n, m, k = 0;
-  int x, y;
-  unsigned char *data = ax->data;
-  int xsize = ax->vw->xsize;
-  int ysize = ax->vw->ysize;
-
-  if (!(data[i + (j * xsize)] & AUTOX_FLOOD))
-    return(0);
-     
-  for (n = -1; n <= 1; n++){
-    y = n + j;
-    for(m = -1; m <= 1 ; m++){
-      x = m + i;
-      if ((x >= 0) && (y >= 0) && (x < xsize) && (y < ysize))
-	if (data[x + (y * xsize)] & AUTOX_FLOOD)
-	  k++; 
-    }
-  }
-  return(k-1);
-}
-
-static void autox_shrink(Autox *ax)
-{
-  unsigned char *data = ax->data;
-  int imax = ax->vw->xsize;
-  int jmax = ax->vw->ysize;
-  int i, j;
-     
-  /* DNM: tried testing on fill flag before checking neighbors and it
-     didn't work. */
-  for(j = 0; j < jmax; j++)
-    for(i = 0; i < imax; i++){
-      if (nay8(ax, i, j) < 7)
-	data[i + (j * imax)] |= AUTOX_CHECK;
-    }
-
-  /* DNM: clear check flag after use, not before */
-  for(j = 0; j < jmax; j++)
-    for(i = 0; i < imax; i++){
-      if (data[i + (j * imax)] & AUTOX_CHECK)
-	data[i + (j * imax)] &= ~(AUTOX_FLOOD | AUTOX_CHECK);
-    }
-
-  return;
-
-}
-
-static void autox_expand(Autox *ax)
-{
-  unsigned char *data = ax->data;
-  int imax = ax->vw->xsize;
-  int jmax = ax->vw->ysize;
-  int i, j, m, n, x, y;
-     
-  for(j = 0; j < jmax; j++)
-    for(i = 0; i < imax; i++){
-      if (!(data[i + (j * imax)] & AUTOX_FILL)) continue;
-
-      for(m = -1; m <= 1; m++){
-	y = j + m;
-	if ((y < 0) || (y >= jmax)) continue;
-	for(n = -1; n <= 1; n++){
-	  x = n + i;
-	  if ((x == i) && (y == j)) continue;
-	  if ((x < 0) || (x >= imax)) continue;
-	  data[x + (y * imax)] |= AUTOX_CHECK;
-	}
-      }
-    }
-
-  /* DNM: clear check flag in this loop, not before use */
-  for(i = 0; i < ax->vw->xysize; i++)
-    if (data[i] & AUTOX_CHECK) {
-      data[i] |= AUTOX_FLOOD;
-      data[i] &= ~AUTOX_CHECK;
-    } 
-  return;
-
-}
+/* Moved lots of stuff to autocont.c in libimod */
 
 static void autox_clear(Autox *ax, unsigned char bit)
 {

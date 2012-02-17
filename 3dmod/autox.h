@@ -14,16 +14,11 @@
   /* Resolution times 100 */
 #define AUTOX_MAX_RESOLUTION  200
 
-/* bits for autox data */
-#define AUTOX_BLANK 0
-#define AUTOX_FLOOD 1
-#define AUTOX_PATCH (1 << 1)
-#define AUTOX_FILL  (AUTOX_FLOOD | AUTOX_PATCH)
+/* bits for autox data.  Others are defined in imodel.h */
 #define AUTOX_BLACK (1 << 2)
 #define AUTOX_WHITE (1 << 3)
 #define AUTOX_OUT   (1 << 2)
 #define AUTOX_IN    (1 << 3)
-#define AUTOX_CHECK (1 << 5)
 #define AUTOX_ALL   0xff
 
 
