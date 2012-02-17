@@ -69,7 +69,8 @@ void *visit_triang_gen(simplex *s, visit_func *visit, test_func *test) {
 		pop(t);
 		if (!t || t->visit == vnum) continue;
 		t->visit = vnum;
-		if (v=(*visit)(t,0)) {return v;}
+        /* DNM: add suggested parens */
+		if ((v=(*visit)(t,0))) {return v;}
 		for (i=-1,sn = t->neigh-1;i<cdim;i++,sn++)
 			if ((sn->simp->visit != vnum) && sn->simp && test(t,i,0))
 				push(sn->simp);
@@ -291,6 +292,7 @@ void buildhull (simplex *root) {
 		else
 			connect(make_facets(search(root)));
 	}
-	while (p = get_another_site())
+    /* DNM: add suggested parens */
+	while ((p = get_another_site()))
 		connect(make_facets(search(root)));
 }

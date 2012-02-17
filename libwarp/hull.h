@@ -136,6 +136,9 @@ typedef void* visit_func(simplex *, void *);
 typedef int test_func(simplex *, int, void *);
 typedef void out_func(point *, int, FILE*, int);
 
+/* DNM: define this to have proper declarations of these funcs */
+typedef void* print_func(simplex *, out_func *);
+
 
 /* from driver, e.g., hullmain.c */
 
@@ -236,7 +239,7 @@ void print_triang(simplex*, FILE*, print_neighbor_f*);
 out_func vlist_out, ps_out, cpr_out, mp_out, off_out;
 	/* functions for different formats */
 
-visit_func facets_print, afacets_print, ridges_print;
+print_func facets_print, afacets_print, ridges_print;
 	/* to print facets, alpha facets, ridges */
 
 void print_edge_dat(fg *, FILE *);

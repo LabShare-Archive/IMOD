@@ -127,7 +127,8 @@ float b_err_min, b_err_min_sq;
 double logb(double); /* on SGI machines: returns floor of log base 2 */
 
 static short vd;
-static basis_s	tt_basis = {0,1,-1,0,0,0},
+/* DNM: add suggested braces */
+static basis_s	tt_basis = {0,1,-1,0,0,{0}},
 		*tt_basisp = &tt_basis,
 		*infinity_basis;
 
@@ -219,7 +220,8 @@ DEBTR(0)
 
 	for (j=0;j<6;j++) do {
 		for (i=0; i<2*rdim && facs[j]*floor(vp[i]/facs[j])==vp[i];i++);
-		if (h = (i==2*rdim)) {
+        /* DNM: add suggested parens */
+		if ((h = (i==2*rdim))) {
 			hh=1;
 			out *= facs[j];
 			for (i=0;i<2*rdim; i++) vp[i]/=facs[j];
@@ -237,7 +239,8 @@ static double lower_terms_point(point vp) {
 
 	for (j=0;j<6;j++) do {
 		for (i=0; i<2*rdim && facs[j]*floor(vp[i]/facs[j])==vp[i];i++);
-		if (h = (i==2*rdim)) {
+        /* DNM: add suggested parens */
+		if ((h = (i==2*rdim))) {
 			hh=1;
 			out *= facs[j];
 			for (i=0;i<2*rdim; i++) vp[i]/=facs[j];
@@ -252,9 +255,10 @@ static int reduce_inner(basis_s *v, simplex *s, int k) {
 	point	va = VA(v),
 		vb = VB(v);
 	int	i,j;
-	double	dd,
-		ldetbound = 0,
-		Sb = 0;
+	double	dd;
+    /* DNM: comment out unused variables */
+    /* ldetbound = 0,
+		Sb = 0; */
 	double	scale;
 	basis_s	*snibv;
 	neighbor *sni;

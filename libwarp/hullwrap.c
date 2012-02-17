@@ -27,12 +27,12 @@ static struct hullio *sHio;
 
 FILE *DFILE;
 
-static int site_numm(site p);
+static int site_numm(site psite);
 static site get_next_site(void);
-static void *saveTriangle(simplex *s, void *p);
-static void *markOutsideGetArea(simplex *s, void *p);
-static void *markForPruning(simplex *s, void *p);
-static void *setTriangleNumber(simplex *s, void *p);
+static void *saveTriangle(simplex *s, void *funcp);
+static void *markOutsideGetArea(simplex *s, void *funcp);
+static void *markForPruning(simplex *s, void *funcp);
+static void *setTriangleNumber(simplex *s, void *funcp);
 
 /* The external call to do the triangulation */
 int hull_triangulate(struct hullio *hio)
@@ -93,18 +93,18 @@ int hull_triangulate(struct hullio *hio)
 }
 
 /* Return the point number given its address */
-static int site_numm(site p) 
+static int site_numm(site psite) 
 {
   int j;
-  if (p == hull_infinity)
+  if (psite == hull_infinity)
     return -1;
-  if (!p)
+  if (!psite)
     return -2;
-  j = (p - sPointArray) / 2;
+  j = (psite - sPointArray) / 2;
   if (j < 0 || j >= sNumPoints)
     return -3;
   if (sHio->verbose > 1)
-    fprintf(stderr, "site_numm returning %d for %p\n", j, (void *)p);
+    fprintf(stderr, "site_numm returning %d for %p\n", j, (void *)psite);
   return j;
 }
 
@@ -124,7 +124,7 @@ static site get_next_site(void)
 /* Mark triangles that connect hull to infinity, and compute a total area 
    Sadly, it did not work to save an area as a structure member of simplex.  
    After storing it here, it was zero on next visit */
-static void *markOutsideGetArea(simplex *s, void *p)
+static void *markOutsideGetArea(simplex *s, void *funcp)
 {
   int i;
   double dx10, dx20, dy10, dy20;
@@ -147,7 +147,7 @@ static void *markOutsideGetArea(simplex *s, void *p)
 
 /* Check triangles at the hull edge for adequate height-base ratio or fraction of
    total area */
-static void *markForPruning(simplex *s, void *p) {
+static void *markForPruning(simplex *s, void *funcp) {
   int i, ip1, ip2;
   simplex *sn;
   double dx10, dx20, dy10, dy20, areax2, dxb, dyb, basesq, base;
@@ -191,7 +191,7 @@ static void *markForPruning(simplex *s, void *p) {
 }
 
 /* Count the retained triangles, and set mark value to the triangle number */
-static void *setTriangleNumber(simplex *s, void *p)
+static void *setTriangleNumber(simplex *s, void *funcp)
 {
   if (!s || s->mark < sPruneCrit)
     return NULL;
@@ -200,7 +200,7 @@ static void *setTriangleNumber(simplex *s, void *p)
 }
 
 /* Save each triangle's vertices and neighbors to arrays in counterclockwise order */
-static void *saveTriangle(simplex *s, void *p)
+static void *saveTriangle(simplex *s, void *funcp)
 {
   int i, ist = 0, iend = 2, idir = 1;
   double dx10, dx20, dy10, dy20;
