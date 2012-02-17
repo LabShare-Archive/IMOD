@@ -61,7 +61,7 @@
        </property>
        <property name="icon" >
         <iconset resource="3dmod.qrc" >
-         <normaloff>:/uparrow.png</normaloff>:/uparrow.png</iconset>
+         <normaloff>:/images/uparrow.png</normaloff>:/images/uparrow.png</iconset>
        </property>
       </widget>
      </item>
@@ -93,7 +93,7 @@
        </property>
        <property name="icon" >
         <iconset resource="3dmod.qrc" >
-         <normaloff>:/downarrow.png</normaloff>:/downarrow.png</iconset>
+         <normaloff>:/images/downarrow.png</normaloff>:/images/downarrow.png</iconset>
        </property>
       </widget>
      </item>
@@ -503,7 +503,7 @@
           </property>
           <property name="icon" >
            <iconset resource="3dmod.qrc" >
-            <normaloff>:/uparrow.png</normaloff>:/uparrow.png</iconset>
+            <normaloff>:/images/uparrow.png</normaloff>:/images/uparrow.png</iconset>
           </property>
           <property name="autoRepeat" >
            <bool>true</bool>
@@ -523,7 +523,7 @@
           </property>
           <property name="icon" >
            <iconset resource="3dmod.qrc" >
-            <normaloff>:/downarrow.png</normaloff>:/downarrow.png</iconset>
+            <normaloff>:/images/downarrow.png</normaloff>:/images/downarrow.png</iconset>
           </property>
           <property name="autoRepeat" >
            <bool>true</bool>
@@ -616,7 +616,7 @@
           </property>
           <property name="icon" >
            <iconset resource="3dmod.qrc" >
-            <normaloff>:/uparrow.png</normaloff>:/uparrow.png</iconset>
+            <normaloff>:/images/uparrow.png</normaloff>:/images/uparrow.png</iconset>
           </property>
           <property name="autoRepeat" >
            <bool>true</bool>
@@ -636,7 +636,7 @@
           </property>
           <property name="icon" >
            <iconset resource="3dmod.qrc" >
-            <normaloff>:/downarrow.png</normaloff>:/downarrow.png</iconset>
+            <normaloff>:/images/downarrow.png</normaloff>:/images/downarrow.png</iconset>
           </property>
           <property name="autoRepeat" >
            <bool>true</bool>
@@ -729,7 +729,7 @@
           </property>
           <property name="icon" >
            <iconset resource="3dmod.qrc" >
-            <normaloff>:/uparrow.png</normaloff>:/uparrow.png</iconset>
+            <normaloff>:/images/uparrow.png</normaloff>:/images/uparrow.png</iconset>
           </property>
           <property name="autoRepeat" >
            <bool>true</bool>
@@ -749,7 +749,7 @@
           </property>
           <property name="icon" >
            <iconset resource="3dmod.qrc" >
-            <normaloff>:/downarrow.png</normaloff>:/downarrow.png</iconset>
+            <normaloff>:/images/downarrow.png</normaloff>:/images/downarrow.png</iconset>
           </property>
           <property name="autoRepeat" >
            <bool>true</bool>
@@ -866,7 +866,7 @@
           </property>
           <property name="icon" >
            <iconset resource="3dmod.qrc" >
-            <normaloff>:/uparrow.png</normaloff>:/uparrow.png</iconset>
+            <normaloff>:/images/uparrow.png</normaloff>:/images/uparrow.png</iconset>
           </property>
           <property name="autoRepeat" >
            <bool>true</bool>
@@ -886,7 +886,7 @@
           </property>
           <property name="icon" >
            <iconset resource="3dmod.qrc" >
-            <normaloff>:/downarrow.png</normaloff>:/downarrow.png</iconset>
+            <normaloff>:/images/downarrow.png</normaloff>:/images/downarrow.png</iconset>
           </property>
           <property name="autoRepeat" >
            <bool>true</bool>

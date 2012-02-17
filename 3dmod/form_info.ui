@@ -88,7 +88,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>:/raisewindow.png</normaloff>:/raisewindow.png</iconset>
+         <normaloff>:/images/raisewindow.png</normaloff>:/images/raisewindow.png</iconset>
        </property>
       </widget>
      </item>
@@ -105,7 +105,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>:/undo.png</normaloff>:/undo.png</iconset>
+         <normaloff>:/images/undo.png</normaloff>:/images/undo.png</iconset>
        </property>
       </widget>
      </item>
@@ -122,7 +122,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>:/redo.png</normaloff>:/redo.png</iconset>
+         <normaloff>:/images/redo.png</normaloff>:/images/redo.png</iconset>
        </property>
       </widget>
      </item>

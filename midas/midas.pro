@@ -3,6 +3,7 @@ SOURCES += midas.cpp slots.cpp file_io.cpp graphics.cpp transforms.cpp \
 
 HEADERS += midas.h graphics.h slots.h imod_assistant.h
 
+RESOURCES = midas.qrc
 #MOC_DIR = tmp
 #OBJECTS_DIR = tmp
 
