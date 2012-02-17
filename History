@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/16/11: 3dmod Model View will now use vertex buffer objects for lines and
+spheres if the OpenGL version is 3.1 or higher.
+
+2/16/11: Added options to Imodauto to specify an exact value for contouring
+around areas with uniform values, and for using a boundary contour model to
+enclose the area to be contoured.
+
 2/16/12: In eTomo added file names to the print actions functionality (the
 --actions parameter).(Bug# 1441)
 
