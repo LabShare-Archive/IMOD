@@ -678,67 +678,20 @@ public final class LogFile {
     return readingId;
   }
 
-  public synchronized boolean closeReader(ReaderId readerId) {
+  public synchronized boolean closeRead(Id readId) {
     // close the reader before unlocking
     try {
-      lock.assertUnlockable(LockType.READ, readerId);
+      lock.assertUnlockable(LockType.READ, readId);
       createFile();
       ReadingToken readingToken = readingTokenList.getReadingToken(ReadingTokenList
-          .makeKey(readerId));
+          .makeKey(readId));
       if (readingToken != null) {
         readingToken.close();
       }
       else {
-        new LockException(this, readerId, "readingToken is null.").printStackTrace();
+        new LockException(this, readId, "readingToken is null.").printStackTrace();
       }
-      lock.unlock(LockType.READ, readerId);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      return false;
-    }
-    catch (LockException e) {
-      e.printStackTrace();
-      return false;
-    }
-    return true;
-  }
-
-  public synchronized boolean closeFileChannelReader(BigBufferReaderId id) {
-    // close the reader before unlocking
-    try {
-      lock.assertUnlockable(LockType.READ, id);
-      createFile();
-      ReadingToken readingToken = readingTokenList.getReadingToken(ReadingTokenList
-          .makeKey(id));
-      if (readingToken != null) {
-        readingToken.close();
-      }
-      else {
-        new LockException(this, id, "readingToken is null.").printStackTrace();
-      }
-      lock.unlock(LockType.READ, id);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      return false;
-    }
-    catch (LockException e) {
-      e.printStackTrace();
-      return false;
-    }
-    return true;
-  }
-
-  public synchronized boolean closeForReading(ReadingId readingId) {
-    // close the reading token before unlocking
-    try {
-      lock.assertUnlockable(LockType.READ, readingId);
-      createFile();
-      ReadingToken readingToken = readingTokenList.getReadingToken(ReadingTokenList
-          .makeKey(readingId));
-      readingToken.close();
-      lock.unlock(LockType.READ, readingId);
+      lock.unlock(LockType.READ, readId);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -1525,8 +1478,8 @@ public final class LogFile {
       int nReadTemp;
       int nRead = -1;
       int nReadPrev = -1;
-      //Not sure if read reallocates the char array.  Avoid assigning one char array to
-      //the other by using alternating reads
+      // Not sure if read reallocates the char array. Avoid assigning one char array to
+      // the other by using alternating reads
       boolean first = true;
       char[] firstCharArray = new char[SIZE];
       char[] secondCharArray = new char[SIZE];
@@ -1548,7 +1501,7 @@ public final class LogFile {
         // Nothing was read
         return false;
       }
-      //Assign the apropriate char array
+      // Assign the apropriate char array
       char[] charArray = null;
       char[] charArrayPrev = null;
       if (!first) {
