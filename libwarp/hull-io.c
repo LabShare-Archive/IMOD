@@ -50,7 +50,8 @@ char tmpfilenam[L_tmpnam];
 
 FILE* efopen(char *file, char *mode) {
 	FILE* fp;
-	if (fp = fopen(file, mode)) return fp;
+    /* DNM: add suggested parens */
+	if ((fp = fopen(file, mode))) return fp;
 	fprintf(DFILE, "couldn't open file %s mode %s\n",file,mode);
 	exit(1);
 	return NULL;
@@ -60,7 +61,8 @@ FILE* efopen(char *file, char *mode) {
 FILE* epopen(char *com, char *mode) {
 #ifndef _WIN32
 	FILE* fp;
-	if (fp = popen(com, mode)) return fp;
+    /* DNM: add suggested parens */
+	if ((fp = popen(com, mode))) return fp;
 	fprintf(stderr, "couldn't open stream %s mode %s\n",com,mode);
 	exit(1);
 #endif
@@ -171,7 +173,8 @@ void *check_simplex(simplex *s, void *dum){
 		sns = sn->simp;
 		if (!sns) {
 			fprintf(DFILE, "check_triang; bad simplex\n");
-			print_simplex_f(s, DFILE, &print_neighbor_full); fprintf(DFILE, "site_num(p)=%G\n",site_num(p));
+            /* DNM: fix format %G -> %d */
+			print_simplex_f(s, DFILE, &print_neighbor_full); fprintf(DFILE, "site_num(p)=%d\n",site_num(p));
 			return s;
 		}
 		if (!s->peak.vert && sns->peak.vert && i!=-1) {
@@ -403,14 +406,15 @@ void cpr_out(point *v, int vdim, FILE *Fin, int amble) {
 
 
 
+/* DNM: Fix argument type and avoid use of p for arg since it is global */
 
-void *facets_print(simplex *s, void *p) {
+void *facets_print(simplex *s, out_func *funcp) {
 
 	static out_func *out_func_here;
 	point v[MAXDIM];
 	int j;
 
-	if (p) {out_func_here = (out_func*)p; if (!s) return NULL;}
+	if (funcp) {out_func_here = (out_func*)funcp; if (!s) return NULL;}
 
 	for (j=0;j<cdim;j++) v[j] = s->neigh[j].vert;
 
@@ -420,13 +424,13 @@ void *facets_print(simplex *s, void *p) {
 }
 
 
-void *ridges_print(simplex *s, void *p) {
+void *ridges_print(simplex *s, out_func *funcp) {
 
 	static out_func *out_func_here;
 	point v[MAXDIM];
 	int j,k,vnum;
 
-	if (p) {out_func_here = (out_func*)p; if (!s) return NULL;}
+	if (funcp) {out_func_here = (out_func*)funcp; if (!s) return NULL;}
 
 	for (j=0;j<cdim;j++) {
 		vnum=0;
@@ -441,13 +445,13 @@ void *ridges_print(simplex *s, void *p) {
 
 
 
-void *afacets_print(simplex *s, void *p) {
+void *afacets_print(simplex *s, out_func *funcp) {
 
 	static out_func *out_func_here;
 	point v[MAXDIM];
 	int j,k,vnum;
 
-	if (p) {out_func_here = (out_func*)p; if (!s) return NULL;}
+	if (funcp) {out_func_here = (out_func*)funcp; if (!s) return NULL;}
 
 	for (j=0;j<cdim;j++) { /* check for ashape consistency */
 		for (k=0;k<cdim;k++) if (s->neigh[j].simp->neigh[k].simp==s) break;
