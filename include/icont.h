@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 #ifndef ICONT_H
 #define ICONT_H
@@ -114,10 +113,6 @@ int    imodContourShave(Icont *cont, double dist);
 int    imodContourFindPoint(Icont *cont, Ipoint *point, int flag);
 void   imodContourReduce(Icont *cont, float tol);
 
-Icont *imodContoursFromImagePoints(unsigned char *data, unsigned char **imdata,
-                                   int xsize, int ysize, int z, 
-                                   unsigned char testmask, int diagonal,
-                                   float threshold, int polarity, int *ncont);
 int    imodContourAutoSort(Icont *cont);
 int    imodContourStrip(Icont *cont);
 
@@ -206,58 +201,3 @@ void imodContourNestLevels(Nesting *nests, int *nestind, int numnests);
 }
 #endif
 #endif /* icont.h */
-
-/*
-$Log$
-Revision 3.18  2008/11/15 21:50:49  mast
-Define new temporary flag for inversions
-
-Revision 3.17  2008/05/27 05:30:34  mast
-Changed call for contour from points
-
-Revision 3.16  2008/01/14 19:44:15  mast
-Added a function for Andrew
-
-Revision 3.15  2008/01/09 05:58:41  mast
-Added 3D version of contour sort
-
-Revision 3.14  2007/12/04 18:28:05  mast
-Added new draw flags for contours
-
-Revision 3.13  2007/11/27 21:28:47  mast
-Added functions for getting and setting bit flags in contour
-
-Revision 3.12  2007/11/27 17:52:30  mast
-Add stippled falg
-
-Revision 3.11  2006/10/11 04:06:36  mast
-Changed to plane fitting from mean normal routine
-
-Revision 3.10  2006/09/12 15:20:15  mast
-Added mean normal routine, cleaned up flags
-
-Revision 3.9  2006/09/05 14:23:53  mast
-Renamed imodel_contour_clear
-
-Revision 3.8  2006/09/01 20:50:18  mast
-Added flatten function
-
-Revision 3.7  2005/06/26 19:41:31  mast
-Changed break routine call
-
-Revision 3.6  2005/04/23 23:36:23  mast
-Moved some functions into imodel.c
-
-Revision 3.5  2005/03/30 02:23:30  mast
-Eliminates dummy imodel_contour_move
-
-Revision 3.4  2005/03/20 19:55:48  mast
-Eliminating duplicate functions
-
-Revision 3.3  2005/01/30 17:45:02  mast
-changes arguments to imodel_overlap_fractions
-
-Revision 3.2  2005/01/29 20:27:31  mast
-Added nested contour routines
-
-*/
