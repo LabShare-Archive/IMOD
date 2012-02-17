@@ -22,9 +22,9 @@ public final class LatestBuild {
   public static String get() {
     // Check in this file each time etomo is changed
     String[] array = rcsid.split("\\s+");
-    if (array == null || array.length < 4) {
+    if (array == null || array.length < 5) {
       return "";
     }
-    return array[3];
+    return array[3]+" "+ array[4] +" GMT";
   }
 }
