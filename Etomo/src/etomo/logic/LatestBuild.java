@@ -17,7 +17,7 @@ package etomo.logic;
 */
 
 public final class LatestBuild {
-  public static final String rcsid = "$Id:$";
+  public static final String rcsid = "$$Id$$";
 
   public static String get() {
     // Check in this file each time etomo is changed
