@@ -247,12 +247,14 @@ EXPORTS
 	imodPointGetSize
 	imodPointGetFirst
 	istoreCleanEnds
+	imodAutoPatch
 	imodel_contour_sorty
 	imodPoint3DScaleDistance
 	imod_to_wmod
 	imodMatCopy
 	imodMeshesNew
 	imodel_contour_invert
+	imodAutoShrink
 	imodGetBoundingBox
 	imodViewDefault
 	objGroupNew
@@ -316,6 +318,7 @@ EXPORTS
 	imodReadFile
 	imodDelete
 	GETIMODSIZES
+	imodAutoExpand
 	WRITEIMOD
 	istoreFirstChangeIndex
 	imodPlaneClip
@@ -397,6 +400,7 @@ EXPORTS
 	objGroupListDelete
 	OPENIMODDATA
 	imodGetIndex
+	imodTransForSubsetLoad
 	imodGetInts
 	imodel_contour_length
 	imodWriteAscii
