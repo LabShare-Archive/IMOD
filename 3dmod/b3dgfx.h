@@ -26,15 +26,16 @@ void b3dBindBuffer(GLenum target, GLuint buffer);
 void b3dBufferData(GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage);
 void b3dBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, 
                         const GLvoid *data);
-void b3dPrimitiveRestartIndex(GLuint index);
 #else
 #define b3dDeleteBuffers glDeleteBuffers
 #define b3dGenBuffers glGenBuffers
 #define b3dBindBuffer glBindBuffer
 #define b3dBufferData glBufferData
 #define b3dBufferSubData glBufferSubData
-#define b3dPrimitiveRestartIndex glPrimitiveRestartIndex
 #endif
+
+// And wrapper function for primitive restart, needed more widely
+void b3dPrimitiveRestartIndex(GLuint index);
 
 // Extension enabled flags in return from b3dInitializeGL
 #define B3DGLEXT_VERTBUF (1l << 0)

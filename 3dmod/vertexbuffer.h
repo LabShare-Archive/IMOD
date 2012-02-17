@@ -15,6 +15,9 @@ typedef map<b3dUInt32,RGBTindices> RGBTmap;
 
 #define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
 #define RESTART_INDEX 0x7fffffff
+#ifndef GL_PRIMITIVE_RESTART
+#define GL_PRIMITIVE_RESTART              0x8F9D
+#endif
 
 /*
  * Definition of data structure for drawing with VBO's

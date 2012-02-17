@@ -17,6 +17,7 @@
 #include <qfiledialog.h>
 #include "b3dgfx.h"
 #include <qimage.h>
+#include <qlibrary.h>
 #include <qglcolormap.h>
 #include "imod.h"
 #include "imodv.h"
@@ -59,8 +60,8 @@ static PFNGLGENBUFFERSPROC sGlGenBuffers;
 static PFNGLBINDBUFFERPROC sGlBindBuffer;
 static PFNGLBUFFERDATAPROC sGlBufferData;
 static PFNGLBUFFERSUBDATAPROC sGlBufferSubData;
-static PFNGLPRIMITIVERESTARTINDEXPROC sGlPrimitiveRestartIndex;
 #endif
+static PFNGLPRIMITIVERESTARTINDEXPROC sGlPrimitiveRestartIndex;
 
 // "Initialization" function to determine OpenGL version and resolve extension pointers
 // on Windows.  Must be called from inside an OpenGL context
@@ -88,9 +89,14 @@ int b3dInitializeGL()
   if (!sGlDeleteBuffers || !sGlGenBuffers || !sGlBindBuffer || !sGlBufferData ||
       !sGlBufferSubData) 
     sExtFlags &= ~B3DGLEXT_VERTBUF;
+#else
+  QLibrary *gllib = new QLibrary("libGL");
+  sGlPrimitiveRestartIndex = (PFNGLPRIMITIVERESTARTINDEXPROC)gllib->resolve
+    ("glPrimitiveRestartIndex");
+  delete gllib;
+#endif
   if (!sGlPrimitiveRestartIndex)
     sExtFlags &= ~B3DGLEXT_PRIM_RESTART;    
-#endif
   App->glInitialized = 1;
   return sExtFlags;
 }
@@ -122,12 +128,12 @@ void b3dBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size,
   sGlBufferSubData(target, offset, size, data);
 }
 
+#endif
+
 void b3dPrimitiveRestartIndex(GLuint index)
 {
   sGlPrimitiveRestartIndex(index);
 }
-
-#endif
 
 
 /* Set a current window size for the drawing routines */
