@@ -79,7 +79,7 @@ public final class TransferFidLog implements Loggable {
           }
           line = logFile.readLine(readerId);
         }
-        logFile.closeReader(readerId);
+        logFile.closeRead(readerId);
       }
     }
     return lineList;

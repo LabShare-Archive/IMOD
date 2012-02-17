@@ -179,7 +179,7 @@ public class MainFrame_AboutBox extends JDialog {
       e.printStackTrace();
     }
     if (peetVersionFile != null && id != null) {
-      peetVersionFile.closeReader(id);
+      peetVersionFile.closeRead(id);
     }
     pnlText.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlButton.add(btnOK);

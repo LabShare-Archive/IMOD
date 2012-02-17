@@ -140,12 +140,12 @@ final class ProcesschunksVolcombineMonitor extends ProcesschunksProcessMonitor {
   void closeProcessOutput() {
     super.closeProcessOutput();
     if (startLog != null && readerIdStart != null && !readerIdStart.isEmpty()) {
-      startLog.closeReader(readerIdStart);
+      startLog.closeRead(readerIdStart);
       startLog = null;
       readerIdStart = null;
     }
     if (finishLog != null && readerIdFinish != null && !readerIdFinish.isEmpty()) {
-      finishLog.closeReader(readerIdFinish);
+      finishLog.closeRead(readerIdFinish);
       finishLog = null;
       readerIdFinish = null;
     }
