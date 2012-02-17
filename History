@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2/7/11: IMOD_4-3-5
+2/17/12: Fixed programs using warping code for images with Y size bigger
+than X size (In 4.3)
+
+2/7/12: IMOD_4-3-5
 2/2/12: Fixed ctfplotter to link against the libtiff distributed in package
 (In 4.3).
 
