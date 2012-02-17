@@ -4,7 +4,7 @@ Version = 1.2
 if.var.quick.run.function.quick=
 if.var.quick.return=
 if.var.test-gui.run.function.test-gui=
-run.function.set-variables=
+run.function.set-values=
 run.function.compute-alignment=
 run.if.var.test-gui.run.function.test-files=
 bn.done=
@@ -182,7 +182,7 @@ copy.file=%{dataset}%{axis}local.xf
 copy.file=%{dataset}%{axis}.zfac
 
 
-[function = set-variables]
+[function = set-values]
 tb.general=
 tf.list-of-views-to-exclude=1
 
@@ -208,7 +208,7 @@ bn.basic=
 
 [function = general-test-gui-basic]
 tb.general=
-assert.tf.list-of-views-to-exclude=1
+assert.tf.list-of-views-to-exclude=
 assert.tf.separate-view-groups=
 [[ifnot = patch-tracking]]
 	assert.rb.do-not-sort-fiducials-into-2-surfaces-for-analysis=off
