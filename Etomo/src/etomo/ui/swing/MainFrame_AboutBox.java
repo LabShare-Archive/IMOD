@@ -137,7 +137,7 @@ public class MainFrame_AboutBox extends JDialog {
     pnlAbout.setLayout(new BoxLayout(pnlAbout, BoxLayout.Y_AXIS));
 
     JLabel lblEtomo = new JLabel("eTomo: The IMOD Tomography GUI");
-    JLabel lblVersion = new JLabel("Version " + ImodVersion.CURRENT_VERSION + "   "
+    JLabel lblVersion = new JLabel("Version " + ImodVersion.CURRENT_VERSION + " "
         + LatestBuild.get());
     JLabel lblAuthors = new JLabel("Written by: Rick Gaudette & Sue Held");
     JLabel lbl3dmodVersion = new JLabel("IMOD Version: " + versImod);

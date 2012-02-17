@@ -21,14 +21,10 @@ public final class LatestBuild {
 
   public static String get() {
     // Check in this file each time etomo is changed
-    if (rcsid.indexOf("LatestBuild") == -1) {
-      return "";
-    }
     String[] array = rcsid.split("\\s+");
-    if (array == null || array.length < 5) {
+    if (array == null || array.length < 4) {
       return "";
     }
-    int i = rcsid.indexOf(".java");
-    return "Build: " + array[3] + " "+ array[4];
+    return array[3];
   }
 }
