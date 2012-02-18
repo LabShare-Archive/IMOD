@@ -318,7 +318,7 @@ csrc : ALWAYS
 	imodutil/*.[ch] imodutil/*.cpp imodutil/Makefile \
 	mrc/*.[ch] mrc/*.cpp   mrc/Makefile \
 	clip/*.[ch]   clip/Makefile \
-	midas/*.[ch] midas/*.cpp midas/midas.pro midas/images \
+	midas/*.[ch] midas/*.cpp midas/midas.pro midas/images midas/midas.qrc \
 	midas/Makefile.dummy \
 	sendevent/*.h sendevent/*.cpp sendevent/imodsendevent.pro \
 	sendevent/Makefile.dummy sendevent/imodsendevent.dsp \
