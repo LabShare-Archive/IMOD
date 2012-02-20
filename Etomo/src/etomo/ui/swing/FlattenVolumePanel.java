@@ -106,7 +106,7 @@ import etomo.util.FrontEndLogic;
  * <p> </p>
  */
 final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDisplay,
-    FlattenWarpDisplay, SmoothingAssessmentParent, ContextMenu {
+    FlattenWarpDisplay, SmoothingAssessmentParent, ContextMenu, ToolPanel {
   public static final String rcsid = "$Id$";
 
   private static final String OUTPUT_SIZE_Z_LABEL = "Output thickness in Z";
@@ -236,7 +236,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
     JPanel pnlOneSurface = new JPanel();
     JPanel pnlWarpSpacing = new JPanel();
     JPanel pnlFlattenWarpButtons = new JPanel();
-    //initialize
+    // initialize
     rbInputFileTrimVol.setSelected(true);
     btnFlattenWarp.setSize();
     btnFlatten.setContainer(this);
@@ -246,7 +246,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
     ftfInputFile.setFieldEditable(false);
     ftfTemporaryDirectory.addAction(manager.getPropertyUserDir(), getComponent(),
         JFileChooser.DIRECTORIES_ONLY);
-    //Root panel
+    // Root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.setBorder(new BeveledBorder("Flatten Volume").getBorder());
     pnlRoot.setAlignmentX(Box.CENTER_ALIGNMENT);
@@ -261,7 +261,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
     pnlRoot.add(ltfOutputSizeZ.getContainer());
     pnlRoot.add(ftfTemporaryDirectory);
     pnlRoot.add(pnlFlatten);
-    //Input file panel
+    // Input file panel
     if (panelId == PanelId.POST_FLATTEN_VOLUME) {
       pnlInputFile.setLayout(new BoxLayout(pnlInputFile, BoxLayout.Y_AXIS));
       pnlInputFile.setBorder(new BeveledBorder("Set Input File").getBorder());
@@ -269,7 +269,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
       pnlInputFile.add(rbInputFileTrimVol.getComponent());
       pnlInputFile.add(rbInputFileSqueezeVol.getComponent());
     }
-    //Flatten warp panel
+    // Flatten warp panel
     pnlFlattenWarp.setBoxLayout(BoxLayout.Y_AXIS);
     pnlFlattenWarp.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlFlattenWarp.add(btnMakeSurfaceModel.getContainer());
@@ -278,28 +278,28 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
     pnlFlattenWarp.add(smoothingAssessmentPanel.getComponent());
     pnlFlattenWarp.add(ltfLambdaForSmoothing.getContainer());
     pnlFlattenWarp.add(pnlFlattenWarpButtons);
-    //One surface panel
+    // One surface panel
     pnlOneSurface.setLayout(new BoxLayout(pnlOneSurface, BoxLayout.Y_AXIS));
     pnlOneSurface.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlOneSurface.add(cbOneSurface);
     pnlOneSurface.add(Box.createHorizontalGlue());
-    //Warp Spacing panel
+    // Warp Spacing panel
     pnlWarpSpacing.setLayout(new BoxLayout(pnlWarpSpacing, BoxLayout.X_AXIS));
     pnlWarpSpacing.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlWarpSpacing.add(ltfWarpSpacingX.getContainer());
     pnlWarpSpacing.add(ltfWarpSpacingY.getContainer());
-    //Flatten warp buttons panel
+    // Flatten warp buttons panel
     pnlFlattenWarpButtons
         .setLayout(new BoxLayout(pnlFlattenWarpButtons, BoxLayout.Y_AXIS));
     pnlFlattenWarpButtons.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlFlattenWarpButtons.add(btnFlattenWarp.getComponent());
-    //Interpolation order panel
+    // Interpolation order panel
     pnlInterpolationOrder
         .setLayout(new BoxLayout(pnlInterpolationOrder, BoxLayout.X_AXIS));
     pnlInterpolationOrder.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlInterpolationOrder.add(cbInterpolationOrderLinear);
     pnlInterpolationOrder.add(Box.createHorizontalGlue());
-    //Flatten panel
+    // Flatten panel
     pnlFlatten.setBoxLayout(BoxLayout.X_AXIS);
     pnlFlatten.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlFlatten.add(btnFlatten.getComponent());
@@ -386,7 +386,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
           + ":  " + errorMessage, "Entry Error", axisID);
       return false;
     }
-    //The model contains coordinates so it can match either input file.
+    // The model contains coordinates so it can match either input file.
     if (panelId == PanelId.POST_FLATTEN_VOLUME) {
       param.setInputFile(getInputFileType());
       param.setOutputFile(ImageFileType.FLATTEN_OUTPUT.getFileName(manager));
@@ -440,7 +440,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
   private void action(final String command,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    //Reconstruction
+    // Reconstruction
     if (panelId == PanelId.POST_FLATTEN_VOLUME) {
       if (command.equals(btnFlatten.getActionCommand())) {
         applicationManager.flatten(btnFlatten, null, deferred3dmodButton,
@@ -464,7 +464,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
         throw new IllegalStateException("Unknown command " + command);
       }
     }
-    //Tools
+    // Tools
     else if (panelId == PanelId.TOOLS_FLATTEN_VOLUME) {
       if (command.equals(ftfInputFile.getActionCommand())) {
         inputFileAction();
@@ -500,7 +500,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
    * names.  Also pops up a warning if the file was not rotated.
    */
   private void inputFileAction() {
-    //  Open up the file chooser in the current working directory
+    // Open up the file chooser in the current working directory
     JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);

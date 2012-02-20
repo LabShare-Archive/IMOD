@@ -55,7 +55,7 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
   private final JScrollPane scrTaskLog = new JScrollPane(taTaskLog);
   private final EtomoLogger logger = new EtomoLogger(this);
 
-  private final FlattenVolumePanel flattenVolumePanel;
+  private final ToolPanel toolPanel;
   private final ToolType toolType;
   private final BaseManager manager;
 
@@ -64,11 +64,10 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
     this.toolType = toolType;
     this.manager = manager;
     if (toolType == ToolType.FLATTEN_VOLUME) {
-      flattenVolumePanel = FlattenVolumePanel.getToolsInstance(manager, axisID,
-          dialogType);
+      toolPanel = FlattenVolumePanel.getToolsInstance(manager, axisID, dialogType);
     }
     else {
-      flattenVolumePanel = null;
+      toolPanel = null;
     }
   }
 
@@ -80,7 +79,7 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
   }
 
   public void setParameters(final ConstWarpVolParam param) {
-    flattenVolumePanel.setParameters(param);
+    ((FlattenVolumePanel) toolPanel).setParameters(param);
   }
 
   public void logMessage(Loggable loggable, AxisID axisID) {
@@ -110,15 +109,15 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
   }
 
   private void createPanel() {
-    //initialize
+    // initialize
     taTaskLog.setEditable(false);
     taTaskLog.setRows(5);
     taTaskLog.setLineWrap(true);
     taTaskLog.setWrapStyleWord(true);
-    //Root panel
+    // Root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     if (toolType == ToolType.FLATTEN_VOLUME) {
-      pnlRoot.add(flattenVolumePanel.getComponent());
+      pnlRoot.add(toolPanel.getComponent());
     }
     pnlRoot.add(scrTaskLog);
     UIHarness.INSTANCE.pack(manager);
