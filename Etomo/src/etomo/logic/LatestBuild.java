@@ -16,7 +16,7 @@ package etomo.logic;
 * <p> $Log$ </p>
 */
 
-public final class LatestBuild  {
+public final class LatestBuild {
   public static final String rcsid = "$$Id$$";
 
   public static final String TIME_STAMP = "Mon Feb 20 16:18:25 MST 2012";
