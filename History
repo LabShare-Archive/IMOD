@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/20/12: In eTomo running comscripts and processchunks with python.(Bug# 1591)
+
 2/17/12: Fixed programs using warping code for images with Y size bigger
 than X size (In 4.3)
 
@@ -17,8 +19,6 @@ enclose the area to be contoured.
 
 2/16/12: In uitests added testBB, testmidzone2, and testunicross datasets.
 (Bug# 1596)
-
-2/16/12: In eTomo running comscripts and processchunks with python.(Bug# 1591)
 
 2/13/12: Fixed 3dmod model view movieing when Ctrl key is pressed.
 
