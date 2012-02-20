@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2/17/12: In eTomo running comscripts and processchunks with python.(Bug# 1591)
+2/20/12: In eTomo running comscripts and processchunks with python.(Bug# 1591)
 
 2/17/12: Fixed programs using warping code for images with Y size bigger
 than X size (In 4.3)

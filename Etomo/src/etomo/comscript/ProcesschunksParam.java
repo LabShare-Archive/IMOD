@@ -455,7 +455,8 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
       command.add(queue);
       command.add("-q");
       command.add(cpuNumber.toString());
-      command.add("\"" + queueCommand + "\"");
+     // command.add("\"" + queueCommand + "\"");
+      command.add(queueCommand);
     }
     command.add(rootName);
     int commandSize = command.size();
