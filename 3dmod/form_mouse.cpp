@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "form_mouse.h"
@@ -81,6 +80,7 @@ void MouseForm::init()
   connect(mouseGroup, SIGNAL(buttonClicked(int)), this,
           SLOT(mappingChanged(int)));
     
+  setMouseLabels();
   update();
 }
 
@@ -107,6 +107,7 @@ void MouseForm::keyChanged( int value )
 void MouseForm::mappingChanged( int value )
 {
   mPrefs->mouseMapping = value;
+  setMouseLabels();
 }
 
 void MouseForm::swapToggled( bool state )
@@ -114,8 +115,14 @@ void MouseForm::swapToggled( bool state )
   mPrefs->modvSwapLeftMid = state;
 }
 
-/*
-
-$Log$
-
-*/
+void  MouseForm::setMouseLabels()
+{
+  char *texts[3] = {"Pan, mark\nAttach to pt", "Movie up\nAdd point", 
+                    "Movie down\nModify pt"};
+  int leftMapping[6] = {0, 2, 1, 0, 1, 2};
+  int midMapping[6] = {1, 0, 2, 2, 0, 1};
+  int rightMapping[6] = {2, 1, 0, 1, 2, 0};
+  leftLabel->setText(texts[leftMapping[mPrefs->mouseMapping]]);
+  middleLabel->setText(texts[midMapping[mPrefs->mouseMapping]]);
+  rightLabel->setText(texts[rightMapping[mPrefs->mouseMapping]]);
+}
