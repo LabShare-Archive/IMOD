@@ -14,7 +14,6 @@ NOEXT = 3dmodimages etomoImages 3dmodHelp libhelp joinImages ctfHelp midasHelp p
 install : cleanjunk
 	cd libdoc ; $(MAKE)
 	./makeqhp
-	qcollectiongenerator IMOD.qhcp
 	chmod a+rx IMOD.qch IMOD.qhc
 	if [ `pwd` != $(INSTDIR)/html ] ; then cp -f IMOD.qhc IMOD.qch $(INSTDIR)/html ; fi
 #	if [ `pwd` != $(INSTDIR)/html ] ; then $(CP) -r *.[^q]* $(NOEXT) $(INSTDIR)/html ; fi

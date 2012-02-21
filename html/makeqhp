@@ -21,6 +21,10 @@ listDirs = ['3dmodHelp', '3dmodimages', 'ctfHelp', 'etomoImages', 'joinImages', 
             'man', 'midasHelp', 'plughelp']
 dirExts = ['[hp]*', '*', '*', '*', '*', '*', 'html', 'html', '*', '*']
 
+# Files and directories to change Ctrl to Apple in on Mac
+appleFiles = ['3dmodguide.html']
+appleDirs = ['3dmodHelp', 'midasHelp']
+
 stubInd = 0
 outlines = []
 
@@ -50,10 +54,11 @@ def findTitle(lib):
    return title
 
 # Very simple startup here
-import sys, os, os.path, glob
+import sys, os, os.path, glob, shutil
 
 sys.path.append('../pysrc')
 from imodpy import *
+from pysed import *
 
 stubLines = readTextFile(stubFile)
 
@@ -103,4 +108,38 @@ while stubInd < len(stubLines):
    stubInd += 1
 
 writeTextFile(qhpFile, outlines)
+
+# For Mac, we need to make a temporary copy and change Ctrl to Apple
+if sys.platform.find('darwin') >= 0:
+   prnstr('Making a copy with Ctrl replaced by Apple for Mac')
+   for name in appleFiles + appleDirs:
+      os.rename(name, name + '.save')
+   for name in appleFiles:
+      pysed('s/Ctrl/Apple/g', name + '.save', name)
+   for dir in appleDirs:
+      savedir = dir + '.save'
+      os.mkdir(dir)
+      allFiles = glob.glob(savedir + '/*')
+      for subfile in allFiles:
+         basename = os.path.basename(subfile)
+         if basename.endswith('.html'):
+            pysed('s/Ctrl/Apple/g', subfile, dir + '/' + basename)
+         else:
+            shutil.copyfile(subfile, dir + '/' + basename)
+
+# Make the help file for everyone now
+prnstr('Making the compressed help file')
+runcmd('qcollectiongenerator IMOD.qhcp', 'stdout')
+
+# Clean up the copy
+if sys.platform.find('darwin') >= 0:
+   prnstr('Cleaning up the copy')
+   for name in appleFiles:
+      os.remove(name)
+      os.rename(name + '.save', name)
+      
+   for dir in appleDirs:
+      shutil.rmtree(dir)
+      os.rename(dir + '.save', dir)
+
 sys.exit(0)

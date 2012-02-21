@@ -104,6 +104,7 @@ int ImodAssistant::showPage(const char *page)
 {
   QString fullPath;
   QString fileOnly, assPath;
+  bool sendTwice = false;
   int len, retval = 0;
   char sep = QDir::separator().toLatin1();
 
@@ -132,10 +133,20 @@ int ImodAssistant::showPage(const char *page)
       else
         assPath = "";
 #else
+#ifdef Q_OS_MACX
+    // On Mac, if it isn't here it's hopeless
+    assPath = QDir::cleanPath(mImodDir + sep + 
+                              "qtlib/Assistant.app/Contents/MacOS/Assistant");
+#else
     assPath = QDir::cleanPath(mImodDir + sep + "qtlib");
-    if (!QFile::exists(assPath + sep + "assistant") && 
-        !QFile::exists(assPath + sep + "assistant.app"))
+    if (!QFile::exists(assPath + sep + "assistant"))
       assPath = "";
+#endif
+#endif
+#ifndef Q_OS_MACX
+    if (!assPath.isEmpty())
+      assPath += '/';
+    assPath += "assistant";
 #endif
     mAssistant = new QProcess();
     connect(mAssistant, SIGNAL(finished(int, QProcess::ExitStatus)), this,
@@ -146,7 +157,16 @@ int ImodAssistant::showPage(const char *page)
     args << showhide << "contents" << showhide << "index" << showhide << "search";
     if (mKeepSideBar)
       args << "-activate" << "contents";
-    mAssistant->start("assistant", args);
+    else
+      args << "-hide" << "bookmarks";
+    mAssistant->start(assPath, args);
+    /* printf("Started %s with args:", (const char *)(assPath.toLatin1()));
+       for (int kk = 0; kk < args.size(); kk++)
+       printf("  %s", (const char *)((args[kk]).toLatin1()));
+       printf("\n"); */
+    mAssistant->waitForStarted(3000);
+    b3dMilliSleep(200);
+    sendTwice = true;
   }
 
   fullPath = mPrefix + "/" + page;
@@ -157,6 +177,13 @@ int ImodAssistant::showPage(const char *page)
   QTextStream str(mAssistant);
   str << "setSource " << fullPath << '\0' << endl;
 
+  // On Mac, a long delay was needed to keep from getting multiple tabs, or about:blank
+  // or Qt Assistant help page.  So send early and send again in case that gives it to the
+  // use sooner in some other cases
+  if (sendTwice) {
+    b3dMilliSleep(1500);
+    str << "setSource " << fullPath << '\0' << endl;
+  }
   return 0;
 }
 
