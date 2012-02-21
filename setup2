@@ -746,7 +746,7 @@ EOF
     if ($machine != "macosx") then
         cat <<EOF >> $imod_qconf
 3dmodv.extra = strip 3dmod ; cd $inst_bin_dir ; \
-if [ -e 3dmod ] ; then strip 3dmod ; fi ; \\rm -f 3dmodv imod imodv ; \
+if [ -e 3dmod ] ; then strip 3dmod ; fi ; rm -f 3dmodv imod imodv ; \
 ln -s 3dmod 3dmodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv
 EOF
 
