@@ -1,0 +1,106 @@
+#!/usr/bin/python -u
+# makeqhp - script to build IMOD.qhp from qhpStub
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+instext1 = "INSERT PLUGIN PAGES"
+instext2 = "INSERT MAN PAGES"
+instext3 = "INSERT LIBRARY PAGES"
+instext4 = "INSERT FILE LISTING"
+stubFile = 'qhpStub'
+qhpFile = 'IMOD.qhp'
+
+# List of files to exclude from the man page directory
+excludes = ['cpuadoc', 'pip', 'imodenv', 'uitest']
+
+# Directories to search for the file list, in alphabetic order, and corresponding
+# extensions to glob for
+listDirs = ['3dmodHelp', '3dmodimages', 'ctfHelp', 'etomoImages', 'joinImages', 'libhelp',
+            'man', 'midasHelp', 'plughelp']
+dirExts = ['[hp]*', '*', '*', '*', '*', '*', 'html', 'html', '*', '*']
+
+stubInd = 0
+outlines = []
+
+# Copy lines from stub up to the next INSERT place
+def copyToINSERT(insertText):
+   global stubInd, outlines
+   while stubInd < len(stubLines):
+      if stubLines[stubInd].startswith(insertText):
+         stubInd += 1
+         break
+      outlines.append(stubLines[stubInd])
+      stubInd += 1
+
+# Find a title within the top three lines of a file
+def findTitle(lib):
+   title = None
+   libfile = open(lib, 'r')
+   for i in range(3):
+      topline = libfile.readline()
+      indst = topline.find('<title>')
+      indnd = topline.find('</title>')
+      if indst >= 0 and indnd > indst:
+         title = topline[indst + 7 : indnd]
+         break;
+   
+   libfile.close()
+   return title
+
+# Very simple startup here
+import sys, os, os.path, glob
+
+sys.path.append('../pysrc')
+from imodpy import *
+
+stubLines = readTextFile(stubFile)
+
+# Copy through 3dmod up to plugins and get the plugin pages
+copyToINSERT(instext1)
+plugfiles = glob.glob(os.path.join('plughelp', '*.html'))
+for plug in plugfiles:
+   basename = os.path.basename(plug)
+   title = findTitle(plug)
+   if not title:
+      title = plug
+   outlines.append('                        <section title="' + title + \
+                      '" ref="./plughelp/' + basename + '#TOP"></section>')
+
+# Copy to man pages and insert those
+copyToINSERT(instext2)
+manfiles = glob.glob(os.path.join('man', '*.html'))
+for man in manfiles:
+   (progname, ext) = os.path.splitext(os.path.basename(man))
+   if progname not in excludes:
+      outlines.append('                    <section title="' + progname + \
+                         '" ref="./man/' + progname + '.html#TOP"></section>')
+# Copy to library pages
+copyToINSERT(instext3)
+libfiles = glob.glob(os.path.join('libhelp', '*.html'))
+for lib in libfiles:
+   basename = os.path.basename(lib)
+   title = findTitle(lib)
+   if not title:
+      (title, ext) = os.path.splitext(basename)
+    
+   outlines.append('                    <section title="' + title + '" ref="./libhelp/' +\
+                      basename + '#TOP"></section>')
+
+# Copy to file list and finish the file list
+copyToINSERT(instext4)
+for ind in range(len(listDirs)):
+   subdir = listDirs[ind]
+   dirfiles = glob.glob(os.path.join(subdir, '*.' + dirExts[ind]))
+   for subfile in dirfiles:
+      basename = os.path.basename(subfile)
+      outlines.append('            <file>' + subdir + '/' + basename + '</file>')
+
+# Copy to end
+while stubInd < len(stubLines):
+   outlines.append(stubLines[stubInd])
+   stubInd += 1
+
+writeTextFile(qhpFile, outlines)
+sys.exit(0)

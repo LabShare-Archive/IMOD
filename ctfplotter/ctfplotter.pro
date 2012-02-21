@@ -1,5 +1,5 @@
 TEMPLATE = app
-CONFIG += qt assistant
+CONFIG += qt
 CONFIG       += exceptions
 HEADERS       += defocusfinder.h linearfitting.h simplexfitting.h myapp.h plotter.h \
                  fittingdialog.h angledialog.h imod_assistant.h slicecache.h ctfmain.h
@@ -23,10 +23,10 @@ INSTALLS += target
 
 iacpptarget.target = imod_assistant.cpp
 iacpptarget.depends = ../3dmod/imod_assistant.cpp
-iacpptarget.commands = \cp ../3dmod/imod_assistant.cpp .
+iacpptarget.commands = cp -f ../3dmod/imod_assistant.cpp .
 
 iahtarget.target = imod_assistant.h
 iahtarget.depends = ../3dmod/imod_assistant.h
-iahtarget.commands = \cp ../3dmod/imod_assistant.h .
+iahtarget.commands = cp -f ../3dmod/imod_assistant.h .
 
-QMAKE_EXTRA_UNIX_TARGETS += iacpptarget iahtarget
+QMAKE_EXTRA_TARGETS += iacpptarget iahtarget

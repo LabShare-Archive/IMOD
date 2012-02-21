@@ -40,7 +40,9 @@ Etomo/jar_dir
 Etomo/jar
 Etomo/.settings
 flib/subrs/smallmodel
-html/IMOD.adp
+html/IMOD.qhp
+html/IMOD.qch
+html/IMOD.qhc
 .distname
 .options
 VERSION

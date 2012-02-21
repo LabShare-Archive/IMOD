@@ -14,127 +14,7 @@
 
     $Revision$
 
-    $Log: drawingtools.cpp,v $
-    Revision 1.51  2011/02/09 23:44:09  tempuser
-    Added arrow key option
-
-    Revision 1.50  2011/01/12 02:52:49  tempuser
-    Minor
-
-    Revision 1.49  2011/01/08 01:25:24  tempuser
-    *** empty log message ***
-
-    Revision 1.48  2011/01/08 00:50:14  tempuser
-    Added Measure tool
-
-    Revision 1.47  2010/11/03 06:54:47  tempuser
-    Improved the rename feature, removed the .png file, and explained why I made this tool
-
-    Revision 1.46  2010/10/18 22:41:56  tempuser
-    Minor changes only
-
-    Revision 1.45  2010/10/18 19:57:08  tempuser
-    Improved dialog control and added pin-to-front
-
-    Revision 1.43  2009/10/23 01:43:29  tempuser
-    setZChange - wild problem
-
-    Revision 1.42  2009/10/22 05:41:51  mast
-    Clear contour WILD flag after adding a point with Z marked as shifted
-
-    Revision 1.41  2009/06/11 01:00:42  tempuser
-    Minor
-
-    Revision 1.40  2009/06/05 09:23:31  tempuser
-    Minor
-
-    Revision 1.39  2009/05/13 03:06:16  tempuser
-    Added extra join mode
-
-    Revision 1.38  2009/05/12 00:53:32  tempuser
-    Added few more save options
-
-    Revision 1.37  2009/05/11 10:19:02  tempuser
-    Added few more save options
-
-    Revision 1.36  2009/05/11 07:54:14  tempuser
-    Moved smoothing options to unclutter
-
-    Revision 1.35  2009/05/07 01:08:41  tempuser
-    Added point resize mode option
-
-    Revision 1.34  2009/04/21 08:15:50  tempuser
-    Minor
-
-    Revision 1.33  2009/04/17 13:33:56  tempuser
-    Added some options for Pete
-
-    Revision 1.32  2009/04/14 04:13:23  tempuser
-    improved warp tool behavior
-
-    Revision 1.31  2009/04/03 00:38:07  tempuser
-    commented out test T key
-
-    Revision 1.30  2009/03/31 04:54:11  tempuser
-    fixed join tool (I hope)
-
-    Revision 1.29  2009/03/24 13:33:31  tempuser
-    added adjustGeometryAndShow
-
-    Revision 1.28  2009/03/24 13:29:55  tempuser
-    improved sculpt tools and added crop contours
-
-    Revision 1.27  2009/01/15 16:35:48  mast
-    Qt 4 port
-
-    Revision 1.26  2009/01/07 15:36:06  mast
-    had to make an argument float in a pow statement
-
-    Revision 1.25  2009/01/07 04:02:03  tempuser
-    changed closeEvent to avoid crash
-
-    Revision 1.24  2008/11/16 12:13:05  tempuser
-    *** empty log message ***
-
-    Revision 1.23  2008/09/30 07:05:58  tempuser
-    fixed imodplug event returns, renamed 'deform' to 'sculpt' tool and added 'warp' tool
-
-    Revision 1.22  2008/08/26 03:20:10  tempuser
-    fixed ivwSetTopZapZoom call
-
-    Revision 1.20  2008/08/25 09:34:35  tempuser
-    touched up code
-
-    Revision 1.18  2008/07/28 01:58:15  tempuser
-    made imodContourReduce the default smoothing algorithm
-
-    Revision 1.17  2008/07/24 23:57:30  tempuser
-    better labels
-
-    Revision 1.13  2008/07/10 07:43:56  tempuser
-    added functionality to sort and advance through [y] contours and points
-
-    Revision 1.12  2008/04/07 03:12:12  tempuser
-    added free()
-    
-    Revision 1.11  2008/04/04 01:15:36  tempuser
-    moved gui functions elsewhere
-
-    Revision 1.10  2008/03/17 07:22:37  tempuser
-    improved reduce and smooth contour options
-
-    Revision 1.9  2008/03/12 02:24:34  tempuser
-    minor modifications
-
-    Revision 1.8  2008/03/11 09:35:47  tempuser
-    added save vals
-
-    Revision 1.7  2008/03/05 10:29:00  tempuser
-    cleaned code
-
-    Revision 0.0  2008/2/25 15:45:41  noske
-    made special module to be used in IMOD
-
+    Use hg log to see log
 */
 
 //############################################################
@@ -5859,8 +5739,7 @@ void DrawingTools::checkForNamelessObjects( bool forceMessageBox )
   }
   else if( action == 1 )
   {
-    QString str = QString(getenv("IMOD_DIR")) + ("/lib/imodplug/naming_help.html#TOP");
-    imodShowHelpPage((const char *)str.toLatin1());
+    imodShowHelpPage("plughelp//naming_help.html#TOP");
   }
 }
 
@@ -6577,8 +6456,7 @@ void DrawingTools::changeSculptCircleRadius( float value, bool slowDown )
 
 void DrawingTools::helpPluginHelp()
 {
-  QString str = QString(getenv("IMOD_DIR")) + ("/lib/imodplug/drawingtools.html#TOP");
-  imodShowHelpPage((const char *)str.toLatin1());
+  imodShowHelpPage("plughelp/drawingtools.html#TOP");
 }
 
 

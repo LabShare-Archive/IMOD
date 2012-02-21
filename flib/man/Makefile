@@ -32,7 +32,7 @@ THERE = ../../manpages
 install : $(THERE)/mantohtml $(THERE)/autodoc2man
 	./makedist $(THERE)
 	$(CP) *.1 $(INSTDIR)/man/cat1
-	\mv *.html $(INSTDIR)/html/man
+	\mv *.html ../../html/man
 	./makedist clean
 
 $(THERE)/mantohtml : 
