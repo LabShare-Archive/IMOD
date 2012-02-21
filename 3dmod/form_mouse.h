@@ -39,6 +39,9 @@ class MouseForm : public QWidget, public Ui::MouseForm
   protected slots:
     virtual void languageChange();
 
+ private:
+    void setMouseLabels();
+
 };
 
 #endif // MOUSEFORM_H
