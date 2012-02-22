@@ -313,6 +313,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     mClassicWarned = true;
 
   // Get new object properties
+  mNewObjProps = mNewObjPropsDflt;
   mNewObjPropsChgd= settings->contains("newObjectProps");
   if (mNewObjPropsChgd) {
     str = settings->value("newObjectProps").toString();
