@@ -319,7 +319,7 @@ bool ImodClipboard::executeMessage()
                       "%d\n", message_action);
       newCheck = imodChecksum(App->cvi->imod);
       wprint("Checksum before = %d\n", newCheck);
-      if (newCheck != checkSum)
+      if (checkSum && newCheck != checkSum)
         wprint("\aIT CHANGED SINCE LAST TIME\n");
       checkSum = newCheck;
     }
