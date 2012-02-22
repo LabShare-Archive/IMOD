@@ -281,6 +281,8 @@ bool ImodClipboard::executeMessage()
 {
   int returnValue, arg;
   int succeeded = 1;
+  static int checkSum = 0;
+  int newCheck;
   QString convName;
   QDir *curdir;
   ZapFuncs *zap;
@@ -315,6 +317,11 @@ bool ImodClipboard::executeMessage()
       wprint("Executing message action %d\n", message_action);
       imodPrintStderr("imodHCM in executeMessage: executing message action "
                       "%d\n", message_action);
+      newCheck = imodChecksum(App->cvi->imod);
+      wprint("Checksum before = %d\n", newCheck);
+      if (newCheck != checkSum)
+        wprint("\aIT CHANGED SINCE LAST TIME\n");
+      checkSum = newCheck;
     }
 
     if (ImodvClosed || !Imodv->standalone) {
@@ -572,6 +579,13 @@ bool ImodClipboard::executeMessage()
         arg = numArgs;
       }
     }
+  }
+
+  if (Imod_debug) {
+    wprint("Checksum after = %d\n", newCheck);
+    if (newCheck != checkSum)
+      wprint("\aIT CHANGED IN THAT OPERATION\n");
+    checkSum = newCheck;
   }
 
   // Now set the clipboard with the response
