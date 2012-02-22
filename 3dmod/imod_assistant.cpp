@@ -181,7 +181,7 @@ int ImodAssistant::showPage(const char *page)
   // or Qt Assistant help page.  So send early and send again in case that gives it to the
   // use sooner in some other cases
   if (sendTwice) {
-    b3dMilliSleep(1500);
+    b3dMilliSleep(2000);
     str << "setSource " << fullPath << '\0' << endl;
   }
   return 0;
