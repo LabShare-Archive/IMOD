@@ -13,4 +13,4 @@ url='qthelp://bl3demc/IMOD/index.html'
 if [ $# -gt 0 ] ; then
     url='qthelp://bl3demc/IMOD/man/'$1'.html#TOP'
 fi
-$prog -collectionFile $IMOD_DIR/html/IMOD.qhc -showUrl $url &
+$prog -collectionFile $IMOD_DIR/html/IMOD.qhc -showUrl $url -show contents -show index -show search -activate contents&
