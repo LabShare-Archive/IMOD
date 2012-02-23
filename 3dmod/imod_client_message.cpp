@@ -526,7 +526,7 @@ bool ImodClipboard::executeMessage()
         if (imod->objsize == 1 && !obj->contsize) {
           imod->csum = imodChecksum(imod);
           if (imodDebug('C'))
-            wprint("handleMessage set checksum %d", imod->csum);
+            wprint("handleMessage set checksum %d\n", imod->csum);
         }
         break;
 

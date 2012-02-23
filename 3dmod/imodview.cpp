@@ -2751,7 +2751,7 @@ static int ivwManageInitialFlips(ImodView *vi)
 
   vi->imod->csum = imodChecksum(vi->imod);
   if (imodDebug('C'))
-    wprint("ivwManageInitialFlips set checksum %d", vi->imod->csum);
+    wprint("ivwManageInitialFlips set checksum %d\n", vi->imod->csum);
 
   /* DNM: check wild flag here, after all the flipping is done */
   ivwCheckWildFlag(vi->imod);

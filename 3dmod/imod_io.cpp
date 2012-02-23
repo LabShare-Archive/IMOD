@@ -354,7 +354,7 @@ static int writeModel(Imod *mod, FILE *fout, QString qname)
     imod_finish_backup();
     mod->csum = imodChecksum(mod);
     if (imodDebug('C'))
-      wprint("writeModel set checksum %d", mod->csum);
+      wprint("writeModel set checksum %d\n", mod->csum);
     imod_cleanup_autosave();
     App->cvi->reloadable = 1;
   } else {
@@ -527,7 +527,7 @@ int openModel(const char *modelFilename, bool keepBW, bool saveAs)
     initModelData(tmod, keepBW);
     tmod->csum = imodChecksum(tmod);
     if (imodDebug('C'))
-      wprint("openModel set checksum %d", tmod->csum);
+      wprint("openModel set checksum %d\n", tmod->csum);
   }
   else {
     return lastError;
@@ -678,7 +678,7 @@ int createNewModel(const char *modelFilename)
   /* Set the checksum to avoid save requests */
   App->cvi->imod->csum = imodChecksum(App->cvi->imod);
   if (imodDebug('C'))
-    wprint("createNewModel set checksum %d", App->cvi->imod->csum);
+    wprint("createNewModel set checksum %d\n", App->cvi->imod->csum);
      
   return IMOD_IO_SUCCESS;
 }
