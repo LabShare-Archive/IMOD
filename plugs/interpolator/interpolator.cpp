@@ -14,25 +14,7 @@
 
     $Revision$
 
-    $Log: interpolator.cpp,v $
-    Revision 1.5  2010/10/18 22:41:56  tempuser
-    Minor changes only
-
-    Revision 1.4  2010/10/18 19:38:32  tempuser
-    improved dialog control
-
-    Revision 1.3  2009/10/23 01:35:34  tempuser
-    setZChange - wild problem
-
-    Revision 1.2  2009/09/01 01:17:57  tempuser
-    Changed second int i to j
-
-    Revision 1.1  2009/08/27 11:20:39  tempuser
-    First upload of interpolator
-
-    Revision 0.0  2004/11/20 15:45:41  mast
-    Made special module to be used in IMOD
-
+    Use hg log to see log
 */
 
 //############################################################
@@ -1664,8 +1646,7 @@ int Interpolator::getTilingMethod()
 
 void Interpolator::helpPluginHelp()
 {
-  QString str = QString(getenv("IMOD_DIR")) + ("/lib/imodplug/interpolator.html#TOP");
-  imodShowHelpPage((const char *)str.toLatin1());
+  imodShowHelpPage("plughelp/interpolator.html#TOP");
 }
 
 

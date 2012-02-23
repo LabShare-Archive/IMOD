@@ -1,6 +1,6 @@
 /*  imod_assistant.cpp - Opens Qt Assistant for help pages
  *
- *  WARNING: EDIT ONLY THE ORIGINAL FILE IN THE imod DIRECTORY
+ *  WARNING: EDIT ONLY THE ORIGINAL FILE IN THE 3dmod DIRECTORY
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
  *
@@ -12,8 +12,8 @@
  */
 
 #include <stdlib.h>
-#include <QtAssistant/QAssistantClient>
 #include <qdir.h>
+#include <qtextstream.h>
 #include <qmessagebox.h>
 #include <qstringlist.h>
 #include "imod_assistant.h"
@@ -21,23 +21,29 @@
 
 /*!
  * Constructs the [ImodAssistant] object.  ^
- * {path} is a path to the help files ^
- * {adpFile} is the name of An Assistant Document Profile file OR NULL for 
- * none, where the file can be relative to the path or an absolute path ^
+ * {path} is a path to the help collection file ^
+ * {qhcFile} is the name of a Qt help collection file,
+ * where the file can be relative to the path or an absolute path ^
  * {messageTitle} should be a program name to have errors reported in a
  * message box, or NULL not to ^
  * {absolute} (default false) should be [true] if {path} is an absolute 
  * location or [false] if it is relative to the environment variable IMOD_DIR ^
- * {keepSideBar} (default false) should eb true to avoid starting with the
+ * {keepSideBar} (default false) should be true to avoid starting with the
  * argument to hide the sidebar ^
- * The object emits a signal to pass on the error signal from its assistant 
- * client:  [void error(const QString &msg);]
+ * {prefix} is a prefix to place in front of the help page name; the default is
+ * qthelp://bl3demc/IMOD  ^
+ * If {prefAbsolute} is false (the default), the supplied prefix will be added to
+ * qthelp://bl3demc/IMOD/ and if it is true, the prefix should be an absolute URL. ^
+ * The object emits a signal to pass on the error message when there is a failure
+ * running Assistant or a non-zero exit status: ^
+ *   [void error(const QString &msg);]
  */
-ImodAssistant::ImodAssistant(const char *path, const char *adpFile, 
+ImodAssistant::ImodAssistant(const char *path, const char *qhcFile, 
                              char *messageTitle, bool absolute,
-                             bool keepSideBar)
+                             bool keepSideBar,  const char *prefix, bool prefAbsolute)
 {
   mAssistant = NULL;
+  mExiting = false;
   mAssumedIMOD = 0;
   mKeepSideBar = keepSideBar;
   if (messageTitle)
@@ -64,8 +70,17 @@ ImodAssistant::ImodAssistant(const char *path, const char *adpFile,
   } else {
     mPath = mImodDir + QDir::separator() + QString(path);
   }
-  if (adpFile)
-    mAdp = QString(adpFile);
+  mQhc = qhcFile;
+  if (mQhc == "IMOD.adp")
+    mQhc = "IMOD.qhc";
+  mQhc = mPath +  QDir::separator() + mQhc;
+  mPrefix = "qthelp://bl3demc/IMOD/";
+  if (prefix) {
+    if (prefAbsolute)
+      mPrefix = prefix;
+    else
+      mPrefix = mPrefix + "/" + prefix;
+  }
 }
 
 /*!
@@ -73,25 +88,37 @@ ImodAssistant::ImodAssistant(const char *path, const char *adpFile,
  */
 ImodAssistant::~ImodAssistant()
 {
+  mExiting = true;
   if (mAssistant) {
-    mAssistant->closeAssistant();
-    delete mAssistant;
-  }
+    mAssistant->terminate();
+  } 
 }
 
 /*!
- * Shows a help file with file name given by {page}, {absolute} (default
- * false) should be [true] if {page} gives an absolute path and [false] if
- * it gives a path relative to the path defined in the constructor. ^
- * Returns 0 if the page is found, 1 if not, and -1 if the adp file is not
+ * Shows a help file with file name given by {page}, which must be relative to the 
+ * prefix given in the constructor ^
+ * Returns 0 if assistant starts OK, and -1 if the qhc file is not
  * found.
  */
 int ImodAssistant::showPage(const char *page)
 {
   QString fullPath;
   QString fileOnly, assPath;
+  bool sendTwice = false;
   int len, retval = 0;
   char sep = QDir::separator().toLatin1();
+
+  if (!QFile::exists(mQhc)) {
+    fileOnly = QString("Cannot find help collection file: ") + mQhc;
+    if (mAssumedIMOD)
+      fileOnly += QString("\nThis is probably because IMOD_DIR is not defined"
+                          "\nand was assumed to be ") + mImodDir;
+    if (!mTitle.isEmpty())
+      QMessageBox::warning(0, mTitle, fileOnly, QMessageBox::Ok,
+                           QMessageBox::NoButton, QMessageBox::NoButton);
+    emit error(fileOnly);
+    return -1;
+  }
 
   // Get the assistant object the first time
   if (!mAssistant) {
@@ -100,81 +127,84 @@ int ImodAssistant::showPage(const char *page)
     // path.  Need to check for .app on Mac, and in /bin or IMOD_DIR itself on Windows
 #ifdef _WIN32
     assPath = QDir::cleanPath(mImodDir + sep + "bin");
-    if (!QFile::exists(assPath + sep + "assistant_adp.exe")) 
-      if (QFile::exists(mImodDir + sep + "assistant_adp.exe"))
+    if (!QFile::exists(assPath + sep + "assistant.exe")) 
+      if (QFile::exists(mImodDir + sep + "assistant.exe"))
         assPath = mImodDir;
       else
         assPath = "";
 #else
+#ifdef Q_OS_MACX
+    // On Mac, if it isn't here it's hopeless
+    assPath = QDir::cleanPath(mImodDir + sep + 
+                              "qtlib/Assistant.app/Contents/MacOS/Assistant");
+#else
     assPath = QDir::cleanPath(mImodDir + sep + "qtlib");
-    if (!QFile::exists(assPath + sep + "assistant_adp") && 
-        !QFile::exists(assPath + sep + "assistant_adp.app"))
+    if (!QFile::exists(assPath + sep + "assistant"))
       assPath = "";
 #endif
-    mAssistant = new QAssistantClient(assPath, this);
-    connect(mAssistant, SIGNAL(error(const QString&)), this, 
-            SLOT(assistantError(const QString&)));
-
-    // Hide the side bar and define the adp file if any
-#if QT_VERSION >= 0x030200
-    QStringList args;
-    if (!mKeepSideBar)
-      args << "-hideSidebar";
-    if (!mAdp.isEmpty()) {
-      if (QDir::isRelativePath(mAdp))
-        fileOnly = mPath + sep + mAdp;
-      else
-        fileOnly = mAdp;
-      if (QFile::exists(fileOnly))
-        args << "-profile" <<  fileOnly;
-      else
-        retval = -1;
-    }
-    if (!args.empty())
-      mAssistant->setArguments(args);
 #endif
+#ifndef Q_OS_MACX
+    if (!assPath.isEmpty())
+      assPath += '/';
+    assPath += "assistant";
+#endif
+    mAssistant = new QProcess();
+    connect(mAssistant, SIGNAL(finished(int, QProcess::ExitStatus)), this,
+            SLOT(assistantExited(int, QProcess::ExitStatus )));
+    QStringList args;
+    args << "-collectionFile" << mQhc << "-enableRemoteControl";
+    QString showhide = mKeepSideBar ? "-show" : "-hide";
+    args << showhide << "contents" << showhide << "index" << showhide << "search";
+    if (mKeepSideBar)
+      args << "-activate" << "contents";
+    else
+      args << "-hide" << "bookmarks";
+    mAssistant->start(assPath, args);
+    /* printf("Started %s with args:", (const char *)(assPath.toLatin1()));
+       for (int kk = 0; kk < args.size(); kk++)
+       printf("  %s", (const char *)((args[kk]).toLatin1()));
+       printf("\n"); */
+    mAssistant->waitForStarted(3000);
+    b3dMilliSleep(200);
+    sendTwice = true;
   }
 
-  // Get full path name and clean it; fix up call from plugin in standalone case
-  if (QDir::isRelativePath(page))
-    fullPath = mPath + sep + page;
-  else if (QString(page).startsWith("/lib/imodplug"))
-    fullPath = mImodDir + page;
-  else
-    fullPath = page;
-  fullPath = QDir::cleanPath(fullPath);
-  if (QDir::isRelativePath(fullPath))
-    fullPath = QDir::currentPath() + sep + fullPath;
-  
-  // Get a name with any tags stripped off to check for file existence
-  fileOnly = fullPath;
-  len = fileOnly.indexOf('#');
-  if (len >= 0)
-    fileOnly = fileOnly.left(len);
-  if (!QFile::exists(fileOnly)) {
-    fileOnly = QString("Cannot find help file: ") + fileOnly;
-    if (mAssumedIMOD)
-      fileOnly += QString("\nThis is probably because IMOD_DIR is not defined"
-                          "\nand was assumed to be ") + mImodDir;
-    if (!mTitle.isEmpty())
-      QMessageBox::warning(0, mTitle, fileOnly, QMessageBox::Ok,
-                           QMessageBox::NoButton, QMessageBox::NoButton);
-    retval = 1;
-  } else {
+  fullPath = mPrefix + "/" + page;
 
-    // Just show the page without opening assistant first
-    mAssistant->showPage(fullPath);
+  // Strangely, this is needed to get it to show one level
+  if (mKeepSideBar)
+    fullPath +=  "; expandToc 0;";
+  QTextStream str(mAssistant);
+  str << "setSource " << fullPath << '\0' << endl;
+
+  // On Mac, a long delay was needed to keep from getting multiple tabs, or about:blank
+  // or Qt Assistant help page.  So send early and send again in case that gives it to the
+  // use sooner in some other cases
+  if (sendTwice) {
+    b3dMilliSleep(2000);
+    str << "setSource " << fullPath << '\0' << endl;
   }
-  return retval;
+  return 0;
 }
 
-// Report errors.  Sadly, it will not report a bad page
-void ImodAssistant::assistantError(const QString &msg)
+// Report errors when it exits
+void ImodAssistant::assistantExited(int exitCode, QProcess::ExitStatus exitStatus)
+
 {
-  emit error(msg);
-  if (mTitle.isEmpty())
+  QString fullMsg;
+  delete mAssistant;
+  mAssistant = NULL;
+  if (mExiting)
     return;
-  QString fullMsg = QString("Error opening Qt Assistant:\n") + msg;
-  QMessageBox::warning(0, mTitle, fullMsg, QMessageBox::Ok,
-                       QMessageBox::NoButton, QMessageBox::NoButton);
+  if (exitStatus != QProcess::NormalExit)
+    fullMsg = "Abnormal exit trying to run Qt Assistant";
+  else if (exitCode)
+    fullMsg.sprintf("Qt Assistant exited with an error (return code %d)", exitCode);
+  else
+    return;
+
+  emit error(fullMsg);
+  if (!mTitle.isEmpty())
+    QMessageBox::warning(0, mTitle, fullMsg, QMessageBox::Ok,
+                         QMessageBox::NoButton, QMessageBox::NoButton);
 }

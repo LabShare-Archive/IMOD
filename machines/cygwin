@@ -25,7 +25,7 @@ set fcmpNoportFlags = ""
 
 if ($compiler == intel) then
     set c_includes =  
-    set qt_flags = '-I"$(QTDIR)\include" -I"$(QTDIR)\include\Qt" -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui"'
+    set qt_flags = '-I"$(QTDIR)\include" -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include\QtOpenGL"'
     set qt3_flags = '-DQT3_SUPPORT -I"$(QTDIR)\include\Qt3Support"'
     set cyg_lib = `cygpath -w $lib_dir`
     set xplax = (qtplax.obj moc_qtplax.obj)
@@ -428,7 +428,7 @@ end
 # Make new project files for 3dmod and midas if needed
 # set QMAKESPEC here for msvc, now that real makefiles are done
 #
-setenv QMAKESPEC win32-msvc
+setenv QMAKESPEC win32-msvc2008
 set newer = `\find $imod_dir -name 3dmod.dsp -newer $imod_dir/3dmod.pro \
  -exec echo newer \;`
 if ($newer != newer) then
@@ -585,6 +585,7 @@ echo "CMDWRAPPERS = cmdwrappers" >> $configure
 # Set up for Qt image plugin copy
 #
 echo "QTPLUGS_TOCOPY1 = qjpeg4.dll qico4.dll" >> $configure
+echo "QTSQL_TOCOPY = qsqlite4.dll" >> $configure
 
 # Make sure critical scripts are in unix mode
 # ALL BASH/SH SCRIPTS MUST BE INCLUDED

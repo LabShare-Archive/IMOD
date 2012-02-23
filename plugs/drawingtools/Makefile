@@ -22,8 +22,12 @@ QTDLGMOC = ../noskecommon/moc_customdialog
 all : $(PLUGS)
 
 install : $(PLUGS)
-	$(CP) -f $(PLUGS) $(MODULE).html $(IMOD_PLUGIN_DIR)
-	$(CP) -f $(PLUGS) naming_help.html $(IMOD_PLUGIN_DIR)
+	$(CP) -f $(PLUGS) $(IMOD_PLUGIN_DIR)
+	$(CP) -f $(MODULE).html $(PLUG_HELP_DIR)
+	$(CP) -f naming_help.html $(PLUG_HELP_DIR)
+
+# DNM: This makes the analysis tools help available even though its install is not run
+	$(CP) -f ../analysistools/analysistools.html $(PLUG_HELP_DIR)
 
 $(PLUGS) : $(CONTEXTRA).$(O) $(QTDIALOG).$(O) $(MODULE).$(O) \
 	moc_$(MODULE).$(O) $(COMMINCLUDES) $(QTDLGMOC).$(O) \
