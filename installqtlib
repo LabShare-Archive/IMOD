@@ -93,7 +93,7 @@ endif
 # 
 if (-e $instdir/qtlib) then
     set app = `\find $instdir/qtlib -name '*ssistant.app' -print`
-    if ("$app" != "") set assistdir = $assistdir/Contents/MacOS
+    if ("$app" != "") set assistdir = $assistdir/Assistant.app/Contents/MacOS
 endif
 
 # Now that the location of assistant executable is known, copy the SQL plugin
