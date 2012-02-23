@@ -791,6 +791,8 @@ int main( int argc, char *argv[])
 
   /* DNM: set this now in case image load is interrupted */
   Model->csum = imodChecksum(Model);
+  if (imodDebug('C'))
+    wprint("main set checksum %d", Model->csum);
 
   // Read tilt angles if any
   if (anglefname)
