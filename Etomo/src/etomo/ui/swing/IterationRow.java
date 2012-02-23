@@ -2,11 +2,18 @@ package etomo.ui.swing;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
+import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.type.AxisID;
+import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoNumber;
 
 /**
@@ -179,28 +186,28 @@ final class IterationRow implements Highlightable {
   }
 
   void setNames() {
-    btnHighlighter.setHeaders(IterationTable.LABEL, number, table
-        .getIterationNumberHeaderCell());
+    btnHighlighter.setHeaders(IterationTable.LABEL, number,
+        table.getIterationNumberHeaderCell());
     dPhiMax.setHeaders(IterationTable.LABEL, number, table.getDPhiDThetaDPsiHeaderCell());
-    dPhiIncrement.setHeaders(IterationTable.LABEL, number, table
-        .getDPhiDThetaDPsiHeaderCell());
-    dThetaMax.setHeaders(IterationTable.LABEL, number, table
-        .getDPhiDThetaDPsiHeaderCell());
-    dThetaIncrement.setHeaders(IterationTable.LABEL, number, table
-        .getDPhiDThetaDPsiHeaderCell());
+    dPhiIncrement.setHeaders(IterationTable.LABEL, number,
+        table.getDPhiDThetaDPsiHeaderCell());
+    dThetaMax.setHeaders(IterationTable.LABEL, number,
+        table.getDPhiDThetaDPsiHeaderCell());
+    dThetaIncrement.setHeaders(IterationTable.LABEL, number,
+        table.getDPhiDThetaDPsiHeaderCell());
     dPsiMax.setHeaders(IterationTable.LABEL, number, table.getDPhiDThetaDPsiHeaderCell());
-    dPsiIncrement.setHeaders(IterationTable.LABEL, number, table
-        .getDPhiDThetaDPsiHeaderCell());
-    searchRadius.setHeaders(IterationTable.LABEL, number, table
-        .getSearchRadiusHeaderCell());
+    dPsiIncrement.setHeaders(IterationTable.LABEL, number,
+        table.getDPhiDThetaDPsiHeaderCell());
+    searchRadius.setHeaders(IterationTable.LABEL, number,
+        table.getSearchRadiusHeaderCell());
     hiCutoff.setHeaders(IterationTable.LABEL, number, table.getCutoffHeaderCell());
     lowCutoff.setHeaders(IterationTable.LABEL, number, table.getCutoffHeaderCell());
-    refThreshold.setHeaders(IterationTable.LABEL, number, table
-        .getRefThresholdHeaderCell());
-    duplicateShiftTolerance.setHeaders(IterationTable.LABEL, number, table
-        .getDuplicateToleranceHeaderCell());
-    duplicateAngularTolerance.setHeaders(IterationTable.LABEL, number, table
-        .getDuplicateToleranceHeaderCell());
+    refThreshold.setHeaders(IterationTable.LABEL, number,
+        table.getRefThresholdHeaderCell());
+    duplicateShiftTolerance.setHeaders(IterationTable.LABEL, number,
+        table.getDuplicateToleranceHeaderCell());
+    duplicateAngularTolerance.setHeaders(IterationTable.LABEL, number,
+        table.getDuplicateToleranceHeaderCell());
   }
 
   public void highlight(final boolean highlight) {
@@ -347,9 +354,10 @@ final class IterationRow implements Highlightable {
     }
     if (n != null) {
       if (!n.isValid()) {
-        UIHarness.INSTANCE.openMessageDialog(manager, IterationTable.LABEL + ":  In row "
-            + number.toString() + buildHeaderDescription(headerArray) + ":   "
-            + n.getInvalidReason(), "Entry Error");
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            IterationTable.LABEL + ":  In row " + number.toString()
+                + buildHeaderDescription(headerArray) + ":   " + n.getInvalidReason(),
+            "Entry Error");
         return false;
       }
       if (n.isNegative()) {
@@ -363,7 +371,7 @@ final class IterationRow implements Highlightable {
   }
 
   boolean validateRun() {
-    //Phi
+    // Phi
     EtomoNumber nDouble = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     EtomoNumber nInteger = new EtomoNumber();
     nDouble.set(dPhiMax.getValue());
@@ -378,7 +386,7 @@ final class IterationRow implements Highlightable {
         IterationTable.INCR_HEADER3 }, null)) {
       return false;
     }
-    //Theta
+    // Theta
     if (dThetaMax.isEnabled()) {
       nDouble.set(dThetaMax.getValue());
       if (!validateRun(dThetaMax.isEmpty(), nDouble, new String[] {
@@ -395,7 +403,7 @@ final class IterationRow implements Highlightable {
         return false;
       }
     }
-    //Psi
+    // Psi
     if (dPsiMax.isEnabled()) {
       nDouble.set(dPsiMax.getValue());
       if (!validateRun(dPsiMax.isEmpty(), nDouble, new String[] {
@@ -412,7 +420,7 @@ final class IterationRow implements Highlightable {
         return false;
       }
     }
-    //search radius
+    // search radius
     String searchRadiusString = searchRadius.getValue().trim();
     String[] headerArray = new String[] { IterationTable.SEARCH_RADIUS_HEADER1,
         IterationTable.SEARCH_RADIUS_HEADER2 };
@@ -423,8 +431,8 @@ final class IterationRow implements Highlightable {
       }
     }
     else {
-      //If its not a single number then it must be a list of three numbers
-      //divided by "," or " ".
+      // If its not a single number then it must be a list of three numbers
+      // divided by "," or " ".
       String[] searchRadiusArray = searchRadiusString.split("\\s*,\\s*");
       if (searchRadiusArray.length != 3) {
         searchRadiusArray = searchRadiusString.split("\\s+");
@@ -435,7 +443,7 @@ final class IterationRow implements Highlightable {
           return false;
         }
       }
-      //Validate each number in the array.
+      // Validate each number in the array.
       for (int i = 0; i < searchRadiusArray.length; i++) {
         nInteger.set(searchRadiusArray[i]);
         if (!validateRun(false, nInteger, headerArray, null)) {
@@ -443,25 +451,25 @@ final class IterationRow implements Highlightable {
         }
       }
     }
-    //hiCutoff
+    // hiCutoff
     if (!validateRun(hiCutoff.isEmpty(), null, new String[] {
         IterationTable.CUTOFF_HEADER1, IterationTable.CUTOFF_HEADER2,
         IterationTable.HI_CUTOFF_HEADER3 }, null)) {
       return false;
     }
-    //lowCutoff
+    // lowCutoff
     if (!validateRun(lowCutoff.isEmpty(), null, new String[] {
         IterationTable.CUTOFF_HEADER1, IterationTable.CUTOFF_HEADER2,
         IterationTable.LOW_CUTOFF_HEADER3 }, null)) {
       return false;
     }
-    //refThreshold
+    // refThreshold
     if (!validateRun(refThreshold.isEmpty(), null, new String[] {
         IterationTable.REF_THRESHOLD_HEADER1, IterationTable.REF_THRESHOLD_HEADER2 },
         null)) {
       return false;
     }
-    //duplicateShiftTolerance
+    // duplicateShiftTolerance
     if (duplicateShiftTolerance.isEnabled()) {
       nInteger.set(duplicateShiftTolerance.getValue());
       if (!validateRun(duplicateShiftTolerance.isEmpty(), nInteger, new String[] {
@@ -471,7 +479,7 @@ final class IterationRow implements Highlightable {
         return false;
       }
     }
-    //duplicateAngularTolerance
+    // duplicateAngularTolerance
     if (duplicateAngularTolerance.isEnabled()) {
       nInteger.set(duplicateAngularTolerance.getValue());
       if (!validateRun(duplicateAngularTolerance.isEmpty(), nInteger, new String[] {
@@ -485,6 +493,24 @@ final class IterationRow implements Highlightable {
   }
 
   private void setTooltips() {
+    ReadOnlyAutodoc autodoc = null;
+    try {
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    duplicateShiftTolerance.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        MatlabParam.DUPLICATE_SHIFT_TOLERANCE_KEY));
+    duplicateAngularTolerance.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        MatlabParam.DUPLICATE_ANGULAR_TOLERANCE_KEY));
+
     number.setToolTipText("Iteration number");
     dPhiMax.setToolTipText("Maximum magnitude of rotation about the particle Y axis "
         + "in degrees.  Search will range from -(Phi Max) to +(Phi Max) in "
@@ -509,7 +535,7 @@ final class IterationRow implements Highlightable {
             + "steps of (Psi Incr).");
     searchRadius.setToolTipText("The number of pixels to search in the X, Y, and Z "
         + "directions.  A single, integer number of pixels can be specified, "
-        + "which will be applied to a 3 dimensions, or a vector of 3 "
+        + "which will be applied to all 3 dimensions, or a vector of 3 "
         + "integers can be specified, giving the X, Y, and Z search "
         + "distances individually. E.g. '3' is equivalent to '3 3 3'.");
     hiCutoff.setToolTipText("The normalized spatial frequency above which high "
@@ -525,13 +551,5 @@ final class IterationRow implements Highlightable {
             + "particles having a larger correlation eligible for inclusion in "
             + "the reference.  If greater than 1, it is the number of particles "
             + "to include.");
-    duplicateShiftTolerance
-        .setToolTipText("An integer number of pixels.  Particles differing in "
-            + "each of their X, Y, and Z coordinates by less than this number of "
-            + "pixels are potential duplicates.");
-    duplicateAngularTolerance
-        .setToolTipText("An integer number of degrees.  Particles whose "
-            + "orientations differ by less than this number of degrees are "
-            + "potential duplicates.");
   }
 }

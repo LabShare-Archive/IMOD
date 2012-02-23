@@ -13,9 +13,10 @@ lists of objects, contours and
 point data in an IMOD file; 
 printing out areas, lengths and centroids of contours;
 and printing out surface areas and volumes of objects or surfaces.  The
-measurements are generally expressed in terms of the units of the pixel size
-defined in the model header (e.g., nm or microns), if one is defined.  A
-Z-scale in the model header is also applied as appropriate.
+measurements of lengths, areas, and volumes are generally expressed in terms
+of the units of the pixel size defined in the model header (e.g., nm or
+microns), if one is defined.  A Z-scale in the model header is also applied as
+appropriate.  However, reported positions are always in pixels.
 
 The program computes surface area and volume in several different ways,
 depending upon whether an object is meshed or not:

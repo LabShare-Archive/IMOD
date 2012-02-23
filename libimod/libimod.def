@@ -13,6 +13,7 @@ EXPORTS
 	imod_mesh_to_synu
 	GETIMODVERTS
 	imodMatUniqueAngles
+	imodTransModel3D
 	imodNextContour
 	imodTransform
 	imodMeshCopy
@@ -75,6 +76,7 @@ EXPORTS
 	imodViewModelNew
 	imodViewNew
 	GETIMODOBJNAME
+	imodClipsCopy
 	istoreEndChange
 	PUTIMODFLAG
 	GETMODELNAME
@@ -245,12 +247,14 @@ EXPORTS
 	imodPointGetSize
 	imodPointGetFirst
 	istoreCleanEnds
+	imodAutoPatch
 	imodel_contour_sorty
 	imodPoint3DScaleDistance
 	imod_to_wmod
 	imodMatCopy
 	imodMeshesNew
 	imodel_contour_invert
+	imodAutoShrink
 	imodGetBoundingBox
 	imodViewDefault
 	objGroupNew
@@ -261,6 +265,7 @@ EXPORTS
 	PUTSCATSIZE
 	imodPutByte
 	imodPlanesClip
+	imodObjectChecksum
 	PUTCONTPOINTSIZES
 	imodContoursDeleteToEnd
 	imodClipsTrans
@@ -313,6 +318,7 @@ EXPORTS
 	imodReadFile
 	imodDelete
 	GETIMODSIZES
+	imodAutoExpand
 	WRITEIMOD
 	istoreFirstChangeIndex
 	imodPlaneClip
@@ -394,6 +400,7 @@ EXPORTS
 	objGroupListDelete
 	OPENIMODDATA
 	imodGetIndex
+	imodTransForSubsetLoad
 	imodGetInts
 	imodel_contour_length
 	imodWriteAscii

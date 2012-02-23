@@ -1,4 +1,5 @@
 package etomo.type;
+
 /**
 * <p>Description: </p>
 * 
@@ -58,22 +59,39 @@ package etomo.type;
 * <p> </p>
 */
 public interface ConstPeetMetaData {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   public String getName();
+
   public String getInitMotlFile(int key);
+
   public String getTiltRangeMin(int key);
+
   public String getTiltRangeMax(int key);
+
   public AxisType getAxisType();
+
   public String getReferenceFile();
+
   public ConstEtomoNumber getReferenceParticle();
+
   public ConstEtomoNumber getReferenceVolume();
-  public String getEdgeShift();
+  
+  public int getReferenceMultiparticleLevel();
+
+  public ConstEtomoNumber getEdgeShift();
+
   public boolean isFlgWedgeWeight();
+
   public ConstEtomoNumber getMaskModelPtsZRotation();
+
   public String getMaskModelPtsYRotation();
+
   public String getMaskTypeVolume();
+
   public ConstEtomoNumber getNWeightGroup();
-  public boolean isUseNWeightGroup();
+
   public boolean isTiltRange();
+
+  public boolean isManualCylinderOrientation();
 }

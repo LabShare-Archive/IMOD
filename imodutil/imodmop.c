@@ -85,8 +85,7 @@ int main( int argc, char *argv[])
   Ipoint *pts;
   Ipoint minpt, maxpt;
   int ob, co, pt;
-  float xload, yload, zload, addPad;
-  IrefImage *ref;
+  float addPad;
   MrcHeader hdata, hdbyte;
   IloadInfo li;
   MrcHeader hdout[3];
@@ -432,24 +431,7 @@ int main( int argc, char *argv[])
 
   /* Shift the model if it was loaded on a subset (takes care of 
      mirrored/nonmirrored FFT problem too) */
-  ref = imod->refImage;
-  if (ref && ref->cscale.x && ref->cscale.y && ref->cscale.z) {
-    xload = (hdata.xorg - ref->ctrans.x) / ref->cscale.x;
-    yload = (hdata.yorg - ref->ctrans.y) / ref->cscale.y;
-    zload = (hdata.zorg - ref->ctrans.z) / ref->cscale.z;
-    if (xload || yload || zload) {
-      for (ob = 0; ob < imod->objsize; ob++) {
-        for (co = 0; co < imod->obj[ob].contsize; co++) {
-          pts = imod->obj[ob].cont[co].pts;
-          for (pt = 0; pt < imod->obj[ob].cont[co].psize; pt++) {
-            pts[pt].x += xload;
-            pts[pt].y += yload;
-            pts[pt].z += zload;
-          }
-        }
-      }
-    }
-  }
+  imodTransForSubsetLoad(imod, &hdata, NULL);
  
   /* Open final output file now */
   if (!getenv("IMOD_NO_IMAGE_BACKUP"))

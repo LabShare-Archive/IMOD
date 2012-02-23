@@ -131,6 +131,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.MouseListener;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
@@ -160,10 +161,10 @@ final class LabeledSpinner {
    * @param spinner
    */
   LabeledSpinner(final String spinLabel, final SpinnerNumberModel model,
-      final int defaultValue) {
+      final int defaultValue, final int hgap) {
     this.model = model;
     this.defaultValue = new Integer(defaultValue);
-    //set name
+    // set name
     String name = Utilities.convertLabelToName(spinLabel);
     spinner.setName(UITestFieldType.SPINNER.toString() + AutodocTokenizer.SEPARATOR_CHAR
         + name);
@@ -171,10 +172,13 @@ final class LabeledSpinner {
       System.out.println(spinner.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
           + ' ');
     }
-    //set label
+    // set label
     label.setText(spinLabel);
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.add(label);
+    if (hgap > 0) {
+      panel.add(Box.createRigidArea(new Dimension(hgap, 0)));
+    }
     panel.add(spinner);
     spinner.setModel(model);
 
@@ -188,6 +192,11 @@ final class LabeledSpinner {
       maxSize.setSize(maxSize.getWidth(), 2 * spinner.getFont().getSize());
     }
     spinner.setMaximumSize(maxSize);
+  }
+
+  LabeledSpinner(final String spinLabel, final SpinnerNumberModel model,
+      final int defaultValue) {
+    this(spinLabel, model, defaultValue, 0);
   }
 
   void setMax(final int max) {
@@ -268,12 +277,11 @@ final class LabeledSpinner {
     spinner.setMaximumSize(size);
   }
 
-  /**
-   * Set the absolute preferred size of the panel
-   * @param size
-   */
-  void setPreferredSize(final Dimension size) {
-    panel.setPreferredSize(size);
+  void setPreferredWidth(final int width) {
+    Dimension dim = spinner.getPreferredSize();
+    dim.width = width * Math.round(UIParameters.INSTANCE.getFontSizeAdjustment());
+    spinner.setPreferredSize(dim);
+    spinner.setMaximumSize(dim);
   }
 
   /**

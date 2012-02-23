@@ -31,6 +31,7 @@
 #include "imod_info_cb.h"
 #include "imod_model_edit.h"
 #include "imodv_modeled.h"
+#include "vertexbuffer.h"
 #include "control.h"
 #include "preferences.h"
 #include "undoredo.h"
@@ -237,8 +238,8 @@ void ModelHeaderWindow::setPixelClicked()
 // The draw box has been toggled
 void ModelHeaderWindow::drawToggled(bool state)
 {
-  if (state && sData.vw->imod->drawmode <= 0 ||
-      !state &&sData.vw->imod->drawmode > 0)
+  if ((state && sData.vw->imod->drawmode <= 0) ||
+      (!state &&sData.vw->imod->drawmode > 0))
     sData.vw->imod->drawmode = -sData.vw->imod->drawmode;
   imodDraw(sData.vw, IMOD_DRAW_MOD);
 }
@@ -347,6 +348,7 @@ void imodTransXYZ(Imod *imod, Ipoint trans)
   Icont *cont;
   Imesh *mesh;
      
+  vbCleanupVBD(imod);
   for(ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
     for(co = 0; co < obj->contsize; co++){

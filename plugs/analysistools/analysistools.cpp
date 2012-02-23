@@ -360,7 +360,7 @@ AnalysisTools::AnalysisTools(QWidget *parent, const char *name) :
              "compartment should span the same distance in Z that it does in X and Y. \n"
              "In reality however, many compartments are truncated, and thus more \n"
              "sophisticated alrorithms are used here to analyze the surfaces." );
-  addAction( analysisMenu, SLOT(outputConcavePtsAnalysis()),  "Analyse Convex Points",
+  addAction( analysisMenu, SLOT(outputConcavePtsAnalysis()),  "Analyze Convex Points",
              "  Allows you to specify a range of objects and outputs an 'analysis \n"
              "of concave points' on each closed contour in these objects. This  \n"
              "analysis includes a count of the total number of concave points, \n"
@@ -368,14 +368,14 @@ AnalysisTools::AnalysisTools(QWidget *parent, const char *name) :
              "convex hull, the contour's 'compactness' and so on. This information \n"
              "can give insight into  the relative 'complexity' of contours in \n"
              "each object." );
-  addAction( analysisMenu, SLOT(outputTubeSizeAnalysis()),    "Analyse Tubes",
+  addAction( analysisMenu, SLOT(outputTubeSizeAnalysis()),    "Analyze Tubes",
              "Designed to be used in situations where open contours have been used  \n"
              "to describe tubes of variable thickness, such that the radius of each \n"
              "point reflects the tube's radius at that point. After specifying a \n"
              "range of objects (with open contours) it outputs a mean width, \n"
              "max width, estimated total volume and so on, by analyzing the size of \n"
              "points and distance between them. " );
-  addAction( analysisMenu, SLOT(outputBranchingAnalysis()),   "Analyse Branching",
+  addAction( analysisMenu, SLOT(outputBranchingAnalysis()),   "Analyze Branching",
              "Designed to be used in situations where open contours have been used to \n"
              "describe tubes, and some of these tubes 'branch' off others. The output \n"
              "shows the length of each tube, and their organization hierarchy (i.e \n"
@@ -414,7 +414,7 @@ AnalysisTools::AnalysisTools(QWidget *parent, const char *name) :
   addAction( gridMenu, SLOT(deformObjectsUsingDefGrid()),     "Deform Objects",
              "Uses a deformation grid (see above) to deform all points over a \n"
              "range of objects specified by the user." );
-  addAction( gridMenu, SLOT(analyzeDefPoints()),     "Analyse Deformation Points",
+  addAction( gridMenu, SLOT(analyzeDefPoints()),     "Analyze Deformation Points",
              "Analyzes the XY offset of points in the 'deformation grid' object. " );
   addAction( gridMenu, SLOT(gridDisplayOptions()),                "Display Options #",
              "Presents a number of options to change the appearance of the \n"
@@ -1091,9 +1091,6 @@ void AnalysisTools::outputBranchingAnalysis()
   ds.addCheckBox( "convert to appripriate units", &convertUnits,
                  "Will show results in nm (or whatever you've entered \n"
                  "in the model header) instead of pixels" );
-  ds.addCheckBox( "convert to appropriate units", &convertUnits,
-                 "Will show results in nm (or whatever you've entered \n"
-                 "in the model header) instead of pixels" );
   ds.addCheckBox( "show matches", &showMatches,
                  "Prints a list of all contours in 'object containing branches' \n"
                  "showing how many times each was detected as a branch" );
@@ -1130,7 +1127,7 @@ void AnalysisTools::outputVolumeWithinXAnalysis()
   Imod *imod  = ivwGetModel(plug.view);
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
-  static int objToAnalyse  = 1;
+  static int objToAnalyze  = 1;
   static int objInIdx      = 4;
   static int objOut1Idx    = 5;
   static int objOut2Idx    = 0;
@@ -1143,7 +1140,7 @@ void AnalysisTools::outputVolumeWithinXAnalysis()
     
   CustomDialog ds( "Volume within X distance analysis", this);
   ds.addLabel   ( "Objects to use:" );
-  ds.addSpinBox ( "> object for analysis:",1,osize(imod),&objToAnalyse,1,
+  ds.addSpinBox ( "> object for analysis:",1,osize(imod),&objToAnalyze,1,
                   "The object containing contours we want to compare against" );
   
   ds.addSpinBox ( "> must be in object:",-1,osize(imod),&objInIdx,1,
@@ -1174,7 +1171,7 @@ void AnalysisTools::outputVolumeWithinXAnalysis()
   //## PERFORM ANALYSIS AND OUTPUT RESULTS:
   
   string bigOutputString =
-    analysis_outputVolumeWithinXAnalysis( objToAnalyse-1,
+    analysis_outputVolumeWithinXAnalysis( objToAnalyze-1,
                                           objInIdx-1, objOut1Idx-1, objOut2Idx-1,
                                           (float) distThres, numRandomPts,
                                           useMbr, addPtsNewObj );
@@ -3459,7 +3456,9 @@ string analysis_outputConcavePtsAnalysis( int minObj, int maxObj, bool printAllC
 
 //------------------------
 //-- Outputs information regarding the length, volume and surface area of
-//-- variable width tubes.
+//-- variable width tubes. Be warned that volume and surface area are
+//-- only approximate.
+//-- 
 //-- NOTE: Such tubes can be rendered with:
 //--       imodmesh -o 1 -t 1 -d -1 model_file.mop
 
@@ -3665,9 +3664,16 @@ struct BranchInfo
 
 
 //------------------------
-//-- 
-//-- 
-//-- 
+//-- Inputs the index of two objects - one with "root contours" (objMainLen)
+//-- and another object (objBranches) representing contours which branch off
+//-- these root contours. It then searches through all branch contours
+//-- and tries to match each with a root.... to be connected the first
+//-- point in a branch contour must be within (maxDistBranch) of any point
+//-- in a root contour. Finally, it will output which branches connect
+//-- to which root contours and show total lengths for each root contour
+//-- which includes the length of the root + any branches and, if (addRadiusToLeng)
+//-- is true, this length will include the radius of the first and last points
+//-- of root contour and the radius of the last point in each branch.
 
 string analysis_outputBranchingAnalysis( int objMainLen, int objBranches,
                                          int  branchDepth, float maxDistBranch,
@@ -3936,7 +3942,7 @@ string analysis_outputBranchingAnalysis( int objMainLen, int objBranches,
 //-- 
 //-- 
 
-string analysis_outputVolumeWithinXAnalysis( int objToAnalyse,
+string analysis_outputVolumeWithinXAnalysis( int objToAnalyze,
                                              int objInIdx, int objOut1Idx, int objOut2Idx,
                                              float distThres,
                                              int  numRandomPts, 
@@ -3951,7 +3957,7 @@ string analysis_outputVolumeWithinXAnalysis( int objToAnalyse,
   scale.y = 1.0;
   scale.z = zScale;
     
-  Iobj *obj = getObj(imod, objToAnalyse);  
+  Iobj *obj = getObj(imod, objToAnalyze);  
   float distThresPix = distThres / pixelSize;
   float maxSlices = (distThresPix / zScale);
   
@@ -4002,10 +4008,10 @@ string analysis_outputVolumeWithinXAnalysis( int objToAnalyse,
     if( i % 500 == 0 )
     {
       cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";        // shows progress
-      string percentDoneStr = toString(i) + " > " + toString( calcPercentInt(i,numRandomPts) ) + "%"  ;
+      string percentDoneStr = toString(i) + " > "
+														+ toString( calcPercentInt(i,numRandomPts) ) + "%"  ;
       char pad = ' ';
       cout << toStringPadNumber( percentDoneStr,15,pad );
-      //cout << i << " / " << numRandomPts << " -> " << calcPercentInt(i,numRandomPts) << "% ...";
       flush(cout);
     }
     
@@ -4105,7 +4111,7 @@ string analysis_outputVolumeWithinXAnalysis( int objToAnalyse,
   out << "VOLUME WITHIN X DISTANCE INFORMATION:" << endl;
   out << endl;
   out << "Objects: " << endl;
-  out << " > objToAnalyse: " << objToAnalyse+1 << endl;
+  out << " > objToAnalyze: " << objToAnalyze+1 << endl;
   out << " > objInIdx:     " << objInIdx+1 << endl;
   out << " > objOut1Idx:   " << objOut1Idx+1 << endl;
   out << " > objOut2Idx:   " << objOut2Idx+1 << endl;

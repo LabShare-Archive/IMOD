@@ -1,21 +1,29 @@
 package etomo.ui.swing;
 
+import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.BaseManager;
+import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
+import etomo.type.EtomoAutodoc;
 
 /**
  * <p>Description: </p>
@@ -133,23 +141,23 @@ final class IterationTable implements Highlightable {
   public static final String rcsid = "$Id$";
   static final String D_PHI_D_THETA_D_PSI_HEADER1 = "Angular Search Range";
   static final String D_PHI_HEADER2 = "Phi";
-  static final String INCR_HEADER3 = "Incr.";
+  static final String INCR_HEADER3 = "Step";
   static final String D_THETA_HEADER2 = "Theta";
   static final String D_PSI_HEADER2 = "Psi";
   static final String SEARCH_RADIUS_HEADER1 = "Search";
-  static final String SEARCH_RADIUS_HEADER2 = "Radius";
+  static final String SEARCH_RADIUS_HEADER2 = "Distance";
   static final String LABEL = "Iteration Table";
   static final String MAX_HEADER3 = "Max";
-  static final String CUTOFF_HEADER1 = "High Freq.";
+  static final String CUTOFF_HEADER1 = "Hi Freq";
   static final String CUTOFF_HEADER2 = "Filter";
   static final String HI_CUTOFF_HEADER3 = "Cutoff";
   static final String LOW_CUTOFF_HEADER3 = "Sigma";
-  static final String REF_THRESHOLD_HEADER1 = "Reference";
+  static final String REF_THRESHOLD_HEADER1 = "Ref";
   static final String REF_THRESHOLD_HEADER2 = "Threshold";
   static final String DUPLICATE_TOLERANCE_HEADER1 = "Duplicate";
   static final String DUPLICATE_TOLERANCE_HEADER2 = "Tolerance";
   static final String DUPLICATE_SHIFT_TOLERANCE_HEADER3 = "Shift";
-  static final String DUPLICATE_ANGULAR_TOLERANCE_HEADER3 = "Angular";
+  static final String DUPLICATE_ANGULAR_TOLERANCE_HEADER3 = "Angle";
 
   private final JPanel rootPanel = new JPanel();
   private final JPanel pnlTable = new JPanel();
@@ -178,8 +186,8 @@ final class IterationTable implements Highlightable {
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header1SearchRadius = new HeaderCell(SEARCH_RADIUS_HEADER1);
   private final HeaderCell header2SearchRadius = new HeaderCell(SEARCH_RADIUS_HEADER2);
-  private final HeaderCell header3SearchRadius = new HeaderCell(UIParameters.INSTANCE
-      .getIntegerTripletWidth());
+  private final HeaderCell header3SearchRadius = new HeaderCell(
+      UIParameters.INSTANCE.getIntegerTripletWidth());
   private final HeaderCell header1Cutoff = new HeaderCell(CUTOFF_HEADER1);
   private final HeaderCell header2Cutoff = new HeaderCell(CUTOFF_HEADER2);
   private final HeaderCell header3HiCutoff = new HeaderCell(HI_CUTOFF_HEADER3,
@@ -189,9 +197,6 @@ final class IterationTable implements Highlightable {
   private final HeaderCell header1RefThreshold = new HeaderCell(REF_THRESHOLD_HEADER1);
   private final HeaderCell header2RefThreshold = new HeaderCell(REF_THRESHOLD_HEADER2);
   private final HeaderCell header3RefThreshold = new HeaderCell();
-  private final MultiLineButton btnAddRow = new MultiLineButton("Add Row");
-  private final MultiLineButton btnCopyRow = new MultiLineButton("Copy Row");
-  private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete Row");
   private final HeaderCell header1DuplicateTolerance = new HeaderCell(
       DUPLICATE_TOLERANCE_HEADER1);
   private final HeaderCell header2DuplicateTolerance = new HeaderCell(
@@ -200,11 +205,19 @@ final class IterationTable implements Highlightable {
       DUPLICATE_SHIFT_TOLERANCE_HEADER3);
   private final HeaderCell header3DuplicateAngularTolerance = new HeaderCell(
       DUPLICATE_ANGULAR_TOLERANCE_HEADER3);
-  private final MultiLineButton btnMoveUp = new MultiLineButton("Move Up");
-  private final MultiLineButton btnMoveDown = new MultiLineButton("Move Down");
+  private final MultiLineButton btnMoveUp = new MultiLineButton("Up");
+  private final MultiLineButton btnMoveDown = new MultiLineButton("Down");
+  private final MultiLineButton btnAddRow = new MultiLineButton("Insert");
+  private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete");
+  private final MultiLineButton btnCopyRow = new MultiLineButton("Dup");
+  private final CheckBox cbFlgRemoveDuplicates = new CheckBox(
+      "Remove duplicate particles after each iteration");
+  private final JPanel pnlTableAndCheckbox = new JPanel();
+  private final JPanel pnlFlgRemoveDuplicates = new JPanel();
 
   private final BaseManager manager;
   private final IterationParent parent;
+  private Component verticalRigidArea1 = null;
 
   private IterationTable(BaseManager manager, IterationParent parent) {
     this.manager = manager;
@@ -214,6 +227,7 @@ final class IterationTable implements Highlightable {
     rowList.add(this, pnlTable, layout, constraints);
     display();
     updateDisplay();
+    refreshVerticalPadding();
     setToolTipText();
   }
 
@@ -238,12 +252,14 @@ final class IterationTable implements Highlightable {
   void reset() {
     rowList.remove();
     addRow();
+    cbFlgRemoveDuplicates.setSelected(false);
     updateDisplay();
     UIHarness.INSTANCE.pack(manager);
   }
 
   void getParameters(final MatlabParam matlabParamFile) {
     rowList.getParameters(matlabParamFile);
+    matlabParamFile.setFlgRemoveDuplicates(cbFlgRemoveDuplicates.isSelected());
   }
 
   /**
@@ -251,21 +267,22 @@ final class IterationTable implements Highlightable {
    * @param sampleSphere
    * @param flgRemoveDuplicates
    */
-  void updateDisplay(final boolean sampleSphere, final boolean flgRemoveDuplicates) {
-    rowList.updateDisplay(sampleSphere, flgRemoveDuplicates);
+  void updateDisplay(final boolean sampleSphere) {
+    rowList.updateDisplay(sampleSphere, cbFlgRemoveDuplicates.isSelected());
   }
 
   void setParameters(final MatlabParam matlabParamFile) {
-    //overwrite existing rows
+    // overwrite existing rows
     int rowListSize = rowList.size();
     for (int i = 0; i < rowListSize; i++) {
       rowList.getRow(i).setParameters(matlabParamFile);
     }
-    //add new rows
+    // add new rows
     for (int j = rowListSize; j < matlabParamFile.getIterationListSize(); j++) {
       IterationRow row = addRow();
       row.setParameters(matlabParamFile);
     }
+    cbFlgRemoveDuplicates.setSelected(matlabParamFile.isFlgRemoveDuplicates());
     updateDisplay();
     UIHarness.INSTANCE.pack(manager);
   }
@@ -274,6 +291,7 @@ final class IterationTable implements Highlightable {
     IterationRow row = rowList.add(this, pnlTable, layout, constraints);
     row.display();
     parent.updateDisplay();
+    refreshVerticalPadding();
     return row;
   }
 
@@ -282,12 +300,33 @@ final class IterationTable implements Highlightable {
   }
 
   private void setToolTipText() {
+    ReadOnlyAutodoc autodoc = null;
+    try {
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    header3DuplicateShiftTolerance.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        MatlabParam.DUPLICATE_SHIFT_TOLERANCE_KEY));
+    header3DuplicateAngularTolerance.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        MatlabParam.DUPLICATE_ANGULAR_TOLERANCE_KEY));
+
     btnAddRow.setToolTipText("Add a new iteration row to the table.");
     btnCopyRow.setToolTipText("Create a new row that is a duplicate of the highlighted "
         + "row.");
     btnMoveUp.setToolTipText("Move highlighted row up in the table.");
     btnMoveDown.setToolTipText("Move highlighted row down in the table");
     btnDeleteRow.setToolTipText("Remove highlighted row from table.");
+    cbFlgRemoveDuplicates
+        .setToolTipText("Remove mulitple references to the same particle after"
+            + "each iteration.");
   }
 
   private void addListeners() {
@@ -297,6 +336,7 @@ final class IterationTable implements Highlightable {
     btnDeleteRow.addActionListener(actionListener);
     btnMoveUp.addActionListener(actionListener);
     btnMoveDown.addActionListener(actionListener);
+    cbFlgRemoveDuplicates.addActionListener(actionListener);
   }
 
   private void action(final ActionEvent event) {
@@ -325,11 +365,15 @@ final class IterationTable implements Highlightable {
     else if (actionCommand.equals(btnMoveDown.getActionCommand())) {
       moveRowDown();
     }
+    else if (actionCommand.equals(cbFlgRemoveDuplicates.getActionCommand())) {
+      updateDisplay(parent.isSampleSphere());
+    }
   }
 
   private void copyRow(IterationRow row) {
     rowList.copy(row, this, pnlTable, layout, constraints);
     parent.updateDisplay();
+    refreshVerticalPadding();
     UIHarness.INSTANCE.pack(manager);
   }
 
@@ -338,6 +382,7 @@ final class IterationTable implements Highlightable {
     rowList.delete(row, this, pnlTable, layout, constraints);
     rowList.display();
     updateDisplay();
+    refreshVerticalPadding();
     UIHarness.INSTANCE.pack(manager);
   }
 
@@ -396,46 +441,63 @@ final class IterationTable implements Highlightable {
   }
 
   private void createTable() {
-    //initialize
-    btnMoveUp.setSize();
-    btnMoveDown.setSize();
-    //local panels
-    JPanel pnlButtons2 = new JPanel();
-    //table
+    // local panels
+    JPanel pnlButtons = new JPanel();
+    // table
     pnlTable.setLayout(layout);
     pnlTable.setBorder(LineBorder.createBlackLineBorder());
     constraints.fill = GridBagConstraints.BOTH;
     constraints.anchor = GridBagConstraints.CENTER;
     constraints.gridheight = 1;
-    //button panel
-    JPanel pnlButtons = new JPanel();
-    pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
-    btnAddRow.setSize();
+    // button panel
+    pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.Y_AXIS));
+    pnlButtons.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlButtons.add(btnMoveUp.getComponent());
+    pnlButtons.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlButtons.add(btnMoveDown.getComponent());
+    pnlButtons.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlButtons.add(btnAddRow.getComponent());
-    //button panel 2
-    pnlButtons2.setLayout(new BoxLayout(pnlButtons2, BoxLayout.X_AXIS));
-    btnCopyRow.setSize();
-    pnlButtons2.add(btnCopyRow.getComponent());
-    pnlButtons2.add(btnMoveUp.getComponent());
-    pnlButtons2.add(btnMoveDown.getComponent());
-    btnDeleteRow.setSize();
-    pnlButtons2.add(btnDeleteRow.getComponent());
-    //border
+    pnlButtons.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlButtons.add(btnDeleteRow.getComponent());
+    pnlButtons.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlButtons.add(btnCopyRow.getComponent());
+    pnlButtons.add(Box.createVerticalGlue());
+    pnlButtons.add(Box.createRigidArea(FixedDim.x0_y5));
+    // border
     SpacedPanel pnlBorder = SpacedPanel.getInstance();
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlBorder.setBorder(new EtchedBorder(LABEL).getBorder());
     pnlBorder.add(pnlTable);
-    //root
-    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    rootPanel.setBorder(BorderFactory.createEtchedBorder());
-    rootPanel.add(pnlBorder.getContainer());
+    //checkbox
+    pnlFlgRemoveDuplicates.add(cbFlgRemoveDuplicates);
+    // table and checkbox
+    pnlTableAndCheckbox.setLayout(new BoxLayout(pnlTableAndCheckbox, BoxLayout.Y_AXIS));
+    pnlTableAndCheckbox.add(pnlBorder.getContainer());
+    refreshVerticalPadding();
+    // root
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.X_AXIS));
+    rootPanel.setBorder(new EtchedBorder(LABEL).getBorder());
+    rootPanel.add(pnlTableAndCheckbox);
+    rootPanel.add(Box.createRigidArea(FixedDim.x3_y0));
     rootPanel.add(pnlButtons);
-    rootPanel.add(pnlButtons2);
+    rootPanel.add(Box.createRigidArea(FixedDim.x3_y0));
+  }
+
+  private void refreshVerticalPadding() {
+    int size = rowList.size();
+    int noPadding = 3;
+    if (verticalRigidArea1 != null) {
+      pnlTableAndCheckbox.remove(verticalRigidArea1);
+      pnlTableAndCheckbox.remove(pnlFlgRemoveDuplicates);
+    }
+    int height = Math.max(0 + (noPadding - size) * 22, 0);
+    verticalRigidArea1 = Box.createRigidArea(new Dimension(0, height));
+    pnlTableAndCheckbox.add(verticalRigidArea1);
+    pnlTableAndCheckbox.add(pnlFlgRemoveDuplicates);
   }
 
   private void display() {
     constraints.weighty = 0.0;
-    //first header row
+    // first header row
     constraints.weightx = 0.0;
     constraints.gridwidth = 2;
     header1IterationNumber.add(pnlTable, layout, constraints);
@@ -450,7 +512,7 @@ final class IterationTable implements Highlightable {
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header1DuplicateTolerance.add(pnlTable, layout, constraints);
 
-    //Second header row
+    // Second header row
     constraints.weightx = 0.0;
     constraints.gridwidth = 2;
     header2IterationNumber.add(pnlTable, layout, constraints);
@@ -466,7 +528,7 @@ final class IterationTable implements Highlightable {
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header2DuplicateTolerance.add(pnlTable, layout, constraints);
 
-    //Third header row
+    // Third header row
     constraints.weightx = 0.0;
     constraints.gridwidth = 2;
     header3IterationNumber.add(pnlTable, layout, constraints);

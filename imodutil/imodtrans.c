@@ -3,15 +3,9 @@
  *
  *  Original Author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ * $Id$
  */
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-    Log at end
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -388,7 +382,7 @@ int main(int argc, char *argv[])
     }
 
   } else if (transopt) {
-    trans_model_3d(&model, mat, normMat, newCen, zscale, doflip);
+    imodTransModel3D(&model, mat, normMat, newCen, zscale, doflip);
   }
 
   model.xmax = newNx ? newNx : model.xmax;
@@ -451,7 +445,7 @@ static int filetrans(char *filename, Imod *model, int mode, int oneLine,
         mat3d->data[6] = 0.;
         mat3d->data[14] = 0.;
         mat3d->data[15] = 1.;
-        trans_model_3d(model, mat3d, NULL, newCen, zscale, doflip);
+        imodTransModel3D(model, mat3d, NULL, newCen, zscale, doflip);
         return(0);
       }
       k++;
@@ -473,7 +467,7 @@ static int filetrans(char *filename, Imod *model, int mode, int oneLine,
       sscanf(line, "%f %f %f %f", &mat3d->data[k], &mat3d->data[k + 4],
              &mat3d->data[k + 8], &mat3d->data[k + 12]);
     }
-    trans_model_3d(model, mat3d, NULL, newCen, zscale, doflip);
+    imodTransModel3D(model, mat3d, NULL, newCen, zscale, doflip);
   }
   return(0);
 }
@@ -520,121 +514,3 @@ static int trans_model_slice(Imod *model, float *mat, int slice, Ipoint newCen)
   return(0);
 }
 
-static void exchangef(float *a, float *b)
-{
-  float tmp = *a;
-  *a = *b;
-  *b = tmp;
-}
-
-/*
- * Transform the model with the given 3D matrix 
- *  model  is the model 
- *  mat    is a 3D matrix including translations
- *  normMat is a 3D matrix for normal transformations, or NULL if none
- *  newCen are the center coordinates of the new volume
- *  zscale is the z scale factor, or 1 to not apply any 
- */
-static int trans_model_3d(Imod *model, Imat *mat, Imat *normMat, Ipoint newCen,
-                          float zscale, int doflip)
-{
-  int i, ob, co, pt, me;
-  Iobj *obj;
-  Icont *cont;
-  Imesh *mesh;
-  Imat *matWork = imodMatNew(3);
-  Imat *matWork2 = imodMatNew(3);
-  Imat *matUse = imodMatNew(3);
-  Imat *clipMat = imodMatNew(3);
-  Ipoint oldCen, tmpPt;
-  oldCen.x = -model->xmax * 0.5f;
-  oldCen.y = -model->ymax * 0.5f;
-  oldCen.z = -model->zmax * 0.5f;
-
-  /* If data are flipped, exchange Y and Z columns then Y and Z rows */
-  if (doflip) {
-    exchangef(&mat->data[4], &mat->data[8]);
-    exchangef(&mat->data[1], &mat->data[2]);
-    exchangef(&mat->data[6], &mat->data[9]);
-    exchangef(&mat->data[5], &mat->data[10]);
-    exchangef(&mat->data[13], &mat->data[14]);
-    if (normMat) {
-      exchangef(&normMat->data[4], &normMat->data[8]);
-      exchangef(&normMat->data[1], &normMat->data[2]);
-      exchangef(&normMat->data[6], &normMat->data[9]);
-      exchangef(&normMat->data[5], &normMat->data[10]);
-      exchangef(&normMat->data[13], &normMat->data[14]);
-    }
-  }
-
-  /* Compute a transformation by translating to origin, applying the given
-     transform, then translating back to new center.
-     Apply the zscale after translating, then de-scale after applying the
-     transform. */
-  imodMatTrans(matWork, &oldCen);
-  tmpPt.x = 1.;
-  tmpPt.y = 1.;
-  tmpPt.z = zscale;
-  imodMatScale(matWork, &tmpPt);
-  imodMatMult(matWork, mat, matUse);
-  tmpPt.z = 1. / zscale;
-  imodMatScale(matUse, &tmpPt);
-  imodMatTrans(matUse, &newCen);
-
-  /* If no normal transform supplied, set up transform for normals as copy of 
-     original transform, no shifts, then take the inverse and transpose it. */
-  if (!normMat) {
-    imodMatCopy(mat, matWork);
-    matWork->data[12] = 0.;
-    matWork->data[13] = 0.;
-    matWork->data[14] = 0.;
-    matWork->data[15] = 1.;
-    normMat = imodMatInverse(matWork);
-    exchangef(&normMat->data[1], &normMat->data[4]);
-    exchangef(&normMat->data[2], &normMat->data[8]);
-    exchangef(&normMat->data[6], &normMat->data[9]);
-  }
-
-  /* The mesh normals already contain the Z scaling, but the clip normals 
-     require a matrix that is prescaled by 1/zscale and post-scaled by 
-     z-scale */
-  imodMatScale(matWork2, &tmpPt);
-  imodMatMult(matWork2, normMat, clipMat);
-  tmpPt.z = zscale;
-  imodMatScale(clipMat, &tmpPt);
-
-  imodTransFromMats(model, matUse, normMat, clipMat);
-
-  return 0;
-}
-
-/*
-    $Log$
-    Revision 3.9  2009/09/18 14:58:36  mast
-    Changed to skip blank lines in transform file
-
-    Revision 3.8  2006/10/05 19:44:47  mast
-    Set the model maxes if the -n optionis used
-
-    Revision 3.7  2006/09/13 02:37:08  mast
-    Call imodDefault since imodRead will not
-
-    Revision 3.6  2005/10/31 20:09:35  mast
-    Removed transformation code that had been turned into a function.
-
-    Revision 3.5  2005/10/19 16:00:36  mast
-    Needed to transpose inverse to apply normal matrix in usual direction
-
-    Revision 3.4  2005/10/19 14:30:01  mast
-    Fixed handling of normals, and added options for transforming whole volume
-    with 2D transform, manipulating flip state, and transforming to match an
-    image file
-
-    Revision 3.3  2004/09/17 16:27:13  mast
-    Rewrote to do a general 3D transformation from a file, to transform mesh
-    vertices and normals, to set up a transformation matrix as it reads in
-    option arguments, to take the arguments in any order and repeated if
-    desired, and to handle situations of flipped data, Z-scaled data, and
-    different destination image file size.
-
-*/

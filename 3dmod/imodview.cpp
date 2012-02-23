@@ -38,6 +38,7 @@
 #include "xzap.h"
 #include "xcramp.h"
 #include "imod_workprocs.h"
+#include "vertexbuffer.h"
 #include "preferences.h"
 #include "undoredo.h"
 
@@ -2749,6 +2750,8 @@ static int ivwManageInitialFlips(ImodView *vi)
      were being handled for loaded and new models */
 
   vi->imod->csum = imodChecksum(vi->imod);
+  if (imodDebug('C'))
+    wprint("ivwManageInitialFlips set checksum %d\n", vi->imod->csum);
 
   /* DNM: check wild flag here, after all the flipping is done */
   ivwCheckWildFlag(vi->imod);
@@ -3016,6 +3019,7 @@ void ivwClearAnExtraObject(ImodView *inImodView, int objNum)
     imodContoursDelete(obj->cont, obj->contsize);
   obj->contsize = 0;
   obj->cont = NULL;
+  vbCleanupVBD(obj);
   if (obj->meshsize)
     imodMeshesDelete(obj->mesh, obj->meshsize);
   obj->meshsize = 0;
@@ -3155,7 +3159,7 @@ void ivwSetOverlayMode(ImodView *vw, int sec, int reverse,
 {
 
   // If changing state, change color ramps
-  if (vw->overlaySec && !sec || !vw->overlaySec && sec) {
+  if ((vw->overlaySec && !sec) || (!vw->overlaySec && sec)) {
     if (vw->overlayRamp < 0) {
 
       // The first time, save the ramp index, and initialize the next ramp

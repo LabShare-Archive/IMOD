@@ -375,7 +375,6 @@ int mrc_head_new(MrcHeader *hdata,
   hdata->amax  = -FLT_MAX;
   hdata->amean = 0;
   hdata->ispg  = 0;
-  hdata->nsymbt = 0;
 
   hdata->next    = 0;
   hdata->creatid = 0;   /* 7/13/11: changed to 0  for compatibility with CCP4 */
@@ -563,7 +562,8 @@ void mrc_swap_header(MrcHeader *hdata)
   mrc_swap_floats(&hdata->xlen, 6);
   mrc_swap_longs(&hdata->mapc, 3);
   mrc_swap_floats(&hdata->amin, 3);
-  mrc_swap_shorts(&hdata->ispg, 2);
+  /* 1/12/12: removed nsymbt, made ispg 4 bytes */
+  mrc_swap_longs(&hdata->ispg, 1);
   mrc_swap_longs(&hdata->next, 1);
   mrc_swap_shorts(&hdata->creatid, 1);
   mrc_swap_shorts(&hdata->nint, 4);

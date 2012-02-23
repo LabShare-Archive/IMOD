@@ -39,6 +39,7 @@
 #include "sslice.h"
 #include "imod_io.h"
 #include "imodv_views.h"
+#include "vertexbuffer.h"
 #include "preferences.h"
 
 //  Module private functions
@@ -352,6 +353,8 @@ static int writeModel(Imod *mod, FILE *fout, QString qname)
            LATIN1(QDir::convertSeparators(qname)));
     imod_finish_backup();
     mod->csum = imodChecksum(mod);
+    if (imodDebug('C'))
+      wprint("writeModel set checksum %d\n", mod->csum);
     imod_cleanup_autosave();
     App->cvi->reloadable = 1;
   } else {
@@ -523,6 +526,8 @@ int openModel(const char *modelFilename, bool keepBW, bool saveAs)
   if (tmod){
     initModelData(tmod, keepBW);
     tmod->csum = imodChecksum(tmod);
+    if (imodDebug('C'))
+      wprint("openModel set checksum %d\n", tmod->csum);
   }
   else {
     return lastError;
@@ -546,6 +551,7 @@ static void initModelData(Imod *newModel, bool keepBW)
   /* DNM: no longer causes a crash once we notify imodv of the new model.
      10/13/05: but we have to invalidate imodv's model until all is ready */
   imodv_new_model(NULL);
+  vbCleanupVBD(App->cvi->imod);
   imodDelete(App->cvi->imod);
 	       
   Model = App->cvi->imod = newModel;
@@ -629,6 +635,7 @@ int createNewModel(const char *modelFilename)
   mode = App->cvi->imod->mousemode;
 
   /* DNM 1/23/03: no longer free or allocate object colors */
+  vbCleanupVBD(App->cvi->imod);
   imodDelete(App->cvi->imod);
   
   //  Allocate the new model
@@ -670,6 +677,8 @@ int createNewModel(const char *modelFilename)
 
   /* Set the checksum to avoid save requests */
   App->cvi->imod->csum = imodChecksum(App->cvi->imod);
+  if (imodDebug('C'))
+    wprint("createNewModel set checksum %d\n", App->cvi->imod->csum);
      
   return IMOD_IO_SUCCESS;
 }

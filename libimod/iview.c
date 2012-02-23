@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <string.h>
@@ -88,8 +87,7 @@ void imodViewDefaultScale(Imod *imod, Iview *vw, Ipoint *imageMax,
   if (!imod || !vw)
     return;
 
-  imodel_maxpt(imod, &maxp);
-  imodel_minpt(imod, &minp);
+  imodGetBoundingBox(imod, &minp, &maxp);
 
   /* If there is no extent and an image maximum has been supplied,
      then use image box as limiting coordinates */
@@ -660,60 +658,3 @@ IrefImage *imodIMNXNew()
   ref->orot = ref->crot;
   return ref;
 }
-
-/*
-$Log$
-Revision 3.16  2008/11/20 20:13:13  mast
-Added function for new refimage
-
-Revision 3.15  2007/08/26 06:56:15  mast
-Documentation changes
-
-Revision 3.14  2006/09/13 02:44:08  mast
-Fixed memory leaks
-
-Revision 3.13  2006/08/31 21:11:29  mast
-Changed mat1 and mt3 to real names
-
-Revision 3.12  2005/10/14 21:44:29  mast
-Fixed casting calls to imodPutScaledPoints
-
-Revision 3.11  2005/10/13 20:04:45  mast
-Set scaling from a bin scaling together with z-scale
-
-Revision 3.10  2005/02/11 01:42:34  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.9  2004/12/23 22:31:54  mast
-Fixed bug in reading image translations
-
-Revision 3.8  2004/09/28 15:12:29  mast
-Move clipping plane functions to iplane
-
-Revision 3.7  2004/09/21 20:12:26  mast
-Changes for multiple and global clip planes, added clip functions
-
-Revision 3.6  2004/09/10 21:33:46  mast
-Eliminated long variables
-
-Revision 3.5  2003/07/31 21:37:00  mast
-Extracted the transfer of object data to and from an objview to functions
-Added new functions for making the list of object views complete for a
-view, and for deleting and freeing object views
-
-Revision 3.4  2003/06/27 20:14:45  mast
-Implemented new function to set default scaling of a view and added ability
-to pass image size and have it provide fallback scaling when there is no
-model extent yet.
-
-Revision 3.3  2002/09/04 23:50:23  mast
-FIxed bug in last change
-
-Revision 3.2  2002/09/04 23:13:29  mast
-Read mat1 and mat3 the old way if a flag is not set
-
-Revision 3.1  2002/09/03 20:04:46  mast
-Changed to read and write mat1 and mat3 in object view structures as
-bytes to avoid endian problems
-
-*/

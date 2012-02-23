@@ -22,17 +22,23 @@ syntax: glob
 ./mac.cshrc
 ./mac.profile
 
+recentStub.txt
+3dmod/golgi.mrc
+3dmod/ivem1M.rec
 bin
 lib
 pylib
 buildlib
 qtlib
-bk--
+bk--*
+.DS_Store
 man
 html/man
 html/libhelp
 Etomo/Makefile
 Etomo/jar_dir
+Etomo/jar
+Etomo/.settings
 flib/subrs/smallmodel
 html/IMOD.adp
 .distname
@@ -214,9 +220,12 @@ flib/ndasda/nda
 flib/ndasda/sda
 flib/tilt/tilt
 flib/tiltalign/tiltalign
+imodutil/clonemodel
+imodutil/clonevolume
 imodutil/echo2
 imodutil/flattenwarp
 imodutil/imod2meta
+imodutil/imod2obj
 imodutil/imod2patch
 imodutil/imod2rib
 imodutil/imod2vrml

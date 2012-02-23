@@ -7,7 +7,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 /* Checklist for adding an item:
@@ -15,7 +14,8 @@
  * Add function for returning current value
  * Set default value of the Dflt variable
  * Read the setting, including any checks on validity.  If not using READBOOL or READNUM,
- *    first set the Chgd variable from settings->contains()
+ *    first set the Chgd variable from settings->contains(), and set the actual
+ *    variable from the Dflt
  * Write the setting if changed in saveSettings()
  * In donePressed, record change in value
  * In defaultPressed, restore value in appropriate section
@@ -1335,152 +1335,3 @@ void PrefsDialog::closeEvent ( QCloseEvent * e )
   ImodPrefs->userCanceled();
   e->accept();
 }
-
-/*
-$Log$
-Revision 1.48  2011/02/19 15:20:10  mast
-Preferences for default and maximum isosurface volume and threshold polarity
-
-Revision 1.47  2011/02/12 04:45:26  mast
-Added option to start in HQ mode
-
-Revision 1.46  2010/12/18 05:42:46  mast
-Save slicer montage settings
-
-Revision 1.45  2010/12/15 06:14:41  mast
-Changes for setting resolution in image snapshots
-
-Revision 1.44  2010/03/01 23:46:02  mast
-Prevent dialog opening twice on Mac
-
-Revision 1.43  2009/11/21 23:06:43  mast
-Setting to control slicer new surfaces
-
-Revision 1.42  2009/03/22 19:45:57  mast
-Switched to taking all styles that exist and picking better default style
-than Windows for Mac.
-
-Revision 1.41  2009/02/26 20:03:32  mast
-Add paging by big steps
-
-Revision 1.40  2009/01/17 05:06:24  mast
-Replace default library path, add IMOD_DIR/lib/imodplug for safety
-
-Revision 1.39  2009/01/17 00:07:14  mast
-Eliminate TIFF and duplicate JPG formats
-
-Revision 1.38  2009/01/16 22:59:33  mast
-Info position confusion avoided by processing events before moving window
-
-Revision 1.37  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 1.36  2008/12/10 01:04:22  mast
-Added function to set JPEG quality
-
-Revision 1.35  2008/12/08 17:27:56  mast
-Save montage snapshot stuff
-
-Revision 1.34  2008/09/24 02:39:28  mast
-Added option for attach function to look only at On objects
-
-Revision 1.33  2008/09/23 15:13:44  mast
-Added mouse wheel scrolling of point size
-
-Revision 1.32  2008/05/27 05:42:35  mast
-Various new preferences, added macros
-
-Revision 1.31  2008/03/06 00:13:10  mast
-Changes for vertical scale bar, saving of float flags
-
-Revision 1.30  2008/02/03 18:38:25  mast
-Added option to swap left/middle in model view
-
-Revision 1.29  2008/01/25 20:22:58  mast
-Changes for new scale bar
-
-Revision 1.28  2008/01/13 22:58:35  mast
-Changes for multi-Z window
-
-Revision 1.27  2007/11/13 19:14:08  mast
-Added settings to control slicer speedup
-
-Revision 1.26  2007/07/08 16:03:49  mast
-Added hot slider active function
-
-Revision 1.25  2007/06/04 15:05:41  mast
-Made shadow of current point brighter
-
-Revision 1.24  2007/05/31 16:27:04  mast
-Additions for classic slicer mode
-
-Revision 1.23  2006/10/05 15:41:32  mast
-Provided for primary and second non-TIFF snapshot format
-
-Revision 1.22  2006/07/17 18:47:25  mast
-Put our plugin directory on Qt's library path so it can find image formats
-
-Revision 1.21  2006/07/14 04:14:23  mast
-Made default nontiff snapshot be jpeg except on Irix, fallback to png
-
-Revision 1.20  2006/03/01 19:13:06  mast
-Moved window size/position routines from xzap to dia_qtutils
-
-Revision 1.19  2004/11/29 19:25:21  mast
-Changes to do QImage instead of RGB snapshots
-
-Revision 1.18  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 1.17  2004/11/02 20:18:05  mast
-Added color settings, simplified dialog unload code, made default panel-only
-
-Revision 1.16  2004/06/23 03:32:52  mast
-Added ability to save generic settings from random callers
-
-Revision 1.15  2004/05/31 23:35:26  mast
-Switched to new standard error functions for all debug and user output
-
-Revision 1.14  2004/05/19 15:41:36  mast
-Changed to new setPath call on the Mac to get back to user's file with Qt 3.3
-
-Revision 1.13  2003/09/25 21:09:19  mast
-Make info window stay on the screen when it is positioned from settings
-
-Revision 1.12  2003/09/24 17:39:52  mast
-Moved log down
-
-Revision 1.11  2003/09/24 17:38:53  mast
-Switch to using restorable geometries, and setting info window position here
-
-Revision 1.10  2003/09/24 00:48:55  mast
-Switched from keeping track of geometry to keeping track of pos() and
-size() when saving and restoring positions and sizes
-
-Revision 1.9  2003/09/18 05:57:47  mast
-Add autocontrast targets
-
-Revision 1.8  2003/09/17 04:48:01  mast
-Added ability to remember window geometries for Info and Zap windows
-
-Revision 1.7  2003/09/15 21:05:18  mast
-Changing zooms 0.35 -> 0.3333 and 0.16 -> 0.1667 for optimal drawing
-
-Revision 1.6  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 1.5  2003/04/17 19:06:50  mast
-various changes for Mac
-
-Revision 1.4  2003/03/28 23:51:11  mast
-changes for Mac problems
-
-Revision 1.3  2003/03/26 23:06:32  mast
-Only check status of a style once
-
-Revision 1.2  2003/03/26 22:48:40  mast
-Changed handling of style to prevent "already defined" messages
-
-Revision 1.1  2003/03/24 17:55:19  mast
-Initial implementation
-*/

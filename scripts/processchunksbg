@@ -1,4 +1,5 @@
 #!/bin/sh
 # Script to run processchunks in background under Windows
 #
+export PATH="/usr/bin:$PATH"
 processchunks -g "$@" &

@@ -337,7 +337,7 @@ final class Command extends Assert {
 
   /**
    * Return the valueArray[index].  ValueArray is value, broken up by dividers
-   * (commas).  Whitespace around the commas is considered to be part of the
+   * ("|").  Whitespace around the "|" is considered to be part of the
    * divider.
    * @param index
    * @return valueArray[index] or null for an invalid request

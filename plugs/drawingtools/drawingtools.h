@@ -101,6 +101,7 @@ public:
   void smoothConts();
   bool executeDAction();
   void selectNextOverlappingContour();
+	void analyzeTubes();
   void printModelPointInfo();
   void printObjectDetailedInfo();
   void printContourDetailedInfo();

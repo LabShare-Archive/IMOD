@@ -4,6 +4,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import etomo.BaseManager;
 import etomo.comscript.DetachedCommandDetails;
@@ -79,7 +81,7 @@ final class DetachedProcess extends BackgroundProcess {
   boolean newProgram() {
     String[] runCommand;
     try {
-      runCommand = makeRunFile();
+      runCommand = createRunCommand();
     }
     catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Can't Run Process");
@@ -119,6 +121,33 @@ final class DetachedProcess extends BackgroundProcess {
     return true;
   }
 
+  private final String[] createRunCommand() throws IOException, LogFile.LockException {
+    List<String> runCommand = new ArrayList<String>();
+    runCommand.add("python");
+    runCommand.add("-u");
+    runCommand.add(BaseManager.getIMODBinPath() + "startprocess");
+    		
+    runCommand.add("-o");
+    runCommand.add(monitor.getProcessOutputFileName());
+    if (subdirName != null) {
+      runCommand.add("-d");
+      runCommand.add(subdirName);
+    }
+    String[] commandArray = getDetachedCommand().getCommandArray();
+    if (commandArray != null) {
+      for (int i = 0; i < commandArray.length; i++) {
+        runCommand.add(commandArray[i]);
+      }
+    }
+    return runCommand.toArray(new String[runCommand.size()]);
+  }
+
+  /**
+   * @deprecated
+   * @return
+   * @throws IOException
+   * @throws LogFile.LockException
+   */
   private final String[] makeRunFile() throws IOException, LogFile.LockException {
     String commandName;
     if (subdirName == null) {
@@ -220,7 +249,7 @@ final class DetachedProcess extends BackgroundProcess {
     }
 
     public void run() {
-      //wait until monitor is running
+      // wait until monitor is running
       while (!monitor.isProcessRunning()) {
         try {
           Thread.sleep(100);
@@ -229,7 +258,7 @@ final class DetachedProcess extends BackgroundProcess {
           return;
         }
       }
-      //wait for pid
+      // wait for pid
       String pid = null;
       while (pid == null && monitor.isProcessRunning()) {
         try {
@@ -243,9 +272,9 @@ final class DetachedProcess extends BackgroundProcess {
       if (pid != null) {
         processData.setPid(pid);
         if (!processData.isEmpty()) {
-          //Save the process data for this process so that it will already be saved
-          //if there is a crash.  This is especially important for Processchunks 
-          //because of the resume after exit functionality.
+          // Save the process data for this process so that it will already be saved
+          // if there is a crash. This is especially important for Processchunks
+          // because of the resume after exit functionality.
           manager.saveStorable(axisID, processData);
         }
       }

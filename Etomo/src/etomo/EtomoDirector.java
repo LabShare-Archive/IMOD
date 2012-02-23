@@ -68,9 +68,9 @@ public class EtomoDirector {
   public static final double MIN_AVAILABLE_MEMORY_REQUIRED = 2 * TO_BYTES * TO_BYTES;
   public static final int NUMBER_STORABLES = 2;
   private static final String JAVA_MEMORY_LIMIT_ENV_VAR = "ETOMO_MEM_LIM";
-  public static final String ACTION_TAG = "Etomo Action: ";
 
   public static final EtomoDirector INSTANCE = new EtomoDirector();
+
   private SettingsDialog settingsDialog = null;
   private boolean outOfMemoryMessage = false;
   private String originalUserDir = null;
@@ -79,7 +79,7 @@ public class EtomoDirector {
   private boolean imodBriefHeader = false;
   private EtomoNumber numberOfProcessorsWindows = null;
 
-  //state
+  // state
   private ManagerKey currentManagerKey = null;
   private boolean defaultWindow = false;
   // advanced dialog state for this instance, this gets set upon startup from
@@ -87,7 +87,7 @@ public class EtomoDirector {
   // the option or advanced menu items
   private boolean isAdvanced = false;
 
-  //Initialized in initialize() or in function called by initialize().
+  // Initialized in initialize() or in function called by initialize().
   private String homeDirectory;
   private UserConfiguration userConfig;
   private ParameterStore parameterStore;
@@ -105,7 +105,7 @@ public class EtomoDirector {
     try {
       EtomoDirector.INSTANCE.arguments.parse(args);
       if (!EtomoDirector.INSTANCE.arguments.isHelp()) {
-        //Print out java properties
+        // Print out java properties
         Enumeration enumeration = System.getProperties().propertyNames();
         while (enumeration.hasMoreElements()) {
           Object key = enumeration.nextElement();
@@ -113,7 +113,7 @@ public class EtomoDirector {
         }
       }
       if (EtomoDirector.INSTANCE.arguments.isDebug()) {
-        //print more environment info
+        // print more environment info
         System.err.println();
         Map env = System.getenv();
         Set keys = env.keySet();
@@ -139,8 +139,8 @@ public class EtomoDirector {
         Utilities.setStartTime();
       }
       INSTANCE.initialize();
-      //automation must be done last in main, otherwise initialization may not
-      //complete normally.
+      // automation must be done last in main, otherwise initialization may not
+      // complete normally.
       EtomoDirector.INSTANCE.doAutomation();
     }
     catch (OutOfMemoryError e) {
@@ -203,10 +203,10 @@ public class EtomoDirector {
           homeDirectory, "NUMBER_OF_PROCESSORS", AxisID.ONLY));
       System.err.println("NUMBER_OF_PROCESSORS:" + numberOfProcessorsWindows);
     }
-    //  Set the user preferences
+    // Set the user preferences
     userConfig = new UserConfiguration();
-    //  Create a File object specifying the user configuration file
-    //create the user config file
+    // Create a File object specifying the user configuration file
+    // create the user config file
     File userConfigFile = null;
     try {
       userConfigFile = new File(homeDirectory, ".etomo");
@@ -216,7 +216,7 @@ public class EtomoDirector {
       System.err.println(except.getMessage());
       System.exit(1);
     }
-    //create config file it if it doesn't exist
+    // create config file it if it doesn't exist
     try {
       userConfigFile.createNewFile();
     }
@@ -249,7 +249,7 @@ public class EtomoDirector {
     int paramFileNameListSize = paramFileNameList.size();
     String paramFileName = null;
     managerList = new UniqueHashedArray();
-    //if no param file is found bring up Parallel manager
+    // if no param file is found bring up Parallel manager
     if (paramFileNameListSize == 0) {
       defaultWindow = true;
       openFrontPage(true, AxisID.ONLY);
@@ -334,10 +334,10 @@ public class EtomoDirector {
     IMODCalibDirectory = new File(imodCalibDirectoryName);
     utilityThread = new UtilityThread();
     new Thread(utilityThread).start();
-    //get the java memory limit
-    //check it before complaining about having too little memory available
-    //SGI seems to go very low on the available memory, but its fine as long
-    //as long as it does't get near the java memory limit.
+    // get the java memory limit
+    // check it before complaining about having too little memory available
+    // SGI seems to go very low on the available memory, but its fine as long
+    // as long as it does't get near the java memory limit.
     String sJavaMemoryLimit = EnvironmentVariable.INSTANCE.getValue(null,
         originalUserDir, JAVA_MEMORY_LIMIT_ENV_VAR, AxisID.ONLY);
     if (sJavaMemoryLimit != null) {
@@ -627,13 +627,19 @@ public class EtomoDirector {
   private ManagerKey openPeet(String peetFileName, boolean makeCurrent, AxisID axisID) {
     PeetManager manager;
     if (peetFileName == null || peetFileName.equals(PeetMetaData.NEW_TITLE)) {
-      manager = new PeetManager();
+      manager = PeetManager.getInstance();
       UIHarness.INSTANCE.setEnabledNewPeetMenuItem(false);
     }
     else {
-      manager = new PeetManager(peetFileName);
+      manager = PeetManager.getInstance(peetFileName);
     }
-    return setManager(manager, makeCurrent);
+    ManagerKey key = setManager(manager, makeCurrent);
+    manager.display();
+    if (!manager.isValid()) {
+      closeCurrentManager(AxisID.ONLY, false);
+      return null;
+    }
+    return key;
   }
 
   private ManagerKey setManager(BaseManager manager, boolean makeCurrent) {
@@ -722,6 +728,9 @@ public class EtomoDirector {
 
   public boolean closeCurrentManager(AxisID axisID, boolean exiting) {
     BaseManager currentManager = getCurrentManager();
+    if (currentManager == null) {
+      return true;
+    }
     if (exiting) {
       if (!currentManager.exitProgram(axisID)) {
         return false;
@@ -738,7 +747,7 @@ public class EtomoDirector {
     currentManagerKey = null;
     if (managerList.size() == 0) {
       UIHarness.INSTANCE.removeWindow(null);
-      //mainFrame.setWindowMenuLabels(controllerList);
+      // mainFrame.setWindowMenuLabels(controllerList);
       UIHarness.INSTANCE.setCurrentManager(null, null);
       UIHarness.INSTANCE.selectWindowMenuItem((UniqueKey) null);
       setCurrentManager((ManagerKey) null, false);
@@ -807,12 +816,12 @@ public class EtomoDirector {
       ProcessRestarter.stop();
       IntermittentBackgroundProcess.stop();
       if (isMemoryAvailable()) {
-        //  Should we close the 3dmod windows
-        //  Save the current window size to the user config
+        // Should we close the 3dmod windows
+        // Save the current window size to the user config
         Dimension size = UIHarness.INSTANCE.getSize(null);
         userConfig.setMainWindowWidth(size.width);
         userConfig.setMainWindowHeight(size.height);
-        //  Write out the user configuration data
+        // Write out the user configuration data
         parameterStore.save(userConfig);
         return true;
       }
@@ -856,8 +865,8 @@ public class EtomoDirector {
     setLookAndFeel(userConfig.getNativeLookAndFeel());
     isAdvanced = userConfig.getAdvancedDialogs();
     UIParameters.INSTANCE.setFontSize(userConfig.getFontSize());
-    //CpuAdoc.INSTANCE.setUserConfig(userConfig.getParallelProcessing(), userConfig
-    //     .getCpus());
+    // CpuAdoc.INSTANCE.setUserConfig(userConfig.getParallelProcessing(), userConfig
+    // .getCpus());
   }
 
   /**
@@ -870,10 +879,10 @@ public class EtomoDirector {
   private void setLookAndFeel(boolean nativeLookAndFeel) {
     String lookAndFeelClassName;
 
-    //UIManager.LookAndFeelInfo plaf[] = UIManager.getInstalledLookAndFeels();
-    //for(int i = 0; i < plaf.length; i++) {
-    //  System.err.println(plaf[i].getClassName());
-    //}
+    // UIManager.LookAndFeelInfo plaf[] = UIManager.getInstalledLookAndFeels();
+    // for(int i = 0; i < plaf.length; i++) {
+    // System.err.println(plaf[i].getClassName());
+    // }
     System.err.println();
     String osName = System.getProperty("os.name");
     if (arguments.isDebug()) {
@@ -912,7 +921,7 @@ public class EtomoDirector {
       System.err.println("Could not set " + lookAndFeelClassName + " look and feel");
     }
     if (arguments.getDebugLevel() > 1) {
-      //print look and feel info
+      // print look and feel info
       System.err.println("\nLook and feel defaults:");
       UIDefaults uiDefaults = UIManager.getLookAndFeelDefaults();
       Enumeration enumeration = uiDefaults.keys();
@@ -929,7 +938,7 @@ public class EtomoDirector {
   private void setUIFont(String fontFamily, int fontSize) {
     // sets the default font for all Swing components.
     // ex.
-    //  setUIFont (new javax.swing.plaf.FontUIResource("Serif",Font.ITALIC,12));
+    // setUIFont (new javax.swing.plaf.FontUIResource("Serif",Font.ITALIC,12));
     // Taken from: http://www.rgagnon.com/javadetails/java-0335.html
     java.util.Enumeration keys = UIManager.getDefaults().keys();
     while (keys.hasMoreElements()) {
@@ -952,7 +961,7 @@ public class EtomoDirector {
    * Return the IMOD directory
    */
   public File getIMODDirectory() {
-    //  Return a copy of the IMODDirectory object
+    // Return a copy of the IMODDirectory object
     return new File(IMODDirectory.getAbsolutePath());
   }
 
@@ -964,7 +973,7 @@ public class EtomoDirector {
    * Return the IMOD calibration directory
    */
   public File getIMODCalibDirectory() {
-    //  Return a copy of the IMODDirectory object
+    // Return a copy of the IMODDirectory object
     return new File(IMODCalibDirectory.getAbsolutePath());
   }
 
@@ -1002,8 +1011,8 @@ public class EtomoDirector {
    * Open up the settings dialog box
    */
   public void openSettingsDialog() {
-    //  Open the dialog in the appropriate mode for the current state of
-    //  processing
+    // Open the dialog in the appropriate mode for the current state of
+    // processing
     if (settingsDialog == null) {
       settingsDialog = SettingsDialog.getInstance(getCurrentManager(),
           getPropertyUserDir());
@@ -1042,9 +1051,9 @@ public class EtomoDirector {
   }
 
   public long getAvailableMemory() {
-    //System.err.println("max=  " + Runtime.getRuntime().maxMemory());
-    //System.err.println("total=" + Runtime.getRuntime().totalMemory());
-    //System.err.println("free= " + Runtime.getRuntime().freeMemory());
+    // System.err.println("max=  " + Runtime.getRuntime().maxMemory());
+    // System.err.println("total=" + Runtime.getRuntime().totalMemory());
+    // System.err.println("free= " + Runtime.getRuntime().freeMemory());
     return Runtime.getRuntime().maxMemory() - Runtime.getRuntime().totalMemory()
         + Runtime.getRuntime().freeMemory();
   }
@@ -1057,37 +1066,29 @@ public class EtomoDirector {
     long availableMemory = getAvailableMemory();
     long usedMemory = Runtime.getRuntime().totalMemory()
         - Runtime.getRuntime().freeMemory();
-    //System.out.println();
-    //System.out.println("Available memory = " + availableMemory);
-    //System.out.println("Memory in use    = " + usedMemory);
-    //System.out.println();
+    // System.out.println();
+    // System.out.println("Available memory = " + availableMemory);
+    // System.out.println("Memory in use    = " + usedMemory);
+    // System.out.println();
     if (arguments.isDebug() || arguments.isDisplayMemory()) {
       System.err.println("Available memory = " + availableMemory);
       System.err.println("Memory in use    = " + usedMemory);
     }
-    //Check to see if the memory has been made available up to the memory limit.
-    //SGI doesn't make all the memory available up to the memory limit until it
-    //needs to.
-    //Memory limit is adjusted down because availableMemory never matches
-    //javaMemoryLimit.
-    //Old code for SGI
-    /* if (javaMemoryLimit.isNull()
-     || availableMemory + usedMemory >= javaMemoryLimit.getLong()
-     - (MIN_AVAILABLE_MEMORY_REQUIRED * 3)) {
-     //Check available memory
-     if (availableMemory < MIN_AVAILABLE_MEMORY_REQUIRED) {
-     //send message once per memory problem
-     if (!outOfMemoryMessage) {
-     UIHarness.INSTANCE.openMessageDialog(
-     "WARNING:  Ran out of memory.  Changes to the .edf file and/or"
-     + " comscript files may not be saved."
-     + "\nPlease close open windows or exit Etomo.",
-     "Out of Memory");
-     }
-     outOfMemoryMessage = true;
-     return false;
-     }
-     }*/
+    // Check to see if the memory has been made available up to the memory limit.
+    // SGI doesn't make all the memory available up to the memory limit until it
+    // needs to.
+    // Memory limit is adjusted down because availableMemory never matches
+    // javaMemoryLimit.
+    // Old code for SGI
+    /* if (javaMemoryLimit.isNull() || availableMemory + usedMemory >=
+     * javaMemoryLimit.getLong() - (MIN_AVAILABLE_MEMORY_REQUIRED * 3)) { //Check
+     * available memory if (availableMemory < MIN_AVAILABLE_MEMORY_REQUIRED) { //send
+     * message once per memory problem if (!outOfMemoryMessage) {
+     * UIHarness.INSTANCE.openMessageDialog(
+     * "WARNING:  Ran out of memory.  Changes to the .edf file and/or" +
+     * " comscript files may not be saved." +
+     * "\nPlease close open windows or exit Etomo.", "Out of Memory"); }
+     * outOfMemoryMessage = true; return false; } } */
     if (availableMemory <= MIN_AVAILABLE_MEMORY_REQUIRED) {
       if (!outOfMemoryMessage) {
         UIHarness.INSTANCE.openMessageDialog(getCurrentManager(),
@@ -1098,7 +1099,7 @@ public class EtomoDirector {
       }
       return false;
     }
-    //memory problem is gone - reset message
+    // memory problem is gone - reset message
     outOfMemoryMessage = false;
     return true;
   }
@@ -1116,12 +1117,12 @@ public class EtomoDirector {
   }
 
   private final class UtilityThread implements Runnable {
-    private final int autoSaveLogInterval = 1;//in minutes
+    private final int autoSaveLogInterval = 1;// in minutes
     private final int autoSaveLogEvery;
     private final boolean displayMemory;
     private final int displayMemoryInterval;
     private final int displayMemoryEvery;
-    private final int sleep;//in minutes
+    private final int sleep;// in minutes
 
     private boolean stop = false;
     private Thread utilityThread = null;
@@ -1130,17 +1131,17 @@ public class EtomoDirector {
       displayMemoryInterval = arguments.getDisplayMemoryInterval();
       displayMemory = arguments.isDisplayMemory() && displayMemoryInterval >= 1;
       if (!displayMemory || displayMemoryInterval == autoSaveLogInterval) {
-        //sleep for five minutes
+        // sleep for five minutes
         sleep = autoSaveLogInterval;
-        //run autosave after every sleep
+        // run autosave after every sleep
         autoSaveLogEvery = 1;
-        displayMemoryEvery = 1;//ignored if !displayMemory
+        displayMemoryEvery = 1;// ignored if !displayMemory
       }
       else {
-        //This could be more complicated to allow longer sleeps, but I don't
-        //think its worth it.
+        // This could be more complicated to allow longer sleeps, but I don't
+        // think its worth it.
         sleep = 1;
-        //run autosave after 5 one-minute sleeps
+        // run autosave after 5 one-minute sleeps
         autoSaveLogEvery = autoSaveLogInterval;
         displayMemoryEvery = displayMemoryInterval;
       }

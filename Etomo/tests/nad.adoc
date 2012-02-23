@@ -8,7 +8,7 @@ run.function.main =
 [function = main]
 #Extract test volume.
 bn.pick-a-volume=
-wait.file-chooser.open=unicross1.rec
+wait.file-chooser.open=%{dataset}1.rec
 bn.view-full-volume=
 tf.x-min=286
 tf.x-max=400

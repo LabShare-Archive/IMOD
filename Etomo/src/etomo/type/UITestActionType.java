@@ -45,7 +45,10 @@ public final class UITestActionType {
   public static final UITestActionType SET = new UITestActionType("set");
   public static final UITestActionType SKIPTO = new UITestActionType("skipto");
   public static final UITestActionType SLEEP = new UITestActionType("sleep");
+  public static final UITestActionType USE = new UITestActionType("use");
   public static final UITestActionType WAIT = new UITestActionType("wait");
+  public static final UITestActionType WRITE = new UITestActionType("write");
+  
   //Not a command
   public static final UITestActionType DELIMETER_CHANGER = new UITestActionType(
       "KeyValueDelimiter");
@@ -105,8 +108,14 @@ public final class UITestActionType {
     if (SLEEP.equals(string)) {
       return SLEEP;
     }
+    if (USE.equals(string)) {
+      return USE;
+    }
     if (WAIT.equals(string)) {
       return WAIT;
+    }
+    if (WRITE.equals(string)) {
+      return WRITE;
     }
     return null;
   }

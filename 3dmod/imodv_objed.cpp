@@ -49,6 +49,7 @@
 #include "imodv_input.h"
 #include "imodv_menu.h"
 #include "imodv_window.h"
+#include "vertexbuffer.h"
 #include "preferences.h"
 #include "control.h"
 
@@ -401,8 +402,8 @@ static void objset(ImodvApp *a)
         ob = a->ob + dir * diff;
         if (ob < 0 || ob >= a->imod->objsize)
           continue;
-        if (Imodv_objed_all == editOns && !iobjOff(a->imod->obj[ob].flags) ||
-            Imodv_objed_all == editGroup && imodvOlistObjInGroup(a, ob)) {
+        if ((Imodv_objed_all == editOns && !iobjOff(a->imod->obj[ob].flags)) ||
+            (Imodv_objed_all == editGroup && imodvOlistObjInGroup(a, ob))) {
           a->ob = ob;
           type = 1;
           break;
@@ -2383,6 +2384,7 @@ static int finishMesh()
 
     // Clear out this resolution in the existing mesh and transfer new one
     obj = &Imodv->mod[meshedModNum]->obj[meshedObjNum];
+    vbCleanupVBD(obj);
     if (obj->meshsize)
       imodMeshesDeleteRes(&obj->mesh, &obj->meshsize, resol);
     for (int m = 0; m < meshDupObj->meshsize; m++) {

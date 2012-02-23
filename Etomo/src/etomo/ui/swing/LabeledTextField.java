@@ -233,13 +233,17 @@ final class LabeledTextField {
     return textField.getDocument() == document;
   }
 
-  private LabeledTextField(final String tfLabel, final EtomoNumber.Type numericType) {
+  private LabeledTextField(final String tfLabel, final EtomoNumber.Type numericType,
+      final int hgap) {
     this.numericType = numericType;
-    //set label
+    // set label
     setLabel(tfLabel);
 
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.add(label);
+    if (hgap > 0) {
+      panel.add(Box.createRigidArea(new Dimension(hgap, 0)));
+    }
     panel.add(textField);
 
     // Set the maximum height of the text field box to twice the
@@ -255,16 +259,20 @@ final class LabeledTextField {
   }
 
   LabeledTextField(final String tfLabel) {
-    this(tfLabel, null);
+    this(tfLabel, null, 0);
+  }
+
+  LabeledTextField(final String tfLabel, final int hgap) {
+    this(tfLabel, null, hgap);
   }
 
   static LabeledTextField getNumericInstance(final String tfLabel,
       final EtomoNumber.Type numericType) {
-    return new LabeledTextField(tfLabel, numericType);
+    return new LabeledTextField(tfLabel, numericType, 0);
   }
 
   static LabeledTextField getNumericInstance(final String tfLabel) {
-    return new LabeledTextField(tfLabel, EtomoNumber.Type.INTEGER);
+    return new LabeledTextField(tfLabel, EtomoNumber.Type.INTEGER, 0);
   }
 
   private void setName(final String tfLabel) {
@@ -404,6 +412,10 @@ final class LabeledTextField {
   String getLabel() {
     return label.getText();
   }
+  
+  String getQuotedLabel() {
+    return Utilities.quoteLabel(label.getText());
+  }
 
   void setLabel(final String label) {
     this.label.setText(label);
@@ -471,6 +483,18 @@ final class LabeledTextField {
 
   public void addDocumentListener(final DocumentListener listener) {
     textField.getDocument().addDocumentListener(listener);
+  }
+
+  void setTextPreferredSize(final Dimension size) {
+    textField.setPreferredSize(size);
+    textField.setMaximumSize(size);
+  }
+
+  void setPreferredWidth(final int width) {
+    Dimension dim = textField.getPreferredSize();
+    dim.width = width * Math.round(UIParameters.INSTANCE.getFontSizeAdjustment());
+    textField.setPreferredSize(dim);
+    textField.setMaximumSize(dim);
   }
 
   void setTextPreferredWidth(final double minWidth) {

@@ -21,8 +21,7 @@ render in all VRML viewers.
 For shaded surfaces, the intensity levels may be quite different
 in the VRML viewer than in 3dmodv, depending on the settings in the viewer.
 If you are generating files for a particular VRML viewer, you can adjust
-the Material
-properties in 3dmodv to get the desired appearance in the viewer.  
+the Material properties in 3dmodv to get the desired appearance in the viewer.  
 The Ambient setting will have no effect, so adjust intensity primarily with
 the Diffuse setting, and then with the Specular and Shininess settings.
 Transparency may also need to be set higher to achieve the desired level, as

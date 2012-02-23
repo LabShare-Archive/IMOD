@@ -8,8 +8,7 @@
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
- *  $Id$
- *  Log at end of file
+ *  $Id: imesh.c,v 5c47376cf583 2011/11/29 02:30:21 mast 
  */
 
 #include <limits.h>
@@ -52,6 +51,7 @@ Imesh *imodMeshesNew(int size)
     mesh[sh].time  = 0;
     mesh[sh].surf  = 0;
     mesh[sh].store = NULL;
+    mesh[sh].vertBuf = NULL;
   }
   return(mesh);
 }
@@ -116,7 +116,6 @@ int imodMeshCopy(Imesh *from, Imesh *to)
 /*! Returns a duplicate of [mesh], including all data, or NULL for error. */
 Imesh *imodMeshDup(Imesh *mesh)
 {
-  int i;
   Imesh *newMesh = imodMeshNew();
   if (!newMesh)
     return(NULL);
@@ -130,6 +129,7 @@ Imesh *imodMeshDup(Imesh *mesh)
   memcpy(newMesh->vert, mesh->vert, mesh->vsize * sizeof(Ipoint));
   memcpy(newMesh->list, mesh->list, mesh->lsize * sizeof(b3dInt32));
   newMesh->store = ilistDup(mesh->store);
+  newMesh->vertBuf = NULL;
   return newMesh;
 }
 
@@ -337,28 +337,16 @@ Imesh *imodel_mesh_add(Imesh *nmesh,
     return(mray);
   }
 
-  if ((mray == NULL) && (!*size)){
-      
+  if ((mray == NULL) && (!*size)) {
     nmray = (Imesh *)malloc(sizeof(Imesh));
-
-  }else{
-
-    nmray = (Imesh *) 
-      realloc((Imesh *)mray,
-              (*size + 1) * sizeof(Imesh));
+  } else {
+    nmray = (Imesh *)realloc((Imesh *)mray, (*size + 1) * sizeof(Imesh));
   }
 
   if (nmray == NULL)
     return(mray);
      
-  nmray[*size].vert  = nmesh->vert;
-  nmray[*size].list  = nmesh->list;
-  nmray[*size].vsize = nmesh->vsize;
-  nmray[*size].lsize = nmesh->lsize;
-  nmray[*size].flag  = nmesh->flag;
-  nmray[*size].time  = nmesh->time;
-  nmray[*size].surf  = nmesh->surf;
-  nmray[*size].store = nmesh->store;
+  imodMeshCopy(nmesh, &nmray[*size]);
   (*size)++;
   return(nmray);
 }
@@ -375,7 +363,7 @@ Imesh *imodel_mesh_add(Imesh *nmesh,
 void imodMeshInterpCont(int *listp, Ipoint *vertp, int ntriang, int firstv, int listInc,
                          int zadd, Icont *cont)
 {
-  int ind, ind1, ind2, jnd1, jnd2, jnd3, indv, jndv, done, j;
+  int ind1, ind2, jnd1, jnd2, jnd3, indv, jndv, done, j;
   float z1, z2;      /* z values of two candidate vertices */
   float frac;        /* interpolation fraction */
   int itri, jtri;    /* triangle indexes */
@@ -470,7 +458,7 @@ float imeshVolume(Imesh *mesh, Ipoint *scale, Ipoint *center)
   int listInc, vertBase, normAdd;
   double xsum, ysum, zsum, abx,aby,abz,bcx,bcy,bcz,cdx,cdy,cdz, dx, dy, dz;
 
-  Ipoint *p1, *p2, *p3, *p;
+  Ipoint *p1, *p2, *p3;
   float zs = 1.0f;
 
   if ((!mesh) || (!mesh->lsize))
@@ -712,7 +700,7 @@ MeshParams *imeshParamsNew()
  */
 void imeshParamsDefault(MeshParams *params)
 {
-  params->flags = IMESH_MK_NORM;
+  params->flags = IMESH_MK_NORM | IMESH_MK_TIME;
   params->cap = IMESH_CAP_OFF;
   params->passes = 1;
   params->capSkipNz = 0;
@@ -796,41 +784,3 @@ int imeshCopySkipList(int *lfrom, int nfrom, int **lto, int *nto)
   }
   return 0;
 }
-
-/*
-
-$Log$
-Revision 3.11  2010/04/13 18:12:00  mast
-Need to take abs for volume inside mesh
-
-Revision 3.10  2009/03/19 05:09:58  mast
-Fixed initialization when getting mesh volume
-
-Revision 3.9  2008/11/14 06:13:36  mast
-Implemented volume in mesh function
-
-Revision 3.8  2008/11/13 21:16:26  mast
-Compute surface area sum with doubles
-
-Revision 3.7  2008/05/07 04:43:50  mast
-Added mesh bounding box function
-
-Revision 3.6  2006/09/13 23:53:17  mast
-Fixed skip list copy
-
-Revision 3.5  2006/09/12 19:00:54  mast
-Fixed variable declaration after statement
-
-Revision 3.4  2006/09/12 15:25:13  mast
-Added mesh parameter functions and handled member renames
-
-Revision 3.3  2006/02/25 22:09:04  mast
-Documented
-
-Revision 3.2  2005/09/11 19:16:03  mast
-Added routine to test for mesh start code and return appropriate factors
-
-Revision 3.1  2004/11/20 04:15:14  mast
-Added duplicate function
-
-*/

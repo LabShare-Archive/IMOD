@@ -7,6 +7,7 @@ import etomo.comscript.Command;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
+import etomo.util.Utilities;
 
 /*
  * <p>Description: InteractiveSystemProgram implements a Runable class that can
@@ -235,9 +236,10 @@ public class InteractiveSystemProgram implements Runnable {
    * Execute the command.
    */
   public void run() {
-    //  Setup the Process object and run the command
+    // Setup the Process object and run the command
     Process process = null;
     File outputFile = null;
+    String actionMessage = null;
     if (command != null) {
       outputFile = command.getCommandOutputFile();
       outputFileLastModified.set(outputFile.lastModified());
@@ -245,6 +247,12 @@ public class InteractiveSystemProgram implements Runnable {
     try {
       if (workingDirectory == null) {
         File currentUserDirectory = new File(manager.getPropertyUserDir());
+        if (commandArray != null) {
+          actionMessage = Utilities.prepareCommandActionMessage(commandArray, null);
+        }
+        else {
+          actionMessage = Utilities.prepareCommandActionMessage(commandLine);
+        }
         if (commandArray != null) {
           process = Runtime.getRuntime().exec(commandArray, null, currentUserDirectory);
         }
@@ -261,8 +269,8 @@ public class InteractiveSystemProgram implements Runnable {
         }
       }
 
-      //  Create a buffered writer to handle the stdin, stdout and stderr
-      //  streams of the process
+      // Create a buffered writer to handle the stdin, stdout and stderr
+      // streams of the process
       cmdIn = process.getOutputStream();
       OutputStreamWriter cmdInWriter = new OutputStreamWriter(cmdIn);
       inputBuffer = new BufferedWriter(cmdInWriter);
@@ -287,6 +295,9 @@ public class InteractiveSystemProgram implements Runnable {
     try {
       process.waitFor();
       exitValue = process.exitValue();
+      if (actionMessage != null && exitValue == 0) {
+        System.err.println(actionMessage);
+      }
     }
     catch (InterruptedException except) {
       except.printStackTrace();

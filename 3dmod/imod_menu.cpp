@@ -50,6 +50,7 @@
 #include "autox.h"
 #include "locator.h"
 #include "finegrain.h"
+#include "vertexbuffer.h"
 #include "preferences.h"
 #include "undoredo.h"
 #include "scalebar.h"
@@ -126,7 +127,7 @@ void InfoWindow::fileSlot(int item)
     imod_info_forbid();
     imod_info_input();
     releaseKeyboard();
-    if (SaveModel(App->cvi->imod));
+    SaveModel(App->cvi->imod);
     /*         wprint("Error Saving Model."); DNM: it already has message*/
     imod_info_enable();
     break;
@@ -333,6 +334,7 @@ void InfoWindow::editModelSlot(int item)
   case EMODEL_MENU_CLEAN:
     /* Clean model means delete empty objects */
     if (dia_ask("Delete all empty objects?")) {
+      vbCleanupVBD(imod);
       obsave = imod->cindex.object;
       cosave = vi->imod->cindex.contour;
       ptsave = vi->imod->cindex.point;
@@ -444,6 +446,7 @@ void InfoWindow::editObjectSlot(int item)
     for (ob = maxOb; ob >= minOb; ob--) {
       if (imodSelectionListQuery(vi, ob, -1) > -2 || ob == obOld) {
         vi->undo->objectRemoval(ob);
+        vbCleanupVBD(&imod->obj[ob]);
         imodDeleteObject(imod, ob);
       }
     }
@@ -491,12 +494,22 @@ void InfoWindow::editObjectSlot(int item)
       obj_moveto = 1;
 
     if (imod->cindex.object > -1){
-      if (!diaQInput(&obj_moveto, 1, imod->objsize, 0,
+      ob = imod->cindex.object;
+      pt = (!imod->obj[ob].contsize && imod->obj[ob].meshsize) ? 1 : 0;
+      if (!diaQInput(&obj_moveto, 1, imod->objsize, 0, 
+                     pt ? "Move all meshes to selected object." :
                      "Move all contours to selected object."))
         break;
       obNew = obj_moveto - 1; 
 
-      if (obNew != imod->cindex.object) {
+      if (obNew != ob) {
+        if (pt != ((!imod->obj[obNew].contsize && imod->obj[obNew].meshsize) ? 1 : 0)) {
+          wprint("\aYou cannot combine isosurface objects (meshes and no contours) "
+                 "with regular contour-based objects.\n");
+          break;
+        }
+        vbCleanupVBD(&imod->obj[ob]);
+        vbCleanupVBD(&imod->obj[obNew]);
         imodMoveAllContours(vi, obNew);
         imod->cindex.contour = -1;
         imod->cindex.point = -1;
@@ -515,11 +528,28 @@ void InfoWindow::editObjectSlot(int item)
 
   case EOBJECT_MENU_COMBINE: /* combine */
     num = imodNumSelectedObjects(vi, minOb, maxOb);
+    obOld = imod->cindex.object;
     if (num < 2) {
       wprint("\aYou must select contours in more than one object to combine "
              "objects.\n");
       break;
     }
+    
+    // Check that all objects are compatible
+    pt = (!imod->obj[minOb].contsize && imod->obj[minOb].meshsize) ? 1 : 0;
+    for (ob = maxOb; ob > minOb; ob--) {
+      if (imodSelectionListQuery(vi, ob, -1) > -2 || ob == obOld) {
+        if (((!imod->obj[ob].contsize && imod->obj[ob].meshsize) ? 1 : 0) != pt) {
+          wprint("\aYou cannot combine isosurface objects (meshes and no contours) "
+                 "with regular contour-based objects.\n");
+          pt = -1;
+          break;
+        }
+      }
+    }
+    if (pt < 0)
+      break;
+
     if (lastCombine < 2) {
       qstr.sprintf("Are you sure you want to combine these %d selected "
                    "objects into one?", num);
@@ -529,12 +559,13 @@ void InfoWindow::editObjectSlot(int item)
     } else
       wprint("Combined %d objects\n", num);
 
-    obOld = imod->cindex.object;
+    vbCleanupVBD(&imod->obj[minOb]);
     for (ob = maxOb; ob > minOb; ob--) {
       if (imodSelectionListQuery(vi, ob, -1) > -2 || ob == obOld) {
         imod->cindex.object = ob;
         imodMoveAllContours(vi, minOb);
         vi->undo->objectRemoval(ob);
+        vbCleanupVBD(&imod->obj[ob]);
         imodDeleteObject(imod, ob);
       }
     }
@@ -1107,12 +1138,14 @@ void InfoWindow::editImageSlot(int item)
 
   case EIMAGE_MENU_FLIP:
     App->cvi->undo->clearUnits();
+    vbCleanupVBD(App->cvi->imod);
+    
     /* DNM 12/10/02: if busy loading, this will defer it */
     if (ivwFlip(App->cvi))
       break;
     /* DNM: check wild flag here */
     ivwCheckWildFlag(App->cvi->imod);
-    imodDraw(App->cvi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
+    imodDraw(App->cvi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
     break;
 
   case EIMAGE_MENU_FILLCACHE:

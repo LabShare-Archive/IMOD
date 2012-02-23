@@ -26,7 +26,15 @@ def quoteSubstitute(lin):
    if anyset:
       lin = lin.replace('\\$', '%')
       lin = lin.replace('$', '%')
-   lin = "\"\"\"" + lin + "\"\"\""
+
+   # Take care of replacing \ with / as long as it is not escaping a "
+   if lin.find('\\'):
+      lin = re.sub(r'\\([^"])', r'/\1', lin)
+      if lin.endswith('\\'):
+         lin = lin[:len(lin)-1] + '/'
+         
+   # Enclose in quotes
+   lin = '\"\"\"' + lin + '\"\"\"'
    indv = lin.find('%')
    while indv >= 0:
       envar = re.search('%\{([A-Z0-9_]+)\}', lin)
@@ -62,17 +70,25 @@ chunk = 0
 needShutil = 0
 needSocket = 0
 needPID = 0
+hasPython = 0
+indentedCom = 0
+testDummyProg = ''
+testOpt = ''
 windows = sys.platform.find('win32') >= 0 or sys.platform.find('cygwin') >= 0
 if lenarg < 2:
-   prnstr("Usage: vmstopy [-x|-q|-c] comfile logfile [pyscript]")
+   prnstr("Usage: vmstopy [options] comfile logfile [pyscript]")
    prnstr("  Converts an IMOD command file to a python script")
-   prnstr('  Outputs script on standard out if "pyscript" is not given')
+   prnstr('  Outputs script on standard out if neither "pyscript" nor "-x" is given')
    prnstr('  Options:')
    prnstr('    -x will execute the script')
    prnstr('    -q will suppress messages')
    prnstr('    -c will add output of CHUNK DONE at end')
+   prnstr('    -e VAR=val or -e VAR will set an environment variable')
+   prnstr('    -n #  will set niceness of job to #')
    sys.exit(0)
 
+envars = []
+niceVal = None
 while lenarg - argind > 2:
    oarg = sys.argv[argind]
    if oarg.startswith('-'):
@@ -82,6 +98,26 @@ while lenarg - argind > 2:
          quiet = 1
       elif oarg == '-c':
          chunk = 1
+      elif oarg == '-t':
+         testDummyProg = 'echo2 '
+         testOpt = '-t '
+      elif oarg == '-e':
+         argind += 1
+         var = sys.argv[argind]
+         val = ''
+         ind = var.find('=')
+         if ind >= 0:
+            varsplit = var.split('=')
+            var = varsplit[0]
+            val = varsplit[1]
+         envars.append((var, val))
+      elif oarg == '-n':
+         argind += 1
+         try:
+            niceVal = int(sys.argv[argind])
+         except ValueError:
+            prnstr('ERROR: vmstopy - Converting "nice" value to integer')
+            sys.exit(1)
       else:
          prnstr("ERROR: vmstopy - Unrecognized argument " + oarg)
          sys.exit(1)
@@ -142,6 +178,11 @@ prnstr("  sys.exit(1)", file=out)
 prnstr("if os.getenv('IMOD_QTLIBDIR') != None and os.getenv('LD_LIBRARY_PATH') != None:", file=out)
 prnstr("  os.environ['LD_LIBRARY_PATH'] = os.environ['IMOD_QTLIBDIR'] + os.pathsep + os.environ['LD_LIBRARY_PATH']", file=out)
 prnstr("os.environ['PIP_PRINT_ENTRIES'] = '1'", file=out)
+
+# Set environment variables
+for envpair in envars:
+   prnstr("os.environ['" + envpair[0] + "'] = '" + envpair[1] + "'", file=out)
+
 prnstr("from imodpy import *", file=out)
 prnstr("# Back up and open log file", file=out)
 prnstr("makeBackupFile('" + logname + "')", file=out)
@@ -150,6 +191,12 @@ prnstr("  log = open('" + logname + "', 'wb')", file=out)
 prnstr("except Exception:", file=out)
 prnstr("  prnstr('ERROR: Cannot open log file " + logname + " for writing')", file=out)
 prnstr("  sys.exit(1)", file=out)
+
+#Set niceness if any
+if niceVal:
+   prnstr(fmtstr('if imodNice({}):', niceVal), file=out)
+   prnstr("  prnstr('INFO: Cannot change process priority; psutil is not installed', "
+          "file=log)", file=out)
 
 # Output the PID, flush stderr needed for Windows Python
 prnstr("PID = 'Python PID: ' + str(os.getpid()) + '\\n'", file=out)
@@ -167,7 +214,6 @@ exitMatch = re.compile('^\$ *exit *$')
 errexitMatch = re.compile('^\$( *)exit *([0-9]*) *$')
 gotoMatch = re.compile('^\$ *goto +(\w+) *$')
 statgoMatch = re.compile('^\$ *if +\( *\$status *\) *goto +(\w+) *$')
-endMatch = re.compile('[\r\n]')
 commentMatch = re.compile('^ *#|\$!')
 setMatch = re.compile('^\$( *)set +([^=]+= *)([^ ].*)')
 nonoMatch = re.compile('^\$( *)set +nonomatch')
@@ -183,6 +229,9 @@ errlines = []
 try:
    line = com.readline()
    while line:
+
+      # Need to strip line endings right away; DOS endings confuse cygwin python
+      line = line.rstrip('\r\n')
       keep = 1
 
       # Find out if there is an error function to be made
@@ -200,6 +249,10 @@ try:
          needShutil = 1
       if not needPID and line.find('$$') >= 0:
          needPID = 1
+      if not hasPython and line.startswith('>'):
+         hasPython = 1
+      if not indentedCom and line.startswith('$ '):
+         indentedCom = 1
          
       # If we've reached the error label, start saving lines and looking for exit
       if seekError and re.sub(labelMatch, r'\1', line) == seekError:
@@ -234,7 +287,6 @@ try:
          keep = 0
 
       if keep:
-         line = re.sub(endMatch, '', line)
          lines.append(line)
       line = com.readline()
 
@@ -248,6 +300,8 @@ if needShutil:
    prnstr("import shutil", file=out)
 if needSocket:
    prnstr("import socket", file=out)
+if hasPython:
+   indentedCom = 0
    
 prnstr("", file=out)
 prnstr("def closeExit(exitCode):", file=out)
@@ -271,7 +325,6 @@ if tryline:
    prnstr('def errorFunc():', file = out)
    lines = errlines + lines
 
-ind = 0
 echoMatch = re.compile('^\$( *)echo *([^ ].*)')
 setenvMatch = re.compile('^\$( *)setenv +(\S* *)')
 continueMatch = re.compile(r'\\ *$')
@@ -282,6 +335,15 @@ vmsMatch = re.compile('.*vmstocsh +(\w+.log) *< *(\w+.com).*')
 backupMatch = re.compile(r'^\$( *)if *\( *-e +([^) ]+) *\) *\\?mv +([^ ]*) +([^ ~]*)~ *')
 copyMatch = re.compile(r'\\?cp -?f? ?')
 mkdirMatch = re.compile('^\$( *)mkdir *')
+
+# If there are indented command lines and no python statements, remove the spaces
+# before trying to process the lines
+if indentedCom:
+   for ind in range(len(lines)):
+      if lines[ind].startswith('$ '):
+         lines[ind] = re.sub('^\$ *', '$', lines[ind])
+
+ind = 0
 while ind < len(lines):
    if ind == tryline:
       prnstr("", file=out)
@@ -289,7 +351,7 @@ while ind < len(lines):
 
    line = lines[ind]
    ind += 1
-
+   
    # Replace $echo with >print and substitute variable
    if re.search('^\$ *echo', line):
       if re.search(echoMatch, line):
@@ -401,8 +463,8 @@ while ind < len(lines):
             line = lines[ind]
             ind += 1
          prnstr("  " + indent + 'try:', file=out)
-         prnstr("  " + indent + fmtstr('  runcmd("vmstopy {} {} {}")', vmscom, vmslog,
-                                       vmspy), file=out)
+         prnstr("  " + indent + fmtstr('  runcmd("vmstopy {}{} {} {}")', testOpt, vmscom,
+                                       vmslog, vmspy), file=out)
          prnstr("  " + indent + "except ImodpyError:", file=out)
          prnstr("  " + indent + '  printErrorExit(1)', file=out)
          prnstr("  " + indent + "command = 'python -u " + vmspy + "'",  file=out)
@@ -444,8 +506,13 @@ while ind < len(lines):
                comfile.close()
             except Exception:
                pass
-            
-         line = quoteSubstitute(line)
+
+         # Escape a terminal quote then wrap command in """
+         if line.endswith('"'):
+            linelen = len(line)
+            if linelen > 2 and line[linelen-2] != '\\':
+               line = line[:linelen-1] + '\\"'
+         line = quoteSubstitute(testDummyProg + line)
             
          prnstr("  " + indent + "command = " + line, file=out)
 

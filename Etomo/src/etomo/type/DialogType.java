@@ -106,7 +106,7 @@ public final class DialogType {
 
   public static final int TOTAL_PARALLEL = anisotropicDiffusionIndex + 1;
 
-  private static final int peetIndex = 0;
+  private static final int peetIndex = 1;
 
   public static final int TOTAL_PEET = peetIndex + 1;
 
@@ -126,6 +126,7 @@ public final class DialogType {
   private static final String JOIN_NAME = "Join";
   private static final String PARALLEL_NAME = "Parallel";
   private static final String ANISOTROPIC_DIFFUSION_NAME = "AnisotropicDiffusion";
+  private static final String PEET_STARTUP_NAME = "PeetStart";
   private static final String PEET_NAME = "Peet";
   private static final String TOOLS_NAME = "Tools";
 
@@ -194,6 +195,7 @@ public final class DialogType {
   public static final DialogType ANISOTROPIC_DIFFUSION = new DialogType(
       DataFileType.PARALLEL, anisotropicDiffusionIndex);
 
+  public static final DialogType PEET_STARTUP = new DialogType(DataFileType.PEET, 0);
   public static final DialogType PEET = new DialogType(DataFileType.PEET, peetIndex);
 
   public static final DialogType TOOLS = new DialogType(DataFileType.TOOLS, 0);
@@ -225,6 +227,12 @@ public final class DialogType {
         return "Clean Up";
       }
     }
+    else if (dataFileType ==DataFileType.JOIN) {
+      switch (index) {
+      case joinIndex:
+        return "Join";
+      }
+    }
     else if (dataFileType == DataFileType.PARALLEL) {
       switch (index) {
       case parallelIndex:
@@ -235,6 +243,8 @@ public final class DialogType {
     }
     else if (dataFileType == DataFileType.PEET) {
       switch (index) {
+      case 0:
+        return "PEET Startup";
       case peetIndex:
         return "PEET";
       }
@@ -292,6 +302,8 @@ public final class DialogType {
     }
     else if (dataFileType == DataFileType.PEET) {
       switch (index) {
+      case 0:
+        return "PEET-Start";
       case peetIndex:
         return "PEET";
       }
@@ -351,6 +363,8 @@ public final class DialogType {
     }
     else if (dataFileType == DataFileType.PEET) {
       switch (index) {
+      case 0:
+        return PEET_STARTUP_NAME;
       case peetIndex:
         return PEET_NAME;
       }
@@ -437,6 +451,9 @@ public final class DialogType {
     }
     if (storableName.equals(ANISOTROPIC_DIFFUSION_NAME)) {
       return ANISOTROPIC_DIFFUSION;
+    }
+    if (storableName.equals(PEET_STARTUP_NAME)) {
+      return PEET_STARTUP;
     }
     if (storableName.equals(PEET_NAME)) {
       return PEET;

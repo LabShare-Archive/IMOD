@@ -181,6 +181,7 @@ int main( int argc, char *argv[])
   App->cvi = &vi;
   App->base = Rampbase;
   App->convertSnap = 0;
+  App->glInitialized = 0;
 
   /* Set up fixed indexes */
   App->background   = IMOD_BACKGROUND;
@@ -790,6 +791,8 @@ int main( int argc, char *argv[])
 
   /* DNM: set this now in case image load is interrupted */
   Model->csum = imodChecksum(Model);
+  if (imodDebug('C'))
+    wprint("main set checksum %d\n", Model->csum);
 
   // Read tilt angles if any
   if (anglefname)

@@ -1,1448 +1,1340 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
-<head>
-  <title>3dmod Introduction</title>
-</head>
-<body>
-<A NAME = "TOP"></A>
-<h2 align="center">Introduction to 3dmod, Version 4.3<br>
-</h2>
-<h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of
-Cells</h3>
-<hr>
-<h3>Table of Contents</h3>
-<ul>
-  <br>
-  <a href="#ModelOrganization">Model Organization</a> <br>
-  <a href="#Starting3dmod"> Starting 3dmod</a> <br>
-  <a href="#InformationWindow">The Information Window</a> <br>
-  <a href="#ZapWindow">The Zap Window</a> <br>
-  <a href="#ObjectEdit">The Object Edit Dialog</a> <br>
-  <a href="#ModelinginZap">Modeling in the Zap Window</a> <br>
-  <a href="#ZapToolbar">The Zap Toolbar</a> <br>
-  <a href="#CommonHotKeys">Most Frequently Used Hot Keys</a> <br>
-  <a href="#XYZWindow">The XYZ Window</a> <br>
-  <a href="#SlicerWindow">The Slicer Window</a> <br>
-  <a href="#MultiZWindow">The Multi-Z Window</a> <br>
-  <a href="#SettingZ-scale">Setting Z-scale and Pixel Size</a> <br>
-  <a href="#ViewingModel">Viewing the Model in 3D</a> <br>
-  <a href="#ViewingImage3D">Viewing Image Data in 3D</a> <br>
-  <a href="#SkinningModel">Putting a Skin on Model Data</a> <br>
-  <a href="#ScaleBars">Drawing Scale Bars</a> <br>
-  <a href="#Making_Movies">Making Movies</a> <br>
-  <a href="#AdvancedTopics">Advanced Topics</a>
-</ul>
-<hr>
-<p>
-  <h3><a name="ModelOrganization"></a>Model Organization</h3>
-</p><p>
-It is helpful to understand the model data structure before trying
-to create a model. A model is basically a collection of points that
-refer to or mark
-interesting locations in an image.
-These points are stored in groups that are called contours. In the
-simplest case, a contour is a closed boundary around a region in an
-image. However, you should think of a contour more generally as a set
-of associated points, which may or may not be connected by lines.
-You will typically want to keep track of more than one type
-of feature in an image. This is facilitated by allowing contours to be
-grouped together into separate objects. Each object can be given its
-own
-name and all contours in the object share common attributes such as
-color and line thickness. This table shows how
-objects, contours, and points are organized in a hierarchy in the
-model.
-</p>
-<p>
-  <center>
-  <table border="2">
-    <caption><b> Model Layout </b></caption> <tbody>
-      <tr>
-        <td colspan="3" td="" align="left"> <b>Model header:</b><br>
-includes pixel size, Z-scale, and information relating model to image
-coordinates. </td>
-      </tr>
-      <tr>
-        <td valign="top">
-        <table border="1">
-          <tbody>
-            <tr>
-              <th>Object 1 </th>
-            </tr>
-            <tr>
-              <td>Name = blobs<br>
-Color = green<br>
-Type = scattered points. </td>
-            </tr>
-            <tr>
-              <td>Contour 1<br>
-Point 1<br>
-Point 2 </td>
-            </tr>
-            <tr>
-              <td>Contour 2<br>
-Point 1<br>
-Point 2<br>
-Point 3 </td>
-            </tr>
-            <tr>
-              <td>Contour 3<br>
-Point 1<br>
-Point 2 </td>
-            </tr>
-          </tbody>
-        </table>
-        </td>
-        <td valign="top">
-        <table border="1">
-          <tbody>
-            <tr>
-              <th>Object 2 </th>
-            </tr>
-            <tr>
-              <td>Name = round thing.<br>
-Color = red<br>
-Type = closed. </td>
-            </tr>
-            <tr>
-              <td>Contour 1<br>
-Point 1<br>
-Point 2<br>
-Point 3<br>
-Point 4<br>
-Point 5<br>
-Point 6 </td>
-            </tr>
-          </tbody>
-        </table>
-        </td>
-        <td valign="top">
-        <table border="1">
-          <tbody>
-            <tr>
-              <th>Object 3 </th>
-            </tr>
-            <tr>
-              <td>Name = stick<br>
-Color = white<br>
-Type = open. </td>
-            </tr>
-            <tr>
-              <td>Contour 1<br>
-Point 1<br>
-Point 2<br>
-Point 3<br>
-Point 4<br>
-Point 5 </td>
-            </tr>
-            <tr>
-              <td>Contour 2<br>
-Point 1<br>
-Point 2<br>
-Point 3<br>
-Point 4 </td>
-            </tr>
-          </tbody>
-        </table>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  </center>
-</p><br>
-  <h3><a name="Starting3dmod"></a> Starting 3dmod</h3>
-<p>To create a model for a MRC image file called <code>example.mrc</code>
-run the following 3dmod command.
-This command will cause a new model to be created, ready to edit.
-<br>
-<code>3dmod example.mrc</code>
-</p>
-<p>If a model has already been saved but needs further editing run the
-command
-<br>
-<code>3dmod example.mrc example.mod</code>
-</p>
-<p>When this command is run a window similar to the one below will open
-up.
-A secondary window containing the image of the image file and model
-file is opened after the data has been loaded.<br>
-</p>
-<p>Note that the files used for the examples shown below, <code>dual.rec</code>
-and <code>example.mod</code>, are among the <a
- href="http://bio3d.colorado.edu/imod/files/imod_data.tar.gz">sample
-data files</a> available from our web site.<br>
-</p>
-<p>
-<h3><a name="InformationWindow"></a>The Information Window</h3>
-</p>
-<center> <img src="3dmodimages/infowin.png"
- alt="3dmod Information Window"> </center>
-The 3dmod Information Window above is the main control window of the
-program. It contains menus for performing file operations, selecting
-model editing functions, and
-opening various kinds of image windows.
-It displays information about the
-model and the current image point. There are also some controls that
-govern the overall behavior of the program, and a status pane where
-messages
-are printed. Let us consider it from the top down.
-<p>The title bar of the Info Window shows the name of the image file
-and
-also contains controls for minimizing the window or closing it, which
-is a quick way to exit the program.
-Below the menu line are some buttons that control window behavior, with
-the name of the current model file shown on the right. The peg
-button allows you to keep the Info Window on top of windows from all
-other programs. The raise button (two up arrows) will bring all of
-the windows of the current 3dmod above windows from other programs.
-The buttons with the curved arrows will undo or redo changes to the
-model.
-The "Show point" button will be explained in a moment.
-</p>
-<p>Below these buttons are a set of controls called spin boxes, which
-are used extensively in 3dmod. A spin box shows a current value of some
-parameter, and lets you change that parameter either by increasing or
-decreasing it with the up and down arrow buttons, or by typing in a
-new value. The three spin boxes on the left
-show the current model object, contour and point, as well as the color
-of
-the current object.
-The model being edited above has 4 objects; the 4th object
-is currently selected. The 4th object has 11 contours and
-the 5th contour is currently selected. This contour has 20 points and
-the 10th point
-is the current point. </p>
-<p>Generally, when you change object, contour, or
-point with one of these spin boxes, the program will show the new
-current point in the image windows and change the section being
-displayed if necessary. Sometimes you will not want this to happen,
-such as when you want to switch between objects without having the
-displayed section change. In that case, just turn off the "Show
-point" checkbox.
-</p>
-<p>The three spin boxes on the right are the image position controls.
-They show that the image dimensions are 572 by 378 and that
-there are 31 sections. The current image point is at the location
-(237,259) with the origin at the lower left corner of the image. The
-current section is number 16. If you change the Z value, a different
-section will be shown in image windows. You can change X and Y values
-to move the current image point. The current image point is not the
-same as the current model point. It is marked by a cross when the
-program is not in model mode, and it determines what coordinates are
-displayed in some of the image windows.
-</p>
-<p>At the bottom of the Info Window are the Black and White sliders,
-which you
-can use to adjust the contrast and
-brightness of the displayed image. Pixel values between the selected
-black and
-white levels (147 and 234) are stretched out to occupy the full dynamic
-range
-of the
-display. Moving the sliders toward each other will increase contrast,
-while moving one or both to the left will increase brightness. </p>
-<p> These
-sliders have features common to nearly all of the slider controls in
-3dmod. Clicking to one side of the handle with the left mouse button
-will change the value by one. Clicking with the middle mouse button
-will jump the slider to the position of the mouse pointer. Dragging
-the handle by clicking and holding the left mouse button will cause
-the image contrast to be
-continuously updated until you release the button. In other words,
-these sliders are continuously active, or "hot". Sometimes the program
-will not perform well when a slider is continuously active, such as
-with very large images or models. You can keep a slider from being
-hot by holding down the Ctrl key (Apple key on the Macintosh).
-When
-you do this, the numeric value will be continuously displayed but the
-image will not be updated until you release the slider.
-</p>
-<p>Below the sliders are several controls related to setting the
-contrast.
-</p>
-<ul>
-  <li> When the "Float" box is checked,
-the program will adjust the black and white sliders automatically when
-you change from one section to another in an attempt to maintain a
-constant contrast and brightness between the images. </li>
-  <li> The "Auto" button is for setting contrast automatically; when
-you
-press it the program will adjust the black and white sliders so that
-the
-displayed image has a defined mean and standard deviation. When it starts up,
-    the program will set the contrast in this way for the first image that it
-    displays. The settings
-for the target mean and standard deviation can be changed in the
-3dmod Preferences dialog box, available from the Edit-Options menu
-entry.
-For example, you could increase the target mean to make images
-brighter,
-or reduce the standard deviation to make images have less contrast. </li>
-  <li> When the "Subarea" box is checked, both the "Float" operation
-when
-going between sections and the "Auto" contrast-setting operation
-will be performed using only the image area displayed in the Zap
-window. </li>
-</ul>
-<p>
-The "Movie" and "Model" radio buttons allow a user to select one
-of the two modes. When "Movie" is selected, pressing the middle or
-right
-mouse button will
-cause the image
-to movie back and forth. When "Model" is selected, the three different
-mouse
-buttons will edit the model, as described below.
-</p>
-<p>The bottom panel of the Info Window contains
-additional information and status messages. You can expand the window
-vertically to see more of the information at once.
-</p>
-<p>
-<h3><a name="ZapWindow"></a>The Zap Window</h3>
-<table align="center" border="0">
-  <tbody>
-    <tr>
-      <td align="center" valign="top"><img
- src="3dmodimages/zapsec12.jpg" alt="Zap Window section 12"> <br>
-      </td>
-      <td align="center" valign="top"><img
- src="3dmodimages/zapsec16.jpg" alt="Zap Window section 16"> <br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-The main image display and model editing window within 3dmod
-is the "Zap" window. The window name is an acronym for
-"Zoom and Pan".
-The zoom can be adjusted by clicking with the left mouse button on the
-arrows at the
-left side of the toolbar.
-Alternatively, one can zoom up and down with the "=" and "-" hot keys,
-respectively.
-To pan the image when it is larger than the window, press and hold the
-left
-mouse
-button in the image area of the window and
-drag the image.
-</p>
-<p>This display of two nearby slices from a tomogram (sections 12 and
-16) illustrates the three kinds of model objects: closed
-contours, open contours, and scattered points.
-</p>
-<ul>
-  <li>Closed contours are
-used to draw closed boundaries around features in one image plane.
-The light blue lines following the membrane around a vesicle are an
-example of closed contours. As the
-two different slices show, a separate contour is drawn in each section
-where the feature appears. You can draw as many separate contours as
-necessary to enclose the feature belonging to an object on one section.
-After you have drawn
-the model, you can
-connect the contours across the sections and create a surface that
-can be viewed; this operation is described below. Closed contours without
-point symbols are the default when a
-new object is created. The contour in section 16 does have some
-circles drawn on it because it is the current contour. The first and
-last points
-of the current contour are highlighted with green and red circles,
-while the current point has a yellow circle drawn on it. </li>
-  <li>Open contours are used when the end of a contour should not be
-connected
-back to the starting point. There are two cases where this is
-useful. If only part of an extended feature in present in the images,
-you would draw an open contour in each section along the boundary of
-the object. The yellow lines in the images are open contours showing
-the
-border of the darkly stained chromosome.
-The other main use is to model trajectories in
-3D, between sections. In the example images, open contours are used to
-model microtubules through space, and the points are marked by green
-circles.
-Open contours are also used to track gold
-fiducial particles through a tilt series. </li>
-  <li>Scattered points are used when you do not want connecting lines
-between
-the successive
-points of a contour. Such points are usually displayed as a sphere in a
-3D view of the model, or as a circle in cross-sections such as in the
-Zap window.
-In the example, a small round vesicle has been modeled simply by
-placing a
-single scattered point on it on section 12 (magenta circle).
-Depending
-on the sphere radius selected, a scattered point will typically show up
-on several sections,
-with the circle becoming smaller away from the central section where
-the point was placed (the circle is smaller on section 16). A
-cross is drawn
-inside the circle on the
-central section to show that the point was deposited on that section;
-if this does not make it clear enough you can also
-make a separate symbol be displayed only on the central section. </li>
-</ul>
-<p>
-</p>
-<h3><a name="ObjectEdit"></a>The Object Edit Dialog</h3>
-<p>The type of contours in an object, and the
-symbols displayed at
-individual points, can be selected with the Object Edit dialog box.
-Here are two examples.</p>
-<table align="center" border="0">
-  <tbody>
-    <tr>
-      <td align="center" valign="top"><img src="3dmodimages/ioeopen.png"
- alt="Object Edit window for open contours"> <br>
-      </td>
-      <td align="center" valign="top"><img
- src="3dmodimages/ioescatter.png"
- alt="Object Edit window for scattered points"> <br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<p>
-On the left
-is a box for the open contour object that is used to track microtubules
-between sections. A circle is selected for the symbol display, and
-the symbol size has been set to 7, so that it will be easy to see the
-symbol when there is only one point on a particular section.&nbsp; On
-the
-right is a box for the scattered point object used to model small
-vesicles;
-here no symbol is
-selected but the sphere radius for points has been set to 14.
-Several other properties can be set with this dialog.  In addition, there is a
-button at the top to copy the properties of an object from another object, and
-a button at the bottom to set the properties of the current object as the
-default for new objects.
-</p>
-<p>
-<h3><a name="ModelinginZap"></a>Modeling in the Zap Window</h3>
-</p>
-<p>
-Model points are added or changed
-using a 3-button mouse with the
-program in Model mode.
-The table below gives an overview of the mouse controls in Movie and
-Model mode.
-<table border="2">
-  <caption><b> Mouse Controls </b></caption> <tbody>
-    <tr>
-      <th> Mouse Button </th>
-      <th colspan="3"> Movie Mode </th>
-      <th colspan="3"> Model Mode </th>
-    </tr>
-    <tr>
-      <td>Left </td>
-      <td colspan="3" align="left"> Select position or drag mouse to
-pan image.</td>
-      <td colspan="3" align="left"> Attach to nearby model point or
-drag mouse to pan image.</td>
-    </tr>
-    <tr>
-      <td> Middle </td>
-      <td colspan="3" align="left">Movie image forward, or stop movie.</td>
-      <td colspan="3" align="left">Add new model point
-or drag mouse to add several points. </td>
-    </tr>
-    <tr>
-      <td> Right </td>
-      <td colspan="3" align="left"> Movie image backward, or stop movie.</td>
-      <td colspan="3" align="left"> Modify the current model point or
-drag mouse to modify several points.</td>
-    </tr>
-  </tbody>
-</table>
-See the
-<a href="man/3dmod.html#TOP">3dmod</a> manual page section on mouse
-controls, and the help pages for individual windows, for more details. </p>
-<p>When you first start a new model or a new object in a model, your
-first model point will be added to an empty contour. There are two
-basic ways to add model points to a contour. You can click
-the middle mouse button to add each individual point after moving to a
-desired position. The other way is to hold
-down the middle button while dragging the pointer over a desired
-path, which will add closely spaced points along the path. </p>
-<p>Once you have finished a contour and want to start another one, you
-need to create a new contour. This can be done with the menu entry
-Edit-Contour-New, but is much more conveniently done by pressing "n",
-which is one of many hot keys available to assist modeling. If you
-are modeling with closed contours, a new contour is created
-automatically when you switch to a new section and press the middle
-mouse button.&nbsp; When you are modeling with open contours, this does
-not happen automatically unless you select the option to "Start new
-contour at new Z" seen above in the Object Edit dialog box.&nbsp; This
-option is not turned on for modeling
-microtubules, but it is useful for drawing open contours that are
-supposed to be confined to one section, such as the ones along the
-chromosome boundary.
-</p>
-<p>As you model, the last point added is left as the current model
-point. You can change the current model point by clicking with the
-left mouse button near a point in any contour that is present on the
-section. This is one way to change the contour or object being
-modeled.
-If you click with the left button at a position that is far
-from any model points, the current point and contour become
-undefined. If you then add a model point, it will be placed in a new
-contour, so this is yet another way to begin a new contour.
-</p>
-<p>The right mouse button is used to modify existing points by either
-moving or deleting them. Use this button alone to move one or more
-points; hold down the Ctrl key to delete points under the cursor while
-clicking or holding down the right button.
-</p>
-<p><h3><a name="ZapToolbar"></a>The Zap Toolbar</h3></p>
-<center> <img src="3dmodimages/zaptoolbar.png" alt="Zap window toolbar">
-</center>
-<center> <img src="3dmodimages/zapBarBandOn.png" alt="Zap toolbar band on">
-</center>
-<p>The toolbar for the Zap window has a number of useful controls.
-</p>
-<ul>
-  <li>In addition to the arrows for changing zoom to fixed zoom values,
-there is a text box which both displays the current zoom value and
-allows you
-to enter any arbitrary zoom.
-(Fractional zooms may be slower on some machines.)</li>
-  <li>The numbers next to the zoom text box show the size of the
-window, or of the area enclosed by the rubberband, in pixels in the
-screen.&nbsp; This could be useful for taking a snapshot of an area of
-a particular size.</li>
-  <li>The Checkerboard button will toggle between fast drawing and
-slower, high-resolution drawing, which is now on by default.  With
-    high-resolution on, pixels are smoothed by interpolation when the zoom is
-greater than 1, and the image is filtered before subsampling to avoid 
-    artifacts when the zoom is
-    less than 1. </li>
-  <li>The Lock button is used to keep the image from centering on the
-current
-point and to allow different Zap windows to display different
-sections.
-When the lock is closed, the image will not move when the current model
-point changes, but it can be moved with the mouse or the PageUp and
-PageDown
-keys. When the lock is open, the image may automatically pan to the
-current
-point, depending on the setting of the Centering button. This panning
-does
-not happen when the current point is selected or added by a mouse
-button. </li>
-  <li>The Centering button toggles between two centering modes. In one
-    mode, the image will be centered on the current model point only if it
-    falls near the edge of the window, that is, outside of a central
-    box. (Thus, the icon shows one box inside another.) In the other mode, the
-    image will be recentered on the current model point each time you change
-    the current point. (The icon shows a point inside the outer box.) In Movie
-    mode, the image will be recentered on the current image point when you
-    turn the button on.  </li>
-  <li>The Insert, or Modeling Direction, button toggles between
-inserting points before and inserting points after the current model
-point.
-This is useful when modeling a feature that passes between sections,
-in case you need to add points to the start of a contour.</li>
-  <li>The Rubberband button toggles the rubberband on and off.&nbsp;
-The rubberband can be used for getting coordinates, resizing, and
-setting contrast in selected areas.&nbsp; The rubberband is initially
-positioned by pressing the left mouse button at the upper left corner
-of the desired area and dragging to the lower right, and then can be
-repositioned and resized with left and middle mouse buttons.  When the
-rubberband is on, the toolbar changes to include buttons and text boxes for
-setting lower and upper Z limits (as in the lower image, above).
-  </li>
-  <li>The Z slider allows you to riffle through the sections and select
-a particular one. The text box shows the value of the current section
-being viewed in the Zap window and allows you to go to a particular
-section
-by entering a number. </li>
-  <li>The I button brings the Info Window to the top and prints
-information there about the image size and location, as well as a
-command that could be used to extract the image visible in the window
-or inside the rubberband. </li>
-  <li>Finally, there is a Help button to open a window with help for
-all
-features of the Zap window. All image windows and dialog boxes
-have a Help button to provide window-specific information.&nbsp; The
-help system consists of a set of html files that are
-browsable.&nbsp; Here is the <a href="3dmodHelp/zap.html#TOP">help page</a>
-for the Zap window, and here is an <a href="3dmodHelp/index.html#TOP">index</a>
-to all help pages.<br>
-  </li>
-</ul>
-<p>
-<h3><a name="CommonHotKeys"></a>Most Frequently Used Hot Keys</h3>
-</p>
-<p>3dmod has many hot keys, which are listed both in the man page for <a
- href="man/3dmod.html#TOP">3dmod</a> and in a 
-<a href="3dmodHelp/keyboard.html#TOP">help page</a> that can be
-accessed from the Help-Hot Keys menu entry. These hot keys will work
-from all of the 3dmod image display windows, and even from the Info
-Window or other dialog boxes. There are also hot keys active only in
-particular windows, which are described in the help for those windows.
-The most commonly used hot keys
-are listed here:
-</p>
-<pre>PageUp     Show the next section (increase Z)<br>PageDown   Show the previous section (decrease Z)<br>Home       Show the last section<br>End        Show the first section<br>Delete     Delete current model point<br>-          Zoom down<br>=          Zoom up<br>s          Save the model<br>n          Start a new contour<br>Ctrl-S     Snapshot an image window to a Tiff file<br>Shift-S, Ctrl-Shift-S   Shapshot to non-Tiff file (usually JPEG and PNG)<br>t          Toggle model drawing off or on<br>,          Slow down movie or model rotation<br>.          Speed up movie or model rotation<br></pre>
-<p>
-<h3><a name="XYZWindow"></a>The XYZ Window</h3>
-</p>
-<table style="text-align: left; width: 1007px; height: 481px;"
- border="1" cellpadding="2" cellspacing="2">
-  <tbody>
-    <tr>
-      <td style="vertical-align: top;"><img alt="Full Xyz Window"
- src="3dmodimages/xyzwin.jpg"><br>
-      </td>
-      <td style="vertical-align: top;"><img alt="Zoomed Xyz window"
- src="3dmodimages/xyzwin2.jpg"><br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<p>The XYZ Window shows not just the XY plane but also the two
-orthogonal
-planes, YZ and XZ, in separate view boxes. It allows you to movie
-through the volume in any
-of these planes independently, and also displays the intersection of
-the model with each of the three planes. In the example, the XY plane
-is in the lower left, the XZ plane is above it, and the YZ plane is to
-the right.
-The current image point governs which planes are
-displayed; its position is marked by a small yellow cross in each
-image panel. In the figure on the left, you can see the large modeled
-vesicle in the XZ (top)
-plane, and
-an oblique slice through the microtubule marked by the small yellow
-cross in the YZ (right) plane.
-</p>
-<p>When an XYZ Window is first opened, the window size, the zoom, and
-the division of the window among the three view boxes are set so that
-the whole image will appear in each of the view boxes.&nbsp; You can
-then resize the window if desired, and the program will maintain the
-same proportion among the view boxes.&nbsp; If you make the window
-smaller or zoom up, then not all of the image will appear, and you can
-pan with the left mouse button in any one of the view boxes to bring
-features of interest back into view.&nbsp; Panning in one plane will
-typically shift the image in another plane so that all three planes
-will always show the same feature.&nbsp; If you find that the top and
-side view boxes are too narrow, which can easily be the case after
-zooming up, then you can reapportion the window area among the three
-boxes by dragging the light blue square diagonally with the left mouse
-button.
-</p>
-<p>The toolbar of the XYZ Window has zoom controls, a low/high
-resolution button, and a lock button as in the Zap Window.&nbsp; There is a
-centering button for bringing the current point as near to the center of the
-view boxes as possible.&nbsp; In movie mode, it will center the current
-image point marked by the yellow crosses; in model mode it will center
-the current model point.&nbsp; The toolbar also has sliders for
-riffling through the X, Y, or Z coordinate.
-</p>
-<p>The colored marker lines in the margins of the images also
-indicate the current point coordinates. They contain small handles
-that can be grabbed with the mouse to riffle through the images in one
-plane, as an alternative to the toolbar sliders. The color of the
-marker line matches the color of the border
-around the image
-that is controlled by it; for example, the red line controls the plane
-selected in the upper panel.
-</p>
-<p>The display of the model in the XY plane is essentially the same as
-in
-the Zap Window. In the other planes, scattered points will show up as
-circles, and other segments of contours will appear to the extent that
-they intersect the plane.
-</p>
-<p>In Movie mode, the mouse buttons behave the
-same as in the Zap Window, and they act separately in the three image
-panels
-for selecting the current image point or starting a movie in that
-panel.
-Basic modeling can also be done in the XY plane, again with the same
-mouse button
-functions as in the Zap Window. </p>
-<p>
-  <h3><a name="SlicerWindow"></a>The Slicer Window</h3>
-</p>
-<center>
-<table style="text-align: left; width: 808px; height: 514px;" border="1"
- cellpadding="2" cellspacing="2">
-  <tbody>
-    <tr>
-      <td style="vertical-align: top;"><img alt="Slicer window"
- src="3dmodimages/slicer.jpg"><br>
-      </td>
-      <td style="vertical-align: top;"><img
- alt="Slicer after rotation with mouse" src="3dmodimages/slicer2.jpg"><br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<br>
-</center>
-<p>The Slicer Window provides a much more flexible view of structures
-than the
-XYZ Window because it can display a slice at an arbitrary orientation
-through the image volume. The orientation is set by adjusting the X,
-Y, and Z rotation sliders in the second toolbar. In the example, one
-of the oblique microtubules was centered in the window, then the
-Z rotation was adjusted to orient the microtubule vertically,
-then the X rotation was adjusted to bring the microtubule into
-longitudinal section. Small changes in the X and Y sliders usually
-cause big
-changes in the image appearance, whereas the Z slider will primarily
-rotate the
-image clockwise and counterclockwise unless X or Y angles are large.
-</p>
-<p>When a Slicer is opened, the center of the displayed slice is
-initially at the current
-image point, but it can then be panned in the plane of the slice using
-the left mouse button, just as for other windows.&nbsp; You can step
-through slices in the direction perpendicular to the displayed slice
-using the PageUp and PageDown hot keys.&nbsp; The center of the window
-is marked by a red cross; this is the center of rotation when the slice
-angles are changed.
-</p>
-<p>There is an alternative method of changing the slice angles which
-can often be more convenient and intuitive than adjusting the
-sliders.&nbsp; When you hold down the Shift key and the middle mouse
-button, you can rotate the volume around an axis perpendicular to the
-direction of mouse motion.&nbsp; For example, the image on the right
-shows the result of dragging with the middle mouse button in the
-direction of the red arrow until some of the microtubules come into
-good cross-section.&nbsp; You can also rotate in the plane of the slice
-by holding down the Shift key and dragging with the right mouse&nbsp;
-button.&nbsp; The Shift key also converts the numeric keypad hot keys
-from operating on an individual axis angle to rotating the volume
-around X, Y or Z axes relative to the current slice; in the latter
-case, these keys operate the same as for the model view window shown
-below.
-</p>
-<p>The most useful items in the Slicer toolbars are the following.
-</p>
-<ul>
-  <li>The arrow buttons can be used to change zoom, and the text box
-displays the current zoom and allows a custom zoom to be entered. </li>
-  <li>The checkerboard allows you to toggle between rapid,
-low-resolution drawing using nearest-neighbor interpolation, and
-high resolution drawing using cubic
-interpolation. The latter may be considerably slower, but it will
-also be more accurate as well as giving a smoother image. </li>
-  <li>The lock button will prevent the slice position from being moved.
-There are two main uses for this feature. First, it allows you to
-maintain a selected view in a Slicer Window while changing to other
-views in other windows (including other Slicers). Second, it prevents
-the slow drawing in the slicer from slowing down
-the program when you want to work in or movie through other windows.</li>
-  <li>The centering mode button can be used to toggle back to an older
-mode of operation, where the Slicer was always centered on the current
-image point and could not be panned.&nbsp; This is perhaps most useful
-for recentering on the current image or model point, by pushing the
-button on then off.</li>
-  <li>The Sh button turns on a Shift Lock mode, in which the mouse and
-keypad can be used to rotate the model as described above without
-having to hold down the Shift key.
-  </li>
-  <li>The IM/FT button toggles between showing an image and a Fourier
-transform of the image.</li>
-  <li>The C button changes the angles to show the slice in which the current contour will
-appear flat.
-  </li>
-  <li>The box to the right of the sliders portrays the portion of the
-slice being viewed as a red plane inside of a representation of the
-whole image volume. </li>
-  <li>The Help button describes hot keys and other features. </li>
-  <li>The image thickness spin box lets you display a slice thicker
-than 1 pixel thick. The Slicer computes a projection through the
-number of slices that you select, effectively averaging those slices. </li>
-  <li>The model thickness spin box lets you control the thickness of
-the
-slice of model that is displayed on the image. In the example, the
-circles at each microtubule point are considered to lie in the XY
-plane and sometimes only a fragment intersects the tilted slice.
-Increasing the model thickness would make the whole circle show up. </li>
-</ul>
-<p>If the Ctrl key is held down, the middle and right mouse buttons
-will start a movie in the Slicer
-window, as in the Zap window.&nbsp; The program will movie through
-slices in a direction prependicular to the current slice, and will even
-adjust its direction if you change the rotation sliders while it is
-movieing.<br>
-</p>
-<p>It is possible to model in the Slicer, again with the same mouse
-button functions as in the Zap window. This provides a convenient way
-to track trajectories in 3D.&nbsp; Points
-can be drawn continuously by moving the mouse while holding the second
-mouse button down.&nbsp; The PageUp and PageDown keys will move
-the center point by one pixel perpendicular to the plane being viewed,
-which allows you to draw evenly spaced
-contours at oblique angles.&nbsp; See the Slicer <a
- href="3dmodHelp/slicer.html#TOP">help page</a>
-for the more details. <br>
-</p>
-<p>The power of the Slicer comes at a cost - it is the first window
-that we have seen where the computation time can easily make the
-display unacceptably slow. Display time depends on four factors:
-image thickness, high versus low resolution, image size, and the number
-of processors available. The program will take advantage of all
-processors automatically.&nbsp; If you
-need to average through many slices with a high resolution display, be
-sure to make the image as small as possible. If you must work with a
-very slow slicer window, remember that the hot sliders can be tamed
-with the Ctrl key.
-</p>
-<p>
-  <h3><a name="MultiZWindow"></a>The Multi-Z Window</h3>
-</p>
-<center> <img src="3dmodimages/multiZ.jpg" alt="Multi-Z Window">
-</center>
-<p>
-The Multi-Z window provides another way to view 3D data, by presenting a
-gallery of slices side by side.&nbsp; With the controls in the toolbar on the
-right, you can choose how many slices to show, whether to show them in a row, a
-column, or an array, and the spacing between successive slices.  You can also
-control whether the model is drawn in the middle panel (in the example, it is
-not), and whether it is drawn in the other panels.
-This window is a variant of the Zap window
-and the first toolbar has a subset of the features in the standard Zap toolbar.
-</p>
-  <h3><a name="SettingZ-scale"></a>Setting Z-scale and Pixel Size</h3>
-<p>
-In order for your model to look right in 3D, you may need to set a
-property
-called the "Z-scale" correctly. Both the Z-scale and the pixel size
-must be set to get accurate quantitative information about the model,
-because these values are used for calculating length, surface area
-or volume from object, contour or mesh data.
-To adjust these fields in the model header
-select the Model Header menu item from the Edit menu in the
-3dmod <a href="#InformationWindow">Information Window</a>.
-</p>
-<p>The Z-Scale is the ratio of the thickness between successive images
-to the pixel size. Its two most common uses are to adjust for
-section thickness in serial section reconstructions and section
-thinning
-in tomography. For serial sections, divide the section thickness in
-nanometers by the pixel size at which the data were digitized, again
-in nanometers. For tomograms, divide the original thickness at which
-the section was cut on the microtome (in nanometers) by the actual
-thickness of
-material in the tomogram (pixels of material times pixel size in
-nanometers).&nbsp; In either case, if you have an estimate of how much
-the specimen shrank laterally due to beam exposure, you should multiply
-by the shrinkage factor (e.g., 0.9 for 10% shrinkage).  For tomography, the
-factor should also be adjusted for lost material if you have an estimate
-of that; see the
-<a
- href="3dmodHelp/modelHeader.html#TOP">Model Header help page</a> for a formula.
-</p>
-<p>The Pixel Size field should contain both a value for the size of the
-pixel in the digitized data, and the units for that value.
-Units can be one of the following; A, nm, um, mm, m, km. For example,
-you could enter "0.015 um" or "15 nm".
-</p>
-  <h3><a name="ViewingModel"></a>Viewing the Model in 3D</h3>
-<p>
-<table align="center" border="0">
-  <tbody>
-    <tr>
-      <td align="center" valign="top"><img src="3dmodimages/modvraw.png"
- alt="View of raw model"> <br>
-      </td>
-      <td align="center" valign="top"><img
- src="3dmodimages/modvnomesh.png"
- alt="View of model with spheres and lines enhanced"> <br>
-      </td>
-      <td align="center" valign="top"><img
- src="3dmodimages/modvmesh.png" alt="View of fully meshed model"> <br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-</p>
-<p>These are different views of the example model in the Model View
-Window, which can be opened while running 3dmod by selecting Model
-View from the Image menu, or by typing the hot key "v".
-This same window can be opened in
-a standalone mode with
-<br>
-<code> 3dmodv example.mod</code>
-<br>
-The model has been
-tilted around the X and Y axes using the arrow keys on the keypad.
-The model can also be rotated with the middle mouse button, or using
-arrows and text boxes in the
-Control dialog box that can be opened using the Edit-Controls menu
-entry, but the arrow keys are often more convenient. A single keystrike
-rotates the model by one step. Continuous rotation is started by
-pressing the keypad Enter key followed by the desired arrow key;
-another press of the Enter key stops the rotation.
-</p>
-<p>On the left is the initial view of the model, before any of the
-default viewing parameters have been changed. These parameters are
-initially set to show open and closed contour objects with contour line
-tracings, and scattered points as wire baskets. The middle view shows
-two changes that can be made immediately, without having to compute
-surface meshes for the contours. The microtubule lines (green) have
-been made
-thicker and the scattered points are displayed as lighted surfaces.
-On the right is the display after making meshes for the objects (as
-explained below) and setting all objects to display as lighted
-surfaces. These display settings are all changed in the 3dmodv
-Objects dialog box, opened with the Edit-Objects menu item or the O hot
-key. </p>
-<p>
-<table align="center" border="0">
-  <tbody>
-    <tr>
-      <td align="center" valign="top"><img
- src="3dmodimages/objedmtlines.png"
- alt="Objects Window: Setting line width"> <br>
-      </td>
-      <td align="center" valign="top"><img
- src="3dmodimages/objedspheremesh.png"
- alt="Objects Window: Setting spheres to mesh"> <br>
-      </td>
-      <td align="center" valign="top"><img
- src="3dmodimages/objedmaterial.png"
- alt="Objects Window: Lighting both sides of sheet"> <br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-</p>
-<p>The Objects dialog box contains controls for selecting the current
-object to be edited, buttons for turning individual objects on or off,
-and a set of panels for setting different object properties or
-controlling the overall display. A panel is selected by clicking on
-its name in the list.
-</p>
-<p>The example on the left shows how the appearance of the green lines
-was changed for the middle model view panel above. The "Lines" panel
-was selected, the 3D line width was increased from 1 to 3, and
-"Anti-alias rendering" was turned on to smooth out the jagged edges of
-the lines.
-</p>
-<p>The example in the middle shows how the scattered points were
-displayed as solid objects. The selection for "Draw Data Type" was
-changed from "Contour" to "Mesh". 3dmod automatically changed "Drawing
-Style" from "Line" to "Fill" to produce the most commonly desired
-appearance.
-</p>
-<p>The example on the right shows a change that was required after
-meshes
-were computed and displayed for all
-objects. By default, objects are lit only on one surface, which is
-always the outer
-surface for closed contour objects. (Note the dark surfaces on the
-interior of the microtubules.) However, a sheet like the chromosome
-boundary (yellow) does not have an obvious interior surface, and its
-lit surface happened to face downward, toward the chromosome. This
-problem was solved by checking the "Light Both Sides" option in the
-"Material" panel. The other method of solving this is to go back to
-the 3dmod Object Edit dialog box and change the "Front Face" from
-"Outside" to "Inside", then recompute the mesh.
-</p>
-<p>The appearance of the magenta scattered point was improved between
-the middle
-and right views of the model by pressing the "g" hot key twice to
-increase sphere drawing quality. When there are many spheres, this
-degree of quality could
-significantly increase drawing time for the display, so it is not the
-default.
-The sphere drawing quality can also be controlled in the "Points"
-panel, which allows one to change the global quality setting (just as
-with the "g" and "G" hot keys) as well as set a quality for individual
-objects.
-</p>
-  <h3><a name="ViewingImage3D"></a>Viewing Image Data in 3D</h3>
-<p>When the Model View window is opened from 3dmod, it is possible to
-display the image data in 3D in this window in two different ways.&nbsp;
-One way is to draw one or more planes of the image along with the model.&nbsp;
-Use the Edit-Image menu entry to open a dialog to control many aspects
-of this image
-projection.&nbsp; Multiple planes are drawn with enough transparency so that
-you can see through to the rearmost image plane; you can add more transparency
-to see the model through the images as well.&nbsp; The following pictures show
-an example of this display.
-</p>
-<p>
-<table align="center" border="0">
-  <tbody>
-    <tr>
-      <td align="center" valign="top"><img
- src="3dmodimages/imageInModv.jpg" alt="Model View: Image on model"> <br>
-      </td>
-      <td align="center" valign="top"><img
- src="3dmodimages/editImage.png" alt="Edit Image Window"> <br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-</p>
-<p>
-The other way to display image data is to draw a surface called an isosurface 
-at a particular threshold level.&nbsp; The middle image below shows an
-isosurface rendering of the two basal bodies whose cross-section appear in the
-Zap window on the left.
-</p>
-<p>
-<table align="center" border="0">
-  <tbody>
-    <tr>
-      <td align="center" valign="top"><img src="3dmodimages/isoSurfZap.jpg"
- alt="Zap area in isosurface"> <br>
-      </td>
-      <td align="center" valign="top"><img
- src="3dmodimages/isoSurfModview.jpg"
- alt="Isosurface display"> <br>
-      </td>
-      <td align="center" valign="top"><img
- src="3dmodimages/isoSurfWindow.png" alt="Isosurface dialog"> <br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-</p>
-<p>
-Select Isosurface from either the Image menu of the Info window or the
-Edit menu of the Model View window (or use the U hot key) 
-to start the isosurface display and open
-the dialog to control it.&nbsp; The isosurface display is most useful when
-looking at macromolecular structures in averaged subvolumes from tomograms,
-but may also be useful for examining tomograms directly, particularly if the
-data are binned and small unconnected fragments are deleted from the display.
-&nbsp; The threshold can be adjusted to isolate features of interest, and the
-other sliders in the dialog can be used to select the position and the size of
-the volume being rendered.
-</p>
-<p>
-There are two ways to relate positions on 
-the isosurface to features in the image data.&nbsp; First, if you click on
-the isosurface with the right mouse button, the selected point will become the
-current image point in 3dmod.&nbsp; Second, if you turn on the display of the
-current point in the View menu of the Model View window, you can click on a
-point in the Zap or Slicer window and see that position marked in the Model
-View window with a red sphere (as seen above).&nbsp; Both of these methods will
-work better if you uncheck 
-<span style="font-weight: bold;">Link to global X, Y, Z</span> so that the
-position of the volume being rendered does not change when you click in either
-place.
-</p>
-<p>
-The display properties of the isosurface can be adjusted from the Edit-Objects
-dialog just as for actual objects in the model.&nbsp; The isosurface is kept in
-something called an "extra object" and it is assigned a number higher than the
-number of actual objects.&nbsp; The isosurface will disappear when you close
-the dialog, but you can use the <span style="font-weight: bold;">Save to Object</span>
-button to move it into a new actual object in the model.
-</p>
-<p>
-  <h3><a name="SkinningModel"></a>Putting a Skin on Model Data</h3>
-</p>
-<p>
-Skinning is the name used for calculating a three-dimensional
-surface from contour data.&nbsp; This surface, once calculated, is
-represented by
-a mesh of triangles that can be stored within each object.&nbsp; If any contour
-points within that object are edited then the mesh
-for that object must be recalculated in order for it to match
-the contour data.&nbsp; There are two ways to calculate the mesh from the
-contour data within a
-model: with the <a href="man/imodmesh.html#TOP">imodmesh</a> program, and
-with the Meshing panel of the Objects dialog box.&nbsp; Using imodmesh
-provides a wide range of
-options for controlling the meshing; whereas the Meshing panel provides
-a more intuitive interface with the most important options.
-</p>
-<p>To skin the example model, this command was used:
-<br>
-<code>imodmesh -C -t 1 -d 10 example.mod</code>
-</p>
-<p>By default, imodmesh will construct meshes only between pairs of
-contours, which will leave holes at the top and the bottom of a closed
-contour object because
-there is nothing to connect the highest and lowest contours to.
-The "-C" option tells imodmesh to fill in these holes
-or "Cap" them off.
-</p>
-<p>In the model view on the right, the lines of the microtubules appear
-as tubes because imodmesh created cylindical meshes around them.&nbsp; It
-did this because of the
-"-t" option, which is followed by a list of open contour object numbers
-that should be given tubular meshes
-(here, just object 1).&nbsp; The "-d" option is then used to specify the
-diameter of the tubes, in pixels (10).
-</p>
-<p>
-Sometimes the mesh data structure can get so large that interactive
-viewing is very slow.&nbsp; There are two ways to make a mesh with a lower
-resolution, the "-R" option to skip points within contours and
-the "-i" option to skip Z levels.&nbsp; With "-R", imodmesh will skip
-points that are within a certain distance of the line segments between
-the remaining points, thus preserving the shape of
-curves.&nbsp; For example,
-<br>
-<code>imodmesh -C -o 4 -R 0.75 -i 2 example.mod</code>
-</p>
-<p>Here, a new mesh is created only for object 4 (-o 4), and points will
-be skipped, but the surface defined by the mesh will always be within 0.75
-pixel of the original data (-R 0.75). In addition, the "-i 2" makes
-imodmesh connect every other Z plane (i.e., at intervals of 2 in Z),
-reducing the mesh size by 2.
-</p>
-<p>Each time you run imodmesh, the existing file is saved as a backup
-file
-with a "~" added to its name. You can also erase all of the mesh data
-from your model using the "-e" option to imodmesh.
-</p>
-<p>Imodmesh also has an option (-l) to store a low resolution mesh
-alongside a
-regular mesh, so that a big model can be manipulated rapidly in
-low-resolution mode then switched to high-resolution mode for studying
-details.
-Other commonly needed options are -s and -P to connect contours across
-gaps; see the <a href="man/imodmesh.html#TOP">imodmesh</a> man page for
-details.
-</p>
-<p>All the options just mentioned are presented in the interface in the
-Meshing panel:<br>
-</p>
-<table style="margin-left: auto; margin-right: auto; text-align: left;"
- border="1" cellpadding="2" cellspacing="2">
-  <tbody>
-    <tr>
-      <td style="vertical-align: top;"><img
- alt="Meshing panel for vesicle object"
- src="3dmodimages/objedvesmeshing.png"><br>
-      </td>
-      <td style="text-align: center; vertical-align: top;"><img
- alt="Meshing panel for tube object"
- src="3dmodimages/objedmtmeshing.png"><br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<p>Whenever an object is meshed, either with imodmesh or through this
-interface, the options used to mesh the object are stored in the model,
-and their values will be displayed when this panel is opened.&nbsp;
-This makes it easy to remesh objects without having to remember exactly
-what options were used previously.&nbsp; On the left, the "Tol" and "Z
-inc" settings reflects the values entered with the -R and -i options to
-imodmesh, and the "Cap" checkbox indicates that the -C option was used
-for the vesicle object.&nbsp; On the right, the "Tube" selection and
-the
-diameter are shown for the microtubule object.&nbsp; When the "Make
-Mesh" button is pressed, the meshing process is started in a separate
-thread so that you can continue working in 3dmod while the mesh is
-being computed.
-</p>
-<p>If you do mesh with imodmesh while you are modeling in 3dmod,
-be sure to save the model, run imodmesh, then immediately load the
-model back into 3dmod with the Reload Model entry in the File
-menu.
-</p>
-<h3><a name="ScaleBars"></a>Drawing Scale Bars</h3>
-<p>To display a scale bar in any of the image windows, or in the Model View
-window, select the Scale Bar entry from either the Edit menu of the Info
-window or the View menu of the Model View window.&nbsp; The following dialog
-will appear.</p>
-<center> <img src="3dmodimages/scalebar.png" alt="Scale bar dialog">
-</center>
-<p>
-Scale bars will be drawn in the various windows as long as the dialog is open
-and <span style="font-weight: bold;"> Draw scale bars</span> is checked.&nbsp;
-You can select whether the bars will be white or black in the image windows;
-the bar will always be white in the Model View window if the
-background there is black.&nbsp; The various controls allow you to adjust the
-size, location, and orientation of the bars.&nbsp; At the bottom is a list of
-the scale bar sizes in the various kinds of windows; you will need to record
-this information when you take a snapshot.
-</p>
-<h3><a name="Making_Movies"></a>Making Movies</h3>
-<p>Because IMOD does not produce files that can be used in movie
-players, if you want to make a movie of your images or models, you need
-to make a series
-of snapshots of a window and import those images into movie-making
-software.&nbsp; (For Windows, we recommend Videomach from
-www.gromada.com for making movies).&nbsp; There are two dialogs that help manage this task:<br>
-</p>
-<table style="margin-left: auto; margin-right: auto; text-align: left;"
- border="1" cellpadding="2" cellspacing="2">
-  <tbody>
-    <tr>
-      <td style="vertical-align: top;"><img
- alt="Movie dialog for images" src="3dmodimages/imagemovies.png"> <br>
-      </td>
-      <td style="vertical-align: top;"><img
- alt="Movie dialog for models" src="3dmodimages/modelmovies.png"><br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<p>On the left is the dialog box opened with Edit-Movies from the 3dmod
-Info Window menu and used to control movieing and automatic
-snapshots in image display windows (primarily Zap and Slicer).&nbsp;
-The sliders at the top allow you select the range and increment between
-slices to be snapshot.&nbsp; Here, every slice from 6 to 56 will be
-snapshot.&nbsp; The<span style="font-weight: bold;"> Looping</span>
-radio buttons control how many pictures will be taken when you start a
-movie.&nbsp; With <span style="font-weight: bold;">Round trip</span>
-selected, pictures will be taken going in both directions, which is
-useful if your movie playing software will not loop back and
-forth.&nbsp; If your movie software will loop back and forth, you can
-select <span style="font-weight: bold;">One way</span> and get
-pictures going in just one direction.&nbsp; The <span
- style="font-weight: bold;">Start at </span>radio buttons allow you to
-choose whether the set of pictures will start and end at the limits in
-Z (<span style="font-weight: bold;">Start/end</span>) or at the
-currently displayed section (<span style="font-weight: bold;">Current pt</span>).&nbsp;
-To get a series of pictures, select one of the file formats in the <span
- style="font-weight: bold;">Snapshot</span> box and start a movie in a
-Zap or Slicer window with the middle or right mouse button.&nbsp; The
-window will stop movieing when the set of pictures is finished.
-</p>
-<p>On the right is the corresponding dialog for movies, opened with
-File-Movies from the Model View Window menu.&nbsp; In the most general
-case, you can adjust the
-model display to the desired starting position, orientation, and size,
-and press <span style="font-weight: bold;">Set Start</span>; then
-adjust the display to the desired final state and press <span
- style="font-weight: bold;">Set End</span>.&nbsp; Often one simply
-wants the model to spin all the way around, which is provided by the
-buttons <span style="font-weight: bold;">Full 360 X</span> and <span
- style="font-weight: bold;">Full 360 Y</span>.&nbsp; When you press <span
- style="font-weight: bold;">Make,</span> you will see the model go
-through its sequence of positions.&nbsp; If it is doing the right
-thing, select a file format and check <span style="font-weight: bold;">Write
-files</span>, then press <span style="font-weight: bold;">Make</span>
-again.
-</p>
-<p>The different image formats differ in their degree and type of
-compression.&nbsp; TIFF files are uncompressed and can be quite large,
-since they are 24-bit color.&nbsp; PNG files have a loss-less
-compression that is quite effective for most model snapshots but much
-less effective for image snapshots.&nbsp; JPEG files will give the most
-compression, with some loss of information that can be controlled by
-the percent quality factor, selectable in the 3dmod <span
- style="font-weight: bold;">Preferences</span> dialog.&nbsp; For images
-with no model overlay, 80% quality is usually adequate for making
-movies.&nbsp; If there is a model overlay, you need 90% or higher
-quality to make it look decent in the individual snapshots (images here
-were shot at 90% quality).&nbsp; It might be preferable to take such
-snapshots as PNG's and let your movie software take care of the
-compression.
-</p>
-<p>Note that both of these dialogs have a montage option for capturing
-high-resolution snapshots that are larger than the image window
-itself.&nbsp; In each case, the program zooms up the display and pans
-around to capture a montage of images, then assembles these into a
-single image and writes a TIFF file.&nbsp; A movie of such montaged
-snapshots can be saved from the Zap window or from the Slicer, but only a
-  single frame can be saved in high-resolution mode from the Model View
-  window.
-</p>
-  <h3><a name="AdvancedTopics"></a>Advanced Topics</h3>
-<p>
-This section is to make you aware of some other features in 3dmod,
-so
-that you can
-investigate them when the need arises. Consult the help windows of
-the relevant dialog boxes, or the <a href="man/3dmod.html#TOP">3dmod</a>
-man page, for more details.
-The first few items are related to
-the Surface/Contour/Point window, shown here on the left.
-</p>
-<p>
-<center>
-<div style="text-align: center;"> </div>
-<table style="text-align: left; width: 850px; height: 629px;" border="1"
- cellpadding="2" cellspacing="2">
-  <tbody>
-    <tr>
-      <td style="vertical-align: top; text-align: center;"><img
- alt="Surface/Contour/Point window" src="3dmodimages/surfcontpt.png"><br>
-      </td>
-      <td style="vertical-align: top; text-align: center;"><img
- alt="Fine Grain window" src="3dmodimages/fineGrainWin.png"><br>
-      </td>
-      <td style="vertical-align: top; text-align: center;"><img
- alt="Model with fine grain properties"
- src="3dmodimages/fineGrainMod.png"><br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<br>
-</center>
-<ul>
-  <li><b>Surfaces.</b> Surfaces are an optional level of organization
-between
-objects and contours. They are particularly useful when you want to
-keep track of many components of one kind, without making a
-separate object for each. Quantitative information can then be
-derived for each different surface. The top section of this dialog
-box has some controls for creating and navigating through surfaces,
-and its help window has more information about them. </li>
-  <li><b>Open and closed contours.</b> Some of the contours in a closed
-contour object can be defined as open, which means that their starting
-and
-ending points
-will not be connected. This is useful when modeling a feature that is
-partially or completely cut by the boundary of a data set.
-See the <a href="man/imodmesh.html#TOP">imodmesh</a> man page as well as
-the help window for this dialog box for details. </li>
-  <li><b>4D modeling.</b> 3dmod can load multiple image files, which
-occupy a
-fourth dimension referred to as "time". Thus, contours in an object can
-be at different times. </li>
-  <li><b>Point sizes.</b> Not all points in a scattered point object
-need to
-be the same size; individual points can be given different sizes using
-the controls in the Point section of this dialog box. An option can be
-selected to use the scroll wheel on the mouse to adjust the point size.  
-There is even a
-way to draw a closed contour around a feature and have it converted to
-a scattered point with the equivalent radius (see the dialog box
-accessed
-from the Edit-Contour-Move menu entry). </li>
-  <li><b>Ghost displays.</b> You can project a "ghost" of contours on
-adjacent
-sections onto the current section to help you see where to draw the
-next contour.</li>
-  <li><b>Fine grained display properties.</b>&nbsp;
-You can control several display properties of points within contours,
-individual contours, or surfaces using the Fine Grain Control dialog,
-shown above in the middle. In this example, the window shows the
-properties of the current point, and all of the properties marked with
-an "S" instead of a "D" have been set differently for this point than
-for the rest of the contour.&nbsp; In addition to allowing manipulation
-of color, line thickness, symbol displays, and transparency, the dialog
-allows multiple openings to be defined in contours, as shown in the
-model on the right.&nbsp; For more details see the <a
- href="3dmodHelp/finegrain.html#TOP">help page</a>.
-  </li>
-  <li><b>Preferences.</b> You can set preferences that are stored
-between
-sessions
-of 3dmod, such as the assignment of
-the three mouse buttons and the type of file that will be snapshot with
-Shift-S. Use the Edit-Options menu entry to open the
-3dmod Preferences dialog box.&nbsp; (This item is under the Apple menu
-on the Mac.)
-  </li>
-  <li><b>Automated modeling.</b> There are two facilities for automated
-modeling.
-The Auto Contouring dialog box, opened from the Edit-Contour menu,
-will draw contours around areas that are above or below a selected
-threshold of intensity. The Line Track module, opened from the Special
-menu, will draw
-contours along a linear feature such as a membrane, either by filling
-in points
-between two points placed along the feature, or by copying a contour
-from one section to the next and adjusting its position to fit changes
-in the boundary or the object. </li>
-  <li><b>Drawing Tools, Interpolator, and Other Plugins.</b> Andrew Noske,
-    originally at the University
-of Queensland and now at the National Center for Microscopy and Imaging
-    research, has contributed several plugins to 3dmod.  Plugins are opened from
-the Special menu of 3dmod.  His plugins provide tools to assist
-with drawing, tools for making measurements with stereology,
-help with fixing fiducial models for large data sets,
-and help managing and assigning standardized names to objects.
-</li>
-  <li><b>Pixel View window.</b> Use the Image-Pixel View menu entry to
-open a
-window
-that displays a grid of pixel intensity values as well as a continuous
-display of the mouse position in the image and the pixel value at that
-location. The actual values
-from the image file are shown in the grid; the continuous display can
-show either the byte values from within 3dmod or the values in the
-file. </li>
-  <li><b>Graph Window.</b> Use the Image-Graph menu entry to open a
-window
-that can display a graph of pixel values along a line or along a
-contour; here is the <a href="3dmodHelp/graph.html#TOP">help page</a>.&nbsp;
-It is possible to define a line width so as to average over several
-pixels, and to see the average value over a subset of a line selected
-with the Zap window rubberband.</li>
-  <li><span style="font-weight: bold;">Locator Window.</span> Use the
-Image-Locator menu entry to open a window that displays a zoomed-down
-image of the whole image area, with a red box outlining the area
-displayed in the active Zap window.&nbsp; You can even click a new
-center position, or drag the box, to pan the Zap window to the selected
-location.&nbsp; Here is the <a href="3dmodHelp/locator.html#TOP">help page</a>.
-  </li>
-  <li><b>Tumbler Window.</b> Use the Image-Tumbler menu entry to open a
-window
-that will show a projection through a small volume of data as the
-volume is tilted to different orientations; here is the <a
- href="3dmodHelp/tumbler.html#TOP">help page</a>. </li>
-  <li><b>File Extraction.</b> After you have defined a 2D region with the
-rubberband in the Zap window, and also a range of Z sections in the Zap
-toolbar, select the File-Extract entry in the Info window to extract the
-selected volume from the image file using 
-<a href="man/trimvol.html#TOP">Trimvol</a>.</li>
-  <li><b>Storing Slicer Angles.</b> Use the Edit-Angles menu entry to
-open a dialog that allows you save views seen in a Slicer Window.&nbsp;
-Each view consists of the 3 slicer angles and the center
-position.&nbsp; You can then set a Slicer to one of these stored views,
-and go between different views easily.&nbsp; If multiple image files
-are loaded into 3dmod, different views can be saved for each.&nbsp;
-This feature could be used to align and toggle between different copies
-of a similar structure.&nbsp; Here is the <a
- href="3dmodHelp/slicerAngles.html#TOP">help page</a>.</li>
-  <li><span style="font-weight: bold;">Synchronizing Model View and
-Slicer Windows.</span>&nbsp; It is possible to synchronize the angles
-of the Model View Window and a Slicer Window so that changing the view
-angles in one will rotate the other as well.&nbsp; Use Edit-Controls in
-the Model View menu to open the Controls dialog, and select the
-checkbox <span style="font-weight: bold;">Link to top Slicer angles</span>.
-  </li>
-  <li><b>Object color.</b> You can change an object's color using the
-Edit-Object-Color menu entry from the 3dmod Info Window, as well as
-using the Edit-Objects dialog box from the Model View Window.</li>
-  <li><b>Object List dialog.</b> When you have many objects, the Object List
-dialog is useful for keeping track of and manipulating them.&nbsp; It is opened
-from the View menu of the Model View window.&nbsp; For each object it shows the
-name and color and provides a checkbox to turn it on and off.&nbsp; This dialog
-also allows you to define groups of objects that can be changed together.
-&nbsp; Here is the <a href="3dmodHelp/objectList.html#TOP">help page</a>.</li>
-  <li><b>Saving views.</b>&nbsp; The Edit-Views entry in the menu of
-the Model View Window opens a dialog that allows you to save distinct
-views of the model, which can differ in many features such as
-orientation, the selection of objects displayed, and object properties
-such as color and lighting characteristics.&nbsp; Once you have saved
-the views you can switch between them easily.
-  </li>
-  <li><b>Editing contours.</b> The Edit-Contour menu has a number of
-advanced
-editing features, including ones to move or copy contours from one
-object to another, and ones to break and
-join contours (see the help for <a href="3dmodHelp/contourMove.html#TOP">contour
-moving</a>, <a href="3dmodHelp/contourJoin.html#TOP">contour joining</a>, 
-<a href="3dmodHelp/contourBreak.html#TOP">contour breaking</a>, and
-<a href="3dmodHelp/contourCopy.html#TOP">contour copying</a>).</li>
-  <li><b>Multiple selected contours.</b>&nbsp; It is possible to select
-more
-than one contour;
-this is useful for several operations such as deleting, moving, or
-joining contours.&nbsp; Multiple selection is done with the Ctrl key
-(Apple on the Macintosh), such as Ctrl and first mouse button to add a
-contour to the set of selected ones, and Ctrl-A to select all contours
-on a section in the current object.</li>
-  <li><b>Image processing dialog.</b>&nbsp;
-The Edit-Image-Process menu entry opens a dialog box that allows you to
-process one section of the image.&nbsp; You can take an FFT or apply a
-number of filters such as Fourier filtering, smoothing, and median
-filtering; here is the <a href="3dmodHelp/imageProc.html#TOP">help page</a>.
-  </li>
-  <li><b>Tooltips.</b> If you leave the mouse over a button or other
-control
-for over half a second, a tooltip will appear for that control. </li>
-</ul>
-</body>
+	<head>
+		<title>3dmod Introduction</title>
+	</head>
+	<body>
+		<A NAME="TOP"></A>
+		<h2 align="center">Introduction to 3dmod, Version 4.3<br>
+		</h2>
+		<h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of Cells</h3>
+		<hr>
+		<h3>Table of Contents</h3>
+		<ul>
+			<br>
+			<a href="#ModelOrganization">Model Organization</a>
+			<br>
+			<a href="#Starting3dmod">Starting 3dmod</a>
+			<br>
+			<a href="#InformationWindow">The Information Window</a>
+			<br>
+			<a href="#ZapWindow">The Zap Window</a>
+			<br>
+			<a href="#ObjectEdit">The Object Edit Dialog</a>
+			<br>
+			<a href="#ModelinginZap">Modeling in the Zap Window</a>
+			<br>
+			<a href="#ZapToolbar">The Zap Toolbar</a>
+			<br>
+			<a href="#CommonHotKeys">Most Frequently Used Hot Keys</a>
+			<br>
+			<a href="#XYZWindow">The XYZ Window</a>
+			<br>
+			<a href="#SlicerWindow">The Slicer Window</a>
+			<br>
+			<a href="#MultiZWindow">The Multi-Z Window</a>
+			<br>
+			<a href="#SettingZ-scale">Setting Z-scale and Pixel Size</a>
+			<br>
+			<a href="#ViewingModel">Viewing the Model in 3D</a>
+			<br>
+			<a href="#ViewingImage3D">Viewing Image Data in 3D</a>
+			<br>
+			<a href="#SkinningModel">Putting a Skin on Model Data</a>
+			<br>
+			<a href="#ScaleBars">Drawing Scale Bars</a>
+			<br>
+			<a href="#Making_Movies">Making Movies</a>
+			<br>
+			<a href="#AdvancedTopics">Advanced Topics</a>
+		</ul>
+		<hr>
+		<p>
+			<h3><a name="ModelOrganization"></a>Model Organization</h3>
+		<P></P>
+		<p>
+			It is helpful to understand the model data structure before trying to create a 
+			model. A model is basically a collection of points that refer to or mark 
+			interesting locations in an image. These points are stored in groups that are 
+			called contours. In the simplest case, a contour is a closed boundary around a 
+			region in an image. However, you should think of a contour more generally as a 
+			set of associated points, which may or may not be connected by lines. You will 
+			typically want to keep track of more than one type of feature in an image. This 
+			is facilitated by allowing contours to be grouped together into separate 
+			objects. Each object can be given its own name and all contours in the object 
+			share common attributes such as color and line thickness. This table shows how 
+			objects, contours, and points are organized in a hierarchy in the model.
+		</p>
+		<p>
+			<center>
+				<table border="2">
+					<caption>
+						<b>Model Layout </b>
+					</caption>
+					<tbody>
+						<tr>
+							<td colspan="3" td="" align="left">
+								<b>Model header:</b><br>
+								includes pixel size, Z-scale, and information relating model to image 
+								coordinates.
+							</td>
+						</tr>
+						<tr>
+							<td valign="top">
+								<table border="1">
+									<tbody>
+										<tr>
+											<th>
+												Object 1
+											</th>
+										</tr>
+										<tr>
+											<td>Name = blobs<br>
+												Color = green<br>
+												Type = scattered points.
+											</td>
+										</tr>
+										<tr>
+											<td>Contour 1<br>
+												Point 1<br>
+												Point 2
+											</td>
+										</tr>
+										<tr>
+											<td>Contour 2<br>
+												Point 1<br>
+												Point 2<br>
+												Point 3
+											</td>
+										</tr>
+										<tr>
+											<td>Contour 3<br>
+												Point 1<br>
+												Point 2
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</td>
+							<td valign="top">
+								<table border="1">
+									<tbody>
+										<tr>
+											<th>
+												Object 2
+											</th>
+										</tr>
+										<tr>
+											<td>Name = round thing.<br>
+												Color = red<br>
+												Type = closed.
+											</td>
+										</tr>
+										<tr>
+											<td>Contour 1<br>
+												Point 1<br>
+												Point 2<br>
+												Point 3<br>
+												Point 4<br>
+												Point 5<br>
+												Point 6
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</td>
+							<td valign="top">
+								<table border="1">
+									<tbody>
+										<tr>
+											<th>
+												Object 3
+											</th>
+										</tr>
+										<tr>
+											<td>Name = stick<br>
+												Color = white<br>
+												Type = open.
+											</td>
+										</tr>
+										<tr>
+											<td>Contour 1<br>
+												Point 1<br>
+												Point 2<br>
+												Point 3<br>
+												Point 4<br>
+												Point 5
+											</td>
+										</tr>
+										<tr>
+											<td>Contour 2<br>
+												Point 1<br>
+												Point 2<br>
+												Point 3<br>
+												Point 4
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</center>
+		<P></P>
+		<br>
+		<h3><a name="Starting3dmod"></a> Starting 3dmod</h3>
+		<p>To create a model for a MRC image file called <code>example.mrc</code> run the 
+			following 3dmod command. This command will cause a new model to be created, 
+			ready to edit.
+			<br>
+			<code>3dmod example.mrc</code>
+		</p>
+		<p>If a model has already been saved but needs further editing run the command
+			<br>
+			<code>3dmod example.mrc example.mod</code>
+		</p>
+		<p>When this command is run a window similar to the one below will open up. A 
+			secondary window containing the image of the image file and model file is 
+			opened after the data has been loaded.<br>
+		</p>
+		<p>Note that the files used for the examples shown below, <code>dual.rec</code> and <code>
+				example.mod</code>, are among the <a href="http://bio3d.colorado.edu/imod/files/imod_data.tar.gz">
+				sample data files</a> available from our web site.<br>
+		</p>
+		<p>
+			<h3><a name="InformationWindow"></a>The Information Window</h3>
+		<P></P>
+		<center>
+			<img src="3dmodimages/infowin.png" alt="3dmod Information Window">
+		</center>
+		The 3dmod Information Window above is the main control window of the program. 
+		It contains menus for performing file operations, selecting model editing 
+		functions, and opening various kinds of image windows. It displays information 
+		about the model and the current image point. There are also some controls that 
+		govern the overall behavior of the program, and a status pane where messages 
+		are printed. Let us consider it from the top down.
+		<p>The title bar of the Info Window shows the name of the image file and also 
+			contains controls for minimizing the window or closing it, which is a quick way 
+			to exit the program. Below the menu line are some buttons that control window 
+			behavior, with the name of the current model file shown on the right. The peg 
+			button allows you to keep the Info Window on top of windows from all other 
+			programs. The raise button (two up arrows) will bring all of the windows of the 
+			current 3dmod above windows from other programs. The buttons with the curved 
+			arrows will undo or redo changes to the model. The "Show point" button will be 
+			explained in a moment.
+		</p>
+		<p>Below these buttons are a set of controls called spin boxes, which are used 
+			extensively in 3dmod. A spin box shows a current value of some parameter, and 
+			lets you change that parameter either by increasing or decreasing it with the 
+			up and down arrow buttons, or by typing in a new value. The three spin boxes on 
+			the left show the current model object, contour and point, as well as the color 
+			of the current object. The model being edited above has 4 objects; the 4th 
+			object is currently selected. The 4th object has 11 contours and the 5th 
+			contour is currently selected. This contour has 20 points and the 10th point is 
+			the current point.
+		</p>
+		<p>Generally, when you change object, contour, or point with one of these spin 
+			boxes, the program will show the new current point in the image windows and 
+			change the section being displayed if necessary. Sometimes you will not want 
+			this to happen, such as when you want to switch between objects without having 
+			the displayed section change. In that case, just turn off the "Show point" 
+			checkbox.
+		</p>
+		<p>The three spin boxes on the right are the image position controls. They show 
+			that the image dimensions are 572 by 378 and that there are 31 sections. The 
+			current image point is at the location (237,259) with the origin at the lower 
+			left corner of the image. The current section is number 16. If you change the Z 
+			value, a different section will be shown in image windows. You can change X and 
+			Y values to move the current image point. The current image point is not the 
+			same as the current model point. It is marked by a cross when the program is 
+			not in model mode, and it determines what coordinates are displayed in some of 
+			the image windows.
+		</p>
+		<p>At the bottom of the Info Window are the Black and White sliders, which you can 
+			use to adjust the contrast and brightness of the displayed image. Pixel values 
+			between the selected black and white levels (151 and 239) are stretched out to 
+			occupy the full dynamic range of the display. Moving the sliders toward each 
+			other will increase contrast, while moving one or both to the left will 
+			increase brightness.
+		</p>
+		<p>
+			These sliders have features common to nearly all of the slider controls in 
+			3dmod. Clicking to one side of the handle with the left mouse button will 
+			change the value by one. Clicking with the middle mouse button will jump the 
+			slider to the position of the mouse pointer. Dragging the handle by clicking 
+			and holding the left mouse button will cause the image contrast to be 
+			continuously updated until you release the button. In other words, these 
+			sliders are continuously active, or "hot". Sometimes the program will not 
+			perform well when a slider is continuously active, such as with very large 
+			images or models. You can keep a slider from being hot by holding down the Ctrl 
+			key (Apple key on the Macintosh). When you do this, the numeric value will be 
+			continuously displayed but the image will not be updated until you release the 
+			slider.
+		</p>
+		<p>Below the sliders are several controls related to setting the contrast.
+		</p>
+		<ul>
+			<li>
+			When the "Float" box is checked, the program will adjust the black and white 
+			sliders automatically when you change from one section to another in an attempt 
+			to maintain a constant contrast and brightness between the images.
+			<li>
+			The "Auto" button is for setting contrast automatically; when you press it the 
+			program will adjust the black and white sliders so that the displayed image has 
+			a defined mean and standard deviation. When it starts up, the program will set 
+			the contrast in this way for the first image that it displays. The settings for 
+			the target mean and standard deviation can be changed in the 3dmod Preferences 
+			dialog box, available from the Edit-Options menu entry. For example, you could 
+			increase the target mean to make images brighter, or reduce the standard 
+			deviation to make images have less contrast.
+			<li>
+				When the "Subarea" box is checked, both the "Float" operation when going 
+				between sections and the "Auto" contrast-setting operation will be performed 
+				using only the image area displayed in the Zap window.
+			</li>
+		</ul>
+		<p>
+			The "Movie" and "Model" radio buttons allow a user to select one of the two 
+			modes. When "Movie" is selected, pressing the middle or right mouse button will 
+			cause the image to movie back and forth. When "Model" is selected, the three 
+			different mouse buttons will edit the model, as described below.
+		</p>
+		<p>The bottom panel of the Info Window contains additional information and status 
+			messages. You can expand the window vertically to see more of the information 
+			at once.
+		</p>
+		<p>
+			<h3><a name="ZapWindow"></a>The Zap Window</h3>
+			<table align="center" border="0">
+				<tbody>
+					<tr>
+						<td align="center" valign="top"><img src="3dmodimages/zapsec12.jpg" alt="Zap Window section 12">
+							<br>
+						</td>
+						<td align="center" valign="top"><img src="3dmodimages/zapsec16.jpg" alt="Zap Window section 16">
+							<br>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		The main image display and model editing window within 3dmod is the "Zap" 
+		window. The window name is an acronym for "Zoom and Pan". The zoom can be 
+		adjusted by clicking with the left mouse button on the arrows at the left side 
+		of the toolbar. Alternatively, one can zoom up and down with the "=" and "-" 
+		hot keys, respectively. To pan the image when it is larger than the window, 
+		press and hold the left mouse button in the image area of the window and drag 
+		the image.
+		<P></P>
+		<p>This display of two nearby slices from a tomogram (sections 12 and 16) 
+			illustrates the three kinds of model objects: closed contours, open contours, 
+			and scattered points.
+		</p>
+		<ul>
+			<li>
+			Closed contours are used to draw closed boundaries around features in one image 
+			plane. The light blue lines following the membrane around a vesicle are an 
+			example of closed contours. As the two different slices show, a separate 
+			contour is drawn in each section where the feature appears. You can draw as 
+			many separate contours as necessary to enclose the feature belonging to an 
+			object on one section. After you have drawn the model, you can connect the 
+			contours across the sections and create a surface that can be viewed; this 
+			operation is described below. Closed contours without point symbols are the 
+			default when a new object is created. The contour in section 16 does have some 
+			circles drawn on it because it is the current contour. The first and last 
+			points of the current contour are highlighted with green and red circles, while 
+			the current point has a yellow circle drawn on it.
+			<li>
+			Open contours are used when the end of a contour should not be connected back 
+			to the starting point. There are two cases where this is useful. If only part 
+			of an extended feature in present in the images, you would draw an open contour 
+			in each section along the boundary of the object. The yellow lines in the 
+			images are open contours showing the border of the darkly stained chromosome. 
+			The other main use is to model trajectories in 3D, between sections. In the 
+			example images, open contours are used to model microtubules through space, and 
+			the points are marked by green circles. Open contours are also used to track 
+			gold fiducial particles through a tilt series.
+			<li>
+				Scattered points are used when you do not want connecting lines between the 
+				successive points of a contour. Such points are usually displayed as a sphere 
+				in a 3D view of the model, or as a circle in cross-sections such as in the Zap 
+				window. In the example, a small round vesicle has been modeled simply by 
+				placing a single scattered point on it on section 12 (magenta circle). 
+				Depending on the sphere radius selected, a scattered point will typically show 
+				up on several sections, with the circle becoming smaller away from the central 
+				section where the point was placed (the circle is smaller on section 16). A 
+				cross is drawn inside the circle on the central section to show that the point 
+				was deposited on that section; if this does not make it clear enough you can 
+				also make a separate symbol be displayed only on the central section.
+			</li>
+		</ul>
+		<p>
+		</p>
+		<h3><a name="ObjectEdit"></a>The Object Edit Dialog</h3>
+		<p>The type of contours in an object, and the symbols displayed at individual 
+			points, can be selected with the Object Edit dialog box. Here are two examples.</p>
+		<table align="center" border="0">
+			<tbody>
+				<tr>
+					<td align="center" valign="top"><img src="3dmodimages/ioeopen.png" alt="Object Edit window for open contours">
+						<br>
+					</td>
+					<td align="center" valign="top"><img src="3dmodimages/ioescatter.png" alt="Object Edit window for scattered points">
+						<br>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<p>
+			On the left is a box for the open contour object that is used to track 
+			microtubules between sections. A circle is selected for the symbol display, and 
+			the symbol size has been set to 7, so that it will be easy to see the symbol 
+			when there is only one point on a particular section.&nbsp; On the right is a 
+			box for the scattered point object used to model small vesicles; here no symbol 
+			is selected but the sphere radius for points has been set to 14. Several other 
+			properties can be set with this dialog. In addition, there is a button at the 
+			top to copy the properties of an object from another object, and a button at 
+			the bottom to set the properties of the current object as the default for new 
+			objects.
+		</p>
+		<p>
+			<h3><a name="ModelinginZap"></a>Modeling in the Zap Window</h3>
+		<P></P>
+		<p>
+			Model points are added or changed using a 3-button mouse with the program in 
+			Model mode. The table below gives an overview of the mouse controls in Movie 
+			and Model mode.
+			<table border="2">
+				<caption>
+					<b>Mouse Controls </b>
+				</caption>
+				<tbody>
+					<tr>
+						<th>
+							Mouse Button
+						</th>
+						<th colspan="3">
+							Movie Mode
+						</th>
+						<th colspan="3">
+							Model Mode
+						</th>
+					</tr>
+					<tr>
+						<td>Left
+						</td>
+						<td colspan="3" align="left">
+							Select position or drag mouse to pan image.</td>
+						<td colspan="3" align="left">
+							Attach to nearby model point or drag mouse to pan image.</td>
+					</tr>
+					<tr>
+						<td>
+							Middle
+						</td>
+						<td colspan="3" align="left">Movie image forward, or stop movie.</td>
+						<td colspan="3" align="left">Add new model point or drag mouse to add several 
+							points.
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Right
+						</td>
+						<td colspan="3" align="left">
+							Movie image backward, or stop movie.</td>
+						<td colspan="3" align="left">
+							Modify the current model point or drag mouse to modify several points.</td>
+					</tr>
+				</tbody>
+			</table>
+			See the <a href="man/3dmod.html#TOP">3dmod</a> manual page section on mouse 
+			controls, and the help pages for individual windows, for more details.
+		</p>
+		<p>When you first start a new model or a new object in a model, your first model 
+			point will be added to an empty contour. There are two basic ways to add model 
+			points to a contour. You can click the middle mouse button to add each 
+			individual point after moving to a desired position. The other way is to hold 
+			down the middle button while dragging the pointer over a desired path, which 
+			will add closely spaced points along the path.
+		</p>
+		<p>Once you have finished a contour and want to start another one, you need to 
+			create a new contour. This can be done with the menu entry Edit-Contour-New, 
+			but is much more conveniently done by pressing "n", which is one of many hot 
+			keys available to assist modeling. If you are modeling with closed contours, a 
+			new contour is created automatically when you switch to a new section and press 
+			the middle mouse button.&nbsp; When you are modeling with open contours, this 
+			does not happen automatically unless you select the option to "Start new 
+			contour at new Z" seen above in the Object Edit dialog box.&nbsp; This option 
+			is not turned on for modeling microtubules, but it is useful for drawing open 
+			contours that are supposed to be confined to one section, such as the ones 
+			along the chromosome boundary.
+		</p>
+		<p>As you model, the last point added is left as the current model point. You can 
+			change the current model point by clicking with the left mouse button near a 
+			point in any contour that is present on the section. This is one way to change 
+			the contour or object being modeled. If you click with the left button at a 
+			position that is far from any model points, the current point and contour 
+			become undefined. If you then add a model point, it will be placed in a new 
+			contour, so this is yet another way to begin a new contour.
+		</p>
+		<p>The right mouse button is used to modify existing points by either moving or 
+			deleting them. Use this button alone to move one or more points; hold down the 
+			Ctrl key to delete points under the cursor while clicking or holding down the 
+			right button.
+		</p>
+		<p><h3><a name="ZapToolbar"></a>The Zap Toolbar</h3>
+		<P></P>
+		<center>
+			<img src="3dmodimages/zaptoolbar.png" alt="Zap window toolbar">
+		</center>
+		<center>
+			<img src="3dmodimages/zapBarBandOn.png" alt="Zap toolbar band on">
+		</center>
+		<p>The toolbar for the Zap window has a number of useful controls.
+		</p>
+		<ul>
+			<li>
+			In addition to the arrows for changing zoom to fixed zoom values, there is a 
+			text box which both displays the current zoom value and allows you to enter any 
+			arbitrary zoom. (Fractional zooms may be slower on some machines.)
+			<li>
+			The numbers next to the zoom text box show the size of the window, or of the 
+			area enclosed by the rubberband, in pixels in the screen.&nbsp; This could be 
+			useful for taking a snapshot of an area of a particular size.
+			<li>
+			The Checkerboard button will toggle between fast drawing and slower, 
+			high-resolution drawing, which is now on by default. With high-resolution on, 
+			pixels are smoothed by interpolation when the zoom is greater than 1, and the 
+			image is filtered before subsampling to avoid artifacts when the zoom is less 
+			than 1.
+			<li>
+			The Lock button is used to keep the image from centering on the current point 
+			and to allow different Zap windows to display different sections. When the lock 
+			is closed, the image will not move when the current model point changes, but it 
+			can be moved with the mouse or the PageUp and PageDown keys. When the lock is 
+			open, the image may automatically pan to the current point, depending on the 
+			setting of the Centering button. This panning does not happen when the current 
+			point is selected or added by a mouse button.
+			<li>
+			The Centering button toggles between two centering modes. In one mode, the 
+			image will be centered on the current model point only if it falls near the 
+			edge of the window, that is, outside of a central box. (Thus, the icon shows 
+			one box inside another.) In the other mode, the image will be recentered on the 
+			current model point each time you change the current point. (The icon shows a 
+			point inside the outer box.) In Movie mode, the image will be recentered on the 
+			current image point when you turn the button on.
+			<li>
+			The Insert, or Modeling Direction, button toggles between inserting points 
+			before and inserting points after the current model point. This is useful when 
+			modeling a feature that passes between sections, in case you need to add points 
+			to the start of a contour.
+			<li>
+			The Rubberband button toggles the rubberband on and off.&nbsp; The rubberband 
+			can be used for getting coordinates, resizing, and setting contrast in selected 
+			areas.&nbsp; The rubberband is initially positioned by pressing the left mouse 
+			button at the upper left corner of the desired area and dragging to the lower 
+			right, and then can be repositioned and resized with left and middle mouse 
+			buttons. When the rubberband is on, the toolbar changes to include buttons and 
+			text boxes for setting lower and upper Z limits (as in the lower image, above).
+			<li>
+			The Z slider allows you to riffle through the sections and select a particular 
+			one. The text box shows the value of the current section being viewed in the 
+			Zap window and allows you to go to a particular section by entering a number.
+			<li>
+			The I button brings the Info Window to the top and prints information there 
+			about the image size and location, as well as a command that could be used to 
+			extract the image visible in the window or inside the rubberband.
+			<li>
+				Finally, there is a Help button to open a window with help for all features of 
+				the Zap window. All image windows and dialog boxes have a Help button to 
+				provide window-specific information.&nbsp; The help system consists of a set of 
+				html files that are browsable.&nbsp; Here is the <a href="3dmodHelp/zap.html#TOP">help 
+					page</a> for the Zap window, and here is an <a href="3dmodHelp/index.html#TOP">index</a>
+				to all help pages.<br>
+			</li>
+		</ul>
+		<p>
+			<h3><a name="CommonHotKeys"></a>Most Frequently Used Hot Keys</h3>
+		<P></P>
+		<p>3dmod has many hot keys, which are listed both in the man page for <a href="man/3dmod.html#TOP">
+				3dmod</a> and in a <a href="3dmodHelp/keyboard.html#TOP">help page</a> that 
+			can be accessed from the Help-Hot Keys menu entry. These hot keys will work 
+			from all of the 3dmod image display windows, and even from the Info Window or 
+			other dialog boxes. There are also hot keys active only in particular windows, 
+			which are described in the help for those windows. The most commonly used hot 
+			keys are listed here:
+		</p>
+		<pre>PageUp     Show the next section (increase Z)<br>PageDown   Show the previous section (decrease Z)<br>Home       Show the last section<br>End        Show the first section<br>Delete     Delete current model point<br>-          Zoom down<br>=          Zoom up<br>s          Save the model<br>n          Start a new contour<br>Ctrl-S     Snapshot an image window to a Tiff file<br>Shift-S, Ctrl-Shift-S   Shapshot to non-Tiff file (usually JPEG and PNG)<br>t          Toggle model drawing off or on<br>,          Slow down movie or model rotation<br>.          Speed up movie or model rotation<br></pre>
+		<p>
+			<h3><a name="XYZWindow"></a>The XYZ Window</h3>
+		<P></P>
+		<table style="TEXT-ALIGN: left; WIDTH: 1007px; HEIGHT: 481px" border="1" cellpadding="2"
+			cellspacing="2">
+			<tbody>
+				<tr>
+					<td><img alt="Full Xyz Window" src="3dmodimages/xyzwin.jpg"><br>
+					</td>
+					<td><img alt="Zoomed Xyz window" src="3dmodimages/xyzwin2.jpg"><br>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<p>The XYZ Window shows not just the XY plane but also the two orthogonal planes, 
+			YZ and XZ, in separate view boxes. It allows you to movie through the volume in 
+			any of these planes independently, and also displays the intersection of the 
+			model with each of the three planes. In the example, the XY plane is in the 
+			lower left, the XZ plane is above it, and the YZ plane is to the right. The 
+			current image point governs which planes are displayed; its position is marked 
+			by a small yellow cross in each image panel. In the figure on the left, you can 
+			see the large modeled vesicle in the XZ (top) plane, and an oblique slice 
+			through the microtubule marked by the small yellow cross in the YZ (right) 
+			plane.
+		</p>
+		<p>When an XYZ Window is first opened, the window size, the zoom, and the division 
+			of the window among the three view boxes are set so that the whole image will 
+			appear in each of the view boxes.&nbsp; You can then resize the window if 
+			desired, and the program will maintain the same proportion among the view 
+			boxes.&nbsp; If you make the window smaller or zoom up, then not all of the 
+			image will appear, and you can pan with the left mouse button in any one of the 
+			view boxes to bring features of interest back into view.&nbsp; Panning in one 
+			plane will typically shift the image in another plane so that all three planes 
+			will always show the same feature.&nbsp; If you find that the top and side view 
+			boxes are too narrow, which can easily be the case after zooming up, then you 
+			can reapportion the window area among the three boxes by dragging the light 
+			blue square diagonally with the left mouse button.
+		</p>
+		<p>The toolbar of the XYZ Window has zoom controls, a low/high resolution button, 
+			and a lock button as in the Zap Window.&nbsp; There is a centering button for 
+			bringing the current point as near to the center of the view boxes as 
+			possible.&nbsp; In movie mode, it will center the current image point marked by 
+			the yellow crosses; in model mode it will center the current model point.&nbsp; 
+			The toolbar also has sliders for riffling through the X, Y, or Z coordinate.
+		</p>
+		<p>The colored marker lines in the margins of the images also indicate the current 
+			point coordinates. They contain small handles that can be grabbed with the 
+			mouse to riffle through the images in one plane, as an alternative to the 
+			toolbar sliders. The color of the marker line matches the color of the border 
+			around the image that is controlled by it; for example, the red line controls 
+			the plane selected in the upper panel.
+		</p>
+		<p>The display of the model in the XY plane is essentially the same as in the Zap 
+			Window. In the other planes, scattered points will show up as circles, and 
+			other segments of contours will appear to the extent that they intersect the 
+			plane.
+		</p>
+		<p>In Movie mode, the mouse buttons behave the same as in the Zap Window, and they 
+			act separately in the three image panels for selecting the current image point 
+			or starting a movie in that panel. Basic modeling can also be done in the XY 
+			plane, again with the same mouse button functions as in the Zap Window.
+		</p>
+		<p>
+			<h3><a name="SlicerWindow"></a>The Slicer Window</h3>
+		<P></P>
+		<center>
+			<table style="TEXT-ALIGN: left; WIDTH: 808px; HEIGHT: 514px" border="1" cellpadding="2"
+				cellspacing="2">
+				<tbody>
+					<tr>
+						<td><img alt="Slicer window" src="3dmodimages/slicer.jpg"><br>
+						</td>
+						<td><img alt="Slicer after rotation with mouse" src="3dmodimages/slicer2.jpg"><br>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<br>
+		</center>
+		<p>The Slicer Window provides a much more flexible view of structures than the XYZ 
+			Window because it can display a slice at an arbitrary orientation through the 
+			image volume. The orientation is set by adjusting the X, Y, and Z rotation 
+			sliders in the second toolbar. In the example, one of the oblique microtubules 
+			was centered in the window, then the Z rotation was adjusted to orient the 
+			microtubule vertically, then the X rotation was adjusted to bring the 
+			microtubule into longitudinal section. Small changes in the X and Y sliders 
+			usually cause big changes in the image appearance, whereas the Z slider will 
+			primarily rotate the image clockwise and counterclockwise unless X or Y angles 
+			are large.
+		</p>
+		<p>When a Slicer is opened, the center of the displayed slice is initially at the 
+			current image point, but it can then be panned in the plane of the slice using 
+			the left mouse button, just as for other windows.&nbsp; You can step through 
+			slices in the direction perpendicular to the displayed slice using the PageUp 
+			and PageDown hot keys.&nbsp; The center of the window is marked by a red cross; 
+			this is the center of rotation when the slice angles are changed.
+		</p>
+		<p>There is an alternative method of changing the slice angles which can often be 
+			more convenient and intuitive than adjusting the sliders.&nbsp; When you hold 
+			down the Shift key and the middle mouse button, you can rotate the volume 
+			around an axis perpendicular to the direction of mouse motion.&nbsp; For 
+			example, the image on the right shows the result of dragging with the middle 
+			mouse button in the direction of the red arrow until some of the microtubules 
+			come into good cross-section.&nbsp; You can also rotate in the plane of the 
+			slice by holding down the Shift key and dragging with the right mouse&nbsp; 
+			button.&nbsp; The Shift key also converts the numeric keypad hot keys from 
+			operating on an individual axis angle to rotating the volume around X, Y or Z 
+			axes relative to the current slice; in the latter case, these keys operate the 
+			same as for the model view window shown below.
+		</p>
+		<p>The most useful items in the Slicer toolbars are the following.
+		</p>
+		<ul>
+			<li>
+			The arrow buttons can be used to change zoom, and the text box displays the 
+			current zoom and allows a custom zoom to be entered.
+			<li>
+			The checkerboard allows you to toggle between rapid, low-resolution drawing 
+			using nearest-neighbor interpolation, and high resolution drawing using cubic 
+			interpolation. The latter may be considerably slower, but it will also be more 
+			accurate as well as giving a smoother image.
+			<li>
+			The lock button will prevent the slice position from being moved. There are two 
+			main uses for this feature. First, it allows you to maintain a selected view in 
+			a Slicer Window while changing to other views in other windows (including other 
+			Slicers). Second, it prevents the slow drawing in the slicer from slowing down 
+			the program when you want to work in or movie through other windows.
+			<li>
+			The centering mode button can be used to toggle back to an older mode of 
+			operation, where the Slicer was always centered on the current image point and 
+			could not be panned.&nbsp; This is perhaps most useful for recentering on the 
+			current image or model point, by pushing the button on then off.
+			<li>
+			The Sh button turns on a Shift Lock mode, in which the mouse and keypad can be 
+			used to rotate the model as described above without having to hold down the 
+			Shift key.
+			<li>
+			The IM/FT button toggles between showing an image and a Fourier transform of 
+			the image.
+			<li>
+			The C button changes the angles to show the slice in which the current contour 
+			will appear flat.
+			<li>
+			The box to the right of the sliders portrays the portion of the slice being 
+			viewed as a red plane inside of a representation of the whole image volume.
+			<li>
+			The Help button describes hot keys and other features.
+			<li>
+			The image thickness spin box lets you display a slice thicker than 1 pixel 
+			thick. The Slicer computes a projection through the number of slices that you 
+			select, effectively averaging those slices.
+			<li>
+				The model thickness spin box lets you control the thickness of the slice of 
+				model that is displayed on the image. In the example, the circles at each 
+				microtubule point are considered to lie in the XY plane and sometimes only a 
+				fragment intersects the tilted slice. Increasing the model thickness would make 
+				the whole circle show up.
+			</li>
+		</ul>
+		<p>If the Ctrl key is held down, the middle and right mouse buttons will start a 
+			movie in the Slicer window, as in the Zap window.&nbsp; The program will movie 
+			through slices in a direction prependicular to the current slice, and will even 
+			adjust its direction if you change the rotation sliders while it is movieing.<br>
+		</p>
+		<p>It is possible to model in the Slicer, again with the same mouse button 
+			functions as in the Zap window. This provides a convenient way to track 
+			trajectories in 3D.&nbsp; Points can be drawn continuously by moving the mouse 
+			while holding the second mouse button down.&nbsp; The PageUp and PageDown keys 
+			will move the center point by one pixel perpendicular to the plane being 
+			viewed, which allows you to draw evenly spaced contours at oblique 
+			angles.&nbsp; See the Slicer <a href="3dmodHelp/slicer.html#TOP">help page</a> for 
+			the more details.
+			<br>
+		</p>
+		<p>The power of the Slicer comes at a cost - it is the first window that we have 
+			seen where the computation time can easily make the display unacceptably slow. 
+			Display time depends on four factors: image thickness, high versus low 
+			resolution, image size, and the number of processors available. The program 
+			will take advantage of all processors automatically.&nbsp; If you need to 
+			average through many slices with a high resolution display, be sure to make the 
+			image as small as possible. If you must work with a very slow slicer window, 
+			remember that the hot sliders can be tamed with the Ctrl key.
+		</p>
+		<p>
+			<h3><a name="MultiZWindow"></a>The Multi-Z Window</h3>
+		<P></P>
+		<center>
+			<img src="3dmodimages/multiZ.jpg" alt="Multi-Z Window">
+		</center>
+		<p>
+			The Multi-Z window provides another way to view 3D data, by presenting a 
+			gallery of slices side by side.&nbsp; With the controls in the toolbar on the 
+			right, you can choose how many slices to show, whether to show them in a row, a 
+			column, or an array, and the spacing between successive slices. You can also 
+			control whether the model is drawn in the middle panel (in the example, it is 
+			not), and whether it is drawn in the other panels. This window is a variant of 
+			the Zap window and the first toolbar has a subset of the features in the 
+			standard Zap toolbar.
+		</p>
+		<h3><a name="SettingZ-scale"></a>Setting Z-scale and Pixel Size</h3>
+		<p>
+			In order for your model to look right in 3D, you may need to set a property 
+			called the "Z-scale" correctly. Both the Z-scale and the pixel size must be set 
+			to get accurate quantitative information about the model, because these values 
+			are used for calculating length, surface area or volume from object, contour or 
+			mesh data. To adjust these fields in the model header select the Model Header 
+			menu item from the Edit menu in the 3dmod <a href="#InformationWindow">Information 
+				Window</a>.
+		</p>
+		<p>The Z-Scale is the ratio of the thickness between successive images to the pixel 
+			size. Its two most common uses are to adjust for section thickness in serial 
+			section reconstructions and section thinning in tomography. For serial 
+			sections, divide the section thickness in nanometers by the pixel size at which 
+			the data were digitized, again in nanometers. For tomograms, divide the 
+			original thickness at which the section was cut on the microtome (in 
+			nanometers) by the actual thickness of material in the tomogram (pixels of 
+			material times pixel size in nanometers).&nbsp; In either case, if you have an 
+			estimate of how much the specimen shrank laterally due to beam exposure, you 
+			should multiply by the shrinkage factor (e.g., 0.9 for 10% shrinkage). For 
+			tomography, the factor should also be adjusted for lost material if you have an 
+			estimate of that; see the <a href="3dmodHelp/modelHeader.html#TOP">Model Header 
+				help page</a> for a formula.
+		</p>
+		<p>The Pixel Size field should contain both a value for the size of the pixel in 
+			the digitized data, and the units for that value. Units can be one of the 
+			following; A, nm, um, mm, m, km. For example, you could enter "0.015 um" or "15 
+			nm".
+		</p>
+		<h3><a name="ViewingModel"></a>Viewing the Model in 3D</h3>
+		<p>
+			<table align="center" border="0">
+				<tbody>
+					<tr>
+						<td align="center" valign="top"><img src="3dmodimages/modvraw.png" alt="View of raw model">
+							<br>
+						</td>
+						<td align="center" valign="top"><img src="3dmodimages/modvnomesh.png" alt="View of model with spheres and lines enhanced">
+							<br>
+						</td>
+						<td align="center" valign="top"><img src="3dmodimages/modvmesh.png" alt="View of fully meshed model">
+							<br>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</p>
+		<p>These are different views of the example model in the Model View Window, which 
+			can be opened while running 3dmod by selecting Model View from the Image menu, 
+			or by typing the hot key "v". This same window can be opened in a standalone 
+			mode with
+			<br>
+			<code>3dmodv example.mod</code>
+			<br>
+			The model has been tilted around the X and Y axes using the arrow keys on the 
+			keypad. The model can also be rotated with the middle mouse button, or using 
+			arrows and text boxes in the Control dialog box that can be opened using the 
+			Edit-Controls menu entry, but the arrow keys are often more convenient. A 
+			single keystrike rotates the model by one step. Continuous rotation is started 
+			by pressing the keypad Enter key followed by the desired arrow key; another 
+			press of the Enter key stops the rotation.
+		</p>
+		<p>On the left is the initial view of the model, before any of the default viewing 
+			parameters have been changed. These parameters are initially set to show open 
+			and closed contour objects with contour line tracings, and scattered points as 
+			wire baskets. The middle view shows two changes that can be made immediately, 
+			without having to compute surface meshes for the contours. The microtubule 
+			lines (green) have been made thicker and the scattered points are displayed as 
+			lighted surfaces. On the right is the display after making meshes for the 
+			objects (as explained below) and setting all objects to display as lighted 
+			surfaces. These display settings are all changed in the 3dmodv Objects dialog 
+			box, opened with the Edit-Objects menu item or the O hot key.
+		</p>
+		<p>
+			<table align="center" border="0">
+				<tbody>
+					<tr>
+						<td align="center" valign="top"><img src="3dmodimages/objedmtlines.png" alt="Objects Window: Setting line width">
+							<br>
+						</td>
+						<td align="center" valign="top"><img src="3dmodimages/objedspheremesh.png" alt="Objects Window: Setting spheres to mesh">
+							<br>
+						</td>
+						<td align="center" valign="top"><img src="3dmodimages/objedmaterial.png" alt="Objects Window: Lighting both sides of sheet">
+							<br>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</p>
+		<p>The Objects dialog box contains controls for selecting the current object to be 
+			edited, buttons for turning individual objects on or off, and a set of panels 
+			for setting different object properties or controlling the overall display. A 
+			panel is selected by clicking on its name in the list.
+		</p>
+		<p>The example on the left shows how the appearance of the green lines was changed 
+			for the middle model view panel above. The "Lines" panel was selected, the 3D 
+			line width was increased from 1 to 3, and "Anti-alias rendering" was turned on 
+			to smooth out the jagged edges of the lines.
+		</p>
+		<p>The example in the middle shows how the scattered points were displayed as solid 
+			objects. The selection for "Draw Data Type" was changed from "Contour" to 
+			"Mesh". 3dmod automatically changed "Drawing Style" from "Line" to "Fill" to 
+			produce the most commonly desired appearance.
+		</p>
+		<p>The example on the right shows a change that was required after meshes were 
+			computed and displayed for all objects. By default, objects are lit only on one 
+			surface, which is always the outer surface for closed contour objects. (Note 
+			the dark surfaces on the interior of the microtubules.) However, a sheet like 
+			the chromosome boundary (yellow) does not have an obvious interior surface, and 
+			its lit surface happened to face downward, toward the chromosome. This problem 
+			was solved by checking the "Light Both Sides" option in the "Material" panel. 
+			The other method of solving this is to go back to the 3dmod Object Edit dialog 
+			box and change the "Front Face" from "Outside" to "Inside", then recompute the 
+			mesh.
+		</p>
+		<p>The appearance of the magenta scattered point was improved between the middle 
+			and right views of the model by pressing the "g" hot key twice to increase 
+			sphere drawing quality. When there are many spheres, this degree of quality 
+			could significantly increase drawing time for the display, so it is not the 
+			default. The sphere drawing quality can also be controlled in the "Points" 
+			panel, which allows one to change the global quality setting (just as with the 
+			"g" and "G" hot keys) as well as set a quality for individual objects.
+		</p>
+		<h3><a name="ViewingImage3D"></a>Viewing Image Data in 3D</h3>
+		<p>When the Model View window is opened from 3dmod, it is possible to display the 
+			image data in 3D in this window in two different ways.&nbsp; One way is to draw 
+			one or more planes of the image along with the model.&nbsp; Use the Edit-Image 
+			menu entry to open a dialog to control many aspects of this image 
+			projection.&nbsp; Multiple planes are drawn with enough transparency so that 
+			you can see through to the rearmost image plane; you can add more transparency 
+			to see the model through the images as well.&nbsp; The following pictures show 
+			an example of this display.
+		</p>
+		<p>
+			<table align="center" border="0">
+				<tbody>
+					<tr>
+						<td align="center" valign="top"><img src="3dmodimages/imageInModv.jpg" alt="Model View: Image on model">
+							<br>
+						</td>
+						<td align="center" valign="top"><img src="3dmodimages/editImage.png" alt="Edit Image Window">
+							<br>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</p>
+		<p>
+			The other way to display image data is to draw a surface called an isosurface 
+			at a particular threshold level.&nbsp; The middle image below shows an 
+			isosurface rendering of the two basal bodies whose cross-section appear in the 
+			Zap window on the left.
+		</p>
+		<p>
+			<table align="center" border="0">
+				<tbody>
+					<tr>
+						<td align="center" valign="top"><img src="3dmodimages/isoSurfZap.jpg" alt="Zap area in isosurface">
+							<br>
+						</td>
+						<td align="center" valign="top"><img src="3dmodimages/isoSurfModview.jpg" alt="Isosurface display">
+							<br>
+						</td>
+						<td align="center" valign="top"><img src="3dmodimages/isoSurfWindow.png" alt="Isosurface dialog">
+							<br>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</p>
+		<p>
+			Select Isosurface from either the Image menu of the Info window or the Edit 
+			menu of the Model View window (or use the U hot key) to start the isosurface 
+			display and open the dialog to control it.&nbsp; The isosurface display is most 
+			useful when looking at macromolecular structures in averaged subvolumes from 
+			tomograms, but may also be useful for examining tomograms directly, 
+			particularly if the data are binned and small unconnected fragments are deleted 
+			from the display. &nbsp; The threshold can be adjusted to isolate features of 
+			interest, and the other sliders in the dialog can be used to select the 
+			position and the size of the volume being rendered.
+		</p>
+		<p>
+			There are two ways to relate positions on the isosurface to features in the 
+			image data.&nbsp; First, if you click on the isosurface with the right mouse 
+			button, the selected point will become the current image point in 3dmod.&nbsp; 
+			Second, if you turn on the display of the current point in the View menu of the 
+			Model View window, you can click on a point in the Zap or Slicer window and see 
+			that position marked in the Model View window with a red sphere (as seen 
+			above).&nbsp; Both of these methods will work better if you uncheck
+			<span style="FONT-WEIGHT: bold">Link to global X, Y, Z</span>
+			so that the position of the volume being rendered does not change when you 
+			click in either place.
+		</p>
+		<p>
+			The display properties of the isosurface can be adjusted from the Edit-Objects 
+			dialog just as for actual objects in the model.&nbsp; The isosurface is kept in 
+			something called an "extra object" and it is assigned a number higher than the 
+			number of actual objects.&nbsp; The isosurface will disappear when you close 
+			the dialog, but you can use the
+			<span style="FONT-WEIGHT: bold">Save to Object</span>
+			button to move it into a new actual object in the model.
+		</p>
+		<p>
+			<h3><a name="SkinningModel"></a>Putting a Skin on Model Data</h3>
+		<P></P>
+		<p>
+			Skinning is the name used for calculating a three-dimensional surface from 
+			contour data.&nbsp; This surface, once calculated, is represented by a mesh of 
+			triangles that can be stored within each object.&nbsp; If any contour points 
+			within that object are edited then the mesh for that object must be 
+			recalculated in order for it to match the contour data.&nbsp; There are two 
+			ways to calculate the mesh from the contour data within a model: with the <a href="man/imodmesh.html#TOP">
+				imodmesh</a> program, and with the Meshing panel of the Objects dialog 
+			box.&nbsp; Using imodmesh provides a wide range of options for controlling the 
+			meshing; whereas the Meshing panel provides a more intuitive interface with the 
+			most important options.
+		</p>
+		<p>To skin the example model, this command was used:
+			<br>
+			<code>imodmesh -C -t 1 -d 10 example.mod</code>
+		</p>
+		<p>By default, imodmesh will construct meshes only between pairs of contours, which 
+			will leave holes at the top and the bottom of a closed contour object because 
+			there is nothing to connect the highest and lowest contours to. The "-C" option 
+			tells imodmesh to fill in these holes or "Cap" them off.
+		</p>
+		<p>In the model view on the right, the lines of the microtubules appear as tubes 
+			because imodmesh created cylindical meshes around them.&nbsp; It did this 
+			because of the "-t" option, which is followed by a list of open contour object 
+			numbers that should be given tubular meshes (here, just object 1).&nbsp; The 
+			"-d" option is then used to specify the diameter of the tubes, in pixels (10).
+		</p>
+		<p>
+			Sometimes the mesh data structure can get so large that interactive viewing is 
+			very slow.&nbsp; There are two ways to make a mesh with a lower resolution, the 
+			"-R" option to skip points within contours and the "-i" option to skip Z 
+			levels.&nbsp; With "-R", imodmesh will skip points that are within a certain 
+			distance of the line segments between the remaining points, thus preserving the 
+			shape of curves.&nbsp; For example,
+			<br>
+			<code>imodmesh -C -o 4 -R 0.75 -i 2 example.mod</code>
+		</p>
+		<p>Here, a new mesh is created only for object 4 (-o 4), and points will be 
+			skipped, but the surface defined by the mesh will always be within 0.75 pixel 
+			of the original data (-R 0.75). In addition, the "-i 2" makes imodmesh connect 
+			every other Z plane (i.e., at intervals of 2 in Z), reducing the mesh size by 
+			2.
+		</p>
+		<p>Each time you run imodmesh, the existing file is saved as a backup file with a 
+			"~" added to its name. You can also erase all of the mesh data from your model 
+			using the "-e" option to imodmesh.
+		</p>
+		<p>Imodmesh also has an option (-l) to store a low resolution mesh alongside a 
+			regular mesh, so that a big model can be manipulated rapidly in low-resolution 
+			mode then switched to high-resolution mode for studying details. Other commonly 
+			needed options are -s and -P to connect contours across gaps; see the <a href="man/imodmesh.html#TOP">
+				imodmesh</a> man page for details.
+		</p>
+		<p>All the options just mentioned are presented in the interface in the Meshing 
+			panel:<br>
+		</p>
+		<table style="TEXT-ALIGN: left; MARGIN-LEFT: auto; MARGIN-RIGHT: auto" border="1" cellpadding="2"
+			cellspacing="2">
+			<tbody>
+				<tr>
+					<td><img alt="Meshing panel for vesicle object" src="3dmodimages/objedvesmeshing.png"><br>
+					</td>
+					<td><img alt="Meshing panel for tube object" src="3dmodimages/objedmtmeshing.png"><br>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<p>Whenever an object is meshed, either with imodmesh or through this interface, 
+			the options used to mesh the object are stored in the model, and their values 
+			will be displayed when this panel is opened.&nbsp; This makes it easy to remesh 
+			objects without having to remember exactly what options were used 
+			previously.&nbsp; On the left, the "Tol" and "Z inc" settings reflects the 
+			values entered with the -R and -i options to imodmesh, and the "Cap" checkbox 
+			indicates that the -C option was used for the vesicle object.&nbsp; On the 
+			right, the "Tube" selection and the diameter are shown for the microtubule 
+			object.&nbsp; When the "Make Mesh" button is pressed, the meshing process is 
+			started in a separate thread so that you can continue working in 3dmod while 
+			the mesh is being computed.
+		</p>
+		<p>If you do mesh with imodmesh while you are modeling in 3dmod, be sure to save 
+			the model, run imodmesh, then immediately load the model back into 3dmod with 
+			the Reload Model entry in the File menu.
+		</p>
+		<h3><a name="ScaleBars"></a>Drawing Scale Bars</h3>
+		<p>To display a scale bar in any of the image windows, or in the Model View window, 
+			select the Scale Bar entry from either the Edit menu of the Info window or the 
+			View menu of the Model View window.&nbsp; The following dialog will appear.</p>
+		<center>
+			<img src="3dmodimages/scalebar.png" alt="Scale bar dialog">
+		</center>
+		<p>
+			Scale bars will be drawn in the various windows as long as the dialog is open 
+			and
+			<span style="FONT-WEIGHT: bold"> Draw scale bars</span>
+			is checked.&nbsp; You can select whether the bars will be white or black in the 
+			image windows; the bar will always be white in the Model View window if the 
+			background there is black.&nbsp; The various controls allow you to adjust the 
+			size, location, and orientation of the bars.&nbsp; At the bottom is a list of 
+			the scale bar sizes in the various kinds of windows; you will need to record 
+			this information when you take a snapshot.
+		</p>
+		<h3><a name="Making_Movies"></a>Making Movies</h3>
+		<p>Because IMOD does not produce files that can be used in movie players, if you 
+			want to make a movie of your images or models, you need to make a series of 
+			snapshots of a window and import those images into movie-making software.&nbsp; 
+			(For Windows, we recommend Videomach from www.gromada.com for making 
+			movies).&nbsp; There are two dialogs that help manage this task:<br>
+		</p>
+		<table style="TEXT-ALIGN: left; MARGIN-LEFT: auto; MARGIN-RIGHT: auto" border="1" cellpadding="2"
+			cellspacing="2">
+			<tbody>
+				<tr>
+					<td><img alt="Movie dialog for images" src="3dmodimages/imagemovies.png">
+						<br>
+					</td>
+					<td><img alt="Movie dialog for models" src="3dmodimages/modelmovies.png"><br>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<p>On the left is the dialog box opened with Edit-Movies from the 3dmod Info Window 
+			menu and used to control movieing and automatic snapshots in image display 
+			windows (primarily Zap and Slicer).&nbsp; The sliders at the top allow you 
+			select the range and increment between slices to be snapshot.&nbsp; Here, every 
+			slice from 6 to 56 will be snapshot.&nbsp; The<span style="FONT-WEIGHT: bold"> Looping</span>
+			radio buttons control how many pictures will be taken when you start a 
+			movie.&nbsp; With
+			<span style="FONT-WEIGHT: bold">Round trip</span>
+			selected, pictures will be taken going in both directions, which is useful if 
+			your movie playing software will not loop back and forth.&nbsp; If your movie 
+			software will loop back and forth, you can select
+			<span style="FONT-WEIGHT: bold">One way</span>
+			and get pictures going in just one direction.&nbsp; The
+			<span style="FONT-WEIGHT: bold">Start at </span>radio buttons allow you to 
+			choose whether the set of pictures will start and end at the limits in Z (<span style="FONT-WEIGHT: bold">Start/end</span>) 
+			or at the currently displayed section (<span style="FONT-WEIGHT: bold">Current pt</span>).&nbsp; 
+			To get a series of pictures, select one of the file formats in the
+			<span style="FONT-WEIGHT: bold">Snapshot</span>
+			box and start a movie in a Zap or Slicer window with the middle or right mouse 
+			button.&nbsp; The window will stop movieing when the set of pictures is 
+			finished.
+		</p>
+		<p>On the right is the corresponding dialog for movies, opened with File-Movies 
+			from the Model View Window menu.&nbsp; In the most general case, you can adjust 
+			the model display to the desired starting position, orientation, and size, and 
+			press
+			<span style="FONT-WEIGHT: bold">Set Start</span>; then adjust the display to 
+			the desired final state and press
+			<span style="FONT-WEIGHT: bold">Set End</span>.&nbsp; Often one simply wants 
+			the model to spin all the way around, which is provided by the buttons
+			<span style="FONT-WEIGHT: bold">Full 360 X</span>
+			and
+			<span style="FONT-WEIGHT: bold">Full 360 Y</span>.&nbsp; When you press
+			<span style="FONT-WEIGHT: bold">Make,</span>
+			you will see the model go through its sequence of positions.&nbsp; If it is 
+			doing the right thing, select a file format and check
+			<span style="FONT-WEIGHT: bold">Write
+files</span>, then press
+			<span style="FONT-WEIGHT: bold">Make</span>
+			again.
+		</p>
+		<p>The different image formats differ in their degree and type of 
+			compression.&nbsp; TIFF files are uncompressed and can be quite large, since 
+			they are 24-bit color.&nbsp; PNG files have a loss-less compression that is 
+			quite effective for most model snapshots but much less effective for image 
+			snapshots.&nbsp; JPEG files will give the most compression, with some loss of 
+			information that can be controlled by the percent quality factor, selectable in 
+			the 3dmod
+			<span style="FONT-WEIGHT: bold">Preferences</span>
+			dialog.&nbsp; For images with no model overlay, 80% quality is usually adequate 
+			for making movies.&nbsp; If there is a model overlay, you need 90% or higher 
+			quality to make it look decent in the individual snapshots (images here were 
+			shot at 90% quality).&nbsp; It might be preferable to take such snapshots as 
+			PNG's and let your movie software take care of the compression.
+		</p>
+		<p>Note that both of these dialogs have a montage option for capturing 
+			high-resolution snapshots that are larger than the image window itself.&nbsp; 
+			In each case, the program zooms up the display and pans around to capture a 
+			montage of images, then assembles these into a single image and writes a TIFF 
+			file.&nbsp; A movie of such montaged snapshots can be saved from the Zap window 
+			or from the Slicer, but only a single frame can be saved in high-resolution 
+			mode from the Model View window.
+		</p>
+		<h3><a name="AdvancedTopics"></a>Advanced Topics</h3>
+		<p>
+			This section is to make you aware of some other features in 3dmod, so that you 
+			can investigate them when the need arises. Consult the help windows of the 
+			relevant dialog boxes, or the <a href="man/3dmod.html#TOP">3dmod</a> man page, 
+			for more details. The first few items are related to the Surface/Contour/Point 
+			window, shown here on the left.
+		</p>
+		<p>
+			<center>
+				<div style="TEXT-ALIGN: center">
+				</div>
+				<table style="TEXT-ALIGN: left; WIDTH: 850px; HEIGHT: 629px" border="1" cellpadding="2"
+					cellspacing="2">
+					<tbody>
+						<tr>
+							<td><img alt="Surface/Contour/Point window" src="3dmodimages/surfcontpt.png"><br>
+							</td>
+							<td><img alt="Fine Grain window" src="3dmodimages/fineGrainWin.png"><br>
+							</td>
+							<td><img alt="Model with fine grain properties" src="3dmodimages/fineGrainMod.png"><br>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<br>
+			</center>
+			<ul>
+				<li>
+					<b>Surfaces.</b>
+				Surfaces are an optional level of organization between objects and contours. 
+				They are particularly useful when you want to keep track of many components of 
+				one kind, without making a separate object for each. Quantitative information 
+				can then be derived for each different surface. The top section of this dialog 
+				box has some controls for creating and navigating through surfaces, and its 
+				help window has more information about them.
+				<li>
+					<b>Open and closed contours.</b> Some of the contours in a closed contour 
+					object can be defined as open, which means that their starting and ending 
+					points will not be connected. This is useful when modeling a feature that is 
+					partially or completely cut by the boundary of a data set. See the <a href="man/imodmesh.html#TOP">
+						imodmesh</a>
+				man page as well as the help window for this dialog box for details.
+				<li>
+					<b>4D modeling.</b>
+				3dmod can load multiple image files, which occupy a fourth dimension referred 
+				to as "time". Thus, contours in an object can be at different times.
+				<li>
+					<b>Point sizes.</b>
+				Not all points in a scattered point object need to be the same size; individual 
+				points can be given different sizes using the controls in the Point section of 
+				this dialog box. An option can be selected to use the scroll wheel on the mouse 
+				to adjust the point size. There is even a way to draw a closed contour around a 
+				feature and have it converted to a scattered point with the equivalent radius 
+				(see the dialog box accessed from the Edit-Contour-Move menu entry).
+				<li>
+					<b>Ghost displays.</b>
+				You can project a "ghost" of contours on adjacent sections onto the current 
+				section to help you see where to draw the next contour.
+				<li>
+					<b>Fine grained display properties.</b>&nbsp; You can control several display 
+					properties of points within contours, individual contours, or surfaces using 
+					the Fine Grain Control dialog, shown above in the middle. In this example, the 
+					window shows the properties of the current point, and all of the properties 
+					marked with an "S" instead of a "D" have been set differently for this point 
+					than for the rest of the contour.&nbsp; In addition to allowing manipulation of 
+					color, line thickness, symbol displays, and transparency, the dialog allows 
+					multiple openings to be defined in contours, as shown in the model on the 
+					right.&nbsp; For more details see the <a href="3dmodHelp/finegrain.html#TOP">help 
+						page</a>.
+				<li>
+					<b>Preferences.</b>
+				You can set preferences that are stored between sessions of 3dmod, such as the 
+				assignment of the three mouse buttons and the type of file that will be 
+				snapshot with Shift-S. Use the Edit-Options menu entry to open the 3dmod 
+				Preferences dialog box.&nbsp; (This item is under the Apple menu on the Mac.)
+				<li>
+					<b>Automated modeling.</b>
+				There are two facilities for automated modeling. The Auto Contouring dialog 
+				box, opened from the Edit-Contour menu, will draw contours around areas that 
+				are above or below a selected threshold of intensity. The Line Track module, 
+				opened from the Special menu, will draw contours along a linear feature such as 
+				a membrane, either by filling in points between two points placed along the 
+				feature, or by copying a contour from one section to the next and adjusting its 
+				position to fit changes in the boundary or the object.
+				<li>
+					<b>Drawing Tools, Interpolator, and Other Plugins.</b>
+				Andrew Noske, originally at the University of Queensland and now at the 
+				National Center for Microscopy and Imaging research, has contributed several 
+				plugins to 3dmod. Plugins are opened from the Special menu of 3dmod. His 
+				plugins provide tools to assist with drawing, tools for making measurements 
+				with stereology, help with fixing fiducial models for large data sets, and help 
+				managing and assigning standardized names to objects.
+				<li>
+					<b>Pixel View window.</b>
+				Use the Image-Pixel View menu entry to open a window that displays a grid of 
+				pixel intensity values as well as a continuous display of the mouse position in 
+				the image and the pixel value at that location. The actual values from the 
+				image file are shown in the grid; the continuous display can show either the 
+				byte values from within 3dmod or the values in the file.
+				<li>
+					<b>Graph Window.</b> Use the Image-Graph menu entry to open a window that can 
+					display a graph of pixel values along a line or along a contour; here is the <a href="3dmodHelp/graph.html#TOP">
+						help page</a>.&nbsp; It is possible to define a line width so as to 
+				average over several pixels, and to see the average value over a subset of a 
+				line selected with the Zap window rubberband.
+				<li>
+					<span style="FONT-WEIGHT: bold">Locator Window.</span>
+					Use the Image-Locator menu entry to open a window that displays a zoomed-down 
+					image of the whole image area, with a red box outlining the area displayed in 
+					the active Zap window.&nbsp; You can even click a new center position, or drag 
+					the box, to pan the Zap window to the selected location.&nbsp; Here is the <a href="3dmodHelp/locator.html#TOP">
+						help page</a>.
+				<li>
+					<b>Tumbler Window.</b> Use the Image-Tumbler menu entry to open a window that 
+					will show a projection through a small volume of data as the volume is tilted 
+					to different orientations; here is the <a href="3dmodHelp/tumbler.html#TOP">help 
+						page</a>.
+				<li>
+					<b>File Extraction.</b> After you have defined a 2D region with the rubberband 
+					in the Zap window, and also a range of Z sections in the Zap toolbar, select 
+					the File-Extract entry in the Info window to extract the selected volume from 
+					the image file using <a href="man/trimvol.html#TOP">Trimvol</a>.
+				<li>
+					<b>Storing Slicer Angles.</b> Use the Edit-Angles menu entry to open a dialog 
+					that allows you save views seen in a Slicer Window.&nbsp; Each view consists of 
+					the 3 slicer angles and the center position.&nbsp; You can then set a Slicer to 
+					one of these stored views, and go between different views easily.&nbsp; If 
+					multiple image files are loaded into 3dmod, different views can be saved for 
+					each.&nbsp; This feature could be used to align and toggle between different 
+					copies of a similar structure.&nbsp; Here is the <a href="3dmodHelp/slicerAngles.html#TOP">
+						help page</a>.
+				<li>
+					<span style="FONT-WEIGHT: bold">Synchronizing Model View and
+Slicer Windows.</span>&nbsp; It is possible to synchronize the angles of the Model View Window and 
+					a Slicer Window so that changing the view angles in one will rotate the other 
+					as well.&nbsp; Use Edit-Controls in the Model View menu to open the Controls 
+					dialog, and select the checkbox
+					<span style="FONT-WEIGHT: bold">Link to top Slicer angles</span>.
+				<li>
+					<b>Object color.</b>
+				You can change an object's color using the Edit-Object-Color menu entry from 
+				the 3dmod Info Window, as well as using the Edit-Objects dialog box from the 
+				Model View Window.
+				<li>
+					<b>Object List dialog.</b> When you have many objects, the Object List dialog 
+					is useful for keeping track of and manipulating them.&nbsp; It is opened from 
+					the View menu of the Model View window.&nbsp; For each object it shows the name 
+					and color and provides a checkbox to turn it on and off.&nbsp; This dialog also 
+					allows you to define groups of objects that can be changed together. &nbsp; 
+					Here is the <a href="3dmodHelp/objectList.html#TOP">help page</a>.
+				<li>
+					<b>Saving views.</b>&nbsp; The Edit-Views entry in the menu of the Model 
+				View Window opens a dialog that allows you to save distinct views of the model, 
+				which can differ in many features such as orientation, the selection of objects 
+				displayed, and object properties such as color and lighting 
+				characteristics.&nbsp; Once you have saved the views you can switch between 
+				them easily.
+				<li>
+					<b>Editing contours.</b> The Edit-Contour menu has a number of advanced editing 
+					features, including ones to move or copy contours from one object to another, 
+					and ones to break and join contours (see the help for <a href="3dmodHelp/contourMove.html#TOP">
+						contour moving</a>, <a href="3dmodHelp/contourJoin.html#TOP">contour joining</a>,
+					<a href="3dmodHelp/contourBreak.html#TOP">contour breaking</a>, and <a href="3dmodHelp/contourCopy.html#TOP">
+						contour copying</a>).
+				<li>
+					<b>Multiple selected contours.</b>&nbsp; It is possible to select more than 
+				one contour; this is useful for several operations such as deleting, moving, or 
+				joining contours.&nbsp; Multiple selection is done with the Ctrl key (Apple on 
+				the Macintosh), such as Ctrl and first mouse button to add a contour to the set 
+				of selected ones, and Ctrl-A to select all contours on a section in the current 
+				object.
+				<li>
+					<b>Image processing dialog.</b>&nbsp; The Edit-Image-Process menu entry opens a 
+					dialog box that allows you to process one section of the image.&nbsp; You can 
+					take an FFT or apply a number of filters such as Fourier filtering, smoothing, 
+					and median filtering; here is the <a href="3dmodHelp/imageProc.html#TOP">help page</a>.
+				<li>
+					<b>Tooltips.</b> If you leave the mouse over a button or other control for over 
+					half a second, a tooltip will appear for that control.
+				</li>
+			</ul>
+	</body>
 </html>

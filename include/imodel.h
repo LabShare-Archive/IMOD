@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  No more Log
  */
 
 #ifndef IMODEL_H
@@ -118,6 +117,14 @@
 #define IMODF_MULTIPLE_CLIP (1l << 12)  /* multiple clip planes possible */
 #define IMODF_NEW_TO_3DMOD  (1l << 11)  /* Model has not been written by 3dmod yet */
 
+/* autocontouring flags */
+#define AUTOX_BLANK 0
+#define AUTOX_FLOOD 1
+#define AUTOX_PATCH (1 << 1)
+#define AUTOX_FILL  (AUTOX_FLOOD | AUTOX_PATCH)
+#define AUTOX_CHECK (1 << 5)
+
+
 /****************************** Structures ***********************************/
 
 typedef struct Mod_Point
@@ -128,6 +135,10 @@ typedef struct Mod_Point
 }Ipoint;
 
 #ifndef IMODELP_H
+/* This structure will hold dynamic data for displaying with vertex buffer objects
+   and the definition is provided only for routines that need it in 3dmod */
+typedef struct Vert_Buf_Data  VertBufData;
+
 typedef struct Mod_Mesh
 {
   struct Mod_Point *vert;   /* list of points */
@@ -138,6 +149,7 @@ typedef struct Mod_Mesh
   b3dInt16        time;     /* Time value */
   b3dInt16        surf;     /* Surface  */
   Ilist          *store;
+  VertBufData    *vertBuf;
 }Imesh;
 #endif
 
@@ -360,7 +372,6 @@ typedef struct Mod_Contour
   Ilist       *store;
 }Icont;
 
-
 /* An Object is an array of contours */
 typedef struct Mod_Object
 {
@@ -425,6 +436,8 @@ typedef struct Mod_Object
   Ilabel *label;      /* Labels for surfaces */
   MeshParams *meshParam; /* Meshing parameters */
   Ilist  *store;
+  VertBufData *vertBufCont;    /* Vertex buffer data for contours */
+  VertBufData *vertBufSphere;  /* Vertex buffer data for spheres */
 }Iobj;
 
 
@@ -584,8 +597,11 @@ extern "C" {
   void  imodCleanSurf(Imod *imod);
   void  imodFlipYZ(Imod *imod);
   int imodSetRefImage(Imod *imod, MrcHeader *hdata);
+  void imodTransForSubsetLoad(Imod *imod, MrcHeader *hdata, IloadInfo *li);
   int imodTransFromRefImage(Imod *imod, IrefImage *iref, Ipoint binScale);
   void imodTransFromMats(Imod *imod, Imat *mat, Imat *matNorm, Imat *matClip);
+  void imodTransModel3D(Imod *model, Imat *mat, Imat *normMat, Ipoint newCen,
+                        float zscale, int doflip);
 
   int   imodNewContour(Imod *imod);
   int   imodPrevContour(Imod *imod);
@@ -698,6 +714,18 @@ extern "C" {
   int     imodLabelMatch(Ilabel *label, const char *tstr);
   int     imodLabelItemMatch(Ilabel *label, const char *tstr, int index);
   int     ilabelMatchReg(const char *exp, const char *str);
+
+  /***************************************************************************/
+  /* autocont.c functions                                                    */
+  /***************************************************************************/
+  void imodAutoPatch(unsigned char *data, int *xlist, int *ylist, int listsize, int xsize,
+                     int ysize);
+  void imodAutoExpand(unsigned char *data, int imax, int jmax);
+  void imodAutoShrink(unsigned char *data, int imax, int jmax);
+  Icont *imodContoursFromImagePoints(unsigned char *data, unsigned char **imdata,
+                                     int xsize, int ysize, int z, 
+                                     unsigned char testmask, int diagonal,
+                                     float threshold, int polarity, int *ncont);
 
 #ifdef __cplusplus
 }

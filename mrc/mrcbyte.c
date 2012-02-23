@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <stdio.h>
@@ -203,7 +202,6 @@ int main( int argc, char *argv[] )
   /* DNM: eliminate extra header info in the output, and mark it as not
      swapped now that we're done reading data */
   mrcInitOutputHeader(&hout);
-  hout.nsymbt = 0;
   hout.nx = li.xmax + 1 - li.xmin;
   hout.ny = li.ymax + 1 - li.ymin;
   hout.nz = li.zmax + 1 - li.zmin;
@@ -264,41 +262,3 @@ int main( int argc, char *argv[] )
 
   exit(0);
 }
-
-/*
-
-$Log$
-Revision 3.11  2011/03/25 22:10:15  mast
-Made it work for > 2Gb images
-
-Revision 3.10  2011/03/05 03:42:30  mast
-Allow environment variable to prevent backing up file
-
-Revision 3.9  2009/11/27 16:37:55  mast
-Fixed error messages
-
-Revision 3.8  2008/05/31 03:48:37  mast
-Fixed min/max computation
-
-Revision 3.7  2008/05/31 03:11:33  mast
-Rewrote to read and write by sections
-
-Revision 3.6  2007/06/13 19:41:08  sueh
-bug# 1019 In main, setting hdata.sectionSkip to 0.
-
-Revision 3.5  2005/02/11 01:42:34  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.4  2004/07/07 19:25:30  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.3  2003/11/18 19:29:32  mast
-changes to call b3dF* functions for 2GB problem on Windows
-
-Revision 3.2  2003/10/24 02:28:42  mast
-strip directory from program name and/or use routine to make backup file
-
-Revision 3.1  2002/11/05 23:49:50  mast
-Changed to call imodCopyright
-
-*/

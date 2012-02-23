@@ -666,6 +666,11 @@ public final class JoinManager extends BaseManager {
       createEmptyXfFile(metaData.getDatasetName());
     }
     mainPanel.showProcess(joinDialog.getContainer(), AxisID.ONLY);
+    String actionMessage = Utilities.prepareDialogActionMessage(DialogType.JOIN,
+        AxisID.ONLY, null);
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   /**
@@ -874,7 +879,7 @@ public final class JoinManager extends BaseManager {
       String result = null;
       for (int i = 0; i < results.size(); i++) {
         result = (String) results.get(i);
-        if (result.indexOf(ProcessMessages.ERROR_TAG) != -1
+        if (ProcessMessages.getErrorIndex(result) != -1
             || result.indexOf(ProcessMessages.WARNING_TAG) != -1) {
           messageArray.add(result);
         }
@@ -1455,7 +1460,7 @@ public final class JoinManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY);
+    reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, false);
   }
 
   /**

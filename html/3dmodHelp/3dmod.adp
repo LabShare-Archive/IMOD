@@ -37,6 +37,7 @@
     <section ref="./contourMove.html#TOP" title="Contour Moving"/>
     <section ref="./contourBreak.html#TOP" title="Contour breaking"/>
     <section ref="./contourCopy.html#TOP" title="Contour copying"/>
+    <section ref="./contourType.html#TOP" title="Surface/Contour/Point"/>
     <section ref="./imageMovie.html#TOP" title="Image Movie Control"/>
     <section ref="./imageProc.html#TOP" title="Image Processing"/>
     <section ref="./imageScale.html#TOP" title="Rescaling Images"/>

@@ -974,8 +974,8 @@ int ifgContTransMatch(Iobj *obj, Icont *cont, int *matchPt, int drawTrans,
     // If find point, return index, reset list pointer and get state there
     revert = stp->flags & GEN_STORE_REVERT;
     if (stp->type == GEN_STORE_TRANS && 
-        (!revert && (stp->value.i ? 1 : 0) == drawTrans) 
-        || (revert && (contProps->trans ? 1 : 0) == drawTrans)) {
+        ((!revert && (stp->value.i ? 1 : 0) == drawTrans) 
+         || (revert && (contProps->trans ? 1 : 0) == drawTrans))) {
       *matchPt = stp->index.i;
       list->current = current;
       nextChange = 0;
@@ -1001,7 +1001,8 @@ int ifgContTransMatch(Iobj *obj, Icont *cont, int *matchPt, int drawTrans,
  * index of an end code if there is none.  defTrans is the default trans state
  * and drawTrans is the state currently being drawn.
  */
-int ifgMeshTransMatch(Imesh *mesh, int defTrans, int drawTrans, int *meshInd)
+int ifgMeshTransMatch(Imesh *mesh, int defTrans, int drawTrans, int *meshInd, 
+                      int skipEnds)
 {
   Istore *stp;
   int index = -1;
@@ -1061,10 +1062,10 @@ int ifgMeshTransMatch(Imesh *mesh, int defTrans, int drawTrans, int *meshInd)
 
         // If trans was set for previous index, now advance the mesh index to 
         // the next candidate and test whether this is now the next index being
-        // examined.  Return if not, but skip over start/end codes
+        // examined.  Return if not, but skip over start/end codes if skipEnds set
         (*meshInd)++;
         while (*meshInd < index && *meshInd < mesh->lsize - 2) {
-          if (mesh->list[*meshInd] >= 0)
+          if (mesh->list[*meshInd] >= 0 || !skipEnds)
             return index;
           (*meshInd)++;
         }

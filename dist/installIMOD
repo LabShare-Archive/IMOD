@@ -131,7 +131,7 @@ switch ($system)
         if (! $ubuntu) then
             set relfiles = `\find /etc -maxdepth 1 -type f -name '*release' -print`
             if ("$relfiles" != "") then
-                set ubtest = `grep -i ubuntu $relfiles`
+                set ubtest = `grep -i 'ubuntu\|linuxmint' $relfiles`
                 if ("$ubtest" != "") set ubuntu = 1
             endif
         endif
