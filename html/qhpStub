@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QtHelpProject version="1.0">
+    <namespace>bl3demc</namespace>
+    <virtualFolder>IMOD</virtualFolder>
+    <filterSection>
+        <toc>
+            <section title="IMOD Help Pages" ref="./index.html#TOP">
+                <section title="IMOD Guide" ref="./guide.html#TOP"></section>
+                <section title="3dmod Introduction" ref="./3dmodguide.html#TOP"></section>
+                <section title="Using eTomo" ref="./UsingEtomo.html#TOP"></section>
+                <section title="Tomography Tutorial" ref="./etomoTutorial.html#TOP"></section>
+                <section title="Serial Joining Tutorial" ref="./JoinTutorial.html#TOP"></section>
+                <section title="Tomography Guide" ref="./tomoguide.html#TOP"></section>
+                <section title="Tomography Extra Topics" ref="./tomoExtra.html#TOP"></section>
+                <section title="Joining Serial Tomograms" ref="./tomojoin.html#TOP"></section>
+                <section title="Guide to CTF Plotter" ref="./ctfHelp/ctfguide.html#TOP"></section>
+                <section title="Aligning Serial Sections" ref="./serialalign.html#TOP"></section>
+                <section title="Program Listing" ref="./program_listing.html#TOP"></section>
+                <section title="PEET Manual" ref="./PEETmanual.html#TOP"></section>
+                <section title="Binary Model Format" ref="./binspec.html#TOP"></section>
+                <section title="Ascii Model Format" ref="./asciispec.html#TOP"></section>
+                <section title="MRC Format" ref="./mrc_format.txt"></section>
+                <section title="Library Documentation" ref="./libraries.html#TOP"></section>
+                <section title="3dmod Help Pages" ref="./3dmodHelp/index.html#TOP">
+                    <section title="3dmod Startup Window" ref="./3dmodHelp/startup.html#TOP"></section>
+                    <section title="Menu, Hot Key, Mouse Actions" ref="./3dmodHelp/index.html#TOP">
+                        <section title="Info Window Menus" ref="./3dmodHelp/menus.html#TOP"></section>
+                        <section title="Info Window Controls" ref="./3dmodHelp/infowin.html#TOP"></section>
+                        <section title="3dmod Hot Keys" ref="./3dmodHelp/keyboard.html#TOP"></section>
+                        <section title="Model View Menus" ref="./3dmodHelp/modvMenus.html#TOP"></section>
+                        <section title="Model View Hot Keys" ref="./3dmodHelp/modvKeyboard.html#TOP"></section>
+                        <section title="Model View Mouse Actions" ref="./3dmodHelp/modvMouse.html#TOP"></section>
+                    </section>
+                    <section title="Image Display Windows" ref="./3dmodHelp/index.html#TOP">
+                        <section title="Zap Window" ref="./3dmodHelp/zap.html#TOP"></section>
+                        <section title="Multi-Z Window" ref="./3dmodHelp/multizap.html#TOP"></section>
+                        <section title="Slicer Window" ref="./3dmodHelp/slicer.html#TOP"></section>
+                        <section title="XYZ Window" ref="./3dmodHelp/xyz.html#TOP"></section>
+                        <section title="Locator Window" ref="./3dmodHelp/locator.html#TOP"></section>
+                        <section title="Tumbler Window" ref="./3dmodHelp/tumbler.html#TOP"></section>
+                        <section title="Graph Window" ref="./3dmodHelp/graph.html#TOP"></section>
+                        <section title="Pixel View Window" ref="./3dmodHelp/pixelview.html#TOP"></section>
+                    </section>
+                    <section title="3dmod Dialog Boxes" ref="./3dmodHelp/index.html#TOP">
+                        <section title="Model Header Dialog" ref="./3dmodHelp/modelHeader.html#TOP"></section>
+                        <section title="Scale Bar Dialog" ref="./3dmodHelp/scalebar.html#TOP"></section>
+                        <section title="Object Edit Dialog" ref="./3dmodHelp/objectEdit.html#TOP"></section>
+                        <section title="Contour Joining" ref="./3dmodHelp/contourJoin.html#TOP"></section>
+                        <section title="Contour Moving" ref="./3dmodHelp/contourMove.html#TOP"></section>
+                        <section title="Contour breaking" ref="./3dmodHelp/contourBreak.html#TOP"></section>
+                        <section title="Contour copying" ref="./3dmodHelp/contourCopy.html#TOP"></section>
+                        <section title="Image Movie Control" ref="./3dmodHelp/imageMovie.html#TOP"></section>
+                        <section title="Image Processing" ref="./3dmodHelp/imageProc.html#TOP"></section>
+                        <section title="Rescaling Images" ref="./3dmodHelp/imageScale.html#TOP"></section>
+                        <section title="Fine Grain Control" ref="./3dmodHelp/finegrain.html#TOP"></section>
+                        <section title="Slicer Angle Storage" ref="./3dmodHelp/slicerAngles.html#TOP"></section>
+                        <section title="Bead Fixer" ref="./3dmodHelp/beadfix.html#TOP"></section>
+                        <section title="Auto contour" ref="./3dmodHelp/autox.html#TOP"></section>
+                        <section title="Cache filler" ref="./3dmodHelp/cachefill.html#TOP"></section>
+                        <section title="Line tracker" ref="./3dmodHelp/lineTracker.html#TOP"></section>
+                    </section>
+                    <section title="Model View Dialogs" ref="./3dmodHelp/index.html#TOP">
+                        <section title="Model View Object Edit" ref="./3dmodHelp/modvObjectEdit.html#TOP"></section>
+                        <section title="Model View Controls" ref="./3dmodHelp/modvControl.html#TOP"></section>
+                        <section title="Object List Dialog" ref="./3dmodHelp/objectList.html#TOP"></section>
+                        <section title="Image View Dialog" ref="./3dmodHelp/modvImage.html#TOP"></section>
+                        <section title="Isosurface View Dialog" ref="./3dmodHelp/modvIsosurface.html#TOP"></section>
+                        <section title="Model Movie &amp; Montage Control" ref="./3dmodHelp/modelMovie.html#TOP"></section>
+                        <section title="Model edit" ref="./3dmodHelp/modvModelEdit.html#TOP"></section>
+                        <section title="View edit" ref="./3dmodHelp/modvViewEdit.html#TOP"></section>
+                        <section title="Depth Cueing" ref="./3dmodHelp/depthcue.html#TOP"></section>
+                        <section title="Stereo" ref="./3dmodHelp/modvStereo.html#TOP"></section>
+                    </section>
+                    <section title="Contributed Plugins to 3dmod" ref="./3dmodHelp/index.html#TOP">
+INSERT PLUGIN PAGES
+                    </section>
+                </section>
+                <section title="Midas Help Pages" ref="./man/midas.html#TOP">
+                    <section title="Controls" ref="./midasHelp/controls.html#TOP"></section>
+                    <section title="Mouse Actions" ref="./midasHelp/mouse.html#TOP"></section>
+                    <section title="Hot Keys" ref="./midasHelp/keyboard.html#TOP"></section>
+                </section>
+                <section title="Program Man Pages" ref="./program_listing.html#TOP">
+INSERT MAN PAGES
+                </section>
+                <section title="Other Man Pages" ref="./program_listing.html#TOP">
+                    <section title="PIP Program Input" ref="./man/pip.html#TOP"></section>
+                    <section title="IMOD Environment Variables" ref="./man/imodenv.html#TOP"></section>
+                    <section title="Format of cpu.adoc" ref="./man/cpuadoc.html#TOP"></section>
+                    <section title="Etomo Test Scripting" ref="./man/uitest.html#TOP"></section>
+                </section>
+                <section title="Library Documentation" ref="./libraries.html#TOP">
+INSERT LIBRARY PAGES
+                </section>
+            </section>
+        </toc>
+        <files>
+            <file>3dmodguide.html</file>
+            <file>asciispec.html</file>
+            <file>binspec.html</file>
+            <file>etomoTutorial.html</file>
+            <file>guide.html</file>
+            <file>index.html</file>
+            <file>JoinTutorial.html</file>
+            <file>libraries.html</file>
+            <file>PEETmanual.html</file>
+            <file>program_listing.html</file>
+            <file>serialalign.html</file>
+            <file>tomoExtra.html</file>
+            <file>tomoguide.html</file>
+            <file>tomojoin.html</file>
+            <file>UsingEtomo.html</file>
+INSERT FILE LISTING
+        </files>
+    </filterSection>
+</QtHelpProject>

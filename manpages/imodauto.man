@@ -195,7 +195,8 @@ Load and model a subset in Z from
 to
 .I max,
 where the coordinates are numbered from 0.
-.TP -B <filename>
+.TP
+.B -B <filename>
 Specify a model with boundary contours around the region(s) to be modeled.
 These contours should all be in one closed contour object.  More than one
 contour can be drawn on each section.  By default, when there are any boundary
@@ -206,10 +207,12 @@ to eliminate contours that touch the boundaries.  There is one flaw in
 this elimination if inside contours are being found: inside contours may be
 produced that are no longer surrounded by an outer contour, because the outer
 contour was eliminated while the inner ones were retained.
-.TP -S
+.TP
+.B -S
 Apply the boundary contours only on the same sections as they are drawn;
 sections without boundary contours will be analyzed in their entirety.
-.TP -O <value>
+.TP
+.B -O <value>
 Specify the object number that contains boundary contours in the boundary
 model.  By default, the program will use the first closed contour object in
 the model.

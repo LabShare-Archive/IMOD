@@ -3,7 +3,6 @@
 # files as needed for particular system
 #
 #  $Id$
-#  Log at end of file
 #
 
 # get the install directory
@@ -79,7 +78,9 @@ if (! -e $instdir/$assistdir) mkdir -p $instdir/$assistdir
 
 # Qt assistant could be an exe or a .app directory
 #
-set assistname = `\find $QTDIR/bin -maxdepth 1 -name '*ssistant_ad*[^g]' -print`
+set assistname = `\find $QTDIR/bin -maxdepth 1 -name 'assistant' -print`
+if ("$assistname" == "") set assistname = `\find $QTDIR/bin -maxdepth 1 -name '[Aa]ssistant.app' -print`
+if ("$assistname" == "") set assistname = `\find $QTDIR/bin -maxdepth 1 -name 'assistant.exe' -print`
 if ("$assistname" != "") then
     \cp -RL $assistname $instdir/$assistdir
 else
@@ -87,18 +88,22 @@ else
     exit 1
 endif
 
-# Make a wrapper script for the Qt assistant in qtlib but make it lower case
+# For Mac, we can no longer use a wrapper script since Assistant won't terminate
+# through it, but we need to know where the executable is
 # 
 if (-e $instdir/qtlib) then
-    set app = `\find $instdir/qtlib -name '*ssistant*.app' -print`
-    if ("$app" != "") then
-        set prog = $app:t:r
-        if (! -e $instdir/qtlib/$prog) then
-            sed -e "/imodsendevent/s//$prog/g" -e "/IMOD_DIR/s/bin/qtlib/" \
-                $instdir/bin/imodsendevent > $instdir/qtlib/assistant_adp
-            chmod a+rx $instdir/qtlib/assistant_adp
-        endif
-    endif
+    set app = `\find $instdir/qtlib -name '*ssistant.app' -print`
+    if ("$app" != "") set assistdir = $assistdir/Contents/MacOS
+endif
+
+# Now that the location of assistant executable is known, copy the SQL plugin
+set plugdir = `sed -n "/QTSQL_SRCDIR/s/^.*= *//p" configure`
+set sqlplug = `sed -n "/QTSQL_TOCOPY/s/^.*= *//p" configure`
+set assistplug = $instdir/$assistdir/plugins/$plugdir
+mkdir -p $assistplug
+if (-e $QTDIR/plugins/$plugdir/$sqlplug) then
+    \cp $QTDIR/plugins/$plugdir/$sqlplug $assistplug
+    chmod -R 755 $assistplug
 endif
 
 # Get a DLL destination dir
@@ -257,136 +262,3 @@ foreach i ($qtlibs)
 end
 exit 0
 
-#
-#  $Log$
-#  Revision 3.48  2010/03/01 23:43:01  mast
-#  Switched to cp -R which was needed with -L on Mac
-#
-#  Revision 3.47  2009/11/06 19:36:55  mast
-#  Chnage to use only to install qt plugins
-#
-#  Revision 3.46  2009/11/06 18:55:11  mast
-#  Use variable for where to get Qt libs from, dereference assistant link
-#
-#  Revision 3.45  2009/05/29 17:22:24  mast
-#  Make a separate wrapper for 3dmodv with -view option added
-#
-#  Revision 3.44  2009/05/27 05:32:06  mast
-#  Create wrapper scripts only if DLLDESTDIR is defined in configure
-#
-#  Revision 3.43  2009/04/08 20:20:00  mast
-#  Make wrapper scripts for all executables if general dll's are copied to qtlib
-#
-#  Revision 3.42  2009/03/20 21:50:04  mast
-#  Changes for installing framework
-#
-#  Revision 3.41  2009/03/17 23:12:30  mast
-#  No no those really were errors, back to normal single error processing on mt
-#
-#  Revision 3.40  2009/03/17 04:00:23  mast
-#  Allow exit status 79 on mt, it is what we get now!
-#
-#  Revision 3.39  2009/03/17 02:24:52  mast
-#  Try again to get error message
-#
-#  Revision 3.38  2009/03/17 00:23:05  mast
-#  Ridiculous retry on mt
-#
-#  Revision 3.37  2009/03/16 22:18:15  mast
-#  Escape echo so it works with c: stuff
-#
-#  Revision 3.36  2009/03/14 15:39:58  mast
-#  Fixed missing endif
-#
-#  Revision 3.35  2009/03/14 00:03:55  mast
-#  Changes for copying redistributables and adding manifests to exe's
-#
-#  Revision 3.34  2009/01/17 06:15:45  mast
-#  Make sure Qt plugin exists before copy, and make it a+rx
-#
-#  Revision 3.33  2009/01/15 16:47:01  mast
-#  Qt 4 port
-#
-#  Revision 3.31  2008/12/23 03:41:41  mast
-#  UAC wrapper scripts needed to already have the final name
-#
-#  Revision 3.30  2008/01/26 01:59:41  mast
-#  Added ability to rename some DLLs to protected names
-#
-#  Revision 3.29  2007/12/15 00:00:11  mast
-#  Added wrappers for Vista patch executables
-#
-#  Revision 3.28  2006/10/19 23:42:56  mast
-#  Copy libraries with wild card after as well as before the extension
-#
-#  Revision 3.27  2006/07/17 18:46:30  mast
-#  Added Qt plugin copying
-#
-#  Revision 3.26  2006/06/21 21:26:38  mast
-#  Generalized the dll copy logic to work for Mac, and to take names without
-#  extensions, and to take destination directory
-#
-#  Revision 3.25  2005/02/24 04:03:32  mast
-#  Needed to make directory for assistant if not there yet
-#
-#  Revision 3.24  2005/02/23 03:44:12  mast
-#  Needed to put assistant in bin for Linux without Qt included
-#
-#  Revision 3.23  2004/11/22 06:06:39  mast
-#  Move creation of qtlib up
-#
-#  Revision 3.22  2004/11/22 05:32:19  mast
-#  Check for existence of qassistant lib before going through loop again
-#
-#  Revision 3.21  2004/11/22 00:19:51  mast
-#  Added Qt assistant and library if needed
-#
-#  Revision 3.20  2004/06/26 02:46:51  mast
-#  Needed to make all DLLs read/execute by all
-#
-#  Revision 3.19  2004/04/03 20:01:00  mast
-#  Added ability to copy install files and rename them
-#
-#  Revision 3.18  2004/01/27 05:53:54  mast
-#  Needed to define LIBEXT line better
-#
-#  Revision 3.17  2004/01/27 05:16:26  mast
-#  Start out by copying needed files from dist
-#
-#  Revision 3.16  2003/12/30 17:24:58  mast
-#  Delete stray .libs in windows install
-#
-#  Revision 3.15  2003/12/02 02:07:08  mast
-#  Change the way Qt lib is identified in Windows, give up on Makefiles
-#
-#  Revision 3.14  2003/11/26 21:48:08  mast
-#  Allow large number of dll lists to copy
-#
-#  Revision 3.13  2003/10/25 16:25:59  mast
-#  fix for Cygwin/Intel and add ability to copy other libraries
-#
-#  Revision 3.12  2003/10/25 02:52:27  mast
-#  find library in cygwin/Intel makefile
-#
-#  Revision 3.11  2003/10/03 05:04:45  mast
-#  Discovered extension can go before (SGI) or after (Mac) version numbers
-#
-#  Revision 3.10  2003/09/25 00:04:08  mast
-#  Improve test for no entry in configure
-#
-#  Revision 3.9  2003/08/25 18:47:13  mast
-#  Have it make the install directory if needed, and delete existing links
-#
-#  Revision 3.8  2003/08/13 20:01:41  mast
-#  Have it use LIBEXT from configure if available, add test for libqt.la
-#
-#  Revision 3.7  2003/05/08 23:29:09  mast
-#  change for windows
-#
-#  Revision 3.6  2003/05/08 21:42:35  mast
-#  Get libqt name better
-#
-#  Revision 3.5  2003/05/08 20:58:43  mast
-#  Initial creation (deleted messages while thrashing
-#
-#

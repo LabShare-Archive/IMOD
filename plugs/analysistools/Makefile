@@ -22,7 +22,8 @@ QTDLGMOC = ../noskecommon/moc_customdialog
 all : $(PLUGS)
 
 install : $(PLUGS)
-	$(CP) -f $(PLUGS) $(MODULE).html $(IMOD_PLUGIN_DIR)
+	$(CP) -f $(PLUGS) $(IMOD_PLUGIN_DIR)
+	$(CP) -f $(MODULE).html $(PLUG_HELP_DIR)
 
 $(PLUGS) : ivector.$(O) idgrid.$(O) $(CONTEXTRA).$(O) $(QTDIALOG).$(O) \
 	$(MODULE).$(O) moc_$(MODULE).$(O) $(COMMINCLUDES) $(QTDLGMOC).$(O)

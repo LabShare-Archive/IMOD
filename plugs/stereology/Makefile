@@ -22,9 +22,10 @@ QTDLGMOC = ../noskecommon/moc_customdialog
 all : $(PLUGS)
 
 install : $(PLUGS)
-	$(CP) -f $(PLUGS) $(MODULE).html $(IMOD_PLUGIN_DIR)
-	$(CP) -f $(PLUGS) default_stereology_categories.csv $(IMOD_PLUGIN_DIR)
-	$(CP) -f $(PLUGS) stereology_help.html $(IMOD_PLUGIN_DIR)
+	$(CP) -f $(PLUGS) $(IMOD_PLUGIN_DIR)
+	$(CP) -f $(MODULE).html $(PLUG_HELP_DIR)
+	$(CP) -f default_stereology_categories.csv $(IMOD_PLUGIN_DIR)
+	$(CP) -f stereology_help.html $(PLUG_HELP_DIR)
 
 $(PLUGS) : $(CONTEXTRA).$(O) $(QTDIALOG).$(O) $(MODULE).$(O) \
 	moc_$(MODULE).$(O) $(COMMINCLUDES)
