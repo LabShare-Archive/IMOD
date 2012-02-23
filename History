@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/23/12: IMOD_4-3-7
+2/23/12: Fixed memory leak in routine for filtered image reduction.
+
 2/22/12: IMOD_4-3-6
 2/17/12: Fixed programs using warping code for images with Y size bigger
 than X size (In 4.3).
