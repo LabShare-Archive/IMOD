@@ -770,17 +770,17 @@ EOF
             cat <<EOF  >> $qconf[$i]
 INSTALLS += $qrun[$i]
 $qrun[$i].path = $inst_bin_dir
-$qrun[$i].extra = \\cp -f $qrun[$i] $inst_bin_dir/$qprog[$i] ; \
+$qrun[$i].extra = cp -f $qrun[$i] $inst_bin_dir/$qprog[$i] ; \
 $strip $qprog[$i].app/Contents/MacOS/$qprog[$i] ; \
 if [ -e $inst_bin_dir/$qprog[$i].app ] ; then $strip $inst_bin_dir/$qprog[$i].app/Contents/MacOS/$qprog[$i] ; fi
 EOF
         end
 
         cat << EOF >> $imod_qconf
-3dmodv.extra = \\cp -f runimodv $inst_bin_dir/3dmodv ; \
+3dmodv.extra = cp -f runimodv $inst_bin_dir/3dmodv ; \
 strip -x 3dmod.app/Contents/MacOS/3dmod ; \
-\\cp -f runimod $inst_bin_dir/3dmod ; cd $inst_bin_dir ; \
-\\rm -f imod imodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv ; \
+cp -f runimod $inst_bin_dir/3dmod ; cd $inst_bin_dir ; \
+rm -f imod imodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv ; \
 if [ -e 3dmod.app ] ; then strip -x 3dmod.app/Contents/MacOS/3dmod ; fi
 EOF
 
