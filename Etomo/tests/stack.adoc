@@ -33,8 +33,9 @@ bn.done=
 
 
 [function = test-files]
-assert.contains.file=tilt_3dfind%{axis}.com|ExcludeList*1
-assert.contains.file=tilt_3dfind_reproject%{axis}.com|ExcludeList*1
+if.var.fidless.return=
+assert.contains.file=tilt_3dfind%{axis}.com|EXCLUDELIST*1
+if.not.var.patch-tracking.assert.contains.file=tilt_3dfind_reproject%{axis}.com|EXCLUDELIST*1
 
 
 ## Create tab
