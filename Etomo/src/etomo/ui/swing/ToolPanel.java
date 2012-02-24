@@ -1,4 +1,6 @@
-package etomo.logic;
+package etomo.ui.swing;
+
+import java.awt.Component;
 
 /**
 * <p>Description: </p>
@@ -15,13 +17,8 @@ package etomo.logic;
 * 
 * <p> $Log$ </p>
 */
+interface ToolPanel {
+  public static final String rcsid = "$Id:$";
 
-public final class LatestBuild {
-  public static final String rcsid = "$$Id$$";
-
-  public static final String TIME_STAMP = "Mon Feb 20 16:24:07 MST 2012";
-
-  public static String get() {
-    return TIME_STAMP;
-  }
+  Component getComponent();
 }
