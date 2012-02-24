@@ -170,17 +170,23 @@ int ImodAssistant::showPage(const char *page)
     sendTwice = true;
   }
 
+  // Want one level of the Table of contents; that entry was wrong for a long time
   if (mKeepSideBar)
+#if QT_VERSION >= 0x040700
     fullPath +=  "; expandToc 1;";
+#else
+    fullPath +=  "; expandToc 0;";
+#endif
   QTextStream str(mAssistant);
   str << "setSource " << fullPath << '\0' << endl;
 
   // On Mac, multiple sends were needed to keep from getting multiple tabs,
   // or about:blank or Qt Assistant help page.  With sending the page on
   // startup, it was better but still needed another send to get the Toc right
-  // With all the processEvents calls, actual time delays were not needed
+  // The time delay was needed on Win laptop
   if (sendTwice) {
     QApplication::processEvents();
+    b3dMilliSleep(400);
     str << "setSource " << fullPath << '\0' << endl;
   }
   return 0;
