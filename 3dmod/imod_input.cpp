@@ -47,6 +47,7 @@
 #include "imod_object_edit.h"
 #include "preferences.h"
 #include "undoredo.h"
+#include "vertexbuffer.h"
 
 static void newContourOrSurface(ImodView *vi, int surface);
 
@@ -768,6 +769,7 @@ void inputDeleteContour(ImodView *vi)
       // Loop backwards through object removing selected contours
       for (i = obj->contsize - 1; i >= 0; i--) {
         if (imodSelectionListQuery(vi, ob, i) > -2) {
+          vbCleanupVBD(obj);
           vi->undo->contourRemoval(ob, i);
           imodDeleteContour(imod, i);
           if (ob == obnew)
@@ -982,7 +984,7 @@ void inputSaveModel(ImodView *vi)
      messes up the saved model when there's a fakeimage; the second maybe
      restored the in-memory model in that case */
   /*     ivwFlipModel(vi); */
-  if (SaveModel(vi->imod));
+  SaveModel(vi->imod);
   /*        show_status("Error Saving Model.");   DNM: it already has messages
             else
             show_status("Done saving model."); */

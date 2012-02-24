@@ -281,6 +281,8 @@ bool ImodClipboard::executeMessage()
 {
   int returnValue, arg;
   int succeeded = 1;
+  static int checkSum = 0;
+  int newCheck;
   QString convName;
   QDir *curdir;
   ZapFuncs *zap;
@@ -315,6 +317,13 @@ bool ImodClipboard::executeMessage()
       wprint("Executing message action %d\n", message_action);
       imodPrintStderr("imodHCM in executeMessage: executing message action "
                       "%d\n", message_action);
+      if (imodDebug('C')) {
+        newCheck = imodChecksum(App->cvi->imod);
+        wprint("Checksum before = %d\n", newCheck);
+        if (checkSum && newCheck != checkSum)
+          wprint("\aIT CHANGED SINCE LAST TIME\n");
+        checkSum = newCheck;
+      }
     }
 
     if (ImodvClosed || !Imodv->standalone) {
@@ -514,8 +523,11 @@ bool ImodClipboard::executeMessage()
         imodvObjedNewView();
 
         // If no contours and only 1 obj, set checksum to avoid save requests
-        if (imod->objsize == 1 && !obj->contsize)
+        if (imod->objsize == 1 && !obj->contsize) {
           imod->csum = imodChecksum(imod);
+          if (imodDebug('C'))
+            wprint("handleMessage set checksum %d\n", imod->csum);
+        }
         break;
 
       case MESSAGE_GHOST_MODE:
@@ -572,6 +584,13 @@ bool ImodClipboard::executeMessage()
         arg = numArgs;
       }
     }
+  }
+
+  if (imodDebug('C')) {
+    wprint("Checksum after = %d\n", newCheck);
+    if (newCheck != checkSum)
+      wprint("\aIT CHANGED IN THAT OPERATION\n");
+    checkSum = newCheck;
   }
 
   // Now set the clipboard with the response

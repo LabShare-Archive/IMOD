@@ -147,7 +147,7 @@ bool imodvIsosurfaceUpdate(void)
                (iisData.maskType == MASK_CONTOUR || iisData.maskType == MASK_OBJECT)) {
       imodGetIndex(Imodv->imod, &ob, &co, &pt);
       cont = imodContourGet(Imodv->imod);
-      if (iisData.maskType == MASK_OBJECT && ob != dia->mMaskObj ||
+      if ((iisData.maskType == MASK_OBJECT && ob != dia->mMaskObj) ||
           (iisData.maskType == MASK_CONTOUR && cont && 
            (ob != dia->mMaskObj || co != dia->mMaskCont || 
             cont->psize != dia->mMaskPsize))) {
@@ -1992,7 +1992,7 @@ int ImodvIsosurface::findClosestZ(int iz, int *listz, int zlsize,
   otherSide = INT_MAX;
   for (i = 0; i < zlsize; i++) {
     delz = iz - listz[i];
-    if (delz >= 0 && delz < minBelow || delz < 0 && -delz < minAbove) {
+    if ((delz >= 0 && delz < minBelow) || (delz < 0 && -delz < minAbove)) {
         
       // Replace the nearest Z only if there is a big enough contour
       for (co = 0; co < numatz[listz[i]-zmin]; co++) {
@@ -2150,6 +2150,7 @@ bool ImodvIsosurface::fillPaintVol()
   int izst, iznd;
   float drawsize, dx, dy, dz, radsum, xmin, xmax, ymin, ymax, zmin, zmax, dzsq;
   float dxsq, dist, minDist, radsq;
+  float zscale = Imodv->imod->zscale;
   int nx = mBoxSize[0];
   int ny = mBoxSize[1];
   int nz = mBoxSize[2];
@@ -2339,7 +2340,7 @@ bool ImodvIsosurface::fillPaintVol()
       // If there are no overlapping points, fill lines
       radsq = paintp->size * paintp->size;
       for (iz = izst; iz <= iznd; iz++) {
-        dz = iz + 0.5 - paintp->z;
+        dz = zscale * (iz + 0.5 - paintp->z);
         dzsq = dz * dz;
         for (iy = iyst; iy <= iynd; iy++) {
           dy = iy + 0.5 - paintp->y;
@@ -2408,7 +2409,7 @@ bool ImodvIsosurface::fillPaintVol()
               if (excludeFlags[i])
                 continue;
               paintp = &paintPts[cluster[i]];
-              dz = iz + 0.5 - paintp->z;
+              dz = zscale * (iz + 0.5 - paintp->z);
               dy = iy + 0.5 - paintp->y;
               dx = ix + 0.5 - paintp->x;
               dist = (dx * dx + dy * dy + dz * dz) / (paintp->size  * paintp->size);

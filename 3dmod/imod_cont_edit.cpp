@@ -41,6 +41,7 @@
 #include "control.h"
 #include "preferences.h"
 #include "undoredo.h"
+#include "vertexbuffer.h"
 
 static void setlabel(QLabel *label, Iindex ind);
 static bool indexGood(Iindex ind);
@@ -681,7 +682,7 @@ void imodContEditJoin(ImodView *vw)
       return;
     }
     cont1 = &obj->cont[indp->contour];
-    if (useSetPoints && indp->point < 0 || indp->point >= cont1->psize) {
+    if ((useSetPoints && indp->point < 0) || indp->point >= cont1->psize) {
       joinError(indArray, "Point number is no longer valid.");
       return;
     }
@@ -1044,7 +1045,9 @@ void imodContEditMove(void)
 
   imodGetIndex(imod, &ob, &co, &pt);
   /* object to move current contour to. */
+  B3DCLAMP(vi->obj_moveto, 1, imod->objsize);
   tobj = &(imod->obj[vi->obj_moveto - 1]);
+  vbCleanupVBD(tobj);
 
   /* Get current object and contour. */
   obj = imodObjectGet(imod);
@@ -1115,6 +1118,7 @@ void imodContEditMove(void)
       wprint("\aError: Point radius must be at least 1.\n");
       return;
     }
+    vbCleanupVBD(obj);
 
     // Get range of Z values and center values
     zscale = ((imod->zscale ?  imod->zscale : 1.) * vi->zbin) / 

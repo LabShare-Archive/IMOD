@@ -35,9 +35,41 @@ areas below threshold.  This subtlety is needed
 to achieve sensible nested contours.  In this example, the program
 will also
 eliminate any contours touching the edges of the image area when 
-finding areas below threshold; otherwise a large contouring enclosing most of
+finding areas below threshold; otherwise a large contour enclosing most of
 the image would be produced.
-
+.P
+Imodauto can also be used to make contours around areas containing a
+particular uniform value, regardless of the values of neighboring pixels.
+This feature is useful if an image volume has already been segmented by other
+means to produce a volume in which different
+regions are marked with one or more values.  Use the 
+.B -E
+option to specify an exact value to generate contours around.  The value may
+be a scaled value, as read out of 3dmod(1), or it may be the actual value in
+the file if the 
+.B -u
+option is used.  The 
+.B -f
+option can be used to follow diagonals, but 3 is the only meaningful value.
+Inside contours can be found with the 
+.B -n
+option.  One problem with the model output is that it will be appear jagged as it
+follows the edges of pixels, since the interpolation method used with normal
+image data is assumed to be meaningless and is not applied.  There are three
+tools available for getting a smoother model.  1) Use the 
+.B -R
+option with a value of 0.5 to remove all points within 0.5 pixel of the
+remaining lines.  This method will still leave some jaggedness but contours
+will still follow the edges of the region fairly well.  2) Use Smoothsurf(1)
+solely to smooth the contours in 2D by entering parameters such as:
+.br
+     smoothsurf -nz 1 -dist 3 -cont 3
+.br
+This may produce smoother output than the first method, but may deviate more
+from the region at sharp corners.  3) Use the contour smoothing option in
+Drawing Tools, available from the Special menu of 3dmod(1).  Check the option
+to "ALLOW POINTS TO BE MOVED" and reduce the "min distance to move" to 0.1.
+This may be the best method.
 .SS Options
 .TP
 .B -l <value>
@@ -52,6 +84,15 @@ Contours will be generated around pixels that map to levels above the high
 threshold level.
 The default value is 255, which will give no contours for areas above
 threshold.
+.TP
+.B -E <value>
+Specifies an exact value to generate contours around, regardless of whether
+surrounding pixels are high or lower than this (see discription above).
+The
+.B -l, -h,
+and
+.B -d
+options may not be entered together with this option.
 .TP
 .B -d <value>
 Determines how the low and high threshold levels are computed.
@@ -154,6 +195,24 @@ Load and model a subset in Z from
 to
 .I max,
 where the coordinates are numbered from 0.
+.TP -B <filename>
+Specify a model with boundary contours around the region(s) to be modeled.
+These contours should all be in one closed contour object.  More than one
+contour can be drawn on each section.  By default, when there are any boundary
+contours, each section will use the contours on the nearest sections; thus,
+only one or a few contours may be needed.  Use
+.B -e 1
+to eliminate contours that touch the boundaries.  There is one flaw in
+this elimination if inside contours are being found: inside contours may be
+produced that are no longer surrounded by an outer contour, because the outer
+contour was eliminated while the inner ones were retained.
+.TP -S
+Apply the boundary contours only on the same sections as they are drawn;
+sections without boundary contours will be analyzed in their entirety.
+.TP -O <value>
+Specify the object number that contains boundary contours in the boundary
+model.  By default, the program will use the first closed contour object in
+the model.
 .TP
 .B -k <sigma>
 Smooth the data with a kernel filter whose Gaussian sigma is given by the

@@ -1,5 +1,5 @@
 /*
- *  imodel.c -- Library funcions for handling model structures.
+ *  imodel.c -- Library functions for handling model structures.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -352,41 +352,41 @@ int imodNewObject(Imod *mod)
 
   /* Default Colors for Objects */
   float colors[MAX_STOCK_COLORS][3]  = { 
-    0.0, 1.0, 0.0,   /* Green       */
-    0.0, 1.0, 1.0,   /* Cyan        */
-    1.0, 0.0, 1.0,   /* Magenta     */
-    1.0, 1.0, 0.0,   /* Yellow      */
-    0.0, 0.0, 1.0,   /* Blue        */
-    1.0, 0.0, 0.0,   /* Red         */
-    0.0, 1.0, 0.5,
-    0.2, 0.2, 0.8,
-    0.8, 0.2, 0.2,
-    0.9, 0.6, 0.4,
-    0.6, 0.4, 0.9,
-    0.1, 0.6, 0.4,
-    0.6, 0.1, 0.4,
-    0.2, 0.6, 0.8,
-    1.0, 0.5, 0.0,
-    0.4, 0.6, 0.1,
-    0.1, 0.1, 0.6,
-    0.9, 0.9, 0.4,
-    0.9, 0.4, 0.6,
-    0.4, 0.9, 0.9,
-    0.6, 0.2, 0.2,
-    0.2, 0.8, 0.6,
-    0.4, 0.6, 0.9,
-    0.1, 0.6, 0.1,
-    0.8, 0.5, 0.2,
-    1.0, 0.0, 0.5,
-    0.0, 0.5, 1.0,
-    0.6, 0.2, 0.8,
-    0.5, 1.0, 0.0,
-    0.1, 0.4, 0.6,
-    0.6, 0.4, 0.1,
-    0.8, 0.2, 0.6,
-    0.4, 0.1, 0.6,
-    0.2, 0.8, 0.2,
-    0.9, 0.4, 0.9
+    {0.0, 1.0, 0.0},   /* Green       */
+    {0.0, 1.0, 1.0},   /* Cyan        */
+    {1.0, 0.0, 1.0},   /* Magenta     */
+    {1.0, 1.0, 0.0},   /* Yellow      */
+    {0.0, 0.0, 1.0},   /* Blue        */
+    {1.0, 0.0, 0.0},   /* Red         */
+    {0.0, 1.0, 0.5},
+    {0.2, 0.2, 0.8},
+    {0.8, 0.2, 0.2},
+    {0.9, 0.6, 0.4},
+    {0.6, 0.4, 0.9},
+    {0.1, 0.6, 0.4},
+    {0.6, 0.1, 0.4},
+    {0.2, 0.6, 0.8},
+    {1.0, 0.5, 0.0},
+    {0.4, 0.6, 0.1},
+    {0.1, 0.1, 0.6},
+    {0.9, 0.9, 0.4},
+    {0.9, 0.4, 0.6},
+    {0.4, 0.9, 0.9},
+    {0.6, 0.2, 0.2},
+    {0.2, 0.8, 0.6},
+    {0.4, 0.6, 0.9},
+    {0.1, 0.6, 0.1},
+    {0.8, 0.5, 0.2},
+    {1.0, 0.0, 0.5},
+    {0.0, 0.5, 1.0},
+    {0.6, 0.2, 0.8},
+    {0.5, 1.0, 0.0},
+    {0.1, 0.4, 0.6},
+    {0.6, 0.4, 0.1},
+    {0.8, 0.2, 0.6},
+    {0.4, 0.1, 0.6},
+    {0.2, 0.8, 0.2},
+    {0.9, 0.4, 0.9}
   };
 
   if (mod->objsize == 0)
@@ -1388,15 +1388,13 @@ int imodGetMaxTime(Imod *imod)
  */
 int imodChecksum(Imod *imod)
 {
-  int ob, co, pt, isum, i;
-  Iobj *obj;
-  Icont *cont;
+  int ob, co, isum, i;
   Iview *view;
-  IclipPlanes *clips;
   Iobjview *obv;
+  IclipPlanes *clips;
   SlicerAngles *slanp;
   double sum = 0.;
-  double osum, psum;
+  double osum;
 
   sum += imod->zscale;
   sum += imod->pixsize;
@@ -1418,51 +1416,8 @@ int imodChecksum(Imod *imod)
   }
   sum += objGroupListChecksum(imod->groupList);
 
-  /* DNM: add # of contours, # of points, and point sizes */
-
   for (ob = 0; ob < imod->objsize; ob++){
-    osum = ob;
-    psum = 0.;
-    obj = &(imod->obj[ob]);
-    osum += obj->red + obj->green + obj->blue;
-    osum += obj->flags;
-    osum += obj->pdrawsize;
-    osum += obj->symbol;
-    osum += obj->symsize;
-    osum += obj->linewidth2;
-    osum += obj->linewidth;
-    osum += obj->symflags;
-    osum += obj->trans;     
-    osum += obj->contsize;      
-    osum += obj->ambient + obj->diffuse + obj->specular + obj->shininess;
-    clips = &obj->clips;
-    osum += clips->count + clips->flags + clips->trans;
-    osum += clips->plane + obj->mat2;
-    for (i = 0; i < clips->count; i++) {
-      osum += clips->normal[i].x + clips->normal[i].y + 
-        clips->normal[i].z;
-      osum += clips->point[i].x + clips->point[i].y + 
-        clips->point[i].z;
-    }
-    osum += obj->fillred + obj->fillgreen + obj->fillblue + obj->quality;
-    osum += obj->valblack + obj->valwhite + obj->matflags2 + obj->mat3b3;
-    osum += istoreChecksum(obj->store);
-    for(co = 0; co < obj->contsize; co++){
-      cont = &(obj->cont[co]);
-      psum += cont->surf;
-      psum += cont->psize;
-      for(pt = 0; pt < cont->psize; pt++){
-        psum += cont->pts[pt].x;
-        psum += cont->pts[pt].y;
-        psum += cont->pts[pt].z;
-      }
-      psum += istoreChecksum(cont->store);
-      if (cont->sizes)
-        for(pt = 0; pt < cont->psize; pt++)
-          psum += cont->sizes[pt];
-    }
-   
-    sum += osum + psum;
+    sum += imodObjectChecksum(&(imod->obj[ob]), ob);
   }
 
   /* Add properties of views.  Do not add rad and trans because they are
@@ -1615,6 +1570,43 @@ int imodSetRefImage(Imod *imod, MrcHeader *hdata)
 }
 
 /*!
+ * Shifts the model [imod] back to full volume coordinates if it was saved after being 
+ * loaded on a subset of the image whose header is in [hdata], and also shifts it to the
+ * coordinates of a subset currently being loaded, using the {xmin}, {ymin}, and {zmin}
+ * elements in [li], if [li] is not NULL.
+ */
+void imodTransForSubsetLoad(Imod *imod, MrcHeader *hdata, IloadInfo *li)
+{
+  int ob, co, pt;
+  Ipoint *pts;
+  float xload = 0., yload = 0., zload = 0.;
+  IrefImage *ref = imod->refImage;
+  
+  if (ref && ref->cscale.x && ref->cscale.y && ref->cscale.z) {
+    xload = (hdata->xorg - ref->ctrans.x) / ref->cscale.x;
+    yload = (hdata->yorg - ref->ctrans.y) / ref->cscale.y;
+    zload = (hdata->zorg - ref->ctrans.z) / ref->cscale.z;
+  }
+  if (li) {
+    xload -= li->xmin;
+    yload -= li->ymin;
+    zload -= li->zmin;
+  }
+  if (xload || yload || zload) {
+    for (ob = 0; ob < imod->objsize; ob++) {
+      for (co = 0; co < imod->obj[ob].contsize; co++) {
+        pts = imod->obj[ob].cont[co].pts;
+        for (pt = 0; pt < imod->obj[ob].cont[co].psize; pt++) {
+          pts[pt].x += xload;
+          pts[pt].y += yload;
+          pts[pt].z += zload;
+        }
+      }
+    }
+  }
+}
+
+/*!
  * Transforms the model in [imod] according to the old and current shift, scale,
  * and rotation in the @@IrefImage structure@ [iref], with the additional 
  * scaling required for binning in each dimension specified in [binScale].
@@ -1686,10 +1678,10 @@ int imodTransFromRefImage(Imod *imod, IrefImage *iref, Ipoint binScale)
   pnt.z = 1. / (iref->cscale.z * binScale.z);
   imodMatScale(mat, &pnt);
 
-  // Mesh normals scaling does not need to include the binning scale because
-  // they already include Z-scaling and the model display will be adjusted to
-  // display with proper Z-scaling including the binning difference
-  // But clip normals do need the bin scaling included
+  /* Mesh normals scaling does not need to include the binning scale because
+   they already include Z-scaling and the model display will be adjusted to
+   display with proper Z-scaling including the binning difference
+   But clip normals do need the bin scaling included */
   imodMatCopy(matClip, matNorm);
   imodMatScale(matNorm, &iref->cscale);
   pnt.x = iref->cscale.x * binScale.x;
@@ -1777,10 +1769,6 @@ static void exchangef(float *a, float *b)
 void imodTransModel3D(Imod *model, Imat *mat, Imat *normMat, Ipoint newCen, float zscale,
                      int doflip)
 {
-  int i, ob, co, pt, me;
-  Iobj *obj;
-  Icont *cont;
-  Imesh *mesh;
   Imat *matWork = imodMatNew(3);
   Imat *matWork2 = imodMatNew(3);
   Imat *matUse = imodMatNew(3);

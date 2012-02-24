@@ -155,6 +155,7 @@ extern "C" {
 
   Imesh *imodObjectGetMesh(Iobj *inObject, int inIndex);
   int    imodObjectAddMesh(Iobj *inObject, Imesh *inMesh);
+  double imodObjectChecksum(Iobj *obj, int obNum);
 
   /* internal calls */
 

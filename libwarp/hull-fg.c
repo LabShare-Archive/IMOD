@@ -255,7 +255,8 @@ void printtree_flat_inner(Tree * t) {
     if (!t) return;
 
     printtree_flat_inner(t->right);
-    printf("%p ", t->key);fflush(stdout);
+   /* DNM: cast to void * to prevent warning */
+    printf("%p ", (void *)t->key);fflush(stdout);
     printtree_flat_inner(t->left);
 }
 
@@ -273,8 +274,9 @@ void printtree(Tree * t, int d) {
     if (!t) return;
 
    printtree(t->right, d+1);
-    for (i=0; i<d; i++) printf("  ");
-    printf("%p(%d)\n", t->key, t->size);fflush(stdout);
+   for (i=0; i<d; i++) printf("  ");
+   /* DNM: cast to void * to prevent warning */
+    printf("%p(%d)\n", (void *)t->key, t->size);fflush(stdout);
     printtree(t->left, d+1);
 }
 

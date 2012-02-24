@@ -32,6 +32,7 @@
 #include "control.h"
 #include "preferences.h"
 #include "undoredo.h"
+#include "vertexbuffer.h"
 
 /* These have to be maintained as indexes for the combo box */
 #define COPY_TO_OBJECT     0
@@ -144,6 +145,8 @@ static int copyContour(Icont *cont, int coNum)
       if (contCompare(&toObj->cont[co], cont) == 0)
         return(0);
     }
+    vbCleanupVBD(toObj);
+
     /* Remove duplicate points */
     if (iobjScat(toObj->flags)){
       for(co = 0; co < toObj->contsize; co++){

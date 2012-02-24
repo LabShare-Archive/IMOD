@@ -34,8 +34,12 @@ void b3dBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size,
 #define b3dBufferSubData glBufferSubData
 #endif
 
+// And wrapper function for primitive restart, needed more widely
+void b3dPrimitiveRestartIndex(GLuint index);
+
 // Extension enabled flags in return from b3dInitializeGL
 #define B3DGLEXT_VERTBUF (1l << 0)
+#define B3DGLEXT_PRIM_RESTART (1l << 1)
 
 #define SnapShot_Default 0
 #define SnapShot_RGB     1

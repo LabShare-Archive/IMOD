@@ -81,6 +81,7 @@
 #include "imod_info.h"
 #include "form_info.h"
 #include "sslice.h"
+#include "vertexbuffer.h"
 
 UndoRedo::UndoRedo(ImodView *vi)
 {
@@ -328,6 +329,8 @@ void UndoRedo::objectChange(int type, int object, int object2)
     imodObjectCopy(obj, item.p.obj);
     item.p.obj->cont = NULL;
     item.p.obj->mesh = NULL;
+    item.p.obj->vertBufCont = NULL;
+    item.p.obj->vertBufSphere = NULL;
     item.p.obj->label = imodLabelDup(obj->label);
     item.p.obj->store = ilistDup(obj->store);
     item.p.obj->meshParam = imeshParamsDup(obj->meshParam);
@@ -601,6 +604,7 @@ int UndoRedo::undo()
   mUndoIndex--;
 
   // Loop backwards on the changes
+  vbCleanupVBD(mVi->imod);
   for (ch = ilistSize(unit->changes) - 1; ch >= 0; ch--) {
     change = (UndoChange *)ilistItem(unit->changes, ch);
     item = findPoolItem(change->ID);
@@ -687,6 +691,7 @@ int UndoRedo::redo()
     return StateMismatch;
 
   // Loop forwards on the changes
+  vbCleanupVBD(mVi->imod);
   for (ch = 0; ch < ilistSize(unit->changes); ch++) {
     change = (UndoChange *)ilistItem(unit->changes, ch);
     item = findPoolItem(change->ID);
@@ -961,6 +966,7 @@ int UndoRedo::exchangeObjects(UndoChange *change, BackupItem *item)
                     obj->surfsize, item->p.obj->surfsize);
 
   // Exchange the structures
+  vbCleanupVBD(obj);
   temp = *(item->p.obj);
   *(item->p.obj) = *obj;
   *obj = temp;
@@ -1015,7 +1021,6 @@ int UndoRedo::removeObject(UndoChange *change)
   change->ID = item.ID = mID++;
 
   // Copy object and remove it after nulling its pointers
-  imodObjectCopy(obj, item.p.obj);
   obj->mesh = NULL;
   obj->cont = NULL;
   obj->label= NULL;

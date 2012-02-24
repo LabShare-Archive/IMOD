@@ -313,12 +313,12 @@ csrc : ALWAYS
 	libdiaqt/Makefile.unix lib*/*.dsp lib*/*.vcproj libimod/libimod.dsw \
 	sysdep/*/* \
 	3dmod/*.[ch] 3dmod/*.cpp 3dmod/*.ui 3dmod/3dmod.pro \
-	3dmod/*.bits 3dmod/*.png 3dmod/*.xpm 3dmod/*.qrc \
+	3dmod/*.bits 3dmod/images 3dmod/*.xpm 3dmod/*.qrc \
 	3dmod/3dmod.dsw 3dmod/Makefile.dummy 3dmod/b3dicon.i* \
 	imodutil/*.[ch] imodutil/*.cpp imodutil/Makefile \
 	mrc/*.[ch] mrc/*.cpp   mrc/Makefile \
 	clip/*.[ch]   clip/Makefile \
-	midas/*.[ch] midas/*.cpp midas/midas.pro \
+	midas/*.[ch] midas/*.cpp midas/midas.pro midas/images midas/midas.qrc \
 	midas/Makefile.dummy \
 	sendevent/*.h sendevent/*.cpp sendevent/imodsendevent.pro \
 	sendevent/Makefile.dummy sendevent/imodsendevent.dsp \

@@ -35,6 +35,7 @@
 #include "preferences.h"
 #include "control.h"
 #include "undoredo.h"
+#include "vertexbuffer.h"
 #include "imodv_menu.h"
 #include "imodv_ogl.h"
 #include "imodv_gfx.h"
@@ -117,7 +118,7 @@ void imodvKeyPress(QKeyEvent *event)
   // Increase step size for shift, except not when moving a point
   if (shifted && !ctrl)
     tstep = 10;
-  if (shifted && ctrl && (keysym == Qt::Key_PageDown) || (keysym == Qt::Key_PageUp)) {
+  if (shifted && ctrl && (keysym == Qt::Key_PageDown || keysym == Qt::Key_PageUp)) {
     tstep = (int)(0.5 * B3DMIN(a->winx, a->winy) / a->imod->view->rad);
     tstep = B3DMAX(1, tstep);
   }
@@ -280,6 +281,7 @@ void imodvKeyPress(QKeyEvent *event)
   case Qt::Key_V:
     if (shifted && ctrl && a->vertBufOK >= 0) {
       a->vertBufOK = 1 - a->vertBufOK;
+      imodPrintStderr("Vertex buffers %s\n", a->vertBufOK ? "ON" : "OFF");
       imodvDraw(a);
     } else if (shifted)
       imodvViewEditDialog(a, 1);
@@ -476,6 +478,8 @@ void imodvKeyPress(QKeyEvent *event)
         ((a->imod->cindex.object == pickedObject && 
           a->imod->cindex.contour == pickedContour) || 
          imodSelectionListQuery(a->vi, pickedObject, pickedContour) > -2)) {
+
+      // This routine removes VBD's of all objects cont's removed from
       inputDeleteContour(a->vi);
       pickedContour = -1;
     } else if (!shifted) {
@@ -848,7 +852,7 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
 
   imodvResolveRotation(mat, 0.1f * x, 0.1f * y, 0.1f * z);
 
-  if (!(maskr & Qt::ControlModifier)){
+  if (!(maskr & Qt::ControlModifier) || a->movie){
 
     /* Regular rotation of one or all models */
 

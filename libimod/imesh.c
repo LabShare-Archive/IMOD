@@ -8,8 +8,7 @@
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
- *  $Id$
- *  Log at end of file
+ *  $Id: imesh.c,v 5c47376cf583 2011/11/29 02:30:21 mast 
  */
 
 #include <limits.h>
@@ -701,7 +700,7 @@ MeshParams *imeshParamsNew()
  */
 void imeshParamsDefault(MeshParams *params)
 {
-  params->flags = IMESH_MK_NORM;
+  params->flags = IMESH_MK_NORM | IMESH_MK_TIME;
   params->cap = IMESH_CAP_OFF;
   params->passes = 1;
   params->capSkipNz = 0;
@@ -785,41 +784,3 @@ int imeshCopySkipList(int *lfrom, int nfrom, int **lto, int *nto)
   }
   return 0;
 }
-
-/*
-
-$Log$
-Revision 3.11  2010/04/13 18:12:00  mast
-Need to take abs for volume inside mesh
-
-Revision 3.10  2009/03/19 05:09:58  mast
-Fixed initialization when getting mesh volume
-
-Revision 3.9  2008/11/14 06:13:36  mast
-Implemented volume in mesh function
-
-Revision 3.8  2008/11/13 21:16:26  mast
-Compute surface area sum with doubles
-
-Revision 3.7  2008/05/07 04:43:50  mast
-Added mesh bounding box function
-
-Revision 3.6  2006/09/13 23:53:17  mast
-Fixed skip list copy
-
-Revision 3.5  2006/09/12 19:00:54  mast
-Fixed variable declaration after statement
-
-Revision 3.4  2006/09/12 15:25:13  mast
-Added mesh parameter functions and handled member renames
-
-Revision 3.3  2006/02/25 22:09:04  mast
-Documented
-
-Revision 3.2  2005/09/11 19:16:03  mast
-Added routine to test for mesh start code and return appropriate factors
-
-Revision 3.1  2004/11/20 04:15:14  mast
-Added duplicate function
-
-*/

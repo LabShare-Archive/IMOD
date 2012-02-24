@@ -127,7 +127,7 @@ void InfoWindow::fileSlot(int item)
     imod_info_forbid();
     imod_info_input();
     releaseKeyboard();
-    if (SaveModel(App->cvi->imod));
+    SaveModel(App->cvi->imod);
     /*         wprint("Error Saving Model."); DNM: it already has message*/
     imod_info_enable();
     break;
@@ -334,6 +334,7 @@ void InfoWindow::editModelSlot(int item)
   case EMODEL_MENU_CLEAN:
     /* Clean model means delete empty objects */
     if (dia_ask("Delete all empty objects?")) {
+      vbCleanupVBD(imod);
       obsave = imod->cindex.object;
       cosave = vi->imod->cindex.contour;
       ptsave = vi->imod->cindex.point;
@@ -507,6 +508,8 @@ void InfoWindow::editObjectSlot(int item)
                  "with regular contour-based objects.\n");
           break;
         }
+        vbCleanupVBD(&imod->obj[ob]);
+        vbCleanupVBD(&imod->obj[obNew]);
         imodMoveAllContours(vi, obNew);
         imod->cindex.contour = -1;
         imod->cindex.point = -1;
@@ -556,6 +559,7 @@ void InfoWindow::editObjectSlot(int item)
     } else
       wprint("Combined %d objects\n", num);
 
+    vbCleanupVBD(&imod->obj[minOb]);
     for (ob = maxOb; ob > minOb; ob--) {
       if (imodSelectionListQuery(vi, ob, -1) > -2 || ob == obOld) {
         imod->cindex.object = ob;
@@ -1134,12 +1138,14 @@ void InfoWindow::editImageSlot(int item)
 
   case EIMAGE_MENU_FLIP:
     App->cvi->undo->clearUnits();
+    vbCleanupVBD(App->cvi->imod);
+    
     /* DNM 12/10/02: if busy loading, this will defer it */
     if (ivwFlip(App->cvi))
       break;
     /* DNM: check wild flag here */
     ivwCheckWildFlag(App->cvi->imod);
-    imodDraw(App->cvi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
+    imodDraw(App->cvi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
     break;
 
   case EIMAGE_MENU_FILLCACHE:

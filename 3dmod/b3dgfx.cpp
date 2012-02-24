@@ -17,6 +17,7 @@
 #include <qfiledialog.h>
 #include "b3dgfx.h"
 #include <qimage.h>
+#include <qlibrary.h>
 #include <qglcolormap.h>
 #include "imod.h"
 #include "imodv.h"
@@ -52,12 +53,18 @@ static bool    sStippleNextLine = false;
 static float   sZoomDownCrit = 0.8f;
 static int     sExtFlags = 0;
 
+typedef void (*MYRESTARTINDEXPROC) (GLuint index);
+
+// These function typedefs are found in IMOD/include/glext_for_win.h
 #ifdef _WIN32
 static PFNGLDELETEBUFFERSPROC sGlDeleteBuffers;
 static PFNGLGENBUFFERSPROC sGlGenBuffers;
 static PFNGLBINDBUFFERPROC sGlBindBuffer;
 static PFNGLBUFFERDATAPROC sGlBufferData;
 static PFNGLBUFFERSUBDATAPROC sGlBufferSubData;
+static PFNGLPRIMITIVERESTARTINDEXPROC sGlPrimitiveRestartIndex;
+#else
+static MYRESTARTINDEXPROC sGlPrimitiveRestartIndex;
 #endif
 
 // "Initialization" function to determine OpenGL version and resolve extension pointers
@@ -69,21 +76,40 @@ int b3dInitializeGL()
     return sExtFlags;
   
   glVersion = atof((const char *)glGetString(GL_VERSION));
-  if (Imod_debug)
-    imodPrintStderr("GL version %f\n", glVersion);
   if (glVersion >= 1.5)
     sExtFlags |= B3DGLEXT_VERTBUF;
+  if (glVersion >= 3.1)
+    sExtFlags |= B3DGLEXT_PRIM_RESTART;
 #ifdef _WIN32
   sGlDeleteBuffers = (PFNGLDELETEBUFFERSPROC)wglGetProcAddress("glDeleteBuffers");
   sGlGenBuffers = (PFNGLGENBUFFERSPROC)wglGetProcAddress("glGenBuffers");
   sGlBindBuffer = (PFNGLBINDBUFFERPROC)wglGetProcAddress("glBindBuffer");
   sGlBufferData = (PFNGLBUFFERDATAPROC)wglGetProcAddress("glBufferData");
   sGlBufferSubData = (PFNGLBUFFERSUBDATAPROC)wglGetProcAddress("glBufferSubData");
+  sGlPrimitiveRestartIndex = (PFNGLPRIMITIVERESTARTINDEXPROC)wglGetProcAddress
+    ("glPrimitiveRestartIndex");
   if (!sGlDeleteBuffers || !sGlGenBuffers || !sGlBindBuffer || !sGlBufferData ||
       !sGlBufferSubData) 
     sExtFlags &= ~B3DGLEXT_VERTBUF;
+#else
+#ifdef Q_OS_MACX
+  QLibrary *gllib = new QLibrary("/System/Library/Frameworks/OpenGL.framework/"
+                                 "Libraries/libGL.dylib");
+#else
+  QLibrary *gllib = new QLibrary("libGL.so");
 #endif
+  sGlPrimitiveRestartIndex = (MYRESTARTINDEXPROC)gllib->resolve
+    ("glPrimitiveRestartIndex");
+  if (!gllib->resolve("glDeleteLists"))
+    imodPrintStderr("OpenGL library loading failed!\n");
+  
+  delete gllib;
+#endif
+  if (!sGlPrimitiveRestartIndex)
+    sExtFlags &= ~B3DGLEXT_PRIM_RESTART;    
   App->glInitialized = 1;
+  if (Imod_debug)
+    imodPrintStderr("GL version %f   flags %d\n", glVersion, sExtFlags);
   return sExtFlags;
 }
 
@@ -113,7 +139,13 @@ void b3dBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size,
 {
   sGlBufferSubData(target, offset, size, data);
 }
+
 #endif
+
+void b3dPrimitiveRestartIndex(GLuint index)
+{
+  sGlPrimitiveRestartIndex(index);
+}
 
 
 /* Set a current window size for the drawing routines */

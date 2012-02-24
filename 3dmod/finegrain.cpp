@@ -974,8 +974,8 @@ int ifgContTransMatch(Iobj *obj, Icont *cont, int *matchPt, int drawTrans,
     // If find point, return index, reset list pointer and get state there
     revert = stp->flags & GEN_STORE_REVERT;
     if (stp->type == GEN_STORE_TRANS && 
-        (!revert && (stp->value.i ? 1 : 0) == drawTrans) 
-        || (revert && (contProps->trans ? 1 : 0) == drawTrans)) {
+        ((!revert && (stp->value.i ? 1 : 0) == drawTrans) 
+         || (revert && (contProps->trans ? 1 : 0) == drawTrans))) {
       *matchPt = stp->index.i;
       list->current = current;
       nextChange = 0;
