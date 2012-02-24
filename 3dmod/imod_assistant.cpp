@@ -166,27 +166,22 @@ int ImodAssistant::showPage(const char *page)
        printf("  %s", (const char *)((args[kk]).toLatin1()));
        printf("\n"); */
     mAssistant->waitForStarted(3000);
-    b3dMilliSleep(200);
     QApplication::processEvents();
-    sendTwice = false;
+    sendTwice = true;
   }
 
-
-  // Strangely, this is needed to get it to show one level
   if (mKeepSideBar)
-    fullPath +=  "; expandToc 0;";
+    fullPath +=  "; expandToc 1;";
   QTextStream str(mAssistant);
   str << "setSource " << fullPath << '\0' << endl;
 
-  // On Mac, a long delay was needed to keep from getting multiple tabs, or about:blank
-  // or Qt Assistant help page.  So send early and send again in case that gives it to the
-  // user sooner in some other cases.  
+  // On Mac, multiple sends were needed to keep from getting multiple tabs,
+  // or about:blank or Qt Assistant help page.  With sending the page on
+  // startup, it was better but still needed another send to get the Toc right
+  // With all the processEvents calls, actual time delays were not needed
   if (sendTwice) {
-    for (len = 0; len < 5; len++) {
-      QApplication::processEvents();
-      b3dMilliSleep(400);
-      str << "setSource " << fullPath << '\0' << endl;
-    }
+    QApplication::processEvents();
+    str << "setSource " << fullPath << '\0' << endl;
   }
   return 0;
 }
