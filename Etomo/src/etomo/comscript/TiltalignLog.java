@@ -74,17 +74,19 @@ public final class TiltalignLog {
     }
     LogFile.BigBufferReaderId id = null;
     try {
-      id = log.openFileChannelReader();
+      id = log.openBigBufferReaderId();
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
     }
     if (id != null && !id.isEmpty()) {
       try {
         boolean sucess = log.searchForLastLine(id, "SUCCESSFULLY COMPLETED");
         log.closeRead(id);
+        id = null;
       }
       catch (IOException e) {
         e.printStackTrace();
@@ -92,8 +94,10 @@ public final class TiltalignLog {
       catch (LogFile.LockException e) {
         e.printStackTrace();
       }
+      if (id != null && !id.isEmpty()) {
+        log.closeRead(id);
+      }
     }
-    log.closeRead(id);
     return false;
   }
 
@@ -155,7 +159,9 @@ public final class TiltalignLog {
         e.printStackTrace();
       }
     }
-    log.closeRead(id);
+    if (id != null && !id.isEmpty()) {
+      log.closeRead(id);
+    }
     return null;
   }
 }
