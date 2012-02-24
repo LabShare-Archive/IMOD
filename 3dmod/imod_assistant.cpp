@@ -13,6 +13,7 @@
 
 #include <stdlib.h>
 #include <qdir.h>
+#include <qapplication.h>
 #include <qtextstream.h>
 #include <qmessagebox.h>
 #include <qstringlist.h>
@@ -179,10 +180,13 @@ int ImodAssistant::showPage(const char *page)
 
   // On Mac, a long delay was needed to keep from getting multiple tabs, or about:blank
   // or Qt Assistant help page.  So send early and send again in case that gives it to the
-  // use sooner in some other cases
+  // user sooner in some other cases.  
   if (sendTwice) {
-    b3dMilliSleep(2000);
-    str << "setSource " << fullPath << '\0' << endl;
+    for (len = 0; len < 5; len++) {
+      QApplication::processEvents();
+      b3dMilliSleep(400);
+      str << "setSource " << fullPath << '\0' << endl;
+    }
   }
   return 0;
 }
