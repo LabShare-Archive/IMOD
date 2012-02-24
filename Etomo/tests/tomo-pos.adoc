@@ -54,7 +54,8 @@ wait.process.creating-sample-tomogram = done
 
 
 [function = test-files]
-assert.contains.file=tilt%{axis}.com|ExcludeList*1
+if.var.fidless.return=
+assert.contains.file=tilt%{axis}.com|EXCLUDELIST*1
 
 
 [function = compute-z-shift-&-pitch-angles]
