@@ -103,7 +103,7 @@ ImodAssistant::~ImodAssistant()
  */
 int ImodAssistant::showPage(const char *page)
 {
-  QString fullPath;
+  QString fullPath = mPrefix + "/" + page;
   QString fileOnly, assPath;
   bool sendTwice = false;
   int len, retval = 0;
@@ -153,7 +153,7 @@ int ImodAssistant::showPage(const char *page)
     connect(mAssistant, SIGNAL(finished(int, QProcess::ExitStatus)), this,
             SLOT(assistantExited(int, QProcess::ExitStatus )));
     QStringList args;
-    args << "-collectionFile" << mQhc << "-enableRemoteControl";
+    args << "-collectionFile" << mQhc << "-enableRemoteControl" << "-showUrl" << fullPath;
     QString showhide = mKeepSideBar ? "-show" : "-hide";
     args << showhide << "contents" << showhide << "index" << showhide << "search";
     if (mKeepSideBar)
@@ -167,10 +167,10 @@ int ImodAssistant::showPage(const char *page)
        printf("\n"); */
     mAssistant->waitForStarted(3000);
     b3dMilliSleep(200);
-    sendTwice = true;
+    QApplication::processEvents();
+    sendTwice = false;
   }
 
-  fullPath = mPrefix + "/" + page;
 
   // Strangely, this is needed to get it to show one level
   if (mKeepSideBar)
