@@ -185,9 +185,11 @@ int ImodAssistant::showPage(const char *page)
   // startup, it was better but still needed another send to get the Toc right
   // The time delay was needed on Win laptop
   if (sendTwice) {
-    QApplication::processEvents();
-    b3dMilliSleep(400);
-    str << "setSource " << fullPath << '\0' << endl;
+    for (len = 0; len < 2; len++) {
+      QApplication::processEvents();
+      b3dMilliSleep(400);
+      str << "setSource " << fullPath << '\0' << endl;
+    }
   }
   return 0;
 }
