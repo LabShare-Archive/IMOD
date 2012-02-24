@@ -6,7 +6,7 @@ if.var.quick.return=
 if.var.test-gui.run.function.test-gui=
 run.function.set-values=
 run.function.compute-alignment=
-run.if.var.test-gui.run.function.test-files=
+if.var.test-gui.run.function.test-files=
 bn.done=
 
 
