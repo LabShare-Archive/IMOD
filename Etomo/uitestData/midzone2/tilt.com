@@ -28,4 +28,5 @@ XAXISTILT 1.71
 XTILTFILE midzone2a.xtilt
 ZFACTORFILE midzone2a.zfac
 ActionIfGPUFails 1,2
+EXCLUDELIST 1
 $if (-e ./savework) ./savework
