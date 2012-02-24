@@ -647,7 +647,7 @@ public final class LogFile {
     return readerId;
   }
 
-  public synchronized BigBufferReaderId openFileChannelReader() throws LockException,
+  public synchronized BigBufferReaderId openBigBufferReaderId() throws LockException,
       FileNotFoundException {
     BigBufferReaderId id = new BigBufferReaderId();
     lock.lock(LockType.READ, id);
