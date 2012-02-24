@@ -272,7 +272,6 @@ copy.file = %{dataset}3.rec
 set.param = --autoclose3dmod
 set.param = --ignoreloc
 set.param = --actions
-#set.param = --debug
 set.interface.Join=
 
 [Test = join-test-gui]
@@ -466,7 +465,7 @@ set.var.findbeads3d-binning = 2
 # center-to-center-thickness + additional-unbinned-diameters-to-add*int-unbinned-bead-diameter
 set.var.erase-gold-thickness.a=154
 set.var.erase-gold-thickness.b=148
-set.var.incremental-shift-to-center.a=28.9
+set.var.incremental-shift-to-center.a=28.8
 set.var.incremental-shift-to-center.b=38.7
 set.var.final-align-comscript=blend
 set.var.final-align-command=blendmont
