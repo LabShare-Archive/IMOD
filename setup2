@@ -637,6 +637,7 @@ echo "INSTBINDIR = $inst_bin_dir"  >> $configure
 echo "LIBDIR  = $lib_dir" >> $configure
 echo "INSTLIBDIR = $inst_lib_dir"  >> $configure
 echo "INSTDIR = $inst_dir"  >> $configure
+echo "HTML_ARCDIR = $source_dir/imod_${imod_version_name}_docs"  >> $configure
 echo "INCDIR  = $inc_dir"          >> $configure
 echo "IMOD_PLUGIN_DIR = $inst_plug_dir" >> $configure
 echo "PLUG_HELP_DIR = $plughelp_dir" >> $configure

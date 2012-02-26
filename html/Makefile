@@ -2,9 +2,6 @@
 # Makefile for html directory: Needs to be run after make in manpages and flib/man
 # Updates library help, builds Qt compressed help and copies it to install dir
 
-# Old command installs all files with extensions; add other files and directories to
-# the NOEXT list - this may be used to build separate HTML packags
-#
 # $Id$
 #
 include ../configure
@@ -16,7 +13,6 @@ install : cleanjunk
 	./makeqhp
 	chmod a+rx IMOD.qch IMOD.qhc
 	if [ `pwd` != $(INSTDIR)/html ] ; then cp -f IMOD.qhc IMOD.qch $(INSTDIR)/html ; fi
-#	if [ `pwd` != $(INSTDIR)/html ] ; then $(CP) -r *.[^q]* $(NOEXT) $(INSTDIR)/html ; fi
 
 cleanjunk : 
 	$(FIND) . -type f -name "*~"    -exec rm "{}" \;
@@ -28,3 +24,6 @@ clean : cleanjunk
 	$(FIND) libhelp -type f -name "*"   -exec rm "{}" \;
 	$(FIND) man -type f -name "*"   -exec rm "{}" \;
 
+docs :
+	mkdir -p $(HTML_ARCDIR)
+	$(CP) -r *.[^q]* $(NOEXT) $(HTML_ARCDIR)
