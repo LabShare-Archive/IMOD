@@ -292,6 +292,7 @@ import java.util.Date;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.EtomoNumber;
 import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
 
@@ -565,6 +566,8 @@ public class SystemProgram implements Runnable {
     catch (IOException except) {
       except.printStackTrace();
       exceptionMessage = except.getMessage();
+      int errorIndex = -1;
+      String error_tag = "error=";
       if (exceptionMessage.indexOf("Cannot run program \"tcsh\"") != -1) {
         UIHarness.INSTANCE.openMessageDialog(manager, exceptionMessage, "System Error");
       }
@@ -579,6 +582,27 @@ public class SystemProgram implements Runnable {
         exitValue = -3;
         done = true;
         return;
+      }
+      else if ((errorIndex = exceptionMessage.indexOf(error_tag)) != -1) {
+        UIHarness.INSTANCE.openMessageDialog(manager, "Unable to run command.\n"
+            + exceptionMessage, "System Error");
+        exitValue = 1;
+        // Get the error number from the exception message
+        String[] array = exceptionMessage.split("\\s+");
+        if (array != null) {
+          for (int i = array.length - 1; i >= 0; i--) {
+            if (array[i].indexOf(error_tag) != -1) {
+              String[] errorArray = array[i].split("\\s*=\\s*");
+              if (errorArray != null && errorArray.length > 1) {
+                EtomoNumber n = new EtomoNumber();
+                n.set(errorArray[1]);
+                if (n.isValid()) {
+                  exitValue = n.getInt();
+                }
+              }
+            }
+          }
+        }
       }
     }
     processMessages.addProcessOutput(stdout);
@@ -612,7 +636,9 @@ public class SystemProgram implements Runnable {
     // close standard input if it wasn't closed before
     if (acceptInputWhileRunning) {
       try {
-        cmdInputStream.close();
+        if (cmdInputStream != null) {
+          cmdInputStream.close();
+        }
       }
       catch (IOException e) {
         e.printStackTrace();
