@@ -35,12 +35,15 @@ bk--*
 man
 html/man
 html/libhelp
+html/plughelp
+html/IMOD.qhp
+html/IMOD.qch
+html/IMOD.qhc
 Etomo/Makefile
 Etomo/jar_dir
 Etomo/jar
 Etomo/.settings
 flib/subrs/smallmodel
-html/IMOD.adp
 .distname
 .options
 VERSION

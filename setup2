@@ -22,6 +22,8 @@ set bin_dir         = $source_dir/bin
 set inc_dir         = $source_dir/include
 set lib_dir         = $source_dir/buildlib
 set libhelp_dir     = $source_dir/html/libhelp
+set htmlman_dir     = $source_dir/html/man
+set plughelp_dir    = $source_dir/html/plughelp
 set include_flags   = "-I. -I$inc_dir"
 set optimization    = "-O2"
 set gfx             = default
@@ -121,12 +123,12 @@ set class_sep       = ':'
 set strip           = strip
 set rmcmd           = '/bin/rm -f'
 set qtincdir        = '$(QTDIR)/include'
-set qt_flags        = '-I$(QTINCDIR) -I$(QTINCDIR)/Qt -I$(QTINCDIR)/QtCore -I$(QTINCDIR)/QtGui'
+set qt_flags        = '-I$(QTINCDIR) -I$(QTINCDIR)/QtCore -I$(QTINCDIR)/QtOpenGL -I$(QTINCDIR)/QtGui'
 set qt3_flags       = '-DQT3_SUPPORT -I$(QTINCDIR)/Qt3Support'
-# assistant_adp needs Xml.  assistant will need Sql
-set qt4libstocopy   = 'QtOpenGL QtNetwork QtCore QtGui QtXml'
+# rhlinux uses ldd on assistant to get this list and adds OpenGL
+set qt4libstocopy   = 'QtOpenGL QtNetwork QtCore QtGui QtXml QtHelp QtSql QtCLucene'
 set qt3supportcopy = ""
-set assistantcopy  = 'QtAssistantClient'
+set assistantcopy  = ''
 set midasGL         =  "-lQtOpenGL"
 set nogpu           = ""
 set suffix          = ""
@@ -635,8 +637,10 @@ echo "INSTBINDIR = $inst_bin_dir"  >> $configure
 echo "LIBDIR  = $lib_dir" >> $configure
 echo "INSTLIBDIR = $inst_lib_dir"  >> $configure
 echo "INSTDIR = $inst_dir"  >> $configure
+echo "HTML_ARCDIR = $source_dir/imod_${imod_version_name}_docs"  >> $configure
 echo "INCDIR  = $inc_dir"          >> $configure
 echo "IMOD_PLUGIN_DIR = $inst_plug_dir" >> $configure
+echo "PLUG_HELP_DIR = $plughelp_dir" >> $configure
 echo "MOC = $moc"     >> $configure
 
 # Output the entries for Tilt using GPU or not
@@ -669,13 +673,15 @@ EOF
 mkdir -p $bin_dir
 mkdir -p $lib_dir
 mkdir -p $libhelp_dir
+mkdir -p $plughelp_dir
+mkdir -p $htmlman_dir
 mkdir -p $inst_bin_dir
 mkdir -p $inst_lib_dir
 mkdir -p $inst_plug_parent
 mkdir -p $inst_plug_dir
 mkdir -p $inst_dir/com
 mkdir -p $inst_dir/autodoc
-mkdir -p $inst_dir/html/man
+mkdir -p $inst_dir/html
 mkdir -p $inst_dir/man/cat1
 mkdir -p $inst_dir/man/cat5
 
@@ -741,7 +747,7 @@ EOF
     if ($machine != "macosx") then
         cat <<EOF >> $imod_qconf
 3dmodv.extra = strip 3dmod ; cd $inst_bin_dir ; \
-if [ -e 3dmod ] ; then strip 3dmod ; fi ; \\rm -f 3dmodv imod imodv ; \
+if [ -e 3dmod ] ; then strip 3dmod ; fi ; rm -f 3dmodv imod imodv ; \
 ln -s 3dmod 3dmodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv
 EOF
 
@@ -765,17 +771,17 @@ EOF
             cat <<EOF  >> $qconf[$i]
 INSTALLS += $qrun[$i]
 $qrun[$i].path = $inst_bin_dir
-$qrun[$i].extra = \\cp -f $qrun[$i] $inst_bin_dir/$qprog[$i] ; \
+$qrun[$i].extra = cp -f $qrun[$i] $inst_bin_dir/$qprog[$i] ; \
 $strip $qprog[$i].app/Contents/MacOS/$qprog[$i] ; \
 if [ -e $inst_bin_dir/$qprog[$i].app ] ; then $strip $inst_bin_dir/$qprog[$i].app/Contents/MacOS/$qprog[$i] ; fi
 EOF
         end
 
         cat << EOF >> $imod_qconf
-3dmodv.extra = \\cp -f runimodv $inst_bin_dir/3dmodv ; \
+3dmodv.extra = cp -f runimodv $inst_bin_dir/3dmodv ; \
 strip -x 3dmod.app/Contents/MacOS/3dmod ; \
-\\cp -f runimod $inst_bin_dir/3dmod ; cd $inst_bin_dir ; \
-\\rm -f imod imodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv ; \
+cp -f runimod $inst_bin_dir/3dmod ; cd $inst_bin_dir ; \
+rm -f imod imodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv ; \
 if [ -e 3dmod.app ] ; then strip -x 3dmod.app/Contents/MacOS/3dmod ; fi
 EOF
 
@@ -828,6 +834,7 @@ EOF
         # Set up Qt image plugins to copy
         #
         echo "QTPLUGS_TOCOPY1 = libqjpeg.so libqico.so" >> $configure
+        echo "QTSQL_TOCOPY = libqsqlite.so" >> $configure
     else
 
         # MACOSX: deferred tasks
@@ -840,6 +847,7 @@ EOF
 
 
         echo "QTPLUGS_TOCOPY1 = libqjpeg.dylib libqico.dylib" >> $configure
+        echo "QTSQL_TOCOPY = libqsqlite.dylib" >> $configure
     endif
 
     (cd $imod_dir ; \rm -f 3dmodv ; ln -s 3dmod 3dmodv)
@@ -866,6 +874,7 @@ endif
 \find $imod_dir -name 'imod*_menu.o*' ! -newer .version -exec \rm -f '{}' \;
 
 echo "QTPLUG_SRCDIR1 = imageformats" >> $configure
+echo "QTSQL_SRCDIR = sqldrivers" >> $configure
 echo "RGBPROGS = $rgbprogs" >> $configure
 echo "LDFFLAGS = $ldfflags" >> $configure
 echo "FARFLAGS = $farflags" >> $configure

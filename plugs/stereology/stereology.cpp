@@ -11742,8 +11742,7 @@ void Stereology::buttonPressed(int which)
 
 void Stereology::helpPluginHelp()
 {
-  QString str = QString(getenv("IMOD_DIR")) + ("/lib/imodplug/stereology.html#TOP");
-  imodShowHelpPage((const char *)str.toLatin1());
+  imodShowHelpPage("plughelp/stereology.html#TOP");
 }
 
 //------------------------
@@ -11751,8 +11750,7 @@ void Stereology::helpPluginHelp()
 
 void Stereology::helpNamingHelp()
 {
-  QString str = QString(getenv("IMOD_DIR")) + ("/lib/imodplug/naming_help.html#TOP");
-  imodShowHelpPage((const char *)str.toLatin1());
+  imodShowHelpPage("plughelp/stereology_help.html#TOP");
 }
 
 //------------------------

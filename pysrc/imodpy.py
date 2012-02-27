@@ -194,13 +194,15 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
       
       except Exception:
 
-         # If output is collected and it gets a broken pipe after a short enough time,
+         # If it gets a broken pipe after a short enough time,
          # run another trial.  Sleep a bit after trying twice, it helps break the cycle
-         # This problem is observed on MAC OSX with commands that take < 0.02 sec
-         if collect and str(sys.exc_info()[1]).find('Broken pipe') >= 0 and \
+         # This problem is observed on MAC OSX with commands that take < 0.02 sec,
+         # originally with collected output, later with output to file (so what pipe?)
+         if str(sys.exc_info()[1]).find('Broken pipe') >= 0 and \
             retryCount < runRetryLimit and time.time() - tryStart < runMaxTimeForRetry:
             retryCount += 1
-            prnstr(fmtstr("Retrying " + cmd + " after {} sec", time.time() - tryStart))
+            if collect:
+               prnstr(fmtstr("Retrying " + cmd + " after {} sec", time.time() - tryStart))
             if retryCount > 1:
                time.sleep(0.1)
          else:

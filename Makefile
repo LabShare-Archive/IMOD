@@ -1,7 +1,7 @@
 ############################################################################# 
 # Makefile for BL3DEMC IMOD distribution.
 #
-# Copyright (C) 1996-2004
+# Copyright (C) 1996-2012
 # by Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells
 # ("BL3DEMC", formerly "BL3DFS")
 # and the Regents of the University of Colorado.
@@ -15,8 +15,7 @@
 #    All build instructions are now in the file BUILDING
 #
 # IF THERE IS NO TIFF LIBRARY ON YOUR SYSTEM: 
-#    Add the -no_tiff flag whenever you give the setup command (not needed
-#    for IRIX 6.0-6.2 or Solaris).
+#    Add the -no_tiff flag whenever you give the setup command
 #
 # TO DEBUG:
 # 	"setup -debug",  and then,  "make", for debugging and testing.
@@ -25,8 +24,9 @@
 # MAKE TAR ARCHIVES:
 # 	To make the full distribution run "make dist"; it will use the last
 #          setup options when running setup again
-# 	To archive the source code run "make src"
-#
+#	To archive the source from an hg repository run "make src" 
+#          (this will clone the current repository and remove .hg) 
+# 	To archive the html documentation run "make docs"
 #
 #
 #############################################################################
@@ -120,6 +120,13 @@ man : configure ALWAYS
 	(cd manpages ; $(MAKE) install)
 	(cd flib/man ; $(MAKE) install)
 	(cd autodoc  ; $(MAKE) install)
+
+docs :	configure man sourcedoc ALWAYS
+	if [ -e $(ARCNAME)_docs ] ; then /bin/rm -rf $(ARCNAME)_docs/ ; fi
+	cd html  ; $(MAKE) install
+	cd html  ; $(MAKE) docs
+	tar cf $(ARCNAME)_docs.tar $(ARCNAME)_docs
+	$(COMPRESS) $(ARCNAME)_docs.tar
 
 #
 # Make sourcedoc for libdocs.  If the target is the same as the name of an 
@@ -276,90 +283,17 @@ dist : ALWAYS
 
 
 ##################################################################
-# Make the full IMOD source distribution
+# Make the full IMOD source distribution 
+# (2/25/12: eliminated the easily broken gathering of identified files and dirs)
 #
-src : configure cleansrc csrc fsrc etomosrc
-	if [ -e $(ARCDIR)_src/$(ARCDIR)_src/ ] ; then /bin/rm -rf $(ARCDIR)_src/$(ARCDIR)_src/ ; fi
-	-\find $(ARCDIR)_src -depth -name CVS -exec /bin/rm -rf {} \;
-	tar cf $(ARCNAME)_src.tar $(ARCNAME)_src 
-	$(COMPRESS) $(ARCNAME)_src.tar
-
-cleansrc : ALWAYS
+src : ALWAYS
 	if [ -e $(ARCDIR)_src ] ; then /bin/rm -rf $(ARCDIR)_src/ ; fi
 	if [ -e $(ARCNAME)_src.tar ] ; then /bin/rm -rf $(ARCNAME)_src.tar ; fi
-	\find dist -type f -name "*~" -exec rm "{}" \;
-	\find machines -type f -name "*~" -exec rm "{}" \;
-	\find libdiaqt -type f -name "moc_*.cpp" -exec rm "{}" \;
-	\find sendevent -type f -name "moc_*.cpp" -exec rm "{}" \;
-	\find qtassist -type f -name "moc_*.cpp" -exec rm "{}" \;
-	(cd plugs ; make clean)
-	(cd raptor ; make clean)
-	(cd pysrc ; make clean)
-	(cd manpages ; make clean)
-	(cd flib/man ; make clean)
-	(cd autodoc ; make clean)
-	(cd com ; make clean)
-	(cd html ; make clean)
-# 
-# The C source.
-#
-csrc : ALWAYS
-	mkdir -p $(ARCDIR)_src
-	cp Makefile setup README History .version vcimod.dsw \
-	installqtlib packMacApps setup2 BUILDING $(ARCDIR)_src/
-	tar cBf - \
-	machines \
-	lib*/*.[ch] lib*/*.cpp lib[icmw]*/Makefile libdiaqt/Makefile.dummy \
-	libdiaqt/Makefile.unix lib*/*.dsp lib*/*.vcproj libimod/libimod.dsw \
-	sysdep/*/* \
-	3dmod/*.[ch] 3dmod/*.cpp 3dmod/*.ui 3dmod/3dmod.pro \
-	3dmod/*.bits 3dmod/images 3dmod/*.xpm 3dmod/*.qrc \
-	3dmod/3dmod.dsw 3dmod/Makefile.dummy 3dmod/b3dicon.i* \
-	imodutil/*.[ch] imodutil/*.cpp imodutil/Makefile \
-	mrc/*.[ch] mrc/*.cpp   mrc/Makefile \
-	clip/*.[ch]   clip/Makefile \
-	midas/*.[ch] midas/*.cpp midas/midas.pro midas/images midas/midas.qrc \
-	midas/Makefile.dummy \
-	sendevent/*.h sendevent/*.cpp sendevent/imodsendevent.pro \
-	sendevent/Makefile.dummy sendevent/imodsendevent.dsp \
-	qtassist/*qt*.h qtassist/*qt*.cpp qtassist/imodqtassist.pro \
-	qtassist/Makefile.dummy qtassist/imodqtassist.dsp \
-	sourcedoc/*.cpp sourcedoc/sourcedoc.pro \
-	sourcedoc/Makefile.dummy sourcedoc/sourcedoc.dsp \
-	ctfplotter/*.cpp ctfplotter/*.h ctfplotter/ctfplotter.pro \
-	ctfplotter/Makefile.dummy ctfplotter/*.qrc ctfplotter/images \
-	processchunks/*.cpp processchunks/*.h processchunks/processchunks.pro \
-	processchunks/Makefile.dummy \
-	html/*.* html/Makefile html/3dmodimages html/etomoImages \
-	html/3dmodHelp html/joinImages html/adpStub html/makeadp \
-	html/ctfHelp html/midasHelp html/libdoc/Makefile html/libdoc/*.html \
-	raptor dist scripts pysrc com manpages autodoc \
-	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/*.html plugs/*/*.csv plugs/*/Makefile \
-	plugs/*/*.png plugs/Makefile.unix plugs/Makefile.dummy \
-	plugs/drawingtools/livewire/*.h plugs/drawingtools/livewire/*.cpp \
-	plugs/drawingtools/livewire/Makefile \
-	include/*.h include/*.inc | (cd $(ARCDIR)_src; tar xBf -)
-
-#
-# The Fortran source.
-#
-fsrc :
-	mkdir -p $(ARCDIR)_src/flib/
-	cp flib/Makefile $(ARCDIR)_src/flib/
-	cp -r flib/man $(ARCDIR)_src/flib/
-	(cd flib; tar cBf - \
-	*/Makefile */*/Makefile \
-	*/*.[chfs] */*.cu */*/*.[chfs] */*/*.cpp */*.inc */*/README)\
-	| (cd $(ARCDIR)_src/flib; tar xBf -)
-
-#
-# Etomo source
-#
-etomosrc :
-	mkdir -p $(ARCDIR)_src/Etomo/
-	cp -r Etomo/Makefile.real Etomo/Makefile.dummy Etomo/build.xml \
-	Etomo/*MANIFEST.MF Etomo/.project Etomo/src \
-	Etomo/scripts Etomo/doc Etomo/tests $(ARCDIR)_src/Etomo
+	if [ -e $(ARCDIR)_src/$(ARCDIR)_src/ ] ; then /bin/rm -rf $(ARCDIR)_src/$(ARCDIR)_src/ ; fi
+	hg clone . $(ARCDIR)_src
+	/bin/rm -rf $(ARCDIR)_src/.hg
+	tar cf $(ARCNAME)_src.tar $(ARCNAME)_src 
+	$(COMPRESS) $(ARCNAME)_src.tar
 
 #
 # Tests

@@ -1,0 +1,145 @@
+#!/usr/bin/python -u
+# makeqhp - script to build IMOD.qhp from qhpStub
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+instext1 = "INSERT PLUGIN PAGES"
+instext2 = "INSERT MAN PAGES"
+instext3 = "INSERT LIBRARY PAGES"
+instext4 = "INSERT FILE LISTING"
+stubFile = 'qhpStub'
+qhpFile = 'IMOD.qhp'
+
+# List of files to exclude from the man page directory
+excludes = ['cpuadoc', 'pip', 'imodenv', 'uitest']
+
+# Directories to search for the file list, in alphabetic order, and corresponding
+# extensions to glob for
+listDirs = ['3dmodHelp', '3dmodimages', 'ctfHelp', 'etomoImages', 'joinImages', 'libhelp',
+            'man', 'midasHelp', 'plughelp']
+dirExts = ['[hp]*', '*', '*', '*', '*', '*', 'html', 'html', '*', '*']
+
+# Files and directories to change Ctrl to Apple in on Mac
+appleFiles = ['3dmodguide.html']
+appleDirs = ['3dmodHelp', 'midasHelp']
+
+stubInd = 0
+outlines = []
+
+# Copy lines from stub up to the next INSERT place
+def copyToINSERT(insertText):
+   global stubInd, outlines
+   while stubInd < len(stubLines):
+      if stubLines[stubInd].startswith(insertText):
+         stubInd += 1
+         break
+      outlines.append(stubLines[stubInd])
+      stubInd += 1
+
+# Find a title within the top three lines of a file
+def findTitle(lib):
+   title = None
+   libfile = open(lib, 'r')
+   for i in range(3):
+      topline = libfile.readline()
+      indst = topline.find('<title>')
+      indnd = topline.find('</title>')
+      if indst >= 0 and indnd > indst:
+         title = topline[indst + 7 : indnd]
+         break;
+   
+   libfile.close()
+   return title
+
+# Very simple startup here
+import sys, os, os.path, glob, shutil
+
+sys.path.append('../pysrc')
+from imodpy import *
+from pysed import *
+
+stubLines = readTextFile(stubFile)
+
+# Copy through 3dmod up to plugins and get the plugin pages
+copyToINSERT(instext1)
+plugfiles = glob.glob(os.path.join('plughelp', '*.html'))
+for plug in plugfiles:
+   basename = os.path.basename(plug)
+   title = findTitle(plug)
+   if not title:
+      title = plug
+   outlines.append('                        <section title="' + title + \
+                      '" ref="./plughelp/' + basename + '#TOP"></section>')
+
+# Copy to man pages and insert those
+copyToINSERT(instext2)
+manfiles = glob.glob(os.path.join('man', '*.html'))
+for man in manfiles:
+   (progname, ext) = os.path.splitext(os.path.basename(man))
+   if progname not in excludes:
+      outlines.append('                    <section title="' + progname + \
+                         '" ref="./man/' + progname + '.html#TOP"></section>')
+# Copy to library pages
+copyToINSERT(instext3)
+libfiles = glob.glob(os.path.join('libhelp', '*.html'))
+for lib in libfiles:
+   basename = os.path.basename(lib)
+   title = findTitle(lib)
+   if not title:
+      (title, ext) = os.path.splitext(basename)
+    
+   outlines.append('                    <section title="' + title + '" ref="./libhelp/' +\
+                      basename + '#TOP"></section>')
+
+# Copy to file list and finish the file list
+copyToINSERT(instext4)
+for ind in range(len(listDirs)):
+   subdir = listDirs[ind]
+   dirfiles = glob.glob(os.path.join(subdir, '*.' + dirExts[ind]))
+   for subfile in dirfiles:
+      basename = os.path.basename(subfile)
+      outlines.append('            <file>' + subdir + '/' + basename + '</file>')
+
+# Copy to end
+while stubInd < len(stubLines):
+   outlines.append(stubLines[stubInd])
+   stubInd += 1
+
+writeTextFile(qhpFile, outlines)
+
+# For Mac, we need to make a temporary copy and change Ctrl to Apple
+if sys.platform.find('darwin') >= 0:
+   prnstr('Making a copy with Ctrl replaced by Apple for Mac')
+   for name in appleFiles + appleDirs:
+      os.rename(name, name + '.save')
+   for name in appleFiles:
+      pysed('s/Ctrl/Apple/g', name + '.save', name)
+   for dir in appleDirs:
+      savedir = dir + '.save'
+      os.mkdir(dir)
+      allFiles = glob.glob(savedir + '/*')
+      for subfile in allFiles:
+         basename = os.path.basename(subfile)
+         if basename.endswith('.html'):
+            pysed('s/Ctrl/Apple/g', subfile, dir + '/' + basename)
+         else:
+            shutil.copyfile(subfile, dir + '/' + basename)
+
+# Make the help file for everyone now
+prnstr('Making the compressed help file')
+runcmd('qcollectiongenerator IMOD.qhcp', 'stdout')
+
+# Clean up the copy
+if sys.platform.find('darwin') >= 0:
+   prnstr('Cleaning up the copy')
+   for name in appleFiles:
+      os.remove(name)
+      os.rename(name + '.save', name)
+      
+   for dir in appleDirs:
+      shutil.rmtree(dir)
+      os.rename(dir + '.save', dir)
+
+sys.exit(0)

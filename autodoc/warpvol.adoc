@@ -70,9 +70,10 @@ type = I
 usage = Memory to use for major arrays, in megabytes (default 768)
 tooltip = 
 manpage = Amount of memory to allocate for the major arrays needed by the
-program.  This always includes memory for input images and may include memory
-for a plane of transformations or for a stack of output slices, depending on
-whether transformations rotate the data by 90 degrees.
+program, in megabytes.  This always includes memory for input images and may
+include memory for a plane of transformations or for a stack of output slices,
+depending on whether transformations rotate the data by 90 degrees.  The
+default is 768.
 
 [Field = VerboseOutput]
 short = verbose
