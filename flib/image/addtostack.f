@@ -34,7 +34,7 @@ c	  David Mastronarde  5/28/90
 c
 ************************************************************************
 *   
-	parameter (idim=5100,lmfil=1000)
+	parameter (idim=640000,lmfil=1000)
 	COMMON //NX,NY,NZ
 C   
 	DIMENSION NXYZ(3),MXYZ(3),NXYZST(3),ARRAY(idim*idim),TITLE(20),
