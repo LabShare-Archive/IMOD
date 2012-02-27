@@ -30,4 +30,5 @@ OFFSET 0.0
 SHIFT 0.0 0.0
 ZFACTORFILE testBBa.zfac
 ActionIfGPUFails 1,2
+EXCLUDELIST 1
 $sync
