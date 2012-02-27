@@ -444,8 +444,8 @@ int BeadFixer::reread()
   int found = 0;
   int gotHeader = 0;
   int inpt, i, ob, co, ob2, co2;
-  double baseval;
   int numToSee = 0;
+  double baseval;
   int binning = sView->xybin;
   float tmp1, tmp2, tmp3, resid;
   Imod *imod = ivwGetModel(sView);
@@ -1214,11 +1214,11 @@ void BeadFixer::moveAll(bool globalOK, bool skipDisplay)
   
   // Do not allow it for the global area unless the flag allows it and there
   // are no locals
+  mNumAllMoved = 0;
   if ((mCurArea <= 0 && (mNumAreas > 1 || !globalOK)) ||
       mCurrentRes >= mNumResid || !mNumResid)
     return;
   mMovingAll = true;
-  mNumAllMoved = 0;
   while (mCurArea == startArea && mCurrentRes < mNumResid) {
     if (mIndlook >= 0 && !mCurmoved) {
       movePoint();
@@ -1242,6 +1242,7 @@ void BeadFixer::moveAllSlot()
              "areas.\n");
       return;
     }
+    grabKeyboard();
     if (sLastMoveGlobal < 2 && mCurrentRes < mNumResid) {
       sLastMoveGlobal = dia_ask_forever
         ("Are you sure you want to move all points by residual?\n"
@@ -1261,8 +1262,10 @@ void BeadFixer::moveAllSlot()
   moveAll(mNumAreas <= 1, mIteratingMoveAll > 0);
   if (mIteratingMoveAll > 0) 
     runAlign();
-  else
+  else {
     mIteratingMoveAll = 0;
+    releaseKeyboard();
+  }
 }
 
 // Move all points in all local areas
@@ -1286,7 +1289,7 @@ void BeadFixer::moveAllAll()
   }
   if (mIteratingMoveAll == 0 && mShiftDown)
     mIteratingMoveAll = 1;
-  if (mIteratingMoveAll > 0) 
+  if (mIteratingMoveAll > 0)
     runAlign();
   else
     mIteratingMoveAll = 0;
@@ -1297,8 +1300,11 @@ void BeadFixer::moveAllAll()
 void BeadFixer::iterateMoveAll()
 {
   int numMoved = 0;
-  if (!mShiftDown) {
+  if (!mShiftDown || !mNumResid) {
+    if (mNumResid)
+      wprint("Stopped iterating because you released the Shift key\n");
     mIteratingMoveAll = 0;
+    releaseKeyboard();
     manageDoneLabel();
     return;
   }
@@ -1316,6 +1322,9 @@ void BeadFixer::iterateMoveAll()
   if (mShiftDown && numMoved > 0)
     runAlign();
   else {
+    if (numMoved)
+      wprint("Stopped iterating because you released the Shift key\n");
+    releaseKeyboard();
     manageDoneLabel();
     mIteratingMoveAll = 0;
   }
@@ -2661,6 +2670,8 @@ void BeadFixer::runAlign()
   char *imodDir = getenv("IMOD_DIR");
   if (!imodDir) {
     wprint("\aCannot run tiltalign; IMOD_DIR not defined.\n");
+    if (mIteratingMoveAll)
+      releaseKeyboard();
     return;
   }
   vmsStr = "vmstopy";
@@ -2724,7 +2735,8 @@ void BeadFixer::alignExited(int exitCode, QProcess::ExitStatus exitStatus)
     openFileBut->setEnabled(true);
     if (mIteratingMoveAll > 0)
       iterateMoveAll();
-  }
+  } else if (mIteratingMoveAll > 0)
+    releaseKeyboard();
   if (!mLastLogError.isEmpty())
     wprint("\a%s", LATIN1(mLastLogError));
 }
@@ -2856,6 +2868,8 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 {
   if (e->key() == Qt::Key_Shift)
     mShiftDown = false;
+  if (mIteratingMoveAll > 0)
+    releaseKeyboard();
   ivwControlKey(1, e);
 }
 
