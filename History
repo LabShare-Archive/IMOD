@@ -1,8 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/27/12: In eTomo running comscripts and processchunks with python.(Bug# 1591)
+
 2/22/12: IMOD_4-3-6
 2/20/12: IMOD_4-4-5
-2/20/12: In eTomo running comscripts and processchunks with python.(Bug# 1591)
 
 2/18/12: Added a graphic of mouse buttons to 3dmod preferences dialog.
 
