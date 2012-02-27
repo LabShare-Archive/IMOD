@@ -14,6 +14,7 @@ if.var.quick.return=
 	run.function.copy=
 	run.function.compute-z-shift-&-pitch-angles=
 	if.not.var.fidless.run.function.create-final-alignment=
+  run.function.test-files=
 [[]]
 bn.done=
 
@@ -50,6 +51,11 @@ wait.process.creating-sample-tomogram = done
 [[ifnot = patch-tracking]]
   copy.file = tomopitch%{axis}.mod
 [[]]
+
+
+[function = test-files]
+if.var.fidless.return=
+assert.contains.file=tilt%{axis}.com|EXCLUDELIST*1
 
 
 [function = compute-z-shift-&-pitch-angles]

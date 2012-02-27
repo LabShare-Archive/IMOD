@@ -28,4 +28,5 @@ XAXISTILT 0.13
 XTILTFILE BBb.xtilt
 ZFACTORFILE BBb.zfac
 ActionIfGPUFails 1,2
+EXCLUDELIST 1
 $if (-e ./savework) ./savework

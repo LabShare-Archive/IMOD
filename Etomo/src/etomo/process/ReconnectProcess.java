@@ -227,14 +227,14 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
       e.printStackTrace();
     }
     if (log.size() == 0) {
-      logFile.closeReader(readerId);
+      logFile.closeRead(readerId);
       return null;
     }
     if (log.size() == 1) {
-      logFile.closeReader(readerId);
+      logFile.closeRead(readerId);
       return new String[] { (String) log.get(0) };
     }
-    logFile.closeReader(readerId);
+    logFile.closeRead(readerId);
     return (String[]) log.toArray(new String[log.size()]);
   }
 

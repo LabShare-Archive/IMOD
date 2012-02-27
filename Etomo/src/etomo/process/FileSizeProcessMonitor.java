@@ -517,7 +517,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
 
   private void closeLogFileReader() {
     if (logReaderId != null && !logReaderId.isEmpty()) {
-      logFile.closeReader(logReaderId);
+      logFile.closeRead(logReaderId);
       logReaderId = null;
     }
   }

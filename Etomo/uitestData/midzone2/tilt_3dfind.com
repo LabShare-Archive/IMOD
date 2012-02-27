@@ -20,7 +20,7 @@ PERPENDICULAR
 AdjustOrigin 
 RADIAL 0.35 0.05
 SCALE 0.0 500.0
-SHIFT 0.0 28.9
+SHIFT 0.0 28.8
 SUBSETSTART -25 -14
 THICKNESS 154
 TILTFILE midzone2a.tlt
@@ -28,4 +28,5 @@ XAXISTILT 1.71
 XTILTFILE midzone2a.xtilt
 ZFACTORFILE midzone2a.zfac
 ActionIfGPUFails 1,2
+EXCLUDELIST 1
 $if (-e ./savework) ./savework

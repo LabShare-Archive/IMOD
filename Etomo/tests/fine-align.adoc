@@ -4,7 +4,9 @@ Version = 1.2
 if.var.quick.run.function.quick=
 if.var.quick.return=
 if.var.test-gui.run.function.test-gui=
+run.function.set-values=
 run.function.compute-alignment=
+if.var.test-gui.run.function.test-files=
 bn.done=
 
 
@@ -178,6 +180,16 @@ copy.file=%{dataset}%{axis}_fid.xf
 copy.file=%{dataset}%{axis}_fid.tlt
 copy.file=%{dataset}%{axis}local.xf
 copy.file=%{dataset}%{axis}.zfac
+
+
+[function = set-values]
+tb.general=
+tf.list-of-views-to-exclude=1
+
+
+[function = test-files]
+assert.contains.file=align%{axis}.com|ExcludeList*1
+assert.contains.file=align%{axis}.log|ExcludeList = 1
 
 
 [function = test-gui]

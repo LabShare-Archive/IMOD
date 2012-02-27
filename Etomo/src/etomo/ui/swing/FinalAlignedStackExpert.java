@@ -574,7 +574,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       if (file.exists()) {
         readerId = file.openReader();
         String line = file.readLine(readerId);
-        if (file.closeReader(readerId)) {
+        if (file.closeRead(readerId)) {
           readerId = null;
         }
         String[] array = line.split("\\s+");
@@ -602,7 +602,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       e.printStackTrace();
     }
     if (readerId != null && !readerId.isEmpty()) {
-      file.closeReader(readerId);
+      file.closeRead(readerId);
     }
     if (writerId != null && !writerId.isEmpty()) {
       file.closeWriter(writerId);

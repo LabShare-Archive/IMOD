@@ -1704,11 +1704,11 @@ final class AutodocTester extends Assert implements VariableList {
         }
       }
       if (foundAMatch) {
-        logFile.closeReader(readerId);
+        logFile.closeRead(readerId);
         return;
       }
     }
-    logFile.closeReader(readerId);
+    logFile.closeRead(readerId);
     fail(targetString + "\nnot found in " + fileName + "(" + command + ")\n");
   }
 

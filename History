@@ -7,6 +7,9 @@ and made it give a message when it stops because user released Shift key.
 
 2/24/12: Converted help system to use compressed html file in Qt 4 Assistant.
 
+2/24/12: In eTomo getting EXCLUDELIST for tilt.com from align.log when
+possible.(Bug# 1407)
+
 2/23/12: IMOD_4-3-7
 2/23/12: Fixed memory leak in routine for filtered image reduction (In 4.3).
 
