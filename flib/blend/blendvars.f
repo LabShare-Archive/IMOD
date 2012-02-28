@@ -26,11 +26,11 @@ c
       integer*4, allocatable :: iedgelower(:,:),iedgeupper(:,:), limDataInd(:)
       integer*4, allocatable :: ipiecelower(:,:),ipieceupper(:,:),ibufedge(:,:)
       integer*4, allocatable :: ifskipEdge(:,:)
-      integer*4 indent(2)			!minimum indent short & long
-      integer*4 intgrid(2)			!grid interval short & long
-      integer*4 iboxsiz(2)			!box size short & long
-      integer*4 nxgrid(2),nygrid(2)		!# of grid points for x&y edges
-      real*4 edgelonear(2),edgehinear(2)	!limits for values near edges
+      integer*4 indent(2)                       !minimum indent short & long
+      integer*4 intgrid(2)                      !grid interval short & long
+      integer*4 iboxsiz(2)                      !box size short & long
+      integer*4 nxgrid(2),nygrid(2)             !# of grid points for x&y edges
+      real*4 edgelonear(2),edgehinear(2)        !limits for values near edges
       equivalence (nxin,nxyzin(1)),(nyin,nxyzin(2)),(nzin,nxyzin(3))
       equivalence (nxbin,nxyzbin(1)),(nybin,nxyzbin(2)),(nzbin,nxyzbin(3))
       equivalence (nxout,nxyzout(1)),(nyout,nxyzout(2)),(nzout,nxyzout(3))
@@ -47,19 +47,19 @@ c
 c       frame number of each piece in X and Y, and min and max frames
       integer*4 inpxframe(maxInPc), inpyframe(maxInPc)
       integer*4 maxxframe,maxyframe, minxframe,minyframe
-      integer*4 numedges(2)			!number of edges in x and y
+      integer*4 numedges(2)                     !number of edges in x and y
       integer*4 inedge(maxInPc,2)               !edge # of edges point is in
 c       list index of pieces on either side of edge
       integer*4 inedlower(maxInPc,2),inedupper(maxInPc,2)
       integer*4 numPcNear, idxPcNear(maxPcNear), idyPcNear(maxPcNear)
 c
-      integer*4, allocatable :: mappiece(:,:)	!map of pieces in this section
+      integer*4, allocatable :: mappiece(:,:)   !map of pieces in this section
       logical, allocatable :: anyDisjoint(:,:)   !If any corner is disjoint
       integer*4, allocatable :: mapDisjoint(:,:) !Type of disjoint edge (X/Y)
       logical dogxforms,multng                  !if doing g's, if negs in sect
       logical limitData                         !if limiting data in X/Y
-      real*4 hxcen,hycen			!coord of center of input frame
-      real*4 gxcen,gycen			!coord of output image center
+      real*4 hxcen,hycen                        !coord of center of input frame
+      real*4 gxcen,gycen                        !coord of output image center
       real*4 ginv(2,3)                          !inverse of g and h xforms
       real*4, allocatable :: hinv(:,:,:), htmp(:,:,:)
 c       
@@ -105,7 +105,7 @@ c       Variables for finding shifts and for finding gradients
       real*4, allocatable :: dxedge(:,:), dyedge(:,:), dxadj(:,:), dyadj(:,:)
 c       
 c       Variables added when internal sub didn't work
-      integer*4 iblend(2)			!blending width in x and y
+      integer*4 iblend(2)                       !blending width in x and y
       integer*4 indedge4(3,2)
       real*4 edgefrac4(3,2)
       integer*4 indp1234(8)
