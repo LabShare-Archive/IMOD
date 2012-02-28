@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include <stdio.h>
@@ -503,8 +502,10 @@ static int imodel_read(Imod *imod, int version)
   int error;
   int ieof = FALSE;
   int id;
+#ifdef IMODEL_FILES_DEBUG
   char badid[8];
   int *badp = (int *)badid;
+#endif
 
   if (version == IMOD_01){
     error = imodel_read_v01(imod, imod->file);
@@ -744,6 +745,21 @@ static int imodel_read(Imod *imod, int version)
   fflush(fin);
   if (version < IMOD_V12)
     imodCleanSurf(imod);
+
+  /* Make sure the current index is valid */
+  if (imod->objsize > 0)
+    B3DCLAMP(imod->cindex.object, 0, imod->objsize - 1);
+  else
+    imod->cindex.object = -1;
+  if (imod->cindex.object < 0)
+    imod->cindex.contour = imod->cindex.point = -1;
+  else
+    B3DCLAMP(imod->cindex.contour, -1, imod->obj[imod->cindex.object].contsize - 1);
+  if (imod->cindex.contour < 0)
+    imod->cindex.point = -1;
+  else
+    B3DCLAMP(imod->cindex.point, -1, 
+             imod->obj[imod->cindex.object].cont[imod->cindex.contour].psize - 1);
   return(0);
 }
 
