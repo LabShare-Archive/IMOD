@@ -250,8 +250,6 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
   numThreads = B3DNINT(0.04 * sqrt((double)aXsize * aYsize));
   numThreads = numOMPthreads(B3DMIN(numThreads, MAX_THREADS));
 
-  for (i = 0; i < numThreads; i++)
-
   /* Allocate accumulation, filter output, and weight buffers */
   xweights = B3DMALLOC(Weighttab, bXsize);
   xweightSbuf = (b3dInt16 *)malloc(bXsize * width * psizeWgt);

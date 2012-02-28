@@ -77,27 +77,27 @@ public final class ProcessingMethodMediator {
    */
   public synchronized void register(final ReconnectProcess reconnectProcess) {
     if (reconnectProcess == null) {
-      //can't use this function to deregister a process
+      // can't use this function to deregister a process
       return;
     }
     if (this.reconnectProcess != null) {
-      //must deregister old process to register new one
+      // must deregister old process to register new one
       return;
     }
     this.reconnectProcess = reconnectProcess;
-    //Show the reconnect process method
+    // Show the reconnect process method
     ProcessingMethod method = reconnectProcess.getProcessingMethod();
     if (axisProcessPanel != null) {
       if (!method.isLocal()) {
-        //Does the monitor start before the process?  Maybe, so force the
-        //axisProcessPanel to show the parallel panel.
+        // Does the monitor start before the process? Maybe, so force the
+        // axisProcessPanel to show the parallel panel.
         axisProcessPanel.forceShowParallelPanel(true);
       }
       else {
         axisProcessPanel.showParallelPanel(false);
       }
     }
-    //lock everything while the reconnect process is running.
+    // lock everything while the reconnect process is running.
     if (parallelPanel != null) {
       parallelPanel.setProcessingMethod(method);
       parallelPanel.lockProcessingMethod(true);
@@ -116,7 +116,7 @@ public final class ProcessingMethodMediator {
       return;
     }
     reconnectProcess = null;
-    //Going back to the processInterface method
+    // Going back to the processInterface method
     ProcessingMethod method = null;
     if (processInterface != null) {
       method = processInterface.getProcessingMethod();
@@ -124,8 +124,8 @@ public final class ProcessingMethodMediator {
     if (method == null) {
       method = ProcessingMethod.DEFAULT;
     }
-    //Unlock after the reconnect process is done and have the processInterface
-    //take over.
+    // Unlock after the reconnect process is done and have the processInterface
+    // take over.
     if (axisProcessPanel != null) {
       axisProcessPanel.showParallelPanel(!method.isLocal());
     }
@@ -148,16 +148,16 @@ public final class ProcessingMethodMediator {
    */
   public synchronized void register(final ProcessInterface processInterface) {
     if (processInterface == null) {
-      //can't use this function to deregister an interface
+      // can't use this function to deregister an interface
       return;
     }
     this.processInterface = processInterface;
     if (reconnectProcess != null) {
-      //nothing to do - reconnectProcess locks everything
+      // nothing to do - reconnectProcess locks everything
       return;
     }
-    //Set interface method - needs to be called twice because of the interdependency of
-    //process interface and the parallel panel.
+    // Set interface method - needs to be called twice because of the interdependency of
+    // process interface and the parallel panel.
     setInterfaceMethod(processInterface.getProcessingMethod());
     setInterfaceMethod(processInterface.getProcessingMethod());
   }
@@ -173,7 +173,7 @@ public final class ProcessingMethodMediator {
       return;
     }
     processInterface = null;
-    //hide parallel panel
+    // hide parallel panel
     if (axisProcessPanel != null) {
       axisProcessPanel.showParallelPanel(false);
     }
@@ -191,11 +191,11 @@ public final class ProcessingMethodMediator {
    */
   public synchronized void register(final ParallelProcessMonitor parallelProcessMonitor) {
     if (parallelProcessMonitor == null) {
-      //can't use this function to deregister an interface
+      // can't use this function to deregister an interface
       return;
     }
     if (this.parallelProcessMonitor != null) {
-      //must deregister old interface to register new one
+      // must deregister old interface to register new one
       return;
     }
     this.parallelProcessMonitor = parallelProcessMonitor;
@@ -212,8 +212,8 @@ public final class ProcessingMethodMediator {
     if (axisProcessPanel != null) {
       axisProcessPanel.lockProcessingMethod(false);
     }
-    //do nothing if reconnectProcess is running - its deregistration will take
-    //care of any changes.
+    // do nothing if reconnectProcess is running - its deregistration will take
+    // care of any changes.
     if (reconnectProcess == null) {
       ProcessingMethod method = ProcessingMethod.DEFAULT;
       if (processInterface != null) {
@@ -225,31 +225,31 @@ public final class ProcessingMethodMediator {
 
   public synchronized void register(final AxisProcessPanel axisProcessPanel) {
     if (axisProcessPanel == null) {
-      //can't use this function to deregister a panel
+      // can't use this function to deregister a panel
       return;
     }
     if (this.axisProcessPanel != null) {
-      //must deregister old panel to register new one
+      // must deregister old panel to register new one
       return;
     }
     this.axisProcessPanel = axisProcessPanel;
-    //The axisProcessPanel should be created very early, so there wouldn't be
-    //anything available for it to get information from.
+    // The axisProcessPanel should be created very early, so there wouldn't be
+    // anything available for it to get information from.
   }
 
   public synchronized void register(final ParallelPanel parallelPanel) {
     if (parallelPanel == null) {
-      //can't use this function to deregister a panel
+      // can't use this function to deregister a panel
       return;
     }
     if (this.parallelPanel != null) {
-      //must deregister old panel to register new one
+      // must deregister old panel to register new one
       return;
     }
     this.parallelPanel = parallelPanel;
-    //Parallel panel is create in response to the existance of a reconnect
-    //process or an interface.  Setting its method should be taken care of
-    //by the process or interface.
+    // Parallel panel is create in response to the existance of a reconnect
+    // process or an interface. Setting its method should be taken care of
+    // by the process or interface.
   }
 
   /**
@@ -270,7 +270,9 @@ public final class ProcessingMethodMediator {
       parallelPanel.setProcessingMethod(method);
       queueMethod = parallelPanel.getProcessingMethod() == ProcessingMethod.QUEUE;
     }
-    processInterface.disableGpu(queueMethod);
+    if (processInterface != null) {
+      processInterface.disableGpu(queueMethod);
+    }
   }
 
   /**
@@ -279,8 +281,8 @@ public final class ProcessingMethodMediator {
    * @param method
    */
   public void setMethod(final ProcessInterface origin, final ProcessingMethod method) {
-    //Ignore an unregistered process interface
-    //Don't change processing method while reconnect process exists
+    // Ignore an unregistered process interface
+    // Don't change processing method while reconnect process exists
     if (origin != processInterface || reconnectProcess != null) {
       return;
     }
@@ -293,7 +295,7 @@ public final class ProcessingMethodMediator {
    * @param method
    */
   public void setMethod(final ParallelPanel origin, final ProcessingMethod method) {
-    //Ignore an unregistered parallel panel
+    // Ignore an unregistered parallel panel
     if (origin != parallelPanel) {
       return;
     }
@@ -317,9 +319,9 @@ public final class ProcessingMethodMediator {
       }
       return processInterfaceMethod;
     }
-    //Parallel panel should not be displayed if there is no dialog (process
-    //interface), unless its locked by reconnect process - in which case and it
-    //should not be able to resume or enable its queue box.
+    // Parallel panel should not be displayed if there is no dialog (process
+    // interface), unless its locked by reconnect process - in which case and it
+    // should not be able to resume or enable its queue box.
     return ProcessingMethod.DEFAULT;
   }
 

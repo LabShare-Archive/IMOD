@@ -2391,8 +2391,7 @@ void NameWizard::moreSettings()
 
 void NameWizard::helpPluginHelp()
 {
-  QString str = QString(getenv("IMOD_DIR")) + ("/lib/imodplug/namewizard.html#TOP");
-  imodShowHelpPage((const char *)str.toLatin1());
+  imodShowHelpPage("plughelp/namewizard.html#TOP");
 }
 
 //------------------------
@@ -2400,8 +2399,7 @@ void NameWizard::helpPluginHelp()
 
 void NameWizard::helpNamingHelp()
 {
-  QString str = QString(getenv("IMOD_DIR")) + ("/lib/imodplug/naming_help.html#TOP");
-  imodShowHelpPage((const char *)str.toLatin1());
+  imodShowHelpPage("plughelp/naming_help.html#TOP");
 }
 
 

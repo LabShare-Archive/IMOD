@@ -506,7 +506,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     Utilities.debugPrint("LogFileProcessMonitor: Closing the log file reader for "
         + logFile.getAbsolutePath());
     if (logFile != null) {
-      logFile.closeReader(logFileReaderId);
+      logFile.closeRead(logFileReaderId);
       logFileReaderId = null;
     }
     runSelfTest(RAN_STATE);

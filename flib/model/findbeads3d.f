@@ -463,14 +463,14 @@ c
           peakBelow = aboveAvg - 5. * aboveSD
           call findValueInList(peakVal, numCorrs, peakBelow, numPeaks)
           numPeaks = max(numLook, min(2 * numLook, numPeaks))
-          write(*,'(a,i5,a,f7.4)')'Storing an additional',numPeaks - numLook,
+          write(*,'(a,i7,a,f7.4)')'Storing an additional',numPeaks - numLook,
      &        ' peaks in model down to a value of', peakBelow
         endif
         
       else
         call findValueInList(peakVal, numCorrs, min(1., storeThresh), numPeaks)
         if (ierr.ne. 0) blackThresh = 0
-        write(*,'(a,i5,a,f7.4)')'Storing',numPeaks,
+        write(*,'(a,i7,a,f7.4)')'Storing',numPeaks,
      &      ' peaks in model above threshold of',storeThresh
       endif
 
@@ -1252,7 +1252,7 @@ c
       subroutine writePeakModel(firstFile, indPeak, peakVal, peakPos,
      &    numPeaks, blackThresh, nxyz, delta, origin, radius)
       implicit none
-      include 'smallmodel.inc'
+      include 'model.inc'
       character*(*) firstFile
       integer*4 indPeak(*), numPeaks, iobj, i, j, ierr, nxyz(3)
       real*4 peakVal(*), peakPos(3,*), delta(*), origin(*), radius, blackThresh

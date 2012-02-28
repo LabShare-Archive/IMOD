@@ -907,7 +907,11 @@ public class ImodProcess {
     if (useModv) {
       commandOptions.add("-view");
     }
-
+    /*
+    if (debug) {
+      commandOptions.add("-DC");
+    }
+*/
     if (binning > defaultBinning
         || (menuOptions.isBinBy2() && menuOptions.isAllowBinningInZ())) {
       commandOptions.add("-B");

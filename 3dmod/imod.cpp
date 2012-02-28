@@ -250,7 +250,7 @@ int main( int argc, char *argv[])
   setlocale(LC_NUMERIC, "C");
 
   ImodPrefs = new ImodPreferences(cmdLineStyle);
-  ImodHelp = new ImodAssistant("html/3dmodHelp", "3dmod.adp", "3dmod");
+  ImodHelp = new ImodAssistant("html", "IMOD.qhc", "3dmod", false, false, "3dmodHelp");
 
   // Set up the application icon for windows to use
   App->iconPixmap = new QPixmap(QPixmap::fromImage(QImage(b3dicon)));
@@ -791,6 +791,8 @@ int main( int argc, char *argv[])
 
   /* DNM: set this now in case image load is interrupted */
   Model->csum = imodChecksum(Model);
+  if (imodDebug('C'))
+    wprint("main set checksum %d\n", Model->csum);
 
   // Read tilt angles if any
   if (anglefname)
@@ -932,6 +934,8 @@ void imod_exit(int retcode)
   // stuff, then wait until it gets the disconnect
   if (ClipHandler)
     ClipHandler->startDisconnect();
+  if (ImodHelp)
+    delete ImodHelp;
   if (ImodPrefs)                     // Tell prefs to get zap sizes
     ImodPrefs->recordZapGeometry();
   zapReportBiggestMultiZ();
@@ -942,8 +946,6 @@ void imod_exit(int retcode)
   imodDialogManager.close();         // Remaining imod dialog windows
   if (ImodPrefs)                     // Now save settings after windows get to 
     ImodPrefs->saveSettings(0);       // specify settings
-  if (ImodHelp)
-    delete ImodHelp;
   if (ClipHandler)
     ClipHandler->waitForDisconnect();
   // It did NOT work to use qApp->closeAllWindows after this

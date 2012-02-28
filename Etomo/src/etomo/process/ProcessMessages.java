@@ -802,7 +802,7 @@ public final class ProcessMessages {
   private final boolean nextLogFileLine() {
     try {
       if ((line = logFile.readLine(logFileReaderId)) == null) {
-        logFile.closeReader(logFileReaderId);
+        logFile.closeRead(logFileReaderId);
         logFile = null;
         logFileReaderId = null;
         return false;
@@ -810,7 +810,7 @@ public final class ProcessMessages {
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      logFile.closeReader(logFileReaderId);
+      logFile.closeRead(logFileReaderId);
       logFile = null;
       logFileReaderId = null;
       line = null;
@@ -818,7 +818,7 @@ public final class ProcessMessages {
     }
     catch (IOException e) {
       e.printStackTrace();
-      logFile.closeReader(logFileReaderId);
+      logFile.closeRead(logFileReaderId);
       logFile = null;
       logFileReaderId = null;
       line = null;

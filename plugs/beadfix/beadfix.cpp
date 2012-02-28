@@ -9,7 +9,6 @@
  *  other code in 3dmod for examples of that.
  *
  *  $Id$
- *  Log at end of file
  */
 
 
@@ -978,19 +977,11 @@ void BeadFixer2::buttonPressed(int which)
   if (!which)
     close();
   else {
-    // This location can be used for a plugin incorporated into master IMOD
-    // source and distributed with IMOD binaries
-    str = QString(getenv("IMOD_PLUGIN_DIR"));
-    str += QString("/beadfix2.html");
-    
-    // This location can be used otherwise: users would install the plugin and
-    // the help file at this location
-    //str = QString(getenv("IMOD_CALIB_DIR"));
-    //str += QString("/plugins/beadfix2.html");
-    imodShowHelpPage((const char *)str.toLatin1());
+    // For a plugin incorporated into IMOD, this is the path in the compiled qhc file
+    // Always have an anchor #TOP at the top so Qt Assistant starts at the top
+    imodShowHelpPage("plughelp/beadfix2.html#TOP");
 
-    // If neither approach is suitable, use dia_vasmsg to pass a string from
-    // within the code (can contain html).
+    // Otherwise, use dia_vasmsg to pass a string from within the code (can contain html).
   }
 }
 
@@ -1030,35 +1021,3 @@ void BeadFixer2::keyReleaseEvent ( QKeyEvent * e )
 {
   ivwControlKey(1, e);
 }
-
-/*
-
-$Log$
-Revision 3.17  2009/01/15 16:34:51  mast
-Qt 4 port
-
-Revision 3.16  2008/04/04 21:29:30  mast
-free contours after adding to object
-
-Revision 3.15  2008/01/14 19:43:58  mast
-Check out some new functions, expand on help page example
-
-Revision 3.14  2008/01/11 20:19:52  mast
-Added help example
-
-Revision 3.13  2007/12/04 22:22:59  mast
-Added mouse and wheel (?) example, rationalized build
-
-Revision 3.12  2004/11/20 15:45:41  mast
-Had to cast layouts to QBoxLayout (why here an not in 3dmod?)
-
-Revision 3.11  2004/09/24 17:55:38  mast
-Added example of executing message
-
-Revision 3.10  2004/06/01 00:52:38  mast
-Set up as test for plugin building
-
-See imod/beadfix.cpp for previous history
-
-*/
-

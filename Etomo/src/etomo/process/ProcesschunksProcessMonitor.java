@@ -389,7 +389,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
     if (processOutput != null && processOutputReaderId != null
         && !processOutputReaderId.isEmpty()) {
-      processOutput.closeReader(processOutputReaderId);
+      processOutput.closeRead(processOutputReaderId);
       processOutput = null;
     }
   }

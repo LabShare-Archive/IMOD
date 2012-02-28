@@ -5,4 +5,12 @@ fi
 if [ ! -z "$IMOD_QTLIBDIR" ] ; then
     export PATH="${IMOD_QTLIBDIR}:$PATH"
 fi
-assistant_adp -profile $IMOD_DIR/html/IMOD.adp -file $IMOD_DIR/html/index.html&
+prog=assistant
+if [ -e "${IMOD_DIR}/qtlib/Assistant.app" ] ; then
+    prog="${IMOD_DIR}/qtlib/Assistant.app/Contents/MacOS/Assistant"
+fi
+url='qthelp://bl3demc/IMOD/index.html'
+if [ $# -gt 0 ] ; then
+    url='qthelp://bl3demc/IMOD/man/'$1'.html#TOP'
+fi
+$prog -collectionFile $IMOD_DIR/html/IMOD.qhc -showUrl $url -show contents -show index -show search -activate contents&

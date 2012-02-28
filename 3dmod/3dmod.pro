@@ -1,7 +1,7 @@
 TEMPLATE	= app
 LANGUAGE	= C++
 
-CONFIG	+= qt opengl assistant
+CONFIG	+= qt opengl
 
 HEADERS	+= autox.h \
 	b3dgfx.h \

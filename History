@@ -1,12 +1,25 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/27/12: In eTomo getting EXCLUDELIST for tilt.com from align.log when
+possible.(Bug# 1407)
+
+2/27/12: Fixed some problems with iterating move all by residual in bead fixer
+and made it give a message when it stops because user released Shift key.
+
+2/27/12: In eTomo running comscripts and processchunks with python.(Bug# 1591)
+
+2/24/12: Converted help system to use compressed html file in Qt 4 Assistant.
+
+2/23/12: IMOD_4-3-7
+2/23/12: Fixed memory leak in routine for filtered image reduction (In 4.3).
+
+2/22/12: IMOD_4-3-6
 2/20/12: IMOD_4-4-5
-2/20/12: In eTomo running comscripts and processchunks with python.(Bug# 1591)
 
 2/18/12: Added a graphic of mouse buttons to 3dmod preferences dialog.
 
 2/17/12: Fixed programs using warping code for images with Y size bigger
-than X size (In 4.3)
+than X size (In 4.3).
 
 2/16/11: 3dmod Model View will now use vertex buffer objects for lines and
 spheres if the OpenGL version is 3.1 or higher.
@@ -26,7 +39,7 @@ enclose the area to be contoured.
 2/13/12: Fixed 3dmod model view movieing when Ctrl key is pressed.
 
 2/13/12: Fixed default object properties in 3dmod when there is no setting 
-saved.
+saved (In 4.3).
 
 2/13/12: Fixed Vmstopy to convert backslash to / for Windows.
 

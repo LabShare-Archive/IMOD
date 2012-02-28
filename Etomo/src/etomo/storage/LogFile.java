@@ -9,9 +9,11 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Properties;
 
 import etomo.EtomoDirector;
@@ -62,8 +64,7 @@ public final class LogFile {
   private static final Hashtable logFileHashTable = new Hashtable();
 
   private final Lock lock;
-  private ReadingTokenList readerList = ReadingTokenList.getReaderInstance();
-  private ReadingTokenList readingTokenList = ReadingTokenList.getReadingTokenInstance();
+  private ReadingTokenList readingTokenList = new ReadingTokenList();
   private final String fileAbsolutePath;
 
   private File file = null;
@@ -637,13 +638,29 @@ public final class LogFile {
     createFile();
     String idKey = ReadingTokenList.makeKey(readerId);
     try {
-      readerList.openReadingToken(idKey, file);
+      readingTokenList.openReadingToken(idKey, file, ReaderType.READER);
     }
     catch (FileNotFoundException e) {
       lock.unlock(LockType.READ, readerId);
       throw e;
     }
     return readerId;
+  }
+
+  public synchronized BigBufferReaderId openBigBufferReaderId() throws LockException,
+      FileNotFoundException {
+    BigBufferReaderId id = new BigBufferReaderId();
+    lock.lock(LockType.READ, id);
+    createFile();
+    String idKey = ReadingTokenList.makeKey(id);
+    try {
+      readingTokenList.openReadingToken(idKey, file, ReaderType.BIG_BUFFER_READER);
+    }
+    catch (FileNotFoundException e) {
+      lock.unlock(LockType.READ, id);
+      throw e;
+    }
+    return id;
   }
 
   public synchronized ReadingId openForReading() throws LockException,
@@ -653,7 +670,7 @@ public final class LogFile {
     createFile();
     String idKey = ReadingTokenList.makeKey(readingId);
     try {
-      readingTokenList.openReadingToken(idKey, file);
+      readingTokenList.openReadingToken(idKey, file, ReaderType.READING);
     }
     catch (FileNotFoundException e) {
       lock.unlock(LockType.READ, readingId);
@@ -661,41 +678,20 @@ public final class LogFile {
     return readingId;
   }
 
-  public synchronized boolean closeReader(ReaderId readerId) {
+  public synchronized boolean closeRead(Id readId) {
     // close the reader before unlocking
     try {
-      lock.assertUnlockable(LockType.READ, readerId);
+      lock.assertUnlockable(LockType.READ, readId);
       createFile();
-      ReadingToken readingToken = readerList.getReadingToken(ReadingTokenList
-          .makeKey(readerId));
+      ReadingToken readingToken = readingTokenList.getReadingToken(ReadingTokenList
+          .makeKey(readId));
       if (readingToken != null) {
         readingToken.close();
       }
       else {
-        new LockException(this, readerId, "readingToken is null.").printStackTrace();
+        new LockException(this, readId, "readingToken is null.").printStackTrace();
       }
-      lock.unlock(LockType.READ, readerId);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      return false;
-    }
-    catch (LockException e) {
-      e.printStackTrace();
-      return false;
-    }
-    return true;
-  }
-
-  public synchronized boolean closeForReading(ReadingId readingId) {
-    // close the reading token before unlocking
-    try {
-      lock.assertUnlockable(LockType.READ, readingId);
-      createFile();
-      ReadingToken readingToken = readingTokenList.getReadingToken(ReadingTokenList
-          .makeKey(readingId));
-      readingToken.close();
-      lock.unlock(LockType.READ, readingId);
+      lock.unlock(LockType.READ, readId);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -721,7 +717,37 @@ public final class LogFile {
       throw new LockException(this, readId);
     }
     createFile();
-    return readerList.getReader(ReadingTokenList.makeKey(readId)).readLine();
+    Reader reader = readingTokenList.getReader(ReadingTokenList.makeKey(readId));
+    if (reader != null) {
+      return reader.readLine();
+    }
+    else {
+      return null;
+    }
+  }
+
+  /**
+   * Returns true if the last line of the file equals the line parameter
+   * @param readId
+   * @param line
+   * @return
+   * @throws LockException
+   * @throws IOException
+   */
+  public synchronized boolean searchForLastLine(BigBufferReaderId id, String line)
+      throws LockException, IOException {
+    if (!lock.isLocked(LockType.READ, id)) {
+      throw new LockException(this, id);
+    }
+    createFile();
+    BigBufferReader reader = readingTokenList.getBigBufferReader(ReadingTokenList
+        .makeKey(id));
+    if (reader != null) {
+      return reader.searchForLastLine(line);
+    }
+    else {
+      return false;
+    }
   }
 
   public synchronized void load(Properties properties, InputStreamId inputStreamId)
@@ -734,7 +760,7 @@ public final class LogFile {
 
   public void setDebug(boolean input) {
     debug = input;
-    readerList.setDebug(debug);
+    readingTokenList.setDebug(debug);
   }
 
   public synchronized void store(Properties properties, OutputStreamId outputStreamId)
@@ -1235,22 +1261,12 @@ public final class LogFile {
   }
 
   private static final class ReadingTokenList {
-    private final HashMap hashMap = new HashMap();
-    private final ArrayList arrayList = new ArrayList();
-    private final boolean storeReaders;
+    private final AbstractMap<String, ReadingToken> hashMap = new HashMap<String, ReadingToken>();
+    private final List<ReadingToken> arrayList = new ArrayList<ReadingToken>();
 
     private boolean debug = false;
 
-    static ReadingTokenList getReadingTokenInstance() {
-      return new ReadingTokenList(false);
-    }
-
-    static ReadingTokenList getReaderInstance() {
-      return new ReadingTokenList(true);
-    }
-
-    private ReadingTokenList(boolean storeReaders) {
-      this.storeReaders = storeReaders;
+    private ReadingTokenList() {
     }
 
     static String makeKey(Id id) {
@@ -1276,18 +1292,27 @@ public final class LogFile {
     }
 
     synchronized Reader getReader(String key) {
-      if (!storeReaders) {
-        return null;
+      ReadingToken readingToken = hashMap.get(key);
+      if (readingToken.getReaderType() == ReaderType.READER) {
+        return (Reader) readingToken;
       }
-      return (Reader) getReadingToken(key);
+      return null;
     }
 
-    synchronized void openReadingToken(String currentKey, File file)
-        throws FileNotFoundException {
+    synchronized BigBufferReader getBigBufferReader(String key) {
+      ReadingToken readingToken = hashMap.get(key);
+      if (readingToken.getReaderType() == ReaderType.BIG_BUFFER_READER) {
+        return (BigBufferReader) readingToken;
+      }
+      return null;
+    }
+
+    synchronized void openReadingToken(final String currentKey, final File file,
+        final ReaderType readerType) throws FileNotFoundException {
       ReadingToken readingToken;
       for (int i = 0; i < arrayList.size(); i++) {
         readingToken = (ReadingToken) arrayList.get(i);
-        if (!readingToken.isOpen()) {
+        if (readingToken.getReaderType() == readerType && !readingToken.isOpen()) {
           // open the reader to get exclusive access to it
           try {
             readingToken.open();
@@ -1306,7 +1331,7 @@ public final class LogFile {
         }
       }
       // Can't find a closed reader, so create a new one
-      readingToken = newReadingToken(file);
+      readingToken = newReadingToken(file, readerType);
       // open the reader to get exclusive access to it
       readingToken.open();
       // store the current key in the reader and store it in the array list and
@@ -1316,17 +1341,30 @@ public final class LogFile {
       arrayList.add(readingToken);
     }
 
-    private ReadingToken newReadingToken(File file) {
-      if (storeReaders) {
+    private ReadingToken newReadingToken(final File file, final ReaderType readerType) {
+      if (readerType == ReaderType.READER) {
         return new Reader(file);
       }
-      return new ReadingToken();
+      if (readerType == ReaderType.BIG_BUFFER_READER) {
+        return new BigBufferReader(file);
+      }
+      return new ReadingToken(readerType);
     }
   }
 
   private static class ReadingToken {
+    private final ReaderType readerType;
+
     private boolean open = true;
     private String key = null;
+
+    private ReadingToken(final ReaderType readerType) {
+      this.readerType = readerType;
+    }
+
+    private ReaderType getReaderType() {
+      return readerType;
+    }
 
     void open() throws FileNotFoundException {
       open = true;
@@ -1356,6 +1394,7 @@ public final class LogFile {
     private BufferedReader bufferedReader = null;
 
     Reader(File file) {
+      super(ReaderType.READER);
       this.file = file;
     }
 
@@ -1381,6 +1420,102 @@ public final class LogFile {
 
     String readLine() throws IOException {
       return bufferedReader.readLine();
+    }
+  }
+
+  private static final class BigBufferReader extends ReadingToken {
+    private static final int SIZE = 4096;
+    private final File file;
+
+    private FileReader fileReader = null;
+    private BufferedReader bufferedReader = null;
+
+    BigBufferReader(File file) {
+      super(ReaderType.BIG_BUFFER_READER);
+      this.file = file;
+    }
+
+    void open() throws FileNotFoundException {
+      if (fileReader == null) {
+        fileReader = new FileReader(file.getAbsolutePath());
+      }
+      if (bufferedReader == null) {
+        bufferedReader = new BufferedReader(fileReader, SIZE);
+      }
+      super.open();
+    }
+
+    void close() throws IOException {
+      if (fileReader != null) {
+        fileReader.close();
+      }
+      if (bufferedReader != null) {
+        bufferedReader.close();
+      }
+      super.close();
+    }
+
+    String readLine() throws IOException {
+      return bufferedReader.readLine();
+    }
+
+    /**
+     * Searches for a string in the last characters in a file.  Finds the last characters
+     * of the file equal to 2 times the length of lastLine and searches them for lastLine.
+     * Returns true if lastLine found in this span of characters.
+     * @param lastLine
+     * @return
+     * @throws IOException
+     */
+    boolean searchForLastLine(final String lastLine) throws IOException {
+      // Increase the size to handle a final end of line (linux or windows).
+      int lengthToScan = lastLine.length() * 2;
+      if (lengthToScan > SIZE) {
+        new IllegalArgumentException("String too large to scan for:" + lastLine)
+            .printStackTrace();
+        return false;
+      }
+      int nReadTemp;
+      int nRead = -1;
+      int nReadPrev = -1;
+      // Not sure if read reallocates the char array. Avoid assigning one char array to
+      // the other by using alternating reads
+      boolean first = true;
+      char[] firstCharArray = new char[SIZE];
+      char[] secondCharArray = new char[SIZE];
+      while ((nReadTemp = bufferedReader.read(first ? firstCharArray : secondCharArray)) != -1) {
+        // Save the previous number of characters read
+        nReadPrev = nRead;
+        // Save the number of characters read this time
+        nRead = nReadTemp;
+        first = !first;
+      }
+      if (nRead == -1) {
+        // Nothing was read
+        return false;
+      }
+      // Assign the apropriate char array
+      char[] charArray = null;
+      char[] charArrayPrev = null;
+      if (!first) {
+        charArray = firstCharArray;
+        charArrayPrev = secondCharArray;
+      }
+      else {
+        charArray = secondCharArray;
+        charArrayPrev = firstCharArray;
+      }
+      // Add the last characters equal to usefulLength to buffer.
+      StringBuffer buffer = new StringBuffer();
+      int usefulLength;
+      if (nRead < lengthToScan) {
+        // The last characters have been split in half
+        usefulLength = lengthToScan - nRead;
+        buffer.append(charArrayPrev, nReadPrev - usefulLength, usefulLength);
+      }
+      usefulLength = Math.min(nRead, lengthToScan);
+      buffer.append(charArray, nRead - usefulLength, usefulLength);
+      return buffer.toString().indexOf(lastLine) != -1;
     }
   }
 
@@ -1414,6 +1549,9 @@ public final class LogFile {
   public static final class ReaderId extends Id {
   }
 
+  public static final class BigBufferReaderId extends Id {
+  }
+
   public static final class ReadingId extends Id {
   }
 
@@ -1427,6 +1565,12 @@ public final class LogFile {
   }
 
   static final class OutputStreamId extends Id {
+  }
+
+  private static final class ReaderType {
+    private static final ReaderType READING = new ReaderType();
+    private static final ReaderType READER = new ReaderType();
+    private static final ReaderType BIG_BUFFER_READER = new ReaderType();
   }
 }
 /**

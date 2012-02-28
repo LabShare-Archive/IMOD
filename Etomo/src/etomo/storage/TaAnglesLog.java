@@ -78,12 +78,12 @@ public final class TaAnglesLog {
               .startsWith("Unbinned thickness needed to contain centers of all fiducials")) {
             String[] stringArray = line.split("\\s+");
             centerToCenterThickness.set(stringArray[10]);
-            taAnglesLog.closeReader(readerId);
+            taAnglesLog.closeRead(readerId);
             return centerToCenterThickness;
           }
           line = taAnglesLog.readLine(readerId);
         }
-        taAnglesLog.closeReader(readerId);
+        taAnglesLog.closeRead(readerId);
       }
     }
     return centerToCenterThickness;
@@ -108,12 +108,12 @@ public final class TaAnglesLog {
               .startsWith("Incremental unbinned shift needed to center range of fiducials in Z")) {
             String[] stringArray = line.split("\\s+");
             incrementalShiftToCenter.set(stringArray[12]);
-            taAnglesLog.closeReader(readerId);
+            taAnglesLog.closeRead(readerId);
             return incrementalShiftToCenter;
           }
           line = taAnglesLog.readLine(readerId);
         }
-        taAnglesLog.closeReader(readerId);
+        taAnglesLog.closeRead(readerId);
       }
     }
     return incrementalShiftToCenter;

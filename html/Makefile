@@ -1,19 +1,29 @@
 #
-# Makefile for html directory: installs all files with extensions; add other
-# files and directories to the NOEXT list
-#
+# Makefile for html directory: Needs to be run after make in manpages and flib/man
+# Updates library help, builds Qt compressed help and copies it to install dir
+
 # $Id$
 #
 include ../configure
 
-NOEXT = 3dmodimages etomoImages 3dmodHelp libhelp joinImages ctfHelp midasHelp
+NOEXT = 3dmodimages etomoImages 3dmodHelp libhelp joinImages ctfHelp midasHelp plughelp
 
-install : clean
+install : cleanjunk
 	cd libdoc ; $(MAKE)
-	./makeadp $(INSTDIR)
-	if [ `pwd` != $(INSTDIR)/html ] ; then $(CP) -r *.* $(NOEXT) $(INSTDIR)/html ; fi
+	./makeqhp
+	chmod a+rx IMOD.qch IMOD.qhc
+	if [ `pwd` != $(INSTDIR)/html ] ; then cp -f IMOD.qhc IMOD.qch $(INSTDIR)/html ; fi
 
-clean : 
+cleanjunk : 
 	$(FIND) . -type f -name "*~"    -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#"   -exec rm "{}" \;
+	$(FIND) . -type f -name "IMOD.qhp"   -exec rm "{}" \;
 
+clean : cleanjunk
+	$(FIND) plughelp -type f -name "*"   -exec rm "{}" \;
+	$(FIND) libhelp -type f -name "*"   -exec rm "{}" \;
+	$(FIND) man -type f -name "*"   -exec rm "{}" \;
+
+docs :
+	mkdir -p $(HTML_ARCDIR)
+	$(CP) -r *.[^q]* $(NOEXT) $(HTML_ARCDIR)

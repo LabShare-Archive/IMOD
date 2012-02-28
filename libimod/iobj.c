@@ -178,7 +178,7 @@ double imodObjectChecksum(Iobj *obj, int obNum)
     cont = &(obj->cont[co]);
     psum += cont->surf;
     psum += cont->psize;
-    psum += cont->flags;
+    psum += cont->flags & ~ICONT_WILD & ~ICONT_TEMPUSE;
     psum += cont->time;
     for(pt = 0; pt < cont->psize; pt++){
       psum += cont->pts[pt].x;

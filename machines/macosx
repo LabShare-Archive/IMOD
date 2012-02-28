@@ -123,9 +123,8 @@ if ("$filetext" != "") then
     if (-e /usr/local/lib/libtiff64.a) set tiffa = libtiff64.a
     if (-e /usr/local/lib/libjpeg64.a) set jpega = libjpeg64.a
 
-    # These two could be a Qt 4.5 requirement...
+    # This could be a Qt 4.5 requirement...  (as maybe was QtAssistant)
     set midasGL = ""
-    set assistantcopy   = 'QtAssistant'
 endif
 
 # Set the TIFF libs.  libiimod needs to have all of them; it is not clear

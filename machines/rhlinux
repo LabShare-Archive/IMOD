@@ -407,7 +407,7 @@ if ($packqt == true) then
     # Set up to copy qt lib for distribution, set up for correctly named
     # startup files depending on whether it is default to use Qt or not
     #
-    set assistant = `which assistant_adp`
+    set assistant = `which assistant`
     set qt4libstocopy = `ldd $assistant | sed -n '/libQt/s/ *lib\([^\.]*\).*=.*/\1/p'`
     set qt4libstocopy = (QtOpenGL $qt4libstocopy)
     echo 'QTINSTLIBDIR = qtlib' >> $configure

@@ -3848,9 +3848,7 @@ void BeadHelper::changeEstPosMethod(int value) {
 
 void BeadHelper::helpPluginHelp()
 {
-  QString str = QString(getenv("IMOD_DIR"))
-	            + QString("/lib/imodplug/beadhelper.html#TOP");
-  imodShowHelpPage((const char *)str.toLatin1());
+  imodShowHelpPage("plughelp/beadhelper.html#TOP");
 }
 
 

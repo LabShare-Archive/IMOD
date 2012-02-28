@@ -34,14 +34,14 @@ c	  David Mastronarde  5/28/90
 c
 ************************************************************************
 *   
-	parameter (idim=5100,lmfil=1000)
+	parameter (idim=16000,lmfil=1000)
 	COMMON //NX,NY,NZ
 C   
 	DIMENSION NXYZ(3),MXYZ(3),NXYZST(3),ARRAY(idim*idim),TITLE(20),
      &      NXYZ2(3),cell(6),mxyz2(3)
 C   
-	CHARACTER*80 FILIN(lmfil),FILOUT
-	character*80 comline
+	CHARACTER*320 FILIN(lmfil),FILOUT
+	character*320 comline
 C   
 	EQUIVALENCE (NX,NXYZ)
 C   

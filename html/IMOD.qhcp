@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QHelpCollectionProject version="1.0">
+    <assistant>
+        <title>IMOD Help</title>
+        <cacheDirectory>.IMODHelp</cacheDirectory>
+        <applicationIcon>3dmodHelp/b3dicon.png</applicationIcon>
+        <startPage>qthelp://bl3demc/IMOD/index.html</startPage>
+         <enableDocumentationManager>false</enableDocumentationManager>
+         <enableAddressBar visible="false">true</enableAddressBar>
+    </assistant>
+    <docFiles>
+        <generate>
+            <file>
+                <input>IMOD.qhp</input>
+                <output>IMOD.qch</output>
+            </file>
+        </generate>
+        <register>
+            <file>IMOD.qch</file>
+        </register>
+    </docFiles>
+</QHelpCollectionProject>

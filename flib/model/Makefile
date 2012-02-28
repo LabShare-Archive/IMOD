@@ -151,7 +151,7 @@ boxavg$(E): boxavg.$(O)
 	$(FC) -o boxavg boxavg.$(O) $(LDFLG) $(SMALLLIBS)
 
 findbeads3d$(E): findbeads3d.$(O)
-	$(FC) -o findbeads3d findbeads3d.$(O) $(LDFLG) $(SMALLLIBS)
+	$(FC) -o findbeads3d findbeads3d.$(O) $(LDFLG) $(WLIBS)
 
 tiltxcorr$(E): tiltxcorr.$(O)
 	$(FC) -o tiltxcorr tiltxcorr.$(O) $(LDFLG) $(SMALLLIBS)
@@ -171,71 +171,3 @@ install: $(PROGS)
 
 clean:
 	-\rm -f *.o* *~ *.exe $(PROGS)
-
-#  $Log$
-#  Revision 3.22  2010/07/26 19:30:07  mast
-#  Changed for separate opnemp flag for fortran
-#
-#  Revision 3.21  2010/07/02 17:05:08  mast
-#  Added edmont
-#
-#  Revision 3.20  2009/12/09 15:34:37  mast
-#  remove find_surfaces from sortbeadsurfs
-#
-#  Revision 3.19  2009/12/09 01:33:43  mast
-#  sortbeadsurfs
-#
-#  Revision 3.18  2009/10/02 20:28:09  mast
-#  Added tiltxcorr; mtteach but still commented out
-#
-#  Revision 3.17  2008/12/11 06:08:09  mast
-#  Added findbeads3d
-#
-#  Revision 3.16  2007/12/05 21:41:56  mast
-#  *** empty log message ***
-#
-#  Revision 3.15  2007/10/21 17:13:40  mast
-#  Add boxavg
-#
-#  Revision 3.14  2007/09/19 23:48:14  mast
-#  Changes for library rearrangements
-#
-#  Revision 3.13  2006/10/26 19:08:08  mast
-#  Added xfjointomo
-#
-#  Revision 3.12  2006/10/17 22:58:55  mast
-#  Added findhotpixels
-#
-#  Revision 3.11  2006/10/14 21:20:40  mast
-#  Added howflared
-#
-#  Revision 3.10  2006/09/11 22:18:12  mast
-#  Added mtrotlong
-#
-#  Revision 3.9  2006/08/21 16:50:00  mast
-#  Changed findwarp and refinematch links
-#
-#  Revision 3.8  2006/08/16 23:49:59  mast
-#  changed corrsearch3d link
-#
-#  Revision 3.7  2006/06/29 05:10:14  mast
-#  Changes for new model libraries
-#
-#  Revision 3.6  2006/06/22 01:09:45  mast
-#  Replaced LDFLAGS with LDFFLAGS for Intel Mac
-#
-#  Revision 3.5  2005/05/12 05:07:40  mast
-#  Use strip variable
-#
-#  Revision 3.4  2004/09/10 18:10:59  mast
-#  Added sumdensity
-#
-#  Revision 3.3  2003/10/24 02:30:57  mast
-#  Changes for windows/Intel compiler
-#
-#  Revision 3.2  2003/09/06 00:02:06  mast
-#  Added resamplemod
-#
-#  Revision 3.1  2002/05/23 04:41:37  mast
-#  Added repackseed
-#

@@ -126,6 +126,8 @@ public final class FileType {
       "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
   public static final FileType ALIGNED_STACK = FileType.getDescribedImodInstance(true,
       true, "", ".ali", ImodManager.FINE_ALIGNED_KEY, "the final aligned stack");
+  public static final FileType TILT_ALIGN_LOG = FileType.getInstance(false, true,
+      "align", ".log");
   public static final FileType XCORR_BLEND_OUTPUT = FileType.getInstance(true, true, "",
       ".bl");
   public static final FileType DISTORTION_CORRECTED_STACK = FileType.getInstance(true,

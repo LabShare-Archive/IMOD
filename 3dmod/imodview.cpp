@@ -2750,6 +2750,8 @@ static int ivwManageInitialFlips(ImodView *vi)
      were being handled for loaded and new models */
 
   vi->imod->csum = imodChecksum(vi->imod);
+  if (imodDebug('C'))
+    wprint("ivwManageInitialFlips set checksum %d\n", vi->imod->csum);
 
   /* DNM: check wild flag here, after all the flipping is done */
   ivwCheckWildFlag(vi->imod);

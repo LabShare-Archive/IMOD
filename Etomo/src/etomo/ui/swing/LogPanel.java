@@ -137,7 +137,7 @@ public final class LogPanel implements Storable, LogInterface {
                 line = file.readLine(readerId);
               }
               logger.loadMessages(lineList);
-              file.closeReader(readerId);
+              file.closeRead(readerId);
             }
             catch (LogFile.LockException e) {
               e.printStackTrace();
