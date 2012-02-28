@@ -84,9 +84,10 @@ public final class TiltalignLog {
     }
     if (id != null && !id.isEmpty()) {
       try {
-        boolean sucess = log.searchForLastLine(id, "SUCCESSFULLY COMPLETED");
+        boolean success = log.searchForLastLine(id, "SUCCESSFULLY COMPLETED");
         log.closeRead(id);
         id = null;
+        return success;
       }
       catch (IOException e) {
         e.printStackTrace();
