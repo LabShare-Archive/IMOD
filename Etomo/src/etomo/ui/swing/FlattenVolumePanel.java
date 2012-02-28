@@ -213,13 +213,13 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel = { "Flattenwarp", "Warpvol" };
-    String[] manPage = { "flattenwarp.html", "warpvol.html", };
+    String[] manPage = { "flattenwarp.html", "warpvol.html" };
     String[] logFileLabel = { "Flatten" };
     String[] logFile = new String[1];
     logFile[0] = "flatten" + ".log";
     ContextPopup contextPopup = new ContextPopup(pnlRoot.getContainer(), mouseEvent,
         "Flattening", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel,
-        logFile, applicationManager, axisID);
+        logFile, applicationManager == null ? toolsManager : applicationManager, axisID);
   }
 
   void done() {
