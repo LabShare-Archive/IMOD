@@ -1486,13 +1486,6 @@ public final class LogFile {
       while ((nReadTemp = bufferedReader.read(first ? firstCharArray : secondCharArray)) != -1) {
         // Save the previous number of characters read
         nReadPrev = nRead;
-        // Save the previous read
-        if (first) {
-          secondCharArray = firstCharArray;
-        }
-        else {
-          firstCharArray = secondCharArray;
-        }
         // Save the number of characters read this time
         nRead = nReadTemp;
         first = !first;
