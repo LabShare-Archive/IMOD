@@ -331,7 +331,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
     // logFileReader.close();
     // }
     if (logFile != null && logFileReaderId != null && !logFileReaderId.isEmpty()) {
-      logFile.closeReader(logFileReaderId);
+      logFile.closeRead(logFileReaderId);
       logFileReaderId = null;
     }
     if (lastProcess) {

@@ -80,12 +80,12 @@ public final class TrackLog implements Loggable {
         while (line != null) {
           if (line.trim().startsWith("Total points missing")) {
             lineList.add(line);
-            trackLog.closeReader(readerId);
+            trackLog.closeRead(readerId);
             return lineList;
           }
           line = trackLog.readLine(readerId);
         }
-        trackLog.closeReader(readerId);
+        trackLog.closeRead(readerId);
       }
     }
     return lineList;

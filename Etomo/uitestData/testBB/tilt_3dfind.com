@@ -28,4 +28,5 @@ OFFSET 0.0
 SHIFT 0.0 -12.9
 ZFACTORFILE testBBa.zfac
 ActionIfGPUFails 1,2
+EXCLUDELIST 1
 $if (-e ./savework) ./savework

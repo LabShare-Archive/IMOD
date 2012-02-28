@@ -174,7 +174,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
           // mrctaper started
           applicationManager.getMainPanel().setProgressBarValue(0, "mrctaper", axisID);
           gotStatusFromLog = true;
-          getLogFile().closeReader(logReaderId);
+          getLogFile().closeRead(logReaderId);
           logReaderId = null;
           return true;
         }
@@ -188,7 +188,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
       return false;
     }
     if (logReaderId != null && !logReaderId.isEmpty()) {
-      getLogFile().closeReader(logReaderId);
+      getLogFile().closeRead(logReaderId);
       logReaderId = null;// added this
     }
     // did not find a line shows that mrctaper started
