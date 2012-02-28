@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import etomo.comscript.FlattenWarpParam;
+import etomo.comscript.GpuTiltTestParam;
 import etomo.comscript.ToolsComScriptManager;
 import etomo.comscript.WarpVolParam;
 import etomo.process.BaseProcessManager;
@@ -89,6 +90,7 @@ public final class ToolsManager extends BaseManager {
 
   private static final AxisID AXIS_ID = AxisID.ONLY;
   private static final DialogType DIALOG_TYPE = DialogType.TOOLS;
+  private static final int STATUS_BAR_SIZE = 65;
 
   private final ToolsMetaData metaData;
   private final ToolType toolType;
@@ -114,7 +116,13 @@ public final class ToolsManager extends BaseManager {
   public void initialize() {
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       openProcessingPanel();
-      mainPanel.setStatusBarText(paramFile, metaData, null);
+      String location = null;
+      int size = STATUS_BAR_SIZE;
+      if (toolType == ToolType.GPU_TILT_TEST) {
+        location = propertyUserDir;
+        size = 40;
+      }
+      mainPanel.setStatusBarText(location, size);
       openToolsDialog();
       uiHarness.toFront(this);
     }
@@ -149,7 +157,7 @@ public final class ToolsManager extends BaseManager {
   public void setName(File inputFile) {
     propertyUserDir = inputFile.getParent();
     metaData.setRootName(inputFile);
-    mainPanel.setStatusBarText(paramFile, metaData, null);
+    mainPanel.setStatusBarText(propertyUserDir,STATUS_BAR_SIZE);
     uiHarness.setTitle(this, toolType.toString() + " - " + getName());
     // Open dialog tasks for for Flatten Volume
     if (toolType == ToolType.FLATTEN_VOLUME) {
@@ -173,6 +181,31 @@ public final class ToolsManager extends BaseManager {
     if (actionMessage != null) {
       System.err.println(actionMessage);
     }
+  }
+
+  public void gpuTiltTestSuceeded(final String[] output, final AxisID axisID) {
+    if (output != null && output.length > 0) {
+      uiHarness.openInfoMessageDialog(this, output[output.length - 1],
+          "Gputilttest Succeeded", axisID);
+    }
+  }
+
+  public void gpuTiltTest(final AxisID axisID) {
+    GpuTiltTestParam param = updateGpuTiltTest(axisID);
+    String threadName;
+    try {
+      threadName = processMgr.gpuTiltTest(param, axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ProcessName.GPU_TILT_TEST;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
+      return;
+    }
+    mainPanel.startProgressBar("Running gputilttest", axisID, ProcessName.GPU_TILT_TEST);
+    setThreadName(threadName, axisID);
   }
 
   /**
@@ -206,6 +239,17 @@ public final class ToolsManager extends BaseManager {
       return;
     }
     setThreadName(threadName, axisID);
+  }
+
+  private GpuTiltTestParam updateGpuTiltTest(final AxisID axisID) {
+    GpuTiltTestParam param = new GpuTiltTestParam();
+    if (toolsDialog == null) {
+      uiHarness.openMessageDialog(this, "Unable to get information from the dialog.",
+          "Etomo Error", axisID);
+      return null;
+    }
+    toolsDialog.getParameters(param);
+    return param;
   }
 
   private WarpVolParam updateWarpVolParam(final WarpVolDisplay display,
