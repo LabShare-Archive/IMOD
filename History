@@ -6,7 +6,7 @@ button was selected.(Bug# 1602).
 2/28/12: In eTomo added an interface for running gputilttest to the Tools
 menu.(Bug# 1525)
 
-2/27/12: In eTomo getting EXCLUDELIST for tilt.com from align.log when
+2/28/12: In eTomo getting EXCLUDELIST for tilt.com from align.log when
 possible.(Bug# 1407)
 
 2/27/12: Fixed some problems with iterating move all by residual in bead fixer
