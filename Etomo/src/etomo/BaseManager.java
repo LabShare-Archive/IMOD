@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -246,6 +247,80 @@ public abstract class BaseManager {
       for (int i = 0; i < message.length; i++) {
         System.err.println(message[i]);
       }
+    }
+  }
+
+  public void logMessageWithKeyword(final String[] message, final String keyword,
+      final String title, final AxisID axisID) {
+    LogInterface logInterface = getLogInterface();
+    if (message == null) {
+      return;
+    }
+    boolean loggedTitle = false;
+    for (int i = 0; i < message.length; i++) {
+      if (message[i].indexOf(keyword) != -1) {
+        if (!loggedTitle) {
+          loggedTitle = true;
+          if (logInterface != null) {
+            logInterface.logMessage(title, axisID);
+          }
+          else {
+            System.err.println(Utilities.getDateTimeStamp() + "\n" + title + " - "
+                + axisID + " axis:");
+          }
+        }
+        if (logInterface != null) {
+          logInterface.logMessage(message[i]);
+        }
+        else {
+          System.err.println(message[i]);
+        }
+      }
+    }
+  }
+
+  public void logMessageWithKeyword(final FileType fileType, final String keyword,
+      final String title, final AxisID axisID) {
+    LogInterface logInterface = getLogInterface();
+    if (fileType == null) {
+      return;
+    }
+    try {
+      LogFile logFile = LogFile.getInstance(propertyUserDir,
+          fileType.getFileName(this, axisID));
+      LogFile.ReaderId id = logFile.openReader();
+      if (id == null || id.isEmpty()) {
+        return;
+      }
+      boolean loggedTitle = false;
+      String line = logFile.readLine(id);
+      while (line != null) {
+        if (line.indexOf(keyword) != -1) {
+          if (!loggedTitle) {
+            loggedTitle = true;
+            if (logInterface != null) {
+              logInterface.logMessage(title, axisID);
+            }
+            else {
+              System.err.println(Utilities.getDateTimeStamp() + "\n" + title + " - "
+                  + axisID + " axis:");
+            }
+          }
+          if (logInterface != null) {
+            logInterface.logMessage(line);
+          }
+          else {
+            System.err.println(line);
+          }
+        }
+        line = logFile.readLine(id);
+      }
+    }
+    catch (LogFile.LockException e) {
+    }
+    catch (FileNotFoundException e) {
+    }
+    catch (IOException e) {
     }
   }
 
