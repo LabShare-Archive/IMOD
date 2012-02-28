@@ -231,6 +231,7 @@ public class ProcessName {
   public static final ProcessName RUNRAPTOR = new ProcessName(runraptor);
   public static final ProcessName FLATTEN_WARP = new ProcessName(flattenwarp);
   public static final ProcessName FLATTEN = new ProcessName(flatten);
+  public static final ProcessName GPU_TILT_TEST = new ProcessName("gputilttest");
   public static final ProcessName NEWST_3D_FIND = new ProcessName(newst_3dfind);
   public static final ProcessName BLEND_3D_FIND = new ProcessName(blend_3dfind);
   public static final ProcessName TILT_3D_FIND = new ProcessName(tilt_3dfind);
