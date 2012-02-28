@@ -13,6 +13,7 @@ import javax.swing.text.BadLocationException;
 import etomo.BaseManager;
 import etomo.ToolsManager;
 import etomo.comscript.ConstWarpVolParam;
+import etomo.comscript.GpuTiltTestParam;
 import etomo.storage.Loggable;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
@@ -66,6 +67,9 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
     if (toolType == ToolType.FLATTEN_VOLUME) {
       toolPanel = FlattenVolumePanel.getToolsInstance(manager, axisID, dialogType);
     }
+    else if (toolType == ToolType.GPU_TILT_TEST) {
+      toolPanel = GpuTiltTestPanel.getInstance(manager, axisID);
+    }
     else {
       toolPanel = null;
     }
@@ -82,6 +86,10 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
     ((FlattenVolumePanel) toolPanel).setParameters(param);
   }
 
+  public void getParameters(final GpuTiltTestParam param) {
+    ((GpuTiltTestPanel) toolPanel).getParameters(param);
+  }
+
   public void logMessage(Loggable loggable, AxisID axisID) {
     logger.logMessage(loggable, axisID);
   }
@@ -92,6 +100,14 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
 
   public void logMessage(String title, AxisID axisID, List message) {
     logger.logMessage(title, axisID, message);
+  }
+  
+  public void logMessage(String title, AxisID axisID) {
+    logger.logMessage(title, axisID);
+  }
+
+  public void logMessage(final String message) {
+    logger.logMessage(message);
   }
 
   public void save() {
@@ -116,7 +132,7 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
     taTaskLog.setWrapStyleWord(true);
     // Root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
-    if (toolType == ToolType.FLATTEN_VOLUME) {
+    if (toolPanel != null) {
       pnlRoot.add(toolPanel.getComponent());
     }
     pnlRoot.add(scrTaskLog);
