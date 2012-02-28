@@ -1,0 +1,27 @@
+Version = 2.1
+
+[flatten-volume = run]
+set.adoc.function = gpu.adoc
+run.function.gpu-tilt-test=
+
+
+[function = gpu-tilt-test]
+[[if = test-gui]]
+	#check values
+	assert.tf.#-of-minutes=1
+	assert.sp.gpu-#=0
+	#check enabled/disabled
+	assert.enabled.tf.#-of-minutes=
+  assert.enabled.sp.gpu-#=
+  assert.enabled.bn.run-gpu-tilt-test=
+[[]]
+tf.#-of-minutes=.5
+sp.gpu-#=8
+bn.run-gpu-tilt-test=
+wait.popup.gputilttest-terminated=OK
+wait.process.running-gputilttest=failed
+assert.exists.file= gputest.log
+sp.gpu-#=0
+bn.run-gpu-tilt-test=
+wait.popup.gputilttest-succeeded=OK
+wait.process.running-gputilttest=done

@@ -3,7 +3,7 @@ Version = 2.1
 [flatten-volume = run]
 bn.input-file=
 wait.file-chooser.open= %{dataset}
-set.adoc.function = tools.adoc
+set.adoc.function = flatten.adoc
 run.function.flatten-volume=
 
 [function = flatten-volume]

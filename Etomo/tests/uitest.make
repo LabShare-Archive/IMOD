@@ -1,5 +1,5 @@
-all: dual-testBB-test-gui single-testmontage-test-gui dual-testmontage-patch-tracking join-testunicross-test-gui nad-testunicross peet-test-gui single-test-gui single-patch-tracking-test-gui single-fidless single-simple-align dual-test-gui single-montage-test-gui dual-montage-test-gui dual-montage-patch-tracking join-test-gui nad generic flatten-volume-test-gui
-sub: peet peet-test-gui single-patch-tracking-test-gui single-fidless single-simple-align dual-test-gui single-montage-test-gui join-test-gui nad generic flatten-volume-test-gui
+all: dual-testBB-test-gui single-testmontage-test-gui dual-testmontage-patch-tracking join-testunicross-test-gui nad-testunicross peet-test-gui single-test-gui single-patch-tracking-test-gui single-fidless single-simple-align dual-test-gui single-montage-test-gui dual-montage-test-gui dual-montage-patch-tracking join-test-gui nad generic flatten-volume-test-gui gpu-test-gui
+sub: peet peet-test-gui single-patch-tracking-test-gui single-fidless single-simple-align dual-test-gui single-montage-test-gui join-test-gui nad generic flatten-volume-test-gui gpu-test-gui
 
 all-pt: single-patch-tracking-test-gui single-patch-tracking dual-montage-patch-tracking
 all-peet: peet peet-test-gui
@@ -58,5 +58,7 @@ flatten-volume: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest flatten-volume
 flatten-volume-test-gui: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest flatten-volume-test-gui
+gpu-test-gui: dummy
+	$(IMOD_UITEST_SCRIPT)/uitest gpu-test-gui
 dummy:
 	

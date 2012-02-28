@@ -370,7 +370,7 @@ set.interface.tools=
 
 [Test = flatten-volume-test-gui]
 set.testdir = flatten-volume-test-gui
-set.adoc.flatten-volume = tools.adoc
+set.adoc.flatten-volume = flatten.adoc
 set.var.dataset = BBa.rec
 set.dataset = BB
 copy.file = %{dataset}
@@ -378,7 +378,17 @@ set.param = --autoclose3dmod
 set.param = --ignoreloc
 set.param = --actions
 set.var.test-gui=
-set.interface.tools=
+set.interface.flatten=
+
+
+[Test = gpu-test-gui]
+set.testdir = gpu-test-gui
+set.adoc.flatten-volume = gpu.adoc
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.param = --actions
+set.var.test-gui=
+set.interface.gpu=
 
 
 [dataset = BB]
@@ -558,10 +568,19 @@ goto.frame.pnl.main-frame =
 [[]]
 goto.frame.pnl.main-frame =
 
-[Interface = Tools]
+[Interface = flatten]
 [[open = interface]]
 	pnl.main-frame=
 	mn.tools=
 	mn.flatten-volume=
+[[]]
+goto.frame.pnl.manager-frame =
+
+
+[Interface = gpu]
+[[open = interface]]
+  pnl.main-frame=
+  mn.tools=
+  mn.gpu-tilt-test=
 [[]]
 goto.frame.pnl.manager-frame =
