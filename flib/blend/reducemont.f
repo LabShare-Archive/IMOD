@@ -9,58 +9,10 @@ c       size, and with a different total size if desired.  Header origin
 c       and scaling information are generated so that the new images will
 c       have the same coordinate system as the original images.  Thus,
 c       models will display properly on reduced image stacks.
-*       
-*       When you specify the maximum frame size and minimum overlap of the
-*       output image, the program will pick the largest frame size less than
-*       that maximum, with the smallest overlap greater than that minimum,
-*       so that the resulting image will contain at least as many pixels as
-*       the desired output image.  It picks a frame size that is a multiple
-*       of 2 and has no prime factor greater than 19 (so that fourier
-*       transforms can be run on the resulting pieces).
-*       
-*       Entries are as follows:
-*       
-*       Input image file
-*       Name of input file with list of piece coordinates, if image is a
-*       .  montage
-*       Output image file
-*       Name of new file for list of coordinates of pieces in the output file
-*       
-*       Data mode for output file (the default is same as mode of input)
-*       
-*       1 to float each section to maximum range for the data mode, 0 not to
-*       
-*       List of sections to be included in output file, or / to include all
-*       .  sections from the input file in the output file.  Ranges may be
-*       .  entered (e.g. 0-5,8-14,17-23)
-*       
-*       Reduction factor by which to reduce the size of the images
-*       
-*       Minimum and maximum X, and minimum and maximum Y coordinates that
-*       .	should be included from the input image.  Enter "/" to obtain
-*       .	the entire input image.
-*       
-*       Maximum limit on the X and Y frame size for output pieces, and
-*       .	minimum limit on overlap between output pieces.  The program
-*       .	will then choose new frame sizes and overlaps based on these
-*       .	limits
-*       
-*       0 to accept the program's choices of frame size and overlap.  When
-*       .	running interactively, entering 1 will allow you to loop back
-*       .	and enter new minimum and maximum X and Y coordinates and a
-*       .	new maximum frame and minimum overlap.  Note that on the first
-*       .     two entries, the program will enforce a minimum overlap of 2;
-*       .     if for some reason you want an overlap of 0, you need to loop
-*       .     back so that you enter the frame size and overlap 3 times.
-*       
-*       To link: reducemont,shuffler,niceframe,setoverlap
-*       .   plus the usual libraries.
-*       
-*       David Mastronarde, February 1993
+c       
+c       See man page for details
 c       
 c       $Id$
-c       Log at end of file
-c       
 c       
       use blendvars
       implicit none
@@ -135,7 +87,7 @@ c       if no pieces, set up mocklist
       ixpclist(1:npclist) = ixpctmp(1:npclist)
       iypclist(1:npclist) = iypctmp(1:npclist)
       izpclist(1:npclist) = izpctmp(1:npclist)
-c	
+c       
       call fill_listz(izpclist,npclist,izpctmp,nlistz)
       minzpc=izpctmp(1)
       maxzpc=izpctmp(nlistz)
@@ -169,11 +121,11 @@ c
       call itrhdr(2,1)
       call ialnbsym(2,0)
 c       
-30    write(*,'(1x,a,$)')'Name of output piece list file: '
+      write(*,'(1x,a,$)')'Name of output piece list file: '
       read(5,'(a)')filnam
       call dopen(3,filnam,'new','f')
-c	open(3,file=filnam,form='formatted',status='new'
-c       &	    ,carriagecontrol='list',err=30)
+c       open(3,file=filnam,form='formatted',status='new'
+c       &           ,carriagecontrol='list',err=30)
 c       
 18    modeout=modein
       write(*,'(1x,a,i2,a,$)')'Mode for output file [',modeout,']: '
@@ -247,10 +199,10 @@ c
       write(*,'(1x,a,$)')
      &    'Maximum new X and Y frame size, minimum overlap: '
       read(5,*)newxframe,newyframe,minxoverlap,minyoverlap
-      if(ntrial.le.1)then			!on first 2 trials, enforce min
+      if(ntrial.le.1)then                       !on first 2 trials, enforce min
         minxoverlap=max(2,minxoverlap)          !overlap of 2 so things look
         minyoverlap=max(2,minyoverlap)          !nice in wimp.  After that, let
-      endif					!the user have it.
+      endif                                     !the user have it.
       ntrial=ntrial+1
 c
       call setoverlap(nxtotwant,minxoverlap,newxframe,2,newxpieces,
@@ -264,7 +216,7 @@ c
       write(*,'(1x,a,$)')
      &    '1 to revise reduction, frame size, or overlap: '
       read(5,*)ifrevise
-      if(ifrevise.ne.0)go to 32	  
+      if(ifrevise.ne.0)go to 32   
 c       
       maxlinelength = newxframe + 32
       maxbsiz=(ifastsiz+maxbin)*maxlinelength
@@ -385,7 +337,7 @@ c         GET THE PIXEL OUT
 c         -  loop on output frames; within each frame loop on little boxes
 c         
         call  crossvalue(xinlong,newxpieces,newypieces,nshort,nlong)
-c	  
+c         
         do ilong=1,nlong
           do ishort=1,nshort
             call crossvalue(xinlong,ishort,ilong,ixout,iyout)
@@ -413,7 +365,7 @@ c
               do i=1,nxout*nlinesout
                 brray(i)=dmean
               enddo
-c		
+c               
               do ixfast=1,nxfast
                 indxlo=newpcxll+(ixfast-1)*ifastsiz
                 indxhi=min(indxlo+ifastsiz,newpcxll+newxframe)-1
@@ -567,7 +519,7 @@ c
               write(*,'(a,i5)')' wrote new frame #',nzout
               nzout=nzout+1
 c               
-c		12/12/03: no longer keep header up to date in case of crashes
+c               12/12/03: no longer keep header up to date in case of crashes
 c               
               write(3,'(2i6,i4)')newpcxll,newpcyll,izsect
             endif
@@ -597,7 +549,7 @@ c       encode(80,90,title) nreduce,dat,tim
       close(3)
       call imclose(2)
       call exit(0)
-98    call exitError('reading transforms')
+      call exitError('reading transforms')
       end
 
 
@@ -748,37 +700,3 @@ c
       endif
       return
       end
-
-c       $Log$
-c       Revision 3.10  2010/04/19 03:13:23  mast
-c       Switch to module, fixed allocation of big arrays in common
-c
-c       Revision 3.9  2007/04/07 21:35:49  mast
-c       Switched to exitError
-c
-c       Revision 3.8  2005/02/28 21:10:44  mast
-c       Changed for shuffle changes
-c	
-c       Revision 3.7  2005/01/13 17:24:33  mast
-c       Put in error check for image size and allowed negative overlaps
-c	
-c       Revision 3.6  2003/12/12 22:01:35  mast
-c       remove test output
-c	
-c       Revision 3.5  2003/12/12 22:00:09  mast
-c       Fixed problems with setting cell sizes and consolidated header entry
-c       settings at end of file - no more intermediate saving of header
-c	
-c       Revision 3.4  2003/12/12 20:36:47  mast
-c       Preserve pixel size of input file in Z
-c	
-c       Revision 3.3  2003/06/20 20:19:07  mast
-c       Standardized error exits
-c	
-c       Revision 3.2  2002/08/19 05:00:47  mast
-c       Corrected some declaration errors
-c	
-c       Revision 3.1  2002/08/19 04:23:33  mast
-c       Changed to use new include file; made declarations for implicit
-c       none.
-c	

@@ -25,7 +25,6 @@ c       6/1/01: implemented ability to write and read in edge correlation
 c       displacements; added a search step to improve on cross-correlations  
 c       
 c       $Id$
-c       Log at end
 c       
       use blendvars
       implicit none
@@ -42,13 +41,13 @@ c
       real*4, allocatable :: binline(:)
       character*80 titlech
 c       
-c	structure /rotrans/
+c       structure /rotrans/
 c       real*4 theta,dx,dy,xcen,ycen
-c	end structure
+c       end structure
 c       
-      integer*4 nskip(2)/1,2/			!regression position skip s&l
-      integer*4 nfit(2)/5,7/			!# to include in regression s&l
-      integer*4 igridstr(2),iofset(2)		!just temp usage here
+      integer*4 nskip(2)/1,2/                   !regression position skip s&l
+      integer*4 nfit(2)/5,7/                    !# to include in regression s&l
+      integer*4 igridstr(2),iofset(2)           !just temp usage here
 c       
       parameter (limneg=30)
       integer*4 minnegx(limneg),maxnegx(limneg) !min and max coords of
@@ -190,11 +189,11 @@ c
       inpiece(0) = 0
       iunedge(1)=7
       iunedge(2)=8
-      indent(1)=3				!minimum indent short & long
+      indent(1)=3                               !minimum indent short & long
       indent(2)=3
-      intgrid(1)=6				!grid interval short & long
+      intgrid(1)=6                              !grid interval short & long
       intgrid(2)=6
-      iboxsiz(1)=10				!box size short & long
+      iboxsiz(1)=10                             !box size short & long
       iboxsiz(2)=15
       iffloat = 0
       ifsloppy = 0
@@ -244,7 +243,7 @@ c
       ifDumpXY(1) = -1
       ifDumpXY(2) = -1
       ifillTreatment = 1
-      aspectmax=2.0				!maximum aspect ratio of block
+      aspectmax=2.0                             !maximum aspect ratio of block
       padFrac = 0.45
       extraWidth = 0.
       radius1 = 0.
@@ -340,7 +339,7 @@ c       Preserve legacy behavior of floating to positive range for mode 1
       allocate(ixpctmp(liminit), iypctmp(liminit), izpctmp(liminit),
      &    negtmp(liminit), multitmp(limsect), stat = ierr)
       if (ierr .ne. 0) call exitError('ALLOCATING INITIAL ARRAYS')
-c	
+c       
       call read_list(ixpctmp,iypctmp,izpctmp,negtmp,
      &    multitmp,npclist,minzpc,maxzpc,anyneg,pipinput)
       limnpc = npclist + 10
@@ -657,9 +656,9 @@ c
         newminypiece = minypiece
         actionStr = 'undistorted only'
       else
-c	  
-c	  Set up output size
-c	  
+c         
+c         Set up output size
+c         
         minxoverlap=2
         minyoverlap=2
         newxframe=100000000
@@ -701,10 +700,10 @@ c
      &        'Maximum new X and Y frame size, minimum overlap: '
           read(5,*)newxframe,newyframe,minxoverlap,minyoverlap
         endif
-        if(ntrial.le.1)then			!on first 2 trials, enforce min
-          minxoverlap=max(2,minxoverlap)	!overlap of 2 so things look
-          minyoverlap=max(2,minyoverlap)	!nice in wimp.  After that, let
-        endif					!the user have it.
+        if(ntrial.le.1)then                     !on first 2 trials, enforce min
+          minxoverlap=max(2,minxoverlap)        !overlap of 2 so things look
+          minyoverlap=max(2,minyoverlap)        !nice in wimp.  After that, let
+        endif                                   !the user have it.
         ntrial=ntrial+1
 c         
 c         If no resizing desired, take exactly what is requested in one frame
@@ -741,13 +740,13 @@ c
         if (pipinput) print *,'Output file:'
         write(*,115)newxtotpix,'X',newxpieces,newxframe,newxoverlap
         write(*,115)newytotpix,'Y',newypieces,newyframe,newyoverlap
-c	  
+c         
         if (.not.pipinput)then
           write(*,'(1x,a,$)')'1 to revise frame size/overlap: '
           read(5,*)ifrevise
-          if(ifrevise.ne.0)go to 32	  
+          if(ifrevise.ne.0)go to 32       
         endif
-c	  
+c         
         newminxpiece=minxwant-(newxtotpix-nxtotwant)/2
         newminypiece=minywant-(newytotpix-nytotwant)/2
         actionStr = 'blended and recut'
@@ -1066,9 +1065,9 @@ c
      &    'ARE INCOMPLETE OR NONEXISTENT')
       if((ifoldedge.eq.0 .or. edgesIncomplete) .and. .not.undistortOnly)then
         ifdiddle=0
-c	  write(*,'(1x,a,$)')
-c         &	      '1 to diddle with edge function parameters: '
-c	  read(5,*)ifdiddle
+c         write(*,'(1x,a,$)')
+c         &           '1 to diddle with edge function parameters: '
+c         read(5,*)ifdiddle
         sdcrit=2.
         devcrit=2.
         norder=2
@@ -1088,7 +1087,7 @@ c
           ierr = PipGetIntegerArray('IndentShortAndLong', indent, 2, 2)
           ierr = PipGetIntegerArray('GridSpacingShortAndLong', intgrid, 2, 2)
         endif
-c	  print *,'box size', (iboxsiz(i), i=1,2),'  grid',(intgrid(i), i=1,2)
+c         print *,'box size', (iboxsiz(i), i=1,2),'  grid',(intgrid(i), i=1,2)
 
         if(ifdiddle.ne.0)then
           write(*,'(1x,a,$)')'criterion # of sds away from mean'//
@@ -1297,7 +1296,7 @@ c
           if (PipGetInteger('ImagesAreBinned', inputBinning) .ne. 0) then
 c             
 c             If input binning was not specified object if it is ambiguous
-c	      
+c             
             if (nxin .le. idfNx * idfBinning / 2 .and. nyin .le. idfNy * idfBinning / 2)
      &          call exitError('YOU MUST SPECIFY BINNING OF IMAGES BECAUSE THEY '//
      &          'ARE NOT LARGER THAN HALF THE CAMERA SIZE')
@@ -1594,10 +1593,10 @@ c         now if doing multinegatives, need to solve for h transforms
 c         
         if(multng .and. .not. undistortOnly)then
           call findMultinegTransforms()
-        endif					!end of multineg stuff
+        endif                                   !end of multineg stuff
 
         if (.not. undistortOnly) then
-c	    
+c           
 c           initialize edge buffer allocation
 c           
           jusedgct=0
@@ -1815,7 +1814,7 @@ c         GET THE PIXEL OUT
 c         -  loop on output frames; within each frame loop on little boxes
 c         
         call  crossvalue(xinlong,newxpieces,newypieces,nshort,nlong)
-c	  
+c         
         do ilong=1,nlong
           do ishort=1,nshort
             call crossvalue(xinlong,ishort,ilong,ixout,iyout)
@@ -2491,10 +2490,10 @@ c
               edgedispy(iedge,ixy)=ydisp
             endif
 c             write(*,'(1x,a,2i4,a,2f8.2,a,2f8.2)')
-c             &		      char(ixy+ichar('W'))//' edge, pieces'
-c             &		      ,ipiecelower(iedge,ixy),ipieceupper(iedge,ixy),
-c             &		      '  dxygridmean:',dxgridmean(iedge,ixy),
-c             &		      dygridmean(iedge,ixy),'  xcorr:',-xdisp,-ydisp
+c             &               char(ixy+ichar('W'))//' edge, pieces'
+c             &               ,ipiecelower(iedge,ixy),ipieceupper(iedge,ixy),
+c             &               '  dxygridmean:',dxgridmean(iedge,ixy),
+c             &               dygridmean(iedge,ixy),'  xcorr:',-xdisp,-ydisp
 c             dxgridmean(iedge,ixy)=-xdisp
 c             dygridmean(iedge,ixy)=-ydisp
 c             endif
@@ -3242,19 +3241,19 @@ c
           dt1=nyin-1.-yinpiece(indp1)
           er1=(dr1+1.)/iblend(1)
           et1=dt1/iblend(2)
-        endif			
+        endif                   
         if(indp2.gt.0)then
           dl2=xinpiece(indp2)
           dt2=nyin-1.-yinpiece(indp2)
           el2=(dl2+1.)/iblend(1)
           et2=(dt2+1.)/iblend(2)
-        endif			
+        endif                   
         if(indp3.gt.0)then
           dr3=nxin-1.-xinpiece(indp3)
           db3=yinpiece(indp3)
           er3=(dr3+1.)/iblend(1)
           eb3=(db3+1.)/iblend(2)
-        endif			
+        endif                   
         if(indp4.gt.0)then
           dl4=xinpiece(indp4)
           db4=yinpiece(indp4)
@@ -3505,7 +3504,7 @@ c
             wul=0.
           endif
           nactivep=1
-        endif			    
+        endif                       
       else
 c         
 c         the one-piece case, avoid all that computation
@@ -3517,183 +3516,3 @@ c
       if (debug)write(*,'(a,i3,a,4f8.4)')'Active',nactivep,'  weights',wll,wlr,wul,wur
       return
       end subroutine getPieceIndicesAndWeighting
-
-
-
-c       
-c       $Log$
-c       Revision 3.52  2011/06/24 02:29:18  mast
-c       Fixed scaling of distortion field
-c
-c       Revision 3.51  2011/06/23 15:07:52  mast
-c       Changes for warping
-c
-c       Revision 3.50  2011/03/04 21:22:21  mast
-c       Trim name before issuing in error message
-c
-c       Revision 3.49  2011/03/03 19:23:49  mast
-c       Don't write blank line to ecd file for a 1xn montage
-c
-c       Revision 3.48  2010/12/31 22:06:28  mast
-c       Fixed two errors in disjoint stuff, added arg for corr sizes
-c
-c       Revision 3.47  2010/12/28 17:50:28  mast
-c       Added robust fitting and options for changing binning and overlap from
-c       when the ecd was first computed
-c
-c       Revision 3.46  2010/11/15 23:30:25  mast
-c       Initialize boundfile
-c
-c       Revision 3.45  2010/09/23 05:45:32  mast
-c       Set new defaults to double box size, increase indent and interval a
-c       bit, start increase at 512 and limit it at 4096 pixels
-c
-c       Revision 3.44  2010/09/23 05:00:34  mast
-c       Added patch output options
-c
-c       Revision 3.43  2010/06/23 23:09:55  mast
-c       Memory allocation, handling of excluded edges and disjoint edges,
-c       reorganization with internal subroutines, chunking in Y and use of
-c       parallel writing routines
-c
-c       Revision 3.42  2010/04/29 23:22:47  mast
-c       Remove debug output
-c
-c       Revision 3.41  2010/04/19 03:13:23  mast
-c       Switch to module, fixed allocation of big arrays in common
-c
-c       Revision 3.40  2010/04/07 04:52:18  mast
-c       Increase maximum allowed frame size
-c
-c       Revision 3.39  2009/12/06 06:21:16  mast
-c       Fixed problem when shiftpieces used without ifsloppy
-c
-c       Revision 3.38  2008/12/23 00:08:12  mast
-c       Switch from taper fraction to number of xcorr peaks
-c
-c       Revision 3.37  2008/06/24 04:40:31  mast
-c       Added option for treatment of fill areas from distortion corrections
-c
-c       Revision 3.36  2008/03/03 07:06:03  mast
-c       Fixed bad scaling for mode 1 with no float, fixed double-scaling of first
-c       buffered line with binned output, and restored old behavior of floating
-c       to positive range for mode 1
-c
-c       Revision 3.35  2007/12/06 21:31:25  mast
-c       Added option to adjust origin for starting coords in X, Y, Z
-c
-c       Revision 3.34  2007/11/18 04:57:27  mast
-c       Redeclared concat at 320
-c
-c       Revision 3.33  2007/10/12 20:57:53  mast
-c       Changed center corrdinate so that center of rotation is around image 
-c       enter
-c
-c       Revision 3.32  2007/09/07 11:05:10  mast
-c       Fixed truncation when input is integers, mode 1 or 6
-c
-c       Revision 3.31  2007/05/22 23:21:11  mast
-c       Fixed shifting of origin; delta was being gotten after it was used
-c
-c       Revision 3.30  2007/04/10 15:43:53  mast
-c       Added option to exclude gray areas from edge analysis
-c
-c       Revision 3.29  2007/04/07 21:30:32  mast
-c       Implemented ability to use edge functions from a limited range of Z
-c       values, and to have incomplete edge function files, as long as pieces
-c       are not being shifted.  Implemented options to support parallel
-c       blending either to chunks or direcly to an output file.
-c
-c       Revision 3.28  2006/08/03 17:21:39  mast
-c       Fixed to take mode 6 files
-c
-c       Revision 3.27  2006/02/27 19:48:04  mast
-c       Fixed fill mean and output mean computation for very large areas
-c
-c       Revision 3.26  2006/02/27 15:20:20  mast
-c       g77 wanted find_best_shift called with an equivalenced real*8 array
-c
-c       Revision 3.25  2006/02/26 18:30:25  mast
-c       Passed maximum number of pieces to find_best_shifts
-c
-c       Revision 3.24  2006/02/26 06:00:42  mast
-c       Added call to initialize list of displacement for nearest piece search
-c       and added check on grid size
-c
-c       Revision 3.23  2006/02/15 00:47:12  mast
-c       Always output pixels if only one piece being output
-c
-c       Revision 3.22  2006/02/06 21:50:05  mast
-c       Added offset tilt and tilt file options and changed calls for finding
-c       best gradients
-c
-c       Revision 3.21  2006/01/16 03:11:50  mast
-c       Changed text for implied gradient so it won't be see by findgradient
-c	
-c       Revision 3.20  2005/11/09 05:57:03  mast
-c       Added parameters for correlation control
-c	
-c       Revision 3.19  2005/08/22 16:19:59  mast
-c       Preliminary - finding gradients from displacements
-c	
-c       Revision 3.18  2005/08/22 16:15:59  mast
-c	
-c       Revision 3.17  2005/08/20 05:10:48  mast
-c       Excluded a border region from correlations with distortion 
-c       corrections
-c	
-c       Revision 3.16  2005/06/03 19:38:48  mast
-c       Added ability to bin output when single frame only
-c	
-c       Revision 3.15  2005/04/07 14:18:46  mast
-c       Fixed line length on error message
-c	
-c       Revision 3.14  2005/04/06 19:19:38  mast
-c       Added option to create undistorted stack only
-c	
-c       Revision 3.13  2005/02/28 21:19:04  mast
-c       Added distortion and mag gradient correction, test mode for adjusting
-c       gradient, cubic and linear interpolation, and declarations (implicit
-c       none is now used in all routines that include blend.inc)
-c	
-c       Revision 3.12  2005/02/17 18:18:02  mast
-c       Fixed a warning message
-c	
-c       Revision 3.11  2005/02/17 17:58:04  mast
-c       Rewrote edge function files at end and closed them so they would be
-c       newer than the .ecd file
-c	
-c       Revision 3.10  2004/09/14 22:34:44  mast
-c       Made it preserve pixel sizes
-c	
-c       Revision 3.9  2004/03/12 20:42:09  mast
-c       Made size parameters for finding edge functions be option entries,
-c       made defaults scale up above 1024, and made it read and use the grid
-c       spacing from the edge function file.
-c	
-c       Revision 3.8  2003/10/30 20:00:32  mast
-c       Needed to declare PipGetInOutFile as integer
-c	
-c       Revision 3.7  2003/10/24 03:46:15  mast
-c       switch to calling routine to make backup edf file
-c	
-c       Revision 3.6  2003/10/10 20:43:18  mast
-c       Used new subroutine for getting input/output files
-c	
-c       Revision 3.5  2003/10/09 02:32:44  mast
-c       Add pipdone call
-c	
-c       Revision 3.4  2003/10/08 17:15:24  mast
-c       Convert to using autodoc
-c	
-c       Revision 3.3  2003/08/09 23:21:44  mast
-c       Converted to PIP input and fixed some error reporting.  Also made it
-c       fall back to building new edge functions if it can't open old ones.
-c	
-c       Revision 3.2  2003/06/20 20:18:13  mast
-c       Standardized error reporting
-c	
-c       Revision 3.1  2002/08/19 03:19:14  mast
-c       Implemented include file for commons.  Put large arrays in common
-c       to prevent stack problems.  Passed array to find_best_shifts to
-c       reduce memory needs there.

@@ -5,15 +5,13 @@ c       the section, replacing the frame that has not been used in the
 c       longest time, and returns the index of the frame's start in INDEX
 c       
 c       $Id$
-c       Log at end of file
 c       
       subroutine shuffler(izwant,index)
 c       
       use blendvars
       implicit none
 c       
-c	real*4 array(*)
-      logical alreadyin
+c       real*4 array(*)
       integer*4 minused,i,index,izwant,ioldest, indRead,j, magUse, iangUse
       real*4 xcen, ycen, amat(2,2)
 c       
@@ -45,9 +43,9 @@ c
       lastused(ioldest)=jusecount
       izmemlist(ioldest)=izwant
       memIndex(izwant) = ioldest
-c	print *,'reading section',izwant-1,'  index',index
+c       print *,'reading section',izwant-1,'  index',index
       call imposn(1,izwant-1,0)                 !yes izwant starts at 1
-c	
+c       
       indRead = index
       if (doFields .and. doingEdgeFunc) indRead = maxload * npixin + 1
       call irdsec(1,array(indRead),*99)
@@ -129,26 +127,3 @@ c
       enddo
       return
       end
-
-c       
-c       $Log$
-c       Revision 3.6  2010/04/19 03:13:23  mast
-c       Switch to module, fixed allocation of big arrays in common
-c
-c       Revision 3.5  2007/04/07 21:35:29  mast
-c       Switched to exitError
-c
-c       Revision 3.4  2006/02/06 21:52:55  mast
-c       Chnaged to use tilt angles separate from mag gradient file
-c
-c       Revision 3.3  2005/02/28 21:17:09  mast
-c       Implemented a piece to memory index lookup table, made it compose
-c       distortion/gradient field whenever it loads a piece, and made it
-c       undistort the piece when edge functions are being built
-c	
-c       Revision 3.2  2003/06/20 20:19:22  mast
-c       Used standard error exit
-c	
-c       Revision 3.1  2002/08/19 04:28:29  mast
-c       Changed to use include file and to not take ARRAY as an argument.
-c	
