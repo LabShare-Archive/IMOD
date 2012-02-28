@@ -53,7 +53,7 @@ if echo $jversion | grep GNU > /dev/null ; then
   exit
 fi
 
-if echo $jversion | grep '1\.4' > /dev/null ; then
+if echo $jversion | grep 'ersion.*1\.4' > /dev/null ; then
   echo "You are trying to run a 1.4 version of Java, located at:"
   which java
   echo "eTomo will no longer work with java 1.4.  You should install a Sun/Oracle"
