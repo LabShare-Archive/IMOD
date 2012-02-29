@@ -1,0 +1,51 @@
+#!/usr/bin/python -u
+# startprocess - runs a process in background with redirection of output/error
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+progname = 'imodhelp'
+prefix = 'ERROR: ' + progname + ' - '
+
+# load System Libraries
+import sys, os, os.path
+
+#
+# Setup runtime environment - no need for nohup here
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import exitError, setExitPrefix
+
+setExitPrefix(prefix)
+
+# Set up path stuff for Qt program and specifically for assistant
+setLibPath()
+if os.getenv('IMOD_QTLIBDIR') != None:
+   os.environ['PATH'] = os.environ['IMOD_QTLIBDIR'] + os.pathsep + os.environ['PATH']
+
+# get program name to run by and url to load
+prog = 'assistant'
+if sys.platform.find('darwin') >= 0:
+   prog = os.environ['IMOD_DIR'] +  '/qtlib/Assistant.app/Contents/MacOS/Assistant'
+
+url = 'qthelp://bl3demc/IMOD/index.html'
+if len(sys.argv) > 1:
+   url = 'qthelp://bl3demc/IMOD/man/' + sys.argv[1] + '.html#TOP'
+
+# Set up command argument array and run it
+commandArr = [prog, '-collectionFile', os.environ['IMOD_DIR'] +  '/html/IMOD.qhc', \
+                 '-showUrl', url, '-show', 'contents', '-show', 'index', \
+                 '-show', 'search', '-activate', 'contents']
+
+bkgdProcess(commandArr)
+sys.exit(0)

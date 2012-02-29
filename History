@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/29/12: Switched imodhelp to python; note that "imodhelp program" can now
+be used to display a program man page directly.
+
+2/29/12: Fixed crash after saving isosurface to object.
+
 2/29/12: Made imodinfo -c give mesh volume and surface area for isosurface
 objects.
 
