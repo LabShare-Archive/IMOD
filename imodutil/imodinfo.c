@@ -1012,8 +1012,8 @@ static void imodinfo_object(Imod *imod, int scaninside,
   double surf, vol, msurf, mvol, inmvol;
 
 
-  fprintf(fout, "#Obj     Cyl. Vol      Cont Vol   Vol Inside Mesh   Mesh Surf"
-          "                Center\n");
+  fprintf(fout, "#Obj       Cyl. Vol      Cont Vol   Vol Inside Mesh   Mesh Surf"
+          "              Center\n");
   fprintf(fout, "#-----------------------------------------------------------"
           "---------------------------------\n");
 
@@ -1029,9 +1029,12 @@ static void imodinfo_object(Imod *imod, int scaninside,
     if (obj->contsize)
       fprintf(fout, "%4d   %12.6g  %12.6g  %12.6g  %12.6g  %9.2f %9.2f %9.2f\n"
               , ob + 1, vol, mvol, inmvol, msurf, cent.x, cent.y, cent.z);
+    else if (obj->meshsize)
+      fprintf(fout, "%4d              x             x   %12.6g  %12.6g   "
+              "   x         x         x\n" , ob + 1, inmvol, msurf);
     else
-      fprintf(fout, "%4d           0           0           0           0"
-              "        x        x        x\n", ob + 1);
+      fprintf(fout, "%4d              0             0             0             0"
+              "       x         x         x\n", ob + 1);
   }
   return;
 }
