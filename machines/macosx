@@ -63,7 +63,7 @@ if ($compiler == ifort || $compiler == intel) then
     # Get the fortran version, they changed libraries
     #
     ifort -v >&! ifort.tmp
-    set ifortnum = `sed -n -e '/\./s// /g' -e '/Version/s/.*Version \([0-9 ]*\).*/\1/p' ifort.tmp`
+    set ifortnum = `sed -n -e '/\./s// /g' -e '/ersion/s/.*ersion \([0-9 ]*\).*/\1/p' ifort.tmp`
     \rm -f ifort.tmp
     @ ifortversion = 9
     if ("$ifortnum" != "") @ ifortversion = $ifortnum[1]
