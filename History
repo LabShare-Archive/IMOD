@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/29/12: Made imodinfo -c give mesh volume and surface area for isosurface
+objects.
+
 2/28/12: Fixed bug in blendmont due to fixed size temporary array.
 
 2/28/12: In eTomo - PEET fixed an initMotl bug where the incorrect radio
