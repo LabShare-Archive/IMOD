@@ -196,7 +196,7 @@ c
             do ix=ixst,ixnd
               do iy=iyst,iynd
                 npnts=npnts+1
-                call polyterm(ix,iy,norder,xr(1,npnts))
+                call polyterm(ix-ixcen,iy-iycen,norder,xr(1,npnts))
                 xr(idepen1,npnts)=dxgrid(ix,iy)
                 xr(idepen2,npnts)=dygrid(ix,iy)
                 xr(idepen3,npnts)=ddengrid(ix,iy)
@@ -228,7 +228,7 @@ c             then move dden into dependent variable column, solve for dden
 c             replace proper grid points with fit values
             do ix=ixfitstr,ixfitend
               do iy=iyfitstr,iyfitend
-                call polyterm(ix,iy,norder,vect)
+                call polyterm(ix-ixcen,iy-iycen,norder,vect)
                 xsum=c1
                 ysum=c2
                 dsum=c3
