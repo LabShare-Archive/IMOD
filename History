@@ -1,7 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/28/12: In eTomo - PEET fixed an initMotl bug where the incorrect radio
+button was selected.(Bug# 1602).
+
+2/28/12: In eTomo added an interface for running gputilttest to the Tools
+menu.(Bug# 1525)
+
+2/28/12: In eTomo getting EXCLUDELIST for tilt.com from align.log when
+possible.(Bug# 1407)
+
 2/27/12: Fixed some problems with iterating move all by residual in bead fixer
 and made it give a message when it stops because user released Shift key.
+
+2/27/12: In eTomo running comscripts and processchunks with python.(Bug# 1591)
 
 2/24/12: Converted help system to use compressed html file in Qt 4 Assistant.
 
@@ -10,7 +21,6 @@ and made it give a message when it stops because user released Shift key.
 
 2/22/12: IMOD_4-3-6
 2/20/12: IMOD_4-4-5
-2/20/12: In eTomo running comscripts and processchunks with python.(Bug# 1591)
 
 2/18/12: Added a graphic of mouse buttons to 3dmod preferences dialog.
 

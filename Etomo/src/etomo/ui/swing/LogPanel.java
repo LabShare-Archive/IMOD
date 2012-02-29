@@ -137,17 +137,17 @@ public final class LogPanel implements Storable, LogInterface {
                 line = file.readLine(readerId);
               }
               logger.loadMessages(lineList);
-              file.closeReader(readerId);
+              file.closeRead(readerId);
             }
             catch (LogFile.LockException e) {
               e.printStackTrace();
-              UIHarness.INSTANCE.openMessageDialog(null, "Unabled to load "
-                  + file.getAbsolutePath(), "System Error");
+              UIHarness.INSTANCE.openMessageDialog(null,
+                  "Unabled to load " + file.getAbsolutePath(), "System Error");
             }
             catch (IOException e) {
               e.printStackTrace();
-              UIHarness.INSTANCE.openMessageDialog(null, "Unabled to load "
-                  + file.getAbsolutePath(), "System Error");
+              UIHarness.INSTANCE.openMessageDialog(null,
+                  "Unabled to load " + file.getAbsolutePath(), "System Error");
             }
           }
         }
@@ -200,28 +200,27 @@ public final class LogPanel implements Storable, LogInterface {
       writerId = file.openWriter();
       changed = false;
       String text = textArea.getText();
-      //LogFile.newLine() will put the appropriate line endings in the file.
-      //Strip the line endings by breaking up the text by \n.  Strip windows
-      //line endings (\r\n) by removing the \r which, if it is in use, will now
-      //be at the end of each line.  This also adds a new line to the end of the
-      //file, if there is not one already there.  This should also preserve
-      //empty lines.
+      // LogFile.newLine() will put the appropriate line endings in the file.
+      // Strip the line endings by breaking up the text by \n. Strip windows
+      // line endings (\r\n) by removing the \r which, if it is in use, will now
+      // be at the end of each line. This also adds a new line to the end of the
+      // file, if there is not one already there. This should also preserve
+      // empty lines.
       String[] lineArray = text.split("\n");
       if (lineArray != null) {
         for (int i = 0; i < lineArray.length; i++) {
-          //Preserve an empty line by calling newLine.
+          // Preserve an empty line by calling newLine.
           if (lineArray[i] != null && lineArray[i].length() != 0) {
-            //Look for Windows line ending.
+            // Look for Windows line ending.
             if (lineArray[i].charAt(lineArray[i].length() - 1) == '\r') {
-              //Preserve an empty line by calling newLine.
+              // Preserve an empty line by calling newLine.
               if (lineArray[i].length() > 1) {
-                //Write a line which has a Windows line ending (strip \r).
-                file
-                    .write(lineArray[i].substring(0, lineArray[i].length() - 2), writerId);
+                // Write a line which has a Windows line ending (strip \r).
+                file.write(lineArray[i].substring(0, lineArray[i].length() - 2), writerId);
               }
             }
             else {
-              //Write a line which has a Linux line ending.
+              // Write a line which has a Linux line ending.
               file.write(lineArray[i], writerId);
             }
           }
@@ -234,8 +233,8 @@ public final class LogPanel implements Storable, LogInterface {
       e.printStackTrace();
       if (!writeFailed) {
         writeFailed = true;
-        UIHarness.INSTANCE.openMessageDialog(null, "Unabled to write to file "
-            + file.getAbsolutePath(), "System Error");
+        UIHarness.INSTANCE.openMessageDialog(null,
+            "Unabled to write to file " + file.getAbsolutePath(), "System Error");
         if (writerId != null && !writerId.isEmpty()) {
           file.closeWriter(writerId);
         }
@@ -245,8 +244,8 @@ public final class LogPanel implements Storable, LogInterface {
       e.printStackTrace();
       if (!writeFailed) {
         writeFailed = true;
-        UIHarness.INSTANCE.openMessageDialog(null, "Unabled to write to file "
-            + file.getAbsolutePath(), "System Error");
+        UIHarness.INSTANCE.openMessageDialog(null,
+            "Unabled to write to file " + file.getAbsolutePath(), "System Error");
         if (writerId != null && !writerId.isEmpty()) {
           file.closeWriter(writerId);
         }
@@ -259,7 +258,7 @@ public final class LogPanel implements Storable, LogInterface {
    * @return  True if file can be used.
    */
   private boolean openFile() {
-    //Can't open log until the dataset and userDir is set
+    // Can't open log until the dataset and userDir is set
     if (datasetName == null || userDir == null) {
       return false;
     }
@@ -288,9 +287,17 @@ public final class LogPanel implements Storable, LogInterface {
   public void logMessage(String title, AxisID axisID, String[] message) {
     logger.logMessage(title, axisID, message);
   }
-  
+
   public void logMessage(String title, AxisID axisID, List message) {
     logger.logMessage(title, axisID, message);
+  }
+
+  public void logMessage(String title, AxisID axisID) {
+    logger.logMessage(title, axisID);
+  }
+
+  public void logMessage(final String message) {
+    logger.logMessage(message);
   }
 
   public void msgChanged() {

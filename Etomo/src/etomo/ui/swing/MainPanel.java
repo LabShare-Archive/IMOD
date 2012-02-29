@@ -275,17 +275,17 @@ public abstract class MainPanel extends EtomoPanel {
   JLabel statusBar = new JLabel(STATUS_BAR_EMPTY_TITLE);
 
   JPanel panelCenter = new JPanel();
-  //private Point previousSubFrameLocation = null;
-  //protected ScrollPanel scroll;
-  //protected JScrollPane scrollPane;
-  //protected JPanel axisPanel = new JPanel();
+  // private Point previousSubFrameLocation = null;
+  // protected ScrollPanel scroll;
+  // protected JScrollPane scrollPane;
+  // protected JPanel axisPanel = new JPanel();
 
-  //  These panels get instantiated as needed
+  // These panels get instantiated as needed
   ScrollPanel scrollA;
   private JScrollPane scrollPaneA;
   ScrollPanel scrollB;
   private JScrollPane scrollPaneB;
-  //JSplitPane splitPane;
+  // JSplitPane splitPane;
   BaseManager manager = null;
   private boolean showingBothAxis = false;
   private boolean showingAxisA = true;
@@ -337,23 +337,18 @@ public abstract class MainPanel extends EtomoPanel {
   public MainPanel(BaseManager manager) {
     this.manager = manager;
     enableEvents(AWTEvent.WINDOW_EVENT_MASK);
-    /*
-     Toolkit toolkit = Toolkit.getDefaultToolkit();
-     Dimension screenSize = toolkit.getScreenSize();
-     screenSize.height -= estimatedMenuHeight;
-     screenSize.width *= extraScreenWidthMultiplier;
-     Dimension mainPanelSize = new Dimension(screenSize);
-     mainPanelSize.height -= frameBorder.height;
-     mainPanelSize.width -= frameBorder.width;
-     */
+    /* Toolkit toolkit = Toolkit.getDefaultToolkit(); Dimension screenSize =
+     * toolkit.getScreenSize(); screenSize.height -= estimatedMenuHeight; screenSize.width
+     * *= extraScreenWidthMultiplier; Dimension mainPanelSize = new Dimension(screenSize);
+     * mainPanelSize.height -= frameBorder.height; mainPanelSize.width -=
+     * frameBorder.width; */
     setLayout(new BorderLayout());
-    /*    setMaximumSize(mainPanelSize);
-     */
-    //  Construct the main frame panel layout
+    /* setMaximumSize(mainPanelSize); */
+    // Construct the main frame panel layout
     panelCenter.setLayout(new BoxLayout(panelCenter, BoxLayout.X_AXIS));
     add(panelCenter, BorderLayout.CENTER);
     add(statusBar, BorderLayout.SOUTH);
-    //axisPanel.setLayout(new BoxLayout(axisPanel, BoxLayout.X_AXIS));
+    // axisPanel.setLayout(new BoxLayout(axisPanel, BoxLayout.X_AXIS));
   }
 
   String getStatusBarText() {
@@ -364,23 +359,23 @@ public abstract class MainPanel extends EtomoPanel {
     super.repaint();
     if (manager != null) {
       Component focusComponent = manager.getFocusComponent();
-      //System.out.println("focusComponent=" + focusComponent);
+      // System.out.println("focusComponent=" + focusComponent);
       if (focusComponent != null) {
         focusComponent.requestFocus();
       }
-      //else {
-      //  new Exception().printStackTrace();
-      //}
+      // else {
+      // new Exception().printStackTrace();
+      // }
     }
   }
 
   void setStatusBarText(File paramFile, BaseMetaData metaData, LogPanel logPanel) {
-    //Set the title of log panel.  SetStatusBarText is used by all of the
-    //interfaces so this is good place to do it.
+    // Set the title of log panel. SetStatusBarText is used by all of the
+    // interfaces so this is good place to do it.
     if (logPanel != null) {
       logPanel.setTitle(paramFile, metaData, manager.getPropertyUserDir());
     }
-    //Set the status bar
+    // Set the status bar
     int maxTitleLength = 79;
     if (metaData == null) {
       statusBar.setText(STATUS_BAR_EMPTY_TITLE);
@@ -392,7 +387,7 @@ public abstract class MainPanel extends EtomoPanel {
       else {
         String datasetName = paramFile.getAbsolutePath();
         if (STATUS_BAR_BASE_TITLE.length() + datasetName.length() > maxTitleLength) {
-          //Shorten the dataset name
+          // Shorten the dataset name
           datasetName = "..."
               + datasetName.substring(datasetName.length()
                   - (maxTitleLength - STATUS_BAR_BASE_TITLE.length() - 3));
@@ -403,20 +398,35 @@ public abstract class MainPanel extends EtomoPanel {
     }
   }
 
+  void setStatusBarTextToDirectory(String directory, final int maxTitleLength) {
+    // Set the status bar
+    if (directory == null || directory.matches("\\s*")) {
+      statusBar.setText("");
+    }
+    else {
+      if (directory.length() > maxTitleLength) {
+        // Shorten the dataset name
+        directory = "..." + directory.substring(directory.length() - (maxTitleLength));
+      }
+      String title = directory;
+      statusBar.setText(title);
+    }
+  }
+
   /**
    * set divider location
    * @param value
    */
   public void setDividerLocation(double value) {
-    //if (splitPane != null) {
-    //removing commands that cause the divider location to change incorrectly
-    //when the window is taller then the screen
-    //scrollPaneA.doLayout();
-    //scrollPaneB.doLayout();
-    //splitPane.doLayout();
-    //splitPane.revalidate();
-    //splitPane.validate();
-    //  splitPane.setDividerLocation(value);
+    // if (splitPane != null) {
+    // removing commands that cause the divider location to change incorrectly
+    // when the window is taller then the screen
+    // scrollPaneA.doLayout();
+    // scrollPaneB.doLayout();
+    // splitPane.doLayout();
+    // splitPane.revalidate();
+    // splitPane.validate();
+    // splitPane.setDividerLocation(value);
     // }
   }
 
@@ -454,7 +464,7 @@ public abstract class MainPanel extends EtomoPanel {
     axisPanel.setProgressBar(label, nSteps, pauseEnabled);
     axisPanel.setProgressBarValue(0);
   }
-  
+
   public void setStaticProgressBar(final String label, final AxisID axisID) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     if (axisPanel == null) {
@@ -548,7 +558,7 @@ public abstract class MainPanel extends EtomoPanel {
    * Show the processing panel for the requested AxisType
    */
   public void showProcessingPanel(AxisType axisType) {
-    //  Delete any existing panels
+    // Delete any existing panels
     resetAxisPanels();
     this.axisType = axisType;
     panelCenter.removeAll();
@@ -605,13 +615,13 @@ public abstract class MainPanel extends EtomoPanel {
     return showingAxisA;
   }
 
-  //private void setBothAxis() {
+  // private void setBothAxis() {
   // splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA,
-  //    scrollPaneB);
+  // scrollPaneB);
   // splitPane.setDividerLocation(0.5);
-  //splitPane.setOneTouchExpandable(true);
+  // splitPane.setOneTouchExpandable(true);
   // panelCenter.add(splitPane);
-  //}
+  // }
 
   public String toString() {
     if (manager != null) {
@@ -638,94 +648,45 @@ public abstract class MainPanel extends EtomoPanel {
     panelCenter.add(scrollPaneB);
   }
 
-  /*
-   Point getPreviousSubFrameLocation() {
-   return previousSubFrameLocation;
-   }
-   
-   void setPreviousSubFrameLocation(Point previousSubFrameLocation) {
-   this.previousSubFrameLocation = previousSubFrameLocation;
-   }
-   */
+  /* Point getPreviousSubFrameLocation() { return previousSubFrameLocation; } void
+   * setPreviousSubFrameLocation(Point previousSubFrameLocation) {
+   * this.previousSubFrameLocation = previousSubFrameLocation; } */
   /**
    * if A or B is hidden, hide the panel which the user has hidden before
    * calling pack().
    *
    */
-  /*
-   protected void packAxis() {
-   if (!EtomoDirector.getInstance().isNewstuff()) {
-   packAxisOld();
-   return;
-   }
-   EtomoDirector.getInstance().getMainFrame().pack();
-   //if (splitPane != null) {
-   //  splitPane.resetToPreferredSizes();
-   //}*/
-  /*if (manager.isDualAxis() && showingBothAxis && splitPane != null) {
-   splitPane.resetToPreferredSizes();
-   
-   //handle bug in Windows where divider goes all the way to the left
-   //when the frame is wider then the screen
-   if (isAxisPanelAFitScreenError()) {
-   setDividerLocation(.8); //.8 currently works.  Adjust as needed.
-   splitPane.resetToPreferredSizes();
-   }
-   }*/
-  //}
-  /*
-   protected void packAxisOld() {
-   if (manager.isDualAxis()
-   && !AxisPanelAIsNull()
-   && !AxisPanelBIsNull()) {
-   boolean hideA = hideAxisPanelA();
-   boolean hideB = hideAxisPanelB();
-   //if both widths are zero, get getWidth is failing - just pack
-   if (hideA && hideB) {
-   showAxisPanelA();
-   showAxisPanelB();
-   EtomoDirector.getInstance().getMainFrame().pack();
-   return;
-   }
-   EtomoDirector.getInstance().getMainFrame().pack();
-   splitPane.resetToPreferredSizes();
-   
-   //handle bug in Windows where divider goes all the way to the left
-   //when the frame is wider then the screen
-   if (!hideA && !hideB && isAxisPanelAFitScreenError()) {
-   setDividerLocation(.8); //.8 currently works.  Adjust as needed.
-   splitPane.resetToPreferredSizes();
-   }
-   
-   showAxisPanelA();
-   showAxisPanelB();
-   if (hideA) {
-   setDividerLocation(0);
-   }
-   else if (hideB) {
-   setDividerLocation(1);
-   }
-   }
-   else {
-   EtomoDirector.getInstance().getMainFrame().pack();
-   }
-   }
-   */
+  /* protected void packAxis() { if (!EtomoDirector.getInstance().isNewstuff()) {
+   * packAxisOld(); return; } EtomoDirector.getInstance().getMainFrame().pack(); //if
+   * (splitPane != null) { // splitPane.resetToPreferredSizes(); //} */
+  /* if (manager.isDualAxis() && showingBothAxis && splitPane != null) {
+   * splitPane.resetToPreferredSizes(); //handle bug in Windows where divider goes all the
+   * way to the left //when the frame is wider then the screen if
+   * (isAxisPanelAFitScreenError()) { setDividerLocation(.8); //.8 currently works. Adjust
+   * as needed. splitPane.resetToPreferredSizes(); } } */
+  // }
+  /* protected void packAxisOld() { if (manager.isDualAxis() && !AxisPanelAIsNull() &&
+   * !AxisPanelBIsNull()) { boolean hideA = hideAxisPanelA(); boolean hideB =
+   * hideAxisPanelB(); //if both widths are zero, get getWidth is failing - just pack if
+   * (hideA && hideB) { showAxisPanelA(); showAxisPanelB();
+   * EtomoDirector.getInstance().getMainFrame().pack(); return; }
+   * EtomoDirector.getInstance().getMainFrame().pack(); splitPane.resetToPreferredSizes();
+   * //handle bug in Windows where divider goes all the way to the left //when the frame
+   * is wider then the screen if (!hideA && !hideB && isAxisPanelAFitScreenError()) {
+   * setDividerLocation(.8); //.8 currently works. Adjust as needed.
+   * splitPane.resetToPreferredSizes(); } showAxisPanelA(); showAxisPanelB(); if (hideA) {
+   * setDividerLocation(0); } else if (hideB) { setDividerLocation(1); } } else {
+   * EtomoDirector.getInstance().getMainFrame().pack(); } } */
 
   /**
    * checks for a bug in windows that causes MainFrame.fitScreen() to move the
    * divider almost all the way to the left
    * @return
    */
-  /*
-   protected boolean isFitScreenError(AxisProcessPanel axisPanel) {
-   EtomoDirector.getInstance().getMainFrame().setVisible(true);
-   //EtomoDirector.getInstance().getMainFrame().show();
-   if (axisPanel.getWidth() <= 16) {
-   return true;
-   }
-   return false;
-   }*/
+  /* protected boolean isFitScreenError(AxisProcessPanel axisPanel) {
+   * EtomoDirector.getInstance().getMainFrame().setVisible(true);
+   * //EtomoDirector.getInstance().getMainFrame().show(); if (axisPanel.getWidth() <= 16)
+   * { return true; } return false; } */
 
   /**
    * set vertical scrollbar policy
@@ -742,68 +703,245 @@ public abstract class MainPanel extends EtomoPanel {
     }
   }
 
-  /*
-   public void fitWindow() {
-   fitWindow(false);
-   }
-   */
+  /* public void fitWindow() { fitWindow(false); } */
   /**
    * fit window to its components and to the screen
    *
    */
-  /*
-   public void fitWindow(boolean force) {
-   if (!force && !EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
-   *//* Need a function which does what 1.4.2 show did:
-     * Makes the Window visible. If the Window and/or its owner are not yet
-     * displayable, both are made displayable. The Window will be validated
-     * prior to being made visible. If the Window is already visible, this
-     * will bring the Window to the front.
-     * Component.SetVisible() is recommended as the replacement  
-     *//*
-       EtomoDirector.getInstance().getMainFrame().setVisible(true);
-       //EtomoDirector.getInstance().getMainFrame().show();
-       return;
-       }
-       synchronized (MainFrame.class) {
-       packAxis();
-       if (EtomoDirector.getInstance().isNewstuff()) {
-       return;
-       }
-       //the mainPanel has a limited size, but the frame does not
-       //if the frame has a greater height then the mainPanel + the frame's border
-       //height, then a scroll bar will be used.
-       //Make room for the scroll bar when calling pack()
-       int tabHeight = 0;
-       if (EtomoDirector.getInstance().getControllerListSize() > 1) {
-       String osName = System.getProperty("os.name").toLowerCase();
-       if (osName.indexOf("mac os") == -1) {
-       tabHeight = 30;
-       }
-       else {
-       //Tabs in mac are taller
-       tabHeight = 43;
-       }
-       }*/
-  /*
-   System.out.println("difference="
-   + Integer.toString(EtomoDirector.getInstance().getMainFrame()
-   .getSize().height
-   - getSize().height));
-   System.out.println("tabHeight=" + tabHeight + ",frameBorder.height="
-   + frameBorder.height + ",both="
-   + Integer.toString(frameBorder.height + tabHeight));
-   *//*
-     if (EtomoDirector.getInstance().getMainFrame().getSize().height
-     - getSize().height > frameBorder.height+tabHeight) {
-     setVerticalScrollBarPolicy(true);
-     packAxis();
-     setVerticalScrollBarPolicy(false);
-     }
-     }
-     }*/
+  /* public void fitWindow(boolean force) { if (!force &&
+   * !EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) { *//* Need a
+                                                                           * function
+                                                                           * which does
+                                                                           * what 1.4.2
+                                                                           * show did:
+                                                                           * Makes the
+                                                                           * Window
+                                                                           * visible. If
+                                                                           * the Window
+                                                                           * and/or its
+                                                                           * owner are not
+                                                                           * yet
+                                                                           * displayable,
+                                                                           * both are made
+                                                                           * displayable.
+                                                                           * The Window
+                                                                           * will be
+                                                                           * validated
+                                                                           * prior to
+                                                                           * being made
+                                                                           * visible. If
+                                                                           * the Window is
+                                                                           * already
+                                                                           * visible, this
+                                                                           * will bring
+                                                                           * the Window to
+                                                                           * the front.
+                                                                           * Component
+                                                                           * .SetVisible()
+                                                                           * is
+                                                                           * recommended
+                                                                           * as the
+                                                                           * replacement *//* EtomoDirector
+                                                                                            * .
+                                                                                            * getInstance
+                                                                                            * (
+                                                                                            * )
+                                                                                            * .
+                                                                                            * getMainFrame
+                                                                                            * (
+                                                                                            * )
+                                                                                            * .
+                                                                                            * setVisible
+                                                                                            * (
+                                                                                            * true
+                                                                                            * )
+                                                                                            * ;
+                                                                                            * /
+                                                                                            * /
+                                                                                            * EtomoDirector
+                                                                                            * .
+                                                                                            * getInstance
+                                                                                            * (
+                                                                                            * )
+                                                                                            * .
+                                                                                            * getMainFrame
+                                                                                            * (
+                                                                                            * )
+                                                                                            * .
+                                                                                            * show
+                                                                                            * (
+                                                                                            * )
+                                                                                            * ;
+                                                                                            * return
+                                                                                            * ;
+                                                                                            * }
+                                                                                            * synchronized
+                                                                                            * (
+                                                                                            * MainFrame
+                                                                                            * .
+                                                                                            * class
+                                                                                            * )
+                                                                                            * {
+                                                                                            * packAxis
+                                                                                            * (
+                                                                                            * )
+                                                                                            * ;
+                                                                                            * if
+                                                                                            * (
+                                                                                            * EtomoDirector
+                                                                                            * .
+                                                                                            * getInstance
+                                                                                            * (
+                                                                                            * )
+                                                                                            * .
+                                                                                            * isNewstuff
+                                                                                            * (
+                                                                                            * )
+                                                                                            * )
+                                                                                            * {
+                                                                                            * return
+                                                                                            * ;
+                                                                                            * }
+                                                                                            * /
+                                                                                            * /
+                                                                                            * the
+                                                                                            * mainPanel
+                                                                                            * has
+                                                                                            * a
+                                                                                            * limited
+                                                                                            * size
+                                                                                            * ,
+                                                                                            * but
+                                                                                            * the
+                                                                                            * frame
+                                                                                            * does
+                                                                                            * not
+                                                                                            * /
+                                                                                            * /
+                                                                                            * if
+                                                                                            * the
+                                                                                            * frame
+                                                                                            * has
+                                                                                            * a
+                                                                                            * greater
+                                                                                            * height
+                                                                                            * then
+                                                                                            * the
+                                                                                            * mainPanel
+                                                                                            * +
+                                                                                            * the
+                                                                                            * frame
+                                                                                            * 's
+                                                                                            * border
+                                                                                            * /
+                                                                                            * /
+                                                                                            * height
+                                                                                            * ,
+                                                                                            * then
+                                                                                            * a
+                                                                                            * scroll
+                                                                                            * bar
+                                                                                            * will
+                                                                                            * be
+                                                                                            * used
+                                                                                            * .
+                                                                                            * /
+                                                                                            * /
+                                                                                            * Make
+                                                                                            * room
+                                                                                            * for
+                                                                                            * the
+                                                                                            * scroll
+                                                                                            * bar
+                                                                                            * when
+                                                                                            * calling
+                                                                                            * pack
+                                                                                            * (
+                                                                                            * )
+                                                                                            * int
+                                                                                            * tabHeight
+                                                                                            * =
+                                                                                            * 0
+                                                                                            * ;
+                                                                                            * if
+                                                                                            * (
+                                                                                            * EtomoDirector
+                                                                                            * .
+                                                                                            * getInstance
+                                                                                            * (
+                                                                                            * )
+                                                                                            * .
+                                                                                            * getControllerListSize
+                                                                                            * (
+                                                                                            * )
+                                                                                            * >
+                                                                                            * 1
+                                                                                            * )
+                                                                                            * {
+                                                                                            * String
+                                                                                            * osName
+                                                                                            * =
+                                                                                            * System
+                                                                                            * .
+                                                                                            * getProperty
+                                                                                            * (
+                                                                                            * "os.name"
+                                                                                            * )
+                                                                                            * .
+                                                                                            * toLowerCase
+                                                                                            * (
+                                                                                            * )
+                                                                                            * ;
+                                                                                            * if
+                                                                                            * (
+                                                                                            * osName
+                                                                                            * .
+                                                                                            * indexOf
+                                                                                            * (
+                                                                                            * "mac os"
+                                                                                            * )
+                                                                                            * ==
+                                                                                            * -
+                                                                                            * 1
+                                                                                            * )
+                                                                                            * {
+                                                                                            * tabHeight
+                                                                                            * =
+                                                                                            * 30
+                                                                                            * ;
+                                                                                            * }
+                                                                                            * else
+                                                                                            * {
+                                                                                            * /
+                                                                                            * /
+                                                                                            * Tabs
+                                                                                            * in
+                                                                                            * mac
+                                                                                            * are
+                                                                                            * taller
+                                                                                            * tabHeight
+                                                                                            * =
+                                                                                            * 43
+                                                                                            * ;
+                                                                                            * }
+                                                                                            * } */
+  /* System.out.println("difference=" +
+   * Integer.toString(EtomoDirector.getInstance().getMainFrame() .getSize().height -
+   * getSize().height)); System.out.println("tabHeight=" + tabHeight +
+   * ",frameBorder.height=" + frameBorder.height + ",both=" +
+   * Integer.toString(frameBorder.height + tabHeight)); *//* if
+                                                           * (EtomoDirector.getInstance()
+                                                           * .getMainFrame
+                                                           * ().getSize().height -
+                                                           * getSize().height >
+                                                           * frameBorder.height+tabHeight)
+                                                           * {
+                                                           * setVerticalScrollBarPolicy(true
+                                                           * ); packAxis();
+                                                           * setVerticalScrollBarPolicy
+                                                           * (false); } } } */
 
-  //  TODO Need a way to repaint the existing font
+  // TODO Need a way to repaint the existing font
   public void repaintWindow() {
     repaintContainer(this);
     this.repaint();

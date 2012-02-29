@@ -126,6 +126,8 @@ public final class FileType {
       "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
   public static final FileType ALIGNED_STACK = FileType.getDescribedImodInstance(true,
       true, "", ".ali", ImodManager.FINE_ALIGNED_KEY, "the final aligned stack");
+  public static final FileType TILT_ALIGN_LOG = FileType.getInstance(false, true,
+      "align", ".log");
   public static final FileType XCORR_BLEND_OUTPUT = FileType.getInstance(true, true, "",
       ".bl");
   public static final FileType DISTORTION_CORRECTED_STACK = FileType.getInstance(true,
@@ -201,6 +203,8 @@ public final class FileType {
       .getDerivedTemplateInstance(TILT_OUTPUT, ".srec", ImodManager.SIRT_KEY);
   public static final FileType SIRT_SUBAREA_OUTPUT_TEMPLATE = FileType
       .getTemplateInstance(true, true, "_sub", ".srec");
+  public static final FileType GPU_TEST_LOG = FileType.getInstance(false, false,
+      "gputest", ".log");
   public static final FileType MODELED_JOIN = FileType.getImodInstance(true, false,
       "_modeled", ".join", ImodManager.MODELED_JOIN_KEY);
   public static final FileType MTF_FILTER_COMSCRIPT = FileType.getInstance(false, true,

@@ -100,7 +100,7 @@ public final class TaErrorLog implements Loggable {
           }
           line = taErrorLog.readLine(readerId);
         }
-        taErrorLog.closeReader(readerId);
+        taErrorLog.closeRead(readerId);
       }
     }
     return lineList;

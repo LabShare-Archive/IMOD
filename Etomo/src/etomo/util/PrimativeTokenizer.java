@@ -209,7 +209,7 @@ public final class PrimativeTokenizer {
     }
     catch (FileNotFoundException e) {
       if (readingId != null && !readingId.isEmpty()) {
-        file.closeForReading(readingId);
+        file.closeRead(readingId);
       }
       throw e;
     }
@@ -480,7 +480,7 @@ public final class PrimativeTokenizer {
     if (file != null && readingId != null && !readingId.isEmpty()) {
       fileClosed = true;
       reader.close();
-      file.closeForReading(readingId);
+      file.closeRead(readingId);
       readingId = null;
     }
   }

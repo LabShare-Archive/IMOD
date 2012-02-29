@@ -90,7 +90,7 @@ public class JoinInfoFile {
           }
         }
       }
-      joinInfo.closeReader(readerId);
+      joinInfo.closeRead(readerId);
       readerId = null;
     }
     catch (LogFile.LockException e) {

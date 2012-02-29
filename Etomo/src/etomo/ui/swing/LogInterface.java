@@ -42,9 +42,13 @@ public interface LogInterface {
 
   public void logMessage(Loggable loggable, AxisID axisID);
 
+  public void logMessage(String title, AxisID axisID);
+
+  public void logMessage(String message);
+
   public void save();
 
-  //Functions used by EtomoLogger
+  // Functions used by EtomoLogger
 
   public void append(String line);
 

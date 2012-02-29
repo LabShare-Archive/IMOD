@@ -272,7 +272,6 @@ copy.file = %{dataset}3.rec
 set.param = --autoclose3dmod
 set.param = --ignoreloc
 set.param = --actions
-#set.param = --debug
 set.interface.Join=
 
 [Test = join-test-gui]
@@ -370,7 +369,7 @@ set.interface.tools=
 
 [Test = flatten-volume-test-gui]
 set.testdir = flatten-volume-test-gui
-set.adoc.flatten-volume = tools.adoc
+set.adoc.flatten-volume = flatten.adoc
 set.var.dataset = BBa.rec
 set.dataset = BB
 copy.file = %{dataset}
@@ -378,7 +377,17 @@ set.param = --autoclose3dmod
 set.param = --ignoreloc
 set.param = --actions
 set.var.test-gui=
-set.interface.tools=
+set.interface.flatten=
+
+
+[Test = gpu-test-gui]
+set.testdir = gpu-test-gui
+set.adoc.flatten-volume = gpu.adoc
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.param = --actions
+set.var.test-gui=
+set.interface.gpu=
 
 
 [dataset = BB]
@@ -466,7 +475,7 @@ set.var.findbeads3d-binning = 2
 # center-to-center-thickness + additional-unbinned-diameters-to-add*int-unbinned-bead-diameter
 set.var.erase-gold-thickness.a=154
 set.var.erase-gold-thickness.b=148
-set.var.incremental-shift-to-center.a=28.9
+set.var.incremental-shift-to-center.a=28.8
 set.var.incremental-shift-to-center.b=38.7
 set.var.final-align-comscript=blend
 set.var.final-align-command=blendmont
@@ -558,10 +567,19 @@ goto.frame.pnl.main-frame =
 [[]]
 goto.frame.pnl.main-frame =
 
-[Interface = Tools]
+[Interface = flatten]
 [[open = interface]]
 	pnl.main-frame=
 	mn.tools=
 	mn.flatten-volume=
+[[]]
+goto.frame.pnl.manager-frame =
+
+
+[Interface = gpu]
+[[open = interface]]
+  pnl.main-frame=
+  mn.tools=
+  mn.gpu-tilt-test=
 [[]]
 goto.frame.pnl.manager-frame =

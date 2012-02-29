@@ -84,6 +84,15 @@ final class EtomoLogger {
     SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title
         + " - " + axisID + " axis:", message));
   }
+  
+  public void logMessage(final String title,final  AxisID axisID) {
+    SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title
+        + " - " + axisID + " axis:"));
+  }
+  
+  public void logMessage(final String message) {
+    SwingUtilities.invokeLater(new AppendLater(message));
+  }
 
   private final class AppendLater implements Runnable {
     boolean loadingFromFile = false;
@@ -92,6 +101,10 @@ final class EtomoLogger {
     private String line3 = null;
     private String[] stringArray = null;
     private List lineList = null;
+    
+    private AppendLater(String line1) {
+      this.line1 = line1;
+    }
 
     private AppendLater(String line1, String line2) {
       this.line1 = line1;

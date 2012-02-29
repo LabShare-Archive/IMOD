@@ -45,6 +45,8 @@ final class EtomoMenu {
   static final String NAD_LABEL = "Nonlinear Anisotropic "
       + (Utilities.isAprilFools() ? "Delusion" : "Diffusion");
   static final String PEET_LABEL = "PEET";
+  static final String FLATTEN_VOLUME_LABEL = "Flatten Volume";
+  static final String GPU_TILT_TEST_LABEL = "GPU Tilt Test";
 
   private static final int nMRUFileMax = 10;
   private static final String TOP_ANCHOR = Constants.TOP_ANCHOR;
@@ -71,8 +73,10 @@ final class EtomoMenu {
   private final JMenuItem menuNewPeet = new MenuItem(PEET_LABEL, KeyEvent.VK_P);
 
   private final JMenu menuTools = new Menu("Tools");
-  private final JMenuItem menuFlattenVolume = new MenuItem("Flatten Volume",
+  private final JMenuItem menuFlattenVolume = new MenuItem(FLATTEN_VOLUME_LABEL,
       KeyEvent.VK_F);
+  private final JMenuItem menuGpuTiltTest = new MenuItem(GPU_TILT_TEST_LABEL,
+      KeyEvent.VK_U);
 
   private final JMenu menuView = new Menu("View");
   private final JMenuItem menuLogWindow = new MenuItem("Show/Hide Log Window",
@@ -128,6 +132,7 @@ final class EtomoMenu {
     // Bind the menu items to their listeners
     ToolsActionListener toolsActionListener = new ToolsActionListener(abstractFrame);
     menuFlattenVolume.addActionListener(toolsActionListener);
+    menuGpuTiltTest.addActionListener(toolsActionListener);
 
     ViewActionListener viewActionListener = new ViewActionListener(abstractFrame);
     menuFitWindow.addActionListener(viewActionListener);
@@ -216,6 +221,7 @@ final class EtomoMenu {
 
     // Tool menu
     menuTools.add(menuFlattenVolume);
+    menuTools.add(menuGpuTiltTest);
 
     // View menu
     menuView.add(menuLogWindow);
@@ -253,6 +259,7 @@ final class EtomoMenu {
 
     // Tool menu
     menuTools.add(menuFlattenVolume);
+    menuTools.add(menuGpuTiltTest);
 
     // View menu
     menuView.add(menuFitWindow);
@@ -349,6 +356,9 @@ final class EtomoMenu {
   public void menuToolsAction(AxisID axisID, ActionEvent event) {
     if (equalsFlattenVolume(event)) {
       EtomoDirector.INSTANCE.openTools(axisID, ToolType.FLATTEN_VOLUME);
+    }
+    else if (equalsGpuTiltTest(event)) {
+      EtomoDirector.INSTANCE.openTools(axisID, ToolType.GPU_TILT_TEST);
     }
   }
 
@@ -504,6 +514,10 @@ final class EtomoMenu {
 
   boolean equalsFlattenVolume(final ActionEvent event) {
     return equals(menuFlattenVolume, event);
+  }
+
+  boolean equalsGpuTiltTest(final ActionEvent event) {
+    return equals(menuGpuTiltTest, event);
   }
 
   boolean equalsSettings(final ActionEvent event) {

@@ -82,7 +82,10 @@ public final class FrontPageDialog {
       + EtomoMenu.GENERIC_LABEL);
   private final MultiLineButton btnPeet = new MultiLineButton("New "
       + EtomoMenu.PEET_LABEL);
-  private final MultiLineButton btnFlattenVolume = new MultiLineButton("Flatten Volume");
+  private final MultiLineButton btnFlattenVolume = new MultiLineButton(
+      EtomoMenu.FLATTEN_VOLUME_LABEL);
+  private final MultiLineButton btnGpuTiltTest = new MultiLineButton(
+      EtomoMenu.GPU_TILT_TEST_LABEL);
 
   private FrontPageDialog() {
   }
@@ -96,34 +99,40 @@ public final class FrontPageDialog {
   }
 
   private void createPanel() {
-    //local panels
+    // local panels
     SpacedPanel pnlButtonRow1 = SpacedPanel.getInstance();
     SpacedPanel pnlButtonRow2 = SpacedPanel.getInstance();
     SpacedPanel pnlButtonRow3 = SpacedPanel.getInstance();
-    //initialize
+    SpacedPanel pnlButtonRow4 = SpacedPanel.getInstance();
+    // initialize
     btnRecon.setSize();
     btnJoin.setSize();
     btnNad.setSize();
     btnGeneric.setSize();
     btnPeet.setSize();
     btnFlattenVolume.setSize();
-    //root panel
+    btnGpuTiltTest.setSize();
+    // root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.add(pnlButtonRow1);
     pnlRoot.add(pnlButtonRow2);
     pnlRoot.add(pnlButtonRow3);
-    //button row 1 panel
+    pnlRoot.add(pnlButtonRow4);
+    // button row 1 panel
     pnlButtonRow1.setBoxLayout(BoxLayout.X_AXIS);
     pnlButtonRow1.add(btnRecon.getComponent());
     pnlButtonRow1.add(btnJoin.getComponent());
-    //button row 2 panel
+    // button row 2 panel
     pnlButtonRow2.setBoxLayout(BoxLayout.X_AXIS);
     pnlButtonRow2.add(btnNad.getComponent());
     pnlButtonRow2.add(btnGeneric.getComponent());
-    //button row 3 panel
+    // button row 3 panel
     pnlButtonRow3.setBoxLayout(BoxLayout.X_AXIS);
     pnlButtonRow3.add(btnPeet.getComponent());
     pnlButtonRow3.add(btnFlattenVolume.getComponent());
+    // button row 4 panel
+    pnlButtonRow4.setBoxLayout(BoxLayout.X_AXIS);
+    pnlButtonRow4.add(btnGpuTiltTest.getComponent());
   }
 
   private void addListeners() {
@@ -134,6 +143,7 @@ public final class FrontPageDialog {
     btnGeneric.addActionListener(actionListener);
     btnPeet.addActionListener(actionListener);
     btnFlattenVolume.addActionListener(actionListener);
+    btnGpuTiltTest.addActionListener(actionListener);
   }
 
   public Container getContainer() {
@@ -166,6 +176,9 @@ public final class FrontPageDialog {
     else if (actionCommand.equals(btnFlattenVolume.getActionCommand())) {
       EtomoDirector.INSTANCE.openTools(AxisID.ONLY, ToolType.FLATTEN_VOLUME);
     }
+    else if (actionCommand.equals(btnGpuTiltTest.getActionCommand())) {
+      EtomoDirector.INSTANCE.openTools(AxisID.ONLY, ToolType.GPU_TILT_TEST);
+    }
   }
 
   private void setTooltips() {
@@ -176,6 +189,9 @@ public final class FrontPageDialog {
     btnGeneric.setToolTipText("Run a generic parallel process.");
     btnPeet.setToolTipText("Start the interface for the PEET particle averaging "
         + "package.");
+    btnGpuTiltTest
+        .setToolTipText("Test the reliability of GPU with repeated runs of the Tilt "
+            + "program");
   }
 
   private static final class FrontPageActionListener implements ActionListener {

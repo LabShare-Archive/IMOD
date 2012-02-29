@@ -477,10 +477,6 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
    */
   private int demoTime = 5000;
   private boolean debug = false;
-  /**
-   * @deprecated - replaced by vmstopy
-   */
-  private SystemProgram vmstocsh;
   private SystemProgram systemProgram;
   private SystemProgram vmstopy;
   private StringBuffer cshProcessID;
@@ -1016,38 +1012,6 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   }
 
   /**
-   * Execute the csh commands.
-   * @deprecated
-   */
-  void execCsh(String[] commands) throws IOException, SystemProcessException,
-      LogFile.LockException {
-
-    // Do not use the -e flag for tcsh since David's scripts handle the failure
-    // of commands and then report appropriately. The exception to this is the
-    // com scripts which require the -e flag. RJG: 2003-11-06
-    systemProgram = new SystemProgram(manager, manager.getPropertyUserDir(),
-        new String[] { "tcsh", "-ef" }, axisID);
-    systemProgram.setWorkingDirectory(workingDirectory);
-    systemProgram.setStdInput(commands);
-    systemProgram.setDebug(debug);
-    ParsePID parsePID = new ParsePID(systemProgram, cshProcessID, processData);
-    Thread parsePIDThread = new Thread(parsePID);
-    parsePIDThread.start();
-    // make sure nothing else is writing or backing up the log file
-    LogFile.WritingId logWritingId = logFile.openForWriting();
-
-    systemProgram.run();
-
-    // release the log file
-    logFile.closeForWriting(logWritingId);
-    // Check the exit value, if it is non zero, parse the warnings and errors
-    // from the log file.
-    if (systemProgram.getExitValue() != 0) {
-      throw new SystemProcessException("");
-    }
-  }
-
-  /**
    * Execute the python commands.
    */
   void execPython(String[] commands) throws IOException, SystemProcessException,
@@ -1076,32 +1040,6 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     if (systemProgram.getExitValue() != 0) {
       throw new SystemProcessException("");
     }
-  }
-
-  /**
-   * Convert the com script to a sequence of csh command commands
-   * @deprecated - replaced by vmsToPy
-   * @return A string array containing the csh command sequence
-   */
-  private String[] vmsToCsh() throws IOException, SystemProcessException {
-    // Redirecting stdin for the command does not work even when a shell is
-    // called, need to pump the com file directly into the stdin of vmstocsh
-    String[] comSequence = loadFile();
-    String[] command = new String[] { ApplicationManager.getIMODBinPath() + "vmstocsh",
-        logFile.getName() };
-    // parseBaseName(comScriptName, ".com") + ".log" };
-    vmstocsh = new SystemProgram(manager, manager.getPropertyUserDir(), command, axisID);
-    vmstocsh.setWorkingDirectory(workingDirectory);
-    vmstocsh.setStdInput(comSequence);
-    vmstocsh.setDebug(debug);
-    vmstocsh.run();
-
-    if (vmstocsh.getExitValue() != 0) {
-      processMessages.addError("Running vmstocsh against " + comScriptName + " failed");
-      throw new SystemProcessException("");
-    }
-
-    return vmstocsh.getStdOutput();
   }
 
   /**

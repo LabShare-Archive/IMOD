@@ -167,7 +167,7 @@ public final class XfjointomoLog {
         rowArray.add(row);
       }
     }
-    logFile.closeReader(readerId);
+    logFile.closeRead(readerId);
   }
 
   private String parseBoundary(String[] stringArray) {

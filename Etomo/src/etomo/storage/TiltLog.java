@@ -46,7 +46,7 @@ public final class TiltLog {
     try {
       LogFile.ReaderId readerId = file.openReader();
       boolean retval = read(readerId);
-      file.closeReader(readerId);
+      file.closeRead(readerId);
       return retval;
     }
     catch (LogFile.LockException e) {

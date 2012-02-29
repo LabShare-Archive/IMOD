@@ -1,11 +1,9 @@
 package etomo.process;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 
 import etomo.BaseManager;
@@ -353,54 +351,6 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
   /**
    * Places commmands in the .csh file.  Creates and runs a file containing
    * commands to execute the .csh file in the background.  
-   * @deprecated
-   */
-  void execCsh(String[] commands) throws IOException, SystemProcessException,
-      LogFile.LockException {
-    File workingDirectory = getWorkingDirectory();
-    String runName = parseBaseName(getComScriptName(), ".com");
-    String cshFileName = runName + ".csh";
-    File cshFile = new File(workingDirectory, cshFileName);
-
-    String runCshFileName = "run" + runName + ".csh";
-    File runCshFile = new File(workingDirectory, runCshFileName);
-
-    File outFile = new File(workingDirectory, getWatchedFileName());
-
-    Utilities.writeFile(cshFile, commands, true);
-    makeRunCshFile(runCshFile, cshFileName, getWatchedFileName());
-
-    // Do not use the -e flag for tcsh since David's scripts handle the failure
-    // of commands and then report appropriately. The exception to this is the
-    // com scripts which require the -e flag. RJG: 2003-11-06
-    String[] command = { "tcsh", "-f", runCshFile.getAbsolutePath() };
-    BackgroundSystemProgram program = new BackgroundSystemProgram(manager, command,
-        getDetachedMonitor(), getAxisID());
-    setSystemProgram(program);
-    program.setWorkingDirectory(workingDirectory);
-    program.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
-
-    ParseBackgroundPID parsePID = new ParseBackgroundPID(program, processID, outFile,
-        getProcessData());
-    Thread parsePIDThread = new Thread(parsePID);
-    parsePIDThread.start();
-    // make sure nothing else is writing or backing up the log files
-    LogFile.WritingId logWritingId = getLogFile().openForWriting();
-
-    program.run();
-
-    // release the log files
-    getLogFile().closeForWriting(logWritingId);
-    // Check the exit value, if it is non zero, parse the warnings and errors
-    // from the log file.
-    if (program.getExitValue() != 0) {
-      throw new SystemProcessException("");
-    }
-  }
-
-  /**
-   * Places commmands in the .csh file.  Creates and runs a file containing
-   * commands to execute the .csh file in the background.  
    */
   void execPython(String[] commands) throws IOException, SystemProcessException,
       LogFile.LockException {
@@ -438,32 +388,6 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
 
   private final DetachedProcessMonitor getDetachedMonitor() {
     return (DetachedProcessMonitor) super.getMonitor();
-  }
-
-  /**
-   * create a csh file to run commandname.csh (created from commandname.com).
-   * To avoid hangups when quitting Etomo or logging out, put nohup on the first
-   * line and send the output to a file.
-   * @deprecated
-   * @param runCshFile
-   * @param cshFileName
-   * @param runName
-   * @throws IOException
-   */
-  private void makeRunCshFile(File runCshFile, String cshFileName, String outFileName)
-      throws IOException {
-    if (runCshFile == null) {
-      throw new IOException("unable to create " + cshFileName);
-    }
-    if (runCshFile.exists()) {
-      return;
-    }
-    BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(runCshFile));
-    bufferedWriter.write("nohup");
-    bufferedWriter.newLine();
-    bufferedWriter.write("tcsh -f " + cshFileName + ">&" + outFileName + "&");
-    bufferedWriter.newLine();
-    bufferedWriter.close();
   }
 
   /**

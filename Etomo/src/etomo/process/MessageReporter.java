@@ -97,7 +97,7 @@ final class MessageReporter {
     if (id == null) {
       return;
     }
-    file.closeReader(id);
+    file.closeRead(id);
     id = null;
   }
 

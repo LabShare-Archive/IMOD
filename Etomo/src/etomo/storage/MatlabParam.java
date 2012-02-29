@@ -1682,6 +1682,12 @@ public final class MatlabParam {
       if (X_AND_Z_AXIS.value.equals(value)) {
         return X_AND_Z_AXIS;
       }
+      if (RANDOM_ROTATIONS.value.equals(value)) {
+        return RANDOM_ROTATIONS;
+      }
+      if (RANDOM_AXIAL_ROTATIONS.value.equals(value)) {
+        return RANDOM_AXIAL_ROTATIONS;
+      }
       return DEFAULT;
     }
 
