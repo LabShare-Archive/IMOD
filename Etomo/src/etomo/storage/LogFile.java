@@ -1508,9 +1508,9 @@ public final class LogFile {
       // Add the last characters equal to usefulLength to buffer.
       StringBuffer buffer = new StringBuffer();
       int usefulLength;
-      if (nRead < lengthToScan) {
+      if (nRead < lengthToScan && nReadPrev > 0) {
         // The last characters have been split in half
-        usefulLength = lengthToScan - nRead;
+        usefulLength = Math.min(nReadPrev, lengthToScan - nRead);
         buffer.append(charArrayPrev, nReadPrev - usefulLength, usefulLength);
       }
       usefulLength = Math.min(nRead, lengthToScan);
