@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/29/12: IMOD_4-4-6
 2/29/12: Fixed problems with using outdated or invalid vertex buffer data,
 particularly in sphere drawing.
 
@@ -34,7 +35,6 @@ and made it give a message when it stops because user released Shift key.
 
 2/22/12: IMOD_4-3-6
 2/20/12: IMOD_4-4-5
-
 2/18/12: Added a graphic of mouse buttons to 3dmod preferences dialog.
 
 2/17/12: Fixed programs using warping code for images with Y size bigger
