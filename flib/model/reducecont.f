@@ -10,21 +10,7 @@ c       within the tolerance distance from the original point.
 c       
 c       See man page for more details.
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.2  2005/05/31 00:55:37  mast
-c       Fixed scaling direction
-c       
-c       Revision 3.1  2005/05/24 18:01:07  mast
-c       Modified to use partial loading mode and converted to PIP
-c       
-c       
-c       David Mastronarde, 9/8/97
+c       $Id$
 c       
       implicit none
       integer limpath,limflags
@@ -61,6 +47,7 @@ c
       iorder=2
       tol=0.25
       nobjdo = 0
+      nContTot = 0
 c       
 c       Pip startup: set error, parse options, check help
 c       
