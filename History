@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/29/12: Fixed problems with using outdated or invalid vertex buffer data,
+particularly in sphere drawing.
+
 2/29/12: Switched imodhelp to python; note that "imodhelp program" can now
 be used to display a program man page directly.
 
