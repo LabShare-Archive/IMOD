@@ -160,6 +160,15 @@ Set this variable to 1 to have the runcmd function called by Python programs
 print each command, input to the command, and the output of the command unless
 the output was already printed on standard out.
 .TP
+.B SUBM_LOG_TYPE
+Set this variable to a positive value up to 4 to have subm (submfg) produce
+sequentially numbered log files with the given number of digits, or to -1 to
+-3 to have a date-time stamp attached the log file name.
+.TP
+.B SUBM_MESSAGE
+Set this variable to an alternative message to be used when subm (submfg)
+completes execution of a command file.
+.TP
 .B WRITE_MODE0_SIGNED
 Set this variable to 1 to have all MRC files in mode 0 written as signed
 bytes.  In some future IMOD version, this may be the default behavior, and
@@ -204,4 +213,8 @@ are also added to all executables.
 .TP
 .B QTDIR
 Location of Qt, or at least of Qt bin directory if include is elsewhere.
+.TP
+.B SOLVEMATCH_TEST
+Set this variable to prevent Solvematch from exiting with error when given a
+data set with relative coordinates.
 

@@ -4,7 +4,7 @@ include ../configure
 #  No more Log
 
 SCRIPTS = matchshifts onepatchcorr patchcorr3d patchcrawl3d recombine selfalign\
- setupcoms setuplong splitmrc  submfg imodpsview settmpdir matchrotpairs\
+ setupcoms setuplong splitmrc  imodpsview settmpdir matchrotpairs\
  prochunks.csh imodkillgroup runpyscript queuechunk $(GENERATED_SCRIPTS)
 
 all:

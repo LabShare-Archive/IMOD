@@ -1,0 +1,220 @@
+#!/usr/bin/python -u
+# Runs command files and makes log files for them
+#
+# Author: David Mastronarde
+#
+# $Id$
+#
+progname = 'submfg'
+prefix = 'ERROR: ' + progname + ' - '
+
+# load System Libraries
+import os, sys, os.path, signal, glob, datetime
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import exitError, setExitPrefix
+setExitPrefix(prefix)
+
+comtmp = 'submtemp.' + str(os.getpid())
+bell = '\a'
+message = ' finished successfully' + bell
+if os.getenv('SUBM_MESSAGE') != None:
+   message = os.environ['SUBM_MESSAGE']
+logType = 0
+if os.getenv('SUBM_LOG_TYPE') != None:
+   logType = convertToInteger(os.environ['SUBM_LOG_TYPE'],
+                              'environment variable SUBM_LOG_TYPE')
+
+# Process arguments
+lenarg = len(sys.argv)
+argind = 1
+if lenarg < 2:
+   prnstr("""subm or submfg will execute a series of command files in sequence
+Usage:  submfg [options] command_file1 command_file2 ...
+        Command files can have default extension .com or .pcm
+        If the filename is comfile.com or comfile.pcm, you can enter 
+                 comfile    comfile.  or  comfile.com or comfile.pcm
+        submfg will execute the files in the foreground
+        subm is an alias defined in the IMOD startup script to execute submfg
+               in the background
+        Set the environment variable SUBM_MESSAGE to modify the message upon
+               completion
+        Set the environment variable SUBM_LOG_TYPE to set a default log type
+    Options:
+        -t     Report the execution time
+        -c     Continue with the next command file if one fails
+        -s     Translate file with vmstocsh and run with tcsh
+                 (default is to translate with vmstopy and run with python)
+        -n #   Run niced with # as nice increment (range 1 to 19)
+        -l #   Log type for numbered or time-stamped logs:
+                  1 - 4 for sequential numbers with 1-4 digits
+                 -1 for date-time stamps like Mar-01-195046.4
+                 -2 for date-time stamps like 20120301-195121.9
+                 -3 for date-time stamps like 2012-03-01T19:51:51.9""")
+   sys.exit(0)
+
+nice = 0
+useTcsh = False
+dotime = False
+contIfErr = False
+while argind < lenarg:
+   oarg = sys.argv[argind]
+   if oarg.startswith('-'):
+      if oarg == '-t':
+         dotime = True
+      elif oarg == '-c':
+         contIfErr = True
+      elif oarg == '-s':
+         useTcsh = True
+      elif oarg == '-n':
+         argind += 1
+         if argind >= lenarg:
+            break
+         nice = convertToInteger(sys.argv[argind], '"nice" value')
+      elif oarg == '-l':
+         argind += 1
+         if argind >= lenarg:
+            break
+         logType = convertToInteger(sys.argv[argind], 'log type value')
+      else:
+         exitError('Unrecognized argument ' + oarg)
+      argind += 1
+   else:
+      break
+
+if argind >= lenarg:
+   exitError('No command file was entered')
+passOnKeyInterrupt(True)
+
+# Loop over the command files
+while argind < lenarg:
+   try:
+      # Get the full command file name
+      argname = sys.argv[argind]
+      argind += 1
+      (rootname, ext) = os.path.splitext(argname)
+      if ext == '' or ext == '.':
+         comExists = os.path.exists(rootname + '.com')
+         pcmExists = os.path.exists(rootname + '.pcm')
+         if comExists and pcmExists:
+            exitError('Both ' + rootname + '.com and ' + rootname + \
+                         '.pcm exist; specify which')
+         if comExists:
+            comname = rootname + '.com'
+         elif pcmExists:
+            comname = rootname + '.pcm'
+         else:
+            exitError('Neither ' + rootname + '.com nor ' + rootname + '.pcm exists')
+      else:
+         comname = argname
+
+      # Get the log file name
+      logname = rootname + '.log'
+      if logType > 0:
+         logType = min(4, logType)
+         loglist = glob.glob(logname + '-[0-9]*')
+         format = '-{:0' + str(logType) + 'd}'
+         lognum = 1
+         for log in loglist:
+            logspl = log.split('-')
+            try:
+               num = int(logspl[len(logspl) - 1])
+               lognum = max(num + 1, lognum)
+            except ValueError:
+               pass
+
+         logname += fmtstr(format, lognum)
+
+      elif logType < 0:
+         d = datetime.datetime.today()
+         if logType < -1:
+            stamp = d.isoformat()
+            msind = stamp.find('.')
+            if msind > 0:
+               stamp = stamp[:msind]
+            if logType == -2:
+               stamp = stamp.replace('-', '').replace(':', '').replace('T', '-')
+         else:
+            stamp = d.strftime('%b-%d-%H%M%S')
+
+         logname += '-' + stamp + '.' + str(d.microsecond // 100000)
+
+      # Convert the command file
+      if useTcsh:
+         comlines = readTextFile(comname)
+         cshlines = runcmd('vmstocsh ' + logname, comlines)
+         if nice:
+            cshlines.insert(0, 'nice +' + str(nice))
+         writeTextFile(comtmp, cshlines)
+         comstr = 'tcsh -ef '
+
+      else:
+         comstr = 'vmstopy '
+         if nice:
+            comstr += '-n ' + str(nice) + ' '
+         runcmd(comstr + comname + ' ' + logname + ' ' + comtmp, None, 'stdout')
+         comstr = 'python -u '
+
+      if dotime:
+         comstr = 'time ' + comstr
+
+      # Run it
+      if logType:
+         prnstr('Running ' + comname + ' with log in ' + logname + ' ... ', end = '')
+      else:
+         prnstr('Running ' + comname + ' ... ', end = '')
+      runcmd(comstr + comtmp)
+      prnstr(comname + ' ' + message)
+
+   except ImodpyError:
+      prnstr('Error executing ' + comname + bell)
+
+      # If log exists, find ERROR:, and if not do last few lines
+      if os.path.exists(logname):
+         loglines = readTextFile(logname, ' log file to find ERROR')
+         gotErr = 0
+         for l in loglines:
+            if l.find('ERROR:') >= 0:
+               prnstr(l)
+               gotErr = 1
+         if not gotErr:
+            prnstr('   last lines of log:')
+            ind = max(0, len(loglines) - 4)
+            for l in loglines[ind:]:
+               prnstr(l)
+      else:
+
+         # If no log file, dump any error strings from runcmd
+         errStrings = getErrStrings()
+         for l in errStrings:
+            prnstr(l)
+
+      # stop loop unless continuing from errors
+      if not contIfErr:
+         break
+
+   except KeyboardInterrupt:
+      break
+      
+try:
+   os.path.remove(comtmp)
+except Exception:
+   pass
+sys.exit(0)
