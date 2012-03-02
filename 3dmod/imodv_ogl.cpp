@@ -416,7 +416,11 @@ void imodvDraw_models(ImodvApp *a)
   }
      
   glPopName();
-  return;
+
+  // 3/2/12: flushes and finishes should not be needed when double buffering.
+  // New practice, do a finish only here and only if single-buffer or picking
+  if (!a->db || a->doPick)
+    glFinish();
 }
 
 // Sets the values for current contour and surface and object being drawn,
@@ -530,7 +534,7 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
           clip_obj(imod, obj, 1);
           imodvDraw_object( obj , imod, drawTrans);
           clip_obj(imod, obj, 0);
-          glFinish();
+          //glFinish();
         }
       }
       if (nloop == 2) {
@@ -541,7 +545,7 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
     glDepthMask(GL_FALSE); 
   }
   glDepthMask(GL_TRUE); 
-  glFinish();
+  //glFinish();
   
   glPopName();
   if (a->drawClip && imod == a->imod)
@@ -593,8 +597,8 @@ static int clip_obj(Imod *imod, Iobj *obj, int flag)
     }
     clips = &imod->view->clips;
   }
-  if (flag)
-    glFlush();
+  /*if (flag)
+    glFlush();*/
   return(0);
 }
 
@@ -2039,7 +2043,7 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
       ifgHandleSurfChange(obj, mesh->surf, &defProps, &curProps, &stateFlags, 
                           handleFlags);
     } else {
-      glFlush();
+      //glFlush();
       obj->flags |= IMOD_OBJFLAG_TEMPUSE;
       return;
     }
@@ -2356,7 +2360,7 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
       ifgHandleSurfChange(obj, mesh->surf, &defProps, &curProps, &stateFlags, 
                           handleFlags);
     } else {
-      glFlush();
+      //glFlush();
       obj->flags |= IMOD_OBJFLAG_TEMPUSE;
       return;
     }
@@ -2429,7 +2433,7 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
           glFinish();
       }
       glEnd();
-      glFlush();
+      //glFlush();
       break;
 
     case IMOD_MESH_BGNPOLYNORM2:
@@ -2539,7 +2543,7 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
       }
       // istoreDump(mesh->store);
       glEnd();
-      glFlush();
+      //glFlush();
       break;
 
     case IMOD_MESH_BGNBIGPOLY:
@@ -2578,7 +2582,7 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
       }
       break;
     }
-    glFlush();
+    //glFlush();
   }
   return;
 }

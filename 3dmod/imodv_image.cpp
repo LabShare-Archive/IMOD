@@ -699,7 +699,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
 
   B3DFREE(bmap);
   glDisable(GL_BLEND);
-  glFlush();
+  //glFlush();
   glDisable(GL_TEXTURE_2D);
   sNumSlices = numSave;
   if (imodDebug('v'))
