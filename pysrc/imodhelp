@@ -1,5 +1,5 @@
 #!/usr/bin/python -u
-# startprocess - runs a process in background with redirection of output/error
+# imodhelp - starts Qt Assistant in background
 #
 # Author: David Mastronarde
 #
