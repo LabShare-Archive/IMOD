@@ -282,6 +282,10 @@ void imodvKeyPress(QKeyEvent *event)
     if (shifted && ctrl && a->vertBufOK >= 0) {
       a->vertBufOK = 1 - a->vertBufOK;
       imodPrintStderr("Vertex buffers %s\n", a->vertBufOK ? "ON" : "OFF");
+      if (!a->vertBufOK) {
+        for (int m = 0; m < a->nm; m++)
+          vbCleanupVBD(a->mod[m]);
+      }
       imodvDraw(a);
     } else if (shifted)
       imodvViewEditDialog(a, 1);
