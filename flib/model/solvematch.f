@@ -6,7 +6,6 @@ c       different axes.  It uses information from the 3-D coordinates of
 c       fiducials found by TILTALIGN.  See man page for further information.
 c       
 c       $Id$
-c       Log at end of file
 c       
       implicit none
       include 'statsize.inc'
@@ -56,7 +55,7 @@ c
       logical*4 relativeFids, matchAtoB
 
       logical readw_or_imod, b3dxor
-      integer*4 getimodhead,getimodscales
+      integer*4 getimodhead,getimodscales,imodGetenv
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -758,7 +757,8 @@ c
         dxyz(1) = 0.
         dxyz(2) = 0.
         dxyz(3) = 0.
-        call exitError('RELATIVE FIDUCIAL COORDINATES ARE NO LONGER ALLOWED; RERUN '//
+        if (imodGetenv('SOLVEMATCH_TEST', filename) .ne. 0) call exitError(
+     &      'RELATIVE FIDUCIAL COORDINATES ARE NO LONGER ALLOWED; RERUN '//
      &      'TILTALIGN FOR BOTH AXES TO GET ABSOLUTE COORDINATES')
       else
 c         
@@ -1298,96 +1298,3 @@ c
       enddo
       return 
       end
-
-
-c
-c       $Log$
-c       Revision 3.24  2010/07/01 04:10:30  mast
-c       Fixed problem with undefined variable with matching models only
-c
-c       Revision 3.23  2009/12/02 05:42:47  mast
-c       *** empty log message ***
-c
-c       Revision 3.22  2009/04/07 14:26:50  mast
-c       Increase size of filename variable
-c
-c       Revision 3.21  2009/02/17 00:03:24  mast
-c       Improved messages when center shift is above limit
-c
-c       Revision 3.20  2008/12/10 21:47:27  mast
-c       Changed to handle different pixel size in transferfid coords
-c
-c       Revision 3.19  2007/12/12 23:41:19  mast
-c       Added detection of different scaling along the three axes and warnings
-c
-c       Revision 3.18  2007/06/27 19:27:55  mast
-c       Increased point limit, added error check for model points
-c
-c       Revision 3.17  2007/03/19 19:57:15  mast
-c       Swicthed from a center fit to applying global transform to center points
-c       so it won't screw up if center points are on one surface
-c
-c       Revision 3.16  2006/08/23 23:42:32  mast
-c       Added local fitting and center shift assessment and fixed output of
-c       list of points in B being used
-c
-c       Revision 3.15  2006/07/14 00:29:15  mast
-c       Needed to initialize matchAtOB
-c
-c       Revision 3.14  2006/07/04 22:48:20  mast
-c       Improved messages for transferfid coordinate case
-c
-c       Revision 3.13  2006/05/05 14:20:28  mast
-c       Fixed Pip declaration and while(1)
-c
-c       Revision 3.12  2006/05/04 23:06:21  mast
-c       Added ability to use coordinates from transferfid to determine the 
-c       match, made error messages specify A/B correctly if informed about
-c       direction of match, switched to new error exit function to avoid split
-c       lines
-c
-c       Revision 3.11  2005/12/09 04:43:27  mast
-c       gfortran: .xor., continuation, format tab continuation or byte fixes
-c
-c       Revision 3.10  2005/02/16 06:44:51  mast
-c       Use the fiducial file image size if available for shifting absolute
-c       fiducial coordinates to center
-c       
-c       Revision 3.9  2004/08/22 14:58:37  mast
-c       Used line_is_filename as workaround to Windows problem
-c       
-c       Revision 3.8  2004/06/10 05:29:30  mast
-c       Added ability to deal with absolute coordinates
-c       
-c       Revision 3.7  2004/01/29 03:12:11  mast
-c       Fixed bug in getting output file for Pip input
-c       
-c       Revision 3.6  2003/12/24 19:03:20  mast
-c       Incorporated new method for handling fiducials on one surface and
-c       converted to PIP input.
-c       
-c       Revision 3.5  2003/05/20 23:43:45  mast
-c       Add space before wrlist output
-c       
-c       Revision 3.4  2002/11/11 22:26:37  mast
-c       Added argument to calls to do3multr and solve_wo_outlier for
-c       fixed column
-c       
-c       Revision 3.3  2002/07/28 00:24:47  mast
-c       Added a second level of indexing so that point numbers in the
-c       fiducial coordinate file are read and used to refer to points.
-c       Made the matching model points be referred to be a negative
-c       number.
-c       
-c       Revision 3.2  2002/07/21 19:26:30  mast
-c       *** empty log message ***
-c       
-c       Revision 3.1  2002/07/21 19:24:27  mast
-c       Resurrected the ability to use matching models, added scaling of
-c       coordinates based on information from model header, and added
-c       ability to solve for transformation using model files alone.  Also
-c       standardized error output. 
-c       
-c       David Mastronarde, 1995; modified for zero shifts, 7/4/97;
-c       Added outlier elimination and error exit, 6/5/99
-c       Added ability to start with small initial set of matches, 3/20/00
