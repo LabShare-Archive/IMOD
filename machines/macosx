@@ -122,10 +122,10 @@ if ("$filetext" != "") then
     if ($ccomp == gcc) set m64flags = '-m64'
     if (-e /usr/local/lib/libtiff64.a) set tiffa = libtiff64.a
     if (-e /usr/local/lib/libjpeg64.a) set jpega = libjpeg64.a
-
-    # This could be a Qt 4.5 requirement...  (as maybe was QtAssistant)
-    set midasGL = ""
 endif
+
+# If there are frameworks, do not add QtOpenGl for midas
+if (-d $QTDIR/lib/QtOpenGL.framework) set midasGL = ""
 
 # Set the TIFF libs.  libiimod needs to have all of them; it is not clear
 # if the executables linking it need to have them all too
