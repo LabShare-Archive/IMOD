@@ -27,6 +27,8 @@ This module provides the following functions:
   writeTextFile(filename, strings) - writes set of strings to a text file
   optionValue(linelist, option, type, ignorecase = False) - finds option value
                                                               in list of lines
+  convertToInteger(valstr, description) - Convert string to int with error 
+                                           message if it fails
   completeAndCheckComFile(comfile) - returns complete com file name and root
   cleanChunkFiles(rootname[, logOnly]) - cleans up log and com files from chunks
   cleanupFiles(files) - Removes a list of files with multiple trials if it fails
@@ -571,6 +573,14 @@ def optionValue(linelist, option, type, ignorecase = False):
                
    return retval
 
+
+# Convert a string to an integer with an error message if it fails
+def convertToInteger(valstr, description):
+   try:
+      return int(valstr)
+   except ValueError:
+      exitError('Converting ' + description + ' (' + valstr + ') to integer')
+      
 
 # Given a com file entry with optional extension, get the rootname and its
 # complete name and check for existence
