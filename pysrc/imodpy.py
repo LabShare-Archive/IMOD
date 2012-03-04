@@ -96,8 +96,9 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
        cmd is a string; input is an array; outfile is a file object or
        the string 'stdout' to send output to standard out
        inStderr is used for the stderr argument when calling Popen and could be
-       PIPE for it to be swallowed or STDOUT for it to be combined with other output.
-       If outfile is None and the command fails with a broken pipe within 0.5 second,
+       PIPE for it to be swallowed or STDOUT for it to be combined with other output;
+       otherwise it should be a file object.
+       If the command fails with a broken pipe within 0.5 second,
        it will retry up to 10 times.  Call setRetryLimit() to modify the allowed number
        of retries and the maximum run time for a failure to be retried."""
 
@@ -154,7 +155,7 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
                p = Popen(cmd, shell=True, stdin=PIPE)
                p.communicate(input)
             else:
-               p = Popen(cmd, shell=True, stdout=outfile, stdin=PIPE)
+               p = Popen(cmd, shell=True, stdout=outfile, stdin=PIPE, stderr=inStderr)
                p.communicate(input)
             ec = p.returncode
             if ec:
@@ -205,6 +206,10 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
             retryCount += 1
             if collect:
                prnstr(fmtstr("Retrying " + cmd + " after {} sec", time.time() - tryStart))
+            elif not toStdout and isinstance(outfile, file):
+               outfile.truncate()
+            if inStderr and useSubprocess and isinstance(inStderr, file):
+               inStderr.truncate()
             if retryCount > 1:
                time.sleep(0.1)
          else:
