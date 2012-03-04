@@ -1,5 +1,5 @@
 /*
- *  xcramp.c -- color map control for Qt, rgb and color index  mode
+ *  xcramp.cpp -- color map control for Qt, rgb and color index  mode
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 
@@ -332,29 +331,3 @@ void xcramp_restorefalsemap()
   cmapConvertRamp(rampData, cmap);
 }
 
-/*
-
-  $Log$
-  Revision 4.4  2011/02/10 05:32:36  mast
-  Make a byte ramp useful for mapping color images
-  
-  Revision 4.3  2006/08/28 05:17:00  mast
-  Moved false color functions to library, and provided for colormapped
-  images by simply using the imposed false color map
-  
-  Revision 4.2  2004/09/10 02:31:03  mast
-  replaced long with int
-  
-  Revision 4.1  2003/02/10 20:29:02  mast
-  autox.cpp
-  
-  Revision 1.1.2.3  2003/01/29 17:52:25  mast
-  removed draw command after colormap change, handled in imod_info_cb.cpp
-  
-  Revision 1.1.2.2  2003/01/29 01:46:08  mast
-  changes for color index mode
-  
-  Revision 1.1.2.1  2003/01/26 23:25:26  mast
-  Qt version
-
-*/

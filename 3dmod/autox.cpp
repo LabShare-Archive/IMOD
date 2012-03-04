@@ -1,5 +1,5 @@
 /*
- *  autox.c --  Automatic contour generation for imod.
+ *  autox.cpp --  Automatic contour generation for imod.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -13,12 +13,12 @@
 
 #include "form_autox.h"
 #include "imod.h"
-#include "imod_display.h"
+#include "display.h"
 #include "dia_qtutils.h"
 #include "xcramp.h"
 #include "autox.h"
 #include "iproc.h"
-#include "imod_info_cb.h"
+#include "info_cb.h"
 #include "control.h"
 #include "undoredo.h"
 

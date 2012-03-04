@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "formv_control.h"
@@ -23,8 +22,8 @@
 #include <QKeyEvent>
 
 #include "dia_qtutils.h"
-#include "imodv_input.h"
-#include "imodv_control.h"
+#include "mv_input.h"
+#include "mv_control.h"
 #include "preferences.h"
 #include "imod.h"
 #include "imodv.h"
@@ -454,14 +453,3 @@ void imodvControlForm::fontChange( const QFont & oldFont )
   setFontDependentWidths();
 }
 
-/*
-
-$Log$
-Revision 4.2  2009/03/25 04:15:39  mast
-Moved focus from one angle field to next
-
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
-*/

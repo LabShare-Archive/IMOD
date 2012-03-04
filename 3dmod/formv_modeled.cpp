@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "formv_modeled.h"
@@ -22,8 +21,8 @@
 #include <QCloseEvent>
 
 #include "imod.h"
-#include "imodv_modeled.h"
-#include "imodv_input.h"
+#include "mv_modeled.h"
+#include "mv_input.h"
 #include "dia_qtutils.h"
 
 /*
@@ -160,11 +159,3 @@ void imodvModeledForm::keyReleaseEvent( QKeyEvent * e )
   imodvKeyRelease(e);
 }
 
-/*
-
-$Log$
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
-*/

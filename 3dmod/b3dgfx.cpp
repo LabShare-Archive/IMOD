@@ -1,4 +1,4 @@
-/*  b3dgfx.c -- Custom graphics routines for OpenGL.
+/*  b3dgfx.cpp -- Custom graphics routines for OpenGL.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -1684,7 +1684,7 @@ double b3dStepPixelZoom(double czoom, int step)
 /*  Save window image to rgb file. */
 
 /* DNM 12/15/02 : eliminated unused iput functions, identical to ones in
-   imodv_gfx.cpp */
+   mv_gfx.cpp */
 
 /* DNM 12/28/03: just define default as TIF (not really used) */
 static int SnapShotFormat = SnapShot_TIF;

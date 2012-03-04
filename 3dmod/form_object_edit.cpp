@@ -23,7 +23,7 @@
 
 #include "imod.h"
 #include "control.h"
-#include "imod_object_edit.h"
+#include "object_edit.h"
 #include "dia_qtutils.h"
 #include "preferences.h"
 

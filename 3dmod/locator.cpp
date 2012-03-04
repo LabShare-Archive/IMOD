@@ -26,7 +26,7 @@
 #include "dia_qtutils.h"
 #include "imod.h"
 #include "imod_input.h"
-#include "imod_info_cb.h"
+#include "info_cb.h"
 #include "b3dgfx.h"
 #include "locator.h"
 #include "xzap.h"

@@ -23,8 +23,8 @@
 
 #include "imod.h"
 #include "unpegged.xpm"
-#include "imod_info.h"
-#include "imod_info_cb.h"
+#include "info_setup.h"
+#include "info_cb.h"
 #include "dia_qtutils.h"
 #include "imod_input.h"
 #include "pegged.xpm"

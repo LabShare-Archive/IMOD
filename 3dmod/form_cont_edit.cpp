@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "form_cont_edit.h"
@@ -23,7 +22,7 @@
 #include <QKeyEvent>
 
 #include "dia_qtutils.h"
-#include "imod_cont_edit.h"
+#include "cont_edit.h"
 #include "control.h"
 #include "preferences.h"
 #include "imod.h"
@@ -343,11 +342,3 @@ void ContSurfPoint::fontChange( const QFont & oldFont )
   setFontDependentWidths();
 }
 
-/*
-
-$Log$
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
-*/

@@ -1,5 +1,5 @@
 /*
- *  beadfix.c -- Special module for fixing fiducial models
+ *  beadfix.cpp -- Special module for fixing fiducial models
  *
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
@@ -49,7 +49,7 @@
 #include "sliceproc.h"
 #include "cfft.h"
 #include "imod.h"
-#include "imod_client_message.h"
+#include "client_message.h"
 #include "control.h"
 #include "dia_qtutils.h"
 #include "beadfix.h"
@@ -58,9 +58,9 @@
 #include "pegged.xpm"
 #include "unpegged.xpm"
 #include "imod_input.h"
-#include "imod_info_cb.h"
+#include "info_cb.h"
 #include "imod_edit.h"
-#include "imodv_objed.h"
+#include "mv_objed.h"
 #include "preferences.h"
 #include "undoredo.h"
 #include "xzap.h"
@@ -325,7 +325,7 @@ void imodPlugExecuteType(ImodView *inImodView, int type, int reason)
 }
 
 /* Execute the message in the strings.
-   Keep the action definitions in imod_client_message.h */
+   Keep the action definitions in client_message.h */
 
 int imodPlugExecuteMessage(ImodView *vw, QStringList *strings, int *arg)
 {

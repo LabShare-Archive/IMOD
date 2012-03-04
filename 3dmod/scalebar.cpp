@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include "imod.h"
@@ -20,7 +19,7 @@
 #include "xxyz.h"
 #include "sslice.h"
 #include "xcramp.h"
-#include "imod_display.h"
+#include "display.h"
 
 // The resident parameters, accessible by other modules
 static ScaleBar params = {true, false, 50, 8, false, 0, 20, 20, false, 25, 
@@ -260,39 +259,3 @@ void scaleBarRedraw()
   imodv_draw();
 }
 
-/*
-
-$Log$
-Revision 1.10  2011/02/07 16:12:39  mast
-Convert zap structure to class, most functions to members
-
-Revision 1.9  2010/01/22 03:05:23  mast
-Added functions to fit bar in one panel for a montage
-
-Revision 1.8  2009/05/08 02:18:21  mast
-Fixed for binned data
-
-Revision 1.7  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 1.6  2008/11/28 06:37:08  mast
-Made it redraw when closing to bars go away
-
-Revision 1.5  2008/06/12 22:49:49  mast
-Disable depth test to make scalebar come out on top
-
-Revision 1.4  2008/05/27 01:52:11  mast
-Added color ramp options
-
-Revision 1.3  2008/03/06 00:11:55  mast
-Added option to make scale bars vertical
-
-Revision 1.2  2008/02/15 00:16:30  mast
-Make it draw bars when window opens
-
-Revision 1.1  2008/01/25 20:22:02  mast
-Added to program
-
-
-
-*/

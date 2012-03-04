@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "form_moviecon.h"
@@ -27,7 +26,7 @@
 #include "imod.h"
 #include "control.h"
 #include "multislider.h"
-#include "imod_moviecon.h"
+#include "moviecon.h"
 #include "dia_qtutils.h"
 #include "preferences.h"
 
@@ -335,17 +334,3 @@ void MovieController::fontChange( const QFont & oldFont )
   setFontDependentWidths();
 }
 
-/*
-
-$Log$
-Revision 4.3  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 4.2  2009/11/21 23:08:11  mast
-Fixed width setting
-
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
-*/

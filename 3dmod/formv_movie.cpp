@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "formv_movie.h"
@@ -22,8 +21,8 @@
 #include <QCloseEvent>
 #include <QKeyEvent>
 
-#include "imodv_input.h"
-#include "imodv_movie.h"
+#include "mv_input.h"
+#include "mv_movie.h"
 #include "imod.h"
 #include "imodv.h"
 #include "preferences.h"
@@ -320,14 +319,3 @@ void imodvMovieForm::keyReleaseEvent( QKeyEvent * e )
   imodvKeyRelease(e);
 }
 
-/*
-
-$Log$
-Revision 4.2  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
-*/

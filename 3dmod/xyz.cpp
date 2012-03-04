@@ -1,5 +1,5 @@
 /*
- *  xyz.c -- Open the XYZ Window; View the X, Y and Z axis.
+ *  xyz.cpp -- Open the XYZ Window; View the X, Y and Z axis.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -34,24 +34,24 @@
 
 #include "imod.h"
 #include "xxyz.h"
-#include "imod_display.h"
+#include "display.h"
 #include "b3dgfx.h"
 #include "control.h"
-#include "imod_info_cb.h"
+#include "info_cb.h"
 #include "imod_input.h"
 #include "autox.h"
 #include "pixelview.h"
 #include "imod_edit.h"
-#include "imod_model_edit.h"
-#include "imod_workprocs.h"
-#include "imod_moviecon.h"
+#include "model_edit.h"
+#include "workprocs.h"
+#include "moviecon.h"
 #include "preferences.h"
 #include "undoredo.h"
 #include "istore.h"
 #include "finegrain.h"
 #include "arrowbutton.h"
 #include "tooledit.h"
-#include "imod_model_edit.h"
+#include "model_edit.h"
 #include "dia_qtutils.h"
 #include "multislider.h"
 #include "scalebar.h"

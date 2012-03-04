@@ -1,5 +1,5 @@
 /* 
- *  control.c -- Document callback control for drawing, passing keys to, and
+ *  control.cpp -- Document callback control for drawing, passing keys to, and
  *                  closing image windows
  *               Also implements the DialogManager class for hiding, showing
  *                  and closing dialog  or image windows together
@@ -12,7 +12,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include <stdio.h>
@@ -28,14 +27,14 @@
 //Added by qt3to4:
 #include <QKeyEvent>
 #include "imod.h"
-#include "imod_info.h"
-#include "imod_info_cb.h"
+#include "info_setup.h"
+#include "info_cb.h"
 #include "imodv.h"
 #include "control.h"
 #include "xxyz.h"
 #include "sslice.h"
 #include "slicer_classes.h"
-#include "imod_workprocs.h"
+#include "workprocs.h"
 #include "preferences.h"
 #include "dia_qtutils.h"
 
@@ -613,98 +612,3 @@ QRect ivwRestorableGeometry(QWidget *widget)
 }
 
 
-/*
-$Log$
-Revision 4.21  2011/02/13 21:31:10  mast
-Add method for finding top window of a type
-
-Revision 4.20  2009/03/22 22:28:06  mast
-Needed to get geometry after show in case of size changes
-
-Revision 4.19  2009/03/22 19:44:05  mast
-New routine for adjusting size generally, and position on make, when showing
-
-Revision 4.18  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.17  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 4.16  2004/05/31 23:35:26  mast
-Switched to new standard error functions for all debug and user output
-
-Revision 4.15  2004/05/05 17:33:17  mast
-Added function to get list of windows of one type
-
-Revision 4.14  2004/04/28 23:52:26  mast
-Added method to get count of a window type
-
-Revision 4.13  2003/11/01 18:12:16  mast
-changed to put out virtually all error messages to a window
-
-Revision 4.12  2003/09/24 17:32:44  mast
-Add and use restorable geometry routine
-
-Revision 4.11  2003/09/24 00:48:48  mast
-Switched from keeping track of geometry to keeping track of pos() and
-size() when saving and restoring positions and sizes
-
-Revision 4.10  2003/09/17 05:54:19  mast
-Make it keep track of geometry of last zap window closed
-
-Revision 4.9  2003/09/17 04:46:21  mast
-Added function to return size of biggest zap window
-
-Revision 4.8  2003/08/26 02:04:49  mast
-Save geometry when hiding and set it when restoring to keep windows from
-moving around
-
-Revision 4.7  2003/08/01 01:01:29  mast
-Switch from showMinimized to hide (except on Mac) because it didn't work
-under RedHat 9.0
-
-Revision 4.6  2003/05/23 02:45:46  mast
-Added a function to raise managed windows
-
-Revision 4.5  2003/05/18 22:08:48  mast
-Changes to add an application icon
-
-Revision 4.4  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 4.3  2003/04/17 19:00:59  mast
-new function to provide machine-dependent parent widget
-
-Revision 4.2  2003/03/24 17:58:09  mast
-Changes for new preferences capability
-
-Revision 4.1  2003/02/10 20:28:59  mast
-autox.cpp
-
-Revision 1.1.2.6  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.5  2003/01/14 21:46:32  mast
-renamed dialog manager for imod
-
-Revision 1.1.2.4  2003/01/13 07:20:04  mast
-Adapted dialog manager calss from imodv_input
-
-Revision 1.1.2.3  2003/01/10 23:48:47  mast
-Made diagnostic output conditional on a flag
-
-Revision 1.1.2.2  2003/01/04 03:45:12  mast
-Add a function to remove a control without calling its close function
-to deconvolute the closing logic
-
-Revision 1.1.2.1  2003/01/02 15:37:07  mast
-Added key callback so that keys can be passed from dialog boxes to active
-window
-
-Revision 3.2  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.1  2002/11/25 19:18:37  mast
-Eliminated conditional on USE_IMOD_CONTROL
-
-*/

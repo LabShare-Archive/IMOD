@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "formv_views.h"
@@ -22,10 +21,10 @@
 #include <QCloseEvent>
 
 #include "imod.h"
-#include "imod_info_cb.h"
-#include "imodv_menu.h"
-#include "imodv_input.h"
-#include "imodv_views.h"
+#include "info_cb.h"
+#include "mv_menu.h"
+#include "mv_input.h"
+#include "mv_views.h"
 #include "dia_qtutils.h"
 #include "preferences.h"
 
@@ -286,11 +285,3 @@ void imodvViewsForm::fontChange( const QFont & oldFont )
   setFontDependentWidths();
 }
 
-/*
-
-$Log$
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
-*/

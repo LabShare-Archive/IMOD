@@ -23,7 +23,7 @@
 
 #include "scalebar.h"
 #include "imodv.h"
-#include "imodv_input.h"
+#include "mv_input.h"
 #include "dia_qtutils.h"
 #include "control.h"
 #include "imod.h"

@@ -13,7 +13,7 @@
 #include "imod.h"
 #include "imodv.h"
 #include "vertexbuffer.h"
-#include "imodv_ogl.h"
+#include "mv_ogl.h"
 
 typedef map<int,b3dUInt32> ReverseMap;
 

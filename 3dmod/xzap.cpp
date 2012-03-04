@@ -1,5 +1,5 @@
 /*
- *  xzap.c -- The Zap Window.
+ *  xzap.cpp -- The Zap Window.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -30,7 +30,7 @@
 #include "hottoolbar.h"
 
 #include "imod.h"
-#include "imod_display.h"
+#include "display.h"
 #include "b3dgfx.h"
 #include "xcramp.h"
 #include "xzap.h"
@@ -39,15 +39,15 @@
 #include "locator.h"
 #include "control.h"
 #include "imodplug.h"
-#include "imod_info.h"
-#include "imod_info_cb.h"
+#include "info_setup.h"
+#include "info_cb.h"
 #include "imod_input.h"
-#include "imod_moviecon.h"
+#include "moviecon.h"
 #include "autox.h"
 #include "imod_edit.h"
-#include "imod_cont_edit.h"
-#include "imod_model_edit.h"
-#include "imod_workprocs.h"
+#include "cont_edit.h"
+#include "model_edit.h"
+#include "workprocs.h"
 #include "dia_qtutils.h"
 #include "preferences.h"
 #include "undoredo.h"

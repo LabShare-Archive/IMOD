@@ -1,5 +1,5 @@
 /*
- *  slicer.c -- Open the slicer window; Slice 3-D data at any angle.
+ *  slicer.cpp -- Open the slicer window; Slice 3-D data at any angle.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -27,11 +27,11 @@
 #include "slicer_classes.h"
 #include "hottoolbar.h"
 #include "imod.h"
-#include "imod_display.h"
+#include "display.h"
 #include "b3dgfx.h"
 #include "sslice.h"
 #include "imod_input.h"
-#include "imod_info_cb.h"
+#include "info_cb.h"
 #include "control.h"
 #include "imodplug.h"
 #include "dia_qtutils.h"
@@ -39,12 +39,12 @@
 #include "xcorr.h"
 #include "imod_edit.h"
 #include "pixelview.h"
-#include "imod_model_edit.h"
-#include "imod_moviecon.h"
-#include "imod_workprocs.h"
+#include "model_edit.h"
+#include "moviecon.h"
+#include "workprocs.h"
 #include "preferences.h"
 #include "form_slicerangle.h"
-#include "imodv_input.h"
+#include "mv_input.h"
 #include "imodv.h"
 #include "scalebar.h"
 

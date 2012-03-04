@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "form_appearance.h"
@@ -25,7 +24,7 @@
 #include "preferences.h"
 #include "dia_qtutils.h"
 #include "imod.h"
-#include "imod_info_cb.h"
+#include "info_cb.h"
 
 /*
  *  Constructs a AppearanceForm as a child of 'parent', with the
@@ -311,20 +310,3 @@ void AppearanceForm::destroy()
   ImodPrefs->userCanceled();
 }
 
-/*
-
-$Log$
-Revision 4.4  2011/02/19 15:20:10  mast
-Preferences for default and maximum isosurface volume and threshold polarity
-
-Revision 4.3  2011/02/12 04:47:42  mast
-Fixed default zoom output
-
-Revision 4.2  2009/03/22 19:46:55  mast
-Fixed combo box call when using all styles and excluding from list
-
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
-*/

@@ -1,5 +1,5 @@
 /*
- *  imod_io.c -- File I/O for imod.
+ *  imod_io.cpp -- File I/O for imod.
  *
  *  The functions in imod_io provide an interface for loading and saving imod
  *  models and images.  As models and images are loaded and saved the global
@@ -26,19 +26,19 @@
 #include <sys/types.h>
 #include <time.h>
 #include <errno.h>
-#include "imod_info.h"
+#include "info_setup.h"
 #include <qfiledialog.h>
 #include "imod.h"
-#include "imod_display.h"
+#include "display.h"
 #include "xcramp.h"
 #include "dia_qtutils.h"
-#include "imod_info_cb.h"
+#include "info_cb.h"
 #include "imodview.h"
 #include "imodplug.h"
 #include "imodv.h"
 #include "sslice.h"
 #include "imod_io.h"
-#include "imodv_views.h"
+#include "mv_views.h"
 #include "vertexbuffer.h"
 #include "preferences.h"
 

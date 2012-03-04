@@ -1,5 +1,5 @@
 /*
- *  iproc.c -- image processing for 3dmod.
+ *  iproc.cpp -- image processing for 3dmod.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -34,13 +34,13 @@
 #include "tooledit.h"
 #include "multislider.h"
 #include "imod.h"
-#include "imod_display.h"
+#include "display.h"
 #include "iproc.h"
 #include "sliceproc.h"
 #include "xcorr.h"
 #include "xzap.h"
-#include "imod_info.h"
-#include "imod_info_cb.h"
+#include "info_setup.h"
+#include "info_cb.h"
 #include "control.h"
 #include "preferences.h"
 

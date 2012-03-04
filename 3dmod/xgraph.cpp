@@ -1,5 +1,5 @@
 /*  
- *  xgraph.c -- Imod graph window.
+ *  xgraph.cp -- Imod graph window.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -39,8 +39,8 @@
 #include "xzap.h"
 #include "imod_input.h"
 #include "imod_edit.h"
-#include "imod_info_cb.h"
-#include "imod_display.h"
+#include "info_cb.h"
+#include "display.h"
 #include "b3dgfx.h"
 #include "control.h"
 #include "preferences.h"
