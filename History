@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/23/12: Converted etomo startup script to python, set user home variable for
+Vista/Win 7 to fix rare problem from java bug.
+
+3/2/12: Got rid of glFlush's in model drawing, which were slowing things down
+a lot in the absence of vertex buffer drawing. 
+
 2/29/12: IMOD_4-4-6
 2/29/12: Fixed problems with using outdated or invalid vertex buffer data,
 particularly in sphere drawing.
