@@ -1724,7 +1724,7 @@ void b3dSetSnapDirectory(void)
  * will start checking for free file name from this number, but if previous
  * file number does not exist it will start checking from 0.
  */
-QString b3dGetSnapshotName(char *name, int format_type, int digits,
+QString b3dGetSnapshotName(const char *name, int format_type, int digits,
                         int &fileno)
 {
   char format[14];
@@ -1792,7 +1792,7 @@ QString b3dShortSnapName(QString fname)
 
 /* Take a snapshot of the current window with prefix in name.  There is
    no default for checking for RGB conversion. */
-int b3dAutoSnapshot(char *name, int format_type, int *limits, 
+int b3dAutoSnapshot(const char *name, int format_type, int *limits, 
                     bool checkConvert)
 {
   QString fname, sname;
@@ -1828,7 +1828,7 @@ int b3dAutoSnapshot(char *name, int format_type, int *limits,
 /* Take a snapshot of the current window with prefix in name and type selected
    by shift and ctrl key states.  Checking for RGB conversion to gray scale
    is defaulted to TRUE. */
-int b3dKeySnapshot(char *name, int shifted, int ctrl, int *limits,
+int b3dKeySnapshot(const char *name, int shifted, int ctrl, int *limits,
                    bool checkConvert)
 {
   int retval;
@@ -2065,12 +2065,12 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
                      unsigned char **data, bool checkConvert)
 {
   FILE *fout;
-  int i, j;
+  int i, j, xsize, ysize;
   unsigned char *pixels = NULL;
   int *lpixels;
   int step, samples, resolution, extra;
   unsigned int pixel;
-  unsigned int xsize, ysize, xysize, ifd;
+  unsigned int xysize, ifd;
   unsigned int colortable, bitsPerSample, resOffset;
   unsigned char bpix,rpix,gpix;
   unsigned short tenum;

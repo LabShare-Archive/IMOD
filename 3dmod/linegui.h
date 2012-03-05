@@ -40,8 +40,8 @@ class LineTrack : public DialogFrame
 
  private:
   void help();
-  void makeEditRow(int row, char *label, int *iPtr, float *fPtr, bool isInt,
-                   float min, float max, char *tip);
+  void makeEditRow(int row, const char *label, int *iPtr, float *fPtr, bool isInt,
+                   float min, float max, const char *tip);
   void fillinValue(int row);
   QSignalMapper *mMapper;
   QGridLayout *mGrid;

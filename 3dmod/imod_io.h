@@ -22,7 +22,7 @@
 
 /* Functions */
 int imodIOGetError(void);
-char *imodIOGetErrorString(void);
+const char *imodIOGetErrorString(void);
 char *currentSavedModelFile(void);
 void setImod_filename(const char *name);
 int createNewModel(const char *modelFilename);

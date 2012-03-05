@@ -248,9 +248,9 @@ ImodvOlist::ImodvOlist(QWidget *parent, Qt::WFlags fl)
   int nPerCol, olistNcol, ob, i;
   QString qstr;
   QLabel *label;
-  char *labels[] = {"New", "Delete", "Clear", "Add All", "Swap", "ON", "OFF",
+  const char *labels[] = {"New", "Delete", "Clear", "Add All", "Swap", "ON", "OFF",
                     "On", "Off"};
-  char *tips[] = {"Start a new object group, copied from current group",
+  const char *tips[] = {"Start a new object group, copied from current group",
                   "Remove the current object group from list of groups",
                   "Remove all objects from the current group",
                   "Add all objects to the current group",

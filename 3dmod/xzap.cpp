@@ -1329,8 +1329,8 @@ void ZapFuncs::keyInput(QKeyEvent *event)
   case Qt::Key_Right: 
   case Qt::Key_Left: 
     // Translate with keypad in movie mode or regular arrows in model mode
-    if (!keypad && imod->mousemode != IMOD_MMOVIE ||
-        keypad && imod->mousemode == IMOD_MMOVIE) {
+    if ((!keypad && imod->mousemode != IMOD_MMOVIE) ||
+        (keypad && imod->mousemode == IMOD_MMOVIE)) {
       if (keysym == Qt::Key_Left)
         translate(-trans, 0);
       if (keysym == Qt::Key_Right)
@@ -1779,10 +1779,10 @@ void ZapFuncs::mousePress(QMouseEvent *event)
       dxur = x - mRbMouseX1;
       dyll = y - mRbMouseY0;
       dyur = y - mRbMouseY1;
-      if ((dyll > 0 && dyur < 0 && (dxll < rcrit && dxll > -rcrit ||
-                                    dxur < rcrit && dxur > -rcrit)) ||
-          (dxll > 0 && dxur < 0 && (dyll < rcrit && dyll > -rcrit ||
-                                    dyur < rcrit && dyur > -rcrit))) {
+      if ((dyll > 0 && dyur < 0 && ((dxll < rcrit && dxll > -rcrit) ||
+                                    (dxur < rcrit && dxur > -rcrit))) ||
+          (dxll > 0 && dxur < 0 && ((dyll < rcrit && dyll > -rcrit) ||
+                                    (dyur < rcrit && dyur > -rcrit)))) {
         sMoveBand = 1;
         setCursor(mMousemode);
         return;
@@ -4349,7 +4349,7 @@ void ZapFuncs::drawContour(int co, int ob)
                                          handleFlags, selected, sScaleSizes);
 
       drawsize = imodPointGetSize(obj, cont, pt) / vi->xybin;
-      if (drawsize > 0 && !(ptProps.gap && ptProps.valskip))
+      if (drawsize > 0 && !(ptProps.gap && ptProps.valskip)) {
         if (pointVisable(&(cont->pts[pt]))){
           /* DNM: make the product cast to int, not drawsize */
           b3dDrawCircle(xpos(cont->pts[pt].x),
@@ -4374,6 +4374,7 @@ void ZapFuncs::drawContour(int co, int ob)
                           radius);
           }
         }
+      }
     }
   }
 
@@ -4753,9 +4754,9 @@ void ZapFuncs::setCursor(int mode, bool setAnyway)
       mShiftingCont) {
     if (mStartingBand || sMoveBand || mShiftingCont)
       shape = Qt::SizeAllCursor;
-    else if (sDragging[0] && sDragging[2] || sDragging[1] && sDragging[3])
+    else if ((sDragging[0] && sDragging[2]) || (sDragging[1] && sDragging[3]))
       shape = Qt::SizeFDiagCursor;
-    else if (sDragging[1] && sDragging[2] || sDragging[0] && sDragging[3])
+    else if ((sDragging[1] && sDragging[2]) || (sDragging[0] && sDragging[3]))
       shape = Qt::SizeBDiagCursor;
     else if (sDragging[0] || sDragging[1])
       shape = Qt::SizeHorCursor;

@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  No more Log
  */
 
 #ifndef BD_IPROC_H_
@@ -161,11 +160,11 @@ typedef struct
 
 typedef struct
 {
-  char *name;         /* Name of index */
+  const char *name;         /* Name of index */
   void (*cb)();       /* callback to do action */
   /* function to make widget */
   void (*mkwidget)(IProcWindow *, QWidget *, QVBoxLayout *); 
-  char *label;
+  const char *label;
 } ImodIProcData;
 
 int inputIProcOpen(ImodView *vw);

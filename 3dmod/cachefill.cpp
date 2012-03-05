@@ -518,8 +518,8 @@ void imodCacheFillDialog(ImodView *vi)
 /*                                                                          */
 /*   The constructor                                                        */
 
-static char *buttonLabels[] = {"Fill", "Done", "Help"};
-static char *buttonTips[] = {"Fill cache based on settings here", 
+static const char *buttonLabels[] = {"Fill", "Done", "Help"};
+static const char *buttonTips[] = {"Fill cache based on settings here", 
 			     "Close dialog box", "Open help window"};
 
 ImodCacheFill::ImodCacheFill(QWidget *parent, const char *name)

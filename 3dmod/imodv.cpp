@@ -101,7 +101,7 @@ static void usage(char *pname)
   exit(3);
 }
 
-static char *blackString = "black";
+static const char *blackString = "black";
 
 /* DEFAULT INITIALIZATION OF THE STRUCTURES
    9/2/02: also called for model view initialization in imod */

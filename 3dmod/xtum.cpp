@@ -66,7 +66,7 @@ static unsigned char *bitList[MAX_XTUM_TOGGLES][2] =
 static QIcon *icons[MAX_XTUM_TOGGLES];
 static int firstTime = 1;
 
-static char *toggleTips[] = {"Toggle between low and high resolution.",
+static const char *toggleTips[] = {"Toggle between low and high resolution.",
                              "Lock X/Y/Z position being displayed"};
 
 /*
@@ -172,8 +172,8 @@ int xtumOpen(struct ViewInfo *vi)
 /*
  * Constructor for the tumbler class 
  */
-static char *xyzLabels[] = {"X", "Y", "Z"};
-static char *sliderLabels[] = {"Black Threshold", "White Threshold"};
+static const char *xyzLabels[] = {"X", "Y", "Z"};
+static const char *sliderLabels[] = {"Black Threshold", "White Threshold"};
 
 TumblerWindow::TumblerWindow(TumblerStruct *xtum, bool rgba,
             bool doubleBuffer, bool enableDepth, QWidget * parent,

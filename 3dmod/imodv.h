@@ -56,7 +56,7 @@ typedef struct __imodv_struct
   ImodvWindow  *mainWin;
   QPixmap *iconPixmap;
 
-  char         *rbgname;
+  const char   *rbgname;
   QColor       *rbgcolor; /* background color for rendering.    */
   int          enableDepthSB;  /* Flags for if visuals exist and have depth */
   int          enableDepthDB;

@@ -258,10 +258,11 @@ static void findDimLimits(int which, int &xdim, int &ydim, int &zdim, int *sizes
 
 // THE ImodvIsosurface CLASS IMPLEMENTATION
 
-static char *buttonLabels[] = {"Save to Object", "Done", "Help"};
-static char *buttonTips[] = {"Save isosurfaces and bounding box as Imod objects", "Close dialog box", "Open help window"};
-static char *sliderLabels[] = {"X", "Y", "Z", "X size", "Y size", "Z size"};
-static char *histLabels[] = {"Threshold", "Outer limit"};
+static const char *buttonLabels[] = {"Save to Object", "Done", "Help"};
+static const char *buttonTips[] = {"Save isosurfaces and bounding box as Imod objects",
+                                   "Close dialog box", "Open help window"};
+static const char *sliderLabels[] = {"X", "Y", "Z", "X size", "Y size", "Z size"};
+static const char *histLabels[] = {"Threshold", "Outer limit"};
 
 ImodvIsosurface::ImodvIsosurface(ImodView *vi, QWidget *parent, const char *name)
   : DialogFrame(parent, 3, 1, buttonLabels, buttonTips, false, 
@@ -2664,7 +2665,7 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
   imodvKeyRelease(e);
 }
 
-void ImodvIsosurface::dumpVolume(char *filename)
+void ImodvIsosurface::dumpVolume(const char *filename)
 {
   unsigned char **data;
   MrcHeader hdata;

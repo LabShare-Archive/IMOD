@@ -18,7 +18,7 @@ class QStringList;
 
 class QKeyEvent;
 class QMouseEvent;
-typedef char *(*SpecialInfo)(int *);
+typedef const char *(*SpecialInfo)(int *);
 typedef void (*SpecialExecuteType)(ImodView *, int, int);
 typedef int (*SpecialExecuteMessage)(ImodView *, QStringList *, int *);
 typedef void (*SpecialExecute)(ImodView *);
@@ -40,21 +40,3 @@ class SpecialModule
 };
 
 #endif
-
-/*
-
-$Log$
-Revision 1.4  2007/12/04 18:48:45  mast
-Added event function
-
-Revision 1.3  2006/02/13 05:11:03  mast
-Added mouse function
-
-Revision 1.2  2004/09/24 18:08:34  mast
-Added message execution function
-
-Revision 1.1  2003/10/01 05:08:32  mast
-Initial creation
-
-*/
-

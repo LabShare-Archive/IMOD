@@ -2210,11 +2210,12 @@ void SlicerFuncs::setAnglesFromPoints(Ipoint *p1, Ipoint *p2, int axis)
     /* But this is useful for doing Z rotation and then X, and for
        keeping all the angles under +/- 90 degrees. */
     a.z = 0.0;
-    if (n.x > smallVal || n.y > smallVal || n.x < -smallVal || n.y < -smallVal)
+    if (n.x > smallVal || n.y > smallVal || n.x < -smallVal || n.y < -smallVal) {
       if (n.y >= 0.0)
         a.z = atan2((double)n.x, (double)n.y);
       else
         a.z = -atan2((double)n.x, -(double)n.y);
+    }
     val = a.z;
     val = n.x * sin(val) + n.y * cos(val);
     if (n.z >= 0.0)

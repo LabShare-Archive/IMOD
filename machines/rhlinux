@@ -208,7 +208,7 @@ else
     set optimization = "-O3 -w"
     if ($debug == true) then
         set optimization = "-ggdb -O0 -Wall"
-        set qmcxxFlags = "-Wno-unused-parameter -Wno-sign-compare"
+        set qmcxxFlags = "-Wno-unused-parameter -Wno-sign-compare -Wno-long-long"
         set ccompFlags = ($ccompFlags $qmcxxFlags -pedantic)
     endif
 endif

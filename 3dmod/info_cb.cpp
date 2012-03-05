@@ -969,7 +969,7 @@ int imod_info_input(void)
   return(0);
 }
 
-void show_status(char *info)
+void show_status(const char *info)
 {
   if (!info)
     return;
@@ -979,7 +979,7 @@ void show_status(char *info)
 }
 
 // Unused
-void imod_show_info(char *info, int line)
+void imod_show_info(const char *info, int line)
 {
   if (!info)
     return;
@@ -991,7 +991,7 @@ void imod_show_info(char *info, int line)
   return;
 }
 
-void imod_info_msg(char *top, char *bot)
+void imod_info_msg(const char *top, const char *bot)
 {
   if (top){
     wprint("%s\n", top);

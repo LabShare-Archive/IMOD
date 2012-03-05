@@ -138,7 +138,7 @@ class ImodvIsosurface : public DialogFrame
                    int &otherSide);
   void addToNeighborList(IsoPoint3D **neighp, int &numNeigh, int &maxNeigh,
                          int ix, int iy, int iz);
-  void dumpVolume(char *filename);
+  void dumpVolume(const char *filename);
   void setFontDependentWidths();
 
   bool mCtrlPressed;

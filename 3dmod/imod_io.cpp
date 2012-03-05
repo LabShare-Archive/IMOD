@@ -44,7 +44,7 @@
 
 //  Module private functions
 static void initModelData(Imod *newModel, bool keepBW);
-static char *datetime(void);
+static const char *datetime(void);
 static void imod_undo_backup(void);
 static void imod_finish_backup(void);
 static void imod_make_backup(const char *filename);
@@ -60,11 +60,11 @@ static char saved_filename[IMOD_FILENAME_SIZE] = {0x00};
 static int last_checksum = -1;
 static int lastError = IMOD_IO_SUCCESS;
 
-static char *autosave_string = "#autosave#";
+static const char *autosave_string = "#autosave#";
 
 static char dummystring[] = "         ";
 
-static char *datetime()
+static const char *datetime()
 {
   time_t clock;
   char *string;
@@ -158,7 +158,7 @@ int imod_autosave(Imod *mod)
 {
   FILE *tfilep;
   int new_checksum, i;
-  char *timestr;
+  const char *timestr;
   char *convname;
   QString savedir = ImodPrefs->autosaveDir();
 
@@ -329,7 +329,7 @@ int SaveasModel(Imod *mod)
  */
 static int writeModel(Imod *mod, FILE *fout, QString qname)
 {
-  char *timestr;
+  const char *timestr;
   int retval;
 
   /* DNM 8/4/01: -> 6/26/03: If imodv window is 
@@ -446,7 +446,7 @@ static Imod *LoadModelFile(const char *filename)
   FILE *fin;
   Imod *imod;
   QString qname;
-  char *filter[] = {"Model files (*.*mod *.*fid *.*seed)"};
+  const char *filter[] = {"Model files (*.*mod *.*fid *.*seed)"};
   
   lastError = IMOD_IO_SUCCESS;
 
@@ -803,7 +803,7 @@ int imodIOGetError()
   return lastError;
 }
 
-char *imodIOGetErrorString()
+const char *imodIOGetErrorString()
 {
   switch(lastError) {
   case IMOD_IO_SAVE_ERROR:

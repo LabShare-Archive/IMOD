@@ -26,6 +26,7 @@ c       !
       integer*4 i,ind,nbskip,ind_piece
       real*4 xtemp,ytemp,ztemp,crit
       
+      crit = 1.e-5
       npiece =0
       if(nbsym.eq.0) return
       if (nz.gt.maxpiece) then

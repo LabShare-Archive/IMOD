@@ -601,7 +601,7 @@ void imodvObjedMakeOnOffs(QFrame *frame)
 /*******************************************************************
  * The Line Color Edit Field
  *******************************************************************/
-static char *rgbTitles[] = {"Red", "Green", "Blue", "Transparency"};
+static const char *rgbTitles[] = {"Red", "Green", "Blue", "Transparency"};
 static MultiSlider *lineSliders;
 static bool multipleColorOK = false;
 
@@ -806,7 +806,7 @@ static void mkFillColor_cb(int index)
  *******************************************************************/
 
 static MultiSlider *matSliders;
-static char *matTitles[] = {"Ambient", "Diffuse", "Specular", "Shininess"};
+static const char *matTitles[] = {"Ambient", "Diffuse", "Specular", "Shininess"};
 static QCheckBox *wBothSides  = 0;
 
 // Set the relevant object material property - including normal magnitude
@@ -1064,7 +1064,7 @@ static QCheckBox *wLineAlias;
 static QCheckBox *wThickenCont;
 static QCheckBox *wOpenObject;
 static QCheckBox *wAutoNewCont;
-static char *widthLabel[] = {"2D Line Width", "3D Line Width"};
+static const char *widthLabel[] = {"2D Line Width", "3D Line Width"};
 
 void ImodvObjed::lineWidthSlot(int which, int value, bool dragging)
 {
@@ -1188,7 +1188,7 @@ static MultiSlider *meshSliders;
 static QButtonGroup *wMeshGroup;
 static int meshMin, meshMax;
 
-static char *bwLabels[] = {"Black Level", "White Level"};
+static const char *bwLabels[] = {"Black Level", "White Level"};
 
 void ImodvObjed::meshShowSlot(int value)
 {
@@ -1673,11 +1673,11 @@ static void fixClip_cb()
 /* DNM changed to provide enough buttons to do complete rotations about each
    of the three axes */
 
-static char *moveLabels[] = {"Top", "Front", "Bottom", "Back",
+static const char *moveLabels[] = {"Top", "Front", "Bottom", "Back",
                              "Top", "Left", "Bottom", "Right",
                              "Front", "Left", "Back", "Right"};
 static int moveQuarters[] = {0, -1, 2, 1, 0, 1, 2, -1, 2, -1, 0, 1};
-static char *axisLabels[] = {"X", "Y", "Z"};
+static const char *axisLabels[] = {"X", "Y", "Z"};
 static QPushButton *moveButtons[12];
 
 void ImodvObjed::moveCenterSlot()
@@ -1793,7 +1793,7 @@ static void fixMove_cb()
  * The subsets edit field
  *****************************************************************************/
 
-static char *subsetLabels[7] = {
+static const char *subsetLabels[7] = {
   "Show all ON objects", 
   "Current object only", 
   "Current surface only", 
@@ -2097,15 +2097,17 @@ static void setMakeMesh_cb(void)
   wMakeZedit->setText(str);
 }
 
-char *makeCheckTips[] = {"Connect contours across sections with no contours",
-                         "Render open contours as tubes",
-                         "Make this a low-resolution mesh; keep regular mesh",
-                         "Use surface numbers for connections", 
-                         "Cap all unconnected ends of object or ends of tubes",
-                         "Cap ends of tubes with hemispheres"};
+static const char *makeCheckTips[] = {
+  "Connect contours across sections with no contours",
+  "Render open contours as tubes",
+  "Make this a low-resolution mesh; keep regular mesh",
+  "Use surface numbers for connections", 
+  "Cap all unconnected ends of object or ends of tubes",
+  "Cap ends of tubes with hemispheres"};
+
 static void mkMakeMesh_cb(int index)
 {
-  char notAvailable[] = "Mesh object(s) - not available when data "
+  const char notAvailable[] = "Mesh object(s) - not available when data "
     "are loaded binned";
   ObjectEditField *oef = &objectEditFieldData[index];
 

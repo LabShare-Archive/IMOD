@@ -93,7 +93,7 @@ static QIcon *icons[MAX_SLICER_TOGGLES];
 static QIcon *showIcon;
 static QIcon *contIcon;
 static int firstTime = 1;
-static char *toggleTips[] = {
+static const char *toggleTips[] = {
     "Toggle between regular and high-resolution (interpolated) image",
     "Lock window at current position",
     "Keep current image or model point centered (classic mode, hot key k)",
@@ -101,7 +101,7 @@ static char *toggleTips[] = {
     "Toggle between showing image and FFT",
     "Lock window at current time" };
 
-static char *sliderLabels[] = {"X rotation", "Y rotation", "Z rotation"};
+static const char *sliderLabels[] = {"X rotation", "Y rotation", "Z rotation"};
 
 SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], 
                            QString timeLabel,

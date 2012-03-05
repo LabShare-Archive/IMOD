@@ -16,7 +16,7 @@ class ImodAssistant : public QObject
   Q_OBJECT
 
 public:
-  ImodAssistant(const char *path, const char *adpFile, char *messageTitle,
+  ImodAssistant(const char *path, const char *adpFile, const char *messageTitle,
                 bool absolute = false, bool keepSideBar = false, 
                 const char *prefix = NULL, bool prefAbsolute = false);
   ~ImodAssistant();

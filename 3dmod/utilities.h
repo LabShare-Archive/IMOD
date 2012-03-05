@@ -50,7 +50,7 @@ QAction *utilTBPushButton(const char *text, QWidget *parent, QToolBar *toolBar,
 void utilBitListsToIcons(unsigned char *bitList[][2], QIcon *icons[], int num);
 QAction *utilSetupToggleButton(QWidget *parent, QToolBar *toolBar, 
                                QBoxLayout *layout, QSignalMapper *mapper,
-                               QIcon *icons[], char *tips[], 
+                               QIcon *icons[], const char *tips[], 
                                QToolButton *buts[], int states[], int ind);
 void utilRaiseIfNeeded(QWidget *window, QMouseEvent *event);
 bool utilNeedToSetCursor();
@@ -63,7 +63,7 @@ void utilMontSnapScaleBar(int ix, int iy, int frames, int winx, int winy,
                           float scale, bool savedDraw);
 void utilFinishMontSnap(unsigned char **linePtrs,
                         int xFullSize, int yFullSize, int format, int &fileno,
-                        int digits, float zoom, char *prefix, char *message);
+                        int digits, float zoom, const char *prefix, const char *message);
 void utilFreeMontSnapArrays(unsigned char **fullPix, int numChunks, 
                             unsigned char *framePix, unsigned char **linePtrs);
 float utilWheelToPointSizeScaling(float zoom);

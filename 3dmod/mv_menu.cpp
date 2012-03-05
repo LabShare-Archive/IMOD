@@ -136,7 +136,7 @@ int imodvLoadModel()
   ImodvApp *a = Imodv;
   int i, ob, co;
   QString qname;
-  char *filter[] = {"Model files (*.*mod)"};
+  const char *filter[] = {"Model files (*.*mod)"};
   
   if (ImodvClosed || !a->standalone)
     return -1;

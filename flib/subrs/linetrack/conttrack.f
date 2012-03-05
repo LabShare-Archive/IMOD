@@ -1,7 +1,6 @@
 c       $Id$
-c       Log at end
-c
-c
+c       
+c       
 c       CONTTRACK adjusts the positions of points in a contour perpendicular
 c       to the path of the contour to fit the image data.  It does this by
 c       making kernels shaped like the contour and finding the location that
@@ -25,7 +24,7 @@ c       OFFSET is an offset from the center of the line
 c       LIMSHIFT is a limit on how far to shift laterally
 c       inPOOL is the number of contour points to pool the kernel product over
 c       inFIT is the number of points to fit over for smoothing the contour
-c
+c       
       subroutine conttrack(array,nx,ny,p_coord,ninobj,iptcur,p_copy,
      &    maxlen, inksize,inkern,sigma,h,ifdark,step,redtol,offset,
      &    limshift ,inpool,infit)
@@ -88,8 +87,8 @@ c           Store kernel, its angles and offsets, and center position
      &        costh(indk), ixofs(indk),iyofs(indk))
           xcen(indk)=p_coord(1,ipt)+orig(1)+0.5
           ycen(indk)=p_coord(2,ipt)+orig(2)+0.5
-c	    print *,'kernel',ipt,theta(indk),sinth(indk),costh(indk)
-c	    print *,'origin',xcen(indk),ycen(indk)
+c           print *,'kernel',ipt,theta(indk),sinth(indk),costh(indk)
+c           print *,'origin',xcen(indk),ycen(indk)
 c           
 c           If offsetting from center of line, adjust center positions
           if(offset.ne.0)then
@@ -108,7 +107,7 @@ c           kernel
             enddo
           enddo
         enddo
-c
+c         
 c         Get angle perpendicular to center kernel and dx,dy for search on that
 c         perpendicular axis
         thetasrch=goodangle(theta(indkcen)+90.)
@@ -130,7 +129,7 @@ c           Evaluate a summed product moving to left or right along normal
             if(abs(nd).le.limshift)then
               ipdst=-npool/2
               psum(nd)=0.
-c              
+c               
 c               Evaluate kernel product it each of the point positions in the
 c               pool
               do ipdel=ipdst,ipdnd
@@ -183,9 +182,9 @@ c               Double fix to do this and make it a real*8
             endif
           enddo
         enddo
-c	  
-c	  interpolate offset along normal if not at edge of allowable shifts
-c	  
+c         
+c         interpolate offset along normal if not at edge of allowable shifts
+c         
         cx=0.
         if(abs(ndmax).lt.limshift)then
           y1=psum(ndmax-1)
@@ -196,7 +195,7 @@ c
         endif
         cxnew=xcen(indkcen)+(ndmax+cx)*dxsrch
         cynew=ycen(indkcen)+(ndmax+cx)*dysrch
-c	  print *,'origin',cxnew,cynew
+c         print *,'origin',cxnew,cynew
 c         
 c         Reapply offset from line center if any and save contour point
         if(offset.ne.0)then
@@ -209,7 +208,7 @@ c           print *,'offset',cxnew,cynew
 c         
         indkcen=indmap(indkcen+1,npool)
       enddo
-c      call b3dputs('got through main loop')
+c       call b3dputs('got through main loop')
 c       
 c       eliminate close points
 c       
@@ -220,7 +219,7 @@ c
         ip3=indmap(iseg+1,ninobj)
         if((p_copy(1,ip3)-p_copy(1,iseg))**2+
      &      (p_copy(2,ip3)-p_copy(2,iseg))**2 .lt. closesq)then
-c	    print *,'eliminating segment',iseg,' of',ninobj
+c           print *,'eliminating segment',iseg,' of',ninobj
           ip1=indmap(iseg-1,ninobj)
           ip4=indmap(iseg+2,ninobj)
           idel=iseg
@@ -243,7 +242,7 @@ c       Replace original contour
         p_coord(1,i)=p_copy(1,i)
         p_coord(2,i)=p_copy(2,i)
       enddo
-c      call b3dputs('got through elimination')
+c       call b3dputs('got through elimination')
 c       
 c       track between points that are far apart
 c       
@@ -262,55 +261,55 @@ c
         endif
         iptcen=iptcen+1
       enddo
-c      call b3dputs('got through tracking')
+c       call b3dputs('got through tracking')
 c       
 c       smoothing next
 c       
       if (iorder .gt. 0) then
-	do i=1,ninobj
-	  p_copy(1,i)=p_coord(1,i)
-	  p_copy(2,i)=p_coord(2,i)
-	enddo
-	do iptcen=1,ninobj
-	  xmid=p_copy(1,iptcen)
-	  ymid=p_copy(2,iptcen)
-	  if(iorder.gt.0.and.nfit.gt.iorder.and.nfit.le.ninobj)then
+        do i=1,ninobj
+          p_copy(1,i)=p_coord(1,i)
+          p_copy(2,i)=p_coord(2,i)
+        enddo
+        do iptcen=1,ninobj
+          xmid=p_copy(1,iptcen)
+          ymid=p_copy(2,iptcen)
+          if(iorder.gt.0.and.nfit.gt.iorder.and.nfit.le.ninobj)then
 c             
 c             Copy points into fitting array, then rotate so X is along
 c             line from first to last point being fit
-	    do i=1,nfit
-	      ipt=indmap(iptcen+i-1-nfit/2,ninobj)
-	      xt(i)=p_copy(1,ipt)
-	      yt(i)=p_copy(2,ipt)
-	    enddo
-	    dx=xt(nfit)-xt(1)
-	    dy=yt(nfit)-yt(1)
-	    dlen=sqrt(dx**2+dy**2)
-	    costs=dx/dlen
-	    sints=-dy/dlen
-	    do i=1,nfit
-	      xtmp=xt(i)-xmid
-	      xt(i)=costs*xtmp-sints*(yt(i)-ymid)
-	      yt(i)=sints*xtmp+costs*(yt(i)-ymid)
-	    enddo
+            do i=1,nfit
+              ipt=indmap(iptcen+i-1-nfit/2,ninobj)
+              xt(i)=p_copy(1,ipt)
+              yt(i)=p_copy(2,ipt)
+            enddo
+            dx=xt(nfit)-xt(1)
+            dy=yt(nfit)-yt(1)
+            dlen=sqrt(dx**2+dy**2)
+            costs=dx/dlen
+            sints=-dy/dlen
+            do i=1,nfit
+              xtmp=xt(i)-xmid
+              xt(i)=costs*xtmp-sints*(yt(i)-ymid)
+              yt(i)=sints*xtmp+costs*(yt(i)-ymid)
+            enddo
 c             
 c             Fit line or parabola to the Y versus X
-	    if(iorder.eq.1)then
-	      call lsfit(xt,yt,nfit,slop1,bint,ro)
-	    else
-	      call quadfit(xt,yt,nfit,slop2,slop1,bint)
-	    endif
-	    xmid=sints*bint+xmid
-	    ymid=costs*bint+ymid
+            if(iorder.eq.1)then
+              call lsfit(xt,yt,nfit,slop1,bint,ro)
+            else
+              call quadfit(xt,yt,nfit,slop2,slop1,bint)
+            endif
+            xmid=sints*bint+xmid
+            ymid=costs*bint+ymid
 c             print *,nfit,iptcen,p_copy(1,iptcen),p_copy(2,iptcen),bint,xmid,ymid
-	  endif
+          endif
 c           
 c           Replace with midpoint of fit
-	  p_coord(1,iptcen)=xmid
-	  p_coord(2,iptcen)=ymid
-	enddo
+          p_coord(1,iptcen)=xmid
+          p_coord(2,iptcen)=ymid
+        enddo
       endif
-c      call b3dputs('got through smoothing')
+c       call b3dputs('got through smoothing')
 c       
 c       fix up points that are crossed
 c       
@@ -335,7 +334,7 @@ c       THETA is returned with the angle of a line connecting the points before
 c       and after the center point
 c       SINTH and COSTH are returned with the angle's sine and cosine
 c       IXOFS, IYOFS are offsets to start of kernel in array
-c
+c       
       subroutine makecontkern(array,nx,ny,sigma,h, ifdark,p_copy,ipt,
      &    ninobj,theta, sinth,costh,ixofs,iyofs)
       real*4 array(nx,ny),p_copy(3,*)
@@ -464,23 +463,3 @@ c
       enddo
       return
       END
-
-c       $Log$
-c       Revision 1.6  2006/05/04 14:57:21  mast
-c       Fixed test for maximum product to avoid infinite loop on Windows
-c
-c       Revision 1.5  2005/12/09 04:39:44  mast
-c       gfortran: .xor., continuation, byte, or open fixes
-c	
-c       Revision 1.4  2004/11/05 19:03:22  mast
-c       Skip over bad spot if not needed, use b3dputs for diagnostics
-c	
-c       Revision 1.2  2004/06/04 16:56:04  mast
-c       Eliminated degree-type trig functions
-c	
-c       Revision 1.1  2003/10/25 16:15:12  mast
-c       convert to library for 3dmod internal module
-c	
-c       Revision 3.1  2002/08/22 05:55:27  mast
-c       Changed to take p_copy as an argument to avoid memory problems
-c	

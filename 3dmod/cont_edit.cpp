@@ -45,7 +45,7 @@
 
 static void setlabel(QLabel *label, Iindex ind);
 static bool indexGood(Iindex ind);
-static void joinError(Iindex *indArray, char *message);
+static void joinError(Iindex *indArray, const char *message);
 
 #ifndef ICONT_ONLIST
 #define ICONT_ONLIST ICONT_CONNECT_TOP
@@ -90,7 +90,7 @@ enum {OPEN_TYPE_CONCAT = 0, OPEN_TYPE_SPLICE};
 enum {CLOSED_TYPE_CONCAT = 0, CLOSED_TYPE_NEAREST, CLOSED_TYPE_AUTO,
       CLOSED_TYPE_SETPOINT};
 
-static char *applyDoneHelp[] = {"Apply", "Done", "Help"};
+static const char *applyDoneHelp[] = {"Apply", "Done", "Help"};
 
 static Iindex nullIndex = {-1, -1, -1};
 
@@ -145,7 +145,7 @@ static void setlabel(QLabel *label, Iindex ind)
 /*
  * THE CONTOUR BREAK CLASS IMPLEMENTATION
  */
-static char *breakTips[] = 
+static const char *breakTips[] = 
   {"Break contour at the selected point(s) (hot key "CTRL_STRING"-B)", 
    "Close dialog box", "Open help window"};
 
@@ -468,8 +468,8 @@ void imodContEditJoinOpen(ImodView *vw)
  * THE CONTOUR JOIN CLASS IMPLEMENTATION 
  */
 
-static char *joinTips[] = {"Join two contours at the selected points",
-                           "Close dialog box", "Open help window"};
+static const char *joinTips[] = {"Join two contours at the selected points",
+                                 "Close dialog box", "Open help window"};
 
 ContourJoin::ContourJoin(QWidget *parent, const char *name)
   : ContourFrame(parent, 3, applyDoneHelp, joinTips, name)
@@ -591,7 +591,7 @@ void ContourJoin::closedTypeSelected(int which)
   cojoin.closedType = which;
 }
 
-static void joinError(Iindex *indArray, char *message)
+static void joinError(Iindex *indArray, const char *message)
 {
   if (indArray)
     free(indArray);
@@ -1408,7 +1408,7 @@ void imodContEditMove(void)
  * THE CONTOUR MOVE CLASS IMPLEMENTATION 
  */
 
-static char *moveTips[] = {"Move current contour to selected place",
+static const char *moveTips[] = {"Move current contour to selected place",
                            "Close dialog box", "Open help window"};
 
 ContourMove::ContourMove(QWidget *parent, const char *name)
@@ -1934,8 +1934,8 @@ void iceClosing()
 /*
  * IMPLEMENTATION OF THE LITTLE ContourFrame BASE CLASS
  */
-ContourFrame::ContourFrame(QWidget *parent, int numButtons, char *labels[], 
-                           char *tips[], const char *name)
+ContourFrame::ContourFrame(QWidget *parent, int numButtons, const char *labels[], 
+                           const char *tips[], const char *name)
   : DialogFrame(parent, numButtons, 1, labels, tips, true, 
                 ImodPrefs->getRoundedStyle(), " ", " ", name)
 {

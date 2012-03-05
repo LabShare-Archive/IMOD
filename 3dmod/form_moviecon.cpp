@@ -62,7 +62,7 @@ void MovieController::languageChange()
 // Initialize: make the sliders, set radio buttons
 void MovieController::init()
 {
-  char *labels[] = {"Start", "End", "Increment"};
+  const char *labels[] = {"Start", "End", "Increment"};
   setAttribute(Qt::WA_DeleteOnClose);
   setAttribute(Qt::WA_AlwaysShowToolTips);
     

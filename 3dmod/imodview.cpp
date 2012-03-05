@@ -1584,7 +1584,7 @@ void ivwSetTime(ImodView *vi, int time)
   return;
 }
 
-char *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex)
+const char *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex)
 {
   if (!inImodView) return "";
   if (inIndex < 1) return "";
@@ -1593,7 +1593,7 @@ char *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex)
   return(inImodView->imageList[inIndex-1].description);
 }
 
-char *ivwGetTimeLabel(ImodView *inImodView)
+const char *ivwGetTimeLabel(ImodView *inImodView)
 {
   return (inImodView->image->description);
 }

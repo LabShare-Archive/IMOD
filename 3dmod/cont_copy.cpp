@@ -234,8 +234,8 @@ void imodContCopyUpdate(void)
 /****************************************************************************/
 
 
-static char *buttonLabels[] = {"Apply", "Done", "Help"};
-static char *buttonTips[] = {"Copy the selected contours (hot key k)",
+static const char *buttonLabels[] = {"Apply", "Done", "Help"};
+static const char *buttonTips[] = {"Copy the selected contours (hot key k)",
                              "Close dialog box", "Open help box"};
 
 ContourCopy::ContourCopy(QWidget *parent, const char *name)
@@ -393,7 +393,7 @@ void ContourCopy::update()
 
 void ContourCopy::apply()
 {
-  char *badCopy = "Copy operation cancelled.  ";
+  const char *badCopy = "Copy operation cancelled.  ";
   /*     char *badObjectErrorMsg = 
          "\nCopy operation cancelled.\n"
          "Object out of range or invalid\n.";

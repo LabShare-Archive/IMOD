@@ -66,7 +66,7 @@ void FineGrainForm::languageChange()
 
 void FineGrainForm::init()
 {
-  char *labels[] = {"Transparency"};
+  const char *labels[] = {"Transparency"};
   int i;
   setAttribute(Qt::WA_DeleteOnClose);
   setAttribute(Qt::WA_AlwaysShowToolTips);

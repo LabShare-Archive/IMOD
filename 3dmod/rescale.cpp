@@ -42,7 +42,7 @@ static struct iscaleDataStruct{
   ImodView  *vi;
   float     min, max;
   int blackNew, whiteNew;
-} iisData = {NULL, NULL, 0, 0};
+} iisData = {NULL, NULL, 0, 0, 0, 0};
 
 #define BLACKNEW  32
 #define WHITENEW  223
@@ -80,8 +80,8 @@ void imodImageScaleUpdate(ImodView *vi)
 
 /* The window class */
 
-static char *buttonLabels[] = {"Apply", "Calc", "Done", "Help"};
-static char *buttonTips[] = 
+static const char *buttonLabels[] = {"Apply", "Calc", "Done", "Help"};
+static const char *buttonTips[] = 
   {"Reload the image data with the new limits", 
    "Calculate lower and upper limits based on black/white sliders", 
    "Close dialog box",
@@ -92,7 +92,7 @@ ImageScaleWindow::ImageScaleWindow(QWidget *parent, const char *name)
   : DialogFrame(parent, 4, 1, buttonLabels, buttonTips, true, 
                 ImodPrefs->getRoundedStyle(), " ", "", name)
 {
-  char *uplow[] = {"Lower", "Upper"};
+  const char *uplow[] = {"Lower", "Upper"};
   QString str;
   QLabel *label;
 

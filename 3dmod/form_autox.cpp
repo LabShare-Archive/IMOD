@@ -64,7 +64,7 @@ void AutoxWindow::languageChange()
 void AutoxWindow::init()
 {
   mCtrlPressed = false;
-  char *labels[] = {"Threshold", "Resolution"};
+  const char *labels[] = {"Threshold", "Resolution"};
   setAttribute(Qt::WA_DeleteOnClose);
   setAttribute(Qt::WA_AlwaysShowToolTips);
     

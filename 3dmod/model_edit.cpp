@@ -121,17 +121,17 @@ float scaleModelRes(int res, float zoom)
 
 /* THE WINDOW CLASS FOR MODEL HEADER */
 
-static char *headerLabels[] = {"Done", "Help"};
-static char *headerTips[] = {"Open help window",
+static const char *headerLabels[] = {"Done", "Help"};
+static const char *headerTips[] = {"Open help window",
                              "Close dialog box using current values"};
 
 ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
   : DialogFrame(parent, 2, 1, headerLabels, headerTips, true, 
                 ImodPrefs->getRoundedStyle(), " ", "", name)
 {
-  char *boxLabels[] = {"Added Z-scale", "Total Z-scale", "Resolution", 
+  const char *boxLabels[] = {"Added Z-scale", "Total Z-scale", "Resolution", 
                        "Pixel size"};
-  char *boxTips[] = 
+  const char *boxTips[] = 
     {"Ratio of section thickness to Z pixel size",
      "Total ratio of section thickness to X/Y pixel size",
      "Interval at which model points are added when drag drawing",
@@ -383,8 +383,8 @@ void imodTransXYZ(Imod *imod, Ipoint trans)
 
 /* The window class */
 
-static char *buttonLabels[] = {"Apply", "Revert", "Set Base", "Done"};
-static char *buttonTips[] = 
+static const char *buttonLabels[] = {"Apply", "Revert", "Set Base", "Done"};
+static const char *buttonTips[] = 
   {"Make total model offsets be entered values plus base values", 
    "Restore model offsets to zero", 
    "Make current offset be a base for further incremental offsets",
@@ -395,7 +395,7 @@ ModelOffsetWindow::ModelOffsetWindow(QWidget *parent, const char *name)
   : DialogFrame(parent, 4, 1, buttonLabels, buttonTips, false, 
                 ImodPrefs->getRoundedStyle(), " ", "", name)
 {
-  char *xyz[] = {"X", "Y", "Z"};
+  const char *xyz[] = {"X", "Y", "Z"};
   QString str;
   QLabel *label;
 

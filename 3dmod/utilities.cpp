@@ -338,7 +338,7 @@ void utilBitListsToIcons(unsigned char *bitList[][2], QIcon *icons[], int num)
  */
 QAction *utilSetupToggleButton(QWidget *parent, QToolBar *toolBar, 
                                QBoxLayout *layout, QSignalMapper *mapper,
-                               QIcon *icons[], char *tips[], 
+                               QIcon *icons[], const char *tips[], 
                                QToolButton *buts[], int states[], int ind)
 {
   QAction *action = NULL;
@@ -491,7 +491,7 @@ void utilMontSnapScaleBar(int ix, int iy, int frames, int winx, int winy,
  */
 void utilFinishMontSnap(unsigned char **linePtrs,
                         int xFullSize, int yFullSize, int format, int &fileno,
-                        int digits, float zoom, char *prefix, char *message)
+                        int digits, float zoom, const char *prefix, const char *message)
 {
   int limits[4];
   QString fname, sname;

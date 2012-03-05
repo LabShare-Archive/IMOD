@@ -401,7 +401,7 @@ void InfoWindow::editObjectSlot(int item)
   int ob,co,pt, coind, obOld, obNew, ndone, num, minOb, maxOb;
   int cosave, ptsave;
   QString qstr;
-  char *objtype;
+  const char *objtype;
   ImodView *vi = App->cvi;
   Imod *imod = vi->imod;
   static int lastDelete = 0;

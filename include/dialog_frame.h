@@ -23,12 +23,12 @@ class DLL_IM_EX DialogFrame : public QWidget
   Q_OBJECT
 
  public:
-  DialogFrame(QWidget *parent, int numButtons, char *labels[], char *tips[],
-              bool equalSized, char *caption, char *fallback,
+  DialogFrame(QWidget *parent, int numButtons, const char *labels[], const char *tips[],
+              bool equalSized, const char *caption, const char *fallback,
               const char *name = 0, Qt::WFlags fl = Qt::Window);
-  DialogFrame(QWidget *parent, int numButtons, int numRows, char *labels[], 
-              char *tips[], bool equalSized, bool rounded, char *caption,
-              char *fallback, const char *name = 0,
+  DialogFrame(QWidget *parent, int numButtons, int numRows, const char *labels[], 
+              const char *tips[], bool equalSized, bool rounded, const char *caption,
+              const char *fallback, const char *name = 0,
               Qt::WFlags fl = Qt::Window);
   ~DialogFrame() {};
   void setFontDependentWidths();
@@ -50,8 +50,8 @@ class DLL_IM_EX DialogFrame : public QWidget
 
  private:
   void makeDialogFrame(QWidget *parent, int numButtons, int numRows,
-                       char *labels[], char *tips[], bool equalSized,
-                       bool rounded, char *caption, char *fallback,
+                       const char *labels[], const char *tips[], bool equalSized,
+                       bool rounded, const char *caption, const char *fallback,
                        Qt::WFlags fl = Qt::Window);
   bool mEqualSized;
 };

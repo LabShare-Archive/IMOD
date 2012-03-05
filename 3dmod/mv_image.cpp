@@ -720,9 +720,9 @@ static void endTexMapping()
 
 // THE ImodvImage CLASS IMPLEMENTATION
 
-static char *buttonLabels[] = {"Done", "Help"};
-static char *buttonTips[] = {"Close dialog box", "Open help window"};
-static char *sliderLabels[] = {"X", "Y", "Z", "X size", "Y size", "Z size",
+static const char *buttonLabels[] = {"Done", "Help"};
+static const char *buttonTips[] = {"Close dialog box", "Open help window"};
+static const char *sliderLabels[] = {"X", "Y", "Z", "X size", "Y size", "Z size",
                                "# of slices", "Transparency", 
                                "Black Level", "White Level"};
 

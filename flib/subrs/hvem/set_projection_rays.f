@@ -1,13 +1,13 @@
 c       $Id$
-c
+c       
 c       $Log$
 c       Revision 3.2  2006/06/20 04:48:18  mast
 c       Changed origin definition to make projections match input data to Tilt
 c       Changed arguments so sinang and cosang could be modified
-c	
+c       
 c       Revision 3.1  2006/05/17 00:05:18  mast
 c       Added to library after extracting from xyzproj
-c
+c       
 c       !
 c       Sets up information about projection rays at an angle whose sine and
 c       cosine are [sinang] and [cosang], through
@@ -28,7 +28,7 @@ c       !
       integer*4 nraytmp,ngoodinter,indgood,ixout
       real*4 tanang,rayintcp,xleft,xright,ybot,ytop,yleft,yright,xtop,xbot
       logical b3dxor
-c
+c       
       nraymax = 0
       do ixout=1,nxout
         nraytmp=0
@@ -44,7 +44,7 @@ c         (limit was 0.01, try it at 0.001)
           else
             yraytmp=nyslice-1.
             xraytmp=nxslice/2 + 1 + nxout/2 - ixout 
-          endif		
+          endif         
           if(xraytmp.ge.1 .and. xraytmp.le.nxslice)
      &        nraytmp=nyslice-2
 c           

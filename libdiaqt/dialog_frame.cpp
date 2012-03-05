@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <qlayout.h>
@@ -35,9 +34,9 @@
  * actionClicked(int which)
  * with the argument providing the number of the button pressed or clicked.
  */
-DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[], 
-			 char *tips[],
-			 bool equalSized, char *caption, char *fallback,
+DialogFrame::DialogFrame(QWidget *parent, int numButtons, const char *labels[], 
+			 const char *tips[],
+			 bool equalSized, const char *caption, const char *fallback,
 			 const char *name, Qt::WFlags fl)
   : QWidget(parent, fl)
 {
@@ -51,8 +50,8 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
  * items are as above.
  */
 DialogFrame::DialogFrame(QWidget *parent, int numButtons, int numRows,
-                         char *labels[], char *tips[], bool equalSized,
-                         bool rounded, char *caption, char *fallback,
+                         const char *labels[], const char *tips[], bool equalSized,
+                         bool rounded, const char *caption, const char *fallback,
 			 const char *name, Qt::WFlags fl)
   : QWidget(parent, fl)
 {
@@ -61,12 +60,11 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, int numRows,
 }
 
 void DialogFrame::makeDialogFrame(QWidget *parent, int numButtons, int numRows,
-                                  char *labels[], char *tips[],
-                                  bool equalSized, bool rounded, char *caption,
-                                  char *fallback, Qt::WFlags fl)
+                                  const char *labels[], const char *tips[],
+                                  bool equalSized, bool rounded, const char *caption,
+                                  const char *fallback, Qt::WFlags fl)
 {
-  int width = 0;
-  int i, twidth, row = 0, rowStart = 0;
+  int i, row = 0, rowStart = 0;
   QString str;
   QPushButton *button;
   QHBoxLayout *layout2;  
@@ -185,40 +183,3 @@ void DialogFrame::actionButtonClicked(int which)
 {
   emit actionClicked(which);
 }
-
-/*
-$Log$
-Revision 1.7  2007/08/26 06:55:59  mast
-Documentation changes
-
-Revision 1.6  2004/11/04 23:32:44  mast
-Changes for rounded button style
-
-Revision 1.5  2004/06/23 03:35:41  mast
-Added ability to put buttons on multiple lines
-
-Revision 1.4  2004/01/22 19:06:18  mast
-Changed actionPressed to actionClicked and added real actionPressed
-
-Revision 1.3  2003/03/24 17:41:47  mast
-Set up to resize buttons on font change
-
-Revision 1.2  2003/02/10 20:51:22  mast
-Merge Qt source
-
-Revision 1.1.2.1  2003/01/26 20:35:28  mast
-adding as library file
-
-Revision 1.1.2.4  2003/01/23 19:55:42  mast
-switch from button pressed to clicked
-
-Revision 1.1.2.3  2003/01/18 01:08:09  mast
-add tooltips
-
-Revision 1.1.2.2  2002/12/30 06:37:46  mast
-set the size small so it will show up at minimum size
-
-Revision 1.1.2.1  2002/12/29 04:20:38  mast
-Initial creation
-
-*/

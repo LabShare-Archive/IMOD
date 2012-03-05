@@ -67,14 +67,14 @@ static struct{
   char        *restoreCommand;
      
 
-}imodvStereoData = {0, 0, 0, 0, 0};
+}imodvStereoData = {0, 0, NULL, NULL, 0, 0, 0, 0, 0, 0., NULL, NULL};
 
 
 // Check whether hardware is available for the current state of buffering
 static bool hardwareOK(void)
 {
-  return (Imodv->db && Imodv->enableDepthDBst >= 0 || 
-          !Imodv->db && Imodv->enableDepthSBst >= 0);
+  return ((Imodv->db && Imodv->enableDepthDBst >= 0) || 
+          (!Imodv->db && Imodv->enableDepthSBst >= 0));
 }
 
 // External call to update the dialog
@@ -351,9 +351,9 @@ void imodvStereoEditDialog(ImodvApp *a, int state)
 /****************************************************************************/
 /*  Stereo Dialog class                                                     */
 
-static char *buttonLabels[] = {"Done", "Help"};
-static char *buttonTips[] = {"Close dialog box", "Open help window"};
-static char *sliderLabels[] = {"Angle", "Vertical Offset",};
+static const char *buttonLabels[] = {"Done", "Help"};
+static const char *buttonTips[] = {"Close dialog box", "Open help window"};
+static const char *sliderLabels[] = {"Angle", "Vertical Offset",};
 
 ImodvStereo::ImodvStereo(QWidget *parent, const char *name)
   : DialogFrame(parent, 2, 1, buttonLabels, buttonTips, true,

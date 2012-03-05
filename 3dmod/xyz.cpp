@@ -78,13 +78,13 @@
 static unsigned char *bitList[MAX_XYZ_TOGGLES][2] =
   {{lowres_bits, highres_bits},
    {unlock_bits, lock_bits}};
-static char *toggleTips[] = {
+static const char *toggleTips[] = {
   "Toggle between regular and high-resolution (interpolated) image"};
 
 static QIcon *icons[MAX_XYZ_TOGGLES];
 static QIcon *cenIcon = NULL;
 
-static char *sliderLabels[] = {"X", "Y", "Z"};
+static const char *sliderLabels[] = {"X", "Y", "Z"};
 enum {X_COORD = 0, Y_COORD, Z_COORD};
 enum {NOT_IN_BOX = 0, X_SLICE_BOX, Y_SLICE_BOX, Z_SLICE_BOX, Y_GADGET_BOX,
       X_GADGET_BOX, Z_GADGET_BOX, FRACTION_BOX};

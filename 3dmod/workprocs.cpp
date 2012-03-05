@@ -167,7 +167,6 @@ void ImodWorkproc::movieProc()
   struct ViewInfo *vi = mVi;
   int show = 0;
   int drawflag = IMOD_DRAW_XYZ;
-  int start, end, signedint;
   float timetmp;
 
   /* Set flag that this routine is busy, and start the timer */

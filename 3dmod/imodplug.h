@@ -9,7 +9,6 @@
  *   Colorado.  See implementation file for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */                                                                           
 
 #ifndef IMODPLUG_H
@@ -52,7 +51,7 @@ extern "C" {
  * this function is called, so no initialization should be done.  However,
  * an image loading plugin can call iiAddCheckFunction at this time.
  */
-char PLUG_EXPORT *imodPlugInfo(int *type);
+const char PLUG_EXPORT *imodPlugInfo(int *type);
 
 /*!
  * Menu execution function for plugins with the IMOD_PLUG_MENU bit set.  ^
@@ -131,46 +130,3 @@ int PLUG_EXPORT imodPlugExecuteMessage(ImodView *vw, QStringList *strings,
                                          int *arg);
 }
 #endif
-
-/*
-  $Log$
-  Revision 4.10  2008/01/17 22:33:24  mast
-  Changed documentation for model update
-
-  Revision 4.9  2008/01/11 18:11:29  mast
-  Wheel events now work when declared correctly
-
-  Revision 4.8  2008/01/11 17:32:54  mast
-  Needed forward declaration of QEvent
-
-  Revision 4.7  2007/12/04 22:05:30  mast
-  Add function for handling event, improve documentation
-
-  Revision 4.6  2006/02/13 05:10:44  mast
-  Added mouse function
-
-  Revision 4.5  2004/09/24 18:07:50  mast
-  Added execute message declaration
-
-  Revision 4.4  2004/06/04 02:58:20  mast
-  It really needed to export unconditionally although it worked as import
-  
-  Revision 4.3  2004/05/31 23:10:56  mast
-  Added macros for exporting/importing under Windows
-  
-  Revision 4.2  2003/10/01 05:07:11  mast
-  Split out private file
-  
-  Revision 4.1  2003/02/10 20:41:55  mast
-  Merge Qt source
-  
-  Revision 1.1.2.3  2003/01/29 01:43:57  mast
-  switch back to extern C
-  
-  Revision 1.1.2.2  2003/01/27 00:30:07  mast
-  Pure Qt version and general cleanup
-    
-  Revision 1.1.2.1  2003/01/13 01:06:53  mast
-  Initial creation
-
-*/

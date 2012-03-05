@@ -319,7 +319,7 @@ void MidasSlots::slotFilemenu(int item)
 {
   char *filename;
   QString qname, inName;
-  char *filters[] = {"Transform files (*.*xf *.*xg)"};
+  const char *filters[] = {"Transform files (*.*xf *.*xg)"};
   switch(item){
   case FILE_MENU_LOAD: /* load transforms */
     if (VW->xtype == XTYPE_MONT) {
@@ -336,8 +336,7 @@ void MidasSlots::slotFilemenu(int item)
 	}
       }
     }	    
-    qname = diaOpenFileName(NULL, "Select file to load transforms from", 1,
-                            filters);
+    qname = diaOpenFileName(NULL, "Select file to load transforms from", 1, filters);
     if (qname.isEmpty())
       break;
     filename = strdup(LATIN1(qname));

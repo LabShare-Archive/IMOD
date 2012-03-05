@@ -174,11 +174,11 @@ void b3dSetMovieSnapping(bool snapping);
 void b3dSetDpiScaling(float factor);
 int b3dSnapshot(QString fname);
 
-QString b3dGetSnapshotName(char *name, int format_type, int digits,
+QString b3dGetSnapshotName(const char *name, int format_type, int digits,
                            int &fileno);
-int b3dAutoSnapshot(char *name, int format_type, int *limits, 
+int b3dAutoSnapshot(const char *name, int format_type, int *limits, 
                     bool checkConvert);
-int b3dKeySnapshot(char *name, int shifted, int ctrl, int *limits, 
+int b3dKeySnapshot(const char *name, int shifted, int ctrl, int *limits, 
                    bool checkConvert = true);
 int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
                        unsigned char **data);

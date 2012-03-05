@@ -65,8 +65,8 @@ class InfoControls : public QWidget, public Ui::InfoControls
   void updateOCP( int * newVal, int * maxVal );
   void updateXYZ( int * newVal, int * maxVal );
   void setObjectColor( QColor foreColor, QColor backColor );
-  void setModelName( char * name );
-  void setImageName( char * name );
+  void setModelName( const char * name );
+  void setImageName( const char * name );
   void setShowPoint( int state );
   void formatLHvalue(int value);
   void hideLowHighGrid();

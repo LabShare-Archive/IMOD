@@ -46,9 +46,9 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   : QMainWindow(parent, f)
 {
   int numWidg = 0;
-  char *helpStr = "&Help";
-  char *altHelp = ".&Help.";
-  char *useHelp = helpStr;
+  const char *helpStr = "&Help";
+  const char *altHelp = ".&Help.";
+  const char *useHelp = helpStr;
   mDBw = mSBw = mDBstw = mSBstw = mDBalw = mDBstAlw = NULL;
   mMinimized = false;
   setAttribute(Qt::WA_DeleteOnClose);

@@ -146,10 +146,10 @@ extern "C" {
   void iiAddCheckFunction(IIFileCheckFunction func);
   void iiInsertCheckFunction(IIFileCheckFunction func, int index);
   void iiDeleteCheckList();
-  void iiAddRawCheckFunction(IIRawCheckFunction func, char *name);
+  void iiAddRawCheckFunction(IIRawCheckFunction func, const char *name);
   void iiDeleteRawCheckList();
   ImodImageFile *iiNew(void);
-  ImodImageFile *iiOpen(const char *filename, char *mode);
+  ImodImageFile *iiOpen(const char *filename, const char *mode);
   int  iiReopen(ImodImageFile *inFile);
   void iiClose(ImodImageFile *inFile);
   void iiDelete(ImodImageFile *inFile);

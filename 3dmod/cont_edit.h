@@ -30,7 +30,7 @@ class ContourFrame : public DialogFrame
   Q_OBJECT
 
  public:
-  ContourFrame(QWidget *parent, int numButtons, char *labels[], char *tips[],
+  ContourFrame(QWidget *parent, int numButtons, const char *labels[], const char *tips[],
                const char *name = NULL);
   ~ContourFrame() {};
  

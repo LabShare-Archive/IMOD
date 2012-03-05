@@ -78,7 +78,7 @@ static int skipInPanels[NUM_TOOLBUTTONS] = {0, 0, 0, 1, 1, 0};
 
 static QIcon *icons[NUM_TOOLBUTTONS];
 static int firstTime = 1;
-static char *toggleTips[] = {
+static const char *toggleTips[] = {
   "Toggle between regular and high-resolution (interpolated) image",
   "Lock window at current section unless section is changed in this window",
   "Toggle between centering when model point nears edge and keeping model"
