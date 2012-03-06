@@ -1,6 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3/23/12: Converted etomo startup script to python, set user home variable for
+3/6/12: Converted install script to python, made it able to edit install
+location in system files instead of just saying it needs to be fixed.
+
+3/6/12: Fixed help paths in 3dmod plugins.
+
+3/3/12: Converted etomo startup script to python, set user home variable for
 Vista/Win 7 to fix rare problem from java bug.
 
 3/2/12: Got rid of glFlush's in model drawing, which were slowing things down
