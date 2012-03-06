@@ -1,629 +1,10 @@
-#!/bin/tcsh -f
-#
-# Multi-platform install script for IMOD. 
-# Run with -help option to see options
-#
-#  $Id$
-#
+#!/usr/bin/python -u
+# installIMOD: multiplatform install script for IMOD
 
-set installdir = ""
-set scriptdir = ""
-set custom = 0
-set namedir = "IMOD"
-set custname = 0
-set skipcopy = 0
-set keepg2c = 0
-set yesopt = 0
-set ubuntu = 0
-set ubscripts = (/etc/csh.cshrc /etc/bash.bashrc)
+# Functions
 
-# First peel off any recognized arguments
-#
-while ($#argv > 0) 
-    switch ($argv[1])
-        case -di*:
-            set installdir = "$argv[2]"
-            shift; shift
-            breaksw
-        
-        case -na*:
-            set namedir = "$argv[2]"
-            set spacetst = `echo $namedir | grep '[ /\\]'`
-            if ("$spacetst" != "") then
-                echo "The entry for -name must be a single directory name"
-                echo "with no spaces or directory separators"
-                exit 1
-            endif
-            shift ; shift
-            breaksw
-
-        case -sc*:
-            # Construct absolute path
-            set scriptdir = "$argv[2]"
-            set absolute = `echo $scriptdir | grep '^/'`
-            if ($status) set scriptdir = "`pwd`""/$scriptdir"
-            shift; shift
-            breaksw
-        
-        case -sk*:
-            set skipcopy = 1
-            shift
-            breaksw
-
-        case -li*:
-            set keepg2c = 1
-            shift
-            breaksw
-
-        case -y*:
-            set yesopt = 1
-            shift
-            breaksw
-
-        case -de*
-            set ubuntu = 1
-            shift
-            breaksw
-
-        case -h*:
-        case --help:
-            goto usage
-            breaksw
-
-        default:
-            break
-    endsw
-end
-
-if ("$namedir" != IMOD) set custname = 1
-
-# Set the package name from the argument and check it if there is one
-#
-if ($#argv > 0) then
-    set package = "$argv[1]"
-    if (! -r "$package") then
-        echo "File $package does not exist or is not readable"
-        exit 1
-    endif
-else
-
-    # Or look for the package in the current directory
-
-    set package = `ls imod_*.tar.gz`
-    if ($#package == 0) then
-        echo "No IMOD package found in current directory; specify package as an argument"
-        exit 1
-    endif
-
-    if ($#package > 1) then
-        echo "Cannot identify IMOD package; there is more than one in this directory"
-        echo "Specify package as an argument"
-        exit 1
-    endif
-endif
-
-# Get name that unpacked directory will have
-#
-set version = `echo $package:t | sed '/\(imod_[0-9.]*\).*/s//\1/' | sed '/\.$/s///'`
-
-echo "Checking system and package types"
-
-# DUPLICATION ALERT: THE FOLLOWING IS INCORPORATED IN THE installStub
-#
-set system = `uname -s`
-set defaultdir = /usr/local
-
-# This gives legacy behavior of passing on exit status of command in set var=`command`
-set anyerror
-
-switch ($system)
-    case *IRIX*:
-        set os = irix
-        # leave out /etc/profile because it is more likely used by sh than
-        # bash users
-        set scripts = (sgi.cshrc IMOD-sgi.csh IMOD-sgi.sh)
-        set sysfiles = (/etc/cshrc)
-        breaksw
-    case *Linux*:
-        set os = linux
-        set scripts = (IMOD-linux.csh IMOD-linux.sh)
-        set relfiles = `\find /etc -maxdepth 1 -type f -name '*release' -print`
-        if (! $ubuntu) then
-            set relfiles = `\find /etc -maxdepth 1 -type f -name '*release' -print`
-            if ("$relfiles" != "") then
-                set ubtest = `grep -i 'ubuntu\|linuxmint' $relfiles`
-                if ("$ubtest" != "") set ubuntu = 1
-            endif
-        endif
-        if ($ubuntu) then
-            set sysfiles = ($ubscripts)
-            set scripts = (ubuntu.cshrc ubuntu.bashrc IMOD-linux.csh IMOD-linux.sh)
-        endif
-        breaksw
-    case *CYGWIN*:
-        set os = windows
-        set scripts = (IMOD-cygwin.csh IMOD-cygwin.sh)
-        set package = `cygpath "$package"`
-        breaksw
-    case *Darwin*:
-        set os = osx
-        set defaultdir = /Applications
-        set scripts = (mac.cshrc mac.profile IMOD-mac.csh IMOD-mac.sh)
-        set sysfiles = (/etc/csh.login /etc/profile)
-        breaksw
-
-    default:
-        echo "IMOD will not run on this system ($system)"
-        exit 1
-endsw
-
-if ("$installdir" == "") set installdir = $defaultdir
-if ("$installdir" != "$defaultdir") set custom = 1
-if ($os == windows && $custom == 1) then
-    \echo "In Window environment variables, set IMOD_DIR to "`cygpath -w "$installdir/$namedir"`
-endif
-
-switch ($package)
-    case *irix*:
-        set packos = irix
-        breaksw
-    case *win*:
-        set packos = windows
-        breaksw
-    case *osx*:
-        set packos = osx
-        breaksw
-    default
-        set packos = linux
-        breaksw
-endsw
-
-if ($os != $packos) then
-    echo "The system type ($os) does not match the IMOD package type ($packos)"
-    exit 1
-endif
-
-set sysdir = /etc
-if (($os == linux && ! $ubuntu) || $os == windows) set sysdir = /etc/profile.d
-if ("$scriptdir" != "") set sysdir = "$scriptdir"
-
-# If there is a custom name, make the install directory
-#
-if ($custname) then
-    mkdir -p "$installdir"
-    if ($status) then
-        echo "An error occurred creating the install directory $installdir"
-        echo "Is the name correct?  Do you need to run as sudo or root?"
-        exit 1
-    endif
-endif
-
-if (! -d "$installdir") then
-    echo "The install directory $installdir does not exist or is not a directory"
-    exit 1
-endif
-
-if (! $skipcopy && ! -d "$sysdir") then
-    echo "The directory to copy scripts to, $sysdir, does not exist or is not a directory"
-    exit 1
-endif
-
-if (! -w "$installdir") then
-    if ($os == windows) then
-        echo gibberish > "$installdir/testfile"
-        if ($status) then
-            echo "There is an error writing files to $installdir"
-            echo "Make sure the /etc/passwd and /etc/group files are up to date"
-            exit 1
-        endif
-        \rm -f "$installdir/testfile"
-    else
-        echo "You do not have permission to write to $installdir"
-        echo  "Run this command with sudo or as root"
-        exit 1
-    endif
-endif
-
-if (! $skipcopy && ! -w "$sysdir") then
-    if ($os == windows) then
-        echo gibberish > "$sysdir/testfile"
-        if ($status) then
-            echo "There is a error writing files to $sysdir"
-            echo "Make sure the /etc/passwd and /etc/group files are up to date"
-            exit 1
-        endif
-        \rm -f "$sysdir/testfile"
-    else
-        echo "You do not have permission to write to $sysdir"
-        echo  "Run this command with sudo or as root"
-        exit 1
-    endif
-endif
-
-# Construct absolute path to package if necessary
-#
-set packpath = ""
-set absolute = `echo $package | grep '^/'`
-if ($status) set packpath = "`pwd`""/"
-
-cd "$installdir"
-
-# If file exists as a link, just remove it
-#
-if (-l "$namedir") then
-    echo "Removing link to previous version but leaving previous version"
-    \rm "$namedir"
-endif
-
-# If custom name, and that exists, remove it
-#
-if ($custname && -e "$namedir") then
-    echo "Removing an existing directory $namedir..."
-    \rm -r $namedir
-endif
-
-# Remove existing files by this name
-#
-if (-e $version) then
-    echo "Removing an existing copy of the same version..."
-    \rm -r $version
-endif
-
-echo "Unpacking IMOD in $installdir ..."
-if ($os == irix) then
-    gzcat "$packpath$package" | tar xf -
-else
-    tar xzf "$packpath$package"
-endif
-
-if (! $custname && -e IMOD) then
-
-    # If there is an existing file, first see if there is a version inside
-    #
-    if (-e IMOD/VERSION) then
-        set vernum = `sed '/[^0-9.]/s///g' IMOD/VERSION`
-        set oldversion = imod_$vernum
-        if ($oldversion == $version) then
-            set oldversion = ""
-            echo "The existing IMOD appears to be the same version as the new one"
-        else if (-e $oldversion) then
-            echo "The existing IMOD appears to be $oldversion"
-            echo "Removing another copy of $oldversion ..."
-            \rm -r $oldversion
-        endif
-
-    else
-        # If no version, just rename to first free oldIMOD
-        #
-        set oldversion = ""
-        @ oldnum = 1
-        while ($oldnum < 1000)
-            if (! -e oldIMOD.$oldnum) then
-                set oldversion = oldIMOD.$oldnum
-                @ oldnum = 1000
-            endif
-            @ oldnum++
-        end
-        if ($oldversion == "") echo "Unable to find a name to rename previous version to"
-    endif
-
-    # Rename to the old version name or just remove if couldn't get one
-    #
-    if ($oldversion == "") then
-        echo "Removing previous version ..."
-        \rm -r IMOD
-    else
-        echo "Renaming previous version to $oldversion"
-        \mv IMOD $oldversion
-    endif
-endif
-
-# Make link or rename
-#
-if ($os == windows || $os == osx || $custname) then
-    echo "Renaming $version to $namedir"
-
-    # Try multiple times due to problems in Win 7
-    #
-    @ try = 0
-    while ($try < 5)
-        mv $version $namedir
-        if (! $status) break
-        echo "Retrying after a few seconds..."
-        sleep 3
-        @ try++
-    end
-    if ($try == 5) then
-        echo "Failed to rename $version to $namedir"
-        if ($os == windows) echo "You should try again but may have to do installation steps manually."
-        echo ""
-        exit 1
-    endif
-else
-    echo "Linking $version to IMOD"
-    ln -s $version IMOD
-endif
-
-set defaultstr = `echo $defaultdir/IMOD | sed '/\//s//\\\//g'`
-set installstr = `echo $installdir/$namedir | sed '/\//s//\\\//g'`
-
-cd $namedir
-
-# Make the ubuntu scripts
-#
-if ($ubuntu) then
-    echo "if (-e $defaultdir/$namedir/$scripts[3]) source $defaultdir/$namedir/$scripts[3]" >! $scripts[1]
-    echo "[ -r $defaultdir/$namedir/$scripts[4] ] && source $defaultdir/$namedir/$scripts[4]" >! $scripts[2]
-    if (! $skipcopy && \
-      (-e /etc/profile.d/$scripts[3] || -e /etc/profile.d/$scripts[4])) then
-        echo "Removing $scripts[3] and $scripts[4] from /etc/profile.d"
-        \rm -f /etc/profile.d/$scripts[3] /etc/profile.d/$scripts[4]
-    endif
-endif
-
-# Move Windows .dlls up for pre-XP versions
-#
-if ($os == windows) then
-    set msdir = `\find ./bin -name 'Microsoft*' -type d -print | sed '/[[:cntrl:]]/s///g'`
-    if ("$msdir" != "") then
-        set msvers = `uname -s | sed -e '/\./s// /g' -e '/[^0-9 ]/s///g'`
-        if ($#msvers > 0) then
-            set nonomatch
-            @ major = $msvers[1]
-            @ minor = 0
-            if ($#msvers > 1) then
-                @ minor = $msvers[2]
-            endif
-            if ($major < 5 || ($major == 5 && $minor < 1)) \mv $msdir/*.dll bin
-        endif
-    endif
-endif
-    
-# Test for 64 versus 32-bit
-#
-set mismatch = ""
-if ($os == linux) then
-    set bit3264 = `file lib/libimod.so | sed '/.*[0-9]\([0-9]\)-bit.*/s//\1/'`
-    set arch3264 = `uname -m`
-    if ("$bit3264" == "2" && "$arch3264" == "x86_64" && $ubuntu) set mismatch = \
-        "WARNING: THIS IS A 32-bit PACKAGE ON 64-BIT UBUNTU AND WILL NOT RUN"
-    if ("$bit3264" == "4" && "$arch3264" != "x86_64") set mismatch = \
-        "WARNING: THIS IS A 64-bit PACKAGE ON A 32-BIT SYSTEM AND WILL NOT RUN"
-endif
-
-if ($os == osx) then
-    set bit3264 = `file lib/libimod.dylib | sed '/.*[0-9]\([0-9]\)-bit.*/s//\1/'`
-    set arch64 = `sysctl hw | sed -n -e '/.*x86_64:/s///p' -e '/.*64bitops:/s///p'`
-    set osxvers = `uname -r | sed '/\..*/s///'`
-    if ("$osxvers" == "7" || "$osxvers" == "8") set arch64 = 0
-    if ("$bit3264" == "4" && "$arch64" != 1) set mismatch = \
-        "WARNING: THIS IS A 64-bit PACKAGE ON A 32-BIT SYSTEM AND WILL NOT RUN"
-endif
-
-# Edit scripts in place before copying
-#
-if ($custom == 1 || $custname) then
-    echo "Editing startup scripts for custom install location"
-    foreach i ($scripts)
-        sed "/$defaultstr/s//$installstr/g" $i >! custom.tmp
-        \mv custom.tmp $i
-    end
-endif    
-
-if (($os == windows || ($os == linux && ! $ubuntu) || "$scriptdir" != "") && ! $skipcopy) then
-
-    # The easy ones: copy to /etc/profile.d or designated place
-    #
-    echo "Copying startup scripts to ${sysdir}: $scripts"
-    \cp $scripts "$sysdir"
-else if (! $skipcopy) then
-
-    # The hard ones: append a source command to a system file if files exist
-    # and it is not there already
-    #
-    set warned = 0
-    @ ind = 1
-    while ($ind <= $#sysfiles)
-        set sysfil = $sysfiles[$ind]
-        if (-e $scripts[$ind] && -e $sysfil) then
-            if ($custom == 1) then
-                set wrong = `grep -i "^[^#].*source.*$defaultdir.*imod" $sysfil`
-                if ($status == 0) then
-                    echo ""
-                    echo "WARNING: $sysfil has a command to source from the default install location"
-                    echo "You should edit $sysfil to remove this line (or lines):"
-                    grep -i "^[^#].*source.*$defaultdir.*imod" $sysfil
-                    echo ""
-                    set warned = 1
-                endif
-            endif
-
-            set already = `grep "^[^#].*source.*$installdir.*$namedir" $sysfil`
-            if ($status) then
-
-                # We can really only detect wrong entries named IMOD
-                #
-                set wrong = `grep -i "^[^#].*source.*imod" $sysfil`
-                if ($status == 0 && $warned == 0) then
-                    echo ""
-                    echo "WARNING: $sysfil has an older, inappropriate source command"
-                    echo "You should edit $sysfil to remove this line (or lines):"
-                    grep -i "^[^#].*source.*imod" $sysfil
-                    echo ""
-                endif
-                echo "Adding source of startup script $scripts[$ind] to $sysfil"
-		# OS X server 10.6 came with profile not writable, so fix it
-		set nowrite = 0
-		if (! -w $sysfil) then
-		    echo "Temporarily making $sysfil writable to do this"
-		    set nowrite = 1
-		    chmod u+w $sysfil
-		endif
-                echo "" >> $sysfil
-                echo "# Set environment for IMOD" >> $sysfil
-                tail -n 2 $scripts[$ind] >> $sysfil
-		if ($nowrite) chmod u-w $sysfil
-            else
-                echo "Source command already exists in $sysfil"
-            endif
-        endif
-        @ ind++
-    end
-endif
-
-# Try to take care of SELinux problems in recommended fashion
-#
-if ($os == linux && -e /usr/sbin/sestatus) then
-    set test = `/usr/sbin/sestatus | grep enabled`
-    if ("$test" != "") then
-        echo ""
-        echo "SELinux is enabled - Trying to change security context of libraries."
-
-        # Try in order of the first one that was suppose dto be used, the one
-        # that works in targeted mode, and the other one that Nvidia lists
-        #
-        foreach con (texrel_shlib_t shlib_t textrel_shlib_t)
-            chcon -t $con lib/*.so pylib/*.so >& /dev/null
-            set constat = $status
-            if (! $constat) then
-                if (-e qtlib) chcon -t $con qtlib/*.so >& /dev/null
-                break
-            endif
-        end
-        if ($constat) then
-            echo "  Errors occurred changing the security context."
-	    set test = `/usr/sbin/sestatus | sed -n '/Policy from .*targeted/p'`
-	    if ("$test" != "") echo "  This is probably OK since your policy is targeted."
-            echo "  Disable SELinux if you have permission problems running IMOD programs."
-        endif
-    endif
-endif
-
-# Manage libg2c if it is present or requested
-#
-if ($os == linux) then
-    set filetype = `file lib/libimod.so`
-    set g2cdir = /usr/lib
-    if ("$filetype" =~ "*64-bit*") set g2cdir = /usr/lib64
-    set syshas = `\find $g2cdir -maxdepth 1 -name 'libg2c.so*' -print`
-    set packhas = `\find lib -maxdepth 1 -name '*libg2c.so*' -print`
-    set hasgfort = `\find lib -maxdepth 1 -name 'libgfortran.so*' -print`
-    set hasintel = `\find qtlib -maxdepth 1 -name 'libintlc.so*' -print`
-    set hastiff = `\find qtlib -maxdepth 1 -name 'libtiff.so*' -print`
-    set needg2c = 1
-    if ("$hasgfort" != "" || "$hasintel" != "") set needg2c = 0
-
-    # For ubuntu, set keepg2c if library not on the system
-    #
-    if ($ubuntu && "$syshas" == "" && ! $keepg2c && $needg2c) then
-        echo ""
-        echo "Using the libg2c in this package because there is none on the system."
-        set keepg2c = 1
-    endif
-
-    # Delete the package even if it is on the system if no keep option given
-    # Otherwise rename to get rid of concealing name
-    #
-    if ("$packhas" != "" &&  ! $keepg2c) then
-        \rm -f lib/*libg2c.so*
-    else if ("$packhas" != "") then
-        foreach i ($packhas)
-            \mv $i $i:s/imod-//
-        end
-    endif
-
-    # Issue lots of different warnings
-    #
-    if ("$packhas" != "" && "$syshas" != "" && $keepg2c) then
-        echo ""
-        echo "WARNING: libg2c is already on the system; if library conflicts occur,"
-        echo "         reinstall IMOD without the -libg2c option or"
-        echo "         remove libg2c from $installdir/IMOD/lib"
-    else if ("$packhas" == "" && "$syshas" != "" && $keepg2c && $needg2c) then
-        echo ""
-        echo "WARNING: libg2c is already on the system and not in this package"
-        echo "         your -libg2c option was ignored"
-    else if ("$packhas" != "" && "$syshas" == "" && ! $keepg2c) then
-        echo ""
-        echo "WARNING: there is no libg2c on this system."
-        echo "         You should install a system package for this if at all possible."
-        echo "     Otherwise, reinstall IMOD with the -libg2c option."
-    else if ("$packhas" == "" && "$syshas" == "" && ! $keepg2c && $needg2c) then
-        echo ""
-        echo "WARNING: there is no libg2c on this system and none in this package."
-        echo "    You should install a system package for this if at all possible."
-        echo "    Otherwise, reinstall IMOD from a package that has it, with -libg2c option."
-    else if ("$packhas" == "" && "$syshas" == "" && $keepg2c && $needg2c) then
-        echo ""
-        echo "WARNING: there is no libg2c on this system and none in this package."
-        echo "         Your -libg2c option was ignored"
-        echo "         You should install a system package for this if at all possible."
-        echo "         Otherwise, reinstall IMOD from a package that has libg2c."
-    else if (! $needg2c && $keepg2c) then
-        echo "NOTE: This package contains gfortran or Intel libraries"
-        echo "         Your -libg2c option was ignored"
-    endif
-
-    # Manage link to libtiff.so.4 if it exists and so.3 does not
-    set libtiff = "$g2cdir/libtiff.so"
-    set alttiff = "$g2cdir/x86_64-linux-gnu/libtiff.so"
-    if ("$hastiff" == "" && (! -e "$libtiff.3") && (! -e "$alttiff.3")) then
-        if (-e "$libtiff.4") then
-            ln -s "$libtiff.4" lib/libtiff.so.3
-        else if (-e "$alttiff.4") then
-            ln -s "$alttiff.4" lib/libtiff.so.3
-        else
-            echo ""
-            echo "WARNING: cannot find libtiff.so.3 or libtiff.so.4 on the system"
-            echo "         If programs fail to work and you can locate a libtiff, then use:"
-            echo '           ln -s full_path_to_libtiff.so.4 $IMOD_DIR/lib/libtiff.so.3'
-        endif
-    endif
-endif
-
-# List files and offer to clean up
-#
-set vernum = `echo $version | sed '/[^0-9.]/s///g'`
-echo ""
-echo "The installation of IMOD $vernum is complete."
-echo "You may need to start a new terminal window for changes to take effect"
-echo ""
-if (! $custname) then
-    echo "IMOD-related files in $installdir :"
-    cd ..
-    ls -l | grep -i imod | grep -vi tempDir
-    echo ""
-    set oldlist = `\find .  -maxdepth 1 -type d -name 'imod_*.*[0-9]' -print | sed -e '/^\.\//s///g' -e "/imod_$vernum/d"`
-    if ("$oldlist" != "") then
-        if ($yesopt) then
-            echo "Removing these other versions:"
-            echo "    " $oldlist
-            \rm -rf $oldlist
-        else
-            echo "Do you want to remove these other versions?"
-            echo "    " $oldlist
-            echo -n "Enter Y to remove them: "
-            set yesno = $<
-            if ("$yesno" == "Y" || "$yesno" == "y") \rm -rf $oldlist
-        endif
-    endif
-    echo ""    
-endif
-
-echo "If there are version-specific IMOD startup commands in individual user"
-echo " startup files (.cshrc, .bashrc, .bash_profile) they should be changed"
-echo " or removed."
-if ("$mismatch" != "") then
-    # EMBEDDED \n DOES NOT WORK ON MAC!
-    echo " "
-    echo $mismatch
-endif   
-exit 0
-
-
-usage:
-cat <<EOF
-Usage: installIMOD [options] [package file name]
+def usage():
+   sys.stdout.write("""Usage: installIMOD [options] [package file name]
   Installs IMOD using a package in the current directory if there is only one,
     or using the specified package file.
   Options (may be abbreviated):
@@ -631,13 +12,664 @@ Usage: installIMOD [options] [package file name]
     -name dir    Name to give the IMOD directory itself
     -script dir  Directory in which to place the IMOD startup scripts
     -skip        Skip copying startup scripts or modifying system startup files
-    -libg2c      Use libg2c in this IMOD package if it exists (Linux only)
-    -debian      Modify $ubscripts[1] and $ubscripts[2] instead of 
-                   copying startup scripts to /etc/profile.d and use libg2c if 
-                   not present on the system - this option is set automatically
-                   for Ubuntu
+    -debian      Modify """ + ubscripts[0] + " and " + ubscripts[1] + """ instead of 
+                   copying startup scripts to /etc/profile.d
+                   - this option is set automatically for Ubuntu
     -yes         Remove older versions without asking for confirmation
     -h, --help   Print this help
-EOF
-exit 0
+""")
+   sys.exit(0)
 
+# print commands to replace echo statements in tcsh script
+def echo(message):
+   sys.stdout.write(message + '\n')
+
+def echoerr(message):
+   sys.stdout.write(message + '\n')
+   sys.exit(1)
+
+# Test whether a directory is writable in windows even if the permission seem wrong
+def testUnwritable(testdir):
+   if ostype == windows:
+      try:
+         testfile = open(testdir + '/testfile')
+         testfile.write('gibberish\n')
+      except Exception:
+         echo("There is an error writing files to " + testdir)
+         echoerr("Make sure the /etc/passwd and /etc/group files are up to date")
+
+      try:
+         testfile.close()
+         os.remove(testdir + '/testfile')
+      except Exception:
+         pass
+
+   else:
+      echo("You do not have permission to write to " + testdir)
+      echoerr("Run this command with sudo or as root")
+
+      
+# Function to read in a text file and strip line endings, returns None for error
+def readFile(filename, descrip = None):
+   textfile = None
+   if not descrip:
+      descrip = " "
+   try:
+      errString = "opening"
+      textfile = open(filename, 'r')
+      errString = "reading"
+      lines = textfile.readlines()
+   except IOError:
+      echo(fmtstr("WARNING: Error {} {} {}: {}", errString, descrip, filename, \
+                       str(sys.exc_info()[1])))
+      if textfile:
+         textfile.close()
+      return None
+   
+   # Strip endings but leave any trailing spaces to avoid perturbing system files
+   textfile.close()
+   for i in range(len(lines)):
+      lines[i] = lines[i].rstrip('\r\n')
+   return lines
+
+
+# Function to write a text file with lines that have no endings, return 1 for error
+def writeFile(filename, strings):
+   comf = None
+   try:
+      action = 'opening'
+      comf = open(filename, 'w')
+      action = 'writing to'
+      for line in strings:
+         prnstr(line, file=comf)
+      comf.close()
+      return 0
+   except IOError:
+      echo("WARNING: Error" + action + " file: " + filename + "  - " + \
+              str(sys.exc_info()[1]))
+      if comf:
+         comf.close()
+      return 1
+
+
+# Function to run "file" on a file and return 2 for 32-bit, 4 for 64-bit, 0 unknown
+def testFileType(filnam):
+   filelines = runcmd('file ' + filnam)
+   if len(filelines) and '32-bit' in filelines[0]:
+      return 2
+   if len(filelines) and '64-bit' in filelines[0]:
+      return 4
+   return 0
+
+
+# Find lines with source command and setting IMOD_DIR in a startup script file or fragment
+def findIMODLines(lines):
+   sourceLine = -1
+   dirLine = -1
+   for ind in range(len(lines)):
+      if re.search('source.*IMOD.*sh', lines[ind]):
+         sourceLine = ind
+      if re.search('setenv.*IMOD_DIR', lines[ind]) or\
+             re.search('export.*IMOD_DIR', lines[ind]):
+         dirLine = ind
+   return (sourceLine, dirLine)
+
+
+# MAIN PROGRAM
+import sys, os, glob, re, shutil, tarfile, time
+
+installdir = ""
+scriptdir = ""
+custom = 0
+namedir = "IMOD"
+custname = 0
+skipcopy = 0
+keepg2c = 0
+yesopt = 0
+ubuntu = 0
+ubscripts = ('/etc/csh.cshrc', '/etc/bash.bashrc')
+linux = 0
+windows = 1
+osx = 2
+sysnames = ('Linux', 'Windows', 'Mac OSX')
+
+# Look for recognized arguments
+argind = 1
+while argind < len(sys.argv):
+   arg = sys.argv[argind]
+   if arg.startswith('-di'):
+      argind += 1
+      installdir = os.path.abspath(sys.argv[argind])
+      
+   elif arg.startswith('-na'):
+      argind += 1
+      namedir = sys.argv[argind]
+      if ' ' in namedir:
+         echoerr("The entry for -name must be a single directory name\n" + \
+                 "with no spaces or directory separators")
+              
+   elif arg.startswith('-sc'):
+      argind += 1
+      scriptdir = os.path.abspath(sys.argv[argind])
+      
+   elif arg.startswith('-sk'):
+      skipcopy = 1
+   elif arg.startswith('-y'):
+      yesopt = 1
+   elif arg.startswith('-de'):
+      ubuntu = 1
+   elif arg.startswith('-h') or arg == '--help':
+      usage()
+   else:
+      break
+   argind += 1
+
+if namedir != 'IMOD':
+   custname = 1
+
+# Set the package name from the argument and check it if there is one
+if argind < len(sys.argv):
+   package = sys.argv[argind]
+   if not os.access(package, os.R_OK):
+      echoerr("The file " + package + " does not exist or is not readable")
+
+# Or look for the package in the current directory
+else:
+   packlist = glob.glob('imod_*.tar.gz')
+   if len(packlist) == 0:
+      echoerr("No IMOD package found in current directory; specify package as " +\
+                 "an argument")
+   if len(packlist) > 1:
+      echo("Cannot identify IMOD package; there is more than one in this directory")
+      echoerr("Specify package as an argument")
+   package = packlist[0]
+
+# Get name that unpacked directory will have
+version = re.sub('.*(imod_[0-9.]*).*', r'\1', os.path.basename(package))
+if version.endswith('.'):
+   version = version[:len(version) - 1]
+
+echo("Checking system and package types")
+
+# Set up system-sependent scripts, etc
+defaultdir = '/usr/local'
+if 'linux' in sys.platform:
+   ostype = linux
+   scripts = ('IMOD-linux.csh', 'IMOD-linux.sh')
+
+   # Try to identify ubuntu
+   if not ubuntu:
+      relfiles = glob.glob('/etc/*release')
+      if len(relfiles):
+         try:
+            relf = open(relfiles[0], 'r')
+            rellines = relf.readlines()
+            relf.close()
+            for l in rellines:
+               if 'ubuntu' in l.lower() or 'linuxmint' in l.lower():
+                  ubuntu = 1
+         except Exception:
+            pass
+
+   if ubuntu:
+      sysfiles = ubscripts
+      scripts = ('ubuntu.cshrc', 'ubuntu.bashrc', 'IMOD-linux.csh', 'IMOD-linux.sh')
+
+elif 'darwin' in sys.platform:
+   ostype = osx
+   defaultdir = '/Applications'
+   scripts = ('mac.cshrc', 'mac.profile', 'IMOD-mac.csh', 'IMOD-mac.sh')
+   sysfiles = ('/etc/csh.login', '/etc/profile')
+
+elif 'cygwin' in sys.platform:
+   ostype = windows
+   scripts = ('IMOD-cygwin.csh', 'IMOD-cygwin.sh')
+
+elif 'win32' in sys.platform:
+   echoerr("You must run the install script with Cygwin python")
+
+else:
+   echoerr("IMOD will not run on this system (" + sys.platform + ")")
+
+if installdir == "":
+   installdir = defaultdir
+if installdir != defaultdir:
+   custom = 1
+
+# Get the package type from its name
+if 'win' in package:
+   packos = windows
+elif 'osx' in package:
+   packos = osx
+else:
+   packos = linux
+
+if ostype != packos:
+   echoerr("The system type (" + sysnames[ostype] + ") does not match the IMOD package" +\
+              " type (" + sysnames[packos] + ")")
+
+sysdir = '/etc'
+if (ostype == linux and not ubuntu) or ostype == windows:
+   sysdir = '/etc/profile.d'
+if scriptdir:
+   sysdir = scriptdir
+
+# If there is a custom name, make the install directory
+if custname and not (os.path.exists(installdir) and os.path.isdir(installdir)):
+   try:
+      os.mkdir(installdir)
+   except Exception:
+      echo("An error occurred creating the install directory " + installdir)
+      echoerr("Is the name correct?  Do you need to run as sudo or root?")
+
+if not os.path.isdir(installdir):
+   echoerr("The install directory " + installdir + \
+              " does not exist or is not a directory")
+
+if not skipcopy and not os.path.isdir(sysdir):
+   echoerr("The directory to copy scripts to, " + sysdir + \
+              ", does not exist or is not a directory")
+
+if not os.access(installdir, os.W_OK):
+   testUnwritable(installdir)
+   
+if not skipcopy and not os.access(sysdir, os.W_OK):
+   testUnwritable(sysdir)
+      
+# Get an absolute path to package, then cd to the install dir
+packabs = os.path.abspath(package)
+os.chdir(installdir)
+
+# If file exists as a link, just remove it
+if os.path.islink(namedir):
+   echo("Removing link to previous version but leaving previous version")
+   try:
+      os.remove(namedir)
+   except Exception:
+      echoerr("Error removing link to previous version")
+
+# If custom name, and that exists, remove it
+if custname and os.path.exists(namedir):
+   echo("Removing an existing directory " + namedir + "...")
+   try:
+      shutil.rmtree(namedir)
+   except Exception:
+      echoerr("Error removing  existing directory " + namedir)
+
+# Remove existing files by this name
+if os.path.exists(version):
+   echo("Removing an existing copy of the same version...")
+   try:
+      shutil.rmtree(version)
+   except Exception:
+      echoerr("Error removing  existing directory " + version)
+
+# extractall is better because it preserves dates; use it if possible
+pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
+echo("Unpacking IMOD in " + installdir + " ...")
+tf = None
+try:
+   tf = tarfile.open(packabs, 'r:gz')
+   if pyVersion >= 250:
+      tf.extractall()
+   else:
+      for tfi in tf:
+         tf.extract(tfi)
+except tarfile.ReadError:
+   echoerr("An error occurred opening tar file " + packabs)
+except tarfile.TarError:
+   echoerr("An error occurred unpacking the IMOD tar file")
+if tf:
+      tf.close()
+
+# If there is an existing file, first see if there is a version inside
+if not custname and os.path.exists('IMOD'):
+   oldversion = ''
+   if os.path.exists('IMOD/VERSION'):
+      versfile = None
+      try:
+         versfile = open('IMOD/VERSION', 'r')
+         versline = versfile.readline()
+         oldversion = 'imod_' + versline.rstrip()
+         if oldversion == version:
+            oldversion = ''
+            echo("The existing IMOD appears to be the same version as the new one")
+         elif os.path.exists(oldversion):
+            echo("The existing IMOD appears to be " + oldversion)
+            echo("Removing another copy of " + oldversion + " ...")
+            try:
+               shutil.rmtree(oldversion)
+            except Exception:
+               echoerr("An error occurred removing " + oldversion)
+
+      except Exception:
+         echo("An error occurring reading the old IMOD/VERSION file; just removing " +\
+                 "that old IMOD")
+      if versfile:
+         versfile.close()
+
+   # Don't bother renaming ancient IMOD's with no VERSION file!
+   # Rename to the old version name or just remove if couldn't get one
+   if oldversion == '':
+      echo("Removing previous version ...")
+      try:
+         shutil.rmtree('IMOD')
+      except Exception:
+         echoerr("An error occurred removing an old IMOD")
+   else:
+      echo("Renaming previous version to " + oldversion)
+      try:
+         os.rename('IMOD', oldversion)
+      except Exception:
+         echoerr("An error occurred renaming the old IMOD - " + str(sys.exc_info()[1]))
+
+# Make link or rename
+if ostype == windows or ostype == osx or custname:
+   echo("Renaming " + version + " to " + namedir)
+   for trial in range(5):
+      try:
+         os.rename(version, namedir)
+      except Exception:
+         echo("Retrying after a few seconds...")
+         time.sleep(3.0)
+         continue
+      break
+   else:
+      echo("Failed to rename " + version + " to " + namedir)
+      if ostype == windows:
+          echo("You should try again but may have to do installation steps manually.")
+      sys.exit(1)
+
+else:
+   echo("Linking " + version + " to IMOD")
+   try:
+      os.symlink(version, 'IMOD')
+   except Exception:
+      echoerr("Failed to make link from " + version + " to IMOD")
+
+os.chdir(namedir)
+      
+# At last we can add pylib to the path and import imodpy
+sys.path.append('./pylib')
+from imodpy import *
+from pysed import *
+defaultstr = defaultdir + '/IMOD'
+installstr = installdir + '/' + namedir
+
+# Make the ubuntu scripts
+if ubuntu:
+   uberr = writeFile(scripts[0], [fmtstr('if (-e {0}/{1}/{2}) source {0}/{1}/{2}',
+                                          defaultdir, namedir, scripts[2])])
+   uberr += writeFile(scripts[1], [fmtstr('if (-e {0}/{1}/{2}) source {0}/{1}/{2}',
+                                          defaultdir, namedir, scripts[3])])
+   if not skipcopy:
+      for scrip in (scripts[2], scripts[3]):
+         epscript = '/etc/profile.d/' + scrip
+         if os.path.exists(epscript):
+            echo('Removing ' + epscript)
+            try:
+               os.remove(epscript)
+            except Exception:
+               echo('Error removing ' + epscript + \
+                       '; You should remove that file manually')
+
+# Move Windows .dlls up for pre-XP version
+if ostype == windows:
+   uname = re.sub('[^0-9.]', '', os.uname()[0])
+   unamespl = uname.split('.')
+   try:
+      major = int(unamespl[0])
+      minor = 0
+      if len(unamespl) > 1:
+         minor = int(unamespl[1])
+      if major < 5 or (major == 5 and minor < 1):
+         msdlls = glob.glob('bin/Microsoft*/*.dll')
+         try:
+            for dll in msdlls:
+               shutil.move(dll, 'bin')
+         except Exception:
+            echo("Failed to move one or more DLLs from bin/Microsoft* directory into bin")
+   except:
+      echo("WARNING: Could not determine Windows version and whether to move")
+      echo("   Microsoft DLLs from bin subdirectory up to bin.")
+
+# Test for 64 versus 32-bit
+mismatch = ''
+try:
+   uname = os.uname()
+   if ostype == linux:
+      bit3264 = testFileType('lib/libimod.so')
+      if bit3264 == 2 and uname[4] == 'x86_64':
+         mismatch = "WARNING: THIS IS A 32-bit PACKAGE ON A 64-BIT SYSTEM AND MAY NOT RUN"
+         if ubuntu:
+            mismatch = \
+                "WARNING: THIS IS A 32-bit PACKAGE ON 64-BIT UBUNTU AND WILL NOT RUN"
+      if bit3264 == 4 and uname[4] != 'x86_64':
+         mismatch = \
+             "WARNING: THIS IS A 64-bit PACKAGE ON A 32-BIT SYSTEM AND WILL NOT RUN"
+            
+   elif ostype == osx:
+      bit3264 = testFileType('lib/libimod.dylib')
+      archlines = runcmd('sysctl hw')
+      arch64 = 0
+      for l in archlines:
+         if 'x86_64' in l or '64bitops' in l:
+            l = l.rstrip()
+            try:
+               arch64 = int(l[len(l)-1])
+            except:
+               pass
+            break
+
+      unsplit = uname[2].split('.')
+      try:
+         osxvers = int(unsplit[0])
+         if osxvers < 9:
+            arch64 = 0
+      except:
+         pass
+      if bit3264 == 4 and arch64 != 1:
+         mismatch = \
+             "WARNING: THIS IS A 64-bit PACKAGE ON A 32-BIT SYSTEM AND WILL NOT RUN"
+      
+except Exception:
+   echo('Errors occurred testing whether the package fits the system type')
+
+# Edit scripts in place before copying
+if custom or custname:
+   echo("Editing startup scripts for custom install location")
+   for scrip in scripts:
+      scriplines = readFile(scrip)
+      if scriplines == None:
+         echo('WARNING: An error occurred reading ' + scrip)
+      else:
+         editlines = pysed(['|' + defaultstr + '|s||' + installstr + '|g'], scriplines,
+                           delim = '|')
+         if writeFile(scrip, editlines):
+            echo('WARNING: An error occurred writing ' + scrip)
+
+# Copy scripts to /etc/profile.d or designated place
+if (ostype == windows or (ostype == linux and not ubuntu) or scriptdir) and not skipcopy:
+   indst = 2 * ubuntu
+   sys.stdout.write("Copying startup scripts to " + sysdir + ":")
+   for scrip in scripts[indst:]:
+      sys.stdout.write(' ' + scrip)
+   sys.stdout.write('\n')
+   for scrip in scripts[indst:]:
+      try:
+         shutil.copy(scrip, sysdir)
+      except Exception:
+         echo('WARNING: Failed to copy ' + scrip + ' to ' + sysdir)
+
+# Or add the source commands to the system files
+elif not skipcopy:
+   for ind in range(len(sysfiles)):
+      sysfil = sysfiles[ind]
+      if os.path.exists(scripts[ind]) and os.path.exists(sysfil):
+         scriptlines = readFile(scripts[ind])
+         syslines = readFile(sysfil)
+         if syslines == None or scriptlines == None:
+            continue
+         (sysSource, sysIMODdir) = findIMODLines(syslines)
+         (scriptSource, scriptIMODdir) = findIMODLines(scriptlines)
+         if scriptSource < 0:
+            echo('WARNING: Failed to find line for source startup in ' + scripts[ind])
+            continue
+
+         # Three cases: it already matches, adding from scratch, or fixing what's there
+         if sysSource >= 0 and syslines[sysSource] == scriptlines[scriptSource] and \
+                (sysIMODdir < 0 or (scriptIMODdir >= 0 and \
+                    syslines[sysIMODdir] == scriptlines[scriptIMODdir])):
+            echo("Source command already exists in " + sysfil)
+            continue
+         if sysSource < 0:
+            echo("Adding source of startup script " + scripts[ind] + " to " + sysfil)
+            syslines += ["", "# Set environment for IMOD"]
+            if scriptIMODdir >= 0:
+               syslines.append(scriptlines[scriptIMODdir])
+            syslines.append(scriptlines[scriptSource])
+         else:
+            echo("Correcting source of startup script " + scripts[ind] + " in " + sysfil)
+            syslines[sysSource] = scriptlines[scriptSource]
+
+            # If the IMOD_DIR line exists, replace from the script file if possible,
+            # otherwise replace the install dir on that line (in fact it is an
+            # abberation to have the IMOD_DIR line and it is not in the script)
+            if sysIMODdir >= 0:
+               if scriptIMODdir >= 0:
+                  syslines[sysIMODdir] = scriptlines[scriptIMODdir]
+               else:
+                  ind = syslines[sysIMODdir].find('/')
+                  syslines[sysIMODdir] = syslines[sysIMODdir][:ind] + installstr
+
+         mode = None
+         if not os.access(sysfil, os.W_OK):
+            echo("Temporarily making " + sysfil + " writable to do this")
+            mode = stat.S_IMODE(os.stat(sysfil)[stat.ST_MODE])
+            try:
+               os.chmod(sysfil, mode | stat.S_IWUSR)
+            except Exception:
+               echo('Failed to make ' + sysfil + 'writable')
+               mode = None
+               
+         writeFile(sysfil, syslines)
+         if mode:
+            try:
+               os.chmod(sysfil, mode)
+            except Exception:
+               pass
+
+# Try to take care of SELinux problems in recommended fashion
+if ostype == linux and os.path.exists('/usr/sbin/sestatus'):
+   try:
+      selines = runcmd('/usr/sbin/sestatus')
+      enabled = 0
+      targeted = 0
+      for l in selines:
+         if 'enabled' in l:
+            enabled = 1
+         if re.search('Policy from .*targeted', l):
+            targeted = 1
+      if enabled:
+         echo("\nSELinux is enabled - Trying to change security context of libraries.")
+         
+         # Try in order of the first one that was supposed to be used, the one
+         # that works in targeted mode, and the other one that Nvidia lists
+         for con in ('texrel_shlib_t', 'shlib_t', 'textrel_shlib_t'):
+            try:
+               concom = 'chcon -t ' + con + ' lib/*.so'
+               if os.path.exists('qtlib'):
+                  concom += ' qtlib/*.so'
+               runcmd(concom)
+               break
+            except ImodpyError:
+               pass
+
+         else:
+            echo("  Errors occurred changing the security context.")
+            if targeted:
+               echo("  This is probably OK since your policy is targeted.")
+            echo("  Disable SELinux if you have permission problems running IMOD " +\
+                    "programs.")
+
+   except ImodpyError:
+      echo("WARNING: could not run /usr/sbin/sestatus - " + str(sys.exc_info()[1]))
+
+# Manage the libtiff links if necessary (why???)
+if ostype == linux:
+   hastiff = glob.glob('qtlib/libtiff.so*')
+   libdir = '/usr/lib'
+   if bit3264 == 4:
+      libdir = '/usr/lib64'
+   libtiff = libdir + '/libtiff.so'
+   alttiff = libdir + '/x86_64-linux-gnu/libtiff.so'
+   if len(hastiff) == 0 and not os.path.exists(libtiff + '.3') \
+          and not os.path.exists(alttiff + '.3'):
+      try:
+         if os.path.exists(libtiff + '.4'):
+            lntiff = libtiff + '.4'
+            os.symlink(libtiff + '.4', 'lib/libtiff.so.3')
+         elif os.path.exists(alttiff + '.4'):
+            lntiff = alttiff + '.4'
+            os.symlink(alttiff + '.4', 'lib/libtiff.so.3')
+         else:
+            echo("WARNING: cannot find libtiff in this IMOD package or \n   " +\
+                    "libtiff.so.3 or libtiff.so.4 on the system")
+            echo("You should install a regular IMOD package that includes tiff libraries")
+            
+      except Exception:
+         echo("WARNING: An error occurred trying to link " + lntiff + \
+                 ' to lib/libtiff.so.3')
+         echo("You should install a regular IMOD package that includes tiff libraries")
+
+# List files and offer to clean up
+vernum = version[version.find('_') + 1:]
+echo("")
+echo("The installation of IMOD " + vernum + " is complete.")
+echo("You may need to start a new terminal window for changes to take effect")
+echo("")
+if not custname:
+   os.chdir('..')
+   alllist = glob.glob('imod_*.*[0-9]')
+   oldlist = []
+   oldstr = ''
+   for fil in alllist:
+      if os.path.isdir(fil) and fil != version:
+         oldlist.append(fil)
+         oldstr += '   ' + fil
+   if len(oldlist):
+      if yesopt:
+         echo("Removing these other versions:")
+         echo("  " + oldstr)
+      else:
+         echo("Do you want to remove these other versions?")
+         echo("  " + oldstr)
+         yesno = raw_input("Enter Y to remove them: ")
+         yesopt = yesno.lower() == 'y'
+
+      if yesopt:
+         for fil in oldlist:
+            try:
+               shutil.rmtree(fil)
+            except:
+               echo("An error occurred removing " + fil)
+      
+      echo("")
+         
+# Final remarks
+echo("If there are version-specific IMOD startup commands in individual user")
+echo(" startup files (.cshrc, .bashrc, .bash_profile) they should be changed")
+echo(" or removed.")
+if mismatch:
+   echo("")
+   echo(mismatch)
+
+if ostype == windows and custom:
+   try:
+      winpath = runcmd('cygpath -w ' + installstr)
+      if len(winpath):
+         echo("\nIn Windows environment variables, set IMOD_DIR to " + winpath[0])
+   except ImodpyError:
+      pass
+   
+sys.exit(0)
