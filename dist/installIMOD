@@ -415,9 +415,9 @@ if ubuntu:
 
 # Move Windows .dlls up for pre-XP version
 if ostype == windows:
-   uname = re.sub('[^0-9.]', '', os.uname()[0])
-   unamespl = uname.split('.')
+   uname = (os.uname()[0]).split('-')
    try:
+      unamespl = uname[1].split('.')
       major = int(unamespl[0])
       minor = 0
       if len(unamespl) > 1:
