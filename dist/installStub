@@ -220,9 +220,8 @@ if ($test == 0 && $os == windows && (! -e /bin/python.exe)) then
     echo " "
     if (-l /bin/python) then
         echo "The Cygwin link to python will not work for IMOD"
-        echo "Replacing the link with an actual /bin/python.exe"
+        echo "Making a copy of its target that is an actual /bin/python.exe"
         \cp -Lf /bin/python /bin/python.exe
-        \mv -f /bin/python /bin/python-link
     else
         echo "You must have Python installed in Cygwin to run this installer"
         set test = 1
