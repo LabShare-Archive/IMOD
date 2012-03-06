@@ -382,7 +382,9 @@ static void setStereoProjection(ImodvApp *a)
   }
 }
 
-
+/*
+ * Draw all models and image
+ */
 void imodvDraw_models(ImodvApp *a)
 {
   int m, mstart, mend;
@@ -557,6 +559,9 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
   }
 }
 
+/*
+ * Set up clipping planes for the given object
+ */
 static int clip_obj(Imod *imod, Iobj *obj, int flag)
 {
   GLdouble params[4];
@@ -602,16 +607,23 @@ static int clip_obj(Imod *imod, Iobj *obj, int flag)
   return(0);
 }
 
-/* In which any mode enabled by imodvSetObject should be disabled */
+/*
+ * In which any mode enabled by imodvSetObject should be disabled, including restoring
+ * polygon mode to fill, needed for texture drawing
+ */
 static void imodvUnsetObject(Iobj *obj)
 {
   light_off();
   glDisable(GL_BLEND);
   glDisable(GL_LINE_SMOOTH);
   glDisable(GL_CULL_FACE);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   return;
 }
 
+/*
+ * Set various OpenGL modes based upon drawing needs of given object
+ */
 static void imodvSetObject(Imod *imod, Iobj *obj, int style, int drawTrans)
 {
   float red, green, blue, trans;
