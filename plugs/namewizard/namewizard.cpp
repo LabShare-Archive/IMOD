@@ -2391,7 +2391,7 @@ void NameWizard::moreSettings()
 
 void NameWizard::helpPluginHelp()
 {
-  imodShowHelpPage("plughelp/namewizard.html#TOP");
+  imodShowHelpPage("../plughelp/namewizard.html#TOP");
 }
 
 //------------------------
@@ -2399,7 +2399,7 @@ void NameWizard::helpPluginHelp()
 
 void NameWizard::helpNamingHelp()
 {
-  imodShowHelpPage("plughelp/naming_help.html#TOP");
+  imodShowHelpPage("../plughelp/naming_help.html#TOP");
 }
 
 

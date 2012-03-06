@@ -2184,7 +2184,7 @@ void AnalysisTools::buttonPressed(int which)
     close();
   else
   {
-    imodShowHelpPage("plughelp/analysistools.html#TOP");
+    imodShowHelpPage("../plughelp/analysistools.html#TOP");
   }
 }
 

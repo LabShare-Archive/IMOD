@@ -1646,7 +1646,7 @@ int Interpolator::getTilingMethod()
 
 void Interpolator::helpPluginHelp()
 {
-  imodShowHelpPage("plughelp/interpolator.html#TOP");
+  imodShowHelpPage("../plughelp/interpolator.html#TOP");
 }
 
 

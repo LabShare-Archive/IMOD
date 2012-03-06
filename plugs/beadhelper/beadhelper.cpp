@@ -3848,7 +3848,7 @@ void BeadHelper::changeEstPosMethod(int value) {
 
 void BeadHelper::helpPluginHelp()
 {
-  imodShowHelpPage("plughelp/beadhelper.html#TOP");
+  imodShowHelpPage("../plughelp/beadhelper.html#TOP");
 }
 
 
