@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/6/12: IMOD_4-4-7
 3/6/12: Fixed image display in model view when last object drawn is lines.
 
 3/6/12: Converted install script to python, made it able to edit install
