@@ -40,7 +40,8 @@ simplex *ch_root;
 
 #define DMAX 
 
-double Huge;
+/* DNM: change to a number that doesn't generate overflow and number to test against */
+double Huge, HugeCrit;
 
 #define check_overshoot(x)							\
 	{if (CHECK_OVERSHOOT && check_overshoot_f && ((x)>9e15))		\
@@ -124,7 +125,8 @@ static void Vec_scale_test(int n, Coord a, Coord *x)
 int exact_bits;
 float b_err_min, b_err_min_sq;
 
-double logb(double); /* on SGI machines: returns floor of log base 2 */
+/* DNM: unneeded, generates a compiler remark */
+/* double logb(double); */ /* on SGI machines: returns floor of log base 2 */
 
 static short vd;
 /* DNM: add suggested braces */
@@ -309,7 +311,8 @@ static int reduce_inner(basis_s *v, simplex *s, int k) {
 	return 0;
 }
 
-#define trans(z,p,q) {int i; for (i=0;i<pdim;i++) z[i+rdim] = z[i] = p[i] - q[i];}
+/* DNM: change i to itrn to avoid compiler remarks */
+#define trans(z,p,q) {int itrn; for (itrn=0;itrn<pdim;itrn++) z[itrn+rdim] = z[itrn] = p[itrn] - q[itrn];}
 #define lift(z,s) {if (vd) z[2*rdim-1] =z[rdim-1]= ldexp(Vec_dot_pdim(z,z), -DELIFT);}
 				/*not scaling lift to 2^-DELIFT */
 
@@ -678,7 +681,9 @@ static void vols(fg *f, Tree *t, basis_s* n, int depth) {
 		cdim = depth; get_basis_sede(s); cdim = tdim;
 		reduce(&nn, hull_infinity, s, depth);
 		nnv = nn->vecs;
-		if (t->key==hull_infinity || f->dist==Huge || NEARZERO(nnv[rdim-1]))
+
+        /* DNM: change tests ==Huge to > HugeCrit and != Huge to < HugeCrit */
+		if (t->key==hull_infinity || f->dist > HugeCrit || NEARZERO(nnv[rdim-1]))
 			t->fgs->dist = Huge;
 		else
 			t->fgs->dist = Vec_dot_pdim(nnv,nnv)
@@ -687,8 +692,8 @@ static void vols(fg *f, Tree *t, basis_s* n, int depth) {
 		else vols(t->fgs, t->fgs->facets, nn, depth+1);
 	}
 
-	assert(f->dist!=Huge || t->fgs->dist==Huge);
-	if (t->fgs->dist==Huge || t->fgs->vol==Huge) f->vol = Huge;
+	assert(f->dist < HugeCrit || t->fgs->dist > HugeCrit);
+	if (t->fgs->dist > HugeCrit || t->fgs->vol > HugeCrit) f->vol = Huge;
 	else {
 		sqq = t->fgs->dist - f->dist;
 		if (NEARZERO(sqq)) f->vol = 0;
@@ -732,8 +737,13 @@ simplex *build_convex_hull(gsitef *get_s, site_n *site_numm, short dim, short vd
 */
 
 	simplex *s, *root;
-
-	if (!Huge) Huge = DBL_MAX*DBL_MAX;
+    
+    /* DNM: This made it crash with Intel compiler debug compile */
+	/*if (!Huge) Huge = DBL_MAX*DBL_MAX; */
+    if (!Huge) {
+      Huge = 0.999 * DBL_MAX;
+      HugeCrit = 0.99 * Huge;
+    }
 
 	cdim = 0;
 	get_site = get_s;
