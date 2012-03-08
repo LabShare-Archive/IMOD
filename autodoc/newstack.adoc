@@ -416,10 +416,11 @@ tooltip =
 manpage = Use this entry to specify the amount of memory used by the program
 for its main array, in megabytes.  By default, the program will try to use
 enough memory to hold both an input image and an output image in floating
-point form (4 bytes per pixel).  Limiting the memory can keep it from using
-more memory than available but may result in it operating on the images in
-chunks.  The main array is used to hold both the input image (in whole or in
-part) and a transformed image (in whole or in part).
+point form (4 bytes per pixel), up to 15 GB.  Limiting the memory can keep it
+from using more memory than available but may result in it operating on the
+images in chunks.  Entering a value larger than 15000 will allow it to use more
+memory than the default.  The main array is used to hold both the input image
+(in whole or in part) and a transformed image (in whole or in part).
 
 [Field = TestLimits]
 short = test
