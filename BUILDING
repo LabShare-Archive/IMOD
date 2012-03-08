@@ -13,23 +13,35 @@ GENERAL NOTES
 
 IMOD was ported to version 4 of QT with Qt 4.4.3.  One feature was
 subsequently disabled conditionally to allow it to build with Qt 4.3 (colored
-error messages in the 3dmod Info window).  Higher levels of Qt,
-up to 4.6.2, have been used for 64-bit builds under Mac OS X.  If you have Qt
-4.3 on your system already you can safely build with that.  If you need to
-build Qt, it is safe to use 4.6 on any architecture.  However, IMOD will not
-yet build with Qt 4.7, because the assistant_adp help system was eliminated.
+error messages in the 3dmod Info window).  The help system was modified in
+IMOD 4.4.6 to use the new Assistant in Qt 4, thus allowing it to compile with
+Qt 4.7 and beyond, where the old assistant_adp is no longer available.  The
+new Assistant had problems in Qt 4.4 in Windows and Linux, and we thus moved
+to various later versions of Qt on various systems either to solve those
+specific problems or as a precautionary measure.  We now use Qt 4.7.4 for our
+Windows builds, 4.6.3 on RHEL6 Linux, 4.5.3 on RHEL5 Linux, and 4.6.4 for a
+32-bit build under Mac OS X with a carbon interface.  However, the 64-bit
+builds on Mac OS X, which must use the cocoa interface, have a problem in Qt
+4.6.4 or higher (key events are no longer passed to the model view window when
+opened from 3dmod), so we are stuck at 4.6.3 there.
+
+The take home message: if you have Qt 4.3 or higher on your system already,
+you can safely build with that.  If you need to build Qt, it is safe to the
+latest Qt compatible with your compilers on any architecture except Mac, where
+you should sue Qt 4.6.3 unless you won't be running with these libraries.
 
 Several strategies were used when building Qt.  One was to build in a local
 directory and then run "make install".  With later versions on Mac, this
 became problematic, and the strategy there has been to build in a local
 directory, with the "install directory" being a link in /usr/local/Trolltech
 to the local directory.  In these cases, "make install" was not run.  Below we
-show the commands that we have used for building Qt, but this are just
+show the commands that we have used for building Qt, but these are just
 examples and not authoritative statements.  You will probably be better off
 following Qt instructions.
 
-In all architectures, environment variable QTDIR must be defined to be the
-directory containing at least Qt/bin, and $QTDIR/bin must be on the path.
+In all architectures, in order for the IMOD setup to work, environment
+variable QTDIR must be defined to be the directory containing at least Qt/bin,
+and $QTDIR/bin must be on the path.
 
 The setup scripts modify some or all of the Makefiles produced by qmake.
 On Windows, this is essential to make them work with cygwin make; elsewhere it
@@ -60,7 +72,8 @@ from Sun/Oracle.  You must place the bin of the JDK on your path.
 
 As of 4.2.25, IMOD is built with version 4 of libtiff to support large files,
 specifically tiff-4.0.0beta7.  Source for this or earlier versions is obtained
-from http://www.remotesensing.org/libtiff/.
+from http://www.remotesensing.org/libtiff/.  However, it still builds with
+version 3 of libtiff if that is what is on your system.
 
 setup has a number of options that can be listed with "setup -h".  Currently
 the main body of the setup code is in setup2 because that needed to be
@@ -68,37 +81,44 @@ converted to Unix line endings.  To do most of the system-specific work,
 setup sources an appropriate file in the machines directory: rhlinux, macosx,
 or cygwin.
 
-The install commands will build .1 and .html versions of all man pages and
-install them in man and html/man directories.  If the install directory is
-omitted, then installation will be into bin, lib, man, and html
-directories under the top-level source directory.  This is fine for personal
-use.
+The install commands will build .1 and .html versions of all man pages, 
+install the .1 files in man of the install directory, collect the .html files
+and other help files under html in the source directory, build IMOD.qch
+from all those help files and install it in html of the install directory.  
+If the install directory is omitted, then installation will be into bin, lib,
+man, and html directories under the top-level source directory.  This is fine
+for personal use.
 
 
 BUILDING ON LINUX
 
-To build IMOD under FC4 and RHEL5, Qt was unpacked in a local directory, and
+To build IMOD under RHEL5, Qt was unpacked in a local directory, an install
+directory /usr/local/Trolltech/Qt-4.5.3-RHEL5-64 was created, and it was  
 built using gcc/g++ with the commands:
 
-./configure -prefix /usr/local/Trolltech/Qt-4.4.3-FC4 -fast -no-exceptions \
--no-phonon -no-phonon-backend -no-svg -no-webkit -no-rpath -nomake demos \
--nomake examples
+./configure -prefix /usr/local/Trolltech/Qt-4.5.3-RHEL5-64 -fast -no-exceptions \
+-no-phonon -no-phonon-backend -no-webkit -no-svg -no-rpath \
+ -continue -release -nomake demos -nomake examples -opensource
+ -confirm-license
 make
 make install
 
-Qt 4.3 has been used on both Fedora 11 and Ubuntu 8.1.  setup will detect the
-lack of a QTDIR/include and set its Qt include variable to /usr/include (the
-location on FC11) if /usr/include/Qt exists, otherwise to /usr/include/qt4
-(location on Ubuntu).  The arrangement on RHEL6 is also handled correctly.
+Parallel make works fine, at least for Qt 4.5 and later (e.g., make -j4)
 
-QTDIR must be defined, $QTDIR/bin must be on the path, and $QT_DIR/lib must
+Qt 4.3 has been used on both Fedora 11 and Ubuntu 8.1; Qt 4.6 or 4.7 has been
+used on later Fedoras.  setup will detect the lack of a QTDIR/include and set
+its Qt include variable to /usr/include (the location on FC11) if
+/usr/include/Qt exists, otherwise to /usr/include/qt4 (location on Ubuntu).
+The arrangement on RHEL6 and Fedora 15 is also handled correctly.
+
+QTDIR must be defined, $QTDIR/bin must be on the path, and $QTDIR/lib must
 be on the LD_LIBRARY_PATH.
 
 The compilers can be either gcc and gfortran, or the Intel C++ and Fortran
-compilers (version 10 or 11 can be used).  If the Intel compilers are on the
-path, they will be used by default; this can be overriden with the "-c gnu" or
-"-c gfortran" setup option.  Either way will support OpenMP and CUDA for
-"current" compilers (e.g., gcc 4.1.2 in RHEL5).
+compilers (version 10 or 11 can be used; 11 required on RHEL6).  If the Intel
+compilers are on the path, they will be used by default; this can be overriden
+with the "-c gnu" or "-c gfortran" setup option.  Either way will support
+OpenMP and CUDA for "current" compilers (e.g., gcc 4.1.2 in RHEL5).
 
 To build version 4 TIFF libraries, unpack the libtiff distribution and decide
 on a directory to install to.  Build with:
@@ -118,9 +138,9 @@ To build and install IMOD for general use:
 
 3. "make install"
 
-4. "installqtlibs" to copy install files to install directory.  If you
+4. "installqtlib" to copy install files to install directory.  If you
    ran "setup" initially with the -packqt flag (which you should do if you 
-   built against a Qt library not on the users' library path), "installqtlibs"
+   built against a Qt library not on the users' library path), "installqtlib"
    will also copy the Qt library.
 
 The last step can be skipped for a personal installation in the source
@@ -143,21 +163,21 @@ Qt 4.4.3 for 32-bit Mac was built in /usr/local/Trolltech on a 32-bit Mac with:
 make 
 make install
 
-Qt 4.6.2 for 64-bit Mac has been built with gcc/g++ by unpacking in a local
+Qt 4.6.3 for 64-bit Mac has been built with gcc/g++ by unpacking in a local
 directory, running:
 setenv QMAKESPEC macx-g++
-making a link /usr/local/Trolltech/Qt-4.6.2  pointing to the local directory,
+making a link /usr/local/Trolltech/Qt-4.6.3  pointing to the local directory,
 running
-./configure -prefix /usr/local/Trolltech/Qt-4.6.2 -fast -no-exceptions \
+./configure -prefix /usr/local/Trolltech/Qt-4.6.3 -fast -no-exceptions \
 -no-phonon -no-phonon-backend -no-webkit -no-rpath -no-libtiff -qt-libpng \
 -qt-libmng -qt-libjpeg -continue -cocoa -arch x86_64 -release -nomake demos \
--nomake examples
+-nomake examples -opensource -confirm-license -sdk /Developer/SDKs/MacOSX10.5.sdk
 
 and skipping the install.  It can also be built in place, and there it tells
 you not to do "make install".
 
 To build IMOD, QTDIR must be defined, $QTDIR/bin must be on the path, and
-$QT_DIR/lib must be on the DYLD_LIBRARY_PATH.
+$QTDIR/lib must be on the DYLD_LIBRARY_PATH.
 
 
 TIFF and other libraries for Mac OSX
@@ -205,7 +225,7 @@ and libjpeg64.a.
 Compilers for Mac OSX
 
 You need to have a Fortran compiler.  Two options are the Intel compiler
-(version 10 or 11 recommended currently) and a version of gfortran from
+(version 11 recommended currently) and a version of gfortran from
 http://r.research.att.com/tools/
 (There is a nasty comment in the latter site about avoiding gfortran from
 http://hpc.sourceforge.net/, which unfortunately matches our own experience.).
@@ -252,7 +272,7 @@ The procedure is now:
 
 3. "make install"
 
-4. "./installqtlibs" to copy Qt library and install files to install directory
+4. "./installqtlib" to copy Qt library and install files to install directory
 
 
 BUILDING UNDER CYGWIN/WINDOWS WITH INTEL COMPILERS
@@ -277,12 +297,27 @@ variable to a location that you can write in, such as C:\cygwin\usr\tmp
 Qt for Windows
 
 Qt was built by unzipping the Qt source package in C:/Qt and renaming it to
-4.4.3.  QMAKESPEC can be set to win32-icc in 32-bit Windows but fails in
-64-bit, so leave it unset there.  Qt was configured and built with:
+4.4.3.  For 4.4.3, QMAKESPEC can be set to win32-icc in 32-bit Windows but
+fails in 64-bit, so leave it unset there.  Qt was configured and built with:
 
-./configure -release -fast  -no-exceptions  -qt-zlib  -qt-gif  -qt-libpng -qt-libmng\
--no-libtiff -qt-libjpeg  -no-phonon -no-phonon-backend -no-webkit
+./configure -release -fast  -no-exceptions  -qt-zlib  -qt-gif  -qt-libpng \
+-qt-libmng -no-libtiff -qt-libjpeg  -no-phonon -no-phonon-backend -no-webkit
 nmake
+
+Qt 4.7.4 was built by unzipping a .zip package in C:/Qt and renaming it to
+4.7.4.  Untarring a tar package with cygwin tar also possible but
+configure.exe gets overwritten by the configure script, so it has to be copied
+from elsewhere or maybe explicitly extracted by itself.  QMAKESPEC was defined
+as win32-msvc2008 and C:/Qt/4.7.4/bin was put on the PATH.  It was not
+necessary take /bin/sh.exe off the path or install a perl separate from the
+one in Cygwin.  A command prompt was opened in VS2008 (x64 for 64-bit) and
+these commands used:
+
+./configure -release -fast -no-exceptions -qt-zlib -qt-gif -qt-libpng \
+-qt-libmng -no-libtiff -qt-libjpeg -no-phonon -no-phonon-backend -no-webkit \
+-nomake demos -nomake examples -no-qt3support
+nmake
+nmake clean
 
 
 TIFF and Other Libraries for Windows
