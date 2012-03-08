@@ -101,6 +101,8 @@ void points_thingrid(int* pn, point** ppoints, int nx, int ny)
     point* pointsnew = NULL;
     int i, j, ii, index;
 
+    /* DNM: removed two redeclarations of index to eliminate compiler warnings */
+
     if (nn_verbose)
         fprintf(stderr, "thinned: %d points -> ", *pn);
 
@@ -131,7 +133,6 @@ void points_thingrid(int* pn, point** ppoints, int nx, int ny)
 
     for (ii = 0; ii < n; ++ii) {
         point* p = &points[ii];
-        int index;
 
         if (nx == 1)
             i = 0;
@@ -167,7 +168,7 @@ void points_thingrid(int* pn, point** ppoints, int nx, int ny)
 
     for (j = 0; j < ny; ++j) {
         for (i = 0; i < nx; ++i) {
-            int index = i + j * nx;
+            index = i + j * nx;
 
             if (count[index] > 0)
                 nnew++;

@@ -110,13 +110,13 @@ void free_##X##_storage(void) {new_block_##X(0);}		\
 #define NULLIFY(X,v)	{dec_ref(X,v); v = NULL;}
 
 
-
+/* DMN: change i to imr to avoid compiler remarks */
 #define mod_refs(op,s)					\
 {							\
-	int i;						\
+	int imr;						\
 	neighbor *mrsn;					\
 							\
-	for (i=-1,mrsn=(s)->neigh-1;i<cdim;i++,mrsn++)	\
+	for (imr=-1,mrsn=(s)->neigh-1;imr<cdim;imr++,mrsn++)	\
 		op##_ref(basis_s, mrsn->basis);		\
 }
 
