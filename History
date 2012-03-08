@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/8/12: Added nearest neighbor (non)interpolation to Newstack for linear and
+warping transformations.
+
+3/7/12: In Newstack, made it load only the lines needed to compute output, and
+to scan only those lines to get a fill value, skipping that if possible.
+Fixed warping and undistorting when loading or output is broken into chunks
+and made a default 15 GB memory limit.
+
 3/6/12: IMOD_4-4-7
 3/6/12: Fixed image display in model view when last object drawn is lines.
 
