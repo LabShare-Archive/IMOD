@@ -299,6 +299,18 @@ noise is not an issue.  Images are
 transformed when the -xform, -expand, -rotate, -distort, or -gradient
 option is entered.
 
+[Field = NearestNeighbor]
+short = nearest
+type = B
+usage = Use nearest neighbor instead of cubic interpolation to transform images
+tooltip = 
+manpage = Use nearest neighbor interpolation instead of cubic interpolation to
+transform images.  This method simply picks the nearest existing pixel
+value instead of interpolating between surrounding values, so it can be used
+when pixels have discrete or meaningful values that need to be preserved.
+This option and -linear are mutually exclusive.   Images are transformed when
+the -xform, -expand, -rotate, -distort, or -gradient option is entered.
+
 [Field = FloatDensities]
 short = float
 type = I

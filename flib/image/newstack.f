@@ -105,29 +105,27 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  newstack
 c       
       integer numOptions
-      parameter (numOptions = 40)
+      parameter (numOptions = 42)
       character*(40 * numOptions) options(1)
       options(1) =
-     &    'input:InputFile:FNM:@output:OutputFile:FNM:@'//
-     &    'fileinlist:FileOfInputs:FN:@fileoutlist:FileOfOutputs:FN:@'//
-     &    'split:SplitStartingNumber:I:@append:AppendExtension:CH:@'//
-     &    'secs:SectionsToRead:LIM:@skip:SkipSectionIncrement:I:@'//
-     &    'numout:NumberToOutput:IAM:@replace:ReplaceSections:LI:@'//
-     &    'blank:BlankOutput:B:@size:SizeToOutputInXandY:IP:@'//
-     &    'mode:ModeToOutput:I:@offset:OffsetsInXandY:FAM:@'//
+     &    'input:InputFile:FNM:@output:OutputFile:FNM:@fileinlist:FileOfInputs:FN:@'//
+     &    'fileoutlist:FileOfOutputs:FN:@split:SplitStartingNumber:I:@'//
+     &    'append:AppendExtension:CH:@secs:SectionsToRead:LIM:@'//
+     &    'skip:SkipSectionIncrement:I:@numout:NumberToOutput:IAM:@'//
+     &    'replace:ReplaceSections:LI:@blank:BlankOutput:B:@'//
+     &    'size:SizeToOutputInXandY:IP:@mode:ModeToOutput:I:@'//
+     &    'bytes:BytesSignedInOutput:I:@offset:OffsetsInXandY:FAM:@'//
      &    'applyfirst:ApplyOffsetsFirst:B:@xform:TransformFile:FN:@'//
      &    'uselines:UseTransformLines:LIM:@onexform:OneTransformPerFile:B:@'//
-     &    'rotate:RotateByAngle:F:@expand:ExpandByFactor:F:@'//
-     &    'shrink:ShrinkByFactor:F:@antialias:AntialiasFilter:I:@'//
-     &    'bin:BinByFactor:I:@origin:AdjustOrigin:B:@'//
-     &    'linear:LinearInterpolation:B:@float:FloatDensities:I:@'//
-     &    'contrast:ContrastBlackWhite:IP:@scale:ScaleMinAndMax:FP:@'//
-     &    'fill:FillValue:F:@multadd:MultiplyAndAdd:FPM:@'//
+     &    'rotate:RotateByAngle:F:@expand:ExpandByFactor:F:@shrink:ShrinkByFactor:F:@'//
+     &    'antialias:AntialiasFilter:I:@bin:BinByFactor:I:@origin:AdjustOrigin:B:@'//
+     &    'linear:LinearInterpolation:B:@nearest:NearestNeighbor:B:@'//
+     &    'float:FloatDensities:I:@contrast:ContrastBlackWhite:IP:@'//
+     &    'scale:ScaleMinAndMax:FP:@fill:FillValue:F:@multadd:MultiplyAndAdd:FPM:@'//
      &    'taper:TaperAtFill:IP:@distort:DistortionField:FN:@'//
      &    'imagebinned:ImagesAreBinned:I:@fields:UseFields:LIM:@'//
-     &    'gradient:GradientFile:FN:@memory:MemoryLimit:I:@'//
-     &    'test:TestLimits:IP:@verbose:VerboseOutput:I:@'//
-     &    'param:ParameterFile:PF:@help:usage:B:'
+     &    'gradient:GradientFile:FN:@memory:MemoryLimit:I:@test:TestLimits:IP:@'//
+     &    'verbose:VerboseOutput:I:@param:ParameterFile:PF:@help:usage:B:'
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -507,6 +505,11 @@ C
         ierr = PipGetBoolean('LinearInterpolation', ifLinear)
         if (PipGetString('TransformFile', xffil) .eq. 0) ifxform = 1
         ierr = PipGetBoolean('OneTransformPerFile', ifOnePerFile)
+        ix1 = 0
+        ierr = PipGetBoolean('NearestNeighbor', ix1)
+        if (ix1 .ne. 0. and. ifLinear .ne. 0) call exitError(
+     &      'YOU CANNOT ENTER BOTH -linear AND -nearest')
+        if (ix1 .ne. 0) ifLinear = -1
       else
         write(*,'(1x,a,$)')'1 or 2 to transform images with cubic or'
      &      //' linear interpolation, 0 not to: '

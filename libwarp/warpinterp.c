@@ -4,7 +4,6 @@
  * written by David Mastronarde, April 2000.
  * 
  * $Id$
- * Log at end
  */
 #include <math.h>
 #include <stdlib.h>
@@ -25,7 +24,8 @@
  * ^ [xt,yt]   - The translation to add in the linear transformation
  * ^ [scale]   - A multiplicative scale factor for the intensities
  * ^ [dmean]   - Mean intensity of image, or value to fill edges with
- * ^ [linear]  - Set non-zero to do linear interpolation
+ * ^ [linear]  - Set greater than zero to do linear interpolation, or less than zero for
+ * nearest neighbor interpolation
  * ^ [linFirst] - Set non-zero to do linear transformation before warping
  * ^ [dxGrid, dyGrid] - Grid of distortion displacements in X & Y;
  * each value is the shift to get from a desired position in the
@@ -99,8 +99,9 @@ void warpInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
       xbase = a12 * dyo +xco - a11 * xcen;
       ybase = a22 * dyo + yco - a21 * xcen;
 
+      if (linear > 0) {
 
-      if (linear) {
+        /* linear interpolation */
         for (ix = 1; ix <= nxb; ix++) {
           xp = a11*ix + xbase;
           yp = a21*ix + ybase;
@@ -122,6 +123,21 @@ void warpInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
               dy * ((1. - dx) * array[ixpm1 + iyp*nxa] +
                     dx * array[ixp + iyp*nxa]);
           }
+        }
+      } else if (linear < 0) {
+
+        /* Nearest neighbor */
+        for (ix = 1; ix <= nxb; ix++) {
+          xp = a11*ix + xbase;
+          yp = a21*ix + ybase;
+          interpolateGrid(xp, yp, dxGrid, dyGrid, ixgDim, nxGrid, nyGrid, xGridStrt, 
+                           yGridStrt, xGridIntrv, yGridIntrv, &dx, &dy);
+          ixp = xp + dx + 0.5;
+          iyp = yp + dy + 0.5;
+          if (ixp >= 1 && ixp <= nxa && iyp >= 1 && iyp <= nya)
+            bray[ix + ixbase] = array[ixp - 1 + (iyp - 1) * nxa];
+          else
+            bray[ix + ixbase] = dmean;
         }
       } else {
            
@@ -233,8 +249,8 @@ void warpInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
           ixlim[1] = nxb - 1;
       
         /* Evaluate mapping of each corner point and see if inside */
-        allIn = 0;
-        /* printf("block %d %d:", ixgrid, iygrid);*/
+        allIn = 1;
+        /* fprintf(stderr, "block %d %d:", ixgrid, iygrid); */
         for (iy = 0; iy < 2; iy++) {
           for (ix = 0; ix < 2; ix++) {
             index = indx[ix] + ixgDim * indy[iy];
@@ -251,6 +267,7 @@ void warpInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
               allIn = 0;
           }
         }
+        /* fprintf(stderr, " %d\n", allIn); */
         /* puts(""); */
         xbox = xlim[1] - xlim[0];
         ybox = ylim[1] - ylim[0];
@@ -274,37 +291,57 @@ void warpInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
           buf = &bray[ixlim[0] + (size_t)j * nxb];
           if (linear) {
 
-            /* Linear interpolation */
+            /* Linear or nearest neighbor interpolation */
             if (allIn) {
-              for (i = 0; i <= ixlim[1] - ixlim[0]; i++){
-                xp = x + i * xstep;
-                yp = y + i * ystep;
-                ixp = (int)xp; 
-                iyp = (int)yp;
-                fx = xp - ixp;
-                fy = yp - iyp;
-                ind = ixp + (iyp * llnxa);
-                *buf++ = ((1. - fy) * ((1. - fx) *array[ind] +
-                                       fx * array[ind + 1]) +
-                          fy * ((1. - fx) *array[ind + llnxa] +
-                                fx * array[ind + llnxa + 1]));
-              }
-            } else {
-              for (i = 0; i <= ixlim[1] - ixlim[0]; i++){
-                xp = x + i * xstep;
-                yp = y + i * ystep;
-                ixp = (int)xp; 
-                iyp = (int)yp;
-                fx = xp - ixp;
-                fy = yp - iyp;
-                if (ixp >= 0 && ixp < nxa - 1  && iyp >= 0 && iyp < nya - 1) {
+              if (linear > 0) {
+                for (i = 0; i <= ixlim[1] - ixlim[0]; i++){
+                  xp = x + i * xstep;
+                  yp = y + i * ystep;
+                  ixp = (int)xp; 
+                  iyp = (int)yp;
+                  fx = xp - ixp;
+                  fy = yp - iyp;
                   ind = ixp + (iyp * llnxa);
                   *buf++ = ((1. - fy) * ((1. - fx) *array[ind] +
                                          fx * array[ind + 1]) +
                             fy * ((1. - fx) *array[ind + llnxa] +
                                   fx * array[ind + llnxa + 1]));
-                } else
-                  *buf++ = dmean;
+                }
+              } else {
+                for (i = 0; i <= ixlim[1] - ixlim[0]; i++){
+                  xp = x + i * xstep;
+                  yp = y + i * ystep;
+                  ixp = (int)(xp + 0.5); 
+                  iyp = (int)(yp + 0.5);
+                  ind = ixp + (iyp * llnxa);
+                  *buf++ = array[ind];
+                }
+              }
+            } else {
+              for (i = 0; i <= ixlim[1] - ixlim[0]; i++){
+                xp = x + i * xstep;
+                yp = y + i * ystep;
+                if (linear > 0) {
+                  ixp = (int)xp; 
+                  iyp = (int)yp;
+                  if (ixp >= 0 && ixp < nxa - 1  && iyp >= 0 && iyp < nya - 1) {
+                    fx = xp - ixp;
+                    fy = yp - iyp;
+                    ind = ixp + (iyp * llnxa);
+                    *buf++ = ((1. - fy) * ((1. - fx) *array[ind] +
+                                           fx * array[ind + 1]) +
+                              fy * ((1. - fx) *array[ind + llnxa] +
+                                    fx * array[ind + llnxa + 1]));
+                  } else
+                    *buf++ = dmean;
+                } else {
+                  ixp = (int)(xp + 0.5); 
+                  iyp = (int)(yp + 0.5);
+                  if (ixp >= 0 && ixp < nxa  && iyp >= 0 && iyp < nya)
+                    *buf++ = array[ixp + (iyp * llnxa)];
+                  else
+                    *buf++ = dmean;
+                }
               }
             }  
           } else {
