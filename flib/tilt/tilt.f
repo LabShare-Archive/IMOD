@@ -5277,7 +5277,7 @@ c
       real*4, allocatable :: values(:), coords(:,:)
       integer*4, allocatable :: mapnv(:)
       integer*4 getContValue, putImageRef, putContValue, putImodFlag
-      integer*4 getScatSize, putScatSize
+      integer*4 getScatSize, putScatSize, putImodMaxes
 c       
       call irtorg(1, orig(1), orig(2), orig(3))
       call scale_model(0)
@@ -5305,8 +5305,9 @@ c       Start a new model
       call newimod()
       n_point = 0
       iobj = 0
-      if (putImageRef(delta, orig) .ne. 0) call exitError(
-     &    'Putting image reference information in output model')
+      if (putImageRef(delta, orig) .ne. 0 .or. putImodMaxes(npxyz(1), npxyz(2), npxyz(3)
+     &     .ne. 0) call exitError(
+     &    'Putting image reference or maximum size information in output model')
 c       
 c       Build a map from views in file to ordered views in program
       do nv = 1, nvorig
