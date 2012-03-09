@@ -120,7 +120,6 @@ EXPORTS
 	nnpi_calculate_weights
 	points_thingrid
 	h_fg_far
-	printtree_flat
 	istack_push
 	FINDMAXGRIDSIZE
 	print_fg_alt
@@ -142,7 +141,6 @@ EXPORTS
 	ht_getnentries
 	setWarpGrid
 	ht_process
-	printtree
 	print_triang
 	nnai_destroy
 	SETWARPGRID
@@ -189,10 +187,8 @@ EXPORTS
 	nnai_setwmin
 	istack_destroy
 	visit_triang_gen
-	insert
 	ADDMAGGRADFIELD
 	ht_delete
-	delete
 	nnpi_interpolate_point
 	p_fg
 	INVERTWARPGRID
