@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/10/12: Fixed image drawing in model view for ATI cards, which were horribly
+slow (at least in Windows) from changes in 4.2.24; made drawing somewhat more
+efficient; added button to set black/white levels from 3dmod sliders.
+
 3/8/12: Added nearest neighbor (non)interpolation to Newstack for linear and
 warping transformations.
 
