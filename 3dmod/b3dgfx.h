@@ -40,6 +40,7 @@ void b3dPrimitiveRestartIndex(GLuint index);
 // Extension enabled flags in return from b3dInitializeGL
 #define B3DGLEXT_VERTBUF (1l << 0)
 #define B3DGLEXT_PRIM_RESTART (1l << 1)
+#define B3DGLEXT_ANY_SIZE_TEX (1l << 2)
 
 #define SnapShot_Default 0
 #define SnapShot_RGB     1
