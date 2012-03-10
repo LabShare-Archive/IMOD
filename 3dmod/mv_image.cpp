@@ -15,6 +15,7 @@
 #include <qlayout.h>
 #include <qgl.h>
 #include <qslider.h>
+#include <qpushbutton.h>
 #include <qtooltip.h>
 //Added by qt3to4:
 #include <QKeyEvent>
@@ -51,11 +52,13 @@ static void setSliceLimits(int ciz, int miz, bool invertZ, int drawTrans,
 static void setCoordLimits(int cur, int maxSize, int drawSize, 
                            int &str, int &end);
 static void endTexMapping();
+static int initTexMapping();
 
 // 3/23/11: NEW NAMING CONVENTION, sVariable for all static variables
 
 static GLubyte *sTdata = NULL;
 static int sTexImageSize = 0;
+static GLuint sTexName = 0;
 static GLubyte sCmap[3][256];
 static int sBlackLevel = 0;
 static int sWhiteLevel = 255;
@@ -213,54 +216,6 @@ static void mkcmap(void)
   sCmapInit = 1;
 }
 
-static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
-                            Ipoint *clamp,
-                            unsigned char *data,
-                            int width, int height)
-{
-  float xclamp, yclamp;
-  double wallStart = wallTime();
-  static int first = 1;
-
-  // 5/16/04: swap here instead of before calling
-  // No need to swap anymore
-  xclamp = clamp->x;
-  yclamp = clamp->y;
-
-  // glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  //if (first)
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, width+2, height+2, 
-                 0, GL_RGB, GL_UNSIGNED_BYTE,
-                 data);
-  first = 0;
-  sWallLoad += wallTime() - wallStart;
-  wallStart = wallTime();
-
-  /* glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-  // To use linear we need to provide border pixels and different tex coords
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  
-  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-         
-  glEnable(GL_TEXTURE_2D); */
-
-  glBegin(GL_QUADS);
-  glTexCoord2f(1./(width+2.), 1./(height+2.)); glVertex3fv((GLfloat *)p1);
-  glTexCoord2f(xclamp, 1./(height+2.)); glVertex3fv((GLfloat *)p2);
-  glTexCoord2f(xclamp, yclamp); glVertex3fv((GLfloat *)p3);
-  glTexCoord2f(1./(width+2.), yclamp); glVertex3fv((GLfloat *)p4);
-
-
-  glEnd();
-  sWallDraw += wallTime() - wallStart;
-
-  /*  glFlush();
-      glDisable(GL_TEXTURE_2D); */
-}
-
 // Determine starting and ending slice and direction, and set the alpha
 static void setSliceLimits(int ciz, int miz, bool invertZ, int drawTrans, 
                            int &zst, int &znd, int &izdir)
@@ -318,7 +273,7 @@ static void setAlpha(int iz, int zst, int znd, int izdir)
   }
 }
 
-#define FILLDATA(a)  uvind = 3 * (sTexImageSize * v + u); \
+#define FILLDATA(a)  uvind = 3 * (fillXsize * v + u); \
   sTdata[uvind] = sCmap[0][a];                                  \
   sTdata[uvind + 1] = sCmap[1][a];                              \
   sTdata[uvind + 2] = sCmap[2][a];
@@ -330,7 +285,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   int tstep;
   int cix, ciy, ciz;
   int mix, miy, miz;
-  int xstr, xend, ystr, yend, zstr, zend;
+  int xstr, xend, ystr, yend, zstr, zend, fillXsize;
   unsigned char **idata;
   b3dUInt16 **usidata;
   unsigned char pix;
@@ -429,53 +384,14 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
     imodMatDelete(mat);
   }
 
-  // Set up OpenGL stuff, starting with assessing the texture size that works
-  // Use power of 2 if required, otherwise a bit above to minimize tiles for 
-  // common image sizes
-  tstep = (a->glExtFlags & B3DGLEXT_ANY_SIZE_TEX) ? 528 : 512;
-  for (tstep = 528; tstep >= 64; tstep /= 2) {
-    glTexImage2D(GL_PROXY_TEXTURE_2D, 0, 3, tstep, tstep, 1, GL_RGB, GL_UNSIGNED_BYTE,
-                 NULL);
-    glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &texwid);
-    if (texwid > 0)
-      break;
-
-    // Do a final try with exactly 64 if the last one was not
-    if (tstep > 64 && tstep / 2 < 64)
-      tstep = 64;
-  }
-  if (texwid <= 0) {
-    imodPrintStderr("Cannot get texture array for image display");
-    endTexMapping();
+  if (!sTexImageSize && initTexMapping())
     return;
-  }
 
-  // Allocate a big enough array if necessary
-  if (tstep > sTexImageSize) {
-    B3DFREE(sTdata);
-    sTdata = B3DMALLOC(GLubyte, 3 * tstep * tstep);
-    if (!sTdata) {
-      imodPrintStderr("Failed to allocate array for image display");
-      endTexMapping();
-      return;
-    }
-    sTexImageSize = tstep;
-  }
-  tstep -= 2;
+  //glBindTexture(GL_TEXTURE_2D, sTexName);
+  tstep = sTexImageSize - 2;
   clampEnd = (tstep + 1.) / (tstep + 2.);
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-  // To use linear we need to provide border pixels and different tex coords
-  // This will have to be changed when border pixels are not allowed in OpenGL 3+
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  
-  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-         
   glEnable(GL_TEXTURE_2D);
 
   /* Draw Current Z image. */
@@ -513,6 +429,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           }
           ul.x = ll.x = xpatch;
           ur.x = lr.x = iend;
+          fillXsize = 2 + iend - xpatch;
         
           // Fill the data for one patch then draw the patch
           if (a->vi->ushortStore) {
@@ -536,7 +453,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           }
           
           imodvDrawTImage(&ll, &lr, &ur, &ul, &clamp,
-                          (unsigned char *)sTdata, tstep, tstep);
+                          (unsigned char *)sTdata, fillXsize, 2 + jend - ypatch);
         }
       }
     }
@@ -574,6 +491,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           }
           ul.y = ll.y = ypatch;
           ur.y = lr.y = iend;
+          fillXsize = 2 + iend - ypatch;
         
           // Handle cases of flipped or not with different loops to put test
           // on presence of data in the outer loop
@@ -628,7 +546,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           }
           
           imodvDrawTImage(&ll, &lr, &ur, &ul, &clamp,
-                          (unsigned char *)sTdata, tstep, tstep);
+                          (unsigned char *)sTdata, fillXsize, 2 + jend - zpatch);
         }
       }
     }       
@@ -665,6 +583,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           }
           ul.x = ll.x = xpatch;
           ur.x = lr.x = iend;
+          fillXsize = 2 + iend - xpatch;
           
           // This one is easier, one outer loop and flipped, non-flipped, or
           // no data cases for inner loop
@@ -707,7 +626,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
 
           }
           imodvDrawTImage(&ll, &lr, &ur, &ul, &clamp,
-                          (unsigned char *)sTdata, tstep, tstep);
+                          (unsigned char *)sTdata, fillXsize, 2 + jend - zpatch);
         }
       }
     }
@@ -723,12 +642,98 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
                     sWallLoad * 1000., sWallDraw * 1000.);
 }
 
+// Load the tile into the texture image and draw it within given coordinates
+static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
+                            Ipoint *clamp,
+                            unsigned char *data,
+                            int width, int height)
+{
+  float xclamp, yclamp, clamp0 = 1. / sTexImageSize;
+  double wallStart = wallTime();
+
+  xclamp = clamp->x;
+  yclamp = clamp->y;
+
+  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+  /*GLenum error = glGetError();
+    if (error)
+    imodPrintStderr("GL error on glTexSubImage2D: %s\n", gluErrorString(error)); */
+  sWallLoad += wallTime() - wallStart;
+  wallStart = wallTime();
+
+  glBegin(GL_QUADS);
+  glTexCoord2f(clamp0, clamp0); glVertex3fv((GLfloat *)p1);
+  glTexCoord2f(xclamp, clamp0); glVertex3fv((GLfloat *)p2);
+  glTexCoord2f(xclamp, yclamp); glVertex3fv((GLfloat *)p3);
+  glTexCoord2f(clamp0, yclamp); glVertex3fv((GLfloat *)p4);
+
+
+  glEnd();
+  glFlush();
+  sWallDraw += wallTime() - wallStart;
+}
+
+/* 
+ * Initialize texture mapping - get a texture and set its properties
+ */
+static int initTexMapping()
+{
+  int tstep, texwid, i;
+
+  // Start with assessing the texture size that works
+  // Use power of 2 if required, otherwise a bit above to minimize tiles for 
+  // common image sizes (less important with subarea loading)
+  tstep = (Imodv->glExtFlags & B3DGLEXT_ANY_SIZE_TEX) ? 528 : 512;
+  for (; tstep >= 64; tstep /= 2) {
+    glTexImage2D(GL_PROXY_TEXTURE_2D, 0, 3, tstep, tstep, 0, GL_RGB, GL_UNSIGNED_BYTE,
+                 NULL);
+    glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &texwid);
+    if (texwid > 0)
+      break;
+
+    // Do a final try with exactly 64 if the last one was not
+    if (tstep > 64 && tstep / 2 < 64)
+      tstep = 64;
+  }
+  if (texwid <= 0) {
+    imodPrintStderr("Cannot get texture array for image display");
+    endTexMapping();
+    return 1;
+  }
+
+  // Allocate a big enough array
+  sTdata = B3DMALLOC(GLubyte, 3 * tstep * tstep);
+  if (!sTdata) {
+    imodPrintStderr("Failed to allocate array for image display");
+    endTexMapping();
+    return 1;
+  }
+
+  // Get the texture for real now
+  sTexImageSize = tstep;
+  glGenTextures(1, &sTexName);
+  glBindTexture(GL_TEXTURE_2D, sTexName);
+  glTexImage2D(GL_TEXTURE_2D, 0, 3, tstep, tstep, 0, GL_RGB, GL_UNSIGNED_BYTE, sTdata);
+
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+  return 0;
+}
+
+
 // Take care of all flags associated with texture mapping being on
 static void endTexMapping()
 {
   sFlags = 0;
   Imodv->texMap = 0;
   B3DFREE(sTdata);
+  if (sTexImageSize)
+    glDeleteTextures(1, &sTexName);
   sTexImageSize = 0;
   sTdata = NULL;
 }
@@ -808,6 +813,10 @@ ImodvImage::ImodvImage(QWidget *parent, const char *name)
   mSliders->getSlider(IIS_WHITE)->setToolTip(
                 "Set maximum white level of contrast ramp");
 
+  QPushButton *copyBut = diaPushButton("Use 3dmod Black/White", this, mLayout);
+  copyBut->setToolTip("Set black and white levels from sliders in 3dmod Info window");
+  connect(copyBut, SIGNAL(clicked()), this, SLOT(copyBWclicked()));
+
   // Make false color checkbox
   mFalseBox = diaCheckBox("False color", this, mLayout);
   mFalseBox->setChecked(sFalsecolor);
@@ -816,6 +825,7 @@ ImodvImage::ImodvImage(QWidget *parent, const char *name)
 
   if (Imodv->vi->colormapImage) {
     mFalseBox->setEnabled(false);
+    copyBut->setEnabled(false);
     mSliders->getSlider(IIS_SLICES)->setEnabled(false);
     mSliders->getSlider(IIS_BLACK)->setEnabled(false);
     mSliders->getSlider(IIS_WHITE)->setEnabled(false);
@@ -921,6 +931,17 @@ void ImodvImage::sliderMoved(int which, int value, bool dragging)
     else
       imodDraw(Imodv->vi, IMOD_DRAW_XYZ);
   }
+}
+
+// Set the black/white levels from 3dmod
+void ImodvImage::copyBWclicked()
+{
+  sBlackLevel = App->cvi->black;
+  sWhiteLevel = App->cvi->white;
+  mSliders->setValue(IIS_BLACK, sBlackLevel);
+  mSliders->setValue(IIS_WHITE, sWhiteLevel);
+  mkcmap();
+  imodvDraw(Imodv);
 }
 
 // User toggles false color
