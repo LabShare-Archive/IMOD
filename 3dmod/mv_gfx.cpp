@@ -212,9 +212,9 @@ void imodvPaintGL()
 
   // First time in, find the OpenGL version and set vertBufOK to -1 or 1
   if (a->vertBufOK < -1) {
-    color = b3dInitializeGL();
-    a->vertBufOK = (color & B3DGLEXT_VERTBUF) ? 1 : -1;
-    a->primRestartOK = (color & B3DGLEXT_PRIM_RESTART) ? 1 : 0;
+    a->glExtFlags = b3dInitializeGL();
+    a->vertBufOK = (a->glExtFlags & B3DGLEXT_VERTBUF) ? 1 : -1;
+    a->primRestartOK = (a->glExtFlags & B3DGLEXT_PRIM_RESTART) ? 1 : 0;
   }
 
   //if (Imod_debug)
