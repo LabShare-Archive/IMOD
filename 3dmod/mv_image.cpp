@@ -304,7 +304,6 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   Imat *mat;
   Ipoint inp, outp;
   QTime drawTime;
-  GLint texwid;
   drawTime.start();
   sWallLoad = sWallDraw = 0.;
      
@@ -681,7 +680,7 @@ static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
  */
 static int initTexMapping()
 {
-  int tstep, texwid, i;
+  int tstep, texwid;
 
   // Start with assessing the texture size that works
   // Use power of 2 if required, otherwise a bit above to minimize tiles for 
