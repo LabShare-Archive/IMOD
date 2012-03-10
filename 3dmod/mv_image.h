@@ -50,6 +50,7 @@ class ImodvImage : public DialogFrame
     void viewZToggled(bool state) {viewToggled(state, IMODV_DRAW_CZ);};
     void falseToggled(bool state);
     void sliderMoved(int which, int value, bool dragging);
+    void copyBWclicked();
     void buttonPressed(int which);
 
  protected:
