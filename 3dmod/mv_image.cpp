@@ -203,9 +203,11 @@ static void mkcmap(void)
   if (sFalsecolor || a->vi->colormapImage){
     for(i = 0; i < 256; i++){
       xcramp_mapfalsecolor(sCmap[0][i], &r, &g, &b);
-      sCmap[0][i] = (unsigned char)r;
+
+      // Here is where the map becomes BGR
+      sCmap[2][i] = (unsigned char)r;
       sCmap[1][i] = (unsigned char)g;
-      sCmap[2][i] = (unsigned char)b;
+      sCmap[0][i] = (unsigned char)b;
     }
   }else{
     for(i = 0; i < 256; i++){
@@ -273,10 +275,11 @@ static void setAlpha(int iz, int zst, int znd, int izdir)
   }
 }
 
-#define FILLDATA(a)  uvind = 3 * (fillXsize * v + u); \
+#define FILLDATA(a)  uvind = 4 * (fillXsize * v + u); \
   sTdata[uvind] = sCmap[0][a];                                  \
   sTdata[uvind + 1] = sCmap[1][a];                              \
-  sTdata[uvind + 2] = sCmap[2][a];
+  sTdata[uvind + 2] = sCmap[2][a];                              \
+  sTdata[uvind + 3] = 255;
 
 // The call from within the openGL calling routines to draw the image
 void imodvDrawImage(ImodvApp *a, int drawTrans)
@@ -387,11 +390,11 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   if (!sTexImageSize && initTexMapping())
     return;
 
-  //glBindTexture(GL_TEXTURE_2D, sTexName);
   tstep = sTexImageSize - 2;
   clampEnd = (tstep + 1.) / (tstep + 2.);
 
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  // This used to be 1 with RGB data being passed in
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
   glEnable(GL_TEXTURE_2D);
 
   /* Draw Current Z image. */
@@ -654,7 +657,7 @@ static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
   xclamp = clamp->x;
   yclamp = clamp->y;
 
-  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, data);
   /*GLenum error = glGetError();
     if (error)
     imodPrintStderr("GL error on glTexSubImage2D: %s\n", gluErrorString(error)); */
@@ -685,7 +688,7 @@ static int initTexMapping()
   // common image sizes (less important with subarea loading)
   tstep = (Imodv->glExtFlags & B3DGLEXT_ANY_SIZE_TEX) ? 528 : 512;
   for (; tstep >= 64; tstep /= 2) {
-    glTexImage2D(GL_PROXY_TEXTURE_2D, 0, 3, tstep, tstep, 0, GL_RGB, GL_UNSIGNED_BYTE,
+    glTexImage2D(GL_PROXY_TEXTURE_2D, 0, 4, tstep, tstep, 0, GL_BGRA, GL_UNSIGNED_BYTE,
                  NULL);
     glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &texwid);
     if (texwid > 0)
@@ -702,7 +705,7 @@ static int initTexMapping()
   }
 
   // Allocate a big enough array
-  sTdata = B3DMALLOC(GLubyte, 3 * tstep * tstep);
+  sTdata = B3DMALLOC(GLubyte, 4 * tstep * tstep);
   if (!sTdata) {
     imodPrintStderr("Failed to allocate array for image display");
     endTexMapping();
@@ -713,7 +716,7 @@ static int initTexMapping()
   sTexImageSize = tstep;
   glGenTextures(1, &sTexName);
   glBindTexture(GL_TEXTURE_2D, sTexName);
-  glTexImage2D(GL_TEXTURE_2D, 0, 3, tstep, tstep, 0, GL_RGB, GL_UNSIGNED_BYTE, sTdata);
+  glTexImage2D(GL_TEXTURE_2D, 0, 4, tstep, tstep, 0, GL_BGRA, GL_UNSIGNED_BYTE, sTdata);
 
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
