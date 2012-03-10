@@ -29,6 +29,7 @@
 #include "mv_stereo.h"
 #include "mv_image.h"
 #include "mv_input.h"
+#include "b3dgfx.h"
 #include "display.h"
 #include "control.h"
 #include "preferences.h"
@@ -229,7 +230,7 @@ static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
   // glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   //if (first)
     glTexImage2D(GL_TEXTURE_2D, 0, 3, width+2, height+2, 
-                 1, GL_RGB, GL_UNSIGNED_BYTE,
+                 0, GL_RGB, GL_UNSIGNED_BYTE,
                  data);
   first = 0;
   sWallLoad += wallTime() - wallStart;
@@ -247,10 +248,10 @@ static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
   glEnable(GL_TEXTURE_2D); */
 
   glBegin(GL_QUADS);
-  glTexCoord2f(0.0, 0.0); glVertex3fv((GLfloat *)p1);
-  glTexCoord2f(xclamp, 0.0); glVertex3fv((GLfloat *)p2);
+  glTexCoord2f(1./(width+2.), 1./(height+2.)); glVertex3fv((GLfloat *)p1);
+  glTexCoord2f(xclamp, 1./(height+2.)); glVertex3fv((GLfloat *)p2);
   glTexCoord2f(xclamp, yclamp); glVertex3fv((GLfloat *)p3);
-  glTexCoord2f(0.0, yclamp); glVertex3fv((GLfloat *)p4);
+  glTexCoord2f(1./(width+2.), yclamp); glVertex3fv((GLfloat *)p4);
 
 
   glEnd();
@@ -317,7 +318,7 @@ static void setAlpha(int iz, int zst, int znd, int izdir)
   }
 }
 
-#define FILLDATA(a)  uvind = 3 * ((sTexImageSize + 2) * v + u); \
+#define FILLDATA(a)  uvind = 3 * (sTexImageSize * v + u); \
   sTdata[uvind] = sCmap[0][a];                                  \
   sTdata[uvind + 1] = sCmap[1][a];                              \
   sTdata[uvind + 2] = sCmap[2][a];
@@ -333,10 +334,11 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   unsigned char **idata;
   b3dUInt16 **usidata;
   unsigned char pix;
-  int i, mi, j, mj;
+  int i, j, ypatch, jend, xpatch, zpatch, iend;
   int u, v, uvind;
-  int ix, iy, iz, idir, numSave;
+  int iz, idir, numSave;
   int cacheSum, curtime;
+  float clampEnd;
   unsigned char **imdata;
   b3dUInt16 **usimdata;
   unsigned char *bmap = NULL;
@@ -428,18 +430,30 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   }
 
   // Set up OpenGL stuff, starting with assessing the texture size that works
-  for (tstep = 520; tstep > 64; tstep /= 2) {
-    glTexImage2D(GL_PROXY_TEXTURE_2D, 0, 3, tstep+2, tstep+2, 1, GL_RGB, GL_UNSIGNED_BYTE,
+  // Use power of 2 if required, otherwise a bit above to minimize tiles for 
+  // common image sizes
+  tstep = (a->glExtFlags & B3DGLEXT_ANY_SIZE_TEX) ? 528 : 512;
+  for (tstep = 528; tstep >= 64; tstep /= 2) {
+    glTexImage2D(GL_PROXY_TEXTURE_2D, 0, 3, tstep, tstep, 1, GL_RGB, GL_UNSIGNED_BYTE,
                  NULL);
     glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &texwid);
     if (texwid > 0)
       break;
+
+    // Do a final try with exactly 64 if the last one was not
+    if (tstep > 64 && tstep / 2 < 64)
+      tstep = 64;
+  }
+  if (texwid <= 0) {
+    imodPrintStderr("Cannot get texture array for image display");
+    endTexMapping();
+    return;
   }
 
   // Allocate a big enough array if necessary
   if (tstep > sTexImageSize) {
     B3DFREE(sTdata);
-    sTdata = B3DMALLOC(GLubyte, 3 * (tstep + 2) * (tstep + 2));
+    sTdata = B3DMALLOC(GLubyte, 3 * tstep * tstep);
     if (!sTdata) {
       imodPrintStderr("Failed to allocate array for image display");
       endTexMapping();
@@ -447,6 +461,8 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
     }
     sTexImageSize = tstep;
   }
+  tstep -= 2;
+  clampEnd = (tstep + 1.) / (tstep + 2.);
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
@@ -477,42 +493,42 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
       usidata = (b3dUInt16 **)idata;
 
       // Loop on patches in Y, get limits to fill and set corners
-      for (iy = ystr; iy < yend; iy += tstep){
-        clamp.y = 1.0f;
-        mj = iy + tstep;
-        if (mj > yend) {
-          mj = yend;
-          clamp.y = (yend - iy) / (float)tstep;
+      for (ypatch = ystr; ypatch < yend; ypatch += tstep){
+        clamp.y = clampEnd;
+        jend = ypatch + tstep;
+        if (jend > yend) {
+          jend = yend;
+          clamp.y = (yend + 1. - ypatch) / (tstep + 2.);
         }
-        lr.y = ll.y = iy;
-        ul.y = ur.y = mj;
+        lr.y = ll.y = ypatch;
+        ul.y = ur.y = jend;
           
         // Loop on patches in X, get limits to fill and set corners
-        for (ix = xstr; ix < xend; ix += tstep){
-          clamp.x = 1.0f;
-          mi = ix + tstep;
-          if (mi > xend) {
-            mi = xend;
-            clamp.x = (xend-ix) / (float)tstep;
+        for (xpatch = xstr; xpatch < xend; xpatch += tstep){
+          clamp.x = clampEnd;
+          iend = xpatch + tstep;
+          if (iend > xend) {
+            iend = xend;
+            clamp.x = (xend + 1. - xpatch) / (tstep + 2.);
           }
-          ul.x = ll.x = ix;
-          ur.x = lr.x = mi;
+          ul.x = ll.x = xpatch;
+          ur.x = lr.x = iend;
         
           // Fill the data for one patch then draw the patch
           if (a->vi->ushortStore) {
-            for (j = iy-1; j < mj+1; j++) {
-              v = (j - (iy-1));
-              for (i = ix-1; i < mi+1; i++) {
-                u = i - (ix-1);
+            for (j = ypatch-1; j < jend+1; j++) {
+              v = (j - (ypatch-1));
+              for (i = xpatch-1; i < iend+1; i++) {
+                u = i - (xpatch-1);
                 pix = bmap[usidata[j][i]];
                 FILLDATA(pix);
               }
             }
           } else {
-            for (j = iy-1; j < mj+1; j++) {
-              v = (j - (iy-1));
-              for (i = ix-1; i < mi+1; i++) {
-                u = i - (ix-1);
+            for (j = ypatch-1; j < jend+1; j++) {
+              v = (j - (ypatch-1));
+              for (i = xpatch-1; i < iend+1; i++) {
+                u = i - (xpatch-1);
                 pix = idata[j][i];
                 FILLDATA(pix);
               }
@@ -535,76 +551,76 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
     setCoordLimits(ciy, miy, sYdrawSize, ystr, yend);
     setCoordLimits(ciz, miz, sZdrawSize, zstr, zend);
 
-    for (ix = xstr; idir * (xend - ix) >= 0 ; ix += idir) {
-      setAlpha(ix, xstr, xend, idir);
-      ll.x = lr.x = ur.x = ul.x = ix;
+    for (xpatch = xstr; idir * (xend - xpatch) >= 0 ; xpatch += idir) {
+      setAlpha(xpatch, xstr, xend, idir);
+      ll.x = lr.x = ur.x = ul.x = xpatch;
 
-      for (iz = zstr; iz < zend; iz += tstep){
-        clamp.y = 1.0f;
-        mj = iz + tstep;
-        if (mj > zend) {
-          mj = zend;
-          clamp.y = (zend - iz) / (float)tstep;
+      for (zpatch = zstr; zpatch < zend; zpatch += tstep){
+        clamp.y = clampEnd;
+        jend = zpatch + tstep;
+        if (jend > zend) {
+          jend = zend;
+          clamp.y = (zend + 1. - zpatch) / (tstep + 2.);
         }
-        lr.z = ll.z = iz;
-        ul.z = ur.z = mj;
+        lr.z = ll.z = zpatch;
+        ul.z = ur.z = jend;
         
-        for (iy = ystr; iy < yend; iy += tstep){
-          clamp.x = 1.0f;
-          mi = iy + tstep;
-          if (mi > yend) {
-            mi = yend;
-            clamp.x = (yend - iy) / (float)tstep;
+        for (ypatch = ystr; ypatch < yend; ypatch += tstep){
+          clamp.x = clampEnd;
+          iend = ypatch + tstep;
+          if (iend > yend) {
+            iend = yend;
+            clamp.x = (yend + 1. - ypatch) / (tstep + 2.);
           }
-          ul.y = ll.y = iy;
-          ur.y = lr.y = mi;
+          ul.y = ll.y = ypatch;
+          ur.y = lr.y = iend;
         
           // Handle cases of flipped or not with different loops to put test
           // on presence of data in the outer loop
           if (flipped) {
-            for (i = iy-1; i < mi+1; i++) {
-              u = i - (iy-1);
+            for (i = ypatch-1; i < iend+1; i++) {
+              u = i - (ypatch-1);
               if (imdata[i]) {
                 if (a->vi->ushortStore) {
-                  for (j = iz-1; j < mj+1; j++) {
-                    v = j - (iz-1);
-                    pix = bmap[usimdata[i][ix + (j * mix)]];
+                  for (j = zpatch-1; j < jend+1; j++) {
+                    v = j - (zpatch-1);
+                    pix = bmap[usimdata[i][xpatch + (j * mix)]];
                     FILLDATA(pix);
                   }
                 } else {
-                  for (j = iz-1; j < mj+1; j++) {
-                    v = j - (iz-1);
-                    pix = imdata[i][ix + (j * mix)];
+                  for (j = zpatch-1; j < jend+1; j++) {
+                    v = j - (zpatch-1);
+                    pix = imdata[i][xpatch + (j * mix)];
                     FILLDATA(pix);
                   }
                 }
               } else {
-                for (j = iz-1; j < mj+1; j++) {
-                  v = j - (iz-1);
+                for (j = zpatch-1; j < jend+1; j++) {
+                  v = j - (zpatch-1);
                   FILLDATA(0);
                 }
               }
             }
           } else {
-            for (j = iz-1; j < mj+1; j++) {
-              v = j - (iz-1);
+            for (j = zpatch-1; j < jend+1; j++) {
+              v = j - (zpatch-1);
               if (imdata[j]) {
                 if (a->vi->ushortStore) {
-                  for (i = iy-1; i < mi+1; i++) {
-                    u = i - (iy-1);
-                    pix = bmap[usimdata[j][ix + (i * mix)]];
+                  for (i = ypatch-1; i < iend+1; i++) {
+                    u = i - (ypatch-1);
+                    pix = bmap[usimdata[j][xpatch + (i * mix)]];
                     FILLDATA(pix);
                   }
                 } else {
-                  for (i = iy-1; i < mi+1; i++) {
-                    u = i - (iy-1);
-                    pix = imdata[j][ix + (i * mix)];
+                  for (i = ypatch-1; i < iend+1; i++) {
+                    u = i - (ypatch-1);
+                    pix = imdata[j][xpatch + (i * mix)];
                     FILLDATA(pix);
                   }
                 }
               } else {
-                for (i = iy-1; i < mi+1; i++) {
-                  u = i - (iy-1);
+                for (i = ypatch-1; i < iend+1; i++) {
+                  u = i - (ypatch-1);
                   FILLDATA(0);
                 }
               }
@@ -626,65 +642,65 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
     setCoordLimits(cix, mix, sXdrawSize, xstr, xend);
     setCoordLimits(ciz, miz, sZdrawSize, zstr, zend);
 
-    for (iy = ystr; idir * (yend - iy) >= 0 ; iy += idir) {
-      setAlpha(iy, ystr, yend, idir);
-      ll.y = lr.y = ur.y = ul.y = iy;
+    for (ypatch = ystr; idir * (yend - ypatch) >= 0 ; ypatch += idir) {
+      setAlpha(ypatch, ystr, yend, idir);
+      ll.y = lr.y = ur.y = ul.y = ypatch;
 
-      for (iz = zstr; iz < zend; iz += tstep) {
-        clamp.y = 1.0f;
-        mj = iz + tstep;
-        if (mj > zend) {
-          mj = zend;
-          clamp.y = (zend - iz) / (float)tstep;
+      for (zpatch = zstr; zpatch < zend; zpatch += tstep) {
+        clamp.y = clampEnd;
+        jend = zpatch + tstep;
+        if (jend > zend) {
+          jend = zend;
+          clamp.y = (zend + 1. - zpatch) / (tstep + 2.);
         }
-        lr.z = ll.z = iz;
-        ul.z = ur.z = mj;
+        lr.z = ll.z = zpatch;
+        ul.z = ur.z = jend;
 
-        for (ix = xstr; ix < xend; ix += tstep) {
-          clamp.x = 1.0f;
-          mi = ix + tstep;
-          if (mi > xend) {
-            mi = xend;
-            clamp.x = (xend - ix) / (float)tstep;
+        for (xpatch = xstr; xpatch < xend; xpatch += tstep) {
+          clamp.x = clampEnd;
+          iend = xpatch + tstep;
+          if (iend > xend) {
+            iend = xend;
+            clamp.x = (xend + 1. - xpatch) / (tstep + 2.);
           }
-          ul.x = ll.x = ix;
-          ur.x = lr.x = mi;
+          ul.x = ll.x = xpatch;
+          ur.x = lr.x = iend;
           
           // This one is easier, one outer loop and flipped, non-flipped, or
           // no data cases for inner loop
-          for (j = iz-1; j < mj+1; j++) {
-            v = j - (iz-1);
-            if (flipped && imdata[iy]) {
+          for (j = zpatch-1; j < jend+1; j++) {
+            v = j - (zpatch-1);
+            if (flipped && imdata[ypatch]) {
               if (a->vi->ushortStore) {
-                for (i = ix-1; i < mi+1; i++) {
-                  u = i - (ix-1);
-                  pix = bmap[usimdata[iy][i + (j * mix)]];
+                for (i = xpatch-1; i < iend+1; i++) {
+                  u = i - (xpatch-1);
+                  pix = bmap[usimdata[ypatch][i + (j * mix)]];
                   FILLDATA(pix);
                 }
               } else {
-                for (i = ix-1; i < mi+1; i++) {
-                  u = i - (ix-1);
-                  pix = imdata[iy][i + (j * mix)];
+                for (i = xpatch-1; i < iend+1; i++) {
+                  u = i - (xpatch-1);
+                  pix = imdata[ypatch][i + (j * mix)];
                   FILLDATA(pix);
                 }
               }
             } else if (!flipped && imdata[j]) {
               if (a->vi->ushortStore) {
-                for (i = ix-1; i < mi+1; i++) {
-                  u = i - (ix-1);
-                  pix = bmap[usimdata[j][i + (iy * mix)]];
+                for (i = xpatch-1; i < iend+1; i++) {
+                  u = i - (xpatch-1);
+                  pix = bmap[usimdata[j][i + (ypatch * mix)]];
                   FILLDATA(pix);
                 }
               } else {
-                for (i = ix-1; i < mi+1; i++) {
-                  u = i - (ix-1);
-                  pix = imdata[j][i + (iy * mix)];
+                for (i = xpatch-1; i < iend+1; i++) {
+                  u = i - (xpatch-1);
+                  pix = imdata[j][i + (ypatch * mix)];
                   FILLDATA(pix);
                 }
               }
             } else {
-              for (i = ix-1; i < mi+1; i++) {
-                u = i - (ix-1);
+              for (i = xpatch-1; i < iend+1; i++) {
+                u = i - (xpatch-1);
                 FILLDATA(0);
               }
             }
