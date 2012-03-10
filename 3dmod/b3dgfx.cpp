@@ -78,6 +78,8 @@ int b3dInitializeGL()
   glVersion = atof((const char *)glGetString(GL_VERSION));
   if (glVersion >= 1.5)
     sExtFlags |= B3DGLEXT_VERTBUF;
+  if (glVersion >= 2.0)
+    sExtFlags |= B3DGLEXT_ANY_SIZE_TEX;
   if (glVersion >= 3.1)
     sExtFlags |= B3DGLEXT_PRIM_RESTART;
 #ifdef _WIN32
