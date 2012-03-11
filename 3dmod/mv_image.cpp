@@ -680,7 +680,8 @@ static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
  */
 static int initTexMapping()
 {
-  int tstep, texwid;
+  int tstep;
+  GLint texwid;
 
   // Start with assessing the texture size that works
   // Use power of 2 if required, otherwise a bit above to minimize tiles for 
