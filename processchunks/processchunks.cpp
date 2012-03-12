@@ -24,10 +24,9 @@
 #include <sys/time.h>
 #endif
 
-static const int arraySize = 2;
 //Using a shorter sleep time then the processchunks script and not adjusting
 //the sleep depending on the number of machines.
-static const int sleepMillisec = 100;
+static const int sleepMillisec = 1000;
 static const int maxLocalByNum = 32;
 //converting old timeout counter to milliseconds
 static const int runProcessTimeout = 30 * 2 * 1000;
@@ -322,7 +321,7 @@ void Processchunks::startTimers() {
     mTimerId = startTimer((2 + mNumCpus / 100) * 1000);
   }
   else {
-    mTimerId = startTimer(1000);
+    mTimerId = startTimer(sleepMillisec);
   }
 }
 
@@ -1183,7 +1182,9 @@ bool Processchunks::exitIfDropped(const int minFail, const int failTot,
     }
     else {
       mAns = 'E';
+      // DNM: The kill will eventually exit so return after it also
       killProcesses();
+      return true;
     }
   }
   if (mPausing && assignTot == 0) {
@@ -1196,7 +1197,9 @@ bool Processchunks::exitIfDropped(const int minFail, const int failTot,
     // DNM: needed to compare with mMachineListSize not mNumCpus, but then the tests
     // for failure of first sync were not reached, so those tests are included in this 
     // one test, since they all took the same actions
-    if (failTot == mMachineListSize && (!mSyncing || !mQueue || minFail == mQueue)) {
+    if (failTot == mMachineListSize && 
+        (!mSyncing || !mQueue || minFail == mQueue ||
+         (mSyncing && mMachineList[0].getFailureCount() > 1))) {
       *mOutStream << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED" << endl;
       cleanupAndExit(1);
       return true;
@@ -1485,7 +1488,6 @@ int Processchunks::extractVersion(const QString &versionString) {
 }
 
 void Processchunks::buildFilters(const char *reg, const char *sync, QStringList &filters) {
-  int i;
   QString filter1(mRootName);
   filter1.append(reg);
   filters.append(filter1);
