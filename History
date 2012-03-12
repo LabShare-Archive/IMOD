@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/12/12: Made Processchunks exit properly when sync chunk fails on a queue.
+
 3/11/12: Added -F to Tif2mrc to set fill value for images smaller than the
 output.
 
