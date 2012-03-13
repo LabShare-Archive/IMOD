@@ -19,7 +19,7 @@ package etomo.logic;
 public final class LatestBuild {
   public static final String rcsid = "$$Id$$";
 
-  public static final String TIME_STAMP = "Tue Feb 28 16:31:29 MST 2012";
+  public static final String TIME_STAMP = "Tue Mar 13 15:42:12 MDT 2012";
 
   public static String get() {
     return TIME_STAMP;
