@@ -266,10 +266,13 @@ c
             enddo
           endif
         enddo
-        newtitle=max(1,newtitle)
       endif
-      write(*,'(a,/)')' New label list would be:'
-      write(*,'(i3,1x,19a4)')(i,(title(j,i),j=1,19),i=1,newtitle)
+      if (newtitle .gt. 0) then
+        write(*,'(a,/)')' New label list would be:'
+        write(*,'(i3,1x,19a4)')(i,(title(j,i),j=1,19),i=1,newtitle)
+      else
+        write(*,'(a)')' New label list would be empty'
+      endif
       write(*,'(/,1x,a,$)') '1 to confirm changing to this label list, 0 not to: '
       read(5,*)ifok
       if(ifok.ne.0)call iallab(2,title,newtitle)
