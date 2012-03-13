@@ -751,7 +751,7 @@ C
 C       
       J = LSTREAM(ISTREAM)
       NLAB(J) = MIN(10,NL)
-      CALL MOVE(LABLS(1,1,J),LABELS,NLAB(J)*80)
+      if (nl .gt. 0) CALL MOVE(LABLS(1,1,J),LABELS,NLAB(J)*80)
       IF (NL .LT. 10) THEN
         DO K = NL+1,10
 c           DNM: change fill that doesn't work to a zero
