@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/13/12: In eTomo - PEET, when copying a dataset, removing any process data
+that came form the source dataset.(Bug# 1603)
+
 3/12/12: Made it possible to delete all labels in Alterheader.
 
 3/12/12: Made Processchunks exit properly when sync chunk fails on a queue.
