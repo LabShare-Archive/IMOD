@@ -36,7 +36,10 @@ a starting point.
 .B [Computer = \fIcomputer_name\fB]
 Each section describes one computer.  \fIComputer_name\fR will be used by eTomo
 and IMOD to contact the computer via
-ssh.
+ssh.  As an alternative to listing an actual computer name, the name can simply
+be "localhost", in which case programs will be run directly rather through
+ssh.  A computer should be listed only once; do not have one section with an
+actual name and one section with "localhost".
 
 Computer attributes are name/value pairs found under a computer section, they
 have the following syntax: 
