@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # imodhelp - starts Qt Assistant in background
 #
 # Author: David Mastronarde

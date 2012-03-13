@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # b3dremove - Utility to remove files, for use in com files.  The argument -g
 # makes it glob all the filenames.  Will try numerous times with a wait and not
 # exit with an error if there is a failure.  Works with nonexistent files or no files 

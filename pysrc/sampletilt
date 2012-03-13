@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # sampletilt - to run tilt for a sample tomogram
 #
 # $Id$

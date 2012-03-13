@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # sirtsetup - program to set up command files for SIRT
 #
 # Author: David Mastronarde

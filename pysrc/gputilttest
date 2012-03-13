@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # Gputilttest - to test a GPU by repeated runs of Tilt
 #
 # Author: David Mastronarde

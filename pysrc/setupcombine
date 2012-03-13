@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # setupcombine - program to set up command files for combine
 #
 # Author: David Mastronarde

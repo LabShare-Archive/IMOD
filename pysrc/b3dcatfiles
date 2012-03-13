@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # b3dcatfiles - Utility to concatenate two files (for parallel blend!)
 #
 # Author: David Mastronarde

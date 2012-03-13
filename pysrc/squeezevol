@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # Squeezevol - run matchvol to squeeze or expand a volume
 #
 # Authors: Tor Mohling and David Mastronarde

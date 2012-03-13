@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # edgepatches - program to set up a supermontage, find overall shifts between
 # pieces, and compute patch correlation vectors in the edges (pverlap zones)
 #

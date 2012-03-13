@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # archiveorig - script to get compressed file for archiving original stack
 #
 # Author: David Mastronarde

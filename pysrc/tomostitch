@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # tomostitch - program to perform tasks in final stitching of a supermontage:
 # running findwarp, warpvol, densmatch, newstack, and blendmont
 #

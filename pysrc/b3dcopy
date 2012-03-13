@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # b3dcopy - Utility to copy file and make sure permission is set for the copy
 #
 # Author: David Mastronarde

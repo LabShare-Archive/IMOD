@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # transferfid - Transfer fiducials from one axis to another
 #
 # Author: David Mastronarde

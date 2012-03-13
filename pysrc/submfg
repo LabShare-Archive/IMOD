@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # Runs command files and makes log files for them
 #
 # Author: David Mastronarde

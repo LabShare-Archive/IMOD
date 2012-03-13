@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # splittilt - program to set up command files for parallel reconstruction
 #
 # Author: David Mastronarde

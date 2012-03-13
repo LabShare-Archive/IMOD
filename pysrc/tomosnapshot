@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # tomosnapshot - program to collect small files from etomo processing
 #
 # Author: David Mastronarde

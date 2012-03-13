@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # makejoincom - program to set up for joining
 #
 # Author: David Mastronarde

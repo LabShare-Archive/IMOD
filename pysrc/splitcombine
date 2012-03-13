@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # splitcombine - program to split volcombine for parallel processing
 #
 # Author: David Mastronarde

@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # splitblend - program to set up command files for parallel blendmont
 #
 # Author: David Mastronarde

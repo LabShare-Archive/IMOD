@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # Translates a "command" file into a python script with logging
 #
 # Author: David Mastronarde
@@ -161,7 +161,7 @@ except Exception:
 # Output the boilerplate.  Log must be opened binary to keep cygwin from
 # double-converting \r\n to \r\r\n
 #
-prnstr("#!/usr/bin/python -u", file=out)
+prnstr("#!/usr/bin/env python", file=out)
 prnstr("# Set up environment: NOHUP, IMOD on path", file=out)
 prnstr("import os, sys, os.path, signal", file=out)
 prnstr("if sys.platform.find('win32') < 0:", file=out)
@@ -498,7 +498,10 @@ while ind < len(lines):
                      lsplit = firstline.split()
                      combase = os.path.basename(lsplit[0])
                      if len(lsplit) > 1:
-                        combase += ' ' + lsplit[1]
+                        if combase == 'env':
+                           combase = lsplit[1]
+                        else:
+                           combase += ' ' + lsplit[1]
                      line = combase + ' ' + line
                except Exception:
                   pass

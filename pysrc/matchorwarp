@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/env python
 # matchorwarp - script to run refinewarp and matchvol if fit is good enough
 # or findwarp with progressively worse criteria, then warpvol
 #
