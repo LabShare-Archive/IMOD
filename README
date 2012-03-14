@@ -11,7 +11,7 @@ ctfplotter      Source for ctfplotter program
 dist		Files for installation and distribution
 Etomo           eTomo package tree
 Etomo/doc       Program documentation files
-Etomo/scripts   Has the eTomo startup script
+Etomo/scripts   Has an eTomo testing script
 Etomo/src       Top of source tree
 Etomo/src/etomo All java source is under here
   .../comscript Command script classes
@@ -19,7 +19,7 @@ Etomo/src/etomo All java source is under here
   .../process   Process-running classes
   .../storage   File-related classes
   .../type      Classes to handle specific data items
-  .../ui        Dialog classes
+  .../ui/swing  Dialog classes
   .../uitest    Classes for the UI testing
   .../util      Utility functions
 Etomo/src/images  Has icons
@@ -83,6 +83,7 @@ plugs/drawingtools Source for Noske's drawing tools plugin
 plugs/interpolator Source for Noske's interpolator plugin
 plugs/namewizard   Source for Noske's namewizard plugin
 plugs/noskecommon  Source for common files for Noske's plugins
+plugs/stereology   Source for Noske's stereology plugin
 processchunks   Source for processchunks program
 pysrc           Python scripts
 qtassist        Source for imodqtassist program
@@ -101,6 +102,7 @@ buildlib	Newly built but uninstalled libraries, needed to make programs
 man		Top directory for man pages (contains a cat1 and cat5)
 html/man	Html versions of man pages
 html/libhelp    Processed library documentation files
+html/plughelp   Copies of plugin help files, needed for inclusion in IMOD.qch
 bin		Installation directory for executable programs and scripts
 lib		Installation directory for libraries (old 32-bit on SGI)
 lib/imodplug	Installation directory for imod plugins
