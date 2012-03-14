@@ -124,7 +124,7 @@ private:
   int mPausing, mComFileJobIndex;
   QTime mPauseTime;
   QByteArray mStderr;
-  QTextStream *mJobFileTextStream, *mQidFileTextStream;
+  QTextStream *mJobFileTextStream, *mQidFileTextStream, *mOutStream;
   QString mPid, mEscapedRemoteDirPath, mDecoratedClassName, mCommand;//queue or local command
   QStringList mParamList;//list of queue or local params
   Processchunks *mProcesschunks;
