@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/14/12: In eTomo - PEET, popping up an error message when the PEET
+installation is not compatible with the current IMOD version.(Bug# 1597)
+
 3/14/12: In eTomo - PEET, when copying a dataset, removing any process data
 that came form the source dataset.(Bug# 1603)
 
