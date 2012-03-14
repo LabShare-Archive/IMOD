@@ -1,13 +1,14 @@
 This file has instructions for building and installing IMOD on supported
 architectures, with as much ancillary information as possible.
 
-In general, IMOD is not easy to build, and our focus is on providing binary
-packages that will run on a reasonably wide range of systems rather than on
-making IMOD easier to build.  Our intention in releasing IMOD source is to
-support programming with IMOD, not to replace the use of binary packages for
-installation of IMOD.  If you are system administrator who habitually builds
-packages, please try to use the appropriate binary packages first.  Aside from
-saving the build step, the packages are a lot easier to upgrade.
+In general, IMOD is not easy to build except on versions of Linux with Qt 4
+installed, and our focus is on providing binary packages that will run on a
+reasonably wide range of systems rather than on making IMOD easier to build.
+Our intention in releasing IMOD source is to support programming with IMOD,
+not to replace the use of binary packages for installation of IMOD.  If you
+are system administrator who habitually builds packages, please try to use the
+appropriate binary packages first.  Aside from saving the build step, the
+packages are a lot easier to upgrade.
 
 GENERAL NOTES
 
@@ -92,6 +93,9 @@ for personal use.
 
 BUILDING ON LINUX
 
+IMOD should build readily on recent Linux versions provided that gfortran and
+a Qt 4 development package are installed.
+
 To build IMOD under RHEL5, Qt was unpacked in a local directory, an install
 directory /usr/local/Trolltech/Qt-4.5.3-RHEL5-64 was created, and it was  
 built using gcc/g++ with the commands:
@@ -148,6 +152,10 @@ directory, as long as all libraries used are on your LD_LIBRARY_PATH.
 
 
 BUILDING ON MAC OS X
+
+These notes describe how to achieve a complete build of IMOD.  However, this
+is not necessary for building plugins or developing C programs; a minimal
+setup is described at the end of this section.
 
 Generally, you should have the latest version of Xcode tools for your system
 installed; but see the notes below about using an older version in order to
@@ -273,6 +281,28 @@ The procedure is now:
 3. "make install"
 
 4. "./installqtlib" to copy Qt library and install files to install directory
+
+
+A Minimal Setup for Mac OS X
+
+You can get through the IMOD setup without a Fortran compiler and without TIFF
+libraries.  You will still need Qt.  You can get a copy of our Qt development
+package at
+ftp://bio3d.colorado.edu/Software/qt-4.6.3.intel64.tar.gz
+This will untar into a directory qt-4.6.3.  To avoid odd messages from Qt, it
+may be necessary to create a directory /usr/local/Trolltech and either put a
+link in there named Qt-4.6.3 to the qt-4.6.3 directory, or just untar the
+package there and rename it Qt-4.6.3.  In any case, set QTDIR to point to the
+Qt directory or link.
+
+To build plugins, you also need a compiled copy of 3dmod in the 3dmod
+directory.  You can get this from an appropriate recent binary distribution of
+IMOD, for example:
+cp -r /Applications/IMOD/bin/3dmod.app 3dmod/
+./setup -c gnu -no_tiff
+make clibs
+At this point, you should be able to cd into any directory except flib and
+3dmod and do a successful make.
 
 
 BUILDING UNDER CYGWIN/WINDOWS WITH INTEL COMPILERS
