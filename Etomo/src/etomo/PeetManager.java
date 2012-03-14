@@ -10,6 +10,7 @@ import etomo.comscript.AverageAllParam;
 import etomo.comscript.PeetParserParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.logic.PeetStartupData;
+import etomo.logic.VersionControl;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.PeetProcessManager;
@@ -378,6 +379,10 @@ public final class PeetManager extends BaseManager {
   }
 
   private void openDialog() {
+    if (!VersionControl.isCompatiblePeet(AxisID.ONLY)) {
+      valid = false;
+      return;
+    }
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       openProcessingPanel();
       mainPanel.setStatusBarText(paramFile, metaData, logPanel);
@@ -396,7 +401,7 @@ public final class PeetManager extends BaseManager {
     }
   }
 
-  boolean isValid() {
+  public boolean isValid() {
     return valid;
   }
 
