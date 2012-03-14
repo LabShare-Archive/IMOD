@@ -1,6 +1,7 @@
 package etomo.type;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
@@ -68,6 +69,13 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
   private final SectionList sectionList = new SectionList();
   private String key;
   private boolean debug = false;
+  private String status = null;
+  private boolean beta = false;
+  private int year = -1;
+  private int month = -1;
+  private int day = -1;
+  private int hour = -1;
+  private int minute = -1;
 
   public static EtomoVersion getDefaultInstance() {
     return new EtomoVersion();
@@ -107,8 +115,13 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
     return sectionList.hashCode();
   }
 
+  /**
+   * Returns true if equal to the parameter.  Ignores status, beta, and date.
+   * @param version
+   * @return
+   */
   public boolean equals(final EtomoVersion version) {
-    //treat null as the earliest version
+    // treat null as the earliest version
     if ((version == null || version.isNull()) && isNull()) {
       return true;
     }
@@ -126,16 +139,22 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
     return true;
   }
 
+  /**
+   * Returns true if less then the parameter.  Ignores status, beta, and date.
+   * @param version
+   * @return
+   */
   public boolean lt(final String version) {
     return lt(getDefaultInstance(version));
   }
 
   /**
+   * Returns true if less then the parameter.  Ignores status, beta, and date.
    * @param version
-   * @return true if this is less then version
+   * @return
    */
   public boolean lt(final EtomoVersion version) {
-    //treat null as the earliest version
+    // treat null as the earliest version
     if (isNull() && (version != null && !version.isNull())) {
       return true;
     }
@@ -143,7 +162,7 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
       return false;
     }
     int length = Math.min(sectionList.size(), version.sectionList.size());
-    //loop until a section is not equal to corresponding version section
+    // loop until a section is not equal to corresponding version section
     for (int i = 0; i < length; i++) {
       if (sectionList.gt(version.sectionList, i)) {
         return false;
@@ -152,19 +171,24 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
         return true;
       }
     }
-    //equal so far - shorter one is less then
+    // equal so far - shorter one is less then
     if (sectionList.size() < version.sectionList.size()) {
       return true;
     }
     return false;
   }
 
+  public boolean isNumeric() {
+    return sectionList.isNumeric();
+  }
+
   /**
+   * Returns true if less then or equal to the parameter.  Ignores status, beta, and date.
    * @param version
-   * @return true if this is less then or equal to version
+   * @return
    */
   public boolean le(final EtomoVersion version) {
-    //treat null as the earliest version
+    // treat null as the earliest version
     if (isNull()) {
       return true;
     }
@@ -172,7 +196,7 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
       return false;
     }
     int length = Math.min(sectionList.size(), version.sectionList.size());
-    //loop until a section is not equal to corresponding version section
+    // loop until a section is not equal to corresponding version section
     for (int i = 0; i < length; i++) {
       if (sectionList.gt(version.sectionList, i)) {
         return false;
@@ -181,15 +205,20 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
         return true;
       }
     }
-    //equal so far - shorter one is less then
+    // equal so far - shorter one is less then
     if (sectionList.size() <= version.sectionList.size()) {
       return true;
     }
     return false;
   }
 
+  /**
+   * Returns true if greater then the parameter.  Ignores status, beta, and date.
+   * @param version
+   * @return
+   */
   public boolean gt(final EtomoVersion version) {
-    //treat null as the earliest version
+    // treat null as the earliest version
     if ((version == null || version.isNull()) && !isNull()) {
       return true;
     }
@@ -197,7 +226,7 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
       return false;
     }
     int length = Math.min(sectionList.size(), version.sectionList.size());
-    //loop until a section is not equal then corresponding version section
+    // loop until a section is not equal then corresponding version section
     for (int i = 0; i < length; i++) {
       if (sectionList.gt(version.sectionList, i)) {
         return true;
@@ -206,46 +235,61 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
         return false;
       }
     }
-    //equal so far - longer one is greater then
+    // equal so far - longer one is greater then
     if (sectionList.size() > version.sectionList.size()) {
       return true;
     }
     return false;
   }
 
+  /**
+   * Returns true if greater or equal to the parameter.  Ignores status, beta, and date.
+   * @param version
+   * @return
+   */
   public boolean ge(final String version) {
     return ge(getDefaultInstance(version));
   }
 
   /**
+   * Returns true if greater or equal to the parameter.  Ignores status, beta, and date.
    * @param version
-   * @return true if this is greater then or equal to version
+   * @return
    */
   public boolean ge(final EtomoVersion version) {
-    //treat null as the earliest version
+    // treat null as the earliest version
     if (version == null || version.isNull()) {
+      System.out.println("A");
       return true;
     }
     if (isNull()) {
+      System.out.println("B");
       return false;
     }
     int length = Math.min(sectionList.size(), version.sectionList.size());
-    //loop until a section is not equal then corresponding version section
+    // loop until a section is not equal then corresponding version section
     for (int i = 0; i < length; i++) {
       if (sectionList.gt(version.sectionList, i)) {
+        System.out.println("C");
         return true;
       }
       if (sectionList.lt(version.sectionList, i)) {
+        System.out.println("D");
         return false;
       }
     }
-    //equal so far - longer one is greater then
+    // equal so far - longer one is greater then
     if (sectionList.size() >= version.sectionList.size()) {
+      System.out.println("E");
       return true;
     }
+    System.out.println("F");
     return false;
   }
 
+  /**
+   * Returns the parseable format: v.v... [Beta] M/D/YYYY 24H:Min
+   */
   public String toString() {
     if (isNull()) {
       return "";
@@ -253,6 +297,15 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
     StringBuffer buffer = new StringBuffer(((String) sectionList.get(0)));
     for (int i = 1; i < sectionList.size(); i++) {
       buffer.append("." + sectionList.get(i));
+    }
+    if (status != null) {
+      buffer.append(" " + status);
+    }
+    if (year != -1 && month != -1 && day != -1) {
+      buffer.append(" " + month + "/" + day + "/" + year);
+    }
+    if (hour != -1 && minute != -1) {
+      buffer.append(" " + hour + ":" + minute);
     }
     return buffer.toString();
   }
@@ -278,8 +331,8 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
       propsKey = prepend + "." + key;
     }
     if (debug) {
-      System.err.println("store:prepend=" + prepend + ",key=" + key
-          + ",toString()=" + toString());
+      System.err.println("store:prepend=" + prepend + ",key=" + key + ",toString()="
+          + toString());
     }
     if (isNull()) {
       if (debug) {
@@ -313,29 +366,123 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
   }
 
   /**
-   * Split the parameter version into a list by ".".  Ignore any empty sections.
+   * Split the parameter version into a list by ".".  Ignore any empty sections.  Then
+   * parses status, beta, date, and time.
    * @param version
    */
   public void set(final String version) {
-    sectionList.reset();
-    if (version == null || version.matches("\\s*")) {
+    reset();
+    if (version == null) {
       return;
     }
-    String[] stringList = version.trim().split("\\.");
+    String[] versionArray = version.trim().split("\\s+");
+    if (versionArray == null || versionArray.length == 0) {
+      return;
+    }
+    int versionIndex = 0;
+    // Actual version number is first and required - sections are divided by ".".
+    String[] stringList = versionArray[versionIndex].split("\\.");
     if (stringList == null || stringList.length == 0) {
       return;
     }
     for (int i = 0; i < stringList.length; i++) {
       sectionList.add(stringList[i].trim());
     }
+    versionIndex++;
+    if (versionArray.length == versionIndex) {
+      return;
+    }
+    // Optional status - cannot contain "/" or ":"
+    if (versionArray[versionIndex].indexOf("/") == -1
+        && versionArray[versionIndex].indexOf(":") == -1) {
+      status = versionArray[versionIndex];
+      if (status.equalsIgnoreCase("beta")) {
+        beta = true;
+      }
+      versionIndex++;
+    }
+    if (versionArray.length == versionIndex) {
+      return;
+    }
+    // Optional date and time
+    String warning = "WARNING: Bad version ";
+    String format = "format.  Should be: v.v... [Beta] [M/D/YYYY] [24H:Min]";
+    // Optional date
+    if (versionArray[versionIndex].indexOf("/") != -1) {
+      EtomoNumber enYear = null;
+      EtomoNumber enMonth = null;
+      EtomoNumber enDay = null;
+      stringList = versionArray[versionIndex].split("/");
+      if (stringList != null && stringList.length == 3) {
+        enYear = new EtomoNumber();
+        enYear.set(stringList[2]);
+        enMonth = new EtomoNumber();
+        enMonth.set(stringList[0]);
+        enDay = new EtomoNumber();
+        enDay.set(stringList[1]);
+        if (enYear.isValid() && !enYear.isNull() && enMonth.isValid()
+            && !enMonth.isNull() && enDay.isValid() && !enDay.isNull()) {
+          year = enYear.getInt();
+          month = enMonth.getInt();
+          day = enDay.getInt();
+        }
+        else {
+          System.err.println(warning + "- date " + format);
+        }
+      }
+      else {
+        System.err.println(warning + "- date " + format);
+      }
+      versionIndex++;
+    }
+    if (versionArray.length == versionIndex) {
+      return;
+    }
+    // Set optional time
+    EtomoNumber enHour = null;
+    EtomoNumber enMinute = null;
+    if (versionArray[versionIndex].indexOf(":") != -1) {
+      stringList = versionArray[versionIndex].split(":");
+      if (stringList != null && stringList.length == 2) {
+        enHour = new EtomoNumber();
+        enHour.set(stringList[0]);
+        enMinute = new EtomoNumber();
+        enMinute.set(stringList[1]);
+        if (enHour.isValid() && !enHour.isNull() && enMinute.isValid()
+            && !enMinute.isNull()) {
+          // Avoid setting an invalid time
+          hour = enHour.getInt();
+          minute = enMinute.getInt();
+        }
+        else {
+          System.err.println(warning + "- time " + format);
+        }
+      }
+      else {
+        System.err.println(warning + "- time " + format);
+      }
+      versionIndex++;
+    }
+    if (versionArray.length == versionIndex) {
+      return;
+    }
+    // Nothing more to parse
+    System.err.println(warning + format);
   }
 
   public void set(final EtomoVersion etomoVersion) {
-    sectionList.reset();
-    if (etomoVersion.isNull()) {
+    reset();
+    if (etomoVersion == null || etomoVersion.isNull()) {
       return;
     }
     sectionList.add(etomoVersion.sectionList);
+    status = etomoVersion.status;
+    beta = etomoVersion.beta;
+    year = etomoVersion.year;
+    month = etomoVersion.month;
+    day = etomoVersion.day;
+    hour = etomoVersion.hour;
+    minute = etomoVersion.minute;
   }
 
   public void load(final Properties props) {
@@ -358,6 +505,13 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
 
   public void reset() {
     sectionList.reset();
+    status = null;
+    beta = false;
+    year = -1;
+    month = -1;
+    day = -1;
+    hour = -1;
+    minute = -1;
   }
 
   private static final class SectionList {
@@ -381,19 +535,19 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
       Object section = list.get(index);
       Object otherSection = sectionList.list.get(index);
       if (section instanceof EtomoNumber) {
-        //Do a numeric comparison.
+        // Do a numeric comparison.
         EtomoNumber numericSection = (EtomoNumber) section;
         if (otherSection instanceof EtomoNumber) {
           EtomoNumber numericOtherSection = (EtomoNumber) otherSection;
           return numericSection.equals(numericOtherSection);
         }
         else {
-          //One is numeric and the other non-numeric; can't be equal.
+          // One is numeric and the other non-numeric; can't be equal.
           return false;
         }
       }
-      //Non-numeric - do a string comparison.
-      return ((String) section).equals((String) otherSection);
+      // Non-numeric - do a string comparison.
+      return ( section.toString()).equals( otherSection.toString());
     }
 
     /**
@@ -407,15 +561,15 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
       Object section = list.get(index);
       Object otherSection = sectionList.list.get(index);
       if (section instanceof EtomoNumber) {
-        //Do a numeric comparison.
+        // Do a numeric comparison.
         EtomoNumber numericSection = (EtomoNumber) section;
         if (otherSection instanceof EtomoNumber) {
           EtomoNumber numericOtherSection = (EtomoNumber) otherSection;
           return numericSection.gt(numericOtherSection);
         }
       }
-      //One or both are non-numeric - do a string comparison.
-      return ((String) section).compareTo((String) otherSection) > 0;
+      // One or both are non-numeric - do a string comparison.
+      return (section.toString()).compareTo(otherSection.toString()) > 0;
     }
 
     /**
@@ -429,15 +583,15 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
       Object section = list.get(index);
       Object otherSection = sectionList.list.get(index);
       if (section instanceof EtomoNumber) {
-        //Do a numeric comparison.
+        // Do a numeric comparison.
         EtomoNumber numericSection = (EtomoNumber) section;
         if (otherSection instanceof EtomoNumber) {
           EtomoNumber numericOtherSection = (EtomoNumber) otherSection;
           return numericSection.lt(numericOtherSection);
         }
       }
-      //One or both are non-numeric - do a string comparison.
-      return ((String) section).compareTo((String) otherSection) < 0;
+      // One or both are non-numeric - do a string comparison.
+      return ( section.toString()).compareTo( otherSection.toString()) < 0;
     }
 
     /**
@@ -446,21 +600,38 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
      * @param section
      */
     private void add(final String section) {
-      //Ignore empty sections
+      // Ignore empty sections
       if (section == null || section.matches("\\s*")) {
         return;
       }
-      //Try to store a numeric section
+      // Try to store a numeric section
       EtomoNumber numericSection = new EtomoNumber();
       numericSection.set(section);
       if (numericSection.isValid() && !numericSection.isNull()) {
-        //Store a numeric section.
+        // Store a numeric section.
         list.add(numericSection);
       }
       else {
-        //Store a non-numeric section.
+        // Store a non-numeric section.
         list.add(section);
       }
+    }
+
+    /**
+     * Return true if each element in list is an EtomoNumber.
+     * @return
+     */
+    private boolean isNumeric() {
+      if (list.size() == 0) {
+        return false;
+      }
+      Iterator i = list.iterator();
+      while (i.hasNext()) {
+        if (!(i.next() instanceof EtomoNumber)) {
+          return false;
+        }
+      }
+      return true;
     }
 
     /**
