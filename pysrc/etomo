@@ -210,7 +210,7 @@ if ETOMO_LOG_DIR and os.access(ETOMO_LOG_DIR, os.W_OK):
             try:
                fname = os.path.join(ETOMO_LOG_DIR, loglist[ind])
                os.remove(fname)
-               prnstr('Purged ' + fname)
+               #prnstr('Purged ' + fname)
             except Exception:
                prnstr('WARNING: failed to remove old log ' + fname)
                pass
