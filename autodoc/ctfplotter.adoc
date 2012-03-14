@@ -148,9 +148,10 @@ it should be between 0.07 and 0.14.  The default is 0.07.
 short = expDef
 type = F
 usage = Expected defocus at the tilt axis in nanometers.
-tooltip =
+tooltip = Expected defocus at the tilt axis in nanometers, with a positive
+value for underfocus
 manpage = Expected defocus at the tilt axis in nanometers, with a positive
-valie for underfocus.  The frequency of the first zero of the CTF curve 
+value for underfocus.  The frequency of the first zero of the CTF curve 
 is first computed based on this expected defocus.  The segments of the CTF
 curve of the input stack around that frequency are selected to be fitted.
 

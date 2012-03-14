@@ -4,7 +4,6 @@
 # then script names
 #
 #  $Id$
-#  Log at end
 #
 
 set cshwrapper = tcshwrapper.cmd
@@ -38,6 +37,7 @@ while ($#argv > 0)
           case tcsh:
             set wrapper = $tcshwrapper
             breaksw
+          case env:
           case python:
             set wrapper = $pywrapper
             breaksw
@@ -53,23 +53,3 @@ while ($#argv > 0)
     shift
 end
 exit 0
-
-#
-#  $Log$
-#  Revision 1.5  2008/03/20 20:30:38  mast
-#  Made it produced personalized wrapper with name, so command can be run
-#  by full path
-#
-#  Revision 1.4  2007/04/10 19:41:18  mast
-#  Make it detect command shell and copy the right wrapper; second arg is
-#  now directory to find wrappers, not wrapper itself
-#
-#  Revision 1.3  2006/10/16 18:24:59  mast
-#  Disable test for executable when only one argument
-#
-#  Revision 1.2  2006/10/16 18:06:10  mast
-#  Added some debug output
-#
-#  Revision 1.1  2006/09/26 22:18:46  mast
-#  Added to package
-#
