@@ -1,5 +1,5 @@
 /*
- *  xyz.c -- Open the XYZ Window; View the X, Y and Z axis.
+ *  xyz.cpp -- Open the XYZ Window; View the X, Y and Z axis.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -34,24 +34,24 @@
 
 #include "imod.h"
 #include "xxyz.h"
-#include "imod_display.h"
+#include "display.h"
 #include "b3dgfx.h"
 #include "control.h"
-#include "imod_info_cb.h"
+#include "info_cb.h"
 #include "imod_input.h"
 #include "autox.h"
 #include "pixelview.h"
 #include "imod_edit.h"
-#include "imod_model_edit.h"
-#include "imod_workprocs.h"
-#include "imod_moviecon.h"
+#include "model_edit.h"
+#include "workprocs.h"
+#include "moviecon.h"
 #include "preferences.h"
 #include "undoredo.h"
 #include "istore.h"
 #include "finegrain.h"
 #include "arrowbutton.h"
 #include "tooledit.h"
-#include "imod_model_edit.h"
+#include "model_edit.h"
 #include "dia_qtutils.h"
 #include "multislider.h"
 #include "scalebar.h"
@@ -78,13 +78,13 @@
 static unsigned char *bitList[MAX_XYZ_TOGGLES][2] =
   {{lowres_bits, highres_bits},
    {unlock_bits, lock_bits}};
-static char *toggleTips[] = {
+static const char *toggleTips[] = {
   "Toggle between regular and high-resolution (interpolated) image"};
 
 static QIcon *icons[MAX_XYZ_TOGGLES];
 static QIcon *cenIcon = NULL;
 
-static char *sliderLabels[] = {"X", "Y", "Z"};
+static const char *sliderLabels[] = {"X", "Y", "Z"};
 enum {X_COORD = 0, Y_COORD, Z_COORD};
 enum {NOT_IN_BOX = 0, X_SLICE_BOX, Y_SLICE_BOX, Z_SLICE_BOX, Y_GADGET_BOX,
       X_GADGET_BOX, Z_GADGET_BOX, FRACTION_BOX};

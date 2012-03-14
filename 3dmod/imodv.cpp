@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <math.h>
-#include "imodv_window.h"
+#include "mv_window.h"
 #include <qapplication.h>
 #include <qdir.h>
 #include <qimage.h>
@@ -23,20 +23,20 @@
 #include "dia_qtutils.h"
 
 #include "imodv.h"
-#include "imodv_views.h"
-#include "imodv_menu.h"
+#include "mv_views.h"
+#include "mv_menu.h"
 #include "imod.h"
 #include "imodview.h"
-#include "imod_info_cb.h"
+#include "info_cb.h"
 #include "imod_input.h"
-#include "imod_object_edit.h"
-#include "imod_display.h"
-#include "imodv_gfx.h"
-#include "imodv_stereo.h"
-#include "imodv_modeled.h"
+#include "object_edit.h"
+#include "display.h"
+#include "mv_gfx.h"
+#include "mv_stereo.h"
+#include "mv_modeled.h"
 #include "preferences.h"
 #include "control.h"
-#include "imod_client_message.h"
+#include "client_message.h"
 #include "undoredo.h"
 #include "imod_assistant.h"
 #include "sslice.h"
@@ -101,7 +101,7 @@ static void usage(char *pname)
   exit(3);
 }
 
-static char *blackString = "black";
+static const char *blackString = "black";
 
 /* DEFAULT INITIALIZATION OF THE STRUCTURES
    9/2/02: also called for model view initialization in imod */

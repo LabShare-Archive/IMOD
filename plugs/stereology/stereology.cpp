@@ -2305,7 +2305,7 @@ QString GridSetObj::toString( bool includeCats )
 //------------------------
 //-- MAPPED FUNCTION: Called by the imod plugin load function
 
-char *imodPlugInfo(int *type)
+const char *imodPlugInfo(int *type)
 {
   if (type)
     *type = IMOD_PLUG_MENU + IMOD_PLUG_KEYS + IMOD_PLUG_MESSAGE + 
@@ -2752,8 +2752,8 @@ QAction *Stereology::addAction( QMenu *menu, const char *member,
 
 //## WINDOW CLASS CONSTRUCTOR:
 
-static char *buttonLabels[] = {(char*)"Done", (char*)"Video", (char *)"Help"};
-static char *buttonTips[]   = {(char*)"Close this plugin window",
+static const char *buttonLabels[] = {(char*)"Done", (char*)"Video", (char *)"Help"};
+static const char *buttonTips[]   = {(char*)"Close this plugin window",
 	                             (char*)"See SLASH help videos showing \n"
 	                                    "how to use this plugin",
 	                             (char*)"Open help window"};
@@ -11742,7 +11742,7 @@ void Stereology::buttonPressed(int which)
 
 void Stereology::helpPluginHelp()
 {
-  imodShowHelpPage("plughelp/stereology.html#TOP");
+  imodShowHelpPage("../plughelp/stereology.html#TOP");
 }
 
 //------------------------
@@ -11750,7 +11750,7 @@ void Stereology::helpPluginHelp()
 
 void Stereology::helpNamingHelp()
 {
-  imodShowHelpPage("plughelp/stereology_help.html#TOP");
+  imodShowHelpPage("../plughelp/stereology_help.html#TOP");
 }
 
 //------------------------

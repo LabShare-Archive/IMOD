@@ -294,7 +294,7 @@ void StartupForm::imageSelectClicked()
 
 void StartupForm::modelSelectClicked()
 {
-  char *filter[] = {"Model files (*.*mod *.fid)"};
+  const char *filter[] = {"Model files (*.*mod *.fid)"};
   enableButtons(false);
   mModelFile = diaOpenFileName(this, "Select model file to load", 1, filter);
   enableButtons(true);
@@ -303,7 +303,7 @@ void StartupForm::modelSelectClicked()
 
 void StartupForm::pieceSelectClicked()
 {
-  char *filter[] = {"Piece list files (*.pl)"};
+  const char *filter[] = {"Piece list files (*.pl)"};
   enableButtons(false);
   mPieceFile = diaOpenFileName(this, "Select piece list file to load", 1, filter);
   enableButtons(true);
@@ -312,7 +312,7 @@ void StartupForm::pieceSelectClicked()
 
 void StartupForm::angleSelectClicked()
 {
-  char *filter[] = {"Tilt angle files (*tlt)"};
+  const char *filter[] = {"Tilt angle files (*tlt)"};
   enableButtons(false);
   mAngleFile = diaOpenFileName(this, "Select angle file to load", 1, filter);
   enableButtons(true);

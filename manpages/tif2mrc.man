@@ -121,6 +121,14 @@ will be converted to sections, and thus a thumbnail image will be ignored.
 Set the size of the output to the given dimensions in X and Y.  This option
 has no effect for multi-page input files.
 .TP
+.B -F <#>
+Set the value to use when filling regions that have no image data because an
+image is smaller than the output size.  The default is to fill with the mean
+value of each image.  The value must be within the valid
+range for the output data type (e.g., between 0 and 255 for byte output).  For
+color image output, the fill value will be used for red, green, and blue
+components.
+.TP
 .B -p <#>
 Set the pixel spacing in the header of the output file to the given value.
 This spacing is defined as having units of Angstroms, but you can place

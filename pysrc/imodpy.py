@@ -4,7 +4,6 @@
 # Authors: Tor Mohling and David Mastronarde
 #
 # $Id$
-# Log at end
 #
  
 """A collection of useful functions for use in IMOD scripts
@@ -28,11 +27,14 @@ This module provides the following functions:
   writeTextFile(filename, strings) - writes set of strings to a text file
   optionValue(linelist, option, type, ignorecase = False) - finds option value
                                                               in list of lines
+  convertToInteger(valstr, description) - Convert string to int with error 
+                                           message if it fails
   completeAndCheckComFile(comfile) - returns complete com file name and root
   cleanChunkFiles(rootname[, logOnly]) - cleans up log and com files from chunks
   cleanupFiles(files) - Removes a list of files with multiple trials if it fails
   imodNice(niceInc) - Sets niceness of process, even on Windows
   imodTempDir() - returns a temporary directory: IMOD_TEMPDIR, /usr/tmp, or /tmp
+  setLibPath() - Set path variables for executing Qt programs
   fmtstr(string, *args) - formats a string with replacement fields
   prnstr(string, file = sys.stdout, end = '\n') - replaces print function
 """
@@ -94,8 +96,9 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
        cmd is a string; input is an array; outfile is a file object or
        the string 'stdout' to send output to standard out
        inStderr is used for the stderr argument when calling Popen and could be
-       PIPE for it to be swallowed or STDOUT for it to be combined with other output.
-       If outfile is None and the command fails with a broken pipe within 0.5 second,
+       PIPE for it to be swallowed or STDOUT for it to be combined with other output;
+       otherwise it should be a file object.
+       If the command fails with a broken pipe within 0.5 second,
        it will retry up to 10 times.  Call setRetryLimit() to modify the allowed number
        of retries and the maximum run time for a failure to be retried."""
 
@@ -152,7 +155,7 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
                p = Popen(cmd, shell=True, stdin=PIPE)
                p.communicate(input)
             else:
-               p = Popen(cmd, shell=True, stdout=outfile, stdin=PIPE)
+               p = Popen(cmd, shell=True, stdout=outfile, stdin=PIPE, stderr=inStderr)
                p.communicate(input)
             ec = p.returncode
             if ec:
@@ -203,6 +206,10 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
             retryCount += 1
             if collect:
                prnstr(fmtstr("Retrying " + cmd + " after {} sec", time.time() - tryStart))
+            elif not toStdout and isinstance(outfile, file):
+               outfile.truncate()
+            if inStderr and useSubprocess and isinstance(inStderr, file):
+               inStderr.truncate()
             if retryCount > 1:
                time.sleep(0.1)
          else:
@@ -572,6 +579,14 @@ def optionValue(linelist, option, type, ignorecase = False):
    return retval
 
 
+# Convert a string to an integer with an error message if it fails
+def convertToInteger(valstr, description):
+   try:
+      return int(valstr)
+   except ValueError:
+      exitError('Converting ' + description + ' (' + valstr + ') to integer')
+      
+
 # Given a com file entry with optional extension, get the rootname and its
 # complete name and check for existence
 def completeAndCheckComFile(comfile):
@@ -698,6 +713,26 @@ def imodTempDir():
       return imodtemp
    return None
 
+# Set the appropriate path variables for executing Qt programs if IMOD_QTLIBDIR is defined
+def setLibPath():
+   if os.getenv('IMOD_QTLIBDIR') == None:
+      return
+   macosx = sys.platform.find('darwin') >= 0
+   mainvar = 'LD_LIBRARY_PATH'
+   if macosx:
+      mainvar = 'DYLD_LIBRARY_PATH'
+   suffix = ''
+   if os.getenv(mainvar) != None:
+      suffix = os.pathsep + os.environ[mainvar]
+   os.environ[mainvar] = os.environ['IMOD_QTLIBDIR'] + os.pathsep + \
+       os.path.join(os.environ['IMOD_DIR'], 'lib') + suffix
+   if macosx:
+      mainvar = 'DYLD_FRAMEWORK_PATH'
+      suffix = ''
+      if os.getenv(mainvar) != None:
+         suffix = os.pathsep + os.environ[mainvar]
+      os.environ[mainvar] = os.environ['IMOD_QTLIBDIR'] + suffix
+      
 
 # Function to format a string in new format for earlier versions of python
 def fmtstr(stringIn, *args):
@@ -814,79 +849,3 @@ def prnstr(string, file = sys.stdout, end = '\n'):
       file.write(string + end)
    if binary:
       file.flush()
-
-
-#  $Log$
-#  Revision 1.23  2011/09/04 17:19:24  mast
-#  Handle Ctrl C exceptions and pass themon if desired, add functions for
-#  cleaning up chunk and other files without generating errors
-#
-#  Revision 1.22  2011/08/09 04:44:20  mast
-#  Fixed problem with printing IO error message
-#
-#  Revision 1.21  2011/07/18 17:44:27  mast
-#  Fixed translation  of error codes to error status
-#
-#  Revision 1.20  2011/07/12 17:50:07  mast
-#  Needed function to fetch last exit status
-#
-#  Revision 1.19  2011/07/10 05:38:43  mast
-#  Fixed optionValue to make sure line starts with option name
-#
-#  Revision 1.18  2011/06/16 20:55:26  mast
-#  Added verbose output from runcmd based on environment variable; fixed
-#  repeating a command with python 3
-#
-#  Revision 1.17  2011/04/22 19:27:00  mast
-#  Added argument to runcmd to control destination of stderr
-#
-#  Revision 1.16  2011/03/21 22:13:58  mast
-#  Made it retry commands after broken pipe
-#
-#  Revision 1.15  2011/02/26 04:38:39  mast
-#  Jazzed up getmrc to return all possible easy entries
-#
-#  Revision 1.14  2011/02/16 18:44:49  mast
-#  Added temp dir function
-#
-#  Revision 1.13  2010/12/07 00:09:30  mast
-#  Back to subprocess, it wasn't the problem in cygwin!
-#
-#  Revision 1.12  2010/12/06 22:30:10  mast
-#  Added com file name completion routine (maybe temporarily), switched back
-#  to popen2 for cygwin python 2.6+ and set up to ignore deprecation warnings
-#
-#  Revision 1.11  2010/12/02 02:21:49  mast
-#  Fixed test for binary file, encode only for python 3
-#
-#  Revision 1.10  2010/12/02 00:37:59  mast
-#  Made prnstr encode for a binary output file and flush it, for vmstopy
-#
-#  Revision 1.9  2010/12/01 23:03:43  mast
-#  Added writeTextFile
-#
-#  Revision 1.8  2010/12/01 20:42:54  mast
-#  Changes for python 2/3 compatibility
-#
-#  Revision 1.7  2010/11/29 03:53:18  mast
-#  Try to use subProcess in cygwin python 2.6
-#
-#  Revision 1.6  2010/02/22 06:22:06  mast
-#  Added optionValue
-#
-#  Revision 1.5  2009/10/22 05:46:30  mast
-#  Add readTextFile
-#
-#  Revision 1.4  2008/01/05 17:21:17  mast
-#  Added parselist since pip allows lists to be read
-#
-#  Revision 1.3  2006/10/03 14:50:23  mast
-#  Added exit function to print lines from command error
-#
-#  Revision 1.2  2006/10/01 13:36:41  mast
-#  Added backup file function
-#
-#  Revision 1.1  2006/09/26 23:02:48  mast
-#  Added to package
-#
-#

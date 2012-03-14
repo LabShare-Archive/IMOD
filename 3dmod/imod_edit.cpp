@@ -1,5 +1,5 @@
 /*
- *  imod_edit.c -- Functions for handling model structures.
+ *  imod_edit.cpp -- Functions for handling model structures.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -13,7 +13,7 @@
 
 #include <math.h>
 #include "imod.h"
-#include "imod_display.h"
+#include "display.h"
 #include "imod_edit.h"
 #include "undoredo.h"
 #include "preferences.h"

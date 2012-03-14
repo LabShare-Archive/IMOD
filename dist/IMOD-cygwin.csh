@@ -1,9 +1,9 @@
-# IMOD 4.1.8
+# IMOD 4.4.7
 #
 # Startup file for tcsh users of IMOD under Cygwin
 #
-# It assumes that IMOD is located in /usr/local - if not, modify IMOD_DIR here
-# or set IMOD_DIR before sourcing this file
+# It assumes that IMOD is located in /usr/local/IMOD - if not, modify 
+# IMOD_DIR here or set IMOD_DIR before sourcing this file
 #
 # Place this file in /etc/profile.d
 
@@ -56,12 +56,3 @@ alias imod 3dmodbg
 alias 3dmod 3dmodbg
 alias imodv 3dmodv
 alias processchunks processchunksbg
-
-# Aliases to run Python programs with the Python on the path, not just Cygwin's
-# Python
-#
-alias edgepatches 'runpyscript edgepatches'
-alias tomostitch 'runpyscript tomostitch'
-alias vmstopy 'runpyscript vmstopy'
-alias fitpatches 'runpyscript fitpatches'
-alias sirtsetup 'runpyscript sirtsetup'

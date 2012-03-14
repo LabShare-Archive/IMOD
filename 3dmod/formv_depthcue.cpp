@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "formv_depthcue.h"
@@ -23,8 +22,8 @@
 
 #include "dia_qtutils.h"
 #include "imod.h"
-#include "imodv_input.h"
-#include "imodv_depthcue.h"
+#include "mv_input.h"
+#include "mv_depthcue.h"
 #include "preferences.h"
 
 /*
@@ -181,11 +180,3 @@ void imodvDepthcueForm::keyReleaseEvent( QKeyEvent * e )
   imodvKeyRelease(e);
 }
 
-/*
-
-$Log$
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
-*/

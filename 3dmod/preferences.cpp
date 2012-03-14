@@ -50,13 +50,13 @@
 #include "form_mouse.h"
 #include "imod.h"
 #include "imodv.h"
-#include "imod_info.h"
-#include "imod_cont_edit.h"
-#include "imod_info_cb.h"
-#include "imod_display.h"
-#include "imod_moviecon.h"
-#include "imodv_movie.h"
-#include "imod_workprocs.h"
+#include "info_setup.h"
+#include "cont_edit.h"
+#include "info_cb.h"
+#include "display.h"
+#include "moviecon.h"
+#include "mv_movie.h"
+#include "workprocs.h"
 #include "control.h"
 #include "scalebar.h"
 
@@ -66,7 +66,7 @@ ImodPreferences *ImodPrefs;
 
 #ifdef EXCLUDE_STYLES
 // This used to be a list of styles that crashed in RH7
-static char *styleList[] = {""};
+static const char *styleList[] = {""};
 #else
 // It used to be done this way because 
 // non-existent style made it search and generate "already exists" messages
@@ -683,7 +683,7 @@ void ImodPreferences::editPrefs()
   mTabDlg->show();
 }
 
-char **ImodPreferences::getStyleList()
+const char **ImodPreferences::getStyleList()
 {
   return &styleList[0];
 }
@@ -1228,7 +1228,7 @@ void ImodPreferences::getAutoContrastTargets(int &mean, int &sd)
 
 
 // Keep a list of settings to save under the given key
-int ImodPreferences::saveGenericSettings(char *key, int numVals, double *values)
+int ImodPreferences::saveGenericSettings(const char *key, int numVals, double *values)
 {
   GenericSettings genSet, *listSet;
   int i;
@@ -1262,7 +1262,7 @@ int ImodPreferences::saveGenericSettings(char *key, int numVals, double *values)
 }
 
 // Read the settings under the given key, return up to maxVals values
-int ImodPreferences::getGenericSettings(char *key, double *values, int maxVals)
+int ImodPreferences::getGenericSettings(const char *key, double *values, int maxVals)
 {
   QString str;
   QSettings *settings = getSettingsObject();

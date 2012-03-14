@@ -333,7 +333,7 @@ c             in path 1 - if it is close enough then they have met
                   ifmeet=1
                   ip1=ipseg
                   if(tmin.eq.0.)then
-                    distlast=sqrt((x2-x0)**2+(y-y0)**2)
+                    distlast=sqrt((x2-x0)**2+(y2-y0)**2)
                     if(distlast.gt.1.33*step)ip1=ipseg+1
                   endif
                 endif

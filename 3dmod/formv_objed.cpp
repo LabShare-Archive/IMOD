@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "formv_objed.h"
@@ -24,8 +23,8 @@
 
 #include "colorselector.h"
 #include "preferences.h"
-#include "imodv_objed.h"
-#include "imodv_input.h"
+#include "mv_objed.h"
+#include "mv_input.h"
 #include "dia_qtutils.h"
 #include "imod.h"
 
@@ -284,20 +283,3 @@ void imodvObjedForm::keyReleaseEvent( QKeyEvent * e )
   imodvKeyRelease(e);
 }
 
-/*
-
-$Log$
-Revision 4.4  2011/01/13 19:57:08  mast
-Move meshing progress next to combo boxes
-
-Revision 4.3  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 4.2  2009/02/16 06:47:35  mast
-Fixed some geometry problems
-
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
-*/

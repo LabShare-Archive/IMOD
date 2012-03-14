@@ -26,7 +26,6 @@ c       readExclusionModel
 c       DUMPEDGE
 c       
 c       $Id$
-c       Log at end of file
 
 
 c       READ_LIST get the name of a piece list file, reads the file
@@ -806,7 +805,7 @@ c
       integer*4 lastxdisp,lastydisp,idiff,jedge,nxgr,nygr,ix,iy,indentXcorr
       real*4 xdisp,ydisp,theta,edgedx,edgedy,dxmid,dymid,xdispl,ydispl
       real*4 costh,sinth,xrel,yrel,thetamid,delIndent(2)
-      integer*4 memlow,memup,indentUse(2), limitLo, limitHi, limitLo2, limitHi2
+      integer*4 indentUse(2), limitLo, limitHi, limitLo2, limitHi2
       real*4 cosd,sind
       real*8 wallstart, walltime
 c       
@@ -1171,12 +1170,11 @@ c
       real*4 xg,yg
 c       
       logical edgeonlist,needcheck(maxInPc,2),ngframe, useEdges, inLimit(2)
-      logical useCross
       real*4 xycur(2)
       integer*4 movedPiece(4), k, axisin, maxInside, ipcCross
       integer*4 ixframe,iyframe,ipc,ixfrm,iyfrm, limitLo, j, lookxfr, lookyfr
       integer*4 indinp,newedge,newpiece,iflo,listno,ixy,i, idSearch, limitHi
-      real*4 xtmp,xframe,yframe,ytmp,xbak,ybak,distmin,xttmp,dist
+      real*4 xtmp,xframe,yframe,ytmp,xbak,ybak,distmin,dist
       real*4 xpcCross, ypcCross
       logical b3dxor
 c       
@@ -1880,7 +1878,7 @@ c
       real*4 overfrac,delta,sdmin,ddenmin
       real*4 xpeak(limXcorrPeaks),ypeak(limXcorrPeaks),peak(limXcorrPeaks)
       integer*4 indentSD,niter,limstep,iyx,nxpad,nypad, indentUse
-      integer*4 jx,ixdispl,iydispl,i,nExtra(2),nbin, ierr, nxtrim, nytrim
+      integer*4 ixdispl,iydispl,i,nExtra(2),nbin, ierr, nxtrim, nytrim
       integer*4 nsmooth, nxsmooth, nysmooth, indPeak, nxCCC, nyCCC
       integer*4 taperAtFill, nsum, maxLongShift
       real *8 cccMax, ccc, CCCoefficient,walltime,wallstart
@@ -2594,16 +2592,16 @@ c              print *,'swapping groups',igroup + 1,newGroup
       implicit none
       integer*4 idir,izsect,idimEdge
       real*4 gradnew,rotnew
-      real*4 dxgridmean(idimedge,2),dygridmean(idimedge,2),bavg,bmax
+      real*4 dxgridmean(idimedge,2),dygridmean(idimedge,2)
 c       
 c       Stuff for amoeba: ftol2 and ptol2 are used the FIRST time
 c       
       integer nvar
       parameter (nvar = 2)
-      real*4 pp(nvar+1,nvar+1),yy(nvar+1),ptmp(nvar),ptol(nvar), da(nvar)
+      real*4 pp(nvar+1,nvar+1),yy(nvar+1),ptol(nvar), da(nvar)
       real*4 ptol1, ftol1,ptol2,ftol2,delfac,var(nvar)
       data da/0.5,0.2/
-      integer*4 jmin, iter, i, j
+      integer*4 jmin, iter, i
       external gradfunc
 c       
       integer*4 nedg, ifTrace, nTrial,izedge
@@ -3004,7 +3002,7 @@ c
       subroutine getExtraIndents(ipclow, ipcup, ixy, delIndent)
       use blendvars
       implicit none
-      integer*4 ipclow, ipcup, ixy, ind, ix, memlow, memup, iy
+      integer*4 ipclow, ipcup, ixy, ix, memlow, memup, iy
       real*4 delIndent(2)
 c       
       delIndent(1) = 0.
@@ -3086,7 +3084,7 @@ c
       include 'smallmodel.inc'
       character*(*) filnam
       integer*4 nxmap, nymap, minzpc, mapAllPc(nxmap,nymap,*)
-      integer*4 ixy, ied, ipc, iobj, ipt, ipnt,numEFonly,idimedge, numSkip,i,j
+      integer*4 ixy, ied, ipc, iobj, ipt, ipnt,numEFonly,idimedge, numSkip
       integer*4 ixpc, iypc, lenx, leny, numNear, ifUseAdjusted, ixframe,iyframe
       integer*4 ixright, iytop, izpc
       real*4 edgedispx(idimedge,2), edgedispy(idimedge,2), vertex(4,2)
@@ -3268,127 +3266,3 @@ c
       return
       end
 
-c       
-c       $Log$
-c       Revision 3.37  2010/12/31 22:10:35  mast
-c       Pick up 4th edge if there are 4 pieces, add limit on lateral shift in
-c       overlap zone and limited padding by this shift limit, added a little trim
-c       in real-space correlation
-c
-c       Revision 3.36  2010/12/28 17:57:45  mast
-c       Made real-space correlations be based on filtered correlated images.
-c       Added robust argument and switch to iterative fitting for > 10 pieces.
-c
-c       Revision 3.35  2010/09/23 04:59:59  mast
-c       Added patch output
-c
-c       Revision 3.34  2010/07/16 03:41:46  mast
-c       Changed model scaling so model can be made at different binning
-c
-c       Revision 3.33  2010/06/30 04:39:02  mast
-c       Fix for shortcircuit assumption
-c
-c       Revision 3.32  2010/06/29 03:03:17  mast
-c       Avoided an indexing error when reading pl with blank l line
-c
-c       Revision 3.31  2010/06/23 23:11:56  mast
-c       Changes for excluded edges, disjoint edges, overlap > 50% and multiple
-c       overlaps, and new shift determination methods
-c
-c       Revision 3.30  2010/04/29 04:28:18  mast
-c       Added diagnostic output to error message
-c
-c       Revision 3.29  2010/04/19 03:13:23  mast
-c       Switch to module, fixed allocation of big arrays in common
-c
-c       Revision 3.28  2008/12/23 00:08:58  mast
-c       Use smoothing and tapering outside, multiple xcorr peaks and CCC
-c
-c       Revision 3.27  2008/11/27 01:18:42  mast
-c       Modified commented out debugging output
-c
-c       Revision 3.26  2008/06/24 04:42:09  mast
-c       Implemented different treatment of fill from distortion corrections
-c
-c       Revision 3.25  2008/04/14 16:56:01  mast
-c       Fixed excluding of fill from edges with multiple edges
-c
-c       Revision 3.24  2007/10/04 16:22:43  mast
-c       Switched to new peak find function
-c
-c       Revision 3.23  2007/04/10 15:41:11  mast
-c       Add ability to exclude gray areas from edges and not take actual data
-c       instead of gray data all the way across an edge
-c
-c       Revision 3.22  2007/04/07 21:31:01  mast
-c       Added functions for using edges from other Z values
-c
-c       Revision 3.21  2007/01/24 05:08:19  mast
-c       Bin starting areas for cross-correlation when bigger than 1K
-c
-c       Revision 3.20  2006/06/18 19:38:08  mast
-c       Changed to use new C function for amoeba
-c
-c       Revision 3.19  2006/02/27 15:20:20  mast
-c       g77 wanted find_best_shift called with an equivalenced real*8 array
-c
-c       Revision 3.18  2006/02/26 18:29:50  mast
-c       Converted to using double precision for solving shift equations and 
-c       only used as much of the array as necessary for this.
-c
-c       Revision 3.17  2006/02/26 06:04:40  mast
-c       Fixed countedges to go to the right piece when there are h transforms
-c
-c       Revision 3.16  2006/02/06 21:51:04  mast
-c       Fixed findBestGradient to solve for shifts at each trial gradient
-c
-c       Revision 3.15  2006/01/16 03:16:26  mast
-c       Changed message for implied gradients
-c       
-c       Revision 3.14  2005/11/09 05:56:47  mast
-c       Added parameters for correlation control, and edge dumping
-c       
-c       Revision 3.13  2005/08/22 16:19:59  mast
-c       Preliminary - finding gradients from displacements
-c       
-c       Revision 3.12  2005/08/22 16:15:59  mast
-c       
-c       Revision 3.11  2005/08/20 05:10:48  mast
-c       Excluded a border region from correlations with distortion
-c       corrections
-c       
-c       Revision 3.10  2005/07/24 17:33:15  mast
-c       Increased allowed overlap in xcorredge up to 600 pixels but kept
-c       arrays on stack
-c       
-c       Revision 3.9  2005/06/03 19:39:04  mast
-c       Added routine for writing binned output
-c       
-c       Revision 3.8  2005/03/18 23:38:30  mast
-c       Improved error message from read_list
-c       
-c       Revision 3.7  2005/02/28 22:13:27  mast
-c       Commented out edge vector summary
-c       
-c       Revision 3.6  2005/02/28 21:15:07  mast
-c       Changes for distortion and mag gradient correction and cubic and
-c       linear interpolation
-c       
-c       Revision 3.5  2004/09/01 20:27:38  mast
-c       Fixed bug in testing if piece list input entered
-c       
-c       Revision 3.4  2003/12/12 20:47:42  mast
-c       Moved FINDEDGEFUNC, SETGRIDCHARS, and LOCALMEAN to edgesubs.f
-c       
-c       Revision 3.3  2003/08/09 23:21:59  mast
-c       Changes for PIP input
-c       
-c       Revision 3.2  2003/06/20 20:18:48  mast
-c       Standardized error exits and increased limits for correlation area
-c       
-c       Revision 3.1  2002/08/19 04:27:43  mast
-c       Changed to use blend.inc.  Made declarations for implicit none in
-c       all routines that used the include file.  Changed DOEDGE to use
-c       ARRAY from common, and made FIND_BEST_SHIFTS get its big array as
-c       an argument then invalidate the part of the array that it uses.
-c       

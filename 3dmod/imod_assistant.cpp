@@ -40,7 +40,7 @@
  *   [void error(const QString &msg);]
  */
 ImodAssistant::ImodAssistant(const char *path, const char *qhcFile, 
-                             char *messageTitle, bool absolute,
+                             const char *messageTitle, bool absolute,
                              bool keepSideBar,  const char *prefix, bool prefAbsolute)
 {
   mAssistant = NULL;
@@ -106,7 +106,7 @@ int ImodAssistant::showPage(const char *page)
   QString fullPath = mPrefix + "/" + page;
   QString fileOnly, assPath;
   bool sendTwice = false;
-  int len, retval = 0;
+  int len;
   char sep = QDir::separator().toLatin1();
 
   if (!QFile::exists(mQhc)) {

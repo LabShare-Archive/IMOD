@@ -24,9 +24,9 @@
 #define HOT_SLIDER_KEYDOWN 1
 #define NO_HOT_SLIDER 2
 
-static char *sliderLabels[] = {"Red", "Green", "Blue"};
-static char *buttonLabels[] = {"Done", "Restore", "Qt Selector"};
-static char *buttonTips[] = 
+static const char *sliderLabels[] = {"Red", "Green", "Blue"};
+static const char *buttonLabels[] = {"Done", "Restore", "Qt Selector"};
+static const char *buttonTips[] = 
   {"Close color selector",
    "Restore to starting color when selector was opened",
    "Select color with Qt color selector box"};

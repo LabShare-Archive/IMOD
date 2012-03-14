@@ -3,11 +3,8 @@
 # NOTE: that this Makefile only works if run under the IMOD directory
 # structure and the IMOD configure file has been defined.
 #
-# $Author$
+# $Id: Makefile,v 1018142da61b 2012/02/17 05:26:55 mast $
 #
-# $Revision$
-#
-# Log at end of file
 
 include ../configure
 
@@ -71,18 +68,13 @@ cpimages:
 compile: 
 	$(JAVAC)  $(SOURCEPATH)/etomo/EtomoDirector.java
 
-install: $(JAR_FILE) $(CMDWRAPPERS)
+install: $(JAR_FILE)
 	$(CP) -pf $(JAR_FILE) $(INSTBINDIR)
-	chmod 755 scripts/etomo
-	$(CP) -pf scripts/etomo $(INSTBINDIR)
 
 uitestinstall: uitestjarfile
 	$(CP) -pf $(UITEST_JAR_FILE) $(INSTBINDIR)
 	chmod 755 scripts/uitest
 	$(CP) -pf scripts/uitest $(INSTBINDIR)
-
-cmdwrappers:
-	../scripts/copywrappers $(INSTBINDIR) ../scripts scripts/etomo
 
 tests: testjarfile
 	java -classpath "$(TESTPATH)$(CLASS_SEPARATOR)$(TEST_JAR_FILE)" -Djava.awt.headless=true junit.textui.TestRunner etomo.JUnitTests
@@ -143,89 +135,3 @@ linecount:
 	awk '/^[ \t]*\/\*/, /\*\//' src/etomo/uitest/*.java | wc -l
 	awk '/^[ \t]*\/\*/, /\*\//' src/etomo/util/*.java | wc -l
 
-# $Log$
-# Revision 2.24  2009/09/02 18:40:58  sueh
-# bug# 1264 Use a more standard javac option.
-#
-# Revision 2.23  2009/09/01 22:30:38  sueh
-# bug# 1264 Suppressing unused and serialization warnings to correspond
-# to the settings used in Eclipse.
-#
-# Revision 2.22  2008/07/23 05:24:37  mast
-# Added comments to line count, got rid of semicolon count
-#
-# Revision 2.21  2008/05/30 22:15:51  sueh
-# bug# 1102 Moved JfcUnitTests to etomo.uitest.
-#
-# Revision 2.20  2007/04/10 19:39:11  mast
-# Changes for new copywrappers version
-#
-# Revision 2.19  2006/11/03 17:55:03  mast
-# Switched \cp back to macro for broken make in Cygwin
-#
-# Revision 2.18  2006/09/26 22:22:26  mast
-# Added bash wrapper to windows install
-#
-# Revision 2.17  2006/01/12 18:21:04  mast
-# Fixed a \ on the dependency line
-#
-# Revision 2.16  2006/01/12 17:39:32  sueh
-# bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
-#
-# Revision 2.15  2006/01/03 19:57:24  mast
-# Made the uitest build and install be separate from tests
-#
-# Revision 2.14  2006/01/03 18:58:17  mast
-# Added UI tests
-#
-# Revision 2.13  2005/11/11 18:38:33  mast
-# Unsimplified the dependencies rules for SGI
-#
-# Revision 2.12  2005/11/11 18:01:49  sueh
-# bug# 758 Changed EtomoTests to JUnitTests.
-#
-# Revision 2.11  2005/11/10 20:43:00  mast
-# Simplified dependency to use */*.java
-#
-# Revision 2.10  2005/05/13 22:22:20  mast
-# Added dependencies so build only occurs when needed
-#
-# Revision 2.9  2005/01/18 22:08:53  mast
-# Use new variables for testing under windows
-#
-# Revision 2.8  2005/01/17 19:34:28  mast
-# Switched from if statement to mkdir -p
-#
-# Revision 2.7  2004/02/10 04:52:18  rickg
-# Clean up JUnitTest directory
-#
-# Revision 2.6  2004/02/09 21:15:23  rickg
-# Swtiched rm and cp to explict commands instead of macros
-#
-# Revision 2.5  2004/01/22 21:08:13  rickg
-# Use headless mode when running tests.
-#
-# Revision 2.4  2003/10/31 17:19:38  mast
-# *** empty log message ***
-#
-# Revision 2.3  2003/10/29 16:22:23  sueh
-# added automatic testing during build
-#
-# Revision 2.2  2003/08/26 15:36:49  rickg
-# Added comments
-#
-# Revision 2.1  2003/08/10 01:21:59  mast
-# Changing to dummy/real Makefiles
-#
-# Revision 2.9  2003/08/09 23:02:40  mast
-# renamed jar directory to jar_dir to avoid bizarre failure on SGI
-#
-# Revision 2.8  2003/08/08 23:57:15  mast
-# *** empty log message ***
-#
-# Revision 2.7  2003/08/08 19:05:17  rickg
-# Fixed cp and rm invokations
-#
-# Revision 2.6  2003/08/08 05:13:52  rickg
-# Mods to support IMOD make structure
-#

@@ -31,7 +31,7 @@ enum {IP_INFO, IP_EXECUTE, IP_EXECUTETYPE, IP_KEYS, IP_MOUSE, IP_EVENT,
 
 typedef struct
 {
-  char *name;
+  const char *name;
   QLibrary *library;
   SpecialModule *module;
   int   type;
@@ -50,14 +50,14 @@ static int numInternal;
 int imodPlugInit(void)
 {
 #ifdef _WIN32
-  char *defdir3 = "C:/Program Files/IMOD/lib/imodplug";
-  char *defdir4 = "C:/Program Files/3dmod/lib/imodplug";
+  const char *defdir3 = "C:/Program Files/IMOD/lib/imodplug";
+  const char *defdir4 = "C:/Program Files/3dmod/lib/imodplug";
 #else
-  char *defdir3 = "usr/freeware/lib/imodplugs";
+  const char *defdir3 = "usr/freeware/lib/imodplugs";
 #endif
-  char *defdir2 = "/usr/local/IMOD/plugins";
-  char *envdir2 = getenv("IMOD_CALIB_DIR");
-  char *envdir = getenv("IMOD_PLUGIN_DIR");
+  const char *defdir2 = "/usr/local/IMOD/plugins";
+  const char *envdir2 = getenv("IMOD_CALIB_DIR");
+  const char *envdir = getenv("IMOD_PLUGIN_DIR");
   QString str;
   int maxPlug = 0;
 
@@ -128,12 +128,12 @@ static int ipAddInternalModules()
 static int imodPlugLoadDir(const char *plugdir)
 {
 #ifdef _WIN32
-  char *filter = "*.dll";
+  const char *filter = "*.dll";
 #else 
 #ifdef Q_OS_MACX
-    char *filter = "*.dylib";
+    const char *filter = "*.dylib";
 #else
-    char *filter = "*.so";
+    const char *filter = "*.so";
 #endif    
 #endif    
   int pload = 0; /* Return the number of plugs loaded. */
@@ -239,7 +239,7 @@ void imodPlugOpen(int item)
 /*
  * Open a plugin by name
  */
-void imodPlugOpenByName(char *name)
+void imodPlugOpenByName(const char *name)
 {
   PlugData *pd;
   int i, mi = ilistSize(plugList);

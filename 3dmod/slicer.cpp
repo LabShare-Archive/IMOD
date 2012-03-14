@@ -1,5 +1,5 @@
 /*
- *  slicer.c -- Open the slicer window; Slice 3-D data at any angle.
+ *  slicer.cpp -- Open the slicer window; Slice 3-D data at any angle.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -27,11 +27,11 @@
 #include "slicer_classes.h"
 #include "hottoolbar.h"
 #include "imod.h"
-#include "imod_display.h"
+#include "display.h"
 #include "b3dgfx.h"
 #include "sslice.h"
 #include "imod_input.h"
-#include "imod_info_cb.h"
+#include "info_cb.h"
 #include "control.h"
 #include "imodplug.h"
 #include "dia_qtutils.h"
@@ -39,12 +39,12 @@
 #include "xcorr.h"
 #include "imod_edit.h"
 #include "pixelview.h"
-#include "imod_model_edit.h"
-#include "imod_moviecon.h"
-#include "imod_workprocs.h"
+#include "model_edit.h"
+#include "moviecon.h"
+#include "workprocs.h"
 #include "preferences.h"
 #include "form_slicerangle.h"
-#include "imodv_input.h"
+#include "mv_input.h"
 #include "imodv.h"
 #include "scalebar.h"
 
@@ -2210,11 +2210,12 @@ void SlicerFuncs::setAnglesFromPoints(Ipoint *p1, Ipoint *p2, int axis)
     /* But this is useful for doing Z rotation and then X, and for
        keeping all the angles under +/- 90 degrees. */
     a.z = 0.0;
-    if (n.x > smallVal || n.y > smallVal || n.x < -smallVal || n.y < -smallVal)
+    if (n.x > smallVal || n.y > smallVal || n.x < -smallVal || n.y < -smallVal) {
       if (n.y >= 0.0)
         a.z = atan2((double)n.x, (double)n.y);
       else
         a.z = -atan2((double)n.x, -(double)n.y);
+    }
     val = a.z;
     val = n.x * sin(val) + n.y * cos(val);
     if (n.z >= 0.0)

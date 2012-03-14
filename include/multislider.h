@@ -24,7 +24,7 @@ class DLL_IM_EX MultiSlider : public QObject
   Q_OBJECT
 
  public:
-  MultiSlider(QWidget *parent, int numSliders, char *titles[], int minVal = 0,
+  MultiSlider(QWidget *parent, int numSliders, const char *titles[], int minVal = 0,
               int maxVal = 255, int decimals = 0, bool horizontal = false);
   ~MultiSlider();
 

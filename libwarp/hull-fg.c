@@ -27,13 +27,14 @@
 
 #include "hull.h"
 
-Tree* insert(site, Tree*);
+/* DNM: declared static, they are used only here */
+static Tree* insert(site, Tree*);
 
-Tree* delete(site, Tree*);
+static Tree* delete(site, Tree*);
 
-void printtree(Tree*,int);
+static void printtree(Tree*,int);
 
-void printtree_flat(Tree*);
+static void printtree_flat(Tree*);
 
 
 /* splay tree code */

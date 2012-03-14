@@ -1,5 +1,5 @@
 /*
- *  beadfix.c -- Special module for fixing fiducial models
+ *  beadfix.cpp -- Special module for fixing fiducial models
  *
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
@@ -49,7 +49,7 @@
 #include "sliceproc.h"
 #include "cfft.h"
 #include "imod.h"
-#include "imod_client_message.h"
+#include "client_message.h"
 #include "control.h"
 #include "dia_qtutils.h"
 #include "beadfix.h"
@@ -58,16 +58,16 @@
 #include "pegged.xpm"
 #include "unpegged.xpm"
 #include "imod_input.h"
-#include "imod_info_cb.h"
+#include "info_cb.h"
 #include "imod_edit.h"
-#include "imodv_objed.h"
+#include "mv_objed.h"
 #include "preferences.h"
 #include "undoredo.h"
 #include "xzap.h"
 
 // 2) Declare the internal functions as static
 // And set them into the member variables in the constructor
-static char *imodPlugInfo(int *type);
+static const char *imodPlugInfo(int *type);
 static int imodPlugKeys(ImodView *vw, QKeyEvent *event);
 static void imodPlugExecute(ImodView *inImodView);
 static void imodPlugExecuteType(ImodView *inImodView, int type, int reason);
@@ -122,7 +122,7 @@ static char   *sFilename = NULL;
 /*
  * Called by the imod plugin load function. 
  */
-char *imodPlugInfo(int *type)
+const char *imodPlugInfo(int *type)
 {
   if (type)
     *type = IMOD_PLUG_MENU + IMOD_PLUG_KEYS + IMOD_PLUG_MESSAGE + 
@@ -325,7 +325,7 @@ void imodPlugExecuteType(ImodView *inImodView, int type, int reason)
 }
 
 /* Execute the message in the strings.
-   Keep the action definitions in imod_client_message.h */
+   Keep the action definitions in client_message.h */
 
 int imodPlugExecuteMessage(ImodView *vw, QStringList *strings, int *arg)
 {
@@ -403,7 +403,7 @@ int BeadFixer::executeMessage(QStringList *strings, int *arg)
 void BeadFixer::openFile()
 {
   QString qname;
-  char *filter[] = {"Align log files (align*.log)", "Log files (*.log)"};
+  const char *filter[] = {"Align log files (align*.log)", "Log files (*.log)"};
   int firstFilt = 0;
 #if defined(Q_OS_MACX) && QT_VERSION >= 0x040500
   firstFilt = 1;
@@ -2077,10 +2077,9 @@ void BeadFixer::deleteBelow()
   Imod *imod = ivwGetModel(vi);
   
   Iobj *obj;
-  int ob, i, del, ix, iy, iz, pt, curobj, anydel = 0;
+  int ob, i, ix, iy, iz, curobj, anydel = 0;
   Istore *store;
   Iindex index;
-  Icont *cont;
   float thresh, min, max;
   Ipoint selmin, selmax;
 
@@ -2162,7 +2161,7 @@ void BeadFixer::modeSelected(int value)
   for (int on = 0; on < 2; on++) {
 
     // Manage seed mode items
-    if (!on && value != SEED_MODE || on && value == SEED_MODE) {
+    if ((!on && value != SEED_MODE) || (on && value == SEED_MODE)) {
       showWidget(seedModeBox, value == SEED_MODE);
       showWidget(overlayHbox, value == SEED_MODE);
       showWidget(reverseBox, value == SEED_MODE);
@@ -2176,7 +2175,7 @@ void BeadFixer::modeSelected(int value)
     }
 
     // Manage gap filling items
-    if (!on && value != GAP_MODE || on && value == GAP_MODE) {
+    if ((!on && value != GAP_MODE) || (on && value == GAP_MODE)) {
       showWidget(ignoreSkipBut, value == GAP_MODE);
       showWidget(skipEdit, value == GAP_MODE);
       showWidget(nextGapBut, value == GAP_MODE);
@@ -2187,20 +2186,20 @@ void BeadFixer::modeSelected(int value)
     }
 
     // Manage autocenter items
-    if (!on && resOrCont || on && !resOrCont) {
+    if ((!on && resOrCont) || (on && !resOrCont)) {
       showWidget(cenLightHbox, !resOrCont);
       showWidget(diameterHbox, !resOrCont);
     }
     
     // Manage residual and contour mode shared items
-    if (!on && !resOrCont || on && resOrCont) {
+    if ((!on && !resOrCont) || (on && resOrCont)) {
       showWidget(openFileBut, resOrCont);
       showWidget(runAlignBut, resOrCont);
       showWidget(rereadBut, resOrCont);
     }
 
     // Manage residual mode items
-    if (!on && value != RES_MODE || on && value == RES_MODE) {
+    if ((!on && value != RES_MODE) || (on && value == RES_MODE)) {
       showWidget(nextResBut, value == RES_MODE);
       showWidget(backUpBut, value == RES_MODE);
       showWidget(nextLocalBut, value == RES_MODE);
@@ -2214,7 +2213,7 @@ void BeadFixer::modeSelected(int value)
     }
 
     // Manage contour mode items
-    if (!on && value != CONT_MODE || on && value == CONT_MODE) {
+    if ((!on && value != CONT_MODE) || (on && value == CONT_MODE)) {
       showWidget(nextContBut, value == CONT_MODE);
       showWidget(backContBut, value == CONT_MODE);
       showWidget(delContBut, value == CONT_MODE);
@@ -2269,9 +2268,9 @@ void BeadFixer::modelUpdate()
  
 // THE WINDOW CLASS CONSTRUCTOR
  
-static char *buttonLabels[] = {"Done", "Help"};
-static char *buttonTips[] = {"Close Bead Fixer", "Open help window"};
-static char *threshTitle[] = {"Threshold peak value"};
+static const char *buttonLabels[] = {"Done", "Help"};
+static const char *buttonTips[] = {"Close Bead Fixer", "Open help window"};
+static const char *threshTitle[] = {"Threshold peak value"};
 
 BeadFixer::BeadFixer(QWidget *parent, const char *name)
   : DialogFrame(parent, 2, 1, buttonLabels, buttonTips, true, 

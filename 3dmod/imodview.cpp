@@ -1,5 +1,5 @@
 /*
- *  imodview.c -- Handle the ImodView structure.
+ *  imodview.cpp -- Handle the ImodView structure.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -21,23 +21,23 @@
 #endif
 #include <qdir.h>
 #include "imod.h"
-#include "imod_cachefill.h"
+#include "cachefill.h"
 #include "iirawimage.h"
-#include "imod_display.h"
-#include "imod_info_cb.h"
+#include "display.h"
+#include "info_cb.h"
 #include "form_info.h"
-#include "imod_info.h"
+#include "info_setup.h"
 #include "imod_io.h"
 #include "imod_edit.h"
-#include "imod_moviecon.h"
-#include "imod_iscale.h"
-#include "imodv_objed.h"
-#include "imod_object_edit.h"
+#include "moviecon.h"
+#include "rescale.h"
+#include "mv_objed.h"
+#include "object_edit.h"
 #include "iproc.h"
 #include "autox.h"
 #include "xzap.h"
 #include "xcramp.h"
-#include "imod_workprocs.h"
+#include "workprocs.h"
 #include "vertexbuffer.h"
 #include "preferences.h"
 #include "undoredo.h"
@@ -1584,7 +1584,7 @@ void ivwSetTime(ImodView *vi, int time)
   return;
 }
 
-char *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex)
+const char *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex)
 {
   if (!inImodView) return "";
   if (inIndex < 1) return "";
@@ -1593,7 +1593,7 @@ char *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex)
   return(inImodView->imageList[inIndex-1].description);
 }
 
-char *ivwGetTimeLabel(ImodView *inImodView)
+const char *ivwGetTimeLabel(ImodView *inImodView)
 {
   return (inImodView->image->description);
 }

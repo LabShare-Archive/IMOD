@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdarg.h>
@@ -75,7 +74,7 @@ QCheckBox *diaCheckBox(const char *text, QWidget *parent, QBoxLayout *layout)
  * can be a QHBoxLayout or a QVBoxLayout.
  */
 QRadioButton *diaRadioButton(const char *label, QWidget *parent, QButtonGroup *group,
-                             QBoxLayout *layout, int id, char *tooltip)
+                             QBoxLayout *layout, int id, const char *tooltip)
 {
   QRadioButton *radio = new QRadioButton(QString(label), parent);
   if (group)
@@ -486,7 +485,7 @@ int diaQInput(int *value, int low, int high, int decimal, const char *prompt)
  * if the user cancels.
  */
 QString diaOpenFileName(QWidget *parent, const char *caption, int numFilters,
-                        char *filters[])
+                        const char *filters[])
 {
   QString qname = QString(Dia_title) + QString(": ") + QString(caption);
   QString filter;
@@ -502,12 +501,12 @@ QString diaOpenFileName(QWidget *parent, const char *caption, int numFilters,
 
 /*! Makes a scrolled text window with the text taken a set of character strings
   passed as variable arguments */
-void dia_vasmsg(char *msg, ...)
+void dia_vasmsg(const char *msg, ...)
 {
   // Turn it into an array of strings
-  char **argv;
+  const char **argv;
   char *emsg;
-  char *tmsg;
+  const char *tmsg;
   int argc = 0;
   va_list ap;
 
@@ -518,7 +517,7 @@ void dia_vasmsg(char *msg, ...)
   }
   va_end(ap);
 
-  argv = (char **)malloc((argc + 2) * sizeof(char *));
+  argv = (const char **)malloc((argc + 2) * sizeof(char *));
 
   argc = 1;
   va_start(ap, msg);
@@ -535,7 +534,7 @@ void dia_vasmsg(char *msg, ...)
 
 /*! Makes a scrolled text window with the text taken from the array of 
   character strings in [msg] */
-void dia_smsg( char **msg)
+void dia_smsg(const char **msg)
 {
   char *p;
   char *buf;
@@ -657,61 +656,3 @@ void dia_smsg( char **msg)
   dlg->setWindowTitle(test);
   dlg->show();
 }
-
-/*
-$Log$
-Revision 1.15  2009/03/27 22:53:54  mast
-Open file dialog in current directory explicitly for Mac Qt 4.4
-
-Revision 1.14  2009/01/26 04:39:25  mast
-Set page step of slider to 1: that is the left click step
-
-Revision 1.13  2009/01/15 16:30:26  mast
-Qt 4 port
-
-Revision 1.12  2008/05/25 05:35:52  mast
-Added function to show/hide a widget
-
-Revision 1.11  2008/01/13 22:22:25  mast
-Made layout optional in diaWidget functions so they can be used in toolbars
-
-Revision 1.10  2007/07/08 16:54:32  mast
-Added dia_ask_forever, documented
-
-Revision 1.9  2006/09/05 14:24:40  mast
-Added labeled spin box creator
-
-Revision 1.8  2006/03/01 19:13:23  mast
-Moved window size/position routines from xzap to dia_qtutils
-
-Revision 1.7  2005/02/11 01:42:33  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 1.6  2004/11/21 05:53:03  mast
-Added routine to set text with blocked signals
-
-Revision 1.5  2004/11/20 05:07:23  mast
-Add spin box min/max/val function, allow H or V layouts in dia functions
-
-Revision 1.4  2004/11/04 23:32:44  mast
-Changes for rounded button style
-
-Revision 1.3  2003/11/01 18:14:29  mast
-Allow repeated setting of title without leaking
-
-Revision 1.2  2003/02/10 20:51:22  mast
-Merge Qt source
-
-Revision 1.1.2.1  2003/01/26 20:35:36  mast
-adding as library file
-
-Revision 1.1.2.9  2003/01/18 01:11:46  mast
-add call to make radio button
-
-Revision 1.1.2.8  2003/01/13 01:08:43  mast
-Implemented dia_ask, dia_choice, and a replacement for dia_int
-
-Revision 1.1.2.7  2003/01/06 19:01:47  mast
-adding log line
-
-*/

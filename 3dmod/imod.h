@@ -17,7 +17,7 @@
 
 #ifndef IMODP_H
 #include "imodP.h"
-#include "imod_utilities.h"
+#include "utilities.h"
 #endif
 
 /* Define macro for export of functions under Windows */

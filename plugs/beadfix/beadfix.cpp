@@ -92,7 +92,7 @@ static PlugData thisPlug = { 0, 0 };
 /*
  * Called by the imod plugin load function. 
  */
-char *imodPlugInfo(int *type)
+const char *imodPlugInfo(int *type)
 {
   if (type)
     *type = IMOD_PLUG_MENU + IMOD_PLUG_KEYS + IMOD_PLUG_MESSAGE + 
@@ -292,7 +292,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
 void BeadFixer2::openFile()
 {
   QString qname;
-  char *filter[] = {"Align log files (align*.log)", "Log files (*.log)"};
+  const char *filter[] = {"Align log files (align*.log)", "Log files (*.log)"};
   PlugData *plug = &thisPlug;
 
   qname  = diaOpenFileName(this, "Select Tiltalign log file", 2, filter);
@@ -690,7 +690,6 @@ void BeadFixer2::movePoint()
 void BeadFixer2::undoMove()
 {
   int obsav, cosav, ptsav;
-  int obj, cont, pt;
   int nobj, ncont;
   Iobj *ob;
   Icont *con;
@@ -788,7 +787,6 @@ void BeadFixer2::nextGap()
   Iobj *ob;
   Icont *con;
   Ipoint *pts;
-  char line[MAXLINE];
 
   PlugData *plug = &thisPlug;
   Imod *theModel = ivwGetModel(plug->view);
@@ -892,12 +890,11 @@ void BeadFixer2::nextGap()
 
 // THE WINDOW CLASS CONSTRUCTOR
 
-static char *buttonLabels[] = {"Done", "Help"};
-static char *buttonTips[] = {"Close Bead Fixer", "Open help window"};
+static const char *buttonLabels[] = {"Done", "Help"};
+static const char *buttonTips[] = {"Close Bead Fixer", "Open help window"};
 
 BeadFixer2::BeadFixer2(QWidget *parent, const char *name)
-  : DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Bead Fixer", "",
-                name)
+  : DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Bead Fixer", "", name)
 {
   QPushButton *button;
   QCheckBox *box;
@@ -979,7 +976,7 @@ void BeadFixer2::buttonPressed(int which)
   else {
     // For a plugin incorporated into IMOD, this is the path in the compiled qhc file
     // Always have an anchor #TOP at the top so Qt Assistant starts at the top
-    imodShowHelpPage("plughelp/beadfix2.html#TOP");
+    imodShowHelpPage("../plughelp/beadfix2.html#TOP");
 
     // Otherwise, use dia_vasmsg to pass a string from within the code (can contain html).
   }

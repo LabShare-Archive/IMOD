@@ -56,7 +56,7 @@ typedef struct __imodv_struct
   ImodvWindow  *mainWin;
   QPixmap *iconPixmap;
 
-  char         *rbgname;
+  const char   *rbgname;
   QColor       *rbgcolor; /* background color for rendering.    */
   int          enableDepthSB;  /* Flags for if visuals exist and have depth */
   int          enableDepthDB;
@@ -116,6 +116,7 @@ typedef struct __imodv_struct
   Iview view;
   int vertBufOK;   /* Flag for whether vertex buffers are possible and enabled */
   int primRestartOK;  /* Flag for primitive restarts being possible (GL 3.1) */
+  int glExtFlags;    /* Flags for GL extensions possible */
   VertBufManager *vbManager;  /* Class for managingthe VBO's */
 
   /* texture mapping */

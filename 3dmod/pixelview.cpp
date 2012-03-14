@@ -1,5 +1,5 @@
 /*  
- *  pixelview.c -- view numerical values of pixels in an image.
+ *  pixelview.cpp -- view numerical values of pixels in an image.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -27,8 +27,8 @@
 #include <QVBoxLayout>
 #include "pixelview.h"
 #include "imod.h"
-#include "imod_info_cb.h"
-#include "imod_display.h"
+#include "info_cb.h"
+#include "display.h"
 #include "control.h"
 #include "preferences.h"
 #include "imod_input.h"

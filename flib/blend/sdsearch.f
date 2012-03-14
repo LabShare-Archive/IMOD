@@ -26,7 +26,7 @@ c       sdmax=0.
             idymin=idy
             ddenmin=dden
 c             write(*,101)idx,idy,sd,' *'
-101         format(2i4,f10.4,a)
+c101         format(2i4,f10.4,a)
           else
 c             write(*,101)idx,idy,sd,' '
           endif
@@ -84,7 +84,7 @@ c
       idxmin=0
       idymin=0
 c       write(*,101)idxmin,idymin,sdmin
-101   format(2i5,f10.4)
+c101   format(2i5,f10.4)
       
       do iter=1,niter
         xchanged=.true.

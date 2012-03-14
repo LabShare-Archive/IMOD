@@ -60,7 +60,7 @@ static int initCheckList()
  * list; [name] is a name for the format.  The definition of such a function is
  * ^  int checkMyFormat(FILE *fp, char *filename, RawImageInfo *info)
  */
-void iiAddRawCheckFunction(IIRawCheckFunction func, char *name)
+void iiAddRawCheckFunction(IIRawCheckFunction func, const char *name)
 {
   CheckEntry item;
   item.func = func;
@@ -199,7 +199,7 @@ int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
     break;
   }
 
-  // Set the header and the access routines; just use the MRC routines
+  /* Set the header and the access routines; just use the MRC routines */
   inFile->header = (char *)hdr;
   inFile->readSection = iiMRCreadSection;
   inFile->readSectionByte = iiMRCreadSectionByte;
@@ -302,14 +302,14 @@ static int checkPif(FILE *fp, char *filename, RawImageInfo *info)
   b3dInt32 ivals[12];
   b3dByte cvals[6];
 
-  //is it a pif file (only reading bsoft pif files)
+  /* is it a pif file (only reading bsoft pif files) */
   if (fseek(fp, 32, SEEK_SET) != 0)
   	return IIERR_IO_ERROR;
   
   if (fread(cvals, 1, 5, fp) != 5)
     return IIERR_IO_ERROR;
   
-  //recognize file type 
+  /* recognize file type  */
   cvals[5] = 0;
   if (strcmp(cvals,"Bsoft") != 0)
   	return IIERR_NOT_FORMAT;
@@ -317,7 +317,7 @@ static int checkPif(FILE *fp, char *filename, RawImageInfo *info)
   info->headerSize = 1024;
   info->sectionSkip = 512;
   
-  //set swapBytes
+  /* set swapBytes */
   if (fseek(fp, 28, SEEK_SET) != 0)
   	return IIERR_IO_ERROR;
   	
@@ -343,7 +343,7 @@ static int checkPif(FILE *fp, char *filename, RawImageInfo *info)
   if (info->swapBytes)
     mrc_swap_longs(ivals, 1);
    
-  //set nz from numimages because nz is 1 
+  /* set nz from numimages because nz is 1 */
   info->nz = ivals[0];
     
   if (fseek(fp, 64, SEEK_SET) != 0)
@@ -355,8 +355,8 @@ static int checkPif(FILE *fp, char *filename, RawImageInfo *info)
   if (info->swapBytes)
     mrc_swap_longs(ivals, 5);
   
-  //If there are images of different sizes and there is more then one image,
-  //fail.
+  /* If there are images of different sizes and there is more then one image, 
+     fail. */
   if (ivals[0] < 1 && info->nz > 1)
     return IIERR_NOT_FORMAT;
 
@@ -382,7 +382,7 @@ static int checkPif(FILE *fp, char *filename, RawImageInfo *info)
       break;
   }
   
-  //assume dimensions are 2 or 3
+  /* assume dimensions are 2 or 3 */
   
   /* Set these to signal that the range is unknown */
   info->amin = 0.;

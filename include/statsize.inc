@@ -1,2 +1,2 @@
-	integer msiz,limdat
-	parameter (msiz=50,limdat=1000)
+      integer msiz,limdat
+      parameter (msiz=50,limdat=1000)

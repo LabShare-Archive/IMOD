@@ -13,7 +13,7 @@
 #include "imod.h"
 #include "imodv.h"
 #include "vertexbuffer.h"
-#include "imodv_ogl.h"
+#include "mv_ogl.h"
 
 typedef map<int,b3dUInt32> ReverseMap;
 
@@ -170,8 +170,10 @@ int VertBufManager::analyzeMesh(Imesh *mesh, float zscale, int fillType, int use
     if (fabs((double)(zscale - vbd->zscale)) < 1.e-4)
       return -1;
     b3dBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
-    if (loadVertexNormalArray(mesh, zscale, fillType))
+    if (loadVertexNormalArray(mesh, zscale, fillType)) {
+      vbCleanupVBD(mesh);
       return 1;
+    }
     vbd->zscale = zscale;
     return -2;
   }
@@ -267,10 +269,14 @@ int VertBufManager::analyzeMesh(Imesh *mesh, float zscale, int fillType, int use
     }
   }
 
-  if (!valid)
+  if (!valid) {
+    vbCleanupVBD(mesh);
     return 3;
-  if (!colors.size() && !numDefaultTri)
+  }
+  if (!colors.size() && !numDefaultTri) {
+    vbCleanupVBD(mesh);
     return 2;
+  }
 
   vbd = allocateVBDIfNeeded(&mesh->vertBuf); 
   if (!vbd)
@@ -565,8 +571,10 @@ int VertBufManager::analyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin
     }
   }      
 
-  if (!numVerts)
+  if (!numVerts) {
+    vbCleanupSphereVBD(obj);
     return 2;
+  }
 
   // Get parameters for default sphere
   drawsize = obj->pdrawsize / xybin;
@@ -578,8 +586,10 @@ int VertBufManager::analyzeSpheres(Iobj *obj, int obNum, float zscale, int xybin
             numRemnant);
 
   vbd = allocateVBDIfNeeded(&obj->vertBufSphere); 
-  if (!vbd || drawsize < 0)
+  if (!vbd || drawsize < 0) {
+    vbCleanupSphereVBD(obj);
     return 1;
+  }
   vbd->numFanIndDefault = cumFanInd;
   vbd->numRemnant = numRemnant;
 
@@ -810,8 +820,10 @@ int VertBufManager::analyzeConts(Iobj *obj, int obNum, int thickenCont, int chec
     }
   }      
 
-  if (!numVerts)
+  if (!numVerts) {
+    vbCleanupContVBD(obj);
     return 2;
+  }
 
   vbd = allocateVBDIfNeeded(&obj->vertBufCont);
   if (!vbd)

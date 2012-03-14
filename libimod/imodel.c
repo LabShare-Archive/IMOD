@@ -75,6 +75,9 @@ int imodDefault(Imod *model)
      
   model->csum  = 0;
   model->tmax  = 0;
+  model->xmax = 1;
+  model->ymax = 1;
+  model->zmax = 1;
 
   model->alpha = 0.0f;
   model->beta  = 0.0f;

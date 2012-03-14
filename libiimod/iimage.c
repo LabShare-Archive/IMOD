@@ -146,7 +146,7 @@ int iiInit(ImodImageFile *i, int xsize, int ysize, int zsize,
  * pointer.  Returns NULL for error; it and all checking routines should call 
  * b3dError with their error strings.
  */
-ImodImageFile *iiOpen(const char *filename, char *mode)
+ImodImageFile *iiOpen(const char *filename, const char *mode)
 {
   ImodImageFile *ofile;
   IIFileCheckFunction *checkFunc;

@@ -50,14 +50,14 @@ namespace Livewire
 			RedChannel, GreenChannel, BlueChannel,
 			AvgRGB,
 			Luma, Luma601, LumaSMPTE, // Rec. 709, Rec. 601, or SMPTE 240M
-			WeightedHSV, WeightedHSL, WeightedHSI, // 0.6 * [V or L or I] + 0.3 * H + 0.1 * S
+			WeightedHSV, WeightedHSL, WeightedHSI // 0.6 * [V or L or I] + 0.3 * H + 0.1 * S
 		};
 		enum PixelReductionMethod
 		{
 			NoPixelReduction  = 0x01,
 			Median2pxWindow   = 0x12, Median3pxWindow   = 0x13, Median4pxWindow   = 0x14, Median5pxWindow   = 0x15,
 			Mean2pxWindow     = 0x22, Mean3pxWindow     = 0x23, Mean4pxWindow     = 0x24, Mean5pxWindow     = 0x25,
-			/* same as mean 2x2 */    Gaussian3pxWindow = 0x33, Gaussian4pxWindow = 0x34, Gaussian5pxWindow = 0x35,
+			/* same as mean 2x2 */    Gaussian3pxWindow = 0x33, Gaussian4pxWindow = 0x34, Gaussian5pxWindow = 0x35
 			// TODO: any noise reduction methods added
 		};
 		enum NoiseReductionMethod
@@ -65,7 +65,7 @@ namespace Livewire
 			NoNoiseReduction        = 0x01,
 			MedianFilter3pxWindow   = 0x13, MedianFilter5pxWindow   = 0x15,
 			MeanFilter3pxWindow     = 0x23, MeanFilter5pxWindow     = 0x25,
-			GaussianFilter3pxWindow = 0x33, GaussianFilter5pxWindow = 0x35,
+			GaussianFilter3pxWindow = 0x33, GaussianFilter5pxWindow = 0x35
 			// TODO: Other RCRS filter, // http://en.wikipedia.org/wiki/Noise_reduction#Nonlinear_filters
 			// TODO: k-Nearest Neighbor Filtering, // http://www.anirudh.net/courses/cse585/project1/
 			// TODO: AnisotropicDiffusion, // http://en.wikipedia.org/wiki/Anisotropic_diffusion
@@ -73,13 +73,13 @@ namespace Livewire
 		enum EdgeDetectionMethod
 		{
 			NoEdgeDetection = 0x01,
-			Sobel = 0x13,
+			Sobel = 0x13
 			// TODO: Canny, // http://en.wikipedia.org/wiki/Canny_edge_detector http://homepages.inf.ed.ac.uk/rbf/HIPR2/canny.htm
 		};
 		enum AccentuationMethod
 		{
 			NoAccentuation,
-			Sigmoid,
+			Sigmoid
 			// TODO: Linear
 		};
 

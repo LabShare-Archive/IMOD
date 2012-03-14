@@ -1,7 +1,7 @@
 #include "imodel.h"
 #include "isothread.h" 
-#include "imodv_isosurface.h"
-#include "imodv_mcubes.h"
+#include "isosurface.h"
+#include "mcubes.h"
 
 IsoThread::IsoThread(int subsliceIndex, ImodvIsosurface *iso)
 { 

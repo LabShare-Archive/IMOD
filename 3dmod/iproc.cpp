@@ -1,5 +1,5 @@
 /*
- *  iproc.c -- image processing for 3dmod.
+ *  iproc.cpp -- image processing for 3dmod.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -34,13 +34,13 @@
 #include "tooledit.h"
 #include "multislider.h"
 #include "imod.h"
-#include "imod_display.h"
+#include "display.h"
 #include "iproc.h"
 #include "sliceproc.h"
 #include "xcorr.h"
 #include "xzap.h"
-#include "imod_info.h"
-#include "imod_info_cb.h"
+#include "info_setup.h"
+#include "info_cb.h"
 #include "control.h"
 #include "preferences.h"
 
@@ -89,7 +89,7 @@ ImodIProcData proc_data[] = {
 
 /* Static variables for proc structure and a slice */
 static ImodIProc proc = {0,0,0,0,0,0,{0,0},0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+                         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 static Islice s;
 
 /*
@@ -621,7 +621,7 @@ static void mkSmooth_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
 
 static void mkthresh_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
 {
-  char *sliderLabel[] = {"Threshold filter value" };
+  const char *sliderLabel[] = {"Threshold filter value" };
   MultiSlider *slider = new MultiSlider(parent, 1, sliderLabel, 0, 254);
   slider->setValue(0, proc.threshold);
   QObject::connect(slider, SIGNAL(sliderChanged(int, int, bool)), win, 
@@ -641,7 +641,7 @@ static void mkthresh_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
 static void mkFourFilt_cb(IProcWindow *win, QWidget *parent,
                           QVBoxLayout *layout)
 {
-  char *sliderLabel[] = {"Low-frequency sigma", "High-frequency cutoff",
+  const char *sliderLabel[] = {"Low-frequency sigma", "High-frequency cutoff",
                          "High-frequency falloff"};
   diaLabel("Filtering in Fourier Space", parent, layout);
   MultiSlider *slider = new MultiSlider(parent, 3, sliderLabel, 0, 200, 3);
@@ -792,9 +792,9 @@ static void setUnscaledK()
 }
 
 /* THE WINDOW CLASS CONSTRUCTOR */
-static char *buttonLabels[] = {"Apply", "More", "Toggle", "Reset", "Save", 
+static const char *buttonLabels[] = {"Apply", "More", "Toggle", "Reset", "Save", 
                                "Done", "Help"};
-static char *buttonTips[] = {"Operate on current section (hot key a)",
+static const char *buttonTips[] = {"Operate on current section (hot key a)",
                              "Reiterate operation on current section (hot key"
                              " b)",
                              "Toggle between processed and original image",

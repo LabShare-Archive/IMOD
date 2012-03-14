@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  *  $Id$
- *  Log at end of file
  */
 
 #include <math.h>
@@ -24,7 +23,7 @@
 #define NON_VALUE -99999999
 #define MAX_DECIMALS 6
 
-static char *deciFormats[MAX_DECIMALS + 1] = {"%d", "%.1f", "%.2f", "%.3f",
+static char const *deciFormats[MAX_DECIMALS + 1] = {"%d", "%.1f", "%.2f", "%.3f",
 					      "%.4f", "%.5f", "%.6f"};
 
 /*!
@@ -44,7 +43,7 @@ static char *deciFormats[MAX_DECIMALS + 1] = {"%d", "%.1f", "%.2f", "%.3f",
  * value, and [dragging] true if the slider is being dragged.
  */
 
-MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[], 
+MultiSlider::MultiSlider(QWidget *parent, int numSliders, const char *titles[], 
                          int minVal, int maxVal, int decimals, bool horizontal)
 {
   mHorizontal = horizontal;
@@ -285,56 +284,3 @@ void MultiSlider::sliderReleased(int which)
   mPressed[which] = false;
   emit sliderChanged(which, mSliders[which]->value(), false);
 }
-/*
-$Log$
-Revision 1.10  2009/01/26 04:39:47  mast
-Set page step of slicer to 1 so mouse click gives one step
-
-Revision 1.9  2009/01/15 16:30:26  mast
-Qt 4 port
-
-Revision 1.8  2008/06/25 21:21:43  mast
-Added method to show/hide all widgets
-
-Revision 1.7  2008/01/17 22:31:25  mast
-Added call to enable all components
-
-Revision 1.6  2007/08/26 06:55:59  mast
-Documentation changes
-
-Revision 1.5  2007/06/30 00:41:33  sueh
-bug# 1021 Fixed the copyright.
-
-Revision 1.4  2007/06/29 21:08:27  sueh
-bug# 1021 Allow horizontal, one-line slider lists.
-
-Revision 1.3  2004/11/21 05:52:45  mast
-Fixed to prevent two signals on middle mouse click
-
-Revision 1.2  2003/02/10 20:51:22  mast
-Merge Qt source
-
-Revision 1.1.2.1  2003/01/26 20:35:41  mast
-adding as library file
-
-Revision 1.1.2.7  2003/01/18 20:44:26  mast
-resolve some more.  Hate cvs merges!
-
-Revision 1.1.2.6  2003/01/18 20:43:50  mast
-resolve merge conflict
-
-Revision 1.1.2.5  2003/01/14 21:45:48  mast
-fix format for 2-decimal case, block signals when setting range
-
-Revision 1.1.2.4  2003/01/01 05:39:50  mast
-add decimal point capability for value output
-
-Revision 1.1.2.3  2002/12/29 04:21:22  mast
-correct delete statements
-
-Revision 1.1.2.2  2002/12/27 17:50:50  mast
-change statements for getting pointer arrays to make SGI compiler happy
-
-Revision 1.1.2.1  2002/12/27 01:19:47  mast
-Initial creation
-*/

@@ -7,23 +7,23 @@ HEADERS	+= autox.h \
 	b3dgfx.h \
 	b3dfile.h \
 	imod_edit.h \
-	imod_client_message.h \
+	client_message.h \
 	imod.h \
-	imod_info.h \
-	imod_info_cb.h \
+	info_setup.h \
+	info_cb.h \
 	imod_input.h \
 	imod_io.h \
-	imod_moviecon.h \
-	imod_cachefill.h \
-	imod_model_edit.h \
-	imod_iscale.h \
-	imod_cont_edit.h \
-	imod_cont_copy.h \
+	moviecon.h \
+	cachefill.h \
+	model_edit.h \
+	rescale.h \
+	cont_edit.h \
+	cont_copy.h \
 	imodP.h \
 	control.h \
 	imodv.h \
-	imod_workprocs.h \
-	imod_utilities.h \
+	workprocs.h \
+	utilities.h \
 	iproc.h \
 	slicer_classes.h \
 	sslice.h \
@@ -31,27 +31,27 @@ HEADERS	+= autox.h \
 	xxyz.h \
 	xzap.h \
 	xgraph.h \
-	imod_object_edit.h \
+	object_edit.h \
 	pixelview.h \
-	imodv_control.h \
+	mv_control.h \
 	zap_classes.h \
-	imod_display.h \
-	imodv_window.h \
-	imodv_gfx.h \
-	imodv_ogl.h \
-	imodv_input.h \
-	imodv_menu.h \
-	imodv_light.h \
-	imodv_stereo.h \
-	imodv_depthcue.h \
-	imodv_views.h \
-	imodv_modeled.h \
-	imodv_objed.h \
-	imodv_listobj.h \
-	imodv_image.h \
+	display.h \
+	mv_window.h \
+	mv_gfx.h \
+	mv_ogl.h \
+	mv_input.h \
+	mv_menu.h \
+	mv_light.h \
+	mv_stereo.h \
+	mv_depthcue.h \
+	mv_views.h \
+	mv_modeled.h \
+	mv_objed.h \
+	mv_listobj.h \
+	mv_image.h \
 	histwidget.h \
-	imodv_isosurface.h \
-	imodv_movie.h \
+	isosurface.h \
+	mv_movie.h \
 	qcursor.bits \
 	qcursor_mask.bits \
 	time_lock.bits \
@@ -78,10 +78,10 @@ HEADERS	+= autox.h \
 	iirawimage.h \
 	scalebar.h \
 	isothread.h \
-	imodv_mcubes.h \
-	imodv_mcubescpp.h \
-	imodv_surfpieces.h \
-	imodv_mappingtable.h \
+	mcubes.h \
+	mcubescpp.h \
+	surfpieces.h \
+	mappingtable.h \
         vertexbuffer.h \
 	form_object_edit.h \
 	formv_control.h \
@@ -109,42 +109,42 @@ SOURCES	+= autox.cpp \
 	b3dfile.c \
 	b3dgfx.cpp \
 	control.cpp \
-	imod_cachefill.cpp \
-	imod_client_message.cpp \
-	imod_cont_copy.cpp \
-	imod_cont_edit.cpp \
-	imod_display.cpp \
+	cachefill.cpp \
+	client_message.cpp \
+	cont_copy.cpp \
+	cont_edit.cpp \
+	display.cpp \
 	imod_edit.cpp \
-	imod_info.cpp \
-	imod_info_cb.cpp \
+	info_setup.cpp \
+	info_cb.cpp \
 	imod_input.cpp \
 	imod_io.cpp \
-	imod_iscale.cpp \
-	imod_menu.cpp \
-	imod_model_draw.cpp \
-	imod_model_edit.cpp \
-	imod_moviecon.cpp \
+	rescale.cpp \
+	info_menu.cpp \
+	model_draw.cpp \
+	model_edit.cpp \
+	moviecon.cpp \
 	imodplug.cpp \
-	imodv_depthcue.cpp \
-	imodv_gfx.cpp \
+	mv_depthcue.cpp \
+	mv_gfx.cpp \
 	imodview.cpp \
-	imodv_image.cpp \
+	mv_image.cpp \
 	histwidget.cpp \
 	isothread.cpp \
-	imodv_isosurface.cpp \
-	imodv_surfpieces.cpp \
-	imodv_input.cpp \
-	imodv_light.cpp \
-	imodv_menu.cpp \
-	imodv_modeled.cpp \
-	imodv_movie.cpp \
-	imodv_objed.cpp \
-	imodv_listobj.cpp \
-	imodv_ogl.cpp \
-	imodv_stereo.cpp \
-	imodv_views.cpp \
-	imod_workprocs.cpp \
-	imod_utilities.cpp \
+	isosurface.cpp \
+	surfpieces.cpp \
+	mv_input.cpp \
+	mv_light.cpp \
+	mv_menu.cpp \
+	mv_modeled.cpp \
+	mv_movie.cpp \
+	mv_objed.cpp \
+	mv_listobj.cpp \
+	mv_ogl.cpp \
+	mv_stereo.cpp \
+	mv_views.cpp \
+	workprocs.cpp \
+	utilities.cpp \
 	iproc.cpp \
 	pixelview.cpp \
 	slicer.cpp \
@@ -155,11 +155,11 @@ SOURCES	+= autox.cpp \
 	xyz.cpp \
 	xzap.cpp \
 	imod.cpp \
-	imod_object_edit.cpp \
-	imodv_control.cpp \
+	object_edit.cpp \
+	mv_control.cpp \
 	imodv.cpp \
 	zap_classes.cpp \
-	imodv_window.cpp \
+	mv_window.cpp \
 	xcramp.cpp \
 	preferences.cpp \
 	beadfix.cpp \
@@ -171,7 +171,7 @@ SOURCES	+= autox.cpp \
 	iirawimage.cpp \
 	finegrain.cpp \
 	scalebar.cpp \
-	imodv_mappingtable.cpp \
+	mappingtable.cpp \
         vertexbuffer.cpp \
 	form_object_edit.cpp \
 	formv_control.cpp \

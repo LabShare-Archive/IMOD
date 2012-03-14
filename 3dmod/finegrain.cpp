@@ -16,13 +16,13 @@
 #include "imod.h"
 #include "imod_edit.h"
 #include "imod_input.h"
-#include "imod_info_cb.h"
-#include "imod_display.h"
+#include "info_cb.h"
+#include "display.h"
 #include "control.h"
 #include "undoredo.h"
 #include "b3dgfx.h"
 #include "xzap.h"
-#include "imodv_light.h"
+#include "mv_light.h"
 
 typedef struct fg_data_struct {
   FineGrainForm *dia;

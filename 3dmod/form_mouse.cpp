@@ -117,7 +117,7 @@ void MouseForm::swapToggled( bool state )
 
 void  MouseForm::setMouseLabels()
 {
-  char *texts[3] = {"Pan, mark\nAttach to pt", "Movie up\nAdd point", 
+  const char *texts[3] = {"Pan, mark\nAttach to pt", "Movie up\nAdd point", 
                     "Movie down\nModify pt"};
   int leftMapping[6] = {0, 2, 1, 0, 1, 2};
   int midMapping[6] = {1, 0, 2, 2, 0, 1};

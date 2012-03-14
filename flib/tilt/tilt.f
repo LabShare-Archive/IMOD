@@ -8,7 +8,6 @@ c
 c       See man page for details
 C       
 c       $Id$
-c       Log at end of file
 c       
       use tiltvars
       implicit none
@@ -17,24 +16,24 @@ c
       character*20 radtxt1/'Radial weighting'/
       character*18 radtxt2/'   function'/
 c       
-      integer*4 interhsave,nsliceout,memBigCrit,memBigOutLim,nslice,nxprj2
+      integer*4 interhsave,nsliceout,nslice,nxprj2
       integer*4 inloadstr,inloadend,lastready,lastcalc,nextfreevs
       integer*4 lvsstart,lvsend,nvsinring,ni,loadlimit,LSLICEout
       integer*4 lsstart,lsend,lslice,needstart,needend,itryend, ibaseSIRT
       integer*4 itry,ifenough,laststart,lastend,i,lsmin,lsmax, nextReadFree
-      integer*4 iv,iy,nalready, lsProjEnd,lReadStart, lReadEnd, nReadInRing
+      integer*4 iv,nalready, lsProjEnd,lReadStart, lReadEnd, nReadInRing
       real*4 dmin,dmax,ycenfix,abssal,tanalpha, dmin4,dmax4,dmin5,dmax5,dmin6,dmax6,tmin
-      real*4 valmin,xsum,stmean, vslcen, vycenfix, riBot, riTop,tmax,tmean
+      real*4 valmin,vslcen, vycenfix, riBot, riTop,tmax,tmean
       integer*4 lriMin, lriMax, loadstart, loadEnd, lri, isirt, ierr, j, k
-      integer*4 ibase,lstart,nv,ISTART,NL,iyload,nsum,ix,ipad,ioffset
+      integer*4 ibase,lstart,nv,ISTART,NL,iyload,ix,ioffset
       integer*4 iringstart,mode,needGpuStart,needGpuEnd,keepOnGpu,numLoadGpu
-      real*4 endmean,f,unscmin,unscmax,recscale,recflevl,DMEAN,pixelTot
+      real*4 unscmin,unscmax,recscale,recflevl,DMEAN,pixelTot
       real*4 rpfill, curmean, firstmean, vertSum, numVertSum, edgeFillOrig
       real*4 composeFill
-      integer*4 jsirt,iset,ixSum,mapEnd,nz5,lfillStart,lfillEnd
+      integer*4 iset,mapEnd,nz5,lfillStart,lfillEnd
       real*8 dtot8
       logical*4 shiftedGpuLoad, composedOne, truncations, extremes
-      integer*4 gpuLoadProj,gpuShiftProj, gpuReprojOneSlice,parWrtSetCurrent
+      integer*4 gpuLoadProj, gpuReprojOneSlice,parWrtSetCurrent
       real*8 walltime, tstart, dsum, dpix
 c
       interhsave=20
@@ -715,7 +714,7 @@ c
 c       Determine parameters for loading GPU and make call to shift existing
 c       data if any is to be retained
       subroutine shiftGpuSetupCopy()
-      integer*4 gpuShiftProj, ierrg
+      integer*4 gpuShiftProj
       needGpuStart = needStarts(lsliceOut-needBase)
       needGpuEnd = min(needGpuStart + numGpuPlanes - 1,  needend)
       keepOnGpu = 0
@@ -861,7 +860,7 @@ C       Linear ramp plus Gaussian fall off
       use tiltvars
       implicit none
       integer*4 IRMAXin,IFALLin,ifilterSet
-      integer*4 nxprj2,IEND,irmax,ifall,iv,iw,ibase,i,impbase
+      integer*4 nxprj2,IEND,irmax,ifall,iv,iw,ibase,i
       real*4 stretch,avgint,atten,sumint,wsum,z,arg,sirtFrac
       real*4 diffmin, diff, attensum
       real*4, allocatable :: wgtAtten(:)
@@ -1161,7 +1160,7 @@ C
       implicit none
       integer*4 jstrt(3),jend(3)
       real*8 xproj8, tstart
-      integer*4 nxprj2,ipdel,IPOINT,NV,iv,INDEX,i,j
+      integer*4 nxprj2,ipdel,IPOINT,iv,INDEX,i,j
       real*4 CBETA,SBETA,zz,zpart,yy,yproj,YFRAC,omyfrac
       integer*4 jPROJ,jlft,jrt,iproj,ip1,ip2,ind,ipbase,ifytest
       integer*4 jtstlft,jtstrt,ISTART,lslice,jregion
@@ -1798,7 +1797,7 @@ C       --------------------------------------
 C       
       use tiltvars
       implicit none
-      integer*4 lslice,nparextra,iend,index,i,j,iaryBase, imapOut
+      integer*4 lslice,nparextra,iend,index,i,j, imapOut
       real*4 DMIN,DMAX,fill
       real*8 dtot8,dtmp8
 c       
@@ -2007,16 +2006,15 @@ c
       integer*4 irmax,ifall,ncompress,nxfull,nyfull,ixsubset,iysubset
       integer*4 kti,indbase,ipos,idtype,lens
       integer*4 nd1,nd2,nv,nslice,indi,i,iex,nvorig,iv
-      real*4 vd1,vd2,dtheta,theta,thetanv,rmax,sdg,oversamp,scalescl
-      integer*4 nxprjp,nwidep,needwrk,needzwrk,neediw,needrw,needout,minsup
-      integer*4 maxsup,nshift,nxprj2,ninp,nexclist,j,needzw,ind, nument
-      integer*4 npadtmp,nprpad,ithicknew,nocosPlanes,ifZfac,localZfacs
+      real*4 vd1,vd2,dtheta,theta,thetanv
+      integer*4 nxprj2,ninp,nexclist,j,ind, nument
+      integer*4 npadtmp,nprpad,ifZfac,localZfacs
       integer*4 ifThickIn,ifSliceIn,ifWidthIn,imageBinned,ifSubsetIn,ierr
       real*4 pixelLocal, dmint,dmaxt,dmeant, frac, origx, origy, origz
       real*4 gpuMemoryFrac, gpuMemory
       integer*4 nViewsReproj, iwideReproj, k, ind1, ind2, ifExpWeight
       integer*4 minMemory, nGPU,iactGpuFailOption,iactGpuFailEnviron
-      integer*4 ifGpuByEnviron, memNeed, indDelta, ifexit
+      integer*4 ifGpuByEnviron, indDelta, ifexit
       logical*4 adjustOrigin, projModel, readw_or_imod
       integer*4 niceframe, parWrtInitialize, gpuAvailable, imodGetEnv,parWrtSetCurrent
       integer*4 gpuAllocArrays, allocateArray, gpuLoadLocals, gpuLoadFilter
@@ -2639,7 +2637,7 @@ c
 c       
 c       END OF OPTION READING
 C       
-999   WRITE(6,48)
+      WRITE(6,48)
       if(ifalpha.ne.0.and.idelslice.ne.1)call exitError(
      &    'Cannot do X axis tilt with non-consecutive slices')
       if(nxwarp.ne.0.and.idelslice.ne.1)call exitError(
@@ -3634,9 +3632,6 @@ C
 C       
 48    FORMAT(//,1X,78('-'))
 49    FORMAT('TILT: ',a,t57,A9,2X,A8)
-50    FORMAT(
-     &    //,' THREE-D RECONSTRUCTION FROM SERIES OF PROJECTIONS '
-     &    ,' ABOUT A COMMON TILT AXIS'/,1x,76('-')///)
 51    FORMAT(/' Projection angles:'//(8F9.2))
 52    FORMAT(//,1X,78('-'))
 53    format(/,'Scaling of local alignments by ',f8.3,
@@ -4400,16 +4395,16 @@ c
       implicit none
       integer*4 lsStart, lsEnd, inloadstr, inloadend
       real*4 dmin, dmax
-      integer*4 iv, ix, iy, iz, ixp, line, i, numz, kz, iys, ixnd, ixst, ind
+      integer*4 iv, ix, iy, iz, ixp, line, i, iys, ind
       integer*4 ind1, ind2, ind3, ind4, load
-      real*4 calf, salf, cbeta, sbeta, delz, delx, znum, fz, omfz, zz, xx, fx
-      real*4 omfx, yy, fy, omfy, xproj, yproj, yslice, d11, d12, d21, d22
-      real*4 dxdelz, f1, f2, f3, f4, xxgood, yygood, zzgood, xxm, pfill
+      real*4 calf, salf, cbeta, sbeta, delz, delx, fz, omfz, zz, xx, fx
+      real*4 omfx, yy, fy, omfy, xproj, yproj, d11, d12, d21, d22
+      real*4 f1, f2, f3, f4, xxgood, yygood, zzgood
       real*4 ytol, xprojMin, xprojMax, xjump, zjump, dely,diffxmax,diffymax
-      integer*4 indbase, nxload, ndelz, ixc, lastZdone, iter, ifdone, ifout
+      integer*4 indbase, nxload, ixc, lastZdone
       integer*4 ijump, njump, lgpuEnd, lineBase
       real*4 ycenAdj
-      real*8 xx8, sum, dtot8, walltime, tstart, tcumul
+      real*8 sum, dtot8, walltime, tstart, tcumul
       logical*4 tryjump
       real*4 reprojDelz
       integer*4 gpuReproject, gpuReprojLocal
@@ -4773,7 +4768,7 @@ c      print *,'Finding proj pt to',xproj,yproj,zz
 c        write(*,101)'facs', (xprojfs(i), xprojzs(i), yprojfs(i),
 c     &      yprojzs(i), i=ind,ind+1)
 c        write(*,101)'xps',xx,yy,zz,xp11,yp11,xp21,yp21,xp12,yp12
-101     format(a,9f8.2)
+c101     format(a,9f8.2)
         xerr = xproj - xp11
         yerr = yproj - yp11
         dxpx = xp21 - xp11
@@ -4826,13 +4821,12 @@ c
       real*4 xprjOffset, yprjOffset, slicen, xzfacv, yzfacv, pmean
       real*4 xcen, ycen, xcenPdelxx
 c       
-      integer*4 ix, iz, i, numz, kz, iys, ixnd, ixst, ind, indbase,myFloor
+      integer*4 ix, iz, i, numz, kz, iys, ixnd, ixst, ind, indbase
       real*4 znum, fz, omfz, zz, xx, fx, ytol, pfill, salfsbetdcal, xcenAdj, ysl, dely
       real*4 omfx, yy, fy, omfy, xproj, yproj, yslice, d11, d12, d21, d22
       real*8 xx8, yy8, zz8
       integer*4 numx, kx, ixyOKst, ixyOKnd, iyfix, ifixst, ifixnd
       real*4 delz, xnum, eps
-      real*4 atand, atan2d
 
       ytol = 3.05
       eps = 0.01
@@ -5277,7 +5271,7 @@ c
       real*4, allocatable :: values(:), coords(:,:)
       integer*4, allocatable :: mapnv(:)
       integer*4 getContValue, putImageRef, putContValue, putImodFlag
-      integer*4 getScatSize, putScatSize
+      integer*4 getScatSize, putScatSize, putImodMaxes
 c       
       call irtorg(1, orig(1), orig(2), orig(3))
       call scale_model(0)
@@ -5305,8 +5299,9 @@ c       Start a new model
       call newimod()
       n_point = 0
       iobj = 0
-      if (putImageRef(delta, orig) .ne. 0) call exitError(
-     &    'Putting image reference information in output model')
+      if (putImageRef(delta, orig) .ne. 0 .or. putImodMaxes(npxyz(1), npxyz(2), npxyz(3))
+     &     .ne. 0) call exitError(
+     &    'Putting image reference or maximum size information in output model')
 c       
 c       Build a map from views in file to ordered views in program
       do nv = 1, nvorig
@@ -5396,210 +5391,3 @@ c       Set to open contour, show values etc., and show sphere on section only
       print *,n_point,' points written to output model'
       call exit(0)
       end
-
-c       
-c       $Log$
-c       Revision 3.63  2011/07/09 18:22:31  mast
-c       Added ability to read and write vertical slices for internal SIRT
-c
-c       Revision 3.62  2011/02/18 22:56:56  mast
-c       Removed limit on views and made reprojections work with all angles
-c
-c       Revision 3.61  2010/09/15 22:50:08  mast
-c       Fixed problems at tilt near 90 with X axis offsets
-c
-c       Revision 3.60  2010/08/17 18:32:43  mast
-c       Fixed memory allocation for fewer than 10 slices
-c
-c       Revision 3.59  2010/06/20 19:29:12  mast
-c       Use unit 6 for boundary info to avoid conflict with debug output
-c
-c       Revision 3.58  2010/06/14 18:53:19  mast
-c       Added warnings about truncated output and about extreme values from GPU
-c
-c       Revision 3.57  2010/05/24 21:33:15  mast
-c       Changed scaling messages
-c
-c       Revision 3.56  2010/05/24 19:50:44  mast
-c       Fixed centering of vertical slices with a yoffset, provided separate
-c       fill value for compose and held slices to be filled until it is set
-c
-c       Revision 3.55  2010/02/26 16:55:36  mast
-c       New options for internal subtractions for SIRT, and for statistics.
-c
-c       Revision 3.54  2010/02/22 06:04:19  mast
-c       Implemented internal SIRT iterations, reprojection on GPU with local
-c       alignments, fixed bugs in local alignment CPU reprojection, changed 
-c       masking to do a tapering with specified number of extra pixels
-c
-c       Revision 3.53  2010/02/02 02:19:26  mast
-c       Fixed allocataion of warping data for reprojecting rec
-c
-c       Revision 3.52  2010/01/10 17:19:24  mast
-c       Pass args to limit GPU allocation error messages, limit request for
-c       projection array to 32760 lines
-c
-c       Revision 3.51  2010/01/04 15:50:44  mast
-c       Fix format
-c
-c       Revision 3.50  2009/12/31 20:40:34  mast
-c       Implemented all backprojection and reprojection without local alignments
-c       on GPU.  Switched to smart allocation of stack array to get an amount
-c       similar to what was used before.  Eliminated fast backprojection,
-c       replication, and negative increments.
-c
-c       Revision 3.49  2009/11/06 05:51:49  mast
-c       Change format string from (i) to * for gfortran 4.4
-c
-c       Revision 3.48  2009/10/19 19:06:09  mast
-c       Make it able to do incremental projection with vertical slices
-c
-c       Revision 3.47  2009/10/16 04:40:41  mast
-c       Fixed reprojection from model when there are X axis tilts and no Z
-c       factor/local alignments; made it treat fixed alpha in xtilt file like
-c       regular x axis tilt
-c
-c       Revision 3.46  2009/06/26 05:17:08  mast
-c       Memory allocation with environment variable to control it
-c
-c       Revision 3.45  2009/05/22 22:53:07  mast
-c       Switch to using full-sized model, protect against dividing by cos 90
-c
-c       Revision 3.44  2009/02/16 06:22:30  mast
-c       Modified to use new parallel write stuff
-c
-c       Revision 3.43  2008/12/12 16:40:21  mast
-c       Fixes for 180 degree tilting: modify angles to be 0.05 degree away from
-c       +/-90; disable cosine stretching of data above 80, and swap left and
-c       right limits of valid backprojection when needed
-c
-c       Revision 3.42  2008/11/14 06:32:25  mast
-c       Added projection from model
-c
-c       Revision 3.41  2008/11/02 14:45:38  mast
-c       Added options for incremental reconstructions
-c
-c       Revision 3.40  2008/05/30 04:05:57  mast
-c       Fixed scaling recommendation for 10 to 245, added one for -15000 to 15000
-c
-c       Revision 3.39  2007/12/06 20:43:16  mast
-c       Added option for adjusting origin for all relevant changes
-c
-c       Revision 3.38  2007/09/08 20:57:58  mast
-c       Fixed reading of SHIFT, REPROJECT, and some other entries
-c
-c       Revision 3.37  2007/07/19 02:46:41  mast
-c       Removed debugging output
-c
-c       Revision 3.36  2007/07/17 15:20:07  mast
-c       Fix int/float mismatch in min statement
-c
-c       Revision 3.35  2007/07/16 05:11:05  mast
-c       Added reprojection from tomogram with local alignments, etc.
-c
-c       Revision 3.34  2007/06/22 05:04:34  mast
-c       Converted to PIP
-c
-c       Revision 3.33  2007/03/08 23:50:28  mast
-c       Give error if there are less than 2 local areas in each direction
-c
-c       Revision 3.32  2007/03/08 20:12:26  mast
-c       Only put out message about x tilt angles from file if non-zero
-c
-c       Revision 3.31  2006/06/21 06:26:45  mast
-c       Removed a debugging output
-c
-c       Revision 3.30  2006/06/20 22:10:59  mast
-c       Added ability to reproject at multiple angles
-c
-c       Revision 3.29  2006/06/06 17:17:38  mast
-c       Changes mmm/pixel output to formatted write to keep it on one line
-c
-c       Revision 3.28  2006/04/09 00:11:49  mast
-c       Commented out debugging statement
-c
-c       Revision 3.27  2006/03/24 23:11:03  mast
-c       Added ability for parallel runs to write directly to an existing
-c       output file
-c
-c       Revision 3.26  2006/03/21 06:27:57  mast
-c       Made it work with aligned stack bigger than "FULLIMAGE"
-c
-c       Revision 3.25  2005/12/09 04:43:27  mast
-c       gfortran: .xor., continuation, format tab continuation or byte fixes
-c
-c       Revision 3.24  2005/10/08 20:10:06  mast
-c       Fixed computation of ending slice with binning
-c       
-c       Revision 3.23  2005/06/07 22:12:42  mast
-c       Added IMAGEBINNED option so dimensions can be scaled automatically
-c       
-c       Revision 3.22  2004/10/22 13:39:14  mast
-c       Declared lnblnk for SGI
-c       
-c       Revision 3.21  2004/10/22 03:29:31  mast
-c       Added z factor corrections and declarations for all routines
-c       
-c       Revision 3.20  2004/10/13 05:49:32  mast
-c       Fixed bug in Y positioning when falling back to old-style X tilting,
-c       Fixed fallback strategies to go to old-style with cosine stretch,
-c       new-style without cosine stretch, then old-style w/o stretch and 
-c       fixed bug in evaluating slices needed at that stage.
-c       
-c       Revision 3.19  2004/10/11 05:15:28  mast
-c       Fixed integer truncation of pixel size from local file
-c       
-c       Revision 3.18  2004/09/24 18:24:52  mast
-c       Incorporated reprojection capability from old code
-c       
-c       Revision 3.17  2004/07/19 04:10:54  mast
-c       Needed to declare inum external for Intel/Windows
-c       
-c       Revision 3.16  2004/07/16 23:38:13  mast
-c       Made it determine local scale from pixel sizes if present; fixed a bug
-c       that was setting log base 0 after read the fullimage line; added
-c       a EXCLUDELIST2 option
-c       
-c       Revision 3.15  2004/04/01 01:44:23  mast
-c       Used input file range to avoid taking logs of very small numbers
-c       
-c       Revision 3.14  2003/12/09 00:11:49  mast
-c       Have card reader accept blank lines in case sed in new sample.com
-c       creates one
-c       
-c       Revision 3.13  2003/10/24 03:44:56  mast
-c       took out flush call for Windows/Intel
-c       
-c       Revision 3.12  2003/10/16 20:38:32  mast
-c       Adding to option documentation
-c       
-c       Revision 3.11  2003/08/02 22:36:49  mast
-c       Revert from the version that padded thickness for x-axis tilting now
-c       that fbp takes care of this.
-c       Limit stack usage so that when loaded data is bigger than a certain
-c       size, only enough is loaded to reconstruct 10 output slices.
-c       
-c       Revision 3.8  2003/04/29 23:33:54  mast
-c       Set default for radial filter and increase thickness limit
-c       
-c       Revision 3.7  2002/07/28 00:03:40  mast
-c       Made it preserve pixel spacings in output file
-c       
-c       Revision 3.6  2002/07/26 19:19:04  mast
-c       Added machine-specific switch-points for not doing fast
-c       backprojection
-c       
-c       Revision 3.5  2002/07/21 19:37:25  mast
-c       Replaced STOP with call exit(1) and standardized error outputs
-c       
-c       Revision 3.4  2002/05/07 02:02:53  mast
-c       Added EXCLUDELIST option
-c       
-c       Revision 3.3  2002/02/01 15:27:31  mast
-c       Made it write extra data periodically with PARALLEL option to 
-c       partially demangle the output file and prevent very slow reading
-c       under Linux.
-c       
-c       Revision 1.2  2001/11/22 00:41:57  mast
-c       Fixed computation of mean for files > 2 GPixels
-c       

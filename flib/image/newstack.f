@@ -11,7 +11,6 @@ c       output files.
 *       For all details see the man page.
 *       
 c       $Id$
-c       Log at end of file
 c       
       implicit none
       integer maxtemp,lmsec,maxchunks,lmGradSec
@@ -61,11 +60,11 @@ c
             
       real*4 tiltAngles(lmgradsec), dmagPerUm(lmgradsec), rotPerUm(lmgradsec)
 c       
-      logical rescale,blankOutput,adjustOrigin, hasWarp
+      logical rescale,blankOutput,adjustOrigin, hasWarp, fillTmp, fillNeeded
       character dat*9,tim*8,tempext*9
       logical nbytes_and_flags
       character*80 titlech
-      integer*4 inunit,nfilein,listot,noutot,nfileout,nx3,ny3,lmGrid,ifWarping
+      integer*4 inunit,nfilein,listot,noutot,nfileout,nxout,nyout,lmGrid,ifWarping
       integer*4 newmode,ifoffset,ifxform,nxforms,nlineuse,ifmean,iffloat
       integer*4 nsum,ilis,ifil,nsecred,loadyst,loadynd,isec,isecout
       real*4 xofsall,yofsall,fraczero,dminspec,dmaxspec,conlo,conhi
@@ -74,11 +73,11 @@ c
       integer*4 ifileout,ntrunclo,ntrunchi,ifheaderout,iftempopen,nbsymin
       integer*4 nbytexin,iflagxin,mode,nbytexout,nbsymout,indxout,iVerbose
       real*4 dmin,dmax,dmean,dmin2,dmax2,dmean2,optin,optout,bottomin
-      real*4 bottomout,xci,yci,dx,dy,xp1,yp1,xp2,yp2,xp3,yp3,xp4,yp4
+      real*4 bottomout,xci,yci,dx,dy,fieldMaxX, ystart
       integer*4 linesleft,nchunk,nextline,ichunk,ifOutChunk,iscan,iytest
-      integer*4 iybase,iy1,iy2,lnu,maxin,numScaleFacs
+      integer*4 iybase,iy1,iy2,lnu,maxin,numScaleFacs,maxFieldX,needYfirst, needYlast
       real*4 dmeansec,tmpmin,tmpmax,val,tsum2,sclfac
-      integer*4 needyst,needynd,nload,nyload,nych,iseriesBase
+      integer*4 needyst,needynd,nload,nyload,nych,iseriesBase, nyNeeded
       integer*4 ix1,ix2,nbcopy,nbclear,ifLinear, limEntered,insideTaper
       real*4 const,denoutmin,den, tmin2,tmax2,tmean2,avgsec
       integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet, maxNxg, maxNyg
@@ -106,29 +105,27 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  newstack
 c       
       integer numOptions
-      parameter (numOptions = 40)
+      parameter (numOptions = 42)
       character*(40 * numOptions) options(1)
       options(1) =
-     &    'input:InputFile:FNM:@output:OutputFile:FNM:@'//
-     &    'fileinlist:FileOfInputs:FN:@fileoutlist:FileOfOutputs:FN:@'//
-     &    'split:SplitStartingNumber:I:@append:AppendExtension:CH:@'//
-     &    'secs:SectionsToRead:LIM:@skip:SkipSectionIncrement:I:@'//
-     &    'numout:NumberToOutput:IAM:@replace:ReplaceSections:LI:@'//
-     &    'blank:BlankOutput:B:@size:SizeToOutputInXandY:IP:@'//
-     &    'mode:ModeToOutput:I:@offset:OffsetsInXandY:FAM:@'//
+     &    'input:InputFile:FNM:@output:OutputFile:FNM:@fileinlist:FileOfInputs:FN:@'//
+     &    'fileoutlist:FileOfOutputs:FN:@split:SplitStartingNumber:I:@'//
+     &    'append:AppendExtension:CH:@secs:SectionsToRead:LIM:@'//
+     &    'skip:SkipSectionIncrement:I:@numout:NumberToOutput:IAM:@'//
+     &    'replace:ReplaceSections:LI:@blank:BlankOutput:B:@'//
+     &    'size:SizeToOutputInXandY:IP:@mode:ModeToOutput:I:@'//
+     &    'bytes:BytesSignedInOutput:I:@offset:OffsetsInXandY:FAM:@'//
      &    'applyfirst:ApplyOffsetsFirst:B:@xform:TransformFile:FN:@'//
      &    'uselines:UseTransformLines:LIM:@onexform:OneTransformPerFile:B:@'//
-     &    'rotate:RotateByAngle:F:@expand:ExpandByFactor:F:@'//
-     &    'shrink:ShrinkByFactor:F:@antialias:AntialiasFilter:I:@'//
-     &    'bin:BinByFactor:I:@origin:AdjustOrigin:B:@'//
-     &    'linear:LinearInterpolation:B:@float:FloatDensities:I:@'//
-     &    'contrast:ContrastBlackWhite:IP:@scale:ScaleMinAndMax:FP:@'//
-     &    'fill:FillValue:F:@multadd:MultiplyAndAdd:FPM:@'//
+     &    'rotate:RotateByAngle:F:@expand:ExpandByFactor:F:@shrink:ShrinkByFactor:F:@'//
+     &    'antialias:AntialiasFilter:I:@bin:BinByFactor:I:@origin:AdjustOrigin:B:@'//
+     &    'linear:LinearInterpolation:B:@nearest:NearestNeighbor:B:@'//
+     &    'float:FloatDensities:I:@contrast:ContrastBlackWhite:IP:@'//
+     &    'scale:ScaleMinAndMax:FP:@fill:FillValue:F:@multadd:MultiplyAndAdd:FPM:@'//
      &    'taper:TaperAtFill:IP:@distort:DistortionField:FN:@'//
      &    'imagebinned:ImagesAreBinned:I:@fields:UseFields:LIM:@'//
-     &    'gradient:GradientFile:FN:@memory:MemoryLimit:I:@'//
-     &    'test:TestLimits:IP:@verbose:VerboseOutput:I:@'//
-     &    'param:ParameterFile:PF:@help:usage:B:'
+     &    'gradient:GradientFile:FN:@memory:MemoryLimit:I:@test:TestLimits:IP:@'//
+     &    'verbose:VerboseOutput:I:@param:ParameterFile:PF:@help:usage:B:'
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -440,14 +437,14 @@ c       If series, now take the one filename as root name and make filenames
 c       
 c       get new size and mode and offsets
 c       
-      nx3=-1
-      ny3=-1
+      nxout=-1
+      nyout=-1
       newmode=-1
       xofsall=0.
       yofsall=0.
       ifoffset = 0
       if (pipinput) then
-        ierr = PipGetTwoIntegers('SizeToOutputInXandY', nx3, ny3)
+        ierr = PipGetTwoIntegers('SizeToOutputInXandY', nxout, nyout)
         ierr = PipGetInteger('ModeToOutput', newmode)
         call PipNumberOfEntries('OffsetsInXandY', numOutEntries)
         if (numOutEntries .gt. 0) then
@@ -473,7 +470,7 @@ c
       else
         write(*,'(1x,a,$)')'Output file X and Y dimensions'//
      &      ' (/ for same as first input file): '
-        read(5,*)nx3,ny3
+        read(5,*)nxout,nyout
         write(*,'(1x,a,$)')'Output file data mode (/ for same as first input file): '
         read(5,*)newmode
 c         
@@ -508,6 +505,11 @@ C
         ierr = PipGetBoolean('LinearInterpolation', ifLinear)
         if (PipGetString('TransformFile', xffil) .eq. 0) ifxform = 1
         ierr = PipGetBoolean('OneTransformPerFile', ifOnePerFile)
+        ix1 = 0
+        ierr = PipGetBoolean('NearestNeighbor', ix1)
+        if (ix1 .ne. 0. and. ifLinear .ne. 0) call exitError(
+     &      'YOU CANNOT ENTER BOTH -linear AND -nearest')
+        if (ix1 .ne. 0) ifLinear = -1
       else
         write(*,'(1x,a,$)')'1 or 2 to transform images with cubic or'
      &      //' linear interpolation, 0 not to: '
@@ -871,6 +873,7 @@ c
             call getBinnedSize(nx, iBinning, nxbin, ixOffset)
             call getBinnedSize(ny, iBinning, nybin, iyOffset)
 c             
+            nyNeeded = nybin
             call reallocateIfNeeded()
 c                
             do ilis=1,nlist(ifil)
@@ -878,7 +881,7 @@ c
               if (nsecred .ge. 0 .and. nsecred .lt. nz) then
 c                 
                 if (iVerbose .gt. 0) print *,'scanning for mean/sd',nsecred
-                call scansection(array,idim,nxbin,nybin, iBinning, ixOffset,
+                call scansection(array,idim,nxbin,nybin, 0, iBinning, ixOffset,
      &              iyOffset,nsecred,iffloat,dmin2, dmax2,dmean2,sdsec,
      &              loadyst,loadynd,array(idim + 1), lenTemp)
                 secmean(ilis+listind(ifil)-1)=dmean2
@@ -931,7 +934,7 @@ c
       ifileout=1
       call ialprt(.true.)
       call time(tim)
-      call date(dat)
+      call b3ddate(dat)
       ntrunclo=0
       ntrunchi=0
       ifheaderout=0
@@ -985,13 +988,13 @@ c           set output characteristics from first section, transposing size
 c           for 90 degree rotation and resizing as necessary
 c           
           if(isec.eq.1)then
-            if (abs(abs(rotateAngle) - 90.) .lt. 0.1 .and. nx3.le.0 .and.
-     &          ny3.le.0) then
-              nx3=nint(nybin * expandFactor)
-              ny3=nint(nxbin * expandFactor)
+            if (abs(abs(rotateAngle) - 90.) .lt. 0.1 .and. nxout.le.0 .and.
+     &          nyout.le.0) then
+              nxout=nint(nybin * expandFactor)
+              nyout=nint(nxbin * expandFactor)
             endif
-            if(nx3.le.0)nx3=nint(nxbin * expandFactor)
-            if(ny3.le.0)ny3=nint(nybin * expandFactor)
+            if(nxout.le.0)nxout=nint(nxbin * expandFactor)
+            if(nyout.le.0)nyout=nint(nybin * expandFactor)
             if(newmode.lt.0)newmode=mode
 c       
 c             If warping or distortions, figure out how big to allocate the arrays
@@ -1007,17 +1010,17 @@ c               output size for warping
                 xnbig = nxmax / warpScale
                 ynbig = nymax / warpScale
               else
-                xnbig = iBinning * nx3 / warpScale
-                ynbig = iBinning * ny3 / warpScale
+                xnbig = iBinning * nxout / warpScale
+                ynbig = iBinning * nyout / warpScale
                 if (applyFirst .eq. 0) then
                   do i = 1, listot
                     dx = 1.e20
                     dy = 1.e20
                     xnbig = -dx
                     xnbig = -dx
-                    xnbig = max(xnbig, (nx3 + xcen(i)) * iBinning / warpScale)
+                    xnbig = max(xnbig, (nxout + xcen(i)) * iBinning / warpScale)
                     dx = min(dx, xcen(i) * iBinning / warpScale)
-                    ynbig = max(ynbig, (ny3 + ycen(i)) * iBinning / warpScale)
+                    ynbig = max(ynbig, (nyout + ycen(i)) * iBinning / warpScale)
                     dy = min(dy, ycen(i) * iBinning / warpScale)
                   enddo
                 endif
@@ -1033,17 +1036,15 @@ c              print *,maxNxg, maxNyg
               call memoryError(ierr, 'ARRAYS FOR WARPING FIELDS')
             endif
           endif
-c           
-c           Now that output size is finally known, make sure memory is enough
-          call reallocateIfNeeded()
+c
           if (numTaper .eq. 1) then
-            numTaper = min(127, max(16, nint((nx3 + ny3) / 200.)))
+            numTaper = min(127, max(16, nint((nxout + nyout) / 200.)))
             write(*,'(/,a,i4,a)')'Tapering will be done over',numTaper,' pixels'
           endif
 c           
 c           First see if this is the first section to replace
           if (numReplace .gt. 0 .and. isecReplace .eq. 1) then
-            if (nx3 .ne. nxyz2(1) .or. ny3 .ne. nxyz2(2)) call exitError(
+            if (nxout .ne. nxyz2(1) .or. nyout .ne. nxyz2(2)) call exitError(
      &          'EXISTING OUTPUT FILE DOES NOT HAVE RIGHT SIZE IN X OR Y')
             if (newmode .ne. modeold) call exitError(
      &          'OUTPUT MODE DOES NOT MATCH EXISTING OUTPUT FILE')
@@ -1062,16 +1063,16 @@ C
 c             
 c             set new size, keep old nxyzst
 c             
-            NXYZ2(1)=NX3
-            NXYZ2(2)=NY3
+            NXYZ2(1)=NXOUT
+            NXYZ2(2)=NYOUT
             NXYZ2(3)=NSECOUT(IFILEOUT)
             call ialsiz(2,nxyz2,nxyzst)
 c             
 c             if mxyz=nxyz, keep this relationship
 c             
             if(mxyz(1).eq.nx.and.mxyz(2).eq.ny.and.mxyz(3).eq.nz)then
-              MXYZ2(1)=NX3
-              MXYZ2(2)=NY3
+              MXYZ2(1)=NXOUT
+              MXYZ2(2)=NYOUT
               MXYZ2(3)=NSECOUT(IFILEOUT)
               call ialsam(2,mxyz2)
             else
@@ -1098,7 +1099,7 @@ c
 	    if (iBinning .gt. 1) then
 	      ixOriginOff = -ixOffset
 	      iyOriginOff = -iyOffset
-	      if ((nx3 .ne. nxbin .or. ny3 .ne. nybin) .and. ifxform.eq.0) then
+	      if ((nxout .ne. nxbin .or. nyout .ne. nybin) .and. ifxform.eq.0) then
 c
 c		  If output size is being set from the input and binning, the
 c		  origin offset is all set, but otherwise we need to adjust
@@ -1107,10 +1108,10 @@ c		  in output versus pixels to left in an input image that is
 c		  bigger by the binning factor.  But this only works if
 c                 there is no transformation
 c
-		ixOriginOff = iBinning * (nx3 / 2 - nxbin / 2) - ixOffset -
-     &		    (nx3 * iBinning - nx) / 2
-		iyOriginOff = iBinning * (ny3 / 2 - nybin / 2) - iyOffset -
-     &		    (ny3 * iBinning - ny) / 2
+		ixOriginOff = iBinning * (nxout / 2 - nxbin / 2) - ixOffset -
+     &		    (nxout * iBinning - nx) / 2
+		iyOriginOff = iBinning * (nyout / 2 - nybin / 2) - iyOffset -
+     &		    (nyout * iBinning - ny) / 2
 	      endif
 c               print *,ixOffset, ixOriginOff
               xorig = xorig + delt(1) * ixOriginOff
@@ -1125,20 +1126,20 @@ c             after.  Delt can be modified, it will be reread
               delt(1) = delt(1) * iBinning / expandFactor
               delt(2) = delt(2) * iBinning / expandFactor
               if (ifxform .eq. 0) then
-                xorig = xorig - (nxbin / 2 + nint(xcen(isec)) - nx3 / 2) *
+                xorig = xorig - (nxbin / 2 + nint(xcen(isec)) - nxout / 2) *
      &              delt(1)
-                yorig = yorig - (nybin / 2 + nint(ycen(isec)) - ny3 / 2) *
+                yorig = yorig - (nybin / 2 + nint(ycen(isec)) - nyout / 2) *
      &              delt(2)
               elseif (applyFirst .ne. 0) then
                 xorig = xorig - (expandFactor * (nxbin / 2. + xcen(isec))  -
-     &              nx3 / 2.) * delt(1)
+     &              nxout / 2.) * delt(1)
                 yorig = yorig - (expandFactor * (nybin / 2. + ycen(isec)) -
-     &              ny3 / 2.) * delt(2)
+     &              nyout / 2.) * delt(2)
               else
                 xorig = xorig - (expandFactor * nxbin / 2. + xcen(isec) -
-     &              nx3 / 2.) * delt(1)
+     &              nxout / 2.) * delt(1)
                 yorig = yorig - (expandFactor * nybin / 2. + ycen(isec) -
-     &              ny3 / 2.) * delt(2)
+     &              nyout / 2.) * delt(2)
               endif
             endif
             if (adjustOrigin .or. iBinning .gt. 1)
@@ -1232,17 +1233,19 @@ c
             if (ifUseFill .ne. 0) tmpmin = fillVal
             tmpmax = tmpmin
             dsumsq = 0.
-            dsum = tmpmin * (float(nx3) * ny3)
+            dsum = tmpmin * (float(nxout) * nyout)
+            nyNeeded = 1
+            call reallocateIfNeeded()
             call findScaleFactors(iffloat, ifmean, rescale, bottomin,
      &          bottomout, optin, optout, tmpmin, tmpmax, dminspec, dmaxspec,
      &          numScaleFacs, scaleFacs, scaleConsts, zmin, zmax, dsum,
-     &          dsumsq, nx3, ny3, newmode, dminin, dmaxin, fraczero, shiftmin,
+     &          dsumsq, nxout, nyout, newmode, dminin, dmaxin, fraczero, shiftmin,
      &          shiftmax, shiftmean, ifil, sclfac, const)
-            do i = 1, nx3
+            do i = 1, nxout
               array(i) = tmpmin * sclfac + const
             enddo
             call imposn(2, isecout - 1, 0)
-            do i = 1, ny3
+            do i = 1, nyout
               call iwrlin(2, array)
             enddo
             dmin2 = array(1)
@@ -1271,8 +1274,8 @@ c
           else if (ifWarping .ne. 0) then
             iy = lnu
             hasWarp = nControl(iy) .gt. 2
-            xnbig = iBinning * nx3 / warpScale
-            ynbig = iBinning * ny3 / warpScale
+            xnbig = iBinning * nxout / warpScale
+            ynbig = iBinning * nyout / warpScale
 c             
 c             For warping with center offset applied after, it will subtract the
 c             offset from the grid start and add it to the grid displacements
@@ -1335,25 +1338,37 @@ c           get maximum Y deviation with current field to adjust chunk
 c           limits with
 c           
           if (ifMagGrad .ne. 0 .or. hasWarp) then
+            fieldMaxX = 0.
             fieldMaxY = 0.
             do iy = 1, nyGrid
               do i = 1, nxGrid
+                fieldMaxX = max(fieldMaxX, abs(fieldDx(i, iy)))
                 fieldMaxY = max(fieldMaxY, abs(fieldDy(i, iy)))
               enddo
             enddo
-            maxFieldY = int(fieldMaxY + 1.)
+            maxFieldX = int(fieldMaxX + 1.5)
+            maxFieldY = int(fieldMaxY + 1.5)
           endif
+c           
+c           Determine starting and ending lines needed from the input, and whether any
+c           fill is needed
+          call linesNeededForOutput(0, nyout - 1, needYfirst, needYlast, fillNeeded)
+          nyNeeded = needYlast + 1 - needYfirst
+c           
+c           Now that needed input and output size is finally known, make sure memory is
+c           enough
+          call reallocateIfNeeded()
 c           
 c           figure out how the data will be loaded and saved; first see if
 c           both input and output images will fit in one chunk, or if
 c           entire input image will fit
 c           
           nchunk = 0
-          if (idim / nxbin .gt. nybin) then
-            linesleft=(idim-nxbin*nybin)/nx3
-            nchunk=(ny3+linesleft-1)/linesleft
+          if (idim / nxbin .gt. nyNeeded) then
+            linesleft = (idim - nxbin * nyNeeded) / nxout
+            nchunk = (nyout + linesleft - 1) / linesleft
+            if (iVerbose.gt.0) print *,'linesleft',linesleft,'  nchunk',nchunk
           endif
-          if (iVerbose.gt.0) print *,'linesleft',linesleft,'  nchunk',nchunk
           if(nchunk.eq.1.or.(nchunk.gt.0.and.nchunk.le.maxchunks.and.
      &        .not.rescale))then
 c             
@@ -1362,15 +1377,15 @@ c             set up chunks for output, and set up that
 c             whole image is needed for every output chunk.
 c             Note that lines are numbered from 0 here
 c             
-            lineOutSt(1)=0
-            do ichunk=1,nchunk
-              nextline=(ny3/nchunk)*ichunk+min(ichunk,mod(ny3,nchunk))
-              nLinesOut(ichunk)=nextline-lineOutSt(ichunk)
-              lineOutSt(ichunk+1)=nextline
-              lineInSt(ichunk)=0
-              nLinesIn(ichunk)=nybin
+            lineOutSt(1) = 0
+            do ichunk = 1, nchunk
+              nextline = (nyout / nchunk) * ichunk + min(ichunk, mod(nyout, nchunk))
+              nLinesOut(ichunk) = nextline - lineOutSt(ichunk)
+              lineOutSt(ichunk+1) = nextline
+              lineInSt(ichunk) = needYfirst
+              nLinesIn(ichunk) = nyNeeded
             enddo	      
-            maxin=nybin
+            maxin=nyNeeded
             ifOutChunk=1
           else
 c             
@@ -1381,50 +1396,19 @@ c             read-write to temp file; then breaking equally
 c             
             ifOutChunk=-1
             iscan=1
-            iytest=ny3
+            iytest=nyout
             do while(iscan.le.2.and.ifOutChunk.lt.0)
               nchunk=1
               do while(nchunk.le.maxchunks.and.ifOutChunk.lt.0)
                 lineOutSt(1)=0
                 maxin=0
                 do ichunk=1,nchunk
-                  nextline=(ny3/nchunk)*ichunk+min(ichunk,mod(ny3,nchunk))
+                  nextline=(nyout/nchunk)*ichunk+min(ichunk,mod(nyout,nchunk))
                   nLinesOut(ichunk)=nextline-lineOutSt(ichunk)
                   lineOutSt(ichunk+1)=nextline
 c                   
-                  if(ifxform.eq.0)then
-c                     
-c                     simple case of no transform
-c                     
-                    IYbase = NYbin/2 + YCEN(isec) - (NY3/2)
-                    IY1 = max(0,IYbase+lineOutSt(ichunk))
-                    iy2 = min(nybin-1, iybase+nextline-1)
-                  else
-c                     
-c                     transform: get input needs of 4 corners
-c                     pass and get back coordinates numbered from 1, subtract
-c                     an extra 1 to get to lines numbered from 0
-c                     Allow extra for distortion field Y component
-c                     
-                    xci=nxbin/2.
-                    yci=nybin/2.
-                    dx = fprod(1,3)
-                    dy = fprod(2,3)
-c		      dx=f(1,3,lnu)-xcen(isec)
-c		      dy=f(2,3,lnu)-ycen(isec)
-                    call backxform(nx3,ny3,fprod,xci ,yci,dx,dy,
-     &                  1,lineOutSt(ichunk)+1,xp1,yp1)
-                    call backxform(nx3,ny3,fprod,xci ,yci,dx,dy,
-     &                  nx3,lineOutSt(ichunk)+1,xp2,yp2)
-                    call backxform(nx3,ny3,fprod,xci ,yci,dx,dy,
-     &                  1,nextline,xp3,yp3)
-                    call backxform(nx3,ny3,fprod,xci ,yci,dx,dy,
-     &                  nx3,nextline,xp4,yp4)
-                    iy1=min(nybin-1,max(0,int(min(yp1,yp2,yp3,yp4))-2 -
-     &                  maxFieldY - linesShrink))
-                    iy2=min(nybin-1,max(0,int(max(yp1,yp2,yp3,yp4))+1 +
-     &                  maxFieldY + linesShrink))
-                  endif
+                  call linesNeededForOutput(lineOutSt(ichunk), nextline - 1, iy1, iy2,
+     &                fillTmp)
                   lineInSt(ichunk)=iy1
                   nLinesIn(ichunk)=iy2+1-iy1
                   maxin=max(maxin,nLinesIn(ichunk))
@@ -1433,8 +1417,8 @@ c
 c                 Will the input and output data now fit?  Then terminate.
 c                 
                 if(iscan.eq.2)iytest=nLinesOut(1)
-                if(idim/maxin .gt. nxbin .and. idim / iytest .gt. nx3 .and.
-     &              maxin*int(nxbin,kind=8)+iytest*int(nx3,kind=8).le.idim)then
+                if(idim/maxin .gt. nxbin .and. idim / iytest .gt. nxout .and.
+     &              maxin*int(nxbin,kind=8)+iytest*int(nxout,kind=8).le.idim)then
                   ifOutChunk=iscan-1
                 else
                   nchunk=nchunk+1
@@ -1474,18 +1458,19 @@ c
 c           
 c           get the mean of section from previous scan, or a new scan
 c           
+          loadyst=-1
+          loadynd=-1
           if (ifUseFill .ne. 0) then
             dmeansec = fillVal
-            loadyst=-1
-            loadynd=-1
           elseif(ifmean.ne.0)then
             dmeansec=secmean(ilis+listind(ifil)-1)
-            loadyst=-1
-            loadynd=-1
+          elseif (.not. fillNeeded) then
+            dmeansec = dmeanin
           else
-            if (iVerbose .gt. 0) print *,'scanning for mean for fill',nsecred
+            if (iVerbose .gt. 0) print *,'scanning for mean for fill',nsecred,nyNeeded,
+     &          needYfirst
             wallstart = walltime()
-            call scansection(array,idim,nxbin,nybin,iBinning,ixOffset,
+            call scansection(array,idim,nxbin,nyNeeded, needYfirst, iBinning,ixOffset,
      &          iyOffset,nsecred,0,dmin2,
      &          dmax2,dmeansec,sdsec,loadyst,loadynd,array(idim+1), lenTemp)
             loadynd=min(loadynd,loadyst+maxin-1)
@@ -1545,8 +1530,8 @@ c		  call irdsecl(1,array,nload,*99)
 c                 
 c                 otherwise just get whole needed region
 c                 
-                if (iVerbose.gt.0) print *,'loading whole region'
                 nload=needynd+1-needyst
+                if (iVerbose.gt.0) print *,'loading whole region', needyst, needynd,nload
 c		  call imposn(1,nsecred,needyst)
 c		  call irdsecl(1,array,nload,*99)
                 call irdBinned(1, nsecred, array, nxbin, nload, ixOffset,
@@ -1559,9 +1544,9 @@ c		  call irdsecl(1,array,nload,*99)
             endif
             nyload=loadynd+1-loadyst
             nych=nLinesOut(ichunk)
-            npix=int(nx3, kind=8)*nych
+            npix=int(nxout, kind=8)*nych
             ibchunk=ibbase
-            if(ifOutChunk.eq.0)ibchunk=ibbase+lineOutSt(ichunk)*int(nx3,kind=8)
+            if(ifOutChunk.eq.0)ibchunk=ibbase+lineOutSt(ichunk)*int(nxout,kind=8)
             loadtime = loadtime + walltime() - wallstart
 
             if(ifxform.ne.0)then
@@ -1572,11 +1557,11 @@ c
               xci=nxbin/2.
               yci=nybin/2.-loadyst
               dx=fprod(1,3)
-              dy=(ny3-nych)/2.+fprod(2,3) - lineOutSt(ichunk)
+              dy=(nyout-nych)/2.+fprod(2,3) - lineOutSt(ichunk)
 c		dx=f(1,3,lnu)-xcen(isec)
-c		dy=(ny3-nych)/2.+f(2,3,lnu) - ycen(isec) - lineOutSt(ichunk)
+c		dy=(nyout-nych)/2.+f(2,3,lnu) - ycen(isec) - lineOutSt(ichunk)
               if (linesShrink .gt. 0) then
-                ierr=zoomFiltInterp(array,array(ibchunk),nxbin,nyload, nx3, nych,
+                ierr=zoomFiltInterp(array,array(ibchunk),nxbin,nyload, nxout, nych,
      &              xci ,yci, dx,dy,dmeansec) 
                 if (ierr.ne. 0) then 
                   write(listString, '(a,i3)')
@@ -1584,24 +1569,29 @@ c		dy=(ny3-nych)/2.+f(2,3,lnu) - ycen(isec) - lineOutSt(ichunk)
                   call exitError(listString)
                 endif
               elseif (.not. hasWarp .and. ifMagGrad .eq. 0) then
-                call cubinterp(array,array(ibchunk),nxbin,nyload, nx3, nych,
+                call cubinterp(array,array(ibchunk),nxbin,nyload, nxout, nych,
      &              fprod,xci ,yci, dx,dy,1.,dmeansec, ifLinear)
               else
+c                 
+c                 If undistorting, adjust the grid start down by first loaded input line
+c                 If warping, adjust it down by first output line
+                ystart = yGridStrt - loadyst
+                if (ifWarping .ne. 0) ystart = yGridStrt - lineOutSt(ichunk)
                 call warpInterp(array,array(ibchunk),nxbin,nyload,
-     &              nx3, nych, fprod,xci ,yci, dx,dy,1.,dmeansec, ifLinear, ifWarping,
-     &              fieldDx, fieldDy, lmGrid, nxGrid, nyGrid, xGridStrt, yGridStrt,
+     &              nxout, nych, fprod,xci ,yci, dx,dy,1.,dmeansec, ifLinear, ifWarping,
+     &              fieldDx, fieldDy, lmGrid, nxGrid, nyGrid, xGridStrt, ystart,
      &              xGridIntrv, yGridIntrv)
               endif
               rottime = rottime + walltime() - wallstart
             else
 c               
-c               otherwise repack array into output space nx3 by ny3, with
+c               otherwise repack array into output space nxout by nyout, with
 c               offset as specified, using the special repack routine
 c               
-              IX1 = nxbin / 2 - NX3 / 2 + nint(xcen(isec))
-              IX2 = IX1 + NX3 - 1
+              IX1 = nxbin / 2 - NXOUT / 2 + nint(xcen(isec))
+              IX2 = IX1 + NXOUT - 1
 C               
-              IYbase = NYbin / 2 - ny3 / 2 + nint(YCEN(isec))
+              IYbase = NYbin / 2 - nyout / 2 + nint(YCEN(isec))
               IY1 = IYbase+lineOutSt(ichunk)-loadyst
               iy2 = iy1+nych-1
 c               
@@ -1610,7 +1600,7 @@ c
               if (iVerbose.gt.0) print *,'did repack'
             endif
             if (numTaper .gt. 0) then
-              if (taperAtFill(array(ibchunk), nx3, ny3, numTaper, insideTaper) .ne. 0)
+              if (taperAtFill(array(ibchunk), nxout, nyout, numTaper, insideTaper) .ne. 0)
      &            call exitError('MEMORY ALLOCATION ERROR TAPERING IMAGE')
             endif
 c	      
@@ -1619,12 +1609,12 @@ c             mean
 c             
             if(.not.rescale.or.ifmean.ne.0)then
               if(iffloat.eq.2)then
-                call iclavgsd(array(ibchunk),nx3,nych,1,nx3,1,nych,
+                call iclavgsd(array(ibchunk),nxout,nych,1,nxout,1,nych,
      &              tmin2,tmax2,tsum, tsumsq, avgsec,sdsec)
 		  if (iVerbose.gt.0)print *,'chunk mean&sd',ichunk,avgsec,sdsec
                 dsumsq=dsumsq+tsumsq
               else
-                call iclden(array(ibchunk),nx3,nych,1,nx3,1,nych,tmin2,
+                call iclden(array(ibchunk),nxout,nych,1,nxout,1,nych,tmin2,
      &              tmax2,tmean2)
                 tsum=tmean2*npix
               endif
@@ -1678,7 +1668,7 @@ c
 
           call findScaleFactors(iffloat, ifmean, rescale, bottomin, bottomout,
      &        optin, optout, tmpmin, tmpmax, dminspec, dmaxspec, numScaleFacs,
-     &        scaleFacs, scaleConsts, zmin, zmax, dsum, dsumsq, nx3, ny3,
+     &        scaleFacs, scaleConsts, zmin, zmax, dsum, dsumsq, nxout, nyout,
      &        newmode, dminin, dmaxin, fraczero, shiftmin, shiftmax,
      &        shiftmean, ifil, sclfac, const)
 
@@ -1701,16 +1691,16 @@ c             and rewriting
 c             
             do ichunk=nchunk,1,-1
               ibchunk=ibbase
-              if(ifOutChunk.eq.0)ibchunk=ibbase+lineOutSt(ichunk)*nx3
+              if(ifOutChunk.eq.0)ibchunk=ibbase+lineOutSt(ichunk)*nxout
               if(ichunk.ne.nchunk.and.ifOutChunk.gt.0)then
 		  if (iVerbose.gt.0) print *,'reading',ichunk
                 call imposn(3,0,lineOutSt(ichunk))
                 call irdsecl(3,array(ibbase),nLinesOut(ichunk),*99)
               endif
               do iy=1,nLinesOut(ichunk)
-                istart=ibchunk+(iy-1)*int(nx3, kind=8)
+                istart=ibchunk+(iy-1)*int(nxout, kind=8)
                 tsum=0.
-                do i8=istart,istart+nx3-1
+                do i8=istart,istart+nxout-1
                   den=sclfac*array(i8)+const
                   if(den.lt.denoutmin)then
                     ntrunclo=ntrunclo+1
@@ -1741,7 +1731,7 @@ c
             dmean2 = dsum
           endif
 c           
-          dmean2=dmean2/(float(nx3)*ny3)
+          dmean2=dmean2/(float(nxout)*nyout)
           if(ifheaderout.eq.0) print *,
      &        'section   input min&max       output min&max  &  mean'
           ifheaderout=1
@@ -1803,18 +1793,20 @@ C
       call exit(0)
 99    call exitError(' END OF IMAGE WHILE READING')
 
-      contains
+      CONTAINS
 
       subroutine reallocateIfNeeded()
       integer(kind=8) needDim
       integer*4 needTemp
+      real*4 defLimit/3.75e9/
       if (limEntered .eq. 0) then
         needTemp = 1
         if (iBinning .gt. 1) needTemp = nx * iBinning
-        needDim = int(nxbin, kind=8) * nybin
-        if (nx3 .gt. 0 .and. ny3 .gt. 0)
-     &      needDim = needDim + int(nx3, kind=8) * ny3
-        if (iVerbose.gt.0) print *,nx3,ny3,nxbin,nybin,needDim
+        needDim = int(nxbin, kind=8) * nyNeeded
+        if (nxout .gt. 0 .and. nyout .gt. 0)
+     &      needDim = needDim + int(nxout, kind=8) * nyout
+        if (needDim .gt. defLimit) needDim = defLimit
+        if (iVerbose.gt.0) print *,'reallocate sizes:', nxout,nyout,nxbin,nybin,needDim
         if (needDim + needTemp .gt. limdim) then
           limdim = needDim + needTemp
           call reallocateArray()
@@ -1840,6 +1832,55 @@ C
       return
       end subroutine reallocateArray
 
+
+c       Finds what lines of input are needed to produce lines from lineOutFirst through
+c       lineOutLast of output (numbered from 0), and also determines if X or Y input goes
+c       out of range so that fill is needed
+c       
+      subroutine linesNeededForOutput(lineOutFirst, lineOutLast, iyIn1, iyIn2, needFill)
+      integer*4 lineOutFirst, lineOutLast, iyIn1, iyIn2, ixIn1, ixIn2, ixbase
+      logical needFill
+      real*4 xp1,yp1,xp2,yp2,xp3,yp3,xp4,yp4
+      if(ifxform.eq.0)then
+c                     
+c         simple case of no transform
+c         
+        iybase = nybin/2 + ycen(isec) - (nyout/2)
+        ixbase = nxbin/2 + xcen(isec) - (nxout/2)
+        iyIn1 = max(0, iybase + lineOutFirst)
+        iyIn2 = min(nybin-1, iybase + lineOutLast)
+        needFill = IYbase + lineOutFirst .lt. 0 .or. iybase + lineOutLast .ge. nybin .or.
+     &      ixbase .lt. 0 .or. ixbase + nxout .gt. nxbin
+      else
+c                     
+c         transform: get input needs of 4 corners
+c         pass and get back coordinates numbered from 1, subtract
+c         an extra 1 to get to lines numbered from 0
+c         Allow extra for distortion field Y component
+c         
+        xci=nxbin/2.
+        yci=nybin/2.
+        dx = fprod(1,3)
+        dy = fprod(2,3)
+c         dx=f(1,3,lnu)-xcen(isec)
+c         dy=f(2,3,lnu)-ycen(isec)
+        call backxform(nxout,nyout,fprod,xci ,yci,dx,dy, 1,lineOutFirst+1, xp1,yp1)
+        call backxform(nxout,nyout,fprod,xci ,yci,dx,dy, nxout,lineOutFirst+1, xp2,yp2)
+        call backxform(nxout,nyout,fprod,xci ,yci,dx,dy, 1,lineOutLast+1, xp3,yp3)
+        call backxform(nxout,nyout,fprod,xci ,yci,dx,dy, nxout,lineOutLast+1, xp4,yp4)
+        
+        iyIn1=int(min(yp1,yp2,yp3,yp4))-2 - maxFieldY - linesShrink
+        iyIn2=int(max(yp1,yp2,yp3,yp4))+1 + maxFieldY + linesShrink
+        ixIn1=int(min(xp1,xp2,xp3,xp4))-2 - maxFieldX - linesShrink
+        ixIn2=int(max(xp1,xp2,xp3,xp4))+1 + maxFieldX + linesShrink
+        needFill = ixIn1.lt.0 .or. ixIn1.ge.nxbin .or. ixIn2.lt.0 .or. ixIn2.ge.nxbin .or.
+     &      iyIn1.lt.0 .or. iyIn1.ge.nybin .or. iyIn2.lt.0 .or. iyIn2.ge.nybin
+        iyIn1=min(nybin-1,max(0,iyIn1))
+        iyIn2=min(nybin-1,max(0,iyIn2))
+      endif
+
+      end subroutine linesNeededForOutput
+
       END
 
 
@@ -1850,11 +1891,11 @@ c       min and max and uses that to determine scaling.
 c
       subroutine findScaleFactors(iffloat, ifmean, rescale, bottomin,
      &    bottomout, optin, optout, tmpmin, tmpmax, dminspec, dmaxspec,
-     &    numScaleFacs, scaleFacs, scaleConsts, zmin, zmax, dsum, dsumsq, nx3,
-     &    ny3, newmode, dminin, dmaxin, fraczero, shiftmin, shiftmax,
+     &    numScaleFacs, scaleFacs, scaleConsts, zmin, zmax, dsum, dsumsq, nxout,
+     &    nyout, newmode, dminin, dmaxin, fraczero, shiftmin, shiftmax,
      &    shiftmean, ifil, sclfac, const)
       implicit none
-      integer*4 iffloat, ifmean, numScaleFacs, nx3, ny3, newmode, ifil
+      integer*4 iffloat, ifmean, numScaleFacs, nxout, nyout, newmode, ifil
       logical*4 rescale
       real*4 bottomin, bottomout, optin, optout, tmpmin, tmpmax, dminspec
       real*4 dmaxspec, scaleFacs(*), scaleConsts(*), zmin, zmax, sclfac, const
@@ -1913,7 +1954,7 @@ c
           dmax2=optout
         elseif(iffloat.eq.2)then
 c           :float to mean, it's very hairy
-          call sums_to_avgsd8(dsum,dsumsq,nx3,ny3,avgsec,sdsec)
+          call sums_to_avgsd8(dsum,dsumsq,nxout,nyout,avgsec,sdsec)
 c           print *,'overall mean & sd',avgsec,sdsec
           if (tmpmin .eq. tmpmax .or. sdsec .eq. 0.) sdsec = 1.
           zminsec=(tmpmin-avgsec)/sdsec
@@ -1926,7 +1967,7 @@ c           print *,'overall mean & sd',avgsec,sdsec
 c           
 c           shift to mean
 c           
-          tmpmean=dsum/(float(nx3)*ny3)
+          tmpmean=dsum/(float(nxout)*nyout)
 c           
 c           values that min and max shift to
 c           
@@ -2106,19 +2147,19 @@ c
       end
 
 
-c       SCANSECTION will determine the min DMIN2, max DMAX2, and mean DMEAN2
-c       of section NSECRED.  It will also determine the standard deviation
-c       SDSEC if IFFLOAT = 2.  It uses ARRAY for storage.  IDIM specifies
-c       the size of ARRAY, while NX and NY are the image size.  The image
-c       will be loaded in chunks if necessary.  LOADYST and LOADYND are the
-c       starting and ending lines (numbered from 0) that are left in ARRAY.
+c       SCANSECTION will determine the min DMIN2, max DMAX2, and mean DMEAN2 of section
+c       NSECRED.  It will also determine the standard deviation SDSEC if IFFLOAT = 2.
+c       It uses ARRAY for storage.  IDIM specifies the size of ARRAY, while NX is the
+c       binned image size in X, nyNeeded is the number of lines to scan, and needYfirst
+c       is the first line.  The image will be loaded in chunks if necessary.  LOADYST
+c       and LOADYND are the starting and ending lines (numbered from 0) that are left
+c       in ARRAY.
 c       
-      subroutine scansection(array,idim,nx,ny,nbin, ixOffset, iyOffset,
-     &    nsecred,iffloat,dmin2, dmax2,dmean2,sdsec,loadyst,loadynd,
-     &    temp, lenTemp)
+      subroutine scansection(array,idim,nx,nyNeeded,needYfirst,nbin, ixOffset, iyOffset,
+     &    nsecred,iffloat, dmin2, dmax2,dmean2,sdsec, loadyst,loadynd, temp, lenTemp)
       implicit none
       integer(kind=8) idim
-      integer*4 nx,ny,nsecred,iffloat,loadyst,loadynd, nbin, lenTemp
+      integer*4 nx,nsecred,iffloat,loadyst,loadynd, nbin, lenTemp,needYfirst, nyNeeded
       real*4 array(idim),temp(lenTemp),dmin2,dmax2,dmean2,sdsec
       integer*4 maxlines,nloads,iline,iload,nlines, ixOffset, iyOffset,ierr
       real*4 tmin2,tmax2,tmean2,avgsec
@@ -2127,16 +2168,16 @@ c
 c       load in chunks if necessary, based on the maximum number
 c       of lines that will fit in the array
 c       
-      maxlines=idim/nx
-      nloads=(ny+maxlines-1)/maxlines
-      iline=0
+      maxlines = idim / nx
+      nloads = (nyNeeded + maxlines - 1) / maxlines
+      iline=needYfirst
       dmin2=1.e30
       dmax2=-dmin2
       dsum=0.
       dsumsq=0.
       do iload=1,nloads
-        nlines=ny/nloads
-        if(iload.le.mod(ny,nloads))nlines=nlines+1
+        nlines=nyNeeded/nloads
+        if(iload.le.mod(nyNeeded,nloads))nlines=nlines+1
 c         call imposn(1,nsecred,iline)
         call irdBinned(1, nsecred, array, nx, nlines, ixOffset, iyOffset +
      &      nbin * iline, nbin, nx, nlines, temp, lenTemp, ierr)
@@ -2162,9 +2203,9 @@ c
       enddo
 c       
       if(iffloat.eq.2)then
-        call sums_to_avgsd8(dsum,dsumsq,nx,ny,dmean2,sdsec)
+        call sums_to_avgsd8(dsum,dsumsq,nx,nyNeeded,dmean2,sdsec)
       else
-        dmean2=dsum/(float(nx)*ny)
+        dmean2=dsum/(float(nx)*nyNeeded)
       endif
       loadynd=iline-1
       loadyst=iline-nlines
@@ -2205,240 +2246,3 @@ c
       YP = A21*DXO + A22*DYO + YCO
       return
       end
-
-************************************************************************
-*       
-c       $Log$
-c       Revision 3.70  2011/07/20 17:08:50  mast
-c       Added error code to zoomfilter error exit
-c
-c       Revision 3.69  2011/07/01 04:41:41  mast
-c       Forbid -expand and -rotate with warping
-c
-c       Revision 3.68  2011/06/26 22:57:11  mast
-c       Fix offsets with distortion
-c
-c       Revision 3.67  2011/06/23 14:58:40  mast
-c       Many changes as warping routines evolved
-c
-c       Revision 3.66  2011/06/17 02:41:49  mast
-c       Use new routines for sizing and getting/expanding warp/distort fields
-c
-c       Revision 3.65  2011/06/10 04:10:11  mast
-c       Added warping
-c
-c       Revision 3.64  2011/05/30 03:54:10  mast
-c       Fixed allocation of transforms so there are a minimum number and at least as
-c       many as total number of sections inall files
-c
-c       Revision 3.63  2011/03/30 20:24:30  mast
-c       Fixed copying of extra header data for multiple input files
-c
-c       Revision 3.62  2011/02/12 04:38:30  mast
-c       Change default filter because of more filters added
-c
-c       Revision 3.61  2011/02/10 05:25:10  mast
-c       Added options for antialiased image reduction
-c
-c       Revision 3.60  2010/08/25 15:13:42  mast
-c       Fixed allocatoin with list of output files, added option for extension
-c       on file series
-c
-c       Revision 3.59  2010/06/09 04:29:02  mast
-c       Fixed fallback for memory limit
-c
-c       Revision 3.58  2010/04/13 15:42:16  mast
-c       Increased number of allowed sections, used allocation for all other common
-c       section and file related arrays, added split option
-c
-c       Revision 3.57  2009/10/14 23:50:41  mast
-c       allocate arrays for extra header data
-c
-c       Revision 3.56  2009/10/09 21:34:27  mast
-c       Provided default tapering if number is entered as 1
-c
-c       Revision 3.55  2009/10/09 21:00:41  mast
-c       Added tapering
-c
-c       Revision 3.54  2009/06/23 13:31:22  mast
-c       fix if with integer expression.
-c
-c       Revision 3.53  2009/06/22 20:47:49  mast
-c       Allocated the main array and made it work with > 4 Gpixel images
-c
-c       Revision 3.52  2008/11/02 13:58:21  mast
-c       Added option to overwrite sections in existing output file
-c
-c       Revision 3.51  2008/07/25 14:09:03  mast
-c       Increased even more, to 180M
-c
-c       Revision 3.50  2008/07/25 14:00:25  mast
-c       Increased array size to 128M
-c
-c       Revision 3.49  2008/04/27 19:51:05  mast
-c       Increased allowed digits in truncation message
-c
-c       Revision 3.48  2007/12/06 20:38:59  mast
-c       Fixed min/max output to header when not rescaling
-c
-c       Revision 3.47  2007/12/04 18:24:03  mast
-c       Added option to adjust origin
-c
-c       Revision 3.46  2007/11/18 04:53:46  mast
-c       Increased filename limits to 320
-c
-c       Revision 3.45  2007/10/12 20:58:26  mast
-c       Adjusted to change in interpolation center to be around center of image
-c
-c       Revision 3.44  2007/02/12 18:52:03  mast
-c       Fixed setting of origin for binning when output size is specified and
-c       there are no transformations
-c
-c       Revision 3.43  2006/12/20 05:30:03  mast
-c       Added options for blank output sections and for sections at an increment
-c
-c       Revision 3.42  2006/09/28 21:26:30  mast
-c       Changes to work with huge images
-c
-c       Revision 3.41  2006/07/08 13:55:33  mast
-c       Raised extra header size to ridiculously large
-c
-c       Revision 3.40  2006/06/20 00:32:02  mast
-c       Eliminated rescaling and truncation for input mode 2
-c
-c       Revision 3.39  2006/05/14 01:45:05  mast
-c       Added option to set fill value
-c
-c       Revision 3.38  2006/01/27 20:01:23  mast
-c       Fixed problem with one transform per file
-c
-c       Revision 3.37  2006/01/24 03:32:53  mast
-c       Added option for multiple distortion fields.
-c
-c       Revision 3.36  2006/01/10 21:57:28  mast
-c       Increased dimensions to allow full rotation of 8K images
-c	
-c       Revision 3.35  2005/12/09 04:45:32  mast
-c       gfortran: .xor., continuation, or byte fixes
-c	
-c       Revision 3.34  2005/11/11 22:53:17  mast
-c       Changes for unsigned mode
-c	
-c       Revision 3.33  2005/10/11 21:03:52  mast
-c       Added option to use one transform per file
-c	
-c       Revision 3.32  2005/07/27 03:29:51  mast
-c       Redimensioned maxextra to handle mistakenly large extra header
-c	
-c       Revision 3.31  2005/06/13 22:37:47  mast
-c       Gave a specific error message when transform file is empty
-c	
-c       Revision 3.30  2005/06/03 16:32:04  mast
-c       Moved getbinnedsize to library
-c	
-c       Revision 3.29  2005/05/31 16:34:34  mast
-c       Fixed problem with zeroing out line numbers when no entry was made
-c	
-c       Revision 3.28  2005/05/27 15:46:33  mast
-c       Made UseTransformLines a multiple-entry parameter
-c	
-c       Revision 3.27  2005/05/26 04:38:46  mast
-c       Fixed computation of SD's for scaling and protected float to mean
-c       from being screwed up by zero SD or blank image on Mac
-c	
-c       Revision 3.26  2005/02/27 15:57:05  mast
-c       moved undistort to library; fixed pixel size for mag gradient with
-c       binned output
-c	
-c       Revision 3.25  2005/02/09 23:51:57  mast
-c       Fixed bug in scaling blank image when changing modes
-c	
-c       Revision 3.24  2004/11/30 03:26:50  mast
-c       Fixed bugs in binning large images
-c	
-c       Revision 3.23  2004/09/09 16:16:09  mast
-c       When run with PIP input, it was not setting up a transform line list
-c       properly with only one transform in file
-c	
-c       Revision 3.22  2004/08/12 19:09:59  mast
-c       Added -multadd option
-c	
-c       Revision 3.21  2004/07/13 18:56:23  mast
-c       Exit with error message, reference to man page when reading mode 16
-c	
-c       Revision 3.20  2004/04/27 18:48:38  mast
-c       Fixed edge effect when undistorting.
-c	
-c       Revision 3.19  2004/03/22 15:32:58  mast
-c       Changed option from MagGradientFile to GradientFile
-c	
-c       Revision 3.18  2004/03/22 05:39:44  mast
-c       Added mag gradient correction, applied on per-section basis prior
-c       to distortion correction and transforms.  Fixed problem with
-c       undistorting a subset of the full camera area.
-c	
-c       Revision 3.17  2004/01/16 18:07:54  mast
-c       Fixed problem with how it decided if it needed image binning entry
-c	
-c       Revision 3.16  2004/01/08 23:02:52  mast
-c       Fixed problem with linear option
-c	
-c       Revision 3.15  2004/01/08 16:26:17  mast
-c       Fixed problems with input and output lists and renamed options to
-c       avoid conflicting with -linear
-c	
-c       Revision 3.14  2003/12/31 00:39:11  mast
-c       Go back to old way of treating center offsets, with new way as option
-c	
-c       Revision 3.13  2003/12/27 20:35:15  mast
-c       Can't declare cosd and sind external, since they aren't always
-c	
-c       Revision 3.12  2003/12/27 19:43:35  mast
-c       Moved distortion routines into library
-c	
-c       Revision 3.11  2003/12/25 00:39:39  mast
-c       Completed documentation and other changes
-c	
-c       Revision 3.10  2003/12/12 21:10:14  mast
-c       windows bug fix
-c	
-c       Revision 3.9  2003/12/12 20:25:57  mast
-c       Initial checkin with PIP conversion and distortion correction
-c	
-c       Revision 3.8  2003/03/14 01:57:05  mast
-c       Added a linear interpolation option
-c	
-c       Revision 3.7  2002/08/18 23:12:47  mast
-c       Changed to call iclavgsd in library
-c	
-c       Revision 3.6  2002/08/17 05:38:04  mast
-c       Standardized error outputs
-c	
-c       Revision 3.5  2002/05/20 15:59:38  mast
-c       Changed all STOP statements to print the message then call exit(1)
-c	
-c       Revision 3.4  2002/05/07 02:00:29  mast
-c       Eliminate output of mean and SD from a test print statement
-c	
-c       Revision 3.3  2002/04/18 20:02:55  mast
-c       Made it transfer extra header data correctly if it consists of
-c       integers and reals
-c	
-c       Revision 3.2  2002/04/18 20:00:34  mast
-c       wrong comment was here
-c	
-c       Revision 3.1  2001/12/29 00:57:49  mast
-c       Added an entry to -1 floating option to disable all rescaling
-c	
-*       DNM (mast) for VAX	8/88
-*       5/4/89 changed to float to same mean and sd rather than mean and min.
-*       12/19/89 added full control of density scaling; fixed bug in
-*       interpolation that was generating half-pixel error half the time.
-*       4/19/90 added line-by-line prompts for file and section entry and
-*       added time/date stamp
-*       1/23/91: fixed so that it can correctly pad images and extract
-*       subsets of images with either center-shifting or transforms
-*       6/11/91: fixed bug if trying to output scaled real values les than 0
-*       11/16/94: added shifting to mean, rationalized scaling somewhat
-*       9/24/01: changed to read and write in chunks if images are big
-*       

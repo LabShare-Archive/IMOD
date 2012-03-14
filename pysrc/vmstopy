@@ -175,8 +175,6 @@ prnstr("  sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))", file=
 prnstr("else:", file=out)
 prnstr("  log.write('ERROR: IMOD_DIR is not defined\\n')", file=out)
 prnstr("  sys.exit(1)", file=out)
-prnstr("if os.getenv('IMOD_QTLIBDIR') != None and os.getenv('LD_LIBRARY_PATH') != None:", file=out)
-prnstr("  os.environ['LD_LIBRARY_PATH'] = os.environ['IMOD_QTLIBDIR'] + os.pathsep + os.environ['LD_LIBRARY_PATH']", file=out)
 prnstr("os.environ['PIP_PRINT_ENTRIES'] = '1'", file=out)
 
 # Set environment variables
@@ -184,6 +182,7 @@ for envpair in envars:
    prnstr("os.environ['" + envpair[0] + "'] = '" + envpair[1] + "'", file=out)
 
 prnstr("from imodpy import *", file=out)
+prnstr("setLibPath()", file=out)
 prnstr("# Back up and open log file", file=out)
 prnstr("makeBackupFile('" + logname + "')", file=out)
 prnstr("try:", file=out)

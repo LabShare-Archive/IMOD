@@ -230,6 +230,8 @@ Iobj *imodObjectDup(Iobj *obj)
   newObj->label = NULL;
   newObj->store = NULL;
   newObj->meshParam = NULL;
+  newObj->vertBufSphere = NULL;
+  newObj->vertBufCont = NULL;
 
   /* Duplicate contours one at a time and copy into the array */
   if (obj->contsize) {

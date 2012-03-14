@@ -40,6 +40,7 @@ void b3dPrimitiveRestartIndex(GLuint index);
 // Extension enabled flags in return from b3dInitializeGL
 #define B3DGLEXT_VERTBUF (1l << 0)
 #define B3DGLEXT_PRIM_RESTART (1l << 1)
+#define B3DGLEXT_ANY_SIZE_TEX (1l << 2)
 
 #define SnapShot_Default 0
 #define SnapShot_RGB     1
@@ -174,11 +175,11 @@ void b3dSetMovieSnapping(bool snapping);
 void b3dSetDpiScaling(float factor);
 int b3dSnapshot(QString fname);
 
-QString b3dGetSnapshotName(char *name, int format_type, int digits,
+QString b3dGetSnapshotName(const char *name, int format_type, int digits,
                            int &fileno);
-int b3dAutoSnapshot(char *name, int format_type, int *limits, 
+int b3dAutoSnapshot(const char *name, int format_type, int *limits, 
                     bool checkConvert);
-int b3dKeySnapshot(char *name, int shifted, int ctrl, int *limits, 
+int b3dKeySnapshot(const char *name, int shifted, int ctrl, int *limits, 
                    bool checkConvert = true);
 int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
                        unsigned char **data);

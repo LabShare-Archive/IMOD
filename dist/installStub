@@ -16,7 +16,6 @@ set custom = 0
 set skipopt = ""
 set scriptopt = ""
 set sysdir = ""
-set g2copt = ""
 set yesopt = ""
 set debopt = ""
 set ubuntu = 0
@@ -74,11 +73,6 @@ while ($#argv > 0)
             shift
             breaksw
 
-        case -li*:
-            set g2copt = "-libg2c"
-            shift
-            breaksw
-
         case -y*:
             set yesopt = "-yes"
             shift
@@ -103,8 +97,6 @@ end
 
 set sysfiles = ()
 
-# DUPLICATION ALERT: THE FOLLOWING IS COPIED FROM installIMOD
-#
 set system = `uname -s`
 set defaultdir = /usr/local
 
@@ -112,13 +104,6 @@ set defaultdir = /usr/local
 set anyerror
 
 switch ($system)
-    case *IRIX*:
-        set os = irix
-        # leave out /etc/profile because it is more likely used by sh than
-        # bash users
-        set scripts = (sgi.cshrc)
-        set sysfiles = (/etc/cshrc)
-        breaksw
     case *Linux*:
         set os = linux
         set scripts = (IMOD-linux.csh IMOD-linux.sh)
@@ -215,11 +200,7 @@ cd $tempdir
 
 echo "Extracting $installer"
 
-if ($os != irix) then
-    tar xzf $packname $version/$installer
-else
-    gzcat $packname | tar xf - $version/$installer
-endif
+tar -xzf $packname $version/$installer
 
 if (! -e $version/$installer) then
     echo "Could not extract $installer"
@@ -234,10 +215,23 @@ if ($extract == 1) then
     exit 0
 endif
 
-# It has to be run by tcsh for Irix; there is some bug in csh
+# Fix python link in recent Cygwin distributions
+if ($test == 0 && $os == windows && (! -e /bin/python.exe)) then
+    echo " "
+    if (-l /bin/python) then
+        echo "The Cygwin link to python will not work for IMOD"
+        echo "Making a copy of its target that is an actual /bin/python.exe"
+        \cp -Lf /bin/python /bin/python.exe
+    else
+        echo "You must have Python installed in Cygwin to run this installer"
+        set test = 1
+    endif
+endif
+if ($os == windows) setenv PATH "/bin:$PATH"
+
 set retval = 0
 if ($test == 0) then
-    tcsh -f $installer -dir "$installdir" $nameopt $scriptopt $skipopt $g2copt $debopt $yesopt $packname
+    python -u $installer -dir "$installdir" $nameopt $scriptopt $skipopt $debopt $yesopt $packname
     set retval = $status
 endif
 
@@ -271,11 +265,9 @@ Options may be abbreviated.  The options are:
                  and the system startup files will not be modified.
   -skip        Skip copying startup scripts (Linux and Windows) or modifying
                   system startup files (Mac and SGI)
-  -libg2c      Use libg2c in this IMOD package if it exists (Linux only)
   -debian      Modify $ubscripts[1] and $ubscripts[2] instead of 
-                  copying startup scripts to /etc/profile.d and use libg2c if 
-                  not present on the system - this option is set automatically
-                  for Ubuntu
+                  copying startup scripts to /etc/profile.d
+                   - this option is set automatically for Ubuntu
   -yes         Install this version and remove old versions without asking for
                   confirmation
   -test        Run this self-installing script but not the real install script

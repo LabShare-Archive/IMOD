@@ -99,7 +99,7 @@ static AnalysisToolsData plug = { 0, 0 };
 //------------------------
 //-- MAPPED FUNCTION: Called by the imod plugin load function
 
-char *imodPlugInfo(int *type)
+const char *imodPlugInfo(int *type)
 {
   if (type)
     *type = IMOD_PLUG_MENU + IMOD_PLUG_KEYS + IMOD_PLUG_MESSAGE + 
@@ -334,8 +334,8 @@ QAction *AnalysisTools::addAction( QMenu *menu, const char *member,
 
 //## WINDOW CLASS CONSTRUCTOR:
 
-static char *buttonLabels[] = {(char*)"Done", (char*)"Help"};
-static char *buttonTips[] = {(char*)"Close Analysis Tools", (char*)"Open help window"};
+static const char *buttonLabels[] = {(char*)"Done", (char*)"Help"};
+static const char *buttonTips[] = {(char*)"Close Analysis Tools", (char*)"Open help window"};
 
 AnalysisTools::AnalysisTools(QWidget *parent, const char *name) :
   DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Analysis Tools", "", name)
@@ -2184,7 +2184,7 @@ void AnalysisTools::buttonPressed(int which)
     close();
   else
   {
-    imodShowHelpPage("plughelp/analysistools.html#TOP");
+    imodShowHelpPage("../plughelp/analysistools.html#TOP");
   }
 }
 

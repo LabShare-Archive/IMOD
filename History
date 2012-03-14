@@ -1,12 +1,62 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/14/12: In eTomo - PEET, when copying a dataset, removing any process data
+that came form the source dataset.(Bug# 1603)
+
+3/12/12: Made it possible to delete all labels in Alterheader.
+
+3/12/12: Made Processchunks exit properly when sync chunk fails on a queue.
+
+3/11/12: Added -F to Tif2mrc to set fill value for images smaller than the
+output.
+
+3/10/12: Fixed image drawing in model view for ATI cards, which were horribly
+slow (at least in Windows) from changes in 4.2.24; made drawing somewhat more
+efficient; added button to set black/white levels from 3dmod sliders.
+
+3/8/12: Added nearest neighbor (non)interpolation to Newstack for linear and
+warping transformations.
+
+3/7/12: In Newstack, made it load only the lines needed to compute output, and
+to scan only those lines to get a fill value, skipping that if possible.
+Fixed warping and undistorting when loading or output is broken into chunks
+and made a default 15 GB memory limit.
+
+3/6/12: IMOD_4-4-7
+3/6/12: Fixed image display in model view when last object drawn is lines.
+
+3/6/12: Converted install script to python, made it able to edit install
+location in system files instead of just saying it needs to be fixed.
+
+3/6/12: Fixed help paths in 3dmod plugins.
+
+3/3/12: Converted etomo startup script to python, set user home variable for
+Vista/Win 7 to fix rare problem from java bug.
+
+3/2/12: Got rid of glFlush's in model drawing, which were slowing things down
+a lot in the absence of vertex buffer drawing. 
+
+2/29/12: IMOD_4-4-6
+2/29/12: Fixed problems with using outdated or invalid vertex buffer data,
+particularly in sphere drawing.
+
+2/29/12: Switched imodhelp to python; note that "imodhelp program" can now
+be used to display a program man page directly.
+
+2/29/12: Fixed crash after saving isosurface to object.
+
+2/29/12: Made imodinfo -c give mesh volume and surface area for isosurface
+objects.
+
+2/28/12: Fixed bug in blendmont due to fixed size temporary array.
+
 2/28/12: In eTomo - PEET fixed an initMotl bug where the incorrect radio
 button was selected.(Bug# 1602).
 
 2/28/12: In eTomo added an interface for running gputilttest to the Tools
 menu.(Bug# 1525)
 
-2/27/12: In eTomo getting EXCLUDELIST for tilt.com from align.log when
+2/28/12: In eTomo getting EXCLUDELIST for tilt.com from align.log when
 possible.(Bug# 1407)
 
 2/27/12: Fixed some problems with iterating move all by residual in bead fixer
@@ -21,7 +71,6 @@ and made it give a message when it stops because user released Shift key.
 
 2/22/12: IMOD_4-3-6
 2/20/12: IMOD_4-4-5
-
 2/18/12: Added a graphic of mouse buttons to 3dmod preferences dialog.
 
 2/17/12: Fixed programs using warping code for images with Y size bigger

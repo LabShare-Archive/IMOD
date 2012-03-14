@@ -176,15 +176,15 @@ class ImodPreferences : public QObject
   bool equiv(bool b1, bool b2) {return ((b1 && b2) || (!b1 && !b2));};
   void findCurrentTab();
   void userCanceled();
-  char **getStyleList();
+  const char **getStyleList();
   bool styleOK(QString key);
   int *getStyleStatus();
   void setInfoGeometry();
   QRect getZapGeometry();
   void getAutoContrastTargets(int &mean, int &sd);
   QColor namedColor(int index);
-  int saveGenericSettings(char *key, int numVals, double *values);
-  int getGenericSettings(char *key, double *values, int maxVals);
+  int saveGenericSettings(const char *key, int numVals, double *values);
+  int getGenericSettings(const char *key, double *values, int maxVals);
   QSettings *getSettingsObject();
   void recordZapGeometry();
   void recordMultiZparams(QRect geom, int numx, int numy, int zstep, 

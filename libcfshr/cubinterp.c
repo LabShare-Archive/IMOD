@@ -4,7 +4,6 @@
  * written by David Mastronarde, April 2000.
  * 
  * $Id$
- * Log at end
  */
 #include <math.h>
 #include <stdlib.h>
@@ -33,7 +32,8 @@
  *   [scale] - A multiplicative scale factor for the intensities  ^
  *   [dmean] - Mean intensity of image or other value with which to fill 
  * empty image area  ^
- *   [linear] - Set non-zero to do linear interpolation  ^
+ *   [linear] - Set greater than 0 to do linear interpolation or less than zero for
+ * nearest neighbor interpolation ^
  * The coordinate transformation from (Xi, Yi) in the input image to the
  * (Xo, Yo) in the output image is given by:  ^
  *     Xo = a11(Xi - Xc) + a12(Yi - Yc) + nxb/2. + xt  ^
@@ -217,16 +217,23 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
         for (ix = iqst; ix <= iqnd; ix++) {
           xp = a11 * ix + xbase;
           yp = a21 * ix + ybase;
-          ixp = xp;
-          iyp = yp;
           dennew = dmean;
-          if (ixp  >=  1 && ixp  <  nxa && iyp  >=  1 && iyp  <  nya) {
-            dx = xp - ixp;
-            dy = yp - iyp;
-            ind = ixp + (iyp - 1) * llnxa - 1;
-            dennew = (1. - dy) * ((1. - dx) * array[ind] + dx * array[ind+1]) +
-              dy * ((1. - dx) * array[ind+llnxa] + dx * array[ind+llnxa+1]);
-            
+          if (linear > 0) {
+            ixp = xp;
+            iyp = yp;
+            if (ixp  >=  1 && ixp  <  nxa && iyp  >=  1 && iyp  <  nya) {
+              dx = xp - ixp;
+              dy = yp - iyp;
+              ind = ixp + (iyp - 1) * llnxa - 1;
+              dennew = (1. - dy) * ((1. - dx) * array[ind] + dx * array[ind+1]) +
+                dy * ((1. - dx) * array[ind+llnxa] + dx * array[ind+llnxa+1]);
+              
+            }
+          } else {
+            ixp = xp + 0.5;
+            iyp = yp + 0.5;
+            if (ixp  >=  1 && ixp  <=  nxa && iyp  >=  1 && iyp  <=  nya)
+              dennew = array[ixp + (iyp - 1) * llnxa - 1];
           }
           bray[ix + ixbase] = dennew;
         }
@@ -273,7 +280,7 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
   
       }
       
-    } else {
+    } else if (linear > 0) {
        
       /* do linear interpolation */
       for (ix = ixst; ix <= ixnd; ix++) {
@@ -288,6 +295,17 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
           ((1. - dx) * array[ind] + dx * array[ind+1]) +
           dy * ((1. - dx) * array[ind+llnxa] + dx * array[ind+llnxa+1]);
       }
+    } else {
+
+      /* do nearest neighbor interpolation */
+      for (ix = ixst; ix <= ixnd; ix++) {
+        xp = a11 * ix + xbase;
+        yp = a21 * ix + ybase;
+        ixp = xp + 0.5;
+        iyp = yp + 0.5;
+        ind = ixp + (iyp - 1) * llnxa - 1;
+        bray[ix+ixbase] = array[ind];
+      }
     }
   }
 }
@@ -300,41 +318,3 @@ void cubinterpfwrap(float *array, float *bray, int *nxa, int *nya, int *nxb,
   cubinterp(array, bray, *nxa, *nya, *nxb, *nyb, amat, *xc, *yc, *xt, *yt, 
             *scale, *dmean, *linear);
 }
-
-/*
-
-$Log$
-Revision 1.7  2010/01/29 05:42:02  mast
-Fixed problem with fallback testing being done in middle of whole lines
-being filled
-
-Revision 1.6  2009/06/22 22:47:40  mast
-Call new function to get thread number as controlled by OMP_NUM_THREADS
-
-Revision 1.5  2009/06/16 04:23:52  mast
-Parallelized with OpenMP
-
-Revision 1.4  2009/06/16 04:17:06  mast
-Wrong check in
-
-Revision 1.3  2007/10/12 21:00:01  mast
-Made it rotate around center of image when input center is specified as nx/2.
-
-Revision 1.2  2007/09/20 15:42:32  mast
-Documentation fixes
-
-Revision 1.1  2007/09/20 02:42:37  mast
-Added C translation to new library
-
-Revision 3.3  2006/03/27 19:50:47  mast
-Fixed problem with starting X value too large for integer truncations
-
-Revision 3.2  2003/03/14 02:08:05  mast
-Added a linear interpolation option and implemented implicit none
-
-Revision 3.1  2002/07/31 01:09:22  mast
-Changed margins for computing xlft and xrt from 2.0 and 1.001 to
-2.01 and 1.01 because of crash on SGI, probably due to rounding
-error
-
-*/

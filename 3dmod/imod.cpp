@@ -1,5 +1,5 @@
 /*
- *  imod.c -- Main 3dmod program; Display MRC Images and build Models.
+ *  imod.cpp -- Main 3dmod program; Display MRC Images and build Models.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -29,24 +29,24 @@
 #ifndef NO_IMOD_FORK
 #include <unistd.h>
 #endif
-#include "imod_workprocs.h"
+#include "workprocs.h"
 #include "imodv.h"
-#include "imodv_menu.h"
-#include "imodv_views.h"
+#include "mv_menu.h"
+#include "mv_views.h"
 #include "xzap.h"
-#include "imod_display.h"
-#include "imod_info.h"
-#include "imod_info_cb.h"
+#include "display.h"
+#include "info_setup.h"
+#include "info_cb.h"
 #include "imod_io.h"
 #include "imod_input.h"
-#include "imod_cachefill.h"
+#include "cachefill.h"
 #include "sslice.h"
 #include "control.h"
 #include "imodplug.h"
 #include "b3dgfx.h"
 #include "xcramp.h"
 #include "dia_qtutils.h"
-#include "imod_client_message.h"
+#include "client_message.h"
 #include "preferences.h"
 #include "form_startup.h"
 #include "imod_assistant.h"

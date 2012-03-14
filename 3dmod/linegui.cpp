@@ -41,7 +41,7 @@
 #include "undoredo.h"
 
 #ifndef LINE_PLUGIN
-static char *imodPlugInfo(int *type);
+static const char *imodPlugInfo(int *type);
 static int imodPlugKeys(ImodView *vw, QKeyEvent *event);
 static void imodPlugExecute(ImodView *inImodView);
 
@@ -157,7 +157,7 @@ static void setDefaults()
 /*
  * Called by the imod plugin load function. 
  */
-char *imodPlugInfo(int *type)
+const char *imodPlugInfo(int *type)
 {
   if (type)
     *type = IMOD_PLUG_MENU + IMOD_PLUG_KEYS;
@@ -303,8 +303,8 @@ void imodPlugExecute(ImodView *inImodView)
 
 // The constructor for the window class
 
-char *buttonLabels[] = {"Track", "Copy", "Undo", "Reset", "Done", "Help"};
-char *buttonTips[] = 
+const char *buttonLabels[] = {"Track", "Copy", "Undo", "Reset", "Done", "Help"};
+const char *buttonTips[] = 
   {"Track from last to current model point - Hot key: Spacebar",
    "Copy and adjust contour from adjacent section - Hot key: Apostrophe",
    "Undo last modeling operation - Hot key: Semicolon or U", 
@@ -350,8 +350,8 @@ LineTrack::LineTrack(QWidget *parent, const char *name)
 }
 
 // Make one edit row and store information about it
-void LineTrack::makeEditRow(int row, char *label, int *iPtr, float *fPtr,
-                            bool isInt, float min, float max, char *tip)
+void LineTrack::makeEditRow(int row, const char *label, int *iPtr, float *fPtr,
+                            bool isInt, float min, float max, const char *tip)
 {
   // Save the value pointers and limits
   mMinVal[row] = min;

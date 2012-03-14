@@ -434,13 +434,14 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     command.add("-c");
     StringBuffer commandsFileName = new StringBuffer();
     if (!isSubdirNameEmpty()) {
-      commandsFileName.append("\"../");
+      // commandsFileName.append("\"../");
+      commandsFileName.append("../");
     }
     commandsFileName.append(new StringBuffer(DatasetFiles.getCommandsFileName(subdirName,
         rootName)));
-    if (!isSubdirNameEmpty()) {
+    /*if (!isSubdirNameEmpty()) {
       commandsFileName.append("\"");
-    }
+    }*/
     command.add(commandsFileName.toString());
     command.add("-P");
     if (queueCommand == null) {

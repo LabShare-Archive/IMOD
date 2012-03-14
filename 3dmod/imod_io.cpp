@@ -1,5 +1,5 @@
 /*
- *  imod_io.c -- File I/O for imod.
+ *  imod_io.cpp -- File I/O for imod.
  *
  *  The functions in imod_io provide an interface for loading and saving imod
  *  models and images.  As models and images are loaded and saved the global
@@ -26,25 +26,25 @@
 #include <sys/types.h>
 #include <time.h>
 #include <errno.h>
-#include "imod_info.h"
+#include "info_setup.h"
 #include <qfiledialog.h>
 #include "imod.h"
-#include "imod_display.h"
+#include "display.h"
 #include "xcramp.h"
 #include "dia_qtutils.h"
-#include "imod_info_cb.h"
+#include "info_cb.h"
 #include "imodview.h"
 #include "imodplug.h"
 #include "imodv.h"
 #include "sslice.h"
 #include "imod_io.h"
-#include "imodv_views.h"
+#include "mv_views.h"
 #include "vertexbuffer.h"
 #include "preferences.h"
 
 //  Module private functions
 static void initModelData(Imod *newModel, bool keepBW);
-static char *datetime(void);
+static const char *datetime(void);
 static void imod_undo_backup(void);
 static void imod_finish_backup(void);
 static void imod_make_backup(const char *filename);
@@ -60,11 +60,11 @@ static char saved_filename[IMOD_FILENAME_SIZE] = {0x00};
 static int last_checksum = -1;
 static int lastError = IMOD_IO_SUCCESS;
 
-static char *autosave_string = "#autosave#";
+static const char *autosave_string = "#autosave#";
 
 static char dummystring[] = "         ";
 
-static char *datetime()
+static const char *datetime()
 {
   time_t clock;
   char *string;
@@ -158,7 +158,7 @@ int imod_autosave(Imod *mod)
 {
   FILE *tfilep;
   int new_checksum, i;
-  char *timestr;
+  const char *timestr;
   char *convname;
   QString savedir = ImodPrefs->autosaveDir();
 
@@ -329,7 +329,7 @@ int SaveasModel(Imod *mod)
  */
 static int writeModel(Imod *mod, FILE *fout, QString qname)
 {
-  char *timestr;
+  const char *timestr;
   int retval;
 
   /* DNM 8/4/01: -> 6/26/03: If imodv window is 
@@ -446,7 +446,7 @@ static Imod *LoadModelFile(const char *filename)
   FILE *fin;
   Imod *imod;
   QString qname;
-  char *filter[] = {"Model files (*.*mod *.*fid *.*seed)"};
+  const char *filter[] = {"Model files (*.*mod *.*fid *.*seed)"};
   
   lastError = IMOD_IO_SUCCESS;
 
@@ -803,7 +803,7 @@ int imodIOGetError()
   return lastError;
 }
 
-char *imodIOGetErrorString()
+const char *imodIOGetErrorString()
 {
   switch(lastError) {
   case IMOD_IO_SAVE_ERROR:

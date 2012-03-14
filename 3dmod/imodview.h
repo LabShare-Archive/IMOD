@@ -81,10 +81,10 @@ void DLL_EX_IM  ivwSetTime(ImodView *inImodView, int inTime);
 int DLL_EX_IM   ivwGetMaxTime(ImodView *inImodView);
 
 /*! Gets the label for the current time. */
-char DLL_EX_IM *ivwGetTimeLabel(ImodView *inImodView);
+const char DLL_EX_IM *ivwGetTimeLabel(ImodView *inImodView);
 
 /*! Gets the label for time [inIndex]. */
-char DLL_EX_IM *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex);
+const char DLL_EX_IM *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex);
 
 /*!
  * Sets the time for a new contour [cont] in object [obj] to match the 

@@ -23,8 +23,8 @@
 
 #include "imod.h"
 #include "unpegged.xpm"
-#include "imod_info.h"
-#include "imod_info_cb.h"
+#include "info_setup.h"
+#include "info_cb.h"
 #include "dia_qtutils.h"
 #include "imod_input.h"
 #include "pegged.xpm"
@@ -484,7 +484,7 @@ void InfoControls::setObjectColor( QColor foreColor, QColor backColor )
 }
 
 // Set the model name into one or the other label and adjust widget size
-void InfoControls::setModelName( char *name )
+void InfoControls::setModelName(const char *name )
 {
   QSize hint = modelLabel->sizeHint();
   int delHeight = 0;
@@ -512,7 +512,7 @@ void InfoControls::setModelName( char *name )
 }
 
 // Set the image file name into the label
-void InfoControls::setImageName( char *name )
+void InfoControls::setImageName( const char *name )
 {
   mStr = name;
   //imageLabel->setText(mStr);

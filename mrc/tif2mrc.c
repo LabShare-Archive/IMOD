@@ -47,6 +47,7 @@ int main( int argc, char *argv[])
   size_t x, xdo;
   int bg = FALSE;
   int makegray = FALSE;
+  int fillEntered = FALSE;
   int unsign = 0;
   int divide = 0;
   int keepUshort = 0;
@@ -55,7 +56,7 @@ int main( int argc, char *argv[])
   int useNTSC = 0;
   int xsize, ysize;
   int mrcxsize = 0, mrcysize = 0, mrcsizeset;
-  float mean, tmean, pixelSize = 1.;
+  float userFill, fillVal, mean, tmean, pixelSize = 1.;
   float chunkCriterion = 100.;
   b3dInt16 *sptr;
   b3dInt16 *bgshort;
@@ -98,6 +99,7 @@ int main( int argc, char *argv[])
     printf("\t-p  #   Set pixel spacing in MRC header to given #\n");
     printf("\t-f      Read only first image of multi-page file\n");
     printf("\t-o x,y  Set output file size in X and Y\n");
+    printf("\t-F  #   Set value to fill areas with no image data to given #\n");
     printf("\t-b file Background subtract image in given file\n");
     printf("\t-t #    Set criterion in megabytes for reading files in "
            "chunks\n");
@@ -148,6 +150,11 @@ int main( int argc, char *argv[])
         readFirst = 1;
         break;
  
+      case 'F': /* Define fill value */
+        userFill = atof(argv[++iarg]);
+        fillEntered = TRUE;
+        break;
+
       case 'b':
         bgfile = strdup(argv[++iarg]);
         /*  bgfp = fopen(argv[++iarg], "rb"); */
@@ -481,27 +488,28 @@ int main( int argc, char *argv[])
         printf("WARNING: tif2mrc - File %s not same size.\n", argv[iarg]);
         
         /* Unequal sizes: set the fill value and pointer */
+        fillVal = fillEntered ? userFill : tmean;
         switch (mode) {
         case MRC_MODE_BYTE:
-          byteFill[0] = tmean;
+          byteFill[0] = fillVal;
           if (hdata.bytesSigned)
-            byteFill[0] = (unsigned char)(((int)tmean - 128) & 255);
+            byteFill[0] = (unsigned char)(((int)fillVal - 128) & 255);
           fillPtr = &byteFill[0];
           break;
         case MRC_MODE_RGB:
-          byteFill[0] = byteFill[1] = byteFill[2] = 128;
+          byteFill[0] = byteFill[1] = byteFill[2] = (fillEntered ? (int)userFill : 128);
           fillPtr = &byteFill[0];
           break;
         case MRC_MODE_SHORT:
-          shortFill = tmean;
-        fillPtr = (unsigned char *)&shortFill;
-        break;
+          shortFill = fillVal;
+          fillPtr = (unsigned char *)&shortFill;
+          break;
         case MRC_MODE_USHORT:
-          ushortFill = tmean;
+          ushortFill = fillVal;
           fillPtr = (unsigned char *)&ushortFill;
           break;
         case MRC_MODE_FLOAT:
-          fillPtr = (unsigned char *)&tmean;
+          fillPtr = (unsigned char *)&fillVal;
           break;
         }
 

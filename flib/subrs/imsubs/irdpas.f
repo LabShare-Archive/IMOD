@@ -1,20 +1,20 @@
 C*IRDPAS
 C
-C	Reads in a part of a section, converting from Integer*1 or 2 or
-C	9-15 bit mode as required. After the read, the pointer is positioned at
-C	the start of the next section. Array is first cleared
-C	and then the selected portion of the image is loaded in.
-C NOTE:	The start of a line is ALWAYS 0 (ie NX1,NX2, NY1,NY2 are relative)
+C       Reads in a part of a section, converting from Integer*1 or 2 or
+C       9-15 bit mode as required. After the read, the pointer is positioned at
+C       the start of the next section. Array is first cleared
+C       and then the selected portion of the image is loaded in.
+C NOTE: The start of a line is ALWAYS 0 (ie NX1,NX2, NY1,NY2 are relative)
 C
-C	MX,MY		: Dimesnions of ARRAY
-C			: for complex numbers (MODES 3 & 4)
-C			: MX MUST be multiplied by 2 (ie # of REALS)
-C	NX1,NX2		: Start and stop Column numbers (in COMPLEX if 3,4)
-C	NY1,NY2		: Start and stop Line numbers
+C       MX,MY           : Dimesnions of ARRAY
+C                       : for complex numbers (MODES 3 & 4)
+C                       : MX MUST be multiplied by 2 (ie # of REALS)
+C       NX1,NX2         : Start and stop Column numbers (in COMPLEX if 3,4)
+C       NY1,NY2         : Start and stop Line numbers
 C
-C	ARRAY DIMENSIONS ARE FOR CORRECT TYPE FOR REALS!!
-C	MUST MULTIPLY MX*2 FOR COMPLEX!!!
-C	BUT NX1,NX2 REFER TO COMPLEX NUMBERS!!!
+C       ARRAY DIMENSIONS ARE FOR CORRECT TYPE FOR REALS!!
+C       MUST MULTIPLY MX*2 FOR COMPLEX!!!
+C       BUT NX1,NX2 REFER TO COMPLEX NUMBERS!!!
 c
 c       $Id$
 c       
@@ -40,7 +40,7 @@ c       6/20/09: Zero array only if it is under 2 Gpixel limit
       if (nread .lt. 2147000000) CALL ZERO(ARRAY, int(nread, kind = 4))
 c      
       if(spider(j))then
-        lrecspi(j)=lrecspi(j)-ny1		!advance properly for SPIDER
+        lrecspi(j)=lrecspi(j)-ny1               !advance properly for SPIDER
       else
         CALL ALTSKIP(J,ncb,ny1,*99)             !NY1 IS RELATIVE OFFSET
       endif
@@ -56,7 +56,7 @@ C
 C
 C       MAY HAVE TO SKIP TO END OF SECTION
 C       mast simplified this then changed to handle SPIDER file
-      nlinleft=(ncrs(2,j)-1-ny2)		!# of lines left in section
+      nlinleft=(ncrs(2,j)-1-ny2)                !# of lines left in section
       if(nlinleft.gt.0)then
         if(spider(j))then
           lrecspi(j)=lrecspi(j)-nlinleft
