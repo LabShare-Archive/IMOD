@@ -11,6 +11,7 @@
  */
 
 #include "processchunks.h"
+#include <qvector.h>
 
 ProcessHandler::ProcessHandler() {
   mJobFile = NULL;
@@ -19,6 +20,7 @@ ProcessHandler::ProcessHandler() {
   mComFileJobIndex = -1;
   mMachine = NULL;
   mProcess = NULL;
+  mOutStream = NULL;
   mKillProcess = new QProcess(this);
   mKillProcess->setProcessChannelMode(QProcess::ForwardedChannels);
   QObject::connect(mKillProcess, SIGNAL(finished(int, QProcess::ExitStatus)),
@@ -81,6 +83,7 @@ void ProcessHandler::initProcess() {
 //Return true for non-sync files.
 void ProcessHandler::setup(Processchunks &processchunks) {
   mProcesschunks = &processchunks;
+  mOutStream = mProcesschunks->getOutStreamPtr();
   mEscapedRemoteDirPath = mProcesschunks->getRemoteDir();
   mEscapedRemoteDirPath.replace(QRegExp(" "), "\\ ");
   if (processchunks.isQueue()) {
@@ -105,7 +108,7 @@ void ProcessHandler::setup(Processchunks &processchunks) {
 
 void ProcessHandler::setJob(const int jobIndex) {
   if (mValidJob) {
-    mProcesschunks->getOutStream()
+    *mOutStream
         << "ERROR: Unable to set job, process handler already contains a runnable job:"
         << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex)
         << ",mComFileJobIndex:" << mComFileJobIndex << endl;
@@ -143,7 +146,7 @@ void ProcessHandler::setJob(const int jobIndex) {
 
 void ProcessHandler::setFlagNotDone(const bool singleFile) {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return;
   }
   mProcesschunks->getComFileJobs()->setFlagNotDone(mComFileJobIndex, singleFile);
@@ -160,7 +163,7 @@ void ProcessHandler::resetSignalValues() {
 
 int ProcessHandler::getFlag() {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return CHUNK_DONE;
   }
   return mProcesschunks->getComFileJobs()->getFlag(mComFileJobIndex);
@@ -168,7 +171,7 @@ int ProcessHandler::getFlag() {
 
 bool ProcessHandler::logFileExists(const bool newlyCreatedFile) {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return false;
   }
   if (mLogFileExists) {
@@ -191,7 +194,7 @@ bool ProcessHandler::logFileExists(const bool newlyCreatedFile) {
 
 bool ProcessHandler::qidFileExists() {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return false;
   }
   if (mProcesschunks->isQueue()) {
@@ -203,7 +206,7 @@ bool ProcessHandler::qidFileExists() {
 //Looks for PID in either stderr (non-queue) or in .qid file (queue).
 const QString ProcessHandler::getPid() {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return "";
   }
   if (!mProcesschunks->isQueue()) {
@@ -268,7 +271,7 @@ bool ProcessHandler::getPid(QTextStream &stream, const bool save) {
 const QByteArray ProcessHandler::readAllLogFile() {
   QByteArray log;
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return log;
   }
   if (!mLogFile->open(QIODevice::ReadOnly)) {
@@ -281,7 +284,7 @@ const QByteArray ProcessHandler::readAllLogFile() {
 
 bool ProcessHandler::isLogFileEmpty() {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return true;
   }
   return mLogFile->size() == 0;
@@ -302,7 +305,7 @@ void ProcessHandler::readAllStandardError() {
 //Returns true if found
 bool ProcessHandler::getSshError(QString &dropMess) {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return false;
   }
   bool found = false;
@@ -349,7 +352,7 @@ bool ProcessHandler::getSshError(QString &dropMess, QTextStream &stream) {
 //the log exists and the finished signal has been received
 bool ProcessHandler::isComProcessDone() {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return false;
   }
   if (mProcesschunks->isQueue()) {
@@ -369,12 +372,12 @@ bool ProcessHandler::isComProcessDone() {
 //Returns true if a last line of the log file starts with "CHUNK DONE"
 bool ProcessHandler::isChunkDone() {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return false;
   }
   if (!mLogFile->open(QIODevice::ReadOnly)) {
     if (logFileExists(true) && !mLogFile->open(QIODevice::ReadOnly)) {
-      mProcesschunks->getOutStream() << "Warning: Unable to open "
+      *mOutStream << "Warning: Unable to open "
           << mLogFile->fileName() << endl;
     }
     return false;
@@ -415,7 +418,7 @@ bool ProcessHandler::isPausing() {
 //with "ERROR:" and the end of the file.
 void ProcessHandler::getErrorMessageFromLog(QString &errorMess) {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return;
   }
   if (!mLogFile->open(QIODevice::ReadOnly)) {
@@ -478,25 +481,28 @@ void ProcessHandler::getErrorMessageFromOutput(QString &errorMess) {
 }
 
 void ProcessHandler::printTooManyErrorsMessage(const int numErr) {
-  mProcesschunks->getOutStream() << "ERROR: " << getComFileName()
+  *mOutStream << "ERROR: " << getComFileName()
       << " has given processing error " << numErr << " times - giving up" << endl;
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+    *mOutStream << mDecoratedClassName << ":" << __func__
         << ":mExitCode:" << mExitCode << ",mExitStatus:" << mExitStatus << endl;
   }
 }
 
 void ProcessHandler::incrementNumChunkErr() {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return;
   }
   mProcesschunks->getComFileJobs()->incrementNumChunkErr(mComFileJobIndex);
 }
 
 void ProcessHandler::printWarnings(const QString &machineName) {
+  QStringList warnList;
+  QVector<int> numWarns;
+  int i, lineInd, warnInd;
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return;
   }
   if (!mLogFile->open(QIODevice::ReadOnly)) {
@@ -506,18 +512,49 @@ void ProcessHandler::printWarnings(const QString &machineName) {
   do {
     line = mLogFile->readLine();
     if (line.indexOf("WARNING:") != -1) {
-      mProcesschunks->getOutStream() << line;
+
+      // Keep track of matching warnings on the list
+      line = line.trimmed();
+      bool match = false;
+      for (i = 0; i < warnList.size(); i++) {
+        if (line == warnList[i]) {
+          match = true;
+          break;
+        }
+
+        // Look for a match up to the last space and replace final word with ...
+        lineInd = line.lastIndexOf(' ');
+        warnInd = warnList[i].lastIndexOf(' ');
+        match = lineInd > 0 && lineInd == warnInd && 
+          line.left(lineInd) ==  warnList[i].left(warnInd);
+        if (match) {
+          warnList[i] = warnList[i].left(warnInd) + " ...";
+          break;
+        }
+      }
+      if (match) {
+        numWarns[i] = numWarns[i] + 1;
+      } else {
+        numWarns.append(1);
+        warnList << line;
+      }
     }
     else if (line.indexOf("MESSAGE:") != -1) {
-      mProcesschunks->getOutStream() << line.trimmed() << " - on " << machineName << endl;
+      *mOutStream << line.trimmed() << " - on " << machineName << endl;
     }
   } while (!mLogFile->atEnd());
   mLogFile->close();
+  for (i = 0; i < warnList.size(); i++) {
+    *mOutStream << warnList[i];
+    if (numWarns[i] > 1)
+      *mOutStream << " (" << numWarns[i] << " times)";
+    *mOutStream << endl;
+  }
 }
 
 bool ProcessHandler::cshFileExists() {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return false;
   }
   return mProcesschunks->getCurrentDir().exists(
@@ -526,7 +563,7 @@ bool ProcessHandler::cshFileExists() {
 
 int ProcessHandler::getNumChunkErr() {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return 0;
   }
   return mProcesschunks->getComFileJobs()->getNumChunkErr(mComFileJobIndex);
@@ -534,7 +571,7 @@ int ProcessHandler::getNumChunkErr() {
 
 const QString ProcessHandler::getComFileName() {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return "";
   }
   return mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex);
@@ -542,7 +579,7 @@ const QString ProcessHandler::getComFileName() {
 
 const QString ProcessHandler::getLogFileName() {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return "";
   }
   return mProcesschunks->getComFileJobs()->getLogFileName(mComFileJobIndex);
@@ -565,7 +602,7 @@ bool ProcessHandler::isStartProcessTimedOut(const int timeout) {
 
 void ProcessHandler::setFlag(const int flag) {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return;
   }
   mProcesschunks->getComFileJobs()->setFlag(mComFileJobIndex, flag);
@@ -573,7 +610,7 @@ void ProcessHandler::setFlag(const int flag) {
 
 void ProcessHandler::removeFiles() {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return;
   }
   mProcesschunks->getCurrentDir().remove(mLogFile->fileName());
@@ -599,7 +636,7 @@ void ProcessHandler::removeProcessFiles() {
 QString ProcessHandler::getCshFile() {
   QString temp;
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return temp;
   }
   temp = mProcesschunks->getComFileJobs()->getCshFileName(mComFileJobIndex);
@@ -724,13 +761,13 @@ void ProcessHandler::killSignal() {
         //PIDs are available
         mKillStarted = true;//This starts the 15-count timeout
         if (!isPidEmpty()) {
-          mProcesschunks->getOutStream() << "Killing "
+          *mOutStream << "Killing "
               << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex);
           if (mMachine == NULL) {
-            mProcesschunks->getOutStream() << endl;
+            *mOutStream << endl;
           }
           else {
-            mProcesschunks->getOutStream() << " on " << mMachine->getName() << endl;
+            *mOutStream << " on " << mMachine->getName() << endl;
           }
           setJobNotDone();
           //Kill a local job.  Killing non-local jobs is not handled handled by
@@ -741,7 +778,7 @@ void ProcessHandler::killSignal() {
         }
         else {
           //Unable to get the PID.
-          mProcesschunks->getOutStream() << "Unable to kill a processes on "
+          *mOutStream << "Unable to kill a processes on "
               << mMachine->getName() << endl;
           mKillFinishedSignalReceived = true;
           mProcess->kill();
@@ -832,11 +869,11 @@ void ProcessHandler::handleFinished(const int exitCode,
 void ProcessHandler::handleKillFinished(const int exitCode,
     const QProcess::ExitStatus exitStatus) {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return;
   }
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__ << ":"
+    *mOutStream << mDecoratedClassName << ":" << __func__ << ":"
         << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex)
         << ",exitCode:" << exitCode << ",exitStatus:" << exitStatus << endl;
   }
@@ -850,10 +887,10 @@ void ProcessHandler::handleKillFinished(const int exitCode,
     //exitCode == 100:  Process finished before it could be killed
     //exitCode == 101:  Unable to pause because the process had already started.
     if (exitCode != 0 && exitCode != 100 && exitCode != 101) {
-      mProcesschunks->getOutStream() << "kill process exitCode:" << exitCode << endl;
+      *mOutStream << "kill process exitCode:" << exitCode << endl;
       QByteArray byteArray = mKillProcess->readAllStandardError();
       if (!byteArray.isEmpty()) {
-        mProcesschunks->getOutStream() << byteArray << endl;
+        *mOutStream << byteArray << endl;
       }
     }
   }
@@ -865,15 +902,15 @@ void ProcessHandler::handleError(const QProcess::ProcessError processError) {
     return;
   }
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return;
   }
   mErrorSignalReceived = true;
   mProcessError = processError;
-  mProcesschunks->getOutStream() << mProcesschunks->getComFileJobs()->getComFileName(
+  *mOutStream << mProcesschunks->getComFileJobs()->getComFileName(
       mComFileJobIndex) << ":process error:" << processError << ","
       << mProcess->errorString() << endl;
-  mProcesschunks->getOutStream() << "exitCode:" << mProcess->exitCode() << ",exitStatus:"
+  *mOutStream << "exitCode:" << mProcess->exitCode() << ",exitStatus:"
       << mProcess->exitStatus() << ",state:" << mProcess->state() << endl;
 }
 
@@ -883,13 +920,13 @@ void ProcessHandler::handleError(const QProcess::ProcessError processError) {
 //processchunks, and its part of the group.
 void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
   if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR: Job index not set" << endl;
+    *mOutStream << "ERROR: Job index not set" << endl;
     return;
   }
   //immediately stop the process
   stopProcess(pid);
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+    *mOutStream << mDecoratedClassName << ":" << __func__
         << ":stopping " << pid << endl;
   }
   int i;
@@ -915,7 +952,7 @@ void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
         if (pidIndex == -1 || ppidIndex == -1) {
           header = stream.readLine().trimmed();
           if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-            mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+            *mOutStream << mDecoratedClassName << ":" << __func__
                 << ":ps column header:" << endl << header << endl;
           }
           QStringList headerList = header.split(QRegExp("\\s+"), QString::SkipEmptyParts);
@@ -951,7 +988,7 @@ void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
                 foundNewChildPid = true;
                 pidList.append(childPid);
                 if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-                  mProcesschunks->getOutStream() << mDecoratedClassName << ":"
+                  *mOutStream << mDecoratedClassName << ":"
                       << __func__ << ":stopping:" << endl << line << endl;
                 }
               }
@@ -959,7 +996,7 @@ void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
           } while (!stream.atEnd());
         }
         else {
-          mProcesschunks->getOutStream()
+          *mOutStream
               << "Warning: May not have been able to kill all processes descendent from "
               << mCommand << " " << mProcesschunks->getComFileJobs()->getCshFileName(
               mComFileJobIndex)
@@ -969,7 +1006,7 @@ void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
         }
       }
       else {
-        mProcesschunks->getOutStream()
+        *mOutStream
             << "Warning: May not have been able to kill all processes descendent from "
             << mCommand << " " << mProcesschunks->getComFileJobs()->getCshFileName(
             mComFileJobIndex) << " on local machine.  Ps command return nothing" << "("
@@ -977,7 +1014,7 @@ void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
       }
     }
     else {
-      mProcesschunks->getOutStream()
+      *mOutStream
           << "Warning: May not have been able to kill all processes descendent from "
           << mCommand << " " << mProcesschunks->getComFileJobs()->getCshFileName(
           mComFileJobIndex) << " on local machine.  Ps command failed" << "(" << command
