@@ -103,6 +103,10 @@ public:
     return *mOutStream;
   }
   ;
+  inline QTextStream *getOutStreamPtr() {
+    return mOutStream;
+  }
+  ;
   inline bool isSingleFile() {
     return mSingleFile;
   }
