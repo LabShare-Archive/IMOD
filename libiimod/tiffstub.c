@@ -77,8 +77,6 @@ TIFFWarningHandler TIFFSetWarningHandler(TIFFWarningHandler handler)
 {
   return NULL;
 }
-typedef void (*TIFFErrorHandler)(const char *module, const char *fmt,
-                                   va_list ap);
 
 TIFFErrorHandler TIFFSetErrorHandler(TIFFErrorHandler handler)
 {
