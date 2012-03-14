@@ -91,9 +91,7 @@ import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -102,30 +100,18 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import etomo.ApplicationManager;
-import etomo.BaseManager;
-import etomo.logic.LatestBuild;
-import etomo.process.SystemProgram;
-import etomo.storage.LogFile;
+import etomo.logic.VersionControl;
 import etomo.type.AxisID;
 import etomo.type.ImodVersion;
-import etomo.util.EnvironmentVariable;
 
 public class MainFrame_AboutBox extends JDialog {
   public static final String rcsid = "$Id$";
 
-  String versImod = "unknown";
-  String cpyrght3dmodLine1 = "";
-  String cpyrght3dmodLine2 = "";
   JPanel pnlAbout = new JPanel();
-
   JButton btnOK = new JButton("OK");
-  private final BaseManager manager;
 
-  public MainFrame_AboutBox(BaseManager manager, Frame parent, AxisID axisID) {
+  public MainFrame_AboutBox(final Frame parent,final AxisID axisID) {
     super(parent);
-    this.manager = manager;
-    getImodVersion(axisID);
     JPanel pnlRoot = (JPanel) getContentPane();
     JPanel pnlText = new JPanel();
     JPanel pnlButton = new JPanel();
@@ -138,11 +124,8 @@ public class MainFrame_AboutBox extends JDialog {
 
     JLabel lblEtomo = new JLabel("eTomo: The IMOD Tomography GUI");
     JLabel lblVersion = new JLabel("Version " + ImodVersion.CURRENT_VERSION + " "
-        + LatestBuild.get());
+        + VersionControl.TIME_STAMP);
     JLabel lblAuthors = new JLabel("Written by: Rick Gaudette & Sue Held");
-    JLabel lbl3dmodVersion = new JLabel("IMOD Version: " + versImod);
-    JLabel lblCopyright1 = new JLabel(cpyrght3dmodLine1);
-    JLabel lblCopyright2 = new JLabel(cpyrght3dmodLine2);
 
     btnOK.addActionListener(new AboutActionListener(this));
 
@@ -150,38 +133,23 @@ public class MainFrame_AboutBox extends JDialog {
     pnlText.add(lblEtomo);
     pnlText.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlText.add(lblVersion);
-    pnlText.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlText.add(lblCopyright1);
-    pnlText.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlText.add(lblCopyright2);
+    List<String> imodInfo = VersionControl.getImodInfo(axisID);
+    if (imodInfo != null && imodInfo.size() > 2) {
+      pnlText.add(Box.createRigidArea(FixedDim.x0_y10));
+      pnlText.add(new JLabel(imodInfo.get(1)));
+      pnlText.add(Box.createRigidArea(FixedDim.x0_y5));
+      pnlText.add(new JLabel(imodInfo.get(2)));
+    }
     pnlText.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlText.add(lblAuthors);
-    pnlText.add(Box.createRigidArea(FixedDim.x0_y20));
-    pnlText.add(lbl3dmodVersion);
-    pnlText.add(Box.createRigidArea(FixedDim.x0_y5));
-    // Add PEET version
-    LogFile peetVersionFile = null;
-    LogFile.ReaderId id = null;
-    try {
-      peetVersionFile = LogFile.getInstance(
-          new File(EnvironmentVariable.INSTANCE.getValue(null, null, "PARTICLE_DIR",
-              AxisID.ONLY)), "PEETVersion.txt");
-      id = peetVersionFile.openReader();
-      String version = peetVersionFile.readLine(id);
-      if (version != null && !version.matches("\\s*")) {
-        pnlText.add(new JLabel("PEET Version: " + version));
-      }
+    if (imodInfo != null && imodInfo.size() > 0) {
+      pnlText.add(Box.createRigidArea(FixedDim.x0_y20));
+      pnlText.add(new JLabel("IMOD Version: "+imodInfo.get(0)));
     }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-    }
-    catch (FileNotFoundException e) {
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    if (peetVersionFile != null && id != null) {
-      peetVersionFile.closeRead(id);
+    String version = VersionControl.getPeetVersion();
+    if (version != null) {
+      pnlText.add(Box.createRigidArea(FixedDim.x0_y5));
+      pnlText.add(new JLabel("PEET Version: " + VersionControl.getPeetVersion()));
     }
     pnlText.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlButton.add(btnOK);
@@ -211,33 +179,6 @@ public class MainFrame_AboutBox extends JDialog {
   public void buttonAction(ActionEvent e) {
     if (e.getSource() == btnOK) {
       cancel();
-    }
-  }
-
-  /**
-   * Run 3dmod -h to version and copyright information.
-   */
-  private void getImodVersion(AxisID axisID) {
-    String[] command = new String[] { ApplicationManager.getIMODBinPath() + "imodinfo" };
-    SystemProgram threeDmod_h = new SystemProgram(manager, manager.getPropertyUserDir(),
-        command, axisID);
-
-    threeDmod_h.run();
-
-    String[] stdout = threeDmod_h.getStdOutput();
-    if (stdout != null && stdout.length >= 1) {
-      int idxVersion = stdout[0].indexOf("Version");
-      if (idxVersion > 0) {
-        String noPath = stdout[0].substring(idxVersion);
-        String[] tokens = noPath.split(" ");
-        if (tokens.length > 1) {
-          versImod = tokens[1];
-        }
-      }
-    }
-    if (stdout.length > 3) {
-      cpyrght3dmodLine1 = stdout[1];
-      cpyrght3dmodLine2 = stdout[2];
     }
   }
 
