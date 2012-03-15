@@ -205,7 +205,8 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
             retryCount < runRetryLimit and time.time() - tryStart < runMaxTimeForRetry:
             retryCount += 1
             if collect:
-               prnstr(fmtstr("Retrying " + cmd + " after {} sec", time.time() - tryStart))
+               prnstr(fmtstr("Retrying " + cmd + " after {:.3f} sec",
+                             time.time() - tryStart))
             elif not toStdout and isinstance(outfile, file):
                outfile.truncate()
             if inStderr and useSubprocess and isinstance(inStderr, file):
