@@ -103,16 +103,30 @@ def testFileType(filnam):
 
 
 # Find lines with source command and setting IMOD_DIR in a startup script file or fragment
+# Also detect multiple commands or multiline conditionals
 def findIMODLines(lines):
-   sourceLine = -1
+   testSourceLine = -1
    dirLine = -1
+   sourceLine = -1
+   testLine = -1
+   multiline = False
    for ind in range(len(lines)):
+      if re.search('IMOD.*sh.*source.*IMOD.*sh', lines[ind]):
+         testSourceLine = ind
+         if sourceLine >= 0 or testLine >= 0:
+            multiline = True
       if re.search('source.*IMOD.*sh', lines[ind]):
          sourceLine = ind
+         if sourceLine != testSourceLine:
+            multiline = True
+      if re.search('-[er].*IMOD.*sh', lines[ind]):
+         testLine = ind
+         if testLine != testSourceLine:
+            multiline = True
       if re.search('setenv.*IMOD_DIR', lines[ind]) or\
              re.search('export.*IMOD_DIR', lines[ind]):
          dirLine = ind
-   return (sourceLine, dirLine)
+   return (testSourceLine, dirLine, multiline)
 
 
 # MAIN PROGRAM
@@ -400,7 +414,7 @@ installstr = installdir + '/' + namedir
 if ubuntu:
    uberr = writeFile(scripts[0], [fmtstr('if (-e {0}/{1}/{2}) source {0}/{1}/{2}',
                                           defaultdir, namedir, scripts[2])])
-   uberr += writeFile(scripts[1], [fmtstr('if (-e {0}/{1}/{2}) source {0}/{1}/{2}',
+   uberr += writeFile(scripts[1], [fmtstr('[ -r {0}/{1}/{2} ] && source {0}/{1}/{2}',
                                           defaultdir, namedir, scripts[3])])
    if not skipcopy:
       for scrip in (scripts[2], scripts[3]):
@@ -510,11 +524,21 @@ elif not skipcopy:
          syslines = readFile(sysfil)
          if syslines == None or scriptlines == None:
             continue
-         (sysSource, sysIMODdir) = findIMODLines(syslines)
-         (scriptSource, scriptIMODdir) = findIMODLines(scriptlines)
+         (sysSource, sysIMODdir, multiExists) = findIMODLines(syslines)
+         (scriptSource, scriptIMODdir, junk) = findIMODLines(scriptlines)
          if scriptSource < 0:
-            echo('WARNING: Failed to find line for source startup in ' + scripts[ind])
+            echo('WARNING: Failed to find line for sourcing startup in ' + scripts[ind])
             continue
+
+         # Issue complaint about multi-line entries in the file
+         if multiExists:
+            startup = ''
+            if len(scripts) > 2:
+               startup = ' (' + scripts[ind+2] + ')'
+            echo("\nWARNING: " + sysfil + " appears to contain several lines for testing")
+            echo("         then sourcing the IMOD startup script" + startup)
+            echo("         You need to remove these lines manually,")
+            echo("         leaving just one line that tests and sources.\n")
 
          # Three cases: it already matches, adding from scratch, or fixing what's there
          if sysSource >= 0 and syslines[sysSource] == scriptlines[scriptSource] and \
