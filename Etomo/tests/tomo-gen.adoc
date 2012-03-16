@@ -25,7 +25,7 @@ bn.done=
 [function = test-files]
 if.var.fidless.return=
 assert.contains.file=tilt%{axis}.com|EXCLUDELIST*1
-assert.contains.file=tilt%{axis}_sirt.com|EXCLUDELIST*1
+#Ignore tilt_sirt.com - unpredictible file
 assert.contains.file=tilt%{axis}_for_sirt.com|EXCLUDELIST*1
 
 

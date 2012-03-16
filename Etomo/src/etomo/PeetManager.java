@@ -13,6 +13,7 @@ import etomo.logic.PeetStartupData;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.PeetProcessManager;
+import etomo.process.ProcessData;
 import etomo.process.ProcessResultDisplayFactoryBlank;
 import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.process.SystemProcessException;
@@ -534,8 +535,12 @@ public final class PeetManager extends BaseManager {
       destParameterStore.load(state);
       // Modify the properties to work with the new dataset
       destMetaData.setRootName(fnOutput);
+      //Wipe out process data in case there is a process running in the source dataset.
+      ProcessData processData = processMgr.getProcessData(AxisID.ONLY);
+      processData.reset();
       // Save the properties back to the copied file
       destParameterStore.setAutoStore(true);
+      destParameterStore.save(processData);
       destParameterStore.save(destMetaData);
     }
     catch (LogFile.LockException e) {
