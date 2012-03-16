@@ -51,8 +51,8 @@ static void setSliceLimits(int ciz, int miz, bool invertZ, int drawTrans,
                            int &zst, int &znd, int &izdir);
 static void setCoordLimits(int cur, int maxSize, int drawSize, 
                            int &str, int &end);
-static void endTexMapping();
-static int initTexMapping();
+static int initTexMapping(void);
+static void endTexMapping(void);
 
 // 3/23/11: NEW NAMING CONVENTION, sVariable for all static variables
 
@@ -95,8 +95,7 @@ void imodvImageEditDialog(ImodvApp *a, int state)
     return;
   }
 
-  sDia = new ImodvImage(imodvDialogManager.parent(IMODV_DIALOG),
-                                      "image view");
+  sDia = new ImodvImage(imodvDialogManager.parent(IMODV_DIALOG), "image view");
   sA = a;
 
   mkcmap();
@@ -114,6 +113,7 @@ void imodvImageUpdate(ImodvApp *a)
       diaSetChecked(sDia->mViewZBox, true);
   } else if (!a->texMap && sFlags) {
     sFlags = 0;
+    imodvImageCleanup();
     if (sDia) {
       diaSetChecked(sDia->mViewXBox, false);
       diaSetChecked(sDia->mViewYBox, false);
@@ -123,9 +123,13 @@ void imodvImageUpdate(ImodvApp *a)
   if (sDia) {
     sDia->mViewXBox->setEnabled(!(a->stereo && a->imageStereo));
     sDia->mViewYBox->setEnabled(!(a->stereo && a->imageStereo));
-    sDia->mSliders->setEnabled(IIS_SLICES, 
-                                             !(a->stereo && a->imageStereo));
+    sDia->mSliders->setEnabled(IIS_SLICES, !(a->stereo && a->imageStereo));
   }
+}
+
+int imodvImageGetFlags(void)
+{
+  return sFlags;
 }
 
 // Set the number of slices and the transparency from movie controller - 
@@ -728,19 +732,23 @@ static int initTexMapping()
   return 0;
 }
 
-
 // Take care of all flags associated with texture mapping being on
 static void endTexMapping()
 {
   sFlags = 0;
   Imodv->texMap = 0;
+  imodvImageCleanup();
+}
+
+// Free up image and texture arrays
+void imodvImageCleanup()
+{
   B3DFREE(sTdata);
   if (sTexImageSize)
     glDeleteTextures(1, &sTexName);
   sTexImageSize = 0;
   sTdata = NULL;
 }
-
 
 // THE ImodvImage CLASS IMPLEMENTATION
 
@@ -939,8 +947,8 @@ void ImodvImage::sliderMoved(int which, int value, bool dragging)
 // Set the black/white levels from 3dmod
 void ImodvImage::copyBWclicked()
 {
-  sBlackLevel = App->cvi->black;
-  sWhiteLevel = App->cvi->white;
+  sBlackLevel = App->cvi->blackInRange;
+  sWhiteLevel = App->cvi->whiteInRange;
   mSliders->setValue(IIS_BLACK, sBlackLevel);
   mSliders->setValue(IIS_WHITE, sWhiteLevel);
   mkcmap();
