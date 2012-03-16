@@ -183,7 +183,7 @@ else
     gfortran -v >&! gfortran.tmp
     set gfortvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gfortran.tmp |sed '/\./s// /g'`
     \rm -f gfortran.tmp
-    if ($gfortvers == "") then
+    if ("$gfortvers" == "") then
         set gfortvers = (4 2)
         echo "Warning: no gfortran found"
     endif
