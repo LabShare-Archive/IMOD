@@ -409,7 +409,7 @@ final class EtomoMenu {
     }
 
     if (equalsHelpAbout(event)) {
-      MainFrame_AboutBox dlg = new MainFrame_AboutBox(manager, frame, axisID);
+      MainFrame_AboutBox dlg = new MainFrame_AboutBox(frame, axisID);
       Dimension dlgSize = dlg.getPreferredSize();
       Dimension frmSize = frame.getSize();
       Point loc = frame.getLocation();

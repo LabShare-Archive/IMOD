@@ -638,7 +638,9 @@ public abstract class MainPanel extends EtomoPanel {
   private void setAxisA() {
     showingBothAxis = false;
     showingAxisA = true;
-    panelCenter.add(scrollPaneA);
+    if (manager.isValid()) {
+      panelCenter.add(scrollPaneA);
+    }
   }
 
   void showAxisB() {

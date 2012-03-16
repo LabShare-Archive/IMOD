@@ -1438,6 +1438,11 @@ public abstract class BaseManager {
     }
     return reconnectRunA;
   }
+  
+  
+  public boolean isValid() {
+    return true;
+  }
 
   /**
    * Should remail private

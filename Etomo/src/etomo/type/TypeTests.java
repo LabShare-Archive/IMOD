@@ -85,6 +85,7 @@ public class TypeTests {
     suite.addTestSuite(EtomoNumberPropertyListTest.class);
     suite.addTestSuite(PanelHeaderStatePropertyListTest.class);
     suite.addTestSuite(FileTypeTest.class);
+    suite.addTestSuite(EtomoVersionTest.class);
     //$JUnit-END$
     return suite;
   }
