@@ -26,6 +26,8 @@ void imodvImageUpdate(ImodvApp *a);
 void imodvImageSetThickTrans(int slices, int trans);
 int imodvImageGetThickness(void);
 int imodvImageGetTransparency(void);
+int imodvImageGetFlags(void);
+void imodvImageCleanup();
 
 #include "dialog_frame.h"
 class MultiSlider;
