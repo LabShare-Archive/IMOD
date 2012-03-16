@@ -580,6 +580,6 @@ goto.frame.pnl.manager-frame =
 [[open = interface]]
   pnl.main-frame=
   mn.tools=
-  mn.gpu-tilt-test=
+  mn.test-gpu=
 [[]]
 goto.frame.pnl.manager-frame =
