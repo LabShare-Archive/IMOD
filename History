@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/15/12: In eTomo added an interface for running gputilttest to the Tools
+menu.(Bug# 1525)
+
 3/15/12: Fixed what installer puts in bash.bashrc in Ubuntu.
 
 3/15/12: In eTomo - PEET, when copying a dataset, removing any process data
@@ -58,9 +61,6 @@ objects.
 
 2/28/12: In eTomo - PEET fixed an initMotl bug where the incorrect radio
 button was selected.(Bug# 1602).
-
-2/28/12: In eTomo added an interface for running gputilttest to the Tools
-menu.(Bug# 1525)
 
 2/28/12: In eTomo getting EXCLUDELIST for tilt.com from align.log when
 possible.(Bug# 1407)
