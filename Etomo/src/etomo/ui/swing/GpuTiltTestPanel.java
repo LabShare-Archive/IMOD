@@ -36,7 +36,7 @@ public class GpuTiltTestPanel implements ToolPanel, ContextMenu {
   private final LabeledTextField ltfNMinutes = new LabeledTextField("# of minutes: ");
   private final LabeledSpinner spGpuNumber = new LabeledSpinner("GPU #: ",
       new SpinnerNumberModel(0, 0, 8, 1), 0);
-  private final MultiLineButton btnRunTest = new MultiLineButton("Run GPU Tilt Test");
+  private final MultiLineButton btnRunTest = new MultiLineButton("Run GPU Test");
 
   private final ToolsManager manager;
   private final AxisID axisID;
@@ -72,11 +72,11 @@ public class GpuTiltTestPanel implements ToolPanel, ContextMenu {
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y15));
     // Fields
     pnlFields.setLayout(new BoxLayout(pnlFields, BoxLayout.X_AXIS));
-    pnlFields.add(Box.createRigidArea(FixedDim.x15_y0));
+    pnlFields.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlFields.add(ltfNMinutes.getContainer());
-    pnlFields.add(Box.createRigidArea(FixedDim.x20_y0));
-    pnlFields.add(spGpuNumber.getContainer());
     pnlFields.add(Box.createRigidArea(FixedDim.x15_y0));
+    pnlFields.add(spGpuNumber.getContainer());
+    pnlFields.add(Box.createRigidArea(FixedDim.x10_y0));
   }
 
   private void addListeners() {
@@ -101,14 +101,14 @@ public class GpuTiltTestPanel implements ToolPanel, ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "GPU Tilt Test"};
+    String[] manPagelabel = { "gputilttest" };
     String[] manPage = { "gputilttest.html" };
     String[] logFileLabel = { "GPU test" };
     String[] logFile = new String[1];
     logFile[0] = "gputest" + ".log";
-    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
-        "GPU Test", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel,
-        logFile, manager, axisID);
+    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent, "GPU Test",
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, manager,
+        axisID);
   }
 
   private void setToolTipText() {
@@ -116,6 +116,9 @@ public class GpuTiltTestPanel implements ToolPanel, ContextMenu {
     spGpuNumber
         .setToolTipText("The GPU number, numbered from 1.  When 0 is selected, the fastest "
             + "GPU will be used.");
+    btnRunTest
+        .setToolTipText("Test the reliability of the GPU by using gputilttest to run the "
+            + "Tilt program repeatedly.");
   }
 
   private final class GpuTiltTestActionListener implements ActionListener {
