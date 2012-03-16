@@ -32,6 +32,7 @@
 #include "object_edit.h"
 #include "display.h"
 #include "mv_gfx.h"
+#include "mv_image.h"
 #include "mv_stereo.h"
 #include "mv_modeled.h"
 #include "preferences.h"
@@ -210,7 +211,7 @@ static void initstruct(ImodView *vw, ImodvApp *a)
   a->fullscreen = 0;
 
   a->standalone = 0;
-  a->texMap  = 0;
+  a->texMap  = imodvImageGetFlags() ? 1 : 0;
   a->texTrans = 0;
   a->vi = vw;
 
@@ -798,6 +799,7 @@ void imodvQuit()
   onceOpened = 1;
   lastGeom = ivwRestorableGeometry(a->mainWin);
   vbCleanupVBD(Imodv->imod);
+  imodvImageCleanup();
 
   if (a->boundBoxExtraObj > 0)
     ivwFreeExtraObject(a->vi, a->boundBoxExtraObj);
