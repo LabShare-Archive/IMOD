@@ -4,15 +4,14 @@ IMOD History
 button with data loaded as integers; fixed problems if model view is closed
 and reopened; image display state is now retained if model view reopened.
 
+3/16/12: In eTomo - PEET, popping up an error message when the PEET
+installation is not compatible with the current IMOD version.(Bug# 1597)
+
 3/15/12: IMOD_4-4-8
 3/15/12: Fixed what installer puts in bash.bashrc in Ubuntu.
 
 3/15/12: In eTomo - PEET, when copying a dataset, removing any process data
 that came form the source dataset.(Bug# 1603)
-
-3/14/12: In eTomo - PEET, popping up an error message when the PEET
-installation is not compatible with the current IMOD version.(Bug# 1597)
-
 
 3/12/12: Made it possible to delete all labels in Alterheader.
 
