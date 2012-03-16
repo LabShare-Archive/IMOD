@@ -46,7 +46,7 @@ final class EtomoMenu {
       + (Utilities.isAprilFools() ? "Delusion" : "Diffusion");
   static final String PEET_LABEL = "PEET";
   static final String FLATTEN_VOLUME_LABEL = "Flatten Volume";
-  static final String GPU_TILT_TEST_LABEL = "GPU Tilt Test";
+  static final String GPU_TILT_TEST_LABEL = "Test GPU";
 
   private static final int nMRUFileMax = 10;
   private static final String TOP_ANCHOR = Constants.TOP_ANCHOR;
