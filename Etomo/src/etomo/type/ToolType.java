@@ -19,7 +19,7 @@ public final class ToolType {
   public static final String rcsid = "$Id$";
 
   public static final ToolType FLATTEN_VOLUME = new ToolType("Flatten Volume");
-  public static final ToolType GPU_TILT_TEST = new ToolType("GPU Tilt Test");
+  public static final ToolType GPU_TILT_TEST = new ToolType("GPU Test");
 
   private final String string;
 
