@@ -410,8 +410,8 @@ public final class MatlabParam {
   private final ParsedNumber sampleInterval = ParsedNumber
       .getMatlabInstance(EtomoNumber.Type.FLOAT);
   private final ParsedQuotedString maskType = ParsedQuotedString.getInstance();
-  private final ParsedArray maskModelPts = ParsedArray
-      .getMatlabInstance(EtomoNumber.Type.FLOAT);
+  private final ParsedArray maskModelPts = ParsedArray.getMatlabInstance(
+      EtomoNumber.Type.FLOAT, false);
   private final ParsedNumber insideMaskRadius = ParsedNumber.getMatlabInstance();
   private final ParsedNumber outsideMaskRadius = ParsedNumber.getMatlabInstance();
   private final ParsedNumber nWeightGroup = ParsedNumber.getMatlabInstance();
@@ -654,6 +654,8 @@ public final class MatlabParam {
   }
 
   public boolean isMaskModelPtsEmpty() {
+    System.out.println("A:maskModelPts:" + maskModelPts + ",maskModelPts.isEmpty():"
+        + maskModelPts.isEmpty());
     return maskModelPts.isEmpty();
   }
 
@@ -758,8 +760,28 @@ public final class MatlabParam {
     nWeightGroup.setRawString(input);
   }
 
-  public void setMaskModelPtsZRotation(final String input) {
-    maskModelPts.setRawString(Z_ROTATION_INDEX, input);
+  /**
+   * Set mastModelPts.  If only one of the rotations is set, the other one should be zero.
+   * @param zRotation
+   * @param yRotation
+   */
+  public void setMaskModelPts(String zRotation, String yRotation) {
+    boolean zEmpty = zRotation == null || zRotation.matches("\\s*");
+    boolean yEmpty = yRotation == null || yRotation.matches("\\s*");
+    if (zEmpty && yEmpty) {
+      maskModelPts.clear();
+      return;
+    }
+    if (zEmpty || yEmpty) {
+      if (zEmpty) {
+        zRotation = "0";
+      }
+      else {
+        yRotation = "0";
+      }
+    }
+    maskModelPts.setRawString(Z_ROTATION_INDEX, zRotation);
+    maskModelPts.setRawString(Y_ROTATION_INDEX, yRotation);
   }
 
   public String getMaskModelPtsYRotation() {
@@ -982,10 +1004,6 @@ public final class MatlabParam {
   public void setReferenceParticle(final Number input) {
     useReferenceFile = false;
     reference.setRawString(PARTICLE_INDEX, input.toString());
-  }
-
-  public void setMaskModelPtsYRotation(final String input) {
-    maskModelPts.setRawString(Y_ROTATION_INDEX, input);
   }
 
   public void clearMaskModelPts() {
