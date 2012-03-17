@@ -557,6 +557,71 @@ public class ContextPopup {
   }
 
   /**
+   * Shows a man page list and log file items in addition
+   * to the standard menu items (including the peet guide if required).
+   * @param component The component to which the popup is attached.
+   * @param mouseEvent The mouse event that opened the menu.
+   * @param tomoAnchor The guide HTML anchor for the current popup.
+   * @param guideToAnchor The guide containing the HTML anchor.
+   * @param manPageLabel The string array of man page labels for the menu.
+   * @param manPage The name of the HTML man pages.
+   * @param manager
+   */
+  public ContextPopup(Component component, MouseEvent mouseEvent, String[] manPageLabel,
+      String[] manPage, boolean addPeetGuide, final BaseManager manager,
+      final AxisID axisID) {
+
+    // Check to make sure that the menu label and man page arrays are the same
+    // length
+    if (manPageLabel.length != manPage.length) {
+      String message = "menu label and man page arrays must be the same length";
+      throw new IllegalArgumentException(message);
+    }
+
+    this.mouseEvent = mouseEvent;
+    calcImodURL();
+
+    // Instantiate a new ActionListener to handle the menu selection
+    actionListener = new ActionListener() {
+      public void actionPerformed(ActionEvent actionEvent) {
+        String anchor = getAnchor();
+        JMenuItem[] manPageItem = getManPageItem();
+        for (int i = 0; i < manPageItem.length; i++) {
+          if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
+            /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(getImodURL()
+             * + "man/" + getManPageName()[i]); manpage.setVisible(true); */
+            ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
+                axisID);
+          }
+        }
+
+        // Search the logfile items
+        JMenuItem[] logFileItem = getLogFileItem();
+        if (logFileItem != null) {
+          for (int i = 0; i < logFileItem.length; i++) {
+            if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
+              TextPageWindow logFileWindow = new TextPageWindow();
+              logFileWindow.setVisible(logFileWindow.setFile(manager.getPropertyUserDir()
+                  + File.separator + getLogFileName()[i]));
+            }
+          }
+        }
+
+        // Search the standard items
+        globalItemAction(actionEvent, null, null, manager, axisID);
+
+        // Close the the menu
+        setVisible(false);
+      }
+    };
+
+    addManPageMenuItems(manPageLabel, manPage);
+    contextMenu.add(new JPopupMenu.Separator());
+    addStandardMenuItems(true);
+    showMenu(component);
+  }
+
+  /**
    * Constructor to show a man page list and tabbed log file items in addition
    * to the the standard menu items.
    * @param component The component to which the popup is attached.
@@ -741,19 +806,19 @@ public class ContextPopup {
     if (actionEvent.getActionCommand() == modelGuideItem.getText()) {
       /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(imodURL +
        * "guide.html"); manpage.setVisible(true); */
-      ImodqtassistProcess.INSTANCE.open(manager, "guide.html"+TOP_ANCHOR, axisID);
+      ImodqtassistProcess.INSTANCE.open(manager, "guide.html" + TOP_ANCHOR, axisID);
     }
 
     if (actionEvent.getActionCommand() == it3dmodGuide.getText()) {
       /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(imodURL +
        * "3dmodguide.html"); manpage.setVisible(true); */
-      ImodqtassistProcess.INSTANCE.open(manager, "3dmodguide.html"+TOP_ANCHOR, axisID);
+      ImodqtassistProcess.INSTANCE.open(manager, "3dmodguide.html" + TOP_ANCHOR, axisID);
     }
 
     if (actionEvent.getActionCommand() == etomoGuideItem.getText()) {
       /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(imodURL +
        * "UsingEtomo.html"); manpage.setVisible(true); */
-      ImodqtassistProcess.INSTANCE.open(manager, "UsingEtomo.html"+TOP_ANCHOR, axisID);
+      ImodqtassistProcess.INSTANCE.open(manager, "UsingEtomo.html" + TOP_ANCHOR, axisID);
     }
 
     if (actionEvent.getActionCommand() == joinGuideItem.getText()) {
@@ -769,7 +834,7 @@ public class ContextPopup {
     }
 
     if (actionEvent.getActionCommand() == peetGuideItem.getText()) {
-      ImodqtassistProcess.INSTANCE.open(manager, "PEETmanual.html"+TOP_ANCHOR, axisID);
+      ImodqtassistProcess.INSTANCE.open(manager, "PEETmanual.html" + TOP_ANCHOR, axisID);
     }
   }
 

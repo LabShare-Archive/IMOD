@@ -152,6 +152,7 @@ public final class ParsedList {
   private final ParsedElementType type;
   private final ParsedElementList list;
   private final EtomoNumber.Type etomoNumberType;
+  private final boolean allowNan;
 
   /**
    * Place the entire array into parsed arrays and the individual elements into
@@ -162,22 +163,24 @@ public final class ParsedList {
   private boolean failed = false;
   private boolean debug = false;
 
-  private ParsedList(ParsedElementType type, EtomoNumber.Type etomoNumberType) {
+  private ParsedList(ParsedElementType type, EtomoNumber.Type etomoNumberType,
+      final boolean allowNan) {
     this.type = type;
-    list = new ParsedElementList(type, etomoNumberType, debug, defaultValue);
+    this.allowNan = allowNan;
+    list = new ParsedElementList(type, etomoNumberType, debug, defaultValue, allowNan);
     this.etomoNumberType = etomoNumberType;
   }
 
   public static ParsedList getMatlabInstance() {
-    return new ParsedList(ParsedElementType.MATLAB_NUMBER, null);
+    return new ParsedList(ParsedElementType.MATLAB_NUMBER, null, true);
   }
 
   public static ParsedList getMatlabInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedList(ParsedElementType.MATLAB_NUMBER, etomoNumberType);
+    return new ParsedList(ParsedElementType.MATLAB_NUMBER, etomoNumberType, true);
   }
 
   public static ParsedList getStringInstance() {
-    return new ParsedList(ParsedElementType.STRING, null);
+    return new ParsedList(ParsedElementType.STRING, null, false);
   }
 
   /**
@@ -310,7 +313,7 @@ public final class ParsedList {
         return;
       }
       token = tokenizer.next();
-      //remove any whitespace before the first element
+      // remove any whitespace before the first element
       if (token != null && token.is(Token.Type.WHITESPACE)) {
         token = tokenizer.next();
       }
@@ -321,7 +324,7 @@ public final class ParsedList {
       if (token != null && token.is(Token.Type.WHITESPACE)) {
         token = tokenizer.next();
       }
-      //if the close symbol wasn't found, fail
+      // if the close symbol wasn't found, fail
       if (token == null || !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
         fail();
         return;
@@ -354,18 +357,18 @@ public final class ParsedList {
       return null;
     }
     boolean dividerFound = true;
-    //loop until the end of the array
-    //can't just check dividerFound, because whitespace can act as a divider,
-    //but isn't always the divider
+    // loop until the end of the array
+    // can't just check dividerFound, because whitespace can act as a divider,
+    // but isn't always the divider
     while (dividerFound && !isFailed() && token != null && !token.is(Token.Type.EOL)
         && !token.is(Token.Type.EOF)
         && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
       try {
-        //parse an element
+        // parse an element
         token = parseElement(token, tokenizer);
-        //Find the divider.
-        //Whitespace may be used as a divider or the divider may be preceded by
-        //whitespace.
+        // Find the divider.
+        // Whitespace may be used as a divider or the divider may be preceded by
+        // whitespace.
         dividerFound = false;
         if (token != null
             && (token.is(Token.Type.WHITESPACE) || token.equals(Token.Type.SYMBOL,
@@ -374,14 +377,14 @@ public final class ParsedList {
           token = tokenizer.next();
         }
         if (dividerFound) {
-          //If whitespace was found, it may precede the divider.
+          // If whitespace was found, it may precede the divider.
           if (token != null
               && token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
             token = tokenizer.next();
           }
         }
-        //Don't worry about whitespace after the divider.  It should be handled
-        //by the element.
+        // Don't worry about whitespace after the divider. It should be handled
+        // by the element.
       }
       catch (IOException e) {
         e.printStackTrace();
@@ -402,11 +405,12 @@ public final class ParsedList {
       fail();
     }
     if (token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
-      //Found an empty element.
-      list.add(ParsedNumber.getInstance(type, etomoNumberType, isDebug(), defaultValue));
+      // Found an empty element.
+      list.add(ParsedNumber.getInstance(type, etomoNumberType, isDebug(), defaultValue,
+          allowNan));
       return token;
     }
-    //May have found an element.
+    // May have found an element.
     ParsedElement element;
     if (type == ParsedElementType.STRING) {
       element = ParsedQuotedString.getInstance(isDebug());
@@ -417,14 +421,14 @@ public final class ParsedList {
       token = element.parse(token, tokenizer);
     }
     else {
-      //Array descriptors don't have their own open and close symbols, so they
-      //look like numbers until to you get to the first divider (":"or "-").
+      // Array descriptors don't have their own open and close symbols, so they
+      // look like numbers until to you get to the first divider (":"or "-").
       ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type, etomoNumberType,
-          isDebug(), defaultValue);
+          isDebug(), defaultValue, allowNan);
       token = descriptor.parse(token, tokenizer);
-      //create the correct type of element
+      // create the correct type of element
       if (descriptor.isEmpty()) {
-        //There's nothing there, so its an empty element
+        // There's nothing there, so its an empty element
         list.addEmptyElement();
         return token;
       }
@@ -432,7 +436,7 @@ public final class ParsedList {
         element = descriptor;
       }
       else {
-        //If the divider was not found then it is not a descriptor.
+        // If the divider was not found then it is not a descriptor.
         element = descriptor.getElement(0);
       }
     }

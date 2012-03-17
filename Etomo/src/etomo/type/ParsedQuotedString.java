@@ -247,7 +247,7 @@ public final class ParsedQuotedString extends ParsedElement {
         return token;
       }
       token = tokenizer.next();
-      //everything within DELIMITER symbols is part of the rawString.
+      // everything within DELIMITER symbols is part of the rawString.
       token = parseElement(token, tokenizer);
       if (isFailed()) {
         return token;
@@ -274,7 +274,7 @@ public final class ParsedQuotedString extends ParsedElement {
   ParsedElementList getParsedNumberExpandedArray(
       ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
-      parsedNumberExpandedArray = new ParsedElementList(type, null, debug, null);
+      parsedNumberExpandedArray = new ParsedElementList(type, null, debug, null, false);
     }
     return parsedNumberExpandedArray;
   }
@@ -316,13 +316,13 @@ public final class ParsedQuotedString extends ParsedElement {
     if (token == null) {
       return null;
     }
-    //Loop until DELIMITER_SYMBOL, EOL, EOF is found; that
-    //should be the end of the string.
+    // Loop until DELIMITER_SYMBOL, EOL, EOF is found; that
+    // should be the end of the string.
     StringBuffer buffer = new StringBuffer();
     while (!isFailed() && token != null
         && !token.equals(Token.Type.SYMBOL, DELIMITER_SYMBOL.charValue())
         && !token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)) {
-      //build the string
+      // build the string
       buffer.append(token.getValue());
       try {
         token = tokenizer.next();

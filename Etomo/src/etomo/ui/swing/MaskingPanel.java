@@ -308,7 +308,7 @@ final class MaskingPanel {
       rbMaskTypeCylinder.setSelected(true);
     }
     if (!matlabParam.isMaskModelPtsEmpty()) {
-      cbCylinderOrientation.isSelected();
+      cbCylinderOrientation.setSelected(true);
       ltfZRotation.setText(matlabParam.getMaskModelPtsZRotation());
       ltfYRotation.setText(matlabParam.getMaskModelPtsYRotation());
     }
@@ -325,8 +325,7 @@ final class MaskingPanel {
           .getEnumeratedType());
     }
     if (cbCylinderOrientation.isEnabled() && cbCylinderOrientation.isSelected()) {
-      matlabParam.setMaskModelPtsZRotation(ltfZRotation.getText());
-      matlabParam.setMaskModelPtsYRotation(ltfYRotation.getText());
+      matlabParam.setMaskModelPts(ltfZRotation.getText(), ltfYRotation.getText());
     }
     else {
       matlabParam.clearMaskModelPts();
@@ -429,7 +428,8 @@ final class MaskingPanel {
     ltfInsideMaskRadius.setToolTipText("Inner radius of the mask region in pixels.");
     ltfOutsideMaskRadius
         .setToolTipText("Inner and outer radii of the mask region in pixels.");
-    cbCylinderOrientation.setToolTipText("Manually specify cylindrical mask orientation.");
+    cbCylinderOrientation
+        .setToolTipText("Manually specify cylindrical mask orientation.");
   }
 
   private static final class MaskingActionListener implements ActionListener {

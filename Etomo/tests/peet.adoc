@@ -572,6 +572,18 @@ assert.contains.file=%{dataset}.prm|outsideMaskRadius = 20
 rb.cylinder=
 cb.manual-cylinder-orientation=on
 tf.z-rotation=15
+tf.y-rotation=
+save=
+assert.contains.file=%{dataset}.prm|maskModelPts = [15, 0]
+tf.z-rotation=
+tf.y-rotation=30.1
+save=
+assert.contains.file=%{dataset}.prm|maskModelPts = [0, 30.1]
+tf.z-rotation=
+tf.y-rotation=
+save=
+assert.contains.file=%{dataset}.prm|maskModelPts = []
+tf.z-rotation=15
 tf.y-rotation=30.1
 save=
 assert.contains.file=%{dataset}.prm|maskType = 'cylinder'
