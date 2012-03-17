@@ -57,8 +57,9 @@ abstract class ParsedDescriptor extends ParsedElement {
   public static final String rcsid = "$Id$";
 
   private final EtomoNumber.Type etomoNumberType;
-  final ParsedElementList descriptor;//for use by children classes
+  final ParsedElementList descriptor;// for use by children classes
   private final ParsedElementType type;
+  final boolean allowNan;
 
   private boolean dividerParsed = false;
   private EtomoNumber defaultValue = null;
@@ -68,11 +69,13 @@ abstract class ParsedDescriptor extends ParsedElement {
   abstract boolean isDebug();
 
   ParsedDescriptor(ParsedElementType type, EtomoNumber.Type etomoNumberType,
-      boolean debug, EtomoNumber defaultValue) {
+      boolean debug, EtomoNumber defaultValue, final boolean allowNan) {
     this.type = type;
     this.etomoNumberType = etomoNumberType;
     this.defaultValue = defaultValue;
-    descriptor = new ParsedElementList(type, etomoNumberType, debug, defaultValue);
+    this.allowNan = allowNan;
+    descriptor = new ParsedElementList(type, etomoNumberType, debug, defaultValue,
+        allowNan);
     setDebug(debug);
   }
 
@@ -94,12 +97,13 @@ abstract class ParsedDescriptor extends ParsedElement {
    * @return
    */
   static ParsedDescriptor getInstance(ParsedElementType type,
-      EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue) {
+      EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue,
+      final boolean allowNan) {
     if (debug) {
       System.out.println("ParsedDescriptor.getInstance");
     }
     if (type.isMatlab()) {
-      return new ParsedArrayDescriptor(etomoNumberType, debug, defaultValue);
+      return new ParsedArrayDescriptor(etomoNumberType, debug, defaultValue, allowNan);
     }
     return null;
   }
@@ -151,27 +155,27 @@ abstract class ParsedDescriptor extends ParsedElement {
         token = tokenizer.next();
       }
       boolean dividerFound = true;
-      //loop until the end of the array descriptor.
+      // loop until the end of the array descriptor.
       while (dividerFound && !isFailed() && token != null && !token.is(Token.Type.EOL)
           && !token.is(Token.Type.EOF)
           && !token.equals(Token.Type.SYMBOL, ParsedList.CLOSE_SYMBOL.charValue())
           && !token.equals(Token.Type.SYMBOL, ParsedArray.CLOSE_SYMBOL.charValue())) {
-        //parse an element
+        // parse an element
         token = parseElement(token, tokenizer);
         if (isDebug()) {
           System.out.println("ParsedDescriptor.parse:descriptor=" + descriptor);
         }
-        //Find the divider.
+        // Find the divider.
         dividerFound = false;
         if (token != null
             && (token.equals(Token.Type.SYMBOL, getDividerSymbol().charValue()))) {
-          //Until the first divider is found this may not be a descriptor.
+          // Until the first divider is found this may not be a descriptor.
           setDividerParsed();
           dividerFound = true;
           token = tokenizer.next();
         }
-        //Don't worry about whitespace after the divider.  It should be handled
-        //by the element.
+        // Don't worry about whitespace after the divider. It should be handled
+        // by the element.
       }
       if (validate() != null) {
         clear();
@@ -214,9 +218,9 @@ abstract class ParsedDescriptor extends ParsedElement {
   }
 
   final Token parseElement(Token token, final PrimativeTokenizer tokenizer) {
-    //parse a number
+    // parse a number
     ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
-        defaultValue);
+        defaultValue, allowNan);
     element.setDebug(isDebug());
     element.setDefault(defaultValue);
     token = element.parse(token, tokenizer);
@@ -273,14 +277,14 @@ abstract class ParsedDescriptor extends ParsedElement {
       return;
     }
     ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
-        defaultValue);
+        defaultValue, allowNan);
     element.setRawString(string);
     descriptor.set(index, element);
   }
 
   void setRawString(final int index, final float number) {
     ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
-        defaultValue);
+        defaultValue, allowNan);
     element.setRawString(number);
     descriptor.set(index, element);
   }
@@ -351,14 +355,14 @@ abstract class ParsedDescriptor extends ParsedElement {
       ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
       parsedNumberExpandedArray = new ParsedElementList(type, etomoNumberType, isDebug(),
-          defaultValue);
+          defaultValue, allowNan);
     }
     if (descriptor.size() == 0) {
       return parsedNumberExpandedArray;
     }
-    //exclude empty descriptor numbers
+    // exclude empty descriptor numbers
     ParsedElementList list = new ParsedElementList(type, etomoNumberType, isDebug(),
-        defaultValue);
+        defaultValue, allowNan);
     for (int i = 0; i < descriptor.size(); i++) {
       ParsedElement element = descriptor.get(i);
       if (element != null && !element.isEmpty()) {
@@ -368,21 +372,21 @@ abstract class ParsedDescriptor extends ParsedElement {
     if (list.size() == 0) {
       return parsedNumberExpandedArray;
     }
-    //the first number in the descriptor is the first number in the array
+    // the first number in the descriptor is the first number in the array
     parsedNumberExpandedArray.add(list.get(0));
-    //if there is only one number, then we are done
+    // if there is only one number, then we are done
     if (list.size() == 1) {
       return parsedNumberExpandedArray;
     }
-    //two or three numbers means that it is a descriptor, so expand the descriptor
-    //into the list of numbers
+    // two or three numbers means that it is a descriptor, so expand the descriptor
+    // into the list of numbers
     EtomoNumber increment = new EtomoNumber(etomoNumberType);
     ParsedNumber lastNumber = null;
     if (list.size() == 2) {
       ParsedNumber first = (ParsedNumber) list.get(0);
       ParsedNumber second = (ParsedNumber) list.get(1);
-      //If there are two numbers and they are the same, then the the array expands
-      //into the one number
+      // If there are two numbers and they are the same, then the the array expands
+      // into the one number
       if (first.equals(second)) {
         return parsedNumberExpandedArray;
       }
@@ -396,21 +400,21 @@ abstract class ParsedDescriptor extends ParsedElement {
       increment.set(list.get(1).getRawNumber());
       lastNumber = (ParsedNumber) list.get(2);
     }
-    //if the increment is 0, return the first and last number
-    //not sure if this is right.
+    // if the increment is 0, return the first and last number
+    // not sure if this is right.
     if (increment.equals(0)) {
       parsedNumberExpandedArray.add(lastNumber);
       return parsedNumberExpandedArray;
     }
-    //increment the number and save the result until you get to the last number
-    //the increment can be positive or negative
+    // increment the number and save the result until you get to the last number
+    // the increment can be positive or negative
     ParsedNumber curNumber = (ParsedNumber) list.get(0);
     ParsedNumber prevNumber = curNumber;
     boolean done = false;
     while (!done) {
       prevNumber = curNumber;
-      curNumber = ParsedNumber
-          .getInstance(type, etomoNumberType, isDebug(), defaultValue);
+      curNumber = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
+          defaultValue, allowNan);
       curNumber.setRawString(prevNumber.getRawNumber());
       curNumber.plus(increment);
       if ((increment.isPositive() && curNumber.le(lastNumber))
@@ -421,9 +425,9 @@ abstract class ParsedDescriptor extends ParsedElement {
         done = true;
       }
     }
-    //Matlab parser ignores the last number, so don't add it.  With the
-    //iterator descriptor the increment is always 1 and only integers are
-    //allowed, so that the last number will automatically be added.
+    // Matlab parser ignores the last number, so don't add it. With the
+    // iterator descriptor the increment is always 1 and only integers are
+    // allowed, so that the last number will automatically be added.
     return parsedNumberExpandedArray;
   }
 

@@ -135,14 +135,16 @@ public final class ParsedNumber extends ParsedElement {
 
   private final StringBuffer NON_ELEMENT_SYMBOLS;
   private final ParsedElementType type;
+  final boolean allowNan;
 
   private EtomoNumber defaultValue = null;
   private boolean debug = false;
 
   private ParsedNumber(ParsedElementType type, EtomoNumber.Type etomoNumberType,
-      boolean debug, EtomoNumber defaultValue) {
+      boolean debug, EtomoNumber defaultValue, final boolean allowNan) {
     this.etomoNumberType = etomoNumberType;
     this.type = type;
+    this.allowNan = allowNan;
     rawNumber = new EtomoNumber(etomoNumberType);
     rawNumber.setDefault(defaultValue);
     NON_ELEMENT_SYMBOLS = new StringBuffer(ParsedList.OPEN_SYMBOL.toString()
@@ -154,16 +156,24 @@ public final class ParsedNumber extends ParsedElement {
   }
 
   public static ParsedNumber getMatlabInstance() {
-    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, null, false, null);
+    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, null, false, null, true);
   }
 
   public static ParsedNumber getMatlabInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, etomoNumberType, false, null);
+    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, etomoNumberType, false,
+        null, true);
+  }
+
+  public static ParsedNumber getMatlabInstance(EtomoNumber.Type etomoNumberType,
+      final boolean allowNan) {
+    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, etomoNumberType, false,
+        null, allowNan);
   }
 
   static ParsedNumber getInstance(ParsedElementType type,
-      EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue) {
-    return new ParsedNumber(type, etomoNumberType, debug, defaultValue);
+      EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue,
+      final boolean allowNan) {
+    return new ParsedNumber(type, etomoNumberType, debug, defaultValue, allowNan);
   }
 
   public void parse(ReadOnlyAttribute attribute) {
@@ -248,10 +258,10 @@ public final class ParsedNumber extends ParsedElement {
    */
   public String getParsableString() {
     if (rawNumber.isDefaultedNull()) {
-      if (type.isMatlab()) {
-        //Empty strings cannot be parsed by MatLab.  If this instance is a
-        //Matlab syntax instance, return NaN (unless it is an array descriptor
-        //because they can't contain NaN).
+      if (type.isMatlab() && allowNan) {
+        // Empty strings cannot be parsed by MatLab. If this instance is a
+        // Matlab syntax instance, return NaN (unless it is an array descriptor
+        // because they can't contain NaN).
         if (type == ParsedElementType.MATLAB_ARRAY_DESCRIPTOR) {
           return "";
         }
@@ -262,7 +272,7 @@ public final class ParsedNumber extends ParsedElement {
       }
     }
     Number number = rawNumber.getDefaultedNumber();
-    //Remove unnecessary decimal points.
+    // Remove unnecessary decimal points.
     if (etomoNumberType == EtomoNumber.Type.FLOAT) {
       float floatNumber = number.floatValue();
       if (Math.round(floatNumber) == floatNumber) {
@@ -414,7 +424,7 @@ public final class ParsedNumber extends ParsedElement {
       ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
       parsedNumberExpandedArray = new ParsedElementList(type, etomoNumberType, debug,
-          defaultValue);
+          defaultValue, allowNan);
     }
     if (rawNumber.isNull()) {
       return parsedNumberExpandedArray;
@@ -442,19 +452,19 @@ public final class ParsedNumber extends ParsedElement {
         if (token == null) {
           return token;
         }
-        //If the number is not in an array, it may still have delimiters
-        //(either [] or '').  Find opening delimiter.
+        // If the number is not in an array, it may still have delimiters
+        // (either [] or ''). Find opening delimiter.
         if (token.equals(Token.Type.SYMBOL, ParsedArray.OPEN_SYMBOL.charValue())) {
           closeSymbol = ParsedArray.CLOSE_SYMBOL;
           token = tokenizer.next();
         }
-        else if (token.equals(Token.Type.SYMBOL, ParsedQuotedString.DELIMITER_SYMBOL
-            .charValue())) {
+        else if (token.equals(Token.Type.SYMBOL,
+            ParsedQuotedString.DELIMITER_SYMBOL.charValue())) {
           closeSymbol = ParsedQuotedString.DELIMITER_SYMBOL;
           token = tokenizer.next();
         }
       }
-      //Remove any whitespace before the element.
+      // Remove any whitespace before the element.
       if (token != null && token.is(Token.Type.WHITESPACE)) {
         token = tokenizer.next();
       }
@@ -465,7 +475,7 @@ public final class ParsedNumber extends ParsedElement {
       if (isFailed()) {
         return token;
       }
-      //Find closing delimiter
+      // Find closing delimiter
       if (closeSymbol != null) {
         if (token.is(Token.Type.WHITESPACE)) {
           token = tokenizer.next();
@@ -474,8 +484,8 @@ public final class ParsedNumber extends ParsedElement {
           fail("End of value.  Closing delimiter, " + closeSymbol + ", was not found.");
           return token;
         }
-        //If the number is not in an array, it may have delimiters
-        //(either [] or '').
+        // If the number is not in an array, it may have delimiters
+        // (either [] or '').
         if (token.equals(Token.Type.SYMBOL, closeSymbol)) {
           token = tokenizer.next();
         }
@@ -496,8 +506,8 @@ public final class ParsedNumber extends ParsedElement {
     if (token == null) {
       return null;
     }
-    //Loop until whitespace, EOL, EOF, or a recognized symbol is found; that
-    //should be the end of the number.
+    // Loop until whitespace, EOL, EOF, or a recognized symbol is found; that
+    // should be the end of the number.
     StringBuffer buffer = new StringBuffer();
     while (!isFailed()
         && token != null
@@ -506,7 +516,7 @@ public final class ParsedNumber extends ParsedElement {
         && !token.is(Token.Type.EOF)
         && (!token.is(Token.Type.SYMBOL) || NON_ELEMENT_SYMBOLS.toString().indexOf(
             token.getChar()) == -1)) {
-      //build the number
+      // build the number
       buffer.append(token.getValue());
       if (debug) {
         System.out.println("ParsedNumber.parseElement:buffer=" + buffer);
