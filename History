@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/16/12: IMOD_4-4-9
 3/16/12: Image display in model view: fixed crash from using new black/white
 button with data loaded as integers; fixed problems if model view is closed
 and reopened; image display state is now retained if model view reopened.
