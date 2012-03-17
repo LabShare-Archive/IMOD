@@ -68,7 +68,7 @@ final class LogFrame extends JFrame {
 
   private LogFrame() {
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-    //menu
+    // menu
     setJMenuBar(menuBar);
     menuBar.add(menuFile);
     menuBar.add(menuView);
@@ -84,17 +84,17 @@ final class LogFrame extends JFrame {
   }
 
   private void addListeners() {
-    //  Mnemonics for the main menu bar
+    // Mnemonics for the main menu bar
     menuFile.setMnemonic(KeyEvent.VK_F);
     menuView.setMnemonic(KeyEvent.VK_V);
 
-    //  Accelerators
+    // Accelerators
     menuLogWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L,
         ActionEvent.CTRL_MASK));
     menuFitWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
         ActionEvent.CTRL_MASK));
 
-    //  Bind the menu items to their listeners
+    // Bind the menu items to their listeners
     MenuActionListener actionListener = new MenuActionListener(this);
     menuSave.addActionListener(actionListener);
     menuLogWindow.addActionListener(actionListener);
@@ -110,6 +110,7 @@ final class LogFrame extends JFrame {
     LogProperties properties = new LogProperties();
     properties.setFrameSize(getSize());
     properties.setFrameLocation(getLocation());
+    properties.setVisible(isVisible());
     return properties;
   }
 
@@ -118,26 +119,27 @@ final class LogFrame extends JFrame {
    * the old log panel.  Changes the frame to match the frame properties in the
    * new log panel.
    * @param logPanel
+   * @param newWindow - true when the manager has just been opened
    */
-  void setPanel(LogPanel logPanel) {
+  void setPanel(final LogPanel logPanel, final boolean newWindow) {
     if (logPanel == null) {
       return;
     }
     Container contentPane = getContentPane();
     contentPane.removeAll();
-    //the old log panel needs to remember its size and location
+    // the old log panel needs to remember its size and location
     if (curLogPanel != null) {
-      //Save the current state in the old log panel
+      // Save the current state in the old log panel
       curLogPanel.setFrameProperties(getProperties());
       curLogPanel.setFrameVisible(isVisible());
     }
-    //Set the new panel
+    // Set the new panel
     curLogPanel = logPanel;
     if (curLogPanel != null) {
       UIHarness.INSTANCE.setEnabledLogWindowMenuItem(true);
       contentPane.add(curLogPanel.getRootPanel());
       setTitle(curLogPanel.getTitle());
-      //get the last size and location for this log panel
+      // get the last size and location for this log panel
       ConstLogProperties properties = curLogPanel.getFrameProperties();
       if (properties == null) {
         properties = EtomoDirector.INSTANCE.getUserConfiguration().getLogProperties();
@@ -151,9 +153,16 @@ final class LogFrame extends JFrame {
       if (isVisible()) {
         refresh();
       }
+      if (newWindow) {
+        boolean savedVisibleState = properties.isVisible();
+        if (savedVisibleState != curLogPanel.isFrameVisible()) {
+          curLogPanel.setFrameVisible(savedVisibleState);
+          setVisible(curLogPanel.isFrameVisible());
+        }
+      }
     }
     else {
-      //This happens when exiting
+      // This happens when exiting
       UIHarness.INSTANCE.setEnabledLogWindowMenuItem(false);
       setVisible(false);
     }
@@ -191,7 +200,7 @@ final class LogFrame extends JFrame {
   void msgChanged(LogPanel logPanel) {
     if (curLogPanel == logPanel) {
       setTitle(curLogPanel.getTitle());
-      //refresh();
+      // refresh();
       repaint();
     }
   }
@@ -234,14 +243,14 @@ final class LogFrame extends JFrame {
       hideLogFrame();
     }
     if (menuFitWindow.getActionCommand().equals(actionCommand)) {
-      //Getting rid of preferred size lets the frame fit to original size of the
-      //text area.
+      // Getting rid of preferred size lets the frame fit to original size of the
+      // text area.
       setPreferredSize(null);
       refresh();
     }
   }
 
-  //  File menu action listener
+  // File menu action listener
   private static final class MenuActionListener implements ActionListener {
     private LogFrame adaptee;
 
