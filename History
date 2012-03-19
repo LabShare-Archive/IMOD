@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/19/12: Fixed problem running new etomo script on cygwin with python 2.5.
+
 3/16/12: IMOD_4-4-9
 3/16/12: Image display in model view: fixed crash from using new black/white
 button with data loaded as integers; fixed problems if model view is closed
