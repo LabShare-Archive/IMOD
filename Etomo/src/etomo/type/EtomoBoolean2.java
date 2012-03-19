@@ -178,7 +178,7 @@ public class EtomoBoolean2 extends ScriptParameter {
   /**
    * Attempt to get the property specified by prepend and name.  If it doesn't
    * exist, return null.  If it does, set it in instance (create instance
-   * if it doesn't exist).
+   * if it doesn't exist).  Return the instance.
    * @param etomoBoolean2
    * @param name
    * @param props

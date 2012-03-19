@@ -493,7 +493,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   private static final String aAxisTitle = "A Axis - ";
   private static final String bAxisTitle = "B Axis - ";
 
-  //private JPanel contentPane;
+  // private JPanel contentPane;
   private final JPanel rootPanel;
 
   GenericMouseAdapter mouseAdapter = null;
@@ -518,7 +518,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     rootPanel = (JPanel) getContentPane();
     rootPanel.setLayout(new BorderLayout());
     rootPanel.setMaximumSize(rootPanelSize);
-    //set name
+    // set name
     String name = Utilities.convertLabelToName(NAME);
     rootPanel.setName(UITestFieldType.PANEL.toString() + AutodocTokenizer.SEPARATOR_CHAR
         + name);
@@ -528,9 +528,9 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
 
-    //rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.PAGE_AXIS));
+    // rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.PAGE_AXIS));
 
-    //  add the context menu to all of the main window objects
+    // add the context menu to all of the main window objects
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     super.initialize();
   }
@@ -543,7 +543,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     mainFrame = this;
     main = true;
   }
-  
+
   final FrameType getFrameType() {
     return FrameType.Main;
   }
@@ -560,24 +560,24 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     }
     else {
       currentManager.makeCurrent();
-      Utilities.managerStamp(currentManager.getPropertyUserDir(), currentManager
-          .getName());
+      Utilities.managerStamp(currentManager.getPropertyUserDir(),
+          currentManager.getName());
     }
-    //Remove everything from rootPanel if the main panel has been set from the
-    //previous manager.
+    // Remove everything from rootPanel if the main panel has been set from the
+    // previous manager.
     if (mainPanel != null) {
       rootPanel.removeAll();
     }
     if (currentManager == null) {
       title = ETOMO_TITLE;
       hideAxisB();
-      logFrame.setPanel(null);
+      logFrame.setPanel(null, newWindow);
     }
     else {
       mainPanel = currentManager.getMainPanel();
       title = currentManager.getName() + " - " + ETOMO_TITLE;
       rootPanel.add(windowSwitch.getPanel(managerKey));
-      logFrame.setPanel(currentManager.getLogPanel());
+      logFrame.setPanel(currentManager.getLogPanel(), newWindow);
       toFront();
       mainPanel.addMouseListener(mouseAdapter);
       mainPanel.repaint();
@@ -627,7 +627,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     super.setMRUFileLabels(mRUList);
   }
 
-  //  Right mouse button context menu
+  // Right mouse button context menu
   public void popUpContextMenu(MouseEvent mouseEvent) {
     ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent, "",
         currentManager, getAxisID());

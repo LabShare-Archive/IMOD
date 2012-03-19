@@ -259,31 +259,25 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
   public boolean ge(final EtomoVersion version) {
     // treat null as the earliest version
     if (version == null || version.isNull()) {
-      System.out.println("A");
       return true;
     }
     if (isNull()) {
-      System.out.println("B");
       return false;
     }
     int length = Math.min(sectionList.size(), version.sectionList.size());
     // loop until a section is not equal then corresponding version section
     for (int i = 0; i < length; i++) {
       if (sectionList.gt(version.sectionList, i)) {
-        System.out.println("C");
         return true;
       }
       if (sectionList.lt(version.sectionList, i)) {
-        System.out.println("D");
         return false;
       }
     }
     // equal so far - longer one is greater then
     if (sectionList.size() >= version.sectionList.size()) {
-      System.out.println("E");
       return true;
     }
-    System.out.println("F");
     return false;
   }
 

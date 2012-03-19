@@ -124,8 +124,9 @@ public final class TiltalignLog {
     if (id != null && !id.isEmpty()) {
       boolean foundParamList = false;
       try {
-        String line = log.readLine(id).trim();
+        String line = log.readLine(id);
         while (line != null) {
+          line = line.trim();
           if (line.equals("*** End of entries ***")) {
             log.closeRead(id);
             return null;
@@ -150,7 +151,7 @@ public final class TiltalignLog {
           else if (line.equals("*** Entries to program tiltalign ***")) {
             foundParamList = true;
           }
-          line = log.readLine(id).trim();
+          line = log.readLine(id);
         }
       }
       catch (IOException e) {

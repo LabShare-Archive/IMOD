@@ -30,4 +30,6 @@ public interface ConstLogProperties {
   public int getFrameLocationX();
 
   public int getFrameLocationY();
+
+  boolean isVisible();
 }

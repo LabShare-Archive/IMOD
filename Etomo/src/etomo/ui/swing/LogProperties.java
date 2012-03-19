@@ -5,6 +5,7 @@ import java.awt.Point;
 import java.util.Properties;
 
 import etomo.type.ConstLogProperties;
+import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 
 /**
@@ -31,10 +32,15 @@ import etomo.type.EtomoNumber;
 public final class LogProperties implements ConstLogProperties {
   public static final String rcsid = "$Id$";
 
+  private static final String VISIBLE_TAG = "Visible";
+  private static final boolean VISIBLE_DEFAULT = true;
+
   private final EtomoNumber frameSizeWidth = new EtomoNumber("FrameSize.Width");
   private final EtomoNumber frameSizeHeight = new EtomoNumber("FrameSize.Height");
   private final EtomoNumber frameLocationX = new EtomoNumber("FrameLocation.X");
   private final EtomoNumber frameLocationY = new EtomoNumber("FrameLocation.Y");
+
+  private EtomoBoolean2 visible = null;
 
   public LogProperties() {
     frameLocationX.setDisplayValue(200);
@@ -50,6 +56,20 @@ public final class LogProperties implements ConstLogProperties {
       frameSizeWidth.set(dimension.width);
       frameSizeHeight.set(dimension.height);
     }
+  }
+
+  void setVisible(final boolean input) {
+    if (visible == null) {
+      visible = new EtomoBoolean2(VISIBLE_TAG);
+    }
+    visible.set(input);
+  }
+
+  public boolean isVisible() {
+    if (visible == null) {
+      return VISIBLE_DEFAULT;
+    }
+    return visible.is();
   }
 
   public Dimension getFrameSize() {
@@ -84,20 +104,25 @@ public final class LogProperties implements ConstLogProperties {
     frameSizeHeight.store(props, prepend);
     frameLocationX.store(props, prepend);
     frameLocationY.store(props, prepend);
+    EtomoBoolean2.store(visible, props, prepend, VISIBLE_TAG);
   }
 
   public void load(Properties props, String prepend) {
-    //reset
+    // reset
     frameSizeWidth.reset();
     frameSizeHeight.reset();
     frameLocationX.reset();
     frameLocationY.reset();
-    //load
+    if (visible != null) {
+      visible.set(VISIBLE_DEFAULT);
+    }
+    // load
     prepend = getPrepend(prepend);
     frameSizeWidth.load(props, prepend);
     frameSizeHeight.load(props, prepend);
     frameLocationX.load(props, prepend);
     frameLocationY.load(props, prepend);
+    visible = EtomoBoolean2.load(visible, VISIBLE_TAG, props, prepend);
   }
 
   private String getPrepend(String prepend) {

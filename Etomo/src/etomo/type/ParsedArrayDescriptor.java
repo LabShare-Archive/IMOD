@@ -153,13 +153,19 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
   private boolean debug = false;
 
   ParsedArrayDescriptor(final EtomoNumber.Type etomoNumberType, boolean debug,
-      EtomoNumber defaultValue) {
-    super(ParsedElementType.MATLAB_ARRAY_DESCRIPTOR, etomoNumberType, debug, defaultValue);
+      EtomoNumber defaultValue, final boolean allowNan) {
+    super(ParsedElementType.MATLAB_ARRAY_DESCRIPTOR, etomoNumberType, debug,
+        defaultValue, allowNan);
     setDebug(debug);
   }
 
   public static ParsedArrayDescriptor getInstance(final EtomoNumber.Type etomoNumberType) {
-    return new ParsedArrayDescriptor(etomoNumberType, false, null);
+    return new ParsedArrayDescriptor(etomoNumberType, false, null, true);
+  }
+
+  public static ParsedArrayDescriptor getInstance(final EtomoNumber.Type etomoNumberType,
+      final boolean allowNan) {
+    return new ParsedArrayDescriptor(etomoNumberType, false, null, allowNan);
   }
 
   public void setRawStringEnd(final String input) {
@@ -292,18 +298,18 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
         token = tokenizer.next();
       }
       boolean dividerFound = true;
-      //loop until the end of the array descriptor.  Whitespace is not allowed in
-      //an array descriptor.
+      // loop until the end of the array descriptor. Whitespace is not allowed in
+      // an array descriptor.
       while (dividerFound && !isFailed() && token != null && !token.is(Token.Type.EOL)
           && !token.is(Token.Type.EOF) && !token.is(Token.Type.WHITESPACE)
           && !token.equals(Token.Type.SYMBOL, ParsedList.CLOSE_SYMBOL.charValue())
           && !token.equals(Token.Type.SYMBOL, ParsedArray.CLOSE_SYMBOL.charValue())) {
-        //parse an element
+        // parse an element
         token = parseElement(token, tokenizer);
-        //Find the divider.
+        // Find the divider.
         dividerFound = false;
         if (token != null && token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
-          //This confirms that this is a descriptor.
+          // This confirms that this is a descriptor.
           setDividerParsed();
           dividerFound = true;
           token = tokenizer.next();
@@ -314,8 +320,8 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
       e.printStackTrace();
       fail(e.getMessage());
     }
-    //If there are 2 elements, then assume that the increment is one and put the
-    //second element in the end slot.
+    // If there are 2 elements, then assume that the increment is one and put the
+    // second element in the end slot.
     if (descriptor.size() == END_INDEX) {
       ParsedElement increment = getElement(INCREMENT_INDEX);
       if (increment != null) {
@@ -336,12 +342,12 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
       ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
       parsedNumberExpandedArray = new ParsedElementList(getType(), getEtomoNumberType(),
-          debug, getDefault());
+          debug, getDefault(), allowNan);
     }
     ParsedNumber start = (ParsedNumber) descriptor.get(START_INDEX);
     ParsedNumber end = (ParsedNumber) descriptor.get(END_INDEX);
     if (start == null || start.isEmpty() || end == null || end.isEmpty()) {
-      //Invalid descriptor.
+      // Invalid descriptor.
       return parsedNumberExpandedArray;
     }
     EtomoNumber increment = new EtomoNumber(getEtomoNumberType());
@@ -349,25 +355,25 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
     if (element != null) {
       increment.set(element.getRawNumber());
     }
-    //A missing increment is the same as an increment equals to 1.
+    // A missing increment is the same as an increment equals to 1.
     if (increment.isNull()) {
       increment.set(1);
     }
     if (increment.isNegative() && start.lt(end)) {
-      //Empty descriptor
+      // Empty descriptor
       return parsedNumberExpandedArray;
     }
     if (!increment.isNegative() && end.lt(start)) {
-      //Empty descriptor
+      // Empty descriptor
       return parsedNumberExpandedArray;
     }
-    //Add the first element to the array.
+    // Add the first element to the array.
     parsedNumberExpandedArray.add(start);
     if (start.equals(end)) {
-      //Descriptor with one element.
+      // Descriptor with one element.
       return parsedNumberExpandedArray;
     }
-    //Add elements to the expanded array.
+    // Add elements to the expanded array.
     EtomoNumber current = new EtomoNumber(getEtomoNumberType());
     current.set(start.getRawNumber());
     current.add(increment);
@@ -376,13 +382,13 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
     boolean increasing = !increment.isNegative();
     while ((increasing && current.lt(last)) || (!increasing && current.gt(last))) {
       ParsedNumber parsedCurrent = ParsedNumber.getInstance(getType(),
-          getEtomoNumberType(), debug, getDefault());
+          getEtomoNumberType(), debug, getDefault(), allowNan);
       parsedCurrent.setRawString(current.getNumber());
       parsedNumberExpandedArray.add(parsedCurrent);
       current = new EtomoNumber(current);
       current.add(increment);
     }
-    //Add the last element to the array.
+    // Add the last element to the array.
     parsedNumberExpandedArray.add(end);
     return parsedNumberExpandedArray;
   }
@@ -427,7 +433,7 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
     }
     StringBuffer buffer = new StringBuffer();
     buffer.append(startString + DIVIDER_SYMBOL.toString());
-    //Never use an empty or zero increment element.
+    // Never use an empty or zero increment element.
     if (increment != null && !increment.isEmpty()) {
       buffer.append(incrementString + DIVIDER_SYMBOL.toString());
     }

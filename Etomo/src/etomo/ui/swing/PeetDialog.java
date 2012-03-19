@@ -601,12 +601,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel = { "Processchunks", "3dmod" };
     String[] manPage = { "processchunks.html", "3dmod.html" };
-    String[] logFileLabel = { "Prm", "Start" };
-    String[] logFile = new String[2];
-    logFile[0] = ltfFnOutput.getText() + ".prm.log";
-    logFile[1] = ltfFnOutput.getText() + "-start.log";
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent, manPagelabel,
-        manPage, logFileLabel, logFile, true, manager, axisID);
+        manPage, true, manager, axisID);
   }
 
   public void pack() {

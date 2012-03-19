@@ -540,7 +540,7 @@ public final class PeetManager extends BaseManager {
       destParameterStore.load(state);
       // Modify the properties to work with the new dataset
       destMetaData.setRootName(fnOutput);
-      //Wipe out process data in case there is a process running in the source dataset.
+      // Wipe out process data in case there is a process running in the source dataset.
       ProcessData processData = processMgr.getProcessData(AxisID.ONLY);
       processData.reset();
       // Save the properties back to the copied file
@@ -802,6 +802,9 @@ public final class PeetManager extends BaseManager {
 
   public void peetParser(ProcessSeries processSeries, final DialogType dialogType,
       final ProcessingMethod peetProcessingMethod) {
+    if (processMgr.inUse(AxisID.ONLY, null)) {
+      return;
+    }
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
