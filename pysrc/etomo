@@ -64,7 +64,7 @@ if os.getenv('IMOD_JAVADIR') != None:
 
 # Test for appropriate java run time
 try:
-   verslines = runcmd('java -version', None, None, STDOUT)
+   verslines = runcmd('java -version', None, None, 'stdout')
 except ImodpyError:
    prnstr("""There is no java runtime in the current search path.  A Java runtime
 environment needs to be installed and the command search path needs
@@ -164,7 +164,7 @@ for ind in range(1, len(sys.argv)):
 #prnstr(javacom)
 
 if help:
-   runcmd(javacom, None, 'stdout', STDOUT)
+   runcmd(javacom, None, 'stdout', 'stdout')
    sys.exit(0)
    
 # If ETOMO_LOG_DIR is defined and writable, set up log files there with 

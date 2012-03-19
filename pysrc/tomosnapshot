@@ -318,7 +318,7 @@ except:
 unameOut = []
 winOnly = False
 try:
-   unameOut = runcmd('uname -a', None, None, STDOUT)
+   unameOut = runcmd('uname -a', None, None, 'stdout')
 except:
    winOnly = sys.platform.find('win32') >= 0
    
@@ -337,7 +337,7 @@ for k, v in os.environ.items():
 
 # Should we do the registry with -r?  It takes 3 seconds
 if (sys.platform.find('cygwin') >= 0 or sys.platform.find('win32') >= 0) and not winOnly:
-   unameOut += runcmd('cygcheck -s -v -r', None, None, STDOUT)
+   unameOut += runcmd('cygcheck -s -v -r', None, None, 'stdout')
 
 # Type-specific additions to lists here:
 #
