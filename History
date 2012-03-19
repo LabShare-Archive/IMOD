@@ -1,15 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/19/12: In eTomo getting EXCLUDELIST for tilt.com from align.log when
+possible.(Bug# 1407)
+
 3/19/12: Fixed problem running new etomo script on cygwin with python 2.5.
 
-3/16/12: Made eTomo remember whether the project log was visible when a
+3/19/12: Made eTomo remember whether the project log was visible when a
 dataset was last opened.  Fixed some PEET bugs: "Manual cylinder orientation"
 was not set correctly when the .prm file was copied, maskModelPts must never
 contain a "NaN or a single value, pressing "Run" when a process was already
 running caused the .com files to be deleted.(Bug# 1605)
-
-3/16/12: In eTomo getting EXCLUDELIST for tilt.com from align.log when
-possible.(Bug# 1407)
 
 3/16/12: In eTomo added an interface for running gputilttest to the Tools
 menu.(Bug# 1525)
