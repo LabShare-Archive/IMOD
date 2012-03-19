@@ -96,8 +96,8 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
        cmd is a string; input is an array; outfile is a file object or
        the string 'stdout' to send output to standard out
        inStderr is used for the stderr argument when calling Popen and could be
-       PIPE for it to be swallowed or STDOUT for it to be combined with other output;
-       otherwise it should be a file object.
+       'pipe' for it to be swallowed or 'stdout' for it to be combined with other
+       output; otherwise it should be a file object.
        If the command fails with a broken pipe within 0.5 second,
        it will retry up to 10 times.  Call setRetryLimit() to modify the allowed number
        of retries and the maximum run time for a failure to be retried."""
@@ -142,7 +142,13 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
 
             if pyVersion >= 300 and retryCount == 0:
                input = input.encode()
-               
+
+            if inStderr and isinstance(inStderr, str):
+               if inStderr == 'stdout':
+                  inStderr = STDOUT
+               elif inStderr == 'pipe':
+                  inStderr = PIPE
+
             # Run it three different ways depending on where output goes
             if collect:
                p = Popen(cmd, shell=True, stdout=PIPE, stdin=PIPE, stderr=inStderr)
