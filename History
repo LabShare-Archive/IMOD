@@ -1,7 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/21/12: In eTomo - Final Aligned Stack, displaying the expected defocus in
+microns.(Bug# 1604)
+
 3/20/12: In eTomo - Final Aligned Stack, fixed a bug where the erase beads
-"diameter to erase" value was not being binned.
+"diameter to erase" value was not being binned.(Bug# 1600)
 
 3/19/12: In eTomo getting EXCLUDELIST for tilt.com from align.log when
 possible.(Bug# 1407)
