@@ -516,4 +516,6 @@ public interface ConstMetaData {
   public String getPostTrimvolZMin();
 
   public String getPostTrimvolZMax();
+
+  public boolean isEraseBeadsInitialized();
 }

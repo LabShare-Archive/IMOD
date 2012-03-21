@@ -233,22 +233,22 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   private final SpacedTextField ltfStartingAndEndingZ = new SpacedTextField(
       "Starting and ending views: ");
 
-  //headers should not go into garbage collection
+  // headers should not go into garbage collection
   private final PanelHeader filterHeader = PanelHeader.getAdvancedBasicOnlyInstance(
       "2D Filtering (optional)", this, DIALOG_TYPE, btnAdvanced);
-  //panels that are changed in setAdvanced()
+  // panels that are changed in setAdvanced()
   private final SpacedPanel inverseParamsPanel;
   private final JPanel filterBodyPanel;
 
-  //backward compatibility functionality - if the metadata binning is missing
-  //get binning from newst
+  // backward compatibility functionality - if the metadata binning is missing
+  // get binning from newst
 
   private final ReconScreenState screenState;
   private final ButtonListener finalAlignedStackListener = new ButtonListener(this);
   private final FinalAlignedStackExpert expert;
   private final ProcessingMethodMediator mediator;
 
-  //ctf correction
+  // ctf correction
   private final PanelHeader ctfCorrectionHeader = PanelHeader
       .getAdvancedBasicOnlyInstance("CTF Correction", this, DIALOG_TYPE, btnAdvanced);
   private final SpacedPanel ctfCorrectionBodyPanel = SpacedPanel.getInstance(true);
@@ -262,7 +262,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   private final LabeledTextField ltfExpectedDefocus = new LabeledTextField(
       "Expected defocus (nm): ");
   private final LabeledTextField ltfOffsetToAdd = new LabeledTextField(
-  "Offset to add to image values: ");
+      "Offset to add to image values: ");
   private final LabeledTextField ltfInterpolationWidth = new LabeledTextField(
       "Interpolation width (pixels): ");
   private final CheckBox cbParallelProcess = new CheckBox(ParallelPanel.FIELD_LABEL);
@@ -286,6 +286,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   private Tab curTab = Tab.DEFAULT;
   private boolean processingMethodLocked = false;
   private boolean validAutodoc = false;
+  private boolean eraseBeadsInitialized = false;
 
   private FinalAlignedStackDialog(ApplicationManager appMgr,
       FinalAlignedStackExpert expert, AxisID axisID) {
@@ -320,7 +321,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     btnCtfCorrection.setContainer(this);
     btnCtfCorrection.setDeferred3dmodButton(btnImodCtfCorrection);
     btnUseCtfCorrection = (MultiLineButton) displayFactory.getUseCtfCorrection();
-    //field instantiation
+    // field instantiation
     layoutNewstPanel();
     layoutCtfCorrectionPanel();
     layoutCcdEraser();
@@ -363,7 +364,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     tabbedPane.addChangeListener(new TabChangeListener(this));
     cbParallelProcess.addActionListener(finalAlignedStackListener);
 
-    //  Mouse adapter for context menu
+    // Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
     tabbedPane.addMouseListener(mouseAdapter);
@@ -433,6 +434,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   void setExpectedDefocus(ConstEtomoNumber input) {
     ltfExpectedDefocus.setText(input);
   }
+
   void setOffsetToAdd(ConstEtomoNumber input) {
     ltfOffsetToAdd.setText(input);
   }
@@ -452,6 +454,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   String getOffsetToAdd() {
     return ltfOffsetToAdd.getText();
   }
+
   void setUseFilterEnabled(boolean enable) {
     btnUseFilter.setEnabled(enable);
   }
@@ -545,6 +548,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
    * @throws FortranInputSyntaxException
    */
   void getParameters(MetaData metaData) throws FortranInputSyntaxException {
+    metaData.setEraseBeadsInitialized(eraseBeadsInitialized);
     metaData.setFinalStackCtfCorrectionParallel(axisID, isParallelProcess());
     newstackOrBlendmontPanel.getParameters(metaData);
     eraseGoldPanel.getParameters(metaData);
@@ -663,8 +667,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   }
 
   void setParameters(ConstMetaData metaData) {
-    //Parallel processing is optional in tomogram reconstruction, so only use it
-    //if the user set it up.
+    eraseBeadsInitialized = metaData.isEraseBeadsInitialized();
+    // Parallel processing is optional in tomogram reconstruction, so only use it
+    // if the user set it up.
     validAutodoc = Network.isParallelProcessingEnabled(applicationManager, axisID,
         applicationManager.getPropertyUserDir());
     cbParallelProcess.setEnabled(validAutodoc && !processingMethodLocked);
@@ -734,13 +739,13 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   }
 
   private void layoutCcdEraser() {
-    //panel
+    // panel
     JPanel ccdEraserRoot = new JPanel();
     tabbedPane.addTab(EraseGoldPanel.ERASE_GOLD_TAB_LABEL, ccdEraserRoot);
   }
 
   private void layoutCtfCorrectionPanel() {
-    //panel
+    // panel
     JPanel ctfCorrectionRoot = new JPanel();
     tabbedPane.addTab(CTF_TAB_LABEL, ctfCorrectionRoot);
     ctfCorrectionMainPanel.setLayout(new BoxLayout(ctfCorrectionMainPanel,
@@ -748,7 +753,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     ctfCorrectionMainPanel.setBorder(BorderFactory.createEtchedBorder());
     ctfCorrectionMainPanel.add(ctfCorrectionHeader.getContainer());
     ctfCorrectionMainPanel.add(ctfCorrectionBodyPanel.getContainer());
-    //body
+    // body
     ctfCorrectionBodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
     ctfCorrectionBodyPanel.add(ltfVoltage);
     ctfCorrectionBodyPanel.add(ltfSphericalAberration);
@@ -759,7 +764,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     pnlInvertTiltAngles.add(cbInvertTiltAngles);
     pnlInvertTiltAngles.add(Box.createHorizontalGlue());
     ctfCorrectionBodyPanel.add(pnlInvertTiltAngles);
-    //ctf plotter
+    // ctf plotter
     SpacedPanel ctfPlotterPanel = SpacedPanel.getInstance();
     ctfPlotterPanel.setBoxLayout(BoxLayout.Y_AXIS);
     ctfPlotterPanel.setBorder(new EtchedBorder("CTF Plotter").getBorder());
@@ -769,12 +774,12 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     ctfPlotterPanel.add(ltfExpectedDefocus);
     ctfPlotterPanel.add(ltfOffsetToAdd);
     ctfPlotterPanel.add(btnCtfPlotter);
-    //ctf phase flip
+    // ctf phase flip
     SpacedPanel ctfCorrectionPanel = SpacedPanel.getInstance();
     ctfCorrectionPanel.setBoxLayout(BoxLayout.Y_AXIS);
     ctfCorrectionPanel.setBorder(new EtchedBorder("CTF Phase Flip").getBorder());
     ctfCorrectionBodyPanel.add(ctfCorrectionPanel);
-    //use expected defocus
+    // use expected defocus
     JPanel useExpectedDefocusPanel = new JPanel();
     useExpectedDefocusPanel.setLayout(new BoxLayout(useExpectedDefocusPanel,
         BoxLayout.X_AXIS));
@@ -791,7 +796,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     ctfCorrectionPanel.add(pnlParallelProcess);
     ctfCorrectionPanel.add(ltfInterpolationWidth);
     ctfCorrectionPanel.add(ltfDefocusTol);
-    //buttons
+    // buttons
     SpacedPanel buttonPanel = SpacedPanel.getInstance();
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     ctfCorrectionPanel.add(buttonPanel);
@@ -800,12 +805,12 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     buttonPanel.add(btnImodCtfCorrection);
     buttonPanel.add(btnUseCtfCorrection);
     buttonPanel.addHorizontalGlue();
-    //size buttons
+    // size buttons
     btnCtfPlotter.setSize();
     btnCtfCorrection.setSize();
     btnImodCtfCorrection.setSize();
     btnUseCtfCorrection.setSize();
-    //init
+    // init
     ctfCorrectionHeader.setOpen(false);
   }
 
@@ -813,7 +818,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
    * Layout the newstack panel
    */
   private void layoutNewstPanel() {
-    //panels
+    // panels
     JPanel newstRoot = new JPanel();
     tabbedPane.addTab("Create", newstRoot);
     newstRoot.add(newstackOrBlendmontPanel.getComponent());
@@ -824,7 +829,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
    *
    */
   private void layoutFilterPanel() {
-    //panels
+    // panels
     JPanel filterRoot = new JPanel();
     tabbedPane.addTab(MTF_FILTER_TAB_LABEL, filterRoot);
     filterPanel.setLayout(new BoxLayout(filterPanel, BoxLayout.Y_AXIS));
@@ -841,37 +846,37 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     inversePanel.setBoxLayout(BoxLayout.X_AXIS);
     SpacedPanel buttonPanel = SpacedPanel.getInstance(true);
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
-    //buttonPanel
+    // buttonPanel
     btnFilter.setSize();
     buttonPanel.add(btnFilter);
     btnViewFilter.setSize();
     buttonPanel.add(btnViewFilter);
     btnUseFilter.setSize();
     buttonPanel.add(btnUseFilter);
-    //inversePanel
+    // inversePanel
     inversePanel.add(ltfMaximumInverse);
     inversePanel.add(ltfInverseRolloffRadiusSigma);
-    //mtfFilePanel
+    // mtfFilePanel
     mtfFilePanel.add(ltfMtfFile);
     mtfFilePanel.add(btnMtfFile);
-    //inverseParamsPanel
+    // inverseParamsPanel
     inverseParamsPanel.add(mtfFilePanel);
     inverseParamsPanel.add(inversePanel);
-    //filterBodyPanel
+    // filterBodyPanel
     filterBodyPanel.add(Box.createRigidArea(FixedDim.x0_y5));
     filterBodyPanel.add(ltfStartingAndEndingZ.getContainer());
     filterBodyPanel.add(ltfLowPassRadiusSigma.getContainer());
     filterBodyPanel.add(inverseParamsPanel.getContainer());
     filterBodyPanel.add(buttonPanel.getContainer());
-    //configure
+    // configure
     btnFilter.setSize();
     btnViewFilter.setSize();
     btnUseFilter.setSize();
   }
 
   void btnMtfFileAction(ActionEvent event) {
-    //Open up the file chooser in the $IMOD_CALIB_DIR/Camera, if available,
-    //otherwise open in the working directory
+    // Open up the file chooser in the $IMOD_CALIB_DIR/Camera, if available,
+    // otherwise open in the working directory
     String currentMtfDirectory = ltfMtfFile.getText();
     if (currentMtfDirectory.equals("")) {
       File calibrationDir = EtomoDirector.INSTANCE.getIMODCalibDirectory();
@@ -1062,21 +1067,25 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     Tab prevTab = curTab;
     curTab = Tab.getInstance(tabbedPane.getSelectedIndex());
     if (prevTab == curTab) {
-      //Tab didn't change - nothing to do
+      // Tab didn't change - nothing to do
       return;
     }
     ((Container) tabbedPane.getComponentAt(prevTab.toInt())).removeAll();
-    //Tell the ProcessingMethodMediator
+    // Tell the ProcessingMethodMediator
     if (prevTab == Tab.CCD_ERASER) {
       mediator.register(this);
     }
     else if (curTab == Tab.CCD_ERASER) {
+      if (!eraseBeadsInitialized) {
+        eraseGoldPanel.initialize();
+        eraseBeadsInitialized= true;
+      }
       eraseGoldPanel.registerProcessingMethodMediator();
     }
     else {
       mediator.setMethod(this, getProcessingMethod());
     }
-    //Add panel for new tab
+    // Add panel for new tab
     Container panel = (Container) tabbedPane.getSelectedComponent();
     if (curTab == Tab.NEWST) {
       panel.add(newstackOrBlendmontPanel.getComponent());
@@ -1091,38 +1100,38 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
       panel.add(filterPanel);
     }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
-    //Warning caused by leaving the previous tab
+    // Warning caused by leaving the previous tab
     if (curTab != prevTab) {
       TomogramState state = applicationManager.getState();
       if (prevTab == Tab.CTF_CORRECTION && state.isUseCtfCorrectionWarning(axisID)) {
-        //The use button wasn't pressed and the user is moving on to the next
-        //dialog.  Don't put this message in the log.
+        // The use button wasn't pressed and the user is moving on to the next
+        // dialog. Don't put this message in the log.
         UIHarness.INSTANCE.openMessageDialog(null,
             "To use the CTF correction go back to the " + CTF_TAB_LABEL
                 + " tab and press the \"" + USE_CTF_CORRECTION_LABEL + "\" button.",
             "Entry Warning", axisID);
-        //Only warn once.
+        // Only warn once.
         state.setUseCtfCorrectionWarning(axisID, false);
       }
       else if (prevTab == Tab.CCD_ERASER && state.isUseErasedStackWarning(axisID)) {
-        //The use button wasn't pressed and the user is moving on to the next
-        //dialog.  Don't put this message in the log.
+        // The use button wasn't pressed and the user is moving on to the next
+        // dialog. Don't put this message in the log.
         UIHarness.INSTANCE.openMessageDialog(null,
             "To use the stack with the erased beads go back to the "
                 + EraseGoldPanel.ERASE_GOLD_TAB_LABEL + " tab and press the \""
                 + CcdEraserBeadsPanel.USE_ERASED_STACK_LABEL + "\" button.",
             "Entry Warning", axisID);
-        //Only warn once.
+        // Only warn once.
         state.setUseErasedStackWarning(axisID, false);
       }
       else if (prevTab == Tab.MTF_FILTER && state.isUseFilteredStackWarning(axisID)) {
-        //The use button wasn't pressed and the user is moving on to the next
-        //dialog.  Don't put this message in the log.
+        // The use button wasn't pressed and the user is moving on to the next
+        // dialog. Don't put this message in the log.
         UIHarness.INSTANCE.openMessageDialog(null,
             "To use the MTF filtered stack go back to the " + MTF_FILTER_TAB_LABEL
                 + " tab and press the \"" + USE_FILTERED_STACK_LABEL + "\" button.",
             "Entry Warning", axisID);
-        //Only warn once.
+        // Only warn once.
         state.setUseFilteredStackWarning(axisID, false);
       }
     }
