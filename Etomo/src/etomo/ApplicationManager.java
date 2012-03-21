@@ -2395,6 +2395,19 @@ public final class ApplicationManager extends BaseManager implements
         / UIExpertUtilities.INSTANCE.getStackBinning(this, axisID, ".preali"));
   }
 
+  public double calcBinnedBeadDiameterPixels(final AxisID axisID,
+      final FileType fileType, final int digitsAfterDecimal) {
+    double adj = Math.pow(10, digitsAfterDecimal);
+    return (double) (Math.round(metaData.getFiducialDiameter() / metaData.getPixelSize()
+        / Utilities.getStackBinning(this, axisID, fileType) * adj))
+        / adj;
+  }
+
+  public double calcUnbinnedBeadDiameterPixels() {
+    return (double) (Math.round(metaData.getFiducialDiameter() / metaData.getPixelSize()
+        * 100)) / 100.0;
+  }
+
   public void logTaErrorLogMessage(AxisID axisID) {
     logMessage(TaErrorLog.getInstance(getPropertyUserDir(), axisID), axisID);
   }
@@ -4151,11 +4164,6 @@ public final class ApplicationManager extends BaseManager implements
   public boolean equalsBinning(AxisID axisID, int binning, FileType fileType) {
     long fileBinning = UIExpertUtilities.INSTANCE.getStackBinning(this, axisID, fileType);
     return binning == fileBinning;
-  }
-
-  public double calcUnbinnedBeadDiameterPixels() {
-    return (double) (Math.round(metaData.getFiducialDiameter() / metaData.getPixelSize()
-        * 100)) / 100.0;
   }
 
   /**
