@@ -359,8 +359,8 @@ import etomo.util.Utilities;
 public final class MetaData extends BaseMetaData implements ConstMetaData {
   public static final String rcsid = "$Id$";
 
-  //Strings and keys must not change without provisions for backwards
-  //capatibility.
+  // Strings and keys must not change without provisions for backwards
+  // capatibility.
 
   private static final String latestRevisionNumber = "1.12";
   private static final String newTomogramTitle = "Setup Tomogram";
@@ -386,11 +386,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private static final String FINAL_STACK_BINNING_A_BACKWARD_COMPATABILITY_1_8 = "TomoGenBinningA";
   private static final String FINAL_STACK_BINNING_B_BACKWARD_COMPATABILITY_1_8 = "TomoGenBinningB";
 
-  //Axis keys
+  // Axis keys
   private static final String FIRST_AXIS_KEY = "A";
   private static final String SECOND_AXIS_KEY = "B";
 
-  //Dialog keys
+  // Dialog keys
   private static final String TRACK_KEY = "Track";
   private static final String FINE_KEY = "Fine";
   private static final String POS_KEY = "Pos";
@@ -398,7 +398,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private static final String GEN_KEY = "Gen";
   private static final String POST_KEY = "Post";
 
-  //Panel keys
+  // Panel keys
   private static final String NEWSTACK_OR_BLENDMONT_KEY = "NewstackOrBlendmont";
   private static final String ERASE_GOLD_KEY = "EraseGold";
   private static final String FLATTEN_KEY = "Flatten";
@@ -407,7 +407,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private static final String TRIM_VOL_KEY = "TrimVol";
   private static final String SQUEEZE_VOL_KEY = "SqueezeVol";
 
-  //FieldInterface keys
+  // FieldInterface keys
   private static final String BINNING_KEY = "Binning";
   private static final String CONTOURS_ON_ONE_SURFACE_KEY = "ContoursOnOneSurface";
   private static final String DIAM_KEY = "Diam";
@@ -426,7 +426,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private static final String TILT_3D_FIND_B_TILT_PARALLEL_KEY = STACK_KEY
       + ".B.Tilt.Parallel";
 
-  //Defaults
+  // Defaults
   private static final boolean ERASE_GOLD_MODEL_USE_FID_DEFAULT = true;
 
   private final ApplicationManager manager;
@@ -454,7 +454,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private boolean wholeTomogramSampleA = false;
   private boolean wholeTomogramSampleB = false;
 
-  //  Axis specific data
+  // Axis specific data
   private TiltAngleSpec tiltAngleSpecA = new TiltAngleSpec();
   private String excludeProjectionsA = "";
 
@@ -497,7 +497,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    * @version 1.8
    */
   private final EtomoBoolean2 fiducialessB = new EtomoBoolean2("B." + FIDUCIALESS_KEY);
-  private String targetPatchSizeXandY = TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT;//backwards compatibility
+  private String targetPatchSizeXandY = TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT;// backwards
+                                                                                         // compatibility
   private String numberOfLocalPatchesXandY = TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT;
   private final EtomoBoolean2 noBeamTiltSelectedA = new EtomoBoolean2(
       AxisID.FIRST.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
@@ -742,6 +743,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + ".Trimvol.ScaleYMin");
   private final EtomoNumber postTrimvolScaleYMax = new EtomoNumber(POST_KEY
       + ".Trimvol.ScaleYMax");
+  private final EtomoBoolean2 eraseBeadsInitialized = new EtomoBoolean2(STACK_KEY
+      + ".EraseBeadsInitialized");
 
   public MetaData(final ApplicationManager manager) {
     this.manager = manager;
@@ -754,8 +757,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     useZFactorsB.setDisplayValue(true);
     sampleThicknessA.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
     sampleThicknessB.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
-    noBeamTiltSelectedA.setDisplayValue(true);//backwards compatibility
-    noBeamTiltSelectedB.setDisplayValue(true);//backwards compatibility
+    noBeamTiltSelectedA.setDisplayValue(true);// backwards compatibility
+    noBeamTiltSelectedB.setDisplayValue(true);// backwards compatibility
     trackUseRaptorA.set(false);
     trackRaptorUseRawStackA.set(false);
 
@@ -808,8 +811,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
         int nChars = datasetName.length();
         datasetName = datasetName.substring(0, nChars - 4);
       }
-      //if a dual axis file has the wrong format, treat it like a single axis
-      //file
+      // if a dual axis file has the wrong format, treat it like a single axis
+      // file
       else if (datasetName.endsWith(".st")) {
         int nChars = datasetName.length();
         datasetName = datasetName.substring(0, nChars - 3);
@@ -845,7 +848,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public void setTransferfidBFields(final TransferfidParam param) {
     transferfidParamB.setStorableFields(param);
   }
-  
+
   public void setPostTrimvolScaleXMin(final String input) {
     postTrimvolScaleXMin.set(input);
   }
@@ -861,7 +864,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public void setPostTrimvolScaleYMax(final String input) {
     postTrimvolScaleYMax.set(input);
   }
-  
+
   public void setPostTrimvolSectionScaleMin(final String input) {
     postTrimvolSectionScaleMin.set(input);
   }
@@ -913,6 +916,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public void setDistortionFile(final String distortionFile) {
     this.distortionFile = distortionFile;
+  }
+  
+  public void setEraseBeadsInitialized(final boolean input) {
+    eraseBeadsInitialized.set(input);
   }
 
   public void setMagGradientFile(final String magGradientFile) {
@@ -1157,7 +1164,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public void setExcludeProjections(final String list, final AxisID axisID) {
-    //Strip whitespace.
+    // Strip whitespace.
     String[] array = list.trim().split("\\s+");
     if (array != null && array.length > 1) {
       StringBuffer buffer = new StringBuffer();
@@ -1305,7 +1312,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    * doesn't exist.
    */
   private void setAxisPrepends() {
-    //set firstAxis and secondAxis strings (based on AxisType)
+    // set firstAxis and secondAxis strings (based on AxisType)
     if (axisType == AxisType.DUAL_AXIS) {
       firstAxisPrepend = AxisID.FIRST.getExtension().toUpperCase();
       secondAxisPrepend = AxisID.SECOND.getExtension().toUpperCase();
@@ -1317,7 +1324,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public void load(final Properties props, String prepend) {
     super.load(props, prepend);
-    //reset
+    // reset
     revisionNumber.reset();
     distortionFile = "";
     magGradientFile = "";
@@ -1349,7 +1356,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
     sampleThicknessA.reset();
     sampleThicknessB.reset();
-    targetPatchSizeXandY = TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT;//backwards compatibility
+    targetPatchSizeXandY = TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT;// backwards
+                                                                            // compatibility
     numberOfLocalPatchesXandY = TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT;
     noBeamTiltSelectedA.reset();
     fixedBeamTiltSelectedA.reset();
@@ -1446,12 +1454,13 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     postTrimvolScaleXMax.reset();
     postTrimvolScaleYMin.reset();
     postTrimvolScaleYMax.reset();
-    //load
+    eraseBeadsInitialized.reset();
+    // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     axisType = AxisType.fromString(props.getProperty(group + "AxisType", "Not Set"));
     setAxisPrepends();
-    //backwards compatibility
+    // backwards compatibility
     revisionNumber.load(props, prepend);
     if (revisionNumber.le(EtomoVersion.getDefaultInstance("1.7"))) {
       fiducialessA.loadWithAlternateKey(props, prepend, ".A.Param.tilt.Fiducialess");
@@ -1472,7 +1481,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       stackBinningB.load(props, prepend);
     }
     if (revisionNumber.le(EtomoVersion.getDefaultInstance("1.9"))) {
-      //better radius needs to be converted to final stack fiducial diameter.
+      // better radius needs to be converted to final stack fiducial diameter.
       finalStackBetterRadiusA.load(props, prepend);
       finalStackBetterRadiusB.load(props, prepend);
     }
@@ -1488,8 +1497,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     if (revisionNumber.le(EtomoVersion.getDefaultInstance("1.11"))) {
       postTrimvolXMin.loadFromOtherKey(props, prepend, "Trimvol.XMin");
       postTrimvolXMax.loadFromOtherKey(props, prepend, "Trimvol.XMax");
-      //Don't use flipped data; this meta data should be the same as the screen, not match
-      //the param or the image.
+      // Don't use flipped data; this meta data should be the same as the screen, not
+      // match
+      // the param or the image.
       postTrimvolYMin.loadFromOtherKey(props, prepend, "Trimvol.ZMin");
       postTrimvolYMax.loadFromOtherKey(props, prepend, "Trimvol.ZMax");
       postTrimvolZMin.loadFromOtherKey(props, prepend, "Trimvol.YMin");
@@ -1511,8 +1521,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       postTrimvolScaleYMin.loadFromOtherKey(props, prepend, "Trimvol.ScaleYMin");
       postTrimvolScaleYMax.loadFromOtherKey(props, prepend, "Trimvol.ScaleYMax");
       if (props.getProperty(group + " Trimvol.Version") == null) {
-        //Handle backwards compatibility from TrimvolParam version 1.0 - the 1.0 version
-        //wasn't saved.
+        // Handle backwards compatibility from TrimvolParam version 1.0 - the 1.0 version
+        // wasn't saved.
         TrimvolParam.convertIndexCoordsToImodCoords(postTrimvolScaleXMin,
             postTrimvolScaleXMax, postTrimvolScaleYMin, postTrimvolScaleYMax);
       }
@@ -1633,8 +1643,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     sampleThicknessA.load(props, prepend);
     sampleThicknessB.load(props, prepend);
 
-    //use default for backward compatibility, since this new parameter may not
-    //be in any file yet
+    // use default for backward compatibility, since this new parameter may not
+    // be in any file yet
     targetPatchSizeXandY = props.getProperty(group + "tiltalign."
         + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY,
         TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT);
@@ -1676,7 +1686,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackNumberOfPatchesXandYB.load(props, prepend);
     trackLengthAndOverlapA.load(props, prepend);
     trackLengthAndOverlapB.load(props, prepend);
-    //trackMethodA is loaded in backwards compatibility section
+    // trackMethodA is loaded in backwards compatibility section
     trackMethodB.load(props, prepend);
     fineExistsA.load(props, prepend);
     fineExistsB.load(props, prepend);
@@ -1711,6 +1721,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
         TILT_3D_FIND_A_TILT_PARALLEL_KEY, props, prepend);
     tilt3dFindTiltParallelB = EtomoBoolean2.load(tilt3dFindTiltParallelB,
         TILT_3D_FIND_B_TILT_PARALLEL_KEY, props, prepend);
+    eraseBeadsInitialized.load(props,prepend);
   }
 
   public void setNoBeamTiltSelected(final AxisID axisID, final boolean selected) {
@@ -2028,6 +2039,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     postTrimvolScaleXMax.store(props, prepend);
     postTrimvolScaleYMin.store(props, prepend);
     postTrimvolScaleYMax.store(props, prepend);
+    eraseBeadsInitialized.store(props,prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -2199,22 +2211,27 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public void setPostTrimvolSwapYZ(final boolean input) {
     postTrimvolSwapYZ.set(input);
   }
-  
+
   public void setPostTrimvolConvertToBytes(final boolean input) {
     postTrimvolConvertToBytes.set(input);
   }
+
   public void setPostTrimvolFixedScaleMax(final String input) {
     postTrimvolFixedScaleMax.set(input);
   }
+
   public void setPostTrimvolFixedScaleMin(final String input) {
     postTrimvolFixedScaleMin.set(input);
   }
+
   public void setPostTrimvolFixedScaling(final boolean input) {
     postTrimvolFixedScaling.set(input);
   }
+
   public void setPostTrimvolRotateX(final boolean input) {
     postTrimvolRotateX.set(input);
   }
+
   public ConstEtomoNumber getNoBeamTiltSelected(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return noBeamTiltSelectedB;
@@ -2726,6 +2743,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public boolean isDistortionCorrection() {
     return !distortionFile.equals("") || !magGradientFile.equals("");
   }
+  
+  public boolean isEraseBeadsInitialized() {
+    return eraseBeadsInitialized.is();
+  }
 
   public boolean isWholeTomogramSample(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
@@ -2815,12 +2836,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public File getValidDatasetDirectory(final String workingDirName) {
     // Does the working directory exist
-    // If is doesn't then use the backup directory.    
+    // If is doesn't then use the backup directory.
     File workingDir = new File(workingDirName);
     File backupDir = new File(backupDirectory);
     File currentDir;
 
-    //find a valid directory and set directory and type
+    // find a valid directory and set directory and type
     if (isValid(workingDir, true)) {
       currentDir = workingDir;
     }
@@ -2828,9 +2849,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       currentDir = backupDir;
     }
     else {
-      //can't find a valid directory, report error
+      // can't find a valid directory, report error
 
-      //if no directory exists then exit
+      // if no directory exists then exit
       if (!workingDir.exists() && !backupDir.exists()) {
         invalidReason = "The working directory: " + workingDir.getAbsolutePath()
             + " and the backup directory: " + backupDir.getAbsolutePath()
@@ -2838,8 +2859,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
         return null;
       }
 
-      //decide which directory to complain about:
-      //complain about the working directory, if it exists
+      // decide which directory to complain about:
+      // complain about the working directory, if it exists
       if (workingDir.exists()) {
         currentDir = workingDir;
       }
