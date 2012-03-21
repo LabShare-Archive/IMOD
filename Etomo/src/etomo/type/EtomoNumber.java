@@ -385,6 +385,14 @@ public class EtomoNumber extends ConstEtomoNumber {
   public void multiply(int i) {
     set(multiply(getValue(), newNumber(i)));
   }
+  
+  /**
+   * Divide the current value by i and store the result as the current value.
+   * @param i
+   */
+  public void divideBy(int i) {
+    set(divideBy(getValue(), newNumber(i)));
+  }
 
   public EtomoNumber set(int value) {
     return set(newNumber(value));

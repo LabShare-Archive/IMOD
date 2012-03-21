@@ -144,7 +144,7 @@ run.function.ctf-phase-flip=
 [[if = test-gui]]
 	# check values
 	assert.tf.config-file=
-	assert.tf.expected-defocus=8000.0
+	assert.tf.expected-defocus=8.0
 	mb.ctf-correction=A
   assert.tf.offset-to-add-to-image-values=
   mb.ctf-correction=B

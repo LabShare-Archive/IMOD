@@ -260,7 +260,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   private final LabeledTextField ltfAmplitudeContrast = new LabeledTextField(
       "Amplitude contrast: ");
   private final LabeledTextField ltfExpectedDefocus = new LabeledTextField(
-      "Expected defocus (nm): ");
+      "Expected defocus (microns): ");
   private final LabeledTextField ltfOffsetToAdd = new LabeledTextField(
       "Offset to add to image values: ");
   private final LabeledTextField ltfInterpolationWidth = new LabeledTextField(
@@ -1078,7 +1078,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     else if (curTab == Tab.CCD_ERASER) {
       if (!eraseBeadsInitialized) {
         eraseGoldPanel.initialize();
-        eraseBeadsInitialized= true;
+        eraseBeadsInitialized = true;
       }
       eraseGoldPanel.registerProcessingMethodMediator();
     }

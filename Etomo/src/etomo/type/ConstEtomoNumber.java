@@ -1836,6 +1836,39 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     throw new IllegalStateException("type=" + type);
   }
+  
+  /**
+   * If one of the numbers is null, the result is null.
+   * @param number1
+   * @param number2
+   * @return
+   */
+  Number divideBy(Number number1, Number number2) {
+    if (isNull(number1) && isNull(number2)) {
+      return newNumber();
+    }
+    if (isNull(number1)) {
+      return newNumber();
+    }
+    if (isNull(number2)) {
+      return newNumber();
+    }
+    validateInputType(number1);
+    validateInputType(number2);
+    if (type == Type.DOUBLE) {
+      return newNumber(number1.doubleValue() / number2.doubleValue());
+    }
+    if (type == Type.FLOAT) {
+      return newNumber(number1.floatValue() / number2.floatValue());
+    }
+    if (type == Type.INTEGER) {
+      return newNumber(number1.intValue() / number2.intValue());
+    }
+    if (type == Type.LONG) {
+      return newNumber(number1.longValue() / number2.longValue());
+    }
+    throw new IllegalStateException("type=" + type);
+  }
 
   Number newNumberNegate(Number number) {
     if (isNull(number)) {
