@@ -183,6 +183,10 @@ final class EraseGoldPanel implements ContextMenu {
   Component getComponent() {
     return pnlRoot;
   }
+  
+  void initialize() {
+    ccdEraserBeadsPanel.initialize();
+  }
 
   void updateAdvanced(boolean advanced) {
     beads3dFindPanel.updateAdvanced(advanced);
