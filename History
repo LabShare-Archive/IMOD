@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/20/12: In eTomo - Final Aligned Stack, fixed a bug where the erase beads
+"diameter to erase" value was not being binned.
+
 3/19/12: In eTomo getting EXCLUDELIST for tilt.com from align.log when
 possible.(Bug# 1407)
 
