@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/21/12: Fixed problems in warping due to accessing data out of range,
+unmasked by fixes on 3/7/12.
+
 3/19/12: In eTomo getting EXCLUDELIST for tilt.com from align.log when
 possible.(Bug# 1407)
 
