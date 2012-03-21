@@ -92,7 +92,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
   private final LabeledTextField ltfFiducialDiameter = new LabeledTextField(
       "Diameter to erase (pixels): ");
   private final CheckBoxSpinner cbspExpandCircleIterations = new CheckBoxSpinner(
-      "Iterations to grow circular areas:",2, 1, 5);
+      "Iterations to grow circular areas:", 2, 1, 5);
   private final ButtonGroup bgPolynomialOrder = new ButtonGroup();
   private final RadioButton rbPolynomialOrderUseMean = new RadioButton(
       "Use mean of surrounding points", PolynomialOrder.USE_MEAN, bgPolynomialOrder);
@@ -133,40 +133,45 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
     btnUseCcdEraser.addActionListener(actionListener);
   }
 
+  void initialize() {
+    ltfFiducialDiameter.setText(manager.calcBinnedBeadDiameterPixels(axisID,
+        FileType.ALIGNED_STACK,1));
+  }
+
   private void createPanel() {
-    //local panels
+    // local panels
     SpacedPanel ccdEraserParameterPanel = SpacedPanel.getInstance();
     JPanel polynomialOrderPanel = new JPanel();
     SpacedPanel ccdEraserButtonPanel = SpacedPanel.getInstance();
     JPanel fiducialDiameterPanel = new JPanel();
-    //initalization
+    // initalization
     btnCcdEraser.setContainer(this);
     btnCcdEraser.setDeferred3dmodButton(btn3dmodCcdEraser);
     btnCcdEraser.setSize();
     btn3dmodCcdEraser.setSize();
     btnUseCcdEraser.setSize();
-    //Root
+    // Root
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.setBorder(new EtchedBorder("Erase Beads").getBorder());
     pnlRoot.add(ccdEraserParameterPanel);
     pnlRoot.add(ccdEraserButtonPanel);
-    //ccderaser parameters
+    // ccderaser parameters
     ccdEraserParameterPanel.setBoxLayout(BoxLayout.X_AXIS);
     ccdEraserParameterPanel.add(fiducialDiameterPanel);
     ccdEraserParameterPanel.add(polynomialOrderPanel);
-    //Fiducial diameter
+    // Fiducial diameter
     fiducialDiameterPanel
         .setLayout(new BoxLayout(fiducialDiameterPanel, BoxLayout.Y_AXIS));
     fiducialDiameterPanel.add(ltfFiducialDiameter.getContainer());
     fiducialDiameterPanel.add(Box.createVerticalGlue());
     fiducialDiameterPanel.add(cbspExpandCircleIterations.getContainer());
     fiducialDiameterPanel.add(Box.createVerticalGlue());
-    //polynomial order
+    // polynomial order
     polynomialOrderPanel.setLayout(new BoxLayout(polynomialOrderPanel, BoxLayout.Y_AXIS));
     polynomialOrderPanel.setBorder(new EtchedBorder("Polynomial Order").getBorder());
     polynomialOrderPanel.add(rbPolynomialOrderUseMean.getComponent());
     polynomialOrderPanel.add(rbPolynomialOrderFitAPlane.getComponent());
-    //buttons
+    // buttons
     ccdEraserButtonPanel.setBoxLayout(BoxLayout.X_AXIS);
     ccdEraserButtonPanel.add(btnCcdEraser.getComponent());
     ccdEraserButtonPanel.add(btn3dmodCcdEraser.getComponent());
@@ -211,16 +216,16 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
       ltfFiducialDiameter.setText((metaData.getFinalStackFiducialDiameter(axisID)));
     }
     else if (!metaData.isFinalStackBetterRadiusEmpty(axisID)) {
-      //backwards compatibility - used to save better radius, convert it to
-      //fiducial diameter in pixels
+      // backwards compatibility - used to save better radius, convert it to
+      // fiducial diameter in pixels
       EtomoNumber betterRadius = new EtomoNumber(EtomoNumber.Type.DOUBLE);
       betterRadius.set(metaData.getFinalStackBetterRadius(axisID));
       ltfFiducialDiameter.setText(Math.round(betterRadius.getDouble() * 2 * 10.0) / 10.0);
     }
     else {
-      //Currently not allowing an empty value to be saved.
-      //Default fiducialDiameter to fiducialDiameter from setup / pixel size
-      //(convert to pixels).  Round to 1 decimal place.
+      // Currently not allowing an empty value to be saved.
+      // Default fiducialDiameter to fiducialDiameter from setup / pixel size
+      // (convert to pixels). Round to 1 decimal place.
       ltfFiducialDiameter.setText((Math.round(metaData.getFiducialDiameter()
           / metaData.getPixelSize() * 10.0) / 10.0));
     }
