@@ -227,11 +227,15 @@ void warpInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
       ylim[0] = yGridStrt + yGridIntrv * (iygrid - 1);
       ylim[1] = yGridStrt + yGridIntrv * iygrid;
       iylim[0] = (int)ceil((double)ylim[0]);
-      if (iygrid == iygStart)
+      if (iygrid == iygStart) {
         iylim[0] = 0;
+        ylim[0] = B3DMIN(0., ylim[0]);
+      }
       iylim[1] = (int)ceil((double)ylim[1]) - 1;
-      if (iygrid == iygEnd)
+      if (iygrid == iygEnd) {
         iylim[1] = nyb - 1;
+        ylim[1] = B3DMAX(nyb - 0.999, ylim[1]);
+      }
       /* fprintf(stderr, "Y: %d %f %f  %d %d\n", iygrid, ylim[0], ylim[1], iylim[0],
          iylim[1]); */
 
@@ -242,11 +246,15 @@ void warpInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
         xlim[0] = xGridStrt + xGridIntrv * (ixgrid - 1);
         xlim[1] = xGridStrt + xGridIntrv * ixgrid;
         ixlim[0] = (int)ceil((double)xlim[0]);
-        if (ixgrid == ixgStart)
+        if (ixgrid == ixgStart) {
           ixlim[0] = 0;
+          xlim[0] = B3DMIN(0., xlim[0]);
+        }
         ixlim[1] = (int)ceil((double)xlim[1]) - 1;
-        if (ixgrid == ixgEnd)
+        if (ixgrid == ixgEnd) {
           ixlim[1] = nxb - 1;
+          xlim[1] = B3DMAX(nxb - 0.999, xlim[1]);
+        }
       
         /* Evaluate mapping of each corner point and see if inside */
         allIn = 1;
@@ -256,19 +264,19 @@ void warpInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
             index = indx[ix] + ixgDim * indy[iy];
             x = xlim[ix] + dxGrid[index];
             y = ylim[iy] + dyGrid[index];
-            /* printf("  %.1f, %.1f", gridDx[index], gridDy[index]); */
+            /* printf("  %.1f, %.1f", dxGrid[index], dyGrid[index]);*/
             xmap[ix][iy] = x * a11 + y * a12 + ox;
             ymap[ix][iy] = x * a21 + y * a22 + oy;
-            /* if ((iygrid+1)/2 == 1 && ixgrid == 4)
-              fprintf(stderr, "iyg %d ix %d iy %d %f %f\n", iygrid, ix, iy, xmap[ix][iy],
-              ymap[ix][iy]); */
+            /* if (iygrid == 0)
+               fprintf(stderr, "iyg %d ix %d iy %d %f %f\n", iygrid, ix, iy, xmap[ix][iy],
+               ymap[ix][iy]); */
             if (xmap[ix][iy] < 1. || xmap[ix][iy] >= nxa - 2 || ymap[ix][iy] < 1. || 
                 ymap[ix][iy] >= nya - 2)
               allIn = 0;
           }
         }
-        /* fprintf(stderr, " %d\n", allIn); */
-        /* puts(""); */
+        /* fprintf(stderr, " %d\n", allIn);
+           puts(""); */
         xbox = xlim[1] - xlim[0];
         ybox = ylim[1] - ylim[0];
 
@@ -284,7 +292,8 @@ void warpInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
             xstep * (ixlim[0] - xlim[0]);
           y = (1. - gridfy) * ymap[0][0] + gridfy * ymap[0][1] +
             ystep * (ixlim[0] - xlim[0]);
-          /*fprintf(stderr, "gridfy %f  x,y %f %f  steps %f %f\n", gridfy, x, y, xstep,
+          /* if (iygrid == 0 && ixgrid == 5)
+            fprintf(stderr, "gridfy %f  x,y %f %f  steps %f %f\n", gridfy, x, y, xstep,
             ystep); */
 
           /* Loop across lines in different cases */
