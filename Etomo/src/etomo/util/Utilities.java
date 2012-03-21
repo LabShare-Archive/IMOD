@@ -341,7 +341,9 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
+import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.ui.swing.Token;
@@ -588,7 +590,7 @@ public class Utilities {
             // Probably a file - remove the file path
             chIndex = param.lastIndexOf(File.separator);
             if (isWindowsOS()) {
-              //Windows paths are sometimes built with /.
+              // Windows paths are sometimes built with /.
               chIndex = Math.max(chIndex, param.lastIndexOf("/"));
             }
             if (chIndex != -1) {
@@ -600,7 +602,7 @@ public class Utilities {
       else {
         chIndex = param.lastIndexOf(File.separator);
         if (isWindowsOS()) {
-          //Windows paths are sometimes built with /.
+          // Windows paths are sometimes built with /.
           chIndex = Math.max(chIndex, param.lastIndexOf("/"));
         }
         if (chIndex != -1) {
@@ -1267,6 +1269,22 @@ public class Utilities {
       buffer.append(label3 + " ");
     }
     return convertLabelToName(buffer.toString());
+  }
+
+  public static final ConstEtomoNumber convertNanometersToMicrons(
+      final ConstEtomoNumber nm) {
+    EtomoNumber microns = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+    microns.set(nm);
+    microns.divideBy(1000);
+    return microns;
+  }
+
+  public static final String convertMicronsToNanometers(
+      final String microns) {
+    EtomoNumber nm = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+    nm.set(microns);
+    nm.multiply(1000);
+    return nm.toString();
   }
 
   /**
