@@ -830,7 +830,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return;
     }
     dialog.setConfigFile(param.getConfigFile());
-    dialog.setExpectedDefocus(param.getExpectedDefocus());
+    dialog.setExpectedDefocus(Utilities.convertNanometersToMicrons(param
+        .getExpectedDefocus()));
     dialog.setOffsetToAdd(param.getOffsetToAdd());
   }
 
@@ -842,7 +843,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     param.setSphericalAberration(dialog.getSphericalAberration());
     param.setInvertTiltAngles(dialog.getInvertTiltAngles());
     param.setAmplitudeContrast(dialog.getAmplitudeContrast());
-    param.setExpectedDefocus(dialog.getExpectedDefocus());
+    param.setExpectedDefocus(Utilities.convertMicronsToNanometers(dialog
+        .getExpectedDefocus()));
     param.setOffsetToAdd(dialog.getOffsetToAdd());
     param.setConfigFile(dialog.getConfigFile());
   }
