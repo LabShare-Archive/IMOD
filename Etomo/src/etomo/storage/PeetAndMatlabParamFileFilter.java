@@ -37,7 +37,7 @@ public final class PeetAndMatlabParamFileFilter extends FileFilter {
   }
 
   public String getDescription() {
-    return "MATLAB param file (" + DatasetFiles.MATLAB_PARAM_FILE_EXT + ", "
+    return "PEET file or Matlap param file(" + DatasetFiles.MATLAB_PARAM_FILE_EXT + ", "
         + DatasetFiles.PEET_DATA_FILE_EXT + ")";
   }
 
