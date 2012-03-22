@@ -115,9 +115,17 @@ public final class Network {
     return CpuAdoc.INSTANCE.exists(manager, axisID, propertyUserDir);
   }
 
-  public static boolean isGpuParallelProcessingEnabled(BaseManager manager, AxisID axisID,
-      String propertyUserDir) {
-    return !CpuAdoc.INSTANCE.isGpuComputerListEmpty(manager, axisID, propertyUserDir);
+  /**
+   * Returns true if there are non-local-only GPU entries in the computer list.
+   * @param manager
+   * @param axisID
+   * @param propertyUserDir
+   * @return
+   */
+  public static boolean isNonLocalOnlyGpuProcessingEnabled(BaseManager manager,
+      AxisID axisID, String propertyUserDir) {
+    return !CpuAdoc.INSTANCE.isGpuComputerListEmpty(manager, axisID, propertyUserDir,
+        null);
   }
 
   /**
@@ -146,8 +154,25 @@ public final class Network {
     if (localHost == null) {
       return false;
     }
-    //Get gpu from the section in cpu.adoc belonging to the current computer.
+    // Get gpu from the section in cpu.adoc belonging to the current computer.
     return localHost.isGpu();
+  }
+
+  /**
+   * Returns false if cpu.adoc is missing, or if the only gpu enabled computer in cpu.adoc
+   * is the local host.
+   * @param manager
+   * @param axisID
+   * @param propertyUserDir
+   * @return
+   */
+  public static boolean isNonLocalHostGpuProcessingEnabled(final BaseManager manager,
+      final AxisID axisID, final String propertyUserDir) {
+    if (!CpuAdoc.INSTANCE.exists(manager, axisID, propertyUserDir)) {
+      return false;
+    }
+    return !CpuAdoc.INSTANCE.isGpuComputerListEmpty(manager, axisID, propertyUserDir,
+        CpuAdoc.INSTANCE.getLocalHostComputer(manager, axisID, propertyUserDir));
   }
 
   /**
@@ -187,7 +212,7 @@ public final class Network {
       return CpuAdoc.INSTANCE.getComputerListSize(manager, axisID, propertyUserDir);
     }
     else {
-      //Count Node.LOCAL_INSTANCE if cpu.adoc is missing or has no computers.
+      // Count Node.LOCAL_INSTANCE if cpu.adoc is missing or has no computers.
       return 1;
     }
   }
