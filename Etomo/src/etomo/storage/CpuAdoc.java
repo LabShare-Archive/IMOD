@@ -64,8 +64,9 @@ public class CpuAdoc {
   private boolean usersColumn = false;
   private String speedUnits = "";
   private String memoryUnits = "";
-  private String gpuSpeedUnits = "";//Not in use - has not been added to cpuadoc man page
-  private String gpuMemoryUnits = "";//Not in use - has not been added to cpuadoc man page
+  private String gpuSpeedUnits = "";// Not in use - has not been added to cpuadoc man page
+  private String gpuMemoryUnits = "";// Not in use - has not been added to cpuadoc man
+                                     // page
   private String[] loadUnits = new String[0];
   private boolean envVar = false;
   private boolean userConfig = false;
@@ -121,21 +122,23 @@ public class CpuAdoc {
   }
 
   /**
-   * Returns true if there is no computerList entries, or if none of the computerList
-   * entries have a non-local GPU.
+   * Returns true if there is no computerList entries, or false if any of the computerList
+   * entries have a non-local-only GPU.
    * @param manager
    * @param axisID
    * @param propertyUserDir
+   * @param ignoredNode if this node is non-null and present in the list, the list is still considered empty.  Parameter may be null
    * @return
    */
   boolean isGpuComputerListEmpty(BaseManager manager, AxisID axisID,
-      String propertyUserDir) {
+      String propertyUserDir, final Node ignoredNode) {
     load(manager, axisID, propertyUserDir);
     if (computerList.isEmpty()) {
       return true;
     }
     for (int i = 0; i < computerList.size(); i++) {
-      if (((Node) computerMap.get(computerList.get(i))).isGpu()) {
+      Node node = (Node) computerMap.get(computerList.get(i));
+      if ((ignoredNode == null || node != ignoredNode) && node.isGpu()) {
         return false;
       }
     }
@@ -173,19 +176,19 @@ public class CpuAdoc {
    * @return
    */
   Node getLocalHostComputer(BaseManager manager, AxisID axisID, String propertyUserDir) {
-    //Search for "localhost":
+    // Search for "localhost":
     Node localHost = getComputer(manager, Node.LOCAL_HOST_NAME, axisID, propertyUserDir);
     if (localHost != null) {
       return localHost;
     }
-    //Search for the computer name:
+    // Search for the computer name:
     String localHostName = Network.getLocalHostName(manager, axisID, propertyUserDir);
     localHost = getComputer(manager, localHostName, axisID, propertyUserDir);
     if (localHost != null) {
       return localHost;
     }
-    //Local host not found.  Try removing everything from the local host name
-    //starting with the first ".".
+    // Local host not found. Try removing everything from the local host name
+    // starting with the first ".".
     int index = localHostName.indexOf('.');
     if (index != -1) {
       localHostName = localHostName.substring(0, index);
