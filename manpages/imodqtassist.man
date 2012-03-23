@@ -2,59 +2,55 @@
 .nh
 .TH imodqtassist 1 3.4.16 BL3DEMC
 .SH NAME
-imodqtassist \- Displays html pages through Qt Assistant
+imodqtassist \- Displays pages in qch file through Qt Assistant
 .SH SYNOPSIS
-imodqtassist [-a | -p adp_file| -k] document_path
+imodqtassist [options] path_to_help_collection_file
 .SH DESCRIPTION
-This program will run Qt Assistant and send it commands to display html
-documents.  The command line arguments indicate where the documents are,
-then an individual page is displayed when its name is entered through 
-standard input.  
+This program will run Qt Assistant and send it commands to display pages
+in a Qt compressed help (qch) file.  The command line arguments indicate where the
+help collection file is, then an individual page is displayed when its name is
+entered through standard input.  
 .P
 The 
-.B document_path
+.B path_to_help_collection_file
 is treated as a path relative to the path in the environment variable IMOD_DIR,
 unless the
 .B -a
 option is entered to indicate that the path is absolute.
-If the option
+The option
 .B -p
-is entered along with 
-.B adp_file,
-the name of an Assistant Document Profile file, then
-Qt Assistant will be started with that .adp file.  The 
-.B adp_file
+must be entered along with the name of a 
+Qt help collection (qhc) file to specify that
+Qt Assistant should be started with that .qhc file. 
+To provide legacy
+behavior, an entry of "IMOD.adp" will be accepted and translated into "IMOD.qhc".
+ The help collection file
 is assumed to be relative to the 
-.B document_path
-unless it is itself an absolute file path specification.
+.B path_to_help_collection_file
+unless it is itself an absolute file path specification.  
 .P
 When a line is entered through standard input, the program attempts to display
 the page.  If it succeeds, it prints 
 .I Page xxx displayed
 to standard error and continues waiting for more input.
-If it fails to find the page, it prints
-.I Page xxx not found
-to standard error and also keeps running.
-If the
-.B adp_file
-is not found, it issues
-.I WARNING: adp file not found
-in addition to the message with regard to the page, but only on the first
-request for a page.  If there is actually an error starting Qt Assistant,
-the program will exit with a non-zero exit status.  This will not happen until
-the first command to display a page.
+If it fails to find the page, there is no error message, except in Assistant itself.
+If the qhc file is not found, it issues
+.I WARNING: qhc file not found.
+If there is actually an error starting Qt Assistant,
+there will be other error messages on the first command to display a page.  In
+case of these errors, the program keeps running.
 .P
 Enter a line with just a "q" to terminate the program and close the current 
 Qt Assistant if one is open.
 .P
-Each page file entry is assumed to be relative to the 
-.B document_path
-unless it is itself an absolute file path specification.  There is some
-redundancy here if absolute paths are used, since if both the
-.B adp_file
-and the individual pages are entered with absolute paths, the
-.B document_path
-becomes irrelevant.
+Each page file entry is assumed to be relative to the default prefix
+.B qthelp://bl3demc/IMOD
+unless the
+.B -q
+option is entered with a different relative or absolute prefix.  If the
+.B -b
+option is entered, then the prefix must be a fully qualified one for the qhc
+file being used; otherwise, the prefix is simply appended to qthelp://bl3demc/IMOD/.
 .P
 By default, the Assistant sidebar will be started with an argument to hide the
 sidebar.  Use the 
