@@ -528,7 +528,7 @@ public final class SetupDialogExpert {
     else if (!parallelProcessingEnabled) {
       dialog.setParallelProcessEnabled(false);
     }
-    boolean gpuProcessingEnabled = Network.isGpuParallelProcessingEnabled(manager,
+    boolean gpuProcessingEnabled = Network.isNonLocalOnlyGpuProcessingEnabled(manager,
         AxisID.ONLY, manager.getPropertyUserDir());
     dialog.setGpuProcessingEnabled(gpuProcessingEnabled);
     dialog.setGpuProcessing(gpuProcessingEnabled && userConfig.getGpuProcessingDefault());

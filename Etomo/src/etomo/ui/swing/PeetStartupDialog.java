@@ -175,20 +175,61 @@ public final class PeetStartupDialog {
   }
 
   /**
-   * Dialog validation.  Popd up an error messageif validation fails.
+   * Dialog validation.  Pops up an error message if validation fails.
    * @return false if validation fails.
    */
   private boolean validate() {
     String errorMessage = null;
+    // Directory
     if (ftfDirectory.isEmpty()) {
       errorMessage = ftfDirectory.getQuotedLabel() + " is required.";
     }
-    else if (ltfBaseName.isEmpty()) {
-      errorMessage = ltfBaseName.getQuotedLabel() + " is required.";
-    }
-    if (cbCopyFrom.isSelected()) {
-      if (ftfCopyFrom.isEmpty()) {
-        errorMessage = ftfCopyFrom.getQuotedLabel() + " is required.";
+    else {
+      File file = ftfDirectory.getFile();
+      if (!file.exists()) {
+        errorMessage = ftfDirectory.getQuotedLabel()
+            + " must contain a directory which exists.";
+      }
+      else if (!file.isDirectory()) {
+        errorMessage = ftfDirectory.getQuotedLabel() + " must contain a directory.";
+      }
+      else if (!file.canRead()) {
+        errorMessage = ftfDirectory.getQuotedLabel()
+            + " must contain a readable directory.";
+      }
+      else if (!file.canWrite()) {
+        errorMessage = ftfDirectory.getQuotedLabel()
+            + " must contain a writable directory.";
+      }
+      // CopyFrom
+      else if (cbCopyFrom.isSelected()) {
+        if (ftfCopyFrom.isEmpty()) {
+          errorMessage = ftfCopyFrom.getQuotedLabel() + " is required.";
+        }
+        else {
+          file = ftfCopyFrom.getFile();
+          PeetAndMatlabParamFileFilter filter = new PeetAndMatlabParamFileFilter();
+          if (!file.exists()) {
+            errorMessage = ftfCopyFrom.getQuotedLabel()
+                + " must contain a file which exists: " + filter.getDescription() + ".";
+          }
+          else if (!file.isFile()) {
+            errorMessage = ftfCopyFrom.getQuotedLabel() + " must contain a file: "
+                + filter.getDescription() + ".";
+          }
+          else if (!filter.accept(file)) {
+            errorMessage = ftfCopyFrom.getQuotedLabel()
+                + " must contain the correct file type: " + filter.getDescription() + ".";
+          }
+          else if (!file.canRead()) {
+            errorMessage = ftfCopyFrom.getQuotedLabel()
+                + " must contain a readable file.";
+          }
+          // BaseName
+          else if (ltfBaseName.isEmpty()) {
+            errorMessage = ltfBaseName.getQuotedLabel() + " is required.";
+          }
+        }
       }
     }
     if (errorMessage == null) {

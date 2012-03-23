@@ -196,6 +196,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   private final boolean listenForFieldChanges;
 
   private boolean gpusAvailable = false;
+  private boolean nonLocalHostGpusAvailable = false;
   private boolean localGpuAvailable = true;
   private boolean gpuEnabled = true;
   private boolean madeZFactors = false;
@@ -582,8 +583,10 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     boolean validAutodoc = Network.isParallelProcessingEnabled(manager, axisID,
         manager.getPropertyUserDir());
     // Use GPU
-    gpusAvailable = Network.isGpuParallelProcessingEnabled(manager, axisID,
+    gpusAvailable = Network.isNonLocalOnlyGpuProcessingEnabled(manager, axisID,
         manager.getPropertyUserDir());
+    nonLocalHostGpusAvailable = Network.isNonLocalHostGpuProcessingEnabled(manager,
+        axisID, manager.getPropertyUserDir());
     localGpuAvailable = Network.isLocalHostGpuProcessingEnabled(manager, axisID,
         manager.getPropertyUserDir());
     cbUseGpu.setSelected(metaData.getDefaultGpuProcessing().is());
@@ -591,11 +594,16 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     // Parallel processing
     cbParallelProcess.setEnabled(validAutodoc);
     ConstEtomoNumber tiltParallel = metaData.getTiltParallel(axisID, panelId);
-    if (tiltParallel == null) {
-      cbParallelProcess.setSelected(validAutodoc && metaData.getDefaultParallel().is());
-    }
-    else {
-      cbParallelProcess.setSelected(validAutodoc && tiltParallel.is());
+    // If only a local GPU is available and the Use GPU checkbox defaults to on, do not
+    // select the parallel processing checkbox.
+    if (nonLocalHostGpusAvailable || !cbUseGpu.isSelected()) {
+      System.out.println("A");
+      if (tiltParallel == null) {
+        cbParallelProcess.setSelected(validAutodoc && metaData.getDefaultParallel().is());
+      }
+      else {
+        cbParallelProcess.setSelected(validAutodoc && tiltParallel.is());
+      }
     }
     trialTiltPanel.setParameters(metaData);
     ctfLog.setText(metaData.getGenLog(axisID));
@@ -962,12 +970,14 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       manager.deleteIntermediateImageStacks(axisID, btnDeleteStack);
     }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
+      msgParallelProcessChanged();
       mediator.setMethod(this, getProcessingMethod());
     }
     else if (command.equals(btn3dmodTomogram.getActionCommand())) {
       imodTomogramAction(deferred3dmodButton, run3dmodMenuOptions);
     }
     else if (command.equals(cbUseGpu.getActionCommand())) {
+      msgUseGpuChanged();
       mediator.setMethod(this, getProcessingMethod());
     }
     else if (command.equals(ctfLog.getActionCommand())) {
@@ -980,6 +990,32 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     }
     else {
       updateDisplay();
+    }
+  }
+
+  /**
+   * If there is a only a local GPU available, turn off parallel processing when Use GPU
+   * is selected.
+   */
+  private void msgUseGpuChanged() {
+    if (!cbUseGpu.isSelected()) {
+      return;
+    }
+    if (!nonLocalHostGpusAvailable && cbParallelProcess.isSelected()) {
+      cbParallelProcess.setSelected(false);
+    }
+  }
+
+  /**
+   * If there is a only a local GPU available, turn off Use GPU when parallel processing
+   * is selected.
+   */
+  private void msgParallelProcessChanged() {
+    if (!cbParallelProcess.isSelected()) {
+      return;
+    }
+    if (!nonLocalHostGpusAvailable && cbUseGpu.isSelected()) {
+      cbUseGpu.setSelected(false);
     }
   }
 
