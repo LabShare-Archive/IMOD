@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/21/12: Fixed problems in warping due to accessing data out of range,
+unmasked by fixes on 3/7/12.
+
 3/21/12: In eTomo - Final Aligned Stack, displaying the expected defocus in
 microns.(Bug# 1604)
 

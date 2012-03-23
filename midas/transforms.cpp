@@ -885,11 +885,15 @@ int midas_transform(int zval, Islice *slin, Islice *sout, float *trmat, int izwa
       ylim[0] = yStart + yInterval * (iygrid - 1);
       ylim[1] = yStart + yInterval * iygrid;
       iylim[0] = (int)ceil((double)ylim[0]);
-      if (iygrid == 0)
+      if (iygrid == 0) {
         iylim[0] = 0;
+        ylim[0] = B3DMIN(0., ylim[0]);
+      }
       iylim[1] = (int)ceil((double)ylim[1]) - 1;
-      if (iygrid == nyGrid)
+      if (iygrid == nyGrid) {
         iylim[1] = ysize - 1;
+        ylim[1] = B3DMAX(ysize - 0.999, ylim[1]);
+      }
 
       // Loop on X blocks, get indexes and limiting coordinates in X
       for (ixgrid = ixgStart; ixgrid <= ixgEnd; ixgrid++) {
@@ -898,11 +902,15 @@ int midas_transform(int zval, Islice *slin, Islice *sout, float *trmat, int izwa
         xlim[0] = xStart + xInterval * (ixgrid - 1);
         xlim[1] = xStart + xInterval * ixgrid;
         ixlim[0] = (int)ceil((double)xlim[0]);
-        if (ixgrid == 0)
+        if (ixgrid == 0) {
           ixlim[0] = 0;
+          xlim[0] = B3DMIN(0., xlim[0]);
+        }
         ixlim[1] = (int)ceil((double)xlim[1]) - 1;
-        if (ixgrid == nxGrid)
+        if (ixgrid == nxGrid) {
           ixlim[1] = xsize - 1;
+          xlim[1] = B3DMAX(xsize - 0.999, xlim[1]);
+        }
       
         // Evaluate mapping of each corner point and see if inside 
         allIn = true;
