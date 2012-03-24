@@ -112,7 +112,7 @@ tooltip =
 manpage = Rotate the output volume by -90 degrees around the X axis, by first creating a
 temporary trimmed volume
 with newstack then running "clip rotx" on this volume to create the final
-output file.  The slices will look the same as with the "-eyz"
+output file.  The slices will look the same as with the "-yz"
 option but rotating instead
 of flipping will preserve the handedness of structures.
 
