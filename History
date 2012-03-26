@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/25/12: Made Findcontrast scale data properly for float data regardless of
+range and made it handle incorrect file min/max as well as possible.
+
 3/23/12: In eTomo - Tomogram Generation preventing GPU parallel processing
 when the only GPU available in the local host.(Bug# 1555)
 
