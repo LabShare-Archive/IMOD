@@ -10,23 +10,7 @@ c       See man page for details
 c
 c       David Mastronarde, 1/1/00
 c
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.3  2006/06/28 23:37:23  mast
-c       Fixed bug in computing number of pixels to truncate
-c
-c       Revision 3.2  2006/03/07 20:05:18  mast
-c       Converted to PIP and made it take unflipped coordinates with option
-c       for flipped.
-c
-c       Revision 3.1  2006/02/26 20:21:19  mast
-c       Made it read sections in chunks, standardize error exit
-c
+c       $Id$
 c       
       implicit none
       integer idim, limden
@@ -77,9 +61,11 @@ C
       CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN,DMAX,DMEAN)
 C       
       histScale = 1.
-      if (mode.ne.1.and.(dmin.lt.-limden.or.dmax.gt.limden)) then
-        if (dmin.lt.-limden) histScale = -limden/dmin
-        if (dmax.gt.limden) histScale = min(histScale, limden/dmax)
+c       
+c       For non-integer mode, set up a scaling that should fill 1/5 of the histogram
+c       at most, but allow the rest of the range in case the min and max are in error
+      if (mode.ne.1 .and. mode.ne.6 .and. mode.ne.0) then
+        histScale = (limden / 5) / max(abs(dmin), abs(dmax), 1.e-10)
       endif
 
       if (nx .gt. idim) call exitError('IMAGES TOO LARGE IN X FOR ARRAYS')
@@ -169,6 +155,7 @@ c
           call irdpas(1,array,nxt,nylines,ixlo,ixhi,iychunk,iyend)
           do i=1,nxt*nylines
             ival=nint(histScale*array(i))
+            ival = max(-limden, min(limden, ival))
             ihist(ival)=ihist(ival)+1
             ivmin=min(ivmin,ival)
             ivmax=max(ivmax,ival)
@@ -195,6 +182,9 @@ c	write(*,'(i7,9i8)')(ihist(i),i=ivmin,ivmax)
       rhi = ihi / histScale
       iclo=255*(rlo-dmin)/(dmax-dmin)
       ichi=255*(rhi-dmin)/(dmax-dmin)+0.99
+      if (iclo .lt. 0 .or. ichi .gt. 255) call exitError('THE FILE MINIMUM OR MAXIMUM '//
+     &    'IS TOO FAR OFF TO ALLOW CONTRAST SCALING; USE alterheader WITH mmm OPTION'//
+     &    ' TO FIX MIN/MAX')
       write(*,101)ivmin/histScale,ivmax/histScale,rlo,rhi,iclo,ichi
 101   format('Min and max densities in the analyzed volume are',
      &    g13.5,' and',g13.5,/,
