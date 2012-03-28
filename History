@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/28/12: Fixed division by 0 in Splittilt with small number of input slices
+(In 4.5).
+
 3/26/12: IMOD_4-6-0 and branch to IMOD_4-5-0
 3/25/12: Made Findcontrast scale data properly for float data regardless of
 range and made it handle incorrect file min/max as well as possible.
