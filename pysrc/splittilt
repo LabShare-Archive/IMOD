@@ -247,7 +247,7 @@ if vertPossible and xaxistilt:
           maxsize = numproc // minslabs
           slabsize = max(minslices, min(maxsize, slabsize))
 
-numslabs = (numslices + slabsize // 2) // slabsize
+numslabs = max(1, (numslices + slabsize // 2) // slabsize)
 slabsize = numslices // numslabs
 remainder = numslices % numslabs
 
