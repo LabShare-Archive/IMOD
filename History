@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/29/12: In eTomo - Tomogram Generation, substituted tomogram height and Y
+shift for starting, ending, and increment slice.(Bug# 1468)
+
 3/28/12: Fixed division by 0 in Splittilt with small number of input slices
 (In 4.5).
 
