@@ -12,7 +12,7 @@
     </head>
   <body>
     <A NAME="TOP"></A>
-    <h1 align="center">IMOD User's Guide for Version 4.3
+    <h1 align="center">IMOD User&#39;s Guide for Version 4.5
     </h1>
     <h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of Cells</h3>
     <hr>
@@ -75,7 +75,7 @@
         to the default location in the system and set up the IMOD environment for all 
         users in the default way, then you can install simply by running this script, 
         e.g.,<br>
-        &nbsp;&nbsp;&nbsp;<code>csh -f imod_4.3.1_RHEL6.csh</code><br>
+        &nbsp;&nbsp;&nbsp;<code>csh -f imod_4.5.1_RHEL6.csh</code><br>
         <br>
         (In this guide, the specific filenames are used as an example; your copy may 
         have higher version numbers.)
@@ -85,13 +85,13 @@ install it.</span>&nbsp; There is an executable installer for Windows with exten
         since IMOD 3.0.8, you will be able to upgrade using the same command. If you 
         want to install to a location other than the default,&nbsp; you can specify the 
         desired location inside of which the IMOD directory will be placed, e.g.,<br>
-          <code>&nbsp; csh -f imod_4.3.1_RHEL6.csh -dir /opt</code><br>
+          <code>&nbsp; csh -f imod_4.5.1_RHEL6.csh -dir /opt</code><br>
         <br>
         Older versions will be renamed, and at the end the installation script will 
         offer to remove them for you.&nbsp; People with special requirements not 
         anticipated by the install script may need to work with the tar file 
         instead.&nbsp; It can be extracted with:<br>
-        &nbsp; <code>&nbsp;csh -f imod_4.3.1_RHEL6.csh -extract
+        &nbsp; <code>&nbsp;csh -f imod_4.5.1_RHEL6.csh -extract
         </code></p>
         <p>
         The gzipped tar file and the install script will be left in a subdirectory 
@@ -99,7 +99,7 @@ install it.</span>&nbsp; There is an executable installer for Windows with exten
           -script </code>to install startup scripts to a different location, <code>-skip</code>
         to skip installing startup scripts, <code>-name</code> to have the IMOD 
         directory be renamed to the given name.&nbsp; Use:<br>
-    <code>&nbsp; csh -f imod_4.3.1_RHEL6.csh -help<br></code><br>
+    <code>&nbsp; csh -f imod_4.5.1_RHEL6.csh -help<br></code><br>
       to see all available options.&nbsp; The sections below on individual machine 
           types describe what will be done by the default installation procedure.&nbsp; 
           They also list 
@@ -167,7 +167,7 @@ install it.</span>&nbsp; There is an executable installer for Windows with exten
       source the startup scripts from the IMOD directory, unless you give the <code>-skip</code>
       option.&nbsp; To accomplish all of this, change directory to the place where 
       the package is located and enter, for example:<br>
-      &nbsp;&nbsp;&nbsp;&nbsp; <code>sudo csh </code><code>-f imod_4.3.1_RHEL6.csh<br>
+      &nbsp;&nbsp;&nbsp;&nbsp; <code>sudo csh </code><code>-f imod_4.5.1_RHEL6.csh<br>
       </code><br>
       You will have to open a new window, or possibly even log out and log back in, 
       for the installation to take effect.
@@ -220,11 +220,11 @@ install it.</span>&nbsp; There is an executable installer for Windows with exten
     <LI>
       cd to the directory where you downloaded IMOD, and
       <br>
-      &nbsp;<code> mv imod_4.3.1_RHEL6.tar.gz /usr/local</code>
+      &nbsp;<code> mv imod_4.5.1_RHEL6.tar.gz /usr/local</code>
     </LI>
     <LI>&nbsp;<code> cd /usr/local</code>&nbsp;
     </LI>
-    <LI>&nbsp;<code> tar -xzf imod_4.3.1_RHEL6.tar.gz</code>
+    <LI>&nbsp;<code> tar -xzf imod_4.5.1_RHEL6.tar.gz</code>
     </LI>
     <LI>To see if you already have a /usr/local/IMOD,
       <br>
@@ -239,7 +239,7 @@ install it.</span>&nbsp; There is an executable installer for Windows with exten
       <br>
       <code>&nbsp; mv IMOD oldIMOD</code>
     </LI>
-    <li>&nbsp;<code> ln -s imod_4.3.1 IMOD</code>
+    <li>&nbsp;<code> ln -s imod_4.5.1 IMOD</code>
     </li>
     <li>Except on Ubuntu and other Debian systems,<br>
       <code>&nbsp; cp IMOD/IMOD-linux.* /etc/profile.d</code> <code></code>
@@ -316,7 +316,7 @@ line.</span>&nbsp; It will place appropriate "source" commands for defining the 
       <code>/etc/profile</code>.&nbsp;You need to be able to use sudo. &nbsp;Open a 
       terminal window (under Applications-Utilities), change directory to the place 
       where the package is located, and enter, e.g.:<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<code> sudo csh -f imod_4.3.1_osx_intel64.csh</code><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<code> sudo csh -f imod_4.5.1_osx_intel64.csh</code><br>
       <br>
       &nbsp;You will need to exit and restart Terminal for these changes to take 
       effect, or you can just source <code>/etc/csh.login</code>&nbsp;(if you are 
@@ -357,12 +357,12 @@ line.</span>&nbsp; It will place appropriate "source" commands for defining the 
       <OL>
       <LI>cd to the directory where you downloaded IMOD, and
       <br>
-      &nbsp;&nbsp;<code> sudo mv imod_4.3.1_osx_intel64.tar.gz /Applications</code>
+      &nbsp;&nbsp;<code> sudo mv imod_4.5.1_osx_intel64.tar.gz /Applications</code>
 
         <li>
           &nbsp;&nbsp;<code> cd /Applications</code>
         <li>
-          &nbsp;&nbsp;<code> sudo tar xzf imod_4.3.1_osx_intel64.tar.gz</code>
+          &nbsp;&nbsp;<code> sudo tar xzf imod_4.5.1_osx_intel64.tar.gz</code>
         <li>
           To see if you already have a /Applications/IMOD,
           <br>
@@ -377,13 +377,13 @@ line.</span>&nbsp; It will place appropriate "source" commands for defining the 
           <br>
           &nbsp;&nbsp;<code> sudo mv IMOD oldIMOD</code>
         <li>
-          &nbsp;&nbsp;<code> sudo mv imod_4.3.1 IMOD</code></li></OL>
+          &nbsp;&nbsp;<code> sudo mv imod_4.5.1 IMOD</code></li></OL>
       <P>If you are on a single user-machine or have administrative privileges from the 
       desktop, you can use the following alternative approach:</P>
       <ol>
         <li>
           Click on the downloaded file to unpack it with Stuffit Expander and create the 
-          IMOD folder, e.g. <code>imod_4.3.1</code>
+          IMOD folder, e.g. <code>imod_4.5.1</code>
         <li>
         Drag this folder into the /Applications folder.
         <li>
@@ -439,11 +439,6 @@ line.</span>&nbsp; It will place appropriate "source" commands for defining the 
       source license, we also provide the <a href="http://bio3d.colorado.edu/imod/openSource/cygwinSource0310.zip">
         source code</a> matching the binaries in our package.</p>
       <p>
-        <span class="style1">Current versions of Cygwin do not work reliably for IMOD on 64-bit systems; you 
-    must use the version that we provide instead of installing from the Cygwin 
-    website.</span>&nbsp; If this creates problems for you, check our beta versions of 
-        IMOD 4.4 to see if this restriction has been lifted.</p>
-      <p>
       Installing Cygwin creates a Unix-like directory tree (including directories <code>
         bin</code>, <code>etc</code>, <code>usr</code>, and <code>home</code>) under 
       its top directory, which is <code>C:\cygwin</code> by default.&nbsp;Terminal 
@@ -454,7 +449,9 @@ line.</span>&nbsp; It will place appropriate "source" commands for defining the 
       within Cygwin and will exist in the Windows file systems as <code>C:\cygwin\usr\local\IMOD</code>.</p><p>
       <span class="style1">The Cygwin that you use must include Python, which is now 
       required for building tomograms.</span>&nbsp; Our last two Cygwin packages have 
-      included Python.</p>
+      included Python.&nbsp; If you use a current version of Cygwin from the Cygwin 
+      website, you may need to make sure that there is a Python executable, 
+      <code>/bin/python.exe</code>, recognizable to Windows (see below).</p>
     <p>
       Our Cygwin packages also include a superior 
       terminal window called <code>mintty</code> and a lightweight text editor, <code>nano</code>
@@ -577,16 +574,27 @@ line.</span>&nbsp; It will place appropriate "source" commands for defining the 
           can access them (such as <code>/usr/local</code>).
         </li>
       </ol>
-      <p>If you want to customize your Cygwin installation instead of using our package 
-        (but only for 32-bit systems right now), 
+      <p>If you want to customize your Cygwin installation instead of using our package, 
       go to <a href="http://www.cygwin.com">www.cygwin.com</a>, click on "Setup", and 
       follow the installation procedures. &nbsp;<span style="COLOR: rgb(255,0,0); FONT-WEIGHT: bold">In addition to the
 default installation, it is essential that you select </span><code style="COLOR: rgb(255,0,0); FONT-WEIGHT: bold">tcsh</code><span style="COLOR: rgb(255,0,0); FONT-WEIGHT: bold"> from the Shells
 category and 
 </span><code style="COLOR: rgb(255,0,0); FONT-WEIGHT: bold">python</code><span style="COLOR: rgb(255,0,0); FONT-WEIGHT: bold"> from the 
-Python category</span>.&nbsp; 
-<a name="InstallingWindows">
-        <h3>1.6. Installing IMOD on a Windows PC</h3>
+Python category.&nbsp; In addition, there must be a Python executable named
+        <code>/bin/python.exe</code>, not 
+        just a Cygwin link to an executable</span>.&nbsp; 
+        The IMOD installer will take care of creating such an executable, but if you 
+        upgrade Cygwin without re-installing IMOD, you should do the following:<ol>
+      <li>In a terminal window, enter
+        <br />
+&nbsp;&nbsp; <code>ls /bin/python*</code>
+        <br />
+        to see if there is a <code>python.exe</code></li>
+      <li>If there is not, copy <code>python2.6.exe</code> (or whatever numbered executable shows up 
+        in the listing) with<br />
+&nbsp;&nbsp; <code>cp /bin/python2.6.exe /bin/python.exe</code></li>
+    </ol>
+    <a name="InstallingWindows"><h3>1.6. Installing IMOD on a Windows PC</h3>
       </a><p>For Windows, we provide an executable installer that works by clicking on it, installs 
       IMOD in <code>/usr/local</code>, copies the startup scripts <code>IMOD-cygwin.sh</code>
       and <code>IMOD-cygwin.csh</code> to <code>/etc/profile.d</code>, and takes care 
@@ -594,7 +602,7 @@ Python category</span>.&nbsp;
       and <code>HOME</code> as described below. Old versions of IMOD are 
       automatically deleted.&nbsp; If you need something besides this behavior, you 
       can still run a self-installing package (e.g., a <code>csh</code> file like <code>
-        imod_4.3.1_win.csh</code>) at the command line, as described below.
+        imod_4.5.1_win.csh</code>) at the command line, as described below.
       </p>
       <p>
       To use the installer, just click on it and press buttons to confirm each 
@@ -623,7 +631,7 @@ clicking on it, only
 by executing it from the command line.</span>&nbsp; To install or upgrade IMOD this 
       way, start a Cygwin terminal window, change to the directory where the package 
       is located, and enter, e.g.:<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<code>csh -f imod_4.3.1_win.csh</code></p>
+      &nbsp;&nbsp;&nbsp;&nbsp;<code>csh -f imod_4.5.1_win.csh</code></p>
       <p>
       You will have to open a new Cygwin window for a new installation to take effect.
       </p>
@@ -668,9 +676,9 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
             mv IMOD oldIMOD</code><li>
           &nbsp;Unpack the tar file, rename it to IMOD, and copy startup files:
           <br>
-          <code>&nbsp;&nbsp; tar -xzf imod_4.3.1.tar.gz </code>
+          <code>&nbsp;&nbsp; tar -xzf imod_4.5.1.tar.gz </code>
           <br>
-          <code>&nbsp;&nbsp; mv imod_4.3.1 IMOD </code>
+          <code>&nbsp;&nbsp; mv imod_4.5.1 IMOD </code>
           <br>
           <code>&nbsp;&nbsp; cp IMOD/IMOD-cygwin.* /etc/profile.d</code></li>
       </ol>
@@ -690,7 +698,7 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
       that supports processing with a system called CUDA, and you also need to have 
       NVIDIA drivers new enough to support CUDA.&nbsp; To see if your card can be 
       used, check it in <a href="http://www.nvidia.com/object/cuda_learn_products.html">
-        NVIDIA's lists </a>.&nbsp; Most of the packages for IMOD 4.3 are built with CUDA 
+        NVIDIA's lists </a>.&nbsp; Most of the packages for IMOD 4.5 are built with CUDA 
         version 3.&nbsp; A few packages are built with CUDA 2 or with CUDA 4.&nbsp; When 
         there are two packages for a particular operating system, the one not built with 
         CUDA 3 has CUDA and the version number in its name.&nbsp; A package built with a 

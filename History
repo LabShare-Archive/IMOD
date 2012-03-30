@@ -1,16 +1,26 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3/22/12: In eTomo - PEET, added more error checking to the startup dialog.
+3/28/12: Fixed division by 0 in Splittilt with small number of input slices
+(In 4.5).
+
+3/26/12: IMOD_4-6-0 and branch to IMOD_4-5-0
+3/25/12: Made Findcontrast scale data properly for float data regardless of
+range and made it handle incorrect file min/max as well as possible.
+
+3/23/12: In eTomo - Tomogram Generation preventing GPU parallel processing
+when the only GPU available in the local host.(Bug# 1555)
+
+3/23/12: In eTomo - PEET, added more error checking to the startup dialog.
 (Bug# 1607)
 
-3/22/12: In eTomo - Tomogram Generation preventing GPU with parallel
-processing when the only GPU available in the local host.(Bug# 1555)
-
-3/21/12: In eTomo - Final Aligned Stack, displaying the expected defocus in
+3/22/12: In eTomo - Final Aligned Stack, displaying the expected defocus in
 microns.(Bug# 1604)
 
-3/20/12: In eTomo - Final Aligned Stack, fixed a bug where the erase beads
+3/22/12: In eTomo - Final Aligned Stack, fixed a bug where the erase beads
 "diameter to erase" value was not being binned.(Bug# 1600)
+
+3/21/12: Fixed problems in warping due to accessing data out of range,
+unmasked by fixes on 3/7/12.
 
 3/19/12: In eTomo getting EXCLUDELIST for tilt.com from align.log when
 possible.(Bug# 1407)

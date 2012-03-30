@@ -33,10 +33,8 @@ static char threadLine[MAX_LINE];
 static bool gotLine = false;
 static int lineLen;
 
-#ifdef QT_THREAD_SUPPORT
 static QMutex mutex;
 static AssistantThread * assThread;
-#endif
 
 static int readLine(char *line);
 
@@ -44,32 +42,33 @@ static int readLine(char *line);
 int main(int argc, char *argv[])
 {
   int retval, ind = 1;
-  char *adp = NULL;
+  char *qhc = NULL;
   bool absPath = false;
   bool keepBar = false;
+  bool prefAbs = false;
+  const char *prefix = NULL;
 
-#ifdef QT_THREAD_SUPPORT
   if (argc == 2 && !strcmp(argv[ind], "-t")) {
     printf("Ideal thread count = %d\n", QThread::idealThreadCount());
     exit(0);
   }
-#endif
 
   // Start the application 
   QApplication qapp(argc, argv);
   setlocale(LC_NUMERIC, "C");
 
   if (argc < 2) {
-    fprintf(stderr, "Usage: imodqtassist [options] path_to_documents\n");
+    fprintf(stderr, "Usage: imodqtassist [options] path_to_help_collection_file\n");
     fprintf(stderr, "   Options:\n");
-    fprintf(stderr, "\t-a\tpath_to_documents is absolute, not relative to"
+    fprintf(stderr, "\t-a\tpath_to_help_collection is absolute, not relative to"
             " $IMOD_DIR\n");
-    fprintf(stderr, "\t-p file\tName of adp (document profile) file\n");
+    fprintf(stderr, "\t-p file\tName of qhc (help collection) file (IMOD.adp \n "
+            "\t\t   can be entered instead of IMOD.qhc)\n");
+    fprintf(stderr, "\t-q pref\tPrefix to use in front of help page name\n");
+    fprintf(stderr, "\t-b\tPrefix is absolute, not appended to qthelp://bl3demc/IMOD/\n");
     fprintf(stderr, "\t-k\tKeep the sidebar (do not hide it)\n");
-#ifdef QT_THREAD_SUPPORT
     fprintf(stderr, "\t-t\tReport ideal thread count (number of processors) "
             "and exit\n");
-#endif
     exit(1);
   }
 
@@ -87,7 +86,15 @@ int main(int argc, char *argv[])
         break;
 
       case 'p':
-        adp = argv[++ind];
+        qhc = argv[++ind];
+        break;
+
+      case 'q':
+        prefix = argv[++ind];
+        break;
+
+      case 'b':
+        prefAbs = true;
         break;
 
       default:
@@ -102,19 +109,16 @@ int main(int argc, char *argv[])
   }
 
   // start the help object
-  imodHelp = new ImodAssistant(argv[ind], adp, NULL, absPath, keepBar);
+  imodHelp = new ImodAssistant(argv[ind], qhc, NULL, absPath, keepBar, prefix, prefAbs);
 
   // Get a listener for the errors and timer
   AssistantListener *listener = new AssistantListener();
   QObject::connect(imodHelp, SIGNAL(error(const QString&)), listener,
                    SLOT(assistantError(const QString&)));
 
-#ifdef QT_THREAD_SUPPORT
-
   // If using threads, start a thread to read stdin
   assThread = new AssistantThread();
   assThread->start();
-#endif
 
   // Start timer to watch for input
   listener->startTimer(TIMER_INTERVAL);
@@ -124,10 +128,8 @@ int main(int argc, char *argv[])
   // needed
   delete imodHelp;
 
-#ifdef QT_THREAD_SUPPORT
   if (assThread->isRunning())
     assThread->terminate();
-#endif
   return retval;
 }
 
@@ -145,6 +147,7 @@ void AssistantListener::timerEvent(QTimerEvent *e)
   char line[MAX_LINE];
   int err;
 
+  // 3/23/12: Left these conditionals for historical interest
 #ifdef QT_THREAD_SUPPORT
 
   // If there is thread support, see if the thread got a line
@@ -194,14 +197,14 @@ void AssistantListener::timerEvent(QTimerEvent *e)
   if (!lineLen)
     return;
 
-  // Otherwise show page and report results
+  // Otherwise show page and report results ( err > 0 not possible any more)
   err = imodHelp->showPage(line);
   if (err > 0)
     fprintf(stderr, "WARNING: Page %s not found\n", line);
   else
     fprintf(stderr, "Page %s displayed\n", line);
   if (err < 0 && !mWarned) {
-    fprintf(stderr, "WARNING: adp file not found\n");
+    fprintf(stderr, "WARNING: qhc file not found\n");
     mWarned = true;
   }
     
@@ -213,8 +216,6 @@ void AssistantListener::timerEvent(QTimerEvent *e)
 #endif
 #endif
 }
-
-#ifdef QT_THREAD_SUPPORT
 
 // The thread loops on reading a line and sets the flag when it gets one
 void AssistantThread::run()
@@ -239,7 +240,6 @@ void AssistantThread::run()
       return;
   }
 }    
-#endif
 
 // Common routine to read a line, strip endings, and return length
 static int readLine(char *line)
@@ -255,44 +255,3 @@ static int readLine(char *line)
     line[strlen(line) - 1] = 0x00;
   return strlen(line);
 }
-
-/*
-    $Log$
-    Revision 1.12  2009/01/15 16:31:57  mast
-    Qt 4 port
-
-    Revision 1.11  2006/06/20 23:39:27  mast
-    Make page not found be a warning
-
-    Revision 1.10  2006/06/20 22:07:53  mast
-    Do not exit on error, add WARNING: prefix to message
-
-    Revision 1.9  2006/06/20 17:23:09  mast
-    Changed exit signal to a q
-
-    Revision 1.8  2006/06/20 04:39:47  mast
-    Cleanup up logic after experimenting in 3dmod and with no thread version
-
-    Revision 1.7  2006/06/18 23:42:24  mast
-    Added option to keep sidebar
-
-    Revision 1.6  2005/11/19 16:58:30  mast
-    Corrected print statement
-
-    Revision 1.5  2004/12/24 02:20:46  mast
-    Added usage statement, made warning come out only once
-
-
-    Revision 1.4  2004/12/22 23:14:21  mast
-    Handle adp not found error message
-
-    Revision 1.3  2004/12/22 22:53:39  mast
-    Needed to advance index in argument loop
-
-    Revision 1.2  2004/12/22 05:58:49  mast
-    Fixed bugs that showed up on SGI
-
-    Revision 1.1  2004/12/22 05:49:02  mast
-    Addition to package
-
-*/
