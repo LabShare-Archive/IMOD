@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/9/12: In eTomo - Join, fixed the print actions functionality, which was not
+printing some file copies.(Bug# 1610)
+
 3/29/12: In eTomo - Tomogram Generation, substituted tomogram height and Y
 shift for starting, ending, and increment slice.(Bug# 1468)
 
