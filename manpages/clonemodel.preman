@@ -27,7 +27,8 @@ by PEET and a model containing an isosurface rendering of the PEET average,
 this is not required. Except for the first, header line, which is always
 ignored, each line in the location file must contain 7
 comma-separated fields representing contour number, X, Y, and Z center 
-coordinates in pixels, and Z-Y-X Slicer angles in degrees, respectively.
+coordinates in pixels, and Z-Y-X Slicer angles in degrees (stored in the
+order X, Y, Z), respectively.
 
 .SS Options
 Clonemodel uses the PIP package for input (see the manual page for pip(1)).
