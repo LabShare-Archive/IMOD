@@ -34,11 +34,12 @@ static Islice *clipBlankSlice(MrcHeader *hout, ClipOptions *opt);
 /* DNM 1/5/05: changed to return result of writing header */
 int set_mrc_coords(ClipOptions *opt)
 {
-  float tx, ty, tz;
+  float tx, ty, tz, sx, sy, sz;
   MrcHeader *hin = opt->hin;
   MrcHeader *hout = opt->hout;
 
   mrc_coord_cp(hout, hin);
+  mrc_get_scale(hout, &sx, &sy, &sz);
   
   /* 1/30/07: In response to a request to preserve the n[xyz]start */
   hout->nxstart = hin->nxstart;
@@ -46,19 +47,26 @@ int set_mrc_coords(ClipOptions *opt)
   hout->nzstart = hin->nzstart;
      
   /* DNM 9/21/01: subtract rather than add tx, ty, tz, because of weird
-     definition of origin */
+     definition of origin 
+     4/15/12: Argh!  It needs to multiply by the scale */
   tx = (int)opt->cx - opt->ix / 2;
   tx += (opt->ix - opt->ox)/2;
+  if (sx)
+    tx *= sx;
   hout->xorg -= tx;
      
   ty = (int)opt->cy - opt->iy / 2;
   ty += (opt->iy - opt->oy)/2;
+  if (sy)
+    ty *= sy;
   hout->yorg -= ty;
    
   /* DNM 1/5/05: with -2d, -iz is treated like a range list, not a size */
   if (opt->dim == 3) {
     tz = (int)floor(opt->cz - opt->iz / 2.);
     tz += (opt->iz - opt->oz)/2;
+    if (sz)
+      tz *= sz;
     hout->zorg -= tz;
   }
      
@@ -177,7 +185,6 @@ void set_input_options(ClipOptions *opt, MrcHeader *hin)
 int set_output_options(ClipOptions *opt, MrcHeader *hout)
 {
   int z = 0;
-  int dsize;
 
   /* create a new file */
   if (!opt->add2file){

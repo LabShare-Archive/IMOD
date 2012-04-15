@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/15/12: Fixed origin change when resizing with clip (In 4.5).
+
 3/28/12: Fixed division by 0 in Splittilt with small number of input slices
 (In 4.5).
 
