@@ -43,6 +43,21 @@ proportion to the recorded electrons.  If they are acquired with software
 that subtracts 32768 before storing as signed integers, then you need to add
 this offset back to the data in order to use them as noise files.
 
+The noise files are listed in a simple text file, the configuration file
+specified by the -config option.  To be found easily from within eTomo, the
+latter file should be placed in a directory named
+/usr/local/ImodCalib/CTFnoise or in $IMOD_CALIB_DIR/CTFnoise if the
+environment variable IMOD_CALIB_DIR has been defined differently from the
+default.  You can then place the noise files in a subdirectory of CTFnoise,
+for example, F20.  In this case, the configuration file would contain a
+list like this:
+.nf
+F20/file1.st
+F20/file2.st
+F20/file3.st
+...
+.fi
+
 When you start the program, it will first load and analyze all of the noise
 files.  Then it will read in the images within the specified initial angular
 range and compute power spectra from the central tiles.  This initial
