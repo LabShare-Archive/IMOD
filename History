@@ -1,10 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/17/12: In eTomo - Tomogram Generation, substituted tomogram height and Y
+shift for starting, ending, and increment slice.(Bug# 1468)
+
 4/15/12: Made clip splitrgb able to extract a subset in Z, and joinrgb able to
 append to an existing color file, so that a file can be processed in chunks.
-
-3/29/12: In eTomo - Tomogram Generation, substituted tomogram height and Y
-shift for starting, ending, and increment slice.(Bug# 1468)
 
 4/15/12: Fixed origin change when resizing with clip (In 4.5).
 
