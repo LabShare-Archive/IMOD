@@ -319,7 +319,10 @@ final class ProcessorTableRow implements Storable {
   }
 
   final void msgDropped(String reason) {
-    setSelected(false);
+    //When dropping a computer, don't unselect it if it is disabled.
+    if (cellComputer.isEnabled()) {
+      setSelected(false);
+    }
     cellFailureReason.setValue(reason);
     cellFailureReason
         .setToolTipText("This computer was dropped from the current distributed process.");
