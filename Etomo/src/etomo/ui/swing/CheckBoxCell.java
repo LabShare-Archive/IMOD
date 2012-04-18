@@ -72,6 +72,10 @@ final class CheckBoxCell extends InputCell implements ToggleCell {
   void setValue(final String value) {
     checkBox.setSelected(new EtomoBoolean2().set(value).is());
   }
+  
+  public boolean isEnabled() {
+    return checkBox.isEnabled();
+  }
 
   public boolean isSelected() {
     return checkBox.isSelected();
