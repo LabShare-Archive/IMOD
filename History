@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/18/12: Prevented eTomo from unchecking a disabled computer checkbox in the
+Parallel Processing table when a computer is dropped (In 4.5).(Bug# 1613)
+
 4/15/12: Fixed origin change when resizing with clip (In 4.5).
 
 3/28/12: Fixed division by 0 in Splittilt with small number of input slices
