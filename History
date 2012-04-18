@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/17/12: Added Colornewst to process RGB color files with Newstack.
+
 4/17/12: In eTomo - Tomogram Generation, substituted tomogram height and Y
 shift for starting, ending, and increment slice.(Bug# 1468)
 
