@@ -60,8 +60,8 @@ class CpuTable extends ProcessorTable {
 
   CpuTable(final BaseManager manager, final ParallelPanel parent, final AxisID axisID) {
     super(manager, parent, axisID, false);
-    usersColumn = CpuAdoc.INSTANCE.isUsersColumn(manager, axisID, manager
-        .getPropertyUserDir());
+    usersColumn = CpuAdoc.INSTANCE.isUsersColumn(manager, axisID,
+        manager.getPropertyUserDir());
   }
 
   String getStorePrepend() {
@@ -88,14 +88,15 @@ class CpuTable extends ProcessorTable {
   }
 
   ProcessorTableRow createProcessorTableRow(final ProcessorTable processorTable,
-      final Node node, final EtomoNumber number) {
-    return ProcessorTableRow.getComputerInstance(processorTable, node, number.getInt());
+      final Node node, final EtomoNumber number, final int numRowsInTable) {
+    return ProcessorTableRow.getComputerInstance(processorTable, node, number.getInt(),
+        numRowsInTable);
   }
 
   String getHeader1ComputerText() {
     return "Computer";
   }
-  
+
   String getNoCpusSelectedErrorMessage() {
     return "At least one computer must be selected.";
   }

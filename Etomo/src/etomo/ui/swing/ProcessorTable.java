@@ -94,7 +94,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   abstract Node getNode(int index);
 
   abstract ProcessorTableRow createProcessorTableRow(ProcessorTable processorTable,
-      Node node, EtomoNumber number);
+      Node node, EtomoNumber number, int numRowsInTable);
 
   abstract String getHeader1ComputerText();
 
@@ -216,7 +216,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
         // set osColumn to true if an os attribute is returned
         osColumn = !node.isOsEmpty();
         // create the row
-        ProcessorTableRow row = createProcessorTableRow(this, node, number);
+        ProcessorTableRow row = createProcessorTableRow(this, node, number, size);
         initRow(row);
         // add the row to the rows HashedArray
         rowList.add(row);

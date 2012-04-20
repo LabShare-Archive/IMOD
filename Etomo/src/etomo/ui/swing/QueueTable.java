@@ -69,8 +69,8 @@ final class QueueTable extends ProcessorTable {
       return;
     }
     String[] loadUnitsArray = null;
-    loadUnitsArray = CpuAdoc.INSTANCE.getLoadUnits(manager, axisID, manager
-        .getPropertyUserDir());
+    loadUnitsArray = CpuAdoc.INSTANCE.getLoadUnits(manager, axisID,
+        manager.getPropertyUserDir());
     if (loadUnitsArray.length == 0) {
       header1LoadArray = new HeaderCell[1];
       header1LoadArray[0] = new HeaderCell("Load");
@@ -104,16 +104,23 @@ final class QueueTable extends ProcessorTable {
   }
 
   ProcessorTableRow createProcessorTableRow(final ProcessorTable processorTable,
-      final Node node, final EtomoNumber number) {
-    return ProcessorTableRow.getQueueInstance(processorTable, node, number.getInt(),
-        buttonGroup, Math.max(1, CpuAdoc.INSTANCE.getLoadUnits(manager, axisID, manager
-            .getPropertyUserDir()).length));
+      final Node node, final EtomoNumber number, final int numRowsInTable) {
+    return ProcessorTableRow
+        .getQueueInstance(
+            processorTable,
+            node,
+            number.getInt(),
+            buttonGroup,
+            Math.max(
+                1,
+                CpuAdoc.INSTANCE.getLoadUnits(manager, axisID,
+                    manager.getPropertyUserDir()).length), numRowsInTable);
   }
 
   String getHeader1ComputerText() {
     return "Queue";
   }
-  
+
   String getNoCpusSelectedErrorMessage() {
     return "A queue must be selected.";
   }
@@ -129,8 +136,8 @@ final class QueueTable extends ProcessorTable {
 
   void addHeader1Users(final JPanel tablePanel, final GridBagLayout layout,
       final GridBagConstraints constraints) {
-    //The users column contains a load value, so it can't be used when
-    //displaying queues.
+    // The users column contains a load value, so it can't be used when
+    // displaying queues.
   }
 
   void addHeader2Load(final JPanel tablePanel, final GridBagLayout layout,
