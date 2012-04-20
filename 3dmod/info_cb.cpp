@@ -76,6 +76,7 @@ static int sFloatOn = 0;
 static int sDoingFloat = 0;
 static int sFloatSubsets = 0;
 static int sLastSubsets = 0;
+static int sLastReverse = -1;
 
 static int sDumpCache = 0;
 static int sStartDump = 0;
@@ -574,7 +575,7 @@ int imod_info_bwfloat(ImodView *vi, int section, int time)
   int i, newwhite, newblack, err1;
   int needsize, iref, isec;
   int ixStart, iyStart, nxUse, nyUse, jxStart, jyStart, mxUse, myUse;
-  float sloperatio, tmp_black, tmp_white, refMean, refSD;
+  float sloperatio, tmp_black, tmp_white, refMean, refSD, newdiff;
   unsigned char **image;
   int retval = 0;
   int sampleType = vi->ushortStore ? 2 : 0;
@@ -689,11 +690,24 @@ int imod_info_bwfloat(ImodView *vi, int section, int time)
                         refSD, sSecData[isec].mean, sSecData[isec].sd);
 
       /* Compute new black and white sliders; keep floating values */
+      // If contrast reversal is unknown or the same, use basic formula for matching
+      // map directions
       sloperatio = sSecData[isec].sd / refSD;
+      newdiff = sloperatio * (sRefWhite - sRefBlack);
+      if (sLastReverse < 0 || sLastReverse == vi->cramp->reverse) {
+        tmp_black = sSecData[isec].mean - (refMean - sRefBlack) * sloperatio;
+        tmp_white = tmp_black + newdiff;
+      } else if (sLastReverse) {
 
-      tmp_black = (sSecData[isec].mean - (refMean - sRefBlack) * sloperatio);
-      tmp_white = (tmp_black + sloperatio * (sRefWhite - sRefBlack));
-		    
+        // If last time was reversed and this is not, base change on different mappings
+        tmp_black = sSecData[isec].mean - (sRefWhite - refMean) * sloperatio;
+        tmp_white = tmp_black + newdiff;
+      } else {
+
+        // Or if this is reversed and last was not...
+        tmp_white = sSecData[isec].mean + (refMean - sRefBlack) * sloperatio;
+        tmp_black = tmp_white - newdiff;
+      }
       if (imodDebug('i'))
         imodPrintStderr("ref_bw %.2f %.2f  tmp_bw %.2f %.2f\n", sRefBlack,
                         sRefWhite, tmp_black, tmp_white);
@@ -709,7 +723,7 @@ int imod_info_bwfloat(ImodView *vi, int section, int time)
       if (newwhite < newblack + 2) {
         newblack = B3DMAX(0, newblack - 1);
         newwhite = B3DMIN(newwhite + 1, rangeMax);
-    }
+      }
       if (imodDebug('i')) {
         int meanmap = (int)(rangeMax * (sSecData[isec].mean - newblack) / 
                             B3DMAX(1, newwhite - newblack));
@@ -730,6 +744,7 @@ int imod_info_bwfloat(ImodView *vi, int section, int time)
       sRefBlack = tmp_black;
       sRefWhite = tmp_white;
       sLastSubsets = sFloatSubsets;
+      sLastReverse = vi->cramp->reverse;
     }
   }
 
@@ -795,10 +810,17 @@ void imod_info_float_clear(int section, int time)
   return;
 }
 
-// Change the contrast to meet the target mean and SD
+/*
+ * Change the contrast to meet the target mean and SD
+ * NOTE: When contrast is normal, the mapping is
+ * displayValue = (byteValue - black) * 255 / (white - black)
+ * When contrast is reversed this changes to
+ * displayValue = (white - byteValue) * 255 / (white - black)
+ * Equations for changes here and in floating derive from these relations
+ */
 void imodInfoAutoContrast(int targetMean, int targetSD)
 {
-  float mean, sd, scaleLo, scaleHi;
+  float mean, sd, scaleLo, scaleHi, temp;
   int black, white, floatSave, loop, nloop, low, high;
   B3dCIImage *image = NULL;
   float sample, wbdiff;
@@ -840,10 +862,17 @@ void imodInfoAutoContrast(int targetMean, int targetSD)
 
       wbdiff = (vi->white - vi->black) * sd / targetSD;
       if (wbdiff) {
-        black = B3DNINT((wbdiff / 255.) * 
-                        (((255. * vi->black) / (vi->white - vi->black) 
-                          + mean) * targetSD / sd - targetMean));
-        white = black + B3DNINT(wbdiff);
+        if (vi->cramp->reverse) {
+          temp = vi->white - ((vi->white - vi->black) * mean -
+                              wbdiff * targetMean) / 255.;
+          white = B3DNINT(temp);
+          black = B3DNINT(temp - wbdiff);
+        } else {
+          temp = vi->black + ((vi->white - vi->black) * mean -
+                              wbdiff * targetMean) / 255.;
+          black = B3DNINT(temp);
+          white = B3DNINT(temp + wbdiff);
+        }
       } else {
         black = white = B3DNINT(mean);
       }
@@ -852,8 +881,13 @@ void imodInfoAutoContrast(int targetMean, int targetSD)
       // Otherwise get the mean of the current image
       if (imodInfoCurrentMeanSD(mean, sd, scaleLo, scaleHi))
         return;
-      black = B3DNINT(mean - sd * targetMean / targetSD);
-      white = B3DNINT(mean + sd * (255 - targetMean) / targetSD);
+      if (vi->cramp->reverse) {;
+        white = B3DNINT(mean + sd * targetMean / targetSD);
+        black = B3DNINT(mean - sd * (255 - targetMean) / targetSD);
+      } else {
+        black = B3DNINT(mean - sd * targetMean / targetSD);
+        white = B3DNINT(mean + sd * (255 - targetMean) / targetSD);
+      }
       if (vi->ushortStore) {
 
         // Just change range values without setting them because setbw will take care
