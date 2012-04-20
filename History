@@ -1,7 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-4/18/12: Prevented eTomo from unchecking a disabled computer checkbox in the
-Parallel Processing table when a computer is dropped (In 4.5).(Bug# 1613)
+4/20/12: Prevented eTomo from unchecking a disabled computer checkbox in the
+Parallel Processing table when there is only one row (In 4.5).(Bug# 1613)
 
 4/15/12: Fixed origin change when resizing with clip (In 4.5).
 
