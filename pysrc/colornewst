@@ -13,10 +13,51 @@ infile = ''
 outfile = ''
 outtiff = ''
 
-# Convert sequence to comma-separated ranges thanks to the wonders of stackoverflow.com:
-def rangeListEntry(L):
-   G=(list(x) for _,x in itertools.groupby(L, lambda x,c=itertools.count(): next(c)-x))
-   return ",".join("-".join(map(str,(g[0],g[-1])[:len(g)])) for g in G)
+# Convert sequence to comma-separated ranges that can run in either direction
+def rangeListEntry(numList):
+   inRange = 0
+   outStr = ''
+   endInd = 0
+   startInd = 0
+
+   for curInd in range(1, len(numList)):
+
+      if inRange:
+
+         # If already in a series, and this one continue the series, update end index
+         if numList[curInd] - numList[endInd] == inRange:
+            endInd = curInd
+         else:
+
+            # Otherwise the series is broken, output it and reset to not in series
+            outStr = addRange(numList, startInd, endInd, inRange, outStr)
+            inRange = 0
+            startInd = curInd
+      else:
+
+         # If not in series and this differs by 1 from last, start a series
+         diff = numList[curInd] - numList[startInd]
+         if diff == 1 or diff == -1:
+            inRange = diff
+            endInd = curInd
+         else:
+
+            # Otherwise output the single number and continue
+            outStr = addRange(numList, startInd, endInd, inRange, outStr)
+            startInd = curInd
+
+   # Output whatever is left at the end
+   outStr = addRange(numList, startInd, endInd, inRange, outStr)
+   return outStr
+
+def addRange(numList, startInd, endInd, inRange, outStr):
+   if outStr:
+      outStr += ','
+   if inRange:
+      outStr += fmtstr('{}-{}', numList[startInd], numList[endInd])
+   else:
+      outStr += str(numList[startInd])
+   return outStr
 
 
 # Determine if an entry matches either form of a newstack option
