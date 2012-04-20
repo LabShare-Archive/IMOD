@@ -108,6 +108,10 @@ final class RadioButtonCell extends InputCell implements ToggleCell {
 
   private String unformattedLabel = "";
 
+  public boolean isEnabled() {
+    return radioButton.isEnabled();
+  }
+
   public boolean isSelected() {
     return radioButton.isSelected();
   }

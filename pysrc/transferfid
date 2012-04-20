@@ -36,7 +36,7 @@ def cleanup():
    if leavetmp:
       prnstr('Temporary files left in ' + tmpdir + ' as *' + pid)
    else:
-      cleanlist = glob.glob(tmproot + '*' + pid)
+      cleanlist = glob.glob(tmproot + '*' + pid + '*')
       cleanupFiles(cleanlist)
          
 

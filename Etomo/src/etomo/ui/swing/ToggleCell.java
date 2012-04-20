@@ -50,6 +50,8 @@ interface ToggleCell {
   public void setWarning(boolean warning);
 
   public void addChangeListener(ChangeListener listener);
-  
+
   public void setEnabled(boolean enabled);
+
+  public boolean isEnabled();
 }

@@ -51,7 +51,7 @@ final class GpuTable extends CpuTable {
   String getHeader1ComputerText() {
     return "GPU";
   }
-  
+
   String getNoCpusSelectedErrorMessage() {
     return "At least one GPU must be selected.";
   }
@@ -68,8 +68,8 @@ final class GpuTable extends CpuTable {
   }
 
   ProcessorTableRow createProcessorTableRow(final ProcessorTable processorTable,
-      final Node node, final EtomoNumber number) {
-    return ProcessorTableRow.getComputerInstance(processorTable, node, 1);
+      final Node node, final EtomoNumber number, final int numRowsInTable) {
+    return ProcessorTableRow.getComputerInstance(processorTable, node, 1, numRowsInTable);
   }
 
   void initRow(ProcessorTableRow row) {

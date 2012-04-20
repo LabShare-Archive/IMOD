@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/20/12: Prevented eTomo from unchecking a disabled computer checkbox in the
+Parallel Processing table when there is only one row (In 4.5).(Bug# 1613)
+
+4/17/12: Added Colornewst to process RGB color files with Newstack.
+
 4/17/12: In eTomo - Tomogram Generation, substituted tomogram height and Y
 shift for starting, ending, and increment slice.(Bug# 1468)
 
