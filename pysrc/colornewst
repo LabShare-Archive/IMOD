@@ -232,9 +232,11 @@ try:
                    ' to process color data with this program')
 
    # Make up the section list and use lines list (someday newstack may take #'d from 1)
+   # Need to use a list comprehension to get a real list out, otherwise the
+   # slicing below fails for python 3.1
    onebase = 0
    if not seclist:
-      seclist = range(onebase, nz + onebase)
+      seclist = [i for i in range(onebase, nz + onebase)]
    if not uselist:
       uselist = seclist
    numSec = len(seclist)
