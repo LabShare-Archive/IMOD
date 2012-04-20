@@ -52,6 +52,7 @@ final class ProcessorTableRow implements Storable {
   private final FieldCell cellCPUType = FieldCell.getIneditableInstance();
 
   private final boolean displayQueues;
+  private final int numRowsInTable;
   /**
    * A computer or queue.
    */
@@ -76,9 +77,11 @@ final class ProcessorTableRow implements Storable {
   private boolean displayed = false;
   private boolean loadWarning = true;
 
-  private ProcessorTableRow(ProcessorTable table, Node node, int numCpus,
-      boolean displayQueues, ButtonGroup queueButtonGroup, int queueLoadArraySize) {
+  private ProcessorTableRow(final ProcessorTable table, final Node node,
+      final int numCpus, final boolean displayQueues, final ButtonGroup queueButtonGroup,
+      final int queueLoadArraySize, final int numRowsInTable) {
     this.table = table;
+    this.numRowsInTable = numRowsInTable;
     computerName = node.getName();
     cpuType = node.getType();
     this.numCpus = numCpus;
@@ -99,18 +102,19 @@ final class ProcessorTableRow implements Storable {
     }
   }
 
-  static ProcessorTableRow getComputerInstance(ProcessorTable table, Node node,
-      int numCpus) {
+  static ProcessorTableRow getComputerInstance(final ProcessorTable table,
+      final Node node, final int numCpus, final int numRowsInTable) {
     ProcessorTableRow instance = new ProcessorTableRow(table, node, numCpus, false, null,
-        0);
+        0, numRowsInTable);
     instance.initRow();
     return instance;
   }
 
-  static ProcessorTableRow getQueueInstance(ProcessorTable table, Node node, int numCpus,
-      ButtonGroup buttonGroup, int loadArraySize) {
+  static ProcessorTableRow getQueueInstance(final ProcessorTable table, final Node node,
+      final int numCpus, final ButtonGroup buttonGroup, final int loadArraySize,
+      final int numRowsInTable) {
     ProcessorTableRow instance = new ProcessorTableRow(table, node, numCpus, true,
-        buttonGroup, loadArraySize);
+        buttonGroup, loadArraySize, numRowsInTable);
     instance.initRow();
     return instance;
   }
@@ -319,16 +323,17 @@ final class ProcessorTableRow implements Storable {
   }
 
   final void msgDropped(String reason) {
-    //When dropping a computer, don't unselect it if it is disabled.
-    if (cellComputer.isEnabled()) {
-      setSelected(false);
-    }
+    setSelected(false);
     cellFailureReason.setValue(reason);
     cellFailureReason
         .setToolTipText("This computer was dropped from the current distributed process.");
   }
 
   public void setSelected(boolean selected) {
+    // Do not allow the row to be unselected if it is disabled and the only row.
+    if (!selected && numRowsInTable == 1 && !cellComputer.isEnabled()) {
+      return;
+    }
     cellComputer.setSelected(selected);
     updateSelected(selected);
   }
