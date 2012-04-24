@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-4/23/12: In eTomo, modified output to newst*.com to work with colornewst.
+4/24/12: In eTomo, modified output to newst*.com to work with colornewst.
 (Bug# 1612)
 
 4/20/12: In eTomo - Join, fixed the print actions functionality, which was not
