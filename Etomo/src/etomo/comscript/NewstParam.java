@@ -266,6 +266,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private final BaseManager manager;
 
   private boolean validate = false;
+  private boolean useColorNewst = false;
 
   public NewstParam(final BaseManager manager, final AxisID axisID) {
     this.manager = manager;
@@ -549,12 +550,12 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
       cmdLineArgs.add("-taper");
       cmdLineArgs.add(String.valueOf(taper.toString()));
     }
-    //Add input file(s) and output file last and without a parameter tag.
+    // Add input file(s) and output file last and without a parameter tag.
     for (Iterator i = inputFile.iterator(); i.hasNext();) {
-      //cmdLineArgs.add("-input");
+      // cmdLineArgs.add("-input");
       cmdLineArgs.add((String) i.next());
     }
-    //cmdLineArgs.add("-output");
+    // cmdLineArgs.add("-output");
     cmdLineArgs.add(outputFile);
     int nArgs = cmdLineArgs.size();
     scriptCommand.setCommandLineArgs((String[]) cmdLineArgs.toArray(new String[nArgs]));
@@ -562,6 +563,9 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     // If the command is currently newst change it to newstack
     if (scriptCommand.getCommand().equals("newst")) {
       scriptCommand.setCommand("newstack");
+    }
+    if (useColorNewst) {
+      scriptCommand.setCommand("colornewst");
     }
   }
 
