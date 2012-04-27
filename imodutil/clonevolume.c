@@ -81,7 +81,7 @@ int main( int argc, char *argv[])
   Ipoint inCenter;
 
   int numOptions = 9;
-  char *options[] = {
+  const char *options[] = {
     "at:AtPoints:FN:", "x:XRange:IP:", "y:YRange:IP:", "z:ZRange:IP:",
     "input:InputFile:FN:", "output:OutputFile:FN:",  "into:IntoFile:FN:",
     "contours:ContourNumbers:LI:", "alpha:AlphaTransparency:F:"};
