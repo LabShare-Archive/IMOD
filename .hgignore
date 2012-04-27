@@ -235,6 +235,7 @@ imodutil/imod2vrml
 imodutil/imod2vrml2
 imodutil/imodauto
 imodutil/imodcurvature
+imodutil/imod-dist
 imodutil/imodexplode
 imodutil/imodextract
 imodutil/imodfillin

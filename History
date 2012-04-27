@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/27/12: Added imod-dist, a program by Rick Gaudette for reporting distances
+between points in a model and a reference location.
+
 4/24/12: In eTomo, modified output to newst*.com to work with colornewst.
 (Bug# 1612)
 
@@ -17,7 +20,6 @@ Parallel Processing table when there is only one row (In 4.5).(Bug# 1613)
 
 4/17/12: In eTomo - Tomogram Generation, substituted tomogram height and Y
 shift for starting, ending, and increment slice.(Bug# 1468)
-
 
 4/15/12: Made clip splitrgb able to extract a subset in Z, and joinrgb able to
 append to an existing color file, so that a file can be processed in chunks.
