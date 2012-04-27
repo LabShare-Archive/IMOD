@@ -308,17 +308,18 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
 
   private final StringParameter inputFile = new StringParameter("InputProjections");
   private final StringParameter outputFile = new StringParameter("OutputFile");
-  //tempFullImage: utility variable that is not kept up to date contains fullImageX and fullImageY
+  // tempFullImage: utility variable that is not kept up to date contains fullImageX and
+  // fullImageY
   StringParameter tempFullImage = new StringParameter("FULLIMAGE");
   private int fullImageX = Integer.MIN_VALUE;
   private int fullImageY = Integer.MIN_VALUE;
   private final StringParameter localAlignFile = new StringParameter("LOCALFILE");
-  //TODO localScale not used and doesn't go into the .com file - what is it for?
+  // TODO localScale not used and doesn't go into the .com file - what is it for?
   private float localScale = Float.NaN;
   private final ScriptParameter logOffset = new ScriptParameter(EtomoNumber.Type.FLOAT,
       LOG_KEY);
   private final ScriptParameter mode = new ScriptParameter("MODE");
-  //tempOffset is not kept up to date
+  // tempOffset is not kept up to date
   private final StringParameter tempOffset = new StringParameter("OFFSET");
   private final EtomoNumber tiltAngleOffset = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private float tiltAxisOffset = Float.NaN;
@@ -334,9 +335,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   private float xShift = Float.NaN;
   private final EtomoNumber zShift = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private final StringParameter tempSlice = new StringParameter("SLICE");
-  private int idxSliceStart = Integer.MIN_VALUE;
-  private int idxSliceStop = Integer.MIN_VALUE;
-  private int incrSlice = Integer.MIN_VALUE;
+  private long idxSliceStart = Long.MIN_VALUE;
+  private long idxSliceStop = Long.MIN_VALUE;
   private final StringParameter tempSubsetStart = new StringParameter(SUBSETSTART_KEY);
   private int idxXSubsetStart = Integer.MIN_VALUE;
   private int idxYSubsetStart = Integer.MIN_VALUE;
@@ -367,7 +367,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   private final ScriptParameter useGpu = new ScriptParameter("UseGPU");
   private final StringParameter actionIfGPUFails = new StringParameter("ActionIfGPUFails");
   private final EtomoBoolean2 done = new EtomoBoolean2("DONE");
-  
+
   private final String datasetName;
   private final ApplicationManager manager;
   private final AxisID axisID;
@@ -377,7 +377,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     this.manager = manager;
     this.datasetName = datasetName;
     this.axisID = axisID;
-    //do not default imageBinned
+    // do not default imageBinned
     imageBinned.setFloor(1);
     inputFile.set("");
     outputFile.set("");
@@ -471,11 +471,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     commandMode = input;
   }
 
-  /*
-   public void setCommandMode(String input) {
-   commandMode = Mode.getInstance(input);
-   }
-   */
+  /* public void setCommandMode(String input) { commandMode = Mode.getInstance(input); } */
   public boolean hasLogOffset() {
     return !logOffset.isNull();
   }
@@ -517,7 +513,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       return null;
     }
     if (commandMode == Mode.WHOLE) {
-      //Handled by NewstParam and BlendmontParam
+      // Handled by NewstParam and BlendmontParam
       return null;
     }
     return null;
@@ -647,32 +643,19 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   /**
    * @return
    */
-  public int getIncrSlice() {
-    return incrSlice;
-  }
-
-  public boolean hasSliceIncr() {
-    if (incrSlice == Integer.MIN_VALUE)
-      return false;
-    return true;
-  }
-
-  /**
-   * @return
-   */
-  public int getIdxSliceStart() {
+  public long getIdxSliceStart() {
     return idxSliceStart;
   }
 
   /**
    * @return
    */
-  public int getIdxSliceStop() {
+  public long getIdxSliceStop() {
     return idxSliceStop;
   }
 
   public boolean hasSlice() {
-    if (idxSliceStop == Integer.MIN_VALUE)
+    if (idxSliceStop == Long.MIN_VALUE)
       return false;
     return true;
   }
@@ -806,7 +789,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   public void parseComScriptCommand(final ComScriptCommand scriptCommand)
       throws BadComScriptException, InvalidParameterException {
     if (!scriptCommand.isKeywordValuePairs()) {
-      //tilt.com doesn't contain -StandardInput - use old parse method
+      // tilt.com doesn't contain -StandardInput - use old parse method
       backwardCompatibleParseComScriptCommand(scriptCommand);
     }
     else {
@@ -857,11 +840,9 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       tempSlice.parse(scriptCommand);
       if (!tempSlice.isEmpty()) {
         String[] params = tempSlice.toString().split("\\s+", 3);
-        idxSliceStart = Integer.parseInt(params[0]);
-        idxSliceStop = Integer.parseInt(params[1]);
-        if (params.length > 2) {
-          incrSlice = Integer.parseInt(params[2]);
-        }
+        idxSliceStart = Long.parseLong(params[0]);
+        idxSliceStop = Long.parseLong(params[1]);
+        // increment is being ignored
       }
       tempSubsetStart.parse(scriptCommand);
       if (!tempSubsetStart.isEmpty()) {
@@ -896,7 +877,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    */
   public void backwardCompatibleParseComScriptCommand(final ComScriptCommand scriptCommand)
       throws BadComScriptException {
-    //  get the input arguments from the command
+    // get the input arguments from the command
     ComScriptInputArg[] inputArgs;
     try {
       inputArgs = getInputArguments(scriptCommand);
@@ -905,7 +886,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       throw (except);
     }
 
-    //  Get the input and output file names from the input arguments
+    // Get the input and output file names from the input arguments
     int nInputArgs = inputArgs.length;
     int argIndex = 0;
     inputFile.set(inputArgs[argIndex++].getArgument());
@@ -974,11 +955,9 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       }
       if (tokens[0].equalsIgnoreCase("SLICE")) {
         String[] params = tokens[1].split("\\s+", 3);
-        idxSliceStart = Integer.parseInt(params[0]);
-        idxSliceStop = Integer.parseInt(params[1]);
-        if (params.length > 2) {
-          incrSlice = Integer.parseInt(params[2]);
-        }
+        idxSliceStart = Long.parseLong(params[0]);
+        idxSliceStop = Long.parseLong(params[1]);
+        // Increment is being ignored
       }
       if (tokens[0].equalsIgnoreCase("SUBSETSTART")) {
         String[] params = tokens[1].split("\\s+", 2);
@@ -1021,9 +1000,9 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    */
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
       throws BadComScriptException {
-    //  Switch to keyword/value pairs
+    // Switch to keyword/value pairs
     scriptCommand.useKeywordValue();
-    //get rid of the DONE parameter from the old tilt.com
+    // get rid of the DONE parameter from the old tilt.com
     done.updateComScript(scriptCommand);
     inputFile.updateComScript(scriptCommand);
     outputFile.updateComScript(scriptCommand);
@@ -1089,11 +1068,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       tempShift.reset();
     }
     tempShift.updateComScript(scriptCommand);
-    if (idxSliceStart > Integer.MIN_VALUE) {
+    if (idxSliceStart > Long.MIN_VALUE) {
       String arg = String.valueOf(idxSliceStart) + " " + String.valueOf(idxSliceStop);
-      if (incrSlice > Integer.MIN_VALUE) {
-        arg += " " + String.valueOf(incrSlice);
-      }
       tempSlice.set(arg);
     }
     else {
@@ -1121,15 +1097,15 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       zFactorFileName.reset();
     }
     zFactorFileName.updateComScript(scriptCommand);
-    //A fiducialess align means that tilt should not use the xtilt file.
+    // A fiducialess align means that tilt should not use the xtilt file.
     if (!fiducialess.is()) {
-      //backwards compatibility: if xTiltFile is empty, set the default xtilt file name
+      // backwards compatibility: if xTiltFile is empty, set the default xtilt file name
       if (xTiltFile.isEmpty()) {
         xTiltFile.set(DatasetFiles.getXTiltFileName(manager, axisID));
       }
-      //use xtilt file if the file exists
-      //This is backwards compatibility issue since the only good reason for the
-      //file not to exist is that the state comes from an earlier version.
+      // use xtilt file if the file exists
+      // This is backwards compatibility issue since the only good reason for the
+      // file not to exist is that the state comes from an earlier version.
       if (!(new File(manager.getPropertyUserDir(), xTiltFile.toString()).exists())) {
         xTiltFile.reset();
       }
@@ -1214,14 +1190,14 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
           inputFile.toString());
       try {
         if (!header.read(manager)) {
-          //ok if tilt is being updated before .ali exists
+          // ok if tilt is being updated before .ali exists
           return;
         }
         int goodframeX;
         int goodframeY;
         if (etomo.comscript.Utilities.is90DegreeImageRotation(manager.getConstMetaData()
             .getImageRotation(axisID).getDouble())) {
-          //transpose x and y
+          // transpose x and y
           goodframeX = goodframe.getOutput(1).getInt();
           goodframeY = goodframe.getOutput(0).getInt();
         }
@@ -1229,15 +1205,15 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
           goodframeX = goodframe.getOutput(0).getInt();
           goodframeY = goodframe.getOutput(1).getInt();
         }
-        //Multiply header output by binning to work with the goodframe output,
-        //which is unbinned.
+        // Multiply header output by binning to work with the goodframe output,
+        // which is unbinned.
         idxXSubsetStart = (int) ((goodframeX - header.getNColumns()
             * setImageBinned().getLong()) / 2);
         idxYSubsetStart = (int) ((goodframeY - header.getNRows()
             * setImageBinned().getLong()) / 2);
       }
       catch (IOException e) {
-        //ok if tilt is being updated before .ali exists
+        // ok if tilt is being updated before .ali exists
       }
     }
   }
@@ -1362,25 +1338,14 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   /**
    * @param i
    */
-  public void setIncrSlice(final int i) {
-    incrSlice = i;
-  }
-
-  public void resetIncrSlice() {
-    incrSlice = Integer.MIN_VALUE;
-  }
-
-  /**
-   * @param i
-   */
-  public void setIdxSliceStart(final int i) {
+  public void setIdxSliceStart(final long i) {
     idxSliceStart = i;
   }
 
   /**
    * @param i
    */
-  public void setIdxSliceStop(final int i) {
+  public void setIdxSliceStop(final long i) {
     idxSliceStop = i;
   }
 
@@ -1393,9 +1358,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   }
 
   public void resetIdxSlice() {
-    idxSliceStart = Integer.MIN_VALUE;
-    idxSliceStop = Integer.MIN_VALUE;
-    incrSlice = Integer.MIN_VALUE;
+    idxSliceStart = Long.MIN_VALUE;
+    idxSliceStop = Long.MIN_VALUE;
   }
 
   public void setInputFile(final String file) {
@@ -1592,7 +1556,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   public void setZFactorFileName(final String input) {
     zFactorFileName.set(input);
   }
-  
+
   public boolean hasZFactorFileName() {
     if (zFactorFileName.equals(""))
       return false;
@@ -1630,12 +1594,12 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   private ComScriptInputArg[] getInputArguments(final ComScriptCommand scriptCommand)
       throws BadComScriptException {
 
-    //  Check to be sure that it is a tiltxcorr xommand
+    // Check to be sure that it is a tiltxcorr xommand
     if (!scriptCommand.getCommand().equals("tilt")) {
       throw (new BadComScriptException("Not a tiltalign command"));
     }
 
-    //  Get the input arguments parameters to preserve the comments
+    // Get the input arguments parameters to preserve the comments
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
     if (inputArgs.length < 3) {
       throw (new BadComScriptException(
@@ -1658,8 +1622,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       return false;
     }
     imageBinned.set(currentBinning);
-    //Currently this function only multiplies by binning, so there is nothing to
-    //do if binning is 1.
+    // Currently this function only multiplies by binning, so there is nothing to
+    // do if binning is 1.
     if (correctionBinning != 1) {
       if (fullImageX != Integer.MIN_VALUE && fullImageX != 0) {
         fullImageX *= correctionBinning;
@@ -1680,7 +1644,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       if (!Float.isNaN(xShift) && xShift != 0) {
         xShift *= correctionBinning;
       }
-      if (idxSliceStart != Integer.MIN_VALUE && idxSliceStart != 0) {
+      if (idxSliceStart != Long.MIN_VALUE && idxSliceStart != 0) {
         idxSliceStart *= correctionBinning;
       }
       if (idxSliceStop != Integer.MIN_VALUE && idxSliceStop != 0) {
@@ -1727,19 +1691,9 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       this.string = string;
     }
 
-    /*
-     private static Mode getInstance(String input) {
-     if (SAMPLE.string.equals(input)) {
-     return SAMPLE;
-     }
-     if (WHOLE.string.equals(input)) {
-     return WHOLE;
-     }
-     if (TILT.string.equals(input)) {
-     return TILT;
-     }
-     return DEFAULT;
-     }*/
+    /* private static Mode getInstance(String input) { if (SAMPLE.string.equals(input)) {
+     * return SAMPLE; } if (WHOLE.string.equals(input)) { return WHOLE; } if
+     * (TILT.string.equals(input)) { return TILT; } return DEFAULT; } */
 
     public String toString() {
       return string;

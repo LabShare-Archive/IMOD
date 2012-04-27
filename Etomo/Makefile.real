@@ -42,7 +42,7 @@ $(JAR_FILE): $(SE)/*.java $(SE)/comscript/*.java $(SE)/ui/swing/*.java \
              $(SE)/storage/autodoc/*.java $(SE)/type/*.java \
              $(SE)/util/*.java src/images/*.* 
 	mkdir -p $(CLASSPATH)
-	$(CP) -rpf $(SOURCEPATH)/images $(CLASSPATH)
+	$(CP) -rf $(SOURCEPATH)/images $(CLASSPATH)
 	rm -rf  $(CLASSPATH)/images/CVS
 	$(JAVAC)  $(SOURCEPATH)/etomo/EtomoDirector.java
 	mkdir -p jar_dir
@@ -62,19 +62,19 @@ uitestjarfile: cpimages
 
 cpimages:
 	mkdir -p $(CLASSPATH)
-	$(CP) -rpf $(SOURCEPATH)/images $(CLASSPATH)
+	$(CP) -rf $(SOURCEPATH)/images $(CLASSPATH)
 	rm -rf  $(CLASSPATH)/images/CVS
 
 compile: 
 	$(JAVAC)  $(SOURCEPATH)/etomo/EtomoDirector.java
 
 install: $(JAR_FILE)
-	$(CP) -pf $(JAR_FILE) $(INSTBINDIR)
+	$(CP) -f $(JAR_FILE) $(INSTBINDIR)
 
 uitestinstall: uitestjarfile
-	$(CP) -pf $(UITEST_JAR_FILE) $(INSTBINDIR)
+	$(CP) -f $(UITEST_JAR_FILE) $(INSTBINDIR)
 	chmod 755 scripts/uitest
-	$(CP) -pf scripts/uitest $(INSTBINDIR)
+	$(CP) -f scripts/uitest $(INSTBINDIR)
 
 tests: testjarfile
 	java -classpath "$(TESTPATH)$(CLASS_SEPARATOR)$(TEST_JAR_FILE)" -Djava.awt.headless=true junit.textui.TestRunner etomo.JUnitTests
