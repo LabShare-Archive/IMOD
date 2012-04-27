@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/20/12: Fixed 3dmod's handling of autocontrasting with contrast reversed so
+that it produces a mean display value at the target mean, and made it adjust
+contrast when float is on and contrast is reversed (In 4.5).
+
 4/20/12: Prevented eTomo from unchecking a disabled computer checkbox in the
 Parallel Processing table when there is only one row (In 4.5).(Bug# 1613)
 
