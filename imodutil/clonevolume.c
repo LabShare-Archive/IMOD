@@ -375,6 +375,8 @@ Ipoint *getCenter(bndBox3D *bbox, Ipoint *center)
   center->x = 0.5 * (bbox->xMin + bbox->xMax);
   center->y = 0.5 * (bbox->yMin + bbox->yMax);
   center->z = 0.5 * (bbox->zMin + bbox->zMax);
+
+  return center;
 }
 
 /**********************************************************************/
