@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/1/12: Fixed archiveorig not removing xray file when restoring, and fixed
+cleanup of temporary files when using subm and running combine.com.
+
 4/20/12: Fixed 3dmod's handling of autocontrasting with contrast reversed so
 that it produces a mean display value at the target mean, and made it adjust
 contrast when float is on and contrast is reversed (In 4.5).
