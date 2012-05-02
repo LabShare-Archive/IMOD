@@ -2884,6 +2884,7 @@ int ivwReadAngleFile(ImodView *vi, const char *fname)
     if (!list || ilistAppend(list, &angle)) {
       imodError(NULL, "3dmod warning: could not allocate memory for angles",
                 fname);
+      fclose(fin)
       return 2;
     }
   }
@@ -2892,6 +2893,7 @@ int ivwReadAngleFile(ImodView *vi, const char *fname)
   vi->tiltAngles = (float *)list->data;
   vi->numTiltAngles = ilistSize(list);
   free(list);
+  fclose(fin)
   return 0;
 }
 
