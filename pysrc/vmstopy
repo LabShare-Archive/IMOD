@@ -536,7 +536,7 @@ while ind < len(lines):
       prnstr("  " + indent + '  runcmd(command, input, log)', file=out)
       prnstr("  " + indent + "except ImodpyError:", file=out)
       if vmspy:
-         prnstr("  " + indent + '  cleanupFiles("' + vmspy + '")', file=out)
+         prnstr("  " + indent + '  cleanupFiles(["' + vmspy + '"])', file=out)
       if ind < len(lines) and errlines and re.search(statgoMatch, lines[ind]):
          prnstr("  " + indent + '  printErrorExit(0)', file=out)
          prnstr("  " + indent + '  errorFunc()', file=out)
@@ -545,7 +545,7 @@ while ind < len(lines):
          prnstr("  " + indent + '  printErrorExit(1)', file=out)
 
       if vmspy:
-         prnstr("  " + indent + 'cleanupFiles("' + vmspy + '")', file=out)
+         prnstr("  " + indent + 'cleanupFiles(["' + vmspy + '"])', file=out)
 
    # skip blank lines, object to anything else
    elif line:

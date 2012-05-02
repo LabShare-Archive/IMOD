@@ -213,8 +213,5 @@ while argind < lenarg:
    except KeyboardInterrupt:
       break
       
-try:
-   os.path.remove(comtmp)
-except Exception:
-   pass
+cleanupFiles([comtmp])
 sys.exit(0)
