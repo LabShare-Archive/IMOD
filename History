@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/3/12: Added model view information to ascii model format, but excluding
+object views.
+
 5/2/12: IMOD_4-5-1 released
 5/2/12: Fixed 3dmod leaving tile angle file open, which could keep align.com
 from replacing it in Windows (In 4.5).
