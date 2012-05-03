@@ -17,89 +17,55 @@ extern "C" {
 #endif
 
 int PipInitialize(int numOpts);
-int PipExitOnError(int useStdErr, char *prefix);
-void exitError(char *format, ...);
-void setExitPrefix(char *prefix);
-int PipAddOption(char *optionString);
-int PipNextArg(char *argString);
+int PipExitOnError(int useStdErr, const char *prefix);
+void exitError(const char *format, ...);
+void setExitPrefix(const char *prefix);
+int PipAddOption(const char *optionString);
+int PipNextArg(const char *argString);
 void PipNumberOfArgs(int *numOptArgs, int *numNonOptArgs);
 int PipGetNonOptionArg(int argNo, char **arg);
-int PipGetString(char *option, char **string);
-int PipGetInteger(char *option, int *val);
-int PipGetFloat(char *option, float *val);
-int PipGetBoolean(char *option, int *val);
-int PipGetTwoIntegers(char *option, int *val1, int *val2);
-int PipGetTwoFloats(char *option, float *val1, float *val2);
-int PipGetThreeIntegers(char *option, int *val1, int *val2, int *val3);
-int PipGetThreeFloats(char *option, float *val1, float *val2, float *val3);
-int PipGetIntegerArray(char *option, int *array, int *numToGet, int arraySize);
-int PipGetFloatArray(char *option, float *array, int *numToGet, int arraySize);
-int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
+int PipGetString(const char *option, char **string);
+int PipGetInteger(const char *option, int *val);
+int PipGetFloat(const char *option, float *val);
+int PipGetBoolean(const char *option, int *val);
+int PipGetTwoIntegers(const char *option, int *val1, int *val2);
+int PipGetTwoFloats(const char *option, float *val1, float *val2);
+int PipGetThreeIntegers(const char *option, int *val1, int *val2, int *val3);
+int PipGetThreeFloats(const char *option, float *val1, float *val2, float *val3);
+int PipGetIntegerArray(const char *option, int *array, int *numToGet, int arraySize);
+int PipGetFloatArray(const char *option, float *array, int *numToGet, int arraySize);
+int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
 		 int outputFiles);
 int PipGetError(char **errString);
-int PipSetError(char *errString);
-int PipNumberOfEntries(char *option, int *numEntries);
+int PipSetError(const char *errString);
+int PipNumberOfEntries(const char *option, int *numEntries);
 void PipDone(void);
-int PipParseInput(int argc, char *argv[], char *options[], int numOptions,
+int PipParseInput(int argc, char *argv[], const char *options[], int numOptions,
 		  int *numOptArgs, int *numNonOptArgs);
 int PipParseEntries(int argc, char *argv[], int *numOptArgs,
                     int *numNonOptArgs);
-int PipReadOptionFile(char *progName, int helpLevel, int localDir);
-int PipMemoryError(void *ptr, char *routine);
+int PipReadOptionFile(const char *progName, int helpLevel, int localDir);
+int PipMemoryError(void *ptr, const char *routine);
 void PipAllowCommaDefaults(int val);
 void PipSetManpageOutput(int val);
 void PipEnableEntryOutput(int val);
 void PipPrintEntries();
-int PipSetLinkedOption(char *option);
-int PipLinkedIndex(char *option, int *index);
+int PipSetLinkedOption(const char *option);
+int PipLinkedIndex(const char *option, int *index);
 void PipSetSpecialFlags(int inCase, int inDone, int inStd, int inLines, 
                         int inAbbrevs);
 int PipReadStdinIfSet(void);
-int PipStartsWith(char *fullStr, char *subStr);
-int PipGetInOutFile(char *option, int nonOptArgNo, char **filename);
-void PipReadOrParseOptions(int argc, char *argv[], char *options[], 
-                           int numOpts, char *progName, int minArgs, 
+int PipStartsWith(const char *fullStr, const char *subStr);
+int PipGetInOutFile(const char *option, int nonOptArgNo, char **filename);
+void PipReadOrParseOptions(int argc, char *argv[], const char *options[], 
+                           int numOpts, const char *progName, int minArgs, 
                            int numInFiles, int numOutFiles, int *numOptArgs,
-                           int *numNonOptArgs, void (headerFunc)(char *));
+                           int *numNonOptArgs, void (headerFunc)(const char *));
 int PipReadNextLine(FILE *pFile, char *lineStr, int strSize, char comment, 
                     int keepComments, int inLineComments, int *firstNonWhite);
-int PipGetLineOfValues(char *option, char *strPtr, void *array, int valType, 
+int PipGetLineOfValues(const char *option, const char *strPtr, void *array, int valType, 
                        int *numToGet, int arraySize);
 #ifdef __cplusplus
 }
 #endif
 #endif
-
-/*
-$Log$
-Revision 3.10  2009/12/04 20:31:33  mast
-Printing entry addition
-
-Revision 3.9  2007/08/03 16:40:04  mast
-Fixes for clean compile
-
-Revision 3.8  2007/06/22 04:58:42  mast
-Added special flag function
-
-Revision 3.7  2006/10/17 18:38:12  mast
-Changed read line function
-
-Revision 3.6  2006/10/16 16:17:48  mast
-Made some functions global
-
-Revision 3.5  2006/09/20 23:02:34  mast
-Added callback for header usage function
-
-Revision 3.4  2006/06/08 03:10:27  mast
-Added higher-level C functions
-
-Revision 3.3  2003/10/08 17:20:39  mast
-New functions for autodoc files
-
-Revision 3.2  2003/08/08 16:21:33  mast
-Add functions for getting two numbers
-
-Revision 3.1  2003/06/05 00:19:44  mast
-*** empty log message ***
-
-*/
