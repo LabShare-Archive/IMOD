@@ -5,7 +5,7 @@
 	</head>
 	<body>
 		<A NAME="TOP"></A>
-		<h2 align="center">Introduction to 3dmod, Version 4.3<br>
+		<h2 align="center">Introduction to 3dmod, Version 4.5<br>
 		</h2>
 		<h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of Cells</h3>
 		<hr>
@@ -421,7 +421,7 @@
 						</th>
 					</tr>
 					<tr>
-						<td>Left
+						<td>First
 						</td>
 						<td colspan="3" align="left">
 							Select position or drag mouse to pan image.</td>
@@ -430,8 +430,7 @@
 					</tr>
 					<tr>
 						<td>
-							Middle
-						</td>
+							Second</td>
 						<td colspan="3" align="left">Movie image forward, or stop movie.</td>
 						<td colspan="3" align="left">Add new model point or drag mouse to add several 
 							points.
@@ -439,8 +438,7 @@
 					</tr>
 					<tr>
 						<td>
-							Right
-						</td>
+							Third</td>
 						<td colspan="3" align="left">
 							Movie image backward, or stop movie.</td>
 						<td colspan="3" align="left">
@@ -451,19 +449,36 @@
 			See the <a href="man/3dmod.html#TOP">3dmod</a> manual page section on mouse 
 			controls, and the help pages for individual windows, for more details.
 		</p>
+    <p>
+			The mouse buttons are referred to as &quot;first&quot;, &quot;second&quot;, and &quot;third&quot; here and in 
+      the help pages because these functions can be assigned to different actual 
+      buttons.&nbsp; By default, they correspond to the left, middle, and right 
+      buttons, respectively.&nbsp; The mapping can be changed in the 3dmod Preferences 
+      dialog, opened by selecting Options in the Edit menu (or Preferences in the 3dmod 
+      menu on a Mac) and switching to the &quot;Mouse&quot; tab.&nbsp; The portion of this 
+      dialog in the image below shows an assignment that is similar to most other 
+      software, because drawing is done with the left button.&nbsp; New users in 
+      particular should consider switching to this mapping, although it could be 
+      problematic if you will be receiving hands-on assistance from an established 
+      user who is used to the default mapping.&nbsp; Also note that our various 
+      tutorials and videos generally assume the default assignments.</p>
+		<P>
+		<center>
+			<img src="3dmodimages/mousepanel.png" alt="Mouse preferences">
+		</center>
+		</P>
 		<p>When you first start a new model or a new object in a model, your first model 
 			point will be added to an empty contour. There are two basic ways to add model 
-			points to a contour. You can click the middle mouse button to add each 
+			points to a contour. You can click the second mouse button to add each 
 			individual point after moving to a desired position. The other way is to hold 
-			down the middle button while dragging the pointer over a desired path, which 
-			will add closely spaced points along the path.
-		</p>
+			down the second button while dragging the pointer over a desired path, which 
+			will add closely spaced points along the path. 		</p>
 		<p>Once you have finished a contour and want to start another one, you need to 
 			create a new contour. This can be done with the menu entry Edit-Contour-New, 
 			but is much more conveniently done by pressing "n", which is one of many hot 
 			keys available to assist modeling. If you are modeling with closed contours, a 
 			new contour is created automatically when you switch to a new section and press 
-			the middle mouse button.&nbsp; When you are modeling with open contours, this 
+			the second mouse button.&nbsp; When you are modeling with open contours, this 
 			does not happen automatically unless you select the option to "Start new 
 			contour at new Z" seen above in the Object Edit dialog box.&nbsp; This option 
 			is not turned on for modeling microtubules, but it is useful for drawing open 
@@ -471,18 +486,17 @@
 			along the chromosome boundary.
 		</p>
 		<p>As you model, the last point added is left as the current model point. You can 
-			change the current model point by clicking with the left mouse button near a 
+			change the current model point by clicking with the first mouse button near a 
 			point in any contour that is present on the section. This is one way to change 
-			the contour or object being modeled. If you click with the left button at a 
+			the contour or object being modeled. If you click with the first button at a 
 			position that is far from any model points, the current point and contour 
 			become undefined. If you then add a model point, it will be placed in a new 
 			contour, so this is yet another way to begin a new contour.
 		</p>
-		<p>The right mouse button is used to modify existing points by either moving or 
+		<p>The third mouse button is used to modify existing points by either moving or 
 			deleting them. Use this button alone to move one or more points; hold down the 
 			Ctrl key to delete points under the cursor while clicking or holding down the 
-			right button.
-		</p>
+			third button. 		</p>
 		<p><h3><a name="ZapToolbar"></a>The Zap Toolbar</h3>
 		<P></P>
 		<center>
@@ -532,9 +546,10 @@
 			<li>
 			The Rubberband button toggles the rubberband on and off.&nbsp; The rubberband 
 			can be used for getting coordinates, resizing, and setting contrast in selected 
-			areas.&nbsp; The rubberband is initially positioned by pressing the left mouse 
+			areas.&nbsp; The rubberband is initially positioned by pressing the first mouse 
 			button at the upper left corner of the desired area and dragging to the lower 
-			right, and then can be repositioned and resized with left and middle mouse 
+			right, and then can be repositioned and resized with
+			first and second mouse 
 			buttons. When the rubberband is on, the toolbar changes to include buttons and 
 			text boxes for setting lower and upper Z limits (as in the lower image, above).
 			<li>
@@ -596,13 +611,13 @@
 			appear in each of the view boxes.&nbsp; You can then resize the window if 
 			desired, and the program will maintain the same proportion among the view 
 			boxes.&nbsp; If you make the window smaller or zoom up, then not all of the 
-			image will appear, and you can pan with the left mouse button in any one of the 
+			image will appear, and you can pan with the first mouse button in any one of the 
 			view boxes to bring features of interest back into view.&nbsp; Panning in one 
 			plane will typically shift the image in another plane so that all three planes 
 			will always show the same feature.&nbsp; If you find that the top and side view 
 			boxes are too narrow, which can easily be the case after zooming up, then you 
 			can reapportion the window area among the three boxes by dragging the light 
-			blue square diagonally with the left mouse button.
+			blue square diagonally with the first mouse button.
 		</p>
 		<p>The toolbar of the XYZ Window has zoom controls, a low/high resolution button, 
 			and a lock button as in the Zap Window.&nbsp; There is a centering button for 
@@ -658,19 +673,19 @@
 		</p>
 		<p>When a Slicer is opened, the center of the displayed slice is initially at the 
 			current image point, but it can then be panned in the plane of the slice using 
-			the left mouse button, just as for other windows.&nbsp; You can step through 
+			the first mouse button, just as for other windows.&nbsp; You can step through 
 			slices in the direction perpendicular to the displayed slice using the PageUp 
 			and PageDown hot keys.&nbsp; The center of the window is marked by a red cross; 
 			this is the center of rotation when the slice angles are changed.
 		</p>
 		<p>There is an alternative method of changing the slice angles which can often be 
 			more convenient and intuitive than adjusting the sliders.&nbsp; When you hold 
-			down the Shift key and the middle mouse button, you can rotate the volume 
+			down the Shift key and the second mouse button, you can rotate the volume 
 			around an axis perpendicular to the direction of mouse motion.&nbsp; For 
-			example, the image on the right shows the result of dragging with the middle 
+			example, the image on the right shows the result of dragging with the second 
 			mouse button in the direction of the red arrow until some of the microtubules 
 			come into good cross-section.&nbsp; You can also rotate in the plane of the 
-			slice by holding down the Shift key and dragging with the right mouse&nbsp; 
+			slice by holding down the Shift key and dragging with the third mouse&nbsp; 
 			button.&nbsp; The Shift key also converts the numeric keypad hot keys from 
 			operating on an individual axis angle to rotating the volume around X, Y or Z 
 			axes relative to the current slice; in the latter case, these keys operate the 
@@ -725,7 +740,7 @@
 				the whole circle show up.
 			</li>
 		</ul>
-		<p>If the Ctrl key is held down, the middle and right mouse buttons will start a 
+		<p>If the Ctrl key is held down, the second and third mouse buttons will start a 
 			movie in the Slicer window, as in the Zap window.&nbsp; The program will movie 
 			through slices in a direction prependicular to the current slice, and will even 
 			adjust its direction if you change the rotation sliders while it is movieing.<br>
@@ -1109,7 +1124,7 @@
 			or at the currently displayed section (<span style="FONT-WEIGHT: bold">Current pt</span>).&nbsp; 
 			To get a series of pictures, select one of the file formats in the
 			<span style="FONT-WEIGHT: bold">Snapshot</span>
-			box and start a movie in a Zap or Slicer window with the middle or right mouse 
+			box and start a movie in a Zap or Slicer window with the second or third mouse 
 			button.&nbsp; The window will stop movieing when the set of pictures is 
 			finished.
 		</p>
@@ -1227,9 +1242,9 @@ files</span>, then press
 				<li>
 					<b>Preferences.</b>
 				You can set preferences that are stored between sessions of 3dmod, such as the 
-				assignment of the three mouse buttons and the type of file that will be 
+				font size and the type of file that will be 
 				snapshot with Shift-S. Use the Edit-Options menu entry to open the 3dmod 
-				Preferences dialog box.&nbsp; (This item is under the Apple menu on the Mac.)
+				Preferences dialog box.&nbsp; (This item is under the 3dmod menu on the Mac.)
 				<li>
 					<b>Automated modeling.</b>
 				There are two facilities for automated modeling. The Auto Contouring dialog 
