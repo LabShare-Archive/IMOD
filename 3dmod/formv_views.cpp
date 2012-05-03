@@ -171,7 +171,7 @@ void imodvViewsForm::donePressed()
 // and if there is a current item, change the item and pass label on
 void imodvViewsForm::newLabelEntered()
 {
-  QString newLabel = viewLabelEdit->text().left(VIEW_LABEL_LENGTH - 1);
+  QString newLabel = viewLabelEdit->text().left(VIEW_STRSIZE - 1);
   viewLabelEdit->setText(newLabel);
   int item = viewListBox->currentRow();
   if (item < 0)
