@@ -1494,7 +1494,7 @@ void VertBufManager::copyDefaultSphere(GLfloat *defVert, GLuint *defInd, int num
     index[indFan++] = defInd[idef++] + indVert * trueIndex;
   }
   idef = 0;
-  for (int i = 0; i < numVert; i++) {
+  for (i = 0; i < numVert; i++) {
     if (needNorm > 0) {
       loadNormal(defVert[idef], defVert[idef+1], defVert[idef+2]);
       idef += 3;
