@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/4/12: Added a filter useful for defringing images taken with phase plates to
+mtffilter.
+
 5/3/12: Added model view information to ascii model format, but excluding
 object views.
 
