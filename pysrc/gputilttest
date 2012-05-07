@@ -212,7 +212,7 @@ if sys.platform.find("win32") < 0:
 if os.getenv('IMOD_DIR') != None:
    os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
                         os.pathsep + os.environ['PATH']
-   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+   sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
    os.environ['PIP_PRINT_ENTRIES'] = '1'
 else:
    sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")

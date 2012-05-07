@@ -10,7 +10,7 @@
 import os, sys, os.path, re
 
 if os.getenv('IMOD_DIR') != None:
-   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+   sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
 else:
    sys.stdout.write("ERROR: vmstopy - IMOD_DIR is not defined!\n")
    sys.exit(1)
@@ -171,7 +171,7 @@ prnstr("  except Exception:", file=out)
 prnstr("    pass", file=out)
 prnstr("if os.getenv('IMOD_DIR') != None:", file=out)
 prnstr("  os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + os.pathsep + os.environ['PATH']", file=out)
-prnstr("  sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))", file=out)
+prnstr("  sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))", file=out)
 prnstr("else:", file=out)
 prnstr("  log.write('ERROR: IMOD_DIR is not defined\\n')", file=out)
 prnstr("  sys.exit(1)", file=out)

@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/7/12: Needed to prepend pylib to path in Python scripts because there is a 
+pip installer module in some installations (In 4.5).
+
 5/2/12: IMOD_4-5-1 released
 5/2/12: Fixed 3dmod leaving tile angle file open, which could keep align.com
 from replacing it in Windows (In 4.5).
