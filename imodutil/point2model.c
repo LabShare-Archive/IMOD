@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include <stdio.h>
@@ -48,7 +47,7 @@ int main( int argc, char *argv[])
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 point2model  */
   int numOptions = 11;
-  char *options[] = {
+  const char *options[] = {
     "input:InputFile:FN:", "output:OutputFile:FN:", "open:OpenContours:B:",
     "scat:ScatteredPoints:B:", "number:PointsPerContour:B:",
     "planar:PlanarContours:B:", "zero:NumberedFromZero:B:",

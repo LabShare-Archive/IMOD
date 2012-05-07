@@ -1125,7 +1125,8 @@ int clip2d_color(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 int clip_joinrgb(MrcHeader *h1, MrcHeader *h2,
 		 MrcHeader *hout, ClipOptions *opt)
 {
-  int i,j,k,l;
+  int i,j,k,l, zstart;
+  float xs, ys, zs;
   float val[5];
   MrcHeader hdr[3];
   Islice *s, *srgb[3];
@@ -1138,8 +1139,7 @@ int clip_joinrgb(MrcHeader *h1, MrcHeader *h2,
     opt->blue = 1.0;
 
   if (opt->infiles != 3) {
-    fprintf(stderr, "ERROR: clip joinrgb - three input files must be "
-            "specified\n");
+    printf("ERROR: clip joinrgb - three input files must be specified\n");
     return (-1);
   }
   hdr[0] = *h1;
@@ -1147,30 +1147,60 @@ int clip_joinrgb(MrcHeader *h1, MrcHeader *h2,
   hdr[2].fp = fopen(opt->fnames[2], "rb");
 
   if (!hdr[2].fp){
-      fprintf(stderr, "ERROR: clip joinrgb - opening %s.\n", opt->fnames[2]);
+      printf("ERROR: clip joinrgb - opening %s.\n", opt->fnames[2]);
       return(-1);
   }
   if (mrc_head_read(hdr[2].fp, &hdr[2])){
-    fprintf(stderr, "ERROR: clip joinrgb - reading %s.\n", opt->fnames[2]);
+    printf("ERROR: clip joinrgb - reading %s.\n", opt->fnames[2]);
     return(-1);
   }
   
   if ( (h1->nx != hdr[2].nx) || (h1->ny != hdr[2].ny) ||
        (h1->nz != hdr[2].nz) || (h1->nx != h2->nx) || (h1->ny != h2->ny) ||
        (h1->nz != h2->nz)) {
-    fprintf(stderr, "ERROR: clip joinrgb - all files must be same size.\n");
+    printf("ERROR: clip joinrgb - all files must be same size.\n");
     return(-1);
   }
 
   if (h1->mode != MRC_MODE_BYTE || h2->mode != MRC_MODE_BYTE || 
       hdr[2].mode != MRC_MODE_BYTE) {
-    fprintf(stderr, "ERROR: clip joinrgb - all files must be bytes.\n");
+    printf("ERROR: clip joinrgb - all files must be bytes.\n");
     return(-1);
   }
 
-  /* Set up mode and label */
-  hout->mode = MRC_MODE_RGB;
-  mrc_head_label(hout, "CLIP Join 3 files into RGB");
+  zstart = 0;
+  if (opt->add2file) {
+    if (opt->add2file == IP_APPEND_OVERWRITE) {
+      printf("ERROR: clip joinrgb - Overwriting is not allowed, only appending\n");
+      return(-1);
+    }
+    if (hout->mode != MRC_MODE_RGB) {
+      printf("ERROR: clip joinrgb - Mode of file being appended to must be 16\n");
+      return(-1);
+    }
+    if (hout->nx != h1->nx || hout->ny != h1->ny) {
+      printf("ERROR: clip joinrgb - File being appended to is not same X/Y size as input"
+             " files\n");
+      return(-1);
+    }
+
+    /* Get starting Z value and maintain the scale */
+    mrc_get_scale(hout, &xs, &ys, &zs);
+    zstart = hout->nz;
+    if (hout->mz == hout->nz)
+      hout->mz += h1->nz;
+    hout->nz += h1->nz;
+    mrc_set_scale(hout, xs, ys, zs);
+
+  } else {
+
+    /* Set up mode and label */
+    hout->mode = MRC_MODE_RGB;
+    mrc_head_label(hout, "CLIP Join 3 files into RGB");
+  }
+  hout->amin = 0;
+  hout->amax = 255;
+  hout->amean = 128;
   if (mrc_head_write(hout->fp, hout))
     return -1;
 
@@ -1178,7 +1208,7 @@ int clip_joinrgb(MrcHeader *h1, MrcHeader *h2,
   for (i = 0; i < 3; i++) {
     srgb[i] = sliceCreate(h1->nx, h1->ny, MRC_MODE_BYTE);
     if (!s || !srgb[i]) {
-      fprintf(stderr, "ERROR: CLIP - getting memory for slices\n");
+      printf("ERROR: CLIP - getting memory for slices\n");
       return (-1);
     }
   }
@@ -1205,10 +1235,10 @@ int clip_joinrgb(MrcHeader *h1, MrcHeader *h2,
       }
     }
   
-    if (mrc_write_slice((void *)s->data.b, hout->fp, hout, k, 'z'))
+    if (mrc_write_slice((void *)s->data.b, hout->fp, hout, k + zstart, 'z'))
       return -1;
   }
-  puts("");
+  printf("\n");
 
   for (i = 0; i < 3; i++)
     sliceFree(srgb[i]);
@@ -1230,19 +1260,22 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
   Islice *s, *srgb[3];
 
   if (h1->mode != MRC_MODE_RGB) {
-    fprintf(stderr, "ERROR: clip splitrgb - mode is not RGB\n");
+    printf("ERROR: clip splitrgb - mode is not RGB\n");
     return(-1);
   }
    
   if (opt->infiles != 1) {
-    fprintf(stderr, "ERROR: clip splitrgb - only one input file should "
+    printf("ERROR: clip splitrgb - only one input file should "
             "be specified\n");
     return (-1);
   }
  
+  opt->ocanresize = FALSE;
+  set_input_options(opt, h1);
+
   fname = (char *)malloc(len + 4);
   if (!fname) {
-    fprintf(stderr, "ERROR: CLIP - getting memory for filename\n");
+    printf("ERROR: clip - getting memory for filename\n");
     return (-1);
   }
 
@@ -1253,9 +1286,14 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
     if (!getenv("IMOD_NO_IMAGE_BACKUP"))
       imodBackupFile(fname);
     hdr[i] = *h1;
+    hdr[i].nz = hdr[i].mz = opt->nofsecs;
+    mrc_coord_cp(&hdr[i], h1);
+    if (hdr[i].mz)
+      hdr[i].zorg -= opt->secs[0] * hdr[i].zlen / hdr[i].mz;
+      
     hdr[i].fp = fopen(fname, "wb+");
     if (!hdr[i].fp){
-      fprintf(stderr, "Error opening %s\n", fname);
+      printf("ERROR: clip - opening %s\n", fname);
       return(-1);
     }
     hdr[i].mode = 0;
@@ -1268,18 +1306,18 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
       return -1;
     srgb[i] = sliceCreate(h1->nx, h1->ny, MRC_MODE_BYTE);
     if (!s || !srgb[i]) {
-      fprintf(stderr, "ERROR: CLIP - getting memory for slices\n");
+      printf("ERROR: clip - getting memory for slices\n");
       return (-1);
     }
   }
 
   /* Loop on sections */
-  for(k = 0; k < h1->nz; k++) {
-    printf("\rSplitting section %d of %d", k + 1, h1->nz);
+  for (k = 0; k < opt->nofsecs; k++) {
+    printf("\rSplitting section %d of %d", k + 1, opt->nofsecs);
     fflush(stdout);
 	  
     /* Read slice and put its 3 components into output slices */
-    if (mrc_read_slice((void *)s->data.b, h1->fp, h1, k, 'z'))
+    if (mrc_read_slice((void *)s->data.b, h1->fp, h1, opt->secs[k], 'z'))
       return -1;
     for (j = 0; j < h1->ny; j++) {
       for(i = 0; i < h1->nx; i ++) {
@@ -1302,7 +1340,7 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
     }
   }
 
-  puts("");
+  printf("\n");
 
   for (i = 0; i < 3; i++) {
     hdr[i].amean /= k;

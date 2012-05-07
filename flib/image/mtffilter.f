@@ -10,7 +10,6 @@ c
 c       David Mastronarde, 3/30/04
 c       
 c       $Id$
-c       Log at end of file
 c       
       implicit none
       integer limmtf,limstockcurves,limstockpoints
@@ -74,33 +73,35 @@ c
       real*4 dminin,dmaxin,dmean,dmin,dmax,asize,xfac,scalefac,delta
       real*4 ctfinvmax,radius1,sigma1,radius2,sigma2,s,dmsum,dmeanin
       real*4 DMIN2,DMAX2,DMEAN2,atten,beta1,deltap,delx, dely, delz,xa,ya,za
-      real*4 zasq,yasq, sigma1b, radius1b,base
+      real*4 zasq,yasq, sigma1b, radius1b,base,delpix(3)
+      real*4 ampfac, ampPower, pixelSize, holeSize, voltage, focalLength, ampRadius
+      real*4 wavelength
       integer*4 ind,j,ierr, indf,ix, iy, iz, izlo, izhi, izread, ibase, ixbase
-      integer*4 nxdim, nzpad, nyzmax
+      integer*4 nxdim, nzpad, nyzmax, ifcut, ifphase
       integer (kind=8) indWork, idim
       logical fftInput, filter3d
       integer*4 niceframe
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
-      integer*4 PipGetInteger,PipGetBoolean,PipGetTwoIntegers
+      integer*4 PipGetInteger,PipGetBoolean,PipGetTwoIntegers,PipGetThreeFloats
       integer*4 PipGetString,PipGetFloat,PipGetInOutFile,PipGetTwoFloats
       integer*4 PipGetNonOptionArg, PipGetLogical
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  mtffilter
 c       
       integer numOptions
-      parameter (numOptions = 15)
+      parameter (numOptions = 19)
       character*(40 * numOptions) options(1)
       options(1) =
-     &    'input:InputFile:FN:@output:OutputFile:FN:@'//
-     &    'zrange:StartingAndEndingZ:IP:@3dfilter:FilterIn3D:B:@'//
-     &    'lowpass:LowPassRadiusSigma:FP:@highpass:HighPassSigma:F:@'//
-     &    'radius1:FilterRadius1:F:@mtf:MtfFile:FN:@stock:StockCurve:I:@'//
-     &    'maxinv:MaximumInverse:F:@'//
+     &    'input:InputFile:FN:@output:OutputFile:FN:@zrange:StartingAndEndingZ:IP:@'//
+     &    '3dfilter:FilterIn3D:B:@lowpass:LowPassRadiusSigma:FP:@'//
+     &    'highpass:HighPassSigma:F:@radius1:FilterRadius1:F:@mtf:MtfFile:FN:@'//
+     &    'stock:StockCurve:I:@maxinv:MaximumInverse:F:@'//
      &    'invrolloff:InverseRolloffRadiusSigma:FP:@xscale:XScaleFactor:F:@'//
-     &    'denscale:DensityScaleFactor:F:@param:ParameterFile:PF:@'//
-     &    'help:usage:B:'
+     &    'denscale:DensityScaleFactor:F:@amplifier:AmplifierFactorAndPower:FP:@'//
+     &    'cutoff:CutoffForAmplifier:F:@phase:PhasePlateParameters:FT:@'//
+     &    'pixel:PixelSize:F:@param:ParameterFile:PF:@help:usage:B:'
 
       filout = ' '
       filbig = ' '
@@ -276,13 +277,35 @@ c
 c       write (*,'(10f7.4)')(ctfa(j), j=1,nsize)
 
       ierr = PipGetTwoFloats('InverseRolloffRadiusSigma', radius1, sigma1)
-      ierr = PipGetTwoFloats('LowPassRadiusSigma', radius2, sigma2)
       ierr = PipGetFloat('MaximumInverse', ctfinvmax)
       ierr = PipGetFloat('DensityScaleFactor', scalefac)
-      ierr = PipGetFloat('FilterRadius1', radius1b)
-      ierr = PipGetFloat('HighPassSigma', sigma1b)
-      call setctfnoscl(sigma1b,sigma2,radius1b,radius2,ctfb,nxpad,nyzmax,
-     &    deltap, nsize2)
+      ix = PipGetTwoFloats('LowPassRadiusSigma', radius2, sigma2)
+      iy = PipGetFloat('FilterRadius1', radius1b)
+      iz = PipGetFloat('HighPassSigma', sigma1b)
+      ierr = PipGetTwoFloats('AmplifierFactorAndPower', ampfac, ampPower)
+      ifcut = 1 - PipGetFloat('CutoffForAmplifier', ampRadius)
+      ifphase = 1 - PipGetThreeFloats('PhasePlateParameters', holeSize, voltage,
+     &    focalLength)
+      if (ierr .eq. 0 .or. ifcut .ne. 0 .or. ifphase .ne. 0) then
+        if (ix .eq. 0 .or. iy .eq. 0 .or. iz .eq. 0) call exitError(
+     &      'YOU CANNOT ENTER PARAMETERS FOR BOTH A REGULAR AND AN AMPLIFIER FILTER')
+        if (ierr .ne. 0 .or. (ifcut .eq. 0 .and. ifphase .eq. 0)) call exitError(
+     &      'TO USE THE AMPLIFIER FILTER YOU MUST ENTER -amplifier AND '//
+     &      'EITHER -phase OR -cutoff')
+        if (ifcut .ne. 0 .and. ifphase .ne. 0) call exitError(
+     &      'YOU CANNOT ENTER BOTH -cutoff AND -phase FOR AMPLIFIER FILTER')
+        if (ifphase .ne. 0) then
+          call irtdel(1, delpix)
+          pixelSize = delpix(1) / 10.
+          ierr = PipGetFloat('PixelSize', pixelSize)
+          wavelength = 1.226/sqrt(1000. * voltage * (1.0 + 0.9788e-3 * voltage))
+          ampRadius = pixelSize * (holeSize / 2.0) / (wavelength * focalLength * 1e6)
+        endif
+        call amplifier(ampRadius, ampfac, ampPower, ctfb, nxpad, nyzmax, deltap, nsize2)
+      else
+        call setctfnoscl(sigma1b,sigma2,radius1b,radius2,ctfb,nxpad,nyzmax,
+     &      deltap, nsize2)
+      endif
 
       beta1 = 0.0
       if (sigma1.gt.1.e-6) beta1 = -0.5/sigma1**2
@@ -426,7 +449,7 @@ c         repack and write
       endif
 c       
       dmean=dmsum/nzdo
-      CALL DATE(DAT)
+      CALL b3dDATE(DAT)
       CALL TIME(TIM)
 c       
 c       
@@ -488,24 +511,19 @@ c
       return
       end
 
-c       
-c       $Log$
-c       Revision 1.6  2009/08/19 23:42:25  mast
-c       Switched to allocating memory as needed
-c
-c       Revision 1.5  2008/05/20 20:03:38  mast
-c       Added ability to filter a real volume in 3D
-c
-c       Revision 1.4  2007/05/31 17:52:53  mast
-c       Added options so all 4 standard filter parameters can be used to call
-c       the standard setctf function, but without scaling
-c
-c       Revision 1.3  2005/08/15 16:09:53  mast
-c       Increased array size to 8K x 8K
-c       
-c       Revision 1.2  2004/06/19 21:12:54  mast
-c       Added ability to filter a 3D FFT, with no new options
-c       
-c       Revision 1.1  2004/03/30 18:55:42  mast
-c       Addition to package
-c       
+      subroutine amplifier(cutoff, ampfac, power, ctf, nx, ny, delta, nsize)
+      implicit none
+      integer*4 nx, ny, nsize, i
+      real*4 cutoff, ampfac, power, delta, ctf(*), s
+      nsize = min(8192, max(1024, 2 * nx, 2 * ny))
+      delta = 1. / (0.71 * nsize)
+
+c       Functional form: (1 + (amp-1)*exp( -(r/cutoff)^power)) / a"""
+      s = 0.
+      do i = 1, nsize
+        ctf(i) = (1. + (ampfac - 1) * exp(-(s / cutoff)**power)) / ampfac
+        if (ctf(i) .lt. 1.e-6) ctf(i) = 0.
+        s = s + delta
+      enddo
+      return
+      end

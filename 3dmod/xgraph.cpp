@@ -46,11 +46,6 @@
 #include "preferences.h"
 #include "dia_qtutils.h"
 
-#include "lowres.bits"
-#include "highres.bits"
-#include "lock.bits"
-#include "unlock.bits"
-
 #define XGRAPH_WIDTH 320
 #define XGRAPH_HEIGHT 160
 
@@ -62,9 +57,9 @@ static void graphKey_cb(ImodView *vi, void *client, int released,
 static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
                               int iy1, int iy2, Ipoint *newpt);
 
-static unsigned char *bitList[MAX_GRAPH_TOGGLES][2] =
-  { {lowres_bits, highres_bits},
-    {unlock_bits, lock_bits}};
+static const char *fileList[MAX_GRAPH_TOGGLES][2] =
+  { {":/images/lowres.png", ":/images/highres.png"},
+    {":/images/unlock.png", ":/images/lock.png"}};
 
 static QIcon *icons[MAX_GRAPH_TOGGLES];
 static int firstTime = 1;
@@ -188,7 +183,7 @@ GraphWindow::GraphWindow(GraphStruct *graph, bool rgba,
   setAnimated(false);
 
   if (firstTime) 
-    utilBitListsToIcons(bitList, icons, MAX_GRAPH_TOGGLES);
+    utilFileListsToIcons(fileList, icons, MAX_GRAPH_TOGGLES);
   firstTime = 0;
 
   // Make central vbox and top frame containing an hbox

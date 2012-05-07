@@ -112,7 +112,7 @@ int main( int argc, char *argv[])
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 flattenwarp  */
   int numOptions = 12;
-  char *options[] = {
+  const char *options[] = {
     "input:InputFile:FN:", "output:OutputFile:FN:",
     "patch:PatchOutputFile:FN:", "middle:MiddleContourFile:FN:",
     "binning:BinningOfTomogram:IP:", "one:OneSurface:B:",
