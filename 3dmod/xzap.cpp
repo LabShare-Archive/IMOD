@@ -167,7 +167,7 @@ ZapFuncs *getTopZapWindow(bool withBand, int type)
     }
   }
   App->cvi->ctrlist->list->current = curSave;
-  if (topOne && withBand)
+  if (topOne < 0 && withBand)
     return NULL;
   if (topOne < 0)
     topOne = 0;
