@@ -404,10 +404,12 @@ Length   Type       Description
 <HR>
 VIEW  Stored model and object view data structures.   (Variable size)
 <BR>
-This chunk can be as short as 4 bytes, in which case it contains just
-the value of the INT cview.  Various versions of 3dmod have stored 56, 156, or
-176 bytes; after stored views began to contain properties for each object,
-this chunk became larger than that and variable-sized.
+This chunk can be only 4 bytes, in which case it contains just
+the value of an INT for the current view number, which is stored as cview in the
+model structure.  Otherwise, it contains stored view data.  Various versions
+of 3dmod have stored 56, 156, or 176 bytes; after stored views began to
+contain properties for each object, this chunk became larger than that and
+variable-sized.
 <pre>
 Length Type     Name    Description
 -------------------------------------------------------------------
@@ -420,7 +422,7 @@ Length Type     Name    Description
 12    float * 3 trans   translation
 12    float * 3 scale   scale
 -------------------------------------------------------------------
-64    float * 16 mat    World OpenGL transformation matrix
+64    float * 16 mat    World OpenGL transformation matrix (Unused)
 4     int       world   flags for lighting and transformation properties
                         Bit 1 on : Light - draw with lighting
                         Bit 2 on : Depth cue - draw with depth cue
