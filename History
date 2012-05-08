@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/7/12: IMOD_4-5-2
 5/7/12: Needed to prepend pylib to path in Python scripts because there is a 
 pip installer module in some installations (In 4.5).
 
