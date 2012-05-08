@@ -210,11 +210,6 @@ public class NewstParamTest extends TestCase {
         xformFile) >= 0);
     assertTrue("Testing -SizeToOutputInXandY ",
         findString(commandLine, linearOption) >= 0);
-    assertTrue("Testing input file ", findStringPair(commandLine, inputFileOption,
-        inputFile) >= 0);
-
-    assertTrue("Testing output file ", findStringPair(commandLine, outputFileOption,
-        outputFile) >= 0);
     return commandLine;
   }
 

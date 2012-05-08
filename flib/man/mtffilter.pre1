@@ -23,6 +23,19 @@ DDEESSCCRRIIPPTTIIOONN
   these options can be visualized with the program Filterplot(1); see that man
   page for a full description of their effects.
 
+  The program can also apply a third kind of filter that has been found useful
+  for reducing fringe effects in EM images taken with a phase plate.  This
+  filter is specified by a cutoff radius, and exponential power, and an
+  amplification factor, the amount by which it amplifies low frequencies
+  relative to high ones.  It goes from 1 at zero frequency to a floor of
+  1/ amplificationFactor at high frequencies and falls 1/e of the way to the
+  floor at the cutoff radius.  A higher power increases the sharpness of the
+  falloff.  This filter is referred to here as a low-frequency amplifier
+  filter.  It is selected by entering the -amplifier option plus either the
+  cutoff radius (with -cutoff) or parameters of the phase plate imaging (with
+  -phase).  It cannot be used together with the low-pass and high-pass
+  filter options.
+
   Simply multiplying by the inverse of an MTF would amplify noise too much,
   so the inverse MTF filter is shaped by three parameters.  The first
   and most important is the maximum inverse value, which limits how high the
@@ -53,7 +66,8 @@ DDEESSCCRRIIPPTTIIOONN
 
   To apply only low-pass and high-pass filters, omit the -mtf and -stock
   options; to apply only an inverse filter, omit the -lowpass and other
-  options for general filtering.
+  options for general filtering.  Similarly, to apply only a low-frequency
+  amplifier filter, omit the -mtf and -stock other general filter options.
 
   If the input file is a real image, then without the "-3d" option the program
   will take the FFT of each section, apply the filter, take the inverse FFT,
