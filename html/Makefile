@@ -6,7 +6,8 @@
 #
 include ../configure
 
-NOEXT = 3dmodimages etomoImages 3dmodHelp libhelp joinImages ctfHelp midasHelp plughelp
+NOEXT = 3dmodimages etomoImages 3dmodHelp libhelp joinImages ctfHelp midasHelp plughelp \
+	man
 
 install : cleanjunk
 	cd libdoc ; $(MAKE)
