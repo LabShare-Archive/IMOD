@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/8/12: IMOD_4-6-1
 5/8/12: Added lasso to Zap toolbar, useful for selecting multiple contours,
 masking an isosurface, and selecting area for deleting contours below
 threshold in bead Fixer.
