@@ -2075,7 +2075,7 @@ void BeadFixer::deleteBelow()
 {
   ImodView *vi = sView;
   Imod *imod = ivwGetModel(vi);
-  
+  Icont *lassoCont;
   Iobj *obj;
   int ob, i, ix, iy, iz, curobj, anydel = 0;
   Istore *store;
@@ -2099,6 +2099,7 @@ void BeadFixer::deleteBelow()
     selmax.z = vi->zsize;
   }
   zapRubberbandCoords(selmin.x, selmax.x, selmin.y, selmax.y);
+  lassoCont = getTopZapLassoContour(true);
 
   for (ob = 0; ob < imod->objsize; ob++) {
     obj = &imod->obj[ob];
@@ -2113,7 +2114,10 @@ void BeadFixer::deleteBelow()
             !(store->flags & GEN_STORE_SURFACE) && store->value.f < thresh) {
           index.contour = store->index.i;
           if (index.contour > 0 && index.contour < obj->contsize) {
-            if (imodContInSelectArea(obj, &obj->cont[index.contour], selmin, selmax)) {
+            if ((!lassoCont && imodContInSelectArea(obj, &obj->cont[index.contour],
+                                                    selmin, selmax)) ||
+                (lassoCont && imodContInsideCont(obj, &obj->cont[index.contour], 
+                                                 lassoCont, selmin.z, selmax.z))) {
               if (!anydel)
                 imodSelectionListClear(vi);
               imodSelectionListAdd(vi, index);
@@ -2124,8 +2128,12 @@ void BeadFixer::deleteBelow()
       }
     }
   }
-  if (anydel)
+
+  // Delete, and clear selection list in case they say no
+  if (anydel) {
     inputDeleteContour(vi);
+    imodSelectionListClear(vi);
+  }
 }
 
 
