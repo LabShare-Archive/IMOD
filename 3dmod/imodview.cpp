@@ -620,7 +620,9 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
 
     // Loop through the unbinned sections to read and bin them into buf
     for (iz = 0; iz < vi->zbin; iz++) {
-      if (vi->ushortStore)
+      if (vi->rgbStore) 
+        iiReadSection(&im, (char *)unbinbuf, section);
+      else if (vi->ushortStore)
         iiReadSectionUShort(&im, (char *)unbinbuf, vi->zbin * section + iz);
       else
         iiReadSectionByte(&im, (char *)unbinbuf, vi->zbin * section + iz);
