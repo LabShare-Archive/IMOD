@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/8/12: Added lasso to Zap toolbar, useful for selecting multiple contours,
+masking an isosurface, and selecting area for deleting contours below
+threshold in bead Fixer.
+
 5/7/12: IMOD_4-5-2
 5/7/12: Needed to prepend pylib to path in Python scripts because there is a 
 pip installer module in some installations (In 4.5).
