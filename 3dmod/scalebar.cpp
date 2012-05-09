@@ -233,10 +233,10 @@ void scaleBarUpdate()
     ss = getTopSlicer();
     if (ss)
       slicerv = ss->mScaleBarSize;
-    zap = getTopZapWindow(false, ZAP_WINDOW_TYPE);
+    zap = getTopZapWindow(false, false, ZAP_WINDOW_TYPE);
     if (zap)
       zapv = zap->mScaleBarSize;
-    zap = getTopZapWindow(false, MULTIZ_WINDOW_TYPE);
+    zap = getTopZapWindow(false, false, MULTIZ_WINDOW_TYPE);
     if (zap)
       multiZv = zap->mScaleBarSize;
     xyzv = xyzScaleBarSize();
