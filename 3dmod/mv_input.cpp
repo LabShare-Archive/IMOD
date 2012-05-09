@@ -243,8 +243,8 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_Comma:
-    newval = (int)(a->md->arot / IMODV_ROTATION_FACTOR + 0.5);
-    if (newval == a->md->arot)
+    newval = (int)(a->deltaRot / IMODV_ROTATION_FACTOR + 0.5);
+    if (newval == a->deltaRot)
       newval--;
     if (!newval)
       newval = 1;
@@ -253,8 +253,8 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_Period:
-    newval = (int)(a->md->arot * IMODV_ROTATION_FACTOR + 0.5);
-    if (newval == a->md->arot)
+    newval = (int)(a->deltaRot * IMODV_ROTATION_FACTOR + 0.5);
+    if (newval == a->deltaRot)
       newval++;
     imodvControlSetArot(a, newval);
     imodvControlIncSpeed(1);
@@ -318,37 +318,37 @@ void imodvKeyPress(QKeyEvent *event)
 
   case Qt::Key_PageDown:
     if (keypad)
-      imodv_rotate_model(a,0, 0, -a->md->arot);
+      imodv_rotate_model(a,0, 0, -a->deltaRot);
     else
       imodvTranslateByDelta(a, 0, 0, tstep);
     break;
   case Qt::Key_PageUp:
     if (keypad)
-      imodv_rotate_model(a,0, 0, a->md->arot);
+      imodv_rotate_model(a,0, 0, a->deltaRot);
     else
       imodvTranslateByDelta(a, 0, 0, -tstep);
     break;
   case Qt::Key_Up:
     if (keypad)
-      imodv_rotate_model(a,-a->md->arot, 0, 0);
+      imodv_rotate_model(a,-a->deltaRot, 0, 0);
     else
       imodvTranslateByDelta(a, 0, -tstep, 0);
     break;
   case Qt::Key_Down:
     if (keypad)
-      imodv_rotate_model(a,a->md->arot, 0, 0);
+      imodv_rotate_model(a,a->deltaRot, 0, 0);
     else
       imodvTranslateByDelta(a, 0, tstep, 0);
     break;
   case Qt::Key_Right:
     if (keypad)
-      imodv_rotate_model(a,0, a->md->arot, 0);
+      imodv_rotate_model(a,0, a->deltaRot, 0);
     else
       imodvTranslateByDelta(a, -tstep, 0, 0);
     break;
   case Qt::Key_Left:
     if (keypad)
-      imodv_rotate_model(a,0, -a->md->arot, 0);
+      imodv_rotate_model(a,0, -a->deltaRot, 0);
     else
       imodvTranslateByDelta(a, tstep, 0, 0);
     break;
@@ -357,11 +357,11 @@ void imodvKeyPress(QKeyEvent *event)
     if (!keypad)
       break;
     if (!a->movie){
-      a->md->xrotm = a->md->yrotm = a->md->zrotm =0;
+      a->xrotMovie = a->yrotMovie = a->zrotMovie =0;
       a->movie = 1;
     }else{
       a->movie = 0;
-      a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
+      a->xrotMovie = a->yrotMovie = a->zrotMovie = 0;
     }
     break;
 
@@ -388,7 +388,6 @@ void imodvKeyPress(QKeyEvent *event)
           dia_err("Error reading model file.  No model loaded.");
     } else {
       /* output info */
-      qstr.sprintf("Zoom = %g\n", a->md->zoom);
       if (a->imod->view->world & VIEW_WORLD_ON){
         qstr += qstr2.sprintf("Transformation matrix:");
         for(tstep = 0; tstep < 16; tstep++){
@@ -823,9 +822,9 @@ void imodv_rotate_model(ImodvApp *a, int x, int y, int z)
 {
   /* IF movieing, save the current increments as ones to movie on */
   if (a->movie){
-      a->md->xrotm = x;
-      a->md->yrotm = y;
-      a->md->zrotm = z;
+      a->xrotMovie = x;
+      a->yrotMovie = y;
+      a->zrotMovie = z;
   }
   imodv_compute_rotation(a, (float)x, (float)y, (float)z);
   imodvDraw(a);
@@ -994,7 +993,7 @@ static void imodv_rotate(ImodvApp *a, int mx, int my, int throwFlag,
       dx = (mx - b2x);
       dy = (my - b2y);
       if (dx * dx + dy * dy < MIN_SQUARE_TO_THROW) {
-        a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
+        a->xrotMovie = a->yrotMovie = a->zrotMovie = 0;
         a->movie = 0;
         return;
       }
@@ -1009,9 +1008,9 @@ static void imodv_rotate(ImodvApp *a, int mx, int my, int throwFlag,
       }
       if (!idx && !idy && !idz)
         a->movie = 0;
-      a->md->xrotm = idx;
-      a->md->yrotm = idy;
-      a->md->zrotm = idz;
+      a->xrotMovie = idx;
+      a->yrotMovie = idy;
+      a->zrotMovie = idz;
 
       a->throwFactor = (float)(sqrt((double)(dx * dx + dy * dy)) /
                                SAME_SPEED_DISTANCE);
@@ -1028,7 +1027,7 @@ static void imodv_rotate(ImodvApp *a, int mx, int my, int throwFlag,
     return; 
 
   /* Turn off movie for all rotation axis. DNM add movie flag too */
-  a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
+  a->xrotMovie = a->yrotMovie = a->zrotMovie = 0;
   a->movie = 0;
 
   if (midDown) {
@@ -1502,20 +1501,20 @@ void imodvMovieTimeout()
   float rot, scale;
      
   if (a->wpid && !ImodvClosed && a->movie && 
-      (a->md->xrotm || a->md->yrotm || a->md->zrotm)) {
+      (a->xrotMovie || a->yrotMovie || a->zrotMovie)) {
     a->movieFrames++;
     a->movieCurrent = imodv_sys_time();
     index = a->movieFrames % MAX_MOVIE_TIMES;
     nframes = a->movieFrames < MAX_MOVIE_TIMES ? 
       a->movieFrames : MAX_MOVIE_TIMES;
-    rot = (float)sqrt((double)(a->md->xrotm * a->md->xrotm + 
-                               a->md->yrotm * a->md->yrotm + 
-                               a->md->zrotm * a->md->zrotm));
+    rot = (float)sqrt((double)(a->xrotMovie * a->xrotMovie + 
+                               a->yrotMovie * a->yrotMovie + 
+                               a->zrotMovie * a->zrotMovie));
     scale = a->movieSpeed * a->throwFactor * 
       (a->movieCurrent - a->movieTimes[index]) / (100. * nframes * rot);
     a->movieTimes[index] = a->movieCurrent;
-    imodv_compute_rotation(a, scale * a->md->xrotm, scale * a->md->yrotm, 
-                           scale * a->md->zrotm);
+    imodv_compute_rotation(a, scale * a->xrotMovie, scale * a->yrotMovie, 
+                           scale * a->zrotMovie);
     imodvDraw(a);
   } else {
     a->wpid = 0;

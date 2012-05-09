@@ -58,7 +58,7 @@ void imodViewDefault(Iview *vw)
     vw->mat[i] = 0.0f;
   }
   vw->mat[0] = vw->mat[5] = vw->mat[10] = vw->mat[15] = 1.0f;
-  for(i = 0; i < 32; i++)
+  for(i = 0; i < VIEW_STRSIZE; i++)
     vw->label[i] = 0x00;
   vw->lightx  = 0.0f;
   vw->lighty  = 0.0f;
@@ -166,7 +166,7 @@ int imodViewWrite(Iview *vw, FILE *fout, Ipoint *scale)
   imodPutInt(fout, &id);
   imodPutFloats(fout, &vw->fovy, 30);
   imodPutInt(fout, &vw->world);
-  imodPutBytes(fout, (unsigned char *)vw->label, 32);
+  imodPutBytes(fout, (unsigned char *)vw->label, VIEW_STRSIZE);
   imodPutFloats(fout, &vw->dcstart, 5);
 
   normScale.x = 1. / scale->x;
@@ -292,7 +292,7 @@ int imodViewModelRead(Imod *imod)
   if (lbuf >= 156){
     imodGetFloats(fin, vw->mat, 16);
     vw->world = imodGetInt(fin);
-    imodGetBytes(fin, (unsigned char *)vw->label, 32);
+    imodGetBytes(fin, (unsigned char *)vw->label, VIEW_STRSIZE);
     bytesRead += 100;
      
   }
@@ -457,16 +457,16 @@ void imodObjviewFromObject(Iobj *obj, Iobjview *objview)
 void imodViewUse(Imod *imod)
 {
   int nobj, i;
-  char labsav[32];
+  char labsav[VIEW_STRSIZE];
 
   /* First copy the view structure, saving and restoring the object view
      count and pointer from the default view */
   Iview *vw = &imod->view[imod->cview];
   Iobjview *defviewsave = imod->view->objview;
   int  defsizesave = imod->view->objvsize;
-  memcpy(labsav, imod->view->label, 32);
+  memcpy(labsav, imod->view->label, VIEW_STRSIZE);
   imod->view[0] = *vw;
-  memcpy(imod->view->label, labsav, 32);
+  memcpy(imod->view->label, labsav, VIEW_STRSIZE);
   imod->view->objview = defviewsave;
   imod->view->objvsize = defsizesave;
      
@@ -489,16 +489,16 @@ void imodViewUse(Imod *imod)
 int imodViewStore(Imod *imod, int cview)
 {
   int i;
-  char labsav[32];
+  char labsav[VIEW_STRSIZE];
   Iview *vw = &imod->view[cview];
 
   /* First delete any existing object view data */
   if (vw->objview)
     free(vw->objview);
 
-  memcpy(labsav, vw->label, 32);
+  memcpy(labsav, vw->label, VIEW_STRSIZE);
   *vw = imod->view[0];
-  memcpy(vw->label, labsav, 32);
+  memcpy(vw->label, labsav, VIEW_STRSIZE);
   vw->objvsize = imod->objsize;
   vw->objview = (Iobjview *)malloc(imod->objsize * sizeof(Iobjview));
   if(!vw->objview) {

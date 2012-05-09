@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdio.h>
@@ -142,7 +141,7 @@ int main( int argc, char *argv[])
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 imodfindbeads  */
   int numOptions = 32;
-  char *options[] = {
+  const char *options[] = {
     "input:InputImageFile:FN:", "output:OutputModelFile:FN:",
     "filtered:FilteredImageFile:FN:", "area:AreaModel:FN:",
     "add:AddToModel:FN:", "ref:ReferenceModel:FN:",
@@ -1420,24 +1419,3 @@ static int pointInsideArea(Iobj *obj, int *list, int nlist, float xcen,
   }
   return 0;
 }
-
-/*
-
-$Log$
-Revision 3.5  2008/12/01 15:44:39  mast
-Pulled out more library functions, made kernel filtering be default
-
-Revision 3.4  2008/11/12 03:48:19  mast
-Pulled out the scan histogram function for library
-
-Revision 3.3  2008/11/02 13:43:48  mast
-Switched to float-slice reading function
-
-Revision 3.2  2008/06/22 05:04:26  mast
-Make sure valblack is not based on dip below the minimum value output
-
-Revision 3.1  2008/06/19 23:26:50  mast
-Added to package
-
-
-*/

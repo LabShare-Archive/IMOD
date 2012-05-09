@@ -109,8 +109,10 @@
 #define IobjFlagTime      12
 #define IobjFlagExtraInModv 21
 
-/* Indices to extra array */
+/* Indices to extra array.  Elements used temporarily by extra objects can be assigned 
+   at top of array until the space is needed. */
 #define IOBJ_EX_PNT_LIMIT  0
+#define IOBJ_EX_LASSO_ID   (IOBJ_EXSIZE - 1)
 
 /*****************************************************************************/
 /* iobj.c functions                                                          */

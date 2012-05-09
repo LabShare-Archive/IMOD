@@ -39,7 +39,7 @@ using namespace std;
  * cd manpages
  make autodoc2man
  */
-static char
+static const char
     *options[] =
         {
             ":help:B:Print usage message",
@@ -133,7 +133,7 @@ void Processchunks::printOsInformation() {
 
 //Print usage statement
 //Not implementing $IMOD_ALL_MACHINES since no one seems to have used it.
-void processchunksUsageHeader(char *pname) {
+void processchunksUsageHeader(const char *pname) {
   printf("\nUsage: %s [Options] machine_list root_name\nWill process multiple command "
     "files on multiple processors or machines\nmachine_list is a list of "
     "available machines, separated by commas.\nList machines names multiple "

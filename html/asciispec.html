@@ -82,9 +82,48 @@ center position.
 <br>
 <b>units</b>   (<i>units</i>)
 <br>
-<b>slicerAngle</b> (<i>time</i>) (<i>x</i>) (<i>y</i>) (<i>z</i>) (<i>x</i>) (<i>y</i>) (<i>z</i>) (<i>label</i>) 
+<b>slicerAngle</b> (<i>time</i>) (<i>x</i>) (<i>y</i>) (<i>z</i>) (<i>x</i>)
+(<i>y</i>) (<i>z</i>) (<i>label</i>) 
+<br>
+<b>currentview</b>   (<i>view number</i>)
 <br>
 </code>
+<HR>
+<H3>The view directive.</H3>
+Initializes a new view and sets it as the current one.  The index is ignored.
+<br>
+<code>
+<b>view</b> (<i>index</i>) 
+</code>
+<H4>Optional view directives</H4>
+See the <a href="binspec.html">binary model specification</a> of the VIEW
+chunk for the definition of bits in <b>viewflags</b>.
+<code>
+<br>
+<b>viewfovy</b>  (<i>perspective</i>)
+<br>
+<b>viewcnear</b>  (<i>near Z clipping plane value</i>)
+<br>
+<b>viewcfar</b>  (<i>far Z clipping plane value</i>)
+<br>
+<b>viewflags</b>  (<i>flags for lighting and transformation properties</i>)
+<br>
+<b>viewtrans</b>  (<i>x shift</i>) (<i>y shift</i>) (<i>z shift</i>)
+<br>
+<b>viewrot</b>  (<i>x rotation</i>) (<i>y rotation</i>) (<i>z rotation</i>)
+<br>
+<b>viewlight</b>  (<i>x position</i>)  (<i>y position</i>)
+<br>
+<b>depthcue</b>  (<i>starting distance</i>)  (<i>ending distance</i>)
+<br>
+<b>viewlabel</b>  (<i>text string with view name</i>)
+<br>
+<b>globalclips</b> (<i># of planes</i>) (<i>flags</i>) (<i>trans</i>) (<i>current plane</i>) 
+</code>
+<p>
+The <b>globalclips</b> line is followed by one line per clip plane, containing
+the X, Y, Z components of the normal vector and X, Y, Z coordinates of a point
+in the plane.  Bits 0-6 of <i>flags</i> indicate which planes are on.
 <HR>
 <H3>The object directive.</H3>
 Initializes and selects the current object.

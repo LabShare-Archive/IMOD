@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
   // Fallbacks from   ../manpages/autodoc2man 2 1 ctfplotter
   int numOptArgs, numNonOptArgs;
   int numOptions = 21;
-  char *options[] = {
+  const char *options[] = {
     "input:InputStack:FN:", "angleFn:AngleFile:FN:", "invert:InvertTiltAngles:B:",
     "offset:OffsetToAdd:F:", "config:ConfigFile:FN:", "defFn:DefocusFile:FN:",
     "aAngle:AxisAngle:F:", "psRes:PSResolution:I:", "tileSize:TileSize:I:",
