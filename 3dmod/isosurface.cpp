@@ -463,7 +463,7 @@ ImodvIsosurface::ImodvIsosurface(ImodView *vi, QWidget *parent, const char *name
   connect(mUseRubber, SIGNAL(clicked()), this, SLOT(showRubberBandArea()));
 
   mSizeContours = diaPushButton(iisData.maskType == MASK_OBJECT ? "Object" : 
-                                (iisData.maskType == MASK_LASSO ? "Lariat" : "Contour"),
+                                (iisData.maskType == MASK_LASSO ? "Lasso" : "Contour"),
                                 this, hLayout);
   mSizeContours->setToolTip("Make X/Y sizes as big as masking contours if possible");
   connect(mSizeContours, SIGNAL(clicked()), this, SLOT(areaFromContClicked()));
@@ -1930,7 +1930,7 @@ void ImodvIsosurface::maskSelected(int which)
   mSizeContours->setEnabled(which == MASK_CONTOUR || which == MASK_OBJECT || 
                             which == MASK_LASSO);
   mSizeContours->setText(iisData.maskType == MASK_OBJECT ? "Object" : 
-                         (iisData.maskType == MASK_LASSO ? "Lariat" : "Contour"));
+                         (iisData.maskType == MASK_LASSO ? "Lasso" : "Contour"));
   if (which == MASK_CONTOUR || which == MASK_OBJECT || which == MASK_LASSO) {
     resizeToContours(true);
   } else {
