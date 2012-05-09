@@ -28,5 +28,7 @@
 <file>images/shiftlockon.png</file>
 <file>images/shiftlockoff.png</file>
 <file>images/showslice.png</file>
+<file>images/lasso.png</file>
+<file>images/lassoOn.png</file>
 </qresource>
 </RCC>

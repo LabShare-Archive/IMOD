@@ -46,6 +46,18 @@ points after the current point (when pointing up) or before
 the current point (when pointing down).
 <LI>The <B>rubber band</B> button turns the rubber band on or off (see
 <B>B</B> hot key below).
+<LI>The <B>lasso</B> button turns the lasso contour on or off.  The lasso can
+  be used to select multiple contours, to mask the volume displayed by the
+<A href="modvIsosurface.html">Isosurface</A> dialog, and to select an area
+within which to delete contours with values below a threshold in
+the <A href="beadfix.html">Bead Fixer</A>.  When it is turned on, you can then
+draw the lasso contour by pressing the first or second mouse button, and
+holding it down while drawing the contour from one end to the other.  Once it
+is drawn, it can be moved by placing the mouse within 10 pixels of the
+contour (the cursor will change to indicate that moving is enabled), then
+pressing and holding either the first or second mouse button while shifting
+the contour.  The contour can also be shifted, rotated, or transformed if
+contour shifting is turned on with the <B>P</B> hot key (see below).
 <LI>The <B>Z slider</B> allows one to riffle through images or select a 
 particular section to display.
 <LI>The <B>section</B> edit box shows the current section and allows one 
@@ -114,8 +126,8 @@ previously in the rubber band.
 contour selection list.  Selected contours will be shown with a 
 distinguishable line thickness.  
 With the rubber band off, all eligible contours on the current section will be
-added; with the rubber band on, only contours wih points appearing completely
-within the rubber band will be selected.
+added; with the rubber band or lasso on, only contours with points appearing completely
+within the rubber band or lasso will be selected.
 Contours from the current object that are 
 confined to the current section will be added; in addition, if the object is
 open contour type and the contours pass between sections, then contours with
@@ -135,8 +147,12 @@ mappings,
 these functions are the same as in the
 <A HREF = "../man/midas.html#TOP">Midas</A> program.
 If multiple contours are selected, the same operation will be done on all of
-them, including contours from objects other than the current object.
-This mode stays active until toggled off again. 
+them, including contours from objects other than the current object.  If there
+is no selected contour but the lasso is on, the operations will be applied to
+the lasso contour (the lasso will be drawn with double thickness to indicate
+that it is the target for mouse actions.)
+This mode stays active until toggled off again, or until the rubber band or
+lasso is turned on.
 These operations work for any contours in closed contour objects and for
 coplanar contours in open contour objects.
 <UL>
