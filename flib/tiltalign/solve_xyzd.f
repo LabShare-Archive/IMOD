@@ -30,7 +30,7 @@ c
 	integer*4 isecview(*),irealstr(*)
 	double precision error
 c
-	parameter (maxview=490,ms=maxview)
+	parameter (maxview=1440,ms=maxview)
 	real*4 bvec(3)
 	real*4 a(ms),b(ms),c(ms),asq(ms),bsq(ms),csq(ms)
      &	    ,axb(ms),axc(ms),bxc(ms),d(ms),e(ms),f(ms)
