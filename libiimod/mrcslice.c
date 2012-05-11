@@ -1100,66 +1100,60 @@ int mrc_bandpass_filter(struct MRCslice *sin, double low, double high)
  * Filters a slice [sin] by convolving with the square matrix [mat] of 
  * dimension [dim] and returns a float slice, or NULL for error.  Pixels outside
  * the image bounds are obtained by replicated pixels on the edge, so there is 
- * no need to set the {mean} value of the slice.
+ * no need to set the {mean} value of the slice.  For a float input slice, it calls
+ * @cfutils.html#applyKernelFilter , otherwise it uses slower GetVal and PutVal based
+ * operations.  The latter is parallelized with OpenMP.
  */
 Islice *slice_mat_filter(Islice *sin, float *mat, int dim)
 {
+#define MAX_STATIC_KERNEL 9
   Islice *sout;
+  float smat[MAX_STATIC_KERNEL * MAX_STATIC_KERNEL];
   float *imat;
   Ival val;
-  int i,j;
+  int i,j, numThreads = 1;
 
-  imat = (float *)malloc(dim * dim * sizeof(float));
-  if (!imat)
-    return(NULL);
   sout = sliceCreate(sin->xsize, sin->ysize, MRC_MODE_FLOAT);
   if (!sout)
     return NULL;
 
-  for(j = 0; j < sin->ysize; j++){
-    for(i = 0; i < sin->xsize; i++){
-      mrc_slice_mat_getimat(sin, i, j, dim, imat);
-      val[0] = mrc_slice_mat_mult(mat, imat, dim);
-      slicePutVal(sout, i, j, val);
-    }
-  }
-  free(imat);
-  return(sout);
-}
+  if (sin->mode == SLICE_MODE_FLOAT) {
+    applyKernelFilter(sin->data.f, sout->data.f, sin->xsize, sin->xsize, sin->ysize, mat,
+                      dim);
 
-/*!
- * Fills [mat] with the coefficients of a [dim] x [dim] Gaussian kernel with 
- * standard deviation [sigma].  The coefficients are scaled to sum to 1.
- */
-void sliceGaussianKernel(float *mat, int dim, float sigma)
-{
-  float sum = 0.;
-  int i, j;
-  double mid = (dim - 1)/ 2.;
-  for (j = 0; j < dim; j++) {
-    for (i = 0; i < dim; i++) {
-      mat[i + j * dim] = (float)exp(-((i-mid) * (i-mid) + (j-mid) * (j-mid)) / 
-                                  (sigma * sigma));
+  } else {
+    if (dim <= MAX_STATIC_KERNEL) {
+      numThreads = B3DNINT(0.04 * sqrt((double)sin->xsize * sin->ysize));
+      numThreads = numOMPthreads(numThreads);
+    }
+    if (numThreads > 1) {
+
+#pragma omp parallel for num_threads(numThreads)    \
+  shared(sin, sout, dim, mat)                       \
+  private(j, i, val, smat)
+      for (j = 0; j < sin->ysize; j++) {
+        for (i = 0; i < sin->xsize; i++) {
+          mrc_slice_mat_getimat(sin, i, j, dim, smat);
+          val[0] = mrc_slice_mat_mult(mat, smat, dim);
+          slicePutVal(sout, i, j, val);
+        }
+      }
+    } else {
       
-      sum += mat[i + j * dim];
+      imat = (float *)malloc(dim * dim * sizeof(float));
+      if (!imat)
+        return(NULL);
+      for (j = 0; j < sin->ysize; j++) {
+        for (i = 0; i < sin->xsize; i++) {
+          mrc_slice_mat_getimat(sin, i, j, dim, imat);
+          val[0] = mrc_slice_mat_mult(mat, imat, dim);
+          slicePutVal(sout, i, j, val);
+        }
+      }
+      free(imat);
     }
   }
-  for (j = 0; j < dim; j++)
-    for (i = 0; i < dim; i++)
-      mat[i + j * dim] /= sum;
-}
-
-/*!
- * Fills [mat] with the coefficients of a Gaussian kernel with standard deviation 
- * [sigma].  The size of the kernel is set to 3 for [sigma] up to 1., 5 for [sigma]
- * up to 2., etc., up to the size given by [limit]. The size is returned in [dim].
- * The coefficients are scaled to sum to 1.
- */
-void scaledGaussianKernel(float *mat, int *dim, int limit, float sigma)
-{
-  *dim = 2 * (int)ceil((double)sigma) + 1;
-  *dim = B3DMIN(limit, *dim);
-  sliceGaussianKernel(mat, *dim, sigma);
+  return(sout);
 }
 
 /*!
