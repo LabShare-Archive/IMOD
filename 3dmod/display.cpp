@@ -550,7 +550,8 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
     imodError(NULL, "%s: couldn't get appropriate GL format for Qt windows.\n"
               "Check whether your OpenGL drivers are properly installed and "
               "see if\n any other OpenGL-based programs run (on Linux, try "
-              "glxgears and glxinfo)", argv[0]);
+              "glxgears and glxinfo)\nIf OpenGL drivers seem to be good, try "
+              "setting an environment variable LIBGL_ALWAYS_INDIRECT to 1", argv[0]);
     exit(3);
   }
   return visual->colorBits;
