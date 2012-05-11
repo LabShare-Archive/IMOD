@@ -47,7 +47,7 @@ QAction *utilTBToolButton(QWidget *parent, QToolBar *toolBar,
                           QToolButton **button, const char *toolTip);
 QAction *utilTBPushButton(const char *text, QWidget *parent, QToolBar *toolBar,
                           QPushButton **button, const char *toolTip);
-void utilBitListsToIcons(unsigned char *bitList[][2], QIcon *icons[], int num);
+void utilFileListsToIcons(const char *fileList[][2], QIcon *icons[], int num);
 QAction *utilSetupToggleButton(QWidget *parent, QToolBar *toolBar, 
                                QBoxLayout *layout, QSignalMapper *mapper,
                                QIcon *icons[], const char *tips[], 

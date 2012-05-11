@@ -178,9 +178,9 @@ void imodvControlStart(void)
   else
     Imodv->movie = 1;
   
-  Imodv->md->xrotm = 0;
-  Imodv->md->yrotm = 0;
-  Imodv->md->zrotm = 0;
+  Imodv->xrotMovie = 0;
+  Imodv->yrotMovie = 0;
+  Imodv->zrotMovie = 0;
   imodvDraw(Imodv);
 }
 
@@ -190,22 +190,22 @@ void imodvControlAxisButton(int axisDir)
   ImodvApp *a = Imodv;
   switch(axisDir){
   case IMODV_CONTROL_XAXIS:
-    imodv_rotate_model(a, a->md->arot, 0, 0);
+    imodv_rotate_model(a, a->deltaRot, 0, 0);
     break;
   case -IMODV_CONTROL_XAXIS:
-    imodv_rotate_model(a, -a->md->arot, 0, 0);
+    imodv_rotate_model(a, -a->deltaRot, 0, 0);
     break;
   case IMODV_CONTROL_YAXIS:
-    imodv_rotate_model(a, 0, a->md->arot, 0);
+    imodv_rotate_model(a, 0, a->deltaRot, 0);
     break;
   case -IMODV_CONTROL_YAXIS:
-    imodv_rotate_model(a, 0, -a->md->arot, 0);
+    imodv_rotate_model(a, 0, -a->deltaRot, 0);
     break;
   case IMODV_CONTROL_ZAXIS:
-    imodv_rotate_model(a, 0, 0, a->md->arot);
+    imodv_rotate_model(a, 0, 0, a->deltaRot);
     break;
   case -IMODV_CONTROL_ZAXIS:
-    imodv_rotate_model(a, 0, 0, -a->md->arot);
+    imodv_rotate_model(a, 0, 0, -a->deltaRot);
     break;
   }
   imodvDraw(Imodv);
@@ -251,7 +251,7 @@ void imodvControlAxisText(int axis, float rot)
 /* A change in the rotation rate slider*/
 void imodvControlRate(int value)
 {
-  Imodv->md->arot = value;
+  Imodv->deltaRot = value;
   /* DNM 11/3/03: do not change movie rates with new constant-speed scheme */
 }
 
@@ -299,11 +299,11 @@ void imodvControlSetArot(ImodvApp *a, int newval)
 {
   if (newval > ROTATION_MAX)
     newval = ROTATION_MAX;
-  a->md->arot = newval;
+  a->deltaRot = newval;
   /* DNM 11/3/03: do not change movie rates with new constant-speed scheme */
 
   if (dialog)
-    dialog->setRotationRate(a->md->arot);
+    dialog->setRotationRate(a->deltaRot);
 }
 
 /* Set the clipping, perspective, and z-scale sliders */
@@ -394,7 +394,7 @@ int imodv_control(ImodvApp *a, int state)
 
   lastX = lastY = lastZ = lastScale = -999.;
   imodvControlUpdate(a);
-  imodvControlSetArot(a, a->md->arot);
+  imodvControlSetArot(a, a->deltaRot);
   imodvControlSetView(a);
   dialog->setSpeedText(a->movieSpeed);
     
