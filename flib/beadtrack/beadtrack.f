@@ -950,7 +950,7 @@ c
         call setsiz_sam_cel(4, nxpad, nypad, 1)
 C         
         call time(tim)
-        call date(dat)
+        call b3ddate(dat)
         write(titlech,301) dat,tim
 301     FORMAT('Boxes',32x,a9,2x,a8)
         read(titlech,'(20a4)')(title(kti),kti=1,20)
@@ -1341,7 +1341,7 @@ c
                     ifrotrans=1
                   endif
                   maxDrop = nint(0.26 * ndatFit)
-                  if (ndatFit .lt. 3 .or. ifdidalign.eq.0) maxDrop = 0
+                  if (ndatFit .lt. 4 .or. ifdidalign.eq.0) maxDrop = 0
                   call findxf_wo_outliers(xr,ndatFit,xcen,ycen,iftrans,
      &                ifrotrans,maxDrop, outlieCrit,outlieCritAbs,
      &                outlieElimMin,idrop,nDrop,xf, devavg,devsd,
@@ -1543,7 +1543,7 @@ c
                 ifrotrans=1
               endif
               maxDrop = nint(0.26 * ndat)
-              if (ndat .lt. 3 .or. ifdidalign.eq.0) maxDrop = 0
+              if (ndat .lt. 4 .or. ifdidalign.eq.0) maxDrop = 0
               call findxf_wo_outliers(xr,ndat,xcen,ycen,iftrans,
      &            ifrotrans,maxDrop, outlieCrit,outlieCritAbs,
      &            outlieElimMin,idrop,nDrop,xf, devavg,devsd,

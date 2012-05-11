@@ -46,17 +46,22 @@ c
 c         if enough views, set up for solving tilt axis and tilt
 c         angles depending on range of tilt angles
 c         reload tilt from nominal angles to get the increments right
+c         Find minimum tilt for this angle range
 c         
         tltslvmin=1.e10
         tltslvmax=-1.e10
+        rsum = 1.e10
         do iv=1,nview
           ang=tltall(mapViewToFile(iv))
           tltslvmin=min(tltslvmin,ang)
           tltslvmax=max(tltslvmax,ang)
           tilt(iv) = dtor * ang
+          if (abs(ang) .lt. rsum) then
+            rsum = abs(ang)
+            imintiltsolv = iv
+          endif
         enddo
         tltran=tltslvmax-tltslvmin
-        imintiltsolv=mapFileToView(imintilt)
         ifrotfix=0
         if(tltran.lt.randoaxis)ifrotfix=imintiltsolv
         ifmaptilt=1

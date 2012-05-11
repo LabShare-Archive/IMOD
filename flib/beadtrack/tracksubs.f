@@ -679,7 +679,7 @@ c         the values implied by the mean and the SD of the deviations
 c         
         sigfromavg=devavg/sqrt(8./3.14159)
         sigfromsd=devsd/sqrt(3.-8./3.14159)
-        sigma=max(sigfromavg,sigfromsd)
+        sigma=max(sigfromavg,sigfromsd,1.e-10)
 
         nkeep=0
         do j=ndat-jdrop+1,ndat
