@@ -142,10 +142,8 @@ To build and install IMOD for general use:
 
 3. "make install"
 
-4. "installqtlib" to copy install files to install directory.  If you
-   ran "setup" initially with the -packqt flag (which you should do if you 
-   built against a Qt library not on the users' library path), "installqtlib"
-   will also copy the Qt library.
+4. "installqtlib" to copy install files to the install directory, as well as
+   Qt libraries and other libraries needed for a distribution.
 
 The last step can be skipped for a personal installation in the source
 directory, as long as all libraries used are on your LD_LIBRARY_PATH.
