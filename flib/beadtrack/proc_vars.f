@@ -3,13 +3,12 @@ c       rotation, tilt, mag, etc.  It fills the VAR array and
 c       the different variable and mapping arrays.
 c       
 c       $Id$
-c       Log at end
 c       
       subroutine proc_vars(ifmaptilt,ireftilt,var, nvarsrch)
 c       
+      use tltcntrl
+      use mapsep
       implicit none
-      include 'alivar.inc'
-      include 'tltcntrl.inc'
 
       real*4 var(*)
       integer*4 ifmaptilt
@@ -18,10 +17,6 @@ c
       integer*4 i,iview,iv,nvarang,iflin,iref1,maptest
       real*4 dtor/0.0174532/
       character*8 varname(maxview)
-c       
-      integer*4 ivsep(maxview,maxgrp),nsepingrp(maxgrp),ngsep
-      common /mapsep/ ivsep,nsepingrp,ngsep
-c       
 c       
 c       Remap the separate group information for the current views
 c       
@@ -147,20 +142,3 @@ c
       beamTilt = 0.
       return
       end
-c       
-c       $Log$
-c       Revision 3.5  2007/05/03 23:53:12  mast
-c       Adjusted to change in projection stretch
-c
-c       Revision 3.4  2007/02/19 20:50:23  mast
-c       Changes for beam tilt and grouping improvements in tiltalign
-c
-c       Revision 3.3  2005/04/10 18:15:10  mast
-c       Changes for elimination of global rotation variable
-c       
-c       Revision 3.2  2005/04/07 03:56:31  mast
-c       New version with local tracking, new mapping, outliers, etc.
-c       
-c       Revision 3.1  2004/10/24 22:33:59  mast
-c       Chnages for projection stretch variables and new rotation stuff (?)
-c       

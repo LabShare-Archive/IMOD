@@ -11,11 +11,11 @@ c
 c       David Mastronarde  March 1989
 c       
 c       $Id$
-c       Log and history at end of file
+c       Really old history at end of file
 c
 c       MEMORY ANALYSIS:
 c       
-c       Variables in alivar.inc:
+c       Variables in alivar:
 c       5 * 4 * maxprojpt
 c       33 * 4 * maxview
 c       4 * 4 * maxreal
@@ -35,8 +35,8 @@ c
 c       Note: IF MAXVAR IS NOT BIGGER THAN MAXMETRO, NEED TO DIMENSION
 c       var to maxmetro
 c       
+      use alivar
       implicit none
-      include 'alivar.inc'
       integer maxvar,maxmetro
       parameter (maxvar=7*maxview)
       parameter (maxmetro=3700)
@@ -1511,155 +1511,6 @@ c
       call exit(1)
       end
 
-c       
-c       $Log$
-c       Revision 3.44  2009/11/21 22:19:19  mast
-c       Report mean residual for each contour in 3D table
-c
-c       Revision 3.43  2009/10/23 02:15:06  mast
-c       Provided output of tilt angles before beam tilt adjustment and fixed
-c       potential shortcircuit evaluation problems.
-c
-c       Revision 3.42  2009/10/06 02:30:38  mast
-c       Output rotation angle at minimum tilt
-c
-c       Revision 3.41  2008/12/12 00:47:36  mast
-c       Call find_surfaces with binnig and z shift
-c
-c       Revision 3.40  2008/11/02 13:51:25  mast
-c       Call new function for converting angles for beam tilt
-c
-c       Revision 3.39  2008/07/06 23:39:03  mast
-c       Eliminated former total unknown ratio
-c
-c       Revision 3.38  2008/03/05 00:34:05  mast
-c       Increased maxmetro to go along with increase in maxreal
-c
-c       Revision 3.37  2007/12/12 17:20:08  mast
-c       Had to add mapalfend to two calls to input_vars
-c
-c       Revision 3.36  2007/12/11 22:23:17  mast
-c       Removed X tilt/rotation warning if solving for only one X-tilt variable
-c
-c       Revision 3.35  2007/11/18 04:57:10  mast
-c       Redeclared concat at 320
-c
-c       Revision 3.34  2007/05/03 23:58:50  mast
-c       Switched from projection stretch to projection skew
-c
-c       Revision 3.33  2007/03/08 23:48:57  mast
-c       Enforced minimum of 2 x 2 local areas, adjusted arguments to runMetro
-c
-c       Revision 3.32  2007/03/05 22:30:43  mast
-c       Changed initial beam tilt option
-c
-c       Revision 3.31  2007/02/19 21:13:25  mast
-c       Changes for beam tilt solving by variable fitting and by one-dimensional
-c       search; added option of specifying target size of local areas; made
-c       local fits drop views with no points; made number of views in groups
-c       depend on the number of points in views
-c
-c       Revision 3.30  2006/07/18 00:10:20  mast
-c       Fixed formatting in errorexit and output global and local area # and
-c       local area mean and range for mean residuals
-c       
-c       Revision 3.29  2005/10/11 21:38:47  mast
-c       Updated PIP fallback options
-c       
-c       Revision 3.28  2005/07/01 19:45:27  mast
-c       Chnaged formats to allow bigger variable/measurement totals
-c       
-c       Revision 3.27  2005/07/01 19:34:35  mast
-c       Added correct ratio of measurements to unknowns
-c       
-c       Revision 3.26  2005/06/26 19:51:54  mast
-c       Added a blank line after residual output before exiting (?)
-c       
-c       Revision 3.25  2005/06/09 19:20:18  mast
-c       Added image binned option so that Z shift can be entered unbinned
-c       
-c       Revision 3.24  2005/04/20 16:26:51  mast
-c       Added a success message after the restart messages
-c       
-c       Revision 3.23  2005/04/20 04:46:05  mast
-c       Converted WARNINGS to messages for metro errors until trials all fail
-c       
-c       Revision 3.22  2005/04/15 22:39:44  mast
-c       Fixed sign in computation of xzOther
-c       
-c       Revision 3.21  2005/03/14 06:05:54  mast
-c       Increased maxmetro limit
-c       
-c       Revision 3.20  2005/02/16 06:43:10  mast
-c       Added image size to fid.xyz output file for solvematch to use
-c       
-c       Revision 3.19  2004/10/24 22:38:13  mast
-c       Fixed a line length - forgot to say changes to compute the image
-c       transformations more robustly and to put out Z factors
-c       
-c       Revision 3.18  2004/10/24 22:30:27  mast
-c       Converted to PIP input
-c       
-c       Revision 3.17  2004/10/08 17:29:57  mast
-c       Eliminated manual info
-c       
-c       Revision 3.16  2004/10/08 17:27:14  mast
-c       Fixed failure to get both model and residual output with a filename
-c       containing a period.
-c       
-c       Revision 3.15  2004/09/16 16:12:30  mast
-c       Made it try new metro factors upon error; switched to opening
-c       fid.xyz only when ready to write it.
-c       
-c       Revision 3.14  2004/07/16 23:24:21  mast
-c       Added pixel size to local alignment file
-c       
-c       Revision 3.13  2004/06/10 05:39:18  mast
-c       Output pixel size in fiducial file
-c       
-c       Revision 3.12  2004/05/21 20:06:34  mast
-c       Put out iteration limit error as a formal WARNING
-c       
-c       Revision 3.11  2004/05/07 23:41:21  mast
-c       Fixed problem with Z shift being setto zero
-c       
-c       Revision 3.10  2004/05/05 05:50:26  mast
-c       Output real 3D coordinates, fix bug in getting local residuals,
-c       and finally added +/-10% to the messages about metro factor
-c       
-c       Revision 3.9  2003/10/24 03:31:54  mast
-c       remove tab from label scanned by alignlog
-c       
-c       Revision 3.8  2003/10/03 00:59:07  mast
-c       Changed terminology to refered to tilt angle offset
-c       
-c       Revision 3.7  2003/01/30 20:54:51  mast
-c       Made fields for residuals bigger, amplified IER error messages
-c       
-c       Revision 3.6  2002/12/21 00:00:33  mast
-c       Add ability to get both residual output and 3D model
-c       
-c       Revision 3.5  2002/10/17 23:18:31  mast
-c       Added proper error message and exit for minimum number of beads too
-c       high in local alignments
-c       
-c       Revision 3.4  2002/07/28 23:02:54  mast
-c       Needed to declare lnblnk for SGI
-c       
-c       Revision 3.3  2002/07/28 22:42:35  mast
-c       Changes to output a residual listing file and to standardize error
-c       exits and output
-c       
-c       Revision 3.2  2002/05/09 03:48:38  mast
-c       Fixed a line length that did not compile on SGI
-c       
-c       Revision 3.1  2002/05/07 02:05:19  mast
-c       Changes to handle subset of views better: output of transforms and
-c       tilt angles for all views in file, and interpretation of user input
-c       and all output in terms of view numbers in file rather than in
-c       program.  Also changed the surface analysis output to make it more
-c       understandable and machine readable.
-c       
 c       5/19/89 added model output, changed format of output table
 c       6/21/89 added mean residual output to find_surfaces, changed to
 c       get recommendation on maximum FIXED tilt angle

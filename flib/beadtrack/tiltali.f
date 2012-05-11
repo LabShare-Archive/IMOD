@@ -1,11 +1,10 @@
 c       $Id$
-c       Log at end
 c       
-      subroutine tiltali(ifdidalign,ifAlignDone,resmean,ibaseRes,ibaseOnAlign,
-     &    iview)
+c       Routine to run the tiltalign operation
+c
+      subroutine tiltali(ifdidalign,ifAlignDone,resmean,ibaseRes,ibaseOnAlign, iview)
+      use tltcntrl
       implicit none
-      include 'alivar.inc'
-      include 'tltcntrl.inc'
       include 'smallmodel.inc'
 c       
 c       IF MAXVAR IS NOT BIGGER THAN MAXMETRO, NEED TO DIMENSION
@@ -271,36 +270,3 @@ c$$$	  enddo
       endif
       return
       end
-
-c       
-c       $Log$
-c       Revision 3.11  2008/06/22 20:50:14  mast
-c       Changed to manage items for caller when align is done
-c
-c       Revision 3.10  2008/06/21 19:26:04  mast
-c       Unscaled xyz so it can be used for find_surfaces without worry
-c
-c       Revision 3.9  2008/03/05 00:32:18  mast
-c       Increased maxmetro and put h in common
-c
-c       Revision 3.8  2007/02/19 20:50:23  mast
-c       Changes for beam tilt and grouping improvements in tiltalign
-c
-c       Revision 3.7  2006/06/29 04:53:31  mast
-c       Set up to use small model
-c
-c       Revision 3.6  2006/01/26 05:50:04  mast
-c       Made it restart on too many cycle error also
-c
-c       Revision 3.5  2005/04/10 18:06:21  mast
-c       Actually changed metro factor on repeats
-c	
-c       Revision 3.4  2005/04/07 03:56:31  mast
-c       New version with local tracking, new mapping, outliers, etc.
-c	
-c       Revision 3.2  2003/04/11 17:29:33  mast
-c       Added declarations for implicit none, added cgx, cgy to tltcntrl
-c	
-c       Revision 3.1  2002/07/28 22:56:54  mast
-c       Stadardize error output
-c	

@@ -29,12 +29,11 @@ c       view matches the centroid of the projection of the real-space
 c       points.  ANGLES ARE EXPECTED TO BE RADIANS.
 c       
 c       $Id$
-c       Log at end of file
 c       
       subroutine funct(nvarsrch,var,ferror,grad)
 c       
+      use alivar
       implicit none
-      include 'alivar.inc'
       integer ms
       parameter (ms=maxview)
 c       
@@ -601,8 +600,8 @@ c***    REMAP_PARAMS returns the complete set of geometric variables based
 c       on the current values of the search parameters.
 
       subroutine remap_params(varlist)
+      use alivar
       implicit none
-      include 'alivar.inc'
 c       
       real*4 varlist(*)
       real*4 sum,varsave
@@ -724,28 +723,3 @@ c
       f = tmp(6)
       return
       end
-
-
-c       $Log$
-c       Revision 3.6  2007/05/04 00:02:54  mast
-c       Switched from projection stretch to skew between estimated scope axes
-c
-c       Revision 3.5  2007/02/19 21:07:52  mast
-c       Added beam tilt and changed matrix sizes to accommodate
-c
-c       Revision 3.4  2005/04/10 18:02:50  mast
-c       Eliminated global rotation variable due to ineffectiveness in finding
-c       angle for some small tilt range situations with mappings
-c       
-c       Revision 3.3  2004/10/24 22:28:52  mast
-c       Changed handling of rotation variables, added projection stretch,
-c       made subroutines for filling matrices
-c       
-c       Revision 3.2  2004/10/09 23:51:12  mast
-c       Switched to matrix formulation to simplify code, speeded up
-c       computation 2-fold by saving intermediate residual products for
-c       gradients, added declarations.
-c       
-c       Revision 3.1  2002/07/28 22:39:19  mast
-c       Standardized error exit and output
-c       
