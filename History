@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/11/12: Parallelized clip smooth with OpenMP and made it use a much faster
+routine for a float input data.
+
 5/11/12: Fixed Tiltalign array sizes that allowed less than 1440 views
 (In 4.5).
 
