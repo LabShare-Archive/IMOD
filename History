@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/11/12: Fixed Tiltalign array sizes that allowed less than 1440 views
+(In 4.5).
+
 5/11/12: Stopped Beadtrack from trying to do outlier removal with 3 points and
 fixed an initialization problem (In 4.5).
 

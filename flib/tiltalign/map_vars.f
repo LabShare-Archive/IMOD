@@ -39,7 +39,9 @@ c
      &    defval,name,var,varname,nvarsrch,mapviewtofile)
       implicit none
       integer*4 mapgmag(*),maplist(*),lingmag(*),mapviewtofile(*)
-      integer*4 mapvarno(720)
+      integer maxview
+      parameter (maxview=1440)
+      integer*4 mapvarno(maxview)
       real*4 gmag(*),var(*),frcgmag(*)
       character*(*) varname(*),name
       real*4 fixedgmag,fixedgmag2,defval
@@ -334,7 +336,7 @@ c       NINTHRESH is zero, the contents of NINVIEW are ignored.
       integer*4 mapfiletoview(*), ninThresh
       integer*4 ivspecstrin(*),ivspecendin(*),nmapspecin(*)
       integer maxview,maxgrp
-      parameter (maxview=720,maxgrp=20)
+      parameter (maxview=1440,maxgrp=20)
       integer*4 ivspecstr(maxgrp),ivspecend(maxgrp),nmapspec(maxgrp)
       integer*4 inran(maxview)
       integer*4 ivsep(maxview,maxgrp),nsepingrp(maxgrp),ngsep
