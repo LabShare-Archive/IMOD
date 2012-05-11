@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/11/12: Fixed output of filtered file from Imodfindbeads (In 4.5).
+
 5/9/12: Fixed 3dmod loading of RGB data with binning in X/Y (In 4.5).
 
 5/7/12: IMOD_4-5-2
