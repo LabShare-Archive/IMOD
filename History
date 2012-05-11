@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/11/12: Fixed output of filtered file from Imodfindbeads (In 4.5).
+5/11/12: Stopped Beadtrack from trying to do outlier removal with 3 points and
+fixed an initialization problem (In 4.5).
+
+5/11/12: Fixed Imodfindbeads crash when outputting filtered file (In 4.5).
 
 5/9/12: Fixed 3dmod loading of RGB data with binning in X/Y (In 4.5).
 
