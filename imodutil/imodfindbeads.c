@@ -468,7 +468,7 @@ int main( int argc, char *argv[])
                 writeSlice[ix + nxout * iy] = 
                   corrSlice[ix + nxpdim * iy - (nxpad - nxout) / 2];
           }
-          if (mrc_write_slice(writeSlice, outfp, &outhead, iz - izst, 'z'))
+          if (mrc_write_slice(writeSlice, outfp, &outhead, iz - zlist[izst], 'z'))
             exitError("Writing filtered image for section %d", iz);
           for (iy = 0; iy < nyout; iy++) {
             tsum = 0.;
