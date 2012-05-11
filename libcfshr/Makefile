@@ -2,7 +2,7 @@
 # Makefile for libcfshr
 #
 # $Id$
-# Use cvs-show-log to extract log
+# Use hg-show-log to extract log
 #
 include ../configure
 
@@ -29,6 +29,10 @@ zoomdown.$(O) : zoomdown.c
 	$(CC) $(CFLAGS) $(OPENMP) -c zoomdown.c
 b3dutil.$(O) : b3dutil.c
 	$(CC) $(CFLAGS) $(OPENMP) -c b3dutil.c
+filtxcorr.$(O) : filtxcorr.c
+	$(CC) $(CFLAGS) $(OPENMP) -c filtxcorr.c
+scaledsobel.$(O) : scaledsobel.c
+	$(CC) $(CFLAGS) $(OPENMP) -c scaledsobel.c
 
 $(LIBI) : $(UTILOBJS) $(PIPOBJS)
 	$(FIND) . -type f -name $(LIBI) -exec rm "{}" \;
