@@ -394,6 +394,7 @@ c           size = 2 * max(0, diameter - 3) + 32
         ierr = PipGetInteger('MinBeadsInArea', minInArea)
         if (ifLocalArea .ne. 0)
      &      ierr = PipGetInteger('MaxBeadsInArea', limInArea)
+        limInArea = min(limInArea, maxreal)
         ierr = PipGetInteger('MinOverlapBeads', minBeadOverlap)
         ierr = PipGetInteger('RoundsOfTracking', nround)
         ierr = PipGetInteger('MaxBeadsToAverage', maxsum)
@@ -479,7 +480,7 @@ c
       nypad=niceframe(nybox+2*npad, 2, 19)
       npixbox=nxbox*nybox
       nxpdim=nxpad+2
-      if (npixbox .gt. maxbox**2 .or. nxpad * nxpdim .gt. maxarr) call
+      if (npixbox .gt. maxbox**2 .or. nypad * nxpdim .gt. maxarr) call
      &    errorexit('BOX SIZE TOO LARGE FOR ARRAYS - TRY BINNING INPUT DATA',0)
       if (sigma1 .ne. 0 .or. radius2 .ne. 0) call setctfwsr
      &    (sigma1,sigma2,radius1,radius2,ctf,nxpad,nypad,deltactf)
