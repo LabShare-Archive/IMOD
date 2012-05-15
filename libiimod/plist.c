@@ -222,7 +222,7 @@ int iiPlistLoadF(FILE *fin, IloadInfo *li, int nx, int ny, int nz)
  * Returns -4 for bad arguments, -5 for a memory error, 1 if it is not a 
  * montage or the number of sections does not match, 2 if there are not piece
  * coordinates for every sections, and -3, -2, or -1 for an 
- * error in @autodoc.html#AdocOpenImageMetadata .
+ * error in @@autodoc.html#AdocOpenImageMetadata@.
  */
 int iiPlistFromMetadata(const char *filename, int addMdoc, IloadInfo *li, int nx, 
                         int ny, int nz)
