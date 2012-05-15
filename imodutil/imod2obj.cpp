@@ -24,9 +24,9 @@
 //## GLOBAL VARIABLES:
 
 static int  numObjs     = 0;		// tallies the number of objects turned on
-static long numVertices = 0;		// tallies the number of vertex points added
-static long numFaces    = 0;		// tallies the number of faces added
-static long numNormals  = 0;		// tallies the number of normals added
+static int  numVertices = 0;		// tallies the number of vertex points added
+static int  numFaces    = 0;		// tallies the number of faces added
+static int  numNormals  = 0;		// tallies the number of normals added
 static int  numSpheres  = 0;		// tallies the number of spheres printed
 
 static int lowRes         = 0;		// if we want to use low res version
@@ -343,7 +343,7 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
     }
 		
 		//## OUTPUT VERTEXES (POINTS):
-		long fVert = numVertices;					// first vertex in this group
+		int fVert = numVertices;					// first vertex in this group
 		for(i = 0; i < mesh->vsize; i+=2)
 		{
 			vert = mesh->vert[i];
@@ -355,7 +355,7 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
 		}
 		
 		//## OUTPUT NORMALS (IF SPECIFIED):
-		long fNorm = numNormals;					// first normal in this group
+		int fNorm = numNormals;					// first normal in this group
 		if (printNormals)
 		{
 			fprintf(fout,"\n");
@@ -498,7 +498,7 @@ static void printSphere(Ipoint pt, float radius, int segments, FILE *fout)
 	fprintf(fout,"v %.5g %.5g %.5g\n", pt.x, pt.y-radius, pt.z );		// bottom vertex
 	numVertices++;
 	
-	long fVert = numVertices;
+	int fVert = numVertices;
 	for(p=1; p<nPitch; p++)			// generate all "intermediate vertices":
 	{
 		float out = abs( radius * sin( p * pitchInc ) );
@@ -533,7 +533,7 @@ static void printSphere(Ipoint pt, float radius, int segments, FILE *fout)
 	
 	//## PRINT TRIANGLE FACES CONNECTING TO TOP AND BOTTOM VERTEX:
 	
-	long offLastVerts  = fVert + (segments * (nPitch-2) );
+	int offLastVerts  = fVert + (segments * (nPitch-2) );
 	for(s=0; s<segments; s++)
 	{
 		j = (s==segments-1) ? -1 : s;

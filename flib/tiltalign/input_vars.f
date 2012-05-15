@@ -3,20 +3,18 @@ c       rotation, tilt, mag, compression, X stretch, skew, and X axis tilt.
 c       It fills the VAR array and the different variable and mapping arrays.
 c       
 c       $Id$
-c       Log at end
 c       
       subroutine input_vars(var,varname,inputalf,nvarsrch,nvarang,
      &    nvarscl, imintilt,ncompsrch,iflocal,maptiltstart, mapalfstart,
      &    mapalfend, ifBTSearch,tiltorig,tiltadd, pipinput, xyzfixed, ninview,
      &    ninThresh) 
+      use alivar
+      use mapsep
       implicit none
       integer*4 inputalf,nvarsrch,nvarang,nvarscl, imintilt,ncompsrch
       integer*4 iflocal,maptiltstart,mapalfstart, ifBTSearch,ninview(*)
       integer*4 ninThresh, mapalfend
       logical pipinput,xyzfixed
-      include 'alivar.inc'
-      integer maxgrp
-      parameter (maxgrp=20)
       character*8 varname(*)
       real*4 var(*),tiltorig(*),tiltadd
       integer*4 maplist(maxview),maplrot(maxview),mapltilt(maxview)
@@ -33,8 +31,6 @@ c
       integer*4 nmapDefDist(2),nRanSpecDist(2),nmapSpecDist(maxgrp,2)
       integer*4 ivSpecStrDist(maxgrp,2),ivSpecEndDist(maxgrp,2)
 c       
-      integer*4 ivsep(maxview,maxgrp),nsepingrp(maxgrp),ngsep
-      common /mapsep/ ivsep,nsepingrp,ngsep
       character*8 dump(8)
       character*10 distmp,disttext(3)
       data disttext/'distortion','X stretch ','axis skew '/
@@ -1036,9 +1032,9 @@ c             &    varlast, var(index, mapa2l(ioutNext)), var(index, iout)
 c       Finds the nearest existing view to the given file view number
 c
       integer*4 function nearest_view(iview)
+      use alivar
       implicit none
       integer*4 iview,ivdel
-      include 'alivar.inc'
       if(iview.gt.nfileviews.or.iview.le.0)then
         print *,'View',iview,' is beyond the known range of the file'
         call exit(1)
@@ -1123,68 +1119,3 @@ c
       enddo
       return
       end
-
-c       2/16/07: removed filetoview function that errored on nonexistent views
-
-c       $Log$
-c       Revision 3.19  2009/10/09 17:28:58  mast
-c       Fixed mapping for compression and made the default reference view be 1
-c
-c       Revision 3.18  2007/12/11 22:23:11  mast
-c       Removed X tilt/rotation warning if solving for only one X-tilt variable
-c
-c       Revision 3.17  2007/11/18 04:57:10  mast
-c       Redeclared concat at 320
-c
-c       Revision 3.16  2007/05/04 00:00:18  mast
-c       Only allocate one variable for projection stretch and store the rotation
-c       angle needed for that in common
-c
-c       Revision 3.15  2007/03/05 22:30:54  mast
-c       Changed initial beam tilt option
-c
-c       Revision 3.14  2007/02/19 21:09:41  mast
-c       Changes for beam tilt and for mapping depending on # of points in view
-c
-c       Revision 3.13  2005/04/10 18:05:43  mast
-c       Eliminated global rotation variable and associated complications
-c       
-c       Revision 3.12  2005/03/28 22:52:13  mast
-c       Called function for remapping separate groups, fixed this not being
-c       done for PIP input
-c       
-c       Revision 3.11  2005/03/25 20:10:47  mast
-c       Fixed problems with mapping rotation variables in blocks or linearly
-c       with a fixed angle
-c       
-c       Revision 3.10  2004/10/24 22:49:34  mast
-c       fixed line length and lnblnk declaration problems
-c       
-c       Revision 3.9  2004/10/24 22:29:44  mast
-c       Changes for pip input and projection stretch
-c       
-c       Revision 3.8  2004/06/24 15:38:51  mast
-c       Changed calls to map_vars to be compatible with PIP-input version
-c       
-c       Revision 3.7  2004/05/05 05:45:11  mast
-c       Fixed some uninitialized variables
-c       
-c       Revision 3.6  2003/10/03 00:59:21  mast
-c       Changed terminology to refered to tilt angle offset
-c       
-c       Revision 3.5  2003/06/21 00:48:41  mast
-c       Switch to new version of get_tilt_angles that can use PIP
-c       
-c       Revision 3.4  2002/12/20 23:58:39  mast
-c       Fix variable mapping output when one rotation is fixed, and add
-c       option to fix all rotations
-c       
-c       Revision 3.3  2002/07/28 22:38:35  mast
-c       Standardized error exit and output
-c       
-c       Revision 3.2  2002/05/09 03:53:18  mast
-c       Fixed some line lengths that would not compile on SGI
-c       
-c       Revision 3.1  2002/05/07 02:06:30  mast
-c       Changes to make things work well with a subset of views
-c       

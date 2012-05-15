@@ -7,7 +7,6 @@
  * Colorado.  See dist/COPYRIGHT for full notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include <stdlib.h>
@@ -32,17 +31,21 @@
  * ^  [scaleFac] - overall amount by which image is being scaled down (a value 
  * < 1 will scale an image up).
  * ^  [minInterp] - minimum amount of this scaling to be done by interpolation.
- * ^  [linear] - set nonzero to use linear rather than cubic interpolation
+ * ^  [linear] - set to 1 to use linear rather than cubic interpolation, or to
+ * -1 to use @zoomFiltInterp instead of binning followed by @cubinterp
  * ^  [center] - weighting of center pixel, 2 for Sobel or 1 for Prewitt filter
  * ^  [outImage] - output image
  * ^  [nxout], [nyout] - returned with size of output image
  * ^  [xOffset], [yOffset] - coordinate offset in output image: 
  * ^     input_coord = output_coord * scalingFactor + xOffset ^
- * The return value is 1 for a failure to allocate a temporary array.  ^
+ * The return value is 1 for a failure to allocate a temporary array, or the return
+ * value from zoomdown if it gives an error.  ^
  * If [inImage] is NULL or [center] < 0, the function will compute the output
  * sizes and offsets and return.  ^
  * If [center] is 0, the scaled image is computed and returned without Sobel 
  * filtering. ^
+ * The filtering operation is parallized with OpenMP with the same limitation on
+ * number of threads as used in @cubinterp  ^
  * The call from Fortran is the same as that from C.
  */
 int scaledSobel(float *inImage, int nxin, int nyin, float scaleFac, 
@@ -51,19 +54,21 @@ int scaledSobel(float *inImage, int nxin, int nyin, float scaleFac,
 {
   float interpScale = scaleFac;
   int binning = 1;
-  int nxbin, nybin, nxo, nyo, i, j, ind;
+  int nxbin, nybin, nxo, nyo, i, j, ind, numThreads;
   float scale, edge, amat[2][2];
-  double Sr, Sc;
+  double Sr, Sc, wallStart, terpTime;
   float *tmpImage, *srcImage, *dest;
   size_t xysize;
   
   // Determine the split between binning and interpolation
-  for (i = 2; i < 100; i++) {
-    scale = scaleFac / i;
-    if (scale < 1. || scale < minInterp)
-      break;
-    interpScale = scale;
-    binning = i;
+  if (linear >= 0) {
+    for (i = 2; i < 100; i++) {
+      scale = scaleFac / i;
+      if (scale < 1. || scale < minInterp)
+        break;
+      interpScale = scale;
+      binning = i;
+    }
   }
 
   // Get binned size, offset from binning (0,0 if no binning)
@@ -84,7 +89,14 @@ int scaledSobel(float *inImage, int nxin, int nyin, float scaleFac,
   if (!inImage || center < 0.)
     return 0;
 
+  if (linear < 0) {
+    ind = selectZoomFilter(4, 1. / interpScale, &i);
+    if (ind)
+      return ind;
+  }
+
   // Get a temporary image of needed size
+  wallStart = wallTime();
   xysize = binning > 1 ? nxbin * nybin : nxo * nyo;
   tmpImage = (float *)malloc(xysize * sizeof(float));
   if (!tmpImage) 
@@ -103,8 +115,19 @@ int scaledSobel(float *inImage, int nxin, int nyin, float scaleFac,
   edge = (float)sliceEdgeMean(srcImage, nxbin, 0, nxbin - 1, 0, nybin - 1);
   amat[0][0] = amat[1][1] = 1. / interpScale;
   amat[0][1] = amat[1][0] = 0.;
-  cubinterp(srcImage, dest, nxbin, nybin, nxo, nyo, amat, nxbin / 2.,
-            nybin / 2., 0., 0., 1., edge, linear);
+  if (linear >= 0 || scaleFac <= 1.) {
+    cubinterp(srcImage, dest, nxbin, nybin, nxo, nyo, amat, nxbin / 2.,
+              nybin / 2., 0., 0., 1., edge, linear);
+  } else {
+    i = zoomFiltInterp(srcImage, dest, nxbin, nybin, nxo, nyo, nxbin / 2.,
+                   nybin / 2., 0., 0., edge);
+    if (i) {
+      free(tmpImage);
+      return i;
+    }
+  }
+  terpTime = wallTime() - wallStart;
+  wallStart = wallTime();
 
   // If binned, copy data back to temp
   if (binning > 1) {
@@ -120,6 +143,11 @@ int scaledSobel(float *inImage, int nxin, int nyin, float scaleFac,
   }
 
   // Do the sobel/prewitt filter on interior pixels
+  numThreads = B3DNINT(0.04 * sqrt((double)nxo * nyo));
+  numThreads = numOMPthreads(numThreads);
+#pragma omp parallel for num_threads(numThreads)                    \
+  shared(tmpImage, center, nxo, nyo, outImage)  \
+  private(j, i, ind, Sr, Sc)
   for (j = 1; j < nyo - 1; j++) {
     for (i = 1; i < nxo - 1; i++) {
       ind = i + j * nxo;
@@ -133,14 +161,14 @@ int scaledSobel(float *inImage, int nxin, int nyin, float scaleFac,
          tmpImage[ind-nxo-1]);
       outImage[ind] = (float)sqrt(Sr * Sr + Sc * Sc);
     }
-  }
 
-  // Copy edge pixels
-  for (j = 1; j < nyo - 1; j++) {
+    // Copy edge pixels
     outImage[j*nxo] = outImage[j*nxo + 1];
     outImage[j*nxo + nxo - 1] = outImage[j*nxo + nxo - 2];
   }
+  printf("interp time = %.1f   sobel time = %.1f\n", 1000. * terpTime, 1000. * (wallTime() - wallStart));
 
+  // Copy top/bottom edge pixels
   for (i = 0; i < nxo; i++) {
     outImage[i] = outImage[i + nxo];
     outImage[i + nxo * (nyo - 1)] = outImage[i + nxo * (nyo - 2)];
@@ -156,17 +184,3 @@ int scaledfwrap(float *inImage, int *nxin, int *nyin, float *scaleFac,
   return (scaledSobel(inImage, *nxin, *nyin, *scaleFac, *minInterp, *linear,
                       *center, outImage, nxout, nyout, xOffset, yOffset));
 }
-
-/*
-
-$Log$
-Revision 1.3  2007/11/22 20:55:31  mast
-Center = 0 for no filtering
-
-Revision 1.2  2007/10/14 18:03:09  mast
-Got it working
-
-Revision 1.1  2007/10/01 15:26:05  mast
-Preliminary checkin - untested
-
-*/

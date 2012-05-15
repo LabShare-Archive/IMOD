@@ -1,12 +1,24 @@
-      integer maxview,maxprojpt,maxreal
-      parameter (maxview=1440)
+c       Modules for alignment variables shared by tiltalign and beadtrack
+c
+c       $Id$
+c       
+c       Array size limits: in one place!
+      module arraymaxes
+      implicit none
+      integer maxgrp,maxview
+      parameter (maxgrp=20,maxview=1440)
+      integer maxprojpt,maxreal
       parameter (maxprojpt=140000,maxreal=1000)
+      end module arraymaxes
+
+c       Main alignment variables
+      module alivar
+      use arraymaxes
+      implicit none
 c       
       real*4 xx(maxprojpt),yy(maxprojpt),xyz(3,maxreal),dxy(2,maxview)
       real*4 xresid(maxprojpt),yresid(maxprojpt)
       integer*4 nrealpt,isecview(maxprojpt),irealstr(maxreal)
-      common /points/nrealpt,isecview,irealstr,xx,yy,xyz,dxy
-     &    ,xresid,yresid
 c       
       integer*4 maptilt(maxview),mapgmag(maxview),mapcomp(maxview)
       integer*4 mapdmag(maxview),mapskew(maxview),maprot(maxview)
@@ -24,17 +36,15 @@ c
       real*4 fixedtilt2,fixedrot,fixedalf,projStrRot,projSkew,beamTilt
       integer*4 mapviewtofile(maxview),mapfiletoview(maxview)
       integer*4 nfileviews,mapProjStretch,mapBeamTilt
-      common /tltvar/nview,ifrotfix,mapdmagstart,mapdumdmag,
-     &    dumdmagfac,ifanyalf,rot,tilt,comp,gmag,dmag,skew,alf,mapalf,
-     &    maptilt,mapgmag,mapcomp,mapdmag,mapskew,maprot,tiltinc,
-     &    lintilt,lingmag,lincomp,lindmag,linskew,linrot,linalf,
-     &    frctilt,frcgmag,frccomp,frcdmag,frcskew,frcrot,frcalf,
-     &    fixedtilt,fixedgmag,fixedcomp,fixeddmag,fixedskew,
-     &    fixedtilt2,fixedrot,fixedalf,mapviewtofile,mapfiletoview,
-     &    nfileviews,mapProjStretch,projStrRot,projSkew,beamTilt,mapBeamTilt
 c       
       real*4 glbrot(maxview),glbtilt(maxview),glbalf(maxview)
       real*4 glbgmag(maxview),glbdmag(maxview),glbskew(maxview)
       integer*4 incrgmag,incrdmag,incrskew,incrtilt,incralf,incrrot
-      common /glbvar/incrgmag,incrdmag,incrskew,incrtilt,incralf,
-     &    incrrot,glbrot,glbtilt,glbgmag,glbdmag,glbskew,glbalf
+      end module alivar
+
+c       Mapping variables
+      module mapsep
+      use arraymaxes
+      implicit none
+      integer*4 ivsep(maxview,maxgrp),nsepingrp(maxgrp),ngsep
+      end module mapsep

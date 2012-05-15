@@ -69,6 +69,10 @@ extern "C" {
   double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx,
                             int ny, float xpeak, float ypeak, int nxpad,
                             int nypad, int *nsum);
+  void sliceGaussianKernel(float *mat, int dim, float sigma);
+  void scaledGaussianKernel(float *mat, int *dim, int limit, float sigma);
+  void applyKernelFilter(float *array, float *brray, int nxdim, int nx, int ny,
+                         float *mat, int kdim);
 
   /* taperpad.c */
   void sliceTaperOutPad(void *array, int type, int nxbox, int nybox, 

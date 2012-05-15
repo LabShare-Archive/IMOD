@@ -9,13 +9,12 @@ c       David Mastronarde, 1995
 c       added tilt alignment, 10/6/97
 c       
 c       $Id$
-c       Log at end of file
 c
+      use tltcntrl
+      use mapsep
       implicit none
       include 'smallmodel.inc'
       include 'statsize.inc'
-      include 'alivar.inc'
-      include 'tltcntrl.inc'
 c       
       integer maxbox,maxstor,npad,maxarr,limpcl,maxnbox,maxarea,limgaps
       integer liminside,limedge,maxolist,limresid
@@ -51,9 +50,6 @@ C
       logical exist,readSmallMod
 C       
       EQUIVALENCE (NX,NXYZ)
-c       
-      integer*4 ivsep(maxview,maxgrp),nsepingrp(maxgrp),ngsep
-      common /mapsep/ ivsep,nsepingrp,ngsep
 c       
       real*4 xseek(maxreal),yseek(maxreal),wcrit(maxreal)
       integer*4 nws(maxreal),iffound(maxreal)
@@ -1798,108 +1794,3 @@ c
       write(*,'(/,a,a)')'ERROR: BEADTRACK - ', message
       call exit(1)
       end
-
-c       
-c       
-c       $Log$
-c       Revision 3.34  2010/06/02 21:09:01  mast
-c       Switch to new surfaceSort function
-c
-c       Revision 3.33  2010/05/28 19:32:55  mast
-c       Enhance error message when box size too large
-c
-c       Revision 3.32  2010/02/28 22:15:38  mast
-c       Fixed problem initializing wsum values on each area
-c
-c       Revision 3.31  2008/12/14 18:59:29  mast
-c       Don't cosine-adjust displacement in transferring from one view to next
-c       when max tilt angle is > 80; initialize dxy for next view
-c
-c       Revision 3.30  2008/12/03 03:31:48  mast
-c       Take in true diameter, and a binning value
-c
-c       Revision 3.29  2008/06/22 20:49:43  mast
-c       Added residual output to top/bottom list
-c
-c       Revision 3.28  2008/06/22 04:53:18  mast
-c       Comment out debugging output
-c
-c       Revision 3.27  2008/06/21 19:25:35  mast
-c       Added option to list surfaces beads are on
-c
-c       Revision 3.26  2008/03/04 21:23:50  mast
-c       Changed to allow huge numbers of points as long as local areas are
-c       used, improved handling of boxes to relieve memory restrictions there
-c
-c       Revision 3.25  2007/11/18 04:57:17  mast
-c       Redeclared concat at 320
-c
-c       Revision 3.24  2006/10/05 19:38:28  mast
-c       Exit with error if seed model is empty
-c
-c       Revision 3.23  2006/06/29 04:53:31  mast
-c       Set up to use small model
-c
-c       Revision 3.22  2006/04/10 23:43:28  mast
-c       Fixed use of uninitialized variable in error check
-c
-c       Revision 3.21  2006/02/27 06:15:03  mast
-c       Increased maximum box size and added error check
-c
-c       Revision 3.20  2005/12/09 04:43:27  mast
-c       gfortran: .xor., continuation, format tab continuation or byte fixes
-c
-c       Revision 3.19  2005/10/11 21:34:38  mast
-c       Update fallbacks
-c       
-c       Revision 3.18  2005/08/15 05:00:38  mast
-c       Increased limit for box array to allow 500 beads at 48x48
-c       
-c       Revision 3.17  2005/07/06 20:42:15  mast
-c       Removed unneeded repack calls and a ;
-c       
-c       Revision 3.16  2005/05/12 23:53:52  mast
-c       Increased limit for pixels inside centroid radius to allow ~100 pixel
-c       beads
-c       
-c       Revision 3.15  2005/04/26 18:45:08  mast
-c       Fixed to work with fewer than 8 points with default params
-c       
-c       Revision 3.14  2005/04/11 19:11:28  mast
-c       Make it ignore multiple objects when there are only two views
-c       
-c       Revision 3.13  2005/04/09 04:28:34  mast
-c       Changed default rotation mapping to 1 for full compatibility
-c       
-c       Revision 3.12  2005/04/08 15:26:06  mast
-c       Fixed a line toolong
-c       
-c       Revision 3.11  2005/04/08 04:21:59  mast
-c       Only drop outliers if fit is based on tiltalign positions
-c       
-c       Revision 3.10  2005/04/07 04:15:41  mast
-c       Fixing some output
-c       
-c       Revision 3.9  2005/04/07 03:56:31  mast
-c       New version with local tracking, new mapping, outliers, etc.
-c       
-c       Revision 3.6  2003/06/21 00:39:26  mast
-c       Changed to use new version of get_tilt_angles
-c       
-c       Revision 3.5  2003/05/20 23:42:09  mast
-c       Add space before wrlist output
-c       
-c       Revision 3.4  2003/04/11 17:28:42  mast
-c       added cgx, cgy to tltcntrl common to make them available to tiltali
-c       
-c       Revision 3.3  2002/07/28 22:55:53  mast
-c       Scale model coordinates correctly in Z; standardize error output
-c       
-c       Revision 3.2  2002/05/07 02:01:33  mast
-c       Changes to accommodate distinction in tiltalign between views in
-c       solution and views in file
-c       
-c       Revision 3.1  2002/01/07 22:35:15  mast
-c       Increased dimension for centroid calculation pixel lists, and added
-c       checks to catch errors in future
-c       

@@ -22,15 +22,18 @@ c	  where d = mag * cos (tilt) * sin (rot)
 c	  _     e = mag * cos (rot)
 c	  _     f = mag * comp * sin (tilt) * sin (rot)
 c
+c       $Id$
+c
 	subroutine solve_xyzd(xx,yy,isecview,irealstr, nview,nrealpt,
-     &	    tilt,rot,gmag,comp,xyz,dxy,nsolve,error,erlist,isolve)
+     &    tilt,rot,gmag,comp,xyz,dxy,nsolve,error,erlist,isolve)
+        use arraymaxes
 c	
 	real*4 xx(*),yy(*),tilt(*),rot(*),gmag(*),comp(*)
      &	    ,xyz(3,*),dxy(2,*)
 	integer*4 isecview(*),irealstr(*)
 	double precision error
 c
-	parameter (maxview=1440,ms=maxview)
+	parameter (ms=maxview)
 	real*4 bvec(3)
 	real*4 a(ms),b(ms),c(ms),asq(ms),bsq(ms),csq(ms)
      &	    ,axb(ms),axc(ms),bxc(ms),d(ms),e(ms),f(ms)
