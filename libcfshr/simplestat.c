@@ -173,7 +173,7 @@ void lsFitPred(float *x, float *y, int n, float *slope, float *bint, float *ro,
                float xpred, float *ypred, float *prederr)
 {
   double sx, sy, xbar, ybar,sxpsq, sxyp, sypsq, d, roden;
-  double sxy, sysq, rotmp, setmp, xp, yp;
+  double sxy, sysq, setmp, xp, yp;
   int i;
   *slope = 1.;
   *bint = *ro = *sa = *sb = *se = *ypred = *prederr = 0.;
@@ -202,9 +202,8 @@ void lsFitPred(float *x, float *y, int n, float *slope, float *bint, float *ro,
   *bint=(float)((ybar*sxpsq-xbar*sxyp)/sxpsq);
   roden=sqrt(sxpsq*sypsq);
   *ro=1.;
-  rotmp=sxyp/roden;
-  if(roden != 0. && rotmp >= -1. && rotmp <= 1.)
-    *ro=(float)rotmp;
+  if(roden != 0. && fabs(sxyp) <= fabs(roden))
+    *ro = sxyp/roden;
   *se=0.;
   sxy=sxyp+n*xbar*ybar;
   sysq=sypsq+n*ybar*ybar;
