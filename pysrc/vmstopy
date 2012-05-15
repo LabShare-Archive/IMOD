@@ -325,7 +325,7 @@ if tryline:
    lines = errlines + lines
 
 echoMatch = re.compile('^\$( *)echo *([^ ].*)')
-setenvMatch = re.compile('^\$( *)setenv +(\S* *)')
+setenvMatch = re.compile('^\$( *)setenv +(\S*) *')
 continueMatch = re.compile(r'\\ *$')
 existMatch = re.compile('^\$( *)if *\( *!? *-e +([^) ]+) *\) *(.*)')
 rmMatch = re.compile(r'\\?rm -?f? ?')
