@@ -20,12 +20,14 @@ import etomo.ToolsManager;
 import etomo.comscript.ConstWarpVolParam;
 import etomo.comscript.FlattenWarpParam;
 import etomo.comscript.WarpVolParam;
+import etomo.logic.DatasetDirectory;
 import etomo.storage.LogFile;
 import etomo.storage.TomogramFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
+import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoBoolean2;
@@ -511,8 +513,14 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
       if (file == null || file.isDirectory() || !file.exists()) {
         return;
       }
-      if (toolsManager != null && toolsManager.isConflictingDatasetName(axisID, file)) {
-        return;
+      if (toolsManager != null) {
+        if (!DatasetDirectory.validateDatasetName(toolsManager, axisID,
+            file.getParentFile(), file.getName(), DataFileType.TOOLS, null)) {
+          return;
+        }
+        if (toolsManager.isConflictingDatasetName(axisID, file)) {
+          return;
+        }
       }
       try {
         ftfInputFile.setText(file.getAbsolutePath());
