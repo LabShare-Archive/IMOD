@@ -7,9 +7,13 @@
 
 progname = 'imodhelp'
 prefix = 'ERROR: ' + progname + ' - '
+liblist = ['libimod', 'libcfshr', 'libiimod', 'libifft', 'libimesh', 'libiwarp',
+           'libdiaqt', 'libfft', 'libmesh', 'libwarp']
+liburls = ['libimod', 'libcfshr', 'libiimod', 'libifft', 'libmesh', 'libwarp',
+           'libdiaqt', 'libifft', 'libmesh', 'libwarp']
 
 # load System Libraries
-import sys, os, os.path
+import sys, os, os.path, glob
 
 #
 # Setup runtime environment - no need for nohup here
@@ -40,7 +44,63 @@ if sys.platform.find('darwin') >= 0:
 
 url = 'qthelp://bl3demc/IMOD/index.html'
 if len(sys.argv) > 1:
-   url = 'qthelp://bl3demc/IMOD/man/' + sys.argv[1] + '.html#TOP'
+   entered = sys.argv[1]
+
+   # Special library entries for me
+   if entered.startswith('lib'):
+      url = 'qthelp://bl3demc/IMOD/libraries.html#TOP'
+      match = None
+      for ind in range(len(liblist)):
+         if liblist[ind].startswith(entered):
+            if match != None:
+               match = None
+               break
+            match = ind
+      if match != None:
+         url = 'qthelp://bl3demc/IMOD/libhelp/' + liburls[match] +'.html#TOP'
+
+   else:
+
+      # Otherwise, look for things in bin that match the name
+      useglob = entered
+      if entered.startswith('.'):
+         useglob = '*' + entered[1:]
+      exelist = glob.glob(os.environ['IMOD_DIR'] + '/bin/' + useglob + '*')
+      numexes = len(exelist)
+
+      # Extract base names and prune duplicates
+      if numexes:
+         baselist = []
+         for ind in range(numexes):
+            (base, ext) = os.path.splitext(os.path.basename(exelist[ind]))
+            if base not in baselist:
+               baselist.append(base)
+         numexes = len(baselist)
+
+      # If one, use it, if 0, complain, if more than 1, give list and get choice
+      if numexes == 1:
+         entered = baselist[0]
+      elif not numexes:
+         prnstr('No program matches your entry ' + entered + '; trying anyway')
+      else:
+         prnstr('Several programs match your entry:')
+         for ind in range(numexes):
+            prnstr('   ' + str(ind+1) + ': ' + baselist[ind])
+
+         if sys.version_info[0] > 2:
+            selectstr = input('Enter desired number or 0 to use your original entry: ')
+         else:
+             selectstr = raw_input('Enter desired number or 0 to use your original ' +\
+                                      'entry: ')
+         selection = 0
+         try:
+            selection = int(selectstr)
+         except:
+            pass
+         if selection > 0 and selection <= len(baselist):
+            entered = baselist[selection-1]
+         
+      url = 'qthelp://bl3demc/IMOD/man/' + entered + '.html#TOP'
 
 # Set up command argument array and run it
 commandArr = [prog, '-collectionFile', os.environ['IMOD_DIR'] +  '/html/IMOD.qhc', \
