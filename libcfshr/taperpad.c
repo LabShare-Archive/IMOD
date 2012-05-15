@@ -6,7 +6,6 @@
  * Colorado.  See dist/COPYRIGHT for full notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include "mrcslice.h"
@@ -546,7 +545,7 @@ void sliceSplitFill(float *array, int nxbox, int nybox, float *brray,
 }
 
 /*!
- * Fortran wrapper to @splitFill .
+ * Fortran wrapper to @ssliceSplitFill .
  */
 void splitfill(float *array, int *nxbox, int *nybox, float *brray,
                int *nxdim, int *nx, int *ny, int *iffill, float *fillin)
@@ -554,31 +553,3 @@ void splitfill(float *array, int *nxbox, int *nybox, float *brray,
   sliceSplitFill(array, *nxbox, *nybox, brray, *nxdim, *nx, *ny, *iffill,
                  *fillin);
 }
-
-/*
-  $Log$
-  Revision 1.8  2010/07/07 22:38:51  mast
-  Added support for RGB images
-
-  Revision 1.7  2008/12/20 05:31:16  mast
-  Added function to smooth outside
-
-  Revision 1.6  2008/12/01 15:26:53  mast
-  Added splitfill
-
-  Revision 1.5  2007/10/20 20:03:08  mast
-  Oops, subtract not add 1 for fortran indices
-
-  Revision 1.4  2007/10/20 03:04:07  mast
-  Added fortran wrapper for edgemean
-
-  Revision 1.3  2007/10/12 04:16:34  mast
-  Added edge mean function and used it in pad functions
-  
-  Revision 1.2  2007/10/01 16:22:12  mast
-  Fixed wrapper name from tst
-
-  Revision 1.1  2007/10/01 15:26:09  mast
-  *** empty log message ***
-
-*/
