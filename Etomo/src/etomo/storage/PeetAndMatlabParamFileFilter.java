@@ -4,6 +4,7 @@ import java.io.File;
 
 import javax.swing.filechooser.FileFilter;
 
+import etomo.type.DataFileType;
 import etomo.util.DatasetFiles;
 
 /**
@@ -30,7 +31,7 @@ public final class PeetAndMatlabParamFileFilter extends FileFilter {
   public boolean accept(File f) {
     //  If this is a file test its extension, all others should return true
     if (f.isFile() && !f.getAbsolutePath().endsWith(DatasetFiles.MATLAB_PARAM_FILE_EXT)
-        && !f.getAbsolutePath().endsWith(DatasetFiles.PEET_DATA_FILE_EXT)) {
+        && !f.getAbsolutePath().endsWith(DataFileType.PEET.extension)) {
       return false;
     }
     return true;
@@ -38,7 +39,7 @@ public final class PeetAndMatlabParamFileFilter extends FileFilter {
 
   public String getDescription() {
     return "PEET file or Matlap param file(" + DatasetFiles.MATLAB_PARAM_FILE_EXT + ", "
-        + DatasetFiles.PEET_DATA_FILE_EXT + ")";
+        + DataFileType.PEET.extension + ")";
   }
 
 }
