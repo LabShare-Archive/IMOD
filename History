@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/15/12: Made Imodhelp able to complete a partial program name and offer 
+choice if several match (In 4.5).
+
 5/15/12: Fix setting of environment variables in Vmstopy (In 4.5).
 
 5/11/12: Fixed Tiltalign array sizes that allowed less than 1440 views
