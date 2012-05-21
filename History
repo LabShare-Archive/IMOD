@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/21/12: Fixed get_nxyz to take long filenames, which should fix Setupcombine
+and some other combine steps (In 4.5).
+
 5/15/12: Made Imodhelp able to complete a partial program name and offer 
 choice if several match (In 4.5).
 
