@@ -577,8 +577,9 @@ public class SystemProgram implements Runnable {
                 + exceptionMessage, "System Error");
       }
       else if (exceptionMessage.indexOf("not found") != -1) {
-        UIHarness.INSTANCE.openMessageDialog(manager, "Unable to run command.\n"
-            + exceptionMessage, "System Error");
+        // Unable to pop up an error message. This exception may cause dialog.setVisible
+        // to lock up.
+        System.err.println("ERROR: Unable to run command.\n" + exceptionMessage);
         exitValue = -3;
         done = true;
         return;
