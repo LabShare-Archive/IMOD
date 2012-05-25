@@ -2,7 +2,7 @@ package etomo.storage;
 
 import java.io.File;
 
-import etomo.util.DatasetFiles;
+import etomo.type.DataFileType;
 
 /**
  * <p>Description: </p>
@@ -54,13 +54,13 @@ public class PeetFileFilter extends DataFileFilter {
       return acceptDirectories;
     }
     String fileName = file.getName();
-    if (fileName.endsWith(DatasetFiles.PEET_DATA_FILE_EXT) && fileName.length() > 4) {
+    if (fileName.endsWith(DataFileType.PEET.extension) && fileName.length() > 4) {
       return true;
     }
     return false;
   }
 
   public String getDescription() {
-    return "PEET data file (" + DatasetFiles.PEET_DATA_FILE_EXT + ")";
+    return "PEET data file (" + DataFileType.PEET.extension + ")";
   }
 }

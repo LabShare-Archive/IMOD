@@ -23,8 +23,6 @@ import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.process.JoinProcessManager;
 import etomo.process.ProcessMessages;
-import etomo.process.ProcessResultDisplayFactoryBlank;
-import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
@@ -33,12 +31,11 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
-import etomo.type.BaseProcessTrack;
-import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstJoinState;
 import etomo.type.ConstProcessSeries;
+import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.type.InterfaceType;
@@ -570,7 +567,6 @@ public final class JoinManager extends BaseManager {
   private final JoinScreenState screenState = new JoinScreenState(AxisID.ONLY,
       AxisType.SINGLE_AXIS);
   private boolean debug = false;
-  private final ProcessResultDisplayFactoryBlank processResultDisplayFactory = new ProcessResultDisplayFactoryBlank();
 
   JoinManager(String paramFileName, AxisID axisID) {
     super();
@@ -592,11 +588,6 @@ public final class JoinManager extends BaseManager {
     return InterfaceType.JOIN;
   }
 
-  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
-      AxisID axisID) {
-    return processResultDisplayFactory;
-  }
-
   public boolean saveParamFile() throws LogFile.LockException, IOException {
     boolean retval;
     if ((retval = super.saveParamFile())) {
@@ -610,7 +601,7 @@ public final class JoinManager extends BaseManager {
       String dir = joinDialog.getWorkingDirName();
       String root = joinDialog.getRootName();
       if (dir != null && !dir.matches("\\s*") && root != null && !root.matches("\\s*")) {
-        File file = new File(dir, root + DatasetFiles.JOIN_DATA_FILE_EXT);
+        File file = new File(dir, root + DataFileType.JOIN.extension);
         if (!file.exists()) {
           processMgr.createNewFile(file.getAbsolutePath());
         }
@@ -635,18 +626,9 @@ public final class JoinManager extends BaseManager {
     return getClass().getName() + "[" + paramString() + "]";
   }
 
-  protected String paramString() {
+  String paramString() {
     return "joinDialog=" + joinDialog + ",metaData=" + metaData + ",\nprocessMgr="
         + processMgr + ",state=" + state + ",\nsuper[" + super.paramString() + "]";
-  }
-
-  protected void createComScriptManager() {
-  }
-
-  protected void createProcessTrack() {
-  }
-
-  protected void processSucceeded(AxisID axisID, ProcessName processName) {
   }
 
   /**
@@ -723,7 +705,7 @@ public final class JoinManager extends BaseManager {
     return screenState;
   }
 
-  protected void createMainPanel() {
+  void createMainPanel() {
     mainPanel = new MainJoinPanel(this);
   }
 
@@ -809,10 +791,6 @@ public final class JoinManager extends BaseManager {
       uiHarness.openMessageDialog(this, e.getMessage(), "AxisType problem", AxisID.ONLY);
       return false;
     }
-  }
-
-  public boolean isInManagerFrame() {
-    return false;
   }
 
   /**
@@ -1029,10 +1007,6 @@ public final class JoinManager extends BaseManager {
     // }
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
     return true;
-  }
-
-  public boolean canChangeParamFileName() {
-    return false;
   }
 
   /**
@@ -1469,20 +1443,13 @@ public final class JoinManager extends BaseManager {
    * @param paramFile a File object specifying the data set parameter file.
    */
   public void setParamFile(File paramFile) {
-    this.paramFile = paramFile;
+    super.setParamFile(paramFile);
     // Update main window information and status bar
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
   }
 
-  protected void updateDialog(ProcessName processName, AxisID axisID) {
-  }
-
   public ConstJoinMetaData getConstMetaData() {
     return (ConstJoinMetaData) metaData;
-  }
-
-  public String getFileSubdirectoryName() {
-    return null;
   }
 
   public JoinMetaData getJoinMetaData() {
@@ -1531,14 +1498,7 @@ public final class JoinManager extends BaseManager {
     return mainPanel;
   }
 
-  protected BaseProcessTrack getProcessTrack() {
-    return null;
-  }
-
-  protected void getProcessTrack(Storable[] storable, int index) {
-  }
-
-  protected void createState() {
+  void createState() {
     state = new JoinState(this);
   }
 
@@ -1553,19 +1513,6 @@ public final class JoinManager extends BaseManager {
 
   public BaseState getBaseState() {
     return state;
-  }
-
-  public final BaseScreenState getBaseScreenState(AxisID axisID) {
-    return null;
-  }
-
-  /**
-   * Interrupt the currently running thread for this axis
-   * 
-   * @param axisID
-   */
-  public void kill(AxisID axisID) {
-    processMgr.kill(axisID);
   }
 
   /**
@@ -1587,7 +1534,7 @@ public final class JoinManager extends BaseManager {
     return processMgr;
   }
 
-  protected final Storable[] getStorables(int offset) {
+  final Storable[] getStorables(int offset) {
     Storable[] storable = new Storable[3 + offset];
     int index = offset;
     storable[index++] = metaData;
@@ -1615,10 +1562,6 @@ public final class JoinManager extends BaseManager {
     super.save();
     doneJoinDialog();
     mainPanel.done();
-  }
-
-  public final boolean canSnapshot() {
-    return false;
   }
 
   public String getName() {
