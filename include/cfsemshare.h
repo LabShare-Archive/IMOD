@@ -192,6 +192,7 @@ extern "C" {
 
   /* gaussj.c */
   int gaussj(float *a, int n, int np, float *b, int m, int mp);
+  int gaussjDet(float *a, int n, int np, float *b, int m, int mp, float *determ);
 
   /* find_piece_shifts.c */
   int findPieceShifts
@@ -224,6 +225,17 @@ extern "C" {
                      int *minpiece, int *npieces, int *noverlap);
   void adjustPieceOverlap(int *pclist, int stride, int npclist, int nframe, int minpiece,
                           int noverlap, int newOverlap);
+
+  /* regression.c */
+  void statMatrices(float *x, int xsize, int colFast, int m, int msize, int ndata,
+                    float *sx, float *ss, float *ssd, float *d, float *r, float *xm,
+                    float *sd, int ifdisp);
+  int multRegress(float *x, int xsize, int colFast, int m, int ndata, int nbcol,
+                  int wgtcol, float *b, int bsize, float *c, float *xm, float *sd,
+                  float *work);
+  int robustRegress(float *x, int xsize, int colFast, int m, int ndata, int nbcol,
+                    float *b, int bsize, float *c, float *xm, float *sd, float *work,
+                    float kfactor, int *numIter, int maxIter, float maxChange);
 
 #ifdef __cplusplus
 }
