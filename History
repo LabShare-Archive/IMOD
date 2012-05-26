@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/26/12: Changed Tiltalign and Beadtrack to get initial x/y/z
+coordinates with a direct solution instead of iteration, and added an initial
+scan for correct starting tilt axis rotation angle to Tiltalign.
+
+5/26/12: Changed -linear option to Imodfindbeads to allow use of antialias
+image reduction instead of regular interpolation.
+
 5/26/12: Made Taperoutvol and  Assemblevol preserve angles in header so they
 are not lost when running NAD (In 4.5).
 
