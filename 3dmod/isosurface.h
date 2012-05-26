@@ -80,6 +80,7 @@ class ImodvIsosurface : public DialogFrame
   int mMaskObj;
   int mMaskCont;
   int mMaskPsize;
+  double mMaskChecksum;
   int mCurrTime;
   int mBoxOrigin[3];
   int mBoxEnds[3];

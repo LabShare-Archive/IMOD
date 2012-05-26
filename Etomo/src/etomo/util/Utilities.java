@@ -492,6 +492,13 @@ public class Utilities {
     }
     return ACTION_TAG + "Renamed " + from.getName() + " to " + to.getName();
   }
+  
+  public static String prepareCopyActionMessage(final File from, final File to) {
+    if (!EtomoDirector.INSTANCE.getArguments().isActions()) {
+      return null;
+    }
+    return ACTION_TAG + "Copied " + from.getName() + " to " + to.getName();
+  }
 
   public static String prepareCommandActionMessage(final String[] commandArray,
       final String[] stdInput) {
@@ -723,7 +730,7 @@ public class Utilities {
     // Rename the existing log file
     if (source.exists()) {
       Utilities.debugPrint(source.getAbsolutePath() + " exists");
-      String actionMessage = Utilities.prepareRenameActionMessage(source, destination);
+      String actionMessage = prepareRenameActionMessage(source, destination);
       if (!source.renameTo(destination)) {
         if (source.exists()) {
           System.err.println(source.getAbsolutePath() + " still exists");
@@ -809,6 +816,7 @@ public class Utilities {
   public static void copyFile(File source, File destination) throws IOException {
     // Try using the nio method but if it fails fall back to BufferedFileReader/
     // BufferedFileWriter approach
+    String actionMessage = prepareCopyActionMessage(source, destination);
     FileInputStream sourceStream = new FileInputStream(source);
     FileOutputStream destStream = new FileOutputStream(destination);
     BufferedInputStream sourceBuffer = null;
@@ -840,6 +848,9 @@ public class Utilities {
       destBuffer.close();
     }
     destStream.close();
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   /**

@@ -61,6 +61,7 @@
 #define walltime WALLTIME
 #define b3dmillisleep B3DMILLISLEEP
 #define numompthreads NUMOMPTHREADS
+#define b3dompthreadnum B3DOMPTHREADNUM
 #define numberinlist NUMBERINLIST
 #else
 #define imodbackupfile imodbackupfile_
@@ -77,6 +78,7 @@
 #define walltime walltime_
 #define b3dmillisleep b3dmillisleep_
 #define numompthreads numompthreads_
+#define b3dompthreadnum b3dompthreadnum_
 #define numberinlist numberinlist_
 #endif
 

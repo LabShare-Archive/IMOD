@@ -10,7 +10,6 @@ c       setgrpsize
 c       mapSeparateGroup
 c
 c       $Id$
-c       Log at end
 c       
 c
 c       ANALYZE_MAPS takes a map list and other information about how to set
@@ -37,10 +36,9 @@ c
       subroutine analyze_maps(gmag,mapgmag,lingmag,frcgmag,fixedgmag,
      &    fixedgmag2,iflin,maplist,nview,ireftilt,iref2,
      &    defval,name,var,varname,nvarsrch,mapviewtofile)
+      use arraymaxes
       implicit none
       integer*4 mapgmag(*),maplist(*),lingmag(*),mapviewtofile(*)
-      integer maxview
-      parameter (maxview=1440)
       integer*4 mapvarno(maxview)
       real*4 gmag(*),var(*),frcgmag(*)
       character*(*) varname(*),name
@@ -236,13 +234,13 @@ c
       subroutine automap(nview,maplist,grpsize,mapfiletoview,nfileviews,
      &    ifpip,ifRequired,defaultOption, nonDefaultOption,ninview, ninThresh,
      &    iflocal,nmapDef, nRanSpecIn, ivSpecStrIn,ivSpecEndIn,nmapSpecIn)
+c       module needed for maxgrp definition
+      use arraymaxes
       implicit none
       integer*4 maplist(*),nview,nfileviews,ifpip,ifRequired,ninThresh
       real*4 grpsize(*)
       integer*4 mapfiletoview(*),ninview(*)
       character*(*) defaultOption, nonDefaultOption
-      integer maxgrp
-      parameter (maxgrp=20)
       integer*4 ivspecstrIn(maxgrp),ivspecendIn(maxgrp),nmapspecIn(maxgrp)
       integer*4 nmapdef, nRanSpecIn,iflocal
 c       
@@ -329,18 +327,15 @@ c       NINTHRESH is zero, the contents of NINVIEW are ignored.
       subroutine makeMapList(nview,maplist,grpsize,mapfiletoview,nfileviews,
      &    nmapDef, ivSpecStrIn, ivSpecEndIn,nmapSpecIn,nRanSpecIn,ninview,
      &    ninThresh)
+      use mapsep
 
       implicit none
       integer*4 maplist(*),nview,nfileviews,nMapDef,nRanSpecIn,ninview(*)
       real*4 grpsize(*)
       integer*4 mapfiletoview(*), ninThresh
       integer*4 ivspecstrin(*),ivspecendin(*),nmapspecin(*)
-      integer maxview,maxgrp
-      parameter (maxview=1440,maxgrp=20)
       integer*4 ivspecstr(maxgrp),ivspecend(maxgrp),nmapspec(maxgrp)
       integer*4 inran(maxview)
-      integer*4 ivsep(maxview,maxgrp),nsepingrp(maxgrp),ngsep
-      common /mapsep/ ivsep,nsepingrp,ngsep
 c       
       integer*4 nranspec,iran,ivstr,ivend,nran,ir,ivar
       integer*4 ninran,iv,ig,ifsep,jj,ii,ierr
@@ -688,24 +683,3 @@ c
         endif
       enddo
       end
-c
-c       $Log$
-c       Revision 3.6  2010/03/22 21:20:47  mast
-c       Fix error message to be on one line
-c
-c       Revision 3.5  2008/12/14 19:03:41  mast
-c       Fixed limit on angle used to get group size, set limit to 80
-c
-c       Revision 3.4  2007/02/19 21:11:01  mast
-c       Changes to make group size depend on # of points in views
-c
-c       Revision 3.3  2005/03/28 22:51:17  mast
-c       Split automap into two functions for beadtrack and made function for
-c       remapping separate groups
-c       
-c       Revision 3.2  2004/06/24 15:38:08  mast
-c       Changed to work with pip input
-c       
-c       Revision 3.1  2002/05/07 02:06:54  mast
-c       Changes to make things work well with a subset of views
-c       
