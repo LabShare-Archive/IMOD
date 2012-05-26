@@ -18,7 +18,7 @@ c
       COMMON //NX,NY,NZ
 C       
       integer*4 NXYZ(3),MXYZ(3),NXYZ2(3),MXYZ2(3)
-      real*4 TITLE(20), CELL2(6)
+      real*4 TITLE(20), CELL2(6),tilt(3),origtilt(3)
       real*4, allocatable :: ARRAY(:)
 C       
       CHARACTER*320 FILIN,FILOUT
@@ -77,7 +77,7 @@ c
 c       
       CALL IMOPEN(2,FILOUT,'NEW')
       call time(tim)
-      call date(dat)
+      call b3ddate(dat)
       write(titlech,301) dat,tim
       read(titlech,'(20a4)')(TITLE(kti),kti=1,20)
 301   FORMAT('TAPEROUTVOL: Taper outside of excised volume',t57,a9,2x,a8)
@@ -85,6 +85,10 @@ c
       call itrlab(2,1)
       CALL IALCEL(2,CELL2)
       call ialorg(2, origx, origy, origz)
+      call irttlt(1, tilt)
+      call irttlt_orig(1, origtilt)
+      call ialtlt(2, tilt)
+      call ialtlt_orig(2, origtilt)
       dmin=1.e30
       dmax=-1.e30
       tmean=0.

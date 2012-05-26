@@ -23,13 +23,13 @@ c
       COMMON //NX,NY,NZ
 C       
       integer*4 NXYZ(3),MXYZ(3),NXYZST(3),NXYZ2(3),MXYZ2(3)
-      real*4 ARRAY(idimin),TITLE(20), CELL2(6),brray(idimout),delta(3)
+      real*4 ARRAY(idimin),TITLE(20), CELL2(6),brray(idimout),delta(3),tilt(3),origtilt(3)
       common /bigarr/array,brray
 C       
       integer*4 ixlo(limran),ixhi(limran),iylo(limran),iyhi(limran)
       integer*4 izlo(limran),izhi(limran)
-      CHARACTER*160 FILOUT
-      character*160 files(limfiles)
+      CHARACTER*320 FILOUT
+      character*320 files(limfiles)
       character*9 dat
       character*8 tim
       character*80 titlech
@@ -121,6 +121,8 @@ c
             if (ix .eq. 1 .and. iy .eq. 1 .and. iz .eq. 1) then
               call irtdel(2,delta)
               call irtorg(2,origx, origy, origz)
+              call irttlt(2, tilt)
+              call irttlt_orig(2, origtilt)
             endif
             if(ifile.eq.1) mode1=mode
             if(mode.ne.mode1)call exitError( 'MODE MISMATCH FOR THIS FILE')
@@ -179,6 +181,8 @@ C
       CALL ICRHDR(1,NXYZ2,MXYZ2,mode,TITLE,0)
       CALL IALCEL(1,CELL2)
       call ialorg(1,origx, origy, origz)
+      call ialtlt(1, tilt)
+      call ialtlt_orig(1, origtilt)
       dmin=1.e30
       dmax=-1.e30
       tmean=0.
