@@ -16,13 +16,13 @@ tiltalign.$(O): tiltalign.f
 
 tiltalign$(E): $(TAOBJS)
 	$(FC) -o tiltalign $(TAOBJS) $(LDFFLAGS) $(LSMLMOD) $(LIMOD) \
-	 $(IMLIBS) $(FORTCLIBS) $(TILTALILIB)
+	 $(IMLIBS) $(FORTCLIBS) $(TILTALILIB)  $(LAPACKLIBS)
 
 xfforfidless$(E): xfforfidless.$(O) fill_matrices.$(O)
 	$(FC) -o xfforfidless xfforfidless.$(O) fill_matrices.$(O) \
 	 $(LDFFLAGS) $(IMLIBS) $(FORTCLIBS)
 
-input_model.$(O): $(INCDIR)/smallmodel.inc
+input_model.$(O): $(INCDIR)/smallmodel.inc alivar.$(O)
 funct.$(O):       alivar.$(O)
 input_vars.$(O):  alivar.$(O)
 tiltalign.$(O):   alivar.$(O)

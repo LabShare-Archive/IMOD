@@ -7,7 +7,7 @@ c
       subroutine input_vars(var,varname,inputalf,nvarsrch,nvarang,
      &    nvarscl, imintilt,ncompsrch,iflocal,maptiltstart, mapalfstart,
      &    mapalfend, ifBTSearch,tiltorig,tiltadd, pipinput, xyzfixed, ninview,
-     &    ninThresh) 
+     &    ninThresh, rotEntered) 
       use alivar
       use mapsep
       implicit none
@@ -16,10 +16,10 @@ c
       integer*4 ninThresh, mapalfend
       logical pipinput,xyzfixed
       character*8 varname(*)
-      real*4 var(*),tiltorig(*),tiltadd
-      integer*4 maplist(maxview),maplrot(maxview),mapltilt(maxview)
-      integer*4 maplmag(maxview),maplxtilt(maxview),mapldist(maxview,2)
-      real*4 grpsize(maxview)
+      real*4 var(*),tiltorig(*),tiltadd, rotEntered
+      integer*4, allocatable, save :: maplist(:),maplrot(:),mapltilt(:)
+      integer*4, allocatable, save ::maplmag(:),maplxtilt(:),mapldist(:,:)
+      real*4 grpsize(size(tilt))
       integer*4 nmapDefRot,nRanSpecRot,nmapSpecRot(maxgrp)
       integer*4 ivSpecStrRot(maxgrp),ivSpecEndRot(maxgrp)
       integer*4 nmapDefTilt,nRanSpecTilt,nmapSpecTilt(maxgrp)
@@ -43,16 +43,15 @@ c
       real*4 dtor/0.0174532/
 c       
       real*4 powertilt,powercomp,powermag,powerskew,powerdmag,power
-      real*4 powerrot,poweralf,rotstart,fixdum1,fixdum2,defrot
+      real*4 powerrot,poweralf,rotstart,defrot
       real*4 tiltmin,origdev,fixdum
-      integer*4 i,iview,ioptrot,iref1,iflin,ioptilt,nviewfix,j,ig
+      integer*4 i,ioptrot,iref1,iflin,ioptilt,nviewfix,ig
       integer*4 iref2,ioptmag,irefcomp,ioptcomp,iffix,iv,jv,ioptdel
       integer*4 irefdmag,nvartmp,ivdum,idist,ioptdist(2),ioptalf,nviewfixIn
       integer*4 ireftilt,ndmagvar,ivl,ivh, lenOpt
       integer*4 ireftiltIn
-      integer*4 nearest_view,ifpip,mapfix,ierr,lnblnk
+      integer*4 nearest_view,ifpip,mapfix,ierr
       character*1024 listString
-      save maplrot,mapltilt,maplmag,maplxtilt,mapldist
       save ioptrot,ivSpecEndXtilt,ioptilt,nviewfixIn,ireftiltIn
       save nmapDefRot,nRanSpecRot,nmapSpecRot,ivSpecStrRot,ivSpecEndRot
       save nmapDefTilt,nRanSpecTilt,nmapSpecTilt,ivSpecStrTilt,ivSpecEndTilt
@@ -78,6 +77,14 @@ c
       tiltadd=0.
       nvarsrch=0
       ifpip = 0
+      if (iflocal .eq. 0) then
+        call allocateMapsep(ierr)
+        call memoryError(ierr, 'ARRAYS FOR MAPSEP')
+        allocate(maplist(maxview),maplrot(maxview),mapltilt(maxview),
+     &      maplmag(maxview),maplxtilt(maxview),mapldist(maxview,2), stat=ierr)
+        call memoryError(ierr, 'ARRAYS FOR INPUT_VARS')
+      endif
+
 c      print *,nview,' views'
 c      print *,(ninview(i),i=1,nview)
       if (pipinput) ifpip = 1
@@ -144,6 +151,7 @@ c       4/10/04: Eliminated global rotation variable, simplified treatment
 c       of rotation
 c       
       if (iflocal .eq. 0) then
+        rotEntered = rotstart
         rotstart=dtor*rotstart
       else
         rotstart = 0.
@@ -601,7 +609,7 @@ c
           distmp=disttext(idist*min(1,ioptdel-1)+1)
           lintmp=lintext(idist)
           distOptTmp = distOptText(idist)
-          lenOpt = lnblnk(distOptTmp)
+          lenOpt = len_trim(distOptTmp)
           if(idist.eq.1.or.ioptdel.gt.1)then
             if (.not. pipinput .and. iflocal .le. 1) then
               print *,'Enter 1 to give each view an independent ',distmp
@@ -1083,7 +1091,7 @@ c
       character*40 mapOption
       character*320 concat
       character*40 PrependLocal
-      integer*4 PipNumberOfEntries, lnblnk, PipGetIntegerArray
+      integer*4 PipNumberOfEntries, PipGetIntegerArray
 
       if (iflocal .gt. 1) then
         do i = 1, nview
@@ -1093,14 +1101,14 @@ c
       endif
 c
       if (ifpip .eq. 0) then
-        len = lnblnk(varname)
+        len = len_trim(varname)
         print *,'For each view, enter a ',varname(1:len),' variable #'
         if (iref .gt. 0) write(*,'(a,a,a,f4.1,a,i4)')'   to fix ',
      &      varname(1:len),' of a view at'
      &      ,fixval,' give it the same variable # as view',iref
         read(5,*)(maplist(i),i=1,nview)
       else
-        mapOption = PrependLocal(concat(option(1:lnblnk(option)),'Mapping'),
+        mapOption = PrependLocal(concat(trim(option),'Mapping'),
      &      iflocal)
         numEntry = 0
         len = PipNumberOfEntries(mapOption, numEntry)
