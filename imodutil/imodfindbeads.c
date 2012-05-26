@@ -147,7 +147,7 @@ int main( int argc, char *argv[])
     "add:AddToModel:FN:", "ref:ReferenceModel:FN:",
     "boundary:BoundaryObject:I:", "size:BeadSize:F:", "light:LightBeads:B:",
     "scaled:ScaledSize:F:", "interpmin:MinInterpolationFactor:F:",
-    "linear:LinearInterpolation:B:", "center:CenterWeight:F:",
+    "linear:LinearInterpolation:I:", "center:CenterWeight:F:",
     "box:BoxSizeScaled:I:", "threshold:ThresholdForAveraging:F:",
     "store:StorageThreshold:F:", "bkgd:BackgroundGroups:F:",
     "annulus:AnnulusPercentile:F:", "peakmin:MinRelativeStrength:F:",
@@ -226,7 +226,7 @@ int main( int argc, char *argv[])
   if (PipGetFloat("BeadSize", &beadSize))
     exitError("You must enter a bead size");
   PipGetBoolean("LightBeads", &lightBeads);
-  PipGetBoolean("LinearInterpolation", &linear);
+  PipGetInteger("LinearInterpolation", &linear);
   PipGetBoolean("RemakeModelBead", &remakeModelBead);
   PipGetFloat("ThresholdForAveraging", &threshold);
   PipGetFloat("StorageThreshold", &peakThresh);
@@ -797,7 +797,7 @@ int main( int argc, char *argv[])
               // Interpolate the bead into center of array, add it to sum
               cubinterp(sl->data.f, oneBead, nxin, nyin, boxSize, boxSize, 
                         amat, peakList[j].xcen, peakList[j].ycen, 0., 0., 1.,
-                        inhead.amean, linear);
+                        inhead.amean, B3DMAX(0,linear));
               nsum++;
               for (i = 0; i < boxSize * boxSize; i++)
                 fullBead[i] += oneBead[i];
@@ -1346,8 +1346,8 @@ static void selectedMinMax(PeakEntry *peakList, float *element, int numPeaks,
                            float *select, float selMin, float selMax,
                            float *minVal, float *maxVal, int *ninRange)
 {
-  float dxbin, delta, val;
-  int i, j, ist, ind;
+  float val;
+  int j;
   *minVal = 1.e30;
   *maxVal = -1.e30;
   *ninRange = 0;
