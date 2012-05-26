@@ -12,11 +12,11 @@ c
 
       real*4 var(*)
       integer*4 ifmaptilt
-      integer*4 maplist(maxview),ireftilt,nvarsrch
-      real*4 rotstart,defrot,power,fixdum,grpsize(maxview)
-      integer*4 i,iview,iv,nvarang,iflin,iref1,maptest
+      integer*4 maplist(size(tilt)),ireftilt,nvarsrch
+      real*4 rotstart,defrot,power,fixdum,grpsize(size(tilt))
+      integer*4 i,iv,nvarang,iflin,iref1
       real*4 dtor/0.0174532/
-      character*8 varname(maxview)
+      character*8 varname(4*size(tilt))
 c       
 c       Remap the separate group information for the current views
 c       

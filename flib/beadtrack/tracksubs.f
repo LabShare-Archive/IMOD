@@ -1,21 +1,9 @@
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.4  2006/06/29 04:53:31  mast
-c       Set up to use small model
-c
-c       Revision 3.3  2005/04/09 14:53:55  mast
-c       Fixed a line length problem
-c       
-c       Revision 3.2  2005/04/07 03:56:31  mast
-c       New version with local tracking, new mapping, outliers, etc.
-c       
-c       Revision 3.1  2002/07/28 22:56:31  mast
-c       Standardize error output
+      module cgpixels
+      implicit none
+      integer*4, allocatable :: idxin(:),idyin(:), idxedge(:),idyedge(:)
+      integer*4 ninside, nedge, ipolar
+      end module cgpixels
+
 c       
 c       
 c       NEXTPOS computes the projected position of a point from positions on
@@ -37,11 +25,7 @@ c
       integer idim
       parameter (idim=50)
       real*4 tilt(*)
-      real*4 xx(idim),yy(idim),zz(idim)
-      include 'statsize.inc'
-      real*4 xr(msiz,idim), sx(msiz), xm(msiz), sd(msiz)
-     &    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
-     &    , b(msiz), b1(msiz)
+      real*4 xx(idim),yy(idim),zz(idim), b1(2)
       integer*4 iobj,ipnear,idir,iznext,nfit,minfit,iaxtilt
       real*4 tiltmin,xnext,ynext
       integer*4 ibase,ninobj,mfit,ipend,indx,indy,iptnear,ip,ipt,ipb,ipp
@@ -158,12 +142,10 @@ c           print *,'linear fit:',iobj,mfit,xnext,ynext
         else
           do i=1,mfit
             theta=tilt(nint(zz(i))+1)
-            xr(1,i)=cosd(theta)
-            xr(2,i)=sind(theta)
-            xr(3,i)=yy(i)
+            xx(i)=cosd(theta)
+            zz(i)=sind(theta)
           enddo
-          call multr(xr,3,mfit,sx,ss,ssd,d,r,xm,sd,b,b1,
-     &        const, rsq ,fra)
+          call lsfit2(xx, zz, yy, mfit, b1(1), b1(2), const)
           thetnext=tilt(iznext+1)
           ynext=b1(1)*cosd(thetnext)+b1(2)*sind(thetnext)+const
 c           print *,'sin/cos fit:',iobj,mfit,xnext,ynext
@@ -315,10 +297,12 @@ c       print *,xpeak,ypeak
 
 
 
-      subroutine calcg(boxtmp,nxbox,nybox,xpeak,ypeak,idxin,
-     &    idyin,ninside,idxedge,idyedge,nedge,ipolar,wsum)
-      real*4 boxtmp(nxbox,nybox)
-      integer*4 idxin(*),idyin(*),idxedge(*),idyedge(*)
+      subroutine calccg(boxtmp,nxbox,nybox,xpeak,ypeak, wsum)
+      use cgpixels
+      implicit none
+      real*4 boxtmp(nxbox,nybox), xpeak,ypeak, wsum
+      integer*4 nxbox,nybox,ixcen, iycen,iy,ix,ixbest,iybest,nsum,i
+      real*4 best, sum4, sum, xsum, ysum,weight,edge
 c       
       ixcen=nxbox/2+nint(xpeak)
       iycen=nybox/2+nint(ypeak)
@@ -384,10 +368,11 @@ c
       end
 
 
-      subroutine rescue(boxtmp,nxbox,nybox,xpeak,ypeak, idxin, idyin,
-     &    ninside,idxedge,idyedge, nedge,ipolar,radmax,relaxcrit,wsum)
-      real*4 boxtmp(*)
-      integer*4 idxin(*),idyin(*),idxedge(*),idyedge(*)
+      subroutine rescue(boxtmp,nxbox,nybox,xpeak,ypeak, radmax,relaxcrit,wsum)
+      implicit none
+      real*4 boxtmp(*),xpeak,ypeak,radmax,relaxcrit,wsum
+      integer*4 nxbox,nybox, idx, idy
+      real*4 rad, radinc, radsq, radosq, wbest, distsq, xtmp, ytmp, wtmp
       wsum=0.
       rad=0.
       radinc=1.5
@@ -401,8 +386,7 @@ c
             if(distsq.gt.radsq.and. distsq.le.radosq)then
               xtmp=idx
               ytmp=idy
-              call calcg(boxtmp,nxbox,nybox,xtmp, ytmp, idxin, idyin,
-     &            ninside, idxedge,idyedge, nedge,ipolar, wtmp)
+              call calccg(boxtmp,nxbox,nybox,xtmp, ytmp, wtmp)
               if(wtmp.gt.wbest)then
                 wbest=wtmp
                 xpeak=xtmp
@@ -417,7 +401,55 @@ c
       return
       end
 
+      subroutine rescueFromSobel(boxtmp,nxbox,nybox, xpeak, ypeak, sobelXpeaks,
+     &    sobelYpeaks, sobelPeaks, sobelWsums, maxpeaks, radmax,relaxcrit, wsum)
+      implicit none
+      real*4 boxtmp(*), xpeak, ypeak, sobelXpeaks(*), sobelYpeaks(*), sobelPeaks(*)
+      real*4 sobelWsums(*), radmax,relaxcrit, wsum
+      integer*4 nxbox,nybox,maxpeaks, ipeak
+      real*4 rad, radinc, radsq, radosq, wbest, distsq
+      wsum=0.
+      rad=0.
+      radinc=1.5
+      do while(rad.le.radmax .and.wsum.eq.0.)
+        radsq=rad**2
+        radosq=min(rad+radinc,radmax)**2
+        wbest=0.
+        do ipeak = 1, maxPeaks
+          if (sobelPeaks(ipeak) .lt. -1.e29) exit
+          distsq = xpeak**2 + ypeak**2
+          call checkSobelPeak(ipeak, boxtmp,nxbox,nybox,sobelXpeaks, sobelYpeaks,
+     &        sobelPeaks, sobelWsums, maxpeaks)
+          if (sobelWsums(ipeak) .gt. wbest) then
+            wbest = sobelWsums(ipeak)
+            xpeak = sobelXpeaks(ipeak)
+            ypeak = sobelYpeaks(ipeak)
+          endif          
+        enddo
+        rad=rad+radinc
+        if(wbest.ge. relaxcrit)wsum=wbest
+      enddo
+      return
+      end
 
+      subroutine checkSobelPeak(indPeak, boxtmp,nxbox,nybox, xpeaks, ypeaks, peaks, wsums,
+     &    maxpeaks)
+      implicit none
+      real*4 boxtmp(*),xpeaks(*), ypeaks(*), peaks(*), wsums(*)
+      integer*4 nxbox,nybox,maxpeaks, indPeak
+      real*4 xtmp, ytmp
+      if (wsums(indPeak) .ge. 0.) return
+      if (peaks(indPeak) .lt. -1.e29) then
+        wsums(indPeak) = 0.
+        return
+      endif
+      xtmp = xpeaks(indPeak)
+      ytmp = ypeaks(indPeak)
+      call calccg(boxtmp,nxbox,nybox,xtmp, ytmp, wsums(indPeak))
+      return
+      end
+
+      
 
       subroutine add_point(iobj,ipnear, xpos,ypos,iznext)
       include 'smallmodel.inc'
@@ -597,16 +629,16 @@ c       F is the 2 by 3 matrix transformation computed
 c       DEVAVG, DEVSD, DEVMAX are mean, SD, and maximum deviations
 c       IPNTMAX give the point number at which the maximum occurred
 c       
-      subroutine findxf_wo_outliers(xr,ndat,xcen,ycen,iftrans,
+      subroutine findxf_wo_outliers(xr,msizexr,ndat,xcen,ycen,iftrans,
      &    ifrotrans,maxdrop, critprob, critabs, elimmin, idrop,ndrop,
      &    f, devavg,devsd, devmax, ipntmax)
       implicit none
       include 'statsize.inc'
       integer*4 idrop(*)
-      real*4 xr(msiz,*)
+      real*4 xr(msizexr,*)
       integer*4 iftrans,ifrotrans
       real*4 f(2,3),xcen,ycen
-      integer*4 ndat,maxdrop,ndrop,ipntmax
+      integer*4 ndat,maxdrop,ndrop,ipntmax,msizexr
       real*4 critprob,critabs,elimmin,devavg,devsd,devmax
       integer*4 i,j,lastdrop,itmp,nkeep,jdrop,isaveBase,icolDev,indexCol
       real*4 probperpt,absperpt,sigfromavg,sigfromsd,sigma,z,prob,xx,yy
@@ -629,7 +661,7 @@ c
         enddo
       enddo
 
-      call findxf(xr,ndat,xcen,ycen,iftrans,ifrotrans,1,f,devavg,
+      call findxf(xr,msizexr,4,ndat,xcen,ycen,iftrans,ifrotrans,1,f,devavg,
      &    devsd,devmax,ipntmax)
       ndrop = 0
       if(maxdrop.eq.0.or.devmax.lt.elimmin) return
@@ -664,7 +696,7 @@ c       points and check how many of the points pass the criterion
 c       for outliers.  
 c       
       do jdrop = 1, maxdrop+1
-        call findxf(xr,ndat-jdrop,xcen,ycen,iftrans,ifrotrans,1,f,devavg,
+        call findxf(xr,msizexr,4,ndat-jdrop,xcen,ycen,iftrans,ifrotrans,1,f,devavg,
      &      devsd,devmax,ipntmax)
 c         
 c         get deviations for points out of fit
@@ -708,7 +740,7 @@ c
       do i=1,ndrop
         idrop(i)=nint(xr(indexCol, ndat+i-ndrop))
       enddo
-      call findxf(xr,ndat-ndrop,xcen,ycen,iftrans,ifrotrans,1,f,devavg,
+      call findxf(xr,msizexr, 4, ndat-ndrop,xcen,ycen,iftrans,ifrotrans,1,f,devavg,
      &    devsd,devmax,ipntmax)
       ipntmax=nint(xr(indexCol,ipntmax))
       do i=1,ndat

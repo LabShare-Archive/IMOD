@@ -13,9 +13,10 @@ tiltali.$(O): tiltali.f
 
 $(PROG): $(BDOBJS)
 	$(FC) -o beadtrack $(BDOBJS) $(LDFFLAGS) $(LSMLMOD) $(LIMOD) \
-	 $(IMLIBS) $(FORTCLIBS) $(TILTALILIB)
+	 $(IMLIBS) $(FORTCLIBS) $(TILTALILIB) $(LAPACKLIBS)
 
-beadtrack.$(O):   $(INCDIR)/smallmodel.inc $(INCDIR)/statsize.inc tltcntrl.$(O)
+beadtrack.$(O):   $(INCDIR)/smallmodel.inc $(INCDIR)/statsize.inc tltcntrl.$(O) \
+	tracksubs.$(O)
 proc_model.$(O):  $(INCDIR)/smallmodel.inc
 tracksubs.$(O):   $(INCDIR)/smallmodel.inc  $(INCDIR)/statsize.inc
 proc_vars.$(O):   tltcntrl.$(O)
@@ -44,5 +45,6 @@ install: $(PROG)
 	$(CP) $(PROG) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *.exe *~ beadtrack alivar.mod tltcntrl.mod
+	-\rm -f *.o* *.exe *~ beadtrack alivar.mod tltcntrl.mod arraymaxes.mod \
+	mapsep.mod cgpixels.mod
 
