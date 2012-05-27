@@ -65,6 +65,7 @@ EXPORTS
 	ilistInsert
 	ADOCSETTWOINTEGERS
 	reduceByBinning
+	polynomialFit
 	ilistRemove
 	PIPGETINTEGER
 	ADOCGETNUMBEROFSECTIONS
@@ -88,6 +89,7 @@ EXPORTS
 	PIPREADOPTIONFILE
 	PipGetString
 	IMODBACKUPFILE
+	POLYNOMIALFIT
 	PipNumberOfArgs
 	fValue
 	ilistTruncate
@@ -99,6 +101,7 @@ EXPORTS
 	sumsToAvgSD
 	wallTime
 	RSMEDIANOFSORTED
+	MULTREGRESS
 	sliceClear
 	LSFIT
 	LSFIT2
@@ -170,6 +173,7 @@ EXPORTS
 	XCorrSetCTFnoScl
 	surfaceSort
 	IMODGETSTAMP
+	STATMATRICES
 	ADOCSETTHREEINTEGERS
 	PipGetTwoFloats
 	AdocSetThreeFloats
@@ -233,6 +237,8 @@ EXPORTS
 	RSSORTFLOATS
 	AdocSetTwoIntegers
 	cblas_dcopy
+	gaussjDet
+	multRegress
 	errFunc
 	PIPREADSTDINIFSET
 	PARWRTPROPERTIES
@@ -258,6 +264,7 @@ EXPORTS
 	ADOCGETSECTIONNAME
 	fitSphereWgt
 	CONJUGATEPRODUCT
+	robustRegress
 	XCORRPEAKFIND
 	rsMedian
 	XCorrCCCoefficient
@@ -347,6 +354,7 @@ EXPORTS
 	PipEnableEntryOutput
 	WALLTIME
 	PIPINITIALIZE
+	ROBUSTREGRESS
 	B3DHEADERITEMBYTES
 	PipGetLineOfValues
 	SPLITFILL
@@ -367,7 +375,9 @@ EXPORTS
 	cblas_daxpy
 	selectZoomFilter
 	PIPGETSTRING
+	GAUSSJDET
 	PipGetFloatArray
+	statMatrices
 	slicePutVal
 	ADOCOPENIMAGEMETADATA
 	b3dError
