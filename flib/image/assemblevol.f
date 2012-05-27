@@ -13,23 +13,21 @@ c
 c       David Mastronarde, 3/1/01
 c       
 c       $Id$
-c       Log at end of file
 c       
       implicit none
       integer idimin,idimout,limfiles,limran,limopen
-      parameter (idimin=4100*2100, idimout=8200*8200,limfiles=10000)
-      parameter (limran=1000,limopen=19)
+      parameter (limopen=19)
       integer*4 nx,ny,nz
       COMMON //NX,NY,NZ
 C       
       integer*4 NXYZ(3),MXYZ(3),NXYZST(3),NXYZ2(3),MXYZ2(3)
-      real*4 ARRAY(idimin),TITLE(20), CELL2(6),brray(idimout),delta(3),tilt(3),origtilt(3)
-      common /bigarr/array,brray
+      real*4 TITLE(20), CELL2(6),delta(3),tilt(3),origtilt(3)
+      real*4, allocatable :: ARRAY(:),brray(:)
 C       
-      integer*4 ixlo(limran),ixhi(limran),iylo(limran),iyhi(limran)
-      integer*4 izlo(limran),izhi(limran)
+      integer*4, allocatable :: ixlo(:),ixhi(:),iylo(:),iyhi(:)
+      integer*4, allocatable :: izlo(:),izhi(:)
       CHARACTER*320 FILOUT
-      character*320 files(limfiles)
+      character*320, allocatable :: files(:)
       character*9 dat
       character*8 tim
       character*80 titlech
@@ -52,11 +50,15 @@ c
 c       
       write(*,'(1x,a,$)')'Numbers of input files in X, Y, and Z: '
       read(5,*)nfx,nfy,nfz
-      if(nfx*nfy*nfz.gt.limfiles.or.nfx.gt.limran.or.nfy.gt.limran
-     &    .or.nfz.gt.limran) call exitError('TOO MANY FILES FOR ARRAYS')
+      if (nfx .lt. 0 .or. nfy .lt. 0 .or. nfz .lt. 0)
+     &    call exitError('NUMBER OF FILES MUST BE POSITIVE')
+      limran = max(nfx, nfy, nfz)
+      limfiles = nfx*nfy*nfz
+      allocate(ixlo(limran),ixhi(limran),iylo(limran),iyhi(limran), izlo(limran),
+     &    izhi(limran), files(limfiles), stat = ixf)
+      call memoryError(ixf, 'ARRAYS FOR RANGES OR FILENAMES')
+
       openLayer = nfx * nfy .le. limopen
-c	if(nfx*nfy.gt.limopen) call exitError(
-c       &	    'TOO MANY FILES IN X AND Y TO OPEN AT ONCE')
 c       
       print *,'Enter the starting and ending index coordinates '//
      &    'for the pixels to extract', ' from the files at successive'//
@@ -104,9 +106,6 @@ c
         if (izlo(i).ne.0 .or. izhi(i).ne.0) nz3=nz3+izhi(i)+1-izlo(i)
       enddo
 c       
-      if(nx3*ny3.gt.idimout)call exitError('OUTPUT IMAGE TOO BIG FOR ARRAY')
-      if(maxx*maxy.gt.idimin)call exitError('INPUT IMAGES TOO BIG FOR ARRAY')
-c       
       print *,'Enter the input file names at successive positions '//
      &    'in X, then Y, then Z'
       ifile=1
@@ -153,8 +152,10 @@ c             Collect coordinates if they are not defined yet
         enddo
       enddo
 C       
-      if(nx3*ny3.gt.idimout)call exitError('OUTPUT IMAGE TOO BIG FOR ARRAY')
-      if(maxx*maxy.gt.idimin)call exitError('INPUT IMAGES TOO BIG FOR ARRAY')
+      idimout = nx3 * ny3 + 10
+      idimin = maxx*maxy + 10
+      allocate(ARRAY(idimin),brray(idimout), stat = ixf)
+      call memoryError(ixf, 'ARRAYS FOR IMAGE DATA')
 c
       CALL IMOPEN(1,FILOUT,'NEW')
       NXYZ2(1)=NX3
@@ -174,7 +175,7 @@ c
       origz = origz - izlo(1) * delta(3)
 C       
       call time(tim)
-      call date(dat)
+      call b3ddate(dat)
       write(titlech,301) dat,tim
       read(titlech,'(20a4)')(TITLE(kti),kti=1,20)
 301   FORMAT('ASSEMBLEVOL: Reassemble a volume from pieces',t57,a9,2x,a8)
@@ -286,29 +287,3 @@ c
       enddo
       return
       end
-
-c	
-c       $Log$
-c       Revision 3.7  2007/10/04 00:42:06  mast
-c       MAde it set origin from first input volume
-c
-c       Revision 3.6  2007/07/16 04:39:55  mast
-c       Fixed problem after testing
-c
-c       Revision 3.5  2007/07/15 21:15:55  mast
-c       Added ability to enter 0,0 to concatenate files in any direction
-c
-c       Revision 3.4  2005/02/10 17:24:52  mast
-c       Tried to clarify prompts for coordinates
-c	
-c       Revision 3.3  2004/06/14 19:26:06  mast
-c       Made it able to deal with more than 19 files in X and Y by having
-c       it open and close files for every section in Z.
-c	
-c       Revision 3.2  2002/07/31 23:59:04  mast
-c       Have it transfer titles also
-c	
-c       Revision 3.1  2002/07/31 20:05:11  mast
-c       Made it preserve pixel size. Also standardized error output and
-c       made declarations for implicit none.
-c	
