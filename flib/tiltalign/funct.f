@@ -13,7 +13,7 @@ c       error with respect to each variable and returns these derivatives in
 c       the array GRAD.  The derivatives with respect to the geometric
 c       variables are obtained from the following relations:
 c       _    xproj = a*x + b*y + c*z + dx(view)
-c       _    xproj = d*x + e*y + f*z + dy(view)
+c       _    yproj = d*x + e*y + f*z + dy(view)
 c       where the six terms are a product of distortion, X-axis tilt, Y-axis
 c       tilt, projection, and image rotation matrices.  The latest version
 c       takes the derivative of one of component matrices and forms the
@@ -29,39 +29,59 @@ c       view matches the centroid of the projection of the real-space
 c       points.  ANGLES ARE EXPECTED TO BE RADIANS.
 c       
 c       $Id$
-c       Log at end of file
 c       
-      subroutine funct(nvarsrch,var,ferror,grad)
-c       
+      module functVars
       implicit none
-      include 'alivar.inc'
-      integer ms
-      parameter (ms=maxview)
-c       
-      real*4 grad(*),var(*),ferror
-      integer*4 nvarsrch
-c       
-      double precision error, gradsum
-      logical*1 realinview(maxprojpt)
-c       
-      real*4 xbar(ms),ybar(ms),xproj(maxprojpt),yproj(maxprojpt)
-      real*4 xcen(ms),ycen(ms),zcen(ms)
 c       
 c       a, b, etc are the quantities in the above equations for each view
 c       aon is a over n (# of points in that view)
 c       aprime is derivative of a with respect to tilt angle
 c       
-      real*4 a(ms),b(ms),c(ms),d(ms),e(ms),f(ms)
-      real*4 aon(ms),bon(ms),con(ms),don(ms),eon(ms),fon(ms)
-      real*4 cbeta(ms),sbeta(ms),calf(ms),salf(ms)
-      real*4 cgam(ms),sgam(ms),cdel(ms),sdel(ms),xmag(ms)
+      logical*1, allocatable :: realinview(:)
+      real*4, allocatable :: xbar(:),ybar(:),xproj(:),yproj(:)
+      real*4, allocatable :: xcen(:),ycen(:),zcen(:)
+      real*4, allocatable :: a(:),b(:),c(:),d(:),e(:),f(:)
+      real*4, allocatable :: aon(:),bon(:),con(:),don(:),eon(:),fon(:)
+      real*4, allocatable :: cbeta(:),sbeta(:),calf(:),salf(:)
+      real*4, allocatable :: cgam(:),sgam(:),cdel(:),sdel(:),xmag(:)
 c       
-      integer*2 indvreal(maxprojpt)
-      integer*4 nptinview(maxview),indvproj(maxprojpt)
-      real*4 coefx(3*maxreal),coefy(3*maxreal), resprod(6,maxprojpt)
-      real*4 dmat(9,ms), xtmat(9,ms), ytmat(9,ms), rmat(4,ms), dermat(9)
-      real*4 projMat(4), beamInv(9,ms), beamMat(6,ms), umat(9)
-      save xbar,ybar,nptinview,realinview,indvproj,indvreal
+      integer*2, allocatable :: indvreal(:)
+      integer*4, allocatable :: nptinview(:),indvproj(:)
+      real*4, allocatable :: coefx(:),coefy(:), resprod(:,:)
+      real*4, allocatable :: dmat(:,:), xtmat(:,:), ytmat(:,:), rmat(:,:)
+      real*4, allocatable :: beamInv(:,:), beamMat(:,:)
+
+      end module functVars
+
+      subroutine allocateFunctVars(ierr)
+      use functVars
+      use arraymaxes
+      implicit none
+      integer*4 ierr, ms
+      ms = maxview
+      allocate(realinview(maxprojpt), xbar(ms),ybar(ms),xproj(maxprojpt),yproj(maxprojpt),
+     &    xcen(ms),ycen(ms),zcen(ms), a(ms),b(ms),c(ms),d(ms),e(ms),f(ms), aon(ms),
+     &    bon(ms),con(ms),don(ms),eon(ms),fon(ms), cbeta(ms),sbeta(ms),calf(ms),salf(ms),
+     &    cgam(ms),sgam(ms),cdel(ms),sdel(ms),xmag(ms), indvreal(maxprojpt),
+     &    nptinview(maxview),indvproj(maxprojpt), coefx(3*maxreal),coefy(3*maxreal),
+     &    resprod(6,maxprojpt), dmat(9,ms), xtmat(9,ms), ytmat(9,ms), rmat(4,ms),
+     &    beamInv(9,ms), beamMat(6,ms), stat=ierr)
+      return      
+      end subroutine allocateFunctVars
+
+      subroutine funct(nvarsrch,var,ferror,grad)
+c       
+      use alivar
+      use functVars
+      implicit none
+c       
+      real*4 grad(*),var(*),ferror
+      integer*4 nvarsrch
+c       
+      double precision error, gradsum
+c       
+      real*4 dermat(9)
+      real*4 projMat(4), umat(9)
 c       
       logical firsttime,xyzfixed
       common /functfirst/ firsttime,xyzfixed
@@ -601,8 +621,8 @@ c***    REMAP_PARAMS returns the complete set of geometric variables based
 c       on the current values of the search parameters.
 
       subroutine remap_params(varlist)
+      use alivar
       implicit none
-      include 'alivar.inc'
 c       
       real*4 varlist(*)
       real*4 sum,varsave
@@ -724,28 +744,3 @@ c
       f = tmp(6)
       return
       end
-
-
-c       $Log$
-c       Revision 3.6  2007/05/04 00:02:54  mast
-c       Switched from projection stretch to skew between estimated scope axes
-c
-c       Revision 3.5  2007/02/19 21:07:52  mast
-c       Added beam tilt and changed matrix sizes to accommodate
-c
-c       Revision 3.4  2005/04/10 18:02:50  mast
-c       Eliminated global rotation variable due to ineffectiveness in finding
-c       angle for some small tilt range situations with mappings
-c       
-c       Revision 3.3  2004/10/24 22:28:52  mast
-c       Changed handling of rotation variables, added projection stretch,
-c       made subroutines for filling matrices
-c       
-c       Revision 3.2  2004/10/09 23:51:12  mast
-c       Switched to matrix formulation to simplify code, speeded up
-c       computation 2-fold by saving intermediate residual products for
-c       gradients, added declarations.
-c       
-c       Revision 3.1  2002/07/28 22:39:19  mast
-c       Standardized error exit and output
-c       

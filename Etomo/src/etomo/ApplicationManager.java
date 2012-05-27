@@ -65,7 +65,7 @@ import etomo.comscript.TrimvolParam;
 import etomo.comscript.WarpVolParam;
 import etomo.comscript.XfmodelParam;
 import etomo.comscript.XfproductParam;
-import etomo.logic.TomogramSize;
+import etomo.logic.TomogramTool;
 import etomo.logic.TrimvolInputFileState;
 import etomo.process.BaseProcessManager;
 import etomo.process.ContinuousListenerTarget;
@@ -5424,8 +5424,8 @@ public final class ApplicationManager extends BaseManager implements
       CombineParams combineParams = new CombineParams(metaData.getCombineParams());
       if (!combineParams.isPatchBoundarySet()) {
         // The first time combine is opened for this dataset, set tomogram size
-        TomogramSize.saveTomogramSize(this, AxisID.FIRST, AxisID.ONLY);
-        TomogramSize.saveTomogramSize(this, AxisID.SECOND, AxisID.ONLY);
+        TomogramTool.saveTomogramSize(this, AxisID.FIRST, AxisID.ONLY);
+        TomogramTool.saveTomogramSize(this, AxisID.SECOND, AxisID.ONLY);
         String recFileName;
         MatchMode matchMode = combineParams.getMatchMode();
         if (matchMode == null || matchMode == MatchMode.B_TO_A) {
@@ -5829,8 +5829,8 @@ public final class ApplicationManager extends BaseManager implements
     loadVolcombine();
     loadCombineComscript();
     mainPanel.stopProgressBar(AxisID.ONLY);
-    TomogramSize.saveTomogramSize(this, AxisID.FIRST, AxisID.ONLY);
-    TomogramSize.saveTomogramSize(this, AxisID.SECOND, AxisID.ONLY);
+    TomogramTool.saveTomogramSize(this, AxisID.FIRST, AxisID.ONLY);
+    TomogramTool.saveTomogramSize(this, AxisID.SECOND, AxisID.ONLY);
     return true;
   }
 

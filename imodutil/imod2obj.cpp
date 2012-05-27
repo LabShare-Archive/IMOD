@@ -24,9 +24,9 @@
 //## GLOBAL VARIABLES:
 
 static int  numObjs     = 0;		// tallies the number of objects turned on
-static long numVertices = 0;		// tallies the number of vertex points added
-static long numFaces    = 0;		// tallies the number of faces added
-static long numNormals  = 0;		// tallies the number of normals added
+static int  numVertices = 0;		// tallies the number of vertex points added
+static int  numFaces    = 0;		// tallies the number of faces added
+static int  numNormals  = 0;		// tallies the number of normals added
 static int  numSpheres  = 0;		// tallies the number of spheres printed
 
 static int lowRes         = 0;		// if we want to use low res version
@@ -34,9 +34,10 @@ static int printAllObjs   = 0;		// print all objects (not just those on)
 static int rotateModel    = 0;		// "rotate" (flip Y and Z axis)
 static int printMatFile   = 0;		// generate a .mtl file
 static int printNormals   = 0;		// print normals
+static int flipNormals    = 0;    // flip normals
 static int sphereSegments = 8;		// number of segments per sphere
 static int useIcosahedrons= 0;		// draw isohedrons instead of "standard" sphere meshes
-
+static int onlyScatSpheres= 0;	  // only print spheres for scattered objects
 
 //## FUNCTION DECLARATION:
 
@@ -69,6 +70,8 @@ static void usage(int error)
 	printf("              Y and Z axis - a better orientiation making movies\n");
 	printf("       -n     output normals (off by default as most 3d programs which \n");
 	printf("              import OBJ can generate their own normals if missing).\n");
+	printf("       -f     flips all normals.\n");
+	printf("       -o     only print spheres on scattered objects.\n");
 	printf("       -s #   number of segments to render per sphere (default is 8) \n");
 	printf("       -i     print spheres as icosahedrons (20 triangles/sphere) instead \n");
 	
@@ -121,6 +124,14 @@ int main( int argc, char *argv[])
 				
 			case 'n':
 				printNormals = 1;
+				break;
+				
+			case 'f':
+				flipNormals = 1;
+				break;
+				
+			case 'o':
+				onlyScatSpheres = 1;
 				break;
 				
       default:
@@ -179,6 +190,8 @@ int main( int argc, char *argv[])
 	fprintf(stdout, "  # spheres:    %d\n", numSpheres  );
 	fprintf(stdout, "  # vertices:   %d\n", numVertices );
 	fprintf(stdout, "  # faces:      %d\n", numFaces    );
+	fprintf(stdout, "  mtl file generated: %s\n", (printMatFile) ? "yes" : "no" );
+	
   exit(0);
 }
 
@@ -291,7 +304,8 @@ static void printObject(Imod *imod, int ob, FILE *fout)
       printMesh(imod, ob, fout);
 	}
   if (hasSpheres) {
-    printScatContours(imod, ob, fout);
+		if( objScattered || !onlyScatSpheres )
+			printScatContours(imod, ob, fout);
   }
 	
   numObjs++;
@@ -343,7 +357,7 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
     }
 		
 		//## OUTPUT VERTEXES (POINTS):
-		long fVert = numVertices;					// first vertex in this group
+		int fVert = numVertices;					// first vertex in this group
 		for(i = 0; i < mesh->vsize; i+=2)
 		{
 			vert = mesh->vert[i];
@@ -355,14 +369,17 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
 		}
 		
 		//## OUTPUT NORMALS (IF SPECIFIED):
-		long fNorm = numNormals;					// first normal in this group
+		int fNorm = numNormals;					// first normal in this group
 		if (printNormals)
 		{
 			fprintf(fout,"\n");
 			for(i = 1; i < mesh->vsize; i+=2){
 				norm = mesh->vert[i];
 				imodPointNormalize(&norm);
-				fprintf(fout,"vn %.3f %.3f %.3f\n", norm.x, norm.y, norm.z );
+				if(flipNormals)
+					fprintf(fout,"vn %.3f %.3f %.3f\n", norm.x, norm.y, norm.z );
+				else
+					fprintf(fout,"vn %.3f %.3f %.3f\n", -norm.x, -norm.y, -norm.z );
 				numNormals++;
 			}
 		}
@@ -396,7 +413,7 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
 				ind = 3 * index;
 				if(printNormals)
 				{
-					fprintf(fout,"f %d/%d %d/%d %d/%d\n", 
+					fprintf(fout,"f %d//%d %d//%d %d//%d\n", 
 									ilist[ind+2]+fVert+1, ilist[ind+2]+fNorm+1, 
 									ilist[ind+1]+fVert+1, ilist[ind+1]+fNorm+1,
 									ilist[ind]  +fVert+1, ilist[ind]  +fNorm+1 );
@@ -494,27 +511,58 @@ static void printSphere(Ipoint pt, float radius, int segments, FILE *fout)
 	//## PRINT VERTEXES:
 	
 	fprintf(fout,"v %.5g %.5g %.5g\n", pt.x, pt.y+radius, pt.z );		// top vertex
-	numVertices++;
 	fprintf(fout,"v %.5g %.5g %.5g\n", pt.x, pt.y-radius, pt.z );		// bottom vertex
-	numVertices++;
+	numVertices += 2;
 	
-	long fVert = numVertices;
+	int fVert = numVertices;		// index of first intermediate vertex
 	for(p=1; p<nPitch; p++)			// generate all "intermediate vertices":
 	{
-		float out = abs( radius * sin( p * pitchInc ) );
-		float y   = radius * cos( p * pitchInc );
+		float out = fabs( radius * sin( (float)p * pitchInc ) );
+		float y   = radius * cos( (float)p * pitchInc );
 		
 		for(s=0; s<segments; s++)
 		{
-			float x = out * cos( s * segInc );
-			float z = out * sin( s * segInc );
+			float x = out * cos( (float)s * segInc );
+			float z = out * sin( (float)s * segInc );
 			
 			fprintf(fout,"v %.5g %.5g %.5g\n", x+pt.x, y+pt.y, z+pt.z );
 			numVertices++;
 		}
 	}
+	fprintf(fout,"\n");
 	
-	fprintf(fout,"\n");	
+	
+	//## PRINT NORMALS:
+	
+	long fNorm;				// index of first intermediate normal
+	if(printNormals)
+	{
+		fprintf(fout,"vn 0.0 1.0 0.0\n"  );			// top normal
+		fprintf(fout,"vn 0.0 -1.0 0.0\n" );		  // bottom normal
+		numNormals += 2;
+		
+		fNorm = numNormals;
+		for(p=1; p<nPitch; p++)			// generate all "intermediate normals":
+		{
+			float outN = fabs(1.0f * sin( (float)p * pitchInc ));
+			float yN   = cos( (float)p * pitchInc );
+			
+			for(s=0; s<segments; s++)
+			{
+				float xN = outN * cos( (float)s * segInc );
+				float zN = outN * sin( (float)s * segInc );
+				
+				if(zN > -0.001f && zN < 0.001f)	zN = 0;
+				if(xN > -0.001f && xN < 0.001f)	xN = 0;
+				
+				fprintf(fout,"vn %.5g %.5g %.5g\n", xN, yN, zN );
+				numNormals++;
+			}
+		}
+		fprintf(fout,"\n");
+	}
+	
+	
 	
 	//## PRINT SQUARE FACES BETWEEN INTERMEDIATE POINTS:
 	
@@ -525,20 +573,46 @@ static void printSphere(Ipoint pt, float radius, int segments, FILE *fout)
 			i = p*segments + s;
 			j = (s==segments-1) ? i-segments : i;
 			
-			fprintf(fout,"f %d %d %d %d\n", 
+			if(printNormals)
+			{
+				fprintf(fout,"f %d//%d %d//%d %d//%d %d//%d\n", 
+								(i+1-segments)+fVert, (i+1-segments)+fNorm, 
+								(j+2-segments)+fVert, (j+2-segments)+fNorm, 
+								(j+2)+fVert,          (j+2)+fNorm, 
+								(i+1)+fVert,          (i+1)+fNorm );
+			}
+			else
+			{
+				fprintf(fout,"f %d %d %d %d\n", 
 								(i+1-segments)+fVert, (j+2-segments)+fVert, (j+2)+fVert, (i+1)+fVert );
+			}
 			numFaces++;
 		}
 	}
 	
 	//## PRINT TRIANGLE FACES CONNECTING TO TOP AND BOTTOM VERTEX:
 	
-	long offLastVerts  = fVert + (segments * (nPitch-2) );
+	int offLastVerts  = fVert + (segments * (nPitch-2) );
+	int offLastNorms  = fNorm + (segments * (nPitch-2) );
 	for(s=0; s<segments; s++)
 	{
 		j = (s==segments-1) ? -1 : s;
-		fprintf(fout,"f %d %d %d\n", fVert-1, (j+2)+fVert,        (s+1)+fVert        );
-		fprintf(fout,"f %d %d %d\n", fVert,   (s+1)+offLastVerts, (j+2)+offLastVerts );
+		if(printNormals)
+		{
+			fprintf(fout,"f %d//%d %d//%d %d//%d\n",
+							fVert-1,      fNorm-1,
+							(j+2)+fVert,  (j+2)+fNorm,
+							(s+1)+fVert,  (s+1)+fNorm );
+			fprintf(fout,"f %d//%d %d//%d %d//%d\n",
+							fVert,               fNorm,
+							(s+1)+offLastVerts,  (s+1)+offLastNorms,
+							(j+2)+offLastVerts,  (j+2)+offLastNorms );
+		}
+		else
+		{
+			fprintf(fout,"f %d %d %d\n", fVert-1, (j+2)+fVert,        (s+1)+fVert        );
+			fprintf(fout,"f %d %d %d\n", fVert,   (s+1)+offLastVerts, (j+2)+offLastVerts );
+		}
 		numFaces = numFaces + 2;
 	}
 	

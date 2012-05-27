@@ -52,6 +52,7 @@ EXPORTS
 	findPieceShifts
 	PIPEXIT
 	PipGetNonOptionArg
+	SLICEGAUSSIANKERNEL
 	PIPENABLEENTRYOUTPUT
 	ilistPop
 	AdocGetTwoFloats
@@ -73,6 +74,7 @@ EXPORTS
 	ilistLast
 	PipGetTwoIntegers
 	XFUNIT
+	B3DOMPTHREADNUM
 	ADOCWRITE
 	SUMS_TO_AVGSD
 	b3dRewind
@@ -105,6 +107,7 @@ EXPORTS
 	ADOCGETFLOAT
 	LSQR
 	parWrtFindRegion
+	SCALEDGAUSSIANKERNEL
 	AMOEBAINIT
 	CPUTIME
 	PipInitialize
@@ -189,6 +192,7 @@ EXPORTS
 	PIPSETERROR
 	sliceGetPixelMagnitude
 	SELECTZOOMFILTER
+	scaledGaussianKernel
 	AdocSetFloat
 	sliceTaperInPad
 	PipPrintHelp
@@ -258,6 +262,7 @@ EXPORTS
 	rsMedian
 	XCorrCCCoefficient
 	tValue
+	sliceGaussianKernel
 	PIPGETINTEGERARRAY
 	XCorrSetCTF
 	PipParseInput
@@ -302,6 +307,7 @@ EXPORTS
 	fgetline
 	exitError
 	betaFunc
+	applyKernelFilter
 	imodCopyright
 	ilistPush
 	lsFit3
@@ -344,7 +350,7 @@ EXPORTS
 	B3DHEADERITEMBYTES
 	PipGetLineOfValues
 	SPLITFILL
-	b3dompthreadnum
+	APPLYKERNELFILTER
 	PIPALLOWCOMMADEFAULTS
 	SURFACESORT
 	AdocRead
