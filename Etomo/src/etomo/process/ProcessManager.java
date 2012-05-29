@@ -2139,9 +2139,6 @@ public class ProcessManager extends BaseProcessManager {
     }
   }
 
-  void postProcess(ReconnectProcess script) {
-  }
-
   void postProcess(final DetachedProcess process) {
     super.postProcess(process);
     try {
@@ -2301,9 +2298,6 @@ public class ProcessManager extends BaseProcessManager {
     }
   }
 
-  void errorProcess(ReconnectProcess script) {
-  }
-
   void errorProcess(ComScriptProcess script) {
     try {
       ProcessName processName = script.getProcessName();
@@ -2419,9 +2413,6 @@ public class ProcessManager extends BaseProcessManager {
       e.printStackTrace();
       System.err.println("ERROR:  Unable to record state.");
     }
-  }
-
-  void postProcess(InteractiveSystemProgram program) {
   }
 
   BaseManager getManager() {

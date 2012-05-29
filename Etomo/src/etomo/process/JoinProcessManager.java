@@ -276,8 +276,9 @@ public final class JoinProcessManager extends BaseProcessManager {
   public String xfjointomo(XfjointomoParam xfjointomoParam,
       ConstProcessSeries processSeries) throws SystemProcessException {
     XfjointomoLog.getInstance(manager).reset();
-    BackgroundProcess backgroundProcess = startBackgroundProcess(xfjointomoParam
-        .getCommandArray(), AxisID.ONLY, null, ProcessName.XFJOINTOMO, processSeries);
+    BackgroundProcess backgroundProcess = startBackgroundProcess(
+        xfjointomoParam.getCommandArray(), AxisID.ONLY, null, ProcessName.XFJOINTOMO,
+        processSeries);
     return backgroundProcess.getName();
   }
 
@@ -378,8 +379,8 @@ public final class JoinProcessManager extends BaseProcessManager {
             }
             else if (line.indexOf(FinishjoinParam.OFFSET_TAG) != -1) {
               lineArray = line.split("\\s+");
-              manager.setShift(FinishjoinParam
-                  .getShift(lineArray[FinishjoinParam.OFFSET_IN_X_INDEX]),
+              manager.setShift(
+                  FinishjoinParam.getShift(lineArray[FinishjoinParam.OFFSET_IN_X_INDEX]),
                   FinishjoinParam.getShift(lineArray[FinishjoinParam.OFFSET_IN_Y_INDEX]));
             }
           }
@@ -390,22 +391,23 @@ public final class JoinProcessManager extends BaseProcessManager {
           || mode == FinishjoinParam.Mode.FINISH_JOIN) {
         if (processDetails != null) {
           boolean trial = mode == FinishjoinParam.Mode.TRIAL;
-          state.setJoinAlignmentRefSection(trial, processDetails
-              .getEtomoNumber(FinishjoinParam.Fields.ALIGNMENT_REF_SECTION));
-          state.setJoinSizeInX(trial, processDetails
-              .getEtomoNumber(FinishjoinParam.Fields.SIZE_IN_X));
-          state.setJoinSizeInY(trial, processDetails
-              .getEtomoNumber(FinishjoinParam.Fields.SIZE_IN_Y));
-          state.setJoinShiftInX(trial, processDetails
-              .getEtomoNumber(FinishjoinParam.Fields.SHIFT_IN_X));
-          state.setJoinShiftInY(trial, processDetails
-              .getEtomoNumber(FinishjoinParam.Fields.SHIFT_IN_Y));
-          state.setJoinLocalFits(trial, processDetails
-              .getEtomoNumber(FinishjoinParam.Fields.LOCAL_FITS));
-          state.setJoinStartList(trial, processDetails
-              .getIntKeyList(FinishjoinParam.Fields.JOIN_START_LIST));
-          state.setJoinEndList(trial, processDetails
-              .getIntKeyList(FinishjoinParam.Fields.JOIN_END_LIST));
+          state
+              .setJoinAlignmentRefSection(trial, processDetails
+                  .getEtomoNumber(FinishjoinParam.Fields.ALIGNMENT_REF_SECTION));
+          state.setJoinSizeInX(trial,
+              processDetails.getEtomoNumber(FinishjoinParam.Fields.SIZE_IN_X));
+          state.setJoinSizeInY(trial,
+              processDetails.getEtomoNumber(FinishjoinParam.Fields.SIZE_IN_Y));
+          state.setJoinShiftInX(trial,
+              processDetails.getEtomoNumber(FinishjoinParam.Fields.SHIFT_IN_X));
+          state.setJoinShiftInY(trial,
+              processDetails.getEtomoNumber(FinishjoinParam.Fields.SHIFT_IN_Y));
+          state.setJoinLocalFits(trial,
+              processDetails.getEtomoNumber(FinishjoinParam.Fields.LOCAL_FITS));
+          state.setJoinStartList(trial,
+              processDetails.getIntKeyList(FinishjoinParam.Fields.JOIN_START_LIST));
+          state.setJoinEndList(trial,
+              processDetails.getIntKeyList(FinishjoinParam.Fields.JOIN_END_LIST));
           state.setCurrentJoinVersion(trial);
           if (mode == FinishjoinParam.Mode.TRIAL) {
             state.setJoinTrialBinning(processDetails
@@ -433,24 +435,24 @@ public final class JoinProcessManager extends BaseProcessManager {
       manager.postProcess(commandName, processDetails);
     }
     else if (commandName.equals(ProcessName.XFJOINTOMO.toString())) {
-      writeLogFile(process, process.getAxisID(), DatasetFiles.getLogName(manager, process
-          .getAxisID(), process.getProcessName()));
+      writeLogFile(process, process.getAxisID(),
+          DatasetFiles.getLogName(manager, process.getAxisID(), process.getProcessName()));
       try {
         state.setGapsExist(XfjointomoLog.getInstance(manager).gapsExist());
       }
       catch (LogFile.LockException e) {
         e.printStackTrace();
-        //if not sure whether gaps exist, run remapmodel
+        // if not sure whether gaps exist, run remapmodel
         state.setGapsExist(true);
       }
       catch (FileNotFoundException e) {
         e.printStackTrace();
-        //if not sure whether gaps exist, run remapmodel
+        // if not sure whether gaps exist, run remapmodel
         state.setGapsExist(true);
       }
       catch (IOException e) {
         e.printStackTrace();
-        //if not sure whether gaps exist, run remapmodel
+        // if not sure whether gaps exist, run remapmodel
         state.setGapsExist(true);
       }
       manager.postProcess(commandName, process.getProcessDetails());
@@ -480,15 +482,15 @@ public final class JoinProcessManager extends BaseProcessManager {
         return;
       }
       File outputFile = command.getCommandOutputFile();
-      //A partially created flip file can cause an error when it is opened.
+      // A partially created flip file can cause an error when it is opened.
       if (outputFile != null) {
         outputFile.delete();
       }
       manager.abortAddSection();
     }
     else if (commandName.equals(ProcessName.XFJOINTOMO.toString())) {
-      writeLogFile(process, process.getAxisID(), DatasetFiles.getLogName(manager, process
-          .getAxisID(), process.getProcessName()));
+      writeLogFile(process, process.getAxisID(),
+          DatasetFiles.getLogName(manager, process.getAxisID(), process.getProcessName()));
     }
   }
 
@@ -523,11 +525,5 @@ public final class JoinProcessManager extends BaseProcessManager {
 
   BaseManager getManager() {
     return manager;
-  }
-
-  void errorProcess(ReconnectProcess script) {
-  }
-
-  void postProcess(ReconnectProcess script) {
   }
 }
