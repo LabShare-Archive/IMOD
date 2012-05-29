@@ -471,25 +471,34 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
       if (command.equals(ftfInputFile.getActionCommand())) {
         inputFileAction();
       }
-      else if (command.equals(btnFlatten.getActionCommand())) {
-        toolsManager.flatten(btnFlatten, null, deferred3dmodButton, run3dmodMenuOptions,
-            dialogType, axisID, this);
-      }
-      else if (command.equals(btnImodFlatten.getActionCommand())) {
-        toolsManager.imodFlatten(run3dmodMenuOptions, axisID);
-      }
-      else if (command.equals(btnMakeSurfaceModel.getActionCommand())) {
-        toolsManager.imodMakeSurfaceModel(run3dmodMenuOptions, axisID,
-            btnMakeSurfaceModel.getBinningInXandY(), ftfInputFile.getFile());
-      }
-      else if (command.equals(btnFlattenWarp.getActionCommand())) {
-        if (validateFlattenWarp()) {
-          toolsManager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
+      else {
+        //Must keep checking the dataset directory because a tools interface cannot
+        //take pocession of a directory.
+        File file = ftfInputFile.getFile();
+        if (!DatasetDirectory.validateDatasetName(toolsManager, axisID,
+            file.getParentFile(), file.getName(), DataFileType.TOOLS, null)) {
+          return;
+        }
+        if (command.equals(btnFlatten.getActionCommand())) {
+          toolsManager.flatten(btnFlatten, null, deferred3dmodButton,
               run3dmodMenuOptions, dialogType, axisID, this);
         }
-      }
-      else {
-        throw new IllegalStateException("Unknown command " + command);
+        else if (command.equals(btnImodFlatten.getActionCommand())) {
+          toolsManager.imodFlatten(run3dmodMenuOptions, axisID);
+        }
+        else if (command.equals(btnMakeSurfaceModel.getActionCommand())) {
+          toolsManager.imodMakeSurfaceModel(run3dmodMenuOptions, axisID,
+              btnMakeSurfaceModel.getBinningInXandY(), ftfInputFile.getFile());
+        }
+        else if (command.equals(btnFlattenWarp.getActionCommand())) {
+          if (validateFlattenWarp()) {
+            toolsManager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
+                run3dmodMenuOptions, dialogType, axisID, this);
+          }
+        }
+        else {
+          throw new IllegalStateException("Unknown command " + command);
+        }
       }
     }
     else {
@@ -525,7 +534,9 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
       try {
         ftfInputFile.setText(file.getAbsolutePath());
         ftfInputFile.setButtonEnabled(false);
-        toolsManager.setName(file);
+        if (toolsManager != null) {
+          toolsManager.setName(file);
+        }
         UIHarness.INSTANCE.pack(manager);
         checkRotated(file);
       }
