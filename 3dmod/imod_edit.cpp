@@ -19,6 +19,7 @@
 #include "preferences.h"
 
 static float imod_distance( float *x, float *y, Ipoint *pnt);
+static float contourSublength(Icont *cont, int p1, int p2);
 
 /* DNM 1/23/03: eliminate imod_movepoint */
 /* moved point by adding x,y, and z to current model point. */
@@ -50,6 +51,31 @@ int imodContInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin, Ipoint selmax)
           pnt->y < selmin.y || pnt->y > selmax.y)
         return 0;
     }
+  }
+  return inRange;
+}
+
+/* Tests whether the contour is inside another one, outer.  Either it must be 
+   entirely within the outer one, or it must be an open wild contour and have points
+   on the current section that are all within the outer one */
+int imodContInsideCont(Iobj *obj, Icont *cont, Icont *outer, float zmin, float zmax)
+{
+  int pt, inRange, inside;
+  Ipoint *pnt;
+  bool onSec;
+  bool wildOpen = iobjOpen(obj->flags) && (cont->flags & ICONT_WILD);
+
+  inRange = wildOpen ? 0 : 1;
+  for (pt = 0; pt < cont->psize; pt++) {
+    pnt = &cont->pts[pt];
+    onSec = pnt->z >= zmin && pnt->z <= zmax;
+    inside = imodPointInsideCont(outer, pnt);
+    if (!inside || !onSec) {
+      // Wild open contour is no good if a point in the Z range is outside the contour
+      if (!wildOpen || onSec)
+        return 0;
+    } else if (wildOpen)
+      inRange = 1;
   }
   return inRange;
 }
@@ -321,6 +347,80 @@ void imodMoveAllContours(ImodView *vi, int obNew)
     imodObjectAddContour(&imod->obj[obNew], &obj->cont[co]);
     imodObjectRemoveContour(obj, co);
   }
+}
+
+/*
+ * Looks for places where the contour crosses itself and removes the shorter part of the
+ * contour in each case (but for an open contour, it always removes the part of the 
+ * contour between the crossings even if it is long.)  Uses imodContourBreak so it 
+ * should be able to preserve sizes and istores, but has only been tested on lasso 
+ * contour.
+ */
+void imodTrimContourLoops(Icont *cont, int openObj)
+{
+  int sega, segb, nextb, swap, numSeg, innerLim;
+  Icont *newCont;
+  Icont tmpCont;
+  Ipoint *pts;
+  int foundLoop = 1;
+  int openCont = (openObj || (cont->flags & ICONT_OPEN)) ? 1 : 0;
+
+  /* Repeat until no more crossings are found */
+  while (foundLoop) {
+    foundLoop = 0;
+
+    /* Going to loop on pairs of non-adjacent contours, so for closed contour, the first
+       time it has to stop before end; thereafter it has to go to end.
+    */
+    numSeg = cont->psize - (openCont ? 1 : 0);
+    innerLim = numSeg - (openCont ? 0 : 1);
+    pts = cont->pts;
+    for (sega = 0; sega < numSeg - 2; sega++) {
+      for (segb = sega + 2; segb < innerLim; segb++) {
+        nextb = (segb + 1) % cont->psize;
+        if (imodPointIntersect(&pts[sega], &pts[sega + 1], &pts[segb], &pts[nextb])) {
+
+          /* If contour is closed, see if piece to be trimmed out is actually longer
+             and retain that piece instead */
+          swap = (!openCont && contourSublength(cont, sega+1, segb) > 
+                      contourSublength(cont, nextb, sega)) ? 1 : 0;
+          newCont = imodContourBreak(cont, sega + 1, segb);
+          if (!newCont)
+            return;
+          if (swap) {
+            imodContourCopy(cont, &tmpCont);
+            imodContourCopy(newCont, cont);
+            imodContourCopy(&tmpCont, newCont);
+          }
+          imodContourDelete(newCont);
+          foundLoop = 1;
+          break;
+        }
+      }
+      innerLim = numSeg;
+      if (foundLoop)
+        break;
+    }
+  }
+}
+
+/*
+ * Computes the 2D length of a contour from p1 through p2, going forward through the 
+ * points. If p2 is before p1, then it will go around through 0.
+ */
+static float contourSublength(Icont *cont, int p1, int p2)
+{
+  int pt, pnext, i;
+  double lsum = 0.;
+  if (p2 < p1)
+    p2 += cont->psize;
+  pt = p1;
+  for (i = p1; i <= p2; i++) {
+    pnext = (pt + 1) % cont->psize;
+    lsum += imodPointDistance(&cont->pts[pt], &cont->pts[pnext]);
+    pt = pnext;
+  }
+  return (float)lsum;
 }
 
 static void dumpSelectionList(ImodView *vi) 

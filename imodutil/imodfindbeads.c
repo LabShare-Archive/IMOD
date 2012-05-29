@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdio.h>
@@ -142,13 +141,13 @@ int main( int argc, char *argv[])
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 imodfindbeads  */
   int numOptions = 32;
-  char *options[] = {
+  const char *options[] = {
     "input:InputImageFile:FN:", "output:OutputModelFile:FN:",
     "filtered:FilteredImageFile:FN:", "area:AreaModel:FN:",
     "add:AddToModel:FN:", "ref:ReferenceModel:FN:",
     "boundary:BoundaryObject:I:", "size:BeadSize:F:", "light:LightBeads:B:",
     "scaled:ScaledSize:F:", "interpmin:MinInterpolationFactor:F:",
-    "linear:LinearInterpolation:B:", "center:CenterWeight:F:",
+    "linear:LinearInterpolation:I:", "center:CenterWeight:F:",
     "box:BoxSizeScaled:I:", "threshold:ThresholdForAveraging:F:",
     "store:StorageThreshold:F:", "bkgd:BackgroundGroups:F:",
     "annulus:AnnulusPercentile:F:", "peakmin:MinRelativeStrength:F:",
@@ -227,7 +226,7 @@ int main( int argc, char *argv[])
   if (PipGetFloat("BeadSize", &beadSize))
     exitError("You must enter a bead size");
   PipGetBoolean("LightBeads", &lightBeads);
-  PipGetBoolean("LinearInterpolation", &linear);
+  PipGetInteger("LinearInterpolation", &linear);
   PipGetBoolean("RemakeModelBead", &remakeModelBead);
   PipGetFloat("ThresholdForAveraging", &threshold);
   PipGetFloat("StorageThreshold", &peakThresh);
@@ -798,7 +797,7 @@ int main( int argc, char *argv[])
               // Interpolate the bead into center of array, add it to sum
               cubinterp(sl->data.f, oneBead, nxin, nyin, boxSize, boxSize, 
                         amat, peakList[j].xcen, peakList[j].ycen, 0., 0., 1.,
-                        inhead.amean, linear);
+                        inhead.amean, B3DMAX(0,linear));
               nsum++;
               for (i = 0; i < boxSize * boxSize; i++)
                 fullBead[i] += oneBead[i];
@@ -1347,8 +1346,8 @@ static void selectedMinMax(PeakEntry *peakList, float *element, int numPeaks,
                            float *select, float selMin, float selMax,
                            float *minVal, float *maxVal, int *ninRange)
 {
-  float dxbin, delta, val;
-  int i, j, ist, ind;
+  float val;
+  int j;
   *minVal = 1.e30;
   *maxVal = -1.e30;
   *ninRange = 0;
@@ -1420,24 +1419,3 @@ static int pointInsideArea(Iobj *obj, int *list, int nlist, float xcen,
   }
   return 0;
 }
-
-/*
-
-$Log$
-Revision 3.5  2008/12/01 15:44:39  mast
-Pulled out more library functions, made kernel filtering be default
-
-Revision 3.4  2008/11/12 03:48:19  mast
-Pulled out the scan histogram function for library
-
-Revision 3.3  2008/11/02 13:43:48  mast
-Switched to float-slice reading function
-
-Revision 3.2  2008/06/22 05:04:26  mast
-Make sure valblack is not based on dip below the minimum value output
-
-Revision 3.1  2008/06/19 23:26:50  mast
-Added to package
-
-
-*/

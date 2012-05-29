@@ -11,7 +11,7 @@ E = $(BINEXT)
 IILIBS    = $(LIIMOD) $(LIMOD) $(LCFSHR) $(TIFFLIBS)
 MODLIBS   = $(LIMOD) $(LCFSHR)
 
-PROGS = clonemodel$(E) clonevolume$(E) imodauto$(E) \
+PROGS = clonemodel$(E) clonevolume$(E) imodauto$(E) imod-dist$(E) \
  imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) rec2imod$(E) \
  imod2rib$(E) imod2vrml$(E) imod2vrml2$(E) imod2obj$(E) \
  imod2meta$(E) wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) \
@@ -29,6 +29,9 @@ clonevolume$(E) : clonevolume.$(O)
 
 imodinfo$(E) : imodinfo.$(O)
 	$(CC) -o imodinfo imodinfo.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+
+imod-dist$(E) : imod-dist.$(O)
+	$(CC) -o imod-dist imod-dist.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imodmesh$(E) : imodmesh.$(O) 
 	$(CC) -o imodmesh imodmesh.$(O) \

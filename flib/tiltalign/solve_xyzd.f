@@ -1,310 +1,294 @@
-c****	  SOLVE_XYZD obtains estimates for the underlying (real) x,y,z
-c	  coordinates of each point and for the delta X and Y of each view,
-c	  for the given values of tilt, rotation, mag and compression.
-c	  It takes advantage of the linear relationship between the projection
-c	  x and y coordinates and the x,y,z and dx and dy.  The routine takes
-c	  in incoming values of dx and dy, and, for each real point, uses
-c	  regression equations to solve for the x,y,z coordinates of that
-c	  point.  Then it uses the collection of x,y,z coordinates to compute
-c	  the dx and dy values for each section.  This process is repeated up
-c	  to NSOLVE times, or until the biggest change in dx or dy becomes
-c	  tiny.  The procedure is not guaranteed to converge for large data
-c	  sets and is useful only for quickly getting good initial estimates of
-c	  the (x,y,z).
+c****   SOLVEXYZD obtains estimates for the underlying (real) x,y,z
+c       coordinates of each point and for the delta X and Y of each view,
+c       for the given values of tilt, rotation, mag and compression.
+c       
+c       The equations relating the parameters are:
+c       _    xproj = a*x + b*y + c*z + dx(view)
+c       _    yproj = d*x + e*y + f*z + dy(view)
+c       where a = mag * cos (tilt) * cos (rot)
+c       _     b = - mag * sin (rot)
+c       _     c = mag * comp * sin (tilt) * cos (rot)
+c       where d = mag * cos (tilt) * sin (rot)
+c       _     e = mag * cos (rot)
+c       _     f = mag * comp * sin (tilt) * sin (rot)
+c       
+c       5/18/12: Replaced old solve_xyzd and init_dxy routines
 c
-c	  The equations relating the parameters are:
-c	  _    xproj = a*x + b*y + c*z + dx(view)
-c	  _    xproj = d*x + e*y + f*z + dy(view)
-c	  where a = mag * cos (tilt) * cos (rot)
-c	  _     b = - mag * sin (rot)
-c	  _     c = mag * comp * sin (tilt) * cos (rot)
-c	  where d = mag * cos (tilt) * sin (rot)
-c	  _     e = mag * cos (rot)
-c	  _     f = mag * comp * sin (tilt) * sin (rot)
-c
-	subroutine solve_xyzd(xx,yy,isecview,irealstr, nview,nrealpt,
-     &	    tilt,rot,gmag,comp,xyz,dxy,nsolve,error,erlist,isolve)
-c	
-	real*4 xx(*),yy(*),tilt(*),rot(*),gmag(*),comp(*)
-     &	    ,xyz(3,*),dxy(2,*)
-	integer*4 isecview(*),irealstr(*)
-	double precision error
-c
-	parameter (maxview=1440,ms=maxview)
-	real*4 bvec(3)
-	real*4 a(ms),b(ms),c(ms),asq(ms),bsq(ms),csq(ms)
-     &	    ,axb(ms),axc(ms),bxc(ms),d(ms),e(ms),f(ms)
-c	
-	real*4 erlist(*),dxsum(maxview),dysum(maxview)
-     &	    ,dxsqsum(maxview),dysqsum(maxview)
-	integer*4 nsum(maxview)
-	real*4 deldxylas(2,ms),dxylas(2,ms)
-c	
-c	  precompute the a-f and relevant cross-products for the regression
-c
-	iwatch =0
-c	if(iwatch.eq.0)iwatch=1
-	do i=1,nview
-	  costhet=cos(tilt(i))
-	  csinthet=comp(i)*sin(tilt(i))
-	  gcosphi=gmag(i)*cos(rot(i))
-	  gsinphi=gmag(i)*sin(rot(i))
-c
-	  a(i)=costhet*gcosphi
-	  b(i)=-gsinphi
-	  c(i)=csinthet*gcosphi
-	  d(i)=costhet*gsinphi
-	  e(i)=gcosphi
-	  f(i)=csinthet*gsinphi
-c
-c	    the square and cross product terms for the x and y paired
-c	    observations are always added together - so just combine them here
-c
-	  asq(i)=a(i)**2+d(i)**2
-	  bsq(i)=b(i)**2+e(i)**2
-	  csq(i)=c(i)**2+f(i)**2
-	  axb(i)=a(i)*b(i)+d(i)*e(i)
-	  axc(i)=a(i)*c(i)+d(i)*f(i)
-	  bxc(i)=b(i)*c(i)+e(i)*f(i)
-	enddo
-c	
-c	  start looping until nsolve times, or diffmax gets small, or error
-c	  really blows up a lot from first iteration
-c
-	isolve=1
-	diffmax=1.
-	jumpfast=0
-	jumpbase=3
-	ncyskplim=5
-	do while(isolve.le.nsolve.and.diffmax.gt.1.e-7.and.
-     &	    (isolve.le.3.or.erlist(max(1,isolve-1)).le.1000.*erlist(1)))
-c
-c	    zero arrays for sums of xd,dy and squares for each view
-c
-	  do iv=1,nview
-	    dxsum(iv)=0.
-	    dysum(iv)=0.
-	    dxsqsum(iv)=0.
-	    dysqsum(iv)=0.
-	    nsum(iv)=0
-	  enddo
-c	  
-c	    loop on each real point
-c
-	  do jpt=1,nrealpt
-	    if(jpt.lt.nrealpt)then
-c
-c		zero the matrix elements for sums of squares and cross-products
-c
-	    am11=0.
-	    am12=0.
-	    am13=0.
-	    am22=0.
-	    am23=0.
-	    am33=0.
-	    bv1=0.
-	    bv2=0.
-	    bv3=0.
-c
-c	      for each projection of the real point, add terms to matrix
-c
-	    do i=irealstr(jpt),irealstr(jpt+1)-1
-	      iv=isecview(i)
-	      xpr=xx(i)-dxy(1,iv)
-	      ypr=yy(i)-dxy(2,iv)
-	      am11=am11+asq(iv)
-	      am22=am22+bsq(iv)
-	      am33=am33+csq(iv)
-	      am12=am12+axb(iv)
-	      am13=am13+axc(iv)
-	      am23=am23+bxc(iv)
-	      bv1=bv1+a(iv)*xpr+d(iv)*ypr
-	      bv2=bv2+b(iv)*xpr+e(iv)*ypr
-	      bv3=bv3+c(iv)*xpr+f(iv)*ypr
-	    enddo
-c
-c	      fill out lower triangle of matrix
-c
-	    am31=am13
-	    am21=am12
-	    am32=am23
-c
-c	      solve it
-c
-	    det=am11*(am22*am33-am23*am32)-am12*(am21*am33-am23*am31)
-     &		+am13*(am21*am32-am22*am31)
-	    bvec(1)=(bv1*(am22*am33-am23*am32)-am12*(bv2*am33-am23*bv3)
-     &		+am13*(bv1*am32-am22*bv3))/det
-	    bvec(2)=(am11*(bv2*am33-am23*bv3)-bv1*(am21*am33-am23*am31)
-     &		+am13*(am21*bv3-bv2*am31))/det
-	    bvec(3)=(am11*(am22*bv3-bv2*am32)-am12*(am21*bv3-bv2*am31)
-     &		+bv1*(am21*am32-am22*am31))/det
-	  else
-c	      
-c	      get coordinates of last point as minus sum of all other points
-c
-	    do i=1,3
-	      bsum=0.
-	      do kpt=1,nrealpt-1
-		bsum=bsum-xyz(i,kpt)
-	      enddo
-	      bvec(i)=bsum
-	    enddo
-	  endif
-c
-c	    store new x,y,z
-c
-	    do i=1,3
-	      xyz(i,jpt)=bvec(i)
-	    enddo
-c
-c	      for each view that point is projected into, add its contribution
-c	      to the dx and dy differences in that view
-c
-	    do i=irealstr(jpt),irealstr(jpt+1)-1
-	      iv=isecview(i)
-	      dxtmp=xx(i)-(a(iv)*bvec(1)+b(iv)*bvec(2)+c(iv)*bvec(3))
-	      dytmp=yy(i)-(d(iv)*bvec(1)+e(iv)*bvec(2)+f(iv)*bvec(3))
-	      dxsum(iv)=dxsum(iv)+dxtmp
-	      dxsqsum(iv)=dxsqsum(iv)+dxtmp**2
-	      dysum(iv)=dysum(iv)+dytmp
-	      dysqsum(iv)=dysqsum(iv)+dytmp**2
-	      nsum(iv)=nsum(iv)+1
-	    enddo
-c
-	  enddo
-c
-c	    set new dx and dy equal to the average dx and dy for each view,
-c	    and compute total error using the sums of squares gotten above
-c
-	  error=0.
-	  diffmax=0.
-	  do iv=1,nview
-	    dxnew=dxsum(iv)/nsum(iv)
-	    dynew=dysum(iv)/nsum(iv)
-	    deldx=dxnew-dxy(1,iv)
-	    deldy=dynew-dxy(2,iv)
-	    diffmax=max(diffmax,abs(deldx),abs(deldy))
-	    dxy(1,iv)=dxnew
-	    dxy(2,iv)=dynew
-C	      
-c	      save info to make possible big jumps in dx and dy next time round
-c
-	    if(jumpfast.eq.1)then
-	      deldxylas(1,iv)=deldx
-	      deldxylas(2,iv)=deldy
-	      dxylas(1,iv)=dxy(1,iv)
-	      dxylas(2,iv)=dxy(2,iv)
-	    endif
-	    error=error+dxsqsum(iv)+dysqsum(iv)
-     &		-nsum(iv)*(dxy(1,iv)**2+dxy(2,iv)**2)
-	  enddo
-c
-c	    stick error on list, calculate difference from last error
-c
-	  erlist(isolve)=error
-	  if(isolve.gt.1)errdiff=abs(erlist(isolve)-erlist(isolve-1))
-     &	      /max(erlist(isolve),erlist(isolve-1))
-	  isolve=isolve+1
-c	    
-c	    try to make big jumps in dx or dy; even this stuff doesn't make big
-c	    data sets converge adequately
-c
-	  if(jumpfast.eq.2)then
-	    do iv=1,nview
-	      do i=1,2
-		ncyskip=1
-		del2=dxy(i,iv)-dxylas(i,iv)
-		del1=deldxylas(i,iv)
-		if(del2*del1.gt.0.and.abs(del2).lt.abs(del1))then
-		  ncyskip=ncyskplim
-		  if(abs(del1-del2).gt.abs(del1)/
-     &		      ncyskplim)ncyskip=del1/(del1-del2)
-		endif
-		delnew=ncyskip*del1+(del2-del1)*ncyskip*(ncyskip+1)/2
-		dxy(i,iv)=dxylas(i,iv)+delnew
-	      enddo
-	    enddo
-	  endif
-c
-	  if(isolve.gt.jumpbase)jumpfast=mod(jumpfast+1,3)
-c
-	  if(iwatch.gt.0)then
-	    deldx=dxy(1,iwatch)-dxlas
-	    deldy=dxy(2,iwatch)-dylas
-	    write(*,'(2i4,4f10.4,f20.5)')iwatch,isolve,dxy(1,iwatch)
-     &		,deldx,dxy(2,iwatch),deldy,error
-	    dxlas=dxy(1,iwatch)
-	    dylas=dxy(2,iwatch)
-	  endif
-	enddo
-c
-c	  after convergence, recompute error de novo: this may give more
-c	  accurate double precision result, or may be superfluous
+c       $Id$
+c       
 
-	error=0.
-	do jpt=1,nrealpt
-	  do i=irealstr(jpt),irealstr(jpt+1)-1
-	    iv=isecview(i)
-	    error=error+(a(iv)*xyz(1,jpt)+b(iv)*xyz(2,jpt)
-     &		+c(iv)*xyz(3,jpt)+dxy(1,iv)-xx(i))**2
-     &		+(d(iv)*xyz(1,jpt)+e(iv)*xyz(2,jpt)
-     &		+f(iv)*xyz(3,jpt)+dxy(2,iv)-yy(i))**2
-	  enddo
-	enddo
-c
-	erlist(isolve)=error
-c	write(*,'(4f20.5)')(erlist(i),i=1,isolve)
-	if(iwatch.gt.0)iwatch=mod(iwatch,nview)+1
-	return
-	end
+      subroutine solveXyzd(xx,yy,isecview,irealstr, nview,nrealpt, tilt,rot,gmag,
+     &    comp,xyz,dxy, rotinc, work, maxwork, error, ierr)
+      implicit none
+      real*4 xx(*),yy(*),tilt(*),rot(*),gmag(*),comp(*) ,xyz(3,*),dxy(2,*),work(*),rotinc
+      integer*4 isecview(*),irealstr(*),nview,nrealpt,ierr,maxwork,nr
+      real*8 error
+c       
+c       Size for real*4/int*4 array; doubles need double that
+      nr = 3 * nrealpt
+      if (nr**2 + 12 * nr .gt. maxwork) call errorExit(
+     &    'TEMPORARY ARRAY NOT LARGE ENOUGH FOR XYZ INITIALIZATION ROUTINE')
+      call solveXyzdWithArrays(xx,yy,isecview,irealstr, nview,nrealpt, tilt,rot,gmag,
+     &    comp,xyz,dxy, rotinc, work, work(2*nr), work(4*nr), work(6*nr), work(8*nr),
+     &    work(10*nr), work(11*nr), work(12*nr), error, ierr)
+      return
+      end
 
+      subroutine solveXyzdWithArrays(xx,yy,isecview,irealstr, nview,nrealpt,tilt,rot,gmag,
+     &    comp,xyz,dxy, rotinc, sx, xml, sdl, bl, baseRow, valRow, indOnView, sprod,
+     &    error, ierr)
+      implicit none
+      real*4 xx(*),yy(*),tilt(*),rot(*),gmag(*),comp(*) ,xyz(3,*),dxy(2,*), rotinc
+      integer*4 isecview(*),irealstr(*),nview,nrealpt,ierr
+      real*8 error
+      real*4 valRow(*), baseRow(3*nrealpt, 2)
+      real*8 sprod(*), sx(*), xml(*), sdl(*), bl(*)
+      integer*4 indOnView(*), indqk(4),j
+      logical bigBase(2), bigRow
+      real*4 ad(2),be(2),cf(2), fac, xybar(2), xyzcen(3)
+      integer*4 numCols, numRows, iv, jpt, i, ixy, icol, ipt, numOnView
+      real*8       wallStart, wallTime, addTime
+      integer*4 packedIndex
+c       
+c       Load data matrix, loop on views then real points projecting on each
+      numCols = 3 * nrealpt - 2
+      numRows = 0
+      ierr = 1
+      addTime = 0
+      if (nrealpt .lt. 2) then
+        ierr = 0
+        xyz(1:3,1) = 0.
+        return
+      endif
+      sx(1:numCols) = 0.
+      sprod(1: (numCols + 1) * numCols / 2) = 0.
+      do iv=1,nview
+c         
+c         Set up ad, be, cf, and get indexes to points on view and get xybar
+        call geometricCoeffsAndIndices(iv)
+c           
+c         Set up the terms for the dxy: if last point is not on view, subtract
+c         a/n etc from the columns for all points on view; if last point is on
+c         view, add a/n to the columns for all points not in the view
+        do ixy = 1, 2
+          bigBase(ixy) = .false.
+          baseRow(1:numCols, ixy) = 0.
+          do ipt=1,nrealpt - 1
+            if (indOnView(ipt) .gt. 0 .and. indOnView(nrealpt) .eq. 0 .or. 
+     &          indOnView(ipt) .eq. 0 .and. indOnView(nrealpt) .gt. 0) then
+              fac = 1.
+              if (indOnView(nrealpt) .eq. 0) fac = -1.
+              icol = 3 * ipt - 2
+              baseRow(icol, ixy) = fac * ad(ixy) / numOnView
+              baseRow(icol + 1, ixy)  = fac * be(ixy) / numOnView
+              baseRow(icol + 2, ixy)  = fac * cf(ixy) / numOnView
+c               
+c               Keep track of whether this vector is non-zero
+              bigBase(ixy) = .true.
+            endif
+          enddo
+        enddo
+c       
+c         Loop on points again and set up the equations for their projections
+        do jpt=1,nrealpt
+          if (indOnView(jpt) .gt. 0) then
+            do ixy = 1, 2
+              valRow(1:numCols) = baseRow(1:numCols, ixy)
+              bigRow = .false.
+              if (jpt < nrealpt) then
+                icol = 3 * jpt - 2
+                valRow(icol) = valRow(icol) + ad(ixy)
+                valRow(icol + 1) = valRow(icol + 1) + be(ixy)
+                valRow(icol + 2) = valRow(icol + 2) + cf(ixy)
+              else
+c                 
+c                 Last point is negative sum of all the rest, and makes a big row of data
+                do ipt = 1, nrealpt - 1
+                  icol = 3 * ipt - 2
+                  valRow(icol) = valRow(icol) - ad(ixy)
+                  valRow(icol + 1) = valRow(icol + 1) - be(ixy)
+                  valRow(icol + 2) = valRow(icol + 2) - cf(ixy)
+                enddo
+                bigRow = .true.
+              endif
+c             
+c               Get the projection position and put it in the last column
+c               Adjust that position by the mean of points on view
+              if (ixy .eq. 1) then
+                valRow(numCols) = xx(indOnView(jpt)) - xybar(1)
+              else
+                valRow(numCols) = yy(indOnView(jpt)) - xybar(2)
+              endif
+c              write(*, '(3(2f9.4,f8.4))')(valRow(i), i = 1, numCols)
+c           
+c               Row is done.  Accumulate it
+              wallStart = wallTime()
+              if (bigRow .or. bigBase(ixy)) then
+                call addRowToSums(valRow, numCols, sx, sprod)
+              else
+c                 
+c                 Just handle non-zero columns if there are a few, it is a lot quicker
+                indqk(1) = icol
+                indqk(2) = icol + 1
+                indqk(3) = icol + 2
+                indqk(4) = numCols
+                do j = 1, 4
+                  sx(indqk(j)) = sx(indqk(j)) + valRow(indqk(j))
+                  do i = 1, j
+                    icol = packedIndex(indqk(i), indqk(j))
+                    sprod(icol) = sprod(icol) + valRow(indqk(i)) * valRow(indqk(j))
+                  enddo
+                enddo
+              endif
+              addTime = addTime + wallTime() - wallStart
+              numRows = numRows + 1
+            enddo
+          endif
+        enddo
+      enddo
+c      print *,'Loaded matrix',numCols, numRows
+      wallStart = wallTime()
 
+      call solvePackedSums(sx, sprod, numCols, numRows, xml, sdl, bl, ierr)
+c      print *,'lapack',ierr
+c      write(*, '(3(2f9.4,f8.4))')(sdl(i), i = 1, numCols)
+c      write(*, '(3(2f9.4,f8.4))')(bl(i), i = 1, numCols - 1)
+c      write(*,'(a,f7.3, a, f7.3)')'solution time',1000.*(wallTime()-wallStart),
+c     &    '   addRow time', 1000. * addTime 
+c       
+c       retrieve solution
+      xyz(1:3, nrealpt) = 0.;
+      do i = 1, nrealpt - 1
+        do ixy = 1, 3
+          icol = 3 * (i - 1) + ixy
+          xyz(ixy, i) = bl(icol)
+          xyz(ixy, nrealpt) = xyz(ixy, nrealpt) - xyz(ixy, i)
+        enddo
+      enddo
+c       
+c       compute total error, equals F reported by funct
+      error = 0.
+      do iv=1,nview
+        call geometricCoeffsAndIndices(iv)
+        xyzcen = 0.
+        do jpt=1,nrealpt
+          if (indOnView(jpt) .gt. 0) xyzcen = xyzcen + xyz(1:3, jpt)
+        enddo
+        do ixy = 1, 2
+          dxy(ixy, iv) = xybar(ixy) - (ad(ixy) * xyzcen(1) + be(ixy) * xyzcen(2) +
+     &        cf(ixy) * xyzcen(3)) / numOnView
+        enddo
+        do jpt=1,nrealpt
+          i = indOnView(jpt)
+          if (i .gt. 0) error = error +
+     &        (ad(1) * xyz(1, jpt) + be(1) * xyz(2, jpt) + cf(1) * xyz(3, jpt) +
+     &        dxy(1, iv) - xx(i))**2 +
+     &        (ad(2) * xyz(1, jpt) + be(2) * xyz(2, jpt) + cf(2) * xyz(3, jpt) +
+     &        dxy(2, iv) - yy(i))**2
+        enddo
+      enddo
+c      write(*,'(a,f7.1,a,f15.5)')'Rotinc =',rotinc *180 / 3.14159,',  ERROR = ',error
+      return
 
-c***	  INIT_DXY sets the initial values of dx and dy for each view:
-c	  it sets dx and dy to 0 for the view with minimum tilt (IMINTILT),
-c	  then sets the dx and dy of each view so that the points shared
-c	  between adjacent views have the same center of gravity.
+      CONTAINS
+c       
+c       Sets up the ad, be, cf for a view, counts points on view, gets indices to them
+c       and computes the mean projection position
 c
-	subroutine init_dxy(xx,yy,isecview,irealstr,
-     &	    nview,nrealpt,imintilt,dxy)
-	real*4 xx(*),yy(*),dxy(2,*)
-	integer*4 isecview(*),irealstr(*)
+      subroutine geometricCoeffsAndIndices(iv)
+      implicit none
+      integer*4 iv
+      real*4 costhet,csinthet,gcosphi,gsinphi
+      costhet = cos(tilt(iv))
+      csinthet = comp(iv) * sin(tilt(iv))
+      gcosphi = gmag(iv) * cos(rot(iv) + rotinc)
+      gsinphi = gmag(iv) * sin(rot(iv) + rotinc)
+c       
+      ad(1) = costhet * gcosphi
+      be(1) = -gsinphi
+      cf(1) = csinthet * gcosphi
+      ad(2) = costhet * gsinphi
+      be(2) = gcosphi
+      cf(2) = csinthet * gsinphi
+c         
+c         Count  and get indices and get the mean projection coordinate
+      numOnView = 0
+      xybar = 0.
+      do jpt = 1, nrealpt
+        indOnView(jpt) = 0
+        do i = irealstr(jpt), irealstr(jpt+1)-1
+          if (iv .eq. isecview(i)) then
+            indOnView(jpt) = i
+            numOnView = numOnView + 1
+            xybar(1) = xybar(1) + xx(i)
+            xybar(2) = xybar(2) + yy(i)
+          endif
+        enddo
+      enddo
+      xybar = xybar  / numOnView
+      end subroutine geometricCoeffsAndIndices
+      end
+
+c       Accumulate sums and sums of cross-products from a row of data
 c
-c	  consider each pair of views from the one with min tilt out to ends
-c
-	dxy(1,imintilt)=0.
-	dxy(2,imintilt)=0.
-	nvstr=imintilt
-	nvend=2
-	do idir=-1,1,2
-	  do iv=nvstr,nvend,idir
-c
-c	      find each real point in both views, add up disparities
-c
-	    dxsum=0.
-	    dysum=0.
-	    nsum=0
-	    do ipt=1,nrealpt
-	      inone=0
-	      intwo=0
-	      do i=irealstr(ipt),irealstr(ipt+1)-1
-		if(isecview(i).eq.iv+idir)inone=i
-		if(isecview(i).eq.iv)intwo=i
-	      enddo
-	      if(inone*intwo.gt.0)then
-		dxsum=dxsum+xx(intwo)-xx(inone)
-		dysum=dysum+yy(intwo)-yy(inone)
-		nsum=nsum+1
-	      endif
-	    enddo
-c
-c	      adjust this section's dx,dy by the disparity
-c
-	    dxy(1,iv+idir)=dxy(1,iv)+dxsum/nsum
-	    dxy(2,iv+idir)=dxy(2,iv)+dysum/nsum
-	  enddo
-	  nvend=nview-1
-	enddo
-	return
-	end
+      subroutine addRowToSums(row, m, sx, sprod)
+      implicit none
+      real*4 row(*)
+      real*8 sx(*), sprod(*)
+      integer*4 m, j, ind
+      integer*4 packedIndex
+      sx(1:m) = sx(1:m) + row(1:m)
+      do j = 1, m
+        ind = packedIndex(1, j)
+        sprod(ind:ind+j-1) = sprod(ind:ind+j-1) + row(1:j) * row(j)
+      enddo
+      return
+      end
+
+c       A subroutine for calling the linear solver, just in case this is useful elsewhere
+c       
+      subroutine solvePackedSums(sx, ss, mp, nrows, xm, sd, b, ierr)
+      implicit none
+      real*8 sx(*), ss(*), xm(*), sd(*), b(*)
+      integer*4 mp, nrows, i, j, ierr, m, ind
+      integer*4 packedIndex
+c       
+c       First get the means and SDs
+      m = mp - 1
+      do i = 1, mp
+        xm(i) = xm(i) / nrows
+        sd(i) = sqrt((ss(packedIndex(i, i)) - sx(i)**2 / nrows) / (nrows - 1.))
+      enddo
+c       
+c       What we have now is a raw sum of squares and cross-products
+c       Scale the matrix by the sd's; this scales the RHS (b) variable in the last column
+c       This is what multrd does, and is not the same as multr does, which is to convert
+c       the matrix to true correlation coefficients, because when there is no constant
+c       term the solution involves raw sums of squares instead of deviations from mean
+      do j = 1, mp
+        ind = packedIndex(1, j)
+        do i = 1, j
+          ss(ind + i - 1) = ss(ind + i - 1) / (sd(i) * sd(j))
+        enddo
+      enddo
+c       
+c       Now we can call lapack with this matrix.  Since it is not a covariance matrix,
+c       can't use the positive-definite routine, have to use the symmetric matrix one
+      ind = packedIndex(1, mp)
+      call dspsv('U', m, 1, ss, b, ss(ind), m, ierr)
+      if (ierr .ne. 0) return
+c       
+c       scale and return b
+      do i = 1, m
+        b(i) = ss(ind + i - 1) * sd(mp) / sd(i)
+      enddo
+      return
+      end
+
+c       Silly function because statement functions are now obsolete
+      integer*4 function packedIndex(i, j)
+      integer*4 i, j
+      packedIndex = i + (j - 1) * j / 2
+      return
+      end
+
