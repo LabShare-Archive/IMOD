@@ -177,10 +177,14 @@ public final class ProcessSeries implements ConstProcessSeries {
 
   private Process nextProcess = null;
   private Process lastProcess = null;
-  //3dmod is opened after the last process.
+  // 3dmod is opened after the last process.
   private Deferred3dmodButton run3dmodButton = null;
   private Run3dmodMenuOptions run3dmodMenuOptions = null;
   private boolean debug = false;
+
+  public void dumpState() {
+    System.err.print("[debug:" + debug + "]");
+  }
 
   public String toString() {
     return "[nextProcess:" + nextProcess + ",lastProcess:" + lastProcess + "]";
@@ -210,7 +214,7 @@ public final class ProcessSeries implements ConstProcessSeries {
    */
   public boolean startNextProcess(final AxisID axisID,
       final ProcessResultDisplay processResultDisplay) {
-    //Get the next process.
+    // Get the next process.
     Process process = null;
     if (nextProcess != null) {
       process = nextProcess;
@@ -311,8 +315,8 @@ public final class ProcessSeries implements ConstProcessSeries {
     if (lastProcess == null) {
       return false;
     }
-    //Return true of the last process information in processData doesn't match the
-    //information in this instance.
+    // Return true of the last process information in processData doesn't match the
+    // information in this instance.
     return dialogType != processData.getDialogType()
         || !lastProcess.equals(processData.getLastProcess());
   }
@@ -348,11 +352,11 @@ public final class ProcessSeries implements ConstProcessSeries {
    */
   public void setRun3dmodDeferred(final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    //Don't want to keep track of when deferred3dmodButton is null or not in the
-    //manager or UIExpert class.  So once a deferred3dmodButton is set, it
-    //should stay set until it is used.  This does not have to be done for
-    //nextProcess and lastProcess because they currently are always set
-    //explicitly.
+    // Don't want to keep track of when deferred3dmodButton is null or not in the
+    // manager or UIExpert class. So once a deferred3dmodButton is set, it
+    // should stay set until it is used. This does not have to be done for
+    // nextProcess and lastProcess because they currently are always set
+    // explicitly.
     if (deferred3dmodButton == null) {
       return;
     }
