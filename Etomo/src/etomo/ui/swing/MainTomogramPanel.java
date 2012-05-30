@@ -1,7 +1,5 @@
 package etomo.ui.swing;
 
-import java.io.File;
-
 import javax.swing.JScrollPane;
 
 import etomo.ApplicationManager;
@@ -10,7 +8,6 @@ import etomo.storage.DataFileFilter;
 import etomo.storage.EtomoFileFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
-import etomo.type.BaseMetaData;
 import etomo.type.DialogType;
 import etomo.type.ProcessTrack;
 
@@ -400,14 +397,6 @@ public class MainTomogramPanel extends MainPanel {
 
   protected void createAxisPanelB() {
     axisPanelB = new TomogramProcessPanel((ApplicationManager) manager, AxisID.SECOND);
-  }
-
-  /**
-   * Set the status bar with the file name of the data parameter file
-   */
-  public final void setStatusBarText(File paramFile, BaseMetaData metaData,
-      LogPanel logPanel) {
-    super.setStatusBarText(paramFile, metaData, logPanel);
   }
 
   protected void resetAxisPanels() {

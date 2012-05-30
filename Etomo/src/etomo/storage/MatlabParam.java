@@ -654,8 +654,6 @@ public final class MatlabParam {
   }
 
   public boolean isMaskModelPtsEmpty() {
-    System.out.println("A:maskModelPts:" + maskModelPts + ",maskModelPts.isEmpty():"
-        + maskModelPts.isEmpty());
     return maskModelPts.isEmpty();
   }
 

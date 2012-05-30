@@ -1,13 +1,10 @@
 package etomo.ui.swing;
 
-import java.io.File;
-
 import etomo.BaseManager;
 import etomo.process.ProcessState;
 import etomo.storage.DataFileFilter;
 import etomo.storage.PeetFileFilter;
 import etomo.type.AxisID;
-import etomo.type.BaseMetaData;
 
 /**
  * <p>Description: </p>
@@ -40,11 +37,6 @@ public final class MainPeetPanel extends MainPanel {
 
   public MainPeetPanel(BaseManager manager) {
     super(manager);
-  }
-
-  public final void setStatusBarText(File paramFile, BaseMetaData metaData,
-      LogPanel logPanel) {
-    super.setStatusBarText(paramFile, metaData, logPanel);
   }
 
   protected void addAxisPanelA() {
