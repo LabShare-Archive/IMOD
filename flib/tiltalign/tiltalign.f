@@ -430,13 +430,14 @@ c
         read(5,*,iostat=ierr)iflocal
         if (ierr .ne. 0) iflocal = 0
       endif
-      if(iflocal.ne.0) call setupAndDoLocalAlignments()
-c       
-      close(iunlocal)
-      if (.not. toofewfid .and. iflocal .ne. 0) then
-        if (ifresout .gt. 0) print *
-        write(*,119)errsumLocal / (npatchx * npatchy), errLocalMin,errLocalMax
-119     format(/,' Residual error local mean:',f9.3,'    range', f8.3, ' to',f8.3)
+      if(iflocal.ne.0) then
+        call setupAndDoLocalAlignments()
+        close(iunlocal)
+        if (.not. toofewfid) then
+          if (ifresout .gt. 0) print *
+          write(*,119)errsumLocal / (npatchx * npatchy), errLocalMin,errLocalMax
+119       format(/,' Residual error local mean:',f9.3,'    range', f8.3, ' to',f8.3)
+        endif
       endif
       close(7)
       if(metroerror.ne.0)print *,'WARNING:',metroerror, ' MINIMIZATION ERRORS OCCURRED'
