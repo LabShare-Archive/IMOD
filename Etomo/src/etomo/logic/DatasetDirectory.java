@@ -31,6 +31,8 @@ import etomo.ui.swing.UIHarness;
 public final class DatasetDirectory {
   public static final String rcsid = "$Id:$";
 
+  private static final String MESSAGE_TITLE = "Invalid Dataset Directory";
+
   private DatasetDirectory() {
   }
 
@@ -60,8 +62,7 @@ public final class DatasetDirectory {
       errorMessage = "Unreadable input file: " + inputFile.getAbsolutePath();
     }
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage,
-          "Invalid Dataset Directory", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, MESSAGE_TITLE, axisID);
       return false;
     }
     String inputFileName = inputFile.getName();
@@ -156,13 +157,12 @@ public final class DatasetDirectory {
     if (errorMessage == null) {
       return true;
     }
-    String title = "Invalid Dataset Directory";
     if (parentComponent == null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, title, axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, MESSAGE_TITLE, axisID);
     }
     else {
-      UIHarness.INSTANCE.openMessageDialog(manager, parentComponent, errorMessage, title,
-          axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, parentComponent, errorMessage,
+          MESSAGE_TITLE, axisID);
     }
     return false;
 
@@ -257,9 +257,6 @@ public final class DatasetDirectory {
   static boolean canShareWith(final DataFileType newDataFileType, String newRoot,
       final AxisType newAxisType, final String existingDataFileName,
       final AxisType existingAxisType) {
-    System.out.println("A:newDataFileType:" + newDataFileType + ",newRoot:" + newRoot
-        + ",newAxisType:" + newAxisType + ",existingDataFileName:" + existingDataFileName
-        + ",existingAxisType:" + existingAxisType);
     // check new root
     if (newRoot == null || newRoot.matches("\\s*")) {
       return true;
