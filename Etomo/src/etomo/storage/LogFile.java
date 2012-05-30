@@ -158,7 +158,6 @@ public final class LogFile {
   }
 
   public static String getLineContaining(final File file, final String searchString) {
-    System.out.println("C:file:"+file+",searchString:"+searchString);
     LogFile logFile = null;
     ReaderId id = null;
     try {
