@@ -79,9 +79,9 @@ import etomo.util.Utilities;
 public abstract class BaseManager {
   public static final String rcsid = "$Id$";
 
-  // protected static variables
+  // static variables
   private static boolean headless = false;
-  // protected MainFrame mainFrame = null;
+  // proected MainFrame mainFrame = null;
   UIHarness uiHarness = UIHarness.INSTANCE;
   static UserConfiguration userConfig = EtomoDirector.INSTANCE.getUserConfiguration();
   boolean loadedParamFile = false;
@@ -112,58 +112,21 @@ public abstract class BaseManager {
 
   abstract public InterfaceType getInterfaceType();
 
-  abstract void createComScriptManager();
-
   abstract void createMainPanel();
-
-  abstract void createProcessTrack();
-
-  abstract void updateDialog(ProcessName processName, AxisID axisID);
 
   public abstract BaseMetaData getBaseMetaData();
 
   public abstract MainPanel getMainPanel();
 
-  abstract void getProcessTrack(Storable[] storable, int index);
-
-  abstract BaseProcessTrack getProcessTrack();
-
-  public abstract BaseState getBaseState();
-
-  public abstract void kill(AxisID axisID);
-
-  public abstract void pause(AxisID axisID);
-
   public abstract BaseProcessManager getProcessManager();
-
-  public abstract BaseScreenState getBaseScreenState(AxisID axisID);
-
-  public abstract boolean canChangeParamFileName();
-
-  public abstract void setParamFile(File paramFile);
-
-  public abstract boolean canSnapshot();
-
-  public abstract boolean setParamFile();
 
   public abstract LogPanel getLogPanel();
 
   public abstract LogInterface getLogInterface();
 
-  abstract void processSucceeded(AxisID axisID, ProcessName processName);
-
-  abstract void startNextProcess(AxisID axisID, ProcessSeries.Process process,
-      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display);
-
   abstract Storable[] getStorables(int offset);
 
   public abstract String getName();
-
-  public abstract ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
-      AxisID axisID);
-
-  public abstract boolean isInManagerFrame();
 
   /**
    * Return the subdirectory of the dataset location where some of the files are
@@ -172,7 +135,9 @@ public abstract class BaseManager {
    * 
    * @return
    */
-  public abstract String getFileSubdirectoryName();
+  public String getFileSubdirectoryName() {
+    return null;
+  }
 
   public BaseManager() {
     propertyUserDir = System.getProperty("user.dir");
@@ -205,6 +170,80 @@ public abstract class BaseManager {
 
   public String getPropertyUserDir() {
     return propertyUserDir;
+  }
+
+  public boolean canChangeParamFileName() {
+    return false;
+  }
+
+  void createComScriptManager() {
+  }
+
+  void createProcessTrack() {
+  }
+
+  public BaseScreenState getBaseScreenState(final AxisID axisID) {
+    return null;
+  }
+
+  public BaseState getBaseState() {
+    return null;
+  }
+
+  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
+      final AxisID axisID) {
+    return null;
+  }
+
+  BaseProcessTrack getProcessTrack() {
+    return null;
+  }
+
+  void getProcessTrack(final Storable[] storable, final int index) {
+  }
+
+  public boolean isInManagerFrame() {
+    return false;
+  }
+
+  /**
+   * Interrupt the currently running thread for this axis
+   * 
+   * @param axisID
+   */
+  public void kill(final AxisID axisID) {
+    getProcessManager().kill(axisID);
+  }
+
+  public void pause(final AxisID axisID) {
+    getProcessManager().pause(axisID);
+  }
+
+  void processSucceeded(final AxisID axisID, final ProcessName processName) {
+  }
+
+  /**
+   * In most managers the param file should already be set.
+   * @return
+   */
+  public boolean setParamFile() {
+    return loadedParamFile;
+  }
+
+  public boolean isSetupDone() {
+    return loadedParamFile;
+  }
+
+  public void setParamFile(final File paramFile) {
+    this.paramFile = paramFile;
+  }
+
+  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final DialogType dialogType, final ProcessDisplay display) {
+  }
+
+  void updateDialog(final ProcessName processName, final AxisID axisID) {
   }
 
   public void logMessage(Loggable loggable, AxisID axisID) {
@@ -514,6 +553,9 @@ public abstract class BaseManager {
    * to a file.
    */
   public boolean saveParamFile() throws LogFile.LockException, IOException {
+    if (!isSetupDone()) {
+      return false;
+    }
     setParamFile();
     if (getParameterStore() == null) {
       return false;
@@ -1438,8 +1480,7 @@ public abstract class BaseManager {
     }
     return reconnectRunA;
   }
-  
-  
+
   public boolean isValid() {
     return true;
   }
@@ -1548,9 +1589,11 @@ public abstract class BaseManager {
 
   public boolean reconnectProcesschunks(final ProcessData processData,
       final AxisID axisID, final boolean multiLineMessages) {
+    ProcessResultDisplay display = null;
     ProcessResultDisplayFactoryInterface factory = getProcessResultDisplayFactoryInterface(axisID);
-    ProcessResultDisplay display = getProcessResultDisplayFactoryInterface(axisID)
-        .getProcessResultDisplay(processData.getDisplayKey().getInt());
+    if (factory != null) {
+      display = factory.getProcessResultDisplay(processData.getDisplayKey().getInt());
+    }
     if (display != null) {
       sendMsgProcessStarting(display);
     }

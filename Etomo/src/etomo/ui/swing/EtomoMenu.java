@@ -47,6 +47,7 @@ final class EtomoMenu {
   static final String PEET_LABEL = "PEET";
   static final String FLATTEN_VOLUME_LABEL = "Flatten Volume";
   static final String GPU_TILT_TEST_LABEL = "Test GPU";
+  static final String SERIAL_SECTIONS_LABEL = "Serial Sections";
 
   private static final int nMRUFileMax = 10;
   private static final String TOP_ANCHOR = Constants.TOP_ANCHOR;
@@ -71,6 +72,8 @@ final class EtomoMenu {
   private final JMenuItem menuNewGenericParallel = new MenuItem(GENERIC_LABEL,
       KeyEvent.VK_G);
   private final JMenuItem menuNewPeet = new MenuItem(PEET_LABEL, KeyEvent.VK_P);
+  private final JMenuItem menuSerialSections = new MenuItem(SERIAL_SECTIONS_LABEL,
+      KeyEvent.VK_R);
 
   private final JMenu menuTools = new Menu("Tools");
   private final JMenuItem menuFlattenVolume = new MenuItem(FLATTEN_VOLUME_LABEL,
@@ -171,6 +174,7 @@ final class EtomoMenu {
       menuNewGenericParallel.addActionListener(fileActionListener);
       menuNewAnisotropicDiffusion.addActionListener(fileActionListener);
       menuNewPeet.addActionListener(fileActionListener);
+      menuSerialSections.addActionListener(fileActionListener);
       menuOpen.addActionListener(fileActionListener);
       menuSave.addActionListener(fileActionListener);
       menuSaveAs.addActionListener(fileActionListener);
@@ -208,6 +212,9 @@ final class EtomoMenu {
     menuNew.add(menuNewAnisotropicDiffusion);
     menuNew.add(menuNewGenericParallel);
     menuNew.add(menuNewPeet);
+    if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
+      menuNew.add(menuSerialSections);
+    }
 
     // Initialize all of the MRU file menu items
     FileMRUListActionListener fileMRUListActionListener = new FileMRUListActionListener(
@@ -303,7 +310,7 @@ final class EtomoMenu {
       menuAxisBoth.setEnabled(false);
     }
     else {
-      menuSave.setEnabled(true);
+      menuSave.setEnabled(currentManager.isSetupDone());
       menuSaveAs.setEnabled(currentManager.canChangeParamFileName());
       menuClose.setEnabled(true);
       boolean dualAxis = currentManager.getBaseMetaData().getAxisType() == AxisType.DUAL_AXIS;
@@ -325,6 +332,7 @@ final class EtomoMenu {
     menuNewAnisotropicDiffusion.setEnabled(mainFrameMenu.menuNewAnisotropicDiffusion
         .isEnabled());
     menuNewPeet.setEnabled(mainFrameMenu.menuNewPeet.isEnabled());
+    menuSerialSections.setEnabled(mainFrameMenu.menuSerialSections.isEnabled());
     menuSaveAs.setEnabled(mainFrameMenu.menuSaveAs.isEnabled());
     menuAxisA.setEnabled(mainFrameMenu.menuAxisA.isEnabled());
     menuAxisB.setEnabled(mainFrameMenu.menuAxisB.isEnabled());
@@ -464,6 +472,10 @@ final class EtomoMenu {
     menuNewPeet.setEnabled(enable);
   }
 
+  void setEnabledNewSerialSections(final boolean enable) {
+    menuSerialSections.setEnabled(enable);
+  }
+
   boolean equalsNewTomogram(final ActionEvent event) {
     return equals(menuNewTomogram, event);
   }
@@ -482,6 +494,10 @@ final class EtomoMenu {
 
   boolean equalsNewPeet(final ActionEvent event) {
     return equals(menuNewPeet, event);
+  }
+
+  boolean equalsNewSerialSections(final ActionEvent event) {
+    return equals(menuSerialSections, event);
   }
 
   boolean equalsOpen(final ActionEvent event) {

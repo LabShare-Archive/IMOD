@@ -8,7 +8,6 @@ import etomo.BaseManager;
 import etomo.comscript.MakejoincomParam;
 import etomo.ui.swing.JoinDialog;
 import etomo.ui.swing.UIHarness;
-import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
 /**
@@ -217,7 +216,7 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
   public JoinMetaData(BaseManager manager) {
     this.manager = manager;
     axisType = AxisType.SINGLE_AXIS;
-    fileExtension = DatasetFiles.JOIN_DATA_FILE_EXT;
+    fileExtension = DataFileType.JOIN.extension;
     densityRefSection.setDefault(1).useDefaultAsDisplayValue();
     alignmentRefSection.setDefault(1).useDefaultAsDisplayValue();
     trialBinning.setDefault(1).useDefaultAsDisplayValue();
@@ -329,7 +328,7 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
       int rowIndex = row.getRowIndex();
       if (rowIndex < 0) {
         UIHarness.INSTANCE.openMessageDialog(manager, "Invalid row index: " + rowIndex
-            + ".  Corrupted: " + DatasetFiles.JOIN_DATA_FILE_EXT + " file.",
+            + ".  Corrupted: " + DataFileType.JOIN.extension + " file.",
             "Corrupted File", AxisID.ONLY);
       }
       sectionTableData.add(row.getRowIndex(), row);
@@ -571,12 +570,9 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
       }
     }
   }
-
-  String createPrepend(String prepend) {
-    if (prepend == "") {
-      return groupString;
-    }
-    return prepend + "." + groupString;
+  
+  String getGroupKey() {
+    return groupString;
   }
 
   public boolean isValid(String workingDirName) {

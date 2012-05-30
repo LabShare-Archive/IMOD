@@ -2,7 +2,7 @@ package etomo.storage;
 
 import java.io.File;
 
-import etomo.util.DatasetFiles;
+import etomo.type.DataFileType;
 
 /**
  * <p>Description: </p>
@@ -51,11 +51,12 @@ public class DataFileFilter extends javax.swing.filechooser.FileFilter implement
    * @see javax.swing.filechooser.FileFilter#accept(File)
    */
   public boolean accept(File f) {
-    //  If this is a file test its extension, all others should return true
-    if (f.isFile() && !f.getAbsolutePath().endsWith(DatasetFiles.RECON_DATA_FILE_EXT)
-        && !f.getAbsolutePath().endsWith(DatasetFiles.JOIN_DATA_FILE_EXT)
-        && !f.getAbsolutePath().endsWith(DatasetFiles.PARALLEL_DATA_FILE_EXT)
-        && !f.getAbsolutePath().endsWith(DatasetFiles.PEET_DATA_FILE_EXT)) {
+    // If this is a file test its extension, all others should return true
+    if (f.isFile() && !f.getAbsolutePath().endsWith(DataFileType.RECON.extension)
+        && !f.getAbsolutePath().endsWith(DataFileType.JOIN.extension)
+        && !f.getAbsolutePath().endsWith(DataFileType.PARALLEL.extension)
+        && !f.getAbsolutePath().endsWith(DataFileType.PEET.extension)
+        && !f.getAbsolutePath().endsWith(DataFileType.SERIAL_SECTIONS.extension)) {
       return false;
     }
     return true;
@@ -65,8 +66,9 @@ public class DataFileFilter extends javax.swing.filechooser.FileFilter implement
    * @see javax.swing.filechooser.FileFilter#getDescription()
    */
   public String getDescription() {
-    return "Data file (" + ".edf, " + DatasetFiles.JOIN_DATA_FILE_EXT + ", "
-        + DatasetFiles.PARALLEL_DATA_FILE_EXT + ", " + DatasetFiles.PEET_DATA_FILE_EXT
+    return "Data file (" + DataFileType.RECON.extension + ", "
+        + DataFileType.JOIN.extension + ", " + DataFileType.PARALLEL.extension + ", "
+        + DataFileType.PEET.extension + ", " + DataFileType.SERIAL_SECTIONS.extension
         + ")";
   }
 }
