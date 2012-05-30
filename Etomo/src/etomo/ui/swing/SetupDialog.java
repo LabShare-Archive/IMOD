@@ -187,9 +187,19 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   public void buttonExecuteAction() {
-    if (!DatasetDirectory.validateDatasetName(applicationManager, AxisID.ONLY,
-        ftfDataset.getFile(), DataFileType.RECON, expert.getAxisType())) {
-      return;
+    String sDataset = ftfDataset.getText();
+    if (sDataset.indexOf(File.separator) != -1) {
+      if (!DatasetDirectory.validateDatasetName(applicationManager, AxisID.ONLY,
+          ftfDataset.getFile(), DataFileType.RECON, expert.getAxisType())) {
+        return;
+      }
+    }
+    else {
+      if (!DatasetDirectory.validateDatasetName(applicationManager, AxisID.ONLY,
+          new File(applicationManager.getPropertyUserDir()), ftfDataset.getText(),
+          DataFileType.RECON, expert.getAxisType())) {
+        return;
+      }
     }
     super.buttonExecuteAction();
   }
