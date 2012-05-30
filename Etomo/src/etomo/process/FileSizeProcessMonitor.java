@@ -226,6 +226,9 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   private LogFile.ReaderId logReaderId = null;
   private boolean findWatchedFileName = true;
   private MessageReporter messageReporter = null;
+  
+  public void dumpState() {
+  }
 
   public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id,
       ProcessName processName) {
