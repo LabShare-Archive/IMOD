@@ -180,6 +180,7 @@ while argind < lenarg:
          prnstr('Running ' + comname + ' with log in ' + logname + ' ... ', end = '')
       else:
          prnstr('Running ' + comname + ' ... ', end = '')
+      sys.stdout.flush()
       runcmd(comstr + comtmp)
       prnstr(comname + ' ' + message)
 
