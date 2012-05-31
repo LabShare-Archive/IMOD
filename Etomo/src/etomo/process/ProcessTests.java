@@ -28,6 +28,7 @@ public class ProcessTests {
     TestSuite suite = new TestSuite("Tests:  " + TEST_DIR);
     //$JUnit-BEGIN$
     suite.addTestSuite(ImodManagerTest.class);
+    suite.addTestSuite(ProcessMessagesTest.class);
 
     //suite.addTest(new ImodManagerTest("testFiducialModel"));
     //$JUnit-END$
