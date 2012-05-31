@@ -13,7 +13,6 @@ import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 import etomo.ui.swing.FiducialModelDialog;
-import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
 /**
@@ -752,7 +751,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     combineParams = new CombineParams(manager);
     transferfidParamA = new TransferfidParam(manager, AxisID.FIRST);
     transferfidParamB = new TransferfidParam(manager, AxisID.SECOND);
-    fileExtension = DatasetFiles.RECON_DATA_FILE_EXT;
+    fileExtension = DataFileType.RECON.extension;
     useZFactorsA.setDisplayValue(true);
     useZFactorsB.setDisplayValue(true);
     sampleThicknessA.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
@@ -1857,12 +1856,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public String getSecondAxisPrepend() {
     return secondAxisPrepend;
   }
-
-  String createPrepend(final String prepend) {
-    if (prepend.equals("")) {
-      return "Setup";
-    }
-    return prepend + ".Setup";
+  
+  String getGroupKey() {
+    return "Setup";
   }
 
   /**
