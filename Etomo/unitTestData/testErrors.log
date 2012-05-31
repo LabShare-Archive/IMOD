@@ -1,0 +1,10 @@
+ERROR: A. error line
+B. not an error line
+Errno C. error line
+D. not an error line
+Traceback E. error line
+F. second error line
+
+G. not an error line
+prnstr('ERROR: H. not an error line
+log.write('ERROR: I. not an error line
