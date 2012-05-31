@@ -131,6 +131,9 @@ abstract class EtomoFrame extends AbstractFrame {
         EtomoDirector.INSTANCE.openPeet(true, axisID);
       }
     }
+    else if (menu.equalsNewSerialSections(event)) {
+      EtomoDirector.INSTANCE.openSerialSections(true, axisID);
+    }
     else if (menu.equalsOpen(event)) {
       File dataFile = openDataFileDialog();
       if (dataFile != null) {
@@ -334,6 +337,14 @@ abstract class EtomoFrame extends AbstractFrame {
     EtomoFrame otherFrame = getOtherFrame();
     if (otherFrame != null) {
       getOtherFrame().menu.setEnabledNewPeet(enable);
+    }
+  }
+
+  void setEnabledNewSerialSectionsMenuItem(boolean enable) {
+    menu.setEnabledNewSerialSections(enable);
+    EtomoFrame otherFrame = getOtherFrame();
+    if (otherFrame != null) {
+      getOtherFrame().menu.setEnabledNewSerialSections(enable);
     }
   }
 

@@ -169,6 +169,33 @@ public final class LogFile {
     return logFile;
   }
 
+  public static String getLineContaining(final File file, final String searchString) {
+    LogFile logFile = null;
+    ReaderId id = null;
+    try {
+      logFile = getInstance(file);
+      id = logFile.openReader();
+      if (id != null && !id.isEmpty()) {
+        String line = logFile.getLineContaining(id, searchString);
+        logFile.closeRead(id);
+        return line;
+      }
+    }
+    catch (LockException e) {
+      e.printStackTrace();
+    }
+    catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    if (logFile != null && id != null && !id.isEmpty()) {
+      logFile.closeRead(id);
+    }
+    return null;
+  }
+
   /**
    * Try to do a backup and set backedUp to true.  This prevents more then one backup to
    * be done on the file during the lifetime of the instance.  This prevents the
@@ -760,6 +787,33 @@ public final class LogFile {
     else {
       return false;
     }
+  }
+
+  /**
+   * Returns the first line that contains searchString
+   * @param id
+   * @param searchString
+   * @return
+   * @throws LockException
+   * @throws IOException
+   */
+  public synchronized String getLineContaining(ReaderId id, String searchString)
+      throws LockException, IOException {
+    if (!lock.isLocked(LockType.READ, id)) {
+      throw new LockException(this, id);
+    }
+    createFile();
+    Reader reader = readingTokenList.getReader(ReadingTokenList.makeKey(id));
+    if (reader != null) {
+      String line = reader.readLine();
+      while (line != null) {
+        if (line.indexOf(searchString) != -1) {
+          return line;
+        }
+        line = reader.readLine();
+      }
+    }
+    return null;
   }
 
   public synchronized void load(Properties properties, InputStreamId inputStreamId)
