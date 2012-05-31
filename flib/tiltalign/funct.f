@@ -57,13 +57,14 @@ c
       use functVars
       use arraymaxes
       implicit none
-      integer*4 ierr, ms
+      integer*4 ierr, ms, maxVtimesR
       ms = maxview
-      allocate(realinview(maxprojpt), xbar(ms),ybar(ms),xproj(maxprojpt),yproj(maxprojpt),
+      maxVtimesR = maxview * maxreal
+      allocate(realinview(maxVtimesR),xbar(ms),ybar(ms),xproj(maxprojpt),yproj(maxprojpt),
      &    xcen(ms),ycen(ms),zcen(ms), a(ms),b(ms),c(ms),d(ms),e(ms),f(ms), aon(ms),
      &    bon(ms),con(ms),don(ms),eon(ms),fon(ms), cbeta(ms),sbeta(ms),calf(ms),salf(ms),
-     &    cgam(ms),sgam(ms),cdel(ms),sdel(ms),xmag(ms), indvreal(maxprojpt),
-     &    nptinview(maxview),indvproj(maxprojpt), coefx(3*maxreal),coefy(3*maxreal),
+     &    cgam(ms),sgam(ms),cdel(ms),sdel(ms),xmag(ms), indvreal(maxVtimesR),
+     &    nptinview(maxview),indvproj(maxVtimesR), coefx(3*maxreal),coefy(3*maxreal),
      &    resprod(6,maxprojpt), dmat(9,ms), xtmat(9,ms), ytmat(9,ms), rmat(4,ms),
      &    beamInv(9,ms), beamMat(6,ms), stat=ierr)
       return      
