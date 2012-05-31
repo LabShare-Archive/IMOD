@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/31/12: In eTomo, removed incorrect error messages from the _err.log
+(In 4.5).(Bug# 1620)
+
+5/31/12: In eTomo, removed extra lines that had been added onto a warning
+message (In 4.5).(Bug# 1621) 
+
 5/29/12: IMOD_4-5-3
 5/26/12: Made Taperoutvol and  Assemblevol preserve angles in header so they
 are not lost when running NAD (In 4.5).
