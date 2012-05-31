@@ -1,10 +1,12 @@
 package etomo.ui.swing;
 
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
-import etomo.BaseManager;
 import etomo.SerialSectionsManager;
 import etomo.logic.DatasetDirectory;
 import etomo.storage.autodoc.AutodocTokenizer;
@@ -39,9 +41,9 @@ public class SerialSectionsStartupDialog {
 
   private final JDialog dialog;
   private final AxisID axisID;
-  private final BaseManager manager;
+  private final SerialSectionsManager manager;
 
-  private SerialSectionsStartupDialog(final BaseManager manager, final AxisID axisID) {
+  private SerialSectionsStartupDialog(final SerialSectionsManager manager, final AxisID axisID) {
     this.axisID = axisID;
     this.manager = manager;
     dialog = new JDialog(UIHarness.INSTANCE.getFrame(manager), NAME, true);
@@ -61,11 +63,6 @@ public class SerialSectionsStartupDialog {
     return instance;
   }
 
-  public void display() {
-    dialog.pack();
-    dialog.setVisible(true);
-  }
-
   private void createPanel() {
     // dialog
     dialog.getContentPane().add(pnlRoot);
@@ -74,16 +71,62 @@ public class SerialSectionsStartupDialog {
   }
 
   private void addListeners() {
+    dialog.addWindowListener(new SerialSectionsStartupWindowListener(this));
+  }
+  
+  public void display() {
+    dialog.pack();
+    dialog.setVisible(true);
+  }
+
+  private void dispose() {
+    dialog.setVisible(false);
+    dialog.dispose();
   }
 
   private boolean validate() {
     return DatasetDirectory.validateDatasetName(manager, axisID, ftfStack.getFile(),
         DataFileType.SERIAL_SECTIONS, AxisType.SINGLE_AXIS);
   }
+  
+  private void windowClosing() {
+    dispose();
+    manager.cancelStartup();
+  }
 
   private void setTooltips() {
     ftfStack
         .setToolTipText("Stack to be processed.  Location will be used as the dataset "
             + "directory.");
+  }
+  
+  private static final class SerialSectionsStartupWindowListener implements WindowListener {
+    private final SerialSectionsStartupDialog dialog;
+
+    private SerialSectionsStartupWindowListener(final SerialSectionsStartupDialog dialog) {
+      this.dialog = dialog;
+    }
+
+    public void windowActivated(final WindowEvent event) {
+    }
+
+    public void windowClosed(final WindowEvent event) {
+    }
+
+    public void windowClosing(final WindowEvent event) {
+      dialog.windowClosing();
+    }
+
+    public void windowDeactivated(final WindowEvent event) {
+    }
+
+    public void windowDeiconified(final WindowEvent event) {
+    }
+
+    public void windowIconified(final WindowEvent event) {
+    }
+
+    public void windowOpened(final WindowEvent event) {
+    }
   }
 }

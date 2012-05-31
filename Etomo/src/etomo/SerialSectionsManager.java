@@ -11,6 +11,7 @@ import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
 import etomo.type.DialogType;
 import etomo.type.InterfaceType;
+import etomo.type.ProcessEndState;
 import etomo.type.SerialSectionsMetaData;
 import etomo.ui.swing.LogInterface;
 import etomo.ui.swing.LogPanel;
@@ -128,6 +129,11 @@ public final class SerialSectionsManager extends BaseManager {
         System.err.println(actionMessage);
       }
     }
+  }
+  
+  public void cancelStartup() {
+    mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.KILLED);
+    EtomoDirector.INSTANCE.closeCurrentManager(AxisID.ONLY, false);
   }
 
   /**
