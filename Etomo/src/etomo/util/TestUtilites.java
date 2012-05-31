@@ -151,20 +151,12 @@ public final class TestUtilites {
         return;
       }
       unitTestDataSet = true;
-      BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
-      //If units tests are being run from eclipse then IMOD_UNIT_TEST_DATA should
-      //be set to the location of unitTestData in the workspace and current
-      //project.
-      String unitTestDataPath = EnvironmentVariable.INSTANCE.getValue(manager,
-          manager == null ? null : manager.getPropertyUserDir(), "IMOD_UNIT_TEST_DATA",
-          AxisID.ONLY);
-      if (unitTestDataPath != null && !unitTestDataPath.matches("\\s*")) {
-        unitTestData = new File(unitTestDataPath);
-      }
-      else {
-        //If IMOD_UNIT_TEST_DATA is not set, assume that this is the build unit test.
-        //In that case unitTestData should be located here:
-        //$IMOD_DIR/../Etomo/unitTestData.
+      unitTestData = new File("unitTestData");
+      if (!unitTestData.exists() || !unitTestData.isDirectory()) {
+        BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
+        // If IMOD_UNIT_TEST_DATA is not set, assume that this is the build unit test.
+        // In that case unitTestData should be located here:
+        // $IMOD_DIR/../Etomo/unitTestData.
         String imodDirName = EnvironmentVariable.INSTANCE.getValue(manager,
             manager == null ? null : manager.getPropertyUserDir(), "IMOD_DIR",
             AxisID.ONLY);
@@ -174,6 +166,11 @@ public final class TestUtilites {
         }
       }
     }
+  }
+
+  public File getUnitTestData() {
+    initUnitTestData();
+    return unitTestData;
   }
 
   /**
@@ -192,12 +189,12 @@ public final class TestUtilites {
     File testDir = new File(testRootAbsolutePath, testDirName);
     File testDirFile = new File(testDir, testFileName);
     if (unitTestDataFile.exists()) {
-      //delete existing test dir file
+      // delete existing test dir file
       if (testDirFile.exists() && !testDirFile.delete()) {
         throw new SystemProcessException("Cannot delete testDirFile: "
             + testDirFile.getAbsolutePath());
       }
-      //copy data file from unitTestData to test directory
+      // copy data file from unitTestData to test directory
       String[] copyCommand = new String[3];
       copyCommand[0] = "cp";
       copyCommand[1] = unitTestDataFile.getAbsolutePath();
