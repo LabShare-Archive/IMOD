@@ -182,7 +182,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
       + ".Multiparticle.level");
 
   public PeetMetaData() {
-    fileExtension = DatasetFiles.PEET_DATA_FILE_EXT;
+    fileExtension = DataFileType.PEET.extension;
     axisType = AxisType.SINGLE_AXIS;
     referenceMultiparticleLevel.setDefault(MultiparticleReference.DEFAULT_LEVEL);
   }
@@ -482,10 +482,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     nWeightGroup.set(input);
   }
 
-  String createPrepend(final String prepend) {
-    if (prepend == "") {
-      return GROUP_KEY;
-    }
-    return prepend + "." + GROUP_KEY;
+  String getGroupKey() {
+    return GROUP_KEY;
   }
 }

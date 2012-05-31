@@ -11,8 +11,6 @@ import etomo.comscript.TrimvolParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ParallelProcessManager;
-import etomo.process.ProcessResultDisplayFactoryBlank;
-import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
 import etomo.storage.Storable;
@@ -20,7 +18,6 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
-import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.ConstProcessSeries;
@@ -72,7 +69,6 @@ public final class ParallelManager extends BaseManager {
   private final BaseScreenState screenState = new BaseScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
   private final ParallelState state = new ParallelState(this, AXIS_ID);
-  private final ProcessResultDisplayFactoryBlank processResultDisplayFactory = new ProcessResultDisplayFactoryBlank();
 
   private final ParallelMetaData metaData;
 
@@ -125,17 +121,8 @@ public final class ParallelManager extends BaseManager {
     }
   }
 
-  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
-      AxisID axisID) {
-    return processResultDisplayFactory;
-  }
-
   public ParallelState getState() {
     return state;
-  }
-
-  public boolean setParamFile() {
-    return loadedParamFile;
   }
 
   public InterfaceType getInterfaceType() {
@@ -150,25 +137,12 @@ public final class ParallelManager extends BaseManager {
     return logPanel;
   }
 
-  public boolean canChangeParamFileName() {
-    return false;
-  }
-
   public boolean canSnapshot() {
     return false;
   }
 
-  protected void createComScriptManager() {
-  }
-
-  protected void processSucceeded(final AxisID axisID, final ProcessName processName) {
-  }
-
-  protected void createMainPanel() {
+  void createMainPanel() {
     mainPanel = new MainParallelPanel(this);
-  }
-
-  protected void createProcessTrack() {
   }
 
   private void createState() {
@@ -210,21 +184,6 @@ public final class ParallelManager extends BaseManager {
     return processMgr;
   }
 
-  protected BaseProcessTrack getProcessTrack() {
-    return null;
-  }
-
-  protected void getProcessTrack(final Storable[] storable, final int index) {
-  }
-
-  public void kill(final AxisID axisID) {
-    processMgr.kill(axisID);
-  }
-
-  public void pause(final AxisID axisID) {
-    processMgr.pause(axisID);
-  }
-
   public void save() throws LogFile.LockException, IOException {
     super.save();
     mainPanel.done();
@@ -246,10 +205,6 @@ public final class ParallelManager extends BaseManager {
     }
   }
 
-  public void setParamFile(final File paramFile) {
-    this.paramFile = paramFile;
-  }
-
   void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       DialogType dialogType, ProcessDisplay display) {
@@ -260,9 +215,6 @@ public final class ParallelManager extends BaseManager {
 
   public String getName() {
     return metaData.getName();
-  }
-
-  void updateDialog(final ProcessName processName, final AxisID axisID) {
   }
 
   /**
@@ -458,10 +410,6 @@ public final class ParallelManager extends BaseManager {
     List fileNameList = AnisotropicDiffusionParam.getTestFileNameList(this,
         state.getTestKValueList(), state.getTestIteration(), testVolumeName);
     imod(key, menuOptions, subdirName, fileNameList, flip);
-  }
-
-  public boolean isInManagerFrame() {
-    return false;
   }
 
   public void imodVaryingIteration(final String key,
