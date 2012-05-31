@@ -108,8 +108,6 @@ c       and build indexes to the points in each view.
 c       
       nprojpt=irealstr(nrealpt+1)-1
       if(firsttime)then
-        if(nrealpt*nview.gt.maxprojpt)call errorexit(
-     &      'TOO MANY 3-D POINTS AND VIEWS FOR ARRAYS IN FUNCT', 0)
         do iv=1,nview
           xbar(iv)=0.
           ybar(iv)=0.
