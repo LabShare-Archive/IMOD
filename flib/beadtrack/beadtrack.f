@@ -755,9 +755,9 @@ c
         maxarea = nareaTot + 10;
 c         
 c         Get arrays for areas
+        ix = 2 * nround * maxarea
         allocate(iareaseq(maxarea),ninobjlist(maxarea),indobjlist(maxarea),
-     &      areadist(maxarea), ivseqst(4*maxarea),ivseqnd(4*maxarea),listseq(4*maxarea),
-     &      stat=ierr)
+     &      areadist(maxarea), ivseqst(ix),ivseqnd(ix),listseq(ix), stat=ierr)
         call memoryError(ierr, 'ARRAYS FOR AREA DATA')
 
         do i=1,nareaTot
