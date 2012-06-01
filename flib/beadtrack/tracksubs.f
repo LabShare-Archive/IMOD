@@ -1,7 +1,9 @@
       module cgpixels
       implicit none
       integer*4, allocatable :: idxin(:),idyin(:), idxedge(:),idyedge(:)
+      real*4, allocatable :: edgePixels(:)
       integer*4 ninside, nedge, ipolar
+      logical*4 edgeMedian
       end module cgpixels
 
 c       
@@ -296,6 +298,49 @@ c       print *,xpeak,ypeak
       end
 
 
+      subroutine edgeForCG(boxtmp,nxbox,nybox,ixcen, iycen, edge, ierr)
+      use cgpixels
+      implicit none
+      real*4 boxtmp(nxbox,nybox)
+      integer*4 nxbox,nybox,ixcen, iycen,iy,ix,nsum,i, ierr
+      real*4 sum, edge
+      sum=0.
+      nsum=0
+      edge = 0.
+      ierr = 1
+c       
+c       find edge mean - require half the points to be present
+c       
+      if (edgeMedian) then
+        do i = 1, nedge
+          ix = ixcen + idxedge(i)
+          iy = iycen + idyedge(i)
+          if (ix.ge.1 .and. ix.le.nxbox .and. iy.ge.1 .and. iy.le.nybox) then
+            nsum = nsum + 1
+            edgePixels(nsum) = boxtmp(ix,iy)
+          endif
+        enddo
+      else
+        do i = 1, nedge
+          ix = ixcen + idxedge(i)
+          iy = iycen + idyedge(i)
+          if (ix.ge.1 .and. ix.le.nxbox .and. iy.ge.1 .and. iy.le.nybox) then
+            sum = sum + boxtmp(ix,iy)
+            nsum = nsum + 1
+          endif
+        enddo
+      endif
+      if (nsum .lt. nedge / 2) return
+      ierr = 0
+      if (edgeMedian) then
+        call rsSortFloats(edgePixels, nsum)
+        call rsMedianOfSorted(edgePixels, nsum, edge)
+      else
+        edge = sum / nsum
+      endif
+      return
+      end
+
 
       subroutine calccg(boxtmp,nxbox,nybox,xpeak,ypeak, wsum)
       use cgpixels
@@ -326,24 +371,13 @@ c
         ixcen=ixbest
         iycen=iybest
       endif
-      sum=0.
-      nsum=0
       xsum=0.
       ysum=0.
       wsum=0.
 c       
 c       find edge mean - require half the points to be present
-c       
-      do i=1,nedge
-        ix=ixcen+idxedge(i)
-        iy=iycen+idyedge(i)
-        if(ix.ge.1.and.ix.le.nxbox.and.iy.ge.1.and.iy.le.nybox)then
-          sum=sum+boxtmp(ix,iycen+idyedge(i))
-          nsum=nsum+1
-        endif
-      enddo
-      if(nsum.lt.nedge/2)return
-      edge=sum/nsum
+      call edgeForCG(boxtmp,nxbox,nybox,ixcen, iycen, edge, i)
+      if (i .ne. 0) return
 c       
 c       subtract edge and get weighted sum of pixel coordinates for POSITIVE
 c       pixels
@@ -366,6 +400,36 @@ c
       wsum=wsum*ipolar
       return
       end
+
+      subroutine wsumForSobelPeak(boxtmp,nxbox,nybox,xpeak,ypeak, wsum)
+      use cgpixels
+      implicit none
+      real*4 boxtmp(nxbox,nybox), xpeak,ypeak, wsum
+      integer*4 nxbox,nybox,ixcen, iycen,iy,ix,i
+      real*4 weight,edge
+c       
+      ixcen=nxbox/2+nint(xpeak)
+      iycen=nybox/2+nint(ypeak)
+      wsum=0.
+c       
+c       find edge mean - require half the points to be present
+      call edgeForCG(boxtmp,nxbox,nybox,ixcen, iycen, edge, i)
+      if (i .ne. 0) return
+c       
+c       subtract edge and get weight sum for POSITIVE pixels
+c       
+      do i=1,ninside
+        ix=ixcen+idxin(i)
+        iy=iycen+idyin(i)
+        if(ix.ge.1.and.ix.le.nxbox.and.iy.ge.1.and.iy.le.nybox)then
+          weight=boxtmp(ix,iy)-edge
+          if(ipolar*weight.gt.0.) wsum=wsum+weight
+        endif
+      enddo
+      wsum=wsum*ipolar
+      return
+      end
+
 
 
       subroutine rescue(boxtmp,nxbox,nybox,xpeak,ypeak, radmax,relaxcrit,wsum)
@@ -417,10 +481,10 @@ c
         wbest=0.
         do ipeak = 1, maxPeaks
           if (sobelPeaks(ipeak) .lt. -1.e29) exit
-          distsq = xpeak**2 + ypeak**2
+          distsq = sobelXpeaks(ipeak)**2 + sobelYpeaks(ipeak)**2
           call checkSobelPeak(ipeak, boxtmp,nxbox,nybox,sobelXpeaks, sobelYpeaks,
      &        sobelPeaks, sobelWsums, maxpeaks)
-          if (sobelWsums(ipeak) .gt. wbest) then
+          if(distsq.gt.radsq.and. distsq.le.radosq .and. sobelWsums(ipeak).gt.wbest) then
             wbest = sobelWsums(ipeak)
             xpeak = sobelXpeaks(ipeak)
             ypeak = sobelYpeaks(ipeak)
@@ -443,9 +507,8 @@ c
         wsums(indPeak) = 0.
         return
       endif
-      xtmp = xpeaks(indPeak)
-      ytmp = ypeaks(indPeak)
-      call calccg(boxtmp,nxbox,nybox,xtmp, ytmp, wsums(indPeak))
+      call wsumForSobelPeak(boxtmp,nxbox,nybox,xpeaks(indPeak),ypeaks(indPeak),
+     &    wsums(indPeak))
       return
       end
 

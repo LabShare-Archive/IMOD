@@ -2,14 +2,14 @@ c       $Id$
 c       
 c       Routine to run the tiltalign operation
 c
-      subroutine tiltali(ifdidalign,ifAlignDone,resmean,ibaseRes,ibaseOnAlign, iview)
+      subroutine tiltali(ifdidalign,ifAlignDone,resmean,iview)
       use tltcntrl
       implicit none
       include 'smallmodel.inc'
       integer maxMetroTrials
       parameter (maxMetroTrials=5)
 
-      integer*4 ifdidalign, iview,ifAlignDone,ibaseRes,ibaseOnAlign
+      integer*4 ifdidalign, iview,ifAlignDone
       real*4 resmean(*)
 c       
       real*4 var(5*size(tilt)),grad(5*size(tilt))
@@ -167,9 +167,8 @@ c
             restmp(ipt+1-irealstr(i)) = scalexy*
      &          sqrt(xresid(ipt)**2+yresid(ipt)**2)
           enddo
-          resmean(ior+ibaseRes)=rsum*scalexy/
-     &        (irealstr(i+1)-irealstr(i))
-c	    write(*,'(i4,(10f7.3))')ior,resmean(ior+ibaseRes),(restmp(ipt),
+          resmean(ior)=rsum*scalexy/ (irealstr(i+1)-irealstr(i))
+c	    write(*,'(i4,(10f7.3))')ior,resmean(ior),(restmp(ipt),
 c     &        ipt = 1, min(9,irealstr(i+1)-irealstr(i)))
           tltran = tltran + rsum * scalexy
           ifmaptilt = ifmaptilt + irealstr(i+1)-irealstr(i)
@@ -212,7 +211,6 @@ c$$$	  enddo
 
         ifdidalign=1
         ifAlignDone = 1
-        ibaseOnAlign = ibaseRes
       endif
       return
       end

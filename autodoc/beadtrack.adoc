@@ -358,10 +358,10 @@ reduction in scaled Sobel filter
 tooltip = 
 manpage = 
 
-[Field = HighestSobel]
+[Field = MedianForEdge]
 short = 
 type = B
-usage = Use the highest peak from sobel-filtered correlation, skip regular correlation
+usage = Use median instead of mean of edge pixels when computing center of gravity
 tooltip = 
 manpage = 
 

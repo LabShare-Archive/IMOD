@@ -52,7 +52,7 @@ c       maxreal
       integer*4, allocatable :: iobjdel(:),idrop(:),igrpBotTop(:), numInSobelSum(:)
       logical, allocatable :: inCorrSum(:,:), inSobelSum(:,:)
 
-      real*4, allocatable :: resmean(:)
+      real*4, allocatable :: resmean(:,:)
 c       maxarea
       integer*4, allocatable :: iareaseq(:),ninobjlist(:),indobjlist(:)
       real*4, allocatable :: areadist(:)
@@ -71,6 +71,9 @@ c       maxolist
      &    'Correlation peak' , 'Centroid', 'Saved point'/
 C       
       real*4 xf(2,3)
+      real*4 colors(3,10) /0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0,
+     &    1.0, 0.0, 0.0, 0.0, 1.0, 0.5, 0.2, 0.2, 0.8, 0.8, 0.2, 0.2, 0.9, 0.6, 0.4,
+     &    0.6, 0.4, 0.9/
 c       
       integer*4 modebox,maxwavg,limpstr,limpmag,limprot,limpshft
       real*4 rotstart,fraccrit,dmin2,dmax2,dmean2
@@ -83,12 +86,12 @@ c
       integer*4 nxbox,nybox,nxpad,nypad,npixbox,nxpdim,iftrace,iv
       integer*4 minendz,indfree,iobj,ibase,ninobj,ipt,iz,jz,jpt,itmp,iznext
       integer*4 maxnpt,nareax,nareay,ix,iy,nobjlists
-      integer*4 indstart,nobjtot,nseqs,ipass,limcg,nzout
+      integer*4 indstart,nobjtot,nseqs,ipass,limcg,nzout,nxtaper, nytaper
       real*4 radpix,boxsum,boxmin,boxmax,refsum,refmin,refmax,corsum,cormin
-      real*4 cormax,xbox,ybox,xt,yt,xtmp,ytmp,wsum,tiltcur,dxcur
+      real*4 cormax,xbox,ybox,xt,yt,xtmp,ytmp,wsum,tiltcur,dxcur, taperFrac
       integer*4 lastlist,iseq,nadded,ivseq,idir,nvlist,iview,ivuse,ib
       integer*4 ifexclude,iexcl,ivl,ntodo,nclose,neardiff,izv,ipcz
-      integer*4 ix0,ix1,iy0,iy1,ic,jc,maxuse,ibox,izbox
+      integer*4 ix0,ix1,iy0,iy1,ic,jc,maxuse,ibox,izbox,idebugObj
       integer*4 ifdidalign,ivdel,indr,ndat,navg,idif,idirw,itry
       real*4 rotcur,dycur,cosr,sinr,cost,sint,a,b,c,d,e,f,wsumsq,wstmp
       real*4 xnext,ynext,relax,radmax,xpeak,ypeak,xpos,ypos,devavg,devsd
@@ -97,14 +100,14 @@ c
       integer*4 ifmeanbad,iscur,nprev,ndel,misstot,nlistz,imodobj,imodcont
       real*4 peak,dist,tmin,tmax,tmean,cvbxcen, cvbycen,area,density
       integer*4 nvert,minInArea,minBeadOverlap,ifLocalArea, localTarget
-      integer*4 nvLocalIn, localViewPass, ibaseRes,nSnapList,iobjSave
-      logical keepGoing,saveAllPoints,ignoreObjs, done, highestSobel
+      integer*4 nvLocalIn, localViewPass, nSnapList,iobjSave
+      logical keepGoing,saveAllPoints,ignoreObjs, done
       integer*4 numNew,nOverlap,iseqPass,ipassSave,iAreaSave,maxObjOrig
       real*4 outlieElimMin, outlieCrit, outlieCritAbs, curResMin, tiltmax, minPeakRatio
       real*4 sigma1,sigma2,radius2,radius1,deltactf, ranFrac, diameter, sobelSigma
       integer*4 maxDrop, nDrop, ndatFit, nareaTot, maxInArea, limInArea, interpType
       integer*4 minViewDo, maxViewDo, numViewDo, numBound, iseed, limcxBound,nfarther
-      integer*4 ibaseOnAlign, ifAlignDone, imageBinned, maxSobelSum, maxAnySum
+      integer*4 ivsOnAlign, ifAlignDone, imageBinned, maxSobelSum, maxAnySum
       integer*4 nxSobel, nySobel, nxsPad, nysPad, ninSobel, kernelDim
       real*4 xOffSobel, yOffSobel, scaleFacSobel, scaleByInterp, targetSobel
       character*320 concat
@@ -147,7 +150,8 @@ c
      &    ':DeletionCriterionMinAndSD:FP:@param:ParameterFile:PF:@'//
      &    'help:usage:B:@:BoxOutputFile:FN:@:SnapshotViews:LI:@'//
      &    ':SaveAllPointsAreaRound:IP:'
-c
+c       
+      idebugObj = 49
       maxwavg=15
       limpstr=16
       limpmag=6
@@ -206,13 +210,14 @@ c
       npad = 8
       maxSobelSum = 0
       scaleByInterp = 1.2
-      targetSobel = 8.
+      targetSobel = 8
       sobelSigma = 0.85
       interpType = 0
       maxpeaks = 20
-      highestSobel = .false.
       minPeakRatio = 0.2
       msizexr = 19
+      taperFrac = 0.2
+      edgeMedian = .false.
 c       
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
@@ -441,12 +446,11 @@ c        limInArea = min(limInArea, maxreal)
         ierr = PipGetLogical('TrackObjectsTogether', ignoreObjs)
         ierr = PipGetInteger('SobelBeadsToAverage', maxSobelSum)
         ierr = PipGetFloat('KernelSigma', sobelSigma)
-        if (maxSobelSum .gt. 0) ierr = PipGetLogical('HighestSobel', highestSobel)
+        ierr = PipGetLogical('MedianForEdge', edgeMedian)
         ierr = PipGetInteger('InterpolationType', interpType)
         if (PipGetString('SnapshotViews', listString) .eq. 0) call parselist2
      &      (listString, ivSnapList, nSnapList, maxview)
-        ierr = PipGetTwoIntegers('SaveAllPointsAreaRound', iAreaSave,
-     &      iPassSave)
+        ierr = PipGetTwoIntegers('SaveAllPointsAreaRound', iAreaSave, iPassSave)
       else
         write(*,'(1x,a,$)')'Minimum # of views required for tilt'//
      &      ' aligning: '
@@ -508,6 +512,10 @@ c
       ipolar=-1
       if(ifwhite.ne.0)ipolar=1
 c       
+      nxTaper = max(8, nint(taperFrac * nxbox))
+      nyTaper = max(8, nint(taperFrac * nybox))
+      nxbox = nxbox + nxTaper / 2
+      nybox = nybox + nyTaper / 2
       nxpad=niceframe(nxbox+2*npad, 2, 19)
       nypad=niceframe(nybox+2*npad, 2, 19)
       npixbox=nxbox*nybox
@@ -632,10 +640,6 @@ c       it is excluded
       enddo
       numViewDo = maxViewDo + 1 - minViewDo
 c      print *,imintilt,minViewDo,maxViewDo
-      limresid = numViewDo * maxAllReal
-      allocate(resmean(limresid), stat=ierr)
-      call memoryError(ierr, 'ARRAY FOR MEAN RESIDUALS')
-c
 c       
 c       figure out an order for the points: from the center outwards
 c       i.e., first find position from center at minimum tilt, save that in
@@ -643,8 +647,6 @@ c       xyzsav, and store the square of distance in seqdist
 c       iobjseq is just a list of objects to do in original order
 c       
       nobjdo=0
-      if (max_mod_obj .gt. maxAllReal) call errorexit(
-     &    'TOO MANY CONTOURS IN MODEL FOR ARRAYS', 0)
       do iobj=1,max_mod_obj
         ninobj=npt_in_obj(iobj)
         if(ninobj.gt.0)then
@@ -763,8 +765,8 @@ c         Get arrays for areas
 c         
 c             If there are no local areas but there are multiple objects, set up
 c             one area per object.  No point getting distance, they are independent
-            iareaseq(k) = k
-            areadist(k) = 0.
+            iareaseq(i) = i
+            areadist(i) = 0.
           else
             ix=mod(i-1,nareax)
             iy=(i-1)/nareax
@@ -914,6 +916,13 @@ c      elseif (maxInArea.gt.maxreal) then
 c        call errorexit( 'TOO MANY POINTS FOR ARRAYS - TRY LOCAL TRACKING',0)
       endif
 c       
+c       Allocate resmean array based on maximum object # and maximum view sequence #
+c       which is # of views for multiple areas, but times # of rounds if only one area
+      limresid = numViewDo
+      if (nobjlists .eq. 1) limresid = limresid * nround
+      allocate(resmean(maxAllReal,limresid), stat=ierr)
+      call memoryError(ierr, 'ARRAY FOR MEAN RESIDUALS')
+c       
 c       Maximum Number of points finally known for tiltalign solutions: allocate
       call allocateAlivar(maxInArea * nvuall, nvuall, maxInArea, ierr)
       call memoryError(ierr, 'ARRAYS IN ALIVAR')
@@ -1015,7 +1024,7 @@ c
       liminside = 3.5 * cgrad**2 + 20.
       limedge = 3.5 * ((cgrad + 1.5)**2 - cgrad**2) + 20.
       allocate(idxin(liminside),idyin(liminside),idxedge(limedge),idyedge(limedge),
-     &    stat=ierr)
+     &    edgePixels(limedge), stat=ierr)
       call memoryError(ierr, 'ARRAYS FOR COMPUTING CENTROID')
 
       ninside=0
@@ -1094,17 +1103,14 @@ c
         nvLocal = 0
         ifAlignDone = 0
         iseqPass = ((iseq + 1) / 2 - 1) / nobjlists + 1
-        if (iseqPass .ge. localViewPass)
-     &      nvLocal = nvLocalIn
-        saveAllPoints = iareaSave .eq. listseq(iseq) .and.
-     &      ipassSave .eq. iseqPass
+        if (iseqPass .ge. localViewPass) nvLocal = nvLocalIn
+        saveAllPoints = iareaSave .eq. listseq(iseq) .and. ipassSave .eq. iseqPass
         if(listseq(iseq).ne.lastseq)then
 c           
 c           initialize if doing a new set of points
 c           
           initxyzdone=0
           ivseq=1
-          ibaseRes = 0
           lastseq=listseq(iseq)
           nobjdo=ninobjlist(lastseq)
           do i=1,nobjdo
@@ -1119,7 +1125,7 @@ c           Initialize arrays for boxes and residuals
           corrSum(1:npixbox, 1:nobjdo) = 0.
           if (maxSobelSum .gt. 0) sobelSum(1:npixbox, 1:nobjdo) = 0.
           wsave(1:nvuall, 1:nobjdo) = -1.
-          resmean(1:maxObjOrig*numViewDo)=-1.
+          resmean = -1.
           write(*,123)areaObjStr,listseq(iseq),iseqPass,nobjdo
 123       format('Starting ',a,i4,', round',i3,',',i4,' contours')
           if (nobjlists .gt. 1) write(*,objfmt) (iobjseq(i),i=1,nobjdo)
@@ -1131,6 +1137,8 @@ c           Initialize arrays for boxes and residuals
             call putsymtype(iobj, 0)
             call putsymsize(iobj, 5)
             call putimodobjname(iobj, objnames(mod(j-1, 5) + 1))
+            call putObjColor(iobj, int(255. * colors(1,j)),
+     &          int(255. * colors(2,j)), int(255. * colors(3,j)))
             do i=1,nobjdo
               iobj = iobjseq(i) + j * maxObjOrig
               ibase_obj(iobj) = ibase_free
@@ -1138,6 +1146,8 @@ c           Initialize arrays for boxes and residuals
               obj_color(1,iobj) = 1
               obj_color(2,iobj) = 256 - getImodObjsize() - j
               max_mod_obj = max(max_mod_obj, iobj)
+              ndx_order(iobj) = iobj
+              obj_order(iobj) = iobj
             enddo
           enddo
         endif
@@ -1167,8 +1177,10 @@ c
           do while(ipass.le.2.and.ntodo.ne.0)
 c             
 c             now try to do tiltalign if possible
-            if(nadded.ne.0) call tiltali(ifdidalign, ifAlignDone, resmean,
-     &          ibaseRes, ibaseOnAlign, iview)
+            if(nadded.ne.0) then
+              call tiltali(ifdidalign, ifAlignDone, resmean(1,ivseq), iview)
+              if (ifdidalign .ne. 0) ivsOnAlign = ivseq
+            endif
             call getProjectedPositionsSetupFits()
 c             
 c             Loop through points, refining projections before search
@@ -1184,7 +1196,6 @@ c             error for each pt
             call flush(6)
           enddo
           ivseq=ivseq+1
-          ibaseRes = ibaseRes + maxObjOrig
           call flush(6)
         enddo
 c         
@@ -1198,8 +1209,7 @@ c
             misstot=misstot+nlistz
           enddo
           write(*,121)areaObjStr,listseq(iseq), iseqPass, nobjdo,misstot
-121       format('For ',a,i3,', round',i3,':',i3,
-     &        ' contours, points missing =',i5)
+121       format('For ',a,i3,', round',i3,':',i3, ' contours, points missing =',i5)
         endif
 c         
 c         Do surface fitting on every round if tiltalign run
@@ -1216,7 +1226,7 @@ c           into list
             do while (j .le. nrealpt .and. ix .eq. 0)
               if (iobjali(j) .eq. iobjseq(i)) then
                 ix = igrpBotTop(j)
-                xpos = resmean(iobjali(j) + ibaseOnAlign)
+                xpos = resmean(iobjali(j), ivsOnAlign)
               endif
               j = j + 1
             enddo
@@ -1251,21 +1261,21 @@ c       Write out surface file
         do iobj=1,maxObjOrig
           numBotTop(1,iobj) = 0
           numBotTop(2,iobj) = 0
-          resmean(iobj) = 0.
+          resmean(iobj, 1) = 0.
         enddo
         do i = 1, indfree
           iobj = iobjLists(i)
           j = listsBotTop(i)
           if (j .gt. 0) then
             numBotTop(j,iobj) = numBotTop(j,iobj) + 1
-            resmean(iobj) = resmean(iobj) + residLists(i)
+            resmean(iobj, 1) = resmean(iobj, 1) + residLists(i)
           endif
         enddo
         do iobj=1,maxObjOrig
           call objtocont(iobj,obj_color,imodobj,imodcont)
           xpos = 0.
           ix = numBotTop(1,iobj) + numBotTop(2,iobj)
-          if (ix .gt. 0) xpos = resmean(iobj) / ix
+          if (ix .gt. 0) xpos = resmean(iobj, 1) / ix
           write(4, '(i3,3i6,f8.3)')imodobj,imodcont,(numBotTop(j,iobj),j=1,2),
      &        xpos
         enddo
@@ -1627,39 +1637,36 @@ c       lookForOneBead
 c
       subroutine lookForOneBead()
       integer*4 scaledSobel
-      integer*4 ibest
-      real*4 distmin, peakmax
 c       
 c       get image area
 c       
       call imposn(1,ipcz,0)
       call irdpas(1,boxtmp,nxbox,nybox,ix0,ix1,iy0,iy1,*199)
-      if(ipass.eq.1)then
-
-        if (.not. highestSobel) then
+      if(ipass.eq.1) then
 c         
-c           pad image into array on first pass, padd correlation sum into brray
-          call taperoutpad(boxtmp,nxbox,nybox,array,nxpdim, nxpad, nypad, 0, 0.)
-          call setmeanzero(array,nxpdim,nypad,nxpad, nypad)
-          call taperoutpad(corrSum(1,iobjdo),nxbox,nybox,brray,nxpdim, nxpad, nypad, 0,0.)
-          call setmeanzero(brray,nxpdim,nypad,nxpad, nypad)
+c         pad image into array on first pass, padd correlation sum into brray
+        call taperinpad(boxtmp,nxbox,nybox,array,nxpdim, nxpad, nypad, nxTaper, nyTaper)
+        call setmeanzero(array,nxpdim,nypad,nxpad, nypad)
+        call taperinpad(corrSum(1,iobjdo),nxbox,nybox,brray,nxpdim, nxpad, nypad,
+     &      nxTaper, nyTaper)
+        call setmeanzero(brray,nxpdim,nypad,nxpad, nypad)
 c         
-c           correlate the two
-c           
-          call todfft(array,nxpad,nypad,0)
-          call todfft(brray,nxpad,nypad,0)
-          call conjugateProduct(array, brray, nxpad, nypad)
-          if (deltactf .ne. 0) call filterpart(array,array,nxpad, nypad,ctf, deltactf)
-          call todfft(array,nxpad,nypad,1)
-c           
-c           find peak of correlation
-c           
-          call peakfind(array,nxpdim,nypad,xpeak,ypeak, peak)
-          if (saveAllPoints) then
-            iobjSave = iobj + (5 * ipass - 2) * maxObjOrig
-            call add_point(iobjSave, 0, nint(xnext) + xpeak, nint(ynext) + ypeak, iznext)
-          endif
+c         correlate the two
+c         
+        call todfft(array,nxpad,nypad,0)
+        call todfft(brray,nxpad,nypad,0)
+        call conjugateProduct(array, brray, nxpad, nypad)
+        if (deltactf .ne. 0) call filterpart(array,array,nxpad, nypad,ctf, deltactf)
+        call todfft(array,nxpad,nypad,1)
+c         
+c         find peak of correlation
+c         
+        call peakfind(array,nxpdim,nypad,xpeak,ypeak, peak)
+        if (saveAllPoints) then
+          iobjSave = iobj + (5 * ipass - 2) * maxObjOrig
+          call add_point(iobjSave, 0, nint(xnext) + xpeak, nint(ynext) + ypeak, iznext)
         endif
+        call calccg(boxtmp,nxbox,nybox,xpeak,ypeak, wsum)
 c           
 c         Get sobel sum with enough beads in it
         if (maxSobelSum .gt. 0) then
@@ -1692,10 +1699,11 @@ c           Gaussian filter the box and sobel filter it
           if (ierr .ne. 0) call errorExit('DOING SOBEL FILTER ON SEARCH BOX', 0)
 c           
 c           Taper/pad etc
-          call taperoutpad(boxSobel,nxSobel,nySobel,sarray,nxspad+2, nxspad,
-     &        nyspad, 0, 0.)
+          call taperinpad(boxSobel,nxSobel,nySobel,sarray,nxspad+2, nxspad,
+     &        nyspad, nxTaper, nyTaper)
           call setmeanzero(sarray,nxspad+2,nyspad,nxspad, nyspad)
-          call taperoutpad(refSobel,nxSobel,nySobel,sbrray,nxspad+2, nxspad, nyspad, 0,0.)
+          call taperinpad(refSobel,nxSobel,nySobel,sbrray,nxspad+2, nxspad, nyspad,
+     &        nxTaper, nyTaper)
           call setmeanzero(sbrray,nxspad+2,nyspad,nxspad, nyspad)
 c           
 c           correlate the two
@@ -1709,7 +1717,7 @@ c           get the centroid offset of the average and use it to adjust the posi
 c           the original offsets from scaledsobel are irrelevant to correlation
           call xcorrPeakFind(sarray, nxspad+2, nyspad, sobelXpeaks(1, iobjdo),
      &        sobelYpeaks(1, iobjdo), sobelPeaks(1, iobjdo), maxPeaks)
-          call calccg(cursum, nxbox, nybox, xOffSobel, yOffSobel, wsum)
+          call calccg(cursum, nxbox, nybox, xOffSobel, yOffSobel, xtmp)
 c          write(*,'(2i5,a,2f7.2)')iobjdo,ninSobel,'  Sobel average offset',xOffSobel, yOffSobel
           sobelWsums(1:maxPeaks, iobjdo) = -1.
           sobelXpeaks(1:maxPeaks, iobjdo) = sobelXpeaks(1:maxPeaks, iobjdo) *
@@ -1720,50 +1728,11 @@ c          do i = 1, maxpeaks
 c            if (sobelPeaks(i, iobjdo) .gt. -1.e29)
 c     &          write(*,'(2f7.2,f13.2)')sobelXpeaks(i, iobjdo),sobelYpeaks(i, iobjdo),sobelPeaks(i, iobjdo)
 c          enddo
-c           
-c           Find either the highest valid peak or the one closest to the regular xcorr one
-c           that is still relatively strong
-          ibest = 0
-          peakmax = -1.e30
-          distmin = 1.e20
-          do i = 1, maxpeaks
-            call checkSobelPeak(i, boxtmp, nxbox, nybox, sobelXpeaks(1, iobjdo),
-     &          sobelYpeaks(1, iobjdo), sobelPeaks(1, iobjdo), sobelWsums(1, iobjdo), 
-     &          maxpeaks)
-c            if (sobelPeaks(i, iobjdo) .gt. -1.e29)
-c     &          write(*,'(2f7.2,2f13.2)')sobelXpeaks(i, iobjdo),sobelYpeaks(i, iobjdo),sobelPeaks(i, iobjdo), sobelWsums(1, iobjdo)
-            
-            if (sobelWsums(i, iobjdo) .gt. 0) then
-              if (highestSobel) then
-                ibest = i
-                exit
-              endif
-              if (peakmax .lt. -1.e29) peakmax = sobelPeaks(i, iobjdo)
-              if (sobelPeaks(i, iobjdo) .lt. minPeakRatio * peakmax) exit
-              dist = (sobelXpeaks(i, iobjdo) - xpeak)**2 +
-     &            (sobelYpeaks(i, iobjdo) - ypeak)**2
-              if (dist .lt. distmin) then
-                distmin = dist
-                ibest = i
-              endif
-            endif
-          enddo
-          if (ibest .gt. 0) then
-            xpeak = sobelXpeaks(ibest, iobjdo)
-            ypeak = sobelYpeaks(ibest, iobjdo)
-            wsum = sobelWsums(ibest, iobjdo)
-c            print *,ibest,xpeak,ypeak,wsum
-          elseif (highestSobel) then
-            wsum = 0.
-            xpeak = 0.
-            ypeak = 0.
-          endif
 
-        else
-c       
-c           If no sobel at all 
-          call calccg(boxtmp,nxbox,nybox,xpeak,ypeak, wsum)
+c           Revise position of current peak
+          call findNearestSobelPeak()
         endif
+
         dist=sqrt(xpeak**2+ypeak**2)
         if (saveAllPoints) then
           iobjSave = iobj + (5 * ipass - 1) * maxObjOrig
@@ -1794,13 +1763,14 @@ c
           relax=relaxfit
           radmax=radmaxfit
         endif
-        if (maxSobelSum .gt. 0) then
-          call rescueFromSobel(boxtmp,nxbox,nybox, xpeak, ypeak, sobelXpeaks(1, iobjdo),
-     &        sobelYpeaks(1, iobjdo), sobelPeaks(1, iobjdo), sobelWsums(1, iobjdo),
-     &        maxpeaks, radmax,relax*wcrit(iobjdo), wsum)
-        else
+c        if (maxSobelSum .gt. 0) then
+c          call rescueFromSobel(boxtmp,nxbox,nybox, xpeak, ypeak, sobelXpeaks(1, iobjdo),
+c     &        sobelYpeaks(1, iobjdo), sobelPeaks(1, iobjdo), sobelWsums(1, iobjdo),
+c     &        maxpeaks, radmax,relax*wcrit(iobjdo), wsum)
+c        else
           call rescue(boxtmp,nxbox,nybox,xpeak,ypeak, radmax,relax*wcrit(iobjdo), wsum)
-        endif
+        if (maxSobelSum .gt. 0) call findNearestSobelPeak()
+c      endif
       elseif(ipass.eq.2)then
         wsum=0.
       endif
@@ -1874,6 +1844,48 @@ c
 199   call errorexit('ERROR READING IMAGE FILE',0)
       end subroutine lookForOneBead
 
+
+c       Find the sobel peak nearest to the current position (xpeak, ypeak) that is
+c       valid and still reasonably strong, and substitute for xpeak, ypeak
+      subroutine findNearestSobelPeak()
+      integer*4 ibest
+      real*4 distmin, peakmax, xpcen, ypcen, reducefac
+      dist = sqrt(xpeak**2 + ypeak**2)
+      xpcen = 0.
+      ypcen = 0.
+      if (dist .gt. 0.1) then
+        reduceFac = 1. - min(distmin, diameter) / dist
+        xpcen = reduceFac * xpeak
+        ypcen = reduceFac * ypeak
+      endif
+      ibest = 0
+      peakmax = -1.e30
+      distmin = 1.e20
+      do i = 1, maxpeaks
+        call checkSobelPeak(i, boxtmp, nxbox, nybox, sobelXpeaks(1, iobjdo),
+     &      sobelYpeaks(1, iobjdo), sobelPeaks(1, iobjdo), sobelWsums(1, iobjdo), 
+     &      maxpeaks)
+c         if (sobelPeaks(i, iobjdo) .gt. -1.e29)
+c         &          write(*,'(2f7.2,2f13.2)')sobelXpeaks(i, iobjdo),sobelYpeaks(i, iobjdo),sobelPeaks(i, iobjdo), sobelWsums(1, iobjdo)
+            
+        if (sobelWsums(i, iobjdo) .gt. 0) then
+          if (peakmax .lt. -1.e29) peakmax = sobelPeaks(i, iobjdo)
+          if (sobelPeaks(i, iobjdo) .lt. minPeakRatio * peakmax) exit
+          dist = (sobelXpeaks(i, iobjdo) - xpcen)**2 + (sobelYpeaks(i, iobjdo) - ypcen)**2
+          if (dist .lt. distmin) then
+            distmin = dist
+            ibest = i
+          endif
+        endif
+      enddo
+      if (ibest .eq. 0) return
+      xpeak = sobelXpeaks(ibest, iobjdo)
+      ypeak = sobelYpeaks(ibest, iobjdo)
+c      wsum = sobelWsums(ibest, iobjdo)
+c         print *,ibest,xpeak,ypeak,wsum
+      return
+      end subroutine findNearestSobelPeak
+
        
 c       redoFitsEvaluateResiduals
 c       
@@ -1909,8 +1921,8 @@ c
           dxysav(1, iview) = dxcur
           dxysav(2, iview) = dycur
         endif
-        call tiltali(ifdidalign, ifAlignDone, resmean, ibaseRes,
-     &      ibaseOnAlign, iview)
+        call tiltali(ifdidalign, ifAlignDone, resmean(1,ivseq),  iview)
+        if (ifdidalign .ne. 0) ivsOnAlign = ivseq
       endif
       if (itemOnList(iview, ivSnapList, nSnapList)) then
         call int_iwrite(listString, iview, ndel)
@@ -1969,14 +1981,14 @@ c
               iscur=ivseq-1
               nprev=0
               do while(nprev.le.maxresid.and.iscur.gt.0)
-                if(resmean(iobj+(iscur-1)*maxObjOrig).gt.0.)then
+                if(resmean(iobj, iscur).gt.0.)then
                   nprev=nprev+1
-                  prevres(nprev)=resmean(iobj+(iscur-1)*maxObjOrig)
+                  prevres(nprev)=resmean(iobj, iscur )
                 endif
                 iscur=iscur-1
               enddo
               if(nprev.gt.minresid)then
-                curdif=resmean(iobj+ibaseRes)-prevres(1)
+                curdif=resmean(iobj, ivseq)-prevres(1)
                 do i=1,nprev-1
                   prevres(i)=prevres(i)-prevres(i+1)
                 enddo
@@ -1994,9 +2006,9 @@ c
             if ((ipass .eq. 1 .and. errmax.gt.fitdistcrit)
      &          .or.ifmeanbad.eq.1)then
 c               write(*,'(i3,f7.2,4f10.5)')iobj,errmax,
-c               &                  resmean(iobj+ibaseRes), curdif,resavg,ressd
+c               &                  resmean(iobj,ivseq), curdif,resavg,ressd
               wsave(iview, iobjdo) = -1.
-              resmean(iobj+ibaseRes) = -1.
+              resmean(iobj,ivseq) = -1.
               ibase=ibase_obj(iobj)
               do ip=ibase+ipnearest(iobjdo)+1,
      &            ibase+npt_in_obj(iobj)
@@ -2018,8 +2030,8 @@ c               &                  resmean(iobj+ibaseRes), curdif,resavg,ressd
           else
             write(*,delfmt2)ndel,(iobjdel(i),i=1,ndel)
             nadded=0
-            call tiltali(ifdidalign, ifAlignDone, resmean, ibaseRes,
-     &          ibaseOnAlign, iview)
+            call tiltali(ifdidalign, ifAlignDone, resmean(1,ivseq),  iview)
+            if (ifdidalign .ne. 0) ivsOnAlign = ivseq
           endif
         endif
       endif
