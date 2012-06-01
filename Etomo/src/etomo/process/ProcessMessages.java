@@ -31,14 +31,14 @@ public final class ProcessMessages {
   public static final String rcsid = "$Id$";
 
   private static final String[] ERROR_TAGS = { "ERROR:", "Errno", "Traceback" };
-  private static final boolean[] ALWAYS_MULTI_LINE = { false, false, true, false };
+  private static final boolean[] ALWAYS_MULTI_LINE = { false, false, true };
   public static final String WARNING_TAG = "WARNING:";
   private static final String CHUNK_ERROR_TAG = "CHUNK ERROR:";
   private static final String PIP_WARNING_TAG = "PIP WARNING:";
   private static final String INFO_TAG = "INFO:";
   private static final String PIP_WARNING_END_TAG = "Using fallback options in main program";
   private static final int MAX_MESSAGE_SIZE = 10;
-  private static final String IGNORE_TAG = "prnstr('ERROR:";
+  private static final String[] IGNORE_TAG = { "prnstr('ERROR:", "log.write('ERROR:" };
 
   private final boolean chunks;
 
@@ -299,6 +299,10 @@ public final class ProcessMessages {
     return errorList != null && errorList.size() > 0;
   }
 
+  boolean isMultiLineMessages() {
+    return multiLineMessages;
+  }
+
   public boolean isInfo() {
     return infoList != null && infoList.size() > 0;
   }
@@ -505,11 +509,18 @@ public final class ProcessMessages {
         break;
       }
     }
-    if (errorIndex != -1 && line.indexOf(IGNORE_TAG) != -1) {
-      errorIndex = -1;
-      errorTagIndex = -1;
+    // Turn off the error if an ignore-tag is found.
+    if (errorIndex != -1) {
+      for (int i = 0; i < IGNORE_TAG.length; i++) {
+        if (line.indexOf(IGNORE_TAG[i]) != -1) {
+          errorIndex = -1;
+          errorTagIndex = -1;
+          break;
+        }
+      }
     }
-    if (errorTagIndex != -1 && ALWAYS_MULTI_LINE[errorTagIndex]) {
+    // Switch to multi-line error parsing if this error is always a multi-line error.
+    if (errorIndex != -1 && errorTagIndex != -1 && ALWAYS_MULTI_LINE[errorTagIndex]) {
       return parseMultiLineMessage();
     }
     int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
@@ -585,8 +596,12 @@ public final class ProcessMessages {
     }
     // look for a message
     int errorIndex = getErrorIndex(line);
-    if (errorIndex != -1 && line.indexOf(IGNORE_TAG) != -1) {
-      errorIndex = -1;
+    if (errorIndex != -1) {
+      for (int i = 0; i < IGNORE_TAG.length; i++) {
+        if (line.indexOf(IGNORE_TAG[i]) != -1) {
+          errorIndex = -1;
+        }
+      }
     }
     int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
     int warningIndex = line.indexOf(WARNING_TAG);
