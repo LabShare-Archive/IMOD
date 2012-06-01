@@ -530,18 +530,6 @@ public abstract class BaseProcessManager {
     System.err.println(",blockAxisA:" + blockAxisA + ",blockAxisB:" + blockAxisB + "]");
   }
 
-  abstract void postProcess(ComScriptProcess script);
-
-  abstract void errorProcess(BackgroundProcess process);
-
-  abstract void postProcess(InteractiveSystemProgram program);
-
-  abstract void errorProcess(ComScriptProcess process);
-
-  abstract void errorProcess(ReconnectProcess script);
-
-  abstract void postProcess(ReconnectProcess script);
-
   BaseProcessManager(final BaseManager manager) {
     this.manager = manager;
     savedProcessDataA = new ProcessData(AxisID.FIRST, manager);
@@ -557,6 +545,24 @@ public abstract class BaseProcessManager {
         + ",\nprocessMonitorA=" + processMonitorA + ",processMonitorB=" + processMonitorB
         + ",\nkilledList=" + killedList + ",uiHarness=" + uiHarness + ","
         + super.toString();
+  }
+
+  void errorProcess(final BackgroundProcess process) {
+  }
+
+  void errorProcess(final ComScriptProcess process) {
+  }
+
+  void errorProcess(ReconnectProcess script) {
+  }
+
+  void postProcess(final ComScriptProcess script) {
+  }
+
+  void postProcess(final InteractiveSystemProgram program) {
+  }
+
+  void postProcess(final ReconnectProcess script) {
   }
 
   public final void startLoad(final IntermittentCommand param, final LoadMonitor monitor) {

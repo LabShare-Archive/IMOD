@@ -24,6 +24,7 @@ import javax.swing.event.ChangeListener;
 import etomo.JoinManager;
 import etomo.comscript.FinishjoinParam;
 import etomo.comscript.XfjointomoParam;
+import etomo.logic.DatasetDirectory;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.storage.LogFile;
@@ -34,6 +35,7 @@ import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
+import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoNumber;
@@ -1790,6 +1792,11 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   private void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnMakeSamples.getActionCommand())) {
+      if (ftfWorkingDir.isEditable()
+          && !DatasetDirectory.validateDatasetName(manager, axisID,
+              ftfWorkingDir.getFile(), ltfRootName.getText(), DataFileType.JOIN, null)) {
+        return;
+      }
       manager.makejoincom(null, deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
     }
     else if (command.equals(btnInitialAutoAlignment.getActionCommand())) {
