@@ -37,7 +37,7 @@ public class SerialSectionsStartupDialog {
   private static final String NAME = "Starting Serial Sections";
 
   private final JPanel pnlRoot = new JPanel();
-  private final FileTextField ftfStack = new FileTextField("Stack");
+  private final FileTextField ftfStack = new FileTextField("Stack: ");
 
   private final JDialog dialog;
   private final AxisID axisID;
