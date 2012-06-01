@@ -17,6 +17,8 @@ package etomo.type;
  */
 public interface ProcessResultDisplay {
   public static final String rcsid = "$Id$";
+  
+  public void dumpState();
 
   public String getName();
   /**

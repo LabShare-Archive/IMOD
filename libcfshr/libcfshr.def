@@ -52,6 +52,7 @@ EXPORTS
 	findPieceShifts
 	PIPEXIT
 	PipGetNonOptionArg
+	SLICEGAUSSIANKERNEL
 	PIPENABLEENTRYOUTPUT
 	ilistPop
 	AdocGetTwoFloats
@@ -64,6 +65,7 @@ EXPORTS
 	ilistInsert
 	ADOCSETTWOINTEGERS
 	reduceByBinning
+	polynomialFit
 	ilistRemove
 	PIPGETINTEGER
 	ADOCGETNUMBEROFSECTIONS
@@ -73,6 +75,7 @@ EXPORTS
 	ilistLast
 	PipGetTwoIntegers
 	XFUNIT
+	B3DOMPTHREADNUM
 	ADOCWRITE
 	SUMS_TO_AVGSD
 	b3dRewind
@@ -86,6 +89,7 @@ EXPORTS
 	PIPREADOPTIONFILE
 	PipGetString
 	IMODBACKUPFILE
+	POLYNOMIALFIT
 	PipNumberOfArgs
 	fValue
 	ilistTruncate
@@ -97,6 +101,7 @@ EXPORTS
 	sumsToAvgSD
 	wallTime
 	RSMEDIANOFSORTED
+	MULTREGRESS
 	sliceClear
 	LSFIT
 	LSFIT2
@@ -105,6 +110,7 @@ EXPORTS
 	ADOCGETFLOAT
 	LSQR
 	parWrtFindRegion
+	SCALEDGAUSSIANKERNEL
 	AMOEBAINIT
 	CPUTIME
 	PipInitialize
@@ -167,6 +173,7 @@ EXPORTS
 	XCorrSetCTFnoScl
 	surfaceSort
 	IMODGETSTAMP
+	STATMATRICES
 	ADOCSETTHREEINTEGERS
 	PipGetTwoFloats
 	AdocSetThreeFloats
@@ -189,6 +196,7 @@ EXPORTS
 	PIPSETERROR
 	sliceGetPixelMagnitude
 	SELECTZOOMFILTER
+	scaledGaussianKernel
 	AdocSetFloat
 	sliceTaperInPad
 	PipPrintHelp
@@ -229,6 +237,8 @@ EXPORTS
 	RSSORTFLOATS
 	AdocSetTwoIntegers
 	cblas_dcopy
+	gaussjDet
+	multRegress
 	errFunc
 	PIPREADSTDINIFSET
 	PARWRTPROPERTIES
@@ -254,10 +264,12 @@ EXPORTS
 	ADOCGETSECTIONNAME
 	fitSphereWgt
 	CONJUGATEPRODUCT
+	robustRegress
 	XCORRPEAKFIND
 	rsMedian
 	XCorrCCCoefficient
 	tValue
+	sliceGaussianKernel
 	PIPGETINTEGERARRAY
 	XCorrSetCTF
 	PipParseInput
@@ -302,6 +314,7 @@ EXPORTS
 	fgetline
 	exitError
 	betaFunc
+	applyKernelFilter
 	imodCopyright
 	ilistPush
 	lsFit3
@@ -341,10 +354,11 @@ EXPORTS
 	PipEnableEntryOutput
 	WALLTIME
 	PIPINITIALIZE
+	ROBUSTREGRESS
 	B3DHEADERITEMBYTES
 	PipGetLineOfValues
 	SPLITFILL
-	b3dompthreadnum
+	APPLYKERNELFILTER
 	PIPALLOWCOMMADEFAULTS
 	SURFACESORT
 	AdocRead
@@ -361,7 +375,9 @@ EXPORTS
 	cblas_daxpy
 	selectZoomFilter
 	PIPGETSTRING
+	GAUSSJDET
 	PipGetFloatArray
+	statMatrices
 	slicePutVal
 	ADOCOPENIMAGEMETADATA
 	b3dError

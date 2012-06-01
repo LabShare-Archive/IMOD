@@ -7,6 +7,13 @@ IMOD History
 message (In 4.5).(Bug# 1621) 
 
 5/29/12: IMOD_4-5-3
+5/26/12: Changed Tiltalign and Beadtrack to get initial x/y/z
+coordinates with a direct solution instead of iteration, and added an initial
+scan for correct starting tilt axis rotation angle to Tiltalign.
+
+5/26/12: Changed -linear option to Imodfindbeads to allow use of antialias
+image reduction instead of regular interpolation.
+
 5/26/12: Made Taperoutvol and  Assemblevol preserve angles in header so they
 are not lost when running NAD (In 4.5).
 
@@ -21,6 +28,9 @@ choice if several match (In 4.5).
 
 5/15/12: Fix setting of environment variables in Vmstopy (In 4.5).
 
+5/11/12: Parallelized clip smooth with OpenMP and made it use a much faster
+routine for a float input data.
+
 5/11/12: Fixed Tiltalign array sizes that allowed less than 1440 views
 (In 4.5).
 
@@ -31,9 +41,20 @@ fixed an initialization problem (In 4.5).
 
 5/9/12: Fixed 3dmod loading of RGB data with binning in X/Y (In 4.5).
 
+5/8/12: IMOD_4-6-1
+5/8/12: Added lasso to Zap toolbar, useful for selecting multiple contours,
+masking an isosurface, and selecting area for deleting contours below
+threshold in bead Fixer.
+
 5/7/12: IMOD_4-5-2
 5/7/12: Needed to prepend pylib to path in Python scripts because there is a 
 pip installer module in some installations (In 4.5).
+
+5/4/12: Added a filter useful for defringing images taken with phase plates to
+mtffilter.
+
+5/3/12: Added model view information to ascii model format, but excluding
+object views.
 
 5/2/12: IMOD_4-5-1 released
 5/2/12: Fixed 3dmod leaving tile angle file open, which could keep align.com
@@ -42,12 +63,29 @@ from replacing it in Windows (In 4.5).
 5/1/12: Fixed archiveorig not removing xray file when restoring, and fixed
 cleanup of temporary files when using subm and running combine.com (In 4.5).
 
+4/27/12: Added imod-dist, a program by Rick Gaudette for reporting distances
+between points in a model and a reference location.
+
+4/24/12: In eTomo, modified output to newst*.com to work with colornewst.
+(Bug# 1612)
+
 4/20/12: Fixed 3dmod's handling of autocontrasting with contrast reversed so
 that it produces a mean display value at the target mean, and made it adjust
 contrast when float is on and contrast is reversed (In 4.5).
 
+4/20/12: In eTomo - Join, fixed the print actions functionality, which was not
+printing some file copies.(Bug# 1610)
+
 4/20/12: Prevented eTomo from unchecking a disabled computer checkbox in the
 Parallel Processing table when there is only one row (In 4.5).(Bug# 1613)
+
+4/17/12: Added Colornewst to process RGB color files with Newstack.
+
+4/17/12: In eTomo - Tomogram Generation, substituted tomogram height and Y
+shift for starting, ending, and increment slice.(Bug# 1468)
+
+4/15/12: Made clip splitrgb able to extract a subset in Z, and joinrgb able to
+append to an existing color file, so that a file can be processed in chunks.
 
 4/15/12: Fixed origin change when resizing with clip (In 4.5).
 

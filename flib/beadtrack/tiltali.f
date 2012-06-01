@@ -1,34 +1,28 @@
 c       $Id$
-c       Log at end
 c       
-      subroutine tiltali(ifdidalign,ifAlignDone,resmean,ibaseRes,ibaseOnAlign,
-     &    iview)
+c       Routine to run the tiltalign operation
+c
+      subroutine tiltali(ifdidalign,ifAlignDone,resmean,iview)
+      use tltcntrl
       implicit none
-      include 'alivar.inc'
-      include 'tltcntrl.inc'
       include 'smallmodel.inc'
-c       
-c       IF MAXVAR IS NOT BIGGER THAN MAXMETRO, NEED TO DIMENSION
-c       var to maxmetro
-c       
-      integer maxvar,maxmetro,maxMetroTrials
-      parameter (maxvar=5*maxview,maxmetro=3600,maxMetroTrials=5)
+      integer maxMetroTrials
+      parameter (maxMetroTrials=5)
 
-      integer*4 ifdidalign, iview,ifAlignDone,ibaseRes,ibaseOnAlign
+      integer*4 ifdidalign, iview,ifAlignDone
       real*4 resmean(*)
 c       
-      real*4 var(maxvar),grad(maxmetro),h(maxmetro*(maxmetro+3))
-      real*4 erlist(100),varsave(maxvar)
+      real*4 var(5*size(tilt)),grad(5*size(tilt))
+      real*4 varsave(5*size(tilt))
       external funct
       logical firsttime
       double precision error
       common /functfirst/ firsttime
-      common /bigharr/ h
       real*4 dtor
       data dtor/0.0174532/
-      integer*4 imintiltsolv,itry,isolmininit,i,isolmin,nprojpt,iv
-      real*4 tltslvmin,tltslvmax,ang,tltran,ermin,ermininit,finit
-      integer*4 nvarsrch,ifmaptilt,isolve,jpt,kpt,nvargeom,ier,kount,nsum
+      integer*4 imintiltsolv,i,nprojpt,iv,maxvar
+      real*4 tltslvmin,tltslvmax,ang,tltran,finit
+      integer*4 nvarsrch,ifmaptilt,jpt,kpt,nvargeom,ier,kount,nsum
       real*4 f,ffinal,rsum
       integer*4 ior,ipt,ivor,j,metroLoop
       real*4 trialScale(maxMetroTrials) /1.0, 0.9, 1.1, 0.75, 0.5/
@@ -80,88 +74,45 @@ c
           enddo
         enddo
         if (nsum .gt. 0.2 * nrealpt) initxyzdone = 0
-c         
+         
+c
+c         check h allocation; if it is not enough, try  to make it enough for the
+c         full set of views
+        maxvar = nvarsrch + 3 * nrealpt
+        iv = max((maxvar + 3) * maxvar, 9 * nrealpt**2 + 36 * nrealpt)
+        if (iv .gt. maxh) then
+          maxvar = (nvuall + nview - 1) * nvarsrch / nview
+          iv = max((maxvar + 3) * maxvar, iv)
+          if (maxh .gt. 0) deallocate(h)
+          maxh = iv
+c          print *,'Allocated h to', maxh,' based on',maxvar, maxvar + 3
+          allocate(h(maxh), stat=iv)
+          call memoryError(iv, 'ARRAY FOR H MATRIX')
+        endif
+c
         if(initxyzdone.eq.0)then
 c           
-c           first time, initialize xyz and dxy
-c           
-c           try either with initial dxy solved to equalize centroids
-c           section-to- section, or with dxy 0.  Find which way gives
-c           lowest error somewhere along the line, and redo it that
-c           way to do just the best number of iterations
+c           first time, initialize xyz and dxy 
 c           
           call remap_params(var)
 c           
-c           initial trial with call to INIT_DXY
-c           
-c	    dxy(1,imintiltsolv)=cgx/scalexy
-c	    dxy(1,imintiltsolv)=cgy/scalexy
-          call init_dxy(xx,yy,isecview,irealstr,
-     &        nview,nrealpt,imintiltsolv,dxy)
-c           
-          do itry=1,2
-c             
-c             second time through, save minimum error and
-c             iteration # from first trial that used call to
-c             init_dxy
-c             
-            if (itry .eq. 2) then
-              isolmininit=isolmin
-              ermininit=ermin
-            endif
-c             
-            call solve_xyzd(xx,yy,isecview,irealstr,
-     &          nview, nrealpt,tilt,rot, gmag,comp,xyz,
-     &          dxy,nsolve,error,erlist,isolve)
-c             
-c             find iteration with minimum error
-c             
-            ermin=1.e30
-            do i=1,isolve-1
-              if(erlist(i).lt.ermin)then
-                isolmin=i
-                ermin=erlist(i)
-              endif
-            enddo
-c             print *,itry,isolve,ermin,isolmin
-c             
-c             set dxy to 0 for second try, or leave at zero for
-c             final setup
-c             
-            do iv=1,nview
-              dxy(1,iv)=cgx/scalexy
-              dxy(2,iv)=cgy/scalexy
-            enddo
-          enddo
-c           
-          if(ermininit.lt.ermin)then
-            isolmin=isolmininit
-            call init_dxy(xx,yy,isecview,irealstr,
-     &          nview,nrealpt,imintiltsolv,dxy)
-          endif
-c           
-          call solve_xyzd(xx,yy,isecview,irealstr,
-     &        nview, nrealpt,tilt,rot, gmag,comp,xyz,
-     &        dxy,isolmin,error,erlist,isolve)
+          call solveXyzd(xx,yy,isecview,irealstr, nview, nrealpt,tilt,rot, gmag,comp,
+     &        xyz, dxy, 0., h, maxh, error,ier)
+          if (ier .ne. 0) print *,'WARNING: failed to initialize X/Y/Z coordinates '//
+     &        'for tiltalign solution'
           initxyzdone=1
         else
           do jpt=1,nrealpt
             kpt=iobjali(jpt)
-            do i=1,3
-              xyz(i,jpt)=xyzsav(i,kpt)/scalexy
-            enddo
+              xyz(1:3,jpt)=xyzsav(1:3,kpt)/scalexy
           enddo
           do iv=1,nview
-            dxy(1,iv)=dxysav(1,mapViewToFile(iv))/scalexy
-            dxy(2,iv)=dxysav(2,mapViewToFile(iv))/scalexy
+            dxy(1:2,iv)=dxysav(1:2,mapViewToFile(iv))/scalexy
           enddo
         endif
 c         
 c         pack the xyz into the var list
 c         
-        if(nvarsrch+3*nrealpt.gt.min(maxmetro,maxvar))call errorexit(
-     &      'TOO MANY VARIABLES FOR H ARRAY IN METRO',0)
-        
         nvargeom=nvarsrch
         do jpt=1,nrealpt-1
           do i=1,3
@@ -175,9 +126,7 @@ c         ability to restart on errors.
 c         1/25/06: changed to restart on all errros, including too many cycles,
 c         since varying metro factor  works for this too
 c         
-        do i = 1, nvarsrch
-          varsave(i) = var(i)
-        enddo
+        varsave(1:nvarsrch) = var(1:nvarsrch)
 c         
         metroLoop = 1
         ier = 1
@@ -195,9 +144,7 @@ C
             if (metroLoop .le. maxMetroTrials) then
               print *,'Metro error #',ier,', Restarting with step ',
      &            'factor of ', facm * trialScale(metroLoop)
-              do i = 1, nvarsrch
-                var(i) = varsave(i)
-              enddo
+              var(1:nvarsrch) = varsave(1:nvarsrch)
             endif
           endif
         enddo
@@ -212,19 +159,16 @@ c
         ifmaptilt = 0
         do i=1,nrealpt
           ior=iobjali(i)
-          do j=1,3
-            xyz(j,i)=xyz(j,i)*scalexy
-            xyzsav(j,ior)=xyz(j,i)
-          enddo
+          xyz(1:3,i)=xyz(1:3,i)*scalexy
+          xyzsav(1:3,ior)=xyz(1:3,i)
           rsum=0.
           do ipt=irealstr(i),irealstr(i+1)-1
             rsum=rsum+sqrt(xresid(ipt)**2+yresid(ipt)**2)
             restmp(ipt+1-irealstr(i)) = scalexy*
      &          sqrt(xresid(ipt)**2+yresid(ipt)**2)
           enddo
-          resmean(ior+ibaseRes)=rsum*scalexy/
-     &        (irealstr(i+1)-irealstr(i))
-c	    write(*,'(i4,(10f7.3))')ior,resmean(ior+ibaseRes),(restmp(ipt),
+          resmean(ior)=rsum*scalexy/ (irealstr(i+1)-irealstr(i))
+c	    write(*,'(i4,(10f7.3))')ior,resmean(ior),(restmp(ipt),
 c     &        ipt = 1, min(9,irealstr(i+1)-irealstr(i)))
           tltran = tltran + rsum * scalexy
           ifmaptilt = ifmaptilt + irealstr(i+1)-irealstr(i)
@@ -267,40 +211,6 @@ c$$$	  enddo
 
         ifdidalign=1
         ifAlignDone = 1
-        ibaseOnAlign = ibaseRes
       endif
       return
       end
-
-c       
-c       $Log$
-c       Revision 3.11  2008/06/22 20:50:14  mast
-c       Changed to manage items for caller when align is done
-c
-c       Revision 3.10  2008/06/21 19:26:04  mast
-c       Unscaled xyz so it can be used for find_surfaces without worry
-c
-c       Revision 3.9  2008/03/05 00:32:18  mast
-c       Increased maxmetro and put h in common
-c
-c       Revision 3.8  2007/02/19 20:50:23  mast
-c       Changes for beam tilt and grouping improvements in tiltalign
-c
-c       Revision 3.7  2006/06/29 04:53:31  mast
-c       Set up to use small model
-c
-c       Revision 3.6  2006/01/26 05:50:04  mast
-c       Made it restart on too many cycle error also
-c
-c       Revision 3.5  2005/04/10 18:06:21  mast
-c       Actually changed metro factor on repeats
-c	
-c       Revision 3.4  2005/04/07 03:56:31  mast
-c       New version with local tracking, new mapping, outliers, etc.
-c	
-c       Revision 3.2  2003/04/11 17:29:33  mast
-c       Added declarations for implicit none, added cgx, cgy to tltcntrl
-c	
-c       Revision 3.1  2002/07/28 22:56:54  mast
-c       Stadardize error output
-c	

@@ -58,7 +58,9 @@ class ZapFuncs
   void shiftRubberband(float idx, float idy);
   void syncImage(bool toImagePt);
   void toggleRubberband(bool draw = true);
+  void toggleLasso(bool draw = true);
   bool getLowHighSection(int &low, int &high);
+  Icont *getLassoContour();
   B3dCIImage *zoomedDownImage(int subset, int &nxim, int &nyim, int &ixStart,
                               int &iyStart, int &nxUse, int &nyUse);
  private:
@@ -78,9 +80,11 @@ class ZapFuncs
   void setupContourShift();
   int startShiftingContour(int x, int y, int button, int ctrlDown);
   void shiftContour(int x, int y, int button, int shiftDown);
+  void limitContourShift(Icont *cont, float &ix, float &iy);
   int defaultXformCenter(float &xcen, float &ycen);
   int startMovieCheckSnap(int dir);
   void registerDragAdditions();
+  void transformContour(Icont *cont, float mat[2][2], float ix, float iy, int button);
   int mouseXformMatrix(int x, int y, int type, float mat[2][2]);
   void markXformCenter(float ix, float iy);
   void drawGraphics();
@@ -148,6 +152,9 @@ class ZapFuncs
   float  mZoom;
   int mLock;
   float mScaleBarSize;  /* Size of scale bar that was last drawn */
+  bool mLassoOn;         // Lasso flag
+  bool mDrawingLasso;    // And flag for initial drawing
+  int mLassoObjNum;   // Extra object number for lasso
 
  private:
   int    mXborder,   mYborder;   /* border around image window. */
@@ -211,7 +218,9 @@ class ZapFuncs
 };
 
 void zapReportBiggestMultiZ();
-ZapFuncs *getTopZapWindow(bool withBand, int type = ZAP_WINDOW_TYPE);
+ZapFuncs *getTopZapWindow(bool withBand, bool withLasso = false, 
+                          int type = ZAP_WINDOW_TYPE);
+Icont *getTopZapLassoContour(bool aboveBand);
 int getTopZapMouse(Ipoint *imagePt);
 int  imod_zap_open(ImodView *vi, int wintype);
 int zapSubsetLimits(ImodView *vi, int &ixStart, int &iyStart, int &nxUse, int &nyUse);
