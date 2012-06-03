@@ -84,9 +84,6 @@ c
       real*4 dermat(9)
       real*4 projMat(4), umat(9)
 c       
-      logical firsttime,xyzfixed
-      common /functfirst/ firsttime,xyzfixed
-c       
       integer*4 nprojpt, iv, jpt, i, ivbase,nvmat,icoordbas,kxlas,kylas,kzlas
       integer*4 kz,kx,ky,ipt,ivar,iptinv,jx,jy,jz,iy,ix,kpt,jj, istrType
       real*4 afac,bfac,cfac,dfac,efac,ffac,xpxrlas,xpyrlas,xpzrlas,ypxrlas
@@ -108,7 +105,7 @@ c       first time in, precompute the mean projection coords in each view
 c       and build indexes to the points in each view.
 c       
       nprojpt=irealstr(nrealpt+1)-1
-      if(firsttime)then
+      if(firstFunct)then
         do iv=1,nview
           xbar(iv)=0.
           ybar(iv)=0.
@@ -135,7 +132,7 @@ c
           xbar(iv)=xbar(iv)/nptinview(iv)
           ybar(iv)=ybar(iv)/nptinview(iv)
         enddo
-        firsttime=.false.
+        firstFunct=.false.
 c$$$      call remap_params(var)
 c$$$      do iv=1,nview
 c$$$      write(*,113)rot(iv),maprot(iv),linrot(iv),frcrot(iv),

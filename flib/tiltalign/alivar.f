@@ -39,6 +39,7 @@ c
       real*4, allocatable :: glbrot(:),glbtilt(:),glbalf(:)
       real*4, allocatable :: glbgmag(:),glbdmag(:),glbskew(:)
       integer*4 incrgmag,incrdmag,incrskew,incrtilt,incralf,incrrot
+      logical firstFunct,xyzfixed
 
       CONTAINS
 

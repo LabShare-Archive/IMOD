@@ -6,7 +6,7 @@ c       $Id$
 c       
       subroutine input_vars(var,varname,inputalf,nvarsrch,nvarang,
      &    nvarscl, imintilt,ncompsrch,iflocal,maptiltstart, mapalfstart,
-     &    mapalfend, ifBTSearch,tiltorig,tiltadd, pipinput, xyzfixed, ninview,
+     &    mapalfend, ifBTSearch,tiltorig,tiltadd, pipinput, ninview,
      &    ninThresh, rotEntered) 
       use alivar
       use mapsep
@@ -14,7 +14,7 @@ c
       integer*4 inputalf,nvarsrch,nvarang,nvarscl, imintilt,ncompsrch
       integer*4 iflocal,maptiltstart,mapalfstart, ifBTSearch,ninview(*)
       integer*4 ninThresh, mapalfend
-      logical pipinput,xyzfixed
+      logical pipinput
       character*8 varname(*)
       real*4 var(*),tiltorig(*),tiltadd, rotEntered
       integer*4, allocatable, save :: maplist(:),maplrot(:),mapltilt(:)

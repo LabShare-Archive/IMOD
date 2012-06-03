@@ -43,8 +43,7 @@ c
       integer*4, allocatable :: mapLocalToAll(:)
       integer*4, allocatable :: mallFileToView(:), mallViewToFile(:)
 c       
-      logical firsttime,xyzfixed,toofewfid,useTarget, dirDone(-1:1)
-      common /functfirst/ firsttime,xyzfixed
+      logical toofewfid,useTarget, dirDone(-1:1)
       integer*4 ncycle/500/
       real*4 DTOR/0.0174532/
 c       
@@ -137,7 +136,6 @@ c
 c       
       maxtemp = 10000
       nlocalres=50
-      firsttime=.true.
       xyzfixed=.false.
       toofewfid=.false.
       incrgmag=0
@@ -212,7 +210,7 @@ c       Allocate the variable arrays to maximum plausible size
       call countNumInView(listreal, nrealpt, irealstr, isecview, nview, ninview)
       call input_vars(var,varname,inputalf,nvarsrch,nvarang,nvarscl,
      &    imintilt, ncompsrch,0,maptiltstart,mapalfstart,mapalfend,ifBTSearch,
-     &    tiltorig, tiltadd,pipinput,.false.,ninview,ninThresh, rotEntered)
+     &    tiltorig, tiltadd,pipinput,ninview,ninThresh, rotEntered)
 c       
       facm=0.5
       if (pipinput) then
@@ -1410,7 +1408,7 @@ c           Now load the coordinate data with these local view numbers
 
           call input_vars(var,varname,inputalf,nvarsrch,nvarang,nvarscl, imintilt,
      &        ncompsrch,iflocal,maptiltstart,mapalfstart,mapalfend, ifBTSearch, tiltorig,
-     &        tiltadd,pipinput,xyzfixed,ninview,ninThresh, rotEntered)
+     &        tiltadd,pipinput,ninview,ninThresh, rotEntered)
 c           
 c           DNM 7/16/04: Add pixel size to local file
 c           2/15/07: Output after first read of variables

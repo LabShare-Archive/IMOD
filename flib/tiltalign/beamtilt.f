@@ -2,11 +2,6 @@ c       BEAMTILT.F   -  has searchBeamTilt and runMetro routines
 c
 c       $Id$
 c       
-c       $Log$
-c       Revision 3.1  2007/02/19 21:06:00  mast
-c       Added to program
-c
-c       
 c       searchBeamTilt will perform a one-dimensional search for the beam tilt
 c       that minimizes the alignment error.
 c       beamTilt starts with an initial value and is returned with the final
@@ -250,6 +245,7 @@ c       metroError is maintained with a count of total errors
 c
       subroutine runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,ncycle,
      &    ifHush, fFinal, kount, metroError)
+      use alivar
       implicit none
       integer maxMetroTrials
       parameter (maxMetroTrials = 5)
@@ -258,8 +254,6 @@ c
       integer*4 nvarsrch, ncycle,metroError, ifLocal
       integer*4 i, ier, metroLoop, kount, ifHush
       real*4 fInit, f
-      logical firsttime
-      common /functfirst/ firsttime
       external funct
 c       
 c       save the variable list for multiple trials
@@ -270,7 +264,7 @@ c
       metroLoop = 1
       ier = 1
       do while (metroLoop.le.maxMetroTrials .and. ier.ne.0 .and. ier.ne.3)
-        firsttime=.true.
+        firstFunct=.true.
         call funct(nvarsrch,var,finit,grad)
         if (metroLoop .eq. 1 .and. ncycle .gt. 0) WRITE(6,70)FINIT
 70      FORMAT(/,' Variable Metric minimization',T48, 'Initial F:',T65,E14.7)

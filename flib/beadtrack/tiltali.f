@@ -15,9 +15,7 @@ c
       real*4 var(5*size(tilt)),grad(5*size(tilt))
       real*4 varsave(5*size(tilt))
       external funct
-      logical firsttime
       double precision error
-      common /functfirst/ firsttime
       real*4 dtor
       data dtor/0.0174532/
       integer*4 imintiltsolv,i,nprojpt,iv,maxvar
@@ -29,6 +27,7 @@ c
       real*4 restmp(25000)
       logical itemOnList
 
+      xyzfixed = .false.
       ifanyalf=0
       call proc_model(xcen,ycen,xdelt,ydelt,xorig,yorig, scalexy,
      &    nvuall,mininview,iview,nvlocal,iobjseq,nobjdo,mapFileToView,
@@ -131,7 +130,7 @@ c
         metroLoop = 1
         ier = 1
         do while (metroLoop.le.maxMetroTrials .and. ier.ne.0)
-          firsttime=.true.
+          firstFunct=.true.
           call funct(nvarsrch,var,finit,grad)
 c           WRITE(6,70)FINIT
 c           70	    FORMAT(/' Variable Metric minimization',T50,
