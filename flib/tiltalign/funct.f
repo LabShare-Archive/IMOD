@@ -37,7 +37,7 @@ c       a, b, etc are the quantities in the above equations for each view
 c       aon is a over n (# of points in that view)
 c       aprime is derivative of a with respect to tilt angle
 c       
-      logical*1, allocatable :: realinview(:)
+      logical*1, allocatable :: realinview(:,:)
       real*4, allocatable :: xbar(:),ybar(:),xproj(:),yproj(:)
       real*4, allocatable :: xcen(:),ycen(:),zcen(:)
       real*4, allocatable :: a(:),b(:),c(:),d(:),e(:),f(:)
@@ -45,8 +45,8 @@ c
       real*4, allocatable :: cbeta(:),sbeta(:),calf(:),salf(:)
       real*4, allocatable :: cgam(:),sgam(:),cdel(:),sdel(:),xmag(:)
 c       
-      integer*2, allocatable :: indvreal(:)
-      integer*4, allocatable :: nptinview(:),indvproj(:)
+      integer*2, allocatable :: indvreal(:,:)
+      integer*4, allocatable :: nptinview(:),indvproj(:,:)
       real*4, allocatable :: coefx(:),coefy(:), resprod(:,:)
       real*4, allocatable :: dmat(:,:), xtmat(:,:), ytmat(:,:), rmat(:,:)
       real*4, allocatable :: beamInv(:,:), beamMat(:,:)
@@ -57,16 +57,15 @@ c
       use functVars
       use arraymaxes
       implicit none
-      integer*4 ierr, ms, maxVtimesR
+      integer*4 ierr, ms
       ms = maxview
-      maxVtimesR = maxview * maxreal
-      allocate(realinview(maxVtimesR),xbar(ms),ybar(ms),xproj(maxprojpt),yproj(maxprojpt),
-     &    xcen(ms),ycen(ms),zcen(ms), a(ms),b(ms),c(ms),d(ms),e(ms),f(ms), aon(ms),
-     &    bon(ms),con(ms),don(ms),eon(ms),fon(ms), cbeta(ms),sbeta(ms),calf(ms),salf(ms),
-     &    cgam(ms),sgam(ms),cdel(ms),sdel(ms),xmag(ms), indvreal(maxVtimesR),
-     &    nptinview(maxview),indvproj(maxVtimesR), coefx(3*maxreal),coefy(3*maxreal),
-     &    resprod(6,maxprojpt), dmat(9,ms), xtmat(9,ms), ytmat(9,ms), rmat(4,ms),
-     &    beamInv(9,ms), beamMat(6,ms), stat=ierr)
+      allocate(realinview(maxreal,maxview),xbar(ms),ybar(ms),xproj(maxprojpt),
+     &    yproj(maxprojpt), xcen(ms),ycen(ms),zcen(ms), a(ms),b(ms),c(ms),d(ms),e(ms),
+     &    f(ms), aon(ms), bon(ms),con(ms),don(ms),eon(ms),fon(ms), cbeta(ms),sbeta(ms),
+     &    calf(ms),salf(ms), cgam(ms),sgam(ms),cdel(ms),sdel(ms),xmag(ms),
+     &    indvreal( maxreal,maxview), nptinview(maxview),indvproj(maxreal,maxview),
+     &    coefx(3*maxreal),coefy(3*maxreal), resprod(6,maxprojpt), dmat(9,ms),
+     &    xtmat(9, ms), ytmat(9,ms), rmat(4,ms), beamInv(9,ms), beamMat(6,ms), stat=ierr)
       return      
       end subroutine allocateFunctVars
 
@@ -84,7 +83,7 @@ c
       real*4 dermat(9)
       real*4 projMat(4), umat(9)
 c       
-      integer*4 nprojpt, iv, jpt, i, ivbase,nvmat,icoordbas,kxlas,kylas,kzlas
+      integer*4 nprojpt, iv, jpt, i, nvmat,icoordbas,kxlas,kylas,kzlas
       integer*4 kz,kx,ky,ipt,ivar,iptinv,jx,jy,jz,iy,ix,kpt,jj, istrType
       real*4 afac,bfac,cfac,dfac,efac,ffac,xpxrlas,xpyrlas,xpzrlas,ypxrlas
       real*4 ypyrlas,ypzrlas,valadd,cosPSkew,sinPSkew,cosBeam,sinBeam
@@ -106,23 +105,18 @@ c       and build indexes to the points in each view.
 c       
       nprojpt=irealstr(nrealpt+1)-1
       if(firstFunct)then
-        do iv=1,nview
-          xbar(iv)=0.
-          ybar(iv)=0.
-          nptinview(iv)=0
-        enddo
+        xbar(1:nview)=0.
+        ybar(1:nview)=0.
+        nptinview(1:nview)=0
+        realinview(1:nrealpt, 1:nview) = .false.
 c         
         do jpt=1,nrealpt
-          do iv=1,nview
-            realinview(jpt+(iv-1)*nrealpt)=.false.
-          enddo
           do i=irealstr(jpt),irealstr(jpt+1)-1
             iv=isecview(i)
-            ivbase=(iv-1)*nrealpt
             nptinview(iv)=nptinview(iv)+1
-            indvreal(ivbase+nptinview(iv))=jpt
-            indvproj(ivbase+nptinview(iv))=i
-            realinview(jpt+ivbase)=.true.
+            indvreal(nptinview(iv),iv)=jpt
+            indvproj(nptinview(iv),iv)=i
+            realinview(jpt,iv)=.true.
             xbar(iv)=xbar(iv)+xx(i)
             ybar(iv)=ybar(iv)+yy(i)
           enddo
@@ -245,10 +239,9 @@ c
 c       precompute products needed for gradients
 c       
       do iv=1,nview
-        ivbase=(iv-1)*nrealpt
         do iptinv=1,nptinview(iv)
-          ipt=indvproj(ivbase+iptinv)
-          jpt=indvreal(ivbase+iptinv)
+          ipt=indvproj(iptinv,iv)
+          jpt=indvreal(iptinv,iv)
           resprod(1,ipt) = 2. * (xyz(1,jpt) - xcen(iv)) * xresid(ipt)
           resprod(2,ipt) = 2. * (xyz(2,jpt) - ycen(iv)) * xresid(ipt)
           resprod(3,ipt) = 2. * (xyz(3,jpt) - zcen(iv)) * xresid(ipt)
@@ -272,7 +265,6 @@ c       loop on views: consider each of the parameters
 c       
       ivar=0
       do iv=1,nview
-        ivbase=(iv-1)*nrealpt
 c         
 c         rotation: add gradient for this view to any variables that it is
 c         mapped to
@@ -281,7 +273,7 @@ c
         gradsum=0.
         if(maprot(iv).gt.0)then
           do iptinv=1,nptinview(iv)
-            ipt=indvproj(ivbase+iptinv)
+            ipt=indvproj(iptinv,iv)
             gradsum=gradsum+2.*
      &          ((ybar(iv)-yproj(ipt))*xresid(ipt)
      &          +(xproj(ipt)-xbar(iv))*yresid(ipt))
@@ -303,7 +295,7 @@ c
 
           call matrix_to_coef(dmat(1,iv),xtmat(1,iv),beamInv,dermat, beamMat,
      &        projMat, rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
-          gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+          gradsum = gradientSum(indvproj(1,iv), nptinview(iv), resprod,
      &        afac, bfac, cfac, dfac, efac, ffac)
           grad(maptilt(iv))=grad(maptilt(iv))+frctilt(iv)*gradsum
           if(lintilt(iv).gt.0) grad(lintilt(iv))=grad(lintilt(iv))+
@@ -328,7 +320,7 @@ c
           dermat(9)=comp(iv)
           call matrix_to_coef(dermat,xtmat(1,iv),beamInv,ytmat(1,iv),beamMat,
      &        projMat, rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
-          gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+          gradsum = gradientSum(indvproj(1,iv), nptinview(iv), resprod,
      &        afac, bfac, cfac, dfac, efac, ffac)
 c           write(*,'(i4,3f9.5,f16.10)')iv, gmag(iv),dmag(iv),skew(iv),gradsum
           grad(mapgmag(iv))=grad(mapgmag(iv))+frcgmag(iv)*gradsum
@@ -345,8 +337,8 @@ c
           cfac=c(iv)/comp(iv)
           ffac=f(iv)/comp(iv)
           do iptinv=1,nptinview(iv)
-            ipt=indvproj(ivbase+iptinv)
-            jpt=indvreal(ivbase+iptinv)
+            ipt=indvproj(iptinv,iv)
+            jpt=indvreal(iptinv,iv)
             gradsum = gradsum +  cfac * resprod(3,ipt) + ffac*resprod(6,ipt)
           enddo
           grad(mapcomp(iv))=grad(mapcomp(iv))+frccomp(iv)*gradsum
@@ -372,7 +364,7 @@ c
           endif
           call matrix_to_coef(dermat,xtmat(1,iv),beamInv,ytmat(1,iv),beamMat,
      &        projMat, rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
-          gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+          gradsum = gradientSum(indvproj(1,iv), nptinview(iv), resprod,
      &        afac, bfac, cfac, dfac, efac, ffac)
 c           
 c           if this parameter maps to the dummy dmag, then need to subtract
@@ -419,7 +411,7 @@ c
           endif
           call matrix_to_coef(dermat,xtmat(1,iv),beamInv,ytmat(1,iv),beamMat,
      &        projMat, rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
-          gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+          gradsum = gradientSum(indvproj(1,iv), nptinview(iv), resprod,
      &        afac, bfac, cfac, dfac, efac, ffac)
           grad(mapskew(iv))=grad(mapskew(iv))+frcskew(iv)*gradsum
           if(linskew(iv).gt.0) grad(linskew(iv))=grad(linskew(iv))+
@@ -437,7 +429,7 @@ c
           dermat(9)=-salf(iv)
           call matrix_to_coef(dmat(1,iv),dermat,beamInv,ytmat(1,iv),beamMat,
      &        projMat, rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
-          gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+          gradsum = gradientSum(indvproj(1,iv), nptinview(iv), resprod,
      &        afac, bfac, cfac, dfac, efac, ffac)
 c           write(*,'(3i4,f7.4,f16.10)')iv,mapalf(iv),linalf(iv)
 c           &         ,frcalf(iv),gradsum
@@ -457,10 +449,9 @@ c
         dermat(3) = dermat(2)
         dermat(4) = -sinPSkew - cosPSkew * sin2rot
         do iv =1 ,nview
-          ivbase=(iv-1)*nrealpt
           call matrix_to_coef(dmat(1,iv),xtmat(1,iv),beamInv,ytmat(1,iv),
      &        beamMat, dermat,rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
-          gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+          gradsum = gradientSum(indvproj(1,iv), nptinview(iv), resprod,
      &        afac, bfac, cfac, dfac, efac, ffac)
           grad(mapProjStretch) = grad(mapProjStretch) + gradsum
         enddo
@@ -477,7 +468,6 @@ c
         umat(5) = 1.
         umat(9) = 1.
         do iv = 1, nview
-          ivbase=(iv-1)*nrealpt
           dermat(2) = -cosBeam * sbeta(iv)
           dermat(3) = -sinBeam * sbeta(iv)
           dermat(4) = cosBeam * sbeta(iv)
@@ -485,7 +475,7 @@ c
           dermat(6) = (cosBeam**2 - sinBeam**2) * (1- cbeta(iv))
           call matrix_to_coef(dmat(1,iv),xtmat(1,iv),umat,umat,
      &        dermat, projMat,rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
-          gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+          gradsum = gradientSum(indvproj(1, iv), nptinview(iv), resprod,
      &        afac, bfac, cfac, dfac, efac, ffac)
           grad(mapBeamTilt) = grad(mapBeamTilt) + gradsum
         enddo
@@ -505,7 +495,6 @@ c         contributes to the derivative w/r to each of the x,y,z
 c         
         do i=irealstr(jpt),irealstr(jpt+1)-1
           iv=isecview(i)
-          ivbase=(iv-1)*nrealpt
           iy=iy+2
           ix=iy-1
 c           
@@ -522,7 +511,7 @@ c
             ypxrlas=-d(iv)
             ypyrlas=-e(iv)
             ypzrlas=-f(iv)
-          elseif(realinview(nrealpt+ivbase))then
+          elseif(realinview(nrealpt,iv))then
             xpxrlas=0.
             xpyrlas=0.
             xpzrlas=0.
@@ -556,7 +545,7 @@ c
               coefy(kx)=d(iv)+ypxrlas
               coefy(ky)=e(iv)+ypyrlas
               coefy(kz)=f(iv)+ypzrlas
-            elseif(realinview(kpt+ivbase))then
+            elseif(realinview(kpt,iv))then
               coefx(kx)=xpxrlas
               coefx(ky)=xpyrlas
               coefx(kz)=xpzrlas
@@ -591,19 +580,18 @@ c       write(*,'(i4,2f16.10)')(i,var(i),grad(i),i=1,nvarsrch)
 
 c       GRADIENTSUM forms the standard gradient sum over the points 
 c       in a view for the given factors AFAC - FFAC
-c       INDVPROJ has indices from point in view to residual products in
-c       RESPROD, IVBASE is the base point number for the view,
+c       INDVPROJ has indices from point in view to residual products in RESPROD
 c       NPTINVIEW is the number of points in the VIEW
 c       
-      real*8 function gradientSum(indvproj, ivbase, nptinview, resprod,
+      real*8 function gradientSum(indvproj, nptinview, resprod,
      &    afac, bfac, cfac, dfac, efac, ffac)
       implicit none
-      integer*4 indvproj(*), ivbase, nptinview,iptinv,ipt
+      integer*4 indvproj(*), nptinview,iptinv,ipt
       real*4 resprod(6,*), afac, bfac, cfac, dfac, efac, ffac
       real*8 gradsum
       gradsum = 0.
       do iptinv=1,nptinview
-        ipt=indvproj(ivbase+iptinv)
+        ipt=indvproj(iptinv)
         gradsum = gradsum + afac * resprod(1,ipt) + bfac * resprod(2,ipt)
      &      + cfac * resprod(3,ipt) + dfac * resprod(4,ipt) +
      &      efac * resprod(5,ipt) + ffac * resprod(6,ipt)
