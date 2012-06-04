@@ -28,6 +28,7 @@ input_vars.$(O):  alivar.$(O)
 tiltalign.$(O):   alivar.$(O)
 map_vars.$(O):    alivar.$(O)
 solve_xyzd.$(O):  alivar.$(O)
+beamtilt.$(O):	  alivar.$(O)
 
 install: $(PROGS)
 	$(STRIP) $(PROGS) 
