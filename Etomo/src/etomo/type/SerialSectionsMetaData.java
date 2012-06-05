@@ -26,6 +26,10 @@ public final class SerialSectionsMetaData extends BaseMetaData {
   public SerialSectionsMetaData() {
     fileExtension = DataFileType.SERIAL_SECTIONS.extension;
   }
+  
+  public void setName(final String rootName) {
+   this.rootName.set(rootName);
+  }
 
   String getGroupKey() {
     return "SerialSections";
