@@ -1499,41 +1499,6 @@ public final class ApplicationManager extends BaseManager implements
         ProcessName.EXTRACTTILTS);
   }
 
-  private void extractpieces(AxisID axisID, ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, final DialogType dialogType) {
-    if (processSeries == null) {
-      processSeries = new ProcessSeries(this, dialogType);
-    }
-    processSeries.setNextProcess(ExtractmagradParam.COMMAND_NAME, null);
-    if (metaData.getViewType() != ViewType.MONTAGE && processSeries != null) {
-      processSeries.startNextProcess(axisID, processResultDisplay);
-      return;
-    }
-    File pieceListFile = DatasetFiles.getPieceListFile(this, axisID);
-    if (pieceListFile.exists() && processSeries != null) {
-      processSeries.startNextProcess(axisID, processResultDisplay);
-      return;
-    }
-    String threadName;
-    try {
-      threadName = processMgr.extractpieces(axisID, processResultDisplay, processSeries);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute " + ExtractpiecesParam.COMMAND_NAME;
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
-      if (processSeries != null) {
-        processSeries.startNextProcess(axisID, processResultDisplay);
-      }
-      return;
-    }
-    setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME, axisID,
-        ProcessName.EXTRACTPIECES);
-  }
-
   private void extractmagrad(AxisID axisID, ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) {
     String magGradientFileName = metaData.getMagGradientFile();
@@ -7421,7 +7386,8 @@ public final class ApplicationManager extends BaseManager implements
       splitcombine(processSeries, null, null, dialogType, process.getProcessingMethod());
     }
     else if (process.equals(ExtractpiecesParam.COMMAND_NAME)) {
-      extractpieces(axisID, processResultDisplay, processSeries, dialogType);
+      extractpieces(axisID, processResultDisplay, processSeries, dialogType,
+          metaData.getViewType());
     }
     else if (process.equals(ExtractmagradParam.COMMAND_NAME)) {
       extractmagrad(axisID, processResultDisplay, processSeries);
