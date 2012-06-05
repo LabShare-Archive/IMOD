@@ -1,5 +1,7 @@
 package etomo;
 
+import java.io.File;
+
 import etomo.comscript.BaseComScriptManager;
 import etomo.comscript.SerialSectionsComScriptManager;
 import etomo.logic.SerialSectionsStartupData;
@@ -50,6 +52,7 @@ public final class SerialSectionsManager extends BaseManager {
   private BaseComScriptManager comScriptMgr = null;
   private SerialSectionsStartupDialog serialSectionsStartupDialog = null;
   private SerialSectionsDialog serialSectionsDialog = null;
+  private SerialSectionsStartupData startupData=null;
   /**
    * valid is for handling failure before the manager key is set in EtomoDirector.
    */
@@ -130,7 +133,63 @@ public final class SerialSectionsManager extends BaseManager {
       }
     }
   }
+
+  public void setStartupData(final SerialSectionsStartupData startupData) {
+    serialSectionsStartupDialog = null;
+    openSerialSectionsDialog(startupData);
+    setParamFile(startupData);
+    if (!loadedParamFile) {
+      mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.FAILED);
+      UIHarness.INSTANCE.openMessageDialog(this,
+          "Failed to load or create parameter file, unable to continue.", "Failed",
+          AxisID.ONLY);
+      valid = false;
+      return;
+    }
+    mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.DONE);
+  }
   
+  /**
+   * Tries to set paramFile.  Returns true if able to set paramFile.
+   * If paramFile is already set, returns true.  Returns false if unable
+   * to set paramFile.  Updates the serial sections dialog display if paramFile
+   * was set successfully.
+   * @return
+   */
+  public boolean setParamFile(final SerialSectionsStartupData startupData) {
+    if (loadedParamFile) {
+      return true;
+    }
+    if (startupData == null) {
+      return false;
+    }
+    
+    this.startupData=startupData;
+    String name = startupData.getRootName();
+    if (serialSectionsDialog != null) {
+      serialSectionsDialog.setStartupData(startupData);
+    }
+    File paramFile = startupData.getParamFile();
+    if (!paramFile.exists()) {
+      processMgr.createNewFile(paramFile.getAbsolutePath());
+    }
+    initializeUIParameters(paramFile, AXIS_ID, false);
+    if (!loadedParamFile) {
+      return false;
+    }
+    metaData.setName(name);
+    if (!metaData.isValid()) {
+      uiHarness.openMessageDialog(this,
+          "Invalid data, unable to proceed.  Please exit and restart Etomo",
+          "Fatal Error");
+      return false;
+    }
+    imodManager.setMetaData(metaData);
+    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+    EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
+    return true;
+  }
+
   public void cancelStartup() {
     mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.KILLED);
     EtomoDirector.INSTANCE.closeCurrentManager(AxisID.ONLY, false);
@@ -160,9 +219,9 @@ public final class SerialSectionsManager extends BaseManager {
       System.err.println(actionMessage);
     }
   }
-  
+
   private void setSerialSectionsDialogParameters() {
-    if (loadedParamFile&&paramFile != null && metaData.isValid()) {
+    if (loadedParamFile && paramFile != null && metaData.isValid()) {
     }
   }
 
