@@ -56,10 +56,15 @@ final class FileTextField2 implements FileTextFieldInterface {
   private FileFilter fileFilter = null;
   private boolean absolutePath = false;
   /**
+   * If origin is valid, it overrides originEtomoRunDir.
+   */
+  private File origin = null;
+  /**
    * If true, then the origin directory of the file is the directory in which etomo was
    * run.  Useful when a dataset location has not been set.
    */
   private boolean originEtomoRunDir = false;
+
 
   private FileTextField2(final BaseManager manager, final String label,
       final boolean labeled, final boolean peet) {
@@ -104,6 +109,13 @@ final class FileTextField2 implements FileTextFieldInterface {
    */
   static FileTextField2 getPeetInstance(final BaseManager manager, final String name) {
     FileTextField2 instance = new FileTextField2(manager, name, true, true);
+    instance.createPanel();
+    instance.addListeners();
+    return instance;
+  }
+
+  static FileTextField2 getInstance(final BaseManager manager, final String name) {
+    FileTextField2 instance = new FileTextField2(manager, name, true, false);
     instance.createPanel();
     instance.addListeners();
     return instance;
@@ -206,8 +218,21 @@ final class FileTextField2 implements FileTextFieldInterface {
     this.originEtomoRunDir = input;
   }
 
+  /**
+   * Sets the origin member variable which overrides the originEtomoRunDir member variable
+   * and the propertyUserDir when it is a valid directory.
+   * @return
+   */
+  void setOrigin(final File input) {
+    origin = input;
+  }
+
   boolean isEmpty() {
     return field.getText() == null || field.getText().matches("\\s*");
+  }
+  
+  boolean isEnabled() {
+    return button.isEnabled();
   }
 
   boolean exists() {
@@ -218,7 +243,14 @@ final class FileTextField2 implements FileTextFieldInterface {
     return FilePath.buildAbsoluteFile(getOriginDir(), field.getText());
   }
 
+  /**
+   * Gets the origin directory.
+   * @return
+   */
   private String getOriginDir() {
+    if (origin != null && origin.exists() && origin.isDirectory()) {
+      return origin.getAbsolutePath();
+    }
     if (manager == null || originEtomoRunDir) {
       return EtomoDirector.INSTANCE.getOriginalUserDir();
     }
