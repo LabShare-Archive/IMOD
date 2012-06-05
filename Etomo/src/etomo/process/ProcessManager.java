@@ -1034,7 +1034,6 @@ import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.ExtractmagradParam;
-import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.ExtracttiltsParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.RunraptorParam;
@@ -1783,17 +1782,6 @@ public class ProcessManager extends BaseProcessManager {
     BackgroundProcess backgroundProcess = startBackgroundProcess(new ExtracttiltsParam(
         appManager, axisID).getCommand(), axisID, true, processResultDisplay,
         processSeries, ProcessName.EXTRACTTILTS);
-    return backgroundProcess.getName();
-  }
-
-  /**
-   * Run extractpieces
-   */
-  public String extractpieces(AxisID axisID, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(new ExtractpiecesParam(
-        appManager, axisID).getCommand(), axisID, true, processResultDisplay,
-        processSeries, ProcessName.EXTRACTPIECES);
     return backgroundProcess.getName();
   }
 
