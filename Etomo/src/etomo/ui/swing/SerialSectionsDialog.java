@@ -11,9 +11,11 @@ import javax.swing.event.ChangeListener;
 
 import etomo.BaseManager;
 import etomo.SerialSectionsManager;
+import etomo.logic.SerialSectionsStartupData;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.ViewType;
 import etomo.util.Utilities;
 
 /**
@@ -31,24 +33,29 @@ import etomo.util.Utilities;
 * 
 * <p> $Log$ </p>
 */
-public final class SerialSectionsDialog implements ContextMenu {
+public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonContainer {
   public static final String rcsid = "$Id:$";
 
   private static final DialogType DIALOG_TYPE = DialogType.SERIAL_SECTIONS;
-  private static final String[] TAB_LABEL_ARRAY = new String[] { "Setup", "Align",
-      "Initial Blend", "Make Stack" };
 
   private final EtomoPanel rootPanel = new EtomoPanel();
-  private final EtomoPanel[] pnlTabArray = new EtomoPanel[] { new EtomoPanel(),
-      new EtomoPanel(), new EtomoPanel(), new EtomoPanel() };
-  private final EtomoPanel[] pnlTabBodyArray = new EtomoPanel[] { new EtomoPanel(),
-      new EtomoPanel(), new EtomoPanel(), new EtomoPanel() };
+  private final EtomoPanel[] pnlTabArray = new EtomoPanel[Tab.MAX_INDEX];
+  private final EtomoPanel[] pnlTabBodyArray = new EtomoPanel[Tab.MAX_INDEX];
   private final TabbedPane tabPane = new TabbedPane();
+  private final CheckBox cbVerySloppyBlend = new CheckBox("Treat as very sloppy blend");
+  private final Run3dmodButton btnInitialBlend = Run3dmodButton.getDeferred3dmodInstance(
+      "Run Initial Blend", this);
+  private final Run3dmodButton btnOpenInitialBlend = Run3dmodButton.get3dmodInstance(
+      "Open Initial Blend Result", this);
+  private final MultiLineButton btnFixEdges = new MultiLineButton("Fix Edges With Midas");
+  private final MultiLineButton btnOpenAlignedStack = new MultiLineButton(
+      "Open Aligned Stack");
 
   private final AxisID axisID;
   private final BaseManager manager;
 
-  private Tab curTab = Tab.SETUP;
+  private Tab curTab = null;
+  private ViewType viewType = null;
 
   private SerialSectionsDialog(final BaseManager manager, final AxisID axisID) {
     System.err.println(Utilities.getDateTimeStamp() + "\nDialog: " + DIALOG_TYPE);
@@ -67,14 +74,25 @@ public final class SerialSectionsDialog implements ContextMenu {
   }
 
   private void createPanel() {
+    // init
+    btnInitialBlend.setDeferred3dmodButton(btnOpenInitialBlend);
     // root panel
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new BeveledBorder("Serial Sections").getBorder());
     rootPanel.add(tabPane);
     // tab pane
-    for (int i = 0; i < Tab.SIZE; i++) {
-      tabPane.add(TAB_LABEL_ARRAY[i], pnlTabArray[i]);
+    for (int i = 0; i < Tab.MAX_INDEX; i++) {
+      tabPane.add(Tab.getInstance(i).toString(), pnlTabArray[i]);
     }
+    // initial blend
+    int index = Tab.INITIAL_BLEND.index;
+    pnlTabBodyArray[index].add(cbVerySloppyBlend);
+    pnlTabBodyArray[index].add(btnInitialBlend.getComponent());
+    pnlTabBodyArray[index].add(btnOpenInitialBlend.getComponent());
+    pnlTabBodyArray[index].add(btnFixEdges.getComponent());
+    // align
+    index = Tab.ALIGN.index;
+    pnlTabBodyArray[index].add(btnOpenAlignedStack.getComponent());
   }
 
   private void init() {
@@ -88,19 +106,58 @@ public final class SerialSectionsDialog implements ContextMenu {
 
   private void addListeners() {
     tabPane.addMouseListener(new GenericMouseAdapter(this));
-    DialogActionListener actionListener = new DialogActionListener(this);
     tabPane.addChangeListener(new TabChangeListener(this));
+    ActionListener listener = new SerialSectionsActionListener(this);
+    btnInitialBlend.addActionListener(listener);
+    btnOpenInitialBlend.addActionListener(listener);
+    btnFixEdges.addActionListener(listener);
+    btnOpenAlignedStack.addActionListener(listener);
   }
 
-  private void updateDisplay() {
+  public void setStartupData(final SerialSectionsStartupData startupData) {
+    viewType = startupData.getViewType();
+    if (curTab == null) {
+      if (viewType == ViewType.MONTAGE) {
+        curTab = Tab.INITIAL_BLEND;
+      }
+      else {
+        curTab = Tab.ALIGN;
+      }
+      changeTab();
+    }
+    updateDisplay();
   }
 
-  private void action(final String actionCommand,
+  public void updateDisplay() {
+    tabPane.setEnabledAt(Tab.INITIAL_BLEND.index, viewType == ViewType.MONTAGE);
+  }
+
+  public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
+    action(button.getActionCommand(), button.getDeferred3dmodButton(),
+        run3dmodMenuOptions);
+  }
+
+  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (command.equals(btnInitialBlend.getActionCommand())) {
+
+    }
+    else if (command.equals(btnOpenInitialBlend.getActionCommand())) {
+
+    }
+    else if (command.equals(btnFixEdges.getActionCommand())) {
+
+    }
+    else if (command.equals(btnOpenAlignedStack.getActionCommand())) {
+
+    }
   }
 
   private void changeTab() {
-    pnlTabArray[curTab.index].remove(pnlTabBodyArray[curTab.index]);
+    if (curTab != null) {
+      pnlTabArray[curTab.index].remove(pnlTabBodyArray[curTab.index]);
+    }
     curTab = Tab.getInstance(tabPane.getSelectedIndex());
     pnlTabArray[curTab.index].add(pnlTabBodyArray[curTab.index]);
     UIHarness.INSTANCE.pack(axisID, manager);
@@ -110,7 +167,6 @@ public final class SerialSectionsDialog implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    
     String[] manPagelabel = { "Processchunks", "3dmod" };
     String[] manPage = { "processchunks.html", "3dmod.html" };
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent, manPagelabel,
@@ -120,15 +176,15 @@ public final class SerialSectionsDialog implements ContextMenu {
   private void setTooltips() {
   }
 
-  private static final class DialogActionListener implements ActionListener {
+  private static final class SerialSectionsActionListener implements ActionListener {
     private final SerialSectionsDialog dialog;
 
-    private DialogActionListener(final SerialSectionsDialog dialog) {
+    private SerialSectionsActionListener(final SerialSectionsDialog dialog) {
       this.dialog = dialog;
     }
 
     public void actionPerformed(final ActionEvent event) {
-      dialog.action(event.getActionCommand(), null);
+      dialog.action(event.getActionCommand(), null, null);
     }
   }
 
@@ -145,23 +201,21 @@ public final class SerialSectionsDialog implements ContextMenu {
   }
 
   private static final class Tab {
-    private static final Tab SETUP = new Tab(0);
-    private static final Tab INITIAL_BLEND = new Tab(1);
-    private static final Tab ALIGN = new Tab(2);
-    private static final Tab MAKE_STACK = new Tab(3);
+    private static final Tab INITIAL_BLEND = new Tab(0, "Initial Blend");
+    private static final Tab ALIGN = new Tab(1, "Align");
+    private static final Tab MAKE_STACK = new Tab(2, "Make Stack");
 
-    private static final int SIZE = 4;
+    private static final int MAX_INDEX = MAKE_STACK.index;
 
     private final int index;
+    private final String title;
 
-    private Tab(final int index) {
+    private Tab(final int index, final String title) {
       this.index = index;
+      this.title = title;
     }
 
     private static Tab getInstance(final int index) {
-      if (index == SETUP.index) {
-        return SETUP;
-      }
       if (index == INITIAL_BLEND.index) {
         return INITIAL_BLEND;
       }
@@ -172,6 +226,10 @@ public final class SerialSectionsDialog implements ContextMenu {
         return MAKE_STACK;
       }
       return null;
+    }
+
+    public String toString() {
+      return title;
     }
   }
 }
