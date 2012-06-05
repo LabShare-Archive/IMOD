@@ -51,7 +51,6 @@ tf.fiducial-diameter = %{fiducial-diameter}
 if.not.var.test-gui.return=
 rb.montage=
 bn.create-com-scripts=
-wait.popup.invalid-dataset-directory=OK
 wait.popup.setup-dialog-error=OK
 #wait.popup.invalid-dataset-directory=OK
 rb.single-frame=
