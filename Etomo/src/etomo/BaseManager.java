@@ -15,6 +15,8 @@ import java.util.Vector;
 import javax.swing.JFileChooser;
 
 import etomo.comscript.CommandDetails;
+import etomo.comscript.ExtractmagradParam;
+import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.IntermittentCommand;
 import etomo.comscript.ProcesschunksParam;
 import etomo.process.BaseProcessManager;
@@ -47,6 +49,7 @@ import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
+import etomo.type.ViewType;
 import etomo.ui.swing.FileChooser;
 import etomo.ui.swing.FixedDim;
 import etomo.ui.swing.LogInterface;
@@ -55,6 +58,7 @@ import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.ParallelPanel;
 import etomo.ui.swing.ProcessDisplay;
 import etomo.ui.swing.UIHarness;
+import etomo.util.DatasetFiles;
 import etomo.util.UniqueKey;
 import etomo.util.Utilities;
 
@@ -110,7 +114,7 @@ public abstract class BaseManager {
   private final ProcessingMethodMediator processingMethodMediatorB = new ProcessingMethodMediator();
   private final ManagerKey managerKey = new ManagerKey();
 
- public void dumpState() {
+  public void dumpState() {
     System.err.println("[headless:" + headless + ",loadedParamFile:" + loadedParamFile
         + ",paramFile:");
     if (paramFile != null) {
@@ -1662,6 +1666,42 @@ public abstract class BaseManager {
     // set param in parallel panel so it can do a resume
     parallelPanel.setProcessInfo(param, processResultDisplay);
     setThreadName(threadName, axisID);
+  }
+
+  public void extractpieces(AxisID axisID, ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, final DialogType dialogType, final ViewType viewType) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    processSeries.setNextProcess(ExtractmagradParam.COMMAND_NAME, null);
+    if (viewType != ViewType.MONTAGE && processSeries != null) {
+      processSeries.startNextProcess(axisID, processResultDisplay);
+      return;
+    }
+    File pieceListFile = DatasetFiles.getPieceListFile(this, axisID);
+    if (pieceListFile.exists() && processSeries != null) {
+      processSeries.startNextProcess(axisID, processResultDisplay);
+      return;
+    }
+    String threadName;
+    try {
+      threadName = getProcessManager().extractpieces(axisID, processResultDisplay,
+          processSeries);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ExtractpiecesParam.COMMAND_NAME;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
+      if (processSeries != null) {
+        processSeries.startNextProcess(axisID, processResultDisplay);
+      }
+      return;
+    }
+    setThreadName(threadName, axisID);
+    getMainPanel().startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME, axisID,
+        ProcessName.EXTRACTPIECES);
   }
 
   /**
