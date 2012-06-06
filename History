@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/6/12: In eTomo - Final Aligned Stack, fixed a bug where 
+tilt_3dfind_reprojecta.com was not being created (In 4.5).(Bug# 1622)
+
 5/31/12: In eTomo, removed incorrect error messages from the _err.log
 (In 4.5).(Bug# 1620)
 
