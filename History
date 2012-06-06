@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/5/12: Added options to Point2model to set scale and origin directly.
+
 6/5/12: In eTomo, added code to dump the state of classes which may be
 involved in an intermittently occurring bug.(Bug# 1618)
 
