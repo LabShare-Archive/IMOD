@@ -107,10 +107,10 @@ import etomo.util.DatasetFiles;
  * <p> $to build process file names.
  * <p> $$ </p>
  */
-public class ProcessName {
+public final class ProcessName {
   public static final String rcsid = "$$Id$$";
 
-  //known process names  
+  // known process names
   private static final String xcorr = "xcorr";
   private static final String prenewst = "prenewst";
   private static final String track = "track";
@@ -173,11 +173,12 @@ public class ProcessName {
 
   private final String name;
 
-  private ProcessName(String name) {
+  private ProcessName(final String name) {
     this.name = name;
   }
 
-  public static final ProcessName ERASER = new ProcessName("eraser");//comscript which runs ccderaser
+  public static final ProcessName ERASER = new ProcessName("eraser");// comscript which
+                                                                     // runs ccderaser
   public static final ProcessName XCORR = new ProcessName(xcorr);
   public static final ProcessName PRENEWST = new ProcessName(prenewst);
   public static final ProcessName TRACK = new ProcessName(track);
@@ -242,7 +243,7 @@ public class ProcessName {
   public static final ProcessName XCORR_PT = new ProcessName(xcorr_pt);
   public static final ProcessName PROCHUNKS_CSH = new ProcessName(prochunks_csh);
   public static final ProcessName SIRTSETUP = new ProcessName("sirtsetup");
-  //The axis letter goes after tilt.
+  // The axis letter goes after tilt.
   public static final ProcessName TILT_SIRT = new ProcessName("tilt_sirt");
 
   /**
@@ -252,8 +253,25 @@ public class ProcessName {
     return name;
   }
 
-  public final boolean equals(String name) {
+  public boolean equals(final String name) {
     if (getInstance(name) == this) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Equals if command equals process name, or if command equals process name + axis
+   * extension.
+   * @param command
+   * @param axisID
+   * @return
+   */
+  public boolean equals(final String command, final AxisID axisID) {
+    if (command.equals(name)) {
+      return true;
+    }
+    if (command.equals(name + axisID.getExtension())) {
       return true;
     }
     return false;
@@ -272,13 +290,13 @@ public class ProcessName {
    * @param axisID
    * @return
    */
-  public static ProcessName getInstance(String name, AxisID axisID) {
-    //check if name equals process name
+  public static ProcessName getInstance(String name, final AxisID axisID) {
+    // check if name equals process name
     ProcessName processName = getInstance(name);
     if (processName != null) {
       return processName;
     }
-    //check if name is process name plus axis extension
+    // check if name is process name plus axis extension
     if (!axisID.getExtension().equals("") && name.endsWith(axisID.getExtension())) {
       processName = getInstance(name.substring(0, name.length()
           - axisID.getExtension().length()));
@@ -291,12 +309,12 @@ public class ProcessName {
       return null;
     }
     name = name.substring(0, extIndex);
-    //check if file name equals process name plus file extension
+    // check if file name equals process name plus file extension
     processName = getInstance(name);
     if (processName != null) {
       return processName;
     }
-    //check if file name is process name plus axis extension plus file extension
+    // check if file name is process name plus axis extension plus file extension
     if (!axisID.getExtension().equals("") && name.endsWith(axisID.getExtension())) {
       processName = getInstance(name.substring(0, name.length()
           - axisID.getExtension().length()));
@@ -315,7 +333,8 @@ public class ProcessName {
    * @param extension
    * @return
    */
-  public static ProcessName getInstance(String name, AxisID axisID, String extension) {
+  public static ProcessName getInstance(final String name, final AxisID axisID,
+      final String extension) {
     if (extension == null || extension.equals("")) {
       return getInstance(name, axisID);
     }
@@ -529,13 +548,13 @@ public class ProcessName {
     return null;
   }
 
-  public static ProcessName getInstance(File file, String excludeString) {
+  public static ProcessName getInstance(final File file, final String excludeString) {
     if (file == null) {
       return null;
     }
     String fileName = file.getName();
-    StringBuffer processStringBuffer = new StringBuffer(fileName.substring(0, fileName
-        .lastIndexOf(excludeString)));
+    StringBuffer processStringBuffer = new StringBuffer(fileName.substring(0,
+        fileName.lastIndexOf(excludeString)));
     ProcessName processName;
     if ((processName = ProcessName.getInstance(processStringBuffer.toString())) != null) {
       return processName;
@@ -551,11 +570,11 @@ public class ProcessName {
     return null;
   }
 
-  public String getComscript(AxisID axisID) {
+  public String getComscript(final AxisID axisID) {
     return name + axisID.getExtension() + DatasetFiles.COMSCRIPT_EXT;
   }
 
-  public String[] getComscriptArray(AxisID axisID) {
+  public String[] getComscriptArray(final AxisID axisID) {
     return new String[] { name + axisID.getExtension() + DatasetFiles.COMSCRIPT_EXT };
   }
 }
