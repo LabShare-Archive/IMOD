@@ -366,7 +366,7 @@ mb.align-stack-and-create-tomogram=+
 cb.parallel-processing=off
 sp.aligned-image-stack-binning=1
 bn.align-and-build-tomogram=
-wait.process.processchunks-tilt_3dfind%{axis} = done
+wait.process.calculating-tomogram = done
 # check files
 assert.exists.file=tilt_3dfind%{axis}.com
 assert.exists.file=tilt_3dfind%{axis}.log
