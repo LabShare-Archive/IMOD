@@ -1673,7 +1673,9 @@ c         Get sobel sum with enough beads in it
           cursum(1:npixbox) = sobelSum(1:npixbox, iobjdo)
           ninSobel = numInSobelSum(iobjdo)
           do i = 1, nobjdo
-            if (ninSobel .ge. maxSobelSum) exit
+            if (ninSobel .ge. maxSobelSum) then
+              exit
+            endif
             if (i .ne. iobjdo) then
               cursum(1:npixbox) = cursum(1:npixbox) + sobelSum(1:npixbox, i)
               ninSobel = ninSobel + numInSobelSum(i)
@@ -1870,7 +1872,9 @@ c         &          write(*,'(2f7.2,2f13.2)')sobelXpeaks(i, iobjdo),sobelYpeaks
             
         if (sobelWsums(i, iobjdo) .gt. 0) then
           if (peakmax .lt. -1.e29) peakmax = sobelPeaks(i, iobjdo)
-          if (sobelPeaks(i, iobjdo) .lt. minPeakRatio * peakmax) exit
+          if (sobelPeaks(i, iobjdo) .lt. minPeakRatio * peakmax) then
+            exit
+          endif
           dist = (sobelXpeaks(i, iobjdo) - xpcen)**2 + (sobelYpeaks(i, iobjdo) - ypcen)**2
           if (dist .lt. distmin) then
             distmin = dist
