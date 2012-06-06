@@ -13,7 +13,7 @@ c       error with respect to each variable and returns these derivatives in
 c       the array GRAD.  The derivatives with respect to the geometric
 c       variables are obtained from the following relations:
 c       _    xproj = a*x + b*y + c*z + dx(view)
-c       _    xproj = d*x + e*y + f*z + dy(view)
+c       _    yproj = d*x + e*y + f*z + dy(view)
 c       where the six terms are a product of distortion, X-axis tilt, Y-axis
 c       tilt, projection, and image rotation matrices.  The latest version
 c       takes the derivative of one of component matrices and forms the
@@ -29,44 +29,61 @@ c       view matches the centroid of the projection of the real-space
 c       points.  ANGLES ARE EXPECTED TO BE RADIANS.
 c       
 c       $Id$
-c       Log at end of file
 c       
-      subroutine funct(nvarsrch,var,ferror,grad)
-c       
+      module functVars
       implicit none
-      include 'alivar.inc'
-      integer ms
-      parameter (ms=maxview)
-c       
-      real*4 grad(*),var(*),ferror
-      integer*4 nvarsrch
-c       
-      double precision error, gradsum
-      logical*1 realinview(maxprojpt)
-c       
-      real*4 xbar(ms),ybar(ms),xproj(maxprojpt),yproj(maxprojpt)
-      real*4 xcen(ms),ycen(ms),zcen(ms)
 c       
 c       a, b, etc are the quantities in the above equations for each view
 c       aon is a over n (# of points in that view)
 c       aprime is derivative of a with respect to tilt angle
 c       
-      real*4 a(ms),b(ms),c(ms),d(ms),e(ms),f(ms)
-      real*4 aon(ms),bon(ms),con(ms),don(ms),eon(ms),fon(ms)
-      real*4 cbeta(ms),sbeta(ms),calf(ms),salf(ms)
-      real*4 cgam(ms),sgam(ms),cdel(ms),sdel(ms),xmag(ms)
+      logical*1, allocatable :: realinview(:,:)
+      real*4, allocatable :: xbar(:),ybar(:),xproj(:),yproj(:)
+      real*4, allocatable :: xcen(:),ycen(:),zcen(:)
+      real*4, allocatable :: a(:),b(:),c(:),d(:),e(:),f(:)
+      real*4, allocatable :: aon(:),bon(:),con(:),don(:),eon(:),fon(:)
+      real*4, allocatable :: cbeta(:),sbeta(:),calf(:),salf(:)
+      real*4, allocatable :: cgam(:),sgam(:),cdel(:),sdel(:),xmag(:)
 c       
-      integer*2 indvreal(maxprojpt)
-      integer*4 nptinview(maxview),indvproj(maxprojpt)
-      real*4 coefx(3*maxreal),coefy(3*maxreal), resprod(6,maxprojpt)
-      real*4 dmat(9,ms), xtmat(9,ms), ytmat(9,ms), rmat(4,ms), dermat(9)
-      real*4 projMat(4), beamInv(9,ms), beamMat(6,ms), umat(9)
-      save xbar,ybar,nptinview,realinview,indvproj,indvreal
+      integer*2, allocatable :: indvreal(:,:)
+      integer*4, allocatable :: nptinview(:),indvproj(:,:)
+      real*4, allocatable :: coefx(:),coefy(:), resprod(:,:)
+      real*4, allocatable :: dmat(:,:), xtmat(:,:), ytmat(:,:), rmat(:,:)
+      real*4, allocatable :: beamInv(:,:), beamMat(:,:)
+
+      end module functVars
+
+      subroutine allocateFunctVars(ierr)
+      use functVars
+      use arraymaxes
+      implicit none
+      integer*4 ierr, ms
+      ms = maxview
+      allocate(realinview(maxreal,maxview),xbar(ms),ybar(ms),xproj(maxprojpt),
+     &    yproj(maxprojpt), xcen(ms),ycen(ms),zcen(ms), a(ms),b(ms),c(ms),d(ms),e(ms),
+     &    f(ms), aon(ms), bon(ms),con(ms),don(ms),eon(ms),fon(ms), cbeta(ms),sbeta(ms),
+     &    calf(ms),salf(ms), cgam(ms),sgam(ms),cdel(ms),sdel(ms),xmag(ms),
+     &    indvreal( maxreal,maxview), nptinview(maxview),indvproj(maxreal,maxview),
+     &    coefx(3*maxreal),coefy(3*maxreal), resprod(6,maxprojpt), dmat(9,ms),
+     &    xtmat(9, ms), ytmat(9,ms), rmat(4,ms), beamInv(9,ms), beamMat(6,ms), stat=ierr)
+      return      
+      end subroutine allocateFunctVars
+
+      subroutine funct(nvarsrch,var,ferror,grad)
 c       
-      logical firsttime,xyzfixed
-      common /functfirst/ firsttime,xyzfixed
+      use alivar
+      use functVars
+      implicit none
 c       
-      integer*4 nprojpt, iv, jpt, i, ivbase,nvmat,icoordbas,kxlas,kylas,kzlas
+      real*4 grad(*),var(*),ferror
+      integer*4 nvarsrch
+c       
+      double precision error, gradsum
+c       
+      real*4 dermat(9)
+      real*4 projMat(4), umat(9)
+c       
+      integer*4 nprojpt, iv, jpt, i, nvmat,icoordbas,kxlas,kylas,kzlas
       integer*4 kz,kx,ky,ipt,ivar,iptinv,jx,jy,jz,iy,ix,kpt,jj, istrType
       real*4 afac,bfac,cfac,dfac,efac,ffac,xpxrlas,xpyrlas,xpzrlas,ypxrlas
       real*4 ypyrlas,ypzrlas,valadd,cosPSkew,sinPSkew,cosBeam,sinBeam
@@ -87,26 +104,19 @@ c       first time in, precompute the mean projection coords in each view
 c       and build indexes to the points in each view.
 c       
       nprojpt=irealstr(nrealpt+1)-1
-      if(firsttime)then
-        if(nrealpt*nview.gt.maxprojpt)call errorexit(
-     &      'TOO MANY 3-D POINTS AND VIEWS FOR ARRAYS IN FUNCT', 0)
-        do iv=1,nview
-          xbar(iv)=0.
-          ybar(iv)=0.
-          nptinview(iv)=0
-        enddo
+      if(firstFunct)then
+        xbar(1:nview)=0.
+        ybar(1:nview)=0.
+        nptinview(1:nview)=0
+        realinview(1:nrealpt, 1:nview) = .false.
 c         
         do jpt=1,nrealpt
-          do iv=1,nview
-            realinview(jpt+(iv-1)*nrealpt)=.false.
-          enddo
           do i=irealstr(jpt),irealstr(jpt+1)-1
             iv=isecview(i)
-            ivbase=(iv-1)*nrealpt
             nptinview(iv)=nptinview(iv)+1
-            indvreal(ivbase+nptinview(iv))=jpt
-            indvproj(ivbase+nptinview(iv))=i
-            realinview(jpt+ivbase)=.true.
+            indvreal(nptinview(iv),iv)=jpt
+            indvproj(nptinview(iv),iv)=i
+            realinview(jpt,iv)=.true.
             xbar(iv)=xbar(iv)+xx(i)
             ybar(iv)=ybar(iv)+yy(i)
           enddo
@@ -116,7 +126,7 @@ c
           xbar(iv)=xbar(iv)/nptinview(iv)
           ybar(iv)=ybar(iv)/nptinview(iv)
         enddo
-        firsttime=.false.
+        firstFunct=.false.
 c$$$      call remap_params(var)
 c$$$      do iv=1,nview
 c$$$      write(*,113)rot(iv),maprot(iv),linrot(iv),frcrot(iv),
@@ -229,10 +239,9 @@ c
 c       precompute products needed for gradients
 c       
       do iv=1,nview
-        ivbase=(iv-1)*nrealpt
         do iptinv=1,nptinview(iv)
-          ipt=indvproj(ivbase+iptinv)
-          jpt=indvreal(ivbase+iptinv)
+          ipt=indvproj(iptinv,iv)
+          jpt=indvreal(iptinv,iv)
           resprod(1,ipt) = 2. * (xyz(1,jpt) - xcen(iv)) * xresid(ipt)
           resprod(2,ipt) = 2. * (xyz(2,jpt) - ycen(iv)) * xresid(ipt)
           resprod(3,ipt) = 2. * (xyz(3,jpt) - zcen(iv)) * xresid(ipt)
@@ -256,7 +265,6 @@ c       loop on views: consider each of the parameters
 c       
       ivar=0
       do iv=1,nview
-        ivbase=(iv-1)*nrealpt
 c         
 c         rotation: add gradient for this view to any variables that it is
 c         mapped to
@@ -265,7 +273,7 @@ c
         gradsum=0.
         if(maprot(iv).gt.0)then
           do iptinv=1,nptinview(iv)
-            ipt=indvproj(ivbase+iptinv)
+            ipt=indvproj(iptinv,iv)
             gradsum=gradsum+2.*
      &          ((ybar(iv)-yproj(ipt))*xresid(ipt)
      &          +(xproj(ipt)-xbar(iv))*yresid(ipt))
@@ -287,7 +295,7 @@ c
 
           call matrix_to_coef(dmat(1,iv),xtmat(1,iv),beamInv,dermat, beamMat,
      &        projMat, rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
-          gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+          gradsum = gradientSum(indvproj(1,iv), nptinview(iv), resprod,
      &        afac, bfac, cfac, dfac, efac, ffac)
           grad(maptilt(iv))=grad(maptilt(iv))+frctilt(iv)*gradsum
           if(lintilt(iv).gt.0) grad(lintilt(iv))=grad(lintilt(iv))+
@@ -312,7 +320,7 @@ c
           dermat(9)=comp(iv)
           call matrix_to_coef(dermat,xtmat(1,iv),beamInv,ytmat(1,iv),beamMat,
      &        projMat, rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
-          gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+          gradsum = gradientSum(indvproj(1,iv), nptinview(iv), resprod,
      &        afac, bfac, cfac, dfac, efac, ffac)
 c           write(*,'(i4,3f9.5,f16.10)')iv, gmag(iv),dmag(iv),skew(iv),gradsum
           grad(mapgmag(iv))=grad(mapgmag(iv))+frcgmag(iv)*gradsum
@@ -329,8 +337,8 @@ c
           cfac=c(iv)/comp(iv)
           ffac=f(iv)/comp(iv)
           do iptinv=1,nptinview(iv)
-            ipt=indvproj(ivbase+iptinv)
-            jpt=indvreal(ivbase+iptinv)
+            ipt=indvproj(iptinv,iv)
+            jpt=indvreal(iptinv,iv)
             gradsum = gradsum +  cfac * resprod(3,ipt) + ffac*resprod(6,ipt)
           enddo
           grad(mapcomp(iv))=grad(mapcomp(iv))+frccomp(iv)*gradsum
@@ -356,7 +364,7 @@ c
           endif
           call matrix_to_coef(dermat,xtmat(1,iv),beamInv,ytmat(1,iv),beamMat,
      &        projMat, rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
-          gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+          gradsum = gradientSum(indvproj(1,iv), nptinview(iv), resprod,
      &        afac, bfac, cfac, dfac, efac, ffac)
 c           
 c           if this parameter maps to the dummy dmag, then need to subtract
@@ -403,7 +411,7 @@ c
           endif
           call matrix_to_coef(dermat,xtmat(1,iv),beamInv,ytmat(1,iv),beamMat,
      &        projMat, rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
-          gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+          gradsum = gradientSum(indvproj(1,iv), nptinview(iv), resprod,
      &        afac, bfac, cfac, dfac, efac, ffac)
           grad(mapskew(iv))=grad(mapskew(iv))+frcskew(iv)*gradsum
           if(linskew(iv).gt.0) grad(linskew(iv))=grad(linskew(iv))+
@@ -421,7 +429,7 @@ c
           dermat(9)=-salf(iv)
           call matrix_to_coef(dmat(1,iv),dermat,beamInv,ytmat(1,iv),beamMat,
      &        projMat, rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
-          gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+          gradsum = gradientSum(indvproj(1,iv), nptinview(iv), resprod,
      &        afac, bfac, cfac, dfac, efac, ffac)
 c           write(*,'(3i4,f7.4,f16.10)')iv,mapalf(iv),linalf(iv)
 c           &         ,frcalf(iv),gradsum
@@ -441,10 +449,9 @@ c
         dermat(3) = dermat(2)
         dermat(4) = -sinPSkew - cosPSkew * sin2rot
         do iv =1 ,nview
-          ivbase=(iv-1)*nrealpt
           call matrix_to_coef(dmat(1,iv),xtmat(1,iv),beamInv,ytmat(1,iv),
      &        beamMat, dermat,rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
-          gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+          gradsum = gradientSum(indvproj(1,iv), nptinview(iv), resprod,
      &        afac, bfac, cfac, dfac, efac, ffac)
           grad(mapProjStretch) = grad(mapProjStretch) + gradsum
         enddo
@@ -461,7 +468,6 @@ c
         umat(5) = 1.
         umat(9) = 1.
         do iv = 1, nview
-          ivbase=(iv-1)*nrealpt
           dermat(2) = -cosBeam * sbeta(iv)
           dermat(3) = -sinBeam * sbeta(iv)
           dermat(4) = cosBeam * sbeta(iv)
@@ -469,7 +475,7 @@ c
           dermat(6) = (cosBeam**2 - sinBeam**2) * (1- cbeta(iv))
           call matrix_to_coef(dmat(1,iv),xtmat(1,iv),umat,umat,
      &        dermat, projMat,rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
-          gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
+          gradsum = gradientSum(indvproj(1, iv), nptinview(iv), resprod,
      &        afac, bfac, cfac, dfac, efac, ffac)
           grad(mapBeamTilt) = grad(mapBeamTilt) + gradsum
         enddo
@@ -489,7 +495,6 @@ c         contributes to the derivative w/r to each of the x,y,z
 c         
         do i=irealstr(jpt),irealstr(jpt+1)-1
           iv=isecview(i)
-          ivbase=(iv-1)*nrealpt
           iy=iy+2
           ix=iy-1
 c           
@@ -506,7 +511,7 @@ c
             ypxrlas=-d(iv)
             ypyrlas=-e(iv)
             ypzrlas=-f(iv)
-          elseif(realinview(nrealpt+ivbase))then
+          elseif(realinview(nrealpt,iv))then
             xpxrlas=0.
             xpyrlas=0.
             xpzrlas=0.
@@ -540,7 +545,7 @@ c
               coefy(kx)=d(iv)+ypxrlas
               coefy(ky)=e(iv)+ypyrlas
               coefy(kz)=f(iv)+ypzrlas
-            elseif(realinview(kpt+ivbase))then
+            elseif(realinview(kpt,iv))then
               coefx(kx)=xpxrlas
               coefx(ky)=xpyrlas
               coefx(kz)=xpzrlas
@@ -575,19 +580,18 @@ c       write(*,'(i4,2f16.10)')(i,var(i),grad(i),i=1,nvarsrch)
 
 c       GRADIENTSUM forms the standard gradient sum over the points 
 c       in a view for the given factors AFAC - FFAC
-c       INDVPROJ has indices from point in view to residual products in
-c       RESPROD, IVBASE is the base point number for the view,
+c       INDVPROJ has indices from point in view to residual products in RESPROD
 c       NPTINVIEW is the number of points in the VIEW
 c       
-      real*8 function gradientSum(indvproj, ivbase, nptinview, resprod,
+      real*8 function gradientSum(indvproj, nptinview, resprod,
      &    afac, bfac, cfac, dfac, efac, ffac)
       implicit none
-      integer*4 indvproj(*), ivbase, nptinview,iptinv,ipt
+      integer*4 indvproj(*), nptinview,iptinv,ipt
       real*4 resprod(6,*), afac, bfac, cfac, dfac, efac, ffac
       real*8 gradsum
       gradsum = 0.
       do iptinv=1,nptinview
-        ipt=indvproj(ivbase+iptinv)
+        ipt=indvproj(iptinv)
         gradsum = gradsum + afac * resprod(1,ipt) + bfac * resprod(2,ipt)
      &      + cfac * resprod(3,ipt) + dfac * resprod(4,ipt) +
      &      efac * resprod(5,ipt) + ffac * resprod(6,ipt)
@@ -601,8 +605,8 @@ c***    REMAP_PARAMS returns the complete set of geometric variables based
 c       on the current values of the search parameters.
 
       subroutine remap_params(varlist)
+      use alivar
       implicit none
-      include 'alivar.inc'
 c       
       real*4 varlist(*)
       real*4 sum,varsave
@@ -724,28 +728,3 @@ c
       f = tmp(6)
       return
       end
-
-
-c       $Log$
-c       Revision 3.6  2007/05/04 00:02:54  mast
-c       Switched from projection stretch to skew between estimated scope axes
-c
-c       Revision 3.5  2007/02/19 21:07:52  mast
-c       Added beam tilt and changed matrix sizes to accommodate
-c
-c       Revision 3.4  2005/04/10 18:02:50  mast
-c       Eliminated global rotation variable due to ineffectiveness in finding
-c       angle for some small tilt range situations with mappings
-c       
-c       Revision 3.3  2004/10/24 22:28:52  mast
-c       Changed handling of rotation variables, added projection stretch,
-c       made subroutines for filling matrices
-c       
-c       Revision 3.2  2004/10/09 23:51:12  mast
-c       Switched to matrix formulation to simplify code, speeded up
-c       computation 2-fold by saving intermediate residual products for
-c       gradients, added declarations.
-c       
-c       Revision 3.1  2002/07/28 22:39:19  mast
-c       Standardized error exit and output
-c       

@@ -2,7 +2,7 @@
 # Makefile for libcfshr
 #
 # $Id$
-# Use cvs-show-log to extract log
+# Use hg-show-log to extract log
 #
 include ../configure
 
@@ -17,7 +17,8 @@ UTILOBJS = b3dutil.$(O) ilist.$(O) parselist.$(O) amoeba.$(O) \
 	simplestat.$(O) amat_to_rotmagstr.$(O) percentile.$(O) beadutil.$(O) \
 	lsqr.$(O) lsqrblas.$(O) sparselsqr.$(O) parallelwrite.$(O) piecefuncs.$(O) \
 	robuststat.$(O) convexbound.$(O) statfuncs.$(O) surfacesort.$(O) \
-	gaussj.$(O) find_piece_shifts.$(O) zoomdown.$(O) pctstretch.$(O) linearxforms.$(O)
+	gaussj.$(O) find_piece_shifts.$(O) zoomdown.$(O) pctstretch.$(O) \
+	linearxforms.$(O) regression.$(O)
 
 PIPOBJS = parse_params.$(O) pip_fwrap.$(O) autodoc.$(O) adoc_fwrap.$(O)
 
@@ -29,6 +30,10 @@ zoomdown.$(O) : zoomdown.c
 	$(CC) $(CFLAGS) $(OPENMP) -c zoomdown.c
 b3dutil.$(O) : b3dutil.c
 	$(CC) $(CFLAGS) $(OPENMP) -c b3dutil.c
+filtxcorr.$(O) : filtxcorr.c
+	$(CC) $(CFLAGS) $(OPENMP) -c filtxcorr.c
+scaledsobel.$(O) : scaledsobel.c
+	$(CC) $(CFLAGS) $(OPENMP) -c scaledsobel.c
 
 $(LIBI) : $(UTILOBJS) $(PIPOBJS)
 	$(FIND) . -type f -name $(LIBI) -exec rm "{}" \;

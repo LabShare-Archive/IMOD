@@ -24,8 +24,8 @@
 //## GLOBAL VARIABLES AND CONSTANTS:
 
 static int  numObjs     = 0;		// tallies the number of objects turned on
-static long numVertices = 0;		// tallies the number of vertex points added
-static long numFaces    = 0;		// tallies the number of faces added
+static int  numVertices = 0;		// tallies the number of vertex points added
+static int  numFaces    = 0;		// tallies the number of faces added
 static int  numSpheres  = 0;		// tallies the number of spheres printed
 
 static int lowRes         = 0;		// if we want to use low res version

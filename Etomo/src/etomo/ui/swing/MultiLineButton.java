@@ -257,6 +257,13 @@ class MultiLineButton implements ProcessResultDisplay {
   private boolean debug = false;
   private String unformattedLabel = null;
 
+  public void dumpState() {
+    System.err.print("[toggleButton:" + toggleButton + ",stateKey:" + stateKey
+        + ",\nmanualName:" + manualName + ",buttonForeground:" + buttonForeground
+        + ",\nbuttonHighlightForeground:" + buttonHighlightForeground + ",debug:" + debug
+        + ",\nunformattedLabel:" + unformattedLabel + "]");
+  }
+
   MultiLineButton() {
     this(null, false, null, false);
   }

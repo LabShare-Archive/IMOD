@@ -122,7 +122,7 @@ c
       limpcl = 10000
       newXoverlap = 0
       newYoverlap = 0
-      call date(dat)
+      call b3ddate(dat)
       call time(tim)
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
@@ -1373,9 +1373,7 @@ c       Keep isdim synchronized to limpatch, mxd sync'd to main
       real*4 adjValue(isdim)
       logical nearedge
       include 'statsize.inc'
-      real*4 xr(msiz,isdim), sx(msiz), xm(msiz), sd(msiz)
-     &    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
-     &    , b(msiz), b1(msiz),vect(msiz)
+      real*4 xr(msiz,isdim), xm(msiz), sd(msiz) , ssd(msiz,msiz), b1(msiz),vect(msiz)
       equivalence (adjValue, xr)
 c       
       integer*4 ixcen,iycen,i,j,minxlist,minylist,maxxlist,maxylist, igrow,nvals,npat
@@ -1538,7 +1536,8 @@ c
       if (ifVerbose.gt.0)write (*,104)ninobj,ixcen,iycen,npnts
 104   format(/,i5,' points to fix at',2i6,',',i4,' points being fit')
       if (nindep .gt. 0 .and. npnts .le. isdim) then
-        call multr(xr,nindep+1,npnts,sx,ss,ssd,d,r,xm,sd,b,b1,c1,rsq ,fra)
+c        call multr(xr,nindep+1,npnts,sx,ss,ssd,d,r,xm,sd,b,b1,c1,rsq ,fra)
+        call multRegress(xr,msiz,1,nindep,npnts,1,0,b1,msiz,c1,xm,sd,ssd)
       endif
       xsum = xsum / npnts
 c       
