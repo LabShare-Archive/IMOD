@@ -104,3 +104,26 @@ manpage = Make the model's coordinate system match this image file.  This
 is not needed for loading the model onto this image in 3dmod, but will allow
 the model to be used together with this image file in various programs
 (e.g., Beadtrack) without having to load it into 3dmod and save it.
+
+[Field = PixelSpacingOfImage]
+short = pixel
+type = FT
+usage = Pixel spacing, or scale in X, Y, and Z, of the model's coordinate system
+tooltip =
+manpage = Set the reference scaling information of the model to the given X,
+Y, and Z scale factors, which would correspond to the pixel spacing in an
+image file header.  The entry together with -origin provides an alternative to the
+-image option, so -image cannot be used together with -pixel or -origin.
+Like -image, these entries are not needed for loading the model into 3dmod
+together with an image file of the same scaling, but would be useful for
+loading into 3dmod with an image at a different binning, or for use in other
+programs that require the scaling to be correct.  This entry does not set the
+pixel size entry in the model header.
+
+[Field = OriginOfImage]
+short = origin
+type = FT
+usage = Origin in X, Y, and Z of the model's coordinate system
+tooltip =
+manpage = Set the reference information of the model to the given X, Y, and Z
+translations, which would correspond to the origin in an image file header.
