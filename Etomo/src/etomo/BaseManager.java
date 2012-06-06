@@ -15,6 +15,8 @@ import java.util.Vector;
 import javax.swing.JFileChooser;
 
 import etomo.comscript.CommandDetails;
+import etomo.comscript.ExtractmagradParam;
+import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.IntermittentCommand;
 import etomo.comscript.ProcesschunksParam;
 import etomo.process.BaseProcessManager;
@@ -47,6 +49,7 @@ import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
+import etomo.type.ViewType;
 import etomo.ui.swing.FileChooser;
 import etomo.ui.swing.FixedDim;
 import etomo.ui.swing.LogInterface;
@@ -55,6 +58,7 @@ import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.ParallelPanel;
 import etomo.ui.swing.ProcessDisplay;
 import etomo.ui.swing.UIHarness;
+import etomo.util.DatasetFiles;
 import etomo.util.UniqueKey;
 import etomo.util.Utilities;
 
@@ -79,9 +83,9 @@ import etomo.util.Utilities;
 public abstract class BaseManager {
   public static final String rcsid = "$Id$";
 
-  // protected static variables
+  // static variables
   private static boolean headless = false;
-  // protected MainFrame mainFrame = null;
+  // proected MainFrame mainFrame = null;
   UIHarness uiHarness = UIHarness.INSTANCE;
   static UserConfiguration userConfig = EtomoDirector.INSTANCE.getUserConfiguration();
   boolean loadedParamFile = false;
@@ -110,7 +114,7 @@ public abstract class BaseManager {
   private final ProcessingMethodMediator processingMethodMediatorB = new ProcessingMethodMediator();
   private final ManagerKey managerKey = new ManagerKey();
 
- public void dumpState() {
+  public void dumpState() {
     System.err.println("[headless:" + headless + ",loadedParamFile:" + loadedParamFile
         + ",paramFile:");
     if (paramFile != null) {
@@ -128,58 +132,21 @@ public abstract class BaseManager {
 
   abstract public InterfaceType getInterfaceType();
 
-  abstract void createComScriptManager();
-
   abstract void createMainPanel();
-
-  abstract void createProcessTrack();
-
-  abstract void updateDialog(ProcessName processName, AxisID axisID);
 
   public abstract BaseMetaData getBaseMetaData();
 
   public abstract MainPanel getMainPanel();
 
-  abstract void getProcessTrack(Storable[] storable, int index);
-
-  abstract BaseProcessTrack getProcessTrack();
-
-  public abstract BaseState getBaseState();
-
-  public abstract void kill(AxisID axisID);
-
-  public abstract void pause(AxisID axisID);
-
   public abstract BaseProcessManager getProcessManager();
-
-  public abstract BaseScreenState getBaseScreenState(AxisID axisID);
-
-  public abstract boolean canChangeParamFileName();
-
-  public abstract void setParamFile(File paramFile);
-
-  public abstract boolean canSnapshot();
-
-  public abstract boolean setParamFile();
 
   public abstract LogPanel getLogPanel();
 
   public abstract LogInterface getLogInterface();
 
-  abstract void processSucceeded(AxisID axisID, ProcessName processName);
-
-  abstract void startNextProcess(AxisID axisID, ProcessSeries.Process process,
-      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display);
-
   abstract Storable[] getStorables(int offset);
 
   public abstract String getName();
-
-  public abstract ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
-      AxisID axisID);
-
-  public abstract boolean isInManagerFrame();
 
   /**
    * Return the subdirectory of the dataset location where some of the files are
@@ -188,7 +155,9 @@ public abstract class BaseManager {
    * 
    * @return
    */
-  public abstract String getFileSubdirectoryName();
+  public String getFileSubdirectoryName() {
+    return null;
+  }
 
   public BaseManager() {
     propertyUserDir = System.getProperty("user.dir");
@@ -221,6 +190,80 @@ public abstract class BaseManager {
 
   public String getPropertyUserDir() {
     return propertyUserDir;
+  }
+
+  public boolean canChangeParamFileName() {
+    return false;
+  }
+
+  void createComScriptManager() {
+  }
+
+  void createProcessTrack() {
+  }
+
+  public BaseScreenState getBaseScreenState(final AxisID axisID) {
+    return null;
+  }
+
+  public BaseState getBaseState() {
+    return null;
+  }
+
+  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
+      final AxisID axisID) {
+    return null;
+  }
+
+  BaseProcessTrack getProcessTrack() {
+    return null;
+  }
+
+  void getProcessTrack(final Storable[] storable, final int index) {
+  }
+
+  public boolean isInManagerFrame() {
+    return false;
+  }
+
+  /**
+   * Interrupt the currently running thread for this axis
+   * 
+   * @param axisID
+   */
+  public void kill(final AxisID axisID) {
+    getProcessManager().kill(axisID);
+  }
+
+  public void pause(final AxisID axisID) {
+    getProcessManager().pause(axisID);
+  }
+
+  void processSucceeded(final AxisID axisID, final ProcessName processName) {
+  }
+
+  /**
+   * In most managers the param file should already be set.
+   * @return
+   */
+  public boolean setParamFile() {
+    return loadedParamFile;
+  }
+
+  public boolean isSetupDone() {
+    return loadedParamFile;
+  }
+
+  public void setParamFile(final File paramFile) {
+    this.paramFile = paramFile;
+  }
+
+  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final DialogType dialogType, final ProcessDisplay display) {
+  }
+
+  void updateDialog(final ProcessName processName, final AxisID axisID) {
   }
 
   public void logMessage(Loggable loggable, AxisID axisID) {
@@ -530,6 +573,9 @@ public abstract class BaseManager {
    * to a file.
    */
   public boolean saveParamFile() throws LogFile.LockException, IOException {
+    if (!isSetupDone()) {
+      return false;
+    }
     setParamFile();
     if (getParameterStore() == null) {
       return false;
@@ -1563,9 +1609,11 @@ public abstract class BaseManager {
 
   public boolean reconnectProcesschunks(final ProcessData processData,
       final AxisID axisID, final boolean multiLineMessages) {
+    ProcessResultDisplay display = null;
     ProcessResultDisplayFactoryInterface factory = getProcessResultDisplayFactoryInterface(axisID);
-    ProcessResultDisplay display = getProcessResultDisplayFactoryInterface(axisID)
-        .getProcessResultDisplay(processData.getDisplayKey().getInt());
+    if (factory != null) {
+      display = factory.getProcessResultDisplay(processData.getDisplayKey().getInt());
+    }
     if (display != null) {
       sendMsgProcessStarting(display);
     }
@@ -1618,6 +1666,42 @@ public abstract class BaseManager {
     // set param in parallel panel so it can do a resume
     parallelPanel.setProcessInfo(param, processResultDisplay);
     setThreadName(threadName, axisID);
+  }
+
+  public void extractpieces(AxisID axisID, ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, final DialogType dialogType, final ViewType viewType) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    processSeries.setNextProcess(ExtractmagradParam.COMMAND_NAME, null);
+    if (viewType != ViewType.MONTAGE && processSeries != null) {
+      processSeries.startNextProcess(axisID, processResultDisplay);
+      return;
+    }
+    File pieceListFile = DatasetFiles.getPieceListFile(this, axisID);
+    if (pieceListFile.exists() && processSeries != null) {
+      processSeries.startNextProcess(axisID, processResultDisplay);
+      return;
+    }
+    String threadName;
+    try {
+      threadName = getProcessManager().extractpieces(axisID, processResultDisplay,
+          processSeries);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ExtractpiecesParam.COMMAND_NAME;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
+      if (processSeries != null) {
+        processSeries.startNextProcess(axisID, processResultDisplay);
+      }
+      return;
+    }
+    setThreadName(threadName, axisID);
+    getMainPanel().startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME, axisID,
+        ProcessName.EXTRACTPIECES);
   }
 
   /**

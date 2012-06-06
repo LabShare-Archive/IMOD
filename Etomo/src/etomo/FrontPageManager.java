@@ -1,29 +1,21 @@
 package etomo;
 
-import java.io.File;
 import java.io.IOException;
 
 import etomo.process.BaseProcessManager;
-import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.storage.LogFile;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
-import etomo.type.BaseProcessTrack;
-import etomo.type.BaseScreenState;
-import etomo.type.BaseState;
-import etomo.type.DialogType;
 import etomo.type.FrontPageMetaData;
 import etomo.type.InterfaceType;
 import etomo.type.ProcessName;
-import etomo.type.ProcessResultDisplay;
 import etomo.ui.swing.FrontPageDialog;
 import etomo.ui.swing.LogInterface;
 import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainFrontPagePanel;
 import etomo.ui.swing.MainPanel;
-import etomo.ui.swing.ProcessDisplay;
 
 /**
  * <p>Description: </p>
@@ -92,21 +84,12 @@ public final class FrontPageManager extends BaseManager {
     super.doAutomation();
   }
 
-  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
-      AxisID axisID) {
-    return null;
-  }
-
   public FrontPageMetaData getMetaData() {
     return metaData;
   }
 
-  public boolean setParamFile() {
-    return loadedParamFile;
-  }
-
   public InterfaceType getInterfaceType() {
-    return InterfaceType.PP;
+    return InterfaceType.FRONT_PAGE;
   }
 
   public LogInterface getLogInterface() {
@@ -117,25 +100,11 @@ public final class FrontPageManager extends BaseManager {
     return null;
   }
 
-  public boolean canChangeParamFileName() {
-    return false;
+   void processSucceeded(final AxisID axisID, final ProcessName processName) {
   }
 
-  public boolean canSnapshot() {
-    return false;
-  }
-
-  protected void createComScriptManager() {
-  }
-
-  protected void processSucceeded(final AxisID axisID, final ProcessName processName) {
-  }
-
-  protected void createMainPanel() {
+   void createMainPanel() {
     mainPanel = new MainFrontPagePanel(this);
-  }
-
-  protected void createProcessTrack() {
   }
 
   private void createState() {
@@ -143,18 +112,6 @@ public final class FrontPageManager extends BaseManager {
 
   public BaseMetaData getBaseMetaData() {
     return metaData;
-  }
-
-  public BaseScreenState getBaseScreenState(final AxisID axisID) {
-    return null;
-  }
-
-  public BaseState getBaseState() {
-    return null;
-  }
-
-  public String getFileSubdirectoryName() {
-    return null;
   }
 
   public MainPanel getMainPanel() {
@@ -168,19 +125,8 @@ public final class FrontPageManager extends BaseManager {
     return storables;
   }
 
-  public boolean isInManagerFrame() {
-    return false;
-  }
-
   public BaseProcessManager getProcessManager() {
     return null;
-  }
-
-  BaseProcessTrack getProcessTrack() {
-    return null;
-  }
-
-  void getProcessTrack(final Storable[] storable, final int index) {
   }
 
   public void kill(final AxisID axisID) {
@@ -209,20 +155,8 @@ public final class FrontPageManager extends BaseManager {
     }
   }
 
-  public void setParamFile(final File paramFile) {
-    this.paramFile = paramFile;
-  }
-
-  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
-      final ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display) {
-  }
-
   public String getName() {
     return metaData.getName();
-  }
-
-  void updateDialog(final ProcessName processName, final AxisID axisID) {
   }
 
   private void openProcessingPanel() {

@@ -10,6 +10,7 @@ import etomo.EtomoDirector;
 import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
 import etomo.comscript.DetachedCommandDetails;
+import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.IntermittentCommand;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.ComscriptState;
@@ -530,18 +531,6 @@ public abstract class BaseProcessManager {
     System.err.println(",blockAxisA:" + blockAxisA + ",blockAxisB:" + blockAxisB + "]");
   }
 
-  abstract void postProcess(ComScriptProcess script);
-
-  abstract void errorProcess(BackgroundProcess process);
-
-  abstract void postProcess(InteractiveSystemProgram program);
-
-  abstract void errorProcess(ComScriptProcess process);
-
-  abstract void errorProcess(ReconnectProcess script);
-
-  abstract void postProcess(ReconnectProcess script);
-
   BaseProcessManager(final BaseManager manager) {
     this.manager = manager;
     savedProcessDataA = new ProcessData(AxisID.FIRST, manager);
@@ -557,6 +546,24 @@ public abstract class BaseProcessManager {
         + ",\nprocessMonitorA=" + processMonitorA + ",processMonitorB=" + processMonitorB
         + ",\nkilledList=" + killedList + ",uiHarness=" + uiHarness + ","
         + super.toString();
+  }
+
+  void errorProcess(final BackgroundProcess process) {
+  }
+
+  void errorProcess(final ComScriptProcess process) {
+  }
+
+  void errorProcess(ReconnectProcess script) {
+  }
+
+  void postProcess(final ComScriptProcess script) {
+  }
+
+  void postProcess(final InteractiveSystemProgram program) {
+  }
+
+  void postProcess(final ReconnectProcess script) {
   }
 
   public final void startLoad(final IntermittentCommand param, final LoadMonitor monitor) {
@@ -642,6 +649,17 @@ public abstract class BaseProcessManager {
           processSeries, popupChunkWarnings, processingMethod);
     }
     return process.getName();
+  }
+
+  /**
+   * Run extractpieces
+   */
+  public String extractpieces(AxisID axisID, ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(new ExtractpiecesParam(
+        manager, axisID).getCommand(), axisID, true, processResultDisplay,
+        processSeries, ProcessName.EXTRACTPIECES);
+    return backgroundProcess.getName();
   }
 
   public final void createNewFile(final String absolutePath) {

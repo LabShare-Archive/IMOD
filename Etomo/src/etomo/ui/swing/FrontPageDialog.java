@@ -82,6 +82,8 @@ public final class FrontPageDialog {
       + EtomoMenu.GENERIC_LABEL);
   private final MultiLineButton btnPeet = new MultiLineButton("New "
       + EtomoMenu.PEET_LABEL);
+  private final MultiLineButton btnSerialSections = new MultiLineButton("New "
+      + EtomoMenu.SERIAL_SECTIONS_LABEL);
   private final MultiLineButton btnFlattenVolume = new MultiLineButton(
       EtomoMenu.FLATTEN_VOLUME_LABEL);
   private final MultiLineButton btnGpuTiltTest = new MultiLineButton(
@@ -110,6 +112,7 @@ public final class FrontPageDialog {
     btnNad.setSize();
     btnGeneric.setSize();
     btnPeet.setSize();
+    btnSerialSections.setSize();
     btnFlattenVolume.setSize();
     btnGpuTiltTest.setSize();
     // root panel
@@ -129,9 +132,12 @@ public final class FrontPageDialog {
     // button row 3 panel
     pnlButtonRow3.setBoxLayout(BoxLayout.X_AXIS);
     pnlButtonRow3.add(btnPeet.getComponent());
-    pnlButtonRow3.add(btnFlattenVolume.getComponent());
+    if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
+      pnlButtonRow3.add(btnSerialSections.getComponent());
+    }
     // button row 4 panel
     pnlButtonRow4.setBoxLayout(BoxLayout.X_AXIS);
+    pnlButtonRow4.add(btnFlattenVolume.getComponent());
     pnlButtonRow4.add(btnGpuTiltTest.getComponent());
   }
 
@@ -142,6 +148,7 @@ public final class FrontPageDialog {
     btnNad.addActionListener(actionListener);
     btnGeneric.addActionListener(actionListener);
     btnPeet.addActionListener(actionListener);
+    btnSerialSections.addActionListener(actionListener);
     btnFlattenVolume.addActionListener(actionListener);
     btnGpuTiltTest.addActionListener(actionListener);
   }
@@ -172,6 +179,9 @@ public final class FrontPageDialog {
       if (PeetManager.isInterfaceAvailable()) {
         EtomoDirector.INSTANCE.openPeet(true, AxisID.ONLY);
       }
+    }
+    else if (actionCommand.equals(btnSerialSections.getActionCommand())) {
+      EtomoDirector.INSTANCE.openSerialSections(true, AxisID.ONLY);
     }
     else if (actionCommand.equals(btnFlattenVolume.getActionCommand())) {
       EtomoDirector.INSTANCE.openTools(AxisID.ONLY, ToolType.FLATTEN_VOLUME);

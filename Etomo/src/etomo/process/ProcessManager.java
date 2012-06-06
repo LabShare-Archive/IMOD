@@ -1034,7 +1034,6 @@ import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.ExtractmagradParam;
-import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.ExtracttiltsParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.RunraptorParam;
@@ -1787,17 +1786,6 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   /**
-   * Run extractpieces
-   */
-  public String extractpieces(AxisID axisID, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(new ExtractpiecesParam(
-        appManager, axisID).getCommand(), axisID, true, processResultDisplay,
-        processSeries, ProcessName.EXTRACTPIECES);
-    return backgroundProcess.getName();
-  }
-
-  /**
    * Run extractmagrad
    */
   public String extractmagrad(ExtractmagradParam param, AxisID axisID,
@@ -2139,9 +2127,6 @@ public class ProcessManager extends BaseProcessManager {
     }
   }
 
-  void postProcess(ReconnectProcess script) {
-  }
-
   void postProcess(final DetachedProcess process) {
     super.postProcess(process);
     try {
@@ -2301,9 +2286,6 @@ public class ProcessManager extends BaseProcessManager {
     }
   }
 
-  void errorProcess(ReconnectProcess script) {
-  }
-
   void errorProcess(ComScriptProcess script) {
     try {
       ProcessName processName = script.getProcessName();
@@ -2419,9 +2401,6 @@ public class ProcessManager extends BaseProcessManager {
       e.printStackTrace();
       System.err.println("ERROR:  Unable to record state.");
     }
-  }
-
-  void postProcess(InteractiveSystemProgram program) {
   }
 
   BaseManager getManager() {
