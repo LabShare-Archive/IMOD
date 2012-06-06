@@ -1012,12 +1012,12 @@ public final class JoinManager extends BaseManager {
   /**
    * Run midas on the sample
    */
-  public void midasSample() {
+  public void midasSample(final String description) {
     if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
       return;
     }
     MidasParam midasParam = new MidasParam(this, AxisID.ONLY);
-    if (!copyMostRecentXfFile(JoinDialog.MIDAS_TEXT)) {
+    if (!copyMostRecentXfFile(description)) {
       return;
     }
     try {
@@ -1025,8 +1025,8 @@ public final class JoinManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, "Can't run" + JoinDialog.MIDAS_TEXT + "\n"
-          + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+      uiHarness.openMessageDialog(this, "Can't run" + description + "\n" + except.getMessage(),
+          "SystemProcessException", AxisID.ONLY);
       return;
     }
   }
@@ -1050,12 +1050,12 @@ public final class JoinManager extends BaseManager {
     mainPanel.startProgressBar("Initial xfalign", AxisID.ONLY, ProcessName.XFALIGN);
   }
 
-  public void xfalignRefine(ConstProcessSeries processSeries) {
+  public void xfalignRefine(ConstProcessSeries processSeries, final String description) {
     if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
       return;
     }
     XfalignParam xfalignParam = new XfalignParam(this, XfalignParam.Mode.REFINE);
-    if (!copyMostRecentXfFile(JoinDialog.REFINE_AUTO_ALIGNMENT_TEXT)) {
+    if (!copyMostRecentXfFile(description)) {
       return;
     }
     try {
@@ -1063,9 +1063,9 @@ public final class JoinManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, "Can't run "
-          + JoinDialog.REFINE_AUTO_ALIGNMENT_TEXT + "\n" + except.getMessage(),
-          "SystemProcessException", AxisID.ONLY);
+      uiHarness.openMessageDialog(this,
+          "Can't run " + description + "\n" + except.getMessage(), "SystemProcessException",
+          AxisID.ONLY);
       joinDialog.enableMidas();
       return;
     }
