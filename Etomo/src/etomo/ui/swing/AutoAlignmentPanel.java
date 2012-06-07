@@ -5,10 +5,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BoxLayout;
+import javax.swing.SpinnerNumberModel;
 
 import etomo.JoinManager;
-import etomo.type.ConstJoinMetaData;
-import etomo.type.JoinMetaData;
+import etomo.type.AutoAlignmentMetaData;
 
 /**
 * <p>Description: </p>
@@ -47,15 +47,29 @@ public final class AutoAlignmentPanel {
       "Revert Auto Alignment to Midas");
   private final MultiLineButton btnRevertToEmpty = new MultiLineButton(
       "Revert to No Transforms");
+  private final LabeledSpinner spBinning = new LabeledSpinner("Binning: ",
+      new SpinnerNumberModel(2, 1, 50, 1), 1);
+  private final LabeledTextField ltfSkipSectionsFrom1 = new LabeledTextField(
+      "Sections to skip");
+  private final CheckBox cbPreCrossCorrelation = new CheckBox(
+      "Do cross correlatin in initial alignment");
+  private final LabeledTextField ltfEdgeToIgnore = new LabeledTextField(
+      "Fraction to ignore on edges");
 
   private final JoinManager manager;
+  private final boolean tomogramAverages;
+  private final boolean midasChunks;
 
-  private AutoAlignmentPanel(final JoinManager manager) {
+  private AutoAlignmentPanel(final JoinManager manager, final boolean tomogramAverages,
+      final boolean midasChunks) {
     this.manager = manager;
+    this.tomogramAverages = tomogramAverages;
+    this.midasChunks = midasChunks;
   }
 
-  static AutoAlignmentPanel getInstance(final JoinManager manager) {
-    AutoAlignmentPanel instance = new AutoAlignmentPanel(manager);
+  static AutoAlignmentPanel getJoinInstance(final JoinManager manager) {
+    AutoAlignmentPanel instance = new AutoAlignmentPanel(manager, true, true);
+    instance.setJoinConfiguration();
     instance.createPanel();
     instance.setTooltips();
     instance.addListeners();
@@ -64,6 +78,7 @@ public final class AutoAlignmentPanel {
 
   private void createPanel() {
     // init
+    ltfEdgeToIgnore.setText(".05");
     btnInitialAutoAlignment.setSize();
     btnMidas.setSize();
     btnRefineAutoAlignment.setSize();
@@ -83,6 +98,10 @@ public final class AutoAlignmentPanel {
     pnlParameters.add(ltfCutoffHighFrequency);
     pnlParameters.add(ltfSigmaHighFrequency);
     pnlParameters.add(tcAlign.getContainer());
+    pnlParameters.add(spBinning);
+    pnlParameters.add(ltfSkipSectionsFrom1);
+    pnlParameters.add(cbPreCrossCorrelation);
+    pnlParameters.add(ltfEdgeToIgnore);
     // buttons
     pnlButtons.setBoxLayout(BoxLayout.X_AXIS);
     pnlButtons.add(pnlLeftButtons);
@@ -98,6 +117,13 @@ public final class AutoAlignmentPanel {
     pnlRightButtons.add(btnRevertToEmpty);
   }
 
+  private void setJoinConfiguration() {
+    spBinning.setVisible(false);
+    ltfSkipSectionsFrom1.setVisible(false);
+    cbPreCrossCorrelation.setVisible(false);
+    ltfEdgeToIgnore.setVisible(false);
+  }
+
   private void addListeners() {
     ActionListener listener = new AutoAlignmentActionListener(this);
     btnInitialAutoAlignment.addActionListener(listener);
@@ -111,14 +137,14 @@ public final class AutoAlignmentPanel {
     return pnlRoot.getContainer();
   }
 
-  void getMetaData(JoinMetaData metaData) {
+  void getMetaData(final AutoAlignmentMetaData metaData) {
     metaData.setSigmaLowFrequency(ltfSigmaLowFrequency.getText());
     metaData.setCutoffHighFrequency(ltfCutoffHighFrequency.getText());
     metaData.setSigmaHighFrequency(ltfSigmaHighFrequency.getText());
     metaData.setAlignTransform(tcAlign.get());
   }
 
-  void setMetaData(ConstJoinMetaData metaData) {
+  void setMetaData(final AutoAlignmentMetaData metaData) {
     ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequency().toString());
     ltfCutoffHighFrequency.setText(metaData.getCutoffHighFrequency().toString());
     ltfSigmaHighFrequency.setText(metaData.getSigmaHighFrequency().toString());
@@ -135,7 +161,7 @@ public final class AutoAlignmentPanel {
    * @param metaData
    * @return
    */
-  boolean equals(ConstJoinMetaData metaData) {
+  boolean equals(final AutoAlignmentMetaData metaData) {
     if (!metaData.getSigmaLowFrequency().equals(ltfSigmaLowFrequency.getText())) {
       return false;
     }
