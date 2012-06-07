@@ -50,6 +50,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   private final MultiLineButton btnFixEdges = new MultiLineButton("Fix Edges With Midas");
   private final MultiLineButton btnOpenAlignedStack = new MultiLineButton(
       "Open Aligned Stack");
+  //private final AutoAlignmentPanel autoAlignmentPanel;
 
   private final AxisID axisID;
   private final BaseManager manager;
@@ -61,6 +62,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     System.err.println(Utilities.getDateTimeStamp() + "\nDialog: " + DIALOG_TYPE);
     this.manager = manager;
     this.axisID = axisID;
+   // autoAlignmentPanel = AutoAlignmentPanel.getSerialSectionsInstance(manager);
   }
 
   public static SerialSectionsDialog getInstance(final SerialSectionsManager manager,
