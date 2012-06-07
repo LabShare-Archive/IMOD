@@ -5,8 +5,8 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
+import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
-import etomo.type.ConstJoinMetaData;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
@@ -154,7 +154,7 @@ public class XfalignParam implements Command {
   private static final String commandName = "xfalign";
   private static final String outputFileExtension = "_auto.xf";
 
-  private ConstJoinMetaData metaData;
+  private AutoAlignmentMetaData metaData;
   private String[] commandArray;
   private String workingDir = null;
   private String rootName = null;
@@ -165,10 +165,10 @@ public class XfalignParam implements Command {
 
   public XfalignParam(JoinManager manager, Mode mode) {
     this.manager = manager;
-    metaData = manager.getConstMetaData();
+    metaData = manager.getConstMetaData().getAutoAlignmentMetaData();
     this.mode = mode;
     workingDir = manager.getPropertyUserDir();
-    rootName = metaData.getName();
+    rootName = manager.getName();
     outputFileName = rootName + outputFileExtension;
     outputFile = new File(workingDir, outputFileName);
     ArrayList options = genOptions();
