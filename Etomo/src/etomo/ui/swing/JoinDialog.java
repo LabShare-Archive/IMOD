@@ -640,7 +640,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     axisID = AxisID.ONLY;
     this.manager = manager;
     boundaryTable = new BoundaryTable(manager, this);
-    autoAlignmentPanel = AutoAlignmentPanel.getInstance(manager);
+    autoAlignmentPanel = AutoAlignmentPanel.getJoinInstance(manager);
     setRefiningJoin();
     createRootPanel(workingDirName);
     UIHarness.INSTANCE.pack(manager);
@@ -1476,7 +1476,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     synchronize();
     metaData.setRootName(ltfRootName.getText());
     metaData.setDensityRefSection(spinDensityRefSection.getValue());
-    autoAlignmentPanel.getMetaData(metaData);
+    autoAlignmentPanel.getMetaData(metaData.getAutoAlignmentMetaData());
     metaData.setUseAlignmentRefSection(cbsAlignmentRefSection.isSelected());
     metaData.setAlignmentRefSection(cbsAlignmentRefSection.getValue());
     metaData.setSizeInX(ltfSizeInX.getText());
@@ -1514,7 +1514,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   public void setMetaData(ConstJoinMetaData metaData) {
     ltfRootName.setText(metaData.getDatasetName());
     spinDensityRefSection.setValue(metaData.getDensityRefSection().getInt());
-    autoAlignmentPanel.setMetaData(metaData);
+    autoAlignmentPanel.setMetaData(metaData.getAutoAlignmentMetaData());
     cbsAlignmentRefSection.setSelected(metaData.isUseAlignmentRefSection());
     cbsAlignmentRefSection.setValue(metaData.getAlignmentRefSection().getInt());
     ltfShiftInX.setText(metaData.getShiftInX().toString());
