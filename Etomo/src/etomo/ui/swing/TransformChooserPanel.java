@@ -9,7 +9,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import etomo.type.JoinMetaData;
 import etomo.type.Transform;
 
 /**
@@ -90,12 +89,12 @@ final class TransformChooserPanel {
     if (rbTranslation.isSelected()) {
       return Transform.TRANSLATION;
     }
-    return JoinMetaData.TRANSFORM_DEFAULT;
+    return Transform.DEFAULT;
   }
 
   void set(Transform transform) {
     if (transform == null) {
-      transform = JoinMetaData.TRANSFORM_DEFAULT;
+      transform = Transform.DEFAULT;
     }
     if (transform == Transform.FULL_LINEAR_TRANSFORMATION) {
       rbFullLinearTransformation.setSelected(true);
