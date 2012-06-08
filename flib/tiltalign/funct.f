@@ -107,6 +107,7 @@ c
       if(firstFunct)then
         xbar(1:nview)=0.
         ybar(1:nview)=0.
+        weight(1:nprojpt) = 1.
         nptinview(1:nview)=0
         realinview(1:nrealpt, 1:nview) = .false.
 c         
@@ -126,7 +127,7 @@ c
           xbar(iv)=xbar(iv)/nptinview(iv)
           ybar(iv)=ybar(iv)/nptinview(iv)
         enddo
-        firstFunct=.false.
+c        firstFunct=.false.
 c$$$      call remap_params(var)
 c$$$      do iv=1,nview
 c$$$      write(*,113)rot(iv),maprot(iv),linrot(iv),frcrot(iv),
@@ -233,8 +234,12 @@ c
         yproj(i)=yproj(i)+dxy(2,iv)
         xresid(i)=xproj(i)-xx(i)
         yresid(i)=yproj(i)-yy(i)
-        error=error + xresid(i)**2 + yresid(i)**2
       enddo
+      if (robustWeights) call computeWeights(resprod, resprod(1, nprojpt / 2))
+      do i=1,nprojpt
+        error=error + (xresid(i)**2 + yresid(i)**2) * weight(i)
+      enddo
+      firstFunct=.false.
 c       
 c       precompute products needed for gradients
 c       
@@ -242,12 +247,12 @@ c
         do iptinv=1,nptinview(iv)
           ipt=indvproj(iptinv,iv)
           jpt=indvreal(iptinv,iv)
-          resprod(1,ipt) = 2. * (xyz(1,jpt) - xcen(iv)) * xresid(ipt)
-          resprod(2,ipt) = 2. * (xyz(2,jpt) - ycen(iv)) * xresid(ipt)
-          resprod(3,ipt) = 2. * (xyz(3,jpt) - zcen(iv)) * xresid(ipt)
-          resprod(4,ipt) = 2. * (xyz(1,jpt) - xcen(iv)) * yresid(ipt)
-          resprod(5,ipt) = 2. * (xyz(2,jpt) - ycen(iv)) * yresid(ipt)
-          resprod(6,ipt) = 2. * (xyz(3,jpt) - zcen(iv)) * yresid(ipt)
+          resprod(1,ipt) = 2. * (xyz(1,jpt) - xcen(iv)) * xresid(ipt) * weight(ipt)
+          resprod(2,ipt) = 2. * (xyz(2,jpt) - ycen(iv)) * xresid(ipt) * weight(ipt)
+          resprod(3,ipt) = 2. * (xyz(3,jpt) - zcen(iv)) * xresid(ipt) * weight(ipt)
+          resprod(4,ipt) = 2. * (xyz(1,jpt) - xcen(iv)) * yresid(ipt) * weight(ipt)
+          resprod(5,ipt) = 2. * (xyz(2,jpt) - ycen(iv)) * yresid(ipt) * weight(ipt)
+          resprod(6,ipt) = 2. * (xyz(3,jpt) - zcen(iv)) * yresid(ipt) * weight(ipt)
         enddo
       enddo
 
@@ -274,7 +279,7 @@ c
         if(maprot(iv).gt.0)then
           do iptinv=1,nptinview(iv)
             ipt=indvproj(iptinv,iv)
-            gradsum=gradsum+2.*
+            gradsum=gradsum+2.* weight(ipt) *
      &          ((ybar(iv)-yproj(ipt))*xresid(ipt)
      &          +(xproj(ipt)-xbar(iv))*yresid(ipt))
           enddo
@@ -566,8 +571,8 @@ c
 c           The coefficients directly yield derivatives
 c           
           do ivar=1,nvmat
-            grad(ivar+icoordbas)=grad(ivar+icoordbas)
-     &          +2.*xresid(i)*coefx(ivar)+2.*yresid(i)*coefy(ivar)
+            grad(ivar+icoordbas) = grad(ivar+icoordbas) +
+     &          2. * weight(i) * (xresid(i) * coefx(ivar) + yresid(i) * coefy(ivar))
           enddo
 c           
         enddo
@@ -726,5 +731,63 @@ c
       d = tmp(4)
       e = tmp(5)
       f = tmp(6)
+      return
+      end
+
+      subroutine computeWeights(distRes, work)
+      use alivar
+      implicit none
+      real*4 distRes(*), work(*), dev, rmedian, rMADN
+      integer*4 igroup, i, ind, ninGroup, numViews, indv, ninView, nsum
+      real*8 wsum
+c       
+c       Loop on the groups of views
+      wsum = 0.
+      nsum = 0
+      do igroup = 1, numWgtGroups
+        ninGroup = 0
+        numViews = ivStartWgtGroup(igroup + 1) - ivStartWgtGroup(igroup)
+c        print *,'group',igroup,numViews, ivStartWgtGroup(igroup)
+c         
+c         loop on the views in the group and get the residuals
+        do indv = ivStartWgtGroup(igroup), ivStartWgtGroup(igroup + 1) - 1
+          ninView = ipStartWgtView(indv + 1) - ipStartWgtView(indv) 
+          do i = 1, ninView
+            ind = indProjWgtList(i + ipStartWgtView(indv) - 1)
+            distRes(ninGroup + i) = sqrt(xresid(ind)**2 + yresid(ind)**2)
+          enddo
+c           
+c           For each view, normalize the residuals to median 1
+          call rsMedian(distRes(ninGroup+1), ninView, work, rmedian)
+          if (firstFunct) write (*,'(3i5,f8.3)'),igroup,indv,ninView,1000.*rmedian
+          if (firstFunct) write(*,'(11f7.3)')(1000.*distRes(ninGroup + i),i = 1, ninView)
+          if (rmedian .gt. 1.e-30) then
+            do i = 1, ninView
+              distRes(ninGroup + i) = distRes(ninGroup + i) / rmedian
+            enddo
+          endif
+          ninGroup = ninGroup + ninView
+        enddo
+c         
+c         Get overall median and MADN and compute weights
+        call rsMedian(distRes, ninGroup, work, rmedian)
+        call rsMADN(distRes, ninGroup, rmedian, work, rMADN)
+        do i = 1, ninGroup
+          ind = indProjWgtList(i + ipStartWgtView(ivStartWgtGroup(igroup)) - 1)
+          dev = (distRes(i) - rmedian) / (kfacRobust * rMADN)
+          if (dev .le. 0.) then
+            weight(ind) = 1.
+          else if (dev .ge. 1.) then
+            weight(ind) = 0.
+          else
+            weight(ind) = (1. - dev**2)**2
+          endif
+          wsum = wsum + weight(ind)
+        enddo
+        nsum = nsum + ninGroup
+      enddo
+c      do i = 1, nsum
+c        weight(i) = weight(i) * nsum / wsum
+c      enddo
       return
       end

@@ -28,6 +28,7 @@ c
       logical itemOnList
 
       xyzfixed = .false.
+      robustWeights = .false.
       ifanyalf=0
       call proc_model(xcen,ycen,xdelt,ydelt,xorig,yorig, scalexy,
      &    nvuall,mininview,iview,nvlocal,iobjseq,nobjdo,mapFileToView,

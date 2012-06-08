@@ -12,7 +12,8 @@ c       David Mastronarde  March 1989
 c       
 c       $Id$
 c       Really old history at end of file
-c
+c       
+      program tiltalign
       use alivar
       implicit none
       integer maxvar, maxh, maxtemp
@@ -64,8 +65,8 @@ c
       integer*4 nxp,nyp,minsurf,nbot,ntop,ixmin,ixmax,iymin,iymax,kk
       integer*4 nprojpt,imintilt,ncompsrch,maptiltstart,ifBTSearch
       real*4 xcen,ycen,ffinal,dxmin,tmp,tiltnew,fixeddum,tiltadd,allBorder
-      integer*4 ixtry,itmp,iord,ixpatch,iypatch,ierr,ifZfac
-      integer*4 nxTarget, nyTarget, minInitError
+      integer*4 ixtry,itmp,iord,ixpatch,iypatch,ierr,ifZfac, ifDoRobust
+      integer*4 nxTarget, nyTarget, minInitError, minResRobust, minLocalResRobust
       real*4 xpmin,ypmin,xdelt,projStrFactor, projStrAxis
       real*4 dmat(9),xtmat(9),ytmat(9),prmat(4),rmat(9),costmp,sintmp
       real*4 afac, bfac, cfac, dfac, efac, ffac, cosalf, sinalf, cosbet, rotScanErrCrit
@@ -73,14 +74,15 @@ c
       real*4 a11, a12, a21, a22, xzOther, yzOther, errsumLocal, errLocalMin
       real*4 errLocalMax,beamInv(9), beamMat(9), cosBeam, sinBeam, allYmax, rotEntered
       real*4 binStepIni, binStepFinal, scanStep, allXmin, allXmax, allYmin, rotIncForInit
-      real*8 pmat(9), wallTime, wallStart
+      real*8 pmat(9), wgtErrSum, wallTime, wallStart
       integer*4 imageBinned, nunknowtot2, ifDoLocal, ninThresh, numInitSteps
+      character*20 message
       character*320 concat
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInteger,PipGetBoolean
-      integer*4 PipGetString,PipGetFloat
+      integer*4 PipGetString,PipGetFloat,PipGetTwoIntegers
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  tiltalign
 c       
@@ -138,6 +140,10 @@ c
       nlocalres=50
       xyzfixed=.false.
       toofewfid=.false.
+      kfacRobust = 4.68
+      minResRobust = 100
+      minLocalResRobust = 50
+      ifDoRobust = 0
       incrgmag=0
       incrdmag=0
       incrskew=0
@@ -223,6 +229,9 @@ c
         ierr = PipGetInteger('SurfacesToAnalyze', nsurface)
         ierr = PipGetFloat('MetroFactor', facm)
         ierr = PipGetInteger('MaximumCycles', ncycle)
+        ierr = PipGetBoolean('RobustFitting', ifDoRobust)
+        ierr = PipGetTwoIntegers('MinWeightGroupSizes', minResRobust, minLocalResRobust)
+        ierr = PipGetFloat('KFactorForWeights', kfacRobust)
         ierr = PipGetFloat('AxisZShift', znew)
         ierr = PipGetFloat('AxisXShift', xtiltnew)
         ierr = PipGetInteger('ImagesAreBinned', imageBinned)
@@ -471,7 +480,9 @@ c       Make sure the h array is big enough
         allocate(h(maxh), stat=ierr)
         call memoryError(ierr, 'ARRAY FOR H MATRIX')
       endif
-c
+c       
+c       WHY DO WE ALLOW BEAM TILT SEARCH FOR LOCAL???
+      robustWeights = .false.
       if (ifBTSearch .eq. 0) then
         call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,ncycle, 0,
      &      fFinal, i, metroError)
@@ -480,6 +491,39 @@ c
      &      nvarsrch,var,varerr,grad,h,ifLocal,facm,ncycle,
      &      fFinal, metroError)
       endif
+c       
+c       If doing robust fitting, just restart the start with all current values
+      if (ifDoRobust .ne. 0) then
+        jpt = minResRobust
+        index = maxWgtRings
+        if (ifLocal .ne. 0) then
+          jpt = minLocalResRobust
+          index = 1
+        endif
+        call setupWeightGroups(index, jpt, imintilt, ierr)
+        if (ierr .ne. 0) call exitError('TOO FEW DATA POINTS TO DO ROBUST FITTING')
+        robustWeights = .true.
+        call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,ncycle, 0,
+     &      fFinal, i, metroError)
+        jpt = 0
+        index = 0
+        ipt = 0
+        iv = 0
+        do i = 1, nprojpt
+          if (weight(i) .lt. 0.5) jpt=jpt+1
+          if (weight(i) .eq. 0.) then
+            index=index + 1
+          else if (weight(i) .lt. 0.1) then
+            ipt = ipt +1
+          else if (weight(i) .lt. 0.2) then
+            iv = iv +1
+          endif
+        enddo
+        write(*,'(i6,a,i4,a,i3,a,i3,a,i4,a)')nprojpt,' weights: ',index,' are 0, ',ipt,
+     &      ' are 0-0.1, ',iv,' are 0.1-0.2, ', jpt, ' are < 0.5'
+c        write(*,'(2f8.4)')(sqrt(xresid(i)**2 + yresid(i)**2)*scalexy,weight(i),i=1,nprojpt)
+      endif
+        
 c       
 c       unscale all the points, dx, dy, and restore angles to degrees
 c       
@@ -517,6 +561,7 @@ c
 c       
       errsum=0.
       errsqsm=0.
+      wgtErrSum = 0.
       do i=1,nview
         viewres(i)=0.
         ninview(i)=0
@@ -529,6 +574,7 @@ c
         xresid(i)=xresid(i)*scalexy
         yresid(i)=yresid(i)*scalexy
         residerr=sqrt(xresid(i)**2 + yresid(i)**2)
+        wgtErrSum = wgtErrSum + residerr * sqrt(weight(i))
         iv=isecview(i)
         ninview(iv)=ninview(iv)+1
         viewerrsum(iv)=viewerrsum(iv)+residerr
@@ -717,7 +763,7 @@ c
         do j = 1, nrealpt
           vwerrsum = 0.
           do i = irealstr(j), irealstr(j+1) - 1
-            vwerrsum = vwerrsum + sqrt(xresid(i)**2 + yresid(i)**2)
+            vwerrsum = vwerrsum + sqrt((xresid(i)**2 + yresid(i)**2))
           enddo
           write(iunit2,'(i4,3f10.2,i7,i5,f12.2)',err=86)
      &        indallreal(j),(xyz(i,j),i=1,3),imodobj(indallreal(j)),
@@ -1083,15 +1129,19 @@ c
         errLocalMin = min(errLocalMin, errmean)
         errLocalMax = max(errLocalMax, errmean)
       endif
-      if(ifresout.gt.0)then
-        write(*,112)
+      if (ifDoRobust .ne. 0)write(*,'(a,f8.3)')' Weighted residual error mean',
+     &    wgtErrSum/nprojpt
+      if(ifresout.gt.0) then
+        message = ' '
+        if (ifDoRobust .ne. 0) message = '  Weights'
+        write(*,112)trim(message)
 c         
 c         DEPENDENCY WARNING: Beadfixer relies on the # # ... line up to the
 c         second X
 c         
 112     format(/,9x,'Projection points with large residuals',/,
      &      ' obj  cont  view   index coordinates      residuals',
-     &      '        # of',/,
+     &      '        # of',a,/,
      &      '   #     #     #      X         Y        X        Y',
      &      '        S.D.')
         nord=0
@@ -1111,11 +1161,16 @@ c
                 indsave(nord)=i
                 jptsave(nord)=jpt
               else
-                write(*,114) imodobj(indallreal(jpt)),
-     &              imodcont(indallreal(jpt)), mapviewtofile(isecview(i))
-     &              ,xx(i)+xcen
-     &              ,yy(i)+ycen, xresid(i), yresid(i),errnosd
-114             format(i4,2i6,2f10.2,3f9.2)
+                if (ifDoRobust .eq. 0) then
+                  write(*,114) imodobj(indallreal(jpt)),
+     &                imodcont(indallreal(jpt)), mapviewtofile(isecview(i))
+     &                ,xx(i)+xcen ,yy(i)+ycen, xresid(i), yresid(i),errnosd
+                else
+                  write(*,114) imodobj(indallreal(jpt)),
+     &                imodcont(indallreal(jpt)), mapviewtofile(isecview(i))
+     &                ,xx(i)+xcen ,yy(i)+ycen, xresid(i), yresid(i),errnosd,weight(i)
+                endif
+114             format(i4,2i6,2f10.2,3f9.2,f9.4)
               endif
             endif
           enddo
@@ -1138,11 +1193,15 @@ c
           enddo
           do iord=1,nord
             i=indsave(iord)
-            write(*,114) imodobj(indallreal(jptsave(iord))),
-     &          imodcont(indallreal(jptsave(iord))),
-     &          mapviewtofile(isecview(i)),
-     &          xx(i)+xcen, yy(i)+ycen,xresid(i), yresid(i),
-     &          errsave(iord)
+c            if (ifDoRobust .eq. 0) then
+c              write(*,114) imodobj(indallreal(jptsave(iord))),
+c     &            imodcont(indallreal(jptsave(iord))), mapviewtofile(isecview(i)),
+c     &            xx(i)+xcen, yy(i)+ycen,xresid(i), yresid(i), errsave(iord)
+c            else
+              write(*,114) imodobj(indallreal(jptsave(iord))),
+     &            imodcont(indallreal(jptsave(iord))), mapviewtofile(isecview(i)),
+     &            xx(i)+xcen, yy(i)+ycen,xresid(i), yresid(i), errsave(iord),weight(i)
+c            endif
           enddo
         endif
       endif
@@ -1469,10 +1528,8 @@ c
           do i=1,nprojpt
             scalexy=max(scalexy,abs(xx(i)),abs(yy(i)))
           enddo
-          do i=1,nprojpt
-            xx(i)=xx(i)/scalexy
-            yy(i)=yy(i)/scalexy
-          enddo
+          xx(1:nprojpt) = xx(1:nprojpt) / scalexy
+          yy(1:nprojpt) = yy(1:nprojpt) / scalexy
 c           
 c           load the xyz's and shift them to zero mean and scale them down
 c           
@@ -1491,11 +1548,9 @@ c
           xshft=xsum/nrealpt
           yshft=ysum/nrealpt
           zshft=zsum/nrealpt
-          do i=1,nrealpt
-            xyz(1,i)=(xyz(1,i)-xshft)/scalexy
-            xyz(2,i)=(xyz(2,i)-yshft)/scalexy
-            xyz(3,i)=(xyz(3,i)-zshft)/scalexy
-          enddo
+          xyz(1,1:nrealpt) = (xyz(1,1:nrealpt) - xshft) / scalexy
+          xyz(2,1:nrealpt) = (xyz(2,1:nrealpt) - yshft) / scalexy
+          xyz(3,1:nrealpt) = (xyz(3,1:nrealpt) - zshft) / scalexy
           write(*,'(/,a,2i3,a,2i5,a,2i5,a,i3,a)')' Doing local area',
      &        ipatchx,ipatchy, ', centered on',ixpatch,iypatch,', size',
      &        nxp,nyp,',  ',nrealpt,' fiducials'
@@ -1508,7 +1563,151 @@ c
 c
       end subroutine setupAndDoLocalAlignments
 
-      end
+      end program tiltalign
+
+      subroutine setupWeightGroups(maxRings, minRes, imintilt, ierr)
+      use alivar
+      implicit none
+      integer*4 irealRingList(maxreal), ierr, maxRings, minRes, imintilt
+      integer*4 maxViewsForRings(maxWgtRings) /1,8,7,6,5,5,4,4,3,3/
+      real*4 distReal(maxreal)
+      integer*4 i, nring, nrealPerRing, neededViews, numViews, numViewGroups, numExtra
+      integer*4 iexStart, ngrpBeforeEx, indProj, indGroup, indView, ivbase, igroup
+      integer*4 irbase, ninGroup, ninRing, iring, iv,ind,ireal,iproj,minSubgrpSize
+      integer*4 maxViewsInSubgrp, isub, indin, numCombine, numSubgrp, numPts
+
+      maxViewsInSubgrp = 3
+      minSubgrpSize = 15
+      
+c       Get distances from center get sorted indexes to them
+      do i = 1, nrealpt
+        distReal(i) = sqrt(xyz(1,i)**2 + xyz(2,i)**2)
+        irealRingList(i) = i
+      enddo
+      call rsSortIndexedFloats(distReal, irealRingList, nrealpt)
+      
+c       Loop from largest number of rings down, first evaluate plausibility if
+c       all points are present
+      NUM_RING_LOOP:
+     &    do nring = maxRings, 1, -1
+        nrealPerRing = nrealpt / nring
+        if (nrealPerRing .eq. 0) cycle
+        neededViews = minRes / nrealPerRing
+        if (neededViews .gt. maxViewsForRings(nring) .and. nring .gt. 1) then
+          print *, 'rejecting ',nring,' rings out of hand'
+          cycle
+        endif
+c         
+c         Try to set up groups of views of increasing sizes until one works
+        NUM_VIEW_LOOP: 
+     &      do numViews = neededViews, nview
+          numViewGroups = nview / numViews
+          numExtra = mod(nview, numViews)
+          iexStart = max(1, imintilt - numExtra / 2)
+          ngrpBeforeEx = (iexStart - 1) / numViews
+          indProj = 1
+          ivbase = 0
+          indGroup = 1
+          indView = 1
+c           
+c           Loop on the groups of views
+          GROUP_LOOP: 
+     &        do igroup = 1, numViewGroups
+            irbase = 0
+            ninGroup = numViews
+            if (igroup .gt. ngrpBeforeEx .and. igroup .le. ngrpBeforeEx + numExtra)
+     &          ninGroup = ninGroup + 1
+c             
+c             loop on the rings in views
+            RING_LOOP:
+     &          do iring = 1, nring
+            ninRing = nrealPerRing
+            if (iring .gt. nring - mod(nrealpt, nring)) ninRing = ninRing + 1
+c               
+c               This is one weight group, set the starting view index of it
+              ivStartWgtGroup(indGroup) = indView
+              indGroup = indGroup + 1
+c               
+c               loop on the views in the group; for each one, set the starting index
+c               in the projection list
+c              print *,'group',igroup,ivbase + 1,ivbase + ninGroup
+              do iv = ivbase + 1, ivbase + ninGroup
+c                print *,'view in group',iv,indView,indProj
+                ipStartWgtView(indView) = indProj
+                indView = indView + 1
+c                 
+c                 Loop on the real points in the ring, and for each one on the given view,
+c                 add its projection point index to the list
+                do ind = irbase + 1, irbase + ninRing
+                  ireal = irealRingList(ind)
+                  do iproj = irealstr(ireal), irealstr(ireal+1) - 1
+                    if (isecview(iproj) .eq. iv) then
+c                      print *,ireal,iproj,iv
+                      indProjWgtList(indProj) = iproj
+                      indProj = indProj + 1
+                    endif
+                  enddo
+                enddo
+              enddo
+c             
+c               After each ring, increase the ring base index
+              irbase = irbase + ninRing
+c
+c               But if there are too few in this group, make view groups bigger if
+c               possible for this number of rings; otherwise go on to try fewer rings;
+c               but if there is only one ring and it is up to all views, push on
+              numPts = indProj - ipStartWgtView(ivStartWgtGroup(indGroup - 1))
+              if (numPts .lt. minres) then
+                ierr = 1
+                print *,'group too small',ivbase
+                if (numViews .ge. maxViewsForRings(nring) .and. nring .gt. 1)
+     &              exit NUM_VIEW_LOOP
+                if (nring .gt. 1 .or. numViews .lt. nview) exit GROUP_LOOP
+              endif
+c               
+c               Combine views if necessary to get to minimum
+              numCombine = min(maxViewsInSubgrp,
+     &            ceiling(minSubgrpSize / (float(numPts) / numViews)))
+              numSubgrp = numViews / numCombine
+              if (numCombine .eq. maxViewsInSubgrp .and. mod(numViews, numCombine) .gt. 0)
+     &            numSubgrp = numSubgrp + 1
+              numCombine = numViews / numSubgrp
+              print *,'combine', numSubgrp,numCombine
+              if (numSubgrp .lt. numViews) then
+                indin = ivStartWgtGroup(indGroup - 1)
+                indView = indin
+                do isub = 1, numSubgrp
+                  ipStartWgtView(indView) = ipStartWgtView(indin)
+                  ind = numCombine
+                  if (isub .le. mod(numViews, numSubgrp)) ind = ind + 1
+                  indin = indin + ind
+                  indView = indView + 1
+                enddo
+              endif
+            enddo RING_LOOP
+c             
+c             After each view group, increase the view base number
+            ivbase = ivbase + ninGroup
+            ierr = 0
+          enddo GROUP_LOOP
+c           
+c           If we got here with err 0, this setup fits constraints, finalize index lists
+          if (ierr .eq. 0) then
+            ipStartWgtView(indView) = indProj
+            ivStartWgtGroup(indGroup) = indView
+            numWgtGroups = nring * numViewGroups
+            print *,numWgtGroups,' weight groups:',nring,' rings in',numViewGroups,
+     &          ' view groups'
+            write(*,'(13i6)')(ivStartWgtGroup(i),i=1,numWgtGroups+1)
+            write(*,'(13i6)')(ipStartWgtView(i),i=1,indView)
+            return
+          endif
+        enddo NUM_VIEW_LOOP
+      enddo NUM_RING_LOOP
+      ierr = 1
+      return
+      end subroutine setupWeightGroups
+
 
 
       subroutine errorexit(message, iflocal)
@@ -1521,7 +1720,7 @@ c
       endif
       write(*,'(/,a,a)')'ERROR: TILTALIGN - ', message
       call exit(1)
-      end
+      end subroutine errorexit
 
 c       5/19/89 added model output, changed format of output table
 c       6/21/89 added mean residual output to find_surfaces, changed to

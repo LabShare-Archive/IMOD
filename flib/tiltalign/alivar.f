@@ -5,8 +5,8 @@ c
 c       Array size limits: in one place!
       module arraymaxes
       implicit none
-      integer maxgrp,maxview
-      parameter (maxgrp=20)
+      integer maxgrp,maxview,maxWgtRings
+      parameter (maxgrp=20, maxWgtRings = 10)
       integer maxprojpt,maxreal
       end module arraymaxes
 
@@ -16,7 +16,7 @@ c       Main alignment variables
       implicit none
 c       
       real*4, allocatable :: xx(:),yy(:),xyz(:,:),dxy(:,:)
-      real*4, allocatable :: xresid(:),yresid(:)
+      real*4, allocatable :: xresid(:),yresid(:), weight(:)
       integer*4, allocatable :: isecview(:),irealstr(:)
 c       
       integer*4, allocatable :: maptilt(:),mapgmag(:),mapcomp(:)
@@ -32,14 +32,16 @@ c
       real*4, allocatable :: tiltinc(:),dmag(:),skew(:)
       real*4, allocatable :: frcalf(:),alf(:)
       real*4 fixedtilt,fixedgmag,fixedcomp,fixeddmag,fixedskew
-      real*4 fixedtilt2,fixedrot,fixedalf,projStrRot,projSkew,beamTilt
+      real*4 fixedtilt2,fixedrot,fixedalf,projStrRot,projSkew,beamTilt, kfacRobust
       integer*4, allocatable :: mapviewtofile(:),mapfiletoview(:)
       integer*4 nfileviews,mapProjStretch,mapBeamTilt
 c       
       real*4, allocatable :: glbrot(:),glbtilt(:),glbalf(:)
       real*4, allocatable :: glbgmag(:),glbdmag(:),glbskew(:)
       integer*4 incrgmag,incrdmag,incrskew,incrtilt,incralf,incrrot
-      logical firstFunct,xyzfixed
+      logical firstFunct,xyzfixed, robustWeights
+      integer*4 numWgtGroups
+      integer*4, allocatable :: indProjWgtList(:), ivStartWgtGroup(:), ipStartWgtView(:)
 
       CONTAINS
 
@@ -50,8 +52,9 @@ c
       maxview = numView + 4
       maxreal = numReal + 4
       allocate(xx(maxprojpt),yy(maxprojpt),xyz(3,maxreal),dxy(2,maxview),
-     &    xresid(maxprojpt),yresid(maxprojpt),
-     &    isecview(maxprojpt),irealstr(maxreal),
+     &    xresid(maxprojpt),yresid(maxprojpt), weight(maxProjPt),
+     &    isecview(maxprojpt),irealstr(maxreal),indProjWgtList(maxProjPt),
+     &    ivStartWgtGroup(maxview*maxWgtRings+1), ipStartWgtView(maxview*maxWgtRings+1),
      &    maptilt(maxview),mapgmag(maxview),mapcomp(maxview),
      &    mapdmag(maxview),mapskew(maxview),maprot(maxview),
      &    lintilt(maxview),lingmag(maxview),lincomp(maxview),
