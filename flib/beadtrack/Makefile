@@ -23,20 +23,20 @@ proc_vars.$(O):   tltcntrl.$(O)
 tiltali.$(O):     tltcntrl.$(O)
 tltcntrl.$(O):    alivar.$(O)
 
-solve_xyzd.$(O):  ../tiltalign/solve_xyzd.f  alivar.$(O)
-	$(FC) $(FFLAGS) -c -o solve_xyzd.$(O) ../tiltalign/solve_xyzd.f
+solve_xyzd.$(O):  ../tiltalign/solve_xyzd.f90  alivar.$(O)
+	$(FC) $(FFLAGS) -c -o solve_xyzd.$(O) ../tiltalign/solve_xyzd.f90
 
-funct.$(O):       ../tiltalign/funct.f  alivar.$(O)
-	$(FC) $(FFLAGS) -c -o funct.$(O) ../tiltalign/funct.f
+funct.$(O):       ../tiltalign/funct.f90  alivar.$(O)
+	$(FC) $(FFLAGS) -c -o funct.$(O) ../tiltalign/funct.f90
 
-map_vars.$(O):    ../tiltalign/map_vars.f  alivar.$(O)
-	$(FC) $(FFLAGS) -c -o map_vars.$(O) ../tiltalign/map_vars.f
+map_vars.$(O):    ../tiltalign/map_vars.f90  alivar.$(O)
+	$(FC) $(FFLAGS) -c -o map_vars.$(O) ../tiltalign/map_vars.f90
 
-fill_matrices.$(O):    ../tiltalign/fill_matrices.f
-	$(FC) $(FFLAGS) -c -o fill_matrices.$(O) ../tiltalign/fill_matrices.f
+fill_matrices.$(O):    ../tiltalign/fill_matrices.f90
+	$(FC) $(FFLAGS) -c -o fill_matrices.$(O) ../tiltalign/fill_matrices.f90
 
-alivar.$(O):    ../tiltalign/alivar.f
-	$(FC) $(FFLAGS) -c -o alivar.$(O) ../tiltalign/alivar.f
+alivar.$(O):    ../tiltalign/alivar.f90
+	$(FC) $(FFLAGS) -c -o alivar.$(O) ../tiltalign/alivar.f90
 
 
 

@@ -11,8 +11,8 @@ PROGS = tiltalign$(E)
 all: $(PROGS)
 
 
-tiltalign.$(O): tiltalign.f
-	$(FC) -c $(NOOPFFLAGS) tiltalign.f
+tiltalign.$(O): tiltalign.f90
+	$(FC) -c $(NOOPFFLAGS) tiltalign.f90
 
 tiltalign$(E): $(TAOBJS)
 	$(FC) -o tiltalign $(TAOBJS) $(LDFFLAGS) $(LSMLMOD) $(LIMOD) \
@@ -36,4 +36,3 @@ install: $(PROGS)
 
 clean:
 	-\rm -f *.o* *.exe *~ tiltalign xfforfidless alivar.mod
-
