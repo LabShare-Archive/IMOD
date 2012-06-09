@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/9/12: In Tilt, increased the assumed limit on number of lines in a CUDA
+array to 65535, the limit on Fermi cards (In 4.5).
+
 6/6/12: In eTomo - Final Aligned Stack, fixed a bug where 
 tilt_3dfind_reprojecta.com was not being created (In 4.5).(Bug# 1622)
 
