@@ -56,12 +56,6 @@
 #include "multislider.h"
 #include "scalebar.h"
 
-#include "lowres.bits"
-#include "highres.bits"
-#include "keepCenter.bits"
-#include "unlock.bits"
-#include "lock.bits"
-
 #define BM_WIDTH 16
 #define BM_HEIGHT 16
 #define XYZ_BSIZE 8
@@ -75,9 +69,9 @@
 #define MIN_SLIDER_WIDTH 20
 #define NOTNEW -999999999
 
-static unsigned char *bitList[MAX_XYZ_TOGGLES][2] =
-  {{lowres_bits, highres_bits},
-   {unlock_bits, lock_bits}};
+static const char *fileList[MAX_XYZ_TOGGLES][2] =
+  {{":/images/lowres.png", ":/images/highres.png"},
+   {":/images/unlock.png", ":/images/lock.png"}};
 static const char *toggleTips[] = {
   "Toggle between regular and high-resolution (interpolated) image"};
 
@@ -251,9 +245,9 @@ XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer,
   setAnimated(false);
 
   if (!cenIcon) {
-    cenIcon = new QIcon(QBitmap::fromData(QSize(BM_WIDTH, BM_HEIGHT),
-                                          keepCenter_bits));
-    utilBitListsToIcons(bitList, icons, MAX_XYZ_TOGGLES);
+    cenIcon = new QIcon();
+    cenIcon->addFile(":/images/keepCenter.png", QSize(BM_WIDTH, BM_HEIGHT));
+    utilFileListsToIcons(fileList, icons, MAX_XYZ_TOGGLES);
   }
 
   // Get the toolbar, add zoom arrows

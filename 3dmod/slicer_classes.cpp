@@ -61,33 +61,13 @@ static void fillArraySegment(int jstart, int jlimit);
 static void findIndexLimits(int isize, int xsize, float xo, float xsx,
                             float offset, float *fstart, float *fend);
 
-#include "unlock.bits"
-#include "lock.bits"
-#include "lowres.bits"
-#include "highres.bits"
-#include "image.bits"
-#include "fft.bits"
-#include "contour.bits"
-#include "smartCenter.bits"
-#include "keepCenter.bits"
-#include "time_unlock.bits"
-#include "time_lock.bits"
-#include "shiftlockon.bits"
-#include "shiftlockoff.bits"
-
-static unsigned char showslice_bits[] = {
-     0xff, 0x0f, 0xff, 0x0f, 0xff, 0x0f, 0x00, 0x00, 0xff, 0xef, 0xff, 0xef,
-     0xff, 0xe7, 0xff, 0xe9, 0xff, 0xee, 0x7f, 0xef, 0x9f, 0xef, 0xef, 0xef,
-     0xf7, 0xef, 0xf9, 0xef, 0xfe, 0xef, 0xff, 0xef};
-
-
-static unsigned char *bitList[MAX_SLICER_TOGGLES][2] =
-  { {lowres_bits, highres_bits},
-    {unlock_bits, lock_bits},
-    {smartCenter_bits, keepCenter_bits}, 
-    {shiftlockoff_bits, shiftlockon_bits},
-    {image_bits, fft_bits},
-    {time_unlock_bits, time_lock_bits}};
+static const char *fileList[MAX_SLICER_TOGGLES][2] =
+  { {":/images/lowres.png", ":/images/highres.png"},
+    {":/images/unlock.png", ":/images/lock.png"},
+    {":/images/smartCenter.png", ":/images/keepCenter.png"}, 
+    {":/images/shiftlockoff.png", ":/images/shiftlockon.png"},
+    {":/images/image.png", ":/images/fft.png"},
+    {":/images/timeUnlock.png", ":/images/timeLock.png"}};
 
 static QIcon *icons[MAX_SLICER_TOGGLES];
 static QIcon *showIcon;
@@ -123,7 +103,7 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[],
   setAttribute(Qt::WA_AlwaysShowToolTips);
   setAnimated(false);
   if (firstTime) 
-    utilBitListsToIcons(bitList, icons, MAX_SLICER_TOGGLES);
+    utilFileListsToIcons(fileList, icons, MAX_SLICER_TOGGLES);
   
   // Get the toolbar
   mToolBar = new HotToolBar(this);
@@ -152,10 +132,10 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[],
   
   // The showslice button is simpler
   if (firstTime) {
-    showIcon = new QIcon(QBitmap::fromData(QSize(BM_WIDTH, BM_HEIGHT),
-                                           showslice_bits));
-    contIcon = new QIcon(QBitmap::fromData(QSize(BM_WIDTH, BM_HEIGHT),
-                                           contour_bits));
+    showIcon = new QIcon();
+    showIcon->addFile(QString(":/images/showslice.png"), QSize(BM_WIDTH, BM_HEIGHT));
+    contIcon = new QIcon();
+    contIcon->addFile(QString(":/images/contour.png"), QSize(BM_WIDTH, BM_HEIGHT));
   }
  
   utilTBToolButton(this, mToolBar, &button, "Show slice cutting lines in"

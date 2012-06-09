@@ -1,21 +1,11 @@
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.4  2006/06/29 04:53:31  mast
-c       Set up to use small model
-c
-c       Revision 3.3  2005/04/09 14:53:55  mast
-c       Fixed a line length problem
-c       
-c       Revision 3.2  2005/04/07 03:56:31  mast
-c       New version with local tracking, new mapping, outliers, etc.
-c       
-c       Revision 3.1  2002/07/28 22:56:31  mast
-c       Standardize error output
+      module cgpixels
+      implicit none
+      integer*4, allocatable :: idxin(:),idyin(:), idxedge(:),idyedge(:)
+      real*4, allocatable :: edgePixels(:)
+      integer*4 ninside, nedge, ipolar
+      logical*4 edgeMedian
+      end module cgpixels
+
 c       
 c       
 c       NEXTPOS computes the projected position of a point from positions on
@@ -37,11 +27,7 @@ c
       integer idim
       parameter (idim=50)
       real*4 tilt(*)
-      real*4 xx(idim),yy(idim),zz(idim)
-      include 'statsize.inc'
-      real*4 xr(msiz,idim), sx(msiz), xm(msiz), sd(msiz)
-     &    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
-     &    , b(msiz), b1(msiz)
+      real*4 xx(idim),yy(idim),zz(idim), b1(2)
       integer*4 iobj,ipnear,idir,iznext,nfit,minfit,iaxtilt
       real*4 tiltmin,xnext,ynext
       integer*4 ibase,ninobj,mfit,ipend,indx,indy,iptnear,ip,ipt,ipb,ipp
@@ -158,12 +144,10 @@ c           print *,'linear fit:',iobj,mfit,xnext,ynext
         else
           do i=1,mfit
             theta=tilt(nint(zz(i))+1)
-            xr(1,i)=cosd(theta)
-            xr(2,i)=sind(theta)
-            xr(3,i)=yy(i)
+            xx(i)=cosd(theta)
+            zz(i)=sind(theta)
           enddo
-          call multr(xr,3,mfit,sx,ss,ssd,d,r,xm,sd,b,b1,
-     &        const, rsq ,fra)
+          call lsfit2(xx, zz, yy, mfit, b1(1), b1(2), const)
           thetnext=tilt(iznext+1)
           ynext=b1(1)*cosd(thetnext)+b1(2)*sind(thetnext)+const
 c           print *,'sin/cos fit:',iobj,mfit,xnext,ynext
@@ -314,11 +298,56 @@ c       print *,xpeak,ypeak
       end
 
 
-
-      subroutine calcg(boxtmp,nxbox,nybox,xpeak,ypeak,idxin,
-     &    idyin,ninside,idxedge,idyedge,nedge,ipolar,wsum)
+      subroutine edgeForCG(boxtmp,nxbox,nybox,ixcen, iycen, edge, ierr)
+      use cgpixels
+      implicit none
       real*4 boxtmp(nxbox,nybox)
-      integer*4 idxin(*),idyin(*),idxedge(*),idyedge(*)
+      integer*4 nxbox,nybox,ixcen, iycen,iy,ix,nsum,i, ierr
+      real*4 sum, edge
+      sum=0.
+      nsum=0
+      edge = 0.
+      ierr = 1
+c       
+c       find edge mean - require half the points to be present
+c       
+      if (edgeMedian) then
+        do i = 1, nedge
+          ix = ixcen + idxedge(i)
+          iy = iycen + idyedge(i)
+          if (ix.ge.1 .and. ix.le.nxbox .and. iy.ge.1 .and. iy.le.nybox) then
+            nsum = nsum + 1
+            edgePixels(nsum) = boxtmp(ix,iy)
+          endif
+        enddo
+      else
+        do i = 1, nedge
+          ix = ixcen + idxedge(i)
+          iy = iycen + idyedge(i)
+          if (ix.ge.1 .and. ix.le.nxbox .and. iy.ge.1 .and. iy.le.nybox) then
+            sum = sum + boxtmp(ix,iy)
+            nsum = nsum + 1
+          endif
+        enddo
+      endif
+      if (nsum .lt. nedge / 2) return
+      ierr = 0
+      if (edgeMedian) then
+        call rsSortFloats(edgePixels, nsum)
+        call rsMedianOfSorted(edgePixels, nsum, edge)
+      else
+        edge = sum / nsum
+      endif
+      return
+      end
+
+
+      subroutine calccg(boxtmp,nxbox,nybox,xpeak,ypeak, wsum)
+      use cgpixels
+      implicit none
+      real*4 boxtmp(nxbox,nybox), xpeak,ypeak, wsum
+      integer*4 nxbox,nybox,ixcen, iycen,iy,ix,ixbest,iybest,nsum,i
+      real*4 best, sum4, sum, xsum, ysum,weight,edge
 c       
       ixcen=nxbox/2+nint(xpeak)
       iycen=nybox/2+nint(ypeak)
@@ -342,24 +371,13 @@ c
         ixcen=ixbest
         iycen=iybest
       endif
-      sum=0.
-      nsum=0
       xsum=0.
       ysum=0.
       wsum=0.
 c       
 c       find edge mean - require half the points to be present
-c       
-      do i=1,nedge
-        ix=ixcen+idxedge(i)
-        iy=iycen+idyedge(i)
-        if(ix.ge.1.and.ix.le.nxbox.and.iy.ge.1.and.iy.le.nybox)then
-          sum=sum+boxtmp(ix,iycen+idyedge(i))
-          nsum=nsum+1
-        endif
-      enddo
-      if(nsum.lt.nedge/2)return
-      edge=sum/nsum
+      call edgeForCG(boxtmp,nxbox,nybox,ixcen, iycen, edge, i)
+      if (i .ne. 0) return
 c       
 c       subtract edge and get weighted sum of pixel coordinates for POSITIVE
 c       pixels
@@ -383,11 +401,42 @@ c
       return
       end
 
+      subroutine wsumForSobelPeak(boxtmp,nxbox,nybox,xpeak,ypeak, wsum)
+      use cgpixels
+      implicit none
+      real*4 boxtmp(nxbox,nybox), xpeak,ypeak, wsum
+      integer*4 nxbox,nybox,ixcen, iycen,iy,ix,i
+      real*4 weight,edge
+c       
+      ixcen=nxbox/2+nint(xpeak)
+      iycen=nybox/2+nint(ypeak)
+      wsum=0.
+c       
+c       find edge mean - require half the points to be present
+      call edgeForCG(boxtmp,nxbox,nybox,ixcen, iycen, edge, i)
+      if (i .ne. 0) return
+c       
+c       subtract edge and get weight sum for POSITIVE pixels
+c       
+      do i=1,ninside
+        ix=ixcen+idxin(i)
+        iy=iycen+idyin(i)
+        if(ix.ge.1.and.ix.le.nxbox.and.iy.ge.1.and.iy.le.nybox)then
+          weight=boxtmp(ix,iy)-edge
+          if(ipolar*weight.gt.0.) wsum=wsum+weight
+        endif
+      enddo
+      wsum=wsum*ipolar
+      return
+      end
 
-      subroutine rescue(boxtmp,nxbox,nybox,xpeak,ypeak, idxin, idyin,
-     &    ninside,idxedge,idyedge, nedge,ipolar,radmax,relaxcrit,wsum)
-      real*4 boxtmp(*)
-      integer*4 idxin(*),idyin(*),idxedge(*),idyedge(*)
+
+
+      subroutine rescue(boxtmp,nxbox,nybox,xpeak,ypeak, radmax,relaxcrit,wsum)
+      implicit none
+      real*4 boxtmp(*),xpeak,ypeak,radmax,relaxcrit,wsum
+      integer*4 nxbox,nybox, idx, idy
+      real*4 rad, radinc, radsq, radosq, wbest, distsq, xtmp, ytmp, wtmp
       wsum=0.
       rad=0.
       radinc=1.5
@@ -401,8 +450,7 @@ c
             if(distsq.gt.radsq.and. distsq.le.radosq)then
               xtmp=idx
               ytmp=idy
-              call calcg(boxtmp,nxbox,nybox,xtmp, ytmp, idxin, idyin,
-     &            ninside, idxedge,idyedge, nedge,ipolar, wtmp)
+              call calccg(boxtmp,nxbox,nybox,xtmp, ytmp, wtmp)
               if(wtmp.gt.wbest)then
                 wbest=wtmp
                 xpeak=xtmp
@@ -417,7 +465,54 @@ c
       return
       end
 
+      subroutine rescueFromSobel(boxtmp,nxbox,nybox, xpeak, ypeak, sobelXpeaks,
+     &    sobelYpeaks, sobelPeaks, sobelWsums, maxpeaks, radmax,relaxcrit, wsum)
+      implicit none
+      real*4 boxtmp(*), xpeak, ypeak, sobelXpeaks(*), sobelYpeaks(*), sobelPeaks(*)
+      real*4 sobelWsums(*), radmax,relaxcrit, wsum
+      integer*4 nxbox,nybox,maxpeaks, ipeak
+      real*4 rad, radinc, radsq, radosq, wbest, distsq
+      wsum=0.
+      rad=0.
+      radinc=1.5
+      do while(rad.le.radmax .and.wsum.eq.0.)
+        radsq=rad**2
+        radosq=min(rad+radinc,radmax)**2
+        wbest=0.
+        do ipeak = 1, maxPeaks
+          if (sobelPeaks(ipeak) .lt. -1.e29) exit
+          distsq = sobelXpeaks(ipeak)**2 + sobelYpeaks(ipeak)**2
+          call checkSobelPeak(ipeak, boxtmp,nxbox,nybox,sobelXpeaks, sobelYpeaks,
+     &        sobelPeaks, sobelWsums, maxpeaks)
+          if(distsq.gt.radsq.and. distsq.le.radosq .and. sobelWsums(ipeak).gt.wbest) then
+            wbest = sobelWsums(ipeak)
+            xpeak = sobelXpeaks(ipeak)
+            ypeak = sobelYpeaks(ipeak)
+          endif          
+        enddo
+        rad=rad+radinc
+        if(wbest.ge. relaxcrit)wsum=wbest
+      enddo
+      return
+      end
 
+      subroutine checkSobelPeak(indPeak, boxtmp,nxbox,nybox, xpeaks, ypeaks, peaks, wsums,
+     &    maxpeaks)
+      implicit none
+      real*4 boxtmp(*),xpeaks(*), ypeaks(*), peaks(*), wsums(*)
+      integer*4 nxbox,nybox,maxpeaks, indPeak
+      real*4 xtmp, ytmp
+      if (wsums(indPeak) .ge. 0.) return
+      if (peaks(indPeak) .lt. -1.e29) then
+        wsums(indPeak) = 0.
+        return
+      endif
+      call wsumForSobelPeak(boxtmp,nxbox,nybox,xpeaks(indPeak),ypeaks(indPeak),
+     &    wsums(indPeak))
+      return
+      end
+
+      
 
       subroutine add_point(iobj,ipnear, xpos,ypos,iznext)
       include 'smallmodel.inc'
@@ -597,16 +692,16 @@ c       F is the 2 by 3 matrix transformation computed
 c       DEVAVG, DEVSD, DEVMAX are mean, SD, and maximum deviations
 c       IPNTMAX give the point number at which the maximum occurred
 c       
-      subroutine findxf_wo_outliers(xr,ndat,xcen,ycen,iftrans,
+      subroutine findxf_wo_outliers(xr,msizexr,ndat,xcen,ycen,iftrans,
      &    ifrotrans,maxdrop, critprob, critabs, elimmin, idrop,ndrop,
      &    f, devavg,devsd, devmax, ipntmax)
       implicit none
       include 'statsize.inc'
       integer*4 idrop(*)
-      real*4 xr(msiz,*)
+      real*4 xr(msizexr,*)
       integer*4 iftrans,ifrotrans
       real*4 f(2,3),xcen,ycen
-      integer*4 ndat,maxdrop,ndrop,ipntmax
+      integer*4 ndat,maxdrop,ndrop,ipntmax,msizexr
       real*4 critprob,critabs,elimmin,devavg,devsd,devmax
       integer*4 i,j,lastdrop,itmp,nkeep,jdrop,isaveBase,icolDev,indexCol
       real*4 probperpt,absperpt,sigfromavg,sigfromsd,sigma,z,prob,xx,yy
@@ -629,7 +724,7 @@ c
         enddo
       enddo
 
-      call findxf(xr,ndat,xcen,ycen,iftrans,ifrotrans,1,f,devavg,
+      call findxf(xr,msizexr,4,ndat,xcen,ycen,iftrans,ifrotrans,1,f,devavg,
      &    devsd,devmax,ipntmax)
       ndrop = 0
       if(maxdrop.eq.0.or.devmax.lt.elimmin) return
@@ -664,7 +759,7 @@ c       points and check how many of the points pass the criterion
 c       for outliers.  
 c       
       do jdrop = 1, maxdrop+1
-        call findxf(xr,ndat-jdrop,xcen,ycen,iftrans,ifrotrans,1,f,devavg,
+        call findxf(xr,msizexr,4,ndat-jdrop,xcen,ycen,iftrans,ifrotrans,1,f,devavg,
      &      devsd,devmax,ipntmax)
 c         
 c         get deviations for points out of fit
@@ -708,7 +803,7 @@ c
       do i=1,ndrop
         idrop(i)=nint(xr(indexCol, ndat+i-ndrop))
       enddo
-      call findxf(xr,ndat-ndrop,xcen,ycen,iftrans,ifrotrans,1,f,devavg,
+      call findxf(xr,msizexr, 4, ndat-ndrop,xcen,ycen,iftrans,ifrotrans,1,f,devavg,
      &    devsd,devmax,ipntmax)
       ipntmax=nint(xr(indexCol,ipntmax))
       do i=1,ndat

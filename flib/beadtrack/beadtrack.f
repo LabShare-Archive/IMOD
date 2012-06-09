@@ -9,67 +9,60 @@ c       David Mastronarde, 1995
 c       added tilt alignment, 10/6/97
 c       
 c       $Id$
-c       Log at end of file
 c
+      use tltcntrl
+      use mapsep
+      use cgpixels
       implicit none
       include 'smallmodel.inc'
       include 'statsize.inc'
-      include 'alivar.inc'
-      include 'tltcntrl.inc'
 c       
-      integer maxbox,maxstor,npad,maxarr,limpcl,maxnbox,maxarea,limgaps
-      integer liminside,limedge,maxolist,limresid
-      parameter (maxbox=100,maxstor=10,npad=8,maxolist=4*maxAllReal)
-      parameter (maxarr=(maxbox+2*npad)*(maxbox+2*npad+2))
-      parameter (limpcl=50000,maxnbox=1000,maxarea=1000,limgaps=20000)
-      parameter (liminside=10000,limedge=3000,limresid=maxAllReal*20)
-c       
-c       7/7/00 CER: remove the encode's; titlech is the temp space
-c       
+      integer npad,maxarr,limpcl,maxarea,limgaps,maxpeaks,msizexr
+      integer liminside,limedge,maxolist,limresid, maxAllReal
       character*80 titlech
 
       integer*4 nx,ny,nz,NXYZ(3),MXYZ(3)
-      COMMON //NX,NY,NZ
+      equivalence (nx, nxyz(1)), (ny, nxyz(2)), (nz, nxyz(3))
 C       
-      real*4 TITLE(20),seqdist(maxAllReal)
-      real*4 cursum(maxbox*maxbox),boxes(maxbox*maxbox*maxnbox)
-      real*4 boxtmp(maxarr),xxtmp(maxAllReal),yytmp(maxAllReal)
-      complex ARRAY(maxarr/2),BRRAY(maxarr/2)
-      integer*4 numBotTop(2,maxAllReal)
-      equivalence (boxes, seqdist), (boxes(maxAllreal+1), xxtmp)
-      equivalence (boxes(2*maxAllreal+1), yytmp), (boxes, numBotTop)
-      common /bigarr/ boxes
+      real*4 TITLE(20), matKernel(49)
+      real*4, allocatable :: boxes(:,:,:), cursum(:), boxtmp(:),corrSum(:,:),sobelSum(:,:)
+      real*4, allocatable :: ARRAY(:),BRRAY(:),sarray(:),sbrray(:)
+      real*4, allocatable :: refSobel(:), tmpSobel(:), boxSobel(:), sobelWsums(:,:)
+      real*4, allocatable :: sobelXpeaks(:,:), sobelYpeaks(:,:), sobelPeaks(:,:)
+c       maxAllReal
+      real*4, allocatable :: seqdist(:),xxtmp(:),yytmp(:), xvtmp(:), yvtmp(:)
+      integer*4, allocatable :: indgap(:), numBotTop(:,:)
+      logical*1, allocatable :: inAnArea(:)
 C       
-      integer*4 ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl)
+      integer*4, allocatable :: ixpclist(:),iypclist(:),izpclist(:),listz(:), incore(:,:)
       CHARACTER*320 FILIN,FILOUT,plfile,modelfile,surfaceFile
-      integer*4 idxin(liminside),idyin(liminside)
-      integer*4 idxedge(limedge),idyedge(limedge)
-      integer*4 listz(maxview),izexclude(maxview)
+c       maxview except wsave
+      integer*4, allocatable :: izexclude(:),ipclose(:),izclose(:)
+      integer*4, allocatable :: ivlist(:),ivSnapList(:)
+      logical, allocatable :: missing(:)
+      real*4, allocatable :: wsave(:,:),prevres(:)
       character*6 areaObjStr
       character*9 dat
       character*8 tim
       logical exist,readSmallMod
-C       
-      EQUIVALENCE (NX,NXYZ)
 c       
-      integer*4 ivsep(maxview,maxgrp),nsepingrp(maxgrp),ngsep
-      common /mapsep/ ivsep,nsepingrp,ngsep
-c       
-      real*4 xseek(maxreal),yseek(maxreal),wcrit(maxreal)
-      integer*4 nws(maxreal),iffound(maxreal)
-      integer*4 ipnearest(maxreal),ipclose(maxview),izclose(maxview)
-      integer*4 incore(maxstor,maxreal),ipnearsav(maxreal)
-      integer*4 iobjdel(maxreal),idrop(maxreal),igrpBotTop(maxreal)
-      real*4 wsave(maxprojpt),xr(msiz,maxreal)
-      real*4 resmean(limresid),prevres(maxview)
-      logical missing(0:maxview)
-      integer*4 iareaseq(maxarea),ninobjlist(maxarea),indobjlist(maxarea)
-      real*4 areadist(maxarea), residLists(maxolist)
-      integer*4 iobjlists(maxolist),ivlist(maxview),ivSnapList(maxview)
-      integer*4 ivseqst(4*maxarea),ivseqnd(4*maxarea),listseq(4*maxarea)
-      integer*2 indgap(max_obj_num+1),ivgap(limgaps)
-      integer*1 listsBotTop(maxolist)
-      logical*1 inAnArea(max_obj_num)
+c       maxreal
+      real*4, allocatable :: xseek(:),yseek(:),wcrit(:),xr(:,:)
+      integer*4, allocatable :: nws(:),iffound(:), ipnearest(:), ipnearsav(:)
+      integer*4, allocatable :: iobjdel(:),idrop(:),igrpBotTop(:), numInSobelSum(:)
+      logical, allocatable :: inCorrSum(:,:), inSobelSum(:,:)
+
+      real*4, allocatable :: resmean(:,:)
+c       maxarea
+      integer*4, allocatable :: iareaseq(:),ninobjlist(:),indobjlist(:)
+      real*4, allocatable :: areadist(:)
+      integer*4, allocatable :: ivseqst(:),ivseqnd(:),listseq(:)
+c
+      integer*2, allocatable :: ivgap(:)
+c       maxolist
+      real*4, allocatable :: residLists(:)
+      integer*4, allocatable :: iobjlists(:), iobjlistmp(:)
+      integer*1, allocatable :: listsBotTop(:)
       real*4 ctf(8193)
       character*1024 listString
       character*60 addfmt,delfmt1,delfmt2
@@ -78,49 +71,53 @@ c
      &    'Correlation peak' , 'Centroid', 'Saved point'/
 C       
       real*4 xf(2,3)
+      real*4 colors(3,10) /0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0,
+     &    1.0, 0.0, 0.0, 0.0, 1.0, 0.5, 0.2, 0.2, 0.8, 0.8, 0.2, 0.2, 0.9, 0.6, 0.4,
+     &    0.6, 0.4, 0.9/
 c       
       integer*4 modebox,maxwavg,limpstr,limpmag,limprot,limpshft
-      real*4 rotstart,fxlocal,fylocal,fraccrit,zorig,dmin2,dmax2,dmean2
+      real*4 rotstart,fraccrit,dmin2,dmax2,dmean2
       integer*4 ifwhite,iffillin,maxgap,mode,k,kti,lastseq,iobjdo,ip,igap
       integer*4 nround,maxsum,nfit,minfit,maxresid,minresid,ierr,npclist,i,j
       real*4 sdcrit,distcrit,relaxint,relaxdis,fitdistcrit,relaxfit,radmaxfit
       real*4 resdifmin,resdifcrit, tiltfitmin,cgrad,tiltmin,xst,xnd,yst,ynd
       integer*4 minxpiece,nxpieces,nxoverlap,minypiece,nypieces,nyoverlap
       integer*4 nxtotpix,nytotpix,nexclude,ig,iaxtilt,nxlocal,nylocal
-      integer*4 nxbox,nybox,nxpad,nypad,ipolar,npixbox,nxpdim,iftrace,iv
+      integer*4 nxbox,nybox,nxpad,nypad,npixbox,nxpdim,iftrace,iv
       integer*4 minendz,indfree,iobj,ibase,ninobj,ipt,iz,jz,jpt,itmp,iznext
-      integer*4 maxnpt,nxnonov,nareax,nynonov,nareay,ix,iy,nobjlists
-      integer*4 indstart,nobjtot,nseqs,ipass,nedge,ninside,limcg,nzout
+      integer*4 maxnpt,nareax,nareay,ix,iy,nobjlists
+      integer*4 indstart,nobjtot,nseqs,ipass,limcg,nzout,nxtaper, nytaper
       real*4 radpix,boxsum,boxmin,boxmax,refsum,refmin,refmax,corsum,cormin
-      real*4 cormax,xbox,ybox,xt,yt,xtmp,ytmp,wsum,tiltcur,gmamgcur,dxcur
-      integer*4 lastlist,iseq,nadded,ivseq,idir,nvlist,iview,ivuse,ib,jx
+      real*4 cormax,xbox,ybox,xt,yt,xtmp,ytmp,wsum,tiltcur,dxcur, taperFrac
+      integer*4 lastlist,iseq,nadded,ivseq,idir,nvlist,iview,ivuse,ib
       integer*4 ifexclude,iexcl,ivl,ntodo,nclose,neardiff,izv,ipcz
-      integer*4 ix0,ix1,iy0,iy1,ic,jc,maxuse,ibox,needed,nextbox,izbox
-      integer*4 ifdidalign,ivdel,ivnear,indr,ndat,navg,idif,idirw,itry
+      integer*4 ix0,ix1,iy0,iy1,ic,jc,maxuse,ibox,izbox,idebugObj
+      integer*4 ifdidalign,ivdel,indr,ndat,navg,idif,idirw,itry
       real*4 rotcur,dycur,cosr,sinr,cost,sint,a,b,c,d,e,f,wsumsq,wstmp
       real*4 xnext,ynext,relax,radmax,xpeak,ypeak,xpos,ypos,devavg,devsd
       real*4 devmax,errmax,curdif,resavg,ressd,ressem,gmagcur,wavg,wsd
-      integer*4 npioneer,iftrans,ifrotrans,iboxbase,ipntmax,nadtmp,ivlook
+      integer*4 npioneer,iftrans,ifrotrans,ipntmax,nadtmp,ivlook
       integer*4 ifmeanbad,iscur,nprev,ndel,misstot,nlistz,imodobj,imodcont
       real*4 peak,dist,tmin,tmax,tmean,cvbxcen, cvbycen,area,density
       integer*4 nvert,minInArea,minBeadOverlap,ifLocalArea, localTarget
-      integer*4 nvLocalIn, localViewPass, ibaseRes,nSnapList,iobjSave
+      integer*4 nvLocalIn, localViewPass, nSnapList,iobjSave
       logical keepGoing,saveAllPoints,ignoreObjs, done
       integer*4 numNew,nOverlap,iseqPass,ipassSave,iAreaSave,maxObjOrig
-      real*4 outlieElimMin, outlieCrit, outlieCritAbs, curResMin, tiltmax
-      real*4 sigma1,sigma2,radius2,radius1,deltactf, ranFrac, diameter
-      integer*4 maxDrop, nDrop, ndatFit, nareaTot, maxInArea, limInArea
-      integer*4 minViewDo, maxViewDo, numViewDo, numBound, iseed, limcxBound
-      integer*4 ibaseOnAlign, ifAlignDone, imageBinned
-      real*4 cosd,sind
+      real*4 outlieElimMin, outlieCrit, outlieCritAbs, curResMin, tiltmax, minPeakRatio
+      real*4 sigma1,sigma2,radius2,radius1,deltactf, ranFrac, diameter, sobelSigma
+      integer*4 maxDrop, nDrop, ndatFit, nareaTot, maxInArea, limInArea, interpType
+      integer*4 minViewDo, maxViewDo, numViewDo, numBound, iseed, limcxBound,nfarther
+      integer*4 ivsOnAlign, ifAlignDone, imageBinned, maxSobelSum, maxAnySum
+      integer*4 nxSobel, nySobel, nxsPad, nysPad, ninSobel, kernelDim
+      real*4 xOffSobel, yOffSobel, scaleFacSobel, scaleByInterp, targetSobel
       character*320 concat
-      integer*4 getImodObjsize, niceframe, surfaceSort
+      integer*4 getImodObjsize, niceframe, surfaceSort, scaledSobel
       logical itemOnList
       real*4 ran
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg,PipGetLogical
-      integer*4 PipGetInteger,PipGetBoolean, PipGetThreeIntegers
+      integer*4 PipGetInteger,PipGetBoolean
       integer*4 PipGetString,PipGetFloat, PipGetTwoIntegers, PipGetTwoFloats
       integer*4 PipGetInOutFile, PipNumberOfEntries, ifpip
 c       
@@ -153,16 +150,17 @@ c
      &    ':DeletionCriterionMinAndSD:FP:@param:ParameterFile:PF:@'//
      &    'help:usage:B:@:BoxOutputFile:FN:@:SnapshotViews:LI:@'//
      &    ':SaveAllPointsAreaRound:IP:'
-c
+c       
+      idebugObj = 49
       maxwavg=15
       limpstr=16
       limpmag=6
       limprot=4
       limpshft=3
       mininview=4
+      maxh = 0
       facm=.25
       ncycle=1000
-      nsolve=95
       eps=0.00002                               !was .00001 then .00002
       ifpip = 0 
       plfile = ' '
@@ -206,9 +204,20 @@ c
       radius2 = 0.
       radius1 = 0.
       areaObjStr = 'object'
-      limInArea = maxreal
+      limInArea = 1000
       limcxBound = 2500
       imageBinned = 1
+      npad = 8
+      maxSobelSum = 0
+      scaleByInterp = 1.2
+      targetSobel = 8
+      sobelSigma = 0.85
+      interpType = 0
+      maxpeaks = 20
+      minPeakRatio = 0.2
+      msizexr = 19
+      taperFrac = 0.2
+      edgeMedian = .false.
 c       
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
@@ -236,12 +245,14 @@ c
       CALL IMOPEN(1,FILIN,'RO')
       CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
 C       
-      call read_piece_list(plfile,ixpclist,iypclist,izpclist,npclist)
+      limpcl = nz + 10
+      allocate(ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl),listz(limpcl),stat=ierr)
+      call memoryError(ierr, 'PIECE LIST ARRAYS')
+
+      call read_piece_list2(plfile,ixpclist,iypclist,izpclist,npclist, limpcl)
 c       
 c       if no pieces, set up mocklist
 c       
-      if(npclist.gt.limpcl)call errorexit(
-     &    'TOO MANY PIECE COORDINATES FOR ARRAYS',0)
       if(npclist.eq.0)then
         do i=1,nz
           ixpclist(i)=0
@@ -251,8 +262,17 @@ c
         npclist=nz
       endif
       call fill_listz(izpclist,npclist,listz,nvuall)
-c       print *,nvuall,maxview
-      if(nvuall.gt.maxview)call errorexit( 'TOO MANY VIEWS FOR ARRAYS',0)
+c       
+c       assign maxview the same as in alivar based on actual maximum views and allocate
+      maxview = nvuall + 4
+      allocate(izexclude(maxview),ipclose(maxview),izclose(maxview), ivlist(maxview),
+     &    ivSnapList(maxview), missing(0:maxview), prevres(maxview),  tiltorig(maxview),
+     &    gmagorig(maxview),rotorig(maxview),dxysav(2,maxview),tltall(maxview),
+     &    ivsepIn(maxview,maxgrp), stat=ierr)
+      call memoryError(ierr, 'ARRAYS FOR VIEWS')
+      call allocateMapsep(ierr)
+      call memoryError(ierr, 'ARRAYS IN MAPSEP')
+
       call checklist(ixpclist,npclist,1,nx,minxpiece ,nxpieces,nxoverlap)
       nxtotpix=nx+(nxpieces-1)*(nx-nxoverlap)
       call checklist(iypclist,npclist,1,ny,minypiece ,nypieces,nyoverlap)
@@ -261,15 +281,24 @@ c       print *,nvuall,maxview
       ycen=nytotpix/2.
       scalexy=sqrt(xcen**2+ycen**2)
 c       
-      if (PipGetInOutFile('InputSeedModel', 1, 'Input seed model file',
-     &    modelfile) .ne. 0) call errorexit
-     &    ('NO INPUT SEED MODEL FILE SPECIFIED', 0)
+      if (PipGetInOutFile('InputSeedModel', 1, 'Input seed model file', modelfile) .ne. 0)
+     &    call errorexit ('NO INPUT SEED MODEL FILE SPECIFIED', 0)
 c       
       exist=readSmallMod(modelfile)
       if(.not.exist)call errorexit('READING SEED MODEL FILE', 0)
       if (n_point .eq. 0 .or. max_mod_obj .eq. 0)
      &    call errorexit('INPUT SEED MODEL IS EMPTY', 0)
 c       
+c       Initial allocations based on model size, and way oversized temp array
+c       for object lists, which is also needed for gaps
+      maxAllReal = max_mod_obj + 10
+      maxolist = max(40*maxAllReal, 100000)
+      allocate(seqdist(maxAllReal), xxtmp(maxAllReal), yytmp(maxAllReal),
+     &    xvtmp(maxAllReal), yvtmp(maxAllReal), 
+     &    numBotTop(2,maxAllReal), iobjseq(maxAllReal), xyzsav(3,maxAllReal),
+     &    iobjlistmp(maxolist), indgap(maxAllReal), inAnArea(maxAllReal), stat=ierr)
+      call memoryError(ierr, 'ARRAYS FOR ALL CONTOURS IN MODEL')
+c
 c       convert to image index coordinates and change the origin and delta
 c       for X/Y to reflect this
 c       
@@ -288,15 +317,15 @@ c
       if (pipinput) then
         ierr = PipGetString('BoxOutputFile', filout)
         ierr = PipGetString('SurfaceOutputFile', surfaceFile)
-        if (PipGetString('SkipViews', listString) .eq. 0) call parselist
-     &      (listString, izexclude, nexclude)
+        if (PipGetString('SkipViews', listString) .eq. 0) call parselist2
+     &      (listString, izexclude, nexclude, maxview)
         ierr = PipGetFloat('RotationAngle', rotstart)
         ierr = PipNumberOfEntries('SeparateGroup', ngsep)
         if (ngsep .gt. maxgrp) call errorexit
      &      ('TOO MANY SEPARATE GROUPS FOR ARRAYS', 0)
         do ig =1, ngsep
           ierr = PipGetString('SeparateGroup', listString)
-          call parselist(listString, ivsepIn(1,ig),nsepingrpIn(ig))
+          call parselist2(listString, ivsepIn(1,ig),nsepingrpIn(ig), maxview)
         enddo
       else
 c         
@@ -398,7 +427,7 @@ c           size = 2 * max(0, diameter - 3) + 32
         ierr = PipGetInteger('MinBeadsInArea', minInArea)
         if (ifLocalArea .ne. 0)
      &      ierr = PipGetInteger('MaxBeadsInArea', limInArea)
-        limInArea = min(limInArea, maxreal)
+c        limInArea = min(limInArea, maxreal)
         ierr = PipGetInteger('MinOverlapBeads', minBeadOverlap)
         ierr = PipGetInteger('RoundsOfTracking', nround)
         ierr = PipGetInteger('MaxBeadsToAverage', maxsum)
@@ -415,10 +444,13 @@ c           size = 2 * max(0, diameter - 3) + 32
         ierr = PipGetTwoFloats('DeletionCriterionMinAndSD', resdifmin,
      &      resdifcrit)
         ierr = PipGetLogical('TrackObjectsTogether', ignoreObjs)
-        if (PipGetString('SnapshotViews', listString) .eq. 0) call parselist
-     &      (listString, ivSnapList, nSnapList)
-        ierr = PipGetTwoIntegers('SaveAllPointsAreaRound', iAreaSave,
-     &      iPassSave)
+        ierr = PipGetInteger('SobelBeadsToAverage', maxSobelSum)
+        ierr = PipGetFloat('KernelSigma', sobelSigma)
+        ierr = PipGetLogical('MedianForEdge', edgeMedian)
+        ierr = PipGetInteger('InterpolationType', interpType)
+        if (PipGetString('SnapshotViews', listString) .eq. 0) call parselist2
+     &      (listString, ivSnapList, nSnapList, maxview)
+        ierr = PipGetTwoIntegers('SaveAllPointsAreaRound', iAreaSave, iPassSave)
       else
         write(*,'(1x,a,$)')'Minimum # of views required for tilt'//
      &      ' aligning: '
@@ -438,7 +470,7 @@ c
      &      //' for finding tilt axis',' and for finding tilt angles: '
         read(5,*)randoaxis,randotilt
 c         
-        write(*,'(1x,a,i4,a,$)')'X and Y dimensions of box (max',maxbox,'): '
+        write(*,'(1x,a,i4,a,$)')'X and Y dimensions of box: '
         read(5,*)nxbox,nybox
 c         
         write(*,'(1x,a,$)')
@@ -480,12 +512,17 @@ c
       ipolar=-1
       if(ifwhite.ne.0)ipolar=1
 c       
+      nxTaper = max(8, nint(taperFrac * nxbox))
+      nyTaper = max(8, nint(taperFrac * nybox))
+      nxbox = nxbox + nxTaper / 2
+      nybox = nybox + nyTaper / 2
       nxpad=niceframe(nxbox+2*npad, 2, 19)
       nypad=niceframe(nybox+2*npad, 2, 19)
       npixbox=nxbox*nybox
       nxpdim=nxpad+2
-      if (npixbox .gt. maxbox**2 .or. nypad * nxpdim .gt. maxarr) call
-     &    errorexit('BOX SIZE TOO LARGE FOR ARRAYS - TRY BINNING INPUT DATA',0)
+      maxarr = nypad * nxpdim
+c      if (npixbox .gt. maxbox**2 .or. nypad * nxpdim .gt. maxarr) call
+c    &    errorexit('BOX SIZE TOO LARGE FOR ARRAYS - TRY BINNING INPUT DATA',0)
       if (sigma1 .ne. 0 .or. radius2 .ne. 0) call setctfwsr
      &    (sigma1,sigma2,radius1,radius2,ctf,nxpad,nypad,deltactf)
 c
@@ -500,14 +537,6 @@ c
         rotorig(iv)=rotstart
         tiltorig(iv)=tltall(iv)
         gmagorig(iv)=1.
-        comp(iv)=1.
-        mapcomp(iv)=0
-        skew(iv)=0.
-        mapskew(iv)=0
-        dmag(iv)=0.
-        mapdmag(iv)=0
-        alf(iv)=0.
-        mapalf(iv)=0
         dxysav(1,iv)=0.
         dxysav(2,iv)=0.
         tiltmax = max(tiltmax, abs(tltall(iv)))
@@ -520,6 +549,7 @@ c       ivlist is the number of points present on each view
 c       ivgap has a list of views with gaps for each object (if not filling in)
 c       indgap is index to location in ivgap for each object
 c       minendz is the minimum ending Z of all the objects
+c       use iobjlistmp for ivgap
 c       
       minendz=maxview
       indfree=1
@@ -559,9 +589,9 @@ c
               iznext=nint(p_coord(3,object(ipt+1+ibase)))+1
               if(iznext.gt.iz+1)then
                 do iv=iz+1,iznext-1
-                  ivgap(indfree)=iv
+                  iobjlistmp(indfree)=iv
                   indfree=indfree+1
-                  if(indfree.gt.limgaps)call errorexit(
+                  if(indfree.gt. maxolist)call errorexit(
      &                'TOO MANY GAPS IN EXISTING MODEL FOR ARRAYS', 0)
                 enddo
               endif
@@ -570,6 +600,12 @@ c
         endif
       enddo
       indgap(max_mod_obj+1)=indfree
+c       
+c       allocate ivgap and copy to it
+      limgaps = indfree
+      allocate(ivgap(limgaps), stat=ierr)
+      call memoryError(ierr, 'ARRAY FOR GAPS')
+      if (indfree .gt. 1) ivgap(1:indfree-1) = iobjlistmp(indfree-1)
 c       
 c       now find section with most points
 c       
@@ -604,7 +640,6 @@ c       it is excluded
       enddo
       numViewDo = maxViewDo + 1 - minViewDo
 c      print *,imintilt,minViewDo,maxViewDo
-c
 c       
 c       figure out an order for the points: from the center outwards
 c       i.e., first find position from center at minimum tilt, save that in
@@ -612,8 +647,6 @@ c       xyzsav, and store the square of distance in seqdist
 c       iobjseq is just a list of objects to do in original order
 c       
       nobjdo=0
-      if (max_mod_obj .gt. maxAllReal) call errorexit(
-     &    'TOO MANY CONTOURS IN MODEL FOR ARRAYS', 0)
       do iobj=1,max_mod_obj
         ninobj=npt_in_obj(iobj)
         if(ninobj.gt.0)then
@@ -653,12 +686,12 @@ c         First get a random subset not to exceed the limiting number
           enddo
         endif
 c          
-        call convexbound(xxtmp,yytmp,numBound,0., 2. * cgrad, xresid,yresid,
-     &      nvert, cvbxcen, cvbycen, maxprojpt)
+        call convexbound(xxtmp,yytmp,numBound,0., 2. * cgrad, xvtmp,yvtmp,
+     &      nvert, cvbxcen, cvbycen, maxAllReal)
         area = 0.
         do i = 1, nvert
           j = mod(i, nvert) + 1
-          area = area + 0.5 * (yresid(j)+yresid(i)) * (xresid(j)-xresid(i))
+          area = area + 0.5 * (yvtmp(j)+yvtmp(i)) * (xvtmp(j)-xvtmp(i))
         enddo
         density = nobjdo / abs(area)
 c        print *,area,density,nobjdo
@@ -717,30 +750,33 @@ c
         nxLocal = (nxtotpix + nxoverlap * (nareax - 1)) / nAreaX + 1
         nyLocal = (nytotpix + nyoverlap * (nareay - 1)) / nAreaY + 1
         nareaTot = nareax*nareay
-        if(nareaTot.gt.maxarea) call errorexit(
-     &      'TOO MANY LOCAL AREAS FOR ARRAYS', 0)
+        if (ifLocalArea .eq. 0 .and. getImodObjsize() .gt. 0 .and. .not. ignoreObjs) 
+     &      nareaTot = getImodObjsize()
+        maxarea = nareaTot + 10;
+c         
+c         Get arrays for areas
+        ix = 2 * nround * maxarea
+        allocate(iareaseq(maxarea),ninobjlist(maxarea),indobjlist(maxarea),
+     &      areadist(maxarea), ivseqst(ix),ivseqnd(ix),listseq(ix), stat=ierr)
+        call memoryError(ierr, 'ARRAYS FOR AREA DATA')
+
         do i=1,nareaTot
-          ix=mod(i-1,nareax)
-          iy=(i-1)/nareax
-          iareaseq(i)=i
-          areadist(i)=(ix*(nxlocal-nxoverlap)+nxlocal/2-xcen)**2+
-     &        (iy*(nylocal-nyoverlap)+nylocal/2-ycen)**2
+          if (ifLocalArea .eq. 0 .and. getImodObjsize() .gt. 0 .and. .not. ignoreObjs)then
+c         
+c             If there are no local areas but there are multiple objects, set up
+c             one area per object.  No point getting distance, they are independent
+            iareaseq(i) = i
+            areadist(i) = 0.
+          else
+            ix=mod(i-1,nareax)
+            iy=(i-1)/nareax
+            iareaseq(i)=i
+            areadist(i)=(ix*(nxlocal-nxoverlap)+nxlocal/2-xcen)**2+
+     &          (iy*(nylocal-nyoverlap)+nylocal/2-ycen)**2
+          endif
         enddo
 c         
-c         If there are no local areas but there are multiple objects, set up
-c         one area per object.  No point getting distance, they are independent
-c         
-        if (ifLocalArea .eq. 0 .and. getImodObjsize() .gt. 0 .and.
-     &      .not. ignoreObjs) then
-          nareaTot = getImodObjsize()
-          do k = 1, nareaTot
-            iareaseq(k) = k
-            areadist(k) = 0.
-          enddo
-        endif
-c         
 c         order areas by distance: iareaseq has sequence of area numbers
-c         
         do i=1,nareaTot-1
           do j=i+1,nareaTot
             if(areadist(iareaseq(i)).gt.areadist(iareaseq(j)))then
@@ -785,10 +821,10 @@ c
                 iobj=iobjseq(j)
                 if(xyzsav(1,iobj).ge.xst.and.xyzsav(1,iobj).le.xnd.and.
      &              xyzsav(2,iobj).ge.yst.and.xyzsav(2,iobj).le.ynd)then
-                  iobjlists(indfree)=iobj
+                  iobjlistmp(indfree)=iobj
                   indfree=indfree+1
                   if(indfree.gt.maxolist)call errorexit(
-     &                'TOO MANY AREAS FOR OBJECT LISTS', 0)
+     &                'WAY TOO MANY LOCAL AREAS; EACH POINT IS IN MANY AREAS', 0)
                   if (.not. inAnArea(iobj)) numNew = numNew + 1
                 endif
               enddo
@@ -820,7 +856,7 @@ c
               call objtocont(iobj, obj_color, ix, iy)
               if (ix .eq. k) then
                 numNew = numNew + 1
-                iobjlists(indfree)=iobj
+                iobjlistmp(indfree)=iobj
                 indfree=indfree+1
               endif
             enddo
@@ -836,15 +872,15 @@ c
             indobjlist(nobjlists)=indstart
             ninobjlist(nobjlists)=indfree-indstart
             do i = indstart,indfree-1
-              inAnArea(iobjlists(i)) = .true.
+              inAnArea(iobjlistmp(i)) = .true.
             enddo
             maxInArea = max(maxInArea, ninobjlist(nobjlists))
             do i=indstart,indfree-2
               do j=i+1,indfree-1
-                if(seqdist(iobjlists(i)).gt.seqdist(iobjlists(j)))then
-                  itmp=iobjlists(i)
-                  iobjlists(i)=iobjlists(j)
-                  iobjlists(j)=itmp
+                if(seqdist(iobjlistmp(i)).gt.seqdist(iobjlistmp(j)))then
+                  itmp=iobjlistmp(i)
+                  iobjlistmp(i)=iobjlistmp(j)
+                  iobjlistmp(j)=itmp
                 endif
               enddo
             enddo
@@ -863,8 +899,7 @@ c
           done = .false.
         endif
       enddo
-      if (numViewDo * max_mod_obj .gt. limresid) call errorexit(
-     &    'TOO MANY OVERALL POINTS AND VIEWS TO DO FOR ARRAYS', 0)
+
       if (ifLocalArea .ne. 0) then
         if (maxInArea .gt. limInArea) call errorexit(
      &      'THE NUMBER OF POINTS IN SOME LOCAL AREAS IS ABOVE THE LIMIT', 0)
@@ -877,12 +912,80 @@ c
 119       format('Area',i3,', X:',i6,' to',i6,', Y:',i6,' to',i6,',',
      &        i4,' points,',i4,' new')
         enddo
-      elseif (maxInArea.gt.maxreal) then
-        call errorexit( 'TOO MANY POINTS FOR ARRAYS - TRY LOCAL TRACKING',0)
+c      elseif (maxInArea.gt.maxreal) then
+c        call errorexit( 'TOO MANY POINTS FOR ARRAYS - TRY LOCAL TRACKING',0)
       endif
 c       
-      if(maxInArea*maxsum*npixbox.gt.maxnbox*maxbox**2) call errorexit(
-     &    'TOO MUCH SUMMING IN BOXES TOO LARGE FOR TOO MANY POINTS',0)
+c       Allocate resmean array based on maximum object # and maximum view sequence #
+c       which is # of views for multiple areas, but times # of rounds if only one area
+      limresid = numViewDo
+      if (nobjlists .eq. 1) limresid = limresid * nround
+      allocate(resmean(maxAllReal,limresid), stat=ierr)
+      call memoryError(ierr, 'ARRAY FOR MEAN RESIDUALS')
+c       
+c       Maximum Number of points finally known for tiltalign solutions: allocate
+      call allocateAlivar(maxInArea * nvuall, nvuall, maxInArea, ierr)
+      call memoryError(ierr, 'ARRAYS IN ALIVAR')
+      call allocateFunctVars(ierr)
+      call memoryError(ierr, 'ARRAYS FOR FUNCT')
+      comp=1.
+      mapcomp=0
+      skew=0.
+      mapskew=0
+      dmag=0.
+      mapdmag=0
+      alf=0.
+      mapalf=0
+c       
+      maxAnySum = max(maxSobelSum, maxsum)
+
+c       Get final arrays for the object lists and free temporary stuff
+      maxolist = indfree
+      allocate(listsBotTop(maxolist), residLists(maxolist), iobjlists(maxolist),
+     &   incore(maxAnySum,maxInArea), stat=ierr)
+      call memoryError(ierr, 'ARRAYS FOR OBJECT LISTS')
+      iobjlists(1:indfree-1) = iobjlistmp(1:indfree-1)
+      deallocate(iobjlistmp, xxtmp, yytmp, xvtmp, yvtmp, seqdist)
+c
+c       Allocate boxes and other image arrays
+      allocate(boxes(npixbox, maxAnySum, maxInArea), corrSum(npixbox, maxInArea),
+     &    cursum(npixbox), boxtmp(maxarr),
+     &    ARRAY(maxarr), BRRAY(maxarr), stat=ierr)
+      call memoryError(ierr, 'ARRAYS FOR BOXES OF IMAGE DATA')
+c       
+c       Allocate arrays for all real points in current solution
+      i = maxInArea + 10
+      allocate(xseek(i),yseek(i),wcrit(i),xr(msizexr,i), nws(i),iffound(i), ipnearest(i),
+     &    ipnearsav(i), iobjdel(i),idrop(i),igrpBotTop(i), wsave(maxview, i),
+     &    iobjali(i), numInSobelSum(i), inCorrSum(maxAnySum,i), inSobelSum(maxAnySum,i),
+     &    sobelXpeaks(maxpeaks,i), sobelYpeaks(maxpeaks,i), sobelPeaks(maxpeaks,i), 
+     &    sobelWsums(maxpeaks,i), stat=ierr)
+      call memoryError(ierr, 'ARRAYS FOR POINTS IN AREA')
+      xr(3,1:i) = 0.
+      sobelXpeaks = 0.
+      sobelYpeaks = 0.
+c       
+c       Get size and offset of sobel filtered 
+      if (maxSobelSum .gt. 0) then
+        scaleFacSobel = diameter / targetSobel
+        print *,scaleFacSobel, diameter, targetSobel, scaleByInterp
+        ierr = scaledSobel(boxes, nxbox, nybox, scaleFacSobel, scaleByInterp,
+     &      interpType, -1., boxes, nxSobel, nySobel, xOffSobel, yOffSobel)
+        nxspad=niceframe(nxSobel+2*npad, 2, 19)
+        nyspad=niceframe(nySobel+2*npad, 2, 19)
+        maxarr = (nxspad + 2) * nyspad
+        i = nxSobel * nySobel
+        ix = 0
+        allocate(sarray(maxarr),sbrray(maxarr), refSobel(i),  boxSobel(i),
+     &    sobelSum(npixbox, maxInArea),  stat=ierr)
+        if (sobelSigma .gt. 0) then
+          allocate(tmpSobel(npixbox), stat=ix)
+          call scaledGaussianKernel(matKernel, kernelDim, 7, sobelSigma)
+        endif
+        call memoryError(ierr+ix, 'ARRAYS FOR SOBEL FILTERING')
+        
+      endif
+        
 c       
 c       set up sequencing for object lists and views - odd passes from
 c       middle outward, even passes from ends inward
@@ -918,6 +1021,12 @@ c
 c       
 c       get list of inside and edge pixels for centroid
 c       
+      liminside = 3.5 * cgrad**2 + 20.
+      limedge = 3.5 * ((cgrad + 1.5)**2 - cgrad**2) + 20.
+      allocate(idxin(liminside),idyin(liminside),idxedge(limedge),idyedge(limedge),
+     &    edgePixels(limedge), stat=ierr)
+      call memoryError(ierr, 'ARRAYS FOR COMPUTING CENTROID')
+
       ninside=0
       nedge=0
       limcg=cgrad+4
@@ -934,7 +1043,7 @@ c
             idyedge(nedge)=iy
           endif
           if (ninside.gt.liminside.or.nedge.gt.limedge) call errorexit(
-     &        'BEAD RADIUS FOR CENTROIDS TOO LARGE FOR ARRAYS',0)
+     &        'PROGRAMMER ERROR COMPUTING SIZE OF CENTROID ARRAYS',0)
         enddo
       enddo
 c       
@@ -994,17 +1103,14 @@ c
         nvLocal = 0
         ifAlignDone = 0
         iseqPass = ((iseq + 1) / 2 - 1) / nobjlists + 1
-        if (iseqPass .ge. localViewPass)
-     &      nvLocal = nvLocalIn
-        saveAllPoints = iareaSave .eq. listseq(iseq) .and.
-     &      ipassSave .eq. iseqPass
+        if (iseqPass .ge. localViewPass) nvLocal = nvLocalIn
+        saveAllPoints = iareaSave .eq. listseq(iseq) .and. ipassSave .eq. iseqPass
         if(listseq(iseq).ne.lastseq)then
 c           
 c           initialize if doing a new set of points
 c           
           initxyzdone=0
           ivseq=1
-          ibaseRes = 0
           lastseq=listseq(iseq)
           nobjdo=ninobjlist(lastseq)
           do i=1,nobjdo
@@ -1012,9 +1118,14 @@ c
           enddo
 c           
 c           Initialize arrays for boxes and residuals
-          incore(1:maxsum, 1:nobjdo) = -1
-          wsave(1:nvuall*nobjdo) = -1.
-          resmean(1:maxObjOrig*numViewDo)=-1.
+          incore(1:maxAnySum, 1:nobjdo) = -1
+          numInSobelSum(1:nobjdo) = 0
+          inCorrSum(1:maxAnySum, 1:nobjdo) = .false.
+          inSobelSum(1:maxAnySum, 1:nobjdo) = .false.
+          corrSum(1:npixbox, 1:nobjdo) = 0.
+          if (maxSobelSum .gt. 0) sobelSum(1:npixbox, 1:nobjdo) = 0.
+          wsave(1:nvuall, 1:nobjdo) = -1.
+          resmean = -1.
           write(*,123)areaObjStr,listseq(iseq),iseqPass,nobjdo
 123       format('Starting ',a,i4,', round',i3,',',i4,' contours')
           if (nobjlists .gt. 1) write(*,objfmt) (iobjseq(i),i=1,nobjdo)
@@ -1026,6 +1137,8 @@ c           Initialize arrays for boxes and residuals
             call putsymtype(iobj, 0)
             call putsymsize(iobj, 5)
             call putimodobjname(iobj, objnames(mod(j-1, 5) + 1))
+            call putObjColor(iobj, int(255. * colors(1,j)),
+     &          int(255. * colors(2,j)), int(255. * colors(3,j)))
             do i=1,nobjdo
               iobj = iobjseq(i) + j * maxObjOrig
               ibase_obj(iobj) = ibase_free
@@ -1033,6 +1146,8 @@ c           Initialize arrays for boxes and residuals
               obj_color(1,iobj) = 1
               obj_color(2,iobj) = 256 - getImodObjsize() - j
               max_mod_obj = max(max_mod_obj, iobj)
+              ndx_order(iobj) = iobj
+              obj_order(iobj) = iobj
             enddo
           enddo
         endif
@@ -1057,633 +1172,30 @@ c
         do ivl=1,nvlist
           iview=ivlist(ivl)
           iznext=iview-1
-c           
-c           first see how many are done on this view
-c           
-          ntodo=0
-          do iobjdo=1,nobjdo
-            iobj=iobjseq(iobjdo)
-            ninobj=npt_in_obj(iobj)
-            nclose=0
-            iffound(iobjdo)=0
-            ibase=ibase_obj(iobj)
-c             
-c             find closest ones within gap distance, find out if already
-c             done, mark as a 2 to protect them
-c             ipnearest holds the point number of the nearest for each object
-c             ipclose is the list of points within gap distance for this object
-c             
-            neardiff=10000
-            do ip=1,ninobj
-              ipt=object(ibase+ip)
-              izv=nint(p_coord(3,ipt))+1
-              if(abs(izv-iview).lt.neardiff)then
-                neardiff=abs(izv-iview)
-                ipnearest(iobjdo)=ip
-              endif
-              if(izv.eq.iview)then
-                iffound(iobjdo)=2
-              elseif(abs(izv-iview).le.maxgap)then
-                xbox=p_coord(1,ipt)
-                ybox=p_coord(2,ipt)
-                izbox=p_coord(3,ipt)
-                call find_piece(ixpclist,iypclist,izpclist,npclist,
-     &              nx, ny, nxbox,nybox,xbox,ybox,izbox,ix0,ix1,
-     &              iy0,iy1,ipcz)
-                if(ipcz.ge.0)then
-                  nclose=nclose+1
-                  ipclose(nclose)=ip
-                  izclose(nclose)=izv
-                endif
-              endif
-            enddo
-c             
-c             if not found and none close, mark as -1 not to do
-c             If there are close ones, make sure this is not a gap to preserve
-c             
-            if(nclose.eq.0.and.iffound(Iobjdo).eq.0)
-     &          iffound(iobjdo)=-1
-            if(nclose.gt.0.and.iffound(iobjdo).eq.0)then
-              if(iffillin.eq.0.and.indgap(iobj+1).gt.indgap(iobj))then
-c                 
-c                 if not filling in, look for gap on list
-c                 
-                do igap=indgap(iobj),indgap(iobj+1)-1
-                  if(ivgap(igap).eq.iview)iffound(iobjdo)=-1
-                enddo
-              endif
-              if(iffound(iobjdo).eq.0)then
-c                 
-c                 order feasible points by distance
-c                 
-                ntodo=ntodo+1
-                do ic=1,nclose-1
-                  do jc=ic+1,nclose
-                    if(abs(izclose(jc)-iview).lt.
-     &                  abs(izclose(ic)-iview)) then
-                      itmp=izclose(ic)
-                      izclose(ic)=izclose(jc)
-                      izclose(jc)=itmp
-                      itmp=ipclose(ic)
-                      ipclose(ic)=ipclose(jc)
-                      ipclose(jc)=itmp
-                    endif
-                  enddo
-                enddo
-                maxuse=min(nclose,maxsum)
-c                 
-c                 see if boxes in memory match, free them if not
-c                 
-                do ibox=1,maxsum
-                  if(incore(ibox,iobjdo).ge.0)then
-                    needed=0
-                    do ic=1,maxuse
-                      if(incore(ibox,iobjdo).eq.izclose(ic))needed=1
-                    enddo
-                    if(needed.eq.0)incore(ibox,iobjdo)=-1
-                  endif
-                enddo
-c                 
-c                 now load ones that are needed into last free box
-c                 
-                do ic=1,maxuse
-                  needed=1
-                  do ibox=1,maxsum
-                    if(incore(ibox,iobjdo).eq.izclose(ic))needed=0
-                  enddo
-                  if(needed.eq.1)then
-                    do ibox=1,maxsum
-                      if(incore(ibox,iobjdo).lt.0)ib=ibox
-                    enddo
-                    incore(ib,iobjdo)=izclose(ic)
-                    nextbox=ib+(iobjdo-1)*maxsum
-                    ipt=abs(object(ibase+ipclose(ic)))
-                    xbox=p_coord(1,ipt)
-                    ybox=p_coord(2,ipt)
-                    izbox=nint(p_coord(3,ipt))
-                    call find_piece(ixpclist,iypclist,izpclist,
-     &                  npclist, nx, ny, nxbox,nybox,xbox,ybox,
-     &                  izbox,ix0,ix1, iy0,iy1,ipcz)
-                    call imposn(1,ipcz,0)
-                    call irdpas(1,boxtmp,nxbox,nybox, ix0,ix1,iy0,
-     &                  iy1,*99)
-c                     
-c                     do subpixel shift and calculate CG and wsum value
-c                     if it is not already saved
-c                     
-                    xt=nint(xbox)-xbox
-                    yt=nint(ybox)-ybox
-                    call qdshift(boxtmp,boxes(1+(nextbox-1)*npixbox)
-     &                  ,nxbox, nybox,xt,yt)
-                    if(wsave(izbox+1+(iobjdo-1)*nvuall).lt.0.)then
-                      xtmp=0.
-                      ytmp=0.
-                      call calcg(boxes(1+(nextbox-1)*npixbox),nxbox,
-     &                    nybox,xtmp, ytmp, idxin, idyin,ninside,
-     &                    idxedge, idyedge, nedge, ipolar,wsum)
-                      wsave(izbox+1+(iobjdo-1)*nvuall)=wsum
-                    endif
-                  endif
-                enddo
-              endif
-            endif
-            ipnearsav(iobjdo)=ipnearest(iobjdo)
-          enddo
+          call countAndPreparePointsToDo()
           ipass=1
           do while(ipass.le.2.and.ntodo.ne.0)
 c             
 c             now try to do tiltalign if possible
-c             
-            if(nadded.ne.0) call tiltali(ifdidalign, ifAlignDone, resmean,
-     &          ibaseRes, ibaseOnAlign, iview)
-c             
-c             get tentative tilt, rotation, mag for current view
-c             
-            if(ifdidalign.gt.0)then
-              ivuse=iview
-              if(mapFileToView(iview).eq.0) then
-                ivdel=200
-                do iv=1,nview
-                  if(abs(mapViewToFile(iv)-iview).lt.ivdel)then
-                    ivdel=abs(mapViewToFile(iv)-iview)
-                    ivuse=mapViewToFile(iv)
-                  endif
-                enddo
-              endif
-c              print *,'ivuse, iview', ivuse, iview
-              tiltcur=tiltorig(ivuse)+tltall(iview)-tltall(ivuse)
-              gmagcur=gmagorig(ivuse)
-              rotcur=rotorig(ivuse)
-              cosr=cosd(rotcur)
-              sinr=sind(rotcur)
-              cost=cosd(tiltcur)
-              sint=sind(tiltcur)
-              dxcur = dxysav(1,ivuse)
-              dycur = dxysav(2,ivuse)
-              if (ivuse .ne. iview .and. tiltmax .le. 80.) then
-c               
-c                 if going from another view and cosine stretch is appropriate,
-c                 back-rotate the dxy so tilt axis vertical, adjust the 
-c                 dx by the difference in tilt angle, and rotate back
-                a = cosr * dxcur + sinr * dycur
-                b = -sinr * dxcur + cosr * dycur
-                a = a * cost / cosd(tiltorig(ivuse))
-                dxcur = cosr * a - sinr * b
-                dycur = sinr * a + cosr * b
-              endif
-              a = gmagcur * cost * cosr
-              b = - gmagcur * sinr
-              c = gmagcur * sint * cosr
-              d = gmagcur * cost * sinr
-              e = gmagcur * cosr
-              f = gmagcur * sint * sinr
+            if(nadded.ne.0) then
+              call tiltali(ifdidalign, ifAlignDone, resmean(1,ivseq), iview)
+              if (ifdidalign .ne. 0) ivsOnAlign = ivseq
             endif
+            call getProjectedPositionsSetupFits()
 c             
-c             now get projected positions
-c             
-            do iobjdo=1,nobjdo
-              indr=0
-              if(ifdidalign.eq.1)then
-                do ipt=1,nrealpt
-                  if(iobjseq(iobjdo).eq.iobjali(ipt))
-     &                indr=iobjseq(iobjdo)
-                enddo
-              endif
-              if(indr.ne.0)then
-c                 
-c                 there is a 3D point for it: so project it
-c                 
-                xseek(iobjdo)=a*xyzsav(1,indr)+b*xyzsav(2,indr)+
-     &              c*xyzsav(3,indr)+dxcur+xcen
-                yseek(iobjdo)=d*xyzsav(1,indr)+e*xyzsav(2,indr)+
-     &              f*xyzsav(3,indr)+dycur+ycen
-              else
-                call nextpos(iobjseq(iobjdo),ipnearest(iobjdo),idir,
-     &              iznext,tltall,nfit, minfit,iaxtilt,tiltfitmin,
-     &              xseek(iobjdo),yseek(iobjdo))
-              endif
-              if (saveAllPoints) then
-                iobjSave = iobjseq(iobjdo) + (5 * ipass - 4) * maxObjOrig
-                call add_point(iobjSave,0 ,
-     &              xseek(iobjdo), yseek(iobjdo), iznext)
-              endif
-            enddo
-c             
-c             build list of points already found for fitting; put
-c             actual positions in 4 and 5 for compatibiity with xfmodel
-c             
-            ndat=0
-            do iobjdo=1,nobjdo
-              if(iffound(iobjdo).gt.0)then
-                ndat=ndat+1
-                xr(1,ndat)=xseek(iobjdo)-xcen
-                xr(2,ndat)=yseek(iobjdo)-ycen
-                ipt=object(ibase_obj(iobjseq(iobjdo))+
-     &              ipnearest(iobjdo))
-                xr(4,ndat)=p_coord(1,ipt)-xcen
-                xr(5,ndat)=p_coord(2,ipt)-ycen
-                xr(6,ndat)=iobjdo
-              endif
-            enddo
-c             
-c             LOOP THROUGH POINTS, REFINING PROJECTIONS BEFORE SEARCH
-c             
+c             Loop through points, refining projections before search
             if(ipass.eq.1)npioneer=ndat
             nadded=0
-            do iobjdo=1,nobjdo
-              if(iffound(iobjdo).eq.0.or.iffound(iobjdo).eq.1)then
-c                 
-c                 get w criterion: average it over as many near views as
-c                 possible.  maxwavg specifies both the maximum distance
-c                 away in Z and the maximum number to average
-c                 
-                navg=0
-                wsum=0.
-                wsumsq=0.
-                idif=1
-                do while(idif.le.maxwavg.and.navg.lt.maxwavg)
-                  do idirw=-1,1,2
-                    itry=iview+idirw*idif
-                    if(itry.gt.0.and.itry.le.nvuall)
-     &                  then
-                      wstmp=wsave(itry+(iobjdo-1)*nvuall)
-                      if(wstmp.ge.0)then
-                        wsum=wsum+wstmp
-                        wsumsq=wsumsq+wstmp**2
-                        navg=navg+1
-                      endif
-                    endif
-                  enddo
-                  idif=idif+1
-                enddo
-                call sums_to_avgsd(wsum,wsumsq,navg,wavg,wsd)
-                wcrit(iobjdo)=min(fraccrit*wavg,wavg-sdcrit*wsd)
-                nws(iobjdo)=navg
-              endif
-c               
-              if(iffound(iobjdo).eq.0)then
-                iobj=iobjseq(iobjdo)
-                xnext=xseek(iobjdo)
-                ynext=yseek(iobjdo)
-c                 
-c                 if there are existing points, find right kind of transform
-c                 and modify position
-c                 
-                if(npioneer.gt.0.or.ndat.ge.limpshft)then
-                  ifrotrans=0
-                  iftrans=1
-                  ndatFit = ndat
-                  if (ndat .lt. npioneer + limpshft) ndatFit = npioneer
-                  if(ndatFit.ge.limpstr)then
-                    iftrans=0
-                  elseif(ndatFit.ge.limpmag)then
-                    ifrotrans=2
-                  elseif(ndatFit.ge.limprot)then
-                    ifrotrans=1
-                  endif
-                  maxDrop = nint(0.26 * ndatFit)
-                  if (ndatFit .lt. 4 .or. ifdidalign.eq.0) maxDrop = 0
-                  call findxf_wo_outliers(xr,ndatFit,xcen,ycen,iftrans,
-     &                ifrotrans,maxDrop, outlieCrit,outlieCritAbs,
-     &                outlieElimMin,idrop,nDrop,xf, devavg,devsd,
-     &                devmax,ipntmax)
-                  call xfapply(xf,xcen,ycen,xseek(iobjdo),
-     &                yseek(iobjdo), xnext,ynext)
-                  if (saveAllPoints) then
-                    iobjSave = iobj + (5 * ipass - 3) * maxObjOrig
-                    call add_point(iobjSave, 0, xnext, ynext, iznext)
-                  endif
-                endif
-c                 
-                call find_piece(ixpclist,iypclist,izpclist,
-     &              npclist, nx, ny, nxbox,nybox,xnext,ynext,
-     &              iznext,ix0,ix1, iy0,iy1,ipcz)
-                if(ipcz.ge.0)then
-c                   
-c                   get image area and pad into array on first pass
-c                   
-                  call imposn(1,ipcz,0)
-                  call irdpas(1,boxtmp,nxbox,nybox,ix0,ix1,iy0,iy1,*99)
-                  if(ipass.eq.1)then
-                    call taperoutpad(boxtmp,nxbox,nybox,array,nxpdim,
-     &                  nxpad, nypad, 0, 0.)
-                    call setmeanzero(array,nxpdim,nypad,nxpad, nypad)
-c                     
-c                     Add all nearby boxes in memory into cursum
-c                     
-                    do i=1,npixbox
-                      cursum(i)=0.
-                    enddo
-                    do ibox=1,maxsum
-                      if(incore(ibox,iobjdo).ge.0)then
-                        nextbox=ibox+(iobjdo-1)*maxsum
-                        iboxbase=(nextbox-1)*npixbox
-                        do i=1,npixbox
-                          cursum(i)=cursum(i)+boxes(i+iboxbase)
-                        enddo
-                      endif
-                    enddo
-                    call taperoutpad(cursum,nxbox,nybox,brray,nxpdim,
-     &                  nxpad, nypad, 0, 0.)
-                    call setmeanzero(brray,nxpdim,nypad,nxpad, nypad)
-c                     
-c                     correlate the two
-c                     
-                    call todfft(array,nxpad,nypad,0)
-                    call todfft(brray,nxpad,nypad,0)
-                    do jx=1,nypad*(nxpad+2)/2
-                      array(jx)=array(jx)*conjg(brray(jx))
-                    enddo
-                    if (deltactf .ne. 0) call filterpart(array,array,nxpad,
-     &                  nypad,ctf, deltactf)
-                    call todfft(array,nxpad,nypad,1)
-c                     
-c                     find peak of correlation, then centroid
-c                     
-                    call peakfind(array,nxpdim,nypad,xpeak,ypeak, peak)
-                    if (saveAllPoints) then
-                      iobjSave = iobj + (5 * ipass - 2) * maxObjOrig
-                      call add_point(iobjSave, 0,
-     &                    nint(xnext) + xpeak, nint(ynext) + ypeak, iznext)
-                    endif
-
-                    call calcg(boxtmp,nxbox,nybox,xpeak,ypeak, idxin,
-     &                  idyin,ninside,idxedge,idyedge, nedge,ipolar,wsum)
-                    dist=sqrt(xpeak**2+ypeak**2)
-                    if (saveAllPoints) then
-                      iobjSave = iobj + (5 * ipass - 1) * maxObjOrig
-                      call add_point(iobjSave, 0,
-     &                    nint(xnext) + xpeak, nint(ynext) + ypeak, iznext)
-                    endif
-                  endif
-                  if(nws(iobjdo).gt.2.and.(wsum.lt.wcrit(iobjdo)
-     &                .or. dist.gt.distcrit .or. ipass.eq.2))then
-c                     
-c                     rescue attempt; search concentric rings from the
-c                     center of box and take the first point that goes
-c                     above the relaxed wsum criterion
-c                     
-                    if(ipass.eq.1)then
-                      if(dist.gt.distcrit)then
-                        relax=relaxdis
-                        if(iftrace.ne.0)
-     &                      write(*,102)'distance',iznext,dist,wsum,wavg,wsd
-102                     format(' Rescue-',a,', sec',i4,', dist=',f5.1,
-     &                      ', dens=',f9.0,', mean,sd=',f9.0,f7.0)
-                      else
-                        relax=relaxint
-                        if(iftrace.ne.0)
-     &                      write(*,102)'density ',iznext,dist,wsum,wavg,wsd
-                      endif
-                      radmax=max(nxbox,nybox)
-                    else
-                      relax=relaxfit
-                      radmax=radmaxfit
-                    endif
-                    call rescue(boxtmp,nxbox,nybox,xpeak,ypeak,
-     &                  idxin, idyin,ninside,idxedge,idyedge,
-     &                  nedge,ipolar,radmax,relax*wcrit(iobjdo),
-     &                  wsum)
-
-                  elseif(ipass.eq.2)then
-                    wsum=0.
-                  endif
-c                   
-c                   
-c                   
-                  if(wsum.ne.0.)then
-                    wsave(iview+(iobjdo-1)*nvuall)=wsum
-                    xpos=nint(xnext)+xpeak
-                    ypos=nint(ynext)+ypeak
-                    if(iftrace.ne.0)
-     &                  write(*,'(3i5,4f7.1,2f12.0)')nzout,iznext,iobj,
-     &                  xnext, ynext, xpos,ypos,peak,wsum
-c                     
-c                     add point to model
-c                     
-                    call add_point(iobj,ipnearest(iobjdo),
-     &                  xpos,ypos,iznext)
-                    if (saveAllPoints) then
-                      iobjSave = iobj + (5 * ipass) * maxObjOrig
-                      call add_point(iobjSave, 0, xpos, ypos, iznext)
-                    endif
-                    nadded=nadded+1
-                    iobjdel(nadded)=iobj
-c                     
-c                     mark as found, add to data matrix for alignment
-c                     
-                    iffound(iobjdo)=1
-                    ndat=ndat+1
-                    xr(1,ndat)=xseek(iobjdo)-xcen
-                    xr(2,ndat)=yseek(iobjdo)-ycen
-                    xr(4,ndat)=xpos-xcen
-                    xr(5,ndat)=ypos-ycen
-                    xr(6,ndat)=iobjdo
-c                     
-                    if(filout.ne.' ')then
-                      if (modebox .eq. 2) then
-                        call iclden(boxtmp,nxbox,nybox,1, nxbox, 1,
-     &                      nybox,tmin,tmax,tmean)
-                      else
-                        call isetdn(boxtmp,nxbox,nybox,modebox,1,
-     &                      nxbox, 1, nybox,tmin,tmax,tmean)
-                      endif
-                      call iwrsec(2,boxtmp)
-                      boxmin=min(boxmin,tmin)
-                      boxmax=max(boxmax,tmax)
-                      boxsum=boxsum+tmean
-                      nzout=nzout+1
-                      do i=1,npixbox
-                        boxtmp(i)=cursum(i)
-                      enddo
-                      if (modebox .eq. 2) then
-                        call iclden(boxtmp,nxbox,nybox,1, nxbox, 1,
-     &                      nybox,tmin,tmax,tmean)
-                      else
-                        call isetdn(boxtmp,nxbox,nybox,modebox,1,
-     &                      nxbox, 1, nybox,tmin,tmax,tmean)
-                      endif
-                      call iwrsec(3,boxtmp)
-                      refmin=min(refmin,tmin)
-                      refmax=max(refmax,tmax)
-                      refsum=refsum+tmean
-                      call splitpack(array,nxpdim,nxpad,nypad,boxtmp)
-                      if (modebox .eq. 2) then
-                        call iclden(boxtmp,nxpad,nypad,1, nxpad, 1,
-     &                      nypad,tmin,tmax,tmean)
-                      else
-                        call isetdn(boxtmp,nxpad,nypad,modebox,1,
-     &                      nxpad, 1, nypad,tmin,tmax,tmean)
-                      endif
-                      call iwrsec(4,boxtmp)
-                      cormin=min(cormin,tmin)
-                      cormax=max(cormax,tmax)
-                      corsum=corsum+tmean
-                      write(2,'(3i6)')nint(xnext)-nxbox/2,
-     &                    nint(ynext)-nybox/2,iznext
-                      write(3,'(3i6)')nint(xnext)-nxpad/2,
-     &                    nint(ynext)-nypad/2,iznext
-                    endif
-                  endif
-                endif
-              endif
-            enddo
+            call findAllBeadsOnView()
 c             
 c             get a final fit and a new tiltalign, then find a maximum
 c             error for each pt
-c             
             if(ipass.eq.2)write(*,addfmt)nadded,(iobjdel(i),i=1,nadded)
-            if(ndat.ge.limpshft)then
-              ifrotrans=0
-              iftrans=1
-              if(ndat.ge.limpstr)then
-                iftrans=0
-              elseif(ndat.ge.limpmag)then
-                ifrotrans=2
-              elseif(ndat.ge.limprot)then
-                ifrotrans=1
-              endif
-              maxDrop = nint(0.26 * ndat)
-              if (ndat .lt. 4 .or. ifdidalign.eq.0) maxDrop = 0
-              call findxf_wo_outliers(xr,ndat,xcen,ycen,iftrans,
-     &            ifrotrans,maxDrop, outlieCrit,outlieCritAbs,
-     &            outlieElimMin,idrop,nDrop,xf, devavg,devsd,
-     &            devmax,ipntmax)
-              write(*,113)iview,ipass,ndat,ndrop,devavg,devsd,devmax
-113           format('view',i4,', pass',i2,',',i4,
-     &            ' points (-', i3,'), mean, sd, max dev:' ,3f8.2)
-              if (ifdidalign .ne. 0) then
-                dxcur = dxcur + xf(1,3)
-                dycur = dycur + xf(2,3)
-              endif
-            endif
-c             
-c             do tiltali if anything changed, so can get current residuals
-c             
-            if(nadded.gt.0)then
-              if (ifdidalign .ne. 0 .and. ivuse .ne. iview) then
-                dxysav(1, iview) = dxcur
-                dxysav(2, iview) = dycur
-              endif
-              call tiltali(ifdidalign, ifAlignDone, resmean, ibaseRes,
-     &            ibaseOnAlign, iview)
-            endif
-            if (itemOnList(iview, ivSnapList, nSnapList)) then
-              call int_iwrite(listString, iview, ndel)
-              write(plfile, '(a,a,a,i1)')'.',listString(1:ndel),'.',ipass
-              call scale_model(1)
-              call write_wmod(concat(modelfile, plfile))
-              call scale_model(0)
-            endif
-            nadtmp=nadded
-            nadded=0
-            ntodo=0
-            ndel=0
-            if(nadtmp.gt.0)then
-              ntodo=0
-              do iobjdo=1,nobjdo
-                if(iffound(iobjdo).eq.0)ntodo=ntodo+1
-                if(iffound(iobjdo).eq.1)then
-                  iobj=iobjseq(iobjdo)
-                  errmax=0.
-c                   if(ipass.eq.1)then
-                  indr=0
-c                   
-c                   find point in the tiltalign, get its residual
-c                   
-                  if(ifdidalign.eq.1)then
-                    do ipt=1,nrealpt
-                      if(iobj.eq.iobjali(ipt))indr=ipt
-                    enddo
-                  endif
-                  if(indr.ne.0)then
-                    ivlook=mapFileToView(iview)
-                    ipt=irealstr(indr)
-                    do while(ipt.lt.irealstr(indr+1).and. errmax.eq.0.)
-                      if(isecview(ipt).eq.ivlook)errmax=scalexy*
-     &                    sqrt(xresid(ipt)**2+yresid(ipt)**2)
-                      ipt=ipt+1
-                    enddo
-                  endif
-c                   
-c                   When no tiltalign available, just redo the point with
-c                   highest deviation?  No, projections could be lousy.
-c                   
-c                   if(ifdidalign.eq.0.and.ndat.ge.limpshft)then
-c                   do i=1,ndat
-c                   if(nint(xr(6,i)).eq.iobjdo.and.xr(13,i).gt.
-c                   &                           0.99*devmax)errmax=xr(13,i)
-c                   enddo
-c                   endif
-c                   
-c                   endif
-                  ifmeanbad=0
-c                   
-c                   see if mean residual has gotten a lot bigger
-c                   
-                  if(ifdidalign.eq.1)then
-                    iscur=ivseq-1
-                    nprev=0
-                    do while(nprev.le.maxresid.and.iscur.gt.0)
-                      if(resmean(iobj+(iscur-1)*maxObjOrig).gt.0.)then
-                        nprev=nprev+1
-                        prevres(nprev)=resmean(iobj+(iscur-1)*maxObjOrig)
-                      endif
-                      iscur=iscur-1
-                    enddo
-                    if(nprev.gt.minresid)then
-                      curdif=resmean(iobj+ibaseRes)-prevres(1)
-                      do i=1,nprev-1
-                        prevres(i)=prevres(i)-prevres(i+1)
-                      enddo
-                      call avgsd(prevres,nprev-1,resavg,ressd, ressem)
-                      if(curdif.gt.resdifmin.and.(curdif-resavg)/
-     &                    ressd.gt.resdifcrit .and. errmax .gt. curResMin)
-     &                    ifmeanbad=1
-                    endif
-                  endif
-c                   
-c                   if error greater than criterion after pass 1, or mean
-c                   residual has zoomed on either pass, delete point for
-c                   next round
-c                   
-                  if ((ipass .eq. 1 .and. errmax.gt.fitdistcrit)
-     &                .or.ifmeanbad.eq.1)then
-c                    write(*,'(i3,f7.2,4f10.5)')iobj,errmax,
-c     &                  resmean(iobj+ibaseRes), curdif,resavg,ressd
-                    wsave(iview+(iobjdo-1)*nvuall)=-1.
-                    resmean(iobj+ibaseRes) = -1.
-                    ibase=ibase_obj(iobj)
-                    do ip=ibase+ipnearest(iobjdo)+1,
-     &                  ibase+npt_in_obj(iobj)
-                      object(ip-1)=object(ip)
-                    enddo
-                    npt_in_obj(iobj)=npt_in_obj(iobj)-1
-                    iffound(iobjdo)=0
-                    ntodo=ntodo+1
-                    ipnearest(iobjdo)=ipnearsav(iobjdo)
-                    ndel=ndel+1
-                    iobjdel(ndel)=iobj
-                  endif
-                endif
-              enddo
-              nadded=ndel
-              if(ndel.ne.0)then
-                if(ipass.eq.1)then
-                  write(*,delfmt1)ndel,(iobjdel(i),i=1,ndel)
-                else
-                  write(*,delfmt2)ndel,(iobjdel(i),i=1,ndel)
-                  nadded=0
-                  call tiltali(ifdidalign, ifAlignDone, resmean, ibaseRes,
-     &                ibaseOnAlign, iview)
-                endif
-              endif
-            endif
+            call redoFitsEvaluateResiduals()
             ipass=ipass+1
             call flush(6)
           enddo
           ivseq=ivseq+1
-          ibaseRes = ibaseRes + maxObjOrig
           call flush(6)
         enddo
 c         
@@ -1697,8 +1209,7 @@ c
             misstot=misstot+nlistz
           enddo
           write(*,121)areaObjStr,listseq(iseq), iseqPass, nobjdo,misstot
-121       format('For ',a,i3,', round',i3,':',i3,
-     &        ' contours, points missing =',i5)
+121       format('For ',a,i3,', round',i3,':',i3, ' contours, points missing =',i5)
         endif
 c         
 c         Do surface fitting on every round if tiltalign run
@@ -1715,7 +1226,7 @@ c           into list
             do while (j .le. nrealpt .and. ix .eq. 0)
               if (iobjali(j) .eq. iobjseq(i)) then
                 ix = igrpBotTop(j)
-                xpos = resmean(iobjali(j) + ibaseOnAlign)
+                xpos = resmean(iobjali(j), ivsOnAlign)
               endif
               j = j + 1
             enddo
@@ -1750,21 +1261,21 @@ c       Write out surface file
         do iobj=1,maxObjOrig
           numBotTop(1,iobj) = 0
           numBotTop(2,iobj) = 0
-          resmean(iobj) = 0.
+          resmean(iobj, 1) = 0.
         enddo
         do i = 1, indfree
           iobj = iobjLists(i)
           j = listsBotTop(i)
           if (j .gt. 0) then
             numBotTop(j,iobj) = numBotTop(j,iobj) + 1
-            resmean(iobj) = resmean(iobj) + residLists(i)
+            resmean(iobj, 1) = resmean(iobj, 1) + residLists(i)
           endif
         enddo
         do iobj=1,maxObjOrig
           call objtocont(iobj,obj_color,imodobj,imodcont)
           xpos = 0.
           ix = numBotTop(1,iobj) + numBotTop(2,iobj)
-          if (ix .gt. 0) xpos = resmean(iobj) / ix
+          if (ix .gt. 0) xpos = resmean(iobj, 1) / ix
           write(4, '(i3,3i6,f8.3)')imodobj,imodcont,(numBotTop(j,iobj),j=1,2),
      &        xpos
         enddo
@@ -1788,7 +1299,749 @@ c
         close(3)
       endif
       call exit(0)
-99    call errorexit('ERROR READING IMAGE FILE',0)
+
+
+      CONTAINS
+
+c       countAndPreparePointsToDo evaluates each potential point on a new view to see
+c       if it already done, a gap to be skipped, or has no near enough neighbors
+c       Then it loads necessary boxes, forms averages and evaluates wsum if needed
+c
+      subroutine countAndPreparePointsToDo()
+      integer*4 numberInList
+c       
+c       first see how many are done on this view
+c       
+      ntodo=0
+      do iobjdo=1,nobjdo
+        iobj=iobjseq(iobjdo)
+        ninobj=npt_in_obj(iobj)
+        nclose=0
+        nfarther=0
+        iffound(iobjdo)=0
+        ibase=ibase_obj(iobj)
+c         
+c         find closest ones within gap distance, find out if already
+c         done, mark as a 2 to protect them
+c         ipnearest holds the point number of the nearest for each object
+c         ipclose is the list of points within gap distance for this object
+c         
+        neardiff=10000
+        do ip=1,ninobj
+          ipt=object(ibase+ip)
+          izv=nint(p_coord(3,ipt))+1
+          if(abs(izv-iview).lt.neardiff)then
+            neardiff=abs(izv-iview)
+            ipnearest(iobjdo)=ip
+          endif
+          if(izv.eq.iview)then
+            iffound(iobjdo)=2
+          elseif(abs(izv-iview).le. max(maxgap, 2 * maxSobelSum))then
+            xbox=p_coord(1,ipt)
+            ybox=p_coord(2,ipt)
+            izbox=nint(p_coord(3,ipt))
+            call find_piece(ixpclist,iypclist,izpclist,npclist, nx, ny, nxbox,nybox,
+     &          xbox,ybox,izbox,ix0,ix1, iy0,iy1,ipcz)
+            if(ipcz.ge.0)then
+              if (abs(izv-iview).le. maxgap) nclose=nclose+1
+              nfarther=nfarther+1
+              ipclose(nfarther)=ip
+              izclose(nfarther)=izv
+            endif
+          endif
+        enddo
+c         
+c         if not found and none close, mark as -1 not to do
+c         If there are close ones, make sure this is not a gap to preserve
+c         
+        if(nclose.eq.0.and.iffound(Iobjdo).eq.0) iffound(iobjdo)=-1
+        if(nclose.gt.0.and.iffound(iobjdo).eq.0)then
+          if(iffillin.eq.0.and.indgap(iobj+1).gt.indgap(iobj))then
+c             
+c             if not filling in, look for gap on list
+c             
+            do igap=indgap(iobj),indgap(iobj+1)-1
+              if(ivgap(igap).eq.iview)iffound(iobjdo)=-1
+            enddo
+          endif
+          if(iffound(iobjdo).eq.0)then
+c             
+c             order feasible points by distance
+c             
+            ntodo=ntodo+1
+            do ic=1,nfarther-1
+              do jc=ic+1,nfarther
+                if(abs(izclose(jc)-iview).lt. abs(izclose(ic)-iview)) then
+                  itmp=izclose(ic)
+                  izclose(ic)=izclose(jc)
+                  izclose(jc)=itmp
+                  itmp=ipclose(ic)
+                  ipclose(ic)=ipclose(jc)
+                  ipclose(jc)=itmp
+                endif
+              enddo
+            enddo
+            maxuse=min(nfarther,maxAnySum)
+c             
+c             see if boxes in memory match, free them if not
+c             
+            do ibox=1,maxAnySum
+              if (incore(ibox,iobjdo).ge.0) then
+c                 
+c                 First subtract from correlation sum
+                if (inCorrSum(ibox,iobjdo)) then
+                  if (numberInList(incore(ibox,iobjdo), izclose, maxsum, 0) .eq. 0) then
+                    corrSum(1:npixbox, iobjdo) = corrSum(1:npixbox, iobjdo) -
+     &                  boxes(1:npixbox, ibox, iobjdo)
+                    inCorrSum(ibox,iobjdo) = .false.
+                  endif
+                endif
+c                 
+c                 Then subtract from sobel sum
+                if (inSobelSum(ibox,iobjdo)) then
+                  if (numberInList(incore(ibox,iobjdo),izclose,maxSobelSum, 0) .eq. 0)then
+                    sobelSum(1:npixbox, iobjdo) = sobelSum(1:npixbox, iobjdo) -
+     &                  boxes(1:npixbox, ibox, iobjdo)
+                    inSobelSum(ibox,iobjdo) = .false.
+                    numInSobelSum(iobjdo) = numInSobelSum(iobjdo) - 1
+                  endif
+                endif
+                if (numberInList(incore(ibox,iobjdo), izclose, maxuse, 0) .eq. 0)
+     &              incore(ibox,iobjdo)=-1
+              endif
+            enddo
+c             
+c             now load ones that are needed into last free box
+c             
+            do ic=1,maxuse
+              if (numberInList(izclose(ic), incore(1,iobjdo), maxAnySum, 0) .eq. 0) then
+                do ibox=1,maxAnySum
+                  if(incore(ibox,iobjdo).lt.0)ib=ibox
+                enddo
+                incore(ib,iobjdo)=izclose(ic)
+                ipt=abs(object(ibase+ipclose(ic)))
+                xbox=p_coord(1,ipt)
+                ybox=p_coord(2,ipt)
+                izbox=nint(p_coord(3,ipt))
+                call find_piece(ixpclist,iypclist,izpclist, npclist, nx, ny, nxbox,
+     &              nybox,xbox,ybox, izbox,ix0,ix1, iy0,iy1,ipcz)
+                call imposn(1,ipcz,0)
+                call irdpas(1,boxtmp,nxbox,nybox, ix0,ix1,iy0, iy1,*299)
+c                 
+c                 do subpixel shift and calculate CG and wsum value
+c                 if it is not already saved
+c                 
+                xt=nint(xbox)-xbox
+                yt=nint(ybox)-ybox
+                call qdshift(boxtmp,boxes(1, ib, iobjdo) ,nxbox, nybox,xt,yt)
+                if(wsave(izbox+1, iobjdo).lt.0.)then
+                  xtmp=0.
+                  ytmp=0.
+                  call calccg(boxes(1, ib, iobjdo),nxbox, nybox,xtmp, ytmp,  wsum)
+                  wsave(izbox+1, iobjdo) = wsum
+                endif
+c                 
+c                 Add to correlation sum
+                if (ic .le. maxsum) then
+                  inCorrSum(ib, iobjdo) = .true.
+                  corrSum(1:npixbox, iobjdo) = corrSum(1:npixbox, iobjdo) +
+     &                boxes(1:npixbox, ib, iobjdo)
+                endif
+c                 
+c                 Add to sobel sum
+                if (ic .le. maxSobelSum) then
+                  inSobelSum(ib, iobjdo) = .true.
+                  numInSobelSum(iobjdo) = numInSobelSum(iobjdo) + 1
+                  sobelSum(1:npixbox, iobjdo) = sobelSum(1:npixbox, iobjdo) +
+     &                boxes(1:npixbox, ib, iobjdo)
+                endif
+              endif
+            enddo
+          endif
+        endif
+        ipnearsav(iobjdo)=ipnearest(iobjdo)
+      enddo
+      return
+299   call errorexit('ERROR READING IMAGE FILE',0)
+      end subroutine countAndPreparePointsToDo
+
+
+c       getProjectedPositionsSetupFits
+c
+      subroutine getProjectedPositionsSetupFits()
+      real*4 cosd,sind
+c       
+c       get tentative tilt, rotation, mag for current view
+c       
+      if(ifdidalign.gt.0)then
+        ivuse=iview
+        if(mapFileToView(iview).eq.0) then
+          ivdel=200
+          do iv=1,nview
+            if(abs(mapViewToFile(iv)-iview).lt.ivdel)then
+              ivdel=abs(mapViewToFile(iv)-iview)
+              ivuse=mapViewToFile(iv)
+            endif
+          enddo
+        endif
+c         print *,'ivuse, iview', ivuse, iview
+        tiltcur=tiltorig(ivuse)+tltall(iview)-tltall(ivuse)
+        gmagcur=gmagorig(ivuse)
+        rotcur=rotorig(ivuse)
+        cosr=cosd(rotcur)
+        sinr=sind(rotcur)
+        cost=cosd(tiltcur)
+        sint=sind(tiltcur)
+        dxcur = dxysav(1,ivuse)
+        dycur = dxysav(2,ivuse)
+        if (ivuse .ne. iview .and. tiltmax .le. 80.) then
+c           
+c           if going from another view and cosine stretch is appropriate,
+c           back-rotate the dxy so tilt axis vertical, adjust the 
+c           dx by the difference in tilt angle, and rotate back
+          a = cosr * dxcur + sinr * dycur
+          b = -sinr * dxcur + cosr * dycur
+          a = a * cost / cosd(tiltorig(ivuse))
+          dxcur = cosr * a - sinr * b
+          dycur = sinr * a + cosr * b
+        endif
+        a = gmagcur * cost * cosr
+        b = - gmagcur * sinr
+        c = gmagcur * sint * cosr
+        d = gmagcur * cost * sinr
+        e = gmagcur * cosr
+        f = gmagcur * sint * sinr
+      endif
+c       
+c       now get projected positions
+c       
+      do iobjdo=1,nobjdo
+        indr=0
+        if(ifdidalign.eq.1)then
+          do ipt=1,nrealpt
+            if(iobjseq(iobjdo).eq.iobjali(ipt)) indr=iobjseq(iobjdo)
+          enddo
+        endif
+        if(indr.ne.0)then
+c           
+c           there is a 3D point for it: so project it
+c           
+          xseek(iobjdo)=a*xyzsav(1,indr)+b*xyzsav(2,indr)+ c*xyzsav(3,indr)+dxcur+xcen
+          yseek(iobjdo)=d*xyzsav(1,indr)+e*xyzsav(2,indr)+ f*xyzsav(3,indr)+dycur+ycen
+        else
+          call nextpos(iobjseq(iobjdo),ipnearest(iobjdo),idir, iznext,tltall,nfit,
+     &        minfit,iaxtilt,tiltfitmin, xseek(iobjdo),yseek(iobjdo))
+        endif
+        if (saveAllPoints) then
+          iobjSave = iobjseq(iobjdo) + (5 * ipass - 4) * maxObjOrig
+          call add_point(iobjSave,0, xseek(iobjdo), yseek(iobjdo), iznext)
+        endif
+      enddo
+c       
+c       build list of points already found for fitting; put
+c       actual positions in 4 and 5 for compatibiity with xfmodel
+c       
+      ndat=0
+      do iobjdo=1,nobjdo
+        if(iffound(iobjdo).gt.0)then
+          ndat=ndat+1
+          xr(1,ndat)=xseek(iobjdo)-xcen
+          xr(2,ndat)=yseek(iobjdo)-ycen
+          ipt=object(ibase_obj(iobjseq(iobjdo))+ ipnearest(iobjdo))
+          xr(4,ndat)=p_coord(1,ipt)-xcen
+          xr(5,ndat)=p_coord(2,ipt)-ycen
+          xr(6,ndat)=iobjdo
+        endif
+      enddo
+      return
+      end subroutine getProjectedPositionsSetupFits
+      
+
+c       findAllBeadsOnView
+c
+      subroutine findAllBeadsOnView()
+      do iobjdo=1,nobjdo
+        if(iffound(iobjdo).eq.0.or.iffound(iobjdo).eq.1)then
+c           
+c           get w criterion: average it over as many near views as
+c           possible.  maxwavg specifies both the maximum distance
+c           away in Z and the maximum number to average
+c           
+          navg=0
+          wsum=0.
+          wsumsq=0.
+          idif=1
+          do while(idif.le.maxwavg.and.navg.lt.maxwavg)
+            do idirw=-1,1,2
+              itry=iview+idirw*idif
+              if(itry.gt.0.and.itry.le.nvuall)
+     &            then
+                wstmp=wsave(itry, iobjdo)
+                if(wstmp.ge.0)then
+                  wsum=wsum+wstmp
+                  wsumsq=wsumsq+wstmp**2
+                  navg=navg+1
+                endif
+              endif
+            enddo
+            idif=idif+1
+          enddo
+          call sums_to_avgsd(wsum,wsumsq,navg,wavg,wsd)
+          wcrit(iobjdo)=min(fraccrit*wavg,wavg-sdcrit*wsd)
+          nws(iobjdo)=navg
+        endif
+c         
+        if(iffound(iobjdo).eq.0)then
+          iobj=iobjseq(iobjdo)
+          xnext=xseek(iobjdo)
+          ynext=yseek(iobjdo)
+c           
+c           if there are existing points, find right kind of transform
+c           and modify position
+c           
+          if(npioneer.gt.0.or.ndat.ge.limpshft)then
+            ifrotrans=0
+            iftrans=1
+            ndatFit = ndat
+            if (ndat .lt. npioneer + limpshft) ndatFit = npioneer
+            if(ndatFit.ge.limpstr)then
+              iftrans=0
+            elseif(ndatFit.ge.limpmag)then
+              ifrotrans=2
+            elseif(ndatFit.ge.limprot)then
+              ifrotrans=1
+            endif
+            maxDrop = nint(0.26 * ndatFit)
+            if (ndatFit .lt. 4 .or. ifdidalign.eq.0) maxDrop = 0
+            call findxf_wo_outliers(xr,msizexr, ndatFit,xcen,ycen,iftrans, ifrotrans,
+     &          maxDrop, outlieCrit,outlieCritAbs, outlieElimMin,idrop,nDrop,xf, devavg,
+     &          devsd, devmax,ipntmax)
+            call xfapply(xf,xcen,ycen,xseek(iobjdo), yseek(iobjdo), xnext,ynext)
+            if (saveAllPoints) then
+              iobjSave = iobj + (5 * ipass - 3) * maxObjOrig
+              call add_point(iobjSave, 0, xnext, ynext, iznext)
+            endif
+          endif
+c           
+          call find_piece(ixpclist,iypclist,izpclist, npclist, nx, ny, nxbox,nybox,
+     &        xnext,ynext, iznext,ix0,ix1, iy0,iy1,ipcz)
+          if(ipcz.ge.0)then
+            call lookForOneBead()
+          endif
+        endif
+      enddo
+      return
+      end subroutine findAllBeadsOnView
+
+c       lookForOneBead
+c
+      subroutine lookForOneBead()
+      integer*4 scaledSobel
+c       
+c       get image area
+c       
+      call imposn(1,ipcz,0)
+      call irdpas(1,boxtmp,nxbox,nybox,ix0,ix1,iy0,iy1,*199)
+      if(ipass.eq.1) then
+c         
+c         pad image into array on first pass, padd correlation sum into brray
+        call taperinpad(boxtmp,nxbox,nybox,array,nxpdim, nxpad, nypad, nxTaper, nyTaper)
+        call setmeanzero(array,nxpdim,nypad,nxpad, nypad)
+        call taperinpad(corrSum(1,iobjdo),nxbox,nybox,brray,nxpdim, nxpad, nypad,
+     &      nxTaper, nyTaper)
+        call setmeanzero(brray,nxpdim,nypad,nxpad, nypad)
+c         
+c         correlate the two
+c         
+        call todfft(array,nxpad,nypad,0)
+        call todfft(brray,nxpad,nypad,0)
+        call conjugateProduct(array, brray, nxpad, nypad)
+        if (deltactf .ne. 0) call filterpart(array,array,nxpad, nypad,ctf, deltactf)
+        call todfft(array,nxpad,nypad,1)
+c         
+c         find peak of correlation
+c         
+        call peakfind(array,nxpdim,nypad,xpeak,ypeak, peak)
+        if (saveAllPoints) then
+          iobjSave = iobj + (5 * ipass - 2) * maxObjOrig
+          call add_point(iobjSave, 0, nint(xnext) + xpeak, nint(ynext) + ypeak, iznext)
+        endif
+        call calccg(boxtmp,nxbox,nybox,xpeak,ypeak, wsum)
+c           
+c         Get sobel sum with enough beads in it
+        if (maxSobelSum .gt. 0) then
+          cursum(1:npixbox) = sobelSum(1:npixbox, iobjdo)
+          ninSobel = numInSobelSum(iobjdo)
+          do i = 1, nobjdo
+            if (ninSobel .ge. maxSobelSum) then
+              exit
+            endif
+            if (i .ne. iobjdo) then
+              cursum(1:npixbox) = cursum(1:npixbox) + sobelSum(1:npixbox, i)
+              ninSobel = ninSobel + numInSobelSum(i)
+            endif
+          enddo
+c           
+c           sobel filter the sum
+          ierr = scaledSobel(cursum, nxbox, nybox, scaleFacSobel, scaleByInterp,
+     &        interpType, 2., refSobel, nxSobel, nySobel, xOffSobel, yOffSobel)
+          if (ierr .ne. 0) call errorExit('DOING SOBEL FILTER ON SUMMED BEADS', 0)
+c          write(*,'(i4,13i5)')(nint(refSobel(i)),i=1,14*14)
+c           
+c           Gaussian filter the box and sobel filter it
+          if (sobelSigma .gt. 0) then
+            call applyKernelFilter(boxtmp, tmpSobel, nxbox, nxbox, nybox, matKernel,
+     &          kernelDim)
+            ierr = scaledSobel(tmpSobel, nxbox, nybox, scaleFacSobel, scaleByInterp,
+     &          interpType, 2., boxSobel, nxSobel, nySobel, xOffSobel, yOffSobel)
+          else
+            ierr = scaledSobel(boxtmp, nxbox, nybox, scaleFacSobel, scaleByInterp,
+     &          interpType, 2., boxSobel, nxSobel, nySobel, xOffSobel, yOffSobel)
+          endif
+          if (ierr .ne. 0) call errorExit('DOING SOBEL FILTER ON SEARCH BOX', 0)
+c           
+c           Taper/pad etc
+          call taperinpad(boxSobel,nxSobel,nySobel,sarray,nxspad+2, nxspad,
+     &        nyspad, nxTaper, nyTaper)
+          call setmeanzero(sarray,nxspad+2,nyspad,nxspad, nyspad)
+          call taperinpad(refSobel,nxSobel,nySobel,sbrray,nxspad+2, nxspad, nyspad,
+     &        nxTaper, nyTaper)
+          call setmeanzero(sbrray,nxspad+2,nyspad,nxspad, nyspad)
+c           
+c           correlate the two
+          call todfft(sarray,nxspad,nyspad,0)
+          call todfft(sbrray,nxspad,nyspad,0)
+          call conjugateProduct(sarray, sbrray, nxspad, nyspad)
+          call todfft(sarray,nxspad,nyspad,1)
+c
+c           get the peaks and adjust them for the sobel scaling
+c           get the centroid offset of the average and use it to adjust the positions too
+c           the original offsets from scaledsobel are irrelevant to correlation
+          call xcorrPeakFind(sarray, nxspad+2, nyspad, sobelXpeaks(1, iobjdo),
+     &        sobelYpeaks(1, iobjdo), sobelPeaks(1, iobjdo), maxPeaks)
+          call calccg(cursum, nxbox, nybox, xOffSobel, yOffSobel, xtmp)
+c          write(*,'(2i5,a,2f7.2)')iobjdo,ninSobel,'  Sobel average offset',xOffSobel, yOffSobel
+          sobelWsums(1:maxPeaks, iobjdo) = -1.
+          sobelXpeaks(1:maxPeaks, iobjdo) = sobelXpeaks(1:maxPeaks, iobjdo) *
+     &        scaleFacSobel + xOffSobel
+          sobelYpeaks(1:maxPeaks, iobjdo) = sobelYpeaks(1:maxPeaks, iobjdo) *
+     &        scaleFacSobel + yOffSobel
+c          do i = 1, maxpeaks
+c            if (sobelPeaks(i, iobjdo) .gt. -1.e29)
+c     &          write(*,'(2f7.2,f13.2)')sobelXpeaks(i, iobjdo),sobelYpeaks(i, iobjdo),sobelPeaks(i, iobjdo)
+c          enddo
+
+c           Revise position of current peak
+          call findNearestSobelPeak()
+        endif
+
+        dist=sqrt(xpeak**2+ypeak**2)
+        if (saveAllPoints) then
+          iobjSave = iobj + (5 * ipass - 1) * maxObjOrig
+          call add_point(iobjSave, 0, nint(xnext) + xpeak, nint(ynext) + ypeak, iznext)
+        endif
+      endif
+      if(nws(iobjdo).gt.2.and.(wsum.lt.wcrit(iobjdo)
+     &    .or. dist.gt.distcrit .or. ipass.eq.2))then
+c         
+c         rescue attempt; search concentric rings from the
+c         center of box and take the first point that goes
+c         above the relaxed wsum criterion
+c         
+        if(ipass.eq.1)then
+          if(dist.gt.distcrit)then
+            relax=relaxdis
+            if(iftrace.ne.0)
+     &          write(*,102)'distance',iznext,dist,wsum,wavg,wsd
+102         format(' Rescue-',a,', sec',i4,', dist=',f5.1,
+     &          ', dens=',f9.0,', mean,sd=',f9.0,f7.0)
+          else
+            relax=relaxint
+            if(iftrace.ne.0)
+     &          write(*,102)'density ',iznext,dist,wsum,wavg,wsd
+          endif
+          radmax=max(nxbox,nybox)
+        else
+          relax=relaxfit
+          radmax=radmaxfit
+        endif
+c        if (maxSobelSum .gt. 0) then
+c          call rescueFromSobel(boxtmp,nxbox,nybox, xpeak, ypeak, sobelXpeaks(1, iobjdo),
+c     &        sobelYpeaks(1, iobjdo), sobelPeaks(1, iobjdo), sobelWsums(1, iobjdo),
+c     &        maxpeaks, radmax,relax*wcrit(iobjdo), wsum)
+c        else
+          call rescue(boxtmp,nxbox,nybox,xpeak,ypeak, radmax,relax*wcrit(iobjdo), wsum)
+        if (maxSobelSum .gt. 0) call findNearestSobelPeak()
+c      endif
+      elseif(ipass.eq.2)then
+        wsum=0.
+      endif
+c       
+c       
+c       
+      if(wsum.ne.0.)then
+        wsave(iview, iobjdo) = wsum
+        xpos=nint(xnext)+xpeak
+        ypos=nint(ynext)+ypeak
+        if(iftrace.ne.0)
+     &      write(*,'(3i5,4f7.1,2f12.0)')nzout,iznext,iobj,
+     &      xnext, ynext, xpos,ypos,peak,wsum
+c         
+c         add point to model
+c         
+        call add_point(iobj,ipnearest(iobjdo), xpos,ypos,iznext)
+        if (saveAllPoints) then
+          iobjSave = iobj + (5 * ipass) * maxObjOrig
+          call add_point(iobjSave, 0, xpos, ypos, iznext)
+        endif
+        nadded=nadded+1
+        iobjdel(nadded)=iobj
+c         
+c         mark as found, add to data matrix for alignment
+c         
+        iffound(iobjdo)=1
+        ndat=ndat+1
+        xr(1,ndat)=xseek(iobjdo)-xcen
+        xr(2,ndat)=yseek(iobjdo)-ycen
+        xr(4,ndat)=xpos-xcen
+        xr(5,ndat)=ypos-ycen
+        xr(6,ndat)=iobjdo
+c         
+        if(filout.ne.' ')then
+          if (modebox .eq. 2) then
+            call iclden(boxtmp,nxbox,nybox,1, nxbox, 1, nybox,tmin,tmax,tmean)
+          else
+            call isetdn(boxtmp,nxbox,nybox,modebox,1, nxbox, 1, nybox,tmin,tmax,tmean)
+          endif
+          call iwrsec(2,boxtmp)
+          boxmin=min(boxmin,tmin)
+          boxmax=max(boxmax,tmax)
+          boxsum=boxsum+tmean
+          nzout=nzout+1
+          boxtmp(1:npixbox) = corrSum(1:npixbox,iobjdo)
+          if (modebox .eq. 2) then
+            call iclden(boxtmp,nxbox,nybox,1, nxbox, 1, nybox,tmin,tmax,tmean)
+          else
+            call isetdn(boxtmp,nxbox,nybox,modebox,1, nxbox, 1, nybox,tmin,tmax,tmean)
+          endif
+          call iwrsec(3,boxtmp)
+          refmin=min(refmin,tmin)
+          refmax=max(refmax,tmax)
+          refsum=refsum+tmean
+          call splitpack(array,nxpdim,nxpad,nypad,boxtmp)
+          if (modebox .eq. 2) then
+            call iclden(boxtmp,nxpad,nypad,1, nxpad, 1, nypad,tmin,tmax,tmean)
+          else
+            call isetdn(boxtmp,nxpad,nypad,modebox,1, nxpad, 1, nypad,tmin,tmax,tmean)
+          endif
+          call iwrsec(4,boxtmp)
+          cormin=min(cormin,tmin)
+          cormax=max(cormax,tmax)
+          corsum=corsum+tmean
+          write(2,'(3i6)')nint(xnext)-nxbox/2, nint(ynext)-nybox/2,iznext
+          write(3,'(3i6)')nint(xnext)-nxpad/2, nint(ynext)-nypad/2,iznext
+        endif
+      endif
+      return
+199   call errorexit('ERROR READING IMAGE FILE',0)
+      end subroutine lookForOneBead
+
+
+c       Find the sobel peak nearest to the current position (xpeak, ypeak) that is
+c       valid and still reasonably strong, and substitute for xpeak, ypeak
+      subroutine findNearestSobelPeak()
+      integer*4 ibest
+      real*4 distmin, peakmax, xpcen, ypcen, reducefac
+      dist = sqrt(xpeak**2 + ypeak**2)
+      xpcen = 0.
+      ypcen = 0.
+      if (dist .gt. 0.1) then
+        reduceFac = 1. - min(distmin, diameter) / dist
+        xpcen = reduceFac * xpeak
+        ypcen = reduceFac * ypeak
+      endif
+      ibest = 0
+      peakmax = -1.e30
+      distmin = 1.e20
+      do i = 1, maxpeaks
+        call checkSobelPeak(i, boxtmp, nxbox, nybox, sobelXpeaks(1, iobjdo),
+     &      sobelYpeaks(1, iobjdo), sobelPeaks(1, iobjdo), sobelWsums(1, iobjdo), 
+     &      maxpeaks)
+c         if (sobelPeaks(i, iobjdo) .gt. -1.e29)
+c         &          write(*,'(2f7.2,2f13.2)')sobelXpeaks(i, iobjdo),sobelYpeaks(i, iobjdo),sobelPeaks(i, iobjdo), sobelWsums(1, iobjdo)
+            
+        if (sobelWsums(i, iobjdo) .gt. 0) then
+          if (peakmax .lt. -1.e29) peakmax = sobelPeaks(i, iobjdo)
+          if (sobelPeaks(i, iobjdo) .lt. minPeakRatio * peakmax) then
+            exit
+          endif
+          dist = (sobelXpeaks(i, iobjdo) - xpcen)**2 + (sobelYpeaks(i, iobjdo) - ypcen)**2
+          if (dist .lt. distmin) then
+            distmin = dist
+            ibest = i
+          endif
+        endif
+      enddo
+      if (ibest .eq. 0) return
+      xpeak = sobelXpeaks(ibest, iobjdo)
+      ypeak = sobelYpeaks(ibest, iobjdo)
+c      wsum = sobelWsums(ibest, iobjdo)
+c         print *,ibest,xpeak,ypeak,wsum
+      return
+      end subroutine findNearestSobelPeak
+
+       
+c       redoFitsEvaluateResiduals
+c       
+      subroutine redoFitsEvaluateResiduals()
+      if(ndat.ge.limpshft)then
+        ifrotrans=0
+        iftrans=1
+        if(ndat.ge.limpstr)then
+          iftrans=0
+        elseif(ndat.ge.limpmag)then
+          ifrotrans=2
+        elseif(ndat.ge.limprot)then
+          ifrotrans=1
+        endif
+        maxDrop = nint(0.26 * ndat)
+        if (ndat .lt. 4 .or. ifdidalign.eq.0) maxDrop = 0
+        call findxf_wo_outliers(xr,msizexr,ndat,xcen,ycen,iftrans, ifrotrans,maxDrop,
+     &      outlieCrit,outlieCritAbs, outlieElimMin,idrop,nDrop,xf, devavg,devsd,
+     &      devmax,ipntmax)
+        write(*,113)iview,ipass,ndat,ndrop,devavg,devsd,devmax
+113     format('view',i4,', pass',i2,',',i4,
+     &      ' points (-', i3,'), mean, sd, max dev:' ,3f8.2)
+        if (ifdidalign .ne. 0) then
+          dxcur = dxcur + xf(1,3)
+          dycur = dycur + xf(2,3)
+        endif
+      endif
+c       
+c       do tiltali if anything changed, so can get current residuals
+c       
+      if(nadded.gt.0)then
+        if (ifdidalign .ne. 0 .and. ivuse .ne. iview) then
+          dxysav(1, iview) = dxcur
+          dxysav(2, iview) = dycur
+        endif
+        call tiltali(ifdidalign, ifAlignDone, resmean(1,ivseq),  iview)
+        if (ifdidalign .ne. 0) ivsOnAlign = ivseq
+      endif
+      if (itemOnList(iview, ivSnapList, nSnapList)) then
+        call int_iwrite(listString, iview, ndel)
+        write(plfile, '(a,a,a,i1)')'.',listString(1:ndel),'.',ipass
+        call scale_model(1)
+        call write_wmod(concat(modelfile, plfile))
+        call scale_model(0)
+      endif
+      nadtmp=nadded
+      nadded=0
+      ntodo=0
+      ndel=0
+      if(nadtmp.gt.0)then
+        ntodo=0
+        do iobjdo=1,nobjdo
+          if(iffound(iobjdo).eq.0)ntodo=ntodo+1
+          if(iffound(iobjdo).eq.1)then
+            iobj=iobjseq(iobjdo)
+            errmax=0.
+c             if(ipass.eq.1)then
+            indr=0
+c             
+c             find point in the tiltalign, get its residual
+c             
+            if(ifdidalign.eq.1)then
+              do ipt=1,nrealpt
+                if(iobj.eq.iobjali(ipt))indr=ipt
+              enddo
+            endif
+            if(indr.ne.0)then
+              ivlook=mapFileToView(iview)
+              ipt=irealstr(indr)
+              do while(ipt.lt.irealstr(indr+1).and. errmax.eq.0.)
+                if(isecview(ipt).eq.ivlook)errmax=scalexy*
+     &              sqrt(xresid(ipt)**2+yresid(ipt)**2)
+                ipt=ipt+1
+              enddo
+            endif
+c             
+c             When no tiltalign available, just redo the point with
+c             highest deviation?  No, projections could be lousy.
+c             
+c             if(ifdidalign.eq.0.and.ndat.ge.limpshft)then
+c             do i=1,ndat
+c             if(nint(xr(6,i)).eq.iobjdo.and.xr(13,i).gt.
+c             &                           0.99*devmax)errmax=xr(13,i)
+c             enddo
+c             endif
+c             
+c             endif
+            ifmeanbad=0
+c             
+c             see if mean residual has gotten a lot bigger
+c             
+            if(ifdidalign.eq.1)then
+              iscur=ivseq-1
+              nprev=0
+              do while(nprev.le.maxresid.and.iscur.gt.0)
+                if(resmean(iobj, iscur).gt.0.)then
+                  nprev=nprev+1
+                  prevres(nprev)=resmean(iobj, iscur )
+                endif
+                iscur=iscur-1
+              enddo
+              if(nprev.gt.minresid)then
+                curdif=resmean(iobj, ivseq)-prevres(1)
+                do i=1,nprev-1
+                  prevres(i)=prevres(i)-prevres(i+1)
+                enddo
+                call avgsd(prevres,nprev-1,resavg,ressd, ressem)
+                if(curdif.gt.resdifmin.and.(curdif-resavg)/
+     &              ressd.gt.resdifcrit .and. errmax .gt. curResMin)
+     &              ifmeanbad=1
+              endif
+            endif
+c             
+c             if error greater than criterion after pass 1, or mean
+c             residual has zoomed on either pass, delete point for
+c             next round
+c             
+            if ((ipass .eq. 1 .and. errmax.gt.fitdistcrit)
+     &          .or.ifmeanbad.eq.1)then
+c               write(*,'(i3,f7.2,4f10.5)')iobj,errmax,
+c               &                  resmean(iobj,ivseq), curdif,resavg,ressd
+              wsave(iview, iobjdo) = -1.
+              resmean(iobj,ivseq) = -1.
+              ibase=ibase_obj(iobj)
+              do ip=ibase+ipnearest(iobjdo)+1,
+     &            ibase+npt_in_obj(iobj)
+                object(ip-1)=object(ip)
+              enddo
+              npt_in_obj(iobj)=npt_in_obj(iobj)-1
+              iffound(iobjdo)=0
+              ntodo=ntodo+1
+              ipnearest(iobjdo)=ipnearsav(iobjdo)
+              ndel=ndel+1
+              iobjdel(ndel)=iobj
+            endif
+          endif
+        enddo
+        nadded=ndel
+        if(ndel.ne.0)then
+          if(ipass.eq.1)then
+            write(*,delfmt1)ndel,(iobjdel(i),i=1,ndel)
+          else
+            write(*,delfmt2)ndel,(iobjdel(i),i=1,ndel)
+            nadded=0
+            call tiltali(ifdidalign, ifAlignDone, resmean(1,ivseq),  iview)
+            if (ifdidalign .ne. 0) ivsOnAlign = ivseq
+          endif
+        endif
+      endif
+      return
+      end subroutine redoFitsEvaluateResiduals
+
       end
 
       subroutine errorexit(message, iflocal)
@@ -1798,108 +2051,3 @@ c
       write(*,'(/,a,a)')'ERROR: BEADTRACK - ', message
       call exit(1)
       end
-
-c       
-c       
-c       $Log$
-c       Revision 3.34  2010/06/02 21:09:01  mast
-c       Switch to new surfaceSort function
-c
-c       Revision 3.33  2010/05/28 19:32:55  mast
-c       Enhance error message when box size too large
-c
-c       Revision 3.32  2010/02/28 22:15:38  mast
-c       Fixed problem initializing wsum values on each area
-c
-c       Revision 3.31  2008/12/14 18:59:29  mast
-c       Don't cosine-adjust displacement in transferring from one view to next
-c       when max tilt angle is > 80; initialize dxy for next view
-c
-c       Revision 3.30  2008/12/03 03:31:48  mast
-c       Take in true diameter, and a binning value
-c
-c       Revision 3.29  2008/06/22 20:49:43  mast
-c       Added residual output to top/bottom list
-c
-c       Revision 3.28  2008/06/22 04:53:18  mast
-c       Comment out debugging output
-c
-c       Revision 3.27  2008/06/21 19:25:35  mast
-c       Added option to list surfaces beads are on
-c
-c       Revision 3.26  2008/03/04 21:23:50  mast
-c       Changed to allow huge numbers of points as long as local areas are
-c       used, improved handling of boxes to relieve memory restrictions there
-c
-c       Revision 3.25  2007/11/18 04:57:17  mast
-c       Redeclared concat at 320
-c
-c       Revision 3.24  2006/10/05 19:38:28  mast
-c       Exit with error if seed model is empty
-c
-c       Revision 3.23  2006/06/29 04:53:31  mast
-c       Set up to use small model
-c
-c       Revision 3.22  2006/04/10 23:43:28  mast
-c       Fixed use of uninitialized variable in error check
-c
-c       Revision 3.21  2006/02/27 06:15:03  mast
-c       Increased maximum box size and added error check
-c
-c       Revision 3.20  2005/12/09 04:43:27  mast
-c       gfortran: .xor., continuation, format tab continuation or byte fixes
-c
-c       Revision 3.19  2005/10/11 21:34:38  mast
-c       Update fallbacks
-c       
-c       Revision 3.18  2005/08/15 05:00:38  mast
-c       Increased limit for box array to allow 500 beads at 48x48
-c       
-c       Revision 3.17  2005/07/06 20:42:15  mast
-c       Removed unneeded repack calls and a ;
-c       
-c       Revision 3.16  2005/05/12 23:53:52  mast
-c       Increased limit for pixels inside centroid radius to allow ~100 pixel
-c       beads
-c       
-c       Revision 3.15  2005/04/26 18:45:08  mast
-c       Fixed to work with fewer than 8 points with default params
-c       
-c       Revision 3.14  2005/04/11 19:11:28  mast
-c       Make it ignore multiple objects when there are only two views
-c       
-c       Revision 3.13  2005/04/09 04:28:34  mast
-c       Changed default rotation mapping to 1 for full compatibility
-c       
-c       Revision 3.12  2005/04/08 15:26:06  mast
-c       Fixed a line toolong
-c       
-c       Revision 3.11  2005/04/08 04:21:59  mast
-c       Only drop outliers if fit is based on tiltalign positions
-c       
-c       Revision 3.10  2005/04/07 04:15:41  mast
-c       Fixing some output
-c       
-c       Revision 3.9  2005/04/07 03:56:31  mast
-c       New version with local tracking, new mapping, outliers, etc.
-c       
-c       Revision 3.6  2003/06/21 00:39:26  mast
-c       Changed to use new version of get_tilt_angles
-c       
-c       Revision 3.5  2003/05/20 23:42:09  mast
-c       Add space before wrlist output
-c       
-c       Revision 3.4  2003/04/11 17:28:42  mast
-c       added cgx, cgy to tltcntrl common to make them available to tiltali
-c       
-c       Revision 3.3  2002/07/28 22:55:53  mast
-c       Scale model coordinates correctly in Z; standardize error output
-c       
-c       Revision 3.2  2002/05/07 02:01:33  mast
-c       Changes to accommodate distinction in tiltalign between views in
-c       solution and views in file
-c       
-c       Revision 3.1  2002/01/07 22:35:15  mast
-c       Increased dimension for centroid calculation pixel lists, and added
-c       checks to catch errors in future
-c       

@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 
   // Fallbacks from   ../manpages/autodoc2man 2 1 ctfphaseflip
   int numOptions = 17;
-  char *options[] = {
+  const char *options[] = {
     "input:InputStack:FN:", "output:OutputFileName:FN:", "angleFn:AngleFile:FN:",
     "invert:InvertTiltAngles:B:", "defFn:DefocusFile:FN:", "xform:TransformFile:FN:",
     "defTol:DefocusTol:I:", "iWidth:InterpolationWidth:I:", "pixelSize:PixelSize:F:",

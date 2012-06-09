@@ -11,75 +11,51 @@ c
 c       David Mastronarde  March 1989
 c       
 c       $Id$
-c       Log and history at end of file
-c
-c       MEMORY ANALYSIS:
+c       Really old history at end of file
 c       
-c       Variables in alivar.inc:
-c       5 * 4 * maxprojpt
-c       33 * 4 * maxview
-c       4 * 4 * maxreal
-c       
-c       Variables here:
-c       6 * 4 * maxprojpt
-c       3 * 4 * maxvar = 21 * 4 * maxview
-c       22 * 4 * maxview
-c       13 * 4 * maxreal
-c       4 * maxmetro*(maxmetro+4)
-c       
-c       44 * maxprojpt  = 6.2 M
-c       304 * maxview   = 0.2 M
-c       68 * maxreal    = 0.07 M
-c       55 M for maxmetro
-c       
-c       Note: IF MAXVAR IS NOT BIGGER THAN MAXMETRO, NEED TO DIMENSION
-c       var to maxmetro
-c       
+      program tiltalign
+      use alivar
       implicit none
-      include 'alivar.inc'
-      integer maxvar,maxmetro
-      parameter (maxvar=7*maxview)
-      parameter (maxmetro=3700)
+      integer maxvar, maxh, maxtemp
 c       
-      integer*4 ninreal(maxreal),igroup(maxreal)
-      integer*4 imodobj(maxreal),imodcont(maxreal)
-      real*4 var(maxvar),varerr(maxvar),xyzerr(3,maxreal)
-      real*4 grad(maxmetro),h(maxmetro*(maxmetro+3))
-      character*8 varname(maxvar)
-      double precision error
-      real*4 erlist(100),tiltorig(maxview),viewres(maxview)
-      integer*4 ninview(maxview),indsave(maxprojpt),jptsave(maxprojpt)
-      real*4 errsave(maxprojpt) 
-      real*4 viewerrsum(maxview),viewerrsq(maxview)
-      real*4 viewmeanres(maxview),viewsdres(maxview)
+      integer*4, allocatable :: ninreal(:),igroup(:)
+      integer*4, allocatable :: imodobj(:),imodcont(:)
+      real*4, allocatable :: var(:),varerr(:), grad(:), h(:)
+      character*8, allocatable :: varname(:)
+      double precision error, errorScan(-20:20)
+      real*4, allocatable :: tiltorig(:),viewres(:),xyzerr(:,:)
+      integer*4, allocatable :: ninview(:),indsave(:),jptsave(:)
+      real*4, allocatable :: errsave(:) 
+      real*4, allocatable :: viewerrsum(:),viewerrsq(:)
+      real*4, allocatable :: viewmeanres(:),viewsdres(:)
       
       logical ordererr,nearbyerr
       character*320 modelfile,residualfile,pointFile,unadjTiltFile
 c       
-      real*4 fl(2,3,maxview),fa(2,3),fb(2,3),fc(2,3),fpstr(2,3)
+      real*4, allocatable :: fl(:,:,:)
+      real*4 fa(2,3),fb(2,3),fc(2,3),fpstr(2,3)
 c       
-      real*4 xzfac(maxview),yzfac(maxview)
-      real*4 allxyz(3,maxreal)
-      real*4 allxx(maxprojpt),allyy(maxprojpt)
-      real*4 glbfl(2,3,maxview),glbxzfac(maxview),glbyzfac(maxview)
-      integer*4 iallsecv(maxprojpt),iallrealstr(maxreal),listreal(maxreal)
-      integer*4 indallreal(maxreal),mapAllToLocal(maxview)
-      integer*4 mapLocalToAll(maxview)
-      integer*4 mallFileToView(maxview), mallViewToFile(maxview)
+      real*4, allocatable :: xzfac(:),yzfac(:)
+      real*4, allocatable :: allxyz(:,:)
+      real*4, allocatable :: allxx(:),allyy(:)
+      real*4, allocatable :: glbfl(:,:,:),glbxzfac(:),glbyzfac(:)
+      integer*4, allocatable :: iallsecv(:),iallrealstr(:),listreal(:)
+      integer*4, allocatable :: indallreal(:),mapAllToLocal(:)
+      integer*4, allocatable :: mapLocalToAll(:)
+      integer*4, allocatable :: mallFileToView(:), mallViewToFile(:)
 c       
-      logical firsttime,xyzfixed,toofewfid,useTarget
-      common /functfirst/ firsttime,xyzfixed
-      integer*4 ncycle/500/,nsolve/95/
+      logical toofewfid,useTarget, dirDone(-1:1)
+      integer*4 ncycle/500/
       real*4 DTOR/0.0174532/
 c       
-      integer*4 nlocalres,nsurface,iwhichout,metroerror,isolmin,i,itry
+      integer*4 nlocalres,nsurface,iwhichout,metroerror,i,itry
       integer*4 inputalf,mapalfend,ifvarout,ifresout,ifxyzout,iflocal
-      integer*4 isolmininit,iv,nvarsrch,nvargeom,index,nvarang,nvarscl
-      real*4 errcrit,facm,znew,xtiltnew,scalexy,ermin,ermininit,errsum
+      integer*4 iv,nvarsrch,nvargeom,index,nvarang,nvarscl
+      real*4 errcrit,facm,znew,xtiltnew,scalexy,errsum
       real*4 errsqsm,residerr,vwerrsum,vwerrsq,sxoz,szox,sxox,szoz
       real*4 xo,zo,xshft,zshft,rollpts,costh,sinth,xtmp,compinc,compabs
       integer*4 nvadd,ninvsum,ivst,ivnd,iunit2,nunknowtot,iunit
-      real*4 unkrat,tiltout,zmin,zmax,zmiddle,dysum,cosphi,sinphi
+      real*4 unkrat,tiltout,zmin,zmax,zmiddle,dysum
       real*4 dyavg,offmin,dxmid,offsum,dxtry,xtfac,xtconst,off,yshft
       integer*4 j,iuangle,iuxtilt,ndxtry,iunlocal,nallrealpt,localv,ll
       integer*4 mapalfstart,nord,jpt,npatchx,npatchy,ivt,ipt,nAllView
@@ -87,27 +63,26 @@ c
       real*4 errmean,errsd,errnosd,tiltmax,fixedmax,xsum,ysum,zsum
       integer*4 idxpatch,idypatch,ipatchx,ipatchy,ixspatch,iyspatch
       integer*4 nxp,nyp,minsurf,nbot,ntop,ixmin,ixmax,iymin,iymax,kk
-      integer*4 nprojpt,imintilt,ncompsrch,maptiltstart,isolve,ifBTSearch
+      integer*4 nprojpt,imintilt,ncompsrch,maptiltstart,ifBTSearch
       real*4 xcen,ycen,ffinal,dxmin,tmp,tiltnew,fixeddum,tiltadd,allBorder
-      integer*4 ixtry,itmp,iord,ixpatch,iypatch,ivdel,ierr,ifZfac
-      integer*4 nxTarget, nyTarget
+      integer*4 ixtry,itmp,iord,ixpatch,iypatch,ierr,ifZfac, ifDoRobust
+      integer*4 nxTarget, nyTarget, minInitError, minResRobust, minLocalResRobust
       real*4 xpmin,ypmin,xdelt,projStrFactor, projStrAxis
       real*4 dmat(9),xtmat(9),ytmat(9),prmat(4),rmat(9),costmp,sintmp
-      real*4 afac, bfac, cfac, dfac, efac, ffac, cosalf, sinalf, cosbet
-      real*4 sinbet, cosdel, sindel,denom, unkrat2, angles(3), cos2rot,sin2rot
+      real*4 afac, bfac, cfac, dfac, efac, ffac, cosalf, sinalf, cosbet, rotScanErrCrit
+      real*4 sinbet, cosdel, sindel,denom, unkrat2, cos2rot,sin2rot
       real*4 a11, a12, a21, a22, xzOther, yzOther, errsumLocal, errLocalMin
-      real*4 errLocalMax,beamInv(9), beamMat(9), cosBeam, sinBeam, allYmax
-      real*4 binStepIni, binStepFinal, scanStep, allXmin, allXmax, allYmin
-      real*8 pmat(9)
-      integer*4 imageBinned, nunknowtot2, ifDoLocal, ninThresh
-      real*4 atand,sind,cosd
-      integer*4 nearest_view,lnblnk
+      real*4 errLocalMax,beamInv(9), beamMat(9), cosBeam, sinBeam, allYmax, rotEntered
+      real*4 binStepIni, binStepFinal, scanStep, allXmin, allXmax, allYmin, rotIncForInit
+      real*8 pmat(9), wgtErrSum, wallTime, wallStart
+      integer*4 imageBinned, nunknowtot2, ifDoLocal, ninThresh, numInitSteps
+      character*20 message
       character*320 concat
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
-      integer*4 PipGetInteger,PipGetBoolean, PipGetThreeIntegers
-      integer*4 PipGetString,PipGetFloat, PipGetTwoIntegers, PipGetTwoFloats
+      integer*4 PipGetInteger,PipGetBoolean
+      integer*4 PipGetString,PipGetFloat,PipGetTwoIntegers
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  tiltalign
 c       
@@ -161,10 +136,14 @@ c
      &    ':LocalSkewMapping:IAM:@:XTiltMapping:IAM:@'//
      &    ':LocalXTiltMapping:IAM:@param:ParameterFile:PF:@help:usage:B:'
 c       
+      maxtemp = 10000
       nlocalres=50
-      firsttime=.true.
       xyzfixed=.false.
       toofewfid=.false.
+      kfacRobust = 4.68
+      minResRobust = 100
+      minLocalResRobust = 50
+      ifDoRobust = 0
       incrgmag=0
       incrdmag=0
       incrskew=0
@@ -180,6 +159,8 @@ c
       binStepFinal = 0.25
       scanStep = 0.02
       ninThresh = 3
+      rotIncForInit = 10.
+      rotScanErrCrit = 5.
 c       
 c       set this to 1 to get inputs for X-axis tilting from sequential input
 c       
@@ -192,29 +173,50 @@ c
      &    numNonOptArg)
       pipinput = numOptArg + numNonOptArg .gt. 0
 c       
-      iuxtilt=inputalf
-      call input_model(xx,yy,isecview,maxprojpt,maxreal,irealstr,
-     &    ninreal,imodobj,imodcont,nview,nprojpt, nrealpt,iwhichout,
-     &    xcen,ycen, xdelt, mapviewtofile,mapfiletoview,nfileviews,
-     &    modelfile, residualFile, pointFile, iuangle,iuxtilt,pipinput)
+c       Do temporary allocations for imodobj,imodcont,listz needed here
+      allocate(iallRealStr(maxtemp), indAllReal(maxtemp), listReal(maxtemp), stat=ierr)
+      call memoryError(ierr, 'TEMPORARY OVERSIZED ARRAYS')
 c       
-      if(nview.gt.maxview)call errorexit('TOO MANY VIEWS FOR ARRAYS',
-     &    0)
-
+      iuxtilt=inputalf
+      call input_model(iallRealStr, indAllReal, nprojpt, iwhichout, xcen,ycen, xdelt, 
+     &    listReal, maxtemp, modelfile, residualFile, pointFile, iuangle,iuxtilt,pipinput)
+c       
+c       Get things into the actual arrays now
+      allocate(imodobj(maxreal), imodcont(maxreal), stat=ierr)
+      call memoryError(ierr, 'ARRAYS FOR OBJECT/CONTOUR #s')
+      imodobj(1:nrealpt) = iallRealStr(1:nrealpt)
+      imodcont(1:nrealpt) = indAllReal(1:nrealpt)
+      mapViewToFile(1:nview) = listReal(1:nview)
+      deallocate(iallRealStr, indAllReal, listReal)
+c
+c       Do big allocations
+      print *,maxreal, maxview,maxprojpt
+      allocate(ninreal(maxreal),igroup(maxreal), 
+     &    tiltorig(maxview),viewres(maxview),xyzerr(3,maxreal),
+     &    ninview(maxview),indsave(maxprojpt),jptsave(maxprojpt),
+     &    errsave(maxprojpt), viewerrsum(maxview),viewerrsq(maxview),
+     &    viewmeanres(maxview),viewsdres(maxview),
+     &    fl(2,3,maxview), xzfac(maxview),yzfac(maxview),
+     &    allxyz(3,maxreal), allxx(maxprojpt),allyy(maxprojpt),
+     &    glbfl(2,3,maxview),glbxzfac(maxview),glbyzfac(maxview),
+     &    iallsecv(maxprojpt),iallrealstr(maxreal),listreal(maxreal),
+     &    indallreal(maxreal),mapAllToLocal(maxview), mapLocalToAll(maxview),
+     &    mallFileToView(maxview), mallViewToFile(maxview), stat=ierr)
+      call memoryError(ierr, 'MAIN PROGRAM ARRAYS')
+c       
+c       Allocate the variable arrays to maximum plausible size
+      maxvar = 7 * maxview + 3 * maxreal
+      allocate(var(maxvar), varerr(maxvar), grad(maxvar), varname(7 * maxview), stat=ierr)
+      call memoryError(ierr, 'VARIABLE ARRAYS')
+      
       do i = 1, nrealpt
         listreal(i) = i
+        ninreal(i) = irealstr(i+1) - irealstr(i)
       enddo
-      call countNumInView(listreal, nrealpt, irealstr, isecview, nview,
-     &    ninview)
+      call countNumInView(listreal, nrealpt, irealstr, isecview, nview, ninview)
       call input_vars(var,varname,inputalf,nvarsrch,nvarang,nvarscl,
      &    imintilt, ncompsrch,0,maptiltstart,mapalfstart,mapalfend,ifBTSearch,
-     &    tiltorig, tiltadd,pipinput,.false.,ninview,ninThresh)
-c       
-c       TODO: is this OK to delete?
-c      do i=1,nview
-c        viewres(i)=0.
-c        ninview(i)=0
-c      enddo
+     &    tiltorig, tiltadd,pipinput,ninview,ninThresh, rotEntered)
 c       
       facm=0.5
       if (pipinput) then
@@ -227,6 +229,9 @@ c
         ierr = PipGetInteger('SurfacesToAnalyze', nsurface)
         ierr = PipGetFloat('MetroFactor', facm)
         ierr = PipGetInteger('MaximumCycles', ncycle)
+        ierr = PipGetBoolean('RobustFitting', ifDoRobust)
+        ierr = PipGetTwoIntegers('MinWeightGroupSizes', minResRobust, minLocalResRobust)
+        ierr = PipGetFloat('KFactorForWeights', kfacRobust)
         ierr = PipGetFloat('AxisZShift', znew)
         ierr = PipGetFloat('AxisXShift', xtiltnew)
         ierr = PipGetInteger('ImagesAreBinned', imageBinned)
@@ -291,84 +296,193 @@ c
         yy(i)=yy(i)/scalexy
       enddo
 c       
-c       call ye olde init_dxy to get initial dx and dy, and solve_xyzd to
-c       get initial values of x,y,z
-c       NOTE that these routines are probably more complicated than necessary
-c       to get the minimization going; they were written for an earlier
-c       attempt to solve for alignment variables and were simply adopted here
-c       without assessing their necessity.  They do start the process out
-c       with x,y,z values that are nearly correct for the initial angles.
+c       Get the h array big enough for the solution and for temporary arrays in solveXyzd
+      maxvar = nvarsrch + 3 * nrealpt
+      maxh = max((maxvar + 3) * maxvar, 9 * maxreal**2 + 36 * maxreal)
+      allocate(h(maxh), stat=ierr)
+      call memoryError(ierr, 'ARRAY FOR H MATRIX')
 c       
-c       try either with initial dxy solved to equalize centroids section-to-
-c       section, or with dxy 0.  Find which way gives lowest error somewhere
-C       along the line, and redo it that way to do just the best number of
-c       iterations
+c       call new solveXyzd to get initial values of x,y,z
 c       
       call remap_params(var)
-c       
-c       initial trial with call to INIT_DXY
-c       
-      call init_dxy(xx,yy,isecview,irealstr,
-     &    nview,nrealpt,imintilt,dxy)
-c       
-      do itry=1,2
+      wallStart = wallTime()
+      if (nrealpt .gt. 1) then
+        numInitSteps = ceiling(90. / rotIncForInit)
+        dirDone = .false.
 c         
-c         second time through, save minimum error and iteration # from
-c         first trial that used call to init_dxy
-c         
-        if (itry .eq. 2) then
-          isolmininit=isolmin
-          ermininit=ermin
-        endif
-c         
-        call solve_xyzd(xx,yy,isecview,irealstr,nview, nrealpt,tilt,rot,
-     &      gmag,comp,xyz,dxy,nsolve,error,erlist,isolve)
-c         
-c         find iteration with minimum error
-c         
-        ermin=1.e30
-        do i=1,isolve-1
-          if(erlist(i).lt.ermin)then
-            isolmin=i
-            ermin=erlist(i)
-          endif
+c         Scan around the given initial rotation, going in each direction until an
+c         error is reached that is a criterion ratio bigger than the current minimum 
+        do itry = 0, numInitSteps
+          do iv = -1, 1, 2
+            index = iv * itry
+            if (itry .gt. 0 .and. .not. dirDone(iv)) then
+              if (errorScan(iv * (itry - 1)) .gt.
+     &            rotScanErrCrit * errorScan(minInitError)) dirDone(iv) = .true.
+            endif
+            if (dirDone(iv) .or. index .eq. numInitSteps) cycle
+            call solveXyzd(xx,yy,isecview,irealstr,nview, nrealpt,tilt,rot,
+     &          gmag,comp,xyz,dxy, dtor * rotIncForInit * index, h, maxh,error, ierr)
+            if (itry .eq. 0) then
+              if (ierr .ne. 0)
+     &            call errorExit('SOLVING FOR INITIAL VALUES OF X/Y/Z COORDINATES', 0)
+              minInitError = 0
+              errorScan(0) = error
+              exit
+            endif
+            if (ierr .ne. 0) then
+              errorScan(index) = 1.1 * rotScanErrCrit * errorScan(minInitError)
+            else
+              errorScan(index) = error
+            endif
+            if (errorScan(index) .lt. errorScan(minInitError)) minInitError = index
+          enddo
         enddo
-c         print *,itry,isolve,ermin,isolmin
 c         
-c         set dxy to 0 for second try, or leave at zero for final setup
-c         
-        do iv=1,nview
-          dxy(1,iv)=0.
-          dxy(2,iv)=0.
-        enddo
-      enddo
-c       
-      if(ermininit.lt.ermin)then
-        isolmin=isolmininit
-        call init_dxy(xx,yy,isecview,irealstr,
-     &      nview,nrealpt,imintilt,dxy)
-        print *,
-     &      'DXY set to equalize centroids gave best initialization'
-      else
-        print *, 'DXY set to zero gave best initialization'
+c         Give warning if minimum is far from expected
+        if (abs(minInitError * rotIncForInit) .gt. 15.)
+     &      write(*,137) rotEntered + minInitError * rotIncForInit, rotEntered
+137     format(/, 'WARNING: BASED ON INITIAL FITTING ERRORS, THE ROTATION ANGLE SEEMS',
+     &      ' TO BE CLOSER TO',f7.1,' THAN TO THE SPECIFIED ANGLE,',f7.1,/,
+     &      'WARNING: AN INCORRECT ROTATION ANGLE WILL THROW OFF PREALIGNMENT,',
+     &      ' BEADTRACKING, AND THIS ALIGNMENT', /)
       endif
 c       
-      call solve_xyzd(xx,yy,isecview,irealstr,nview, nrealpt,tilt,rot,
-     &    gmag,comp,xyz,dxy,isolmin,error,erlist,isolve)
+c       Redo initialization at 0 increment
+      call solveXyzd(xx,yy,isecview,irealstr,nview, nrealpt,tilt,rot,
+     &    gmag,comp,xyz,dxy, 0., h, maxh,error, ierr)
+c      write(*,'(a,f8.2)')'Initialization time',1000 * (wallTime() - wallStart)
+c      write(*, '(3(2f9.4,f8.4))')((xyz(i,iv), i = 1, 3), iv = 1, nrealpt)
 c       
+      call alignAndOutputResults()
 c       
+c       shift the fiducials to real positions in X and Y for xyz output file
+c       and for possible use with local alignments
+c       Continue to use zero-centroid xyz for find_surfaces but output 
+c       a 3D model with real positions also
+c       
+      nallrealpt=nrealpt
+      do i=1,nrealpt
+        iallrealstr(i)=irealstr(i)
+        allxyz(1,i)=xyz(1,i)-dxmin+xcen
+        allxyz(2,i)=xyz(2,i)-dyavg+ycen
+        allxyz(3,i)=xyz(3,i)-znew
+      enddo
+      iallrealstr(nrealpt+1)=irealstr(nrealpt+1)
+      
+c       
+      if(pointfile.ne.' ')then
+        call dopen(13,pointfile,'new','f')
+        write(13,'(i4,3f10.2,i7,i5,a,f12.5,a,2i6)')1,(allxyz(i,1),i=1,3),
+     &      imodobj(1),imodcont(1),' Pix:',xdelt,' Dim:',nint(2.*xcen),
+     &      nint(2.*ycen)
+        write(13,'(i4,3f10.2,i7,i5)')(j,(allxyz(i,j),i=1,3),
+     &      imodobj(j),imodcont(j),j=2,nrealpt)
+        close(13)
+      endif
+c       
+c       analyze for surfaces if desired.  Find the biggest tilt and the
+c       biggest fixed tilt, get recommended new value for the biggest fixed 
+c       tilt if it is not too small
+c       
+      tiltmax=0.
+      fixedmax=0.
+      do iv=1,nview
+        if(abs(tilt(iv)).gt.abs(tiltmax))tiltmax=tilt(iv)
+        if(maptilt(iv).eq.0.and.abs(tilt(iv)).gt.abs(fixedmax))
+     &      fixedmax=tilt(iv)
+      enddo
+      if(fixedmax.ge.5.)tiltmax=fixedmax
+      if(nsurface.gt.0)call find_surfaces(xyz,nrealpt,nsurface,
+     &    tiltmax,iunit2,tiltnew,igroup,ncompsrch,tiltadd, znew, imageBinned)
+      call write_xyz_model(modelfile,allxyz,igroup,nrealpt)
+c       
+c       Write separate residual outputs now that surfaces are known
+c       
+      if (pipinput .and. nsurface .gt. 1) then
+        if (PipGetString('OutputTopBotResiduals', modelfile) .eq. 0) then
+          residualfile = concat(modelfile,'.botres')
+          do j = 1, 2
+            nbot = 0
+            do jpt=1,nrealpt
+              if (igroup(jpt) .eq. j) then
+                nbot = nbot + irealstr(jpt+1) - irealstr(jpt)
+              endif
+            enddo
+            if (nbot .gt. 0) then
+              call dopen(13,residualfile, 'new', 'f')
+              write(13,'(i6,a)')nbot,' residuals'
+              do jpt=1,nrealpt
+                if (igroup(jpt) .eq. j) then
+                  do i=irealstr(jpt),irealstr(jpt+1)-1
+                    write(13, '(2f10.2,i5,3f8.2)')xx(i)+xcen,yy(i)+ycen,
+     &                  mapviewtofile(isecview(i))-1,
+     &                  xresid(i),yresid(i)
+                  enddo
+                endif
+              enddo
+              close(13)
+              
+            endif
+            residualfile = concat(modelfile,'.topres')
+          enddo
+        endif
+      endif
+c       
+c       Ask about local alignments
+c       
+      if (pipinput) then
+        iflocal = ifDoLocal
+      else
+        write(*,'(1x,a,$)') '1 to do series of local alignments, 0 to exit: '
+        read(5,*,iostat=ierr)iflocal
+        if (ierr .ne. 0) iflocal = 0
+      endif
+      if(iflocal.ne.0) then
+        call setupAndDoLocalAlignments()
+        close(iunlocal)
+        if (.not. toofewfid) then
+          if (ifresout .gt. 0) print *
+          write(*,119)errsumLocal / (npatchx * npatchy), errLocalMin,errLocalMax
+119       format(/,' Residual error local mean:',f9.3,'    range', f8.3, ' to',f8.3)
+        endif
+      endif
+      close(7)
+      if(metroerror.ne.0)print *,'WARNING:',metroerror, ' MINIMIZATION ERRORS OCCURRED'
+      if (toofewfid) call errorexit(
+     &    'Minimum numbers of fiducials are too high - check if '//
+     &    'there are enough fiducials on the minority surface', 0)
+
+      call exit(0)
+
+      CONTAINS
+
+c       Run the alignment for global or local area, compute transforms and other
+c       output, and output results
+
+      subroutine alignAndOutputResults()
+      real*4 atand,sind,cosd
+      integer*4 nearest_view
+c
 c       pack the xyz into the var list
-c       
-180   nvargeom=nvarsrch
-      if(nvargeom+3*nrealpt.gt.min(maxvar,maxmetro))call errorexit(
-     &    'TOO MANY VARIABLES FOR VAR, GRAD, AND METRO H ARRAYS', 0)
+      nvargeom=nvarsrch
       do jpt=1,nrealpt-1
         do i=1,3
           nvarsrch=nvarsrch+1
           var(nvarsrch)=xyz(i,jpt)
         enddo
       enddo
-c
+c       
+c       Make sure the h array is big enough
+      maxvar = nvargeom+3*nrealpt
+      if ((maxvar + 3) * maxvar .gt. maxh) then
+        deallocate(h)
+        maxh = (maxvar + 3) * maxvar
+        allocate(h(maxh), stat=ierr)
+        call memoryError(ierr, 'ARRAY FOR H MATRIX')
+      endif
+c       
+c       WHY DO WE ALLOW BEAM TILT SEARCH FOR LOCAL???
+      robustWeights = .false.
       if (ifBTSearch .eq. 0) then
         call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,ncycle, 0,
      &      fFinal, i, metroError)
@@ -377,6 +491,39 @@ c
      &      nvarsrch,var,varerr,grad,h,ifLocal,facm,ncycle,
      &      fFinal, metroError)
       endif
+c       
+c       If doing robust fitting, just restart the start with all current values
+      if (ifDoRobust .ne. 0) then
+        jpt = minResRobust
+        index = maxWgtRings
+        if (ifLocal .ne. 0) then
+          jpt = minLocalResRobust
+          index = 1
+        endif
+        call setupWeightGroups(index, jpt, imintilt, ierr)
+        if (ierr .ne. 0) call exitError('TOO FEW DATA POINTS TO DO ROBUST FITTING')
+        robustWeights = .true.
+        call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,ncycle, 0,
+     &      fFinal, i, metroError)
+        jpt = 0
+        index = 0
+        ipt = 0
+        iv = 0
+        do i = 1, nprojpt
+          if (weight(i) .lt. 0.5) jpt=jpt+1
+          if (weight(i) .eq. 0.) then
+            index=index + 1
+          else if (weight(i) .lt. 0.1) then
+            ipt = ipt +1
+          else if (weight(i) .lt. 0.2) then
+            iv = iv +1
+          endif
+        enddo
+        write(*,'(i6,a,i4,a,i3,a,i3,a,i4,a)')nprojpt,' weights: ',index,' are 0, ',ipt,
+     &      ' are 0-0.1, ',iv,' are 0.1-0.2, ', jpt, ' are < 0.5'
+c        write(*,'(2f8.4)')(sqrt(xresid(i)**2 + yresid(i)**2)*scalexy,weight(i),i=1,nprojpt)
+      endif
+        
 c       
 c       unscale all the points, dx, dy, and restore angles to degrees
 c       
@@ -414,6 +561,7 @@ c
 c       
       errsum=0.
       errsqsm=0.
+      wgtErrSum = 0.
       do i=1,nview
         viewres(i)=0.
         ninview(i)=0
@@ -426,6 +574,7 @@ c
         xresid(i)=xresid(i)*scalexy
         yresid(i)=yresid(i)*scalexy
         residerr=sqrt(xresid(i)**2 + yresid(i)**2)
+        wgtErrSum = wgtErrSum + residerr * sqrt(weight(i))
         iv=isecview(i)
         ninview(iv)=ninview(iv)+1
         viewerrsum(iv)=viewerrsum(iv)+residerr
@@ -614,7 +763,7 @@ c
         do j = 1, nrealpt
           vwerrsum = 0.
           do i = irealstr(j), irealstr(j+1) - 1
-            vwerrsum = vwerrsum + sqrt(xresid(i)**2 + yresid(i)**2)
+            vwerrsum = vwerrsum + sqrt((xresid(i)**2 + yresid(i)**2))
           enddo
           write(iunit2,'(i4,3f10.2,i7,i5,f12.2)',err=86)
      &        indallreal(j),(xyz(i,j),i=1,3),imodobj(indallreal(j)),
@@ -788,10 +937,11 @@ c$$$        c       call xfinvert(fc,fl(1,1,iv))
 c$$$        call xfwrite(6, fl(1,1,iv), *299)
 c$$$        call xfwrite(6, fb, *299)
 c$$$        call xfwrite(6, fa, *299)
+c$$$299     continue
 c           
 c           adjust dx by the factor needed to shift axis in Z
 c           
-299       fl(1,3,iv)=fl(1,3,iv) -znew*sind(tilt(iv))
+          fl(1,3,iv)=fl(1,3,iv) -znew*sind(tilt(iv))
           h(iv)=1.-cosd(tilt(iv))
           dysum=dysum+fl(2,3,iv)
         enddo
@@ -979,15 +1129,19 @@ c
         errLocalMin = min(errLocalMin, errmean)
         errLocalMax = max(errLocalMax, errmean)
       endif
-      if(ifresout.gt.0)then
-        write(*,112)
+      if (ifDoRobust .ne. 0)write(*,'(a,f8.3)')' Weighted residual error mean',
+     &    wgtErrSum/nprojpt
+      if(ifresout.gt.0) then
+        message = ' '
+        if (ifDoRobust .ne. 0) message = '  Weights'
+        write(*,112)trim(message)
 c         
 c         DEPENDENCY WARNING: Beadfixer relies on the # # ... line up to the
 c         second X
 c         
 112     format(/,9x,'Projection points with large residuals',/,
      &      ' obj  cont  view   index coordinates      residuals',
-     &      '        # of',/,
+     &      '        # of',a,/,
      &      '   #     #     #      X         Y        X        Y',
      &      '        S.D.')
         nord=0
@@ -1007,11 +1161,16 @@ c
                 indsave(nord)=i
                 jptsave(nord)=jpt
               else
-                write(*,114) imodobj(indallreal(jpt)),
-     &              imodcont(indallreal(jpt)), mapviewtofile(isecview(i))
-     &              ,xx(i)+xcen
-     &              ,yy(i)+ycen, xresid(i), yresid(i),errnosd
-114             format(i4,2i6,2f10.2,3f9.2)
+                if (ifDoRobust .eq. 0) then
+                  write(*,114) imodobj(indallreal(jpt)),
+     &                imodcont(indallreal(jpt)), mapviewtofile(isecview(i))
+     &                ,xx(i)+xcen ,yy(i)+ycen, xresid(i), yresid(i),errnosd
+                else
+                  write(*,114) imodobj(indallreal(jpt)),
+     &                imodcont(indallreal(jpt)), mapviewtofile(isecview(i))
+     &                ,xx(i)+xcen ,yy(i)+ycen, xresid(i), yresid(i),errnosd,weight(i)
+                endif
+114             format(i4,2i6,2f10.2,3f9.2,f9.4)
               endif
             endif
           enddo
@@ -1034,97 +1193,26 @@ c
           enddo
           do iord=1,nord
             i=indsave(iord)
-            write(*,114) imodobj(indallreal(jptsave(iord))),
-     &          imodcont(indallreal(jptsave(iord))),
-     &          mapviewtofile(isecview(i)),
-     &          xx(i)+xcen, yy(i)+ycen,xresid(i), yresid(i),
-     &          errsave(iord)
+c            if (ifDoRobust .eq. 0) then
+c              write(*,114) imodobj(indallreal(jptsave(iord))),
+c     &            imodcont(indallreal(jptsave(iord))), mapviewtofile(isecview(i)),
+c     &            xx(i)+xcen, yy(i)+ycen,xresid(i), yresid(i), errsave(iord)
+c            else
+              write(*,114) imodobj(indallreal(jptsave(iord))),
+     &            imodcont(indallreal(jptsave(iord))), mapviewtofile(isecview(i)),
+     &            xx(i)+xcen, yy(i)+ycen,xresid(i), yresid(i), errsave(iord),weight(i)
+c            endif
           enddo
         endif
       endif
-      if(iflocal.ne.0)go to 200
-c       
-c       shift the fiducials to real positions in X and Y for xyz output file
-c       and for possible use with local alignments
-c       Continue to use zero-centroid xyz for find_surfaces but output 
-c       a 3D model with real positions also
-c       
-      nallrealpt=nrealpt
-      do i=1,nrealpt
-        iallrealstr(i)=irealstr(i)
-        allxyz(1,i)=xyz(1,i)-dxmin+xcen
-        allxyz(2,i)=xyz(2,i)-dyavg+ycen
-        allxyz(3,i)=xyz(3,i)-znew
-      enddo
-c       
-      if(pointfile.ne.' ')then
-        call dopen(13,pointfile,'new','f')
-        write(13,'(i4,3f10.2,i7,i5,a,f12.5,a,2i6)')1,(allxyz(i,1),i=1,3),
-     &      imodobj(1),imodcont(1),' Pix:',xdelt,' Dim:',nint(2.*xcen),
-     &      nint(2.*ycen)
-        write(13,'(i4,3f10.2,i7,i5)')(j,(allxyz(i,j),i=1,3),
-     &      imodobj(j),imodcont(j),j=2,nrealpt)
-        close(13)
-      endif
-c       
-c       analyze for surfaces if desired.  Find the biggest tilt and the
-c       biggest fixed tilt, get recommended new value for the biggest fixed 
-c       tilt if it is not too small
-c       
-      tiltmax=0.
-      fixedmax=0.
-      do iv=1,nview
-        if(abs(tilt(iv)).gt.abs(tiltmax))tiltmax=tilt(iv)
-        if(maptilt(iv).eq.0.and.abs(tilt(iv)).gt.abs(fixedmax))
-     &      fixedmax=tilt(iv)
-      enddo
-      if(fixedmax.ge.5.)tiltmax=fixedmax
-      if(nsurface.gt.0)call find_surfaces(xyz,nrealpt,nsurface,
-     &    tiltmax,iunit2,tiltnew,igroup,ncompsrch,tiltadd, znew, imageBinned)
-      call write_xyz_model(modelfile,allxyz,igroup,nrealpt)
-c       
-c       Write separate residual outputs now that surfaces are known
-c       
-      if (pipinput .and. nsurface .gt. 1) then
-        if (PipGetString('OutputTopBotResiduals', modelfile) .eq. 0) then
-          residualfile = concat(modelfile,'.botres')
-          do j = 1, 2
-            nbot = 0
-            do jpt=1,nrealpt
-              if (igroup(jpt) .eq. j) then
-                nbot = nbot + irealstr(jpt+1) - irealstr(jpt)
-              endif
-            enddo
-            if (nbot .gt. 0) then
-              call dopen(13,residualfile, 'new', 'f')
-              write(13,'(i6,a)')nbot,' residuals'
-              do jpt=1,nrealpt
-                if (igroup(jpt) .eq. j) then
-                  do i=irealstr(jpt),irealstr(jpt+1)-1
-                    write(13, '(2f10.2,i5,3f8.2)')xx(i)+xcen,yy(i)+ycen,
-     &                  mapviewtofile(isecview(i))-1,
-     &                  xresid(i),yresid(i)
-                  enddo
-                endif
-              enddo
-              close(13)
-              
-            endif
-            residualfile = concat(modelfile,'.topres')
-          enddo
-        endif
-      endif
-c       
-c       Ask about local alignments
-c       
-      if (pipinput) then
-        iflocal = ifDoLocal
-      else
-        write(*,'(1x,a,$)') '1 to do series of local alignments, 0 to exit: '
-        read(5,*,err=209,end=209)iflocal
-      endif
-      if(iflocal.eq.0)go to 209
-c       
+      end subroutine alignAndOutputResults
+
+
+c       Get parameters for doing local alignments, set them up, and loop on the local
+c       areas
+
+      subroutine setupAndDoLocalAlignments()
+      integer*4 PipGetTwoIntegers, PipGetTwoFloats, PipGetThreeIntegers
       ifDoLocal = iflocal
       if(iwhichout.lt.0)call errorexit(
      &    'SOLUTION TRANSFORMS MUST BE OUTPUT TO DO LOCAL ALIGNMENTS', 0)
@@ -1290,213 +1378,336 @@ c
         ixspatch=nxpmin/2
         iyspatch=nypmin/2
       endif
-      ipatchx=0
-      ipatchy=1
 c       
-c       START OR CONTINUE LOOPING ON LOCAL REGIONS
+c       LOOP ON LOCAL REGIONS
 c       
-200   ipatchx=ipatchx+1
-      if(ipatchx.gt.npatchx)then
-        ipatchx=1
-        ipatchy=ipatchy+1
-        if(ipatchy.gt.npatchy)then
-          close(iunlocal)
-          if (ifresout .gt. 0) print *
-          write(*,119)errsumLocal / (npatchx * npatchy),
-     &        errLocalMin,errLocalMax
-119       format(/,' Residual error local mean:',f9.3,'    range', f8.3,
-     &        ' to',f8.3)
-          go to 209
-        endif
-      endif
-      ixpatch=ixspatch+(ipatchx-1)*idxpatch
-      iypatch=iyspatch+(ipatchy-1)*idypatch
-c       
-c       find the points whose real X and Y coordinates are within the bounds
-c       of the patch; expand the patch if necessary to achieve the minimum
-c       number of fiducials.  Load points from the "all" arrays into the
-c       current arrays
-c       
-      nxp=nxpmin-40
-      nyp=nypmin-40
-      nrealpt=0
-      minsurf=0
-      do while (nxp.lt.4*xcen.and.nyp.lt.4*ycen.and.
-     &    (nrealpt.lt.minfidtot.or.
-     &    (nsurface.ge.2.and.minsurf.lt.minfidsurf)))
-        nxp=nxp+40
-        nyp=nyp+40
-        nrealpt=0
-        nbot=0
-        ntop=0
-        ixmin=ixpatch-nxp/2
-        ixmax=ixmin+nxp
-        iymin=iypatch-nyp/2
-        iymax=iymin+nyp
-        do i=1,nallrealpt
-          if(allxyz(1,i).ge.ixmin.and.allxyz(1,i).le.ixmax.and.
-     &        allxyz(2,i).ge.iymin.and.allxyz(2,i).le.iymax)then
-            nrealpt=nrealpt+1
-            indallreal(nrealpt)=i
-            if(nsurface.ge.2)then
-              if(igroup(i).eq.1)nbot=nbot+1
-              if(igroup(i).eq.2)ntop=ntop+1
-            endif
+      do ipatchy = 1, npatchy
+        do ipatchx = 1, npatchx
+          ixpatch=ixspatch+(ipatchx-1)*idxpatch
+          iypatch=iyspatch+(ipatchy-1)*idypatch
+c           
+c           find the points whose real X and Y coordinates are within the bounds
+c           of the patch; expand the patch if necessary to achieve the minimum
+c           number of fiducials.  Load points from the "all" arrays into the
+c           current arrays
+c           
+          nxp=nxpmin-40
+          nyp=nypmin-40
+          nrealpt=0
+          minsurf=0
+          do while (nxp.lt.4*xcen.and.nyp.lt.4*ycen.and.
+     &        (nrealpt.lt.minfidtot.or.
+     &        (nsurface.ge.2.and.minsurf.lt.minfidsurf)))
+            nxp=nxp+40
+            nyp=nyp+40
+            nrealpt=0
+            nbot=0
+            ntop=0
+            ixmin=ixpatch-nxp/2
+            ixmax=ixmin+nxp
+            iymin=iypatch-nyp/2
+            iymax=iymin+nyp
+            do i=1,nallrealpt
+              if(allxyz(1,i).ge.ixmin.and.allxyz(1,i).le.ixmax.and.
+     &            allxyz(2,i).ge.iymin.and.allxyz(2,i).le.iymax)then
+                nrealpt=nrealpt+1
+                indallreal(nrealpt)=i
+                if(nsurface.ge.2)then
+                  if(igroup(i).eq.1)nbot=nbot+1
+                  if(igroup(i).eq.2)ntop=ntop+1
+                endif
+              endif
+            enddo
+            minsurf=min(nbot,ntop)
+          enddo
+          if(nxp.ge.4*xcen.and.nyp.ge.4*ycen)then
+            toofewfid=.true.
+            return
           endif
+c           
+c           Get count of points in each view so empty views can be eliminated, then
+c           get mapping from all views to remaining views in this local area
+          call countNumInView(indallreal, nrealpt, iallrealstr, iallsecv, nAllView,
+     &        ninview)
+          localv = 0
+          do iv = 1, nfileviews
+            mapFileToView(iv) = 0
+          enddo
+          do iv = 1, nAllView
+            if (ninview(iv) .gt. 0) then
+              localv = localv + 1
+              mapAllToLocal(iv) = localv
+              mapLocalToAll(localv) = iv
+              mapViewToFile(localv) = mallViewToFile(iv)
+              mapFileToView(mallViewToFile(iv)) = localv
+              tilt(localv) = glbtilt(iv)
+            else
+              mapAllToLocal(iv) = 0
+            endif
+          enddo
+          nview = localv
+c           
+c           Now load the coordinate data with these local view numbers
+          nprojpt=0
+          do ll = 1, nrealpt
+            listreal(ll) = ll
+            i = indallreal(ll)
+            irealstr(ll)=nprojpt+1
+            do j=1,ninreal(i)
+              nprojpt=nprojpt+1
+              kk=J+iallrealstr(i)-1
+              xx(nprojpt)=allxx(kk)
+              yy(nprojpt)=allyy(kk)
+              isecview(nprojpt)=mapAllToLocal(iallsecv(kk))
+            enddo
+          enddo
+          irealstr(nrealpt+1)=nprojpt+1
+          call countNumInView(listreal, nrealpt, irealstr, isecview, nview,
+     &        ninview)
+
+          call input_vars(var,varname,inputalf,nvarsrch,nvarang,nvarscl, imintilt,
+     &        ncompsrch,iflocal,maptiltstart,mapalfstart,mapalfend, ifBTSearch, tiltorig,
+     &        tiltadd,pipinput,ninview,ninThresh, rotEntered)
+c           
+c           DNM 7/16/04: Add pixel size to local file
+c           2/15/07: Output after first read of variables
+          ifanyalf = 0
+          if (mapalfend .gt. mapalfstart .or. beamTilt .ne. 0)ifanyalf = 1
+          if (iflocal .eq. 1) write(iunlocal,'(7i6,f12.5,i4)')npatchx,npatchy,
+     &        ixspatch,iyspatch, idxpatch,idypatch,ifanyalf,xdelt,ifZfac
+          iflocal = 2
+c           
+c           take care of initializing the mapped variables properly
+c           
+c$$$        if(ifrotfix.eq.0)then
+c$$$        globrot=glbrot(1)
+c$$$        var(1)=globrot
+c$$$        maptiltstart=nview+1
+c$$$        else
+c$$$        globrot=glbrot(ifrotfix)
+c$$$        rot(ifrotfix)=globrot
+c$$$        maptiltstart=nview
+c$$$        endif
+c$$$        do i=1,nview
+c$$$        if((ifrotfix.eq.0.and.i.gt.1) .or. i.lt.ifrotfix)then
+c$$$        var(i)=glbrot(i)-globrot
+c$$$        elseif(ifrotfix.gt.0 .and. i.gt.ifrotfix)then
+c$$$        var(i-1)=glbrot(i)-globrot
+c$$$        endif
+c$$$        enddo
+c           
+c           reload the geometric variables
+c           
+          call reload_vars(glbrot,rot,maprot,frcrot,nview,
+     &        1,maptiltstart-1,var,fixeddum,1, mapLocalToAll)
+          call reload_vars(glbtilt,tilt,maptilt,frctilt,nview,
+     &        maptiltstart, nvarang,var,fixeddum,incrtilt,mapLocalToAll)
+c           
+c           if doing tilt incremental, just set tiltinc to the global tilt and
+c           all the equations work in map_vars
+c           
+          if(incrtilt.ne.0)then
+            fixedtilt2=0.
+            fixedtilt=0.
+            do i=1,nview
+              tiltinc(i)=glbtilt(mapLocalToAll(i))
+            enddo
+          endif
+          call reload_vars(glbgmag,gmag,mapgmag,frcgmag,nview, nvarang+1,
+     &        mapdmagstart-ncompsrch-1,var,fixedgmag,incrgmag,mapLocalToAll)
+          call reload_vars(glbdmag,dmag,mapdmag,frcdmag,nview, mapdmagstart,
+     &        nvarscl,var,fixeddmag,incrdmag,mapLocalToAll)
+          call reload_vars(glbskew,skew,mapskew,frcskew,nview, nvarscl+1,
+     &        mapalfstart-1,var,fixedskew,incrskew,mapLocalToAll)
+          call reload_vars(glbalf,alf,mapalf,frcalf,nview, mapalfstart,nvarsrch,
+     &        var,fixedalf,incralf,mapLocalToAll)
+c           
+c           get new scaling and scale projection points
+c           
+          scalexy=0.
+          do i=1,nprojpt
+            scalexy=max(scalexy,abs(xx(i)),abs(yy(i)))
+          enddo
+          xx(1:nprojpt) = xx(1:nprojpt) / scalexy
+          yy(1:nprojpt) = yy(1:nprojpt) / scalexy
+c           
+c           load the xyz's and shift them to zero mean and scale them down
+c           
+          xsum=0.
+          ysum=0.
+          zsum=0.
+          do i=1,nrealpt
+            j=indallreal(i)
+            xyz(1,i)=allxyz(1,j)-xcen
+            xsum=xsum+xyz(1,i)
+            xyz(2,i)=allxyz(2,j)-ycen
+            ysum=ysum+xyz(2,i)
+            xyz(3,i)=allxyz(3,j)
+            zsum=zsum+xyz(3,i)
+          enddo
+          xshft=xsum/nrealpt
+          yshft=ysum/nrealpt
+          zshft=zsum/nrealpt
+          xyz(1,1:nrealpt) = (xyz(1,1:nrealpt) - xshft) / scalexy
+          xyz(2,1:nrealpt) = (xyz(2,1:nrealpt) - yshft) / scalexy
+          xyz(3,1:nrealpt) = (xyz(3,1:nrealpt) - zshft) / scalexy
+          write(*,'(/,a,2i3,a,2i5,a,2i5,a,i3,a)')' Doing local area',
+     &        ipatchx,ipatchy, ', centered on',ixpatch,iypatch,', size',
+     &        nxp,nyp,',  ',nrealpt,' fiducials'
+          if(minsurf.gt.0)write(*,'(a,i3,a,i3,a)')'    (',nbot,
+     &        ' on bottom and',ntop,' on top)'
+          ncycle=-abs(ncycle)
+          call alignAndOutputResults()
         enddo
-        minsurf=min(nbot,ntop)
       enddo
-      if(nxp.ge.4*xcen.and.nyp.ge.4*ycen)then
-        toofewfid=.true.
-        go to 209
-      endif
-c       
-c       Get count of points in each view so empty views can be eliminated, then
-c       get mapping from all views to remaining views in this local area
-      call countNumInView(indallreal, nrealpt, iallrealstr, iallsecv, nAllView,
-     &    ninview)
-      localv = 0
-      do iv = 1, nfileviews
-        mapFileToView(iv) = 0
+c
+      end subroutine setupAndDoLocalAlignments
+
+      end program tiltalign
+
+      subroutine setupWeightGroups(maxRings, minRes, imintilt, ierr)
+      use alivar
+      implicit none
+      integer*4 irealRingList(maxreal), ierr, maxRings, minRes, imintilt
+      integer*4 maxViewsForRings(maxWgtRings) /1,8,7,6,5,5,4,4,3,3/
+      real*4 distReal(maxreal)
+      integer*4 i, nring, nrealPerRing, neededViews, numViews, numViewGroups, numExtra
+      integer*4 iexStart, ngrpBeforeEx, indProj, indGroup, indView, ivbase, igroup
+      integer*4 irbase, ninGroup, ninRing, iring, iv,ind,ireal,iproj,minSubgrpSize
+      integer*4 maxViewsInSubgrp, isub, indin, numCombine, numSubgrp, numPts
+
+      maxViewsInSubgrp = 3
+      minSubgrpSize = 15
+      
+c       Get distances from center get sorted indexes to them
+      do i = 1, nrealpt
+        distReal(i) = sqrt(xyz(1,i)**2 + xyz(2,i)**2)
+        irealRingList(i) = i
       enddo
-      do iv = 1, nAllView
-        if (ninview(iv) .gt. 0) then
-          localv = localv + 1
-          mapAllToLocal(iv) = localv
-          mapLocalToAll(localv) = iv
-          mapViewToFile(localv) = mallViewToFile(iv)
-          mapFileToView(mallViewToFile(iv)) = localv
-          tilt(localv) = glbtilt(iv)
-        else
-          mapAllToLocal(iv) = 0
+      call rsSortIndexedFloats(distReal, irealRingList, nrealpt)
+      
+c       Loop from largest number of rings down, first evaluate plausibility if
+c       all points are present
+      NUM_RING_LOOP:
+     &    do nring = maxRings, 1, -1
+        nrealPerRing = nrealpt / nring
+        if (nrealPerRing .eq. 0) cycle
+        neededViews = minRes / nrealPerRing
+        if (neededViews .gt. maxViewsForRings(nring) .and. nring .gt. 1) then
+          print *, 'rejecting ',nring,' rings out of hand'
+          cycle
         endif
-      enddo
-      nview = localv
-c       
-c       Now load the coordinate data with these local view numbers
-      nprojpt=0
-      do ll = 1, nrealpt
-        listreal(ll) = ll
-        i = indallreal(ll)
-        irealstr(ll)=nprojpt+1
-        do j=1,ninreal(i)
-          nprojpt=nprojpt+1
-          kk=J+iallrealstr(i)-1
-          xx(nprojpt)=allxx(kk)
-          yy(nprojpt)=allyy(kk)
-          isecview(nprojpt)=mapAllToLocal(iallsecv(kk))
-        enddo
-      enddo
-      irealstr(nrealpt+1)=nprojpt+1
-      call countNumInView(listreal, nrealpt, irealstr, isecview, nview,
-     &    ninview)
+c         
+c         Try to set up groups of views of increasing sizes until one works
+        NUM_VIEW_LOOP: 
+     &      do numViews = neededViews, nview
+          numViewGroups = nview / numViews
+          numExtra = mod(nview, numViews)
+          iexStart = max(1, imintilt - numExtra / 2)
+          ngrpBeforeEx = (iexStart - 1) / numViews
+          indProj = 1
+          ivbase = 0
+          indGroup = 1
+          indView = 1
+c           
+c           Loop on the groups of views
+          GROUP_LOOP: 
+     &        do igroup = 1, numViewGroups
+            irbase = 0
+            ninGroup = numViews
+            if (igroup .gt. ngrpBeforeEx .and. igroup .le. ngrpBeforeEx + numExtra)
+     &          ninGroup = ninGroup + 1
+c             
+c             loop on the rings in views
+            RING_LOOP:
+     &          do iring = 1, nring
+            ninRing = nrealPerRing
+            if (iring .gt. nring - mod(nrealpt, nring)) ninRing = ninRing + 1
+c               
+c               This is one weight group, set the starting view index of it
+              ivStartWgtGroup(indGroup) = indView
+              indGroup = indGroup + 1
+c               
+c               loop on the views in the group; for each one, set the starting index
+c               in the projection list
+c              print *,'group',igroup,ivbase + 1,ivbase + ninGroup
+              do iv = ivbase + 1, ivbase + ninGroup
+c                print *,'view in group',iv,indView,indProj
+                ipStartWgtView(indView) = indProj
+                indView = indView + 1
+c                 
+c                 Loop on the real points in the ring, and for each one on the given view,
+c                 add its projection point index to the list
+                do ind = irbase + 1, irbase + ninRing
+                  ireal = irealRingList(ind)
+                  do iproj = irealstr(ireal), irealstr(ireal+1) - 1
+                    if (isecview(iproj) .eq. iv) then
+c                      print *,ireal,iproj,iv
+                      indProjWgtList(indProj) = iproj
+                      indProj = indProj + 1
+                    endif
+                  enddo
+                enddo
+              enddo
+c             
+c               After each ring, increase the ring base index
+              irbase = irbase + ninRing
+c
+c               But if there are too few in this group, make view groups bigger if
+c               possible for this number of rings; otherwise go on to try fewer rings;
+c               but if there is only one ring and it is up to all views, push on
+              numPts = indProj - ipStartWgtView(ivStartWgtGroup(indGroup - 1))
+              if (numPts .lt. minres) then
+                ierr = 1
+                print *,'group too small',ivbase
+                if (numViews .ge. maxViewsForRings(nring) .and. nring .gt. 1)
+     &              exit NUM_VIEW_LOOP
+                if (nring .gt. 1 .or. numViews .lt. nview) exit GROUP_LOOP
+              endif
+c               
+c               Combine views if necessary to get to minimum
+              numCombine = min(maxViewsInSubgrp,
+     &            ceiling(minSubgrpSize / (float(numPts) / numViews)))
+              numSubgrp = numViews / numCombine
+              if (numCombine .eq. maxViewsInSubgrp .and. mod(numViews, numCombine) .gt. 0)
+     &            numSubgrp = numSubgrp + 1
+              numCombine = numViews / numSubgrp
+              print *,'combine', numSubgrp,numCombine
+              if (numSubgrp .lt. numViews) then
+                indin = ivStartWgtGroup(indGroup - 1)
+                indView = indin
+                do isub = 1, numSubgrp
+                  ipStartWgtView(indView) = ipStartWgtView(indin)
+                  ind = numCombine
+                  if (isub .le. mod(numViews, numSubgrp)) ind = ind + 1
+                  indin = indin + ind
+                  indView = indView + 1
+                enddo
+              endif
+            enddo RING_LOOP
+c             
+c             After each view group, increase the view base number
+            ivbase = ivbase + ninGroup
+            ierr = 0
+          enddo GROUP_LOOP
+c           
+c           If we got here with err 0, this setup fits constraints, finalize index lists
+          if (ierr .eq. 0) then
+            ipStartWgtView(indView) = indProj
+            ivStartWgtGroup(indGroup) = indView
+            numWgtGroups = nring * numViewGroups
+            print *,numWgtGroups,' weight groups:',nring,' rings in',numViewGroups,
+     &          ' view groups'
+            write(*,'(13i6)')(ivStartWgtGroup(i),i=1,numWgtGroups+1)
+            write(*,'(13i6)')(ipStartWgtView(i),i=1,indView)
+            return
+          endif
+        enddo NUM_VIEW_LOOP
+      enddo NUM_RING_LOOP
+      ierr = 1
+      return
+      end subroutine setupWeightGroups
 
-      call input_vars(var,varname,inputalf,nvarsrch,nvarang,nvarscl,
-     &    imintilt, ncompsrch,iflocal,maptiltstart,mapalfstart,mapalfend,
-     &    ifBTSearch, tiltorig,tiltadd,pipinput,xyzfixed,ninview,ninThresh)
-c       
-c       DNM 7/16/04: Add pixel size to local file
-c       2/15/07: Output after first read of variables
-      ifanyalf = 0
-      if (mapalfend .gt. mapalfstart .or. beamTilt .ne. 0)ifanyalf = 1
-      if (iflocal .eq. 1) write(iunlocal,'(7i6,f12.5,i4)')npatchx,npatchy,
-     &    ixspatch,iyspatch, idxpatch,idypatch,ifanyalf,xdelt,ifZfac
-      iflocal = 2
-c       
-c       take care of initializing the mapped variables properly
-c       
-c$$$    if(ifrotfix.eq.0)then
-c$$$    globrot=glbrot(1)
-c$$$    var(1)=globrot
-c$$$    maptiltstart=nview+1
-c$$$    else
-c$$$    globrot=glbrot(ifrotfix)
-c$$$    rot(ifrotfix)=globrot
-c$$$    maptiltstart=nview
-c$$$    endif
-c$$$    do i=1,nview
-c$$$    if((ifrotfix.eq.0.and.i.gt.1) .or. i.lt.ifrotfix)then
-c$$$    var(i)=glbrot(i)-globrot
-c$$$    elseif(ifrotfix.gt.0 .and. i.gt.ifrotfix)then
-c$$$    var(i-1)=glbrot(i)-globrot
-c$$$    endif
-c$$$    enddo
-c       
-c       reload the geometric variables
-c       
-      call reload_vars(glbrot,rot,maprot,frcrot,nview,
-     &    1,maptiltstart-1,var,fixeddum,1, mapLocalToAll)
-      call reload_vars(glbtilt,tilt,maptilt,frctilt,nview,
-     &    maptiltstart, nvarang,var,fixeddum,incrtilt,mapLocalToAll)
-c       
-c       if doing tilt incremental, just set tiltinc to the global tilt and
-c       all the equations work in map_vars
-c       
-      if(incrtilt.ne.0)then
-        fixedtilt2=0.
-        fixedtilt=0.
-        do i=1,nview
-          tiltinc(i)=glbtilt(mapLocalToAll(i))
-        enddo
-      endif
-      call reload_vars(glbgmag,gmag,mapgmag,frcgmag,nview, nvarang+1,
-     &    mapdmagstart-ncompsrch-1,var,fixedgmag,incrgmag,mapLocalToAll)
-      call reload_vars(glbdmag,dmag,mapdmag,frcdmag,nview, mapdmagstart,
-     &    nvarscl,var,fixeddmag,incrdmag,mapLocalToAll)
-      call reload_vars(glbskew,skew,mapskew,frcskew,nview, nvarscl+1,
-     &    mapalfstart-1,var,fixedskew,incrskew,mapLocalToAll)
-      call reload_vars(glbalf,alf,mapalf,frcalf,nview, mapalfstart,nvarsrch,
-     &    var,fixedalf,incralf,mapLocalToAll)
-c       
-c       get new scaling and scale projection points
-c       
-      scalexy=0.
-      do i=1,nprojpt
-        scalexy=max(scalexy,abs(xx(i)),abs(yy(i)))
-      enddo
-      do i=1,nprojpt
-        xx(i)=xx(i)/scalexy
-        yy(i)=yy(i)/scalexy
-      enddo
-c       
-c       load the xyz's and shift them to zero mean and scale them down
-c       
-      xsum=0.
-      ysum=0.
-      zsum=0.
-      do i=1,nrealpt
-        j=indallreal(i)
-        xyz(1,i)=allxyz(1,j)-xcen
-        xsum=xsum+xyz(1,i)
-        xyz(2,i)=allxyz(2,j)-ycen
-        ysum=ysum+xyz(2,i)
-        xyz(3,i)=allxyz(3,j)
-        zsum=zsum+xyz(3,i)
-      enddo
-      xshft=xsum/nrealpt
-      yshft=ysum/nrealpt
-      zshft=zsum/nrealpt
-      do i=1,nrealpt
-        xyz(1,i)=(xyz(1,i)-xshft)/scalexy
-        xyz(2,i)=(xyz(2,i)-yshft)/scalexy
-        xyz(3,i)=(xyz(3,i)-zshft)/scalexy
-      enddo
-      write(*,'(/,a,2i3,a,2i5,a,2i5,a,i3,a)')' Doing local area',
-     &    ipatchx,ipatchy, ', centered on',ixpatch,iypatch,', size',
-     &    nxp,nyp,',  ',nrealpt,' fiducials'
-      if(minsurf.gt.0)write(*,'(a,i3,a,i3,a)')'    (',nbot,
-     &    ' on bottom and',ntop,' on top)'
-      ncycle=-abs(ncycle)
-      go to 180
-209   close(7)
-      if(metroerror.ne.0)print *,'WARNING:',metroerror,
-     &    ' MINIMIZATION ERRORS OCCURRED'
-      if (toofewfid) call errorexit(
-     &    'Minimum numbers of fiducials are too high - check if '//
-     &    'there are enough fiducials on the minority surface', 0)
-
-      call exit(0)
-      end
 
 
       subroutine errorexit(message, iflocal)
@@ -1509,157 +1720,8 @@ c
       endif
       write(*,'(/,a,a)')'ERROR: TILTALIGN - ', message
       call exit(1)
-      end
+      end subroutine errorexit
 
-c       
-c       $Log$
-c       Revision 3.44  2009/11/21 22:19:19  mast
-c       Report mean residual for each contour in 3D table
-c
-c       Revision 3.43  2009/10/23 02:15:06  mast
-c       Provided output of tilt angles before beam tilt adjustment and fixed
-c       potential shortcircuit evaluation problems.
-c
-c       Revision 3.42  2009/10/06 02:30:38  mast
-c       Output rotation angle at minimum tilt
-c
-c       Revision 3.41  2008/12/12 00:47:36  mast
-c       Call find_surfaces with binnig and z shift
-c
-c       Revision 3.40  2008/11/02 13:51:25  mast
-c       Call new function for converting angles for beam tilt
-c
-c       Revision 3.39  2008/07/06 23:39:03  mast
-c       Eliminated former total unknown ratio
-c
-c       Revision 3.38  2008/03/05 00:34:05  mast
-c       Increased maxmetro to go along with increase in maxreal
-c
-c       Revision 3.37  2007/12/12 17:20:08  mast
-c       Had to add mapalfend to two calls to input_vars
-c
-c       Revision 3.36  2007/12/11 22:23:17  mast
-c       Removed X tilt/rotation warning if solving for only one X-tilt variable
-c
-c       Revision 3.35  2007/11/18 04:57:10  mast
-c       Redeclared concat at 320
-c
-c       Revision 3.34  2007/05/03 23:58:50  mast
-c       Switched from projection stretch to projection skew
-c
-c       Revision 3.33  2007/03/08 23:48:57  mast
-c       Enforced minimum of 2 x 2 local areas, adjusted arguments to runMetro
-c
-c       Revision 3.32  2007/03/05 22:30:43  mast
-c       Changed initial beam tilt option
-c
-c       Revision 3.31  2007/02/19 21:13:25  mast
-c       Changes for beam tilt solving by variable fitting and by one-dimensional
-c       search; added option of specifying target size of local areas; made
-c       local fits drop views with no points; made number of views in groups
-c       depend on the number of points in views
-c
-c       Revision 3.30  2006/07/18 00:10:20  mast
-c       Fixed formatting in errorexit and output global and local area # and
-c       local area mean and range for mean residuals
-c       
-c       Revision 3.29  2005/10/11 21:38:47  mast
-c       Updated PIP fallback options
-c       
-c       Revision 3.28  2005/07/01 19:45:27  mast
-c       Chnaged formats to allow bigger variable/measurement totals
-c       
-c       Revision 3.27  2005/07/01 19:34:35  mast
-c       Added correct ratio of measurements to unknowns
-c       
-c       Revision 3.26  2005/06/26 19:51:54  mast
-c       Added a blank line after residual output before exiting (?)
-c       
-c       Revision 3.25  2005/06/09 19:20:18  mast
-c       Added image binned option so that Z shift can be entered unbinned
-c       
-c       Revision 3.24  2005/04/20 16:26:51  mast
-c       Added a success message after the restart messages
-c       
-c       Revision 3.23  2005/04/20 04:46:05  mast
-c       Converted WARNINGS to messages for metro errors until trials all fail
-c       
-c       Revision 3.22  2005/04/15 22:39:44  mast
-c       Fixed sign in computation of xzOther
-c       
-c       Revision 3.21  2005/03/14 06:05:54  mast
-c       Increased maxmetro limit
-c       
-c       Revision 3.20  2005/02/16 06:43:10  mast
-c       Added image size to fid.xyz output file for solvematch to use
-c       
-c       Revision 3.19  2004/10/24 22:38:13  mast
-c       Fixed a line length - forgot to say changes to compute the image
-c       transformations more robustly and to put out Z factors
-c       
-c       Revision 3.18  2004/10/24 22:30:27  mast
-c       Converted to PIP input
-c       
-c       Revision 3.17  2004/10/08 17:29:57  mast
-c       Eliminated manual info
-c       
-c       Revision 3.16  2004/10/08 17:27:14  mast
-c       Fixed failure to get both model and residual output with a filename
-c       containing a period.
-c       
-c       Revision 3.15  2004/09/16 16:12:30  mast
-c       Made it try new metro factors upon error; switched to opening
-c       fid.xyz only when ready to write it.
-c       
-c       Revision 3.14  2004/07/16 23:24:21  mast
-c       Added pixel size to local alignment file
-c       
-c       Revision 3.13  2004/06/10 05:39:18  mast
-c       Output pixel size in fiducial file
-c       
-c       Revision 3.12  2004/05/21 20:06:34  mast
-c       Put out iteration limit error as a formal WARNING
-c       
-c       Revision 3.11  2004/05/07 23:41:21  mast
-c       Fixed problem with Z shift being setto zero
-c       
-c       Revision 3.10  2004/05/05 05:50:26  mast
-c       Output real 3D coordinates, fix bug in getting local residuals,
-c       and finally added +/-10% to the messages about metro factor
-c       
-c       Revision 3.9  2003/10/24 03:31:54  mast
-c       remove tab from label scanned by alignlog
-c       
-c       Revision 3.8  2003/10/03 00:59:07  mast
-c       Changed terminology to refered to tilt angle offset
-c       
-c       Revision 3.7  2003/01/30 20:54:51  mast
-c       Made fields for residuals bigger, amplified IER error messages
-c       
-c       Revision 3.6  2002/12/21 00:00:33  mast
-c       Add ability to get both residual output and 3D model
-c       
-c       Revision 3.5  2002/10/17 23:18:31  mast
-c       Added proper error message and exit for minimum number of beads too
-c       high in local alignments
-c       
-c       Revision 3.4  2002/07/28 23:02:54  mast
-c       Needed to declare lnblnk for SGI
-c       
-c       Revision 3.3  2002/07/28 22:42:35  mast
-c       Changes to output a residual listing file and to standardize error
-c       exits and output
-c       
-c       Revision 3.2  2002/05/09 03:48:38  mast
-c       Fixed a line length that did not compile on SGI
-c       
-c       Revision 3.1  2002/05/07 02:05:19  mast
-c       Changes to handle subset of views better: output of transforms and
-c       tilt angles for all views in file, and interpretation of user input
-c       and all output in terms of view numbers in file rather than in
-c       program.  Also changed the surface analysis output to make it more
-c       understandable and machine readable.
-c       
 c       5/19/89 added model output, changed format of output table
 c       6/21/89 added mean residual output to find_surfaces, changed to
 c       get recommendation on maximum FIXED tilt angle

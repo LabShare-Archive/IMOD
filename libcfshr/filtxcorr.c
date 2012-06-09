@@ -6,7 +6,6 @@
  * Colorado.  See dist/COPYRIGHT for full notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include <math.h>
@@ -22,6 +21,9 @@
 #define parabolicfitposition PARABOLICFITPOSITION
 #define cccoefficient CCCOEFFICIENT
 #define conjugateproduct CONJUGATEPRODUCT
+#define slicegaussiankernel SLICEGAUSSIANKERNEL
+#define scaledgaussiankernel SCALEDGAUSSIANKERNEL
+#define applykernelfilter APPLYKERNELFILTER
 #else
 #define setctfwsr setctfwsr_
 #define setctfnoscl setctfnoscl_
@@ -31,7 +33,11 @@
 #define parabolicfitposition parabolicfitposition_
 #define cccoefficient cccoefficient_
 #define conjugateproduct conjugateproduct_
+#define slicegaussiankernel slicegaussiankernel_
+#define scaledgaussiankernel scaledgaussiankernel_
+#define applykernelfilter applykernelfilter_
 #endif
+
 
 /*!
  * Takes the filter parameters [sigma1], [sigma2], [radius1], and [radius2] and
@@ -519,34 +525,119 @@ return XCorrCCCoefficient(array, brray, *nxdim, *nx, *ny, *xpeak, *ypeak,
                           *nxpad, *nypad, nsum);
 }
 
-/*
 
-$Log$
-Revision 1.9  2010/06/21 16:26:42  mast
-fixed log
+/*!
+ * Fills [mat] with the coefficients of a [dim] x [dim] Gaussian kernel with 
+ * standard deviation [sigma].  The coefficients are scaled to sum to 1.
+ */
+void sliceGaussianKernel(float *mat, int dim, float sigma)
+{
+  float sum = 0.;
+  int i, j;
+  double mid = (dim - 1)/ 2.;
+  for (j = 0; j < dim; j++) {
+    for (i = 0; i < dim; i++) {
+      mat[i + j * dim] = (float)exp(-((i-mid) * (i-mid) + (j-mid) * (j-mid)) / 
+                                  (sigma * sigma));
+      
+      sum += mat[i + j * dim];
+    }
+  }
+  for (j = 0; j < dim; j++)
+    for (i = 0; i < dim; i++)
+      mat[i + j * dim] /= sum;
+}
 
-Revision 1.8  2008/12/22 23:06:01  mast
-Needed anoth *nsum
+/*! Fortran wrapper for @sliceGaussianKernel */
+void slicegaussiankernel(float *mat, int *dim, float *sigma)
+{
+  sliceGaussianKernel(mat, *dim, *sigma);
+}
 
-Revision 1.7  2008/12/22 23:02:17  mast
-Added return of nsum to ccc function
+/*!
+ * Fills [mat] with the coefficients of a Gaussian kernel with standard deviation 
+ * [sigma].  The size of the kernel is set to 3 for [sigma] up to 1., 5 for [sigma]
+ * up to 2., etc., up to the size given by [limit]. The size is returned in [dim].
+ * The coefficients are scaled to sum to 1.  Values are placed sequentially in [mat]; 
+ * i.e., it is not treated as a 2D array of size [limit].
+ */
+void scaledGaussianKernel(float *mat, int *dim, int limit, float sigma)
+{
+  *dim = 2 * (int)ceil((double)sigma) + 1;
+  *dim = B3DMIN(limit, *dim);
+  sliceGaussianKernel(mat, *dim, sigma);
+}
 
-Revision 1.6  2008/12/21 18:28:27  mast
-Add routine to get CCC
+/*! Fortran wrapper for @scaledGaussianKernel */
+void scaledgaussiankernel(float *mat, int *dim, int *limit, float *sigma)
+{
+  scaledGaussianKernel(mat, dim, *limit, *sigma);
+}
 
-Revision 1.5  2008/06/21 05:15:07  mast
-Scaled del squared G filter to max of 1
+/*!
+ * Applies the kernel in [mat], with the size given in [kdim], to a whole floating point 
+ * image in [array] with X and Y sizes [nx] amd [ny] and X dimension [nxdim], and places
+ * the output into [brray] with the same X dimension.  Scaling
+ * coefficients should be sequential in [mat] with the X dimension advancing fastest.
+ * The filtering is parallelized with OpenMP with the same size-dependent limitation on 
+ * the number of threads as in @cubinterp
+ */
+void applyKernelFilter(float *array, float *brray, int nxdim, int nx, int ny, float *mat,
+                      int kdim)
+{
+  int iyo, ixo, iy, ix;
+  int below = kdim / 2, above = kdim - 1 - kdim / 2;
+  int nregion, ireg, xstr, xend, aix, aiy, numThreads;
+  float sum;
 
-Revision 1.4  2007/11/02 00:10:04  mast
-Set filter to zero below 1.e-6 to avoid numberical problems and delays
+  numThreads = B3DNINT(0.04 * sqrt((double)nx * ny));
+  numThreads = numOMPthreads(numThreads);
+#pragma omp parallel for num_threads(numThreads) \
+  shared(kdim, nx, ny, nxdim, array, brray, mat, below, above)    \
+  private(iyo, ixo, iy, ix, nregion, ireg, xstr, xend, aix, aiy, sum)
+  for (iyo = 0; iyo < ny; iyo++) {
+    xstr = 0;
+    xend = below;
+    nregion = 2;
+    if (iyo < below || iyo >= ny - above) {
+      nregion = 1;
+      xend = nx;
+    } else {
+      for (ixo = below; ixo < nx - above; ixo++) {
+        sum = 0.;
+        for (iy = 0; iy < kdim; iy++) {
+          aiy = iy + iyo - below;
+          for (ix = 0; ix < kdim; ix++) {
+            aix = ix + ixo - below;
+            sum += mat[ix + iy * kdim] * array[aix + aiy * nxdim];
+          }
+        }
+        brray[ixo + nxdim * iyo] = sum;
+      }
+    }
+    for (ireg = 0; ireg < nregion; ireg++) {
+      for (ixo = xstr; ixo < xend; ixo++) {
+        sum = 0.;
+        for (iy = 0; iy < kdim; iy++) {
+          aiy = iy + iyo - below;
+          B3DCLAMP(aiy, 0, ny - 1);
+          for (ix = 0; ix < kdim; ix++) {
+            aix = ix + ixo - below;
+            B3DCLAMP(aix, 0, nx - 1);
+            sum += mat[ix + iy * kdim] * array[aix + aiy * nxdim];
+          }
+        }
+        brray[ixo + nxdim * iyo] = sum;
+      }
+      xstr = nx - above;
+      xend = nx;
+    }
+  }
+}
 
-Revision 1.3  2007/10/10 18:55:05  mast
-Functions callable by fortran must return double not float!
-
-Revision 1.2  2007/10/04 16:24:57  mast
-Added parabolic fit function to do it right everywhere
-
-Revision 1.1  2007/10/01 15:26:09  mast
-*** empty log message ***
-
-*/
+/*! Fortran wrapper for @applyKernelFilter */
+void applykernelfilter(float *array, float *brray, int *nxdim, int *nx, int *ny,
+                      float *mat, int *kdim)
+{
+  applyKernelFilter(array, brray, *nxdim, *nx, *ny, mat, *kdim);
+}
