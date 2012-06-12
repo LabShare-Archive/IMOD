@@ -16,7 +16,7 @@ module alivar
   implicit none
   !
   real*4, allocatable :: xx(:), yy(:), xyz(:,:), dxy(:,:)
-  real*4, allocatable :: xresid(:), yresid(:), weight(:)
+  real*4, allocatable :: xresid(:), yresid(:), weight(:), viewMedianRes(:)
   integer*4, allocatable :: isecView(:), irealStr(:)
   !
   integer*4, allocatable :: mapTilt(:), mapGmag(:), mapComp(:)
@@ -33,6 +33,7 @@ module alivar
   real*4, allocatable :: frcAlf(:), alf(:)
   real*4 fixedTilt, fixedGmag, fixedComp, fixedDmag, fixedSkew
   real*4 fixedTilt2, fixedRot, fixedAlf, projStrRot, projSkew, beamTilt, kfacRobust
+  real*4 smallWgtMaxFrac, smallWgtThreshold
   integer*4, allocatable :: mapViewToFile(:), mapFileToView(:)
   integer*4 nfileViews, mapProjStretch, mapBeamTilt
   !
@@ -52,7 +53,7 @@ CONTAINS
     maxView = numView + 4
     maxReal = numReal + 4
     allocate(xx(maxProjPt), yy(maxProjPt), xyz(3, maxReal), dxy(2, maxView), &
-        xresid(maxProjPt), yresid(maxProjPt), weight(maxProjPt), &
+        xresid(maxProjPt), yresid(maxProjPt), weight(maxProjPt), viewMedianRes(maxView), &
         isecView(maxProjPt), irealStr(maxReal), indProjWgtList(maxProjPt), &
         ivStartWgtGroup(maxView * maxWgtRings + 1), &
         ipStartWgtView(maxView * maxWgtRings + 1), &

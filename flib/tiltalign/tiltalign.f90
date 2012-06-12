@@ -76,6 +76,7 @@ program tiltalign
   real*4 binStepIni, binStepFinal, scanStep, allXmin, allXmax, allYmin, rotIncForInit
   real*8 pmat(9), wgtErrSum, wallTime, wallStart
   integer*4 imageBinned, numUnknownTot2, ifDoLocal, ninThresh, numInitSteps
+  integer*4 numWgtTotal, numWgtZero, numWgt1, numWgt2, numWgt5
   character*20 message
   character*320 concat
   !
@@ -161,6 +162,8 @@ program tiltalign
   ninThresh = 3
   rotIncForInit = 10.
   rotScanErrCrit = 5.
+  smallWgtMaxFrac = 0.25
+  smallWgtThreshold = 0.5
   !
   ! set this to 1 to get inputs for X - axis tilting from sequential input
   !
@@ -439,6 +442,12 @@ program tiltalign
     call setupAndDoLocalAlignments()
     close(iunLocal)
     if (.not. tooFewFid) then
+      if (ifDoRobust > 0) then
+        print *,'Summary of robust weighting in local areas:'
+        write(*,321)numWgtTotal, numWgtZero, numWgt1, numWgt2, numWgt5
+321     format(i6,' weights: ',i4,' are 0, ',i3,' are 0-0.1, ',i3,' are 0-0.2, ',i4, &
+            ' are < 0.5')
+        endif
       if (ifResOut > 0) print *
       write(*,119) errsumLocal / (numPatchX * numPatchY), errLocalMin, errLocalMax
 119   format(/,' Residual error local mean:',f9.3,'    range', f8.3, ' to',f8.3)
@@ -497,29 +506,52 @@ CONTAINS
       if (ifLocal .ne. 0) then
         jpt = minLocalResRobust
         index = 1
+      else
+        numWgtTotal = 0
+        numWgtZero = 0
+        numWgt1 = 0
+        numWgt2 = 0
+        numWgt5 = 0
       endif
+      call findMedianResidual()
       call setupWeightGroups(index, jpt, minTiltView, ierr)
       if (ierr .ne. 0) call exitError('TOO FEW DATA POINTS TO DO ROBUST FITTING')
       robustWeights = .true.
-      call runMetro(nvarSearch, var, varErr, grad, h, ifLocal, facm, ncycle, 0, &
-          fFinal, i, metroError)
-      jpt = 0
-      index = 0
-      ipt = 0
-      iv = 0
-      do i = 1, nprojpt
-        if (weight(i) < 0.5) jpt = jpt + 1
-        if (weight(i) == 0.) then
-          index = index + 1
-        else if (weight(i) < 0.1) then
-          ipt = ipt + 1
-        else if (weight(i) < 0.2) then
-          iv = iv + 1
-        endif
+      do j = 1, 50
+        errSave(1:nprojpt) = weight(1:nprojpt)
+        call runMetro(nvarSearch, var, varErr, grad, h, ifLocal, facm, -ncycle, 0, &
+            fFinal, i, metroError)
+        jpt = 0
+        index = 0
+        ipt = 0
+        iv = 0
+        errMean = 0.
+        errSd = 0.
+        do i = 1, nprojpt
+          if (weight(i) < 0.5) jpt = jpt + 1
+          if (weight(i) == 0.) then
+            index = index + 1
+          else if (weight(i) < 0.1) then
+            ipt = ipt + 1
+          else if (weight(i) < 0.2) then
+            iv = iv + 1
+          endif
+          errMean = errMean + abs(weight(i) - errSave(i))
+          errSd = max(errSd, abs(weight(i) - errSave(i)))
+        enddo
+        write(*,'(i3,a,2f8.4)')j,' Mean and max weight change',errMean/nprojpt, errSd
       enddo
-      write(*,'(i6,a,i4,a,i3,a,i3,a,i4,a)') nprojpt, ' weights: ', index, ' are 0, ', &
-          ipt, ' are 0-0.1, ', iv, ' are 0.1-0.2, ', jpt, ' are < 0.5'
       ! write(*,'(2f8.4)') (sqrt(xresid(i)**2 + yresid(i)**2) * scaleXY, weight(i), i = 1, nprojpt)
+      write(*,321) nprojpt, index, ipt, iv, jpt
+321   format(i6,' weights: ',i4,' are 0, ',i3,' are 0-0.1, ',i3,' are 0-0.2, ',i4, &
+          ' are < 0.5')
+      if (ifLocal .ne. 0) then
+        numWgtTotal = numWgtTotal + nprojpt
+        numWgtZero = numWgtZero + index
+        numWgt1 = numWgt1 + ipt
+        numWgt2 = numWgt2 + iv
+        numWgt5 = numWgt5 + jpt
+      endif
     endif
 
     !
@@ -1561,6 +1593,69 @@ CONTAINS
     !
   end subroutine setupAndDoLocalAlignments
 
+
+  subroutine findMedianResidual()
+    real*4 tmpRes(maxReal), tmpMedian(maxView), xvfit(25), slope(5)
+    integer*4 iorder/2/, nFullFit/15/, numIter/3/, iter, nfit
+    logical allZero/.true./
+    integer*4 iterCount/0/
+    save iterCount
+    
+    do iv = 1, nview
+      ninViewSum = 0
+      do i = 1, nprojpt
+        if (isecView(i) == iv) then
+          ninViewSum = ninViewSum + 1
+          tmpRes(ninViewSum) = sqrt(xresid(i)**2 + yresid(i)**2)
+        endif
+      enddo
+      call rsSortFloats(tmpRes, ninViewSum)
+      call rsMedianOfSorted(tmpRes, ninViewSum, viewMedianRes(iv))
+      ! write(*,'(2i4,f9.3,a)') iterCount,iv, viewMedianRes(iv) * scaleXY,'  FMR'
+      if (viewMedianRes(iv) .ne. 0) allZero = .false.
+    enddo
+    iterCount = iterCount + 1
+    if (allZero) then
+      viewMedianRes(1:nview) = 1.
+      return
+    endif
+    !
+    ! Make sure there are no zeros, just copy nearest value
+    do iv = 1, nview
+      if (viewMedianRes(iv) .eq. 0.) then
+        NEAR_VIEW_LOOP:  do i = 1, nview - 1
+          do iter = -1, 1, 2
+            if (viewMedianRes(iv + iter * i) .ne. 0.) then
+              viewMedianRes(iv) = viewMedianRes(iv + iter * i)
+              exit NEAR_VIEW_LOOP
+            endif
+          enddo
+        enddo NEAR_VIEW_LOOP
+      endif
+    enddo
+    !
+    ! smooth with iterations
+    do iter = 1, numIter
+      tmpMedian(1:nview) = viewMedianRes(1:nview)
+      do iv = 1, nview
+        ivst = max(1, iv - nFullFit / 2)
+        ivnd = min(nview, iv + nFullFit / 2)
+        nfit = ivnd + 1 - ivst
+        if (nfit .lt. 5) iorder = 1
+        do i = ivst, ivnd
+          xvfit(i + 1 - ivst) = i - iv
+        enddo
+        call polyfit(xvfit, tmpMedian(ivst), nfit, iorder, slope, viewMedianRes(iv))
+        ! write(*,'(2i4,f9.3,a)') iterCount, iv,viewMedianRes(iv) * scaleXY,'  FMR'
+      enddo
+      iterCount = iterCount + 1
+    enddo
+
+    return
+  end subroutine findMedianResidual
+
+
+
 end program tiltalign
 
 subroutine setupWeightGroups(maxRings, minRes, minTiltView, ierr)
@@ -1658,26 +1753,26 @@ subroutine setupWeightGroups(maxRings, minRes, minTiltView, ierr)
                 exit NUM_VIEW_LOOP
             if (nring > 1 .or. numViews < nview) exit GROUP_LOOP
           endif
-          !
-          ! Combine views if necessary to get to minimum
-          numCombine = min(maxViewsInSubgrp, &
-              ceiling(minSubgrpSize / (float(numPts) / numViews)))
-          numSubgrp = numViews / numCombine
-          if (numCombine == maxViewsInSubgrp .and. mod(numViews, numCombine) > 0) &
-              numSubgrp = numSubgrp + 1
-          numCombine = numViews / numSubgrp
-          print *,'combine', numSubgrp, numCombine
-          if (numSubgrp < numViews) then
-            indin = ivStartWgtGroup(indGroup - 1)
-            indView = indin
-            do isub = 1, numSubgrp
-              ipStartWgtView(indView) = ipStartWgtView(indin)
-              ind = numCombine
-              if (isub <= mod(numViews, numSubgrp)) ind = ind + 1
-              indin = indin + ind
-              indView = indView + 1
-            enddo
-          endif
+!!$          !
+!!$          ! Combine views if necessary to get to minimum
+!!$          numCombine = min(maxViewsInSubgrp, &
+!!$              ceiling(minSubgrpSize / (float(numPts) / numViews)))
+!!$          numSubgrp = numViews / numCombine
+!!$          if (numCombine == maxViewsInSubgrp .and. mod(numViews, numCombine) > 0) &
+!!$              numSubgrp = numSubgrp + 1
+!!$          numCombine = numViews / numSubgrp
+!!$          print *,'combine', numSubgrp, numCombine
+!!$          if (numSubgrp < numViews) then
+!!$            indin = ivStartWgtGroup(indGroup - 1)
+!!$            indView = indin
+!!$            do isub = 1, numSubgrp
+!!$              ipStartWgtView(indView) = ipStartWgtView(indin)
+!!$              ind = numCombine
+!!$              if (isub <= mod(numViews, numSubgrp)) ind = ind + 1
+!!$              indin = indin + ind
+!!$              indView = indView + 1
+!!$            enddo
+!!$          endif
         enddo RING_LOOP
         !
         ! After each view group, increase the view base number
@@ -1701,7 +1796,6 @@ subroutine setupWeightGroups(maxRings, minRes, minTiltView, ierr)
   ierr = 1
   return
 end subroutine setupWeightGroups
-
 
 
 subroutine errorexit(message, ifLocal)
