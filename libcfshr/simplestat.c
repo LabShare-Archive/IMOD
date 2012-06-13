@@ -208,9 +208,9 @@ void lsFitPred(float *x, float *y, int n, float *slope, float *bint, float *ro,
   *se=0.;
   sxy=sxyp+n*xbar*ybar;
   sysq=sypsq+n*ybar*ybar;
-  setmp = (sysq-*bint*sy-*slope*sxy)/(n-2);
+  setmp = sysq-*bint*sy-*slope*sxy;
   if(n > 2 && setmp > 0.)
-    *se=(float)sqrt(setmp);
+    *se=(float)sqrt(setmp/(n-2));
   *sa=(float)(*se*sqrt((1./n+(sx*sx/n)/d)));
   *sb=(float)(*se/sqrt((d/n)));
   
