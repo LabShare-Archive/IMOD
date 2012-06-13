@@ -119,6 +119,41 @@ usage = Density scaling factor (default 1.0)
 tooltip =
 manpage = Scaling factor for image intensities after filtering.
 
+[Field = AmplifierFactorAndPower]
+short = amplifier
+type = FP
+usage = Amplification factor and exponent for low-frequency amplifier filter
+tooltip =
+manpage = Amplification factor and exponent for low-frequency amplifier
+filter.  Either -cutoff or -phase must also be entered.
+
+[Field = CutoffForAmplifier]
+short = cutoff
+type = F
+usage = Cutoff radius in reciprocal pixels for amplifier filter
+tooltip =
+manpage = Cutoff radius in reciprocal pixels for amplifier filter.  This
+option cannot be entered together with -phase.
+
+[Field = PhasePlateParameters]
+short = phase
+type = FT
+usage = Phase plate diameter, voltage, focal length for amplifier filter
+tooltip =
+manpage = Parameters of phase plate imaging, used to compute a nominal cutoff
+radius for the low-frequency amplifier filter.  Enter the phase plate diameter
+in nanometers, the voltage in kilovolts, and the objective lens focal lenth in
+millimeters.
+
+[Field = PixelSize]
+short = pixel
+type = F
+usage = Pixel size in nanometers, overrides the pixel spacing in the file header
+tooltip =
+manpage = Pixel size in nanometers.  A pixel size is needed to compute the
+cutoff radius for the amplifier filter from the phase plate parameters.  This
+entry is needed only if the pixel size in the image file header is incorrect.
+
 [Field = ParameterFile]
 short=param
 type=PF

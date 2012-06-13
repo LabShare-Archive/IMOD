@@ -90,7 +90,6 @@ EXPORTS
 	corr_conj
 	tiffSuppressErrors
 	sliceResizeIn
-	scaledGaussianKernel
 	sliceByteEdgeSobel
 	tiffWriteSection
 	iiLikeMRCCheck
@@ -123,7 +122,6 @@ EXPORTS
 	mrc_default_status
 	mrcReadSectionUShort
 	tiffWriteStrip
-	sliceGaussianKernel
 	mrc_coord_cp
 	mrc_read_slice
 	mrc_vol_wrap

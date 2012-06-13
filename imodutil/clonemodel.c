@@ -41,7 +41,7 @@ int main( int argc, char *argv[])
   Imat *xform;
 
   int numOptions = 7;
-  char *options[] = {
+  const char *options[] = {
     "at:AtPoints:FN:", "x:XRange:IP:", "y:YRange:IP:", "z:ZRange:IP:",
     "input:InputFile:FN:", "output:OutputFile:FN:", 
     "contours:ContourNumbers:LI:"};

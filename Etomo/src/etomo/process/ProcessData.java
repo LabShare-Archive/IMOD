@@ -81,6 +81,15 @@ public final class ProcessData implements Storable {
   private ProcessingMethod processingMethod = null;
   private DialogType dialogType = null;
 
+  public void dumpState() {
+    System.err.println("[processDataPrepend:" + processDataPrepend + ",pid:" + pid
+        + ",\ngroupPid:" + groupPid + ",doNotLoad:" + doNotLoad + ",sshFailed:"
+        + sshFailed + ",computerMap:");
+    if (computerMap != null) {
+      System.err.println(computerMap.toString());
+    }
+  }
+
   /**
    * Get an instance of ProcessData which is associated with a process managed
    * by Etomo.  It cannot be loaded from the param file.  This instance will

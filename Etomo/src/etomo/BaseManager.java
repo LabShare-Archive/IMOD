@@ -110,6 +110,22 @@ public abstract class BaseManager {
   private final ProcessingMethodMediator processingMethodMediatorB = new ProcessingMethodMediator();
   private final ManagerKey managerKey = new ManagerKey();
 
+ public void dumpState() {
+    System.err.println("[headless:" + headless + ",loadedParamFile:" + loadedParamFile
+        + ",paramFile:");
+    if (paramFile != null) {
+      System.err.println(paramFile.getAbsolutePath() + ",");
+    }
+    System.err.println("homeDirectory:" + homeDirectory + ",threadNameA:" + threadNameA
+        + ",\nthreadNameB:" + threadNameB + ",backgroundProcessA:" + backgroundProcessA
+        + ",\nbackgroundProcessNameA:" + backgroundProcessNameA + ",propertyUserDir:"
+        + propertyUserDir + ",\ndebug:" + debug + ",exiting:" + exiting + ",initialized:"
+        + initialized + ",\ncurrentDialogTypeA:" + currentDialogTypeA
+        + ",\ncurrentDialogTypeB:" + currentDialogTypeB + ",reconnectRunA:"
+        + reconnectRunA + ",\nreconnectRunA:" + reconnectRunA + ",reconnectRunB:"
+        + reconnectRunB + ",\nmanagerKey:" + managerKey + "]");
+  }
+
   abstract public InterfaceType getInterfaceType();
 
   abstract void createComScriptManager();
@@ -1438,8 +1454,7 @@ public abstract class BaseManager {
     }
     return reconnectRunA;
   }
-  
-  
+
   public boolean isValid() {
     return true;
   }
