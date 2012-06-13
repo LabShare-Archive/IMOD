@@ -51,12 +51,11 @@ static int load_models(int n, char **fname, ImodvApp *a);
 static int openWindow(ImodvApp *a);
 static int getVisuals(ImodvApp *a);
 static void initstruct(ImodView *vw, ImodvApp *a);
-static int imodv_init(ImodvApp *a, struct Mod_Draw *md);
+static int imodv_init(ImodvApp *a);
 
 
 // GLOBAL VARIABLES for the imodv and draw structures
 ImodvApp  ImodvStruct;
-struct Mod_Draw Imodv_mdraw;
 ImodvApp *Imodv = &ImodvStruct;
 
 /* A global to indicate if the window is closed */
@@ -106,7 +105,7 @@ static const char *blackString = "black";
 
 /* DEFAULT INITIALIZATION OF THE STRUCTURES
    9/2/02: also called for model view initialization in imod */
-static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
+static int imodv_init(ImodvApp *a)
 {
   a->nm = 0;
   a->cm = 0;
@@ -114,10 +113,8 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->imod = NULL;
   a->mat  = imodMatNew(3);
   a->rmat  = imodMatNew(3);
-  a->dobj = imodObjectNew();
-  a->obj = a->dobj;
+  a->obj = imodObjectNew();
   a->ob = 0;
-  a->md = md;
   a->cnear = 0;
   a->cfar = 1000;
   a->fovy = 0;
@@ -141,16 +138,10 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->rbgname = blackString;
   a->rbgcolor = new QColor(0, 0, 0);
 
-  md->xorg = md->yorg = md->zorg = 0;
-  md->xrot = md->yrot = md->zrot = 0;  /* current rotation. */
-  md->zoom = 1.0f;
-  md->arot = 10;
-  md->atrans = 5.0f;
-  md->azoom = 1.05f;
-  md->azscale = 0.2;
-  md->xrotm = 0; /* rotation movie */
-  md->yrotm = 0;
-  md->zrotm = 0;
+  a->deltaRot = 10;
+  a->xrotMovie = 0; /* rotation movie */
+  a->yrotMovie = 0;
+  a->zrotMovie = 0;
 
   /* control flags */
   a->current_subset = 0;
@@ -193,7 +184,7 @@ static void initstruct(ImodView *vw, ImodvApp *a)
   Ipoint imageMax;
   float binScale;
 
-  imodv_init(a, &Imodv_mdraw);
+  imodv_init(a);
 
   a->nm = 1;
   a->mod = (Imod **)malloc(sizeof(Imod *));
@@ -514,7 +505,7 @@ int imodv_main(int argc, char **argv)
   char *windowKeys = NULL;
   a->standalone = 1;
   diaSetTitle("3dmodv");
-  imodv_init(a, &Imodv_mdraw);
+  imodv_init(a);
 
   // DNM 5/17/03: The Qt application and preferences are already gotten
 
@@ -620,7 +611,6 @@ void imodv_open()
 {
   ImodView *vw = App->cvi;
   Imodv = &ImodvStruct;
-  ImodvStruct.md = &Imodv_mdraw;
   ImodvApp *a = Imodv;
 
   Imod *imod = vw->imod;

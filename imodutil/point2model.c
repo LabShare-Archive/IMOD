@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include <stdio.h>
@@ -37,23 +36,27 @@ int main( int argc, char *argv[])
   int numColors = 0;
   int numNames = 0;
   int *red, *green, *blue;
+  int directScale = 0;
+  float xscale = 1., yscale = 1., zscale = 1., xtrans = 0., ytrans = 0., ztrans = 0.;
   char **names = NULL;
 
   char *progname = imodProgName(argv[0]);
   char *filename, *imagename;
   MrcHeader hdata;
+  IrefImage *ref;
   FILE *fpimage = NULL;
   char *errString;
   int numOptArgs, numNonOptArgs;
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 point2model  */
-  int numOptions = 11;
+  int numOptions = 14;
   char *options[] = {
     "input:InputFile:FN:", "output:OutputFile:FN:", "open:OpenContours:B:",
-    "scat:ScatteredPoints:B:", "number:PointsPerContour:B:",
-    "planar:PlanarContours:B:", "zero:NumberedFromZero:B:",
-    "circle:CircleSize:I:", "sphere:SphereRadius:I:",
-    "color:ColorOfObject:ITM:", "image:ImageForCoordinates:FN:"};
+    "scat:ScatteredPoints:B:", "number:PointsPerContour:I:", "planar:PlanarContours:B:",
+    "zero:NumberedFromZero:B:", "circle:CircleSize:I:", "sphere:SphereRadius:I:",
+    "color:ColorOfObject:ITM:", "name:NameOfObject:CHM:",
+    "image:ImageForCoordinates:FN:", "pixel:PixelSpacingOfImage:FT:",
+    "origin:OriginOfImage:FT:"};
 
   /* Startup with fallback */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
@@ -77,6 +80,11 @@ int main( int argc, char *argv[])
       exitError("Reading header from %s", imagename);
     free(imagename);
   }
+
+  directScale = 2 - PipGetThreeFloats("PixelSpacingOfImage", &xscale, &yscale, &zscale)
+    - PipGetThreeFloats("OriginOfImage", &xtrans, &ytrans, &ztrans);
+  if (directScale && fpimage)
+    exitError("You cannot use -image together with -pixel or -origin");
 
   err = PipGetInteger("PointsPerContour", &numPerCont);
   err = PipGetInteger("SphereRadius", &sphere);
@@ -138,9 +146,25 @@ int main( int argc, char *argv[])
   if (!imod)
     exitError("Failed to get model structure");
 
+  // Set the image reference scaling
   if (fpimage) {
     imodSetRefImage(imod, &hdata);
     fclose(fpimage);
+  } else if (directScale) {
+    imod->refImage = (IrefImage *)malloc(sizeof(IrefImage));
+    if (!imod->refImage)
+      exitError("Allocating IrefImage structure");
+    ref = imod->refImage;
+    ref->ctrans.x = xtrans;
+    ref->ctrans.y = ytrans;
+    ref->ctrans.z = ztrans;
+    ref->cscale.x = xscale;
+    ref->cscale.y = yscale;
+    ref->cscale.z = zscale;
+    ref->oscale.x = ref->oscale.y = ref->oscale.z = 1.;
+    ref->orot.x = ref->orot.y = ref->orot.z = 0.;
+    ref->crot.x = ref->crot.y = ref->crot.z = 0.;
+    ref->otrans.x = ref->otrans.y = ref->otrans.z = 0.;
   }
 
   ob = 0;
@@ -257,26 +281,3 @@ int main( int argc, char *argv[])
          numConts, numPts);
   exit(0);
 }
-
-
-/*
-
-$Log$
-Revision 3.5  2009/09/22 14:35:19  mast
-Fixed warning statement
-
-Revision 3.4  2009/09/21 18:34:07  mast
-Fixed problem with reading stopping at a blank line, and added options for
-setting color, sizes, and reference coordinates.
-
-Revision 3.3  2009/02/16 06:38:40  mast
-Fixed initialization of maxes
-
-Revision 3.2  2008/01/28 19:42:12  mast
-Switched from close to fclose
-
-Revision 3.1  2007/10/18 22:17:10  mast
-Added to package
-
-
-*/

@@ -336,6 +336,35 @@ A running average is kept of the appearance of the bead over
 the most recent views examined; this parameter specifies the
 maximum number of views averaged.
 
+[Field = SobelBeadsToAverage]
+short = 
+type = I
+usage = Number of beads to average for reference for Sobel filter correlation
+tooltip = 
+manpage = 
+
+[Field = KernelSigma]
+short = 
+type = F
+usage = Sigma for gaussian kernel filtering of single bead before Sobel correlation
+tooltip = 
+manpage = 
+
+[Field = InterpolationType]
+short = 
+type = I
+usage = 1 for linear or 0 for cubic interpolation or -1 for antialias
+reduction in scaled Sobel filter
+tooltip = 
+manpage = 
+
+[Field = MedianForEdge]
+short = 
+type = B
+usage = Use median instead of mean of edge pixels when computing center of gravity
+tooltip = 
+manpage = 
+
 [Field = PointsToFitMaxAndMin]
 short = 
 type = IP

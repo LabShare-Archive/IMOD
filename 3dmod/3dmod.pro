@@ -54,9 +54,6 @@ HEADERS	+= autox.h \
 	mv_movie.h \
 	qcursor.bits \
 	qcursor_mask.bits \
-	time_lock.bits \
-	unlock.bits \
-	lock.bits \
 	hottoolbar.h \
 	imodplug.h \
 	xcramp.h \

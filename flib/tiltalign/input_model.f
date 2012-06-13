@@ -5,25 +5,24 @@ c       with the origin at the center of the section
 c       
 c       $Id$
 c       
-      subroutine input_model(xx,yy,isecview,maxprojpt,maxreal,
-     &    irealstr,ninreal, imodobj, imodcont,nview, nprojpt,nrealpt,
-     &    iwhichout, xcen, ycen,xdelt,listz,mapfiletoview,nfileviews,
-     &    modelfile,residualFile, pointfile, iuangle, iuxtilt,pipinput)
+      subroutine input_model(imodobj, imodcont, nprojpt,  iwhichout, xcen, ycen,xdelt,
+     &    listz, maxzlist, modelfile,residualFile, pointfile, iuangle, iuxtilt,pipinput)
 c       
+      use alivar
       implicit none
-      real*4 xx(*),yy(*),xcen,ycen
-      integer*4 isecview(*),irealstr(*),ninreal(*),imodobj(*),imodcont(*)
-      integer*4 mapfiletoview(*),maxprojpt,maxreal,nview,nprojpt,nrealpt
-      integer*4 iwhichout, iuangle,iuxtilt,nfileviews
+      real*4 xcen,ycen
+      integer*4 imodobj(*),imodcont(*),listz(*)
+      integer*4 nprojpt, maxzlist
+      integer*4 iwhichout, iuangle,iuxtilt
       character*(*) modelfile,pointfile,residualFile
 c       
-      character*160 solufile,anglefile
-      logical stereopair,exist,readSmallMod,pipinput
-      integer getimodhead,getimodscales,getimodmaxes,lnblnk
+      character*320 solufile,anglefile
+      logical exist,readSmallMod,pipinput
+      integer getimodhead,getimodscales,getimodmaxes,numberInList
 c       
       include 'smallmodel.inc'
 c       
-      integer*4 nxyz(3),mxyz(3),listz(*)
+      integer*4 nxyz(3),mxyz(3)
       real*4 delta(3)
 c       
       integer*4 nzlist,iobject,ninobj,ipt,iz,i,j,itmp,minzval,ifspecify
@@ -103,12 +102,13 @@ c
         if(ninobj.gt.1)then
           do ipt=1,ninobj
             iz=nint((p_coord(3,object(ipt+ibase_obj(iobject))) +  zorig) / delta(3))
-            do i=1,nzlist
-              if(iz.eq.listz(i))go to 20
-            enddo
-            nzlist=nzlist+1
-            listz(nzlist)=iz
-20        enddo
+            if (numberInList(iz, listz, nzlist, 0) .eq. 0) then
+              nzlist=nzlist+1
+              if (nzlist .gt. maxzlist)
+     &            call errorexit('TOO MANY Z VALUES IN MODEL FOR TEMPORARY ARRAYS')
+              listz(nzlist)=iz
+            endif
+          enddo
         endif
       enddo
       if (n_point .eq. 0) call errorexit('THE FIDUCIAL MODEL IS EMPTY', 0)
@@ -169,7 +169,7 @@ c         model
 c         
         resbothout = modelfile .ne. ' '
         gotdot = .false.
-        do i = 1, lnblnk(modelfile)-2
+        do i = 1, len_trim(modelfile)-2
           if (gotdot .and. modelfile(i:i+2).eq.'res')residualout = .true.
           if (gotdot .and. modelfile(i:i+2).eq.'mod')resbothout = .false.
           if (modelfile(i:i).eq.'.')  gotdot = .true.
@@ -260,7 +260,7 @@ c
      &      'IncludeList, OR ExcludeList', 0)
         if (ierr .eq. 0) ifspecify = 1
         if (ierr2 + ierr3 .eq. 1) then
-          call parselist(listString, isecview,ninoutlist)
+          call parselist(listString, imodobj,ninoutlist)
           if (ierr3 .eq. 0) ifspecify = 3
         endif
       else
@@ -279,17 +279,17 @@ c
             read(5,*)ivstr,ivend,ivinc
           elseif(ifspecify.eq.2)then
             write(*,'(1x,a,$)')'Enter views to include (ranges ok): '
-            call rdlist(5,isecview,ninoutlist)
+            call rdlist(5,imodobj,ninoutlist)
           else
             write(*,'(1x,a,$)')'Enter views to exclude (ranges ok): '
-            call rdlist(5,isecview,ninoutlist)
+            call rdlist(5,imodobj,ninoutlist)
           endif
         endif
       endif
       if (ifspecify .eq. 1) then
         ninoutlist=1+(ivend-ivstr)/ivinc
         do i=1,ninoutlist
-          isecview(i)=ivstr+(i-1)*ivinc
+          imodobj(i)=ivstr+(i-1)*ivinc
         enddo
       endif
 c       
@@ -301,7 +301,7 @@ c
         do while(i.le.nzlist)
           ifonlist=0
           do j=1,ninoutlist
-            if(listz(i)+1.eq.isecview(j))ifonlist=1
+            if(listz(i)+1.eq.imodobj(j))ifonlist=1
           enddo
 c           
 c           remove points on exclude list or not on include list
@@ -317,6 +317,62 @@ c
         enddo
       endif
 c       
+c       Count the number of points in valid objects on selected views
+      nprojpt=0
+      nrealpt=0
+      imodobj(1:nzlist) = 0
+      do iobject=1,max_mod_obj
+        ninobj=npt_in_obj(iobject)
+        ibase=ibase_obj(iobject)
+        if(ninobj.gt.1)then
+c           
+c           First determine if the object is usable at all: if it has at least 2 points
+          inlist = 0
+          do ipt=1,ninobj
+            if (numberInList(nint((p_coord(3,object(ipt+ibase)) + zorig) / delta(3)),
+     &          listz, nzlist, 0) .ne. 0) then
+              inlist = inlist + 1
+              if (inlist .gt. 1) exit
+            endif
+          enddo
+c           
+c           If so, then count the points on valid views, and keep track of those views
+          if (inlist .gt. 1) then
+            nRealPt = nRealPt + 1
+            do ipt=1,ninobj
+              iz=nint((p_coord(3,object(ipt+ibase)) + zorig) / delta(3))
+              do i=1,nzlist
+                if(iz.eq.listz(i))then
+                  nProjPt = nProjPt + 1
+                  imodobj(i) = imodobj(i) + 1
+                  exit
+                endif
+              enddo
+            enddo
+          endif
+        endif
+      enddo
+c       
+c       Trim the Z list if that excluded any views
+      inlist = 0
+      do i = 1, nzlist
+        if (imodobj(i) .gt. 0) then
+          inlist = inlist + 1
+          listz(inlist) = listz(i)
+        endif
+      enddo
+      nzlist = inlist
+      if (nzlist .lt. 2) call errorexit(
+     &    'THE FIDUCIAL MODEL HAS USABLE POINTS ON ONLY ONE VIEW', 0)
+      nview = nzlist
+c       
+c       Do some big allocations
+      
+      call allocateAlivar(nprojpt, nview, nrealpt, ierr)
+      call memoryError(ierr, 'ARRAYS IN ALIVAR')
+      call allocateFunctVars(ierr)
+      call memoryError(ierr, 'ARRAYS FOR FUNCT')
+c       
 c       go through model finding objects with more than one point in the
 c       proper z range, and convert to index coordinates, origin at center
 c       
@@ -327,7 +383,6 @@ c
         ibase=ibase_obj(iobject)
         if(ninobj.gt.1)then                     !non-empty object
           nprojtmp=nprojpt                      !save number at start of object
-          stereopair=.false.
           do ipt=1,ninobj                       !loop on points
 c             
 c             find out if the z coordinate of this point is on the list
@@ -343,7 +398,7 @@ c               if so, tentatively add index coordinates to list but first
 c               check for two points on same view
 c               
               do i = nprojpt + 1, nprojtmp
-                if (.not.stereopair .and. inlist .eq. isecview(i)) then
+                if (inlist .eq. isecview(i)) then
 c                   
 c                   Find the other point
                   do j = 1, ipt-1
@@ -366,14 +421,6 @@ c                   Find the other point
               yy(nprojtmp)=(p_coord(2,object(ipt+ibase))+yorig)/ydelt
      &            -ycen
               isecview(nprojtmp)=inlist
-c               
-c               if doing stereo pairs, set flag if it's not set, and if
-c               flag is set, point must belong to second view
-c               
-              if(nzlist.eq.1)then
-                if(stereopair)isecview(nprojtmp)=inlist+1
-                stereopair=.true.
-              endif
             endif
           enddo
 c           
@@ -384,7 +431,6 @@ c
             if(nrealpt.gt.maxreal)call errorexit(
      &          'TOO MANY FIDUCIAL POINTS FOR ARRAYS',0)
             irealstr(nrealpt)=nprojpt+1
-            ninreal(nrealpt)=nprojtmp-nprojpt
             call objtocont(iobject,obj_color,imodobj(nrealpt),
      &          imodcont(nrealpt))
             nprojpt=nprojtmp
@@ -396,11 +442,10 @@ c
           npt_in_obj(iobject)=0
         endif
       enddo
-      irealstr(nrealpt+1)=nprojpt+1             !for convenient looping
-      nview=max(2,nzlist)                       !nzlist maybe 1 for stereo pair
+      irealstr(nrealpt+1)=nprojpt+1             !Needed to get number in real sometimes
 c       
 c       shift listz to be a view list, and make the map of file to view
-c       
+c       listz will be copied into mapviewtofile
       do i=1,nfileviews
         mapfiletoview(i)=0
       enddo

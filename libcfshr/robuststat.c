@@ -63,20 +63,23 @@ void rssortfloats(float *x, int *n)
 }
 
 static float *valArray;
+static int indexOffset = 0;
 static int indexedFloatCompar(const void *val1, const void *val2)
 {
-  int *i1 = (int *)val1;
-  int *i2 = (int *)val2;
-  if (valArray[*i1] < valArray[*i2])
+  int i1 = *((int *)val1) - indexOffset;
+  int i2 = *((int *)val2) - indexOffset;
+  if (valArray[i1] < valArray[i2])
     return -1;
-  else if (valArray[*i1] > valArray[*i2])
+  else if (valArray[i1] > valArray[i2])
     return 1;
   return 0;
 }
 
 
 /*!
- * Uses {qsort} to sort indexes in [index] to the [n] floats in the array [x].
+ * Uses {qsort} to sort indexes in [index] to the [n] floats in the array [x].  Indexes 
+ * will be used directly when calling from C.  The routine stores a static pointer to 
+ * the array so it is not thread-safe.
  */
 void rsSortIndexedFloats(float *x, int *index, int n)
 {  
@@ -85,11 +88,14 @@ void rsSortIndexedFloats(float *x, int *index, int n)
 }
 
 /*!
- * Fortran wrapper for @rsSortIndexedFloats
+ * Fortran wrapper for @rsSortIndexedFloats.  Indexes will be reduced by one to index the
+ * array in the C comparison routine, so they can still be Fortran indexes.
  */
 void rssortindexedfloats(float *x, int *index, int *n)
 {
+  indexOffset = 1;
   rsSortIndexedFloats(x, index, *n);
+  indexOffset = 0;
 }
 
 

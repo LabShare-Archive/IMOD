@@ -40,11 +40,6 @@
 #include "imod_input.h"
 #include "b3dgfx.h"
 
-#include "lowres.bits"
-#include "highres.bits"
-#include "lock.bits"
-#include "unlock.bits"
-
 #define XTUM_WIDTH 200
 #define XTUM_HEIGHT 250
 #define XTUM_SIZE_MIN 8.
@@ -59,9 +54,9 @@ static void xtumDraw_cb(ImodView *vi, void *client, int drawflag);
 static void xtumKey_cb(ImodView *vi, void *client, int released,
 			QKeyEvent *e);
 
-static unsigned char *bitList[MAX_XTUM_TOGGLES][2] =
-  { {lowres_bits, highres_bits},
-    {unlock_bits, lock_bits}};
+static const char *fileList[MAX_XTUM_TOGGLES][2] =
+  { {":/images/lowres.png", ":/images/highres.png"},
+    {":/images/unlock.png", ":/images/lock.png"}};
 
 static QIcon *icons[MAX_XTUM_TOGGLES];
 static int firstTime = 1;
@@ -187,7 +182,7 @@ TumblerWindow::TumblerWindow(TumblerStruct *xtum, bool rgba,
   setAttribute(Qt::WA_AlwaysShowToolTips);
 
   if (firstTime) 
-    utilBitListsToIcons(bitList, icons, MAX_XTUM_TOGGLES);
+    utilFileListsToIcons(fileList, icons, MAX_XTUM_TOGGLES);
   firstTime = 0;
   
   // Make central vbox and top frame containing an hboxlayout

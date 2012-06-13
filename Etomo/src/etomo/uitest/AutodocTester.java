@@ -1237,7 +1237,7 @@ final class AutodocTester extends Assert implements VariableList {
           return true;
         }
         try {
-          Thread.sleep(1500);
+          Thread.sleep(1000);
         }
         catch (InterruptedException e) {
         }
@@ -1245,7 +1245,7 @@ final class AutodocTester extends Assert implements VariableList {
           return true;
         }
         try {
-          Thread.sleep(800);
+          Thread.sleep(1000);
         }
         catch (InterruptedException e) {
         }
@@ -1260,6 +1260,11 @@ final class AutodocTester extends Assert implements VariableList {
         // The right process is done
         wait = false;
         // Check the end_state
+        try {
+          Thread.sleep(1000);
+        }
+        catch (InterruptedException e) {
+        }
         assertEquals("process ended with the wrong state -" + value + " (" + command
             + ")", value, progressBar.getString());
       }

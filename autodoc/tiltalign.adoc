@@ -794,6 +794,24 @@ usage = Limit on number of cycles for minimization procedure (default 500)
 tooltip = Limit on number of iterations to find a solution.
 manpage = Limit on number of cycles for minimization procedure (default 500).
 
+[Field = RobustFitting]
+type = B
+usage = Do robust fitting by giving less or no weight to outliers
+tooltip = 
+manpage = 
+
+[Field = MinWeightGroupSizes]
+type = IP
+usage = Minimum sizes for groups of points for computing weights, global and local
+tooltip = 
+manpage = 
+
+[Field = KFactorForWeights]
+type = I
+usage = Scaling factor of median absolute deviation when computing weights
+tooltip = 
+manpage = 
+
 [Field = AxisZShift]
 short = 
 type = F

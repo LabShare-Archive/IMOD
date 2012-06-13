@@ -83,6 +83,10 @@ public class AxisID {
   public static final AxisID FIRST = new AxisID("First");
   public static final AxisID SECOND = new AxisID("Second");
 
+  public void dumpState() {
+    System.err.println("[name:" + name + "]");
+  }
+
   /**
    * Returns a string representation of the object.
    */
