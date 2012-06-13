@@ -1515,7 +1515,7 @@ c         Finish it and exit if setting up for direct writing
           call ialcel(2,cell)
         endif
 c       
-        call date(dat)
+        call b3ddate(dat)
         call time(tim)
         write(titlech,90) actionStr,dat,tim
 90      format( 'BLENDMONT: Montage pieces ',a, t57, a9, 2x, a8 )
@@ -2060,7 +2060,7 @@ c
 c       
       close(3)
 c      write(*,'(a,2f12.6)')'fast box and single pixel times:',fastcum,slowcum
-      if (ifEdgeFuncOnly .eq. 0) then
+      if (ifEdgeFuncOnly .eq. 0 .and. .not. testMode) then
 c       
 c         If direct parallel, output stats
         pixelTot = (float(nxbin) * nlinesWrite) * nzbin
