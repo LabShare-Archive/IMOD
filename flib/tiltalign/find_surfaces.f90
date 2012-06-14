@@ -275,9 +275,13 @@ subroutine lsfit2Resid(x, y, z, n, a, b, c, alpha, slope, resid, devMin, devMax)
 
   if (n > 2) then
     call lsfit2(x, y, z, n, a, b, c)
-  else
+  elseif (n > 1) then
     b = 0.
     call lsfit(x, z, n, a, c, ro)
+  else
+    a = 0.
+    b = 0.
+    c = z(1)
   endif
   resid = 0.
   devMin = 1.e10
