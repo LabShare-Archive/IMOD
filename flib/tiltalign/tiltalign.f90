@@ -76,7 +76,9 @@ program tiltalign
   real*4 binStepIni, binStepFinal, scanStep, allXmin, allXmax, allYmin, rotIncForInit
   real*8 pmat(9), wgtErrSum, wallTime, wallStart
   integer*4 imageBinned, numUnknownTot2, ifDoLocal, ninThresh, numInitSteps
-  integer*4 numWgtTotal, numWgtZero, numWgt1, numWgt2, numWgt5
+  integer*4 numWgtTotal, numWgtZero, numWgt1, numWgt2, numWgt5, maxDelWgtBelowCrit
+  integer*4 maxRobustOneCycle, numOneCycle, numTotCycles, maxTotCycles, numBelowCrit
+  real*4 robustTotCycleFac, delWgtMeanCrit, delWgtMaxCrit, rmsScale
   character*20 message
   character*320 concat
   !
@@ -143,7 +145,13 @@ program tiltalign
   tooFewFid = .false.
   kfacRobust = 4.68
   minResRobust = 100
-  minLocalResRobust = 50
+  minLocalResRobust = 65
+  smallWgtThreshold = 0.5
+  delWgtMeanCrit = 0.001
+  delWgtMaxCrit = 0.01
+  maxDelWgtBelowCrit = 4
+  maxRobustOneCycle = 10
+  robustTotCycleFac = 1.5
   ifDoRobust = 0
   incrGmag = 0
   incrDmag = 0
@@ -163,7 +171,6 @@ program tiltalign
   rotIncForInit = 10.
   rotScanErrCrit = 5.
   smallWgtMaxFrac = 0.25
-  smallWgtThreshold = 0.5
   !
   ! set this to 1 to get inputs for X - axis tilting from sequential input
   !
@@ -193,18 +200,18 @@ program tiltalign
   deallocate(iallRealStr, indAllReal, listReal)
   !
   ! Do big allocations
-  print *,maxReal, maxView, maxProjPt
+  ! print *,maxReal, maxView, maxProjPt
   allocate(ninReal(maxReal), igroup(maxReal), &
-      tiltOrig(maxView), viewRes(maxView), xyzerr(3, maxReal), &
+      tiltOrig(nfileViews), viewRes(maxView), xyzerr(3, maxReal), &
       ninView(maxView), indSave(maxProjPt), jptSave(maxProjPt), &
       errSave(maxProjPt), viewErrsum(maxView), viewErrsq(maxView), &
       viewMeanRes(maxView), viewSdRes(maxView), &
       fl(2, 3, maxView), xzfac(maxView), yzfac(maxView), &
       allxyz(3, maxReal), allxx(maxProjPt), allyy(maxProjPt), &
-      glbfl(2, 3, maxView), glbxzfac(maxView), glbyzfac(maxView), &
+      glbfl(2, 3, maxView), glbxzfac(nfileViews), glbyzfac(nfileViews), &
       iallSecv(maxProjPt), iallRealStr(maxReal), listReal(maxReal), &
       indAllReal(maxReal), mapAllToLocal(maxView), mapLocalToAll(maxView), &
-      mallFileToView(maxView), mallViewToFile(maxView), stat = ierr)
+      mallFileToView(nfileViews), mallViewToFile(maxView), stat = ierr)
   call memoryError(ierr, 'MAIN PROGRAM ARRAYS')
   !
   ! Allocate the variable arrays to maximum plausible size
@@ -298,6 +305,7 @@ program tiltalign
     xx(i) = xx(i) / scaleXY
     yy(i) = yy(i) / scaleXY
   enddo
+  rmsScale = scaleXY**2 / nprojpt
   !
   ! Get the h array big enough for the solution and for temporary arrays in solveXyzd
   maxvar = nvarSearch + 3 * nrealPt
@@ -492,15 +500,19 @@ CONTAINS
     robustWeights = .false.
     if (ifBTSearch == 0) then
       call runMetro(nvarSearch, var, varErr, grad, h, ifLocal, facm, ncycle, 0, &
-          fFinal, i, metroError)
+          rmsScale, fFinal, i, metroError)
     else
       call searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, &
           nvarSearch, var, varErr, grad, h, ifLocal, facm, ncycle, &
-          fFinal, metroError)
+          rmsScale, fFinal, i, metroError)
     endif
     !
     ! If doing robust fitting, just restart the start with all current values
     if (ifDoRobust .ne. 0) then
+      maxTotCycles = abs(ncycle) * robustTotCycleFac
+      numTotCycles = 0
+      numOneCycle = 0
+      numBelowCrit = 0
       jpt = minResRobust
       index = maxWgtRings
       if (ifLocal .ne. 0) then
@@ -517,10 +529,17 @@ CONTAINS
       call setupWeightGroups(index, jpt, minTiltView, ierr)
       if (ierr .ne. 0) call exitError('TOO FEW DATA POINTS TO DO ROBUST FITTING')
       robustWeights = .true.
-      do j = 1, 50
+      do while (numTotCycles .lt. maxTotCycles)
         errSave(1:nprojpt) = weight(1:nprojpt)
-        call runMetro(nvarSearch, var, varErr, grad, h, ifLocal, facm, -ncycle, 0, &
-            fFinal, i, metroError)
+        call computeWeights(indSave, jptSave, xyzerr)
+        call runMetro(nvarSearch, var, varErr, grad, h, ifLocal, facm, -abs(ncycle), 1, &
+            rmsScale, fFinal, i, metroError)
+        numTotCycles = numTotCycles + i
+        if (i <= 1) then
+          numOneCycle = numOneCycle + 1
+        else
+          numOneCycle = 0
+        endif
         jpt = 0
         index = 0
         ipt = 0
@@ -528,7 +547,10 @@ CONTAINS
         errMean = 0.
         errSd = 0.
         do i = 1, nprojpt
-          if (weight(i) < 0.5) jpt = jpt + 1
+          if (weight(i) < 0.5) then
+            jpt = jpt + 1
+            errMean = errMean + abs(weight(i) - errSave(i))
+          endif
           if (weight(i) == 0.) then
             index = index + 1
           else if (weight(i) < 0.1) then
@@ -536,15 +558,25 @@ CONTAINS
           else if (weight(i) < 0.2) then
             iv = iv + 1
           endif
-          errMean = errMean + abs(weight(i) - errSave(i))
           errSd = max(errSd, abs(weight(i) - errSave(i)))
         enddo
-        write(*,'(i3,a,2f8.4)')j,' Mean and max weight change',errMean/nprojpt, errSd
+        if (jpt > 0) errMean = errMean / jpt
+        if (errSd < delWgtMaxCrit .or. errMean < delWgtMeanCrit) then
+          numBelowCrit = numBelowCrit + 1
+        else
+          numBelowCrit = 0
+        endif
+        if (numBelowCrit >= maxDelWgtBelowCrit .or. numOneCycle >= maxRobustOneCycle) exit
       enddo
-      ! write(*,'(2f8.4)') (sqrt(xresid(i)**2 + yresid(i)**2) * scaleXY, weight(i), i = 1, nprojpt)
+      write(*,'(a,i5,t48,a,t61,f14.6)')' Total cycles for robust fitting:', &
+          numTotCycles, 'Final   F : ', sqrt(fFinal * rmsScale)
+      if (numTotCycles > maxTotCycles)  &
+          write(*,'(/,a,i5,a,/)') 'WARNING: Robust fitting ended after', &
+          numTotCycles,' cycles without meeting convergence criteria'
+      write(*,'(a,2f8.4)')' Final mean and max weight change',errMean, errSd
       write(*,321) nprojpt, index, ipt, iv, jpt
 321   format(i6,' weights: ',i4,' are 0, ',i3,' are 0-0.1, ',i3,' are 0-0.2, ',i4, &
-          ' are < 0.5')
+          ' are < 0.5',/)
       if (ifLocal .ne. 0) then
         numWgtTotal = numWgtTotal + nprojpt
         numWgtZero = numWgtZero + index
@@ -1654,148 +1686,7 @@ CONTAINS
     return
   end subroutine findMedianResidual
 
-
-
 end program tiltalign
-
-subroutine setupWeightGroups(maxRings, minRes, minTiltView, ierr)
-  use alivar
-  implicit none
-  integer*4 irealRingList(maxReal), ierr, maxRings, minRes, minTiltView
-  integer*4 maxViewsForRings(maxWgtRings) /1, 8, 7, 6, 5, 5, 4, 4, 3, 3/
-  real*4 distReal(maxReal)
-  integer*4 i, nring, nrealPerRing, neededViews, numViews, numViewGroups, numExtra
-  integer*4 iexStart, ngrpBeforeEx, indProj, indGroup, indView, ivbase, igroup
-  integer*4 irbase, ninGroup, ninRing, iring, iv, ind, ireal, iproj, minSubgrpSize
-  integer*4 maxViewsInSubgrp, isub, indin, numCombine, numSubgrp, numPts
-
-  maxViewsInSubgrp = 3
-  minSubgrpSize = 15
-
-  ! Get distances from center get sorted indexes to them
-  do i = 1, nrealPt
-    distReal(i) = sqrt(xyz(1, i)**2 + xyz(2, i)**2)
-    irealRingList(i) = i
-  enddo
-  call rsSortIndexedFloats(distReal, irealRingList, nrealPt)
-
-  ! Loop from largest number of rings down, first evaluate plausibility if
-  ! all points are present
-  NUM_RING_LOOP:  do nring = maxRings, 1, -1
-    nrealPerRing = nrealPt / nring
-    if (nrealPerRing == 0) cycle
-    neededViews = minRes / nrealPerRing
-    if (neededViews > maxViewsForRings(nring) .and. nring > 1) then
-      print *, 'rejecting ', nring, ' rings out of hand'
-      cycle
-    endif
-    !
-    ! Try to set up groups of views of increasing sizes until one works
-    NUM_VIEW_LOOP:  do numViews = neededViews, nview
-      numViewGroups = nview / numViews
-      numExtra = mod(nview, numViews)
-      iexStart = max(1, minTiltView - numExtra / 2)
-      ngrpBeforeEx = (iexStart - 1) / numViews
-      indProj = 1
-      ivbase = 0
-      indGroup = 1
-      indView = 1
-      !
-      ! Loop on the groups of views
-      GROUP_LOOP:  do igroup = 1, numViewGroups
-        irbase = 0
-        ninGroup = numViews
-        if (igroup > ngrpBeforeEx .and. igroup <= ngrpBeforeEx + numExtra) &
-            ninGroup = ninGroup + 1
-        !
-        ! loop on the rings in views
-        RING_LOOP:  do iring = 1, nring
-          ninRing = nrealPerRing
-          if (iring > nring - mod(nrealPt, nring)) ninRing = ninRing + 1
-          !
-          ! This is one weight group, set the starting view index of it
-          ivStartWgtGroup(indGroup) = indView
-          indGroup = indGroup + 1
-          !
-          ! loop on the views in the group; for each one, set the starting index
-          ! in the projection list
-          ! print *,'group', igroup, ivbase + 1, ivbase + ninGroup
-          do iv = ivbase + 1, ivbase + ninGroup
-            ! print *,'view in group', iv, indView, indProj
-            ipStartWgtView(indView) = indProj
-            indView = indView + 1
-            !
-            ! Loop on the real points in the ring, and for each one on the given view,
-            ! add its projection point index to the list
-            do ind = irbase + 1, irbase + ninRing
-              ireal = irealRingList(ind)
-              do iproj = irealStr(ireal), irealStr(ireal + 1) - 1
-                if (isecView(iproj) == iv) then
-                  ! print *,ireal, iproj, iv
-                  indProjWgtList(indProj) = iproj
-                  indProj = indProj + 1
-                endif
-              enddo
-            enddo
-          enddo
-          !
-          ! After each ring, increase the ring base index
-          irbase = irbase + ninRing
-          !
-          ! But if there are too few in this group, make view groups bigger if
-          ! possible for this number of rings; otherwise go on to try fewer rings;
-          ! but if there is only one ring and it is up to all views, push on
-          numPts = indProj - ipStartWgtView(ivStartWgtGroup(indGroup - 1))
-          if (numPts < minres) then
-            ierr = 1
-            print *,'group too small', ivbase
-            if (numViews >= maxViewsForRings(nring) .and. nring > 1) &
-                exit NUM_VIEW_LOOP
-            if (nring > 1 .or. numViews < nview) exit GROUP_LOOP
-          endif
-!!$          !
-!!$          ! Combine views if necessary to get to minimum
-!!$          numCombine = min(maxViewsInSubgrp, &
-!!$              ceiling(minSubgrpSize / (float(numPts) / numViews)))
-!!$          numSubgrp = numViews / numCombine
-!!$          if (numCombine == maxViewsInSubgrp .and. mod(numViews, numCombine) > 0) &
-!!$              numSubgrp = numSubgrp + 1
-!!$          numCombine = numViews / numSubgrp
-!!$          print *,'combine', numSubgrp, numCombine
-!!$          if (numSubgrp < numViews) then
-!!$            indin = ivStartWgtGroup(indGroup - 1)
-!!$            indView = indin
-!!$            do isub = 1, numSubgrp
-!!$              ipStartWgtView(indView) = ipStartWgtView(indin)
-!!$              ind = numCombine
-!!$              if (isub <= mod(numViews, numSubgrp)) ind = ind + 1
-!!$              indin = indin + ind
-!!$              indView = indView + 1
-!!$            enddo
-!!$          endif
-        enddo RING_LOOP
-        !
-        ! After each view group, increase the view base number
-        ivbase = ivbase + ninGroup
-        ierr = 0
-      enddo GROUP_LOOP
-      !
-      ! If we got here with err 0, this setup fits constraints, finalize index lists
-      if (ierr == 0) then
-        ipStartWgtView(indView) = indProj
-        ivStartWgtGroup(indGroup) = indView
-        numWgtGroups = nring * numViewGroups
-        print *,numWgtGroups, ' weight groups:', nring, ' rings in', numViewGroups, &
-            ' view groups'
-        write(*,'(13i6)') (ivStartWgtGroup(i), i = 1, numWgtGroups + 1)
-        write(*,'(13i6)') (ipStartWgtView(i), i = 1, indView)
-        return
-      endif
-    enddo NUM_VIEW_LOOP
-  enddo NUM_RING_LOOP
-  ierr = 1
-  return
-end subroutine setupWeightGroups
 
 
 subroutine errorexit(message, ifLocal)

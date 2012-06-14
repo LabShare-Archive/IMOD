@@ -108,7 +108,7 @@ subroutine funct(nvarSearch, var, ferror, grad)
   if (firstFunct) then
     xbar(1:nview) = 0.
     ybar(1:nview) = 0.
-    weight(1:numProjPt) = 1.
+    if (.not. robustWeights) weight(1:numProjPt) = 1.
     nptInView(1:nview) = 0
     realInView(1:nrealPt, 1:nview) = .false.
     !
@@ -128,7 +128,7 @@ subroutine funct(nvarSearch, var, ferror, grad)
       xbar(iv) = xbar(iv) / nptInView(iv)
       ybar(iv) = ybar(iv) / nptInView(iv)
     enddo
-    ! firstFunct = .false.
+     firstFunct = .false.
 !!$      call remap_params(var)
 !!$      do iv = 1, nview
 !!$      write(*,113) rot(iv), mapRot(iv), linRot(iv), frcRot(iv), &
@@ -235,13 +235,8 @@ subroutine funct(nvarSearch, var, ferror, grad)
     yproj(i) = yproj(i) + dxy(2, iv)
     xresid(i) = xproj(i) - xx(i)
     yresid(i) = yproj(i) - yy(i)
-  enddo
-  if (robustWeights .and. firstFunct) call computeWeights(resProd, &
-      resProd(1, numProjPt / 3), resProd(1, 2 * numProjPt / 3), )
-  do i = 1, numProjPt
     error = error + (xresid(i)**2 + yresid(i)**2) * weight(i)
   enddo
-  firstFunct = .false.
   !
   ! precompute products needed for gradients
   !
@@ -736,92 +731,3 @@ subroutine matrix_to_coef(dist, xtilt, beamInv, yTilt, beamMat, &
   return
 end subroutine matrix_to_coef
 
-subroutine computeWeights(distRes, work, iwork)
-  use alivar
-  implicit none
-  real*4 distRes(*), work(*), dev, rmedian, rMADN, adjMedian
-  integer*4 iwork(*), igroup, i, ind, ninGroup, numViews, indv, ninView, numLow, maxSmall
-
-  !
-  ! Loop on the groups of views
-  do igroup = 1, numWgtGroups
-    ninGroup = 0
-    numViews = ivStartWgtGroup(igroup + 1) - ivStartWgtGroup(igroup)
-    ! print *,'group', igroup, numViews, ivStartWgtGroup(igroup)
-    !
-    ! loop on the views in the group and get the residuals, divide by the smoothed
-    ! median residual
-    do indv = ivStartWgtGroup(igroup), ivStartWgtGroup(igroup + 1) - 1
-      ninView = ipStartWgtView(indv + 1) - ipStartWgtView(indv)
-      do i = 1, ninView
-        ind = indProjWgtList(i + ipStartWgtView(indv) - 1)
-        distRes(ninGroup + i) = sqrt(xresid(ind)**2 + yresid(ind)**2) /  &
-            viewMedianRes(isecView(ind))
-      enddo
-!!$      !
-!!$      ! For each view, normalize the residuals to median 1
-!!$      call rsMedian(distRes(ninGroup + 1), ninView, work, rmedian)
-!!$      if (firstFunct) write (*,'(3i5,f8.3)'), igroup, indv, ninView, 1000. * rmedian
-!!$      if (firstFunct) write(*,'(11f7.3)') (1000. * distRes(ninGroup + i), i = 1, ninView)
-!!$      if (rmedian > 1.e-30) then
-!!$        do i = 1, ninView
-!!$          distRes(ninGroup + i) = distRes(ninGroup + i) / rmedian
-!!$        enddo
-!!$      endif
-      ninGroup = ninGroup + ninView
-    enddo
-    !
-    ! Get overall median and MADN and compute weights
-    call rsMedian(distRes, ninGroup, work, rmedian)
-    call rsMADN(distRes, ninGroup, rmedian, work, rMADN)
-    ninGroup = 0
-    do indv = ivStartWgtGroup(igroup), ivStartWgtGroup(igroup + 1) - 1
-      ninView = ipStartWgtView(indv + 1) - ipStartWgtView(indv)
-      call weightsForView(rmedian)
-      maxSmall = ninView * smallWgtMaxFrac
-      if (numLow >  maxSmall) then
-        !
-        ! If there are too many small weights, then find the first one that must be
-        ! given a weight above threshold and adjust the median to accomplish that
-        do i = 1, ninView
-          iwork(i) = i
-        enddo
-        call rsSortIndexedFloats(distRes(ninGroup + 1), iwork, ninView)
-        print *,numLow,' small weights, below limit of ', maxSmall
-        print *,' median', rmedian,'  MADN', rMADN
-        !write(*, '(7f11.3)')(distRes(ninGroup + i), i = 1, ninView)
-        !write(*, '(7i11)')(iwork(i), i = 1, ninView)
-        !write(*, '(7f11.3)')(distRes(ninGroup + iwork(i)), i = 1, ninView)
-        dev = sqrt(1. - sqrt(1.1 * smallWgtThreshold))
-        adjMedian = distRes(ninGroup + iwork(ninView -  maxSmall)) - dev * kfacRobust * &
-            rMADN
-        call weightsForView(adjMedian)
-        if (numLow >  maxSmall) print *,'WARNING: median adjustment for small weights bad'
-        print *,'Adjust median to ', adjMedian,' now there are ', numLow
-      endif
-      ninGroup = ninGroup + ninView
-    enddo
-  enddo
-  return
-
-CONTAINS
-
-  subroutine weightsForView(viewMedian)
-    real*4 viewMedian
-    numLow = 0
-    do i = 1, ninView
-      ind = indProjWgtList(i + ipStartWgtView(indv) - 1)
-      dev = (distRes(ninGroup + i) - viewMedian) / (kfacRobust * rMADN)
-      if (dev <= 0.) then
-        weight(ind) = 1.
-      else if (dev >= 1.) then
-        weight(ind) = 0.
-      else
-        weight(ind) = (1. - dev**2)**2
-      endif
-      if (weight(ind) < smallWgtThreshold) numLow = numLow + 1
-    enddo
-    return
-  end subroutine weightsForView
-
-end subroutine computeWeights
