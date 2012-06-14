@@ -19,7 +19,7 @@ c
       real*4 dtor
       data dtor/0.0174532/
       integer*4 imintiltsolv,i,nprojpt,iv,maxvar
-      real*4 tltslvmin,tltslvmax,ang,tltran,finit
+      real*4 tltslvmin,tltslvmax,ang,tltran,finit, rmsScale
       integer*4 nvarsrch,ifmaptilt,jpt,kpt,nvargeom,ier,kount,nsum
       real*4 f,ffinal,rsum
       integer*4 ior,ipt,ivor,j,metroLoop
@@ -98,8 +98,8 @@ c
 c           
           call solveXyzd(xx,yy,isecview,irealstr, nview, nrealpt,tilt,rot, gmag,comp,
      &        xyz, dxy, 0., h, maxh, error,ier)
-          if (ier .ne. 0) print *,'WARNING: failed to initialize X/Y/Z coordinates '//
-     &        'for tiltalign solution'
+          if (ier .ne. 0) write(*,'(/,a,/)')'WARNING: failed to initialize X/Y/Z'//
+     &        ' coordinates for tiltalign solution'
           initxyzdone=1
         else
           do jpt=1,nrealpt
@@ -130,6 +130,7 @@ c
 c         
         metroLoop = 1
         ier = 1
+        rmsScale = scaleXY**2 / nprojpt
         do while (metroLoop.le.maxMetroTrials .and. ier.ne.0)
           firstFunct=.true.
           call funct(nvarsrch,var,finit,grad)
@@ -138,7 +139,7 @@ c           70	    FORMAT(/' Variable Metric minimization',T50,
 c	    &	    'Initial F:',T67,E14.7)
 C	    
           CALL METRO(nvarsrch,var,funct,F,Grad,facm * trialScale(metroLoop),
-     &        eps,-NCYCLE,IER, H,KOUNT)
+     &        eps,-NCYCLE,IER, H,KOUNT, rmsScale)
           metroLoop = metroLoop +1
           if (ier .ne. 0) then
             if (metroLoop .le. maxMetroTrials) then
@@ -174,9 +175,8 @@ c     &        ipt = 1, min(9,irealstr(i+1)-irealstr(i)))
           ifmaptilt = ifmaptilt + irealstr(i+1)-irealstr(i)
         enddo
 c         
-        WRITE(6,98)nview,KOUNT,ffinal,tltran/ifmaptilt
-98      format(i4,' views,',i5,' cycles, F =',e14.7,', mean residual =',
-     &      f8.2)
+        WRITE(6,98)nview,KOUNT,sqrt(ffinal * rmsScale),tltran/ifmaptilt
+98      format(i4,' views,',i5,' cycles, F =',f13.6,', mean residual =', f8.2)
 c         
 C         Error reports:
         IF(IER.NE.0)THEN

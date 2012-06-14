@@ -10,14 +10,14 @@
 ! through the last interval of the binary search.  Other parameters are
 ! as passed to runMetro
 !
-subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, &
-    numVarSearch, var, varerr, grad, h, ifLocal, facm, ncycle, fFinal, metroError)
+subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, numVarSearch, &
+    var, varerr, grad, h, ifLocal, facm, ncycle, rmsScale, fFinal, kountInit, metroError)
   implicit none
   integer LIMSCAN
   parameter (LIMSCAN = 200)
-  real*4 beamTilt, binStepIni, binStepFinal, scanStep
+  real*4 beamTilt, binStepIni, binStepFinal, scanStep, rmsScale
   real*4 var(*), varerr(*), grad(*), h(*), facm, fFinal
-  integer*4 numVarSearch, ncycle, metroError, ifLocal
+  integer*4 numVarSearch, ncycle, metroError, ifLocal, kountInit
   real*4 btOrig, btMax, fScan(LIMSCAN), xx(LIMSCAN/2), xxsq(LIMSCAN/2)
   real*4 btMin, aa, bb, cc, xmin, scanInt
   integer*4 idir, iter, numScan, nfit, i, iMin, istr, iend, j, kount
@@ -32,9 +32,10 @@ subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, &
   call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, ncycle, 1, fmin, &
       kount, metroError)
   print *
-  write(*,101) beamTilt / dtor, kount, fmin
+  write(*,101) beamTilt / dtor, kount, sqrt(fmin * rmsScale)
 101 format(' For beam tilt =',f6.2, ', ',i4,' cycles,',T48,'final   F : ', &
-      T65,E14.7)
+        T61,F14.6)
+  kountInit = kount
   !
   ! Restart every run at the output of this one
   do i = 1, numVarSearch
@@ -51,23 +52,23 @@ subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, &
     if (abs(beamTilt - btOrig) > btMax) then
       write(*,102) btMax / dtor, btOrig / dtor
 102   format(/,'WARNING: NO MINIMUM ERROR FOUND FOR BEAM TILT CHANGE UP TO' &
-          ,f5.1, /, 'WARNING: RETURNING TO ORIGINAL BEAM TILT =',f6.2)
+          ,f5.1, /, 'WARNING: RETURNING TO ORIGINAL BEAM TILT =',f6.2, /)
       beamTilt = btOrig
 
       do i = 1, numVarSearch
         var(i) = varerr(i)
       enddo
       call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, -ncycle, 1, &
-          fFinal, kount, metroError)
+          rmsScale, fFinal, kount, metroError)
       return
     endif
 
     do i = 1, numVarSearch
       var(i) = varerr(i)
     enddo
-    call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, -ncycle, 1, fnew, &
-        kount, metroError)
-    write(*,101) beamTilt / dtor, kount, fnew
+    call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, -ncycle, 1,  &
+        rmsScale,  fnew, kount, metroError)
+    write(*,101) beamTilt / dtor, kount, sqrt(fnew * rmsScale)
     iter = iter + 1
     if (fnew > fmin) then
       !
@@ -120,9 +121,9 @@ subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, &
     do i = 1, numVarSearch
       var(i) = varerr(i)
     enddo
-    call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, -ncycle, 1, fnew, &
-        kount, metroError)
-    write(*,101) beamTilt / dtor, kount, fnew
+    call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, -ncycle, 1, &
+        rmsScale, fnew, kount, metroError)
+    write(*,101) beamTilt / dtor, kount, sqrt(fnew * rmsScale)
     if (fnew < fmin) then
       !
       ! If new minimum, replace the old, go in most promising direction
@@ -164,8 +165,8 @@ subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, &
       var(i) = varerr(i)
     enddo
     call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, -ncycle, 1, &
-        fScan(j), kount, metroError)
-    write(*,101) beamTilt / dtor, kount, fScan(j)
+        rmsScale, fScan(j), kount, metroError)
+    write(*,101) beamTilt / dtor, kount, sqrt(fScan(j) * rmsScale)
     if (fScan(j) < fmin .or. j == 2) then
       fmin = fScan(j)
       btMin = beamTilt
@@ -209,7 +210,7 @@ subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, &
     if (fAbove < fmin) beamTilt = btAbove
     write(*,103)
 103 format(/,'WARNING: FIT TO BEAM TILT SCAN FAILED TO GIVE MINIMUM;', &
-        ' USING SCAN MINIMUM')
+        ' USING SCAN MINIMUM',/)
   else
     beamTilt = btBelow + (xmin - 1) * scanInt
   endif
@@ -218,12 +219,12 @@ subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, &
   do i = 1, numVarSearch
     var(i) = varerr(i)
   enddo
-  call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, -ncycle, 1, &
+  call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, -ncycle, 1, rmsScale, &
       fFinal, kount, metroError)
   print *
-  write(*,104) beamTilt / dtor, kount, fFinal
+  write(*,104) beamTilt / dtor, kount, sqrt(fFinal * rmsScale)
 104 format(' Solved beam tilt =',f6.2, ', ',i4,' cycles,',T48,'Final   F : ', &
-      T65,E14.7)
+      T61,F14.6)
   return
 end subroutine searchBeamTilt
 
@@ -239,21 +240,22 @@ end subroutine searchBeamTilt
 ! NCYCLE is the limit on the number of cycles, or the negative of the
 ! limit to suppress some output
 ! ifHush not equal to zero suppresses the Final F output
+! rmsScale is used to scale the sum squared error before taken sqrt
 ! fFinal is the final error measure
 ! KOUNT is the cycle count
 ! metroError is maintained with a count of total errors
 !
 subroutine runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, ncycle, &
-    ifHush, fFinal, kount, metroError)
+    ifHush, rmsScale, fFinal, kount, metroError)
   use alivar
   implicit none
   integer maxMetroTrials
   parameter (maxMetroTrials = 5)
-  real*4 var(*), varerr(*), grad(*), h(*), facm, fFinal
+  real*4 var(*), varerr(*), grad(*), h(*), facm, fFinal, rmsScale
   real*4 trialScale(maxMetroTrials) /1.0, 0.9, 1.1, 0.75, 0.5/
   integer*4 numVarSearch, ncycle, metroError, ifLocal
   integer*4 i, ier, metroLoop, kount, ifHush
-  real*4 fInit, f
+  real*4 fInit, f, eps
   external funct
   !
   ! save the variable list for multiple trials
@@ -263,17 +265,19 @@ subroutine runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, ncycle, &
   enddo
   metroLoop = 1
   ier = 1
+  eps = 0.00001
+  ! if (ncycle < 0) eps = eps / 5.
   do while (metroLoop <= maxMetroTrials .and. ier .ne. 0 .and. ier .ne. 3)
     firstFunct = .true.
     call funct(numVarSearch, var, fInit, grad)
-    if (metroLoop == 1 .and. ncycle > 0) WRITE(6, 70) fInit
-70  FORMAT(/,' Variable Metric minimization',T48, 'Initial F:',T65,E14.7)
+    if (metroLoop == 1 .and. ncycle > 0) WRITE(6, 70) sqrt(fInit * rmsScale)
+70  FORMAT(/,' Variable Metric minimization',T48, 'Initial F:',T61,F14.6)
     !
     ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     ! Call variable metric minimizer
     !
     CALL metro (numVarSearch, var, funct, F, Grad, facm * trialScale(metroLoop), &
-        .00001, NCYCLE, IER, H, KOUNT)
+        eps, NCYCLE, IER, H, KOUNT, rmsScale)
     metroLoop = metroLoop + 1
 
     !
@@ -300,8 +304,8 @@ subroutine runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, ncycle, &
 
   ! Final call to FUNCT
   CALL FUNCT(numVarSearch, var, fFinal, Grad)
-  if (ifHush == 0) WRITE(6, 98) fFinal, KOUNT
-98 FORMAT(/,T48,'Final   F : ',T65,E14.7,/,' Number of cycles : ',I5)
+  if (ifHush == 0) WRITE(6, 98) sqrt(fFinal * rmsScale), KOUNT
+98 FORMAT(/,T48,'Final   F : ',T61,f14.6,/,' Number of cycles : ',I5)
   call flush(6)
   ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
   ! Error returns:
