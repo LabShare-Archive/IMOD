@@ -9,8 +9,8 @@ OBJS = dirnm.$(O) hdiag.$(O) stepwz.$(O) eigenv.$(O) matinv.$(O) polyfit.$(O) \
 all: $(OBJS)
 
 
-metro.$(O): metro.f
-	$(FC) -c $(FFLAGS) $(OPENMPF) metro.f
+metro.$(O): metro.f90
+	$(FC) -c $(FFLAGS) $(OPENMPF) metro.f90
 
 
 clean:
