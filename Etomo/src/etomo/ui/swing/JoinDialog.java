@@ -20,6 +20,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import etomo.AutoAlignmentController;
 import etomo.JoinManager;
 import etomo.comscript.FinishjoinParam;
 import etomo.comscript.XfjointomoParam;
@@ -44,6 +45,7 @@ import etomo.type.JoinScreenState;
 import etomo.type.JoinState;
 import etomo.type.NullRequiredNumberException;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.AutoAlignmentDisplay;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -506,7 +508,8 @@ import etomo.util.Utilities;
  * <p> bug# 520 added create panel functions
  * <p> </p>
  */
-public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
+public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
+    AutoAlignmentDisplay {
   public static final String rcsid = "$Id$";
 
   public static final int SETUP_MODE = -1;
@@ -667,6 +670,19 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       return pnlRejoinTab;
     }
     return null;
+  }
+
+  public void setAutoAlignmentController(
+      final AutoAlignmentController autoAlignmentController) {
+    autoAlignmentPanel.setController(autoAlignmentController);
+  }
+
+  public AxisID getAxisID() {
+    return axisID;
+  }
+
+  public DialogType getDialogType() {
+    return DialogType.JOIN;
   }
 
   /**
