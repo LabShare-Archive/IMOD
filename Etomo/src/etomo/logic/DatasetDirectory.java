@@ -248,10 +248,11 @@ public final class DatasetDirectory {
    * Returns true if newDataFileType can share a directory with another data file 
    * (existingDataFileName).  The Axis Type parameters can be null if 
    * existingDataFileName is not an .edf file.
-   * @param inputFile - an input file of the project to be created
-   * @param newAxisType AxisType - axis type of the new dataset
-   * @param existingDataFileName - a data file in the directory to be shared
-   * @param existingAxisType - axis type of the existingDataFileName data file
+   * @param newDataFileType - file type of the new dataset file
+   * @param newRoot - root of the new dataset file
+   * @param newAxisType - axis type of the new dataset file
+   * @param existingDataFileName - the existing dataset file
+   * @param existingAxisType - the axis type of the existing dataset file
    * @return
    */
   static boolean canShareWith(final DataFileType newDataFileType, String newRoot,
@@ -259,7 +260,7 @@ public final class DatasetDirectory {
       final AxisType existingAxisType) {
     // check new root
     if (newRoot == null || newRoot.matches("\\s*")) {
-      return true;
+      return false;
     }
     // handle incorrect data file types
     if (!newDataFileType.hasAxisType) {
