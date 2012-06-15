@@ -6,7 +6,8 @@ import etomo.BaseManager;
 import etomo.type.AxisID;
 
 /**
-* <p>Description: </p>
+* <p>Description: Data used by the process managers.  This class has a one-to-one
+* relationship with BaseManager.</p>
 * 
 * <p>Copyright: Copyright 2012</p>
 *
@@ -41,8 +42,7 @@ public final class AxisProcessData {
     if (killedList != null) {
       System.err.println(killedList.toString());
     }
-    // System.err.println(",blockAxisA:" + blockAxisA + ",blockAxisB:" + blockAxisB +
-    // "]");
+    System.err.println(",blockAxisA:" + blockAxisA + ",blockAxisB:" + blockAxisB + "]");
   }
 
   public AxisProcessData(final BaseManager manager) {
@@ -78,7 +78,7 @@ public final class AxisProcessData {
     }
   }
 
- public SystemProcessInterface getThread(final AxisID axisID) {
+  public SystemProcessInterface getThread(final AxisID axisID) {
     SystemProcessInterface thread = null;
     if (axisID == AxisID.SECOND) {
       thread = threadAxisB;
