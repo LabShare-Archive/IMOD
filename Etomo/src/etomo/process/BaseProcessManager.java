@@ -33,7 +33,7 @@ import etomo.util.Utilities;
  * <p>Description: Process manager for processes not associated with one
  * interface such as processchunks.  It also contains axis busy functions, start
  * process functions, and end process functions.  It also handles killing most
- * kinds of processes.</p>
+ * kinds of processes.  Relationships: one BaseManager to many BaseProcessManager.</p>
  * 
  * <p>Copyright: Copyright (c) 2002 - 2006</p>
  *
