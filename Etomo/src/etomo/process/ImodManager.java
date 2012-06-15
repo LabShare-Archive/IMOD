@@ -20,6 +20,7 @@ import etomo.type.ImageFileType;
 import etomo.type.JoinMetaData;
 import etomo.type.ParallelMetaData;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.SerialSectionsMetaData;
 import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
@@ -713,6 +714,17 @@ public class ImodManager {
     }
     createPrivateKeys();
     loadJoinMap();
+  }
+
+  public void setMetaData(SerialSectionsMetaData metaData) {
+    metaDataSet = true;
+    axisType = metaData.getAxisType();
+    datasetName = metaData.getName();
+    if (datasetName.equals("")) {
+      new IllegalStateException("DatasetName is empty.").printStackTrace();
+    }
+    createPrivateKeys();
+    loadSerialSectionsMap();
   }
 
   public void setMetaData(ConstPeetMetaData metaData) {
@@ -1811,6 +1823,9 @@ public class ImodManager {
     imodMap.put(joinSampleAveragesKey, newVector(newJoinSampleAverages()));
     imodMap.put(joinKey, newVector(newJoin()));
     imodMap.put(trialJoinKey, newVector(newTrialJoin()));
+  }
+
+  protected void loadSerialSectionsMap() {
   }
 
   protected void loadPeetMap() {
