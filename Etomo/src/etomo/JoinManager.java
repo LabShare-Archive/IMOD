@@ -1,10 +1,9 @@
 package etomo;
 
 import java.awt.Component;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import etomo.comscript.ClipParam;
@@ -27,6 +26,7 @@ import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
+import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
@@ -556,6 +556,7 @@ public final class JoinManager extends BaseManager {
 
   // Process dialog references
   private JoinDialog joinDialog = null;
+  private AutoAlignmentController autoAlignmentController = null;
 
   // variables cast from base class variables
   // initialized in create function
@@ -643,9 +644,11 @@ public final class JoinManager extends BaseManager {
       else {
         joinDialog = JoinDialog.getInstance(this, metaData, state);
       }
+      autoAlignmentController = new AutoAlignmentController(this, joinDialog);
+      joinDialog.setAutoAlignmentController(autoAlignmentController);
     }
     if (loadedParamFile) {
-      createEmptyXfFile(metaData.getDatasetName());
+      autoAlignmentController.createEmptyXfFile();
     }
     mainPanel.showProcess(joinDialog.getContainer(), AxisID.ONLY);
     String actionMessage = Utilities.prepareDialogActionMessage(DialogType.JOIN,
@@ -915,7 +918,7 @@ public final class JoinManager extends BaseManager {
     }
     String rootName = metaData.getDatasetName();
     EtomoDirector.INSTANCE.renameCurrentManager(rootName);
-    createEmptyXfFile(rootName);
+    autoAlignmentController.createEmptyXfFile();
     MakejoincomParam makejoincomParam = new MakejoincomParam(metaData, state, this);
     if (paramFile == null) {
       endSetupMode();
@@ -1009,69 +1012,6 @@ public final class JoinManager extends BaseManager {
     return true;
   }
 
-  /**
-   * Run midas on the sample
-   */
-  public void midasSample(final String description) {
-    if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
-      return;
-    }
-    MidasParam midasParam = new MidasParam(this, AxisID.ONLY);
-    if (!copyMostRecentXfFile(description)) {
-      return;
-    }
-    try {
-      processMgr.midasSample(midasParam);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(this, "Can't run" + description + "\n" + except.getMessage(),
-          "SystemProcessException", AxisID.ONLY);
-      return;
-    }
-  }
-
-  public void xfalignInitial(ConstProcessSeries processSeries) {
-    if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
-      return;
-    }
-    XfalignParam xfalignParam = new XfalignParam(this, XfalignParam.Mode.INITIAL);
-    try {
-      threadNameA = processMgr.xfalign(xfalignParam, processSeries);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(this,
-          "Can't run initial xfalign\n" + except.getMessage(), "SystemProcessException",
-          AxisID.ONLY);
-      joinDialog.enableMidas();
-      return;
-    }
-    mainPanel.startProgressBar("Initial xfalign", AxisID.ONLY, ProcessName.XFALIGN);
-  }
-
-  public void xfalignRefine(ConstProcessSeries processSeries, final String description) {
-    if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
-      return;
-    }
-    XfalignParam xfalignParam = new XfalignParam(this, XfalignParam.Mode.REFINE);
-    if (!copyMostRecentXfFile(description)) {
-      return;
-    }
-    try {
-      threadNameA = processMgr.xfalign(xfalignParam, processSeries);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(this,
-          "Can't run " + description + "\n" + except.getMessage(), "SystemProcessException",
-          AxisID.ONLY);
-      joinDialog.enableMidas();
-      return;
-    }
-    mainPanel.startProgressBar("Refine xfalign", AxisID.ONLY, ProcessName.XFALIGN);
-  }
-
   private boolean copyMostRecentXfFile(String commandDescription) {
     String rootName = metaData.getDatasetName();
     String xfFileName = rootName + ".xf";
@@ -1095,53 +1035,6 @@ public final class JoinManager extends BaseManager {
       }
     }
     return true;
-  }
-
-  public void copyXfFile(File xfOutputFile) {
-    File xfFile = new File(propertyUserDir, metaData.getDatasetName() + ".xf");
-    if (xfOutputFile != null && xfOutputFile.exists()) {
-      try {
-        Utilities.copyFile(xfOutputFile, xfFile);
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-        String[] message = {
-            "Unable to copy " + xfOutputFile.getAbsolutePath() + " to "
-                + xfFile.getName() + ".",
-            "Copy " + xfOutputFile.getName() + " to " + xfFile.getName() + "." };
-        uiHarness.openMessageDialog(this, message, "Cannot Copy File", AxisID.ONLY);
-      }
-    }
-  }
-
-  public void createEmptyXfFile(String rootName) {
-    File emptyXfFile = new File(propertyUserDir, rootName + "_empty.xf");
-    if (!emptyXfFile.exists()) {
-      String emptyLine = "   1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000";
-      try {
-        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(emptyXfFile));
-        bufferedWriter.write(emptyLine);
-        bufferedWriter.newLine();
-        bufferedWriter.write(emptyLine);
-        bufferedWriter.newLine();
-        bufferedWriter.write(emptyLine);
-        bufferedWriter.newLine();
-        bufferedWriter.close();
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-        return;
-      }
-    }
-    File xfFile = new File(propertyUserDir, rootName + ".xf");
-    if (!xfFile.exists()) {
-      try {
-        Utilities.copyFile(emptyXfFile, xfFile);
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
   }
 
   /**
@@ -1197,19 +1090,6 @@ public final class JoinManager extends BaseManager {
       return;
     }
     mainPanel.startProgressBar("Startjoin", AxisID.ONLY, ProcessName.STARTJOIN);
-  }
-
-  public void revertXfFileToMidas() {
-    File midasOutputFile = new File(propertyUserDir, metaData.getDatasetName()
-        + MidasParam.getOutputFileExtension());
-    BaseProcessManager.touch(midasOutputFile.getAbsolutePath(), this);
-    copyXfFile(midasOutputFile);
-  }
-
-  public void revertXfFileToEmpty() {
-    File emptyFile = new File(propertyUserDir, metaData.getDatasetName() + "_empty.xf");
-    BaseProcessManager.touch(emptyFile.getAbsolutePath(), this);
-    copyXfFile(emptyFile);
   }
 
   public void enableMidas() {
@@ -1434,7 +1314,7 @@ public final class JoinManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, false);
+    reconnect(axisProcessData.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, false);
   }
 
   /**
@@ -1513,6 +1393,18 @@ public final class JoinManager extends BaseManager {
 
   public BaseState getBaseState() {
     return state;
+  }
+
+  AutoAlignmentMetaData getAutoAlignmentMetaData() {
+    return metaData.getAutoAlignmentMetaData();
+  }
+
+  public boolean updateMetaData(final DialogType dialogType, final AxisID axisID) {
+    return joinDialog.getMetaData(metaData);
+  }
+
+  public ArrayList getSectionTableRowData() {
+    return metaData.getSectionTableData();
   }
 
   /**
