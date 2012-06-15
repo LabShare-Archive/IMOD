@@ -9,13 +9,16 @@ import javax.swing.BoxLayout;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import etomo.AutoAlignmentController;
 import etomo.BaseManager;
 import etomo.SerialSectionsManager;
 import etomo.logic.SerialSectionsStartupData;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.SerialSectionsMetaData;
 import etomo.type.ViewType;
+import etomo.ui.AutoAlignmentDisplay;
 import etomo.util.Utilities;
 
 /**
@@ -33,7 +36,8 @@ import etomo.util.Utilities;
 * 
 * <p> $Log$ </p>
 */
-public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonContainer {
+public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonContainer,
+    AutoAlignmentDisplay {
   public static final String rcsid = "$Id:$";
 
   private static final DialogType DIALOG_TYPE = DialogType.SERIAL_SECTIONS;
@@ -50,7 +54,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   private final MultiLineButton btnFixEdges = new MultiLineButton("Fix Edges With Midas");
   private final MultiLineButton btnOpenAlignedStack = new MultiLineButton(
       "Open Aligned Stack");
-  //private final AutoAlignmentPanel autoAlignmentPanel;
+  private final AutoAlignmentPanel autoAlignmentPanel;
 
   private final AxisID axisID;
   private final BaseManager manager;
@@ -62,7 +66,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     System.err.println(Utilities.getDateTimeStamp() + "\nDialog: " + DIALOG_TYPE);
     this.manager = manager;
     this.axisID = axisID;
-   // autoAlignmentPanel = AutoAlignmentPanel.getSerialSectionsInstance(manager);
+    autoAlignmentPanel = AutoAlignmentPanel.getSerialSectionsInstance(manager);
   }
 
   public static SerialSectionsDialog getInstance(final SerialSectionsManager manager,
@@ -73,6 +77,11 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     instance.setTooltips();
     instance.addListeners();
     return instance;
+  }
+
+  public void setAutoAlignmentController(
+      final AutoAlignmentController autoAlignmentController) {
+    autoAlignmentPanel.setController(autoAlignmentController);
   }
 
   private void createPanel() {
@@ -106,6 +115,14 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     return rootPanel;
   }
 
+  public AxisID getAxisID() {
+    return axisID;
+  }
+
+  public DialogType getDialogType() {
+    return DialogType.SERIAL_SECTIONS;
+  }
+
   private void addListeners() {
     tabPane.addMouseListener(new GenericMouseAdapter(this));
     tabPane.addChangeListener(new TabChangeListener(this));
@@ -132,6 +149,15 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
 
   public void updateDisplay() {
     tabPane.setEnabledAt(Tab.INITIAL_BLEND.index, viewType == ViewType.MONTAGE);
+  }
+
+  public void enableMidas() {
+    autoAlignmentPanel.enableMidas();
+  }
+
+  public boolean getMetaData(SerialSectionsMetaData metaData) {
+    autoAlignmentPanel.getMetaData(metaData.getAutoAlignmentMetaData());
+    return true;
   }
 
   public void action(final Run3dmodButton button,
