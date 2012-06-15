@@ -1,6 +1,5 @@
 package etomo.type;
 
-
 /**
 * <p>Description: </p>
 * 
@@ -22,13 +21,14 @@ public final class SerialSectionsMetaData extends BaseMetaData {
   public static final String NEW_TITLE = "Serial Sections";
 
   private final StringProperty rootName = new StringProperty("RootName");
+  private final AutoAlignmentMetaData autoAlignmentMetaData = new AutoAlignmentMetaData();
 
   public SerialSectionsMetaData() {
     fileExtension = DataFileType.SERIAL_SECTIONS.extension;
   }
-  
+
   public void setName(final String rootName) {
-   this.rootName.set(rootName);
+    this.rootName.set(rootName);
   }
 
   String getGroupKey() {
@@ -55,5 +55,9 @@ public final class SerialSectionsMetaData extends BaseMetaData {
 
   public boolean isValid() {
     return true;
+  }
+  
+  public AutoAlignmentMetaData getAutoAlignmentMetaData() {
+    return autoAlignmentMetaData;
   }
 }
