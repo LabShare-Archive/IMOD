@@ -11,10 +11,8 @@ import etomo.comscript.Command;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.FinishjoinParam;
 import etomo.comscript.MakejoincomParam;
-import etomo.comscript.MidasParam;
 import etomo.comscript.RemapmodelParam;
 import etomo.comscript.StartJoinParam;
-import etomo.comscript.XfalignParam;
 import etomo.comscript.XfjointomoParam;
 import etomo.comscript.XfmodelParam;
 import etomo.comscript.XftoxgParam;
@@ -282,15 +280,7 @@ public final class JoinProcessManager extends BaseProcessManager {
     return backgroundProcess.getName();
   }
 
-  /**
-   * Run xfalign
-   */
-  public String xfalign(XfalignParam xfalignParam, ConstProcessSeries processSeries)
-      throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(xfalignParam,
-        AxisID.ONLY, ProcessName.XFALIGN, processSeries);
-    return backgroundProcess.getName();
-  }
+
 
   /**
    * Run clip rotx
@@ -312,13 +302,7 @@ public final class JoinProcessManager extends BaseProcessManager {
     return comScriptProcess.getName();
   }
 
-  /**
-   * Run midas on the sample file.
-   */
-  public String midasSample(MidasParam midasParam) throws SystemProcessException {
-    InteractiveSystemProgram program = startInteractiveSystemProgram(midasParam);
-    return program.getName();
-  }
+
 
   void postProcess(ComScriptProcess process) {
     String commandName = process.getComScriptName();
@@ -353,13 +337,6 @@ public final class JoinProcessManager extends BaseProcessManager {
         return;
       }
       manager.addSection(command.getCommandOutputFile());
-    }
-    else if (commandName.equals(XfalignParam.getName())) {
-      if (command == null) {
-        return;
-      }
-      manager.copyXfFile(command.getCommandOutputFile());
-      manager.enableMidas();
     }
     else if (commandName.equals(FinishjoinParam.COMMAND_NAME)) {
       if (command == null) {
@@ -469,9 +446,6 @@ public final class JoinProcessManager extends BaseProcessManager {
     if (commandName == null) {
       return;
     }
-    if (commandName.equals(XfalignParam.getName())) {
-      manager.enableMidas();
-    }
     else if (commandName.equals(MakejoincomParam.commandName)) {
       state.setSampleProduced(false);
       manager.setMode();
@@ -505,23 +479,7 @@ public final class JoinProcessManager extends BaseProcessManager {
     }
   }
 
-  void postProcess(InteractiveSystemProgram program) {
-    String commandName = program.getCommandName();
-    if (commandName == null) {
-      return;
-    }
-    Command command = program.getCommand();
-    if (command == null) {
-      return;
-    }
-    if (commandName.equals(MidasParam.getName())) {
-      File outputFile = command.getCommandOutputFile();
-      if (outputFile != null && outputFile.exists()
-          && outputFile.lastModified() > program.getOutputFileLastModified().getLong()) {
-        manager.copyXfFile(outputFile);
-      }
-    }
-  }
+
 
   BaseManager getManager() {
     return manager;
