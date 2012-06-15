@@ -7,7 +7,8 @@ import java.awt.event.ActionListener;
 import javax.swing.BoxLayout;
 import javax.swing.SpinnerNumberModel;
 
-import etomo.JoinManager;
+import etomo.AutoAlignmentController;
+import etomo.BaseManager;
 import etomo.type.AutoAlignmentMetaData;
 
 /**
@@ -56,23 +57,28 @@ public final class AutoAlignmentPanel {
   private final LabeledTextField ltfEdgeToIgnore = new LabeledTextField(
       "Fraction to ignore on edges");
 
-  private final JoinManager manager;
+  private final BaseManager manager;
   private final boolean tomogramAverages;
-  private final boolean midasChunks;
 
-  private AutoAlignmentPanel(final JoinManager manager, final boolean tomogramAverages,
-      final boolean midasChunks) {
+  private AutoAlignmentController controller = null;
+
+  private AutoAlignmentPanel(final BaseManager manager, final boolean tomogramAverages) {
     this.manager = manager;
     this.tomogramAverages = tomogramAverages;
-    this.midasChunks = midasChunks;
   }
 
-  static AutoAlignmentPanel getJoinInstance(final JoinManager manager) {
-    AutoAlignmentPanel instance = new AutoAlignmentPanel(manager, true, true);
+  static AutoAlignmentPanel getJoinInstance(final BaseManager manager) {
+    AutoAlignmentPanel instance = new AutoAlignmentPanel(manager, true);
     instance.setJoinConfiguration();
     instance.createPanel();
     instance.setTooltips();
-    instance.addListeners();
+    return instance;
+  }
+
+  static AutoAlignmentPanel getSerialSectionsInstance(final BaseManager manager) {
+    AutoAlignmentPanel instance = new AutoAlignmentPanel(manager, false);
+    instance.createPanel();
+    instance.setTooltips();
     return instance;
   }
 
@@ -124,6 +130,15 @@ public final class AutoAlignmentPanel {
     ltfEdgeToIgnore.setVisible(false);
   }
 
+  /**
+   * Sets the controller and adds listeners
+   * @param input
+   */
+  public void setController(final AutoAlignmentController input) {
+    controller = input;
+    addListeners();
+  }
+
   private void addListeners() {
     ActionListener listener = new AutoAlignmentActionListener(this);
     btnInitialAutoAlignment.addActionListener(listener);
@@ -151,7 +166,7 @@ public final class AutoAlignmentPanel {
     tcAlign.set(metaData.getAlignTransform());
   }
 
-  void enableMidas() {
+  public void enableMidas() {
     btnMidas.setEnabled(true);
   }
 
@@ -180,20 +195,20 @@ public final class AutoAlignmentPanel {
   private void action(final String command) {
     if (command.equals(btnInitialAutoAlignment.getActionCommand())) {
       btnMidas.setEnabled(false);
-      manager.xfalignInitial(null);
+      controller.xfalignInitial(null);
     }
     else if (command.equals(btnMidas.getActionCommand())) {
-      manager.midasSample(btnMidas.getQuotedLabel());
+      controller.midasSample(btnMidas.getQuotedLabel());
     }
     else if (command.equals(btnRefineAutoAlignment.getActionCommand())) {
       btnMidas.setEnabled(false);
-      manager.xfalignRefine(null, btnRefineAutoAlignment.getQuotedLabel());
+      controller.xfalignRefine(null, btnRefineAutoAlignment.getQuotedLabel());
     }
     else if (command.equals(btnRevertToMidas.getActionCommand())) {
-      manager.revertXfFileToMidas();
+      controller.revertXfFileToMidas();
     }
     else if (command.equals(btnRevertToEmpty.getActionCommand())) {
-      manager.revertXfFileToEmpty();
+      controller.revertXfFileToEmpty();
     }
   }
 
