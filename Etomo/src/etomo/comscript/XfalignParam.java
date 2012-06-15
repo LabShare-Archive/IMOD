@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
-import etomo.JoinManager;
 import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
 import etomo.type.FileType;
@@ -154,23 +153,20 @@ public class XfalignParam implements Command {
   private static final String commandName = "xfalign";
   private static final String outputFileExtension = "_auto.xf";
 
-  private AutoAlignmentMetaData metaData;
+  private AutoAlignmentMetaData autoAlignmentMetaData;
   private String[] commandArray;
-  private String workingDir = null;
   private String rootName = null;
   private String outputFileName = null;
   private File outputFile = null;
   private Mode mode;
-  private final BaseManager manager;
 
-  public XfalignParam(JoinManager manager, Mode mode) {
-    this.manager = manager;
-    metaData = manager.getConstMetaData().getAutoAlignmentMetaData();
+  public XfalignParam(final String rootName, final String propertyUserDir,
+      final AutoAlignmentMetaData autoAlignmentMetaData, final Mode mode) {
+    this.autoAlignmentMetaData = autoAlignmentMetaData;
     this.mode = mode;
-    workingDir = manager.getPropertyUserDir();
-    rootName = manager.getName();
+    this.rootName = rootName;
     outputFileName = rootName + outputFileExtension;
-    outputFile = new File(workingDir, outputFileName);
+    outputFile = new File(propertyUserDir, outputFileName);
     ArrayList options = genOptions();
     commandArray = new String[options.size() + commandSize];
     commandArray[0] = "bash";
@@ -283,9 +279,12 @@ public class XfalignParam implements Command {
   }
 
   private void genFilterOptions(ArrayList options) {
-    ScriptParameter sigmaLowFrequency = metaData.getSigmaLowFrequencyParameter();
-    ScriptParameter cutoffHighFrequency = metaData.getCutoffHighFrequencyParameter();
-    ScriptParameter sigmaHighFrequency = metaData.getSigmaHighFrequencyParameter();
+    ScriptParameter sigmaLowFrequency = autoAlignmentMetaData
+        .getSigmaLowFrequencyParameter();
+    ScriptParameter cutoffHighFrequency = autoAlignmentMetaData
+        .getCutoffHighFrequencyParameter();
+    ScriptParameter sigmaHighFrequency = autoAlignmentMetaData
+        .getSigmaHighFrequencyParameter();
     // optional
     if (sigmaLowFrequency.isNotNullAndNotDefault()
         || cutoffHighFrequency.isNotNullAndNotDefault()
@@ -298,7 +297,7 @@ public class XfalignParam implements Command {
   }
 
   private void genParamsOptions(ArrayList options) {
-    Transform transform = metaData.getAlignTransform();
+    Transform transform = autoAlignmentMetaData.getAlignTransform();
     if (transform != Transform.FULL_LINEAR_TRANSFORMATION) {
       if (transform == Transform.ROTATION_TRANSLATION_MAGNIFICATION) {
         options.add("-par");
