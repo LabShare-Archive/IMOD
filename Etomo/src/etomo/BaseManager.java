@@ -19,6 +19,7 @@ import etomo.comscript.ExtractmagradParam;
 import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.IntermittentCommand;
 import etomo.comscript.ProcesschunksParam;
+import etomo.process.AxisProcessData;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ImodqtassistProcess;
@@ -32,6 +33,7 @@ import etomo.storage.LogFile;
 import etomo.storage.Loggable;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
+import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
@@ -113,6 +115,7 @@ public abstract class BaseManager {
   private final ProcessingMethodMediator processingMethodMediatorA = new ProcessingMethodMediator();
   private final ProcessingMethodMediator processingMethodMediatorB = new ProcessingMethodMediator();
   private final ManagerKey managerKey = new ManagerKey();
+   final AxisProcessData axisProcessData = new AxisProcessData(this);
 
   public void dumpState() {
     System.err.println("[headless:" + headless + ",loadedParamFile:" + loadedParamFile
@@ -183,6 +186,10 @@ public abstract class BaseManager {
   String paramString() {
     return getName();
   }
+  
+ public AxisProcessData getAxisProcessData() {
+    return axisProcessData;
+  }
 
   private void initProgram() {
     System.err.println("propertyUserDir:  " + propertyUserDir);
@@ -224,6 +231,18 @@ public abstract class BaseManager {
 
   public boolean isInManagerFrame() {
     return false;
+  }
+
+  AutoAlignmentMetaData getAutoAlignmentMetaData() {
+    return null;
+  }
+
+  public boolean updateMetaData(final DialogType dialogType, final AxisID axisID) {
+    return false;
+  }
+
+  public ArrayList getSectionTableRowData() {
+    return null;
   }
 
   /**
@@ -479,6 +498,25 @@ public abstract class BaseManager {
     }
   }
 
+  boolean saveMetaDataToParameterStore() {
+    try {
+      ParameterStore parameterStore = getParameterStore();
+      if (parameterStore == null) {
+        return false;
+      }
+      parameterStore.save(getBaseMetaData());
+    }
+    catch (LogFile.LockException e) {
+      uiHarness.openMessageDialog(this,
+          "Cannot save or write to metaData.\n" + e.getMessage(), "Etomo Error");
+    }
+    catch (IOException e) {
+      uiHarness.openMessageDialog(this,
+          "Cannot save or write to metaData.\n" + e.getMessage(), "Etomo Error");
+    }
+    return true;
+  }
+
   /**
    * Save etomo to parametersState by asking the child manager for a list of
    * storable objects. This is used when storable objects may have been changes
@@ -638,8 +676,8 @@ public abstract class BaseManager {
   private boolean checkNextProcess(AxisID axisID) {
     BaseProcessManager processManager = getProcessManager();
     if (processManager != null) {
-      SystemProcessInterface processA = processManager.getThread(AxisID.FIRST);
-      SystemProcessInterface processB = processManager.getThread(AxisID.SECOND);
+      SystemProcessInterface processA = axisProcessData.getThread(AxisID.FIRST);
+      SystemProcessInterface processB = axisProcessData.getThread(AxisID.SECOND);
       // Check to see if next processes have to be done
       ArrayList messageArray = new ArrayList();
       ConstProcessSeries processSeriesA = null;
@@ -1105,8 +1143,8 @@ public abstract class BaseManager {
       // Check for processes that will die if etomo exits
       BaseProcessManager processManager = getProcessManager();
       if (processManager != null) {
-        SystemProcessInterface processA = getProcessManager().getThread(AxisID.FIRST);
-        SystemProcessInterface processB = getProcessManager().getThread(AxisID.SECOND);
+        SystemProcessInterface processA = axisProcessData.getThread(AxisID.FIRST);
+        SystemProcessInterface processB = axisProcessData.getThread(AxisID.SECOND);
         boolean nohupA = processA == null || processA.isNohup();
         boolean nohupB = processB == null || processB.isNohup();
         if (!nohupA || !nohupB) {
@@ -1135,7 +1173,7 @@ public abstract class BaseManager {
   }
 
   private boolean checkUnidentifiedProcess(AxisID axisID) {
-    SystemProcessInterface thread = getProcessManager().getThread(axisID);
+    SystemProcessInterface thread = axisProcessData.getThread(axisID);
     if (thread == null) {
       return true;
     }
