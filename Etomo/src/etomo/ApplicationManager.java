@@ -252,6 +252,8 @@ public final class ApplicationManager extends BaseManager implements
   private boolean reconnectRunB = false;
 
   ComScriptManager comScriptMgr = new ComScriptManager(this);
+  
+
 
   /**
    * Does initialization and loads the .edf file. Opens the setup dialog if
@@ -545,11 +547,11 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.updateAllProcessingStates(processTrack);
     setPanel();
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
-      reconnect(processMgr.getSavedProcessData(AxisID.FIRST), AxisID.FIRST);
-      reconnect(processMgr.getSavedProcessData(AxisID.SECOND), AxisID.SECOND);
+      reconnect(axisProcessData.getSavedProcessData(AxisID.FIRST), AxisID.FIRST);
+      reconnect(axisProcessData.getSavedProcessData(AxisID.SECOND), AxisID.SECOND);
     }
     else {
-      reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY);
+      reconnect(axisProcessData.getSavedProcessData(AxisID.ONLY), AxisID.ONLY);
     }
   }
 
