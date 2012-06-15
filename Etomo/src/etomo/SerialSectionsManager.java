@@ -8,6 +8,7 @@ import etomo.logic.SerialSectionsStartupData;
 import etomo.process.BaseProcessManager;
 import etomo.process.SerialSectionsProcessManager;
 import etomo.storage.Storable;
+import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
@@ -52,7 +53,8 @@ public final class SerialSectionsManager extends BaseManager {
   private BaseComScriptManager comScriptMgr = null;
   private SerialSectionsStartupDialog serialSectionsStartupDialog = null;
   private SerialSectionsDialog serialSectionsDialog = null;
-  private SerialSectionsStartupData startupData=null;
+  private AutoAlignmentController autoAlignmentController = null;
+  private SerialSectionsStartupData startupData = null;
   /**
    * valid is for handling failure before the manager key is set in EtomoDirector.
    */
@@ -115,7 +117,7 @@ public final class SerialSectionsManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(processMgr.getSavedProcessData(AXIS_ID), AXIS_ID, true);
+    reconnect(axisProcessData.getSavedProcessData(AXIS_ID), AXIS_ID, true);
   }
 
   /**
@@ -148,7 +150,7 @@ public final class SerialSectionsManager extends BaseManager {
     }
     mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.DONE);
   }
-  
+
   /**
    * Tries to set paramFile.  Returns true if able to set paramFile.
    * If paramFile is already set, returns true.  Returns false if unable
@@ -163,8 +165,8 @@ public final class SerialSectionsManager extends BaseManager {
     if (startupData == null) {
       return false;
     }
-    
-    this.startupData=startupData;
+
+    this.startupData = startupData;
     String name = startupData.getRootName();
     if (serialSectionsDialog != null) {
       serialSectionsDialog.setStartupData(startupData);
@@ -211,6 +213,8 @@ public final class SerialSectionsManager extends BaseManager {
     if (serialSectionsDialog == null) {
       serialSectionsDialog = SerialSectionsDialog.getInstance(this, AXIS_ID);
     }
+    autoAlignmentController = new AutoAlignmentController(this, serialSectionsDialog);
+    serialSectionsDialog.setAutoAlignmentController(autoAlignmentController);
     setSerialSectionsDialogParameters();
     mainPanel.showProcess(serialSectionsDialog.getContainer(), AXIS_ID);
     String actionMessage = Utilities.prepareDialogActionMessage(
@@ -259,6 +263,14 @@ public final class SerialSectionsManager extends BaseManager {
 
   public BaseProcessManager getProcessManager() {
     return processMgr;
+  }
+
+  AutoAlignmentMetaData getAutoAlignmentMetaData() {
+    return metaData.getAutoAlignmentMetaData();
+  }
+
+  public boolean updateMetaData(final DialogType dialogType, final AxisID axisID) {
+    return serialSectionsDialog.getMetaData(metaData);
   }
 
   Storable[] getStorables(final int offset) {
