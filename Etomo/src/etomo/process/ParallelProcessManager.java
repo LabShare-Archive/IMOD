@@ -75,26 +75,8 @@ public final class ParallelProcessManager extends BaseProcessManager {
     }
   }
 
-  void errorProcess(final BackgroundProcess process) {
-  }
-
-  void errorProcess(final ComScriptProcess process) {
-  }
-
   BaseManager getManager() {
     return manager;
-  }
-
-  void postProcess(final ComScriptProcess script) {
-  }
-
-  void postProcess(final InteractiveSystemProgram program) {
-  }
-
-  void errorProcess(final ReconnectProcess script) {
-  }
-
-  void postProcess(final ReconnectProcess script) {
   }
 
   void postProcess(final DetachedProcess process) {
