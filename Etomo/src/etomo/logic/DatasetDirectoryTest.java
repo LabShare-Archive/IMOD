@@ -184,15 +184,15 @@ public class DatasetDirectoryTest extends TestCase {
 
   public void testCanShareWith_DataFileType_String_AxisType_String_AxisType() {
     // check input file
-    assertTrue("no inputFile => yes", DatasetDirectory.canShareWith(DataFileType.RECON,
+    assertFalse("no inputFile => no", DatasetDirectory.canShareWith(DataFileType.RECON,
         null, AxisType.SINGLE_AXIS, ROOT + DataFileType.RECON.extension,
         AxisType.SINGLE_AXIS));
-    assertTrue(
-        "no inputFile => yes",
+    assertFalse(
+        "no inputFile => no",
         DatasetDirectory.canShareWith(DataFileType.RECON, "", AxisType.SINGLE_AXIS, ROOT
             + DataFileType.RECON.extension, AxisType.SINGLE_AXIS));
-    assertTrue(
-        "no inputFile => yes",
+    assertFalse(
+        "no inputFile => no",
         DatasetDirectory.canShareWith(DataFileType.RECON, " ", AxisType.SINGLE_AXIS, ROOT
             + DataFileType.RECON.extension, AxisType.SINGLE_AXIS));
     // build thisRoot
