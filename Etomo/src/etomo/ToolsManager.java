@@ -497,7 +497,7 @@ public final class ToolsManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, false);
+    reconnect(axisProcessData.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, false);
   }
 
   /**
