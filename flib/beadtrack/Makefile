@@ -8,17 +8,15 @@ PROG = beadtrack$(BINEXT)
 
 all: $(PROG)
 
-tiltali.$(O): tiltali.f
-	$(FC) -c $(NOOPFFLAGS) tiltali.f
+# 6/17/12, eliminated non-optimization of tiltali, it made no difference
 
 $(PROG): $(BDOBJS)
 	$(FC) -o beadtrack $(BDOBJS) $(LDFFLAGS) $(LSMLMOD) $(LIMOD) \
 	 $(IMLIBS) $(FORTCLIBS) $(TILTALILIB) $(LAPACKLIBS)
 
-beadtrack.$(O):   $(INCDIR)/smallmodel.inc $(INCDIR)/statsize.inc tltcntrl.$(O) \
-	tracksubs.$(O)
-proc_model.$(O):  $(INCDIR)/smallmodel.inc
-tracksubs.$(O):   $(INCDIR)/smallmodel.inc  $(INCDIR)/statsize.inc
+beadtrack.$(O):   $(INCDIR)/smallmodel.inc90 tltcntrl.$(O) tracksubs.$(O)
+proc_model.$(O):  $(INCDIR)/smallmodel.inc90
+tracksubs.$(O):   $(INCDIR)/smallmodel.inc90
 proc_vars.$(O):   tltcntrl.$(O)
 tiltali.$(O):     tltcntrl.$(O)
 tltcntrl.$(O):    alivar.$(O)
