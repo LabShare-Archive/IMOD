@@ -2,11 +2,18 @@
 !
 ! $Id$
 !
+! setupWeightGroups:
+! Sets up weighting groups, consisting of sets of views divided into rings if possible
+!  maxRings = maximum number of rings allowed
+!  minRes = minimum number of residuals in the group
+!  minTiltView = view number at minimum tilt
+!  ierr = return error value, 0 for success or 1 for failure
+!
 subroutine setupWeightGroups(maxRings, minRes, minTiltView, ierr)
   use alivar
   implicit none
   integer*4 irealRingList(maxReal), ierr, maxRings, minRes, minTiltView
-  integer*4 maxViewsForRings(maxWgtRings) /1, 8, 7, 6, 5, 5, 4, 4, 3, 3/
+  integer*4 maxViewsForRings(maxWgtRings) /1, 10, 8, 6, 5, 5, 4, 4, 3, 3/
   real*4 distReal(maxReal)
   integer*4 i, nring, nrealPerRing, neededViews, numViews, numViewGroups, numExtra
   integer*4 iexStart, ngrpBeforeEx, indProj, indGroup, indView, ivbase, igroup
@@ -119,10 +126,11 @@ subroutine setupWeightGroups(maxRings, minRes, minTiltView, ierr)
 end subroutine setupWeightGroups
 
 
-
+! computeWeights: 
+! Computes the weights given the current set of residuals and the weighting groups.
 ! distRes and work are temp arrays that need to be at least as big as the biggest view
 ! group, and iwork needs to be as big as number of points on view
-
+!
 subroutine computeWeights(distRes, work, iwork)
   use alivar
   implicit none
