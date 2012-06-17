@@ -40,7 +40,7 @@ module alivar
   real*4, allocatable :: glbRot(:), glbTilt(:), glbAlf(:)
   real*4, allocatable :: glbGmag(:), glbDmag(:), glbSkew(:)
   integer*4 incrGmag, incrDmag, incrSkew, incrTilt, incrAlf, incrRot
-  logical firstFunct, xyzFixed, robustWeights
+  logical firstFunct, xyzFixed, robustWeights/.false./
   integer*4 numWgtGroups
   integer*4, allocatable :: indProjWgtList(:), ivStartWgtGroup(:), ipStartWgtView(:)
 
