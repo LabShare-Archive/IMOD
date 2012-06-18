@@ -56,6 +56,7 @@ public final class AutoAlignmentPanel {
       "Do cross correlatin in initial alignment");
   private final LabeledTextField ltfEdgeToIgnore = new LabeledTextField(
       "Fraction to ignore on edges");
+  private final Spinner spMidasBinning =  Spinner.getLabeledInstance("Midas binning",1,1,8);
 
   private final BaseManager manager;
   private final boolean tomogramAverages;
@@ -115,6 +116,7 @@ public final class AutoAlignmentPanel {
     // left buttons
     pnlLeftButtons.setBoxLayout(BoxLayout.Y_AXIS);
     pnlLeftButtons.add(btnInitialAutoAlignment);
+    pnlLeftButtons.add(spMidasBinning);
     pnlLeftButtons.add(btnMidas);
     pnlLeftButtons.add(btnRefineAutoAlignment);
     // right buttons
@@ -195,14 +197,15 @@ public final class AutoAlignmentPanel {
   private void action(final String command) {
     if (command.equals(btnInitialAutoAlignment.getActionCommand())) {
       btnMidas.setEnabled(false);
-      controller.xfalignInitial(null);
+      controller.xfalignInitial(null, tomogramAverages);
     }
     else if (command.equals(btnMidas.getActionCommand())) {
       controller.midasSample(btnMidas.getQuotedLabel());
     }
     else if (command.equals(btnRefineAutoAlignment.getActionCommand())) {
       btnMidas.setEnabled(false);
-      controller.xfalignRefine(null, btnRefineAutoAlignment.getQuotedLabel());
+      controller.xfalignRefine(null, tomogramAverages,
+          btnRefineAutoAlignment.getQuotedLabel());
     }
     else if (command.equals(btnRevertToMidas.getActionCommand())) {
       controller.revertXfFileToMidas();
