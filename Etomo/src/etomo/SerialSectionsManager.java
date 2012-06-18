@@ -151,6 +151,10 @@ public final class SerialSectionsManager extends BaseManager {
     mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.DONE);
   }
 
+  public String getRawStackName() {
+    return startupData.getStack().getName();
+  }
+
   /**
    * Tries to set paramFile.  Returns true if able to set paramFile.
    * If paramFile is already set, returns true.  Returns false if unable
