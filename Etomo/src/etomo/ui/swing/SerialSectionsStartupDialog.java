@@ -193,11 +193,11 @@ public class SerialSectionsStartupDialog implements ContextMenu,
    * @return
    */
   private SerialSectionsStartupData getStartupData() {
-    SerialSectionsStartupData startupData = new SerialSectionsStartupData();
-    startupData.setStack(ftfStack.getFile(), ftfStack.getQuotedLabel());
-    startupData.setViewType(
-        ((RadioButton.RadioButtonModel) bgViewType.getSelection()).getEnumeratedType(),
-        "'" + VIEW_TYPE_LABEL + "'");
+    SerialSectionsStartupData startupData = new SerialSectionsStartupData(
+        ftfStack.getQuotedLabel(), "'" + VIEW_TYPE_LABEL + "'");
+    startupData.setStack(ftfStack.getFile());
+    startupData.setViewType(((RadioButton.RadioButtonModel) bgViewType.getSelection())
+        .getEnumeratedType());
     if (ftfDistortionFile.isEnabled()) {
       startupData.setDistortionFile(ftfDistortionFile.getFile());
     }
