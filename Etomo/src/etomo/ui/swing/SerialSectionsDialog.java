@@ -4,14 +4,16 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import etomo.AutoAlignmentController;
-import etomo.BaseManager;
 import etomo.SerialSectionsManager;
+import etomo.comscript.XftoxgParam;
 import etomo.logic.SerialSectionsStartupData;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
@@ -19,6 +21,8 @@ import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SerialSectionsMetaData;
 import etomo.type.ViewType;
 import etomo.ui.AutoAlignmentDisplay;
+import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
 import etomo.util.Utilities;
 
 /**
@@ -54,15 +58,38 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   private final MultiLineButton btnFixEdges = new MultiLineButton("Fix Edges With Midas");
   private final MultiLineButton btnOpenAlignedStack = new MultiLineButton(
       "Open Aligned Stack");
-  private final AutoAlignmentPanel autoAlignmentPanel;
+  private final ButtonGroup bgXftoxg = new ButtonGroup();
+  private final RadioButton rbNoOptions = new RadioButton(
+      "Local fitting (retain trends)", bgXftoxg);
+  private final RadioButton rbHybridFitsTranslations = new RadioButton(
+      "remove trends in translation", XftoxgParam.HybridFits.TRANSLATIONS, bgXftoxg);
+  private final RadioButton rbHybridFitsTranslationsRotations = new RadioButton(
+      "remove trends in translation & rotation",
+      XftoxgParam.HybridFits.TRANSLATIONS_ROTATIONS, bgXftoxg);
+  private final RadioButton rbNumberToFitGlobalAlignment = new RadioButton(
+      "remove trends in translation & rotation",
+      XftoxgParam.NumberToFit.GLOBAL_ALIGNMENT, bgXftoxg);
+  private final Run3dmodButton btnMakeStack = Run3dmodButton.getDeferred3dmodInstance(
+      "Make Stack", this);
+  private final Run3dmodButton btnOpenStack = Run3dmodButton.get3dmodInstance(
+      "Open Stack", this);
+  private CheckBox cbReferenceSection = new CheckBox("Reference section for alignment: ");
+  private Spinner spReferenceSection = Spinner.getInstance(cbReferenceSection.getName());
+  private LabeledTextField ltfSizeX = new LabeledTextField("Size in X: ");
+  private LabeledTextField ltfSizeY = new LabeledTextField("Y: ");
+  private LabeledTextField ltfShiftX = new LabeledTextField("Shift in X: ");
+  private LabeledTextField ltfShiftY = new LabeledTextField("Y: ");
+  private Spinner spBinning = Spinner.getLabeledInstance("Binning", 1, 1, 8);
+  private CheckBox cbFillWithZero = new CheckBox("Fill empty areas with 0");
 
+  private final AutoAlignmentPanel autoAlignmentPanel;
   private final AxisID axisID;
-  private final BaseManager manager;
+  private final SerialSectionsManager manager;
 
   private Tab curTab = null;
   private ViewType viewType = null;
 
-  private SerialSectionsDialog(final BaseManager manager, final AxisID axisID) {
+  private SerialSectionsDialog(final SerialSectionsManager manager, final AxisID axisID) {
     System.err.println(Utilities.getDateTimeStamp() + "\nDialog: " + DIALOG_TYPE);
     this.manager = manager;
     this.axisID = axisID;
@@ -73,7 +100,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       final AxisID axisID) {
     SerialSectionsDialog instance = new SerialSectionsDialog(manager, axisID);
     instance.createPanel();
-    instance.init();
+    instance.initTab();
     instance.setTooltips();
     instance.addListeners();
     return instance;
@@ -87,6 +114,24 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   private void createPanel() {
     // init
     btnInitialBlend.setDeferred3dmodButton(btnOpenInitialBlend);
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        manager.getRawStackName(), axisID);
+    try {
+      header.read(manager);
+    }
+    catch (IOException e) {
+      cbReferenceSection.setEnabled(false);
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Unable to read" + manager.getRawStackName() + "\n" + e.getMessage(),
+          "File Read Error", axisID);
+    }
+    catch (InvalidParameterException e) {
+      cbReferenceSection.setEnabled(false);
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Unable to read" + manager.getRawStackName() + "\n" + e.getMessage(),
+          "File Read Error", axisID);
+    }
+    spReferenceSection.setMax(header.getNSections());
     // root panel
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new BeveledBorder("Serial Sections").getBorder());
@@ -104,9 +149,26 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     // align
     index = Tab.ALIGN.index;
     pnlTabBodyArray[index].add(btnOpenAlignedStack.getComponent());
+    pnlTabBodyArray[index].add(autoAlignmentPanel.getRootComponent());
+    // make stack
+    index = Tab.MAKE_STACK.index;
+    pnlTabBodyArray[index].add(rbNoOptions.getComponent());
+    pnlTabBodyArray[index].add(rbHybridFitsTranslations.getComponent());
+    pnlTabBodyArray[index].add(rbHybridFitsTranslationsRotations.getComponent());
+    pnlTabBodyArray[index].add(rbNumberToFitGlobalAlignment.getComponent());
+    pnlTabBodyArray[index].add(cbReferenceSection);
+    pnlTabBodyArray[index].add(spReferenceSection.getContainer());
+    pnlTabBodyArray[index].add(ltfSizeX.getContainer());
+    pnlTabBodyArray[index].add(ltfSizeY.getContainer());
+    pnlTabBodyArray[index].add(ltfShiftX.getContainer());
+    pnlTabBodyArray[index].add(ltfShiftY.getContainer());
+    pnlTabBodyArray[index].add(spBinning.getContainer());
+    pnlTabBodyArray[index].add(cbFillWithZero);
+    pnlTabBodyArray[index].add(btnMakeStack.getComponent());
+    pnlTabBodyArray[index].add(btnOpenStack.getComponent());
   }
 
-  private void init() {
+  private void initTab() {
     changeTab();
     updateDisplay();
   }
@@ -149,6 +211,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
 
   public void updateDisplay() {
     tabPane.setEnabledAt(Tab.INITIAL_BLEND.index, viewType == ViewType.MONTAGE);
+    spReferenceSection.setEnabled(cbReferenceSection.isEnabled()
+        && cbReferenceSection.isSelected());
   }
 
   public void enableMidas() {
