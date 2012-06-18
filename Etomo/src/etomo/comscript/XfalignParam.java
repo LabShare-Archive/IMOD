@@ -153,17 +153,20 @@ public class XfalignParam implements Command {
   private static final String commandName = "xfalign";
   private static final String outputFileExtension = "_auto.xf";
 
-  private AutoAlignmentMetaData autoAlignmentMetaData;
-  private String[] commandArray;
-  private String rootName = null;
-  private String outputFileName = null;
-  private File outputFile = null;
-  private Mode mode;
+  private final AutoAlignmentMetaData autoAlignmentMetaData;
+  private final String[] commandArray;
+  private final String rootName;
+  private final String outputFileName;
+  private final File outputFile;
+  private final boolean tomogramAverages;
+  private final Mode mode;
 
   public XfalignParam(final String rootName, final String propertyUserDir,
-      final AutoAlignmentMetaData autoAlignmentMetaData, final Mode mode) {
+      final AutoAlignmentMetaData autoAlignmentMetaData, final Mode mode,
+      final boolean tomogramAverages) {
     this.autoAlignmentMetaData = autoAlignmentMetaData;
     this.mode = mode;
+    this.tomogramAverages = tomogramAverages;
     this.rootName = rootName;
     outputFileName = rootName + outputFileExtension;
     outputFile = new File(propertyUserDir, outputFileName);
@@ -248,7 +251,9 @@ public class XfalignParam implements Command {
 
   private ArrayList genOptions() {
     ArrayList options = new ArrayList();
-    options.add("-tomo");
+    if (tomogramAverages) {
+      options.add("-tomo");
+    }
     if (mode == Mode.INITIAL) {
       genInitialOptions(options);
     }
