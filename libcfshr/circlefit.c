@@ -6,11 +6,19 @@
  * Colorado.  See dist/COPYRIGHT for full notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include <math.h>
 #include "b3dutil.h"
+#include "imodconfig.h"
+
+#ifdef F77FUNCAP
+#define fitcircle FITCIRCLE
+#define fitcirclewgt FITCIRCLEWGT
+#else
+#define fitcircle fitcircle
+#define fitcirclewgt fitcirclewgt_
+#endif
 
 static void circleErr(float *y, float *error);
 static void sphereErr(float *y, float *error);
@@ -66,8 +74,10 @@ static int numpt;
  * the @amoeba routine. ^
  * Inputs: X and Y coordinates in arrays [xpt], [ypt]; [zpt] is NULL for a 
  * circle fit or has the array of Z coordinate; number of points in [numPts]. ^
- * Outputs: radius in [rad], center coordinate in [xcen], [ycen], and [zcen]
- * for a sphere fit, and RMS error in [rmsErr].  Returns 0.
+ * Inputs/Outputs: radius in [rad], center coordinate in [xcen], [ycen], and [zcen]
+ * for a sphere fit; these must be initialized with reasonable starting values for a
+ * search. ^
+ * Output: RMS error in [rmsErr].  Returns 0.
  */
 int fitSphere(float *xpt, float *ypt, float *zpt, int numPts, float *rad, 
               float *xcen, float *ycen, float *zcen, float *rmsErr)
@@ -82,8 +92,10 @@ int fitSphere(float *xpt, float *ypt, float *zpt, int numPts, float *rad,
  * Inputs: X and Y coordinates in arrays [xpt], [ypt]; [zpt] is NULL for a 
  * circle fit or has the array of Z coordinate; [weights] has an array of 
  * weights or is NULL for no weighting; the number of points is in [numPts]. ^
- * Outputs: radius in [rad], center coordinate in [xcen], [ycen], and [zcen]
- * for a sphere fit, and RMS error in [rmsErr].  Returns 0.
+ * Inputs/Outputs: radius in [rad], center coordinate in [xcen], [ycen], and [zcen]
+ * for a sphere fit; these must be initialized with reasonable starting values for a
+ * search. ^
+ * Output: RMS error in [rmsErr].  Returns 0.
  */
 int fitSphereWgt(float *xpt, float *ypt, float *zpt, float *weights, 
                  int numPts, float *rad, float *xcen, float *ycen, float *zcen,
@@ -146,6 +158,20 @@ int fitSphereWgt(float *xpt, float *ypt, float *zpt, float *weights,
     *zcen = a[3];
   *rmsErr = (float)sqrt((double)errmin);
   return 0;
+}
+
+/*! Fortran wrapper to @fitSphere for fitting a circle */
+void fitcircle(float *xpt, float *ypt, int *numPts, float *rad, 
+                  float *xcen, float *ycen, float *rmsErr)
+{
+  fitSphereWgt(xpt, ypt, NULL, NULL, *numPts, rad, xcen, ycen, NULL, rmsErr);
+}
+
+/*! Fortran wrapper to @fitSphereWgt for fitting a circle with weights */
+void fitcirclewgt(float *xpt, float *ypt, float *weights, int *numPts, float *rad, 
+                  float *xcen, float *ycen, float *rmsErr)
+{
+  fitSphereWgt(xpt, ypt, NULL, weights, *numPts, rad, xcen, ycen, NULL, rmsErr);
 }
 
 /* Function to compute the error of the circle fit for given vector y */
@@ -237,19 +263,3 @@ static void sphereErrWgt(float *y, float *error)
 
   *error = (float)(err / numpt);
 }
-
-/*
-  $Log$
-  Revision 1.4  2011/05/13 17:35:33  mast
-  Move determ3 to b3dutil.h
-
-  Revision 1.3  2010/10/22 05:36:34  mast
-  Add weighting to circle fits
-
-  Revision 1.2  2007/10/19 19:43:40  mast
-  Document
-
-  Revision 1.1  2007/10/01 15:26:09  mast
-  *** empty log message ***
-  
-*/
