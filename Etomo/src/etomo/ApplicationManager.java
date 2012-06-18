@@ -218,7 +218,7 @@ public final class ApplicationManager extends BaseManager implements
 
   private TomogramGenerationExpert tomogramGenerationExpertB = null;
 
-  protected TomogramCombinationDialog tomogramCombinationDialog = null;
+  private TomogramCombinationDialog tomogramCombinationDialog = null;
 
   private PostProcessingDialog postProcessingDialog = null;
 
@@ -252,6 +252,8 @@ public final class ApplicationManager extends BaseManager implements
   private boolean reconnectRunB = false;
 
   ComScriptManager comScriptMgr = new ComScriptManager(this);
+  
+
 
   /**
    * Does initialization and loads the .edf file. Opens the setup dialog if
@@ -289,10 +291,6 @@ public final class ApplicationManager extends BaseManager implements
       setupDialogExpert.doAutomation();
     }
     super.doAutomation();
-  }
-
-  public boolean setParamFile() {
-    return loadedParamFile;
   }
 
   /**
@@ -549,11 +547,11 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.updateAllProcessingStates(processTrack);
     setPanel();
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
-      reconnect(processMgr.getSavedProcessData(AxisID.FIRST), AxisID.FIRST);
-      reconnect(processMgr.getSavedProcessData(AxisID.SECOND), AxisID.SECOND);
+      reconnect(axisProcessData.getSavedProcessData(AxisID.FIRST), AxisID.FIRST);
+      reconnect(axisProcessData.getSavedProcessData(AxisID.SECOND), AxisID.SECOND);
     }
     else {
-      reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY);
+      reconnect(axisProcessData.getSavedProcessData(AxisID.ONLY), AxisID.ONLY);
     }
   }
 
@@ -562,10 +560,6 @@ public final class ApplicationManager extends BaseManager implements
       return reconnectRunB;
     }
     return reconnectRunA;
-  }
-
-  public boolean isInManagerFrame() {
-    return false;
   }
 
   private void setReconnectRun(AxisID axisID) {
@@ -1505,41 +1499,6 @@ public final class ApplicationManager extends BaseManager implements
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("Running " + ExtracttiltsParam.COMMAND_NAME, axisID,
         ProcessName.EXTRACTTILTS);
-  }
-
-  private void extractpieces(AxisID axisID, ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, final DialogType dialogType) {
-    if (processSeries == null) {
-      processSeries = new ProcessSeries(this, dialogType);
-    }
-    processSeries.setNextProcess(ExtractmagradParam.COMMAND_NAME, null);
-    if (metaData.getViewType() != ViewType.MONTAGE && processSeries != null) {
-      processSeries.startNextProcess(axisID, processResultDisplay);
-      return;
-    }
-    File pieceListFile = DatasetFiles.getPieceListFile(this, axisID);
-    if (pieceListFile.exists() && processSeries != null) {
-      processSeries.startNextProcess(axisID, processResultDisplay);
-      return;
-    }
-    String threadName;
-    try {
-      threadName = processMgr.extractpieces(axisID, processResultDisplay, processSeries);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute " + ExtractpiecesParam.COMMAND_NAME;
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
-      if (processSeries != null) {
-        processSeries.startNextProcess(axisID, processResultDisplay);
-      }
-      return;
-    }
-    setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME, axisID,
-        ProcessName.EXTRACTPIECES);
   }
 
   private void extractmagrad(AxisID axisID, ProcessResultDisplay processResultDisplay,
@@ -2827,10 +2786,6 @@ public final class ApplicationManager extends BaseManager implements
       }
       saveStorables(axisID);
     }
-  }
-
-  public String getFileSubdirectoryName() {
-    return null;
   }
 
   public void closeImods(String key, AxisID axisID, String description) {
@@ -7433,7 +7388,8 @@ public final class ApplicationManager extends BaseManager implements
       splitcombine(processSeries, null, null, dialogType, process.getProcessingMethod());
     }
     else if (process.equals(ExtractpiecesParam.COMMAND_NAME)) {
-      extractpieces(axisID, processResultDisplay, processSeries, dialogType);
+      extractpieces(axisID, processResultDisplay, processSeries, dialogType,
+          metaData.getViewType());
     }
     else if (process.equals(ExtractmagradParam.COMMAND_NAME)) {
       extractmagrad(axisID, processResultDisplay, processSeries);
@@ -7570,7 +7526,7 @@ public final class ApplicationManager extends BaseManager implements
    *          a File object specifying the data set parameter file.
    */
   public void setParamFile(File paramFile) {
-    this.paramFile = paramFile;
+    super.setParamFile(paramFile);
     // Update main window information and status bar
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
   }
@@ -7761,24 +7717,6 @@ public final class ApplicationManager extends BaseManager implements
 
   BaseProcessTrack getProcessTrack() {
     return processTrack;
-  }
-
-  /**
-   * Interrupt the currently running thread for this axis
-   * 
-   * @param axisID
-   */
-  public void kill(AxisID axisID) {
-    processMgr.kill(axisID);
-  }
-
-  /**
-   * Interrupt the currently running thread for this axis
-   * 
-   * @param axisID
-   */
-  public void pause(AxisID axisID) {
-    processMgr.pause(axisID);
   }
 
   private ProcessResult splittilt(AxisID axisID,
@@ -8172,10 +8110,6 @@ public final class ApplicationManager extends BaseManager implements
     // to
     // do a Save As.
     return this.loadedParamFile;
-  }
-
-  public boolean canSnapshot() {
-    return !isNewManager();
   }
 
   public String getName() {

@@ -35,6 +35,8 @@ public class Transform {
   public static final Transform ROTATION_TRANSLATION = new Transform(
       ROTATION_TRANSLATION_VALUE);
   public static final Transform TRANSLATION = new Transform(TRANSLATION_VALUE);
+  
+  public static final Transform DEFAULT = FULL_LINEAR_TRANSFORMATION;
 
   private static final String KEY = "Transform";
   private final String value;

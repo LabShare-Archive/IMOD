@@ -155,9 +155,9 @@ final class Spinner {
     return new Spinner(name, false, 1, 1, 1, 1);
   }
 
-  static Spinner getInstance(final String label, final int value, final int minimum,
+  static Spinner getInstance(final String text, final int value, final int minimum,
       final int maximum) {
-    return new Spinner(label, false, value, minimum, maximum, 1);
+    return new Spinner(text, false, value, minimum, maximum, 1);
   }
 
   static Spinner getLabeledInstance(final String label) {

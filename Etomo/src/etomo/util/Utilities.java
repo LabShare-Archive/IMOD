@@ -492,7 +492,7 @@ public class Utilities {
     }
     return ACTION_TAG + "Renamed " + from.getName() + " to " + to.getName();
   }
-  
+
   public static String prepareCopyActionMessage(final File from, final File to) {
     if (!EtomoDirector.INSTANCE.getArguments().isActions()) {
       return null;
@@ -803,6 +803,51 @@ public class Utilities {
       return file3;
     }
     return file4;
+  }
+
+  /**
+   * Returns the FileType corresponding to the most recent file in propertyUserDir.
+   * @param manager
+   * @param axisID
+   * @param fileTypes
+   * @param defaultIndex
+   * @return
+   */
+  public static FileType mostRecentFile(final BaseManager manager, final AxisID axisID,
+      final FileType[] fileTypes, final int defaultIndex) {
+    if (fileTypes == null) {
+      return null;
+    }
+    int mostRecentIndex = -1;
+    File file = null;
+    long mostRecentFileTime = 0;
+    if (defaultIndex >= 0 && defaultIndex < fileTypes.length
+        && fileTypes[defaultIndex] != null) {
+      mostRecentIndex = defaultIndex;
+      file = fileTypes[mostRecentIndex].getFile(manager, axisID);
+      if (file != null && file.exists()) {
+        mostRecentFileTime = file.lastModified();
+      }
+    }
+    for (int i = 0; i < fileTypes.length; i++) {
+      if (i == defaultIndex) {
+        continue;
+      }
+      if (fileTypes[i] != null) {
+        file = fileTypes[i].getFile(manager, axisID);
+        if (file != null && file.exists()) {
+          long fileTime = file.lastModified();
+          if (fileTime > mostRecentFileTime) {
+            mostRecentFileTime = fileTime;
+            mostRecentIndex = i;
+          }
+        }
+      }
+    }
+    if (mostRecentIndex == -1) {
+      return null;
+    }
+    return fileTypes[mostRecentIndex];
   }
 
   public static void copyFile(final FileType source, final FileType destination,
@@ -1290,8 +1335,7 @@ public class Utilities {
     return microns;
   }
 
-  public static final String convertMicronsToNanometers(
-      final String microns) {
+  public static final String convertMicronsToNanometers(final String microns) {
     EtomoNumber nm = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     nm.set(microns);
     nm.multiply(1000);
