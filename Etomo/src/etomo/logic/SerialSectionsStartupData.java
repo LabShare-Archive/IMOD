@@ -24,21 +24,35 @@ import etomo.type.ViewType;
 public final class SerialSectionsStartupData {
   public static final String rcsid = "$Id:$";
 
+  private final String stackLabel;
+  private final String viewTypeLabel;
+
   private File stack = null;
-  private String stackLabel = null;
   private ViewType viewType = null;
-  private String viewTypeLabel = null;
   private File distortionFile = null;
   private Number binning = null;
 
-  public void setStack(final File input, final String label) {
-    stack = input;
-    stackLabel = label;
+  public SerialSectionsStartupData(final String stackLabel, final String viewTypeLabel) {
+    if (stackLabel == null || stackLabel.matches("\\s*")) {
+      this.stackLabel = "stack";
+    }
+    else {
+      this.stackLabel = stackLabel;
+    }
+    if (viewTypeLabel == null || viewTypeLabel.matches("\\s*")) {
+      this.viewTypeLabel = "view type";
+    }
+    else {
+      this.viewTypeLabel = viewTypeLabel;
+    }
   }
 
-  public void setViewType(final EnumeratedType input, final String label) {
+  public void setStack(final File input) {
+    stack = input;
+  }
+
+  public void setViewType(final EnumeratedType input) {
     viewType = ViewType.getInstance(input);
-    viewTypeLabel = label;
   }
 
   public void setDistortionFile(final File input) {
@@ -55,11 +69,16 @@ public final class SerialSectionsStartupData {
    */
   public String validate() {
     if (stack == null) {
-      return "Missing required entry: " + stackLabel == null ? "stack" : stackLabel + ".";
+      return "Missing required entry: " + stackLabel + ".";
+    }
+    if (!stack.exists()) {
+      return stackLabel + "doesn't exist.";
+    }
+    if (!stack.canRead()) {
+      return stackLabel + "is not readable.";
     }
     if (viewType == null) {
-      return "Missing required entry: " + viewTypeLabel == null ? "view type"
-          : viewTypeLabel + ".";
+      return "Missing required entry: " + viewTypeLabel + ".";
     }
     return null;
   }
@@ -98,5 +117,9 @@ public final class SerialSectionsStartupData {
 
   public ViewType getViewType() {
     return viewType;
+  }
+
+  public File getStack() {
+    return stack;
   }
 }
