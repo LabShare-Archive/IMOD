@@ -53,13 +53,14 @@ public final class AutoAlignmentController {
     processManager = new AutoAlignmentProcessManager(manager, this);
   }
 
-  public void xfalignInitial(final ConstProcessSeries processSeries) {
+  public void xfalignInitial(final ConstProcessSeries processSeries,
+      final boolean tomogramAverages) {
     if (!updateMetaData()) {
       return;
     }
     XfalignParam xfalignParam = new XfalignParam(manager.getName(),
         manager.getPropertyUserDir(), manager.getAutoAlignmentMetaData(),
-        XfalignParam.Mode.INITIAL);
+        XfalignParam.Mode.INITIAL, tomogramAverages);
     try {
       manager.setThreadName(processManager.xfalign(xfalignParam, axisID, processSeries),
           axisID);
@@ -75,19 +76,20 @@ public final class AutoAlignmentController {
         ProcessName.XFALIGN);
   }
 
-  public void xfalignRefine(ConstProcessSeries processSeries, final String description) {
+  public void xfalignRefine(ConstProcessSeries processSeries,
+      final boolean tomogramAverages, final String description) {
     if (!updateMetaData()) {
       return;
     }
     XfalignParam xfalignParam = new XfalignParam(manager.getName(),
         manager.getPropertyUserDir(), manager.getAutoAlignmentMetaData(),
-        XfalignParam.Mode.REFINE);
+        XfalignParam.Mode.REFINE, tomogramAverages);
     if (!copyMostRecentXfFile(description)) {
       return;
     }
     try {
-      manager.setThreadName(
-          processManager.xfalign(xfalignParam, axisID, processSeries), axisID);
+      manager.setThreadName(processManager.xfalign(xfalignParam, axisID, processSeries),
+          axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
