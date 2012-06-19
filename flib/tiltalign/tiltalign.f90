@@ -74,7 +74,7 @@ program tiltalign
   real*4 a11, a12, a21, a22, xzOther, yzOther, errsumLocal, errLocalMin
   real*4 errLocalMax, beamInv(9), beamMat(9), cosBeam, sinBeam, allYmax, rotEntered
   real*4 binStepIni, binStepFinal, scanStep, allXmin, allXmax, allYmin, rotIncForInit
-  real*8 pmat(9), wgtErrSum, wallTime, wallStart
+  real*8 pmat(9), wgtErrSum, wallTime, wallStart, wgtSum
   integer*4 imageBinned, numUnknownTot2, ifDoLocal, ninThresh, numInitSteps
   integer*4 numWgtTotal, numWgtZero, numWgt1, numWgt2, numWgt5, maxDelWgtBelowCrit
   integer*4 maxRobustOneCycle, numOneCycle, numTotCycles, maxTotCycles, numBelowCrit
@@ -143,7 +143,7 @@ program tiltalign
   numLocalRes = 50
   xyzFixed = .false.
   tooFewFid = .false.
-  kfacRobust = 4.68
+  kfacRobust = 4.685
   minResRobust = 100
   minLocalResRobust = 65
   smallWgtThreshold = 0.5
@@ -241,7 +241,8 @@ program tiltalign
     ierr = PipGetInteger('MaximumCycles', ncycle)
     ierr = PipGetBoolean('RobustFitting', ifDoRobust)
     ierr = PipGetTwoIntegers('MinWeightGroupSizes', minResRobust, minLocalResRobust)
-    ierr = PipGetFloat('KFactorForWeights', kfacRobust)
+    if (PipGetFloat('KFactorScaling', cosTmp) .eq. 0)  &
+        kfacRobust = kfacRobust * cosTmp
     ierr = PipGetFloat('AxisZShift', znew)
     ierr = PipGetFloat('AxisXShift', xtiltNew)
     ierr = PipGetInteger('ImagesAreBinned', imageBinned)
@@ -450,15 +451,16 @@ program tiltalign
     call setupAndDoLocalAlignments()
     close(iunLocal)
     if (.not. tooFewFid) then
-      if (ifDoRobust > 0) then
-        print *,'Summary of robust weighting in local areas:'
-        write(*,321)numWgtTotal, numWgtZero, numWgt1, numWgt2, numWgt5
-321     format(i6,' weights: ',i4,' are 0, ',i3,' are 0-0.1, ',i3,' are 0-0.2, ',i4, &
-            ' are < 0.5')
-        endif
       if (ifResOut > 0) print *
+      if (ifDoRobust > 0) then
+        write(*,'(/,a)')'Summary of robust weighting in local areas:'
+        write(*,321)numWgtTotal, numWgtZero, numWgt1, numWgt2, numWgt5,  &
+            (100. * numWgt5) / numWgtTotal
+321     format(i6,' weights: ',i4,' are 0, ',i3,' are < .1, ',i3,' are < .2, ',i4, &
+            ' (',f4.1,'%) are < .5')
+      endif
       write(*,119) errsumLocal / (numPatchX * numPatchY), errLocalMin, errLocalMax
-119   format(/,' Residual error local mean:',f9.3,'    range', f8.3, ' to',f8.3)
+119   format(/,' Residual error local mean:  ',f9.3,'    range', f8.3, ' to',f8.3)
     endif
   endif
   close(7)
@@ -496,9 +498,9 @@ CONTAINS
       call memoryError(ierr, 'ARRAY FOR H MATRIX')
     endif
     !
-    ! WHY DO WE ALLOW BEAM TILT SEARCH FOR LOCAL???
+    ! Do beam tilt search only for global alignment
     robustWeights = .false.
-    if (ifBTSearch == 0) then
+    if (ifBTSearch == 0 .or. ifLocal > 0) then
       call runMetro(nvarSearch, var, varErr, grad, h, ifLocal, facm, ncycle, 0, &
           rmsScale, fFinal, i, metroError)
     else
@@ -551,13 +553,9 @@ CONTAINS
             jpt = jpt + 1
             errMean = errMean + abs(weight(i) - errSave(i))
           endif
-          if (weight(i) == 0.) then
-            index = index + 1
-          else if (weight(i) < 0.1) then
-            ipt = ipt + 1
-          else if (weight(i) < 0.2) then
-            iv = iv + 1
-          endif
+          if (weight(i) == 0.) index = index + 1
+          if (weight(i) < 0.1) ipt = ipt + 1
+          if (weight(i) < 0.2) iv = iv + 1
           errSd = max(errSd, abs(weight(i) - errSave(i)))
         enddo
         if (jpt > 0) errMean = errMean / jpt
@@ -574,9 +572,9 @@ CONTAINS
           write(*,'(/,a,i5,a,/)') 'WARNING: Robust fitting ended after', &
           numTotCycles,' cycles without meeting convergence criteria'
       write(*,'(a,2f8.4)')' Final mean and max weight change',errMean, errSd
-      write(*,321) nprojpt, index, ipt, iv, jpt
-321   format(i6,' weights: ',i4,' are 0, ',i3,' are 0-0.1, ',i3,' are 0-0.2, ',i4, &
-          ' are < 0.5',/)
+      write(*,321) nprojpt, index, ipt, iv, jpt, (100. * jpt) / nprojpt
+321     format(i6,' weights: ',i4,' are 0, ',i3,' are < .1, ',i3,' are < .2, ',i4, &
+            ' (',f4.1,'%) are < .5',/)
       if (ifLocal .ne. 0) then
         numWgtTotal = numWgtTotal + nprojpt
         numWgtZero = numWgtZero + index
@@ -624,6 +622,7 @@ CONTAINS
     errSum = 0.
     errSqsm = 0.
     wgtErrSum = 0.
+    wgtSum = 0.
     do i = 1, nview
       viewRes(i) = 0.
       ninView(i) = 0
@@ -637,6 +636,7 @@ CONTAINS
       yresid(i) = yresid(i) * scaleXY
       residErr = sqrt(xresid(i)**2 + yresid(i)**2)
       wgtErrSum = wgtErrSum + residErr * sqrt(weight(i))
+      wgtSum = wgtSum + sqrt(weight(i))
       iv = isecView(i)
       ninView(iv) = ninView(iv) + 1
       viewErrsum(iv) = viewErrsum(iv) + residErr
@@ -758,7 +758,7 @@ CONTAINS
               write(iunit, '(/,a,f8.2,a)') 'Beam tilt angle is', &
               beamTilt / dtor, ' degrees'
           if (mapAlfStart > mapAlfEnd) then
-            write(iunit, '(/,a,f7.2)') &
+            if (ifLocal == 0) write(iunit, '(/,a,f7.2)') &
                 ' At minimum tilt, rotation angle is', rot(minTiltView)
             write(iunit, '(/,a)') ' view   rotation    tilt    '// &
                 'deltilt     mag      dmag      skew    mean resid'
@@ -1182,20 +1182,23 @@ CONTAINS
     errSd = sqrt((errSqsm - errSum**2 / nprojpt) / (nprojpt - 1))
     if (ifDoLocal == 0) then
       write(*,118) errMean, errSd
-118   format(/,' Residual error mean and sd:',2f8.3,4x,a,2i4,a)
+118   format(/,' Residual error mean and sd:  ',2f8.3,4x,a,2i4,a)
+      if (ifDoRobust .ne. 0) write(*,1181) wgtErrSum / wgtSum
+1181  format(' Residual error weighted mean:',f8.3,12x,a,2i4,a)
     else if (ifLocal == 0) then
       write(*,118) errMean, errSd, '(Global)'
+      if (ifDoRobust .ne. 0) write(*,1181) wgtErrSum / wgtSum, '(Global)'
     else
       write(*,118) errMean, errSd, '(Local area', ipatchX, ipatchy, ')'
+      if (ifDoRobust .ne. 0) write(*,1181) wgtErrSum / wgtSum, '(Local area', ipatchX,  &
+          ipatchy, ')'
       errsumLocal = errsumLocal + errMean
       errLocalMin = min(errLocalMin, errMean)
       errLocalMax = max(errLocalMax, errMean)
     endif
-    if (ifDoRobust .ne. 0) write(*,'(a,f8.3)') ' Weighted residual error mean', &
-        wgtErrSum / nprojpt
     if (ifResOut > 0) then
       message = ' '
-      if (ifDoRobust .ne. 0) message = '  Weights'
+      if (ifDoRobust .ne. 0) message = '   Weights'
       write(*,112) trim(message)
       !
       ! DEPENDENCY WARNING: Beadfixer relies on the # # ... line up to the
@@ -1203,9 +1206,9 @@ CONTAINS
       !
 112   format(/,9x,'Projection points with large residuals',/, &
           ' obj  cont  view   index coordinates      residuals', &
-          '        # of',a,/, &
+          '        # of',/, &
           '   #     #     #      X         Y        X        Y', &
-          '        S.D.')
+          '        S.D.',a)
       nord = 0
       do jpt = 1, nrealPt
         do i = irealStr(jpt), irealStr(jpt + 1) - 1
@@ -1255,15 +1258,15 @@ CONTAINS
         enddo
         do iord = 1, nord
           i = indSave(iord)
-          ! if (ifDoRobust == 0) then
-          ! write(*,114) imodObj(indAllReal(jptSave(iord))), &
-          ! imodCont(indAllReal(jptSave(iord))), mapViewToFile(isecView(i)), &
-          ! xx(i) + xcen, yy(i) + ycen, xresid(i), yresid(i), errSave(iord)
-          ! else
-          write(*,114) imodObj(indAllReal(jptSave(iord))), &
-              imodCont(indAllReal(jptSave(iord))), mapViewToFile(isecView(i)), &
-              xx(i) + xcen, yy(i) + ycen, xresid(i), yresid(i), errSave(iord), weight(i)
-          ! endif
+          if (ifDoRobust == 0) then
+            write(*,114) imodObj(indAllReal(jptSave(iord))), &
+                imodCont(indAllReal(jptSave(iord))), mapViewToFile(isecView(i)), &
+                xx(i) + xcen, yy(i) + ycen, xresid(i), yresid(i), errSave(iord)
+          else
+            write(*,114) imodObj(indAllReal(jptSave(iord))), &
+                imodCont(indAllReal(jptSave(iord))), mapViewToFile(isecView(i)), &
+                xx(i) + xcen, yy(i) + ycen, xresid(i), yresid(i), errSave(iord), weight(i)
+          endif
         enddo
       endif
     endif
