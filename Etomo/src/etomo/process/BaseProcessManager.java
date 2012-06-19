@@ -1116,7 +1116,6 @@ public abstract class BaseProcessManager {
   }
 
   public final void unblockAxis(AxisID axisID) {
-    System.out.println("A");
     if (axisID == AxisID.SECOND) {
       axisProcessData.setBlockAxis(AxisID.SECOND, false);
     }
