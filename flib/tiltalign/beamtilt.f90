@@ -29,8 +29,8 @@ subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, numVarSe
   btMax = 5.
   btOrig = beamTilt
   idir = 1
-  call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, ncycle, 1, fmin, &
-      kount, metroError)
+  call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, ncycle, 1,  &
+      rmsScale, fmin, kount, metroError)
   print *
   write(*,101) beamTilt / dtor, kount, sqrt(fmin * rmsScale)
 101 format(' For beam tilt =',f6.2, ', ',i4,' cycles,',T48,'final   F : ', &
