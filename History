@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/19/12: Tiltalign can now do robust fitting, eliminating or down-weighting
+points with exceptionally high residuals. 
+
 6/9/12: In Tilt, increased the assumed limit on number of lines in a CUDA
 array to 65535, the limit on Fermi cards (In 4.5).
 
