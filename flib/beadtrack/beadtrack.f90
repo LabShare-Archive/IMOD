@@ -75,7 +75,7 @@ program beadtrack
       1.0, 0.0, 0.0, 0.0, 1.0, 0.5, 0.2, 0.2, 0.8, 0.8, 0.2, 0.2, 0.9, 0.6, 0.4, &
       0.6, 0.4, 0.9/
   !
-  integer*4 modeBox, maxWavg, limPtsStretch, limPtsMag, limPtsRot, limpshft
+  integer*4 modeBox, maxWavg, limPtsStretch, limPtsMag, limPtsRot, limPtsShift
   real*4 rotStart, fracCrit, dmin2, dmax2, dmean2
   integer*4 ifWhite, ifFillIn, maxgap, mode, k, kti, lastSeq, iobjDo, ip, igap
   integer*4 numRounds, maxSum, numFit, minFit, maxResid, minResid, ierr, npclist, i, j
@@ -156,7 +156,7 @@ program beadtrack
   limPtsStretch = 16
   limPtsMag = 6
   limPtsRot = 4
-  limpshft = 3
+  limPtsShift = 3
   minInView = 4
   maxh = 0
   facMetro = .25
@@ -208,10 +208,10 @@ program beadtrack
   limcxBound = 2500
   imageBinned = 1
   npad = 8
-  maxSobelSum = 0
+  maxSobelSum = 50
   scaleByInterp = 1.2
   targetSobel = 8
-  sobelSigma = 0.85
+  sobelSigma = 0.5
   interpType = 0
   maxPeaks = 20
   minPeakRatio = 0.2
@@ -445,9 +445,13 @@ program beadtrack
     ierr = PipGetTwoFloats('DeletionCriterionMinAndSD', resDiffMin, &
         resDiffCrit)
     ierr = PipGetLogical('TrackObjectsTogether', ignoreObjs)
-    ierr = PipGetInteger('SobelBeadsToAverage', maxSobelSum)
+    ierr = PipGetInteger('AverageBeadsForSobel', maxSobelSum)
+    i = 0
+    ierr = PipGetBoolean('SobelFilterCentering', i)
+    if (i == 0) maxSobelSum = 0
     ierr = PipGetFloat('KernelSigma', sobelSigma)
-    ierr = PipGetLogical('MedianForEdge', edgeMedian)
+    ierr = PipGetLogical('MedianForCentroid', edgeMedian)
+    if (sobelSigma > 1.49) interpType = 1
     ierr = PipGetInteger('InterpolationType', interpType)
     if (PipGetString('SnapshotViews', listString) == 0) call parseList2 &
         (listString, ivSnapList, nSnapList, maxView)
@@ -1602,11 +1606,11 @@ CONTAINS
         ! if there are existing points, find right kind of transform
         ! and modify position
         !
-        if (numPioneer > 0 .or. numData >= limpshft) then
+        if (numPioneer > 0 .or. numData >= limPtsShift) then
           ifRoTrans = 0
           ifTrans = 1
           ndatFit = numData
-          if (numData < numPioneer + limpshft) ndatFit = numPioneer
+          if (numData < numPioneer + limPtsShift) ndatFit = numPioneer
           if (ndatFit >= limPtsStretch) then
             ifTrans = 0
           elseif (ndatFit >= limPtsMag) then
@@ -1684,6 +1688,10 @@ CONTAINS
             ninSobel = ninSobel + numInSobelSum(i)
           endif
         enddo
+        !
+        ! It seems like a model bead is better for low numbers in the average
+        if (ninSobel < maxSobelSum / 2 .and. nxbox == nybox) &
+            call makeModelBead(nxbox, 1.05 * diameter, curSum)
         !
         ! sobel filter the sum
         ierr = scaledSobel(curSum, nxBox, nyBox, scaleFacSobel, scaleByInterp, &
@@ -1898,7 +1906,7 @@ CONTAINS
   ! redoFitsEvaluateResiduals
   !
   subroutine redoFitsEvaluateResiduals()
-    if (numData >= limpshft) then
+    if (numData >= limPtsShift) then
       ifRoTrans = 0
       ifTrans = 1
       if (numData >= limPtsStretch) then
@@ -1973,7 +1981,7 @@ CONTAINS
           ! When no tiltalign available, just redo the point with
           ! highest deviation?  No, projections could be lousy.
           !
-          ! if (ifDidAlign == 0 .and. numData >= limpshft) then
+          ! if (ifDidAlign == 0 .and. numData >= limPtsShift) then
           ! do i = 1, numData
           ! if (nint(xr(6, i)) == iobjDo .and. xr(13, i) > &
           ! 0.99 * devMax) errMax = xr(13, i)
