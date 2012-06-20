@@ -16,7 +16,7 @@
 #define fitcircle FITCIRCLE
 #define fitcirclewgt FITCIRCLEWGT
 #else
-#define fitcircle fitcircle
+#define fitcircle fitcircle_
 #define fitcirclewgt fitcirclewgt_
 #endif
 
