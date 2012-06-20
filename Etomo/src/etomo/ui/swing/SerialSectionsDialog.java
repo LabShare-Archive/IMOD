@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -46,9 +47,9 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
 
   private static final DialogType DIALOG_TYPE = DialogType.SERIAL_SECTIONS;
 
-  private final EtomoPanel rootPanel = new EtomoPanel();
-  private final EtomoPanel[] pnlTabArray = new EtomoPanel[Tab.MAX_INDEX];
-  private final EtomoPanel[] pnlTabBodyArray = new EtomoPanel[Tab.MAX_INDEX];
+  private final JPanel pnlRoot = new JPanel();
+  private final JPanel[] pnlTabArray = new JPanel[Tab.NUM_TABS];
+  private final JPanel[] pnlTabBodyArray = new JPanel[Tab.NUM_TABS];
   private final TabbedPane tabPane = new TabbedPane();
   private final CheckBox cbVerySloppyBlend = new CheckBox("Treat as very sloppy blend");
   private final Run3dmodButton btnInitialBlend = Run3dmodButton.getDeferred3dmodInstance(
@@ -85,22 +86,23 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   private final AutoAlignmentPanel autoAlignmentPanel;
   private final AxisID axisID;
   private final SerialSectionsManager manager;
+  private final SerialSectionsStartupData startupData;
 
   private Tab curTab = null;
-  private ViewType viewType = null;
 
-  private SerialSectionsDialog(final SerialSectionsManager manager, final AxisID axisID) {
+  private SerialSectionsDialog(final SerialSectionsManager manager, final AxisID axisID,
+      final SerialSectionsStartupData startupData) {
     System.err.println(Utilities.getDateTimeStamp() + "\nDialog: " + DIALOG_TYPE);
     this.manager = manager;
     this.axisID = axisID;
+    this.startupData = startupData;
     autoAlignmentPanel = AutoAlignmentPanel.getSerialSectionsInstance(manager);
   }
 
   public static SerialSectionsDialog getInstance(final SerialSectionsManager manager,
-      final AxisID axisID) {
-    SerialSectionsDialog instance = new SerialSectionsDialog(manager, axisID);
+      final AxisID axisID, final SerialSectionsStartupData startupData) {
+    SerialSectionsDialog instance = new SerialSectionsDialog(manager, axisID, startupData);
     instance.createPanel();
-    instance.initTab();
     instance.setTooltips();
     instance.addListeners();
     return instance;
@@ -113,33 +115,41 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
 
   private void createPanel() {
     // init
+    for (int i = 0; i < Tab.NUM_TABS; i++) {
+      pnlTabArray[i] = new JPanel();
+      pnlTabBodyArray[i] = new JPanel();
+      tabPane.add(Tab.getInstance(i).toString(), pnlTabArray[i]);
+    }
+    tabPane.setEnabledAt(Tab.INITIAL_BLEND.index,
+        startupData.getViewType() == ViewType.MONTAGE);
+    curTab = Tab.getDefaultInstance(startupData.getViewType());
+    tabPane.setSelectedIndex(curTab.index);
     btnInitialBlend.setDeferred3dmodButton(btnOpenInitialBlend);
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        manager.getRawStackName(), axisID);
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), startupData
+        .getStack().getName(), axisID);
     try {
       header.read(manager);
+      spReferenceSection.setMax(header.getNSections());
     }
     catch (IOException e) {
       cbReferenceSection.setEnabled(false);
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Unable to read" + manager.getRawStackName() + "\n" + e.getMessage(),
-          "File Read Error", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read"
+          + startupData.getStack().getName() + "\n" + e.getMessage(), "File Read Error",
+          axisID);
     }
     catch (InvalidParameterException e) {
       cbReferenceSection.setEnabled(false);
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Unable to read" + manager.getRawStackName() + "\n" + e.getMessage(),
-          "File Read Error", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read"
+          + startupData.getStack().getName() + "\n" + e.getMessage(), "File Read Error",
+          axisID);
     }
-    spReferenceSection.setMax(header.getNSections());
+    updateDisplay();
     // root panel
-    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    rootPanel.setBorder(new BeveledBorder("Serial Sections").getBorder());
-    rootPanel.add(tabPane);
+    pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
+    pnlRoot.setBorder(new BeveledBorder("Serial Sections").getBorder());
+    pnlRoot.add(tabPane);
     // tab pane
-    for (int i = 0; i < Tab.MAX_INDEX; i++) {
-      tabPane.add(Tab.getInstance(i).toString(), pnlTabArray[i]);
-    }
+    pnlTabArray[curTab.index].add(pnlTabBodyArray[curTab.index]);
     // initial blend
     int index = Tab.INITIAL_BLEND.index;
     pnlTabBodyArray[index].add(cbVerySloppyBlend);
@@ -166,15 +176,11 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     pnlTabBodyArray[index].add(cbFillWithZero);
     pnlTabBodyArray[index].add(btnMakeStack.getComponent());
     pnlTabBodyArray[index].add(btnOpenStack.getComponent());
+    UIHarness.INSTANCE.pack(axisID, manager);
   }
 
-  private void initTab() {
-    changeTab();
-    updateDisplay();
-  }
-
-  public Container getContainer() {
-    return rootPanel;
+  public Container getRootContainer() {
+    return pnlRoot;
   }
 
   public AxisID getAxisID() {
@@ -195,22 +201,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     btnOpenAlignedStack.addActionListener(listener);
   }
 
-  public void setStartupData(final SerialSectionsStartupData startupData) {
-    viewType = startupData.getViewType();
-    if (curTab == null) {
-      if (viewType == ViewType.MONTAGE) {
-        curTab = Tab.INITIAL_BLEND;
-      }
-      else {
-        curTab = Tab.ALIGN;
-      }
-      changeTab();
-    }
-    updateDisplay();
-  }
-
   public void updateDisplay() {
-    tabPane.setEnabledAt(Tab.INITIAL_BLEND.index, viewType == ViewType.MONTAGE);
     spReferenceSection.setEnabled(cbReferenceSection.isEnabled()
         && cbReferenceSection.isSelected());
   }
@@ -247,9 +238,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   }
 
   private void changeTab() {
-    if (curTab != null) {
-      pnlTabArray[curTab.index].remove(pnlTabBodyArray[curTab.index]);
-    }
+    pnlTabArray[curTab.index].remove(pnlTabBodyArray[curTab.index]);
     curTab = Tab.getInstance(tabPane.getSelectedIndex());
     pnlTabArray[curTab.index].add(pnlTabBodyArray[curTab.index]);
     UIHarness.INSTANCE.pack(axisID, manager);
@@ -261,7 +250,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel = { "Processchunks", "3dmod" };
     String[] manPage = { "processchunks.html", "3dmod.html" };
-    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent, manPagelabel,
+    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent, manPagelabel,
         manPage, true, manager, axisID);
   }
 
@@ -297,7 +286,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     private static final Tab ALIGN = new Tab(1, "Align");
     private static final Tab MAKE_STACK = new Tab(2, "Make Stack");
 
-    private static final int MAX_INDEX = MAKE_STACK.index;
+    private static final int NUM_TABS = 3;
 
     private final int index;
     private final String title;
@@ -318,6 +307,13 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
         return MAKE_STACK;
       }
       return null;
+    }
+
+    private static Tab getDefaultInstance(final ViewType viewType) {
+      if (viewType == ViewType.MONTAGE) {
+        return INITIAL_BLEND;
+      }
+      return ALIGN;
     }
 
     public String toString() {
