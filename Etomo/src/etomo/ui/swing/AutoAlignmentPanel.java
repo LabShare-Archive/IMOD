@@ -56,7 +56,8 @@ public final class AutoAlignmentPanel {
       "Do cross correlatin in initial alignment");
   private final LabeledTextField ltfEdgeToIgnore = new LabeledTextField(
       "Fraction to ignore on edges");
-  private final Spinner spMidasBinning =  Spinner.getLabeledInstance("Midas binning",1,1,8);
+  private final Spinner spMidasBinning = Spinner.getLabeledInstance("Midas binning", 1,
+      1, 8);
 
   private final BaseManager manager;
   private final boolean tomogramAverages;
@@ -70,21 +71,27 @@ public final class AutoAlignmentPanel {
 
   static AutoAlignmentPanel getJoinInstance(final BaseManager manager) {
     AutoAlignmentPanel instance = new AutoAlignmentPanel(manager, true);
-    instance.setJoinConfiguration();
-    instance.createPanel();
+    instance.createPanel(true);
     instance.setTooltips();
     return instance;
   }
 
   static AutoAlignmentPanel getSerialSectionsInstance(final BaseManager manager) {
     AutoAlignmentPanel instance = new AutoAlignmentPanel(manager, false);
-    instance.createPanel();
+    instance.createPanel(false);
     instance.setTooltips();
     return instance;
   }
 
-  private void createPanel() {
+  private void createPanel(final boolean joinConfiguration) {
     // init
+    if (joinConfiguration) {
+      spBinning.setVisible(false);
+      ltfSkipSectionsFrom1.setVisible(false);
+      cbPreCrossCorrelation.setVisible(false);
+      ltfEdgeToIgnore.setVisible(false);
+      spMidasBinning.setVisible(false);
+    }
     ltfEdgeToIgnore.setText(".05");
     btnInitialAutoAlignment.setSize();
     btnMidas.setSize();
@@ -123,13 +130,6 @@ public final class AutoAlignmentPanel {
     pnlRightButtons.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRightButtons.add(btnRevertToMidas);
     pnlRightButtons.add(btnRevertToEmpty);
-  }
-
-  private void setJoinConfiguration() {
-    spBinning.setVisible(false);
-    ltfSkipSectionsFrom1.setVisible(false);
-    cbPreCrossCorrelation.setVisible(false);
-    ltfEdgeToIgnore.setVisible(false);
   }
 
   /**
