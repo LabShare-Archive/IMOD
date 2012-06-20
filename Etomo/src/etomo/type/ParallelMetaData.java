@@ -56,7 +56,7 @@ public final class ParallelMetaData extends BaseMetaData {
   public ParallelMetaData() {
     super();
     axisType = AxisType.SINGLE_AXIS;
-    fileExtension = DatasetFiles.PARALLEL_DATA_FILE_EXT;
+    fileExtension = DataFileType.PARALLEL.extension;
   }
 
   public String toString() {
@@ -254,7 +254,7 @@ public final class ParallelMetaData extends BaseMetaData {
 
   public void load(Properties props, String prepend) {
     super.load(props, prepend);
-    //reset
+    // reset
     revision = null;
     rootName = null;
     loadWithFlipping.reset();
@@ -274,7 +274,7 @@ public final class ParallelMetaData extends BaseMetaData {
     iteration.reset();
     memoryPerChunk.reset();
     overlapTimesFour.reset();
-    //load
+    // load
     dialogType = DialogType.load(DataFileType.PARALLEL, props);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -324,18 +324,11 @@ public final class ParallelMetaData extends BaseMetaData {
     overlapTimesFour.store(props, prepend);
   }
 
-  String createPrepend(String prepend) {
-    String groupKey;
+  String getGroupKey() {
     if (dialogType == DialogType.ANISOTROPIC_DIFFUSION) {
-      groupKey = ANISOTROPIC_DIFFUSION_GROUP_KEY;
+      return ANISOTROPIC_DIFFUSION_GROUP_KEY;
     }
-    else {
-      groupKey = PARALLEL_GROUP_KEY;
-    }
-    if (prepend == "") {
-      return groupKey;
-    }
-    return prepend + "." + groupKey;
+    return PARALLEL_GROUP_KEY;
   }
 }
 /**

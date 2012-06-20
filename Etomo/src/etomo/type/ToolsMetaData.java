@@ -31,6 +31,10 @@ public final class ToolsMetaData extends BaseMetaData {
     axisType = AxisType.SINGLE_AXIS;
   }
 
+  String getGroupKey() {
+    return null;
+  }
+
   String createPrepend(String prepend) {
     return null;
   }
@@ -44,7 +48,7 @@ public final class ToolsMetaData extends BaseMetaData {
   }
 
   public String getMetaDataFileName() {
-    //Tools projects are not saved
+    // Tools projects are not saved
     return null;
   }
 
