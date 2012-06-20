@@ -15,10 +15,12 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
 import etomo.PeetManager;
+import etomo.logic.DatasetDirectory;
 import etomo.logic.PeetStartupData;
 import etomo.storage.PeetAndMatlabParamFileFilter;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
+import etomo.type.DataFileType;
 import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
@@ -89,10 +91,12 @@ public final class PeetStartupDialog {
     ftfDirectory.setAdjustedFieldWidth(175);
     ftfDirectory.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
     ftfDirectory.setAbsolutePath(true);
+    ftfDirectory.setOriginEtomoRunDir(true);
     ftfDirectory.setFile(new File(""));
     ftfCopyFrom.setAdjustedFieldWidth(225);
     ftfCopyFrom.setFileFilter(new PeetAndMatlabParamFileFilter());
     ftfCopyFrom.setAbsolutePath(true);
+    ftfCopyFrom.setOriginEtomoRunDir(true);
     updateDisplay();
     // dialog
     dialog.getContentPane().add(pnlRoot);
@@ -233,6 +237,10 @@ public final class PeetStartupDialog {
       }
     }
     if (errorMessage == null) {
+      if (!DatasetDirectory.validateDatasetName(manager, dialog, axisID,
+          ftfDirectory.getFile(), ltfBaseName.getText(), DataFileType.PEET, null)) {
+        return false;
+      }
       return true;
     }
     UIHarness.INSTANCE.openMessageDialog(manager, dialog, errorMessage, "Entry Error",

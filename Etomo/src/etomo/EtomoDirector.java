@@ -25,8 +25,10 @@ import etomo.storage.LogFile;
 import etomo.storage.ParallelFileFilter;
 import etomo.storage.ParameterStore;
 import etomo.storage.PeetFileFilter;
+import etomo.storage.SerialSectionsFileFilter;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.type.ImodVersion;
@@ -34,13 +36,13 @@ import etomo.type.JoinMetaData;
 import etomo.type.MetaData;
 import etomo.type.ParallelMetaData;
 import etomo.type.PeetMetaData;
+import etomo.type.SerialSectionsMetaData;
 import etomo.type.ToolType;
 import etomo.type.UserConfiguration;
 import etomo.ui.swing.MainFrame;
 import etomo.ui.swing.SettingsDialog;
 import etomo.ui.swing.UIHarness;
 import etomo.ui.swing.UIParameters;
-import etomo.util.DatasetFiles;
 import etomo.util.EnvironmentVariable;
 import etomo.util.UniqueHashedArray;
 import etomo.util.UniqueKey;
@@ -259,17 +261,20 @@ public class EtomoDirector {
       for (int i = 0; i < paramFileNameListSize; i++) {
         paramFileName = (String) paramFileNameList.get(i);
         ManagerKey managerKey = null;
-        if (paramFileName.endsWith(DatasetFiles.RECON_DATA_FILE_EXT)) {
+        if (paramFileName.endsWith(DataFileType.RECON.extension)) {
           managerKey = openTomogram(paramFileName, false, AxisID.ONLY);
         }
-        else if (paramFileName.endsWith(DatasetFiles.JOIN_DATA_FILE_EXT)) {
+        else if (paramFileName.endsWith(DataFileType.JOIN.extension)) {
           managerKey = openJoin(paramFileName, false, AxisID.ONLY);
         }
-        else if (paramFileName.endsWith(DatasetFiles.PARALLEL_DATA_FILE_EXT)) {
+        else if (paramFileName.endsWith(DataFileType.PARALLEL.extension)) {
           managerKey = openParallel(paramFileName, false, AxisID.ONLY);
         }
-        else if (paramFileName.endsWith(DatasetFiles.PEET_DATA_FILE_EXT)) {
+        else if (paramFileName.endsWith(DataFileType.PEET.extension)) {
           managerKey = openPeet(paramFileName, false, AxisID.ONLY);
+        }
+        else if (paramFileName.endsWith(DataFileType.SERIAL_SECTIONS.extension)) {
+          managerKey = openSerialSections(paramFileName, false, AxisID.ONLY);
         }
         if (i == 0) {
           saveKey = managerKey;
@@ -563,6 +568,11 @@ public class EtomoDirector {
     return openPeet(PeetMetaData.NEW_TITLE, makeCurrent, axisID);
   }
 
+  public ManagerKey openSerialSections(boolean makeCurrent, AxisID axisID) {
+    closeDefaultWindow(axisID);
+    return openSerialSections(SerialSectionsMetaData.NEW_TITLE, makeCurrent, axisID);
+  }
+
   private ManagerKey openJoin(File etomoJoinFile, boolean makeCurrent, AxisID axisID) {
     if (etomoJoinFile == null) {
       return openJoin(makeCurrent, axisID);
@@ -589,6 +599,14 @@ public class EtomoDirector {
       return openPeet(makeCurrent, axisID);
     }
     return openPeet(etomoPeetFile.getAbsolutePath(), makeCurrent, axisID);
+  }
+
+  private ManagerKey openSerialSections(File etomoSerialSectionsFile,
+      boolean makeCurrent, AxisID axisID) {
+    if (etomoSerialSectionsFile == null) {
+      return openSerialSections(makeCurrent, axisID);
+    }
+    return openPeet(etomoSerialSectionsFile.getAbsolutePath(), makeCurrent, axisID);
   }
 
   private ManagerKey openJoin(String etomoJoinFileName, boolean makeCurrent, AxisID axisID) {
@@ -632,6 +650,26 @@ public class EtomoDirector {
     }
     else {
       manager = PeetManager.getInstance(peetFileName);
+    }
+    ManagerKey key = setManager(manager, makeCurrent);
+    manager.display();
+    if (!manager.isValid()) {
+      closeCurrentManager(AxisID.ONLY, false);
+      return null;
+    }
+    return key;
+  }
+
+  private ManagerKey openSerialSections(String serialSectionsFileName,
+      boolean makeCurrent, AxisID axisID) {
+    SerialSectionsManager manager;
+    if (serialSectionsFileName == null
+        || serialSectionsFileName.equals(SerialSectionsMetaData.NEW_TITLE)) {
+      manager = SerialSectionsManager.getInstance();
+      UIHarness.INSTANCE.setEnabledNewSerialSectionsMenuItem(false);
+    }
+    else {
+      manager = SerialSectionsManager.getInstance(serialSectionsFileName);
     }
     ManagerKey key = setManager(manager, makeCurrent);
     manager.display();
@@ -712,6 +750,11 @@ public class EtomoDirector {
       openPeet(dataFile, makeCurrent, axisID);
       return;
     }
+    SerialSectionsFileFilter serialSectionsFileFilter = new SerialSectionsFileFilter();
+    if (serialSectionsFileFilter.accept(dataFile)) {
+      openSerialSections(dataFile, makeCurrent, axisID);
+      return;
+    }
     UIHarness.INSTANCE.openMessageDialog(getCurrentManager(), "Unknown file type "
         + dataFile.getName() + ".", "Unknown File Type", axisID);
     throw new IllegalStateException("unknown dataFile");
@@ -774,6 +817,9 @@ public class EtomoDirector {
     }
     else if (key.getName().equals(PeetMetaData.NEW_TITLE)) {
       UIHarness.INSTANCE.setEnabledNewPeetMenuItem(true);
+    }
+    else if (key.getName().equals(SerialSectionsMetaData.NEW_TITLE)) {
+      UIHarness.INSTANCE.setEnabledNewSerialSectionsMenuItem(true);
     }
   }
 

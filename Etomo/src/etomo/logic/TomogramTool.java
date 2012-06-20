@@ -191,7 +191,6 @@ public final class TomogramTool {
   public static ConstEtomoNumber getYEndingSlice(final BaseManager manager,
       final AxisID axisID, final ConstEtomoNumber startingSlice, final String yHeight,
       final String yHeightLabel) {
-    System.out.println("A:startingSlice:" + startingSlice + ",yHeight:" + yHeight);
     EtomoNumber enEndingSlice = new EtomoNumber(EtomoNumber.Type.LONG);
     if (startingSlice.isNull() || yHeight == null || yHeight.matches("\\s*")) {
       return enEndingSlice;
