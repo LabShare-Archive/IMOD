@@ -54,7 +54,6 @@ public final class SerialSectionsManager extends BaseManager {
   private SerialSectionsStartupDialog serialSectionsStartupDialog = null;
   private SerialSectionsDialog serialSectionsDialog = null;
   private AutoAlignmentController autoAlignmentController = null;
-  private SerialSectionsStartupData startupData = null;
   /**
    * valid is for handling failure before the manager key is set in EtomoDirector.
    */
@@ -151,10 +150,6 @@ public final class SerialSectionsManager extends BaseManager {
     mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.DONE);
   }
 
-  public String getRawStackName() {
-    return startupData.getStack().getName();
-  }
-
   /**
    * Tries to set paramFile.  Returns true if able to set paramFile.
    * If paramFile is already set, returns true.  Returns false if unable
@@ -170,11 +165,7 @@ public final class SerialSectionsManager extends BaseManager {
       return false;
     }
 
-    this.startupData = startupData;
     String name = startupData.getRootName();
-    if (serialSectionsDialog != null) {
-      serialSectionsDialog.setStartupData(startupData);
-    }
     File paramFile = startupData.getParamFile();
     if (!paramFile.exists()) {
       processMgr.createNewFile(paramFile.getAbsolutePath());
@@ -215,12 +206,12 @@ public final class SerialSectionsManager extends BaseManager {
       return;
     }
     if (serialSectionsDialog == null) {
-      serialSectionsDialog = SerialSectionsDialog.getInstance(this, AXIS_ID);
+      serialSectionsDialog = SerialSectionsDialog.getInstance(this, AXIS_ID, startupData);
     }
     autoAlignmentController = new AutoAlignmentController(this, serialSectionsDialog);
     serialSectionsDialog.setAutoAlignmentController(autoAlignmentController);
     setSerialSectionsDialogParameters();
-    mainPanel.showProcess(serialSectionsDialog.getContainer(), AXIS_ID);
+    mainPanel.showProcess(serialSectionsDialog.getRootContainer(), AXIS_ID);
     String actionMessage = Utilities.prepareDialogActionMessage(
         DialogType.SERIAL_SECTIONS, AxisID.ONLY, null);
     if (actionMessage != null) {
@@ -278,7 +269,7 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   Storable[] getStorables(final int offset) {
-    Storable[] storables = new Storable[3 + offset];
+    Storable[] storables = new Storable[1 + offset];
     int index = offset;
     storables[index++] = metaData;
     return storables;
