@@ -193,6 +193,14 @@ manpage =   Actual diameter of beads in pixels in the original stack,
 before any binning.  If CentroidRadius is entered instead, the unbinned
 diameter will be taken as 2 * radius - 3.
 
+[Field = MedianForCentroid]
+short = 
+type = B
+usage = Use median instead of mean of surrounding pixels when computing centroid
+tooltip = 
+manpage = Take the median instead of the mean of the pixels in the surrounding
+annulus when computing the centroid.
+
 [Field = LightBeads]
 short = 
 type = B
@@ -336,19 +344,37 @@ A running average is kept of the appearance of the bead over
 the most recent views examined; this parameter specifies the
 maximum number of views averaged.
 
-[Field = SobelBeadsToAverage]
+[Field = SobelFilterCentering]
+short =
+type = B
+usage = Use edge-detecting Sobel filter to refine the bead positions
+tooltip =
+manpage = Use an edge-detecting Sobel filter to refine the centroid-based bead positions.
+
+[Field = KernelSigmaForSobel]
+short = 
+type = F
+usage = Sigma for gaussian kernel filtering of single bead before Sobel filtering
+tooltip = Sigma for gaussian kernel filtering of single bead before Sobel
+filtering.  The default is 0.5; a value of around 1.5 is needed for
+higher-noise (e.g., cryo) data.
+manpage = Sigma for gaussian kernel filtering of single bead before Sobel
+filtering, which reduces the contribution of noise to the edge-filtered image.  The
+default is 0.5, which is optimal for relatively low-noise data.  Higher-noise
+data requires a higher sigma of around 1.5.
+
+[Field = AverageBeadsForSobel]
 short = 
 type = I
 usage = Number of beads to average for reference for Sobel filter correlation
 tooltip = 
-manpage = 
-
-[Field = KernelSigma]
-short = 
-type = F
-usage = Sigma for gaussian kernel filtering of single bead before Sobel correlation
-tooltip = 
-manpage = 
+manpage = Number of beads to average for the reference for Sobel filter
+correlation.  Images will be averaged from already-tracked nearby views
+separately for each bead.  If there are not enough already-tracked views,
+averages will be combined from multiple beads to reach the desired number.  If
+the number of averaged beads is less than half of this value, a model bead is
+used instead.  The average or model is Sobel-filtered and correlated with the
+Sobel-filtered image of the single bead.  The default is 50.
 
 [Field = InterpolationType]
 short = 
@@ -356,14 +382,11 @@ type = I
 usage = 1 for linear or 0 for cubic interpolation or -1 for antialias
 reduction in scaled Sobel filter
 tooltip = 
-manpage = 
-
-[Field = MedianForEdge]
-short = 
-type = B
-usage = Use median instead of mean of edge pixels when computing center of gravity
-tooltip = 
-manpage = 
+manpage = Type of interpolation to use in the scaled Sobel filter: 1 for
+linear interpolation, 0 for cubic interpolation, and -1 for 
+image reduction with an antialias filter instead of with interpolation
+combined with binning.  The default is 0 if the sigma for kernel filtering is
+less than 1.5, otherwise 1.
 
 [Field = PointsToFitMaxAndMin]
 short = 
@@ -381,7 +404,7 @@ views.  (Defaults 7 and 3).
 short = 
 type = FP
 usage = Criterion fraction of mean density and SDs below mean for rescue based
-on densiy.
+on density.
 tooltip = Fraction of mean bead integral, and number of SDs below mean, to use
 as the criterion for when to attempt a rescue based on bead density.
 manpage =   Fraction of mean bead integral, and number of standard deviations
