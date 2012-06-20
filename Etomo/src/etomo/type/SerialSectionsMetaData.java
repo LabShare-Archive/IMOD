@@ -25,6 +25,7 @@ public final class SerialSectionsMetaData extends BaseMetaData {
 
   public SerialSectionsMetaData() {
     fileExtension = DataFileType.SERIAL_SECTIONS.extension;
+    axisType = AxisType.SINGLE_AXIS;
   }
 
   public void setName(final String rootName) {

@@ -211,7 +211,6 @@ public final class TomogramTool {
     // Get the unbinned tomogram height in Y of the aligned stack
     long tomoHeight = header.getNRows()
         * Utilities.getStackBinning(manager, axisID, FileType.ALIGNED_STACK);
-    System.out.println("B:tomoHeight:" + tomoHeight);
     EtomoNumber enYHeight = new EtomoNumber();
     enYHeight.set(yHeight);
     if (!enYHeight.isValid()) {
@@ -220,7 +219,6 @@ public final class TomogramTool {
       return null;
     }
     enEndingSlice.set(startingSlice.getLong() + enYHeight.getLong() - 1);
-    System.out.println("C:enEndingSlice:" + enEndingSlice);
     if (!enEndingSlice.isValid()) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Invalid starting slice - "
           + enEndingSlice.getInvalidReason() + "", "Entry Error", axisID);

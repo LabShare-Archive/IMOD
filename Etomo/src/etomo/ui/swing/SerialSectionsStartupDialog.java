@@ -6,9 +6,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.WindowConstants;
@@ -99,19 +100,55 @@ public class SerialSectionsStartupDialog implements ContextMenu,
     // init
     ftfStack.setAbsolutePath(true);
     ftfStack.setOriginEtomoRunDir(true);
+    ftfDistortionFile.setAdjustedFieldWidth(175);
     ftfDistortionFile.setAbsolutePath(true);
     ftfDistortionFile.setOrigin(EtomoDirector.INSTANCE.getIMODCalibDirectory());
+    // panels
+    JPanel pnlStack = new JPanel();
+    JPanel pnlViewType = new JPanel();
+    JPanel pnlViewTypeX = new JPanel();
+    JPanel pnlImage = new JPanel();
+    JPanel pnlButtons = new JPanel();
     // dialog
     dialog.getContentPane().add(pnlRoot);
     // root
-    pnlRoot.add(ftfStack.getRootPanel());
-    pnlRoot.add(new JLabel(VIEW_TYPE_LABEL));
-    pnlRoot.add(rbViewTypeSingle.getComponent());
-    pnlRoot.add(rbViewTypeMontage.getComponent());
-    pnlRoot.add(ftfDistortionFile.getRootPanel());
-    pnlRoot.add(spBinning.getContainer());
-    pnlRoot.add(btnOk.getComponent());
-    pnlRoot.add(btnCancel.getComponent());
+    pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlRoot.add(pnlStack);
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlRoot.add(pnlViewTypeX);
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlRoot.add(pnlImage);
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y20));
+    pnlRoot.add(pnlButtons);
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
+    // stack
+    pnlStack.setLayout(new BoxLayout(pnlStack, BoxLayout.X_AXIS));
+    pnlStack.add(ftfStack.getRootPanel());
+    pnlStack.add(Box.createRigidArea(FixedDim.x150_y0));
+    // view type - x direction
+    pnlViewTypeX.setLayout(new BoxLayout(pnlViewTypeX, BoxLayout.X_AXIS));
+    pnlViewTypeX.add(pnlViewType);
+    pnlViewTypeX.add(Box.createRigidArea(FixedDim.x272_y0));
+    // view type
+    pnlViewType.setLayout(new BoxLayout(pnlViewType, BoxLayout.Y_AXIS));
+    pnlViewType.setBorder(new EtchedBorder(VIEW_TYPE_LABEL).getBorder());
+    pnlViewType.add(rbViewTypeSingle.getComponent());
+    pnlViewType.add(rbViewTypeMontage.getComponent());
+    // image
+    pnlImage.setLayout(new BoxLayout(pnlImage, BoxLayout.X_AXIS));
+    pnlImage.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlImage.add(ftfDistortionFile.getRootPanel());
+    pnlImage.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlImage.add(spBinning.getContainer());
+    pnlImage.add(Box.createRigidArea(FixedDim.x5_y0));
+    // buttons
+    pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
+    pnlButtons.add(Box.createRigidArea(FixedDim.x264_y0));
+    pnlButtons.add(btnOk.getComponent());
+    pnlButtons.add(Box.createRigidArea(FixedDim.x15_y0));
+    pnlButtons.add(btnCancel.getComponent());
+    pnlButtons.add(Box.createRigidArea(FixedDim.x40_y0));
   }
 
   private void addListeners() {
@@ -157,7 +194,7 @@ public class SerialSectionsStartupDialog implements ContextMenu,
   private void action(final ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnOk.getActionCommand())) {
-      if (DatasetDirectory.validateDatasetName(manager, axisID, ftfStack.getFile(),
+      if (!DatasetDirectory.validateDatasetName(manager, axisID, ftfStack.getFile(),
           DataFileType.SERIAL_SECTIONS, null)) {
         return;
       }
@@ -168,8 +205,13 @@ public class SerialSectionsStartupDialog implements ContextMenu,
             .openMessageDialog(manager, errorMessage, "Entry Error", axisID);
         return;
       }
-      manager.extractpieces(axisID, processResultDisplayProxy, null,
-          DialogType.SERIAL_SECTIONS_STARTUP, startupData.getViewType());
+      if (startupData.getViewType() == ViewType.MONTAGE) {
+        manager.extractpieces(axisID, processResultDisplayProxy, null,
+            DialogType.SERIAL_SECTIONS_STARTUP, startupData.getViewType());
+      }
+      else {
+        setProcessDone(true);
+      }
     }
     else if (command.equals(btnCancel.getActionCommand())) {
       dispose();
