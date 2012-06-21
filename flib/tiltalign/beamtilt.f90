@@ -304,8 +304,8 @@ subroutine runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, ncycle, &
 
   ! Final call to FUNCT
   CALL FUNCT(numVarSearch, var, fFinal, Grad)
-  if (ifHush == 0) WRITE(6, 98) sqrt(fFinal * rmsScale), KOUNT
-98 FORMAT(/,T48,'Final   F : ',T61,f14.6,/,' Number of cycles : ',I5)
+  if (ifHush == 0) WRITE(6, 98) KOUNT, sqrt(fFinal *rmsScale)
+98 FORMAT(/,' Number of cycles : ',I5,T48,'Final   F : ',T61,f14.6)
   call flush(6)
   ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
   ! Error returns:
