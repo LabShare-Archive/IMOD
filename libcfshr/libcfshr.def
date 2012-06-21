@@ -206,7 +206,6 @@ EXPORTS
 	AMAT_TO_ROTMAGSTR
 	ADOCSETINTEGER
 	PIDTOSTDERR
-	fitcircle
 	ilistNew
 	b3dHeaderItemBytes
 	IMODGETPID
@@ -326,6 +325,7 @@ EXPORTS
 	sliceGetYSize
 	ilistFloat
 	XCorrPeakFind
+	FITCIRCLE
 	SETSURFSORTPARAM
 	PipSetError
 	cmapStandardRamp
@@ -340,6 +340,7 @@ EXPORTS
 	PipAllowCommaDefaults
 	TAPERATFILL
 	RSTRIMMEDMEANOFSORTED
+	enableRadiusFitting
 	B3DMILLISLEEP
 	PIPEXITONERRORFW
 	sliceFree
@@ -348,6 +349,7 @@ EXPORTS
 	TAPERINPAD
 	rsSortFloats
 	scaledSobel
+	ENABLERADIUSFITTING
 	ADOCDONE
 	sampleMeanSD
 	AdocGetFloatArray
