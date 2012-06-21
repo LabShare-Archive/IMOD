@@ -11,13 +11,18 @@ prefix = 'ERROR: ' + progname + ' - '
 output = 0
 
 # Like doing awk from starting to ending line
-def pyawk(lines, start, end, excludeEnd = False, skipMatch = None, skipEmpty = False):
+def pyawk(lines, start, end, excludeEnd = False, skipMatch = None, skipEmpty = False, \
+             separator = False):
    reStart = re.compile(start)
    reEnd = re.compile(end)
    gotStart = False
+   gotAny = False
    for l in lines:
       if not gotStart and re.search(reStart, l):
          gotStart = True
+         if separator and gotAny:
+            prnstr(' ')
+         gotAny = True
       putout = gotStart
       if gotStart and re.search(reEnd, l):
          gotStart = False
@@ -141,7 +146,7 @@ for optind in range(1,numOpts+1):
       if not newratios:
          pyawk(lines, '^ *Final   F', '^  Ratio')
       elif oneratio:
-         pyawk(lines, '^.*Final   F', '^  Ratio of', False, 'weight', True)
+         pyawk(lines, '^.*Final   F', '^  Ratio of', False, 'weight', True, True)
       else:
          pyawk(lines, '^.*Final   F', '^  Ratio to')
 
@@ -160,6 +165,8 @@ for optind in range(1,numOpts+1):
          if l.find('Doing local area') >= 0 or l.find('on bottom and') >= 0 or \
                 (l.find('Residual error') >= 0 and l.find('weighted') < 0):
             prnstr(l.rstrip())
+            if l.find('Residual error mean') >= 0:
+               prnstr(' ')
 
    if opt == '-c':
       separator()
@@ -186,9 +193,13 @@ for optind in range(1,numOpts+1):
 
    if opt == '-w':
       separator()
-      pyawk(lines, 'Starting robust', 'are < .5')
-      #if nolocals == 0:
-      pyawk(lines, 'Summary of robust', 'are < .5')
+      pyawk(lines, 'Starting robust', 'are < .5', separator = True)
+      if nolocals == 0:
+         prnstr(' ')
+         pyawk(lines, 'Summary of robust', 'are < .5')
+         prnstr(' ')
       pygrep(lines, 'Residual error weighted')
+      if nolocals == 0:
+         pygrep(lines, 'Weighted error ')
 
 sys.exit(0)
