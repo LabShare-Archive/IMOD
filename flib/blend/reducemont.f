@@ -61,6 +61,7 @@ c
       read(5,'(a)')filnam
       call imopen(1,filnam,'ro')
       call irdhdr(1,nxyzin,mxyzin,modein,dmin,dmax,dmean)
+      dfill = dmean
 c       
       call irtdel(1,delt)
       call irtorg(1,xorig,yorig,zorig)
