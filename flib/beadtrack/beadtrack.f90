@@ -121,34 +121,31 @@ program beadtrack
   integer*4 PipGetString, PipGetFloat, PipGetTwoIntegers, PipGetTwoFloats
   integer*4 PipGetInOutFile, PipNumberOfEntries, ifpip
   !
-  ! fallbacks from .. / .. / manpages / autodoc2man - 2 2  beadtrack
+  ! fallbacks from ../../manpages/autodoc2man -3 2  beadtrack
   !
   integer numOptions
-  parameter (numOptions = 52)
+  parameter (numOptions = 57)
   character*(40 * numOptions) options(1)
   options(1) = &
-      ':InputSeedModel:FN:@:OutputModel:FN:@:ImageFile:FN:@'// &
-      ':PieceListFile:FN:@:ImagesAreBinned:I:@:SurfaceOutputFile:FN:@'// &
-      ':SkipViews:LI:@:RotationAngle:F:@:SeparateGroup:LIM:@'// &
-      'first:FirstTiltAngle:F:@increment:TiltIncrement:F:@'// &
-      'tiltfile:TiltFile:FN:@angles:TiltAngles:FAM:@'// &
-      ':TiltDefaultGrouping:I:@:TiltNondefaultGroup:ITM:@'// &
-      ':MagDefaultGrouping:I:@:MagNondefaultGroup:ITM:@'// &
-      ':RotDefaultGrouping:I:@:RotNondefaultGroup:ITM:@'// &
-      ':MinViewsForTiltalign:I:@:CentroidRadius:F:@:BeadDiameter:F:@'// &
-      ':LightBeads:B:@:FillGaps:B:@:MaxGapSize:I:@'// &
-      ':MinTiltRangeToFindAxis:F:@:MinTiltRangeToFindAngles:F:@'// &
-      ':BoxSizeXandY:IP:@:RoundsOfTracking:I:@:MaxViewsInAlign:I:@'// &
-      ':RestrictViewsOnRound:I:@:LocalAreaTracking:B:@'// &
+      ':InputSeedModel:FN:@:OutputModel:FN:@:ImageFile:FN:@:PieceListFile:FN:@'// &
+      ':ImagesAreBinned:I:@:SurfaceOutputFile:FN:@:SkipViews:LI:@:RotationAngle:F:@'// &
+      ':SeparateGroup:LIM:@first:FirstTiltAngle:F:@increment:TiltIncrement:F:@'// &
+      'tiltfile:TiltFile:FN:@angles:TiltAngles:FAM:@:TiltDefaultGrouping:I:@'// &
+      ':TiltNondefaultGroup:ITM:@:MagDefaultGrouping:I:@:MagNondefaultGroup:ITM:@'// &
+      ':RotDefaultGrouping:I:@:RotNondefaultGroup:ITM:@:MinViewsForTiltalign:I:@'// &
+      ':CentroidRadius:F:@:BeadDiameter:F:@:MedianForCentroid:B:@:LightBeads:B:@'// &
+      ':FillGaps:B:@:MaxGapSize:I:@:MinTiltRangeToFindAxis:F:@'// &
+      ':MinTiltRangeToFindAngles:F:@:BoxSizeXandY:IP:@:RoundsOfTracking:I:@'// &
+      ':MaxViewsInAlign:I:@:RestrictViewsOnRound:I:@:LocalAreaTracking:B:@'// &
       ':LocalAreaTargetSize:I:@:MinBeadsInArea:I:@:MaxBeadsInArea:I:@'// &
-      ':MinOverlapBeads:I:@:TrackObjectsTogether:B:@'// &
-      ':MaxBeadsToAverage:I:@:PointsToFitMaxAndMin:IP:@'// &
+      ':MinOverlapBeads:I:@:TrackObjectsTogether:B:@:MaxBeadsToAverage:I:@'// &
+      ':SobelFilterCentering:B:@:KernelSigmaForSobel:F:@:AverageBeadsForSobel:I:@'// &
+      ':InterpolationType:I:@:PointsToFitMaxAndMin:IP:@'// &
       ':DensityRescueFractionAndSD:FP:@:DistanceRescueCriterion:F:@'// &
-      ':RescueRelaxationDensityAndDistance:FP:@'// &
-      ':PostFitRescueResidual:F:@:DensityRelaxationPostFit:F:@'// &
-      ':MaxRescueDistance:F:@:ResidualsToAnalyzeMaxAndMin:IP:@'// &
-      ':DeletionCriterionMinAndSD:FP:@param:ParameterFile:PF:@'// &
-      'help:usage:B:@:BoxOutputFile:FN:@:SnapshotViews:LI:@'// &
+      ':RescueRelaxationDensityAndDistance:FP:@:PostFitRescueResidual:F:@'// &
+      ':DensityRelaxationPostFit:F:@:MaxRescueDistance:F:@'// &
+      ':ResidualsToAnalyzeMaxAndMin:IP:@:DeletionCriterionMinAndSD:FP:@'// &
+      'param:ParameterFile:PF:@help:usage:B:@:BoxOutputFile:FN:@:SnapshotViews:LI:@'// &
       ':SaveAllPointsAreaRound:IP:'
   !
   idebugObj = 49
@@ -761,8 +758,10 @@ program beadtrack
     !
     ! Get arrays for areas
     ix = 2 * numRounds * maxArea
+    deallocate(xxtmp, yytmp)
     allocate(iareaSeq(maxArea), ninObjList(maxArea), indObjList(maxArea), &
-        areaDist(maxArea), ivSeqStr(ix), ivSeqEnd(ix), listSeq(ix), stat = ierr)
+        areaDist(maxArea), ivSeqStr(ix), ivSeqEnd(ix), listSeq(ix), xxtmp(2 * maxArea), &
+        yytmp(3 * maxarea), stat = ierr)
     call memoryError(ierr, 'ARRAYS FOR AREA DATA')
 
     do i = 1, numAreaTot
