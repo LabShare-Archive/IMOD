@@ -76,7 +76,8 @@ static int numpt;
 
 /*! 
  * Fit a circle or sphere to a set of points using a simplex search with
- * the @amoeba routine. ^
+ * the @amoeba routine.  By default, it finds the radius as well as the center, unless 
+ * @enableRadiusFitting has been called with a 0. ^
  * Inputs: X and Y coordinates in arrays [xpt], [ypt]; [zpt] is NULL for a 
  * circle fit or has the array of Z coordinate; number of points in [numPts]. ^
  * Inputs/Outputs: radius in [rad], center coordinate in [xcen], [ycen], and [zcen]
@@ -93,7 +94,8 @@ int fitSphere(float *xpt, float *ypt, float *zpt, int numPts, float *rad,
 
 /*! 
  * Fit a circle or sphere to a set of points with weighting of errors using a 
- * simplex search with the @amoeba routine. ^
+ * simplex search with the @amoeba routine.  By default, it finds the radius as well as 
+ * the center, unless @enableRadiusFitting has been called with a 0. ^
  * Inputs: X and Y coordinates in arrays [xpt], [ypt]; [zpt] is NULL for a 
  * circle fit or has the array of Z coordinate; [weights] has an array of 
  * weights or is NULL for no weighting; the number of points is in [numPts]. ^
@@ -182,11 +184,17 @@ void fitcirclewgt(float *xpt, float *ypt, float *weights, int *numPts, float *ra
   fitSphereWgt(xpt, ypt, NULL, weights, *numPts, rad, xcen, ycen, NULL, rmsErr);
 }
 
+/*!
+ * Makes the fitting routines find a center position only using the radius provided
+ * when [doFit] is nonzero.  Call with 1 to disable finding the radius and 0 to 
+ * re-enable it.
+ */
 void enableRadiusFitting(int doFit)
 {
   fitRadius = doFit ? 1 : 0;
 }
 
+/*! Fortran wrapper to @enableRadiusFitting */
 void enableradiusfitting(int *doFit)
 {
   fitRadius = *doFit ? 1 : 0;
