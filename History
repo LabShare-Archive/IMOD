@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/21/12: Added an option to Blendmont to specify a value for filling blank
+regions.
+
 6/21/12: Made Xfalign support color image files, added an option to enter
 sections numbered from 1.
 
