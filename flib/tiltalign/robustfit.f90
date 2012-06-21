@@ -113,7 +113,7 @@ subroutine setupWeightGroups(maxRings, minRes, minTiltView, ierr)
         ipStartWgtView(indView) = indProj
         ivStartWgtGroup(indGroup) = indView
         numWgtGroups = nring * numViewGroups
-        write(*,'(/,a,i5,a,i4,a,i2,a)')'Starting robust fitting with', numWgtGroups, &
+        write(*,'(/,a,i5,a,i4,a,i3,a)')'Starting robust fitting with', numWgtGroups, &
             ' weight groups:', numViewGroups, ' view groups in', nring, ' rings'
         !write(*,'(13i6)') (ivStartWgtGroup(i), i = 1, numWgtGroups + 1)
         !write(*,'(13i6)') (ipStartWgtView(i), i = 1, indView)
@@ -134,9 +134,12 @@ end subroutine setupWeightGroups
 subroutine computeWeights(distRes, work, iwork)
   use alivar
   implicit none
-  real*4 distRes(*), work(*), dev, rmedian, rMADN, adjMedian
+  real*4 distRes(*), work(*), dev, rmedian, rMADN, adjMedian, tooManyZeroDelta
   integer*4 iwork(*), igroup, i, ind, ninGroup, numViews, indv, ninView, numLow, maxSmall
+  integer*4 minNonZero
 
+  minNonZero = 4
+  tooManyZeroDelta = .02
   !
   ! Loop on the groups of views
   do igroup = 1, numWgtGroups
@@ -186,6 +189,21 @@ subroutine computeWeights(distRes, work, iwork)
       endif
       ninGroup = ninGroup + ninView
     enddo
+  enddo
+  !
+  ! Now look at each real point and make sure it has enough non-zero weights, or
+  ! specifically points above the delta value; and if not, add delta to all weights
+  do ind = 1, nRealPt
+    numLow = 0
+    do i = irealStr(ind), irealStr(ind + 1) - 1
+      if (weight(i) > tooManyZeroDelta) numLow = numLow + 1
+    enddo
+    if (numLow < minNonZero) then
+    do i = irealStr(ind), irealStr(ind + 1) - 1
+      weight(i) = min(1., weight(i) + tooManyZeroDelta)
+    enddo
+      
+    endif
   enddo
   return
 
