@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/21/12: Kept robust fit in Tiltalign from setting all weights for a fiducial
+to at or near zero; tweaked output from Tiltalign and Alignlog.
+
 6/20/12: IMOD_4-6-3
 6/20/12: Beadtrack can now refine center positions using an edge-detecting
 filter, which significantly improves accuracy for many plastic section data
