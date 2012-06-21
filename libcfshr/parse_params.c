@@ -682,7 +682,7 @@ int PipGetFloatArray(const char *option, float *array, int *numToGet, int arrayS
 }
 
 /*
- * Print a complete usage statement, man page entry, or Fortran fallback
+ * Print a complete usage statement, man page entry, or program fallback code
  */
 int PipPrintHelp(const char *progName, int useStdErr, int inputFiles, 
                  int outputFiles)
@@ -694,6 +694,11 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
   char indent4[] = "    ";
   char *indentStr;
   int linePos = 11;
+  int fort90 = (outputManpage == -3) ? 1 : 0;
+  int fort77 = (outputManpage == -2) ? 1 : 0;
+  int cCode = (outputManpage == 2) ? 1 : 0;
+  int python = (outputManpage == 3) ? 1 : 0;
+  char *fortCont = fort90 ? " &\n      '" : "\n     &    '";
   char **descriptions = &typeDescriptions[0];
 
   /* Get correct number of options for Fortran fallback */
@@ -729,24 +734,25 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
     lname = optTable[i].longName;
     indentStr = nullString;
     if ((lname && *lname) || (sname && *sname)) {
-      if (outputManpage <= 0)
+      if (outputManpage <= 0 && !fort90)
         indentStr = indent4;
 
       /* Output Fortran fallback code (-2) */
-      if (outputManpage == -2) {
+      if (fort77 || fort90) {
         lastOpt = (i == numOptions - 1);
         if (!numOut) fprintf(out, 
-                        "      integer numOptions\n"
-                        "      parameter (numOptions = %d)\n"
-                        "      character*(40 * numOptions) options(1)\n"
-                        "      options(1) =\n     &    '", numReal);
+                             "%s  integer numOptions\n"
+                             "%s  parameter (numOptions = %d)\n"
+                             "%s  character*(40 * numOptions) options(1)\n"
+                             "%s  options(1) =%s", indentStr, indentStr, numReal, 
+                             indentStr, indentStr, fortCont);
         
         optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 4 +
           optTable[i].multiple;
         
-        if (linePos + optLen + (lastOpt ? 0 : 3) > 90) {
-          fprintf(out, "'//\n     &    '");
-          linePos = 11;
+        if (linePos + optLen + (lastOpt ? 0 : (fort90 ? 5 : 3)) > 90) {
+          fprintf(out, "'//%s", fortCont);
+          linePos = fort90 ? 7 : 11;
         }
         fprintf(out, "%s:%s:%s%s%s", sname, lname, optTable[i].type, 
                 optTable[i].multiple ? (optTable[i].linked ? "L:" : "M:") : ":", 
@@ -757,10 +763,10 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
       }
       
       /* Fallback output for C code (2) or Python code (3) */
-      if (outputManpage == 2 || outputManpage == 3) {
+      if (cCode || python) {
         lastOpt = (i == numOptions - 1);
         if (!numOut) {
-          if (outputManpage == 2) {
+          if (cCode) {
             fprintf(out, "  int numOptions = %d;\n"
                     "  const char *options[] = {\n    ", numReal);
             linePos = 5;
@@ -772,7 +778,7 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
         optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 7 +
           optTable[i].multiple;
         if (linePos + optLen > 90) {
-          if (outputManpage == 2) {
+          if (cCode) {
             fprintf(out, "\n    ");
             linePos = 5;
           } else {
@@ -782,7 +788,7 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
         }
         fprintf(out, "\"%s:%s:%s%s\"%s", sname, lname, optTable[i].type, 
                 optTable[i].multiple ? (optTable[i].linked ? "L:" : "M:") : ":", 
-                lastOpt ? (outputManpage == 2 ? "};\n" : "]\n"): ", ");
+                lastOpt ? (cCode ? "};\n" : "]\n"): ", ");
         linePos += optLen;
         numOut++;
         continue;
@@ -806,7 +812,7 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
         fprintf(out, "%s%s", outputManpage > 0 ? " \t " : "   ", 
                 descriptions[j]);
       fprintf(out, "\n");
-    } else if (outputManpage == -2 || outputManpage >= 2)
+    } else if (fort77 || fort90 || cCode || python)
       continue;
     else if (outputManpage == 1)
       fprintf(out, ".SS ");
