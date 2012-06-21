@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/20/12: IMOD_4-6-3
+6/20/12: Beadtrack can now refine center positions using an edge-detecting
+filter, which significantly improves accuracy for many plastic section data
+sets and some cryo data sets.
+
 6/19/12: Tiltalign can now do robust fitting, eliminating or down-weighting
 points with exceptionally high residuals. 
 
