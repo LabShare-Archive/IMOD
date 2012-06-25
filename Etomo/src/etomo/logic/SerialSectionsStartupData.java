@@ -29,8 +29,8 @@ public final class SerialSectionsStartupData {
 
   private File stack = null;
   private ViewType viewType = null;
-  private File distortionFile = null;
-  private Number binning = null;
+  private File distortionField = null;
+  private Number imagesAreBinned = null;
 
   public SerialSectionsStartupData(final String stackLabel, final String viewTypeLabel) {
     if (stackLabel == null || stackLabel.matches("\\s*")) {
@@ -56,11 +56,11 @@ public final class SerialSectionsStartupData {
   }
 
   public void setDistortionFile(final File input) {
-    distortionFile = input;
+    distortionField = input;
   }
 
   public void setBinning(final Number input) {
-    binning = input;
+    imagesAreBinned = input;
   }
 
   /**
@@ -121,5 +121,13 @@ public final class SerialSectionsStartupData {
 
   public File getStack() {
     return stack;
+  }
+
+  public File getDistortionField() {
+    return distortionField;
+  }
+
+  public Number getImagesAreBinned() {
+    return imagesAreBinned;
   }
 }
