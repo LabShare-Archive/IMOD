@@ -9,7 +9,6 @@ import etomo.EtomoDirector;
 import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
 import etomo.comscript.DetachedCommandDetails;
-import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.IntermittentCommand;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.ComscriptState;
@@ -651,17 +650,6 @@ public abstract class BaseProcessManager {
           processSeries, popupChunkWarnings, processingMethod);
     }
     return process.getName();
-  }
-
-  /**
-   * Run extractpieces
-   */
-  public String extractpieces(AxisID axisID, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(new ExtractpiecesParam(
-        manager, axisID).getCommand(), axisID, true, processResultDisplay, processSeries,
-        ProcessName.EXTRACTPIECES);
-    return backgroundProcess.getName();
   }
 
   public final void createNewFile(final String absolutePath) {
