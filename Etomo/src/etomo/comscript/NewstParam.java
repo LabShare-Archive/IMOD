@@ -205,6 +205,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   public static final String rcsid = "$Id$";
 
   public static final String SIZE_TO_OUTPUT_IN_X_AND_Y = "SizeToOutputInXandY";
+  public static final String IMAGES_ARE_BINNED_KEY = "ImagesAreBinned";
+  public static final String DISTORTION_FIELD_KEY= "DistortionField";
   // data mode
   public static final String DATA_MODE_OPTION = "-mo";
   public static final int DATA_MODE_DEFAULT = Integer.MIN_VALUE;
