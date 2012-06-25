@@ -16,9 +16,9 @@ package etomo.util;
 * <p> $Log$ </p>
 */
 public final class SharedConstants {
-  public static final String DISTORTION_FILE_TOOLTIP = "OPTIONAL: If you wish to correct "
+  public static final String DISTORTION_FIELD_TOOLTIP = "OPTIONAL: If you wish to correct "
       + "for image distortion, enter the name of the appropriate image distortion file in "
       + "this field and the CCD camera binning in the following spin control.";
-  public static final String BINNING_TOOLTIP = "Binning at which images were acquired on "
-      + "CCD camera.";
+  public static final String IMAGES_ARE_BINNED_TOOLTIP = "Binning at which images were "
+      + "acquired on " + "CCD camera.";
 }
