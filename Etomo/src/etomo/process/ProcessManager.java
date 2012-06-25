@@ -1026,6 +1026,7 @@ import etomo.comscript.ConstMTFFilterParam;
 import etomo.comscript.ConstSplitCorrectionParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.CtfPhaseFlipParam;
+import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.FlattenWarpParam;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.ConstNewstParam;
@@ -1782,6 +1783,17 @@ public class ProcessManager extends BaseProcessManager {
     BackgroundProcess backgroundProcess = startBackgroundProcess(new ExtracttiltsParam(
         appManager, axisID).getCommand(), axisID, true, processResultDisplay,
         processSeries, ProcessName.EXTRACTTILTS);
+    return backgroundProcess.getName();
+  }
+
+  /**
+   * Run extractpieces
+   */
+  public String extractpieces(AxisID axisID, ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(new ExtractpiecesParam(
+        appManager, axisID).getCommand(), axisID, true, processResultDisplay, processSeries,
+        ProcessName.EXTRACTPIECES);
     return backgroundProcess.getName();
   }
 
