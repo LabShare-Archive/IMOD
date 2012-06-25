@@ -70,7 +70,7 @@ public class ViewType implements EnumeratedType {
   /**
    * Takes a string representation of an ViewType type and returns the correct
    * static object.  The string is case insensitive.  Null is returned if the
-   * string is not one of the possibilities from toString().
+   * string is not one of the possibilities from toString() or getParamValue().
    */
   public static ViewType fromString(final String name) {
     if (name.compareToIgnoreCase(SINGLE_VIEW.toString()) == 0) {
