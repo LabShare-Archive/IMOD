@@ -20,18 +20,18 @@ import java.util.Properties;
 public final class AutoAlignmentMetaData {
   public static final String rcsid = "$Id:$";
 
+  private static final String GROUP_KEY = "AutoAlignment";
+  private static final EtomoVersion CURRENT_VERSION = EtomoVersion.getInstance(
+      BaseMetaData.revisionNumberString, "1.0");
   private static final String ALIGN_TRANFORM_KEY = "AlignTransform";
-  // Version 1.0
-  private static final String fullLinearTransformationString = "FullLinearTransformation";
-  private static final String rotationTranslationMagnificationString = "RotationTranslationMagnification";
-  private static final String rotationTranslationString = "RotationTranslation";
 
   private final ScriptParameter sigmaLowFrequency = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, "SigmaLowFrequency");
   private final ScriptParameter cutoffHighFrequency = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, "CutoffHighFrequency");
-  private ScriptParameter sigmaHighFrequency = new ScriptParameter(
+  private final ScriptParameter sigmaHighFrequency = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, "SigmaHighFrequency");
+  
   private Transform alignTransform = Transform.DEFAULT;
 
   AutoAlignmentMetaData() {
@@ -40,76 +40,43 @@ public final class AutoAlignmentMetaData {
     sigmaHighFrequency.setDefault(0).setDisplayValue(0.05);
   }
 
-  void load(final Properties props, final String prependAndGroup,
-      final EtomoVersion revisionNumber, final EtomoVersion latestRevisionNumber) {
+  private String createPrepend(final String prepend) {
+    if (prepend.equals("")) {
+      return GROUP_KEY;
+    }
+    return prepend + "." + GROUP_KEY;
+  }
+
+  void load(final Properties props, String prepend) {
+    prepend = createPrepend(prepend);
     // reset
     sigmaLowFrequency.reset();
     cutoffHighFrequency.reset();
     sigmaHighFrequency.reset();
     alignTransform = Transform.DEFAULT;
     // load
-    sigmaLowFrequency.load(props, prependAndGroup);
-    cutoffHighFrequency.load(props, prependAndGroup);
-    sigmaHighFrequency.load(props, prependAndGroup);
-    if (revisionNumber.lt(latestRevisionNumber)) {
-      // handling version 1.0
-      loadVersion1_0(props, prependAndGroup);
-    }
-    else {
-      alignTransform = Transform.load(props, prependAndGroup, ALIGN_TRANFORM_KEY,
-          Transform.DEFAULT);
-    }
+    sigmaLowFrequency.load(props, prepend);
+    cutoffHighFrequency.load(props, prepend);
+    sigmaHighFrequency.load(props, prepend);
+    alignTransform = Transform
+        .load(props, prepend, ALIGN_TRANFORM_KEY, Transform.DEFAULT);
   }
 
-  private void loadVersion1_0(Properties props, String prependAndGroup) {
-    String group = prependAndGroup + '.';
-    if (Boolean.valueOf(
-        props.getProperty(group + fullLinearTransformationString, "false"))
-        .booleanValue()) {
-      alignTransform = Transform.FULL_LINEAR_TRANSFORMATION;
-    }
-    else if (Boolean.valueOf(
-        props.getProperty(group + rotationTranslationMagnificationString, "false"))
-        .booleanValue()) {
-      alignTransform = Transform.ROTATION_TRANSLATION_MAGNIFICATION;
-    }
-    else if (Boolean.valueOf(
-        props.getProperty(group + rotationTranslationString, "false")).booleanValue()) {
-      alignTransform = Transform.FULL_LINEAR_TRANSFORMATION;
-    }
-    else {
-      alignTransform = Transform.DEFAULT;
-    }
-  }
-
-  void store(Properties props, String prependAndGroup, final EtomoVersion revisionNumber,
-      final EtomoVersion latestRevisionNumber) {
-    // removing data used in old versions of join meta data
-    // change this this when there are more then one old version
-    if (revisionNumber.lt(latestRevisionNumber)) {
-      removeVersion1_0(props, prependAndGroup);
-    }
-    sigmaLowFrequency.store(props, prependAndGroup);
-    cutoffHighFrequency.store(props, prependAndGroup);
-    sigmaHighFrequency.store(props, prependAndGroup);
-    Transform.store(alignTransform, props, prependAndGroup, ALIGN_TRANFORM_KEY);
-  }
-
-  /**
-   * Remove data not used after version 1.0 of join meta data.
-   * Assumes the that data has been loaded (see loadVersion1_0()).
-   * @param props
-   * @param prepend
-   */
-  private void removeVersion1_0(Properties props, String prepend) {
-    String group = prepend + '.';
-    props.remove(group + fullLinearTransformationString);
-    props.remove(group + rotationTranslationMagnificationString);
-    props.remove(group + rotationTranslationString);
+  void store(final Properties props, String prepend) {
+    prepend = createPrepend(prepend);
+    CURRENT_VERSION.store(props, prepend);
+    sigmaLowFrequency.store(props, prepend);
+    cutoffHighFrequency.store(props, prepend);
+    sigmaHighFrequency.store(props, prepend);
+    Transform.store(alignTransform, props, prepend, ALIGN_TRANFORM_KEY);
   }
 
   public ConstEtomoNumber setSigmaLowFrequency(String sigmaLowFrequency) {
     return this.sigmaLowFrequency.set(sigmaLowFrequency);
+  }
+
+  void setSigmaLowFrequency(final ConstEtomoNumber input) {
+    sigmaLowFrequency.set(input);
   }
 
   public ConstEtomoNumber getSigmaLowFrequency() {
@@ -124,6 +91,10 @@ public final class AutoAlignmentMetaData {
     this.cutoffHighFrequency.set(cutoffHighFrequency);
   }
 
+  void setCutoffHighFrequency(final ConstEtomoNumber input) {
+    cutoffHighFrequency.set(input);
+  }
+
   public ConstEtomoNumber getCutoffHighFrequency() {
     return cutoffHighFrequency;
   }
@@ -134,6 +105,10 @@ public final class AutoAlignmentMetaData {
 
   public void setSigmaHighFrequency(String sigmaHighFrequency) {
     this.sigmaHighFrequency.set(sigmaHighFrequency);
+  }
+
+  void setSigmaHighFrequency(final ConstEtomoNumber input) {
+    sigmaHighFrequency.set(input);
   }
 
   public ConstEtomoNumber getSigmaHighFrequency() {
