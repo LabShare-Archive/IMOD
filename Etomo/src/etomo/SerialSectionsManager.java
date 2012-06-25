@@ -3,10 +3,12 @@ package etomo;
 import java.io.File;
 
 import etomo.comscript.BaseComScriptManager;
+import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.SerialSectionsComScriptManager;
 import etomo.logic.SerialSectionsStartupData;
 import etomo.process.BaseProcessManager;
 import etomo.process.SerialSectionsProcessManager;
+import etomo.process.SystemProcessException;
 import etomo.storage.Storable;
 import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
@@ -15,7 +17,10 @@ import etomo.type.BaseMetaData;
 import etomo.type.DialogType;
 import etomo.type.InterfaceType;
 import etomo.type.ProcessEndState;
+import etomo.type.ProcessName;
+import etomo.type.ProcessResultDisplay;
 import etomo.type.SerialSectionsMetaData;
+import etomo.type.ViewType;
 import etomo.ui.swing.LogInterface;
 import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainPanel;
@@ -23,6 +28,7 @@ import etomo.ui.swing.MainSerialSectionsPanel;
 import etomo.ui.swing.SerialSectionsDialog;
 import etomo.ui.swing.SerialSectionsStartupDialog;
 import etomo.ui.swing.UIHarness;
+import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
 /**
@@ -137,8 +143,8 @@ public final class SerialSectionsManager extends BaseManager {
 
   public void setStartupData(final SerialSectionsStartupData startupData) {
     serialSectionsStartupDialog = null;
-    openSerialSectionsDialog(startupData);
     setParamFile(startupData);
+    openSerialSectionsDialog(startupData);
     if (!loadedParamFile) {
       mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.FAILED);
       UIHarness.INSTANCE.openMessageDialog(this,
@@ -164,7 +170,6 @@ public final class SerialSectionsManager extends BaseManager {
     if (startupData == null) {
       return false;
     }
-
     String name = startupData.getRootName();
     File paramFile = startupData.getParamFile();
     if (!paramFile.exists()) {
@@ -174,7 +179,7 @@ public final class SerialSectionsManager extends BaseManager {
     if (!loadedParamFile) {
       return false;
     }
-    metaData.setName(name);
+    metaData.setStartupData(startupData);
     if (!metaData.isValid()) {
       uiHarness.openMessageDialog(this,
           "Invalid data, unable to proceed.  Please exit and restart Etomo",
@@ -217,6 +222,35 @@ public final class SerialSectionsManager extends BaseManager {
     if (actionMessage != null) {
       System.err.println(actionMessage);
     }
+  }
+
+  public void extractpieces(final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay, final DialogType dialogType,
+      final SerialSectionsStartupData startupData) {
+    if (startupData.getViewType() != ViewType.MONTAGE) {
+      return;
+    }
+    File pieceListFile = DatasetFiles.getPieceListFile(this, axisID);
+    if (pieceListFile.exists()) {
+      return;
+    }
+    ExtractpiecesParam param = new ExtractpiecesParam(startupData.getStack().getName(),
+        startupData.getRootName(), AxisType.SINGLE_AXIS, this, axisID);
+    String threadName;
+    try {
+      threadName = processMgr.extractpieces(param, axisID, processResultDisplay);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ExtractpiecesParam.COMMAND_NAME;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+    getMainPanel().startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME, axisID,
+        ProcessName.EXTRACTPIECES);
   }
 
   private void setSerialSectionsDialogParameters() {
