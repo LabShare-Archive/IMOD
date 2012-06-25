@@ -195,6 +195,7 @@ public final class FileType {
       true, "_ptbound", ".mod");
   public static final FileType ANISOTROPIC_DIFFUSION_OUTPUT = FileType.getImodInstance(
       true, false, "", ".nad", ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY);
+  public static final FileType PIECE_LIST = FileType.getInstance(true, true, "", ".pl");
   public static final FileType PREALIGNED_STACK = FileType.getImodInstance(true, true,
       "", ".preali", ImodManager.COARSE_ALIGNED_KEY);
   public static final FileType PRE_XG = FileType.getImodInstance(true, true, "",
@@ -218,11 +219,11 @@ public final class FileType {
   public static final FileType JOIN_SAMPLE = FileType.getImodInstance(true, false, "",
       ".sample", ImodManager.JOIN_SAMPLES_KEY);
   public static final FileType SIRT_SUBAREA_SCALED_OUTPUT_TEMPLATE = FileType
-  .getTemplateInstance(true, true, "_sub", ".sint");
+      .getTemplateInstance(true, true, "_sub", ".sint");
   public static final FileType SQUEEZE_VOL_OUTPUT = FileType.getImodInstance(true, false,
       "", ".sqz", ImodManager.SQUEEZED_VOLUME_KEY);
   public static final FileType SIRT_SUBAREA_OUTPUT_TEMPLATE = FileType
-  .getTemplateInstance(true, true, "_sub", ".srec");
+      .getTemplateInstance(true, true, "_sub", ".srec");
   public static final FileType RAW_STACK = FileType.getTwoImodInstance(true, true, "",
       ".st", ImodManager.RAW_STACK_KEY, ImodManager.PREVIEW_KEY);
   public static final FileType FIXED_XRAYS_STACK = FileType.getImodInstance(true, true,
@@ -691,6 +692,11 @@ public final class FileType {
     return getLeftSide(manager, axisID) + extension;
   }
 
+  private String getLeftSide(final BaseManager manager, final AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    return getLeftSide(metaData.getName(), metaData.getAxisType(), manager, axisID);
+  }
+
   /**
    * Get the typeString with the dataset and axis letter added as necessary.  For example,
    * the left side of BBa_fixed.st is "BBa_fixed", the left side of tilta.com is "tilta", the
@@ -699,7 +705,8 @@ public final class FileType {
    * @param axisID
    * @return
    */
-  private String getLeftSide(final BaseManager manager, final AxisID axisID) {
+  private String getLeftSide(final String rootName, final AxisType axisType,
+      final BaseManager manager, final AxisID axisID) {
     if (manager == null || !hasFixedName(manager)) {
       return null;
     }
@@ -710,19 +717,32 @@ public final class FileType {
       // Example: flatten.com
       return typeString;
     }
-    BaseMetaData metaData = manager.getBaseMetaData();
     String axisIDExtension = "";
     if (usesAxisID) {
-      axisIDExtension = correctAxisID(metaData.getAxisType(), axisID).getExtension();
+      axisIDExtension = correctAxisID(axisType, axisID).getExtension();
     }
     if (usesDataset) {
       // With the dataset the axis follows the dataset
       // Example: BBa_erase.fid
-      return metaData.getName() + axisIDExtension + typeString;
+      return rootName + axisIDExtension + typeString;
     }
     // Without the dataset the axis follows the left extension
     // Example: tilta.com
     return typeString + axisIDExtension;
+  }
+
+  /**
+   * Derive a file name with the same type as this instance, but with a different root
+   * name and/or a different axis type as the manager parameter.
+   * @param rootName
+   * @param axisType
+   * @param axisID
+   * @param manager
+   * @return
+   */
+  public String deriveFileName(final String rootName, final AxisType axisType,
+      final BaseManager manager, final AxisID axisID) {
+    return getLeftSide(rootName, axisType, manager, axisID) + getExtension(manager);
   }
 
   /**
