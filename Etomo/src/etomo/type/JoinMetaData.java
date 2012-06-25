@@ -142,8 +142,26 @@ import etomo.util.Utilities;
 public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaData {
   public static final String rcsid = "$Id$";
 
+  /**
+   * @deprecated
+   */
+  private static final String ALIGN_TRANFORM_KEY = "AlignTransform";
+  // Version 1.0
+  /**
+   * @deprecated
+   */
+  private static final String fullLinearTransformationString = "FullLinearTransformation";
+  /**
+   * @deprecated
+   */
+  private static final String rotationTranslationMagnificationString = "RotationTranslationMagnification";
+  /**
+   * @deprecated
+   */
+  private static final String rotationTranslationString = "RotationTranslation";
+
   private static final EtomoVersion latestRevisionNumber = EtomoVersion.getInstance(
-      revisionNumberString, "1.1");
+      revisionNumberString, "1.2");
   private static final String newJoinTitle = "New Join";
 
   private static final String groupString = "Join";
@@ -162,6 +180,25 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
   private String objectsToInclude = null;
   private ScriptParameter densityRefSection = new ScriptParameter(
       EtomoNumber.Type.INTEGER, "DensityRefSection");
+  /**
+   * @deprecated
+   */
+  private ScriptParameter sigmaLowFrequency = new ScriptParameter(
+      EtomoNumber.Type.DOUBLE, "SigmaLowFrequency");
+  /**
+   * @deprecated
+   */
+  private ScriptParameter cutoffHighFrequency = new ScriptParameter(
+      EtomoNumber.Type.DOUBLE, "CutoffHighFrequency");
+  /**
+   * @deprecated
+   */
+  private ScriptParameter sigmaHighFrequency = new ScriptParameter(
+      EtomoNumber.Type.DOUBLE, "SigmaHighFrequency");
+  /**
+   * @deprecated
+   */
+  private Transform alignTransform = Transform.DEFAULT;
   private Transform modelTransform = Transform.DEFAULT;
   private boolean useAlignmentRefSection = false;
   private ScriptParameter alignmentRefSection = new ScriptParameter(
@@ -259,6 +296,27 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
     String group = prepend + ".";
     revisionNumber.reset();
     revisionNumber.load(props, prepend);
+    autoAlignmentMetaData.load(props, prepend);
+    if (revisionNumber.le("1.1")) {
+      sigmaLowFrequency.reset();
+      cutoffHighFrequency.reset();
+      sigmaHighFrequency.reset();
+      alignTransform = Transform.DEFAULT;
+      sigmaLowFrequency.load(props, prepend);
+      autoAlignmentMetaData.setSigmaLowFrequency(sigmaLowFrequency);
+      cutoffHighFrequency.load(props, prepend);
+      autoAlignmentMetaData.setCutoffHighFrequency(cutoffHighFrequency);
+      sigmaHighFrequency.load(props, prepend);
+      autoAlignmentMetaData.setSigmaHighFrequency(sigmaHighFrequency);
+      if (revisionNumber.le("1.0")) {
+        // handling version 1.0
+        loadVersion1_0(props, prepend);
+      }
+      else {
+        autoAlignmentMetaData.setAlignTransform(Transform.load(props, prepend,
+            ALIGN_TRANFORM_KEY, Transform.DEFAULT));
+      }
+    }
     modelTransform = Transform
         .load(props, prepend, MODEL_TRANFORM_KEY, Transform.DEFAULT);
     rootName = props.getProperty(group + rootNameString, "");
@@ -271,7 +329,6 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
     pointsToFitMin.load(props, prepend);
     pointsToFitMax.load(props, prepend);
     densityRefSection.load(props, prepend);
-    autoAlignmentMetaData.load(props, prepend, revisionNumber, latestRevisionNumber);
     useAlignmentRefSection = Boolean.valueOf(
         props.getProperty(group + useAlignmentRefSectionString, "false")).booleanValue();
     alignmentRefSection.load(props, prepend);
@@ -305,6 +362,28 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
     boundaryRowStartList.load(props, prepend);
     boundaryRowEndList.load(props, prepend);
     rejoinUseEveryNSlices.load(props, prepend);
+  }
+
+  private void loadVersion1_0(Properties props, String prepend) {
+    String group = prepend + '.';
+    if (Boolean.valueOf(
+        props.getProperty(group + fullLinearTransformationString, "false"))
+        .booleanValue()) {
+      alignTransform = Transform.FULL_LINEAR_TRANSFORMATION;
+    }
+    else if (Boolean.valueOf(
+        props.getProperty(group + rotationTranslationMagnificationString, "false"))
+        .booleanValue()) {
+      alignTransform = Transform.ROTATION_TRANSLATION_MAGNIFICATION;
+    }
+    else if (Boolean.valueOf(
+        props.getProperty(group + rotationTranslationString, "false")).booleanValue()) {
+      alignTransform = Transform.FULL_LINEAR_TRANSFORMATION;
+    }
+    else {
+      alignTransform = Transform.DEFAULT;
+    }
+    autoAlignmentMetaData.setAlignTransform(alignTransform);
   }
 
   public void setDensityRefSection(Object densityRefSection) {
@@ -415,11 +494,37 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
     return sectionTableData;
   }
 
+  /**
+   * Remove data not used after version 1.0 of join meta data.
+   * Assumes the that data has been loaded (see loadVersion1_0()).
+   * @param props
+   * @param prepend
+   */
+  private void removeVersion1_0(Properties props, String prepend) {
+    String group = prepend + '.';
+    props.remove(group + fullLinearTransformationString);
+    props.remove(group + rotationTranslationMagnificationString);
+    props.remove(group + rotationTranslationString);
+  }
+
   public void store(Properties props, String prepend) {
     super.store(props, prepend);
     removeSectionTableData(props, prepend);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
+    // removing data used in old versions of join meta data
+    // change this this when there are more then one old version
+    if (revisionNumber.le("1.1")) {
+      sigmaLowFrequency.remove(props, prepend);
+      cutoffHighFrequency.remove(props, prepend);
+      sigmaHighFrequency.remove(props, prepend);
+      if (revisionNumber.le("1.0")) {
+        removeVersion1_0(props, prepend);
+      }
+      else {
+        Transform.remove(props, prepend, ALIGN_TRANFORM_KEY);
+      }
+    }
     latestRevisionNumber.store(props, prepend);
     props.setProperty(group + rootNameString, rootName);
     if (boundariesToAnalyze == null) {
@@ -447,7 +552,7 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
       props.setProperty(group + sectionTableDataSizeString,
           Integer.toString(sectionTableData.size()));
     }
-    autoAlignmentMetaData.store(props, prepend, revisionNumber, latestRevisionNumber);
+    autoAlignmentMetaData.store(props, prepend);
     Transform.store(modelTransform, props, prepend, MODEL_TRANFORM_KEY);
     props.setProperty(group + useAlignmentRefSectionString,
         Boolean.toString(useAlignmentRefSection));
