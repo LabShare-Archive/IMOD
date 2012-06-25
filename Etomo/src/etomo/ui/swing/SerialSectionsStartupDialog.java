@@ -60,25 +60,29 @@ public class SerialSectionsStartupDialog implements ContextMenu,
       ViewType.SINGLE_VIEW, bgViewType);
   private final RadioButton rbViewTypeMontage = new RadioButton("Montage",
       ViewType.MONTAGE, bgViewType);
-  private final LabeledSpinner spBinning = new LabeledSpinner("Binning: ",
+  private final LabeledSpinner spImagesAreBinned = new LabeledSpinner("Binning: ",
       new SpinnerNumberModel(1, 1, 50, 1), 1);
   private final ProcessResultDisplayProxy processResultDisplayProxy = new ProcessResultDisplayProxy(
       this);
 
   private final FileTextField2 ftfStack;
-  private final FileTextField2 ftfDistortionFile;
+  private final FileTextField2 ftfDistortionField;
   private final JDialog dialog;
   private final AxisID axisID;
   private final SerialSectionsManager manager;
 
   private SerialSectionsStartupData startupData = null;
+  private String distortionFieldNewstackTooltip = null;
+  private String distortionFieldBlendmontTooltip = null;
+  private String imagesAreBinnedNewstackTooltip = null;
+  private String imagesAreBinnedBlendmontTooltip = null;
 
   private SerialSectionsStartupDialog(final SerialSectionsManager manager,
       final AxisID axisID) {
     this.axisID = axisID;
     this.manager = manager;
     ftfStack = FileTextField2.getInstance(manager, "Stack: ");
-    ftfDistortionFile = FileTextField2.getInstance(manager,
+    ftfDistortionField = FileTextField2.getInstance(manager,
         "Image distortion field file: ");
     dialog = new JDialog(UIHarness.INSTANCE.getFrame(manager), NAME, true);
     dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -100,9 +104,9 @@ public class SerialSectionsStartupDialog implements ContextMenu,
     // init
     ftfStack.setAbsolutePath(true);
     ftfStack.setOriginEtomoRunDir(true);
-    ftfDistortionFile.setAdjustedFieldWidth(175);
-    ftfDistortionFile.setAbsolutePath(true);
-    ftfDistortionFile.setOrigin(EtomoDirector.INSTANCE.getIMODCalibDirectory());
+    ftfDistortionField.setAdjustedFieldWidth(175);
+    ftfDistortionField.setAbsolutePath(true);
+    ftfDistortionField.setOrigin(EtomoDirector.INSTANCE.getIMODCalibDirectory());
     // panels
     JPanel pnlStack = new JPanel();
     JPanel pnlViewType = new JPanel();
@@ -138,9 +142,9 @@ public class SerialSectionsStartupDialog implements ContextMenu,
     // image
     pnlImage.setLayout(new BoxLayout(pnlImage, BoxLayout.X_AXIS));
     pnlImage.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlImage.add(ftfDistortionFile.getRootPanel());
+    pnlImage.add(ftfDistortionField.getRootPanel());
     pnlImage.add(Box.createRigidArea(FixedDim.x5_y0));
-    pnlImage.add(spBinning.getContainer());
+    pnlImage.add(spImagesAreBinned.getContainer());
     pnlImage.add(Box.createRigidArea(FixedDim.x5_y0));
     // buttons
     pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
@@ -206,8 +210,8 @@ public class SerialSectionsStartupDialog implements ContextMenu,
         return;
       }
       if (startupData.getViewType() == ViewType.MONTAGE) {
-        manager.extractpieces(axisID, processResultDisplayProxy, null,
-            DialogType.SERIAL_SECTIONS_STARTUP, startupData.getViewType());
+        manager.extractpieces(axisID, processResultDisplayProxy,
+            DialogType.SERIAL_SECTIONS_STARTUP, startupData);
       }
       else {
         setProcessDone(true);
@@ -217,17 +221,6 @@ public class SerialSectionsStartupDialog implements ContextMenu,
       dispose();
       manager.cancelStartup();
     }
-    else if (command.equals(rbViewTypeSingle.getActionCommand())) {
-      updateDisplay();
-    }
-    else if (command.equals(rbViewTypeMontage.getActionCommand())) {
-      updateDisplay();
-    }
-  }
-
-  private void updateDisplay() {
-    ftfDistortionFile.setEnabled(rbViewTypeMontage.isSelected());
-    spBinning.setEnabled(rbViewTypeMontage.isSelected());
   }
 
   /**
@@ -240,12 +233,8 @@ public class SerialSectionsStartupDialog implements ContextMenu,
     startupData.setStack(ftfStack.getFile());
     startupData.setViewType(((RadioButton.RadioButtonModel) bgViewType.getSelection())
         .getEnumeratedType());
-    if (ftfDistortionFile.isEnabled()) {
-      startupData.setDistortionFile(ftfDistortionFile.getFile());
-    }
-    if (spBinning.isEnabled()) {
-      startupData.setBinning(spBinning.getValue());
-    }
+    startupData.setDistortionFile(ftfDistortionField.getFile());
+    startupData.setBinning(spImagesAreBinned.getValue());
     return startupData;
   }
 
@@ -261,10 +250,10 @@ public class SerialSectionsStartupDialog implements ContextMenu,
 
   private void setTooltips() {
     ftfStack
-        .setToolTipText("Stack to be processed.  Location will be used as the dataset "
-            + "directory.");
-    ftfDistortionFile.setToolTipText(SharedConstants.DISTORTION_FILE_TOOLTIP);
-    spBinning.setToolTipText(SharedConstants.BINNING_TOOLTIP);
+        .setToolTipText("Stack to be processed.  The stack location will be used as the "
+            + "dataset directory.");
+    ftfDistortionField.setToolTipText(SharedConstants.DISTORTION_FIELD_TOOLTIP);
+    spImagesAreBinned.setToolTipText(SharedConstants.IMAGES_ARE_BINNED_TOOLTIP);
   }
 
   private static final class SerialSectionsStartupWindowListener implements
