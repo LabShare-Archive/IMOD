@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
+import etomo.type.FileType;
 import etomo.util.DatasetFiles;
 
 /**
@@ -26,12 +28,34 @@ public class ExtractpiecesParam {
 
   private final AxisID axisID;
   private final BaseManager manager;
+  private final String rawStackFileName;// use when the manager setup is incomplete
+  private final String rootName;// use when the manager setu is incomplete
+  private final AxisType axisType;// use when the manager setup is incomplete
 
   private String[] commandArray = null;
 
-  public ExtractpiecesParam(BaseManager manager, AxisID axisID) {
+  public ExtractpiecesParam(final BaseManager manager, final AxisID axisID) {
     this.axisID = axisID;
     this.manager = manager;
+    rawStackFileName = null;
+    rootName = null;
+    axisType = null;
+  }
+
+  /**
+   * Use this constructor when the manager setup is incomplete.
+   * @param manager
+   * @param rawStackFileName
+   * @param axisType
+   * @param axisID
+   */
+  public ExtractpiecesParam(final String rawStackFileName, final String rootName,
+      final AxisType axisType, final BaseManager manager, final AxisID axisID) {
+    this.axisID = axisID;
+    this.manager = null;
+    this.rawStackFileName = rawStackFileName;
+    this.rootName = rootName;
+    this.axisType = axisType;
   }
 
   public final String[] getCommand() {
@@ -44,9 +68,16 @@ public class ExtractpiecesParam {
   private final void buildCommand() {
     ArrayList command = new ArrayList();
     command.add(BaseManager.getIMODBinPath() + COMMAND_NAME);
-    String dataset = manager.getName();
-    command.add(DatasetFiles.getStackName(manager, axisID));
-    command.add(DatasetFiles.getPieceListFileName(manager, axisID));
+    if (rawStackFileName == null) {
+      command.add(DatasetFiles.getStackName(manager, axisID));
+      command.add(DatasetFiles.getPieceListFileName(manager, axisID));
+    }
+    else {
+      command.add(rawStackFileName);
+      command
+          .add(FileType.PIECE_LIST.deriveFileName(rootName, axisType, manager, axisID));
+    }
+
     int commandSize = command.size();
     commandArray = new String[commandSize];
     for (int i = 0; i < commandSize; i++) {

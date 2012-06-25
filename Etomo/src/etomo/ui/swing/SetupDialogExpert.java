@@ -26,6 +26,7 @@ import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 import etomo.util.Montagesize;
+import etomo.util.SharedConstants;
 
 /**
  * <p>Description: </p>
@@ -704,11 +705,8 @@ public final class SetupDialogExpert {
         + "is the rotation (CCW positive) from the Y-axis (the tilt axis "
         + "after the views are aligned) to the suspected tilt axis in the "
         + "unaligned views.");
-    dialog.setDistortionFileTooltip("OPTIONAL: If you wish to correct for image "
-        + "distortion, enter the name of the appropriate image distortion "
-        + "file in this field and the CCD camera binning in the following "
-        + "spin control.");
-    dialog.setBinningTooltip("Binning at which images were acquired on CCD camera.");
+    dialog.setDistortionFileTooltip(SharedConstants.DISTORTION_FIELD_TOOLTIP);
+    dialog.setBinningTooltip(SharedConstants.IMAGES_ARE_BINNED_TOOLTIP);
 
     tiltAnglePanelExpertA.setTooltips();
     tiltAnglePanelExpertB.setTooltips();

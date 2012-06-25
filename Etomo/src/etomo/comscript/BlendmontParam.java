@@ -47,6 +47,8 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   public static final String BLENDMONT_STACK_EXTENSION = ".bl";
 
   public static final String IMAGE_OUTPUT_FILE_KEY = "ImageOutputFile";
+  public static final String IMAGES_ARE_BINNED_KEY = "ImagesAreBinned";
+  public static final String DISTORTION_FIELD_KEY= "DistortionField";
 
   private AxisID axisID;
   private String datasetName;

@@ -126,20 +126,76 @@ public final class FileType {
       "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
   public static final FileType ALIGNED_STACK = FileType.getDescribedImodInstance(true,
       true, "", ".ali", ImodManager.FINE_ALIGNED_KEY, "the final aligned stack");
-  public static final FileType TILT_ALIGN_LOG = FileType.getInstance(false, true,
-      "align", ".log");
+  public static final FileType NEWST_OR_BLEND_3D_FIND_OUTPUT = FileType.getImodInstance(
+      true, true, "_3dfind", ".ali", ImodManager.FINE_ALIGNED_3D_FIND_KEY);
+  public static final FileType CTF_CORRECTED_STACK = FileType.getImodInstance(true, true,
+      "_ctfcorr", ".ali", ImodManager.CTF_CORRECTION_KEY);
+  public static final FileType ERASED_BEADS_STACK = FileType.getImodInstance(true, true,
+      "_erase", ".ali", ImodManager.ERASED_FIDUCIALS_KEY);
+  public static final FileType MTF_FILTERED_STACK = FileType.getImodInstance(true, true,
+      "_filt", ".ali", ImodManager.MTF_FILTER_KEY);
+  public static final FileType TRANSFORMED_REFINING_MODEL = FileType.getImodInstance(
+      true, false, "_refine", ".alimod", ImodManager.TRANSFORMED_MODEL_KEY);
   public static final FileType XCORR_BLEND_OUTPUT = FileType.getInstance(true, true, "",
       ".bl");
+  public static final FileType CTF_CORRECTION_COMSCRIPT = FileType.getInstance(false,
+      true, "ctfcorrection", ".com");
+  public static final FileType FIND_BEADS_3D_COMSCRIPT = FileType.getInstance(false,
+      true, "findbeads3d", ".com");
+  public static final FileType FLATTEN_COMSCRIPT = FileType.getInstance(false, false,
+      "flatten", ".com");
+  public static final FileType FLATTEN_TOOL_COMSCRIPT = FileType.getInstance(true, false,
+      "_flatten", ".com");
+  public static final FileType MTF_FILTER_COMSCRIPT = FileType.getInstance(false, true,
+      "mtffilter", ".com");
+  public static final FileType SIRTSETUP_COMSCRIPT = FileType.getInstance(false, true,
+      "sirtsetup", ".com");
+  public static final FileType TILT_COMSCRIPT = FileType.getInstance(false, true, "tilt",
+      ".com");
+  public static final FileType TILT_FOR_SIRT_COMSCRIPT = FileType.getInstance(false,
+      true, "tilt", "_for_sirt.com");
+  public static final FileType TRACK_COMSCRIPT = FileType.getInstance(false, true,
+      "track", ".com");
+  public static final FileType CROSS_CORRELATION_COMSCRIPT = FileType.getInstance(false,
+      true, "xcorr", ".com");
+  public static final FileType PATCH_TRACKING_COMSCRIPT = FileType.getInstance(false,
+      true, "xcorr_pt", ".com");
   public static final FileType DISTORTION_CORRECTED_STACK = FileType.getInstance(true,
       true, "", ".dcst");
   public static final FileType FIDUCIAL_MODEL = FileType.getInstance(true, true, "",
       ".fid");
+  public static final FileType CCD_ERASER_BEADS_INPUT_MODEL = FileType.getInstance(true,
+      true, "_erase", ".fid");
   public static final FileType FLATTEN_TOOL_OUTPUT = FileType.getImodInstance(true,
       false, "", ".flat", ImodManager.FLATTEN_TOOL_OUTPUT_KEY);
+  public static final FileType NAD_TEST_INPUT = FileType.getImodInstanceInSubdirectory(
+      false, false, "test", ".input", ImodManager.TEST_VOLUME_KEY);
   public static final FileType JOIN = FileType.getImodInstance(true, false, "", ".join",
       ImodManager.JOIN_KEY);
+  public static final FileType MODELED_JOIN = FileType.getImodInstance(true, false,
+      "_modeled", ".join", ImodManager.MODELED_JOIN_KEY);
+  public static final FileType TRIAL_JOIN = FileType.getImodInstance(true, false,
+      "_trial", ".join", ImodManager.TRIAL_JOIN_KEY);
+  public static final FileType TILT_ALIGN_LOG = FileType.getInstance(false, true,
+      "align", ".log");
+  public static final FileType GPU_TEST_LOG = FileType.getInstance(false, false,
+      "gputest", ".log");
+  public static final FileType FIND_BEADS_3D_OUTPUT_MODEL = FileType.getInstance(true,
+      true, "_3dfind", ".mod");
+  public static final FileType SMOOTHING_ASSESSMENT_OUTPUT_MODEL = FileType
+      .getImodInstance(true, true, "_checkflat", ".mod",
+          ImodManager.SMOOTHING_ASSESSMENT_KEY);
+  public static final FileType FLATTEN_WARP_INPUT_MODEL = FileType.getInstance(true,
+      false, "_flat", ".mod");
+  public static final FileType PATCH_VECTOR_MODEL = FileType.getImodInstance(false,
+      false, "patch_vector", ".mod", ImodManager.PATCH_VECTOR_MODEL_KEY);
+  public static final FileType PATCH_VECTOR_CCC_MODEL = FileType.getImodInstance(false,
+      false, "patch_vector_ccc", ".mod", ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
+  public static final FileType PATCH_TRACKING_BOUNDARY_MODEL = FileType.getInstance(true,
+      true, "_ptbound", ".mod");
   public static final FileType ANISOTROPIC_DIFFUSION_OUTPUT = FileType.getImodInstance(
       true, false, "", ".nad", ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY);
+  public static final FileType PIECE_LIST = FileType.getInstance(true, true, "", ".pl");
   public static final FileType PREALIGNED_STACK = FileType.getImodInstance(true, true,
       "", ".preali", ImodManager.COARSE_ALIGNED_KEY);
   public static final FileType PRE_XG = FileType.getImodInstance(true, true, "",
@@ -150,93 +206,47 @@ public final class FileType {
       "", ".rec", ImodManager.TRIMMED_VOLUME_KEY);
   private static final FileType TILT_OUTPUT_DUAL = FileType.getInstance(true, true, "",
       ".rec");
+  public static final FileType TILT_3D_FIND_OUTPUT = FileType.getImodInstance(true, true,
+      "_3dfind", ".rec", ImodManager.FULL_VOLUME_3D_FIND_KEY);
+  public static final FileType FLATTEN_OUTPUT = FileType.getImodInstance(true, false,
+      "_flat", ".rec", ImodManager.FLAT_VOLUME_KEY);
+  private static final FileType TILT_OUTPUT_SINGLE = FileType.getInstance(true, true,
+      "_full", ".rec");
+  public static final FileType COMBINED_VOLUME = FileType.getImodInstance(false, false,
+      "sum", ".rec", ImodManager.COMBINED_TOMOGRAM_KEY);
   public static final FileType JOIN_SAMPLE_AVERAGES = FileType.getImodInstance(true,
       false, "", ".sampavg", ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
   public static final FileType JOIN_SAMPLE = FileType.getImodInstance(true, false, "",
       ".sample", ImodManager.JOIN_SAMPLES_KEY);
+  public static final FileType SIRT_SUBAREA_SCALED_OUTPUT_TEMPLATE = FileType
+      .getTemplateInstance(true, true, "_sub", ".sint");
   public static final FileType SQUEEZE_VOL_OUTPUT = FileType.getImodInstance(true, false,
       "", ".sqz", ImodManager.SQUEEZED_VOLUME_KEY);
+  public static final FileType SIRT_SUBAREA_OUTPUT_TEMPLATE = FileType
+      .getTemplateInstance(true, true, "_sub", ".srec");
   public static final FileType RAW_STACK = FileType.getTwoImodInstance(true, true, "",
       ".st", ImodManager.RAW_STACK_KEY, ImodManager.PREVIEW_KEY);
-  public static final FileType NEWST_OR_BLEND_3D_FIND_OUTPUT = FileType.getImodInstance(
-      true, true, "_3dfind", ".ali", ImodManager.FINE_ALIGNED_3D_FIND_KEY);
-  public static final FileType FIND_BEADS_3D_OUTPUT_MODEL = FileType.getInstance(true,
-      true, "_3dfind", ".mod");
-  public static final FileType TILT_3D_FIND_OUTPUT = FileType.getImodInstance(true, true,
-      "_3dfind", ".rec", ImodManager.FULL_VOLUME_3D_FIND_KEY);
-  public static final FileType SMOOTHING_ASSESSMENT_OUTPUT_MODEL = FileType
-      .getImodInstance(true, true, "_checkflat", ".mod",
-          ImodManager.SMOOTHING_ASSESSMENT_KEY);
-  public static final FileType CTF_CORRECTED_STACK = FileType.getImodInstance(true, true,
-      "_ctfcorr", ".ali", ImodManager.CTF_CORRECTION_KEY);
-  public static final FileType CTF_CORRECTION_COMSCRIPT = FileType.getInstance(false,
-      true, "ctfcorrection", ".com");
-  public static final FileType ERASED_BEADS_STACK = FileType.getImodInstance(true, true,
-      "_erase", ".ali", ImodManager.ERASED_FIDUCIALS_KEY);
-  public static final FileType CCD_ERASER_BEADS_INPUT_MODEL = FileType.getInstance(true,
-      true, "_erase", ".fid");
-  public static final FileType MTF_FILTERED_STACK = FileType.getImodInstance(true, true,
-      "_filt", ".ali", ImodManager.MTF_FILTER_KEY);
-  public static final FileType FIND_BEADS_3D_COMSCRIPT = FileType.getInstance(false,
-      true, "findbeads3d", ".com");
   public static final FileType FIXED_XRAYS_STACK = FileType.getImodInstance(true, true,
       "_fixed", ".st", ImodManager.ERASED_STACK_KEY);
-  public static final FileType FLATTEN_WARP_INPUT_MODEL = FileType.getInstance(true,
-      false, "_flat", ".mod");
-  public static final FileType FLATTEN_COMSCRIPT = FileType.getInstance(false, false,
-      "flatten", ".com");
-  public static final FileType FLATTEN_OUTPUT = FileType.getImodInstance(true, false,
-      "_flat", ".rec", ImodManager.FLAT_VOLUME_KEY);
-  public static final FileType FLATTEN_TOOL_COMSCRIPT = FileType.getInstance(true, false,
-      "_flatten", ".com");
-  private static final FileType TILT_OUTPUT_SINGLE = FileType.getInstance(true, true,
-      "_full", ".rec");
+  public static final FileType ORIGINAL_RAW_STACK = FileType.getInstance(true, true,
+      "_orig", ".st");
+  public static final FileType LOCAL_TRANSFORMATION_LIST = FileType.getInstance(true,
+      false, "", ".xf");
+  public static final FileType AUTO_LOCAL_TRANSFORMATION_LIST = FileType.getInstance(
+      true, false, "_auto", ".xf");
+  public static final FileType EMPTY_LOCAL_TRANSFORMATION_LIST = FileType.getInstance(
+      true, false, "_empty", ".xf");
+  public static final FileType MIDAS_LOCAL_TRANSFORMATION_LIST = FileType.getInstance(
+      true, false, "_midas", ".xf");
+
   public static final FileType TILT_OUTPUT = FileType.getDifferentDualSingleInstance(
       TILT_OUTPUT_SINGLE, TILT_OUTPUT_DUAL, ImodManager.FULL_VOLUME_KEY, "the tomogram");
   // Template for .sintnn
   public static final FileType SIRT_SCALED_OUTPUT_TEMPLATE = FileType
       .getDerivedTemplateInstance(TILT_OUTPUT, ".sint", ImodManager.SIRT_KEY);
-  public static final FileType SIRT_SUBAREA_SCALED_OUTPUT_TEMPLATE = FileType
-      .getTemplateInstance(true, true, "_sub", ".sint");
   // Template for .srecnn
   public static final FileType SIRT_OUTPUT_TEMPLATE = FileType
       .getDerivedTemplateInstance(TILT_OUTPUT, ".srec", ImodManager.SIRT_KEY);
-  public static final FileType SIRT_SUBAREA_OUTPUT_TEMPLATE = FileType
-      .getTemplateInstance(true, true, "_sub", ".srec");
-  public static final FileType GPU_TEST_LOG = FileType.getInstance(false, false,
-      "gputest", ".log");
-  public static final FileType MODELED_JOIN = FileType.getImodInstance(true, false,
-      "_modeled", ".join", ImodManager.MODELED_JOIN_KEY);
-  public static final FileType MTF_FILTER_COMSCRIPT = FileType.getInstance(false, true,
-      "mtffilter", ".com");
-  public static final FileType ORIGINAL_RAW_STACK = FileType.getInstance(true, true,
-      "_orig", ".st");
-  public static final FileType PATCH_VECTOR_MODEL = FileType.getImodInstance(false,
-      false, "patch_vector", ".mod", ImodManager.PATCH_VECTOR_MODEL_KEY);
-  public static final FileType PATCH_VECTOR_CCC_MODEL = FileType.getImodInstance(false,
-      false, "patch_vector_ccc", ".mod", ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
-  public static final FileType PATCH_TRACKING_BOUNDARY_MODEL = FileType.getInstance(true,
-      true, "_ptbound", ".mod");
-  public static final FileType TRANSFORMED_REFINING_MODEL = FileType.getImodInstance(
-      true, false, "_refine", ".alimod", ImodManager.TRANSFORMED_MODEL_KEY);
-  public static final FileType SIRTSETUP_COMSCRIPT = FileType.getInstance(false, true,
-      "sirtsetup", ".com");
-  public static final FileType COMBINED_VOLUME = FileType.getImodInstance(false, false,
-      "sum", ".rec", ImodManager.COMBINED_TOMOGRAM_KEY);
-  public static final FileType NAD_TEST_INPUT = FileType.getImodInstanceInSubdirectory(
-      false, false, "test", ".input", ImodManager.TEST_VOLUME_KEY);
-  public static final FileType TILT_COMSCRIPT = FileType.getInstance(false, true, "tilt",
-      ".com");
-  public static final FileType TILT_FOR_SIRT_COMSCRIPT = FileType.getInstance(false,
-      true, "tilt", "_for_sirt.com");
-  public static final FileType TRACK_COMSCRIPT = FileType.getInstance(false, true,
-      "track", ".com");
-  public static final FileType TRIAL_JOIN = FileType.getImodInstance(true, false,
-      "_trial", ".join", ImodManager.TRIAL_JOIN_KEY);
-  public static final FileType CROSS_CORRELATION_COMSCRIPT = FileType.getInstance(false,
-      true, "xcorr", ".com");
-  public static final FileType PATCH_TRACKING_COMSCRIPT = FileType.getInstance(false,
-      true, "xcorr_pt", ".com");
 
   // File types without a specific name
   public static final FileType AVERAGED_VOLUMES = FileType
@@ -682,6 +692,11 @@ public final class FileType {
     return getLeftSide(manager, axisID) + extension;
   }
 
+  private String getLeftSide(final BaseManager manager, final AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    return getLeftSide(metaData.getName(), metaData.getAxisType(), manager, axisID);
+  }
+
   /**
    * Get the typeString with the dataset and axis letter added as necessary.  For example,
    * the left side of BBa_fixed.st is "BBa_fixed", the left side of tilta.com is "tilta", the
@@ -690,7 +705,8 @@ public final class FileType {
    * @param axisID
    * @return
    */
-  private String getLeftSide(final BaseManager manager, final AxisID axisID) {
+  private String getLeftSide(final String rootName, final AxisType axisType,
+      final BaseManager manager, final AxisID axisID) {
     if (manager == null || !hasFixedName(manager)) {
       return null;
     }
@@ -701,19 +717,32 @@ public final class FileType {
       // Example: flatten.com
       return typeString;
     }
-    BaseMetaData metaData = manager.getBaseMetaData();
     String axisIDExtension = "";
     if (usesAxisID) {
-      axisIDExtension = correctAxisID(metaData.getAxisType(), axisID).getExtension();
+      axisIDExtension = correctAxisID(axisType, axisID).getExtension();
     }
     if (usesDataset) {
       // With the dataset the axis follows the dataset
       // Example: BBa_erase.fid
-      return metaData.getName() + axisIDExtension + typeString;
+      return rootName + axisIDExtension + typeString;
     }
     // Without the dataset the axis follows the left extension
     // Example: tilta.com
     return typeString + axisIDExtension;
+  }
+
+  /**
+   * Derive a file name with the same type as this instance, but with a different root
+   * name and/or a different axis type as the manager parameter.
+   * @param rootName
+   * @param axisType
+   * @param axisID
+   * @param manager
+   * @return
+   */
+  public String deriveFileName(final String rootName, final AxisType axisType,
+      final BaseManager manager, final AxisID axisID) {
+    return getLeftSide(rootName, axisType, manager, axisID) + getExtension(manager);
   }
 
   /**

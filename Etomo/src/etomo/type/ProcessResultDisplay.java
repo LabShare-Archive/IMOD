@@ -19,8 +19,7 @@ public interface ProcessResultDisplay {
   public static final String rcsid = "$Id$";
   
   public void dumpState();
-
-  public String getName();
+  
   /**
    * get the original state of the display.  Will return to this state if the
    * process fails to start.

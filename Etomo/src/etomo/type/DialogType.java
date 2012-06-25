@@ -109,6 +109,10 @@ public final class DialogType {
   private static final int peetIndex = 1;
 
   public static final int TOTAL_PEET = peetIndex + 1;
+  
+  private static final int serialSectionsIndex = 1;
+
+  public static final int TOTAL_SERIAL_SECTIONS = serialSectionsIndex + 1;
 
   //Storable names cannot be changed without handling the resulting backwards
   //compatibility errors.
@@ -197,6 +201,9 @@ public final class DialogType {
 
   public static final DialogType PEET_STARTUP = new DialogType(DataFileType.PEET, 0);
   public static final DialogType PEET = new DialogType(DataFileType.PEET, peetIndex);
+  
+  public static final DialogType SERIAL_SECTIONS_STARTUP = new DialogType(DataFileType.SERIAL_SECTIONS, 0);
+  public static final DialogType SERIAL_SECTIONS = new DialogType(DataFileType.SERIAL_SECTIONS, serialSectionsIndex);
 
   public static final DialogType TOOLS = new DialogType(DataFileType.TOOLS, 0);
 
