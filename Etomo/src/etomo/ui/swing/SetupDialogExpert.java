@@ -705,8 +705,8 @@ public final class SetupDialogExpert {
         + "is the rotation (CCW positive) from the Y-axis (the tilt axis "
         + "after the views are aligned) to the suspected tilt axis in the "
         + "unaligned views.");
-    dialog.setDistortionFileTooltip(SharedConstants.DISTORTION_FILE_TOOLTIP);
-    dialog.setBinningTooltip(SharedConstants.BINNING_TOOLTIP);
+    dialog.setDistortionFileTooltip(SharedConstants.DISTORTION_FIELD_TOOLTIP);
+    dialog.setBinningTooltip(SharedConstants.IMAGES_ARE_BINNED_TOOLTIP);
 
     tiltAnglePanelExpertA.setTooltips();
     tiltAnglePanelExpertB.setTooltips();
