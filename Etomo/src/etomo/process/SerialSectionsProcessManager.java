@@ -3,6 +3,7 @@ package etomo.process;
 import etomo.BaseManager;
 import etomo.comscript.ExtractpiecesParam;
 import etomo.type.AxisID;
+import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 
@@ -35,9 +36,10 @@ public final class SerialSectionsProcessManager extends BaseProcessManager {
    * Run extractpieces
    */
   public String extractpieces(final ExtractpiecesParam param, final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      final ProcessResultDisplay processResultDisplay,
+      final ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param.getCommand(),
-        axisID, false, processResultDisplay, null, ProcessName.EXTRACTPIECES);
+        axisID, false, processResultDisplay, processSeries, ProcessName.EXTRACTPIECES);
     return backgroundProcess.getName();
   }
 }
