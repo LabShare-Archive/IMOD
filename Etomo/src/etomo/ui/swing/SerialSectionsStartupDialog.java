@@ -6,7 +6,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -70,6 +69,9 @@ public class SerialSectionsStartupDialog implements ContextMenu {
   private final AxisID axisID;
   private final SerialSectionsManager manager;
 
+  /**
+   * Contains the saved state of the dialog.
+   */
   private SerialSectionsStartupData startupData = null;
   private String distortionFieldNewstackTooltip = null;
   private String distortionFieldBlendmontTooltip = null;
@@ -185,11 +187,19 @@ public class SerialSectionsStartupDialog implements ContextMenu {
   }
 
   /**
-   * Called when extractpieces is done.
+   * Called when the OK button functionality completes successfully.
    */
   public void close() {
     dispose();
     manager.setStartupData(startupData);
+  }
+
+  /**
+   * Throws away the saved state of the dialog.  Called when the OK button functionality
+   * fails.
+   */
+  public void resetSavedState() {
+    startupData = null;
   }
 
   private void action(final ActionEvent event) {
@@ -204,22 +214,16 @@ public class SerialSectionsStartupDialog implements ContextMenu {
       if (errorMessage != null) {
         UIHarness.INSTANCE
             .openMessageDialog(manager, errorMessage, "Entry Error", axisID);
+        // Unable to exit dialog
+        resetSavedState();
         return;
       }
-      if (!ftfDistortionField.isEmpty()) {
-        try {
-          Utilities.copyFile(ftfDistortionField.getFile(), new File(ftfStack.getFile()
-              .getParentFile(), ftfDistortionField.getFile().getName()));
-        }
-        catch (IOException e) {
-          UIHarness.INSTANCE.openMessageDialog(manager, "Unable to copy "
-              + ftfDistortionField.getFile() + ".  Please copy this file by hand.",
-              "Unable to Copy File", axisID);
-        }
-      }
       if (startupData.getViewType() == ViewType.MONTAGE) {
-        manager.extractpieces(axisID, null, DialogType.SERIAL_SECTIONS_STARTUP,
-            startupData);
+        if (!manager.extractpieces(axisID, null, DialogType.SERIAL_SECTIONS_STARTUP,
+            startupData)) {
+          // Unable to exit dialog
+          resetSavedState();
+        }
       }
       else {
         ProcessSeries processSeries = new ProcessSeries(manager, dialogType);
@@ -228,6 +232,7 @@ public class SerialSectionsStartupDialog implements ContextMenu {
       }
     }
     else if (command.equals(btnCancel.getActionCommand())) {
+      resetSavedState();
       dispose();
       manager.cancelStartup();
     }
@@ -237,20 +242,26 @@ public class SerialSectionsStartupDialog implements ContextMenu {
    * @return distortion field file or null if empty
    */
   public File getDistortionField() {
-    if (ftfDistortionField.isEmpty()) {
-      return null;
+    if (startupData == null) {
+      if (ftfDistortionField.isEmpty()) {
+        return null;
+      }
+      return ftfDistortionField.getFile();
     }
-    return ftfDistortionField.getFile();
+    return startupData.getDistortionField();
   }
 
   /**
    * @return stack file or null if empty
    */
   public File getStack() {
-    if (ftfStack.isEmpty()) {
-      return null;
+    if (startupData == null) {
+      if (ftfStack.isEmpty()) {
+        return null;
+      }
+      return ftfStack.getFile();
     }
-    return ftfStack.getFile();
+    return startupData.getStack();
   }
 
   /**
@@ -260,10 +271,14 @@ public class SerialSectionsStartupDialog implements ContextMenu {
   private SerialSectionsStartupData getStartupData() {
     SerialSectionsStartupData startupData = new SerialSectionsStartupData(
         ftfStack.getQuotedLabel(), "'" + VIEW_TYPE_LABEL + "'");
-    startupData.setStack(ftfStack.getFile());
+    if (!ftfStack.isEmpty()) {
+      startupData.setStack(ftfStack.getFile());
+    }
     startupData.setViewType(((RadioButton.RadioButtonModel) bgViewType.getSelection())
         .getEnumeratedType());
-    startupData.setDistortionFile(ftfDistortionField.getFile());
+    if (!ftfDistortionField.isEmpty()) {
+      startupData.setDistortionFile(ftfDistortionField.getFile());
+    }
     startupData.setBinning(spImagesAreBinned.getValue());
     return startupData;
   }
