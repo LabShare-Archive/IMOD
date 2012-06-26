@@ -5,6 +5,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
+import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -15,6 +17,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.WindowConstants;
 
 import etomo.EtomoDirector;
+import etomo.ProcessSeries;
 import etomo.SerialSectionsManager;
 import etomo.logic.DatasetDirectory;
 import etomo.logic.SerialSectionsStartupData;
@@ -23,10 +26,8 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.DataFileType;
 import etomo.type.DialogType;
-import etomo.type.ProcessResultDisplayProxy;
 import etomo.type.UITestFieldType;
 import etomo.type.ViewType;
-import etomo.ui.SimpleProcessResultDisplay;
 import etomo.util.SharedConstants;
 import etomo.util.Utilities;
 
@@ -45,8 +46,7 @@ import etomo.util.Utilities;
 * 
 * <p> $Log$ </p>
 */
-public class SerialSectionsStartupDialog implements ContextMenu,
-    SimpleProcessResultDisplay {
+public class SerialSectionsStartupDialog implements ContextMenu {
   public static final String rcsid = "$Id:$";
 
   private static final String NAME = "Starting Serial Sections";
@@ -62,8 +62,7 @@ public class SerialSectionsStartupDialog implements ContextMenu,
       ViewType.MONTAGE, bgViewType);
   private final LabeledSpinner spImagesAreBinned = new LabeledSpinner("Binning: ",
       new SpinnerNumberModel(1, 1, 50, 1), 1);
-  private final ProcessResultDisplayProxy processResultDisplayProxy = new ProcessResultDisplayProxy(
-      this);
+  private final DialogType dialogType = DialogType.SERIAL_SECTIONS_STARTUP;
 
   private final FileTextField2 ftfStack;
   private final FileTextField2 ftfDistortionField;
@@ -188,11 +187,9 @@ public class SerialSectionsStartupDialog implements ContextMenu,
   /**
    * Called when extractpieces is done.
    */
-  public void setProcessDone(final boolean succeeded) {
-    if (succeeded) {
-      dispose();
-      manager.setStartupData(startupData);
-    }
+  public void close() {
+    dispose();
+    manager.setStartupData(startupData);
   }
 
   private void action(final ActionEvent event) {
@@ -209,18 +206,51 @@ public class SerialSectionsStartupDialog implements ContextMenu,
             .openMessageDialog(manager, errorMessage, "Entry Error", axisID);
         return;
       }
+      if (!ftfDistortionField.isEmpty()) {
+        try {
+          Utilities.copyFile(ftfDistortionField.getFile(), new File(ftfStack.getFile()
+              .getParentFile(), ftfDistortionField.getFile().getName()));
+        }
+        catch (IOException e) {
+          UIHarness.INSTANCE.openMessageDialog(manager, "Unable to copy "
+              + ftfDistortionField.getFile() + ".  Please copy this file by hand.",
+              "Unable to Copy File", axisID);
+        }
+      }
       if (startupData.getViewType() == ViewType.MONTAGE) {
-        manager.extractpieces(axisID, processResultDisplayProxy,
-            DialogType.SERIAL_SECTIONS_STARTUP, startupData);
+        manager.extractpieces(axisID, null, DialogType.SERIAL_SECTIONS_STARTUP,
+            startupData);
       }
       else {
-        setProcessDone(true);
+        ProcessSeries processSeries = new ProcessSeries(manager, dialogType);
+        processSeries.setNextProcess(SerialSectionsManager.Task.CLOSE_DIALOG);
+        manager.copyDistortionFieldFile(processSeries, axisID, dialogType);
       }
     }
     else if (command.equals(btnCancel.getActionCommand())) {
       dispose();
       manager.cancelStartup();
     }
+  }
+
+  /**
+   * @return distortion field file or null if empty
+   */
+  public File getDistortionField() {
+    if (ftfDistortionField.isEmpty()) {
+      return null;
+    }
+    return ftfDistortionField.getFile();
+  }
+
+  /**
+   * @return stack file or null if empty
+   */
+  public File getStack() {
+    if (ftfStack.isEmpty()) {
+      return null;
+    }
+    return ftfStack.getFile();
   }
 
   /**
