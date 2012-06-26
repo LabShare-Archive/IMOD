@@ -234,6 +234,9 @@ public final class SerialSectionsManager extends BaseManager {
     else if (process.equals(Task.CLOSE_DIALOG)) {
       closeDialog(dialogType);
     }
+    else if (process.equals(Task.RESET_SAVED_STATE_DIALOG)) {
+      resetSavedStateDialog(dialogType);
+    }
   }
 
   /**
@@ -245,11 +248,12 @@ public final class SerialSectionsManager extends BaseManager {
    * @param dialogType
    * @param startupData
    */
-  public void extractpieces(final AxisID axisID,
+  public boolean extractpieces(final AxisID axisID,
       final ProcessResultDisplay processResultDisplay, final DialogType dialogType,
       final SerialSectionsStartupData startupData) {
     ProcessSeries processSeries = new ProcessSeries(this, dialogType);
     processSeries.setNextProcess(Task.COPY_DISTORTION_FIELD_FILE);
+    processSeries.setFailProcess(Task.RESET_SAVED_STATE_DIALOG);
     processSeries.setLastProcess(Task.CLOSE_DIALOG);
     if (startupData.getViewType() == ViewType.MONTAGE) {
       File pieceListFile = DatasetFiles.getPieceListFile(this, axisID);
@@ -267,16 +271,17 @@ public final class SerialSectionsManager extends BaseManager {
           message[0] = "Can not execute " + ExtractpiecesParam.COMMAND_NAME;
           message[1] = e.getMessage();
           uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
-          return;
+          return false;
         }
         setThreadName(threadName, axisID);
         getMainPanel().startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME,
             axisID, ProcessName.EXTRACTPIECES);
-        return;
+        return true;
       }
     }
     // extractpiecelist did not run and there was no failure.
     processSeries.startNextProcess(axisID, processResultDisplay);
+    return true;
   }
 
   /**
@@ -344,6 +349,17 @@ public final class SerialSectionsManager extends BaseManager {
     }
   }
 
+  /**
+   * Attempts to reset the saved state of dialogType dialog.  Currently only does this for
+   * startup dialog.
+   * @param dialogType
+   */
+  private void resetSavedStateDialog(final DialogType dialogType) {
+    if (dialogType == DialogType.SERIAL_SECTIONS_STARTUP) {
+      startupDialog.resetSavedState();
+    }
+  }
+
   private void setSerialSectionsDialogParameters() {
     if (loadedParamFile && paramFile != null && metaData.isValid()) {
     }
@@ -403,6 +419,7 @@ public final class SerialSectionsManager extends BaseManager {
   public static final class Task implements TaskInterface {
     private static final Task COPY_DISTORTION_FIELD_FILE = new Task();
     public static final Task CLOSE_DIALOG = new Task();
+    private static final Task RESET_SAVED_STATE_DIALOG = new Task();
 
     private Task() {
     }
