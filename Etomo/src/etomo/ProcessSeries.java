@@ -177,9 +177,10 @@ public final class ProcessSeries implements ConstProcessSeries {
 
   private Process nextProcess = null;
   private Process lastProcess = null;
-  // 3dmod is opened after the last process.
+  // 3dmod is opened after last process.
   private Deferred3dmodButton run3dmodButton = null;
   private Run3dmodMenuOptions run3dmodMenuOptions = null;
+  private Process failProcess = null;
   private boolean debug = false;
 
   public void dumpState() {
@@ -214,6 +215,7 @@ public final class ProcessSeries implements ConstProcessSeries {
    */
   public boolean startNextProcess(final AxisID axisID,
       final ProcessResultDisplay processResultDisplay) {
+    failProcess = null;
     // Get the next process.
     Process process = null;
     if (nextProcess != null) {
@@ -238,6 +240,22 @@ public final class ProcessSeries implements ConstProcessSeries {
     manager.startNextProcess(axisID, process, processResultDisplay, this, dialogType,
         processDisplay);
     return true;
+  }
+  
+  /**
+   * If a fail process has been saved, all other processes are deleted and the failprocess is started.
+   */
+  public void startFailProcess(final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay) {
+    if (failProcess==null) {
+      return;
+    }
+    nextProcess = null;
+    lastProcess = null;
+    run3dmodButton = null;
+    run3dmodMenuOptions = null;
+    manager.startNextProcess(axisID, failProcess, processResultDisplay, this, dialogType,
+        processDisplay);
   }
 
   public void setDebug(boolean input) {
@@ -349,6 +367,17 @@ public final class ProcessSeries implements ConstProcessSeries {
 
   public void setLastProcess(final TaskInterface task) {
     lastProcess = new Process(null, null, null, null, null, task);
+  }
+  
+  /**
+   * A process to start when the current process fails and forceNextProcess is off (see
+   * BaseManager).  When a failProcess is run, nextProcess, lastProcess, and the 3dmod
+   * process variables are deleted.  The fail process is deleted when the current process
+   * succeeds - whether or the any other type of process exist.
+   * @param task
+   */
+  public void setFailProcess(final TaskInterface task) {
+    failProcess = new Process(null, null, null, null, null, task);
   }
 
   /**
