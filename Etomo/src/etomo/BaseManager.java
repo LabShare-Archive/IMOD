@@ -111,7 +111,7 @@ public abstract class BaseManager {
   private final ProcessingMethodMediator processingMethodMediatorA = new ProcessingMethodMediator();
   private final ProcessingMethodMediator processingMethodMediatorB = new ProcessingMethodMediator();
   private final ManagerKey managerKey = new ManagerKey();
-   final AxisProcessData axisProcessData = new AxisProcessData(this);
+  final AxisProcessData axisProcessData = new AxisProcessData(this);
 
   public void dumpState() {
     System.err.println("[headless:" + headless + ",loadedParamFile:" + loadedParamFile
@@ -182,8 +182,8 @@ public abstract class BaseManager {
   String paramString() {
     return getName();
   }
-  
- public AxisProcessData getAxisProcessData() {
+
+  public AxisProcessData getAxisProcessData() {
     return axisProcessData;
   }
 
@@ -1518,6 +1518,9 @@ public abstract class BaseManager {
       // processes where managed by BaseManager.
       if (failed) {
         sendMsgProcessFailed(processResultDisplay);
+        if (processSeries != null) {
+          processSeries.startFailProcess(axisID, processResultDisplay);
+        }
       }
     }
   }
