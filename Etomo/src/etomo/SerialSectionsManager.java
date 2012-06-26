@@ -1,6 +1,7 @@
 package etomo;
 
 import java.io.File;
+import java.io.IOException;
 
 import etomo.comscript.BaseComScriptManager;
 import etomo.comscript.ExtractpiecesParam;
@@ -25,6 +26,7 @@ import etomo.ui.swing.LogInterface;
 import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.MainSerialSectionsPanel;
+import etomo.ui.swing.ProcessDisplay;
 import etomo.ui.swing.SerialSectionsDialog;
 import etomo.ui.swing.SerialSectionsStartupDialog;
 import etomo.ui.swing.UIHarness;
@@ -57,8 +59,8 @@ public final class SerialSectionsManager extends BaseManager {
   private final SerialSectionsProcessManager processMgr;
 
   private BaseComScriptManager comScriptMgr = null;
-  private SerialSectionsStartupDialog serialSectionsStartupDialog = null;
-  private SerialSectionsDialog serialSectionsDialog = null;
+  private SerialSectionsStartupDialog startupDialog = null;
+  private SerialSectionsDialog dialog = null;
   private AutoAlignmentController autoAlignmentController = null;
   /**
    * valid is for handling failure before the manager key is set in EtomoDirector.
@@ -111,8 +113,8 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   void display() {
-    if (serialSectionsStartupDialog != null) {
-      serialSectionsStartupDialog.display();
+    if (startupDialog != null) {
+      startupDialog.display();
     }
   }
 
@@ -129,12 +131,11 @@ public final class SerialSectionsManager extends BaseManager {
    * Create (if necessary) and show the serial sections startup dialog.
    */
   private void openSerialSectionsStartupDialog() {
-    if (serialSectionsStartupDialog == null) {
+    if (startupDialog == null) {
       String actionMessage = Utilities.prepareDialogActionMessage(
           DialogType.SERIAL_SECTIONS_STARTUP, AxisID.ONLY, null);
       mainPanel.setStaticProgressBar("Starting Serial Sections interface", AXIS_ID);
-      serialSectionsStartupDialog = SerialSectionsStartupDialog
-          .getInstance(this, AXIS_ID);
+      startupDialog = SerialSectionsStartupDialog.getInstance(this, AXIS_ID);
       if (actionMessage != null) {
         System.err.println(actionMessage);
       }
@@ -142,7 +143,7 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   public void setStartupData(final SerialSectionsStartupData startupData) {
-    serialSectionsStartupDialog = null;
+    startupDialog = null;
     setParamFile(startupData);
     openSerialSectionsDialog(startupData);
     if (!loadedParamFile) {
@@ -210,13 +211,13 @@ public final class SerialSectionsManager extends BaseManager {
       valid = false;
       return;
     }
-    if (serialSectionsDialog == null) {
-      serialSectionsDialog = SerialSectionsDialog.getInstance(this, AXIS_ID, startupData);
+    if (dialog == null) {
+      dialog = SerialSectionsDialog.getInstance(this, AXIS_ID, startupData);
     }
-    autoAlignmentController = new AutoAlignmentController(this, serialSectionsDialog);
-    serialSectionsDialog.setAutoAlignmentController(autoAlignmentController);
+    autoAlignmentController = new AutoAlignmentController(this, dialog);
+    dialog.setAutoAlignmentController(autoAlignmentController);
     setSerialSectionsDialogParameters();
-    mainPanel.showProcess(serialSectionsDialog.getRootContainer(), AXIS_ID);
+    mainPanel.showProcess(dialog.getRootContainer(), AXIS_ID);
     String actionMessage = Utilities.prepareDialogActionMessage(
         DialogType.SERIAL_SECTIONS, AxisID.ONLY, null);
     if (actionMessage != null) {
@@ -224,33 +225,123 @@ public final class SerialSectionsManager extends BaseManager {
     }
   }
 
+  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final DialogType dialogType, final ProcessDisplay display) {
+    if (process.equals(Task.COPY_DISTORTION_FIELD_FILE)) {
+      copyDistortionFieldFile(processSeries, axisID, dialogType);
+    }
+    else if (process.equals(Task.CLOSE_DIALOG)) {
+      closeDialog(dialogType);
+    }
+  }
+
+  /**
+   * Sets the next and last process and starts the extractpiecelist process.  If the
+   * extractpiecelist did not have to be run,
+   * runs the next process.
+   * @param axisID
+   * @param processResultDisplay
+   * @param dialogType
+   * @param startupData
+   */
   public void extractpieces(final AxisID axisID,
       final ProcessResultDisplay processResultDisplay, final DialogType dialogType,
       final SerialSectionsStartupData startupData) {
-    if (startupData.getViewType() != ViewType.MONTAGE) {
-      return;
+    ProcessSeries processSeries = new ProcessSeries(this, dialogType);
+    processSeries.setNextProcess(Task.COPY_DISTORTION_FIELD_FILE);
+    processSeries.setLastProcess(Task.CLOSE_DIALOG);
+    if (startupData.getViewType() == ViewType.MONTAGE) {
+      File pieceListFile = DatasetFiles.getPieceListFile(this, axisID);
+      if (!pieceListFile.exists()) {
+        ExtractpiecesParam param = new ExtractpiecesParam(startupData.getStack()
+            .getName(), startupData.getRootName(), AxisType.SINGLE_AXIS, this, axisID);
+        String threadName;
+        try {
+          threadName = processMgr.extractpieces(param, axisID, processResultDisplay,
+              processSeries);
+        }
+        catch (SystemProcessException e) {
+          e.printStackTrace();
+          String[] message = new String[2];
+          message[0] = "Can not execute " + ExtractpiecesParam.COMMAND_NAME;
+          message[1] = e.getMessage();
+          uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
+          return;
+        }
+        setThreadName(threadName, axisID);
+        getMainPanel().startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME,
+            axisID, ProcessName.EXTRACTPIECES);
+        return;
+      }
     }
-    File pieceListFile = DatasetFiles.getPieceListFile(this, axisID);
-    if (pieceListFile.exists()) {
-      return;
+    // extractpiecelist did not run and there was no failure.
+    processSeries.startNextProcess(axisID, processResultDisplay);
+  }
+
+  /**
+   * Copies the distortion field file to the directory containing the stack.  Always runs 
+   * the next process.
+   * @param processSeries
+   * @param axisID
+   * @param dialogType
+   */
+  public void copyDistortionFieldFile(final ProcessSeries processSeries,
+      final AxisID axisID, final DialogType dialogType) {
+    File distortionField = getDistortionField(dialogType);
+    if (distortionField != null) {
+      File stack = getStack(dialogType);
+      if (stack != null) {
+        try {
+          Utilities.copyFile(distortionField, new File(stack.getParentFile(),
+              distortionField.getName()));
+        }
+        catch (IOException e) {
+          UIHarness.INSTANCE.openMessageDialog(this,
+              "Unable to copy " + distortionField.getAbsolutePath()
+                  + ".  Please copy this file by hand.", "Unable to Copy File", axisID);
+        }
+      }
     }
-    ExtractpiecesParam param = new ExtractpiecesParam(startupData.getStack().getName(),
-        startupData.getRootName(), AxisType.SINGLE_AXIS, this, axisID);
-    String threadName;
-    try {
-      threadName = processMgr.extractpieces(param, axisID, processResultDisplay);
+    if (processSeries != null) {
+      processSeries.startNextProcess(axisID, null);
     }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute " + ExtractpiecesParam.COMMAND_NAME;
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
-      return;
+  }
+
+  /**
+   * Attempts to get the distortion field file from the dialogType dialog.  Returns null
+   * if unable to get the file.
+   * @param dialogType
+   * @return
+   */
+  private File getDistortionField(final DialogType dialogType) {
+    if (dialogType != DialogType.SERIAL_SECTIONS_STARTUP || startupDialog == null) {
+      return null;
     }
-    setThreadName(threadName, axisID);
-    getMainPanel().startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME, axisID,
-        ProcessName.EXTRACTPIECES);
+    return startupDialog.getDistortionField();
+  }
+
+  /**
+   * Attempts to get the stack file from the dialogType dialog.  Returns null if unable to
+   * get the file.  Currently only gets the stack from the startup dialog.
+   * @param dialogType
+   * @return
+   */
+  private File getStack(final DialogType dialogType) {
+    if (dialogType != DialogType.SERIAL_SECTIONS_STARTUP || startupDialog == null) {
+      return null;
+    }
+    return startupDialog.getStack();
+  }
+
+  /**
+   * Attempts to close the dialogType dialog.  Currently only closes the startup dialog.
+   * @param dialogType
+   */
+  private void closeDialog(final DialogType dialogType) {
+    if (dialogType == DialogType.SERIAL_SECTIONS_STARTUP) {
+      startupDialog.close();
+    }
   }
 
   private void setSerialSectionsDialogParameters() {
@@ -299,7 +390,7 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   public boolean updateMetaData(final DialogType dialogType, final AxisID axisID) {
-    return serialSectionsDialog.getMetaData(metaData);
+    return dialog.getMetaData(metaData);
   }
 
   Storable[] getStorables(final int offset) {
@@ -307,5 +398,13 @@ public final class SerialSectionsManager extends BaseManager {
     int index = offset;
     storables[index++] = metaData;
     return storables;
+  }
+
+  public static final class Task implements TaskInterface {
+    private static final Task COPY_DISTORTION_FIELD_FILE = new Task();
+    public static final Task CLOSE_DIALOG = new Task();
+
+    private Task() {
+    }
   }
 }
