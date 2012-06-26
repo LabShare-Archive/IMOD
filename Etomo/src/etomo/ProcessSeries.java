@@ -241,20 +241,22 @@ public final class ProcessSeries implements ConstProcessSeries {
         processDisplay);
     return true;
   }
-  
+
   /**
    * If a fail process has been saved, all other processes are deleted and the failprocess is started.
    */
   public void startFailProcess(final AxisID axisID,
       final ProcessResultDisplay processResultDisplay) {
-    if (failProcess==null) {
+    if (failProcess == null) {
       return;
     }
     nextProcess = null;
     lastProcess = null;
     run3dmodButton = null;
     run3dmodMenuOptions = null;
-    manager.startNextProcess(axisID, failProcess, processResultDisplay, this, dialogType,
+    Process process = failProcess;
+    failProcess = null;
+    manager.startNextProcess(axisID, process, processResultDisplay, this, dialogType,
         processDisplay);
   }
 
@@ -368,7 +370,7 @@ public final class ProcessSeries implements ConstProcessSeries {
   public void setLastProcess(final TaskInterface task) {
     lastProcess = new Process(null, null, null, null, null, task);
   }
-  
+
   /**
    * A process to start when the current process fails and forceNextProcess is off (see
    * BaseManager).  When a failProcess is run, nextProcess, lastProcess, and the 3dmod
