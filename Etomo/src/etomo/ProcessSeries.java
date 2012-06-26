@@ -261,7 +261,11 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param process
    */
   public void setNextProcess(final String process, final ProcessingMethod processingMethod) {
-    nextProcess = new Process(process, null, null, null, processingMethod);
+    nextProcess = new Process(process, null, null, null, processingMethod, null);
+  }
+
+  public void setNextProcess(final TaskInterface task) {
+    nextProcess = new Process(null, null, null, null, null, task);
   }
 
   /**
@@ -271,7 +275,7 @@ public final class ProcessSeries implements ConstProcessSeries {
    */
   public void setNextProcess(final String process, final ProcessName subprocessName,
       final ProcessingMethod processingMethod) {
-    nextProcess = new Process(process, subprocessName, null, null, processingMethod);
+    nextProcess = new Process(process, subprocessName, null, null, processingMethod, null);
   }
 
   /**
@@ -282,7 +286,7 @@ public final class ProcessSeries implements ConstProcessSeries {
   public void setNextProcess(final String process, final ProcessName subprocessName,
       final FileType outputImageFileType, final ProcessingMethod processingMethod) {
     nextProcess = new Process(process, subprocessName, outputImageFileType, null,
-        processingMethod);
+        processingMethod, null);
   }
 
   /**
@@ -294,7 +298,7 @@ public final class ProcessSeries implements ConstProcessSeries {
       final FileType outputImageFileType, final FileType outputImageFileType2,
       final ProcessingMethod processingMethod) {
     nextProcess = new Process(process, subprocessName, outputImageFileType,
-        outputImageFileType2, processingMethod);
+        outputImageFileType2, processingMethod, null);
   }
 
   void clearProcesses() {
@@ -340,7 +344,11 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param process
    */
   public void setLastProcess(final String process) {
-    lastProcess = new Process(process, null, null, null, null);
+    lastProcess = new Process(process, null, null, null, null, null);
+  }
+
+  public void setLastProcess(final TaskInterface task) {
+    lastProcess = new Process(null, null, null, null, null, task);
   }
 
   /**
@@ -390,15 +398,17 @@ public final class ProcessSeries implements ConstProcessSeries {
     private final FileType outputImageFileType;
     private final FileType outputImageFileType2;
     private final ProcessingMethod processingMethod;
+    private final TaskInterface task;
 
     private Process(final String process, final ProcessName subprocessName,
         final FileType outputImageFileType, final FileType outputImageFileType2,
-        final ProcessingMethod processingMethod) {
+        final ProcessingMethod processingMethod, final TaskInterface task) {
       this.process = process;
       this.subprocessName = subprocessName;
       this.outputImageFileType = outputImageFileType;
       this.outputImageFileType2 = outputImageFileType2;
       this.processingMethod = processingMethod;
+      this.task = task;
     }
 
     private String getProcess() {
@@ -411,6 +421,10 @@ public final class ProcessSeries implements ConstProcessSeries {
 
     public FileType getOutputImageFileType() {
       return outputImageFileType;
+    }
+
+    public boolean equals(final TaskInterface task) {
+      return this.task == task;
     }
 
     public boolean equals(String string) {
