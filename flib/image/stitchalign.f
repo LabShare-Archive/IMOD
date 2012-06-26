@@ -472,7 +472,7 @@ c
 106         format(i5,' variables in search',/,T48,'Initial F : ',T65,E14.7)
             call metro(nvarsrch, var, stitchfunc, finalErr, grad, facMetro *
      &          trialScale(metroLoop), eps,
-     &          maxCycle, ierr, hess, ncycle)
+     &          maxCycle, ierr, hess, ncycle,0.)
             metroLoop = metroLoop +1
 c             
 c             For errors except limit reached, give warning message and restart

@@ -5,7 +5,6 @@
  *   Colorado.  See dist/COPYRIGHT for full notice.
  *
  *  $Id$
- *  Log at end of file
  */                                                                           
 
 #include "parse_params.h"
@@ -101,15 +100,15 @@ static char *nullString = &nullChar;
 
 /* declarations of local functions */
 static int ReadParamFile(FILE *pFile);
-static int OptionLineOfValues(char *option, void *array, int valType, 
+static int OptionLineOfValues(const char *option, void *array, int valType, 
                            int *numToGet, int arraySize);
-static int GetNextValueString(char *option, char **strPtr);
-static int AddValueString(int option, char *strPtr);
-static int LookupOption(char *option, int maxLookup);
-static char *PipSubStrDup(char *s1, int i1, int i2);
-static void AppendToErrorString(char *str);
-static int LineIsOptionToken(char *line);
-static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
+static int GetNextValueString(const char *option, char **strPtr);
+static int AddValueString(int option, const char *strPtr);
+static int LookupOption(const char *option, int maxLookup);
+static char *PipSubStrDup(const char *s1, int i1, int i2);
+static void AppendToErrorString(const char *str);
+static int LineIsOptionToken(const char *line);
+static int CheckKeyword(const char *line, const char *keyword, char **copyto, int *gotit,
                         char ***lastCopied);
 
 
@@ -244,7 +243,7 @@ void PipDone(void)
 /*
  * Set up for Pip to handle exiting on error, with a prefix string
  */
-int PipExitOnError(int useStdErr, char *prefix)
+int PipExitOnError(int useStdErr, const char *prefix)
 {
   /* Get rid of existing string; and if called with null string,
      this cancels an existing exit on error */
@@ -263,7 +262,7 @@ int PipExitOnError(int useStdErr, char *prefix)
  * Function for compatibility with Fortran routines, so setExitPrefix and
  * exitError can be used without using PIP
  */
-void setExitPrefix(char *prefix)
+void setExitPrefix(const char *prefix)
 {
   PipExitOnError(0, prefix);
 }
@@ -283,7 +282,7 @@ void PipEnableEntryOutput(int val)
   printEntries = val;
 }
 
-int PipSetLinkedOption(char *option)
+int PipSetLinkedOption(const char *option)
 {
   if (linkedOption)
     free(linkedOption);
@@ -309,7 +308,7 @@ void PipSetSpecialFlags(int inCase, int inDone, int inStd, int inLines,
 /*
  * Add an option, with short and long name, type, and help string
  */
-int PipAddOption(char *optionString)
+int PipAddOption(const char *optionString)
 {
   int ind, indEnd, oldSlen, newSlen;
   PipOptions *optp = &optTable[nextOption];
@@ -318,7 +317,7 @@ int PipAddOption(char *optionString)
   char *oldLong;
   char *newShort;
   char *newLong;
-  char *subStr = optionString;
+  const char *subStr = optionString;
 
   if (nextOption >= numOptions) {
     PipSetError("Attempting to add more options than were originally"
@@ -426,7 +425,7 @@ int PipAddOption(char *optionString)
 /*
  * Call this to process the next argument
  */
-int PipNextArg(char *argString)
+int PipNextArg(const char *argString)
 {
   char *argCopy;
   int err, i, lenarg;
@@ -547,7 +546,7 @@ int PipGetNonOptionArg(int argNo, char **arg)
 /*
  * Get a string option
  */
-int PipGetString(char *option, char **string)
+int PipGetString(const char *option, char **string)
 {
   char *strPtr;
   int err;
@@ -560,7 +559,7 @@ int PipGetString(char *option, char **string)
 /*
  * Get a boolean (binary) option; make sure it has a legal specification
  */
-int PipGetBoolean(char *option, int *val)
+int PipGetBoolean(const char *option, int *val)
 {
   char *strPtr;
   int err;
@@ -588,13 +587,13 @@ int PipGetBoolean(char *option, int *val)
 /*
  * Get single integer and float just call to get an array with one element
  */
-int PipGetInteger(char *option, int *val)
+int PipGetInteger(const char *option, int *val)
 {
   int num = 1;
   return PipGetIntegerArray(option, val, &num, 1);
 }
 
-int PipGetFloat(char *option, float *val)
+int PipGetFloat(const char *option, float *val)
 {
   int num = 1;
   return PipGetFloatArray(option, val, &num, 1);
@@ -603,7 +602,7 @@ int PipGetFloat(char *option, float *val)
 /*
  * Get two integers or floats - move into array, get array with two elements
  */
-int PipGetTwoIntegers(char *option, int *val1, int *val2)
+int PipGetTwoIntegers(const char *option, int *val1, int *val2)
 {
   int err;
   int num = 2;
@@ -617,7 +616,7 @@ int PipGetTwoIntegers(char *option, int *val1, int *val2)
   return 0;
 }
 
-int PipGetTwoFloats(char *option, float *val1, float *val2)
+int PipGetTwoFloats(const char *option, float *val1, float *val2)
 {
   int err;
   int num = 2;
@@ -634,7 +633,7 @@ int PipGetTwoFloats(char *option, float *val1, float *val2)
 /*
  * Get three integers or floats - move into array, get array with two elements
  */
-int PipGetThreeIntegers(char *option, int *val1, int *val2, int *val3)
+int PipGetThreeIntegers(const char *option, int *val1, int *val2, int *val3)
 {
   int err;
   int num = 3;
@@ -650,7 +649,7 @@ int PipGetThreeIntegers(char *option, int *val1, int *val2, int *val3)
   return 0;
 }
 
-int PipGetThreeFloats(char *option, float *val1, float *val2, float *val3)
+int PipGetThreeFloats(const char *option, float *val1, float *val2, float *val3)
 {
   int err;
   int num = 3;
@@ -670,22 +669,22 @@ int PipGetThreeFloats(char *option, float *val1, float *val2, float *val3)
  * Getting an array of integers or floats calls the general routine for
  * getting a line of values 
  */
-int PipGetIntegerArray(char *option, int *array, int *numToGet, int arraySize)
+int PipGetIntegerArray(const char *option, int *array, int *numToGet, int arraySize)
 {
   return OptionLineOfValues(option, (void *)array, PIP_INTEGER, numToGet,
                          arraySize);
 }
 
-int PipGetFloatArray(char *option, float *array, int *numToGet, int arraySize)
+int PipGetFloatArray(const char *option, float *array, int *numToGet, int arraySize)
 {
   return OptionLineOfValues(option, (void *)array, PIP_FLOAT, numToGet,
                          arraySize);
 }
 
 /*
- * Print a complete usage statement, man page entry, or Fortran fallback
+ * Print a complete usage statement, man page entry, or program fallback code
  */
-int PipPrintHelp(char *progName, int useStdErr, int inputFiles, 
+int PipPrintHelp(const char *progName, int useStdErr, int inputFiles, 
                  int outputFiles)
 {
   int i, j, lastOpt, optLen, numOut = 0, numReal = 0;
@@ -695,6 +694,11 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
   char indent4[] = "    ";
   char *indentStr;
   int linePos = 11;
+  int fort90 = (outputManpage == -3) ? 1 : 0;
+  int fort77 = (outputManpage == -2) ? 1 : 0;
+  int cCode = (outputManpage == 2) ? 1 : 0;
+  int python = (outputManpage == 3) ? 1 : 0;
+  char *fortCont = fort90 ? " &\n      '" : "\n     &    '";
   char **descriptions = &typeDescriptions[0];
 
   /* Get correct number of options for Fortran fallback */
@@ -730,24 +734,25 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
     lname = optTable[i].longName;
     indentStr = nullString;
     if ((lname && *lname) || (sname && *sname)) {
-      if (outputManpage <= 0)
+      if (outputManpage <= 0 && !fort90)
         indentStr = indent4;
 
       /* Output Fortran fallback code (-2) */
-      if (outputManpage == -2) {
+      if (fort77 || fort90) {
         lastOpt = (i == numOptions - 1);
         if (!numOut) fprintf(out, 
-                        "      integer numOptions\n"
-                        "      parameter (numOptions = %d)\n"
-                        "      character*(40 * numOptions) options(1)\n"
-                        "      options(1) =\n     &    '", numReal);
+                             "%s  integer numOptions\n"
+                             "%s  parameter (numOptions = %d)\n"
+                             "%s  character*(40 * numOptions) options(1)\n"
+                             "%s  options(1) =%s", indentStr, indentStr, numReal, 
+                             indentStr, indentStr, fortCont);
         
         optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 4 +
           optTable[i].multiple;
         
-        if (linePos + optLen + (lastOpt ? 0 : 3) > 90) {
-          fprintf(out, "'//\n     &    '");
-          linePos = 11;
+        if (linePos + optLen + (lastOpt ? 0 : (fort90 ? 5 : 3)) > 90) {
+          fprintf(out, "'//%s", fortCont);
+          linePos = fort90 ? 7 : 11;
         }
         fprintf(out, "%s:%s:%s%s%s", sname, lname, optTable[i].type, 
                 optTable[i].multiple ? (optTable[i].linked ? "L:" : "M:") : ":", 
@@ -758,12 +763,12 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
       }
       
       /* Fallback output for C code (2) or Python code (3) */
-      if (outputManpage == 2 || outputManpage == 3) {
+      if (cCode || python) {
         lastOpt = (i == numOptions - 1);
         if (!numOut) {
-          if (outputManpage == 2) {
+          if (cCode) {
             fprintf(out, "  int numOptions = %d;\n"
-                    "  char *options[] = {\n    ", numReal);
+                    "  const char *options[] = {\n    ", numReal);
             linePos = 5;
           } else {
             fprintf(out, "options = [");
@@ -773,7 +778,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
         optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 7 +
           optTable[i].multiple;
         if (linePos + optLen > 90) {
-          if (outputManpage == 2) {
+          if (cCode) {
             fprintf(out, "\n    ");
             linePos = 5;
           } else {
@@ -783,7 +788,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
         }
         fprintf(out, "\"%s:%s:%s%s\"%s", sname, lname, optTable[i].type, 
                 optTable[i].multiple ? (optTable[i].linked ? "L:" : "M:") : ":", 
-                lastOpt ? (outputManpage == 2 ? "};\n" : "]\n"): ", ");
+                lastOpt ? (cCode ? "};\n" : "]\n"): ", ");
         linePos += optLen;
         numOut++;
         continue;
@@ -807,7 +812,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
         fprintf(out, "%s%s", outputManpage > 0 ? " \t " : "   ", 
                 descriptions[j]);
       fprintf(out, "\n");
-    } else if (outputManpage == -2 || outputManpage >= 2)
+    } else if (fort77 || fort90 || cCode || python)
       continue;
     else if (outputManpage == 1)
       fprintf(out, ".SS ");
@@ -922,7 +927,7 @@ int PipGetError(char **errString)
  * If exitPrefix is set, then output an error message to stderr or stdout
  * and exit. 
  */
-int PipSetError(char *errString)
+int PipSetError(const char *errString)
 {
   FILE *outFile = errorDest ? stderr : stdout;
   if (errorString)
@@ -939,7 +944,7 @@ int PipSetError(char *errString)
   return 0;
 }
 
-void exitError(char *format, ...)
+void exitError(const char *format, ...)
 {
   char errorMess[512];
   va_list args;
@@ -952,7 +957,7 @@ void exitError(char *format, ...)
 /*
  * Return the number of entries for a particular option
  */
-int PipNumberOfEntries(char *option, int *numEntries)
+int PipNumberOfEntries(const char *option, int *numEntries)
 {
   int err;
   if ((err = LookupOption(option, nonOptInd + 1)) < 0)
@@ -965,7 +970,7 @@ int PipNumberOfEntries(char *option, int *numEntries)
  * Return the index of the next non-option arg or linked option that was entered after 
  * this option
  */
-int PipLinkedIndex(char *option, int *index)
+int PipLinkedIndex(const char *option, int *index)
 {
   int err, ind, ilink, which = 0;
   if ((err = LookupOption(option, nonOptInd + 1)) < 0)
@@ -995,7 +1000,7 @@ int PipLinkedIndex(char *option, int *index)
 /*
  * Top level routine to be called to process options and arguments
  */
-int PipParseInput(int argc, char *argv[], char *options[], int numOpts,
+int PipParseInput(int argc, char *argv[], const char *options[], int numOpts,
                   int *numOptArgs, int *numNonOptArgs)
 {
   int i, err;
@@ -1016,7 +1021,7 @@ int PipParseInput(int argc, char *argv[], char *options[], int numOpts,
 /*
  * Alternative routine to have options read from a file
  */
-int PipReadOptionFile(char *progName, int helpLevel, int localDir)
+int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
 {
   int i, ind, indst, lineLen, err, needSize, isOption, isSection = 0;
   FILE *optFile = NULL;
@@ -1356,10 +1361,10 @@ int PipParseEntries(int argc, char *argv[], int *numOptArgs,
  * High-level routine to initialize from autodoc with optional fallback options
  * Set exit string and output to stdout, print usage if not enough arguments
  */
-void PipReadOrParseOptions(int argc, char *argv[], char *options[], 
-                           int numOpts, char *progName, int minArgs, 
+void PipReadOrParseOptions(int argc, char *argv[], const char *options[], 
+                           int numOpts, const char *progName, int minArgs, 
                            int numInFiles, int numOutFiles, int *numOptArgs,
-                           int *numNonOptArgs, void (headerFunc)(char *))
+                           int *numNonOptArgs, void (headerFunc)(const char *))
 {
   int ierr;
   char *errString;
@@ -1397,7 +1402,7 @@ void PipReadOrParseOptions(int argc, char *argv[], char *options[],
 /*
  * Routine to get input/output file from parameter or non-option args
  */
-int PipGetInOutFile(char *option, int nonOptArgNo, char **filename)
+int PipGetInOutFile(const char *option, int nonOptArgNo, char **filename)
 {
   if (PipGetString(option, filename)) {
     if (nonOptArgNo >= optTable[nonOptInd].count)
@@ -1606,7 +1611,7 @@ int PipReadNextLine(FILE *pFile, char *lineStr, int strSize, char comment,
 /*
  * Parse a line of values for an option and return them into an array
  */
-static int OptionLineOfValues(char *option, void *array, int valType, 
+static int OptionLineOfValues(const char *option, void *array, int valType, 
                               int *numToGet, int arraySize)
 {
   char *strPtr;
@@ -1628,13 +1633,13 @@ static int OptionLineOfValues(char *option, void *array, int valType,
  * returned in [numToGet].  The return value is -1 for errors in parsing,
  * too few values on the line, or not enough space in the array.
  */
-int PipGetLineOfValues(char *option, char *strPtr, void *array, int valType, 
+int PipGetLineOfValues(const char *option, const char *strPtr, void *array, int valType, 
                        int *numToGet, int arraySize)
 {
   char *sepPtr;
-  char *endPtr;
+  const char *endPtr;
   char *invalid;
-  char *fullStr;
+  const char *fullStr;
   int *iarray = (int *)array;
   float *farray = (float *)array;
   int numGot = 0;
@@ -1744,7 +1749,7 @@ int PipGetLineOfValues(char *option, char *strPtr, void *array, int valType,
  * Return < 0 if the option is invalid, 1 if the option was not entered.
  * If the option allows multiple values, advance the multiple counter
  */
-static int GetNextValueString(char *option, char **strPtr)
+static int GetNextValueString(const char *option, char **strPtr)
 {
   int err;
   int index = 0;
@@ -1766,7 +1771,7 @@ static int GetNextValueString(char *option, char **strPtr)
 /*
  * Add a string to the set of values for an option
  */
-static int AddValueString(int option, char *strPtr)
+static int AddValueString(int option, const char *strPtr)
 {
   int err;
   PipOptions *optp = &optTable[option];
@@ -1807,7 +1812,7 @@ static int AddValueString(int option, char *strPtr)
       optp->nextLinked[2 * optp->count + 1] = optTable[err].count;
     }
   }
-  optp->valuePtr[optp->count++] = strPtr;
+  optp->valuePtr[optp->count++] = (char *)strPtr;
   return 0;
 }
 
@@ -1815,7 +1820,7 @@ static int AddValueString(int option, char *strPtr)
  * Look up an option in the table, issue an error message if the option does
  * not exist or is ambiguous; return index of option or an error code
  */
-static int LookupOption(char *option, int maxLookup)
+static int LookupOption(const char *option, int maxLookup)
 {
   int starts, i, lenopt, lenShort;
   int found = LOOKUP_NOT_FOUND;
@@ -1862,7 +1867,7 @@ static int LookupOption(char *option, int maxLookup)
 /*
  * Duplicate a substring into a new string
  */
-static char *PipSubStrDup(char *s1, int i1, int i2)
+static char *PipSubStrDup(const char *s1, int i1, int i2)
 {
   int i;
   int size = i2 + 2 - i1;
@@ -1879,7 +1884,7 @@ static char *PipSubStrDup(char *s1, int i1, int i2)
 /*
  * Test for whether the pointer is valid and give memory error if not
  */
-int PipMemoryError(void *ptr, char *routine)
+int PipMemoryError(void *ptr, const char *routine)
 {
   if (ptr)
     return 0;
@@ -1898,7 +1903,7 @@ int PipMemoryError(void *ptr, char *routine)
 /*
  * Add as much of a string as fits to the tempStr and use to set error
  */
-static void AppendToErrorString(char *str)
+static void AppendToErrorString(const char *str)
 {
   int len = strlen(tempStr);
   tempStr[TEMP_STR_SIZE - 1] = 0x00;
@@ -1910,7 +1915,7 @@ static void AppendToErrorString(char *str)
  * Returns 1 if [fullStr] starts with [subStr], where either strings can be 
  * NULL.
  */
-int PipStartsWith(char *fullStr, char *subStr)
+int PipStartsWith(const char *fullStr, const char *subStr)
 {
   if (!fullStr || !subStr)
     return 0;
@@ -1933,9 +1938,9 @@ int PipStartsWith(char *fullStr, char *subStr)
  * opening and closing delimiters and returns 1 if it does, or -1 if it is
  * another token
  */
-static int LineIsOptionToken(char *line)
+static int LineIsOptionToken(const char *line)
 {
-  char *token;
+  const char *token;
 
   /* It is not a token unless it starts with open delim and contains close */
   if (!PipStartsWith(line, OPEN_DELIM) || !strstr(line, CLOSE_DELIM))
@@ -1958,7 +1963,7 @@ static int LineIsOptionToken(char *line)
  * Watch out for the lastCopied variable, which points to the variable holding
  * the address of the string
  */
-static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
+static int CheckKeyword(const char *line, const char *keyword, char **copyto, int *gotit,
                         char ***lastCopied)
 {
   char *valStart;
@@ -1999,134 +2004,3 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
   *lastCopied = copyto;
   return 0;
 }
-
-/*
-$Log$
-Revision 1.12  2011/06/16 15:11:01  mast
-Added ability to specify and handle linked options
-
-Revision 1.11  2011/05/29 22:39:48  mast
-Allowed single-letter short name to be ambiguous to longer short names
-
-Revision 1.10  2011/02/28 05:57:13  mast
-Oops, trying to take length of NULL string
-
-Revision 1.9  2011/02/28 02:50:56  mast
-Prevent buffer overruns from IMOD_DIR and AUTODOC_DIR
-
-Revision 1.8  2011/02/25 22:19:46  mast
-Changed fallback warning to be generic
-
-Revision 1.7  2011/02/21 17:51:43  mast
-Modified fallback output for new line length standard of 90
-
-Revision 1.6  2009/12/11 19:59:31  mast
-Do not print entry header/tail if there are no entries
-
-Revision 1.5  2009/12/04 20:27:11  mast
-Added automatic printing of entries
-
-Revision 1.4  2009/02/17 02:54:20  mast
-Keep error reports on one line
-
-Revision 1.3  2008/12/04 05:49:18  mast
-Put a .SS in front of section headers for manpage output
-
-Revision 1.2  2007/10/18 22:22:47  mast
-Made exir prefix a static array so exitError works after PipDone
-
-Revision 1.1  2007/09/20 02:43:08  mast
-Moved to new library
-
-Revision 3.29  2007/08/03 16:40:15  mast
-Fixes for clean compile
-
-Revision 3.28  2007/07/15 20:56:25  mast
-Try abbreviations for the types in the usage stagements
-
-Revision 3.27  2007/06/22 05:01:24  mast
-Changes to get Tilt to be able to use PIP
-
-Revision 3.26  2007/04/04 23:18:23  mast
-Fixed fallback output for C/Python when there are section headers
-
-Revision 3.25  2006/11/22 18:54:29  mast
-Eliminate a warning in VC6
-
-Revision 3.24  2006/10/17 18:15:11  mast
-Made the line reading function able to pass comments and blank lines back
-
-Revision 3.23  2006/10/16 16:17:27  mast
-Made some functions global for autodoc reader
-
-Revision 3.22  2006/10/03 14:41:46  mast
-Added python option output
-
-Revision 3.21  2006/09/20 23:04:06  mast
-Made the call to copyright be a callback function to decouple from utils
-
-Revision 3.20  2006/09/19 16:58:25  mast
-Clean up warnings
-
-Revision 3.19  2006/09/12 15:21:14  mast
-Added include
-
-Revision 3.18  2006/06/08 03:11:31  mast
-Added higher level C functions and provided fallback option string
-output for C.
-
-Revision 3.17  2006/02/27 05:56:24  mast
-Modified to put out Fortran fixed format line to column 79
-
-Revision 3.16  2005/11/18 20:25:52  mast
-Fixed problem with section headers giving wrong number of options in
-Fortran fallback output
-
-Revision 3.15  2005/10/11 17:49:03  mast
-Fixed fallback output to add back M to type when multiple set
-
-Revision 3.14  2005/05/14 00:59:29  mast
-Implemented field value as default long option, allowed multiple entries of
-keyword to override previous entry, restricted to Field and SectionHeader
-
-Revision 3.13  2005/04/16 00:08:21  mast
-Added ability to have section headers for usage and man page output
-
-Revision 3.12  2005/02/12 01:38:27  mast
-Added ability to use ^ at start of line as a break
-
-Revision 3.11  2004/06/09 22:55:32  mast
-Added option to error messages about problems with value entries
-
-Revision 3.10  2003/10/24 03:03:47  mast
-unrecalled change for Windows/Intel
-
-Revision 3.9  2003/10/11 04:22:02  mast
-Remove \/, a bad combination
-
-Revision 3.8  2003/10/10 20:38:49  mast
-Made it count real arguments properly and had it eat \r from line ends
-for Windows
-
-Revision 3.7  2003/10/08 17:20:04  mast
-Changes to work with autodoc files
-
-Revision 3.6  2003/08/09 17:01:00  mast
-Fix bug in new functions
-
-Revision 3.5  2003/08/08 16:21:59  mast
-Add functions for getting two numbers
-
-Revision 3.4  2003/06/20 23:56:37  mast
-Add ability to break output of help strings into limited-length lines
-
-Revision 3.3  2003/06/10 23:21:03  mast
-Add File name type
-
-Revision 3.2  2003/06/05 03:01:48  mast
-Adding return values  - error caught on SGI
-
-Revision 3.1  2003/06/05 00:22:49  mast
-Addition to IMOD
-
-*/

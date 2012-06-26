@@ -23,7 +23,7 @@ STATICS = $(LIBBLAS) $(LIBLAPACK)
 
 all : $(LIBS) $(STATICS)
 
-$(LIBHVEM): $(LIBMRCIM) piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f
+$(LIBHVEM): $(LIBMRCIM) piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f statsubs/*.f90
 	(cd piecesubs ; $(MAKE) all)
 	(cd hvem ; $(MAKE) all)
 	(cd xfsubs ; $(MAKE) all)
@@ -47,7 +47,7 @@ $(LIBSMLMOD): model/*.f $(INCDIR)/smallmodel.inc
 	$(RANLIB) $(LIBSMLMOD)
 	$(CP) libsmlmod.$(LIBEXT) $(LIBDIR)
 
-$(LIBMRCIM): imsubs/*.f imsubs/*.c imsubs2/*.f
+$(LIBMRCIM): imsubs/*.f imsubs/*.c imsubs2/*.f 
 	(cd imsubs ; $(MAKE) all)
 	(cd imsubs2 ; $(MAKE) all)
 	$(RM) $(LIBMRCIM)
@@ -65,7 +65,7 @@ $(LIBIFFT):	ifftsub/*.f
 	$(RANLIB) $(LIBIFFT)
 	$(CP) libifft.$(LIBEXT) $(LIBDIR)
 
-$(LIBNMCAR):	graphics/*.f graphics/*.c*
+$(LIBNMCAR):	graphics/*.f graphics/*.c graphics/*.cpp
 	(cd graphics ; $(MAKE) all)
 	$(RM) $(LIBNMCAR)
 	$(MAKENMCAR)$(LIBNMCAR) graphics/*.$(O)
@@ -93,7 +93,7 @@ $(LIBLAPACK): lapack/*.f
 	$(RANLIB) $(LIBLAPACK)
 	$(CP) $(LIBLAPACK) $(LIBDIR)
 
-$(LIBTRACK):	linetrack/*.f linetrack/*.c*
+$(LIBTRACK):	linetrack/*.f linetrack/*.c
 	(cd linetrack; $(MAKE) all)
 	$(RM) $(LIBTRACK)
 	$(FAR) $(FARFLAGS)$(LIBTRACK) $(LIBTRACKDEF) linetrack/*.$(O)

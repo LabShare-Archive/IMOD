@@ -23,6 +23,8 @@ import etomo.process.ProcessData;
 */
 public interface ConstProcessSeries {
   public static final String rcsid = "$Id$";
+  
+  public void dumpState();
 
   public String peekNextProcess();
 

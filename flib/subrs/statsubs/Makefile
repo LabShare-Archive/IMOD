@@ -3,15 +3,14 @@ include ../../configure
 FFLAGS = $(LIBFFLAGS)
 
 O        = $(OBJEXT)
-OBJS = dirnm.$(O) hdiag.$(O) multr.$(O) stepwz.$(O) correl.$(O) \
- eigenv.$(O) matinv.$(O) polyfit.$(O) nestanova.$(O) polyterm.$(O) metro.$(O) \
- weightpoly.$(O) localpolyfit.$(O) statfuncs.$(O)
+OBJS = dirnm.$(O) hdiag.$(O) stepwz.$(O) eigenv.$(O) matinv.$(O) polyfit.$(O) \
+ nestanova.$(O) polyterm.$(O) metro.$(O) statfuncs.$(O)
 
 all: $(OBJS)
 
 
-metro.$(O): metro.f
-	$(FC) -c $(FFLAGS) $(OPENMPF) metro.f
+metro.$(O): metro.f90
+	$(FC) -c $(FFLAGS) $(OPENMPF) metro.f90
 
 
 clean:

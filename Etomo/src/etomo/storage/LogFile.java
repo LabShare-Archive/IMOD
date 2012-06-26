@@ -76,6 +76,18 @@ public final class LogFile {
   private boolean backedUp = false;
   private boolean debug = false;
 
+  public void dumpState() {
+    System.err.println("[fileAbsolutePath:" + fileAbsolutePath + ",file:");
+    if (file != null) {
+      System.err.println(file.getAbsolutePath());
+    }
+    System.err.println(",backupFile:");
+    if (backupFile != null) {
+      System.err.println(backupFile.getAbsolutePath());
+    }
+    System.err.println(",backedUp:" + backedUp + ",debug:" + debug + "]");
+  }
+
   private LogFile(File file) {
     lock = new Lock(this);
     this.fileAbsolutePath = file.getAbsolutePath();
