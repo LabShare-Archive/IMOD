@@ -873,7 +873,7 @@ int main( int argc, char *argv[])
           }
           threshUse = B3DMAX(0., j * dxbin);
           printf("%d peaks are above histogram dip at %.3f\n"
-                 "%d total peaks % stored in model down to value of %.3f\n"
+                 "%d total peaks %s stored in model down to value of %.3f\n"
                  , nsum, histDip, jdir, numObjOrig ? "would be" : "being",
                  threshUse);
         }
