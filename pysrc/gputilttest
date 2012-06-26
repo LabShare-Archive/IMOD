@@ -172,7 +172,7 @@ def runTests():
 
    except ImodpyError:
       cleanup()
-      prnstr('ERROR: Log from this Tilt run is in ' + logname)
+      prnstr('ERROR: Log from this Tilt run, with more details, is in ' + logname)
       exitFromImodError(progname)
    except KeyboardInterrupt:
       cleanup()
