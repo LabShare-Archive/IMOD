@@ -377,7 +377,9 @@ program clipmodel
       write(*,'(1x,a,$)') '0 to write out results, 1 to enter new'// &
           ' block to include or exclude: '
       read(*,*) ifLoop
-      if (ifLoop == 0) exit
+      if (ifLoop == 0) then
+        exit
+      endif
     endif
   enddo
   !
