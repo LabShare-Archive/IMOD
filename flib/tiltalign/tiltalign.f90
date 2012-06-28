@@ -560,7 +560,9 @@ CONTAINS
         else
           numBelowCrit = 0
         endif
-        if (numBelowCrit >= maxDelWgtBelowCrit .or. numOneCycle >= maxRobustOneCycle) exit
+        if (numBelowCrit >= maxDelWgtBelowCrit .or. numOneCycle >= maxRobustOneCycle) then
+          exit
+        endif
       enddo
       write(*,'(a,i5,t48,a,t61,f14.6)')' Total cycles for robust fitting:', &
           numTotCycles, 'Final   F : ', sqrt(fFinal * rmsScale)
