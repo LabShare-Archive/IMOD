@@ -4,7 +4,9 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
 
 import etomo.AutoAlignmentController;
@@ -51,12 +53,12 @@ public final class AutoAlignmentPanel {
   private final LabeledSpinner spBinning = new LabeledSpinner("Binning: ",
       new SpinnerNumberModel(2, 1, 50, 1), 1);
   private final LabeledTextField ltfSkipSectionsFrom1 = new LabeledTextField(
-      "Sections to skip");
+      "Sections to skip: ");
   private final CheckBox cbPreCrossCorrelation = new CheckBox(
       "Do cross correlatin in initial alignment");
   private final LabeledTextField ltfEdgeToIgnore = new LabeledTextField(
-      "Fraction to ignore on edges");
-  private final Spinner spMidasBinning = Spinner.getLabeledInstance("Midas binning", 1,
+      "Fraction to ignore on edges: ");
+  private final Spinner spMidasBinning = Spinner.getLabeledInstance("Midas binning: ", 1,
       1, 8);
 
   private final BaseManager manager;
@@ -84,6 +86,11 @@ public final class AutoAlignmentPanel {
   }
 
   private void createPanel(final boolean joinConfiguration) {
+    // panels
+    JPanel pnlPreCrossCorrelation = new JPanel();
+    JPanel pnlBinning = new JPanel();
+    SpacedPanel pnlLeftButtons = SpacedPanel.getInstance();
+    SpacedPanel pnlRightButtons = SpacedPanel.getInstance();
     // init
     if (joinConfiguration) {
       spBinning.setVisible(false);
@@ -98,9 +105,6 @@ public final class AutoAlignmentPanel {
     btnRefineAutoAlignment.setSize();
     btnRevertToMidas.setSize();
     btnRevertToEmpty.setSize();
-    // panels
-    SpacedPanel pnlLeftButtons = SpacedPanel.getInstance();
-    SpacedPanel pnlRightButtons = SpacedPanel.getInstance();
     // root
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.add(pnlParameters.getContainer());
@@ -112,10 +116,19 @@ public final class AutoAlignmentPanel {
     pnlParameters.add(ltfCutoffHighFrequency);
     pnlParameters.add(ltfSigmaHighFrequency);
     pnlParameters.add(tcAlign.getContainer());
-    pnlParameters.add(spBinning);
-    pnlParameters.add(ltfSkipSectionsFrom1);
-    pnlParameters.add(cbPreCrossCorrelation);
+    pnlParameters.add(pnlPreCrossCorrelation);
+    pnlParameters.add(ltfSkipSectionsFrom1.getContainer());
     pnlParameters.add(ltfEdgeToIgnore);
+    pnlParameters.add(pnlBinning);
+    //pre cross correlation
+    pnlPreCrossCorrelation.setLayout(new BoxLayout(pnlPreCrossCorrelation,BoxLayout.X_AXIS));
+    pnlPreCrossCorrelation.add(cbPreCrossCorrelation);
+    pnlPreCrossCorrelation.add(Box.createHorizontalGlue());
+    // binning
+    pnlBinning.setLayout(new BoxLayout(pnlBinning, BoxLayout.X_AXIS));
+    pnlBinning.add(spBinning.getContainer());
+    pnlBinning.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlBinning.add(spMidasBinning.getContainer());
     // buttons
     pnlButtons.setBoxLayout(BoxLayout.X_AXIS);
     pnlButtons.add(pnlLeftButtons);
@@ -123,7 +136,6 @@ public final class AutoAlignmentPanel {
     // left buttons
     pnlLeftButtons.setBoxLayout(BoxLayout.Y_AXIS);
     pnlLeftButtons.add(btnInitialAutoAlignment);
-    pnlLeftButtons.add(spMidasBinning);
     pnlLeftButtons.add(btnMidas);
     pnlLeftButtons.add(btnRefineAutoAlignment);
     // right buttons
@@ -154,7 +166,7 @@ public final class AutoAlignmentPanel {
     return pnlRoot.getContainer();
   }
 
-  void getMetaData(final AutoAlignmentMetaData metaData) {
+  void getParameters(final AutoAlignmentMetaData metaData) {
     metaData.setSigmaLowFrequency(ltfSigmaLowFrequency.getText());
     metaData.setCutoffHighFrequency(ltfCutoffHighFrequency.getText());
     metaData.setSigmaHighFrequency(ltfSigmaHighFrequency.getText());
