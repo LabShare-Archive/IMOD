@@ -1,5 +1,6 @@
 package etomo.type;
 
+import java.io.File;
 import java.util.Properties;
 
 import etomo.logic.SerialSectionsStartupData;
@@ -19,7 +20,8 @@ import etomo.logic.SerialSectionsStartupData;
 * 
 * <p> $Log$ </p>
 */
-public final class SerialSectionsMetaData extends BaseMetaData {
+public final class SerialSectionsMetaData extends BaseMetaData implements
+    ConstSerialSectionsMetaData {
   public static final String rcsid = "$Id:$";
 
   public static final String NEW_TITLE = "Serial Sections";
@@ -89,7 +91,13 @@ public final class SerialSectionsMetaData extends BaseMetaData {
     setName(startupData.getRootName());
     stack.set(startupData.getStack().getAbsolutePath());
     viewType.set(startupData.getViewType().getParamValue());
-    distortionField.set(startupData.getDistortionField().getAbsolutePath());
+    File file = startupData.getDistortionField();
+    if (file == null) {
+      distortionField.reset();
+    }
+    else {
+      distortionField.set(file.getAbsolutePath());
+    }
     imagesAreBinned.set(startupData.getImagesAreBinned());
   }
 
@@ -106,5 +114,13 @@ public final class SerialSectionsMetaData extends BaseMetaData {
 
   public AutoAlignmentMetaData getAutoAlignmentMetaData() {
     return autoAlignmentMetaData;
+  }
+
+  public String getStack() {
+    return stack.toString();
+  }
+
+  public String getViewType() {
+    return viewType.toString();
   }
 }
