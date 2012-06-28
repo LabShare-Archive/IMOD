@@ -4,8 +4,10 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
@@ -15,8 +17,8 @@ import javax.swing.event.ChangeListener;
 import etomo.AutoAlignmentController;
 import etomo.SerialSectionsManager;
 import etomo.comscript.XftoxgParam;
-import etomo.logic.SerialSectionsStartupData;
 import etomo.type.AxisID;
+import etomo.type.ConstSerialSectionsMetaData;
 import etomo.type.DialogType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SerialSectionsMetaData;
@@ -59,17 +61,18 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   private final MultiLineButton btnFixEdges = new MultiLineButton("Fix Edges With Midas");
   private final MultiLineButton btnOpenAlignedStack = new MultiLineButton(
       "Open Aligned Stack");
-  private final ButtonGroup bgXftoxg = new ButtonGroup();
+  private final ButtonGroup bgXftoxgAlignment = new ButtonGroup();
   private final RadioButton rbNoOptions = new RadioButton(
-      "Local fitting (retain trends)", bgXftoxg);
+      "Local fitting (retain trends)", bgXftoxgAlignment);
   private final RadioButton rbHybridFitsTranslations = new RadioButton(
-      "remove trends in translation", XftoxgParam.HybridFits.TRANSLATIONS, bgXftoxg);
+      "remove trends in translation", XftoxgParam.HybridFits.TRANSLATIONS,
+      bgXftoxgAlignment);
   private final RadioButton rbHybridFitsTranslationsRotations = new RadioButton(
       "remove trends in translation & rotation",
-      XftoxgParam.HybridFits.TRANSLATIONS_ROTATIONS, bgXftoxg);
+      XftoxgParam.HybridFits.TRANSLATIONS_ROTATIONS, bgXftoxgAlignment);
   private final RadioButton rbNumberToFitGlobalAlignment = new RadioButton(
       "remove trends in translation & rotation",
-      XftoxgParam.NumberToFit.GLOBAL_ALIGNMENT, bgXftoxg);
+      XftoxgParam.NumberToFit.GLOBAL_ALIGNMENT, bgXftoxgAlignment);
   private final Run3dmodButton btnMakeStack = Run3dmodButton.getDeferred3dmodInstance(
       "Make Stack", this);
   private final Run3dmodButton btnOpenStack = Run3dmodButton.get3dmodInstance(
@@ -80,28 +83,27 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   private LabeledTextField ltfSizeY = new LabeledTextField("Y: ");
   private LabeledTextField ltfShiftX = new LabeledTextField("Shift in X: ");
   private LabeledTextField ltfShiftY = new LabeledTextField("Y: ");
-  private Spinner spBinning = Spinner.getLabeledInstance("Binning", 1, 1, 8);
+  private Spinner spBinning = Spinner.getLabeledInstance("Binning: ", 1, 1, 8);
   private CheckBox cbFillWithZero = new CheckBox("Fill empty areas with 0");
 
   private final AutoAlignmentPanel autoAlignmentPanel;
   private final AxisID axisID;
   private final SerialSectionsManager manager;
-  private final SerialSectionsStartupData startupData;
+  private final ConstSerialSectionsMetaData metaData;
 
   private Tab curTab = null;
 
-  private SerialSectionsDialog(final SerialSectionsManager manager, final AxisID axisID,
-      final SerialSectionsStartupData startupData) {
+  private SerialSectionsDialog(final SerialSectionsManager manager, final AxisID axisID) {
     System.err.println(Utilities.getDateTimeStamp() + "\nDialog: " + DIALOG_TYPE);
     this.manager = manager;
     this.axisID = axisID;
-    this.startupData = startupData;
+    metaData = manager.getMetaData();
     autoAlignmentPanel = AutoAlignmentPanel.getSerialSectionsInstance(manager);
   }
 
   public static SerialSectionsDialog getInstance(final SerialSectionsManager manager,
-      final AxisID axisID, final SerialSectionsStartupData startupData) {
-    SerialSectionsDialog instance = new SerialSectionsDialog(manager, axisID, startupData);
+      final AxisID axisID) {
+    SerialSectionsDialog instance = new SerialSectionsDialog(manager, axisID);
     instance.createPanel();
     instance.setTooltips();
     instance.addListeners();
@@ -114,35 +116,54 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   }
 
   private void createPanel() {
+    // panels
+    JPanel pnlInitialBlendButtons = new JPanel();
+    JPanel pnlVerySloppyBlend = new JPanel();
+    JPanel pnlOpenAlignedStack = new JPanel();
+    JPanel pnlXftoxgAlignment = new JPanel();
+    JPanel pnlXftoxgAlignmentX = new JPanel();
+    JPanel pnlReferenceSection = new JPanel();
+    JPanel pnlSize = new JPanel();
+    JPanel pnlShift = new JPanel();
+    JPanel pnlMakeStackA = new JPanel();
+    JPanel pnlMakeStackButtons = new JPanel();
     // init
     for (int i = 0; i < Tab.NUM_TABS; i++) {
       pnlTabArray[i] = new JPanel();
       pnlTabBodyArray[i] = new JPanel();
       tabPane.add(Tab.getInstance(i).toString(), pnlTabArray[i]);
     }
-    tabPane.setEnabledAt(Tab.INITIAL_BLEND.index,
-        startupData.getViewType() == ViewType.MONTAGE);
-    curTab = Tab.getDefaultInstance(startupData.getViewType());
+    ViewType viewType = ViewType.fromString(metaData.getViewType());
+    tabPane.setEnabledAt(Tab.INITIAL_BLEND.index, viewType == ViewType.MONTAGE);
+    curTab = Tab.getDefaultInstance(viewType);
     tabPane.setSelectedIndex(curTab.index);
+    btnInitialBlend.setSize();
     btnInitialBlend.setDeferred3dmodButton(btnOpenInitialBlend);
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), startupData
-        .getStack().getName(), axisID);
+    btnOpenInitialBlend.setSize();
+    btnFixEdges.setSize();
+    btnOpenAlignedStack.setSize();
+    // Set the maximum reference section.
+    File stack = new File(metaData.getStack());
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        stack.getName(), axisID);
     try {
       header.read(manager);
       spReferenceSection.setMax(header.getNSections());
     }
     catch (IOException e) {
+      e.printStackTrace();
       cbReferenceSection.setEnabled(false);
-      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read"
-          + startupData.getStack().getName() + "\n" + e.getMessage(), "File Read Error",
-          axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read" + stack.getName()
+          + "\n" + e.getMessage(), "File Read Error", axisID);
     }
     catch (InvalidParameterException e) {
+      e.printStackTrace();
       cbReferenceSection.setEnabled(false);
-      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read"
-          + startupData.getStack().getName() + "\n" + e.getMessage(), "File Read Error",
-          axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read" + stack.getName()
+          + "\n" + e.getMessage(), "File Read Error", axisID);
     }
+    btnMakeStack.setSize();
+    btnOpenStack.setSize();
     updateDisplay();
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
@@ -152,31 +173,91 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     pnlTabArray[curTab.index].add(pnlTabBodyArray[curTab.index]);
     // initial blend
     int index = Tab.INITIAL_BLEND.index;
-    pnlTabBodyArray[index].add(cbVerySloppyBlend);
-    pnlTabBodyArray[index].add(btnInitialBlend.getComponent());
-    pnlTabBodyArray[index].add(btnOpenInitialBlend.getComponent());
-    pnlTabBodyArray[index].add(btnFixEdges.getComponent());
+    pnlTabBodyArray[index].setLayout(new BoxLayout(pnlTabBodyArray[index],
+        BoxLayout.Y_AXIS));
+    pnlTabBodyArray[index].add(pnlVerySloppyBlend);
+    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlTabBodyArray[index].add(pnlInitialBlendButtons);
+    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y5));
+    // very sloppy blend
+    pnlVerySloppyBlend.setLayout(new BoxLayout(pnlVerySloppyBlend, BoxLayout.X_AXIS));
+    pnlVerySloppyBlend.add(cbVerySloppyBlend);
+    pnlVerySloppyBlend.add(Box.createHorizontalGlue());
+    // initial blend buttons
+    pnlInitialBlendButtons.setLayout(new BoxLayout(pnlInitialBlendButtons,
+        BoxLayout.X_AXIS));
+    pnlInitialBlendButtons.add(Box.createHorizontalGlue());
+    pnlInitialBlendButtons.add(btnInitialBlend.getComponent());
+    pnlInitialBlendButtons.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlInitialBlendButtons.add(btnOpenInitialBlend.getComponent());
+    pnlInitialBlendButtons.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlInitialBlendButtons.add(btnFixEdges.getComponent());
+    pnlInitialBlendButtons.add(Box.createHorizontalGlue());
     // align
     index = Tab.ALIGN.index;
-    pnlTabBodyArray[index].add(btnOpenAlignedStack.getComponent());
+    pnlTabBodyArray[index].setLayout(new BoxLayout(pnlTabBodyArray[index],
+        BoxLayout.Y_AXIS));
+    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y3));
+    pnlTabBodyArray[index].add(pnlOpenAlignedStack);
+    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y5));
     pnlTabBodyArray[index].add(autoAlignmentPanel.getRootComponent());
+    // open aligned stack
+    pnlOpenAlignedStack.setLayout(new BoxLayout(pnlOpenAlignedStack, BoxLayout.X_AXIS));
+    pnlOpenAlignedStack.add(Box.createHorizontalGlue());
+    pnlOpenAlignedStack.add(btnOpenAlignedStack.getComponent());
+    pnlOpenAlignedStack.add(Box.createHorizontalGlue());
     // make stack
     index = Tab.MAKE_STACK.index;
-    pnlTabBodyArray[index].add(rbNoOptions.getComponent());
-    pnlTabBodyArray[index].add(rbHybridFitsTranslations.getComponent());
-    pnlTabBodyArray[index].add(rbHybridFitsTranslationsRotations.getComponent());
-    pnlTabBodyArray[index].add(rbNumberToFitGlobalAlignment.getComponent());
-    pnlTabBodyArray[index].add(cbReferenceSection);
-    pnlTabBodyArray[index].add(spReferenceSection.getContainer());
-    pnlTabBodyArray[index].add(ltfSizeX.getContainer());
-    pnlTabBodyArray[index].add(ltfSizeY.getContainer());
-    pnlTabBodyArray[index].add(ltfShiftX.getContainer());
-    pnlTabBodyArray[index].add(ltfShiftY.getContainer());
-    pnlTabBodyArray[index].add(spBinning.getContainer());
-    pnlTabBodyArray[index].add(cbFillWithZero);
-    pnlTabBodyArray[index].add(btnMakeStack.getComponent());
-    pnlTabBodyArray[index].add(btnOpenStack.getComponent());
+    pnlTabBodyArray[index].setLayout(new BoxLayout(pnlTabBodyArray[index],
+        BoxLayout.Y_AXIS));
+    pnlTabBodyArray[index].add(pnlXftoxgAlignmentX);
+    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y3));
+    pnlTabBodyArray[index].add(pnlReferenceSection);
+    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlTabBodyArray[index].add(pnlSize);
+    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlTabBodyArray[index].add(pnlShift);
+    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlTabBodyArray[index].add(pnlMakeStackA);
+    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlTabBodyArray[index].add(pnlMakeStackButtons);
+    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y5));
+    // xftoxg alignment X panel
+    pnlXftoxgAlignmentX.setLayout(new BoxLayout(pnlXftoxgAlignmentX, BoxLayout.X_AXIS));
+    pnlXftoxgAlignmentX.add(pnlXftoxgAlignment);
+    pnlXftoxgAlignmentX.add(Box.createHorizontalGlue());
+    // xftoxg alignment
+    pnlXftoxgAlignment.setLayout(new BoxLayout(pnlXftoxgAlignment, BoxLayout.Y_AXIS));
+    pnlXftoxgAlignment.setBorder(new EtchedBorder("Alignment").getBorder());
+    pnlXftoxgAlignment.add(rbNoOptions.getComponent());
+    pnlXftoxgAlignment.add(rbHybridFitsTranslations.getComponent());
+    pnlXftoxgAlignment.add(rbHybridFitsTranslationsRotations.getComponent());
+    pnlXftoxgAlignment.add(rbNumberToFitGlobalAlignment.getComponent());
     UIHarness.INSTANCE.pack(axisID, manager);
+    // reference section
+    pnlReferenceSection.setLayout(new BoxLayout(pnlReferenceSection, BoxLayout.X_AXIS));
+    pnlReferenceSection.add(cbReferenceSection);
+    pnlReferenceSection.add(spReferenceSection.getContainer());
+    // size
+    pnlSize.setLayout(new BoxLayout(pnlSize, BoxLayout.X_AXIS));
+    pnlSize.add(ltfSizeX.getContainer());
+    pnlSize.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlSize.add(ltfSizeY.getContainer());
+    // shift
+    pnlShift.setLayout(new BoxLayout(pnlShift, BoxLayout.X_AXIS));
+    pnlShift.add(ltfShiftX.getContainer());
+    pnlShift.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlShift.add(ltfShiftY.getContainer());
+    //make stack subpanel 1
+    pnlMakeStackA.setLayout(new BoxLayout(pnlMakeStackA, BoxLayout.X_AXIS));
+    pnlMakeStackA.add(spBinning.getContainer());
+    pnlMakeStackA.add(Box.createRigidArea(FixedDim.x20_y0));
+    pnlMakeStackA.add(cbFillWithZero);
+    //make stack buttons
+    pnlMakeStackButtons.setLayout(new BoxLayout(pnlMakeStackButtons,BoxLayout.X_AXIS));
+    pnlMakeStackButtons.add(btnMakeStack.getComponent());
+    pnlMakeStackButtons.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlMakeStackButtons.add(btnOpenStack.getComponent());
   }
 
   public Container getRootContainer() {
@@ -210,8 +291,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     autoAlignmentPanel.enableMidas();
   }
 
-  public boolean getMetaData(SerialSectionsMetaData metaData) {
-    autoAlignmentPanel.getMetaData(metaData.getAutoAlignmentMetaData());
+  public boolean getParameters(final SerialSectionsMetaData metaData) {
+    autoAlignmentPanel.getParameters(metaData.getAutoAlignmentMetaData());
     return true;
   }
 
