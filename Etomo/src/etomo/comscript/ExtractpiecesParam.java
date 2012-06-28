@@ -52,7 +52,7 @@ public class ExtractpiecesParam {
   public ExtractpiecesParam(final String rawStackFileName, final String rootName,
       final AxisType axisType, final BaseManager manager, final AxisID axisID) {
     this.axisID = axisID;
-    this.manager = null;
+    this.manager = manager;
     this.rawStackFileName = rawStackFileName;
     this.rootName = rootName;
     this.axisType = axisType;
