@@ -1492,7 +1492,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     synchronize();
     metaData.setRootName(ltfRootName.getText());
     metaData.setDensityRefSection(spinDensityRefSection.getValue());
-    autoAlignmentPanel.getMetaData(metaData.getAutoAlignmentMetaData());
+    autoAlignmentPanel.getParameters(metaData.getAutoAlignmentMetaData());
     metaData.setUseAlignmentRefSection(cbsAlignmentRefSection.isSelected());
     metaData.setAlignmentRefSection(cbsAlignmentRefSection.getValue());
     metaData.setSizeInX(ltfSizeInX.getText());
