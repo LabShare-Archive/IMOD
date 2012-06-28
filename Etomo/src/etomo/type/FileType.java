@@ -711,7 +711,7 @@ public final class FileType {
       return null;
     }
     if (composite) {
-      return getChildFileType(manager).getLeftSide(manager, axisID);
+      return getChildFileType(manager).getLeftSide(rootName, axisType, manager, axisID);
     }
     if (!usesDataset && !usesAxisID) {
       // Example: flatten.com
