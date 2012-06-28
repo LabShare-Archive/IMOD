@@ -753,7 +753,7 @@ void BeadFixer::nextRes()
 {
   int inobj, incont, inview, curpt, obj, nobj, cont, ncont, ipt, npnt;
   int obsav, cosav, ptsav, i, j, numToSee;
-  int found = 0;
+  int found;
   float  xr, yr, resval, dx, dy;
   Iobj *ob = NULL;
   Icont *con;
@@ -801,6 +801,7 @@ void BeadFixer::nextRes()
 
     /* See if point is on list */
     belowThresh = mHasWeights && sSkipLowWeight && rpt->weight <= sWeightThresh;
+    found = 0;
     for (i = 0; i < mNumLooked && !found; i++)
       if (inobj == mLookedList[i].obj && 
           incont == mLookedList[i].cont
