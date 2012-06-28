@@ -10,11 +10,13 @@ import etomo.logic.SerialSectionsStartupData;
 import etomo.process.BaseProcessManager;
 import etomo.process.SerialSectionsProcessManager;
 import etomo.process.SystemProcessException;
+import etomo.storage.LogFile;
 import etomo.storage.Storable;
 import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
+import etomo.type.ConstSerialSectionsMetaData;
 import etomo.type.DialogType;
 import etomo.type.InterfaceType;
 import etomo.type.ProcessEndState;
@@ -212,7 +214,7 @@ public final class SerialSectionsManager extends BaseManager {
       return;
     }
     if (dialog == null) {
-      dialog = SerialSectionsDialog.getInstance(this, AXIS_ID, startupData);
+      dialog = SerialSectionsDialog.getInstance(this, AXIS_ID);
     }
     autoAlignmentController = new AutoAlignmentController(this, dialog);
     dialog.setAutoAlignmentController(autoAlignmentController);
@@ -312,6 +314,41 @@ public final class SerialSectionsManager extends BaseManager {
       processSeries.startNextProcess(axisID, null);
     }
   }
+  
+  public boolean exitProgram(final AxisID axisID) {
+    try {
+      if (super.exitProgram(axisID)) {
+        endThreads();
+        saveParamFile();
+        return true;
+      }
+      return false;
+    }
+    catch (Throwable e) {
+      e.printStackTrace();
+      return true;
+    }
+  }
+  
+  public void save() throws LogFile.LockException, IOException {
+    super.save();
+    mainPanel.done();
+    saveSerialSectionsDialog(false);
+  }
+  
+  private boolean saveSerialSectionsDialog(final boolean forRun) {
+    if (dialog == null) {
+      return false;
+    }
+    if (paramFile == null) {
+      if (!setParamFile()) {
+        return false;
+      }
+    }
+    dialog.getParameters(metaData);
+    saveStorables(AXIS_ID);
+    return true;
+  }
 
   /**
    * Attempts to get the distortion field file from the dialogType dialog.  Returns null
@@ -347,6 +384,10 @@ public final class SerialSectionsManager extends BaseManager {
     if (dialogType == DialogType.SERIAL_SECTIONS_STARTUP) {
       startupDialog.close();
     }
+  }
+  
+  public ConstSerialSectionsMetaData getMetaData() {
+    return metaData;
   }
 
   /**
@@ -406,7 +447,7 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   public boolean updateMetaData(final DialogType dialogType, final AxisID axisID) {
-    return dialog.getMetaData(metaData);
+    return dialog.getParameters(metaData);
   }
 
   Storable[] getStorables(final int offset) {
