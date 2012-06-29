@@ -239,6 +239,10 @@ public final class SerialSectionsManager extends BaseManager {
     else if (process.equals(Task.RESET_SAVED_STATE_DIALOG)) {
       resetSavedStateDialog(dialogType);
     }
+    else if (process.equals(Task.CREATE_COMSCRIPTS)) {
+      //TODO
+      //createComscripts(processSeries);
+    }
   }
 
   /**
@@ -254,8 +258,9 @@ public final class SerialSectionsManager extends BaseManager {
       final ProcessResultDisplay processResultDisplay, final DialogType dialogType,
       final SerialSectionsStartupData startupData) {
     ProcessSeries processSeries = new ProcessSeries(this, dialogType);
-    processSeries.setNextProcess(Task.COPY_DISTORTION_FIELD_FILE);
     processSeries.setFailProcess(Task.RESET_SAVED_STATE_DIALOG);
+    processSeries.setNextProcess(Task.CREATE_COMSCRIPTS);
+    processSeries.addProcess(Task.COPY_DISTORTION_FIELD_FILE);
     processSeries.setLastProcess(Task.CLOSE_DIALOG);
     if (startupData.getViewType() == ViewType.MONTAGE) {
       File pieceListFile = DatasetFiles.getPieceListFile(this, axisID);
@@ -314,7 +319,7 @@ public final class SerialSectionsManager extends BaseManager {
       processSeries.startNextProcess(axisID, null);
     }
   }
-  
+
   public boolean exitProgram(final AxisID axisID) {
     try {
       if (super.exitProgram(axisID)) {
@@ -329,13 +334,13 @@ public final class SerialSectionsManager extends BaseManager {
       return true;
     }
   }
-  
+
   public void save() throws LogFile.LockException, IOException {
     super.save();
     mainPanel.done();
     saveSerialSectionsDialog(false);
   }
-  
+
   private boolean saveSerialSectionsDialog(final boolean forRun) {
     if (dialog == null) {
       return false;
@@ -385,7 +390,7 @@ public final class SerialSectionsManager extends BaseManager {
       startupDialog.close();
     }
   }
-  
+
   public ConstSerialSectionsMetaData getMetaData() {
     return metaData;
   }
@@ -458,11 +463,19 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   public static final class Task implements TaskInterface {
-    private static final Task COPY_DISTORTION_FIELD_FILE = new Task();
-    public static final Task CLOSE_DIALOG = new Task();
-    private static final Task RESET_SAVED_STATE_DIALOG = new Task();
+    private static final Task CREATE_COMSCRIPTS = new Task(false);
+    private static final Task COPY_DISTORTION_FIELD_FILE = new Task(false);
+    public static final Task CLOSE_DIALOG = new Task(true);
+    private static final Task RESET_SAVED_STATE_DIALOG = new Task(true);
 
-    private Task() {
+    private final boolean droppable;
+
+    private Task(final boolean droppable) {
+      this.droppable = droppable;
+    }
+
+    public boolean okToDrop() {
+      return droppable;
     }
   }
 }
