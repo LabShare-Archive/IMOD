@@ -1863,14 +1863,11 @@ CONTAINS
   subroutine findNearestSobelPeak()
     integer*4 ibest
     real*4 distMin, peakMax, xpcen, ypcen, reduceFac
-    dist = sqrt(xpeak**2 + ypeak**2)
-    xpcen = 0.
-    ypcen = 0.
-    if (dist > 0.1) then
-      reduceFac = 1. - min(distMin, diameter) / dist
-      xpcen = reduceFac * xpeak
-      ypcen = reduceFac * ypeak
-    endif
+    !
+    ! Tried to moved reference position toward center of expected position (0,0) by up to
+    ! half a bead diameter - it was sometimes signinficantly worse
+    xpcen = xpeak
+    ypcen = ypeak
     ibest = 0
     peakMax = -1.e30
     distMin = 1.e20
