@@ -40,4 +40,6 @@ public interface ConstProcessSeries {
 
   public void startFailProcess(final AxisID axisID,
       final ProcessResultDisplay processResultDisplay);
+
+  public boolean willProcessListBeDropped();
 }
