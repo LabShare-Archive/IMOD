@@ -176,6 +176,10 @@ public final class ProcessSeries implements ConstProcessSeries {
   private final ProcessDisplay processDisplay;
 
   private Process nextProcess = null;
+  /**
+   * The processes between nextProcess and lastProcess
+   */
+  private Process processList = null;
   private Process lastProcess = null;
   // 3dmod is opened after last process.
   private Deferred3dmodButton run3dmodButton = null;
@@ -222,6 +226,10 @@ public final class ProcessSeries implements ConstProcessSeries {
       process = nextProcess;
       nextProcess = null;
     }
+    else if (processList != null) {
+      process = processList;
+      processList = processList.next;
+    }
     else if (lastProcess != null) {
       process = lastProcess;
       lastProcess = null;
@@ -251,6 +259,7 @@ public final class ProcessSeries implements ConstProcessSeries {
       return;
     }
     nextProcess = null;
+    processList = null;
     lastProcess = null;
     run3dmodButton = null;
     run3dmodMenuOptions = null;
@@ -289,6 +298,26 @@ public final class ProcessSeries implements ConstProcessSeries {
   }
 
   /**
+   * Adds a process to the end of processList.
+   * @param task
+   */
+  public void addProcess(final TaskInterface task) {
+    Process endOfList = null;
+    Process process = processList;
+    while (process != null) {
+      endOfList = process;
+      process = process.next;
+    }
+    process = new Process(null, null, null, null, null, task);
+    if (endOfList != null) {
+      endOfList.next = process;
+    }
+    else {
+      processList = process;
+    }
+  }
+
+  /**
    * Keep final.  Adds next process 
    * @param axisID
    * @param process
@@ -322,21 +351,47 @@ public final class ProcessSeries implements ConstProcessSeries {
   }
 
   void clearProcesses() {
+    failProcess = null;
     nextProcess = null;
+    processList = null;
     lastProcess = null;
     run3dmodButton = null;
     run3dmodMenuOptions = null;
   }
 
   /**
-   * Return true if nextProcess exists, or lastProcess exists and hasn't been saved in
-   * processData.  Ignore run3dmodButton.
+   * Return true if a next process or process list exists and is not OK to drop, or
+   * lastProcess exists and hasn't been saved in processData.  Ignore run3dmodButton and
+   * failProcess.
    */
   public boolean willProcessBeDropped(ProcessData processData) {
-    if (nextProcess != null) {
+    return willProcessBeDropped(processData, false);
+  }
+
+  /**
+   * Return true if a next process or process list exists and is not OK to drop, or
+   * lastProcess exists and hasn't been saved in processData.  Ignore run3dmodButton and
+   * failProcess.  If processListOnly is true, only check processList.
+   */
+  private boolean willProcessBeDropped(ProcessData processData,
+      final boolean processListOnly) {
+    if (!processListOnly && willProcessBeDropped(nextProcess)) {
       return true;
     }
-    if (lastProcess == null) {
+    Process process = processList;
+    while (process != null) {
+      if (willProcessBeDropped(process)) {
+        return true;
+      }
+      process = process.next;
+    }
+    if (processListOnly) {
+      return false;
+    }
+    if (willProcessBeDropped(lastProcess)) {
+      return true;
+    }
+    if (processData == null) {
       return false;
     }
     // Return true of the last process information in processData doesn't match the
@@ -345,9 +400,34 @@ public final class ProcessSeries implements ConstProcessSeries {
         || !lastProcess.equals(processData.getLastProcess());
   }
 
+  /**
+   * Return true if a process exists in process list and is not OK to drop.
+   */
+  public boolean willProcessListBeDropped() {
+    return willProcessBeDropped(null, true);
+  }
+
+  /**
+   * Trues true if the process exists and is not OK to drop.
+   * @param process
+   * @return
+   */
+  private boolean willProcessBeDropped(final Process process) {
+    if (process == null) {
+      return false;
+    }
+    if (process.task == null) {
+      return true;
+    }
+    return !process.task.okToDrop();
+  }
+
   public String peekNextProcess() {
     if (nextProcess != null) {
       return nextProcess.getProcess();
+    }
+    if (processList != null) {
+      return processList.getProcess();
     }
     if (lastProcess != null) {
       return lastProcess.getProcess();
@@ -431,6 +511,8 @@ public final class ProcessSeries implements ConstProcessSeries {
     private final ProcessingMethod processingMethod;
     private final TaskInterface task;
 
+    private Process next = null;
+
     private Process(final String process, final ProcessName subprocessName,
         final FileType outputImageFileType, final FileType outputImageFileType2,
         final ProcessingMethod processingMethod, final TaskInterface task) {
@@ -443,7 +525,15 @@ public final class ProcessSeries implements ConstProcessSeries {
     }
 
     private String getProcess() {
-      return process;
+      if (process != null) {
+        return process;
+      }
+      if (task != null) {
+        return task.toString();
+      }
+      else {
+        return null;
+      }
     }
 
     public ProcessName getSubprocessName() {
