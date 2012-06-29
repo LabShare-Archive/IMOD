@@ -16,4 +16,6 @@ package etomo;
 */
 interface TaskInterface {
   public static  final String  rcsid =  "$Id:$";
+  
+  public boolean okToDrop();
 }
