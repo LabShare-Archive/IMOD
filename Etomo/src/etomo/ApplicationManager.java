@@ -1889,7 +1889,7 @@ public final class ApplicationManager extends BaseManager implements
     if (metaData.getViewType() == ViewType.MONTAGE) {
       blendmontParam = comScriptMgr.getBlendmontParamFromTiltxcorr(axisID);
       GotoParam gotoParam = comScriptMgr.getGotoParamFromTiltxcorr(axisID);
-      runningBlendmont = blendmontParam.setBlendmontState();
+      runningBlendmont = blendmontParam.setBlendmontState(state.getInvalidEdgeFunctions(axisID));
       if (runningBlendmont) {
         gotoParam.setLabel(BlendmontParam.GOTO_LABEL);
       }
@@ -1913,7 +1913,7 @@ public final class ApplicationManager extends BaseManager implements
   private void updateUndistortCom(AxisID axisID) {
     BlendmontParam blendmontParam = comScriptMgr.getBlendmontParamFromTiltxcorr(axisID);
     blendmontParam.setMode(BlendmontParam.Mode.UNDISTORT);
-    blendmontParam.setBlendmontState();
+    blendmontParam.setBlendmontState(state.getInvalidEdgeFunctions(axisID));
     comScriptMgr.saveXcorrToUndistort(blendmontParam, axisID);
   }
 
@@ -1960,7 +1960,7 @@ public final class ApplicationManager extends BaseManager implements
     if (!display.getParameters(preblendParam)) {
       return null;
     }
-    preblendParam.setBlendmontState();
+    preblendParam.setBlendmontState(state.getInvalidEdgeFunctions(axisID));
     comScriptMgr.savePreblend(preblendParam, axisID);
     return preblendParam;
   }
@@ -3955,7 +3955,7 @@ public final class ApplicationManager extends BaseManager implements
       return null;
     }
     blendParam.setMode(BlendmontParam.Mode.BLEND);
-    blendParam.setBlendmontState();
+    blendParam.setBlendmontState(state.getInvalidEdgeFunctions(axisID));
     comScriptMgr.saveBlend(blendParam, axisID);
     return blendParam;
   }
@@ -3976,7 +3976,7 @@ public final class ApplicationManager extends BaseManager implements
       return null;
     }
     blendParam.setMode(BlendmontParam.Mode.BLEND_3DFIND);
-    blendParam.setBlendmontState();
+    blendParam.setBlendmontState(state.getInvalidEdgeFunctions(axisID));
     blendParam.setImageOutputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT);
     comScriptMgr.saveBlend3dFind(blendParam, axisID);
     // Update mrctaper
