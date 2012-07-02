@@ -16,8 +16,10 @@ import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
+import etomo.type.ConstProcessSeries;
 import etomo.type.ConstSerialSectionsMetaData;
 import etomo.type.DialogType;
+import etomo.type.FileType;
 import etomo.type.InterfaceType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
@@ -227,46 +229,61 @@ public final class SerialSectionsManager extends BaseManager {
     }
   }
 
+  public void startStartupProcessSeries(final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay) {
+    ProcessSeries processSeries = new ProcessSeries(this,
+        DialogType.SERIAL_SECTIONS_STARTUP);
+    processSeries.setNextProcess(Task.EXTRACT_PIECES);
+    processSeries.addProcess(Task.CREATE_COMSCRIPTS);
+    processSeries.addProcess(Task.COPY_DISTORTION_FIELD_FILE, true);
+    processSeries.setLastProcess(Task.CLOSE_DIALOG);
+    processSeries.setFailProcess(Task.RESET_SAVED_STATE_DIALOG);
+    processSeries.startNextProcess(axisID, processResultDisplay);
+  }
+
   void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
       final DialogType dialogType, final ProcessDisplay display) {
-    if (process.equals(Task.COPY_DISTORTION_FIELD_FILE)) {
-      copyDistortionFieldFile(processSeries, axisID, dialogType);
-    }
-    else if (process.equals(Task.CLOSE_DIALOG)) {
-      closeDialog(dialogType);
-    }
-    else if (process.equals(Task.RESET_SAVED_STATE_DIALOG)) {
-      resetSavedStateDialog(dialogType);
+    if (process.equals(Task.EXTRACT_PIECES)) {
+      extractpieces(axisID, processResultDisplay, processSeries, dialogType);
     }
     else if (process.equals(Task.CREATE_COMSCRIPTS)) {
-      //TODO
-      //createComscripts(processSeries);
+      createComscripts(axisID, processSeries, processResultDisplay);
+    }
+    else if (process.equals(Task.COPY_DISTORTION_FIELD_FILE)) {
+      copyDistortionFieldFile(processSeries, axisID, processResultDisplay);
+    }
+    else if (process.equals(Task.CLOSE_DIALOG)) {
+      closeDialog(dialogType, processSeries, axisID, processResultDisplay);
+    }
+    if (process.equals(Task.RESET_SAVED_STATE_DIALOG)) {
+      resetSavedStateDialog(dialogType, processSeries, axisID, processResultDisplay);
     }
   }
 
   /**
-   * Sets the next and last process and starts the extractpiecelist process.  If the
-   * extractpiecelist did not have to be run,
-   * runs the next process.
+   * Runs extractpieces.  Starts a failure process if it fails.  Starts the next process
+   * if it didn't spawn a process thread.
    * @param axisID
    * @param processResultDisplay
    * @param dialogType
    * @param startupData
    */
-  public boolean extractpieces(final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay, final DialogType dialogType,
-      final SerialSectionsStartupData startupData) {
-    ProcessSeries processSeries = new ProcessSeries(this, dialogType);
-    processSeries.setFailProcess(Task.RESET_SAVED_STATE_DIALOG);
-    processSeries.setNextProcess(Task.CREATE_COMSCRIPTS);
-    processSeries.addProcess(Task.COPY_DISTORTION_FIELD_FILE);
-    processSeries.setLastProcess(Task.CLOSE_DIALOG);
-    if (startupData.getViewType() == ViewType.MONTAGE) {
+  private void extractpieces(final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final DialogType dialogType) {
+    ViewType viewType = getViewType();
+    if (viewType == null) {
+      if (processSeries != null) {
+        processSeries.startFailProcess(axisID, processResultDisplay);
+      }
+      return;
+    }
+    if (viewType == ViewType.MONTAGE) {
       File pieceListFile = DatasetFiles.getPieceListFile(this, axisID);
       if (!pieceListFile.exists()) {
-        ExtractpiecesParam param = new ExtractpiecesParam(startupData.getStack()
-            .getName(), startupData.getRootName(), AxisType.SINGLE_AXIS, this, axisID);
+        ExtractpiecesParam param = new ExtractpiecesParam(getStack().getName(),
+            getName(), AxisType.SINGLE_AXIS, this, axisID);
         String threadName;
         try {
           threadName = processMgr.extractpieces(param, axisID, processResultDisplay,
@@ -278,31 +295,55 @@ public final class SerialSectionsManager extends BaseManager {
           message[0] = "Can not execute " + ExtractpiecesParam.COMMAND_NAME;
           message[1] = e.getMessage();
           uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
-          return false;
+          if (processSeries != null) {
+            processSeries.startFailProcess(axisID, processResultDisplay);
+          }
+          return;
         }
         setThreadName(threadName, axisID);
         getMainPanel().startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME,
             axisID, ProcessName.EXTRACTPIECES);
-        return true;
       }
     }
-    // extractpiecelist did not run and there was no failure.
-    processSeries.startNextProcess(axisID, processResultDisplay);
-    return true;
+    else if (processSeries != null) {
+      processSeries.startNextProcess(axisID, processResultDisplay);
+    }
   }
 
   /**
-   * Copies the distortion field file to the directory containing the stack.  Always runs 
-   * the next process.
+   * 
+   * @param axisID
+   * @param processSeries
+   * @param processResultDisplay
+   */
+  private void createComscripts(final AxisID axisID,
+      final ConstProcessSeries processSeries,
+      final ProcessResultDisplay processResultDisplay) {
+    if (startupDialog == null) {
+      processSeries.startFailProcess(axisID, processResultDisplay);
+      return;
+    }
+    BaseProcessManager.touch(FileType.PREBLEND_COMSCRIPT.getFile(this, axisID)
+        .getAbsolutePath(), this);
+   // BlendmontParam param = new BlendmontParam(this, getName(), axisID,
+   //     BlendmontParam.Mode.PREBLEND_SERIAL_SECTION);
+    if (processSeries != null) {
+      processSeries.startNextProcess(axisID, processResultDisplay);
+    }
+  }
+
+  /**
+   * Copies the distortion field file to the directory containing the stack.  Always tries
+   * to start the next process.
    * @param processSeries
    * @param axisID
    * @param dialogType
    */
-  public void copyDistortionFieldFile(final ProcessSeries processSeries,
-      final AxisID axisID, final DialogType dialogType) {
-    File distortionField = getDistortionField(dialogType);
+  private void copyDistortionFieldFile(final ProcessSeries processSeries,
+      final AxisID axisID, final ProcessResultDisplay processResultDisplay) {
+    File distortionField = getDistortionField();
     if (distortionField != null) {
-      File stack = getStack(dialogType);
+      File stack = getStack();
       if (stack != null) {
         try {
           Utilities.copyFile(distortionField, new File(stack.getParentFile(),
@@ -312,11 +353,53 @@ public final class SerialSectionsManager extends BaseManager {
           UIHarness.INSTANCE.openMessageDialog(this,
               "Unable to copy " + distortionField.getAbsolutePath()
                   + ".  Please copy this file by hand.", "Unable to Copy File", axisID);
+          if (processSeries != null) {
+            processSeries.startFailProcess(axisID, processResultDisplay);
+          }
+          return;
         }
       }
     }
     if (processSeries != null) {
-      processSeries.startNextProcess(axisID, null);
+      processSeries.startNextProcess(axisID, processResultDisplay);
+    }
+  }
+
+  /**
+   * Attempts to close the dialogType dialog.  Currently only closes the startup dialog.
+   * Tries to start the next process
+   * @param dialogType
+   */
+  private void closeDialog(final DialogType dialogType,
+      final ProcessSeries processSeries, final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay) {
+    if (dialogType == DialogType.SERIAL_SECTIONS_STARTUP) {
+      startupDialog.close();
+      if (processSeries != null) {
+        processSeries.startNextProcess(axisID, processResultDisplay);
+      }
+    }
+    else if (processSeries != null) {
+      processSeries.startFailProcess(axisID, processResultDisplay);
+    }
+  }
+
+  /**
+   * Attempts to reset the saved state of dialogType dialog.  Currently only does this for
+   * startup dialog.
+   * @param dialogType
+   */
+  private void resetSavedStateDialog(final DialogType dialogType,
+      final ProcessSeries processSeries, final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay) {
+    if (dialogType == DialogType.SERIAL_SECTIONS_STARTUP) {
+      startupDialog.resetSavedState();
+      if (processSeries != null) {
+        processSeries.startNextProcess(axisID, processResultDisplay);
+      }
+    }
+    else if (processSeries != null) {
+      processSeries.startFailProcess(axisID, processResultDisplay);
     }
   }
 
@@ -355,55 +438,63 @@ public final class SerialSectionsManager extends BaseManager {
     return true;
   }
 
-  /**
-   * Attempts to get the distortion field file from the dialogType dialog.  Returns null
-   * if unable to get the file.
-   * @param dialogType
-   * @return
-   */
-  private File getDistortionField(final DialogType dialogType) {
-    if (dialogType != DialogType.SERIAL_SECTIONS_STARTUP || startupDialog == null) {
-      return null;
+  public String getName() {
+    if (loadedParamFile) {
+      return metaData.getName();
     }
-    return startupDialog.getDistortionField();
+    if (startupDialog != null) {
+      return startupDialog.getRootName();
+    }
+    return metaData.getName();
   }
 
   /**
-   * Attempts to get the stack file from the dialogType dialog.  Returns null if unable to
-   * get the file.  Currently only gets the stack from the startup dialog.
+   * Attempts to get the distortion field file.  Returns null if unable to get the file.
    * @param dialogType
    * @return
    */
-  private File getStack(final DialogType dialogType) {
-    if (dialogType != DialogType.SERIAL_SECTIONS_STARTUP || startupDialog == null) {
-      return null;
+  private File getDistortionField() {
+    if (loadedParamFile) {
+      return new File(metaData.getDistortionField());
     }
-    return startupDialog.getStack();
+    if (startupDialog != null) {
+      return startupDialog.getDistortionField();
+    }
+    return null;
   }
 
   /**
-   * Attempts to close the dialogType dialog.  Currently only closes the startup dialog.
+   * Attempts to get the stack file.  Returns null if unable to get the file.
    * @param dialogType
+   * @return
    */
-  private void closeDialog(final DialogType dialogType) {
-    if (dialogType == DialogType.SERIAL_SECTIONS_STARTUP) {
-      startupDialog.close();
+  private File getStack() {
+    if (loadedParamFile) {
+      return new File(metaData.getStack());
     }
+    if (startupDialog != null) {
+      return startupDialog.getStack();
+    }
+    return null;
+  }
+
+  /**
+   * Attempts to get the view type.  Returns null if unable to get it.
+   * @param dialogType
+   * @return
+   */
+  private ViewType getViewType() {
+    if (loadedParamFile) {
+      return ViewType.fromString(metaData.getViewType());
+    }
+    if (startupDialog != null) {
+      return startupDialog.getViewType();
+    }
+    return null;
   }
 
   public ConstSerialSectionsMetaData getMetaData() {
     return metaData;
-  }
-
-  /**
-   * Attempts to reset the saved state of dialogType dialog.  Currently only does this for
-   * startup dialog.
-   * @param dialogType
-   */
-  private void resetSavedStateDialog(final DialogType dialogType) {
-    if (dialogType == DialogType.SERIAL_SECTIONS_STARTUP) {
-      startupDialog.resetSavedState();
-    }
   }
 
   private void setSerialSectionsDialogParameters() {
@@ -439,10 +530,6 @@ public final class SerialSectionsManager extends BaseManager {
     return mainPanel;
   }
 
-  public String getName() {
-    return metaData.getName();
-  }
-
   public BaseProcessManager getProcessManager() {
     return processMgr;
   }
@@ -463,9 +550,10 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   public static final class Task implements TaskInterface {
+    private static final Task EXTRACT_PIECES = new Task(false);
     private static final Task CREATE_COMSCRIPTS = new Task(false);
     private static final Task COPY_DISTORTION_FIELD_FILE = new Task(false);
-    public static final Task CLOSE_DIALOG = new Task(true);
+    private static final Task CLOSE_DIALOG = new Task(true);
     private static final Task RESET_SAVED_STATE_DIALOG = new Task(true);
 
     private final boolean droppable;
