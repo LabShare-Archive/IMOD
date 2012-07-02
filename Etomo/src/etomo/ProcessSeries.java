@@ -186,6 +186,7 @@ public final class ProcessSeries implements ConstProcessSeries {
   private Run3dmodMenuOptions run3dmodMenuOptions = null;
   private Process failProcess = null;
   private boolean debug = false;
+  private boolean forceNextProcess = false;
 
   public void dumpState() {
     System.err.print("[debug:" + debug + "]");
@@ -212,14 +213,14 @@ public final class ProcessSeries implements ConstProcessSeries {
    * Start next process from the start process queue.  If it is 
    * empty then start next process from the end process queue.  If next process
    * and last process are empty, run 3dmod based on deferred3dmodButton and
-   * run3dmodMenuOptions.  The started process is removed.
+   * run3dmodMenuOptions.  The started process is removed.  If there are no processes to
+   * start, the fail process is removed.
    * @param axisID
    * @param processResultDisplay
    * @return true if a process is run.
    */
   public boolean startNextProcess(final AxisID axisID,
       final ProcessResultDisplay processResultDisplay) {
-    failProcess = null;
     // Get the next process.
     Process process = null;
     if (nextProcess != null) {
@@ -239,34 +240,42 @@ public final class ProcessSeries implements ConstProcessSeries {
       return true;
     }
     else {
+      failProcess = null;
       return false;
     }
     sendMsgSecondaryProcess(processResultDisplay);
     if (debug) {
       System.out.println("ProcessSeries.startNextProcess:process=" + process);
     }
+    forceNextProcess = process.forceNextProcess;
     manager.startNextProcess(axisID, process, processResultDisplay, this, dialogType,
         processDisplay);
     return true;
   }
 
   /**
-   * If a fail process has been saved, all other processes are deleted and the failprocess is started.
+   * If a fail process has been saved, all other processes are deleted and the failprocess
+   * is started.
    */
   public void startFailProcess(final AxisID axisID,
       final ProcessResultDisplay processResultDisplay) {
-    if (failProcess == null) {
-      return;
+    if (forceNextProcess) {
+      startNextProcess(axisID, processResultDisplay);
     }
-    nextProcess = null;
-    processList = null;
-    lastProcess = null;
-    run3dmodButton = null;
-    run3dmodMenuOptions = null;
-    Process process = failProcess;
-    failProcess = null;
-    manager.startNextProcess(axisID, process, processResultDisplay, this, dialogType,
-        processDisplay);
+    else {
+      if (failProcess == null) {
+        return;
+      }
+      nextProcess = null;
+      processList = null;
+      lastProcess = null;
+      run3dmodButton = null;
+      run3dmodMenuOptions = null;
+      Process process = failProcess;
+      failProcess = null;
+      manager.startNextProcess(axisID, process, processResultDisplay, this, dialogType,
+          processDisplay);
+    }
   }
 
   public void setDebug(boolean input) {
@@ -290,25 +299,29 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param process
    */
   public void setNextProcess(final String process, final ProcessingMethod processingMethod) {
-    nextProcess = new Process(process, null, null, null, processingMethod, null);
+    nextProcess = new Process(process, null, null, null, processingMethod, null, false);
   }
 
   public void setNextProcess(final TaskInterface task) {
-    nextProcess = new Process(null, null, null, null, null, task);
+    nextProcess = new Process(null, null, null, null, null, task, false);
+  }
+
+  public void addProcess(final TaskInterface task) {
+    addProcess(task, false);
   }
 
   /**
    * Adds a process to the end of processList.
    * @param task
    */
-  public void addProcess(final TaskInterface task) {
+  public void addProcess(final TaskInterface task, final boolean forceNextProcess) {
     Process endOfList = null;
     Process process = processList;
     while (process != null) {
       endOfList = process;
       process = process.next;
     }
-    process = new Process(null, null, null, null, null, task);
+    process = new Process(null, null, null, null, null, task, forceNextProcess);
     if (endOfList != null) {
       endOfList.next = process;
     }
@@ -324,7 +337,8 @@ public final class ProcessSeries implements ConstProcessSeries {
    */
   public void setNextProcess(final String process, final ProcessName subprocessName,
       final ProcessingMethod processingMethod) {
-    nextProcess = new Process(process, subprocessName, null, null, processingMethod, null);
+    nextProcess = new Process(process, subprocessName, null, null, processingMethod,
+        null, false);
   }
 
   /**
@@ -335,7 +349,7 @@ public final class ProcessSeries implements ConstProcessSeries {
   public void setNextProcess(final String process, final ProcessName subprocessName,
       final FileType outputImageFileType, final ProcessingMethod processingMethod) {
     nextProcess = new Process(process, subprocessName, outputImageFileType, null,
-        processingMethod, null);
+        processingMethod, null, false);
   }
 
   /**
@@ -347,7 +361,7 @@ public final class ProcessSeries implements ConstProcessSeries {
       final FileType outputImageFileType, final FileType outputImageFileType2,
       final ProcessingMethod processingMethod) {
     nextProcess = new Process(process, subprocessName, outputImageFileType,
-        outputImageFileType2, processingMethod, null);
+        outputImageFileType2, processingMethod, null, false);
   }
 
   void clearProcesses() {
@@ -444,22 +458,22 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param process
    */
   public void setLastProcess(final String process) {
-    lastProcess = new Process(process, null, null, null, null, null);
+    lastProcess = new Process(process, null, null, null, null, null, false);
   }
 
   public void setLastProcess(final TaskInterface task) {
-    lastProcess = new Process(null, null, null, null, null, task);
+    lastProcess = new Process(null, null, null, null, null, task, false);
   }
 
   /**
-   * A process to start when the current process fails and forceNextProcess is off (see
+   * A process to start when one of the process fails and forceNextProcess is off (see
    * BaseManager).  When a failProcess is run, nextProcess, lastProcess, and the 3dmod
-   * process variables are deleted.  The fail process is deleted when the current process
-   * succeeds - whether or the any other type of process exist.
+   * process variables are deleted.  The fail process is deleted when all processes are
+   * done.
    * @param task
    */
   public void setFailProcess(final TaskInterface task) {
-    failProcess = new Process(null, null, null, null, null, task);
+    failProcess = new Process(null, null, null, null, null, task, false);
   }
 
   /**
@@ -510,18 +524,21 @@ public final class ProcessSeries implements ConstProcessSeries {
     private final FileType outputImageFileType2;
     private final ProcessingMethod processingMethod;
     private final TaskInterface task;
+    private final boolean forceNextProcess;
 
     private Process next = null;
 
     private Process(final String process, final ProcessName subprocessName,
         final FileType outputImageFileType, final FileType outputImageFileType2,
-        final ProcessingMethod processingMethod, final TaskInterface task) {
+        final ProcessingMethod processingMethod, final TaskInterface task,
+        final boolean forceNextProcess) {
       this.process = process;
       this.subprocessName = subprocessName;
       this.outputImageFileType = outputImageFileType;
       this.outputImageFileType2 = outputImageFileType2;
       this.processingMethod = processingMethod;
       this.task = task;
+      this.forceNextProcess = forceNextProcess;
     }
 
     private String getProcess() {
