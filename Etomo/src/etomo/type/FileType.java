@@ -138,6 +138,8 @@ public final class FileType {
       true, false, "_refine", ".alimod", ImodManager.TRANSFORMED_MODEL_KEY);
   public static final FileType XCORR_BLEND_OUTPUT = FileType.getInstance(true, true, "",
       ".bl");
+  public static final FileType PREBLEND_COMSCRIPT = FileType.getInstance(false,
+      true, "preblend", ".com");
   public static final FileType CTF_CORRECTION_COMSCRIPT = FileType.getInstance(false,
       true, "ctfcorrection", ".com");
   public static final FileType FIND_BEADS_3D_COMSCRIPT = FileType.getInstance(false,
