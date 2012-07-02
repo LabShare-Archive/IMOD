@@ -16,7 +16,6 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.WindowConstants;
 
 import etomo.EtomoDirector;
-import etomo.ProcessSeries;
 import etomo.SerialSectionsManager;
 import etomo.logic.DatasetDirectory;
 import etomo.logic.SerialSectionsStartupData;
@@ -218,18 +217,7 @@ public class SerialSectionsStartupDialog implements ContextMenu {
         resetSavedState();
         return;
       }
-      if (startupData.getViewType() == ViewType.MONTAGE) {
-        if (!manager.extractpieces(axisID, null, DialogType.SERIAL_SECTIONS_STARTUP,
-            startupData)) {
-          // Unable to exit dialog
-          resetSavedState();
-        }
-      }
-      else {
-        ProcessSeries processSeries = new ProcessSeries(manager, dialogType);
-        processSeries.setNextProcess(SerialSectionsManager.Task.CLOSE_DIALOG);
-        manager.copyDistortionFieldFile(processSeries, axisID, dialogType);
-      }
+      manager.startStartupProcessSeries(axisID, null);
     }
     else if (command.equals(btnCancel.getActionCommand())) {
       resetSavedState();
@@ -239,29 +227,61 @@ public class SerialSectionsStartupDialog implements ContextMenu {
   }
 
   /**
-   * @return distortion field file or null if empty
+   * @return distortion field file or null if unavailable.  It the state has been saved,
+   * use the saved value.
    */
   public File getDistortionField() {
-    if (startupData == null) {
-      if (ftfDistortionField.isEmpty()) {
-        return null;
-      }
+    if (startupData != null) {
+      return startupData.getDistortionField();
+    }
+    if (!ftfDistortionField.isEmpty()) {
       return ftfDistortionField.getFile();
     }
-    return startupData.getDistortionField();
+    return null;
   }
 
   /**
-   * @return stack file or null if empty
+   * @return stack file or null if unavailable.  It the state has been saved, use the
+   * saved value.
    */
   public File getStack() {
-    if (startupData == null) {
-      if (ftfStack.isEmpty()) {
-        return null;
-      }
+    if (startupData != null) {
+      return startupData.getStack();
+    }
+    if (!ftfStack.isEmpty()) {
       return ftfStack.getFile();
     }
-    return startupData.getStack();
+    return null;
+  }
+
+  /**
+   * @return stack file or null if unavailable.  It the state has been saved, use the
+   * saved value.
+   */
+  public ViewType getViewType() {
+    if (startupData != null) {
+      return startupData.getViewType();
+    }
+    return ViewType
+        .getInstance(((RadioButton.RadioButtonModel) bgViewType.getSelection())
+            .getEnumeratedType());
+  }
+
+  /**
+   * @return root name or null if unavailable.  It the state has been saved, use the saved
+   * value.
+   */
+  public String getRootName() {
+    if (startupData != null) {
+      return startupData.getRootName();
+    }
+    if (!ftfStack.isEmpty()) {
+      SerialSectionsStartupData tempStartupData = new SerialSectionsStartupData(null,
+          null);
+      tempStartupData.setStack(ftfStack.getFile());
+      return tempStartupData.getRootName();
+    }
+    return null;
   }
 
   /**
