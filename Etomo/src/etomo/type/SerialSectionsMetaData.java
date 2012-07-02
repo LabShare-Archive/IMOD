@@ -119,6 +119,10 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
   public String getStack() {
     return stack.toString();
   }
+  
+  public String getDistortionField() {
+    return distortionField.toString();
+  }
 
   public String getViewType() {
     return viewType.toString();
