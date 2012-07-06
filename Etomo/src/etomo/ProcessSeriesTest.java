@@ -89,11 +89,11 @@ public final class ProcessSeriesTest extends TestCase {
     testInstance.setFailProcess(Task.FAIL_TASK);
     testInstance.startNextProcess(AxisID.FIRST, null);
     testInstance.startFailProcess(AxisID.FIRST, null);
-    assertEquals("force next process caused startNextProcess to be run instead of fail functionality", Task.TASK3.toString(),
-        testInstance.peekNextProcess());
+    assertEquals(
+        "force next process caused startNextProcess to be run instead of fail functionality",
+        Task.TASK3.toString(), testInstance.peekNextProcess());
     testInstance.startFailProcess(AxisID.FIRST, null);
-    assertFalse(
-        "fail process was not deleted, because force next process was on",
+    assertFalse("fail process was not deleted, because force next process was on",
         testInstance.startNextProcess(AxisID.FIRST, null));
   }
 
