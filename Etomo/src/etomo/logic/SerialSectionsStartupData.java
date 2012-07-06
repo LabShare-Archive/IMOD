@@ -2,8 +2,14 @@ package etomo.logic;
 
 import java.io.File;
 
+import etomo.BaseManager;
+import etomo.comscript.BlendmontParam;
+import etomo.comscript.NewstParam;
+import etomo.type.AxisID;
+import etomo.type.AxisType;
 import etomo.type.DataFileType;
 import etomo.type.EnumeratedType;
+import etomo.type.FileType;
 import etomo.type.ViewType;
 
 /**
@@ -59,8 +65,65 @@ public final class SerialSectionsStartupData {
     distortionField = input;
   }
 
-  public void setBinning(final Number input) {
-    imagesAreBinned = input;
+  /**
+   * Sets imagesAreBinned if input is not 1.
+   * @param input
+   */
+  public void setImagesAreBinned(final Number input) {
+    if (input.intValue() == 1) {
+      imagesAreBinned = null;
+    }
+    else {
+      imagesAreBinned = input;
+    }
+  }
+
+  public void getPreblendParameters(final BlendmontParam param, final BaseManager manager) {
+    getParameters(param, manager);
+    param.setImageInputFile(stack);
+    param.setImageOutputFile(FileType.PREBLEND_OUTPUT_MRC, getRootName(),
+        AxisType.SINGLE_AXIS);
+  }
+
+  public void getBlendParameters(final BlendmontParam param, final BaseManager manager) {
+    getParameters(param, manager);
+    param.setFromScratch(true);
+    param.setImageInputFile(FileType.PREBLEND_OUTPUT_MRC.deriveFileName(getRootName(),
+        AxisType.SINGLE_AXIS, manager, AxisID.ONLY));
+    param.setImageOutputFile(FileType.ALIGNED_STACK_MRC, getRootName(),
+        AxisType.SINGLE_AXIS);
+  }
+
+  private void getParameters(final BlendmontParam param, final BaseManager manager) {
+    if (distortionField == null) {
+      param.resetDistortionField();
+    }
+    else {
+      param.setDistortionField(distortionField.getName());
+    }
+    param.setPieceListInput(FileType.PIECE_LIST.deriveFileName(getRootName(),
+        AxisType.SINGLE_AXIS, manager, AxisID.ONLY));
+    param.setRootNameForEdges(getRootName());
+    param.setImagesAreBinned(imagesAreBinned);
+    param.setAdjustOrigin(true);
+  }
+
+  public void getParameters(final NewstParam param, final BaseManager manager) {
+    if (stack == null) {
+      param.resetInputFile();
+    }
+    else {
+      param.setInputFile(stack.getName());
+    }
+    param.setOutputFile(FileType.ALIGNED_STACK_MRC, getRootName(), AxisType.SINGLE_AXIS);
+    if (distortionField == null) {
+      param.resetDistortionField();
+    }
+    else {
+      param.setDistortionField(distortionField.getName());
+    }
+    param.setImagesAreBinned(imagesAreBinned);
+    param.setAdjustOrigin(true);
   }
 
   /**
