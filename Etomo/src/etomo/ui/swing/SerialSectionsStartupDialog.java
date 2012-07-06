@@ -208,15 +208,10 @@ public class SerialSectionsStartupDialog implements ContextMenu {
           DataFileType.SERIAL_SECTIONS, null)) {
         return;
       }
-      startupData = getStartupData();
-      String errorMessage = startupData.validate();
-      if (errorMessage != null) {
-        UIHarness.INSTANCE
-            .openMessageDialog(manager, errorMessage, "Entry Error", axisID);
-        // Unable to exit dialog
-        resetSavedState();
+      if (!saveState()) {
         return;
       }
+
       manager.startStartupProcessSeries(axisID, null);
     }
     else if (command.equals(btnCancel.getActionCommand())) {
@@ -224,6 +219,10 @@ public class SerialSectionsStartupDialog implements ContextMenu {
       dispose();
       manager.cancelStartup();
     }
+  }
+
+  public SerialSectionsStartupData getStartupData() {
+    return startupData;
   }
 
   /**
@@ -285,12 +284,13 @@ public class SerialSectionsStartupDialog implements ContextMenu {
   }
 
   /**
-   * Returns filleed serial sections startup data instance.  Does not do validation.
-   * @return
+   * Instanciates, loads, and validates serial sections startup data member variable.
+   * Sets startup data to null if state is invalid.
+   * @return true if valid state
    */
-  private SerialSectionsStartupData getStartupData() {
-    SerialSectionsStartupData startupData = new SerialSectionsStartupData(
-        ftfStack.getQuotedLabel(), "'" + VIEW_TYPE_LABEL + "'");
+  private boolean saveState() {
+    startupData = new SerialSectionsStartupData(ftfStack.getQuotedLabel(), "'"
+        + VIEW_TYPE_LABEL + "'");
     if (!ftfStack.isEmpty()) {
       startupData.setStack(ftfStack.getFile());
     }
@@ -299,8 +299,14 @@ public class SerialSectionsStartupDialog implements ContextMenu {
     if (!ftfDistortionField.isEmpty()) {
       startupData.setDistortionFile(ftfDistortionField.getFile());
     }
-    startupData.setBinning(spImagesAreBinned.getValue());
-    return startupData;
+    startupData.setImagesAreBinned(spImagesAreBinned.getValue());
+    String errorMessage = startupData.validate();
+    if (errorMessage != null) {
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, "Entry Error", axisID);
+      resetSavedState();
+      return false;
+    }
+    return true;
   }
 
   private void dispose() {

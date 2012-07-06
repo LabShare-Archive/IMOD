@@ -19,6 +19,7 @@ import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
+import etomo.type.StringParameter;
 import etomo.ui.swing.UIHarness;
 import etomo.util.Goodframe;
 import etomo.util.Montagesize;
@@ -48,7 +49,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 
   public static final String IMAGE_OUTPUT_FILE_KEY = "ImageOutputFile";
   public static final String IMAGES_ARE_BINNED_KEY = "ImagesAreBinned";
-  public static final String DISTORTION_FIELD_KEY= "DistortionField";
+  public static final String DISTORTION_FIELD_KEY = "DistortionField";
 
   private AxisID axisID;
   private String datasetName;
@@ -63,6 +64,11 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   private boolean fiducialess = false;
   private String userSizeToOutputInXandY;
   private ProcessName processName = ProcessName.XCORR;
+  private final StringParameter distortionField = new StringParameter("DistortionField");
+  private final StringParameter imageInputFile = new StringParameter("ImageInputFile");
+  private final StringParameter pieceListInput = new StringParameter("PieceListInput");
+  private final StringParameter rootNameForEdges = new StringParameter("RootNameForEdges");
+  private final ScriptParameter imagesAreBinned = new ScriptParameter("ImagesAreBinned");
 
   /**
    * @version 3.10
@@ -77,8 +83,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
       "StartingAndEndingY", 2);
   private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
-  private boolean overrideModeForImageOutputFile = false;
+  private boolean imageOutputFileFor3dFind = false;
   private boolean validate = false;
+  private boolean fromScratch = false;
 
   public BlendmontParam(final BaseManager manager, final String datasetName,
       final AxisID axisID) {
@@ -125,10 +132,18 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     startingAndEndingX.validateAndSet(scriptCommand);
     startingAndEndingY.validateAndSet(scriptCommand);
     adjustOrigin.parse(scriptCommand);
+    distortionField.parse(scriptCommand);
+    imageInputFile.parse(scriptCommand);
+    pieceListInput.parse(scriptCommand);
+    rootNameForEdges.parse(scriptCommand);
+    imagesAreBinned.parse(scriptCommand);
   }
 
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
       throws BadComScriptException {
+    if (fromScratch) {
+      scriptCommand.useKeywordValue();
+    }
     readInXcorrs.updateComScript(scriptCommand);
     oldEdgeFunctions.updateComScript(scriptCommand);
     interpolationOrder.updateComScript(scriptCommand);
@@ -138,6 +153,11 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     startingAndEndingX.updateScriptParameter(scriptCommand);
     startingAndEndingY.updateScriptParameter(scriptCommand);
     adjustOrigin.updateComScript(scriptCommand);
+    distortionField.updateComScript(scriptCommand);
+    imageInputFile.updateComScript(scriptCommand);
+    pieceListInput.updateComScript(scriptCommand);
+    rootNameForEdges.updateComScript(scriptCommand);
+    imagesAreBinned.updateComScript(scriptCommand);
   }
 
   public void setValidate(final boolean validate) {
@@ -152,7 +172,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     justUndistort.reset();
     imageOutputFile = null;
     imageOutputFileType = null;
-    overrideModeForImageOutputFile = false;
+    imageOutputFileFor3dFind = false;
     binByFactor.reset();
     startingAndEndingX.reset();
     startingAndEndingY.reset();
@@ -160,6 +180,11 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     fiducialess = false;
     userSizeToOutputInXandY = "";
     imageRotation.reset();
+    distortionField.reset();
+    imageInputFile.reset();
+    pieceListInput.reset();
+    rootNameForEdges.reset();
+    imagesAreBinned.reset();
   }
 
   public void initializeDefaults() {
@@ -280,8 +305,52 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     return null;
   }
 
-  public void setImageOutputFile(final FileType fileType) {
-    overrideModeForImageOutputFile = true;
+  public void setPieceListInput(final String input) {
+    pieceListInput.set(input);
+  }
+
+  public void setFromScratch(final boolean input) {
+    fromScratch = input;
+  }
+
+  public void setRootNameForEdges(final String input) {
+    rootNameForEdges.set(input);
+  }
+
+  public void setImagesAreBinned(final Number input) {
+    imagesAreBinned.set(input);
+  }
+
+  public void setImageInputFile(final File input) {
+    if (input == null) {
+      imageInputFile.reset();
+    }
+    imageInputFile.set(input.getName());
+  }
+
+  public void setImageInputFile(final String input) {
+    imageInputFile.set(input);
+  }
+
+  /**
+   * For setting the output file before the manager is set up.  Not for 3d find.
+   * @param fileType
+   * @param rootName
+   * @param axisType
+   */
+  public void setImageOutputFile(final FileType fileType, final String rootName,
+      final AxisType axisType) {
+    imageOutputFileFor3dFind = false;
+    imageOutputFile = fileType.deriveFileName(rootName, axisType, manager, axisID);
+    imageOutputFileType = fileType;
+  }
+
+  /**
+   * Set the output for for 3d find.
+   * @param fileType
+   */
+  public void setImageOutputFileFor3dFind(final FileType fileType) {
+    imageOutputFileFor3dFind = true;
     imageOutputFile = fileType.getFileName(manager, axisID);
     imageOutputFileType = fileType;
     setProcessName();
@@ -296,7 +365,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     // TEMP
     System.err.println("setBlendmontState:mode=" + mode);
     if (mode == Mode.UNDISTORT) {
-      if (!overrideModeForImageOutputFile) {
+      if (!imageOutputFileFor3dFind) {
         imageOutputFile = datasetName + axisID.getExtension()
             + DISTORTION_CORRECTED_STACK_EXTENSION;
         imageOutputFileType = FileType.DISTORTION_CORRECTED_STACK;
@@ -306,7 +375,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     }
     else {
       justUndistort.set(false);
-      if (!overrideModeForImageOutputFile) {
+      if (!imageOutputFileFor3dFind) {
         if (mode == Mode.XCORR) {
           imageOutputFile = datasetName + axisID.getExtension()
               + BLENDMONT_STACK_EXTENSION;
@@ -340,8 +409,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
         .set(mode == Mode.BLEND
             || mode == Mode.WHOLE_TOMOGRAM_SAMPLE
             || (invalidEdgeFunctions.getInt() != EtomoState.TRUE_VALUE
-                && xefFile.exists()
-                && yefFile.exists()
+                && xefFile.exists() && yefFile.exists()
                 && ecdFile.lastModified() <= xefFile.lastModified() && ecdFile
                 .lastModified() <= yefFile.lastModified()));
     // If xcorr output exists and the edge functions are up to date, then don't
@@ -451,18 +519,26 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     return axisID;
   }
 
+  public void resetDistortionField() {
+    distortionField.reset();
+  }
+
+  public void setDistortionField(final String input) {
+    distortionField.set(input);
+  }
+
   /**
    * Call every time mode or overrideModeForImageOutputFile changes.
    */
   private void setProcessName() {
-    processName = getProcessName(mode, overrideModeForImageOutputFile);
+    processName = getProcessName(mode, imageOutputFileFor3dFind);
   }
 
   public static ProcessName getProcessName(Mode mode) {
     return getProcessName(mode, false);
   }
 
-  public static ProcessName getProcessName(Mode mode, boolean for3dFind) {
+  private static ProcessName getProcessName(Mode mode, boolean for3dFind) {
     if (mode == Mode.PREBLEND) {
       return ProcessName.PREBLEND;
     }
@@ -482,6 +558,12 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
       return ProcessName.XCORR;
     }
     if (mode == Mode.WHOLE_TOMOGRAM_SAMPLE) {
+      return ProcessName.BLEND;
+    }
+    if (mode == Mode.SERIAL_SECTION_PREBLEND) {
+      return ProcessName.PREBLEND;
+    }
+    if (mode == Mode.SERIAL_SECTION_BLEND) {
       return ProcessName.BLEND;
     }
     throw new IllegalArgumentException("mode=" + mode);
@@ -527,6 +609,10 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     return fiducialess;
   }
 
+  public void setAdjustOrigin(final boolean input) {
+    adjustOrigin.set(input);
+  }
+
   public final void setBinByFactor(final int binByFactor) {
     this.binByFactor.set(binByFactor);
   }
@@ -553,6 +639,8 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     public static final Mode BLEND_3DFIND = new Mode("Blend_3dfind");
     public static final Mode UNDISTORT = new Mode("Undistort");
     public static final Mode WHOLE_TOMOGRAM_SAMPLE = new Mode("WholeTomogramSample");
+    public static final Mode SERIAL_SECTION_PREBLEND = new Mode("SerialSections_Preblend");
+    public static final Mode SERIAL_SECTION_BLEND = new Mode("SerialSections_Preblend");
 
     private final String string;
 

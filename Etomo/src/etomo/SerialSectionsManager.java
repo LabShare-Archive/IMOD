@@ -3,8 +3,9 @@ package etomo;
 import java.io.File;
 import java.io.IOException;
 
-import etomo.comscript.BaseComScriptManager;
+import etomo.comscript.BlendmontParam;
 import etomo.comscript.ExtractpiecesParam;
+import etomo.comscript.NewstParam;
 import etomo.comscript.SerialSectionsComScriptManager;
 import etomo.logic.SerialSectionsStartupData;
 import etomo.process.BaseProcessManager;
@@ -62,7 +63,6 @@ public final class SerialSectionsManager extends BaseManager {
   private final SerialSectionsMetaData metaData;
   private final SerialSectionsProcessManager processMgr;
 
-  private BaseComScriptManager comScriptMgr = null;
   private SerialSectionsStartupDialog startupDialog = null;
   private SerialSectionsDialog dialog = null;
   private AutoAlignmentController autoAlignmentController = null;
@@ -71,7 +71,9 @@ public final class SerialSectionsManager extends BaseManager {
    */
   private boolean valid = true;
 
+  //Initialized during parent constructor
   private MainSerialSectionsPanel mainPanel;
+  private SerialSectionsComScriptManager comScriptMgr;
 
   private SerialSectionsManager() {
     this("");
@@ -311,7 +313,7 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   /**
-   * 
+   * Creates blend or newst comscripts.
    * @param axisID
    * @param processSeries
    * @param processResultDisplay
@@ -319,14 +321,58 @@ public final class SerialSectionsManager extends BaseManager {
   private void createComscripts(final AxisID axisID,
       final ConstProcessSeries processSeries,
       final ProcessResultDisplay processResultDisplay) {
-    if (startupDialog == null) {
-      processSeries.startFailProcess(axisID, processResultDisplay);
+    SerialSectionsStartupData startupData = null;
+    if (startupDialog == null || (startupData = startupDialog.getStartupData()) == null) {
+      if (processSeries != null) {
+        processSeries.startFailProcess(axisID, processResultDisplay);
+      }
       return;
     }
-    BaseProcessManager.touch(FileType.PREBLEND_COMSCRIPT.getFile(this, axisID)
-        .getAbsolutePath(), this);
-   // BlendmontParam param = new BlendmontParam(this, getName(), axisID,
-   //     BlendmontParam.Mode.PREBLEND_SERIAL_SECTION);
+    if (getViewType() == ViewType.MONTAGE) {
+      // preblend
+      if (!FileType.PREBLEND_COMSCRIPT.getFile(this, axisID).exists()) {
+        try {
+          Utilities.copyFile(FileType.SLOPPY_BLEND_COMSCRIPT,
+              FileType.PREBLEND_COMSCRIPT, this, axisID);
+        }
+        catch (IOException e) {
+          e.printStackTrace();
+          uiHarness.openMessageDialog(this, "Unable to copy "
+              + FileType.SLOPPY_BLEND_COMSCRIPT.getFile(this, axisID).getAbsolutePath()
+              + " to " + FileType.PREBLEND_COMSCRIPT.getFileName(this, axisID),
+              "Unable to Create Comscripts", axisID);
+          if (processSeries != null) {
+            processSeries.startFailProcess(axisID, processResultDisplay);
+          }
+          return;
+        }
+      }
+      comScriptMgr.loadPreblend(axisID);
+      BlendmontParam param = comScriptMgr
+          .getBlendmontParamFromPreblend(axisID, getName());
+      startupData.getPreblendParameters(param, this);
+      comScriptMgr.savePreblend(param, axisID);
+      // blend
+      if (!FileType.BLEND_COMSCRIPT.getFile(this, axisID).exists()) {
+        BaseProcessManager.touch(FileType.BLEND_COMSCRIPT.getFile(this, axisID)
+            .getAbsolutePath(), this);
+      }
+      comScriptMgr.loadBlend(axisID);
+      param = comScriptMgr.getBlendmontParamFromBlend(axisID, getName());
+      startupData.getBlendParameters(param, this);
+      comScriptMgr.saveBlend(param, axisID);
+    }
+    else {
+      // newst
+      if (!FileType.NEWST_COMSCRIPT.getFile(this, axisID).exists()) {
+        BaseProcessManager.touch(FileType.NEWST_COMSCRIPT.getFile(this, axisID)
+            .getAbsolutePath(), this);
+      }
+      comScriptMgr.loadNewst(axisID);
+      NewstParam param = comScriptMgr.getNewstackParam(axisID, getName());
+      startupData.getParameters(param, this);
+      comScriptMgr.saveNewst(param, axisID);
+    }
     if (processSeries != null) {
       processSeries.startNextProcess(axisID, processResultDisplay);
     }
@@ -442,8 +488,12 @@ public final class SerialSectionsManager extends BaseManager {
     if (loadedParamFile) {
       return metaData.getName();
     }
+    String name = null;
     if (startupDialog != null) {
-      return startupDialog.getRootName();
+      name = startupDialog.getRootName();
+    }
+    if (name != null) {
+      return name;
     }
     return metaData.getName();
   }

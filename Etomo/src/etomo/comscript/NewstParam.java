@@ -204,9 +204,11 @@ import etomo.util.MRCHeader;
 public final class NewstParam implements ConstNewstParam, CommandParam {
   public static final String rcsid = "$Id$";
 
+  public static final String COMMAND = "newstack";
+
   public static final String SIZE_TO_OUTPUT_IN_X_AND_Y = "SizeToOutputInXandY";
   public static final String IMAGES_ARE_BINNED_KEY = "ImagesAreBinned";
-  public static final String DISTORTION_FIELD_KEY= "DistortionField";
+  public static final String DISTORTION_FIELD_KEY = "DistortionField";
   // data mode
   public static final String DATA_MODE_OPTION = "-mo";
   public static final int DATA_MODE_DEFAULT = Integer.MIN_VALUE;
@@ -601,6 +603,10 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     contrastBlackWhite.validateAndSet(contrast);
   }
 
+  public void resetDistortionField() {
+    distortionField = "";
+  }
+
   /**
    * @param distortionField The distortionField to set.
    */
@@ -647,14 +653,25 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     this.imagesAreBinned = imagesAreBinned;
   }
 
-  /**
-   * @param inputFile The inputFile to set.
-   */
-  public void setInputFile(final Vector files) {
-    // Defensively copy argument, since the objects are strings we only need
-    // copy the collection of references
+  public void setImagesAreBinned(final Number input) {
+    if (input == null) {
+      imagesAreBinned = Integer.MIN_VALUE;
+    }
+    else {
+      imagesAreBinned = input.intValue();
+    }
+  }
+
+  public void resetInputFile() {
     inputFile.clear();
-    inputFile.addAll(files);
+  }
+
+  public void setInputFile(final String input) {
+    inputFile.clear();
+    if (input == null) {
+      return;
+    }
+    inputFile.add(input);
   }
 
   /**
@@ -689,11 +706,25 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   }
 
   /**
+   * Set the output file before the manager is set up.
+   * @param fileType
+   */
+  public void setOutputFile(final FileType fileType, final String rootName,
+      final AxisType axisType) {
+    outputFile = fileType.deriveFileName(rootName, axisType, manager, axisID);
+    outputFileType = fileType;
+  }
+
+  /**
    * @param outputFile The outputFile to set.
    */
   public void setOutputFile(final FileType fileType) {
     outputFile = fileType.getFileName(manager, axisID);
     outputFileType = fileType;
+  }
+  
+  public void setAdjustOrigin(final boolean input) {
+    adjustOrigin.set(input);
   }
 
   /**

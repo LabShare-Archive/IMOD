@@ -122,6 +122,9 @@ public class FileTypeTest extends TestCase {
     assertEquals("getInstance(boolean,boolean,string,string) failed",
         FileType.TILT_FOR_SIRT_COMSCRIPT,
         FileType.getInstance(manager, false, true, "tilt", "_for_sirt.com"));
+    assertEquals("should find an imod file based on the description",
+        FileType.SLOPPY_BLEND_COMSCRIPT,
+        FileType.getInstance(manager, false, true, "sloppyblend", ".com"));
   }
 
   public void testGetInstanceFromFileName() {
@@ -675,7 +678,7 @@ public class FileTypeTest extends TestCase {
     FrontPageManager manager = (FrontPageManager) EtomoDirector.INSTANCE
         .getCurrentManagerForTest();
     FrontPageMetaData metaData = manager.getMetaData();
-    //test dual axis
+    // test dual axis
     metaData.setAxisType(AxisType.DUAL_AXIS);
     metaData.setName("BB");
     assertEquals("file name is wrong",
@@ -920,7 +923,7 @@ public class FileTypeTest extends TestCase {
         FileType.TILT_FOR_SIRT_COMSCRIPT.getFileName(manager, AxisID.SECOND),
         "tiltb_for_sirt.com");
 
-    //test single axis    
+    // test single axis
     metaData.setAxisType(AxisType.SINGLE_AXIS);
     assertEquals("file name is wrong",
         FileType.FIDUCIAL_3D_MODEL.getFileName(manager, AxisID.ONLY), "BB.3dmod");

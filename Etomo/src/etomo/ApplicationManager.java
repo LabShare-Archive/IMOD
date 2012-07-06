@@ -3977,7 +3977,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     blendParam.setMode(BlendmontParam.Mode.BLEND_3DFIND);
     blendParam.setBlendmontState(state.getInvalidEdgeFunctions(axisID));
-    blendParam.setImageOutputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT);
+    blendParam.setImageOutputFileFor3dFind(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT);
     comScriptMgr.saveBlend3dFind(blendParam, axisID);
     // Update mrctaper
     MrcTaperParam mrcTaperParam = comScriptMgr.getMrcTaperParamFromBlend3dFind(axisID);
