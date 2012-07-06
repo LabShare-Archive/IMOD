@@ -1,7 +1,5 @@
 package etomo.ui.swing;
 
-import java.awt.event.ActionEvent;
-
 import etomo.FrontPageManager;
 import etomo.type.AxisID;
 
@@ -37,14 +35,6 @@ final class FrontPageProcessPanel extends AxisProcessPanel {
     initializePanels();
   }
 
-  protected void buttonKillAction(ActionEvent event) {
-    manager.kill(axisID);
-  }
-
-  void showBothAxis() {
-  }
-
-  protected void createProcessControlPanel() {
-    showBothAxis();
+  void createProcessControlPanel() {
   }
 }

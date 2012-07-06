@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.List;
 
-import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -47,6 +47,8 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   public static final String BLENDMONT_STACK_EXTENSION = ".bl";
 
   public static final String IMAGE_OUTPUT_FILE_KEY = "ImageOutputFile";
+  public static final String IMAGES_ARE_BINNED_KEY = "ImagesAreBinned";
+  public static final String DISTORTION_FIELD_KEY= "DistortionField";
 
   private AxisID axisID;
   private String datasetName;
@@ -68,7 +70,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
    */
   private final EtomoBoolean2 adjustOrigin = new EtomoBoolean2("AdjustOrigin");
 
-  private final ApplicationManager manager;
+  private final BaseManager manager;
   private final FortranInputString startingAndEndingX = new FortranInputString(
       "StartingAndEndingX", 2);
   private final FortranInputString startingAndEndingY = new FortranInputString(
@@ -78,12 +80,12 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   private boolean overrideModeForImageOutputFile = false;
   private boolean validate = false;
 
-  public BlendmontParam(final ApplicationManager manager, final String datasetName,
+  public BlendmontParam(final BaseManager manager, final String datasetName,
       final AxisID axisID) {
     this(manager, datasetName, axisID, Mode.XCORR);
   }
 
-  public BlendmontParam(final ApplicationManager manager, final String datasetName,
+  public BlendmontParam(final BaseManager manager, final String datasetName,
       final AxisID axisID, final Mode mode) {
     this.manager = manager;
     this.datasetName = datasetName;
@@ -290,7 +292,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
    * @return true if blendmont needs to be run, false if blendmont does not need
    * to be run
    */
-  public boolean setBlendmontState() {
+  public boolean setBlendmontState(final ConstEtomoNumber invalidEdgeFunctions) {
     // TEMP
     System.err.println("setBlendmontState:mode=" + mode);
     if (mode == Mode.UNDISTORT) {
@@ -337,7 +339,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     oldEdgeFunctions
         .set(mode == Mode.BLEND
             || mode == Mode.WHOLE_TOMOGRAM_SAMPLE
-            || (manager.getState().getInvalidEdgeFunctions(axisID).getInt() != EtomoState.TRUE_VALUE
+            || (invalidEdgeFunctions.getInt() != EtomoState.TRUE_VALUE
                 && xefFile.exists()
                 && yefFile.exists()
                 && ecdFile.lastModified() <= xefFile.lastModified() && ecdFile

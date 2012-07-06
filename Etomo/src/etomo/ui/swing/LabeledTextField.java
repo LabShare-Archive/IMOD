@@ -412,7 +412,7 @@ final class LabeledTextField {
   String getLabel() {
     return label.getText();
   }
-  
+
   String getQuotedLabel() {
     return Utilities.quoteLabel(label.getText());
   }
@@ -467,6 +467,10 @@ final class LabeledTextField {
 
   boolean isEnabled() {
     return (textField.isEnabled());
+  }
+
+  boolean isEditable() {
+    return (textField.isEditable());
   }
 
   void setVisible(final boolean isVisible) {

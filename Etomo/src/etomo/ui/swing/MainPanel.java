@@ -369,7 +369,7 @@ public abstract class MainPanel extends EtomoPanel {
     }
   }
 
-  void setStatusBarText(File paramFile, BaseMetaData metaData, LogPanel logPanel) {
+  public void setStatusBarText(File paramFile, BaseMetaData metaData, LogPanel logPanel) {
     // Set the title of log panel. SetStatusBarText is used by all of the
     // interfaces so this is good place to do it.
     if (logPanel != null) {

@@ -1026,6 +1026,7 @@ import etomo.comscript.ConstMTFFilterParam;
 import etomo.comscript.ConstSplitCorrectionParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.CtfPhaseFlipParam;
+import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.FlattenWarpParam;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.ConstNewstParam;
@@ -1034,7 +1035,6 @@ import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.ExtractmagradParam;
-import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.ExtracttiltsParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.RunraptorParam;
@@ -1672,11 +1672,11 @@ public class ProcessManager extends BaseProcessManager {
     try {
       ReconnectProcess process = ReconnectProcess.getInstance(appManager, this,
           TiltProcessMonitor.getReconnectInstance(appManager, axisID),
-          getSavedProcessData(axisID), axisID, processSeries);
+          axisProcessData.getSavedProcessData(axisID), axisID, processSeries);
       process.setProcessResultDisplay(processResultDisplay);
       Thread thread = new Thread(process);
       thread.start();
-      mapAxisThread(process, axisID);
+      axisProcessData.mapAxisThread(process, axisID);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -1792,8 +1792,8 @@ public class ProcessManager extends BaseProcessManager {
   public String extractpieces(AxisID axisID, ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(new ExtractpiecesParam(
-        appManager, axisID).getCommand(), axisID, true, processResultDisplay,
-        processSeries, ProcessName.EXTRACTPIECES);
+        appManager, axisID).getCommand(), axisID, true, processResultDisplay, processSeries,
+        ProcessName.EXTRACTPIECES);
     return backgroundProcess.getName();
   }
 
@@ -2139,9 +2139,6 @@ public class ProcessManager extends BaseProcessManager {
     }
   }
 
-  void postProcess(ReconnectProcess script) {
-  }
-
   void postProcess(final DetachedProcess process) {
     super.postProcess(process);
     try {
@@ -2300,9 +2297,6 @@ public class ProcessManager extends BaseProcessManager {
     }
   }
 
-  void errorProcess(ReconnectProcess script) {
-  }
-
   void errorProcess(ComScriptProcess script) {
     try {
       ProcessName processName = script.getProcessName();
@@ -2418,9 +2412,6 @@ public class ProcessManager extends BaseProcessManager {
       e.printStackTrace();
       System.err.println("ERROR:  Unable to record state.");
     }
-  }
-
-  void postProcess(InteractiveSystemProgram program) {
   }
 
   BaseManager getManager() {
