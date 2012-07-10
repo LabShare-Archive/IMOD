@@ -55,7 +55,7 @@ public final class AutoAlignmentPanel {
   private final LabeledTextField ltfSkipSectionsFrom1 = new LabeledTextField(
       "Sections to skip: ");
   private final CheckBox cbPreCrossCorrelation = new CheckBox(
-      "Do cross correlatin in initial alignment");
+      "Do cross-correlate in initial alignment");
   private final LabeledTextField ltfEdgeToIgnore = new LabeledTextField(
       "Fraction to ignore on edges: ");
   private final Spinner spMidasBinning = Spinner.getLabeledInstance("Midas binning: ", 1,
