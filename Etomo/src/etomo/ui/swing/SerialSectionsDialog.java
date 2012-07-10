@@ -16,6 +16,7 @@ import javax.swing.event.ChangeListener;
 
 import etomo.AutoAlignmentController;
 import etomo.SerialSectionsManager;
+import etomo.comscript.BlendmontParam;
 import etomo.comscript.XftoxgParam;
 import etomo.type.AxisID;
 import etomo.type.ConstSerialSectionsMetaData;
@@ -53,10 +54,10 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   private final JPanel[] pnlTabArray = new JPanel[Tab.NUM_TABS];
   private final JPanel[] pnlTabBodyArray = new JPanel[Tab.NUM_TABS];
   private final TabbedPane tabPane = new TabbedPane();
-  private final CheckBox cbVerySloppyBlend = new CheckBox("Treat as very sloppy blend");
-  private final Run3dmodButton btnInitialBlend = Run3dmodButton.getDeferred3dmodInstance(
+  private final CheckBox cbVerySloppyMontage = new CheckBox("Treat as very sloppy blend");
+  private final Run3dmodButton btnPreblend = Run3dmodButton.getDeferred3dmodInstance(
       "Run Initial Blend", this);
-  private final Run3dmodButton btnOpenInitialBlend = Run3dmodButton.get3dmodInstance(
+  private final Run3dmodButton btn3dmodPreblend = Run3dmodButton.get3dmodInstance(
       "Open Initial Blend Result", this);
   private final MultiLineButton btnFixEdges = new MultiLineButton("Fix Edges With Midas");
   private final MultiLineButton btnOpenAlignedStack = new MultiLineButton(
@@ -65,13 +66,13 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   private final RadioButton rbNoOptions = new RadioButton(
       "Local fitting (retain trends)", bgXftoxgAlignment);
   private final RadioButton rbHybridFitsTranslations = new RadioButton(
-      "remove trends in translation", XftoxgParam.HybridFits.TRANSLATIONS,
+      "Remove trends in translation", XftoxgParam.HybridFits.TRANSLATIONS,
       bgXftoxgAlignment);
   private final RadioButton rbHybridFitsTranslationsRotations = new RadioButton(
-      "remove trends in translation & rotation",
+      "Remove trends in translation & rotation",
       XftoxgParam.HybridFits.TRANSLATIONS_ROTATIONS, bgXftoxgAlignment);
   private final RadioButton rbNumberToFitGlobalAlignment = new RadioButton(
-      "remove trends in translation & rotation",
+      "Global transforms (remove all trends)",
       XftoxgParam.NumberToFit.GLOBAL_ALIGNMENT, bgXftoxgAlignment);
   private final Run3dmodButton btnMakeStack = Run3dmodButton.getDeferred3dmodInstance(
       "Make Stack", this);
@@ -137,9 +138,9 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     tabPane.setEnabledAt(Tab.INITIAL_BLEND.index, viewType == ViewType.MONTAGE);
     curTab = Tab.getDefaultInstance(viewType);
     tabPane.setSelectedIndex(curTab.index);
-    btnInitialBlend.setSize();
-    btnInitialBlend.setDeferred3dmodButton(btnOpenInitialBlend);
-    btnOpenInitialBlend.setSize();
+    btnPreblend.setSize();
+    btnPreblend.setDeferred3dmodButton(btn3dmodPreblend);
+    btn3dmodPreblend.setSize();
     btnFixEdges.setSize();
     btnOpenAlignedStack.setSize();
     // Set the maximum reference section.
@@ -181,15 +182,15 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y5));
     // very sloppy blend
     pnlVerySloppyBlend.setLayout(new BoxLayout(pnlVerySloppyBlend, BoxLayout.X_AXIS));
-    pnlVerySloppyBlend.add(cbVerySloppyBlend);
+    pnlVerySloppyBlend.add(cbVerySloppyMontage);
     pnlVerySloppyBlend.add(Box.createHorizontalGlue());
     // initial blend buttons
     pnlInitialBlendButtons.setLayout(new BoxLayout(pnlInitialBlendButtons,
         BoxLayout.X_AXIS));
     pnlInitialBlendButtons.add(Box.createHorizontalGlue());
-    pnlInitialBlendButtons.add(btnInitialBlend.getComponent());
+    pnlInitialBlendButtons.add(btnPreblend.getComponent());
     pnlInitialBlendButtons.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlInitialBlendButtons.add(btnOpenInitialBlend.getComponent());
+    pnlInitialBlendButtons.add(btn3dmodPreblend.getComponent());
     pnlInitialBlendButtons.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlInitialBlendButtons.add(btnFixEdges.getComponent());
     pnlInitialBlendButtons.add(Box.createHorizontalGlue());
@@ -213,13 +214,13 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     pnlTabBodyArray[index].add(pnlXftoxgAlignmentX);
     pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y3));
     pnlTabBodyArray[index].add(pnlReferenceSection);
-    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTabBodyArray[index].add(pnlSize);
     pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y5));
     pnlTabBodyArray[index].add(pnlShift);
     pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y5));
     pnlTabBodyArray[index].add(pnlMakeStackA);
-    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y15));
     pnlTabBodyArray[index].add(pnlMakeStackButtons);
     pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y5));
     // xftoxg alignment X panel
@@ -248,13 +249,13 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     pnlShift.add(ltfShiftX.getContainer());
     pnlShift.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlShift.add(ltfShiftY.getContainer());
-    //make stack subpanel 1
+    // make stack subpanel 1
     pnlMakeStackA.setLayout(new BoxLayout(pnlMakeStackA, BoxLayout.X_AXIS));
     pnlMakeStackA.add(spBinning.getContainer());
     pnlMakeStackA.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlMakeStackA.add(cbFillWithZero);
-    //make stack buttons
-    pnlMakeStackButtons.setLayout(new BoxLayout(pnlMakeStackButtons,BoxLayout.X_AXIS));
+    // make stack buttons
+    pnlMakeStackButtons.setLayout(new BoxLayout(pnlMakeStackButtons, BoxLayout.X_AXIS));
     pnlMakeStackButtons.add(btnMakeStack.getComponent());
     pnlMakeStackButtons.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlMakeStackButtons.add(btnOpenStack.getComponent());
@@ -276,8 +277,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     tabPane.addMouseListener(new GenericMouseAdapter(this));
     tabPane.addChangeListener(new TabChangeListener(this));
     ActionListener listener = new SerialSectionsActionListener(this);
-    btnInitialBlend.addActionListener(listener);
-    btnOpenInitialBlend.addActionListener(listener);
+    btnPreblend.addActionListener(listener);
+    btn3dmodPreblend.addActionListener(listener);
     btnFixEdges.addActionListener(listener);
     btnOpenAlignedStack.addActionListener(listener);
   }
@@ -296,6 +297,14 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     return true;
   }
 
+  public void setPreblendParameters(final BlendmontParam param) {
+    cbVerySloppyMontage.setSelected(param.isVerySloppyMontage());
+  }
+
+  public void getPreblendParameters(final BlendmontParam param) {
+    param.setVerySloppyMontage(cbVerySloppyMontage.isSelected());
+  }
+
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     action(button.getActionCommand(), button.getDeferred3dmodButton(),
@@ -304,11 +313,12 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
 
   private void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (command.equals(btnInitialBlend.getActionCommand())) {
-
+    if (command.equals(btnPreblend.getActionCommand())) {
+      manager.preblend(null, null, deferred3dmodButton, axisID, run3dmodMenuOptions,
+          DialogType.SERIAL_SECTIONS);
     }
-    else if (command.equals(btnOpenInitialBlend.getActionCommand())) {
-
+    else if (command.equals(btn3dmodPreblend.getActionCommand())) {
+      manager.imodPreblend(axisID, run3dmodMenuOptions);
     }
     else if (command.equals(btnFixEdges.getActionCommand())) {
 
