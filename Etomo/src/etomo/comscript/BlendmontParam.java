@@ -335,7 +335,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     verySloppyMontage.set(input);
   }
 
-  public void getImagesAreBinned(final Number input) {
+  public void setImagesAreBinned(final Number input) {
     imagesAreBinned.set(input);
   }
 
