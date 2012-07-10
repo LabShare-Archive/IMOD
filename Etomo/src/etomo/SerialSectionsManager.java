@@ -9,6 +9,7 @@ import etomo.comscript.NewstParam;
 import etomo.comscript.SerialSectionsComScriptManager;
 import etomo.logic.SerialSectionsStartupData;
 import etomo.process.BaseProcessManager;
+import etomo.process.ImodManager;
 import etomo.process.SerialSectionsProcessManager;
 import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
@@ -16,6 +17,7 @@ import etomo.storage.Storable;
 import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.ConstProcessSeries;
 import etomo.type.ConstSerialSectionsMetaData;
@@ -25,8 +27,10 @@ import etomo.type.InterfaceType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SerialSectionsMetaData;
 import etomo.type.ViewType;
+import etomo.ui.swing.Deferred3dmodButton;
 import etomo.ui.swing.LogInterface;
 import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainPanel;
@@ -71,7 +75,7 @@ public final class SerialSectionsManager extends BaseManager {
    */
   private boolean valid = true;
 
-  //Initialized during parent constructor
+  // Initialized during parent constructor
   private MainSerialSectionsPanel mainPanel;
   private SerialSectionsComScriptManager comScriptMgr;
 
@@ -378,6 +382,42 @@ public final class SerialSectionsManager extends BaseManager {
     }
   }
 
+  public void preblend(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      AxisID axisID, Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    if (getViewType() != ViewType.MONTAGE || dialog == null) {
+      processSeries.startFailProcess(axisID, processResultDisplay);
+      return;
+    }
+    comScriptMgr.loadPreblend(axisID);
+    BlendmontParam param = comScriptMgr.getBlendmontParamFromPreblend(axisID, getName());
+    dialog.getPreblendParameters(param);
+    comScriptMgr.savePreblend(param, axisID);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+  }
+
+  public void imodPreblend(final AxisID axisID, final Run3dmodMenuOptions menuOptions) {
+    try {
+      imodManager.open(ImodManager.PREBLEND_KEY, axisID, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod with the tomogram", axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
+    }
+  }
+
   /**
    * Copies the distortion field file to the directory containing the stack.  Always tries
    * to start the next process.
@@ -549,6 +589,10 @@ public final class SerialSectionsManager extends BaseManager {
 
   private void setSerialSectionsDialogParameters() {
     if (loadedParamFile && paramFile != null && metaData.isValid()) {
+      comScriptMgr.loadPreblend(AXIS_ID);
+      BlendmontParam param = comScriptMgr.getBlendmontParamFromPreblend(AXIS_ID,
+          getName());
+      dialog.setPreblendParameters(param);
     }
   }
 
