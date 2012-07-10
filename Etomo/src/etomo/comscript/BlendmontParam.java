@@ -69,6 +69,8 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   private final StringParameter pieceListInput = new StringParameter("PieceListInput");
   private final StringParameter rootNameForEdges = new StringParameter("RootNameForEdges");
   private final ScriptParameter imagesAreBinned = new ScriptParameter("ImagesAreBinned");
+  private EtomoBoolean2 sloppyMontage = new EtomoBoolean2("SloppyMontage");
+  private EtomoBoolean2 verySloppyMontage = new EtomoBoolean2("VerySloppyMontage");
 
   /**
    * @version 3.10
@@ -137,6 +139,8 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     pieceListInput.parse(scriptCommand);
     rootNameForEdges.parse(scriptCommand);
     imagesAreBinned.parse(scriptCommand);
+    sloppyMontage.parse(scriptCommand);
+    verySloppyMontage.parse(scriptCommand);
   }
 
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
@@ -158,6 +162,8 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     pieceListInput.updateComScript(scriptCommand);
     rootNameForEdges.updateComScript(scriptCommand);
     imagesAreBinned.updateComScript(scriptCommand);
+    sloppyMontage.updateComScript(scriptCommand);
+    verySloppyMontage.updateComScript(scriptCommand);
   }
 
   public void setValidate(final boolean validate) {
@@ -185,6 +191,8 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     pieceListInput.reset();
     rootNameForEdges.reset();
     imagesAreBinned.reset();
+    sloppyMontage.reset();
+    verySloppyMontage.reset();
   }
 
   public void initializeDefaults() {
@@ -317,7 +325,17 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     rootNameForEdges.set(input);
   }
 
-  public void setImagesAreBinned(final Number input) {
+  public void setVerySloppyMontage(final boolean input) {
+    if (input) {
+      sloppyMontage.set(false);
+    }
+    else{
+      sloppyMontage.set(true);
+    }
+    verySloppyMontage.set(input);
+  }
+
+  public void getImagesAreBinned(final Number input) {
     imagesAreBinned.set(input);
   }
 
@@ -446,6 +464,10 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 
   public boolean isMessageReporter() {
     return false;
+  }
+
+  public boolean isVerySloppyMontage() {
+    return verySloppyMontage.is();
   }
 
   public File getCommandOutputFile() {
