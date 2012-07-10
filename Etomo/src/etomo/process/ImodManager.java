@@ -611,6 +611,7 @@ public class ImodManager {
   public static final String FLATTEN_TOOL_OUTPUT_KEY = new String(
       "Flatten tool output file");
   public static final String SIRT_KEY = new String("SIRT output files");
+  public static final String PREBLEND_KEY = new String("Preblend output file");
 
   // private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -653,6 +654,7 @@ public class ImodManager {
   private static final String flattenInputKey = FLATTEN_INPUT_KEY;
   private static final String flattenToolOutputKey = FLATTEN_TOOL_OUTPUT_KEY;
   private static final String sirtKey = SIRT_KEY;
+  private static final String preblendKey = PREBLEND_KEY;
 
   private boolean useMap = true;
   private final BaseManager manager;
@@ -1783,6 +1785,9 @@ public class ImodManager {
     if (key.equals(SIRT_KEY) && axisID != null) {
       return newSirt(fileList, axisID);
     }
+    if (key.equals(PREBLEND_KEY) && axisID != null) {
+      return newPreblend(axisID);
+    }
     System.out.println("key=" + key);
     throw new IllegalArgumentException(key + " cannot be created in "
         + axisType.toString() + " with axisID=" + axisID.getExtension());
@@ -1999,6 +2004,12 @@ public class ImodManager {
   private ImodState newFlattenToolOutput(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID,
         FileType.FLATTEN_TOOL_OUTPUT.getFileName(manager, axisID));
+    return imodState;
+  }
+
+  private ImodState newPreblend(AxisID axisID) {
+    ImodState imodState = new ImodState(manager, axisID,
+        FileType.PREBLEND_OUTPUT_MRC.getFileName(manager, axisID));
     return imodState;
   }
 
