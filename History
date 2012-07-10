@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/7/12: Fixed treatment of min/max values when reading an ascii model file
+with contour values (In 4.5).
+
 6/28/12: IMOD_4-6-5
 6/28/12: Fixed bug in beadfixer that made it skip all residuals; fixed
 undefined variable when using sobel filter in Beadtrack.
