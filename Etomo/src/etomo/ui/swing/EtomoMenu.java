@@ -39,15 +39,15 @@ import etomo.util.Utilities;
 final class EtomoMenu {
   public static final String rcsid = "$Id$";
 
-  static final String RECON_LABEL = "Tomogram";
-  static final String JOIN_LABEL = "Join";
+  static final String RECON_LABEL = "Build Tomogram";
+  static final String JOIN_LABEL = "Join Serial Tomograms";
   static final String GENERIC_LABEL = "Generic Parallel Process";
   static final String NAD_LABEL = "Nonlinear Anisotropic "
       + (Utilities.isAprilFools() ? "Delusion" : "Diffusion");
-  static final String PEET_LABEL = "PEET";
+  static final String PEET_LABEL = "Particle Estimation (PEET)";
   static final String FLATTEN_VOLUME_LABEL = "Flatten Volume";
   static final String GPU_TILT_TEST_LABEL = "Test GPU";
-  static final String SERIAL_SECTIONS_LABEL = "Serial Sections";
+  static final String SERIAL_SECTIONS_LABEL = "Align Serial Sections";
 
   private static final int nMRUFileMax = 10;
   private static final String TOP_ANCHOR = Constants.TOP_ANCHOR;
@@ -67,13 +67,13 @@ final class EtomoMenu {
   private final JMenu menuNew = new Menu("New");
   private final JMenuItem menuNewTomogram = new MenuItem(RECON_LABEL, KeyEvent.VK_T);
   private final JMenuItem menuNewJoin = new MenuItem(JOIN_LABEL, KeyEvent.VK_J);
+  private final JMenuItem menuNewPeet = new MenuItem(PEET_LABEL, KeyEvent.VK_P);
+  private final JMenuItem menuSerialSections = new MenuItem(SERIAL_SECTIONS_LABEL,
+      KeyEvent.VK_R);
   private final JMenuItem menuNewAnisotropicDiffusion = new MenuItem(NAD_LABEL,
       KeyEvent.VK_D);
   private final JMenuItem menuNewGenericParallel = new MenuItem(GENERIC_LABEL,
       KeyEvent.VK_G);
-  private final JMenuItem menuNewPeet = new MenuItem(PEET_LABEL, KeyEvent.VK_P);
-  private final JMenuItem menuSerialSections = new MenuItem(SERIAL_SECTIONS_LABEL,
-      KeyEvent.VK_R);
 
   private final JMenu menuTools = new Menu("Tools");
   private final JMenuItem menuFlattenVolume = new MenuItem(FLATTEN_VOLUME_LABEL,
@@ -209,12 +209,13 @@ final class EtomoMenu {
     // New menu
     menuNew.add(menuNewTomogram);
     menuNew.add(menuNewJoin);
-    menuNew.add(menuNewAnisotropicDiffusion);
-    menuNew.add(menuNewGenericParallel);
     menuNew.add(menuNewPeet);
     if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
-      menuNew.add(menuSerialSections);
+      menuSerialSections.setEnabled(false);
     }
+    menuNew.add(menuSerialSections);
+    menuNew.add(menuNewAnisotropicDiffusion);
+    menuNew.add(menuNewGenericParallel);
 
     // Initialize all of the MRU file menu items
     FileMRUListActionListener fileMRUListActionListener = new FileMRUListActionListener(
