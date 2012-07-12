@@ -8,8 +8,8 @@ ALIDEP = tiltalign.$(O) input_model.$(O) input_vars.$(O) \
 # Other objects
 TAOBJS =  $(ALIDEP) find_surfaces.$(O) fill_matrices.$(O) alivar.$(O) \
 
-# PROGS = tiltalign$(E) xfforfidless$(E)
-PROGS = tiltalign$(E)
+PROGS = tiltalign$(E) xfforfidless$(E)
+#PROGS = tiltalign$(E)
 
 all: $(PROGS)
 
