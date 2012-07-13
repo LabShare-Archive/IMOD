@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/13/12: Made Model2point able to output general point or contour values, and
+Point2model able to read in point files with such values.
+
 7/7/12: Fixed treatment of min/max values when reading an ascii model file
 with contour values (In 4.5).
 
