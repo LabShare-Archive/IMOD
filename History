@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/13/12: In Beadtrack, fixed memory allocation problem, replaced
+surface output option with two options for output of extensive residual and
+elongation information and XYX coordinates after tracking automatically picked
+beads.
+
+7/13/12: Added options to Sortbeadsurf for picking subarea size based on
+number of points i npotential subareas, and for leaving some points identified
+as outliers out of initial pairings.
+
 7/13/12: Made Model2point able to output general point or contour values, and
 Point2model able to read in point files with such values.
 
