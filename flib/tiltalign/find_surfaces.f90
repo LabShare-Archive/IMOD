@@ -49,8 +49,7 @@ subroutine find_surfaces(xyz, numRealPt, numSurface, tiltMax, &
   allocate( xx(maxReal), yy(maxReal), zz(maxReal), zrot(maxReal), &
       icheck(maxReal / 2), stat = iter)
   if (iter .ne. 0) then
-    write(*,'(/,a)') &
-        'ERROR: find_surfaces - failure to allocate memory for arrays'
+    write(*,'(/,a)') 'ERROR: find_surfaces - failure to allocate memory for arrays'
     call exit(1)
   endif
   do i = 1, numRealPt
@@ -85,9 +84,8 @@ subroutine find_surfaces(xyz, numRealPt, numSurface, tiltMax, &
           ' of the fit when fiducials are on two surfaces'
     enddo
 
-    if (surfaceSort(xyz, numRealPt, igroup) .ne. 0) then
-      write(*,'(/,a)') &
-          'ERROR: find_surfaces - Allocating memory in surfaceSort'
+    if (surfaceSort(xyz, numRealPt, 0, igroup) .ne. 0) then
+      write(*,'(/,a)') 'ERROR: find_surfaces - Allocating memory in surfaceSort'
       call exit(1)
     endif
 
