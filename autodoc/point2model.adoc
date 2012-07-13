@@ -60,6 +60,21 @@ usage = Objects and contours are numbered from 0 instead of 1
 tooltip = 
 manpage = 
 
+[Field = ValuesInLastColumn]
+short = values
+type = I
+usage = 1 or -1 to store last number on each line as a point or contour value
+tooltip = 
+manpage = Use this option to indicate that lines have a general value
+at the end, after the Z coordinate.   Enter 1 to have the value stored as a
+point value, or -1 to have the value stored as a contour value.  With point
+values, a value must appear on every line.  With contour values, the first
+point in each contour must have a value, and values on later points in a
+contour will be ignored and need not be present.  Note that if a file has
+values and this option is not given, the coordinates will NOT be read correctly
+unless the file has both object and contour numbers, because the program will
+think that the X coordinate is a contour number.
+
 [Field = CircleSize]
 short = circle
 type = I
