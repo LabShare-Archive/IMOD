@@ -33,7 +33,8 @@ usage = Model with contours enclosing areas to analyze
 tooltip = 
 manpage = Model with contours enclosing areas to analyze.  More than one
 contour can be included on each section.  If there are no contours on a
-section within the range being analyzed, the entire section will be used.
+section within the range being analyzed, the contours on the nearest section
+with contours will be used.
 
 [Field = AddToModel]
 short = add

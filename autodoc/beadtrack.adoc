@@ -40,15 +40,32 @@ manpage = The current binning of the images relative to the original data.
 This factor is used to scale the bead diameter
 from unbinned to binned coordinates.  The default is 1.
 
-[Field = SurfaceOutputFile]
+[Field = XYZOutputFile]
 short = 
 type = FN
-usage = File name for information about which surface each bead is on
+usage = File name for output of X/Y/Z coordinates and mean residuals
 tooltip = 
-manpage = File name for output of surface information.  The program will try
-to sort the beads onto two surfaces separately for each local area.  The file
-will have four columns: object and contour number, and number of times the
-bead came out on the bottom and top surfaces.
+manpage = File name for output of information that can be used by
+Sortbeadsurfs(1) to determine which of two surfaces each bead is on.  This
+file has an entry for each bead with 5 columns: contour number, solved X, Y, Z
+coordinates, and the mean of the mean residuals from each local area.  The
+program uses the X/Y/Z coordinates from beads that overlap between between
+local areas to resolve the sets of coordinates from multiple local areas into
+a single consistent set.
+
+[Field = ElongationOutputFile]
+short =
+type = FN
+usage = File name for output of mean residuals and bead elongation data
+tooltip =
+manpage = File name for output of mean residuals and bead elongation data,
+which can be used by Pickbestseed(1) when selecting optimal beads for a seed
+model.  The file has an entry for each bead with 8 columns: object and contour
+number, and mean of the contour's mean residuals from each local area that the
+bead occurs in, the mean, median, and standard deviation of one measure of
+elongation (the standard deviation of pixels around the edge of the bead when
+measuring the centroid), and the mean and median of the elongation of pixels
+above a threshold.
 
 [Field = SkipViews]
 short = 
