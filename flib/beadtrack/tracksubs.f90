@@ -1,9 +1,12 @@
 module cgPixels
   implicit none
   integer*4, allocatable :: idxIn(:), idyin(:), idxEdge(:), idyEdge(:)
-  real*4, allocatable :: edgePixels(:)
-  integer*4 numInside, numEdge, iPolarity
-  logical*4 edgeMedian
+  real*4, allocatable :: edgePixels(:), elongSmooth(:,:)
+  logical, allocatable :: elongMask(:,:)
+  integer*4, allocatable :: ixElong(:), iyElong(:)
+  real*4 elongKernel(49)
+  integer*4 numInside, numEdge, iPolarity, kernDimElong
+  logical*4 edgeMedian, getEdgeSD
 end module cgPixels
 
 !
@@ -173,8 +176,11 @@ end subroutine nextPos
 !
 subroutine find_piece(ixPclist, iyPclist, izPclist, nPclist, nx, &
     ny, nxBox, nyBox, xnext, ynext, izNext, ix0, ix1, iy0, iy1, ipcz)
-  !
+  implicit none
   integer*4 ixPclist(*), iyPclist(*), izPclist(*)
+  integer*4 nPclist, nx, ny, nxBox, nyBox,izNext, ix0, ix1, iy0, iy1, ipcz
+  real*4 xnext, ynext
+  integer*4 indx0, indx1, indy0, indy1, ipc
   !
   indx0 = nint(xnext) - nxBox / 2
   indx1 = indx0 + nxBox - 1
@@ -197,10 +203,14 @@ subroutine find_piece(ixPclist, iyPclist, izPclist, nPclist, nx, &
 end subroutine find_piece
 
 
-
-
-SUBROUTINE QDshift(array, bray, nx, NY, xt, yt)
-  dimension array(nx, ny), bray(nx, ny)
+! Does a simple image shift with quadratic interpolation
+!
+SUBROUTINE QDshift(array, bray, nx, ny, xt, yt)
+  implicit none
+  integer*4 nx, ny
+  real*4 array(nx, ny), bray(nx, ny), xt, yt
+  real*4 dx, dy, dxsq, dysq, a, b, c, d, e, v2, v4, v6, v8, v5
+  integer*4 iyp, ixp, ixpp1, ixpm1, iypp1, iypm1
   !
   ! Loop over output image
   !
@@ -208,26 +218,22 @@ SUBROUTINE QDshift(array, bray, nx, NY, xt, yt)
   dy = -yt
   dxsq = dx**2
   dysq = dy**2
-  DO IYP = 1, NY
-    DO ixp = 1, nx
+  do iyp = 1, ny
+    do ixp = 1, nx
       !
-      ! Do quadratic interpolation
+      ! do quadratic interpolation
       !
-      ixpp1 = ixp + 1
-      ixpm1 = ixp - 1
-      iypp1 = IYP + 1
-      iypm1 = IYP - 1
-      IF (ixpm1 < 1) ixpm1 = 1
-      IF (iypm1 < 1) iypm1 = 1
-      IF (ixpp1 > nx) ixpp1 = nx
-      IF (iypp1 > NY) iypp1 = NY
+      ixpp1 = min(nx, ixp + 1)
+      ixpm1 = max(1, ixp - 1)
+      iypp1 = min(ny, iyp + 1)
+      iypm1 = max(1, iyp - 1)
       !
-      ! Set up terms for quadratic interpolation
+      ! set up terms for quadratic interpolation
       !
       v2 = array(ixp, iypm1)
-      v4 = array(ixpm1, IYP)
-      v5 = array(ixp, IYP)
-      v6 = array(ixpp1, IYP)
+      v4 = array(ixpm1, iyp)
+      v5 = array(ixp, iyp)
+      v6 = array(ixpp1, iyp)
       v8 = array(ixp, iypp1)
       !
       a = (v6 + v4) * .5 - v5
@@ -236,7 +242,7 @@ SUBROUTINE QDshift(array, bray, nx, NY, xt, yt)
       d = (v8 - v2) * .5
       !
 
-      bray(ixp, iyp) = (a * DXsq + b * DYsq + c * DX + d * DY + v5)
+      bray(ixp, iyp) = (a * dxsq + b * dysq + c * dx + d * dy + v5)
       !
     enddo
   enddo
@@ -245,32 +251,16 @@ SUBROUTINE QDshift(array, bray, nx, NY, xt, yt)
 END SUBROUTINE QDshift
 
 
-
-subroutine setMeanZero(array, nxDim, nyDim, nx, ny)
-  real*4 array(nxDim,nyDim)
-  sum = 0.
-  do iy = 1, ny
-    sumt = 0.
-    do ix = 1, nx
-      sumt = sumt + array(ix, iy)
-    enddo
-    sum = sum + sumt
-  enddo
-  avg = sum / (nx * ny)
-  do iy = 1, ny
-    do ix = 1, nx
-      array(ix, iy) = array(ix, iy) - avg
-    enddo
-  enddo
-  return
-end subroutine setMeanZero
-
-
 ! peakFind finds the coordinates of the the absolute peak, XPEAK, YPEAK
 ! in the array array, which is dimensioned to nx + 2 by ny.
+! This does no interpolation; it is used for the original correlation peak that is
+! always corrected to a centroid and not for the Sobel correlation peak, 
 !
 subroutine peakFind(array, nxPlus, nyRot, xpeak, ypeak, peak)
-  real*4 array(nxPlus,nyRot)
+  implicit none
+  integer*4 nxPlus, nyRot
+  real*4 array(nxPlus,nyRot), xpeak, ypeak, peak
+  integer*4 nxRot, ix, iy, ixPeak, iyPeak
   nxRot = nxPlus - 2
   !
   ! find peak
@@ -298,12 +288,15 @@ subroutine peakFind(array, nxPlus, nyRot, xpeak, ypeak, peak)
 end subroutine peakFind
 
 
-subroutine edgeForCG(boxTmp, nxBox, nyBox, ixcen, iycen, edge, ierr)
+! Finds the mean or median of edge pixels for taking the centroid, depending on whether
+! edgeMedian is set, and finds the SD of the edge pixels if getEdgeSD is set
+!
+subroutine edgeForCG(boxTmp, nxBox, nyBox, ixcen, iycen, edge, edgeSD, ierr)
   use cgPixels
   implicit none
   real*4 boxTmp(nxBox,nyBox)
   integer*4 nxBox, nyBox, ixcen, iycen, iy, ix, nsum, i, ierr
-  real*4 sum, edge
+  real*4 sum, edge, sumsq, edgeSD
   sum = 0.
   nsum = 0
   edge = 0.
@@ -311,7 +304,7 @@ subroutine edgeForCG(boxTmp, nxBox, nyBox, ixcen, iycen, edge, ierr)
   !
   ! find edge mean - require half the points to be present
   !
-  if (edgeMedian) then
+  if (edgeMedian .or. getEdgeSD) then
     do i = 1, numEdge
       ix = ixcen + idxEdge(i)
       iy = iycen + idyEdge(i)
@@ -332,22 +325,28 @@ subroutine edgeForCG(boxTmp, nxBox, nyBox, ixcen, iycen, edge, ierr)
   endif
   if (nsum < numEdge / 2) return
   ierr = 0
+  if (getEdgeSD) call avgsd(edgePixels, nsum, edge, edgeSD, sum)
   if (edgeMedian) then
     call rsSortFloats(edgePixels, nsum)
     call rsMedianOfSorted(edgePixels, nsum, edge)
-  else
+  else if (.not. getEdgeSD) then
     edge = sum / nsum
   endif
   return
 end subroutine edgeForCG
 
 
-subroutine calcCG(boxTmp, nxBox, nyBox, xpeak, ypeak, wsum)
+! Adjust the center position for computing a centroid or a elongation by finding the
+! strongest set of 4 pixels within 1 pixel of the original position xcen, ycen.
+! Returns the integer position to use as the center in ixcen, iycen and the best sum
+! of 4 pixels in best.
+!
+subroutine bestCenterForCG(boxTmp, nxBox, nyBox, xpeak, ypeak, ixcen, iycen, best)
   use cgPixels
   implicit none
-  real*4 boxTmp(nxBox,nyBox), xpeak, ypeak, wsum
-  integer*4 nxBox, nyBox, ixcen, iycen, iy, ix, ixBest, iyBest, nsum, i
-  real*4 best, sum4, sum, xsum, ysum, weight, edge
+  real*4 boxTmp(nxBox,nyBox), xpeak, ypeak
+  integer*4 nxBox, nyBox, ixcen, iycen, iy, ix, ixBest, iyBest
+  real*4 best, sum4
   !
   ixcen = nxBox / 2 + nint(xpeak)
   iycen = nyBox / 2 + nint(ypeak)
@@ -371,12 +370,29 @@ subroutine calcCG(boxTmp, nxBox, nyBox, xpeak, ypeak, wsum)
     ixcen = ixBest
     iycen = iyBest
   endif
+  return
+end subroutine bestCenterForCG
+
+
+! Calculates the centroid of a bead around the position xpeak, ypeak, revises the position
+! in those variables, and returns the sum of pixels (times polarity) in wsum and the
+! Sd of edge pixles in edgeSD (if getEdgeSD is set)
+!
+subroutine calcCG(boxTmp, nxBox, nyBox, xpeak, ypeak, wsum, edgeSD)
+  use cgPixels
+  implicit none
+  real*4 boxTmp(nxBox,nyBox), xpeak, ypeak, wsum
+  integer*4 nxBox, nyBox, ixcen, iycen, iy, ix, nsum, i
+  real*4 sum, xsum, ysum, weight, edge, edgeSD, bestSum
+  !
+  call bestCenterForCG(boxTmp, nxBox, nyBox, xpeak, ypeak, ixcen, iycen, bestSum)
   xsum = 0.
   ysum = 0.
   wsum = 0.
+  edgeSD = 0.
   !
   ! find edge mean - require half the points to be present
-  call edgeForCG(boxTmp, nxBox, nyBox, ixcen, iycen, edge, i)
+  call edgeForCG(boxTmp, nxBox, nyBox, ixcen, iycen, edge, edgeSD, i)
   if (i .ne. 0) return
   !
   ! subtract edge and get weighted sum of pixel coordinates for POSITIVE
@@ -401,19 +417,25 @@ subroutine calcCG(boxTmp, nxBox, nyBox, xpeak, ypeak, wsum)
   return
 end subroutine calcCG
 
-subroutine wsumForSobelPeak(boxTmp, nxBox, nyBox, xpeak, ypeak, wsum)
+
+! Computes a sum of central pixels above edge pixels around the position in xpeak, ypeak,
+! without adjusting the center position for computation or computing a centroid position
+! for revising xpeak, ypeak.  Also returns the edge SD if appropriate.
+!
+subroutine wsumForSobelPeak(boxTmp, nxBox, nyBox, xpeak, ypeak, wsum, edgeSD)
   use cgPixels
   implicit none
-  real*4 boxTmp(nxBox,nyBox), xpeak, ypeak, wsum
+  real*4 boxTmp(nxBox,nyBox), xpeak, ypeak, wsum, edgeSD
   integer*4 nxBox, nyBox, ixcen, iycen, iy, ix, i
   real*4 weight, edge
   !
   ixcen = nxBox / 2 + nint(xpeak)
   iycen = nyBox / 2 + nint(ypeak)
   wsum = 0.
+  edgeSD = 0.
   !
   ! find edge mean - require half the points to be present
-  call edgeForCG(boxTmp, nxBox, nyBox, ixcen, iycen, edge, i)
+  call edgeForCG(boxTmp, nxBox, nyBox, ixcen, iycen, edge, edgeSD, i)
   if (i .ne. 0) return
   !
   ! subtract edge and get weight sum for POSITIVE pixels
@@ -431,13 +453,20 @@ subroutine wsumForSobelPeak(boxTmp, nxBox, nyBox, xpeak, ypeak, wsum)
 end subroutine wsumForSobelPeak
 
 
-
-subroutine rescue(boxTmp, nxBox, nyBox, xpeak, ypeak, radMax, relaxCrit, wsum)
+! RESCUE searches in progressively wider rings from the center of the box outward for
+! a peak in the CG above the relaxed criterion relaxCrit.  The biggest peak in a ring
+! is taken and the search is terminated when one is found.  Otherwise wsum and edgeSd
+! are returned with 0.
+!
+subroutine rescue(boxTmp, nxBox, nyBox, xpeak, ypeak, radMax, relaxCrit, wsum, edgeSD)
+  use cgPixels
   implicit none
-  real*4 boxTmp(*), xpeak, ypeak, radMax, relaxCrit, wsum
+  real*4 boxTmp(*), xpeak, ypeak, radMax, relaxCrit, wsum, edgeSD
   integer*4 nxBox, nyBox, idx, idy
-  real*4 rad, radInc, radSq, radOutSq, wBest, distSq, xtmp, ytmp, wtmp
+  real*4 rad, radInc, radSq, radOutSq, wBest, distSq, xtmp, ytmp, wtmp, sdtmp, sdBest
   wsum = 0.
+  edgeSD = 0.
+  if (relaxCrit <= 0.) return
   rad = 0.
   radInc = 1.5
   do while(rad <= radMax .and. wsum == 0.)
@@ -450,28 +479,36 @@ subroutine rescue(boxTmp, nxBox, nyBox, xpeak, ypeak, radMax, relaxCrit, wsum)
         if (distSq > radSq .and. distSq <= radOutSq) then
           xtmp = idx
           ytmp = idy
-          call calcCG(boxTmp, nxBox, nyBox, xtmp, ytmp, wtmp)
+          call calcCG(boxTmp, nxBox, nyBox, xtmp, ytmp, wtmp, sdtmp)
           if (wtmp > wBest) then
             wBest = wtmp
             xpeak = xtmp
             ypeak = ytmp
+            if (getEdgeSD) sdBest = sdtmp
           endif
         endif
       enddo
     enddo
     rad = rad + radInc
-    if (wBest >= relaxCrit) wsum = wBest
+    if (wBest >= relaxCrit) then
+      wsum = wBest
+      if (getEdgeSD) edgeSD = sdBest
+    endif
   enddo
   return
 end subroutine rescue
 
+! Not used, did not help.
+!
 subroutine rescueFromSobel(boxTmp, nxBox, nyBox, xpeak, ypeak, sobelXpeaks, &
-    sobelYpeaks, sobelPeaks, sobelWsums, maxPeaks, radMax, relaxCrit, wsum)
+    sobelYpeaks, sobelPeaks, sobelWsums, sobelEdgeSD, maxPeaks, radMax, relaxCrit, wsum, &
+    edgeSD)
+  use cgPixels
   implicit none
   real*4 boxTmp(*), xpeak, ypeak, sobelXpeaks(*), sobelYpeaks(*), sobelPeaks(*)
-  real*4 sobelWsums(*), radMax, relaxCrit, wsum
+  real*4 sobelWsums(*), sobelEdgeSD(*), radMax, relaxCrit, wsum, edgeSD
   integer*4 nxBox, nyBox, maxPeaks, ipeak
-  real*4 rad, radInc, radSq, radOutSq, wBest, distSq
+  real*4 rad, radInc, radSq, radOutSq, wBest, distSq, sdBest
   wsum = 0.
   rad = 0.
   radInc = 1.5
@@ -483,23 +520,31 @@ subroutine rescueFromSobel(boxTmp, nxBox, nyBox, xpeak, ypeak, sobelXpeaks, &
       if (sobelPeaks(ipeak) < - 1.e29) exit
       distSq = sobelXpeaks(ipeak)**2 + sobelYpeaks(ipeak)**2
       call checkSobelPeak(ipeak, boxTmp, nxBox, nyBox, sobelXpeaks, sobelYpeaks, &
-          sobelPeaks, sobelWsums, maxPeaks)
+          sobelPeaks, sobelWsums, sobelEdgeSD, maxPeaks)
       if (distSq > radSq .and. distSq <= radOutSq .and. sobelWsums(ipeak) > wBest) then
         wBest = sobelWsums(ipeak)
         xpeak = sobelXpeaks(ipeak)
         ypeak = sobelYpeaks(ipeak)
+        sdBest = sobelEdgeSD(ipeak)
       endif
     enddo
     rad = rad + radInc
-    if (wBest >= relaxCrit) wsum = wBest
+    if (wBest >= relaxCrit) then
+      wsum = wBest
+      if (getEdgeSD) edgeSD = sdBest
+    endif
   enddo
   return
 end subroutine rescueFromSobel
 
+
+! checkSobelPeak makes sure the wsum has been computed for the indPeak peak in the
+! list, returns 0 if there is no peak or comutes it if necessary
+!
 subroutine checkSobelPeak(indPeak, boxTmp, nxBox, nyBox, xpeaks, yPeaks, peaks, wsums, &
-    maxPeaks)
+    edgeSDs, maxPeaks)
   implicit none
-  real*4 boxTmp(*), xpeaks(*), yPeaks(*), peaks(*), wsums(*)
+  real*4 boxTmp(*), xpeaks(*), yPeaks(*), peaks(*), wsums(*), edgeSDs(*)
   integer*4 nxBox, nyBox, maxPeaks, indPeak
   real*4 xtmp, ytmp
   if (wsums(indPeak) >= 0.) return
@@ -508,12 +553,96 @@ subroutine checkSobelPeak(indPeak, boxTmp, nxBox, nyBox, xpeaks, yPeaks, peaks, 
     return
   endif
   call wsumForSobelPeak(boxTmp, nxBox, nyBox, xpeaks(indPeak), yPeaks(indPeak), &
-      wsums(indPeak))
+      wsums(indPeak), edgeSDs(indPeak))
   return
 end subroutine checkSobelPeak
 
 
+! calcElongation calculates a measure of elongation for the portion of density that
+! is at least a certain fraction above the edge intensity.  Data are in boxTmp, 
+! dimensioned nxBox x nyBox, and the nomin
+!
+subroutine calcElongation(boxTmp, nxBox, nyBox, xpeak, ypeak, elongation)
+  use cgPixels
+  implicit none
+  real*4 boxTmp(nxBox, nyBox), xpeak, ypeak, elongation
+  integer*4 nxBox, nyBox
+  integer*4 i, ixcen, iycen, numPos, ix, iy, idir, indCheck
+  integer*4 idelx(4)/-1, 1, 0, 0/, idely(4)/0, 0, -1, 1/
+  real*4 xmean, ymean, dx, dy, edge, edgeSD, thresh, threshFrac, root, bestSum
+  real*8 dxsum, dysum, dxsqsum, dysqsum, dxysum
+  logical*4 edgeSDsave, edgeMedianSave
+  !
+  threshFrac = 0.20
+  !
+  ! Smooth the data then find an adjusted center from the smoothed data
+  call applyKernelFilter(boxTmp, elongSmooth, nxBox, nxBox, nyBox, elongKernel, &
+      kernDimElong)
+  call bestCenterForCG(elongSmooth, nxBox, nyBox, xpeak, ypeak, ixcen, iycen, bestSum)
+  elongation = -1.
+  !
+  ! Get an edge median regardless of normal setting
+  edgeSDsave = getEdgeSD
+  edgeMedianSave = edgeMedian
+  getEdgeSD = .false.
+  edgeMedian = .true.
+  call edgeForCG(elongSmooth, nxBox, nyBox, ixcen, iycen, edge, edgeSD, i)
+  getEdgeSD = edgeSDsave
+  edgeMedian = edgeMedianSave
+  if (i .ne. 0) return
+  !
+  ! Get threshold value and start a list of points to check with the center point
+  thresh = edge + threshFrac * (bestSum / 4. - edge)
+  numPos = 1
+  ixElong(1) = ixcen
+  iyElong(1) = iycen
+  indCheck = 1
+  elongMask = .false.
+  elongMask(ixcen, iycen) = .true.
+  dxsum = 0; dysum = 0
+  !
+  ! Make a list of pixels above the threshold by checking the four neighbors of each point
+  ! on list, adding to list and setting a mask as each is found
+  do while (indCheck <= numPos)
+    do i = 1, 4
+      ix = max(1, min(nxBox, ixElong(indCheck) + idelx(i)))
+      iy = max(1, min(nyBox, iyElong(indCheck) + idely(i)))
+      if (.not. elongMask(ix, iy) .and. iPolarity * (elongSmooth(ix, iy) - thresh) > 0) &
+          then
+        elongMask(ix, iy) = .true.
+        numPos = numPos + 1
+        ixElong(numPos) = ix
+        iyElong(numPos) = iy
+        dxsum = dxsum + ix
+        dysum = dysum + iy
+      endif
+    enddo
+    indCheck = indCheck + 1
+  enddo
+  if (numPos == 1) return
 
+  ! Get the means and moments and apply the equation for elongation
+  xmean = dxsum / numPos
+  ymean = dysum / numPos
+  dxsqsum = 0; dysqsum = 0; dxysum = 0
+  do i = 1, numPos
+    dxsqsum = dxsqsum + (ixElong(i) - xmean)**2
+    dysqsum = dysqsum + (iyElong(i) - ymean)**2
+    dxysum = dxysum + (ixElong(i) - xmean) * (iyElong(i) - ymean)
+  enddo
+
+  root = sqrt(4. * dxysum**2 + (dxsqsum - dysqsum)**2)
+  elongation = (dxsqsum + dysqsum + root) / (dxsqsum + dysqsum - root)
+
+  ! This is supposedly the axis angle but it seemed flaky.  Trying to find a long axis
+  ! by looking at points above threshold was problematic
+  ! angle = atan2(2. * dxysum, dxsqsum - dysqsum)
+  return
+end subroutine calcElongation
+
+
+! Adds a point to the output model
+!
 subroutine add_point(iobj, ipNear, xpos, ypos, izNext)
   include 'smallmodel.inc90'
   logical failed
@@ -812,3 +941,174 @@ subroutine findxf_wo_outliers(xr, msizeXR, numData, xcen, ycen, ifTrans, &
   enddo
   return
 end subroutine findxf_wo_outliers
+
+
+! adjustXYZinAreas shifts XYZ values of the different local areas so that points shared
+! between two areas have the same mean position in the two areas
+!
+subroutine adjustXYZinAreas(iobjLists, listSize, indObjList, ninObjList, xyzAll, &
+    nobjLists, xyzObj, numObj)
+  implicit none
+  integer*4 iobjLists(*), indObjList(*), ninObjList(*)
+  real*4 xyzAll(3, *), xyzObj(3, *)
+  integer*4 numObj, nobjLists, listSize
+  integer*4 numPrevAreas(listSize + numObj)
+  integer*4 indStartInPrevList(listSize + numObj)
+  integer*4, allocatable :: listPrevInds(:) 
+  real*4 dxyz(3), sumDxyz(3), dxyzLast(3), dxyzAvg(3), dxyzMax(3), avgXyz(3)
+  integer*4 loop, indFree, iseq, iobj, indObj, jseq, jndList, jobj, iter, maxIter
+  integer*4 numInErr, numInSum, i, ind, j, numAvgForTest, intervalForTest
+  integer*4 ibaseOrigObj, indList, jndObj
+  real*4 critMaxMove, critMoveDiff
+  real*8 error
+
+  maxIter = 1000
+  critMaxMove = .01
+  critMoveDiff = 0.001
+  intervalForTest = 20
+  numAvgForTest = 10
+  
+  ! Go through points twice, first time just counting how big the list array needs to be
+  ! then allocate it, then second time, fill the list of indices
+  ibaseOrigObj = indObjList(nobjLists) + ninObjList(nobjLists)
+  ninObjList(nobjLists + 1) = numObj
+  indObjList(nobjLists + 1) = ibaseOrigObj
+  numPrevAreas = 0
+  do loop = 1, 2
+    indFree = 1
+    do iseq = 1, nobjLists + 1
+      do indList = 1, ninObjList(iseq)
+        indObj = indObjList(iseq) + indList - 1
+        indStartInPrevList(indObj) = indFree
+        if (iseq <= nobjLists) then
+          iobj = iobjLists(indObj)
+          !
+          ! Skip all points with no solved xyz
+          if (xyzAll(1, indObj) == 0. .and. xyzAll(1, indObj) == 0. .and.  &
+              xyzAll(1, indObj) == 0.)  &
+              cycle
+        else 
+          iobj = indList
+        endif
+        do jseq = 1, iseq - 1
+          do jndList = 1, ninObjList(jseq)
+            jndObj = indObjList(jseq) + jndList - 1
+            jobj = iobjLists(jndObj)
+            if (jobj == iobj .and. (xyzAll(1, jndObj) .ne. 0. .or.  &
+                xyzAll(1, jndObj) .ne. 0. .or. xyzAll(1, jndObj) .ne. 0.) )then
+              if (loop > 1) then
+                listPrevInds(indFree) = jndObj
+                numPrevAreas(indObj) = numPrevAreas(indObj) + 1
+              endif
+              indFree = indFree + 1
+            endif
+          enddo
+        enddo
+        if (loop == 2) then
+         ! write(*,'(a,i3,a,3i5,4x,(8i5))')'area',iseq,'  object',iobj,indStartInPrevList(indObj),numPrevAreas(indObj), &
+         ! (listPrevInds(i+indStartInPrevList(indObj)-1), i = 1,numPrevAreas(indObj))
+        endif
+      enddo
+    enddo
+    if (loop == 1) then
+      allocate(listPrevInds(indFree), stat=iseq)
+      call memoryError(iseq, 'ARRAY FOR INDICES IN PREVIOUS AREAS')
+    endif
+  enddo
+  !
+  ! Iterate until changes become small.  The termination logic is adopted from
+  ! libcfshr/find_piece_shifts.c
+  dxyzLast = 0.
+  dxyzAvg = 0.
+  do iter = 1, maxIter
+    error = 0.
+    numInErr = 0
+    sumDxyz = 0.
+    dxyzMax = 0.
+    do iseq = 2, nobjLists
+
+      ! For each area in turn, add up all shifts relative to same points in previous areas
+      dxyz = 0.
+      numInSum = 0
+      do indList = 1, ninObjList(iseq)
+        indObj = indObjList(iseq) + indList - 1
+        !if (numPrevAreas(indObj) > 0) print *,indList,iobjLists(indObj), indObj, xyzAll(1:3, indObj)
+        do i = 1, numPrevAreas(indObj)
+          ind = listPrevInds(indStartInPrevList(indObj) + i - 1)
+          !print *,iobjLists(ind), ind, xyzAll(1:3, ind)
+          dxyz(1:3) = dxyz(1:3) + (xyzAll(1:3, indObj) - xyzAll(1:3, ind))
+        enddo
+        numInSum = numInSum + numPrevAreas(indObj)
+      enddo
+
+      ! Get the mean amount of shift needed, and accumulate the mean and maximum
+      ! absolute value of the shift for each dimension
+      dxyz = dxyz / max(1, numInSum)
+      sumDxyz = sumDxyz + abs(dxyz)
+      do i = 1, 3
+        dxyzMax(i) = max(dxyzMax(i), abs(dxyz(i)))
+      enddo
+
+      ! Subtract the shift from each xyz in the current area
+      do indList = 1, ninObjList(iseq)
+        indObj = indObjList(iseq) + indList - 1
+        if (xyzAll(1, indObj) .ne. 0. .or. xyzAll(1, indObj) .ne. 0. .or.  &
+            xyzAll(1, indObj) .ne. 0.)  &
+            xyzAll(1:3, indObj) = xyzAll(1:3, indObj) - dxyz(1:3)
+      enddo
+    enddo
+
+    ! Compute error as mean difference from the average position
+    error = 0.
+    do iobj = 1, numObj
+      avgXyz = 0.
+      numInSum = numPrevAreas(ibaseOrigObj + iobj - 1)
+      do i = 1, numInSum
+        ind = listPrevInds(indStartInPrevList(ibaseOrigObj + iobj - 1) + i - 1)
+        avgXyz(1:3) = avgXyz(1:3) + xyzAll(1:3, ind) / numInSum
+      enddo
+      
+      do i = 1, numInSum
+        ind = listPrevInds(indStartInPrevList(ibaseOrigObj + iobj - 1) + i - 1)
+        do j = 1,3
+          error = error + (avgXyz(j) - xyzAll(j, ind))**2
+        enddo
+      enddo
+      numInErr = numInErr + numInSum
+    enddo
+
+    error = sqrt(error / max(1, numInErr))
+    write(*,'(i4,7f10.3)')iter, error, dxyzMax, dxyzAvg
+
+    ! If the maximum move is ever less than this criterion in all dimensions, finished
+    if (dxyzMax(1) < critMaxMove .and. dxyzMax(2) < critMaxMove .and.  &
+        dxyzMax(3) < critMaxMove) &
+      exit
+
+    ! Periodically accumulate the average move over several iterations
+    if (mod(iter, intervalForTest) >= intervalForTest - numAvgForTest)  &
+        dxyzAvg = dxyzAvg + sumDxyz / (nobjLists - 1)
+
+    ! Then test whether the average move has fallen by less than this criterion
+    if (mod(iter, intervalForTest) == intervalForTest - 1) then
+      dxyzAvg = dxyzAvg / numAvgForTest;
+      if (dxyzLast(1) - dxyzAvg(1) < critMoveDiff .and. dxyzLast(2) - dxyzAvg(2) <  &
+          critMoveDiff .and. dxyzLast(3) - dxyzAvg(3) < critMoveDiff)  &
+          exit
+      dxyzLast = dxyzAvg
+      dxyzAvg = 0.
+    endif
+
+  enddo
+
+  ! Average each bead into the array of one per object
+  xyzObj(1:3, 1:numObj) = 0.
+  do iobj = 1, numObj
+    numInSum = numPrevAreas(ibaseOrigObj + iobj - 1)
+    do i = 1, numInSum
+      ind = listPrevInds(indStartInPrevList(ibaseOrigObj + iobj - 1) + i - 1)
+      xyzObj(1:3, iobj) = xyzObj(1:3, iobj) + xyzAll(1:3, ind) / numInSum
+    enddo
+  enddo
+
+end subroutine adjustXYZinAreas
