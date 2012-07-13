@@ -26,21 +26,21 @@ program beadtrack
   !
   real*4 title(20), matKernel(49)
   real*4, allocatable :: boxes(:,:,:), curSum(:), boxTmp(:), corrSum(:,:), sobelSum(:,:)
-  real*4, allocatable :: array(:), BRRAY(:), sarray(:), sbrray(:)
+  real*4, allocatable :: array(:), BRRAY(:), sarray(:), sbrray(:), sobelEdgeSD(:,:)
   real*4, allocatable :: refSobel(:), tmpSobel(:), boxSobel(:), sobelWsums(:,:)
   real*4, allocatable :: sobelXpeaks(:,:), sobelYpeaks(:,:), sobelPeaks(:,:)
   ! maxAllReal
   real*4, allocatable :: seqDist(:), xxtmp(:), yytmp(:), xvtmp(:), yvtmp(:)
-  integer*4, allocatable :: indgap(:), numBotTop(:,:)
+  integer*4, allocatable :: indgap(:), numResSaved(:)
   logical*1, allocatable :: inAnArea(:)
   !
   integer*4, allocatable :: ixPclist(:), iyPclist(:), izPclist(:), listz(:), inCore(:,:)
-  CHARACTER*320 filin, outFile, pieceFile, modelFile, surfaceFile
+  CHARACTER*320 filin, outFile, pieceFile, modelFile, elongFile, XYZfile
   ! maxView except wsumSave
   integer*4, allocatable :: izExclude(:), ipClose(:), izClose(:)
   integer*4, allocatable :: ivList(:), ivSnapList(:)
   logical, allocatable :: missing(:)
-  real*4, allocatable :: wsumSave(:,:), prevRes(:)
+  real*4, allocatable :: wsumSave(:,:), prevRes(:), edgeSDsave(:,:), elongSave(:,:)
   character*6 areaObjStr
   character*9 date
   character*8 tim
@@ -49,7 +49,7 @@ program beadtrack
   ! maxreal
   real*4, allocatable :: xseek(:), yseek(:), wsumCrit(:), xr(:,:)
   integer*4, allocatable :: numWsums(:), ifFound(:), ipNearest(:), ipNearSave(:)
-  integer*4, allocatable :: iobjDel(:), idrop(:), igrpBotTop(:), numInSobelSum(:)
+  integer*4, allocatable :: iobjDel(:), idrop(:), numInSobelSum(:)
   logical, allocatable :: inCorrSum(:,:), inSobelSum(:,:)
 
   real*4, allocatable :: resMean(:,:)
@@ -60,9 +60,8 @@ program beadtrack
   !
   integer*2, allocatable :: ivGap(:)
   ! maxOlist
-  real*4, allocatable :: residLists(:)
+  real*4, allocatable :: residLists(:), xyzAllArea(:,:)
   integer*4, allocatable :: iobjLists(:), iobjLisTmp(:)
-  integer*1, allocatable :: listsBotTop(:)
   real*4 ctf(8193)
   character*1024 listString
   character*60 addfmt, delfmt1, delfmt2
@@ -98,10 +97,10 @@ program beadtrack
   real*4 devMax, errMax, curDiff, resAvg, resSD, resSEM, gmagCur, wsumAvg, wsumSD
   integer*4 numPioneer, ifTrans, ifRoTrans, ipntMaxDev, numAddTmp, ivLook
   integer*4 ifMeanBad, isCur, nprev, ndel, missTot, numListZ, imodObj, imodCont
-  real*4 peak, dist, tmin, tmax, tmean, cvbxcen, cvbycen, area, density
+  real*4 peak, dist, tmin, tmax, tmean, cvbxcen, cvbycen, area, density, elongSigma
   integer*4 numVert, minInArea, minBeadOverlap, ifLocalArea, localTarget
   integer*4 nvLocalIn, localViewPass, nSnapList, iobjSave
-  logical keepGoing, saveAllPoints, ignoreObjs, done
+  logical*4 keepGoing, saveAllPoints, ignoreObjs, done, noSurfaces
   integer*4 numNew, nOverlap, iseqPass, ipassSave, iAreaSave, maxObjOrig
   real*4 outlieElimMin, outlieCrit, outlieCritAbs, curResMin, tiltMax, minPeakRatio
   real*4 sigma1, sigma2, radius2, radius1, deltaCtf, ranFrac, diameter, sobelSigma
@@ -109,7 +108,8 @@ program beadtrack
   integer*4 minViewDo, maxViewDo, numViewDo, numBound, iseed, limcxBound, nFarther
   integer*4 ivsOnAlign, ifAlignDone, imageBinned, maxSobelSum, maxAnySum
   integer*4 nxSobel, nySobel, nxsPad, nysPad, ninSobel, kernelDim
-  real*4 xOffSobel, yOffSobel, scaleFacSobel, scaleByInterp, targetSobel
+  real*4 xOffSobel, yOffSobel, scaleFacSobel, scaleByInterp, targetSobel, edgeSD
+  real*4 sdsum, sdsumsq, sdmin, sdmax, sdavg, sdmed, sdmean, edgeSDsd, elongMean, elongMed
   character*320 concat
   integer*4 getImodObjsize, niceFrame, surfaceSort, scaledSobel
   logical itemOnList
@@ -209,12 +209,15 @@ program beadtrack
   scaleByInterp = 1.2
   targetSobel = 8
   sobelSigma = 0.5
+  elongSigma = 0.85
   interpType = 0
   maxPeaks = 20
   minPeakRatio = 0.2
   msizeXR = 19
   taperFrac = 0.2
   edgeMedian = .false.
+  noSurfaces = .false.
+  getEdgeSD = .false.
   !
   !
   ! Pip startup: set error, parse options, check help, set flag if used
@@ -293,7 +296,7 @@ program beadtrack
   maxOlist = max(40 * maxAllReal, 100000)
   allocate(seqDist(maxAllReal), xxtmp(maxAllReal), yytmp(maxAllReal), &
       xvtmp(maxAllReal), yvtmp(maxAllReal), &
-      numBotTop(2, maxAllReal), iobjSeq(maxAllReal), xyzSave(3, maxAllReal), &
+      iobjSeq(maxAllReal), xyzSave(3, maxAllReal), &
       iobjLisTmp(maxOlist), indgap(maxAllReal), inAnArea(maxAllReal), stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR ALL CONTOURS IN MODEL')
   !
@@ -310,11 +313,14 @@ program beadtrack
       .ne. 0) call errorExit('NO OUTPUT MODEL FILE SPECIFIED', 0)
   !
   outFile = ' '
-  surfaceFile = ' '
+  elongFile = ' '
+  xyzFile = ''
   numExclude = 0
   if (pipinput) then
     ierr = PipGetString('BoxOutputFile', outFile)
-    ierr = PipGetString('SurfaceOutputFile', surfaceFile)
+    ierr = PipGetString('ElongationOutputFile', elongFile)
+    ierr = PipGetString('XYZOutputFile', xyzFile)
+    getEdgeSD = elongFile .ne. ' '
     if (PipGetString('SkipViews', listString) == 0) call parseList2 &
         (listString, izExclude, numExclude, maxView)
     ierr = PipGetFloat('RotationAngle', rotStart)
@@ -523,8 +529,6 @@ program beadtrack
   npixBox = nxBox * nyBox
   nxpDim = nxpad + 2
   maxarr = nypad * nxpDim
-  ! if (npixBox > maxbox**2 .or. nypad * nxpDim > maxarr) call &
-  ! errorExit('BOX SIZE TOO LARGE FOR ARRAYS - TRY BINNING INPUT DATA', 0)
   if (sigma1 .ne. 0 .or. radius2 .ne. 0) call setCtfwsr &
       (sigma1, sigma2, radius1, radius2, ctf, nxpad, nypad, deltaCtf)
   !
@@ -945,9 +949,16 @@ program beadtrack
 
   ! Get final arrays for the object lists and free temporary stuff
   maxOlist = indFree
-  allocate(listsBotTop(maxOlist), residLists(maxOlist), iobjLists(maxOlist), &
-      inCore(maxAnySum, maxInArea), stat = ierr)
+  allocate(iobjLists(maxOlist), inCore(maxAnySum, maxInArea), stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR OBJECT LISTS')
+  if (elongFile .ne. ' ' .or. xyzFile .ne. ' ') then
+    allocate(residLists(maxOlist), xyzAllArea(3, maxOlist), numResSaved(maxAllReal),  &
+        stat = ierr)
+    call memoryError(ierr, 'ARRAYS FOR RESIDUALS/XYZ DATA')
+    residLists = -1.
+    xyzAllArea = 0.
+    numResSaved = 0
+  endif
   iobjLists(1:indFree-1) = iobjLisTmp(1:indFree-1)
   deallocate(iobjLisTmp, xxtmp, yytmp, xvtmp, yvtmp, seqDist)
   !
@@ -959,11 +970,22 @@ program beadtrack
   !
   ! Allocate arrays for all real points in current solution
   i = maxInArea + 10
+  if (getEdgeSD) then
+    allocate(edgeSDsave(minViewDo:maxViewDo, maxAllReal),  &
+        elongSave(minViewDo:maxViewDo, maxAllReal), elongSmooth(nxBox, nyBox), &
+        elongMask(nxBox, nyBox), ixElong(nxBox * nyBox), iyElong(nxBox * nyBox),  &
+        stat=ierr)
+    call memoryError(ierr, 'ARRAY FOR EDGE SDS')
+    edgeSDsave = -1.
+    call scaledGaussianKernel(elongKernel, kernDimElong, 7, max(elongSigma, sobelSigma))
+  endif
+  !
   allocate(xseek(i), yseek(i), wsumCrit(i), xr(msizeXR, i), numWsums(i), ifFound(i), &
-      ipNearest(i), ipNearSave(i), iobjDel(i), idrop(i), igrpBotTop(i), &
+      ipNearest(i), ipNearSave(i), iobjDel(i), idrop(i), &
       wsumSave(maxView, i), iobjAli(i), numInSobelSum(i), inCorrSum(maxAnySum, i), &
       inSobelSum(maxAnySum, i), sobelXpeaks(maxPeaks, i), sobelYpeaks(maxPeaks, i), &
-      sobelPeaks(maxPeaks, i), sobelWsums(maxPeaks, i), stat = ierr)
+      sobelPeaks(maxPeaks, i), sobelWsums(maxPeaks, i), sobelEdgeSD(maxPeaks, i),  &
+      stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR POINTS IN AREA')
   xr(3, 1:i) = 0.
   sobelXpeaks = 0.
@@ -1094,10 +1116,6 @@ program beadtrack
     objfmt = '(i4,15i5)'
   endif
   !
-  do i = 1, indFree
-    listsBotTop(i) = 0
-  enddo
-  !
   ! Start looping on the sequences of views
   !
   lastList = -1
@@ -1216,26 +1234,18 @@ program beadtrack
 121   format('For ',a,i3,', round',i3,':',i3, ' contours, points missing =',i5)
     endif
     !
-    ! Do surface fitting on every round if tiltalign run
-    if (surfaceFile .ne. ' ' .and. ifAlignDone .ne. 0) then
-      if (surfaceSort(xyz, nrealpt, igrpBotTop) .ne. 0) call errorExit( &
-          'ALLOCATING MEMORY in surfaceSort', 0)
+    ! Save residuals and XYZ values on every round if tiltalign run
+    if ((elongFile .ne. ' ' .or. xyzFile .ne. ' ') .and. ifAlignDone .ne. 0) then
       !
-      ! Find each object in the real object list and move group number
-      ! into list
+      ! Find each object in the real object list and move residual/XYZ data into list
       do i = 1, numObjDo
-        j = 1
-        ix = 0
-        xpos = 0.
-        do while (j <= nrealpt .and. ix == 0)
+        do j = 1, nrealpt
           if (iobjAli(j) == iobjSeq(i)) then
-            ix = igrpBotTop(j)
-            xpos = resMean(iobjAli(j), ivsOnAlign)
+            residLists(i + indObjList(lastSeq) - 1) = resMean(iobjAli(j), ivsOnAlign)
+            xyzAllArea(1:3, i + indObjList(lastSeq) - 1) = xyz(1:3, j)
+            exit
           endif
-          j = j + 1
         enddo
-        listsBotTop(i + indObjList(lastSeq) - 1) = ix
-        residLists(i + indObjList(lastSeq) - 1) = xpos
       enddo
     endif
   enddo
@@ -1247,8 +1257,7 @@ program beadtrack
   missTot = 0
   do iobj = 1, maxObjOrig
 
-    call countMissing(iobj, nviewAll, izExclude, numExclude, missing, &
-        listz, numListZ)
+    call countMissing(iobj, nviewAll, izExclude, numExclude, missing, listz, numListZ)
     if (numListZ .ne. 0) then
       call objToCont(iobj, obj_color, imodObj, imodCont)
       write(*,117) imodObj, imodCont
@@ -1259,31 +1268,88 @@ program beadtrack
   enddo
   print *,'Total points missing =', missTot
   !
-  ! Write out surface file
-  if (surfaceFile .ne. ' ') then
-    call dopen(4, surfaceFile, 'new', 'f')
+  ! Write out residual file and XYZ file
+  if (elongFile .ne. ' ' .or. xyzFile .ne. ' ') then
+    if (xyzFile .ne. ' ') then
+      deallocate(boxes, corrSum, stat=ierr)
+      call adjustXYZinAreas(iobjLists, maxOlist, indObjList, ninObjList, xyzAllArea, &
+          nobjLists, xyzSave, maxObjOrig)
+      call dopen(7, xyzFile, 'new', 'f')
+    endif
+
+    if (elongFile .ne. ' ') call dopen(4, elongFile, 'new', 'f')
+
+    ! Get average of the edge SD values
+    sdsum = 0.
+    iy = 0
     do iobj = 1, maxObjOrig
-      numBotTop(1, iobj) = 0
-      numBotTop(2, iobj) = 0
       resMean(iobj, 1) = 0.
+      do iview = minViewDo, maxViewDo
+        if (edgeSDsave(iview, iobj) > 0) then
+          sdsum = sdsum + edgeSDsave(iview, iobj)
+          iy = iy + 1
+        endif
+      enddo
     enddo
+    if (iy > 0) sdavg = sdsum / iy
+    !
+    ! Add up mean residuals for all points that have any
     do i = 1, indFree
-      iobj = iobjLists(i)
-      j = listsBotTop(i)
-      if (j > 0) then
-        numBotTop(j, iobj) = numBotTop(j, iobj) + 1
+      if (residLists(i) >= 0.) then
+        iobj = iobjLists(i)
+        numResSaved(iobj) = numResSaved(iobj) + 1
         resMean(iobj, 1) = resMean(iobj, 1) + residLists(i)
       endif
     enddo
+    !
+    ! For each real point, get the top/bottom number, mean residual, and mean, sd, min
+    ! and max of the edge sd
     do iobj = 1, maxObjOrig
+      if (npt_in_obj(iobj) == 0) cycle
       call objToCont(iobj, obj_color, imodObj, imodCont)
-      xpos = 0.
-      ix = numBotTop(1, iobj) + numBotTop(2, iobj)
-      if (ix > 0) xpos = resMean(iobj, 1) / ix
-      write(4, '(i3,3i6,f8.3)') imodObj, imodCont, (numBotTop(j, iobj), j = 1, 2), &
-          xpos
+      xpos = -1.
+      if (numResSaved(iobj) > 0) xpos = resMean(iobj, 1) / numResSaved(iobj)
+      sdsum = 0. ; sdsumsq = 0.; sdmin = 1.e20; sdmax = -1.; iy = 0 ; ix = 0
+      do iview = minViewDo, maxViewDo
+        xtmp = edgeSDsave(iview, iobj) / sdavg
+        if (xtmp > 0) then
+          sdsum = sdsum + xtmp
+          sdsumsq = sdsumsq + xtmp**2
+          sdmin = min(sdmin, xtmp)
+          sdmax = max(sdmax, xtmp)
+          iy = iy + 1
+          prevRes(iy) = xtmp
+        endif
+        if (elongSave(iview, iobj) > 0) then
+          ix = ix + 1
+          tiltAll(ix) = elongSave(iview, iobj)
+        endif
+      enddo
+      sdmean = -1. ; edgeSDsd = 0. ; sdmed = -1.
+      if (iy < 1) then
+        sdmin = -1.
+      else if (iy > 1) then
+        call sums_to_avgsd(sdsum, sdsumsq, iy, sdmean, edgeSDsd, xtmp)
+        call rsSortFloats(prevRes, iy)
+        call rsMedianOfSorted(prevRes, iy, sdmed)
+      endif
+      elongMean = 0.; elongMed = 0.
+      if (ix > 1) then
+        call avgsd(tiltAll, ix, elongMean, elongMed, xtmp)
+        call rsSortFloats(tiltAll, ix)
+        call rsMedianOfSorted(tiltAll, ix, elongMed)
+      endif
+      if (elongFile .ne. ' ') write(4, '(i3,i6,f8.4,5f10.4)')imodObj, imodCont, xpos, &
+          sdmean, sdmed, edgeSDsd, elongMean, elongMed
+           
+      if (xyzFile .ne. ' ' .and. xpos >= 0 .and. (xyzSave(1,iobj) .ne. 0. .or.  &
+          xyzSave(2,iobj) .ne. 0. .or. xyzSave(3,iobj) .ne. 0.)) &
+          write(7,'(i6,4f12.3)') iobj, (xyzSave(i,iobj),i=1,3), xpos
     enddo
+    if (elongFile .ne. ' ') close(4)
+    if (xyzFile .ne. ' ') close(7)
   endif
+
   !
   ! convert index coordinates back to model coordinates
   !
@@ -1441,8 +1507,14 @@ CONTAINS
               if (wsumSave(izBox + 1, iobjDo) < 0.) then
                 xtmp = 0.
                 ytmp = 0.
-                call calcCG(boxes(1, ib, iobjDo), nxBox, nyBox, xtmp, ytmp,  wsum)
+                call calcCG(boxes(1, ib, iobjDo), nxBox, nyBox, xtmp, ytmp,  wsum, edgeSD)
                 wsumSave(izBox + 1, iobjDo) = wsum
+                if (getEdgeSD .and. izBox + 1 >= minViewDo .and. izBox + 1 <= maxViewDo) &
+                    then
+                  edgeSDsave(izBox + 1, iobjSeq(iobjDo)) = edgeSD
+                  call calcElongation(boxes(1, ib, iobjDo), nxBox, nyBox, 0., 0.,  &
+                      elongSave(izBox + 1, iobjSeq(iobjDo)))
+                endif
               endif
               !
               ! Add to correlation sum
@@ -1652,10 +1724,10 @@ CONTAINS
       !
       ! pad image into array on first pass, padd correlation sum into brray
       call taperInPad(boxTmp, nxBox, nyBox, array, nxpDim, nxpad, nypad, nxTaper, nyTaper)
-      call setMeanZero(array, nxpDim, nypad, nxpad, nypad)
+      call meanZero(array, nxpDim, nxpad, nypad)
       call taperInPad(corrSum(1, iobjDo), nxBox, nyBox, brray, nxpDim, nxpad, nypad, &
           nxTaper, nyTaper)
-      call setMeanZero(brray, nxpDim, nypad, nxpad, nypad)
+      call meanZero(brray, nxpDim, nxpad, nypad)
       !
       ! correlate the two
       !
@@ -1672,7 +1744,7 @@ CONTAINS
         iobjSave = iobj + (5 * ipass - 2) * maxObjOrig
         call add_point(iobjSave, 0, nint(xnext) + xpeak, nint(ynext) + ypeak, iznext)
       endif
-      call calcCG(boxTmp, nxBox, nyBox, xpeak, ypeak, wsum)
+      call calcCG(boxTmp, nxBox, nyBox, xpeak, ypeak, wsum, edgeSD)
       !
       ! Get sobel sum with enough beads in it
       if (maxSobelSum > 0) then
@@ -1713,10 +1785,10 @@ CONTAINS
         ! Taper / pad etc
         call taperInPad(boxSobel, nxSobel, nySobel, sarray, nxsPad + 2, nxsPad, &
             nysPad, nxTaper, nyTaper)
-        call setMeanZero(sarray, nxsPad + 2, nysPad, nxsPad, nysPad)
+        call meanZero(sarray, nxsPad + 2, nxsPad, nysPad)
         call taperInPad(refSobel, nxSobel, nySobel, sbrray, nxsPad + 2, nxsPad, nysPad, &
             nxTaper, nyTaper)
-        call setMeanZero(sbrray, nxsPad + 2, nysPad, nxsPad, nysPad)
+        call meanZero(sbrray, nxsPad + 2, nxsPad, nysPad)
         !
         ! correlate the two
         call todfft(sarray, nxsPad, nysPad, 0)
@@ -1729,7 +1801,7 @@ CONTAINS
         ! the original offsets from scaledSobel are irrelevant to correlation
         call xcorrPeakFind(sarray, nxsPad + 2, nysPad, sobelXpeaks(1, iobjDo), &
             sobelYpeaks(1, iobjDo), sobelPeaks(1, iobjDo), maxPeaks)
-        call calcCG(curSum, nxBox, nyBox, xOffSobel, yOffSobel, xtmp)
+        call calcCG(curSum, nxBox, nyBox, xOffSobel, yOffSobel, xtmp, ytmp)
         ! write(*,'(2i5,a,2f7.2)') iobjDo, ninSobel, '  Sobel average offset', xOffSobel, yOffSobel
         sobelWsums(1:maxPeaks, iobjDo) = -1.
         sobelXpeaks(1:maxPeaks, iobjDo) = sobelXpeaks(1:maxPeaks, iobjDo) * &
@@ -1778,10 +1850,10 @@ CONTAINS
       ! if (maxSobelSum > 0) then
       ! call rescueFromSobel(boxTmp, nxBox, nyBox, xpeak, ypeak, sobelXpeaks(1, iobjDo), &
       ! sobelYpeaks(1, iobjDo), sobelPeaks(1, iobjDo), sobelWsums(1, iobjDo), &
-      ! maxPeaks, radMax, relax * wsumCrit(iobjDo), wsum)
+      ! maxPeaks, radMax, relax * wsumCrit(iobjDo), wsum, edgeSD)
       ! else
       call rescue(boxTmp, nxBox, nyBox, xpeak, ypeak, radMax, relax * wsumCrit(iobjDo), &
-          wsum)
+          wsum, edgeSD)
       if (maxSobelSum > 0) call findNearestSobelPeak()
       ! endif
     elseif (ipass == 2) then
@@ -1792,11 +1864,16 @@ CONTAINS
     !
     if (wsum .ne. 0.) then
       wsumSave(iview, iobjDo) = wsum
+      if (getEdgeSD) then 
+        edgeSDsave(iview, iobjSeq(iobjDo)) = edgeSD
+        call calcElongation(boxTmp, nxBox, nyBox, xpeak, ypeak,  &
+            elongSave(iview, iobjSeq(iobjDo)))
+      endif
       xpos = nint(xnext) + xpeak
       ypos = nint(ynext) + ypeak
       if (ifTrace .ne. 0) &
-          write(*,'(3i5,4f7.1,2f12.0)') nzout, iznext, iobj, &
-          xnext, ynext, xpos, ypos, peak, wsum
+          write(*,'(3i5,4f7.1,2f12.0,f12.4)') nzout, iznext, iobj, &
+          xnext, ynext, xpos, ypos, peak, wsum, edgeSD
       !
       ! add point to model
       !
@@ -1874,7 +1951,7 @@ CONTAINS
     do i = 1, maxPeaks
       call checkSobelPeak(i, boxTmp, nxBox, nyBox, sobelXpeaks(1, iobjDo), &
           sobelYpeaks(1, iobjDo), sobelPeaks(1, iobjDo), sobelWsums(1, iobjDo), &
-          maxPeaks)
+          sobelEdgeSD(1,iobjDo), maxPeaks)
       ! if (sobelPeaks(i, iobjDo) > - 1.e29) &
       ! write(*,'(2f7.2,2f13.2)') sobelXpeaks(i, iobjDo), sobelYpeaks(i, iobjDo), sobelPeaks(i, iobjDo), sobelWsums(1, iobjDo)
 
@@ -2020,6 +2097,7 @@ CONTAINS
             ! write(*,'(i3,f7.2,4f10.5)') iobj, errMax, &
             ! resMean(iobj, ivSeq), curDiff, resAvg, resSD
             wsumSave(iview, iobjDo) = -1.
+            if (getEdgeSD) edgeSdsave(iview, iobjSeq(iobjDo)) = -1.
             resMean(iobj, ivSeq) = -1.
             ibase = ibase_obj(iobj)
             do ip = ibase + ipNearest(iobjDo) + 1, &
