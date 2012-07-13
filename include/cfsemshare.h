@@ -187,7 +187,7 @@ extern "C" {
   double lnGamma(double x);
 
   /* surfacesort.c */
-  int surfaceSort(float *xyz, int numPts, int *group);
+  int surfaceSort(float *xyz, int numPts, int markersInGroup, int *group);
   int setSurfSortParam(int which, float value);
 
   /* gaussj.c */
