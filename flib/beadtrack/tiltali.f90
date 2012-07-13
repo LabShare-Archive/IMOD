@@ -12,8 +12,8 @@ subroutine tiltali(ifDidAlign, ifAlignDone, resMean, iview)
   integer*4 ifDidAlign, iview, ifAlignDone
   real*4 resMean(*)
   !
-  real*4 var(5*size(tilt)), grad(5*size(tilt))
-  real*4 varSave(5*size(tilt))
+  real*4 var(5*size(tilt) + 3*maxReal), grad(5*size(tilt) + 3*maxReal)
+  real*4 varSave(5*size(tilt) + 3*maxReal)
   external funct
   double precision error
   real*4 DTOR
