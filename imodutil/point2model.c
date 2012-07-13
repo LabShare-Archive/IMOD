@@ -26,15 +26,18 @@ int main( int argc, char *argv[])
   Imod *imod;
   Iobj *obj;
   Ipoint point;
+  Istore store;
   FILE *infp;
   char line[1024];
   int open = 0, zsort = 0, scat = 0, numPerCont = 0, fromZero = 0;
-  int err, nvals, nread, ob, co, lineNum, needcont, i, numOffset, linelen;
+  int err, nvals, nread, ob, co, lineNum, after, needcont, i, numOffset, linelen;
   int numPts = 0, numConts = 0, numObjs = 0;
   int sphere = 0, circle = 0;
-  float tst1, tst2, xx, yy, zz;
+  float tst1, tst2, xx, yy, zz, value;
   int numColors = 0;
   int numNames = 0;
+  int hasValues = 0;
+  int contValues = 0;
   int *red, *green, *blue;
   int directScale = 0;
   float xscale = 1., yscale = 1., zscale = 1., xtrans = 0., ytrans = 0., ztrans = 0.;
@@ -49,12 +52,12 @@ int main( int argc, char *argv[])
   int numOptArgs, numNonOptArgs;
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 point2model  */
-  int numOptions = 14;
-  char *options[] = {
+  int numOptions = 15;
+  const char *options[] = {
     "input:InputFile:FN:", "output:OutputFile:FN:", "open:OpenContours:B:",
     "scat:ScatteredPoints:B:", "number:PointsPerContour:I:", "planar:PlanarContours:B:",
-    "zero:NumberedFromZero:B:", "circle:CircleSize:I:", "sphere:SphereRadius:I:",
-    "color:ColorOfObject:ITM:", "name:NameOfObject:CHM:",
+    "zero:NumberedFromZero:B:", "values:ValuesInLastColumn:I:", "circle:CircleSize:I:",
+    "sphere:SphereRadius:I:", "color:ColorOfObject:ITM:", "name:NameOfObject:CHM:",
     "image:ImageForCoordinates:FN:", "pixel:PixelSpacingOfImage:FT:",
     "origin:OriginOfImage:FT:"};
 
@@ -92,6 +95,12 @@ int main( int argc, char *argv[])
   err = PipGetBoolean("OpenContours", &open);
   err = PipGetBoolean("ScatteredPoints", &scat);
   err = PipGetBoolean("PlanarContours", &zsort);
+  err = PipGetInteger("ValuesInLastColumn", &hasValues);
+  B3DCLAMP(hasValues, -1, 1);
+  if (hasValues < 0) {
+    hasValues = 1;
+    contValues = 1;
+  }
   err = PipGetBoolean("NumberedFromZero", &fromZero);
   numOffset = 1 - fromZero;
   if (numPerCont < 0) 
@@ -128,9 +137,10 @@ int main( int argc, char *argv[])
   if (fgetline(infp, line, 1024) <= 0)
     exitError("Reading beginning of file");
       
-  nvals = sscanf(line, "%f %f %f %f %f", &tst1, &tst2, &xx, &yy, &zz);
+  nvals = sscanf(line, "%f %f %f %f %f %f", &tst1, &tst2, &xx, &yy, &zz, &value);
+  nvals -= hasValues;
   if (nvals < 3)
-    exitError("There must be at least 3 values per line");
+    exitError("There must be at least %d values per line", 3 + hasValues);
   nvals = B3DMIN(nvals, 5);
   if (numPerCont && nvals > 3) {
     exitError("The point file has contour numbers and the -number option "
@@ -173,6 +183,8 @@ int main( int argc, char *argv[])
   imod->xmax = 0.;
   imod->ymax = 0.;
   imod->zmax = 0.;
+  store.type = GEN_STORE_VALUE1;
+  store.flags = GEN_STORE_FLOAT << 2;
 
   // To do: error check contour and object #'s, and they are numbered from 1.
   while (1) {
@@ -184,13 +196,13 @@ int main( int argc, char *argv[])
     if (linelen == 0) 
       continue;
  
-    if (nvals == 3)
-      nread = sscanf(line, "%f %f %f", &xx, &yy, &zz);
-    else if (nvals == 4) {
-      nread = sscanf(line, "%d %f %f %f", &co, &xx, &yy, &zz);
+    if (nvals == 3) {
+      nread = sscanf(line, "%f %f %f %f", &xx, &yy, &zz, &value);
+    } else if (nvals == 4) {
+      nread = sscanf(line, "%d %f %f %f %f", &co, &xx, &yy, &zz, &value);
       co -= numOffset;
     } else {
-      nread = sscanf(line, "%d %d %f %f %f", &ob, &co, &xx, &yy, &zz);
+      nread = sscanf(line, "%d %d %f %f %f %f", &ob, &co, &xx, &yy, &zz, &value);
       co -= numOffset;
       ob -= numOffset;
     }
@@ -199,13 +211,15 @@ int main( int argc, char *argv[])
     // Skip line with no values
     if (nread <= 0)
       continue;
-    if (B3DMIN(5, nread) != nvals) 
+    printf("%s : %d %d\n", line, nread, nvals);
+    if (B3DMIN(5 + hasValues, nread) != nvals + hasValues &&
+        !(contValues && nread == nvals)) 
       exitError("Every line should have %d entries; line %d has %d",
-                nvals, lineNum, nread);
+                nvals + hasValues, lineNum, nread);
 
     if (ob < 0 || co < 0)
-      exitError("Illegal object or contour number (object %d, contour %d at "
-                "line %d", ob + numOffset, co + numOffset, lineNum);
+      exitError("Illegal object or contour number (object %d, contour %d at line %d", 
+                ob + numOffset, co + numOffset, lineNum);
 
     // Add objects if needed to get to the current object
     if (ob >= imod->objsize) {
@@ -264,6 +278,32 @@ int main( int argc, char *argv[])
     if (!imodPointAppend(&obj->cont[co], &point))
       exitError("Failed to add point to contour");
     numPts++;
+
+    // take care of value for contour or point, only add one per contour
+    if (hasValues) {
+      store.value.f = value;
+      err = 0;
+      if (contValues && istoreLookup(obj->store, co, &after) < 0) {
+        if (nread < nvals + 1)
+          exitError("The first point for a contour must have a value entry; line %d "
+                    "has only %d entries", lineNum, nread);
+        store.index.i = co;
+        err = istoreInsert(&obj->store, &store);
+      } else {
+        store.index.i = obj->cont[co].psize - 1;
+        err = istoreInsert(&obj->cont[co].store, &store);
+      }
+      if (err)
+        exitError("Failed to add general value");
+    }
+  }
+
+  // Get the object min/max values set up
+  if (hasValues) {
+    for (ob = 0; ob < imod->objsize; ob++) {
+      if (imod->obj[ob].contsize && istoreFindAddMinMax1(&imod->obj[ob]))
+        exitError("Adding min/max values to object");
+    }
   }
 
   fclose(infp);
