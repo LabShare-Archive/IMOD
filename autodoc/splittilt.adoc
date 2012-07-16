@@ -35,7 +35,9 @@ short = m
 type = I
 usage = Minimum number of chunks (default 2 times expected # of machines)
 tooltip =
-manpage =
+manpage = Minimum number of chunks, except when vertical slices are specified
+with the -v option.  The default is 2 times the expected number of machines,
+but with vertical slices, the minimum becomes one chunk per machine.
 
 [Field = OldStyleXtiltPenalty]
 short = p

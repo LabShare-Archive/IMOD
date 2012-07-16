@@ -59,8 +59,9 @@ option is given.  In that case, vertical slices are still computed but the
 number 
 of chunks is further reduced until the penalty for doing vertical slices
 matches the penalty for switching to old-style
-tilting.  In all cases, the number of chunks is constrained by the minimum
-number of slices in each chunk.
+tilting, and the number of chunks is allowed to go as low as the expected
+number of machines.  In all cases, the number of chunks is constrained by the
+minimum number of slices in each chunk.
 .P
 The program will also operate on a command file for reprojecting from a
 tomogram; here, it just maintains a minimum number of slices per chunk.

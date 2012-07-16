@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/16/12: Fixed ancient bug in Splittilt that failed to limit the number of
+chunks correctly when vertical slices are being done with high X-axis tilt
+(e.g., in SIRT), and allowed number of chunks to go down to the number of
+processors in this case (In 4.5).
+
 7/7/12: Fixed treatment of min/max values when reading an ascii model file
 with contour values.
 
