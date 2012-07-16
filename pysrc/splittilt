@@ -243,8 +243,9 @@ if vertPossible and xaxistilt:
 
           # If vertical specified, compute optimum size that just breaks
           # even with penalty for old-style tilting, but limit it
+          # However, in this case allow it to go down to one chunk per processor
           slabsize = int(extrathick / (penalty - 1.))
-          maxsize = numproc // minslabs
+          maxsize = numslices // numproc
           slabsize = max(minslices, min(maxsize, slabsize))
 
 numslabs = max(1, (numslices + slabsize // 2) // slabsize)
