@@ -69,7 +69,9 @@ DLASRC = \
    dlassq.$(O) dlasv2.$(O) ilaenv.$(O) ieeeck.$(O) lsame.$(O) xerbla.$(O) dgebrd.$(O) \
    dgelqf.$(O) dgeqr2.$(O) dlabrd.$(O) dlarf.$(O) dlarfg.$(O) dorg2r.$(O) dorgl2.$(O) \
    dorm2r.$(O) dorml2.$(O) dlapy2.$(O) dgebd2.$(O) dgelq2.$(O) dsysv.$(O) dsytrf.$(O) \
-   dsytrs.$(O) dsytf2.$(O) dlasyf.$(O) dspsv.$(O) dsptrf.$(O) dsptrs.$(O)
+   dsytrs.$(O) dsytf2.$(O) dlasyf.$(O) dspsv.$(O) dsptrf.$(O) dsptrs.$(O) \
+   dsyev.$(O) dlansy.$(O) dsytrd.$(O) dorgtr.$(O) dlatrd.$(O) dsytd2.$(O) dorgql.$(O) \
+   dorg2l.$(O)
 
 double: $(DLASRC) $(ALLAUX) $(DZLAUX)
 
