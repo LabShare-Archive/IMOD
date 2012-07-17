@@ -9,8 +9,8 @@ LIBCOMPAT = libb3dcmpt.$(DLLEXT)
 LIBTRACK  = libtrack.$(DLLEXT)
 LIBSMLMOD = libsmlmod.$(WMODEXT)
 LIBWMOD = libwmod.$(WMODEXT)
-LIBBLAS = libblas.$(STATICEXT)
-LIBLAPACK = liblapack.$(STATICEXT)
+LIBBLAS = libb3dblas.$(DLLEXT)
+LIBLAPACK = libb3dlapk.$(DLLEXT)
 
 COMPATSRC = compat/ransub.f compat/ourrnd.c compat/degtrig.f $(DATESRC)
 COMPATOBJ = compat/ransub.$(O) compat/ourrnd.$(O) compat/degtrig.$(O) \
@@ -82,14 +82,14 @@ $(LIBCOMPAT):	$(COMPATSRC)
 $(LIBBLAS): blas/*.f
 	(cd blas; $(MAKE) all)
 	$(RM) $(LIBBLAS)
-	$(MAKESTATICLIB)$(LIBBLAS) blas/*.$(O)
+	$(FAR) $(FARFLAGS)$(LIBBLAS) $(LIBBLASDEF) blas/*.$(O)
 	$(RANLIB) $(LIBBLAS)
 	$(CP) $(LIBBLAS) $(LIBDIR)
 
 $(LIBLAPACK): lapack/*.f
 	(cd lapack; $(MAKE) all)
 	$(RM) $(LIBLAPACK)
-	$(MAKESTATICLIB)$(LIBLAPACK) lapack/*.$(O)
+	$(FAR) $(FARFLAGS)$(LIBLAPACK) $(LIBLAPACKDEF) lapack/*.$(O)
 	$(RANLIB) $(LIBLAPACK)
 	$(CP) $(LIBLAPACK) $(LIBDIR)
 

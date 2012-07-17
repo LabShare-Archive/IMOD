@@ -96,7 +96,7 @@ set lifft           = -lifft
 set limesh          = -limesh
 set liwarp          = -liwarp
 set nnvulnflags     = -ffloat-store
-set lapacklibs      = '-llapack -lblas'
+set lapacklibs      = '-lb3dlapk -lb3dblas'
 set lapack_flibs    = ''
 set lapacklink      = '$(CC)'
 set ldfflags        = '$(LDFLAGS)'
@@ -695,7 +695,7 @@ if ($machine != cygwin) then
     # manage qconfigure files
     #
     echo LIBS += -L$lib_dir -liimod -limod -liwarp -lcfshr -ldiaqt $ltiff -lifft $midasGL >> $midas_qconf
-    echo LIBS += -L$lib_dir -lm -llapack -lblas -liimod -lcfshr $ltiff -lifft $lapack_flibs >> $ctfplot_qconf
+    echo LIBS += -L$lib_dir -lm -lb3dlapk -lb3dblas -liimod -lcfshr $ltiff -lifft $lapack_flibs >> $ctfplot_qconf
     echo LIBS += -L$lib_dir -lcfshr >! $qtassist_qconf
     echo LIBS += -L$lib_dir -lcfshr >> $prochunk_qconf
     foreach i ($midas_qconf $ctfplot_qconf)

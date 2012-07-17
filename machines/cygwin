@@ -165,6 +165,8 @@ if ($compiler == intel) then
         echo 'LIBMRCIMDEF = /def:libmrcim.def ../../buildlib/libifft.lib ../../buildlib/libcfshr.lib'  >> $configure
         echo 'LIBHVEMDEF = /def:libhvem.def ../../buildlib/libmrcim.lib ../../buildlib/libcfshr.lib'  >> $configure
         echo 'LIBIFFTDEF = /def:libifft.def'     >> $configure
+        echo 'LIBBLASDEF = /def:libb3dblas.def'   >> $configure
+        echo 'LIBLAPACKDEF = /def:libb3dlapk.def ../../libb3dblas.lib'   >> $configure
         echo 'LIBTRACKDEF = /def:libtrack.def ../../buildlib/libcfshr.lib'   >> $configure
         set inst_lib_dir = $inst_dir/bin
         #
@@ -213,7 +215,7 @@ if ($compiler == intel) then
     set liwarp = libiwarp.lib
     set lifft = libifft.lib
     set ltiff = libtiff.lib
-    set lapacklibs = "liblapack.lib libblas.lib"
+    set lapacklibs = "libb3dlapk.lib libb3dblas.lib"
     set imsubsobj = '*.obj'
     set ldnmncar = "libdnmncar.lib"
     echo 'IMLIBS     =  $(LIBWMOD) libhvem.lib libmrcim.lib libifft.lib libcfshr.lib' >> $configure
@@ -337,7 +339,7 @@ LIBS += $QTDIR/lib/QtOpenGL4.lib
 EOF
 
 cat <<EOF >! $ctfplot_qconf
-LIBS += liblapack.lib libblas.lib libiimod.lib libcfshr.lib libtiff.lib libifft.lib
+LIBS += libb3dlapk.lib libb3dblas.lib libiimod.lib libcfshr.lib libtiff.lib libifft.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 EOF
