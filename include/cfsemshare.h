@@ -136,6 +136,8 @@ extern "C" {
                   float *prederr);
   void lsFit3(float *x1, float *x2, float *x3, float *y, int n, float *a1, 
               float *a2, float *a3, float *c);
+  void eigenSort(double *val, double *vec, int n, int rowStride, int colStride,
+                 int useAbs);
 
   /* robuststat.c */
   void rsSortFloats(float *x, int n);
