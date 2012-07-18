@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/17/12: Added options to Newstack for setting mean and SD of output images
+and for omitting extra header from output.
+
 7/17/12: Replaced eigenvector solving routine in nad_eed_3d with one
 compatible with open source.  Results are slightly different and speed is
 improved by 13%.
