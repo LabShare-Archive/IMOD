@@ -46,6 +46,7 @@ EXPORTS
 	ilistSwap
 	PipDone
 	PipAddOption
+	eigenSort
 	numOMPthreads
 	B3DSHIFTBYTES
 	ADOCGETINTEGERARRAY
@@ -104,8 +105,10 @@ EXPORTS
 	RSMEDIANOFSORTED
 	MULTREGRESS
 	sliceClear
+	dsyevh3
 	LSFIT
 	LSFIT2
+	dsytrd3
 	LSFITS
 	SPARSEPROD
 	ADOCGETFLOAT
@@ -372,6 +375,7 @@ EXPORTS
 	AdocDone
 	imodVersion
 	SMOOTHOUTPAD
+	dsyevq3
 	rotmagstrToAmat
 	INCOMPBETA
 	SCALEDSOBEL
@@ -379,6 +383,7 @@ EXPORTS
 	ADJUSTPIECEOVERLAP
 	cblas_daxpy
 	selectZoomFilter
+	dsyevc3
 	PIPGETSTRING
 	GAUSSJDET
 	PipGetFloatArray
