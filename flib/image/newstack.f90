@@ -61,7 +61,7 @@ program newstack
 
   real*4 tiltAngles(LIMGRADSEC), dmagPerMicron(LIMGRADSEC), rotPerMicron(LIMGRADSEC)
   !
-  logical rescale, blankOutput, adjustOrigin, hasWarp, fillTmp, fillNeeded
+  logical rescale, blankOutput, adjustOrigin, hasWarp, fillTmp, fillNeeded, stripExtra
   character dat * 9, timeStr * 8, tempExt * 9
   logical nbytes_and_flags
   character*80 titlech
@@ -80,12 +80,12 @@ program newstack
   real*4 dmeanSec, tmpMin, tmpMax, val, tsum2, scaleFactor
   integer*4 needYstart, needYend, numLinesLoad, numYload, numYchunk, iseriesBase, nyNeeded
   integer*4 ix1, ix2, nByteCopy, nByteClear, ifLinear, limEntered, insideTaper
-  real*4 constAdd, densOutMin, dens, tmin2, tmax2, tmean2, avgSec
+  real*4 constAdd, densOutMin, dens, tmin2, tmax2, tmean2, avgSec, enteredSD, enteredMean
   integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet, maxNxGrid, maxNyGrid
   integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
   integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
   integer*4 ixOffset, iyOffset, lenTemp, ierr3, applyFirst, numTaper
-  integer*4 ifOnePerFile, ifUseFill, listIncrement, indOut
+  integer*4 ifOnePerFile, ifUseFill, listIncrement, indOut, ifMeanSdEntered
   integer*4 ixOriginOff, iyOriginOff, numReplace, isecReplace, modeOld
   integer*4 indFilter, linesShrink, numAllSec, maxNumXF, nxMax, nyMax, ifControl
   real*4 fieldMaxY, rotateAngle, expandFactor, fillVal, shrinkFactor
@@ -103,30 +103,30 @@ program newstack
   integer*4 PipGetString, PipGetTwoIntegers, PipGetFloatArray, PipGetFloat
   integer*4 PipGetIntegerArray, PipGetNonOptionArg, PipGetTwoFloats
   !
-  ! fallbacks from ../../manpages/autodoc2man -3 2  NEWSTACK
+  ! fallbacks from ../../manpages/autodoc2man -3 2  newstack
   !
   integer numOptions
-  parameter (numOptions = 42)
+  parameter (numOptions = 44)
   character*(40 * numOptions) options(1)
   options(1) = &
       'input:InputFile:FNM:@output:OutputFile:FNM:@fileinlist:FileOfInputs:FN:@'// &
       'fileoutlist:FileOfOutputs:FN:@split:SplitStartingNumber:I:@'// &
       'append:AppendExtension:CH:@secs:SectionsToRead:LIM:@'// &
       'skip:SkipSectionIncrement:I:@numout:NumberToOutput:IAM:@'// &
-      'replace:ReplaceSections:LI:@blank:BlankOutput:B:@'// &
-      'size:SizeToOutputInXandY:IP:@mode:ModeToOutput:I:@'// &
-      'bytes:BytesSignedInOutput:I:@offset:OffsetsInXandY:FAM:@'// &
-      'applyfirst:ApplyOffsetsFirst:B:@xform:TransformFile:FN:@'// &
-      'uselines:UseTransformLines:LIM:@onexform:OneTransformPerFile:B:@'// &
-      'rotate:RotateByAngle:F:@expand:ExpandByFactor:F:@shrink:ShrinkByFactor:F:@'// &
+      'replace:ReplaceSections:LI:@blank:BlankOutput:B:@size:SizeToOutputInXandY:IP:@'// &
+      'mode:ModeToOutput:I:@bytes:BytesSignedInOutput:I:@strip:StripExtraHeader:B:@'// &
+      'offset:OffsetsInXandY:FAM:@applyfirst:ApplyOffsetsFirst:B:@'// &
+      'xform:TransformFile:FN:@uselines:UseTransformLines:LIM:@'// &
+      'onexform:OneTransformPerFile:B:@rotate:RotateByAngle:F:@'// &
+      'expand:ExpandByFactor:F:@shrink:ShrinkByFactor:F:@'// &
       'antialias:AntialiasFilter:I:@bin:BinByFactor:I:@origin:AdjustOrigin:B:@'// &
       'linear:LinearInterpolation:B:@nearest:NearestNeighbor:B:@'// &
-      'float:FloatDensities:I:@contrast:ContrastBlackWhite:IP:@'// &
-      'scale:ScaleMinAndMax:FP:@fill:FillValue:F:@multadd:MultiplyAndAdd:FPM:@'// &
-      'taper:TaperAtFill:IP:@distort:DistortionField:FN:@'// &
-      'imagebinned:ImagesAreBinned:I:@fields:UseFields:LIM:@'// &
-      'gradient:GradientFile:FN:@memory:MemoryLimit:I:@test:TestLimits:IP:@'// &
-      'verbose:VerboseOutput:I:@param:ParameterFile:PF:@help:usage:B:'
+      'float:FloatDensities:I:@meansd:MeanAndStandardDeviation:FP:@'// &
+      'contrast:ContrastBlackWhite:IP:@scale:ScaleMinAndMax:FP:@'// &
+      'multadd:MultiplyAndAdd:FPM:@fill:FillValue:F:@taper:TaperAtFill:IP:@'// &
+      'distort:DistortionField:FN:@imagebinned:ImagesAreBinned:I:@'// &
+      'fields:UseFields:LIM:@gradient:GradientFile:FN:@memory:MemoryLimit:I:@'// &
+      'test:TestLimits:IP:@verbose:VerboseOutput:I:@param:ParameterFile:PF:@help:usage:B:'
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   !
@@ -145,6 +145,7 @@ program newstack
   ifOnePerFile = 0
   ifDistort = 0
   ifMagGrad = 0
+  ifMeanSdEntered = 0
   maxFieldY = 0
   idfFile = ' '
   magGradFile = ' '
@@ -161,6 +162,7 @@ program newstack
   numScaleFacs = 0
   ifUseFill = 0
   blankOutput = .false.
+  stripExtra = .false.
   adjustOrigin = .false.
   listIncrement = 1
   numReplace = 0
@@ -204,6 +206,7 @@ program newstack
     call PipNumberOfEntries('SectionsToRead', numSecLists)
     ierr = PipGetInteger('SkipSectionIncrement', listIncrement)
     ierr = PipGetLogical('BlankOutput', blankOutput)
+    ierr = PipGetLogical('StripExtraHeader', stripExtra)
     if (PipGetInteger('BytesSignedInOutput', i) == 0) call overrideWriteBytes(i)
   else
     write(*,'(1x,a,$)') '# of input files (or -1 to read list'// &
@@ -603,7 +606,15 @@ program newstack
     ierr = 1 - PipGetTwoFloats('ContrastBlackWhite', contrastLo, contrastHi)
     ierr2 = 1 - PipGetTwoFloats('ScaleMinAndMax', dminSpecified, dmaxSpecified)
     ierr3 = 1 - PipGetInteger('FloatDensities', ifFloat)
+    ifMeanSdEntered = 1 - PipGetTwoFloats('MeanAndStandardDeviation', enteredMean, &
+        enteredSD)
     call PipNumberOfEntries('MultiplyAndAdd', numScaleFacs)
+    if (ifMeanSdEntered .ne. 0) then
+      if ((ierr3 .ne. 0 .and. ifFloat .ne. 2) .or. ierr + ierr2 + numScaleFacs > 0)  &
+          call exitError('You cannot use -meansd with any scaling option except -float 2')
+      ierr3 = 1
+      ifFloat = 2
+    endif
     ifUseFill = 1 - PipGetFloat('FillValue', fillVal)
     if (ifFloat >= 4) then
       if (ierr2 == 0) call exitError &
@@ -691,16 +702,14 @@ program newstack
     !
     if (ifWarping .ne. 0 .and. (rotateAngle .ne. 0 .or. expandFactor .ne. 0.)) call &
         exitError('YOU CANNOT USE -expand or -rotate WITH WARPING TRANSFORMS')
-    if (iBinning <= 0) call exitError &
-        ('BINNING FACTOR MUST BE A POSITIVE NUMBER')
+    if (iBinning <= 0) call exitError('BINNING FACTOR MUST BE A POSITIVE NUMBER')
     !
     ! Shrinkage
     if (PipGetFloat('ShrinkByFactor', shrinkFactor) == 0) then
       if (ifXform .ne. 0 .or. rotateAngle .ne. 0. .or. expandFactor .ne. 0. .or. &
           idfFile .ne. ' ' .or. magGradFile .ne. ' ') call exitError('YOU CANNOT'// &
           ' USE -shrink WITH -xform, -rotate, -expand, -distort, or -gradient')
-      if (shrinkFactor <= 1.) call exitError( &
-          'FACTOR FOR -shrink MUST BE GREATER THAN 1')
+      if (shrinkFactor <= 1.) call exitError('FACTOR FOR -shrink MUST BE GREATER THAN 1')
       ierr = PipGetInteger('AntialiasFilter', indFilter)
       indFilter = max(0, indFilter - 1)
       expandFactor = 1. / shrinkFactor
@@ -711,8 +720,7 @@ program newstack
         if (ierr == 1) indFilter = indFilter - 1
         if (ierr > 1) call exitError( 'SELECTING ANTIALIASING FILTER')
       enddo
-      if (indFilter < i) print *,'Using the last antialiasing filter, #', &
-          indFilter + 1
+      if (indFilter < i) print *,'Using the last antialiasing filter, #', indFilter + 1
       linesShrink = linesShrink / 2 + 2
     endif
     !
@@ -842,9 +850,6 @@ program newstack
     if (fracZero .ne. 0.) &
         write(trunctText, '(a,f6.3)') ', truncated by', fracZero
     if (ifMean .ne. 0) then
-      !
-      ! if means, need to read all sections to get means
-      !
       if (ifFloat == 2) then
         floatText = ', floated to means'
         zmin = 1.e10
@@ -866,6 +871,11 @@ program newstack
           endif
         endif
       endif
+    endif
+      !
+      ! if means, need to read all sections to get means
+      !
+    if (ifMean .ne. 0 .and. ifMeanSdEntered == 0) then
       do iFile = 1, numInFiles
         CALL imopen(1, inFile(iFile), 'RO')
         CALL irdhdr(1, nxyz, mxyz, mode, dmin2, dmax2, dmean2)
@@ -1162,7 +1172,7 @@ program newstack
         ! adjust extra header information if currently open file has it
         !
         nByteSymOut = 0
-        if (nByteSymIn > 0) then
+        if (nByteSymIn > 0 .and. .not.stripExtra) then
           nByteExtraOut = nByteExtraIn
           nByteSymOut = numSecOut(iOutFile) * nByteExtraOut
           if (maxExtraOut > 0 .and. nByteSymOut > maxExtraOut) then
@@ -1179,6 +1189,8 @@ program newstack
           call ialnbsym(2, nByteSymOut)
           call imposn(2, 0, 0)
           indExtraOut = 0
+        else
+          call ialnbsym(2, 0)
         endif
       endif
       !
@@ -1238,11 +1250,7 @@ program newstack
         dsum = tmpMin * (float(nxOut) * nyOut)
         nyNeeded = 1
         call reallocateIfNeeded()
-        call findScaleFactors(ifFloat, ifMean, rescale, bottomIn, bottomOut, optimalIn, &
-            optimalOut, tmpMin, tmpMax, dminSpecified, dmaxSpecified, &
-            numScaleFacs, scaleFacs, scaleConsts, zmin, zmax, dsum, &
-            dsumSq, nxOut, nyOut, newMode, dminIn, dmaxIn, fracZero, shiftMin, &
-            shiftMax, shiftMean, iFile, scaleFactor, constAdd)
+        call findScaleFactors()
         do i = 1, nxOut
           array(i) = tmpMin * scaleFactor + constAdd
         enddo
@@ -1465,7 +1473,7 @@ program newstack
       loadYend = -1
       if (ifUseFill .ne. 0) then
         dmeanSec = fillVal
-      elseif (ifMean .ne. 0) then
+      elseif (ifMean .ne. 0 .and. ifMeanSdEntered == 0) then
         dmeanSec = secMean(ilist + listInd(iFile) - 1)
       elseif (.not. fillNeeded) then
         dmeanSec = dmeanIn
@@ -1671,11 +1679,7 @@ program newstack
         saveTime = saveTime + wallTime() - wallStart
       enddo
 
-      call findScaleFactors(ifFloat, ifMean, rescale, bottomIn, bottomOut, optimalIn, &
-          optimalOut, tmpMin, tmpMax, dminSpecified, dmaxSpecified, numScaleFacs, &
-          scaleFacs, scaleConsts, zmin, zmax, dsum, dsumSq, nxOut, nyOut, &
-          newMode, dminIn, dmaxIn, fracZero, shiftMin, shiftMax, &
-          shiftMean, iFile, scaleFactor, constAdd)
+      call findScaleFactors()
 
       if (rescale) then
         dmin2 = 1.e20
@@ -1838,8 +1842,8 @@ CONTAINS
   end subroutine reallocateArray
 
 
-  ! Finds what lines of input are needed to produce lines from lineOutFirst through
-  ! lineOutLast of output (numbered from 0), and also determines if x or Y input goes
+  ! Finds what lines of input are needed to produce lines from LINEOUTFIRST through
+  ! LINEOUTLAST of output (numbered from 0), and also determines if x or Y input goes
   ! out of range so that fill is needed
   !
   subroutine linesNeededForOutput(lineOutFirst, lineOutLast, iyIn1, iyIn2, needFill)
@@ -1890,167 +1894,162 @@ CONTAINS
 
   end subroutine linesNeededForOutput
 
+
+  ! Determine the scale factors scaleFactor and constAdd from a host of option
+  ! settings, controlling values, and values determined for the particular
+  ! section.  This code is really dreadful since first it calculates new
+  ! min and max and uses that to determine scaling.
+  !
+  subroutine findScaleFactors()
+    !
+    real*4 avgSec, sdSec, dminNew, dmaxNew, dmin2, dmax2, zminSec, zmaxSec
+    real*4 tmpMean, tmpMinShift, tmpMaxShift
+    !
+    ! calculate new min and max after rescaling under various possibilities
+    !
+    scaleFactor = 1.
+    constAdd = 0.
+    dmin2 = tmpMin
+    dmax2 = tmpMax
+    !
+    if (ifFloat == 0 .and. rescale) then
+      !
+      ! no float but mode change (not to mode 2) :
+      ! rescale from input range to output range
+      !
+      dmin2 = (tmpMin - bottomIn) * (optimalOut - bottomOut) / &
+          (optimalIn - bottomIn) + bottomOut
+      dmax2 = (tmpMax - bottomIn) * (optimalOut - bottomOut) / &
+          (optimalIn - bottomIn) + bottomOut
+    elseif (ifFloat < 0 .and. numScaleFacs == 0) then
+      !
+      ! if specified global rescale, set values that dminIn and dmaxIn
+      ! map to, either the maximum range or the values specified
+      !
+      if (dminSpecified == 0 .and. dmaxSpecified == 0) then
+        dminNew = 0.
+        dmaxNew = optimalOut
+      else if (dminSpecified == dmaxSpecified) then
+        dminNew = dminIn
+        dmaxNew = dmaxIn
+      else
+        dminNew = dminSpecified
+        dmaxNew = dmaxSpecified
+      endif
+      !
+      ! then compute what this section's tmpMin and tmpMax map to
+      !
+      dmin2 = (tmpMin - dminIn) * (dmaxNew - dminNew) / (dmaxIn - dminIn) + dminNew
+      dmax2 = (tmpMax - dminIn) * (dmaxNew - dminNew) / (dmaxIn - dminIn) + dminNew
+    elseif (ifFloat > 0 .and. ifMeanSdEntered == 0) then
+      !
+      ! if floating: scale to a dmin2 that will knock out fracZero of
+      ! the range after truncation to zero
+      !
+      dmin2 = -optimalOut * fracZero / (1. -fracZero)
+      if (ifMean == 0) then
+        !
+        ! float to range, new dmax2 is the max of the range
+        !
+        dmax2 = optimalOut
+      elseif (ifFloat == 2) then
+        ! :float to mean, it's very hairy
+        call sums_to_avgsd8(dsum, dsumSq, nxOut, nyOut, avgSec, sdSec)
+        ! print *,'overall mean & sd', avgSec, sdSec
+        if (tmpMin == tmpMax .or. sdSec == 0.) sdSec = 1.
+        zminSec = (tmpMin - avgSec) / sdSec
+        zmaxSec = (tmpMax - avgSec) / sdSec
+        dmin2 = (zminSec - zmin) * optimalOut / (zmax - zmin)
+        dmax2 = (zmaxSec - zmin) * optimalOut / (zmax - zmin)
+        dmin2 = max(0., dmin2)
+        dmax2 = min(dmax2, optimalOut)
+      else
+        !
+        ! shift to mean
+        !
+        tmpMean = dsum / (float(nxOut) * nyOut)
+        !
+        ! values that min and max shift to
+        !
+        tmpMinShift = tmpMin + shiftMean - tmpMean
+        tmpMaxShift = tmpMax + shiftMean - tmpMean
+        !
+        if (ifFloat == 3) then
+          !
+          ! for no specified scaling, set new min and max to
+          ! shifted values
+          !
+          dmin2 = tmpMinShift
+          dmax2 = tmpMaxShift
+          if (newMode .ne. 2) then
+            !
+            ! then, if mode is not 2, set up for scaling if range is
+            ! too large and/or if there is a modal shift
+            !
+            optimalIn = max(optimalIn, shiftMax)
+            dmin2 = tmpMinShift * optimalOut / optimalIn
+            dmax2 = tmpMaxShift * optimalOut / optimalIn
+          endif
+        else
+          !
+          ! for specified scaling of shifted means
+          !
+          if (dminSpecified == dmaxSpecified) then
+            dminNew = 0.5
+            dmaxNew = optimalOut - 0.5
+          else
+            dminNew = dminSpecified
+            dmaxNew = dmaxSpecified
+          endif
+          !
+          ! for specified scaling, compute what this section's tmpMin
+          ! and tmpMax map to
+          !
+          dmin2 = (tmpMinShift - shiftMin) * (dmaxNew - dminNew) / &
+              (shiftMax - shiftMin) + dminNew
+          dmax2 = (tmpMaxShift - shiftMin) * (dmaxNew - dminNew) / &
+              (shiftMax - shiftMin) + dminNew
+        endif
+      endif
+    endif
+    !
+    if (rescale) then
+      !
+      ! if scaling, set up equation, scale and compute new mean
+      ! or use scaling factors directly
+      !
+      if (numScaleFacs > 0) then
+        scaleFactor = scaleFacs(min(numScaleFacs, iFile))
+        constAdd = scaleConsts(min(numScaleFacs, iFile))
+      else if (ifMeanSdEntered .ne. 0) then
+        call sums_to_avgsd8(dsum, dsumSq, nxOut, nyOut, avgSec, sdSec)
+        if (sdSec == 0) sdSec = 1.
+        scaleFactor = enteredSD / sdSec
+        constAdd = enteredMean - scaleFactor * avgSec
+      else
+        !
+        ! 2/9/05: keep scale factor 1 if image has no range
+        !
+        scaleFactor = 1.
+        if (dmax2 .ne. dmin2 .and. tmpMax .ne. tmpMin) &
+            scaleFactor = (dmax2 - dmin2) / (tmpMax - tmpMin)
+        constAdd = dmin2 - scaleFactor * tmpMin
+      endif
+    endif
+    return
+  end subroutine findScaleFactors
+
+
 end program newstack
 
 
-! Determine the scale factors scaleFactor and constAdd from a host of option
-! settings, controlling values, and values determined for the particular
-! section.  This code is really dreadful since first it calculates new
-! min and max and uses that to determine scaling.
-!
-subroutine findScaleFactors(ifFloat, ifMean, rescale, bottomIn, &
-    bottomOut, optimalIn, optimalOut, tmpMin, tmpMax, dminSpecified, dmaxSpecified, &
-    numScaleFacs, scaleFacs, scaleConsts, zmin, zmax, dsum, dsumSq, nxOut, &
-    nyOut, newMode, dminIn, dmaxIn, fracZero, shiftMin, shiftMax, &
-    shiftMean, iFile, scaleFactor, constAdd)
-  implicit none
-  integer*4 ifFloat, ifMean, numScaleFacs, nxOut, nyOut, newMode, iFile
-  logical*4 rescale
-  real*4 bottomIn, bottomOut, optimalIn, optimalOut, tmpMin, tmpMax, dminSpecified
-  real*4 dmaxSpecified, scaleFacs(*), scaleConsts(*), zmin, zmax, scaleFactor, constAdd
-  real*4 dminIn, dmaxIn, fracZero, shiftMin, shiftMax, shiftMean
-  real*8 dsum, dsumSq
-  !
-  real*4 avgSec, sdSec, dminNew, dmaxNew, dmin2, dmax2, zminSec, zmaxSec
-  real*4 tmpMean, tmpMinShift, tmpMaxShift
-  !
-  ! calculate new min and max after rescaling under various possibilities
-  !
-  scaleFactor = 1.
-  constAdd = 0.
-  dmin2 = tmpMin
-  dmax2 = tmpMax
-  !
-  if (ifFloat == 0 .and. rescale) then
-    !
-    ! no float but mode change (not to mode 2) :
-    ! rescale from input range to output range
-    !
-    dmin2 = (tmpMin - bottomIn) * (optimalOut - bottomOut) / &
-        (optimalIn - bottomIn) + bottomOut
-    dmax2 = (tmpMax - bottomIn) * (optimalOut - bottomOut) / &
-        (optimalIn - bottomIn) + bottomOut
-  elseif (ifFloat < 0 .and. numScaleFacs == 0) then
-    !
-    ! if specified global rescale, set values that dminIn and dmaxIn
-    ! map to, either the maximum range or the values specified
-    !
-    if (dminSpecified == 0 .and. dmaxSpecified == 0) then
-      dminNew = 0.
-      dmaxNew = optimalOut
-    else if (dminSpecified == dmaxSpecified) then
-      dminNew = dminIn
-      dmaxNew = dmaxIn
-    else
-      dminNew = dminSpecified
-      dmaxNew = dmaxSpecified
-    endif
-    !
-    ! then compute what this section's tmpMin and tmpMax map to
-    !
-    dmin2 = (tmpMin - dminIn) * (dmaxNew - dminNew) / (dmaxIn - dminIn) + dminNew
-    dmax2 = (tmpMax - dminIn) * (dmaxNew - dminNew) / (dmaxIn - dminIn) + dminNew
-  elseif (ifFloat > 0) then
-    !
-    ! if floating: scale to a dmin2 that will knock out fracZero of
-    ! the range after truncation to zero
-    !
-    dmin2 = -optimalOut * fracZero / (1. -fracZero)
-    if (ifMean == 0) then
-      !
-      ! float to range, new dmax2 is the max of the range
-      !
-      dmax2 = optimalOut
-    elseif (ifFloat == 2) then
-      ! :float to mean, it's very hairy
-      call sums_to_avgsd8(dsum, dsumSq, nxOut, nyOut, avgSec, sdSec)
-      ! print *,'overall mean & sd', avgSec, sdSec
-      if (tmpMin == tmpMax .or. sdSec == 0.) sdSec = 1.
-      zminSec = (tmpMin - avgSec) / sdSec
-      zmaxSec = (tmpMax - avgSec) / sdSec
-      dmin2 = (zminSec - zmin) * optimalOut / (zmax - zmin)
-      dmax2 = (zmaxSec - zmin) * optimalOut / (zmax - zmin)
-      dmin2 = max(0., dmin2)
-      dmax2 = min(dmax2, optimalOut)
-    else
-      !
-      ! shift to mean
-      !
-      tmpMean = dsum / (float(nxOut) * nyOut)
-      !
-      ! values that min and max shift to
-      !
-      tmpMinShift = tmpMin + shiftMean - tmpMean
-      tmpMaxShift = tmpMax + shiftMean - tmpMean
-      !
-      if (ifFloat == 3) then
-        !
-        ! for no specified scaling, set new min and max to
-        ! shifted values
-        !
-        dmin2 = tmpMinShift
-        dmax2 = tmpMaxShift
-        if (newMode .ne. 2) then
-          !
-          ! then, if mode is not 2, set up for scaling if range is
-          ! too large and/or if there is a modal shift
-          !
-          optimalIn = max(optimalIn, shiftMax)
-          dmin2 = tmpMinShift * optimalOut / optimalIn
-          dmax2 = tmpMaxShift * optimalOut / optimalIn
-        endif
-      else
-        !
-        ! for specified scaling of shifted means
-        !
-        if (dminSpecified == dmaxSpecified) then
-          dminNew = 0.5
-          dmaxNew = optimalOut - 0.5
-        else
-          dminNew = dminSpecified
-          dmaxNew = dmaxSpecified
-        endif
-        !
-        ! for specified scaling, compute what this section's tmpMin
-        ! and tmpMax map to
-        !
-        dmin2 = (tmpMinShift - shiftMin) * (dmaxNew - dminNew) / &
-            (shiftMax - shiftMin) + dminNew
-        dmax2 = (tmpMaxShift - shiftMin) * (dmaxNew - dminNew) / &
-            (shiftMax - shiftMin) + dminNew
-      endif
-    endif
-  endif
-  !
-  if (rescale) then
-    !
-    ! if scaling, set up equation, scale and compute new mean
-    ! or use scaling factors directly
-    !
-    if (numScaleFacs > 0) then
-      scaleFactor = scaleFacs(min(numScaleFacs, iFile))
-      constAdd = scaleConsts(min(numScaleFacs, iFile))
-    else
-      !
-      ! 2/9/05: keep scale factor 1 if image has no range
-      !
-      scaleFactor = 1.
-      if (dmax2 .ne. dmin2 .and. tmpMax .ne. tmpMin) &
-          scaleFactor = (dmax2 - dmin2) / (tmpMax - tmpMin)
-      constAdd = dmin2 - scaleFactor * tmpMin
-    endif
-  endif
-  return
-end subroutine findScaleFactors
-
-
 ! getItemsToUse gets the list of transform line numbers or distortion
-! fields to apply, given the number available in nXforms, the list of
-! listTotal section numbers in inList, the PIP option in option, the
-! pipinput flag if doing pip input, and a scratch string in listString.
-! error should have a base error string, ifOnePerFile > 0 to do one
-! transform per file, and numInFiles should have number of files. The list
-! of items is returned in lineUse, and the number in the list in nLineUse
+! fields to apply, given the number available in NXFORMS, the list of
+! LISTTOTAL section numbers in INLIST, the PIP option in OPTION, the
+! PIPINPUT flag if doing pip input, and a scratch string in LISTSTRING.
+! ERROR should have a base error string, IFONEPERFILE > 0 to do one
+! transform per file, and NUMINFILES should have number of files. The list
+! of items is returned in LINEUSE, and the number in the list in NLINEUSE
 !
 subroutine getItemsToUse(nXforms, listTotal, inList, option, listString, &
     pipinput, error, ifOnePerFile, numInFiles, lineUse, nLineUse, LIMSEC)
@@ -2156,13 +2155,13 @@ subroutine irepak2(brray, array, mx, my, nx1, nx2, ny1, ny2, dmean)
 end subroutine irepak2
 
 
-! scanSection will determine the min dmin2, max dmax2, and mean dmean2 of section
-! iSecRead.  It will also determine the standard deviation sdSec if ifFloat = 2.
-! It uses array for storage.  idimInOut specifies the size of array, while nx is the
-! binned image size in x, nyNeeded is the number of lines to scan, and needYfirst
-! is the first line.  The image will be loaded in chunks if necessary.  loadYstart
-! and loadYend are the starting and ending lines (numbered from 0) that are left
-! in array.
+! scanSection will determine the min DMIN2, max DMAX2, and mean DMEAN2 of section
+! ISECREAD.  It will also determine the standard deviation SDSEC if IFFLOAT = 2.
+! It uses ARRAY for storage.  IDIMINOUT specifies the size of ARRAY, while NX is the
+! binned image size in x, NYNEEDED is the number of lines to scan, and NEEDYFIRST
+! is the first line.  The image will be loaded in chunks if necessary.  LOADYSTART
+! and LOADYEND are the starting and ending lines (numbered from 0) that are left
+! in ARRAY.
 !
 subroutine scanSection(array, idimInOut, nx, nyNeeded, needYfirst, iBinning, ixOffset, &
     iyOffset, iSecRead, ifFloat, dmin2, dmax2, dmean2, sdSec, loadYstart, loadYend, &
@@ -2223,23 +2222,23 @@ subroutine scanSection(array, idimInOut, nx, nyNeeded, needYfirst, iBinning, ixO
 end subroutine scanSection
 
 
-! backXform will determine the array coordinates xp and yp in an input
-! image that transform to the given array indexes ix, iy in an output
+! backXform will determine the array coordinates XP and YP in an input
+! image that transform to the given array indexes IX, IY in an output
 ! image.  Other arguments match those of cubInterp: the input image is
-! NXA by NYA; the output image is nxb by nyb; xfcen, yfcen is the center
-! coordinate of the input image; amat is the 2x2 transformation matrix
-! and xtrans, trans are the translations.
+! NXA by NYA; the output image is NXB by NYB; XFCEN, YFCEN is the center
+! coordinate of the input image; AMAT is the 2x2 transformation matrix
+! and XTRANS, YTRANS are the translations.
 !
-subroutine backXform(nxb, nyb, amat, xfcen, yfcen, xtrans, trans, ix, iy, xp, yp)
+subroutine backXform(nxb, nyb, amat, xfcen, yfcen, xtrans, ytrans, ix, iy, xp, yp)
   implicit none
   integer*4 nxb, nyb, ix, iy
-  real*4 amat(2,2), xfcen, yfcen, xtrans, trans, xp, yp
+  real*4 amat(2,2), xfcen, yfcen, xtrans, ytrans, xp, yp
   real*4 xcen, ycen, xcenOut, ycenOut, denom, a11, a12, a21, a22, dyo, dxo
   !
   ! Calc inverse transformation
   !
   xcen = nxb / 2. + xtrans + 0.5
-  ycen = nyb / 2. + trans + 0.5
+  ycen = nyb / 2. + ytrans + 0.5
   xcenOut = xfcen + 0.5
   ycenOut = yfcen + 0.5
   denom = amat(1, 1) * amat(2, 2) - amat(1, 2) * amat(2, 1)
