@@ -17,6 +17,7 @@ import javax.swing.event.ChangeListener;
 import etomo.AutoAlignmentController;
 import etomo.SerialSectionsManager;
 import etomo.comscript.BlendmontParam;
+import etomo.comscript.MidasParam;
 import etomo.comscript.XftoxgParam;
 import etomo.type.AxisID;
 import etomo.type.ConstSerialSectionsMetaData;
@@ -60,8 +61,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   private final Run3dmodButton btn3dmodPreblend = Run3dmodButton.get3dmodInstance(
       "Open Initial Blend Result", this);
   private final MultiLineButton btnFixEdges = new MultiLineButton("Fix Edges With Midas");
-  private final MultiLineButton btnOpenAlignedStack = new MultiLineButton(
-      "Open Aligned Stack");
+  private final MultiLineButton btn3dmodAlignedStack = Run3dmodButton.get3dmodInstance(
+      "Open Aligned Stack", this);
   private final ButtonGroup bgXftoxgAlignment = new ButtonGroup();
   private final RadioButton rbNoOptions = new RadioButton(
       "Local fitting (retain trends)", bgXftoxgAlignment);
@@ -72,11 +73,11 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       "Remove trends in translation & rotation",
       XftoxgParam.HybridFits.TRANSLATIONS_ROTATIONS, bgXftoxgAlignment);
   private final RadioButton rbNumberToFitGlobalAlignment = new RadioButton(
-      "Global transforms (remove all trends)",
-      XftoxgParam.NumberToFit.GLOBAL_ALIGNMENT, bgXftoxgAlignment);
+      "Global transforms (remove all trends)", XftoxgParam.NumberToFit.GLOBAL_ALIGNMENT,
+      bgXftoxgAlignment);
   private final Run3dmodButton btnMakeStack = Run3dmodButton.getDeferred3dmodInstance(
       "Make Stack", this);
-  private final Run3dmodButton btnOpenStack = Run3dmodButton.get3dmodInstance(
+  private final Run3dmodButton btn3dmodStack = Run3dmodButton.get3dmodInstance(
       "Open Stack", this);
   private CheckBox cbReferenceSection = new CheckBox("Reference section for alignment: ");
   private Spinner spReferenceSection = Spinner.getInstance(cbReferenceSection.getName());
@@ -86,6 +87,10 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   private LabeledTextField ltfShiftY = new LabeledTextField("Y: ");
   private Spinner spBinning = Spinner.getLabeledInstance("Binning: ", 1, 1, 8);
   private CheckBox cbFillWithZero = new CheckBox("Fill empty areas with 0");
+  private CheckTextField ctfRobustFitCriterion = CheckTextField
+      .getInstance("Robust fitting");
+  private final Spinner spMidasBinning = Spinner.getLabeledInstance("Midas binning: ", 1,
+      1, 8);
 
   private final AutoAlignmentPanel autoAlignmentPanel;
   private final AxisID axisID;
@@ -128,23 +133,26 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     JPanel pnlShift = new JPanel();
     JPanel pnlMakeStackA = new JPanel();
     JPanel pnlMakeStackButtons = new JPanel();
+    JPanel pnlRobustFitCriterion = new JPanel();
+    JPanel pnlMidasBinning =new JPanel();
     // init
     for (int i = 0; i < Tab.NUM_TABS; i++) {
       pnlTabArray[i] = new JPanel();
       pnlTabBodyArray[i] = new JPanel();
       tabPane.add(Tab.getInstance(i).toString(), pnlTabArray[i]);
     }
-    ViewType viewType = ViewType.fromString(metaData.getViewType());
+    ViewType viewType = metaData.getViewType();
     tabPane.setEnabledAt(Tab.INITIAL_BLEND.index, viewType == ViewType.MONTAGE);
     curTab = Tab.getDefaultInstance(viewType);
     tabPane.setSelectedIndex(curTab.index);
+    ctfRobustFitCriterion.setText("1");
     btnPreblend.setSize();
     btnPreblend.setDeferred3dmodButton(btn3dmodPreblend);
     btn3dmodPreblend.setSize();
     btnFixEdges.setSize();
-    btnOpenAlignedStack.setSize();
+    btn3dmodAlignedStack.setSize();
     // Set the maximum reference section.
-    File stack = new File(metaData.getStack());
+    File stack = new File(metaData.getStackAbsolutePath());
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
         stack.getName(), axisID);
     try {
@@ -164,7 +172,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
           + "\n" + e.getMessage(), "File Read Error", axisID);
     }
     btnMakeStack.setSize();
-    btnOpenStack.setSize();
+    btnMakeStack.setDeferred3dmodButton(btn3dmodStack);
+    btn3dmodStack.setSize();
     updateDisplay();
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
@@ -177,13 +186,25 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     pnlTabBodyArray[index].setLayout(new BoxLayout(pnlTabBodyArray[index],
         BoxLayout.Y_AXIS));
     pnlTabBodyArray[index].add(pnlVerySloppyBlend);
-    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlTabBodyArray[index].add(pnlRobustFitCriterion);
+    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlTabBodyArray[index].add(pnlMidasBinning);
+    pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y15));
     pnlTabBodyArray[index].add(pnlInitialBlendButtons);
     pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y5));
     // very sloppy blend
     pnlVerySloppyBlend.setLayout(new BoxLayout(pnlVerySloppyBlend, BoxLayout.X_AXIS));
     pnlVerySloppyBlend.add(cbVerySloppyMontage);
     pnlVerySloppyBlend.add(Box.createHorizontalGlue());
+    // RobustFitCriterion
+    pnlRobustFitCriterion
+        .setLayout(new BoxLayout(pnlRobustFitCriterion, BoxLayout.X_AXIS));
+    pnlRobustFitCriterion.add(ctfRobustFitCriterion.getRootComponent());
+    pnlRobustFitCriterion.add(Box.createHorizontalStrut(295));
+    //midas binning
+    pnlMidasBinning.setLayout(new BoxLayout(pnlMidasBinning,BoxLayout.X_AXIS));
+    pnlMidasBinning.add(spMidasBinning.getContainer());
+    pnlMidasBinning.add(Box.createHorizontalStrut(325));
     // initial blend buttons
     pnlInitialBlendButtons.setLayout(new BoxLayout(pnlInitialBlendButtons,
         BoxLayout.X_AXIS));
@@ -205,7 +226,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     // open aligned stack
     pnlOpenAlignedStack.setLayout(new BoxLayout(pnlOpenAlignedStack, BoxLayout.X_AXIS));
     pnlOpenAlignedStack.add(Box.createHorizontalGlue());
-    pnlOpenAlignedStack.add(btnOpenAlignedStack.getComponent());
+    pnlOpenAlignedStack.add(btn3dmodAlignedStack.getComponent());
     pnlOpenAlignedStack.add(Box.createHorizontalGlue());
     // make stack
     index = Tab.MAKE_STACK.index;
@@ -258,7 +279,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     pnlMakeStackButtons.setLayout(new BoxLayout(pnlMakeStackButtons, BoxLayout.X_AXIS));
     pnlMakeStackButtons.add(btnMakeStack.getComponent());
     pnlMakeStackButtons.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlMakeStackButtons.add(btnOpenStack.getComponent());
+    pnlMakeStackButtons.add(btn3dmodStack.getComponent());
   }
 
   public Container getRootContainer() {
@@ -280,7 +301,9 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     btnPreblend.addActionListener(listener);
     btn3dmodPreblend.addActionListener(listener);
     btnFixEdges.addActionListener(listener);
-    btnOpenAlignedStack.addActionListener(listener);
+    btn3dmodAlignedStack.addActionListener(listener);
+    btnMakeStack.addActionListener(listener);
+    btn3dmodStack.addActionListener(listener);
   }
 
   public void updateDisplay() {
@@ -292,17 +315,45 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     autoAlignmentPanel.enableMidas();
   }
 
-  public boolean getParameters(final SerialSectionsMetaData metaData) {
+  public void getParameters(final SerialSectionsMetaData metaData) {
+    metaData.setRobustFitCriterion(ctfRobustFitCriterion.getText());
+    metaData.setMidasBinning(spMidasBinning.getValue());
     autoAlignmentPanel.getParameters(metaData.getAutoAlignmentMetaData());
-    return true;
+    metaData.setNoOptions(rbNoOptions.isSelected());
+    metaData.setHybridFitsTranslations(rbHybridFitsTranslations.isSelected());
+    metaData.setHybridFitsTranslationsRotations(rbHybridFitsTranslationsRotations.isSelected());
+    metaData.setNumberToFitGlobalAlignment(rbNumberToFitGlobalAlignment.isSelected());
+    metaData.setReferenceSection(spReferenceSection.getValue());
+  }
+  
+  public void setParameters(final SerialSectionsMetaData metaData) {
+    ctfRobustFitCriterion.setText(metaData.getRobustFitCriterion());
+    spMidasBinning.setValue(metaData.getMidasBinning());
+    autoAlignmentPanel.setParameters(metaData.getAutoAlignmentMetaData());
+    rbNoOptions.setSelected(metaData.isNoOptions());
+    rbHybridFitsTranslations.setSelected(metaData.isHybridFitsTranslations());
+    rbHybridFitsTranslationsRotations.setSelected(metaData.isHybridFitsTranslationsRotations());
+    rbNumberToFitGlobalAlignment.setSelected(metaData.isNumberToFitGlobalAlignment());
+    spReferenceSection.setValue(metaData.getReferenceSection());
+  }
+  
+  public void getParameters(final MidasParam param) {
+    param.setBinning(spMidasBinning.getValue());
   }
 
   public void setPreblendParameters(final BlendmontParam param) {
     cbVerySloppyMontage.setSelected(param.isVerySloppyMontage());
+    ctfRobustFitCriterion.setSelected(param.isRobustFitCriterion());
+    if (ctfRobustFitCriterion.isSelected()) {
+      ctfRobustFitCriterion.setText(param.getRobustFitCriterion());
+    }
   }
 
   public void getPreblendParameters(final BlendmontParam param) {
     param.setVerySloppyMontage(cbVerySloppyMontage.isSelected());
+    if (ctfRobustFitCriterion.isSelected()) {
+      param.setRobustFitCriterion(ctfRobustFitCriterion.getText());
+    }
   }
 
   public void action(final Run3dmodButton button,
@@ -321,9 +372,15 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       manager.imodPreblend(axisID, run3dmodMenuOptions);
     }
     else if (command.equals(btnFixEdges.getActionCommand())) {
+      manager.midasFixEdges(axisID, null, null);
+    }
+    else if (command.equals(btn3dmodAlignedStack.getActionCommand())) {
+      manager.imodAlignedStack(axisID, run3dmodMenuOptions);
+    }
+    else if (command.equals(btnMakeStack.getActionCommand())) {
 
     }
-    else if (command.equals(btnOpenAlignedStack.getActionCommand())) {
+    else if (command.equals(btn3dmodStack.getActionCommand())) {
 
     }
   }
