@@ -4,8 +4,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-
 import etomo.comscript.MidasParam;
+import etomo.comscript.MidasParam.Mode;
 import etomo.comscript.XfalignParam;
 import etomo.process.AutoAlignmentProcessManager;
 import etomo.process.BaseProcessManager;
@@ -126,7 +126,8 @@ public final class AutoAlignmentController {
     if (!updateMetaData()) {
       return;
     }
-    MidasParam midasParam = new MidasParam(manager, axisID);
+    MidasParam midasParam = new MidasParam(manager, axisID, Mode.SAMPLE);
+    manager.getParameters(midasParam);
     if (!copyMostRecentXfFile(description)) {
       return;
     }

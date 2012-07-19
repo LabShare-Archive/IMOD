@@ -124,7 +124,7 @@ public class FileTypeTest extends TestCase {
         FileType.getInstance(manager, false, true, "tilt", "_for_sirt.com"));
     assertEquals("should find an imod file based on the description",
         FileType.SLOPPY_BLEND_COMSCRIPT,
-        FileType.getInstance(manager, false, true, "sloppyblend", ".com"));
+        FileType.getInstance(manager, false, false, "sloppyblend", ".com"));
   }
 
   public void testGetInstanceFromFileName() {

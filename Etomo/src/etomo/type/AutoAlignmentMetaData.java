@@ -31,7 +31,15 @@ public final class AutoAlignmentMetaData {
       EtomoNumber.Type.DOUBLE, "CutoffHighFrequency");
   private final ScriptParameter sigmaHighFrequency = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, "SigmaHighFrequency");
-  
+  private final EtomoNumber binning = new EtomoNumber("Binning");
+  private final EtomoNumber edgeToIgnore = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      "EdgeToIgnore");
+  private final EtomoNumber midasBinning = new EtomoNumber("MidasBinning");
+  private final ScriptParameter skipSectionsFrom1 = new ScriptParameter(
+      "SkipSectionsFrom1");
+  private final EtomoBoolean2 preCrossCorrelation = new EtomoBoolean2(
+      "PreCrossCorrelation");
+
   private Transform alignTransform = Transform.DEFAULT;
 
   AutoAlignmentMetaData() {
@@ -54,12 +62,22 @@ public final class AutoAlignmentMetaData {
     cutoffHighFrequency.reset();
     sigmaHighFrequency.reset();
     alignTransform = Transform.DEFAULT;
+    binning.reset();
+    edgeToIgnore.reset();
+    midasBinning.reset();
+    skipSectionsFrom1.reset();
+    preCrossCorrelation.reset();
     // load
     sigmaLowFrequency.load(props, prepend);
     cutoffHighFrequency.load(props, prepend);
     sigmaHighFrequency.load(props, prepend);
     alignTransform = Transform
         .load(props, prepend, ALIGN_TRANFORM_KEY, Transform.DEFAULT);
+    binning.load(props, prepend);
+    edgeToIgnore.load(props, prepend);
+    midasBinning.load(props, prepend);
+    skipSectionsFrom1.load(props, prepend);
+    preCrossCorrelation.load(props, prepend);
   }
 
   void store(final Properties props, String prepend) {
@@ -69,6 +87,11 @@ public final class AutoAlignmentMetaData {
     cutoffHighFrequency.store(props, prepend);
     sigmaHighFrequency.store(props, prepend);
     Transform.store(alignTransform, props, prepend, ALIGN_TRANFORM_KEY);
+    binning.store(props, prepend);
+    edgeToIgnore.store(props, prepend);
+    midasBinning.store(props, prepend);
+    skipSectionsFrom1.store(props, prepend);
+    preCrossCorrelation.store(props, prepend);
   }
 
   public ConstEtomoNumber setSigmaLowFrequency(String sigmaLowFrequency) {
@@ -93,6 +116,46 @@ public final class AutoAlignmentMetaData {
 
   void setCutoffHighFrequency(final ConstEtomoNumber input) {
     cutoffHighFrequency.set(input);
+  }
+
+  public ConstEtomoNumber getBinning() {
+    return binning;
+  }
+
+  public void setBinning(final Number input) {
+    binning.set(input);
+  }
+
+  public double getEdgeToIgnore() {
+    return edgeToIgnore.getDouble();
+  }
+
+  public void setEdgeToIgnore(final String input) {
+    edgeToIgnore.set(input);
+  }
+
+  public ConstEtomoNumber getMidasBinning() {
+    return midasBinning;
+  }
+
+  public void setMidasBinning(final Number input) {
+    midasBinning.set(input);
+  }
+
+  public String getSkipSectionsFrom1() {
+    return skipSectionsFrom1.toString();
+  }
+
+  public void setSkipSectionsFrom1(final String input) {
+    skipSectionsFrom1.set(input);
+  }
+
+  public boolean isPreCrossCorrelation() {
+    return preCrossCorrelation.is();
+  }
+
+  public void setPreCrossCorrelation(final boolean input) {
+    preCrossCorrelation.set(input);
   }
 
   public ConstEtomoNumber getCutoffHighFrequency() {

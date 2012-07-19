@@ -2,6 +2,7 @@ package etomo.process;
 
 import etomo.BaseManager;
 import etomo.comscript.ExtractpiecesParam;
+import etomo.comscript.MidasParam;
 import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessName;
@@ -41,5 +42,13 @@ public final class SerialSectionsProcessManager extends BaseProcessManager {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param.getCommand(),
         axisID, false, processResultDisplay, processSeries, ProcessName.EXTRACTPIECES);
     return backgroundProcess.getName();
+  }
+
+  /**
+   * Run midas.
+   */
+  public String midas(final MidasParam midasParam) throws SystemProcessException {
+    InteractiveSystemProgram program = startInteractiveSystemProgram(midasParam);
+    return program.getName();
   }
 }

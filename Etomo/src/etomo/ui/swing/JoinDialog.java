@@ -1530,7 +1530,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
   public void setMetaData(ConstJoinMetaData metaData) {
     ltfRootName.setText(metaData.getDatasetName());
     spinDensityRefSection.setValue(metaData.getDensityRefSection().getInt());
-    autoAlignmentPanel.setMetaData(metaData.getAutoAlignmentMetaData());
+    autoAlignmentPanel.setParameters(metaData.getAutoAlignmentMetaData());
     cbsAlignmentRefSection.setSelected(metaData.isUseAlignmentRefSection());
     cbsAlignmentRefSection.setValue(metaData.getAlignmentRefSection().getInt());
     ltfShiftInX.setText(metaData.getShiftInX().toString());

@@ -606,7 +606,7 @@ public class EtomoDirector {
     if (etomoSerialSectionsFile == null) {
       return openSerialSections(makeCurrent, axisID);
     }
-    return openPeet(etomoSerialSectionsFile.getAbsolutePath(), makeCurrent, axisID);
+    return openSerialSections(etomoSerialSectionsFile.getAbsolutePath(), makeCurrent, axisID);
   }
 
   private ManagerKey openJoin(String etomoJoinFileName, boolean makeCurrent, AxisID axisID) {

@@ -171,13 +171,23 @@ public final class AutoAlignmentPanel {
     metaData.setCutoffHighFrequency(ltfCutoffHighFrequency.getText());
     metaData.setSigmaHighFrequency(ltfSigmaHighFrequency.getText());
     metaData.setAlignTransform(tcAlign.get());
+    metaData.setPreCrossCorrelation(cbPreCrossCorrelation.isSelected());
+    metaData.setSkipSectionsFrom1(ltfSkipSectionsFrom1.getText());
+    metaData.setEdgeToIgnore(ltfEdgeToIgnore.getText());
+    metaData.setBinning(spBinning.getValue());
+    metaData.setMidasBinning(spMidasBinning.getValue());
   }
 
-  void setMetaData(final AutoAlignmentMetaData metaData) {
+  void setParameters(final AutoAlignmentMetaData metaData) {
     ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequency().toString());
     ltfCutoffHighFrequency.setText(metaData.getCutoffHighFrequency().toString());
     ltfSigmaHighFrequency.setText(metaData.getSigmaHighFrequency().toString());
     tcAlign.set(metaData.getAlignTransform());
+    cbPreCrossCorrelation.setSelected(metaData.isPreCrossCorrelation());
+    ltfSkipSectionsFrom1.setText(metaData.getSkipSectionsFrom1());
+    ltfEdgeToIgnore.setText(metaData.getEdgeToIgnore());
+    spBinning.setValue(metaData.getBinning());
+    spMidasBinning.setValue(metaData.getMidasBinning());
   }
 
   public void enableMidas() {

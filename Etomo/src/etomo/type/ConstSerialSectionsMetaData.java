@@ -18,7 +18,7 @@ package etomo.type;
 public interface ConstSerialSectionsMetaData {
   public static final String rcsid = "$Id:$";
 
-  public String getStack();
+  public String getStackAbsolutePath();
 
-  public String getViewType();
+  public ViewType getViewType();
 }

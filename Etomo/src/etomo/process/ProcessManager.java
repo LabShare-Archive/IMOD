@@ -1219,15 +1219,16 @@ public class ProcessManager extends BaseProcessManager {
       ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries)
       throws SystemProcessException {
     // Create the required tiltalign command
-    String command = BlendmontParam.getProcessName(BlendmontParam.Mode.UNDISTORT)
-        .getComscript(axisID);
+    ProcessName processName = BlendmontParam
+        .getProcessName(BlendmontParam.Mode.UNDISTORT);
+    String command = processName.getComscript(axisID);
     // Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
         appManager, axisID, BlendmontParam.Mode.UNDISTORT);
 
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, blendmontProcessMonitor,
-        axisID, processResultDisplay, processSeries);
+        axisID, processResultDisplay, processSeries, processName.resumable);
     return comScriptProcess.getName();
   }
 
@@ -1599,7 +1600,7 @@ public class ProcessManager extends BaseProcessManager {
 
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, null, axisID,
-        processResultDisplay, processSeries);
+        processResultDisplay, processSeries, ProcessName.TOMOPITCH.resumable);
     return comScriptProcess.getName();
 
   }
@@ -1792,8 +1793,8 @@ public class ProcessManager extends BaseProcessManager {
   public String extractpieces(AxisID axisID, ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(new ExtractpiecesParam(
-        appManager, axisID).getCommand(), axisID, true, processResultDisplay, processSeries,
-        ProcessName.EXTRACTPIECES);
+        appManager, axisID).getCommand(), axisID, true, processResultDisplay,
+        processSeries, ProcessName.EXTRACTPIECES);
     return backgroundProcess.getName();
   }
 
@@ -1905,7 +1906,8 @@ public class ProcessManager extends BaseProcessManager {
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startBackgroundComScript(comscript,
         combineProcessMonitor, AxisID.ONLY, combineComscriptState,
-        CombineComscriptState.COMSCRIPT_WATCHED_FILE, processSeries);
+        CombineComscriptState.COMSCRIPT_WATCHED_FILE, processSeries,
+        ProcessName.COMBINE.resumable);
     return comScriptProcess.getName();
   }
 
@@ -1921,7 +1923,7 @@ public class ProcessManager extends BaseProcessManager {
 
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, null, AxisID.ONLY,
-        processSeries);
+        processSeries, ProcessName.SOLVEMATCH.resumable);
     return comScriptProcess.getName();
 
   }
@@ -1938,7 +1940,7 @@ public class ProcessManager extends BaseProcessManager {
 
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, null, AxisID.ONLY,
-        processSeries);
+        processSeries, ProcessName.MATCHVOL1.resumable);
     return comScriptProcess.getName();
 
   }
@@ -1957,7 +1959,7 @@ public class ProcessManager extends BaseProcessManager {
 
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, patchcorrProcessWatcher,
-        AxisID.ONLY, "patch.out", processSeries);
+        AxisID.ONLY, "patch.out", processSeries, ProcessName.PATCHCORR.resumable);
     return comScriptProcess.getName();
 
   }
@@ -1974,7 +1976,7 @@ public class ProcessManager extends BaseProcessManager {
 
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, null, AxisID.ONLY,
-        processSeries);
+        processSeries, ProcessName.MATCHORWARP.resumable);
     return comScriptProcess.getName();
 
   }
@@ -1993,7 +1995,7 @@ public class ProcessManager extends BaseProcessManager {
 
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, volcombineProcessMonitor,
-        AxisID.ONLY, processSeries);
+        AxisID.ONLY, processSeries, ProcessName.VOLCOMBINE.resumable);
     return comScriptProcess.getName();
 
   }

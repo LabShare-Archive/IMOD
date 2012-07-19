@@ -156,8 +156,9 @@ public final class ProcessData implements Storable {
     return dialogType;
   }
 
-  public void setLastProcess(final ConstProcessSeries processSeries) {
-    if (processSeries.willProcessListBeDropped()) {
+  public void setLastProcess(final ConstProcessSeries processSeries,
+      final boolean resumable) {
+    if (processSeries.willProcessListBeDropped() && resumable) {
       System.err.println("WARNING:  Not compatible with ProcessSeries.processList.");
     }
     lastProcess.set(processSeries.getLastProcess());

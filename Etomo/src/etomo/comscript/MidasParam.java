@@ -7,6 +7,7 @@ import etomo.BaseManager;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.type.ConstSectionTableRowData;
+import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.SectionTableRowData;
@@ -128,6 +129,7 @@ public final class MidasParam implements Command {
   private static final String commandName = "midas";
   private static final String outputFileExtension = "_midas.xf";
 
+  private final EtomoNumber binning = new EtomoNumber();
   private final String[] commandArray;
   private final SystemProgram program;
   private final String workingDir;
@@ -135,15 +137,20 @@ public final class MidasParam implements Command {
   private final String rootName;
   private final String outputFileName;
   private final AxisID axisID;
-  private final ArrayList sectionTableRowData;
+  private final Mode mode;
+  private final BaseManager manager;
 
-  public MidasParam(final BaseManager manager, final AxisID axisID) {
+  private ArrayList sectionTableRowData = null;
+  private String inputFileName = null;
+
+  public MidasParam(final BaseManager manager, final AxisID axisID, final Mode mode) {
+    this.manager = manager;
     this.axisID = axisID;
+    this.mode = mode;
     workingDir = manager.getPropertyUserDir();
     rootName = manager.getName();
     outputFileName = rootName + outputFileExtension;
     outputFile = new File(workingDir, outputFileName);
-    sectionTableRowData = manager.getSectionTableRowData();
     ArrayList options = genOptions();
     commandArray = new String[options.size() + commandSize];
     commandArray[0] = BaseManager.getIMODBinPath() + commandName;
@@ -193,28 +200,58 @@ public final class MidasParam implements Command {
 
   private ArrayList genOptions() {
     ArrayList options = new ArrayList();
-    //If the section table is not available, don't use the chunks option.
-    if (sectionTableRowData != null) {
-      int sectionDataSize = sectionTableRowData.size();
-      StringBuffer chunkSize = new StringBuffer();
-      options.add("-c");
-      for (int i = 0; i < sectionDataSize; i++) {
-        ConstSectionTableRowData data = (SectionTableRowData) sectionTableRowData.get(i);
-        chunkSize.append(data.getChunkSize(sectionDataSize).toString());
-        if (i < sectionDataSize - 1) {
-          chunkSize.append(",");
+    if (mode == Mode.SAMPLE) {
+      // If the section table is not available, don't use the chunks option.
+      if (sectionTableRowData != null) {
+        int sectionDataSize = sectionTableRowData.size();
+        StringBuffer chunkSize = new StringBuffer();
+        options.add("-c");
+        for (int i = 0; i < sectionDataSize; i++) {
+          ConstSectionTableRowData data = (SectionTableRowData) sectionTableRowData
+              .get(i);
+          chunkSize.append(data.getChunkSize(sectionDataSize).toString());
+          if (i < sectionDataSize - 1) {
+            chunkSize.append(",");
+          }
         }
+        options.add(chunkSize.toString());
       }
-      options.add(chunkSize.toString());
+    }
+    if (!binning.isNull() && binning.gt(1)) {
+      options.add("-B");
+      options.add(binning.toString());
+    }
+    if (mode == Mode.FIX_EDGES) {
+      options.add("-p");
+      options.add(FileType.PIECE_LIST.getFileName(manager, axisID));
     }
     options.add("-b");
     options.add("0");
-    options.add("-D");
-    options.add("-o");
-    options.add(outputFileName);
-    options.add(rootName + ".sample");
-    options.add(rootName + ".xf");
+    if (mode == Mode.SAMPLE) {
+      options.add("-D");
+      options.add("-o");
+      options.add(outputFileName);
+      options.add(rootName + ".sample");
+      options.add(rootName + ".xf");
+    }
+    else if (mode == Mode.FIX_EDGES) {
+      options.add("-q");
+      options.add(inputFileName);
+      options.add(FileType.PIECE_SHIFTS.getFileName(manager, axisID));
+    }
     return options;
+  }
+
+  public void setSectionTableRowData(final ArrayList input) {
+    ArrayList sectionTableRowData = input;
+  }
+
+  public void setInputFileName(final String input) {
+    inputFileName = input;
+  }
+
+  public void setBinning(final Number input) {
+    binning.set(input);
   }
 
   public File getCommandOutputFile() {
@@ -247,5 +284,13 @@ public final class MidasParam implements Command {
 
   public static String getOutputFileExtension() {
     return outputFileExtension;
+  }
+
+  public static final class Mode {
+    public static final Mode SAMPLE = new Mode();
+    public static final Mode FIX_EDGES = new Mode();
+
+    private Mode() {
+    }
   }
 }
