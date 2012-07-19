@@ -4,9 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
-import etomo.JoinManager;
+import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
-import etomo.type.ConstJoinMetaData;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
@@ -154,23 +153,23 @@ public class XfalignParam implements Command {
   private static final String commandName = "xfalign";
   private static final String outputFileExtension = "_auto.xf";
 
-  private ConstJoinMetaData metaData;
-  private String[] commandArray;
-  private String workingDir = null;
-  private String rootName = null;
-  private String outputFileName = null;
-  private File outputFile = null;
-  private Mode mode;
-  private final BaseManager manager;
+  private final AutoAlignmentMetaData autoAlignmentMetaData;
+  private final String[] commandArray;
+  private final String rootName;
+  private final String outputFileName;
+  private final File outputFile;
+  private final boolean tomogramAverages;
+  private final Mode mode;
 
-  public XfalignParam(JoinManager manager, Mode mode) {
-    this.manager = manager;
-    metaData = manager.getConstMetaData();
+  public XfalignParam(final String rootName, final String propertyUserDir,
+      final AutoAlignmentMetaData autoAlignmentMetaData, final Mode mode,
+      final boolean tomogramAverages) {
+    this.autoAlignmentMetaData = autoAlignmentMetaData;
     this.mode = mode;
-    workingDir = manager.getPropertyUserDir();
-    rootName = metaData.getName();
+    this.tomogramAverages = tomogramAverages;
+    this.rootName = rootName;
     outputFileName = rootName + outputFileExtension;
-    outputFile = new File(workingDir, outputFileName);
+    outputFile = new File(propertyUserDir, outputFileName);
     ArrayList options = genOptions();
     commandArray = new String[options.size() + commandSize];
     commandArray[0] = "bash";
@@ -252,7 +251,9 @@ public class XfalignParam implements Command {
 
   private ArrayList genOptions() {
     ArrayList options = new ArrayList();
-    options.add("-tomo");
+    if (tomogramAverages) {
+      options.add("-tomo");
+    }
     if (mode == Mode.INITIAL) {
       genInitialOptions(options);
     }
@@ -283,9 +284,12 @@ public class XfalignParam implements Command {
   }
 
   private void genFilterOptions(ArrayList options) {
-    ScriptParameter sigmaLowFrequency = metaData.getSigmaLowFrequencyParameter();
-    ScriptParameter cutoffHighFrequency = metaData.getCutoffHighFrequencyParameter();
-    ScriptParameter sigmaHighFrequency = metaData.getSigmaHighFrequencyParameter();
+    ScriptParameter sigmaLowFrequency = autoAlignmentMetaData
+        .getSigmaLowFrequencyParameter();
+    ScriptParameter cutoffHighFrequency = autoAlignmentMetaData
+        .getCutoffHighFrequencyParameter();
+    ScriptParameter sigmaHighFrequency = autoAlignmentMetaData
+        .getSigmaHighFrequencyParameter();
     // optional
     if (sigmaLowFrequency.isNotNullAndNotDefault()
         || cutoffHighFrequency.isNotNullAndNotDefault()
@@ -298,7 +302,7 @@ public class XfalignParam implements Command {
   }
 
   private void genParamsOptions(ArrayList options) {
-    Transform transform = metaData.getAlignTransform();
+    Transform transform = autoAlignmentMetaData.getAlignTransform();
     if (transform != Transform.FULL_LINEAR_TRANSFORMATION) {
       if (transform == Transform.ROTATION_TRANSLATION_MAGNIFICATION) {
         options.add("-par");

@@ -181,6 +181,10 @@ public final class EtomoVersion implements Storable, ConstEtomoVersion {
   public boolean isNumeric() {
     return sectionList.isNumeric();
   }
+  
+  public boolean le(final String version) {
+    return le(EtomoVersion.getDefaultInstance(version));
+  }
 
   /**
    * Returns true if less then or equal to the parameter.  Ignores status, beta, and date.

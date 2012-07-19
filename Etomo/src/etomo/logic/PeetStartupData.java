@@ -4,6 +4,7 @@ import java.io.File;
 
 import etomo.EtomoDirector;
 import etomo.storage.PeetFileFilter;
+import etomo.type.DataFileType;
 import etomo.util.DatasetFiles;
 import etomo.util.FilePath;
 
@@ -79,7 +80,7 @@ public final class PeetStartupData {
         && (paramFiles.length > 1 || !DatasetFiles.getPeetRootName(
             paramFiles[0].getName()).equals(baseName))) {
       return "The directory " + directory.getAbsolutePath() + " can contain only one "
-          + DatasetFiles.PEET_DATA_FILE_EXT + " file.";
+          + DataFileType.PEET.extension + " file.";
     }
     if (isCopyFrom() && copyFrom.getParentFile().equals(directory)) {
       return "Cannot duplicate a project in the same directory.";
@@ -127,6 +128,6 @@ public final class PeetStartupData {
     if (directory == null || baseName == null) {
       return null;
     }
-    return new File(directory, baseName + DatasetFiles.PEET_DATA_FILE_EXT);
+    return new File(directory, baseName + DataFileType.PEET.extension);
   }
 }

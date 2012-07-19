@@ -8,7 +8,6 @@ import etomo.BaseManager;
 import etomo.comscript.MakejoincomParam;
 import etomo.ui.swing.JoinDialog;
 import etomo.ui.swing.UIHarness;
-import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
 /**
@@ -143,8 +142,26 @@ import etomo.util.Utilities;
 public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaData {
   public static final String rcsid = "$Id$";
 
+  /**
+   * @deprecated
+   */
+  private static final String ALIGN_TRANFORM_KEY = "AlignTransform";
+  // Version 1.0
+  /**
+   * @deprecated
+   */
+  private static final String fullLinearTransformationString = "FullLinearTransformation";
+  /**
+   * @deprecated
+   */
+  private static final String rotationTranslationMagnificationString = "RotationTranslationMagnification";
+  /**
+   * @deprecated
+   */
+  private static final String rotationTranslationString = "RotationTranslation";
+
   private static final EtomoVersion latestRevisionNumber = EtomoVersion.getInstance(
-      revisionNumberString, "1.1");
+      revisionNumberString, "1.2");
   private static final String newJoinTitle = "New Join";
 
   private static final String groupString = "Join";
@@ -152,18 +169,10 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
   private static final String rootNameString = "RootName";
   private static final String useAlignmentRefSectionString = "UseAlignmentRefSection";
   private static final String REFINING_WITH_TRIAL_KEY = "RefiningWithTrial";
-  private static final String ALIGN_TRANFORM_KEY = "AlignTransform";
   private static final String MODEL_TRANFORM_KEY = "ModelTransform";
   private static final String BOUNDARIES_TO_ANALYZE_KEY = "BoundariesToAnalyze";
   private static final String OBJECTS_TO_INCLUDE_KEY = "ObjectsToInclude";
   private static final String BOUNDARY_ROW_KEY = "BoundaryRow";
-
-  //Version 1.0
-  private static final String fullLinearTransformationString = "FullLinearTransformation";
-  private static final String rotationTranslationMagnificationString = "RotationTranslationMagnification";
-  private static final String rotationTranslationString = "RotationTranslation";
-
-  public static final Transform TRANSFORM_DEFAULT = Transform.FULL_LINEAR_TRANSFORMATION;
 
   private ArrayList sectionTableData = null;
   private String rootName = "";
@@ -171,14 +180,26 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
   private String objectsToInclude = null;
   private ScriptParameter densityRefSection = new ScriptParameter(
       EtomoNumber.Type.INTEGER, "DensityRefSection");
+  /**
+   * @deprecated
+   */
   private ScriptParameter sigmaLowFrequency = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, "SigmaLowFrequency");
+  /**
+   * @deprecated
+   */
   private ScriptParameter cutoffHighFrequency = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, "CutoffHighFrequency");
+  /**
+   * @deprecated
+   */
   private ScriptParameter sigmaHighFrequency = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, "SigmaHighFrequency");
-  private Transform alignTransform = TRANSFORM_DEFAULT;
-  private Transform modelTransform = TRANSFORM_DEFAULT;
+  /**
+   * @deprecated
+   */
+  private Transform alignTransform = Transform.DEFAULT;
+  private Transform modelTransform = Transform.DEFAULT;
   private boolean useAlignmentRefSection = false;
   private ScriptParameter alignmentRefSection = new ScriptParameter(
       EtomoNumber.Type.INTEGER, "AlignmentRefSection");
@@ -190,7 +211,7 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
       "ShiftInX");
   private ScriptParameter shiftInY = new ScriptParameter(EtomoNumber.Type.INTEGER,
       "ShiftInY");
-  //FinishJoin -local.  Checkbox in Join tab.
+  // FinishJoin -local. Checkbox in Join tab.
   private final EtomoBoolean2 localFits = new EtomoBoolean2("LocalFits");
   private EtomoNumber useEveryNSlices = new EtomoNumber(EtomoNumber.Type.INTEGER,
       "UseEveryNSlices");
@@ -211,22 +232,20 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
       .getNumberInstance("BoundaryRow" + '.' + "EndList");
   private EtomoNumber rejoinUseEveryNSlices = new EtomoNumber(EtomoNumber.Type.INTEGER,
       "RejoinUseEveryNSlices");
+  private AutoAlignmentMetaData autoAlignmentMetaData = new AutoAlignmentMetaData();
 
   private final BaseManager manager;
 
   public JoinMetaData(BaseManager manager) {
     this.manager = manager;
     axisType = AxisType.SINGLE_AXIS;
-    fileExtension = DatasetFiles.JOIN_DATA_FILE_EXT;
+    fileExtension = DataFileType.JOIN.extension;
     densityRefSection.setDefault(1).useDefaultAsDisplayValue();
     alignmentRefSection.setDefault(1).useDefaultAsDisplayValue();
     trialBinning.setDefault(1).useDefaultAsDisplayValue();
     rejoinTrialBinning.setDefault(1).useDefaultAsDisplayValue();
     shiftInX.setDefault(0).useDefaultAsDisplayValue();
     shiftInY.setDefault(0).useDefaultAsDisplayValue();
-    sigmaLowFrequency.setDefault(0).setDisplayValue(0.0);
-    cutoffHighFrequency.setDefault(0).setDisplayValue(0.25);
-    sigmaHighFrequency.setDefault(0).setDisplayValue(0.05);
     midasLimit.setDisplayValue(MakejoincomParam.MIDAS_LIMIT_DEFAULT);
     gapStart.setDisplayValue(-4);
     gapEnd.setDisplayValue(8);
@@ -247,7 +266,7 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
 
   public void load(Properties props, String prepend) {
     super.load(props, prepend);
-    //reset
+    // reset
     sectionTableData = null;
     densityRefSection.reset();
     rootName = "";
@@ -258,11 +277,7 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
     gapInc.reset();
     pointsToFitMin.reset();
     pointsToFitMax.reset();
-    sigmaLowFrequency.reset();
-    cutoffHighFrequency.reset();
-    sigmaHighFrequency.reset();
-    alignTransform = TRANSFORM_DEFAULT;
-    modelTransform = TRANSFORM_DEFAULT;
+    modelTransform = Transform.DEFAULT;
     useAlignmentRefSection = false;
     alignmentRefSection.reset();
     sizeInX.reset();
@@ -276,21 +291,34 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
     gap.reset();
     boundaryRowStartList.reset();
     boundaryRowEndList.reset();
-    //load
+    // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     revisionNumber.reset();
     revisionNumber.load(props, prepend);
-    if (revisionNumber.lt(latestRevisionNumber)) {
-      //handling version 1.0
-      loadVersion1_0(props, prepend);
-    }
-    else {
-      alignTransform = Transform.load(props, prepend, ALIGN_TRANFORM_KEY,
-          TRANSFORM_DEFAULT);
+    autoAlignmentMetaData.load(props, prepend);
+    if (revisionNumber.le("1.1")) {
+      sigmaLowFrequency.reset();
+      cutoffHighFrequency.reset();
+      sigmaHighFrequency.reset();
+      alignTransform = Transform.DEFAULT;
+      sigmaLowFrequency.load(props, prepend);
+      autoAlignmentMetaData.setSigmaLowFrequency(sigmaLowFrequency);
+      cutoffHighFrequency.load(props, prepend);
+      autoAlignmentMetaData.setCutoffHighFrequency(cutoffHighFrequency);
+      sigmaHighFrequency.load(props, prepend);
+      autoAlignmentMetaData.setSigmaHighFrequency(sigmaHighFrequency);
+      if (revisionNumber.le("1.0")) {
+        // handling version 1.0
+        loadVersion1_0(props, prepend);
+      }
+      else {
+        autoAlignmentMetaData.setAlignTransform(Transform.load(props, prepend,
+            ALIGN_TRANFORM_KEY, Transform.DEFAULT));
+      }
     }
     modelTransform = Transform
-        .load(props, prepend, MODEL_TRANFORM_KEY, TRANSFORM_DEFAULT);
+        .load(props, prepend, MODEL_TRANFORM_KEY, Transform.DEFAULT);
     rootName = props.getProperty(group + rootNameString, "");
     boundariesToAnalyze = props.getProperty(group + BOUNDARIES_TO_ANALYZE_KEY);
     objectsToInclude = props.getProperty(group + OBJECTS_TO_INCLUDE_KEY);
@@ -301,9 +329,6 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
     pointsToFitMin.load(props, prepend);
     pointsToFitMax.load(props, prepend);
     densityRefSection.load(props, prepend);
-    sigmaLowFrequency.load(props, prepend);
-    cutoffHighFrequency.load(props, prepend);
-    sigmaHighFrequency.load(props, prepend);
     useAlignmentRefSection = Boolean.valueOf(
         props.getProperty(group + useAlignmentRefSectionString, "false")).booleanValue();
     alignmentRefSection.load(props, prepend);
@@ -329,7 +354,7 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
       int rowIndex = row.getRowIndex();
       if (rowIndex < 0) {
         UIHarness.INSTANCE.openMessageDialog(manager, "Invalid row index: " + rowIndex
-            + ".  Corrupted: " + DatasetFiles.JOIN_DATA_FILE_EXT + " file.",
+            + ".  Corrupted: " + DataFileType.JOIN.extension + " file.",
             "Corrupted File", AxisID.ONLY);
       }
       sectionTableData.add(row.getRowIndex(), row);
@@ -356,8 +381,9 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
       alignTransform = Transform.FULL_LINEAR_TRANSFORMATION;
     }
     else {
-      alignTransform = TRANSFORM_DEFAULT;
+      alignTransform = Transform.DEFAULT;
     }
+    autoAlignmentMetaData.setAlignTransform(alignTransform);
   }
 
   public void setDensityRefSection(Object densityRefSection) {
@@ -432,18 +458,6 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
     sectionTableData.add(row);
   }
 
-  public ConstEtomoNumber setSigmaLowFrequency(String sigmaLowFrequency) {
-    return this.sigmaLowFrequency.set(sigmaLowFrequency);
-  }
-
-  public void setCutoffHighFrequency(String cutoffHighFrequency) {
-    this.cutoffHighFrequency.set(cutoffHighFrequency);
-  }
-
-  public void setSigmaHighFrequency(String sigmaHighFrequency) {
-    this.sigmaHighFrequency.set(sigmaHighFrequency);
-  }
-
   public void setMidasLimit(String midasLimit) {
     this.midasLimit.set(midasLimit);
   }
@@ -454,10 +468,6 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
 
   public void setAlignmentRefSection(Object alignmentRefSection) {
     this.alignmentRefSection.set((Integer) alignmentRefSection);
-  }
-
-  public void setAlignTransform(Transform alignTransform) {
-    this.alignTransform = alignTransform;
   }
 
   public void setModelTransform(Transform modelTransform) {
@@ -502,10 +512,18 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
     removeSectionTableData(props, prepend);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
-    //removing data used in old versions of join meta data
-    //change this this when there are more then one old version
-    if (revisionNumber.lt(latestRevisionNumber)) {
-      removeVersion1_0(props, prepend);
+    // removing data used in old versions of join meta data
+    // change this this when there are more then one old version
+    if (revisionNumber.le("1.1")) {
+      sigmaLowFrequency.remove(props, prepend);
+      cutoffHighFrequency.remove(props, prepend);
+      sigmaHighFrequency.remove(props, prepend);
+      if (revisionNumber.le("1.0")) {
+        removeVersion1_0(props, prepend);
+      }
+      else {
+        Transform.remove(props, prepend, ALIGN_TRANFORM_KEY);
+      }
     }
     latestRevisionNumber.store(props, prepend);
     props.setProperty(group + rootNameString, rootName);
@@ -534,10 +552,7 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
       props.setProperty(group + sectionTableDataSizeString,
           Integer.toString(sectionTableData.size()));
     }
-    sigmaLowFrequency.store(props, prepend);
-    cutoffHighFrequency.store(props, prepend);
-    sigmaHighFrequency.store(props, prepend);
-    Transform.store(alignTransform, props, prepend, ALIGN_TRANFORM_KEY);
+    autoAlignmentMetaData.store(props, prepend);
     Transform.store(modelTransform, props, prepend, MODEL_TRANFORM_KEY);
     props.setProperty(group + useAlignmentRefSectionString,
         Boolean.toString(useAlignmentRefSection));
@@ -572,11 +587,8 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
     }
   }
 
-  String createPrepend(String prepend) {
-    if (prepend == "") {
-      return groupString;
-    }
-    return prepend + "." + groupString;
+  String getGroupKey() {
+    return groupString;
   }
 
   public boolean isValid(String workingDirName) {
@@ -754,28 +766,8 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
     return rootName;
   }
 
-  public ConstEtomoNumber getSigmaLowFrequency() {
-    return sigmaLowFrequency;
-  }
-
-  public ScriptParameter getSigmaLowFrequencyParameter() {
-    return sigmaLowFrequency;
-  }
-
-  public ConstEtomoNumber getCutoffHighFrequency() {
-    return cutoffHighFrequency;
-  }
-
-  public ScriptParameter getCutoffHighFrequencyParameter() {
-    return cutoffHighFrequency;
-  }
-
-  public ConstEtomoNumber getSigmaHighFrequency() {
-    return sigmaHighFrequency;
-  }
-
-  public ScriptParameter getSigmaHighFrequencyParameter() {
-    return sigmaHighFrequency;
+  public AutoAlignmentMetaData getAutoAlignmentMetaData() {
+    return autoAlignmentMetaData;
   }
 
   public static String getNewFileTitle() {
@@ -796,10 +788,6 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
       throw new NullRequiredNumberException("Binning is null");
     }
     return coordinate.getInt() * binning.getInt();
-  }
-
-  public Transform getAlignTransform() {
-    return alignTransform;
   }
 
   public Transform getModelTransform() {

@@ -17,9 +17,11 @@ import etomo.comscript.ChunksetupParam;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.TrimvolParam;
+import etomo.logic.DatasetDirectory;
 import etomo.process.ImodManager;
 import etomo.storage.TomogramFileFilter;
 import etomo.type.AxisID;
+import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.ParallelMetaData;
 import etomo.type.ProcessName;
@@ -229,7 +231,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     String[] logFileLabel = { "Anisotropic Diffusion" };
     String[] logFile = new String[1];
     logFile[0] = ProcessName.ANISOTROPIC_DIFFUSION + ".log";
-    //    ContextPopup contextPopup =
+    // ContextPopup contextPopup =
     new ContextPopup(rootPanel.getContainer(), mouseEvent, "ANISOTROPIC DIFFUSION",
         ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, manager,
         AxisID.ONLY, subdirName);
@@ -245,7 +247,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     this.manager = manager;
     mediator = manager.getProcessingMethodMediator(AxisID.ONLY);
     filterFullVolumePanel = FilterFullVolumePanel.getInstance(manager, DIALOG_TYPE, this);
-    //root
+    // root
     rootPanel.setBoxLayout(BoxLayout.X_AXIS);
     if (Utilities.isAprilFools()) {
       rootPanel.setBorder(new BeveledBorder("Anisotropic Delusion").getBorder());
@@ -254,17 +256,17 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
       rootPanel.setBorder(new BeveledBorder("Anisotropic Diffusion").getBorder());
     }
     rootPanel.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
-    //first column
+    // first column
     SpacedPanel pnlFirst = SpacedPanel.getInstance();
     pnlFirst.setBoxLayout(BoxLayout.Y_AXIS);
-    //volume
+    // volume
     pnlFirst.add(ftfVolume.getContainer());
     SpacedPanel pnlLoadWithFlipping = SpacedPanel.getInstance();
     pnlLoadWithFlipping.setBoxLayout(BoxLayout.X_AXIS);
     pnlLoadWithFlipping.add(cbLoadWithFlipping);
     pnlLoadWithFlipping.addHorizontalGlue();
     pnlFirst.add(pnlLoadWithFlipping);
-    //extract
+    // extract
     SpacedPanel pnlExtract = SpacedPanel.getInstance();
     pnlExtract.setBoxLayout(BoxLayout.Y_AXIS);
     pnlExtract.setBorder(new EtchedBorder("Extract Test Volume").getBorder());
@@ -290,10 +292,10 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     pnlExtract.add(pnlExtractButtons);
     pnlFirst.add(pnlExtract);
     rootPanel.add(pnlFirst);
-    //second column
+    // second column
     SpacedPanel pnlSecond = SpacedPanel.getInstance();
     pnlSecond.setBoxLayout(BoxLayout.Y_AXIS);
-    //varying K
+    // varying K
     SpacedPanel pnlVaryingK = SpacedPanel.getInstance();
     pnlVaryingK.setBoxLayout(BoxLayout.Y_AXIS);
     pnlVaryingK.setBorder(new EtchedBorder("Find a K Value for Test Volume").getBorder());
@@ -316,7 +318,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     pnlVaryingKButtons.addHorizontalGlue();
     pnlVaryingK.add(pnlVaryingKButtons);
     pnlSecond.add(pnlVaryingK);
-    //varying iterations
+    // varying iterations
     SpacedPanel pnlVaryingIteration = SpacedPanel.getInstance();
     pnlVaryingIteration.setBoxLayout(BoxLayout.Y_AXIS);
     pnlVaryingIteration.setBorder(new EtchedBorder(
@@ -459,10 +461,10 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
       return false;
     }
     param.setIteration(spTestIteration.getValue());
-    //Must use an absolute file when testing file existance.  Changing the
-    //working directory by changing the user.dir property doesn't work for
-    //relative file paths.  The path looks correct, but File.exists() returns an
-    //incorrect result.
+    // Must use an absolute file when testing file existance. Changing the
+    // working directory by changing the user.dir property doesn't work for
+    // relative file paths. The path looks correct, but File.exists() returns an
+    // incorrect result.
     if (!(new File(new File(manager.getPropertyUserDir(), subdirName), TEST_VOLUME_NAME)
         .exists())) {
       UIHarness.INSTANCE
@@ -553,8 +555,8 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
         return;
       }
       manager.anisotropicDiffusionVaryingK(subdirName, null, deferred3dmodButton,
-          run3dmodMenuOptions, DIALOG_TYPE, mediator
-              .getRunMethodForProcessInterface(getProcessingMethod()));
+          run3dmodMenuOptions, DIALOG_TYPE,
+          mediator.getRunMethodForProcessInterface(getProcessingMethod()));
     }
     else if (command.equals(btnRunVaryingIteration.getActionCommand())) {
       if (!initSubdir()) {
@@ -577,8 +579,8 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     }
     else if (command.equals(btnViewVaryingIteration.getActionCommand())) {
       manager.imodVaryingIteration(ImodManager.VARYING_ITERATION_TEST_KEY,
-          run3dmodMenuOptions, subdirName, TEST_VOLUME_NAME, cbLoadWithFlipping
-              .isSelected());
+          run3dmodMenuOptions, subdirName, TEST_VOLUME_NAME,
+          cbLoadWithFlipping.isSelected());
     }
   }
 
@@ -596,6 +598,10 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     if (volume == null || volume.isDirectory() || !volume.exists()) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Please choose a volume",
           "Entry Error");
+      return;
+    }
+    if (!DatasetDirectory.validateDatasetName(manager, AxisID.ONLY, volume,
+        DataFileType.PARALLEL, null)) {
       return;
     }
     ftfVolume.setFile(volume);

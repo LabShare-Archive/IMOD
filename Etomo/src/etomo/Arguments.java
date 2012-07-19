@@ -164,9 +164,9 @@ public final class Arguments {
       + "\n\n  "
       + FRAME_TAG
       + " "
-      + ViewType.SINGLE_VIEW.getValue()
+      + ViewType.SINGLE_VIEW.getParamValue()
       + "|"
-      + ViewType.MONTAGE.getValue()
+      + ViewType.MONTAGE.getParamValue()
       + "\n\t\tFor automation.  Sets the Frame Type in the Setup Tomogram "
       + "\n\t\tdialog."
       + "\n\n  "

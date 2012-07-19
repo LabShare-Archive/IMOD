@@ -1,6 +1,7 @@
 package etomo.ui.swing;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
@@ -301,17 +302,30 @@ public abstract class AxisProcessPanel implements ContextMenu {
 
   private final boolean popupChunkWarnings;
 
-  //  Progress panel
+  // Progress panel
   final ProgressPanel progressPanel;
   private final SimpleButton buttonKillProcess = new SimpleButton(KILL_BUTTON_LABEL);
   private ParallelPanel parallelPanel = null;
 
-  //  Process select panel
+  // Process select panel
   protected JPanel panelProcessSelect = new JPanel();
 
-  protected abstract void buttonKillAction(ActionEvent event);
+  void showBothAxis() {
+  }
 
-  abstract void showBothAxis();
+  /**
+   * Sets panel color (does not include the axis button panel)
+   * @param color
+   */
+  void setBackground(Color color) {
+    panelRoot.setBackground(color);
+    outerStatusPanel.setBackground(color);
+    innerStatusPanel.setBackground(color);
+    parallelStatusPanel.setBackground(color);
+    panelDialog.setBackground(color);
+    panelProcessSelect.setBackground(color);
+    progressPanel.setBackground(color);
+  }
 
   /**
    * Constructor
@@ -323,7 +337,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
     axisID = axis;
     this.manager = manager;
     this.popupChunkWarnings = popupChunkWarnings;
-    //  Create the status panel
+    // Create the status panel
     actionListener = new KillButtonActionListener(this);
     buttonKillProcess.addActionListener(actionListener);
     buttonKillProcess.setEnabled(false);
@@ -340,6 +354,10 @@ public abstract class AxisProcessPanel implements ContextMenu {
     innerStatusPanel.setLayout(new BoxLayout(innerStatusPanel, BoxLayout.X_AXIS));
     buttonKillProcess.setToolTipText("Press to end the current process.");
     manager.getProcessingMethodMediator(axis).register(this);
+  }
+
+  void buttonKillAction(final ActionEvent event) {
+    manager.kill(axisID);
   }
 
   protected void initializePanels() {
@@ -402,7 +420,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
       return;
     }
     if (!show) {
-      //Parallel panel is not in use, hide it if necessary
+      // Parallel panel is not in use, hide it if necessary
       if (parallelPanel != null && parallelShowing) {
         parallelShowing = false;
         parallelStatusPanel.setVisible(false);
@@ -506,7 +524,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * Remove all process information from the dialog panel
    */
   final void eraseDialogPanel() {
-    //  Get the current panel size and a new blank panel of the same size
+    // Get the current panel size and a new blank panel of the same size
     panelDialog.removeAll();
     panelDialog.revalidate();
     panelDialog.repaint();
@@ -526,7 +544,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
       parallelPanel.setPauseEnabled(enablePause);
     }
   }
-  
+
   /**
    * Setup the progress bar for a state, not a process (with no moving bar, or percentage,
    * and without the kill button being enabled.
@@ -598,7 +616,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
     }
   }
 
-  protected void createProcessControlPanel() {
+  void createProcessControlPanel() {
     panelProcessSelect.setLayout(new BoxLayout(panelProcessSelect, BoxLayout.Y_AXIS));
 
     if (axisID == AxisID.FIRST) {

@@ -538,7 +538,7 @@ open.dialog.CleanUp.bn.clean =
 [interface = Join]
 [[open = interface]]
 	pnl.main-frame=
-	bn.new-join=
+	bn.join-serial-tomograms=
 [[]]
 goto.frame.pnl.main-frame =
 open.dialog.setup.tb.setup =
@@ -550,20 +550,20 @@ open.dialog.rejoin.tb.setup.4 =
 [interface = PEET]
 [[open = interface]]
 	pnl.main-frame=
-	bn.new-peet=
+	bn.particle-estimation=
 [[]]
 
 [Interface = Nad]
 [[open = interface]]
 	pnl.main-frame=
-	bn.new-nonlinear-anisotropic-diffusion=
+	bn.nonlinear-anisotropic-diffusion=
 [[]]
 goto.frame.pnl.main-frame =
 
 [Interface = Generic]
 [[open = interface]]
 	pnl.main-frame=
-	bn.new-generic-parallel-process=
+	bn.generic-parallel-process=
 [[]]
 goto.frame.pnl.main-frame =
 
