@@ -35,16 +35,16 @@ c       NGAPS is the number of gaps
 c       XYSCAL, ZSCAL are the pixel size and Z scaling applied to the model
 c       MANYRANDOM is a flag to suppress output if many random sets being done
 c       ONLYSHIFTED is logical to compute only agains sucessfully shifted items
+c       NEARESTONLY is a flag to count nearest neighbors only
 c       
 c       $Id$
-c       Log at end
 
       subroutine closedist(xmt,ymt,zmt,indstrt,npntobj,icolor,nmt,
      &    delr,nbins, ngraph,nreftyp,nneightyp,itypref, itypneigh,
      &    power,limfit,winmin,winmax,ninwin,graphs,fracsum, iobjwin,
      &    nobjwin,iobjmod,xyzend,endsep,samplen, ifcloseg,
      &    ifscatsurf,irefflag,neighflag,xyscal,zscal,powergrf,zgapst,
-     &    zgapnd,ngaps,manyrandom,onlyshifted)
+     &    zgapnd,ngaps,manyrandom,onlyshifted, nearestOnly)
       include 'mtk.inc'
       parameter (limgraphs=50,limbins=1001,limwobj=30000,
      &    limtyp=50,itypall=999,limxyz=50000)
@@ -57,7 +57,7 @@ c       Log at end
       integer*4 nreftyp(*),nneightyp(*)         !# of types for ref and neigh
       integer*4 itypref(limtyp,*),itypneigh(limtyp,*),iobjwin(*)
       logical onlyshifted
-      integer*4 igraphref(limgraphs),nrefobj(limgraphs),nclose(2,2)
+      integer*4 igraphref(limgraphs),nrefobj(limgraphs),nclose(2,2), minBin(limgraphs)
       real*4 aa(limxyz),bb(limxyz),cc(limxyz),dd(limxyz)
       real*4 xmin(limxyz),xmax(limxyz),ymin(limxyz),ymax(limxyz)
       real*4 zmin(limxyz),zmax(limxyz)
@@ -331,6 +331,7 @@ c
           fracsum(jj,ii)=0.
         enddo
         nrefobj(ii)=0
+        minBin(ii) = 0
       enddo
       if(usebinsave)then
         do i=1,nbinsave
@@ -377,7 +378,7 @@ c
           if(needed.gt.0)then
             needref=needref+1
             igraphref(needref)=jj
-            nrefobj(jj)=nrefobj(jj)+1
+            if (.not. nearestOnly) nrefobj(jj)=nrefobj(jj)+1
           endif
         enddo
 c         
@@ -715,11 +716,7 @@ c                             bin the distance to this point
 c                             
                             if(distmin.lt.distlim)then
                               ibin=max(1.,distmin/delr+1.)
-                              do ineed=1,needref
-                                jj=igraphref(ineed)
-                                if(neighpt(jj,iobjneigh))
-     &                              graphs(ibin,jj)=graphs(ibin,jj)+1.
-                              enddo
+                              call addDistanceToGraphs(iobjNeigh)
                             endif
 c                             
 c                             add to list if in window
@@ -772,11 +769,7 @@ c                             bin the distance to this point
 c                             
                             if(dist.lt.distlim)then
                               ibin=max(1.,dist/delr+1.)
-                              do ineed=1,needref
-                                jj=igraphref(ineed)
-                                if(neighpt(jj,iobjneigh))
-     &                              graphs(ibin,jj)=graphs(ibin,jj)+1.
-                              enddo
+                              call addDistanceToGraphs(iobjNeigh)
                             endif
 c                             
 c                             add to list if in window
@@ -878,11 +871,7 @@ c                       print *,'Eliminated based on global min/max'
                     endif
                   endif
                   if(ibin.gt.0)then
-                    do ineed=1,needref
-                      jj=igraphref(ineed)
-                      if(neighpt(jj,iobjneigh))
-     &                    graphs(ibin,jj)=graphs(ibin,jj)+1.
-                    enddo
+                    call addDistanceToGraphs(iobjNeigh)
                   endif
                   if(usebinsave)ibinsave(itriang)=ibin
                 endif
@@ -1021,11 +1010,7 @@ c                     add to bins
 c                     
                     if(distmin.lt.distlim)then
                       ibin=max(1.,distmin/delr+1.)
-                      do ineed=1,needref
-                        jj=igraphref(ineed)
-                        if(neighpt(jj,imesh))
-     &                      graphs(ibin,jj)=graphs(ibin,jj)+1.
-                      enddo
+                      call addDistanceToGraphs(imesh)
 c$$$			if(distmin.lt.0.005)then
 c$$$                    distmin2=0.03
 c$$$                    distabs=0.015
@@ -1101,6 +1086,7 @@ c
                 enddo
               enddo
             endif
+            call addNearestToGraphs()
           enddo
         elseif(needref.gt.0)then
 c           
@@ -1297,11 +1283,7 @@ c                     doing points: bin distance for each point
 c                     
                     if(neighflag.eq.2.and.distmin.lt.distlim)then
                       ibin=max(1.,distmin/delr+1.)
-                      do ineed=1,needref
-                        jj=igraphref(ineed)
-                        if(neighpt(jj,iobjneigh))
-     &                      graphs(ibin,jj)=graphs(ibin,jj)+1.
-                      enddo
+                      call addDistanceToGraphs(iobjNeigh)
 c                       
                       if(distmin.lt.winmax.and.distmin.ge.winmin)
      &                    call save_connector(x1min,y1min,z1min,x2min,
@@ -1316,11 +1298,7 @@ c                   doing lines: bin distance after getting global minimum
 c                   
                   if(neighflag.eq.1.and.distmin.lt.distlim)then
                     ibin=max(1.,distmin/delr+1.)
-                    do ineed=1,needref
-                      jj=igraphref(ineed)
-                      if(neighpt(jj,iobjneigh))
-     &                    graphs(ibin,jj)=graphs(ibin,jj)+1.
-                    enddo
+                    call addDistanceToGraphs(iobjNeigh)
 c                     
                     if(distmin.lt.winmax.and.distmin.ge.winmin)
      &                  call save_connector(x1min,y1min,z1min,x2min,
@@ -1471,17 +1449,14 @@ c$$$			endif
 
                     endif		    
                     if(ibin.gt.0)then
-                      do ineed=1,needref
-                        jj=igraphref(ineed)
-                        if(neighpt(jj,iobjneigh))
-     &                      graphs(ibin,jj)=graphs(ibin,jj)+1.
-                      enddo
+                      call addDistanceToGraphs(iobjNeigh)
                     endif	    
                     if(usebinsave)ibinsave(itriang)=ibin
                   endif
                 enddo
               endif
             enddo
+            call addNearestToGraphs()
           enddo
         endif
       enddo
@@ -1489,7 +1464,7 @@ c
 c       scale counts: use power parameter for whole lines to compute fracsum,
 c       otherwise set power to 2 (fracsum should be complete)
 c       
-      if(irefflag.eq.1.and.samplen.le.0.)then
+      if((irefflag.eq.1.and.samplen.le.0.) .or. nearestOnly)then
         do ibin=1,nbins
           if(power.eq.0.)then
             radpow=1.
@@ -1497,12 +1472,14 @@ c
             radpow=(2.*(ibin-0.5)*delr)**power
           endif
           frac=radpow*delr*3.14159
+          if (nearestOnly) frac = 1.
           do jj=1,ngraph
             fracsum(ibin,jj)=frac*nrefobj(jj)
             graphs(ibin,jj)=graphs(ibin,jj)/fracsum(ibin,jj)
           enddo
         enddo
         poweruse=power
+        if (nearestOnly) poweruse = 0
       else
         do ibin=1,nbins
           do jj=1,ngraph
@@ -1535,16 +1512,36 @@ c
 99    print *,'Data not loaded; try fewer objects'
       nmeshloaded=0
       return
-      end
-c
-c       $Log$
-c       Revision 3.3  2007/10/19 00:31:31  mast
-c       Fixed number of bins, and fixed test for mesh neighbors with multiple
-c       graphs
-c
-c       Revision 3.2  2006/05/12 14:38:00  mast
-c       Keep track of surfaces in window with negative numbers
-c
-c       Revision 3.1  2006/05/01 21:14:50  mast
-c       Increased number of bins to 1001
-c
+
+      CONTAINS
+
+c       Add the bin to each of the graphs that includes it, unless doing nearest neighbor
+c       then just maintain the minimum for the graph
+      subroutine addDistanceToGraphs(neighbor)
+      integer*4 neighbor
+      do ineed=1,needref
+        jj=igraphref(ineed)
+        if (neighpt(jj,neighbor)) then
+          if (nearestOnly) then
+            if (minBin(jj) .eq. 0 .or. ibin .lt. minBin(jj)) minBin(jj) = ibin
+          else
+            graphs(ibin,jj)=graphs(ibin,jj)+1.
+          endif
+        endif
+      enddo
+      return
+      end subroutine addDistanceToGraphs
+
+c       After getting a minimu distance to a reference, add it to the graphs
+      subroutine addNearestToGraphs()
+      if (.not. nearestOnly) return
+      do ineed=1,needref
+        jj=igraphref(ineed)
+        if (minBin(jj) .gt. 0) graphs(minBin(jj),jj) = graphs(minBin(jj),jj) + 1.
+        nrefObj(jj) = nrefObj(jj) + 1
+        minBin(jj) = 0
+      enddo
+      return
+      end subroutine addNearestToGraphs
+
+      end subroutine closedist
