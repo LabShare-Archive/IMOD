@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------
 /*
  * Changes for IMOD: combined include, removed "inline", declared loop variables
+ * and dimensioned u, q to 3 for compilers on Windows 
  * $Id$
  */
 #include <stdio.h>
@@ -42,7 +43,7 @@ void dsytrd3(double A[3][3], double Q[3][3], double d[3], double e[2])
 {
   const int n = 3;
   int i, j;
-  double u[n], q[n];
+  double u[3], q[3];
   double omega, f;
   double K, h, g;
   
