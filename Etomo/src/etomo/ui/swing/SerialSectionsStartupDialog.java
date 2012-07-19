@@ -19,6 +19,7 @@ import etomo.EtomoDirector;
 import etomo.SerialSectionsManager;
 import etomo.logic.DatasetDirectory;
 import etomo.logic.SerialSectionsStartupData;
+import etomo.logic.StackTool;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -181,14 +182,19 @@ public class SerialSectionsStartupDialog implements ContextMenu {
   }
 
   private boolean validate() {
-    return DatasetDirectory.validateDatasetName(manager, axisID, ftfStack.getFile(),
-        DataFileType.SERIAL_SECTIONS, AxisType.SINGLE_AXIS);
+    if (!DatasetDirectory.validateDatasetName(manager, axisID, ftfStack.getFile(),
+        DataFileType.SERIAL_SECTIONS, AxisType.SINGLE_AXIS)) {
+      return false;
+    }
+    File stack = getStack();
+    return StackTool.validateViewType(getViewType(), stack.getParent(), stack.getName(),
+        manager, axisID);
   }
 
   /**
    * Called when the OK button functionality completes successfully.
    */
-  public void close() {
+  public void done() {
     dispose();
     manager.setStartupData(startupData);
   }
@@ -204,8 +210,7 @@ public class SerialSectionsStartupDialog implements ContextMenu {
   private void action(final ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnOk.getActionCommand())) {
-      if (!DatasetDirectory.validateDatasetName(manager, axisID, ftfStack.getFile(),
-          DataFileType.SERIAL_SECTIONS, null)) {
+      if (!validate()) {
         return;
       }
       if (!saveState()) {
