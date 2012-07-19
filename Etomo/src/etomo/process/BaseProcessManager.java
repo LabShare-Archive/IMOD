@@ -10,7 +10,6 @@ import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
 import etomo.comscript.DetachedCommandDetails;
 import etomo.comscript.IntermittentCommand;
-import etomo.comscript.ProcessDetails;
 import etomo.comscript.ComscriptState;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.TomosnapshotParam;
@@ -752,16 +751,6 @@ public abstract class BaseProcessManager {
   final ComScriptProcess startComScript(final String command,
       final ProcessMonitor processMonitor, final AxisID axisID,
       final ProcessResultDisplay processResultDisplay,
-      final ProcessDetails processDetails, final ConstProcessSeries processSeries)
-      throws SystemProcessException {
-    return startComScript(new ComScriptProcess(manager, command, this, axisID, null,
-        processMonitor, processResultDisplay, processDetails, processSeries), command,
-        processMonitor, axisID);
-  }
-
-  final ComScriptProcess startComScript(final String command,
-      final ProcessMonitor processMonitor, final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay,
       final CommandDetails commandDetails, final ConstProcessSeries processSeries)
       throws SystemProcessException {
     return startComScript(new ComScriptProcess(manager, command, this, axisID, null,
@@ -797,10 +786,11 @@ public abstract class BaseProcessManager {
   final ComScriptProcess startComScript(final String command,
       final ProcessMonitor processMonitor, final AxisID axisID,
       final ProcessResultDisplay processResultDisplay,
-      final ConstProcessSeries processSeries) throws SystemProcessException {
+      final ConstProcessSeries processSeries, final boolean resumable)
+      throws SystemProcessException {
     return startComScript(new ComScriptProcess(manager, command, this, axisID, null,
-        processMonitor, processResultDisplay, processSeries), command, processMonitor,
-        axisID);
+        processMonitor, processResultDisplay, processSeries, resumable), command,
+        processMonitor, axisID);
   }
 
   /**
@@ -845,9 +835,10 @@ public abstract class BaseProcessManager {
    */
   final ComScriptProcess startComScript(final String command,
       final ProcessMonitor processMonitor, final AxisID axisID,
-      final ConstProcessSeries processSeries) throws SystemProcessException {
+      final ConstProcessSeries processSeries, final boolean resumable)
+      throws SystemProcessException {
     return startComScript(new ComScriptProcess(manager, command, this, axisID, null,
-        processMonitor, processSeries), command, processMonitor, axisID);
+        processMonitor, processSeries, resumable), command, processMonitor, axisID);
   }
 
   /**
@@ -923,10 +914,11 @@ public abstract class BaseProcessManager {
   final ComScriptProcess startBackgroundComScript(final String comscript,
       final DetachedProcessMonitor processMonitor, final AxisID axisID,
       final ComscriptState comscriptState, final String watchedFileName,
-      final ConstProcessSeries processSeries) throws SystemProcessException {
+      final ConstProcessSeries processSeries, final boolean resumable)
+      throws SystemProcessException {
     BackgroundComScriptProcess process = new BackgroundComScriptProcess(manager,
         comscript, this, axisID, watchedFileName, processMonitor, comscriptState,
-        processSeries);
+        processSeries, resumable);
     processMonitor.setProcess(process);
     return startComScript(process, comscript, processMonitor, axisID);
   }
@@ -942,10 +934,11 @@ public abstract class BaseProcessManager {
    */
   final ComScriptProcess startComScript(final String command,
       final ProcessMonitor processMonitor, final AxisID axisID,
-      final String watchedFileName, final ConstProcessSeries processSeries)
-      throws SystemProcessException {
+      final String watchedFileName, final ConstProcessSeries processSeries,
+      final boolean resumable) throws SystemProcessException {
     return startComScript(new ComScriptProcess(manager, command, this, axisID,
-        watchedFileName, processMonitor, processSeries), command, processMonitor, axisID);
+        watchedFileName, processMonitor, processSeries, resumable), command,
+        processMonitor, axisID);
   }
 
   /**
