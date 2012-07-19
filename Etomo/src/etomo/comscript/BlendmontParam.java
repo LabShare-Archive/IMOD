@@ -46,45 +46,45 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   public static final String OUTPUT_FILE_EXTENSION = ".ali";
   public static final String DISTORTION_CORRECTED_STACK_EXTENSION = ".dcst";
   public static final String BLENDMONT_STACK_EXTENSION = ".bl";
-
   public static final String IMAGE_OUTPUT_FILE_KEY = "ImageOutputFile";
   public static final String IMAGES_ARE_BINNED_KEY = "ImagesAreBinned";
   public static final String DISTORTION_FIELD_KEY = "DistortionField";
 
-  private AxisID axisID;
-  private String datasetName;
-  private EtomoBoolean2 readInXcorrs;
-  private EtomoBoolean2 oldEdgeFunctions;
-  private ScriptParameter interpolationOrder;
-  private EtomoBoolean2 justUndistort;
-  private String imageOutputFile;
-  private FileType imageOutputFileType;
-  private Mode mode = Mode.XCORR;
-  private ScriptParameter binByFactor;
-  private boolean fiducialess = false;
-  private String userSizeToOutputInXandY;
-  private ProcessName processName = ProcessName.XCORR;
   private final StringParameter distortionField = new StringParameter("DistortionField");
   private final StringParameter imageInputFile = new StringParameter("ImageInputFile");
   private final StringParameter pieceListInput = new StringParameter("PieceListInput");
   private final StringParameter rootNameForEdges = new StringParameter("RootNameForEdges");
   private final ScriptParameter imagesAreBinned = new ScriptParameter("ImagesAreBinned");
-  private EtomoBoolean2 sloppyMontage = new EtomoBoolean2("SloppyMontage");
-  private EtomoBoolean2 verySloppyMontage = new EtomoBoolean2("VerySloppyMontage");
-
+  private final EtomoBoolean2 sloppyMontage = new EtomoBoolean2("SloppyMontage");
+  private final EtomoBoolean2 verySloppyMontage = new EtomoBoolean2("VerySloppyMontage");
+  private final ScriptParameter robustFitCriterion = new ScriptParameter(
+      EtomoNumber.Type.DOUBLE, "RobustFitCriterion");
   /**
    * @version 3.10
    * Script is from an earlier version if false.
    */
   private final EtomoBoolean2 adjustOrigin = new EtomoBoolean2("AdjustOrigin");
-
-  private final BaseManager manager;
   private final FortranInputString startingAndEndingX = new FortranInputString(
       "StartingAndEndingX", 2);
   private final FortranInputString startingAndEndingY = new FortranInputString(
       "StartingAndEndingY", 2);
   private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  
+  private final AxisID axisID;
+  private final String datasetName;
+  private final EtomoBoolean2 readInXcorrs;
+  private final EtomoBoolean2 oldEdgeFunctions;
+  private final ScriptParameter interpolationOrder;
+  private final EtomoBoolean2 justUndistort;
+  private final ScriptParameter binByFactor;
+  private final BaseManager manager;
 
+  private String userSizeToOutputInXandY = "";
+  private FileType imageOutputFileType = null;
+  private String imageOutputFile = null;
+  private boolean fiducialess = false;
+  private Mode mode = Mode.XCORR;
+  private ProcessName processName = ProcessName.XCORR;
   private boolean imageOutputFileFor3dFind = false;
   private boolean validate = false;
   private boolean fromScratch = false;
@@ -141,6 +141,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     imagesAreBinned.parse(scriptCommand);
     sloppyMontage.parse(scriptCommand);
     verySloppyMontage.parse(scriptCommand);
+    robustFitCriterion.parse(scriptCommand);
   }
 
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
@@ -164,6 +165,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     imagesAreBinned.updateComScript(scriptCommand);
     sloppyMontage.updateComScript(scriptCommand);
     verySloppyMontage.updateComScript(scriptCommand);
+    robustFitCriterion.updateComScript(scriptCommand);
   }
 
   public void setValidate(final boolean validate) {
@@ -193,6 +195,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     imagesAreBinned.reset();
     sloppyMontage.reset();
     verySloppyMontage.reset();
+    robustFitCriterion.reset();
   }
 
   public void initializeDefaults() {
@@ -329,7 +332,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     if (input) {
       sloppyMontage.set(false);
     }
-    else{
+    else {
       sloppyMontage.set(true);
     }
     verySloppyMontage.set(input);
@@ -635,12 +638,24 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     adjustOrigin.set(input);
   }
 
-  public final void setBinByFactor(final int binByFactor) {
+  public void setBinByFactor(final int binByFactor) {
     this.binByFactor.set(binByFactor);
   }
 
-  public final ConstEtomoNumber getBinByFactor() {
+  public ConstEtomoNumber getBinByFactor() {
     return binByFactor;
+  }
+
+  public boolean isRobustFitCriterion() {
+    return !robustFitCriterion.isNull();
+  }
+
+  public String getRobustFitCriterion() {
+    return robustFitCriterion.toString();
+  }
+
+  public void setRobustFitCriterion(final String input) {
+    robustFitCriterion.set(input);
   }
 
   public static final class Field implements FieldInterface {
