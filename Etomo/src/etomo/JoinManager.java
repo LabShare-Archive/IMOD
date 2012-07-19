@@ -3,7 +3,6 @@ package etomo;
 import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Vector;
 
 import etomo.comscript.ClipParam;
@@ -669,6 +668,10 @@ public final class JoinManager extends BaseManager {
       }
     }
     return paramFile;
+  }
+  
+  public void getParameters(final MidasParam param) {
+    param.setSectionTableRowData(metaData.getSectionTableData());
   }
 
   private boolean doneJoinDialog() {
@@ -1401,10 +1404,6 @@ public final class JoinManager extends BaseManager {
 
   public boolean updateMetaData(final DialogType dialogType, final AxisID axisID) {
     return joinDialog.getMetaData(metaData);
-  }
-
-  public ArrayList getSectionTableRowData() {
-    return metaData.getSectionTableData();
   }
 
   /**
