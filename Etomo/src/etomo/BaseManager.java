@@ -16,6 +16,7 @@ import javax.swing.JFileChooser;
 
 import etomo.comscript.CommandDetails;
 import etomo.comscript.IntermittentCommand;
+import etomo.comscript.MidasParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.process.AxisProcessData;
 import etomo.process.BaseProcessManager;
@@ -229,16 +230,15 @@ public abstract class BaseManager {
     return false;
   }
 
+  public void getParameters(MidasParam param) {
+  }
+
   AutoAlignmentMetaData getAutoAlignmentMetaData() {
     return null;
   }
 
   public boolean updateMetaData(final DialogType dialogType, final AxisID axisID) {
     return false;
-  }
-
-  public ArrayList getSectionTableRowData() {
-    return null;
   }
 
   /**
