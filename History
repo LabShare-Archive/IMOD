@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/19/12: Added option to mtk to switch to making graphs of distance to nearest
+neighbor instead of distance to all neighbors.
+
 7/17/12: Made scale bar in Model View show up as black and be controllable by
 the Whute checkbox if image display is on.
 
