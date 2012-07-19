@@ -501,10 +501,11 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   // set in initialize
   private LogFile logFile;
 
-  public ComScriptProcess(BaseManager manager, String comScript,
-      BaseProcessManager processManager, AxisID axisID, String watchedFileName,
-      ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+  public ComScriptProcess(final BaseManager manager, final String comScript,
+      final BaseProcessManager processManager, final AxisID axisID,
+      final String watchedFileName, final ProcessMonitor processMonitor,
+      final ProcessResultDisplay processResultDisplay,
+      final ConstProcessSeries processSeries, final boolean resumable) {
     this.manager = manager;
     this.comScriptName = comScript;
     this.processManager = processManager;
@@ -517,7 +518,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processData.setDisplayKey(processResultDisplay);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries);
+      processData.setLastProcess(processSeries, resumable);
     }
     this.processSeries = processSeries;
     initialize(null);
@@ -539,7 +540,14 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processData.setDisplayKey(processResultDisplay);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries);
+      boolean resumable = false;
+      if (command != null) {
+        ProcessName processName = command.getProcessName();
+        if (processName != null) {
+          resumable = processName.resumable;
+        }
+      }
+      processData.setLastProcess(processSeries, resumable);
     }
     this.processSeries = processSeries;
     this.command = command;
@@ -563,10 +571,12 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     initialize(null);
   }
 
-  public ComScriptProcess(BaseManager manager, String comScript,
-      BaseProcessManager processManager, AxisID axisID, String watchedFileName,
-      ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
-      ProcessDetails processDetails, ConstProcessSeries processSeries) {
+  public ComScriptProcess(final BaseManager manager, final String comScript,
+      final BaseProcessManager processManager, final AxisID axisID,
+      final String watchedFileName, final ProcessMonitor processMonitor,
+      final ProcessResultDisplay processResultDisplay,
+      final ProcessDetails processDetails, final ConstProcessSeries processSeries,
+      final boolean resumable) {
     this.manager = manager;
     this.comScriptName = comScript;
     this.processManager = processManager;
@@ -580,7 +590,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processData.setDisplayKey(processResultDisplay);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries);
+      processData.setLastProcess(processSeries, resumable);
     }
     this.processSeries = processSeries;
     initialize(null);
@@ -603,7 +613,14 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processData.setDisplayKey(processResultDisplay);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries);
+      boolean resumable = false;
+      if (command != null) {
+        ProcessName processName = command.getProcessName();
+        if (processName != null) {
+          resumable = processName.resumable;
+        }
+      }
+      processData.setLastProcess(processSeries, resumable);
     }
     this.processSeries = processSeries;
     initialize(null);
@@ -628,15 +645,23 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processData.setDisplayKey(processResultDisplay);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries);
+      boolean resumable = false;
+      if (commandDetails != null) {
+        ProcessName processName = commandDetails.getProcessName();
+        if (processName != null) {
+          resumable = processName.resumable;
+        }
+      }
+      processData.setLastProcess(processSeries, resumable);
     }
     this.processSeries = processSeries;
     initialize(null);
   }
 
-  public ComScriptProcess(BaseManager manager, String comScript,
-      BaseProcessManager processManager, AxisID axisID, String watchedFileName,
-      ProcessMonitor processMonitor, ConstProcessSeries processSeries) {
+  public ComScriptProcess(final BaseManager manager, final String comScript,
+      final BaseProcessManager processManager, final AxisID axisID,
+      final String watchedFileName, final ProcessMonitor processMonitor,
+      final ConstProcessSeries processSeries, final boolean resumable) {
     this.manager = manager;
     this.comScriptName = comScript;
     this.processManager = processManager;
@@ -647,7 +672,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries);
+      processData.setLastProcess(processSeries, resumable);
     }
     this.processSeries = processSeries;
     initialize(null);
@@ -669,7 +694,14 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries);
+      boolean resumable = false;
+      if (commandDetails != null) {
+        ProcessName processName = commandDetails.getProcessName();
+        if (processName != null) {
+          resumable = processName.resumable;
+        }
+      }
+      processData.setLastProcess(processSeries, resumable);
     }
     this.processSeries = processSeries;
     initialize(null);
@@ -695,7 +727,14 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processData.setProcessingMethod(processingMethod);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries);
+      boolean resumable = false;
+      if (commandDetails != null) {
+        ProcessName processName = commandDetails.getProcessName();
+        if (processName != null) {
+          resumable = processName.resumable;
+        }
+      }
+      processData.setLastProcess(processSeries, resumable);
     }
     this.processSeries = processSeries;
     initialize(null);
@@ -719,7 +758,14 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processData.setProcessingMethod(processingMethod);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries);
+      boolean resumable = false;
+      if (commandDetails != null) {
+        ProcessName processName = commandDetails.getProcessName();
+        if (processName != null) {
+          resumable = processName.resumable;
+        }
+      }
+      processData.setLastProcess(processSeries, resumable);
     }
     this.processSeries = processSeries;
     initialize(null);
