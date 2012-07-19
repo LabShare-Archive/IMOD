@@ -171,6 +171,8 @@ public final class FileType {
       true, "xcorr_pt", ".com");
   public static final FileType DISTORTION_CORRECTED_STACK = FileType.getInstance(true,
       true, "", ".dcst");
+  public static final FileType PIECE_SHIFTS = FileType.getInstance(true,
+      true, "", ".ecd");
   public static final FileType FIDUCIAL_MODEL = FileType.getInstance(true, true, "",
       ".fid");
   public static final FileType CCD_ERASER_BEADS_INPUT_MODEL = FileType.getInstance(true,
