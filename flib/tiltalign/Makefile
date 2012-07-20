@@ -33,4 +33,4 @@ install: $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *.exe *~ tiltalign xfforfidless alivar.mod
+	-\rm -f *.$(OBJEXT) *.exe *~ tiltalign xfforfidless alivar.mod

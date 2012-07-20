@@ -76,6 +76,6 @@ DLASRC = \
 double: $(DLASRC) $(ALLAUX) $(DZLAUX)
 
 clean:
-	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.$(OBJEXT)" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;

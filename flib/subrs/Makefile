@@ -111,7 +111,7 @@ clean :
 	$(FIND) . -type f -name "*.*lib" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.dll" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.exp" -exec rm "{}" \;
-	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.$(OBJEXT)" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
 	$(FIND) . -type f -name "moc*" -exec rm "{}" \;

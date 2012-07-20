@@ -44,7 +44,7 @@ install : $(LIBS)
 	$(CP) $(LIBS) $(INSTLIBDIR)
 
 clean : 
-	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.$(OBJEXT)" -exec rm "{}" \;
 	$(FIND) . -type f -name $(LIBI) -exec rm -f "{}" \;
 	$(FIND) . -type f -name "*.dll" -exec rm -f "{}" \;
 	$(FIND) . -type f -name "*.so" -exec rm -f "{}" \;
