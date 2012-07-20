@@ -9,6 +9,8 @@ PROG = beadtrack$(BINEXT)
 all: $(PROG)
 
 # 6/17/12, eliminated non-optimization of tiltali, it made no difference
+#tiltali.$(O): tiltali.f90
+#	$(FC) -c $(NOOPFFLAGS) tiltali.f90
 
 $(PROG): $(BDOBJS)
 	$(FC) -o beadtrack $(BDOBJS) $(LDFFLAGS) $(LSMLMOD) $(LIMOD) \
@@ -43,6 +45,6 @@ install: $(PROG)
 	$(CP) $(PROG) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *.exe *~ beadtrack alivar.mod tltcntrl.mod arraymaxes.mod \
+	-\rm -f *.$(OBJEXT) *.exe *~ beadtrack alivar.mod tltcntrl.mod arraymaxes.mod \
 	mapsep.mod cgpixels.mod
 
