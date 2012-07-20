@@ -48,7 +48,7 @@ install : $(LIBI)
 clean : 
 	$(FIND) . -type f -name $(LIBI) -exec rm "{}" \;
 	$(FIND) . -type f -name "*.exp" -exec rm "{}" \;
-	$(FIND) . -type f -name "*.o*"  -exec rm "{}" \;
+	$(FIND) . -type f -name "*.$(OBJEXT)"  -exec rm "{}" \;
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#"  -exec rm "{}" \;
 
