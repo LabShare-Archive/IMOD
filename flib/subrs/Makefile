@@ -82,14 +82,14 @@ $(LIBBLAS): blas/*.f
 	$(RM) $(LIBBLAS)
 	$(FAR) $(FARFLAGS)$(LIBBLAS) $(LIBBLASDEF) blas/*.$(O)
 	$(RANLIB) $(LIBBLAS)
-	$(CP) $(LIBBLAS) $(LIBDIR)
+	$(CP) libb3dblas.$(LIBEXT) $(LIBDIR)
 
-$(LIBLAPACK): lapack/*.f
+$(LIBLAPACK): $(LIBBLAS) lapack/*.f
 	(cd lapack; $(MAKE) all)
 	$(RM) $(LIBLAPACK)
 	$(FAR) $(FARFLAGS)$(LIBLAPACK) $(LIBLAPACKDEF) lapack/*.$(O)
 	$(RANLIB) $(LIBLAPACK)
-	$(CP) $(LIBLAPACK) $(LIBDIR)
+	$(CP) libb3dlapk.$(LIBEXT) $(LIBDIR)
 
 $(LIBTRACK):	linetrack/*.f linetrack/*.c
 	(cd linetrack; $(MAKE) all)

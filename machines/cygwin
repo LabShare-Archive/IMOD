@@ -166,7 +166,7 @@ if ($compiler == intel) then
         echo 'LIBHVEMDEF = /def:libhvem.def ../../buildlib/libmrcim.lib ../../buildlib/libcfshr.lib'  >> $configure
         echo 'LIBIFFTDEF = /def:libifft.def'     >> $configure
         echo 'LIBBLASDEF = /def:libb3dblas.def'   >> $configure
-        echo 'LIBLAPACKDEF = /def:libb3dlapk.def ../../libb3dblas.lib'   >> $configure
+        echo 'LIBLAPACKDEF = /def:libb3dlapk.def ../../buildlib/libb3dblas.lib'   >> $configure
         echo 'LIBTRACKDEF = /def:libtrack.def ../../buildlib/libcfshr.lib'   >> $configure
         set inst_lib_dir = $inst_dir/bin
         #
