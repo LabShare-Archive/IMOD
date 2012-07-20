@@ -56,7 +56,7 @@ c       $Id$
       integer*4 icolor(*)			!types of sample points
       integer*4 nreftyp(*),nneightyp(*)         !# of types for ref and neigh
       integer*4 itypref(limtyp,*),itypneigh(limtyp,*),iobjwin(*)
-      logical onlyshifted
+      logical onlyshifted, nearestOnly
       integer*4 igraphref(limgraphs),nrefobj(limgraphs),nclose(2,2), minBin(limgraphs)
       real*4 aa(limxyz),bb(limxyz),cc(limxyz),dd(limxyz)
       real*4 xmin(limxyz),xmax(limxyz),ymin(limxyz),ymax(limxyz)
