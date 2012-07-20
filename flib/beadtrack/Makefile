@@ -8,6 +8,8 @@ PROG = beadtrack$(BINEXT)
 
 all: $(PROG)
 
+#tiltali.$(O): tiltali.f90
+#	$(FC) -c $(NOOPFFLAGS) tiltali.f90
 $(PROG): $(BDOBJS)
 	$(FC) -o beadtrack $(BDOBJS) $(LDFFLAGS) $(LSMLMOD) $(LIMOD) \
 	 $(IMLIBS) $(FORTCLIBS) $(TILTALILIB) $(LAPACKLIBS)
