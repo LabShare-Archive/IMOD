@@ -17,11 +17,9 @@ COMPATOBJ = compat/ransub.$(O) compat/ourrnd.$(O) compat/degtrig.$(O) \
   $(DIRDATEOBJ)
 
 LIBS = $(LIBHVEM) $(LIBMRCIM) $(LIBNMCAR) $(LIBTRACK) $(LINUXFLIBS) \
- $(LIBWMOD) $(LIBSMLMOD)
+ $(LIBWMOD) $(LIBSMLMOD) $(LIBBLAS) $(LIBLAPACK)
 
-STATICS = $(LIBBLAS) $(LIBLAPACK)
-
-all : $(LIBS) $(STATICS)
+all : $(LIBS)
 
 $(LIBHVEM): $(LIBMRCIM) piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f statsubs/*.f90
 	(cd piecesubs ; $(MAKE) all)
