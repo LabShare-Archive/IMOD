@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/20/12: IMOD_4-6-7
 7/19/12: IMOD_4-6-6
 7/19/12: Added option to mtk to switch to making graphs of distance to nearest
 neighbor instead of distance to all neighbors.
