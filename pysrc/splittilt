@@ -202,6 +202,12 @@ if slices:
    firstslice = slices[0] // binval
    numslices = slices[1] // binval + 1 - firstslice
 
+# Get the width before possibly changing binval
+if widthArr:
+   widthnum = widthArr[0] // binval
+else:
+   widthnum = fullimage[0] // binval
+
 # If reprojecting from tomo, need to get real number of slices and starting one
 slicedel = 'SLICE'
 if reproj and rectoproj:
@@ -252,13 +258,8 @@ numslabs = max(1, (numslices + slabsize // 2) // slabsize)
 slabsize = numslices // numslabs
 remainder = numslices % numslabs
 
-# Now that slab size is known, get binned width and # of bound lines
+# Now that slab size is known, get # of bound lines
 #
-if widthArr:
-   widthnum = widthArr[0] // binval
-else:
-   widthnum = fullimage[0] // binval
-
 boundlines = (boundpixels + widthnum - 1) // widthnum
 if reproj:
    boundlines = min(boundlines, slabsize // 2 + 1)
