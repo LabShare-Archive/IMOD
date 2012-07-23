@@ -341,6 +341,14 @@ if (sys.platform.find('cygwin') >= 0 or sys.platform.find('win32') >= 0) and not
 
 # Type-specific additions to lists here:
 #
+# TOMOGRAM
+if typeInd == 0:
+   pwinfo = glob.glob('*bound.info')
+   singleFiles += pwinfo
+   afinfo = glob.glob('autofidseed*.info')
+   singleFiles += afinfo
+   
+#
 # JOIN
 if typeInd == 1:
    infofile = setname + '.info'
