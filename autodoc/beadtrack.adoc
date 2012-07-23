@@ -31,6 +31,16 @@ manpage = Name of piece list file if image is montaged or out of sequence.
 A montaged file should not be be used unless the overlaps between pieces
 are nearly exact.
 
+[Field = PrealignTransformFile]
+short = prexf
+type = FN
+usage = File with transforms used to align images being tracked
+tooltip = 
+manpage = File with transformations applied to align the images.  The program
+will assume that the transformations consist only of shifts and will use this
+information to avoid searching for a bead on a filled area that has no image
+data.
+
 [Field = ImagesAreBinned]
 short = 
 type = I
