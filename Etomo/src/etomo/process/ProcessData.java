@@ -14,6 +14,7 @@ import etomo.storage.Network;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstProcessSeries;
 import etomo.type.ConstStringProperty;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
@@ -29,11 +30,15 @@ import etomo.type.Time;
  * Process data to allow identification of processes that Etomo is no longer
  * managing because it exited after they started.  Allows Etomo to prevent two
  * processes from running on an axis, even when the running process is
- * unmanaged.  Saved in the data file.
+ * unmanaged.  Saved in the data file.</p>
  * 
- * Future plans:  Use this data to reconnect the monitor to the process.  It
+ * <p>Future plans:  Use this data to reconnect the monitor to the process.  It
  * should be possible to reconnect any monitor that relies on a file rather
  * then standard out.</p>
+ * 
+ * <p>Not compatible with ProcessSeries.processList.  If a reconnectable process has a
+ * process series with non-droppable processes that where saved to the process list, then
+ * add functionality to handle processList.</p>
  * 
  * <p>Copyright: Copyright 2006</p>
  *
@@ -151,8 +156,12 @@ public final class ProcessData implements Storable {
     return dialogType;
   }
 
-  public void setLastProcess(String input) {
-    lastProcess.set(input);
+  public void setLastProcess(final ConstProcessSeries processSeries,
+      final boolean resumable) {
+    if (processSeries.willProcessListBeDropped() && resumable) {
+      System.err.println("WARNING:  Not compatible with ProcessSeries.processList.");
+    }
+    lastProcess.set(processSeries.getLastProcess());
   }
 
   public String getLastProcess() {

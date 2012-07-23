@@ -6,7 +6,10 @@ import java.util.ArrayList;
 import etomo.BaseManager;
 import etomo.JoinManager;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinState;
+import etomo.type.EnumeratedType;
+import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.util.DatasetFiles;
@@ -151,5 +154,50 @@ public final class XftoxgParam implements Command {
 
   public File getCommandInputFile() {
     return null;
+  }
+
+  public static final class HybridFits implements EnumeratedType {
+    public static final HybridFits TRANSLATIONS = new HybridFits(2);
+    public static final HybridFits TRANSLATIONS_ROTATIONS = new HybridFits(3);
+
+    private final EtomoNumber value = new EtomoNumber();
+
+    private HybridFits(final int value) {
+      this.value.set(value);
+    }
+
+    public ConstEtomoNumber getValue() {
+      return value;
+    }
+
+    public boolean isDefault() {
+      return false;
+    }
+
+    public String toString() {
+      return value.toString();
+    }
+  }
+
+  public static final class NumberToFit implements EnumeratedType {
+    public static final NumberToFit GLOBAL_ALIGNMENT = new NumberToFit(0);
+    
+    private final EtomoNumber value = new EtomoNumber();
+
+    private NumberToFit(final int value) {
+      this.value.set(value);
+    }
+
+    public ConstEtomoNumber getValue() {
+      return value;
+    }
+
+    public boolean isDefault() {
+      return false;
+    }
+
+    public String toString() {
+      return value.toString();
+    }
   }
 }
