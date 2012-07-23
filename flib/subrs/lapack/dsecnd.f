@@ -21,7 +21,10 @@
 *     ..
 *     .. External Functions ..
       REAL               ETIME
-      EXTERNAL           ETIME
+*
+* (JMH 7/20/12)
+* This was failing usig gfortran 4.4 until the folliwing line was commented out
+*      EXTERNAL           ETIME 
 *     ..
 *     .. Executable Statements ..
 *

@@ -48,7 +48,7 @@ install: $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *~ *.exe finddistort idfprocess findgradient \
+	-\rm -f *.$(OBJEXT) *~ *.exe finddistort idfprocess findgradient \
 	makegradtable xf2rotmagstr
 
 findgradient.$(O):	findgradient.inc

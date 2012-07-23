@@ -56,10 +56,8 @@ c
 	real*4 f(2,3),g(2,3)
 	parameter (idim=400)
 	include 'statsize.inc'
-	real*4 xr(msiz,idim), sx(msiz), xm(msiz), sd(msiz)
-     1	    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
-     2	    , b(msiz), b1(msiz)
-	character*80 modelfile,newmodel
+	real*4 xr(msiz,idim), xm(msiz), sd(msiz), ssd(msiz,msiz), b1(msiz)
+	character*320 modelfile,newmodel
 	logical exist,readw_or_imod
 c
 c   get parameters
@@ -129,8 +127,8 @@ c
 	    do i=1,npnts
 	      xr(3,i)=xr(3+isol,i)
 	    enddo
-	    call multr(xr,3,npnts,sx,ss,ssd,d,r,xm,sd,b,b1,const,
-     &		rsq ,fra)
+c	    call multr(xr,3,npnts,sx,ss,ssd,d,r,xm,sd,b,b1,const, rsq ,fra)
+            call multRegress(xr,msiz,1,2,npnts,1,0,b1,msiz,const,xm,sd,ssd)
 c	      
 c	      save results in xform for izsec
 c	      

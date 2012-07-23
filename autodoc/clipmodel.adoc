@@ -1,0 +1,112 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input model file to be clipped
+tooltip = 
+manpage = 
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output file, either clipped model or list of points
+tooltip = 
+manpage = Name of output file, which can be either an IMOD model file or text file
+with a list of point coordinates.
+
+[Field = PointOutput]
+short = point
+type = I
+usage = 1 to make a point instead of a model output file (-1 for corner points)
+tooltip = 
+manpage = Enter 1 to make a point output file instead of a model output file.
+Nearest integer coordinates will be output; use Model2point(1) to get more
+flexible point list output.  Enter -1 to get a point list with corner points
+added each time a new Z value is encountered; in this case -xminmax and
+-yminmax must be entered.
+
+[Field = XMinAndMax]
+short = xminmax
+type = FPM
+usage = Starting and ending X coordinates to include or exclude, numbered from 0
+tooltip = 
+manpage = Starting and ending X index coordinates to include or exclude,
+numbered from 0.  Enter a / to take the default, which is to have no selection
+based on X coordinate.
+
+[Field = YMinAndMax]
+short = yminmax
+type = FPM
+usage = Starting and ending Y coordinates to include or exclude, numbered from 0
+tooltip = 
+manpage = Starting and ending Y index coordinates to include or exclude,
+numbered from 0.  Enter a / to take the default, which is to have no selection
+based on Y coordinate.
+
+[Field = ZMinAndMax]
+short = zminmax
+type = FPM
+usage = Starting and ending Z coordinates to include or exclude, numbered from 0
+tooltip = 
+manpage = Starting and ending Z coordinates to include or exclude,
+numbered from 0.  Enter a / to take the default, which is to have no selection
+based on Z coordinate.  Starting and ending will be adjusted down and
+up by 0.005, respectively, so whole numbers can be entered; e.g., 16,18 will clip out
+sections 16 through 18.
+
+[Field = ExcludeOrInclude]
+short = exclude
+type = IA
+usage = 1 to exclude or 0 to include points within coordinate block
+tooltip = 
+manpage = 1 to exclude or 0 to include points within specified coordinate
+block.  Multiple values can be entered for a sequence of operations.  The
+number of -xminmax, -yminmax, and -zminmax entries must each be equal to the
+number of values entered here, unless an option is not entered at all for that
+dimension.  If any coordinate limits are entered, the default for this entry
+is a single 0; in other words, you can omit this entry if you are just
+clipping out coordinates inside one coordinate block.
+
+[Field = LongestContourSegment]
+short = longest
+type = B
+usage = Retain just longest segment instead of all contour segments inside volume
+tooltip = 
+manpage = Retain only the longest segment of a contour that is within the
+volume being included, instead of all segments.
+
+[Field = ObjectList]
+short = objects
+type = LI
+usage = List of model objects to remove or clip endpoints from
+tooltip = 
+manpage = List of model objects to remove or clip endpoints from.  This option
+cannot be entered together with any of the options for clipping by
+coordinates.  If -ends is entered, points will be removed from endpoints of
+contours; otherwise whole objects will be removed.
+
+[Field = ClipFromStartAndEnd]
+short = ends
+type = IP
+usage = Number of points to clip from start and end of contours
+tooltip = 
+manpage = Number of points to clip from start and end of contours for the
+objects specified by -objects; the latter must be entered.
+
+[Field = ParameterFile]
+short = param
+long = ParameterFile
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = 

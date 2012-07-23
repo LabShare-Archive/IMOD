@@ -1,8 +1,7 @@
 #  Makefile for flib/model
 #
 #  $Id$
-#  Log at end
-#
+
 
 include ../configure
 
@@ -170,4 +169,4 @@ install: $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *~ *.exe $(PROGS)
+	-\rm -f *.$(OBJEXT) *~ *.exe $(PROGS)

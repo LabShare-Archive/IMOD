@@ -74,6 +74,9 @@ copyrighted by Sakov and CSIRO, and covered by the license in nn.txt.  The
 library also uses code from Ken Clarkson's 'hull' program, which is
 copyrighted by AT&T and covered by the license in hull.txt.
 
+Routines for solving 3x3 eigenvectors are copyrighted by Joachim Kopp and
+covered by the LGPL license.
+
 IMOD uses TIFF libraries which are Copyright (c) 1988-1997 Sam Leffler
 and Copyright (c) 1991-1997 Silicon Graphics, Inc. (see TIFF.txt).
 
