@@ -168,25 +168,39 @@ end subroutine nextPos
 
 
 
-! find_PIECE takes a list of nPclist piece coordinates in
+! findPIECE takes a list of nPclist piece coordinates in
 ! I[XYZ]PCLIST, the piece dimensions nx and NY, and index coordinates
 ! in the montaged image IND[XYZ], and finds the piece that those
 ! coordinates are in (IPCZ) and the coordinates IPCX, IPCY of the point
 ! in that piece
 !
-subroutine find_piece(ixPclist, iyPclist, izPclist, nPclist, nx, &
-    ny, nxBox, nyBox, xnext, ynext, izNext, ix0, ix1, iy0, iy1, ipcz)
+subroutine findPiece(ixPclist, iyPclist, izPclist, nPclist, nx, ny, nxBox, nyBox, &
+    xnext, ynext, izNext, ix0, ix1, iy0, iy1, ipcz, ifXfs, prexf, needTaper)
   implicit none
   integer*4 ixPclist(*), iyPclist(*), izPclist(*)
-  integer*4 nPclist, nx, ny, nxBox, nyBox,izNext, ix0, ix1, iy0, iy1, ipcz
-  real*4 xnext, ynext
-  integer*4 indx0, indx1, indy0, indy1, ipc
+  integer*4 nPclist, nx, ny, nxBox, nyBox,izNext, ix0, ix1, iy0, iy1, ipcz, ifXfs
+  real*4 xnext, ynext, prexf(2, 3, *), critNonBlank
+  logical*4 needTaper
+  integer*4 indx0, indx1, indy0, indy1, ipc, indGood0, indGood1, nxGood, nyGood
   !
+  critNonBlank = 0.75
   indx0 = nint(xnext) - nxBox / 2
   indx1 = indx0 + nxBox - 1
   indy0 = nint(ynext) - nyBox / 2
   indy1 = indy0 + nyBox - 1
   ipcz = -1
+  needTaper = .false.
+  if (ifXfs .ne. 0) then
+    indGood0 = max(indx0, 0, nint(prexf(1, 3, izNext + 1)))
+    indGood1 = min(indx1, nx - 1 , nx + nint(prexf(1, 3, izNext + 1)) - 1)
+    nxGood = max(0, indGood1 + 1 - indGood0)
+    indGood0 = max(indy0, 0, nint(prexf(2, 3, izNext + 1)))
+    indGood1 = min(indy1, ny - 1 , ny + nint(prexf(2, 3, izNext + 1)) - 1)
+    nyGood = max(0, indGood1 + 1 - indGood0)
+    if (nxGood * nyGood < critNonBlank * nxBox * nyBox) return
+    needTaper = nxGood < nxBox .or. nyGood < nyBox
+  endif
+  !
   do ipc = 1, nPclist
     if (izNext == izPclist(ipc) .and. &
         indx0 >= ixPclist(ipc) .and. indx1 < ixPclist(ipc) + nx .and. &
@@ -200,7 +214,7 @@ subroutine find_piece(ixPclist, iyPclist, izPclist, nPclist, nx, &
     endif
   enddo
   return
-end subroutine find_piece
+end subroutine findPiece
 
 
 ! Does a simple image shift with quadratic interpolation

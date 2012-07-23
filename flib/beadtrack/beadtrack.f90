@@ -28,14 +28,14 @@ program beadtrack
   real*4, allocatable :: boxes(:,:,:), curSum(:), boxTmp(:), corrSum(:,:), sobelSum(:,:)
   real*4, allocatable :: array(:), BRRAY(:), sarray(:), sbrray(:), sobelEdgeSD(:,:)
   real*4, allocatable :: refSobel(:), tmpSobel(:), boxSobel(:), sobelWsums(:,:)
-  real*4, allocatable :: sobelXpeaks(:,:), sobelYpeaks(:,:), sobelPeaks(:,:)
+  real*4, allocatable :: sobelXpeaks(:,:), sobelYpeaks(:,:), sobelPeaks(:,:), prexf(:,:,:)
   ! maxAllReal
   real*4, allocatable :: seqDist(:), xxtmp(:), yytmp(:), xvtmp(:), yvtmp(:)
   integer*4, allocatable :: indgap(:), numResSaved(:)
   logical*1, allocatable :: inAnArea(:)
   !
   integer*4, allocatable :: ixPclist(:), iyPclist(:), izPclist(:), listz(:), inCore(:,:)
-  CHARACTER*320 filin, outFile, pieceFile, modelFile, elongFile, XYZfile
+  CHARACTER*320 filin, outFile, pieceFile, modelFile, elongFile, XYZfile, prexfFile
   ! maxView except wsumSave
   integer*4, allocatable :: izExclude(:), ipClose(:), izClose(:)
   integer*4, allocatable :: ivList(:), ivSnapList(:)
@@ -100,14 +100,14 @@ program beadtrack
   real*4 peak, dist, tmin, tmax, tmean, cvbxcen, cvbycen, area, density, elongSigma
   integer*4 numVert, minInArea, minBeadOverlap, ifLocalArea, localTarget
   integer*4 nvLocalIn, localViewPass, nSnapList, iobjSave
-  logical*4 keepGoing, saveAllPoints, ignoreObjs, done, noSurfaces
+  logical*4 keepGoing, saveAllPoints, ignoreObjs, done, needTaper
   integer*4 numNew, nOverlap, iseqPass, ipassSave, iAreaSave, maxObjOrig
   real*4 outlieElimMin, outlieCrit, outlieCritAbs, curResMin, tiltMax, minPeakRatio
   real*4 sigma1, sigma2, radius2, radius1, deltaCtf, ranFrac, diameter, sobelSigma
   integer*4 maxDrop, numDrop, ndatFit, numAreaTot, maxInArea, limInArea, interpType
   integer*4 minViewDo, maxViewDo, numViewDo, numBound, iseed, limcxBound, nFarther
-  integer*4 ivsOnAlign, ifAlignDone, imageBinned, maxSobelSum, maxAnySum
-  integer*4 nxSobel, nySobel, nxsPad, nysPad, ninSobel, kernelDim
+  integer*4 ivsOnAlign, ifAlignDone, imageBinned, maxSobelSum, maxAnySum, nFillTaper
+  integer*4 nxSobel, nySobel, nxsPad, nysPad, ninSobel, kernelDim, ifReadXfs
   real*4 xOffSobel, yOffSobel, scaleFacSobel, scaleByInterp, targetSobel, edgeSD
   real*4 sdsum, sdsumsq, sdmin, sdmax, sdavg, sdmed, sdmean, edgeSDsd, elongMean, elongMed
   character*320 concat
@@ -216,7 +216,6 @@ program beadtrack
   msizeXR = 19
   taperFrac = 0.2
   edgeMedian = .false.
-  noSurfaces = .false.
   getEdgeSD = .false.
   !
   !
@@ -247,7 +246,7 @@ program beadtrack
   !
   limPcList = nz + 10
   allocate(ixPclist(limPcList), iyPclist(limPcList), izPclist(limPcList),  &
-      listz(limPcList), stat = ierr)
+      listz(limPcList), prexf(2,3,limPclist), stat = ierr)
   call memoryError(ierr, 'PIECE LIST ARRAYS')
 
   call read_piece_list2(pieceFile, ixPclist, iyPclist, izPclist, npclist, limPcList)
@@ -456,6 +455,18 @@ program beadtrack
     ierr = PipGetLogical('MedianForCentroid', edgeMedian)
     if (sobelSigma > 1.49) interpType = 1
     ierr = PipGetInteger('InterpolationType', interpType)
+
+    ifReadXfs = 1 - PipGetString('PrealignTransformFile', prexfFile)
+    if (ifReadXfs .ne. 0) then
+      call dopen(3, prexfFile, 'ro', 'f')
+      call xfrdall2(3, prexf, iv, limPcList, ierr)
+      if (ierr .eq. 2) call exitError('READING TRANSFORM FILE')
+      if (iv .lt. nz) call exitError('NOT ENOUGH TRANSFORMS IN PREALIGN TRANSFORM FILE')
+      prexf(1:2,3,1:nz) = prexf(1:2,3,1:nz) / imageBinned
+      close(3)
+      nFillTaper = max(4, nint(0.1 * (nxBox * nyBox) / 2.))
+    endif
+
     if (PipGetString('SnapshotViews', listString) == 0) call parseList2 &
         (listString, ivSnapList, nSnapList, maxView)
     ierr = PipGetTwoIntegers('SaveAllPointsAreaRound', iAreaSave, ipassSave)
@@ -1410,8 +1421,8 @@ CONTAINS
           xbox = p_coord(1, ipt)
           ybox = p_coord(2, ipt)
           izBox = nint(p_coord(3, ipt))
-          call find_piece(ixPclist, iyPclist, izPclist, npclist, nx, ny, nxBox, nyBox, &
-              xbox, ybox, izBox, ix0, ix1, iy0, iy1, ipcz)
+          call findPiece(ixPclist, iyPclist, izPclist, npclist, nx, ny, nxBox, nyBox, &
+              xbox, ybox, izBox, ix0, ix1, iy0, iy1, ipcz, ifReadXfs, prexf, needTaper)
           if (ipcz >= 0) then
             if (abs(izv - iview) <= maxgap) nClose = nClose + 1
             nFarther = nFarther + 1
@@ -1493,10 +1504,10 @@ CONTAINS
               xbox = p_coord(1, ipt)
               ybox = p_coord(2, ipt)
               izBox = nint(p_coord(3, ipt))
-              call find_piece(ixPclist, iyPclist, izPclist, npclist, nx, ny, nxBox, &
-                  nyBox, xbox, ybox, izBox, ix0, ix1, iy0, iy1, ipcz)
-              call imposn(1, ipcz, 0)
-              call irdpas(1, boxTmp, nxBox, nyBox, ix0, ix1, iy0, iy1,*299)
+              call findPiece(ixPclist, iyPclist, izPclist, npclist, nx, ny, nxBox, &
+                   nyBox, xbox, ybox, izBox, ix0, ix1, iy0, iy1, ipcz, ifReadXfs, prexf, &
+                   needTaper)
+              call loadBoxAndTaper()
               !
               ! do subpixel shift and calculate CG and wsum value
               ! if it is not already saved
@@ -1538,7 +1549,6 @@ CONTAINS
       ipNearSave(iobjDo) = ipNearest(iobjDo)
     enddo
     return
-299 call errorExit('ERROR READING IMAGE FILE', 0)
   end subroutine countAndPreparePointsToDo
 
 
@@ -1701,8 +1711,8 @@ CONTAINS
           endif
         endif
         !
-        call find_piece(ixPclist, iyPclist, izPclist, npclist, nx, ny, nxBox, nyBox, &
-            xnext, ynext, iznext, ix0, ix1, iy0, iy1, ipcz)
+        call findPiece(ixPclist, iyPclist, izPclist, npclist, nx, ny, nxBox, nyBox, &
+            xnext, ynext, iznext, ix0, ix1, iy0, iy1, ipcz, ifReadXfs, prexf, needTaper)
         if (ipcz >= 0) then
           call lookForOneBead()
         endif
@@ -1718,8 +1728,8 @@ CONTAINS
     !
     ! get image area
     !
-    call imposn(1, ipcz, 0)
-    call irdpas(1, boxTmp, nxBox, nyBox, ix0, ix1, iy0, iy1,*199)
+    call loadBoxAndTaper()
+
     if (ipass == 1) then
       !
       ! pad image into array on first pass, padd correlation sum into brray
@@ -1931,8 +1941,20 @@ CONTAINS
       endif
     endif
     return
-199 call errorExit('ERROR READING IMAGE FILE', 0)
   end subroutine lookForOneBead
+
+  
+  subroutine loadBoxAndTaper()
+    integer*4 taperAtFill
+    call imposn(1, ipcz, 0)
+    call irdpas(1, boxTmp, nxBox, nyBox, ix0, ix1, iy0, iy1,*299)
+    if (needTaper) then
+      if (taperAtFill(boxTmp, nxBox, nyBox, nFillTaper, 1) .ne. 0) &
+          call exitError('GETTING MEMORY FOR TAPERING FROM FILL IN BOX)')
+    endif
+    return
+299 call errorExit('READING IMAGE FILE', 0)
+  end subroutine loadBoxAndTaper
 
 
   ! Find the sobel peak nearest to the current position (xpeak, ypeak) that is
