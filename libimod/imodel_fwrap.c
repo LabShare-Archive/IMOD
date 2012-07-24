@@ -495,8 +495,9 @@ int getimodobjrange(int *objStart, int *objEnd, int ibase[], int npt[],
     return FWRAP_ERROR_MEMORY;
   for (i = 0; i < ninList; i++)
     objList[i] = *objStart + i;
-  return (getimodobjlist(objList, &ninList, ibase, npt, coord, color, npoint, 
-                         nobject));
+  i = getimodobjlist(objList, &ninList, ibase, npt, coord, color, npoint, nobject);
+  free(objList);
+  return i;
 }
 
 /*
@@ -1220,10 +1221,14 @@ int putimod(int ibase[], int npt[], float coord[][3], int cindex[],
    *  Remove old contours that were not replaced
    */     
   for (ob = 0; ob < Fimod->objsize; ob++) {
-    if (imodContoursDeleteToEnd(&(Fimod->obj[ob]), nsaved[ob]))
+    if (imodContoursDeleteToEnd(&(Fimod->obj[ob]), nsaved[ob])) {
+      free(objlookup);
+      free(nsaved);
       return FWRAP_ERROR_MEMORY;
+    }
   }   
-
+  free(objlookup);
+  free(nsaved);
   return FWRAP_NOERROR;
 }
 
