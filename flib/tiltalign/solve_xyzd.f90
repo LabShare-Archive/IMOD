@@ -16,35 +16,17 @@
 !
 ! $Id$
 !
-
+! sprod should be allocated to at least (3 * numRealPt - 1) * (3 * numRealPt - 2) / 2
+!
 subroutine solveXyzd(xx, yy, isecView, irealStart, nview, numRealPt, tilt, rot, gmag, &
-    comp, xyz, dxy, rotInc, work, maxWork, error, ierr)
-  implicit none
-  real*4 xx(*), yy(*), tilt(*), rot(*), gmag(*), comp(*) , xyz(3,*), dxy(2,*), work(*) 
-  real*4 rotInc
-  integer*4 isecView(*), irealStart(*), nview, numRealPt, ierr, maxWork, nr
-  real*8 error
-  !
-  ! Size for real*4/int*4 array; doubles need double that
-  nr = 3 * numRealPt
-  if (nr**2 + 12 * nr > maxWork) call errorExit( &
-      'TEMPORARY ARRAY NOT LARGE ENOUGH FOR XYZ INITIALIZATION ROUTINE')
-  call solveXyzdWithArrays(xx, yy, isecView, irealStart, nview, numRealPt, tilt, rot, &
-      gmag, comp, xyz, dxy, rotInc, work, work(2 * nr), work(4 * nr), work(6 * nr), &
-      work(8 * nr), work(10 * nr), work(11 * nr), work(12 * nr), error, ierr)
-  return
-end subroutine solveXyzd
-
-subroutine solveXyzdWithArrays(xx, yy, isecView, irealStart, nview, numRealPt, tilt, &
-    rot, gmag, comp, xyz, dxy, rotInc, sx, xml, sdl, bl, baseRow, valRow, indOnView, &
-    sprod, error, ierr)
+    comp, xyz, dxy, rotInc, sprod, error, ierr)
   implicit none
   real*4 xx(*), yy(*), tilt(*), rot(*), gmag(*), comp(*) , xyz(3,*), dxy(2,*), rotInc
   integer*4 isecView(*), irealStart(*), nview, numRealPt, ierr
   real*8 error
-  real*4 valRow(*), baseRow(3*numRealPt, 2)
-  real*8 sprod(*), sx(*), xml(*), sdl(*), bl(*)
-  integer*4 indOnView(*), indqk(4), j
+  real*4 valRow(3*numRealPt), baseRow(3*numRealPt, 2)
+  real*8 sprod(*), sx(3*numRealPt), xml(3*numRealPt), sdl(3*numRealPt), bl(3*numRealPt)
+  integer*4 indOnView(3*numRealPt), indqk(4), j
   logical bigBase(2), bigRow
   real*4 ad(2), be(2), cf(2), fac, xybar(2), xyzcen(3)
   integer*4 numCols, numRows, iv, jpt, i, ixy, icol, ipt, numOnView
@@ -228,7 +210,7 @@ CONTAINS
     enddo
     xybar = xybar  / numOnView
   end subroutine geometricCoeffsAndIndices
-end subroutine solveXyzdWithArrays
+end subroutine solveXyzd
 
 ! Accumulate sums and sums of cross - products from a row of data
 !

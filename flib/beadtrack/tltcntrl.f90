@@ -20,5 +20,5 @@ module tltcntrl
   ! Allocated to maxAllReal, and (3, maxAllReal)
   integer*4, allocatable :: iobjSeq(:)
   real*4, allocatable :: xyzSave(:,:)
-  real*4, allocatable :: h(:)
+  real*8, allocatable :: h(:)
 end module tltcntrl

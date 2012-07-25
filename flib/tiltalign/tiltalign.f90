@@ -21,6 +21,7 @@ program tiltalign
   integer*4, allocatable :: ninReal(:), igroup(:)
   integer*4, allocatable :: imodObj(:), imodCont(:)
   real*4, allocatable :: var(:), varErr(:), grad(:), h(:)
+  real*8, allocatable :: sprod(:)
   character*8, allocatable :: varName(:)
   double precision error, errorScan(-20:20)
   real*4, allocatable :: tiltOrig(:), viewRes(:), xyzerr(:,:)
@@ -301,14 +302,12 @@ program tiltalign
     yy(i) = yy(i) / scaleXY
   enddo
   !
-  ! Get the h array big enough for the solution and for temporary arrays in solveXyzd
-  maxvar = nvarSearch + 3 * nrealPt
-  maxh = max((maxvar + 3) * maxvar, 9 * maxReal**2 + 36 * maxReal)
-  allocate(h(maxh), stat = ierr)
-  call memoryError(ierr, 'ARRAY FOR H MATRIX')
-  !
   ! call new solveXyzd to get initial values of x, y, z
-  !
+  ! Allocate a double array because of potential alignment issues using real array as
+  ! double in a subroutine, deallocate when done
+  allocate(sprod((3 * maxReal)**2 / 2), stat=ierr)
+  call memoryError(ierr, 'ARRAY FOR SOLVEXYZD')
+
   call remap_params(var)
   wallStart = wallTime()
   if (nrealPt > 1) then
@@ -326,7 +325,7 @@ program tiltalign
         endif
         if (dirDone(iv) .or. index == numInitSteps) cycle
         call solveXyzd(xx, yy, isecView, irealStr, nview, nrealPt, tilt, rot, &
-            gmag, comp, xyz, dxy, dtor * rotIncForInit * index, h, maxh, error, ierr)
+            gmag, comp, xyz, dxy, dtor * rotIncForInit * index, sprod, error, ierr)
         if (itry == 0) then
           if (ierr .ne. 0) &
               call errorExit('SOLVING FOR INITIAL VALUES OF X/Y/Z COORDINATES', 0)
@@ -354,9 +353,16 @@ program tiltalign
   !
   ! Redo initialization at 0 increment
   call solveXyzd(xx, yy, isecView, irealStr, nview, nrealPt, tilt, rot, &
-      gmag, comp, xyz, dxy, 0., h, maxh, error, ierr)
+      gmag, comp, xyz, dxy, 0., sprod, error, ierr)
   ! write(*,'(a,f8.2)') 'Initialization time', 1000 * (wallTime() - wallStart)
   ! write(*, '(3(2f9.4,f8.4))') ((xyz(i, iv), i = 1, 3), iv = 1, nrealPt)
+  deallocate(sprod, stat=ierr)
+  !
+  ! Get the h array big enough for the solution
+  maxvar = nvarSearch + 3 * nrealPt
+  maxh = (maxvar + 3) * maxvar
+  allocate(h(maxh), stat = ierr)
+  call memoryError(ierr, 'ARRAY FOR H MATRIX')
   !
   call alignAndOutputResults()
   !

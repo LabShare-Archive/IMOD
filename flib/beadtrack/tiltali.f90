@@ -79,14 +79,16 @@ subroutine tiltali(ifDidAlign, ifAlignDone, resMean, iview)
     ! check h allocation; if it is not enough, try  to make it enough for the
     ! full set of views
     maxVar = nvarSearch + 3 * nrealPt
-    iv = max((maxVar + 3) * maxVar, 9 * nrealPt**2 + 36 * nrealPt)
+    iv = max((maxVar + 3) * maxVar, (3 * nrealPt)**2)
     if (iv > maxH) then
       maxVar = (nviewAll + nview - 1) * nvarSearch / nview
       iv = max((maxVar + 3) * maxVar, iv)
       if (maxH > 0) deallocate(h)
       maxH = iv
       ! print *,'Allocated h to', maxH, ' based on', maxVar, maxVar + 3
-      allocate(h(maxH), stat = iv)
+      ! Here H is a double so it can be passed to solveXyzd as sprod but is allocated to 
+      ! give maxH real elements because metro uses reals
+      allocate(h(maxH / 2), stat = iv)
       call memoryError(iv, 'ARRAY FOR H MATRIX')
     endif
     !
@@ -97,7 +99,7 @@ subroutine tiltali(ifDidAlign, ifAlignDone, resMean, iview)
       call remap_params(var)
       !
       call solveXyzd(xx, yy, isecView, irealStr, nview, nrealPt, tilt, rot, gmag, comp, &
-          xyz, dxy, 0., h, maxH, error, ier)
+          xyz, dxy, 0., h, error, ier)
       if (ier .ne. 0) write(*,'(/,a,/)') 'WARNING: failed to initialize X/Y/Z'// &
           ' coordinates for tiltalign solution'
       initXyzDone = 1
