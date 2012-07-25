@@ -21,7 +21,7 @@ subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, numVarSe
   real*4 btOrig, btMax, fScan(LIMSCAN), xx(LIMSCAN/2), xxsq(LIMSCAN/2)
   real*4 btMin, aa, bb, cc, xmin, scanInt
   integer*4 idir, iter, numScan, nfit, i, iMin, istr, iend, j, kount
-  real*4 fnew, fmin, fAbove, btAbove, fBelow, btBelow, binStep
+  real*4 fnew, fmin, fAbove, btAbove, fBelow, btBelow
   real*4 dtor/0.0174532/
   logical*4 scanning
 
@@ -116,7 +116,6 @@ subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, numVarSe
     else
       beamTilt = (btMin + btBelow) / 2.
     endif
-    binStep = binStep / 2.
     !
     do i = 1, numVarSearch
       var(i) = varerr(i)

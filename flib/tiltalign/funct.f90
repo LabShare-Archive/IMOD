@@ -128,7 +128,7 @@ subroutine funct(nvarSearch, var, ferror, grad)
       xbar(iv) = xbar(iv) / nptInView(iv)
       ybar(iv) = ybar(iv) / nptInView(iv)
     enddo
-     firstFunct = .false.
+    firstFunct = .false.
 !!$      call remap_params(var)
 !!$      do iv = 1, nview
 !!$      write(*,113) rot(iv), mapRot(iv), linRot(iv), frcRot(iv), &
@@ -340,7 +340,6 @@ subroutine funct(nvarSearch, var, ferror, grad)
       ffac = f(iv) / comp(iv)
       do iptInV = 1, nptInView(iv)
         ipt = indvProj(iptInV, iv)
-        jpt = indvReal(iptInV, iv)
         gradSum = gradSum +  cfac * resProd(3, ipt) + ffac * resProd(6, ipt)
       enddo
       grad(mapComp(iv)) = grad(mapComp(iv)) + frcComp(iv) * gradSum
@@ -444,7 +443,6 @@ subroutine funct(nvarSearch, var, ferror, grad)
   ! projection skew: do gradient
   !
   if (mapProjStretch > 0) then
-    grad(mapProjStretch) = 0.
     !
     dermat(1) = -sinPSkew + cosPSkew * sin2rot
     dermat(2) = -cosPSkew * cos2rot
@@ -463,7 +461,6 @@ subroutine funct(nvarSearch, var, ferror, grad)
   ! beamMat, so pass two unit matrices and derivative
   !
   if (mapBeamTilt > 0) then
-    grad(mapBeamTilt) = 0.
     dermat(1) = 0.
     call zero_matrix(umat, 9)
     umat(1) = 1.
