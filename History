@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/25/12: Fixed temporary use of real array as double in Tiltalign/Beadtrack.
+
 7/23/12: Fixed bug in Splittilt that made parallel writing fail in SIRT 
 reprojection with a binned aligned stack (in 4.5).
 
