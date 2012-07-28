@@ -188,7 +188,12 @@ int readWarpFile(char *filename, int *nx, int *ny, int *nz, int *binning,
   err = readLineOfValues(fp, line, MAX_LINE, values, 1, &numVals, MAX_VALS);
   if (err < 0) {
     fclose(fp);
-    return -2;
+    if (err != -2)
+      return -2;
+
+    /* An empty file gives -2 and this is a simple file */
+    *version = 0;
+    return -3;
   }
   if (numVals == 6)
     *version = 0;
