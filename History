@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/27/12: Fixed Midas giving an error message when reading an empty transform
+file (In 4.5).
+
 7/23/12: Fixed bug in Splittilt that made parallel writing fail in SIRT 
 reprojection with a binned aligned stack (in 4.5).
 
@@ -9,7 +12,7 @@ chunks correctly when vertical slices are being done with high X-axis tilt
 processors in this case (In 4.5).
 
 7/7/12: Fixed treatment of min/max values when reading an ascii model file
-with contour values.
+with contour values (In 4.5).
 
 6/9/12: In Tilt, increased the assumed limit on number of lines in a CUDA
 array to 65535, the limit on Fermi cards (In 4.5).
