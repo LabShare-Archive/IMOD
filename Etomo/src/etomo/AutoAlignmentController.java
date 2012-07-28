@@ -61,6 +61,7 @@ public final class AutoAlignmentController {
     XfalignParam xfalignParam = new XfalignParam(manager.getName(),
         manager.getPropertyUserDir(), manager.getAutoAlignmentMetaData(),
         XfalignParam.Mode.INITIAL, tomogramAverages);
+    display.getAutoAlignmentParameters(xfalignParam);
     try {
       manager.setThreadName(processManager.xfalign(xfalignParam, axisID, processSeries),
           axisID);
@@ -84,6 +85,7 @@ public final class AutoAlignmentController {
     XfalignParam xfalignParam = new XfalignParam(manager.getName(),
         manager.getPropertyUserDir(), manager.getAutoAlignmentMetaData(),
         XfalignParam.Mode.REFINE, tomogramAverages);
+    display.getAutoAlignmentParameters(xfalignParam);
     if (!copyMostRecentXfFile(description)) {
       return;
     }
@@ -127,7 +129,7 @@ public final class AutoAlignmentController {
       return;
     }
     MidasParam midasParam = new MidasParam(manager, axisID, Mode.SAMPLE);
-    manager.getParameters(midasParam);
+    display.getAutoAlignmentParameters(midasParam);
     if (!copyMostRecentXfFile(description)) {
       return;
     }
