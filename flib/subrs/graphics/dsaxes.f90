@@ -19,9 +19,9 @@ subroutine dsaxes(xMin, xMax, yMin, yMax, xScale, xAdd, yScale, yAdd, dx, xlo, d
   iyBot = 80
   call erase(-1)
   call axsub(xMin, xMax, dx, xlo, 'X', numXdiv, dxDiv)
-  call formatForAxis(dx, xlo, 10, xformat, nintNeededX, maxLenX)
+  call formatForAxis(dxDiv, xlo, numXdiv, xformat, nintNeededX, maxLenX)
   call axsub(yMin, yMax, dy, ylo, 'Y', numYdiv, dyDiv)
-  call formatForAxis(dy, ylo, 10, yformat, nintNeededY, maxLenY)
+  call formatForAxis(dyDiv, ylo, numYdiv, yformat, nintNeededY, maxLenY)
   leftX = 15 + max(70, maxLenY * 18)
   ixDelta = 920 / numXdiv
   ixRange = numXdiv * ixDelta
