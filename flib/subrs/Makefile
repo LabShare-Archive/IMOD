@@ -2,7 +2,6 @@ include ../configure
 
 O        = $(OBJEXT)
 LIBHVEM  = libhvem.$(DLLEXT)
-LIBIFFT  = libifft.$(DLLEXT)
 LIBMRCIM    = libmrcim.$(DLLEXT)
 LIBNMCAR = libdnmncar.$(NMCAREXT)
 LIBCOMPAT = libb3dcmpt.$(DLLEXT)
@@ -56,14 +55,7 @@ $(LIBMRCIM): imsubs/*.f imsubs/*.c imsubs2/*.f
 
 # libblockio eliminated version 3.15, 6/28/06
 
-$(LIBIFFT):	ifftsub/*.f
-	(cd ifftsub ; $(MAKE) all)
-	$(RM) $(LIBIFFT)
-	$(FAR) $(FARFLAGS)$(LIBIFFT) $(LIBIFFTDEF) ifftsub/*.$(O)
-	$(RANLIB) $(LIBIFFT)
-	$(CP) libifft.$(LIBEXT) $(LIBDIR)
-
-$(LIBNMCAR):	graphics/*.f graphics/*.c graphics/*.cpp
+$(LIBNMCAR):	graphics/*.f graphics/*.f90 graphics/*.c graphics/*.cpp
 	(cd graphics ; $(MAKE) all)
 	$(RM) $(LIBNMCAR)
 	$(MAKENMCAR)$(LIBNMCAR) graphics/*.$(O)
