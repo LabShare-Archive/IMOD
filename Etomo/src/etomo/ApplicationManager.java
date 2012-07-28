@@ -252,8 +252,6 @@ public final class ApplicationManager extends BaseManager implements
   private boolean reconnectRunB = false;
 
   ComScriptManager comScriptMgr = new ComScriptManager(this);
-  
-
 
   /**
    * Does initialization and loads the .edf file. Opens the setup dialog if
@@ -1500,7 +1498,7 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.startProgressBar("Running " + ExtracttiltsParam.COMMAND_NAME, axisID,
         ProcessName.EXTRACTTILTS);
   }
-  
+
   public void extractpieces(AxisID axisID, ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, final DialogType dialogType, final ViewType viewType) {
     if (processSeries == null) {
@@ -1518,8 +1516,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     String threadName;
     try {
-      threadName = processMgr.extractpieces(axisID, processResultDisplay,
-          processSeries);
+      threadName = processMgr.extractpieces(axisID, processResultDisplay, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -7552,6 +7549,10 @@ public final class ApplicationManager extends BaseManager implements
 
   void createMainPanel() {
     mainPanel = new MainTomogramPanel(this);
+  }
+
+  public ViewType getViewType() {
+    return metaData.getViewType();
   }
 
   /**
