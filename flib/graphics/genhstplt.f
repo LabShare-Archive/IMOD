@@ -18,13 +18,14 @@ c
       dimension ngxa(leng),avgx(leng),avgy(leng),nnav(leng),sdy(len)
       real*4 selmin(50),selmax(50)
       integer*4 icolsel(50),ifselexcl(50)
-      character*80 name
+      character*1024 name
       logical b3dxor
-      common /pltp/ifgpl,ifNoTerm
+      character*80 keys(8), xaxisLabel
+      common /pltp/ifgpl,ifNoTerm,ifConnect,numKeys, keys, xaxisLabel
 c       
-      iffil=0
+      iffil=-1
       iftypes=0
-      ncol=2
+      ncol=-1
       nskip=0
       iflogxin=0
       nx = 0
@@ -33,7 +34,7 @@ c
 5     continue
       if (ifNoTerm .eq. 0) then
         write(*,'(1x,a,$)')
-     &      '0 for Plax screen plots, 1 for terminal only, -1 for always screen: '
+     &      '0 for Plax screen plots, 1 for terminal only, -1 for always screen [-1]: '
         read(5,*)iffil
         if (iffil .lt. 0) ifNoTerm = 1
       endif
@@ -41,17 +42,17 @@ c
 c       
       call grfopn(iffil)
 c       
-      write(*,'(1x,a,$)')'0 if there are just data values, or 1 if'//
-     &    ' there are types in first column: '
+      write(*,'(1x,a,/,a,$)')'1 if there are types in first column, 0 if there are '//
+     &    'no types,',
+     &    ' -1 to make one column be X and make separate types for other columns [0]: '
       read(5,*)iftypes
 c       
-      write(*,'(1x,a,$)')'Number of columns of data values '//
-     &    '(or 0 to read as first line before data): '
+      write(*,'(1x,a,/,a,$)')'Number of columns of data values, 0 if # is on line '//
+     &    'before data,',' or -1 if there is one line per row of data [-1]: '
       read(5,*)ncol
 c       
       nskip = 0
-      write(*,'(1x,a,$)')
-     &    'Number of lines to skip at start of file: '
+      write(*,'(1x,a,$)') 'Number of lines to skip at start of file [0]: '
       read(5,*,err=10)nskip
 c       
 10    call flnam(name,1,'0')
@@ -61,13 +62,30 @@ c
       do i=1,nskip
         read(1,'(a)')name
       enddo
+      if (ncol < 0) then
+        read(1,'(a)')name
+        call frefor2(name, avgx, itype, nfields, leng)
+        ncol = 0
+        do i = 1, nfields
+          if (itype(i) > 0) ncol = i
+        enddo
+        if (ncol == 0) then
+          print *,'There are no numeric values at start of first line of data, try again'
+          go to 5
+        endif
+        rewind(1)
+        do i=1,nskip
+          read(1,'(a)')name
+        enddo
+        write(*,'(i5,a)')ncol,' columns of data'
+      endif
       if(ncol.eq.0) read(1,*)ncol
 c       
       nd=0
 12    i=nd+1
       jst=(i-1)*ncol+1
       jnd=i*ncol
-      if(iftypes.eq.0)then
+      if(iftypes <= 0)then
         read(1,*,end=18)(dmat(j),j=jst,jnd)
         itype(i)=1
       else
@@ -76,6 +94,9 @@ c
       nd=i
       go to 12
 18    write(*,'(i5,a)')nd,' lines of data'
+      if (iftypes < 0) 
+     &    call convertColsToTypes(dmat, dmat, ncol, nd, itype, nx, ifTypes)
+
 c       
 20    if(iftypes.ne.0)then
         write(*,'('' # of groups (neg. if one Type/group): '',$)')
@@ -116,7 +137,7 @@ c
       endif
       if(icol.le.0.or.icol.gt.ncol)go to 20
 c       
-      if (ifretain .eq. 0) then
+      if (ifretain == 0 .and. nx > 0) then
         iflogy=iflogx
         do i=1,nx
           yy(i)=xx(i)
@@ -161,7 +182,8 @@ c
 c       
 50    write(*,104)
 104   format(' Enter 1 for new column or 14 for new column to replace Y and retain X,',/
-     &    '       2 for plot of this column versus previous column,',/,
+     &    '       2 for plot of this column versus previous column or 17 with connectors,'
+     &    ,/,
      &    '       3 for X/Y plot of averages of groups of points',
      &    ' or 11 with column ratios',/,
      &    '       4 to define new groups/symbols,',
@@ -172,13 +194,32 @@ c
      &    '   10 for X/Y plot with error bars using S.D.''s,',/,
      &    '       12 to set columns to select on, 13 for X/Y plot dividing Y by a',
      &    ' column')
+      if (iftypes == 0 .and. ncol > 2) then
+        write(*, 105)
+105     format('       15 to make a separate type from each column,   16 for ordinal ',
+     &      'column')
+      else
+        write(*, 106)
+106     format('       16 for ordinal column')
+      endif
       read(5,*)iopt
       if(iopt.eq.-123)go to 99
+      if (iopt .eq. -8) then
+        call plax_wait_for_close()
+        go to 99
+      endif
+      if (iopt == -2) go to 1155
+      if (iopt == -3) then
+        call reverseGraphContrast(1)
+        go to 50
+      endif
       if(iopt.eq.209)iopt=7
-      if(iopt.le.0.or.iopt.gt.14)go to 50
-      go to(30,60,70,20,5,90,90,99,110,70,70,130,1130,1140)iopt
+      if(iopt.le.0.or.iopt.gt.17)go to 50
+      go to(30,60,70,20,5,90,90,99,110,70,70,130,1130,1140,1150,1160,60)iopt
 c       
-60    call gnplt(yy,xx,ngx,nx,nsymb,ngrps,iflogy,iflogx)
+60    ifConnect = 0
+      if (iopt .eq. 17) ifConnect = 1
+      call gnplt(yy,xx,ngx,nx,nsymb,ngrps,iflogy,iflogx)
       go to 50
 1140  ifRetain = 1
       go to 31
@@ -339,7 +380,7 @@ c
           if(ingroup.gt.0)then
             nxt=nxt+1
             zz(nxt) = 0.
-            if (abs(dmat((k-1)*ncol+icoldiv)) .gt. 1.e-10 * abs(xx(nxt))) then
+            (abs(dmat((k-1)*ncol+icoldiv)) .gt. 1.e-10 * abs(xx(nxt))) then
               zz(nxt)=xx(nxt) / dmat((k-1)*ncol+icoldiv)
               if (qlimlo .ne. 0. .or. qlimhi .ne. 0)
      &            zz(nxt) = max(qlimlo,min(qlimhi,zz(nxt)))
@@ -350,6 +391,32 @@ c
       call gnplt(yy,zz,ngx,nx,nsymb,ngrps,iflogy,iflogx)
       go to 50
 c       
+1150  if (iftypes > 0 .or. ncol < 2) go to 50
+      call convertColsToTypes(dmat, dmat, ncol, nd, itype, nx, ifTypes)
+      if (iftypes > 0) go to 20
+      go to 50
+c       
+1155  write(*,'(1x,a,$)')'X axis label (Return for none): '
+      read(5,'(a)')xaxisLabel
+      write(*,'(1x,a,$)')'Number of key strings for next graph: '
+      read(5,*)numKeys
+      numKeys = max(0, min(8, numKeys))
+      if (numKeys == 0) go to 50
+      write(*,'(a,i2,a)')'Enter the',numKeys,' strings one per line:'
+      do i = 1, numKeys
+        read(*, '(a)') keys(i)
+      enddo
+      go to 50
+c
+1160  iflogx = 0
+      j = 0
+      do i = 1, nx
+        if (i > 1 .and. ngx(max(i - 1, 1)) .ne. ngx(i)) j = 0
+        j = j + 1
+        xx(i) = j
+      enddo
+      go to 50
+c
 99    call plxoff
       call imexit
       end
@@ -424,3 +491,29 @@ c       build an index to order the points by xx
       enddo
       return
       end
+
+      subroutine convertColsToTypes(dmatIn, dmatOut, numCol, numData, itype, nx, ifTypes)
+      implicit none
+      real*4 dmatIn(numCol, numData), dmatOut(2, numData, numCol)
+      real*4 tmpMat(numCol, numData)
+      integer*4 numCol, numData, itype(numData, numCol), ixCol, i, j, nx, ifTypes
+      if (nx > 0) write(*,'(a)')'This operation cannot be reversed except by reloading '//
+     &    'the data file'
+      write(*,'(1x,a,/,a,$)') 'Enter column number to become X (first column), or 0 '//
+     &    'to abort: '
+      read(5,*)ixCol
+      ifTypes = 0
+      if (ixCol <= 0 .or. ixCol > numCol) return
+      tmpMat = dmatIn
+      do j = 1, numCol
+        dmatOut(1, 1:numData, j) = tmpMat(ixCol, 1:numData)
+        dmatOut(2, 1:numData, j) = tmpMat(j, 1:numData)
+        itype(1:numData, j) = j
+      enddo
+      numData = numData * numCol
+      numCol = 2
+      nx = 0
+      ifTypes = 1
+      return 
+      end
+      

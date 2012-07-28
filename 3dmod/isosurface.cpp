@@ -47,10 +47,9 @@
 #include "control.h"
 
 
-enum {IIS_X_COORD = 0, IIS_Y_COORD, IIS_Z_COORD, IIS_X_SIZE, IIS_Y_SIZE,
-  IIS_Z_SIZE};
+enum {IIS_X_COORD = 0, IIS_Y_COORD, IIS_Z_COORD, IIS_X_SIZE, IIS_Y_SIZE, IIS_Z_SIZE};
 enum {FIND_DEFAULT_DIM=0, FIND_MAXIMAL_DIM};
-enum {MASK_NONE = 0, MASK_CONTOUR, MASK_OBJECT, MASK_SPHERE, MASK_ELLIPSOID};
+enum {MASK_NONE = 0, MASK_CONTOUR, MASK_OBJECT, MASK_SPHERE, MASK_ELLIPSOID, MASK_LASSO};
 
 static int xDrawSize = -1;
 static int yDrawSize = -1;
@@ -122,8 +121,13 @@ void imodvIsosurfaceEditDialog(ImodvApp *a, int state)
 // The external call to update the dialog and isosurface
 bool imodvIsosurfaceUpdate(void)
 {
+  Iobj *obj;
   Icont *cont;
   int ob, co, pt;
+  bool lassoMask = iisData.maskType == MASK_LASSO;
+  bool objMask = iisData.maskType == MASK_OBJECT;
+  bool contMask = iisData.maskType == MASK_CONTOUR;
+  double checksum = 0.;
   ImodvIsosurface *dia = iisData.dia;
 
   if (dia && dia->mVolume) { 
@@ -143,14 +147,26 @@ bool imodvIsosurfaceUpdate(void)
       dia->setIsoObj(true);
       //imodvDraw(Imodv);
       return true;
-    } else if (!(iisData.flags & IIS_LINK_XYZ) && 
-               (iisData.maskType == MASK_CONTOUR || iisData.maskType == MASK_OBJECT)) {
-      imodGetIndex(Imodv->imod, &ob, &co, &pt);
-      cont = imodContourGet(Imodv->imod);
-      if ((iisData.maskType == MASK_OBJECT && ob != dia->mMaskObj) ||
-          (iisData.maskType == MASK_CONTOUR && cont && 
+    } else if (!(iisData.flags & IIS_LINK_XYZ) && (objMask || contMask || lassoMask)) {
+      if (lassoMask) {
+        cont = getTopZapLassoContour(false);
+      } else {
+        imodGetIndex(Imodv->imod, &ob, &co, &pt);
+        obj = imodObjectGet(Imodv->imod);
+        cont = imodContourGet(Imodv->imod);
+      }
+      if (objMask && obj) {
+        checksum = imodObjectChecksum(obj, ob);
+      } else if (cont && cont->psize == dia->mMaskPsize) {
+        for (pt = 0; pt < cont->psize; pt++)
+          checksum += cont->pts[pt].x + cont->pts[pt].y;
+      }
+      if ((objMask && (ob != dia->mMaskObj || checksum != dia->mMaskChecksum)) ||
+          (contMask && cont && 
            (ob != dia->mMaskObj || co != dia->mMaskCont || 
-            cont->psize != dia->mMaskPsize))) {
+            cont->psize != dia->mMaskPsize || checksum != dia->mMaskChecksum)) ||
+          (lassoMask && cont && 
+           (cont->psize != dia->mMaskPsize || checksum != dia->mMaskChecksum))) {
         dia->resizeToContours(false);
         return true;
       }
@@ -430,6 +446,8 @@ ImodvIsosurface::ImodvIsosurface(ImodView *vi, QWidget *parent, const char *name
                          "Use data inside the largest sphere that fits in the box");
   radio = diaRadioButton("Ellipsoid", gbox, maskGroup, gbLayout, 4,
                          "Use data inside the largest ellipsoid that fits in the box");
+  radio = diaRadioButton("Zap lasso", gbox, maskGroup, gbLayout, 5,
+                         "Use data inside the lasso in the top Zap window");
   diaSetGroup(maskGroup, iisData.maskType);
 
   gbox = new QGroupBox("Set X/Y area from", this);
@@ -444,12 +462,14 @@ ImodvIsosurface::ImodvIsosurface(ImodView *vi, QWidget *parent, const char *name
   mUseRubber->setToolTip("Show isosurfaces of area enclosed by the Zap rubberband");
   connect(mUseRubber, SIGNAL(clicked()), this, SLOT(showRubberBandArea()));
 
-  mSizeContours = diaPushButton(iisData.maskType == MASK_OBJECT ? "Object" : "Contour",
+  mSizeContours = diaPushButton(iisData.maskType == MASK_OBJECT ? "Object" : 
+                                (iisData.maskType == MASK_LASSO ? "Lasso" : "Contour"),
                                 this, hLayout);
   mSizeContours->setToolTip("Make X/Y sizes as big as masking contours if possible");
   connect(mSizeContours, SIGNAL(clicked()), this, SLOT(areaFromContClicked()));
   mSizeContours->setEnabled(iisData.maskType == MASK_CONTOUR || 
-                            iisData.maskType == MASK_OBJECT);
+                            iisData.maskType == MASK_OBJECT ||
+                            iisData.maskType == MASK_LASSO);
 
   hLayout = new QHBoxLayout;
   rightLayout->addLayout(hLayout);
@@ -727,16 +747,19 @@ void ImodvIsosurface::applyMask()
   int ny = mBoxSize[1];
   int nz = mBoxSize[2];
   float aa, bb, cc, dx, dy, dxasq, dz, xcen, ycen, zcen;
+  bool useLasso = iisData.maskType == MASK_LASSO;
   xcen = (nx - 1.) / 2.;
   ycen = (ny - 1.) / 2.;
   zcen = (nz - 1.) / 2.;
 
   if (iisData.maskType == MASK_NONE) {
     return;
-  } else if (iisData.maskType == MASK_CONTOUR) {
+  } else if (iisData.maskType == MASK_CONTOUR || useLasso) {
 
     // Contour masking is simple, just call the routine on each Z plane
-    if (!obj || !obj->contsize || !iobjClose(obj->flags) || !cont)
+    if (useLasso)
+      cont = getTopZapLassoContour(false);
+    if ((!useLasso && (!obj || !obj->contsize || !iobjClose(obj->flags))) || !cont)
       return;
     scan = imodel_contour_scan(cont);
     for (iz = 0; iz < nz; iz++)
@@ -1904,9 +1927,11 @@ void ImodvIsosurface::sliderMoved(int which, int value, bool dragging)
 void ImodvIsosurface::maskSelected(int which)
 {
   iisData.maskType = which;
-  mSizeContours->setEnabled(which == MASK_CONTOUR || which == MASK_OBJECT);
-  mSizeContours->setText(iisData.maskType == MASK_OBJECT ? "Object" : "Contour");
-  if (which == MASK_CONTOUR || which == MASK_OBJECT) {
+  mSizeContours->setEnabled(which == MASK_CONTOUR || which == MASK_OBJECT || 
+                            which == MASK_LASSO);
+  mSizeContours->setText(iisData.maskType == MASK_OBJECT ? "Object" : 
+                         (iisData.maskType == MASK_LASSO ? "Lasso" : "Contour"));
+  if (which == MASK_CONTOUR || which == MASK_OBJECT || which == MASK_LASSO) {
     resizeToContours(true);
   } else {
     fillAndProcessVols(false);
@@ -1928,17 +1953,23 @@ void ImodvIsosurface::resizeToContours(bool draw)
   Icont *cont = imodContourGet(Imodv->imod);
   int curob, curco, co, otherZ, iz, zmin, zmax, zlsize, nummax, znear, znlast, found = 0;
   int *contz, *zlist, *numatz, **contatz;
+  bool useLasso = iisData.maskType == MASK_LASSO;
   imodGetIndex(Imodv->imod, &curob, &curco, &co);
 
-  if (!obj || !obj->contsize || !iobjClose(obj->flags))
+  if (!useLasso && (!obj || !obj->contsize || !iobjClose(obj->flags)))
     return;
-  if (iisData.maskType == MASK_CONTOUR) {
+  if (iisData.maskType == MASK_CONTOUR || useLasso) {
+    if (useLasso) 
+      cont = getTopZapLassoContour(false);
     if (!cont || cont->psize < 3)
       return;
     imodContourGetBBox(cont, &pmin, &pmax);
+    mMaskPsize = cont->psize;
     mMaskObj = curob;
     mMaskCont = curco;
-    mMaskPsize = cont->psize;
+    mMaskChecksum = 0.;
+    for (co = 0; co < cont->psize; co++)
+      mMaskChecksum += cont->pts[co].x + cont->pts[co].y;
 
   } else if (iisData.maskType == MASK_OBJECT) {
     if (imodContourMakeZTables(obj, 1, 0, &contz, &zlist, &numatz, &contatz, &zmin, &zmax,
@@ -1974,7 +2005,7 @@ void ImodvIsosurface::resizeToContours(bool draw)
     if (!found)
       return;
     mMaskObj = curob;
-
+    mMaskChecksum = imodObjectChecksum(obj, curob);
   } else
     return;
   showDefinedArea(pmin.x, pmax.x, pmin.y, pmax.y, draw);

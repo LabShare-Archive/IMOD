@@ -13,7 +13,7 @@ transformations.  Because Xfsimplex performs an incremental search for a local
 optimum in alignment, it cannot find the right alignment if there is a large
 displacement between the images.  Xfalign has options for initially finding
 such displacements by cross-correlation using tiltxcorr(1), and for working
-from a set of initial displacements computed previously.
+from a set of initial displacements computed previously or set up manually.
 
 These methods will work only on images where there are enough similar features 
 between one section and the next to guide the alignment.  It may take some
@@ -65,7 +65,7 @@ of your output file, with the extension .xcxf (e.g., setname.xcxf if your
 output file is setname.xf).
 If some of the initial displacements are bad, there are two possible 
 approaches to repairing the deficiencies.
-You can use midas(1) to correct the final transformations, in which case you
+You can use Midas(1) to correct the final transformations, in which case you
 will have to introduce any rotations, size changes or stretches manually as
 well.  Alternatively, you can edit the initial transformations, then rerun
 xfalign with the 
@@ -75,6 +75,12 @@ option specifying that existing .xcxf file, instead of the
 option.  This would give xfalign a chance to find the more complex
 linear transformations properly for the sections that had bad initial 
 alignments the first time.
+
+Xfalign works on RGB color images (MRC mode 16).  It simply uses Clip(1) to
+create a new gray-scale stack in bytes, and a gray-scale reference file is a
+color reference file is used.  If a color file is named "rootname.ext", the
+gray-scale file will be named "rootname_gray.ext".  Transforms can be applied
+to a color file by running Colornewst(1).
 
 .SS Options
 Options may be abbreviated to one to three letters, the minimum needed to
@@ -98,12 +104,11 @@ Read parameter entries from standard input
 When using prealignment by cross-correlation, the initial transforms will
 be placed into a file with the same root name as the transform output file but
 with the extension .xcxf.
-If an output file already exists a backup image
-of the original is created
+If an output file already exists a backup of the original is created
 with the ~ extension.
 .SH AUTHOR
 David Mastronarde
 .SH SEE ALSO
-xfsimplex(1), tiltxcorr(1)
+xfsimplex(1), tiltxcorr(1), midas(1), colornewst(1), clip(1)
 .SH BUGS
 Report bugs to mast@colorado.edu

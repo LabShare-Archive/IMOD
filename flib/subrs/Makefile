@@ -9,21 +9,19 @@ LIBCOMPAT = libb3dcmpt.$(DLLEXT)
 LIBTRACK  = libtrack.$(DLLEXT)
 LIBSMLMOD = libsmlmod.$(WMODEXT)
 LIBWMOD = libwmod.$(WMODEXT)
-LIBBLAS = libblas.$(STATICEXT)
-LIBLAPACK = liblapack.$(STATICEXT)
+LIBBLAS = libb3dblas.$(DLLEXT)
+LIBLAPACK = libb3dlapk.$(DLLEXT)
 
 COMPATSRC = compat/ransub.f compat/ourrnd.c compat/degtrig.f $(DATESRC)
 COMPATOBJ = compat/ransub.$(O) compat/ourrnd.$(O) compat/degtrig.$(O) \
   $(DIRDATEOBJ)
 
 LIBS = $(LIBHVEM) $(LIBMRCIM) $(LIBNMCAR) $(LIBTRACK) $(LINUXFLIBS) \
- $(LIBWMOD) $(LIBSMLMOD)
+ $(LIBWMOD) $(LIBSMLMOD) $(LIBBLAS) $(LIBLAPACK)
 
-STATICS = $(LIBBLAS) $(LIBLAPACK)
+all : $(LIBS)
 
-all : $(LIBS) $(STATICS)
-
-$(LIBHVEM): $(LIBMRCIM) piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f
+$(LIBHVEM): $(LIBMRCIM) piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f statsubs/*.f90
 	(cd piecesubs ; $(MAKE) all)
 	(cd hvem ; $(MAKE) all)
 	(cd xfsubs ; $(MAKE) all)
@@ -47,7 +45,7 @@ $(LIBSMLMOD): model/*.f $(INCDIR)/smallmodel.inc
 	$(RANLIB) $(LIBSMLMOD)
 	$(CP) libsmlmod.$(LIBEXT) $(LIBDIR)
 
-$(LIBMRCIM): imsubs/*.f imsubs/*.c imsubs2/*.f
+$(LIBMRCIM): imsubs/*.f imsubs/*.c imsubs2/*.f 
 	(cd imsubs ; $(MAKE) all)
 	(cd imsubs2 ; $(MAKE) all)
 	$(RM) $(LIBMRCIM)
@@ -65,7 +63,7 @@ $(LIBIFFT):	ifftsub/*.f
 	$(RANLIB) $(LIBIFFT)
 	$(CP) libifft.$(LIBEXT) $(LIBDIR)
 
-$(LIBNMCAR):	graphics/*.f graphics/*.c*
+$(LIBNMCAR):	graphics/*.f graphics/*.c graphics/*.cpp
 	(cd graphics ; $(MAKE) all)
 	$(RM) $(LIBNMCAR)
 	$(MAKENMCAR)$(LIBNMCAR) graphics/*.$(O)
@@ -82,18 +80,18 @@ $(LIBCOMPAT):	$(COMPATSRC)
 $(LIBBLAS): blas/*.f
 	(cd blas; $(MAKE) all)
 	$(RM) $(LIBBLAS)
-	$(MAKESTATICLIB)$(LIBBLAS) blas/*.$(O)
+	$(FAR) $(FARFLAGS)$(LIBBLAS) $(LIBBLASDEF) blas/*.$(O)
 	$(RANLIB) $(LIBBLAS)
-	$(CP) $(LIBBLAS) $(LIBDIR)
+	$(CP) libb3dblas.$(LIBEXT) $(LIBDIR)
 
-$(LIBLAPACK): lapack/*.f
+$(LIBLAPACK): $(LIBBLAS) lapack/*.f
 	(cd lapack; $(MAKE) all)
 	$(RM) $(LIBLAPACK)
-	$(MAKESTATICLIB)$(LIBLAPACK) lapack/*.$(O)
+	$(FAR) $(FARFLAGS)$(LIBLAPACK) $(LIBLAPACKDEF) lapack/*.$(O)
 	$(RANLIB) $(LIBLAPACK)
-	$(CP) $(LIBLAPACK) $(LIBDIR)
+	$(CP) libb3dlapk.$(LIBEXT) $(LIBDIR)
 
-$(LIBTRACK):	linetrack/*.f linetrack/*.c*
+$(LIBTRACK):	linetrack/*.f linetrack/*.c
 	(cd linetrack; $(MAKE) all)
 	$(RM) $(LIBTRACK)
 	$(FAR) $(FARFLAGS)$(LIBTRACK) $(LIBTRACKDEF) linetrack/*.$(O)
@@ -113,7 +111,7 @@ clean :
 	$(FIND) . -type f -name "*.*lib" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.dll" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.exp" -exec rm "{}" \;
-	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.$(OBJEXT)" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
 	$(FIND) . -type f -name "moc*" -exec rm "{}" \;

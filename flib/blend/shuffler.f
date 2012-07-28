@@ -100,7 +100,7 @@ c
           amat(1,2) = 0.
           amat(2,1) = 0.
           call warpInterp(array(indRead),array(index),nxin, nyin, nxin, nyin, amat,
-     &        nxin/2. ,nyin/2., 0.,0.,1.,dmean, 1, 0, fieldDx(1,1,ioldest),
+     &        nxin/2. ,nyin/2., 0.,0.,1.,dfill, 1, 0, fieldDx(1,1,ioldest),
      &        fieldDy(1,1,ioldest), lmField, nxField, nyField, xFieldStrt, yFieldStrt,
      &        xFieldIntrv, yFieldIntrv)
         endif

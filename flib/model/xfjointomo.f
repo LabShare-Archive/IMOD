@@ -11,38 +11,21 @@ c       Written by David Mastronarde, 10/24/06
 c
 c       $Id$
 c       
-c       $Log$
-c       Revision 3.5  2009/03/25 21:37:26  mast
-c       Initialized reference section number
-c
-c       Revision 3.4  2008/07/14 23:45:15  mast
-c       Made it skip points if a trajectory was coplanar on one side or other
-c
-c       Revision 3.3  2006/12/20 16:09:00  mast
-c       Removed a ;
-c
-c       Revision 3.2  2006/12/19 22:19:37  mast
-c       Reorganized output to be parseable
-c
-c       Revision 3.1  2006/10/26 19:08:20  mast
-c       Added to package
-c
-c       
       implicit none
-      integer limsec,limslc,idim
+      integer limsec,limslc,idim,msizexr
       include 'smallmodel.inc'
       include 'statsize.inc'
 c
-      parameter (limsec=500,limslc=10000,idim=400)
+      parameter (limsec=500,limslc=10000,idim=1000,msizexr=19)
       real*4 f(2,3,limslc),gtmp(2,3),g(2,3,limslc),xnat(2,3,limslc),xnatav(2,3)
       real*4 ginv(2,3), gav(2,3)
       integer*4 nxyz(3),iobjUse(limsec),isecDo(limsec),izBound(limsec)
       integer*4 nzSizes(limsec),nx,ny,nz
       equivalence (nxyz(1),nx),(nxyz(2),ny),(nxyz(3),nz)
       real*4 xx(limsec),yy(limsec),zz(limsec)
-      real*4 xr(msiz,idim)
+      real*4 xr(msizexr,idim)
       real*4 errmin(limsec),errmaxmin(limsec),gapmin(limsec)
-      character*160 modelfile,xffile,xgfile
+      character*320 modelfile,xffile,xgfile
       character*1024 listString
       integer*4 imodobj,imodcont,ipntmax,izsec,npnts,ngaps,igap,indf,icol,idir
       real*4 xcen,ycen,devavg,gapinc,devmax,devsd
@@ -366,7 +349,7 @@ c
 c           
 c             now if there are at least limpnts points, do regressions
 c             
-            call findxf(xr,npnts,xcen,ycen,iftrans,ifrotrans,2,gtmp,
+            call findxf(xr,msizexr,4,npnts,xcen,ycen,iftrans,ifrotrans,2,gtmp,
      &          devavg, devsd,devmax,ipntmax)
 C             
 c             save transform at minimum error, adjust for binning 

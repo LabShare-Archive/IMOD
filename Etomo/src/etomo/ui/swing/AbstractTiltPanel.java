@@ -19,6 +19,7 @@ import etomo.comscript.ConstTiltParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.TiltParam;
+import etomo.logic.TomogramTool;
 import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
 import etomo.storage.Network;
@@ -143,7 +144,6 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       "Tomogram width in X: ");
   final LabeledTextField ltfTomoThickness = LabeledTextField.getNumericInstance(
       "Tomogram thickness in Z: ", EtomoNumber.Type.INTEGER);
-  private final LabeledTextField ltfSliceIncr = new LabeledTextField("Slice step in Y: ");
   private final LabeledTextField ltfXAxisTilt = LabeledTextField.getNumericInstance(
       "X axis tilt: ", EtomoNumber.Type.DOUBLE);
   private final LabeledTextField ltfTiltAngleOffset = LabeledTextField
@@ -158,14 +158,14 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       .getNumericInstance("Linear density scaling factor: ", EtomoNumber.Type.DOUBLE);
   private final LabeledTextField ltfLinearDensityScaleOffset = LabeledTextField
       .getNumericInstance(" Offset: ", EtomoNumber.Type.DOUBLE);
-  private final LabeledTextField ltfSliceStart = new LabeledTextField("First slice: ");
-  private final LabeledTextField ltfSliceStop = new LabeledTextField(" Last slice: ");
-  private final SpacedLabel lblInY = new SpacedLabel(" in Y");
   final LabeledTextField ltfZShift = LabeledTextField.getNumericInstance(" Z shift: ",
       EtomoNumber.Type.DOUBLE);
-  private final LabeledTextField ltfXShift = new LabeledTextField("X shift:");
+  private final LabeledTextField ltfXShift = new LabeledTextField("X shift: ");
   private final CheckBox cbUseLocalAlignment = new CheckBox("Use local alignments");
   private final CheckBox cbUseZFactors = new CheckBox("Use Z factors");
+  private final LabeledTextField ltfTomoHeight = new LabeledTextField(
+      "Tomogram height in Y: ");
+  private final LabeledTextField ltfYShift = new LabeledTextField(" Y shift: ");
   private final RadialPanel radialPanel;
   /**
    * cbParallelProcess: Call mediator.msgChangedMethod when
@@ -179,7 +179,6 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
    */
   private final CheckBox cbUseGpu = new CheckBox(
       "Use the GPU:  Maximum number of GPUs recommended is 3");
-  private final JPanel pnlSlicesInY = new JPanel();
   private final SpacedPanel trialPanel = SpacedPanel.getInstance();
   private final SpacedPanel pnlButton = SpacedPanel.getInstance(true);
 
@@ -251,11 +250,15 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     initializePanel();
     ltfLinearDensityScaleFactor.setText(TiltParam.LINEAR_SCALE_FACTOR_DEFAULT);
     ltfLinearDensityScaleOffset.setText(TiltParam.LINEAR_SCALE_OFFSET_DEFAULT);
+    ltfTomoWidth.setPreferredWidth(163);
+    ltfTomoHeight.setPreferredWidth(159);
     // local panels
     JPanel pnlLogDensity = new JPanel();
     JPanel pnlLinearDensity = new JPanel();
-    JPanel pnlOffset = new JPanel();
     JPanel pnlCheckBox = new JPanel();
+    JPanel pnlX = new JPanel();
+    JPanel pnlY = new JPanel();
+    JPanel pnlZ = new JPanel();
     // Root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.setBorder(BorderFactory.createEtchedBorder());
@@ -270,11 +273,13 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     pnlBody.add(ctfLog.getRootComponent());
     pnlBody.add(pnlLogDensity);
     pnlBody.add(pnlLinearDensity);
-    pnlBody.add(ltfTomoWidth.getContainer());
-    pnlBody.add(ltfTomoThickness.getContainer());
-    pnlBody.add(pnlSlicesInY);
-    pnlBody.add(ltfSliceIncr.getContainer());
-    pnlBody.add(pnlOffset);
+    pnlBody.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlBody.add(pnlX);
+    pnlBody.add(Box.createRigidArea(FixedDim.x0_y3));
+    pnlBody.add(pnlY);
+    pnlBody.add(Box.createRigidArea(FixedDim.x0_y3));
+    pnlBody.add(pnlZ);
+    pnlBody.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlBody.add(ltfXAxisTilt.getContainer());
     pnlBody.add(ltfTiltAngleOffset.getContainer());
     pnlBody.add(radialPanel.getRoot());
@@ -293,17 +298,21 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     pnlLinearDensity.add(ltfLinearDensityScaleFactor.getContainer());
     pnlLinearDensity.add(ltfLinearDensityScaleOffset.getContainer());
     UIUtilities.alignComponentsX(pnlLinearDensity, Component.LEFT_ALIGNMENT);
-    // Slices in Y panel
-    pnlSlicesInY.setLayout(new BoxLayout(pnlSlicesInY, BoxLayout.X_AXIS));
-    pnlSlicesInY.add(ltfSliceStart.getContainer());
-    pnlSlicesInY.add(ltfSliceStop.getContainer());
-    pnlSlicesInY.add(lblInY.getContainer());
-    UIUtilities.alignComponentsX(pnlSlicesInY, Component.LEFT_ALIGNMENT);
-    // Offset panel
-    pnlOffset.setLayout(new BoxLayout(pnlOffset, BoxLayout.X_AXIS));
-    pnlOffset.add(ltfXShift.getContainer());
-    pnlOffset.add(ltfZShift.getContainer());
-    UIUtilities.alignComponentsX(pnlOffset, Component.LEFT_ALIGNMENT);
+    // X panel
+    pnlX.setLayout(new BoxLayout(pnlX, BoxLayout.X_AXIS));
+    pnlX.add(ltfTomoWidth.getContainer());
+    pnlX.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlX.add(ltfXShift.getContainer());
+    // Y panel
+    pnlY.setLayout(new BoxLayout(pnlY, BoxLayout.X_AXIS));
+    pnlY.add(ltfTomoHeight.getContainer());
+    pnlY.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlY.add(ltfYShift.getContainer());
+    // Z panel
+    pnlZ.setLayout(new BoxLayout(pnlZ, BoxLayout.X_AXIS));
+    pnlZ.add(ltfTomoThickness.getContainer());
+    pnlZ.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlZ.add(ltfZShift.getContainer());
     // Check box panel
     pnlCheckBox.setLayout(new BoxLayout(pnlCheckBox, BoxLayout.Y_AXIS));
     pnlCheckBox.add(cbUseLocalAlignment);
@@ -446,11 +455,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     ltfLinearDensityScaleOffset.setVisible(advanced);
     ltfLinearDensityScaleFactor.setVisible(advanced);
     ltfTomoWidth.setVisible(advanced && backProjection);
-    pnlSlicesInY.setVisible(backProjection);
-    ltfSliceStart.setVisible(advanced);
-    ltfSliceStop.setVisible(advanced);
-    lblInY.setVisible(advanced);
-    ltfSliceIncr.setVisible(advanced && backProjection);
+    ltfTomoHeight.setVisible(advanced && backProjection);
+    ltfYShift.setVisible(advanced && backProjection);
     ltfXShift.setVisible(advanced && backProjection);
     // Z shift is not always an advanced field.
     ltfTiltAngleOffset.setVisible(advanced);
@@ -488,7 +494,6 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     cbParallelProcess.setEnabled(!processingMethodLocked);
     ltfTomoWidth.setEnabled(backProjection || !resume);
     ltfTomoThickness.setEnabled(backProjection || !resume);
-    ltfSliceIncr.setEnabled(backProjection || !resume);
     ltfXAxisTilt.setEnabled(backProjection || !resume);
     ltfTiltAngleOffset.setEnabled(backProjection || !resume);
     ltfExtraExcludeList.setEnabled(backProjection || !resume);
@@ -499,8 +504,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     ltfLinearDensityScaleFactor.setEnabled(!logIsSelected && (backProjection || !resume));
     ltfLinearDensityScaleOffset.setEnabled(!logIsSelected && (backProjection || !resume));
 
-    ltfSliceStart.setEnabled(backProjection || !resume);
-    ltfSliceStop.setEnabled(backProjection || !resume);
+    ltfTomoHeight.setEnabled(backProjection || !resume);
+    ltfYShift.setEnabled(backProjection || !resume);
     ltfZShift.setEnabled(backProjection || !resume);
     ltfXShift.setEnabled(backProjection || !resume);
     radialPanel.setEnabled(backProjection || !resume);
@@ -597,7 +602,6 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     // If only a local GPU is available and the Use GPU checkbox defaults to on, do not
     // select the parallel processing checkbox.
     if (nonLocalHostGpusAvailable || !cbUseGpu.isSelected()) {
-      System.out.println("A");
       if (tiltParallel == null) {
         cbParallelProcess.setSelected(validAutodoc && metaData.getDefaultParallel().is());
       }
@@ -692,11 +696,12 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       ltfZShift.setText(tiltParam.getZShift());
     }
     if (tiltParam.hasSlice()) {
-      ltfSliceStart.setText(tiltParam.getIdxSliceStart());
-      ltfSliceStop.setText(tiltParam.getIdxSliceStop());
-    }
-    if (tiltParam.hasSliceIncr()) {
-      ltfSliceIncr.setText(tiltParam.getIncrSlice());
+      long[] yHeightAndShift = TomogramTool.getYHeightAndShift(manager, axisID,
+          tiltParam.getIdxSliceStart(), tiltParam.getIdxSliceStop());
+      if (yHeightAndShift != null && yHeightAndShift.length == 2) {
+        ltfTomoHeight.setText(yHeightAndShift[0]);
+        ltfYShift.setText(yHeightAndShift[1]);
+      }
     }
     if (tiltParam.hasXAxisTilt()) {
       ltfXAxisTilt.setText(tiltParam.getXAxisTilt());
@@ -813,36 +818,28 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         tiltParam.resetXShift();
       }
 
-      boolean sliceRangeSpecified = false;
-      if (ltfSliceStart.getText().matches("\\S+")
-          && ltfSliceStop.getText().matches("\\S+")) {
-        badParameter = ltfSliceStart.getLabel();
-        tiltParam.setIdxSliceStart(Integer.parseInt(ltfSliceStart.getText()));
-        badParameter = ltfSliceStop.getLabel();
-        tiltParam.setIdxSliceStop(Integer.parseInt(ltfSliceStop.getText()));
-        sliceRangeSpecified = true;
+      ConstEtomoNumber startingSlice = TomogramTool.getYStartingSlice(manager, axisID,
+          ltfTomoHeight.getText(), ltfYShift.getText(), ltfTomoHeight.getQuotedLabel(),
+          ltfYShift.getQuotedLabel());
+      if (startingSlice == null) {
+        return false;
       }
-      else if (ltfSliceStart.getText().matches("^\\s*$")
-          && ltfSliceStop.getText().matches("^\\s*$")) {
+      if (startingSlice.isNull()) {
         tiltParam.resetIdxSlice();
       }
       else {
-        throw (new InvalidParameterException(
-            "You must supply both the first and last slices if you want to specify either."));
-      }
-
-      if (ltfSliceIncr.getText().matches("\\S+")) {
-        if (sliceRangeSpecified) {
-          badParameter = ltfSliceIncr.getLabel();
-          tiltParam.setIncrSlice(Integer.parseInt(ltfSliceIncr.getText()));
+        ConstEtomoNumber endingSlice = TomogramTool.getYEndingSlice(manager, axisID,
+            startingSlice, ltfTomoHeight.getText(), ltfTomoHeight.getQuotedLabel());
+        if (endingSlice == null) {
+          return false;
+        }
+        if (endingSlice.isNull()) {
+          tiltParam.resetIdxSlice();
         }
         else {
-          throw (new InvalidParameterException(
-              "You must supply both the first and last slices to specify the slice step."));
+          tiltParam.setIdxSliceStart(startingSlice.getLong());
+          tiltParam.setIdxSliceStop(endingSlice.getLong());
         }
-      }
-      else {
-        tiltParam.resetIncrSlice();
       }
 
       if (ltfTomoThickness.getText().matches("\\S+")) {
@@ -1045,29 +1042,26 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         .setToolTipText("Check to distribute the tilt process across multiple computers.");
     cbUseGpu.setToolTipText("Check to run the tilt process on the graphics card.");
     ltfTomoThickness
-        .setToolTipText("Thickness, in pixels, along the z-axis of the reconstructed volume.");
-    ltfSliceStart
-        .setToolTipText("The first slice in the Y dimension to include in the reconstructed "
-            + " volume.  Slices are numbered from 0, a last slice must also "
-            + "be specified.");
-    ltfSliceStop
-        .setToolTipText("The last slice in the Y dimension to include in the reconstructed "
-            + " volume.  Slices are numbered from 0, a first slice must also "
-            + "be specified.");
-    ltfSliceIncr
-        .setToolTipText("Step between slices in the Y dimension.  A first and last slice must "
-            + "also be entered. Default is 1.");
+        .setToolTipText("Thickness, in unbinned pixels, along the z-axis of the "
+            + "reconstructed volume.");
+    ltfTomoHeight
+        .setToolTipText("This entry specifies the Y extent of the output tomogram, in "
+            + "unbinned pixels; the default is the height of the aligned stack.");
+    ltfYShift
+        .setToolTipText("Amount to shift the reconstructed region in Y, in unbinned pixels.  "
+            + "A positive value will shift the region upward and reconstruct an area lower "
+            + "in Y.");
     ltfTomoWidth
-        .setToolTipText("This entry specifies the width of the output image; the default is the "
-            + "width of the input image.");
+        .setToolTipText("This entry specifies the width, in unbinned pixels, of the output "
+            + "image; the default is the width of the input image.");
     ltfXShift
-        .setToolTipText("Amount to shift the reconstructed slices in X before output.  A "
-            + "positive value will shift the slice to the right, and the "
-            + "output will contain the left part of the whole potentially "
+        .setToolTipText("Amount, in unbinned pixels, to shift the reconstructed slices in "
+            + "X before output.  A positive value will shift the slice to the right, and "
+            + "the output will contain the left part of the whole potentially "
             + "reconstructable area.");
     ltfZShift
-        .setToolTipText("Amount to shift the reconstructed slices in Z before output.  A "
-            + "positive value will shift the slice upward.");
+        .setToolTipText("Amount, in unbinned pixels, to shift the reconstructed slices in "
+            + "Z before output.  A positive value will shift the slice upward.");
     ltfXAxisTilt.setToolTipText(TomogramGenerationDialog.X_AXIS_TILT_TOOLTIP);
     ltfTiltAngleOffset
         .setToolTipText("Offset in degrees to apply to the tilt angles; a positive offset will "

@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
 
     int numOptArgs, numNonOptArgs;
     int numOptions = 17;
-    char* options[] = {"execPath:RaptorExecPath:CH:",
+    const char* options[] = {"execPath:RaptorExecPath:CH:",
                        "path:InputPath:CH:",
                        "input:InputFile:FN:",
                        "output:OutputPath:CH:",

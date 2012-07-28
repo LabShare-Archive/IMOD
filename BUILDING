@@ -29,7 +29,7 @@ opened from 3dmod), so we are stuck at 4.6.3 there.
 The take home message: if you have Qt 4.3 or higher on your system already,
 you can safely build with that.  If you need to build Qt, it is safe to the
 latest Qt compatible with your compilers on any architecture except Mac, where
-you should sue Qt 4.6.3 unless you won't be running with these libraries.
+you should use Qt 4.6.3 unless you won't be running with these libraries.
 
 Several strategies were used when building Qt.  One was to build in a local
 directory and then run "make install".  With later versions on Mac, this
