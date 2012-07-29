@@ -30,7 +30,7 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
 
   private final StringProperty rootName = new StringProperty("RootName");
   private final AutoAlignmentMetaData autoAlignmentMetaData = new AutoAlignmentMetaData();
-  private final StringProperty stackAbsolutePath = new StringProperty("StackAbsolutePath");
+  private final StringProperty stack = new StringProperty("Stack");
   private final StringProperty viewType = new StringProperty("ViewType");
   private final StringProperty distortionField = new StringProperty("DistortionField");
   private final EtomoNumber imagesAreBinned = new EtomoNumber("ImagesAreBinned");
@@ -45,6 +45,10 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
   private final EtomoBoolean2 noOptions = new EtomoBoolean2("NoOptions");
   private final EtomoBoolean2 numberToFitGlobalAlignment = new EtomoBoolean2(
       "NumberToFitGlobalAlignment");
+  private final EtomoNumber shiftX = new EtomoNumber(EtomoNumber.Type.FLOAT, "ShiftX");
+  private final EtomoNumber shiftY = new EtomoNumber(EtomoNumber.Type.FLOAT, "ShiftY");
+  private final EtomoNumber sizeX = new EtomoNumber(EtomoNumber.Type.FLOAT, "SizeX");
+  private final EtomoNumber sizeY = new EtomoNumber(EtomoNumber.Type.FLOAT, "SizeY");
 
   public SerialSectionsMetaData() {
     fileExtension = DataFileType.SERIAL_SECTIONS.extension;
@@ -73,7 +77,7 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
   public void load(final Properties props, String prepend) {
     // reset
     rootName.reset();
-    stackAbsolutePath.reset();
+    stack.reset();
     viewType.reset();
     distortionField.reset();
     imagesAreBinned.reset();
@@ -84,11 +88,15 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
     hybridFitsTranslationsRotations.reset();
     noOptions.reset();
     numberToFitGlobalAlignment.reset();
+    shiftX.reset();
+    shiftY.reset();
+    sizeX.reset();
+    sizeY.reset();
     // load
     prepend = createPrepend(prepend);
     autoAlignmentMetaData.load(props, prepend);
     rootName.load(props, prepend);
-    stackAbsolutePath.load(props, prepend);
+    stack.load(props, prepend);
     viewType.load(props, prepend);
     distortionField.load(props, prepend);
     imagesAreBinned.load(props, prepend);
@@ -99,6 +107,10 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
     hybridFitsTranslationsRotations.load(props, prepend);
     noOptions.load(props, prepend);
     numberToFitGlobalAlignment.load(props, prepend);
+    shiftX.load(props, prepend);
+    shiftY.load(props, prepend);
+    sizeX.load(props, prepend);
+    sizeY.load(props, prepend);
   }
 
   public void store(final Properties props, String prepend) {
@@ -106,7 +118,7 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
     CURRENT_VERSION.store(props, prepend);
     autoAlignmentMetaData.store(props, prepend);
     rootName.store(props, prepend);
-    stackAbsolutePath.store(props, prepend);
+    stack.store(props, prepend);
     viewType.store(props, prepend);
     distortionField.store(props, prepend);
     imagesAreBinned.store(props, prepend);
@@ -117,11 +129,15 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
     hybridFitsTranslationsRotations.store(props, prepend);
     noOptions.store(props, prepend);
     numberToFitGlobalAlignment.store(props, prepend);
+    shiftX.store(props, prepend);
+    shiftY.store(props, prepend);
+    sizeX.store(props, prepend);
+    sizeY.store(props, prepend);
   }
 
   public void setStartupData(final SerialSectionsStartupData startupData) {
     setName(startupData.getRootName());
-    stackAbsolutePath.set(startupData.getStack().getAbsolutePath());
+    stack.set(startupData.getStack().getName());
     viewType.set(startupData.getViewType().getParamValue());
     File file = startupData.getDistortionField();
     if (file == null) {
@@ -148,14 +164,14 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
     return autoAlignmentMetaData;
   }
 
-  public String getStackAbsolutePath() {
-    return stackAbsolutePath.toString();
+  public String getStack() {
+    return stack.toString();
   }
 
   public String getDistortionField() {
     return distortionField.toString();
   }
-  
+
   public String getImagesAreBinned() {
     return imagesAreBinned.toString();
   }
@@ -171,6 +187,7 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
   public ConstEtomoNumber getReferenceSection() {
     return referenceSection;
   }
+
   public void setReferenceSection(final Number input) {
     referenceSection.set(input);
   }
@@ -178,6 +195,7 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
   public String getRobustFitCriterion() {
     return robustFitCriterion.toString();
   }
+
   public void setRobustFitCriterion(final String input) {
     robustFitCriterion.set(input);
   }
@@ -213,7 +231,23 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
   public boolean isNumberToFitGlobalAlignment() {
     return numberToFitGlobalAlignment.is();
   }
-  
+
+  public String getShiftX() {
+    return shiftX.toString();
+  }
+
+  public String getShiftY() {
+    return shiftY.toString();
+  }
+
+  public String getSizeX() {
+    return sizeX.toString();
+  }
+
+  public String getSizeY() {
+    return sizeY.toString();
+  }
+
   public void setNumberToFitGlobalAlignment(final boolean input) {
     numberToFitGlobalAlignment.set(input);
   }
