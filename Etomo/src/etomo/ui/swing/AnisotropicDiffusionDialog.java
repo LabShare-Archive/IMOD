@@ -17,7 +17,7 @@ import etomo.comscript.ChunksetupParam;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.TrimvolParam;
-import etomo.logic.DatasetDirectory;
+import etomo.logic.DatasetTool;
 import etomo.process.ImodManager;
 import etomo.storage.TomogramFileFilter;
 import etomo.type.AxisID;
@@ -600,7 +600,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
           "Entry Error");
       return;
     }
-    if (!DatasetDirectory.validateDatasetName(manager, AxisID.ONLY, volume,
+    if (!DatasetTool.validateDatasetName(manager, AxisID.ONLY, volume,
         DataFileType.PARALLEL, null)) {
       return;
     }
