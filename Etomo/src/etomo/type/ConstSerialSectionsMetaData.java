@@ -18,7 +18,27 @@ package etomo.type;
 public interface ConstSerialSectionsMetaData {
   public static final String rcsid = "$Id:$";
 
-  public String getStackAbsolutePath();
+  public String getStack();
 
   public ViewType getViewType();
+
+  public AutoAlignmentMetaData getAutoAlignmentMetaData();
+
+  public ConstEtomoNumber getMidasBinning();
+
+  public ConstEtomoNumber getReferenceSection();
+
+  public String getRobustFitCriterion();
+
+  public String getShiftX();
+
+  public String getShiftY();
+
+  public String getSizeX();
+
+  public String getSizeY();
+  public boolean isHybridFitsTranslations();
+  public boolean isHybridFitsTranslationsRotations();
+  public boolean isNoOptions();
+  public boolean isNumberToFitGlobalAlignment();
 }
