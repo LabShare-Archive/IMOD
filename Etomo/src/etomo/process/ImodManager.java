@@ -20,6 +20,7 @@ import etomo.type.ImageFileType;
 import etomo.type.JoinMetaData;
 import etomo.type.ParallelMetaData;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.SerialSectionsMetaData;
 import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
@@ -610,6 +611,8 @@ public class ImodManager {
   public static final String FLATTEN_TOOL_OUTPUT_KEY = new String(
       "Flatten tool output file");
   public static final String SIRT_KEY = new String("SIRT output files");
+  public static final String PREBLEND_KEY = new String("Preblend output file");
+  public static final String ALIGNED_STACK_KEY = new String("Aligned stack");
 
   // private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -652,6 +655,7 @@ public class ImodManager {
   private static final String flattenInputKey = FLATTEN_INPUT_KEY;
   private static final String flattenToolOutputKey = FLATTEN_TOOL_OUTPUT_KEY;
   private static final String sirtKey = SIRT_KEY;
+  private static final String preblendKey = PREBLEND_KEY;
 
   private boolean useMap = true;
   private final BaseManager manager;
@@ -713,6 +717,17 @@ public class ImodManager {
     }
     createPrivateKeys();
     loadJoinMap();
+  }
+
+  public void setMetaData(SerialSectionsMetaData metaData) {
+    metaDataSet = true;
+    axisType = metaData.getAxisType();
+    datasetName = metaData.getName();
+    if (datasetName.equals("")) {
+      new IllegalStateException("DatasetName is empty.").printStackTrace();
+    }
+    createPrivateKeys();
+    loadSerialSectionsMap();
   }
 
   public void setMetaData(ConstPeetMetaData metaData) {
@@ -802,6 +817,22 @@ public class ImodManager {
     return vector.lastIndexOf(imodState);
   }
 
+  public int newImod(String key, final AxisID axisID, final File file)
+      throws AxisTypeException {
+    Vector vector;
+    ImodState imodState;
+    key = getPrivateKey(key);
+    vector = getVector(key, axisID);
+    if (vector == null) {
+      vector = newVector(key,axisID, file);
+      imodMap.put(key, vector);
+      return 0;
+    }
+    imodState = newImodState(key,axisID, file);
+    vector.add(imodState);
+    return vector.lastIndexOf(imodState);
+  }
+
   public int newImod(String key, String[] fileNameArray) throws AxisTypeException {
     Vector vector;
     ImodState imodState;
@@ -838,12 +869,12 @@ public class ImodManager {
 
   public void open(String key) throws AxisTypeException, SystemProcessException,
       IOException {
-    open(key, null, null, null);
+    open(key, null, (String) null, null);
   }
 
   public void open(String key, Run3dmodMenuOptions menuOptions) throws AxisTypeException,
       SystemProcessException, IOException {
-    open(key, null, null, menuOptions);
+    open(key, null, (String) null, menuOptions);
     // used for:
     // openCombinedTomogram
   }
@@ -857,7 +888,7 @@ public class ImodManager {
 
   public void open(String key, AxisID axisID, Run3dmodMenuOptions menuOptions)
       throws AxisTypeException, SystemProcessException, IOException {
-    open(key, axisID, null, menuOptions);
+    open(key, axisID, (String) null, menuOptions);
   }
 
   public void open(String key, AxisID axisID, String model) throws AxisTypeException,
@@ -867,7 +898,7 @@ public class ImodManager {
 
   public void open(String key, AxisID axisID) throws AxisTypeException,
       SystemProcessException, IOException {
-    open(key, axisID, null, new Run3dmodMenuOptions());
+    open(key, axisID, (String) null, new Run3dmodMenuOptions());
   }
 
   public void open(String key, File file, Run3dmodMenuOptions menuOptions)
@@ -877,6 +908,20 @@ public class ImodManager {
     if (imodState == null) {
       newImod(key, file);
       imodState = get(key);
+    }
+    if (imodState != null) {
+      imodState.open(menuOptions);
+    }
+  }
+
+  public void open(String key, final AxisID axisID, final File file,
+      final Run3dmodMenuOptions menuOptions) throws AxisTypeException,
+      SystemProcessException, IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID, file);
+      imodState = get(key, axisID);
     }
     if (imodState != null) {
       imodState.open(menuOptions);
@@ -1609,6 +1654,10 @@ public class ImodManager {
     return newVector(newImodState(key, file));
   }
 
+  Vector newVector(final String key, final AxisID axisID, final File file) {
+    return newVector(newImodState(key, axisID, file));
+  }
+
   Vector newVector(final String key, final String[] fileNameArray) {
     return newVector(newImodState(key, fileNameArray));
   }
@@ -1639,6 +1688,10 @@ public class ImodManager {
 
   ImodState newImodState(String key, File file) {
     return newImodState(key, null, null, file, null, null, null);
+  }
+
+  ImodState newImodState(final String key, final AxisID axisID, final File file) {
+    return newImodState(key, axisID, null, file, null, null, null);
   }
 
   ImodState newImodState(String key, String[] fileNameArray) {
@@ -1771,6 +1824,9 @@ public class ImodManager {
     if (key.equals(SIRT_KEY) && axisID != null) {
       return newSirt(fileList, axisID);
     }
+    if (key.equals(PREBLEND_KEY) && axisID != null) {
+      return newPreblend(axisID);
+    }
     System.out.println("key=" + key);
     throw new IllegalArgumentException(key + " cannot be created in "
         + axisType.toString() + " with axisID=" + axisID.getExtension());
@@ -1811,6 +1867,9 @@ public class ImodManager {
     imodMap.put(joinSampleAveragesKey, newVector(newJoinSampleAverages()));
     imodMap.put(joinKey, newVector(newJoin()));
     imodMap.put(trialJoinKey, newVector(newTrialJoin()));
+  }
+
+  protected void loadSerialSectionsMap() {
   }
 
   protected void loadPeetMap() {
@@ -1984,6 +2043,12 @@ public class ImodManager {
   private ImodState newFlattenToolOutput(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID,
         FileType.FLATTEN_TOOL_OUTPUT.getFileName(manager, axisID));
+    return imodState;
+  }
+
+  private ImodState newPreblend(AxisID axisID) {
+    ImodState imodState = new ImodState(manager, axisID,
+        FileType.PREBLEND_OUTPUT_MRC.getFileName(manager, axisID));
     return imodState;
   }
 

@@ -1588,6 +1588,9 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   boolean isNull(Number value) {
+    if (value == null) {
+      return true;
+    }
     if (value instanceof Double) {
       return Double.isNaN(value.doubleValue());
     }

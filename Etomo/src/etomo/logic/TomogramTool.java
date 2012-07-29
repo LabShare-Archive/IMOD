@@ -181,6 +181,89 @@ public final class TomogramTool {
   }
 
   /**
+   * startingx = (nx - sizex) / 2 - shiftx
+   * endingx = (nx + sizex) / 2 - shiftx - 1
+   * startingy = (ny - sizey) / 2 - shifty
+   * endingy = (ny + sizey) / 2 - shifty - 1
+   * @param fileType
+   * @param sizeX
+   * @param shiftX
+   * @param manager
+   * @param axisID
+   * @param sizeXDescr
+   * @param shiftXDescr
+   * @param errorMsgTitle
+   * @return
+   */
+  public static PairXAndY getStartingAndEndingXAndY(final FileType fileType,
+      final String sizeX, final String shiftX, final String sizeY, final String shiftY,
+      final BaseManager manager, final AxisID axisID, final String sizeXDescr,
+      final String shiftXDescr, final String sizeYDescr, final String shiftYDescr,
+      final String errorMsgTitle) {
+    MRCHeader header = MRCHeader.getInstance(manager, axisID, fileType);
+    try {
+      header.read(manager);
+    }
+    catch (IOException e) {
+      return null;
+    }
+    catch (InvalidParameterException e) {
+      return null;
+    }
+    PairXAndY pairXAndY = new PairXAndY();
+    int n = header.getNRows();
+    int[] pair = getStartingAndEnding(n, sizeX, shiftX, manager, axisID, sizeXDescr,
+        shiftXDescr, errorMsgTitle);
+    pairXAndY.setX(pair);
+    n = header.getNColumns();
+    pair = getStartingAndEnding(n, sizeY, shiftY, manager, axisID, sizeYDescr,
+        shiftYDescr, errorMsgTitle);
+    pairXAndY.setY(pair);
+    return pairXAndY;
+  }
+
+  /**
+   * starting = (n - size) / 2 - shift
+   * ending = (n + size) / 2 - shift - 1
+   * @param fileN
+   * @param sizeString
+   * @param shiftString
+   * @param manager
+   * @param axisID
+   * @param sizeDescr
+   * @param shiftDescr
+   * @param errorMsgTitle
+   * @return
+   */
+  private static int[] getStartingAndEnding(final int fileN, final String sizeString,
+      final String shiftString, final BaseManager manager, final AxisID axisID,
+      final String sizeDescr, final String shiftDescr, final String errorMsgTitle) {
+    EtomoNumber size = new EtomoNumber();
+    size.set(sizeString);
+    String errorMsg = size.validate(sizeDescr);
+    if (errorMsg != null) {
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMsg, errorMsgTitle, axisID);
+      return null;
+    }
+    if (size.isNull()) {
+      size.set(0);
+    }
+    EtomoNumber shift = new EtomoNumber(EtomoNumber.Type.FLOAT);
+    shift.set(shiftString);
+    errorMsg = shift.validate(shiftDescr);
+    if (errorMsg != null) {
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMsg, errorMsgTitle, axisID);
+      return null;
+    }
+    if (shift.isNull()) {
+      shift.set(0);
+    }
+    int starting = Math.round((fileN - size.getInt()) / 2 - shift.getFloat());
+    int ending = Math.round((fileN + size.getInt()) / 2 - shift.getFloat() - 1);
+    return new int[] { starting, ending };
+  }
+
+  /**
    * Calculates the ending slice for a subarea tomogram.  If height is
    * invalid, or the one of the results of the calculations is invalid, popups up an
    * errror message and returns null.
@@ -191,7 +274,6 @@ public final class TomogramTool {
   public static ConstEtomoNumber getYEndingSlice(final BaseManager manager,
       final AxisID axisID, final ConstEtomoNumber startingSlice, final String yHeight,
       final String yHeightLabel) {
-    System.out.println("A:startingSlice:" + startingSlice + ",yHeight:" + yHeight);
     EtomoNumber enEndingSlice = new EtomoNumber(EtomoNumber.Type.LONG);
     if (startingSlice.isNull() || yHeight == null || yHeight.matches("\\s*")) {
       return enEndingSlice;
@@ -212,7 +294,6 @@ public final class TomogramTool {
     // Get the unbinned tomogram height in Y of the aligned stack
     long tomoHeight = header.getNRows()
         * Utilities.getStackBinning(manager, axisID, FileType.ALIGNED_STACK);
-    System.out.println("B:tomoHeight:" + tomoHeight);
     EtomoNumber enYHeight = new EtomoNumber();
     enYHeight.set(yHeight);
     if (!enYHeight.isValid()) {
@@ -221,7 +302,6 @@ public final class TomogramTool {
       return null;
     }
     enEndingSlice.set(startingSlice.getLong() + enYHeight.getLong() - 1);
-    System.out.println("C:enEndingSlice:" + enEndingSlice);
     if (!enEndingSlice.isValid()) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Invalid starting slice - "
           + enEndingSlice.getInvalidReason() + "", "Entry Error", axisID);
@@ -264,5 +344,144 @@ public final class TomogramTool {
         * Utilities.getStackBinning(manager, axisID, FileType.ALIGNED_STACK);
     long shift = (tomoHeight - height) / 2 - yStartingSlice;
     return new long[] { height, shift };
+  }
+
+  /**
+   * Negates shiftX and shiftY
+   * @param shiftX
+   * @param shiftY
+   * @return
+   */
+  public static ConstEtomoNumber[] convertShiftsToOffsets(final String shiftX,
+      final String shiftY) {
+    EtomoNumber[] offsets = new EtomoNumber[2];
+    offsets[0] = new EtomoNumber(EtomoNumber.Type.FLOAT);
+    offsets[1] = new EtomoNumber(EtomoNumber.Type.FLOAT);
+    int index = 0;
+    offsets[index].set(shiftX);
+    if (!offsets[index].isNull() && offsets[index].isValid()) {
+      offsets[index].set(offsets[index].getDouble() * -1);
+    }
+    index = 1;
+    offsets[index].set(shiftY);
+    if (!offsets[index].isNull() && offsets[index].isValid()) {
+      offsets[index].set(offsets[index].getDouble() * -1);
+    }
+    return offsets;
+  }
+
+  /**
+   * Negates offset
+   * @param offset
+   * @return
+   */
+  public static ConstEtomoNumber convertOffsetToShift(final String offset) {
+    EtomoNumber shift = new EtomoNumber(EtomoNumber.Type.FLOAT);
+    shift.set(offset);
+    if (!shift.isNull() && shift.isValid()) {
+      shift.set(shift.getDouble() * -1);
+    }
+    return shift;
+  }
+
+  /**
+   * Handle a pair of X and a pair of Y integer values.  Drops extra values when setting.
+   * Each pair will always contain either 2 null values or 2 non-null values.
+   * @author sueh
+   */
+  public static final class PairXAndY {
+    private final EtomoNumber[] pairX = new EtomoNumber[2];
+    private final EtomoNumber[] pairY = new EtomoNumber[2];
+
+    private PairXAndY() {
+      int i = 0;
+      pairX[i] = new EtomoNumber();
+      pairY[i] = new EtomoNumber();
+      i++;
+      pairX[i] = new EtomoNumber();
+      pairY[i] = new EtomoNumber();
+    }
+
+    /**
+     * Calls set.
+     * @param pair
+     */
+    private void setX(final int[] pair) {
+      set(pair, pairX);
+    }
+
+    /**
+     * Calls set.
+     * @param pair
+     */
+    private void setY(final int[] pair) {
+      set(pair, pairY);
+    }
+
+    /**
+     * Sets toPair.  A null fromPair or a fromPair containing only one non-null number
+     * causes a reset of toPair.
+     * @param fromPair
+     * @param toPair
+     */
+    private void set(final int[] fromPair, final EtomoNumber[] toPair) {
+      int i = 0;
+      if (fromPair != null && fromPair.length >= 2) {
+        toPair[i].set(fromPair[i]);
+        i++;
+        toPair[i].set(fromPair[i]);
+        if (toPair[0].isNull()) {
+          toPair[1].reset();
+        }
+        else if (toPair[1].isNull()) {
+          toPair[0].reset();
+        }
+      }
+      else {
+        toPair[i].reset();
+        i++;
+        toPair[i].reset();
+      }
+    }
+
+    public boolean isXNull() {
+      return pairX[0].isNull();
+    }
+
+    public boolean isYNull() {
+      return pairY[0].isNull();
+    }
+
+    /**
+     * Returns pairX[0].  May return a null value.
+     * @return
+     */
+    public int getFirstX() {
+      return pairX[0].getInt();
+    }
+
+    /**
+     * Returns pairX[1].  May return a null value.
+     * @return
+     */
+    public int getSecondX() {
+      return pairX[0].getInt();
+    }
+
+    /**
+     * Returns pairY[0].  May return a null value.
+     * @return
+     */
+    public int getFirstY() {
+      return pairY[0].getInt();
+    }
+
+    /**
+     * Returns pairY[1].  May return a null value.
+     * @return
+     */
+    public int getSecondY() {
+      return pairY[0].getInt();
+    }
   }
 }

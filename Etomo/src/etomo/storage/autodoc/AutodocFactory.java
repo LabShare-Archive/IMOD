@@ -115,6 +115,7 @@ public final class AutodocFactory {
   public static final String FIND_BEADS_3D = "findbeads3d";
   public static final String TILT = "tilt";
   public static final String SIRTSETUP = "sirtsetup";
+  public static final String BLENDMONT = "blendmont";
 
   private static final String TEST = "test";
   private static final String UITEST_AXIS = "uitest_axis";
@@ -141,6 +142,7 @@ public final class AutodocFactory {
   private static Autodoc FIND_BEADS_3D_INSTANCE = null;
   private static Autodoc TILT_INSTANCE = null;
   private static Autodoc SIRTSETUP_INSTANCE = null;
+  private static Autodoc BLENDMONT_INSTANCE = null;
 
   private static final HashMap UITEST_AXIS_MAP = new HashMap();
 
@@ -420,6 +422,9 @@ public final class AutodocFactory {
     if (name.equals(SIRTSETUP)) {
       return SIRTSETUP_INSTANCE;
     }
+    if (name.equals(BLENDMONT)) {
+      return BLENDMONT_INSTANCE;
+    }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
 
@@ -493,6 +498,9 @@ public final class AutodocFactory {
     }
     else if (name.equals(SIRTSETUP)) {
       SIRTSETUP_INSTANCE = null;
+    }
+    else if (name.equals(BLENDMONT)) {
+      BLENDMONT_INSTANCE = null;
     }
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");

@@ -161,22 +161,14 @@ public interface ConstJoinMetaData {
 
   public ConstEtomoNumber getAlignmentRefSection();
 
-  public Transform getAlignTransform();
-
   public String getBoundariesToAnalyze();
 
   public int getCoordinate(ConstEtomoNumber coordinate, JoinState state)
       throws NullRequiredNumberException;
 
-  public ConstEtomoNumber getSigmaLowFrequency();
-
   public String getDatasetName();
 
   public ConstEtomoNumber getDensityRefSection();
-
-  public ConstEtomoNumber getCutoffHighFrequency();
-
-  public ConstEtomoNumber getSigmaHighFrequency();
 
   public boolean isUseAlignmentRefSection();
 
@@ -238,11 +230,7 @@ public interface ConstJoinMetaData {
 
   public ScriptParameter getTrialBinningParameter();
 
-  public ScriptParameter getCutoffHighFrequencyParameter();
-
-  public ScriptParameter getSigmaLowFrequencyParameter();
-
-  public ScriptParameter getSigmaHighFrequencyParameter();
+  public AutoAlignmentMetaData getAutoAlignmentMetaData();
 
   public String getName();
 

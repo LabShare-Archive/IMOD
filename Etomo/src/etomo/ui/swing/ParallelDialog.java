@@ -18,8 +18,10 @@ import etomo.BaseManager;
 import etomo.ParallelManager;
 import etomo.ProcessingMethodMediator;
 import etomo.comscript.ParallelParam;
+import etomo.logic.DatasetTool;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
+import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.ParallelMetaData;
 import etomo.type.ProcessingMethod;
@@ -44,8 +46,8 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
   private static final DialogType DIALOG_TYPE = DialogType.PARALLEL;
   private static final String PROCESS_NAME_LABEL = "Process name: ";
 
-  private final ImageIcon iconFolder = new ImageIcon(ClassLoader
-      .getSystemResource("images/openFile.gif"));
+  private final ImageIcon iconFolder = new ImageIcon(
+      ClassLoader.getSystemResource("images/openFile.gif"));
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final JPanel pnlProcessName = new JPanel();
   private final SimpleButton btnChunkComscript = new SimpleButton(iconFolder);
@@ -70,15 +72,16 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
     mediator = manager.getProcessingMethodMediator(axisID);
     // process name panel
     btnChunkComscript.setName(PROCESS_NAME_LABEL);
-   //pnlProcessName.setBoxLayout(BoxLayout.X_AXIS);
+    // pnlProcessName.setBoxLayout(BoxLayout.X_AXIS);
     pnlProcessName.setLayout(layout);
     constraints.fill = GridBagConstraints.BOTH;
     constraints.weightx = 0.0;
     constraints.weighty = 0.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
-    ltfProcessName.setTextPreferredSize(new Dimension(125 * Math.round(UIParameters.INSTANCE
-        .getFontSizeAdjustment()), FixedDim.folderButton.height));
+    ltfProcessName.setTextPreferredSize(new Dimension(125 * Math
+        .round(UIParameters.INSTANCE.getFontSizeAdjustment()),
+        FixedDim.folderButton.height));
     constraints.insets = new Insets(0, 0, 0, -1);
     layout.setConstraints(ltfProcessName.getContainer(), constraints);
     ltfProcessName.setTextPreferredWidth(125);
@@ -152,8 +155,8 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
   }
 
   public void getParameters(BaseScreenState screenState) {
-    screenState.setButtonState(btnRunProcess.getButtonStateKey(), btnRunProcess
-        .getButtonState());
+    screenState.setButtonState(btnRunProcess.getButtonStateKey(),
+        btnRunProcess.getButtonState());
   }
 
   public void getParameters(ParallelMetaData metaData) {
@@ -171,8 +174,13 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
   void action(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnRunProcess.getText())) {
-      manager.processchunks(btnRunProcess, null, ltfProcessName.getText(), null, mediator
-          .getRunMethodForProcessInterface(getProcessingMethod()));
+      if (ltfProcessName.isEditable()
+          && !DatasetTool.validateDatasetName(manager, axisID, workingDir,
+              ltfProcessName.getText(), DataFileType.PARALLEL, null)) {
+        return;
+      }
+      manager.processchunks(btnRunProcess, null, ltfProcessName.getText(), null,
+          mediator.getRunMethodForProcessInterface(getProcessingMethod()));
     }
   }
 
