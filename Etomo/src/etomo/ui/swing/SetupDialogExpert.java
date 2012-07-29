@@ -7,7 +7,7 @@ import java.io.IOException;
 import etomo.ApplicationManager;
 import etomo.Arguments;
 import etomo.EtomoDirector;
-import etomo.logic.StackTool;
+import etomo.logic.DatasetTool;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.LogFile;
 import etomo.storage.Network;
@@ -330,7 +330,6 @@ public final class SetupDialogExpert {
     String errorMessageTitle = new String("Setup Dialog Error");
     String datasetText = dialog.getDataset();
     String panelErrorMessage;
-
     if (datasetText.equals("")) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Dataset name has not been entered.",
           errorMessageTitle, AxisID.ONLY);
@@ -383,7 +382,7 @@ public final class SetupDialogExpert {
           errorMessageTitle, AxisID.ONLY);
       return false;
     }
-    return StackTool.validateViewType(
+    return DatasetTool.validateViewType(
         dialog.isSingleViewSelected() ? ViewType.SINGLE_VIEW : ViewType.MONTAGE,
         manager.getPropertyUserDir(), getStackFileName(), manager, AxisID.ONLY);
   }
