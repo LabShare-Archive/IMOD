@@ -16,7 +16,6 @@ import javax.swing.JFileChooser;
 
 import etomo.comscript.CommandDetails;
 import etomo.comscript.IntermittentCommand;
-import etomo.comscript.MidasParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.process.AxisProcessData;
 import etomo.process.BaseProcessManager;
@@ -50,6 +49,7 @@ import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
+import etomo.type.ViewType;
 import etomo.ui.swing.FileChooser;
 import etomo.ui.swing.FixedDim;
 import etomo.ui.swing.LogInterface;
@@ -206,6 +206,10 @@ public abstract class BaseManager {
   void createProcessTrack() {
   }
 
+  public ViewType getViewType() {
+    return ViewType.DEFAULT;
+  }
+
   public BaseScreenState getBaseScreenState(final AxisID axisID) {
     return null;
   }
@@ -228,9 +232,6 @@ public abstract class BaseManager {
 
   public boolean isInManagerFrame() {
     return false;
-  }
-
-  public void getParameters(MidasParam param) {
   }
 
   AutoAlignmentMetaData getAutoAlignmentMetaData() {

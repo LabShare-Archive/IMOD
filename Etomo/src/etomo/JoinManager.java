@@ -31,12 +31,14 @@ import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseState;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstJoinState;
 import etomo.type.ConstProcessSeries;
 import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.InterfaceType;
 import etomo.type.JoinMetaData;
 import etomo.type.JoinScreenState;
@@ -669,9 +671,14 @@ public final class JoinManager extends BaseManager {
     }
     return paramFile;
   }
-  
-  public void getParameters(final MidasParam param) {
+
+  public void getParameters(final MidasParam param,final AxisID axisID) {
+    param.setInputFileName(FileType.JOIN_SAMPLE.getFileName(this,axisID));
     param.setSectionTableRowData(metaData.getSectionTableData());
+  }
+
+  public void getParameters(final XfalignParam param,final AxisID axisID) {
+    param.setInputFileName(FileType.JOIN_SAMPLE_AVERAGES.getFileName(this, axisID));
   }
 
   private boolean doneJoinDialog() {
@@ -1180,6 +1187,14 @@ public final class JoinManager extends BaseManager {
     }
     processSeries.setNextProcess(ProcessName.XFMODEL.toString(), null);
     XftoxgParam param = new XftoxgParam(this);
+    ConstEtomoNumber refSection = state.getJoinAlignmentRefSection(state.getRefineTrial()
+        .is());
+    if (!refSection.isNull()) {
+      param.setReferenceSection(refSection);
+    }
+    param.setNumberToFit(0);
+    param.setXfFileName(DatasetFiles.getRefineXfFileName(this));
+    param.setXgFileName(DatasetFiles.getRefineXgFileName(this));
     try {
       threadNameA = processMgr.xftoxg(param, processSeries);
     }

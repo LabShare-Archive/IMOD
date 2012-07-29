@@ -209,6 +209,10 @@ public final class ProcessSeries implements ConstProcessSeries {
     this.processDisplay = processDisplay;
   }
 
+  public boolean startNextProcess(final AxisID axisID) {
+    return startNextProcess(axisID, null);
+  }
+
   /**
    * Start next process from the start process queue.  If it is 
    * empty then start next process from the end process queue.  If next process
@@ -253,9 +257,12 @@ public final class ProcessSeries implements ConstProcessSeries {
     return true;
   }
 
+  public void startFailProcess(final AxisID axisID) {
+    startFailProcess(axisID, null);
+  }
+
   /**
-   * If a fail process has been saved, all other processes are deleted and the failprocess
-   * is started.
+   * All other processes are deleted and the failprocess is started if it exists.
    */
   public void startFailProcess(final AxisID axisID,
       final ProcessResultDisplay processResultDisplay) {
@@ -263,14 +270,14 @@ public final class ProcessSeries implements ConstProcessSeries {
       startNextProcess(axisID, processResultDisplay);
     }
     else {
-      if (failProcess == null) {
-        return;
-      }
       nextProcess = null;
       processList = null;
       lastProcess = null;
       run3dmodButton = null;
       run3dmodMenuOptions = null;
+      if (failProcess == null) {
+        return;
+      }
       Process process = failProcess;
       failProcess = null;
       manager.startNextProcess(axisID, process, processResultDisplay, this, dialogType,
@@ -523,7 +530,7 @@ public final class ProcessSeries implements ConstProcessSeries {
     private final FileType outputImageFileType;
     private final FileType outputImageFileType2;
     private final ProcessingMethod processingMethod;
-    private final TaskInterface task;
+    final TaskInterface task;
     private final boolean forceNextProcess;
 
     private Process next = null;

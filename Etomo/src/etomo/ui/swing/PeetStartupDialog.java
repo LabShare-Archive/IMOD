@@ -15,7 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
 import etomo.PeetManager;
-import etomo.logic.DatasetDirectory;
+import etomo.logic.DatasetTool;
 import etomo.logic.PeetStartupData;
 import etomo.storage.PeetAndMatlabParamFileFilter;
 import etomo.storage.autodoc.AutodocTokenizer;
@@ -237,7 +237,7 @@ public final class PeetStartupDialog {
       }
     }
     if (errorMessage == null) {
-      if (!DatasetDirectory.validateDatasetName(manager, dialog, axisID,
+      if (!DatasetTool.validateDatasetName(manager, dialog, axisID,
           ftfDirectory.getFile(), ltfBaseName.getText(), DataFileType.PEET, null)) {
         return false;
       }

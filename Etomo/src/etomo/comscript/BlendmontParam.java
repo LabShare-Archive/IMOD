@@ -7,6 +7,7 @@ import java.util.Hashtable;
 import java.util.List;
 
 import etomo.BaseManager;
+import etomo.logic.TomogramTool;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -59,6 +60,8 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   private final EtomoBoolean2 verySloppyMontage = new EtomoBoolean2("VerySloppyMontage");
   private final ScriptParameter robustFitCriterion = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, "RobustFitCriterion");
+  private final ScriptParameter fillValue = new ScriptParameter(EtomoNumber.Type.DOUBLE,
+      "FillValue");
   /**
    * @version 3.10
    * Script is from an earlier version if false.
@@ -69,7 +72,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   private final FortranInputString startingAndEndingY = new FortranInputString(
       "StartingAndEndingY", 2);
   private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-  
+
   private final AxisID axisID;
   private final String datasetName;
   private final EtomoBoolean2 readInXcorrs;
@@ -142,6 +145,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     sloppyMontage.parse(scriptCommand);
     verySloppyMontage.parse(scriptCommand);
     robustFitCriterion.parse(scriptCommand);
+    fillValue.parse(scriptCommand);
   }
 
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
@@ -166,6 +170,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     sloppyMontage.updateComScript(scriptCommand);
     verySloppyMontage.updateComScript(scriptCommand);
     robustFitCriterion.updateComScript(scriptCommand);
+    fillValue.updateComScript(scriptCommand);
   }
 
   public void setValidate(final boolean validate) {
@@ -196,6 +201,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     sloppyMontage.reset();
     verySloppyMontage.reset();
     robustFitCriterion.reset();
+    fillValue.reset();
   }
 
   public void initializeDefaults() {
@@ -300,6 +306,10 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     return mode;
   }
 
+  public boolean fillValueEquals(final int value) {
+    return fillValue.equals(value);
+  }
+
   public FileType getOutputImageFileType() {
     if (imageOutputFileType != null) {
       return imageOutputFileType;
@@ -316,6 +326,10 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     return null;
   }
 
+  public void setFillValue(final int input) {
+    fillValue.set(input);
+  }
+
   public void setPieceListInput(final String input) {
     pieceListInput.set(input);
   }
@@ -326,6 +340,21 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 
   public void setRootNameForEdges(final String input) {
     rootNameForEdges.set(input);
+  }
+
+  public void setStartingAndEndingXAndY(final TomogramTool.PairXAndY pairXAndY) {
+    resetStartingAndEndingXandY();
+    if (pairXAndY == null) {
+      return;
+    }
+    if (!pairXAndY.isXNull()) {
+      startingAndEndingX.set(0, pairXAndY.getFirstX());
+      startingAndEndingX.set(1, pairXAndY.getSecondX());
+    }
+    if (!pairXAndY.isYNull()) {
+      startingAndEndingY.set(0, pairXAndY.getFirstY());
+      startingAndEndingY.set(1, pairXAndY.getSecondY());
+    }
   }
 
   public void setVerySloppyMontage(final boolean input) {
@@ -640,6 +669,10 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 
   public void setBinByFactor(final int binByFactor) {
     this.binByFactor.set(binByFactor);
+  }
+
+  public void setBinByFactor(final Number input) {
+    binByFactor.set(input);
   }
 
   public ConstEtomoNumber getBinByFactor() {

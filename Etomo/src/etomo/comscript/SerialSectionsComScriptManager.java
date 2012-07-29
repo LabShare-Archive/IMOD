@@ -27,7 +27,7 @@ public final class SerialSectionsComScriptManager extends BaseComScriptManager {
   private ComScript scriptPreblend = null;
   private ComScript scriptBlend = null;
   private ComScript scriptNewst = null;
-  
+
   public SerialSectionsComScriptManager(SerialSectionsManager manager) {
     super(manager);
     this.manager = manager;
@@ -49,10 +49,9 @@ public final class SerialSectionsComScriptManager extends BaseComScriptManager {
   public void savePreblend(BlendmontParam param, AxisID axisID) {
     modifyCommand(scriptPreblend, param, BlendmontParam.COMMAND_NAME, axisID, true, false);
   }
-  
+
   public void loadBlend(AxisID axisID) {
-    scriptBlend = loadComScript(FileType.BLEND_COMSCRIPT, axisID, true, false,
-        false);
+    scriptBlend = loadComScript(FileType.BLEND_COMSCRIPT, axisID, true, false, false);
   }
 
   public BlendmontParam getBlendmontParamFromBlend(final AxisID axisID,
@@ -66,18 +65,13 @@ public final class SerialSectionsComScriptManager extends BaseComScriptManager {
   public void saveBlend(BlendmontParam param, AxisID axisID) {
     modifyCommand(scriptBlend, param, BlendmontParam.COMMAND_NAME, axisID, true, false);
   }
-  
-  
-  
+
   public void loadNewst(AxisID axisID) {
-    scriptNewst = loadComScript(FileType.NEWST_COMSCRIPT, axisID, true, false,
-        false);
+    scriptNewst = loadComScript(FileType.NEWST_COMSCRIPT, axisID, true, false, false);
   }
 
-  public NewstParam getNewstackParam(final AxisID axisID,
-      final String rootName) {
-    NewstParam param = new NewstParam(manager,  axisID
-       );
+  public NewstParam getNewstackParam(final AxisID axisID, final String rootName) {
+    NewstParam param = new NewstParam(manager, axisID);
     initialize(param, scriptNewst, NewstParam.COMMAND, axisID, false, false);
     return param;
   }

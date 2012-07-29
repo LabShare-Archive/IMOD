@@ -18,7 +18,7 @@ import etomo.BaseManager;
 import etomo.ParallelManager;
 import etomo.ProcessingMethodMediator;
 import etomo.comscript.ParallelParam;
-import etomo.logic.DatasetDirectory;
+import etomo.logic.DatasetTool;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.DataFileType;
@@ -175,7 +175,7 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
     String command = event.getActionCommand();
     if (command.equals(btnRunProcess.getText())) {
       if (ltfProcessName.isEditable()
-          && !DatasetDirectory.validateDatasetName(manager, axisID, workingDir,
+          && !DatasetTool.validateDatasetName(manager, axisID, workingDir,
               ltfProcessName.getText(), DataFileType.PARALLEL, null)) {
         return;
       }

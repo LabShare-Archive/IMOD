@@ -11,6 +11,7 @@ import javax.swing.SpinnerNumberModel;
 
 import etomo.AutoAlignmentController;
 import etomo.BaseManager;
+import etomo.comscript.XfalignParam;
 import etomo.type.AutoAlignmentMetaData;
 
 /**
@@ -50,7 +51,7 @@ public final class AutoAlignmentPanel {
       "Revert Auto Alignment to Midas");
   private final MultiLineButton btnRevertToEmpty = new MultiLineButton(
       "Revert to No Transforms");
-  private final LabeledSpinner spBinning = new LabeledSpinner("Binning: ",
+  private final LabeledSpinner spReduceByBinning = new LabeledSpinner("Binning: ",
       new SpinnerNumberModel(2, 1, 50, 1), 1);
   private final LabeledTextField ltfSkipSectionsFrom1 = new LabeledTextField(
       "Sections to skip: ");
@@ -93,7 +94,7 @@ public final class AutoAlignmentPanel {
     SpacedPanel pnlRightButtons = SpacedPanel.getInstance();
     // init
     if (joinConfiguration) {
-      spBinning.setVisible(false);
+      spReduceByBinning.setVisible(false);
       ltfSkipSectionsFrom1.setVisible(false);
       cbPreCrossCorrelation.setVisible(false);
       ltfEdgeToIgnore.setVisible(false);
@@ -120,13 +121,14 @@ public final class AutoAlignmentPanel {
     pnlParameters.add(ltfSkipSectionsFrom1.getContainer());
     pnlParameters.add(ltfEdgeToIgnore);
     pnlParameters.add(pnlBinning);
-    //pre cross correlation
-    pnlPreCrossCorrelation.setLayout(new BoxLayout(pnlPreCrossCorrelation,BoxLayout.X_AXIS));
+    // pre cross correlation
+    pnlPreCrossCorrelation.setLayout(new BoxLayout(pnlPreCrossCorrelation,
+        BoxLayout.X_AXIS));
     pnlPreCrossCorrelation.add(cbPreCrossCorrelation);
     pnlPreCrossCorrelation.add(Box.createHorizontalGlue());
     // binning
     pnlBinning.setLayout(new BoxLayout(pnlBinning, BoxLayout.X_AXIS));
-    pnlBinning.add(spBinning.getContainer());
+    pnlBinning.add(spReduceByBinning.getContainer());
     pnlBinning.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlBinning.add(spMidasBinning.getContainer());
     // buttons
@@ -174,7 +176,7 @@ public final class AutoAlignmentPanel {
     metaData.setPreCrossCorrelation(cbPreCrossCorrelation.isSelected());
     metaData.setSkipSectionsFrom1(ltfSkipSectionsFrom1.getText());
     metaData.setEdgeToIgnore(ltfEdgeToIgnore.getText());
-    metaData.setBinning(spBinning.getValue());
+    metaData.setReduceByBinning(spReduceByBinning.getValue());
     metaData.setMidasBinning(spMidasBinning.getValue());
   }
 
@@ -186,8 +188,35 @@ public final class AutoAlignmentPanel {
     cbPreCrossCorrelation.setSelected(metaData.isPreCrossCorrelation());
     ltfSkipSectionsFrom1.setText(metaData.getSkipSectionsFrom1());
     ltfEdgeToIgnore.setText(metaData.getEdgeToIgnore());
-    spBinning.setValue(metaData.getBinning());
+    spReduceByBinning.setValue(metaData.getReduceByBinning());
     spMidasBinning.setValue(metaData.getMidasBinning());
+  }
+
+  public void getParameters(final XfalignParam param) {
+    if (cbPreCrossCorrelation.isVisible()) {
+      param.setPreCrossCorrelation(cbPreCrossCorrelation.isSelected());
+    }
+    else {
+      param.setPreCrossCorrelation(false);
+    }
+    if (ltfSkipSectionsFrom1.isVisible()) {
+      param.setSkipSectionsFrom1(ltfSkipSectionsFrom1.getText());
+    }
+    else {
+      param.resetSkipSectionsFrom1();
+    }
+    if (ltfEdgeToIgnore.isVisible()) {
+      param.setEdgeToIgnore(ltfEdgeToIgnore.getText());
+    }
+    else {
+      param.resetEdgeToIgnore();
+    }
+    if (spReduceByBinning.isVisible()) {
+      param.setReduceByBinning(spReduceByBinning.getValue());
+    }
+    else {
+      param.resetReduceByBinning();
+    }
   }
 
   public void enableMidas() {

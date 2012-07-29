@@ -4,11 +4,15 @@ import java.io.File;
 import java.io.IOException;
 
 import etomo.comscript.BlendmontParam;
+import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ExtractpiecesParam;
+import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.MidasParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.SerialSectionsComScriptManager;
 import etomo.comscript.MidasParam.Mode;
+import etomo.comscript.XfalignParam;
+import etomo.comscript.XftoxgParam;
 import etomo.logic.SerialSectionsStartupData;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
@@ -42,6 +46,7 @@ import etomo.ui.swing.SerialSectionsDialog;
 import etomo.ui.swing.SerialSectionsStartupDialog;
 import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
+import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 
 /**
@@ -238,8 +243,36 @@ public final class SerialSectionsManager extends BaseManager {
     }
   }
 
-  public void startStartupProcessSeries(final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay) {
+  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final DialogType dialogType, final ProcessDisplay display) {
+    if (process.equals(Task.CHANGE_DIRECTORY)) {
+      changeDirectory(axisID, processSeries);
+    }
+    else if (process.equals(Task.EXTRACT_PIECES)) {
+      extractpieces(axisID, processSeries);
+    }
+    else if (process.equals(Task.CREATE_COMSCRIPTS)) {
+      createComscripts(axisID, processSeries);
+    }
+    else if (process.equals(Task.COPY_DISTORTION_FIELD_FILE)) {
+      copyDistortionFieldFile(processSeries, axisID);
+    }
+    else if (process.equals(Task.DONE_STARTUP_DIALOG)) {
+      doneStartupDialog(processSeries, axisID);
+    }
+    else if (process.equals(Task.RESET_STARTUP_STATE)) {
+      resetStartupState(processSeries, axisID);
+    }
+    else if (process.equals(Task.XFTOXG)) {
+      xftoxg(processSeries, axisID);
+    }
+    else if (process.equals(Task.ALIGN)) {
+      align(processSeries, axisID);
+    }
+  }
+
+  public void completeStartup(final AxisID axisID) {
     ProcessSeries processSeries = new ProcessSeries(this,
         DialogType.SERIAL_SECTIONS_STARTUP);
     processSeries.setNextProcess(Task.CHANGE_DIRECTORY);
@@ -248,45 +281,82 @@ public final class SerialSectionsManager extends BaseManager {
     processSeries.addProcess(Task.COPY_DISTORTION_FIELD_FILE, true);
     processSeries.setLastProcess(Task.DONE_STARTUP_DIALOG);
     processSeries.setFailProcess(Task.RESET_STARTUP_STATE);
-    processSeries.startNextProcess(axisID, processResultDisplay);
+    processSeries.startNextProcess(axisID);
   }
 
-  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
-      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
-      final DialogType dialogType, final ProcessDisplay display) {
-    if (process.equals(Task.CHANGE_DIRECTORY)) {
-      changeDirectory(axisID, processResultDisplay, processSeries);
+  public void preblend(ProcessSeries processSeries,
+      final Deferred3dmodButton deferred3dmodButton, final AxisID axisID,
+      final Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
     }
-    else if (process.equals(Task.EXTRACT_PIECES)) {
-      extractpieces(axisID, processResultDisplay, processSeries);
+    if (getViewType() != ViewType.MONTAGE || dialog == null) {
+      processSeries.startFailProcess(axisID);
+      return;
     }
-    else if (process.equals(Task.CREATE_COMSCRIPTS)) {
-      createComscripts(axisID, processSeries, processResultDisplay);
+    comScriptMgr.loadPreblend(axisID);
+    BlendmontParam param = comScriptMgr.getBlendmontParamFromPreblend(axisID, getName());
+    dialog.getPreblendParameters(param);
+    comScriptMgr.savePreblend(param, axisID);
+    try {
+      processMgr.blend(param, axisID, processSeries);
     }
-    else if (process.equals(Task.COPY_DISTORTION_FIELD_FILE)) {
-      copyDistortionFieldFile(processSeries, axisID, processResultDisplay);
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, "Unable to run preblend.\n" + e.getMessage(),
+          "Process Failed", axisID);
+      processSeries.startFailProcess(axisID);
     }
-    else if (process.equals(Task.DONE_STARTUP_DIALOG)) {
-      doneStartupDialog(processSeries, axisID, processResultDisplay);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    processSeries.startNextProcess(axisID);
+  }
+
+  /**
+   * Run fix edges in Midas
+   */
+  public void midasFixEdges(final AxisID axisID, final ConstProcessSeries processSeries) {
+    MidasParam param = new MidasParam(this, axisID, Mode.FIX_EDGES);
+    getParameters(param);
+    dialog.getParameters(param);
+    try {
+      processMgr.midas(param);
     }
-    if (process.equals(Task.RESET_STARTUP_STATE)) {
-      resetStartupState(processSeries, axisID, processResultDisplay);
+    catch (SystemProcessException e) {
+      UIHarness.INSTANCE.openMessageDialog(this,
+          "Unable open midas on " + metaData.getStack() + ".  ",
+          "Unable to Run Process", axisID);
+      if (processSeries != null) {
+        processSeries.startFailProcess(axisID);
+      }
+      return;
+    }
+    if (processSeries != null) {
+      processSeries.startNextProcess(axisID);
     }
   }
 
-  private void changeDirectory(final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries) {
+  public void align(final AxisID axisID, final Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    ProcessSeries processSeries = new ProcessSeries(this,
+        DialogType.SERIAL_SECTIONS_STARTUP);
+    processSeries.setNextProcess(Task.XFTOXG);
+    processSeries.setLastProcess(Task.ALIGN);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    processSeries.startNextProcess(axisID);
+  }
+
+  private void changeDirectory(final AxisID axisID, final ConstProcessSeries processSeries) {
     File stack = getStack();
     if (stack == null) {
       if (processSeries != null) {
-        processSeries.startFailProcess(axisID, processResultDisplay);
+        processSeries.startFailProcess(axisID);
       }
       return;
     }
     propertyUserDir = stack.getParent();
     origUserDir = System.setProperty("user.dir", propertyUserDir);
     if (processSeries != null) {
-      processSeries.startNextProcess(axisID, processResultDisplay);
+      processSeries.startNextProcess(axisID);
     }
   }
 
@@ -294,14 +364,12 @@ public final class SerialSectionsManager extends BaseManager {
    * Runs extractpieces.  Starts a failure process if it fails.  Starts the next process
    * if it didn't spawn a process thread.
    * @param axisID
-   * @param processResultDisplay
    */
-  private void extractpieces(final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries) {
+  private void extractpieces(final AxisID axisID, final ConstProcessSeries processSeries) {
     ViewType viewType = getViewType();
     if (viewType == null) {
       if (processSeries != null) {
-        processSeries.startFailProcess(axisID, processResultDisplay);
+        processSeries.startFailProcess(axisID);
       }
       return;
     }
@@ -312,8 +380,7 @@ public final class SerialSectionsManager extends BaseManager {
             getName(), AxisType.SINGLE_AXIS, this, axisID);
         String threadName;
         try {
-          threadName = processMgr.extractpieces(param, axisID, processResultDisplay,
-              processSeries);
+          threadName = processMgr.extractpieces(param, axisID, processSeries);
         }
         catch (SystemProcessException e) {
           e.printStackTrace();
@@ -322,7 +389,7 @@ public final class SerialSectionsManager extends BaseManager {
           message[1] = e.getMessage();
           uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
           if (processSeries != null) {
-            processSeries.startFailProcess(axisID, processResultDisplay);
+            processSeries.startFailProcess(axisID);
           }
           return;
         }
@@ -331,8 +398,8 @@ public final class SerialSectionsManager extends BaseManager {
             axisID, ProcessName.EXTRACTPIECES);
       }
     }
-    else if (processSeries != null) {
-      processSeries.startNextProcess(axisID, processResultDisplay);
+    if (processSeries != null) {
+      processSeries.startNextProcess(axisID);
     }
   }
 
@@ -340,15 +407,13 @@ public final class SerialSectionsManager extends BaseManager {
    * Creates blend or newst comscripts.
    * @param axisID
    * @param processSeries
-   * @param processResultDisplay
    */
   private void createComscripts(final AxisID axisID,
-      final ConstProcessSeries processSeries,
-      final ProcessResultDisplay processResultDisplay) {
+      final ConstProcessSeries processSeries) {
     SerialSectionsStartupData startupData = null;
     if (startupDialog == null || (startupData = startupDialog.getStartupData()) == null) {
       if (processSeries != null) {
-        processSeries.startFailProcess(axisID, processResultDisplay);
+        processSeries.startFailProcess(axisID);
       }
       return;
     }
@@ -366,7 +431,7 @@ public final class SerialSectionsManager extends BaseManager {
               + " to " + FileType.PREBLEND_COMSCRIPT.getFileName(this, axisID),
               "Unable to Create Comscripts", axisID);
           if (processSeries != null) {
-            processSeries.startFailProcess(axisID, processResultDisplay);
+            processSeries.startFailProcess(axisID);
           }
           return;
         }
@@ -398,26 +463,195 @@ public final class SerialSectionsManager extends BaseManager {
       comScriptMgr.saveNewst(param, axisID);
     }
     if (processSeries != null) {
-      processSeries.startNextProcess(axisID, processResultDisplay);
+      processSeries.startNextProcess(axisID);
     }
   }
 
-  public void preblend(final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, final Deferred3dmodButton deferred3dmodButton,
-      final AxisID axisID, final Run3dmodMenuOptions run3dmodMenuOptions,
-      final DialogType dialogType) {
-    if (processSeries == null) {
-      processSeries = new ProcessSeries(this, dialogType);
-    }
-    if (getViewType() != ViewType.MONTAGE || dialog == null) {
-      processSeries.startFailProcess(axisID, processResultDisplay);
+  private void xftoxg(final ConstProcessSeries processSeries, final AxisID axisID) {
+    if (dialog == null) {
+      if (processSeries != null) {
+        processSeries.startFailProcess(axisID);
+      }
       return;
     }
-    comScriptMgr.loadPreblend(axisID);
-    BlendmontParam param = comScriptMgr.getBlendmontParamFromPreblend(axisID, getName());
-    dialog.getPreblendParameters(param);
-    comScriptMgr.savePreblend(param, axisID);
-    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    XftoxgParam param = new XftoxgParam(this);
+    dialog.getParameters(param);
+    try {
+      processMgr.xftoxg(param, axisID, processSeries);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute xftoxg.";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(this, message, "Unable to execute process", axisID);
+      if (processSeries != null) {
+        processSeries.startFailProcess(axisID);
+      }
+    }
+    if (processSeries != null) {
+      processSeries.startNextProcess(axisID);
+    }
+  }
+
+  private void align(final ConstProcessSeries processSeries, final AxisID axisID) {
+    if (dialog == null) {
+      if (processSeries != null) {
+        processSeries.startFailProcess(axisID);
+      }
+      return;
+    }
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      comScriptMgr.loadBlend(axisID);
+      BlendmontParam param = comScriptMgr.getBlendmontParamFromBlend(axisID, getName());
+      dialog.getBlendParameters(param);
+      comScriptMgr.saveBlend(param, axisID);
+      try {
+        processMgr.blend(param, axisID, processSeries);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
+        message[1] = e.getMessage();
+        uiHarness
+            .openMessageDialog(this, message, "Unable to execute com script", axisID);
+        if (processSeries != null) {
+          processSeries.startFailProcess(axisID);
+        }
+      }
+    }
+    else {
+      ConstNewstParam param = updateNewstCom(axisID);
+      if (param == null) {
+        if (processSeries != null) {
+          processSeries.startFailProcess(axisID);
+        }
+        return;
+      }
+      try {
+        processMgr.newst(param, axisID, processSeries);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
+        message[1] = e.getMessage();
+        uiHarness
+            .openMessageDialog(this, message, "Unable to execute com script", axisID);
+        if (processSeries != null) {
+          processSeries.startFailProcess(axisID);
+        }
+      }
+    }
+    if (processSeries != null) {
+      processSeries.startNextProcess(axisID);
+    }
+  }
+
+  private ConstNewstParam updateNewstCom(final AxisID axisID) {
+    if (dialog == null) {
+      return null;
+    }
+    comScriptMgr.loadNewst(axisID);
+    NewstParam param = null;
+    try {
+      param = comScriptMgr.getNewstackParam(axisID, getName());
+      param.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
+      dialog.getParameters(param);
+      comScriptMgr.saveNewst(param, axisID);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "newst Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Newst Parameter Syntax Error", axisID);
+      return null;
+    }
+    catch (FortranInputSyntaxException except) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "newst Parameter Syntax Error";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Newst Parameter Syntax Error", axisID);
+      return null;
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, "Unable to update newst com:  " + e.getMessage(),
+          "Etomo Error", axisID);
+      return null;
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, "Unable to update newst com:  " + e.getMessage(),
+          "Etomo Error", axisID);
+      return null;
+    }
+    return param;
+  }
+
+  /**
+   * Copies the distortion field file to the directory containing the stack.  Always tries
+   * to start the next process.
+   * @param processSeries
+   * @param axisID
+   * @param dialogType
+   */
+  private void copyDistortionFieldFile(final ConstProcessSeries processSeries,
+      final AxisID axisID) {
+    File distortionField = getDistortionField();
+    if (distortionField != null) {
+      File stack = getStack();
+      if (stack != null) {
+        try {
+          Utilities.copyFile(distortionField, new File(stack.getParentFile(),
+              distortionField.getName()));
+        }
+        catch (IOException e) {
+          UIHarness.INSTANCE.openMessageDialog(this,
+              "Unable to copy " + distortionField.getAbsolutePath()
+                  + ".  Please copy this file by hand.", "Unable to Copy File", axisID);
+          if (processSeries != null) {
+            processSeries.startFailProcess(axisID);
+          }
+          return;
+        }
+      }
+    }
+    if (processSeries != null) {
+      processSeries.startNextProcess(axisID);
+    }
+  }
+
+  /**
+   * Attempts to close the startup dialog.
+   */
+  private void doneStartupDialog(final ConstProcessSeries processSeries,
+      final AxisID axisID) {
+    startupDialog.done();
+    if (processSeries != null) {
+      processSeries.startNextProcess(axisID);
+    }
+  }
+
+  /**
+   * Attempts to reset the saved state of dialogType dialog.
+   */
+  private void resetStartupState(final ConstProcessSeries processSeries,
+      final AxisID axisID) {
+    if (origUserDir != null) {
+      propertyUserDir = origUserDir;
+      origUserDir = null;
+      System.setProperty("user.dir", propertyUserDir);
+    }
+    startupDialog.resetSavedState();
+    if (processSeries != null) {
+      processSeries.startNextProcess(axisID);
+    }
   }
 
   public void imodPreblend(final AxisID axisID, final Run3dmodMenuOptions menuOptions) {
@@ -439,16 +673,14 @@ public final class SerialSectionsManager extends BaseManager {
     }
   }
 
-  public void imodAlignedStack(final AxisID axisID, final Run3dmodMenuOptions menuOptions) {
+  public void imodPrealign(final AxisID axisID, final Run3dmodMenuOptions menuOptions) {
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      imodPreblend(axisID, menuOptions);
+      return;
+    }
     try {
-      if (metaData.getViewType() == ViewType.MONTAGE) {
-        imodManager.open(ImodManager.PREBLEND_KEY, axisID, menuOptions);
-      }
-      else {
-        imodManager.open(ImodManager.RAW_STACK_KEY,
-            new File(metaData.getStackAbsolutePath()), menuOptions);
-      }
-
+      imodManager.open(ImodManager.RAW_STACK_KEY, axisID,
+          new File(propertyUserDir,metaData.getStack()), menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -465,90 +697,22 @@ public final class SerialSectionsManager extends BaseManager {
     }
   }
 
-  /**
-   * Run fix edges in Midas
-   */
-  public void midasFixEdges(final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries) {
-    sendMsgProcessStarting(processResultDisplay);
-    MidasParam param = new MidasParam(this, axisID, Mode.FIX_EDGES);
-    getParameters(param);
-    dialog.getParameters(param);
+  public void imodAlign(final AxisID axisID, final Run3dmodMenuOptions menuOptions) {
     try {
-      processMgr.midas(param);
+      imodManager.open(ImodManager.ALIGNED_STACK_KEY, axisID, menuOptions);
     }
-    catch (SystemProcessException e) {
-      UIHarness.INSTANCE.openMessageDialog(this,
-          "Unable open midas on " + metaData.getStackAbsolutePath() + ".  ",
-          "Unable to Run Process", axisID);
-      if (processSeries != null) {
-        processSeries.startFailProcess(axisID, processResultDisplay);
-      }
-      return;
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
     }
-    sendMsgProcessSucceeded(processResultDisplay);
-    if (processSeries != null) {
-      processSeries.startNextProcess(axisID, processResultDisplay);
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod with the tomogram", axisID);
     }
-  }
-
-  /**
-   * Copies the distortion field file to the directory containing the stack.  Always tries
-   * to start the next process.
-   * @param processSeries
-   * @param axisID
-   * @param dialogType
-   */
-  private void copyDistortionFieldFile(final ProcessSeries processSeries,
-      final AxisID axisID, final ProcessResultDisplay processResultDisplay) {
-    File distortionField = getDistortionField();
-    if (distortionField != null) {
-      File stack = getStack();
-      if (stack != null) {
-        try {
-          Utilities.copyFile(distortionField, new File(stack.getParentFile(),
-              distortionField.getName()));
-        }
-        catch (IOException e) {
-          UIHarness.INSTANCE.openMessageDialog(this,
-              "Unable to copy " + distortionField.getAbsolutePath()
-                  + ".  Please copy this file by hand.", "Unable to Copy File", axisID);
-          if (processSeries != null) {
-            processSeries.startFailProcess(axisID, processResultDisplay);
-          }
-          return;
-        }
-      }
-    }
-    if (processSeries != null) {
-      processSeries.startNextProcess(axisID, processResultDisplay);
-    }
-  }
-
-  /**
-   * Attempts to close the startup dialog.
-   */
-  private void doneStartupDialog(final ProcessSeries processSeries, final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay) {
-    startupDialog.done();
-    if (processSeries != null) {
-      processSeries.startNextProcess(axisID, processResultDisplay);
-    }
-  }
-
-  /**
-   * Attempts to reset the saved state of dialogType dialog.
-   */
-  private void resetStartupState(final ProcessSeries processSeries, final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay) {
-    if (origUserDir != null) {
-      propertyUserDir = origUserDir;
-      origUserDir = null;
-      System.setProperty("user.dir", propertyUserDir);
-    }
-    startupDialog.resetSavedState();
-    if (processSeries != null) {
-      processSeries.startNextProcess(axisID, processResultDisplay);
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -623,7 +787,7 @@ public final class SerialSectionsManager extends BaseManager {
    */
   private File getStack() {
     if (loadedParamFile) {
-      return new File(metaData.getStackAbsolutePath());
+      return new File(propertyUserDir,metaData.getStack());
     }
     if (startupDialog != null) {
       return startupDialog.getStack();
@@ -636,7 +800,7 @@ public final class SerialSectionsManager extends BaseManager {
    * @param dialogType
    * @return
    */
-  private ViewType getViewType() {
+  public ViewType getViewType() {
     if (loadedParamFile) {
       return metaData.getViewType();
     }
@@ -652,6 +816,7 @@ public final class SerialSectionsManager extends BaseManager {
 
   private void setSerialSectionsDialogParameters() {
     if (loadedParamFile && paramFile != null && metaData.isValid()) {
+      dialog.setParameters(metaData);
       comScriptMgr.loadPreblend(AXIS_ID);
       BlendmontParam param = comScriptMgr.getBlendmontParamFromPreblend(AXIS_ID,
           getName());
@@ -660,7 +825,16 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   public void getParameters(final MidasParam param) {
-    param.setInputFileName(metaData.getStackAbsolutePath());
+    param.setInputFileName(metaData.getStack());
+  }
+
+  public void getParameters(final XfalignParam param, final AxisID axisID) {
+    if (getViewType() == ViewType.MONTAGE) {
+      param.setInputFileName(FileType.PREBLEND_OUTPUT_MRC.getFileName(this, axisID));
+    }
+    else {
+      param.setInputFileName(metaData.getStack());
+    }
   }
 
   void createComScriptManager() {
@@ -712,14 +886,20 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   public static final class Task implements TaskInterface {
-    private static final Task CHANGE_DIRECTORY = new Task(false);
-    private static final Task EXTRACT_PIECES = new Task(false);
-    private static final Task CREATE_COMSCRIPTS = new Task(false);
-    private static final Task COPY_DISTORTION_FIELD_FILE = new Task(false);
+    private static final Task CHANGE_DIRECTORY = new Task();
+    private static final Task EXTRACT_PIECES = new Task();
+    private static final Task CREATE_COMSCRIPTS = new Task();
+    private static final Task COPY_DISTORTION_FIELD_FILE = new Task();
     private static final Task DONE_STARTUP_DIALOG = new Task(true);
     private static final Task RESET_STARTUP_STATE = new Task(true);
+    private static final Task XFTOXG = new Task();
+    private static final Task ALIGN = new Task();
 
     private final boolean droppable;
+
+    private Task() {
+      this(false);
+    }
 
     private Task(final boolean droppable) {
       this.droppable = droppable;

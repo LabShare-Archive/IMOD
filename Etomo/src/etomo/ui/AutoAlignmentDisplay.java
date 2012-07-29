@@ -1,5 +1,7 @@
 package etomo.ui;
 
+import etomo.comscript.MidasParam;
+import etomo.comscript.XfalignParam;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 
@@ -26,4 +28,8 @@ public interface AutoAlignmentDisplay {
   public DialogType getDialogType();
 
   public AxisID getAxisID();
+
+  public void getAutoAlignmentParameters(MidasParam param);
+
+  public void getAutoAlignmentParameters(XfalignParam param);
 }

@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
-import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.EtomoNumber;
@@ -130,8 +129,6 @@ public final class MidasParam implements Command {
   private static final String outputFileExtension = "_midas.xf";
 
   private final EtomoNumber binning = new EtomoNumber();
-  private final String[] commandArray;
-  private final SystemProgram program;
   private final String workingDir;
   private final File outputFile;
   private final String rootName;
@@ -142,6 +139,7 @@ public final class MidasParam implements Command {
 
   private ArrayList sectionTableRowData = null;
   private String inputFileName = null;
+  private String[] commandArray = null;
 
   public MidasParam(final BaseManager manager, final AxisID axisID, final Mode mode) {
     this.manager = manager;
@@ -151,15 +149,6 @@ public final class MidasParam implements Command {
     rootName = manager.getName();
     outputFileName = rootName + outputFileExtension;
     outputFile = new File(workingDir, outputFileName);
-    ArrayList options = genOptions();
-    commandArray = new String[options.size() + commandSize];
-    commandArray[0] = BaseManager.getIMODBinPath() + commandName;
-    for (int i = 0; i < options.size(); i++) {
-      commandArray[i + commandSize] = (String) options.get(i);
-    }
-    program = new SystemProgram(manager, manager.getPropertyUserDir(), commandArray,
-        axisID);
-    program.setWorkingDirectory(new File(workingDir));
   }
 
   public AxisID getAxisID() {
@@ -167,6 +156,14 @@ public final class MidasParam implements Command {
   }
 
   public String[] getCommandArray() {
+    if (commandArray == null) {
+      ArrayList options = genOptions();
+      commandArray = new String[options.size() + commandSize];
+      commandArray[0] = BaseManager.getIMODBinPath() + commandName;
+      for (int i = 0; i < options.size(); i++) {
+        commandArray[i + commandSize] = (String) options.get(i);
+      }
+    }
     return commandArray;
   }
 
@@ -179,6 +176,7 @@ public final class MidasParam implements Command {
   }
 
   public String getCommandLine() {
+    getCommandArray();
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < commandArray.length; i++) {
       buffer.append(commandArray[i] + " ");
@@ -231,7 +229,7 @@ public final class MidasParam implements Command {
       options.add("-D");
       options.add("-o");
       options.add(outputFileName);
-      options.add(rootName + ".sample");
+      options.add(inputFileName);
       options.add(rootName + ".xf");
     }
     else if (mode == Mode.FIX_EDGES) {
