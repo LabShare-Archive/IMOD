@@ -17,9 +17,8 @@ import javax.swing.WindowConstants;
 
 import etomo.EtomoDirector;
 import etomo.SerialSectionsManager;
-import etomo.logic.DatasetDirectory;
+import etomo.logic.DatasetTool;
 import etomo.logic.SerialSectionsStartupData;
-import etomo.logic.StackTool;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -182,12 +181,12 @@ public class SerialSectionsStartupDialog implements ContextMenu {
   }
 
   private boolean validate() {
-    if (!DatasetDirectory.validateDatasetName(manager, axisID, ftfStack.getFile(),
+    if (!DatasetTool.validateDatasetName(manager, axisID, ftfStack.getFile(),
         DataFileType.SERIAL_SECTIONS, AxisType.SINGLE_AXIS)) {
       return false;
     }
     File stack = getStack();
-    return StackTool.validateViewType(getViewType(), stack.getParent(), stack.getName(),
+    return DatasetTool.validateViewType(getViewType(), stack.getParent(), stack.getName(),
         manager, axisID);
   }
 
@@ -216,8 +215,7 @@ public class SerialSectionsStartupDialog implements ContextMenu {
       if (!saveState()) {
         return;
       }
-
-      manager.startStartupProcessSeries(axisID, null);
+      manager.completeStartup(axisID);
     }
     else if (command.equals(btnCancel.getActionCommand())) {
       resetSavedState();
@@ -240,6 +238,16 @@ public class SerialSectionsStartupDialog implements ContextMenu {
     }
     if (!ftfDistortionField.isEmpty()) {
       return ftfDistortionField.getFile();
+    }
+    return null;
+  }
+  
+  public String getPropertyUserDir() {
+    if (startupData != null) {
+      return startupData.getStack().getParent();
+    }
+    if (!ftfStack.isEmpty()) {
+      return ftfStack.getFile().getParent();
     }
     return null;
   }
