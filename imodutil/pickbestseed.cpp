@@ -559,7 +559,7 @@ void PickSeeds::main(int argc, char *argv[])
   for (co = 0; co < maxConts; co++) {
     if (mTracks[co].candIndex >= 0) {
       edgeSDs[numEdge] = mTracks[co].edgeSDmedian / 
-        pow(mTracks[co].edgeSDsd, edgeAdjustBySDpower);
+        pow((double)mTracks[co].edgeSDsd, edgeAdjustBySDpower);
       elongs[numEdge++] = mTracks[co].elongMedian;
     }
   }
