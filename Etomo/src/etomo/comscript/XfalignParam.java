@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import etomo.BaseManager;
 import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
+import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
@@ -153,13 +154,21 @@ public class XfalignParam implements Command {
   private static final String commandName = "xfalign";
   private static final String outputFileExtension = "_auto.xf";
 
+  private final EtomoNumber reduceByBinning = new EtomoNumber();
+  private final EtomoNumber edgeToIgnore = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+
   private final AutoAlignmentMetaData autoAlignmentMetaData;
-  private final String[] commandArray;
   private final String rootName;
   private final String outputFileName;
   private final File outputFile;
   private final boolean tomogramAverages;
   private final Mode mode;
+
+  private String inputFileName = null;
+  private String[] commandArray = null;
+  private boolean preCrossCorrelation = false;
+  private String skipSections = null;
+  private boolean sectionsNumberedFromOne = false;
 
   public XfalignParam(final String rootName, final String propertyUserDir,
       final AutoAlignmentMetaData autoAlignmentMetaData, final Mode mode,
@@ -170,15 +179,6 @@ public class XfalignParam implements Command {
     this.rootName = rootName;
     outputFileName = rootName + outputFileExtension;
     outputFile = new File(propertyUserDir, outputFileName);
-    ArrayList options = genOptions();
-    commandArray = new String[options.size() + commandSize];
-    commandArray[0] = "bash";
-    commandArray[1] = BaseManager.getIMODBinPath() + "runpyscript";
-    commandArray[2] = "-P";
-    commandArray[3] = commandName;
-    for (int i = 0; i < options.size(); i++) {
-      commandArray[i + commandSize] = (String) options.get(i);
-    }
   }
 
   public AxisID getAxisID() {
@@ -186,6 +186,17 @@ public class XfalignParam implements Command {
   }
 
   public String[] getCommandArray() {
+    if (commandArray == null) {
+      ArrayList options = genOptions();
+      commandArray = new String[options.size() + commandSize];
+      commandArray[0] = "bash";
+      commandArray[1] = BaseManager.getIMODBinPath() + "runpyscript";
+      commandArray[2] = "-P";
+      commandArray[3] = commandName;
+      for (int i = 0; i < options.size(); i++) {
+        commandArray[i + commandSize] = (String) options.get(i);
+      }
+    }
     return commandArray;
   }
 
@@ -198,6 +209,7 @@ public class XfalignParam implements Command {
   }
 
   public String getCommandLine() {
+    getCommandArray();
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < commandArray.length; i++) {
       buffer.append(commandArray[i] + " ");
@@ -255,32 +267,38 @@ public class XfalignParam implements Command {
       options.add("-tomo");
     }
     if (mode == Mode.INITIAL) {
-      genInitialOptions(options);
+      options.add("-pre");
     }
     else if (mode == Mode.REFINE) {
-      genRefineOptions(options);
+      options.add("-ini");
+      options.add(rootName + ".xf");
     }
     else {
       throw new IllegalArgumentException("Unknown mode " + mode + ".");
     }
+    genFilterOptions(options);
+    genParamsOptions(options);
+    if (!edgeToIgnore.isNull()) {
+      options.add("-matt");
+      options.add(edgeToIgnore.toString());
+    }
+    if (!reduceByBinning.isNull()) {
+      options.add("-reduce");
+      options.add(reduceByBinning.toString());
+    }
+    if (preCrossCorrelation) {
+      options.add("-prexcorr");
+    }
+    if (skipSections != null) {
+      options.add("-skip");
+      options.add(skipSections);
+    }
+    if (sectionsNumberedFromOne) {
+      options.add("-one");
+    }
+    options.add(inputFileName);
+    options.add(outputFileName);
     return options;
-  }
-
-  private void genInitialOptions(ArrayList options) {
-    options.add("-pre");
-    genFilterOptions(options);
-    genParamsOptions(options);
-    options.add(rootName + ".sampavg");
-    options.add(outputFileName);
-  }
-
-  private void genRefineOptions(ArrayList options) {
-    options.add("-ini");
-    options.add(rootName + ".xf");
-    genFilterOptions(options);
-    genParamsOptions(options);
-    options.add(rootName + ".sampavg");
-    options.add(outputFileName);
   }
 
   private void genFilterOptions(ArrayList options) {
@@ -313,6 +331,46 @@ public class XfalignParam implements Command {
         options.add("3");
       }
     }
+  }
+
+  public void setReduceByBinning(final Number input) {
+    reduceByBinning.set(input);
+  }
+
+  public void resetReduceByBinning() {
+    reduceByBinning.reset();
+  }
+
+  public void setEdgeToIgnore(final String input) {
+    edgeToIgnore.set(input);
+  }
+
+  public void resetEdgeToIgnore() {
+    edgeToIgnore.reset();
+  }
+
+  public void setSkipSectionsFrom1(final String input) {
+    if (input == null || input.matches("\\s*")) {
+      sectionsNumberedFromOne = false;
+      skipSections = null;
+    }
+    else {
+      sectionsNumberedFromOne = true;
+      skipSections = input;
+    }
+  }
+
+  public void resetSkipSectionsFrom1() {
+    sectionsNumberedFromOne = false;
+    skipSections = null;
+  }
+
+  public void setPreCrossCorrelation(final boolean input) {
+    preCrossCorrelation = input;
+  }
+
+  public void setInputFileName(final String input) {
+    inputFileName = input;
   }
 
   public final static class Mode implements CommandMode {
