@@ -473,6 +473,10 @@ final class LabeledTextField {
     return (textField.isEditable());
   }
 
+  boolean isVisible() {
+    return panel.isVisible();
+  }
+
   void setVisible(final boolean isVisible) {
     panel.setVisible(isVisible);
   }
