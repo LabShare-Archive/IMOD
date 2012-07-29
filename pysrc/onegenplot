@@ -265,7 +265,7 @@ inlist += ['0',
 
 try:
    prnstr('Close graphing window to exit', flush=True)
-   cmd = '/home/mast/IMOD/flib/graphics/genhstplt'
+   cmd = 'genhstplt'
    if message:
       cmd += ' -message """' + message + '"""'
    if tooltip:
