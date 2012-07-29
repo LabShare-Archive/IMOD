@@ -29,7 +29,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.filechooser.FileFilter;
 
 import etomo.ApplicationManager;
-import etomo.logic.DatasetDirectory;
+import etomo.logic.DatasetTool;
 import etomo.storage.MagGradientFileFilter;
 import etomo.storage.StackFileFilter;
 import etomo.storage.DistortionFileFilter;
@@ -189,13 +189,13 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   public void buttonExecuteAction() {
     String sDataset = ftfDataset.getText();
     if (sDataset.indexOf(File.separator) != -1) {
-      if (!DatasetDirectory.validateDatasetName(applicationManager, AxisID.ONLY,
+      if (!DatasetTool.validateDatasetName(applicationManager, AxisID.ONLY,
           ftfDataset.getFile(), DataFileType.RECON, expert.getAxisType())) {
         return;
       }
     }
     else {
-      if (!DatasetDirectory.validateDatasetName(applicationManager, AxisID.ONLY,
+      if (!DatasetTool.validateDatasetName(applicationManager, AxisID.ONLY,
           new File(applicationManager.getPropertyUserDir()), ftfDataset.getText(),
           DataFileType.RECON, expert.getAxisType())) {
         return;
