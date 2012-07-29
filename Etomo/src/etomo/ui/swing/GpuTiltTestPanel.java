@@ -13,7 +13,7 @@ import javax.swing.SpinnerNumberModel;
 
 import etomo.ToolsManager;
 import etomo.comscript.GpuTiltTestParam;
-import etomo.logic.DatasetDirectory;
+import etomo.logic.DatasetTool;
 import etomo.type.AxisID;
 import etomo.type.DataFileType;
 
@@ -95,7 +95,7 @@ public class GpuTiltTestPanel implements ToolPanel, ContextMenu {
   }
 
   private void action() {
-    if (!DatasetDirectory.validateDatasetName(manager, axisID,
+    if (!DatasetTool.validateDatasetName(manager, axisID,
         new File(manager.getPropertyUserDir()), DATASET_ROOT, DataFileType.TOOLS, null)) {
       return;
     }
