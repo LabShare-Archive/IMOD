@@ -1,0 +1,33 @@
+.na
+.nh
+.TH autofidseed 1 4.6.8 BL3DEMC
+.SH NAME
+autofidseed \- Automatically make a seed model for tilt series fiducial tracking
+.SH SYNOPSIS
+autofidseed [options] data_file
+.SH DESCRIPTION
+Autofidseed uses a series of other programs to generate a seed model for
+tracking tilt series fiducial particles in Beadtrack(1).  Given a desired
+number or density of beads to be found, it attempts to select a well
+distributed set of good-quality beads.  If beads are on two surfaces, it will
+aim for an even distribution of beads on both surfaces.
+.P
+This man page is under construction
+.SS Options
+Autofidseed uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -).  Options can be abbreviated.
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH AUTHOR
+.nf
+David Mastronarde
+.fi
+.SH SEE ALSO
+imodfindbeads(1), beadtrack(1), sortbeadsurfs(1), pickbestseed(1)
+.P
+Email bug reports to mast@colorado.edu.

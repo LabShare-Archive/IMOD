@@ -27,6 +27,9 @@ public class XcorrProcessWatcher implements ProcessMonitor {
   private boolean stop = false;
   private boolean running = false;
 
+  public void dumpState() {
+  }
+  
   /**
    * Construct a xcorr process watcher
    * @param appMgr

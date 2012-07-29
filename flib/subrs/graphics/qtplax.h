@@ -1,3 +1,7 @@
+/* Header for qtplax.cpp with defines for Fortran-callable routines
+ *
+ *  $Id$
+ */
 #ifndef _PLAX_H_
 #define _PLAX_H_
 
@@ -35,6 +39,8 @@
 #define plax_sctext   P_SCTEXT
 #define plax_erase    PLAX_ERASE
 #define plax_initialize  PLAX_INITIALIZE
+#define plax_wait_for_close PLAX_WAIT_FOR_CLOSE
+#define plax_next_text_align PLAX_NEXT_TEXT_ALIGN
 
 #else
 
@@ -55,6 +61,8 @@
 #define plax_putc     putc_
 #define plax_erase    plax_erase__
 #define plax_initialize  plax_initialize__
+#define plax_wait_for_close plax_wait_for_close__
+#define plax_next_text_align plax_next_text_align__
 
 #else
 
@@ -73,6 +81,8 @@
 #define plax_sctext   p_sctext_
 #define plax_erase    plax_erase_
 #define plax_initialize  plax_initialize_
+#define plax_wait_for_close plax_wait_for_close_
+#define plax_next_text_align plax_next_text_align_
 
 #endif
 
@@ -86,6 +96,7 @@ int plax_open(void);
 void plax_close(void);
 void plax_flush(void);
 void plax_erase(void);
+void plax_wait_for_close(void);
 void plax_mapcolor(int *color, int *ired, int *igreen, int *iblue);
 void plax_box(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2);
 void plax_boxo(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2);
@@ -102,6 +113,7 @@ void plax_sctext(int *thickness,
 		 int *cindex,
 		 int *ix, int *iy,
                  char *string, int strsize);
+void plax_next_text_align(int *type);
 }
 
 class PlaxWindow : public QWidget

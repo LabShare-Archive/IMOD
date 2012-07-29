@@ -18,7 +18,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
-import etomo.logic.TomogramSize;
+import etomo.logic.TomogramTool;
 import etomo.storage.Network;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
@@ -742,7 +742,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   }
 
   private void updateTomogramSizeWarning(boolean enableCombine) {
-    boolean changed = TomogramSize.isTomogramSizeChanged(applicationManager, matchBtoA,
+    boolean changed = TomogramTool.isTomogramSizeChanged(applicationManager, matchBtoA,
         AxisID.ONLY);
     boolean different = false;
     if (!enableCombine) {
@@ -1231,7 +1231,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     return scriptMatchMode == null
         || (scriptMatchMode == MatchMode.A_TO_B && !rbAtoB.isSelected())
         || (scriptMatchMode == MatchMode.B_TO_A && !rbBtoA.isSelected())
-        || TomogramSize.isTomogramSizeChanged(applicationManager, matchBtoA, AxisID.ONLY);
+        || TomogramTool.isTomogramSizeChanged(applicationManager, matchBtoA, AxisID.ONLY);
   }
 
   private void updateMatchTo() {

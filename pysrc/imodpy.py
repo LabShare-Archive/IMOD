@@ -120,7 +120,8 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
          prnstr('   With input:')
          for l in input:
             prnstr(l)
-   
+      sys.stdout.flush()
+
    if outfile:
       collect = 0
       if isinstance(outfile, str) and outfile == 'stdout':
@@ -241,7 +242,7 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
          prnstr('    Output:')
          for l in output:
             prnstr(l, end='')
-      prnstr('-------------------------')
+      prnstr('-------------------------', flush = True)
       
    if ec:
       # look thru the output for 'ERROR' line(s) and put them before this
@@ -851,13 +852,16 @@ def fmtstr(stringIn, *args):
       
 
 # Function to replace print, with same format as new print function
-def prnstr(string, file = sys.stdout, end = '\n'):
-   """prnstr(string, file = sys.stdout, end = '\n') - replaces print function
+def prnstr(string, file = sys.stdout, end = '\n', flush = False):
+   """prnstr(string, file = sys.stdout, end = '\n', flush = False) - replaces
+   print function
    This function can be called like the new print function to write to a file,
    or to stdout by default, and add a line ending by default.  If end='',
    then it will not write a space after writing the line, so it can be used to
    write strings with line endings as the old print did.  If end=' ' it will
-   write a space after the string as the new print function does.
+   write a space after the string as the new print function does.  If flush
+   is True or the file is open in binary mode, flush() is called after the
+   write.
    """
    binary = 'b' in str(file.mode)
    if pyVersion >= 300 and binary:
@@ -867,5 +871,5 @@ def prnstr(string, file = sys.stdout, end = '\n'):
       file.write(string)
    else:
       file.write(string + end)
-   if binary:
+   if binary or flush:
       file.flush()

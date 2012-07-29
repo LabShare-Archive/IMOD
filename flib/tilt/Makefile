@@ -35,5 +35,5 @@ install: $(PROG)
 	$(CP) $(PROG) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *.exe *.mod *.linkinfo \#* *~ tilt
+	-\rm -f *.$(OBJEXT) *.exe *.mod *.linkinfo \#* *~ tilt
 

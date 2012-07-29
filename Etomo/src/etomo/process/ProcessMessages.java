@@ -61,6 +61,39 @@ public final class ProcessMessages {
   // may be turned off temporarily
   private boolean multiLineMessages = false;
 
+  public void dumpState() {
+    System.err.print("[chunks:" + chunks + ",processOutputString:" + processOutputString
+        + ",processOutputStringArray:");
+    if (processOutputStringArray != null) {
+      System.err.print("{");
+      for (int i = 0; i < processOutputStringArray.length; i++) {
+        System.err.print(processOutputStringArray[i]);
+        if (i < processOutputStringArray.length - 1) {
+          System.err.print(",");
+        }
+      }
+      System.err.print("}");
+    }
+    System.err.print(",index:" + index + ",line:" + line + ",infoList:");
+    if (infoList != null) {
+      System.err.println(infoList.toString());
+    }
+    System.err.print(",warningList:");
+    if (warningList != null) {
+      System.err.println(warningList.toString());
+    }
+    System.err.print(",errorList:");
+    if (errorList != null) {
+      System.err.println(errorList.toString());
+    }
+    System.err.print(",chunkErrorList:");
+    if (chunkErrorList != null) {
+      System.err.println(chunkErrorList.toString());
+    }
+    System.err.print(",successTag1:" + successTag1 + ",successTag2:" + successTag2
+        + ",\nsuccess:" + success + ",multiLineMessages:" + multiLineMessages + "]");
+  }
+
   static ProcessMessages getInstance() {
     return new ProcessMessages(false, false, null, null);
   }

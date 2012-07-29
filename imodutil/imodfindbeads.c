@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdio.h>
@@ -61,9 +60,6 @@ static void printArray(float *filtBead, int nxdim, int nx, int ny);
 static void selectedMinMax(PeakEntry *peakList, float *element, int numPeaks,
                            float *select, float selMin, float selMax,
                            float *minVal, float *maxVal, int *ninRange);
-static int pointInsideArea(Iobj *obj, int *list, int nlist, float xcen, 
-                           float ycen);
-static void makeAreaContList(Iobj *obj, int iz, int *list, int *nlist);
 
 /* 
  * Main entry
@@ -142,13 +138,13 @@ int main( int argc, char *argv[])
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 imodfindbeads  */
   int numOptions = 32;
-  char *options[] = {
+  const char *options[] = {
     "input:InputImageFile:FN:", "output:OutputModelFile:FN:",
     "filtered:FilteredImageFile:FN:", "area:AreaModel:FN:",
     "add:AddToModel:FN:", "ref:ReferenceModel:FN:",
     "boundary:BoundaryObject:I:", "size:BeadSize:F:", "light:LightBeads:B:",
     "scaled:ScaledSize:F:", "interpmin:MinInterpolationFactor:F:",
-    "linear:LinearInterpolation:B:", "center:CenterWeight:F:",
+    "linear:LinearInterpolation:I:", "center:CenterWeight:F:",
     "box:BoxSizeScaled:I:", "threshold:ThresholdForAveraging:F:",
     "store:StorageThreshold:F:", "bkgd:BackgroundGroups:F:",
     "annulus:AnnulusPercentile:F:", "peakmin:MinRelativeStrength:F:",
@@ -227,7 +223,7 @@ int main( int argc, char *argv[])
   if (PipGetFloat("BeadSize", &beadSize))
     exitError("You must enter a bead size");
   PipGetBoolean("LightBeads", &lightBeads);
-  PipGetBoolean("LinearInterpolation", &linear);
+  PipGetInteger("LinearInterpolation", &linear);
   PipGetBoolean("RemakeModelBead", &remakeModelBead);
   PipGetFloat("ThresholdForAveraging", &threshold);
   PipGetFloat("StorageThreshold", &peakThresh);
@@ -430,8 +426,14 @@ int main( int argc, char *argv[])
         iz = zlist[indz];
         listStart[indz - izst] = numPeaks;
         numAreaCont = 0;
-        if (areaMod)
-          makeAreaContList(&areaMod->obj[0], iz, areaConts, &numAreaCont);
+        if (areaMod) {
+          ix = makeAreaContList(&areaMod->obj[0], iz, areaConts, &numAreaCont, MAX_AREAS);
+          if (ix < 0)
+            exitError("Too many contours on one section in area model for array "
+                      "(limit %d)", MAX_AREAS);
+          if (ix > 0)
+            exitError("No contours in object 1 of area model");
+        }
       
         // Create a slice and read into it as floats
         sl = readSliceAsFloat(infp, &inhead, sliceMode, iz);
@@ -511,8 +513,8 @@ int main( int argc, char *argv[])
               // Center of feature in full original image
               xcen = (ixofs + cx + beadCenOfs) * scaleFactor + xOffset;
               ycen = (iyofs + cy + beadCenOfs) * scaleFactor + yOffset;
-              if (numAreaCont && !pointInsideArea(&areaMod->obj[0], areaConts,
-                                                  numAreaCont, xcen, ycen))
+              if (numAreaCont && imodPointInsideArea(&areaMod->obj[0], areaConts,
+                                                     numAreaCont, xcen, ycen) < 0)
                 continue;
 
               // First validate the peak by polarity of density in full image
@@ -798,7 +800,7 @@ int main( int argc, char *argv[])
               // Interpolate the bead into center of array, add it to sum
               cubinterp(sl->data.f, oneBead, nxin, nyin, boxSize, boxSize, 
                         amat, peakList[j].xcen, peakList[j].ycen, 0., 0., 1.,
-                        inhead.amean, linear);
+                        inhead.amean, B3DMAX(0,linear));
               nsum++;
               for (i = 0; i < boxSize * boxSize; i++)
                 fullBead[i] += oneBead[i];
@@ -1341,14 +1343,14 @@ static void printArray(float *filtBead, int nxdim, int nx, int ny)
  * to be assessed in the first peak; select can be NULL or a pointer to the
  * element in the first peak to use for selection, and selMin and selMax
  * are minimum and maximum values for the selection range.  min and max and
- * number in range are returne din minVal, maxVal, and ninRange.
+ * number in range are returned in minVal, maxVal, and ninRange.
  */
 static void selectedMinMax(PeakEntry *peakList, float *element, int numPeaks,
                            float *select, float selMin, float selMax,
                            float *minVal, float *maxVal, int *ninRange)
 {
-  float dxbin, delta, val;
-  int i, j, ist, ind;
+  float val;
+  int j;
   *minVal = 1.e30;
   *maxVal = -1.e30;
   *ninRange = 0;
@@ -1366,78 +1368,3 @@ static void selectedMinMax(PeakEntry *peakList, float *element, int numPeaks,
     (*ninRange)++;
   }
 }
-
-/*
- * Make a list of the contours in obj at Z value iz; rteurn them in list and
- * number of values in nlist
- */
-static void makeAreaContList(Iobj *obj, int iz, int *list, int *nlist)
-{
-  int co, dzmin, izmin, zco, dz;
-  izmin = -999;
-  dzmin = 100000;
-  for (co = 0; co < obj->contsize; co++) {
-    if (!obj->cont[co].psize)
-      continue;
-    zco = B3DNINT(obj->cont[co].pts[0].z);
-    dz = B3DMAX(iz - zco, zco - iz);
-    if (dz < dzmin) {
-      dzmin = dz;
-      izmin = zco;
-    }
-  }
-
-  if (izmin == -999)
-    exitError("No contours in object 1 of area model");
-  *nlist = 0;
-  for (co = 0; co < obj->contsize; co++) {
-    if (!obj->cont[co].psize)
-      continue;
-    zco = B3DNINT(obj->cont[co].pts[0].z);
-    if (zco == izmin) {
-      if (*nlist == MAX_AREAS - 1)
-        exitError("Too many contours on one section in area model for array");
-      list[(*nlist)++] = co;
-    }
-  }
-}
-
-/* 
- * Test for whether the point xcen, ycen is inside any of the contours in obj
- * that are listed in list (nlist values there)
- */
-static int pointInsideArea(Iobj *obj, int *list, int nlist, float xcen, 
-                           float ycen)
-{
-  int i;
-  Ipoint pnt;
-  pnt.x = xcen;
-  pnt.y = ycen;
-  pnt.z = 0.;
-  for (i = 0; i < nlist; i++) {
-    if (imodPointInsideCont(&obj->cont[list[i]], &pnt))
-      return 1;
-  }
-  return 0;
-}
-
-/*
-
-$Log$
-Revision 3.5  2008/12/01 15:44:39  mast
-Pulled out more library functions, made kernel filtering be default
-
-Revision 3.4  2008/11/12 03:48:19  mast
-Pulled out the scan histogram function for library
-
-Revision 3.3  2008/11/02 13:43:48  mast
-Switched to float-slice reading function
-
-Revision 3.2  2008/06/22 05:04:26  mast
-Make sure valblack is not based on dip below the minimum value output
-
-Revision 3.1  2008/06/19 23:26:50  mast
-Added to package
-
-
-*/

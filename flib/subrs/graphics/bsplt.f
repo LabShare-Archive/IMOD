@@ -8,7 +8,8 @@ c
 c       $Id$
 c       
       subroutine bsplt(namx,xx,yy,ngx,nx,nsymb,ngrps,irecx,irecy,colx,coly,iflogx,iflogy)
-      common /pltp/ifgpl,ifNoTerm
+      character*80 keys(8), xaxisLabel
+      common /pltp/igenPltType,ifNoTerm,ifConnect,numKeys, keys, xaxisLabel
       dimension irecx(*),irecy(*),colx(*),coly(*),namx(*)
       dimension xx(*),ngx(*),nsymb(*),yy(*),xtick(310),ytick(310)
       dimension xls(4),yls(4)
@@ -23,7 +24,7 @@ c
 c       
       call minmax(xx,nx,xmin,xmax)
       call minmax(yy,nx,ymin,ymax)
-      if(ifgpl.lt.0)then
+      if(igenPltType.lt.0)then
         ifnonzer=0
         do i=1,nx
           ymin=min(ymin,yy(i)-colx(i))
@@ -52,7 +53,7 @@ c
           isymbt=nsymb(ng)
 c           
 c           If the symbol type is 0, draw connected lines instead
-          if(ifgpl.lt.0.or.isymbt.eq.0) then
+          if(igenPltType.lt.0.or.isymbt.eq.0.or. ifConnect .ne. 0) then
             if (i.gt.1.and.ngx(i).eq.ngx(max(1,i-1))) then
               call va(ix,iy)
             else
@@ -61,18 +62,33 @@ c           If the symbol type is 0, draw connected lines instead
           endif                
           if(isymbt.lt.0)isymbt=-i
           call scpnt(ix,iy,isymbt)
-          if(ifgpl.lt.0)then
+          if(igenPltType.lt.0)then
             idy=ysc*colx(i)
             call ma(ix,iy+idy)
             call va(ix,iy-idy)
             call ma(ix,iy)
           endif
         enddo
+c         
+c         Output symbols and keys on right
+        do i = 1, min(numKeys, ngrps)
+          ix = (xlo + 10. * dx) * xsc + xad + 30
+          iy = (ylo + (10.5 - i) * dy) * ysc + yad
+          if (nsymb(i) > 0) call scpnt(ix, iy, nsymb(i))
+          call plax_next_text_align(14)
+          call p_sctext(1, 8, 8, 241, ix + 20, iy, keys(i))
+        enddo
+        if (xaxisLabel .ne. ' ') then
+          call plax_next_text_align(3)
+          call p_sctext(1, 8, 8, 241, nint((xlo + 5. * dx) * xsc + xad), 2, xaxisLabel)
+        endif
+        numKeys = 0
+        xaxisLabel = ' '
         call updat(1)
       elseif(ifterm.gt.0)then
         do i=1,nx
           jcol=7.9999*(xx(i)-xlo)/dx
-          if(ifgpl.lt.0)then
+          if(igenPltType.lt.0)then
             irow=2.09995*(10.-(yy(i)+colx(i)-ylo)/dy)
             call setpos(irow,jcol)
             call chrout(ichar('-'))
@@ -101,8 +117,8 @@ c       if not doing errors, default is to connect all, and addition of
 c       100 indicates connect by group; but if doing errors, default is
 c       to do by group only, and addition of 100 is needed to specify
 c       connect all
-      bygrup=(ifcnct.gt.100.and.ifgpl.ge.0).or.
-     &    (ifcnct.gt.0.and.ifcnct.lt.100.and.ifgpl.lt.0)
+      bygrup=(ifcnct.gt.100.and.igenPltType.ge.0).or.
+     &    (ifcnct.gt.0.and.ifcnct.lt.100.and.igenPltType.lt.0)
       ifcnct=mod(ifcnct,100)
       if(iabs(iftyp).gt.1)iftyp=0
       iout=6
@@ -160,7 +176,7 @@ c       connect all
         if(ifimg.gt.0)then
           write(*,'('' tick and symbol size, grid and symbol thickness, 1 for box: '',$)')
           read(5,*)tiksiz,symwid,ithgrd,ithsym,ifbox
-          if(ifgpl.lt.0.and.ifnonzer.ne.0)then
+          if(igenPltType.lt.0.and.ifnonzer.ne.0)then
             write(*,'(1x,a,$)') 'Length of ticks at ends of error bars (inches): '
             read(5,*)errlen
           endif
@@ -191,7 +207,7 @@ c       connect all
         xll=xls(iaplt)*defscl
         yll=yls(iaplt)*defscl
       endif
-      if(ifgpl.eq.2)then
+      if(igenPltType.eq.2)then
         tukwid=0.4
         tuktic=0.1
         tukgap=0.
@@ -277,9 +293,9 @@ c       connect all
         do i=1,nx
           if(ngx(i).ne.ng) cycle
           if(iftyp.ne.0)then
-            if(ifgpl.eq.0)then
+            if(igenPltType.eq.0)then
               write(iout,103)ng,namx(i),irecx(i),xx(i),colx(i),irecy(i),yy(i),coly(i)
-            elseif(ifgpl.gt.0)then
+            elseif(igenPltType.gt.0)then
               write(iout,203)ng,xx(i),yy(i)
             else
               write(iout,203)ng,xx(i),yy(i),colx(i)
@@ -293,7 +309,7 @@ c       connect all
           sxsq=sxsq+xx(i)**2
           sysq=sysq+yy(i)**2
           nn=nn+1
-          if(ifgpl.eq.2)colx(nn)=yy(i)        
+          if(igenPltType.eq.2)colx(nn)=yy(i)        
         enddo
         if(nn.le.1) cycle
         rnum=nn*sxy-sx*sy
@@ -311,7 +327,7 @@ c       connect all
         write(*,105)ng,nn,rr,aa,bb,sa,sb
 105     format(' grp',i3,', n=',i4,', r=',f6.3,', a=',f10.3,', b='
      &      ,f10.3,', sa=',f9.3,', sb=',f9.3)
-71      if(ifgpl.eq.2.and.nn.ge.2.and.ifimg.gt.0)then
+71      if(igenPltType.eq.2.and.nn.ge.2.and.ifimg.gt.0)then
 c           
 c           order values in colx
 c           
@@ -374,7 +390,7 @@ c
         endif
       enddo
       if(abs(ifplt).le.5)return
-      if(ifgpl.eq.2)go to 82
+      if(igenPltType.eq.2)go to 82
       conadj=(ifcnct-1)/upi
       nglas=-1
       do i=1,nx
@@ -410,7 +426,7 @@ c
           if(ifimg.le.0)call symbl(int(rx),int(ry),isymbt)
           if(ifimg.gt.0)call imsymb(rx,ry,isymbt)
         endif
-        if(ifimg.gt.0.and.ifgpl.lt.0.and.ifnonzer.ne.0)then
+        if(ifimg.gt.0.and.igenPltType.lt.0.and.ifnonzer.ne.0)then
           ypos=yscal*(max(ylo,min(yhi,yy(i)+colx(i)))-ylo)+yad-conadj
           yneg=yscal*(max(ylo,min(yhi,yy(i)-colx(i)))-ylo)+yad-conadj
           if(ifcnct.gt.0)call imset(ifcnct,c1,c2,c3,0)
@@ -439,10 +455,12 @@ c         if(ifimg.gt.0)call flushb
       subroutine gnplt(xx,yy,ngx,nx,nsymb,ngrps,iflogx,iflogy)
       dimension xx(*),ngx(*),nsymb(*),yy(*)
       dimension irecx(1),irecy(1),colx(1),coly(1),namx(1)
-      common /pltp/ifgpl,ifNoTerm
-      data ifgpl/0/
+      common /pltp/igenPltType,ifNoTerm,ifConnect,numKeys
+      data igenPltType/0/
       data ifNoTerm/0/
-      ifgpl=1
+      data ifConnect/0/
+      data numKeys/0/
+      igenPltType=1
       call bsplt(namx,xx,yy,ngx,nx,nsymb,ngrps,irecx,irecy,colx,coly,iflogx,iflogy)
       return
       end
@@ -450,8 +468,8 @@ c         if(ifimg.gt.0)call flushb
       subroutine errplt(xx,yy,ngx,nx,nsymb,ngrps,colx,iflogx,iflogy)
       dimension xx(*),ngx(*),nsymb(*),yy(*),colx(*)
       dimension irecx(1),irecy(1),coly(1),namx(1)
-      common /pltp/ifgpl
-      ifgpl=-1
+      common /pltp/igenPltType
+      igenPltType=-1
       call bsplt(namx,xx,yy,ngx,nx,nsymb,ngrps,irecx,irecy,colx,coly,iflogx,iflogy)
       return
       end
@@ -459,15 +477,15 @@ c         if(ifimg.gt.0)call flushb
       subroutine boxplt(xx,yy,ngx,nx,nsymb,ngrps,colx,iflogx,iflogy)
       dimension xx(*),ngx(*),nsymb(*),yy(*),colx(*)
       dimension irecx(1),irecy(1),coly(1),namx(1)
-      common /pltp/ifgpl
-      ifgpl=2
+      common /pltp/igenPltType
+      igenPltType=2
       call bsplt(namx,xx,yy,ngx,nx,nsymb,ngrps,irecx,irecy,colx,coly,iflogx,iflogy)
       return
       end
 
 c       block data
-c       common /pltp/ ifgpl
-c       data ifgpl/0/
+c       common /pltp/ igenPltType
+c       data igenPltType/0/
 c       end
 
 

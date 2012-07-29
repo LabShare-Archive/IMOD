@@ -7,7 +7,6 @@ c       David Mastronarde  November 1991
 c       General object version March 2000
 c       
 c       $Id$
-c       log at end
 c       
       call plax_initialize('mtk')
       call exit(0)
@@ -41,7 +40,7 @@ c
 c       
       character*120 modelfile,modelregion(limregion)
       character*120 tiltfile,tiltregion(limregion)
-      logical forceload,grapheach,shuffled,onlyshifted
+      logical forceload,grapheach,shuffled,onlyshifted, nearestOnly
       logical sampled,converted,checkgrf,checkextra
 c       
       real*4 xmaxdsp(4),ymaxdsp(4),chngfrac(limtyp)
@@ -76,6 +75,7 @@ c
       manyrandom=0
       ifexcludeout=1
       onlyshifted=.false.
+      nearestOnly = .false.
       nbinsave=0
       ibavst = 1
       ibavnd = 1
@@ -242,7 +242,7 @@ c
      &      iobjwin,nobjwin,iobjmod,xyzend,endsep,samplen,
      &      ifcloseg,ifscatsurf,irefflag,neighflag,xyscal,
      &      zscal,powergrf,zgapst(indgap),
-     &      zgapnd(indgap),ngaps,manyrandom,onlyshifted)
+     &      zgapnd(indgap),ngaps,manyrandom,onlyshifted, nearestOnly)
       else
         call bundledist(xmt,ymt,zmt,indstrt,npntobj,icolor,nmt,
      &      delr,nbins, ngraph,nreftyp,nneightyp,itypref, itypneigh,
@@ -306,7 +306,8 @@ c
      &    ' 41: Toggle between including and excluding items that ',
      &    'failed to shift',/,
      &    ' 42: Export graph values or points for drawing to file',/,
-     &    ' 43: List distances of close approach between min/max limits')
+     &    ' 43: List distances of close approach between min/max limits',/,
+     &    ' 44: Toggle between recording distances to all and nearest neighbors')
 c       
 40    write(*,'(1x,a,$)')'Option, or -1 for list of choices: '
       read(in5,*,err=40, end=225)iopt
@@ -315,7 +316,7 @@ c
      &    nOptNeedModel, iopt)) go to 40
       go to(201,202,203,204,205,206,207,208,209,210, 210,212,213,214,
      &    215,216,217,218,219,220, 221,222,222,224,225,226,222,228,
-     &    228,228,228,228,228,213,235,235,228,228,228,240,241,228,243),iopt
+     &    228,228,228,228,228,213,235,235,228,228,228,240,241,228,243,244),iopt
       go to 40
 c       
 c       type bins
@@ -641,10 +642,8 @@ c
         ifsample=0
         ifconvert=0
         grapheach=.true.
-        ireturn=3
-        go to 1000
+        call redoRegions()
       endif
-1003  continue
       if(nregion.eq.1)then
         write(*,'(a,i2,a,i2)')' The averages will be'//
      &      ' stored in graphs ',ngraph+1,' to ',2*ngraph
@@ -711,9 +710,8 @@ c
         forceload=ifdorand.eq.0
       endif
       grapheach=.true.
-      ireturn=1
-      go to 1000
-1001  if(nregion.gt.1)call fourdsp(graphs,limbins,ngraph+1,ngraph
+      call redoRegions()
+      if(nregion.gt.1)call fourdsp(graphs,limbins,ngraph+1,ngraph
      &    +min(4,ngraph),nbingrf,delrgrf,xmaxdsp,ymaxdsp,igrfdsp)
       go to 40
 c       
@@ -784,10 +782,8 @@ c
         ifconvert=0
         forceload=.true.
         grapheach=.false.
-        ireturn=4
-        go to 1000
+        call redoRegions()
       endif
-1004  continue
       if(iopt.eq.22)go to 219
       if(iopt.eq.27)go to 226
 c       
@@ -1023,9 +1019,7 @@ c
 c       if(sampled)forceload=nregion.eq.1
       manyrandom=1
       grapheach=.false.
-      ireturn=2
-      go to 1000
-1002  continue
+      call redoRegions()
 c       
 c       Get integrals from graphs and accumulate statistics
 c       
@@ -1202,6 +1196,18 @@ c
       write(*,1243)ninwin, connavg, connsd
 1243  format('N = ',i7,'   mean = ',f12.5,'   SD = ',f12.5)
       go to 40
+
+244   nearestOnly = .not. nearestOnly
+      if (nearestOnly) then
+        print *,'Only distances to nearest neighbor will be recorded; redoing regions'
+      else
+        print *,'Distances to all neighbors will be recorded; redoing regions'
+      endif
+      forceload=nregion.eq.1.and.(sampled.or.converted.or.shuffled)
+      go to 315
+
+
+      CONTAINS
 c       
 c       
 c       
@@ -1210,14 +1216,14 @@ c       sampling them.  It manages the logicals SHUFFLED and SAMPLED to
 c       reflect the actual state of points in memory.
 c       This is set up to be used like a subroutine; it's not a subroutine
 c       because there would have been so many arguments.  It is expecting:
-c       IRETURN = value to use directly in computed GOTO at end to return
 c       IFSAMPLE = 1 to randomly sample points
 c       IFSHUFFLE =1 to shuffle types
 c       IFCONVERT = 1 to convert fraction of some types to other types
 c       FORCELOAD true to force model to get reloaded even if only one region
 c       GRAPHEACH true to display graphs after each region
 c       
-1000  do ireg=1,nregion
+      subroutine redoRegions()
+      do ireg=1,nregion
         if(nregion.gt.1.or.forceload)then
           if(modelfile.ne.modelregion(ireg).or.forceload)then
             modelfile=modelregion(ireg)
@@ -1270,7 +1276,7 @@ c
      &        areas, iobjwin,nobjwin,iobjmod,xyzend,endsep,
      &        samplen,ifcloseg,ifscatsurf,irefflag,neighflag,
      &        xyscal,zscal,powergrf,zgapst(indgap),
-     &        zgapnd(indgap),ngaps,manyrandom,onlyshifted)
+     &        zgapnd(indgap),ngaps,manyrandom,onlyshifted, nearestOnly)
         else
           call bundledist(xmt,ymt,zmt,indstrt,npntobj,icolor,nmt,
      &        delr,nbins,ngraph,nreftyp,nneightyp,itypref,itypneigh,
@@ -1289,54 +1295,6 @@ c
         if(grapheach)call fourdsp(graphs,limbins,1,min(4,ngraph),
      &      nbingrf,delrgrf, xmaxdsp, ymaxdsp,igrfdsp)
       enddo
-      go to (1001,1002,1003,1004),ireturn
+      end subroutine redoRegions
 c       
       end
-
-c       $Log$
-c       Revision 3.16  2008/06/17 20:26:45  mast
-c       Added centroid of peak to integral calculation
-c
-c       Revision 3.15  2007/10/19 18:05:58  mast
-c       Added report of distances of close approach
-c
-c       Revision 3.14  2007/10/19 00:32:52  mast
-c       WIMP->IMOD
-c
-c       Revision 3.13  2006/11/15 06:14:51  mast
-c       Allowed 10000000 points in mt arrays and put them in common
-c
-c       Revision 3.12  2006/07/15 03:04:25  mast
-c       Copied power to mean and sd graphs for random data
-c
-c       Revision 3.11  2006/05/13 15:10:16  mast
-c       Increased some dimensions including # of points
-c
-c       Revision 3.10  2006/05/12 14:39:22  mast
-c       Change to accommodate surface in window being negative object number
-c
-c       Revision 3.9  2006/05/01 21:14:50  mast
-c       Increased number of bins to 1001
-c
-c       Revision 3.8  2005/11/13 23:10:58  mast
-c       Fixed a format
-c	
-c       Revision 3.7  2004/04/20 05:41:41  mast
-c       fix some misprinted variables
-c	
-c       Revision 3.6  2004/04/20 04:26:49  mast
-c       Fixed some uninitialized variables
-c	
-c       Revision 3.5  2003/10/27 06:36:40  mast
-c       Fix number of options needing model
-c	
-c       Revision 3.4  2003/10/26 05:33:27  mast
-c       change command files to use unit 4 instead reopening 5
-c	
-c       Revision 3.3  2003/08/29 17:32:42  mast
-c       Change to use new multithreaded Plax graphics
-c	
-c       Revision 3.2  2003/08/08 17:56:05  mast
-c       Added ability to start with no model, added option to export graph,
-c       made general changes in terminology, added report of object names
-c	
