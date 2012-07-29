@@ -1,0 +1,69 @@
+.na
+.nh
+.TH onegenplot 1 4.6.8 BL3DEMC
+.SH NAME
+onegenplot \- Make an X/Y plot with genhstplt
+.SH SYNOPSIS
+onegenplot [options] data_file
+.SH DESCRIPTION
+Onegenplot is a Python script to make Genhstplt(1) draw one X/Y plot then exit
+when its graph window is closed.  It has many default settings so that simple
+graphs can be viewed with a minimum of entries.
+.P
+The data file is a text file with one or more columns of data values for each
+individual item, separated by commas, spaces, or tabs.  In addition, the first entry
+for each item can be a type number or group identifier.  The file can have
+non-numeric lines at the beginning that need to be skipped over.  In most
+cases, this program can automatically detect both the number of columns of
+data values and how many lines of non-numeric text to skip at the beginning.
+See the 
+.B -ncol
+and
+.B -skip
+options for the limitations of this capability.
+.P
+If there are no types in the file, you can graph one or more columns
+of values versus one other column.  If there are types, you can graph one
+column versus another for one or more types.  In addition, you use a sequence
+of numbers instead of a data column for the X values, and thus plot the
+sequential values of one or more columns or types.
+.SS Options
+Onegenplot uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -).  Options can be abbreviated.
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH EXAMPLES
+If the data file has 2 or more columns, 
+   onegenplot data_file
+.br
+will plot the second column versus the first, showing scattered open circles.
+.P
+If the data file has at least 5 columns,
+   onegenplt -col 1,3,5 -con data_file
+.br
+will plot column and 3 and 5 versus column 1, with circles and X's,
+respectively, connected by lines.
+.P
+If the data file has type numbers 10, 20, 30, and 40 and at least 5 data columns,
+  onegenplt -iftype -col 2,4 -type 20,40 -sym 10,9 data_file
+.br
+will plot column 4 versus column 2 for types 20 and 40 with closed and open
+circles, respectively.
+.P
+If the data file has has 120 lines of data in 6 columns,
+   onegenplt -col 3,6 -sym 0,0 -con -ord data_file
+.br
+will plot columns 3 and 6 sequentially versus 1 to 120 with lines and no symbols.
+.SH AUTHOR
+.nf
+David Mastronarde
+.fi
+.SH SEE ALSO
+genhstplt(1)
+.P
+Email bug reports to mast@colorado.edu.
