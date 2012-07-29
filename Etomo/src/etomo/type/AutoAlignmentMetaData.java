@@ -31,7 +31,7 @@ public final class AutoAlignmentMetaData {
       EtomoNumber.Type.DOUBLE, "CutoffHighFrequency");
   private final ScriptParameter sigmaHighFrequency = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, "SigmaHighFrequency");
-  private final EtomoNumber binning = new EtomoNumber("Binning");
+  private final EtomoNumber reduceByBinning = new EtomoNumber("ReduceByBinning");
   private final EtomoNumber edgeToIgnore = new EtomoNumber(EtomoNumber.Type.DOUBLE,
       "EdgeToIgnore");
   private final EtomoNumber midasBinning = new EtomoNumber("MidasBinning");
@@ -46,6 +46,8 @@ public final class AutoAlignmentMetaData {
     sigmaLowFrequency.setDefault(0).setDisplayValue(0.0);
     cutoffHighFrequency.setDefault(0).setDisplayValue(0.25);
     sigmaHighFrequency.setDefault(0).setDisplayValue(0.05);
+    reduceByBinning.setDisplayValue(2);
+    midasBinning.setDisplayValue(1);
   }
 
   private String createPrepend(final String prepend) {
@@ -62,7 +64,7 @@ public final class AutoAlignmentMetaData {
     cutoffHighFrequency.reset();
     sigmaHighFrequency.reset();
     alignTransform = Transform.DEFAULT;
-    binning.reset();
+    reduceByBinning.reset();
     edgeToIgnore.reset();
     midasBinning.reset();
     skipSectionsFrom1.reset();
@@ -73,7 +75,7 @@ public final class AutoAlignmentMetaData {
     sigmaHighFrequency.load(props, prepend);
     alignTransform = Transform
         .load(props, prepend, ALIGN_TRANFORM_KEY, Transform.DEFAULT);
-    binning.load(props, prepend);
+    reduceByBinning.load(props, prepend);
     edgeToIgnore.load(props, prepend);
     midasBinning.load(props, prepend);
     skipSectionsFrom1.load(props, prepend);
@@ -87,7 +89,7 @@ public final class AutoAlignmentMetaData {
     cutoffHighFrequency.store(props, prepend);
     sigmaHighFrequency.store(props, prepend);
     Transform.store(alignTransform, props, prepend, ALIGN_TRANFORM_KEY);
-    binning.store(props, prepend);
+    reduceByBinning.store(props, prepend);
     edgeToIgnore.store(props, prepend);
     midasBinning.store(props, prepend);
     skipSectionsFrom1.store(props, prepend);
@@ -118,12 +120,12 @@ public final class AutoAlignmentMetaData {
     cutoffHighFrequency.set(input);
   }
 
-  public ConstEtomoNumber getBinning() {
-    return binning;
+  public ConstEtomoNumber getReduceByBinning() {
+    return reduceByBinning;
   }
 
-  public void setBinning(final Number input) {
-    binning.set(input);
+  public void setReduceByBinning(final Number input) {
+    reduceByBinning.set(input);
   }
 
   public double getEdgeToIgnore() {
