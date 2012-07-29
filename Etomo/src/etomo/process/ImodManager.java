@@ -612,6 +612,7 @@ public class ImodManager {
       "Flatten tool output file");
   public static final String SIRT_KEY = new String("SIRT output files");
   public static final String PREBLEND_KEY = new String("Preblend output file");
+  public static final String ALIGNED_STACK_KEY = new String("Aligned stack");
 
   // private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -816,6 +817,22 @@ public class ImodManager {
     return vector.lastIndexOf(imodState);
   }
 
+  public int newImod(String key, final AxisID axisID, final File file)
+      throws AxisTypeException {
+    Vector vector;
+    ImodState imodState;
+    key = getPrivateKey(key);
+    vector = getVector(key, axisID);
+    if (vector == null) {
+      vector = newVector(key,axisID, file);
+      imodMap.put(key, vector);
+      return 0;
+    }
+    imodState = newImodState(key,axisID, file);
+    vector.add(imodState);
+    return vector.lastIndexOf(imodState);
+  }
+
   public int newImod(String key, String[] fileNameArray) throws AxisTypeException {
     Vector vector;
     ImodState imodState;
@@ -852,12 +869,12 @@ public class ImodManager {
 
   public void open(String key) throws AxisTypeException, SystemProcessException,
       IOException {
-    open(key, null, null, null);
+    open(key, null, (String) null, null);
   }
 
   public void open(String key, Run3dmodMenuOptions menuOptions) throws AxisTypeException,
       SystemProcessException, IOException {
-    open(key, null, null, menuOptions);
+    open(key, null, (String) null, menuOptions);
     // used for:
     // openCombinedTomogram
   }
@@ -871,7 +888,7 @@ public class ImodManager {
 
   public void open(String key, AxisID axisID, Run3dmodMenuOptions menuOptions)
       throws AxisTypeException, SystemProcessException, IOException {
-    open(key, axisID, null, menuOptions);
+    open(key, axisID, (String) null, menuOptions);
   }
 
   public void open(String key, AxisID axisID, String model) throws AxisTypeException,
@@ -881,7 +898,7 @@ public class ImodManager {
 
   public void open(String key, AxisID axisID) throws AxisTypeException,
       SystemProcessException, IOException {
-    open(key, axisID, null, new Run3dmodMenuOptions());
+    open(key, axisID, (String) null, new Run3dmodMenuOptions());
   }
 
   public void open(String key, File file, Run3dmodMenuOptions menuOptions)
@@ -891,6 +908,20 @@ public class ImodManager {
     if (imodState == null) {
       newImod(key, file);
       imodState = get(key);
+    }
+    if (imodState != null) {
+      imodState.open(menuOptions);
+    }
+  }
+
+  public void open(String key, final AxisID axisID, final File file,
+      final Run3dmodMenuOptions menuOptions) throws AxisTypeException,
+      SystemProcessException, IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID, file);
+      imodState = get(key, axisID);
     }
     if (imodState != null) {
       imodState.open(menuOptions);
@@ -1623,6 +1654,10 @@ public class ImodManager {
     return newVector(newImodState(key, file));
   }
 
+  Vector newVector(final String key, final AxisID axisID, final File file) {
+    return newVector(newImodState(key, axisID, file));
+  }
+
   Vector newVector(final String key, final String[] fileNameArray) {
     return newVector(newImodState(key, fileNameArray));
   }
@@ -1653,6 +1688,10 @@ public class ImodManager {
 
   ImodState newImodState(String key, File file) {
     return newImodState(key, null, null, file, null, null, null);
+  }
+
+  ImodState newImodState(final String key, final AxisID axisID, final File file) {
+    return newImodState(key, axisID, null, file, null, null, null);
   }
 
   ImodState newImodState(String key, String[] fileNameArray) {
