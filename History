@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/29/12: Added Autofidseed for automatic selection of a fiducial seed model,
+and a companion program, Pickbestseed, that it uses for analysis of beads.
+
+7/29/12: Added a script, Onegenplot, that will use Genhstplt to make a single
+graph with a relatively simple set of command-line options, and made numerous
+changes to Genhstplt to improve its usability for this purpose, including the
+ability to rearrange data so several columns can be plotted at once versus
+another column.
+
 7/27/12: Fixed Midas giving an error message when reading an empty transform
 file (In 4.5).
 
