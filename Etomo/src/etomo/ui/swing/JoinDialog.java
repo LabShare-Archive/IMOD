@@ -23,8 +23,10 @@ import javax.swing.event.ChangeListener;
 import etomo.AutoAlignmentController;
 import etomo.JoinManager;
 import etomo.comscript.FinishjoinParam;
+import etomo.comscript.MidasParam;
+import etomo.comscript.XfalignParam;
 import etomo.comscript.XfjointomoParam;
-import etomo.logic.DatasetDirectory;
+import etomo.logic.DatasetTool;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.storage.LogFile;
@@ -1483,6 +1485,14 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     }
   }
 
+  public void getAutoAlignmentParameters(final MidasParam param) {
+    manager.getParameters(param, axisID);
+  }
+
+  public void getAutoAlignmentParameters(final XfalignParam param) {
+    manager.getParameters(param, axisID);
+  }
+
   public void setXfjointomoResult() throws LogFile.LockException, FileNotFoundException,
       IOException {
     boundaryTable.setXfjointomoResult();
@@ -1732,8 +1742,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnMakeSamples.getActionCommand())) {
       if (ftfWorkingDir.isEditable()
-          && !DatasetDirectory.validateDatasetName(manager, axisID,
-              ftfWorkingDir.getFile(), ltfRootName.getText(), DataFileType.JOIN, null)) {
+          && !DatasetTool.validateDatasetName(manager, axisID, ftfWorkingDir.getFile(),
+              ltfRootName.getText(), DataFileType.JOIN, null)) {
         return;
       }
       manager.makejoincom(null, deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
