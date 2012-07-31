@@ -204,10 +204,10 @@ public final class FileType {
       false, "patch_vector_ccc", ".mod", ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
   public static final FileType PATCH_TRACKING_BOUNDARY_MODEL = FileType.getInstance(true,
       true, "_ptbound", ".mod");
-  public static final FileType ALIGNED_STACK_MRC = FileType.getInstance(true, true,
-      "_ali", ".mrc");
-  public static final FileType PREBLEND_OUTPUT_MRC = FileType.getInstance(true, true,
-      "_preblend", ".mrc");
+  public static final FileType ALIGNED_STACK_MRC = FileType.getImodInstance(true, true,
+      "_ali", ".mrc",ImodManager.ALIGNED_STACK_KEY);
+  public static final FileType PREBLEND_OUTPUT_MRC = FileType.getImodInstance(true, true,
+      "_preblend", ".mrc",ImodManager.PREBLEND_KEY);
   public static final FileType ANISOTROPIC_DIFFUSION_OUTPUT = FileType.getImodInstance(
       true, false, "", ".nad", ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY);
   public static final FileType PIECE_LIST = FileType.getInstance(true, true, "", ".pl");
@@ -253,7 +253,9 @@ public final class FileType {
       true, false, "_empty", ".xf");
   public static final FileType MIDAS_LOCAL_TRANSFORMATION_LIST = FileType.getInstance(
       true, false, "_midas", ".xf");
-
+  public static final FileType GLOBAL_TRANSFORMATION_LIST = FileType.getInstance(true,
+      false, "", ".xg");
+  
   public static final FileType TILT_OUTPUT = FileType.getDifferentDualSingleInstance(
       TILT_OUTPUT_SINGLE, TILT_OUTPUT_DUAL, ImodManager.FULL_VOLUME_KEY, "the tomogram");
   // Template for .sintnn
