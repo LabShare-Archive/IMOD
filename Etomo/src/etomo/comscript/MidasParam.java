@@ -129,6 +129,7 @@ public final class MidasParam implements Command {
   private static final String outputFileExtension = "_midas.xf";
 
   private final EtomoNumber binning = new EtomoNumber();
+
   private final String workingDir;
   private final File outputFile;
   private final String rootName;
@@ -219,7 +220,7 @@ public final class MidasParam implements Command {
       options.add("-B");
       options.add(binning.toString());
     }
-    if (mode == Mode.FIX_EDGES) {
+    if (mode == Mode.SERIAL_SECTIONS_FIX_EDGES) {
       options.add("-p");
       options.add(FileType.PIECE_LIST.getFileName(manager, axisID));
     }
@@ -232,7 +233,7 @@ public final class MidasParam implements Command {
       options.add(inputFileName);
       options.add(rootName + ".xf");
     }
-    else if (mode == Mode.FIX_EDGES) {
+    else if (mode == Mode.SERIAL_SECTIONS_FIX_EDGES) {
       options.add("-q");
       options.add(inputFileName);
       options.add(FileType.PIECE_SHIFTS.getFileName(manager, axisID));
@@ -286,7 +287,7 @@ public final class MidasParam implements Command {
 
   public static final class Mode {
     public static final Mode SAMPLE = new Mode();
-    public static final Mode FIX_EDGES = new Mode();
+    public static final Mode SERIAL_SECTIONS_FIX_EDGES = new Mode();
 
     private Mode() {
     }
