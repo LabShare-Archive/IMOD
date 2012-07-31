@@ -37,6 +37,7 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
   private final EtomoNumber robustFitCriterion = new EtomoNumber(EtomoNumber.Type.DOUBLE,
       "RobustFitCriterion");
   private final EtomoNumber midasBinning = new EtomoNumber("MidasBinning");
+  private EtomoBoolean2 useReferenceSection = new EtomoBoolean2("UseReferenceSection");
   private final EtomoNumber referenceSection = new EtomoNumber("ReferenceSection");
   private final EtomoBoolean2 hybridFitsTranslations = new EtomoBoolean2(
       "HybridFitsTranslations");
@@ -49,10 +50,12 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
   private final EtomoNumber shiftY = new EtomoNumber(EtomoNumber.Type.FLOAT, "ShiftY");
   private final EtomoNumber sizeX = new EtomoNumber(EtomoNumber.Type.FLOAT, "SizeX");
   private final EtomoNumber sizeY = new EtomoNumber(EtomoNumber.Type.FLOAT, "SizeY");
+  private final EtomoNumber tab = new EtomoNumber("Tab");
 
   public SerialSectionsMetaData() {
     fileExtension = DataFileType.SERIAL_SECTIONS.extension;
     axisType = AxisType.SINGLE_AXIS;
+    noOptions.setDisplayValue(true);
   }
 
   public void setName(final String rootName) {
@@ -83,6 +86,7 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
     imagesAreBinned.reset();
     robustFitCriterion.reset();
     midasBinning.reset();
+    useReferenceSection.reset();
     referenceSection.reset();
     hybridFitsTranslations.reset();
     hybridFitsTranslationsRotations.reset();
@@ -92,6 +96,7 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
     shiftY.reset();
     sizeX.reset();
     sizeY.reset();
+    tab.reset();
     // load
     prepend = createPrepend(prepend);
     autoAlignmentMetaData.load(props, prepend);
@@ -102,6 +107,7 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
     imagesAreBinned.load(props, prepend);
     robustFitCriterion.load(props, prepend);
     midasBinning.load(props, prepend);
+    useReferenceSection.load(props, prepend);
     referenceSection.load(props, prepend);
     hybridFitsTranslations.load(props, prepend);
     hybridFitsTranslationsRotations.load(props, prepend);
@@ -111,6 +117,7 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
     shiftY.load(props, prepend);
     sizeX.load(props, prepend);
     sizeY.load(props, prepend);
+    tab.load(props, prepend);
   }
 
   public void store(final Properties props, String prepend) {
@@ -124,6 +131,7 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
     imagesAreBinned.store(props, prepend);
     robustFitCriterion.store(props, prepend);
     midasBinning.store(props, prepend);
+    useReferenceSection.store(props, prepend);
     referenceSection.store(props, prepend);
     hybridFitsTranslations.store(props, prepend);
     hybridFitsTranslationsRotations.store(props, prepend);
@@ -133,6 +141,7 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
     shiftY.store(props, prepend);
     sizeX.store(props, prepend);
     sizeY.store(props, prepend);
+    tab.store(props, prepend);
   }
 
   public void setStartupData(final SerialSectionsStartupData startupData) {
@@ -168,6 +177,14 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
     return stack.toString();
   }
 
+  public boolean isTabEmpty() {
+    return tab.isNull();
+  }
+
+  public int getTab() {
+    return tab.getInt();
+  }
+
   public String getDistortionField() {
     return distortionField.toString();
   }
@@ -184,8 +201,16 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
     midasBinning.set(input);
   }
 
+  public boolean isUseReferenceSection() {
+    return useReferenceSection.is();
+  }
+
   public ConstEtomoNumber getReferenceSection() {
     return referenceSection;
+  }
+
+  public void setUseReferenceSection(final boolean input) {
+    useReferenceSection.set(input);
   }
 
   public void setReferenceSection(final Number input) {
@@ -198,6 +223,26 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
 
   public void setRobustFitCriterion(final String input) {
     robustFitCriterion.set(input);
+  }
+
+  public void setSizeX(final String input) {
+    sizeX.set(input);
+  }
+
+  public void setSizeY(final String input) {
+    sizeY.set(input);
+  }
+
+  public void setShiftX(final String input) {
+    shiftX.set(input);
+  }
+
+  public void setShiftY(final String input) {
+    shiftY.set(input);
+  }
+
+  public void setTab(final int input) {
+    tab.set(input);
   }
 
   public ViewType getViewType() {
