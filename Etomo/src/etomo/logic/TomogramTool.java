@@ -360,12 +360,12 @@ public final class TomogramTool {
     int index = 0;
     offsets[index].set(shiftX);
     if (!offsets[index].isNull() && offsets[index].isValid()) {
-      offsets[index].set(offsets[index].getDouble() * -1);
+      offsets[index].set(offsets[index].getFloat() * -1);
     }
     index = 1;
     offsets[index].set(shiftY);
     if (!offsets[index].isNull() && offsets[index].isValid()) {
-      offsets[index].set(offsets[index].getDouble() * -1);
+      offsets[index].set(offsets[index].getFloat() * -1);
     }
     return offsets;
   }
@@ -379,7 +379,7 @@ public final class TomogramTool {
     EtomoNumber shift = new EtomoNumber(EtomoNumber.Type.FLOAT);
     shift.set(offset);
     if (!shift.isNull() && shift.isValid()) {
-      shift.set(shift.getDouble() * -1);
+      shift.set(shift.getFloat() * -1);
     }
     return shift;
   }
