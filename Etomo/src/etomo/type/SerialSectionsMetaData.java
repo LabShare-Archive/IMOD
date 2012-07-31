@@ -48,8 +48,8 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
       "NumberToFitGlobalAlignment");
   private final EtomoNumber shiftX = new EtomoNumber(EtomoNumber.Type.FLOAT, "ShiftX");
   private final EtomoNumber shiftY = new EtomoNumber(EtomoNumber.Type.FLOAT, "ShiftY");
-  private final EtomoNumber sizeX = new EtomoNumber(EtomoNumber.Type.FLOAT, "SizeX");
-  private final EtomoNumber sizeY = new EtomoNumber(EtomoNumber.Type.FLOAT, "SizeY");
+  private final EtomoNumber sizeX = new EtomoNumber("SizeX");
+  private final EtomoNumber sizeY = new EtomoNumber("SizeY");
   private final EtomoNumber tab = new EtomoNumber("Tab");
 
   public SerialSectionsMetaData() {
