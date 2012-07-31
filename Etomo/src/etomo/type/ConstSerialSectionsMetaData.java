@@ -37,8 +37,18 @@ public interface ConstSerialSectionsMetaData {
   public String getSizeX();
 
   public String getSizeY();
+
   public boolean isHybridFitsTranslations();
+
   public boolean isHybridFitsTranslationsRotations();
+
   public boolean isNoOptions();
+
   public boolean isNumberToFitGlobalAlignment();
+
+  public int getTab();
+
+  public boolean isTabEmpty();
+
+  public boolean isUseReferenceSection();
 }
