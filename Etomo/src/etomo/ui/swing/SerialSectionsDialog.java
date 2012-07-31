@@ -93,7 +93,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   private LabeledTextField ltfSizeY = new LabeledTextField("Y: ");
   private LabeledTextField ltfShiftX = new LabeledTextField(SHIFT_LABEL + "X: ");
   private LabeledTextField ltfShiftY = new LabeledTextField("Y: ");
-  private Spinner spBinning = Spinner.getLabeledInstance("Binning: ", 1, 1, 8);
+  private Spinner spBinByFactor = Spinner.getLabeledInstance("Binning: ", 1, 1, 8);
   private CheckBox cbFillWithZero = new CheckBox("Fill empty areas with 0");
   private CheckTextField ctfRobustFitCriterion = CheckTextField
       .getInstance("Robust fitting");
@@ -181,7 +181,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     }
     btnAlign.setSize();
     btnAlign.setDeferred3dmodButton(btn3dmodAlign);
-    btnAlign.setSize();
+    btn3dmodAlign.setSize();
     updateDisplay();
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
@@ -280,7 +280,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     pnlShift.add(ltfShiftY.getContainer());
     // make stack subpanel 1
     pnlMakeStackA.setLayout(new BoxLayout(pnlMakeStackA, BoxLayout.X_AXIS));
-    pnlMakeStackA.add(spBinning.getContainer());
+    pnlMakeStackA.add(spBinByFactor.getContainer());
     pnlMakeStackA.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlMakeStackA.add(cbFillWithZero);
     // make stack buttons
@@ -312,6 +312,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     btn3dmodPrealign.addActionListener(listener);
     btnAlign.addActionListener(listener);
     btn3dmodAlign.addActionListener(listener);
+    cbReferenceSection.addActionListener(listener);
   }
 
   public void updateDisplay() {
@@ -332,7 +333,13 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     metaData.setHybridFitsTranslationsRotations(rbHybridFitsTranslationsRotations
         .isSelected());
     metaData.setNumberToFitGlobalAlignment(rbNumberToFitGlobalAlignment.isSelected());
+    metaData.setUseReferenceSection(cbReferenceSection.isSelected());
     metaData.setReferenceSection(spReferenceSection.getValue());
+    metaData.setSizeX(ltfSizeX.getText());
+    metaData.setSizeY(ltfSizeY.getText());
+    metaData.setShiftX(ltfShiftX.getText());
+    metaData.setShiftY(ltfShiftY.getText());
+    metaData.setTab(curTab.index);
   }
 
   public void setParameters(final ConstSerialSectionsMetaData metaData) {
@@ -344,15 +351,24 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     rbHybridFitsTranslationsRotations.setSelected(metaData
         .isHybridFitsTranslationsRotations());
     rbNumberToFitGlobalAlignment.setSelected(metaData.isNumberToFitGlobalAlignment());
+    cbReferenceSection.setSelected(metaData.isUseReferenceSection());
     spReferenceSection.setValue(metaData.getReferenceSection());
     ltfSizeX.setText(metaData.getSizeX());
     ltfSizeY.setText(metaData.getSizeY());
     ltfShiftX.setText(metaData.getShiftX());
     ltfShiftY.setText(metaData.getShiftY());
+    if (!metaData.isTabEmpty()) {
+      int savedTabIndex = metaData.getTab();
+      if (!curTab.equals(savedTabIndex)) {
+        changeTab(savedTabIndex);
+      }
+    }
+    updateDisplay();
   }
 
   public void getAutoAlignmentParameters(final MidasParam param) {
     manager.getParameters(param);
+    autoAlignmentPanel.getParameters(param);
   }
 
   public void getParameters(final MidasParam param) {
@@ -381,35 +397,33 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
         ltfSizeX.getQuotedLabel(), ltfShiftX.getQuotedLabel(),
         Utilities.quoteLabel(SIZE_LABEL + ltfSizeY.getLabel()),
         Utilities.quoteLabel(SHIFT_LABEL + ltfShiftY.getLabel()), "Entry Error"));
-    param.setBinByFactor(spBinning.getValue());
+    param.setBinByFactor(spBinByFactor.getValue());
     if (cbFillWithZero.isSelected()) {
       param.setFillValue(0);
     }
   }
 
   public void setBlendParameters(final BlendmontParam param) {
-    spBinning.setValue(param.getBinByFactor());
+    spBinByFactor.setValue(param.getBinByFactor());
     cbFillWithZero.setSelected(param.fillValueEquals(0));
   }
 
   public void getParameters(final NewstParam param) throws FortranInputSyntaxException,
       InvalidParameterException, IOException {
-    param.setSizeToOutputInXandY(ltfSizeX.getText(), ltfSizeY.getText(), spBinning
+    param.setSizeToOutputInXandY(ltfSizeX.getText(), ltfSizeY.getText(), spBinByFactor
         .getValue().intValue(), 0, "Size");
     param.setOffsetsInXandY(TomogramTool.convertShiftsToOffsets(ltfShiftX.getText(),
         ltfShiftY.getText()));
-    param.setBinByFactor(spBinning.getValue());
+    param.setBinByFactor(spBinByFactor.getValue());
     if (cbFillWithZero.isSelected()) {
       param.setFillValue(0);
     }
   }
 
   public void setParameters(final ConstNewstParam param) {
-    ltfSizeX.setText(param.getSizeToOutputInX());
-    ltfSizeY.setText(param.getSizeToOutputInY());
     ltfShiftX.setText(TomogramTool.convertOffsetToShift(param.getOffsetInX()));
     ltfShiftY.setText(TomogramTool.convertOffsetToShift(param.getOffsetInY()));
-    spBinning.setValue(param.getBinByFactor());
+    spBinByFactor.setValue(param.getBinByFactor());
     cbFillWithZero.setSelected(param.fillValueEquals(0));
   }
 
@@ -475,7 +489,10 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
 
   private void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (command.equals(btnPreblend.getActionCommand())) {
+    if (command.equals(cbReferenceSection.getActionCommand())) {
+      updateDisplay();
+    }
+    else if (command.equals(btnPreblend.getActionCommand())) {
       manager.preblend(null, deferred3dmodButton, axisID, run3dmodMenuOptions,
           DialogType.SERIAL_SECTIONS);
     }
@@ -501,6 +518,11 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     curTab = Tab.getInstance(tabPane.getSelectedIndex());
     pnlTabArray[curTab.index].add(pnlTabBodyArray[curTab.index]);
     UIHarness.INSTANCE.pack(axisID, manager);
+  }
+
+  private void changeTab(final int newTabIndex) {
+    tabPane.setSelectedIndex(newTabIndex);
+    changeTab();
   }
 
   /**
@@ -577,6 +599,10 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
 
     public String toString() {
       return title;
+    }
+
+    public boolean equals(final int index) {
+      return this.index == index;
     }
   }
 }
