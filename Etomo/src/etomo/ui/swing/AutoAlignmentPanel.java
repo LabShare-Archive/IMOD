@@ -11,6 +11,7 @@ import javax.swing.SpinnerNumberModel;
 
 import etomo.AutoAlignmentController;
 import etomo.BaseManager;
+import etomo.comscript.MidasParam;
 import etomo.comscript.XfalignParam;
 import etomo.type.AutoAlignmentMetaData;
 
@@ -100,7 +101,6 @@ public final class AutoAlignmentPanel {
       ltfEdgeToIgnore.setVisible(false);
       spMidasBinning.setVisible(false);
     }
-    ltfEdgeToIgnore.setText(".05");
     btnInitialAutoAlignment.setSize();
     btnMidas.setSize();
     btnRefineAutoAlignment.setSize();
@@ -217,6 +217,10 @@ public final class AutoAlignmentPanel {
     else {
       param.resetReduceByBinning();
     }
+  }
+
+  public void getParameters(final MidasParam param) {
+    param.setBinning(spMidasBinning.getValue());
   }
 
   public void enableMidas() {
