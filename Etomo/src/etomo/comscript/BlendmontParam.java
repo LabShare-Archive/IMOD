@@ -62,6 +62,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
       EtomoNumber.Type.DOUBLE, "RobustFitCriterion");
   private final ScriptParameter fillValue = new ScriptParameter(EtomoNumber.Type.DOUBLE,
       "FillValue");
+  private final StringParameter transformFile = new StringParameter("TransformFile");
   /**
    * @version 3.10
    * Script is from an earlier version if false.
@@ -146,6 +147,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     verySloppyMontage.parse(scriptCommand);
     robustFitCriterion.parse(scriptCommand);
     fillValue.parse(scriptCommand);
+    transformFile.parse(scriptCommand);
   }
 
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
@@ -171,6 +173,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     verySloppyMontage.updateComScript(scriptCommand);
     robustFitCriterion.updateComScript(scriptCommand);
     fillValue.updateComScript(scriptCommand);
+    transformFile.updateComScript(scriptCommand);
   }
 
   public void setValidate(final boolean validate) {
@@ -202,6 +205,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     verySloppyMontage.reset();
     robustFitCriterion.reset();
     fillValue.reset();
+    transformFile.reset();
   }
 
   public void initializeDefaults() {
@@ -308,6 +312,10 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 
   public boolean fillValueEquals(final int value) {
     return fillValue.equals(value);
+  }
+
+  public void setTransformFile(final String input) {
+    transformFile.set(input);
   }
 
   public FileType getOutputImageFileType() {
@@ -447,31 +455,35 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
         + axisID.getExtension() + ".xef");
     File yefFile = new File(manager.getPropertyUserDir(), datasetName
         + axisID.getExtension() + ".yef");
-    File stackFile = new File(manager.getPropertyUserDir(), datasetName
-        + axisID.getExtension() + ".st");
-    File blendFile = new File(manager.getPropertyUserDir(), datasetName
-        + axisID.getExtension() + BLENDMONT_STACK_EXTENSION);
     // Read in xcorr output if it exists. Turn on for preblend and blend.
+    // In serial sections since blend is based on preblend, then .ecd file file must be
+    // there and we must use the same edge functions.
     readInXcorrs.set(mode == Mode.PREBLEND || mode == Mode.BLEND
-        || mode == Mode.WHOLE_TOMOGRAM_SAMPLE || ecdFile.exists());
+        || mode == Mode.SERIAL_SECTION_BLEND || mode == Mode.WHOLE_TOMOGRAM_SAMPLE
+        || ecdFile.exists());
     // Use existing edge functions, if they are up to date and valid. Turn on for blend.
     oldEdgeFunctions
         .set(mode == Mode.BLEND
+            || mode == Mode.SERIAL_SECTION_BLEND
             || mode == Mode.WHOLE_TOMOGRAM_SAMPLE
             || (invalidEdgeFunctions.getInt() != EtomoState.TRUE_VALUE
                 && xefFile.exists() && yefFile.exists()
                 && ecdFile.lastModified() <= xefFile.lastModified() && ecdFile
                 .lastModified() <= yefFile.lastModified()));
-    // If xcorr output exists and the edge functions are up to date, then don't
-    // run blendmont, as long as the blendmont output is more recent then the
-    // stack.
-    if (readInXcorrs.is() && oldEdgeFunctions.is() && blendFile.exists()
-        && stackFile.lastModified() < blendFile.lastModified()) {
-      return false;
+    if (mode == Mode.XCORR) {
+      // If xcorr output exists and the edge functions are up to date, then don't
+      // run blendmont, as long as the blendmont output is more recent then the
+      // stack.
+      File stackFile = new File(manager.getPropertyUserDir(), datasetName
+          + axisID.getExtension() + ".st");
+      File blendFile = new File(manager.getPropertyUserDir(), datasetName
+          + axisID.getExtension() + BLENDMONT_STACK_EXTENSION);
+      if (readInXcorrs.is() && oldEdgeFunctions.is() && blendFile.exists()
+          && stackFile.lastModified() < blendFile.lastModified()) {
+        return false;
+      }
     }
-    else {
-      return true;
-    }
+    return true;
   }
 
   public String getCommandName() {
