@@ -367,7 +367,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   }
 
   public void getAutoAlignmentParameters(final MidasParam param) {
-    manager.getParameters(param);
+    manager.getAutoAlignmentParameters(param, axisID);
     autoAlignmentPanel.getParameters(param);
   }
 
@@ -428,7 +428,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   }
 
   public void getAutoAlignmentParameters(final XfalignParam param) {
-    manager.getParameters(param, axisID);
+    manager.getAutoAlignmentParameters(param, axisID);
     autoAlignmentPanel.getParameters(param);
   }
 
