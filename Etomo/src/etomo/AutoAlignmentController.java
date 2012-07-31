@@ -211,7 +211,7 @@ public final class AutoAlignmentController {
     return true;
   }
 
-  private boolean copyMostRecentXfFile(final String commandDescription) {
+   boolean copyMostRecentXfFile(final String commandDescription) {
     FileType newestXfFileType = Utilities.mostRecentFile(manager, axisID,
         LOCAL_TRANSFORMATION_LIST_FILES, 2/* EMPTY_LOCAL_TRANSFORMATION_LIST */);
     // If the most recent .xf file is not root.xf, copy it to root.xf
