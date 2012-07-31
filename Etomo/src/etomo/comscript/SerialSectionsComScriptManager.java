@@ -28,12 +28,12 @@ public final class SerialSectionsComScriptManager extends BaseComScriptManager {
   private ComScript scriptBlend = null;
   private ComScript scriptNewst = null;
 
-  public SerialSectionsComScriptManager(SerialSectionsManager manager) {
+  public SerialSectionsComScriptManager(final SerialSectionsManager manager) {
     super(manager);
     this.manager = manager;
   }
 
-  public void loadPreblend(AxisID axisID) {
+  public void loadPreblend(final AxisID axisID) {
     scriptPreblend = loadComScript(FileType.PREBLEND_COMSCRIPT, axisID, true, false,
         false);
   }
@@ -46,11 +46,11 @@ public final class SerialSectionsComScriptManager extends BaseComScriptManager {
     return param;
   }
 
-  public void savePreblend(BlendmontParam param, AxisID axisID) {
+  public void savePreblend(final BlendmontParam param, final AxisID axisID) {
     modifyCommand(scriptPreblend, param, BlendmontParam.COMMAND_NAME, axisID, true, false);
   }
 
-  public void loadBlend(AxisID axisID) {
+  public void loadBlend(final AxisID axisID) {
     scriptBlend = loadComScript(FileType.BLEND_COMSCRIPT, axisID, true, false, false);
   }
 
@@ -62,21 +62,21 @@ public final class SerialSectionsComScriptManager extends BaseComScriptManager {
     return param;
   }
 
-  public void saveBlend(BlendmontParam param, AxisID axisID) {
+  public void saveBlend(final BlendmontParam param, final AxisID axisID) {
     modifyCommand(scriptBlend, param, BlendmontParam.COMMAND_NAME, axisID, true, false);
   }
 
-  public void loadNewst(AxisID axisID) {
+  public void loadNewst(final AxisID axisID) {
     scriptNewst = loadComScript(FileType.NEWST_COMSCRIPT, axisID, true, false, false);
   }
 
   public NewstParam getNewstackParam(final AxisID axisID, final String rootName) {
-    NewstParam param = new NewstParam(manager, axisID);
-    initialize(param, scriptNewst, NewstParam.COMMAND, axisID, false, false);
+    NewstParam param = NewstParam.getColorInstance(manager, axisID);
+    initialize(param, scriptNewst, param.getCommandName(), axisID, false, false);
     return param;
   }
 
-  public void saveNewst(NewstParam param, AxisID axisID) {
-    modifyCommand(scriptNewst, param, NewstParam.COMMAND, axisID, true, false);
+  public void saveNewst(final NewstParam param, final AxisID axisID) {
+    modifyCommand(scriptNewst, param, param.getCommandName(), axisID, true, false);
   }
 }
