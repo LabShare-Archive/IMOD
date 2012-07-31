@@ -294,21 +294,20 @@ public final class SerialSectionsManager extends BaseManager {
       processSeries.startFailProcess(axisID);
       return;
     }
-    comScriptMgr.loadPreblend(axisID);
-    BlendmontParam param = comScriptMgr.getBlendmontParamFromPreblend(axisID, getName());
-    dialog.getPreblendParameters(param);
-    comScriptMgr.savePreblend(param, axisID);
+    BlendmontParam param = updatePreblendComscript(axisID);
+    String threadName = null;
     try {
-      processMgr.blend(param, axisID, processSeries);
+      threadName = processMgr.blend(param, axisID, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, "Unable to run preblend.\n" + e.getMessage(),
           "Process Failed", axisID);
       processSeries.startFailProcess(axisID);
+      return;
     }
+    setThreadName(threadName, axisID);
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
-    processSeries.startNextProcess(axisID);
   }
 
   /**
@@ -323,8 +322,8 @@ public final class SerialSectionsManager extends BaseManager {
     }
     catch (SystemProcessException e) {
       UIHarness.INSTANCE.openMessageDialog(this,
-          "Unable open midas on " + metaData.getStack() + ".  ",
-          "Unable to Run Process", axisID);
+          "Unable open midas on " + metaData.getStack() + ".  ", "Unable to Run Process",
+          axisID);
       if (processSeries != null) {
         processSeries.startFailProcess(axisID);
       }
@@ -373,33 +372,34 @@ public final class SerialSectionsManager extends BaseManager {
       }
       return;
     }
-    if (viewType == ViewType.MONTAGE) {
-      File pieceListFile = DatasetFiles.getPieceListFile(this, axisID);
-      if (!pieceListFile.exists()) {
-        ExtractpiecesParam param = new ExtractpiecesParam(getStack().getName(),
-            getName(), AxisType.SINGLE_AXIS, this, axisID);
-        String threadName;
-        try {
-          threadName = processMgr.extractpieces(param, axisID, processSeries);
-        }
-        catch (SystemProcessException e) {
-          e.printStackTrace();
-          String[] message = new String[2];
-          message[0] = "Can not execute " + ExtractpiecesParam.COMMAND_NAME;
-          message[1] = e.getMessage();
-          uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
-          if (processSeries != null) {
-            processSeries.startFailProcess(axisID);
-          }
-          return;
-        }
-        setThreadName(threadName, axisID);
-        getMainPanel().startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME,
-            axisID, ProcessName.EXTRACTPIECES);
+    if (viewType != ViewType.MONTAGE) {
+      if (processSeries != null) {
+        processSeries.startNextProcess(axisID);
       }
+      return;
     }
-    if (processSeries != null) {
-      processSeries.startNextProcess(axisID);
+    File pieceListFile = DatasetFiles.getPieceListFile(this, axisID);
+    if (!pieceListFile.exists()) {
+      ExtractpiecesParam param = new ExtractpiecesParam(getStack().getName(), getName(),
+          AxisType.SINGLE_AXIS, this, axisID);
+      String threadName;
+      try {
+        threadName = processMgr.extractpieces(param, axisID, processSeries);
+      }
+      catch (SystemProcessException e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Can not execute " + ExtractpiecesParam.COMMAND_NAME;
+        message[1] = e.getMessage();
+        uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
+        if (processSeries != null) {
+          processSeries.startFailProcess(axisID);
+        }
+        return;
+      }
+      setThreadName(threadName, axisID);
+      getMainPanel().startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME,
+          axisID, ProcessName.EXTRACTPIECES);
     }
   }
 
@@ -475,9 +475,12 @@ public final class SerialSectionsManager extends BaseManager {
       return;
     }
     XftoxgParam param = new XftoxgParam(this);
+    param.setXfFileName(FileType.LOCAL_TRANSFORMATION_LIST.getFileName(this, axisID));
+    param.setXgFileName(FileType.GLOBAL_TRANSFORMATION_LIST.getFileName(this, axisID));
     dialog.getParameters(param);
+    String threadName = null;
     try {
-      processMgr.xftoxg(param, axisID, processSeries);
+      threadName = processMgr.xftoxg(param, axisID, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -488,10 +491,10 @@ public final class SerialSectionsManager extends BaseManager {
       if (processSeries != null) {
         processSeries.startFailProcess(axisID);
       }
+      return;
     }
-    if (processSeries != null) {
-      processSeries.startNextProcess(axisID);
-    }
+    setThreadName(threadName, axisID);
+    mainPanel.startProgressBar(XftoxgParam.COMMAND_NAME, AxisID.ONLY, ProcessName.XFTOXG);
   }
 
   private void align(final ConstProcessSeries processSeries, final AxisID axisID) {
@@ -501,13 +504,11 @@ public final class SerialSectionsManager extends BaseManager {
       }
       return;
     }
+    String threadName = null;
     if (metaData.getViewType() == ViewType.MONTAGE) {
-      comScriptMgr.loadBlend(axisID);
-      BlendmontParam param = comScriptMgr.getBlendmontParamFromBlend(axisID, getName());
-      dialog.getBlendParameters(param);
-      comScriptMgr.saveBlend(param, axisID);
+      BlendmontParam param = updateBlendComscript(axisID);
       try {
-        processMgr.blend(param, axisID, processSeries);
+        threadName = processMgr.blend(param, axisID, processSeries);
       }
       catch (SystemProcessException e) {
         e.printStackTrace();
@@ -519,6 +520,7 @@ public final class SerialSectionsManager extends BaseManager {
         if (processSeries != null) {
           processSeries.startFailProcess(axisID);
         }
+        return;
       }
     }
     else {
@@ -530,7 +532,7 @@ public final class SerialSectionsManager extends BaseManager {
         return;
       }
       try {
-        processMgr.newst(param, axisID, processSeries);
+        threadName = processMgr.newst(param, axisID, processSeries);
       }
       catch (SystemProcessException e) {
         e.printStackTrace();
@@ -542,11 +544,10 @@ public final class SerialSectionsManager extends BaseManager {
         if (processSeries != null) {
           processSeries.startFailProcess(axisID);
         }
+        return;
       }
     }
-    if (processSeries != null) {
-      processSeries.startNextProcess(axisID);
-    }
+    setThreadName(threadName, axisID);
   }
 
   private ConstNewstParam updateNewstCom(final AxisID axisID) {
@@ -591,6 +592,22 @@ public final class SerialSectionsManager extends BaseManager {
           "Etomo Error", axisID);
       return null;
     }
+    return param;
+  }
+
+  private BlendmontParam updatePreblendComscript(final AxisID axisID) {
+    comScriptMgr.loadPreblend(axisID);
+    BlendmontParam param = comScriptMgr.getBlendmontParamFromPreblend(axisID, getName());
+    dialog.getPreblendParameters(param);
+    comScriptMgr.savePreblend(param, axisID);
+    return param;
+  }
+
+  private BlendmontParam updateBlendComscript(final AxisID axisID) {
+    comScriptMgr.loadBlend(axisID);
+    BlendmontParam param = comScriptMgr.getBlendmontParamFromBlend(axisID, getName());
+    dialog.getBlendParameters(param);
+    comScriptMgr.saveBlend(param, axisID);
     return param;
   }
 
@@ -679,8 +696,8 @@ public final class SerialSectionsManager extends BaseManager {
       return;
     }
     try {
-      imodManager.open(ImodManager.RAW_STACK_KEY, axisID,
-          new File(propertyUserDir,metaData.getStack()), menuOptions);
+      imodManager.open(ImodManager.RAW_STACK_KEY, axisID, new File(propertyUserDir,
+          metaData.getStack()), menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -747,6 +764,13 @@ public final class SerialSectionsManager extends BaseManager {
       }
     }
     dialog.getParameters(metaData);
+    if (getViewType() == ViewType.MONTAGE) {
+      updatePreblendComscript(AXIS_ID);
+      updateBlendComscript(AXIS_ID);
+    }
+    else {
+      updateNewstCom(AXIS_ID);
+    }
     saveStorables(AXIS_ID);
     return true;
   }
@@ -787,7 +811,7 @@ public final class SerialSectionsManager extends BaseManager {
    */
   private File getStack() {
     if (loadedParamFile) {
-      return new File(propertyUserDir,metaData.getStack());
+      return new File(propertyUserDir, metaData.getStack());
     }
     if (startupDialog != null) {
       return startupDialog.getStack();
@@ -817,10 +841,20 @@ public final class SerialSectionsManager extends BaseManager {
   private void setSerialSectionsDialogParameters() {
     if (loadedParamFile && paramFile != null && metaData.isValid()) {
       dialog.setParameters(metaData);
-      comScriptMgr.loadPreblend(AXIS_ID);
-      BlendmontParam param = comScriptMgr.getBlendmontParamFromPreblend(AXIS_ID,
-          getName());
-      dialog.setPreblendParameters(param);
+      if (getViewType() == ViewType.MONTAGE) {
+        comScriptMgr.loadPreblend(AXIS_ID);
+        BlendmontParam param = comScriptMgr.getBlendmontParamFromPreblend(AXIS_ID,
+            getName());
+        dialog.setPreblendParameters(param);
+        comScriptMgr.loadBlend(AXIS_ID);
+        param = comScriptMgr.getBlendmontParamFromBlend(AXIS_ID, getName());
+        dialog.setBlendParameters(param);
+      }
+      else {
+        comScriptMgr.loadNewst(AXIS_ID);
+        ConstNewstParam param = comScriptMgr.getNewstackParam(AXIS_ID, getName());
+        dialog.setParameters(param);
+      }
     }
   }
 
