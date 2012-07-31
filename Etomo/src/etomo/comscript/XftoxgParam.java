@@ -56,30 +56,14 @@ public final class XftoxgParam implements Command {
   private final EtomoNumber hybridFits = new EtomoNumber();
   private final EtomoNumber numberToFit = new EtomoNumber();
 
-  private final String[] commandArray;
   private final BaseManager manager;
 
   private String xfFileName = "";
   private String xgFileName = "";
+  private String[] commandArray = null;
 
   public XftoxgParam(BaseManager manager) {
     this.manager = manager;
-    ArrayList options = genOptions();
-    commandArray = new String[options.size() + COMMAND_SIZE];
-    commandArray[0] = BaseManager.getIMODBinPath() + COMMAND_NAME;
-    for (int i = 0; i < options.size(); i++) {
-      commandArray[i + COMMAND_SIZE] = (String) options.get(i);
-    }
-    if (debug) {
-      StringBuffer buffer = new StringBuffer();
-      for (int i = 0; i < commandArray.length; i++) {
-        buffer.append(commandArray[i]);
-        if (i < commandArray.length - 1) {
-          buffer.append(' ');
-        }
-      }
-      System.err.println(buffer.toString());
-    }
   }
 
   private ArrayList genOptions() {
@@ -104,7 +88,7 @@ public final class XftoxgParam implements Command {
   public void setReferenceSection(final ConstEtomoNumber input) {
     referenceSection.set(input);
   }
-  
+
   public void setReferenceSection(final Number input) {
     referenceSection.set(input);
   }
@@ -132,7 +116,7 @@ public final class XftoxgParam implements Command {
   public void setNumberToFit(final int input) {
     numberToFit.set(input);
   }
-  
+
   public void setNumberToFit(final EnumeratedType enumType) {
     numberToFit.set(enumType.getValue());
   }
@@ -174,6 +158,24 @@ public final class XftoxgParam implements Command {
   }
 
   public String[] getCommandArray() {
+    if (commandArray == null) {
+      ArrayList options = genOptions();
+      commandArray = new String[options.size() + COMMAND_SIZE];
+      commandArray[0] = BaseManager.getIMODBinPath() + COMMAND_NAME;
+      for (int i = 0; i < options.size(); i++) {
+        commandArray[i + COMMAND_SIZE] = (String) options.get(i);
+      }
+      if (debug) {
+        StringBuffer buffer = new StringBuffer();
+        for (int i = 0; i < commandArray.length; i++) {
+          buffer.append(commandArray[i]);
+          if (i < commandArray.length - 1) {
+            buffer.append(' ');
+          }
+        }
+        System.err.println(buffer.toString());
+      }
+    }
     return commandArray;
   }
 
@@ -252,6 +254,7 @@ public final class XftoxgParam implements Command {
     public String toString() {
       return value.toString();
     }
+
     public boolean equals(final int input) {
       return value.equals(input);
     }
