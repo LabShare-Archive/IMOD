@@ -35,6 +35,7 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SerialSectionsMetaData;
+import etomo.type.SerialSectionsState;
 import etomo.type.ViewType;
 import etomo.ui.swing.Deferred3dmodButton;
 import etomo.ui.swing.LogInterface;
@@ -70,6 +71,8 @@ public final class SerialSectionsManager extends BaseManager {
   private static final AxisID AXIS_ID = AxisID.ONLY;
 
   private final LogPanel logPanel = LogPanel.getInstance(this);
+
+  private final SerialSectionsState state = new SerialSectionsState();
 
   private final SerialSectionsMetaData metaData;
   private final SerialSectionsProcessManager processMgr;
@@ -314,7 +317,7 @@ public final class SerialSectionsManager extends BaseManager {
    * Run fix edges in Midas
    */
   public void midasFixEdges(final AxisID axisID, final ConstProcessSeries processSeries) {
-    MidasParam param = new MidasParam(this, axisID, Mode.FIX_EDGES);
+    MidasParam param = new MidasParam(this, axisID, Mode.SERIAL_SECTIONS_FIX_EDGES);
     getParameters(param);
     dialog.getParameters(param);
     try {
@@ -474,6 +477,7 @@ public final class SerialSectionsManager extends BaseManager {
       }
       return;
     }
+    autoAlignmentController.copyMostRecentXfFile("Align tab");
     XftoxgParam param = new XftoxgParam(this);
     param.setXfFileName(FileType.LOCAL_TRANSFORMATION_LIST.getFileName(this, axisID));
     param.setXgFileName(FileType.GLOBAL_TRANSFORMATION_LIST.getFileName(this, axisID));
@@ -559,6 +563,8 @@ public final class SerialSectionsManager extends BaseManager {
     try {
       param = comScriptMgr.getNewstackParam(axisID, getName());
       param.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
+      param.setTransformFile(FileType.GLOBAL_TRANSFORMATION_LIST
+          .getFileName(this, axisID));
       dialog.getParameters(param);
       comScriptMgr.saveNewst(param, axisID);
     }
@@ -598,15 +604,25 @@ public final class SerialSectionsManager extends BaseManager {
   private BlendmontParam updatePreblendComscript(final AxisID axisID) {
     comScriptMgr.loadPreblend(axisID);
     BlendmontParam param = comScriptMgr.getBlendmontParamFromPreblend(axisID, getName());
+    param.setMode(BlendmontParam.Mode.SERIAL_SECTION_PREBLEND);
     dialog.getPreblendParameters(param);
+    param.setBlendmontState(state.getInvalidEdgeFunctions());
     comScriptMgr.savePreblend(param, axisID);
     return param;
+  }
+
+  public SerialSectionsState getState() {
+    return state;
   }
 
   private BlendmontParam updateBlendComscript(final AxisID axisID) {
     comScriptMgr.loadBlend(axisID);
     BlendmontParam param = comScriptMgr.getBlendmontParamFromBlend(axisID, getName());
+    param.setMode(BlendmontParam.Mode.SERIAL_SECTION_BLEND);
+    param.setImageInputFile(metaData.getStack());
+    param.setTransformFile(FileType.GLOBAL_TRANSFORMATION_LIST.getFileName(this, axisID));
     dialog.getBlendParameters(param);
+    param.setBlendmontState(state.getInvalidEdgeFunctions());
     comScriptMgr.saveBlend(param, axisID);
     return param;
   }
@@ -862,7 +878,11 @@ public final class SerialSectionsManager extends BaseManager {
     param.setInputFileName(metaData.getStack());
   }
 
-  public void getParameters(final XfalignParam param, final AxisID axisID) {
+  public void getAutoAlignmentParameters(final MidasParam param, final AxisID axisID) {
+    param.setInputFileName(FileType.PREBLEND_OUTPUT_MRC.getFileName(this, axisID));
+  }
+
+  public void getAutoAlignmentParameters(final XfalignParam param, final AxisID axisID) {
     if (getViewType() == ViewType.MONTAGE) {
       param.setInputFileName(FileType.PREBLEND_OUTPUT_MRC.getFileName(this, axisID));
     }
@@ -913,9 +933,10 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   Storable[] getStorables(final int offset) {
-    Storable[] storables = new Storable[1 + offset];
+    Storable[] storables = new Storable[2 + offset];
     int index = offset;
     storables[index++] = metaData;
+    storables[index++] = state;
     return storables;
   }
 
