@@ -48,6 +48,7 @@ public final class AutoAlignmentMetaData {
     sigmaHighFrequency.setDefault(0).setDisplayValue(0.05);
     reduceByBinning.setDisplayValue(2);
     midasBinning.setDisplayValue(1);
+    edgeToIgnore.setDisplayValue(.05);
   }
 
   private String createPrepend(final String prepend) {
