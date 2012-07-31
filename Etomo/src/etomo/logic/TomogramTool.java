@@ -211,11 +211,13 @@ public final class TomogramTool {
       return null;
     }
     PairXAndY pairXAndY = new PairXAndY();
-    int n = header.getNRows();
+    //X
+    int n = header.getNColumns();
     int[] pair = getStartingAndEnding(n, sizeX, shiftX, manager, axisID, sizeXDescr,
         shiftXDescr, errorMsgTitle);
     pairXAndY.setX(pair);
-    n = header.getNColumns();
+    //Y
+    n = header.getNRows();
     pair = getStartingAndEnding(n, sizeY, shiftY, manager, axisID, sizeYDescr,
         shiftYDescr, errorMsgTitle);
     pairXAndY.setY(pair);
@@ -246,7 +248,7 @@ public final class TomogramTool {
       return null;
     }
     if (size.isNull()) {
-      size.set(0);
+      size.set(fileN);
     }
     EtomoNumber shift = new EtomoNumber(EtomoNumber.Type.FLOAT);
     shift.set(shiftString);
@@ -465,7 +467,7 @@ public final class TomogramTool {
      * @return
      */
     public int getSecondX() {
-      return pairX[0].getInt();
+      return pairX[1].getInt();
     }
 
     /**
@@ -481,7 +483,7 @@ public final class TomogramTool {
      * @return
      */
     public int getSecondY() {
-      return pairY[0].getInt();
+      return pairY[1].getInt();
     }
   }
 }
