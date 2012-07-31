@@ -211,6 +211,10 @@ final class Spinner {
   void setVisible(final boolean visible) {
     panel.setVisible(visible);
   }
+  
+  boolean isVisible() {
+    return panel.isVisible();
+  }
 
   void setMaximumSize(Dimension maximumSize) {
     spinner.setMaximumSize(maximumSize);
