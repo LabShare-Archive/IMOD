@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Vector;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -204,8 +205,6 @@ import etomo.util.MRCHeader;
 public final class NewstParam implements ConstNewstParam, CommandParam {
   public static final String rcsid = "$Id$";
 
-  public static final String COMMAND = "newstack";
-
   public static final String SIZE_TO_OUTPUT_IN_X_AND_Y = "SizeToOutputInXandY";
   public static final String IMAGES_ARE_BINNED_KEY = "ImagesAreBinned";
   public static final String DISTORTION_FIELD_KEY = "DistortionField";
@@ -270,13 +269,15 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private Mode mode;
   private final AxisID axisID;
   private final BaseManager manager;
+  private final boolean useColorNewst;
 
   private boolean validate = false;
-  private boolean useColorNewst = false;
 
-  public NewstParam(final BaseManager manager, final AxisID axisID) {
+  private NewstParam(final BaseManager manager, final AxisID axisID,
+      final boolean useColorNewst) {
     this.manager = manager;
     this.axisID = axisID;
+    this.useColorNewst = useColorNewst;
     boolean[] allIntegerType = new boolean[] { true, true };
     sizeToOutputInXandY.setIntegerType(allIntegerType);
     userSizeToOutputInXandY.setIntegerType(allIntegerType);
@@ -284,6 +285,14 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     testLimits.setIntegerType(allIntegerType);
     taper.setIntegerType(allIntegerType);
     reset();
+  }
+
+  public static NewstParam getInstance(final BaseManager manager, final AxisID axisID) {
+    return new NewstParam(manager, axisID, false);
+  }
+
+  public static NewstParam getColorInstance(final BaseManager manager, final AxisID axisID) {
+    return new NewstParam(manager, axisID, true);
   }
 
   public void setValidate(final boolean validate) {
@@ -502,14 +511,17 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
       cmdLineArgs.add(DATA_MODE_OPTION);
       cmdLineArgs.add(String.valueOf(modeToOutput));
     }
-    if (offsetsInXandY.valuesSet()) {
+    if (!offsetsInXandY.isNull()) {
       cmdLineArgs.add("-offset");
-      cmdLineArgs.add(offsetsInXandY.toString());
+      cmdLineArgs.add(offsetsInXandY.toString(true));
     }
     for (Iterator<FortranInputString> i = offsetsInXandYExtraEntries.iterator(); i
         .hasNext();) {
-      cmdLineArgs.add("-offset");
-      cmdLineArgs.add(i.next().toString());
+      FortranInputString fis = i.next();
+      if (!fis.isNull()) {
+        cmdLineArgs.add("-offset");
+        cmdLineArgs.add(fis.toString(true));
+      }
     }
     if (applyOffsetsFirst) {
       cmdLineArgs.add("-applyfirst");
@@ -591,11 +603,16 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     scriptCommand.setCommandLineArgs((String[]) cmdLineArgs.toArray(new String[nArgs]));
 
     // If the command is currently newst change it to newstack
-    if (scriptCommand.getCommand().equals("newst")) {
-      scriptCommand.setCommand("newstack");
-    }
-    if (useColorNewst) {
-      scriptCommand.setCommand("colornewst");
+    scriptCommand.setCommand(getCommandName());
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+      System.err.println(scriptCommand.getCommand());
+      String[] commandArray = scriptCommand.getCommandLineArgs();
+      if (commandArray != null) {
+        for (int i = 0; i < commandArray.length; i++) {
+          System.err.print(commandArray[i] + " ");
+        }
+        System.err.println();
+      }
     }
   }
 
@@ -815,7 +832,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
       final int binning, final double imageRotation, final String description)
       throws FortranInputSyntaxException, etomo.util.InvalidParameterException,
       IOException {
-    String userSize="";
+    String userSize = "";
     // make sure an empty string really causes sizeToOutputInXandY to be empty.
     if (!userSizeX.matches("\\s*") || !userSizeY.matches("\\s*")) {
       userSize = userSizeX + FortranInputString.DEFAULT_DIVIDER + userSizeY;
@@ -1154,7 +1171,10 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   }
 
   public String getCommandName() {
-    return processName.toString();
+    if (useColorNewst) {
+      return "colornewst";
+    }
+    return "newstack";
   }
 
   public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
