@@ -656,6 +656,7 @@ public class ImodManager {
   private static final String flattenToolOutputKey = FLATTEN_TOOL_OUTPUT_KEY;
   private static final String sirtKey = SIRT_KEY;
   private static final String preblendKey = PREBLEND_KEY;
+  private static final String alignedStackKey=ALIGNED_STACK_KEY;
 
   private boolean useMap = true;
   private final BaseManager manager;
@@ -1827,6 +1828,9 @@ public class ImodManager {
     if (key.equals(PREBLEND_KEY) && axisID != null) {
       return newPreblend(axisID);
     }
+    if (key.equals(ALIGNED_STACK_KEY) && axisID != null) {
+      return newAlignedStack(axisID);
+    }
     System.out.println("key=" + key);
     throw new IllegalArgumentException(key + " cannot be created in "
         + axisType.toString() + " with axisID=" + axisID.getExtension());
@@ -2052,6 +2056,11 @@ public class ImodManager {
     return imodState;
   }
 
+  private ImodState newAlignedStack(AxisID axisID) {
+    ImodState imodState = new ImodState(manager, axisID,
+        FileType.ALIGNED_STACK_MRC.getFileName(manager, axisID));
+    return imodState;
+  }
   private ImodState newPreview(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, datasetName, ".st");
     imodState.setLoadAsIntegers();
