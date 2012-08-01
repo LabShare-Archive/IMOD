@@ -7,10 +7,14 @@
  *
  * $Id$
  *
- * $Log$
- * 
  */
-#include "cfsemshare.h"
+#include "b3dutil.h"
+
+#ifdef F77FUNCAP
+#define percentilefloat PERCENTILEFLOAT
+#else
+#define percentilefloat percentilefloat_
+#endif
 
 /* 
  * Routines for selecting item number s (numbered from 1) out of num items
@@ -52,6 +56,14 @@ float percentileFloat(int s, float *r, int num)
   }
 
   return r[s];
+}
+
+/*!
+ * Fortran wrapper to @percentileFloat 
+ */
+double percentilefloat(int *s, float *r, int *num)
+{
+  return (double)percentileFloat(*s, r, *num);
 }
 
 /*!
