@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/2/12: Made usage statements and manpages from PIP show abbreviations of
+short names.
+
 7/29/12: Added Autofidseed for automatic selection of a fiducial seed model,
 and a companion program, Pickbestseed, that it uses for analysis of beads.
 
