@@ -5,7 +5,6 @@
 # Author: David Mastronarde
 #
 # $Id$
-# Log at end
 #
 # The approach in translating was to retain most of the flags and capabilities
 # in the C code, even when the calls for setting the flags were not included:
@@ -47,7 +46,7 @@ tokenSep = re.compile("[= \t]")
 nonWhite = re.compile('[^ \t]')
 valueSep = re.compile('[ ,\t/]')
 pipErrno = 0
-
+quoteTypes = """'"`"""
 
 
 # The options "structure"; initialize all the values
@@ -86,6 +85,7 @@ nonOptLines = 0
 noAbbrevs = 0
 notFoundOK = False
 linkedOption = None
+testAbbrevForUsage = False
 
 # Initialize for given number of options
 #
@@ -433,6 +433,7 @@ def PipGetFloatArray(option, numToGet):
 #
 def PipPrintHelp(progName, useStdErr, inputFiles, outputFiles):
    global numOptions, optTable, outputManpage, typeForUsage, types, numTypes
+   global testAbbrevForUsage
    numOut = 0
    numReal = 0
    helplim = 74
@@ -463,14 +464,26 @@ def PipPrintHelp(progName, useStdErr, inputFiles, outputFiles):
 
       if (not numReal):
          return 0
+      out.write("Options can be abbreviated, current short name abbreviations are in " +\
+            "parentheses\n")
       out.write("Options:\n")
       descriptions = typeForUsage
 
+   testAbbrevForUsage = True
    for i in range(numOptions):
       
       sname = optTable[i].shortName
       lname = optTable[i].longName
       indentStr = ""
+
+      # Try to look up an abbreviation of the short name
+      abbrev = None
+      if len(sname):
+         for j in range(1, len(sname)):
+            if LookupOption(sname[:j], numOptions) == i:
+               abbrev = sname[:j]
+               break
+                               
       if (len(lname) or len(sname)):
          if (outputManpage <= 0):
             indentStr = indent4
@@ -478,8 +491,10 @@ def PipPrintHelp(progName, useStdErr, inputFiles, outputFiles):
          out.write(" ")
          if len(sname):
             out.write("-" + sname)
+         if abbrev:
+            out.write(" (-" + abbrev + ")")
          if len(sname) and len(lname):
-            out.write(" OR ")
+            out.write("  OR  ")
          if len(lname):
             out.write("-" + lname)
          for j in range(numTypes):
@@ -518,6 +533,7 @@ def PipPrintHelp(progName, useStdErr, inputFiles, outputFiles):
       if (optTable[i].multiple):
          out.write(indentStr + "(Successive entries accumulate)\n")
 
+   testAbbrevForUsage = False
    return 0
 
 
@@ -724,7 +740,8 @@ def PipReadOptionFile(progName, helpLevel, localDir):
    longName = shortName = type = ''
    helpStr = ['','','']
    readingOpt = 0
-
+   inQuoteIndex = -1
+   
    while (1):
       (lineLen, bigStr, indst) = PipReadNextLine(optFile, '#', 0, 0)
       if (lineLen == -2):
@@ -739,7 +756,7 @@ def PipReadOptionFile(progName, helpLevel, localDir):
 
       # Look for new keyword-value delimiter before any options
       if (not numOpts):
-         (newDelim, lastInd) = CheckKeyword(textStr, "KeyValueDelimiter", 0)
+         (newDelim, lastInd, inQuoteIndex) = CheckKeyword(textStr, "KeyValueDelimiter", 0)
          if (newDelim):
             valueDelim = newDelim
 
@@ -793,9 +810,9 @@ def PipReadOptionFile(progName, helpLevel, localDir):
       # If reading options, look for the various keywords
       if (readingOpt):
 
-         # If the last string gotten was a help string and the line does not
-         #   contain the value delimiter, then append it to the last string
-         if (lastInd and textStr.find(valueDelim) < 0):
+         # If the last string gotten was a help string and the line does not contain the
+         # value delimiter or we are in a quote, then append it to the last string
+         if lastInd and (inQuoteIndex >= 0 or textStr.find(valueDelim) < 0):
             if helpStr[lastInd-1].endswith('.'):
                helpStr[lastInd-1] += '  '
             else:
@@ -804,49 +821,70 @@ def PipReadOptionFile(progName, helpLevel, localDir):
             # Replace leading ^ with a newline
             if (textStr[0] == '^'):
                textStr = textStr.replace('^', '\n', 1)
-            helpStr[lastInd-1] += textStr
+
+            # If inside quotes, look for quote at end and say it is the end of accepting
+            # continuation lines, and as a protection, also say a blank line ends it
+            lentx = len(textStr)
+            if inQuoteIndex >= 0 and \
+                   (not lentx or textStr[lentx - 1] == quoteTypes[inQuoteIndex]):
+               if lentx:
+                  helpStr[lastInd-1] += textStr[:lentx - 1]
+               lastInd = 0
+               inQuoteIndex = -1
+            else:
+               helpStr[lastInd-1] += textStr
 
          # Otherwise look for each keyword of interest, but zero last index
          else:
             lastInd = 0
             retval = CheckKeyword(textStr, "short", 0)
             if retval[0]:
-               (shortName, lastInd) = retval
+               (shortName, lastInd, inQuoteIndex) = retval
             retval = CheckKeyword(textStr, "long", 0)
             if retval[0]:
-               (longName, lastInd) = retval
+               (longName, lastInd, inQuoteIndex) = retval
             retval = CheckKeyword(textStr, "type", 0)
             if retval[0]:
-               (type, lastInd) = retval
+               (type, lastInd, inQuoteIndex) = retval
 
             # Check for usage if at help level 1 or if we haven't got
             # either of the other strings yet
             if (helpLevel <= 1 or not (helpStr[1] or helpStr[2])):
-               retval = CheckKeyword(textStr, "usage", 1)
+               retval = CheckKeyword(textStr, "usage", 1, 1)
                if retval[0]:
-                  (helpStr[0], lastInd) = retval
+                  (helpStr[0], lastInd, inQuoteIndex) = retval
       
             # Check for tooltip if at level 2 or if at level 1 and haven't 
             # got usage, or at level 3 and haven't got manpage
             if (helpLevel == 2 or (helpLevel <= 1 and not helpStr[0]) or
                (helpLevel >= 3 and not helpStr[2])):
-               retval = CheckKeyword(textStr, "tooltip", 2)
+               retval = CheckKeyword(textStr, "tooltip", 2, 1)
                if retval[0]:
-                  (helpStr[1], lastInd) = retval
+                  (helpStr[1], lastInd, inQuoteIndex) = retval
       
             # Check for manpage if at level 3 or if at level 2 and haven't 
             # got tip, or at level 1 and haven't got tip or usage
             if (helpLevel >= 3 or (helpLevel == 2 and not helpStr[1]) or
                (helpLevel <= 1 and not (helpStr[1] or helpStr[0]))):
-               retval = CheckKeyword(textStr, "manpage", 3)
+               retval = CheckKeyword(textStr, "manpage", 3, 1)
                if retval[0]:
-                  (helpStr[2], lastInd) = retval
+                  (helpStr[2], lastInd, inQuoteIndex) = retval
 
+            # If that was a line with quoted string, check for quote at end of line and
+            # close out the help string if so */
+            if inQuoteIndex >= 0 and lastInd:
+               lentx = len(helpStr[lastInd - 1])
+               if lentx and helpStr[lastInd - 1][lentx - 1] == quoteTypes[inQuoteIndex]:
+                  helpStr[lastInd - 1] = helpStr[lastInd - 1][:lentx - 1]
+                  inQuoteIndex = -1
+                  lastInd = 0
+                  
       # But if not reading options, check for a new option token and start 
       # reading if one is found.  But first take a Field value as default 
       # long option name
       elif (isOption > 0):
          lastInd = 0
+         inQuoteIndex = -1
          readingOpt = 1
          isSection = isOption - 1
          if (not isSection):
@@ -1282,11 +1320,12 @@ def LookupOption(option, maxLookup):
          if (found == LOOKUP_NOT_FOUND):
             found = i
          else:
-            tempStr = "An option specified by \"" + option + \
-                      "\" is ambiguous between option " + sname + " -  " + \
-                      lname + "  and option " +  optTable[found].shortName + \
-                      " -  " + optTable[found].longName
-            PipSetError(tempStr)
+            if not testAbbrevForUsage:
+               tempStr = "An option specified by \"" + option + \
+                   "\" is ambiguous between option " + sname + " -  " + \
+                   lname + "  and option " +  optTable[found].shortName + \
+                   " -  " + optTable[found].longName
+               PipSetError(tempStr)
             return LOOKUP_AMBIGUOUS
          
    # Set error string unless flag set that non-options are OK 
@@ -1327,20 +1366,22 @@ def LineIsOptionToken(line):
 #
 # Checks for whether a keyword occurs at the beginning of the line and
 # is followed by the keyword-value delimiter, and if so returns the
-# value string and the supplied index number, otherwise blank string and 0
+# value string and the supplied index number, otherwise blank string and 0.
+# If quoteOK is non-zero, it sees if the string starts with a quote character in
+# quoteTypes, strips that, and returns the index in the third element
 #
-def CheckKeyword(line, keyword, index):
+def CheckKeyword(line, keyword, index, quoteOK = 0):
    global valueDelim
    lineLen = len(line)
    
    # First make sure line starts with it
    if (not PipStartsWith(line, keyword)):
-      return ('', 0)
+      return ('', 0, -1)
 
    # Now look for delimiter 
    valStart = line.find(valueDelim)
    if (valStart < 0):
-      return ('', 0)
+      return ('', 0, -1)
 
    # Eat spaces after the delimiter and return if nothing left
    # In other words, a key with no value is the same as having no key at all 
@@ -1349,39 +1390,12 @@ def CheckKeyword(line, keyword, index):
          line[valStart] == '\t')):
       valStart += 1
    if (valStart >= lineLen):
-      return ('', 0)
+      return ('', 0, -1)
 
-   return (line[valStart:], index)
+   # Look for quote if directed to
+   indQuote = -1
+   if quoteOK and line[valStart] in quoteTypes:
+      indQuote = quoteTypes.find(line[valStart])
+      valStart += 1
 
-# $Log$
-# Revision 1.10  2011/06/16 20:00:53  mast
-# Added ability to have numeric non-option arguments starting with minus
-#
-# Revision 1.9  2011/06/16 15:10:17  mast
-# Added ability to handle linked options
-#
-# Revision 1.8  2011/05/29 22:41:00  mast
-# Allowed single-letter short name to be ambiguous to longer short names
-#
-# Revision 1.7  2011/02/25 22:20:42  mast
-# Changed fallback warning to be generic
-#
-# Revision 1.6  2010/12/01 23:03:13  mast
-# Fixed some formatting and an error message
-#
-# Revision 1.5  2010/12/01 21:02:03  mast
-# Modifications for python 2/3 compatibility
-#
-# Revision 1.4  2009/12/04 20:46:02  mast
-# Added print entries and changed indent to 3
-#
-# Revision 1.3  2009/10/08 22:49:40  mast
-# Removed OR from usage output if only one option name
-#
-# Revision 1.2  2009/09/08 19:03:59  mast
-# Avoid multiline error messages
-#
-# Revision 1.1  2008/01/05 17:19:09  mast
-# Added to package
-#
-#
+   return (line[valStart:], index, indQuote)
