@@ -8,13 +8,13 @@
 subroutine proc_model(xcen, ycen, xdelt, ydelt, xorig, yorig, scaleXY, &
     nviewTot, minInView, izcur, nzLocal, listObj, ninList, numInView, &
     ivOrig, xx, yy, isecView, maxProjPt, maxReal, irealStr, iobjAli, &
-    nview, nprojpt, nRealPt)
+    nview, nprojpt, nRealPt, izExclude, numExclude)
   !
   implicit none
   include 'smallmodel.inc90'
   real*4 xx(*), yy(*)
   integer*4 isecView(*), irealStr(*), listObj(*)
-  integer*4 numInView(*), ivOrig(*), iobjAli(*)
+  integer*4 numInView(*), ivOrig(*), iobjAli(*), izExclude(*), numExclude
   real*4 xcen, ycen, xdelt, ydelt, xorig, yorig, scaleXY
   integer*4 nviewTot, minInView, izcur, nzLocal, ninList, nview, nprojpt
   integer*4 nRealPt, maxProjPt, maxReal
@@ -22,6 +22,7 @@ subroutine proc_model(xcen, ycen, xdelt, ydelt, xorig, yorig, scaleXY, &
   integer*4 numTry, itry, izStrtTry, izEndTry
   integer*4 needDo, numInObj, numLegal, maxView, minView, minViewsPresent
   real*4 adjNpnts, adjMaxpt
+  logical itemOnList
   minViewsPresent = 3
   !
   ! find z limits based on nzLocal
@@ -43,7 +44,9 @@ subroutine proc_model(xcen, ycen, xdelt, ydelt, xorig, yorig, scaleXY, &
       ibase = ibase_obj(iobject)
       do ipt = 1, npt_in_obj(iobject)
         iz = nint(p_coord(3, object(ipt + ibase))) + 1
-        if (iz >= izStrtMin .and. iz <= izEndMax) numInView(iz) = numInView(iz) + 1
+        if (iz >= izStrtMin .and. iz <= izEndMax .and.  &
+            .not. itemOnList(iz, izExclude, numExclude))  &
+            numInView(iz) = numInView(iz) + 1
       enddo
     enddo
     !
@@ -101,12 +104,15 @@ subroutine proc_model(xcen, ycen, xdelt, ydelt, xorig, yorig, scaleXY, &
         numLegal = 0
         do ipt = 1, numInObj
           iz = nint(p_coord(3, object(ipt + ibase))) + 1
-          if (ivOrig(iz) >= minInView) numLegal = numLegal + 1
+          if (ivOrig(iz) >= minInView .and. .not. itemOnList(iz, izExclude, numExclude)) &
+              numLegal = numLegal + 1
         enddo
         if (numLegal >= minViewsPresent) then
           do ipt = 1, numInObj
             iz = nint(p_coord(3, object(ipt + ibase))) + 1
-            if (ivOrig(iz) >= minInView) numInView(iz) = numInView(iz) + 1
+            if (ivOrig(iz) >= minInView .and.  &
+                .not. itemOnList(iz, izExclude, numExclude)) &
+                numInView(iz) = numInView(iz) + 1
           enddo
         endif
       endif
