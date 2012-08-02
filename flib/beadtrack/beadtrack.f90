@@ -37,7 +37,7 @@ program beadtrack
   integer*4, allocatable :: ixPclist(:), iyPclist(:), izPclist(:), listz(:), inCore(:,:)
   CHARACTER*320 filin, outFile, pieceFile, modelFile, elongFile, XYZfile, prexfFile
   ! maxView except wsumSave
-  integer*4, allocatable :: izExclude(:), ipClose(:), izClose(:)
+  integer*4, allocatable :: ipClose(:), izClose(:)
   integer*4, allocatable :: ivList(:), ivSnapList(:)
   logical, allocatable :: missing(:)
   real*4, allocatable :: wsumSave(:,:), prevRes(:), edgeSDsave(:,:), elongSave(:,:)
@@ -48,7 +48,7 @@ program beadtrack
   !
   ! maxreal
   real*4, allocatable :: xseek(:), yseek(:), wsumCrit(:), xr(:,:)
-  integer*4, allocatable :: numWsums(:), ifFound(:), ipNearest(:), ipNearSave(:)
+  integer*4, allocatable :: ifFound(:), ipNearest(:), ipNearSave(:)
   integer*4, allocatable :: iobjDel(:), idrop(:), numInSobelSum(:)
   logical, allocatable :: inCorrSum(:,:), inSobelSum(:,:)
 
@@ -57,11 +57,12 @@ program beadtrack
   integer*4, allocatable :: iareaSeq(:), ninObjList(:), indObjList(:)
   real*4, allocatable :: areaDist(:)
   integer*4, allocatable :: ivSeqStr(:), ivSeqEnd(:), listSeq(:)
+  integer*4, allocatable :: numWneighbors(:), neighborsForWfits(:,:)
   !
   integer*2, allocatable :: ivGap(:)
   ! maxOlist
   real*4, allocatable :: residLists(:), xyzAllArea(:,:)
-  integer*4, allocatable :: iobjLists(:), iobjLisTmp(:)
+  integer*4, allocatable :: iobjLists(:), iobjLisTmp(:), iobjMap(:)
   real*4 ctf(8193)
   character*1024 listString
   character*60 addfmt, delfmt1, delfmt2
@@ -81,7 +82,7 @@ program beadtrack
   real*4 sdCrit, distCrit, relaxInt, relaxDist, fitDistCrit, relaxFit, radMaxFit
   real*4 resDiffMin, resDiffCrit, tiltFitMin, cgRadius, tiltMin, xst, xnd, yst, ynd
   integer*4 minXpiece, nxPieces, nxOverlap, minYpiece, nyPieces, nyOverlap
-  integer*4 nxTotPix, nyTotPix, numExclude, ig, iaxTilt, nxLocal, nyLocal
+  integer*4 nxTotPix, nyTotPix, ig, nxLocal, nyLocal
   integer*4 nxBox, nyBox, nxpad, nypad, npixBox, nxpDim, ifTrace, iv
   integer*4 minEndZ, indFree, iobj, ibase, numInObj, ipt, iz, jz, jpt, itmp, iznext
   integer*4 maxnpt, numAreaX, numAreaY, ix, iy, nobjLists
@@ -100,7 +101,8 @@ program beadtrack
   real*4 peak, dist, tmin, tmax, tmean, cvbxcen, cvbycen, area, density, elongSigma
   integer*4 numVert, minInArea, minBeadOverlap, ifLocalArea, localTarget
   integer*4 nvLocalIn, localViewPass, nSnapList, iobjSave
-  logical*4 keepGoing, saveAllPoints, ignoreObjs, done, needTaper
+  logical*4 keepGoing, saveAllPoints, ignoreObjs, done, needTaper, splitFirstRound
+  logical*4 inSplitRound
   integer*4 numNew, nOverlap, iseqPass, ipassSave, iAreaSave, maxObjOrig
   real*4 outlieElimMin, outlieCrit, outlieCritAbs, curResMin, tiltMax, minPeakRatio
   real*4 sigma1, sigma2, radius2, radius1, deltaCtf, ranFrac, diameter, sobelSigma
@@ -110,6 +112,8 @@ program beadtrack
   integer*4 nxSobel, nySobel, nxsPad, nysPad, ninSobel, kernelDim, ifReadXfs
   real*4 xOffSobel, yOffSobel, scaleFacSobel, scaleByInterp, targetSobel, edgeSD
   real*4 sdsum, sdsumsq, sdmin, sdmax, sdavg, sdmed, sdmean, edgeSDsd, elongMean, elongMed
+  real*4 percentileCritFrac, dblNormMinCrit, wcritToLocalMinRatio
+  integer*4 maxWneigh, numWneighWant, minFilled, maxFilled
   character*320 concat
   integer*4 getImodObjsize, niceFrame, surfaceSort, scaledSobel
   logical itemOnList
@@ -217,7 +221,11 @@ program beadtrack
   taperFrac = 0.2
   edgeMedian = .false.
   getEdgeSD = .false.
-  !
+  numWneighWant = 30
+  percentileCritFrac = 0.8
+  dblNormMinCrit = 0.2
+  wcritToLocalMinRatio = 0.075
+  splitFirstRound = .true.
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   !
@@ -356,9 +364,6 @@ program beadtrack
     enddo
   endif
   !
-  iaxTilt = 2
-  if (abs(rotStart) >= 45.) iaxTilt = 1
-
   call get_tilt_angles(nviewAll, 3, tiltAll, maxView, ifpip)
   !
   ! DNM 5 / 3 / 02: accommodate changes to tiltalign by setting up the
@@ -389,7 +394,7 @@ program beadtrack
   !
   nvLocalIn = 0
   localViewPass = 0
-  tiltFitMin = 15.
+  tiltFitMin = 8.   ! Was 15 until cos/sin fitting improved 7/25/12
   nSnapList = 0
   !
   if (pipinput) then
@@ -453,6 +458,9 @@ program beadtrack
     if (i == 0) maxSobelSum = 0
     ierr = PipGetFloat('KernelSigma', sobelSigma)
     ierr = PipGetLogical('MedianForCentroid', edgeMedian)
+    i = 0
+    ierr = PipGetBoolean('UnsplitFirstRound', i)
+    splitFirstRound = i == 0
     if (sobelSigma > 1.49) interpType = 1
     ierr = PipGetInteger('InterpolationType', interpType)
 
@@ -636,6 +644,16 @@ program beadtrack
       minTiltInd = i
     endif
   enddo
+
+  ! Get range of sections that have more than half of maximum
+  minFilled = minTiltInd
+  maxFilled = minTiltInd
+  do i = 1, nviewAll
+    if (ivList(i) >= maxnpt / 2) then
+      minFilled = min(minFilled, i)
+      maxFilled = max(maxFilled, i)
+    endif
+  enddo
   !
   ! Get minimim and maximum views to do: including minTiltInd even if
   ! it is excluded
@@ -657,6 +675,19 @@ program beadtrack
   enddo
   numViewDo = maxViewDo + 1 - minViewDo
   ! print *,minTiltInd, minViewDo, maxViewDo
+
+  ! Determine if first round will be split
+  if (splitFirstRound) then
+    splitFirstRound = maxViewDo - minTiltInd > 5 .and. minTiltInd - minViewDo > 5 .and. &
+        abs(tiltAll(minViewDo)) > 30. .and. abs(tiltAll(maxViewDo)) > 30. .and.  &
+        maxFilled - minTiltInd < (maxViewDo - minTiltInd) / 3 .and. &
+        minTiltInd - minFilled < (minTiltInd - minViewDo) / 3
+    if (splitFirstRound) then
+      print *,'First round of tracking will be split in two'
+    else
+      print *,'First round of tracking will NOT be split in two; it is not sensible'
+    endif
+  endif
   !
   ! figure out an order for the points: from the center outwards
   ! i.e., first find position from center at minimum tilt, save that in
@@ -773,10 +804,11 @@ program beadtrack
     !
     ! Get arrays for areas
     ix = 2 * numRounds * maxArea
+    if (splitFirstRound) ix = ix + 2 * maxArea
     deallocate(xxtmp, yytmp)
     allocate(iareaSeq(maxArea), ninObjList(maxArea), indObjList(maxArea), &
         areaDist(maxArea), ivSeqStr(ix), ivSeqEnd(ix), listSeq(ix), xxtmp(2 * maxArea), &
-        yytmp(3 * maxarea), stat = ierr)
+        yytmp(3 * maxArea), stat = ierr)
     call memoryError(ierr, 'ARRAYS FOR AREA DATA')
 
     do i = 1, numAreaTot
@@ -912,8 +944,7 @@ program beadtrack
         indFree = indStart
       endif
     enddo
-    if (ifLocalArea .ne. 0 .and. maxInArea > limInArea .and. &
-        localTarget > 100) then
+    if (ifLocalArea .ne. 0 .and. maxInArea > limInArea .and. localTarget > 100) then
       localTarget = 0.98 * localTarget
       done = .false.
     endif
@@ -928,8 +959,8 @@ program beadtrack
       write(*,119) i, nint(xxtmp(2 * i - 1)), nint(xxtmp(2 * i)), &
           nint(yytmp(3 * i - 1)), &
           nint(yytmp(3 * i)), ninObjList(i), nint(yytmp(3 * i - 2))
-119   format('Area',i3,', X:',i6,' to',i6,', Y:',i6,' to',i6,',', &
-          i4,' points,',i4,' new')
+119   format('Area',i4,', X:',i6,' to',i6,', Y:',i6,' to',i6,',', &
+          i5,' points,',i5,' new')
     enddo
     ! elseif (maxInArea > maxreal) then
     ! call errorExit( 'TOO MANY POINTS FOR ARRAYS - TRY LOCAL TRACKING', 0)
@@ -960,7 +991,9 @@ program beadtrack
 
   ! Get final arrays for the object lists and free temporary stuff
   maxOlist = indFree
-  allocate(iobjLists(maxOlist), inCore(maxAnySum, maxInArea), stat = ierr)
+  allocate(iobjLists(maxOlist), inCore(maxAnySum, maxInArea), numWneighbors(maxArea),  &
+      neighborsForWfits(max(numWneighWant, maxInArea), maxArea), iobjMap(max_mod_obj), &
+      stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR OBJECT LISTS')
   if (elongFile .ne. ' ' .or. xyzFile .ne. ' ') then
     allocate(residLists(maxOlist), xyzAllArea(3, maxOlist), numResSaved(maxAllReal),  &
@@ -971,7 +1004,52 @@ program beadtrack
     numResSaved = 0
   endif
   iobjLists(1:indFree-1) = iobjLisTmp(1:indFree-1)
-  deallocate(iobjLisTmp, xxtmp, yytmp, xvtmp, yvtmp, seqDist)
+
+  ! Make additional lists of neighbors for Wsum fitting and analysis
+  maxWneigh = 0
+  do iseq = 1, nobjLists
+    numObjDo = ninObjList(iseq)
+    numWneighbors(iseq) = numObjDo
+
+    ! Copy over this area's objects and get their centroid
+    xpos = 0.
+    ypos = 0.
+    do i = 1, numObjDo
+      iobj = iobjLists(indObjList(iseq) + i - 1)
+      xpos = xpos + xyzSave(1, iobj) / numObjDo
+      ypos = ypos + xyzSave(2, iobj) / numObjDo
+      neighborsForWfits(i, iseq) = iobj
+    enddo
+    maxWneigh = max(maxWneigh, numObjDo)
+    if (numObjDo >= numWneighWant) &
+        cycle
+
+    ! Make a list of ones outside this area and their distance to the centroid
+    numObjDo = 0
+    do iobj = 1, max_mod_obj
+      if (npt_in_obj(iobj) > 0 .and.  &
+          .not. itemOnList(iobj, neighborsForWfits(1, iseq), ninObjList(iseq))) then
+        numObjDo = numObjDo + 1
+        iobjLisTmp(numObjDo) = numObjDo
+        iobjMap(numObjDo) = iobj
+        seqDist(numObjDo) = (xyzSave(1, iobj) - xpos)**2 + (xyzSave(2, iobj) - ypos)**2
+      endif
+    enddo
+    if (numObjDo == 0) &
+        cycle
+
+    ! sort and add to neightbor list
+    call rsSortIndexedFloats(seqDist, iobjLisTmp, numObjDo)
+    do i = 1, min(numWneighWant - numWneighbors(iseq), numObjDo)
+      numWneighbors(iseq) = numWneighbors(iseq) + 1
+      neighborsForWfits(numWneighbors(iseq), iseq) = iobjMap(iobjLisTmp(i))
+    enddo
+    maxWneigh = max(maxWneigh, numWneighbors(iseq))
+  enddo
+
+  ! Finally done with these temp arrays
+  deallocate(iobjLisTmp, xxtmp, yytmp, xvtmp, yvtmp, seqDist, iobjMap)
+
   !
   ! Allocate boxes and other image arrays
   allocate(boxes(npixBox, maxAnySum, maxInArea), corrSum(npixBox, maxInArea), &
@@ -991,21 +1069,22 @@ program beadtrack
     call scaledGaussianKernel(elongKernel, kernDimElong, 7, max(elongSigma, sobelSigma))
   endif
   !
-  allocate(xseek(i), yseek(i), wsumCrit(i), xr(msizeXR, i), numWsums(i), ifFound(i), &
-      ipNearest(i), ipNearSave(i), iobjDel(i), idrop(i), &
-      wsumSave(maxView, i), iobjAli(i), numInSobelSum(i), inCorrSum(maxAnySum, i), &
+  allocate(xseek(i), yseek(i), wsumCrit(i), xr(msizeXR, i), ifFound(i), &
+      ipNearest(i), ipNearSave(i), iobjDel(i), idrop(i), iobjAli(i), numInSobelSum(i), &
+      wsumSave(minViewDo:maxViewDo, maxAllReal), inCorrSum(maxAnySum, i), &
       inSobelSum(maxAnySum, i), sobelXpeaks(maxPeaks, i), sobelYpeaks(maxPeaks, i), &
       sobelPeaks(maxPeaks, i), sobelWsums(maxPeaks, i), sobelEdgeSD(maxPeaks, i),  &
       stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR POINTS IN AREA')
   xr(3, 1:i) = 0.
-  sobelXpeaks = 0.
-  sobelYpeaks = 0.
+  sobelXpeaks(:,:) = 0.
+  sobelYpeaks(:,:) = 0.
+  wsumSave(:,:) = -1.
   !
   ! Get size and offset of sobel filtered
   if (maxSobelSum > 0) then
     scaleFacSobel = diameter / targetSobel
-    print *,scaleFacSobel, diameter, targetSobel, scaleByInterp
+    ! print *,scaleFacSobel, diameter, targetSobel, scaleByInterp
     ierr = scaledSobel(boxes, nxBox, nyBox, scaleFacSobel, scaleByInterp, &
         interpType, -1., boxes, nxSobel, nySobel, xOffSobel, yOffSobel)
     nxsPad = niceFrame(nxSobel + 2 * npad, 2, 19)
@@ -1032,26 +1111,27 @@ program beadtrack
   lastSeq = 0
   do ipass = 1, numRounds
     if (mod(ipass, 2) == 1) then
-      do i = 1, nobjLists
-        numSeqs = numSeqs + 1
-        ivSeqStr(numSeqs) = minTiltInd - 1
-        ivSeqEnd(numSeqs) = minViewDo
-        listSeq(numSeqs) = i
-        numSeqs = numSeqs + 1
-        ivSeqStr(numSeqs) = minTiltInd
-        ivSeqEnd(numSeqs) = maxViewDo
-        listSeq(numSeqs) = i
-      enddo
+      if (ipass == 1 .and. splitFirstRound) then
+        ix = (minViewDo + minTiltInd) / 2
+        iy = (maxViewDo + minTiltInd) / 2
+        do i = 1, nobjLists
+          call addSequence(i, minTiltInd - 1, ix)
+          call addSequence(i, minTiltInd, iy)
+        enddo
+        do i = 1, nobjLists
+          call addSequence(i, ix - 1, minViewDo)
+          call addSequence(i, iy + 1, maxViewDo)
+        enddo
+      else
+        do i = 1, nobjLists
+          call addSequence(i, minTiltInd - 1, minViewDo)
+          call addSequence(i, minTiltInd, maxViewDo)
+        enddo
+      endif
     else
       do i = 1, nobjLists
-        numSeqs = numSeqs + 1
-        ivSeqEnd(numSeqs) = minTiltInd - 1
-        ivSeqStr(numSeqs) = minViewDo
-        listSeq(numSeqs) = i
-        numSeqs = numSeqs + 1
-        ivSeqEnd(numSeqs) = minTiltInd
-        ivSeqStr(numSeqs) = maxViewDo
-        listSeq(numSeqs) = i
+        call addSequence(i, minViewDo, minTiltInd - 1)
+        call addSequence(i, maxViewDo, minTiltInd)
       enddo
     endif
   enddo
@@ -1136,8 +1216,12 @@ program beadtrack
     nviewLocal = 0
     ifAlignDone = 0
     iseqPass = ((iseq + 1) / 2 - 1) / nobjLists + 1
+    inSplitRound = splitFirstRound .and. iseqPass == 1
+    if (splitFirstRound) iseqPass = max(1, iseqPass - 1)
     if (iseqPass >= localViewPass) nviewLocal = nvLocalIn
-    saveAllPoints = iAreaSave == listSeq(iseq) .and. ipassSave == iseqPass
+    if (saveAllPoints .and. iAreaSave < 0 .and. listSeq(iseq) .ne. lastSeq)  &
+        exit
+    saveAllPoints = abs(iAreaSave) == listSeq(iseq) .and. ipassSave == iseqPass
     if (listSeq(iseq) .ne. lastSeq) then
       !
       ! initialize if doing a new set of points
@@ -1157,8 +1241,7 @@ program beadtrack
       inSobelSum(1:maxAnySum, 1:numObjDo) = .false.
       corrSum(1:npixBox, 1:numObjDo) = 0.
       if (maxSobelSum > 0) sobelSum(1:npixBox, 1:numObjDo) = 0.
-      wsumSave(1:nviewAll, 1:numObjDo) = -1.
-      resMean = -1.
+      resMean(:,:) = -1.
       write(*,123) areaObjStr, listSeq(iseq), iseqPass, numObjDo
 123   format('Starting ',a,i4,', round',i3,',',i4,' contours')
       if (nobjLists > 1) write(*,objfmt) (iobjSeq(i), i = 1, numObjDo)
@@ -1219,6 +1302,7 @@ program beadtrack
         ! Loop through points, refining projections before search
         if (ipass == 1) numPioneer = numData
         numAdded = 0
+        call getWsumCriteria()
         call findAllBeadsOnView()
         !
         ! get a final fit and a new tiltalign, then find a maximum
@@ -1234,7 +1318,7 @@ program beadtrack
     !
     ! Report total missing at end of pass
     !
-    if (mod(iseq, 2) == 0) then
+    if (mod(iseq, 2) == 0 .and. .not. inSplitRound) then
       missTot = 0
       do i = 1, numObjDo
         call countMissing(iobjSeq(i), nviewAll, izExclude, &
@@ -1350,7 +1434,7 @@ program beadtrack
         call rsSortFloats(tiltAll, ix)
         call rsMedianOfSorted(tiltAll, ix, elongMed)
       endif
-      if (elongFile .ne. ' ') write(4, '(i3,i6,f8.4,5f10.4)')imodObj, imodCont, xpos, &
+      if (elongFile .ne. ' ') write(4, '(i3,i7,f12.4,5f11.4)')imodObj, imodCont, xpos, &
           sdmean, sdmed, edgeSDsd, elongMean, elongMed
            
       if (xyzFile .ne. ' ' .and. xpos >= 0 .and. (xyzSave(1,iobj) .ne. 0. .or.  &
@@ -1364,6 +1448,7 @@ program beadtrack
   !
   ! convert index coordinates back to model coordinates
   !
+  call putImodZscale(min(50., 0.75 * max(nx, ny) / nz))
   call scaleModelToImage(1, 1)
   call write_wmod(modelFile)
   if (outFile .ne. ' ') then
@@ -1389,11 +1474,13 @@ CONTAINS
   ! Then it loads necessary boxes, forms averages and evaluates wsum if needed
   !
   subroutine countAndPreparePointsToDo()
-    integer*4 numberInList
+    integer*4 numberInList, numZeroW, numWtot
     !
     ! first see how many are done on this view
     !
     numToDo = 0
+    numWtot = 0
+    numZeroW = 0
     do iobjDo = 1, numObjDo
       iobj = iobjSeq(iobjDo)
       numInObj = npt_in_obj(iobj)
@@ -1432,7 +1519,7 @@ CONTAINS
         endif
       enddo
       !
-      ! if not found and none close, mark as - 1 not to do
+      ! if not found and none close, mark as -1 not to do
       ! If there are close ones, make sure this is not a gap to preserve
       !
       if (nClose == 0 .and. ifFound(iobjDo) == 0) ifFound(iobjDo) = -1
@@ -1515,16 +1602,22 @@ CONTAINS
               xt = nint(xbox) - xbox
               yt = nint(ybox) - ybox
               call qdshift(boxTmp, boxes(1, ib, iobjDo) , nxBox, nyBox, xt, yt)
-              if (wsumSave(izBox + 1, iobjDo) < 0.) then
+              if (wsumSave(izBox + 1, iobjSeq(iobjDo)) < 0.) then
                 xtmp = 0.
                 ytmp = 0.
                 call calcCG(boxes(1, ib, iobjDo), nxBox, nyBox, xtmp, ytmp,  wsum, edgeSD)
-                wsumSave(izBox + 1, iobjDo) = wsum
+                wsumSave(izBox + 1, iobjSeq(iobjDo)) = wsum
                 if (getEdgeSD .and. izBox + 1 >= minViewDo .and. izBox + 1 <= maxViewDo) &
                     then
                   edgeSDsave(izBox + 1, iobjSeq(iobjDo)) = edgeSD
                   call calcElongation(boxes(1, ib, iobjDo), nxBox, nyBox, 0., 0.,  &
                       elongSave(izBox + 1, iobjSeq(iobjDo)))
+                endif
+
+                ! Check the integrals of the seed for light/dark beads setting
+                if (iseq == 1 .and. ivl == 1) then
+                  numWtot = numWtot + 1
+                  if (wsum <= 0.) numZeroW = numZeroW + 1
                 endif
               endif
               !
@@ -1548,6 +1641,12 @@ CONTAINS
       endif
       ipNearSave(iobjDo) = ipNearest(iobjDo)
     enddo
+    if (numWtot > 0 .and. numZeroW >= numWtot / 2) then
+      if (ifWhite .ne. 0) call exitError( &
+          'MOST BEADS ARE DARKER THAN BACKGROUND; DO NOT USE THE LIGHT BEADS OPTION')
+      if (ifWhite .ne. 0) call exitError('MOST BEADS ARE LIGHTER THAN BACKGROUND;'// &
+          ' YOU NEED TO USE THE LIGHT BEADS OPTION')
+    endif
     return
   end subroutine countAndPreparePointsToDo
 
@@ -1555,11 +1654,63 @@ CONTAINS
   ! getProjectedPositionsSetupFits
   !
   subroutine getProjectedPositionsSetupFits()
+    integer*4 indRealInAli(numObjDo), justAverage
     real*4 cosd, sind
+
+    ! Get the index of points in tiltalign and determine if all points to be done were
+    ! not in align AND consist of only 1 or 2 points on previous 2 views
+    justAverage = 1
+    do iobjDo = 1, numObjDo
+      iobj = iobjSeq(iobjDo)
+      indRealInAli(iobjDo) = 0
+      if (ifDidAlign == 1) then
+        do ipt = 1, nrealpt
+          if (iobjSeq(iobjDo) == iobjAli(ipt)) indRealInAli(iobjDo) = iobjSeq(iobjDo)
+        enddo
+      endif
+      if (ifFound(iobjDo) == 0) then
+        if (indRealInAli(iobjDo) .ne. 0 .or. npt_in_obj(iobj) > 2) justAverage = 0
+        if (justAverage > 0) then
+          justAverage = max(justAverage,  npt_in_obj(iobj))
+          xtmp = nint(p_coord(3, object(ibase_obj(iobj) + 1)) + 1.)
+          ytmp = nint(p_coord(3, object(ibase_obj(iobj) + npt_in_obj(iobj))) + 1.)
+          if ((xtmp .ne. iview - idir .and. xtmp .ne. iview - 2 * idir) .or. &
+              (ytmp .ne. iview - idir .and. ytmp .ne. iview - 2 * idir)) justAverage = 0
+        endif
+      endif
+    enddo
+
+    ! If just averaging seems to be in order, now try to do it for all points, but
+    ! bail out if a previously done point does not have at least one in the range
+    if (justAverage > 0) then
+      do iobjDo = 1, numObjDo
+        iobj = iobjSeq(iobjDo)
+        ibase = ibase_obj(iobj)
+        xpos = 0.
+        ypos = 0.
+        ix = 0
+        do ipt = 1, npt_in_obj(iobj)
+          ip = object(ibase + ipt)
+          xtmp = nint(p_coord(3, ip) + 1.)
+          if (xtmp == iview - idir .or. xtmp == iview - justAverage * idir) then
+            xpos = xpos + p_coord(1, ip)
+            ypos = ypos + p_coord(2, ip)
+            ix = ix + 1
+          endif
+        enddo
+        if (ix == 0) then
+          justAverage = 0
+          exit
+        endif
+        xseek(iobjDo) = xpos / ix
+        yseek(iobjDo) = ypos / ix
+        if (saveAllPoints) print *,'justAvg',iobj,xseek(iobjDo), yseek(iobjDo)
+      enddo
+    endif
     !
-    ! get tentative tilt, rotation, mag for current view
+    ! If not just averaging, get tentative tilt, rotation, mag for current view
     !
-    if (ifDidAlign > 0) then
+    if (ifDidAlign > 0 .and. justAverage == 0) then
       ivuse = iview
       if (mapFileToView(iview) == 0) then
         ivDel = 200
@@ -1570,7 +1721,7 @@ CONTAINS
           endif
         enddo
       endif
-      ! print *,'ivuse, iview', ivuse, iview
+      if (saveAllPoints) print *,'ivuse, iview', ivuse, iview
       tiltCur = tiltOrig(ivuse) + tiltAll(iview) - tiltAll(ivuse)
       gmagCur = gmagOrig(ivuse)
       rotCur = rotOrig(ivuse)
@@ -1599,16 +1750,13 @@ CONTAINS
       f = gmagCur * sint * sinr
     endif
     !
-    ! now get projected positions
+    ! now get projected positions otherwise, and save the points
     !
     do iobjDo = 1, numObjDo
-      indr = 0
-      if (ifDidAlign == 1) then
-        do ipt = 1, nrealpt
-          if (iobjSeq(iobjDo) == iobjAli(ipt)) indr = iobjSeq(iobjDo)
-        enddo
-      endif
-      if (indr .ne. 0) then
+      indr = indRealInAli(iobjDo)
+      iobj = iobjSeq(iobjDo)
+      ibase = ibase_obj(iobj)
+      if (indr .ne. 0 .and. justAverage == 0) then
         !
         ! there is a 3D point for it: so project it
         !
@@ -1616,12 +1764,17 @@ CONTAINS
             c * xyzSave(3, indr) + dxCur + xcen
         yseek(iobjDo) = d * xyzSave(1, indr) + e * xyzSave(2, indr) +  &
             f * xyzSave(3, indr) + dyCur + ycen
-      else
-        call nextPos(iobjSeq(iobjDo), ipNearest(iobjDo), idir, iznext, tiltAll, numFit, &
-            minFit, iaxTilt, tiltFitMin, xseek(iobjDo), yseek(iobjDo))
+        if (saveAllPoints) print *,'3d proj',iobj,xseek(iobjDo), yseek(iobjDo)
+      else if (justAverage == 0) then
+        call nextPos(iobj, ipNearest(iobjDo), idir, iznext, tiltAll, numFit, &
+            minFit, rotStart, tiltFitMin, izExclude, numExclude, xseek(iobjDo),  &
+            yseek(iobjDo))
+        if (saveAllPoints) print *,'nextPos',iobj,p_coord(1, object(ibase +  &
+            ipNearest(iobjDo))),p_coord(2, object(ibase + ipNearest(iobjDo))), &
+            xseek(iobjDo), yseek(iobjDo)
       endif
       if (saveAllPoints) then
-        iobjSave = iobjSeq(iobjDo) + (5 * ipass - 4) * maxObjOrig
+        iobjSave = iobj + (5 * ipass - 4) * maxObjOrig
         call add_point(iobjSave, 0, xseek(iobjDo), yseek(iobjDo), iznext)
       endif
     enddo
@@ -1644,41 +1797,213 @@ CONTAINS
     return
   end subroutine getProjectedPositionsSetupFits
 
+  ! Analyze wsums in the vicinity and make up a criterion for each bead
+  !
+  subroutine getWsumCriteria()
+    real*4 ivFit(maxWavg + 2), wsFit(maxWavg + 2), wLocalMeans(-maxWavg:maxWavg)
+    real*4 prederr, prSlope, prIntcp, prro, prsa, prsb, prse, wpred, wpredLocal
+    real*4 wsPctl(maxWavg + 2)
+    real*4 wsumsLocal(maxWneigh * (maxWavg + 1)), wlocalSum, dblNormCrit
+    integer*4 minWsumForPred, numInWlocalMean(-maxWavg:maxWavg), maxLocalForPred
+    integer*4 minUsableNum, maxNumInMean, numLocals, numNeighInLocal, minDif, numPctl
+    real*8 percentileFloat
+    minWsumForPred = 4
+    maxLocalForPred = 7
+
+    ! Go through the collection of neighbors for wsum and get the mean on views in
+    ! a large range
+    numLocals = 0
+    numInWlocalMean(:) = 0
+    wLocalMeans(:) = 0
+    do iobjDo = 1, numWneighbors(lastSeq)
+      iobj = neighborsForWfits(iobjDo, lastSeq)
+      do itry = max(minViewDo, iview - maxWavg), min(maxViewDo, iview + maxWavg)
+        idif = itry - iview
+        if (wsumSave(itry, iobj) >= 0.) then
+          numInWlocalMean(idif) = numInWlocalMean(idif) + 1
+          wLocalMeans(idif) = wLocalMeans(idif) + wsumSave(itry, iobj)
+        endif
+      enddo
+    enddo
+
+    ! Get the mean, and max number in any group, and limit the usable usable ones to
+    ! ones with at least 3 and at least 1/5 of the maximum up to 9.
+    maxNumInMean = 0
+    do i = -maxWavg, maxWavg
+      maxNumInMean = max(maxNumInMean, numInWlocalMean(i))
+      if (numInWlocalMean(i) > 0) wLocalMeans(i) = wLocalMeans(i) / numInWlocalMean(i)
+    enddo
+    minUsableNum = min(9, max(3, maxNumInMean / 5))
+
+    ! Do a fit over usable means
+    numAvg = 0
+    minDif = 100
+    LOCAL_FIT_LOOP: do ix = 0, maxWavg
+      do idirw = -1, 1, 2
+        idif = ix * idirw
+        if (numInWlocalMean(idif) >= minUsableNum) then
+          minDif = min(minDif, abs(idif))
+          numAvg = numAvg + 1
+          ivFit(numAvg) = idif
+          wsFit(numavg) = wLocalMeans(idif)
+          if (numAvg >= maxLocalForPred)  &
+              exit LOCAL_FIT_LOOP
+        endif
+      enddo
+    enddo LOCAL_FIT_LOOP
+
+    wpredLocal = 0.
+
+    ! Get the average and do a predictive line fit if there are enough
+    if (numAvg > 0) then
+      call avgsd(wsFit, numAvg, wsumAvg, wsumSD, xtmp)
+      if (numAvg > minWsumForPred .and. minDif < 3) then
+        call lsFitPred(ivFit, wsFit, numAvg, prSlope, prIntcp, prro, prsa, prsb, &
+            prse, 0., wpredLocal, prederr) 
+        if (saveAllPoints) write(*,'(a,i4,6f10.2)')'pred',numAvg,wsumAvg,wsumSD, &
+            wpredLocal, prederr,prSlope, prsb
+      else
+        wpredLocal = wsumAvg
+      endif
+    endif
+
+    ! Look at the neighbors and get the mean of values normalized by view mean
+    ! and collect.  This is done the same way as individuals below, go up to maxWavg
+    ! views away and get up to maxWavg + 1 closest nviews
+    numNeighInLocal = 0
+    do iobjDo = 1, numWneighbors(lastSeq)
+      iobj = neighborsForWfits(iobjDo, lastSeq)
+      wsum = 0.
+      numAvg = 0
+      do ix = 0, maxWavg
+        do idirw = -1, 1, 2
+          idif = ix * idirw
+          if (numInWlocalMean(idif) >= minUsableNum) then
+            itry = iview + idif
+            if (wsumSave(itry, iobj) >= 0.) then
+              numAvg = numAvg + 1
+              wstmp = wsumSave(itry, iobj) / wLocalMeans(idif)
+              wsum = wsum + wstmp
+              wsumsLocal(numLocals + numAvg) = wstmp
+            endif
+          endif
+        enddo
+        if (numAvg >= maxWavg) &
+            exit
+      enddo
+
+      ! Divide the ones just added to the list by the bead mean so the list now has
+      ! double-normalized values
+      if (numAvg > 0) then
+        numNeighInLocal = numNeighInLocal + 1
+        wsumsLocal(numLocals + 1 : numLocals + numAvg) =  &
+            wsumsLocal(numLocals + 1 : numLocals + numAvg) / (wsum / numAvg)
+        numLocals = numLocals + numAvg
+      endif
+    enddo
+
+    ! Set the double-normalized criterion by taking what can be considered a 20th
+    ! percentile point of the minima from all the neighbors, and down-rating that,
+    ! but don't let it get too low
+    dblNormCrit = 0.
+    if (numLocals >= 5) then
+      idif = 1 + numNeighInLocal / 5
+      dblNormCrit = percentileCritFrac * percentileFloat(idif, wsumsLocal, numLocals)
+      if (saveAllPoints) print *,numLocals,' locals, crit:',idif,dblNormCrit
+      dblNormCrit = max(dblNormCrit, dblNormMinCrit)
+    endif
+
+    do iobjDo = 1, numObjDo
+      if (ifFound(iobjDo) == 0 .or. ifFound(iobjDo) == 1) then
+        !
+        ! For each one to be done, accumulate sums for all the views in range of both
+        ! the bead itself and of the local means on the same views.  Store the first
+        ! maxWavg + 1 of those for personalized fitting if needed, and store a normalized
+        ! value for views with usable local means for percentile finding
+        !
+        numAvg = 0
+        wlocalSum = 0.
+        numPctl = 0
+        wsum = 0.
+        wsumsq = 0.
+        do ix = 0, maxWavg
+          do idirw = -1, 1, 2
+            idif = ix * idirw
+            if (numInWlocalMean(idif) > 0) then
+              itry = iview + idif
+              wstmp = wsumSave(itry, iobjSeq(iobjDo))
+              if (wstmp >= 0) then
+                wsum = wsum + wstmp
+                wsumsq = wsumsq + wstmp**2
+                wlocalSum = wlocalSum + wLocalMeans(idif)
+                numAvg  = numAvg + 1
+                if (numAvg < maxWavg + 2) then
+                  wsFit(numAvg) = wstmp
+                  ivFit(numAvg) = idif
+                endif
+                if (numInWlocalMean(idif) >= minUsableNum) then
+                  numPctl = numPctl + 1
+                  wsPctl(numPctl) = wstmp / wLocalMeans(idif)
+                endif
+              endif
+            endif
+          enddo
+          if (numPctl >= maxWavg) &
+              exit
+        enddo
+
+        call sums_to_avgsd(wsum, wsumsq, numAvg, wsumAvg, wsumSD)
+        wlocalSum = wlocalSum / numAvg
+        if (wpredLocal > 0. .and. numPctl > 0) then
+
+          ! If there is a good local prediction, then use  a down-rated 20th percentile
+          ! value if there is enough data in the distruibution, otherwise use the
+          ! established criterion.  Do not let the normalized criterion get too low
+          xtmp = dblNormCrit
+          if (numPctl >= 5 .or. dblNormCrit == 0) then
+            idif = 1 + numPctl / 5
+            xtmp = max(percentileCritFrac * percentileFloat(idif, wsPctl, numPctl), &
+                dblNormMinCrit)
+          endif
+
+          ! Scale the criterion by the predicted value and the ratio of this bead's mean
+          ! to the corresponding local mean.  Limit to a small fraction of the local mean
+          ! 
+          wsumCrit(iobjDo) = max(xtmp * wpredLocal * wsumAvg / wlocalSum, &
+              wcritToLocalMinRatio * wlocalSum)
+          wsumCrit(iobjDo) = min(wsumCrit(iobjDo), percentileCritFrac * wsumAvg)
+          if (saveAllPoints) write(*,'(a,3i4,2f8.0,f8.4,f8.0)')'crit',iobjSeq(iobjDo), &
+              numPctl, numAvg, wsumAvg, wlocalSum, xtmp, wsumCrit(iobjDo)
+        else
+
+          ! If no good local prediction, fall back to the old mean/SD based criterion but
+          ! Do not allow it to get too low.  Then, if there is enough data for a line fit,
+          ! get a predicted value and use it if the error is low enough and the slope is
+          ! significant.  Relax the predicted value by less than the mean would be
+          wsumCrit(iobjDo) = max(min(fracCrit * wsumAvg, wsumAvg - sdCrit * wsumSD), &
+              wsumAvg * dblNormMinCrit)
+          if (numAvg >= nint(1.5 * minWsumForPred)) then
+            call lsfitPred(ivFit, wsFit, min(numAvg, maxWavg + 1), prSlope, prIntcp, &
+                prro, prsa, prsb, prse, 0., wpred, prederr)
+            !write(*,'(a,5f8.0)')'bead fit',wsumAvg, wsumSD, wpred, prSlope, prsb
+            if (prederr < wsumSD .and. abs(prSlope) > 2.5 * prsb)  then
+                wsumCrit(iobjDo) = max((1. - 0.6 * (1. - fracCrit)) * wpred, &
+                    wsumAvg * dblNormMinCrit)
+              !write(*,'(a,3f8.0)')'replacement',wsumCrit(iobjDo)
+            endif
+          endif
+
+        endif
+      endif
+    enddo
+    return
+  end subroutine getWsumCriteria
+
 
   ! findAllBeadsOnView
   !
   subroutine findAllBeadsOnView()
     do iobjDo = 1, numObjDo
-      if (ifFound(iobjDo) == 0 .or. ifFound(iobjDo) == 1) then
-        !
-        ! get w criterion: average it over as many near views as
-        ! possible.  maxWavg specifies both the maximum distance
-        ! away in Z and the maximum number to average
-        !
-        numAvg = 0
-        wsum = 0.
-        wsumsq = 0.
-        idif = 1
-        do while(idif <= maxWavg .and. numAvg < maxWavg)
-          do idirw = -1, 1, 2
-            itry = iview + idirw * idif
-            if (itry > 0 .and. itry <= nviewAll) &
-                then
-              wstmp = wsumSave(itry, iobjDo)
-              if (wstmp >= 0) then
-                wsum = wsum + wstmp
-                wsumsq = wsumsq + wstmp**2
-                numAvg = numAvg + 1
-              endif
-            endif
-          enddo
-          idif = idif + 1
-        enddo
-        call sums_to_avgsd(wsum, wsumsq, numAvg, wsumAvg, wsumSD)
-        wsumCrit(iobjDo) = min(fracCrit * wsumAvg, wsumAvg - sdCrit * wsumSD)
-        numWsums(iobjDo) = numAvg
-      endif
-      !
       if (ifFound(iobjDo) == 0) then
         iobj = iobjSeq(iobjDo)
         xnext = xseek(iobjDo)
@@ -1732,7 +2057,7 @@ CONTAINS
 
     if (ipass == 1) then
       !
-      ! pad image into array on first pass, padd correlation sum into brray
+      ! pad image into array on first pass, pad correlation sum into brray
       call taperInPad(boxTmp, nxBox, nyBox, array, nxpDim, nxpad, nypad, nxTaper, nyTaper)
       call meanZero(array, nxpDim, nxpad, nypad)
       call taperInPad(corrSum(1, iobjDo), nxBox, nyBox, brray, nxpDim, nxpad, nypad, &
@@ -1833,8 +2158,7 @@ CONTAINS
         call add_point(iobjSave, 0, nint(xnext) + xpeak, nint(ynext) + ypeak, iznext)
       endif
     endif
-    if (numWsums(iobjDo) > 2 .and. (wsum < wsumCrit(iobjDo) &
-        .or. dist > distCrit .or. ipass == 2)) then
+    if (wsum < wsumCrit(iobjDo) .or. dist > distCrit .or. ipass == 2) then
       !
       ! rescue attempt; search concentric rings from the
       ! center of box and take the first point that goes
@@ -1844,13 +2168,13 @@ CONTAINS
         if (dist > distCrit) then
           relax = relaxDist
           if (ifTrace .ne. 0) &
-              write(*,102) 'distance', iznext, dist, wsum, wsumAvg, wsumSD
+              write(*,102) 'distance', iznext, dist, wsum, wsumCrit(iobjDo)
 102       format(' Rescue-',a,', sec',i4,', dist=',f5.1, &
-              ', dens=',f9.0,', mean,sd=',f9.0,f7.0)
+              ', dens=',f9.0,', crit=',f9.0)
         else
           relax = relaxInt
           if (ifTrace .ne. 0) &
-              write(*,102) 'density ', iznext, dist, wsum, wsumAvg, wsumSD
+              write(*,102) 'density ', iznext, dist, wsum, wsumCrit(iobjDo)
         endif
         radMax = max(nxBox, nyBox)
       else
@@ -1872,8 +2196,8 @@ CONTAINS
     !
     !
     !
-    if (wsum .ne. 0.) then
-      wsumSave(iview, iobjDo) = wsum
+    if (wsum > 0.) then
+      wsumSave(iview, iobjSeq(iobjDo)) = wsum
       if (getEdgeSD) then 
         edgeSDsave(iview, iobjSeq(iobjDo)) = edgeSD
         call calcElongation(boxTmp, nxBox, nyBox, xpeak, ypeak,  &
@@ -1882,7 +2206,7 @@ CONTAINS
       xpos = nint(xnext) + xpeak
       ypos = nint(ynext) + ypeak
       if (ifTrace .ne. 0) &
-          write(*,'(3i5,4f7.1,2f12.0,f12.4)') nzout, iznext, iobj, &
+          write(*,'(a,3i5,4f7.1,2f12.0,f12.4)') 'add',nzout, iznext, iobj, &
           xnext, ynext, xpos, ypos, peak, wsum, edgeSD
       !
       ! add point to model
@@ -2114,12 +2438,11 @@ CONTAINS
           ! residual has zoomed on either pass, delete point for
           ! next round
           !
-          if ((ipass == 1 .and. errMax > fitDistCrit) &
-              .or. ifMeanBad == 1) then
-            ! write(*,'(i3,f7.2,4f10.5)') iobj, errMax, &
-            ! resMean(iobj, ivSeq), curDiff, resAvg, resSD
-            wsumSave(iview, iobjDo) = -1.
-            if (getEdgeSD) edgeSdsave(iview, iobjSeq(iobjDo)) = -1.
+          if ((ipass == 1 .and. errMax > fitDistCrit) .or. ifMeanBad == 1) then
+            if (saveAllPoints)write(*,'(i3,f7.2,i2,4f10.5)') iobj, errMax, ifMeanBad, &
+                resMean(iobj, ivSeq), curDiff, resAvg, resSD
+            wsumSave(iview, iobj) = -1.
+            if (getEdgeSD) edgeSdsave(iview, iobj) = -1.
             resMean(iobj, ivSeq) = -1.
             ibase = ibase_obj(iobj)
             do ip = ibase + ipNearest(iobjDo) + 1, &
@@ -2149,6 +2472,18 @@ CONTAINS
     endif
     return
   end subroutine redoFitsEvaluateResiduals
+
+
+  ! Add a sequence from ivStart to ivEnd to the sequence list
+  !
+  subroutine addSequence(ind, ivStart, ivEnd)
+    integer*4 ind, ivStart, ivEnd
+    numSeqs = numSeqs + 1
+    ivSeqStr(numSeqs) = ivStart
+    ivSeqEnd(numSeqs) = ivEnd
+    listSeq(numSeqs) = ind
+    return
+  end subroutine addSequence
 
 end program beadtrack
 
