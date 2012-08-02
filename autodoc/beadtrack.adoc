@@ -308,6 +308,17 @@ manpage = If MaxViewsInAlign is entered, this entry can be used to apply the
 restriction on the number of the views in the tilt alignment on a particular
 round of tracking.
 
+[Field = UnsplitFirstRound]
+short = 
+type = B
+usage = In first round, track from seed view to first view then to last view (legacy)
+tooltip =
+manpage = On the first round, the program will track from the seed view
+halfway down to the first view, then halfway up to the last view, then return
+to the low views and finish with the high views.  Use this option to return to
+the old behavior (prior to IMOD 4.6.8) of tracking all the way to the first
+view then tracking up to the last view.
+
 [Field = LocalAreaTracking]
 short = 
 type = B
@@ -529,7 +540,7 @@ manpage = OPTIONS FOR TEST OUTPUT
 short = 
 long = BoxOutputFile
 type = FN
-usage = Root filename for diagnositic output of correlation boxes
+usage = Root filename for diagnostic output of correlation boxes
 tooltip =
 manpage =
 
@@ -537,7 +548,7 @@ manpage =
 short = 
 long = SnapshotViews
 type = LI
-usage = List of views at which to snapshot intermediate models.
+usage = List of views at which to snapshot intermediate models
 tooltip =
 manpage = List of views at which to snapshot model before deletion on first and
 second passes.  The models will be named <OutputModel>.<view #>.<pass #>.
@@ -548,5 +559,7 @@ long = SaveAllPointsAreaRound
 type = IP
 usage = Area/object and round at which to save all positions in new objects
 tooltip =
-manpage =
+manpage = Area or object and round at which to save all positions in new
+objects.  Enter negative of the area number to exit after finishing the area.
+This option will also enable some debugging output for that area and round.
 
