@@ -58,7 +58,20 @@ DDEESSCCRRIIPPTTIIOONN
   contour, if points were clipped off at those ends of the contour.
   For open contour objects, this edge will not be included.
 
-  Entries:
+  Clipmodel uses the PIP package for input (see the manual page for pip(1))
+  and can still take input interactively if a sequence of operations is needed
+  that cannot be achieved with the PIP options.  The following options can be
+  specified either as command line arguments (with the -) or one per line in a
+  command file or parameter file (without the -).  Options can be abbreviated
+  to unique letters; the currently valid abbreviations for short names are
+  shown in parentheses.
+
+INSERT OPTION TEXT HERE
+
+  -StandardInput
+     Read parameter entries from standard input.
+
+  In interactive mode, entries to the program are:
   
   Name of input model file
 
@@ -105,4 +118,5 @@ DDEESSCCRRIIPPTTIIOONN
   
 HHIISSTTOORRYY
   Written by David Mastronarde, 1/11/90; modified for IMOD 4/24/97; compute cut
-  edges and handle coordinates better, 10/24/00.
+  edges and handle coordinates better, 10/24/00;  Converted to PIP input, July
+  2012.
