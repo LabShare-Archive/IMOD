@@ -97,6 +97,7 @@ static char numTypes = 13;
 
 static char nullChar = 0x00;
 static char *nullString = &nullChar;
+static char *quoteTypes = "\"'`";
 
 /* declarations of local functions */
 static int ReadParamFile(FILE *pFile);
@@ -109,7 +110,7 @@ static char *PipSubStrDup(const char *s1, int i1, int i2);
 static void AppendToErrorString(const char *str);
 static int LineIsOptionToken(const char *line);
 static int CheckKeyword(const char *line, const char *keyword, char **copyto, int *gotit,
-                        char ***lastCopied);
+                        char ***lastCopied, int *quoteInd);
 
 
 /* The static tables and variables */
@@ -138,6 +139,7 @@ static int nonOptLines = 0;
 static int noAbbrevs = 0;
 static int notFoundOK = 0;
 static char *linkedOption = NULL;
+static int testAbbrevForUsage = 0;
 
 /*
  * Initialize option tables for given number of options
@@ -687,7 +689,7 @@ int PipGetFloatArray(const char *option, float *array, int *numToGet, int arrayS
 int PipPrintHelp(const char *progName, int useStdErr, int inputFiles, 
                  int outputFiles)
 {
-  int i, j, lastOpt, optLen, numOut = 0, numReal = 0;
+  int i, j, abbrevOK, lastOpt, jlim, optLen, numOut = 0, numReal = 0;
   int helplim = 74;
   char *sname, *lname, *newLinePt;
   FILE *out = useStdErr ? stderr : stdout;
@@ -725,14 +727,34 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
 
     if (!numReal)
       return 0;
+    fprintf(out, "Options can be abbreviated, current short name abbreviations are in "
+            "parentheses\n");
     fprintf(out, "Options:\n");
     descriptions = &typeForUsage[0];
   }
 
+  testAbbrevForUsage = 1;
   for (i = 0; i < numOptions; i++) {
     sname = optTable[i].shortName;
     lname = optTable[i].longName;
     indentStr = nullString;
+
+    /* Try to look up an abbreviation of the short name */
+    abbrevOK = 0;
+    if (sname && *sname) {
+      jlim = strlen(sname) - 1;
+      if (jlim > TEMP_STR_SIZE - 10)
+        jlim = TEMP_STR_SIZE - 10;
+      for (j = 0; j < jlim; j++) {
+        tempStr[j] = sname[j];
+        tempStr[j + 1] = 0x00;
+        if (LookupOption(tempStr, numOptions) == i) {
+          abbrevOK = 1;
+          break;
+        }
+      }
+    }
+
     if ((lname && *lname) || (sname && *sname)) {
       if (outputManpage <= 0 && !fort90)
         indentStr = indent4;
@@ -801,8 +823,10 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
       fprintf(out, " ");
       if (sname && *sname)
         fprintf(out, "-%s", sname);
+      if (abbrevOK)
+        fprintf(out, " (-%s)", tempStr);
       if (sname && *sname && lname && *lname)
-        fprintf(out," OR ");
+        fprintf(out,"  OR  ");
       if (lname && *lname)
         fprintf(out, "-%s", lname);
       for (j = 0; j < numTypes; j++)
@@ -857,6 +881,7 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
     else if (optTable[i].multiple)
       fprintf(out, "%s(Successive entries accumulate)\n", indentStr);
   }
+  testAbbrevForUsage = 0;
   return 0;
 }
 
@@ -1023,7 +1048,7 @@ int PipParseInput(int argc, char *argv[], const char *options[], int numOpts,
  */
 int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
 {
-  int i, ind, indst, lineLen, err, needSize, isOption, isSection = 0;
+  int i, ind, len, indst, lineLen, err, needSize, isOption, isSection = 0;
   FILE *optFile = NULL;
   char *bigStr;
   char *pipDir;
@@ -1038,6 +1063,7 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
   char *optStr = NULL;
   int optStrSize = 0;
   char **lastGottenStr = NULL;
+  int inQuoteIndex = -1;
 
 #ifdef PATH_MAX
   if (bigSize < PATH_MAX)
@@ -1142,7 +1168,7 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
     /* Look for new keyword-value delimiter before any options */
     if (!numOpts)
       CheckKeyword(bigStr + indst, "KeyValueDelimiter", &valueDelim, &gotDelim,
-                 &lastGottenStr);
+                   &lastGottenStr, NULL);
 
     /* Look for options */
     if (LineIsOptionToken(bigStr + indst) > 0)
@@ -1250,40 +1276,56 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
     /* If reading options, look for the various keywords */
     if (readingOpt) {
 
-      /* If the last string gotten was a help string and the line does not
-         contain the value delimiter, then append it to the last string */
+      /* If the last string gotten was a help string and the line does not contain the 
+         value delimiter or we are in a quote, then append it to the last string */
       if ((lastGottenStr == &usageStr || lastGottenStr == &tipStr ||
-           lastGottenStr == &manStr) && !strstr(textStr, valueDelim)) {
+           lastGottenStr == &manStr) && 
+          (inQuoteIndex >= 0 || !strstr(textStr, valueDelim))) {
         ind = strlen(*lastGottenStr);
-        needSize = ind + strlen(textStr) + 3;
+        len = strlen(textStr);
+        needSize = ind + len + 3;
         *lastGottenStr = (char *)realloc(*lastGottenStr, needSize);
         strcat(*lastGottenStr, (*lastGottenStr)[ind - 1] == '.' ? "  " : " ");
 
         /* Replace leading ^ with a newline */
         if (textStr[0] == '^')
           textStr[0] = '\n';
-        strcat(*lastGottenStr, textStr);
+
+        /* If inside quotes, look for quote at end and say it is the end of accepting
+           continuation lines, and as a protection, also say a blank line ends it */
+        if (inQuoteIndex >= 0 && 
+            (!len || textStr[len - 1] == quoteTypes[inQuoteIndex])) {
+          if (len) {
+            textStr[len - 1] = 0x00;
+            strcat(*lastGottenStr, textStr);
+          }
+          inQuoteIndex = -1;
+          lastGottenStr = NULL;
+        } else {
+          strcat(*lastGottenStr, textStr);
+        }
       }
 
       /* Otherwise look for each keyword of interest, but null out the pointer
          to last gotten one so that it will only be valid on the next line */
       else {
         lastGottenStr = NULL;
+        inQuoteIndex = -1;
         if ((err = CheckKeyword(textStr, "short", &shortName, &gotShort,
-                                &lastGottenStr)))
+                                &lastGottenStr, NULL)))
           return err;
         if ((err = CheckKeyword(textStr, "long", &longName, &gotLong,
-                 &lastGottenStr)))
+                                &lastGottenStr, NULL)))
           return err;
         if ((err = CheckKeyword(textStr, "type", &type, &gotType,
-                                &lastGottenStr)))
+                                &lastGottenStr, NULL)))
           return err;
         
         /* Check for usage if at help level 1 or if we haven't got either of
            the other strings yet */
         if (helpLevel <= 1 || !(gotTip || gotMan))
           if ((err = CheckKeyword(textStr, "usage", &usageStr, &gotUsage,
-                                  &lastGottenStr)))
+                                  &lastGottenStr, &inQuoteIndex)))
             return err;
         
         /* Check for tooltip if at level 2 or if at level 1 and haven't got
@@ -1291,7 +1333,7 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
         if (helpLevel == 2 || (helpLevel <= 1 && !gotUsage) ||
             (helpLevel >= 3 && !gotMan))
           if ((err = CheckKeyword(textStr, "tooltip", &tipStr, &gotTip,
-                                  &lastGottenStr)))
+                                  &lastGottenStr, &inQuoteIndex)))
             return err;
         
         /* Check for manpage if at level 3 or if at level 2 and haven't got
@@ -1299,8 +1341,19 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
         if (helpLevel >= 3 || (helpLevel == 2 && !gotTip) ||
             (helpLevel <= 1 && !(gotTip || gotUsage)))
           if ((err = CheckKeyword(textStr, "manpage", &manStr, &gotMan,
-                                  &lastGottenStr)))
+                                  &lastGottenStr, &inQuoteIndex)))
             return err;
+        
+        /* If that was a line with quoted string, check for quote at end of line and
+           close out the help string if so */
+        if (inQuoteIndex >= 0 && lastGottenStr) {
+          len = strlen(*lastGottenStr);
+          if (len && (*lastGottenStr)[len - 1] == quoteTypes[inQuoteIndex]) {
+            (*lastGottenStr)[len - 1] = 0x00;
+            inQuoteIndex = -1;
+            lastGottenStr = NULL;
+          }
+        }
       }
     }
 
@@ -1313,7 +1366,7 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
       isSection = isOption - 1;
       if (!isSection) {
         if ((err = CheckKeyword(textStr + strlen(OPEN_DELIM), "Field", 
-                                &longName, &gotLong, &lastGottenStr)))
+                                &longName, &gotLong, &lastGottenStr, NULL)))
           return err;
         if (gotLong)
           longName[strlen(longName) - 1] = nullChar;
@@ -1847,10 +1900,12 @@ static int LookupOption(const char *option, int maxLookup)
       if (found == LOOKUP_NOT_FOUND)
         found = i;
       else {
-        sprintf(tempStr, "An option specified by \"%s\" is ambiguous between "
-                "option %s -  %s  and option %s -  %s", option, sname, lname, 
-                optTable[found].shortName, optTable[found].longName);
-        PipSetError(tempStr);
+        if (!testAbbrevForUsage) {
+          sprintf(tempStr, "An option specified by \"%s\" is ambiguous between "
+                  "option %s -  %s  and option %s -  %s", option, sname, lname, 
+                  optTable[found].shortName, optTable[found].longName);
+          PipSetError(tempStr);
+        }
         return LOOKUP_AMBIGUOUS;
       }
     }
@@ -1959,14 +2014,15 @@ static int LineIsOptionToken(const char *line)
 /*
  * Checks for whether a keyword occurs at the beginning of the line and
  * is followed by the keyword-value delimiter, and if so duplicates the
- * value string and sets the flag
+ * value string and sets the flag.  If quoteInd is non-null, it sees if the string starts
+ * with a quote character in quoteTypes, strips that, and returns the index in quoteInd.
  * Watch out for the lastCopied variable, which points to the variable holding
  * the address of the string
  */
 static int CheckKeyword(const char *line, const char *keyword, char **copyto, int *gotit,
-                        char ***lastCopied)
+                        char ***lastCopied, int *quoteInd)
 {
-  char *valStart;
+  char *valStart, *quoteStart;
   char *copyStr;
 
   /* First make sure line starts with it */
@@ -1986,13 +2042,23 @@ static int CheckKeyword(const char *line, const char *keyword, char **copyto, in
     *gotit = 0;
   }
 
-  /*Eat spaces after the delimiter and return if nothing left*/
+  /* Eat spaces after the delimiter and return if nothing left */
   /* In other words, a key with no value is the same as having no key at all */
   valStart += strlen(valueDelim);
   while (*valStart == ' ' || *valStart == '\t')
     valStart++;
   if (!*valStart)
     return 0;
+
+  /* Look for quote if directed to */
+  if (quoteInd) {
+    quoteStart = strchr(quoteTypes, *valStart);
+    if (quoteStart) {
+      *quoteInd = quoteStart - quoteTypes;
+      valStart++;
+    } else
+      *quoteInd = -1;
+  }
 
   /* Copy string and return address, set flag that it was gotten */
   copyStr = strdup(valStart);
