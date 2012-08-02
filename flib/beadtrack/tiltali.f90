@@ -33,7 +33,7 @@ subroutine tiltali(ifDidAlign, ifAlignDone, resMean, iview)
   call proc_model(xcen, ycen, xdelt, ydelt, xorig, yorig, scaleXY, &
       nviewAll, minInView, iview, nviewLocal, iobjSeq, numObjDo, mapFileToView, &
       mapViewToFile, xx, yy, isecView, maxProjPt, maxReal, irealStr, &
-      iobjAli, nview, nprojpt, nrealPt)
+      iobjAli, nview, nprojpt, nrealPt, izExclude, numExclude)
   ifDidAlign = 0
   if (nview >= minViewsTiltAli) then
     !
