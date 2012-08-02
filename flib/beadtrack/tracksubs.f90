@@ -18,60 +18,57 @@ end module cgPixels
 ! IDIR is the direction (+1 / -1)
 ! izNext is the Z value of the view to project to
 ! TILT is array of tilt angles
-! numFit and minFit are maximum and minimum number of points to fit
-! iaxTilt is 1 if tilt axis is near 0 degrees
+! maxFit and minFit are maximum and minimum number of points to fit
+! axisRot is tilt axis rotation angle
 ! tiltMin is minimum tilt angle for fitting to sin / cosine
+! izExclude is list of numExclude view numbers to exclude (numbered from 1)
 ! XNEXT, YNEXT is the projected position
 !
-subroutine nextPos(iobj, ipNear, idir, izNext, tilt, numFit, minFit, &
-    iaxTilt, tiltMin, xnext, ynext)
+subroutine nextPos(iobj, ipNear, idir, izNext, tilt, maxFit, minFit, axisRot, tiltMin, &
+    izExclude, numExclude, xnext, ynext)
   implicit none
   include 'smallmodel.inc90'
-  integer idim
-  parameter (idim = 50)
-  real*4 tilt(*)
-  real*4 xx(idim), yy(idim), zz(idim), b1(2)
-  integer*4 iobj, ipNear, idir, izNext, numFit, minFit, iaxTilt
-  real*4 tiltMin, xnext, ynext
-  integer*4 ibase, numInObj, mfit, ipEnd, indx, indy, iptNear, ip, ipt, ipb, ipp
-  integer*4 iPast, iBefore, i
-  real*4 xsum, ysum, slope, bint, ro, const, rsq, fra, thetaNext, xtmp, theta
+  real*4 tilt(*), yrot(maxFit + 2), b1(2)
+  real*4 xx(maxFit + 2), yy(maxFit + 2), zz(maxFit + 2), xrot(maxFit + 2)
+  integer*4 izExclude(*), numExclude, iobj, ipNear, idir, izNext, maxFit, minFit
+  real*4 tiltMin, xnext, ynext, axisRot, cosRot, sinRot
+  integer*4 ibase, numInObj, mfit, ipEnd, iptNear, ip, ipt, ipb, ipp
+  integer*4 iPast, iBefore, i, iz
+  real*4 xsum, ysum, slope, bint, ro, const, rsq, fra, thetaNext, xtmp, ytmp, theta
   real*4 cosd, sind
+  integer*4 itemOnList
 
   ibase = ibase_obj(iobj)
   numInObj = npt_in_obj(iobj)
+  cosRot = cosd(axisRot)
+  sinRot = sind(axisRot)
   mfit = 0
   ipEnd = 1
   if (idir == - 1) ipEnd = numInObj
-  if (iaxTilt <= 1) then
-    indx = 1
-    indy = 2
-  else
-    indx = 2
-    indy = 1
-  endif
   !
   ! set pointer past the view if possible
   !
   iptNear = object(ibase + ipNear)
   ip = ipNear
-  do while(idir * (nint(p_coord(3, object(ibase + ip))) - izNext) >= 0 &
-      .and. idir * (ip - ipEnd) > 0)
-    ip = ip - idir
+  do ipt = ipNear, ipEnd, -idir
+    iz = nint(p_coord(3, object(ibase + ip)))
+    if (idir * (iz - izNext) < 0)  &
+        exit
+    if (.not. itemOnList(iz + 1, izExclude, numExclude)) ip = ipt
   enddo
   if (idir * (nint(p_coord(3, object(ibase + ip))) - izNext) == - 1) then
     !
     ! if point is adjacent in that direction, then starting from there,
-    ! load numFit points
+    ! load maxFit points
     !
-    do while(idir * (ip - ipEnd) >= 0 .and. mfit < numFit)
+    do while(idir * (ip - ipEnd) >= 0 .and. mfit < maxFit)
       ipt = object(ibase + ip)
-      mfit = mfit + 1
-      if (mfit > idim) call errorExit( &
-          'TOO MANY POINTS IN NON-TILT ALIGNMENT FITS FOR ARRAYS', 0)
-      xx(mfit) = p_coord(indx, ipt)
-      yy(mfit) = p_coord(indy, ipt)
-      zz(mfit) = p_coord(3, ipt)
+      if (.not. itemOnList(nint(p_coord(3, ipt)) + 1, izExclude, numExclude)) then
+        mfit = mfit + 1
+        xx(mfit) = p_coord(1, ipt)
+        yy(mfit) = p_coord(2, ipt)
+        zz(mfit) = p_coord(3, ipt)
+      endif
       ip = ip - idir
     enddo
   elseif (nint(p_coord(3, iptNear)) == izNext) then
@@ -79,8 +76,8 @@ subroutine nextPos(iobj, ipNear, idir, izNext, tilt, numFit, minFit, &
     ! otherwise, if there is already a point on the section, just take it
     !
     mfit = 1
-    xx(mfit) = p_coord(indx, iptNear)
-    yy(mfit) = p_coord(indy, iptNear)
+    xx(mfit) = p_coord(1, iptNear)
+    yy(mfit) = p_coord(2, iptNear)
     zz(mfit) = izNext
   else
     !
@@ -91,9 +88,9 @@ subroutine nextPos(iobj, ipNear, idir, izNext, tilt, numFit, minFit, &
     if (p_coord(3, object(ibase + ipNear)) < izNext) iPast = ipNear + 1
     iBefore = iPast - 1
     !
-    ! starting from there, load numFit nearest points
+    ! starting from there, load maxFit nearest points
     !
-    do while((iBefore > 0 .or. iPast <= numInObj) .and. mfit < numFit)
+    do while((iBefore > 0 .or. iPast <= numInObj) .and. mfit < maxFit)
       if (iBefore > 0) ipb = object(ibase + iBefore)
       if (iPast <= numInObj) ipp = object(ibase + iPast)
       !
@@ -118,15 +115,16 @@ subroutine nextPos(iobj, ipNear, idir, izNext, tilt, numFit, minFit, &
           iPast = iPast + 1
         endif
       endif
-      mfit = mfit + 1
-      if (mfit > idim) call errorExit( &
-          'TOO MANY POINTS IN NON-TILT ALIGNMENT FITS FOR ARRAYS', 0)
-      xx(mfit) = p_coord(indx, ipt)
-      yy(mfit) = p_coord(indy, ipt)
-      zz(mfit) = p_coord(3, ipt)
+      if (.not. itemOnList(nint(p_coord(3, ipt)) + 1, izExclude, numExclude)) then
+        mfit = mfit + 1
+        xx(mfit) = p_coord(1, ipt)
+        yy(mfit) = p_coord(2, ipt)
+        zz(mfit) = p_coord(3, ipt)
+      endif
     enddo
   endif
   !
+  ! Just average the points if there are not enough
   if (mfit < minFit) then
     xsum = 0.
     ysum = 0.
@@ -136,30 +134,36 @@ subroutine nextPos(iobj, ipNear, idir, izNext, tilt, numFit, minFit, &
     enddo
     xnext = xsum / mfit
     ynext = ysum / mfit
-    ! print *,'average:', iobj, mfit, xnext, ynext
+    !print *,'average:', iobj, mfit, xnext, ynext
+  else if (mfit >= minFit + 2 .and. abs(tilt(izNext + 1)) >= tiltMin) then
+    !
+    ! Or, if there are enough for sine-cosine fit and angle is big enough, rotate the
+    ! points so the tilt axis is along Y, fit Y to Z and X to cos/sin, and rotate
+    ! the result back.  This may never happen unless there are too few points for
+    ! tiltalign, but it was tested July 2012 and gave possibly even better results
+    do i = 1, mfit
+      xrot(i) = cosRot * xx(i) + sinRot * yy(i)
+      yrot(i) = -sinRot * xx(i) + cosRot * yy(i)
+      theta = tilt(nint(zz(i)) + 1)
+      xx(i) = cosd(theta)
+      yy(i) = sind(theta)
+    enddo
+    call lsfit(zz, yrot, mfit, slope, bint, ro)
+    ytmp = izNext * slope + bint
+    call lsfit2(xx, yy, xrot, mfit, b1(1), b1(2), const)
+    thetaNext = tilt(izNext + 1)
+    xtmp = b1(1) * cosd(thetaNext) + b1(2) * sind(thetaNext) + const
+    xnext = cosRot * xtmp - sinRot * ytmp
+    ynext = sinRot * xtmp + cosRot * ytmp
+    !print *,'sin/cos fit:', iobj, mfit, xnext, ynext
   else
+    !
+    ! Or just do straight line fits to both components
     call lsfit(zz, xx, mfit, slope, bint, ro)
     xnext = izNext * slope + bint
-    if (iaxTilt == 0 .or. abs(tilt(izNext + 1)) < tiltMin) then
-      call lsfit(zz, yy, mfit, slope, bint, ro)
-      ynext = izNext * slope + bint
-      ! print *,'linear fit:', iobj, mfit, xnext, ynext
-    else
-      do i = 1, mfit
-        theta = tilt(nint(zz(i)) + 1)
-        xx(i) = cosd(theta)
-        zz(i) = sind(theta)
-      enddo
-      call lsfit2(xx, zz, yy, mfit, b1(1), b1(2), const)
-      thetaNext = tilt(izNext + 1)
-      ynext = b1(1) * cosd(thetaNext) + b1(2) * sind(thetaNext) + const
-      ! print *,'sin/cos fit:', iobj, mfit, xnext, ynext
-    endif
-  endif
-  if (iaxTilt > 1) then
-    xtmp = xnext
-    xnext = ynext
-    ynext = xtmp
+    call lsfit(zz, yy, mfit, slope, bint, ro)
+    ynext = izNext * slope + bint
+    !print *,'linear fit:', iobj, mfit, xnext, ynext
   endif
   return
 end subroutine nextPos
@@ -397,7 +401,7 @@ subroutine calcCG(boxTmp, nxBox, nyBox, xpeak, ypeak, wsum, edgeSD)
   implicit none
   real*4 boxTmp(nxBox,nyBox), xpeak, ypeak, wsum
   integer*4 nxBox, nyBox, ixcen, iycen, iy, ix, nsum, i
-  real*4 sum, xsum, ysum, weight, edge, edgeSD, bestSum
+  real*4 sum, xsum, ysum, weight, edge, edgeSD, bestSum, posSum
   !
   call bestCenterForCG(boxTmp, nxBox, nyBox, xpeak, ypeak, ixcen, iycen, bestSum)
   xsum = 0.
@@ -412,6 +416,7 @@ subroutine calcCG(boxTmp, nxBox, nyBox, xpeak, ypeak, wsum, edgeSD)
   ! subtract edge and get weighted sum of pixel coordinates for POSITIVE
   ! pixels
   !
+  posSum = 0.
   do i = 1, numInside
     ix = ixcen + idxIn(i)
     iy = iycen + idyin(i)
@@ -420,14 +425,15 @@ subroutine calcCG(boxTmp, nxBox, nyBox, xpeak, ypeak, wsum, edgeSD)
       if (iPolarity * weight > 0.) then
         xsum = xsum + ix * weight
         ysum = ysum + iy * weight
-        wsum = wsum + weight
+        posSum = posSum + weight
       endif
+      wsum = wsum + weight
     endif
   enddo
-  if (wsum == 0.) return
-  xpeak = xsum / wsum - 0.5 - nxBox / 2
-  ypeak = ysum / wsum - 0.5 - nyBox / 2
-  wsum = wsum * iPolarity
+  if (posSum == 0.) return
+  xpeak = xsum / posSum - 0.5 - nxBox / 2
+  ypeak = ysum / posSum - 0.5 - nyBox / 2
+  wsum = max(0., wsum * iPolarity)
   return
 end subroutine calcCG
 
