@@ -513,6 +513,13 @@ class MultiLineButton implements ProcessResultDisplay {
   final void setAlignmentY(float alignmentY) {
     button.setAlignmentY(alignmentY);
   }
+  
+  /**
+   * @return a label suitable for a message - in single quotes and truncated at the colon.
+   */
+  String getQuotedLabel() {
+    return Utilities.quoteLabel(unformattedLabel);
+  }
 
   final String getText() {
     return button.getText();

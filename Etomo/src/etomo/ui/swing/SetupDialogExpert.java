@@ -7,6 +7,7 @@ import java.io.IOException;
 import etomo.ApplicationManager;
 import etomo.Arguments;
 import etomo.EtomoDirector;
+import etomo.logic.DatasetTool;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.LogFile;
 import etomo.storage.Network;
@@ -25,7 +26,7 @@ import etomo.type.ViewType;
 import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
-import etomo.util.Montagesize;
+import etomo.util.SharedConstants;
 
 /**
  * <p>Description: </p>
@@ -329,7 +330,6 @@ public final class SetupDialogExpert {
     String errorMessageTitle = new String("Setup Dialog Error");
     String datasetText = dialog.getDataset();
     String panelErrorMessage;
-
     if (datasetText.equals("")) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Dataset name has not been entered.",
           errorMessageTitle, AxisID.ONLY);
@@ -382,53 +382,9 @@ public final class SetupDialogExpert {
           errorMessageTitle, AxisID.ONLY);
       return false;
     }
-    Montagesize montagesize = Montagesize.getInstance(manager.getPropertyUserDir(),
-        getStackFileName(), AxisID.ONLY);
-    if (dialog.isSingleViewSelected()) {
-      try {
-        montagesize.read(manager);
-        // not supposed to be a montage
-        // OK if its a 1x1 montage
-        MRCHeader header = readMRCHeader();
-        if (header == null) {
-          // File does not exist
-          return false;
-        }
-        if (montagesize.getX().getInt() > header.getNColumns()
-            || montagesize.getY().getInt() > header.getNRows()) {
-          UIHarness.INSTANCE.openMessageDialog(manager,
-              "The dataset is a montage.  Please change " + SetupDialog.FRAME_TYPE_LABEL
-                  + " to " + SetupDialog.MONTAGE_LABEL + ".", errorMessageTitle,
-              AxisID.ONLY);
-          return false;
-        }
-      }
-      catch (InvalidParameterException e) {
-      }
-      catch (IOException e) {
-      }
-    }
-    else {
-      try {
-        montagesize.read(manager);
-      }
-      catch (InvalidParameterException e) {
-        UIHarness.INSTANCE.openMessageDialog(manager,
-            "The dataset is not a montage.  Please change "
-                + SetupDialog.FRAME_TYPE_LABEL + " to " + SetupDialog.SINGLE_FRAME_LABEL
-                + ".", errorMessageTitle, AxisID.ONLY);
-        return false;
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-        UIHarness.INSTANCE.openMessageDialog(manager,
-            "The dataset is not a montage.  Please change "
-                + SetupDialog.FRAME_TYPE_LABEL + " to " + SetupDialog.SINGLE_FRAME_LABEL
-                + ".", errorMessageTitle, AxisID.ONLY);
-        return false;
-      }
-    }
-    return true;
+    return DatasetTool.validateViewType(
+        dialog.isSingleViewSelected() ? ViewType.SINGLE_VIEW : ViewType.MONTAGE,
+        manager.getPropertyUserDir(), getStackFileName(), manager, AxisID.ONLY);
   }
 
   public MetaData getMetaData() {
@@ -704,11 +660,8 @@ public final class SetupDialogExpert {
         + "is the rotation (CCW positive) from the Y-axis (the tilt axis "
         + "after the views are aligned) to the suspected tilt axis in the "
         + "unaligned views.");
-    dialog.setDistortionFileTooltip("OPTIONAL: If you wish to correct for image "
-        + "distortion, enter the name of the appropriate image distortion "
-        + "file in this field and the CCD camera binning in the following "
-        + "spin control.");
-    dialog.setBinningTooltip("Binning at which images were acquired on CCD camera.");
+    dialog.setDistortionFileTooltip(SharedConstants.DISTORTION_FIELD_TOOLTIP);
+    dialog.setBinningTooltip(SharedConstants.IMAGES_ARE_BINNED_TOOLTIP);
 
     tiltAnglePanelExpertA.setTooltips();
     tiltAnglePanelExpertB.setTooltips();

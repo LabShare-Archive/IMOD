@@ -4,12 +4,12 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
-import etomo.JoinManager;
 import etomo.type.AxisID;
-import etomo.type.ConstJoinState;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.EnumeratedType;
+import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
-import etomo.util.DatasetFiles;
 
 /**
  * <p>Description: </p>
@@ -49,45 +49,104 @@ public final class XftoxgParam implements Command {
 
   public static final ProcessName PROCESS_NAME = ProcessName.XFTOXG;
   public static final String COMMAND_NAME = PROCESS_NAME.toString();
-
   private static final boolean debug = true;
   private static final int COMMAND_SIZE = 1;
-  private final String[] commandArray;
-  private final JoinManager manager;
 
-  public XftoxgParam(JoinManager manager) {
+  private final EtomoNumber referenceSection = new EtomoNumber();
+  private final EtomoNumber hybridFits = new EtomoNumber();
+  private final EtomoNumber numberToFit = new EtomoNumber();
+
+  private final BaseManager manager;
+
+  private String xfFileName = "";
+  private String xgFileName = "";
+  private String[] commandArray = null;
+
+  public XftoxgParam(BaseManager manager) {
     this.manager = manager;
-    ArrayList options = genOptions();
-    commandArray = new String[options.size() + COMMAND_SIZE];
-    commandArray[0] = BaseManager.getIMODBinPath() + COMMAND_NAME;
-    for (int i = 0; i < options.size(); i++) {
-      commandArray[i + COMMAND_SIZE] = (String) options.get(i);
-    }
-    if (debug) {
-      StringBuffer buffer = new StringBuffer();
-      for (int i = 0; i < commandArray.length; i++) {
-        buffer.append(commandArray[i]);
-        if (i < commandArray.length - 1) {
-          buffer.append(' ');
-        }
-      }
-      System.err.println(buffer.toString());
-    }
   }
 
   private ArrayList genOptions() {
     ArrayList options = new ArrayList();
-    options.add("-NumberToFit");
-    options.add("0");
-    ConstJoinState state = manager.getState();
-    boolean trial = state.getRefineTrial().is();
-    if (!state.getJoinAlignmentRefSection(trial).isNull()) {
-      options.add("-ReferenceSection");
-      options.add(state.getJoinAlignmentRefSection(trial).toString());
+    if (!numberToFit.isNull()) {
+      options.add("-NumberToFit");
+      options.add(numberToFit.toString());
     }
-    options.add(DatasetFiles.getRefineXfFileName(manager));
-    options.add(DatasetFiles.getRefineXgFileName(manager));
+    if (!referenceSection.isNull()) {
+      options.add("-ReferenceSection");
+      options.add(referenceSection.toString());
+    }
+    if (!hybridFits.isNull()) {
+      options.add("-HybridFits");
+      options.add(hybridFits.toString());
+    }
+    options.add(xfFileName);
+    options.add(xgFileName);
     return options;
+  }
+
+  public void setReferenceSection(final ConstEtomoNumber input) {
+    referenceSection.set(input);
+  }
+
+  public void setReferenceSection(final Number input) {
+    referenceSection.set(input);
+  }
+
+  public void resetReferenceSection() {
+    referenceSection.reset();
+  }
+
+  public void setXfFileName(final String input) {
+    xfFileName = input;
+  }
+
+  public void setXgFileName(final String input) {
+    xgFileName = input;
+  }
+
+  public void setHybridFits(final EnumeratedType enumType) {
+    hybridFits.set(enumType.getValue());
+  }
+
+  public void resetHybridFits() {
+    hybridFits.reset();
+  }
+
+  public void setNumberToFit(final int input) {
+    numberToFit.set(input);
+  }
+
+  public void setNumberToFit(final EnumeratedType enumType) {
+    numberToFit.set(enumType.getValue());
+  }
+
+  public void resetNumberToFit() {
+    numberToFit.reset();
+  }
+
+  public int getHybridFits() {
+    return hybridFits.getInt();
+  }
+
+  public boolean isHybridFitsEmpty() {
+    return hybridFits.isNull();
+  }
+
+  public int getReferenceSection() {
+    return referenceSection.getInt();
+  }
+
+  public boolean isReferenceSectionEmpty() {
+    return referenceSection.isNull();
+  }
+
+  public int getNumberToFit() {
+    return numberToFit.getInt();
+  }
+
+  public boolean isNumberToFitEmpty() {
+    return numberToFit.isNull();
   }
 
   public AxisID getAxisID() {
@@ -99,6 +158,24 @@ public final class XftoxgParam implements Command {
   }
 
   public String[] getCommandArray() {
+    if (commandArray == null) {
+      ArrayList options = genOptions();
+      commandArray = new String[options.size() + COMMAND_SIZE];
+      commandArray[0] = BaseManager.getIMODBinPath() + COMMAND_NAME;
+      for (int i = 0; i < options.size(); i++) {
+        commandArray[i + COMMAND_SIZE] = (String) options.get(i);
+      }
+      if (debug) {
+        StringBuffer buffer = new StringBuffer();
+        for (int i = 0; i < commandArray.length; i++) {
+          buffer.append(commandArray[i]);
+          if (i < commandArray.length - 1) {
+            buffer.append(' ');
+          }
+        }
+        System.err.println(buffer.toString());
+      }
+    }
     return commandArray;
   }
 
@@ -138,7 +215,10 @@ public final class XftoxgParam implements Command {
   }
 
   public File getCommandOutputFile() {
-    return DatasetFiles.getRefineXgFile(manager);
+    if (xgFileName.equals("")) {
+      return null;
+    }
+    return new File(manager.getPropertyUserDir(), xgFileName);
   }
 
   public FileType getOutputImageFileType() {
@@ -151,5 +231,58 @@ public final class XftoxgParam implements Command {
 
   public File getCommandInputFile() {
     return null;
+  }
+
+  public static final class HybridFits implements EnumeratedType {
+    public static final HybridFits TRANSLATIONS = new HybridFits(2);
+    public static final HybridFits TRANSLATIONS_ROTATIONS = new HybridFits(3);
+
+    private final EtomoNumber value = new EtomoNumber();
+
+    private HybridFits(final int value) {
+      this.value.set(value);
+    }
+
+    public ConstEtomoNumber getValue() {
+      return value;
+    }
+
+    public boolean isDefault() {
+      return false;
+    }
+
+    public String toString() {
+      return value.toString();
+    }
+
+    public boolean equals(final int input) {
+      return value.equals(input);
+    }
+  }
+
+  public static final class NumberToFit implements EnumeratedType {
+    public static final NumberToFit GLOBAL_ALIGNMENT = new NumberToFit(0);
+
+    private final EtomoNumber value = new EtomoNumber();
+
+    private NumberToFit(final int value) {
+      this.value.set(value);
+    }
+
+    public ConstEtomoNumber getValue() {
+      return value;
+    }
+
+    public boolean isDefault() {
+      return false;
+    }
+
+    public String toString() {
+      return value.toString();
+    }
+
+    public boolean equals(final int input) {
+      return value.equals(input);
+    }
   }
 }
