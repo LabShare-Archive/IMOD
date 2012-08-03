@@ -73,6 +73,7 @@ public final class AutoAlignmentProcessManager extends BaseProcessManager {
       if (command == null) {
         return;
       }
+      writeLogFile(process, process.getAxisID(), XfalignParam.getName() + ".log");
       controller.copyXfFile(command.getCommandOutputFile());
       controller.enableMidas();
     }
@@ -84,6 +85,7 @@ public final class AutoAlignmentProcessManager extends BaseProcessManager {
       return;
     }
     if (commandName.equals(XfalignParam.getName())) {
+      writeLogFile(process, process.getAxisID(), XfalignParam.getName() + ".log");
       controller.enableMidas();
     }
   }
