@@ -238,6 +238,8 @@ def runFindBeads():
    last = len(findlines) - 1
    if findlines[last - 1].find('peaks are above') < 0 or \
           findlines[last].find('total peaks being') < 0:
+      if (findlines[last].find('Failed to find dip')) >= 0:
+         exitError('Cannot proceed; imodfindbeads cannot identify the gold beads')
       exitError('Output from imodfindbeads does not end in the expected way')
    lsplit = findlines[last].split()
    numPeaksTot = convertToInteger(lsplit[0], 'number of total peaks stored')
@@ -297,7 +299,7 @@ options = ["track:TrackCommandFile:FN:", "size:BeadSize:F:", "spacing:MinSpacing
            "pick:PickSeedOptions:CH:", "remove:RemoveTempFiles:I:",
            "output:OutputSeedModel:FN:", "info:InfoFile:FN:", "leave:LeaveTempFiles:B:"]
 
-(opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 0, 0)
+(opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 2, 0, 0)
 
 spacing = 0.85
 optLocalPoints = 20
@@ -408,10 +410,13 @@ if not seedFile:
    seedFile = optionValue(tracklines, 'InputSeedModel', 0)
 lightBeads = optionValue(tracklines, 'LightBeads', 3)
 rotationArr = optionValue(tracklines, 'RotationAngle', 2);
+if not os.path.exists(imageFile):
+   exitError("The prealigned stack " + imageFile + " does not exist yet")
+   
 try:
    (nx, ny, nz) = getmrcsize(imageFile)
 except ImodpyError:
-   exitFromImodError()
+   exitFromImodError(progname)
 
 # Get the border sizes
 xborder = setBorderSize((nx + ny) // 2, xborder)
