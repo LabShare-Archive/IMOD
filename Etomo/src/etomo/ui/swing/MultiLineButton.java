@@ -518,7 +518,7 @@ class MultiLineButton implements ProcessResultDisplay {
    * @return a label suitable for a message - in single quotes and truncated at the colon.
    */
   String getQuotedLabel() {
-    return Utilities.quoteLabel(button.getText());
+    return Utilities.quoteLabel(unformattedLabel);
   }
 
   final String getText() {

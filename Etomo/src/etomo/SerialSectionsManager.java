@@ -18,6 +18,7 @@ import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.SerialSectionsProcessManager;
 import etomo.process.SystemProcessException;
+import etomo.storage.BlendmontLog;
 import etomo.storage.LogFile;
 import etomo.storage.Storable;
 import etomo.type.AutoAlignmentMetaData;
@@ -621,6 +622,10 @@ public final class SerialSectionsManager extends BaseManager {
     param.setMode(BlendmontParam.Mode.SERIAL_SECTION_BLEND);
     param.setImageInputFile(metaData.getStack());
     param.setTransformFile(FileType.GLOBAL_TRANSFORMATION_LIST.getFileName(this, axisID));
+    BlendmontLog log = new BlendmontLog();
+    if (log.findUnalignedStartingXandY(FileType.PREBLEND_LOG.getFile(this,axisID))) {
+      param.setUnalignedStartingXandY(log.getUnalignedStartingXandY());
+    }
     dialog.getBlendParameters(param);
     param.setBlendmontState(state.getInvalidEdgeFunctions());
     comScriptMgr.saveBlend(param, axisID);
@@ -634,6 +639,8 @@ public final class SerialSectionsManager extends BaseManager {
    * @param axisID
    * @param dialogType
    */
+  
+  
   private void copyDistortionFieldFile(final ConstProcessSeries processSeries,
       final AxisID axisID) {
     File distortionField = getDistortionField();
@@ -687,6 +694,26 @@ public final class SerialSectionsManager extends BaseManager {
     }
   }
 
+  public void imodRaw(final AxisID axisID, final Run3dmodMenuOptions menuOptions) {
+    try {
+      imodManager.open(ImodManager.RAW_STACK_KEY, axisID, new File(propertyUserDir,
+          metaData.getStack()), menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod with the tomogram", axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
+    }
+  }
+
   public void imodPreblend(final AxisID axisID, final Run3dmodMenuOptions menuOptions) {
     try {
       imodManager.open(ImodManager.PREBLEND_KEY, axisID, menuOptions);
@@ -709,24 +736,9 @@ public final class SerialSectionsManager extends BaseManager {
   public void imodPrealign(final AxisID axisID, final Run3dmodMenuOptions menuOptions) {
     if (metaData.getViewType() == ViewType.MONTAGE) {
       imodPreblend(axisID, menuOptions);
-      return;
     }
-    try {
-      imodManager.open(ImodManager.RAW_STACK_KEY, axisID, new File(propertyUserDir,
-          metaData.getStack()), menuOptions);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod with the tomogram", axisID);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
+    else {
+      imodRaw(axisID, menuOptions);
     }
   }
 

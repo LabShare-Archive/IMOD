@@ -565,6 +565,42 @@ public abstract class BaseProcessManager {
 
   void postProcess(final ReconnectProcess script) {
   }
+  
+  final void writeLogFile(final BackgroundProcess process, final AxisID axisID,
+      final String fileName) {
+    LogFile logFile = null;
+    LogFile.WriterId writerId = null;
+    try {
+      // Write the standard output to a the log file
+      String[] stdOutput = process.getStdOutput();
+      try {
+        logFile = LogFile.getInstance(manager.getPropertyUserDir(), fileName);
+      }
+      catch (LogFile.LockException e) {
+        uiHarness.openMessageDialog(manager, e.getMessage(), "log File Write Error",
+            axisID);
+        return;
+      }
+      writerId = logFile.openWriter();
+      if (stdOutput != null) {
+        for (int i = 0; i < stdOutput.length; i++) {
+          logFile.write(stdOutput[i], writerId);
+          logFile.newLine(writerId);
+        }
+      }
+      logFile.closeWriter(writerId);
+    }
+    catch (LogFile.LockException except) {
+      logFile.closeWriter(writerId);
+      uiHarness.openMessageDialog(manager, except.getMessage(), "log File Write Error",
+          axisID);
+    }
+    catch (IOException except) {
+      logFile.closeWriter(writerId);
+      uiHarness.openMessageDialog(manager, except.getMessage(), "log File Write Error",
+          axisID);
+    }
+  }
 
   public final void startLoad(final IntermittentCommand param, final LoadMonitor monitor) {
     IntermittentBackgroundProcess.startInstance(manager, param, monitor);
@@ -1835,42 +1871,6 @@ public abstract class BaseProcessManager {
       final InteractiveSystemProgram program, final int exitValue) {
     postProcess(program);
     manager.saveStorables(program.getAxisID());
-  }
-
-  final void writeLogFile(final BackgroundProcess process, final AxisID axisID,
-      final String fileName) {
-    LogFile logFile = null;
-    LogFile.WriterId writerId = null;
-    try {
-      // Write the standard output to a the log file
-      String[] stdOutput = process.getStdOutput();
-      try {
-        logFile = LogFile.getInstance(manager.getPropertyUserDir(), fileName);
-      }
-      catch (LogFile.LockException e) {
-        uiHarness.openMessageDialog(manager, e.getMessage(), "log File Write Error",
-            axisID);
-        return;
-      }
-      writerId = logFile.openWriter();
-      if (stdOutput != null) {
-        for (int i = 0; i < stdOutput.length; i++) {
-          logFile.write(stdOutput[i], writerId);
-          logFile.newLine(writerId);
-        }
-      }
-      logFile.closeWriter(writerId);
-    }
-    catch (LogFile.LockException except) {
-      logFile.closeWriter(writerId);
-      uiHarness.openMessageDialog(manager, except.getMessage(), "log File Write Error",
-          axisID);
-    }
-    catch (IOException except) {
-      logFile.closeWriter(writerId);
-      uiHarness.openMessageDialog(manager, except.getMessage(), "log File Write Error",
-          axisID);
-    }
   }
 
   void postProcess(final BackgroundProcess process) {

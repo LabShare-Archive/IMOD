@@ -73,6 +73,8 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   private final FortranInputString startingAndEndingY = new FortranInputString(
       "StartingAndEndingY", 2);
   private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final FortranInputString unalignedStartingXandY = new FortranInputString(
+      "UnalignedStartingXandY", 2);
 
   private final AxisID axisID;
   private final String datasetName;
@@ -121,6 +123,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     startingAndEndingX.setDivider(' ');
     startingAndEndingY.setIntegerType(new boolean[] { true, true });
     startingAndEndingY.setDivider(' ');
+    unalignedStartingXandY.setIntegerType(new boolean[] { true, true });
     setProcessName();
   }
 
@@ -148,6 +151,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     robustFitCriterion.parse(scriptCommand);
     fillValue.parse(scriptCommand);
     transformFile.parse(scriptCommand);
+    unalignedStartingXandY.validateAndSet(scriptCommand);
   }
 
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
@@ -174,6 +178,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     robustFitCriterion.updateComScript(scriptCommand);
     fillValue.updateComScript(scriptCommand);
     transformFile.updateComScript(scriptCommand);
+    unalignedStartingXandY.updateScriptParameter(scriptCommand);
   }
 
   public void setValidate(final boolean validate) {
@@ -206,6 +211,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     robustFitCriterion.reset();
     fillValue.reset();
     transformFile.reset();
+    unalignedStartingXandY.reset();
   }
 
   public void initializeDefaults() {
@@ -297,6 +303,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 
   public void resetStartingAndEndingXandY() {
     startingAndEndingX.reset();
+    startingAndEndingY.reset();
     userSizeToOutputInXandY = "";
     imageRotation.reset();
   }
@@ -316,6 +323,21 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 
   public void setTransformFile(final String input) {
     transformFile.set(input);
+  }
+
+  public void setUnalignedStartingXandY(final String[] input) {
+    unalignedStartingXandY.reset();
+    if (input == null) {
+      return;
+    }
+    int i = 0;
+    if (input.length > i) {
+      unalignedStartingXandY.set(i, input[i]);
+    }
+    i++;
+    if (input.length > i) {
+      unalignedStartingXandY.set(i, input[i]);
+    }
   }
 
   public FileType getOutputImageFileType() {

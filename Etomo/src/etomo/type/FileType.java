@@ -171,8 +171,8 @@ public final class FileType {
       true, "xcorr_pt", ".com");
   public static final FileType DISTORTION_CORRECTED_STACK = FileType.getInstance(true,
       true, "", ".dcst");
-  public static final FileType PIECE_SHIFTS = FileType.getInstance(true,
-      true, "", ".ecd");
+  public static final FileType PIECE_SHIFTS = FileType
+      .getInstance(true, true, "", ".ecd");
   public static final FileType FIDUCIAL_MODEL = FileType.getInstance(true, true, "",
       ".fid");
   public static final FileType CCD_ERASER_BEADS_INPUT_MODEL = FileType.getInstance(true,
@@ -191,6 +191,8 @@ public final class FileType {
       "align", ".log");
   public static final FileType GPU_TEST_LOG = FileType.getInstance(false, false,
       "gputest", ".log");
+  public static final FileType PREBLEND_LOG = FileType.getInstance(false, true,
+      "preblend", ".log");
   public static final FileType FIND_BEADS_3D_OUTPUT_MODEL = FileType.getInstance(true,
       true, "_3dfind", ".mod");
   public static final FileType SMOOTHING_ASSESSMENT_OUTPUT_MODEL = FileType
@@ -205,9 +207,9 @@ public final class FileType {
   public static final FileType PATCH_TRACKING_BOUNDARY_MODEL = FileType.getInstance(true,
       true, "_ptbound", ".mod");
   public static final FileType ALIGNED_STACK_MRC = FileType.getImodInstance(true, true,
-      "_ali", ".mrc",ImodManager.ALIGNED_STACK_KEY);
+      "_ali", ".mrc", ImodManager.ALIGNED_STACK_KEY);
   public static final FileType PREBLEND_OUTPUT_MRC = FileType.getImodInstance(true, true,
-      "_preblend", ".mrc",ImodManager.PREBLEND_KEY);
+      "_preblend", ".mrc", ImodManager.PREBLEND_KEY);
   public static final FileType ANISOTROPIC_DIFFUSION_OUTPUT = FileType.getImodInstance(
       true, false, "", ".nad", ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY);
   public static final FileType PIECE_LIST = FileType.getInstance(true, true, "", ".pl");
@@ -245,6 +247,8 @@ public final class FileType {
       "_fixed", ".st", ImodManager.ERASED_STACK_KEY);
   public static final FileType ORIGINAL_RAW_STACK = FileType.getInstance(true, true,
       "_orig", ".st");
+  public static final FileType EDGE_FUNCTIONS_X = FileType.getInstance(true, true, "",
+      ".xef");
   public static final FileType LOCAL_TRANSFORMATION_LIST = FileType.getInstance(true,
       false, "", ".xf");
   public static final FileType AUTO_LOCAL_TRANSFORMATION_LIST = FileType.getInstance(
@@ -255,7 +259,7 @@ public final class FileType {
       true, false, "_midas", ".xf");
   public static final FileType GLOBAL_TRANSFORMATION_LIST = FileType.getInstance(true,
       false, "", ".xg");
-  
+
   public static final FileType TILT_OUTPUT = FileType.getDifferentDualSingleInstance(
       TILT_OUTPUT_SINGLE, TILT_OUTPUT_DUAL, ImodManager.FULL_VOLUME_KEY, "the tomogram");
   // Template for .sintnn

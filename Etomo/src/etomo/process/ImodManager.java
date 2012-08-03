@@ -656,7 +656,7 @@ public class ImodManager {
   private static final String flattenToolOutputKey = FLATTEN_TOOL_OUTPUT_KEY;
   private static final String sirtKey = SIRT_KEY;
   private static final String preblendKey = PREBLEND_KEY;
-  private static final String alignedStackKey=ALIGNED_STACK_KEY;
+  private static final String alignedStackKey = ALIGNED_STACK_KEY;
 
   private boolean useMap = true;
   private final BaseManager manager;
@@ -825,11 +825,11 @@ public class ImodManager {
     key = getPrivateKey(key);
     vector = getVector(key, axisID);
     if (vector == null) {
-      vector = newVector(key,axisID, file);
+      vector = newVector(key, axisID, file);
       imodMap.put(key, vector);
       return 0;
     }
-    imodState = newImodState(key,axisID, file);
+    imodState = newImodState(key, axisID, file);
     vector.add(imodState);
     return vector.lastIndexOf(imodState);
   }
@@ -1706,7 +1706,7 @@ public class ImodManager {
   ImodState newImodState(String key, AxisID axisID, String datasetName, File file,
       String[] fileNameArray, String subdirName, final File[] fileList) {
     if (key.equals(RAW_STACK_KEY) && axisID != null) {
-      return newRawStack(axisID);
+      return newRawStack(axisID, file);
     }
     if (key.equals(ERASED_STACK_KEY) && axisID != null) {
       return newErasedStack(axisID);
@@ -1854,7 +1854,7 @@ public class ImodManager {
   }
 
   protected void loadSingleAxisMap() {
-    imodMap.put(rawStackKey, newVector(newRawStack(AxisID.ONLY)));
+    imodMap.put(rawStackKey, newVector(newRawStack(AxisID.ONLY, null)));
     imodMap.put(erasedStackKey, newVector(newErasedStack(AxisID.ONLY)));
     imodMap.put(coarseAlignedKey, newVector(newCoarseAligned(AxisID.ONLY)));
     imodMap.put(fineAlignedKey, newVector(newFineAligned(AxisID.ONLY)));
@@ -1884,9 +1884,9 @@ public class ImodManager {
 
   protected void loadDualAxisMap() {
     imodMap.put(rawStackKey + AxisID.FIRST.getExtension(),
-        newVector(newRawStack(AxisID.FIRST)));
+        newVector(newRawStack(AxisID.FIRST, null)));
     imodMap.put(rawStackKey + AxisID.SECOND.getExtension(),
-        newVector(newRawStack(AxisID.SECOND)));
+        newVector(newRawStack(AxisID.SECOND, null)));
     imodMap.put(erasedStackKey + AxisID.FIRST.getExtension(),
         newVector(newErasedStack(AxisID.FIRST)));
     imodMap.put(erasedStackKey + AxisID.SECOND.getExtension(),
@@ -1923,9 +1923,15 @@ public class ImodManager {
     imodMap.put(patchVectorCCCModelKey, newVector(newPatchVectorCCCModel()));
   }
 
-  private ImodState newRawStack(AxisID axisID) {
-    ImodState imodState = new ImodState(manager, axisID, datasetName, ".st");
-    imodState.setLoadAsIntegers();
+  private ImodState newRawStack(final AxisID axisID, final File file) {
+    ImodState imodState;
+    if (file == null) {
+      imodState = new ImodState(manager, axisID, datasetName, ".st");
+      imodState.setLoadAsIntegers();
+    }
+    else {
+      imodState = new ImodState(manager, axisID, file.getName());
+    }
     return imodState;
   }
 
@@ -2061,6 +2067,7 @@ public class ImodManager {
         FileType.ALIGNED_STACK_MRC.getFileName(manager, axisID));
     return imodState;
   }
+
   private ImodState newPreview(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, datasetName, ".st");
     imodState.setLoadAsIntegers();
