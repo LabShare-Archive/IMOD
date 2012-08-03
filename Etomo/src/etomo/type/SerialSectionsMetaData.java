@@ -56,6 +56,7 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
     fileExtension = DataFileType.SERIAL_SECTIONS.extension;
     axisType = AxisType.SINGLE_AXIS;
     noOptions.setDisplayValue(true);
+    robustFitCriterion.setDisplayValue(1);
   }
 
   public void setName(final String rootName) {
