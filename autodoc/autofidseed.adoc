@@ -10,17 +10,14 @@ manpage = Command file for running Beadtrack(1).  This entry is required as the
 command file is used both for tracking points found by Imodfindbeads and to
 obtain several parameters.
 
-[Field = BeadSize]
-short = size
-type = F
-usage = Diameter of beads in images to track, in pixels
-tooltip =
-manpage = Diameter of beads in the images to track, in pixels.  This entry is
-not needed if there is a bead size entry in the Beadtrack(1) command file, but
-would be needed if there is only a centroid radius entry there.  It could also
-be used to enter an alternate size to use in Imodfindbeads(1).
-If it is entered, it must be in units of the potentially binned pixels of the
-stack being tracked.
+[Field = MinGuessNumBeads]
+short = guess
+type = I
+usage = A guess for the minimum number of beads per section
+tooltip = 
+manpage = A guess for the minimum number of beads per section.  This entry may
+sometimes be required to help Imodfindbeads find a dip in the histogram,
+especially if there are very few beads.
 
 [Field = MinSpacing]
 short = spacing
@@ -32,14 +29,17 @@ fraction of the bead size.  When two peaks are closer than this distance
 apart, the weaker one is eliminated. The default is 0.85, since values of 0.8
 to 0.9 are helpful for getting a more complete set of beads.
 
-[Field = MinGuessNumBeads]
-short = guess
-type = I
-usage = A guess for the minimum number of beads per section
-tooltip = 
-manpage = A guess for the minimum number of beads per section.  This entry may
-sometimes be required to help Imodfindbeads find a dip in the histogram,
-especially if there are very few beads.
+[Field = BeadSize]
+short = size
+type = F
+usage = Diameter of beads in images to track, in pixels
+tooltip =
+manpage = Diameter of beads in the images to track, in pixels.  This entry is
+not needed if there is a bead size entry in the Beadtrack(1) command file, but
+would be needed if there is only a centroid radius entry there.  It could also
+be used to enter an alternate size to use in Imodfindbeads(1).
+If it is entered, it must be in units of the potentially binned pixels of the
+stack being tracked.
 
 [Field = NumberOfSeedViews]
 short = views
@@ -84,26 +84,6 @@ usage = Try to find an equal number of beads on two surfaces
 tooltip =
 manpage = Try to sort beads onto two surfaces then select a seed model that
 has equal numbers of beads on the two surfaces if possible.
-
-[Field = SubareaSize]
-short = subarea
-type = I
-usage = Size of subareas for Sortbeadsurfs analysis of two surfaces
-tooltip = 
-manpage = Size of subareas within which Sortbeadsurfs(1) should analyze for two
-surfaces.  This option and the -sort option cannot be used together.  By
-default the -sort option is passed to Sortbeadsurfs(1).
-
-[Field = SortAreasMinNumAndSize]
-short = sort
-type = IP
-usage = Minimum bead number and area size for having Sortbeadsurfs pick subareas
-tooltip = 
-manpage = Minimum bead number and area size for having Sortbeadsurfs pick
-subareas.  With these parameters, Sortbeadsurfs will divide the area occupied
-by points into equal-sized areas that are at least the given minimum size in
-each dimension, and that have at least the given number of points.  The
-default is 50 beads and 2500 pixels.
 
 [Field = TargetNumberOfBeads]
 short = number
@@ -161,6 +141,26 @@ option only when the total number of beads is still below the reduced target
 given here.  The value entered should be in the same form as the regular
 target was specified, i.e, a number of beads if -number was entered or a bead
 density if -density was entered.
+
+[Field = SubareaSize]
+short = subarea
+type = I
+usage = Size of subareas for Sortbeadsurfs analysis of two surfaces
+tooltip = 
+manpage = Size of subareas within which Sortbeadsurfs(1) should analyze for two
+surfaces.  This option and the -sort option cannot be used together.  By
+default the -sort option is passed to Sortbeadsurfs(1).
+
+[Field = SortAreasMinNumAndSize]
+short = sort
+type = IP
+usage = Minimum bead number and area size for having Sortbeadsurfs pick subareas
+tooltip = 
+manpage = Minimum bead number and area size for having Sortbeadsurfs pick
+subareas.  With these parameters, Sortbeadsurfs will divide the area occupied
+by points into equal-sized areas that are at least the given minimum size in
+each dimension, and that have at least the given number of points.  The
+default is 50 beads and 2500 pixels.
 
 [Field = PickSeedOptions]
 short = pick
