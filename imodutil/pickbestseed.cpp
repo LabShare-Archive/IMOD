@@ -114,7 +114,7 @@ void PickSeeds::main(int argc, char *argv[])
   float gridSpacing, xx, yy, dzmin, dz, fracClose, meanDev, compSum, resSum;
   int imin, ncum, idom, neigh, neighCo, neighMod, coMod, numEdge, ndev, botSum, topSum;
   int useDens2, majorNumber, numPhase, phase, overlapThresh, topBot, surf;
-  float resid, sdMean, sdMed, sdSD, termDens;
+  float resid, sdMean, sdMed, sdSD, termDens, bestResForPos;
   float clusterThresh, majorDensity, majorSpacing, majorKernelH, valmin, valmax;
   float eloMean, eloMed;
   int numModels, numClust, numOver;
@@ -257,8 +257,8 @@ void PickSeeds::main(int argc, char *argv[])
   } else {
     totalArea = (nxImage - 2 * xBorder) * (nyImage - 2 * yBorder);
   }
-  // if (mVerbose)
-    PRINT1(totalArea);
+
+  printf("Total area = %.2f megapixels\n", totalArea / 1.e6);
 
   mTracks = B3DMALLOC(TrackData, maxConts);
   trackList = B3DMALLOC(int, maxConts);
@@ -466,6 +466,11 @@ void PickSeeds::main(int argc, char *argv[])
     botSum = mTracks[co].topBot == 1 ? 1 : 0;
     mDomains[ind].numCandidates++;
     ncum = 1;
+    bestResForPos = 1.e30;
+    if (B3DNINT(mTracks[co].midPos.z) == izMiddle) {
+      bestResForPos = mTracks[co].residual;
+      candid.pos = mTracks[co].midPos;
+    }
 
     // Loop on all tracks in neighborhood 
     for (neigh = 0; neigh < mDomains[ind].numNeighbors && ncum < numModels; neigh++) {
@@ -485,6 +490,11 @@ void PickSeeds::main(int argc, char *argv[])
           topSum += mTracks[neighCo].topBot == 2 ? 1 : 0;
           botSum += mTracks[neighCo].topBot == 1 ? 1 : 0;
           ncum++;
+          if (B3DNINT(mTracks[neighCo].midPos.z) == izMiddle && 
+              bestResForPos > mTracks[neighCo].residual) {
+            bestResForPos =  mTracks[neighCo].residual;
+            candid.pos = mTracks[neighCo].midPos;
+          }
         }
       }
     }
@@ -506,16 +516,19 @@ void PickSeeds::main(int argc, char *argv[])
     if (twoSurf && topSum > botSum)
       candid.topBot = 1;
      
-    // Get the true position on the middle section or nearest if necessary
-    for (i = 0; i < numModels; i++) {
-      j = candid.contours[(co + i) % numModels];
-      if (j >= 0 && B3DNINT(mTracks[j].midPos.z) == izMiddle) {
-        candid.pos = mTracks[co].midPos;
-        break;
+    // Get the true position on the middle section or nearest if necessary if it wasn't
+    // set from the contour with lowest residual
+    if (bestResForPos > 1.e29) {
+      for (i = 0; i < numModels; i++) {
+        j = candid.contours[(co + i) % numModels];
+        if (j >= 0 && B3DNINT(mTracks[j].midPos.z) == izMiddle) {
+          candid.pos = mTracks[co].midPos;
+          break;
+        }
       }
+      if (i >= numModels)
+        candid.pos = mTracks[co].midPos;
     }
-    if (i >= numModels)
-      candid.pos = mTracks[co].midPos;
  
     // Now check if it is inside the borders and abort the whole set of tracks if out
     if (candid.pos.x < xBorder || candid.pos.x >= nxImage - xBorder ||
@@ -776,15 +789,17 @@ void PickSeeds::main(int argc, char *argv[])
       if (!imodPointAppend(&obj->cont[co], &candp->pos))
         exitError("Adding point to new model");
 
-      // Need to take negative of the score so that worse ones are "below threshold"
-      store.value.f = -(candp->score + candp->clustered + candp->overlapped / 100.);
+      // Need to take inverse of the score so that worse ones are "below threshold"
+      // This seems to spread them out as well as taking a log does, too
+      store.value.f = 1. / (candp->score + candp->clustered + candp->overlapped / 100.);
       store.index.i = co;
       if (istoreInsert(&obj->store, &store))
         exitError("Could not add general storage item");
       valmin = B3DMIN(valmin, store.value.f);
       valmax = B3DMAX(valmax, store.value.f);
       if (phaseAsSurf)
-        obj->cont[co].surf = (twoSurf+1) * (candp->accepted - 1) + twoSurf * candp->topBot;
+        obj->cont[co].surf = (twoSurf+1) * (candp->accepted - 1) + 
+          twoSurf * candp->topBot;
       else if (twoSurf)
         obj->cont[co].surf = candp->topBot;
       co++;
