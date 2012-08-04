@@ -36,7 +36,7 @@ subroutine nextPos(iobj, ipNear, idir, izNext, tilt, maxFit, minFit, axisRot, ti
   integer*4 iPast, iBefore, i, iz
   real*4 xsum, ysum, slope, bint, ro, const, rsq, fra, thetaNext, xtmp, ytmp, theta
   real*4 cosd, sind
-  integer*4 itemOnList
+  logical itemOnList
 
   ibase = ibase_obj(iobj)
   numInObj = npt_in_obj(iobj)
@@ -447,7 +447,7 @@ subroutine wsumForSobelPeak(boxTmp, nxBox, nyBox, xpeak, ypeak, wsum, edgeSD)
   implicit none
   real*4 boxTmp(nxBox,nyBox), xpeak, ypeak, wsum, edgeSD
   integer*4 nxBox, nyBox, ixcen, iycen, iy, ix, i
-  real*4 weight, edge
+  real*4 edge
   !
   ixcen = nxBox / 2 + nint(xpeak)
   iycen = nyBox / 2 + nint(ypeak)
@@ -458,17 +458,16 @@ subroutine wsumForSobelPeak(boxTmp, nxBox, nyBox, xpeak, ypeak, wsum, edgeSD)
   call edgeForCG(boxTmp, nxBox, nyBox, ixcen, iycen, edge, edgeSD, i)
   if (i .ne. 0) return
   !
-  ! subtract edge and get weight sum for POSITIVE pixels
+  ! subtract edge and get weight sum for ALL pixels
   !
   do i = 1, numInside
     ix = ixcen + idxIn(i)
     iy = iycen + idyin(i)
     if (ix >= 1 .and. ix <= nxBox .and. iy >= 1 .and. iy <= nyBox) then
-      weight = boxTmp(ix, iy) - edge
-      if (iPolarity * weight > 0.) wsum = wsum + weight
+      wsum = wsum + boxTmp(ix, iy) - edge
     endif
   enddo
-  wsum = wsum * iPolarity
+  wsum = max(0., wsum * iPolarity)
   return
 end subroutine wsumForSobelPeak
 
@@ -609,7 +608,8 @@ subroutine calcElongation(boxTmp, nxBox, nyBox, xpeak, ypeak, elongation)
   call edgeForCG(elongSmooth, nxBox, nyBox, ixcen, iycen, edge, edgeSD, i)
   getEdgeSD = edgeSDsave
   edgeMedian = edgeMedianSave
-  if (i .ne. 0) return
+  if (i .ne. 0 .or. ixcen <= 0 .or. ixcen > nxBox .or. iycen <= 0 .or. iycen > nyBox)  &
+      return
   !
   ! Get threshold value and start a list of points to check with the center point
   thresh = edge + threshFrac * (bestSum / 4. - edge)
