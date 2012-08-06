@@ -96,7 +96,7 @@ set lifft           = -lifft
 set limesh          = -limesh
 set liwarp          = -liwarp
 set nnvulnflags     = -ffloat-store
-set lapacklibs      = '-llapack -lblas'
+set lapacklibs      = '-lb3dlapk -lb3dblas'
 set lapack_flibs    = ''
 set lapacklink      = '$(CC)'
 set ldfflags        = '$(LDFLAGS)'
@@ -263,7 +263,7 @@ end
 
 # Set common flags if doing CUDA
 if ($?CUDA_DIR) then
-    set nvcc_flags = "-arch sm_10 -maxrregcount 32 -I$CUDA_DIR/include -I../../include"
+    set nvcc_flags = '-arch sm_10 -maxrregcount 32 -I"'"$CUDA_DIR"'/include" -I../../include'
     set cudalibs = "-L$CUDA_DIR/lib -lcudart -lcufft"
 endif
 
@@ -616,32 +616,36 @@ endif
 
 if ($shared_libs == false) set inst_lib_dir = $lib_dir
 
-echo "OBJEXT =    $objext" >> $configure
-echo "BINEXT =    $binext" >> $configure
-echo "LIMOD  =    $limod" >> $configure
-echo "LCFSHR =    $lcfshr" >> $configure
-echo "LIIMOD =    $liimod" >> $configure
-echo "LIFFT =     $lifft" >> $configure
-echo "LIMESH =    $limesh" >> $configure
-echo "LIWARP =    $liwarp" >> $configure
-echo "NNVULNFLAGS = $nnvulnflags" >> $configure
-echo "LAPACKLIBS =    $lapacklibs" >> $configure
-echo "LAPACKLINK =    $lapacklink" >> $configure
-echo "LAPACK_FLIBS =    $lapack_flibs" >> $configure
-echo "BLOCKIO =   $blockio"  >> $configure
-echo "IMSUBSOBJ = $imsubsobj"  >> $configure
-echo "TILTALILIB = $tiltalilib"  >> $configure
+cat <<EOF >> $configure
+OBJEXT =    $objext
+BINEXT =    $binext
+LIMOD  =    $limod
+LCFSHR =    $lcfshr
+LIIMOD =    $liimod
+LIFFT =     $lifft
+LIMESH =    $limesh
+LIWARP =    $liwarp
+NNVULNFLAGS = $nnvulnflags
+LAPACKLIBS =    $lapacklibs
+LAPACKLINK =    $lapacklink
+LAPACK_FLIBS =    $lapack_flibs
+BLOCKIO =   $blockio
+IMSUBSOBJ = $imsubsobj
+TILTALILIB = $tiltalilib
+BINDIR  = $bin_dir
+INSTBINDIR = $inst_bin_dir
+LIBDIR  = $lib_dir
+INSTLIBDIR = $inst_lib_dir
+INSTDIR = $inst_dir
+HTML_ARCDIR = $source_dir/imod_${imod_version_name}_docs
+INCDIR  = $inc_dir
+IMOD_PLUGIN_DIR = $inst_plug_dir
+PLUG_HELP_DIR = $plughelp_dir
+MOC = $moc
+%.$objext : %.f90
+	\$(FC) -c \$(FFLAGS) \$< -o \$@
 
-echo "BINDIR  = $bin_dir" >> $configure
-echo "INSTBINDIR = $inst_bin_dir"  >> $configure
-echo "LIBDIR  = $lib_dir" >> $configure
-echo "INSTLIBDIR = $inst_lib_dir"  >> $configure
-echo "INSTDIR = $inst_dir"  >> $configure
-echo "HTML_ARCDIR = $source_dir/imod_${imod_version_name}_docs"  >> $configure
-echo "INCDIR  = $inc_dir"          >> $configure
-echo "IMOD_PLUGIN_DIR = $inst_plug_dir" >> $configure
-echo "PLUG_HELP_DIR = $plughelp_dir" >> $configure
-echo "MOC = $moc"     >> $configure
+EOF
 
 # Output the entries for Tilt using GPU or not
 #
@@ -691,7 +695,7 @@ if ($machine != cygwin) then
     # manage qconfigure files
     #
     echo LIBS += -L$lib_dir -liimod -limod -liwarp -lcfshr -ldiaqt $ltiff -lifft $midasGL >> $midas_qconf
-    echo LIBS += -L$lib_dir -lm -llapack -lblas -liimod -lcfshr $ltiff -lifft $lapack_flibs >> $ctfplot_qconf
+    echo LIBS += -L$lib_dir -lm -lb3dlapk -lb3dblas -liimod -lcfshr $ltiff -lifft $lapack_flibs >> $ctfplot_qconf
     echo LIBS += -L$lib_dir -lcfshr >! $qtassist_qconf
     echo LIBS += -L$lib_dir -lcfshr >> $prochunk_qconf
     foreach i ($midas_qconf $ctfplot_qconf)

@@ -471,11 +471,14 @@ image transformations.  The flipx and flipy
 commands will each create a new file where each slice is the mirror
 image of the input slice around the x or y axis.  The flipz command will
 invert the order of slices (mirror around the x/y plane).
-The flipxy, flipyz, flipzx commands will flip the
-xy, yz or zx indices and change the size of the
-output file to match.  No input size or centering, or output size or mode 
-options will be applied.  All of these options invert the handedness of the
-structures in the image file.
+The flipxy, flipyz, or flipzx commands will exchange x and y coordinates, y and
+z, or z and x coordinates, respectively.  
+and also change the size of the
+output file to match (e.g., with flipyz, the sizes in y and z are exchanged).
+No input size or centering, or output size or mode options will be applied.  
+All of these options invert the handedness of the
+structures in the image file.  Use the rotx command instead of flipyz to
+reorient a volume without changing handedness.
 .TP
 .B gradient
 .PD 0

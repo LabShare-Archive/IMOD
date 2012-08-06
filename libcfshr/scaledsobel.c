@@ -16,9 +16,9 @@
 #include "mrcslice.h"
 
 #ifdef F77FUNCAP
-#define scaledfwrap SCALEDSOBEL
+#define scaledsobel SCALEDSOBEL
 #else
-#define scaledfwrap scaledsobel_
+#define scaledsobel scaledsobel_
 #endif
 
 /*! 
@@ -44,8 +44,8 @@
  * sizes and offsets and return.  ^
  * If [center] is 0, the scaled image is computed and returned without Sobel 
  * filtering. ^
- * The filtering operation is parallized with OpenMP with the same limitation on
- * number of threads as used in @cubinterp  ^
+ * The filtering operation is parallelized with OpenMP with the same limitation on
+ * number of threads as used in @cubinterp.  ^
  * The call from Fortran is the same as that from C.
  */
 int scaledSobel(float *inImage, int nxin, int nyin, float scaleFac, 
@@ -166,7 +166,8 @@ int scaledSobel(float *inImage, int nxin, int nyin, float scaleFac,
     outImage[j*nxo] = outImage[j*nxo + 1];
     outImage[j*nxo + nxo - 1] = outImage[j*nxo + nxo - 2];
   }
-  printf("interp time = %.1f   sobel time = %.1f\n", 1000. * terpTime, 1000. * (wallTime() - wallStart));
+  /*printf("interp time = %.1f   sobel time = %.1f\n", 1000. * terpTime, 
+    1000. * (wallTime() - wallStart)); */
 
   // Copy top/bottom edge pixels
   for (i = 0; i < nxo; i++) {
@@ -177,7 +178,7 @@ int scaledSobel(float *inImage, int nxin, int nyin, float scaleFac,
   return 0;
 }
 
-int scaledfwrap(float *inImage, int *nxin, int *nyin, float *scaleFac, 
+int scaledsobel(float *inImage, int *nxin, int *nyin, float *scaleFac, 
                 float *minInterp, int *linear, float *center, float *outImage, 
                 int *nxout, int *nyout, float *xOffset, float *yOffset)
 {

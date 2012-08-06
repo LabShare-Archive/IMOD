@@ -160,9 +160,7 @@ c
 	logical nearedge
 	parameter (isdim=1000)
 	include 'statsize.inc'
-	real*4 xr(msiz,isdim), sx(msiz), xm(msiz), sd(msiz)
-     &	    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
-     &	    , b(msiz), b1(msiz),vect(msiz)
+	real*4 xr(msiz,isdim), xm(msiz), sd(msiz), ssd(msiz,msiz), b1(msiz),vect(msiz)
 c	  
 c	  initialize list
 c	  
@@ -278,8 +276,7 @@ c
 c	  
 c	  do regession
 c
-	call multr(xr,nindep+1,npnts,sx,ss,ssd,d,r,xm,sd,b,b1,c1,rsq
-     &	    ,fra)
+        call multRegress(xr,msiz,1,nindep,npnts,1,0,b1,msiz,c1,xm,sd,ssd)
 c	  
 c	  replace points on list with values calculated from fit
 c

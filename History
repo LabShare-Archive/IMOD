@@ -1,5 +1,131 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/2/12: Beadtrack: improved criteria for when a bead is too weak so that weaker
+beads are allowed when the average one is getting weaker and to try to prevent
+beads from tracking on wild positions.  Improved the position prediction when
+returning to the starting view for the next local area, and also made it track
+halfway out on both sides on first round, to reduce loss of points when
+going back to starting view.  Added model Z scale.  Added detection of
+incorrect polarity.  Fixed some problems with sobel positioning.
+
+8/2/12: Made usage statements and manpages from PIP show abbreviations of
+short names.
+
+7/29/12: Added Autofidseed for automatic selection of a fiducial seed model,
+and a companion program, Pickbestseed, that it uses for analysis of beads.
+
+7/29/12: Added a script, Onegenplot, that will use Genhstplt to make a single
+graph with a relatively simple set of command-line options, and made numerous
+changes to Genhstplt to improve its usability for this purpose, including the
+ability to rearrange data so several columns can be plotted at once versus
+another column.
+
+7/27/12: Fixed Midas giving an error message when reading an empty transform
+file (In 4.5).
+
+7/25/12: Fixed temporary use of real array as double in Tiltalign/Beadtrack.
+
+7/23/12: Fixed bug in Splittilt that made parallel writing fail in SIRT 
+reprojection with a binned aligned stack (in 4.5).
+
+7/23/12: Beadtrack now takes prealignment transforms to avoid tracking onto
+gray fill areas.
+
+7/20/12: IMOD_4-6-7
+7/19/12: IMOD_4-6-6
+7/19/12: Added option to mtk to switch to making graphs of distance to nearest
+neighbor instead of distance to all neighbors.
+
+7/17/12: Made scale bar in Model View show up as black and be controllable by
+the Whute checkbox if image display is on.
+
+7/17/12: Added options to Newstack for setting mean and SD of output images
+and for omitting extra header from output.
+
+7/17/12: Replaced eigenvector solving routine in nad_eed_3d with one
+compatible with open source.  Results are slightly different and speed is
+improved by 13%.
+
+7/16/12: Fixed ancient bug in Splittilt that failed to limit the number of
+chunks correctly when vertical slices are being done with high X-axis tilt
+(e.g., in SIRT), and allowed number of chunks to go down to the number of
+processors in this case (In 4.5).
+
+7/13/12: In Beadtrack, fixed memory allocation problem, replaced
+surface output option with two options for output of extensive residual and
+elongation information and XYX coordinates after tracking automatically picked
+beads.
+
+7/13/12: Added options to Sortbeadsurf for picking subarea size based on
+number of points in potential subareas, and for leaving some points identified
+as outliers out of initial pairings.
+
+7/13/12: Made Model2point able to output general point or contour values, and
+Point2model able to read in point files with such values.
+
+7/7/12: Fixed treatment of min/max values when reading an ascii model file
+with contour values (In 4.5).
+
+6/28/12: IMOD_4-6-5
+6/28/12: Fixed bug in beadfixer that made it skip all residuals; fixed
+undefined variable when using sobel filter in Beadtrack.
+
+6/22/13: Converted Clipmodel to PIP input, fixed point output.
+
+6/21/13: IMOD_4-6-4
+6/21/13: Fixed array not allocated big enough in Beadtrack.
+
+6/21/12: Added an option to Blendmont to specify a value for filling blank
+regions.
+
+6/21/12: Made Xfalign support color image files, added an option to enter
+sections numbered from 1.
+
+6/21/12: Kept robust fit in Tiltalign from setting all weights for a fiducial
+to at or near zero; tweaked output from Tiltalign and Alignlog.
+
+6/20/12: IMOD_4-6-3
+6/20/12: Beadtrack can now refine center positions using an edge-detecting
+filter, which significantly improves accuracy for many plastic section data
+sets and some cryo data sets.
+
+6/19/12: Tiltalign can now do robust fitting, eliminating or down-weighting
+points with exceptionally high residuals. 
+
+6/9/12: In Tilt, increased the assumed limit on number of lines in a CUDA
+array to 65535, the limit on Fermi cards (In 4.5).
+
+6/6/12: In eTomo - Final Aligned Stack, fixed a bug where 
+tilt_3dfind_reprojecta.com was not being created (In 4.5).(Bug# 1622)
+
+6/5/12: Added options to Point2model to set scale and origin directly.
+
+6/5/12: In eTomo, added code to dump the state of classes which may be
+involved in an intermittently occurring bug.(Bug# 1618)
+
+5/31/12: In eTomo, removed incorrect error messages from the _err.log
+(In 4.5).(Bug# 1620)
+
+5/31/12: In eTomo, removed extra lines that had been added onto a warning
+message (In 4.5).(Bug# 1621) 
+
+5/29/12: IMOD_4-5-3
+5/26/12: Changed Tiltalign and Beadtrack to get initial x/y/z
+coordinates with a direct solution instead of iteration, and added an initial
+scan for correct starting tilt axis rotation angle to Tiltalign.
+
+5/26/12: Changed -linear option to Imodfindbeads to allow use of antialias
+image reduction instead of regular interpolation.
+
+5/26/12: Made Taperoutvol and  Assemblevol preserve angles in header so they
+are not lost when running NAD (In 4.5).
+
+5/24/12: Fixed problem where eTomo freezes on Ubuntu when it looks for lsof in
+the wrong directory (In 4.5).(Bug# 1617)
+
+5/21/12: Fixed get_nxyz to take long filenames, which should fix Setupcombine
+and some other combine steps (In 4.5).
+
 5/15/12: Made Imodhelp able to complete a partial program name and offer 
 choice if several match (In 4.5).
 

@@ -31,14 +31,14 @@ public final class ProcessMessages {
   public static final String rcsid = "$Id$";
 
   private static final String[] ERROR_TAGS = { "ERROR:", "Errno", "Traceback" };
-  private static final boolean[] ALWAYS_MULTI_LINE = { false, false, true, false };
+  private static final boolean[] ALWAYS_MULTI_LINE = { false, false, true };
   public static final String WARNING_TAG = "WARNING:";
   private static final String CHUNK_ERROR_TAG = "CHUNK ERROR:";
   private static final String PIP_WARNING_TAG = "PIP WARNING:";
   private static final String INFO_TAG = "INFO:";
   private static final String PIP_WARNING_END_TAG = "Using fallback options in main program";
   private static final int MAX_MESSAGE_SIZE = 10;
-  private static final String IGNORE_TAG = "prnstr('ERROR:";
+  private static final String[] IGNORE_TAG = { "prnstr('ERROR:", "log.write('ERROR:" };
 
   private final boolean chunks;
 
@@ -60,6 +60,39 @@ public final class ProcessMessages {
   // multi line error, warning, and info strings; terminated by an empty line
   // may be turned off temporarily
   private boolean multiLineMessages = false;
+
+  public void dumpState() {
+    System.err.print("[chunks:" + chunks + ",processOutputString:" + processOutputString
+        + ",processOutputStringArray:");
+    if (processOutputStringArray != null) {
+      System.err.print("{");
+      for (int i = 0; i < processOutputStringArray.length; i++) {
+        System.err.print(processOutputStringArray[i]);
+        if (i < processOutputStringArray.length - 1) {
+          System.err.print(",");
+        }
+      }
+      System.err.print("}");
+    }
+    System.err.print(",index:" + index + ",line:" + line + ",infoList:");
+    if (infoList != null) {
+      System.err.println(infoList.toString());
+    }
+    System.err.print(",warningList:");
+    if (warningList != null) {
+      System.err.println(warningList.toString());
+    }
+    System.err.print(",errorList:");
+    if (errorList != null) {
+      System.err.println(errorList.toString());
+    }
+    System.err.print(",chunkErrorList:");
+    if (chunkErrorList != null) {
+      System.err.println(chunkErrorList.toString());
+    }
+    System.err.print(",successTag1:" + successTag1 + ",successTag2:" + successTag2
+        + ",\nsuccess:" + success + ",multiLineMessages:" + multiLineMessages + "]");
+  }
 
   static ProcessMessages getInstance() {
     return new ProcessMessages(false, false, null, null);
@@ -299,6 +332,10 @@ public final class ProcessMessages {
     return errorList != null && errorList.size() > 0;
   }
 
+  boolean isMultiLineMessages() {
+    return multiLineMessages;
+  }
+
   public boolean isInfo() {
     return infoList != null && infoList.size() > 0;
   }
@@ -505,11 +542,18 @@ public final class ProcessMessages {
         break;
       }
     }
-    if (errorIndex != -1 && line.indexOf(IGNORE_TAG) != -1) {
-      errorIndex = -1;
-      errorTagIndex = -1;
+    // Turn off the error if an ignore-tag is found.
+    if (errorIndex != -1) {
+      for (int i = 0; i < IGNORE_TAG.length; i++) {
+        if (line.indexOf(IGNORE_TAG[i]) != -1) {
+          errorIndex = -1;
+          errorTagIndex = -1;
+          break;
+        }
+      }
     }
-    if (errorTagIndex != -1 && ALWAYS_MULTI_LINE[errorTagIndex]) {
+    // Switch to multi-line error parsing if this error is always a multi-line error.
+    if (errorIndex != -1 && errorTagIndex != -1 && ALWAYS_MULTI_LINE[errorTagIndex]) {
       return parseMultiLineMessage();
     }
     int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
@@ -585,8 +629,12 @@ public final class ProcessMessages {
     }
     // look for a message
     int errorIndex = getErrorIndex(line);
-    if (errorIndex != -1 && line.indexOf(IGNORE_TAG) != -1) {
-      errorIndex = -1;
+    if (errorIndex != -1) {
+      for (int i = 0; i < IGNORE_TAG.length; i++) {
+        if (line.indexOf(IGNORE_TAG[i]) != -1) {
+          errorIndex = -1;
+        }
+      }
     }
     int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
     int warningIndex = line.indexOf(WARNING_TAG);

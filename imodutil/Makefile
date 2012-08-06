@@ -13,7 +13,7 @@ MODLIBS   = $(LIMOD) $(LCFSHR)
 
 PROGS = clonemodel$(E) clonevolume$(E) imodauto$(E) imod-dist$(E) \
  imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) rec2imod$(E) \
- imod2rib$(E) imod2vrml$(E) imod2vrml2$(E) imod2obj$(E) \
+ imod2rib$(E) imod2vrml$(E) imod2vrml2$(E) imod2obj$(E) pickbestseed$(E) \
  imod2meta$(E) wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) \
  imodexplode$(E) patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) \
  imodcurvature$(E) imodfindbeads$(E) point2model$(E) flattenwarp$(E) \
@@ -107,6 +107,9 @@ point2model$(E) : point2model.$(O)
 	$(CC) -o point2model point2model.$(O) $(LDFLAGS) $(IILIBS) \
 	$(CLIBS)
 
+pickbestseed$(E) : pickbestseed.$(O)
+	$(CXX) -o pickbestseed pickbestseed.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
+
 flattenwarp$(E) : flattenwarp.$(O)
 	$(LAPACKLINK) -o flattenwarp flattenwarp.$(O) $(LDFLAGS) $(MODLIBS) \
 	$(CLIBS) $(LAPACKLIBS) $(LAPACK_FLIBS) $(LIMESH)
@@ -122,7 +125,7 @@ install : $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean : 
-	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.$(OBJEXT)" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "core*" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.exe" -exec rm "{}" \;
@@ -140,16 +143,3 @@ imod2synu : imod2synu.$(O)
 
 imod2wmod : imod2wmod.$(O) $(IMODELOBJS)
 	$(CC) -o imod2wmod imod2wmod.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
-
-# oldpore, help edit old yeast pore models
-oldpore : oldpore.$(O)
-	$(CC) -o oldpore oldpore.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
-
-imodclean : imodclean.$(O)
-	$(CC) -o imodclean imodclean.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
-
-imodold : imodold.$(O) 
-	$(CC) -o imodold imodold.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
-
-imodmkhv : imodmkhv.$(O) 
-	$(CC) -o imodmkhv imodmkhv.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)

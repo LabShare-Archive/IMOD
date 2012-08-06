@@ -17,7 +17,9 @@ UTILOBJS = b3dutil.$(O) ilist.$(O) parselist.$(O) amoeba.$(O) \
 	simplestat.$(O) amat_to_rotmagstr.$(O) percentile.$(O) beadutil.$(O) \
 	lsqr.$(O) lsqrblas.$(O) sparselsqr.$(O) parallelwrite.$(O) piecefuncs.$(O) \
 	robuststat.$(O) convexbound.$(O) statfuncs.$(O) surfacesort.$(O) \
-	gaussj.$(O) find_piece_shifts.$(O) zoomdown.$(O) pctstretch.$(O) linearxforms.$(O)
+	gaussj.$(O) find_piece_shifts.$(O) zoomdown.$(O) pctstretch.$(O) \
+	linearxforms.$(O) regression.$(O) dsyevc3.$(O) dsyevh3.$(O) dsyevq3.$(O) \
+	dsytrd3.$(O)
 
 PIPOBJS = parse_params.$(O) pip_fwrap.$(O) autodoc.$(O) adoc_fwrap.$(O)
 
@@ -46,7 +48,7 @@ install : $(LIBI)
 clean : 
 	$(FIND) . -type f -name $(LIBI) -exec rm "{}" \;
 	$(FIND) . -type f -name "*.exp" -exec rm "{}" \;
-	$(FIND) . -type f -name "*.o*"  -exec rm "{}" \;
+	$(FIND) . -type f -name "*.$(OBJEXT)"  -exec rm "{}" \;
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#"  -exec rm "{}" \;
 

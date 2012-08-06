@@ -54,10 +54,10 @@ typedef struct pipOptions {
   int linked;           /* Flag that it is a linked option (needed for usage/manpage) */
 } PipOptions;
 
-static char *types[] = {BOOLEAN_STRING, PARAM_FILE_STRING,
+static char *sTypes[] = {BOOLEAN_STRING, PARAM_FILE_STRING,
                         "LI", "I", "F", "IP", "FP", "IT", "FT", "IA", "FA",
                         "CH", "FN"};
-static char *typeDescriptions[] = {
+static char *sTypeDescriptions[] = {
   "Boolean",
   "Parameter file",
   "List of integer ranges",
@@ -74,7 +74,7 @@ static char *typeDescriptions[] = {
   "Unknown argument type"
 };
 
-static char *typeForUsage[] = {
+static char *sTypeForUsage[] = {
   "Boolean",
   "File",
   "List",
@@ -93,10 +93,11 @@ static char *typeForUsage[] = {
 
 
 
-static char numTypes = 13;
+static char sNumTypes = 13;
 
-static char nullChar = 0x00;
-static char *nullString = &nullChar;
+static char sNullChar = 0x00;
+static char *sNullString = &sNullChar;
+static char *sQuoteTypes = "\"'`";
 
 /* declarations of local functions */
 static int ReadParamFile(FILE *pFile);
@@ -109,35 +110,36 @@ static char *PipSubStrDup(const char *s1, int i1, int i2);
 static void AppendToErrorString(const char *str);
 static int LineIsOptionToken(const char *line);
 static int CheckKeyword(const char *line, const char *keyword, char **copyto, int *gotit,
-                        char ***lastCopied);
+                        char ***lastCopied, int *quoteInd);
 
 
 /* The static tables and variables */
-static PipOptions *optTable = NULL;
-static int tableSize = 0;
-static int numOptions = 0;
-static int nonOptInd;
-static char *errorString = NULL;
-static char exitPrefix[PREFIX_SIZE] = "";
-static int errorDest = 0;
-static int nextOption = 0;
-static int nextArgBelongsTo = -1;
-static int numOptionArguments = 0;
-static char *tempStr = NULL;
-static char *lineStr = NULL;
-static int allowDefaults = 0;
-static int outputManpage = 0;
-static int printEntries = -1;
-static char defaultDelim[] = VALUE_DELIM;
-static char *valueDelim = defaultDelim;
-static char *programName = &nullChar;
-static int noCase = 0;
-static int doneEnds = 0;
-static int takeStdIn = 0;
-static int nonOptLines = 0;
-static int noAbbrevs = 0;
-static int notFoundOK = 0;
-static char *linkedOption = NULL;
+static PipOptions *sOptTable = NULL;
+static int sTableSize = 0;
+static int sNumOptions = 0;
+static int sNonOptInd;
+static char *sErrorString = NULL;
+static char sExitPrefix[PREFIX_SIZE] = "";
+static int sErrorDest = 0;
+static int sNextOption = 0;
+static int sNextArgBelongsTo = -1;
+static int sNumOptionArguments = 0;
+static char *sTempStr = NULL;
+static char *sLineStr = NULL;
+static int sAllowDefaults = 0;
+static int sOutputManpage = 0;
+static int sPrintEntries = -1;
+static char sDefaultDelim[] = VALUE_DELIM;
+static char *sValueDelim = sDefaultDelim;
+static char *sProgramName = &sNullChar;
+static int sNoCase = 0;
+static int sDoneEnds = 0;
+static int sTakeStdIn = 0;
+static int sNonOptLines = 0;
+static int sNoAbbrevs = 0;
+static int sNotFoundOK = 0;
+static char *sLinkedOption = NULL;
+static int sTestAbbrevForUsage = 0;
 
 /*
  * Initialize option tables for given number of options
@@ -146,44 +148,44 @@ int PipInitialize(int numOpts)
 {
   int i;
 
-  if (!tempStr)
-    tempStr = (char *)malloc(TEMP_STR_SIZE);
-  lineStr = (char *)malloc(LINE_STR_SIZE);
+  if (!sTempStr)
+    sTempStr = (char *)malloc(TEMP_STR_SIZE);
+  sLineStr = (char *)malloc(LINE_STR_SIZE);
 
   /* Make the table big enough for extra entries (NonOptionArgs) */
-  numOptions = numOpts;
-  tableSize = numOpts + 2;
-  nonOptInd = numOptions;
-  optTable = (PipOptions *)malloc(tableSize * sizeof(PipOptions));
-  if (!tempStr || !lineStr || !optTable) {
+  sNumOptions = numOpts;
+  sTableSize = numOpts + 2;
+  sNonOptInd = sNumOptions;
+  sOptTable = (PipOptions *)malloc(sTableSize * sizeof(PipOptions));
+  if (!sTempStr || !sLineStr || !sOptTable) {
     PipMemoryError(NULL, "PipInitialize");
     return -1;
   }
 
   /* Initialize the table */
-  for (i = 0; i < tableSize; i++) {
-    optTable[i].shortName = NULL;
-    optTable[i].longName = NULL;
-    optTable[i].type = NULL;
-    optTable[i].helpString = NULL;
-    optTable[i].valuePtr = NULL;
-    optTable[i].multiple = 0;
-    optTable[i].count = 0;
-    optTable[i].nextLinked = NULL;
-    optTable[i].linked = 0;
+  for (i = 0; i < sTableSize; i++) {
+    sOptTable[i].shortName = NULL;
+    sOptTable[i].longName = NULL;
+    sOptTable[i].type = NULL;
+    sOptTable[i].helpString = NULL;
+    sOptTable[i].valuePtr = NULL;
+    sOptTable[i].multiple = 0;
+    sOptTable[i].count = 0;
+    sOptTable[i].nextLinked = NULL;
+    sOptTable[i].linked = 0;
   }
 
   /* In the last slots, put non-option arguments, and also put the
      name for the standard input option for easy checking on duplication */
-  optTable[nonOptInd].longName = strdup(NON_OPTION_STRING);
-  optTable[nonOptInd + 1].shortName = strdup(STANDARD_INPUT_STRING);
-  optTable[nonOptInd + 1].longName = strdup(STANDARD_INPUT_END);
-  if (!optTable[nonOptInd].longName || !optTable[nonOptInd + 1].shortName ||
-      !optTable[nonOptInd + 1].longName) {
+  sOptTable[sNonOptInd].longName = strdup(NON_OPTION_STRING);
+  sOptTable[sNonOptInd + 1].shortName = strdup(STANDARD_INPUT_STRING);
+  sOptTable[sNonOptInd + 1].longName = strdup(STANDARD_INPUT_END);
+  if (!sOptTable[sNonOptInd].longName || !sOptTable[sNonOptInd + 1].shortName ||
+      !sOptTable[sNonOptInd + 1].longName) {
     PipMemoryError(NULL, "PipInitialize");
     return -1;
   }
-  optTable[nonOptInd].multiple = 1;
+  sOptTable[sNonOptInd].multiple = 1;
 
   return 0;
 }
@@ -195,8 +197,8 @@ void PipDone(void)
 {
   int i, j;
   PipOptions *optp;
-  for (i = 0; i < tableSize; i++) {
-    optp = &optTable[i];
+  for (i = 0; i < sTableSize; i++) {
+    optp = &sOptTable[i];
     if (optp->shortName)
       free(optp->shortName);
     if (optp->longName)
@@ -214,30 +216,30 @@ void PipDone(void)
     if (optp->nextLinked)
       free(optp->nextLinked);
   }
-  if (optTable)
-    free(optTable);
-  optTable = NULL;
-  tableSize = 0;
-  numOptions = 0;
-  if (errorString)
-    free(errorString);
-  errorString = NULL;
-  if (linkedOption)
-    free (linkedOption);
-  linkedOption = NULL;
-  nextOption = 0;
-  nextArgBelongsTo = -1;
-  numOptionArguments = 0;
-  allowDefaults = 0;
-  if (tempStr)
-    free(tempStr);
-  tempStr = NULL;
-  if (lineStr)
-    free(lineStr);
-  lineStr = NULL;
-  if (programName != nullString)
-    free(programName);
-  programName = nullString;
+  if (sOptTable)
+    free(sOptTable);
+  sOptTable = NULL;
+  sTableSize = 0;
+  sNumOptions = 0;
+  if (sErrorString)
+    free(sErrorString);
+  sErrorString = NULL;
+  if (sLinkedOption)
+    free (sLinkedOption);
+  sLinkedOption = NULL;
+  sNextOption = 0;
+  sNextArgBelongsTo = -1;
+  sNumOptionArguments = 0;
+  sAllowDefaults = 0;
+  if (sTempStr)
+    free(sTempStr);
+  sTempStr = NULL;
+  if (sLineStr)
+    free(sLineStr);
+  sLineStr = NULL;
+  if (sProgramName != sNullString)
+    free(sProgramName);
+  sProgramName = sNullString;
 }
 
 /*
@@ -247,14 +249,14 @@ int PipExitOnError(int useStdErr, const char *prefix)
 {
   /* Get rid of existing string; and if called with null string,
      this cancels an existing exit on error */
-  exitPrefix[0] = 0x00;
+  sExitPrefix[0] = 0x00;
     
   if (!prefix || !*prefix)
     return 0;
     
-  errorDest = useStdErr;
-  strncpy(exitPrefix, prefix, PREFIX_SIZE - 1);
-  exitPrefix[PREFIX_SIZE - 1] = 0x00;
+  sErrorDest = useStdErr;
+  strncpy(sExitPrefix, prefix, PREFIX_SIZE - 1);
+  sExitPrefix[PREFIX_SIZE - 1] = 0x00;
   return 0;
 }
 
@@ -269,25 +271,25 @@ void setExitPrefix(const char *prefix)
 
 void PipAllowCommaDefaults(int val)
 {
-  allowDefaults = val;
+  sAllowDefaults = val;
 }
 
 void PipSetManpageOutput(int val)
 {
-  outputManpage = val;
+  sOutputManpage = val;
 }
 
 void PipEnableEntryOutput(int val)
 {
-  printEntries = val;
+  sPrintEntries = val;
 }
 
 int PipSetLinkedOption(const char *option)
 {
-  if (linkedOption)
-    free(linkedOption);
-  linkedOption = strdup(option);
-  if (PipMemoryError(linkedOption, "PipSetLinkedOption"))
+  if (sLinkedOption)
+    free(sLinkedOption);
+  sLinkedOption = strdup(option);
+  if (PipMemoryError(sLinkedOption, "PipSetLinkedOption"))
     return -1;
   return 0;
 }
@@ -298,11 +300,11 @@ int PipSetLinkedOption(const char *option)
 void PipSetSpecialFlags(int inCase, int inDone, int inStd, int inLines,
                         int inAbbrevs)
 {
-  noCase = inCase;
-  doneEnds = inDone;
-  takeStdIn = inStd;
-  nonOptLines = inLines;
-  noAbbrevs = inAbbrevs;
+  sNoCase = inCase;
+  sDoneEnds = inDone;
+  sTakeStdIn = inStd;
+  sNonOptLines = inLines;
+  sNoAbbrevs = inAbbrevs;
 }
 
 /*
@@ -311,7 +313,7 @@ void PipSetSpecialFlags(int inCase, int inDone, int inStd, int inLines,
 int PipAddOption(const char *optionString)
 {
   int ind, indEnd, oldSlen, newSlen;
-  PipOptions *optp = &optTable[nextOption];
+  PipOptions *optp = &sOptTable[sNextOption];
   char *colonPtr;
   char *oldShort;
   char *oldLong;
@@ -319,7 +321,7 @@ int PipAddOption(const char *optionString)
   char *newLong;
   const char *subStr = optionString;
 
-  if (nextOption >= numOptions) {
+  if (sNextOption >= sNumOptions) {
     PipSetError("Attempting to add more options than were originally"
                 " specified");
     return -1;
@@ -336,7 +338,7 @@ int PipAddOption(const char *optionString)
       optp->shortName = PipSubStrDup(subStr, 0, indEnd - 1);
       optp->lenShort = indEnd;
     } else {
-      optp->shortName = strdup(nullString);
+      optp->shortName = strdup(sNullString);
       optp->lenShort = 0;
     }
     if (PipMemoryError(optp->shortName, "PipAddOption"))
@@ -352,7 +354,7 @@ int PipAddOption(const char *optionString)
       if (indEnd > 0)
         optp->longName = PipSubStrDup(subStr, 0, indEnd - 1);
       else
-        optp->longName = strdup(nullString);
+        optp->longName = strdup(sNullString);
       if (PipMemoryError(optp->longName, "PipAddOption"))
         return -1;
       subStr += indEnd + 1;
@@ -374,7 +376,7 @@ int PipAddOption(const char *optionString)
           }
           optp->type = PipSubStrDup(subStr, 0, ind);
         } else
-          optp->type = strdup(nullString);
+          optp->type = strdup(sNullString);
         if (PipMemoryError(optp->type, "PipAddOption"))
           return -1;
         subStr += indEnd + 1;
@@ -389,35 +391,35 @@ int PipAddOption(const char *optionString)
         newShort = optp->shortName;
         newLong = optp->longName;
         newSlen = optp->lenShort;
-        for (ind = 0; ind < tableSize; ind++) {
+        for (ind = 0; ind < sTableSize; ind++) {
 
           /* after checking existing ones, skip to NonOptionArg and 
              StandardInput entries */
-          if (ind >= nextOption && ind < nonOptInd)
+          if (ind >= sNextOption && ind < sNonOptInd)
             continue;
 
-          oldShort = optTable[ind].shortName;
-          oldLong = optTable[ind].longName;
-          oldSlen = optTable[ind].lenShort;
+          oldShort = sOptTable[ind].shortName;
+          oldLong = sOptTable[ind].longName;
+          oldSlen = sOptTable[ind].lenShort;
           if (((PipStartsWith(newShort, oldShort) || PipStartsWith(oldShort, newShort)) &&
                ((newSlen > 1 && oldSlen > 1) || (newSlen == 1 && oldSlen == 1))) ||
               PipStartsWith(oldLong, newShort) || PipStartsWith(newShort, oldLong) ||
               PipStartsWith(oldShort, newLong) || PipStartsWith(newLong, oldShort) ||
               PipStartsWith(oldLong, newLong) || PipStartsWith(newLong, oldLong)) {
-            sprintf(tempStr, "Option %s  %s is ambiguous with option %s"
+            sprintf(sTempStr, "Option %s  %s is ambiguous with option %s"
                     "  %s", newShort, newLong, oldShort, oldLong);
-            PipSetError(tempStr);
+            PipSetError(sTempStr);
             return -1;
           }
         }         
 
-        nextOption++;
+        sNextOption++;
         return 0;
       }
     }
   }
 
-  sprintf(tempStr, "Option does not have three colons in it:  ");
+  sprintf(sTempStr, "Option does not have three colons in it:  ");
   AppendToErrorString(optionString);
   return -1;
 }
@@ -435,26 +437,26 @@ int PipNextArg(const char *argString)
 
   /* If we are expecting a value for an option, duplicate string and add
      it to the option */
-  if (nextArgBelongsTo >= 0) {
+  if (sNextArgBelongsTo >= 0) {
     argCopy = strdup(argString);
     if (PipMemoryError(argCopy, "PipNextArg"))
       return -1;
-    err = AddValueString(nextArgBelongsTo, argCopy);
+    err = AddValueString(sNextArgBelongsTo, argCopy);
 
     /* Check whether this option was for reading from parameter file */
-    if (!err && !strcmp(optTable[nextArgBelongsTo].type, PARAM_FILE_STRING)) {
+    if (!err && !strcmp(sOptTable[sNextArgBelongsTo].type, PARAM_FILE_STRING)) {
       paramFile = fopen(argCopy, "r");
       if (paramFile) {
         err = ReadParamFile(paramFile);
         fclose(paramFile);
       } else {
-        sprintf(tempStr, "Error opening parameter file %s", argCopy);
-        PipSetError(tempStr);
+        sprintf(sTempStr, "Error opening parameter file %s", argCopy);
+        PipSetError(sTempStr);
         err = -1;
       }        
     }
 
-    nextArgBelongsTo = -1;
+    sNextArgBelongsTo = -1;
     return err;
   }
 
@@ -476,30 +478,30 @@ int PipNextArg(const char *argString)
     }
 
     /* Next check if it is a potential numeric non-option arg */
-    notFoundOK = 1;
+    sNotFoundOK = 1;
     for (i = indStart; i < lenarg; i++) {
       ch = argString[i];
       if (ch != '-' && ch != ','  && ch != '.' && ch != ' ' && (ch < '0' || ch > '9')) {
-        notFoundOK = 0;
+        sNotFoundOK = 0;
         break;
       }
     }
 
     /* Lookup the option among true defined options */
-    err = LookupOption(argString + indStart, nextOption);
+    err = LookupOption(argString + indStart, sNextOption);
 
     /* Process as an option unless it could be numeric and was not found */
-    if (!(notFoundOK && err == LOOKUP_NOT_FOUND)) {
-      notFoundOK = 0;
+    if (!(sNotFoundOK && err == LOOKUP_NOT_FOUND)) {
+      sNotFoundOK = 0;
       if (err < 0)
         return err;
       
-      numOptionArguments++;
+      sNumOptionArguments++;
       
       /* For an option with value, setup to get argument next time and
          return an indicator that there had better be another */
-      if (strcmp(BOOLEAN_STRING, optTable[err].type)) {
-        nextArgBelongsTo = err;
+      if (strcmp(BOOLEAN_STRING, sOptTable[err].type)) {
+        sNextArgBelongsTo = err;
         return 1;
       } else {
         
@@ -510,14 +512,14 @@ int PipNextArg(const char *argString)
         return AddValueString(err, argCopy);
       }
     }
-    notFoundOK = 0;
+    sNotFoundOK = 0;
   }
 
   /* A non-option argument */
   argCopy = strdup(argString);
   if (PipMemoryError(argCopy, "PipNextArg"))
     return -1;
-  return AddValueString(nonOptInd, argCopy);
+  return AddValueString(sNonOptInd, argCopy);
 }
 
 /*
@@ -526,8 +528,8 @@ int PipNextArg(const char *argString)
  */
 void PipNumberOfArgs(int *numOptArgs, int *numNonOptArgs)
 {
-  *numOptArgs = numOptionArguments;
-  *numNonOptArgs = optTable[nonOptInd].count;
+  *numOptArgs = sNumOptionArguments;
+  *numNonOptArgs = sOptTable[sNonOptInd].count;
 }
 
 /*
@@ -535,11 +537,11 @@ void PipNumberOfArgs(int *numOptArgs, int *numNonOptArgs)
  */
 int PipGetNonOptionArg(int argNo, char **arg)
 {
-  if (argNo >= optTable[nonOptInd].count) {
+  if (argNo >= sOptTable[sNonOptInd].count) {
     PipSetError("Requested a non-option argument beyond the number available");
     return -1;
   }
-  *arg = strdup(optTable[nonOptInd].valuePtr[argNo]);
+  *arg = strdup(sOptTable[sNonOptInd].valuePtr[argNo]);
   return PipMemoryError(*arg, "PipGetNonOptionArg");
 }
 
@@ -576,9 +578,9 @@ int PipGetBoolean(const char *option, int *val)
            !strcmp(strPtr, "false") || !strcmp(strPtr, "off"))
     *val = 0;
   else {
-    sprintf(tempStr, "Illegal entry for boolean option %s: %s", option, 
+    sprintf(sTempStr, "Illegal entry for boolean option %s: %s", option, 
             strPtr);
-    PipSetError(tempStr);
+    PipSetError(sTempStr);
     return -1;
   }
   return 0;
@@ -682,31 +684,36 @@ int PipGetFloatArray(const char *option, float *array, int *numToGet, int arrayS
 }
 
 /*
- * Print a complete usage statement, man page entry, or Fortran fallback
+ * Print a complete usage statement, man page entry, or program fallback code
  */
 int PipPrintHelp(const char *progName, int useStdErr, int inputFiles, 
                  int outputFiles)
 {
-  int i, j, lastOpt, optLen, numOut = 0, numReal = 0;
+  int i, j, abbrevOK, lastOpt, jlim, optLen, numOut = 0, numReal = 0;
   int helplim = 74;
   char *sname, *lname, *newLinePt;
   FILE *out = useStdErr ? stderr : stdout;
   char indent4[] = "    ";
   char *indentStr;
   int linePos = 11;
-  char **descriptions = &typeDescriptions[0];
+  int fort90 = (sOutputManpage == -3) ? 1 : 0;
+  int fort77 = (sOutputManpage == -2) ? 1 : 0;
+  int cCode = (sOutputManpage == 2) ? 1 : 0;
+  int python = (sOutputManpage == 3) ? 1 : 0;
+  char *fortCont = fort90 ? " &\n      '" : "\n     &    '";
+  char **descriptions = &sTypeDescriptions[0];
 
   /* Get correct number of options for Fortran fallback */
-  for (i = 0; i < numOptions; i++) {
-    sname = optTable[i].shortName;
-    lname = optTable[i].longName;
+  for (i = 0; i < sNumOptions; i++) {
+    sname = sOptTable[i].shortName;
+    lname = sOptTable[i].longName;
     if ((lname && *lname) || (sname && *sname))
       numReal++;
   }
 
-  if (!outputManpage) {
+  if (!sOutputManpage) {
     fprintf(out, "Usage: %s ", progName);
-    if (numOptions)
+    if (sNumOptions)
       fprintf(out, "[Options]");
     if (inputFiles)
       fprintf(out, " input_file");
@@ -720,36 +727,57 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
 
     if (!numReal)
       return 0;
+    fprintf(out, "Options can be abbreviated, current short name abbreviations are in "
+            "parentheses\n");
     fprintf(out, "Options:\n");
-    descriptions = &typeForUsage[0];
+    descriptions = &sTypeForUsage[0];
   }
 
-  for (i = 0; i < numOptions; i++) {
-    sname = optTable[i].shortName;
-    lname = optTable[i].longName;
-    indentStr = nullString;
+  sTestAbbrevForUsage = 1;
+  for (i = 0; i < sNumOptions; i++) {
+    sname = sOptTable[i].shortName;
+    lname = sOptTable[i].longName;
+    indentStr = sNullString;
+
+    /* Try to look up an abbreviation of the short name */
+    abbrevOK = 0;
+    if (sname && *sname) {
+      jlim = strlen(sname) - 1;
+      if (jlim > TEMP_STR_SIZE - 10)
+        jlim = TEMP_STR_SIZE - 10;
+      for (j = 0; j < jlim; j++) {
+        sTempStr[j] = sname[j];
+        sTempStr[j + 1] = 0x00;
+        if (LookupOption(sTempStr, sNumOptions) == i) {
+          abbrevOK = 1;
+          break;
+        }
+      }
+    }
+
     if ((lname && *lname) || (sname && *sname)) {
-      if (outputManpage <= 0)
+      if (sOutputManpage <= 0 && !fort90)
         indentStr = indent4;
 
       /* Output Fortran fallback code (-2) */
-      if (outputManpage == -2) {
-        lastOpt = (i == numOptions - 1);
+      if (fort77 || fort90) {
+        lastOpt = (i == sNumOptions - 1);
         if (!numOut) fprintf(out, 
-                        "      integer numOptions\n"
-                        "      parameter (numOptions = %d)\n"
-                        "      character*(40 * numOptions) options(1)\n"
-                        "      options(1) =\n     &    '", numReal);
+                             "%s  integer sNumOptions\n"
+                             "%s  parameter (sNumOptions = %d)\n"
+                             "%s  character*(40 * sNumOptions) options(1)\n"
+                             "%s  options(1) =%s", indentStr, indentStr, numReal, 
+                             indentStr, indentStr, fortCont);
         
-        optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 4 +
-          optTable[i].multiple;
+        optLen = strlen(sname) + strlen(lname) + strlen(sOptTable[i].type) + 4 +
+          sOptTable[i].multiple;
         
-        if (linePos + optLen + (lastOpt ? 0 : 3) > 90) {
-          fprintf(out, "'//\n     &    '");
-          linePos = 11;
+        if (linePos + optLen + (lastOpt ? 0 : (fort90 ? 5 : 3)) > 90) {
+          fprintf(out, "'//%s", fortCont);
+          linePos = fort90 ? 7 : 11;
         }
-        fprintf(out, "%s:%s:%s%s%s", sname, lname, optTable[i].type, 
-                optTable[i].multiple ? (optTable[i].linked ? "L:" : "M:") : ":", 
+        fprintf(out, "%s:%s:%s%s%s", sname, lname, sOptTable[i].type, 
+                sOptTable[i].multiple ? (sOptTable[i].linked ? "L:" : "M:") : ":", 
                 lastOpt ? "'\n" : "@");
         linePos += optLen;
         numOut++;
@@ -757,11 +785,11 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
       }
       
       /* Fallback output for C code (2) or Python code (3) */
-      if (outputManpage == 2 || outputManpage == 3) {
-        lastOpt = (i == numOptions - 1);
+      if (cCode || python) {
+        lastOpt = (i == sNumOptions - 1);
         if (!numOut) {
-          if (outputManpage == 2) {
-            fprintf(out, "  int numOptions = %d;\n"
+          if (cCode) {
+            fprintf(out, "  int sNumOptions = %d;\n"
                     "  const char *options[] = {\n    ", numReal);
             linePos = 5;
           } else {
@@ -769,10 +797,10 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
             linePos = 12;
           }
         }
-        optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 7 +
-          optTable[i].multiple;
+        optLen = strlen(sname) + strlen(lname) + strlen(sOptTable[i].type) + 7 +
+          sOptTable[i].multiple;
         if (linePos + optLen > 90) {
-          if (outputManpage == 2) {
+          if (cCode) {
             fprintf(out, "\n    ");
             linePos = 5;
           } else {
@@ -780,42 +808,44 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
             linePos = 12;
           }
         }
-        fprintf(out, "\"%s:%s:%s%s\"%s", sname, lname, optTable[i].type, 
-                optTable[i].multiple ? (optTable[i].linked ? "L:" : "M:") : ":", 
-                lastOpt ? (outputManpage == 2 ? "};\n" : "]\n"): ", ");
+        fprintf(out, "\"%s:%s:%s%s\"%s", sname, lname, sOptTable[i].type, 
+                sOptTable[i].multiple ? (sOptTable[i].linked ? "L:" : "M:") : ":", 
+                lastOpt ? (cCode ? "};\n" : "]\n"): ", ");
         linePos += optLen;
         numOut++;
         continue;
       }
 
-      if (i && outputManpage < 0)
+      if (i && sOutputManpage < 0)
         fprintf(out, "\n");
-      if (outputManpage > 0)
+      if (sOutputManpage > 0)
         fprintf(out, ".TP\n.B ");
       fprintf(out, " ");
       if (sname && *sname)
         fprintf(out, "-%s", sname);
+      if (abbrevOK)
+        fprintf(out, " (-%s)", sTempStr);
       if (sname && *sname && lname && *lname)
-        fprintf(out," OR ");
+        fprintf(out,"  OR  ");
       if (lname && *lname)
         fprintf(out, "-%s", lname);
-      for (j = 0; j < numTypes; j++)
-        if (!strcmp(optTable[i].type, types[j]))
+      for (j = 0; j < sNumTypes; j++)
+        if (!strcmp(sOptTable[i].type, sTypes[j]))
           break;
-      if (strcmp(optTable[i].type, BOOLEAN_STRING))
-        fprintf(out, "%s%s", outputManpage > 0 ? " \t " : "   ", 
+      if (strcmp(sOptTable[i].type, BOOLEAN_STRING))
+        fprintf(out, "%s%s", sOutputManpage > 0 ? " \t " : "   ", 
                 descriptions[j]);
       fprintf(out, "\n");
-    } else if (outputManpage == -2 || outputManpage >= 2)
+    } else if (fort77 || fort90 || cCode || python)
       continue;
-    else if (outputManpage == 1)
+    else if (sOutputManpage == 1)
       fprintf(out, ".SS ");
     else
       fprintf(out, "\n");
 
     /* Print help string, breaking up line as needed */
-    if (optTable[i].helpString && *optTable[i].helpString) {
-      lname = strdup(optTable[i].helpString);
+    if (sOptTable[i].helpString && *sOptTable[i].helpString) {
+      lname = strdup(sOptTable[i].helpString);
       if (PipMemoryError(lname, "PipPrintHelp"))
         return -1;
       sname = lname;
@@ -845,12 +875,13 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
       free(lname);
     }
 
-    if (optTable[i].linked)
+    if (sOptTable[i].linked)
       fprintf(out, "%s(Multiple entries linked to a different option)\n",
               indentStr);
-    else if (optTable[i].multiple)
+    else if (sOptTable[i].multiple)
       fprintf(out, "%s(Successive entries accumulate)\n", indentStr);
   }
+  sTestAbbrevForUsage = 0;
   return 0;
 }
 
@@ -862,36 +893,36 @@ void PipPrintEntries()
 {
   char *name, *sname, *lname;
   int i, j;
-  if (printEntries < 0) {
-    printEntries = 0;
+  if (sPrintEntries < 0) {
+    sPrintEntries = 0;
     name = getenv(PRINTENTRY_VARIABLE);
     if (name)
-      printEntries = atoi(name);
+      sPrintEntries = atoi(name);
   }
-  if (!printEntries)
+  if (!sPrintEntries)
     return;
 
   /* Count up entries */
   j = 0;
-  for (i = 0; i < numOptions; i++)
-    j += optTable[i].count;
-  if (!(j + optTable[nonOptInd].count))
+  for (i = 0; i < sNumOptions; i++)
+    j += sOptTable[i].count;
+  if (!(j + sOptTable[sNonOptInd].count))
     return;
 
-  printf("\n*** Entries to program %s ***\n", programName);
-  for (i = 0; i < numOptions; i++) {
-    sname = optTable[i].shortName;
-    lname = optTable[i].longName;
+  printf("\n*** Entries to program %s ***\n", sProgramName);
+  for (i = 0; i < sNumOptions; i++) {
+    sname = sOptTable[i].shortName;
+    lname = sOptTable[i].longName;
     if ((lname && *lname) || (sname && *sname)) {
       name = (lname && *lname) ? lname : sname;
-      for (j = 0; j < optTable[i].count; j++)
-        printf("  %s = %s\n", name, optTable[i].valuePtr[j]);
+      for (j = 0; j < sOptTable[i].count; j++)
+        printf("  %s = %s\n", name, sOptTable[i].valuePtr[j]);
     }
   }
-  if (optTable[nonOptInd].count) {
+  if (sOptTable[sNonOptInd].count) {
     printf("  Non-option arguments:");
-    for (j = 0; j < optTable[nonOptInd].count; j++)
-      printf("   %s", optTable[nonOptInd].valuePtr[j]);
+    for (j = 0; j < sOptTable[sNonOptInd].count; j++)
+      printf("   %s", sOptTable[sNonOptInd].valuePtr[j]);
     printf("\n");
   }
   printf("*** End of entries ***\n\n");
@@ -907,32 +938,32 @@ void PipPrintEntries()
  */
 int PipGetError(char **errString)
 {
-  if (!errorString) {
-    *errString = strdup(nullString);
+  if (!sErrorString) {
+    *errString = strdup(sNullString);
     PipMemoryError(*errString, "PipGetError");
     return -1;
   }
-  *errString = strdup(errorString);
+  *errString = strdup(sErrorString);
   return PipMemoryError(*errString, "PipGetError");
 }
 
 /*
  * Set the error string.
- * If exitPrefix is set, then output an error message to stderr or stdout
+ * If sExitPrefix is set, then output an error message to stderr or stdout
  * and exit. 
  */
 int PipSetError(const char *errString)
 {
-  FILE *outFile = errorDest ? stderr : stdout;
-  if (errorString)
-    free(errorString);
-  errorString = strdup(errString);
-  if (!errorString && !exitPrefix[0])
+  FILE *outFile = sErrorDest ? stderr : stdout;
+  if (sErrorString)
+    free(sErrorString);
+  sErrorString = strdup(errString);
+  if (!sErrorString && !sExitPrefix[0])
     return -1;
 
-  if (exitPrefix[0]) {
-    fprintf(outFile, "%s ", exitPrefix);
-    fprintf(outFile, "%s\n", errorString ? errorString : "Unspecified error");
+  if (sExitPrefix[0]) {
+    fprintf(outFile, "%s ", sExitPrefix);
+    fprintf(outFile, "%s\n", sErrorString ? sErrorString : "Unspecified error");
     exit(1);
   }
   return 0;
@@ -954,9 +985,9 @@ void exitError(const char *format, ...)
 int PipNumberOfEntries(const char *option, int *numEntries)
 {
   int err;
-  if ((err = LookupOption(option, nonOptInd + 1)) < 0)
+  if ((err = LookupOption(option, sNonOptInd + 1)) < 0)
     return err;
-  *numEntries = optTable[err].count;
+  *numEntries = sOptTable[err].count;
   return 0;
 }
 
@@ -967,27 +998,27 @@ int PipNumberOfEntries(const char *option, int *numEntries)
 int PipLinkedIndex(const char *option, int *index)
 {
   int err, ind, ilink, which = 0;
-  if ((err = LookupOption(option, nonOptInd + 1)) < 0)
+  if ((err = LookupOption(option, sNonOptInd + 1)) < 0)
     return err;
-  if (!optTable[err].linked) {
-    sprintf(tempStr, "Trying to get a linked index for option %s, which is not "
+  if (!sOptTable[err].linked) {
+    sprintf(sTempStr, "Trying to get a linked index for option %s, which is not "
             "identified as linked", option);
-    PipSetError(tempStr);
+    PipSetError(sTempStr);
     return -1;
   }
   ind = 0;
-  if (optTable[err].multiple)
-    ind = optTable[err].multiple - 1;
+  if (sOptTable[err].multiple)
+    ind = sOptTable[err].multiple - 1;
 
   /* Use count from non-option args, but use the count from the linked option
      instead if it was entered at all.  This allows other non-option args to be used */
-  if (linkedOption) {
-    if ((ilink = LookupOption(linkedOption, numOptions)) < 0)
+  if (sLinkedOption) {
+    if ((ilink = LookupOption(sLinkedOption, sNumOptions)) < 0)
       return ilink;
-    if (optTable[ilink].count)
+    if (sOptTable[ilink].count)
       which = 1;
   }
-  *index = optTable[err].nextLinked[2 * ind + which];
+  *index = sOptTable[err].nextLinked[2 * ind + which];
   return 0;
 }
 
@@ -1017,7 +1048,7 @@ int PipParseInput(int argc, char *argv[], const char *options[], int numOpts,
  */
 int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
 {
-  int i, ind, indst, lineLen, err, needSize, isOption, isSection = 0;
+  int i, ind, len, indst, lineLen, err, needSize, isOption, isSection = 0;
   FILE *optFile = NULL;
   char *bigStr;
   char *pipDir;
@@ -1032,6 +1063,7 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
   char *optStr = NULL;
   int optStrSize = 0;
   char **lastGottenStr = NULL;
+  int inQuoteIndex = -1;
 
 #ifdef PATH_MAX
   if (bigSize < PATH_MAX)
@@ -1039,18 +1071,18 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
 #endif
 
   /* Set up temp string for error processing and big string for lines */
-  if (!tempStr)
-    tempStr = (char *)malloc(TEMP_STR_SIZE);
+  if (!sTempStr)
+    sTempStr = (char *)malloc(TEMP_STR_SIZE);
   bigStr = (char *)malloc(bigSize);
-  if (!bigStr || !tempStr) {
+  if (!bigStr || !sTempStr) {
     PipMemoryError(NULL, "PipReadOptionFile");
     return -1;
   }
 
   /* Save the program name for entry output */
-  programName = strdup(progName);
-  if (!programName)
-    programName = nullString;
+  sProgramName = strdup(progName);
+  if (!sProgramName)
+    sProgramName = sNullString;
 
   /* If local directory not set, look for environment variable pointing
      directly to where the file should be */
@@ -1135,8 +1167,8 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
 
     /* Look for new keyword-value delimiter before any options */
     if (!numOpts)
-      CheckKeyword(bigStr + indst, "KeyValueDelimiter", &valueDelim, &gotDelim,
-                 &lastGottenStr);
+      CheckKeyword(bigStr + indst, "KeyValueDelimiter", &sValueDelim, &gotDelim,
+                   &lastGottenStr, NULL);
 
     /* Look for options */
     if (LineIsOptionToken(bigStr + indst) > 0)
@@ -1151,7 +1183,7 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
 
   /* rewind file and process the options */
   rewind(optFile);
-  longName = shortName = type = usageStr = tipStr = manStr = nullString;
+  longName = shortName = type = usageStr = tipStr = manStr = sNullString;
   gotLong = gotShort = gotType = gotUsage = gotTip = gotMan = 0;
 
   while (1) {
@@ -1201,7 +1233,7 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
           free(shortName);
         if (gotLong)
           free(longName);
-        longName = shortName = nullString;
+        longName = shortName = sNullString;
         gotLong = gotShort = 0;
       }
 
@@ -1233,7 +1265,7 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
         free(tipStr);
       if (gotMan)
         free(manStr);
-      longName = shortName = type = usageStr = tipStr = manStr = nullString;
+      longName = shortName = type = usageStr = tipStr = manStr = sNullString;
       gotLong = gotShort = gotType = gotUsage = gotTip = gotMan = 0;
       readingOpt = 0;
     }
@@ -1244,40 +1276,56 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
     /* If reading options, look for the various keywords */
     if (readingOpt) {
 
-      /* If the last string gotten was a help string and the line does not
-         contain the value delimiter, then append it to the last string */
+      /* If the last string gotten was a help string and the line does not contain the 
+         value delimiter or we are in a quote, then append it to the last string */
       if ((lastGottenStr == &usageStr || lastGottenStr == &tipStr ||
-           lastGottenStr == &manStr) && !strstr(textStr, valueDelim)) {
+           lastGottenStr == &manStr) && 
+          (inQuoteIndex >= 0 || !strstr(textStr, sValueDelim))) {
         ind = strlen(*lastGottenStr);
-        needSize = ind + strlen(textStr) + 3;
+        len = strlen(textStr);
+        needSize = ind + len + 3;
         *lastGottenStr = (char *)realloc(*lastGottenStr, needSize);
         strcat(*lastGottenStr, (*lastGottenStr)[ind - 1] == '.' ? "  " : " ");
 
         /* Replace leading ^ with a newline */
         if (textStr[0] == '^')
           textStr[0] = '\n';
-        strcat(*lastGottenStr, textStr);
+
+        /* If inside quotes, look for quote at end and say it is the end of accepting
+           continuation lines, and as a protection, also say a blank line ends it */
+        if (inQuoteIndex >= 0 && 
+            (!len || textStr[len - 1] == sQuoteTypes[inQuoteIndex])) {
+          if (len) {
+            textStr[len - 1] = 0x00;
+            strcat(*lastGottenStr, textStr);
+          }
+          inQuoteIndex = -1;
+          lastGottenStr = NULL;
+        } else {
+          strcat(*lastGottenStr, textStr);
+        }
       }
 
       /* Otherwise look for each keyword of interest, but null out the pointer
          to last gotten one so that it will only be valid on the next line */
       else {
         lastGottenStr = NULL;
+        inQuoteIndex = -1;
         if ((err = CheckKeyword(textStr, "short", &shortName, &gotShort,
-                                &lastGottenStr)))
+                                &lastGottenStr, NULL)))
           return err;
         if ((err = CheckKeyword(textStr, "long", &longName, &gotLong,
-                 &lastGottenStr)))
+                                &lastGottenStr, NULL)))
           return err;
         if ((err = CheckKeyword(textStr, "type", &type, &gotType,
-                                &lastGottenStr)))
+                                &lastGottenStr, NULL)))
           return err;
         
         /* Check for usage if at help level 1 or if we haven't got either of
            the other strings yet */
         if (helpLevel <= 1 || !(gotTip || gotMan))
           if ((err = CheckKeyword(textStr, "usage", &usageStr, &gotUsage,
-                                  &lastGottenStr)))
+                                  &lastGottenStr, &inQuoteIndex)))
             return err;
         
         /* Check for tooltip if at level 2 or if at level 1 and haven't got
@@ -1285,7 +1333,7 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
         if (helpLevel == 2 || (helpLevel <= 1 && !gotUsage) ||
             (helpLevel >= 3 && !gotMan))
           if ((err = CheckKeyword(textStr, "tooltip", &tipStr, &gotTip,
-                                  &lastGottenStr)))
+                                  &lastGottenStr, &inQuoteIndex)))
             return err;
         
         /* Check for manpage if at level 3 or if at level 2 and haven't got
@@ -1293,8 +1341,19 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
         if (helpLevel >= 3 || (helpLevel == 2 && !gotTip) ||
             (helpLevel <= 1 && !(gotTip || gotUsage)))
           if ((err = CheckKeyword(textStr, "manpage", &manStr, &gotMan,
-                                  &lastGottenStr)))
+                                  &lastGottenStr, &inQuoteIndex)))
             return err;
+        
+        /* If that was a line with quoted string, check for quote at end of line and
+           close out the help string if so */
+        if (inQuoteIndex >= 0 && lastGottenStr) {
+          len = strlen(*lastGottenStr);
+          if (len && (*lastGottenStr)[len - 1] == sQuoteTypes[inQuoteIndex]) {
+            (*lastGottenStr)[len - 1] = 0x00;
+            inQuoteIndex = -1;
+            lastGottenStr = NULL;
+          }
+        }
       }
     }
 
@@ -1307,10 +1366,10 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
       isSection = isOption - 1;
       if (!isSection) {
         if ((err = CheckKeyword(textStr + strlen(OPEN_DELIM), "Field", 
-                                &longName, &gotLong, &lastGottenStr)))
+                                &longName, &gotLong, &lastGottenStr, NULL)))
           return err;
         if (gotLong)
-          longName[strlen(longName) - 1] = nullChar;
+          longName[strlen(longName) - 1] = sNullChar;
       }
     }
   }
@@ -1330,7 +1389,7 @@ int PipParseEntries(int argc, char *argv[], int *numOptArgs,
   int i, err;
 
   /* Special case: no arguments and flag set to take stdin automatically */
-  if (!argc && takeStdIn) {
+  if (!argc && sTakeStdIn) {
     if ((err = ReadParamFile(stdin)))
       return err;
   } else {
@@ -1399,7 +1458,7 @@ void PipReadOrParseOptions(int argc, char *argv[], const char *options[],
 int PipGetInOutFile(const char *option, int nonOptArgNo, char **filename)
 {
   if (PipGetString(option, filename)) {
-    if (nonOptArgNo >= optTable[nonOptInd].count)
+    if (nonOptArgNo >= sOptTable[sNonOptInd].count)
       return 1;
     PipGetNonOptionArg(nonOptArgNo, filename);
   }
@@ -1422,9 +1481,9 @@ static int ReadParamFile(FILE *pFile)
   /* If non-option lines are allowed, set flag that it is OK for LookupOption
      to not find the option, but only for the given number of lines at the
      start of the input */
-    notFoundOK = (!numOptionArguments && optTable[nonOptInd].count < 
-                  nonOptLines) ? 1 : 0;
-    lineLen = PipReadNextLine(pFile, lineStr, LINE_STR_SIZE, '#', 0, 1, 
+    sNotFoundOK = (!sNumOptionArguments && sOptTable[sNonOptInd].count < 
+                  sNonOptLines) ? 1 : 0;
+    lineLen = PipReadNextLine(pFile, sLineStr, LINE_STR_SIZE, '#', 0, 1, 
                               &indst);
     if (lineLen == -3)
         break;
@@ -1440,39 +1499,39 @@ static int ReadParamFile(FILE *pFile)
     }
 
     /* Find token and make a copy */
-    strPtr = strpbrk(lineStr + indst, "= \t");
-    indnd = strPtr ? (strPtr - lineStr) - 1 : lineLen - 1;
+    strPtr = strpbrk(sLineStr + indst, "= \t");
+    indnd = strPtr ? (strPtr - sLineStr) - 1 : lineLen - 1;
     if (indnd >= lineLen)
       indnd = lineLen - 1;
 
-    token = PipSubStrDup(lineStr, indst, indnd);
+    token = PipSubStrDup(sLineStr, indst, indnd);
     if (PipMemoryError(token, "ReadParamFile"))
       return -1;
 
     /* Done if it matches end of input string */
     if (!strcmp(token, STANDARD_INPUT_END) || 
-        (doneEnds && strlen(token) == 4 && PipStartsWith("DONE", token)))
+        (sDoneEnds && strlen(token) == 4 && PipStartsWith("DONE", token)))
       break;
 
     /* Look up option and free the token string */
-    optNum = LookupOption(token, numOptions);
+    optNum = LookupOption(token, sNumOptions);
     free(token);
     if (optNum < 0) {
 
       /* If no option, process special case if in-line non-options allowed,
          or error out */
-      if (notFoundOK) {
-        token = PipSubStrDup(lineStr, indst, lineLen - 1);
+      if (sNotFoundOK) {
+        token = PipSubStrDup(sLineStr, indst, lineLen - 1);
         if (PipMemoryError(token, "ReadParamFile"))
           return -1;
-        if ((err = AddValueString(nonOptInd, token)))
+        if ((err = AddValueString(sNonOptInd, token)))
           return err;
         continue;
       } else
         return optNum;
     }
 
-    if (!strcmp(optTable[optNum].type, PARAM_FILE_STRING)) {
+    if (!strcmp(sOptTable[optNum].type, PARAM_FILE_STRING)) {
       PipSetError("Trying to open a parameter file while reading a parameter"
                   " file or "STANDARD_INPUT_STRING);
       return -1;
@@ -1482,14 +1541,14 @@ static int ReadParamFile(FILE *pFile)
     indst = indnd + 1;
     gotEquals = 0;
     while (indst < lineLen) {
-      if (lineStr[indst] == '=') {
+      if (sLineStr[indst] == '=') {
         if (gotEquals) {
-          sprintf(tempStr, "Two = signs in input line:  ");
-          AppendToErrorString(lineStr);
+          sprintf(sTempStr, "Two = signs in input line:  ");
+          AppendToErrorString(sLineStr);
           return -1;
         }
         gotEquals = 1;
-      } else if (lineStr[indst] != ' ' && lineStr[indst] != '\t')
+      } else if (sLineStr[indst] != ' ' && sLineStr[indst] != '\t')
         break;
       indst++;
     }
@@ -1497,12 +1556,12 @@ static int ReadParamFile(FILE *pFile)
     /* If there is a string, get one; if not, get a "1" for boolean, otherwise
        it is an error */
     if (indst < lineLen)
-      token = PipSubStrDup(lineStr, indst, lineLen - 1);
-    else if (!strcmp(optTable[optNum].type, BOOLEAN_STRING))
+      token = PipSubStrDup(sLineStr, indst, lineLen - 1);
+    else if (!strcmp(sOptTable[optNum].type, BOOLEAN_STRING))
       token = strdup("1");
     else {
-      sprintf(tempStr, "Missing a value on the input line:  ");
-      AppendToErrorString(lineStr);
+      sprintf(sTempStr, "Missing a value on the input line:  ");
+      AppendToErrorString(sLineStr);
       return -1;
     }
     if (PipMemoryError(token, "ReadParamFile"))
@@ -1511,9 +1570,9 @@ static int ReadParamFile(FILE *pFile)
     /* Add the token as a value string and increment argument number */
     if ((err = AddValueString(optNum, token)))
       return err;
-    numOptionArguments++;
+    sNumOptionArguments++;
   }
-  notFoundOK = 0;
+  sNotFoundOK = 0;
   return 0;
 }
 
@@ -1522,7 +1581,7 @@ static int ReadParamFile(FILE *pFile)
  */
 int PipReadStdinIfSet(void)
 {
-  if (takeStdIn)
+  if (sTakeStdIn)
     return ReadParamFile(stdin);
   return 0;
 }
@@ -1532,12 +1591,12 @@ int PipReadStdinIfSet(void)
  * line and in-line comments starting with [comment] if [inLineComments] is 
  * non-zero.  Discards the line and reads another if it is blank or if the 
  * first non-blank character is [comment], unless [keepComments] is nonzero.
- * Returns the line in [lineStr] and the index of the first
- * non-white space character in [firstNonWhite].  The size of [lineStr] is
+ * Returns the line in [sLineStr] and the index of the first
+ * non-white space character in [firstNonWhite].  The size of [sLineStr] is
  * provided in [strSize].  Returns the length of the line, or -3 for end of 
  * file, -1 if the line is too long, or -2 for error reading file.
  */
-int PipReadNextLine(FILE *pFile, char *lineStr, int strSize, char comment, 
+int PipReadNextLine(FILE *pFile, char *sLineStr, int strSize, char comment, 
                     int keepComments, int inLineComments, int *firstNonWhite)
 {
   int indst, lineLen;
@@ -1546,8 +1605,8 @@ int PipReadNextLine(FILE *pFile, char *lineStr, int strSize, char comment,
 
   while (1) {
 
-    /* read a line, or as much as fits in lineStr */
-    if (fgets(lineStr, strSize, pFile) == NULL) {
+    /* read a line, or as much as fits in sLineStr */
+    if (fgets(sLineStr, strSize, pFile) == NULL) {
 
       /* If error, it's OK if it's an EOF, or an error otherwise */
       if (feof(pFile))
@@ -1556,7 +1615,7 @@ int PipReadNextLine(FILE *pFile, char *lineStr, int strSize, char comment,
     }
 
     /* check for line too long */
-    lineLen = strlen(lineStr);
+    lineLen = strlen(sLineStr);
     if (lineLen == strSize - 1) {
       return -1;
     }
@@ -1564,35 +1623,35 @@ int PipReadNextLine(FILE *pFile, char *lineStr, int strSize, char comment,
     /* Get first non-white space */
     indst = 0;
     while (indst < lineLen) {
-      if (lineStr[indst] != ' ' && lineStr[indst] != '\t')
+      if (sLineStr[indst] != ' ' && sLineStr[indst] != '\t')
         break;
       indst++;
     }
 
     /* If it is a comment, skip or strip line ending and return */
-    if (lineStr[indst] == comment) {
+    if (sLineStr[indst] == comment) {
       if (keepComments) {
-        while (lineStr[lineLen - 1] == '\n' || lineStr[lineLen - 1] == '\r')
+        while (sLineStr[lineLen - 1] == '\n' || sLineStr[lineLen - 1] == '\r')
           lineLen--;
-        lineStr[lineLen] = 0x00;
+        sLineStr[lineLen] = 0x00;
         break;
       } else
         continue;
     }
 
     /* adjust line length to remove comment, if we have in-line comments */
-    strPtr = strchr(lineStr, comment);
+    strPtr = strchr(sLineStr, comment);
     if (strPtr && inLineComments)
-      lineLen = strPtr - lineStr;
+      lineLen = strPtr - sLineStr;
 
     /* adjust line length back further to remove white space and newline */
     while (lineLen > 0) {
-      ch = lineStr[lineLen - 1]; 
+      ch = sLineStr[lineLen - 1]; 
       if (ch != ' ' && ch != '\t' && ch != '\n' && ch != '\r')
         break;
       lineLen--;
     }
-    lineStr[lineLen] = 0x00;
+    sLineStr[lineLen] = 0x00;
 
     /* Return if something is on line or we are keeping comments */
     if (indst < lineLen || keepComments)
@@ -1655,11 +1714,11 @@ int PipGetLineOfValues(const char *option, const char *strPtr, void *array, int 
       /* if defaults allowed and a specific number are expected,
          / means stop processing and mark all values as received */
       if (strPtr[0] == '/') {
-        if (allowDefaults && *numToGet) {
+        if (sAllowDefaults && *numToGet) {
           numGot = *numToGet;
           break;
         }
-        sprintf(tempStr, "Default entry with a / is not allowed"
+        sprintf(sTempStr, "Default entry with a / is not allowed"
                 " in value entry:  %s  ", option);
         AppendToErrorString(fullStr);
         return -1;
@@ -1670,12 +1729,12 @@ int PipGetLineOfValues(const char *option, const char *strPtr, void *array, int 
 
         /* If already have a comma, skip an array value if defaults allowed */
         if (gotComma) {
-          if (allowDefaults && *numToGet) {
+          if (sAllowDefaults && *numToGet) {
             numGot++;
             if (numGot >= *numToGet)
               break;
           } else {
-            sprintf(tempStr, "Default entries with commas are not allowed"
+            sprintf(sTempStr, "Default entries with commas are not allowed"
                     " in value entry:  %s  ", option);
             AppendToErrorString(fullStr);
             return -1;
@@ -1693,7 +1752,7 @@ int PipGetLineOfValues(const char *option, const char *strPtr, void *array, int 
 
     /* If we are already full, then it is an error */
     if (numGot >= arraySize) {
-      sprintf(tempStr, "Too many values for input array in value entry:  %s  ",
+      sprintf(sTempStr, "Too many values for input array in value entry:  %s  ",
               option);
       AppendToErrorString(fullStr);
       return -1;
@@ -1707,7 +1766,7 @@ int PipGetLineOfValues(const char *option, const char *strPtr, void *array, int 
 
     /* If invalid character is before end character, it is an error */
     if (invalid != endPtr) {
-      sprintf(tempStr, "Illegal character in value entry:  %s  ", option);
+      sprintf(sTempStr, "Illegal character in value entry:  %s  ", option);
       AppendToErrorString(fullStr);
       return -1;
     }
@@ -1729,7 +1788,7 @@ int PipGetLineOfValues(const char *option, const char *strPtr, void *array, int 
 
   /* If not enough values found, return error */
   if (numGot < *numToGet) {
-    sprintf(tempStr, "%d values expected but only %d values found in value "
+    sprintf(sTempStr, "%d values expected but only %d values found in value "
             "entry:  %s  ", *numToGet, numGot, option);
     AppendToErrorString(fullStr);
     return -1;
@@ -1748,17 +1807,17 @@ static int GetNextValueString(const char *option, char **strPtr)
   int err;
   int index = 0;
 
-  if ((err = LookupOption(option, nonOptInd + 1)) < 0)
+  if ((err = LookupOption(option, sNonOptInd + 1)) < 0)
     return err;
-  if (!optTable[err].count)
+  if (!sOptTable[err].count)
     return 1;
 
-  if (optTable[err].multiple) {
-    index = optTable[err].multiple - 1;
-    if (optTable[err].multiple < optTable[err].count)
-      optTable[err].multiple++;
+  if (sOptTable[err].multiple) {
+    index = sOptTable[err].multiple - 1;
+    if (sOptTable[err].multiple < sOptTable[err].count)
+      sOptTable[err].multiple++;
   }
-  *strPtr = optTable[err].valuePtr[index];
+  *strPtr = sOptTable[err].valuePtr[index];
   return 0;
 }
 
@@ -1768,7 +1827,7 @@ static int GetNextValueString(const char *option, char **strPtr)
 static int AddValueString(int option, const char *strPtr)
 {
   int err;
-  PipOptions *optp = &optTable[option];
+  PipOptions *optp = &sOptTable[option];
 
   /* If the count is zero or we accept multiple values, need to allocate
      array for address of string, and array for next non option index */
@@ -1797,13 +1856,13 @@ static int AddValueString(int option, const char *strPtr)
   /* save address that was passed in.  The caller had to make a duplicate */
 
   if (optp->linked) {
-    optp->nextLinked[2 * optp->count] = optTable[nonOptInd].count;
+    optp->nextLinked[2 * optp->count] = sOptTable[sNonOptInd].count;
     optp->nextLinked[2 * optp->count + 1] = 0;
-    if (linkedOption) {
-      err = LookupOption(linkedOption, numOptions);
+    if (sLinkedOption) {
+      err = LookupOption(sLinkedOption, sNumOptions);
       if (err < 0)
         return err;
-      optp->nextLinked[2 * optp->count + 1] = optTable[err].count;
+      optp->nextLinked[2 * optp->count + 1] = sOptTable[err].count;
     }
   }
   optp->valuePtr[optp->count++] = (char *)strPtr;
@@ -1824,9 +1883,9 @@ static int LookupOption(const char *option, int maxLookup)
 
   /* Look at all of the options specified by maxLookup */
   for (i = 0; i < maxLookup; i++) {
-    sname = optTable[i].shortName;
-    lname = optTable[i].longName;
-    lenShort = optTable[i].lenShort;
+    sname = sOptTable[i].shortName;
+    lname = sOptTable[i].longName;
+    lenShort = sOptTable[i].lenShort;
     starts = PipStartsWith(sname, option);
 
     /* First test for single letter short name match - if passes, skip ambiguity test */
@@ -1834,26 +1893,28 @@ static int LookupOption(const char *option, int maxLookup)
       found = i;
       break;
     }
-    if ((starts && (!noAbbrevs || lenopt == lenShort)) ||
-        (PipStartsWith(lname, option) && (!noAbbrevs || lenopt == strlen(lname)))) {
+    if ((starts && (!sNoAbbrevs || lenopt == lenShort)) ||
+        (PipStartsWith(lname, option) && (!sNoAbbrevs || lenopt == strlen(lname)))) {
 
       /* If it is found, it's an error if one has already been found */
       if (found == LOOKUP_NOT_FOUND)
         found = i;
       else {
-        sprintf(tempStr, "An option specified by \"%s\" is ambiguous between "
-                "option %s -  %s  and option %s -  %s", option, sname, lname, 
-                optTable[found].shortName, optTable[found].longName);
-        PipSetError(tempStr);
+        if (!sTestAbbrevForUsage) {
+          sprintf(sTempStr, "An option specified by \"%s\" is ambiguous between "
+                  "option %s -  %s  and option %s -  %s", option, sname, lname, 
+                  sOptTable[found].shortName, sOptTable[found].longName);
+          PipSetError(sTempStr);
+        }
         return LOOKUP_AMBIGUOUS;
       }
     }
   }
 
   /* Set error string unless flag set that non-options are OK */
-  if (found == LOOKUP_NOT_FOUND && !notFoundOK) {
-    sprintf(tempStr, "Illegal option: %s", option);
-    PipSetError(tempStr);
+  if (found == LOOKUP_NOT_FOUND && !sNotFoundOK) {
+    sprintf(sTempStr, "Illegal option: %s", option);
+    PipSetError(sTempStr);
   }
   return found;
 }
@@ -1882,27 +1943,27 @@ int PipMemoryError(void *ptr, const char *routine)
 {
   if (ptr)
     return 0;
-  if (!tempStr)
-    tempStr = (char *)malloc(TEMP_STR_SIZE);
-  if (!tempStr) {
+  if (!sTempStr)
+    sTempStr = (char *)malloc(TEMP_STR_SIZE);
+  if (!sTempStr) {
     PipSetError("Failed to get memory for string in PipMemoryError");
     return -1;
   }
     
-  sprintf(tempStr, "Failed to get memory for string in %s", routine);
-  PipSetError(tempStr);
+  sprintf(sTempStr, "Failed to get memory for string in %s", routine);
+  PipSetError(sTempStr);
   return -1;
 }
 
 /*
- * Add as much of a string as fits to the tempStr and use to set error
+ * Add as much of a string as fits to the sTempStr and use to set error
  */
 static void AppendToErrorString(const char *str)
 {
-  int len = strlen(tempStr);
-  tempStr[TEMP_STR_SIZE - 1] = 0x00;
-  strncpy(&tempStr[len], str, TEMP_STR_SIZE - len - 1);
-  PipSetError(tempStr);
+  int len = strlen(sTempStr);
+  sTempStr[TEMP_STR_SIZE - 1] = 0x00;
+  strncpy(&sTempStr[len], str, TEMP_STR_SIZE - len - 1);
+  PipSetError(sTempStr);
 }
 
 /*!
@@ -1915,7 +1976,7 @@ int PipStartsWith(const char *fullStr, const char *subStr)
     return 0;
   if (!*fullStr || !*subStr)
     return 0;
-  if (noCase) {
+  if (sNoCase) {
     while (*fullStr && *subStr) {
       if (toupper(*fullStr++) != toupper(*subStr++))
         return 0;
@@ -1953,14 +2014,15 @@ static int LineIsOptionToken(const char *line)
 /*
  * Checks for whether a keyword occurs at the beginning of the line and
  * is followed by the keyword-value delimiter, and if so duplicates the
- * value string and sets the flag
+ * value string and sets the flag.  If quoteInd is non-null, it sees if the string starts
+ * with a quote character in sQuoteTypes, strips that, and returns the index in quoteInd.
  * Watch out for the lastCopied variable, which points to the variable holding
  * the address of the string
  */
 static int CheckKeyword(const char *line, const char *keyword, char **copyto, int *gotit,
-                        char ***lastCopied)
+                        char ***lastCopied, int *quoteInd)
 {
-  char *valStart;
+  char *valStart, *quoteStart;
   char *copyStr;
 
   /* First make sure line starts with it */
@@ -1968,25 +2030,35 @@ static int CheckKeyword(const char *line, const char *keyword, char **copyto, in
     return 0;
 
   /* Now look for delimiter */
-  valStart = strstr(line, valueDelim);
+  valStart = strstr(line, sValueDelim);
   if (!valStart)
     return 0;
 
   /* Free previous entry if there was one, and mark that it was not gotten,
      so that an empty entry can supercede a non-empty one */
-  if (*gotit && *copyto != nullString) {
+  if (*gotit && *copyto != sNullString) {
     free (*copyto);
-    *copyto = nullString;
+    *copyto = sNullString;
     *gotit = 0;
   }
 
-  /*Eat spaces after the delimiter and return if nothing left*/
+  /* Eat spaces after the delimiter and return if nothing left */
   /* In other words, a key with no value is the same as having no key at all */
-  valStart += strlen(valueDelim);
+  valStart += strlen(sValueDelim);
   while (*valStart == ' ' || *valStart == '\t')
     valStart++;
   if (!*valStart)
     return 0;
+
+  /* Look for quote if directed to */
+  if (quoteInd) {
+    quoteStart = strchr(sQuoteTypes, *valStart);
+    if (quoteStart) {
+      *quoteInd = quoteStart - sQuoteTypes;
+      valStart++;
+    } else
+      *quoteInd = -1;
+  }
 
   /* Copy string and return address, set flag that it was gotten */
   copyStr = strdup(valStart);

@@ -178,13 +178,17 @@ static int storeCompare(const void *s1, const void *s2)
  * Inserts the element [store] into the list of sorted {Istore} elements 
  * pointed to by [list].  The element is inserted after any existing elements 
  * with the same {index}, unless GEN_STORE_REVERT is set in {flags}, in which
- * case it is inserted before existing elements.
- * Works if [list] points to a NULL.  Returns 1 for error.
+ * case it is inserted before existing elements.  If GEN_STORE_NOINDEX is set in {flags},
+ * it is inserted at the end of the list.  Works if [list] points to a NULL.
+ * Returns 1 for error.
  */
 int istoreInsert(Ilist **list, Istore *store)
 {
-  int after;
-  int lookup = istoreLookup(*list, store->index.i, &after);
+  int after, lookup = -1;
+  if (store->flags & GEN_STORE_NOINDEX)
+    after = ilistSize(*list);
+  else
+    lookup = istoreLookup(*list, store->index.i, &after);
   if (!*list)
     *list = ilistNew(sizeof(Istore), 4);
   if (!*list)
@@ -493,12 +497,28 @@ int istoreConnectNumber(Ilist *list, int index)
  */
 int istoreAddMinMax(Ilist **list, int type, float min, float max)
 {
+  Istore *stp;
   Istore store;
+  int i;
   store.value.f = max;
   store.index.f = min;
   store.type = GEN_STORE_MINMAX1;
   store.flags = (GEN_STORE_FLOAT << 2) | GEN_STORE_FLOAT | GEN_STORE_NOINDEX;
-  return istoreInsertChange(list, &store);
+
+  /* Look for an existing entry of the same kind and replace its values */
+  for (i = ilistSize(list) - 1 ; i >= 0; i--) {
+    stp = istoreItem(list, i);
+    if (!(stp->flags & (GEN_STORE_NOINDEX | 3)))
+      break;
+    if (stp->type == GEN_STORE_MINMAX1 && stp->flags == store.flags) {
+      stp->index.f = min;
+      stp->value.f = max;
+      return 0;
+    }
+  }
+
+  /* Or insert the change; it will be added to end */
+  return istoreInsert(list, &store);
 }
 
 /*!

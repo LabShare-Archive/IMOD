@@ -49,6 +49,59 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
   // When true the process is being controlled by the monitor.
   private boolean monitorControl = false;
 
+  /**
+   * Currently handles levels<=2.  Add levels parameter to dumpState calls to handle
+   * levels>2.
+   * @param levels
+   */
+  public void dumpState(int levels) {
+    System.err.print("[");
+    levels--;
+    if (levels > 0) {
+      System.err.println("manager:");
+      if (manager != null) {
+        manager.dumpState();
+      }
+      System.err.println(",processManager:");
+      if (processManager != null) {
+        processManager.dumpState();
+      }
+      System.err.println(",monitor:");
+      if (monitor != null) {
+        monitor.dumpState();
+      }
+      System.err.println(",processData:");
+      if (processData != null) {
+        processData.dumpState();
+      }
+      System.err.println(",axisID:");
+      if (axisID != null) {
+        axisID.dumpState();
+      }
+      System.err.println(",processSeries:");
+      if (processSeries != null) {
+        processSeries.dumpState();
+      }
+      System.err.println(",endState:");
+      if (endState != null) {
+        endState.dumpState();
+      }
+      System.err.println(",processResultDisplay:");
+      if (processResultDisplay != null) {
+        processResultDisplay.dumpState();
+      }
+      System.err.println(",messages:");
+      if (messages != null) {
+        messages.dumpState();
+      }
+      System.err.println(",logFile:");
+      if (logFile != null) {
+        logFile.dumpState();
+      }
+    }
+    System.err.println(",logSuccessTag:" + logSuccessTag + "]");
+  }
+
   private ReconnectProcess(BaseManager manager, BaseProcessManager processManager,
       ProcessMonitor monitor, ProcessData processData, AxisID axisID,
       ConstProcessSeries processSeries) {

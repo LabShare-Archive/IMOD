@@ -25,7 +25,9 @@ DDEESSCCRRIIPPTTIIOONN
   options accepted by the old newst script are all accepted by newstack.
   Almost all options can be abbreviated to one or two letters.  The following
   options can be specified either as command line arguments (with the -) or
-  one per line in a command file or parameter file (without the -):
+  one per line in a command file or parameter file (without the -).  Options
+  can be abbreviated to unique letters; the currently valid abbreviations for
+  short names are shown in parentheses.
 
 INSERT OPTION TEXT HERE
 

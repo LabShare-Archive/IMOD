@@ -9,6 +9,7 @@ import java.io.IOException;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.comscript.ComscriptState;
+import etomo.storage.FileLocation;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
@@ -272,13 +273,18 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     if (pidFile.exists()) {
       groupPid = parsePIDString(pidFile);
     }
+    if (!FileLocation.LSOF.exists()) {
+      // if lsof cannot be run assume that com script is not busy
+      return false;
+    }
     if (groupPid == null) {
-      String[] command = new String[] { "/usr/sbin/lsof", "-w", "-S", "-l", "-M", "-L" };
+      String[] command = new String[] { FileLocation.LSOF.getAbsolutePath(), "-w", "-S",
+          "-l", "-M", "-L" };
       lsof = new SystemProgram(manager, manager.getPropertyUserDir(), command, axisID);
     }
     else {
-      String[] command = new String[] { "/usr/sbin/lsof", "-w", "-S", "-l", "-M", "-L",
-          "-g", groupPid };
+      String[] command = new String[] { FileLocation.LSOF.getAbsolutePath(), "-w", "-S",
+          "-l", "-M", "-L", "-g", groupPid };
       lsof = new SystemProgram(manager, manager.getPropertyUserDir(), command, axisID);
     }
     lsof.run();

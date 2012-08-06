@@ -28,7 +28,7 @@ mantohtml.$(O) : proglist.h
 clean :
 	$(FIND) . -type f -name "*.1"   -exec rm "{}" \;
 	$(FIND) . -type f -name "*.html"   -exec rm "{}" \;
-	$(FIND) . -type f -name "*.o*"   -exec rm "{}" \;
+	$(FIND) . -type f -name "*.$(OBJEXT)"   -exec rm "{}" \;
 	$(FIND) . -type f -name "*~"    -exec rm "{}" \;
 	$(FIND) . -type f -name "*exe"    -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#"   -exec rm "{}" \;

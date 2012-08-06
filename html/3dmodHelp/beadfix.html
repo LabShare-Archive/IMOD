@@ -172,8 +172,8 @@ residual; this process repeats until there are no points left to move or you
 stop holding down the Shift key.
 In either case, points that would ordinarily be skipped over because they have
 been examined already will not be moved.  This approach should be used with
-caution; see the section below on <A HREF = "#MovingResid">Moving All Points by
-Residual</A>
+caution or abandoned in favor of robust fitting; see the section below
+on <A HREF = "#MovingResid">Moving All Points by Residual</A>
 <LI> When local alignments were used, <B>Move in All Local Areas</B> can be
 used to move the remaining points in the current local area, and all points in 
 the following local areas, by their residuals.  Again, points that have been
@@ -187,6 +187,16 @@ previous residual in the file, if you skipped over points by going to
 the next local set, or if the program skipped over points that you saw 
 before.  However, you can then work forward through the 
 points that you skipped over.
+<LI> If robust fitting was used in Tiltalign, <B>Skip low weights</B> is
+  enabled, and when it is selected, the points with fitting weights less than or equal
+  to the value in the <B>Threshold</B> spin box will be skipped over when
+  going through the points.  Turn this button on if you want to avoid the 
+  effort of fixing points that are essentially excluded from the alignment
+  solution already.  Turn the button off if you do want to fix such points.
+  The robust fitting is still valuable in this case because a fit that
+  excludes an aberrant point should give a more accurate estimate of the
+  point's correct location than a fit that includes and accommodates to the
+  bad position.
 <LI> The program keeps a list of each point whose residual has 
 been examined.  The list is retained when the log file is read again.  
 If the <B>Examine Points Once</B> checkbox is 
@@ -233,7 +243,15 @@ The guiding principle when deciding whether to move one or many points by
 residual is that model points should not be moved away from the gold
 particles.  If many points are displaced from their proper location, this will
 lead to a poorer alignment of the views where such points are located
-(typically the high tilt views).  Here are some guidelines for moving large
+(typically the high tilt views).  
+<P>
+The robust fitting now available in Tiltalign is a more statistically valid
+method of eliminating or down-weighting points with high residuals than
+blindly moving points by the residual values from a fit that includes all
+the points with equal weight.  The robust fitting should produce a better
+estimate of the true alignment solution.  Nevertheless, more experience with
+this method is needed to confirm this, so
+here are some guidelines for moving large
 numbers of points by their residuals:
 <OL>
 <LI> To avoid misaligning high tilt views, where residuals tend to be higher,

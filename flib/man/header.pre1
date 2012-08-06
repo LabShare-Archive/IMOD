@@ -26,7 +26,8 @@ DDEESSCCRRIIPPTTIIOONN
   printed for one file, then for the next, etc.
 
   The options are processed by the PIP package (see man page for pip(1)).
-  They are:
+  Options can be abbreviated to unique letters; the currently valid
+  abbreviations for short names are shown in parentheses.  They are:
 
 INSERT OPTION TEXT HERE
 

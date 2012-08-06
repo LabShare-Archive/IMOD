@@ -102,6 +102,10 @@ if len(sys.argv) > 1:
          
       url = 'qthelp://bl3demc/IMOD/man/' + entered + '.html#TOP'
 
+else:
+   prnstr('Enter "imodhelp" with all or part of a program name to open a ' +\
+             'program man page')
+      
 # Set up command argument array and run it
 commandArr = [prog, '-collectionFile', os.environ['IMOD_DIR'] +  '/html/IMOD.qhc', \
                  '-showUrl', url, '-show', 'contents', '-show', 'index', \

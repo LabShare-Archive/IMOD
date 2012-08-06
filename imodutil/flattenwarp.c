@@ -26,17 +26,7 @@
 #include "parse_params.h"
 #include "lsqr.h"
 #include "sparselsqr.h"
-
-/* Prototype for lapack routine */
-#ifdef F77FUNCAP
-#define dsysv DSYSV
-#else
-#define dsysv dsysv_
-#endif
-
-void dsysv(char *uplo, int *n, int *nrhs, double *a, int *lda, int *ipiv,
-           double *b, int *ldb, double *work, int *lwork, int *info, 
-           int uploSize);
+#include "lapackc.h"
 
 /* Structure for storing contour data */
 typedef struct {

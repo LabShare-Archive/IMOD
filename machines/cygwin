@@ -165,6 +165,8 @@ if ($compiler == intel) then
         echo 'LIBMRCIMDEF = /def:libmrcim.def ../../buildlib/libifft.lib ../../buildlib/libcfshr.lib'  >> $configure
         echo 'LIBHVEMDEF = /def:libhvem.def ../../buildlib/libmrcim.lib ../../buildlib/libcfshr.lib'  >> $configure
         echo 'LIBIFFTDEF = /def:libifft.def'     >> $configure
+        echo 'LIBBLASDEF = /def:libb3dblas.def'   >> $configure
+        echo 'LIBLAPACKDEF = /def:libb3dlapk.def ../../buildlib/libb3dblas.lib'   >> $configure
         echo 'LIBTRACKDEF = /def:libtrack.def ../../buildlib/libcfshr.lib'   >> $configure
         set inst_lib_dir = $inst_dir/bin
         #
@@ -213,7 +215,7 @@ if ($compiler == intel) then
     set liwarp = libiwarp.lib
     set lifft = libifft.lib
     set ltiff = libtiff.lib
-    set lapacklibs = "liblapack.lib libblas.lib"
+    set lapacklibs = "libb3dlapk.lib libb3dblas.lib"
     set imsubsobj = '*.obj'
     set ldnmncar = "libdnmncar.lib"
     echo 'IMLIBS     =  $(LIBWMOD) libhvem.lib libmrcim.lib libifft.lib libcfshr.lib' >> $configure
@@ -337,7 +339,7 @@ LIBS += $QTDIR/lib/QtOpenGL4.lib
 EOF
 
 cat <<EOF >! $ctfplot_qconf
-LIBS += liblapack.lib libblas.lib libiimod.lib libcfshr.lib libtiff.lib libifft.lib
+LIBS += libb3dlapk.lib libb3dblas.lib libiimod.lib libcfshr.lib libtiff.lib libifft.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 EOF
@@ -470,8 +472,10 @@ if ($compiler == intel) then
     if ($m64bit == true) then
         if ($distname == "") set distname = _win64
         set strip = true
+        set sed3264 = '32'
     else
         if ($distname == "") set distname = _win
+        set sed3264 = '64'
     endif
     if ($?TIFF_JPEG_ZLIB) then
         echo "DLLSOURCEDIR1 = $libtiff" >> $configure
@@ -534,16 +538,20 @@ if ($compiler == intel) then
     # Adjust variables for CUDA and set to copy the library
     #
     if ($?CUDA_DIR) then
-        set cudabin = $CUDA_DIR/bin
-        set cudalib = $CUDA_DIR/lib
+        set cudabin = "$CUDA_DIR/bin"
+        set cudalib = "$CUDA_DIR/lib"
         if ($?CUDA_BIN_PATH && $?CUDA_LIB_PATH) then
-            set cudabin = `cygpath -m $CUDA_BIN_PATH`
-            set cudalib = `cygpath -m $CUDA_LIB_PATH`
+            set cudabin = `cygpath -m "$CUDA_BIN_PATH"`
+            set cudabin = "$cudabin"
+            set cudalib = `cygpath -m "$CUDA_LIB_PATH"`
+            set cudalib = "$cudalib"
         endif
-        set cudart = `cd $cudabin ; ls cudart*.dll | sed -e '/[[:cntrl:]]/s///g' -e '/[^ ]*emu[^ ]*/s///g' -e '/.dll/s///g'`
-        set cufft = `cd $cudabin ; ls cufft*.dll | sed -e '/[[:cntrl:]]/s///g' -e '/[^ ]*emu[^ ]*/s///g' -e '/.dll/s///g'`
+        set cudart = `cd "$cudabin" ; ls cudart*.dll | sed -e '/[[:cntrl:]]/s///g' -e '/[^ ]*emu[^ ]*/s///g' -e '/.dll/s///g'`
+        set cufft = `cd "$cudabin" ; ls cufft*.dll | sed -e '/[[:cntrl:]]/s///g' -e '/[^ ]*emu[^ ]*/s///g' -e '/.dll/s///g'`
+        if ($#cudart > 1) set cudart = `echo $cudart | sed -e '/[^ ]*'"$sed3264"'[^ ]*/s///g'`
+        if ($#cufft > 1) set cufft = `echo $cufft | sed -e '/[^ ]*'"$sed3264"'[^ ]*/s///g'`
         set nvcc_flags = "$nvcc_flags -O2"
-        set cudalibs = "-LIBPATH:$cudalib cudart.lib cufft.lib"
+        set cudalibs = '-LIBPATH:"'"$cudalib"'" cudart.lib cufft.lib'
         echo "DLLSOURCEDIR$dllnum = $cudabin" >> $configure
         echo "DLLSTOCOPY$dllnum = $cudart $cufft" >> $configure
     endif

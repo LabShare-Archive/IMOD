@@ -2261,7 +2261,7 @@ c...... Default double-width linear interpolation in cosine stretching
       vertBoundFile = ' '
 c       
 c...... Default title
-      CALL DATE(DAT)
+      CALL b3dDATE(DAT)
       CALL TIME(TIM)
 c       
       write(titlech,49) 'Tomographic reconstruction',dat,tim
@@ -3704,11 +3704,11 @@ c
       integer*4 numFilts, numDelz, iperPlane
 c       
 c       Start with as many planes as possible but no more than in array
-c       and no more that 32767 lines for array on GPU
+c       and no more that 65535 lines for array on GPU (the limit is 32767 before Fermi)
       iperPlane = iplane
       if (numDelz .gt. 0) iperPlane = iplane + 8 * iwide + nWarpDelz
       maxGpuPlane = (gpuMemoryFrac * gpuMemory / 4. - nonPlane) / iperPlane
-      maxGpuPlane = min(maxGpuPlane, nPlanes, 32760 / nygplane)
+      maxGpuPlane = min(maxGpuPlane, nPlanes, 65535 / nygplane)
 c           FOR TESTING MEMORY SHIFTING ETC
 c       ind = max(maxNeeds(1), min(ind, nPlanes / 3))
       numGpuPlanes = 0

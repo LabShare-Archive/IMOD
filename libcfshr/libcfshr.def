@@ -28,6 +28,7 @@ EXPORTS
 	GAUSSJ
 	sliceGetValMagnitude
 	PARWRTGETREGION
+	MAKEMODELBEAD
 	convexBound
 	PIPNUMBEROFARGS
 	CHECKLIST
@@ -45,6 +46,7 @@ EXPORTS
 	ilistSwap
 	PipDone
 	PipAddOption
+	eigenSort
 	numOMPthreads
 	B3DSHIFTBYTES
 	ADOCGETINTEGERARRAY
@@ -65,6 +67,7 @@ EXPORTS
 	ilistInsert
 	ADOCSETTWOINTEGERS
 	reduceByBinning
+	polynomialFit
 	ilistRemove
 	PIPGETINTEGER
 	ADOCGETNUMBEROFSECTIONS
@@ -88,6 +91,7 @@ EXPORTS
 	PIPREADOPTIONFILE
 	PipGetString
 	IMODBACKUPFILE
+	POLYNOMIALFIT
 	PipNumberOfArgs
 	fValue
 	ilistTruncate
@@ -99,9 +103,12 @@ EXPORTS
 	sumsToAvgSD
 	wallTime
 	RSMEDIANOFSORTED
+	MULTREGRESS
 	sliceClear
+	dsyevh3
 	LSFIT
 	LSFIT2
+	dsytrd3
 	LSFITS
 	SPARSEPROD
 	ADOCGETFLOAT
@@ -170,6 +177,7 @@ EXPORTS
 	XCorrSetCTFnoScl
 	surfaceSort
 	IMODGETSTAMP
+	STATMATRICES
 	ADOCSETTHREEINTEGERS
 	PipGetTwoFloats
 	AdocSetThreeFloats
@@ -233,6 +241,8 @@ EXPORTS
 	RSSORTFLOATS
 	AdocSetTwoIntegers
 	cblas_dcopy
+	gaussjDet
+	multRegress
 	errFunc
 	PIPREADSTDINIFSET
 	PARWRTPROPERTIES
@@ -251,6 +261,7 @@ EXPORTS
 	sliceInit
 	percentileInt
 	PIPGETFLOATARRAY
+	PERCENTILEFLOAT
 	LSFIT2PRED
 	ADOCSETKEYVALUE
 	amoeba
@@ -258,6 +269,7 @@ EXPORTS
 	ADOCGETSECTIONNAME
 	fitSphereWgt
 	CONJUGATEPRODUCT
+	robustRegress
 	XCORRPEAKFIND
 	rsMedian
 	XCorrCCCoefficient
@@ -317,6 +329,7 @@ EXPORTS
 	sliceGetYSize
 	ilistFloat
 	XCorrPeakFind
+	FITCIRCLE
 	SETSURFSORTPARAM
 	PipSetError
 	cmapStandardRamp
@@ -331,6 +344,7 @@ EXPORTS
 	PipAllowCommaDefaults
 	TAPERATFILL
 	RSTRIMMEDMEANOFSORTED
+	enableRadiusFitting
 	B3DMILLISLEEP
 	PIPEXITONERRORFW
 	sliceFree
@@ -339,6 +353,7 @@ EXPORTS
 	TAPERINPAD
 	rsSortFloats
 	scaledSobel
+	ENABLERADIUSFITTING
 	ADOCDONE
 	sampleMeanSD
 	AdocGetFloatArray
@@ -347,11 +362,13 @@ EXPORTS
 	PipEnableEntryOutput
 	WALLTIME
 	PIPINITIALIZE
+	ROBUSTREGRESS
 	B3DHEADERITEMBYTES
 	PipGetLineOfValues
 	SPLITFILL
 	APPLYKERNELFILTER
 	PIPALLOWCOMMADEFAULTS
+	FITCIRCLEWGT
 	SURFACESORT
 	AdocRead
 	PipReadStdinIfSet
@@ -359,6 +376,7 @@ EXPORTS
 	AdocDone
 	imodVersion
 	SMOOTHOUTPAD
+	dsyevq3
 	rotmagstrToAmat
 	INCOMPBETA
 	SCALEDSOBEL
@@ -366,8 +384,11 @@ EXPORTS
 	ADJUSTPIECEOVERLAP
 	cblas_daxpy
 	selectZoomFilter
+	dsyevc3
 	PIPGETSTRING
+	GAUSSJDET
 	PipGetFloatArray
+	statMatrices
 	slicePutVal
 	ADOCOPENIMAGEMETADATA
 	b3dError

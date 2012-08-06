@@ -9,7 +9,7 @@ dm2mrc [-d] <DM files...> <mrc image file>
 dm2mrc will convert Digital Micrograph (DM) image files to an MRC stack,
 using raw2mrc(1).  The program should be able to convert version DM 2.5 files
 produced by DM 2.5 running on a Macintosh, DM 2.5 files exported by DM 3
-running on a Windows PC, and DM 3 files produced on a PC.  
+running on a Windows PC, DM 3 files, and DM 4 files produced by GMS 2.x.
 .P
 The program will convert signed 16-bit integers, unsigned 16-bit integers
 (by subtracting 32767), signed bytes (by adding 127), unsigned bytes, and

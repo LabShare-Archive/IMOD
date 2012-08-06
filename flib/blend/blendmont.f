@@ -72,7 +72,7 @@ c
       logical active4(3,2)
       logical anypixels,inframe,dofast,anyneg,anylinesout,xinlong,testMode
       logical shifteach,docross,fromedge,exist,xcreadin,xclegacy,outputpl
-      logical xcorrDebug,verySloppy,useEdges,edgesIncomplete,adjustOrigin
+      logical xcorrDebug,verySloppy,useEdges,edgesIncomplete,adjustOrigin, useFill
       logical edgesSeparated,fromCorrOnly, samePieces, noFFTsizes, yChunks, doWarp
       real*4, allocatable :: dxgridmean(:,:),dygridmean(:,:)
       real*4, allocatable :: edgedispx(:,:),edgedispy(:,:)
@@ -96,7 +96,7 @@ c
       integer*4 nxtotwant,nytotwant,newxpieces,newypieces,ifoldedge
       integer*4 newxtotpix,newytotpix,newxframe,newyframe,newminxpiece
       integer*4 newminypiece,ifwant,nglist,ierr,nxfrmpneg,nyfrmpneg
-      real*4 dmin,dmax,outmin,outmax,definmin,pixelTot
+      real*4 dmin,dmax,outmin,outmax,definmin,pixelTot, fillVal
       real*4 definmax,curinmin,curinmax,pixscale,pixadd
       real*8 tsum,cursum,grandsum,rnsum
       integer*4 ixfrm,iyfrm,ipc,nshort,nlong,ishort,ilong,indbray
@@ -142,45 +142,41 @@ c
       integer*4 PipGetTwoIntegers, PipGetTwoFloats,PipGetLogical
       integer*4 PipGetInOutFile,PipNumberOfEntries
 c       
-c       cut and pasted from ../../manpages/autodoc2man -2 2 blendmont
-c       
+c       fallbacks from ../../manpages/autodoc2man -2 2 blendmont
       integer numOptions
-      parameter (numOptions = 64)
+      parameter (numOptions = 71)
       character*(40 * numOptions) options(1)
       options(1) =
-     &    'imin:ImageInputFile:FN:@plin:PieceListInput:FN:@'//
-     &    'imout:ImageOutputFile:FN:@plout:PieceListOutput:FN:@'//
-     &    'rootname:RootNameForEdges:CH:@mode:ModeToOutput:I:@'//
-     &    'float:FloatToRange:B:@xform:TransformFile:FN:@'//
-     &    'center:TransformCenterXandY:FP:@order:InterpolationOrder:I:@'//
-     &    'skip:SkipEdgeModelFile:FN:@nonzero:NonzeroSkippedEdgeUse:I:@'//
+     &    'imin:ImageInputFile:FN:@plin:PieceListInput:FN:@imout:ImageOutputFile:FN:@'//
+     &    'plout:PieceListOutput:FN:@rootname:RootNameForEdges:CH:@'//
+     &    'oldedge:OldEdgeFunctions:B:@perneg:FramesPerNegativeXandY:IP:@'//
+     &    'missing:MissingFromFirstNegativeXandY:IP:@mode:ModeToOutput:I:@'//
+     &    'float:FloatToRange:B:@fill:FillValue:F:@xform:TransformFile:FN:@'//
+     &    'center:TransformCenterXandY:FP:@unaligned:UnalignedStartingXandY:IP:@'//
+     &    'order:InterpolationOrder:I:@sections:SectionsToDo:LI:@'//
+     &    'xminmax:StartingAndEndingX:IP:@yminmax:StartingAndEndingY:IP:@'//
+     &    'nofft:NoResizeForFFT:B:@origin:AdjustOrigin:B:@bin:BinByFactor:I:@'//
+     &    'maxsize:MaximumNewSizeXandY:IP:@minoverlap:MinimumOverlapXandY:IP:@'//
      &    'distort:DistortionField:FN:@imagebinned:ImagesAreBinned:I:@'//
      &    'gradient:GradientFile:FN:@adjusted:AdjustedFocus:B:@'//
-     &    'addgrad:AddToGradient:FP:@tiltfile:TiltFile:FN:@'//
-     &    'offset:OffsetTilts:F:@geometry:TiltGeometry:FT:@'//
-     &    'justUndistort:JustUndistort:B:@test:TestMode:B:@'//
-     &    'sloppy:SloppyMontage:B:@very:VerySloppyMontage:B:@'//
-     &    'shift:ShiftPieces:B:@edge:ShiftFromEdges:B:@'//
-     &    'xcorr:ShiftFromXcorrs:B:@readxcorr:ReadInXcorrs:B:@'//
-     &    'sections:SectionsToDo:LI:@xminmax:StartingAndEndingX:IP:@'//
-     &    'yminmax:StartingAndEndingY:IP:@nofft:NoResizeForFFT:B:@'//
-     &    'origin:AdjustOrigin:B:@bin:BinByFactor:I:@'//
-     &    'maxsize:MaximumNewSizeXandY:IP:@'//
-     &    'minoverlap:MinimumOverlapXandY:IP:@oldedge:OldEdgeFunctions:B:@'//
-     &    'perneg:FramesPerNegativeXandY:IP:@'//
-     &    'missing:MissingFromFirstNegativeXandY:IP:@'//
-     &    'width:BlendingWidthXandY:IP:@boxsize:BoxSizeShortAndLong:IP:@'//
-     &    'grid:GridSpacingShortAndLong:IP:@indents:IndentShortAndLong:IP:@'//
-     &    'goodedge:GoodEdgeLowAndHighZ:IP:@onegood:OneGoodEdgeLimits:IAM:@'//
-     &    'exclude:ExcludeFillFromEdges:B:@parallel:ParallelMode:IP:@'//
-     &    'subset:SubsetToDo:LI:@lines:LineSubsetToDo:IP:@'//
+     &    'addgrad:AddToGradient:FP:@tiltfile:TiltFile:FN:@offset:OffsetTilts:F:@'//
+     &    'geometry:TiltGeometry:FT:@justUndistort:JustUndistort:B:@test:TestMode:B:@'//
+     &    'sloppy:SloppyMontage:B:@very:VerySloppyMontage:B:@shift:ShiftPieces:B:@'//
+     &    'edge:ShiftFromEdges:B:@xcorr:ShiftFromXcorrs:B:@readxcorr:ReadInXcorrs:B:@'//
+     &    'ecdbin:BinningForEdgeShifts:F:@overlap:OverlapForEdgeShifts:IP:@'//
+     &    'skip:SkipEdgeModelFile:FN:@nonzero:NonzeroSkippedEdgeUse:I:@'//
+     &    'robust:RobustFitCriterion:F:@width:BlendingWidthXandY:IP:@'//
+     &    'boxsize:BoxSizeShortAndLong:IP:@grid:GridSpacingShortAndLong:IP:@'//
+     &    'indents:IndentShortAndLong:IP:@goodedge:GoodEdgeLowAndHighZ:IP:@'//
+     &    'onegood:OneGoodEdgeLimits:IAM:@exclude:ExcludeFillFromEdges:B:@'//
+     &    'unsmooth:UnsmoothedPatchFile:FN:@smooth:SmoothedPatchFile:FN:@'//
+     &    'parallel:ParallelMode:IP:@subset:SubsetToDo:LI:@lines:LineSubsetToDo:IP:@'//
      &    'boundary:BoundaryInfoFile:FN:@functions:EdgeFunctionsOnly:I:@'//
-     &    'aspect:AspectRatioForXcorr:F:@pad:PadFraction:F:@'//
-     &    'extra:ExtraXcorrWidth:F:@numpeaks:NumberOfXcorrPeaks:I:@'//
-     &    'radius1:FilterRadius1:F:@radius2:FilterRadius2:F:@'//
-     &    'sigma1:FilterSigma1:F:@sigma2:FilterSigma2:F:@'//
-     &    'treat:TreatFillForXcorr:I:@xcdbg:XcorrDebug:B:@'//
-     &    'taper:TaperFraction:F:@param:ParameterFile:PF:@help:usage:B:'
+     &    'aspect:AspectRatioForXcorr:F:@pad:PadFraction:F:@extra:ExtraXcorrWidth:F:@'//
+     &    'numpeaks:NumberOfXcorrPeaks:I:@radius1:FilterRadius1:F:@'//
+     &    'radius2:FilterRadius2:F:@sigma1:FilterSigma1:F:@sigma2:FilterSigma2:F:@'//
+     &    'treat:TreatFillForXcorr:I:@xcdbg:XcorrDebug:B:@taper:TaperFraction:F:@'//
+     &    'param:ParameterFile:PF:@help:usage:B:'
 c       
 c       initialization of many things
 c       
@@ -255,6 +251,7 @@ c
       verySloppy = .false.
       lmField = 1
       maxFields = 1
+      useFill = .false.
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -473,6 +470,7 @@ c
         ierr = PipGetInteger('NonzeroSkippedEdgeUse', ifUseAdjusted)
         ierr = PipGetFloat('RobustFitCriterion', robustCrit)
         ierr = PipGetLogical('TestMode', testMode)
+        useFill = PipGetFloat('FillValue', fillVal) .eq. 0
         ierr = PipGetTwoIntegers('GoodEdgeLowAndHighZ', izUseDefLow,
      &      izUseDefHigh)
         ierr = PipNumberOfEntries('OneGoodEdgeLimits', numUseEdge)
@@ -1515,7 +1513,7 @@ c         Finish it and exit if setting up for direct writing
           call ialcel(2,cell)
         endif
 c       
-        call date(dat)
+        call b3ddate(dat)
         call time(tim)
         write(titlech,90) actionStr,dat,tim
 90      format( 'BLENDMONT: Montage pieces ',a, t57, a9, 2x, a8 )
@@ -1755,6 +1753,8 @@ c
           enddo
         enddo
         dmean=cursum/rnsum
+        dfill = dmean
+        if (useFill) dfill = fillVal
         if(iffloat.eq.0)then
           curinmin=definmin
           curinmax=definmax
@@ -1845,10 +1845,10 @@ c
               endif
               nlinesout=indyhi+1-indylo
 c               
-c               fill array with dmean
+c               fill array with dfill
 c               
               do i=1,nxout*nlinesout
-                brray(i + iBufferBase)=dmean
+                brray(i + iBufferBase)=dfill
               enddo
 c               
               do ixfast=1,nxfast
@@ -2032,7 +2032,7 @@ c                 wasn't the first set of lines, then need to go back and
 c                 fill the lower part of frame with mean values
 c                 
                 if(.not.anylinesout.and.iyfast.gt.1)then
-                  val=dmean*pixscale+pixadd
+                  val=dfill*pixscale+pixadd
                   brray(1:nxout)=val
                   call parWrtPosn(2,numOut,iyOutOffset)
                   do ifill=1,(iyfast-1) * ifastsiz
@@ -2060,7 +2060,7 @@ c
 c       
       close(3)
 c      write(*,'(a,2f12.6)')'fast box and single pixel times:',fastcum,slowcum
-      if (ifEdgeFuncOnly .eq. 0) then
+      if (ifEdgeFuncOnly .eq. 0 .and. .not. testMode) then
 c       
 c         If direct parallel, output stats
         pixelTot = (float(nxbin) * nlinesWrite) * nzbin

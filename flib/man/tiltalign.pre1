@@ -15,7 +15,7 @@ DDEESSCCRRIIPPTTIIOONN
   views. These input data are read from a model in which each fiducial point
   is a separate contour.
 
-  This program has five notable features:
+  This program has several notable features:
 
   1) Any given fiducial point need not be present in every view. Thus, one
   can track each fiducial point only through the set of views in which it can
@@ -47,16 +47,24 @@ DDEESSCCRRIIPPTTIIOONN
   then be used to obtain a single large reconstruction whose resolution is as
   good as would be attained in a smaller volume.
 
-  The constraining of different views to have related values of some unknown
-  variable is called "mapping"; it works differently for tilt than for other
-  variables.  For variables other than tilt, if two or more views are mapped
-  to the same variable, then all of those views will have the same value.
-  For tilt angle, if two views are mapped to the same tilt variable, then the
-  DIFFERENCE between their tilt angles is constrained to be a constant equal
-  to the difference between their initial tilt angles.  So, if they have the
-  same initial tilt angle, they will always have the same tilt; and if their
-  initial tilt angles differ by 10, their tilt angles will always differ by
-  10.
+  6) The program can use a robust fitting method to give different weights to
+  different modeled points based on their individual fitting errors.  Points
+  with the most extreme errors are eliminated from the fit, and ones with high
+  but less extreme errors are down-weighted.  This fitting provides a
+  substitute for fixing many modeled point positions based on their errors.
+
+MAPPING OF VARIABLES
+
+  The constraining of different views to have related values of some
+  unknown variable is called "mapping"; it works differently for tilt than for
+  other variables.  For variables other than tilt, if two or more views are
+  mapped to the same variable, then all of those views will have the same
+  value.  For tilt angle, if two views are mapped to the same tilt variable,
+  then the DIFFERENCE between their tilt angles is constrained to be a
+  constant equal to the difference between their initial tilt angles.  So, if
+  they have the same initial tilt angle, they will always have the same tilt;
+  and if their initial tilt angles differ by 10, their tilt angles will always
+  differ by 10.
   
   Mapping can be set up relatively easily with "automapping".  When you
   select automapping, the program will map views in a group of adjacent views
@@ -98,6 +106,8 @@ DDEESSCCRRIIPPTTIIOONN
   local alignments described next, where there may be relatively few points in
   a local area.
 
+LOCAL ALIGNMENTS
+
   The program can embark on local alignments after obtaining the standard
   global solution with all of the fiducials.  The program divides the image
   area, or the area occupied by fiducials, into a regular array of overlapping
@@ -122,6 +132,49 @@ DDEESSCCRRIIPPTTIIOONN
   avoids distortions in the resulting reconstruction that could be difficult
   to account for when trying to combine reconstructions from tilts around two
   axes.
+
+ROBUST FITTING
+
+  The goal in robust fitting is to reduce the effect of incorrectly placed
+  model points on the fitted solution by giving less weight to points which
+  appear to be outliers.  Because it is not possible to be certain about which
+  points are indeed incorrect, each point is given a weight that depends on
+  how large its error is relative to that of other points.  When the option to
+  use robust fitting is selected, the program first obtains a global alignment
+  solution, or one for a local area, which gives a residual error value for
+  each projection point.  The residual values are analyzed to derive a weight
+  between 0 and 1 for each one, and the fitting routine is call again to
+  refine the solution with these weights.  This solution provides new
+  residuals, and this process is repeated until the weights do not change
+  significantly or until the fitting routine only runs for one iteration
+  several times in a row.  At the end, the program prints out the final F
+  value from the fit, which is the square root of the mean squared weighted
+  errors, and it also prints a weighted mean residual value immediately after
+  the ordinary mean.  It also prints a line showing the number of weights that
+  were set to 0, less than 0.1, less than 0.2, and less than 0.5.  The latter
+  number is usually about 5% of the total points.  The numbers of
+  down-weighted points can be increased or decreased by entering the
+  KFactorScaling with a value less than or greater than 1, respectively.
+
+  The weights are derived by the following method.  The median residual is
+  first obtained for each view from the errors of the unweighted fit, and
+  these values are smoothed to obtain a curve for the dependence of median
+  residual on view number.  The projection points are divided into groups of
+  about 100 by forming groups of adjacent views, and, for the global solution,
+  by sorting the points into concentric rings based on distance from the
+  center.  These two measures are used to reduce the influence of systematic
+  variations in residual error with tilt angle and with distance from the
+  center on the detection of incorrectly positioned points.  For a group of
+  points, each point's residual is divided by the smoothed median residual for
+  that point's views.  The median of the values is found, as well as the
+  normalized median absolute deviation from the median (the MADN).  For each
+  point with residual greater than the median, the value
+    x = (residual - median) / (K * MADN)
+  is computed, where K is the K factor (4.685 by default), and the weight is 
+    (1 - x**2)**2
+  for x < 1, or 0 for x > 1.
+
+THE ALIGNMENT MODEL
 
   The program implements the following model for the imaging of the specimen
   in each individual view:
@@ -148,6 +201,17 @@ DDEESSCCRRIIPPTTIIOONN
   together with rotation angle; and it is almost impossible to solve for beam
   tilt together with rotation and skew.
 
+  The complete model is summarized in:
+  Mastronarde, D. N. 2008.  Correction for non-perpendicularity of beam and
+  tilt axis in tomographic reconstructions with the IMOD package. J. Microsc.
+  230: 212-217.
+  The version of the model prior to the addition of beam tilt is described in
+  more detail in:
+  Mastronarde, D. N.  2007.  Fiducial marker and hybrid alignment methods for
+  single- and double-axis tomography.  In: Electron Tomography, Ed. J. Frank,
+  2nd edition, pp 163-185. Springer, New York.
+
+
 INPUTS TO THE PROGRAM
   
   In all entries of view numbers, the views are numbered from 1.
@@ -156,7 +220,9 @@ INPUTS TO THE PROGRAM
   and can still take sequential input interactively, to maintain compatibility
   with old command files.  The following options can be specified either as
   command line arguments (with the -) or one per line in a command file or
-  parameter file (without the -):
+  parameter file (without the -).  Options can be abbreviated to unique
+  letters; the currently valid abbreviations for short names are shown in
+  parentheses.
 
 INSERT OPTION TEXT HERE
 

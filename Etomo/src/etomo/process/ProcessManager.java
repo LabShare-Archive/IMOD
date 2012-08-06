@@ -2166,11 +2166,10 @@ public class ProcessManager extends BaseProcessManager {
     if (processName == null) {
       return;
     }
-    if (processName.equals(ProcessName.TILT_3D_FIND.toString() + axisID.getExtension())) {
+    if (ProcessName.TILT_3D_FIND.equals(processName, axisID)) {
       appManager.copyTilt3dFindReprojectCom(axisID);
     }
-    else if (processName.equals(ProcessName.CTF_CORRECTION.toString()
-        + axisID.getExtension())) {
+    else if (ProcessName.CTF_CORRECTION.equals(processName, axisID)) {
       appManager.getState().setUseCtfCorrectionWarning(axisID, true);
     }
   }

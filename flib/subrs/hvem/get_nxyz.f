@@ -10,44 +10,24 @@ c       [option].  Set [progname] to the name of the program if the option is
 c       mandatory.  If this entry is optional, pass [progname] as a blank
 c       string.
 c       !
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.3  2004/08/22 14:59:12  mast
-c       Added line_is_filename as workaround to Windows problem
-c	
-c       Revision 3.2  2004/08/03 01:52:10  mast
-c       Had it treat end of input same as err
-c	
-c       Revision 3.1  2003/12/24 18:09:38  mast
-c       Converted to take PIP input
-c	
-c       Revision 3.1  2002/07/21 19:36:30  mast
-c       Fixed treatment of / to just return and added ability for blank line
-c       to do the same
-c	
+c       $Id$
+c
       subroutine get_nxyz(pipinput,option,progname,iunit,nxyz)
       implicit none
       integer*4 nxyz(3),mxyz(3),iunit,mode,i, PipGetString
       character*(*) option, progname
-      character*80 line
+      character*320 line
       logical pipinput
       real*4 dmin,dmax,dmean
       logical line_is_filename
-      integer*4 lnblnk
 
       if (.not.pipinput) then
         read(5,'(a)')line
       else
         if (PipGetString(option, line) .gt. 0) then
           if (progname .eq. ' ') return
-          write(*,'(/,a,a,a,a,a)') 'ERROR: ',progname(1:lnblnk(progname)),
-     &        ' - you must enter option ',option(1:lnblnk(option)),
-     &        ' to specify file size or file name'
+          write(*,'(/,a,a,a,a,a)') 'ERROR: ',trim(progname), ' - you must enter option ',
+     &        trim(option), ' to specify file size or file name'
           call exit(1)
         endif
       endif

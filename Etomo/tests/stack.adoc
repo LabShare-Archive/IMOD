@@ -362,6 +362,16 @@ mb.align-stack-and-create-tomogram=+
 	assert.enabled.bn.view-full-aligned-stack=
 	assert.enabled.bn.view-tomogram-in-3dmod=
 [[]]
+# run unbinned without parallel processing
+cb.parallel-processing=off
+sp.aligned-image-stack-binning=1
+bn.align-and-build-tomogram=
+wait.process.calculating-tomogram = done
+# check files
+assert.exists.file=tilt_3dfind%{axis}.com
+assert.exists.file=tilt_3dfind%{axis}.log
+assert.exists.file=%{dataset}%{axis}_3dfind.rec
+assert.exists.file=tilt_3dfind_reproject%{axis}.com
 # run highly binned with parallel processing
 cb.parallel-processing=on
 sp.aligned-image-stack-binning=3
