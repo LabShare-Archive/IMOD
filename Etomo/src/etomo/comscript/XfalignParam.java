@@ -150,6 +150,11 @@ import etomo.type.Transform;
 public class XfalignParam implements Command {
   public static final String rcsid = "$Id$";
 
+  public static final String PRE_CROSS_CORRELATION_KEY = "PreCrossCorrelation";
+  public static final String EDGE_TO_IGNORE_KEY = "EdgeToIgnore";
+  public static final String REDUCE_BY_BINNING_KEY = "ReduceByBinning";
+  public static final String SKIP_SECTIONS_KEY = "SkipSections";
+  public static final String SECTIONS_NUMBERED_FROM_ONE_KEY = "SectionsNumberedFromOne";
   private static final int commandSize = 4;
   private static final String commandName = "xfalign";
   private static final String outputFileExtension = "_auto.xf";
