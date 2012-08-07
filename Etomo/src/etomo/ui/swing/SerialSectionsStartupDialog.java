@@ -169,10 +169,7 @@ public class SerialSectionsStartupDialog implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Processchunks", "3dmod" };
-    String[] manPage = { "processchunks.html", "3dmod.html" };
-    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent, manPagelabel,
-        manPage, true, manager, axisID);
+    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent, manager, axisID);
   }
 
   public void display() {
@@ -186,8 +183,8 @@ public class SerialSectionsStartupDialog implements ContextMenu {
       return false;
     }
     File stack = getStack();
-    return DatasetTool.validateViewType(getViewType(), stack.getParent(), stack.getName(),
-        manager, axisID);
+    return DatasetTool.validateViewType(getViewType(), stack.getParent(),
+        stack.getName(), manager, axisID);
   }
 
   /**
@@ -241,7 +238,7 @@ public class SerialSectionsStartupDialog implements ContextMenu {
     }
     return null;
   }
-  
+
   public String getPropertyUserDir() {
     if (startupData != null) {
       return startupData.getStack().getParent();
@@ -333,11 +330,14 @@ public class SerialSectionsStartupDialog implements ContextMenu {
   }
 
   private void setTooltips() {
-    ftfStack
-        .setToolTipText("Stack to be processed.  The stack location will be used as the "
-            + "dataset directory.");
+    ftfStack.setToolTipText("Stack to be processed.  The stack location will be used as "
+        + "the dataset directory.");
     ftfDistortionField.setToolTipText(SharedConstants.DISTORTION_FIELD_TOOLTIP);
     spImagesAreBinned.setToolTipText(SharedConstants.IMAGES_ARE_BINNED_TOOLTIP);
+    rbViewTypeMontage.setToolTipText(SharedConstants.VIEW_TYPE_TOOLTIP);
+    rbViewTypeSingle.setToolTipText(SharedConstants.VIEW_TYPE_TOOLTIP);
+    btnOk.setToolTipText("Creates a dataset in the directory containing the serial "
+        + "sections stack.");
   }
 
   private static final class SerialSectionsStartupWindowListener implements
