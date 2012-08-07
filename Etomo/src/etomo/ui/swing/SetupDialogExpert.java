@@ -649,9 +649,7 @@ public final class SetupDialogExpert {
         + "rotation angle from data stack.");
     dialog.setAxisTypeTooltip("This radio button selector will choose whether the "
         + "data consists of one or two tilt axis.");
-    dialog.setViewTypeTooltip("This radio button selector will choose whether the "
-        + "data consists of a single frame per view or multiple frames per "
-        + "view (montaged).");
+    dialog.setViewTypeTooltip(SharedConstants.VIEW_TYPE_TOOLTIP);
 
     dialog
         .setPixelSizeTooltip("Enter the view image pixel size in nanometers " + "here.");
