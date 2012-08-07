@@ -50,6 +50,12 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   public static final String IMAGE_OUTPUT_FILE_KEY = "ImageOutputFile";
   public static final String IMAGES_ARE_BINNED_KEY = "ImagesAreBinned";
   public static final String DISTORTION_FIELD_KEY = "DistortionField";
+  public static final String VERY_SLOPPY_MONTAGE_KEY = "VerySloppyMontage";
+  public static final String ROBUST_FIT_CRITERION_KEY = "RobustFitCriterion";
+  public static final String STARTING_AND_ENDING_X_KEY = "StartingAndEndingX";
+  public static final String STARTING_AND_ENDING_Y_KEY = "StartingAndEndingY";
+  public static final String BIN_BY_FACTOR_KEY = "BinByFactor";
+  public static final String FILL_VALUE_KEY = "FillValue";
 
   private final StringParameter distortionField = new StringParameter("DistortionField");
   private final StringParameter imageInputFile = new StringParameter("ImageInputFile");
@@ -57,11 +63,12 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   private final StringParameter rootNameForEdges = new StringParameter("RootNameForEdges");
   private final ScriptParameter imagesAreBinned = new ScriptParameter("ImagesAreBinned");
   private final EtomoBoolean2 sloppyMontage = new EtomoBoolean2("SloppyMontage");
-  private final EtomoBoolean2 verySloppyMontage = new EtomoBoolean2("VerySloppyMontage");
+  private final EtomoBoolean2 verySloppyMontage = new EtomoBoolean2(
+      VERY_SLOPPY_MONTAGE_KEY);
   private final ScriptParameter robustFitCriterion = new ScriptParameter(
-      EtomoNumber.Type.DOUBLE, "RobustFitCriterion");
+      EtomoNumber.Type.DOUBLE, ROBUST_FIT_CRITERION_KEY);
   private final ScriptParameter fillValue = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-      "FillValue");
+      FILL_VALUE_KEY);
   private final StringParameter transformFile = new StringParameter("TransformFile");
   /**
    * @version 3.10
@@ -69,9 +76,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
    */
   private final EtomoBoolean2 adjustOrigin = new EtomoBoolean2("AdjustOrigin");
   private final FortranInputString startingAndEndingX = new FortranInputString(
-      "StartingAndEndingX", 2);
+      STARTING_AND_ENDING_X_KEY, 2);
   private final FortranInputString startingAndEndingY = new FortranInputString(
-      "StartingAndEndingY", 2);
+      STARTING_AND_ENDING_Y_KEY, 2);
   private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private final FortranInputString unalignedStartingXandY = new FortranInputString(
       "UnalignedStartingXandY", 2);
@@ -115,7 +122,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     justUndistort = new EtomoBoolean2("JustUndistort");
     imageOutputFile = null;
     imageOutputFileType = null;
-    binByFactor = new ScriptParameter(EtomoNumber.Type.INTEGER, "BinByFactor");
+    binByFactor = new ScriptParameter(EtomoNumber.Type.INTEGER, BIN_BY_FACTOR_KEY);
     // Only explcitly write out the binning if its value is something other than
     // the default of 1 to keep from cluttering up the com script
     binByFactor.setDefault(1);
