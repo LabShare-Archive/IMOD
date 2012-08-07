@@ -3,6 +3,8 @@ package etomo.ui.swing;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -11,9 +13,17 @@ import javax.swing.SpinnerNumberModel;
 
 import etomo.AutoAlignmentController;
 import etomo.BaseManager;
+import etomo.comscript.BlendmontParam;
 import etomo.comscript.MidasParam;
 import etomo.comscript.XfalignParam;
+import etomo.storage.LogFile;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AutoAlignmentMetaData;
+import etomo.type.AxisID;
+import etomo.type.EtomoAutodoc;
+import etomo.type.ViewType;
+import etomo.util.SharedConstants;
 
 /**
 * <p>Description: </p>
@@ -293,6 +303,36 @@ public final class AutoAlignmentPanel {
         .setToolTipText("Use to ignore xfalign changes.  Returns transformations to the "
             + "state created by the most recent save done in Midas.");
     btnRevertToEmpty.setToolTipText("Use to remove all transformations.");
+    spMidasBinning.setToolTipText(SharedConstants.MIDAS_BINNING_TOOLTIP);
+    ReadOnlyAutodoc autodoc = null;
+    try {
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.XFALIGN, AxisID.ONLY);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.LockException except) {
+      except.printStackTrace();
+    }
+    if (autodoc != null) {
+      cbPreCrossCorrelation.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          XfalignParam.PRE_CROSS_CORRELATION_KEY));
+      ltfEdgeToIgnore.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          XfalignParam.EDGE_TO_IGNORE_KEY));
+      spReduceByBinning.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          XfalignParam.REDUCE_BY_BINNING_KEY));
+      ltfSkipSectionsFrom1
+          .setToolTipText(EtomoAutodoc
+              .getTooltip(autodoc, XfalignParam.SKIP_SECTIONS_KEY)
+              + "  Also sets the "
+              + XfalignParam.SECTIONS_NUMBERED_FROM_ONE_KEY
+              + " option:  "
+              + EtomoAutodoc.getTooltip(autodoc,
+                  XfalignParam.SECTIONS_NUMBERED_FROM_ONE_KEY));
+    }
   }
 
   private static final class AutoAlignmentActionListener implements ActionListener {
