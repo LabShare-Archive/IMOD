@@ -1,5 +1,5 @@
 /*
- *  imod2obj - convert IMOD model to (wavefront) OBJ file
+ *  imod2obj.cpp - convert IMOD model to (wavefront) OBJ file
  *  
  *  Author:     Andrew Noske
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -10,7 +10,7 @@
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
- *  $Id: imod2obj.c ???
+ *  $Id: imod2obj.cpp
  *  Log at end
  */
 
@@ -39,6 +39,9 @@ static int sphereSegments = 8;		// number of segments per sphere
 static int useIcosahedrons= 0;		// draw isohedrons instead of "standard" sphere meshes
 static int onlyScatSpheres= 0;	  // only print spheres for scattered objects
 
+// TODO: Add labels...
+
+
 //## FUNCTION DECLARATION:
 
 void imod_to_obj(Imod *imod, FILE *fout, char *outFileName);
@@ -61,7 +64,7 @@ static void printMaterial(Imod *imod, int ob, FILE *fout);
 static void usage(int error)
 {
   printf("\nConverts an imod model to OBJ (wavefront object) file format and\n");
-	printf("   (if specified) a matching MTL (material template library) file.\n");
+	printf("   (if specified) a matching MTL (material template library) file.\n\n");
   printf("Usage: imod2obj [options] <input.mod> <output.obj> [output.mtl]\n");
 	printf("Options:\n");
   printf("       -l     output low-resolution meshes (if any exist).\n");
@@ -258,7 +261,7 @@ static void printObjSafeUniqueObjectName(Imod *imod, int ob, FILE *fout )
 		else if( c=='+' || c=='&' || c==';' || c=='|' )			// symbols cinema 4D rejects
 			fprintf( fout,"_" );
 		else
-		  fprintf( fout,"%c", obj->name[i] );
+		  fprintf( fout,"%c", c );
 	}
 }
 
@@ -742,7 +745,7 @@ static void printMaterial(Imod *imod, int ob, FILE *fout)
 
 
 /*
-$Log: imod2obj.c,v $
-Revision 1.0  2011/12/22 21:37:14  noske
-Modified file from "imod2vrml.c" to output OBJ format
-*/
+ $Log: imod2obj.cpp,v $
+ Revision 1.0  2011/12/22 21:37:14  noske
+ Modified file from "imod2vrml.c" to output OBJ format
+ */

@@ -58,4 +58,4 @@ Andrew Noske, based on "imod2vrml" by Jim Kremer and David Mastronarde
 .SH SEE ALSO
 3dmodv(1), imodmesh(1), imod2vrml(1)
 .SH BUGS
-Email bug reports to mast@colorado.edu, and CC to andrew_noske<AT>yahoo<DOT>com.
+Email bug reports to mast@colorado.edu, and CC to andrew<DOT>noske<AT>gmail<DOT>com.

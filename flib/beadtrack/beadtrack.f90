@@ -26,9 +26,9 @@ program beadtrack
   !
   real*4 title(20), matKernel(49)
   real*4, allocatable :: boxes(:,:,:), curSum(:), boxTmp(:), corrSum(:,:), sobelSum(:,:)
-  real*4, allocatable :: array(:), BRRAY(:), sarray(:), sbrray(:), sobelEdgeSD(:,:)
-  real*4, allocatable :: refSobel(:), tmpSobel(:), boxSobel(:), sobelWsums(:,:)
-  real*4, allocatable :: sobelXpeaks(:,:), sobelYpeaks(:,:), sobelPeaks(:,:), prexf(:,:,:)
+  real*4, allocatable :: array(:), BRRAY(:), sarray(:), sbrray(:), sobelEdgeSD(:)
+  real*4, allocatable :: refSobel(:), tmpSobel(:), boxSobel(:), sobelWsums(:)
+  real*4, allocatable :: sobelXpeaks(:), sobelYpeaks(:), sobelPeaks(:), prexf(:,:,:)
   ! maxAllReal
   real*4, allocatable :: seqDist(:), xxtmp(:), yytmp(:), xvtmp(:), yvtmp(:)
   integer*4, allocatable :: indgap(:), numResSaved(:)
@@ -539,6 +539,8 @@ program beadtrack
   iPolarity = -1
   if (ifWhite .ne. 0) iPolarity = 1
   !
+  ! Set up tapering.  It is inside, so make box a little bigger but not much
+  ! Some tracking deterioriated with it larger.
   nxTaper = max(8, nint(taperFrac * nxBox))
   nyTaper = max(8, nint(taperFrac * nyBox))
   nxBox = nxBox + nxTaper / 2
@@ -1072,13 +1074,13 @@ program beadtrack
   allocate(xseek(i), yseek(i), wsumCrit(i), xr(msizeXR, i), ifFound(i), &
       ipNearest(i), ipNearSave(i), iobjDel(i), idrop(i), iobjAli(i), numInSobelSum(i), &
       wsumSave(minViewDo:maxViewDo, maxAllReal), inCorrSum(maxAnySum, i), &
-      inSobelSum(maxAnySum, i), sobelXpeaks(maxPeaks, i), sobelYpeaks(maxPeaks, i), &
-      sobelPeaks(maxPeaks, i), sobelWsums(maxPeaks, i), sobelEdgeSD(maxPeaks, i),  &
+      inSobelSum(maxAnySum, i), sobelXpeaks(maxPeaks), sobelYpeaks(maxPeaks), &
+      sobelPeaks(maxPeaks), sobelWsums(maxPeaks), sobelEdgeSD(maxPeaks),  &
       stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR POINTS IN AREA')
   xr(3, 1:i) = 0.
-  sobelXpeaks(:,:) = 0.
-  sobelYpeaks(:,:) = 0.
+  sobelXpeaks(:) = 0.
+  sobelYpeaks(:) = 0.
   wsumSave(:,:) = -1.
   !
   ! Get size and offset of sobel filtered
@@ -1704,7 +1706,7 @@ CONTAINS
         endif
         xseek(iobjDo) = xpos / ix
         yseek(iobjDo) = ypos / ix
-        if (saveAllPoints) print *,'justAvg',iobj,xseek(iobjDo), yseek(iobjDo)
+        !if (saveAllPoints) print *,'justAvg',iobj,xseek(iobjDo), yseek(iobjDo)
       enddo
     endif
     !
@@ -1764,14 +1766,14 @@ CONTAINS
             c * xyzSave(3, indr) + dxCur + xcen
         yseek(iobjDo) = d * xyzSave(1, indr) + e * xyzSave(2, indr) +  &
             f * xyzSave(3, indr) + dyCur + ycen
-        if (saveAllPoints) print *,'3d proj',iobj,xseek(iobjDo), yseek(iobjDo)
+        !if (saveAllPoints) print *,'3d proj',iobj,xseek(iobjDo), yseek(iobjDo)
       else if (justAverage == 0) then
         call nextPos(iobj, ipNearest(iobjDo), idir, iznext, tiltAll, numFit, &
             minFit, rotStart, tiltFitMin, izExclude, numExclude, xseek(iobjDo),  &
             yseek(iobjDo))
-        if (saveAllPoints) print *,'nextPos',iobj,p_coord(1, object(ibase +  &
-            ipNearest(iobjDo))),p_coord(2, object(ibase + ipNearest(iobjDo))), &
-            xseek(iobjDo), yseek(iobjDo)
+        !if (saveAllPoints) print *,'nextPos',iobj,p_coord(1, object(ibase +  &
+            !ipNearest(iobjDo))),p_coord(2, object(ibase + ipNearest(iobjDo))), &
+            !xseek(iobjDo), yseek(iobjDo)
       endif
       if (saveAllPoints) then
         iobjSave = iobj + (5 * ipass - 4) * maxObjOrig
@@ -2055,6 +2057,7 @@ CONTAINS
     !
     call loadBoxAndTaper()
 
+    ! Do cross-correlation on first pass
     if (ipass == 1) then
       !
       ! pad image into array on first pass, pad correlation sum into brray
@@ -2080,78 +2083,83 @@ CONTAINS
         call add_point(iobjSave, 0, nint(xnext) + xpeak, nint(ynext) + ypeak, iznext)
       endif
       call calcCG(boxTmp, nxBox, nyBox, xpeak, ypeak, wsum, edgeSD)
-      !
-      ! Get sobel sum with enough beads in it
-      if (maxSobelSum > 0) then
-        curSum(1:npixBox) = sobelSum(1:npixBox, iobjDo)
-        ninSobel = numInSobelSum(iobjDo)
-        do i = 1, numObjDo
-          if (ninSobel >= maxSobelSum) then
-            exit
-          endif
-          if (i .ne. iobjDo) then
-            curSum(1:npixBox) = curSum(1:npixBox) + sobelSum(1:npixBox, i)
-            ninSobel = ninSobel + numInSobelSum(i)
-          endif
-        enddo
-        !
-        ! It seems like a model bead is better for low numbers in the average
-        if (ninSobel < maxSobelSum / 2 .and. nxbox == nybox) &
-            call makeModelBead(nxbox, 1.05 * diameter, curSum)
-        !
-        ! sobel filter the sum
-        ierr = scaledSobel(curSum, nxBox, nyBox, scaleFacSobel, scaleByInterp, &
-            interpType, 2., refSobel, nxSobel, nySobel, xOffSobel, yOffSobel)
-        if (ierr .ne. 0) call errorExit('DOING SOBEL FILTER ON SUMMED BEADS', 0)
-        ! write(*,'(i4,13i5)') (nint(refSobel(i)), i = 1, 14 * 14)
-        !
-        ! Gaussian filter the box and sobel filter it
-        if (sobelSigma > 0) then
-          call applyKernelFilter(boxTmp, tmpSobel, nxBox, nxBox, nyBox, matKernel, &
-              kernelDim)
-          ierr = scaledSobel(tmpSobel, nxBox, nyBox, scaleFacSobel, scaleByInterp, &
-              interpType, 2., boxSobel, nxSobel, nySobel, xOffSobel, yOffSobel)
-        else
-          ierr = scaledSobel(boxTmp, nxBox, nyBox, scaleFacSobel, scaleByInterp, &
-              interpType, 2., boxSobel, nxSobel, nySobel, xOffSobel, yOffSobel)
+    endif
+    !
+    ! Need sobel filter peak positions on both passes
+    ! First get sobel sum with enough beads in it
+    if (maxSobelSum > 0) then
+      curSum(1:npixBox) = sobelSum(1:npixBox, iobjDo)
+      ninSobel = numInSobelSum(iobjDo)
+      do i = 1, numObjDo
+        if (ninSobel >= maxSobelSum) then
+          exit
         endif
-        if (ierr .ne. 0) call errorExit('DOING SOBEL FILTER ON SEARCH BOX', 0)
-        !
-        ! Taper / pad etc
-        call taperInPad(boxSobel, nxSobel, nySobel, sarray, nxsPad + 2, nxsPad, &
-            nysPad, nxTaper, nyTaper)
-        call meanZero(sarray, nxsPad + 2, nxsPad, nysPad)
-        call taperInPad(refSobel, nxSobel, nySobel, sbrray, nxsPad + 2, nxsPad, nysPad, &
-            nxTaper, nyTaper)
-        call meanZero(sbrray, nxsPad + 2, nxsPad, nysPad)
-        !
-        ! correlate the two
-        call todfft(sarray, nxsPad, nysPad, 0)
-        call todfft(sbrray, nxsPad, nysPad, 0)
-        call conjugateProduct(sarray, sbrray, nxsPad, nysPad)
-        call todfft(sarray, nxsPad, nysPad, 1)
-        !
-        ! get the peaks and adjust them for the sobel scaling
-        ! get the centroid offset of the average and use it to adjust the positions too
-        ! the original offsets from scaledSobel are irrelevant to correlation
-        call xcorrPeakFind(sarray, nxsPad + 2, nysPad, sobelXpeaks(1, iobjDo), &
-            sobelYpeaks(1, iobjDo), sobelPeaks(1, iobjDo), maxPeaks)
-        call calcCG(curSum, nxBox, nyBox, xOffSobel, yOffSobel, xtmp, ytmp)
-        ! write(*,'(2i5,a,2f7.2)') iobjDo, ninSobel, '  Sobel average offset', xOffSobel, yOffSobel
-        sobelWsums(1:maxPeaks, iobjDo) = -1.
-        sobelXpeaks(1:maxPeaks, iobjDo) = sobelXpeaks(1:maxPeaks, iobjDo) * &
-            scaleFacSobel + xOffSobel
-        sobelYpeaks(1:maxPeaks, iobjDo) = sobelYpeaks(1:maxPeaks, iobjDo) * &
-            scaleFacSobel + yOffSobel
-        ! do i = 1, maxPeaks
-        ! if (sobelPeaks(i, iobjDo) > - 1.e29) &
-        ! write(*,'(2f7.2,f13.2)') sobelXpeaks(i, iobjDo), sobelYpeaks(i, iobjDo), sobelPeaks(i, iobjDo)
-        ! enddo
-
-        ! Revise position of current peak
-        call findNearestSobelPeak()
+        if (i .ne. iobjDo) then
+          curSum(1:npixBox) = curSum(1:npixBox) + sobelSum(1:npixBox, i)
+          ninSobel = ninSobel + numInSobelSum(i)
+        endif
+      enddo
+      !
+      ! It seems like a model bead is better for low numbers in the average
+      if (ninSobel < maxSobelSum / 2 .and. nxbox == nybox) &
+          call makeModelBead(nxbox, 1.05 * diameter, curSum)
+      !
+      ! sobel filter the sum
+      ierr = scaledSobel(curSum, nxBox, nyBox, scaleFacSobel, scaleByInterp, &
+          interpType, 2., refSobel, nxSobel, nySobel, xOffSobel, yOffSobel)
+      if (ierr .ne. 0) call errorExit('DOING SOBEL FILTER ON SUMMED BEADS', 0)
+      ! write(*,'(i4,13i5)') (nint(refSobel(i)), i = 1, 14 * 14)
+      !
+      ! Gaussian filter the box and sobel filter it
+      if (sobelSigma > 0) then
+        call applyKernelFilter(boxTmp, tmpSobel, nxBox, nxBox, nyBox, matKernel, &
+            kernelDim)
+        ierr = scaledSobel(tmpSobel, nxBox, nyBox, scaleFacSobel, scaleByInterp, &
+            interpType, 2., boxSobel, nxSobel, nySobel, xOffSobel, yOffSobel)
+      else
+        ierr = scaledSobel(boxTmp, nxBox, nyBox, scaleFacSobel, scaleByInterp, &
+            interpType, 2., boxSobel, nxSobel, nySobel, xOffSobel, yOffSobel)
       endif
+      if (ierr .ne. 0) call errorExit('DOING SOBEL FILTER ON SEARCH BOX', 0)
+      !
+      ! Taper / pad etc
+      call taperInPad(boxSobel, nxSobel, nySobel, sarray, nxsPad + 2, nxsPad, &
+          nysPad, nxTaper, nyTaper)
+      call meanZero(sarray, nxsPad + 2, nxsPad, nysPad)
+      call taperInPad(refSobel, nxSobel, nySobel, sbrray, nxsPad + 2, nxsPad, nysPad, &
+          nxTaper, nyTaper)
+      call meanZero(sbrray, nxsPad + 2, nxsPad, nysPad)
+      !
+      ! correlate the two
+      call todfft(sarray, nxsPad, nysPad, 0)
+      call todfft(sbrray, nxsPad, nysPad, 0)
+      call conjugateProduct(sarray, sbrray, nxsPad, nysPad)
+      call todfft(sarray, nxsPad, nysPad, 1)
+      !
+      ! get the peaks and adjust them for the sobel scaling
+      ! get the centroid offset of the average and use it to adjust the positions too
+      ! the original offsets from scaledSobel are irrelevant to correlation
+      call xcorrPeakFind(sarray, nxsPad + 2, nysPad, sobelXpeaks, &
+          sobelYpeaks, sobelPeaks, maxPeaks)
+      call calcCG(curSum, nxBox, nyBox, xOffSobel, yOffSobel, xtmp, ytmp)
+      ! write(*,'(2i5,a,2f7.2)') iobjDo, ninSobel, '  Sobel average offset', xOffSobel, yOffSobel
+      sobelWsums(1:maxPeaks) = -1.
+      sobelXpeaks(1:maxPeaks) = sobelXpeaks(1:maxPeaks) * &
+          scaleFacSobel + xOffSobel
+      sobelYpeaks(1:maxPeaks) = sobelYpeaks(1:maxPeaks) * &
+          scaleFacSobel + yOffSobel
+      !do i = 1, maxPeaks
+      !   if (sobelPeaks(i) > - 1.e29) &
+      !     write(*,'(2f7.2,f13.2)') sobelXpeaks(i), sobelYpeaks(i), &
+      !        sobelPeaks(i)
+      !  enddo
 
+      ! Revise position of current peak on first pass
+      if (ipass == 1) &
+        call findNearestSobelPeak()
+    endif
+
+    if (ipass == 1) then
       dist = sqrt(xpeak**2 + ypeak**2)
       if (saveAllPoints) then
         iobjSave = iobj + (5 * ipass - 1) * maxObjOrig
@@ -2182,8 +2190,8 @@ CONTAINS
         radMax = radMaxFit
       endif
       ! if (maxSobelSum > 0) then
-      ! call rescueFromSobel(boxTmp, nxBox, nyBox, xpeak, ypeak, sobelXpeaks(1, iobjDo), &
-      ! sobelYpeaks(1, iobjDo), sobelPeaks(1, iobjDo), sobelWsums(1, iobjDo), &
+      ! call rescueFromSobel(boxTmp, nxBox, nyBox, xpeak, ypeak, sobelXpeaks, &
+      ! sobelYpeaks, sobelPeaks, sobelWsums, &
       ! maxPeaks, radMax, relax * wsumCrit(iobjDo), wsum, edgeSD)
       ! else
       call rescue(boxTmp, nxBox, nyBox, xpeak, ypeak, radMax, relax * wsumCrit(iobjDo), &
@@ -2194,7 +2202,7 @@ CONTAINS
       wsum = 0.
     endif
     !
-    !
+    ! Add point if it passes wsum criterion
     !
     if (wsum > 0.) then
       wsumSave(iview, iobjSeq(iobjDo)) = wsum
@@ -2295,28 +2303,31 @@ CONTAINS
     peakMax = -1.e30
     distMin = 1.e20
     do i = 1, maxPeaks
-      call checkSobelPeak(i, boxTmp, nxBox, nyBox, sobelXpeaks(1, iobjDo), &
-          sobelYpeaks(1, iobjDo), sobelPeaks(1, iobjDo), sobelWsums(1, iobjDo), &
-          sobelEdgeSD(1,iobjDo), maxPeaks)
-      ! if (sobelPeaks(i, iobjDo) > - 1.e29) &
-      ! write(*,'(2f7.2,2f13.2)') sobelXpeaks(i, iobjDo), sobelYpeaks(i, iobjDo), sobelPeaks(i, iobjDo), sobelWsums(1, iobjDo)
+      call checkSobelPeak(i, boxTmp, nxBox, nyBox, sobelXpeaks, sobelYpeaks, sobelPeaks, &
+          sobelWsums, sobelEdgeSD, maxPeaks)
+       !if (sobelPeaks(i) > - 1.e29) write(*,'(2f7.2,2f12.2)')  &
+       !    sobelXpeaks(i), sobelYpeaks(i), sobelPeaks(i), &
+       !    sobelWsums(i)
 
-      if (sobelWsums(i, iobjDo) > 0) then
-        if (peakMax < - 1.e29) peakMax = sobelPeaks(i, iobjDo)
-        if (sobelPeaks(i, iobjDo) < minPeakRatio * peakMax) then
+      if (sobelWsums(i) > 0) then
+        if (peakMax < - 1.e29) peakMax = sobelPeaks(i)
+        if (sobelPeaks(i) < minPeakRatio * peakMax) then
           exit
         endif
-        dist = (sobelXpeaks(i, iobjDo) - xpcen)**2 + (sobelYpeaks(i, iobjDo) - ypcen)**2
-        if (dist < distMin) then
+        dist = (sobelXpeaks(i) - xpcen)**2 + (sobelYpeaks(i) - ypcen)**2
+
+        ! Do not allow it more than a diameter away or a lot weaker than the criterion
+        if (dist < distMin .and. dist < diameter**2 .and.  &
+            sobelWsums(i) > 0.5 * wsumCrit(iobjDo)) then
           distMin = dist
           ibest = i
         endif
       endif
     enddo
     if (ibest == 0) return
-    xpeak = sobelXpeaks(ibest, iobjDo)
-    ypeak = sobelYpeaks(ibest, iobjDo)
-    ! wsum = sobelWsums(ibest, iobjDo)
+    xpeak = sobelXpeaks(ibest)
+    ypeak = sobelYpeaks(ibest)
+    ! wsum = sobelWsums(ibest)
     ! print *,ibest, xpeak, ypeak, wsum
     return
   end subroutine findNearestSobelPeak

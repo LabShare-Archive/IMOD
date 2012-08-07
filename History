@@ -6,7 +6,7 @@ beads from tracking on wild positions.  Improved the position prediction when
 returning to the starting view for the next local area, and also made it track
 halfway out on both sides on first round, to reduce loss of points when
 going back to starting view.  Added model Z scale.  Added detection of
-incorrect polarity.
+incorrect polarity.  Fixed some problems with sobel positioning.
 
 8/2/12: Made usage statements and manpages from PIP show abbreviations of
 short names.
