@@ -49,6 +49,9 @@ public final class XftoxgParam implements Command {
 
   public static final ProcessName PROCESS_NAME = ProcessName.XFTOXG;
   public static final String COMMAND_NAME = PROCESS_NAME.toString();
+  public static final String NUMBER_TO_FIT_KEY = "NumberToFit";
+  public static final String HYBRID_FITS_KEY = "HybridFits";
+  public static final String REFERENCE_SECTION = "ReferenceSection";
   private static final boolean debug = true;
   private static final int COMMAND_SIZE = 1;
 
@@ -69,15 +72,15 @@ public final class XftoxgParam implements Command {
   private ArrayList genOptions() {
     ArrayList options = new ArrayList();
     if (!numberToFit.isNull()) {
-      options.add("-NumberToFit");
+      options.add("-" + NUMBER_TO_FIT_KEY);
       options.add(numberToFit.toString());
     }
     if (!referenceSection.isNull()) {
-      options.add("-ReferenceSection");
+      options.add("-" + REFERENCE_SECTION);
       options.add(referenceSection.toString());
     }
     if (!hybridFits.isNull()) {
-      options.add("-HybridFits");
+      options.add("-" + HYBRID_FITS_KEY);
       options.add(hybridFits.toString());
     }
     options.add(xfFileName);

@@ -208,6 +208,9 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   public static final String SIZE_TO_OUTPUT_IN_X_AND_Y = "SizeToOutputInXandY";
   public static final String IMAGES_ARE_BINNED_KEY = "ImagesAreBinned";
   public static final String DISTORTION_FIELD_KEY = "DistortionField";
+  public static final String OFFSETS_IN_X_AND_Y_KEY ="OffsetsInXandY";
+  public static final String BIN_BY_FACTOR_KEY ="BinByFactor";
+  public static final String FILL_VALUE_KEY ="FillValue";
   // data mode
   public static final String DATA_MODE_OPTION = "-mo";
   public static final int DATA_MODE_DEFAULT = Integer.MIN_VALUE;

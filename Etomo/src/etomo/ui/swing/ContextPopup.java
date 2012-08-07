@@ -617,7 +617,59 @@ public class ContextPopup {
 
     addManPageMenuItems(manPageLabel, manPage);
     contextMenu.add(new JPopupMenu.Separator());
-    addStandardMenuItems(true);
+    addStandardMenuItems(addPeetGuide);
+    showMenu(component);
+  }
+
+  /**
+   * Shows a man page list and log file items in addition
+   * to the standard menu items.
+   * @param component
+   * @param mouseEvent
+   * @param manager
+   * @param axisID
+   */
+  public ContextPopup(Component component, MouseEvent mouseEvent,
+      final BaseManager manager, final AxisID axisID) {
+    this.mouseEvent = mouseEvent;
+    calcImodURL();
+
+    // Instantiate a new ActionListener to handle the menu selection
+    actionListener = new ActionListener() {
+      public void actionPerformed(ActionEvent actionEvent) {
+        String anchor = getAnchor();
+        JMenuItem[] manPageItem = getManPageItem();
+        for (int i = 0; i < manPageItem.length; i++) {
+          if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
+            /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(getImodURL()
+             * + "man/" + getManPageName()[i]); manpage.setVisible(true); */
+            ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
+                axisID);
+          }
+        }
+
+        // Search the logfile items
+        JMenuItem[] logFileItem = getLogFileItem();
+        if (logFileItem != null) {
+          for (int i = 0; i < logFileItem.length; i++) {
+            if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
+              TextPageWindow logFileWindow = new TextPageWindow();
+              logFileWindow.setVisible(logFileWindow.setFile(manager.getPropertyUserDir()
+                  + File.separator + getLogFileName()[i]));
+            }
+          }
+        }
+
+        // Search the standard items
+        globalItemAction(actionEvent, null, null, manager, axisID);
+
+        // Close the the menu
+        setVisible(false);
+      }
+    };
+
+    contextMenu.add(new JPopupMenu.Separator());
+    addStandardMenuItems(false);
     showMenu(component);
   }
 

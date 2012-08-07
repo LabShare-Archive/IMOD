@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import javax.swing.Box;
@@ -25,9 +26,13 @@ import etomo.comscript.XfalignParam;
 import etomo.comscript.XftoxgParam;
 import etomo.logic.TomogramTool;
 import etomo.logic.TransformsTool;
+import etomo.storage.LogFile;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstSerialSectionsMetaData;
 import etomo.type.DialogType;
+import etomo.type.EtomoAutodoc;
 import etomo.type.FileType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SerialSectionsMetaData;
@@ -35,6 +40,7 @@ import etomo.type.ViewType;
 import etomo.ui.AutoAlignmentDisplay;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
+import etomo.util.SharedConstants;
 import etomo.util.Utilities;
 
 /**
@@ -100,7 +106,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       .getInstance("Robust fitting for criterion: ");
   private final Spinner spMidasBinning = Spinner.getLabeledInstance("Binning: ", 1, 1, 8);
   private final Run3dmodButton btn3dmodRawStack = Run3dmodButton
-      .getDeferred3dmodInstance("Open Raw Stack", this);
+      .get3dmodInstance("Open Raw Stack", this);
 
   private final AutoAlignmentPanel autoAlignmentPanel;
   private final AxisID axisID;
@@ -154,7 +160,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       pnlTabBodyArray[i] = new JPanel();
       tabPane.add(Tab.getInstance(i).toString(), pnlTabArray[i]);
     }
-    tabPane.setEnabledAt(Tab.INITIAL_BLEND.index, metaData.getViewType() == ViewType.MONTAGE);
+    tabPane.setEnabledAt(Tab.INITIAL_BLEND.index,
+        metaData.getViewType() == ViewType.MONTAGE);
     btn3dmodRawStack.setSize();
     btnPreblend.setSize();
     btnPreblend.setDeferred3dmodButton(btn3dmodPreblend);
@@ -256,7 +263,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     pnlOpenAlignedStack.add(btn3dmodPrealign.getComponent());
     pnlOpenAlignedStack.add(Box.createHorizontalGlue());
     // make stack
-    index = Tab.MAKE_STACK.index;
+    index = Tab.MAKE_ALIGNED_STACK.index;
     pnlTabBodyArray[index].setLayout(new BoxLayout(pnlTabBodyArray[index],
         BoxLayout.Y_AXIS));
     pnlTabBodyArray[index].add(pnlXftoxgAlignmentX);
@@ -572,14 +579,123 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   /**
    * Right mouse button context menu
    */
-  public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Processchunks", "3dmod" };
-    String[] manPage = { "processchunks.html", "3dmod.html" };
-    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent, manPagelabel,
-        manPage, true, manager, axisID);
+  public void popUpContextMenu(final MouseEvent mouseEvent) {
+    ViewType viewType = metaData.getViewType();
+    String[] manPageLabel;
+    String[] manPage;
+    String[] logFileLabel;
+    String[] logFile;
+    if (viewType == ViewType.MONTAGE) {
+      manPageLabel = new String[] { "Blendmont", "Midas", "Xfalign", "Xftoxg", "3dmod" };
+      manPage = new String[] { "blendmont.html", "midas.html", "xfalign.html",
+          "xftoxg.html", "3dmod.html" };
+      logFileLabel = new String[] { "Blend", "Preblend", "Xfalign" };
+      logFile = new String[] { "blend.log", "preblend.log", "xfalign.log" };
+    }
+    else {
+      manPageLabel = new String[] { "Colornewst", "Midas", "Newstack", "Xfalign",
+          "Xftoxg", "3dmod" };
+      manPage = new String[] { "colornewst.html", "midas.html", "newstack.html",
+          "xfalign.html", "xftoxg.html", "3dmod.html" };
+      logFileLabel = new String[] { "Newst", "Xfalign" };
+      logFile = new String[] { "newst.log", "xfalign.log" };
+    }
+    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent, "Serial Sections",
+        ContextPopup.TOMO_GUIDE, manPageLabel, manPage, logFileLabel, logFile, manager,
+        axisID);
   }
 
   private void setTooltips() {
+    ViewType viewType = metaData.getViewType();
+    String text = "Blends the overlapping edges of the montage images without "
+        + "transformations.  Runs blendmont.";
+    tabPane.setToolTipTextAt(Tab.INITIAL_BLEND.index,
+        TooltipFormatter.INSTANCE.format(text));
+    btnPreblend.setToolTipText(text);
+    text = "Opens the blended stack.";
+    btn3dmodPreblend.setToolTipText(text);
+    String text2 = "Opens the raw stack.";
+    btn3dmodRawStack.setToolTipText(text2);
+    btn3dmodPrealign.setToolTipText(viewType == ViewType.MONTAGE ? text : text2);
+    spMidasBinning.setToolTipText(SharedConstants.MIDAS_BINNING_TOOLTIP);
+    btnFixEdges.setToolTipText("Optionally use Midas to correct the blending of images "
+        + "in the montaged stack.  Runs midas.");
+    tabPane.setToolTipTextAt(Tab.ALIGN.index,
+        TooltipFormatter.INSTANCE.format("Creates transformations to aligned sections."));
+    text = "Applies transformations to the serial sections stack.";
+    tabPane.setToolTipTextAt(Tab.MAKE_ALIGNED_STACK.index,
+        TooltipFormatter.INSTANCE.format(text));
+    btnAlign.setToolTipText(text + "  Runs xftoxg and "
+        + (viewType == ViewType.MONTAGE ? "blendmont" : "newst") + ".");
+    rbNoOptions.setToolTipText("The " + XftoxgParam.HYBRID_FITS_KEY + " and the "
+        + XftoxgParam.NUMBER_TO_FIT_KEY + " options are not used.");
+    btn3dmodAlign.setToolTipText("Opens the aligned serial sections stack.");
+    ReadOnlyAutodoc autodoc = null;
+    try {
+      if (viewType == ViewType.MONTAGE) {
+        autodoc = AutodocFactory.getInstance(manager, AutodocFactory.BLENDMONT, axisID);
+        cbVerySloppyMontage.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+            BlendmontParam.VERY_SLOPPY_MONTAGE_KEY));
+        ctfRobustFitCriterion.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+            BlendmontParam.ROBUST_FIT_CRITERION_KEY));
+        text = "Converted to " + BlendmontParam.STARTING_AND_ENDING_X_KEY + ":  "
+            + EtomoAutodoc.getTooltip(autodoc, BlendmontParam.STARTING_AND_ENDING_X_KEY);
+        ltfSizeX.setToolTipText(text);
+        ltfShiftX.setToolTipText(text);
+        text = "Converted to " + BlendmontParam.STARTING_AND_ENDING_Y_KEY + ":  "
+            + EtomoAutodoc.getTooltip(autodoc, BlendmontParam.STARTING_AND_ENDING_Y_KEY);
+        ltfSizeY.setToolTipText(text);
+        ltfShiftY.setToolTipText(text);
+        spBinByFactor.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+            BlendmontParam.BIN_BY_FACTOR_KEY));
+        cbFillWithZero.setToolTipText("Sets " + BlendmontParam.FILL_VALUE_KEY
+            + " to zero.  "
+            + EtomoAutodoc.getTooltip(autodoc, BlendmontParam.FILL_VALUE_KEY));
+      }
+      else {
+        autodoc = AutodocFactory.getInstance(manager, AutodocFactory.NEWSTACK, axisID);
+        text = EtomoAutodoc.getTooltip(autodoc, NewstParam.SIZE_TO_OUTPUT_IN_X_AND_Y);
+        ltfSizeX.setToolTipText(text);
+        ltfSizeY.setToolTipText(text);
+        text = "Converted to " + NewstParam.OFFSETS_IN_X_AND_Y_KEY + ":  "
+            + EtomoAutodoc.getTooltip(autodoc, NewstParam.OFFSETS_IN_X_AND_Y_KEY);
+        ltfShiftX.setToolTipText(text);
+        ltfShiftY.setToolTipText(text);
+        spBinByFactor.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+            NewstParam.BIN_BY_FACTOR_KEY));
+        cbFillWithZero.setToolTipText("Sets " + NewstParam.FILL_VALUE_KEY + " to zero.  "
+            + EtomoAutodoc.getTooltip(autodoc, NewstParam.FILL_VALUE_KEY));
+      }
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.LockException except) {
+      except.printStackTrace();
+    }
+    try {
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.XFTOXG, axisID);
+      text = EtomoAutodoc.getTooltip(autodoc, XftoxgParam.HYBRID_FITS_KEY);
+      rbHybridFitsTranslations.setToolTipText(text);
+      rbHybridFitsTranslationsRotations.setToolTipText(text);
+      rbNumberToFitGlobalAlignment.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          XftoxgParam.NUMBER_TO_FIT_KEY));
+      text = EtomoAutodoc.getTooltip(autodoc, XftoxgParam.REFERENCE_SECTION);
+      cbReferenceSection.setToolTipText(text);
+      spReferenceSection.setToolTipText(text);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.LockException except) {
+      except.printStackTrace();
+    }
   }
 
   private static final class SerialSectionsActionListener implements ActionListener {
@@ -609,7 +725,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   private static final class Tab {
     private static final Tab INITIAL_BLEND = new Tab(0, "Initial Blend");
     private static final Tab ALIGN = new Tab(1, "Align");
-    private static final Tab MAKE_STACK = new Tab(2, "Make Stack");
+    private static final Tab MAKE_ALIGNED_STACK = new Tab(2, "Make Stack");
 
     private static final int NUM_TABS = 3;
 
@@ -628,8 +744,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       if (index == ALIGN.index) {
         return ALIGN;
       }
-      if (index == MAKE_STACK.index) {
-        return MAKE_STACK;
+      if (index == MAKE_ALIGNED_STACK.index) {
+        return MAKE_ALIGNED_STACK;
       }
       return null;
     }
