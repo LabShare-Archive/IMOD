@@ -151,8 +151,8 @@ final class Spinner {
     return ((JSpinner.DefaultEditor) spinner.getEditor()).getTextField();
   }
 
-  static Spinner getInstance(final String name) {
-    return new Spinner(name, false, 1, 1, 1, 1);
+  static Spinner getInstance(final String text) {
+    return new Spinner(text, false, 1, 1, 1, 1);
   }
 
   static Spinner getInstance(final String text, final int value, final int minimum,
