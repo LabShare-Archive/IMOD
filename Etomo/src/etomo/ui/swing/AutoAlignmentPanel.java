@@ -13,7 +13,6 @@ import javax.swing.SpinnerNumberModel;
 
 import etomo.AutoAlignmentController;
 import etomo.BaseManager;
-import etomo.comscript.BlendmontParam;
 import etomo.comscript.MidasParam;
 import etomo.comscript.XfalignParam;
 import etomo.storage.LogFile;
@@ -22,7 +21,6 @@ import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
-import etomo.type.ViewType;
 import etomo.util.SharedConstants;
 
 /**
