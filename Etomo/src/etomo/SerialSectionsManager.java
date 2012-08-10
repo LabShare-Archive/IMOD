@@ -623,7 +623,7 @@ public final class SerialSectionsManager extends BaseManager {
     param.setImageInputFile(metaData.getStack());
     param.setTransformFile(FileType.GLOBAL_TRANSFORMATION_LIST.getFileName(this, axisID));
     BlendmontLog log = new BlendmontLog();
-    if (log.findUnalignedStartingXandY(FileType.PREBLEND_LOG.getFile(this,axisID))) {
+    if (log.findUnalignedStartingXandY(FileType.PREBLEND_LOG.getFile(this, axisID))) {
       param.setUnalignedStartingXandY(log.getUnalignedStartingXandY());
     }
     dialog.getBlendParameters(param);
@@ -639,8 +639,7 @@ public final class SerialSectionsManager extends BaseManager {
    * @param axisID
    * @param dialogType
    */
-  
-  
+
   private void copyDistortionFieldFile(final ConstProcessSeries processSeries,
       final AxisID axisID) {
     File distortionField = getDistortionField();
@@ -891,7 +890,12 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   public void getAutoAlignmentParameters(final MidasParam param, final AxisID axisID) {
-    param.setInputFileName(FileType.PREBLEND_OUTPUT_MRC.getFileName(this, axisID));
+    if (getViewType() == ViewType.MONTAGE) {
+      param.setInputFileName(FileType.PREBLEND_OUTPUT_MRC.getFileName(this, axisID));
+    }
+    else {
+      param.setInputFileName(metaData.getStack());
+    }
   }
 
   public void getAutoAlignmentParameters(final XfalignParam param, final AxisID axisID) {
