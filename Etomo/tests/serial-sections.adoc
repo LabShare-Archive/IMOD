@@ -1,0 +1,207 @@
+Version = 1.2
+
+[dialog = starting-serial-sections]
+pnl.starting-serial-sections =
+set.adoc.function=serial-sections.adoc
+run.function.start =
+goto.frame.pnl.main-frame =
+
+[dialog = serial-sections]
+pnl.main-frame =
+set.adoc.function=serial-sections.adoc
+run.function.main =
+
+[function = start]
+[[if = test-gui]]
+  #test values
+  assert.tf.stack=
+  assert.rb.single-frame=on
+  assert.rb.montage=off
+  assert.tf.image-distortion-field-file=
+  assert.sp.binning=1
+  #test enabled
+  assert.enabled.tf.stack=
+  assert.enabled.rb.single-frame=
+  assert.enabled.rb.montage=
+  assert.enabled.tf.image-distortion-field-file=
+  assert.enabled.sp.binning=
+  assert.enabled.bn.ok=
+  assert.enabled.bn.cancel=
+  #test empty directory error
+  bn.ok=
+  wait.popup.invalid-dataset-directory=OK
+[[]]
+bn.stack=
+wait.file-chooser.stack=%{dataset}.st
+[[if = test-gui]]
+  #test wrong view type
+  if.not.var.montage.rb.montage=
+  bn.ok=
+  wait.popup.incorrect-frame-type=OK
+  if.not.var.montage.rb.single-frame=
+[[]]
+if.var.montage.rb.montage=
+bn.ok=
+
+
+[function = main]
+run.function.initial-blend=
+run.function.align=
+run.function.make-stack=
+
+
+[function = initial-blend]
+if.not.var.montage.return=
+[[if = test-gui]]
+  #test values
+  assert.cb.treat-as-very-sloppy-blend=off
+  assert.cb.robust-fitting-for-criterion=off
+  assert.tf.robust-fitting-for-criterion=1.0
+  assert.sp.binning=1
+  #test enabled
+  assert.enabled.cb.treat-as-very-sloppy-blend=
+  assert.enabled.cb.robust-fitting-for-criterion=
+  assert.disabled.tf.robust-fitting-for-criterion=
+  assert.enabled.bn.open-raw-stack=
+  assert.enabled.bn.make-blended-stack=
+  assert.enabled.bn.open-blended-stack=
+  assert.enabled.sp.binning=
+  assert.enabled.bn.fix-edges-with-midas=
+[[]]
+cb.treat-as-very-sloppy-blend=on
+bn.open-raw-stack=
+bn.make-blended-stack=
+wait.process.initial-blend=done
+[[if = test-gui]]
+  assert.exists.file=%{dataset}_preblend.mrc
+  assert.exists.file=%{dataset}.ecd
+  assert.exists.file=%{dataset}.xef
+  assert.exists.file=%{dataset}.yef
+  assert.exists.file=preblend.log
+  assert.same.file=newst.com
+  #test tab warning
+  copy.file=%{dataset}.xef
+  copy.file=%{dataset}.yef
+  tb.initial-blend.1=
+  wait.popup.dataset-consistency-warning=OK
+  tb.initial-blend=
+[[]]
+bn.make-blended-stack=
+wait.process.initial-blend=done
+[[if = test-gui]]
+  assert.exists.file=%{dataset}_preblend.mrc~
+  assert.exists.file=%{dataset}.xef~
+  assert.exists.file=%{dataset}.yef~
+  assert.exists.file=preblend.log~
+[[]]
+
+
+[function = align]
+tb.initial-blend.1=
+[[if = test-gui]]
+  #test values
+  assert.tf.sigma-for-low-frequency-filter=0.0
+  assert.tf.cutoff-for-high-frequency-filter=0.25
+  assert.tf.sigma-for-high-frequency-filter=0.05
+  assert.rb.full-linear-transformation=on
+  assert.rb.rotation/translation/magnification=off
+  assert.rb.rotation/translation=off
+  assert.cb.do-cross-correlate-in-initial-alignment=off
+  assert.tf.sections-to-skip=
+  assert.tf.fraction-to-ignore-on-edges=0.05
+  assert.sp.binning=2
+  assert.sp.midas-binning=1
+  #test enabled
+  assert.enabled.bn.open-stack=
+  assert.enabled.tf.sigma-for-low-frequency-filter=
+  assert.enabled.tf.cutoff-for-high-frequency-filter=
+  assert.enabled.tf.sigma-for-high-frequency-filter=
+  assert.enabled.rb.full-linear-transformation=
+  assert.enabled.rb.rotation/translation/magnification=
+  assert.enabled.rb.rotation/translation=
+  assert.enabled.cb.do-cross-correlate-in-initial-alignment=
+  assert.enabled.tf.sections-to-skip=
+  assert.enabled.tf.fraction-to-ignore-on-edges=
+  assert.enabled.sp.binning=
+  assert.enabled.sp.midas-binning=
+[[]]
+bn.initial-auto-alignment=
+wait.process.initial-xfalign=done
+[[if = test-gui]]
+  assert.exists.file=%{dataset}_auto.xcxf
+  assert.exists.file=%{dataset}_auto.xf
+  assert.exists.file=xfalign.log
+  assert.exists.file=%{dataset}.xf
+[[]]
+bn.refine-auto-alignment=
+wait.process.refine-xfalign=done
+[[if = test-gui]]
+  assert.exists.file=%{dataset}_auto.xf~
+[[]]
+bn.initial-auto-alignment=
+wait.process.initial-xfalign=done
+[[if = test-gui]]
+  assert.exists.file=%{dataset}_auto.xcxf~
+[[]]
+[[if = montage]]
+  copy.file=%{dataset}_midas.xf
+  copy.file=%{dataset}_midas.xf|%{dataset}.xf
+[[]]
+sleep=5000
+
+
+[function = make-stack]
+tb.initial-blend.2=
+[[if = test-gui]]
+  #test values
+  assert.rb.local-fitting=on
+  assert.rb.remove-trends-in-translation=off
+  assert.rb.remove-trends-in-translation-&-rotation=off
+  assert.rb.global-alignments=off
+  assert.cb.reference-section-for-alignment=off
+  assert.sp.reference-section-for-alignment=1
+  assert.tf.size-in-x=
+  assert.tf.y=
+  assert.tf.shift-in-x=
+  assert.tf.y.1=
+  assert.sp.binning=1
+  assert.cb.fill-empty-areas-with-0=off
+  #test enabled
+  assert.enabled.tb=
+  assert.enabled.rb.local-fitting=
+  assert.enabled.rb.remove-trends-in-translation=
+  assert.enabled.rb.remove-trends-in-translation-&-rotation=
+  assert.enabled.rb.global-alignments=
+  assert.enabled.cb.reference-section-for-alignment=
+  assert.disabled.sp.reference-section-for-alignment=
+  assert.enabled.tf.size-in-x=
+  assert.enabled.tf.y=
+  assert.enabled.tf.shift-in-x=
+  assert.enabled.tf.y.1=
+  assert.enabled.sp.binning=
+  assert.enabled.cb.fill-empty-areas-with-0=
+  assert.enabled.bn.make-aligned-stack=
+  assert.enabled.bn.open-aligned-stack=
+[[]]
+if.var.montage.rb.remove-trends-in-translation-&-rotation=
+#run newst/blend
+if.var.montage.set.var.descr=blend-serial-sections
+if.not.var.montage.set.var.descr=creating-aligned-stack
+bn.make-aligned-stack=
+wait.process.%{descr}=done
+if.var.montage.set.var.cmd=blend
+if.not.var.montage.set.var.cmd=newst
+[[if = test-gui]]
+  assert.exists.file=%{dataset}.xg
+  assert.exists.file=%{dataset}.mrc
+  assert.exists.file=%{cmd}.log
+  assert.same.file=%{cmd}.com
+[[]]
+bn.make-aligned-stack=
+wait.process.%{descr}=done
+[[if = test-gui]]
+  assert.exists.file=%{dataset}.xg~
+  assert.exists.file=%{dataset}.mrc~
+  assert.exists.file=%{cmd}.log~
+[[]]
+bn.open-aligned-stack=
