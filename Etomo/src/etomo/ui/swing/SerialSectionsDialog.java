@@ -94,8 +94,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       "Make Aligned Stack", this);
   private final Run3dmodButton btn3dmodAlign = Run3dmodButton.get3dmodInstance(
       "Open Aligned Stack", this);
-  private CheckBox cbReferenceSection = new CheckBox("Reference section for alignment: ");
-  private Spinner spReferenceSection = Spinner.getInstance(cbReferenceSection.getName());
+  private CheckBoxSpinner cbsReferenceSection = new CheckBoxSpinner(
+      "Reference section for alignment: ");
   private LabeledTextField ltfSizeX = new LabeledTextField(SIZE_LABEL + "X: ");
   private LabeledTextField ltfSizeY = new LabeledTextField("Y: ");
   private LabeledTextField ltfShiftX = new LabeledTextField(SHIFT_LABEL + "X: ");
@@ -105,8 +105,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   private CheckTextField ctfRobustFitCriterion = CheckTextField
       .getInstance("Robust fitting for criterion: ");
   private final Spinner spMidasBinning = Spinner.getLabeledInstance("Binning: ", 1, 1, 8);
-  private final Run3dmodButton btn3dmodRawStack = Run3dmodButton
-      .get3dmodInstance("Open Raw Stack", this);
+  private final Run3dmodButton btn3dmodRawStack = Run3dmodButton.get3dmodInstance(
+      "Open Raw Stack", this);
 
   private final AutoAlignmentPanel autoAlignmentPanel;
   private final AxisID axisID;
@@ -144,7 +144,6 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     JPanel pnlOpenAlignedStack = new JPanel();
     JPanel pnlXftoxgAlignment = new JPanel();
     JPanel pnlXftoxgAlignmentX = new JPanel();
-    JPanel pnlReferenceSection = new JPanel();
     JPanel pnlSize = new JPanel();
     JPanel pnlShift = new JPanel();
     JPanel pnlMakeStackA = new JPanel();
@@ -174,24 +173,23 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
         stack.getName(), axisID);
     try {
       header.read(manager);
-      spReferenceSection.setMax(header.getNSections());
+      cbsReferenceSection.setMax(header.getNSections());
     }
     catch (IOException e) {
       e.printStackTrace();
-      cbReferenceSection.setEnabled(false);
+      cbsReferenceSection.setCheckBoxEnabled(false);
       UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read" + stack.getName()
           + "\n" + e.getMessage(), "File Read Error", axisID);
     }
     catch (InvalidParameterException e) {
       e.printStackTrace();
-      cbReferenceSection.setEnabled(false);
+      cbsReferenceSection.setCheckBoxEnabled(false);
       UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read" + stack.getName()
           + "\n" + e.getMessage(), "File Read Error", axisID);
     }
     btnAlign.setSize();
     btnAlign.setDeferred3dmodButton(btn3dmodAlign);
     btn3dmodAlign.setSize();
-    updateDisplay();
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new BeveledBorder("Serial Sections").getBorder());
@@ -268,7 +266,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
         BoxLayout.Y_AXIS));
     pnlTabBodyArray[index].add(pnlXftoxgAlignmentX);
     pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y3));
-    pnlTabBodyArray[index].add(pnlReferenceSection);
+    pnlTabBodyArray[index].add(cbsReferenceSection.getContainer());
     pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTabBodyArray[index].add(pnlSize);
     pnlTabBodyArray[index].add(Box.createRigidArea(FixedDim.x0_y5));
@@ -291,10 +289,6 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     pnlXftoxgAlignment.add(rbHybridFitsTranslationsRotations.getComponent());
     pnlXftoxgAlignment.add(rbNumberToFitGlobalAlignment.getComponent());
     UIHarness.INSTANCE.pack(axisID, manager);
-    // reference section
-    pnlReferenceSection.setLayout(new BoxLayout(pnlReferenceSection, BoxLayout.X_AXIS));
-    pnlReferenceSection.add(cbReferenceSection);
-    pnlReferenceSection.add(spReferenceSection.getContainer());
     // size
     pnlSize.setLayout(new BoxLayout(pnlSize, BoxLayout.X_AXIS));
     pnlSize.add(ltfSizeX.getContainer());
@@ -339,13 +333,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     btn3dmodPrealign.addActionListener(listener);
     btnAlign.addActionListener(listener);
     btn3dmodAlign.addActionListener(listener);
-    cbReferenceSection.addActionListener(listener);
     btn3dmodRawStack.addActionListener(listener);
-  }
-
-  public void updateDisplay() {
-    spReferenceSection.setEnabled(cbReferenceSection.isEnabled()
-        && cbReferenceSection.isSelected());
   }
 
   public void enableMidas() {
@@ -361,8 +349,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     metaData.setHybridFitsTranslationsRotations(rbHybridFitsTranslationsRotations
         .isSelected());
     metaData.setNumberToFitGlobalAlignment(rbNumberToFitGlobalAlignment.isSelected());
-    metaData.setUseReferenceSection(cbReferenceSection.isSelected());
-    metaData.setReferenceSection(spReferenceSection.getValue());
+    metaData.setUseReferenceSection(cbsReferenceSection.isSelected());
+    metaData.setReferenceSection(cbsReferenceSection.getValue());
     metaData.setSizeX(ltfSizeX.getText());
     metaData.setSizeY(ltfSizeY.getText());
     metaData.setShiftX(ltfShiftX.getText());
@@ -379,8 +367,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     rbHybridFitsTranslationsRotations.setSelected(metaData
         .isHybridFitsTranslationsRotations());
     rbNumberToFitGlobalAlignment.setSelected(metaData.isNumberToFitGlobalAlignment());
-    cbReferenceSection.setSelected(metaData.isUseReferenceSection());
-    spReferenceSection.setValue(metaData.getReferenceSection());
+    cbsReferenceSection.setSelected(metaData.isUseReferenceSection());
+    cbsReferenceSection.setValue(metaData.getReferenceSection());
     ltfSizeX.setText(metaData.getSizeX());
     ltfSizeY.setText(metaData.getSizeY());
     ltfShiftX.setText(metaData.getShiftX());
@@ -390,7 +378,6 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       tab = metaData.getTab();
     }
     changeTab(tab);
-    updateDisplay();
   }
 
   public void getAutoAlignmentParameters(final MidasParam param) {
@@ -481,8 +468,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       param.setNumberToFit(((RadioButton.RadioButtonModel) bgXftoxgAlignment
           .getSelection()).getEnumeratedType());
     }
-    if (cbReferenceSection.isSelected()) {
-      param.setReferenceSection(spReferenceSection.getValue());
+    if (cbsReferenceSection.isSelected()) {
+      param.setReferenceSection(cbsReferenceSection.getValue());
     }
     else {
       param.resetReferenceSection();
@@ -508,9 +495,9 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
         && XftoxgParam.NumberToFit.GLOBAL_ALIGNMENT.equals(param.getNumberToFit())) {
       rbNumberToFitGlobalAlignment.setSelected(true);
     }
-    cbReferenceSection.setSelected(!param.isReferenceSectionEmpty());
-    if (cbReferenceSection.isSelected()) {
-      spReferenceSection.setValue(param.getReferenceSection());
+    cbsReferenceSection.setSelected(!param.isReferenceSectionEmpty());
+    if (cbsReferenceSection.isSelected()) {
+      cbsReferenceSection.setValue(param.getReferenceSection());
     }
   }
 
@@ -522,10 +509,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
 
   private void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (command.equals(cbReferenceSection.getActionCommand())) {
-      updateDisplay();
-    }
-    else if (command.equals(btnPreblend.getActionCommand())) {
+    if (command.equals(btnPreblend.getActionCommand())) {
       manager.preblend(null, deferred3dmodButton, axisID, run3dmodMenuOptions,
           DialogType.SERIAL_SECTIONS);
     }
@@ -683,9 +667,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       rbHybridFitsTranslationsRotations.setToolTipText(text);
       rbNumberToFitGlobalAlignment.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           XftoxgParam.NUMBER_TO_FIT_KEY));
-      text = EtomoAutodoc.getTooltip(autodoc, XftoxgParam.REFERENCE_SECTION);
-      cbReferenceSection.setToolTipText(text);
-      spReferenceSection.setToolTipText(text);
+      cbsReferenceSection.setToolTipText(EtomoAutodoc.getTooltip(autodoc, XftoxgParam.REFERENCE_SECTION));
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
