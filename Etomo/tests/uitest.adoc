@@ -302,6 +302,31 @@ set.param = --actions
 set.interface.Join=
 
 
+[Test = serial-sections-test-gui]
+set.testdir=serial-sections-test-gui
+set.adoc.dialog=serial-sections.adoc
+set.var.dataset=M154_03-03-11
+set.dataset=%{dataset}
+set.var.test-gui=
+set.param=--autoclose3dmod
+set.param=--ignoreloc
+set.param=--actions
+set.param=--newstuff
+
+
+[Test = serial-sections-montage-test-gui]
+set.testdir=serial-sections-montage-test-gui
+set.adoc.dialog=serial-sections.adoc
+set.var.dataset=mediumscansb2
+set.dataset=%{dataset}
+set.var.test-gui=
+set.var.montage=
+set.param=--autoclose3dmod
+set.param=--ignoreloc
+set.param=--actions
+set.param=--newstuff
+
+
 [Test = generic]
 set.testdir = generic
 set.adoc.dialog = generic.adoc
@@ -504,6 +529,14 @@ copy.file = %{dataset}1.rec
 [dataset = testunicross]
 use.dataset = unicross
 
+[dataset = M154_03-03-11]
+copy.file = %{dataset}.st
+set.interface.serial-sections=
+
+[dataset = mediumscansb2]
+copy.file = %{dataset}.st
+set.interface.serial-sections=
+
 [dataset = pi]
 copy.file = %{dataset}-a.rec
 copy.file = %{dataset}-a.mod
@@ -546,6 +579,12 @@ open.dialog.align.tb.setup.1 =
 open.dialog.join.tb.setup.2 =
 open.dialog.model.tb.setup.3 =
 open.dialog.rejoin.tb.setup.4 =
+
+[interface = Serial-Sections]
+[[open = interface]]
+  pnl.main-frame=
+  bn.align-serial-sections=
+[[]]
 
 [interface = PEET]
 [[open = interface]]
