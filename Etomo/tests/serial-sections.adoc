@@ -80,7 +80,7 @@ wait.process.initial-blend=done
   assert.exists.file=%{dataset}.xef
   assert.exists.file=%{dataset}.yef
   assert.exists.file=preblend.log
-  assert.same.file=cmd.com
+  assert.same.file=%{cmd}.com
   #test tab warning
   copy.file=%{dataset}.xef
   copy.file=%{dataset}.yef
