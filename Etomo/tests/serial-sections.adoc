@@ -12,6 +12,8 @@ set.adoc.function=serial-sections.adoc
 run.function.main =
 
 [function = start]
+if.var.montage.set.var.cmd=blend
+if.not.var.montage.set.var.cmd=newst
 [[if = test-gui]]
   #test values
   assert.tf.stack=
@@ -78,7 +80,7 @@ wait.process.initial-blend=done
   assert.exists.file=%{dataset}.xef
   assert.exists.file=%{dataset}.yef
   assert.exists.file=preblend.log
-  assert.same.file=newst.com
+  assert.same.file=cmd.com
   #test tab warning
   copy.file=%{dataset}.xef
   copy.file=%{dataset}.yef
@@ -167,7 +169,6 @@ tb.initial-blend.2=
   assert.sp.binning=1
   assert.cb.fill-empty-areas-with-0=off
   #test enabled
-  assert.enabled.tb=
   assert.enabled.rb.local-fitting=
   assert.enabled.rb.remove-trends-in-translation=
   assert.enabled.rb.remove-trends-in-translation-&-rotation=
@@ -189,11 +190,9 @@ if.var.montage.set.var.descr=blend-serial-sections
 if.not.var.montage.set.var.descr=creating-aligned-stack
 bn.make-aligned-stack=
 wait.process.%{descr}=done
-if.var.montage.set.var.cmd=blend
-if.not.var.montage.set.var.cmd=newst
 [[if = test-gui]]
   assert.exists.file=%{dataset}.xg
-  assert.exists.file=%{dataset}.mrc
+  assert.exists.file=%{dataset}_ali.mrc
   assert.exists.file=%{cmd}.log
   assert.same.file=%{cmd}.com
 [[]]
@@ -201,7 +200,7 @@ bn.make-aligned-stack=
 wait.process.%{descr}=done
 [[if = test-gui]]
   assert.exists.file=%{dataset}.xg~
-  assert.exists.file=%{dataset}.mrc~
+  assert.exists.file=%{dataset}_ali.mrc~
   assert.exists.file=%{cmd}.log~
 [[]]
 bn.open-aligned-stack=
