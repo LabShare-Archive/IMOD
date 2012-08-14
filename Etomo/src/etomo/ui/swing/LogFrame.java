@@ -122,9 +122,6 @@ final class LogFrame extends JFrame {
    * @param newWindow - true when the manager has just been opened
    */
   void setPanel(final LogPanel logPanel, final boolean newWindow) {
-    if (logPanel == null) {
-      return;
-    }
     Container contentPane = getContentPane();
     contentPane.removeAll();
     // the old log panel needs to remember its size and location
@@ -177,9 +174,12 @@ final class LogFrame extends JFrame {
    * Toggles setVisible().
    */
   void showHide() {
-    setVisible(!isVisible());
-    if (isVisible()) {
+    if (!isVisible()) {
+      setVisible(true);
       refresh();
+    }
+    else {
+      setVisible(false);
     }
   }
 
