@@ -210,7 +210,6 @@ final class EtomoMenu {
     menuNew.add(menuNewTomogram);
     menuNew.add(menuNewJoin);
     menuNew.add(menuNewPeet);
-    menuSerialSections.setEnabled(EtomoDirector.INSTANCE.getArguments().isNewstuff());
     menuNew.add(menuSerialSections);
     menuNew.add(menuNewAnisotropicDiffusion);
     menuNew.add(menuNewGenericParallel);
