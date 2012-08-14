@@ -7,13 +7,13 @@ run.function.start =
 goto.frame.pnl.main-frame =
 
 [dialog = serial-sections]
+if.var.montage.set.var.cmd=blend
+if.not.var.montage.set.var.cmd=newst
 pnl.main-frame =
 set.adoc.function=serial-sections.adoc
 run.function.main =
 
 [function = start]
-if.var.montage.set.var.cmd=blend
-if.not.var.montage.set.var.cmd=newst
 [[if = test-gui]]
   #test values
   assert.tf.stack=
@@ -80,10 +80,9 @@ wait.process.initial-blend=done
   assert.exists.file=%{dataset}.xef
   assert.exists.file=%{dataset}.yef
   assert.exists.file=preblend.log
-  assert.same.file=%{cmd}.com
+  assert.same.file=preblend.com
   #test tab warning
-  copy.file=%{dataset}.xef
-  copy.file=%{dataset}.yef
+  touch.file=%{dataset}.ecd
   tb.initial-blend.1=
   wait.popup.dataset-consistency-warning=OK
   tb.initial-blend=
