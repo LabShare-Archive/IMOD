@@ -170,8 +170,8 @@ button (\fBbn\fR) is to push it.
 .TP 4
 .I action
 .B assert\fR, \fBcopy\fR, \fBend\fR, \fBformat\fR, \fBif\fR, \fBgoto\fR, \fBopen\fR,
-\fBreturn\fR, \fBrun\fR, \fBset\fR, \fBskipto\fR, \fBsleep\fR, \fBstart\fR, \fBunset\fR,
-\fBuse\fR, \fBwait\fR, \fBwrite
+\fBreturn\fR, \fBrun\fR, \fBset\fR, \fBskipto\fR, \fBsleep\fR, \fBstart\fR, \fBtouch\fR,
+\fBunset\fR, \fBuse\fR, \fBwait\fR, \fBwrite
 
 .TP 4
 .I subcommand_action
@@ -1080,6 +1080,12 @@ referred to with index.  See Naming above.
 .B tf.\fItext_field_name\fR[\fB.\fIindex\fR]\fB = \fR[\fItext\fR|\fInumber\fR]
 Write value to a text field called \fItext_field_name\fR.  If there are multiple
 text fields of the same name, use \fIindex\fR.  See Naming above.
+
+.TP 4
+.B touch.file = \fIfile_name
+Causes the last modified date of the file called \fIfile_name\fR in the
+\fItest_directory\fR (see \fBset.testdir\fR) to be changed to the current date
+and time.
 
 .TP 4
 .B unset.var.\fIvariable_name\fB = 
