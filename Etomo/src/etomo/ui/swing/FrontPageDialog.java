@@ -135,7 +135,6 @@ public final class FrontPageDialog {
     pnlProjects.add(btnRecon.getComponent());
     pnlProjects.add(btnJoin.getComponent());
     pnlProjects.add(btnPeet.getComponent());
-    btnSerialSections.setEnabled(EtomoDirector.INSTANCE.getArguments().isNewstuff());
     pnlProjects.add(btnSerialSections.getComponent());
     pnlProjects.add(btnNad.getComponent());
     pnlProjects.add(btnGeneric.getComponent());
