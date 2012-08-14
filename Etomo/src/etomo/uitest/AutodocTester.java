@@ -1117,6 +1117,14 @@ final class AutodocTester extends Assert implements VariableList {
       catch (InterruptedException e) {
       }
     }
+    // TOUCH
+    else if (actionType == UITestActionType.TOUCH) {
+      assertTrue("only the always modifier is allowed with this actionType (" + command
+          + ")", modifierType == null);
+      // copy.file = file_name
+      assertEquals("can only touch a file", UITestSubjectType.FILE, subjectType);
+      testRunner.touchFile(command.getValue(0));
+    }
     // UNSET
     else if (actionType == UITestActionType.SET) {
       // unset.var.variable_name
