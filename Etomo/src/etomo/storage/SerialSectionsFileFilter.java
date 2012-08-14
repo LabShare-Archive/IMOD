@@ -20,18 +20,7 @@ import etomo.type.DataFileType;
 * <p> $Log$ </p>
 */
 public final class SerialSectionsFileFilter extends DataFileFilter {
-  public static  final String  rcsid =  "$Id:$";
-  
-
-  private final boolean acceptDirectories;
-
-  public SerialSectionsFileFilter() {
-    acceptDirectories = true;
-  }
-
-  public SerialSectionsFileFilter(boolean acceptDirectories) {
-    this.acceptDirectories = acceptDirectories;
-  }
+  public static final String rcsid = "$Id:$";
 
   /**
    * returns true if a file is a serial sections process data file
@@ -40,10 +29,11 @@ public final class SerialSectionsFileFilter extends DataFileFilter {
    */
   public boolean accept(final File file) {
     if (file.isDirectory()) {
-      return acceptDirectories;
+      return false;
     }
     String fileName = file.getName();
-    if (fileName.endsWith(DataFileType.SERIAL_SECTIONS.extension) && fileName.length() > 4) {
+    if (fileName.endsWith(DataFileType.SERIAL_SECTIONS.extension)
+        && fileName.length() > 4) {
       return true;
     }
     return false;
