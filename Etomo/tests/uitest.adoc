@@ -311,7 +311,6 @@ set.var.test-gui=
 set.param=--autoclose3dmod
 set.param=--ignoreloc
 set.param=--actions
-set.param=--newstuff
 
 
 [Test = serial-sections-montage-test-gui]
@@ -324,7 +323,6 @@ set.var.montage=
 set.param=--autoclose3dmod
 set.param=--ignoreloc
 set.param=--actions
-set.param=--newstuff
 
 
 [Test = generic]
