@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/14/12: Fixed the empty project log error (In 4.5).(Bug# 1616)
+
 7/27/12: Fixed Midas giving an error message when reading an empty transform
 file (In 4.5).
 
