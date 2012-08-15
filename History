@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/14/12: Made sure that pop-up messages for the PEET and Serial Sections start
+up dialogs will pop-up over the correct dialog.(Bug# 1624)
+
 8/2/12: Beadtrack: improved criteria for when a bead is too weak so that weaker
 beads are allowed when the average one is getting weaker and to try to prevent
 beads from tracking on wild positions.  Improved the position prediction when
