@@ -600,7 +600,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
           "Entry Error");
       return;
     }
-    if (!DatasetTool.validateDatasetName(manager, AxisID.ONLY, volume,
+    if (!DatasetTool.validateDatasetName(manager,null, AxisID.ONLY, volume,
         DataFileType.PARALLEL, null)) {
       return;
     }
