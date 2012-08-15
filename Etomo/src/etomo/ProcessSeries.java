@@ -11,6 +11,7 @@ import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.swing.Deferred3dmodButton;
 import etomo.ui.swing.ProcessDisplay;
+import etomo.ui.swing.UIComponent;
 
 /**
  * <p>Description: Represents a series of processes to be executed.</p>
@@ -174,6 +175,7 @@ public final class ProcessSeries implements ConstProcessSeries {
   private final BaseManager manager;
   private final DialogType dialogType;
   private final ProcessDisplay processDisplay;
+  private final UIComponent uiComponent;
 
   private Process nextProcess = null;
   /**
@@ -198,6 +200,15 @@ public final class ProcessSeries implements ConstProcessSeries {
 
   public ProcessSeries(final BaseManager manager, DialogType dialogType) {
     this.manager = manager;
+    uiComponent = null;
+    this.dialogType = dialogType;
+    this.processDisplay = null;
+  }
+
+  public ProcessSeries(final BaseManager manager, final UIComponent uiComponent,
+      final DialogType dialogType) {
+    this.manager = manager;
+    this.uiComponent = uiComponent;
     this.dialogType = dialogType;
     this.processDisplay = null;
   }
@@ -205,6 +216,7 @@ public final class ProcessSeries implements ConstProcessSeries {
   public ProcessSeries(final BaseManager manager, DialogType dialogType,
       ProcessDisplay processDisplay) {
     this.manager = manager;
+    uiComponent = null;
     this.dialogType = dialogType;
     this.processDisplay = processDisplay;
   }
@@ -252,7 +264,7 @@ public final class ProcessSeries implements ConstProcessSeries {
       System.out.println("ProcessSeries.startNextProcess:process=" + process);
     }
     forceNextProcess = process.forceNextProcess;
-    manager.startNextProcess(axisID, process, processResultDisplay, this, dialogType,
+    manager.startNextProcess(uiComponent,axisID, process, processResultDisplay, this, dialogType,
         processDisplay);
     return true;
   }
@@ -280,7 +292,7 @@ public final class ProcessSeries implements ConstProcessSeries {
       }
       Process process = failProcess;
       failProcess = null;
-      manager.startNextProcess(axisID, process, processResultDisplay, this, dialogType,
+      manager.startNextProcess(uiComponent,axisID, process, processResultDisplay, this, dialogType,
           processDisplay);
     }
   }

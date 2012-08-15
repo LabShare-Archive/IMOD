@@ -54,6 +54,7 @@ import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainJoinPanel;
 import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.ProcessDisplay;
+import etomo.ui.swing.UIComponent;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -1365,7 +1366,7 @@ public final class JoinManager extends BaseManager {
   /**
    * Start the next process specified by the nextProcess string
    */
-  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
+  void startNextProcess(final UIComponent uiComponent,final AxisID axisID, final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       DialogType dialogType, ProcessDisplay display) {
     if (debug) {
