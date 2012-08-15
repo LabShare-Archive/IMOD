@@ -57,6 +57,7 @@ import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.ParallelPanel;
 import etomo.ui.swing.ProcessDisplay;
+import etomo.ui.swing.UIComponent;
 import etomo.ui.swing.UIHarness;
 import etomo.util.UniqueKey;
 import etomo.util.Utilities;
@@ -274,7 +275,8 @@ public abstract class BaseManager {
     this.paramFile = paramFile;
   }
 
-  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
+  void startNextProcess(final UIComponent uiComponent, final AxisID axisID,
+      final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
       final DialogType dialogType, final ProcessDisplay display) {
   }

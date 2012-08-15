@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -44,7 +45,7 @@ import etomo.util.Utilities;
 * 
 * <p> $Log$ </p>
 */
-public class SerialSectionsStartupDialog implements ContextMenu {
+public class SerialSectionsStartupDialog implements ContextMenu, UIComponent {
   public static final String rcsid = "$Id:$";
 
   private static final String NAME = "Starting Serial Sections";
@@ -178,13 +179,13 @@ public class SerialSectionsStartupDialog implements ContextMenu {
   }
 
   private boolean validate() {
-    if (!DatasetTool.validateDatasetName(manager, axisID, ftfStack.getFile(),
+    if (!DatasetTool.validateDatasetName(manager,this,axisID, ftfStack.getFile(),
         DataFileType.SERIAL_SECTIONS, AxisType.SINGLE_AXIS)) {
       return false;
     }
     File stack = getStack();
     return DatasetTool.validateViewType(getViewType(), stack.getParent(),
-        stack.getName(), manager, axisID);
+        stack.getName(), manager,this, axisID);
   }
 
   /**
@@ -212,7 +213,7 @@ public class SerialSectionsStartupDialog implements ContextMenu {
       if (!saveState()) {
         return;
       }
-      manager.completeStartup(axisID);
+      manager.completeStartup(this,axisID);
     }
     else if (command.equals(btnCancel.getActionCommand())) {
       resetSavedState();
@@ -223,6 +224,10 @@ public class SerialSectionsStartupDialog implements ContextMenu {
 
   public SerialSectionsStartupData getStartupData() {
     return startupData;
+  }
+
+  public Component getComponent() {
+    return dialog;
   }
 
   /**
@@ -312,7 +317,8 @@ public class SerialSectionsStartupDialog implements ContextMenu {
     startupData.setImagesAreBinned(spImagesAreBinned.getValue());
     String errorMessage = startupData.validate();
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, "Entry Error", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, this, errorMessage, "Entry Error",
+          axisID);
       resetSavedState();
       return false;
     }

@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -39,7 +40,7 @@ import etomo.util.Utilities;
 * 
 * <p> $Log$ </p>
 */
-public final class PeetStartupDialog {
+public final class PeetStartupDialog implements UIComponent {
   public static final String rcsid = "$Id:$";
 
   private static final String COPY_FROM_LABEL = "Copy project from ";
@@ -164,6 +165,10 @@ public final class PeetStartupDialog {
     dialog.dispose();
   }
 
+  public Component getComponent() {
+    return dialog;
+  }
+
   /**
    * Returns filleed peet startup data instance.  Does not do validation.
    * @return
@@ -237,13 +242,13 @@ public final class PeetStartupDialog {
       }
     }
     if (errorMessage == null) {
-      if (!DatasetTool.validateDatasetName(manager, dialog, axisID,
-          ftfDirectory.getFile(), ltfBaseName.getText(), DataFileType.PEET, null)) {
+      if (!DatasetTool.validateDatasetName(manager, this, axisID, ftfDirectory.getFile(),
+          ltfBaseName.getText(), DataFileType.PEET, null)) {
         return false;
       }
       return true;
     }
-    UIHarness.INSTANCE.openMessageDialog(manager, dialog, errorMessage, "Entry Error",
+    UIHarness.INSTANCE.openMessageDialog(manager, this, errorMessage, "Entry Error",
         axisID);
     return false;
   }
@@ -263,8 +268,8 @@ public final class PeetStartupDialog {
       PeetStartupData startupData = getStartupData();
       String errorMessage = startupData.validate();
       if (errorMessage != null) {
-        UIHarness.INSTANCE
-            .openMessageDialog(manager, errorMessage, "Entry Error", axisID);
+        UIHarness.INSTANCE.openMessageDialog(manager, this, errorMessage, "Entry Error",
+            axisID);
         return;
       }
       dispose();

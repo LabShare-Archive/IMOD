@@ -1,6 +1,5 @@
 package etomo.logic;
 
-import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
@@ -12,6 +11,7 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.DataFileType;
 import etomo.type.ViewType;
+import etomo.ui.swing.UIComponent;
 import etomo.ui.swing.UIHarness;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -50,8 +50,8 @@ public final class DatasetTool {
    * @return
    */
   public static boolean validateDatasetName(final BaseManager manager,
-      final AxisID axisID, final File inputFile, final DataFileType dataFileType,
-      final AxisType axisType) {
+      final UIComponent uiComponent, final AxisID axisID, final File inputFile,
+      final DataFileType dataFileType, final AxisType axisType) {
     String errorMessage = null;
     if (inputFile == null) {
       errorMessage = "No input file specified.";
@@ -66,7 +66,8 @@ public final class DatasetTool {
       errorMessage = "Unreadable input file: " + inputFile.getAbsolutePath();
     }
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, MESSAGE_TITLE, axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, uiComponent, errorMessage,
+          MESSAGE_TITLE, axisID);
       return false;
     }
     String inputFileName = inputFile.getName();
@@ -76,7 +77,7 @@ public final class DatasetTool {
       inputFileRoot = inputFileName.substring(0, extIndex);
     }
     File directory = inputFile.getParentFile();
-    return validateDatasetName(manager, null, axisID, directory, inputFileRoot,
+    return validateDatasetName(manager, uiComponent, axisID, directory, inputFileRoot,
         dataFileType, axisType);
   }
 
@@ -108,7 +109,7 @@ public final class DatasetTool {
    * @return
    */
   public static boolean validateDatasetName(final BaseManager manager,
-      final Component parentComponent, final AxisID axisID, final File directory,
+      final UIComponent uiComponent, final AxisID axisID, final File directory,
       final String inputFileRoot, final DataFileType dataFileType, final AxisType axisType) {
     String errorMessage = null;
     if (!directory.exists()) {
@@ -161,13 +162,8 @@ public final class DatasetTool {
     if (errorMessage == null) {
       return true;
     }
-    if (parentComponent == null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, MESSAGE_TITLE, axisID);
-    }
-    else {
-      UIHarness.INSTANCE.openMessageDialog(manager, parentComponent, errorMessage,
-          MESSAGE_TITLE, axisID);
-    }
+    UIHarness.INSTANCE.openMessageDialog(manager, uiComponent, errorMessage,
+        MESSAGE_TITLE, axisID);
     return false;
 
   }
@@ -407,7 +403,7 @@ public final class DatasetTool {
    */
   public static boolean validateViewType(final ViewType viewType,
       final String absolutePath, final String stackFileName, final BaseManager manager,
-      final AxisID axisID) {
+      final UIComponent uiComponent, final AxisID axisID) {
     if (stackFileName == null) {
       return true;
     }
@@ -419,10 +415,10 @@ public final class DatasetTool {
     if (!montagesize.pieceListFileExists()) {
       if (exitValue == 0) {
         return validateMontage(viewType, montagesize, absolutePath, stackFileName,
-            manager, axisID);
+            manager, uiComponent, axisID);
       }
       else if (exitValue == 1 && viewType == ViewType.MONTAGE) {
-        UIHarness.INSTANCE.openMessageDialog(manager,
+        UIHarness.INSTANCE.openMessageDialog(manager, uiComponent,
             "The dataset is not a montage.  Please select single frame type.",
             "Incorrect Frame Type", axisID);
         return false;
@@ -431,7 +427,7 @@ public final class DatasetTool {
     // Ignored existing piece list file.
     else if (exitValue == 0) {
       return validateMontage(viewType, montagesize, absolutePath, stackFileName, manager,
-          axisID);
+          uiComponent, axisID);
     }
     else if (exitValue == 1) {
       // No piece list information available in the stack - run montagesize with with
@@ -439,12 +435,12 @@ public final class DatasetTool {
       exitValue = readMontagesize(montagesize, manager);
       if (exitValue == 0) {
         return validateMontage(viewType, montagesize, absolutePath, stackFileName,
-            manager, axisID);
+            manager, uiComponent, axisID);
       }
       else if (exitValue == 2 || exitValue == 3) {
         // If they selected single view, go with that and ignore the piece list file
         if (viewType == ViewType.MONTAGE) {
-          UIHarness.INSTANCE.openMessageDialog(manager,
+          UIHarness.INSTANCE.openMessageDialog(manager, uiComponent,
               "The piece list file associated with this dataset does not match and the "
                   + "stack does not contain piece list information.  Please select "
                   + "single frame type.", "Incorrect Frame Type", axisID);
@@ -480,7 +476,8 @@ public final class DatasetTool {
 
   private static boolean validateMontage(final ViewType viewType,
       final Montagesize montagesize, final String absolutePath,
-      final String stackFileName, final BaseManager manager, final AxisID axisID) {
+      final String stackFileName, final BaseManager manager,
+      final UIComponent uiComponent, final AxisID axisID) {
     if (viewType != ViewType.MONTAGE) {
       // Currently 1x1 montage works with single view, so only fail if X or Y are
       // different.
@@ -504,7 +501,7 @@ public final class DatasetTool {
       }
       if (montagesize.getX().getInt() > header.getNColumns()
           || montagesize.getY().getInt() > header.getNRows()) {
-        UIHarness.INSTANCE.openMessageDialog(manager,
+        UIHarness.INSTANCE.openMessageDialog(manager, uiComponent,
             "The dataset is a montage.  Please select montage frame type.",
             "Incorrect Frame Type", axisID);
         return false;

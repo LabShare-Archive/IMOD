@@ -46,6 +46,7 @@ import etomo.ui.swing.MainSerialSectionsPanel;
 import etomo.ui.swing.ProcessDisplay;
 import etomo.ui.swing.SerialSectionsDialog;
 import etomo.ui.swing.SerialSectionsStartupDialog;
+import etomo.ui.swing.UIComponent;
 import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
@@ -247,20 +248,21 @@ public final class SerialSectionsManager extends BaseManager {
     }
   }
 
-  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
+  void startNextProcess(final UIComponent uiComponent, final AxisID axisID,
+      final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
       final DialogType dialogType, final ProcessDisplay display) {
     if (process.equals(Task.CHANGE_DIRECTORY)) {
       changeDirectory(axisID, processSeries);
     }
     else if (process.equals(Task.EXTRACT_PIECES)) {
-      extractpieces(axisID, processSeries);
+      extractpieces(uiComponent, axisID, processSeries);
     }
     else if (process.equals(Task.CREATE_COMSCRIPTS)) {
-      createComscripts(axisID, processSeries);
+      createComscripts(uiComponent, axisID, processSeries);
     }
     else if (process.equals(Task.COPY_DISTORTION_FIELD_FILE)) {
-      copyDistortionFieldFile(processSeries, axisID);
+      copyDistortionFieldFile(processSeries, uiComponent, axisID);
     }
     else if (process.equals(Task.DONE_STARTUP_DIALOG)) {
       doneStartupDialog(processSeries, axisID);
@@ -276,7 +278,7 @@ public final class SerialSectionsManager extends BaseManager {
     }
   }
 
-  public void completeStartup(final AxisID axisID) {
+  public void completeStartup(final UIComponent uiComponent, final AxisID axisID) {
     ProcessSeries processSeries = new ProcessSeries(this,
         DialogType.SERIAL_SECTIONS_STARTUP);
     processSeries.setNextProcess(Task.CHANGE_DIRECTORY);
@@ -368,7 +370,8 @@ public final class SerialSectionsManager extends BaseManager {
    * if it didn't spawn a process thread.
    * @param axisID
    */
-  private void extractpieces(final AxisID axisID, final ConstProcessSeries processSeries) {
+  private void extractpieces(final UIComponent uiComponent, final AxisID axisID,
+      final ConstProcessSeries processSeries) {
     ViewType viewType = getViewType();
     if (viewType == null) {
       if (processSeries != null) {
@@ -392,10 +395,9 @@ public final class SerialSectionsManager extends BaseManager {
       }
       catch (SystemProcessException e) {
         e.printStackTrace();
-        String[] message = new String[2];
-        message[0] = "Can not execute " + ExtractpiecesParam.COMMAND_NAME;
-        message[1] = e.getMessage();
-        uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
+        uiHarness.openMessageDialog(this, uiComponent, "Can not execute "
+            + ExtractpiecesParam.COMMAND_NAME + "\n" + e.getMessage(),
+            "Unable to execute command", axisID);
         if (processSeries != null) {
           processSeries.startFailProcess(axisID);
         }
@@ -412,7 +414,7 @@ public final class SerialSectionsManager extends BaseManager {
    * @param axisID
    * @param processSeries
    */
-  private void createComscripts(final AxisID axisID,
+  private void createComscripts(final UIComponent uiComponent, final AxisID axisID,
       final ConstProcessSeries processSeries) {
     SerialSectionsStartupData startupData = null;
     if (startupDialog == null || (startupData = startupDialog.getStartupData()) == null) {
@@ -430,7 +432,7 @@ public final class SerialSectionsManager extends BaseManager {
         }
         catch (IOException e) {
           e.printStackTrace();
-          uiHarness.openMessageDialog(this, "Unable to copy "
+          uiHarness.openMessageDialog(this, uiComponent, "Unable to copy "
               + FileType.SLOPPY_BLEND_COMSCRIPT.getFile(this, axisID).getAbsolutePath()
               + " to " + FileType.PREBLEND_COMSCRIPT.getFileName(this, axisID),
               "Unable to Create Comscripts", axisID);
@@ -641,7 +643,7 @@ public final class SerialSectionsManager extends BaseManager {
    */
 
   private void copyDistortionFieldFile(final ConstProcessSeries processSeries,
-      final AxisID axisID) {
+      final UIComponent uiComponent, final AxisID axisID) {
     File distortionField = getDistortionField();
     if (distortionField != null) {
       File stack = getStack();
@@ -651,9 +653,9 @@ public final class SerialSectionsManager extends BaseManager {
               distortionField.getName()));
         }
         catch (IOException e) {
-          UIHarness.INSTANCE.openMessageDialog(this,
-              "Unable to copy " + distortionField.getAbsolutePath()
-                  + ".  Please copy this file by hand.", "Unable to Copy File", axisID);
+          UIHarness.INSTANCE.openMessageDialog(this, uiComponent, "Unable to copy "
+              + distortionField.getAbsolutePath() + ".  Please copy this file by hand.",
+              "Unable to Copy File", axisID);
           if (processSeries != null) {
             processSeries.startFailProcess(axisID);
           }
