@@ -151,6 +151,7 @@ import etomo.ui.swing.TomogramCombinationDialog;
 import etomo.ui.swing.TomogramGenerationExpert;
 import etomo.ui.swing.TomogramPositioningExpert;
 import etomo.ui.swing.TrialTiltDisplay;
+import etomo.ui.swing.UIComponent;
 import etomo.ui.swing.UIExpert;
 import etomo.ui.swing.UIExpertUtilities;
 import etomo.ui.swing.UIHarness;
@@ -1886,7 +1887,8 @@ public final class ApplicationManager extends BaseManager implements
     if (metaData.getViewType() == ViewType.MONTAGE) {
       blendmontParam = comScriptMgr.getBlendmontParamFromTiltxcorr(axisID);
       GotoParam gotoParam = comScriptMgr.getGotoParamFromTiltxcorr(axisID);
-      runningBlendmont = blendmontParam.setBlendmontState(state.getInvalidEdgeFunctions(axisID));
+      runningBlendmont = blendmontParam.setBlendmontState(state
+          .getInvalidEdgeFunctions(axisID));
       if (runningBlendmont) {
         gotoParam.setLabel(BlendmontParam.GOTO_LABEL);
       }
@@ -7398,9 +7400,9 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Start the next process specified by the nextProcess string
    */
-  void startNextProcess(AxisID axisID, ProcessSeries.Process process,
-      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display) {
+  void startNextProcess(final UIComponent uiComponent, AxisID axisID,
+      ProcessSeries.Process process, ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, DialogType dialogType, ProcessDisplay display) {
     UIExpert uiExpert = getUIExpert(dialogType, axisID);
     if (uiExpert != null) {
       uiExpert.startNextProcess(process, processResultDisplay, processSeries, dialogType,
