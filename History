@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/14/12: Added the Align Serial Sections interface.(Bug# 1611)
+
 8/2/12: Beadtrack: improved criteria for when a bead is too weak so that weaker
 beads are allowed when the average one is getting weaker and to try to prevent
 beads from tracking on wild positions.  Improved the position prediction when
