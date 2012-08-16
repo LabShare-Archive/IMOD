@@ -399,11 +399,11 @@ for i in range(len(tracklines)):
    elif startline > 0 and line.startswith('$'):
       endline = i
 
-tracklines = tracklines[startline:endline]
-
 if startline < 0:
    exitError('Old version of ' + trackcom + ' cannot be used; convert it by opening ' +\
              'and closing the fiducial tracking panel in etomo')
+
+tracklines = tracklines[startline:endline]
 
 imageFile = optionValue(tracklines, 'ImageFile', 0)
 if not seedFile:
