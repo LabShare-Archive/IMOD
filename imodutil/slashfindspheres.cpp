@@ -9,13 +9,12 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *  
  * $Id: slashfindspheres.cpp
- *  Log at end
  */
 
 //############################################################
 
 #include <stdlib.h>
-#include <string>
+#include <string.h>
 #include <stdio.h>
 #include "mrcc.h"
 #include "sliceproc.h"
@@ -3317,12 +3316,3 @@ bool writeOutMrcFileWithCutoffVals( MrcHeader &inHead, char outfile[MAX_CHARS],
 
 //############################################################
 
-
-
-
-
-
-/*
- $Log: slashfindspheres.cpp,v $
- Revision 1.0  2012/05/21 21:37:14  noske
- */

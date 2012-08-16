@@ -10,13 +10,12 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *  
  * $Id: slashmasksort.cpp
- *  Log at end
  */
 
 //############################################################
 
 #include <stdlib.h>
-#include <string>
+#include <string.h>
 #include <stdio.h>
 #include "imodel.h"
 
@@ -894,13 +893,3 @@ inline int processPositiveIntList( char *arg, vector<int> &vect, bool acceptRang
 
 
 //############################################################
-
-
-
-
-
-
-/*
- $Log: slashmasksort.cpp,v $
- Revision 1.0  2012/07/20 21:37:14  noske
- */
