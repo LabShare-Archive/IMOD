@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
@@ -62,7 +61,6 @@ public final class ProcessMessages {
   // multi line error, warning, and info strings; terminated by an empty line
   // may be turned off temporarily
   private boolean multiLineMessages = false;
-  private LinkedList<String> lineList = new LinkedList<String>();
 
   static ProcessMessages getInstance() {
     return new ProcessMessages(false, false, null, null);
@@ -162,8 +160,8 @@ public final class ProcessMessages {
     boolean oldMultiLineMessages = multiLineMessages;
     multiLineMessages = false;
     nextLine();
-    //processOutput may be broken up into multiple lines
-    while (line != null) {
+    // processOutput may be broken up into multiple lines
+    if (line != null) {
       parse();
     }
     multiLineMessages = oldMultiLineMessages;
@@ -570,7 +568,30 @@ public final class ProcessMessages {
     }
     // message found - add to list
     if (chunkError) {
-      addElement(getChunkErrorList(), line, chunkErrorIndex, CHUNK_ERROR_TAG.length());
+      // Errors may be added to the chunk error line. They are errors associated with the
+      // chunk and should not be treated as process errors, so put them on separate lines
+      // but keep them with the chunk error.
+      int errorIndex = line
+          .indexOf(ERROR_TAG, chunkErrorIndex + CHUNK_ERROR_TAG.length());
+      if (errorIndex == -1) {
+        addElement(getChunkErrorList(), line, chunkErrorIndex, CHUNK_ERROR_TAG.length());
+      }
+      else {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append(line.substring(0, errorIndex) + "\n");
+        while (errorIndex != -1) {
+          int nextErrorIndex = line.indexOf(ERROR_TAG, errorIndex + ERROR_TAG.length());
+          if (nextErrorIndex != -1) {
+            buffer.append(line.substring(errorIndex, nextErrorIndex) + "\n");
+          }
+          else {
+            buffer.append(line.substring(errorIndex));
+          }
+          errorIndex = nextErrorIndex;
+        }
+        addElement(getChunkErrorList(), buffer.toString(), chunkErrorIndex,
+            CHUNK_ERROR_TAG.length());
+      }
     }
     nextLine();
     return true;
@@ -736,11 +757,6 @@ public final class ProcessMessages {
    * @return
    */
   private final boolean nextLine() {
-    if (!lineList.isEmpty()) {
-      // Current line was broken up - continue to return pieces of it.
-      line = lineList.remove();
-      return true;
-    }
     boolean retval = false;
     if (outputBufferManager != null) {
       retval = nextOutputBufferManagerLine();
@@ -759,72 +775,7 @@ public final class ProcessMessages {
     else if (processOutputStringArray != null) {
       retval = nextStringArrayLine();
     }
-    // Preprocess line.
-    if (retval) {
-      // Break up new line if necessary
-      List<Integer> indices = getIndicesOfTags();
-      if (indices == null || indices.size() < 2) {
-        // There no tags or only one tag on the line - nothing to do
-        return true;
-      }
-      // The line needs to be broken up.
-      String origLine = line;
-      Iterator<Integer> i = indices.iterator();
-      // The first portion of the line is not required to start with a tag, so start the
-      // line from 0.
-      i.next();
-      Integer index = i.next();
-      line = origLine.substring(0, index);
-      // Save the rest of the line in lineList. Break each portion up starting with a tag.
-      while (i.hasNext()) {
-        Integer nextIndex = i.next();
-        lineList.add(origLine.substring(index, nextIndex));
-        index = nextIndex;
-      }
-      lineList.add(origLine.substring(index));
-      return true;
-    }
-    line = null;
-    return false;
-  }
-
-  /**
-   * Returns the indices of the error tag and the chunk error tag.
-   * @param tags
-   * @param fromIndex
-   * @return sorted indices
-   */
-  private List<Integer> getIndicesOfTags() {
-    List indices = new Vector<Integer>();
-    if (line == null) {
-      return indices;
-    }
-    int fromIndex = 0;
-    int chunkErrorOffset = 6;
-    while (fromIndex < line.length()) {
-      int index = -1;
-      boolean chunkErrorFound = false;
-      index = line.indexOf(ERROR_TAG, fromIndex);
-      // Found "ERROR:", but it might be "CHUNK ERROR:"
-      if (index >= chunkErrorOffset) {
-        int chunkIndex = line.indexOf(CHUNK_ERROR_TAG, index - chunkErrorOffset);
-        if (chunkIndex != -1) {
-          // Found "CHUNK ERROR:" - record index
-          index = chunkIndex;
-          chunkErrorFound = true;
-        }
-      }
-      // Add the index, move on to the next index
-      if (index != -1) {
-        indices.add(new Integer(index));
-        fromIndex = index
-            + (chunkErrorFound ? CHUNK_ERROR_TAG.length() : ERROR_TAG.length());
-      }
-      else {
-        break;
-      }
-    }
-    return indices;
+    return retval;
   }
 
   /**
