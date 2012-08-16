@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/15/12: In eTomo handled lines with multiple error messages (In 4.5).
+(Bug# 1629)
+
 8/14/12: Made sure that pop-up messages for the PEET and Serial Sections start
 up dialogs will pop-up over the correct dialog.(Bug# 1624)
 
