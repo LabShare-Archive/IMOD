@@ -2,7 +2,7 @@ package etomo.storage;
 
 import java.io.File;
 
-import etomo.util.DatasetFiles;
+import etomo.type.DataFileType;
 
 /**
  * <p>Description: </p>
@@ -56,7 +56,7 @@ public class EtomoFileFilter extends DataFileFilter {
   public boolean accept(File f) {
     //  If this is a file test its extension, all others should return true
     if (f.isDirectory()
-        || (f.isFile() && !f.getAbsolutePath().endsWith(DatasetFiles.RECON_DATA_FILE_EXT))) {
+        || (f.isFile() && !f.getAbsolutePath().endsWith(DataFileType.RECON.extension))) {
       return false;
     }
     return true;

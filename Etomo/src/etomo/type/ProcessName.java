@@ -172,9 +172,15 @@ public final class ProcessName {
   private static final String prochunks_csh = "prochunks.csh";
 
   private final String name;
+  public final boolean resumable;
 
   private ProcessName(final String name) {
+    this(name, false);
+  }
+
+  private ProcessName(final String name, final boolean resumable) {
     this.name = name;
+    this.resumable = resumable;
   }
 
   public static final ProcessName ERASER = new ProcessName("eraser");// comscript which
@@ -184,7 +190,7 @@ public final class ProcessName {
   public static final ProcessName TRACK = new ProcessName(track);
   public static final ProcessName ALIGN = new ProcessName(align);
   public static final ProcessName NEWST = new ProcessName(newst);
-  public static final ProcessName TILT = new ProcessName(tilt);
+  public static final ProcessName TILT = new ProcessName(tilt,true);
   public static final ProcessName MTFFILTER = new ProcessName(mtffilter);
   public static final ProcessName SOLVEMATCHSHIFT = new ProcessName(solvematchshift);
   public static final ProcessName SOLVEMATCHMOD = new ProcessName(solvematchmod);
@@ -200,7 +206,7 @@ public final class ProcessName {
   public static final ProcessName UNDISTORT = new ProcessName(undistort);
   public static final ProcessName SOLVEMATCH = new ProcessName(solvematch);
   public static final ProcessName STARTJOIN = new ProcessName(startjoin);
-  public static final ProcessName PROCESSCHUNKS = new ProcessName(processchunks);
+  public static final ProcessName PROCESSCHUNKS = new ProcessName(processchunks,true);
   public static final ProcessName TOMOSNAPSHOT = new ProcessName(tomosnapshot);
   public static final ProcessName TRANSFERFID = new ProcessName(transferfid);
   public static final ProcessName CLIPFLIPYZ = new ProcessName(clipflipyz);
@@ -241,7 +247,7 @@ public final class ProcessName {
       tilt_3dfind_reproject);
   public static final ProcessName MIDAS = new ProcessName(midas);
   public static final ProcessName XCORR_PT = new ProcessName(xcorr_pt);
-  public static final ProcessName PROCHUNKS_CSH = new ProcessName(prochunks_csh);
+  public static final ProcessName PROCHUNKS_CSH = new ProcessName(prochunks_csh,true);
   public static final ProcessName SIRTSETUP = new ProcessName("sirtsetup");
   // The axis letter goes after tilt.
   public static final ProcessName TILT_SIRT = new ProcessName("tilt_sirt");

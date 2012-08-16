@@ -152,12 +152,15 @@ import etomo.util.MRCHeader;
 class TiltProcessMonitor extends FileSizeProcessMonitor {
   public static final String rcsid = "$Id$";
 
+  private final ApplicationManager applicationManager;
+
   private ConstTiltParam tiltParam = null;
   private String processTitle = "Calculating tomogram";
 
   public TiltProcessMonitor(final ApplicationManager appMgr, final AxisID id,
       final ProcessName processName) {
     super(appMgr, id, processName);
+    this.applicationManager = appMgr;
   }
 
   public static TiltProcessMonitor getReconnectInstance(final ApplicationManager appMgr,
@@ -180,12 +183,12 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
     loadTiltParam();
     // Get the header from the aligned stack to use as default nX and
     // nY parameters
-    String alignedFilename = applicationManager.getPropertyUserDir() + "/"
+    String alignedFilename = manager.getPropertyUserDir() + "/"
         + tiltParam.getInputFile();
 
-    MRCHeader alignedStack = MRCHeader.getInstance(
-        applicationManager.getPropertyUserDir(), alignedFilename, axisID);
-    if (!alignedStack.read(applicationManager)) {
+    MRCHeader alignedStack = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        alignedFilename, axisID);
+    if (!alignedStack.read(manager)) {
       return false;
     }
 
@@ -218,7 +221,7 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
       System.err.println("TiltProcessMonitor.calcFileSize:fileSize=" + fileSize + ",nX="
           + nX + ",nY=" + nY + ",nZ=" + nZ + ",imageBinned=" + imageBinned);
     }
-    applicationManager.getMainPanel().setProgressBar(processTitle, nKBytes, axisID);
+    manager.getMainPanel().setProgressBar(processTitle, nKBytes, axisID);
     return true;
   }
 
@@ -231,8 +234,7 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
   final void reloadWatchedFile() {
     loadTiltParam();
     // Create a file object describing the file to be monitored
-    watchedFile = new File(applicationManager.getPropertyUserDir(),
-        tiltParam.getOutputFile());
+    watchedFile = new File(manager.getPropertyUserDir(), tiltParam.getOutputFile());
   }
 
   private final void loadTiltParam() {

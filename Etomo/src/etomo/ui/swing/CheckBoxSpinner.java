@@ -11,6 +11,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
 
+import etomo.type.ConstEtomoNumber;
+
 /**
  * <p>Description: </p>
  * 
@@ -59,7 +61,7 @@ final class CheckBoxSpinner {
 
   CheckBoxSpinner(String text) {
     checkBox = new CheckBox(text);
-    spinner = Spinner.getInstance(checkBox.getName());
+    spinner = Spinner.getInstance(checkBox.getText());
     spinner.setEnabled(false);
     checkBox.addActionListener(new CheckBoxSpinnerActionListener(this));
   }
@@ -84,18 +86,26 @@ final class CheckBoxSpinner {
   }
 
   void enableSpinner() {
-    spinner.setEnabled(checkBox.isSelected());
+    spinner.setEnabled(checkBox.isSelected() && checkBox.isEnabled());
+  }
+
+  void setCheckBoxEnabled(final boolean enabled) {
+    checkBox.setEnabled(enabled);
   }
 
   void setModel(SpinnerNumberModel model) {
     spinner.setModel(model);
   }
 
+  void setMax(final int max) {
+    spinner.setMax(max);
+  }
+
   void setMaximumSize(Dimension maximumSize) {
     spinner.setMaximumSize(maximumSize);
   }
 
-  Object getValue() {
+  Number getValue() {
     return spinner.getValue();
   }
 
@@ -112,10 +122,14 @@ final class CheckBoxSpinner {
     spinner.setValue(value);
   }
 
+  void setValue(ConstEtomoNumber value) {
+    spinner.setValue(value);
+  }
+
   void setHighlight(boolean highlight) {
     if (panelBackground == null) {
       panelBackground = panel.getBackground();
-      //greying out the highlight color to match the panel's original color
+      // greying out the highlight color to match the panel's original color
       panelHighlightBackground = Colors.subtractColor(Colors.HIGHLIGHT_BACKGROUND,
           Colors.subtractColor(Colors.BACKGROUND, panelBackground));
     }

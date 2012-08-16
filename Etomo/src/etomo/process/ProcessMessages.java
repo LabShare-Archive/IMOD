@@ -30,7 +30,8 @@ import etomo.storage.LogFile;
 public final class ProcessMessages {
   public static final String rcsid = "$Id$";
 
-  private static final String[] ERROR_TAGS = { "ERROR:", "Errno", "Traceback" };
+  private static final String ERROR_TAG = "ERROR:";
+  private static final String[] ERROR_TAGS = { ERROR_TAG, "Errno", "Traceback" };
   private static final boolean[] ALWAYS_MULTI_LINE = { false, false, true };
   public static final String WARNING_TAG = "WARNING:";
   private static final String CHUNK_ERROR_TAG = "CHUNK ERROR:";
@@ -192,6 +193,7 @@ public final class ProcessMessages {
     boolean oldMultiLineMessages = multiLineMessages;
     multiLineMessages = false;
     nextLine();
+    // processOutput may be broken up into multiple lines
     if (line != null) {
       parse();
     }
@@ -599,7 +601,30 @@ public final class ProcessMessages {
     }
     // message found - add to list
     if (chunkError) {
-      addElement(getChunkErrorList(), line, chunkErrorIndex, CHUNK_ERROR_TAG.length());
+      // Errors may be added to the chunk error line. They are errors associated with the
+      // chunk and should not be treated as process errors, so put them on separate lines
+      // but keep them with the chunk error.
+      int errorIndex = line
+          .indexOf(ERROR_TAG, chunkErrorIndex + CHUNK_ERROR_TAG.length());
+      if (errorIndex == -1) {
+        addElement(getChunkErrorList(), line, chunkErrorIndex, CHUNK_ERROR_TAG.length());
+      }
+      else {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append(line.substring(0, errorIndex) + "\n");
+        while (errorIndex != -1) {
+          int nextErrorIndex = line.indexOf(ERROR_TAG, errorIndex + ERROR_TAG.length());
+          if (nextErrorIndex != -1) {
+            buffer.append(line.substring(errorIndex, nextErrorIndex) + "\n");
+          }
+          else {
+            buffer.append(line.substring(errorIndex));
+          }
+          errorIndex = nextErrorIndex;
+        }
+        addElement(getChunkErrorList(), buffer.toString(), chunkErrorIndex,
+            CHUNK_ERROR_TAG.length());
+      }
     }
     nextLine();
     return true;
@@ -765,24 +790,25 @@ public final class ProcessMessages {
    * @return
    */
   private final boolean nextLine() {
+    boolean retval = false;
     if (outputBufferManager != null) {
-      return nextOutputBufferManagerLine();
+      retval = nextOutputBufferManagerLine();
     }
-    if (bufferedReader != null) {
-      return nextBufferedReaderLine();
+    else if (bufferedReader != null) {
+      retval = nextBufferedReaderLine();
     }
-    if (logFile != null) {
-      return nextLogFileLine();
+    else if (logFile != null) {
+      retval = nextLogFileLine();
     }
-    if (processOutputString != null) {
+    else if (processOutputString != null) {
       line = processOutputString;
       processOutputString = null;
-      return true;
+      retval = true;
     }
-    if (processOutputStringArray != null) {
-      return nextStringArrayLine();
+    else if (processOutputStringArray != null) {
+      retval = nextStringArrayLine();
     }
-    return false;
+    return retval;
   }
 
   /**

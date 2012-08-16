@@ -746,6 +746,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   }
 
   final void setParameters(final ReconScreenState screenState) {
+    trialTiltPanel.setParameters(screenState);
     header.setState(screenState.getTomoGenTiltHeaderState());
     btnTilt.setButtonState(screenState.getButtonState(btnTilt.getButtonStateKey()));
     btnDeleteStack.setButtonState(screenState.getButtonState(btnDeleteStack
