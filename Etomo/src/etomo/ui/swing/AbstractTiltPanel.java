@@ -597,7 +597,6 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     // If only a local GPU is available and the Use GPU checkbox defaults to on, do not
     // select the parallel processing checkbox.
     if (nonLocalHostGpusAvailable || !cbUseGpu.isSelected()) {
-      System.out.println("A");
       if (tiltParallel == null) {
         cbParallelProcess.setSelected(validAutodoc && metaData.getDefaultParallel().is());
       }
