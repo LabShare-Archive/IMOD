@@ -74,7 +74,7 @@ public final class ProcessSeriesTest extends TestCase {
   public void testStartFailProcess() {
     // test null fail
     testInstance.startFailProcess(AxisID.FIRST, null);
-    assertTrue("null fail process has no effect",
+    assertFalse("null fail process still causes the process series to be cleaned up",
         testInstance.startNextProcess(AxisID.FIRST, null));
     // test non-null fail
     testInstance.setNextProcess(Task.NEXT_TASK);
@@ -137,7 +137,7 @@ public final class ProcessSeriesTest extends TestCase {
     // test that fail was dropped
     testInstance.setNextProcess(Task.NEXT_TASK);
     testInstance.startFailProcess(AxisID.FIRST, null);
-    assertTrue("null fail process has no effect",
+    assertFalse("null fail process still causes the process series to be cleaned up",
         testInstance.startNextProcess(AxisID.FIRST, null));
   }
 
