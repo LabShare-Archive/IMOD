@@ -128,12 +128,14 @@ public final class TomogramTool {
    * @return starting slice (long), empty etomoNumber (empty params or missing aligned stack), or null (invalid params)
    */
   public static ConstEtomoNumber getYStartingSlice(final BaseManager manager,
-      final AxisID axisID, final String yHeight, final String yShift,
+      final AxisID axisID, final String yHeight, String yShift,
       final String yHeightLabel, final String yShiftLabel) {
     EtomoNumber enStartingSlice = new EtomoNumber(EtomoNumber.Type.LONG);
-    if (yHeight == null || yHeight.matches("\\s*") || yShift == null
-        || yShift.matches("\\s*")) {
+    if (yHeight == null || yHeight.matches("\\s*")) {
       return enStartingSlice;
+    }
+    if (yShift == null || yShift.matches("\\s*")) {
+      yShift = "0.0";
     }
     MRCHeader header = MRCHeader.getInstanceFromFileName(manager, axisID,
         FileType.ALIGNED_STACK.getFileName(manager, axisID));
@@ -158,14 +160,14 @@ public final class TomogramTool {
           + enYHeight.getInvalidReason() + "", "Entry Error", axisID);
       return null;
     }
-    EtomoNumber enYShift = new EtomoNumber();
+    EtomoNumber enYShift = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     enYShift.set(yShift);
     if (!enYShift.isValid()) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Invalid " + yShiftLabel + " - "
           + enYShift.getInvalidReason() + "", "Entry Error", axisID);
       return null;
     }
-    enStartingSlice.set((tomoHeight - enYHeight.getInt()) / 2 - enYShift.getInt());
+    enStartingSlice.set((long)((tomoHeight - enYHeight.getInt()) / 2 - enYShift.getDouble()));
     if (!enStartingSlice.isValid()) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Invalid starting slice - "
           + enStartingSlice.getInvalidReason() + "", "Entry Error", axisID);
@@ -211,12 +213,12 @@ public final class TomogramTool {
       return null;
     }
     PairXAndY pairXAndY = new PairXAndY();
-    //X
+    // X
     int n = header.getNColumns();
     int[] pair = getStartingAndEnding(n, sizeX, shiftX, manager, axisID, sizeXDescr,
         shiftXDescr, errorMsgTitle);
     pairXAndY.setX(pair);
-    //Y
+    // Y
     n = header.getNRows();
     pair = getStartingAndEnding(n, sizeY, shiftY, manager, axisID, sizeYDescr,
         shiftYDescr, errorMsgTitle);
