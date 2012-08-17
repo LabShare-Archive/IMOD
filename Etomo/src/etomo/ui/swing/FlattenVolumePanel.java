@@ -20,12 +20,14 @@ import etomo.ToolsManager;
 import etomo.comscript.ConstWarpVolParam;
 import etomo.comscript.FlattenWarpParam;
 import etomo.comscript.WarpVolParam;
+import etomo.logic.DatasetTool;
 import etomo.storage.LogFile;
 import etomo.storage.TomogramFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
+import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoBoolean2;
@@ -469,25 +471,34 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
       if (command.equals(ftfInputFile.getActionCommand())) {
         inputFileAction();
       }
-      else if (command.equals(btnFlatten.getActionCommand())) {
-        toolsManager.flatten(btnFlatten, null, deferred3dmodButton, run3dmodMenuOptions,
-            dialogType, axisID, this);
-      }
-      else if (command.equals(btnImodFlatten.getActionCommand())) {
-        toolsManager.imodFlatten(run3dmodMenuOptions, axisID);
-      }
-      else if (command.equals(btnMakeSurfaceModel.getActionCommand())) {
-        toolsManager.imodMakeSurfaceModel(run3dmodMenuOptions, axisID,
-            btnMakeSurfaceModel.getBinningInXandY(), ftfInputFile.getFile());
-      }
-      else if (command.equals(btnFlattenWarp.getActionCommand())) {
-        if (validateFlattenWarp()) {
-          toolsManager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
+      else {
+        //Must keep checking the dataset directory because a tools interface cannot
+        //take pocession of a directory.
+        File file = ftfInputFile.getFile();
+        if (!DatasetTool.validateDatasetName(toolsManager, axisID,
+            file.getParentFile(), file.getName(), DataFileType.TOOLS, null)) {
+          return;
+        }
+        if (command.equals(btnFlatten.getActionCommand())) {
+          toolsManager.flatten(btnFlatten, null, deferred3dmodButton,
               run3dmodMenuOptions, dialogType, axisID, this);
         }
-      }
-      else {
-        throw new IllegalStateException("Unknown command " + command);
+        else if (command.equals(btnImodFlatten.getActionCommand())) {
+          toolsManager.imodFlatten(run3dmodMenuOptions, axisID);
+        }
+        else if (command.equals(btnMakeSurfaceModel.getActionCommand())) {
+          toolsManager.imodMakeSurfaceModel(run3dmodMenuOptions, axisID,
+              btnMakeSurfaceModel.getBinningInXandY(), ftfInputFile.getFile());
+        }
+        else if (command.equals(btnFlattenWarp.getActionCommand())) {
+          if (validateFlattenWarp()) {
+            toolsManager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
+                run3dmodMenuOptions, dialogType, axisID, this);
+          }
+        }
+        else {
+          throw new IllegalStateException("Unknown command " + command);
+        }
       }
     }
     else {
@@ -511,13 +522,21 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
       if (file == null || file.isDirectory() || !file.exists()) {
         return;
       }
-      if (toolsManager != null && toolsManager.isConflictingDatasetName(axisID, file)) {
-        return;
+      if (toolsManager != null) {
+        if (!DatasetTool.validateDatasetName(toolsManager, axisID,
+            file.getParentFile(), file.getName(), DataFileType.TOOLS, null)) {
+          return;
+        }
+        if (toolsManager.isConflictingDatasetName(axisID, file)) {
+          return;
+        }
       }
       try {
         ftfInputFile.setText(file.getAbsolutePath());
         ftfInputFile.setButtonEnabled(false);
-        toolsManager.setName(file);
+        if (toolsManager != null) {
+          toolsManager.setName(file);
+        }
         UIHarness.INSTANCE.pack(manager);
         checkRotated(file);
       }

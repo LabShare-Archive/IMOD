@@ -110,7 +110,7 @@ public class NewstParamTest extends TestCase {
         separateWithASpace);
     scriptCommand.setCommand("newst");
     scriptCommand.setCommandLineArgs(s);
-    NewstParam newstParam = new NewstParam(manager, AxisID.ONLY);
+    NewstParam newstParam =  NewstParam.getInstance(manager, AxisID.ONLY);
     try {
       newstParam.parseComScriptCommand(scriptCommand);
     }
@@ -136,7 +136,7 @@ public class NewstParamTest extends TestCase {
     //Case: all options
 
     ComScriptCommand csc = getAllOptionsComScriptCommand();
-    NewstParam np = new NewstParam(manager, AxisID.ONLY);
+    NewstParam np =  NewstParam.getInstance(manager, AxisID.ONLY);
     //test Parse
     testParseAllOptions(np, csc);
 
@@ -146,7 +146,7 @@ public class NewstParamTest extends TestCase {
     //test compatibility of Update and Parse
     csc = new ComScriptCommand(false, false);
     csc.setCommandLineArgs(commandLine);
-    np = new NewstParam(manager, AxisID.ONLY);
+    np =  NewstParam.getInstance(manager, AxisID.ONLY);
     testParseAllOptions(np, csc);
   }
 
@@ -158,7 +158,7 @@ public class NewstParamTest extends TestCase {
 
     //test Parse - should reset
     ComScriptCommand csc = getNoOptionsComScriptCommand();
-    NewstParam np = new NewstParam(manager, AxisID.ONLY);
+    NewstParam np =  NewstParam.getInstance(manager, AxisID.ONLY);
     try {
       np.parseComScriptCommand(csc);
     }

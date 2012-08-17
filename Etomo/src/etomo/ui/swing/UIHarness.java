@@ -424,6 +424,11 @@ public final class UIHarness {
       mainFrame.setEnabledNewPeetMenuItem(enable);
     }
   }
+  public void setEnabledNewSerialSectionsMenuItem(boolean enable) {
+    if (isHead()) {
+      mainFrame.setEnabledNewSerialSectionsMenuItem(enable);
+    }
+  }
 
   public void addFrame(BaseManager manager) {
     if (isHead()) {

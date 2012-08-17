@@ -47,6 +47,15 @@ public class JUnitTests {
 
     //$JUnit-BEGIN$
     //$JUnit-END$
+    
+    testSuite = (TestSuite) EtomoTests.suite();
+    tests = testSuite.tests();
+    while (tests.hasMoreElements()) {
+      test = tests.nextElement();
+      if (test instanceof Test) {
+        suite.addTest((Test) test);
+      }
+    }
 
     testSuite = (TestSuite) StorageTests.suite();
     tests = testSuite.tests();

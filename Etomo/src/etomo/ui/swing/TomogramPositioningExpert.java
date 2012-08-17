@@ -660,7 +660,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     BlendmontParam blendmontParam = comScriptMgr.getBlendParam(axisID);
     getParameters(blendmontParam);
     blendmontParam.setMode(BlendmontParam.Mode.WHOLE_TOMOGRAM_SAMPLE);
-    blendmontParam.setBlendmontState();
+    blendmontParam.setBlendmontState(state.getInvalidEdgeFunctions(axisID));
     blendmontParam.resetStartingAndEndingXandY();
     blendmontParam.convertToStartingAndEndingXandY("", metaData.getImageRotation(axisID)
         .getDouble(), null);

@@ -2,7 +2,7 @@ package etomo.storage;
 
 import java.io.File;
 
-import etomo.util.DatasetFiles;
+import etomo.type.DataFileType;
 
 /**
 * <p>Description: </p>
@@ -31,14 +31,14 @@ public class ParallelFileFilter extends javax.swing.filechooser.FileFilter imple
       return true;
     }
     String fileName = file.getName();
-    if (fileName.endsWith(DatasetFiles.PARALLEL_DATA_FILE_EXT) && fileName.length() > 4) {
+    if (fileName.endsWith(DataFileType.PARALLEL.extension) && fileName.length() > 4) {
       return true;
     }
     return false;
   }
 
   public String getDescription() {
-    return "Parallel process data file (" + DatasetFiles.PARALLEL_DATA_FILE_EXT + ")";
+    return "Parallel process data file (" + DataFileType.PARALLEL.extension + ")";
   }
 }
 /**

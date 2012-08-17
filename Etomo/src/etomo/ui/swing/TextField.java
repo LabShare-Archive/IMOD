@@ -116,6 +116,10 @@ final class TextField {
     return textField.isEnabled();
   }
 
+  boolean isEditable() {
+    return textField.isEditable();
+  }
+
   private void setName(String reference) {
     String name = Utilities.convertLabelToName(reference);
     textField.setName(UITestFieldType.TEXT_FIELD.toString()

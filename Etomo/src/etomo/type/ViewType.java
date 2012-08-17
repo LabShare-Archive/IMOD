@@ -29,54 +29,72 @@ package etomo.type;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class ViewType {
+public class ViewType implements EnumeratedType {
   public static final String rcsid = "$Id$";
 
-  private final String name;
+  public static final ViewType SINGLE_VIEW = new ViewType("Single View", "single", 0);
+  public static final ViewType MONTAGE = new ViewType("Montage", "montage", 1);
 
-  private ViewType(String name) {
-    this.name = name;
+  public static final ViewType DEFAULT = SINGLE_VIEW;
+
+  private final EtomoNumber index = new EtomoNumber();
+
+  private final String title;
+  private final String paramValue;
+
+  private ViewType(final String title, final String paramValue, final int index) {
+    this.title = title;
+    this.paramValue = paramValue;
+    this.index.set(index);
   }
-
-  public static final ViewType SINGLE_VIEW = new ViewType("Single View");
-  public static final ViewType MONTAGE = new ViewType("Montage");
 
   /**
    * Returns a string representation of the object.
    */
   public String toString() {
-    return name;
+    return title;
   }
 
-  public String getValue() {
-    if (this == SINGLE_VIEW) {
-      return "single";
-    }
-    if (this == MONTAGE) {
-      return "montage";
-    }
-    return "";
+  public String getParamValue() {
+    return paramValue;
+  }
+
+  public ConstEtomoNumber getValue() {
+    return index;
+  }
+
+  public boolean isDefault() {
+    return this == DEFAULT;
   }
 
   /**
    * Takes a string representation of an ViewType type and returns the correct
    * static object.  The string is case insensitive.  Null is returned if the
-   * string is not one of the possibilities from toString().
+   * string is not one of the possibilities from toString() or getParamValue().
    */
-  public static ViewType fromString(String name) {
+  public static ViewType fromString(final String name) {
     if (name.compareToIgnoreCase(SINGLE_VIEW.toString()) == 0) {
       return SINGLE_VIEW;
     }
     if (name.compareToIgnoreCase(MONTAGE.toString()) == 0) {
       return MONTAGE;
     }
-    if (name.compareToIgnoreCase(SINGLE_VIEW.getValue()) == 0) {
+    if (name.compareToIgnoreCase(SINGLE_VIEW.getParamValue()) == 0) {
       return SINGLE_VIEW;
     }
-    if (name.compareToIgnoreCase(MONTAGE.getValue()) == 0) {
+    if (name.compareToIgnoreCase(MONTAGE.getParamValue()) == 0) {
       return MONTAGE;
     }
     return null;
   }
 
+  public static ViewType getInstance(final EnumeratedType enumeratedType) {
+    if (enumeratedType == SINGLE_VIEW) {
+      return SINGLE_VIEW;
+    }
+    if (enumeratedType == MONTAGE) {
+      return MONTAGE;
+    }
+    return DEFAULT;
+  }
 }

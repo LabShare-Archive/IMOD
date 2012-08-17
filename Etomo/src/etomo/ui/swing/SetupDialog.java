@@ -29,10 +29,12 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.filechooser.FileFilter;
 
 import etomo.ApplicationManager;
+import etomo.logic.DatasetTool;
 import etomo.storage.MagGradientFileFilter;
 import etomo.storage.StackFileFilter;
 import etomo.storage.DistortionFileFilter;
 import etomo.type.AxisID;
+import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -182,6 +184,24 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   public void done() {
     applicationManager.doneSetupDialog();
     setDisplayed(false);
+  }
+
+  public void buttonExecuteAction() {
+    String sDataset = ftfDataset.getText();
+    if (sDataset.indexOf(File.separator) != -1) {
+      if (!DatasetTool.validateDatasetName(applicationManager, AxisID.ONLY,
+          ftfDataset.getFile(), DataFileType.RECON, expert.getAxisType())) {
+        return;
+      }
+    }
+    else {
+      if (!DatasetTool.validateDatasetName(applicationManager, AxisID.ONLY,
+          new File(applicationManager.getPropertyUserDir()), ftfDataset.getText(),
+          DataFileType.RECON, expert.getAxisType())) {
+        return;
+      }
+    }
+    super.buttonExecuteAction();
   }
 
   public void action(final Run3dmodButton button,
@@ -610,7 +630,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     // init
     ftfDistortionFile.setTextPreferredWidth(505);
     ftfMagGradientFile.setTextPreferredWidth(505);
-    
+
     // Datatype subpnls: DataSource AxisType Viewtype
     Dimension dimDataTypePref = new Dimension(
         (int) (150 * UIParameters.INSTANCE.getFontSizeAdjustment()),
