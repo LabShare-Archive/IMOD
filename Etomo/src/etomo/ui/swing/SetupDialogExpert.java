@@ -384,7 +384,7 @@ public final class SetupDialogExpert {
     }
     return DatasetTool.validateViewType(
         dialog.isSingleViewSelected() ? ViewType.SINGLE_VIEW : ViewType.MONTAGE,
-        manager.getPropertyUserDir(), getStackFileName(), manager, AxisID.ONLY);
+        manager.getPropertyUserDir(), getStackFileName(), manager,null, AxisID.ONLY);
   }
 
   public MetaData getMetaData() {

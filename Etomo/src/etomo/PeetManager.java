@@ -50,6 +50,7 @@ import etomo.ui.swing.ParallelPanel;
 import etomo.ui.swing.PeetDialog;
 import etomo.ui.swing.PeetStartupDialog;
 import etomo.ui.swing.ProcessDisplay;
+import etomo.ui.swing.UIComponent;
 import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.EnvironmentVariable;
@@ -877,7 +878,8 @@ public final class PeetManager extends BaseManager {
   /**
    * Start the next process specified by the nextProcess string
    */
-  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
+  void startNextProcess(final UIComponent uiComponent, final AxisID axisID,
+      final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
       final DialogType dialogType, final ProcessDisplay display) {
     if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {

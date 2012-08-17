@@ -41,6 +41,7 @@ import etomo.ui.swing.ParallelChooser;
 import etomo.ui.swing.ParallelDialog;
 import etomo.ui.swing.ParallelPanel;
 import etomo.ui.swing.ProcessDisplay;
+import etomo.ui.swing.UIComponent;
 import etomo.ui.swing.UIHarness;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -205,7 +206,8 @@ public final class ParallelManager extends BaseManager {
     }
   }
 
-  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
+  void startNextProcess(final UIComponent uiComponent, final AxisID axisID,
+      final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       DialogType dialogType, ProcessDisplay display) {
     if (process.equals(ProcessName.ANISOTROPIC_DIFFUSION.toString())) {
