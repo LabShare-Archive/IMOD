@@ -386,7 +386,7 @@ reprojection difference for SIRT.  The width of the reprojection must match
 the width of the input data. 
 
 [Field = SLICE]
-type = FA
+type = IA
 usage = Starting and ending slice number, and interval between slices
 tooltip = 
 manpage = Starting and ending slice number to reconstruct, and interval

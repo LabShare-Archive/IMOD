@@ -17,9 +17,9 @@ PROGS = clonemodel$(E) clonevolume$(E) imodauto$(E) imod-dist$(E) \
  imod2meta$(E) wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) \
  imodexplode$(E) patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) \
  imodcurvature$(E) imodfindbeads$(E) point2model$(E) flattenwarp$(E) \
- $(IMODWINCPU)
+ slashmasksort$(E) slashsplitconts$(E) $(IMODWINCPU)
 
-all : $(PROGS)
+all : $(PROGS) slashfindspheres$(E)
 
 clonemodel$(E) : clonemodel.$(O)
 	$(CC) -o clonemodel clonemodel.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
@@ -62,7 +62,7 @@ imod2vrml2$(E) : imod2vrml2.$(O)
 imod2obj$(E) : imod2obj.$(O)
 	$(CXX) -o imod2obj imod2obj.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
-imod2ccdbxml $(E) : imod2ccdbxml.$(O)
+imod2ccdbxml$(E) : imod2ccdbxml.$(O)
 	$(CC) -o imod2ccdbxml imod2ccdbxml.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imod2meta$(E) : imod2meta.$(O)
@@ -119,6 +119,15 @@ imodwincpu.exe : imodwincpu.obj
 
 imodwincpu.obj : imodwincpu.cpp CpuUsage.h PerfCounters.h
 	$(CXX) -c $(CXXFLAGS) $(WINCPUVC) imodwincpu.cpp
+
+slashsplitconts$(E) : slashsplitconts.$(O)
+	$(CXX) -o slashsplitconts slashsplitconts.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+
+slashmasksort$(E) : slashmasksort.$(O)
+	$(CXX) -o slashmasksort slashmasksort.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+
+slashfindspheres$(E) : slashfindspheres.$(O)
+	$(CXX) -o slashfindspheres slashfindspheres.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
 
 install : $(PROGS)
 	$(STRIP) $(PROGS)

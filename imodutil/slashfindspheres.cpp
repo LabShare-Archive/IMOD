@@ -64,6 +64,9 @@ const int MAX_COMPARES = 500;		      // max number of "cross comparions" between
                                       //  templates around input spheres in order
                                       //  to generate a estimated "good cutoff"
 
+const float NULL_FLOAT = -999; //MIN_FLOAT;	// represents a pixel not on the image
+	
+
 //############################################################
 //## MAIN PROGRAM VARIABLES:
 
@@ -430,8 +433,6 @@ public:
 	
 	int totXY;  // the number of pixels on each z level (stored for faster calculation)
 	int totPx;  // the total nubmer of pixels in the template
-	
-	const static float NULL_FLOAT = -999; //MIN_FLOAT;	// represents a pixel not on the image
 	
 	PixTemplate()			{  reset(); }
 	
