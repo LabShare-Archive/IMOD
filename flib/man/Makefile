@@ -7,23 +7,6 @@
 #
 #  $Revision$
 #
-#  $Log$
-#  Revision 3.3  2003/10/24 02:30:57  mast
-#  Changes for windows/Intel compiler
-#
-#  Revision 3.2  2003/10/08 17:15:57  mast
-#  Changes to work with autodoc files
-#
-#  Revision 3.1  2003/04/29 05:25:36  mast
-#  Include configure from top level so fresh checkout can make src
-#
-#  Revision 3.0  2001/11/29 18:10:17  rickg
-#  *** empty log message ***
-#
-#  Revision 1.2  2001/11/28 15:43:20  mast
-#  Changed to do install in conventional manner
-#
-#
 include ../../configure
 O        = $(OBJEXT)
 

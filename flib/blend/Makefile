@@ -36,7 +36,7 @@ install: $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *~ *.exe blendvars.mod blendmont reducemont sloppymont
+	-\rm -f *.$(OBJEXT) *~ *.exe blendvars.mod blendmont reducemont sloppymont
 
 blendmont.$(O):	blendvars.$(O)
 bsubs.$(O):	blendvars.$(O)

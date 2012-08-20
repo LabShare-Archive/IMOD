@@ -284,6 +284,10 @@ final class FileTextField implements FileTextFieldInterface {
   boolean isEmpty() {
     return field.getText().matches("\\s*");
   }
+  
+  boolean isEditable() {
+    return field.isEditable();
+  }
 
   boolean exists() {
     updateInternalValues();

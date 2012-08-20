@@ -1,0 +1,160 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputDataFile]
+short = input
+type = FN
+usage = Name of data file
+tooltip =
+manpage = Name of file with data to plot.  If this option is not entered, the
+first non-option argument is used for the name.
+
+[Field = IfTypesInFirstColumn]
+short = iftypes
+type = B
+usage = 1 if there is a type number for each item in first column, or 0 if not
+tooltip =
+manpage = 1 if there is a type number or group identifier before the first column
+of data, or 0 if not.  The default is 0
+
+[Field = NumberOfColumns]
+short = ncol
+type = I
+usage = # of columns of data, 0 if # is before data, or -1 if data all on one line
+tooltip =
+manpage = The number of columns of data per item in the file, or 0 if the
+number is in the file on a line just before the data, or -1 if all the entries
+for a data item are on one line, so that the number can be determined
+automatically.  The default is -1.
+
+[Field = SkipLinesAtStart]
+short = skip
+type = I
+usage = Number of lines to skip at start at file
+tooltip =
+manpage = Number of lines to skip at the beginning of the data file.  If this
+option is not entered, the program will attempt to determine the number of
+lines to be ignored automatically.  This should work provided that any one of
+these conditions is the case:
+^  1) the extra lines always start with non-numeric text; 
+^  2) the number of numeric values at the beginning of extra lines is fewer
+than the number of columns entered with -ncol (minus 1 if -iftypes is entered
+too); 
+^  3) extra lines start with a non-integer if -ncol is entered as 0;
+^  4) extra lines start with only one number if -iftypes is entered.
+
+[Field = ColumnsToPlot]
+short = columns
+type = IA
+usage = Numbers of columns to plot, numbered from 1
+tooltip =
+manpage = Numbers of the columns to plot, numbered from 1.  If more than one
+number is entered and -ordinals is not entered, the first number
+specifies the column to use for the X axis; otherwise
+all numbers specify columns to plot on the Y axis.  If there are
+no data types, multiple columns can be given for the Y axis; if there are data
+types, only one column can be listed for Y.  If this option is not entered, the
+default is 1 and 2, unless there is only one data column or -ordinals is
+entered, in which case the default is 1.
+
+[Field = TypesToPlot]
+short = types
+type = IA
+usage = One or more data types to plot
+tooltip =
+manpage = One or more data types to plot; types are not numbered from one but
+correspond to the arbitrary type values in the data file.  This entry is
+required if there are types in the data file.
+
+[Field = SymbolsForTypes]
+short = symbols
+type = IA
+usage = One or more symbols to use for the different types or columns
+tooltip =
+manpage = One or more symbols to use for the different types or columns being
+plotted.  Available symbol numbers are:
+^  1, 2: Open and filled squares
+^  3, 4: Open and filled diamonds
+^  5, 6: Open and filled triangles
+^  7, 8: X and +
+^  9, 10: Open and filled circles
+^  11, 12: Open and filled inverted triangles
+^  13, 14: U and S
+^  15: Open circle with vertical line
+^  18: Small dot
+^  19: Horizontal line
+^  0: No symbol, points are automatically connected with lines
+^  -1: Draw item number at each data point
+^ If no, or not enough, symbol values are entered, the program will assign
+symbols in order from this list: 9, 7, 5, 8, 13, 14, 1, 11, 3, 10, 6, 2, 12,
+4, excluding any that have already been specified.
+
+[Field = ConnectWithLines]
+short = connect
+type = B
+usage = Draw lines between successive points within a type or column
+tooltip =
+manpage = Draw lines between successive points within a type or column; this
+entry is not needed if the symbol is 0
+
+[Field = OrdinalsForXvalues]
+short = ordinal
+type = B
+usage = Plot data within each column or type sequentially in X
+tooltip =
+manpage = Plot data within each column or type sequentially in X, i.e., versus
+a set up numbers that start from 1 and increase by 1 for each value plotted.
+This entry is implied if only one column is entered.
+
+[Field = XLogOrRootAndBase]
+short = xlog
+type = FP
+usage = 1 to take log or 2 to take square root of X values, and base to add
+tooltip =
+manpage = 1 to take the logarithm or 2 to take the square root of X values,
+and the base to add before that operation.  A base is needed to avoid taking
+the logarithm or quare root of negative numbers.  An appropriate base value
+can also be helpful for spreading out the data more evenly.  The numeric axis
+labels on the graph will be in the units of the data after the operation,
+e.g., in log units, not in original units.
+
+[Field = YLogOrRootAndBase]
+short = ylog
+type = FP
+usage = 1 to take log or 2 to take square root of Y values, and base to add
+tooltip =
+manpage = 1 to take the logarithm or 2 to take the square root of Y values,
+and the base to add before that operation.
+
+[Field = XaxisLabel]
+short = axis
+type = CH
+usage = Label for the X axis
+tooltip =
+manpage = 
+
+[Field = KeyLabels]
+short = keys
+type = CHM
+usage = Text to display on right side of window after a type's or column's symbol
+tooltip =
+manpage = Text to display as a key for one type or column, shown along with
+that type's or column's symbol, if any, on the right side of the window.  Text
+is drawn in a large box with word wrapping enabled, so the key can be longer
+than the space on the right of the graph.  The program will show default keys
+with the column or type number if not enough labels are entered.
+
+[Field = MessageBoxLine]
+short = message
+type = CHM
+usage = One line of a message to be displayed in a message box
+tooltip =
+manpage = 
+
+[Field = ToolTipLine]
+short = tooltip
+type = CHM
+usage = One line of tooltip for the graphics window
+tooltip =
+manpage = 
+

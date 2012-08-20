@@ -1,8 +1,5 @@
 package etomo.ui.swing;
 
-import java.awt.Color;
-import java.awt.event.ActionEvent;
-
 import etomo.JoinManager;
 import etomo.type.AxisID;
 
@@ -69,34 +66,11 @@ public class JoinProcessPanel extends AxisProcessPanel {
   public JoinProcessPanel(JoinManager joinManager, AxisID axis) {
     super(axis, joinManager, true);
     createProcessControlPanel();
+    showBothAxis();
     initializePanels();
   }
 
   void showBothAxis() {
     setBackground(Colors.getBackgroundJoin());
-  }
-
-  private void setBackground(Color color) {
-    panelRoot.setBackground(color);
-    outerStatusPanel.setBackground(color);
-    innerStatusPanel.setBackground(color);
-    parallelStatusPanel.setBackground(color);
-    panelDialog.setBackground(color);
-    panelProcessSelect.setBackground(color);
-    //axisButtonPanel.setBackground(color);
-    progressPanel.setBackground(color);
-  }
-
-  protected void createProcessControlPanel() {
-    super.createProcessControlPanel();
-    showBothAxis();
-  }
-
-  /**
-   * 
-   * @param event
-   */
-  protected void buttonKillAction(ActionEvent event) {
-    manager.kill(axisID);
   }
 }

@@ -1,5 +1,5 @@
-all: single-test-gui single-patch-tracking-test-gui single-fidless single-simple-align dual-test-gui dual-testBB-test-gui single-montage-test-gui dual-montage-test-gui dual-montage-patch-tracking peet-test-gui join-test-gui nad generic flatten-volume-test-gui gpu-test-gui
-sub: gpu-test-gui flatten-volume-test-gui generic nad join-test-gui peet-test-gui single-montage-test-gui dual-test-gui single-simple-align single-fidless single-patch-tracking-test-gui   
+all: single-test-gui single-patch-tracking-test-gui single-fidless single-simple-align dual-test-gui dual-testBB-test-gui single-montage-test-gui dual-montage-test-gui dual-montage-patch-tracking peet-test-gui join-test-gui serial-sections-test-gui serial-sections-montage-test-gui nad generic flatten-volume-test-gui gpu-test-gui
+sub: gpu-test-gui flatten-volume-test-gui generic nad serial-sections-montage-test-gui serial-sections-test-gui join-test-gui peet-test-gui single-montage-test-gui dual-test-gui single-simple-align single-fidless single-patch-tracking-test-gui   
 
 all-pt: single-patch-tracking-test-gui single-patch-tracking dual-montage-patch-tracking
 all-peet: peet peet-test-gui
@@ -44,6 +44,10 @@ join-test-gui: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest join-test-gui
 join-testunicross-test-gui: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest join-testunicross-test-gui
+serial-sections-test-gui: dummy
+	$(IMOD_UITEST_SCRIPT)/uitest serial-sections-test-gui
+serial-sections-montage-test-gui: dummy
+	$(IMOD_UITEST_SCRIPT)/uitest serial-sections-montage-test-gui
 nad: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest nad
 nad-testunicross: dummy

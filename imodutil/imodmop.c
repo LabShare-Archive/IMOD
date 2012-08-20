@@ -104,7 +104,7 @@ int main( int argc, char *argv[])
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 imodmop  */
   int numOptions = 29;
-  char *options[] = {
+  const char *options[] = {
     "xminmax:XMinAndMax:IP:", "yminmax:YMinAndMax:IP:", "zminmax:ZMinAndMax:IP:", 
     "border:BorderAroundObjects:I:", "invert:InvertPaintedArea:B:", 
     "reverse:ReverseContrast:B:", "thresh:Threshold:F:", "fv:FillValue:F:", 

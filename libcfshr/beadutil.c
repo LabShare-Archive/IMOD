@@ -6,11 +6,17 @@
  * Colorado.  See dist/COPYRIGHT for full notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include <math.h>
 #include "b3dutil.h"
+#include "imodconfig.h"
+
+#ifdef F77FUNCAP
+#define makemodelbead MAKEMODELBEAD
+#else
+#define makemodelbead makemodelbead_
+#endif
 
 /*!
  * Makes a model bead of radius [beadSize] in [array] with dimensions [boxSize]
@@ -44,6 +50,13 @@ void makeModelBead(int boxSize, float beadSize, float *array)
     }
   }
 }
+
+/*! Fortran wrapper for @makeModelbead. */
+void makemodelbead(int *boxSize, float *beadSize, float *array)
+{
+  makeModelBead(*boxSize, *beadSize, array);
+}
+
 
 /*!
  * Finds integral above background of a bead located at [xcen], [ycen] in 
@@ -108,9 +121,3 @@ double beadIntegral(float *array, int nxdim, int nx, int ny, float rCenter,
     *median = percentileFloat((int)(annPct * nann + 1.), temp, nann);
   return (censum / ncen - *annmean);
 }
-
-
-/*
-  $Log$
-  
-*/

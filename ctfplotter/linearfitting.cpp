@@ -8,12 +8,12 @@
 *  Colorado.  See dist/COPYRIGHT for full copyright notice.
 * 
 *  $Id$
-*  Log at end of file
 */
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "lapackc.h"
 #include "linearfitting.h"
 
 LinearFitting::LinearFitting(int nRaw): nDim(nRaw) 
@@ -120,10 +120,3 @@ int LinearFitting::computeFitting(double *fitting, double *model, int nModel,
   free(sv);
   return INFO; 
 }
-/*
-
-$Log$
-Revision 1.4  2008/11/07 17:26:24  xiongq
-add the copyright heading
-
-*/

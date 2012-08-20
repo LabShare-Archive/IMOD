@@ -907,11 +907,7 @@ public class ImodProcess {
     if (useModv) {
       commandOptions.add("-view");
     }
-    /*
-    if (debug) {
-      commandOptions.add("-DC");
-    }
-*/
+    /*if (debug) { commandOptions.add("-DC"); } */
     if (binning > defaultBinning
         || (menuOptions.isBinBy2() && menuOptions.isAllowBinningInZ())) {
       commandOptions.add("-B");
@@ -1815,6 +1811,7 @@ public class ImodProcess {
     private final Queue requestQueue = new LinkedList();
 
     private InteractiveSystemProgram imod = null;
+    private boolean receivedInterruptedException = false;
 
     private Stderr() {
     }
@@ -1866,6 +1863,7 @@ public class ImodProcess {
         Thread.sleep(500);
       }
       catch (InterruptedException e) {
+        receivedInterruptedException = true;
       }
       if (imod == null) {
         return;
@@ -2063,6 +2061,10 @@ public class ImodProcess {
       }
       if (!responseReceived) {
         if (isRunning()) {
+          if (EtomoDirector.INSTANCE.getArguments().isDebug()
+              && stderr.receivedInterruptedException) {
+            System.err.println("\nsleep interrupted");
+          }
           // no response received and 3dmod is running - "throw" exception
           SystemProcessException exception = new SystemProcessException(
               "No response received from 3dmod.  datasetName=" + datasetName
