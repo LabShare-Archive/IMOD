@@ -275,6 +275,10 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
       "Max. # views to include in align: ");
   private final LabeledTextField ltfRoundsOfTracking = new LabeledTextField(
       "Rounds of tracking: ");
+  private final CheckBox cbSobelFilterCentering = new CheckBox(
+      "Refine center with Sobel filter");
+  private final LabeledTextField ltfKernelSigmaForSobel = new LabeledTextField(
+      "Sigma for kernel filter: ");
 
   private final JPanel pnlCheckbox = new JPanel();
   private final JPanel pnlLightBeads = new JPanel();
@@ -311,6 +315,8 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     header = PanelHeader.getAdvancedBasicInstance("Beadtracker", this, dialogType,
         globalAdvancedButton);
 
+    JPanel pnlSobelFilterCentering = new JPanel();
+
     panelBeadtrackBody.setLayout(new BoxLayout(panelBeadtrackBody, BoxLayout.Y_AXIS));
     panelBeadtrackBody.add(Box.createRigidArea(FixedDim.x0_y5));
     panelBeadtrackBody.add(ltfViewSkipList.getContainer());
@@ -328,10 +334,14 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     pnlLightBeads.add(cbLightBeads);
     pnlLightBeads.add(Box.createHorizontalGlue());
     panelBeadtrackBody.add(pnlLightBeads);
+    panelBeadtrackBody.add(Box.createRigidArea(FixedDim.x0_y2));
+    panelBeadtrackBody.add(pnlSobelFilterCentering);
+    panelBeadtrackBody.add(ltfKernelSigmaForSobel.getContainer());
+    panelBeadtrackBody.add(Box.createRigidArea(FixedDim.x0_y2));
     pnlCheckbox.setLayout(new BoxLayout(pnlCheckbox, BoxLayout.Y_AXIS));
     pnlCheckbox.setAlignmentX(Component.CENTER_ALIGNMENT);
     JPanel pnlFillGaps = new JPanel();
-    pnlFillGaps.setLayout(new BoxLayout(pnlFillGaps,BoxLayout.X_AXIS));
+    pnlFillGaps.setLayout(new BoxLayout(pnlFillGaps, BoxLayout.X_AXIS));
     pnlFillGaps.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlFillGaps.add(cbFillGaps);
     pnlFillGaps.add(Box.createHorizontalGlue());
@@ -356,6 +366,12 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     panelBeadtrackBody.add(ltfMinTiltRangeToFindAngle.getContainer());
     panelBeadtrackBody.add(ltfSearchBoxPixels.getContainer());
     panelBeadtrackBody.add(Box.createRigidArea(FixedDim.x0_y5));
+
+    // SobelFilterCentering
+    pnlSobelFilterCentering.setLayout(new BoxLayout(pnlSobelFilterCentering,
+        BoxLayout.X_AXIS));
+    pnlSobelFilterCentering.add(cbSobelFilterCentering);
+    pnlSobelFilterCentering.add(Box.createHorizontalGlue());
 
     pnlExpertParametersBody.setLayout(new BoxLayout(pnlExpertParametersBody,
         BoxLayout.Y_AXIS));
@@ -414,6 +430,7 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     btnTrack.addActionListener(actionListener);
     btnUseModel.addActionListener(actionListener);
     btnFixModel.addActionListener(actionListener);
+    cbSobelFilterCentering.addActionListener(actionListener);
   }
 
   void setVisible(final boolean visible) {
@@ -439,10 +456,10 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
   public void setParameters(BaseScreenState screenState) {
     expertParametersHeader.setButtonStates(screenState, false);
     header.setButtonStates(screenState);
-    //btnFixModel.setButtonState(screenState.getButtonState(btnFixModel
-    //    .getButtonStateKey()));
-    //btnTrack.setButtonState(screenState.getButtonState(btnTrack
-    //   .getButtonStateKey()));
+    // btnFixModel.setButtonState(screenState.getButtonState(btnFixModel
+    // .getButtonStateKey()));
+    // btnTrack.setButtonState(screenState.getButtonState(btnTrack
+    // .getButtonStateKey()));
   }
 
   public void getParameters(BaseScreenState screenState) {
@@ -491,6 +508,8 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     ltfMinOverlapBeads.setText(beadtrackParams.getMinOverlapBeads().toString());
     ltfMaxViewsInAlign.setText(beadtrackParams.getMaxViewsInAlign().toString());
     ltfRoundsOfTracking.setText(beadtrackParams.getRoundsOfTracking().toString());
+    cbSobelFilterCentering.setSelected(beadtrackParams.isSobelFilterCentering());
+    ltfKernelSigmaForSobel.setText(beadtrackParams.getKernelSigmaForSobel());
 
     setEnabled();
   }
@@ -503,9 +522,10 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     beadtrackParams.setFillGaps(cbFillGaps.isSelected());
     beadtrackParams.setImagesAreBinned(UIExpertUtilities.INSTANCE.getStackBinning(
         manager, axisID, ".preali"));
+    beadtrackParams.setSobelFilterCentering(cbSobelFilterCentering.isSelected());
     String errorTitle = "FieldInterface Error";
     String badParameter = "";
-    //handle field that throw FortranInputSyntaxException
+    // handle field that throw FortranInputSyntaxException
     try {
       badParameter = ltfViewSkipList.getLabel();
       beadtrackParams.setSkipViews(ltfViewSkipList.getText());
@@ -538,8 +558,11 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
       badParameter = ltfDeletionParams.getLabel();
       beadtrackParams.setDeletionParams(ltfDeletionParams.getText());
 
-      //handle fields that display their own messages and throw
-      //InvalidEtomoNumberException
+      badParameter = ltfKernelSigmaForSobel.getLabel();
+      beadtrackParams.setKernelSigmaForSobel(ltfKernelSigmaForSobel.getText());
+
+      // handle fields that display their own messages and throw
+      // InvalidEtomoNumberException
       try {
         badParameter = ltfTiltAngleGroupSize.getLabel();
         String errorMessage = beadtrackParams.setTiltDefaultGrouping(
@@ -716,11 +739,12 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
         manager.fiducialModelTrack(axisID, btnUseModel, null, dialogType, this);
       }
     }
-    else if (command.equals(cbLocalAreaTracking.getText())) {
+    else if (command.equals(cbLocalAreaTracking.getText())
+        || command.equals(cbSobelFilterCentering.getText())) {
       setEnabled();
     }
     else if (command.equals(btnFixModel.getActionCommand())) {
-      //Validate skipList
+      // Validate skipList
       String skipList = ltfViewSkipList.getText().trim();
       if (skipList.length() > 0) {
         if (skipList.matches(".*\\s+.*")) {
@@ -754,6 +778,7 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     ltfLocalAreaTargetSize.setEnabled(cbLocalAreaTracking.isSelected());
     ltfMinBeadsInArea.setEnabled(cbLocalAreaTracking.isSelected());
     ltfMinOverlapBeads.setEnabled(cbLocalAreaTracking.isSelected());
+    ltfKernelSigmaForSobel.setEnabled(cbSobelFilterCentering.isSelected());
   }
 
   /**
@@ -782,7 +807,7 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     btnFixModel.removeActionListener(actionListener);
   }
 
-  //  ToolTip string setup
+  // ToolTip string setup
   private void setToolTipText() {
     String text;
     ReadOnlyAutodoc autodoc = null;
@@ -862,6 +887,10 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
         BeadtrackParam.MAX_VIEWS_IN_ALIGN_KEY));
     ltfRoundsOfTracking.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         BeadtrackParam.ROUNDS_OF_TRACKING_KEY));
+    cbSobelFilterCentering.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.SOBEL_FILTER_CENTERING_KEY));
+    ltfKernelSigmaForSobel.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.KERNEL_SIGMA_FOR_SOBEL_KEY));
     btnTrack.setToolTipText("Run Beadtrack to produce fiducial model from seed model.");
     btnFixModel.setToolTipText("Load fiducial model into 3dmod.");
     btnUseModel
