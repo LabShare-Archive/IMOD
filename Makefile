@@ -93,7 +93,7 @@ install : configure man sourcedoc
 	cd libiimod   ; $(MAKE) $@
 	cd libmesh    ; $(MAKE) $@
 	cd libdiaqt   ; $(MAKE) $@
-	cd libcfft    ; $(MAKE) $@
+	cd libfft    ; $(MAKE) $@
 	cd libwarp    ; $(MAKE) $@
 	cd 3dmod      ; $(MAKE) $@
 	cd imodutil   ; $(MAKE) $@
@@ -144,7 +144,7 @@ installclibs : configure
 	cd libiimod  ; $(MAKE) install
 	cd libmesh   ; $(MAKE) install
 	cd libdiaqt  ; $(MAKE) install
-	cd libcfft   ; $(MAKE) install
+	cd libfft   ; $(MAKE) install
 	cd libwarp   ; $(MAKE) install
 
 installlibs : installclibs
@@ -159,7 +159,7 @@ clean : configure ALWAYS
 	cd libiimod   ; $(MAKE) $@
 	cd libmesh    ; $(MAKE) $@
 	cd libdiaqt   ; $(MAKE) $@
-	cd libcfft    ; $(MAKE) $@
+	cd libfft    ; $(MAKE) $@
 	cd libwarp    ; $(MAKE) $@
 	cd 3dmod      ; $(MAKE) $@
 	cd imodutil   ; $(MAKE) $@
@@ -195,7 +195,7 @@ cleanclibs : configure ALWAYS
 	cd libiimod  ; $(MAKE) clean
 	cd libmesh   ; $(MAKE) clean
 	cd libdiaqt  ; $(MAKE) clean
-	cd libcfft   ; $(MAKE) clean
+	cd libfft   ; $(MAKE) clean
 	cd libwarp   ; $(MAKE) clean
 
 cleanlibs : cleanclibs
@@ -233,7 +233,7 @@ clibs : configure
 	cd libiimod  ; $(MAKE) all
 	cd libmesh   ; $(MAKE) all
 	cd libdiaqt  ; $(MAKE) all
-	cd libcfft   ; $(MAKE) all
+	cd libfft   ; $(MAKE) all
 	cd libwarp   ; $(MAKE) all
 
 libs : clibs 

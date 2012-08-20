@@ -35,9 +35,9 @@ using namespace std;
 //############################################################
 //## CONSTANTS:
 
-enum drawmodes      { DM_NORMAL, DM_WARP, DM_SCULPT, DM_JOIN, DM_LIVEWIRE,
-	                    DM_ERASER, DM_TRANSFORM, DM_MEASURE, DM_CURVE, DM_CIRCLE,
-	                    DM_WAND, DM_CORRECT };
+enum drawmodes      { DM_NORMAL, DM_WARP, DM_SCULPT, DM_JOIN, DM_LIVEWIRE, DM_WAND, 
+	                    DM_ERASER, DM_MEASURE, DM_TRANSFORM, DM_CURVE, DM_CIRCLE,
+	                    DM_CORRECT };
 enum smoothmodes    { RD_TOL, RD_MINAREA };
 enum wheelbehaviour { WH_NONE, WH_SCULPTCIRCLE, WH_SLICES, WH_CONTS, WH_PTS, WH_PTSIZE };
 enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_DELETECONT,
@@ -67,7 +67,7 @@ enum pixneigh { PX_E, PX_NE, PX_N, PX_NW, PX_W, PX_SW, PX_S, PX_SE, PX_EIGHT };
 const float LW_SNAP_DIST  = 10.0f;
 const int NUM_TOOLS       = 12;
 const int NUM_TOOLS_SHOWN = 9;
-const int NUM_SAVED_VALS  = 54;
+const int NUM_SAVED_VALS  = 56;
 const int PIX_OFF         = -1;
 
 //############################################################
@@ -129,14 +129,10 @@ public:
   void cut();
   void copy();
   void paste(bool centerOnMouse);
-  int  copyCurrContToView(bool smartSize);
+  int  copyCurrContToView(bool allContsOnSlice);
   
 	void initLivewire( int w, int h );
 	void livewireFinished();
-	//void livewireProgress(int progress);	// livewire now seems sufficiently   
-	//void void weightsFinished();					// fast that draing a progress bar 
-	//void weightsProgress(int progress);		// is not necessary
-	
 	
 	void customizeToolOrder();
   void changeMode( int modeIdx );
@@ -277,6 +273,8 @@ struct DrawingToolsData   // contains all local plugin data
 																//  0, bin-by-2, bin-by-3, bin-by-4 or bin-by-5
 	int    lwNoiseRed;						// the type of noise reduction to use as either:
 																//  median, mean or gaussian
+	int    lwColor;								// allows the use to choose a few different colors
+	                              //  for the livewire line
 	bool   lwDontShowAgain;				// if true: the livewire option popup won't appear
 	                              //  whenever the "Livewire" radio buttion is clicked
 	
@@ -287,7 +285,6 @@ struct DrawingToolsData   // contains all local plugin data
 																//  of the wand circle
 	bool   waDontShowAgain;				// if true: the wand option popup won't appear
 																//  whenever the "Want" radio buttion is clicked
-	
 	
 	//## LIVEWIRE OBJECTS:
 	
@@ -388,6 +385,7 @@ int removeAllDeleteFlaggedContoursFromObj( Iobj *obj, int objIdx );
 
 int edit_getZOfTopZap();
 int edit_setZapLocation(float x, int y, int z, bool redraw);
+int edit_changeZTopZap( int changeZ );
 int edit_changeSelectedSlice(int changeZ, bool redraw, bool snapToEnds=true);
 
 int edit_addContourToObj(Iobj *obj, Icont *cont, bool enableUndo);

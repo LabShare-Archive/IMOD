@@ -1,8 +1,5 @@
 package etomo.ui.swing;
 
-import java.awt.Color;
-import java.awt.event.ActionEvent;
-
 import etomo.ToolsManager;
 import etomo.type.AxisID;
 
@@ -36,30 +33,11 @@ public final class ToolsProcessPanel extends AxisProcessPanel {
   ToolsProcessPanel(ToolsManager manager) {
     super(AxisID.ONLY, manager, true);
     createProcessControlPanel();
+    showBothAxis();
     initializePanels();
-  }
-
-  protected void buttonKillAction(ActionEvent event) {
-    manager.kill(axisID);
   }
 
   void showBothAxis() {
     setBackground(Colors.getBackgroundTools());
-  }
-
-  private void setBackground(Color color) {
-    panelRoot.setBackground(color);
-    outerStatusPanel.setBackground(color);
-    innerStatusPanel.setBackground(color);
-    parallelStatusPanel.setBackground(color);
-    panelDialog.setBackground(color);
-    panelProcessSelect.setBackground(color);
-    //axisButtonPanel.setBackground(color);
-    progressPanel.setBackground(color);
-  }
-
-  protected void createProcessControlPanel() {
-    super.createProcessControlPanel();
-    showBothAxis();
   }
 }

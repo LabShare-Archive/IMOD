@@ -121,7 +121,7 @@ import etomo.type.ConstEtomoNumber;
 public class FortranInputString {
   public static final String rcsid = "$Id$";
 
-  private static final char DEFAULT_DIVIDER = ',';
+   static final char DEFAULT_DIVIDER = ',';
 
   private int nParams;
   private boolean[] isInteger;

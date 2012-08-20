@@ -9,8 +9,27 @@ progname = 'xfalign'
 prefix = 'ERROR: ' + progname + ' - '
 tmpxf = ''
 
+# Cleanup files
 def cleanup():
    cleanupFiles([tmpxf, tmpxf + '~'])
+
+# Make a gray scale file from color file if necessary and return the name to use
+def makeGrayFile(filename):
+   (root, ext) = os.path.splitext(filename)
+   newname = root + '_gray' + ext
+   if os.path.exists(newname) and os.path.getmtime(newname) > os.path.getmtime(filename):
+      return newname
+   if os.path.exists(newname):
+      prnstr('Remaking gray scale file ' + newname + ' because it is older than ' + \
+                filename)
+   else:
+      prnstr('Making gray scale file for computing alignments: ' + newname)
+   try:
+      runcmd(fmtstr('clip resize -m 0 "{}" "{}"', filename, newname))
+   except ImodpyError:
+      exitFromImodError()
+   return newname
+
 
 # load System Libraries
 import os, sys, os.path, signal, time
@@ -99,6 +118,7 @@ diffout = PipGetBoolean('DifferenceOutput', 0)
 doCCC = PipGetBoolean('CorrelationCoefficient', 0)
 sobel = PipGetBoolean('SobelFilter', 0)
 local = PipGetInteger('LocalPatchSize', 0)
+fromOne = PipGetBoolean('SectionsNumberedFromOne', 0)
 limitsIn = PipGetFloatArray('LimitsOnSearch', 0)
 if limitsIn:
    for i in range(min(6, len(limitsIn))):
@@ -121,10 +141,20 @@ if reffile and not os.path.exists(reffile):
    exitError('Reference image file ' + reffile + ' does not exist')
 
 try:
-   (nx, ny, numsec) = getmrcsize(infile)
+   (nx, ny, numsec, mode, px, py, pz) = getmrc(infile)
+   if reffile:
+      (refnx, refny, refnumsec, refmode, px, py, pz) = getmrc(reffile)
 except ImodpyError:
    exitFromImodError(progname)
 
+# If sections numbered from 1, shift the entered lists down
+if fromOne and skipList:
+   for i in range(len(skipList)):
+      skipList[i] -= 1
+if fromOne and breakList:
+   for i in range(len(breakList)):
+      skipList[i] -= 1
+   
 # If serial tomograms or paired images, check other options
 if iftomo or ifpair:
    if ifskip or ifbreak:
@@ -156,7 +186,12 @@ if fracmatt < 1.:
 if newsize[0] - 2 * xtrim < 10 or newsize[1] - 2 * ytrim < 10:
    exitError('Entry for new size or for edge to ignore leaves too small an area')
 
-# Set up initial cross-correlation (TODO: be able to skip or break in tiltxcorr)
+if mode == 16:
+   infile = makeGrayFile(infile)
+if reffile and refmode == 16:
+   reffile = makeGrayFile(reffile)
+   
+# Set up initial cross-correlation
 if prexcorr:
    (preroot, ext) = os.path.splitext(xflistfile)
    prexffile = preroot + '.xcxf'
@@ -303,6 +338,7 @@ except KeyboardInterrupt:
    cleanup()
    sys.exit(1)
 
+makeBackupFile(xflistfile)
 writeTextFile(xflistfile, xfoutList)
 cleanup()
 sys.exit(0)

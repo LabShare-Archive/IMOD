@@ -1,0 +1,39 @@
+; libb3dblas.def : Declares the module parameters for the DLL.
+
+LIBRARY      "libb3dblas"
+
+EXPORTS
+	DTRMM
+	LSAME
+	DSWAP
+	DGEMM
+	DGER
+	DTPSV
+	DAXPY
+	DROTG
+	DSYMM
+	DTPMV
+	DNRM2
+	DTRSV
+	DSYR
+	DCOPY
+	DSCAL
+	DGBMV
+	DDOT
+	DSYR2K
+	DSYRK
+	DASUM
+	DSPR2
+	DTRSM
+	IDAMAX
+	DTBSV
+	DTRMV
+	XERBLA
+	DSPMV
+	DTBMV
+	DGEMV
+	DSBMV
+	DSYR2
+	DSPR
+	DSYMV
+	DROT

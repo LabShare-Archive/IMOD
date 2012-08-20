@@ -69,6 +69,10 @@ extern "C" {
   double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx,
                             int ny, float xpeak, float ypeak, int nxpad,
                             int nypad, int *nsum);
+  void sliceGaussianKernel(float *mat, int dim, float sigma);
+  void scaledGaussianKernel(float *mat, int *dim, int limit, float sigma);
+  void applyKernelFilter(float *array, float *brray, int nxdim, int nx, int ny,
+                         float *mat, int kdim);
 
   /* taperpad.c */
   void sliceTaperOutPad(void *array, int type, int nxbox, int nybox, 
@@ -132,6 +136,8 @@ extern "C" {
                   float *prederr);
   void lsFit3(float *x1, float *x2, float *x3, float *y, int n, float *a1, 
               float *a2, float *a3, float *c);
+  void eigenSort(double *val, double *vec, int n, int rowStride, int colStride,
+                 int useAbs);
 
   /* robuststat.c */
   void rsSortFloats(float *x, int n);
@@ -183,11 +189,12 @@ extern "C" {
   double lnGamma(double x);
 
   /* surfacesort.c */
-  int surfaceSort(float *xyz, int numPts, int *group);
+  int surfaceSort(float *xyz, int numPts, int markersInGroup, int *group);
   int setSurfSortParam(int which, float value);
 
   /* gaussj.c */
   int gaussj(float *a, int n, int np, float *b, int m, int mp);
+  int gaussjDet(float *a, int n, int np, float *b, int m, int mp, float *determ);
 
   /* find_piece_shifts.c */
   int findPieceShifts
@@ -220,6 +227,17 @@ extern "C" {
                      int *minpiece, int *npieces, int *noverlap);
   void adjustPieceOverlap(int *pclist, int stride, int npclist, int nframe, int minpiece,
                           int noverlap, int newOverlap);
+
+  /* regression.c */
+  void statMatrices(float *x, int xsize, int colFast, int m, int msize, int ndata,
+                    float *sx, float *ss, float *ssd, float *d, float *r, float *xm,
+                    float *sd, int ifdisp);
+  int multRegress(float *x, int xsize, int colFast, int m, int ndata, int nbcol,
+                  int wgtcol, float *b, int bsize, float *c, float *xm, float *sd,
+                  float *work);
+  int robustRegress(float *x, int xsize, int colFast, int m, int ndata, int nbcol,
+                    float *b, int bsize, float *c, float *xm, float *sd, float *work,
+                    float kfactor, int *numIter, int maxIter, float maxChange);
 
 #ifdef __cplusplus
 }

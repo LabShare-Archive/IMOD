@@ -31,6 +31,10 @@ public class ProcessEndState {
   private final String name;
   private final int index;
 
+  public void dumpState() {
+    System.err.print("[name:" + name + ",index:" + index + "]");
+  }
+
   private ProcessEndState(int index) {
     this.index = index;
     name = toString(index);

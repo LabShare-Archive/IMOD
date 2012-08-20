@@ -1,0 +1,280 @@
+#!/usr/bin/env python
+# onegenplot - runs genhstplot with one plot
+#
+# Author: David Mastronarde
+#
+# $Id$
+#
+
+progname = 'onegenplot'
+prefix = 'ERROR: ' + progname + ' - '
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except Exception:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+
+defSymbols = [9, 7, 5, 8, 13, 14, 1, 11, 3, 10, 6, 2, 12, 4]
+
+# Fallbacks from ../manpages/autodoc2man 3 1 onegenplot
+options = ["input:InputDataFile:FN:", "iftypes:IfTypesInFirstColumn:B:",
+           "ncol:NumberOfColumns:I:", "skip:SkipLinesAtStart:I:",
+           "columns:ColumnsToPlot:IA:", "types:TypesToPlot:IA:",
+           "symbols:SymbolsForTypes:IA:", "connect:ConnectWithLines:B:",
+           "ordinal:OrdinalsForXvalues:B:", "xlog:XLogOrRootAndBase:FP:",
+           "ylog:YLogOrRootAndBase:FP:", "axis:XaxisLabel:CH:", "keys:KeyLabels:CHM:"]
+
+(opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 0, 0)
+
+dataName = PipGetInOutFile('InputDataFile', 0)
+if not dataName:
+   exitError('The data file name must be entered')
+
+ifTypes = PipGetBoolean('IfTypesInFirstColumn', 0)
+skipLines = PipGetInteger('SkipLinesAtStart', -1)
+numCol = PipGetInteger('NumberOfColumns', -1)
+columnList = PipGetIntegerArray('ColumnsToPlot', 0)
+typeList = PipGetIntegerArray('TypesToPlot', 0)
+symbols = PipGetIntegerArray('SymbolsForTypes', 0)
+(xlog, xbase) = PipGetTwoFloats('XLogOrRootAndBase', 0., 0.)
+(ylog, ybase) = PipGetTwoFloats('YLogOrRootAndBase', 0., 0.)
+ordinals = PipGetBoolean('OrdinalsForXvalues', 0)
+connect = PipGetBoolean('ConnectWithLines', 0)
+axisLabel = PipGetString('XaxisLabel', '')
+numKeys = PipNumberOfEntries('KeyLabels')
+keys = []
+for ind in range(numKeys):
+   oneKey = PipGetString('KeyLabels', '')
+   keys.append(oneKey)
+
+message = ''
+tooltip = ''
+num = PipNumberOfEntries('MessageBoxLine')
+for ind in range(num):
+   oneLine = PipGetString('MessageBoxLine', '')
+   if ind and not message.endswith('\n'):
+      message += '\n'
+   message += oneLine
+
+num = PipNumberOfEntries('ToolTipLine')
+for ind in range(num):
+   oneLine = PipGetString('ToolTipLine', '')
+   if ind and not tooltip.endswith('\n'):
+      tooltip += '\n'
+   tooltip += oneLine
+
+if not os.path.exists(dataName):
+   exitError('Data file ' + dataName + ' does not exist')
+
+trueCol = numCol
+if skipLines < 0 or numCol <= 0:
+   try:
+      errString = "Opening"
+      dataFile = open(dataName, 'r')
+      errString = "Reading"
+      lineNum = 0
+
+      # set number of numeric fields needed if numCol is not zero
+      numNeeded = 1
+      if numCol > 0:
+         numNeeded = numCol
+      if ifTypes:
+         numNeeded += 1
+      while skipLines < 0 or trueCol <= 0:
+
+         # Read a line, strip, and split on valid table separators
+         line = dataFile.readline()
+         lineNum += 1
+         if skipLines >= lineNum:
+            continue
+         line = line.strip()
+         if line == '':
+            continue
+         lsplit = re.split('[, \t]*', line)
+
+         # Determine if there is an integer at start, number of leading numeric fields,
+         # and if there is any non-numeric stuff
+         try:
+            firstInt = int(lsplit[0])
+         except ValueError:
+            firstInt = None
+         numFields = 0
+         nonNumeric = False
+         for field in lsplit:
+            try:
+               val = float(field)
+               numFields += 1
+            except ValueError:
+               nonNumeric = True
+               break
+
+         # If trying to determine number of lines to skip, see if this line is a data line
+         if skipLines < 0:
+            if (numCol == 0 and firstInt != None) or \
+                   (numCol < 0 and numFields >= numNeeded) or \
+                   (numCol > 0 and (not nonNumeric or numFields >= numNeeded)):
+               skipLines = lineNum - 1
+            else:
+               continue
+
+         # This is the column number or data line
+         if not numFields:
+            exitError('First line of data file does not have expected numeric text')
+         if numCol < 0:
+            trueCol = numFields - ifTypes
+            if not trueCol:
+               exitError('There seem to be only types in the file, not data')
+         elif numCol == 0:
+            if firstInt == None or firstInt <= 0:
+               exitError('Entry on line just before data is not an integer > 1')
+            trueCol = firstInt
+
+   except IOError:
+      exitError(fmtstr("{} data file {}: {}", errString, dataName, \
+                          str(sys.exc_info()[1])))
+      
+   dataFile.close()
+   
+# Check the column list for validity
+if columnList:
+   for ind in range(len(columnList)):
+      col = columnList[ind]
+      if col < 1 or col > trueCol:
+         exitError(str(col) + ' is an invalid column number')
+      if (ind > 0 and col in columnList[0:ind - 1]) or \
+             (ind < len(columnList) - 1 and col in columnList[ind + 1:]):
+         exitError('Column ' + str(col) + ' is in the column list more than once')
+else:
+
+   # Or take care of default column, 1 and 2 unless there is only 1 or doing ordinals
+   columnList = [1]
+   if trueCol > 1 and not ordinals:
+      columnList.append(2)
+
+if len(columnList) == 1:
+   ordinals = 1
+
+# Check the column/type entry, set up type conversion if needed
+if ifTypes:
+   defKeyBase = 'Type '
+   if not typeList:
+      exitError('You must enter a list of types to plot with -types')
+   if len(columnList) > 2:
+      exitError('When plotting by types, you cannot enter more than two columns')
+
+else:
+   defKeyBase = 'Column '
+   if typeList:
+      exitError('You cannot enter a list of types if there are no types in the data file')
+   if len(columnList) > 2 - ordinals:
+      ifTypes = -1
+      typeList = columnList[1 - ordinals:]
+      xcol = columnList[0]
+      if ordinals:
+         columnList = [2]
+      else:
+         columnList = [1, 2]
+
+# Take care of axis labels, keys and symbols if they haven't been entered
+if not axisLabel:
+   if ordinals:
+      axisLabel = 'Data number'
+   else:
+      axisLabel = 'Column ' + str(columnList[0])
+
+numCurves = 1
+if ifTypes:
+   numCurves = len(typeList)
+
+for ind in range(numKeys, numCurves):
+   if ifTypes:
+      keys.append(defKeyBase + str(typeList[ind]))
+   else:
+      keys.append(defKeyBase + str(columnList[ind + 1 - ordinals]))
+
+if not symbols:
+   symbols = []
+   if numCurves == 1 and ordinals:
+      symbols = [0]
+for ind in range(len(symbols), numCurves):
+   for sym in defSymbols:
+      if sym not in symbols:
+         symbols.append(sym)
+         break
+   else:
+      exitError('There are too many types or columns being plotted for the symbols ' + \
+                   'available')
+
+# Ready to build the awful input list
+inlist = ['-1',
+          str(ifTypes),
+          str(numCol),
+          str(skipLines),
+          dataName]
+if ifTypes < 0:
+   inlist += [str(xcol)]
+if ifTypes:
+   inlist += [str(-len(typeList))]
+   for ind in range(len(typeList)):
+      inlist += [fmtstr('{},{}', typeList[ind], symbols[ind])]
+else:
+   inlist += [str(symbols[0])]
+
+# columns
+inlist += [str(columnList[0]),
+           fmtstr('{},{}', int(xlog), xbase),
+           '0']
+if ordinals:
+   inlist += ['16']
+inlist += ['1',
+           str(columnList[1 - ordinals]),
+           fmtstr('{},{}', int(ylog), ybase),
+           '0',
+           '-3',   # Reverse contrast
+           '-2',
+           axisLabel,
+           str(numCurves)]
+inlist += keys
+if connect:
+   inlist += ['17']
+else:
+   inlist += ['2']
+inlist += ['0',
+           '0',
+           '-8']
+
+try:
+   prnstr('Close graphing window to exit', flush=True)
+   cmd = 'genhstplt'
+   if message:
+      cmd += ' -message """' + message + '"""'
+   if tooltip:
+      cmd += ' -tooltip """' + tooltip + '"""'
+   runcmd(cmd, inlist)
+except ImodpyError:
+   exitFromImodError(progname)
+
+sys.exit(0)
+
+   
+      

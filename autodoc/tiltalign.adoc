@@ -794,6 +794,38 @@ usage = Limit on number of cycles for minimization procedure (default 500)
 tooltip = Limit on number of iterations to find a solution.
 manpage = Limit on number of cycles for minimization procedure (default 500).
 
+[Field = RobustFitting]
+type = B
+usage = Do robust fitting by giving less or no weight to outliers
+tooltip = 
+manpage = Use a robust fitting method that gives less weight to points with
+residuals higher than the median residual, and no weight to the most extreme
+points.
+
+[Field = KFactorScaling]
+type = I
+usage = Amount to scale the K factor that controls how many points are down-weighted
+tooltip = Amount to scale the K factor that controls how many points are
+down-weighted; the default is 1 and smaller values down-weight more points.
+manpage = Amount to scale the K factor that controls how many points are
+down-weighted in the robust fitting.  The default scaling of 1 gives a K
+factor of 4.685, the factor commonly used for the Tukey bisquare weighting.  A
+smaller factor will down-weight and eliminate more points.
+
+[Field = MinWeightGroupSizes]
+type = IP
+usage = Minimum sizes of groups of points for computing weights, global and local
+tooltip = 
+manpage = Minimum sizes of the groups of points used for computing weights,
+in global and local alignment runs.  In order to apply the robust method to
+points that are relatively similar to each other, deviations from a median
+residual are computed within subsets of points that are located on adjacent
+views; and if there are enough points, the points in a global alignment run
+are also sorted into rings based on distance from the center.  These entries
+set the minimum sizes of these groups.  The program stops with an error if the
+total number of points available for fitting falls below the minimum.  The
+defaults are 100 and 65.
+
 [Field = AxisZShift]
 short = 
 type = F

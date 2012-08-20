@@ -216,6 +216,7 @@ DDEESSCCRRIIPPTTIIOONN
   41: Toggle between including and excluding items that failed to shift
   42: Export graph values or points for drawing to file
   43: List distances of close approach between min/max limits
+  44: Toggle between recording distances to all and nearest neighbors
 
   Here is a specific description of each option:
 
@@ -559,6 +560,15 @@ DDEESSCCRRIIPPTTIIOONN
   histogram, or 2 to output the starting distance and bin value for each bin,
   3 for the midpoint distance and bin value of each bin, or 4 for the
   starting and ending distance and bin value for each bin.
+
+  44: Toggle between recording distances to all and nearest neighbors.
+  Initially, the program records in the graphs the distances between each
+  reference item and all of its neighbors.  This option switches it to
+  recording only the distance to the nearest neighbor for each reference
+  item, or back again.  With nearest neighbor distances, the vertical scale of
+  the graph is the fraction of reference items that have a nearest neighbor at
+  the given distance; the initial power entry has no effect on the graph
+  scaling.
 
 HHIISSTTOORRYY
 	  Written by David Mastronarde,  November 1991

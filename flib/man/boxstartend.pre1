@@ -32,7 +32,9 @@ DDEESSCCRRIIPPTTIIOONN
   Boxstartend uses the PIP package for input (see the manual page for pip(1))
   and can also still take input interactively.  The following options can be
   specified either as command line arguments (with the -) or one per line in a
-  command file or parameter file (without the -):
+  command file or parameter file (without the -).  Options can be abbreviated
+  to unique letters; the currently valid abbreviations for short names are
+  shown in parentheses.
 
 INSERT OPTION TEXT HERE
 

@@ -39,42 +39,19 @@
 #include "dia_qtutils.h"
 #include "preferences.h"
 
-#define BM_WIDTH 16
-#define BM_HEIGHT 16
 #define MIN_SLIDER_WIDTH 20
 #define MAX_SLIDER_WIDTH 100
 
-// Unfinished business: recovering bitmap files
-#include "unlock.bits"
-#include "lock.bits"
-#include "time_unlock.bits"
-#include "time_lock.bits"
-#include "lowres.bits"
-#include "highres.bits"
-#include "rubberband.bits"
-#include "rubberband2.bits"
-#include "smartCenter.bits"
-#include "keepCenter.bits"
+static const char *fileList[NUM_TOOLBUTTONS][2] =
+  { {":/images/lowres.png", ":/images/highres.png"},
+    {":/images/unlock.png", ":/images/lock.png"},
+    {":/images/smartCenter.png", ":/images/keepCenter.png"},
+    {":/images/insertAfter.png", ":/images/insertBefore.png"},
+    {":/images/rubberband.png", ":/images/rubberband2.png"},
+    {":/images/lasso.png", ":/images/lassoOn.png"},
+    {":/images/timeUnlock.png", ":/images/timeLock.png"}};
 
-static unsigned char insert_after_bits[] = {
-  0x00, 0x00, 0xc0, 0x03, 0xc0, 0x03, 0xc0, 0x03, 0xc0, 0x03, 0x80, 0x01,
-  0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01,
-  0x80, 0x01, 0x80, 0x01, 0xff, 0xff, 0xff, 0xff};
-
-static unsigned char insert_before_bits[] = {
-  0xff, 0xff, 0xff, 0xff, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01,
-  0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0xc0, 0x03,
-  0xc0, 0x03, 0xc0, 0x03, 0xc0, 0x03, 0x00, 0x00};
-
-static unsigned char *bitList[NUM_TOOLBUTTONS][2] =
-  { {lowres_bits, highres_bits},
-    {unlock_bits, lock_bits},
-    {smartCenter_bits, keepCenter_bits},
-    {insert_after_bits, insert_before_bits},
-    {rubberband_bits, rubberband2_bits},
-    {time_unlock_bits, time_lock_bits}};
-
-static int skipInPanels[NUM_TOOLBUTTONS] = {0, 0, 0, 1, 1, 0};
+static int skipInPanels[NUM_TOOLBUTTONS] = {0, 0, 0, 1, 1, 1, 0};
 
 static QIcon *icons[NUM_TOOLBUTTONS];
 static int firstTime = 1;
@@ -85,6 +62,7 @@ static const char *toggleTips[] = {
   " point centered\nIn movie mode, toggle on and off to center current image point",
   "Toggle between inserting points after or before current point",
   "Toggle rubberband on or off (resize with first mouse, move with second)",
+  "Toggle lasso tool on or off (draw and move with first or second mouse)",
   "Lock window at current time unless time is changed in this window"};
 
 
@@ -112,7 +90,7 @@ ZapWindow::ZapWindow(ZapFuncs *zap, QString timeLabel, bool panels,
   setAttribute(Qt::WA_AlwaysShowToolTips);
   setAnimated(false);
   if (firstTime) 
-    utilBitListsToIcons(bitList, icons, NUM_TOOLBUTTONS);
+    utilFileListsToIcons(fileList, icons, NUM_TOOLBUTTONS);
   firstTime = 0;
 
   // Get the toolbar, add zoom arrows

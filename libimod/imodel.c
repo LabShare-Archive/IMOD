@@ -1144,54 +1144,7 @@ int imodTransform(Imod *imod, Imat *mat)
   return(0);
 }
 
-/* Transforms the x,y,z value in the transform structure - unused 3/18/05 */
-int imodel_transform(struct Mod_Transform *tr)
-{
-  double cosx, cosy, cosz;
-  double sinx, siny, sinz;
-  float x, y, z;
-  double rad = 0.017453293;
-
-  sinx = sin(tr->xrot * rad);
-  siny = sin(tr->yrot * rad);
-  sinz = sin(tr->zrot * rad);
-  cosx = cos(tr->xrot * rad);
-  cosy = cos(tr->yrot * rad);
-  cosz = cos(tr->zrot * rad);
-
-  /* translate */
-  x = tr->x + tr->xtrans;
-  y = tr->y + tr->ytrans;
-  z = tr->z + tr->ztrans;
-     
-  /* scale */
-  x *= tr->xscale;
-  y *= tr->yscale;
-  z *= tr->zscale;
-
-  /* rotate x */
-  tr->xout = x;
-  tr->yout = (y * cosx) - (z * sinx);
-  tr->zout = (y * sinx) + (z * cosx);
-  x = tr->xout;
-  y = tr->yout;
-  z = tr->zout;
-
-  /* rotate y */
-  tr->xout = (x * cosy) + (z * siny);
-  tr->yout = y;
-  tr->zout = (z * cosy) - (x * siny);
-  x = tr->xout;
-  y = tr->yout;
-  z = tr->zout;
-
-  /* rotate z */
-  tr->xout = (x * cosz) - (y * sinz);
-  tr->yout = (x * sinz) + (y * cosz);
-  tr->zout = z;
-     
-  return(0);
-}
+/* 5/3/12: eliminated unused, redundant model_transform function */
 
 /*!
  * Transforms all contour points in [model] with Z values that round to 

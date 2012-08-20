@@ -55,6 +55,6 @@ install: $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *.exe *~ nda mtk sda
+	-\rm -f *.$(OBJEXT) *.exe *~ nda mtk sda
 
 

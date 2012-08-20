@@ -283,9 +283,9 @@ void imodvPaintGL()
   if (a->drawLight)
     drawLightVector(a);
   color = 0;
-  if (!a->rbgcolor->red() && !a->rbgcolor->blue() && !a->rbgcolor->green())
+  if (!a->texMap && !a->rbgcolor->red() && !a->rbgcolor->blue() && !a->rbgcolor->green())
     color = -1;
-  if (a->rbgcolor->red() == 255 && a->rbgcolor->blue() == 255 && 
+  if (!a->texMap && a->rbgcolor->red() == 255 && a->rbgcolor->blue() == 255 && 
       a->rbgcolor->green() == 255)
     color = 1;
   scale = 0.5 * (a->winx > a->winy ? a->winy : a->winx) /

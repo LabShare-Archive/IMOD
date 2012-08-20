@@ -1,20 +1,16 @@
-c       An interface between DNMs old graphics calls (for a Megatek board in
-c       a NOVA 1220) and the Parallax graphics device
+c       An interface between DNMs old graphics calls (first for a Megatek board in
+c       a NOVA 1220 then a Parallax graphics device in a microVax) and Qt graphics
 c       
 c       12/27/90: added ability to change color
 c       3/18/91: made it return and not turn on flag if p_start fails,
 c       made grfopn call erase if parallax is not on yet, to turn it on
-
-c       $Author$
 c       
-c       $Date$
-c       
-c       $Revision$
-c       
-
+c       $Id$
 c       
       subroutine erase(ix)
-      common /smplgr/ifplxon,ixcur,iycur,icolor
+      common /smplgr/ifplxon,ixcur,iycur,icolor,ifReverse
+      data ifplxon/0/
+      data ifReverse/0/
       integer*4 p_start
       if(ifplxon.lt.0)return
       if(ifplxon.eq.0)then
@@ -25,8 +21,13 @@ c
 c       call p_zoom(1,1)
 c       call p_pan(0,1023)
       call plax_erase()
-      call p_clt8(0,0,0,0)
-      call p_clt8(241,255,255,255)
+      if (ifReverse .ne. 0) then
+        call p_clt8(0,255,255,255)
+        call p_clt8(241,0,0,0)
+      else
+        call p_clt8(0,0,0,0)
+        call p_clt8(241,255,255,255)
+      endif
       call p_clt8(250,255,0,0)
       call p_clt8(251,0,255,0)
       call p_clt8(252,0,0,255)
@@ -57,7 +58,7 @@ c
       end
 c       
       subroutine grfopn(iffil)
-      common /smplgr/ifplxon,ixcur,iycur,icolor
+      common /smplgr/ifplxon,ixcur,iycur,icolor,ifReverse
 c       if iffil is 0, want it on, so bump from -1 to 0 or leave as is
       if(iffil.eq.0)then
         ifplxon=max(0,ifplxon)
@@ -70,8 +71,14 @@ c         otherwise, want it off; turn it off, mark flag as -1
       return
       end
 
+      subroutine reverseGraphContrast(ival)
+      common /smplgr/ifplxon,ixcur,iycur,icolor,ifReverse
+      ifReverse = ival
+      return
+      end
+
       subroutine ma(ix,iy)
-      common /smplgr/ifplxon,ixcur,iycur,icolor
+      common /smplgr/ifplxon,ixcur,iycur,icolor,ifReverse
       ixcur=ix
       iycur=iy
       return
@@ -129,44 +136,60 @@ c
       end
 c       
       subroutine scpnt(ix,iy,itype)
-      common /smplgr/ifplxon,ixcur,iycur,icolor
-      integer*2 ivec(6)
-      character*4 dummy
+      common /smplgr/ifplxon,ixcur,iycur,icolor,ifReverse
+      integer*2 ivec(12)
+      character*6 dummy
       if(ifplxon.le.0)return
 c       size was 5 for Parallax - set to 8 for X windows
       isiz=8
       isizm=isiz-1
       if(itype.lt.0)then
         iscal=nint(2*(isiz+3)/2.5)
-        write(dummy,'(i4)')-itype
-        nchar=alog10(float(-itype))+1.0001
-        iyofs=nint(2.5*iscal/2.)
-        ixofs=nint((7.5-nchar)*iscal)
-        call p_sctext(1,iscal,iscal,icolor,ix-ixofs,iy-iyofs,dummy)
+        write(dummy,'(i6)')-itype
+        call plax_next_text_align(5)
+        call p_sctext(1,iscal,iscal,icolor,ix,iy,adjustl(dummy))
         return
       endif
-      if(itype.gt.0)itype=mod(itype-1,8)+1
-      go to(1,2,3,4,5,5,7,8)itype
+      if(itype.gt.0)itype=mod(itype-1,19)+1
+      go to(1,2,3,3,5,5,7,8,9,10,5,5,13,14,15,9,10,18,19)itype
       return
-1     call p_circ(icolor,isiz,ix,iy)
-      return
-2     call p_circo(icolor,isiz,ix,iy)
-      call p_circo(icolor,isizm,ix,iy)
-      return
-3     call p_box(icolor,ix-isiz,iy-isiz,ix+isiz,iy+isiz)
-      return
-4     call p_boxo(icolor,ix-isiz,iy-isiz,ix+isiz,iy+isiz)
+1     call p_boxo(icolor,ix-isiz,iy-isiz,ix+isiz,iy+isiz)
       call p_boxo(icolor,ix-isizm,iy-isizm,ix+isizm,iy+isizm)
       return
+2     call p_box(icolor,ix-isiz,iy-isiz,ix+isiz,iy+isiz)
+      return
+3     len = nint(1.414 * isiz)
+      ivec(1) = ix + len
+      ivec(3) = ix
+      ivec(5) = ix - len
+      ivec(7) = ix
+      ivec(2) = iy
+      ivec(4) = iy + len
+      ivec(6) = iy
+      ivec(8) = iy - len
+      if (itype .eq. 4) then
+        call p_poly(icolor,4,ivec)
+      else
+        call p_polyo(icolor,4,ivec)
+      endif
+      return
+        
 5     ivec(1)=ix-isiz
       ivec(3)=ix+isiz
       ivec(5)=ix
       leny=nint(1.732*isiz)
-      iybot=iy-leny/3
-      ivec(2)=iybot
-      ivec(4)=iybot
-      ivec(6)=leny+iybot
-      if(itype.eq.5)then
+      if (itype < 7) then
+        iybot=iy-leny/3
+        ivec(2)=iybot
+        ivec(4)=iybot
+        ivec(6)=iybot+leny
+      else
+        iytop=iy+leny/3
+        ivec(2)=iytop
+        ivec(4)=iytop
+        ivec(6)=iytop-leny
+      endif
+      if(mod(itype,2) == 0)then
         call p_poly(icolor,3,ivec)
       else
         call p_polyo(icolor,3,ivec)
@@ -178,10 +201,38 @@ c       size was 5 for Parallax - set to 8 for X windows
 8     call p_vect(icolor,ix,iy-isiz,ix,iy+isiz)
       call p_vect(icolor,ix-isiz,iy,ix+isiz,iy)
       return
+9     call p_circo(icolor,isiz,ix,iy)
+      call p_circo(icolor,isizm,ix,iy)
+      return
+10    call p_circ(icolor,isiz,ix,iy)
+      return
+13    len38 = nint(0.76 * isiz)
+      len20 = nint(0.32 * isiz)
+      len32 = nint(0.56 * isiz)
+      call p_vect(icolor, ix - len38, iy + isiz, ix - len38, iy - len32)
+      call p_vect(icolor, ix - len38, iy - len32, ix - len20, iy - isiz)
+      call p_vect(icolor, ix - len20, iy - isiz, ix + len20, iy - isiz)
+      call p_vect(icolor, ix + len20, iy - isiz, ix + len38, iy - len32)
+      call p_vect(icolor, ix + len38, iy - len32, ix + len38, iy + isiz)
+      return
+14    len38 = nint(0.76 * isiz)
+      call p_vect(icolor, ix - len38, iy - isiz, ix + len38, iy - isiz)
+      call p_vect(icolor, ix + len38, iy - isiz, ix + len38, iy)
+      call p_vect(icolor, ix + len38, iy, ix - len38, iy)
+      call p_vect(icolor, ix - len38, iy, ix - len38, iy + isiz)
+      call p_vect(icolor, ix - len38, iy + isiz, ix + len38, iy + isiz)
+      return
+15    call p_circo(icolor,isiz,ix,iy)
+      call p_vect(icolor,ix,iy-isiz,ix,iy+isiz)
+      return
+18    call p_circ(icolor,isiz / 3,ix,iy)
+      return
+19    call p_vect(icolor,ix-isiz,iy,ix+isiz,iy)
+      return
       end
 
       subroutine dsgrd(ix0,iy0,idx,idy,ninterv)
-      common /smplgr/ifplxon,ixcur,iycur,icolor
+      common /smplgr/ifplxon,ixcur,iycur,icolor,ifReverse
       if(ifplxon.le.0)return
       tiksiz=5.
       axang=atan2(float(idy),float(idx))
@@ -199,7 +250,7 @@ c       size was 5 for Parallax - set to 8 for X windows
       end
 
       subroutine label(numb,nchar)
-      common /smplgr/ifplxon,ixcur,iycur,icolor
+      common /smplgr/ifplxon,ixcur,iycur,icolor,ifReverse
       character*8 dummy,dum2
       if(ifplxon.le.0)return
       dum2=' '
