@@ -333,7 +333,7 @@ if ($?CUDA_DIR) then
     endif
     set cudalibs = "-L$CUDA_DIR/lib -Wl,-rpath,/usr/local/cuda/lib -lcudart -lcufft -ltlshook"
     if ($m64bit == true) set cudalibs = "$cudalibs -lstdc++"
-    echo "DLLSTOCOPY$dllnum = libcudart libcufft libtlshook" >> $configure
+    echo "DLLSTOCOPY$dllnum = libcudart libcufft libtlshook libcuda" >> $configure
     echo "DLLSOURCEDIR$dllnum = $CUDA_DIR/lib" >> $configure
 endif
 
