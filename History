@@ -1,15 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-8/17/12: Added the Align Serial Sections interface.(Bug# 1611)
+8/20/12: In eTomo remembering the state of the trial tilt panel.(Bug# 1625)
 
-8/15/12: In eTomo handled chunk error messages with multiple error tags
+8/20/12: In eTomo handled chunk error messages with multiple error tags
 (In 4.5).(Bug# 1629)
 
-8/14/12: Fixed the empty project log error (In 4.5).(Bug# 1616)
-
-8/14/12: Made sure that pop-up messages for the PEET and Serial Sections start
+8/20/12: Made sure that pop-up messages for the PEET and Serial Sections start
 up dialogs will pop-up over the correct dialog.(Bug# 1624)
 
+8/17/12: Added the Align Serial Sections interface.(Bug# 1611)
+
+8/14/12: Fixed the empty project log error (In 4.5).(Bug# 1616)
 
 8/2/12: Beadtrack: improved criteria for when a bead is too weak so that weaker
 beads are allowed when the average one is getting weaker and to try to prevent
