@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/21/12: In eTomo - Generation Tomogram, fixed a bug where the tomogram height
+in Y was being ignored if the Y shift was not filled in.(Bug# 1626)
+
 8/20/12: Fixed Xfmodel model scaling when applying distortion field (In 4.5).
 
 8/20/12: In eTomo remembering the state of the trial tilt panel.(Bug# 1625)
