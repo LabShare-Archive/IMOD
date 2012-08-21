@@ -78,13 +78,16 @@ subroutine realGraphicsMain()
     read(1, '(a)') name
     call frefor2(name, avgX, itype, nfields, MAX_AVERAGES)
     numCol = 0
+    print *,nfields,(avgX(i),itype(i),i=1,nfields)
     do i = 1, nfields
       if (itype(i) > 0) numCol = i
     enddo
-    if (numCol == 0) then
-      print *,'There are no numeric values at start of first line of data, try again'
+    if (numCol == 0 .or. (ifTypes > 0 .and. numCol == 1)) then
+      print *,'There are not enough numeric values at start of first line of data,'// &
+          ' try again'
       go to 5
     endif
+    if (ifTypes > 0) numCol = numCol - 1
     rewind(1)
     do i = 1, numSkip
       read(1, '(a)') name
