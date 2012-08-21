@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/20/12: Fixed Xfmodel model scaling when applying distortion field (In 4.5).
+
 8/15/12: In eTomo handled chunk error messages with multiple error tags
 (In 4.5).(Bug# 1629)
 
