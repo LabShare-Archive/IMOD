@@ -405,8 +405,6 @@ c
 c             if the center is not yet defined, need to get it now
 c             
             if (xcen .eq. 0. .and. ycen .eq. 0.) then
-              exist=readw_or_imod(modelfile)
-              if(.not.exist)go to 91
               ierr = getimodmaxes(maxx, maxy, maxz)
               xcen = maxx / 2.
               ycen = maxy / 2.
