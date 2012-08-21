@@ -48,6 +48,10 @@ The IMOD Stereology plugin provides an interface for performing rapid stereology
     <td>Toggle wether the currently selected point is checked.</td>
   </tr>
   <tr>
+    <td><b>[b]</b></td>
+    <td>Jump to the first invalid point in the grid.</td>
+  </tr>
+  <tr>
     <td>&nbsp;</td>
     <td>&nbsp;</td>
   </tr>
@@ -180,7 +184,8 @@ A small description of each is written below.</p>
   <li><strong>Modify grid settings/labels</strong> - Allows you to modify a grid which has already been finalized by changing object labels.... something you should ONLY do if you have read the documentation and know what you're doing.<br>
     --<br>
   </li>
-  <li><b>Apply mask to points</b> - Allows you to change the classification of stereology points inside and/or outside a set of closed contour within a closed (non-stereology) object.</li>
+  <li><b>Apply (contour) mask to points</b> - Allows you to change the classification of stereology points inside and/or outside a set of closed contour within a closed (non-stereology) object.</li>
+  <li><b>Apply batch mask to points</b> - Allows you to change the classification of all stereology stereology points inside several (closed contour) objects at once. Unlike the option above, this function checks for contour 'holes' (contours inside contours), but has far fewer options and assumes that each point should have only one category.</li>
   <li><strong>Add intersection points</strong> - Allows you to automatically add &quot;intersection&quot; points where test lines intersect closed or open contours within your model.</li>
   <li><b>Change point values</b> - Allows you to apply a set of *rules* to change the classification of points which meet a set criteria. As one example: you could change only unchecked points on the current grid/section to be category 1 and checked.</li>
   <li> <b>Validate point values</b> - Will validate your grid points by finding any unchecked points without a category, or points with more than one category (in cases where the &quot;allow multiple categories&quot; option was not checked).
@@ -209,7 +214,7 @@ In your e-mail please tell me exactly how and when the problem
 <p><font size="2">
 <b>Acknowledgements:</b> <i>Mark Ellisman</i> and The National Center for
 Microscopy and Imaging Research (www.ncmir.ucsd.edu) for helping sponsor
-and encourage this work. <i>Guy Perkins </i>and <i>Keun-Young Kim (Christine) </i>from my lab for helping advocate and beta test this plugin. <i>David Mastronarde</i> and the team at The Boulder Lab for 3-D Electron Microscopy
+and encourage this work. <i>Guy Perkins,</i> <em>Eric Bushong</em> and <i>Keun-Young Kim (Christine) </i>from my lab for helping advocate and beta test this plugin. <i>David Mastronarde</i> and the team at The Boulder Lab for 3-D Electron Microscopy
 (bio3d.colorado.edu) for their wonderful support of all my plugins.</font>
 <font size="2"></font>
 </body>
