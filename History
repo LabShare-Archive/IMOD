@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/22/12: IMOD_4-5-5
 8/21/12: In eTomo - Generation Tomogram, fixed a bug where the tomogram height
 in Y was being ignored if the Y shift was not filled in.(Bug# 1626)
 
@@ -9,6 +10,9 @@ in Y was being ignored if the Y shift was not filled in.(Bug# 1626)
 
 8/20/12: In eTomo handled chunk error messages with multiple error tags
 (In 4.5).(Bug# 1629)
+
+8/19/12: Added a small CUDA library to Mac package that was needed on our Mac
+mini (In 4.5).
 
 8/20/12: Made sure that pop-up messages for the PEET and Serial Sections start
 up dialogs will pop-up over the correct dialog.(Bug# 1624)
@@ -43,7 +47,7 @@ file (In 4.5).
 7/25/12: Fixed temporary use of real array as double in Tiltalign/Beadtrack.
 
 7/23/12: Fixed bug in Splittilt that made parallel writing fail in SIRT 
-reprojection with a binned aligned stack (in 4.5).
+reprojection with a binned aligned stack (In 4.5).
 
 7/23/12: Beadtrack now takes prealignment transforms to avoid tracking onto
 gray fill areas.

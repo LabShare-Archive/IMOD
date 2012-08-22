@@ -719,21 +719,25 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
 		<ul>
 			<li>
 				<b>Linux:</b>
-			the capability is available in the RHEL6 package of IMOD and in the 32-bit and 
-			64-bit RHEL5 packages, and you must be running a driver version of 195.36.31 or 
-			higher.
+			the capability is available in the RHEL6 package of IMOD and is built
+			with CUDA 4.1, so you must be running a driver version of 285.05.33 or
+			higher.  It is built with CUDA 3 in the 32-bit and 64-bit RHEL5 packages,
+			and you must be running a driver version of 195.36.31 or higher.
 			<li>
 				<b>Windows:</b>
 			the capability is available in both 32 and 64 bit packages, and you must be 
 			running a driver version of 197.13 or higher for a package built with CUDA 
 			3.&nbsp; Driver version numbers are not straightforward in Windows; this 
 			corresponds to a driver date of March 25, 2010 or later. A package built with 
-			CUDA 2.1 must be running a driver version of 180.22 or later, corresponding to 
-			a driver date of January, 2009 or later.<li>
+			CUDA 2.1 must be run with a driver version of 180.22 or later, corresponding to 
+			a driver date of January, 2009 or later.  A package built with CUDA 4.1
+			must be run with a driver version of 286.19 or later, such as the WHQL
+			driver, 295.73, with a date of February 21, 2012.  <li>
 				<b>Mac:</b> the capability is available only in IMOD packages for the 
 				Intel-processor based Mac and requires OS X 10.5 or higher.&nbsp; The drivers 
 				that support CUDA are not part of the basic graphics drivers and must be 
-				installed separately.&nbsp;
+				installed separately.  Once they are installed, the system may offer
+				to upgrade them.&nbsp;
 				<ul>
 					<li>
 						If you are running OS X 10.7 or have a Quadro 4000 card, go to the CUDA 4 <a href="http://developer.nvidia.com/cuda-toolkit-40">
