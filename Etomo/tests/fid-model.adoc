@@ -113,6 +113,8 @@ mb.beadtracker=+
 	#Test values
 	assert.tf.view-skip-list=
 	assert.tf.separate-view-groups=
+	assert.cb.refine-center-with-sobel-filter=off
+	assert.tf.sigma-for-kernel-filter=
 	assert.cb.fill-seed-model-gaps=on
 	assert.cb.local-tracking=off
 	assert.tf.local-area-size=1000
@@ -140,6 +142,8 @@ mb.beadtracker=+
 	#Test enabled/disabled
 	assert.enabled.tf.view-skip-list=
 	assert.enabled.tf.separate-view-groups=
+	assert.enabled.cb.refine-center-with-sobel-filter=
+  assert.disabled.tf.sigma-for-kernel-filter=
 	assert.enabled.cb.fill-seed-model-gaps=
 	assert.enabled.cb.local-tracking=
 	assert.disabled.tf.local-area-size=
@@ -165,6 +169,9 @@ mb.beadtracker=+
 	#basic
 	mb.beadtracker.1=B
 	#Test behavior
+	cb.refine-center-with-sobel-filter=on
+  assert.enabled.tf.sigma-for-kernel-filter=
+  cb.refine-center-with-sobel-filter=off
 	cb.local-tracking=on
 	mb.beadtracker.1=A
 	assert.enabled.tf.local-area-size=
@@ -177,11 +184,13 @@ mb.beadtracker=+
 	mb.beadtracker.1=B
 [[]]
 run.function.expert-parameters=
+cb.refine-center-with-sobel-filter=on
 bn.track-seed-model=
 wait.process.tracking-fiducials=done
 assert.exists.file=track%{axis}.com
 assert.exists.file=track%{axis}.log
 assert.exists.file=%{dataset}%{axis}.fid
+cb.refine-center-with-sobel-filter=off
 bn.track-seed-model=
 wait.process.tracking-fiducials=done
 assert.exists.file=track%{axis}.log~

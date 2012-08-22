@@ -17,6 +17,8 @@ import etomo.comscript.XfmodelParam;
 import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
+import etomo.type.BaseMetaData;
 import etomo.type.ConstProcessSeries;
 import etomo.type.FileType;
 import etomo.type.ProcessEndState;
@@ -565,7 +567,7 @@ public abstract class BaseProcessManager {
 
   void postProcess(final ReconnectProcess script) {
   }
-  
+
   final void writeLogFile(final BackgroundProcess process, final AxisID axisID,
       final String fileName) {
     LogFile logFile = null;
@@ -1061,10 +1063,23 @@ public abstract class BaseProcessManager {
       if (debug) {
         e.printStackTrace();
       }
-      uiHarness.openMessageDialog(manager,
-          "A process is already executing in the current axis", "Cannot run process",
-          axisID);
+      uiHarness.openMessageDialog(manager, "A process is already executing"
+          + (isDualAxis() ? " in the current axis" : ""), "Cannot run process", axisID);
       return true;
+    }
+    return false;
+  }
+
+  /**
+   * Returns true if this is a dual axis dataset.
+   * @return
+   */
+  private boolean isDualAxis() {
+    if (manager != null) {
+      BaseMetaData metaData = manager.getBaseMetaData();
+      if (metaData != null) {
+        return manager.getBaseMetaData().getAxisType() == AxisType.DUAL_AXIS;
+      }
     }
     return false;
   }
@@ -1093,8 +1108,8 @@ public abstract class BaseProcessManager {
       if (processResultDisplay != null) {
         processResultDisplay.msgProcessFailedToStart();
       }
-      throw new SystemProcessException(
-          "A process is already executing in the current axis");
+      throw new SystemProcessException("A process is already executing"
+          + (isDualAxis() ? " in the current axis" : ""));
     }
     // check for running processes that are not managed by Etomo because the user
     // exited and then reran Etomo
@@ -1104,8 +1119,8 @@ public abstract class BaseProcessManager {
         processResultDisplay.msgProcessFailedToStart();
       }
       StringBuffer message = new StringBuffer();
-      message
-          .append("A process is running on the current axis.\nThe process was started the last time Etomo was run");
+      message.append("A process is running" + (isDualAxis() ? " in the current axis" : "")
+          + ".\nThe process was started the last time Etomo was run");
       if (savedProcessData.isOnDifferentHost()) {
         message.append(" on " + savedProcessData.getHostName());
       }
