@@ -205,7 +205,7 @@ install: $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *~ *.mod *.exe $(PROGS)
+	-\rm -f *.$(OBJEXT) *~ *.mod *.exe $(PROGS)
 
 rotatevol.$(O): rotmatwarp.$(O)
 matchvol.$(O): rotmatwarp.$(O)

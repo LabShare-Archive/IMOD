@@ -7,12 +7,6 @@
 #
 #  $Revision$
 #
-#  $Log$
-#  Revision 1.1  2003/10/08 17:18:12  mast
-#  Initial creation
-#
-#
-#
 include ../configure
 
 install :

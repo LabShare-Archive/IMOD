@@ -1,0 +1,46 @@
+.na
+.nh
+.TH slashsplitconts 1 2.00 BL3DEMC
+.SH NAME
+slashsplitconts \- Inputs one or more objects then splits all contours in those objects
+so they have no more than a specified number of points.
+.SH SYNOPSIS
+slashsplitconts -o <list> [options] <input_model> <output_model>
+.SH DESCRIPTION
+This program requires you to enter one list of objects with contours you want
+split. By default, all contour will be split so that the final contours have only
+1 point per contour, but you can easy change this with '-p' (eg: -p 10). This
+program can be useful to split scattered point objects so there is only one
+point per contour, but could eventually be expanded so that contours could be
+split into fixed length increments.
+
+.SS Options
+
+.TP 
+.B -o #/list
+A list of "input objects" (eg: '1,4-5') containing contours/points that you wish
+to sort/split into new objects. These objects can be of any type, and you must
+list at least one.
+.TP 
+.B -p #
+The number of points you want per contour (default value: 1)
+.TP 
+.B -w
+Overwrite the objects listed in (-o) instead of adding new objects to the end.
+It is recommended you only do this if you already have backups.
+.TP 
+.B -d
+Duplicate the "last point" so that each last point touches the first point
+of the next contour.
+.TP 
+.B -C
+If the -s option is on, this option will mark any contour which are split open
+as "open contours".
+
+
+.SH AUTHORS
+Andrew Noske and David Mastronarde
+.SH SEE ALSO
+imodfindbeads(1)
+.SH BUGS
+Email bug reports to mast@colorado.edu, and CC to andrew<DOT>noske<AT>gmail<DOT>com.

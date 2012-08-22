@@ -199,9 +199,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       
     case Qt::Key_Up:
       if( plug.useArrowKeys )
-      {
-        edit_changeSelectedSlice( 1,false, false );
-      }
+				edit_changeZTopZap( 1 );
+        //edit_changeSelectedSlice( 1,false, false );
       else
         return 0;
       break;
@@ -977,18 +976,18 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   
   connect(typeButtonGroup, SIGNAL(buttonClicked(int)), this, SLOT(changeMode(int)));
   
-	typeLabel[DM_NORMAL]    = "Normal";
-	typeLabel[DM_WARP]      = "Warp";
-	typeLabel[DM_SCULPT]    = "Sculpt";
-	typeLabel[DM_JOIN]      = "Join";
-	typeLabel[DM_LIVEWIRE]  = "Livewire";
-	typeLabel[DM_ERASER]    = "Eraser";
-	typeLabel[DM_TRANSFORM] = "Transform";
-	typeLabel[DM_MEASURE]   = "Measure";
-	typeLabel[DM_CURVE]     = "Curve";
-	typeLabel[DM_CIRCLE]    = "Circle";
-	typeLabel[DM_WAND]      = "The Wand";
-	typeLabel[DM_CORRECT]   = "Correct";
+	typeLabel[DM_NORMAL]    = "Normal";					// 1 (defaults to 1st slow)
+	typeLabel[DM_WARP]      = "Warp";						// 2
+	typeLabel[DM_SCULPT]    = "Sculpt";					// 3
+	typeLabel[DM_JOIN]      = "Join";						// 4
+	typeLabel[DM_LIVEWIRE]  = "Livewire";				// 5
+	typeLabel[DM_WAND]      = "The Wand";				// 6
+	typeLabel[DM_ERASER]    = "Eraser";					// 7
+	typeLabel[DM_MEASURE]   = "Measure";				// 8
+	typeLabel[DM_TRANSFORM] = "Transform";				// |-- extra drawing modes 
+	typeLabel[DM_CURVE]     = "Curve";						// |   (hidden by default)
+	typeLabel[DM_CIRCLE]    = "Circle";						// | 
+	typeLabel[DM_CORRECT]   = "Correct";					// | 
 	
 	typeTooltip[DM_NORMAL]    = "Contours are drawn normally";
 	typeTooltip[DM_WARP]      = "Quickly correct bad regions of contour by "
@@ -999,8 +998,8 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
 	typeTooltip[DM_LIVEWIRE]  = "An edge detection tool to help you quickly "
 															"trace around dark membranes";
 	typeTooltip[DM_ERASER]    = "Erase contours instantly by clicking them";
-	typeTooltip[DM_TRANSFORM] = "Lets you move, rotate and scale the selected contour";
 	typeTooltip[DM_MEASURE]   = "Quickly measure the distance between two points";
+	typeTooltip[DM_TRANSFORM] = "Lets you move, rotate and scale the selected contour";
 	typeTooltip[DM_CURVE]     = "Click points and then have these stright lines turn into "
 															"a curve when you connect back to the first point";
 	typeTooltip[DM_CIRCLE]    = "Quickly draw a circle by dragging point to point";
@@ -2133,7 +2132,7 @@ void DrawingTools::initValues()
   plug.smartPtResizeMode      = false;
   plug.markTouchedContsAsKey  = false;
   plug.wheelResistance        = 100;
-  plug.showMouseInModelView   = false;
+  plug.showMouseInModelView   = false;    // this one we don't store
   plug.testIntersetAllObjs    = true;
   plug.selectedAction         = 0;
   plug.sortCriteria           = SORT_NUMPTS;
@@ -2142,24 +2141,25 @@ void DrawingTools::initValues()
   plug.drawZhint              = 0;
   plug.useArrowKeys           = true;
   
-	plug.modeOrder[0]           = DM_NORMAL;
-	plug.modeOrder[1]           = DM_SCULPT;
-	plug.modeOrder[2]           = DM_JOIN;
-	plug.modeOrder[3]           = DM_TRANSFORM;
-	plug.modeOrder[4]           = DM_ERASER;
-	plug.modeOrder[5]           = DM_WARP;
-	plug.modeOrder[6]           = DM_CURVE;
-	plug.modeOrder[7]           = DM_MEASURE;
-	plug.modeOrder[8]           = DM_NORMAL;
+	plug.modeOrder[0]           = DM_NORMAL;					// 1st slot
+	plug.modeOrder[1]           = DM_WARP;						// 2
+	plug.modeOrder[2]           = DM_SCULPT;					// 3
+	plug.modeOrder[3]           = DM_JOIN;						// 4
+	plug.modeOrder[4]           = DM_LIVEWIRE;				// 5
+	plug.modeOrder[5]           = DM_WAND;						// 6
+	plug.modeOrder[6]           = DM_ERASER;					// 7
+	plug.modeOrder[7]           = DM_MEASURE;					// 8
+	plug.modeOrder[8]           = DM_NORMAL;					// 9 (defaults to empty)
 	
 	plug.lwOpt									= LW_DARK_MEMBRANE;
 	plug.lwSmooth								= false;
 	plug.lwSmoothIts						= 8;
 	plug.lwUseWrap							= true;
 	
-	plug.lwAreaSize				      = 1;
+	plug.lwAreaSize				      = 3;
 	plug.lwBinning				      = 1;
 	plug.lwNoiseRed				      = 0;
+	plug.lwColor                = 0;
 	plug.lwDontShowAgain				= false;
 	
 	plug.waSmooth								= true;
@@ -2222,37 +2222,39 @@ void DrawingTools::loadSettings()
   plug.smartPtResizeMode          = savedValues[23];
   plug.markTouchedContsAsKey      = savedValues[24];
   plug.wheelResistance            = savedValues[25];
-  plug.selectedAction             = savedValues[26];
-  plug.selectedAction             = savedValues[27];
-  plug.testIntersetAllObjs        = savedValues[28];
-  plug.selectedAction             = savedValues[29];
-  plug.minObjsNameWarning         = savedValues[30];
-  plug.drawZhint                  = savedValues[31];
-  plug.useArrowKeys               = savedValues[32];
+	plug.showMouseInModelView       = false;								//savedValues[26];
+  plug.testIntersetAllObjs        = savedValues[27];
+  plug.selectedAction             = savedValues[28];
+  plug.sortCriteria               = savedValues[29];
+  plug.findCriteria               = savedValues[30];
+  plug.minObjsNameWarning         = savedValues[31];
+  plug.drawZhint                  = savedValues[32];
+  plug.useArrowKeys               = savedValues[33];
 	
-	plug.modeOrder[0]               = savedValues[33];
-	plug.modeOrder[1]               = savedValues[34];
-	plug.modeOrder[2]               = savedValues[35];
-	plug.modeOrder[3]               = savedValues[36];
-	plug.modeOrder[4]               = savedValues[37];
-	plug.modeOrder[5]               = savedValues[38];
-	plug.modeOrder[6]               = savedValues[39];
-	plug.modeOrder[7]               = savedValues[40];
-	plug.modeOrder[8]               = savedValues[41];
+	plug.modeOrder[0]               = savedValues[34];
+	plug.modeOrder[1]               = savedValues[35];
+	plug.modeOrder[2]               = savedValues[36];
+	plug.modeOrder[3]               = savedValues[37];
+	plug.modeOrder[4]               = savedValues[38];
+	plug.modeOrder[5]               = savedValues[39];
+	plug.modeOrder[6]               = savedValues[40];
+	plug.modeOrder[7]               = savedValues[41];
+	plug.modeOrder[8]               = savedValues[42];
 	
-	plug.lwOpt                      = savedValues[42];
-	plug.lwSmooth                   = savedValues[43];
-	plug.lwSmoothIts                = savedValues[44];
-	plug.lwUseWrap                  = savedValues[45];
-	plug.lwAreaSize                 = savedValues[46];
-	plug.lwBinning                  = savedValues[47];
-	plug.lwNoiseRed                 = savedValues[48];
-	plug.lwDontShowAgain            = savedValues[49];
+	plug.lwOpt                      = savedValues[43];
+	plug.lwSmooth                   = savedValues[44];
+	plug.lwSmoothIts                = savedValues[45];
+	plug.lwUseWrap                  = savedValues[46];
+	plug.lwAreaSize                 = savedValues[47];
+	plug.lwBinning                  = savedValues[48];
+	plug.lwNoiseRed                 = savedValues[49];
+	plug.lwColor                    = savedValues[50];
+	plug.lwDontShowAgain            = savedValues[51];
 	
-	plug.waSmooth                   = savedValues[50];
-	plug.waSmoothIts                = savedValues[51];
-	plug.waDistBias                 = savedValues[52];
-	plug.waDontShowAgain            = savedValues[53];
+	plug.waSmooth                   = savedValues[52];
+	plug.waSmoothIts                = savedValues[53];
+	plug.waDistBias                 = savedValues[54];
+	plug.waDontShowAgain            = savedValues[55];
 }
 
 
@@ -2291,37 +2293,39 @@ void DrawingTools::saveSettings()
   saveValues[23]  = plug.smartPtResizeMode;
   saveValues[24]  = plug.markTouchedContsAsKey;
   saveValues[25]  = plug.wheelResistance;
-  saveValues[26]  = plug.selectedAction;
-  saveValues[27]  = plug.selectedAction;
-  saveValues[28]  = plug.testIntersetAllObjs;
-  saveValues[29]  = plug.selectedAction;
-  saveValues[30]  = plug.minObjsNameWarning;
-  saveValues[31]  = plug.drawZhint;
-  saveValues[32]  = plug.useArrowKeys;
+	saveValues[26]  = false;												// plug.showMouseInModelView;
+  saveValues[27]  = plug.testIntersetAllObjs;
+  saveValues[28]  = plug.selectedAction;
+  saveValues[29]  = plug.sortCriteria;
+  saveValues[30]  = plug.findCriteria;
+  saveValues[31]  = plug.minObjsNameWarning;
+  saveValues[32]  = plug.drawZhint;
+  saveValues[33]  = plug.useArrowKeys;
   
-	saveValues[33]  = plug.modeOrder[0];
-	saveValues[34]  = plug.modeOrder[1];
-	saveValues[35]  = plug.modeOrder[2];
-	saveValues[36]  = plug.modeOrder[3];
-	saveValues[37]  = plug.modeOrder[4];
-	saveValues[38]  = plug.modeOrder[5];
-	saveValues[39]  = plug.modeOrder[6];
-	saveValues[40]  = plug.modeOrder[7];
-	saveValues[41]  = plug.modeOrder[8];
+	saveValues[34]  = plug.modeOrder[0];
+	saveValues[35]  = plug.modeOrder[1];
+	saveValues[36]  = plug.modeOrder[2];
+	saveValues[37]  = plug.modeOrder[3];
+	saveValues[38]  = plug.modeOrder[4];
+	saveValues[39]  = plug.modeOrder[5];
+	saveValues[40]  = plug.modeOrder[6];
+	saveValues[41]  = plug.modeOrder[7];
+	saveValues[42]  = plug.modeOrder[8];
 	
-	saveValues[42]  = plug.lwOpt;
-	saveValues[43]  = plug.lwSmooth;
-	saveValues[44]  = plug.lwSmoothIts;
-	saveValues[45]  = plug.lwUseWrap;
-	saveValues[46]  = plug.lwAreaSize;
-	saveValues[47]  = plug.lwBinning;
-	saveValues[48]  = plug.lwNoiseRed;
-	saveValues[49]  = plug.lwDontShowAgain;
+	saveValues[43]  = plug.lwOpt;
+	saveValues[44]  = plug.lwSmooth;
+	saveValues[45]  = plug.lwSmoothIts;
+	saveValues[46]  = plug.lwUseWrap;
+	saveValues[47]  = plug.lwAreaSize;
+	saveValues[48]  = plug.lwBinning;
+	saveValues[49]  = plug.lwNoiseRed;
+	saveValues[50]  = plug.lwColor;
+	saveValues[51]  = plug.lwDontShowAgain;
 	
-	saveValues[50]  = plug.waSmooth;
-	saveValues[51]  = plug.waSmoothIts;
-	saveValues[52]  = plug.waDistBias;
-	saveValues[53]  = plug.waDontShowAgain;
+	saveValues[52]  = plug.waSmooth;
+	saveValues[53]  = plug.waSmoothIts;
+	saveValues[54]  = plug.waDistBias;
+	saveValues[55]  = plug.waDontShowAgain;
 	
   prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
 }
@@ -3600,7 +3604,8 @@ void DrawingTools::moreActions()
       if( !MsgBoxYesNo(this, "Restore all default settings for this plugin?" ) )
         return;
       plug.window->initValues();
-      wprint("Default values restored\n");
+			plug.window->changeRadioOptions();
+      wprint("Default values have been restored\n");
       break;
   }
   
@@ -3892,6 +3897,7 @@ void DrawingTools::showLivewireOptions()
 								  "......... " );
 	
 	ds.addComboBox( "livewire area:",
+								 "256 x 256 px|"
 								 "512 x 512 px|"
 								 "1024 x 1024 px|"
 								 "2048 x 2048 px|"
@@ -3920,6 +3926,10 @@ void DrawingTools::showLivewireOptions()
 								 "images versus the other two options." );
 	
 	ds.addLabel( "---" );
+	
+	ds.addComboBox( "livewire color:",
+								  "yellow|white|black|red|green|blue", &plug.lwColor,
+		 						  "What color do you want the livewire line to be?" );
 	
 	ds.addSpinBox ( "smoothing iterations:",
 								 1, 50, &plug.lwSmoothIts, 1,
@@ -4055,6 +4065,23 @@ void DrawingTools::setupLivewireOptions()
 												setEdgeDetect, setAccentuation, setInvert);
 		plug.weights->ChangeSettings(plug.lwSettings);
 	}
+	
+	//## UPDATE LIVEWIRE LINE COLOR
+	
+	Iobj *xobjL = ivwGetAnExtraObject(plug.view, plug.extraObjLW);
+	if(xobjL)
+	{
+		switch (plug.lwColor)
+		{
+			case (0):	imodObjectSetColor(xobjL, 1, 1, 0);	break;	// yellow
+			case (1):	imodObjectSetColor(xobjL, 1, 1, 1);	break;	// white
+			case (2):	imodObjectSetColor(xobjL, 0, 0, 0);	break;	// black
+			case (3):	imodObjectSetColor(xobjL, 1, 0, 0);	break;	// red
+			case (4):	imodObjectSetColor(xobjL, 0, 1, 0);	break;	// green
+			case (5):	imodObjectSetColor(xobjL, 0, 0, 1);	break;	// blue
+		}
+	}
+	
 }
 
 //------------------------
@@ -4674,7 +4701,8 @@ void DrawingTools::cropRangeContours()
   static int  minY            = 0;
   static int  maxY            = plug.ysize;
   static bool delOutside      = true;
-  
+  static bool useObjToTrim    = false;
+	
 	CustomDialog ds("Contours to Trim",this);
   ds.addLabel   ( "-----\n"
                   "contours to consider:" );
@@ -4704,8 +4732,8 @@ void DrawingTools::cropRangeContours()
   
   contMin -= 1;
   contMax -= 1;
-  
-  
+								 
+								 
   //## SET UP BOUNDING BOX (CROP AREA):
   
   if( minX > maxX || minY > maxY )
@@ -4805,7 +4833,7 @@ void DrawingTools::cropRangeContours()
   wprint("%d contours broken by boundary box\n", numContsBroken );
 }
 
-
+								 
 //------------------------
 //-- Allows user to select a range of contours in the current object
 //-- to move or copy to another object
@@ -6151,9 +6179,12 @@ void DrawingTools::paste(bool centerOnMouse)
 
 //------------------------
 //-- Copies the currently selected contour to the current slice.
+//-- If "allContsOnSlice" is true it will take this further and also
+//-- copy up all other contours in this object which are on the same
+//-- slice as the selected contour.
 //-- Return 1 if handled, 0 if NOT handled.
 
-int  DrawingTools::copyCurrContToView(bool smartSize)
+int  DrawingTools::copyCurrContToView(bool allContsOnSlice)
 {
   if( !isCurrContValid() )  {
     wprint("\aMust select contour first\n");
@@ -6173,10 +6204,30 @@ int  DrawingTools::copyCurrContToView(bool smartSize)
     wprint("Cannot copy contour to same slice\n");
     return 0;
   }
-  
+	
+	if(allContsOnSlice)								// BRAND NEW
+	{
+		Iobj *obj = getCurrObj();
+		for(int c=0; c<csize(obj); c++ )
+		{
+			if(c==contIdx)
+				continue;
+			Icont *fromCont = getCont( obj, c );
+			if(fromCont && getZInt(fromCont)==contZ )
+			{
+				Icont *contNew = imodContourDup( fromCont );
+				setZValue( contNew, currZ );
+				edit_addContourToObj( getCurrObj(), contNew, true );
+			}
+		}
+	}
+	
   Icont *contNew = imodContourDup( cont );
   setZValue( contNew, currZ );
-  if(smartSize)
+  int newContPos = edit_addContourToObj( getCurrObj(), contNew, true );
+	
+	/*
+	if(makeSmaller)
   {
     Ipoint centerMBR;
     cont_getCenterOfMBR( cont, &centerMBR );
@@ -6185,7 +6236,9 @@ int  DrawingTools::copyCurrContToView(bool smartSize)
     //cout << scaleXY << endl;
     cont_scaleAboutPtXY( contNew, &centerMBR, scaleXY, scaleXY );
   }
-  int newContPos = edit_addContourToObj( getCurrObj(), contNew, true );
+	*/
+	
+  
   
   undoFinishUnit( plug.view );        // FINISH UNDO
   imodSetIndex(imod, objIdx, newContPos, 0);
@@ -6258,8 +6311,8 @@ void DrawingTools::livewireFinished()
 void DrawingTools::customizeToolOrder()
 {
 	int preset = 0;
-	QString modeList = "--none-- (hide)|Warp|Sculpt|Join|Livewire|"
-	                   "Eraser|Transform|Measure|Curve|Circle|Wand|Correct";
+	QString modeList = "--none-- (hide)|Warp|Sculpt|Join|Livewire|Wand|"
+	                   "Eraser|Measure|Transform|Curve|Circle|Correct";
 	
 	//## GET USER INPUT FROM CUSTOM DIALOG:
 		
@@ -6678,6 +6731,22 @@ int edit_changeSelectedSlice( int changeZ, bool redraw, bool snapToEnds )
     return iz;
   edit_setZapLocation( plug.mouse.x, plug.mouse.y, newZ, redraw );
       // before hand I used ix and iy, but gave jumping problems.
+  return newZ;
+}
+
+
+//------------------------
+//-- Changes the Z slice of the top Zap window by "changeZ", without going
+//-- beyond z values and returns new z value.
+
+int edit_changeZTopZap( int changeZ )
+{
+  int iz;
+  ivwGetTopZapZslice( plug.view, &iz );
+  int newZ = iz+changeZ;
+	if( newZ < 0           )	newZ = 0;
+	if( newZ >= plug.zsize )	newZ = plug.zsize-1;
+  ivwSetTopZapZslice( plug.view, newZ );
   return newZ;
 }
 
@@ -9542,7 +9611,7 @@ bool edit_startLivewireFromPt( int x, int y, int z, bool useLivewireF )
 	}
 	
 	
-	int area = 1024;
+	int area = 2048;
 	
 	switch(plug.lwAreaSize)
 	{
@@ -9551,6 +9620,7 @@ bool edit_startLivewireFromPt( int x, int y, int z, bool useLivewireF )
 		case 1:				area = 512;  break;
 		case 2:			  area = 1024; break;
 		case 3:				area = 2048; break;
+		case 4:				area = 4096; break;
 	}
 	
 	//## RESTART LIVEWIRE THREAD FROM POINT CLICKED USING

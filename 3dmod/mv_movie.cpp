@@ -292,7 +292,7 @@ static void imodvMakeMovie(int frames)
     setstep(11, nsteps, 1, a->vi->zsize, &thickStart, &thickStep);
   }
 
-  a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
+  a->xrotMovie = a->yrotMovie = a->zrotMovie = 0;
   a->movie = 0;
   a->moveall = 0;
 
@@ -472,7 +472,7 @@ static void imodvMakeMontage(int frames, int overlap)
     }
   }
 
-  a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
+  a->xrotMovie = a->yrotMovie = a->zrotMovie = 0;
   a->movie = 0;
   a->moveall = 0;
   sAbort = 0;

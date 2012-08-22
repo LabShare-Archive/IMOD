@@ -65,7 +65,7 @@ public abstract class BaseMetaData implements Storable {
 
   String fileExtension;
 
-  //revisionNumber should be set only by load()
+  // revisionNumber should be set only by load()
   EtomoVersion revisionNumber = EtomoVersion.getEmptyInstance(revisionNumberString);
   AxisType axisType = AxisType.NOT_SET;
   String invalidReason = "";
@@ -86,8 +86,8 @@ public abstract class BaseMetaData implements Storable {
   public abstract String getDatasetName();
 
   public abstract boolean isValid();
-
-  abstract String createPrepend(String prepend);
+  
+  abstract String getGroupKey();
 
   public String toString() {
     return "[fileExtension:" + fileExtension + ",revisionNumber:" + revisionNumber
@@ -102,6 +102,13 @@ public abstract class BaseMetaData implements Storable {
     load(props, "");
   }
 
+  String createPrepend(final String prepend) {
+    if (prepend.equals("")) {
+      return getGroupKey();
+    }
+    return prepend + "." + getGroupKey();
+  }
+
   public void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
     currentProcesschunksRootNameA.store(props, prepend);
@@ -111,12 +118,12 @@ public abstract class BaseMetaData implements Storable {
   }
 
   public void load(Properties props, String prepend) {
-    //reset
+    // reset
     currentProcesschunksRootNameA.reset();
     currentProcesschunksRootNameB.reset();
     currentProcesschunksSubdirNameA.reset();
     currentProcesschunksSubdirNameB.reset();
-    //load
+    // load
     prepend = createPrepend(prepend);
     currentProcesschunksRootNameA.load(props, prepend);
     currentProcesschunksRootNameB.load(props, prepend);

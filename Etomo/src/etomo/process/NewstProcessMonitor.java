@@ -123,7 +123,7 @@ package etomo.process;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.comscript.ConstNewstParam;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -139,9 +139,9 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
   // NewstParam must be passed in because it can be loaded from more then one com file.
   private final ConstNewstParam newstParam;
 
-  public NewstProcessMonitor(ApplicationManager appMgr, AxisID id,
-      ProcessName processName, ConstNewstParam newstParam) {
-    super(appMgr, id, processName);
+  public NewstProcessMonitor(BaseManager manager, AxisID id, ProcessName processName,
+      ConstNewstParam newstParam) {
+    super(manager, id, processName);
     this.newstParam = newstParam;
   }
 
@@ -172,7 +172,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
       while ((line = getLogFile().readLine(logReaderId)) != null) {
         if (line.startsWith("Tapering over")) {
           // mrctaper started
-          applicationManager.getMainPanel().setProgressBarValue(0, "mrctaper", axisID);
+          manager.getMainPanel().setProgressBarValue(0, "mrctaper", axisID);
           gotStatusFromLog = true;
           getLogFile().closeRead(logReaderId);
           logReaderId = null;
@@ -206,11 +206,11 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     // Get the depth, mode, any mods to the X and Y size from the tilt
     // command script and the input and output filenames.
     // Get the header from the raw stack to calculate the aligned stack stize
-    String rawStackFilename = applicationManager.getPropertyUserDir() + "/"
+    String rawStackFilename = manager.getPropertyUserDir() + "/"
         + newstParam.getInputFile();
-    MRCHeader rawStack = MRCHeader.getInstance(applicationManager.getPropertyUserDir(),
+    MRCHeader rawStack = MRCHeader.getInstance(manager.getPropertyUserDir(),
         rawStackFilename, axisID);
-    if (!rawStack.read(applicationManager)) {
+    if (!rawStack.read(manager)) {
       return false;
     }
     boolean binningAlreadyApplied = false;
@@ -238,14 +238,12 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     // the input file
     long fileSize = 1024 + ((long) nX * nY) * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
-    applicationManager.getMainPanel().setProgressBar("Creating aligned stack", nKBytes,
-        axisID);
+    manager.getMainPanel().setProgressBar("Creating aligned stack", nKBytes, axisID);
     return true;
   }
 
   void reloadWatchedFile() {
     // Create a file object describing the file to be monitored
-    watchedFile = new File(applicationManager.getPropertyUserDir(),
-        newstParam.getOutputFile());
+    watchedFile = new File(manager.getPropertyUserDir(), newstParam.getOutputFile());
   }
 }

@@ -93,6 +93,8 @@ public class ConstTiltalignParam implements CommandDetails {
   static final String OUTPUT_X_AXIS_TILT_FILE_KEY = "OutputXAxisTiltFile";
   public static final String BEAM_TILT_OPTION_KEY = "BeamTiltOption";
   public static final String FIXED_OR_INITIAL_BEAM_TILT = "FixedOrInitialBeamTilt";
+  public static final String ROBUST_FITTING_KEY="RobustFitting";
+  public static final String K_FACTOR_SCALING_KEY = "KFactorScaling";
 
   static final String modelFileString = "ModelFile";
   static final String imageFileString = "ImageFile";
@@ -200,6 +202,8 @@ public class ConstTiltalignParam implements CommandDetails {
   final ScriptParameter fixedOrInitialBeamTilt = new ScriptParameter(
       EtomoNumber.Type.FLOAT, "FixedOrInitialBeamTilt");
   String outputXAxisTiltFile = "";
+  final EtomoBoolean2 robustFitting  = new EtomoBoolean2(ROBUST_FITTING_KEY);
+  ScriptParameter kFactorScaling =new ScriptParameter(K_FACTOR_SCALING_KEY);
 
   AxisID axisID;
   String datasetName;
@@ -377,6 +381,8 @@ public class ConstTiltalignParam implements CommandDetails {
     beamTiltOption.reset();
     fixedOrInitialBeamTilt.reset();
     outputXAxisTiltFile = "";
+    robustFitting.reset();
+    kFactorScaling.reset();
   }
 
   public ConstEtomoNumber getImagesAreBinned() {
@@ -895,6 +901,14 @@ public class ConstTiltalignParam implements CommandDetails {
    */
   public ConstEtomoNumber getResidualReportCriterion() {
     return residualReportCriterion;
+  }
+  
+  public boolean isRobustFitting() {
+    return robustFitting.is();
+  }
+  
+  public String getKFactorScaling() {
+    return kFactorScaling.toString();
   }
 
   /**

@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 
 
@@ -96,7 +95,7 @@ int main( int argc, char *argv[])
   
   /* Fallbacks from    ../manpages/autodoc2man 2 1 imodcurvature  */
   int numOptions = 21;
-  char *options[] = {
+  const char *options[] = {
     "in:InputFile:FN:", ":OutputFile:FN:", "wl:WindowLength:F:",
     "zr:ZRangeToFit:F:", "cy:CylinderSearchAngle:F:",
     "rc:RadiusCriterion:FP:", "fc:FitCriterion:F:", "ob:ObjectsToDo:LI:",

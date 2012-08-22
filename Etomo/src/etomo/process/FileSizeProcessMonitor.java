@@ -6,7 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 
-import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
@@ -203,7 +203,7 @@ import etomo.util.Utilities;
 
 abstract class FileSizeProcessMonitor implements ProcessMonitor {
   public static final String rcsid = "$Id$";
-  final ApplicationManager applicationManager;
+  final BaseManager manager;
   final AxisID axisID;
   long processStartTime;
   long scriptStartTime;
@@ -219,35 +219,38 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   long lastSize = 0;
   final ProcessName processName;
   private FileInputStream stream = null;
-  //private BufferedReader logFileReader = null;
-  //private FileReader fileReader = null;
+  // private BufferedReader logFileReader = null;
+  // private FileReader fileReader = null;
   private boolean logFileRenamed = false;
   private LogFile logFile;
   private LogFile.ReaderId logReaderId = null;
   private boolean findWatchedFileName = true;
   private MessageReporter messageReporter = null;
 
-  public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id,
-      ProcessName processName) {
-    applicationManager = appMgr;
+  public void dumpState() {
+  }
+
+  public FileSizeProcessMonitor(BaseManager manager, AxisID id, ProcessName processName) {
+    this.manager = manager;
     axisID = id;
     scriptStartTime = System.currentTimeMillis();
     this.processName = processName;
     try {
-      logFile = LogFile.getInstance(appMgr.getPropertyUserDir(), axisID, processName);
+      logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID, processName);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(appMgr, "Unable to create log file.\n"
-          + e.getMessage(), "File Size Monitor Log File Failure");
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Unable to create log file.\n" + e.getMessage(),
+          "File Size Monitor Log File Failure");
       logFile = null;
     }
   }
 
-  // The derived class must implement this function to 
+  // The derived class must implement this function to
   // - set the expected number of bytes in the output file
   // - initialize the progress bar through the application manager, the maximum
-  //   value should be the expected size of the file in k bytes
+  // value should be the expected size of the file in k bytes
   // - set the watchedFile reference to the output file being monitored.
   abstract boolean calcFileSize() throws InvalidParameterException, IOException;
 
@@ -271,22 +274,22 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   public void run() {
     running = true;
     try {
-      // Reset the progressBar 
-      applicationManager.getMainPanel().setProgressBar(" ", 1, axisID);
-      applicationManager.getMainPanel().setProgressBarValue(0,
+      // Reset the progressBar
+      manager.getMainPanel().setProgressBar(" ", 1, axisID);
+      manager.getMainPanel().setProgressBarValue(0,
           reconnect ? "Reconnecting..." : "Starting...", axisID);
 
-      //  Calculate the expected file size in bytes, initialize the progress bar
-      //  and set the File object.
+      // Calculate the expected file size in bytes, initialize the progress bar
+      // and set the File object.
       if (!calcFileSize()) {
         setProcessEndState(ProcessEndState.DONE);
         closeOpenFiles();
         return;
       }
-      //  Wait for the output file to be backed up and set the process start time
+      // Wait for the output file to be backed up and set the process start time
       waitForFile();
     }
-    //  Interrupted ???  kill the thread by exiting
+    // Interrupted ??? kill the thread by exiting
     catch (InterruptedException except) {
       setProcessEndState(ProcessEndState.DONE);
       closeOpenFiles();
@@ -358,7 +361,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
    * time since we don't have access to the file creation time.  
    */
   void waitForFile() throws InterruptedException {
-    //look for signal that the watched file has been backed up in the log file
+    // look for signal that the watched file has been backed up in the log file
     openLogFileReader();
     boolean watchedFileBackedUp = false;
     while (!watchedFileBackedUp) {
@@ -385,7 +388,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
       }
     }
     closeLogFileReader();
-    //Get the watched file
+    // Get the watched file
     long currentSize = 0;
     boolean newOutputFile = false;
     while (!newOutputFile) {
@@ -393,12 +396,12 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
       processStartTime = System.currentTimeMillis();
       try {
         currentSize = watchedChannel.size();
-        //Hang out in this loop until the file size is growing, otherwise the
-        //progress bar update with have a divide by zero
-        //The ~ file won't change, so the correct file should be loaded when
-        //the loop ends, however, the first comparison will probably be
-        //between the initial lastSize value of 0 and the ~ size, so ignore
-        //the first comparison
+        // Hang out in this loop until the file size is growing, otherwise the
+        // progress bar update with have a divide by zero
+        // The ~ file won't change, so the correct file should be loaded when
+        // the loop ends, however, the first comparison will probably be
+        // between the initial lastSize value of 0 and the ~ size, so ignore
+        // the first comparison
         if (lastSize > 0 && currentSize > lastSize) {
           newOutputFile = true;
         }
@@ -431,7 +434,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
         double fractionDone = (double) currentLength / nKBytes;
         int percentage = (int) Math.round(fractionDone * 100);
 
-        //  Catch any wierd values before they get displayed
+        // Catch any wierd values before they get displayed
         if (percentage < 0) {
           percentage = 0;
         }
@@ -443,8 +446,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
         double remainingTime = elapsedTime / fractionDone - elapsedTime;
         String message = String.valueOf(percentage) + "%   ETC: "
             + Utilities.millisToMinAndSecs(remainingTime);
-        applicationManager.getMainPanel().setProgressBarValue(currentLength, message,
-            axisID);
+        manager.getMainPanel().setProgressBarValue(currentLength, message, axisID);
       }
       try {
         Thread.sleep(updatePeriod);
@@ -453,7 +455,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
         fileWriting = false;
       }
       if (messageReporter != null) {
-        messageReporter.checkForMessages(applicationManager);
+        messageReporter.checkForMessages(manager);
       }
     }
     if (messageReporter != null) {
@@ -487,23 +489,23 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
         Thread.sleep(updatePeriod);
       }
     }
-    //File logFile = null;
+    // File logFile = null;
     boolean logFileExists = false;
     while (!logFileExists) {
-      //logFile = DatasetFiles
-      //    .getLogFile(applicationManager, axisID, processName);
+      // logFile = DatasetFiles
+      // .getLogFile(applicationManager, axisID, processName);
       // Check to see if the log file exists that signifies that the process
       // has started
-      if (/*logFile != null && */logFile.exists()) {
+      if (/* logFile != null && */logFile.exists()) {
         logFileExists = true;
       }
       else {
         Thread.sleep(updatePeriod);
       }
     }
-    //closeLogFileReader();
+    // closeLogFileReader();
     try {
-      //fileReader = new FileReader(logFile);
+      // fileReader = new FileReader(logFile);
       logReaderId = logFile.openReader();
     }
     catch (LogFile.LockException e) {
@@ -512,7 +514,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     catch (FileNotFoundException e) {
       e.printStackTrace();
     }
-    //logFileReader = new BufferedReader(fileReader);
+    // logFileReader = new BufferedReader(fileReader);
   }
 
   private void closeLogFileReader() {

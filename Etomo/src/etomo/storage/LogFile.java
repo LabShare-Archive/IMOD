@@ -76,6 +76,18 @@ public final class LogFile {
   private boolean backedUp = false;
   private boolean debug = false;
 
+  public void dumpState() {
+    System.err.println("[fileAbsolutePath:" + fileAbsolutePath + ",file:");
+    if (file != null) {
+      System.err.println(file.getAbsolutePath());
+    }
+    System.err.println(",backupFile:");
+    if (backupFile != null) {
+      System.err.println(backupFile.getAbsolutePath());
+    }
+    System.err.println(",backedUp:" + backedUp + ",debug:" + debug + "]");
+  }
+
   private LogFile(File file) {
     lock = new Lock(this);
     this.fileAbsolutePath = file.getAbsolutePath();
@@ -155,6 +167,33 @@ public final class LogFile {
     // save the instance
     logFileHashTable.put(key, logFile);
     return logFile;
+  }
+
+  public static String getLineContaining(final File file, final String searchString) {
+    LogFile logFile = null;
+    ReaderId id = null;
+    try {
+      logFile = getInstance(file);
+      id = logFile.openReader();
+      if (id != null && !id.isEmpty()) {
+        String line = logFile.getLineContaining(id, searchString);
+        logFile.closeRead(id);
+        return line;
+      }
+    }
+    catch (LockException e) {
+      e.printStackTrace();
+    }
+    catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    if (logFile != null && id != null && !id.isEmpty()) {
+      logFile.closeRead(id);
+    }
+    return null;
   }
 
   /**
@@ -748,6 +787,33 @@ public final class LogFile {
     else {
       return false;
     }
+  }
+
+  /**
+   * Returns the first line that contains searchString
+   * @param id
+   * @param searchString
+   * @return
+   * @throws LockException
+   * @throws IOException
+   */
+  public synchronized String getLineContaining(ReaderId id, String searchString)
+      throws LockException, IOException {
+    if (!lock.isLocked(LockType.READ, id)) {
+      throw new LockException(this, id);
+    }
+    createFile();
+    Reader reader = readingTokenList.getReader(ReadingTokenList.makeKey(id));
+    if (reader != null) {
+      String line = reader.readLine();
+      while (line != null) {
+        if (line.indexOf(searchString) != -1) {
+          return line;
+        }
+        line = reader.readLine();
+      }
+    }
+    return null;
   }
 
   public synchronized void load(Properties properties, InputStreamId inputStreamId)

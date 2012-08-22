@@ -156,7 +156,9 @@ DDEESSCCRRIIPPTTIIOONN
   and can still take sequential input interactively, to maintain compatibility
   with old command files.  The following options can be specified either as
   command line arguments (with the -) or one per line in a command file or
-  parameter file (without the -):
+  parameter file (without the -).  Options can be abbreviated to unique
+  letters; the currently valid abbreviations for short names are shown in
+  parentheses.
 
 INSERT OPTION TEXT HERE
 

@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <stdlib.h>
@@ -1100,66 +1099,61 @@ int mrc_bandpass_filter(struct MRCslice *sin, double low, double high)
  * Filters a slice [sin] by convolving with the square matrix [mat] of 
  * dimension [dim] and returns a float slice, or NULL for error.  Pixels outside
  * the image bounds are obtained by replicated pixels on the edge, so there is 
- * no need to set the {mean} value of the slice.
+ * no need to set the {mean} value of the slice.  For a float input slice, it calls
+ * @@cfutils.html#applyKernelFilter@ , otherwise it uses slower GetVal and PutVal based
+ * operations.  Both approaches are parallelized with OpenMP, but the latter only for
+ * kernel sizes up to 9.
  */
 Islice *slice_mat_filter(Islice *sin, float *mat, int dim)
 {
+#define MAX_STATIC_KERNEL 9
   Islice *sout;
+  float smat[MAX_STATIC_KERNEL * MAX_STATIC_KERNEL];
   float *imat;
   Ival val;
-  int i,j;
+  int i,j, numThreads = 1;
 
-  imat = (float *)malloc(dim * dim * sizeof(float));
-  if (!imat)
-    return(NULL);
   sout = sliceCreate(sin->xsize, sin->ysize, MRC_MODE_FLOAT);
   if (!sout)
     return NULL;
 
-  for(j = 0; j < sin->ysize; j++){
-    for(i = 0; i < sin->xsize; i++){
-      mrc_slice_mat_getimat(sin, i, j, dim, imat);
-      val[0] = mrc_slice_mat_mult(mat, imat, dim);
-      slicePutVal(sout, i, j, val);
-    }
-  }
-  free(imat);
-  return(sout);
-}
+  if (sin->mode == SLICE_MODE_FLOAT) {
+    applyKernelFilter(sin->data.f, sout->data.f, sin->xsize, sin->xsize, sin->ysize, mat,
+                      dim);
 
-/*!
- * Fills [mat] with the coefficients of a [dim] x [dim] Gaussian kernel with 
- * standard deviation [sigma].  The coefficients are scaled to sum to 1.
- */
-void sliceGaussianKernel(float *mat, int dim, float sigma)
-{
-  float sum = 0.;
-  int i, j;
-  double mid = (dim - 1)/ 2.;
-  for (j = 0; j < dim; j++) {
-    for (i = 0; i < dim; i++) {
-      mat[i + j * dim] = (float)exp(-((i-mid) * (i-mid) + (j-mid) * (j-mid)) / 
-                                  (sigma * sigma));
+  } else {
+    if (dim <= MAX_STATIC_KERNEL) {
+      numThreads = B3DNINT(0.04 * sqrt((double)sin->xsize * sin->ysize));
+      numThreads = numOMPthreads(numThreads);
+    }
+    if (numThreads > 1) {
+
+#pragma omp parallel for num_threads(numThreads)    \
+  shared(sin, sout, dim, mat)                       \
+  private(j, i, val, smat)
+      for (j = 0; j < sin->ysize; j++) {
+        for (i = 0; i < sin->xsize; i++) {
+          mrc_slice_mat_getimat(sin, i, j, dim, smat);
+          val[0] = mrc_slice_mat_mult(mat, smat, dim);
+          slicePutVal(sout, i, j, val);
+        }
+      }
+    } else {
       
-      sum += mat[i + j * dim];
+      imat = (float *)malloc(dim * dim * sizeof(float));
+      if (!imat)
+        return(NULL);
+      for (j = 0; j < sin->ysize; j++) {
+        for (i = 0; i < sin->xsize; i++) {
+          mrc_slice_mat_getimat(sin, i, j, dim, imat);
+          val[0] = mrc_slice_mat_mult(mat, imat, dim);
+          slicePutVal(sout, i, j, val);
+        }
+      }
+      free(imat);
     }
   }
-  for (j = 0; j < dim; j++)
-    for (i = 0; i < dim; i++)
-      mat[i + j * dim] /= sum;
-}
-
-/*!
- * Fills [mat] with the coefficients of a Gaussian kernel with standard deviation 
- * [sigma].  The size of the kernel is set to 3 for [sigma] up to 1., 5 for [sigma]
- * up to 2., etc., up to the size given by [limit]. The size is returned in [dim].
- * The coefficients are scaled to sum to 1.
- */
-void scaledGaussianKernel(float *mat, int *dim, int limit, float sigma)
-{
-  *dim = 2 * (int)ceil((double)sigma) + 1;
-  *dim = B3DMIN(limit, *dim);
-  sliceGaussianKernel(mat, *dim, sigma);
+  return(sout);
 }
 
 /*!
@@ -1501,69 +1495,3 @@ int mrc_vol_wrap(struct MRCvolume *v)
   }
   return(0);
 }
-
-
-/*
-$Log$
-Revision 3.25  2011/02/02 16:58:02  mast
-fixed sliceFloat to convert a USHORT slice
-
-Revision 3.24  2008/12/01 15:32:58  mast
-Reduced edge artifacts in convolution filtering and in sliceGradient
-
-Revision 3.23  2008/11/02 13:43:08  mast
-Added functions for reading float slice
-
-Revision 3.22  2008/06/24 04:43:34  mast
-Split off really basic function to libcfshr
-
-Revision 3.21  2008/01/11 17:19:44  mast
-Mac warning cleanup
-
-Revision 3.20  2007/11/22 20:47:54  mast
-Added gaussian kernel functions
-
-Revision 3.19  2007/10/03 22:55:02  mast
-Added function to convert from MRC mode to SLICE mode for real data
-
-Revision 3.18  2007/09/12 17:09:30  xiongq
-add comments to sliceNewMode
-
-Revision 3.17  2007/02/04 21:16:57  mast
-Fixing stupid things in checkin
-
-Revision 3.14  2007/02/04 21:00:56  mast
-Documentation and cleanup of duplicate and bad code
-
-Revision 3.13  2006/09/28 21:16:15  mast
-Changed to allocate slices > 2 Gpixel and > 4 GPixel if on 64-bit machine
-
-Revision 3.12  2005/11/11 22:15:23  mast
-Changes for unsigned file mode
-
-Revision 3.11  2005/05/23 23:45:19  mast
-Changed calculation of slice mean to use doubles and temp sums
-
-Revision 3.10  2005/01/17 17:13:34  mast
-Used typedefs for structures, fixed new mode conversion to truncate
-bytes and ints
-
-Revision 3.9  2005/01/06 18:15:28  mast
-Fixed _lie scaling function, fixed matrix filtering function
-
-Revision 3.8  2004/12/02 21:54:53  mast
-Fixed sliceReadMRC to return null upon error
-
-Revision 3.7  2004/11/07 23:06:09  mast
-Fixed sliceGradient to not saturate
-
-Revision 3.6  2004/11/05 18:53:04  mast
-Include local files with quotes, not brackets
-
-Revision 3.5  2004/11/04 17:10:27  mast
-libiimod.def
-
-Revision 3.4  2004/09/10 21:33:53  mast
-Eliminated long variables
-
-*/
