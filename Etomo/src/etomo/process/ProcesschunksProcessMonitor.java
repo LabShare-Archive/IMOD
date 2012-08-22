@@ -76,6 +76,16 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private ParallelProgressDisplay parallelProgressDisplay = null;
   private MessageReporter messageReporter = null;
 
+  public void dumpState() {
+    System.err.print("[rootName:" + rootName + ",subdirName:" + subdirName
+        + ",\nsetProgressBarTitle:" + setProgressBarTitle + ",useCommandsPipe:"
+        + useCommandsPipe + ",\nprocessRunning:" + processRunning + ",pausing:" + pausing
+        + ",\nkilling:" + killing + ",pid:" + pid + ",starting:" + starting
+        + ",\nfinishing:" + finishing + ",stop:" + stop + ",running:" + running
+        + ",\nreconnect:" + reconnect + ",multiLineMessages:" + multiLineMessages
+        + ",\ntcshErrorCountDown:" + tcshErrorCountDown + "]");
+  }
+
   ProcesschunksProcessMonitor(final BaseManager manager, final AxisID axisID,
       final String rootName, final Map computerMap, final boolean multiLineMessages) {
     this.manager = manager;

@@ -131,11 +131,9 @@ public interface ConstTiltParam extends CommandDetails {
 
   public int getFullImageX();
 
-  public int getIdxSliceStart();
+  public long getIdxSliceStart();
 
-  public int getIdxSliceStop();
-
-  public int getIncrSlice();
+  public long getIdxSliceStop();
 
   public String getLogShift();
 
@@ -166,8 +164,6 @@ public interface ConstTiltParam extends CommandDetails {
   public boolean hasScale();
 
   public boolean hasSlice();
-
-  public boolean hasSliceIncr();
 
   public boolean hasThickness();
 

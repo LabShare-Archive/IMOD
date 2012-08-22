@@ -107,8 +107,10 @@ wait.process.aligning-stack=done
 
 
 [function = compute]
+cb.do-robust-fitting-with-tuning-factor=on
 bn.compute-alignment=
 wait.process.aligning-stack=done
+cb.do-robust-fitting-with-tuning-factor=off
 tb.general.1=
 rb.full-solution=
 bn.compute-alignment=
@@ -263,11 +265,19 @@ assert.enabled.tf.tilt-axis-z-shift=
 
 [function = minimization-parameters-test-gui-advanced]
 # check values
+assert.cb.do-robust-fitting-with-tuning-factor=off
+assert.tf.do-robust-fitting-with-tuning-factor=
 assert.tf.metro-factor=0.25
 assert.tf.cycle-limit=1000
 # check enabled/disabled
+assert.enabled.cb.do-robust-fitting-with-tuning-factor=
+assert.disabled.tf.do-robust-fitting-with-tuning-factor=
 assert.enabled.tf.metro-factor=
 assert.enabled.tf.cycle-limit=
+#check behavior
+cb.do-robust-fitting-with-tuning-factor=on
+assert.enabled.tf.do-robust-fitting-with-tuning-factor=
+cb.do-robust-fitting-with-tuning-factor=off
 
 
 [function = local-alignment-parameters-test-gui-basic]

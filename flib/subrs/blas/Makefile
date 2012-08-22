@@ -89,6 +89,6 @@ DBLAS3 = dgemm.$(O) dsymm.$(O) dsyrk.$(O) dsyr2k.$(O) dtrmm.$(O) dtrsm.$(O)
 double: $(DBLAS1) $(ALLBLAS) $(DBLAS2) $(DBLAS3)
 
 clean:
-	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.$(OBJEXT)" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;

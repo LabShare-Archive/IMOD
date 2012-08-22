@@ -33,7 +33,8 @@ usage = Model with contours enclosing areas to analyze
 tooltip = 
 manpage = Model with contours enclosing areas to analyze.  More than one
 contour can be included on each section.  If there are no contours on a
-section within the range being analyzed, the entire section will be used.
+section within the range being analyzed, the contours on the nearest section
+with contours will be used.
 
 [Field = AddToModel]
 short = add
@@ -102,11 +103,15 @@ more than a factor of 2.
 
 [Field = LinearInterpolation]
 short = linear
-type = B
-usage = Use linear instead of cubic interpolation
+type = I
+usage = 1 to use linear instead of cubic interpolation, -1 to use antialias filter
 tooltip = 
-manpage = Use linear instead of cubic interpolation; this option will help to
-reduce noise.
+manpage = This option controls the type of interpolation used in scaling
+images.  Enter 1 to use linear instead of cubic interpolation; this option will help to
+reduce noise.  Alternatively, enter -1 to use antialiased image reduction when
+images are being scaled down.  With this option, large size reductions will be done
+in one step instead of with binning then interpolation.  The noise reduction
+from antialias filtering would probably make kernel filtering unnecessary.
 
 [Field = CenterWeight]
 short = center

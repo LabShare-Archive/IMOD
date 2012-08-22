@@ -9,7 +9,7 @@ Version = 1.2
 #skipto.dialog.Combine =
 #
 
-bn.new-tomogram=
+bn.build-tomogram=
 set.adoc.function = setup-recon.adoc
 run.function.main =
 if.var.dual.bn.both=

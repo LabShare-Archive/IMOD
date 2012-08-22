@@ -1,0 +1,132 @@
+.na
+.nh
+.TH slashmasksort 1 2.00 BL3DEMC
+.SH NAME
+slashmasksort \- Sorts and/or splits contours into a set of new objects based
+on whether its points fall inside any closed contours in the specified 'mask' object(s).
+.SH SYNOPSIS
+slashmasksort -o <list> -m <list> [options] <input_model> <output_model>
+.SH DESCRIPTION
+This program requires you to enter one list of objects with contours you want
+sorted (eg: '-o 1'), and a second list of closed contour objects (eg: '-m 1,2')
+where the closed contours form a mask on your different z slices. When the program
+is run it will generate a series of new objects at the end of the model and
+will duplicate contours inside a mask into the appropriate new object.
+Here's an example of new objects generated when given the example input with
+1 input object and 2 masks objects:
+
+  COMMAND_PROMPT> slashmasksort -o 1 -m 2,3 -n in.mod out.mod
+	
+  OBJECT OUTPUT:
+  > "object 1... masked by 'object 2'"	45 conts 	(35.0%)
+  > "object 1... masked by 'object 3'"	3 conts 	(2.0%)
+
+By default, each contour is kept intact and only duplicated to the new object
+corresponding to the first mask object it's inside. A contour can only be considered
+inside one mask object, and if it's outside all objects it won't be duplicated
+unless you use the '-k' to generate "object 1... masked OUTSIDE" objects for
+each input object.
+
+If, however, you add the '-s' argument, then contour will get split whenever they
+cross outside or into a new mask object. The splits don't occur where the contours
+leave (no extra points are added), so that's a feature you'd have to request.
+The purpose of this program is to help you sort objects such as sub-cellular
+compartments  which you may just mark up as one layer, but then suddenly decide
+that  you would prefer to sort them into the different cells they belong to - or
+even just delete all compartments / points which happen to fall outside your
+main compartment of interest.
+
+.B Putting closed contours on every desired slice
+
+Please note that if you have a volume/surface that you want to use as a mask
+your closed mask contour should have (closed) contours on EVERY slice
+of the desired surface. The slashmasksort program looks only at contours
+and not surface information. To get closed mask contours on every slice
+you can use the "Interpolator" window (3dmod >> Special >> Interpolator) or
+the "imodsortsurf" and "imodfillin" programs.
+
+.SS Options
+
+.TP 
+.B -o #/list
+A list of "input objects" (eg: '1,4-5') containing contours/points that you wish
+to sort/split into new objects. These objects can be of any type, and you must
+list at least one.
+
+.TP 
+.B -m #/list
+A list of closed contour objects to use as "mask objects". Note that you
+will want to have a closed contour on every slice of your desired mask volume
+and that during the sorting/splitting phase each input contour only gets sorted
+into one mask object (never multiple objects).
+
+.TP 
+.B -s
+Turns on "splitting" such that each point is tested separately against the mask
+objects and if two consecutive points are in different "areas" then the
+contour will be split into separate contours either side of these points.
+If you have a scattered point object and wish every point to be it's own
+contour (one point per contour) consider using "slashsplitconts" before
+running this program.
+
+.TP 
+.B -C
+If the -s option is on, this option will mark any contour which are split open
+as "open contours".
+
+.TP 
+.B -i
+Will insert new objects just after the new objects they belong to such that you'd get:
+ "Cell1"
+ "Vesicles... masked by 'Cell1'"     <-- new object
+ "Mitochondria... masked by 'Cell1'" <-- new object
+ "Cell2"
+ "Vesicles... masked by 'Cell2'"     <-- new object
+ "Mitochondria... masked by 'Cell2'" <-- new object
+
+And so on. By default new objects are added to the end of the model file in this order:
+ "Vesicles... masked by 'Cell1'"     <-- new object
+ "Vesicles... masked by 'Cell2'"     <-- new object
+ "Mitochondria... masked by 'Cell1'" <-- new object
+ "Mitochondria... masked by 'Cell2'" <-- new object
+
+If you wish to further reorganize / reorder objects try using 3dmod's "Name Wizard"
+plugin (3dmod >> Special >> Name Wizard).	If desired, the same plugin can also be
+used to merge objects back together.
+
+.TP 
+.B -d
+Will delete all objects in the -o list after they are split. It is recommended you only
+use this option if you have backup.
+
+.TP 
+.B -k
+Will "keep" contours and/or points which fall outside all mask objects and put them
+into a separate object which is typically labelled "Object 1... masked OUTSIDE" and
+put at the end of the IMOD model.
+
+.TP 
+.B -f
+Will only test the first contour point of each contour in the input object list.
+This option can help speed things up a little, but is not relevant if -s is set.
+
+.TP 
+.B -c
+Will give the newly create objects different colors instead of duplicating the
+same color as the matching input object.
+
+.TP 
+.B -n
+Will use object number (eg: "object 1... masked by 'object 2'") instead of objects
+names (eg: "Vesicles... masked by 'Cell1'") as the names of new objects. Note that
+if an object name is missing it will also use the object number, so the only
+time you may want to use this option is if you don't have unique object names 
+for each object. To produce good model files it's recommended you use "Name Wizard"
+to quickly give all your objects unique and meaningful names.
+
+.SH AUTHORS
+Andrew Noske and David Mastronarde
+.SH SEE ALSO
+imodfindbeads(1)
+.SH BUGS
+Email bug reports to mast@colorado.edu, and CC to andrew<DOT>noske<AT>gmail<DOT>com.

@@ -3416,7 +3416,7 @@ getLinearInterpConts( int c1Idx, int c2Idx )
 	int zDistApart = getZ(contU) - getZ(contL);
 	if( zDistApart <= 1 )   // if conts only one slice apart, or lower is above upper:
   {				
-		wprint( "ERROR: getLinearInterpConts()\n" );      // should avoid this
+		//wprint( "ERROR: getLinearInterpConts()\n" );      // should avoid this
 		return newInterpolatedConts;                      // return empty set
 	}
 	

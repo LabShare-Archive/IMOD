@@ -54,6 +54,10 @@ class FileModifiedFlag {
     return lastModified;
   }
 
+  void reset() {
+    lastModified = EtomoNumber.LONG_NULL_VALUE;
+  }
+
   public String toString() {
     return file.getAbsolutePath() + ": " + lastModified;
   }

@@ -96,6 +96,7 @@ public class AlignLogGenerator {
     runArgument("-r", "taResiduals");
     runArgument("-s", "taSolution");
     runArgument("-b", "taBeamtilt");
+    runArgument("-w", "taRobust");
   }
 
   private void runArgument(String argument, String logFile) throws IOException {

@@ -10,7 +10,6 @@
  * 10/29/99: translated to C.  Failed to keep Fortran ordering of input data.
  *
  * $Id$
- * Log at end
  */
 
 #include "imodconfig.h"
@@ -18,8 +17,10 @@
 
 #ifdef F77FUNCAP
 #define gaussjfw GAUSSJ
+#define gaussjdet GAUSSJDET
 #else
 #define gaussjfw gaussj_
+#define gaussjdet gaussjdet_
 #endif
 
 #define MSIZ 2000
@@ -38,12 +39,22 @@
  */
 int gaussj(float *a, int n, int np, float *b, int m, int mp)
 {
+  float determ;
+  return gaussjDet(a, n, np, b, m, mp, &determ);
+}
+
+/*!
+ * Version of @gaussj that returns a determinant value
+ */
+int gaussjDet(float *a, int n, int np, float *b, int m, int mp, float *determ)
+{
   short int index[MSIZ][2];
   float pivot[MSIZ];
   short int ipivot[MSIZ];
   int irow, icolum, i, j, k, l, l1;
   float amax, t, abstmp, pivotmp;
-
+  
+  *determ = 1.;
   if (n > MSIZ)
     return -1;
   for (j = 0; j < n; j++)
@@ -73,6 +84,7 @@ int gaussj(float *a, int n, int np, float *b, int m, int mp)
     }
     ipivot[icolum]=ipivot[icolum]+1;
     if(irow != icolum) {
+      *determ = -(*determ);
       for (l = 0; l < n; l++) {
         t=a[irow*np+l];
         a[irow*np+l]=a[icolum*np+l];
@@ -89,6 +101,7 @@ int gaussj(float *a, int n, int np, float *b, int m, int mp)
     pivotmp=a[icolum*np+icolum];
     /*    if(abs(pivotmp) < 1.e-30) write(*,*) 'small pivot',pivotmp */
     pivot[i]=pivotmp;
+    *determ *= pivotmp;
     a[icolum*np+icolum]=1.;
     /*      worried about that step! */
     for (l = 0; l < n; l++) 
@@ -126,22 +139,7 @@ int gaussjfw(float *a, int *n, int *np, float *b, int *m, int *mp)
   return gaussj(a, *n, *np, b, *m, *mp);
 }
 
-/*
-  
-$Log$
-Revision 1.1  2010/06/06 21:16:43  mast
-Moved to library at last
-
-Revision 3.1  2003/02/10 20:49:57  mast
-Merge Qt source
-
-Revision 1.1.2.1  2002/12/05 03:13:02  mast
-New Qt version
-
-Revision 3.2  2002/08/19 04:42:59  mast
-Made it test for zero before subtracting rows from each other.
-
-Revision 3.1  2002/08/01 00:29:01  mast
-Increased array sizes to 10000
-
-*/
+int gaussjdet(float *a, int *n, int *np, float *b, int *m, int *mp, float *determ)
+{
+  return gaussjDet(a, *n, *np, b, *m, *mp, determ);
+}

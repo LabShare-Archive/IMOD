@@ -23,8 +23,6 @@ video tutorial</a></b></i>
 --------------------------<br>
 <ol>
 <li><b>Normal</b> - lets you use normal contour drawing behavior.</li>
-<li><strong>LiveWire</strong> - an edge detection tool to help you quickly trace around 
-  dark membranes, similar to the &quot;magnetic lasso&quot; tool in Photoshop.</li>
 <li><b>Warp</b> - allows you to quickly correct bad regions of contour 
   by warping <i>[second_button]</i> or warp-and-smoothing <i>[third_button]</i> the contour 
   points closest to (if you click on a contour) or within (if you click near a contour) 
@@ -37,27 +35,28 @@ video tutorial</a></b></i>
   two contours by pushing one contour over another or split a contour 
   by pushing a gap through the middle. Using <em>[third_button]</em> lets 
   you join or split contours using a rectangle.</li>
+<li><strong>LiveWire</strong> - an edge detection tool to help you quickly trace around 
+  dark membranes  <i>[second_button]</i>, similar to the &quot;magnetic lasso&quot; tool in Photoshop. *</li>
+<li><b>The Wand</b> - a adaptive flood filling algorithm where you can click and 
+  drag <i>[second_button]</i> to rapidly fill in an area of similar greyscale. Using the <em>[third_button]</em> you can use the little scuplt circle to make minor touchups to the selected contour.</li>
 <li><b>Eraser</b> - allows you to delete contours <i>[second_button]</i> or points
   <i>[third_button]</i> touching the sculpt circle. Holding <i>[shift+second_button]</i>
   lets you break apart contours.</li>
-<li><b>Transform</b> - allows you to move <i>[second_button]</i>, 
-  <i>scale [third_button]</i>, rotate <i>[shift+second_button]</i> or 
-  stretch <i>[shift+third_button]</i> the currently selected contour.</li>
 <li><b>Measure</b> - allows you to draw a straight line between any 
   two points <i>[second_button]</i> and displays the distance between these 
   points in the relevant units.</li>
 </ol>
-<p>&nbsp;</p>
+<p><em>* With the LiveWire tool be warned that it seems to crash and doesn't work on certain images. Either it works brilliantly or not at all, but be sure to save regularly.</em></p>
 <p><b>Extra Drawing Modes</b><br>
 --------------------------</p>
 <p>NOTE: The list above shows the default order of drawing tools, but by clicking any of
-  the numbers it's possible to change the order and/or add to the list one of these other
+  the numbers (to the right of the tools) it's possible to change the order and/or add to the list one of these other
   modes:</p>
 
 <ul>
-<li><b>The Wand</b> - a adaptive flood filling algorithm where you can click and 
-  drag <i>[second_button]</i> to rapidly fill in an area of similar greyscale. Using the <em>[third_button]</em> you can use the little scuplt circle to make minor touchups to the selected contour.</li>
-<li><b>Curve</b> - allows you to draw a smooth contour by clicking a sequence
+  <li><b>Transform</b> - allows you to move <i>[second_button]</i>, <i>scale [third_button]</i>, rotate <i>[shift+second_button]</i> or 
+    stretch <i>[shift+third_button]</i> the currently selected contour.</li>
+  <li><b>Curve</b> - allows you to draw a smooth contour by clicking a sequence
   of points <i>[second_button]</i> and then end the contour by pressing
   [space] or connecting the end of the contour to the beginning. To disconnect
   from the selected contour without adjustment press [n].</li>
@@ -312,9 +311,8 @@ to default.</li>
 <p>
 ---------------------<br>
 <br>
-This plugin was created by <b>Andrew Noske</b>
-(<u>andrew_noske AT yahoo.com</u>).<br>
-<i>If you encounter bugs please e-mail me before e-mailing the
+This plugin was created by <b>Andrew Noske</b> (<u>andrew.noske&lt;at&gt;gmail&lt;dot&gt;com</u>).<br>
+ If you encounter bugs please e-mail me before e-mailing the
 IMOD group (to reduce traffic). <br>
 In your e-mail please tell me exactly how and when the problem
 occurred and attach the model file you were using with

@@ -1,0 +1,33 @@
+.na
+.nh
+.TH pickbestseed 1 4.6.8 BL3DEMC
+.SH NAME
+pickbestseed \- Selects best seed points for autofidseed
+.SH SYNOPSIS
+pickbestseed options
+.SH DESCRIPTION
+Pickbestseed is used by Autofidseed(1) to select an optimal set of seed points
+fof the desired number, using bead models tracked starting from several
+different views and using information on the quality of the tracking, the
+shape of the beads, and on which of two surfaces they are located.
+.P
+This man page is still under construction.
+.SS Options
+Pickbestseed uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -).  Options can be abbreviated to unique letters; the currently
+valid abbreviations for short names are shown in parentheses.
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH AUTHOR
+.nf
+David Mastronarde
+.fi
+.SH SEE ALSO
+autofidseed(1)
+.P
+Email bug reports to mast@colorado.edu.

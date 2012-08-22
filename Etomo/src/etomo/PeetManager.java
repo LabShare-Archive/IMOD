@@ -15,8 +15,6 @@ import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.PeetProcessManager;
 import etomo.process.ProcessData;
-import etomo.process.ProcessResultDisplayFactoryBlank;
-import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.process.SystemProcessException;
 import etomo.storage.AveragedFileNames;
 import etomo.storage.ComFileFilter;
@@ -30,7 +28,6 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
-import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.ConstProcessSeries;
@@ -53,6 +50,7 @@ import etomo.ui.swing.ParallelPanel;
 import etomo.ui.swing.PeetDialog;
 import etomo.ui.swing.PeetStartupDialog;
 import etomo.ui.swing.ProcessDisplay;
+import etomo.ui.swing.UIComponent;
 import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.EnvironmentVariable;
@@ -336,7 +334,6 @@ public final class PeetManager extends BaseManager {
 
   private final PeetScreenState screenState = new PeetScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
-  private final ProcessResultDisplayFactoryBlank processResultDisplayFactory = new ProcessResultDisplayFactoryBlank();
 
   private final PeetMetaData metaData;
   private final PeetProcessManager processMgr;
@@ -413,10 +410,6 @@ public final class PeetManager extends BaseManager {
     }
   }
 
-  public boolean isInManagerFrame() {
-    return false;
-  }
-
   static public boolean isInterfaceAvailable() {
     if (!EnvironmentVariable.INSTANCE.exists(null,
         EtomoDirector.INSTANCE.getOriginalUserDir(), "PARTICLE_DIR", AxisID.ONLY)) {
@@ -428,19 +421,6 @@ public final class PeetManager extends BaseManager {
       return false;
     }
     return true;
-  }
-
-  public boolean canChangeParamFileName() {
-    return false;
-  }
-
-  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
-      final AxisID axisID) {
-    return processResultDisplayFactory;
-  }
-
-  public boolean canSnapshot() {
-    return false;
   }
 
   public void pack() {
@@ -484,16 +464,8 @@ public final class PeetManager extends BaseManager {
     return metaData.getName();
   }
 
-  public void kill(final AxisID axisID) {
-    processMgr.kill(axisID);
-  }
-
   public PeetState getState() {
     return state;
-  }
-
-  public void pause(final AxisID axisID) {
-    processMgr.pause(axisID);
   }
 
   /**
@@ -643,14 +615,6 @@ public final class PeetManager extends BaseManager {
         peetDialog.updateDisplay(true);
       }
     }
-  }
-
-  /**
-   * The param file should already be set.
-   * @return
-   */
-  public boolean setParamFile() {
-    return loadedParamFile;
   }
 
   /**
@@ -890,39 +854,16 @@ public final class PeetManager extends BaseManager {
     }
   }
 
-  void updateDialog(final ProcessName processName, final AxisID axisID) {
-  }
-
-  void processSucceeded(final AxisID axisID, final ProcessName processName) {
-  }
-
   public BaseState getBaseState() {
     return state;
-  }
-
-  public String getFileSubdirectoryName() {
-    return null;
-  }
-
-  void createProcessTrack() {
   }
 
   void createMainPanel() {
     mainPanel = new MainPeetPanel(this);
   }
 
-  void createComScriptManager() {
-  }
-
   public BaseProcessManager getProcessManager() {
     return processMgr;
-  }
-
-  BaseProcessTrack getProcessTrack() {
-    return null;
-  }
-
-  void getProcessTrack(final Storable[] storable, final int index) {
   }
 
   Storable[] getStorables(final int offset) {
@@ -937,7 +878,8 @@ public final class PeetManager extends BaseManager {
   /**
    * Start the next process specified by the nextProcess string
    */
-  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
+  void startNextProcess(final UIComponent uiComponent, final AxisID axisID,
+      final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
       final DialogType dialogType, final ProcessDisplay display) {
     if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
@@ -967,7 +909,7 @@ public final class PeetManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, true);
+    reconnect(axisProcessData.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, true);
   }
 
   /**

@@ -32,6 +32,8 @@ public final class InterfaceType {
   public static final InterfaceType PP = new InterfaceType("pp");
   public static final InterfaceType PEET = new InterfaceType("peet");
   public static final InterfaceType TOOLS = new InterfaceType("tools");
+  public static final InterfaceType FRONT_PAGE = new InterfaceType("frontPage");
+  public static final InterfaceType SERIAL_SECTIONS = new InterfaceType("serialSections");
   
   private final String name;
   

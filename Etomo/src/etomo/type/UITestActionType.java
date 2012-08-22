@@ -45,6 +45,7 @@ public final class UITestActionType {
   public static final UITestActionType SET = new UITestActionType("set");
   public static final UITestActionType SKIPTO = new UITestActionType("skipto");
   public static final UITestActionType SLEEP = new UITestActionType("sleep");
+  public static final UITestActionType TOUCH = new UITestActionType("touch");
   public static final UITestActionType USE = new UITestActionType("use");
   public static final UITestActionType WAIT = new UITestActionType("wait");
   public static final UITestActionType WRITE = new UITestActionType("write");
@@ -107,6 +108,9 @@ public final class UITestActionType {
     }
     if (SLEEP.equals(string)) {
       return SLEEP;
+    }
+    if (TOUCH.equals(string)) {
+      return TOUCH;
     }
     if (USE.equals(string)) {
       return USE;

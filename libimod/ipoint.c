@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include <math.h>
@@ -617,43 +616,61 @@ int imodPointInsideCont(Icont *cont, Ipoint *pt)
   return((nrcross % 2) > 0);
 }
 
-/*
+/*!
+ * Tests whether the point [x], [y] is inside any of the contours in object [obj] listed
+ * in [list], where [nlist] is the number of entries in [list].  If the point is inside 
+ * a contour, it returns the contour number; otherwise it returns -1.
+ */
+int imodPointInsideArea(Iobj *obj, int *list, int nlist, float x, float y)
+{
+  int i;
+  Ipoint pnt;
+  pnt.x = x;
+  pnt.y = y;
+  pnt.z = 0.;
+  for (i = 0; i < nlist; i++) {
+    if (imodPointInsideCont(&obj->cont[list[i]], &pnt))
+      return list[i];
+  }
+  return -1;
+}
 
-$Log$
-Revision 3.13  2011/02/21 16:39:22  mast
-Added function for point to contour
+/*!
+ * Makes a list of the contours in object [obj] on the Z section closest to the Z value
+ * [iz].  The contour numbers are returned in [list] and the number of contours in 
+ * [nlist].  [listSize] specifies the size of the [list] array.  Assumes the contours are
+ * planar and tests the Z value only of the first point.  Returns 1 if there are no 
+ * contours in the object or -1 if there are more than [listSize] contours on the plane.
+ */
+int makeAreaContList(Iobj *obj, int iz, int *list, int *nlist, int listSize)
+{
+  int co, dzmin, izmin, zco, dz;
+  izmin = -999;
+  dzmin = 100000;
+  for (co = 0; co < obj->contsize; co++) {
+    if (!obj->cont[co].psize)
+      continue;
+    zco = B3DNINT(obj->cont[co].pts[0].z);
+    dz = B3DMAX(iz - zco, zco - iz);
+    if (dz < dzmin) {
+      dzmin = dz;
+      izmin = zco;
+    }
+  }
 
-Revision 3.12  2010/06/21 16:30:07  mast
-fix log
+  if (izmin == -999)
+    return 1;
+  *nlist = 0;
+  for (co = 0; co < obj->contsize; co++) {
+    if (!obj->cont[co].psize)
+      continue;
+    zco = B3DNINT(obj->cont[co].pts[0].z);
+    if (zco == izmin) {
+      if (*nlist == listSize - 1)
+        return -1;
+      list[(*nlist)++] = co;
+    }
+  }
+  return 0;
+}
 
-Revision 3.11  2008/01/14 19:44:39  mast
-Added append XYZ function
-
-Revision 3.10  2007/10/09 16:45:22  mast
-Added test for point inside contour
-
-Revision 3.9  2007/04/26 19:09:46  mast
-Fixed segment distance function
-
-Revision 3.8  2005/06/20 22:25:39  mast
-Changes for managing general storage
-
-Revision 3.7  2005/04/23 23:37:31  mast
-Documented functions
-
-Revision 3.6  2005/03/20 19:56:49  mast
-Eliminating duplicate functions
-
-Revision 3.5  2004/12/02 21:56:04  mast
-Revamped imodPointIntersect for segment intersections in zap window
-
-Revision 3.4  2004/11/20 04:29:23  mast
-Changes to add point function
-
-Revision 3.3  2004/11/05 18:53:00  mast
-Include local files with quotes, not brackets
-
-Revision 3.2  2004/09/10 21:33:46  mast
-Eliminated long variables
-
-*/

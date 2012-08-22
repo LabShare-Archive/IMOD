@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.File;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -12,7 +13,9 @@ import javax.swing.SpinnerNumberModel;
 
 import etomo.ToolsManager;
 import etomo.comscript.GpuTiltTestParam;
+import etomo.logic.DatasetTool;
 import etomo.type.AxisID;
+import etomo.type.DataFileType;
 
 /**
 * <p>Description: </p>
@@ -31,6 +34,8 @@ import etomo.type.AxisID;
 */
 public class GpuTiltTestPanel implements ToolPanel, ContextMenu {
   public static final String rcsid = "$Id:$";
+  
+  private static final String DATASET_ROOT = "gputest";
 
   private final JPanel pnlRoot = new JPanel();
   private final LabeledTextField ltfNMinutes = new LabeledTextField("# of minutes: ");
@@ -90,6 +95,10 @@ public class GpuTiltTestPanel implements ToolPanel, ContextMenu {
   }
 
   private void action() {
+    if (!DatasetTool.validateDatasetName(manager, axisID,
+        new File(manager.getPropertyUserDir()), DATASET_ROOT, DataFileType.TOOLS, null)) {
+      return;
+    }
     manager.gpuTiltTest(axisID);
   }
 
@@ -105,7 +114,7 @@ public class GpuTiltTestPanel implements ToolPanel, ContextMenu {
     String[] manPage = { "gputilttest.html" };
     String[] logFileLabel = { "GPU test" };
     String[] logFile = new String[1];
-    logFile[0] = "gputest" + ".log";
+    logFile[0] = DATASET_ROOT + ".log";
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent, "GPU Test",
         ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, manager,
         axisID);

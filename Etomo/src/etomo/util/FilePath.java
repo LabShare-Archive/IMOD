@@ -313,11 +313,6 @@ public final class FilePath {
     }
     // If the to path doesn't contain ..'s then use path/toRelPath.path.
     if (toRelPath.path.indexOf("..") == -1) {
-      if (debug) {
-        System.out
-            .println("A:new File(path.toString(), toRelPath.path.toString()).getAbsolutePath():"
-                + new File(path.toString(), toRelPath.path.toString()).getAbsolutePath());
-      }
       return new File(path.toString(), toRelPath.path.toString()).getAbsolutePath();
     }
     // Go up the from path by removing ..'s at the beginning of the to path.

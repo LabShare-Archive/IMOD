@@ -89,5 +89,5 @@ clean:
 	(cd suitesparse ; $(MAKE) clean)
 	(cd opencv ; $(MAKE) clean)
 	(cd lasik ; $(MAKE) clean)
-	-\rm -f *.o* *.manifest $(PROGS) *.$(STATICEXT) *~
+	-\rm -f *.$(OBJEXT) *.manifest $(PROGS) *.$(STATICEXT) *~
 

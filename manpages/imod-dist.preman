@@ -1,0 +1,32 @@
+.na
+.nh
+.TH imod-dist 1 4.6.1 BL3DEMC
+.SH NAME
+imod-dist \- distance measurement tool for IMOD model files
+.SH SYNOPSIS
+imod-dist [options] -r refObject <-c|-p refPoint> -m list inputModel.mod
+.SH DESCRIPTION
+imod-dist computes the distance between a reference location and other points in
+an IMOD model.  The reference object can be either a single point in a IMOD
+object or the centroid of the object.  The euclidean distance is reported for
+all points in the object list specified.
+
+Since a reference for the measurements must be a unique point, either a point
+within the reference object or the centroid of the object must be specified.
+
+.SS Options
+imod-dist uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -).  Options can be abbreviated to unique letters; the currently
+valid abbreviations for short names are shown in parentheses.
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH AUTHOR
+Rick Gaudette
+.SH BUGS
+Email bug reports to mast@colorado.edu.
+

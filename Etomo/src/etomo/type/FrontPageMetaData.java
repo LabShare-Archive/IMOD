@@ -105,13 +105,8 @@ public final class FrontPageMetaData extends BaseMetaData {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
   }
-
-  String createPrepend(String prepend) {
-    String groupKey;
-    groupKey = FRONT_PAGE_GROUP_KEY;
-    if (prepend == "") {
-      return groupKey;
-    }
-    return prepend + "." + groupKey;
+  
+  String getGroupKey() {
+    return FRONT_PAGE_GROUP_KEY;
   }
 }

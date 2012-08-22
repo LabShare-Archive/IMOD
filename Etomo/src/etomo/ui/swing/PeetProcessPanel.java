@@ -1,8 +1,5 @@
 package etomo.ui.swing;
 
-import java.awt.Color;
-import java.awt.event.ActionEvent;
-
 import etomo.BaseManager;
 import etomo.type.AxisID;
 
@@ -36,32 +33,9 @@ import etomo.type.AxisID;
 public class PeetProcessPanel extends AxisProcessPanel {
   public static final String rcsid = "$Id$";
 
-  protected void buttonKillAction(ActionEvent event) {
-    manager.kill(axisID);
-  }
-
   PeetProcessPanel(BaseManager manager) {
     super(AxisID.ONLY, manager, false);
     createProcessControlPanel();
     initializePanels();
-  }
-
-  void showBothAxis() {
-  }
-
-  private void setBackground(Color color) {
-    panelRoot.setBackground(color);
-    outerStatusPanel.setBackground(color);
-    innerStatusPanel.setBackground(color);
-    parallelStatusPanel.setBackground(color);
-    panelDialog.setBackground(color);
-    panelProcessSelect.setBackground(color);
-    //axisButtonPanel.setBackground(color);
-    progressPanel.setBackground(color);
-  }
-
-  protected void createProcessControlPanel() {
-    super.createProcessControlPanel();
-    showBothAxis();
   }
 }

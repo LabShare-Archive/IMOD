@@ -81,7 +81,7 @@ customdialog.h : $(QTDIALOG).h
 
 
 clean :
-	$(FIND) . -type f -name "*.o*"  -exec rm "{}" \;
+	$(FIND) . -type f -name "*.$(OBJEXT)"  -exec rm "{}" \;
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 	$(FIND) . -type f -name "*.$(DLLEXT)" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.exp*"  -exec rm "{}" \;
