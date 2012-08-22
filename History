@@ -1,6 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/21/12: IMOD_4-5-4
 8/20/12: Fixed Xfmodel model scaling when applying distortion field (In 4.5).
+
+8/19/12: Added a small CUDA library to Mac package that was needed on our Mac
+mini (In 4.5).
 
 8/15/12: In eTomo handled chunk error messages with multiple error tags
 (In 4.5).(Bug# 1629)
@@ -11,7 +15,7 @@ IMOD History
 file (In 4.5).
 
 7/23/12: Fixed bug in Splittilt that made parallel writing fail in SIRT 
-reprojection with a binned aligned stack (in 4.5).
+reprojection with a binned aligned stack (In 4.5).
 
 7/16/12: Fixed ancient bug in Splittilt that failed to limit the number of
 chunks correctly when vertical slices are being done with high X-axis tilt
