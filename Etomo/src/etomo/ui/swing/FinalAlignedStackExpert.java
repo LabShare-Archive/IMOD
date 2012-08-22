@@ -578,7 +578,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
           readerId = null;
         }
         String[] array = line.split("\\s+");
-        if (array[4].equals(dialog.getExpectedDefocus())) {
+        if (array[4].equals(Utilities.convertMicronsToNanometers(dialog
+            .getExpectedDefocus()))) {
           updateToDate = true;
         }
         else {
@@ -587,7 +588,10 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       }
       if (!updateToDate) {
         writerId = file.openWriter();
-        file.write("1 1 0 0 " + dialog.getExpectedDefocus(), writerId);
+        file.write(
+            "1 1 0 0 "
+                + Utilities.convertMicronsToNanometers(dialog.getExpectedDefocus()),
+            writerId);
         file.newLine(writerId);
         updateToDate = true;
         if (file.closeWriter(writerId)) {
