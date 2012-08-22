@@ -2,7 +2,7 @@ IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 8/22/12: IMOD_4-5-6
 8/22/12: In eTomo - Final Aligned Stack, fixed the defocus value in the
-_simple.defocus file (In 4.5).(Bug# 1604)
+_simple.defocus file to be in nm instead of microns (In 4.5).(Bug# 1604)
 
 8/20/12: Fixed Xfmodel model scaling when applying distortion field (In 4.5).
 
