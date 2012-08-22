@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/21/12: In eTomo, fixed a confusing message.(Bug# 1633)
+
 8/21/12: In eTomo - Generation Tomogram, fixed a bug where the tomogram height
 in Y was being ignored if the Y shift was not filled in.(Bug# 1626)
 
