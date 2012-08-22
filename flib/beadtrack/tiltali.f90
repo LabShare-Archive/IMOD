@@ -79,7 +79,7 @@ subroutine tiltali(ifDidAlign, ifAlignDone, resMean, iview)
     ! check h allocation; if it is not enough, try  to make it enough for the
     ! full set of views
     maxVar = nvarSearch + 3 * nrealPt
-    iv = max((maxVar + 3) * maxVar, (3 * nrealPt)**2)
+    iv = max((maxVar + 3) * maxVar, (3 * min(nrealPt, maxRealForDirectInit))**2)
     if (iv > maxH) then
       maxVar = (nviewAll + nview - 1) * nvarSearch / nview
       iv = max((maxVar + 3) * maxVar, iv)

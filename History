@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/22/12: In Beadtrack, use a sobel-based position on second pass only if it is
+closer to the expected position; try to make running 4 rounds behave more like
+rerunning with fiducial model as seed.
+
+8/22/12: In Tiltalign and Beadtrack, restored iterative method of initializing
+X/Y/Z positions for medium to large amounts of data; direct solution was too
+slow.
+
 8/22/12: IMOD_4-5-5
 8/21/12: In eTomo - Generation Tomogram, fixed a bug where the tomogram height
 in Y was being ignored if the Y shift was not filled in.(Bug# 1626)

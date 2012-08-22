@@ -14,7 +14,7 @@ module tltcntrl
   integer*4 nsepInGrpIn(MAXGRP)
   integer*4 nviewAll, minTiltInd, minInView, minViewsTiltAli, initXyzDone
   real*4 rangeDoAxis, rangeDoTilt, scaleXY, xcen, ycen, xorig, yorig
-  real*4 xdelt, ydelt, facMetro, eps, cgx, cgy
+  real*4 xdelt, ydelt, facMetro, eps
   integer*4 nCycle, nviewLocal, numObjDo, maxH, numExclude
   integer*4 nmapMag, nmapRot, nmapTilt, nRanSpecMag, nRanSpecRot, nRanSpecTilt
   ! Allocated to maxAllReal, and (3, maxAllReal)
