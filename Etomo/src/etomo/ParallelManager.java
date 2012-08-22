@@ -553,7 +553,7 @@ public final class ParallelManager extends BaseManager {
     }
     catch (SystemProcessException e) {
       String[] message = new String[2];
-      message[0] = "Can not execute" + ProcessName.CHUNKSETUP + "command";
+      message[0] = "Can not execute " + ProcessName.CHUNKSETUP + "command";
       message[1] = e.getMessage();
       uiHarness
           .openMessageDialog(this, message, "Unable to execute command", AxisID.ONLY);
@@ -591,7 +591,7 @@ public final class ParallelManager extends BaseManager {
     catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
-      message[0] = "Can not execute" + ProcessName.ANISOTROPIC_DIFFUSION + "command";
+      message[0] = "Can not execute " + ProcessName.ANISOTROPIC_DIFFUSION + "command";
       message[1] = e.getMessage();
       uiHarness
           .openMessageDialog(this, message, "Unable to execute command", AxisID.ONLY);
