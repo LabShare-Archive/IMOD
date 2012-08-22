@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/21/12: In eTomo - Fine Alignment, added Robust Fitting to the Beadtrack
+interface.(Bug# 1628)
+
 8/21/12: In eTomo, fixed a confusing message.(Bug# 1633)
 
 8/21/12: In eTomo - Generation Tomogram, fixed a bug where the tomogram height
