@@ -5,8 +5,8 @@
 ! Array size limits: in one place!
 module arraymaxes
   implicit none
-  integer MAXGRP, maxView, maxWgtRings
-  parameter (MAXGRP = 20, maxWgtRings = 10)
+  integer MAXGRP, maxView, maxWgtRings, maxRealForDirectInit
+  parameter (MAXGRP = 20, maxWgtRings = 10, maxRealForDirectInit = 200)
   integer maxProjPt, maxReal
 end module arraymaxes
 

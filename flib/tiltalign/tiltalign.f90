@@ -305,10 +305,11 @@ program tiltalign
   ! call new solveXyzd to get initial values of x, y, z
   ! Allocate a double array because of potential alignment issues using real array as
   ! double in a subroutine, deallocate when done
-  allocate(sprod((3 * maxReal)**2 / 2), stat=ierr)
+  allocate(sprod((3 * min(maxReal, maxRealForDirectInit))**2 / 2), stat=ierr)
   call memoryError(ierr, 'ARRAY FOR SOLVEXYZD')
 
   call remap_params(var)
+
   wallStart = wallTime()
   if (nrealPt > 1) then
     numInitSteps = ceiling(90. / rotIncForInit)
@@ -354,7 +355,8 @@ program tiltalign
   ! Redo initialization at 0 increment
   call solveXyzd(xx, yy, isecView, irealStr, nview, nrealPt, tilt, rot, &
       gmag, comp, xyz, dxy, 0., sprod, error, ierr)
-  ! write(*,'(a,f8.2)') 'Initialization time', 1000 * (wallTime() - wallStart)
+  !write(*,'(a,f8.2)') 'Initialization time', 1000 * (wallTime() - wallStart)
+  !call flush(6)
   ! write(*, '(3(2f9.4,f8.4))') ((xyz(i, iv), i = 1, 3), iv = 1, nrealPt)
   deallocate(sprod, stat=ierr)
   !

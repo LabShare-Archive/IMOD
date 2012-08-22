@@ -1224,12 +1224,21 @@ program beadtrack
     if (saveAllPoints .and. iAreaSave < 0 .and. listSeq(iseq) .ne. lastSeq)  &
         exit
     saveAllPoints = abs(iAreaSave) == listSeq(iseq) .and. ipassSave == iseqPass
+    
+    ! Initial mean residuals for new set of points or beginning of a full round when
+    ! there is just one set; doing more than 2 rounds will then work the same as 
+    ! restarting from fid as seed
+    if (listSeq(iseq) .ne. lastSeq .or. (nobjLists == 1 .and. iseqPass > 1 .and.  &
+        mod(iseqPass, 2) == 1) .and. mod(iseq, 2) == 1) then
+      ivSeq = 1
+      resMean(:,:) = -1.
+    endif
+
     if (listSeq(iseq) .ne. lastSeq) then
       !
       ! initialize if doing a new set of points
       !
       initXyzDone = 0
-      ivSeq = 1
       lastSeq = listSeq(iseq)
       numObjDo = ninObjList(lastSeq)
       do i = 1, numObjDo
@@ -1243,7 +1252,6 @@ program beadtrack
       inSobelSum(1:maxAnySum, 1:numObjDo) = .false.
       corrSum(1:npixBox, 1:numObjDo) = 0.
       if (maxSobelSum > 0) sobelSum(1:npixBox, 1:numObjDo) = 0.
-      resMean(:,:) = -1.
       write(*,123) areaObjStr, listSeq(iseq), iseqPass, numObjDo
 123   format('Starting ',a,i4,', round',i3,',',i4,' contours')
       if (nobjLists > 1) write(*,objfmt) (iobjSeq(i), i = 1, numObjDo)
@@ -1477,12 +1485,18 @@ CONTAINS
   !
   subroutine countAndPreparePointsToDo()
     integer*4 numberInList, numZeroW, numWtot
+    logical*4 getEdgeSDsave
+    real*4 snrSum, snrSumb, bestSum
     !
     ! first see how many are done on this view
     !
     numToDo = 0
     numWtot = 0
     numZeroW = 0
+    snrSum = 0.
+    snrSumb = 0.
+    getEdgeSDsave = getEdgeSD
+    if (iseq == 1 .and. ivl == 1) getEdgeSD = .true.
     do iobjDo = 1, numObjDo
       iobj = iobjSeq(iobjDo)
       numInObj = npt_in_obj(iobj)
@@ -1609,8 +1623,8 @@ CONTAINS
                 ytmp = 0.
                 call calcCG(boxes(1, ib, iobjDo), nxBox, nyBox, xtmp, ytmp,  wsum, edgeSD)
                 wsumSave(izBox + 1, iobjSeq(iobjDo)) = wsum
-                if (getEdgeSD .and. izBox + 1 >= minViewDo .and. izBox + 1 <= maxViewDo) &
-                    then
+                if (getEdgeSDsave .and. izBox + 1 >= minViewDo .and. &
+                    izBox + 1 <= maxViewDo) then
                   edgeSDsave(izBox + 1, iobjSeq(iobjDo)) = edgeSD
                   call calcElongation(boxes(1, ib, iobjDo), nxBox, nyBox, 0., 0.,  &
                       elongSave(izBox + 1, iobjSeq(iobjDo)))
@@ -1620,6 +1634,12 @@ CONTAINS
                 if (iseq == 1 .and. ivl == 1) then
                   numWtot = numWtot + 1
                   if (wsum <= 0.) numZeroW = numZeroW + 1
+                  xtmp = 0.
+                  ytmp = 0.
+                  call bestCenterForCG(boxTmp, nxBox, nyBox, xtmp, ytmp, ix, iy, bestSum)
+                  snrSum = snrSum + (wsum * 4. / (3.14159 * diameter**2)) /  &
+                      max(abs(1.e-10 * wsum), edgeSD)
+                  snrSumb = snrSumb + bestSum / max(abs(1.e-10 * wsum), edgeSD)
                 endif
               endif
               !
@@ -1649,6 +1669,10 @@ CONTAINS
       if (ifWhite .ne. 0) call exitError('MOST BEADS ARE LIGHTER THAN BACKGROUND;'// &
           ' YOU NEED TO USE THE LIGHT BEADS OPTION')
     endif
+    getEdgeSD = getEdgeSDsave
+    !if (numWtot > 0) then
+    !  print *, 'SNR is ', snrSum / numWtot, snrSumb / numWtot
+    !endif
     return
   end subroutine countAndPreparePointsToDo
 
@@ -2325,6 +2349,10 @@ CONTAINS
       endif
     enddo
     if (ibest == 0) return
+
+    ! On second pass, only accept a position if it is closer to the expected position (0)
+    if (ipass == 2 .and. sobelXpeaks(ibest)**2 + sobelYpeaks(ibest)**2 >  &
+        xpeak**2 + ypeak**2) return
     xpeak = sobelXpeaks(ibest)
     ypeak = sobelYpeaks(ibest)
     ! wsum = sobelWsums(ibest)

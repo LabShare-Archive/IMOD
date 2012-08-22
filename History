@@ -4,6 +4,14 @@ IMOD History
 8/22/12: In eTomo - Final Aligned Stack, fixed the defocus value in the
 _simple.defocus file (In 4.5).(Bug# 1604)
 
+8/22/12: In Beadtrack, use a sobel-based position on second pass only if it is
+closer to the expected position; try to make running 4 rounds behave more like
+rerunning with fiducial model as seed.
+
+8/22/12: In Tiltalign and Beadtrack, restored iterative method of initializing
+X/Y/Z positions for medium to large amounts of data; direct solution was too
+slow.
+
 8/21/12: In eTomo - Fine Alignment, added Robust Fitting to the Beadtrack
 interface.(Bug# 1628)
 
@@ -21,6 +29,9 @@ BeadTracking panel.(Bug# 1627)
 
 8/20/12: In eTomo handled chunk error messages with multiple error tags
 (In 4.5).(Bug# 1629)
+
+8/19/12: Added a small CUDA library to Mac package that was needed on our Mac
+mini (In 4.5).
 
 8/20/12: Made sure that pop-up messages for the PEET and Serial Sections start
 up dialogs will pop-up over the correct dialog.(Bug# 1624)
