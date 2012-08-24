@@ -1421,7 +1421,7 @@ public abstract class ConstEtomoNumber implements Storable {
       throw new IllegalStateException("type=" + type);
     }
     catch (NumberFormatException e) {
-      invalidBuffer.append(value + " is not a valid " + type + ".");
+      invalidBuffer.append(value + " is not a valid " + type + ".  " + e.getMessage());
       return newNumber();
     }
   }
