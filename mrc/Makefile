@@ -53,7 +53,9 @@ ctfphaseflip$(E) : ctfphaseflip.$(O) ctfutils.$(O)
 ctfutils.$(O) : ../ctfplotter/ctfutils.cpp
 	$(CXX) -c -o ctfutils.$(O) $(CXXFLAGS) ../ctfplotter/ctfutils.cpp
 
-
+preNAD$(E) : preNAD.$(O) ctfutils.$(O) recline.$(O)
+	$(LAPACKLINK) -o preNAD preNAD.$(O) ctfutils.$(O) recline.$(O) $(LDFLAGS) \
+	$(IILIBS) $(LAPACKLIBS) $(LAPACK_FLIBS) $(FORT_CPPLIBS) $(CLIBS)
 
 
 ##############################################################################
