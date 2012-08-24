@@ -181,7 +181,7 @@ final class CheckTextField {
   }
 
   void setCheckBoxToolTipText(final String text) {
-    checkBox.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+    checkBox.setToolTipText(text);
   }
 
   void setFieldToolTipText(final String text) {
