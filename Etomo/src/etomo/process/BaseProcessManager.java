@@ -1119,7 +1119,8 @@ public abstract class BaseProcessManager {
         processResultDisplay.msgProcessFailedToStart();
       }
       StringBuffer message = new StringBuffer();
-      message.append("A process is running" + (isDualAxis() ? " in the current axis" : "")
+      message.append("A process is running"
+          + (isDualAxis() ? " in the current axis" : "")
           + ".\nThe process was started the last time Etomo was run");
       if (savedProcessData.isOnDifferentHost()) {
         message.append(" on " + savedProcessData.getHostName());
@@ -1469,6 +1470,36 @@ public abstract class BaseProcessManager {
   }
 
   /**
+   * Log the end of the stdout and stderr, unless debug is on.
+   * @param descr
+   * @param stdOutput
+   * @param stdError
+   */
+  private void logProcessOutput(final String descr, final String[] stdOutput,
+      String[] stdError) {
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+      return;
+    }
+    if ((stdOutput != null && stdOutput.length > 0)
+        || (stdError != null && stdError.length > 0)) {
+      System.err.println("Output from " + descr + ":");
+      int linesToLog = 10;
+      if (stdOutput != null && stdOutput.length > 0) {
+        System.err.println("Standard out:");
+        for (int i = stdOutput.length > linesToLog ? stdOutput.length - linesToLog : 0; i < stdOutput.length; i++) {
+          System.err.println(stdOutput[i]);
+        }
+      }
+      if (stdError != null && stdError.length > 0) {
+        System.err.println("Standard error:");
+        for (int i = stdError.length > linesToLog ? stdError.length - linesToLog : 0; i < stdError.length; i++) {
+          System.err.println(stdError[i]);
+        }
+      }
+    }
+  }
+
+  /**
    * A message specifying that a com script has finished execution
    * 
    * @param script
@@ -1505,6 +1536,8 @@ public abstract class BaseProcessManager {
         // make sure script knows about failure
         script.setProcessEndState(ProcessEndState.FAILED);
       }
+      logProcessOutput(script.getComScriptName() + ", " + script.getProcessName(),
+          script.getStdOutput(), stdError);
       errorProcess(script);
     }
     else {
@@ -1560,6 +1593,7 @@ public abstract class BaseProcessManager {
         // make sure script knows about failure
         script.setProcessEndState(ProcessEndState.FAILED);
       }
+      logProcessOutput(name, script.getStdOutput(), stdError);
       errorProcess(script);
     }
     else {
@@ -1814,6 +1848,8 @@ public abstract class BaseProcessManager {
   public final void msgProcessDone(final DetachedProcess process, final int exitValue,
       final boolean errorFound) {
     if (exitValue != 0 || errorFound) {
+      logProcessOutput(process.getCommandName(), process.getStdOutput(),
+          process.getStdError());
       errorProcess(process);
     }
     else {
@@ -1851,6 +1887,8 @@ public abstract class BaseProcessManager {
   public final void msgProcessDone(final BackgroundProcess process, final int exitValue,
       final boolean errorFound) {
     if (exitValue != 0 || errorFound) {
+      logProcessOutput(process.getCommandName(), process.getStdOutput(),
+          process.getStdError());
       errorProcess(process);
     }
     else {
@@ -1884,6 +1922,10 @@ public abstract class BaseProcessManager {
 
   public final void msgInteractiveSystemProgramDone(
       final InteractiveSystemProgram program, final int exitValue) {
+    if (exitValue != 0) {
+      logProcessOutput(program.getCommandName(), program.getStdOutput(),
+          program.getStdError());
+    }
     postProcess(program);
     manager.saveStorables(program.getAxisID());
   }
