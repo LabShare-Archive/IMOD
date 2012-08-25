@@ -281,6 +281,7 @@ EXPORTS
 	NUMBERINLIST
 	AdocGetThreeFloats
 	checkPieceList
+	PARSELISTFW
 	PIPDONE
 	AMOEBA
 	ilistAppend
