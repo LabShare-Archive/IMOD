@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "b3dutil.h"
 #include "imodconfig.h"
 #define True  1
 #define False 0
