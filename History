@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/28/12: Boxstartend now sets the origin correctly when extracting to separate
+files so models will be interchangeable between full and subvolumes.
+
 8/28/12: Made Tilt set the output file's pixel size from the input stack's
 extended header if the input appears not to have a pixel spacing set.
 
