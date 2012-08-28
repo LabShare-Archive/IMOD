@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/28/12: Remove duplicate uitest directories testBB, testmidzone2, and
+testunicross.(Bug# 1639)
+
 8/28/12: Fixed 3dmodv crash when toggling stereo, transparent background, or
 double buffer with multiple models (In 4.5).
 
