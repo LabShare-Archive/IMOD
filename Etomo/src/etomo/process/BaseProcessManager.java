@@ -1003,11 +1003,11 @@ public abstract class BaseProcessManager {
 
     // Map the thread to the correct axis
     axisProcessData.mapAxisThread(comScriptProcess, axisID);
-
+    if (etomoDirector.getArguments().isDebug()
+        || EtomoDirector.INSTANCE.getArguments().isTest()) {
+      System.err.println("Started " + command);
+    }
     if (etomoDirector.getArguments().isDebug()) {
-      if (EtomoDirector.INSTANCE.getArguments().isTest()) {
-        System.err.println("Started " + command);
-      }
       System.err.println("  Name: " + comScriptProcess.getName());
     }
 
@@ -1049,11 +1049,11 @@ public abstract class BaseProcessManager {
     comScriptProcess.setNonBlocking();
     manager.saveStorables(axisID);
     comScriptProcess.start();
-
+    if (etomoDirector.getArguments().isDebug()
+        || EtomoDirector.INSTANCE.getArguments().isTest()) {
+      System.err.println("Started " + command);
+    }
     if (etomoDirector.getArguments().isDebug()) {
-      if (EtomoDirector.INSTANCE.getArguments().isTest()) {
-        System.err.println("Started " + command);
-      }
       System.err.println("  Name: " + comScriptProcess.getName());
     }
   }
@@ -1728,10 +1728,11 @@ public abstract class BaseProcessManager {
     isAxisBusy(axisID, backgroundProcess.getProcessResultDisplay());
     backgroundProcess.closeOutputImageFile();
     backgroundProcess.start();
+    if (etomoDirector.getArguments().isDebug()
+        || EtomoDirector.INSTANCE.getArguments().isTest()) {
+      System.err.println("Started " + commandLine);
+    }
     if (etomoDirector.getArguments().isDebug()) {
-      if (EtomoDirector.INSTANCE.getArguments().isTest()) {
-        System.err.println("Started " + commandLine);
-      }
       System.err.println("  Name: " + backgroundProcess.getName());
     }
     axisProcessData.mapAxisThread(backgroundProcess, axisID);
@@ -1765,10 +1766,11 @@ public abstract class BaseProcessManager {
     manager.saveStorables(command.getAxisID());
     thread.start();
     program.setName(thread.getName());
+    if (etomoDirector.getArguments().isDebug()
+        || EtomoDirector.INSTANCE.getArguments().isTest()) {
+      System.err.println("Started " + program.getCommandLine());
+    }
     if (etomoDirector.getArguments().isDebug()) {
-      if (EtomoDirector.INSTANCE.getArguments().isTest()) {
-        System.err.println("Started " + program.getCommandLine());
-      }
       System.err.println("  Name: " + thread.getName());
     }
     return program;
@@ -1814,10 +1816,11 @@ public abstract class BaseProcessManager {
       manager.saveStorables(sysProgram.getAxisID());
     }
     sysProgThread.start();
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()
+        || EtomoDirector.INSTANCE.getArguments().isTest()) {
+      System.err.println("Started " + sysProgram.getCommandLine());
+    }
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-      if (EtomoDirector.INSTANCE.getArguments().isTest()) {
-        System.err.println("Started " + sysProgram.getCommandLine());
-      }
       System.err.println("  working directory: " + manager.getPropertyUserDir());
     }
   }
