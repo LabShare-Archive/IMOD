@@ -1496,6 +1496,7 @@ public abstract class BaseProcessManager {
           System.err.println(stdError[i]);
         }
       }
+      System.err.println();
     }
   }
 
@@ -1536,11 +1537,11 @@ public abstract class BaseProcessManager {
         // make sure script knows about failure
         script.setProcessEndState(ProcessEndState.FAILED);
       }
-      logProcessOutput(script.getComScriptName() + ", " + script.getProcessName(),
-          script.getStdOutput(), stdError);
       errorProcess(script);
     }
     else {
+      logProcessOutput(script.getComScriptName() + ", " + script.getProcessName(),
+          script.getStdOutput(), script.getStdError());
       postProcess(script);
       ProcessMessages messages = script.getProcessMessages();/* Warning */
       if (messages.warningListSize() > 0) {
@@ -1593,10 +1594,10 @@ public abstract class BaseProcessManager {
         // make sure script knows about failure
         script.setProcessEndState(ProcessEndState.FAILED);
       }
-      logProcessOutput(name, script.getStdOutput(), stdError);
       errorProcess(script);
     }
     else {
+      logProcessOutput(name, script.getStdOutput(), script.getStdError());
       postProcess(script);
       ProcessMessages messages = script.getProcessMessages();/* Warning */
       if (messages.warningListSize() > 0) {
@@ -1848,11 +1849,11 @@ public abstract class BaseProcessManager {
   public final void msgProcessDone(final DetachedProcess process, final int exitValue,
       final boolean errorFound) {
     if (exitValue != 0 || errorFound) {
-      logProcessOutput(process.getCommandName(), process.getStdOutput(),
-          process.getStdError());
       errorProcess(process);
     }
     else {
+      logProcessOutput(process.getCommandName(), process.getStdOutput(),
+          process.getStdError());
       postProcess(process);
     }
     manager.saveStorables(process.getAxisID());
@@ -1887,11 +1888,11 @@ public abstract class BaseProcessManager {
   public final void msgProcessDone(final BackgroundProcess process, final int exitValue,
       final boolean errorFound) {
     if (exitValue != 0 || errorFound) {
-      logProcessOutput(process.getCommandName(), process.getStdOutput(),
-          process.getStdError());
       errorProcess(process);
     }
     else {
+      logProcessOutput(process.getCommandName(), process.getStdOutput(),
+          process.getStdError());
       postProcess(process);
       ProcessMessages messages = process.getProcessMessages();
       if (messages != null && messages.warningListSize() > 0) {
@@ -1922,10 +1923,8 @@ public abstract class BaseProcessManager {
 
   public final void msgInteractiveSystemProgramDone(
       final InteractiveSystemProgram program, final int exitValue) {
-    if (exitValue != 0) {
-      logProcessOutput(program.getCommandName(), program.getStdOutput(),
-          program.getStdError());
-    }
+    logProcessOutput(program.getCommandName(), program.getStdOutput(),
+        program.getStdError());
     postProcess(program);
     manager.saveStorables(program.getAxisID());
   }
