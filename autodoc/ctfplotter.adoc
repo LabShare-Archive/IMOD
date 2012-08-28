@@ -26,7 +26,11 @@ manpage = Invert the sign of the tilt angles to compensate for a left-handed
 coordinate system in the microscope.  When the sign of the tilt angles and 
 the value of the tilt axis rotation angle are such that reconstructions are
 generated with inverted handedness, then this option is needed to keep power 
-spectra for off-center tiles from being shifted in the wrong direction.
+spectra for off-center tiles from being shifted in the wrong direction.  One
+way to assess this need is to examine the images in a stack aligned for
+reconstruction, with the tilt axis vertical.  At positive tilt angles, the
+right side of the images should be more underfocused than the left side; if
+not, then this option is needed.
 
 [Field = OffsetToAdd]
 short = offset
