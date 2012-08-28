@@ -279,7 +279,19 @@ try:
       except:
          pass
       os.rename(tomoxg, joinroot + '.tmpxg')
-      runcmd(fmtstr('xfproduct {0}.tmpxg {1} {0}.tomoxg', joinroot, xformFile))
+      scaleOpt = ''
+
+      # If warping and there was squeezing, need to scale down the refine transform
+      # when multiplying by warp transforms
+      if ifsquoze and warping:
+         sqzlines = readTextFile(joinroot + '.sqzxf', 'file with squeezing transform')
+         if len(sqzlines) < 1:
+            exitError('No lines in .sqzxf file')
+         sqztext = sqzlines[0].split()[0]
+         scaleOpt = '-scale 1.,' + sqztext.strip()
+
+      runcmd(fmtstr('xfproduct {0} {1}.tmpxg {2} {1}.tomoxg', scaleOpt, joinroot,
+                    xformFile))
 
    # Now if max size is wanted, call the program
    if sizeOnly:
@@ -324,10 +336,3 @@ except OSError:
 
 cleanup()
 sys.exit(0)
-
-                     
-   
-      
-
-
-   
