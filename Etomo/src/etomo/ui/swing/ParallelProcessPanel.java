@@ -1,8 +1,5 @@
 package etomo.ui.swing;
 
-import java.awt.Color;
-import java.awt.event.ActionEvent;
-
 import etomo.ParallelManager;
 import etomo.type.AxisID;
 
@@ -25,31 +22,12 @@ public final class ParallelProcessPanel extends AxisProcessPanel {
   ParallelProcessPanel(ParallelManager manager) {
     super(AxisID.ONLY, manager, true);
     createProcessControlPanel();
+    showBothAxis();
     initializePanels();
-  }
-
-  protected void buttonKillAction(ActionEvent event) {
-    manager.kill(axisID);
   }
 
   void showBothAxis() {
     setBackground(Colors.getBackgroundParallel());
-  }
-
-  private void setBackground(Color color) {
-    panelRoot.setBackground(color);
-    outerStatusPanel.setBackground(color);
-    innerStatusPanel.setBackground(color);
-    parallelStatusPanel.setBackground(color);
-    panelDialog.setBackground(color);
-    panelProcessSelect.setBackground(color);
-    //axisButtonPanel.setBackground(color);
-    progressPanel.setBackground(color);
-  }
-
-  protected void createProcessControlPanel() {
-    super.createProcessControlPanel();
-    showBothAxis();
   }
 }
 /**

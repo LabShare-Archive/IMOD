@@ -506,8 +506,8 @@ int istoreAddMinMax(Ilist **list, int type, float min, float max)
   store.flags = (GEN_STORE_FLOAT << 2) | GEN_STORE_FLOAT | GEN_STORE_NOINDEX;
 
   /* Look for an existing entry of the same kind and replace its values */
-  for (i = ilistSize(list) - 1 ; i >= 0; i--) {
-    stp = istoreItem(list, i);
+  for (i = ilistSize(*list) - 1 ; i >= 0; i--) {
+    stp = istoreItem(*list, i);
     if (!(stp->flags & (GEN_STORE_NOINDEX | 3)))
       break;
     if (stp->type == GEN_STORE_MINMAX1 && stp->flags == store.flags) {

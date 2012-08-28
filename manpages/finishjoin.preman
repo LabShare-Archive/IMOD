@@ -14,7 +14,9 @@ already specified to "makejoincom".
 .SS Options
 Finishjoin uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
-or one per line in a command file (without the -):
+or one per line in a command file (without the -).  Options can be abbreviated
+to unique letters; the currently valid abbreviations for short names are shown
+in parentheses.
 INSERT OPTION TEXT HERE
 .TP
 .B -StandardInput

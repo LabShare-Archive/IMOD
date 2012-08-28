@@ -17,6 +17,7 @@
 #include <qpushbutton.h>
 #include <qcheckbox.h>
 #include <qspinbox.h>
+#include <QDoubleSpinBox>
 #include <qradiobutton.h>
 #include <qtooltip.h>
 #include <qtoolbutton.h>
@@ -91,7 +92,7 @@ BeadFixerModule::BeadFixerModule()
 #define MAXLINE 100
 #define MAX_DIAMETER 50
 #define MAX_OVERLAY 20
-#define NUM_SAVED_VALS 14
+#define NUM_SAVED_VALS 16
 
 /*
  * Static variables for resident plugin data
@@ -111,6 +112,8 @@ static int    sAutoNewCont = 0;
 static int    sDelOnAllSec = 0;
 static int    sDelInAllObj = 0;
 static int    sIgnoreSkips = 1;
+static int    sSkipLowWeight = 1;
+static float  sWeightThresh = 0.1;
 static int    sLastMoveGlobal = 0;
 static int    sLastMoveAllAll = 0;
 static char   *sSkipList = NULL;
@@ -291,6 +294,9 @@ void imodPlugExecute(ImodView *inImodView)
     if (nvals > 13)
       sDiameter = B3DNINT(sDiameter * savedValues[13] / 
                                sView->xybin);
+    loadSaved(sSkipLowWeight, 14);
+    if (nvals > 15) 
+      sWeightThresh = savedValues[15];
   }
 
   /*
@@ -313,6 +319,7 @@ void imodPlugExecute(ImodView *inImodView)
   firstTime = 0;
 
   adjustGeometryAndShow((QWidget *)sWindow, IMOD_DIALOG);
+  sWindow->fixSize();
 }
 
 /* Execute other specific commands (update for model change) */
@@ -445,6 +452,7 @@ int BeadFixer::reread()
   int gotHeader = 0;
   int inpt, i, ob, co, ob2, co2;
   int numToSee = 0;
+  bool hasWeights, skipLow;
   double baseval;
   int binning = sView->xybin;
   float tmp1, tmp2, tmp3, resid;
@@ -491,6 +499,7 @@ int BeadFixer::reread()
   mNumContRes = 0;
   mMaxContRes = -1.;
   mContResReported = false;
+  mHasWeights = false;
 
   // Outer loop searching for lines at top of residuals
   while (fgets(line, MAXLINE, fp) != NULL) {
@@ -543,14 +552,15 @@ int BeadFixer::reread()
     }
 
     // Look for lines at start of residuals
-    newstyle = strstr(line,"   #     #     #      X         Y        X")
-      != NULL;
+    newstyle = strstr(line,"   #     #     #      X         Y        X") != NULL;
     if (!newstyle)
-      oldstyle = strstr(line,"   #     #      X         Y        X")
-        != NULL;
+      oldstyle = strstr(line,"   #     #      X         Y        X") != NULL;
     if (newstyle || oldstyle) {
       mObjcont = newstyle;
       gotHeader = 1;
+      hasWeights = strstr(line, "Weight") != NULL;
+      mHasWeights = mHasWeights || hasWeights;
+      skipLow = mHasWeights && sSkipLowWeight;
 
       // Allocate area data now
       if (mNumAreas >= mAreaMax) {
@@ -602,9 +612,9 @@ int BeadFixer::reread()
         // Read and store data
         rpt = &(mResidList[mNumResid++]);
         if (mObjcont)
-          sscanf(line, "%d %d %d %f %f %f %f %f", 
+          sscanf(line, "%d %d %d %f %f %f %f %f %f", 
                  &rpt->obj, &rpt->cont, &rpt->view, &rpt->xcen, &rpt->ycen, 
-                 &rpt->xres, &rpt->yres, &rpt->sd);
+                 &rpt->xres, &rpt->yres, &rpt->sd, &rpt->weight);
         else {
           sscanf(line, "%d %d %f %f %f %f %f", 
                  &inpt, &rpt->view, &rpt->xcen, &rpt->ycen, 
@@ -612,6 +622,8 @@ int BeadFixer::reread()
           rpt->obj = 1;
           rpt->cont = inpt;
         }
+        if (!mHasWeights)
+          rpt->weight = 1.;
 
         // Adjust for binning
         rpt->xcen /= binning;
@@ -622,23 +634,30 @@ int BeadFixer::reread()
         mAreaList[mNumAreas - 1].numPts++;
         rpt->area = mNumAreas - 1;
 
-        // If examine once is on, see if point is on looked list or new list
-        if (mLookonce) {
-          found = 0;
-          for (i = 0; i < mNumLooked && !found; i++)
-            if (rpt->obj == mLookedList[i].obj && 
-                rpt->cont == mLookedList[i].cont &&
-                rpt->view == mLookedList[i].view)
-              found = 1;
-          for (i = 0; i < mNumResid - 1 && !found; i++)
-            if (rpt->obj == mResidList[i].obj && 
-                rpt->cont == mResidList[i].cont &&
-                rpt->view == mResidList[i].view)
-              found = 1;
-          if (!found)
-            numToSee++;
-        }
+        // Need to count up point to see either if looking once or skipping low weights
+        if (skipLow || mLookonce) {
+          if (!skipLow || rpt->weight > sWeightThresh) {
 
+            // If examine once is on, see if point is on looked list or new list
+            if (mLookonce) {
+              found = 0;
+              for (i = 0; i < mNumLooked && !found; i++)
+                if (rpt->obj == mLookedList[i].obj && 
+                    rpt->cont == mLookedList[i].cont &&
+                    rpt->view == mLookedList[i].view)
+                  found = 1;
+              for (i = 0; i < mNumResid - 1 && !found; i++)
+                if (rpt->obj == mResidList[i].obj && 
+                    rpt->cont == mResidList[i].cont &&
+                    rpt->view == mResidList[i].view && 
+                    (!skipLow || mResidList[i].weight > sWeightThresh))
+                  found = 1;
+              if (!found)
+                numToSee++;
+            } else
+              numToSee++;
+          }
+        }
       }
 
       // Now look for another local area
@@ -682,14 +701,17 @@ int BeadFixer::reread()
   backUpBut->setEnabled(false);    
   nextContBut->setEnabled(mNumContRes);
   backContBut->setEnabled(false);    
-  delContBut->setEnabled(false);    
+  delContBut->setEnabled(false);
+  skipLowWgtBox->setEnabled(mHasWeights);
+  wgtThreshSpin->setEnabled(mHasWeights && sSkipLowWeight != 0);
+
   if (!globalResLine.isEmpty())
     wprint("\n%s\n", LATIN1(globalResLine));
   if (!localResLine.isEmpty())
     wprint("%s\n", LATIN1(localResLine));
   if (!gotHeader)
     wprint("\aResidual data not found\n");
-  else if (!mLookonce)
+  else if (!mLookonce && !skipLow)
     wprint(" %d total residuals.\n", mNumResid);
   else
     wprint(" %d total residuals, %d to examine.\n", mNumResid, numToSee);
@@ -731,7 +753,7 @@ void BeadFixer::nextRes()
 {
   int inobj, incont, inview, curpt, obj, nobj, cont, ncont, ipt, npnt;
   int obsav, cosav, ptsav, i, j, numToSee;
-  int found = 0;
+  int found;
   float  xr, yr, resval, dx, dy;
   Iobj *ob = NULL;
   Icont *con;
@@ -739,6 +761,7 @@ void BeadFixer::nextRes()
   Ipoint tpt;
   float headLen = 2.5;
   ResidPt *rpt;
+  bool belowThresh;
   bool outputResid = false;
   Imod *imod = ivwGetModel(sView);
 
@@ -777,6 +800,7 @@ void BeadFixer::nextRes()
     yr = rpt->yres;
 
     /* See if point is on list */
+    belowThresh = mHasWeights && sSkipLowWeight && rpt->weight <= sWeightThresh;
     found = 0;
     for (i = 0; i < mNumLooked && !found; i++)
       if (inobj == mLookedList[i].obj && 
@@ -786,7 +810,7 @@ void BeadFixer::nextRes()
 
     /* Continue with next point if looking once and this point was found
        on the list */
-  } while (mLookonce && found);
+  } while ((found && mLookonce) || belowThresh);
 
   /* Add point to list if it wasn't found */
   if (!found) {
@@ -905,11 +929,14 @@ void BeadFixer::nextRes()
 
       imodSetIndex(imod, obj, cont, ipt);
       resval = sqrt((double)(xr*xr + yr*yr));
-      if (bell > 0)
-        wprint("\aResidual =%6.2f (%5.1f,%5.1f),%5.2f SDs\n", resval, xr, yr, rpt->sd);
-      else if ((outputResid || !mMovingAll) && mIteratingMoveAll <= 0)
-        wprint("Residual =%6.2f (%5.1f,%5.1f),%5.2f SDs\n", resval, xr, yr, rpt->sd);
-
+      if (bell > 0 || ((outputResid || !mMovingAll) && mIteratingMoveAll <= 0)) {
+        if (mHasWeights)
+          wprint("%sResid =%6.2f (%5.1f,%5.1f),%5.2f SDs, wgt %.3f\n", 
+                 bell > 0 ? "\a" : "", resval, xr, yr, rpt->sd, rpt->weight);
+        else
+          wprint("%sResidual =%6.2f (%5.1f,%5.1f),%5.2f SDs\n", bell > 0 ? "\a" : "",
+                 resval, xr, yr, rpt->sd);
+      }
       mIndlook = mCurrentRes;
       mObjlook = obj;
       mContlook = cont;
@@ -981,13 +1008,17 @@ void BeadFixer::backUp()
 
   // Find the previous residual (that was looked at, if lookonce is on)
   for (i = mCurrentRes - 1; i >= 0 && newRes < 0; i--)
-    if (!mLookonce || mResidList[i].lookedAt)
+    if ((!mLookonce || mResidList[i].lookedAt) && 
+        (!(mHasWeights && sSkipLowWeight) || mResidList[i].weight > sWeightThresh))
       newRes = i;
 
   if (newRes < 0) {
     if (mLookonce) {
       wprint("\aThere is no previous residual.  Try turning off \"Examine "
              "points once\".\n");
+    } else if (mHasWeights && sSkipLowWeight) {
+      wprint("\aThere is no previous residual.  Try turning off \"Skip "
+             "low weights\".\n");
     } else {
       wprint("\aThere is no previous residual.\n");
       backUpBut->setEnabled(false);
@@ -1095,6 +1126,18 @@ void BeadFixer::delCont()
   inputDeleteContour(sView);
   mObjForContRes = -1;
   delContBut->setEnabled(false);
+}
+
+void BeadFixer::skipLowWgtToggled(bool state)
+{
+  sSkipLowWeight = state ? 1 : 0;
+  wgtThreshSpin->setEnabled(mHasWeights && sSkipLowWeight != 0);
+}
+
+void BeadFixer::wgtThreshChanged(double value)
+{
+  setFocus();
+  sWeightThresh = value;
 }
 
 void BeadFixer::onceToggled(bool state)
@@ -2075,7 +2118,7 @@ void BeadFixer::deleteBelow()
 {
   ImodView *vi = sView;
   Imod *imod = ivwGetModel(vi);
-  
+  Icont *lassoCont;
   Iobj *obj;
   int ob, i, ix, iy, iz, curobj, anydel = 0;
   Istore *store;
@@ -2099,6 +2142,7 @@ void BeadFixer::deleteBelow()
     selmax.z = vi->zsize;
   }
   zapRubberbandCoords(selmin.x, selmax.x, selmin.y, selmax.y);
+  lassoCont = getTopZapLassoContour(true);
 
   for (ob = 0; ob < imod->objsize; ob++) {
     obj = &imod->obj[ob];
@@ -2113,7 +2157,10 @@ void BeadFixer::deleteBelow()
             !(store->flags & GEN_STORE_SURFACE) && store->value.f < thresh) {
           index.contour = store->index.i;
           if (index.contour > 0 && index.contour < obj->contsize) {
-            if (imodContInSelectArea(obj, &obj->cont[index.contour], selmin, selmax)) {
+            if ((!lassoCont && imodContInSelectArea(obj, &obj->cont[index.contour],
+                                                    selmin, selmax)) ||
+                (lassoCont && imodContInsideCont(obj, &obj->cont[index.contour], 
+                                                 lassoCont, selmin.z, selmax.z))) {
               if (!anydel)
                 imodSelectionListClear(vi);
               imodSelectionListAdd(vi, index);
@@ -2124,8 +2171,12 @@ void BeadFixer::deleteBelow()
       }
     }
   }
-  if (anydel)
+
+  // Delete, and clear selection list in case they say no
+  if (anydel) {
     inputDeleteContour(vi);
+    imodSelectionListClear(vi);
+  }
 }
 
 
@@ -2210,6 +2261,8 @@ void BeadFixer::modeSelected(int value)
       showWidget(clearListBut, value == RES_MODE);
       showWidget(examineBox, value == RES_MODE);
       showWidget(doneLabel, value == RES_MODE);
+      showWidget(weightHbox, value == RES_MODE);
+      showWidget(skipLowWgtBox, value == RES_MODE);
     }
 
     // Manage contour mode items
@@ -2387,8 +2440,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   seedModeBox = diaCheckBox("Automatic new contour", this, mLayout);
   connect(seedModeBox, SIGNAL(toggled(bool)), this, SLOT(seedToggled(bool)));
   diaSetChecked(seedModeBox, sAutoNewCont != 0);
-  seedModeBox->setToolTip("Make new contour for every point in a new "
-                "position");
+  seedModeBox->setToolTip("Make new contour for every point in a new position");
   
 
   if (App->rgba && !App->cvi->rgbStore) {
@@ -2400,8 +2452,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
     overlayBox = diaCheckBox("Overlay - view", overlayHbox, diamlay);
     connect(overlayBox, SIGNAL(toggled(bool)), this, 
             SLOT(overlayToggled(bool)));
-    overlayBox->setToolTip("Show another section in color overlay -"
-                  " Hot key: /");
+    overlayBox->setToolTip("Show another section in color overlay - Hot key: /");
 
     overlaySpin = (QSpinBox *)diaLabeledSpin(0, -(float)MAX_OVERLAY,
                                              (float)MAX_OVERLAY, 1., NULL,
@@ -2561,7 +2612,23 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   backUpBut->setToolTip("Back up to last point examined - "
                 "Hot key: double quote");
 
-  examineBox = diaCheckBox("Examine Points Once", this, mLayout);
+  skipLowWgtBox = diaCheckBox("Skip low weights", this, mLayout);
+  connect(skipLowWgtBox, SIGNAL(toggled(bool)), this, SLOT(skipLowWgtToggled(bool)));
+  diaSetChecked(skipLowWgtBox, sSkipLowWeight != 0);
+  skipLowWgtBox->setToolTip("Skip points with weights less than or equal to threshold");
+
+  weightHbox = new QWidget(this);
+  mLayout->addWidget(weightHbox);
+  diamlay = new QHBoxLayout(weightHbox);
+  diamlay->setContentsMargins(0,0,0,0);
+  wgtThreshSpin = (QDoubleSpinBox *)diaLabeledSpin(2, 0., 0.9, 0.05, "Threshold", this, 
+                                                   diamlay);
+  QObject::connect(wgtThreshSpin, SIGNAL(valueChanged(double)), this,
+                   SLOT(wgtThreshChanged(double)));
+  wgtThreshSpin->setToolTip("Threshold weight for skipping points");
+  diaSetDoubleSpinBox(wgtThreshSpin, sWeightThresh);
+  
+  examineBox = diaCheckBox("Examine points once", this, mLayout);
   connect(examineBox, SIGNAL(toggled(bool)), this, SLOT(onceToggled(bool)));
   diaSetChecked(examineBox, mLookonce != 0);
   examineBox->setToolTip("Skip over points examined before");
@@ -2771,6 +2838,8 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
   posValues[11] = sDelInAllObj;
   posValues[12] = sIgnoreSkips;
   posValues[13] = sView->xybin;
+  posValues[14] = sSkipLowWeight;
+  posValues[15] = sWeightThresh;
   
   ImodPrefs->saveGenericSettings("BeadFixer", NUM_SAVED_VALS, posValues);
 
@@ -2842,6 +2911,7 @@ void BeadFixer::setFontDependentWidths()
   reattachBut->setFixedWidth(width);
   ignoreSkipBut->setFixedWidth(width);
   skipEdit->setFixedWidth(width);
+  weightHbox->setFixedWidth(width);
 }
 
 void BeadFixer::fontChange( const QFont & oldFont )

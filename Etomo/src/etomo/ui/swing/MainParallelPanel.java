@@ -1,12 +1,9 @@
 package etomo.ui.swing;
 
-import java.io.File;
-
 import etomo.ParallelManager;
 import etomo.process.ProcessState;
 import etomo.storage.DataFileFilter;
 import etomo.type.AxisID;
-import etomo.type.BaseMetaData;
 
 /**
  * <p>Description: </p>
@@ -112,11 +109,6 @@ public final class MainParallelPanel extends MainPanel {
   }
 
   void showAxisPanelB() {
-  }
-
-  public final void setStatusBarText(File paramFile, BaseMetaData metaData,
-      LogPanel logPanel) {
-    super.setStatusBarText(paramFile, metaData, logPanel);
   }
 }
 /**

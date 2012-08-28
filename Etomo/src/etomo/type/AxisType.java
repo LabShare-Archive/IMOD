@@ -58,6 +58,27 @@ public class AxisType {
   }
 
   /**
+   * Searches line for the name member variable.  Uses indexOf - not equals.
+   * @param line
+   * @return
+   */
+  public static AxisType getInstance(String line) {
+    if (line == null) {
+      return null;
+    }
+    if (line.indexOf(SINGLE_AXIS.name) != -1) {
+      return SINGLE_AXIS;
+    }
+    if (line.indexOf(DUAL_AXIS.name) != -1) {
+      return DUAL_AXIS;
+    }
+    if (line.indexOf(NOT_SET.name) != -1) {
+      return NOT_SET;
+    }
+    return null;
+  }
+
+  /**
    * Takes a string representation of an AxisType type and returns the correct
    * static object.  The string is case insensitive.  Null is returned if the
    * string is not one of the possibilities from toString().

@@ -57,6 +57,25 @@ usage = Output object and contour numbers starting from 0 instead of 1
 tooltip = 
 manpage = 
 
+[Field = ValuesInLastColumn]
+short = values
+type = I
+usage = 1 or -1 to output point or contour value as last number on line
+tooltip = 
+manpage = Enter 1 to output general point values as the last number on each
+line, after the Z coordinate, or -1 to output general contour values for the
+first point in each contour.  A point file with either format can be read back
+in by Point2model(1), provided that the -values option is given to that
+program.  When a point or contour has no stored value, a value of 0 will be
+output, unless a different value is specified with the -fill option.
+
+[Field = FillValue]
+short = fill
+type = F
+usage = Value to output when contour/point has no stored value (default 0)
+tooltip = 
+manpage = 
+
 [Field = usage]
 short = help
 long = usage

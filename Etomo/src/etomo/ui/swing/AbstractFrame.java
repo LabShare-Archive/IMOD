@@ -38,7 +38,7 @@ import etomo.util.Utilities;
  * @version $Revision$
  *   
  */
-abstract class AbstractFrame extends JFrame {
+abstract class AbstractFrame extends JFrame implements UIComponent {
   public static final String rcsid = "$Id$";
 
   private static final int MAX_MESSAGE_LINES = 20;
@@ -66,6 +66,10 @@ abstract class AbstractFrame extends JFrame {
   abstract LogFrame getLogFrame();
 
   abstract FrameType getFrameType();
+
+  public Component getComponent() {
+    return this;
+  }
 
   public void setVisible(boolean visible) {
     if (visible) {
@@ -146,9 +150,9 @@ abstract class AbstractFrame extends JFrame {
     openMessageDialog(manager, axisID, message, title);
   }
 
-  void displayMessage(final BaseManager manager, final Component parentComponent,
+  void displayMessage(final BaseManager manager, final UIComponent uiComponent,
       final String message, final String title, final AxisID axisID) {
-    openMessageDialog(manager, parentComponent, axisID, message, title);
+    openMessageDialog(manager, uiComponent, axisID, message, title);
   }
 
   /**
@@ -213,9 +217,9 @@ abstract class AbstractFrame extends JFrame {
         JOptionPane.ERROR_MESSAGE);
   }
 
-  void openMessageDialog(final BaseManager manager, final Component parentComponent,
+  void openMessageDialog(final BaseManager manager, final UIComponent uiComponent,
       final AxisID axisID, final String message, final String title) {
-    showOptionPane(manager, parentComponent, axisID, wrap(manager, message), title,
+    showOptionPane(manager, uiComponent, axisID, wrap(manager, message), title,
         JOptionPane.ERROR_MESSAGE);
   }
 
@@ -424,10 +428,10 @@ abstract class AbstractFrame extends JFrame {
         messageType, null, null, new String[] { OK });
   }
 
-  private void showOptionPane(final BaseManager manager, final Component parentComponent,
+  private void showOptionPane(final BaseManager manager, final UIComponent uiComponent,
       final AxisID axisID, final String[] message, final String title,
       final int messageType) {
-    showOptionPane(manager, parentComponent, axisID, message, title,
+    showOptionPane(manager, uiComponent, axisID, message, title,
         JOptionPane.DEFAULT_OPTION, messageType, null, null, new String[] { OK });
   }
 
@@ -439,18 +443,18 @@ abstract class AbstractFrame extends JFrame {
     return result;
   }
 
-  private int showOptionPane(final BaseManager manager, final Component parentComponent,
+  private int showOptionPane(final BaseManager manager, final UIComponent uiComponent,
       final AxisID axisID, final String[] message, final String title,
       final int optionType, final int messageType, final Object[] options,
       final Object initialValue, final String[] optionStrings) {
-    int result = showOptionDialog(manager, axisID, parentComponent, message, title,
+    int result = showOptionDialog(manager, axisID, uiComponent, message, title,
         optionType, messageType, null, options, initialValue, optionStrings);
     return result;
   }
 
   /**
    * Shows all pop up message dialogs.  Pass in in BaseManager so that the
-   * @param parentComponent
+   * @param uiComponent
    * @param message
    * @param title
    * @param optionType
@@ -464,7 +468,7 @@ abstract class AbstractFrame extends JFrame {
    * @throws HeadlessException
    */
   private int showOptionDialog(BaseManager manager, AxisID axisID,
-      Component parentComponent, String[] message, String title, int optionType,
+      UIComponent uiComponent, String[] message, String title, int optionType,
       int messageType, Icon icon, Object[] options, Object initialValue,
       String[] optionStrings) throws HeadlessException {
     if (manager != null) {
@@ -481,10 +485,14 @@ abstract class AbstractFrame extends JFrame {
         initialValue);
 
     pane.setInitialValue(initialValue);
-    pane.setComponentOrientation(((parentComponent == null) ? JOptionPane.getRootFrame()
-        : parentComponent).getComponentOrientation());
+    Component component = null;
+    if (uiComponent != null) {
+      component = uiComponent.getComponent();
+    }
+    pane.setComponentOrientation(((component == null) ? JOptionPane.getRootFrame()
+        : component).getComponentOrientation());
 
-    JDialog dialog = pane.createDialog(parentComponent, title);
+    JDialog dialog = pane.createDialog(component, title);
 
     pane.selectInitialValue();
     String name = Utilities.convertLabelToName(title);

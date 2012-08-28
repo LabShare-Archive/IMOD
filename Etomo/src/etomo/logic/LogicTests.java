@@ -34,6 +34,7 @@ public class LogicTests {
     suite.addTestSuite(PeetStartupDataTest.class);
     suite.addTestSuite(MultiparticleReferenceTest.class);
     suite.addTestSuite(TextFieldStateTest.class);
+    suite.addTestSuite(DatasetToolTest.class);
     // $JUnit-END$
     return suite;
   }

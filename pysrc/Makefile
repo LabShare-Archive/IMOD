@@ -9,7 +9,9 @@ SCRIPTS = vmstopy tomostitch edgepatches fitpatches sirtsetup splitblend setupco
 splittilt imodcpuload gpumonitor splitcombine copytomocoms squeezevol tomosnapshot \
 trimvol makejoincom finishjoin chunksetup collectmmm sampletilt matchorwarp alignlog \
 gputilttest b3dremove b3dcopy b3dcatfiles findsirtdiffs dm2mrc archiveorig runraptor \
-splitcorrection transferfid xfalign startprocess imodhelp submfg etomo
+splitcorrection transferfid xfalign startprocess imodhelp submfg etomo colornewst \
+autofidseed onegenplot
+
 MODULES = imodpy.py pysed.py supermont.py pip.py
 
 all:

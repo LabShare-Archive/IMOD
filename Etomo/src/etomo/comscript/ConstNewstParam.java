@@ -140,7 +140,7 @@ import etomo.type.AxisID;
  * <p> </p>
  */
 
-public  interface ConstNewstParam extends CommandDetails {
+public interface ConstNewstParam extends CommandDetails {
   public static final String rcsid = "$Id$";
 
   public AxisID getAxisID();
@@ -275,4 +275,9 @@ public  interface ConstNewstParam extends CommandDetails {
   public String getUseTransformLines();
 
   public boolean isSizeToOutputInXandYSet();
+
+  public boolean fillValueEquals(int value);
+  public String getOffsetInX();
+  
+  public String getOffsetInY();    
 }

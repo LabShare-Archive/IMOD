@@ -7,11 +7,10 @@ c
 c       For more details, see man page
 *       
 c       $Id$
-c       Log at end of file
 c       
       implicit none
       include 'model.inc'
-      integer nflimit,limpcl,idim
+      integer nflimit,limpcl,idim,msizexr
       parameter (nflimit=100000,limpcl=100000)
       real*4 f(2,3,nflimit),g(2,3,nflimit),gtmp(2,3)
       integer*4 nxyz(3),mxyz(3),nx,ny,nz,mode
@@ -20,9 +19,8 @@ c
       integer*4 nsec(nflimit),listz(nflimit),indfl(nflimit)
       integer*4 numInChunks(nflimit), numChunks
       integer*4 ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl)
-      parameter (idim=1000)
-      include 'statsize.inc'
-      real*4 xr(msiz,idim)
+      parameter (msizexr=19)
+      real*4, allocatable :: xr(:,:)
       character*320 modelfile,newmodel,oldxfgfile,oldxffile,newxffile,idfFile
       character*320 magGradFile
       logical gotthis,gotlast,exist,readw_or_imod
@@ -95,6 +93,7 @@ c
       numChunks = 0
       shiftScale = 1.
       gridExtendFrac = 0.1
+      idim=100000
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -800,6 +799,11 @@ c
 c         
 c         SEARCH FOR POINTS TO DERIVE XFORMS FROM
 c         
+c         allocate xr, limiting it to much more than could be needed for smaller model
+        idim = min(idim, n_point)
+        allocate(xr(msizexr,idim), stat=ierr)
+        call memoryError(ierr, 'ARRAY FOR DATA MATRIX')
+
 c         first find min and max z in model
         izmin=100000
         izmax=-izmin
@@ -912,7 +916,7 @@ c
                 call exit(1)
               endif
 c               
-              call findxf(xr,npnts,xcen,ycen,iftrans,ifrotrans,2,f(1,1,indf),
+              call findxf(xr,msizexr,4,npnts,xcen,ycen,iftrans,ifrotrans,2,f(1,1,indf),
      &            devavg, devsd,devmax,ipntmax)
 C               
 c               keep track of the highest & lowest transforms obtained
@@ -1051,70 +1055,3 @@ c
       call write_wmod(newmodel)
       return
       end
-c       
-c       
-c       $Log$
-c       Revision 3.16  2009/06/10 22:00:03  mast
-c       Fixed problem running with PIP input for finding transforms
-c
-c       Revision 3.15  2008/11/21 22:05:24  mast
-c       Increased filename size
-c
-c       Revision 3.14  2007/02/01 05:12:53  mast
-c       Added option to specify scaling of shifts in transforms
-c
-c       Revision 3.13  2006/02/27 16:54:30  mast
-c       Removed debug output of chunks
-c
-c       Revision 3.12  2005/12/09 04:43:27  mast
-c       gfortran: .xor., continuation, format tab continuation or byte fixes
-c
-c       Revision 3.11  2005/10/24 18:32:33  mast
-c       Added option to use one transform per chunk of specified size
-c       
-c       Revision 3.10  2004/06/21 23:06:17  mast
-c       Removed code calling multr/correl and called library function findxf
-c       
-c       Revision 3.9  2004/03/22 15:33:30  mast
-c       Had to declare lnblnk
-c       
-c       Revision 3.8  2004/03/22 05:37:17  mast
-c       Added mag gradient corrections, resolved some problems with
-c       back-transforming with distortion corrections.
-c       
-c       Revision 3.7  2004/01/27 05:37:22  mast
-c       Left a ; on a line
-c       
-c       Revision 3.6  2004/01/20 00:07:37  mast
-c       Added option to apply a single transform, fixed initialization and a
-c       problem with back-transforming with -xf
-c       
-c       Revision 3.5  2004/01/16 18:08:04  mast
-c       Fixed problem with how it decided if it needed image binning entry
-c       
-c       Revision 3.4  2003/12/27 19:42:45  mast
-c       Work out some problems, finalized documentation and interface
-c       
-c       Revision 3.3  2003/12/12 20:37:52  mast
-c       Preliminary checkin with PIP conversion and distortion correction
-c       
-c       Revision 3.2  2003/10/26 15:31:48  mast
-c       switch from long prints to formatted writes for Intel compiler
-c       
-c       Revision 3.1  2002/09/05 05:36:45  mast
-c       Changes to take scaling information from model header and to scale
-c       coordinates properly to index coordinates.  Also put in error
-c       checks, standardize error outputs and made declarations for implicit
-c       none
-c       
-*       David Mastronarde 1988
-c       DNM 7/20/89  changes for new model format
-c       DNM 1/10/90  have it transform only existing model points, not all
-c       points in p_coord array, to avoid bad Z values
-c       DNM 5/28/90  fix bug in rounding 0.5 values, implement ability to
-c       transform relative to a single section.
-c       DNM 3/31/92  Implement translation only finding
-c       DNM 5/1/92   Implement translation and rotation only finding
-c       DNM 4/24/95 changed model reading/writing to be portable
-c       DNM 9/23/97  Add translation, rotation, mag only finding
-c       

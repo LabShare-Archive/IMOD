@@ -2,7 +2,7 @@ package etomo.storage;
 
 import java.io.File;
 
-import etomo.util.DatasetFiles;
+import etomo.type.DataFileType;
 
 /**
 * <p>Description: </p>
@@ -33,7 +33,7 @@ public class JoinFileFilter extends DataFileFilter {
    */
   public boolean accept(File f) {
     //  If this is a file test its extension, all others should return true
-    if (f.isFile() && !f.getAbsolutePath().endsWith(DatasetFiles.JOIN_DATA_FILE_EXT)) {
+    if (f.isFile() && !f.getAbsolutePath().endsWith(DataFileType.JOIN.extension)) {
       return false;
     }
     return true;

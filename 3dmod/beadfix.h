@@ -31,6 +31,7 @@ class BeadFixerModule : public SpecialModule
 class QPushButton;
 class QCheckBox;
 class QSpinBox;
+class QDoubleSpinBox;
 class QWidget;
 class QLabel;
 class QButtonGroup;
@@ -46,6 +47,7 @@ typedef struct {
   float xcen, ycen;
   float xres, yres;
   float sd;
+  float weight;
   int lookedAt;
   int area;
 } ResidPt;
@@ -122,6 +124,8 @@ class BeadFixer : public DialogFrame
   void delAllObjToggled(bool state);
   void turnOffToggled(bool state);
   void ignoreToggled(bool state);
+  void skipLowWgtToggled(bool state);
+  void wgtThreshChanged(double value);
   void skipListEntered();
   void runAlign();
   void alignExited(int exitCode, QProcess::ExitStatus exitStatus);
@@ -180,6 +184,7 @@ class BeadFixer : public DialogFrame
   int    mNumContRes;
   int    mContForContRes;
   int    mObjForContRes;
+  bool   mHasWeights;
   QButtonGroup *modeGroup;
   QPushButton *nextGapBut;
   QPushButton *prevGapBut;
@@ -217,6 +222,9 @@ class BeadFixer : public DialogFrame
   QCheckBox *turnOffBut;
   QCheckBox *ignoreSkipBut;
   QLabel *doneLabel;
+  QCheckBox *skipLowWgtBox;
+  QDoubleSpinBox *wgtThreshSpin;
+  QWidget *weightHbox;
   int mNumSkip;
   int *mSkipSecs;
   int mExtraObj;

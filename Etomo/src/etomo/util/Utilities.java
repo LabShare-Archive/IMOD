@@ -493,6 +493,13 @@ public class Utilities {
     return ACTION_TAG + "Renamed " + from.getName() + " to " + to.getName();
   }
 
+  public static String prepareCopyActionMessage(final File from, final File to) {
+    if (!EtomoDirector.INSTANCE.getArguments().isActions()) {
+      return null;
+    }
+    return ACTION_TAG + "Copied " + from.getName() + " to " + to.getName();
+  }
+
   public static String prepareCommandActionMessage(final String[] commandArray,
       final String[] stdInput) {
     if (!EtomoDirector.INSTANCE.getArguments().isActions() || commandArray == null
@@ -723,7 +730,7 @@ public class Utilities {
     // Rename the existing log file
     if (source.exists()) {
       Utilities.debugPrint(source.getAbsolutePath() + " exists");
-      String actionMessage = Utilities.prepareRenameActionMessage(source, destination);
+      String actionMessage = prepareRenameActionMessage(source, destination);
       if (!source.renameTo(destination)) {
         if (source.exists()) {
           System.err.println(source.getAbsolutePath() + " still exists");
@@ -798,6 +805,51 @@ public class Utilities {
     return file4;
   }
 
+  /**
+   * Returns the FileType corresponding to the most recent file in propertyUserDir.
+   * @param manager
+   * @param axisID
+   * @param fileTypes
+   * @param defaultIndex
+   * @return
+   */
+  public static FileType mostRecentFile(final BaseManager manager, final AxisID axisID,
+      final FileType[] fileTypes, final int defaultIndex) {
+    if (fileTypes == null) {
+      return null;
+    }
+    int mostRecentIndex = -1;
+    File file = null;
+    long mostRecentFileTime = 0;
+    if (defaultIndex >= 0 && defaultIndex < fileTypes.length
+        && fileTypes[defaultIndex] != null) {
+      mostRecentIndex = defaultIndex;
+      file = fileTypes[mostRecentIndex].getFile(manager, axisID);
+      if (file != null && file.exists()) {
+        mostRecentFileTime = file.lastModified();
+      }
+    }
+    for (int i = 0; i < fileTypes.length; i++) {
+      if (i == defaultIndex) {
+        continue;
+      }
+      if (fileTypes[i] != null) {
+        file = fileTypes[i].getFile(manager, axisID);
+        if (file != null && file.exists()) {
+          long fileTime = file.lastModified();
+          if (fileTime > mostRecentFileTime) {
+            mostRecentFileTime = fileTime;
+            mostRecentIndex = i;
+          }
+        }
+      }
+    }
+    if (mostRecentIndex == -1) {
+      return null;
+    }
+    return fileTypes[mostRecentIndex];
+  }
+
   public static void copyFile(final FileType source, final FileType destination,
       final BaseManager manager, final AxisID axisID) throws IOException {
     copyFile(source.getFile(manager, axisID), destination.getFile(manager, axisID));
@@ -809,6 +861,7 @@ public class Utilities {
   public static void copyFile(File source, File destination) throws IOException {
     // Try using the nio method but if it fails fall back to BufferedFileReader/
     // BufferedFileWriter approach
+    String actionMessage = prepareCopyActionMessage(source, destination);
     FileInputStream sourceStream = new FileInputStream(source);
     FileOutputStream destStream = new FileOutputStream(destination);
     BufferedInputStream sourceBuffer = null;
@@ -840,6 +893,9 @@ public class Utilities {
       destBuffer.close();
     }
     destStream.close();
+    if (actionMessage != null) {
+      System.err.println(actionMessage);
+    }
   }
 
   /**
@@ -1279,8 +1335,7 @@ public class Utilities {
     return microns;
   }
 
-  public static final String convertMicronsToNanometers(
-      final String microns) {
+  public static final String convertMicronsToNanometers(final String microns) {
     EtomoNumber nm = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     nm.set(microns);
     nm.multiply(1000);
