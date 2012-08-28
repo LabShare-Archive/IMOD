@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/28/12: Fixed 3dmodv crash when toggling stereo, transparent background, or
+double buffer with multiple models (In 4.5).
+
 8/27/12: In Finishjoin, fixed the scaling of the shifts when applying a
 refining transform with warping and squeezing of the sample (In 4.5).
 
