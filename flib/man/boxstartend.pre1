@@ -19,7 +19,7 @@ DDEESSCCRRIIPPTTIIOONN
   the same section.  The other list will display each piece in its true
   position in the original volume of images.
 
-  When all subvolumes are stacked in to a single file, an average will also be
+  When all subvolumes are stacked into a single file, an average will also be
   accumulated and saved in the file after the last extracted subvolume.  This
   average will show up as the rightmost item in the top row when viewing the
   square array in 3dmod(1).  If there is insufficient memory, the average will
@@ -27,7 +27,16 @@ DDEESSCCRRIIPPTTIIOONN
 
   The coordinates in the model are scaled to fit the current volume.  This
   means that you can model points in a binned-down volume and use that model
-  directly to extract boxes from the full-sized volume.
+  directly to extract boxes from the full-sized volume.  You can also model
+  points on a volume loaded into 3dmod with flipping.  However, all of the
+  entries to the program referring to X, Y, and Z or slices must correspond to
+  the actual X, Y, and Z coordinates in the unflipped volume, not to the
+  coordinates as visualized in 3dmod.
+
+  When each volume is placed in a separate file, the origin of each output
+  file is adjusted for its position in the input volume, so that a model built
+  on an extracted file should display at the correct position in the full
+  volume, and vice versa.
 
   Boxstartend uses the PIP package for input (see the manual page for pip(1))
   and can also still take input interactively.  The following options can be
