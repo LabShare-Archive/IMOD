@@ -4,11 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
-import etomo.JoinManager;
-import etomo.process.SystemProgram;
 import etomo.type.AxisID;
-import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
+import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.SectionTableRowData;
@@ -122,7 +120,7 @@ import etomo.type.SectionTableRowData;
  * <p> bug# 520 Param for running Midas.
  * <p> </p>
  */
-public class MidasParam implements Command {
+public final class MidasParam implements Command {
   public static final String rcsid = "$Id$";
 
   private static final int commandSize = 1;
@@ -130,33 +128,28 @@ public class MidasParam implements Command {
   private static final String commandName = "midas";
   private static final String outputFileExtension = "_midas.xf";
 
-  private ConstJoinMetaData metaData;
-  private String[] commandArray;
-  private SystemProgram program;
-  private String workingDir;
-  private File outputFile = null;
-  private String rootName = null;
-  private String outputFileName = null;
-  private AxisID axisID;
+  private final EtomoNumber binning = new EtomoNumber();
+
+  private final String workingDir;
+  private final File outputFile;
+  private final String rootName;
+  private final String outputFileName;
+  private final AxisID axisID;
+  private final Mode mode;
   private final BaseManager manager;
 
-  public MidasParam(JoinManager manager, AxisID axisID) {
+  private ArrayList sectionTableRowData = null;
+  private String inputFileName = null;
+  private String[] commandArray = null;
+
+  public MidasParam(final BaseManager manager, final AxisID axisID, final Mode mode) {
     this.manager = manager;
-    metaData = manager.getConstMetaData();
     this.axisID = axisID;
+    this.mode = mode;
     workingDir = manager.getPropertyUserDir();
-    rootName = metaData.getName();
+    rootName = manager.getName();
     outputFileName = rootName + outputFileExtension;
     outputFile = new File(workingDir, outputFileName);
-    ArrayList options = genOptions();
-    commandArray = new String[options.size() + commandSize];
-    commandArray[0] = BaseManager.getIMODBinPath() + commandName;
-    for (int i = 0; i < options.size(); i++) {
-      commandArray[i + commandSize] = (String) options.get(i);
-    }
-    program = new SystemProgram(manager, manager.getPropertyUserDir(), commandArray,
-        axisID);
-    program.setWorkingDirectory(new File(workingDir));
   }
 
   public AxisID getAxisID() {
@@ -164,6 +157,14 @@ public class MidasParam implements Command {
   }
 
   public String[] getCommandArray() {
+    if (commandArray == null) {
+      ArrayList options = genOptions();
+      commandArray = new String[options.size() + commandSize];
+      commandArray[0] = BaseManager.getIMODBinPath() + commandName;
+      for (int i = 0; i < options.size(); i++) {
+        commandArray[i + commandSize] = (String) options.get(i);
+      }
+    }
     return commandArray;
   }
 
@@ -176,6 +177,7 @@ public class MidasParam implements Command {
   }
 
   public String getCommandLine() {
+    getCommandArray();
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < commandArray.length; i++) {
       buffer.append(commandArray[i] + " ");
@@ -197,26 +199,58 @@ public class MidasParam implements Command {
 
   private ArrayList genOptions() {
     ArrayList options = new ArrayList();
-    ArrayList sectionData = metaData.getSectionTableData();
-    int sectionDataSize = sectionData.size();
-    StringBuffer chunkSize = new StringBuffer();
-    options.add("-c");
-    for (int i = 0; i < sectionDataSize; i++) {
-      ConstSectionTableRowData data = (SectionTableRowData) sectionData.get(i);
-      chunkSize.append(data.getChunkSize(sectionDataSize).toString());
-      if (i < sectionDataSize - 1) {
-        chunkSize.append(",");
+    if (mode == Mode.SAMPLE) {
+      // If the section table is not available, don't use the chunks option.
+      if (sectionTableRowData != null) {
+        int sectionDataSize = sectionTableRowData.size();
+        StringBuffer chunkSize = new StringBuffer();
+        options.add("-c");
+        for (int i = 0; i < sectionDataSize; i++) {
+          ConstSectionTableRowData data = (SectionTableRowData) sectionTableRowData
+              .get(i);
+          chunkSize.append(data.getChunkSize(sectionDataSize).toString());
+          if (i < sectionDataSize - 1) {
+            chunkSize.append(",");
+          }
+        }
+        options.add(chunkSize.toString());
       }
     }
-    options.add(chunkSize.toString());
+    if (!binning.isNull() && binning.gt(1)) {
+      options.add("-B");
+      options.add(binning.toString());
+    }
+    if (mode == Mode.SERIAL_SECTIONS_FIX_EDGES) {
+      options.add("-p");
+      options.add(FileType.PIECE_LIST.getFileName(manager, axisID));
+    }
     options.add("-b");
     options.add("0");
-    options.add("-D");
-    options.add("-o");
-    options.add(outputFileName);
-    options.add(rootName + ".sample");
-    options.add(rootName + ".xf");
+    if (mode == Mode.SAMPLE) {
+      options.add("-D");
+      options.add("-o");
+      options.add(outputFileName);
+      options.add(inputFileName);
+      options.add(rootName + ".xf");
+    }
+    else if (mode == Mode.SERIAL_SECTIONS_FIX_EDGES) {
+      options.add("-q");
+      options.add(inputFileName);
+      options.add(FileType.PIECE_SHIFTS.getFileName(manager, axisID));
+    }
     return options;
+  }
+
+  public void setSectionTableRowData(final ArrayList input) {
+     sectionTableRowData = input;
+  }
+
+  public void setInputFileName(final String input) {
+    inputFileName = input;
+  }
+
+  public void setBinning(final Number input) {
+    binning.set(input);
   }
 
   public File getCommandOutputFile() {
@@ -249,5 +283,13 @@ public class MidasParam implements Command {
 
   public static String getOutputFileExtension() {
     return outputFileExtension;
+  }
+
+  public static final class Mode {
+    public static final Mode SAMPLE = new Mode();
+    public static final Mode SERIAL_SECTIONS_FIX_EDGES = new Mode();
+
+    private Mode() {
+    }
   }
 }

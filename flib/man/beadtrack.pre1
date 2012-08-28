@@ -9,68 +9,87 @@ SSYYNNOOPPSSIISS
 	beadtrack
 
 DDEESSCCRRIIPPTTIIOONN
-  BEADTRACK will track selected fiducial gold beads through a series of
-  tilted views.  It takes a "seed" model, where each bead of choice
-  is marked with at least a single point on a view near zero tilt.  It
-  tracks each bead as far as possible and puts out a new model.
+  BEADTRACK will track selected fiducial gold beads through a series of tilted
+  views.  It takes a "seed" model, where each bead of choice is marked with at
+  least a single point on a view near zero tilt.  It tracks each bead as far
+  as possible and puts out a new model.
   
-  The program works from one view to the next, using the existing data
-  about bead positions to deduce a projected position for each bead on
-  the next view to be processed.  After bead positions are available
-  on enough views, the program will use tilt alignment to estimate the
-  3D position of each bead, and use this position to project a position
-  on the next view.  The program searches for beads from the center
-  outward.  Before looking for a particular bead, it uses the positions
-  of beads already found on that view to refine the projected position.
-  It will adjust by a shift if there are 3 points (or at least one
-  point from the seed model), by shift and rotation if there are 4 or 5
-  points, or by shift, rotation, and a size change if there are more
+  The program works from one view to the next, using the existing data about
+  bead positions to deduce a projected position for each bead on the next view
+  to be processed.  After bead positions are available on enough views, the
+  program will use tilt alignment to estimate the 3D position of each bead,
+  and use this position to project a position on the next view.  The program
+  searches for beads from the center outward.  Before looking for a particular
+  bead, it uses the positions of beads already found on that view to refine
+  the projected position.  It will adjust by a shift if there are 3 points (or
+  at least one point from the seed model), by shift and rotation if there are
+  4 or 5 points, or by shift, rotation, and a size change if there are more
   than 5 points.
   
-  The program will do one or two passes for each view.  On the first
-  pass, it uses an average of the current bead over the nearest views
-  for which positions have already been identified.  It cross-
-  correlates that average with a box at the expected position of the
-  bead and derives a bead position from the peak of the correlation.
-  It then calculates the centroid and the integral of the density at
-  that position.  To do so, it takes the average of pixels more than
-  a certain radius away, subtracts this background value from the
-  pixels within that radius, and uses pixels above the background to
-  calculate a centroid and an integral.  If the integral is too low, or
-  if the putative position is too far from the expected position, the
-  program then attempts a "rescue".  The criterion for a rescue based
-  on distance is set by the user.  The criterion for a rescue based on
-  density is set by the mean value of the bead integral on previous
-  views.  Specifically, the criterion is the minimum of a certain
-  fraction of the mean and a certain number of standard deviations
-  below the mean.  The latter parameters are also set by the user.
-  To rescue, the program starts at the expected bead position and
-  examines every position in a series of progressively wider circles
-  around that point.  It calculates an integral for each position, and
-  when it first finds an integral above a relaxed criterion value, it
-  takes that position as the bead position.  The criterion can be
-  relaxed by different factors for "density" and "distance" rescues.
+  The program will do one or two passes for each view.  On the first pass, it
+  uses an average of the current bead over the nearest views for which
+  positions have already been identified.  It cross-correlates that average
+  with a box at the expected position of the bead and derives a bead position
+  from the peak of the correlation.  It then calculates the centroid and the
+  integral of the density at that position.  To do so, it takes the average of
+  pixels more than a certain radius away, subtracts this background value from
+  the pixels within that radius, and uses pixels above the background to
+  calculate a centroid and an integral.  The position is then refined with
+  Sobel filtering of the image (see below), if that option is selected.  If
+  the integral is too low, or if the putative position is too far from the
+  expected position, the program then attempts a "rescue".  The criterion for
+  a rescue based on distance is set by the user.  The criterion for a rescue
+  based on density is set by the mean value of the bead integral on previous
+  views.  Specifically, the criterion is the minimum of a certain fraction of
+  the mean and a certain number of standard deviations below the mean.  The
+  latter parameters are also set by the user.  To rescue, the program starts
+  at the expected bead position and examines every position in a series of
+  progressively wider circles around that point.  It calculates an integral
+  for each position, and when it first finds an integral above a relaxed
+  criterion value, it takes that position as the bead position.  The criterion
+  can be relaxed by different factors for "density" and "distance" rescues.
   
   After the first pass, the program does a tilt alignment and uses two
-  different tests for whether to  eliminate a point on the current
-  view.  One test is whether the residual for the point is greater
-  than a user-specifed limit ("criterion for rescue after fitting").
-  The other test is whether the mean residual for that bead, averaged
-  over all currently available views, has just increased by an unusual
-  amount.  It finds the mean and SD of previous increases in this mean
-  residual, and tests whether the latest increase exceeds the mean by
-  a user-specified criterion number of SD's.
+  different tests for whether to  eliminate a point on the current view.  One
+  test is whether the residual for the point is greater than a user-specifed
+  limit ("criterion for rescue after fitting").  The other test is whether the
+  mean residual for that bead, averaged over all currently available views,
+  has just increased by an unusual amount.  It finds the mean and SD of
+  previous increases in this mean residual, and tests whether the latest
+  increase exceeds the mean by a user-specified criterion number of SD's.
   
-  If any points were eliminated by these tests, or if any points failed
-  to be found, the program does a second pass.  On this pass there is
-  no correlation, just an attempted rescue at the expected position
-  (possibly refined because of the additional information about other
-  beads on this pass).  The maximum distance for this rescue is set by
-  the user.  After the second pass, the program does another tilt
-  alignment and tests only the behavior of the increase in mean
-  residual for each point.  If that increase is too great, a point is
-  eliminated for good.
+  If any points were eliminated by these tests, or if any points failed to be
+  found, the program does a second pass.  On this pass there is no
+  correlation, just an attempted rescue at the expected position (possibly
+  refined because of the additional information about other beads on this
+  pass).  The maximum distance for this rescue is set by the user.  After the
+  second pass, the program does another tilt alignment and tests only the
+  behavior of the increase in mean residual for each point.  If that increase
+  is too great, a point is eliminated for good.
   
+  A Sobel filter, an edge-detecting filter, can be used to get more
+  accurate bead positions in many cases.  This filter produces a ring of
+  intensity around the edge of the bead.  After filtering, a single bead image
+  is correlated with a filtered reference based on many images of that bead,
+  and of others if necessary (see the AverageBeadsForSobel option).  For most
+  data sets with relatively low noise, this method produces significantly
+  better positions and a lower mean residual error in the alignment solution
+  in Tiltalign(1).  The improvements are less for higher-noise data (e.g.,
+  cryo data), and such data require a higher-than-default sigma value for the
+  Gaussian smoothing filter applied before the Sobel filter, otherwise worse
+  results may be obtained.
+
+  For data sets that track well, the benefit from using the Sobel filter can
+  be assessed even before running Tiltalign(1) and/or completing the model by
+  examining the errors in the alignment solution that Beadtrack does.  Look at
+  the values for F (the root-mean-squared error) and for the mean residual at
+  the end of the log, when all views have been included in the fit.  If you
+  are using local fitting, look at the end of the tracking for several of the
+  local areas, just before the output on the number of points missing for that
+  area.  Run without and with Sobel filtering and compare the error values.
+  Also, for high-noise data, you can run with different sigma values for the
+  kernel filtering and see which gives the best result.
+
   The program will leave gaps in the model rather than insert bad
   points.  It will try to resume tracking after a gap, but only if the
   gap is not larger than a user-defined limit.
@@ -98,11 +117,11 @@ DDEESSCCRRIIPPTTIIOONN
   automatically track them separately unless local area tracking or the
   TrackObjectsTogether option is selected.
 
-  For each view and pass, the program outputs the results from the
-  linear fit between actual and projected positions, the tilt
-  alignment total error, and which beads have been deleted or added
-  back. After doing all views, the program outputs a summary of which
-  views are missing for each bead.
+  For each view and pass, the program outputs the results from the linear fit
+  between actual and projected positions, the tilt alignment root-mean-squared
+  error, and which beads have been deleted or added back. After doing all
+  views, the program outputs a summary of which views are missing for each
+  bead.
   
 INPUTS TO THE PROGRAM
   
@@ -110,7 +129,9 @@ INPUTS TO THE PROGRAM
   and can still take sequential input interactively, to maintain compatibility
   with old command files.  The following options can be specified either as
   command line arguments (with the -) or one per line in a command file or
-  parameter file (without the -):
+  parameter file (without the -).  Options can be abbreviated to unique
+  letters; the currently valid abbreviations for short names are shown in
+  parentheses.
 
 INSERT OPTION TEXT HERE
 

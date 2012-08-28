@@ -52,6 +52,7 @@ ResidualReportCriterion	3.0
 SurfacesToAnalyze	2
 MetroFactor	.25
 MaximumCycles	1000
+KFactorScaling	1.
 #
 # ADD a recommended amount to shift up to the existing AxisZShift value
 #

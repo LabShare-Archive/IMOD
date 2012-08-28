@@ -78,10 +78,10 @@ public final class UIHarness {
    * @param title
    */
   public synchronized void openMessageDialog(final BaseManager manager,
-      final Component parentComponent, final String message, final String title,
+      final UIComponent uiComponent, final String message, final String title,
       final AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
-      getFrame(manager).displayMessage(manager, parentComponent, message, title, axisID);
+      getFrame(manager).displayMessage(manager, uiComponent, message, title, axisID);
     }
     else {
       log("openMessageDialog", message, title, axisID);
@@ -422,6 +422,11 @@ public final class UIHarness {
   public void setEnabledNewPeetMenuItem(boolean enable) {
     if (isHead()) {
       mainFrame.setEnabledNewPeetMenuItem(enable);
+    }
+  }
+  public void setEnabledNewSerialSectionsMenuItem(boolean enable) {
+    if (isHead()) {
+      mainFrame.setEnabledNewSerialSectionsMenuItem(enable);
     }
   }
 

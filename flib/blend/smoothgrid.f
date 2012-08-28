@@ -27,16 +27,15 @@ c
       subroutine smoothgrid(dxgrid,dygrid,sdgrid,ddengrid,ixgdim, iygdim,nxgrid,nygrid,
      &    sdcrit, devcrit,nxfit,nyfit,norder, nxskip,nyskip)
       implicit none
-      integer idim
+      integer idim,msiz
       integer*4 ixgdim,iygdim,nxgrid,nygrid,nxfit,nyfit,norder,nxskip,nyskip
 c       
       real*4 dxgrid(ixgdim,iygdim),dygrid(ixgdim,iygdim)
       real*4 sdgrid(ixgdim,iygdim),ddengrid(ixgdim,iygdim)
       real*4 sdcrit, devcrit
-      parameter (idim=100)
-      include 'statsize.inc'
-      real*4 xr(msiz,idim), sx(msiz), xm(msiz), sd(msiz) , ss(msiz,msiz), ssd(msiz, msiz)
-      real*4 d(msiz,msiz), r(msiz,msiz) , b(msiz), b1(msiz), vect(msiz),b2(msiz),b3(msiz)
+      parameter (idim=100,msiz=50)
+      real*4 xr(msiz,idim), xm(msiz), sd(msiz) , ssd(msiz, msiz)
+      real*4 bb(msiz,3), vect(msiz), c(3), b(msiz), b1(msiz),b2(msiz),b3(msiz)
       real*4 dxnew(nxgrid,nygrid), dynew(nxgrid,nygrid), denew(nxgrid,nygrid)
       real*4 sdmax, sdsum,sdsq,devsum,devsqsum, dxmean ,dymean,denmean,dev, devvary, bint
       integer*4 ix, iy, nnear, length, nfitpt, ixy, ihi, ilo, nfit, iord, i
@@ -45,7 +44,7 @@ c
       integer*4 iysolspan, nysolve, iyfitsub, iyfitadd, nindep, idepen1, idepen2, idepen3
       integer*4 ixfitend, ixsol, ixcen, ixfitstr,ixst, ixnd, iyfitend, iysol
       integer*4 iycen, iyfitstr, iyst, iynd, npnts, ind,nsum
-      real*4 xsum,c1,c2,c3, ysum, dsum, devsq, devsd, fra, devmean, rsq, sdmean, sdsd
+      real*4 xsum, ysum, dsum, devsq, devsd, fra, devmean, rsq, sdmean, sdsd
       real*4 sdvary
 c       
 c       intercept the case of no overlap
@@ -210,34 +209,20 @@ c
                 endif
               enddo
             enddo
-c             solve for dx as function of terms
-            call multr(xr,nindep+1,npnts,sx,ss,ssd,d,r,xm,sd,b,b1,c1,
-     &          rsq ,fra)
-c             then move dy into dependent variable column, solve for dy
-            do i=1,npnts
-              xr(idepen1,i)=xr(idepen2,i)
-            enddo
-            call multr(xr,nindep+1,npnts,sx,ss,ssd,d,r,xm,sd,b,b2,c2,
-     &          rsq ,fra)
-c             then move dden into dependent variable column, solve for dden
-            do i=1,npnts
-              xr(idepen1,i)=xr(idepen3,i)
-            enddo
-            call multr(xr,nindep+1,npnts,sx,ss,ssd,d,r,xm,sd,b,b3,c3,
-     &          rsq ,fra)
-c             replace proper grid points with fit values
+c             
+c             Solve for dx, dy, den as function of terms and compute fitted values
+            call multRegress(xr,msiz,1,nindep,npnts,3,0,bb,msiz,c,xm,sd,ssd)
             do ix=ixfitstr,ixfitend
               do iy=iyfitstr,iyfitend
                 call polyterm(ix-ixcen,iy-iycen,norder,vect)
-                xsum=c1
-                ysum=c2
-                dsum=c3
+                xsum=c(1)
+                ysum=c(2)
+                dsum=c(3)
                 do i=1,nindep
-                  xsum=xsum+b1(i)*vect(i)
-                  ysum=ysum+b2(i)*vect(i)
-                  dsum=dsum+b3(i)*vect(i)
+                  xsum=xsum+bb(i,1)*vect(i)
+                  ysum=ysum+bb(i,2)*vect(i)
+                  dsum=dsum+bb(i,3)*vect(i)
                 enddo
-                ind = ix + (iy-1) * nxgrid
                 dxnew(ix,iy)=xsum
                 dynew(ix,iy)=ysum
                 denew(ix,iy)=dsum
@@ -249,14 +234,9 @@ c             replace proper grid points with fit values
 c       
 c       replace new values into dxgrid and dygrid arrays
 c       
-      do ix=1,nxgrid
-        do iy=1,nygrid
-          ind = ix + (iy-1) * nxgrid
-          dxgrid(ix,iy)=dxnew(ix,iy)
-          dygrid(ix,iy)=dynew(ix,iy)
-          ddengrid(ix,iy)=denew(ix,iy)
-        enddo
-      enddo
+      dxgrid(1:nxgrid,1:nygrid)=dxnew(1:nxgrid,1:nygrid)
+      dygrid(1:nxgrid,1:nygrid)=dynew(1:nxgrid,1:nygrid)
+      ddengrid(1:nxgrid,1:nygrid)=denew(1:nxgrid,1:nygrid)
 c       
       return
       end

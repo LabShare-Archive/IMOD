@@ -91,24 +91,6 @@ public final class PeetProcessManager extends BaseProcessManager {
     return backgroundProcess.getName();
   }
 
-  void errorProcess(BackgroundProcess process) {
-  }
-
-  void errorProcess(ComScriptProcess process) {
-  }
-
-  void errorProcess(ReconnectProcess script) {
-  }
-
-  void postProcess(ComScriptProcess script) {
-  }
-
-  void postProcess(InteractiveSystemProgram program) {
-  }
-
-  void postProcess(ReconnectProcess script) {
-  }
-
   void postProcess(BackgroundProcess process) {
     super.postProcess(process);
     ProcessName processName = process.getProcessName();
@@ -130,9 +112,5 @@ public final class PeetProcessManager extends BaseProcessManager {
           .getIntValue(AverageAllParam.Fields.ITERATION_LIST_SIZE));
       manager.logMessage(processDetails, AxisID.ONLY);
     }
-  }
-
-  void postProcess(DetachedProcess process) {
-    super.postProcess(process);
   }
 }

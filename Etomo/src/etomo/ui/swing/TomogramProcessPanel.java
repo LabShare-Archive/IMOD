@@ -214,14 +214,6 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     initializePanels();
   }
 
-  /**
-   * 
-   * @param event
-   */
-  protected void buttonKillAction(ActionEvent event) {
-    manager.kill(axisID);
-  }
-
   protected void buttonAxisAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(BOTH_AXIS_LABEL)) {
@@ -407,15 +399,12 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     showAxisB(false);
   }
 
-  private void setBackground(Color color) {
-    panelRoot.setBackground(color);
-    outerStatusPanel.setBackground(color);
-    innerStatusPanel.setBackground(color);
-    parallelStatusPanel.setBackground(color);
-    panelDialog.setBackground(color);
-    panelProcessSelect.setBackground(color);
+  /**
+   * Call parent function and sets axis button panel.
+   */
+  void setBackground(Color color) {
+    super.setBackground(color);
     axisButtonPanel.setBackground(color);
-    progressPanel.setBackground(color);
   }
 
   private void setButton(SimpleButton button, String label, String tooltip) {

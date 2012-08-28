@@ -23,7 +23,7 @@ TESTPATH = $(JUNIT_HOME)/junit.jar
 UITESTPATH = "$(JFCUNIT_HOME)/jfcunit.jar$(CLASS_SEPARATOR)$(JFCUNIT_HOME)/jakarta-regexp-1.2.jar"
 
 
-PACKAGES = etomo etomo.comscript etomo.process etomo.storage etomo.storage.autodoc etomo.type etomo.ui.swing etomo.uitest etomo.util
+PACKAGES = etomo etomo.comscript etomo.process etomo.storage etomo.storage.autodoc etomo.type etomo.ui etomo.ui.swing etomo.uitest etomo.util
 
 JAVAC_OPTIONS = -nowarn
 #JAVAC_OPTIONS = -verbose -nowarn
@@ -37,12 +37,12 @@ all: $(JAR_FILE)
 # and moved "Make completed" here so make gives the "nothing to do" message
 #
 #$(JAR_FILE): cpimages compile
-$(JAR_FILE): $(SE)/*.java $(SE)/comscript/*.java $(SE)/ui/swing/*.java \
+$(JAR_FILE): $(SE)/*.java $(SE)/comscript/*.java $(SE)/ui/*.java $(SE)/ui/swing/*.java \
              $(SE)/process/*.java $(SE)/storage/*.java $(SE)/uitest/*.java \
              $(SE)/storage/autodoc/*.java $(SE)/type/*.java \
              $(SE)/util/*.java src/images/*.* 
 	mkdir -p $(CLASSPATH)
-	$(CP) -rpf $(SOURCEPATH)/images $(CLASSPATH)
+	$(CP) -rf $(SOURCEPATH)/images $(CLASSPATH)
 	rm -rf  $(CLASSPATH)/images/CVS
 	$(JAVAC)  $(SOURCEPATH)/etomo/EtomoDirector.java
 	mkdir -p jar_dir
@@ -62,19 +62,19 @@ uitestjarfile: cpimages
 
 cpimages:
 	mkdir -p $(CLASSPATH)
-	$(CP) -rpf $(SOURCEPATH)/images $(CLASSPATH)
+	$(CP) -rf $(SOURCEPATH)/images $(CLASSPATH)
 	rm -rf  $(CLASSPATH)/images/CVS
 
 compile: 
 	$(JAVAC)  $(SOURCEPATH)/etomo/EtomoDirector.java
 
 install: $(JAR_FILE)
-	$(CP) -pf $(JAR_FILE) $(INSTBINDIR)
+	$(CP) -f $(JAR_FILE) $(INSTBINDIR)
 
 uitestinstall: uitestjarfile
-	$(CP) -pf $(UITEST_JAR_FILE) $(INSTBINDIR)
+	$(CP) -f $(UITEST_JAR_FILE) $(INSTBINDIR)
 	chmod 755 scripts/uitest
-	$(CP) -pf scripts/uitest $(INSTBINDIR)
+	$(CP) -f scripts/uitest $(INSTBINDIR)
 
 tests: testjarfile
 	java -classpath "$(TESTPATH)$(CLASS_SEPARATOR)$(TEST_JAR_FILE)" -Djava.awt.headless=true junit.textui.TestRunner etomo.JUnitTests
@@ -101,6 +101,7 @@ linecount:
 	wc -l src/etomo/storage/*.java | grep total
 	wc -l src/etomo/storage/autodoc/*.java | grep total
 	wc -l src/etomo/type/*.java | grep total
+	wc -l src/etomo/ui/*.java | grep total
 	wc -l src/etomo/ui/swing/*.java | grep total
 	wc -l src/etomo/uitest/*.java | grep total
 	wc -l src/etomo/util/*.java | grep total
@@ -111,6 +112,7 @@ linecount:
 	grep "^\s*$$" src/etomo/storage/*.java | wc -l
 	grep "^\s*$$" src/etomo/storage/autodoc/*.java | wc -l
 	grep "^\s*$$" src/etomo/type/*.java | wc -l
+	grep "^\s*$$" src/etomo/ui/*.java | wc -l
 	grep "^\s*$$" src/etomo/ui/swing/*.java | wc -l
 	grep "^\s*$$" src/etomo/uitest/*.java | wc -l
 	grep "^\s*$$" src/etomo/util/*.java | wc -l
@@ -121,6 +123,7 @@ linecount:
 	grep "^\s*\/\/" src/etomo/storage/*.java | wc -l
 	grep "^\s*\/\/" src/etomo/storage/autodoc/*.java | wc -l
 	grep "^\s*\/\/" src/etomo/type/*.java | wc -l
+	grep "^\s*\/\/" src/etomo/ui/*.java | wc -l
 	grep "^\s*\/\/" src/etomo/ui/swing/*.java | wc -l
 	grep "^\s*\/\/" src/etomo/uitest/*.java | wc -l
 	grep "^\s*\/\/" src/etomo/util/*.java | wc -l
@@ -131,6 +134,7 @@ linecount:
 	awk '/^[ \t]*\/\*/, /\*\//' src/etomo/storage/*.java | wc -l
 	awk '/^[ \t]*\/\*/, /\*\//' src/etomo/storage/autodoc/*.java | wc -l
 	awk '/^[ \t]*\/\*/, /\*\//' src/etomo/type/*.java | wc -l
+	awk '/^[ \t]*\/\*/, /\*\//' src/etomo/ui/*.java | wc -l
 	awk '/^[ \t]*\/\*/, /\*\//' src/etomo/ui/swing/*.java | wc -l
 	awk '/^[ \t]*\/\*/, /\*\//' src/etomo/uitest/*.java | wc -l
 	awk '/^[ \t]*\/\*/, /\*\//' src/etomo/util/*.java | wc -l

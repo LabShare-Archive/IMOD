@@ -118,10 +118,12 @@ the rubber band.
 The <B>Contour</B> button in the "Set X/Y area from" box allows you to set the 
 size and center of the bounding box to fit the current contour when you
 are masking the volume with the current contour (see
-below).  When masking with the current object, the button (now
-labeled <B>Object</B> will set the X/Y area based on the extent of the current
-object over the selected Z range.  This button is useful for recentering if
-you change the current contour or object or the center or size in Z.
+below).  When masking with the lasso in a Zap window, the button (now
+labeled <B>Lasso</B>) will fit the bounding box to the lasso.  When masking
+with the current object, the button (now labeled <B>Object</B>) will set the
+X/Y area based on the extent of the current object over the selected Z range.
+This button is useful for recentering if you change the current contour or
+object or the center or size in Z.
 <P>
 <B>View isosurfaces</B> selects whether the isosurfaces will be
 computed and displayed.
@@ -140,7 +142,7 @@ on, so you can use it to center the volume even if you do not want to
 leave it on.
 <P>
 <B>Link to global X, Y, Z</B> controls whether the coordinates selected in the
-sliders below will be linked to the current point coordinate in 3dmod image
+sliders on the left will be linked to the current point coordinate in 3dmod image
 display windows.  If it is on, then changing these sliders will change the
 current point in 3dmod and affect other displays; also, any change in current
 point within 3dmod will change the center position of the bounding box.  If it
@@ -148,7 +150,9 @@ is off, then the coordinates selected here become independent of the current
 point.  Turning the option off allows you to right-click on the isosurface
 without having the isosurface display move to a new position.  It is also
 useful when modeling scattered points directly in the Model View window in
-order to paint the isosurface (see below).
+order to paint the isosurface (see below).  Finally, if the button is off, a
+masked isosurface will change dynamically as the masking contour, object, or
+lasso or modified in a Zap window.
 <P>
 <B>Binning</B> selects the amount of binning of the data in 3D; e.g., with a
 binning of 2, each voxel used for computing the isosurface will be the average
@@ -187,8 +191,9 @@ that is rendered with one of the selections in the <B>Mask</B> box.
   possible; if the contour is too large, the size will be restricted but the
   center will be set the same.  However, the subvolume will not be continually
   refit if you change contours or modify
-  the current contour.  Press the <B>Contour</B> button in the "Set X/Y area"
-  box to refit to a new or modified contour.
+  the current contour, unless the <B>Link to global X, Y, Z</B> button is
+  turned off.  Press the <B>Contour</B> button in the "Set X/Y area" box to
+  refit to a new or modified contour.
 <LI>Select <B>Current object</B> to see isosurfaces inside of contours of the
   current object, provided it is closed type.  The Z size and center sliders
   control the range of data that will be displayed in Z.  You need not have a
@@ -214,6 +219,17 @@ that is rendered with one of the selections in the <B>Mask</B> box.
 <LI>Select <B>Ellipsoid</B> to see isosurfaces within an ellipsoid that
   touches all the faces of the bounding box.  Use the <B>X, Y, Z size</B> sliders
   to adjust the shape of the ellipsoid.
+<LI>Select <B>Zap lasso</B> to see isosurfaces just inside the lasso in the
+  top Zap window that has a lasso drawn.  This works the same as when <B>Current
+  contour</B> is selected, except in one respect.  There are two ways of
+  shifting the lasso in a Zap window: directly with the first or second mouse
+  button when it is within 10 pixels of the lasso contour; or using the
+  contour shifting/transforming enabled with the <B>P</B> hot key when no
+  current contour is selected.  With the first way, the isosurface is updated
+  only when the lasso movement is stopped (provided that <B>Link to global X,
+  Y, Z</B> is turned off).  With the second way, the isosurface is updated as
+  the lasso is shifted or transformed, just as when masking with the current
+  contour.
 </UL>
 <P>
 <B>Painting the Mesh:</B> It is possible to set different parts of the

@@ -153,6 +153,14 @@ external software that has followed recent documentation of the MRC format.
 Regardless of the representation in the file, bytes are read into IMOD programs as
 unsigned with a range of 0 to 255.
 
+[Field = StripExtraHeader]
+short = strip
+type = B
+usage = Do not transfer extra header information from input to output
+tooltip = 
+manpage = Do not transfer extra header information in input file(s) to output
+file(s).  The default is to transfer this information whenever possible.
+
 [Field = OffsetsInXandY]
 short = offset
 type = FAM
@@ -324,6 +332,19 @@ deviation, 3 to shift sections to a common mean without scaling, or 4 to
 shift sections to a common mean then rescale the minimum and maximum densities
 to the Min and Max values specified with the -scale option.
 
+[Field = MeanAndStandardDeviation]
+short = meansd
+type = FP
+usage = Scale all images to the given mean and standard deviation
+tooltip = 
+manpage = Scale all images to the given mean and standard deviation.  This
+option implies -float 2 and is incompatible with all other scaling options.
+There is no check that the scaling is sensible for the data mode, so be sure
+to change data modes to prevent excessive truncation or loss of resolution.
+For example, change from unsigned bytes to integers if setting the mean to 0
+or the SD to a large number (> 50); change from bytes or integers to floating point
+if setting the SD to a small number (< 10).
+
 [Field = ContrastBlackWhite]
 short = contrast
 type = IP
@@ -345,15 +366,6 @@ manpage = Rescale the densities of all sections by the same factors so that
 the original minimum and maximum density will be mapped to the Min and Max
 values that are entered.
 
-[Field = FillValue]
-short = fill
-type = F
-usage = Value to fill empty image areas with, before scaling
-tooltip = 
-manpage = Value to fill areas of the output image that have no image data.
-The filling is done before intensity scaling, so the value in the filled areas
-will be modified by any scaling that is done.
-
 [Field = MultiplyAndAdd]
 short = multadd
 type = FPM
@@ -362,6 +374,15 @@ tooltip =
 manpage = Rescale the densities of all sections by multiplying by the first
 entered value then adding the second value.  This option must be entered either
 once only, or once per input file.
+
+[Field = FillValue]
+short = fill
+type = F
+usage = Value to fill empty image areas with, before scaling
+tooltip = 
+manpage = Value to fill areas of the output image that have no image data.
+The filling is done before intensity scaling, so the value in the filled areas
+will be modified by any scaling that is done.
 
 [Field = TaperAtFill]
 short = taper

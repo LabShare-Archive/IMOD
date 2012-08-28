@@ -839,7 +839,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a NewstParam object from the com script command object
-    NewstParam prenewstParam = new NewstParam(appManager, axisID);
+    NewstParam prenewstParam =  NewstParam.getInstance(appManager, axisID);
 
     // Implementation note: since the name of the command newst was changed to
     // newstack we need to figure out which one it is before calling initialize.
@@ -1288,7 +1288,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a NewstParam object from the com script command object
-    NewstParam newstParam = new NewstParam(appManager, axisID);
+    NewstParam newstParam =  NewstParam.getInstance(appManager, axisID);
 
     // Implementation note: since the name of the command newst was changed to
     // newstack we need to figure out which one it is before calling initialize.
@@ -1314,7 +1314,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a NewstParam object from the com script command object
-    NewstParam newstParam = new NewstParam(appManager, axisID);
+    NewstParam newstParam =  NewstParam.getInstance(appManager, axisID);
 
     // Implementation note: since the name of the command newst was changed to
     // newstack we need to figure out which one it is before calling initialize.

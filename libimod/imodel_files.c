@@ -51,6 +51,8 @@ static int imodel_read_ptsizes(Icont *cont, FILE *fin);
 static int imodel_read_meshparm(Iobj *obj, FILE *fin);
 static int imodel_read_meshskip(Iobj *obj, FILE *fin);
 static int imodel_read_sliceang(Imod *imod, FILE *fin);
+static void writeAsciiClips(Imod *imod, IclipPlanes *clips, char *prefix);
+static void readAsciiClips(Imod *imod, char *line, IclipPlanes *clips, char *prefix);
 
 #ifdef IMOD_DATA_SWAP
 static void byteswap(void *ptr, unsigned size);
@@ -1113,6 +1115,7 @@ int imodReadAscii(Imod *imod)
   Iobj *obj;
   Icont *cont;
   Imesh *mesh;
+  Iview *view = &imod->view[0];
   int i, ob, co, surf, pt;
   int conts, meshes, pts;
   int mh, vsize, lsize;
@@ -1379,6 +1382,9 @@ int imodReadAscii(Imod *imod)
         imod->units = IMOD_UNIT_NM;
     }
 	  
+    if (substr(line, "currentview"))
+      imod->cview = atoi(&(line[11]));
+
     if (substr(line, "slicerAngle")) {
       if (!imod->slicerAng)
         imod->slicerAng = ilistNew(sizeof(SlicerAngles), 4);
@@ -1395,9 +1401,12 @@ int imodReadAscii(Imod *imod)
       ilistAppend(imod->slicerAng, &slan);
     }
     
-    if (substr(line, "name"))
-      for(i = 0; i < strlen(line) - 5; i++)
+    if (substr(line, "name")) {
+      for (i = 0; i < strlen(line) - 5 && i < IOBJ_STRSIZE && line[i+5] != '\r' && 
+             line[i+5] != '\n'; i++)
         obj->name[i] = line[i + 5];
+      obj->name[i] = 0x00;
+    }
 
     if (substr(line, "linewidth"))
       obj->linewidth = atoi(&(line[9]));
@@ -1455,20 +1464,8 @@ int imodReadAscii(Imod *imod)
       gotObjMM = 1;
     }
 
-    if (substr(line, "objclips")) {
-      sscanf(line, "objclips %d %d %d %d", &idata, &idata2, &idata3, &idata4);
-      obj->clips.count = idata;
-      obj->clips.flags = idata2;
-      obj->clips.trans = idata3;
-      obj->clips.plane = idata4;
-      for (i = 0; i < obj->clips.count; i++) {
-        imodFgetline(imod->file, line, MAXLINE);
-        sscanf(line, "%g %g %g %g %g %g", &obj->clips.normal[i].x,
-               &obj->clips.normal[i].y, &obj->clips.normal[i].z,
-               &obj->clips.point[i].x,
-               &obj->clips.point[i].y, &obj->clips.point[i].z);
-      }
-    }
+    if (substr(line, "objclips"))
+      readAsciiClips(imod, line, &obj->clips, "objclips");
 
     if (substr(line, "contflags") && co >= 0 && co < obj->contsize)
       obj->cont[co].flags = (b3dUInt32)atof(&(line[9]));
@@ -1485,13 +1482,71 @@ int imodReadAscii(Imod *imod)
     if (substr(line, "Meshsurf") && mh >= 0 && mh < obj->meshsize)
       obj->mesh[mh].surf = atoi(&(line[8]));
 
+    if (substr(line, "view")) {
+      if (imodViewModelNew(imod))
+        return(-1);
+      view = &imod->view[imod->viewsize - 1];
+    }
+
+    if (substr(line, "globalclips"))
+      readAsciiClips(imod, line, &view->clips, "globalclips");
+
+    if (substr(line, "viewfovy"))
+      view->fovy = atof(&(line[8]));
+
+    if (substr(line, "viewcnear"))
+      view->cnear = atof(&(line[9]));
+
+    if (substr(line, "viewcfar"))
+      view->cfar = atof(&(line[8]));
+
+    if (substr(line, "viewflags"))
+      view->world = (b3dUInt32)atof(&(line[9]));
+
+    if (substr(line, "viewscale "))
+      sscanf(line, "viewscale %g %g %g", &view->scale.x, &view->scale.y, &view->scale.z);
+
+    if (substr(line, "viewtrans "))
+      sscanf(line, "viewtrans %g %g %g", &view->trans.x, &view->trans.y, &view->trans.z);
+
+    if (substr(line, "viewrot "))
+      sscanf(line, "viewrot %g %g %g", &view->rot.x, &view->rot.y, &view->rot.z);
+
+    if (substr(line, "viewlight "))
+      sscanf(line, "viewlight %g %g", &view->lightx, &view->lighty);
+
+    if (substr(line, "depthcue "))
+      sscanf(line, "depthcue %g %g", &view->dcstart, &view->dcend);
+
+    if (substr(line, "viewlabel")) {
+      for (i = 0; i < strlen(line) - 10 && i < VIEW_STRSIZE && line[i+10] != '\r' && 
+             line[i+10] != '\n'; i++)
+        view->label[i] = line[i+10];
+      view->label[i] = 0x00;
+    }
 
   }
   if (ob >= 0 && (gotObjMM || valmin <= valmax))
     istoreAddMinMax(&obj->store, GEN_STORE_MINMAX1, gotObjMM ? 
                     objvmin : valmin, gotObjMM ? objvmax : valmax);
-     
+  B3DCLAMP(imod->cview, 0, imod->viewsize - 1);
   return(0);
+}
+
+static void readAsciiClips(Imod *imod, char *line, IclipPlanes *clips, char *prefix)
+{
+  int idata, idata2, idata3, idata4, i;
+  sscanf(line + strlen(prefix), " %d %d %d %d", &idata, &idata2, &idata3, &idata4);
+  clips->count = idata;
+  clips->flags = idata2;
+  clips->trans = idata3;
+  clips->plane = idata4;
+  for (i = 0; i < clips->count; i++) {
+    imodFgetline(imod->file, line, MAXLINE);
+    sscanf(line, "%g %g %g %g %g %g", &clips->normal[i].x,
+           &clips->normal[i].y, &clips->normal[i].z,
+           &clips->point[i].x, &clips->point[i].y, &clips->point[i].z);
+  }
 }
 
 /*!
@@ -1500,11 +1555,12 @@ int imodReadAscii(Imod *imod)
  */
 int imodWriteAscii(Imod *imod)
 {
-  int ob, co, pt;
+  int ob, co, pt, iv;
   int mh, i;
   Iobj *obj;
   Icont *cont;
   Imesh *mesh;
+  Iview *view;
   IrefImage *ref = imod->refImage;
   SlicerAngles *slanp;
   DrawProps defProps, contProps, ptProps;
@@ -1546,6 +1602,25 @@ int imodWriteAscii(Imod *imod)
     fprintf(imod->file, "slicerAngle %d %g %g %g %g %g %g %s\n", slanp->time,
             slanp->angles[0], slanp->angles[1], slanp->angles[2],
             slanp->center.x, slanp->center.y, slanp->center.z, slanp->label);
+  }
+
+  fprintf(imod->file, "currentview  %d\n", imod->cview);
+  for (iv = 1; iv < imod->viewsize; iv++) {
+    fprintf(imod->file, "view %d\n", iv);
+    view = &imod->view[iv];
+    fprintf(imod->file, "viewfovy  %g\n", view->fovy);
+    fprintf(imod->file, "viewcnear %g\n", view->cnear);
+    fprintf(imod->file, "viewcfar  %g\n", view->cfar);
+    fprintf(imod->file, "viewflags %u\n", view->world);
+    /* fprintf(imod->file, "viewscale %g %g %g\n",
+       view->scale.x, view->scale.y, view->scale.z); Not used, not needed! */
+    fprintf(imod->file, "viewtrans %g %g %g\n",
+            view->trans.x, view->trans.y, view->trans.z);
+    fprintf(imod->file, "viewrot %g %g %g\n", view->rot.x, view->rot.y, view->rot.z);
+    fprintf(imod->file, "viewlight %g %g\n", view->lightx, view->lighty);
+    fprintf(imod->file, "depthcue %g %g\n", view->dcstart, view->dcend);
+    fprintf(imod->file, "viewlabel %s\n", view->label);
+    writeAsciiClips(imod, &view->clips, "globalclips");
   }
 
   for (ob = 0; ob < imod->objsize; ob++){
@@ -1606,15 +1681,7 @@ int imodWriteAscii(Imod *imod)
     fprintf(imod->file, "valblack  %d\n", obj->valblack);
     fprintf(imod->file, "valwhite  %d\n", obj->valwhite);
     fprintf(imod->file, "matflags2 %d\n", obj->matflags2);
-    if (obj->clips.count) {
-      fprintf(imod->file, "objclips %d %d %d %d\n", obj->clips.count,
-              obj->clips.flags, obj->clips.trans, obj->clips.plane);
-      for (i = 0; i < obj->clips.count; i++)
-        fprintf(imod->file, "%g %g %g %g %g %g\n", obj->clips.normal[i].x,
-                obj->clips.normal[i].y, obj->clips.normal[i].z,
-                obj->clips.point[i].x,
-                obj->clips.point[i].y, obj->clips.point[i].z);
-    }
+    writeAsciiClips(imod, &obj->clips, "objclips");
 
     if (istoreGetMinMax(obj->store, obj->contsize, GEN_STORE_MINMAX1, &valmin,
                         &valmax))
@@ -1680,6 +1747,18 @@ int imodWriteAscii(Imod *imod)
   return(0);
 }
 
+static void writeAsciiClips(Imod *imod, IclipPlanes *clips, char *prefix)
+{
+  int i;
+  if (clips->count) {
+    fprintf(imod->file, "%s %d %d %d %d\n", prefix, clips->count,
+            clips->flags, clips->trans, clips->plane);
+    for (i = 0; i < clips->count; i++)
+      fprintf(imod->file, "%g %g %g %g %g %g\n", clips->normal[i].x,
+              clips->normal[i].y, clips->normal[i].z,
+              clips->point[i].x, clips->point[i].y, clips->point[i].z);
+  }
+}
 
 int imodFgetline(FILE *fp, char s[],int limit)
 {
