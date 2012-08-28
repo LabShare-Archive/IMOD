@@ -94,7 +94,7 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam, CommandPar
   private final ScriptParameter guessNumBeads = new ScriptParameter(GUESS_NUM_BEADS_TAG);
   private final ScriptParameter maxNumBeads = new ScriptParameter(MAX_NUM_BEADS_TAG);
   private final ScriptParameter binningOfVolume = new ScriptParameter(
-      EtomoNumber.Type.LONG, "BinningOfVolume");
+     "BinningOfVolume");
 
   private final AxisID axisID;
   private final BaseManager manager;
