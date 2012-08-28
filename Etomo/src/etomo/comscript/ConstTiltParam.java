@@ -131,9 +131,9 @@ public interface ConstTiltParam extends CommandDetails {
 
   public int getFullImageX();
 
-  public long getIdxSliceStart();
+  public int getIdxSliceStart();
 
-  public long getIdxSliceStop();
+  public int getIdxSliceStop();
 
   public String getLogShift();
 
