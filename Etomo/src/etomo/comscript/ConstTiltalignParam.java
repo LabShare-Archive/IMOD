@@ -296,7 +296,7 @@ public class ConstTiltalignParam implements CommandDetails {
     fixXYZCoordinates = new EtomoBoolean2(FIX_XYZ_COORDINATES_KEY);
     fixXYZCoordinates.setDisplayAsInteger(true);
     //do not default imagesAreBinnned
-    imagesAreBinned = new ScriptParameter(EtomoNumber.Type.LONG, "ImagesAreBinned");
+    imagesAreBinned = new ScriptParameter( "ImagesAreBinned");
     imagesAreBinned.setFloor(1);
     beamTiltOption = new ScriptParameter(BEAM_TILT_OPTION_KEY);
     beamTiltOption.setDefault(FIXED_OPTION);
