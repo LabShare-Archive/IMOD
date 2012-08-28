@@ -3,6 +3,9 @@ IMOD History
 8/28/12: Remove duplicate uitest directories testBB, testmidzone2, and
 testunicross.(Bug# 1639)
 
+8/28/12: Made Tilt set the output file's pixel size from the input stack's
+extended header if the input appears not to have a pixel spacing set.
+
 8/28/12: Fixed 3dmodv crash when toggling stereo, transparent background, or
 double buffer with multiple models (In 4.5).
 
