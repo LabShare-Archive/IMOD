@@ -69,7 +69,7 @@ the reference volume.
 
 [Field = OffsetRefToScaledXYZ]
 short = offset
-type = FT
+type = IT
 usage = Displacement of scaled volume relative to reference in X, Y, and Z
 tooltip = 
 manpage = Displacement of the volume being scaled relative to the

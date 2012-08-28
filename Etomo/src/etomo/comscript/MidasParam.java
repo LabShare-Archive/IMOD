@@ -242,7 +242,7 @@ public final class MidasParam implements Command {
   }
 
   public void setSectionTableRowData(final ArrayList input) {
-    ArrayList sectionTableRowData = input;
+     sectionTableRowData = input;
   }
 
   public void setInputFileName(final String input) {

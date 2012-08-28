@@ -384,7 +384,13 @@ assert.contains.file=logb.txt|%{axis} is a variable
 
 .TP 4
 .B testdir
-A global variable created when the set.testdir command executed in a Test section.
+A global variable containing the test directory path, which is created when the
+set.testdir command executed in a Test section.
+
+.TP 4
+.B testdir-name
+A global variable containing the test directory name, which is created when the
+set.testdir command executed in a Test section.
 
 .TP 4
 .B dataset
@@ -493,7 +499,9 @@ run.  \fITest_Directory\fR will be created under \fB./UITests\fR.  If the
 directory already exists and the \fBkeep\fR modifier was not used, the directory
 will be deleted and re-added.  The \fBkeep\fR modifier makes it possible to test
 a partially completed dataset by keeping the \fItest_directory\fR from being
-deleted.
+deleted.  This command also causes two global variables to be created:  \fBtestdir\fR,
+which contains the directory path of the test directory, and \fBtestdir-name\fR, which
+contains the name of the test directory.
 
 .TP 4
 .B set.adoc.\fItest_section_type\fR[\fB.\fR(\fBa\fR|\fBb\fR)]\fB = \fItest_autodoc_name\fB.adoc
@@ -759,7 +767,7 @@ that has been pressed is dark), the check box is checked, or the radio button is
 selected.
 
 .TP 4
-.B assert.contains.file = \fIfile_name\fB|\fIliteral_string
+.B assert.contains.file = \fR(\fIfile_name\fR|\fIrelative_path\fR)\fB|\fIliteral_string
 Tests whether a file in the \fItest_directory\fR called \fIfile_name\fR contains
 \fIliteral_string\fR.  All or part of the \fIliteral_string\fR can be quoted with
 double quotes (\fB"\fR) to prevent variable substitution.  The wildcard (\fB*\fR)
