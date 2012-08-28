@@ -329,7 +329,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
         MAX_VIEWS_IN_ALIGN_KEY, requiredMap);
     roundsOfTracking = new ScriptParameter(EtomoNumber.Type.INTEGER,
         ROUNDS_OF_TRACKING_KEY, requiredMap);
-    imagesAreBinned = new ScriptParameter(EtomoNumber.Type.LONG, "ImagesAreBinned");
+    imagesAreBinned = new ScriptParameter("ImagesAreBinned");
     beadDiameter = new ScriptParameter(EtomoNumber.Type.DOUBLE, "BeadDiameter");
     sobelFilterCentering = new EtomoBoolean2(SOBEL_FILTER_CENTERING_KEY);
     kernelSigmaForSobel=new ScriptParameter(EtomoNumber.Type.DOUBLE,KERNEL_SIGMA_FOR_SOBEL_KEY);
@@ -842,7 +842,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     return this.minOverlapBeads.set(minOverlapBeads);
   }
 
-  public void setImagesAreBinned(long input) {
+  public void setImagesAreBinned(int input) {
     imagesAreBinned.set(input);
   }
 
