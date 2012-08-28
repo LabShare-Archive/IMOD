@@ -316,7 +316,7 @@ int ImodvWindow::setGLWidget(ImodvApp *a, int db, int stereo, int alpha)
 
   // Remove vertex buffer data from all models
   for (int m = 0; m < a->nm; m++)
-    vbCleanupVBD(&a->imod[m]);
+    vbCleanupVBD(a->mod[m]);
 
   // Get the desired widget to top of stack
   if (db && !stereo && !alpha && mDBw)
