@@ -516,6 +516,7 @@ public class Utilities {
       return null;
     }
     int commandLength = 1;
+
     int stdMax = 0;
     if (command.endsWith(ProcessName.CLIP.toString())) {
       commandLength = 2;
@@ -542,6 +543,9 @@ public class Utilities {
     }
     else if (command.endsWith("cmd.exe")) {
       commandLength = 3;
+    }
+    else if (command.startsWith("sh")) {
+      commandLength = 2;
     }
     StringBuffer buffer = new StringBuffer();
     String param = null;

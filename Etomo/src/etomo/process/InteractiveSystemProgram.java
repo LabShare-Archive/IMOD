@@ -1,6 +1,8 @@
 package etomo.process;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import etomo.BaseManager;
 import etomo.comscript.Command;
@@ -158,6 +160,9 @@ public class InteractiveSystemProgram implements Runnable {
   private String exceptionMessage = "";
 
   private OutputStream cmdIn = null;
+
+  private static final List<String> stdOutput = new ArrayList<String>();
+  private static final List<String> stdError = new ArrayList<String>();
 
   /**
    * Creates a SystemProgram object to execute the program specified by the
@@ -340,6 +345,9 @@ public class InteractiveSystemProgram implements Runnable {
     try {
       if (outputBuffer != null && outputBuffer.ready()) {
         line = outputBuffer.readLine();
+        if (line != null) {
+          stdOutput.add(line);
+        }
       }
     }
     catch (IOException except) {
@@ -347,6 +355,36 @@ public class InteractiveSystemProgram implements Runnable {
       exceptionMessage = except.getMessage();
     }
     return line;
+  }
+
+  /**
+   * Put all of stdout into stdOutput and then return stdOutput
+   * @return
+   */
+  public String[] getStdOutput() {
+    while (readStdout() != null) {
+    }
+    return getStringArray(stdOutput);
+  }
+
+  /**
+   * Put all of stderr into stdError and then return stdError
+   * @return
+   */
+  public String[] getStdError() {
+    while (readStderr() != null) {
+    }
+    return getStringArray(stdError);
+  }
+
+  private String[] getStringArray(final List<String> list) {
+    if (list == null || list.size() == 0) {
+      return null;
+    }
+    if (list.size() == 1) {
+      return new String[] { list.get(0) };
+    }
+    return list.toArray(new String[list.size()]);
   }
 
   public Command getCommand() {
@@ -366,6 +404,9 @@ public class InteractiveSystemProgram implements Runnable {
     try {
       if (errorBuffer != null && errorBuffer.ready()) {
         line = errorBuffer.readLine();
+        if (line != null) {
+          stdError.add(line);
+        }
       }
     }
     catch (IOException except) {
