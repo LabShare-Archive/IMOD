@@ -27,8 +27,7 @@ C
 c       
       logical readw_or_imod,failed,getModelObjectRange
       include 'statsize.inc'
-      real*4 xr(msiz,idim), sx(msiz), xm(msiz), sd(msiz), ss(msiz,msiz), ssd(msiz,msiz),
-     &    d(msiz,msiz), r(msiz,msiz), b(msiz), b1(msiz)
+      real*4 xr(msiz,idim), xm(msiz), sd(msiz), ssd(msiz,msiz), b1(msiz)
       integer*4 izobj(max_obj_num), isurf(max_obj_num)
       integer*4 iobjbest(-idzlim:idzlim),iptbest(-idzlim:idzlim)
       integer*4 iobjdo(limflags),iflags(limflags)
@@ -41,7 +40,7 @@ c
       integer*4 ifspan, idzlo, idzhi, idzmin, idzmax, loop, iz, jobj, jbase
       integer*4 jpnt, jpt, iplas, ipnex, mzfit, nfit, iftoofar, ifsave, j,nfittot,ndidfit
       real*4 xx, yy, dlen, sinth, costh, xlas, ylas, xrot, yrot, dist, frac
-      real*4 xcen, ycen, sep, distlas, distcen, ynew, c1, rsq, fra, xmid
+      real*4 xcen, ycen, sep, distlas, distcen, ynew, c1, xmid
       real*4 ymid, tmp, bint
       integer*4 ninsert, norder, nindep, ichek, ipnt, idz, ninj, idir, iptcen
       integer*4 ipc, iflag, nobjSmooth, nTotPoints, nobjTot,modobj,modcont, ifsurfs
@@ -423,7 +422,8 @@ c
                       xr(nindep+1,i)=yt(i)
 c                      if (modcont.eq.1 .and. ipt .eq. 128)print *,xt(i),yt(i),zt(i)
                     enddo
-                    call multr(xr,nindep+1,nfit,sx,ss,ssd,d,r,xm,sd,b,b1, c1, rsq ,fra)
+                    call multRegress(xr,msiz,1,nindep,nfit,1,0,b1,msiz,c1,xm,sd,ssd)
+                    
                     ynew=c1
 c                     
 c                     back rotate the fitted point to get the new value
@@ -551,8 +551,7 @@ c                  if (modcont.eq.1) print *,iptcen,nfit,norder
                         xr(norder+1,i)=yt(i)
 c                        if (modcont.eq.1 .and. iptcen .eq. 74) print *,(xr(j,i),j=1,norder),yt(i)
                       enddo
-                      call multr(xr,norder+1,nfit,sx,ss,ssd,d,r,xm,sd,b,b1,
-     &                    bint, rsq ,fra)
+                      call multRegress(xr,msiz,1,norder,nfit,1,0,b1,msiz,bint,xm,sd,ssd)
 c                       call polyfit(xt,yt,nfit,norder,slop,bint)
                       xmid=sinth*bint+xmid
                       ymid=costh*bint+ymid

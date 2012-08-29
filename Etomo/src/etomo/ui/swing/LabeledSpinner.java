@@ -243,6 +243,10 @@ final class LabeledSpinner {
     return (spinner.isEnabled());
   }
 
+  boolean isVisible() {
+    return panel.isVisible();
+  }
+
   void setVisible(final boolean isVisible) {
     panel.setVisible(isVisible);
   }

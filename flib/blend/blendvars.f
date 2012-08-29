@@ -36,7 +36,7 @@ c
       equivalence (nxout,nxyzout(1)),(nyout,nxyzout(2)),(nzout,nxyzout(3))
       equivalence (noverlap(1),nxoverlap),(noverlap(2),nyoverlap)
       integer*4 npclist,minxpiece,minypiece,nxpieces,nypieces,interpOrder
-      real*4 dmean
+      real*4 dmean, dfill
       integer*4 izUseDefLow, izUseDefHigh, numUseEdge, ixyUseEdge(maxUseEdge)
       integer*4 ixFrmUseEdge(maxUseEdge), iyFrmUseEdge(maxUseEdge)
       integer*4 izLowUse(maxUseEdge), izHighUse(maxUseEdge), lastWritten(2)

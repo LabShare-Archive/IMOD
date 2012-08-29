@@ -24,7 +24,11 @@ import etomo.process.ProcessData;
 public interface ConstProcessSeries {
   public static final String rcsid = "$Id$";
 
+  public void dumpState();
+
   public String peekNextProcess();
+  
+  public boolean startNextProcess(AxisID axisID);
 
   public boolean startNextProcess(AxisID axisID, ProcessResultDisplay processResultDisplay);
 
@@ -35,4 +39,11 @@ public interface ConstProcessSeries {
   public String toString();
 
   public boolean willProcessBeDropped(ProcessData processData);
+
+  public void startFailProcess(final AxisID axisID);
+
+  public void startFailProcess(final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay);
+
+  public boolean willProcessListBeDropped();
 }

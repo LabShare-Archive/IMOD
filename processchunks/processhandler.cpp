@@ -542,6 +542,10 @@ void ProcessHandler::printWarnings(const QString &machineName) {
     else if (line.indexOf("MESSAGE:") != -1) {
       *mOutStream << line.trimmed() << " - on " << machineName << endl;
     }
+    else if (line.indexOf("LOGFILE:") != -1) {
+      // Assume files to be logged will not be duplicated by the caller.
+      *mOutStream << line.trimmed() << endl;
+    }
   } while (!mLogFile->atEnd());
   mLogFile->close();
   for (i = 0; i < warnList.size(); i++) {

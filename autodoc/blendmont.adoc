@@ -89,6 +89,15 @@ usage = Stretch intensities of each output section to fill range of data mode
 tooltip = 
 manpage = Stretch intensities of each output section to fill range of data
 mode.
+
+[Field = FillValue]
+short = fill
+type = F
+usage = Value to fill empty image areas with, before scaling
+tooltip = 
+manpage = Value to fill areas of the output image that have no image data.
+The value is used before any scling by the -float option, so it will not work
+as intended with -float.
  
 [Field = TransformFile]
 short = xform

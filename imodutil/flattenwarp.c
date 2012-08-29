@@ -26,17 +26,7 @@
 #include "parse_params.h"
 #include "lsqr.h"
 #include "sparselsqr.h"
-
-/* Prototype for lapack routine */
-#ifdef F77FUNCAP
-#define dsysv DSYSV
-#else
-#define dsysv dsysv_
-#endif
-
-void dsysv(char *uplo, int *n, int *nrhs, double *a, int *lda, int *ipiv,
-           double *b, int *ldb, double *work, int *lwork, int *info, 
-           int uploSize);
+#include "lapackc.h"
 
 /* Structure for storing contour data */
 typedef struct {
@@ -112,7 +102,7 @@ int main( int argc, char *argv[])
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 flattenwarp  */
   int numOptions = 12;
-  char *options[] = {
+  const char *options[] = {
     "input:InputFile:FN:", "output:OutputFile:FN:",
     "patch:PatchOutputFile:FN:", "middle:MiddleContourFile:FN:",
     "binning:BinningOfTomogram:IP:", "one:OneSurface:B:",

@@ -1,6 +1,5 @@
 #include "customdialog.h"
 
-
 //############################################################
 
 #include <qstringlist.h>
@@ -8,8 +7,6 @@
 #include <qcolordialog.h>
 
 using namespace std;
-
-
 
 //############################################################
 
@@ -38,13 +35,13 @@ void ColorButton::pickColor()
   if( newColor.isValid() )
   {
     color = newColor;
-		//color = QColorDialog::getColor(color, this);
-		//QColorDialog dlgColor = new QColorDialor();
-		//if( dlgColor.exec() )
-		//color = dlgColor.selectedColor();
-		this->setStyleSheet( "background-color: " + color.name() );
+    //color = QColorDialog::getColor(color, this);
+    //QColorDialog dlgColor = new QColorDialor();
+    //if( dlgColor.exec() )
+    //color = dlgColor.selectedColor();
+    this->setStyleSheet( "background-color: " + color.name() );
       // NOTE: QColorDialog is significantly different in Qt version 4.3 versus 4.7
-		emit released();
+    emit released();
   }
 }
 
@@ -76,48 +73,48 @@ CustomDialog::CustomDialog( QString title, QWidget *parent, btnset btnSet )
   hbtnLayout->setSpacing(5);
   hbtnLayout->setMargin(8);
   
-	
-	if( btnSet == BS_CANCEL_OKAY )
-	{
-		addCustomButton( "Cancel", BB_REJECT );
-		addCustomButton( "Okay",   BB_ACCEPT );
-	}
-	else if( btnSet == BS_OKAY_ONLY )
-	{
-		addCustomButton( "Okay", BB_ACCEPT );
-	}
-	else if( btnSet == BS_NO_YES )
-	{
-		addCustomButton( "No",  BB_REJECT );
-		addCustomButton( "Yes", BB_ACCEPT );
-	}
-	
-	
-	/*
-	cancelButton = new QPushButton("Cancel", this);
-	connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
-	hbtnLayout->addWidget(cancelButton);
-	
-	okButton = new QPushButton("Okay", this);
-	connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
-	hbtnLayout->addWidget(okButton);
-	okButton->setDefault(true);             // if user hits [return] accept() is called
   
-	if( btnSet == BS_OKAY_ONLY )
-	{
-		cancelButton->setVisible( false );
-	}
-	else if( btnSet == BS_NO_YES )
-	{
-		cancelButton->setText( "No" );
-		okButton->setText( "Yes" );
-	}
-	else if( BS_CUSTOM )
-	{
-		cancelButton->setVisible( false );
-		okButton->setVisible( false );
-	}*/
-	
+  if( btnSet == BS_CANCEL_OKAY )
+  {
+    addCustomButton( "Cancel", BB_REJECT );
+    addCustomButton( "Okay",   BB_ACCEPT );
+  }
+  else if( btnSet == BS_OKAY_ONLY )
+  {
+    addCustomButton( "Okay", BB_ACCEPT );
+  }
+  else if( btnSet == BS_NO_YES )
+  {
+    addCustomButton( "No",  BB_REJECT );
+    addCustomButton( "Yes", BB_ACCEPT );
+  }
+  
+  
+  /*
+  cancelButton = new QPushButton("Cancel", this);
+  connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+  hbtnLayout->addWidget(cancelButton);
+  
+  okButton = new QPushButton("Okay", this);
+  connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
+  hbtnLayout->addWidget(okButton);
+  okButton->setDefault(true);             // if user hits [return] accept() is called
+  
+  if( btnSet == BS_OKAY_ONLY )
+  {
+    cancelButton->setVisible( false );
+  }
+  else if( btnSet == BS_NO_YES )
+  {
+    cancelButton->setText( "No" );
+    okButton->setText( "Yes" );
+  }
+  else if( BS_CUSTOM )
+  {
+    cancelButton->setVisible( false );
+    okButton->setVisible( false );
+  }*/
+  
   vboxLayoutMain->addLayout( vboxLayout );
   vboxLayoutMain->addLayout( hbtnLayout );
   
@@ -139,39 +136,39 @@ CustomDialog::CustomDialog( QString title, QWidget *parent, btnset btnSet )
 //-- @ tooltip  = optional tooltip
 
 bool CustomDialog::addCustomButton( QString buttonStr, btnbehav buttonBehav,
-																	  QString tooltip )
+                                    QString tooltip )
 {
-	customBtn.push_back( new QPushButton(buttonStr, this) );
-	
-	QPushButton *newButton = customBtn.back();
-	
-	switch (buttonBehav)
-	{
-		case (BB_ACCEPT):
-			QObject::connect( newButton, SIGNAL(clicked()), this, SLOT(customBtnAccept()));
-			break;
-		case (BB_REJECT):
-			QObject::connect( newButton, SIGNAL(clicked()), this, SLOT(customBtnReject()));
-			break;
-		case (BB_DISABLED):
-			newButton->setEnabled( false );
-			break;
-		case (BB_POPUP):
-			QObject::connect( newButton, SIGNAL(clicked()), this, SLOT(customBtnMessage()));
-			break;
-		case (BB_OPENURL):
-			QObject::connect( newButton, SIGNAL(clicked()), this, SLOT(customBtnOpenUrl()));
-			break;
-	}
-	
-	if( !tooltip.isEmpty() )
-		newButton->setToolTip( tooltip );
-	
-	hbtnLayout->addWidget( newButton );
-	
-	
-	
-	return true;
+  customBtn.push_back( new QPushButton(buttonStr, this) );
+  
+  QPushButton *newButton = customBtn.back();
+  
+  switch (buttonBehav)
+  {
+    case (BB_ACCEPT):
+      QObject::connect( newButton, SIGNAL(clicked()), this, SLOT(customBtnAccept()));
+      break;
+    case (BB_REJECT):
+      QObject::connect( newButton, SIGNAL(clicked()), this, SLOT(customBtnReject()));
+      break;
+    case (BB_DISABLED):
+      newButton->setEnabled( false );
+      break;
+    case (BB_POPUP):
+      QObject::connect( newButton, SIGNAL(clicked()), this, SLOT(customBtnMessage()));
+      break;
+    case (BB_OPENURL):
+      QObject::connect( newButton, SIGNAL(clicked()), this, SLOT(customBtnOpenUrl()));
+      break;
+  }
+  
+  if( !tooltip.isEmpty() )
+    newButton->setToolTip( tooltip );
+  
+  hbtnLayout->addWidget( newButton );
+  
+  
+  
+  return true;
 }
 
 
@@ -307,7 +304,7 @@ int CustomDialog::addReadOnlyLineEdit( QString caption, QString text, QString to
   
   e.lineEdit = new QLineEdit(this);
   e.lineEdit->setText( text );
-	e.lineEdit->setReadOnly( true );
+  e.lineEdit->setReadOnly( true );
   if( !tooltip.isEmpty() )
     e.lineEdit->setToolTip(tooltip );
   
@@ -344,13 +341,13 @@ int CustomDialog::addLineEditF( QString caption, float min, float max, float *va
   e.layout->addWidget( e.label );
   e.layout->addItem( sp );
   e.layout->addWidget( e.lineEdit );
-	
-	if( !unitsStr.isEmpty() )
-	{
-		e.label2 = new QLabel(unitsStr,this);
-		e.layout->addWidget( e.label2 );
-	}
-	
+  
+  if( !unitsStr.isEmpty() )
+  {
+    e.label2 = new QLabel(unitsStr,this);
+    e.layout->addWidget( e.label2 );
+  }
+  
   layoutNextElement->addLayout( e.layout );
   return elements.size();
 }
@@ -551,9 +548,9 @@ int CustomDialog::addColorSel( QString caption, QColor *color, QString tooltip )
 //-- @ tooltip       =  optional tooltip for all the form elements in this row
 
 int CustomDialog::addMinMaxSpinBoxPair( QString caption, QString middleCaption,
-																			 int min, int max,
-																			 int *minValue, int *maxValue, int step,
-																       QString tooltip )
+                                       int min, int max,
+                                       int *minValue, int *maxValue, int step,
+                                       QString tooltip )
 {
   DialogElement &e = addNewElement( DLG_MINMAXSPIN, caption, tooltip, true );
   
@@ -562,32 +559,32 @@ int CustomDialog::addMinMaxSpinBoxPair( QString caption, QString middleCaption,
   e.spnBox->setRange     ( min, max );
   e.spnBox->setValue     ( *minValue );
   e.spnBox->setSingleStep( step );
-	
-	e.returnInt2 = maxValue;
+  
+  e.returnInt2 = maxValue;
   e.spnBox2 = new QSpinBox(this);
   e.spnBox2->setRange     ( min, max );
   e.spnBox2->setValue     ( *maxValue );
   e.spnBox2->setSingleStep( step );
-	
-	e.label2 = new QLabel(middleCaption,this);
-	
-	if( !tooltip.isEmpty() )
-	{
-		e.spnBox->setToolTip(tooltip );
-		e.spnBox2->setToolTip(tooltip );
-		e.label2->setToolTip( tooltip );
-	}
-	
+  
+  e.label2 = new QLabel(middleCaption,this);
+  
+  if( !tooltip.isEmpty() )
+  {
+    e.spnBox->setToolTip(tooltip );
+    e.spnBox2->setToolTip(tooltip );
+    e.label2->setToolTip( tooltip );
+  }
+  
   QSpacerItem *sp = new QSpacerItem(40,20,QSizePolicy::Expanding,QSizePolicy::Minimum);
   
-	e.layout->addWidget( e.label );
+  e.layout->addWidget( e.label );
   e.layout->addItem( sp );
   e.layout->addWidget( e.spnBox );
-	e.layout->addWidget( e.label2 );
-	e.layout->addWidget( e.spnBox2 );
+  e.layout->addWidget( e.label2 );
+  e.layout->addWidget( e.spnBox2 );
   layoutNextElement->addLayout( e.layout );
-	
-	return elements.size();
+  
+  return elements.size();
 }
 
 
@@ -603,23 +600,23 @@ int CustomDialog::addMinMaxSpinBoxPair( QString caption, QString middleCaption,
 //-- @ tooltip   =  optional tooltip for all the form elements in this row
 
 int CustomDialog::addTextEdit( string *text, bool richText, bool readOnly,
-															 int minHeight, QString tooltip )
+                               int minHeight, QString tooltip )
 {
   DialogElement &e = addNewElement( DLG_TEXTEDIT, "", tooltip, false );
   
-	e.returnString = text;
+  e.returnString = text;
   e.textEdit = new QTextEdit(this);
-	e.textEdit->setAcceptRichText( richText );
-	if( richText )
-		e.textEdit->setHtml( text->c_str() );
+  e.textEdit->setAcceptRichText( richText );
+  if( richText )
+    e.textEdit->setHtml( text->c_str() );
   else
-		e.textEdit->setPlainText( text->c_str() );
-	
-	if( !tooltip.isEmpty() )
+    e.textEdit->setPlainText( text->c_str() );
+  
+  if( !tooltip.isEmpty() )
     e.textEdit->setToolTip(tooltip );
-	e.textEdit->setReadOnly( readOnly );
-	e.textEdit->setMinimumHeight( minHeight );
-	
+  e.textEdit->setReadOnly( readOnly );
+  e.textEdit->setMinimumHeight( minHeight );
+  
   e.layout->addWidget( e.textEdit );
   layoutNextElement->addLayout( e.layout );
   return elements.size();
@@ -635,22 +632,22 @@ int CustomDialog::addTextEdit( string *text, bool richText, bool readOnly,
 //-- @ tooltip   =  optional tooltip for all the form elements in this row
 
 int CustomDialog::addReadOnlyTextEdit( QString text, bool richText,
-															         int minHeight, QString tooltip )
+                                       int minHeight, QString tooltip )
 {
   DialogElement &e = addNewElement( DLG_TEXTEDIT, "", tooltip, false );
   
   e.textEdit = new QTextEdit(this);
-	e.textEdit->setAcceptRichText( richText );
-	if( richText )
-		e.textEdit->setHtml( text );
+  e.textEdit->setAcceptRichText( richText );
+  if( richText )
+    e.textEdit->setHtml( text );
   else
-		e.textEdit->setPlainText( text );
-	
-	if( !tooltip.isEmpty() )
+    e.textEdit->setPlainText( text );
+  
+  if( !tooltip.isEmpty() )
     e.textEdit->setToolTip(tooltip );
-	e.textEdit->setReadOnly( true );
-	e.textEdit->setMinimumHeight( minHeight );
-	
+  e.textEdit->setReadOnly( true );
+  e.textEdit->setMinimumHeight( minHeight );
+  
   e.layout->addWidget( e.textEdit );
   layoutNextElement->addLayout( e.layout );
   return elements.size();
@@ -665,21 +662,21 @@ int CustomDialog::addReadOnlyTextEdit( QString text, bool richText,
 //-- @ tooltip    =  optional tooltip for all the form elements in this row
 
 int CustomDialog::addProgressBar( QString caption, int percent,
-																  int width, bool showValue, QString tooltip )
+                                  int width, bool showValue, QString tooltip )
 {
   DialogElement &e = addNewElement( DLG_LABEL, caption, tooltip, true );
   
-	QProgressBar *progBar = new QProgressBar(this);
-	progBar->setMinimum(0);
-	progBar->setMaximum(100);
-	progBar->setValue(percent);
-	progBar->setFixedWidth(width);
-	if(showValue)
-		progBar->setStyleSheet("color: rgb(0,0,0);");		// black
+  QProgressBar *progBar = new QProgressBar(this);
+  progBar->setMinimum(0);
+  progBar->setMaximum(100);
+  progBar->setValue(percent);
+  progBar->setFixedWidth(width);
+  if(showValue)
+    progBar->setStyleSheet("color: rgb(0,0,0);");    // black
   if( !tooltip.isEmpty() )
     progBar->setToolTip(tooltip);
-	
-	QSpacerItem *sp = new QSpacerItem(10,20,QSizePolicy::Expanding,QSizePolicy::Minimum);
+  
+  QSpacerItem *sp = new QSpacerItem(10,20,QSizePolicy::Expanding,QSizePolicy::Minimum);
   e.layout->addWidget( e.label );
   e.layout->addItem( sp );
   e.layout->addWidget( progBar );
@@ -697,61 +694,61 @@ int CustomDialog::addProgressBar( QString caption, int percent,
 //-- @ tooltip    =  optional tooltip for all the form elements in this row
 
 int CustomDialog::addPercentBar( QString caption, QString valueLabel, float fraction,
-																 int width, QColor colorBar, QString tooltip,
-																 QFrame::Shape shape, QFrame::Shadow shadow )
+                                 int width, QColor colorBar, QString tooltip,
+                                 QFrame::Shape shape, QFrame::Shadow shadow )
 {
   DialogElement &e = addNewElement( DLG_LABEL, caption, tooltip, true );
   
-	QSpacerItem *sp = new QSpacerItem(10,20,QSizePolicy::Expanding,QSizePolicy::Minimum);
-	
-	e.label2 = new QLabel(valueLabel,this);
-	
-	QSpacerItem *sp2 = new QSpacerItem(10,20,QSizePolicy::Minimum,QSizePolicy::Minimum);
-	
-	int widthLine1 = (int)(fraction * (float)width);
-	int widthLine2 = width - widthLine1;
-	
-	QFrame *fraBar = new QFrame(this);
-	fraBar->setFrameShape(shape);
-	fraBar->setFrameShadow(shadow);
-	
-	QHBoxLayout *layLines = new QHBoxLayout();
-	layLines->setSpacing(0);
+  QSpacerItem *sp = new QSpacerItem(10,20,QSizePolicy::Expanding,QSizePolicy::Minimum);
+  
+  e.label2 = new QLabel(valueLabel,this);
+  
+  QSpacerItem *sp2 = new QSpacerItem(10,20,QSizePolicy::Minimum,QSizePolicy::Minimum);
+  
+  int widthLine1 = (int)(fraction * (float)width);
+  int widthLine2 = width - widthLine1;
+  
+  QFrame *fraBar = new QFrame(this);
+  fraBar->setFrameShape(shape);
+  fraBar->setFrameShadow(shadow);
+  
+  QHBoxLayout *layLines = new QHBoxLayout();
+  layLines->setSpacing(0);
   layLines->setMargin(0);
-	fraBar->setLayout( layLines );
-	
-	QFrame *line1 = new QFrame(this);
-	line1->setObjectName(QString::fromUtf8("line1"));
-	line1->setFixedWidth(widthLine1);
-	line1->setMinimumHeight(18);
-	line1->setFrameShape(QFrame::HLine);
-	line1->setFrameShadow(QFrame::Plain);
-	line1->setLineWidth(15);
-	line1->setStyleSheet("color: " + colorBar.name() + ";");
-	layLines->addWidget( line1 );
-	
-	QFrame *line2 = new QFrame(this);
-	line2->setObjectName(QString::fromUtf8("line1"));
-	line2->setFixedWidth(widthLine2);
-	line2->setMinimumHeight(18);
-	line2->setLineWidth(15);
-	line2->setFrameShape(QFrame::HLine);
-	line2->setFrameShadow(QFrame::Plain);
-	line2->setStyleSheet("color: rgb(255,255,255,80);");
-	layLines->addWidget( line2 );
-	
-	if( !tooltip.isEmpty() )
-	{
-		line1->setToolTip(tooltip);
-		line2->setToolTip(tooltip);
-	}
-	
+  fraBar->setLayout( layLines );
+  
+  QFrame *line1 = new QFrame(this);
+  line1->setObjectName(QString::fromUtf8("line1"));
+  line1->setFixedWidth(widthLine1);
+  line1->setMinimumHeight(18);
+  line1->setFrameShape(QFrame::HLine);
+  line1->setFrameShadow(QFrame::Plain);
+  line1->setLineWidth(15);
+  line1->setStyleSheet("color: " + colorBar.name() + ";");
+  layLines->addWidget( line1 );
+  
+  QFrame *line2 = new QFrame(this);
+  line2->setObjectName(QString::fromUtf8("line1"));
+  line2->setFixedWidth(widthLine2);
+  line2->setMinimumHeight(18);
+  line2->setLineWidth(15);
+  line2->setFrameShape(QFrame::HLine);
+  line2->setFrameShadow(QFrame::Plain);
+  line2->setStyleSheet("color: rgb(255,255,255,80);");
+  layLines->addWidget( line2 );
+  
+  if( !tooltip.isEmpty() )
+  {
+    line1->setToolTip(tooltip);
+    line2->setToolTip(tooltip);
+  }
+  
   e.layout->addWidget( e.label );
-	e.layout->addItem( sp );
-	e.layout->addWidget( e.label2 );
-	e.layout->addItem( sp2 );
+  e.layout->addItem( sp );
+  e.layout->addWidget( e.label2 );
+  e.layout->addItem( sp2 );
   //e.layout->addLayout( layLines );
-	e.layout->addWidget( fraBar );
+  e.layout->addWidget( fraBar );
   layoutNextElement->addLayout( e.layout );
   return elements.size();
 }
@@ -762,11 +759,11 @@ int CustomDialog::addPercentBar( QString caption, QString valueLabel, float frac
 
 int CustomDialog::addVSpacer( int minHeight )
 {
-	QSpacerItem *sp = new QSpacerItem( 0, minHeight,
-																		 QSizePolicy::Minimum, QSizePolicy::Expanding );
-	
+  QSpacerItem *sp = new QSpacerItem( 0, minHeight,
+                                     QSizePolicy::Minimum, QSizePolicy::Expanding );
+  
   //e.layout->addItem( sp );
-	layoutNextElement->addItem( sp );
+  layoutNextElement->addItem( sp );
   return elements.size();
 }
 
@@ -852,7 +849,7 @@ int CustomDialog::addCheckPrev( QString caption, bool *checked,
   int insertPos = 1;
   if( !removeLabel && (e.type==DLG_SPINBOX  || e.type==DLG_DBLSPINBOX
                        || e.type==DLG_MINMAXSPIN || e.type==DLG_COLOR
-											 || e.type==DLG_FLOATEDIT ) )
+                       || e.type==DLG_FLOATEDIT ) )
     insertPos = 2;
   if( e.type==DLG_RADIOGRP || e.type==DLG_GRPBOX )
     vboxLayout->insertWidget( vboxLayout->count()-1, e.chkExtra );
@@ -884,7 +881,7 @@ int CustomDialog::addCheckPrev( QString caption, bool *checked,
   case(DLG_GRPBOX):     wid = e.grpBox;     break;
   case(DLG_COLOR):      wid = e.btnColor;   break;
   case(DLG_TEXTEDIT):   wid = e.textEdit;   break;
-	}
+  }
   
   switch( chkBehav )
   {
@@ -900,13 +897,13 @@ int CustomDialog::addCheckPrev( QString caption, bool *checked,
   case(CB_SHOW):
     wid->setVisible( *checked );
     e.chkExtra->connect( e.chkExtra, SIGNAL(clicked(bool)), wid, SLOT(setVisible(bool)));
-		e.chkExtra->connect( this, SIGNAL(clicked(bool)), wid, SLOT(reize()));
+    e.chkExtra->connect( this, SIGNAL(clicked(bool)), wid, SLOT(reize()));
     connect( e.chkExtra, SIGNAL( clicked() ), this, SLOT( resizeMe() ) );
     break;
   case(CB_HIDE):
     wid->setHidden( *checked );
     e.chkExtra->connect( e.chkExtra, SIGNAL(clicked(bool)), wid, SLOT(setHidden(bool)));
-		e.chkExtra->connect( this, SIGNAL(clicked(bool)), wid, SLOT(reize()));
+    e.chkExtra->connect( this, SIGNAL(clicked(bool)), wid, SLOT(reize()));
     connect( e.chkExtra, SIGNAL( clicked() ), this, SLOT( resizeMe() ) );
     break;
   }
@@ -971,20 +968,20 @@ bool CustomDialog::setStyleElem( int idx, string styleStr, bool bold )
   
   switch ( e.type )
   {
-    case( DLG_CHECKBOX   ):		e.chkBox->setStyleSheet( styleQStr );     break;
+    case( DLG_CHECKBOX   ):    e.chkBox->setStyleSheet( styleQStr );     break;
     case( DLG_LINEEDIT   ):
-    case( DLG_FLOATEDIT  ):		e.lineEdit->setStyleSheet( styleQStr );   break;
-    case( DLG_SPINBOX    ):		e.spnBox->setStyleSheet( styleQStr );     break;
-    case( DLG_DBLSPINBOX ):		e.dblSpnBox->setStyleSheet( styleQStr );  break;
-    case( DLG_COMBOBOX   ):		e.cmbBox->setStyleSheet( styleQStr );     break;
+    case( DLG_FLOATEDIT  ):    e.lineEdit->setStyleSheet( styleQStr );   break;
+    case( DLG_SPINBOX    ):    e.spnBox->setStyleSheet( styleQStr );     break;
+    case( DLG_DBLSPINBOX ):    e.dblSpnBox->setStyleSheet( styleQStr );  break;
+    case( DLG_COMBOBOX   ):    e.cmbBox->setStyleSheet( styleQStr );     break;
     case( DLG_RADIOGRP   ):
     {
       for( int i=0; i<(int)e.radBtn.size(); i++ )
         e.radBtn[i]->setStyleSheet( styleQStr );
     } break;
-    case( DLG_COLOR      ):		break;
-    case( DLG_GRPBOX     ):		e.grpBox->setStyleSheet( styleQStr );     break;
-		case( DLG_TEXTEDIT   ):		e.textEdit->setStyleSheet( styleQStr );     break;
+    case( DLG_COLOR      ):    break;
+    case( DLG_GRPBOX     ):    e.grpBox->setStyleSheet( styleQStr );     break;
+    case( DLG_TEXTEDIT   ):    e.textEdit->setStyleSheet( styleQStr );     break;
   }
   
   return true;
@@ -1013,9 +1010,9 @@ bool CustomDialog::setEnabledElem( int idx, bool enabled )
 {
   if( idx >= elements.size() || idx < 0 )
     return false;
-	
-	DialogElement &e = elements[idx];
-	e.layout->setEnabled( enabled );
+  
+  DialogElement &e = elements[idx];
+  e.layout->setEnabled( enabled );
 }
 
 
@@ -1025,7 +1022,7 @@ bool CustomDialog::setEnabledElem( int idx, bool enabled )
 
 void CustomDialog::setEnabledPrev( bool enabled )
 {
-	setEnabledElem( elements.size()-1, enabled );
+  setEnabledElem( elements.size()-1, enabled );
 }
 
 //------------------------
@@ -1034,8 +1031,8 @@ void CustomDialog::setEnabledPrev( bool enabled )
 
 void CustomDialog::setEnabledAll( bool enabled )
 {
-	for( int i=0; i<(int)elements.size(); i++ )
-		setEnabledElem( i, enabled );
+  for( int i=0; i<(int)elements.size(); i++ )
+    setEnabledElem( i, enabled );
 }
 
 
@@ -1060,8 +1057,8 @@ void CustomDialog::resizeMe()
 
 void CustomDialog::customBtnAccept()
 {
-	updateBtnClicked( QObject::sender() );		// updates the value of "customBtnClicked"
-	
+  updateBtnClicked( QObject::sender() );    // updates the value of "customBtnClicked"
+  
   for( int i = 0; i<(int)elements.size(); i++ )
   {
     DialogElement &e = elements[i];
@@ -1110,23 +1107,23 @@ void CustomDialog::customBtnAccept()
     case( DLG_COLOR ):
       *e.returnColor = e.btnColor->color;
       break;
-		
-		case( DLG_MINMAXSPIN ):
-				*e.returnInt = (int)e.spnBox->value();
-				*e.returnInt2 = (int)e.spnBox2->value();
-				break;
-				
+    
+    case( DLG_MINMAXSPIN ):
+        *e.returnInt = (int)e.spnBox->value();
+        *e.returnInt2 = (int)e.spnBox2->value();
+        break;
+        
     case( DLG_GRPBOX ):
       if( e.grpBox->isCheckable() )
         *e.returnInt = e.grpBox->isChecked();
       break;
-				
-		case( DLG_TEXTEDIT ):
-			if( e.textEdit->isReadOnly() == false )
-				*e.returnString = e.textEdit->toPlainText().toStdString();
-			break;
+        
+    case( DLG_TEXTEDIT ):
+      if( e.textEdit->isReadOnly() == false )
+        *e.returnString = e.textEdit->toPlainText().toStdString();
+      break;
     }
-		
+    
   }
   
   QDialog::accept();
@@ -1140,8 +1137,8 @@ void CustomDialog::customBtnAccept()
 
 void CustomDialog::customBtnReject()
 {
-	updateBtnClicked( QObject::sender() );		// updates the value of "customBtnClicked"
-	QDialog::reject();
+  updateBtnClicked( QObject::sender() );    // updates the value of "customBtnClicked"
+  QDialog::reject();
 }
 
 //------------------------
@@ -1150,10 +1147,10 @@ void CustomDialog::customBtnReject()
 
 void CustomDialog::updateBtnClicked( QObject* btnClicked )
 {
-	customBtnClicked = -1;
-	for( int i=0; i<(int)customBtn.size(); i++ )
-		if( btnClicked==customBtn[i] )
-			customBtnClicked = i;
+  customBtnClicked = -1;
+  for( int i=0; i<(int)customBtn.size(); i++ )
+    if( btnClicked==customBtn[i] )
+      customBtnClicked = i;
 }
 
 //------------------------
@@ -1162,9 +1159,9 @@ void CustomDialog::updateBtnClicked( QObject* btnClicked )
 
 void CustomDialog::customBtnMessage()
 {
-	for( int i=0; i<(int)customBtn.size(); i++ )
-		if( QObject::sender()==customBtn[i] )
-			MsgBox( customBtn[i], "...", customBtn[i]->toolTip() );
+  for( int i=0; i<(int)customBtn.size(); i++ )
+    if( QObject::sender()==customBtn[i] )
+      MsgBox( customBtn[i], "...", customBtn[i]->toolTip() );
 }
 
 //------------------------
@@ -1173,9 +1170,9 @@ void CustomDialog::customBtnMessage()
 
 void CustomDialog::customBtnOpenUrl()
 {
-	for( int i=0; i<(int)customBtn.size(); i++ )
-		if( QObject::sender()==customBtn[i] )
-			openUrl( customBtn[i]->toolTip() );
+  for( int i=0; i<(int)customBtn.size(); i++ )
+    if( QObject::sender()==customBtn[i] )
+      openUrl( customBtn[i]->toolTip() );
 }
 
 
@@ -1224,7 +1221,7 @@ void MsgBox( string str )
 
 void MsgBox( QWidget *parent, QString title, QString str )
 {
-	QMessageBox::information(parent, title, str );
+  QMessageBox::information(parent, title, str );
 }
 
 //---------
@@ -1233,7 +1230,7 @@ void MsgBox( QWidget *parent, QString title, QString str )
 bool MsgBoxYesNo( QWidget *parent, string str )
 {
   int result = QMessageBox::information( parent, "...", str.c_str(),
-																				 QMessageBox::Yes, QMessageBox::No );
+                                         QMessageBox::Yes, QMessageBox::No );
   return ( result == QMessageBox::Yes );
 }
 

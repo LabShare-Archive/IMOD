@@ -55,6 +55,16 @@ final class FileTextField2 implements FileTextFieldInterface {
   private int fileSelectionMode = -1;
   private FileFilter fileFilter = null;
   private boolean absolutePath = false;
+  /**
+   * If origin is valid, it overrides originEtomoRunDir.
+   */
+  private File origin = null;
+  /**
+   * If true, then the origin directory of the file is the directory in which etomo was
+   * run.  Useful when a dataset location has not been set.
+   */
+  private boolean originEtomoRunDir = false;
+
 
   private FileTextField2(final BaseManager manager, final String label,
       final boolean labeled, final boolean peet) {
@@ -99,6 +109,13 @@ final class FileTextField2 implements FileTextFieldInterface {
    */
   static FileTextField2 getPeetInstance(final BaseManager manager, final String name) {
     FileTextField2 instance = new FileTextField2(manager, name, true, true);
+    instance.createPanel();
+    instance.addListeners();
+    return instance;
+  }
+
+  static FileTextField2 getInstance(final BaseManager manager, final String name) {
+    FileTextField2 instance = new FileTextField2(manager, name, true, false);
     instance.createPanel();
     instance.addListeners();
     return instance;
@@ -163,13 +180,7 @@ final class FileTextField2 implements FileTextFieldInterface {
    * Opens a file chooser and notifies the result listener list.
    */
   private void action() {
-    String filePath = null;
-    if (manager != null) {
-      filePath = manager.getPropertyUserDir();
-    }
-    else {
-      filePath = EtomoDirector.INSTANCE.getOriginalUserDir();
-    }
+    String filePath = getOriginDir();
     JFileChooser chooser = new FileChooser(new File(filePath));
     chooser.setDialogTitle(Utilities.stripLabel(label.getText()));
     if (fileSelectionMode != -1) {
@@ -203,36 +214,63 @@ final class FileTextField2 implements FileTextFieldInterface {
     this.absolutePath = input;
   }
 
-  boolean isEmpty() {
-    return field.getText() == null || field.getText().matches("\\s*");
-  }
-
-  boolean exists() {
-    return FilePath.buildAbsoluteFile(
-        manager == null ? EtomoDirector.INSTANCE.getOriginalUserDir()
-            : manager.getPropertyUserDir(), field.getText()).exists();
-  }
-
-  public File getFile() {
-    return FilePath.buildAbsoluteFile(
-        manager == null ? EtomoDirector.INSTANCE.getOriginalUserDir() : manager
-            .getPropertyUserDir(), field.getText());
+  void setOriginEtomoRunDir(final boolean input) {
+    this.originEtomoRunDir = input;
   }
 
   /**
-   * Adds the text of the file path to the field.  If a manager is defined, the file path
-   * is relative to the manager's property user directory.  If not, the file path will be
-   * an absolute path.  If file is relative and the manager is not defined, the resulting
-   * absolute path will originate in the directory in which eTomo was run.
+   * Sets the origin member variable which overrides the originEtomoRunDir member variable
+   * and the propertyUserDir when it is a valid directory.
+   * @return
+   */
+  void setOrigin(final File input) {
+    origin = input;
+  }
+
+  boolean isEmpty() {
+    return field.getText() == null || field.getText().matches("\\s*");
+  }
+  
+  boolean isEnabled() {
+    return button.isEnabled();
+  }
+
+  boolean exists() {
+    return getFile().exists();
+  }
+
+  public File getFile() {
+    return FilePath.buildAbsoluteFile(getOriginDir(), field.getText());
+  }
+
+  /**
+   * Gets the origin directory.
+   * @return
+   */
+  private String getOriginDir() {
+    if (origin != null && origin.exists() && origin.isDirectory()) {
+      return origin.getAbsolutePath();
+    }
+    if (manager == null || originEtomoRunDir) {
+      return EtomoDirector.INSTANCE.getOriginalUserDir();
+    }
+    return manager.getPropertyUserDir();
+  }
+
+  /**
+   * Adds the text of the file path to the field.  The file path will be either absolute 
+   * or relative depending on the member variable absolutePath.  The directory will be set 
+   * to propertyUserDir, unless the member variable originEtomoRunDir is true.  The 
+   * directory will be used as the origin when building a relative file, or when building 
+   * an absolute file out of a relative file.
    * @param file
    */
   public void setFile(final File file) {
-    if (manager == null || absolutePath) {
-      field.setText(FilePath.buildAbsoluteFile(
-          EtomoDirector.INSTANCE.getOriginalUserDir(), file).getPath());
+    if (absolutePath) {
+      field.setText(FilePath.buildAbsoluteFile(getOriginDir(), file).getPath());
     }
     else {
-      field.setText(FilePath.getRelativePath(manager.getPropertyUserDir(), file));
+      field.setText(FilePath.getRelativePath(getOriginDir(), file));
     }
   }
 

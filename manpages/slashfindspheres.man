@@ -1,0 +1,214 @@
+.na
+.nh
+.TH slashfindspheres 1 2.00 BL3DEMC
+.SH NAME
+slashfindspheres \- Inputs spheres from one or more scattered point objects 
+and outputs new spheres with similar pixel values (useful for small vesicles).
+.SH SYNOPSIS
+slashfindspheres [options] <image> <input_model> <output_model>
+.SH DESCRIPTION
+Uses a simple template matching algorithm to try to finding non-overlapping
+sphere-shaped objects within the specified MRC image volume, and then
+outputting them as scattered point/spheres to a number of new objects in the output model.
+Examples of such "sphere-shaped" objects in cellular data can
+include: vesicles, ribosomes, nucleus (if they are small and round enough)
+and gold fiducial particles.
+
+Before running this program, you should first open the MRC file and create
+a model with at least one "scattered point" object (lets say object 1) containing
+around 5-50 spheres - i.e. points which are centered on the center of desired
+objects and have their radius resized to the correct amount using
+"Edit > Point > Size". You can then run this program with:
+ "slashfindspheres -o 1 your_mrc_file.mrc your_input_model.mod your_output_model.mod"
+
+When run in this way, the computer stores a 3D area around, and a few "gutter" pixels
+beyond the limits of each sphere and uses these as a "template" in a template matching
+algorithm where each pixel of the input image is considered and it's immediate
+3D pixel area is compared against each template/input sphere to determine which matches
+best. If the best match has a similarity is above a sensible "cutoff" threshold (-C),
+the pixel will be regarded a "candidate" sphere with the same radius as the best-matching
+input sphere. Since this algorithm will often yield many candidates in "likely areas"
+the final pass is to eliminate any candidate spheres that overlap a candidate sphere 
+with a higher confidence, or if it overlap one of the input spheres or any of the
+spheres in the "extra" objects list (-e).
+
+By default, up to 10,000 candidate spheres will be output to 5 new objects - although
+these values can be changed easily with -N and -s respectively (see below). Objects
+are colored with heat-map colors {red-yellow-green-aqua-blue} from most to least
+confidence, as reflected by the object names, and within the objects the output
+spheres are ordered with the most confident spheres first. After outputting spheres
+you can open in 3dmod and check them by selecting the very last point and hitting they
+'[' or 'c' shortcut key to go backwards through each point and delete those 'ctrl+d'
+that don't match. Separating them into many objects can also help delete large
+number of bad points at once. 
+
+.SS Options
+.TP 
+.B -o #/list
+A list of objects to use as "input spheres" (eg: "-o 1,2,4-6"). These objects should
+all be scattered point object and contain on the order of 5-20 points/spheres
+representing the spherical compartments you want segmented. An 3D area around each
+pixel in the model will be compared against all these input spheres to see which
+sphere (if any) is most similar, and then this point will adopt the same radius.
+If no list is specified, the program will try to use the first scattered point
+object in the model.
+.TP 
+.B -e #/list
+A list of "extra" objects which we don't our output spheres to overlap. Unlike the
+input object list, this list can include non-scattered point objects (i.e. closed
+and open contour objects) and considers all points in these objects regardless
+of whether they have a sphere size. The program will reject any candidate sphere which
+overlaps any point in these objects. When running the program multiple times to
+find additional spheres, you should use this option to make sure the same spheres
+are not segmented again and again. Objects in the input list don't need to be
+included as the program already rejects spheres that overlap these regions, but
+listing them again here doesn't hurt either.
+If "-e 0" is entered then ALL objects wil listed (to ensure no overlaps).
+.TP 
+.B -G #
+Represents the number of pixels to use as a "gutter" around each sphere when
+generating a template to match. In addition to the pixels inside a points radius,
+pixels in this gutter region are also evaluated and since this region is usually
+where the pixel intensities change (eg: just outside the spheres edge it probably
+turns light or dark) it's important to choose a good value. The default value
+is 2, but if you have large spheres (eg: 50 pixels across) and/or have many pixels of
+"empty/consistent space" outside your radius then you should probably increase
+this value. Lower gutter sizes will likely return more matches.
+As an extreme example: if your gutter was 0 and you were searching for little
+black spheres on a white background this program is likely to think all the pixels
+in a huge huge black blob/tube match perfectly and thus represent the center of a sphere.
+  (default: 2)
+.TP 
+.B -Z #
+Represents the number of pixels to use as a gutter in the Z axis. The default
+value for this is this "z gutter" value is the -G (normal gutter) value
+divided by the input model's z scale (under Model > Header). In most electron
+microscopy volumes (ET, SBFSEM, etc) the Z resolution is poorer than X and Y, so
+it makes sense that this value is much lower than -G. In cases where X, Y and Z all
+have the same pixel size, however, the two values should be the same.
+  (default: G/zScale)
+.TP 
+.B -C #
+Cut off value for cross-correlation, which you can enter as a percentage (eg: 80 = 80%).
+This "cut-off" value dictates how similar a sphere must be to an input sphere
+(where 100%=identical) to be counted. By default, the cutoff value will be determined
+by comparing the similarity between input spheres and printed out in results.
+A suitable cut-off value will differ from image to image to differences in intensities,
+contrast and so on.
+.TP 
+.B -R #
+A range of pixel values by which to scale cross-correlation measurements. By default
+this value will get sent to the difference between the minimum and maximum
+pixel value in the image, which is typically some number less than 255 and usually
+a good value to use as a measuring stick for deviation.
+.TP 
+.B -M #
+The maximum number of pixels a template will span - meaning any pixels outside this
+diameter will not be included.       
+  (default value: 30)
+.TP 
+.B -B #
+The maximum number of Z slices to keep in the 'slice buffer' at once. The higher this
+number, the less 'reloads' will be necessary (meaning faster processing), but if this
+value is too high will take up far more memory and either cause a slow down or 
+a crash / segmentation fault if it can't all fit in memory.       
+  (default value: 30)
+.TP 
+.B -N #
+Maximum number of spheres to add. Since the cutoff value can be difficult to estimate
+this value can be used to help ensure you don't add way more spheres than you
+expect to see in your model.
+  (default: 10,000)
+
+.TP 
+.B -x #,#
+Minimum and maximum limit in the X axis of your image to search for the center
+of a sphere. The -x, -y and -z arguments below can be used to reduce the search
+to a sub-volume in each dimensions. If omitted, all pixels in the image are searched.
+.TP 
+.B -y #,#
+Min and max limit in X axis of your image to search for the center of a sphere.
+  (example: "-y 0,2000")
+.TP 
+.B -z #,#
+Min and max slice or "Z limit" of your image to search for the center of a sphere,
+where 1 represents the bottom-most slice. When first running slashfindspheres,
+it can be helpful to start with a small z range to see fast results and decide if
+you want to then run your parameters over the whole image.
+  (example: "-z 1,10")
+
+.TP 
+.B -i
+If entered, the program will "ignore" the z axis and search everything in 2D only.
+In other words, it will treat each slice separately and look for "circle" profiles
+instead of spheres, although can still be surprisingly effective at finding spheres
+as candidate spheres which overlap spheres with higher confidence still get removed.
+.TP 
+.B -d
+If entered, "duplicate" or overlapping spheres are allowed. In other words, "candidate
+spheres" are not checked to see if they overlap input spheres, but are still checked
+against each other and against any "extra" spheres in "-e".
+.TP 
+.B -t #
+A "test radius" used for "early rejection" - a feature used to quickly skip pixels
+which look unlikely to match any of your input spheres. This value is 3 by default,
+meaning that an area of 6x6 (on the current slice only) pixels around each pixel is
+averaged together and checked that it has similar intensity to the 6x6 areas of the
+input spheres. What this means is that if all your input spheres have dark centers,
+then areas of light pixels will get skipped over quickly without comparing a 3D volume
+of image against all input spheres. To check all pixels you can enter "-t 0", but be
+warned that it will then take much longer to process!
+  (default: 3)
+
+.TP 
+.B -s #
+The number of new objects to split new spheres over. Objects are, by default,
+colored using a heat-map color gradient with the following colors representing
+from most to least confident:   red, yellow, green, aqua, blue. The name of 
+each object will also show name of the input object followed by the confidence
+range the object represents. Within the object, spheres are also ordered by
+confidence with contour 1 point 1 being the most confident.
+.TP 
+.B -m
+Allow "multiple points per contour" such that each new object will only have
+a single contour containing all points. By default, there is only point per
+contour only, making it easier in 3dmod to use the Edit >> Contour >> Move
+dialog to move points between objects.
+.TP 
+.B -c
+New objects will be given the same color as the original object (from the -o list).
+By default, new objects get given "heap-map" gradient colors starting at red
+for most confident then progressing through yellow, green, cyan and blue.
+.TP 
+.B -w #
+Write out an intermediate MRC files reflecting confidence value. If filters were
+applied then the result of these filters will appear in a second MRC file.
+.TP 
+.B -p #
+Represent a "print level" where the # is 0-10. A '-p 0' prints almost nothing
+while values of 5 will show a lot of output information to help in any confusing
+or debugging situation.
+  (default: 2)
+.TP 
+.B -F keys
+An ordered list of image filters applied in the form 'm5,s' where:
+ > 0  = no filters
+ > m# = median filter of size #
+ > s  = sobel edge filter  (useful to highlight the edges around
+        spheres as light)
+ > p  = prewitt edge filter (very similar to above)
+
+The default value is 'm3' - for a single found of median filter, but if you want
+no filters you can enter '-F 0'. Depending on the complexity of other structures
+inside you image the sobel filter can be very helpful and you can always type
+'-w 1' to see what the output looks like. Adding the sobel filter (eg: 'm3,s') can
+significantly increase accuracy, but is generally slower, not because the filter
+takes long, but because far fewer pixels will be subject to early rejection (see -t).
+
+
+.SH AUTHORS
+Andrew Noske and David Mastronarde
+.SH SEE ALSO
+imodfindbeads(1)
+.SH BUGS
+Email bug reports to mast@colorado.edu, and CC to andrew<DOT>noske<AT>gmail<DOT>com.

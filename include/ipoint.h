@@ -50,7 +50,9 @@ double imodel_point_dist(Ipoint *pnt1, Ipoint *pnt2);
 float imodPointLineSegDistance(Ipoint *lp1, Ipoint *lp2, Ipoint *p,
                                float *tval);
 int imodPointInsideCont(Icont *cont, Ipoint *pt);
+int imodPointInsideArea(Iobj *obj, int *list, int nlist, float x, float y);
 float imodPointContDistance(Icont *cont, Ipoint *pt, int open, int threeD, int *closest);
+  int makeAreaContList(Iobj *obj, int iz, int *list, int *nlist, int listSize);
 
 #ifdef __cplusplus
 }

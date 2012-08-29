@@ -167,7 +167,7 @@ final class CheckTextField {
   }
 
   private void createPanel() {
-    //root panel
+    // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
     pnlRoot.add(checkBox);
     pnlRoot.add(textField);
@@ -178,6 +178,14 @@ final class CheckTextField {
     pnlRoot.setToolTipText(tooltip);
     textField.setToolTipText(tooltip);
     checkBox.setToolTipText(text);
+  }
+
+  void setCheckBoxToolTipText(final String text) {
+    checkBox.setToolTipText(text);
+  }
+
+  void setFieldToolTipText(final String text) {
+    textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 
   Component getRootComponent() {

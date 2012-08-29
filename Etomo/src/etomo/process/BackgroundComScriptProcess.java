@@ -231,12 +231,12 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * @param axisID
    * @param watchedFileName
    */
-  public BackgroundComScriptProcess(BaseManager manager, String comScript,
-      BaseProcessManager processManager, AxisID axisID, String watchedFileName,
-      DetachedProcessMonitor monitor, ComscriptState comscriptState,
-      ConstProcessSeries processSeries) {
+  public BackgroundComScriptProcess(  final BaseManager manager,  final String comScript,
+      final   BaseProcessManager processManager,  final AxisID axisID, final  String watchedFileName,
+      final    DetachedProcessMonitor monitor,  final ComscriptState comscriptState,
+      final     ConstProcessSeries processSeries,final boolean resumable) {
     super(manager, comScript, processManager, axisID, watchedFileName, monitor,
-        processSeries);
+        processSeries,resumable);
     this.comscriptState = comscriptState;
     this.axisID = axisID;
     this.manager = manager;
