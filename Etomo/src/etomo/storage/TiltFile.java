@@ -41,8 +41,8 @@ import etomo.type.EtomoNumber;
 public final class TiltFile {
   public static final String rcsid = "$Id$";
 
-  private final EtomoNumber minAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
-  private final EtomoNumber maxAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
+  private final EtomoNumber minAngle = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber maxAngle = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
   private final File file;
 
@@ -70,7 +70,7 @@ public final class TiltFile {
       maxAngle.set(prevLine);
       //minAngle must be smaller then maxAngle
       if (maxAngle.lt(minAngle)) {
-        float temp = minAngle.getFloat();
+        double temp = minAngle.getDouble();
         minAngle.set(maxAngle);
         maxAngle.set(temp);
       }

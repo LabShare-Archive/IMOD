@@ -198,7 +198,7 @@ public final class XfjointomoLog {
   }
 
   private final class Row {
-    private final EtomoNumber bestGap = new EtomoNumber(EtomoNumber.Type.FLOAT);
+    private final EtomoNumber bestGap = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     private final String meanError;
     private final String maxError;
 
