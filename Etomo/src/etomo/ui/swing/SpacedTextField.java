@@ -37,7 +37,7 @@ final class SpacedTextField {
   private JPanel yAxisPanel = null;
 
   SpacedTextField(String label) {
-    //set name
+    // set name
     String name = Utilities.convertLabelToName(label);
     textField.setName(UITestFieldType.TEXT_FIELD.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
@@ -47,18 +47,18 @@ final class SpacedTextField {
     }
     label = label.trim();
     this.label = new JLabel(label);
-    //panels
+    // panels
     yAxisPanel = new JPanel();
     yAxisPanel.setLayout(new BoxLayout(yAxisPanel, BoxLayout.Y_AXIS));
     fieldPanel = new JPanel();
     fieldPanel.setLayout(new BoxLayout(fieldPanel, BoxLayout.X_AXIS));
-    //fieldPanel
+    // fieldPanel
     fieldPanel.add(Box.createRigidArea(FixedDim.x5_y0));
     fieldPanel.add(this.label);
     fieldPanel.add(Box.createRigidArea(FixedDim.x5_y0));
     fieldPanel.add(textField);
     fieldPanel.add(Box.createRigidArea(FixedDim.x5_y0));
-    //yPanel
+    // yPanel
     yAxisPanel.add(fieldPanel);
     yAxisPanel.add(Box.createRigidArea(FixedDim.x0_y5));
   }
@@ -91,6 +91,10 @@ final class SpacedTextField {
   }
 
   final void setText(double value) {
+    textField.setText(String.valueOf(value));
+  }
+
+  final void setText(long value) {
     textField.setText(String.valueOf(value));
   }
 
