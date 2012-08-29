@@ -2385,7 +2385,7 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public int getBeadfixerDiameter(AxisID axisID) {
-    return Math.round((float) (metaData.getFiducialDiameter() / metaData.getPixelSize())
+    return (int) Math.round(metaData.getFiducialDiameter() / metaData.getPixelSize()
         / UIExpertUtilities.INSTANCE.getStackBinning(this, axisID, ".preali"));
   }
 
