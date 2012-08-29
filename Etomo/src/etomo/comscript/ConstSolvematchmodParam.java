@@ -42,7 +42,7 @@ public class ConstSolvematchmodParam {
   protected StringList fiducialMatchListA = new StringList(0);
   protected StringList fiducialMatchListB = new StringList(0);
   protected FortranInputString xAxistTilt = new FortranInputString(2);
-  protected float residualThreshold;
+  protected double residualThreshold;
   protected int nSurfaces;
   protected String toReconstructionFile;
   protected String toMatchingModel;
@@ -100,9 +100,9 @@ public class ConstSolvematchmodParam {
   }
 
   /**
-   * @return float
+   * @return double
    */
-  public float getResidualThreshold() {
+  public double getResidualThreshold() {
     return residualThreshold;
   }
 

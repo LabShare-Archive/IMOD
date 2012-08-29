@@ -595,10 +595,6 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public float getFloatValue(final FieldInterface field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
   public ConstEtomoNumber getEtomoNumber(final FieldInterface field) {
     if (field == Field.IMAGE_ROTATION) {
       return imageRotation;

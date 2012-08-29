@@ -69,7 +69,7 @@ public final class ParallelProcessManager extends BaseProcessManager {
         ProcessName.ANISOTROPIC_DIFFUSION.toString())) {
       ParallelState state = manager.getState();
       state.setTestKValue(commandDetails
-          .getFloatValue(AnisotropicDiffusionParam.Field.K_VALUE));
+          .getDoubleValue(AnisotropicDiffusionParam.Field.K_VALUE));
       state.setTestIterationList(commandDetails
           .getIteratorElementList(AnisotropicDiffusionParam.Field.ITERATION_LIST));
     }

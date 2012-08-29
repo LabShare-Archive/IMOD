@@ -238,7 +238,7 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
       //tilt.com and these values are calculated from align log values.
       if (centerToCenterThickness != null && centerToCenterThickness.isValid()
           && !centerToCenterThickness.isNull()) {
-        ltfTomoThickness.setText(Math.round(centerToCenterThickness.getFloat()
+        ltfTomoThickness.setText(Math.round(centerToCenterThickness.getDouble()
             + manager.calcUnbinnedBeadDiameterPixels() * additionalDiameters));
       }
       try {

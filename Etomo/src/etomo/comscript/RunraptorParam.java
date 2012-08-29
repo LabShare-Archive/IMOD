@@ -47,7 +47,7 @@ public final class RunraptorParam {
   private static final String MARK_OPTION = "mark";
 
   private final List command = new ArrayList();
-  private final EtomoNumber diam = new EtomoNumber(EtomoNumber.Type.LONG);
+  private final EtomoNumber diam = new EtomoNumber();
   private final EtomoNumber mark = new EtomoNumber();
 
   private final BaseManager manager;
@@ -88,7 +88,7 @@ public final class RunraptorParam {
       return diam.getInvalidReason();
     }
     if (mayBeBinned) {
-      diam.set(Math.round((double) diam.getLong()
+      diam.set(Math.round(diam.getInt()
           / UIExpertUtilities.INSTANCE.getStackBinning(manager, axisID, ".preali")));
       if (!diam.isValid()) {
         return "The binned diameter is " + diam + ".  " + diam.getInvalidReason();

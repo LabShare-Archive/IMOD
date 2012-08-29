@@ -90,14 +90,6 @@ final class SpacedTextField {
     textField.setText(String.valueOf(value));
   }
 
-  final void setText(float value) {
-    textField.setText(String.valueOf(value));
-  }
-
-  final void setText(long value) {
-    textField.setText(String.valueOf(value));
-  }
-
   final void setText(double value) {
     textField.setText(String.valueOf(value));
   }

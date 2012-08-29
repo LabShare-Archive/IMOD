@@ -288,19 +288,6 @@ final class LabeledTextField {
   /**
    * Saves value as the checkpoint.
    */
-  void checkpoint(final float value) {
-    checkpointValue = new Float(value).toString();
-    if (numericType != null) {
-      if (nCheckpointValue == null) {
-        nCheckpointValue = new EtomoNumber(numericType);
-      }
-      nCheckpointValue.set(checkpointValue);
-    }
-  }
-
-  /**
-   * Saves value as the checkpoint.
-   */
   void checkpoint(final int value) {
     checkpointValue = new Integer(value).toString();
     if (numericType != null) {
@@ -448,14 +435,6 @@ final class LabeledTextField {
     textField.setText(String.valueOf(value));
   }
 
-  void setText(final float value) {
-    textField.setText(String.valueOf(value));
-  }
-
-  void setText(final long value) {
-    textField.setText(String.valueOf(value));
-  }
-
   void setText(final double value) {
     textField.setText(Double.toString(value));
   }
@@ -500,7 +479,7 @@ final class LabeledTextField {
 
   void setPreferredWidth(final int width) {
     Dimension dim = textField.getPreferredSize();
-    dim.width = width * Math.round(UIParameters.INSTANCE.getFontSizeAdjustment());
+    dim.width = width * (int) Math.round(UIParameters.INSTANCE.getFontSizeAdjustment());
     textField.setPreferredSize(dim);
     textField.setMaximumSize(dim);
   }

@@ -2384,8 +2384,8 @@ public final class ApplicationManager extends BaseManager implements
     return retval;
   }
 
-  public long getBeadfixerDiameter(AxisID axisID) {
-    return Math.round(metaData.getFiducialDiameter() / metaData.getPixelSize()
+  public int getBeadfixerDiameter(AxisID axisID) {
+    return (int) Math.round(metaData.getFiducialDiameter() / metaData.getPixelSize()
         / UIExpertUtilities.INSTANCE.getStackBinning(this, axisID, ".preali"));
   }
 
@@ -4152,7 +4152,7 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public boolean equalsBinning(AxisID axisID, int binning, FileType fileType) {
-    long fileBinning = UIExpertUtilities.INSTANCE.getStackBinning(this, axisID, fileType);
+    int fileBinning = UIExpertUtilities.INSTANCE.getStackBinning(this, axisID, fileType);
     return binning == fileBinning;
   }
 
@@ -6022,7 +6022,7 @@ public final class ApplicationManager extends BaseManager implements
     comScriptMgr.loadVolcombine();
     // try to load reduction factor
     ConstSetParam setParam = comScriptMgr.getSetParamFromVolcombine(
-        SetParam.COMBINEFFT_REDUCTION_FACTOR_NAME, EtomoNumber.Type.FLOAT);
+        SetParam.COMBINEFFT_REDUCTION_FACTOR_NAME, EtomoNumber.Type.DOUBLE);
     tomogramCombinationDialog.setReductionFactorParams(setParam);
     tomogramCombinationDialog.enableReductionFactor(setParam != null
         && setParam.isValid());
@@ -6083,7 +6083,7 @@ public final class ApplicationManager extends BaseManager implements
       // Make sure the reduction factor set command is available in
       // volcombine.com
       SetParam setParam = comScriptMgr.getSetParamFromVolcombine(
-          SetParam.COMBINEFFT_REDUCTION_FACTOR_NAME, EtomoNumber.Type.FLOAT);
+          SetParam.COMBINEFFT_REDUCTION_FACTOR_NAME, EtomoNumber.Type.DOUBLE);
       boolean setParamIsValid = setParam != null && setParam.isValid();
       tomogramCombinationDialog.enableReductionFactor(setParamIsValid);
       tomogramCombinationDialog.getReductionFactorParam(setParam);
