@@ -927,10 +927,6 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public float getFloatValue(final FieldInterface field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
   public Hashtable getHashtable(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
