@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/28/12: Fixed Alterheader FEIPIXEL command, which never worked (In 4.5).
+
 8/28/12: Fixed 3dmodv crash when toggling stereo, transparent background, or
 double buffer with multiple models (In 4.5).
 
