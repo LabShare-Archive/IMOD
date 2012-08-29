@@ -133,7 +133,7 @@ final class RadioTextField implements RadioButtonInterface {
     textField.setText(String.valueOf(value));
   }
 
-  void setText(final float value) {
+  void setText(final double value) {
     textField.setText(String.valueOf(value));
   }
 

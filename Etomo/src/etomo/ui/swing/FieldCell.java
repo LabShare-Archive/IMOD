@@ -314,10 +314,6 @@ final class FieldCell extends InputCell implements ActionTarget {
     setValue(new Double(value).toString());
   }
 
-  void setValue(long value) {
-    setValue(new Long(value).toString());
-  }
-
   int getEndValue() {
     return state.extractEndValue(textField.getText());
   }
@@ -338,13 +334,13 @@ final class FieldCell extends InputCell implements ActionTarget {
       return EtomoNumber.INTEGER_NULL_VALUE;
     }
   }
-
-  float getFloatValue() {
+  
+  double getDoubleValue() {
     try {
-      return Float.parseFloat(textField.getText());
+      return Double.parseDouble(textField.getText());
     }
     catch (NumberFormatException e) {
-      return EtomoNumber.FLOAT_NULL_VALUE;
+      return EtomoNumber.DOUBLE_NULL_VALUE;
     }
   }
 
@@ -358,10 +354,6 @@ final class FieldCell extends InputCell implements ActionTarget {
 
   ConstEtomoNumber getEtomoNumber(EtomoNumber.Type type) {
     return state.convertToEtomoNumber(type, textField.getText());
-  }
-
-  long getLongValue() {
-    return state.convertToLong(textField.getText());
   }
 
   void setForeground() {

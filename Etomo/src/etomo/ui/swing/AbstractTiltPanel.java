@@ -696,7 +696,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       ltfZShift.setText(tiltParam.getZShift());
     }
     if (tiltParam.hasSlice()) {
-      long[] yHeightAndShift = TomogramTool.getYHeightAndShift(manager, axisID,
+      int[] yHeightAndShift = TomogramTool.getYHeightAndShift(manager, axisID,
           tiltParam.getIdxSliceStart(), tiltParam.getIdxSliceStop());
       if (yHeightAndShift != null && yHeightAndShift.length == 2) {
         ltfTomoHeight.setText(yHeightAndShift[0]);
@@ -725,11 +725,11 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       ltfLinearDensityScaleFactor.setText(tiltParam.getScaleCoeff());
     }
     if (initialize && log) {
-      EtomoNumber logScale = new EtomoNumber(EtomoNumber.Type.FLOAT);
+      EtomoNumber logScale = new EtomoNumber(EtomoNumber.Type.DOUBLE);
       logScale.set(ltfLogDensityScaleFactor.getText());
       if (log && !logScale.isNull() && logScale.isValid()) {
         ltfLinearDensityScaleFactor
-            .setText(Math.round(logScale.getFloat() / 5000. * 10.) / 10.);
+            .setText(Math.round(logScale.getDouble() / 5000. * 10.) / 10.);
       }
     }
     if (!initialize) {
@@ -809,7 +809,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       // set X Shift
       if (ltfXShift.getText().matches("\\S+")) {
         badParameter = ltfXShift.getLabel();
-        tiltParam.setXShift(Float.parseFloat(ltfXShift.getText()));
+        tiltParam.setXShift(Double.parseDouble(ltfXShift.getText()));
       }
       else if (isZShiftSet()) {
         tiltParam.setXShift(0);
@@ -838,8 +838,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
           tiltParam.resetIdxSlice();
         }
         else {
-          tiltParam.setIdxSliceStart(startingSlice.getLong());
-          tiltParam.setIdxSliceStop(endingSlice.getLong());
+          tiltParam.setIdxSliceStart(startingSlice.getInt());
+          tiltParam.setIdxSliceStop(endingSlice.getInt());
         }
       }
 
@@ -871,17 +871,17 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
           && (ltfLogDensityScaleOffset.getText().matches("\\S+") || ltfLogDensityScaleFactor
               .getText().matches("\\S+"))) {
         badParameter = ltfLogDensityScaleFactor.getLabel();
-        tiltParam.setScaleCoeff(Float.parseFloat(ltfLogDensityScaleFactor.getText()));
+        tiltParam.setScaleCoeff(Double.parseDouble(ltfLogDensityScaleFactor.getText()));
         badParameter = ltfLogDensityScaleOffset.getLabel();
-        tiltParam.setScaleFLevel(Float.parseFloat(ltfLogDensityScaleOffset.getText()));
+        tiltParam.setScaleFLevel(Double.parseDouble(ltfLogDensityScaleOffset.getText()));
       }
       else if (ltfLinearDensityScaleOffset.isEnabled()
           && (ltfLinearDensityScaleOffset.getText().matches("\\S+") || ltfLinearDensityScaleFactor
               .getText().matches("\\S+"))) {
         badParameter = ltfLinearDensityScaleFactor.getLabel();
-        tiltParam.setScaleCoeff(Float.parseFloat(ltfLinearDensityScaleFactor.getText()));
+        tiltParam.setScaleCoeff(Double.parseDouble(ltfLinearDensityScaleFactor.getText()));
         badParameter = ltfLinearDensityScaleOffset.getLabel();
-        tiltParam.setScaleFLevel(Float.parseFloat(ltfLinearDensityScaleOffset.getText()));
+        tiltParam.setScaleFLevel(Double.parseDouble(ltfLinearDensityScaleOffset.getText()));
       }
       else {
         tiltParam.resetScale();
@@ -889,10 +889,10 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
 
       if (ctfLog.isSelected() && ctfLog.getText().matches("\\S+")) {
         badParameter = ctfLog.getLabel();
-        tiltParam.setLogShift(Float.parseFloat(ctfLog.getText()));
+        tiltParam.setLogShift(Double.parseDouble(ctfLog.getText()));
       }
       else {
-        tiltParam.setLogShift(Float.NaN);
+        tiltParam.setLogShift(Double.NaN);
       }
 
       MetaData metaData = manager.getMetaData();

@@ -513,7 +513,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     }
     else {
       horizontalRigidArea1 = Box.createRigidArea(new Dimension(Math.max(
-          Math.round((float) (181 - (maxRowTextSize - 50) * 6.3)), 8), 0));
+          (int) Math.round(181 - (maxRowTextSize - 50) * 6.3), 8), 0));
     }
     rootPanel.add(horizontalRigidArea1);
     rootPanel.add(pnlSideButtons);
