@@ -524,10 +524,6 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
-    throw new IllegalArgumentException("field=" + fieldInterface);
-  }
-
   public String[] getStringArray(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }

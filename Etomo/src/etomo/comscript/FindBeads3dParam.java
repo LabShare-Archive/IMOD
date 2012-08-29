@@ -80,16 +80,16 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam, CommandPar
 
   private final StringParameter inputFile = new StringParameter("InputFile");
   private final StringParameter outputFile = new StringParameter("OutputFile");
-  private final ScriptParameter beadSize = new ScriptParameter(EtomoNumber.Type.FLOAT,
+  private final ScriptParameter beadSize = new ScriptParameter(EtomoNumber.Type.DOUBLE,
       BEAD_SIZE_TAG);
   private final EtomoBoolean2 lightBeads = new EtomoBoolean2(LIGHT_BEADS_TAG);
   private final ScriptParameter minRelativeStrength = new ScriptParameter(
-      EtomoNumber.Type.FLOAT, MIN_RELATIVE_STRENGTH_TAG);
+      EtomoNumber.Type.DOUBLE, MIN_RELATIVE_STRENGTH_TAG);
   private final ScriptParameter thresholdForAveraging = new ScriptParameter(
-      EtomoNumber.Type.FLOAT, THRESHOLD_FOR_AVERAGING_TAG);
+      EtomoNumber.Type.DOUBLE, THRESHOLD_FOR_AVERAGING_TAG);
   private final ScriptParameter storageThreshold = new ScriptParameter(
-      EtomoNumber.Type.FLOAT, STORAGE_THRESHOLD_TAG);
-  private final ScriptParameter minSpacing = new ScriptParameter(EtomoNumber.Type.FLOAT,
+      EtomoNumber.Type.DOUBLE, STORAGE_THRESHOLD_TAG);
+  private final ScriptParameter minSpacing = new ScriptParameter(EtomoNumber.Type.DOUBLE,
       MIN_SPACING_TAG);
   private final ScriptParameter guessNumBeads = new ScriptParameter(GUESS_NUM_BEADS_TAG);
   private final ScriptParameter maxNumBeads = new ScriptParameter(MAX_NUM_BEADS_TAG);
@@ -301,10 +301,6 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam, CommandPar
   }
 
   public ConstEtomoNumber getEtomoNumber(final FieldInterface field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public float getFloatValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
