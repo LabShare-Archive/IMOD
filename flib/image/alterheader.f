@@ -367,7 +367,7 @@ c       SETMMM - set the min,max,mean
       go to 30
 c       
 c       FEIPIXEL - use the pixel size in extra header to set pixel spacing
-19    call irtnbsym(1,nbsym)
+19    call irtnbsym(2,nbsym)
       if (nbsym .le. 0) then
         print *,'No extended header information in this file'
         go to 30
@@ -376,8 +376,8 @@ c       FEIPIXEL - use the pixel size in extra header to set pixel spacing
         print *,'Extended header data too large for array'
         go to 30
       endif
-      call irtsym(1,nbsym,array)
-      call irtsymtyp(1,nint,nreal)
+      call irtsym(2,nbsym,array)
+      call irtsymtyp(2,nint,nreal)
       if (nbytes_and_flags(nint, nreal)) then
         print *,'The extended header is not in Agard/FEI format'
         go to 30
@@ -400,7 +400,7 @@ c       FEIPIXEL - use the pixel size in extra header to set pixel spacing
       call irtsam(2,mxyz)
       call irtcel(2,cell)
       do i=1,3
-        cell(i)=mxyz(i)*delt(i)
+        cell(i)=mxyz(i)*pixel
       enddo
       call ialcel(2,cell)
       go to 30
