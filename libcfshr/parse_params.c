@@ -763,9 +763,9 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
       if (fort77 || fort90) {
         lastOpt = (i == sNumOptions - 1);
         if (!numOut) fprintf(out, 
-                             "%s  integer sNumOptions\n"
-                             "%s  parameter (sNumOptions = %d)\n"
-                             "%s  character*(40 * sNumOptions) options(1)\n"
+                             "%s  integer numOptions\n"
+                             "%s  parameter (numOptions = %d)\n"
+                             "%s  character*(40 * numOptions) options(1)\n"
                              "%s  options(1) =%s", indentStr, indentStr, numReal, 
                              indentStr, indentStr, fortCont);
         
@@ -789,7 +789,7 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
         lastOpt = (i == sNumOptions - 1);
         if (!numOut) {
           if (cCode) {
-            fprintf(out, "  int sNumOptions = %d;\n"
+            fprintf(out, "  int numOptions = %d;\n"
                     "  const char *options[] = {\n    ", numReal);
             linePos = 5;
           } else {
