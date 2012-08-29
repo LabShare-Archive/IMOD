@@ -2,6 +2,8 @@ package etomo.type;
 
 import java.util.Properties;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import etomo.storage.Storable;
 import etomo.util.Utilities;
@@ -334,40 +336,40 @@ import etomo.util.Utilities;
 public abstract class ConstEtomoNumber implements Storable {
   public static final String rcsid = "$Id$";
 
-  //null values
-  private static final double DOUBLE_NULL_VALUE = Double.NaN;
+  // null values
+  public static final double DOUBLE_NULL_VALUE = Double.NaN;
   public static final float FLOAT_NULL_VALUE = Float.NaN;
   public static final int INTEGER_NULL_VALUE = Integer.MIN_VALUE;
   public static final long LONG_NULL_VALUE = Long.MIN_VALUE;
-  //null for types not currently supported
+  // null for types not currently supported
   private static final short shortNullValue = Short.MIN_VALUE;
   private static final byte byteNullValue = Byte.MIN_VALUE;
 
-  //type
-  final Type type;//defaults to integer, can't be changed once it is set
-  //name and description
-  final String name;//defaults to Object.toString(), can't be changed once it is set
-  String description;//optional, defaults to name
-  //value of the instance
-  Number currentValue;//optional, defaults to newNumber()
-  //value to display when currentValue isNull()
-  Number displayValue;//optional, defaults to newNumber()
-  //numbers that can modify currentValue
-  Number ceilingValue;//optional, defaults to newNumber()
-  Number floorValue;//optional, defaults to newNumber()
+  // type
+  final Type type;// defaults to integer, can't be changed once it is set
+  // name and description
+  final String name;// defaults to Object.toString(), can't be changed once it is set
+  String description;// optional, defaults to name
+  // value of the instance
+  Number currentValue;// optional, defaults to newNumber()
+  // value to display when currentValue isNull()
+  Number displayValue;// optional, defaults to newNumber()
+  // numbers that can modify currentValue
+  Number ceilingValue;// optional, defaults to newNumber()
+  Number floorValue;// optional, defaults to newNumber()
 
-  //validatation numbers.  Use isValid() or validate() to find out if
-  //  currentValue is valid.
-  //  validValues overrides validFloor
-  boolean nullIsValid = true;//optional
-  //set of valid values
-  Vector validValues = null;//optional
-  //number below validFloor are invalid
-  private Number validFloor;//optional, defaults to newNumber()
+  // validatation numbers. Use isValid() or validate() to find out if
+  // currentValue is valid.
+  // validValues overrides validFloor
+  boolean nullIsValid = true;// optional
+  // set of valid values
+  Vector validValues = null;// optional
+  // number below validFloor are invalid
+  private Number validFloor;// optional, defaults to newNumber()
   Number defaultValue;
   String[] stringArray = null;
 
-  //internal validation result
+  // internal validation result
   StringBuffer invalidReason = null;
   private boolean debug = false;
 
@@ -426,10 +428,10 @@ public abstract class ConstEtomoNumber implements Storable {
       return;
     }
     type = instance.type;
-    //OK to assign Strings because they are immutable
+    // OK to assign Strings because they are immutable
     name = instance.name;
     description = instance.description;
-    //OK to assign Numbers because they are immutable
+    // OK to assign Numbers because they are immutable
     currentValue = instance.currentValue;
     displayValue = instance.displayValue;
     ceilingValue = instance.ceilingValue;
@@ -465,7 +467,6 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public int getDisplayInteger() {
-    validateReturnTypeInteger();
     return displayValue.intValue();
   }
 
@@ -475,18 +476,18 @@ public abstract class ConstEtomoNumber implements Storable {
    * Set invalidReason if currentValue is null and nullIsValid is false.
    */
   void setInvalidReason() {
-    //Pass when there are no validation settings
+    // Pass when there are no validation settings
     if (nullIsValid && validValues == null && isNull(validFloor)) {
       return;
     }
-    //Catch illegal null values
+    // Catch illegal null values
     if (isNull(currentValue)) {
       if (nullIsValid) {
         return;
       }
       addInvalidReason("This field cannot be empty.");
     }
-    //Validate against validValues, overrides validFloor
+    // Validate against validValues, overrides validFloor
     else if (validValues != null) {
       for (int i = 0; i < validValues.size(); i++) {
         if (equals(currentValue, (Number) validValues.get(i))) {
@@ -497,7 +498,7 @@ public abstract class ConstEtomoNumber implements Storable {
       addInvalidReason("Valid values are " + toString(validValues) + ".");
       return;
     }
-    //If validValues is not set, validate against validFloor
+    // If validValues is not set, validate against validFloor
     else if (!isNull(validFloor)) {
       if (ge(currentValue, validFloor)) {
         return;
@@ -628,49 +629,46 @@ public abstract class ConstEtomoNumber implements Storable {
     if (!Utilities.isSelfTest()) {
       return;
     }
-    //Name should never be null.
+    // Name should never be null.
     if (name == null) {
       throw new IllegalStateException("name cannot be null.");
     }
-    //currentValue should never be null
+    // currentValue should never be null
     if (currentValue == null) {
       throw new IllegalStateException("currentValue cannot be null.");
     }
-    //displayValue should never be null
+    // displayValue should never be null
     if (displayValue == null) {
       throw new IllegalStateException("displayValue cannot be null.");
     }
-    //ceilingValue should never be null
+    // ceilingValue should never be null
     if (ceilingValue == null) {
       throw new IllegalStateException("ceilingValue cannot be null.");
     }
-    //floorValue should never be null
+    // floorValue should never be null
     if (floorValue == null) {
       throw new IllegalStateException("floorValue cannot be null.");
     }
-    //validFloor should never be null
+    // validFloor should never be null
     if (validFloor == null) {
       throw new IllegalStateException("validFloor cannot be null.");
     }
-    //defaultValue should never be null
+    // defaultValue should never be null
     if (defaultValue == null) {
       throw new IllegalStateException("defaultValue cannot be null.");
     }
-    //Type should be either double, float, integer, or long.
-    if (type != Type.DOUBLE && type != Type.FLOAT && type != Type.INTEGER
-        && type != Type.LONG) {
+    // Type should be either double, integer, or long.
+    if (type != Type.DOUBLE && type != Type.INTEGER && type != Type.LONG) {
       throw new IllegalStateException("type is not valid.  type=" + type);
     }
-    //Type constants must be unique.
-    if (Type.DOUBLE == Type.FLOAT || Type.DOUBLE == Type.INTEGER
-        || Type.DOUBLE == Type.LONG || Type.FLOAT == Type.INTEGER
-        || Type.FLOAT == Type.LONG || Type.INTEGER == Type.LONG) {
+    // Type constants must be unique.
+    if (Type.DOUBLE == Type.INTEGER || Type.DOUBLE == Type.LONG
+        || Type.INTEGER == Type.LONG) {
       throw new IllegalStateException("Type constants are the same.\nDOUBLE_TYPE="
-          + Type.DOUBLE + ",FLOAT_TYPE=" + Type.FLOAT + ",INTEGER_TYPE=" + Type.INTEGER
-          + ",LONG_TYPE=" + Type.LONG);
+          + Type.DOUBLE + ",INTEGER_TYPE=" + Type.INTEGER + ",LONG_TYPE=" + Type.LONG);
     }
-    //All members of type Number must be created with the current type
-    //The type should be set only once.
+    // All members of type Number must be created with the current type
+    // The type should be set only once.
     if (type == Type.DOUBLE) {
       if (!(currentValue instanceof Double)) {
         throw new IllegalStateException(
@@ -698,38 +696,6 @@ public abstract class ConstEtomoNumber implements Storable {
                 + validFloor.getClass() + ",type=" + type);
       }
       if (!(defaultValue instanceof Double)) {
-        throw new IllegalStateException(
-            "defaultValue doesn't match the current type.  defaultValue.getClass()="
-                + defaultValue.getClass() + ",type=" + type);
-      }
-    }
-    if (type == Type.FLOAT) {
-      if (!(currentValue instanceof Float)) {
-        throw new IllegalStateException(
-            "currentValue doesn't match the current type.  currentValue.getClass()="
-                + currentValue.getClass() + ",type=" + type);
-      }
-      if (!(displayValue instanceof Float)) {
-        throw new IllegalStateException(
-            "displayValue doesn't match the current type.  displayValue.getClass()="
-                + displayValue.getClass() + ",type=" + type);
-      }
-      if (!(ceilingValue instanceof Float)) {
-        throw new IllegalStateException(
-            "ceilingValue doesn't match the current type.  ceilingValue.getClass()="
-                + ceilingValue.getClass() + ",type=" + type);
-      }
-      if (!(floorValue instanceof Float)) {
-        throw new IllegalStateException(
-            "floorValue doesn't match the current type.  floorValue.getClass()="
-                + floorValue.getClass() + ",type=" + type);
-      }
-      if (!(validFloor instanceof Float)) {
-        throw new IllegalStateException(
-            "validFloor doesn't match the current type.  validFloor.getClass()="
-                + validFloor.getClass() + ",type=" + type);
-      }
-      if (!(defaultValue instanceof Float)) {
         throw new IllegalStateException(
             "defaultValue doesn't match the current type.  defaultValue.getClass()="
                 + defaultValue.getClass() + ",type=" + type);
@@ -799,9 +765,9 @@ public abstract class ConstEtomoNumber implements Storable {
                 + defaultValue.getClass() + ",type=" + type);
       }
     }
-    //floorValue <= ceilingValue
+    // floorValue <= ceilingValue
     validateFloorAndCeiling();
-    //valid validValues
+    // valid validValues
     if (validValues != null) {
       for (int i = 0; i < validValues.size(); i++) {
         if (isNull((Number) validValues.get(i))) {
@@ -809,7 +775,7 @@ public abstract class ConstEtomoNumber implements Storable {
         }
       }
     }
-    //test deep copy on assignment
+    // test deep copy on assignment
     if (currentValue == displayValue) {
       throw new IllegalStateException(
           "newNumber() was not use in an assignment:  currentValue, displayValue");
@@ -1054,7 +1020,6 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public int getInt() {
-    validateReturnTypeInteger();
     return getValue().intValue();
   }
 
@@ -1074,17 +1039,10 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public long getLong() {
-    validateReturnTypeLong();
     return getValue().longValue();
   }
 
-  public float getFloat() {
-    validateReturnTypeFloat();
-    return getValue().floatValue();
-  }
-
   public double getDouble() {
-    validateReturnTypeDouble();
     return getValue().doubleValue();
   }
 
@@ -1095,7 +1053,6 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   public double getDefaultedDouble() {
-    validateReturnTypeDouble();
     return getDefaultedValue().doubleValue();
   }
 
@@ -1178,7 +1135,7 @@ public abstract class ConstEtomoNumber implements Storable {
   public boolean lt(int value) {
     return lt(getValue(), value);
   }
-  
+
   public boolean ge(long value) {
     return ge(getValue(), value);
   }
@@ -1215,10 +1172,6 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public boolean equals(long value) {
-    return equals(getValue(), value);
-  }
-
-  public boolean equals(float value) {
     return equals(getValue(), value);
   }
 
@@ -1296,7 +1249,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public Number getNegatedDefaultedNumber() {
-    return newNumberNegate(getDefaultedValue());
+    return negate(getDefaultedValue());
   }
 
   public boolean getDefaultedBoolean() {
@@ -1351,9 +1304,6 @@ public abstract class ConstEtomoNumber implements Storable {
     if (type == Type.DOUBLE) {
       return new Double(DOUBLE_NULL_VALUE);
     }
-    if (type == Type.FLOAT) {
-      return new Float(FLOAT_NULL_VALUE);
-    }
     if (type == Type.INTEGER) {
       return new Integer(INTEGER_NULL_VALUE);
     }
@@ -1369,18 +1319,11 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   Number newNumber(Number value) {
-    if (value == null) {
-      return newNumber();
-    }
-    validateInputType(value);
-    if (isNull(value)) {
+    if (value == null || isNull(value)) {
       return newNumber();
     }
     if (type == Type.DOUBLE) {
       return new Double(value.doubleValue());
-    }
-    if (type == Type.FLOAT) {
-      return new Float(value.floatValue());
     }
     if (type == Type.INTEGER) {
       return new Integer(value.intValue());
@@ -1398,19 +1341,12 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   Number newNumber(String value, StringBuffer invalidBuffer) {
-    if (value == null) {
-      return newNumber();
-    }
-    value = value.trim();
-    if (value.equals("")) {
+    if (value == null || value.matches("\\s*")) {
       return newNumber();
     }
     try {
       if (type == Type.DOUBLE) {
         return new Double(value);
-      }
-      if (type == Type.FLOAT) {
-        return new Float(value);
       }
       if (type == Type.INTEGER) {
         return new Integer(value);
@@ -1422,40 +1358,20 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     catch (NumberFormatException e) {
       invalidBuffer.append(value + " is not a valid " + type + ".  " + e.getMessage());
+      // TODO should the invalid string be stored somewhere?
       return newNumber();
     }
   }
 
-  Number newNumber(Type type, int value) {
-    validateInputType(type, value);
-    if (type == Type.DOUBLE) {
-      return new Double(new Integer(value).doubleValue());
-    }
-    if (type == Type.FLOAT) {
-      return new Float(new Integer(value).floatValue());
-    }
-    if (type == Type.INTEGER) {
-      return new Integer(value);
-    }
-    if (type == Type.LONG) {
-      return new Long(new Integer(value).longValue());
-    }
-    throw new IllegalStateException("type=" + type);
-  }
-
   Number newNumber(int value) {
-    validateInputType(value);
     if (type == Type.DOUBLE) {
-      return new Double(new Integer(value).doubleValue());
-    }
-    if (type == Type.FLOAT) {
-      return new Float(new Integer(value).floatValue());
+      return new Double(value);
     }
     if (type == Type.INTEGER) {
       return new Integer(value);
     }
     if (type == Type.LONG) {
-      return new Long(new Integer(value).longValue());
+      return new Long(value);
     }
     throw new IllegalStateException("type=" + type);
   }
@@ -1467,119 +1383,31 @@ public abstract class ConstEtomoNumber implements Storable {
     return newNumber(0);
   }
 
-  Number newNumber(Type type, double value) {
-    validateInputType(type, value);
-    if (Double.isNaN(value)) {
-      return newNumber();
-    }
-    if (type == Type.DOUBLE) {
-      return new Double(value);
-    }
-    if (type == Type.FLOAT) {
-      return new Float(new Double(value).floatValue());
-    }
-    if (type == Type.INTEGER) {
-      return new Integer(new Double(value).intValue());
-    }
-    if (type == Type.LONG) {
-      return new Long(new Double(value).longValue());
-    }
-    throw new IllegalStateException("type=" + type);
-  }
-
   Number newNumber(double value) {
-    validateInputType(value);
     if (Double.isNaN(value)) {
       return newNumber();
     }
     if (type == Type.DOUBLE) {
       return new Double(value);
     }
-    if (type == Type.FLOAT) {
-      return new Float(new Double(value).floatValue());
-    }
     if (type == Type.INTEGER) {
-      return new Integer(new Double(value).intValue());
+      return new Integer((int) value);
     }
     if (type == Type.LONG) {
-      return new Long(new Double(value).longValue());
-    }
-    throw new IllegalStateException("type=" + type);
-  }
-
-  Number newNumber(Type type, float value) {
-    validateInputType(type, value);
-    if (Double.isNaN(value)) {
-      return newNumber();
-    }
-    if (type == Type.DOUBLE) {
-      return new Double(new Float(value).doubleValue());
-    }
-    if (type == Type.FLOAT) {
-      return new Float(value);
-    }
-    if (type == Type.INTEGER) {
-      return new Integer(new Float(value).intValue());
-    }
-    if (type == Type.LONG) {
-      return new Long(new Float(value).longValue());
-    }
-    throw new IllegalStateException("type=" + type);
-  }
-
-  Number newNumber(float value) {
-    validateInputType(value);
-    if (Double.isNaN(value)) {
-      return newNumber();
-    }
-    if (type == Type.DOUBLE) {
-      return new Double(new Float(value).doubleValue());
-    }
-    if (type == Type.FLOAT) {
-      return new Float(value);
-    }
-    if (type == Type.INTEGER) {
-      return new Integer(new Float(value).intValue());
-    }
-    if (type == Type.LONG) {
-      return new Long(new Float(value).longValue());
-    }
-    throw new IllegalStateException("type=" + type);
-  }
-
-  Number newNumber(Type type, long value) {
-    validateInputType(type, value);
-    if (value == LONG_NULL_VALUE) {
-      return newNumber();
-    }
-    if (type == Type.DOUBLE) {
-      return new Double(new Long(value).doubleValue());
-    }
-    if (type == Type.FLOAT) {
-      return new Float(new Long(value).floatValue());
-    }
-    if (type == Type.INTEGER) {
-      return new Integer(new Long(value).intValue());
-    }
-    if (type == Type.LONG) {
-      return new Long(value);
+      return new Long((long) value);
     }
     throw new IllegalStateException("type=" + type);
   }
 
   Number newNumber(long value) {
-    validateInputType(value);
     if (value == LONG_NULL_VALUE) {
       return newNumber();
     }
     if (type == Type.DOUBLE) {
-      return new Double(new Long(value).doubleValue());
-    }
-    if (type == Type.FLOAT) {
-      return new Float(new Long(value).floatValue());
+      return new Double(value);
     }
     if (type == Type.INTEGER) {
-      return new Integer(new Long(value).intValue());
+      return new Integer((int) value);
     }
     if (type == Type.LONG) {
       return new Long(value);
@@ -1587,228 +1415,70 @@ public abstract class ConstEtomoNumber implements Storable {
     throw new IllegalStateException("type=" + type);
   }
 
-  boolean isNull(Number value) {
-    if (value == null) {
+  Number newNumber(float value) {
+    if (value == LONG_NULL_VALUE) {
+      return newNumber();
+    }
+    if (type == Type.DOUBLE) {
+      return new Double(value);
+    }
+    if (type == Type.INTEGER) {
+      return new Integer((int) value);
+    }
+    if (type == Type.LONG) {
+      return new Long((long) value);
+    }
+    throw new IllegalStateException("type=" + type);
+  }
+
+  boolean isNull(Number number) {
+    if (number == null) {
       return true;
     }
-    if (value instanceof Double) {
-      return Double.isNaN(value.doubleValue());
+    if (number instanceof Byte) {
+      return number.byteValue() == byteNullValue;
     }
-    if (value instanceof Float) {
-      return Float.isNaN(value.floatValue());
+    if (number instanceof Double) {
+      return Double.isNaN(number.doubleValue());
     }
-    if (value instanceof Integer) {
-      return isNull(value.intValue());
+    if (number instanceof Float) {
+      return Float.isNaN(number.floatValue());
     }
-    if (value instanceof Long) {
-      return value.longValue() == LONG_NULL_VALUE;
+    if (number instanceof Integer || number instanceof AtomicInteger) {
+      return isNull(number.intValue());
     }
-    if (value instanceof Short) {
-      return value.shortValue() == shortNullValue;
+    if (number instanceof Long || number instanceof AtomicLong) {
+      return number.longValue() == LONG_NULL_VALUE;
     }
-    if (value instanceof Byte) {
-      return value.byteValue() == byteNullValue;
+    if (number instanceof Short) {
+      return number.shortValue() == shortNullValue;
     }
-    throw new IllegalStateException("Unknown type.  value.getClass()=" + value.getClass());
+    throw new IllegalStateException("Unknown type.  value.getClass()="
+        + number.getClass());
   }
 
-  boolean gt(Number number, Number compValue) {
-    if (isNull(number) || isNull(compValue)) {
-      return false;
-    }
-    //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
-    boolean secondNumberDouble = compValue instanceof Float
-        || compValue instanceof Double;
-    if (!firstNumberDouble && !secondNumberDouble) {
-      return number.longValue() > compValue.longValue();
-    }
-    if (!firstNumberDouble && secondNumberDouble) {
-      return number.longValue() > compValue.doubleValue();
-    }
-    return number.doubleValue() > compValue.doubleValue();
+  boolean gt(Number number1, Number number2) {
+    return compare(Comparison.GT, number1, number2);
   }
 
-  boolean gt(Number number, int value) {
-    if (isNull(number) || value == INTEGER_NULL_VALUE) {
-      return false;
-    }
-    //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
-    if (!firstNumberDouble) {
-      return number.longValue() > value;
-    }
-    return number.doubleValue() > value;
+  boolean ge(Number number1, Number number2) {
+    return compare(Comparison.GE, number1, number2);
   }
 
-  boolean ge(Number number, Number compValue) {
-    if (isNull(number) || isNull(compValue)) {
-      return false;
-    }
-    //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
-    boolean secondNumberDouble = compValue instanceof Float
-        || compValue instanceof Double;
-    if (!firstNumberDouble && !secondNumberDouble) {
-      return number.longValue() >= compValue.longValue();
-    }
-    if (!firstNumberDouble && secondNumberDouble) {
-      return number.longValue() >= compValue.doubleValue();
-    }
-    return number.doubleValue() >= compValue.doubleValue();
+  boolean lt(Number number1, Number number2) {
+    return compare(Comparison.LT, number1, number2);
   }
 
-  boolean lt(Number number, Number compValue) {
-    if (isNull(number) || isNull(compValue)) {
-      return false;
-    }
-    //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
-    boolean secondNumberDouble = compValue instanceof Float
-        || compValue instanceof Double;
-    if (!firstNumberDouble && !secondNumberDouble) {
-      return number.longValue() < compValue.longValue();
-    }
-    if (!firstNumberDouble && secondNumberDouble) {
-      return number.longValue() < compValue.doubleValue();
-    }
-    return number.doubleValue() < compValue.doubleValue();
+  boolean le(Number number1, Number number2) {
+    return compare(Comparison.LE, number1, number2);
   }
 
-  boolean le(Number number, Number compValue) {
-    if (isNull(number) || isNull(compValue)) {
-      return false;
-    }
-    //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
-    boolean secondNumberDouble = compValue instanceof Float
-        || compValue instanceof Double;
-    if (!firstNumberDouble && !secondNumberDouble) {
-      return number.longValue() <= compValue.longValue();
-    }
-    if (!firstNumberDouble && secondNumberDouble) {
-      return number.longValue() <= compValue.doubleValue();
-    }
-    return number.doubleValue() <= compValue.doubleValue();
-  }
-
-  boolean lt(Number number, int value) {
-    if (isNull(number) || value == INTEGER_NULL_VALUE) {
-      return false;
-    }
-    //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
-    if (!firstNumberDouble) {
-      return number.longValue() < value;
-    }
-    return number.doubleValue() < value;
-  }
-
-  boolean equals(Number number, Number compValue) {
-    if (isNull(number) && isNull(compValue)) {
-      return true;
-    }
-    if (isNull(number) || isNull(compValue)) {
-      return false;
-    }
-    //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
-    boolean secondNumberDouble = compValue instanceof Float
-        || compValue instanceof Double;
-    if (!firstNumberDouble && !secondNumberDouble) {
-      return number.longValue() == compValue.longValue();
-    }
-    if (!firstNumberDouble && secondNumberDouble) {
-      return number.longValue() == compValue.doubleValue();
-    }
-    return number.doubleValue() == compValue.doubleValue();
-  }
-
-  boolean equals(Number number, int value) {
-    if (isNull(number) && value == INTEGER_NULL_VALUE) {
-      return true;
-    }
-    if (isNull(number) || value == INTEGER_NULL_VALUE) {
-      return false;
-    }
-    //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
-    if (!firstNumberDouble) {
-      return number.longValue() == value;
-    }
-    return number.doubleValue() == value;
-  }
-
-  boolean equals(Number number, long value) {
-    if (isNull(number) && value == LONG_NULL_VALUE) {
-      return true;
-    }
-    if (isNull(number) || value == LONG_NULL_VALUE) {
-      return false;
-    }
-    //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
-    if (!firstNumberDouble) {
-      return number.longValue() == value;
-    }
-    return number.doubleValue() == value;
-  }
-
-  boolean equals(Number number, float value) {
-    if (isNull(number) && value == FLOAT_NULL_VALUE) {
-      return true;
-    }
-    if (isNull(number) || value == FLOAT_NULL_VALUE) {
-      return false;
-    }
-    //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
-    if (!firstNumberDouble) {
-      return number.longValue() == value;
-    }
-    return number.doubleValue() == value;
-  }
-
-  boolean equals(Number number, double value) {
-    if (isNull(number) && value == DOUBLE_NULL_VALUE) {
-      return true;
-    }
-    if (isNull(number) || value == DOUBLE_NULL_VALUE) {
-      return false;
-    }
-    //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
-    if (!firstNumberDouble) {
-      return number.longValue() == value;
-    }
-    return number.doubleValue() == value;
+  boolean equals(Number number1, Number number2) {
+    return compare(Comparison.EQUALS, number1, number2);
   }
 
   Number add(Number number1, Number number2) {
-    if (isNull(number1) && isNull(number2)) {
-      return number1;
-    }
-    if (isNull(number1)) {
-      return number2;
-    }
-    if (isNull(number2)) {
-      return number1;
-    }
-    validateInputType(number1);
-    validateInputType(number2);
-    if (type == Type.DOUBLE) {
-      return newNumber(number1.doubleValue() + number2.doubleValue());
-    }
-    if (type == Type.FLOAT) {
-      return newNumber(number1.floatValue() + number2.floatValue());
-    }
-    if (type == Type.INTEGER) {
-      return newNumber(number1.intValue() + number2.intValue());
-    }
-    if (type == Type.LONG) {
-      return newNumber(number1.longValue() + number2.longValue());
-    }
-    throw new IllegalStateException("type=" + type);
+    return doMath(Operator.ADD, number1, number2);
   }
 
   /**
@@ -1818,32 +1488,9 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   Number multiply(Number number1, Number number2) {
-    if (isNull(number1) && isNull(number2)) {
-      return newNumber();
-    }
-    if (isNull(number1)) {
-      return newNumber();
-    }
-    if (isNull(number2)) {
-      return newNumber();
-    }
-    validateInputType(number1);
-    validateInputType(number2);
-    if (type == Type.DOUBLE) {
-      return newNumber(number1.doubleValue() * number2.doubleValue());
-    }
-    if (type == Type.FLOAT) {
-      return newNumber(number1.floatValue() * number2.floatValue());
-    }
-    if (type == Type.INTEGER) {
-      return newNumber(number1.intValue() * number2.intValue());
-    }
-    if (type == Type.LONG) {
-      return newNumber(number1.longValue() * number2.longValue());
-    }
-    throw new IllegalStateException("type=" + type);
+    return doMath(Operator.MULTIPLY, number1, number2);
   }
-  
+
   /**
    * If one of the numbers is null, the result is null.
    * @param number1
@@ -1851,180 +1498,11 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   Number divideBy(Number number1, Number number2) {
-    if (isNull(number1) && isNull(number2)) {
-      return newNumber();
-    }
-    if (isNull(number1)) {
-      return newNumber();
-    }
-    if (isNull(number2)) {
-      return newNumber();
-    }
-    validateInputType(number1);
-    validateInputType(number2);
-    if (type == Type.DOUBLE) {
-      return newNumber(number1.doubleValue() / number2.doubleValue());
-    }
-    if (type == Type.FLOAT) {
-      return newNumber(number1.floatValue() / number2.floatValue());
-    }
-    if (type == Type.INTEGER) {
-      return newNumber(number1.intValue() / number2.intValue());
-    }
-    if (type == Type.LONG) {
-      return newNumber(number1.longValue() / number2.longValue());
-    }
-    throw new IllegalStateException("type=" + type);
+    return doMath(Operator.DIVIDE_BY, number1, number2);
   }
 
-  Number newNumberNegate(Number number) {
-    if (isNull(number)) {
-      return number;
-    }
-    validateInputType(number);
-    if (type == Type.DOUBLE) {
-      return newNumber(number.doubleValue() * -1);
-    }
-    if (type == Type.FLOAT) {
-      return newNumber(number.floatValue() * -1);
-    }
-    if (type == Type.INTEGER) {
-      return newNumber(number.intValue() * -1);
-    }
-    if (type == Type.LONG) {
-      return newNumber(number.longValue() * -1);
-    }
-    throw new IllegalStateException("type=" + type);
-  }
-
-  /**
-   * Validation to avoid data corruption
-   *
-   */
-  private void validateReturnTypeInteger() {
-    if (type != Type.INTEGER) {
-      throw new IllegalStateException(
-          "Cannot place a float, long or double into an integer.");
-    }
-  }
-
-  /**
-   * Validation to avoid data corruption
-   *
-   */
-  private void validateReturnTypeLong() {
-    if (type != Type.INTEGER && type != Type.LONG) {
-      throw new IllegalStateException("Cannot place a float or double into a long.");
-    }
-  }
-
-  private void validateReturnTypeFloat() {
-    if (type != Type.INTEGER && type != Type.FLOAT) {
-      throw new IllegalStateException("Cannot place a long or double into a float.");
-    }
-  }
-
-  /**
-   * Validation to avoid data corruption
-   *
-   */
-  private void validateReturnTypeDouble() {
-  }
-
-  /**
-   * Validation to avoid data corruption
-   * @param input
-   */
-  private void validateInputType(Number input) {
-    if (input instanceof Double && type != Type.DOUBLE) {
-      throw new IllegalStateException(
-          "Cannot place a Double into anything but a Double.  Type=" + type);
-    }
-    if (input instanceof Float && type != Type.DOUBLE && type != Type.FLOAT) {
-      throw new IllegalStateException(
-          "Cannot place a Float into anything but a Double or a Float.  Type=" + type);
-    }
-    if (input instanceof Long && type != Type.DOUBLE && type != Type.LONG) {
-      throw new IllegalStateException(
-          "Cannot place a Long into anything but a Double or a Long.  Type=" + type);
-
-    }
-  }
-
-  private void validateInputType(Type type, int input) {
-  }
-
-  /**
-   * Validation to avoid data corruption.  Currently nothing to do
-   * @param input
-   */
-  private void validateInputType(int input) {
-  }
-
-  /**
-   * Validation to avoid data corruption
-   * @param input
-   */
-  private void validateInputType(Type type, float input) {
-    if (type != Type.FLOAT && type != Type.DOUBLE) {
-      throw new IllegalStateException(
-          "Cannot place a float into anything but a Double or Float.  Type=" + type);
-    }
-  }
-
-  /**
-   * Validation to avoid data corruption
-   * @param input
-   */
-  private void validateInputType(float input) {
-    if (type != Type.FLOAT && type != Type.DOUBLE) {
-      throw new IllegalStateException(
-          "Cannot place a float into anything but a Double or Float.  Type=" + type);
-    }
-  }
-
-  /**
-   * Validation to avoid data corruption
-   * @param input
-   */
-  private void validateInputType(Type type, double input) {
-    if (type != Type.DOUBLE) {
-      throw new IllegalStateException(
-          "Cannot place a double into anything but a Double.  Type=" + type);
-    }
-  }
-
-  /**
-   * Validation to avoid data corruption
-   * @param input
-   */
-  private void validateInputType(double input) {
-    if (type != Type.DOUBLE) {
-      throw new IllegalStateException(
-          "Cannot place a double into anything but a Double.  Type=" + type);
-    }
-  }
-
-  /**
-   * Validation to avoid data corruption
-   * @param input
-   */
-  private void validateInputType(Type type, long input) {
-    if (type != Type.DOUBLE && type != Type.LONG) {
-      throw new IllegalStateException(
-          "Cannot place a long into anything but a Double or Long.  Type=" + type);
-    }
-  }
-
-  /**
-   * Validation to avoid data corruption
-   * @param input
-   */
-  private void validateInputType(long input) {
-    if (type != Type.DOUBLE && type != Type.LONG) {
-      throw new IllegalStateException(
-          "Cannot place a long into anything but a Double or Long.  Type=" + type);
-    }
+  Number negate(Number number) {
+    return doMath(Operator.MULTIPLY, number, -1);
   }
 
   Type getType() {
@@ -2036,8 +1514,8 @@ public abstract class ConstEtomoNumber implements Storable {
    *
    */
   private void validateFloorAndCeiling() {
-    //if floorValue and ceilingValue are both used, then floorValue must be less
-    //then or equal to ceilingValue.
+    // if floorValue and ceilingValue are both used, then floorValue must be less
+    // then or equal to ceilingValue.
     if (!isNull(ceilingValue) && !isNull(floorValue) && gt(floorValue, ceilingValue)) {
       throw new IllegalStateException(
           "FloorValue cannot be greater then ceilingValue.\nfloorValue=" + floorValue
@@ -2057,12 +1535,12 @@ public abstract class ConstEtomoNumber implements Storable {
     if (original == null) {
       return;
     }
-    //deep copy test
-    //ok for name to be the same instance because it is final
+    // deep copy test
+    // ok for name to be the same instance because it is final
     if (this == original) {
       throw new IllegalStateException("Incorrect copy: was not a deep copy");
     }
-    //equality test
+    // equality test
     if (type != original.type
         || !name.equals(original.name)
         || !description.equals(original.description)
@@ -2086,9 +1564,390 @@ public abstract class ConstEtomoNumber implements Storable {
     }
   }
 
+  private boolean compare(final Comparison comparison, final Number number1,
+      final Number number2) {
+    if (comparison == Comparison.EQUALS && isNull(number1) && isNull(number2)) {
+      return true;
+    }
+    if (isNull(number1) || isNull(number2)) {
+      return false;
+    }
+    // Avoid casting double to/from float because it causes floating point errors
+    if (number1 instanceof Double) {
+      if (number2 instanceof Double) {
+        return compare(comparison, number1.doubleValue(), number2.doubleValue());
+      }
+      if (number2 instanceof Float) {
+        return compare(comparison, number1.doubleValue(), number2.floatValue());
+      }
+      return compare(comparison, number1.doubleValue(), number2.longValue());
+    }
+    if (number1 instanceof Float) {
+      if (number2 instanceof Double) {
+        return compare(comparison, number1.floatValue(), number2.doubleValue());
+      }
+      if (number2 instanceof Float) {
+        return compare(comparison, number1.floatValue(), number2.floatValue());
+      }
+      return compare(comparison, number1.floatValue(), number2.longValue());
+    }
+    if (number2 instanceof Double) {
+      return compare(comparison, number1.longValue(), number2.doubleValue());
+    }
+    if (number2 instanceof Float) {
+      return compare(comparison, number1.longValue(), number2.floatValue());
+    }
+    return compare(comparison, number1.longValue(), number2.longValue());
+  }
+
+  private Number doMath(final Operator operator, final Number number1,
+      final Number number2) {
+    boolean null1 = false;
+    boolean null2 = false;
+    if ((null1 = isNull(number1)) || (null2 = isNull(number2))) {
+      if (operator == Operator.MULTIPLY || operator == Operator.DIVIDE_BY) {
+        return newNumber();
+      }
+      if (operator == Operator.ADD) {
+        if (null1 && null2) {
+          return newNumber();
+        }
+        if (null1) {
+          return newNumber(number2);
+        }
+        if (null2) {
+          return newNumber(number1);
+        }
+      }
+    }
+    // Avoid casting double to/from float because it causes floating point errors
+    if (number1 instanceof Double) {
+      if (number2 instanceof Double) {
+        return doMath(operator, number1.doubleValue(), number2.doubleValue());
+      }
+      if (number2 instanceof Float) {
+        return doMath(operator, number1.doubleValue(), number2.floatValue());
+      }
+      return doMath(operator, number1.doubleValue(), number2.longValue());
+    }
+    if (number1 instanceof Float) {
+      if (number2 instanceof Double) {
+        return doMath(operator, number1.floatValue(), number2.doubleValue());
+      }
+      if (number2 instanceof Float) {
+        return doMath(operator, number1.floatValue(), number2.floatValue());
+      }
+      return doMath(operator, number1.floatValue(), number2.longValue());
+    }
+    if (number2 instanceof Double) {
+      return doMath(operator, number1.longValue(), number2.doubleValue());
+    }
+    if (number2 instanceof Float) {
+      return doMath(operator, number1.longValue(), number2.floatValue());
+    }
+    return doMath(operator, number1.longValue(), number2.longValue());
+  }
+
+  private Number doMath(final Operator operator, final double number1,
+      final double number2) {
+    if (operator == Operator.ADD) {
+      return newNumber(number1 + number2);
+    }
+    if (operator == Operator.MULTIPLY) {
+      return newNumber(number1 * number2);
+    }
+    if (operator == Operator.DIVIDE_BY) {
+      return newNumber(number1 / number2);
+    }
+    return newNumber();
+  }
+
+  private Number doMath(final Operator operator, final double number1, final float number2) {
+    if (operator == Operator.ADD) {
+      return newNumber(number1 + number2);
+    }
+    if (operator == Operator.MULTIPLY) {
+      return newNumber(number1 * number2);
+    }
+    if (operator == Operator.DIVIDE_BY) {
+      return newNumber(number1 / number2);
+    }
+    return newNumber();
+  }
+
+  private Number doMath(final Operator operator, final double number1, final long number2) {
+    if (operator == Operator.ADD) {
+      return newNumber(number1 + number2);
+    }
+    if (operator == Operator.MULTIPLY) {
+      return newNumber(number1 * number2);
+    }
+    if (operator == Operator.DIVIDE_BY) {
+      return newNumber(number1 / number2);
+    }
+    return newNumber();
+  }
+
+  private Number doMath(final Operator operator, final float number1, final double number2) {
+    if (operator == Operator.ADD) {
+      return newNumber(number1 + number2);
+    }
+    if (operator == Operator.MULTIPLY) {
+      return newNumber(number1 * number2);
+    }
+    if (operator == Operator.DIVIDE_BY) {
+      return newNumber(number1 / number2);
+    }
+    return newNumber();
+  }
+
+  private Number doMath(final Operator operator, final float number1, final float number2) {
+    if (operator == Operator.ADD) {
+      return newNumber(number1 + number2);
+    }
+    if (operator == Operator.MULTIPLY) {
+      return newNumber(number1 * number2);
+    }
+    if (operator == Operator.DIVIDE_BY) {
+      return newNumber(number1 / number2);
+    }
+    return newNumber();
+  }
+
+  private Number doMath(final Operator operator, final float number1, final long number2) {
+    if (operator == Operator.ADD) {
+      return newNumber(number1 + number2);
+    }
+    if (operator == Operator.MULTIPLY) {
+      return newNumber(number1 * number2);
+    }
+    if (operator == Operator.DIVIDE_BY) {
+      return newNumber(number1 / number2);
+    }
+    return newNumber();
+  }
+
+  private Number doMath(final Operator operator, final long number1, final double number2) {
+    if (operator == Operator.ADD) {
+      return newNumber(number1 + number2);
+    }
+    if (operator == Operator.MULTIPLY) {
+      return newNumber(number1 * number2);
+    }
+    if (operator == Operator.DIVIDE_BY) {
+      return newNumber(number1 / number2);
+    }
+    return newNumber();
+  }
+
+  private Number doMath(final Operator operator, final long number1, final float number2) {
+    if (operator == Operator.ADD) {
+      return newNumber(number1 + number2);
+    }
+    if (operator == Operator.MULTIPLY) {
+      return newNumber(number1 * number2);
+    }
+    if (operator == Operator.DIVIDE_BY) {
+      return newNumber(number1 / number2);
+    }
+    return newNumber();
+  }
+
+  private Number doMath(final Operator operator, final long number1, final long number2) {
+    if (operator == Operator.ADD) {
+      return newNumber(number1 + number2);
+    }
+    if (operator == Operator.MULTIPLY) {
+      return newNumber(number1 * number2);
+    }
+    if (operator == Operator.DIVIDE_BY) {
+      return newNumber(number1 / number2);
+    }
+    return newNumber();
+  }
+
+  private boolean compare(final Comparison comparison, final double number1,
+      final double number2) {
+    if (comparison == Comparison.GT) {
+      return number1 > number2;
+    }
+    if (comparison == Comparison.GE) {
+      return number1 >= number2;
+    }
+    if (comparison == Comparison.LT) {
+      return number1 < number2;
+    }
+    if (comparison == Comparison.LE) {
+      return number1 <= number2;
+    }
+    if (comparison == Comparison.EQUALS) {
+      return number1 == number2;
+    }
+    return false;
+  }
+
+  private boolean compare(final Comparison comparison, final double number1,
+      final float number2) {
+    if (comparison == Comparison.GT) {
+      return number1 > number2;
+    }
+    if (comparison == Comparison.GE) {
+      return number1 >= number2;
+    }
+    if (comparison == Comparison.LT) {
+      return number1 < number2;
+    }
+    if (comparison == Comparison.LE) {
+      return number1 <= number2;
+    }
+    if (comparison == Comparison.EQUALS) {
+      return number1 == number2;
+    }
+    return false;
+  }
+
+  private boolean compare(final Comparison comparison, final double number1,
+      final long number2) {
+    if (comparison == Comparison.GT) {
+      return number1 > number2;
+    }
+    if (comparison == Comparison.GE) {
+      return number1 >= number2;
+    }
+    if (comparison == Comparison.LT) {
+      return number1 < number2;
+    }
+    if (comparison == Comparison.LE) {
+      return number1 <= number2;
+    }
+    if (comparison == Comparison.EQUALS) {
+      return number1 == number2;
+    }
+    return false;
+  }
+
+  private boolean compare(final Comparison comparison, final float number1,
+      final double number2) {
+    if (comparison == Comparison.GT) {
+      return number1 > number2;
+    }
+    if (comparison == Comparison.GE) {
+      return number1 >= number2;
+    }
+    if (comparison == Comparison.LT) {
+      return number1 < number2;
+    }
+    if (comparison == Comparison.LE) {
+      return number1 <= number2;
+    }
+    if (comparison == Comparison.EQUALS) {
+      return number1 == number2;
+    }
+    return false;
+  }
+
+  private boolean compare(final Comparison comparison, final float number1,
+      final float number2) {
+    if (comparison == Comparison.GT) {
+      return number1 > number2;
+    }
+    if (comparison == Comparison.GE) {
+      return number1 >= number2;
+    }
+    if (comparison == Comparison.LT) {
+      return number1 < number2;
+    }
+    if (comparison == Comparison.LE) {
+      return number1 <= number2;
+    }
+    if (comparison == Comparison.EQUALS) {
+      return number1 == number2;
+    }
+    return false;
+  }
+
+  private boolean compare(final Comparison comparison, final float number1,
+      final long number2) {
+    if (comparison == Comparison.GT) {
+      return number1 > number2;
+    }
+    if (comparison == Comparison.GE) {
+      return number1 >= number2;
+    }
+    if (comparison == Comparison.LT) {
+      return number1 < number2;
+    }
+    if (comparison == Comparison.LE) {
+      return number1 <= number2;
+    }
+    if (comparison == Comparison.EQUALS) {
+      return number1 == number2;
+    }
+    return false;
+  }
+
+  private boolean compare(final Comparison comparison, final long number1,
+      final double number2) {
+    if (comparison == Comparison.GT) {
+      return number1 > number2;
+    }
+    if (comparison == Comparison.GE) {
+      return number1 >= number2;
+    }
+    if (comparison == Comparison.LT) {
+      return number1 < number2;
+    }
+    if (comparison == Comparison.LE) {
+      return number1 <= number2;
+    }
+    if (comparison == Comparison.EQUALS) {
+      return number1 == number2;
+    }
+    return false;
+  }
+
+  private boolean compare(final Comparison comparison, final long number1,
+      final float number2) {
+    if (comparison == Comparison.GT) {
+      return number1 > number2;
+    }
+    if (comparison == Comparison.GE) {
+      return number1 >= number2;
+    }
+    if (comparison == Comparison.LT) {
+      return number1 < number2;
+    }
+    if (comparison == Comparison.LE) {
+      return number1 <= number2;
+    }
+    if (comparison == Comparison.EQUALS) {
+      return number1 == number2;
+    }
+    return false;
+  }
+
+  private boolean compare(final Comparison comparison, final long number1,
+      final long number2) {
+    if (comparison == Comparison.GT) {
+      return number1 > number2;
+    }
+    if (comparison == Comparison.GE) {
+      return number1 >= number2;
+    }
+    if (comparison == Comparison.LT) {
+      return number1 < number2;
+    }
+    if (comparison == Comparison.LE) {
+      return number1 <= number2;
+    }
+    if (comparison == Comparison.EQUALS) {
+      return number1 == number2;
+    }
+    return false;
+  }
+
   public static final class Type {
     public static final Type DOUBLE = new Type();
-    public static final Type FLOAT = new Type();
     public static final Type INTEGER = new Type();
     public static final Type LONG = new Type();
 
@@ -2100,9 +1959,6 @@ public abstract class ConstEtomoNumber implements Storable {
       if (this == DOUBLE) {
         return "Double";
       }
-      if (this == FLOAT) {
-        return "Float";
-      }
       if (this == INTEGER) {
         return "Integer";
       }
@@ -2110,6 +1966,26 @@ public abstract class ConstEtomoNumber implements Storable {
         return "Long";
       }
       return "Unknown Type";
+    }
+  }
+
+  private static final class Comparison {
+    private static final Comparison GT = new Comparison();
+    private static final Comparison GE = new Comparison();
+    private static final Comparison LT = new Comparison();
+    private static final Comparison LE = new Comparison();
+    private static final Comparison EQUALS = new Comparison();
+
+    private Comparison() {
+    }
+  }
+
+  private static final class Operator {
+    private static final Operator ADD = new Operator();
+    private static final Operator MULTIPLY = new Operator();
+    private static final Operator DIVIDE_BY = new Operator();
+
+    private Operator() {
     }
   }
 }
