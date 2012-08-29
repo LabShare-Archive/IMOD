@@ -314,6 +314,10 @@ final class FieldCell extends InputCell implements ActionTarget {
     setValue(new Double(value).toString());
   }
 
+  void setValue(long value) {
+    setValue(new Long(value).toString());
+  }
+
   int getEndValue() {
     return state.extractEndValue(textField.getText());
   }
@@ -334,7 +338,7 @@ final class FieldCell extends InputCell implements ActionTarget {
       return EtomoNumber.INTEGER_NULL_VALUE;
     }
   }
-  
+
   double getDoubleValue() {
     try {
       return Double.parseDouble(textField.getText());
