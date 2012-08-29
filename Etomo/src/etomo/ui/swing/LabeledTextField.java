@@ -434,6 +434,10 @@ final class LabeledTextField {
   void setText(final int value) {
     textField.setText(String.valueOf(value));
   }
+  
+  void setText(final long value) {
+    textField.setText(String.valueOf(value));
+  }
 
   void setText(final double value) {
     textField.setText(Double.toString(value));
