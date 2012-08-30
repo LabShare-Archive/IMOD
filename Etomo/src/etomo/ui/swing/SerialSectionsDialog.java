@@ -38,6 +38,8 @@ import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SerialSectionsMetaData;
 import etomo.type.ViewType;
 import etomo.ui.AutoAlignmentDisplay;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 import etomo.util.SharedConstants;
@@ -102,8 +104,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   private LabeledTextField ltfShiftY = new LabeledTextField("Y: ");
   private Spinner spBinByFactor = Spinner.getLabeledInstance("Binning: ", 1, 1, 8);
   private CheckBox cbFillWithZero = new CheckBox("Fill empty areas with 0");
-  private CheckTextField ctfRobustFitCriterion = CheckTextField
-      .getInstance("Robust fitting for criterion: ");
+  private CheckTextField ctfRobustFitCriterion = CheckTextField.getInstance(
+      FieldType.FLOATING_POINT, "Robust fitting for criterion: ");
   private final Spinner spMidasBinning = Spinner.getLabeledInstance("Binning: ", 1, 1, 8);
   private final Run3dmodButton btn3dmodRawStack = Run3dmodButton.get3dmodInstance(
       "Open Raw Stack", this);
@@ -341,21 +343,28 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   }
 
   public void getParameters(final SerialSectionsMetaData metaData) {
-    metaData.setRobustFitCriterion(ctfRobustFitCriterion.getText());
-    metaData.setMidasBinning(spMidasBinning.getValue());
-    autoAlignmentPanel.getParameters(metaData.getAutoAlignmentMetaData());
-    metaData.setNoOptions(rbNoOptions.isSelected());
-    metaData.setHybridFitsTranslations(rbHybridFitsTranslations.isSelected());
-    metaData.setHybridFitsTranslationsRotations(rbHybridFitsTranslationsRotations
-        .isSelected());
-    metaData.setNumberToFitGlobalAlignment(rbNumberToFitGlobalAlignment.isSelected());
-    metaData.setUseReferenceSection(cbsReferenceSection.isSelected());
-    metaData.setReferenceSection(cbsReferenceSection.getValue());
-    metaData.setSizeX(ltfSizeX.getText());
-    metaData.setSizeY(ltfSizeY.getText());
-    metaData.setShiftX(ltfShiftX.getText());
-    metaData.setShiftY(ltfShiftY.getText());
-    metaData.setTab(curTab.index);
+    boolean doValidation = false;
+    try {
+      metaData.setRobustFitCriterion(ctfRobustFitCriterion.getText(doValidation));
+      metaData.setMidasBinning(spMidasBinning.getValue());
+      autoAlignmentPanel.getParameters(metaData.getAutoAlignmentMetaData());
+      metaData.setNoOptions(rbNoOptions.isSelected());
+      metaData.setHybridFitsTranslations(rbHybridFitsTranslations.isSelected());
+      metaData.setHybridFitsTranslationsRotations(rbHybridFitsTranslationsRotations
+          .isSelected());
+      metaData.setNumberToFitGlobalAlignment(rbNumberToFitGlobalAlignment.isSelected());
+      metaData.setUseReferenceSection(cbsReferenceSection.isSelected());
+      metaData.setReferenceSection(cbsReferenceSection.getValue());
+      metaData.setSizeX(ltfSizeX.getText());
+      metaData.setSizeY(ltfSizeY.getText());
+      metaData.setShiftX(ltfShiftX.getText());
+      metaData.setShiftY(ltfShiftY.getText());
+      metaData.setTab(curTab.index);
+    }
+    catch (FieldValidationFailedException e) {
+      // Validation is not done for meta data
+      e.printStackTrace();
+    }
   }
 
   public void setParameters(final ConstSerialSectionsMetaData metaData) {
@@ -397,10 +406,17 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     }
   }
 
-  public void getPreblendParameters(final BlendmontParam param) {
-    param.setVerySloppyMontage(cbVerySloppyMontage.isSelected());
-    if (ctfRobustFitCriterion.isSelected()) {
-      param.setRobustFitCriterion(ctfRobustFitCriterion.getText());
+  public boolean getPreblendParameters(final BlendmontParam param,
+      final boolean doValidation) {
+    try {
+      param.setVerySloppyMontage(cbVerySloppyMontage.isSelected());
+      if (ctfRobustFitCriterion.isSelected()) {
+        param.setRobustFitCriterion(ctfRobustFitCriterion.getText(doValidation));
+      }
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
@@ -667,7 +683,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       rbHybridFitsTranslationsRotations.setToolTipText(text);
       rbNumberToFitGlobalAlignment.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           XftoxgParam.NUMBER_TO_FIT_KEY));
-      cbsReferenceSection.setToolTipText(EtomoAutodoc.getTooltip(autodoc, XftoxgParam.REFERENCE_SECTION));
+      cbsReferenceSection.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          XftoxgParam.REFERENCE_SECTION));
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
