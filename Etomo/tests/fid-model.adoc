@@ -336,6 +336,13 @@ assert.exists.file=%{dataset}%{axis}.fid~
 #don't break contours for midzone2b (doesn't need it)
 if.equals.var.axis.return=b
 cb.break-contours-into-pieces=on
+[[if = test-gui]]
+  #test that validation is being done
+  tf.break-contours-into-pieces=16,4abc
+  bn.track-patches=
+  wait.popup.field-validation-failed=OK
+  tf.break-contours-into-pieces=16,4
+[[]]
 bn.track-patches=
 wait.process.cross-correlating-stack=done
 [[if = test-gui]]
