@@ -7,7 +7,6 @@
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
- *  Log at end
  */
 
 #include <stdio.h>
@@ -18,7 +17,7 @@
 #define DEFAULT_SCALE 10.0
 
 Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
-                        int noflip, int ignoreZero, int countLines);
+                        int noflip, int ignoreZero, int countLines, int displayValues);
 static void usage(char *prog)
 {
   imodVersion(prog);
@@ -30,6 +29,7 @@ static void usage(char *prog)
   printf("\t-f\tDo NOT flip the Y and Z coordinates\n");
   printf("\t-n name\tAdd given name to model object\n");
   printf("\t-c #\tSet up clipping planes enclosing area of given size\n");
+  printf("\t-d #\tSet flag to display values in false color in 3dmod\n");
   printf("\t-z\tIgnore zero values when using SD to limit stored "
          "maximum value\n");
   printf("\t-l\tUse all lines in file rather than getting line count from first"
@@ -47,6 +47,7 @@ int main( int argc, char *argv[])
   int noflip = 0;
   int ignoreZero = 0;
   int countLines = 0;
+  int displayValues = 0;
   char *name = NULL;
 
   /* This name is hard-coded because of the script wrapper needed in Vista */
@@ -85,6 +86,10 @@ int main( int argc, char *argv[])
         countLines = 1;
         break;
 
+      case 'd':
+        displayValues = 1;
+        break;
+
       default:
         exitError("Illegal argument %s\n", argv[i]);
         break;
@@ -110,7 +115,7 @@ int main( int argc, char *argv[])
   if (!fout)
     exitError("Could not open %s\n", argv[i]);
   Model = (Imod *)imod_from_patches(fin, scale, clipSize, name, noflip, 
-                                    ignoreZero, countLines);
+                                    ignoreZero, countLines, displayValues);
      
   imodWrite(Model, fout);
 
@@ -125,7 +130,7 @@ int main( int argc, char *argv[])
 #define MAXLINE 128
 
 Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
-                        int noflip, int ignoreZero, int countLines)
+                        int noflip, int ignoreZero, int countLines, int displayValues)
 {
   int len;
   int i, npatch, nread;
@@ -301,6 +306,8 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
 
   /* Set current thicken contour flag to aid deleting patches */
   obj->flags |= IMOD_OBJFLAG_THICK_CONT | IMOD_OBJFLAG_MCOLOR;
+  if (displayValues)
+    obj->flags |= IMOD_OBJFLAG_USE_VALUE;
   if (nvals) {
     if (nvals > 10) {
       valsd = (sumsq - valsum * valsum / nvals) / (nvals - 1);
@@ -320,53 +327,3 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
   return(mod);
      
 }
-
-/*
-
-$Log$
-Revision 3.15  2010/09/22 22:24:37  mast
-Added option to read all lines, and added circle symbol only if not coplanar
-
-Revision 3.14  2009/09/08 23:21:46  mast
-Added option to ignore zero values when computing limit to maximum
-
-Revision 3.13  2009/09/03 04:44:11  mast
-Added ability to store another column in general value 2
-
-Revision 3.12  2007/12/14 23:59:34  mast
-Hard-coded name
-
-Revision 3.11  2006/10/03 14:37:30  mast
-Added option to prevent flipping of vector model.
-
-Revision 3.10  2006/08/31 20:57:16  mast
-Added value encoding and name and clipping plane options
-
-Revision 3.9  2006/08/28 14:28:25  mast
-removed internal fgetline
-
-Revision 3.8  2005/03/20 19:56:05  mast
-Eliminating duplicate functions
-
-Revision 3.7  2004/11/05 19:05:29  mast
-Include local files with quotes, not brackets
-
-Revision 3.6  2004/07/07 19:25:30  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.5  2004/04/28 05:29:31  mast
-Set flag to draw current contour thicker
-
-Revision 3.4  2003/10/24 03:05:24  mast
-open as binary, strip program name and/or use routine for backup file
-
-Revision 3.3  2002/12/23 21:32:55  mast
-Fixed exit status and made residual model have end-markers set
-
-Revision 3.2  2002/07/27 23:50:47  mast
-Eliminated line for test output
-
-Revision 3.1  2002/07/27 06:00:43  mast
-Added ability to convert a residual listing from Tiltalign
-
-*/
