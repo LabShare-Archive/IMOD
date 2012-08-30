@@ -1341,7 +1341,11 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   Number newNumber(String value, StringBuffer invalidBuffer) {
-    if (value == null || value.matches("\\s*")) {
+    if (value == null) {
+      return newNumber();
+    }
+    value = value.trim();
+    if (value.equals("")) {
       return newNumber();
     }
     try {
