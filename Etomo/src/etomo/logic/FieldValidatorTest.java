@@ -87,7 +87,7 @@ public class FieldValidatorTest extends TestCase {
       catch (FieldValidationFailedException e) {
       }
       failMessage = "spaces";
-      assertEquals(failMessage + ERR_VALIDATION_EXPECTED, INT.trim(),
+      assertEquals(failMessage + ERR_VALIDATION_EXPECTED, EMPTY.trim(),
           FieldValidator.validateText(EMPTY, fieldType, null, null));
       try {
         FieldValidator.validateText(INVALID_NUMBER, fieldType, null, null);
@@ -110,7 +110,7 @@ public class FieldValidatorTest extends TestCase {
       assertEquals(failMessage + ERR_VALIDATION_EXPECTED, FLOAT.trim(),
           FieldValidator.validateText(FLOAT, fieldType, null, null));
       failMessage = "spaces";
-      assertEquals(failMessage + ERR_VALIDATION_EXPECTED, INT.trim(),
+      assertEquals(failMessage + ERR_VALIDATION_EXPECTED, EMPTY.trim(),
           FieldValidator.validateText(EMPTY, fieldType, null, null));
       try {
         FieldValidator.validateText(INVALID_NUMBER, fieldType, null, null);
