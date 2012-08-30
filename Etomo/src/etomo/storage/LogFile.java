@@ -16,6 +16,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Properties;
 
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
@@ -1096,7 +1097,7 @@ public final class LogFile {
         // Popups from this class appear rarely and the class is used everywhere.
         // It is not a good idea to pass the manager to this class in order to
         // get the message behave perfectly.
-        UIHarness.INSTANCE.openMessageDialog(null, idNull.getMessage()
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null, idNull.getMessage()
             + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         return null;
       }
@@ -1123,7 +1124,7 @@ public final class LogFile {
         // Popups from this class appear rarely and the class is used everywhere.
         // It is not a good idea to pass the manager to this class in order to
         // get the message behave perfectly.
-        UIHarness.INSTANCE.openMessageDialog(null, idNull.getMessage()
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null, idNull.getMessage()
             + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         if (throwException) {
           throw idNull;
@@ -1160,7 +1161,7 @@ public final class LogFile {
         // Popups from this class appear rarely and the class is used everywhere.
         // It is not a good idea to pass the manager to this class in order to
         // get the message behave perfectly.
-        UIHarness.INSTANCE.openMessageDialog(null, idNull.getMessage()
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null, idNull.getMessage()
             + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         if (throwException) {
           throw idNull;
@@ -1188,7 +1189,7 @@ public final class LogFile {
           // Popups from this class appear rarely and the class is used everywhere.
           // It is not a good idea to pass the manager to this class in order to
           // get the message behave perfectly.
-          UIHarness.INSTANCE.openMessageDialog(null, e.getMessage()
+          UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage()
               + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         }
       }
@@ -1228,7 +1229,7 @@ public final class LogFile {
           // Popups from this class appear rarely and the class is used everywhere.
           // It is not a good idea to pass the manager to this class in order to
           // get the message behave perfectly.
-          UIHarness.INSTANCE.openMessageDialog(null, e.getMessage()
+          UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage()
               + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         }
       }
@@ -1252,7 +1253,7 @@ public final class LogFile {
           // Popups from this class appear rarely and the class is used everywhere.
           // It is not a good idea to pass the manager to this class in order to
           // get the message behave perfectly.
-          UIHarness.INSTANCE.openMessageDialog(null, e.getMessage()
+          UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage()
               + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         }
       }
@@ -1276,7 +1277,7 @@ public final class LogFile {
         // Popups from this class appear rarely and the class is used everywhere.
         // It is not a good idea to pass the manager to this class in order to
         // get the message behave perfectly.
-        UIHarness.INSTANCE.openMessageDialog(null, idNull.getMessage()
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null, idNull.getMessage()
             + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         if (throwException) {
           throw idNull;
@@ -1292,7 +1293,7 @@ public final class LogFile {
           // Popups from this class appear rarely and the class is used everywhere.
           // It is not a good idea to pass the manager to this class in order to
           // get the message behave perfectly.
-          UIHarness.INSTANCE.openMessageDialog(null, e.getMessage()
+          UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage()
               + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         }
       }
@@ -1316,7 +1317,7 @@ public final class LogFile {
         // Popups from this class appear rarely and the class is used everywhere.
         // It is not a good idea to pass the manager to this class in order to
         // get the message behave perfectly.
-        UIHarness.INSTANCE.openMessageDialog(null, e.getMessage()
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage()
             + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
       }
     }
@@ -1342,7 +1343,7 @@ public final class LogFile {
         // Popups from this class appear rarely and the class is used everywhere.
         // It is not a good idea to pass the manager to this class in order to
         // get the message behave perfectly.
-        UIHarness.INSTANCE.openMessageDialog(null, idNull.getMessage()
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null, idNull.getMessage()
             + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         return "";
       }
