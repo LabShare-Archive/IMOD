@@ -27,7 +27,7 @@ install : $(LIBI)
 clean : 
 	$(FIND) . -type f -name $(LIBI) -exec rm "{}" \;
 	$(FIND) . -type f -name "*.exp" -exec rm "{}" \;
-	$(FIND) . -type f -name "*.o*"  -exec rm "{}" \;
+	$(FIND) . -type f -name "*.$(OBJEXT)"  -exec rm "{}" \;
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#"  -exec rm "{}" \;
 
@@ -37,7 +37,3 @@ clean :
 $(OBJS) : $(INCDIR)/mkmesh.h $(INCDIR)/iobj.h $(INCDIR)/icont.h \
 $(INCDIR)/ipoint.h $(INCDIR)/imesh.h $(INCDIR)/b3dutil.h $(INCDIR)/imodel.h
 
-#  $Log$
-#  Revision 1.1  2006/09/12 14:57:10  mast
-#  New library
-#

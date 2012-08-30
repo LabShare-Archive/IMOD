@@ -107,9 +107,9 @@ $(LHD)/libwarp.html: libwarp.html ../../libwarp/warputils.c \
 	../../libwarp/warpfiles.c ../../libwarp/warpinterp.c ../../libwarp/maggradfield.c
 	$(SDEXE) -d ../../libwarp libwarp.html $(LHD)/libwarp.html
 
-$(LHD)/libifft.html: libifft.html ../../libcfft/odfft.c \
-	../../libcfft/todfft.c  ../../libcfft/thrdfft.c
-	$(SDEXE) -d ../../libcfft libifft.html $(LHD)/libifft.html
+$(LHD)/libifft.html: libifft.html ../../libfft/odfft.c \
+	../../libfft/todfft.c  ../../libfft/thrdfft.c
+	$(SDEXE) -d ../../libfft libifft.html $(LHD)/libifft.html
 
 $(LHD)/libdiaqt.html: libdiaqt.html $(QTD)/arrowbutton.cpp \
 	$(QTD)/colorselector.cpp $(QTD)/dia_qtutils.cpp \

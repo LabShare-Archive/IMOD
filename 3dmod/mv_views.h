@@ -10,8 +10,6 @@
 #ifndef IMODV_VIEWS_H
 #define IMODV_VIEWS_H
 
-#define VIEW_LABEL_LENGTH  32
-
 typedef struct __imodv_struct ImodvApp;
 
 /* view editing functions */

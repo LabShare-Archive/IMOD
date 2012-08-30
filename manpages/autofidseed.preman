@@ -1,0 +1,130 @@
+.na
+.nh
+.TH autofidseed 1 4.6.8 BL3DEMC
+.SH NAME
+autofidseed \- Automatically make a seed model for tilt series fiducial tracking
+.SH SYNOPSIS
+autofidseed [options] data_file
+.SH DESCRIPTION
+Autofidseed uses a series of other programs to generate a seed model for
+tracking tilt series fiducial particles in Beadtrack(1).  Given a desired
+number or density of beads to be found, it attempts to select a well
+distributed set of good-quality beads.  If beads are on two surfaces, it will
+aim for an even distribution of beads on both surfaces.
+.P
+The program first determines three views around zero tilt that are suitable
+for finding beads on.  It aims to have the views be separated by 2 degrees in
+tilt.  It runs Imodfindbeads(1) on those views.  If too few beads are
+found to achieve the requested number of beads for tracking, it then reruns
+Imofindbeads(1) with 5 or 7 initial views instead, in case that brings in more
+beads.  (The 
+.B -views 
+option can be used to make it use only a specific number of views between 3
+and 7.)  The program next extracts the beads found on
+each view into a separate model and runs Beadtrack(1) independently with each
+model as seed.  The beads are typically tracked over 11 views, or possibly
+over as few as 7 views if the tilt increment is large.  In each case,
+Beadtrack(1) puts out a file with the mean residual and some measures of
+elongation for each bead that was tracked.  If beads are to be sorted onto two
+surfaces, then Beadtrack(1) also puts out a file with the X, Y, and Z
+coordinates of each bead, and Sortbeadsurfs(1) is called to sort the beads
+onto two surfaces independently for each starting view.  The tracked models,
+the residual/elongation information, and the surface information is then
+passed to Pickbestseed(1), which takes everything into account to pick out the
+best beads for a seed and produces the final seed model.
+.P
+The various intermediate files involved are placed in the default temporary
+directory (which can be defined with the environment variable IMOD_TMPDIR; see
+the man page for imodenv(1)).  Some of them are cleaned up after a run, but
+some are kept so that Pickbestseed(1) can be run over again with different
+parameters, without having to rerun the bead finding and tracking.
+Autofidseed retains a file with information about these initial steps so that
+it can tell whether the existing temporary files are valid on a new run.  The
+default name of this file is
+"autofidseed.info" for a single axis data set, or "autofidseeda.info" or
+"autofidseedb.info" for dual axis data.  If Autofidseed is run with the option
+"-remove 1" it will clean up existing files and start a new run from scratch;
+with the option "-remove -1" it will simply clean up files and exit.
+.P
+The program requires at least two arguments, 
+.B -track
+to indicate a Beadtrack(1) command file, and either
+.B -number
+or
+.B -density
+to indicate the desired total number of beads or the density per megapixel (1K
+x 1K area).  The command file is
+the primary source for
+information about the data set and also the basis for the commands used to
+track the beads.  Parameters (such as whether beads are white, or Sobel
+filtering parameters) should be set in this file before running Autofidseed.
+However, the selection for local tracking is ignored; Autofidseed sets up
+local tracking depending on the size of the area and the number of beads found
+initially.
+.P
+In typical use, only a few other options should be needed, primarily 
+.B -two
+to request sorting onto two surfaces, and 
+.B -boundary
+to specify a model with contours enclosing the regions where beads should be
+located.  If Imodfindbeads(1) fails to find a dip in the histogram of peak
+strengths or does not find nearly enough beads, the best thing to try is the
+.B -guess
+option, although it may also be helpful to make a boundary model that excludes
+bright areas in the resin outside of a cell.
+.P
+A major source of problems is a severe imbalance between the number of beads
+on two sides.  If the imbalance is big enough, the sorting of beads onto two
+surfaces can fail, leading to an inappropriate distribution of points,
+and even selection of points that are in clusters.  In other cases, a big
+imbalance can lead to selection of the lowest quality beads on the minority
+surface, which might be ribosomes instead of gold beads.  In these cases, the
+best approach may be to leave off the 
+.B -two
+option.  The program will add beads from the majority surface, if possible, to
+achieve the requested number or density of beads.  This can lead to an
+undesirable imbalance in the final seed model, and the 
+.B -ratio
+option is available to set the allowed ratio between the majority and minority
+surfaces.
+.P
+When sorting onto two surfaces is requested, the points are still placed in a single
+object in the output model, but the ones on the top surface are given a
+different surface number so that they can appear in a different color.
+Points on the
+bottom have the object color, green, and points on the
+top appear as magenta, since surface 1 in the object has that color set as a
+fine-grained property.
+.P
+In the output model, seed points have values based on the overall score that
+Pickbestseed(1) assigned to them.  The score is a weighted sum of several
+factors: the mean residuals in the various tracks, the mean deviation between
+multiple tracks of the same bead, the fraction of tracks in which the bead is
+missing, and the fraction of points missing from each track.  In addition, 1
+is added if a bead is clustered, and 0.3-1 is added if it is elongated.  Good scores
+are thus on the order of a mean residual value, and bad ones may be up to 3 or
+more.  The value stored in the model file is the inverse of the score so that
+low values will be worse, allowing them to be examined in the Bead Fixer in
+3dmod(1).  There, you can adjust a slider to turn off points below a threshold
+value, and then delete the points below threshold if desired.  The values
+there will be on the order of 2-3 for good beads, and less than 1 for the
+worse ones.
+.SS Options
+Autofidseed uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -).  Options can be abbreviated to unique letters; the currently
+valid abbreviations for short names are shown in parentheses.
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH AUTHOR
+.nf
+David Mastronarde
+.fi
+.SH SEE ALSO
+imodfindbeads(1), beadtrack(1), sortbeadsurfs(1), pickbestseed(1)
+.P
+Email bug reports to mast@colorado.edu.

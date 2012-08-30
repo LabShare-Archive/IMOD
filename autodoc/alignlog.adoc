@@ -46,7 +46,12 @@ manpage =
 
 [Field = b]
 type = B
-usage = Beam tilt: print F values from beam tilt searc
+usage = Beam tilt: print F values (RMS errors) from beam tilt search
 tooltip =
 manpage = 
 
+[Field = w]
+type = B
+usage = Robust weighting: print output from robust fitting and weighted mean residuals
+tooltip =
+manpage = 

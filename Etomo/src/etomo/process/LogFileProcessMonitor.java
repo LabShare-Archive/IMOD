@@ -245,6 +245,9 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
 
   final String nSectionsHeader;
   final int nSectionsIndex;
+  
+  public void dumpState() {
+  }
 
   abstract void initializeProgressBar();
 

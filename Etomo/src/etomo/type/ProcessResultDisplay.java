@@ -17,8 +17,9 @@ package etomo.type;
  */
 public interface ProcessResultDisplay {
   public static final String rcsid = "$Id$";
-
-  public String getName();
+  
+  public void dumpState();
+  
   /**
    * get the original state of the display.  Will return to this state if the
    * process fails to start.

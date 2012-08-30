@@ -31,6 +31,16 @@ manpage = Name of piece list file if image is montaged or out of sequence.
 A montaged file should not be be used unless the overlaps between pieces
 are nearly exact.
 
+[Field = PrealignTransformFile]
+short = prexf
+type = FN
+usage = File with transforms used to align images being tracked
+tooltip = 
+manpage = File with transformations applied to align the images.  The program
+will assume that the transformations consist only of shifts and will use this
+information to avoid searching for a bead on a filled area that has no image
+data.
+
 [Field = ImagesAreBinned]
 short = 
 type = I
@@ -40,15 +50,32 @@ manpage = The current binning of the images relative to the original data.
 This factor is used to scale the bead diameter
 from unbinned to binned coordinates.  The default is 1.
 
-[Field = SurfaceOutputFile]
+[Field = XYZOutputFile]
 short = 
 type = FN
-usage = File name for information about which surface each bead is on
+usage = File name for output of X/Y/Z coordinates and mean residuals
 tooltip = 
-manpage = File name for output of surface information.  The program will try
-to sort the beads onto two surfaces separately for each local area.  The file
-will have four columns: object and contour number, and number of times the
-bead came out on the bottom and top surfaces.
+manpage = File name for output of information that can be used by
+Sortbeadsurfs(1) to determine which of two surfaces each bead is on.  This
+file has an entry for each bead with 5 columns: contour number, solved X, Y, Z
+coordinates, and the mean of the mean residuals from each local area.  The
+program uses the X/Y/Z coordinates from beads that overlap between between
+local areas to resolve the sets of coordinates from multiple local areas into
+a single consistent set.
+
+[Field = ElongationOutputFile]
+short =
+type = FN
+usage = File name for output of mean residuals and bead elongation data
+tooltip =
+manpage = File name for output of mean residuals and bead elongation data,
+which can be used by Pickbestseed(1) when selecting optimal beads for a seed
+model.  The file has an entry for each bead with 8 columns: object and contour
+number, and mean of the contour's mean residuals from each local area that the
+bead occurs in, the mean, median, and standard deviation of one measure of
+elongation (the standard deviation of pixels around the edge of the bead when
+measuring the centroid), and the mean and median of the elongation of pixels
+above a threshold.
 
 [Field = SkipViews]
 short = 
@@ -193,6 +220,14 @@ manpage =   Actual diameter of beads in pixels in the original stack,
 before any binning.  If CentroidRadius is entered instead, the unbinned
 diameter will be taken as 2 * radius - 3.
 
+[Field = MedianForCentroid]
+short = 
+type = B
+usage = Use median instead of mean of surrounding pixels when computing centroid
+tooltip = 
+manpage = Take the median instead of the mean of the pixels in the surrounding
+annulus when computing the centroid.
+
 [Field = LightBeads]
 short = 
 type = B
@@ -273,6 +308,17 @@ manpage = If MaxViewsInAlign is entered, this entry can be used to apply the
 restriction on the number of the views in the tilt alignment on a particular
 round of tracking.
 
+[Field = UnsplitFirstRound]
+short = 
+type = B
+usage = In first round, track from seed view to first view then to last view (legacy)
+tooltip =
+manpage = On the first round, the program will track from the seed view
+halfway down to the first view, then halfway up to the last view, then return
+to the low views and finish with the high views.  Use this option to return to
+the old behavior (prior to IMOD 4.6.8) of tracking all the way to the first
+view then tracking up to the last view.
+
 [Field = LocalAreaTracking]
 short = 
 type = B
@@ -336,6 +382,50 @@ A running average is kept of the appearance of the bead over
 the most recent views examined; this parameter specifies the
 maximum number of views averaged.
 
+[Field = SobelFilterCentering]
+short =
+type = B
+usage = Use edge-detecting Sobel filter to refine the bead positions
+tooltip =
+manpage = Use an edge-detecting Sobel filter to refine the centroid-based bead positions.
+
+[Field = KernelSigmaForSobel]
+short = 
+type = F
+usage = Sigma for gaussian kernel filtering of single bead before Sobel filtering
+tooltip = Sigma for gaussian kernel filtering of single bead before Sobel
+filtering.  The default is 0.5; a value of around 1.5 is needed for
+higher-noise (e.g., cryo) data.
+manpage = Sigma for gaussian kernel filtering of single bead before Sobel
+filtering, which reduces the contribution of noise to the edge-filtered image.  The
+default is 0.5, which is optimal for relatively low-noise data.  Higher-noise
+data requires a higher sigma of around 1.5.
+
+[Field = AverageBeadsForSobel]
+short = 
+type = I
+usage = Number of beads to average for reference for Sobel filter correlation
+tooltip = 
+manpage = Number of beads to average for the reference for Sobel filter
+correlation.  Images will be averaged from already-tracked nearby views
+separately for each bead.  If there are not enough already-tracked views,
+averages will be combined from multiple beads to reach the desired number.  If
+the number of averaged beads is less than half of this value, a model bead is
+used instead.  The average or model is Sobel-filtered and correlated with the
+Sobel-filtered image of the single bead.  The default is 50.
+
+[Field = InterpolationType]
+short = 
+type = I
+usage = 1 for linear or 0 for cubic interpolation or -1 for antialias
+reduction in scaled Sobel filter
+tooltip = 
+manpage = Type of interpolation to use in the scaled Sobel filter: 1 for
+linear interpolation, 0 for cubic interpolation, and -1 for 
+image reduction with an antialias filter instead of with interpolation
+combined with binning.  The default is 0 if the sigma for kernel filtering is
+less than 1.5, otherwise 1.
+
 [Field = PointsToFitMaxAndMin]
 short = 
 type = IP
@@ -352,7 +442,7 @@ views.  (Defaults 7 and 3).
 short = 
 type = FP
 usage = Criterion fraction of mean density and SDs below mean for rescue based
-on densiy.
+on density.
 tooltip = Fraction of mean bead integral, and number of SDs below mean, to use
 as the criterion for when to attempt a rescue based on bead density.
 manpage =   Fraction of mean bead integral, and number of standard deviations
@@ -450,7 +540,7 @@ manpage = OPTIONS FOR TEST OUTPUT
 short = 
 long = BoxOutputFile
 type = FN
-usage = Root filename for diagnositic output of correlation boxes
+usage = Root filename for diagnostic output of correlation boxes
 tooltip =
 manpage =
 
@@ -458,7 +548,7 @@ manpage =
 short = 
 long = SnapshotViews
 type = LI
-usage = List of views at which to snapshot intermediate models.
+usage = List of views at which to snapshot intermediate models
 tooltip =
 manpage = List of views at which to snapshot model before deletion on first and
 second passes.  The models will be named <OutputModel>.<view #>.<pass #>.
@@ -469,5 +559,7 @@ long = SaveAllPointsAreaRound
 type = IP
 usage = Area/object and round at which to save all positions in new objects
 tooltip =
-manpage =
+manpage = Area or object and round at which to save all positions in new
+objects.  Enter negative of the area number to exit after finishing the area.
+This option will also enable some debugging output for that area and round.
 

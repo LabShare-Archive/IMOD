@@ -45,14 +45,15 @@ enum measuretype { MT_VOL, MT_SA, MT_LEN, MT_NUM };
 enum paintmode   { PM_OFF, PM_PAINT, PM_INTERCEPTS };
 
 enum ptchange    { SEL_NA, SEL_ON, SEL_OFF, SEL_TOGGLE };
-enum rangeopts   { RG_CURR, RG_ALL, RG_CUSTOM };
+enum rangeopts   { RG_CURR=0, RG_ALL=1, RG_CUSTOM=2 };
 
 enum gridlabels  { GL_OFF, GL_NUMS, GL_LETTERS_NUMS };
-const int NUM_SAVED_VALS = 41;
+const int NUM_SAVED_VALS = 65;
 
+const int   NUM_MASKS      = 5;					// max number of mask objects in applyMasks()
 const float PT_PREC        = 0.001f;		// used by 'ptsEqualXYZ' function
 const char  PLUSMINUS_SIGN = 0x00B1;		// plus minus sign
-const int   ARCPOINTS = 12;							// number of points used in cycloid
+const int   ARCPOINTS      = 12;				// number of points used in cycloid
 const float INTERCEPT_DIST = 2.0f;			// pixels distance between intercept points
 const float INTERCEPT_SNAP = 5.0f;			// pixels mouse must be to snap to intercept pt
 
@@ -483,6 +484,7 @@ public slots:
 	bool isCatObjValid( int catIdx, bool printError=true );
 	bool isStereologyObj( int objIdx );
 	bool isStereologyObjSelected( bool showErrorIfTrue, const char *customMsg=NULL );
+	bool goToFirstInvalidPoint();
 	
 	void togglePaintBtn();
 	void toggleInterceptBtn();
@@ -495,6 +497,7 @@ public slots:
 	
 	void setSpacingUsingUnits();
 	void applyMask();
+	void applyMasks();
 	void applyIntercepts();
 	void applyRulesToChangePts();
 	
@@ -719,12 +722,26 @@ struct StereologyData   // contains all local plugin data
 	bool showBigIntercCH;				// if true: shows a big crosshair when "Intercept" mode
 															//  is on (paintMode == PM_INTERCEPTS)
 	
+															// MASK OPTIONS:  (see "applyMask()" method)
+	int maskObjOpt;							// 0=current object only,  1=all, 2=custom
+	int maskInverseOpt;					// 0=mask is inside contours, 1=outside
+	int maskSectionsOpt;				// 0=current section only, 1=all, 2=custom
+	int maskSelPtsOpt;					// 0=all, 1=checked, 2=unchecked only
+	int maskChangeToCheckedOpt;	// 0=don't change, 1=checked, 2=unchecked
+										// NOTE: Most of these use the enums (see: ptchange & rangeopts)
+	
+															// BATCH MASK OPTIONS:  (see "applyMasks()" method)
+	bool masksDefaultUse;				// if true: will apply default category
+	int  masksDefaultCat;				// the default category if isn't in a mask
+	int  masksDefaultChecked;		// 0=unchanged, 1=checked, 2=unchecked
+	bool masksPrintChanges;			// prints changes to console
+	bool masksUse[NUM_MASKS];		// |-- whether to use, the object number and the
+	int  masksObj[NUM_MASKS];		// |   category to apply for each mask option
+	int  masksCat[NUM_MASKS];		// |
 	
 	//## OTHER:
 	
 	QTime timeLastClick;				// used to track time since counting was started
-	//int msecElapLastClick;			// stores the number of milliseconds elapsed the
-	//														//  last time the user clicked
 	float numMinutesWorked;			// stores the number of minutes the user has spent
 															//  classifying points, and is only incremented if
 															//  there was less than 60 seconds between clicks

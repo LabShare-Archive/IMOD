@@ -17,6 +17,7 @@ import javax.swing.JFileChooser;
 import etomo.comscript.CommandDetails;
 import etomo.comscript.IntermittentCommand;
 import etomo.comscript.ProcesschunksParam;
+import etomo.process.AxisProcessData;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ImodqtassistProcess;
@@ -30,6 +31,7 @@ import etomo.storage.LogFile;
 import etomo.storage.Loggable;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
+import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
@@ -47,6 +49,7 @@ import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
+import etomo.type.ViewType;
 import etomo.ui.swing.FileChooser;
 import etomo.ui.swing.FixedDim;
 import etomo.ui.swing.LogInterface;
@@ -54,6 +57,7 @@ import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.ParallelPanel;
 import etomo.ui.swing.ProcessDisplay;
+import etomo.ui.swing.UIComponent;
 import etomo.ui.swing.UIHarness;
 import etomo.util.UniqueKey;
 import etomo.util.Utilities;
@@ -79,9 +83,9 @@ import etomo.util.Utilities;
 public abstract class BaseManager {
   public static final String rcsid = "$Id$";
 
-  // protected static variables
+  // static variables
   private static boolean headless = false;
-  // protected MainFrame mainFrame = null;
+  // proected MainFrame mainFrame = null;
   UIHarness uiHarness = UIHarness.INSTANCE;
   static UserConfiguration userConfig = EtomoDirector.INSTANCE.getUserConfiguration();
   boolean loadedParamFile = false;
@@ -109,61 +113,41 @@ public abstract class BaseManager {
   private final ProcessingMethodMediator processingMethodMediatorA = new ProcessingMethodMediator();
   private final ProcessingMethodMediator processingMethodMediatorB = new ProcessingMethodMediator();
   private final ManagerKey managerKey = new ManagerKey();
+  final AxisProcessData axisProcessData = new AxisProcessData(this);
+
+  public void dumpState() {
+    System.err.println("[headless:" + headless + ",loadedParamFile:" + loadedParamFile
+        + ",paramFile:");
+    if (paramFile != null) {
+      System.err.println(paramFile.getAbsolutePath() + ",");
+    }
+    System.err.println("homeDirectory:" + homeDirectory + ",threadNameA:" + threadNameA
+        + ",\nthreadNameB:" + threadNameB + ",backgroundProcessA:" + backgroundProcessA
+        + ",\nbackgroundProcessNameA:" + backgroundProcessNameA + ",propertyUserDir:"
+        + propertyUserDir + ",\ndebug:" + debug + ",exiting:" + exiting + ",initialized:"
+        + initialized + ",\ncurrentDialogTypeA:" + currentDialogTypeA
+        + ",\ncurrentDialogTypeB:" + currentDialogTypeB + ",reconnectRunA:"
+        + reconnectRunA + ",\nreconnectRunA:" + reconnectRunA + ",reconnectRunB:"
+        + reconnectRunB + ",\nmanagerKey:" + managerKey + "]");
+  }
 
   abstract public InterfaceType getInterfaceType();
 
-  abstract void createComScriptManager();
-
   abstract void createMainPanel();
-
-  abstract void createProcessTrack();
-
-  abstract void updateDialog(ProcessName processName, AxisID axisID);
 
   public abstract BaseMetaData getBaseMetaData();
 
   public abstract MainPanel getMainPanel();
 
-  abstract void getProcessTrack(Storable[] storable, int index);
-
-  abstract BaseProcessTrack getProcessTrack();
-
-  public abstract BaseState getBaseState();
-
-  public abstract void kill(AxisID axisID);
-
-  public abstract void pause(AxisID axisID);
-
   public abstract BaseProcessManager getProcessManager();
-
-  public abstract BaseScreenState getBaseScreenState(AxisID axisID);
-
-  public abstract boolean canChangeParamFileName();
-
-  public abstract void setParamFile(File paramFile);
-
-  public abstract boolean canSnapshot();
-
-  public abstract boolean setParamFile();
 
   public abstract LogPanel getLogPanel();
 
   public abstract LogInterface getLogInterface();
 
-  abstract void processSucceeded(AxisID axisID, ProcessName processName);
-
-  abstract void startNextProcess(AxisID axisID, ProcessSeries.Process process,
-      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display);
-
   abstract Storable[] getStorables(int offset);
 
   public abstract String getName();
-
-  public abstract ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
-      AxisID axisID);
-
-  public abstract boolean isInManagerFrame();
 
   /**
    * Return the subdirectory of the dataset location where some of the files are
@@ -172,7 +156,9 @@ public abstract class BaseManager {
    * 
    * @return
    */
-  public abstract String getFileSubdirectoryName();
+  public String getFileSubdirectoryName() {
+    return null;
+  }
 
   public BaseManager() {
     propertyUserDir = System.getProperty("user.dir");
@@ -199,12 +185,103 @@ public abstract class BaseManager {
     return getName();
   }
 
+  public AxisProcessData getAxisProcessData() {
+    return axisProcessData;
+  }
+
   private void initProgram() {
     System.err.println("propertyUserDir:  " + propertyUserDir);
   }
 
   public String getPropertyUserDir() {
     return propertyUserDir;
+  }
+
+  public boolean canChangeParamFileName() {
+    return false;
+  }
+
+  void createComScriptManager() {
+  }
+
+  void createProcessTrack() {
+  }
+
+  public ViewType getViewType() {
+    return ViewType.DEFAULT;
+  }
+
+  public BaseScreenState getBaseScreenState(final AxisID axisID) {
+    return null;
+  }
+
+  public BaseState getBaseState() {
+    return null;
+  }
+
+  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
+      final AxisID axisID) {
+    return null;
+  }
+
+  BaseProcessTrack getProcessTrack() {
+    return null;
+  }
+
+  void getProcessTrack(final Storable[] storable, final int index) {
+  }
+
+  public boolean isInManagerFrame() {
+    return false;
+  }
+
+  AutoAlignmentMetaData getAutoAlignmentMetaData() {
+    return null;
+  }
+
+  public boolean updateMetaData(final DialogType dialogType, final AxisID axisID) {
+    return false;
+  }
+
+  /**
+   * Interrupt the currently running thread for this axis
+   * 
+   * @param axisID
+   */
+  public void kill(final AxisID axisID) {
+    getProcessManager().kill(axisID);
+  }
+
+  public void pause(final AxisID axisID) {
+    getProcessManager().pause(axisID);
+  }
+
+  void processSucceeded(final AxisID axisID, final ProcessName processName) {
+  }
+
+  /**
+   * In most managers the param file should already be set.
+   * @return
+   */
+  public boolean setParamFile() {
+    return loadedParamFile;
+  }
+
+  public boolean isSetupDone() {
+    return loadedParamFile;
+  }
+
+  public void setParamFile(final File paramFile) {
+    this.paramFile = paramFile;
+  }
+
+  void startNextProcess(final UIComponent uiComponent, final AxisID axisID,
+      final ProcessSeries.Process process,
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final DialogType dialogType, final ProcessDisplay display) {
+  }
+
+  void updateDialog(final ProcessName processName, final AxisID axisID) {
   }
 
   public void logMessage(Loggable loggable, AxisID axisID) {
@@ -420,6 +497,25 @@ public abstract class BaseManager {
     }
   }
 
+  boolean saveMetaDataToParameterStore() {
+    try {
+      ParameterStore parameterStore = getParameterStore();
+      if (parameterStore == null) {
+        return false;
+      }
+      parameterStore.save(getBaseMetaData());
+    }
+    catch (LogFile.LockException e) {
+      uiHarness.openMessageDialog(this,
+          "Cannot save or write to metaData.\n" + e.getMessage(), "Etomo Error");
+    }
+    catch (IOException e) {
+      uiHarness.openMessageDialog(this,
+          "Cannot save or write to metaData.\n" + e.getMessage(), "Etomo Error");
+    }
+    return true;
+  }
+
   /**
    * Save etomo to parametersState by asking the child manager for a list of
    * storable objects. This is used when storable objects may have been changes
@@ -514,6 +610,9 @@ public abstract class BaseManager {
    * to a file.
    */
   public boolean saveParamFile() throws LogFile.LockException, IOException {
+    if (!isSetupDone()) {
+      return false;
+    }
     setParamFile();
     if (getParameterStore() == null) {
       return false;
@@ -576,8 +675,8 @@ public abstract class BaseManager {
   private boolean checkNextProcess(AxisID axisID) {
     BaseProcessManager processManager = getProcessManager();
     if (processManager != null) {
-      SystemProcessInterface processA = processManager.getThread(AxisID.FIRST);
-      SystemProcessInterface processB = processManager.getThread(AxisID.SECOND);
+      SystemProcessInterface processA = axisProcessData.getThread(AxisID.FIRST);
+      SystemProcessInterface processB = axisProcessData.getThread(AxisID.SECOND);
       // Check to see if next processes have to be done
       ArrayList messageArray = new ArrayList();
       ConstProcessSeries processSeriesA = null;
@@ -1043,8 +1142,8 @@ public abstract class BaseManager {
       // Check for processes that will die if etomo exits
       BaseProcessManager processManager = getProcessManager();
       if (processManager != null) {
-        SystemProcessInterface processA = getProcessManager().getThread(AxisID.FIRST);
-        SystemProcessInterface processB = getProcessManager().getThread(AxisID.SECOND);
+        SystemProcessInterface processA = axisProcessData.getThread(AxisID.FIRST);
+        SystemProcessInterface processB = axisProcessData.getThread(AxisID.SECOND);
         boolean nohupA = processA == null || processA.isNohup();
         boolean nohupB = processB == null || processB.isNohup();
         if (!nohupA || !nohupB) {
@@ -1073,7 +1172,7 @@ public abstract class BaseManager {
   }
 
   private boolean checkUnidentifiedProcess(AxisID axisID) {
-    SystemProcessInterface thread = getProcessManager().getThread(axisID);
+    SystemProcessInterface thread = axisProcessData.getThread(axisID);
     if (thread == null) {
       return true;
     }
@@ -1422,6 +1521,9 @@ public abstract class BaseManager {
       // processes where managed by BaseManager.
       if (failed) {
         sendMsgProcessFailed(processResultDisplay);
+        if (processSeries != null) {
+          processSeries.startFailProcess(axisID, processResultDisplay);
+        }
       }
     }
   }
@@ -1438,8 +1540,7 @@ public abstract class BaseManager {
     }
     return reconnectRunA;
   }
-  
-  
+
   public boolean isValid() {
     return true;
   }
@@ -1548,9 +1649,11 @@ public abstract class BaseManager {
 
   public boolean reconnectProcesschunks(final ProcessData processData,
       final AxisID axisID, final boolean multiLineMessages) {
+    ProcessResultDisplay display = null;
     ProcessResultDisplayFactoryInterface factory = getProcessResultDisplayFactoryInterface(axisID);
-    ProcessResultDisplay display = getProcessResultDisplayFactoryInterface(axisID)
-        .getProcessResultDisplay(processData.getDisplayKey().getInt());
+    if (factory != null) {
+      display = factory.getProcessResultDisplay(processData.getDisplayKey().getInt());
+    }
     if (display != null) {
       sendMsgProcessStarting(display);
     }

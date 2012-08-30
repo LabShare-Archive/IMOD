@@ -11,6 +11,7 @@ import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.swing.Deferred3dmodButton;
 import etomo.ui.swing.ProcessDisplay;
+import etomo.ui.swing.UIComponent;
 
 /**
  * <p>Description: Represents a series of processes to be executed.</p>
@@ -174,13 +175,24 @@ public final class ProcessSeries implements ConstProcessSeries {
   private final BaseManager manager;
   private final DialogType dialogType;
   private final ProcessDisplay processDisplay;
+  private final UIComponent uiComponent;
 
   private Process nextProcess = null;
+  /**
+   * The processes between nextProcess and lastProcess
+   */
+  private Process processList = null;
   private Process lastProcess = null;
-  //3dmod is opened after the last process.
+  // 3dmod is opened after last process.
   private Deferred3dmodButton run3dmodButton = null;
   private Run3dmodMenuOptions run3dmodMenuOptions = null;
+  private Process failProcess = null;
   private boolean debug = false;
+  private boolean forceNextProcess = false;
+
+  public void dumpState() {
+    System.err.print("[debug:" + debug + "]");
+  }
 
   public String toString() {
     return "[nextProcess:" + nextProcess + ",lastProcess:" + lastProcess + "]";
@@ -188,6 +200,15 @@ public final class ProcessSeries implements ConstProcessSeries {
 
   public ProcessSeries(final BaseManager manager, DialogType dialogType) {
     this.manager = manager;
+    uiComponent = null;
+    this.dialogType = dialogType;
+    this.processDisplay = null;
+  }
+
+  public ProcessSeries(final BaseManager manager, final UIComponent uiComponent,
+      final DialogType dialogType) {
+    this.manager = manager;
+    this.uiComponent = uiComponent;
     this.dialogType = dialogType;
     this.processDisplay = null;
   }
@@ -195,26 +216,36 @@ public final class ProcessSeries implements ConstProcessSeries {
   public ProcessSeries(final BaseManager manager, DialogType dialogType,
       ProcessDisplay processDisplay) {
     this.manager = manager;
+    uiComponent = null;
     this.dialogType = dialogType;
     this.processDisplay = processDisplay;
+  }
+
+  public boolean startNextProcess(final AxisID axisID) {
+    return startNextProcess(axisID, null);
   }
 
   /**
    * Start next process from the start process queue.  If it is 
    * empty then start next process from the end process queue.  If next process
    * and last process are empty, run 3dmod based on deferred3dmodButton and
-   * run3dmodMenuOptions.  The started process is removed.
+   * run3dmodMenuOptions.  The started process is removed.  If there are no processes to
+   * start, the fail process is removed.
    * @param axisID
    * @param processResultDisplay
    * @return true if a process is run.
    */
   public boolean startNextProcess(final AxisID axisID,
       final ProcessResultDisplay processResultDisplay) {
-    //Get the next process.
+    // Get the next process.
     Process process = null;
     if (nextProcess != null) {
       process = nextProcess;
       nextProcess = null;
+    }
+    else if (processList != null) {
+      process = processList;
+      processList = processList.next;
     }
     else if (lastProcess != null) {
       process = lastProcess;
@@ -225,15 +256,45 @@ public final class ProcessSeries implements ConstProcessSeries {
       return true;
     }
     else {
+      failProcess = null;
       return false;
     }
     sendMsgSecondaryProcess(processResultDisplay);
     if (debug) {
       System.out.println("ProcessSeries.startNextProcess:process=" + process);
     }
-    manager.startNextProcess(axisID, process, processResultDisplay, this, dialogType,
+    forceNextProcess = process.forceNextProcess;
+    manager.startNextProcess(uiComponent,axisID, process, processResultDisplay, this, dialogType,
         processDisplay);
     return true;
+  }
+
+  public void startFailProcess(final AxisID axisID) {
+    startFailProcess(axisID, null);
+  }
+
+  /**
+   * All other processes are deleted and the failprocess is started if it exists.
+   */
+  public void startFailProcess(final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay) {
+    if (forceNextProcess) {
+      startNextProcess(axisID, processResultDisplay);
+    }
+    else {
+      nextProcess = null;
+      processList = null;
+      lastProcess = null;
+      run3dmodButton = null;
+      run3dmodMenuOptions = null;
+      if (failProcess == null) {
+        return;
+      }
+      Process process = failProcess;
+      failProcess = null;
+      manager.startNextProcess(uiComponent,axisID, process, processResultDisplay, this, dialogType,
+          processDisplay);
+    }
   }
 
   public void setDebug(boolean input) {
@@ -257,7 +318,35 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param process
    */
   public void setNextProcess(final String process, final ProcessingMethod processingMethod) {
-    nextProcess = new Process(process, null, null, null, processingMethod);
+    nextProcess = new Process(process, null, null, null, processingMethod, null, false);
+  }
+
+  public void setNextProcess(final TaskInterface task) {
+    nextProcess = new Process(null, null, null, null, null, task, false);
+  }
+
+  public void addProcess(final TaskInterface task) {
+    addProcess(task, false);
+  }
+
+  /**
+   * Adds a process to the end of processList.
+   * @param task
+   */
+  public void addProcess(final TaskInterface task, final boolean forceNextProcess) {
+    Process endOfList = null;
+    Process process = processList;
+    while (process != null) {
+      endOfList = process;
+      process = process.next;
+    }
+    process = new Process(null, null, null, null, null, task, forceNextProcess);
+    if (endOfList != null) {
+      endOfList.next = process;
+    }
+    else {
+      processList = process;
+    }
   }
 
   /**
@@ -267,7 +356,8 @@ public final class ProcessSeries implements ConstProcessSeries {
    */
   public void setNextProcess(final String process, final ProcessName subprocessName,
       final ProcessingMethod processingMethod) {
-    nextProcess = new Process(process, subprocessName, null, null, processingMethod);
+    nextProcess = new Process(process, subprocessName, null, null, processingMethod,
+        null, false);
   }
 
   /**
@@ -278,7 +368,7 @@ public final class ProcessSeries implements ConstProcessSeries {
   public void setNextProcess(final String process, final ProcessName subprocessName,
       final FileType outputImageFileType, final ProcessingMethod processingMethod) {
     nextProcess = new Process(process, subprocessName, outputImageFileType, null,
-        processingMethod);
+        processingMethod, null, false);
   }
 
   /**
@@ -290,36 +380,87 @@ public final class ProcessSeries implements ConstProcessSeries {
       final FileType outputImageFileType, final FileType outputImageFileType2,
       final ProcessingMethod processingMethod) {
     nextProcess = new Process(process, subprocessName, outputImageFileType,
-        outputImageFileType2, processingMethod);
+        outputImageFileType2, processingMethod, null, false);
   }
 
   void clearProcesses() {
+    failProcess = null;
     nextProcess = null;
+    processList = null;
     lastProcess = null;
     run3dmodButton = null;
     run3dmodMenuOptions = null;
   }
 
   /**
-   * Return true if nextProcess exists, or lastProcess exists and hasn't been saved in
-   * processData.  Ignore run3dmodButton.
+   * Return true if a next process or process list exists and is not OK to drop, or
+   * lastProcess exists and hasn't been saved in processData.  Ignore run3dmodButton and
+   * failProcess.
    */
   public boolean willProcessBeDropped(ProcessData processData) {
-    if (nextProcess != null) {
+    return willProcessBeDropped(processData, false);
+  }
+
+  /**
+   * Return true if a next process or process list exists and is not OK to drop, or
+   * lastProcess exists and hasn't been saved in processData.  Ignore run3dmodButton and
+   * failProcess.  If processListOnly is true, only check processList.
+   */
+  private boolean willProcessBeDropped(ProcessData processData,
+      final boolean processListOnly) {
+    if (!processListOnly && willProcessBeDropped(nextProcess)) {
       return true;
     }
-    if (lastProcess == null) {
+    Process process = processList;
+    while (process != null) {
+      if (willProcessBeDropped(process)) {
+        return true;
+      }
+      process = process.next;
+    }
+    if (processListOnly) {
       return false;
     }
-    //Return true of the last process information in processData doesn't match the
-    //information in this instance.
+    if (willProcessBeDropped(lastProcess)) {
+      return true;
+    }
+    if (processData == null) {
+      return false;
+    }
+    // Return true of the last process information in processData doesn't match the
+    // information in this instance.
     return dialogType != processData.getDialogType()
         || !lastProcess.equals(processData.getLastProcess());
+  }
+
+  /**
+   * Return true if a process exists in process list and is not OK to drop.
+   */
+  public boolean willProcessListBeDropped() {
+    return willProcessBeDropped(null, true);
+  }
+
+  /**
+   * Trues true if the process exists and is not OK to drop.
+   * @param process
+   * @return
+   */
+  private boolean willProcessBeDropped(final Process process) {
+    if (process == null) {
+      return false;
+    }
+    if (process.task == null) {
+      return true;
+    }
+    return !process.task.okToDrop();
   }
 
   public String peekNextProcess() {
     if (nextProcess != null) {
       return nextProcess.getProcess();
+    }
+    if (processList != null) {
+      return processList.getProcess();
     }
     if (lastProcess != null) {
       return lastProcess.getProcess();
@@ -336,7 +477,22 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param process
    */
   public void setLastProcess(final String process) {
-    lastProcess = new Process(process, null, null, null, null);
+    lastProcess = new Process(process, null, null, null, null, null, false);
+  }
+
+  public void setLastProcess(final TaskInterface task) {
+    lastProcess = new Process(null, null, null, null, null, task, false);
+  }
+
+  /**
+   * A process to start when one of the process fails and forceNextProcess is off (see
+   * BaseManager).  When a failProcess is run, nextProcess, lastProcess, and the 3dmod
+   * process variables are deleted.  The fail process is deleted when all processes are
+   * done.
+   * @param task
+   */
+  public void setFailProcess(final TaskInterface task) {
+    failProcess = new Process(null, null, null, null, null, task, false);
   }
 
   /**
@@ -348,11 +504,11 @@ public final class ProcessSeries implements ConstProcessSeries {
    */
   public void setRun3dmodDeferred(final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    //Don't want to keep track of when deferred3dmodButton is null or not in the
-    //manager or UIExpert class.  So once a deferred3dmodButton is set, it
-    //should stay set until it is used.  This does not have to be done for
-    //nextProcess and lastProcess because they currently are always set
-    //explicitly.
+    // Don't want to keep track of when deferred3dmodButton is null or not in the
+    // manager or UIExpert class. So once a deferred3dmodButton is set, it
+    // should stay set until it is used. This does not have to be done for
+    // nextProcess and lastProcess because they currently are always set
+    // explicitly.
     if (deferred3dmodButton == null) {
       return;
     }
@@ -386,19 +542,34 @@ public final class ProcessSeries implements ConstProcessSeries {
     private final FileType outputImageFileType;
     private final FileType outputImageFileType2;
     private final ProcessingMethod processingMethod;
+    final TaskInterface task;
+    private final boolean forceNextProcess;
+
+    private Process next = null;
 
     private Process(final String process, final ProcessName subprocessName,
         final FileType outputImageFileType, final FileType outputImageFileType2,
-        final ProcessingMethod processingMethod) {
+        final ProcessingMethod processingMethod, final TaskInterface task,
+        final boolean forceNextProcess) {
       this.process = process;
       this.subprocessName = subprocessName;
       this.outputImageFileType = outputImageFileType;
       this.outputImageFileType2 = outputImageFileType2;
       this.processingMethod = processingMethod;
+      this.task = task;
+      this.forceNextProcess = forceNextProcess;
     }
 
     private String getProcess() {
-      return process;
+      if (process != null) {
+        return process;
+      }
+      if (task != null) {
+        return task.toString();
+      }
+      else {
+        return null;
+      }
     }
 
     public ProcessName getSubprocessName() {
@@ -407,6 +578,10 @@ public final class ProcessSeries implements ConstProcessSeries {
 
     public FileType getOutputImageFileType() {
       return outputImageFileType;
+    }
+
+    public boolean equals(final TaskInterface task) {
+      return this.task == task;
     }
 
     public boolean equals(String string) {

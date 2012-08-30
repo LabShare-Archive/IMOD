@@ -429,6 +429,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     // make the test directory path
     testDir = new File(JfcUnitTests.TEST_ROOT_DIR, testDirName);
     variableMap.put(UITestSubjectType.TESTDIR.toString(), testDir.getAbsolutePath());
+    variableMap.put(UITestSubjectType.TESTDIR.toString() + "-name", testDir.getName());
     keepDatasetDir = command.getModifierType() == UITestModifierType.KEEP;
     if (keepDatasetDir) {
       variableMap.put("keep-dataset-dir", "");
@@ -489,6 +490,20 @@ public final class TestRunner extends JFCTestCase implements VariableList {
         System.getProperty("user.dir"),
         new String[] { "cp", file.getAbsolutePath(), toFileNameEmpty ? "." : toFileName },
         AxisID.ONLY);
+    copy.run();
+  }
+
+  /**
+   * touch a file in the working directory.
+   * @param fileName
+   */
+  void touchFile(String fileName) {
+    if (fileName == null || fileName.matches("\\s*")) {
+      return;
+    }
+    File file = new File(System.getProperty("user.dir"), fileName);
+    SystemProgram copy = new SystemProgram(null, System.getProperty("user.dir"),
+        new String[] { "touch", file.getAbsolutePath() }, AxisID.ONLY);
     copy.run();
   }
 

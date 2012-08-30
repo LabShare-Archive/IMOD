@@ -4166,14 +4166,15 @@ struct SurfPoints
 //-- Finds the closest distances between each surface in (objAIdx) and the nearest
 //-- surface in (objBIdx) and returns analysis as comma seperated list.
 //-- This function works by finding the closest points,
-//-- thus may not necessarily be the absolute cloest distance.
+//-- thus may not necessarily be the absolute closest distance.
 //-- Another method to increase processing time: all surfaces in each object
 //-- are put into bounding boxes, allowing the algorithm to skip surfaces in object B
 //-- which have a bounding box further away from the closest distance already found.
 //-- If addPtsNewObj is true, two new objects are created to show closest distances,
 //-- although this can be buggy sometimes for some reason.
 
-string analysis_closestDistanceSurfsTwoObjects( int objAIdx, int objBIdx, bool addPtsNewObj, float maxDistLimit )
+string analysis_closestDistanceSurfsTwoObjects( int objAIdx, int objBIdx,
+																							  bool addPtsNewObj, float maxDistLimit )
 {
   Imod *imod = ivwGetModel(plug.view);
   
@@ -4187,10 +4188,10 @@ string analysis_closestDistanceSurfsTwoObjects( int objAIdx, int objBIdx, bool a
   
   int nSurfacesA = imodObjectGetValue( objA, IobjMaxSurface);
   int nSurfacesB = imodObjectGetValue( objB, IobjMaxSurface);
-  vector<SurfPoints> surfA;              // stores a list of contours in each surface and information about the surface itself
-  vector<SurfPoints> surfB;              // stores a list of contours in each surface and information about the surface itself
-  surfA.resize( nSurfacesA );            // allow enough room for all surfaces
-  surfB.resize( nSurfacesB );            // allow enough room for all surfaces
+  vector<SurfPoints> surfA;           // |-- stores a list of contours in each surface
+  vector<SurfPoints> surfB;           // |   and information about the surface itself
+  surfA.resize( nSurfacesA );         //  |-- allow enough room for all surfaces
+  surfB.resize( nSurfacesB );         //  | 
   
   
   for(int sA=0; sA<(int)surfA.size(); sA++)
@@ -4201,8 +4202,8 @@ string analysis_closestDistanceSurfsTwoObjects( int objAIdx, int objBIdx, bool a
   
   //## POPULATE CONTOURS INTO THE SURFACE VECTOR AND MAKE MBR:
   
-  for (int c=0; c<csize(objA); c++)        // for each contour: if it has a valid surfNum, add it in the appropriate surface
-  {
+  for (int c=0; c<csize(objA); c++)     // for each contour: if it has a valid surfNum,
+  {																			//  add it in the appropriate surface
     Icont *cont = getCont(objA,c);
     int surfNum = imodContourGetSurface( cont ) - 1;
     if( surfNum >=0 && surfNum < (int)surfA.size()  )
@@ -4215,8 +4216,8 @@ string analysis_closestDistanceSurfsTwoObjects( int objAIdx, int objBIdx, bool a
     }
   }
   
-  for (int c=0; c<csize(objB); c++)        // for each contour: if it has a valid surfNum, add it in the appropriate surface
-  {
+  for (int c=0; c<csize(objB); c++)     // for each contour: if it has a valid surfNum,
+  {																			//  add it in the appropriate surface
     Icont *cont = getCont(objB,c);
     int surfNum = imodContourGetSurface( cont ) - 1;
     if( surfNum >=0 && surfNum < (int)surfB.size()  )
@@ -4284,13 +4285,14 @@ string analysis_closestDistanceSurfsTwoObjects( int objAIdx, int objBIdx, bool a
       float distBetweenBB = mbr_distBetweenBBoxes3D( &surfA[sA].mbrLL, &surfA[sA].mbrUR,
                               &surfB[sB].mbrLL, &surfB[sB].mbrUR, modelZScale );
       
-      if( distBetweenBB > surfA[sA].minDist )   // if distance between bounding boxes > min dist, skip it
-        continue;
+      if( distBetweenBB > surfA[sA].minDist )   // if distance between bounding 
+        continue;																//  boxes > min dist: skip it
       
       surfA[sA].surfsCompared++;
       Ipoint minPtHereInA;
       Ipoint minPtHereInB;
-      float minDistHere = cont_minDistBetweenContPts3D( surfA[sA].p, surfB[sB].p, modelZScale,
+      float minDistHere = cont_minDistBetweenContPts3D( surfA[sA].p, surfB[sB].p,
+																											  modelZScale,
                                                         &minPtHereInA, &minPtHereInB );
       
       if( minDistHere < surfA[sA].minDist )
@@ -4313,7 +4315,7 @@ string analysis_closestDistanceSurfsTwoObjects( int objAIdx, int objBIdx, bool a
   //## AS USER IF THEY WANTS TO GENERATE OUTPUT INTO NEW OBJECTS:
   
   string question = "A total of " + toString(totalMinDistsFound) + " closest distances "
-                    "have been found §from surfaces in object " + toString(objAIdx) +
+                    "have been found from surfaces in object " + toString(objAIdx) +
                     " to object " + toString(objBIdx) + ".\n\n"
                     "Would you like to output results into a new object\n"
                     "called 'MIN DISTANCES BETWEEN SURFACES'?";

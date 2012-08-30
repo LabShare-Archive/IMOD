@@ -134,25 +134,6 @@ set.var.run_sirt=
 set.interface.Recon=
 
 
-[Test = dual-testBB-test-gui]
-set.testdir = dual-testBB-test-gui
-#set.keep.testdir = dual-test-gui
-set.adoc.dialog.a=recon.adoc
-set.adoc.bdialog.b=recon.adoc
-set.var.dataset = testBB
-set.dataset = testBB
-copy.file.a = %{dataset}a.st
-copy.file.b = %{dataset}b.st
-set.param = --autoclose3dmod
-set.param = --ignoreloc
-set.param = --actions
-#set.param = %{dataset}.edf
-set.var.dual=
-set.var.test-gui=
-set.var.run_sirt=
-set.interface.Recon=
-
-
 [Test = single-montage]
 set.testdir = single-montage
 #set.keep.testdir = single-montage
@@ -231,37 +212,6 @@ set.var.run_sirt=
 set.var.patch-tracking=
 
 
-[Test = single-testmontage-test-gui]
-set.testdir = single-testmontage-test-gui
-set.adoc.dialog = recon.adoc
-set.var.dataset = testmidzone2a
-set.dataset = testmidzone2
-set.param = --autoclose3dmod
-set.param = --ignoreloc
-set.param = --actions
-set.var.single=
-set.var.montage=
-set.var.run_sirt=
-set.var.test-gui=
-#set.var.quick=
-
-[Test = dual-testmontage-patch-tracking]
-set.testdir = dual-testmontage-patch-tracking
-#set.keep.testdir = dual-montage-patch-tracking
-set.adoc.dialog.a=recon.adoc
-set.adoc.bdialog.b=recon.adoc
-set.var.dataset = testmidzone2
-set.dataset = testmidzone2
-set.param = --autoclose3dmod
-set.param = --ignoreloc
-set.param = --actions
-#set.param = midzone2.edf
-set.var.dual=
-set.var.montage=
-set.var.run_sirt=
-set.var.patch-tracking=
-
-
 [Test = join]
 set.testdir = join
 set.adoc.tab = join.adoc
@@ -288,18 +238,27 @@ set.param = --actions
 set.interface.Join=
 
 
-[Test = join-testunicross-test-gui]
-set.testdir = join-testunicross-test-gui
-set.adoc.tab = join.adoc
-set.var.dataset = testunicross
-set.dataset = testunicross
+[Test = serial-sections-test-gui]
+set.testdir=serial-sections-test-gui
+set.adoc.dialog=serial-sections.adoc
+set.var.dataset=M154_03-03-11
+set.dataset=%{dataset}
 set.var.test-gui=
-copy.file = %{dataset}2.rec
-copy.file = %{dataset}3.rec
-set.param = --autoclose3dmod
-set.param = --ignoreloc
-set.param = --actions
-set.interface.Join=
+set.param=--autoclose3dmod
+set.param=--ignoreloc
+set.param=--actions
+
+
+[Test = serial-sections-montage-test-gui]
+set.testdir=serial-sections-montage-test-gui
+set.adoc.dialog=serial-sections.adoc
+set.var.dataset=mediumscansb2
+set.dataset=%{dataset}
+set.var.test-gui=
+set.var.montage=
+set.param=--autoclose3dmod
+set.param=--ignoreloc
+set.param=--actions
 
 
 [Test = generic]
@@ -321,18 +280,6 @@ set.param = --autoclose3dmod
 set.param = --ignoreloc
 set.param = --actions
 set.var.volume=unicross1.rec
-set.interface.Nad=
-
-
-[Test = nad-testunicross]
-set.testdir = nad-testunicross
-set.adoc.dialog = nad.adoc
-set.var.dataset = testunicross
-set.dataset = testunicross
-set.param = --autoclose3dmod
-set.param = --ignoreloc
-set.param = --actions
-set.var.volume=testunicross1.rec
 set.interface.Nad=
 
 
@@ -436,10 +383,6 @@ set.var.scaling-z-min-patch-tracking=29
 set.var.scaling-z-max-patch-tracking=58
 
 
-[dataset = testBB]
-use.dataset = BB
-
-
 [dataset = midzone2]
 copy.file = %{dataset}.st
 copy.file.a = %{dataset}a.st
@@ -495,14 +438,16 @@ set.var.scaling-z-min=28
 set.var.scaling-z-max=56
 set.interface.Recon=
 
-[dataset = testmidzone2]
-use.dataset = midzone2
-
 [dataset = unicross]
 copy.file = %{dataset}1.rec
 
-[dataset = testunicross]
-use.dataset = unicross
+[dataset = M154_03-03-11]
+copy.file = %{dataset}.st
+set.interface.serial-sections=
+
+[dataset = mediumscansb2]
+copy.file = %{dataset}.st
+set.interface.serial-sections=
 
 [dataset = pi]
 copy.file = %{dataset}-a.rec
@@ -538,7 +483,7 @@ open.dialog.CleanUp.bn.clean =
 [interface = Join]
 [[open = interface]]
 	pnl.main-frame=
-	bn.new-join=
+	bn.join-serial-tomograms=
 [[]]
 goto.frame.pnl.main-frame =
 open.dialog.setup.tb.setup =
@@ -547,23 +492,29 @@ open.dialog.join.tb.setup.2 =
 open.dialog.model.tb.setup.3 =
 open.dialog.rejoin.tb.setup.4 =
 
+[interface = Serial-Sections]
+[[open = interface]]
+  pnl.main-frame=
+  bn.align-serial-sections=
+[[]]
+
 [interface = PEET]
 [[open = interface]]
 	pnl.main-frame=
-	bn.new-peet=
+	bn.particle-estimation=
 [[]]
 
 [Interface = Nad]
 [[open = interface]]
 	pnl.main-frame=
-	bn.new-nonlinear-anisotropic-diffusion=
+	bn.nonlinear-anisotropic-diffusion=
 [[]]
 goto.frame.pnl.main-frame =
 
 [Interface = Generic]
 [[open = interface]]
 	pnl.main-frame=
-	bn.new-generic-parallel-process=
+	bn.generic-parallel-process=
 [[]]
 goto.frame.pnl.main-frame =
 

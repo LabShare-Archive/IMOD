@@ -2011,14 +2011,15 @@ c
       integer*4 npadtmp,nprpad,ifZfac,localZfacs
       integer*4 ifThickIn,ifSliceIn,ifWidthIn,imageBinned,ifSubsetIn,ierr
       real*4 pixelLocal, dmint,dmaxt,dmeant, frac, origx, origy, origz
-      real*4 gpuMemoryFrac, gpuMemory
+      real*4 gpuMemoryFrac, gpuMemory, feiPixel
       integer*4 nViewsReproj, iwideReproj, k, ind1, ind2, ifExpWeight
       integer*4 minMemory, nGPU,iactGpuFailOption,iactGpuFailEnviron
-      integer*4 ifGpuByEnviron, indDelta, ifexit
+      integer*4 ifGpuByEnviron, indDelta, ifexit, numByteSym, numReal, numInt
       logical*4 adjustOrigin, projModel, readw_or_imod
       integer*4 niceframe, parWrtInitialize, gpuAvailable, imodGetEnv,parWrtSetCurrent
       integer*4 gpuAllocArrays, allocateArray, gpuLoadLocals, gpuLoadFilter
       real*8 wallTime, wallstart
+      logical*4 nbytes_and_flags
 c
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInteger,PipGetBoolean,PipGetLogical,PipGetTwoFloats
@@ -2904,6 +2905,27 @@ c         print *,'NSLICE',minTotSlice,maxTotSlice,islice,nslice
           allocate(projline(iwide), stat = ierr)
           call memoryError(ierr, 'ARRAY FOR PROJECTION LINE')
         endif
+c         
+c         Look for an FEI pixel and transfer it
+          call irtnbsym(1, numByteSym)
+          if (numByteSym > 0) then
+            call irtsymtyp(1, numInt, numReal)
+            if (.not. nbytes_and_flags(numInt, numReal) .and. numReal .ge. 12) then
+              allocate(xraystr(numByteSym / 4 + 4), stat = ierr)
+              call memoryError(ierr, 'ARRAY FOR EXTRA HEADER DATA')
+              call irtsym(1, numByteSym, xraystr)
+              feiPixel = xraystr(numInt + 12) * 1.e9
+              deallocate(xraystr)
+              if (feiPixel .gt. 0.01 .and. feiPixel .lt. 10000. .and.
+     &            abs(delta(3) - 1.) < 1.e-5 .and. abs(delta(1) - imageBinned) < 1.e-5)
+     &            then
+                delta(1) = imageBinned * feiPixel * 10.
+                delta(2) = delta(1)
+                write(*,'(a,g11.4,a)')'Pixel spacing set to',delta(1),
+     &              ' Angstroms from value in extended header'
+              endif
+            endif
+          endif
 c       
 c         DNM 7/27/02: transfer pixel sizes depending on orientation of output
 c         
