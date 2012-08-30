@@ -4,103 +4,13 @@ Pip = 1
 [Field = InfoFile]
 short = info
 type = FN
-usage = Name of supermontage info file to be created or edited
+usage = Name of supermontage info file
 tooltip =
-manpage = Name of a supermontage info file in which all data about the files
-will be stored.  If the file exists, it will be read in when the program
-starts, and renamed to filename~ before writing a new version when the program
-exits.  If this option is not entered, the first non-option argument will be
+manpage = Name of a supermontage info file in which data about the files
+are stored.  The file must exists.  It will be read in when the program
+starts, and renamed to filename~ before writing a new version after various operations.
+If this option is not entered, the first non-option argument will be
 taken as the name of the info file.
-
-[Field = NoZValues]
-short = noz
-type = B
-usage = Search for and create names without Z values
-tooltip =
-manpage = Search for and create names without Z values and assume the Z value
-is zero.  This option cannot be used when adding a supermontage to an existing
-one, or when specifying a z range with -zadd.
-
-[Field = RootName]
-short = root
-type = CH
-usage = Rootname for existing files and ones to be created
-tooltip =
-manpage = Rootname for existing files and ones to be created.  
-Existing files need not be named according to the conventions if they are
-already listed in the info file.
-
-[Field = OverlapInXandY]
-short = overlap
-type = IP
-usage = Nominal overlap between adjacent volumes in X and Y
-tooltip =
-manpage = Nominal overlap between adjacent volumes in X and Y.  This only
-needs to be a rough approximation.  This entry is required when adding a
-supermontage or the first time a manually prepared info file is read.
-
-[Field = UnderscoreXYZ]
-short = underscore
-type = B
-usage = Use underscores between x, y, and z in composing names
-tooltip =
-manpage = Use underscores between x, y, and z in composing names for files
-being searched for and created.
-
-[Field = ExtensionOnVolumes]
-short = ext
-type = CH
-usage = Extension on filenames when searching for volumes (default .rec)
-tooltip =
-manpage = Extension on filenames when searching for volumes, including the
-period.  There may be characters before the true extension, such as if all
-files are named "binned.rec".  The default is .rec.
-
-[Field = AddMontageXandY]
-short = xyadd
-type = IP
-usage = Add a supermontage with the given number of frames in X and Y
-tooltip =
-manpage = Add a supermontage with the given number of frames in X and Y.  The
-program will search for pieces by rootname and frame number in X and Y, with 
-numbers starting from 1.
-
-[Field = AddMontageXRange]
-short = xadd
-type = IP
-usage = Add a supermontage with given starting and ending frame numbers in X 
-tooltip =
-manpage = Starting and ending X values to search for when adding a
-supermontage.  Use this option and -yadd if the starting frame number is not 1
-in X or in Y.  If one of the two options -xadd and -yadd is entered, then the
-other must be entered as well, and -xyadd must not be entered.
-
-[Field = AddMontageYRange]
-short = yadd
-type = IP
-usage = Add a supermontage with given starting and ending frame numbers in Y 
-tooltip =
-manpage = Starting and ending Y values to search for when adding a
-supermontage.
-
-[Field = AddMontageZRange]
-short = zadd
-type = IP
-usage = Starting and ending Z values to search for when adding a supermontage
-tooltip =
-manpage = Starting and ending Z values to search for when adding a
-supermontage.  If this option is entered, then either -xyadd, or -xadd and
--yadd, must be entered.
-
-[Field = DefaultRegionModel]
-short = model
-type = FN
-usage = Patch region model to use for an overlap zone if one is not found
-tooltip =
-manpage = Patch region model to use for an overlap zone if one is not found
-when initially setting up the Edge entries in the info file.  This option will
-have an effect only when adding a supermontage or processing a manually
-prepared info file for the first time.
 
 [Field = RunAll]
 short = all
@@ -113,16 +23,20 @@ unless this option or one or more of -xrun, -yrun, or -zrun are entered.
 [Field = XRunStartEnd]
 short = xrun
 type = IP
-usage = Starting and ending frame number in X for overlap zones to analyze
+usage = Starting and ending frame numbers in X for overlap zones to analyze
 tooltip =
-manpage =
+manpage = Starting and ending frame numbers in X surrounding the overlap zones
+to analyze.
 
 [Field = YRunStartEnd]
 short = yrun
 type = IP
 usage = Starting and ending frame number in Y for overlap zones to analyze
 tooltip =
-manpage =
+manpage = Starting and ending frame numbers in Y surrounding the overlap zones
+to analyze.  For example, to analyze one overlap zone between two pieces
+adjacent in X, enter the two frame numbers in X for -xrun and the Y frame number
+for -yrun, such as "-xrun 2,3 -yrun 2,2".
 
 [Field = ZRunStartEnd]
 short = zrun
@@ -145,6 +59,29 @@ type = B
 usage = Recompute the shifts between frames if already done
 tooltip =
 manpage = Recompute the shifts between frames for any that were already done.
+
+[Field = UseProjXformFile]
+short = use
+type = B
+usage = Recompute 3D shifts starting with the 2D shifts in the .projxf files
+tooltip =
+manpage = Redo the 3D cross-correlations in the center of the overlap zones,
+taking the initial shifts from existing ".projxf" for each overlap zone
+instead of redoing projections and 2D correlations.  Use this option after
+fixing the initial shift with Midas(1).  This option implies the "-redo"
+option.
+
+[Field = IgnoreLastShifts]
+short = ignore
+type = B
+usage = Use original overlap values as starting shifts for 2D correlations
+tooltip =
+manpage = Use original overlap values as the basis for the starting shifts
+when redoing 2D correlations.  By default, the program uses the current
+shift from the info file to determine what areas to project and correlate in
+an overlap zone, so that one can edit a correct value into the file.  Use this
+option to make it ignore previous, incorrect values of the shift, such as if
+you need to rerun the correlations with a different long fraction value.
 
 [Field = LongFraction]
 short = long
