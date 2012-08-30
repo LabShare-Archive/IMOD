@@ -110,6 +110,8 @@ FFIILLEESS
   Stitchalign produces two files for each volume included in the analysis:
     piecename.matxf    File with single linear transformation
     piecename.patch    File with patch vectors for computing a warping
+  It also produces a file "sectionmame.ecdstub" with the displacements between
+  pieces needed when blending.
 
 HHIISSTTOORRYY
   Written by David Mastronarde, April 2007
