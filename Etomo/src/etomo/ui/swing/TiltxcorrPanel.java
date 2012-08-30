@@ -31,6 +31,8 @@ import etomo.type.MetaData;
 import etomo.type.PanelId;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TiltAngleSpec;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: Panel to modify the tiltxcorr parameters.</p>
@@ -302,8 +304,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       TiltxcorrParam.ITERATE_CORRELATIONS_MIN, TiltxcorrParam.ITERATE_CORRELATIONS_MAX);
   private final LabeledTextField ltfShiftLimitsXandY = new LabeledTextField(
       "Limits on shifts from correlation (X,Y): ");
-  private final CheckTextField ctfLengthAndOverlap = CheckTextField
-      .getInstance("Break contours into pieces (length, overlap): ");
+  private final CheckTextField ctfLengthAndOverlap = CheckTextField.getInstance(
+      FieldType.INTEGER_PAIR, "Break contours into pieces (length, overlap): ");
   private final CheckBox cbBoundaryModel = new CheckBox("Use boundary model");
   private final Run3dmodButton btn3dmodBoundaryModel = Run3dmodButton.get3dmodInstance(
       "Create Boundary Model", this);
@@ -637,10 +639,19 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
    * @param metaData
    */
   void getParameters(MetaData metaData) {
-    if (panelId == PanelId.PATCH_TRACKING) {
-      metaData.setTrackOverlapOfPatchesXandY(axisID, rtfOverlapOfPatchesXandY.getText());
-      metaData.setTrackNumberOfPatchesXandY(axisID, rtfNumberOfPatchesXandY.getText());
-      metaData.setTrackLengthAndOverlap(axisID, ctfLengthAndOverlap.getText());
+    try {
+      boolean doValidation = false;
+      if (panelId == PanelId.PATCH_TRACKING) {
+        metaData
+            .setTrackOverlapOfPatchesXandY(axisID, rtfOverlapOfPatchesXandY.getText());
+        metaData.setTrackNumberOfPatchesXandY(axisID, rtfNumberOfPatchesXandY.getText());
+        metaData.setTrackLengthAndOverlap(axisID,
+            ctfLengthAndOverlap.getText(doValidation));
+      }
+    }
+    catch (FieldValidationFailedException e) {
+      // should not happen
+      e.printStackTrace();
     }
   }
 
@@ -658,112 +669,118 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
    * Get the field values from the panel filling in the TiltxcorrParam object
    * @return false if there was a field error
    */
-  public boolean getParameters(final TiltxcorrParam tiltXcorrParams)
-      throws FortranInputSyntaxException {
-    tiltXcorrParams.setTestOutput(ltfTestOutput.getText());
-    if (panelId == PanelId.CROSS_CORRELATION) {
-      tiltXcorrParams.setExcludeCentralPeak(cbExcludeCentralPeak.isSelected());
-    }
-    else if (panelId == PanelId.PATCH_TRACKING) {
-      String errorMessage = tiltXcorrParams.setIterateCorrelations(spIterateCorrelations
-          .getValue());
-      if (errorMessage != null) {
-        UIHarness.INSTANCE
-            .openMessageDialog(applicationManager, spIterateCorrelations.getLabel()
-                + ": " + errorMessage, "Entry Error", axisID);
-        return false;
-      }
-      tiltXcorrParams.setInputFile(FileType.PREALIGNED_STACK.getFileName(
-          applicationManager, axisID));
-      tiltXcorrParams.setOutputFile(FileType.FIDUCIAL_MODEL.getFileName(
-          applicationManager, axisID));
-      if (cbBoundaryModel.isSelected()) {
-        tiltXcorrParams.setBoundaryModel(FileType.PATCH_TRACKING_BOUNDARY_MODEL
-            .getFileName(applicationManager, axisID));
-      }
-      else {
-        tiltXcorrParams.resetBoundaryModel();
-      }
-      MetaData metaData = applicationManager.getMetaData();
-      TiltAngleSpec tiltAngleSpec = metaData.getTiltAngleSpec(axisID);
-      tiltXcorrParams.setTiltAngleSpec(tiltAngleSpec);
-      tiltXcorrParams.setRotationAngle(metaData.getImageRotation(axisID).getDouble());
-    }
-    String currentParam = "unknown";
+  public boolean getParameters(final TiltxcorrParam tiltXcorrParams,
+      final boolean doValidation) throws FortranInputSyntaxException {
     try {
-      currentParam = ltfAngleOffset.getLabel();
-      tiltXcorrParams.setAngleOffset(ltfAngleOffset.getText());
-      currentParam = ltfTrim.getLabel();
-      tiltXcorrParams.setBordersInXandY(ltfTrim.getText());
-      currentParam = "X" + ltfXMin.getLabel();
-      tiltXcorrParams.setXMin(ltfXMin.getText());
-      currentParam = "X" + ltfXMax.getLabel();
-      tiltXcorrParams.setXMax(ltfXMax.getText());
-      currentParam = "Y" + ltfYMin.getLabel();
-      tiltXcorrParams.setYMin(ltfYMin.getText());
-      currentParam = "Y" + ltfYMax.getLabel();
-      tiltXcorrParams.setYMax(ltfYMax.getText());
-      currentParam = ltfPadPercent.getLabel();
-      tiltXcorrParams.setPadsInXandY(ltfPadPercent.getText());
-      currentParam = ltfTaperPercent.getLabel();
-      tiltXcorrParams.setTapersInXandY(ltfTaperPercent.getText());
-      currentParam = ltfViewRange.getLabel();
-      tiltXcorrParams.setStartingEndingViews(ltfViewRange.getText());
-      currentParam = ltfSkipViews.getLabel();
-      tiltXcorrParams.setSkipViews(ltfSkipViews.getText());
-      currentParam = ltfFilterSigma1.getLabel();
-      tiltXcorrParams.setFilterSigma1(ltfFilterSigma1.getText());
-      currentParam = ltfFilterRadius2.getLabel();
-      tiltXcorrParams.setFilterRadius2(ltfFilterRadius2.getText());
-      currentParam = ltfFilterSigma2.getLabel();
-      tiltXcorrParams.setFilterSigma2(ltfFilterSigma2.getText());
+      tiltXcorrParams.setTestOutput(ltfTestOutput.getText());
       if (panelId == PanelId.CROSS_CORRELATION) {
-        currentParam = cbCumulativeCorrelation.getText();
-        tiltXcorrParams.setCumulativeCorrelation(cbCumulativeCorrelation.isSelected());
-        currentParam = cbAbsoluteCosineStretch.getText();
-        tiltXcorrParams.setAbsoluteCosineStretch(cbAbsoluteCosineStretch.isSelected());
-        currentParam = cbNoCosineStretch.getText();
-        tiltXcorrParams.setNoCosineStretch(cbNoCosineStretch.isSelected());
+        tiltXcorrParams.setExcludeCentralPeak(cbExcludeCentralPeak.isSelected());
       }
       else if (panelId == PanelId.PATCH_TRACKING) {
-        currentParam = ltfSizeOfPatchesXandY.getLabel();
-        if (!tiltXcorrParams.setSizeOfPatchesXandY(ltfSizeOfPatchesXandY.getText(),
-            ltfSizeOfPatchesXandY.getLabel())) {
+        String errorMessage = tiltXcorrParams
+            .setIterateCorrelations(spIterateCorrelations.getValue());
+        if (errorMessage != null) {
+          UIHarness.INSTANCE.openMessageDialog(applicationManager,
+              spIterateCorrelations.getLabel() + ": " + errorMessage, "Entry Error",
+              axisID);
           return false;
         }
-        currentParam = rtfOverlapOfPatchesXandY.getLabel();
-        if (rtfOverlapOfPatchesXandY.isSelected()) {
-          tiltXcorrParams.setOverlapOfPatchesXandY(rtfOverlapOfPatchesXandY.getText());
+        tiltXcorrParams.setInputFile(FileType.PREALIGNED_STACK.getFileName(
+            applicationManager, axisID));
+        tiltXcorrParams.setOutputFile(FileType.FIDUCIAL_MODEL.getFileName(
+            applicationManager, axisID));
+        if (cbBoundaryModel.isSelected()) {
+          tiltXcorrParams.setBoundaryModel(FileType.PATCH_TRACKING_BOUNDARY_MODEL
+              .getFileName(applicationManager, axisID));
         }
         else {
-          tiltXcorrParams.resetOverlapOfPatchesXandY();
+          tiltXcorrParams.resetBoundaryModel();
         }
-        currentParam = rtfNumberOfPatchesXandY.getLabel();
-        if (rtfNumberOfPatchesXandY.isSelected()) {
-          tiltXcorrParams.setNumberOfPatchesXandY(rtfNumberOfPatchesXandY.getText());
-        }
-        else {
-          tiltXcorrParams.resetNumberOfPatchesXandY();
-        }
-        currentParam = ltfShiftLimitsXandY.getLabel();
-        tiltXcorrParams.setShiftLimitsXandY(ltfShiftLimitsXandY.getText());
-        currentParam = ctfLengthAndOverlap.getLabel();
-        if (ctfLengthAndOverlap.isSelected()) {
-          tiltXcorrParams.setLengthAndOverlap(ctfLengthAndOverlap.getText());
-        }
-        else {
-          tiltXcorrParams.resetLengthAndOverlap();
-        }
-        tiltXcorrParams.setPrealignmentTransformFileDefault();
-        tiltXcorrParams.setImagesAreBinned(UIExpertUtilities.INSTANCE.getStackBinning(
-            applicationManager, axisID, ".preali"));
+        MetaData metaData = applicationManager.getMetaData();
+        TiltAngleSpec tiltAngleSpec = metaData.getTiltAngleSpec(axisID);
+        tiltXcorrParams.setTiltAngleSpec(tiltAngleSpec);
+        tiltXcorrParams.setRotationAngle(metaData.getImageRotation(axisID).getDouble());
       }
+      String currentParam = "unknown";
+      try {
+        currentParam = ltfAngleOffset.getLabel();
+        tiltXcorrParams.setAngleOffset(ltfAngleOffset.getText());
+        currentParam = ltfTrim.getLabel();
+        tiltXcorrParams.setBordersInXandY(ltfTrim.getText());
+        currentParam = "X" + ltfXMin.getLabel();
+        tiltXcorrParams.setXMin(ltfXMin.getText());
+        currentParam = "X" + ltfXMax.getLabel();
+        tiltXcorrParams.setXMax(ltfXMax.getText());
+        currentParam = "Y" + ltfYMin.getLabel();
+        tiltXcorrParams.setYMin(ltfYMin.getText());
+        currentParam = "Y" + ltfYMax.getLabel();
+        tiltXcorrParams.setYMax(ltfYMax.getText());
+        currentParam = ltfPadPercent.getLabel();
+        tiltXcorrParams.setPadsInXandY(ltfPadPercent.getText());
+        currentParam = ltfTaperPercent.getLabel();
+        tiltXcorrParams.setTapersInXandY(ltfTaperPercent.getText());
+        currentParam = ltfViewRange.getLabel();
+        tiltXcorrParams.setStartingEndingViews(ltfViewRange.getText());
+        currentParam = ltfSkipViews.getLabel();
+        tiltXcorrParams.setSkipViews(ltfSkipViews.getText());
+        currentParam = ltfFilterSigma1.getLabel();
+        tiltXcorrParams.setFilterSigma1(ltfFilterSigma1.getText());
+        currentParam = ltfFilterRadius2.getLabel();
+        tiltXcorrParams.setFilterRadius2(ltfFilterRadius2.getText());
+        currentParam = ltfFilterSigma2.getLabel();
+        tiltXcorrParams.setFilterSigma2(ltfFilterSigma2.getText());
+        if (panelId == PanelId.CROSS_CORRELATION) {
+          currentParam = cbCumulativeCorrelation.getText();
+          tiltXcorrParams.setCumulativeCorrelation(cbCumulativeCorrelation.isSelected());
+          currentParam = cbAbsoluteCosineStretch.getText();
+          tiltXcorrParams.setAbsoluteCosineStretch(cbAbsoluteCosineStretch.isSelected());
+          currentParam = cbNoCosineStretch.getText();
+          tiltXcorrParams.setNoCosineStretch(cbNoCosineStretch.isSelected());
+        }
+        else if (panelId == PanelId.PATCH_TRACKING) {
+          currentParam = ltfSizeOfPatchesXandY.getLabel();
+          if (!tiltXcorrParams.setSizeOfPatchesXandY(ltfSizeOfPatchesXandY.getText(),
+              ltfSizeOfPatchesXandY.getLabel())) {
+            return false;
+          }
+          currentParam = rtfOverlapOfPatchesXandY.getLabel();
+          if (rtfOverlapOfPatchesXandY.isSelected()) {
+            tiltXcorrParams.setOverlapOfPatchesXandY(rtfOverlapOfPatchesXandY.getText());
+          }
+          else {
+            tiltXcorrParams.resetOverlapOfPatchesXandY();
+          }
+          currentParam = rtfNumberOfPatchesXandY.getLabel();
+          if (rtfNumberOfPatchesXandY.isSelected()) {
+            tiltXcorrParams.setNumberOfPatchesXandY(rtfNumberOfPatchesXandY.getText());
+          }
+          else {
+            tiltXcorrParams.resetNumberOfPatchesXandY();
+          }
+          currentParam = ltfShiftLimitsXandY.getLabel();
+          tiltXcorrParams.setShiftLimitsXandY(ltfShiftLimitsXandY.getText());
+          currentParam = ctfLengthAndOverlap.getLabel();
+          if (ctfLengthAndOverlap.isSelected()) {
+            tiltXcorrParams
+                .setLengthAndOverlap(ctfLengthAndOverlap.getText(doValidation));
+          }
+          else {
+            tiltXcorrParams.resetLengthAndOverlap();
+          }
+          tiltXcorrParams.setPrealignmentTransformFileDefault();
+          tiltXcorrParams.setImagesAreBinned(UIExpertUtilities.INSTANCE.getStackBinning(
+              applicationManager, axisID, ".preali"));
+        }
+      }
+      catch (FortranInputSyntaxException except) {
+        String message = currentParam + except.getMessage();
+        throw new FortranInputSyntaxException(message);
+      }
+      return true;
     }
-    catch (FortranInputSyntaxException except) {
-      String message = currentParam + except.getMessage();
-      throw new FortranInputSyntaxException(message);
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-    return true;
   }
 
   void setVisible(final boolean state) {
