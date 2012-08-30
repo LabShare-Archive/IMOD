@@ -147,8 +147,9 @@ public class EtomoDirector {
     }
     catch (OutOfMemoryError e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(null, "WARNING:  Ran out of memory."
-          + "\nPlease close open log file windows or exit Etomo.", "Out of Memory");
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
+          "WARNING:  Ran out of memory."
+              + "\nPlease close open log file windows or exit Etomo.", "Out of Memory");
       throw e;
     }
   }
@@ -606,7 +607,8 @@ public class EtomoDirector {
     if (etomoSerialSectionsFile == null) {
       return openSerialSections(makeCurrent, axisID);
     }
-    return openSerialSections(etomoSerialSectionsFile.getAbsolutePath(), makeCurrent, axisID);
+    return openSerialSections(etomoSerialSectionsFile.getAbsolutePath(), makeCurrent,
+        axisID);
   }
 
   private ManagerKey openJoin(String etomoJoinFileName, boolean makeCurrent, AxisID axisID) {
