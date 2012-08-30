@@ -128,8 +128,12 @@ final class RadioTextField implements RadioButtonInterface {
   Container getContainer() {
     return rootPanel;
   }
-  
+
   void setText(final int value) {
+    textField.setText(String.valueOf(value));
+  }
+
+  void setText(final long value) {
     textField.setText(String.valueOf(value));
   }
 
