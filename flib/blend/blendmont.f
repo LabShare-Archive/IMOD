@@ -61,7 +61,7 @@ c
 c       
       integer*4 nedgetmp(5,2)
       integer*4, allocatable :: listz(:),izwant(:), izAllWant(:)
-      logical skipxforms,undistortOnly,xcWriteOut
+      logical skipxforms,undistortOnly,xcWriteOut, sameEdgeShifts
       character dat*9, tim*8
       real*4 edgefrac(2),title(20)
       real*4 edgefracx,edgefracy
@@ -212,6 +212,7 @@ c
       adjustOrigin = .false.
       noFFTsizes = .false.
       yChunks = .false.
+      sameEdgeShifts = .false.
       iBinning = 1
       numAngles = 0
       numUseEdge = 0
@@ -482,13 +483,15 @@ c
           izLowUse(i) = ixpclo(4)
           izHighUse(i) = ixpclo(5)
         enddo
+        ierr = PipGetLogical('SameEdgeShifts', sameEdgeShifts)
         if ((anyneg .or. ioptabs .ne. 0) .and. (shifteach .or. xcreadin)
      &      .and. .not.undistortOnly)
      &      call exitError('YOU CANNOT USE ShiftPieces OR '//
      &      'ReadInXcorrs WITH MULTIPLE NEGATIVES')
         if (fromedge .and. xclegacy .and. .not.undistortOnly) call exitError
      &      ('YOU CANNOT USE BOTH ShiftFromEdges AND ShiftFromXcorrs')
-        if ((izUseDefLow .ge. 0 .or. numUseEdge .gt. 0) .and. shifteach) call
+        if ((izUseDefLow .ge. 0 .or. numUseEdge .gt. 0) .and. shifteach .and.
+     &      .not. sameEdgeShifts) call
      &      exitError('YOU CANNOT USE GOOD EDGE LIMITS WHEN SHIFTING PIECES')
       else
         if(anyneg)then
@@ -1138,6 +1141,7 @@ c       Do not write ecd file if not all sections are being computed
 c       
 c       Read old .ecd file(s)
       if(xcreadin .and. .not.undistortOnly)then
+        ierr = PipGetFloat('BinningForEdgeShifts', ecdBin)
         iedgeDelX = 0
         iedgeDelY = 0
         if (PipGetTwoIntegers('OverlapForEdgeShifts', iedgeDelX, iedgeDelY)
@@ -1150,7 +1154,6 @@ c       Read old .ecd file(s)
         inquire(file=edgenam,exist=exist)
         iy = 4
         if(.not.exist)then
-          ierr = PipGetFloat('BinningForEdgeShifts', ecdBin)
 c           
 c           If the file does not exist, look for the two separate files
 c           and put second name in a different variable.  Set unit number to
