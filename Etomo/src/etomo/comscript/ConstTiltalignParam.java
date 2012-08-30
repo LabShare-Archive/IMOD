@@ -200,7 +200,7 @@ public class ConstTiltalignParam implements CommandDetails {
   ScriptParameter imagesAreBinned;
   ScriptParameter beamTiltOption;
   final ScriptParameter fixedOrInitialBeamTilt = new ScriptParameter(
-      EtomoNumber.Type.FLOAT, "FixedOrInitialBeamTilt");
+      EtomoNumber.Type.DOUBLE, "FixedOrInitialBeamTilt");
   String outputXAxisTiltFile = "";
   final EtomoBoolean2 robustFitting  = new EtomoBoolean2(ROBUST_FITTING_KEY);
   ScriptParameter kFactorScaling =new ScriptParameter(K_FACTOR_SCALING_KEY);
@@ -296,7 +296,7 @@ public class ConstTiltalignParam implements CommandDetails {
     fixXYZCoordinates = new EtomoBoolean2(FIX_XYZ_COORDINATES_KEY);
     fixXYZCoordinates.setDisplayAsInteger(true);
     //do not default imagesAreBinnned
-    imagesAreBinned = new ScriptParameter(EtomoNumber.Type.LONG, "ImagesAreBinned");
+    imagesAreBinned = new ScriptParameter( "ImagesAreBinned");
     imagesAreBinned.setFloor(1);
     beamTiltOption = new ScriptParameter(BEAM_TILT_OPTION_KEY);
     beamTiltOption.setDefault(FIXED_OPTION);
@@ -524,10 +524,6 @@ public class ConstTiltalignParam implements CommandDetails {
     if (fieldInterface == Fields.LOCAL_ALIGNMENTS) {
       return localAlignments.is();
     }
-    throw new IllegalArgumentException("field=" + fieldInterface);
-  }
-
-  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 

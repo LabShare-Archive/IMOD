@@ -206,10 +206,10 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
     return trialTomogramName;
   }
 
-  public boolean getParameters(TiltParam tiltParam) throws NumberFormatException,
+  public boolean getParameters(TiltParam tiltParam,final boolean doValidation) throws NumberFormatException,
       InvalidParameterException, IOException {
     tiltParam.setCommandMode(TiltParam.Mode.TRIAL_TILT);
-    return parent.getParameters(tiltParam);
+    return parent.getParameters(tiltParam, doValidation);
   }
 
   void getParameters(ReconScreenState screenState) {

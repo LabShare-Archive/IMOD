@@ -444,7 +444,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     updateMTFFilterCom();
     updateCtfPlotterCom();
     updateCtfCorrectionCom();
-    manager.updateTilt3dFindCom(dialog.getTilt3dFindDisplay(), axisID);
+    manager.updateTilt3dFindCom(dialog.getTilt3dFindDisplay(), axisID, false);
     manager.updateFindBeads3dCom(dialog.getFindBeads3dDisplay(), axisID);
     manager.updateCcdEraserParam(dialog.getCcdEraserBeadsDisplay(), axisID);
     manager.saveStorables(axisID);

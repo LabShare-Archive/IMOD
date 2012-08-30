@@ -36,8 +36,8 @@ import etomo.util.InvalidParameterException;
 interface TrialTiltParent {
   public static final String rcsid = "$Id$";
 
-  public boolean getParameters(TiltParam tiltParam) throws NumberFormatException,
-      InvalidParameterException, IOException;
+  public boolean getParameters(TiltParam tiltParam, boolean doValidation)
+      throws NumberFormatException, InvalidParameterException, IOException;
 
   public boolean getParameters(final SplittiltParam param);
 
