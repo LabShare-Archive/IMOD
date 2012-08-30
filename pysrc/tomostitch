@@ -31,16 +31,52 @@ def runDensmatch(args):
 
    exitError("No Scale factor line found in output")
 
+
 # Take product of scaling between volumes and scaling of reference volume
 def scalingProduct(scale1, scale2):
    return (scale1[0] * scale2[0], scale1[0] * scale2[1] + scale1[1])
+
 
 # Take inverse of a scaling
 def scalingInverse(scale):
    return (1. / scale[0], -scale[1] / scale[0])
 
+
+# round to an integer value
 def mynint(value):
    return (int(floor(value + 0.5)))
+
+
+# Determine limits of overlap zone for densmatch in short and long directions
+def densmatchLimits(shortSize, spacing, shortEcd, matchWidth, longSize, longEcd,
+                   matchLength):
+   overlap = shortSize - spacing - shortEcd
+   width = matchWidth
+   if width < 0:
+      width = int(matchWidthFrac * overlap)
+   elif applyScale:
+      width = mynint(matchWidth * scaleFactor)
+   shortMin = int(spacing + shortEcd + overlap / 2 - width / 2)
+   shortMax = int(shortMin + width - 1)
+   length = matchLength
+   if matchLengthY <= 0:
+      length = int(matchLengthFrac * (longSize - fabs(longEcd)))
+   elif applyScale:
+      length = mynint(matchLength * scaleFactor)
+   longMin = int(longSize / 2 + longEcd / 2 - length / 2)
+   longMax = int(longMin + length - 1)
+   return (shortMin, shortMax, longMin, longMax)
+
+
+# Look up the shift needed in blendmont for the given edge
+def findEdgeCorrDisp(ix, iy):
+   (ecdx, ecdy) = (0, 0)
+   for edge in edges:
+      if edge[kLower] == [ix, iy, zrun] and kBlendShift in edge:
+         ecdx = mynint(edge[kBlendShift][0] * scaleFactor)
+         ecdy = mynint(edge[kBlendShift][1] * scaleFactor)
+   return (ecdx, ecdy)
+
 
 #### MAIN PROGRAM  ####
 #
@@ -141,6 +177,8 @@ else:
    zrun = zlist[0]
 
 # Find the section data for this z
+ecdStubName = ''
+ecdName = ''
 for i in range(len(slices)):
    if int(slices[i][kZvalue]) == zrun:
       slice = slices[i]
@@ -156,6 +194,10 @@ for i in range(len(slices)):
       ySpacing = slice[kSpacing][1]
       sampleFac = float(slice[kSample])
       slicename = slice['name']
+      if kEcdStub in slice:
+         ecdStubName = slice[kEcdStub]
+         ecdName = slicename + '.ecd'
+                                  
       break
 else:
    exitError("There is no section data for this Z in the info file")
@@ -278,7 +320,7 @@ if dofind:
                failed.append((x, y))
 
             if os.path.exists(resname):
-               patchcom = fmtstr('patch2imod -s 5 -f -c {} -n  ', clipsize) +\
+               patchcom = fmtstr('patch2imod -s 5 -f -d -c {} -n  ', clipsize) +\
                           '"Values are residuals; clip planes exist" ' + \
                           fmtstr('-z {} {}', resname, resmod)
                runcmd(patchcom, None)
@@ -291,6 +333,31 @@ if dofind:
 
 # Run warpvol
 if dowarp:
+   (outx, outy, outz) = (xoutSize, youtSize, zoutSize)
+   if scaleEntered:
+      outx = mynint(xoutSize * scaleFactor)
+      outy = mynint(youtSize * scaleFactor)
+      if applyScale or not zEntered:
+         outz = mynint(zoutSize * scaleFactor)
+
+   # This is the one point at which the output thickness of these volumes is known,
+   # so take care of expanding the ecd file now
+   if ecdStubName:
+      stublines = readTextFile(ecdStubName, 'file with edge displacements')
+      if len(stublines) == 0 or len(stublines[0].split()) != 2:
+         exitError('Stub file with edge displacements does not start properly')
+      nsplit = stublines[0].split()
+      numXedge = convertToInteger(nsplit[0], 'number of X edges in stub file')
+      numYedge = convertToInteger(nsplit[1], 'number of Y edges in stub file')
+      if len(stublines) < numXedge + numYedge + 1:
+         exitError('Stub file with edge displacements does not have enough lines')
+      ecdlines = [fmtstr('{}  {}', outz * numXedge, outz * numYedge)]
+      for stubstnd in ([1, numXedge + 1], [numXedge + 1, numXedge + numYedge + 1]):
+         for i in range(outz):
+            ecdlines += stublines[stubstnd[0] : stubstnd[1]]
+      writeTextFile(ecdName, ecdlines)
+
+   # Now loop on volumes
    for y in range(yrunStart, yrunEnd + 1):
       for x in range(xrunStart, xrunEnd + 1):
          ind = pieceMap[x - xmin + xdim * (y - ymin)]
@@ -305,12 +372,6 @@ if dowarp:
                exitError('No warping transform file is found for ' + \
                      fmtstr('frame {} {}', x, y))
 
-            (outx, outy, outz) = (xoutSize, youtSize, zoutSize)
-            if scaleEntered:
-               outx = mynint(xoutSize * scaleFactor)
-               outy = mynint(youtSize * scaleFactor)
-               if applyScale or not zEntered:
-                  outz = mynint(zoutSize * scaleFactor)
             input = [fmtstr('OutputSizeXYZ {} {} {}', outx, outy, outz),
                      'InputFile ' + pieces[ind]['file'],
                      'OutputFile ' + aliname,
@@ -424,26 +485,17 @@ if dostack:
                   ind = pieceMap[x - 1 - xmin + xdim * (y - ymin)]
                   if ind >= 0:
                      loInd = listMap[ind]
-                     overlap = xsize - xSpacing
-                     width = matchWidthX
-                     if width < 0:
-                        width = int(matchWidthFrac * overlap)
-                     elif applyScale:
-                        width = mynint(matchWidthX * scaleFactor)
-                     ixmin = int(xSpacing + overlap / 2 - width / 2)
-                     ixmax = int(ixmin + width - 1)
-                     length = matchLengthY
-                     if matchLengthY <= 0:
-                        length = int(matchLengthFrac * ysize)
-                     elif applyScale:
-                        length = mynint(matchLengthY * scaleFactor)
-                     iymin = int(ysize / 2 - length / 2)
-                     iymax = int(iymin + length - 1)
-                     args = fmtstr('-xminmax {},{} -yminmax {},{} -offset ' +\
-                                   '{},0,0 {} {}', ixmin, ixmax, iymin, iymax,\
-                                   -xSpacing, aliList[loInd], aliList[pcInd])
+                     (ecdx, ecdy) = findEdgeCorrDisp(x - 1, y)
+                     (ixmin, ixmax, iymin, iymax) = \
+                         densmatchLimits(xsize, xSpacing, ecdx, matchWidthX, ysize, ecdy,
+                                         matchLengthY)
+                     args = fmtstr('-xminmax {},{} -yminmax {},{} -offset ' +
+                                   '{},{},0 {} {}', ixmin, ixmax, iymin, iymax,
+                                   -xSpacing - ecdx, -ecdy, aliList[loInd], 
+                                   aliList[pcInd])
                      prnstr('Running densmatch in overlap between piece'\
                            + fmtstr(' {} {} and piece {} {}', x-1, y, x, y))
+                     prnstr(args)
                      scaling = runDensmatch(args)
                      loScl = (float(scaling[0]), float(scaling[1]))
                      
@@ -465,24 +517,14 @@ if dostack:
                   ind = pieceMap[x - xmin + xdim * (y - 1 - ymin)]
                   if ind >= 0:
                      loInd = listMap[ind]
-                     overlap = ysize - ySpacing
-                     width = matchWidthY
-                     if width < 0:
-                        width = int(matchWidthFrac * overlap)
-                     elif applyScale:
-                        width = mynint(matchWidthY * scaleFactor)
-                     iymin = int(ySpacing + overlap / 2 - width / 2)
-                     iymax = int(iymin + width - 1)
-                     length = matchLengthX
-                     if matchLengthX <= 0:
-                        length = int(matchLengthFrac * xsize)
-                     elif applyScale:
-                        length = mynint(matchLengthX * scaleFactor)
-                     ixmin = int(xsize / 2 - length / 2)
-                     ixmax = int(ixmin + length - 1)
-                     args = fmtstr('-xminmax {},{} -yminmax {},{} -offset ' +\
-                                   '0,{},0 {} {}', ixmin, ixmax, iymin, iymax,\
-                                   -ySpacing, aliList[loInd], aliList[pcInd])
+                     (ecdx, ecdy) = findEdgeCorrDisp(x, y - 1)
+                     (iymin, iymax, ixmin, ixmax) = \
+                         densmatchLimits(ysize, ySpacing, ecdy, matchWidthY, xsize, ecdx,
+                                         matchLengthX)
+                     args = fmtstr('-xminmax {},{} -yminmax {},{} -offset ' +
+                                   '{},{},0 {} {}', ixmin, ixmax, iymin, iymax,
+                                   -ecdx, -ySpacing - ecdy, aliList[loInd],
+                                   aliList[pcInd])
                      prnstr('Running densmatch in overlap between piece'\
                            + fmtstr(' {} {} and piece {} {}', x, y-1, x, y))
                      scaling = runDensmatch(args)
@@ -677,6 +719,11 @@ if doblend:
    if goodLowZ > 0 and goodHiZ > 0:
       input.append(fmtstr('GoodEdgeLowAndHighZ\t{} {}', goodLowZ - 1, \
                           goodHiZ - 1))
+   if ecdName:
+      input += ['SloppyMontage 1',
+                'ReadInXcorrs 1',
+                'SameEdgeShifts',
+                fmtstr('BinningForEdgeShifts {}', scaleFactor)]
 
    # Get range of slices to look over for edge limits
    xlo = xmin
