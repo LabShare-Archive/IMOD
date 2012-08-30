@@ -522,7 +522,7 @@ except ones specified with onegood.
 [Field = OneGoodEdgeLimits]
 short = onegood
 type = IAM
-usage = specification of an edge and Z limits within which its edge functions 
+usage = Specification of an edge and Z limits within which its edge functions 
 are good
 tooltip = 
 manpage = This options specifies lower and upper Z limits for a specific edge;
@@ -530,6 +530,16 @@ beyond these limits the edge functions will be taken from the last good Z
 value.  Five values are expected: number of frame below the edge in X and Y
 (numbered from 1), 1 for an edge in X or 2 for an edge in Y, lower and upper Z
 limits (numbered from 0).
+
+[Field = SameEdgeShifts]
+short = same
+type = B
+usage = Edge shifts are the same on all sections; good edge limits can be used
+tooltip =
+manpage = Edge shifts are the same on all sections, so that it is possible to
+use the -goodedge and -onegood options even though pieces are being shifted.
+If pieces are being shifted, the program will not accept the good edge limit
+options unless this option is given.
 
 [Field = ExcludeFillFromEdges]
 short = exclude
