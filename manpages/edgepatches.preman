@@ -56,6 +56,61 @@ INSERT OPTION TEXT HERE
 .B -StandardInput
 Read parameter entries from standard input
 
+.SS Dealing with Bad Initial Shifts
+There are several signs that the program has failed to find the correct
+initial shift between two volumes.  Although the most noticeable sign is that the patch
+vectors look terrible, the first indicator of such trouble is with output
+like this from the 3D correlation of subvolumes:
+
+  Correlating subvolumes to find 3D shift
+  Shift from correlation: 28.21, -17.78, 11.99    Total shift ...
+  Computing patch correlations in edge test_x1y1-2z1
+  Number of patches in X, Y, and Z: 61 31 5
+   64.47 correlations per position, Fourier correlations computed  131 times
+
+First, the X and Y shifts from this correlation should generally be much
+closer to 0 since an initial X and Y shift was already determined from
+projections, so the large values (28.21 and -17.78) indicate that the volumes
+do not really correspond.  Second, in the patch correlations, the large number
+of positions tested at each patch (64) and the large number of times that it
+resorts to global Fourier correlations (131) indicate that it is probably
+correlating patches that do not correspond.  When the initial 2D shift was
+correct, this data set gave:
+
+  Shift from correlation: 2.56, -1.87, -9.24    Total shift ...
+  Computing patch correlations in edge test_x1y1-2z1
+  Number of patches in X, Y, and Z: 67 59 5
+   31.45 correlations per position, Fourier correlations computed    2 times
+
+The X and Y shifts are now much lower, and only 31 correlations needed to be
+evaluated at each patch position (a minimum of 27 is required).
+
+When there is evidence that the 2D correlation has failed for an edge, the
+first step is to examine the shift that was produced using Midas(1).  For each
+edge, files are produced with extensions ".projst" and ".projxf", containing
+the two projection images and the shift transformation, respectively.  Run:
+   midas edgename.projst edgename.projxf
+
+There are several scenarios:
+
+1) The pieces are skewed and the projections do not overlap enough along the
+long dimension of the edge.  Rerun the affected edges with a command that includes
+"-redo -long 1.0 -ignore".
+
+2) The actual overlap zone is much wider than the nominal overlap used in
+Setupstitch(1), and the correlation failed because of insufficient overlap in
+the projections when they are lined up.  There are several options here: a)
+Rerun the affected edge with more overlap, using "-redo -over nnn -ignore", where
+"nnn" is an estimated overlap for the affected edge.  b) If many edges have
+this problem, you could start over with Setupstitch(1) and a larger overlap.
+c) If there is enough overlapping material in the two projections, you can
+adjust the shift in Midas(1) until they line up, save the transform, and rerun
+with "-redo -use"
+
+3) The correlation failed and is unlikely ever to work, such as if the actual
+overlap is much less than the nominal one.  Here is there no choice but to
+adjust the shift in Midas(1) and rerun with "-redo -use".
+
 .SH FILES
 When the info file is modified, the existing copy is renamed to a backup
 with the ~ extension.  This is done only once per run of the program, although
@@ -66,9 +121,13 @@ David Mastronarde
 .fi
 .SH SEE ALSO
 corrsearch3d(1), xyzproj(1), tiltxcorr(1), setupstitch(1), fitpatches(1), stitchalign(1),
-tomostitch(1)
+tomostitch(1), midas(1)
 .SH BUGS
-Comments in the info file will not be preserved.
+Standard comments in the info file, starting with #, will not be preserved.
+However, key-value pairs like
+  comment1 = This is a difficult edge
+.br
+will be retained in the same section where they occur.
 .P
 Email bug reports to mast@colorado.edu.
 .SH HISTORY
