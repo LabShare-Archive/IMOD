@@ -94,6 +94,16 @@ is 0.5.  When pieces are significantly skewed from each other, rather than
 arranged nearly horizontally or vertically, this fraction should be made
 higher, such as 1.0.
 
+[Field = OverlapToAssume]
+short = overlap
+type = I
+usage = Number of pixels of overlap to assume when finding initial shifts
+tooltip =
+manpage = Number of pixels of overlap to assume when finding initial shifts
+with correlations of 3D projections.  The nominal overlap determines how wide
+an area is projected for correlating; this entry overrides the overlap entered
+with Setupstitch.
+
 [Field = PatchSizeXYZ]
 short = size
 type = IT
