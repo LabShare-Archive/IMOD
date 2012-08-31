@@ -206,11 +206,11 @@ def readMontInfo(filename, predata, slices, pieces, edges):
             checkDuplicate(edge, key, 'edge' + edge['name'])
             if key == kShift or key == kOrigShift:
                edge[key] = convertValues(line, value, 3, float, False)
-            elif key == kLower:
+            elif key == kLower or key == kLastShift:
                edge[key] = convertValues(line, value, 3, int, False)
             elif key == kGoodlim or key == kZlimit:
                edge[key] = convertValues(line, value, 2, int, False)
-            elif key == kBlendShift or key == kLastShift:
+            elif key == kBlendShift:
                edge[key] = convertValues(line, value, 2, float, False)
             else:
                edge[key] = value
@@ -284,13 +284,13 @@ def writeMontInfo(filename, predata, slices, pieces, edges):
          val = edge[key]
          if key == 'name':
             pass
-         elif key == kLower:
+         elif key == kLower or key == kLastShift:
             prnstr(fmtstr('{} = {} {} {}', key, val[0], val[1], val[2]), file=out)
          elif key == kShift or key == kOrigShift:
             prnstr(fmtstr('{} = {:f} {:f} {:f}', key, val[0], val[1], val[2]), file=out)
          elif key == kZlimit or key == kGoodlim:
             prnstr(fmtstr('{} = {} {}', key, val[0], val[1]), file=out)
-         elif key == kBlendShift or key == kLastShift:
+         elif key == kBlendShift:
             prnstr(fmtstr('{} = {:f} {:f}', key, val[0], val[1]), file=out)
          else:
             prnstr(fmtstr('{} = {}', key, val), file=out)
