@@ -33,8 +33,7 @@ def findEdgeShifts(lower, upper, edge):
       if kLastShift not in edge:
          exitError('Cannot use .projxf shifts; there is no lastCorrShift entry for ' + \
                       'this edge in the info file')
-      intshift = [int(round(edge[kLastShift][0])), int(round(edge[kLastShift][1])),
-                  int(round(edge[kShift][2]))]
+      intshift = [edge[kLastShift][0], edge[kLastShift][1], int(round(edge[kShift][2]))]
                   
    elif ignoreShifts:
       if kOrigShift not in edge:
@@ -53,10 +52,17 @@ def findEdgeShifts(lower, upper, edge):
    xyminup[delx] = xyminlo[delx] + intshift[delx]
    xymaxup[delx] = xymaxlo[delx] + intshift[delx]
 
+   # Get the overlap to use here
+   if useProjxf:
+      ovsize = edge[kLastShift][2]
+   elif overlapToUse > 0:
+      ovsize = overlapToUse
+   else:
+      ovsize = losize[dely] + intshift[dely]
+
    # get coordinates in short dimension, trim some here
-   ovsize = losize[dely] + intshift[dely]
    trim = int(trimFrac * ovsize)
-   xyminlo[dely] = trim - intshift[dely]
+   xyminlo[dely] = trim + losize[dely] - ovsize
    xymaxlo[dely] = losize[dely] - 1 - trim
    xyminup[dely] = trim
    xymaxup[dely] = ovsize - 1 - trim
@@ -89,7 +95,7 @@ def findEdgeShifts(lower, upper, edge):
          runcmd(fmtstr('newstack {} {} {}', tmpproj1, tmpproj2, tmpprojst), None)
          padx = int(padFrac * (xymaxup[0] + 1 - xyminup[0]))
          pady = int(padFrac * (xymaxup[1] + 1 - xyminup[1]))
-         edge[kLastShift] = [intshift[0], intshift[1]]
+         edge[kLastShift] = [intshift[0], intshift[1], ovsize]
 
          prnstr("Correlating projections of overlap zones")
          txccom = fmtstr('tiltxcorr -ang 0,0 -pad {},{} -sigma1 0.03 -rot 0. ' +\
@@ -103,8 +109,7 @@ def findEdgeShifts(lower, upper, edge):
          failed = 0
          for line in txcout:
             if re.search('View.*shifts', line):
-               line = re.sub('View.*shifts *(\S+) *(\S+).*', '\\1 \\2', \
-                             line).strip()
+               line = re.sub('View.*shifts *(\S+) *(\S+).*', '\\1 \\2', line).strip()
                line = line.split(' ')
                if isinstance(line, str) or len(line) < 2:
                   failed = 1
@@ -112,14 +117,14 @@ def findEdgeShifts(lower, upper, edge):
          else:
             failed = 1
          if failed:
-            exitError(fmtstr('Cannot find shift in output of tiltxcorr on ' +\
-                             'edge {}', edge['name']))
+            exitError(fmtstr('Cannot find shift in output of tiltxcorr on edge {}',
+                             edge['name']))
 
       # Subtract amount to shift upper to get new coordinate shift
       if verbose:
          prnstr(fmtstr('Initial shift: {}, {}', intshift[0], intshift[1]))
-      intshift[0] -= int(round(float(line[0])))
-      intshift[1] -= int(round(float(line[1])))
+      intshift[delx] -= int(round(float(line[delx])))
+      intshift[dely] = ovsize - losize[dely] - int(round(float(line[dely])))
       prnstr(fmtstr('Shift from correlation: {:.1f}, {:.1f}     Total shift' +\
                     ' {}, {}', -float(line[0]), -float(line[1]), intshift[0], \
                     intshift[1]))
@@ -369,7 +374,9 @@ leavetmp = 0
 # Fallbacks from ../manpages/autodoc2man 3 1 edgepatches
 options = ["info:InfoFile:FN:", "all:RunAll:B:", "xrun:XRunStartEnd:IP:",
            "yrun:YRunStartEnd:IP:", "zrun:ZRunStartEnd:IP:", "skip:SkipDone:B:",
-           "redo:RedoShifts:B:", "long:LongFraction:F:", "size:PatchSizeXYZ:IT:",
+           "redo:RedoShifts:B:", "use:UseProjXformFile:B:",
+           "ignore:IgnoreLastShifts:B:", "long:LongFraction:F:",
+           "overlap:OverlapToAssume:I:", "size:PatchSizeXYZ:IT:",
            "intervals:IntervalsShortLongZ:IT:", "force:ForceNumberInZ:I:",
            "borders:BordersInXYandZ:IP:", "kernel:KernelSigma:F:", "test:TestMode:I:"]
 
@@ -415,6 +422,7 @@ borderXY, borderZ = PipGetTwoIntegers('BordersInXYandZ', borderXY, borderZ)
 patchSize = PipGetThreeIntegers('PatchSizeXYZ', patchSize[0],
                                 patchSize[1], patchSize[2])
 longFrac = PipGetFloat('LongFraction', longFrac)
+overlapToUse = PipGetInteger('OverlapToAssume', -1)
 forceZ = PipGetInteger('ForceNumberInZ', forceZ)
 kernel = PipGetFloat('KernelSigma', kernel)
 testMode = PipGetInteger('TestMode', testMode)
