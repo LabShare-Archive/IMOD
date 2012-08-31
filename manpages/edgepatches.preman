@@ -111,6 +111,18 @@ with "-redo -use"
 overlap is much less than the nominal one.  Here is there no choice but to
 adjust the shift in Midas(1) and rerun with "-redo -use".
 
+Finally, note that existing "shift" entries in the Edge sections of the info file
+determine several things: the location and size of areas projected for the 2D
+correlation; the location of the subvolumes for initial 3D correlation; and
+the location where patch correlation starts.  This means that if the shift is
+wrong, you need to include the "-ignore" option to make it use the original,
+nominal shifts instead.  It also means that, if necessary, you can insert the
+correct shift in the file to bypass the initial correlations.  To do this,
+find an exactly corresponding feature in the two volumes in question and
+record its X, Y, Z coordinates in each volume.  Subtract the coordinates in
+the lower volume (the one to the left in X or below in Y) from the coordinates
+in the upper volume and insert the result into the shift entry.
+
 .SH FILES
 When the info file is modified, the existing copy is renamed to a backup
 with the ~ extension.  This is done only once per run of the program, although
