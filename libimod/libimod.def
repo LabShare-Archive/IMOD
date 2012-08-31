@@ -202,6 +202,7 @@ EXPORTS
 	imodMatScale
 	imodContourCopy
 	imodPointArea
+	CLEARIMODOBJSTORE
 	imodel_contour_check_wild
 	imodClipsRead
 	istoreDeletePoint
