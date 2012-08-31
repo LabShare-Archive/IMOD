@@ -472,7 +472,7 @@ subroutine write_xyz_model(modelFile, xyz, igroup, nrealpt)
   include 'smallmodel.inc90'
   real*4 xyzmax, xImScale, yImScale, zImScale
   integer*4, allocatable :: imodObjSize(:), mapImodObj(:), numGroup1(:)
-  integer getImodScales
+  integer getImodScales, clearImodObjStore
   integer*4 imodObj, isize, ierr, newObj, maxImodObj, mapInd
   !
   integer*4 ireal, iobject, ipt, i
@@ -564,6 +564,7 @@ subroutine write_xyz_model(modelFile, xyz, igroup, nrealpt)
       endif
       call putImodFlag(imodObj, 2)
       call putScatSize(imodObj, isize)
+      ierr = clearImodObjStore(imodObj);
     endif
   enddo
   call putImodZscale(1.)
