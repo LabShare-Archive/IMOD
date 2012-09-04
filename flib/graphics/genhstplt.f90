@@ -78,7 +78,7 @@ subroutine realGraphicsMain()
     read(1, '(a)') name
     call frefor2(name, avgX, itype, nfields, MAX_AVERAGES)
     numCol = 0
-    print *,nfields,(avgX(i),itype(i),i=1,nfields)
+    ! print *,nfields,(avgX(i),itype(i),i=1,nfields)
     do i = 1, nfields
       if (itype(i) > 0) numCol = i
     enddo
