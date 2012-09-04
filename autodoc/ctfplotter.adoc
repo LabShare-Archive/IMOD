@@ -67,7 +67,9 @@ fit to, and the defocus value in nanometers (underfocus positive).  If this
 file already exists when the program starts, it will be read in and the
 results displayed in a table in the Angle Range and Tile Selection dialog.
 The previous version will become a backup file (with ~ added to its name) when
-new results are saved to this file.
+new results are saved to this file.  If you supply an initial defocus file
+with more than line, be sure to use the exact angles from the tilt angle file;
+do not round to one decimal place.
 
 [Field = AxisAngle]
 short = aAngle
