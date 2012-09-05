@@ -214,7 +214,8 @@ tooltip =
 manpage = Clean up the temporary files that are retained between runs so that
 Pickbestseed can be rerun without finding and tracking beads again.  Enter 1
 to remove these files and go on to a new run, or -1 simply to remove the files
-and exit.
+and exit.  In the latter case, the temporary directory will be removed if it
+is the default one.
 
 [Field = OutputSeedModel]
 short = output
