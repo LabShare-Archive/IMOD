@@ -1920,7 +1920,7 @@ CONTAINS
 
       ! Divide the ones just added to the list by the bead mean so the list now has
       ! double-normalized values
-      if (numAvg > 0) then
+      if (numAvg > 0 .and. wsum > 0.) then
         numNeighInLocal = numNeighInLocal + 1
         wsumsLocal(numLocals + 1 : numLocals + numAvg) =  &
             wsumsLocal(numLocals + 1 : numLocals + numAvg) / (wsum / numAvg)
