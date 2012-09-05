@@ -26,7 +26,7 @@ struct Candidate {
   unsigned char clustered;
   unsigned char overlapped;
   unsigned char accepted;
-  unsigned char pad;
+  unsigned char overlapTmp;
 };
 
 // Structure for data about a grid point
@@ -77,6 +77,8 @@ class PickSeeds
   void outputDensities(int topBot);
   void outputNumAccepted(int twoSurf, int final);
   bool beadsAreClustered(Candidate *cand1, Candidate *cand2);
+  void analyzeElongation(int maxConts, float *edgeSDs, float *elongs, float *edgeTmp,
+                         float *elongTmp, int which);
   
  private:
   Imod *mTrackMods[MAX_MODELS];
@@ -111,4 +113,7 @@ class PickSeeds
   float mCosRot, mSinRot;
   float mCosTilt;
   float mClusterCrit;
+  double mEdgeAdjustBySDpower;
+  float mEdgeOutlierCrit;
+  float mElongForOverlap;
 };
