@@ -53,7 +53,9 @@ angle, it will find the defocus either by interpolating between two
 surrounding midpoint angles, if there are such angles, or by taking the nearest
 defocus value, if the angle is beyond the range of the available midpoint
 angles.  To correct a tilt series with a single value of defocus, supply a
-file with a single line containing "20 20 0. 0. defocus_value".
+file with a single line containing "20 20 0. 0. defocus_value".  If you prepare
+a defocus file with more than line, be sure to use the exact angles from the
+tilt angle file; do not round to one decimal place.
 
 [Field = TransformFile]
 short = xform

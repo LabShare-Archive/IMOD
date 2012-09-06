@@ -41,6 +41,20 @@ be used to enter an alternate size to use in Imodfindbeads(1).
 If it is entered, it must be in units of the potentially binned pixels of the
 stack being tracked.
 
+[Field = PeakStorageFraction]
+short = peak
+type = F
+usage = Fraction of peaks above histogram dip to store in model (default 1.0)
+tooltip =
+manpage = Fraction of the peaks above the histogram dip that Imodfindbeads(1)
+should store in the model.  The default is 1.0 to store all peaks above the
+dip.  An value below 1 will omit the weakest peaks from the seed models for
+tracking and could be used if some non-gold particles are being selected. 
+A value above 1 will include peaks below the dip and could be used if some
+gold particles are being missed. For example, 1.1 would include
+the strongest peaks below the dip, 10% as many as are above the dip.
+The negative of this entry is used for the -store entry to Imodfindbeads(1).
+
 [Field = NumberOfSeedViews]
 short = views
 type = I
@@ -162,6 +176,27 @@ by points into equal-sized areas that are at least the given minimum size in
 each dimension, and that have at least the given number of points.  The
 default is 50 beads and 2500 pixels.
 
+[Field = IgnoreSurfaceData]
+short = ignore
+type = LI
+usage = List of tracked models (numbered from 0) with bad top/bottom information
+tooltip =
+manpage = List of the numbers of tracked models where the sorting of beads
+into two surfaces failed (comma separated values or ranges numbered from 0).
+These surface files for these models will not be sent to Pickbestseed(1) and
+assignments of beads to surfaces will be based only on the surface data for
+the remaining model(s).
+
+[Field = DropTracks]
+short = drop
+type = LI
+usage = List of tracked models (numbered from 0) to drop from the analysis
+tooltip =
+manpage = List of the numbers of tracked models that should not be sent to
+Pickbestseed(1) for analysis (comma separated values or ranges numbered from
+0).  If tracking from one or more views behaved badly, this option can be used
+to omit those results from further consideration.
+
 [Field = PickSeedOptions]
 short = pick
 type = CH
@@ -179,7 +214,8 @@ tooltip =
 manpage = Clean up the temporary files that are retained between runs so that
 Pickbestseed can be rerun without finding and tracking beads again.  Enter 1
 to remove these files and go on to a new run, or -1 simply to remove the files
-and exit.
+and exit.  In the latter case, the temporary directory will be removed if it
+is the default one.
 
 [Field = OutputSeedModel]
 short = output
@@ -196,8 +232,18 @@ usage = Alternative path and name for info file
 tooltip =
 manpage = File name for the info file that is written on a first run and read
 on later runs.  The default info file is written in the current directory with 
-the name autofidseeda.info if the root of the Beadtrack command file name ends
-in "a", autofidseedb.info it it ends in "b", otherwise autofidseed.info.
+the name autofidseed_a.info if the root of the Beadtrack command file name ends
+in "a", autofidseed_b.info it it ends in "b", otherwise autofidseed.info.
+
+[Field = TemporaryDirectory]
+short = tempdir
+type = FN
+usage = Path for temporary directory
+tooltip =
+manpage = Path to temporary directory.  The default is to create a directory
+in the current directory with the name autofidseed.tmp, autofidseed_a.tmp, or 
+autofidseed_b.tmp, depending on the ending of the root of the Beadtrack command
+file.
 
 [Field = LeaveTempFiles]
 short = leave

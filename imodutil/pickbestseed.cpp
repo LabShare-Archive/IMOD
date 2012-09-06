@@ -61,6 +61,12 @@ PickSeeds::PickSeeds()
   mNumRings = 4;
   // 5: Maximum # of bead diameters separation for points to be considered clustered
   mClusterCrit = 2.;
+  // 7: Median edge SD is divided by this power of SD of egde SD
+  mEdgeAdjustBySDpower = 0.3;
+  // 12: Criterion for edge SD values or elongations to be considered outliers
+  mEdgeOutlierCrit = 2.24;
+  // 16: Absolute threshold for elongation to be considered overlap
+  mElongForOverlap = 2.5;
 }
 
 /*
@@ -71,8 +77,6 @@ void PickSeeds::main(int argc, char *argv[])
   // Parameters
   // 6: Fraction of points that must be close in two tracks for them to be considered same
   float critFracClose = 0.6;
-  // 7: Median edge SD is divided by this power of SD of egde SD
-  double edgeAdjustBySDpower = 0.3;
   // 8: Maximum fraction of target density at which to add points in initial phase
   float minDensityFac1 = 0.9;
   // 9: Higher fraction of target at which to add points in more desperate searches
@@ -81,16 +85,12 @@ void PickSeeds::main(int argc, char *argv[])
   float spacingToHfac = 1.3;
   // 11: Scaling from desired spacing to density grid spacing
   float spacingToGridFac = 0.2;
-  // 12: Criterion for edge SD values or elongations to be considered outliers
-  float edgeOutlierCrit = 2.24;
   // 13: Ratio of minority to majority for using higher density factor
   float surfRatioUseDens2 = 0.65;
   // 14: Fraction of nominal spacing allowed for initial addition of points
   float initAddSpacingFac = 0.85;
   // 15: Fraction of spacing for adding best half of points on next phase
   float halfAddSpacingFac = 0.7;
-  // 16: Absolute threshold for elongation to be considered overlap
-  float elongForOverlap = 2.5;
 
   // Defaults for options
   int useOverlaps = 0;
@@ -112,12 +112,12 @@ void PickSeeds::main(int argc, char *argv[])
   int len, co, surfNumber, numDomains, maxGridPerDom, ix, iy, jx, jy, ind, maxTrackLen;
   float targetDensity, totalArea, targetSpacing, surfDensity, surfSpacing,kernelH;
   float gridSpacing, xx, yy, dzmin, dz, fracClose, meanDev, compSum, resSum;
-  int imin, ncum, idom, neigh, neighCo, neighMod, coMod, numEdge, ndev, botSum, topSum;
+  int imin, ncum, idom, neigh, neighCo, neighMod, coMod, ndev, botSum, topSum;
   int useDens2, majorNumber, numPhase, phase, overlapThresh, topBot, surf;
   float resid, sdMean, sdMed, sdSD, termDens, bestResForPos;
   float clusterThresh, majorDensity, majorSpacing, majorKernelH, valmin, valmax;
   float eloMean, eloMed;
-  int numModels, numClust, numOver;
+  int numModels, numClust, numOver, numIgnore;
   int *trackList;
   float *edgeSDs, *edgeTmp, *elongs, *elongTmp;
   Imod *imod;
@@ -136,25 +136,24 @@ void PickSeeds::main(int argc, char *argv[])
   const char *fileOptName[2] = {"ElongationFile", "SurfaceFile"};
     
   // Fallbacks from    ../manpages/autodoc2man 2 1 pickbestseed
-  int numOptions = 22;
+  int numOptions = 24;
   const char *options[] = {
-    "tracked:TrackedModel:FNM:", "surface:SurfaceFile:FNM:", 
-    "elong:ElongationFile:FNM:", "output:OutputSeedModel:FN:", "size:BeadSize:F:", 
-    "image:ImageSizeXandY:IP:", "border:BordersInXandY:IP:", "middle:MiddleZvalue:I:", 
-    "two:TwoSurfaces:B:", "boundary:BoundaryModel:FN:", "number:TargetNumberOfBeads:I:", 
-    "density:TargetDensityOfBeads:F:", "nobeef:LimitMajorityToTarget:B:", 
-    "cluster:ClusteredPointsAllowed:I:", "lower:LowerTargetForClustered:F:", 
-    "rotation:RotationAngle:F:", "highest:HighestTiltAngle:F:", 
-    "weights:WeightsForScore:FA:", "control:ControlValue:FPM:", "phase:PhaseOutput:B:", 
+    "tracked:TrackedModel:FNM:", "surface:SurfaceFile:FNM:",
+    "elong:ElongationFile:FNM:", "output:OutputSeedModel:FN:", "size:BeadSize:F:",
+    "image:ImageSizeXandY:IP:", "border:BordersInXandY:IP:", "middle:MiddleZvalue:I:",
+    "two:TwoSurfaces:B:", "boundary:BoundaryModel:FN:", "number:TargetNumberOfBeads:I:",
+    "density:TargetDensityOfBeads:F:", "nobeef:LimitMajorityToTarget:B:",
+    "cluster:ClusteredPointsAllowed:I:", "lower:LowerTargetForClustered:F:",
+    "rotation:RotationAngle:F:", "highest:HighestTiltAngle:F:",
+    "weights:WeightsForScore:FA:", "control:ControlValue:FPM:", "phase:PhaseOutput:B:",
     "root:DensityOutputRootname:CH:", "verbose:VerboseOutput:I:"};
 
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
                         9, 1, 1, &numOptArgs, &numNonOptArgs, imodUsageHeader);
 
   // Read the tracked models, get maximum number of contours (They should all match...)
-  PipNumberOfEntries("TrackedModel", &numModels);
-  if (numModels < 3)
-    exitError("At least three tracked models must be entered");
+  if (PipNumberOfEntries("TrackedModel", &numModels))
+    exitError("At least one tracked model must be entered");
   if (numModels > MAX_MODELS)
     exitError("At most %d tracked models can be entered", MAX_MODELS);
   maxConts = 0;
@@ -191,7 +190,7 @@ void PickSeeds::main(int argc, char *argv[])
   ix = PipGetFloatArray("WeightsForScore", weights, &iy, 4);
   if (ix < 0 || iy != 4)
     exitError("You must enter exactly 4 values for weights");
-  weights[WGT_NUM_MODELS] /= numModels - 1.;
+  weights[WGT_NUM_MODELS] /= B3DMAX(numModels - 1., 1.);
 
   // Allow any parameter to be set
   PipNumberOfEntries("ControlValue", &ncum);
@@ -204,16 +203,16 @@ void PickSeeds::main(int argc, char *argv[])
       SET_CONTROL_INT(4, mNumRings);
       SET_CONTROL_FLOAT(5, mClusterCrit);
       SET_CONTROL_FLOAT(6, critFracClose);
-      SET_CONTROL_FLOAT(7, edgeAdjustBySDpower);
+      SET_CONTROL_FLOAT(7, mEdgeAdjustBySDpower);
       SET_CONTROL_FLOAT(8, minDensityFac1);
       SET_CONTROL_FLOAT(9, minDensityFac2);
       SET_CONTROL_FLOAT(10, spacingToHfac);
       SET_CONTROL_FLOAT(11, spacingToGridFac);
-      SET_CONTROL_FLOAT(12, edgeOutlierCrit);
+      SET_CONTROL_FLOAT(12, mEdgeOutlierCrit);
       SET_CONTROL_FLOAT(13, surfRatioUseDens2);
       SET_CONTROL_FLOAT(14, initAddSpacingFac);
       SET_CONTROL_FLOAT(15, halfAddSpacingFac);
-      SET_CONTROL_FLOAT(16, elongForOverlap);
+      SET_CONTROL_FLOAT(16, mElongForOverlap);
     default: break;
     }
   }
@@ -275,11 +274,17 @@ void PickSeeds::main(int argc, char *argv[])
   }
   
   // Read in the residual elongation and top/bottom data
+  numIgnore = 0;
   for (loop = 0; loop <= twoSurf; loop++) {
     for (i = 0; i < numModels; i++) {
-      if (PipGetString(fileOptName[loop], &filename) != 0)
+      if (PipGetString(fileOptName[loop], &filename) != 0) {
+        if (loop) {
+          numIgnore++;
+          continue;
+        }
         exitError("%d files must be entered with the %s option", numModels, 
                   fileOptName[loop]);
+      }
       fp = fopen(filename, "r");
       if (!fp)
         exitError("Opening file %s", filename);
@@ -322,6 +327,9 @@ void PickSeeds::main(int argc, char *argv[])
       fclose(fp);
     }
   }
+  if (numIgnore == numModels)
+    exitError("Surface information must be provided for at least one model "
+              "if -twosurf is given");
 
   // Set up the domains; first get the density in number per square pixel
   // Also set up the lower target for overlapped beads if it was a density
@@ -458,6 +466,7 @@ void PickSeeds::main(int argc, char *argv[])
     candid.contours[coMod] = co;
     mTracks[co].candIndex = mCandidates.size();
     candid.overlapped = 0;
+    candid.overlapTmp = 0;
     candid.clustered = 0;
     candid.accepted = 0;
     candid.topBot = 0;
@@ -566,35 +575,14 @@ void PickSeeds::main(int argc, char *argv[])
       mCandidList[mDomains[ind].candStartInd + mDomains[ind].numCandidates++] = i;
   }
 
-  // Analyze the edge SD and elongation values for all the tracks that have gone into 
-  // candidates
-  numEdge = 0;
-  for (co = 0; co < maxConts; co++) {
-    if (mTracks[co].candIndex >= 0) {
-      edgeSDs[numEdge] = mTracks[co].edgeSDmedian / 
-        pow((double)mTracks[co].edgeSDsd, edgeAdjustBySDpower);
-      elongs[numEdge++] = mTracks[co].elongMedian;
-    }
-  }
-  rsMadMedianOutliers(edgeSDs, numEdge, edgeOutlierCrit, edgeTmp);
-  rsMadMedianOutliers(elongs, numEdge, edgeOutlierCrit, elongTmp);
-  ind = 0;
-  for (co = 0; co < maxConts; co++) {
-    if (mTracks[co].candIndex >= 0) {
-      if (edgeTmp[ind] > 0. || elongTmp[ind] > 0. || 
-          mTracks[co].elongMedian >= elongForOverlap)
-        (&mCandidates[mTracks[co].candIndex])->overlapped++;
-      ind++;
-    }
-  }
+  // Identify elongated points first using all points
+  analyzeElongation(maxConts, edgeSDs, elongs, edgeTmp, elongTmp, 0);
 
-  // Identify clustered points as ones with near neighbors (inefficient!)
+  // Identify clustered points as ones with near neighbors by looking at all pairs
   mCosRot = cos(PI * rotation / 180.);
   mSinRot = sin(PI * rotation / 180.);
   mCosTilt = cos(PI * mHighestTilt / 180.);
   
-  numClust = 0;
-  numOver = 0;
   for (co = 0; co < mNumCandidates; co++) {
     candp = &mCandidates[co];
     ind = candp->domain;
@@ -610,6 +598,17 @@ void PickSeeds::main(int argc, char *argv[])
         }
       }
     }
+  }
+
+  // Analyze for elongated points again after excluding all the clustered ones which
+  // could skew the distribution
+  analyzeElongation(maxConts, edgeSDs, elongs, edgeTmp, elongTmp, 1);
+
+  // Report the results
+  numClust = 0;
+  numOver = 0;
+  for (co = 0; co < mNumCandidates; co++) {
+    candp = &mCandidates[co];
     if (candp->overlapped)
       numOver++;
     else if (candp->clustered)
@@ -765,7 +764,7 @@ void PickSeeds::main(int argc, char *argv[])
   outputNumAccepted(twoSurf, 1);
 
   // Compose the model: clear out object of one model
-  imod = mTrackMods[1];
+  imod = mTrackMods[numModels / 2];
   obj = &imod->obj[0];
   imodContoursDelete(obj->cont, obj->contsize);
   obj->cont = imodContoursNew(mNumAccepted[2]);
@@ -1096,6 +1095,52 @@ void PickSeeds::getTrackDeviation(int co1, int mod1, int co2, int mod2, float &m
   }
   fracClose = nsum ? ((float)nclose / nsum) : 0;
   meanDev = nsum ? devsum / nsum : 0.;
+}
+
+/*
+ * Analyze the edge SD and elongation values for all the tracks that have gone into 
+ * candidates and mark outliers as overlapped
+ */
+void PickSeeds::analyzeElongation(int maxConts, float *edgeSDs, float *elongs,
+                                  float *edgeTmp, float *elongTmp, int which)
+{
+  int co, numSet = 0, numEdge = 0, ind = 0;
+  for (co = 0; co < maxConts; co++) {
+    if (mTracks[co].candIndex >= 0 && !(&mCandidates[mTracks[co].candIndex])->clustered) {
+      edgeSDs[numEdge] = mTracks[co].edgeSDmedian / 
+        pow((double)mTracks[co].edgeSDsd, mEdgeAdjustBySDpower);
+      elongs[numEdge++] = mTracks[co].elongMedian;
+    }
+  }
+  if (!numEdge)
+    return;
+  rsMadMedianOutliers(edgeSDs, numEdge, mEdgeOutlierCrit, edgeTmp);
+  rsMadMedianOutliers(elongs, numEdge, mEdgeOutlierCrit, elongTmp);
+  for (co = 0; co < maxConts; co++) {
+    if (mTracks[co].candIndex >= 0 && !(&mCandidates[mTracks[co].candIndex])->clustered) {
+      if (edgeTmp[ind] > 0. || elongTmp[ind] > 0. || 
+          mTracks[co].elongMedian >= mElongForOverlap) {
+        if (which)
+          (&mCandidates[mTracks[co].candIndex])->overlapTmp++;
+        else
+          (&mCandidates[mTracks[co].candIndex])->overlapped++;
+      }
+      ind++;
+    }
+  }
+
+  // Count the candidates marked as overlapped and set the overlap to the max on the 
+  // second round
+  for (co = 0; co< mNumCandidates; co++) {
+    if (which)
+      (&mCandidates[co])->overlapped = 
+        B3DMAX((&mCandidates[co])->overlapped, (&mCandidates[co])->overlapTmp);
+    if ((&mCandidates[co])->overlapped)
+      numSet++;
+  }
+  
+  if (mVerbose)
+    printf("%d beads identified as elongated after round %d\n", numSet, which + 1);
 }
 
 /*

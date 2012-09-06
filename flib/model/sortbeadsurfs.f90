@@ -10,10 +10,10 @@
 program sortbeadsurfs
   implicit none
   include 'smallmodel.inc90'
-  character*320 inFile, outFile
+  character*320 inFile, outFile, textOutput
   integer*4 numInGroup(2), jRed(2), jGreen(2), jBlue(2)
   logical*4 exist, readSmallMod, already, majority, invertZ, rescale
-  logical*4 oneSurface, checkGroups, textOutput
+  logical*4 oneSurface, checkGroups
   integer*4 ifFlip, local, ierr, i, j, ix, iy, indY, indZ, maxx, maxy, maxz
   real*4 xmax, xmin, ymin, ymax, deltaX, deltaY, xlo, xhi, ylo, yhi
   real*4 epsX, epsY, dx, dy, cosa, sina, xtilt, scaleFac, outlierCrit, contValue
@@ -29,7 +29,7 @@ program sortbeadsurfs
 
   integer*4 numOptArg, numNonOptArg
   integer*4 PipGetInteger, PipGetFloat, PipGetTwoIntegers
-  integer*4 PipGetInOutFile, PipGetLogical
+  integer*4 PipGetInOutFile, PipGetLogical, PipGetString
   real*4 xyz(3,max_pt), xyzFit(3,max_pt), values(max_pt), outlie(max_pt), tiltDum
   integer*4 igroup(max_pt), igrpSort(max_pt), imodObjOrig(max_pt)
   !
@@ -39,7 +39,7 @@ program sortbeadsurfs
   parameter (numOptions = 21)
   character*(40 * numOptions) options(1)
   options(1) = &
-      'input:InputFile:FN:@output:OutputFile:FN:@text:TextFileWithSurfaces:B:@'// &
+      'input:InputFile:FN:@output:OutputFile:FN:@text:TextFileWithSurfaces:FN:@'// &
       'flipyz:FlipYandZ:I:@subarea:SubareaSize:I:@majority:MajorityObjectOnly:B:@'// &
       'xaxis:XAxisTilt:F:@invert:InvertZAxis:B:@already:AlreadySorted:B:@'// &
       'one:OneSurface:B:@aligned:AlignedSizeXandY:IP:@xtrim:XTrimStartAndEnd:IP:@'// &
@@ -65,7 +65,7 @@ program sortbeadsurfs
   rescale = .false.
   checkGroups = .false.
   oneSurface = .false.
-  textOutput = .false.
+  textOutput = ''
   ifUseValues = 0
   outlierCrit = 2.24
 
@@ -88,7 +88,7 @@ program sortbeadsurfs
   ierr = PipGetLogical('OneSurface', oneSurface)
   ierr = PipGetLogical('MajorityObjectOnly', majority)
   ierr = PipGetInteger('ValuesToRestrainSorting', ifUseValues)
-  ierr = PipGetLogical('TextFileWithSurfaces', textOutput)
+  ierr = PipGetString('TextFileWithSurfaces', textOutput)
   ierr = PipGetTwoIntegers('AlignedSizeXandY', newNx, newNy)
   ierr = PipGetInteger('PrealignedBinning', ibinningPreali)
   ierr = PipGetInteger('ReconstructionBinning', ibinningRec)
@@ -119,8 +119,7 @@ program sortbeadsurfs
     ierr = maxy
     maxy = maxz
     maxz = ierr
-    if (xtilt .ne. 0) call exitError( &
-        'X axis tilt cannot be applied to a flipped model')
+    if (xtilt .ne. 0) call exitError('X axis tilt cannot be applied to a flipped model')
     if (newNx .ne. 0 .or. newNy .ne. 0 .or. ibinningPreali > 1 .or. &
         ibinningRec > 1 .or. rescale .or. invertZ .or. ixTrim0 > 0 .or. &
         ixTrim1 > 0 .or. iyTrim0 > 0 .or. iyTrim1 > 0) &
@@ -372,8 +371,8 @@ program sortbeadsurfs
   endif
 
   ! Output text file if requested
-  if (textOutput) then
-    call dopen(2, outFile, 'new', 'f')
+  if (textOutput .ne. '') then
+    call dopen(2, textOutput, 'new', 'f')
     i = 0
     do iobj = 1, max_mod_obj
       call objToCont(iobj, obj_color, imodObj, imodCont)
@@ -384,29 +383,28 @@ program sortbeadsurfs
     enddo
     close(2)
     
-  else
-    !
-    ! otherwise rebuild the model, make it one point per contour
-    ix = 0
-    do iy = iyStart, iyEnd
-      do i = 1, n_point
-        if (igroup(i) == iy) then
-          ix = ix + 1
-          ibase_obj(ix) = ix - 1
-          npt_in_obj(ix) = 1
-          obj_color(1, ix) = 1
-          obj_color(2, ix) = 255 - (iy - iyStart)
-          p_coord(1, ix) = scaleFac * (xyz(1, i) + dx)
-          p_coord(indY, ix) = scaleFac * (xyz(2, i) + dy)
-          p_coord(indZ, ix) = scaleFac * xyz(3, i)
-        endif
-      enddo
-    enddo
-    max_mod_obj = ix
-    n_point = ix
-    call scale_model(1)
-    call write_wmod(outFile)
   endif
+  !
+  ! then rebuild the model, make it one point per contour
+  ix = 0
+  do iy = iyStart, iyEnd
+    do i = 1, n_point
+      if (igroup(i) == iy) then
+        ix = ix + 1
+        ibase_obj(ix) = ix - 1
+        npt_in_obj(ix) = 1
+        obj_color(1, ix) = 1
+        obj_color(2, ix) = 255 - (iy - iyStart)
+        p_coord(1, ix) = scaleFac * (xyz(1, i) + dx)
+        p_coord(indY, ix) = scaleFac * (xyz(2, i) + dy)
+        p_coord(indZ, ix) = scaleFac * xyz(3, i)
+      endif
+    enddo
+  enddo
+  max_mod_obj = ix
+  n_point = ix
+  call scale_model(1)
+  call write_wmod(outFile)
   if (checkGroups) then
     ierr = n_point
     do iy = 1, 2

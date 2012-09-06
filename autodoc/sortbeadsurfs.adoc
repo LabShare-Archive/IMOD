@@ -21,10 +21,10 @@ for this file.
 
 [Field = TextFileWithSurfaces]
 short = text
-type = B
-usage = Output a text file instead of a model with top/bottom assignments
+type = FN
+usage = Name of text file to output with top/bottom assignments
 tooltip =
-manpage = Output a text file instead of a model with the original contour
+manpage = Output a text file with the original contour
 number and the top/bottom assignments (values 1 and 2) for each point.  This
 is meant to be used by Pickbestseed(1), so input data should have only one object
 and only one point per contour.

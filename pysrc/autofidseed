@@ -12,15 +12,23 @@ prefix = 'ERROR: ' + progname + ' - '
 # Clean up all the temp files before exiting
 def cleanup(exts, pidstr):
    if leavetmp:
-      prnstr('Temporary files left, as ' + tmpdir + '/*' + pidstr)
+      leftStr = 'All'
    else:
+      leftStr = 'Some'
       for ext in exts:
-         cleanlist = glob.glob(tmproot + ext + '*' + pidstr + '*')
+         cleanlist = glob.glob(tmproot + '*' + ext)
          cleanupFiles(cleanlist)
+
+   if leavetmp or len(exts) == len(cleanExts):
+      leftStr += ' temporary files left as ' + tmpdir + '/afs' + pidInfo + '*'
+      if pidstr != pidInfo and leavetmp:
+         leftStr += ' or ' + 'afs' + pidstr + '*'
+      prnstr(leftStr)
+         
 
 # Cleanup files, issue top message if any, and do the Imod error exit
 def cleanExitError(message = ''):
-   cleanup(cleanExts + resumeExts, pid)
+   cleanup(cleanExts + resumeExts + infoExts, pid)
    if message:
       prnstr(prefix + message)
    exitFromImodError(progname)
@@ -216,7 +224,7 @@ def runFindBeads():
                fmtstr('BeadSize {}', beadSize),
                fmtstr('MinSpacing {}', spacing),
                fmtstr('LinearInterpolation {}', linear),
-               'StorageThreshold -1.']
+               fmtstr('StorageThreshold {}', -peakFraction)]
    if lightBeads:
       comlines.append('LightBeads 1')
    if ifGuess:
@@ -289,15 +297,18 @@ from pip import *
 from pysed import *
 
 # Fallbacks from ../manpages/autodoc2man 3 1 autofidseed
-options = ["track:TrackCommandFile:FN:", "size:BeadSize:F:", "spacing:MinSpacing:F:",
-           "guess:MinGuessNumBeads:I:", "views:NumberOfSeedViews:I:",
-           "boundary:BoundaryModel:FN:", "border:BordersInXandY:IP:",
-           "two:TwoSurfaces:B:", "subarea:SubareaSize:I:",
-           "sort:SortAreasMinNumAndSize:IP:", "number:TargetNumberOfBeads:I:",
-           "density:TargetDensityOfBeads:F:", "ratio:MaxMajorToMinorRatio:F:",
-           "cluster:ClusteredPointsAllowed:I:", "lower:LowerTargetForClustered:F:",
-           "pick:PickSeedOptions:CH:", "remove:RemoveTempFiles:I:",
-           "output:OutputSeedModel:FN:", "info:InfoFile:FN:", "leave:LeaveTempFiles:B:"]
+options = ["track:TrackCommandFile:FN:", "guess:MinGuessNumBeads:I:",
+           "spacing:MinSpacing:F:", "size:BeadSize:F:", "peak:PeakStorageFraction:F:",
+           "views:NumberOfSeedViews:I:", "boundary:BoundaryModel:FN:",
+           "border:BordersInXandY:IP:", "two:TwoSurfaces:B:",
+           "number:TargetNumberOfBeads:I:", "density:TargetDensityOfBeads:F:",
+           "ratio:MaxMajorToMinorRatio:F:", "cluster:ClusteredPointsAllowed:I:",
+           "lower:LowerTargetForClustered:F:", "subarea:SubareaSize:I:",
+           "sort:SortAreasMinNumAndSize:IP:", "ignore:IgnoreSurfaceData:LI:",
+           "drop:DropTracks:LI:", "pick:PickSeedOptions:CH:",
+           "remove:RemoveTempFiles:I:", "output:OutputSeedModel:FN:",
+           "info:InfoFile:FN:", "tempdir:TemporaryDirectory:FN:",
+           "leave:LeaveTempFiles:B:"]
 
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 2, 0, 0)
 
@@ -314,17 +325,13 @@ highBorderPixPerK = 24
 lowHighBreakpoint = 2048
 moreViewCrit5 = 1.    # Not all points are usable
 moreViewCrit7 = 0.5   # This is unlikely to help more so make the threshold low
-
 leavetmp = 0
-cleanExts = ['pkmod', 'seed', 'xyzpt', 'surf']
-resumeExts = ['track', 'xyzmod', 'elong']
 
-# Set root and ext for temp files
-tmpdir = imodTempDir()
-pid = '.' + str(os.getpid())
-tmproot = progname + '.'
-if tmpdir:
-   tmproot = tmpdir + '/' + progname + '.'
+# Extensions for files that are always cleaned up, files that are left for resumin
+# and files that are left for user edification only
+cleanExts = ['.seed', '.xyzpt', '.surf']
+resumeExts = ['.track', '.xyzmod', '.elong']
+infoExts = ['pkmod', '.sortmod']
 
 # Get track command file
 trackcom = PipGetString('TrackCommandFile', '')
@@ -340,6 +347,23 @@ if troot.endswith('b'):
    infoSuffix = '_b'
 infoName = progname + infoSuffix + '.info'
 
+# Set root of names for temp files
+deftmpdir = progname + infoSuffix + '.dir'
+tmpdir = PipGetString('TemporaryDirectory', deftmpdir)
+if tmpdir == deftmpdir and not os.path.exists(tmpdir):
+   try:
+      os.mkdir(tmpdir)
+   except:
+      exitError('Making the temporary directory ' + tmpdir)
+
+if not (os.path.isdir(tmpdir) and os.access(tmpdir, os.W_OK)):
+   exitError('Cannot write to temporary directory ' + tmpdir)
+      
+pid = str(os.getpid()) + '.'
+tmproot = 'afs'
+if tmpdir:
+   tmproot = tmpdir + '/' + tmproot
+
 # Get alternate name,, keep track if using default
 infoName = PipGetString('InfoFile', infoName)
 defaultInfo = PipGetErrNo()
@@ -353,9 +377,16 @@ if oldValid:
 # See if cleaning up, so we can exit now
 clean = PipGetInteger('RemoveTempFiles', 0)
 if clean != 0 and oldValid and pidInfo:
-   cleanup(resumeExts, pidInfo)
+   cleanup(resumeExts + infoExts, pidInfo)
    oldValid = False
    if clean < 0:
+      if tmpdir == deftmpdir:
+         cleanlist = glob.glob(tmpdir + '/' + '*')
+         cleanupFiles(cleanlist)
+         try:
+            os.rmdir(tmpdir)
+         except:
+            prnstr('WARNING: could not remove temporary directory ' + tmpdir)
       sys.exit(0)
    
 # Get more options
@@ -363,6 +394,7 @@ guess = PipGetInteger('MinGuessNumBeads', 0)
 ifGuess = 1 - PipGetErrNo()
 twoSurf = PipGetBoolean('TwoSurfaces', 0)
 spacing = PipGetFloat('MinSpacing', spacing)
+peakFraction = PipGetFloat('PeakStorageFraction', 1.0)
 targetNumber = PipGetInteger('TargetNumberOfBeads', 0)
 targetDensity = PipGetFloat('TargetDensityOfBeads', 0.)
 if targetNumber < 1 and targetDensity <= 0.:
@@ -387,6 +419,15 @@ viewsEntered = 1 - PipGetErrNo()
 if numSeedViews < 3 or numSeedViews > 7:
    exitError('The number of views to use as seeds must be between 3 and 7')
 
+dropStr = PipGetString('DropTracks', '')
+dropList = []
+if dropStr:
+   dropList = parselist(dropStr)
+ignoreStr = PipGetString('IgnoreSurfaceData', '')
+ignoreList = []
+if ignoreStr:
+   ignoreList = parselist(ignoreStr)
+   
 # Read com file and get critical entries
 tracklines = readTextFile(trackcom)
 
@@ -530,6 +571,7 @@ if oldValid:
    imageTimeArr = optionValue(infoLines, 'ImageTime', 1)
    beadInfo = optionValue(infoLines, 'BeadSize', 0)
    guessInfoArr = optionValue(infoLines, 'MinGuess', 1)
+   peakFracInfoArr = optionValue(infoLines, 'PeakFraction', 2)
    spacingInfo = optionValue(infoLines, 'Spacing', 0)
    twoSurfInfo = optionValue(infoLines, 'TwoSurf', 3)
    boundInfo = optionValue(infoLines, 'BoundFile', 0)
@@ -542,6 +584,7 @@ if oldValid:
        imageTimeArr and imageTimeArr[0] == imageMtime and \
        beadInfo == beadStr and \
        guessInfoArr and guessInfoArr[0] == guess and \
+       peakFracInfoArr and peakFracInfoArr[0] == peakFraction and \
        spacingInfo == spacingStr and \
        twoSurf <= twoSurfInfo and \
        (numSeedArr and numPeakArr and \
@@ -564,12 +607,18 @@ if oldValid:
          for ext in resumeExts:
             if ext == resumeExts[1] and not twoSurfInfo:
                continue
-            if not os.path.exists(tmproot + ext + str(ind) + pidInfo):
+            if not os.path.exists(tmproot + pidInfo + str(ind) + ext):
                oldValid = False
                break
 
+   # If not resuming and there was an old PID, clean up old files
    if pidInfo and not oldValid:
-      cleanup(resumeExts, pidInfo)
+      leaveSave = leavetmp
+      leavetmp = 0
+      cleanup(resumeExts + infoExts, pidInfo)
+      leavetmp = leaveSave
+
+   # Adjust number of seed views if resuming
    if oldValid:
       numSeedViews = numSeedArr[0]
 
@@ -578,6 +627,23 @@ if defaultInfo and not oldValid and not os.access('.', os.W_OK):
    exitError("You cannot write to the current directory; use -info to make the info "
              "file elsewhere")
 
+# Check validity of drop and ignore lists
+if (dropList or ignoreList):
+   if not oldValid:
+      exitError("You cannot list tracks to drop or ignore unless resuming with " + \
+                "existing tracks")
+   numDrop = 0
+   numIgnore = 0
+   for i in range(numSeedViews):
+      if i in dropList:
+         numDrop += 1
+      if i in ignoreList:
+         numIgnore += 1
+   if numDrop == numSeedViews:
+      exitError('The list of tracks to drop includes all tracks')
+   if numIgnore == numSeedViews:
+      exitError('The list of tracks to ignore surface data from includes all tracks')
+   
 # For testing that incredible selection logic 
 #for i in range(3,8):
 #   seedViews = selectSeedViews(i)
@@ -604,7 +670,7 @@ if skipList == '':
 # Ready to find the beads
 if not oldValid:
    pidInfo = pid
-   tmppeak = tmproot + cleanExts[0] + pid
+   tmppeak = tmproot + pid + infoExts[0]
    numPeaksTot = runFindBeads()
 
    # Unless number of views was specified, check if there are not enough and retrack with
@@ -623,14 +689,17 @@ tmpsurf = []
 tmpxyzpt = []
 tmpxyzmod = []
 tmpelong = []
+tmpsortmod = []
 
 for ind in range(numSeedViews):
-   tmpseed.append(tmproot + cleanExts[1] + str(ind) + pid)
-   tmptrack.append(tmproot + resumeExts[0] + str(ind) + pidInfo)
-   tmpxyzpt.append(tmproot + cleanExts[2] + str(ind) + pid)
-   tmpsurf.append(tmproot + cleanExts[3] + str(ind) + pid)
-   tmpxyzmod.append(tmproot + resumeExts[1] + str(ind) + pidInfo)
-   tmpelong.append(tmproot + resumeExts[2] + str(ind) + pidInfo)
+   tmpseed.append(tmproot + pid + str(ind) + cleanExts[0])
+   tmptrack.append(tmproot + pidInfo + str(ind) + resumeExts[0])
+   tmpxyzpt.append(tmproot + pid + str(ind) + cleanExts[1])
+   tmpsurf.append(tmproot + pid + str(ind) + cleanExts[2])
+   tmpxyzmod.append(tmproot + pidInfo + str(ind) + resumeExts[1])
+   tmpelong.append(tmproot + pidInfo + str(ind) + resumeExts[2])
+   tmpsortmod.append(tmproot + pidInfo + str(ind) + infoExts[1])
+   
    seedVw = includedViews[seedViews[ind]]
    viewStr = str(seedVw + 1)
 
@@ -685,8 +754,8 @@ for ind in range(numSeedViews):
 
       # Convert point list to model file
       if twoSurf:
-         pointcom = fmtstr('point2model -values -1 "{}" "{}"', tmpxyzpt[ind],
-                           tmpxyzmod[ind])
+         pointcom = fmtstr('point2model -values -1 -sphere {} "{}" "{}"',
+                           int((beadSize + 2.) / 2.), tmpxyzpt[ind], tmpxyzmod[ind])
          try:
             runcmd(pointcom)
          except ImodpyError:
@@ -700,6 +769,7 @@ if not oldValid:
               'ImageTime ' + str(imageMtime),
               'BeadSize ' + beadStr,
               'MinGuess ' + str(guess),
+              'PeakFraction ' + str(peakFraction),
               'Spacing ' + spacingStr,
               'TwoSurf ' + str(twoSurf),
               'NumPeaks ' + str(numPeaksTot),
@@ -712,10 +782,13 @@ if not oldValid:
 # Sort the beads onto two surfaces for each model
 if twoSurf:
    for ind in range(numSeedViews):
+      if ind in dropList or ind in ignoreList:
+         continue
       viewStr = str(includedViews[seedViews[ind]] + 1)
-      sortcom = ['TextFileWithSurfaces', 'ValuesToRestrainSorting 1',
+      sortcom = ['TextFileWithSurfaces ' + tmpsurf[ind],
+                 'ValuesToRestrainSorting 1',
                  'InputFile ' + tmpxyzmod[ind],
-                 'OutputFile ' + tmpsurf[ind]]
+                 'OutputFile ' + tmpsortmod[ind]]
       if subareaSize:
          sortcom.append('SubareaSize ' + str(subareaSize))
       else:
@@ -731,10 +804,11 @@ if twoSurf:
          exitFromImodError(progname)
          
 # Now run pickbestseed; for this we need the seed view with minimum tilt
-zeroView = seedViews[0]
+lowestTilt = 1000.
 for ind in range(numSeedViews):
-   if fabs(tiltIncluded[seedViews[ind]]) < fabs(tiltIncluded[zeroView]):
+   if ind not in dropList and fabs(tiltIncluded[seedViews[ind]]) < fabs(lowestTilt):
       zeroView = seedViews[ind]
+      lowestTilt = tiltIncluded[zeroView]
 
 pickcom = ['OutputSeedModel ' + seedFile,
            fmtstr('ImageSizeXandY {} {}', nx, ny),
@@ -742,8 +816,11 @@ pickcom = ['OutputSeedModel ' + seedFile,
            fmtstr('BeadSize {}', beadSize),
            fmtstr('MiddleZvalue {}', includedViews[zeroView])]
 for ind in range(numSeedViews):
-   pickcom += ['TrackedModel ' + tmptrack[ind], 'SurfaceFile ' + tmpsurf[ind],
-               'ElongationFile ' + tmpelong[ind]]
+   if ind not in dropList:
+      pickcom += ['TrackedModel ' + tmptrack[ind], 'ElongationFile ' + tmpelong[ind]]
+      if ind not in ignoreList:
+         pickcom.append('SurfaceFile ' + tmpsurf[ind])
+   
 if twoSurf:
    pickcom.append('TwoSurfaces')
 if boundModel:

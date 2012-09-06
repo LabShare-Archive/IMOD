@@ -120,7 +120,7 @@ INSERT OPTION TEXT HERE
 AADDDDIITTIIOONNAALL NNOOTTEESS
 
   The program will adjust the pixel spacing in the header of the output file
-  if binning and/or the expansion or skrinkage options are used.  Models built
+  if binning and/or the expansion or shrinkage options are used.  Models built
   on the input file in 3dmod should display correctly on a file scaled by
   these three options.  However, the image origin is not adjusted for images
   that are a subset of the input image unless the -origin option is entered as
