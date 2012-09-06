@@ -175,23 +175,30 @@ type = FPM
 usage = Parameter number and value for setting algorithm control parameters
 tooltip =
 manpage = Parameter number and value for setting algorithm control parameters.
-Parameters and their numbers are:
-^ 1: Deviation between points as fraction of bead diameter for tracks to be close
-^ 2: Multiple of target spacing at which to exclude points from further searches
-^ 3: Width of rings for finding points when filling gaps, as fraction of target spacing
-^ 4: Number of rings to search
-^ 5: Maximum # of bead diameters separation for points to be considered clustered
-^ 6: Fraction of points that must be close in two tracks for them to be considered same
-^ 7: Median edge SD is divided by this power of SD of egde SD
-^ 8: Maximum fraction of target density at which to add points in initial phase
-^ 9: Higher fraction of target at which to add points in more desperate searches
-^ 10: Scaling from desired spacing to H for kernel density computation
-^ 11: Scaling from desired spacing to density grid spacing
-^ 12: Criterion for edge SD values or elongations to be considered outliers
-^ 13: Ratio of minority to majority for using higher density factor
-^ 14: Fraction of nominal spacing allowed for initial addition of points
-^ 15: Fraction of spacing for adding best half of points on next phase
-^ 16: Absolute threshold for elongation to be considered overlap
+Parameters and their numbers (and default values in parentheses) are:
+^ 1: Deviation between points as fraction of bead diameter for tracks to be
+close (0.5)
+^ 2: Multiple of target spacing at which to exclude points from further
+searches (0.75)
+^ 3: Width of rings for finding points when filling gaps, as fraction of
+target spacing (0.25)
+^ 4: Number of rings to search (4)
+^ 5: Maximum # of bead diameters separation for points to be considered
+clustered (2.)
+^ 6: Fraction of points that must be close in two tracks for them to be
+considered same (0.6)
+^ 7: Median edge SD is divided by this power of SD of edge SD (0.3)
+^ 8: Maximum fraction of target density at which to add points in initial
+phase (0.9)
+^ 9: Higher fraction of target at which to add points in more desperate
+searches (1.1)
+^ 10: Scaling from desired spacing to H for kernel density computation (1.3)
+^ 11: Scaling from desired spacing to density grid spacing (0.2)
+^ 12: Criterion for edge SD values or elongations to be considered outliers (2.24)
+^ 13: Ratio of minority to majority for using higher density factor (0.65)
+^ 14: Fraction of nominal spacing allowed for initial addition of points (0.85)
+^ 15: Fraction of spacing for adding best half of points on next phase (0.7)
+^ 16: Absolute threshold for elongation to be considered overlap (2.5)
 
 [Field = PhaseOutput]
 short = phase
