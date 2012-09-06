@@ -493,20 +493,6 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     copy.run();
   }
 
-  /**
-   * touch a file in the working directory.
-   * @param fileName
-   */
-  void touchFile(String fileName) {
-    if (fileName == null || fileName.matches("\\s*")) {
-      return;
-    }
-    File file = new File(System.getProperty("user.dir"), fileName);
-    SystemProgram copy = new SystemProgram(null, System.getProperty("user.dir"),
-        new String[] { "touch", file.getAbsolutePath() }, AxisID.ONLY);
-    copy.run();
-  }
-
   File getUitestDataDir() {
     return uitestDataDir;
   }
