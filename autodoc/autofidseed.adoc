@@ -71,15 +71,24 @@ with the given number of views.
 [Field = BoundaryModel]
 short = boundary
 type = FN
-usage = Model containing contours enclosing areas in which to find beads
+usage = Model containing contours enclosing areas in which to find or exclude beads
 tooltip =
 manpage = Name of model file whose first object contains contours enclosing
-areas in which to find beads.  If more than one contour is drawn on a view,
+areas in which to find or exclude beads, depending on whether -exclude option
+is given.  If more than one contour is drawn on a view,
 points inside any one of the contours will be accepted.  Contours should be
 drawn in the zero-tilt view, as those will govern the final selection by
 Pickbestseed.  In Imodfindbeads, when peaks are examined on a view, contours
 on the nearest view are used, so contours can be drawn on other views if
 necessary to further constrain the areas examined at that stage.
+
+[Field = ExcludeInsideAreas]
+short = exclude
+type = B
+usage = Use the boundary model to exclude regions from analysis
+tooltip =
+manpage = Use the contours in the boundary model to define regions to exclude from
+analysis rather than regions to include.
 
 [Field = BordersInXandY]
 short = border
