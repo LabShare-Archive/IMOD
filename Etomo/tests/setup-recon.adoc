@@ -60,6 +60,7 @@ rb.single-frame=
 	bn.view-raw-image-stack=
 	if.not.var.single.bn.view-raw-image-stack.1=
 [[]]
+touch.dir=test
 bn.create-com-scripts=
 
 
