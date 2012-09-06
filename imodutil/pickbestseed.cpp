@@ -45,6 +45,7 @@ PickSeeds::PickSeeds()
   mNumAreaCont = 0;
   mAreaMod = NULL;
   mPhase = 1;
+  mExcludeAreas = 0;
   mVerbose = 0;
   mOverlapTarget = -1.;
   mDensPlotName = NULL;
@@ -136,16 +137,17 @@ void PickSeeds::main(int argc, char *argv[])
   const char *fileOptName[2] = {"ElongationFile", "SurfaceFile"};
     
   // Fallbacks from    ../manpages/autodoc2man 2 1 pickbestseed
-  int numOptions = 24;
+  int numOptions = 23;
   const char *options[] = {
     "tracked:TrackedModel:FNM:", "surface:SurfaceFile:FNM:",
     "elong:ElongationFile:FNM:", "output:OutputSeedModel:FN:", "size:BeadSize:F:",
     "image:ImageSizeXandY:IP:", "border:BordersInXandY:IP:", "middle:MiddleZvalue:I:",
-    "two:TwoSurfaces:B:", "boundary:BoundaryModel:FN:", "number:TargetNumberOfBeads:I:",
-    "density:TargetDensityOfBeads:F:", "nobeef:LimitMajorityToTarget:B:",
-    "cluster:ClusteredPointsAllowed:I:", "lower:LowerTargetForClustered:F:",
-    "rotation:RotationAngle:F:", "highest:HighestTiltAngle:F:",
-    "weights:WeightsForScore:FA:", "control:ControlValue:FPM:", "phase:PhaseOutput:B:",
+    "two:TwoSurfaces:B:", "boundary:BoundaryModel:FN:", "exclude:ExcludeInsideAreas:B:",
+    "number:TargetNumberOfBeads:I:", "density:TargetDensityOfBeads:F:",
+    "nobeef:LimitMajorityToTarget:B:", "cluster:ClusteredPointsAllowed:I:",
+    "lower:LowerTargetForClustered:F:", "rotation:RotationAngle:F:",
+    "highest:HighestTiltAngle:F:", "weights:WeightsForScore:FA:",
+    "control:ControlValue:FPM:", "phase:PhaseOutput:B:",
     "root:DensityOutputRootname:CH:", "verbose:VerboseOutput:I:"};
 
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
@@ -225,6 +227,7 @@ void PickSeeds::main(int argc, char *argv[])
   mAreaXmax = nxImage - xBorder;
   mAreaYmin = yBorder;
   mAreaYmax = nyImage - yBorder;
+  totalArea = (nxImage - 2 * xBorder) * (nyImage - 2 * yBorder);
 
   // Read area model if any and get the area
   if (!PipGetString("BoundaryModel", &filename)) {
@@ -232,6 +235,7 @@ void PickSeeds::main(int argc, char *argv[])
     if (!mAreaMod)
       exitError("Reading boundary model %s", filename);
     free(filename);
+    PipGetBoolean("ExcludeInsideAreas", &mExcludeAreas);
     if (!mAreaMod->objsize || !mAreaMod->obj[0].contsize)
       exitError("No contours in object 1 of boundary model");
     if (makeAreaContList(&mAreaMod->obj[0], izMiddle, mAreaConts, &mNumAreaCont, 
@@ -240,8 +244,9 @@ void PickSeeds::main(int argc, char *argv[])
                 "is %d)", MAX_AREAS);
       
     // Get the area by converting each contour to scan contour, clipping each segment to
-    // be within borders, and addingup segment lengths
-    totalArea = 0.;
+    // be within borders, and adding up segment lengths
+    if (!mExcludeAreas)
+      totalArea = 0.;
     for (co = 0; co < mNumAreaCont; co++) {
       cont = imodel_contour_scan(&mAreaMod->obj[0].cont[mAreaConts[co]]);
       if (!cont)
@@ -249,12 +254,10 @@ void PickSeeds::main(int argc, char *argv[])
       for (i = 0; i < cont->psize; i += 2) {
         xx = B3DMAX(mAreaXmin, cont->pts[i].x);
         yy = B3DMIN(mAreaXmax, cont->pts[i + 1].x);
-        totalArea += B3DMAX(0, yy - xx);
+        totalArea += B3DMAX(0, yy - xx) * (mExcludeAreas ? -1 : 1);
       }
       imodContourDelete(cont);
     }
-  } else {
-    totalArea = (nxImage - 2 * xBorder) * (nyImage - 2 * yBorder);
   }
 
   printf("Total area = %.2f megapixels\n", totalArea / 1.e6);
@@ -407,8 +410,9 @@ void PickSeeds::main(int argc, char *argv[])
       mGridPoints[i].domain = -1;
       if ((ind = domainIndex(xx, yy)) >= 0 && 
           xx >= mAreaXmin && xx <= mAreaXmax && yy >= mAreaYmin && yy <= mAreaYmax &&
-          (!mNumAreaCont || imodPointInsideArea(&mAreaMod->obj[0], mAreaConts,
-                                                mNumAreaCont, xx, yy) >= 0)) {
+          (!mNumAreaCont || 
+           ((imodPointInsideArea(&mAreaMod->obj[0], mAreaConts, mNumAreaCont, xx, yy)
+             >= 0) ? 0 : 1) == mExcludeAreas)) {
         mDomains[ind].gridPtInd[mDomains[ind].numGridPts++] = i;
         mGridPoints[i].domain = ind;
       }
@@ -1197,8 +1201,12 @@ void PickSeeds::computeAreaFracs(float H)
           yy = ycen + rr * sin(angle);
           if (xx >= mAreaXmin && xx <= mAreaXmax && yy >= mAreaYmin && yy <= mAreaYmax) {
             if (mNumAreaCont)
+
+              // This adds 1 if point is inside and exclude = 0, or if the point is 
+              // outside and exclude = 1
               numInside += (imodPointInsideArea(&mAreaMod->obj[0], mAreaConts, 
-                                                mNumAreaCont, xx, yy) >= 0) ? 1 : 0;
+                                                mNumAreaCont, xx, yy) >= 0) ? 
+                1 - mExcludeAreas : mExcludeAreas;
             else 
               numInside++;
           }

@@ -93,6 +93,7 @@ int main( int argc, char *argv[])
   float center = 2.;
   int lightBeads = 0;
   int linear = 0;
+  int excludeAreas = 0;
   int measureToUse = 1;
   int remakeModelBead = 0;
   float annulusPctile = -1.;
@@ -137,23 +138,22 @@ int main( int argc, char *argv[])
   int ob, co, pt;
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 imodfindbeads  */
-  int numOptions = 32;
+  int numOptions = 33;
   const char *options[] = {
     "input:InputImageFile:FN:", "output:OutputModelFile:FN:",
     "filtered:FilteredImageFile:FN:", "area:AreaModel:FN:",
-    "add:AddToModel:FN:", "ref:ReferenceModel:FN:",
+    "exclude:ExcludeInsideAreas:B:", "add:AddToModel:FN:", "ref:ReferenceModel:FN:",
     "boundary:BoundaryObject:I:", "size:BeadSize:F:", "light:LightBeads:B:",
     "scaled:ScaledSize:F:", "interpmin:MinInterpolationFactor:F:",
-    "linear:LinearInterpolation:I:", "center:CenterWeight:F:",
-    "box:BoxSizeScaled:I:", "threshold:ThresholdForAveraging:F:",
-    "store:StorageThreshold:F:", "bkgd:BackgroundGroups:F:",
-    "annulus:AnnulusPercentile:F:", "peakmin:MinRelativeStrength:F:",
-    "spacing:MinSpacing:F:", "sections:SectionsToDo:LI:",
-    "maxsec:MaxSectionsPerAnalysis:I:", "remake:RemakeModelBead:B:",
-    "guess:MinGuessNumBeads:I:", "measure:MeasureToUse:I:",
-    "kernel:KernelSigma:F:", "rad1:FilterRadius1:F:",
-    "rad2:FilterRadius2:F:", "sig1:FilterSigma1:F:", "sig2:FilterSigma2:F:",
-    "verbose:VerboseKeys:CH:", "param:ParameterFile:PF:"};
+    "linear:LinearInterpolation:I:", "center:CenterWeight:F:", "box:BoxSizeScaled:I:",
+    "threshold:ThresholdForAveraging:F:", "store:StorageThreshold:F:",
+    "bkgd:BackgroundGroups:F:", "annulus:AnnulusPercentile:F:",
+    "peakmin:MinRelativeStrength:F:", "spacing:MinSpacing:F:",
+    "sections:SectionsToDo:LI:", "maxsec:MaxSectionsPerAnalysis:I:",
+    "remake:RemakeModelBead:B:", "guess:MinGuessNumBeads:I:", "measure:MeasureToUse:I:",
+    "kernel:KernelSigma:F:", "rad1:FilterRadius1:F:", "rad2:FilterRadius2:F:",
+    "sig1:FilterSigma1:F:", "sig2:FilterSigma2:F:", "verbose:VerboseKeys:CH:",
+    "param:ParameterFile:PF:"};
 
   /* Startup with fallback */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
@@ -172,8 +172,7 @@ int main( int argc, char *argv[])
   // Check if it is the correct data type and set slice type
   sliceMode = sliceModeIfReal(inhead.mode);
   if (sliceMode < 0)
-    exitError("File mode is %d; only byte, short, float allowed", 
-              inhead.mode);
+    exitError("File mode is %d; only byte, short, float allowed", inhead.mode);
 
   if (PipGetInOutFile("OutputModelFile", 1, &outModel))
     exitError("No output model file specified");
@@ -200,6 +199,7 @@ int main( int argc, char *argv[])
     free(filename);
     if (!areaMod->objsize || !areaMod->obj[0].contsize)
       exitError("No contours in object 1 of area model");
+    PipGetBoolean("ExcludeInsideAreas", &excludeAreas);
   }
 
   // Read existing model
@@ -513,9 +513,12 @@ int main( int argc, char *argv[])
               // Center of feature in full original image
               xcen = (ixofs + cx + beadCenOfs) * scaleFactor + xOffset;
               ycen = (iyofs + cy + beadCenOfs) * scaleFactor + yOffset;
-              if (numAreaCont && imodPointInsideArea(&areaMod->obj[0], areaConts,
-                                                     numAreaCont, xcen, ycen) < 0)
-                continue;
+              if (numAreaCont) {
+                co = imodPointInsideArea(&areaMod->obj[0], areaConts, numAreaCont, xcen,
+                                        ycen);
+                if ((co < 0 && !excludeAreas) || (co >= 0 && excludeAreas))
+                  continue;
+              }
 
               // First validate the peak by polarity of density in full image
               integral = (float)beadIntegral

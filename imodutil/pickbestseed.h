@@ -101,6 +101,7 @@ class PickSeeds
   int mPhase;
   float mBeadSize;
   float mDelXgrid, mDelYgrid;
+  int mExcludeAreas;
   int mVerbose;
   float mOverlapTarget;
   char *mDensPlotName;
