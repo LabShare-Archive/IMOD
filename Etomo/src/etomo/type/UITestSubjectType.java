@@ -34,6 +34,7 @@ public final class UITestSubjectType {
   public static final UITestSubjectType DATASET = new UITestSubjectType("dataset");
   public static final UITestSubjectType DEBUG = new UITestSubjectType("debug");
   public static final UITestSubjectType DIALOG = new UITestSubjectType("dialog");
+  public static final UITestSubjectType DIR = new UITestSubjectType("dir");
   public static final UITestSubjectType FILE = new UITestSubjectType("file");
   public static final UITestSubjectType FILE_CHOOSER = new UITestSubjectType(
       "file-chooser");
@@ -70,6 +71,9 @@ public final class UITestSubjectType {
     }
     if (string.equals(DIALOG.toString())) {
       return DIALOG;
+    }
+    if (string.equals(DIR.toString())) {
+      return DIR;
     }
     if (string.equals(FILE.toString())) {
       return FILE;
