@@ -190,9 +190,9 @@ button (\fBbn\fR) is to push it.
 
 .TP 4
 .I subject_type
-.B adoc\fR, \fBdataset\fR, \fBdebug\fR, \fBdialog\fR, \fBfile\fR, \fBfile-chooser\fR,
-\fBframe\fR, \fBfunction\fR, \fBindex\fR, \fBinterface\fR, \fBparam\fR, \fBpopup\fR,
-\fBprocess\fR, \fBsection\fR, \fBtest\fR, \fBtestdir\fR, \fBvar
+.B adoc\fR, \fBdataset\fR, \fBdebug\fR, \fBdialog\fR, \fBdir\fR, \fBfile\fR,
+\fBfile-chooser\fR, \fBframe\fR, \fBfunction\fR, \fBindex\fR, \fBinterface\fR, \fBparam\fR, \fBpopup\fR, \fBprocess\fR, \fBsection\fR, \fBtest\fR, \fBtestdir\fR,
+\fBvar
 
 .TP 4
 .I subject_name
@@ -1090,10 +1090,18 @@ Write value to a text field called \fItext_field_name\fR.  If there are multiple
 text fields of the same name, use \fIindex\fR.  See Naming above.
 
 .TP 4
+.B touch.dir = \fIdirectory_name
+Causes the last modified date of the directory called \fIdirectory_name\fR
+in the \fItest_directory\fR (see \fBset.testdir\fR) to be changed to the current
+date and time.  If the directory doesn't exist, this command creates an empty
+directory called \fIdirectory_name\fR in the \fItest_directory\fR.
+
+.TP 4
 .B touch.file = \fIfile_name
 Causes the last modified date of the file called \fIfile_name\fR in the
 \fItest_directory\fR (see \fBset.testdir\fR) to be changed to the current date
-and time.
+and time.  If the file doesn't exist, this command creates an empty file called
+\fIfile_name\fR in the \fItest_directory\fR.
 
 .TP 4
 .B unset.var.\fIvariable_name\fB = 
