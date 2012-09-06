@@ -33,18 +33,23 @@ the residual/elongation information, and the surface information is then
 passed to Pickbestseed(1), which takes everything into account to pick out the
 best beads for a seed and produces the final seed model.
 .P
-The various intermediate files involved are placed in the default temporary
-directory (which can be defined with the environment variable IMOD_TMPDIR; see
-the man page for imodenv(1)).  Some of them are cleaned up after a run, but
+The various intermediate files involved are placed in a temporary
+directory created in the current directory (see the "-tempdir" option).
+Some of them are cleaned up after a run, but
 some are kept so that Pickbestseed(1) can be run over again with different
-parameters, without having to rerun the bead finding and tracking.
-Autofidseed retains a file with information about these initial steps so that
+parameters, without having to rerun the bead finding and tracking, and some
+are left for information only.  (See the FILES section below for a description
+of files.)
+Autofidseed retains a file with information about the initial steps so that
 it can tell whether the existing temporary files are valid on a new run.  The
 default name of this file is
-"autofidseed.info" for a single axis data set, or "autofidseeda.info" or
-"autofidseedb.info" for dual axis data.  If Autofidseed is run with the option
+"autofidseed.info" for a single axis data set, or "autofidseed_a.info" or
+"autofidseed_b.info" for dual axis data, while the temporary directory
+is "autofidseed.dir", "autofidse_a.dir", or "autofidseed_b.dir".
+If Autofidseed is run with the option
 "-remove 1" it will clean up existing files and start a new run from scratch;
-with the option "-remove -1" it will simply clean up files and exit.
+with the option "-remove -1" it will simply clean up files, remove the
+temporary directory, and exit.
 .P
 The program requires at least two arguments, 
 .B -track
@@ -88,6 +93,31 @@ undesirable imbalance in the final seed model, and the
 option is available to set the allowed ratio between the majority and minority
 surfaces.
 .P
+Large clumps of gold can also create problems at both the tracking steps and
+when sorting beads onto two surfaces.  If the problem is primarily in sorting,
+with some of the selected beads assigned to the wrong surface, then one remedy
+is to exclude bad surface information from particular Beadtrack(1) runs.
+Use 3dmodv(1) to examine the sorted models with extension ".sortmod" in the
+temporary directory.  If at least one of these models shows proper sorting and
+some models do not, use the "-ignore" option to exclude surface information
+from the runs with bad sorting.  If that is unsuccessful, you can try
+the "-drop" option instead to omit those tracked models completely from
+consideration.
+.P
+Another remedy for problems created by large clumps is to use a boundary model
+to exclude them.  Note that it is possible to draw contours just around areas
+to exclude, rather than around areas to include, if you use the "-exclude"
+option.
+.P
+If there are particles other than gold selected as beads, or if some gold
+particles seem not to be found, it may help to examine the ".pkmod" model
+produced by Imodfindbeads(s) and left in the temporary directory.  Open the
+Bead Fixer in 3dmod to see whether adjusting the threshold upward removes
+undesired points; if so you can try the "-peaks" option with a value less than
+1 to remove a fraction
+of the points with the lowest peak strengths.  To add more points than appear
+in this model, use "-peaks" options with a value greater than 1.
+.P
 When sorting onto two surfaces is requested, the points are still placed in a single
 object in the output model, but the ones on the top surface are given a
 different surface number so that they can appear in a different color.
@@ -119,6 +149,25 @@ INSERT OPTION TEXT HERE
 .TP
 .B -StandardInput
 Read parameter entries from standard input
+
+.SH FILES
+The temporary and intermediate files are named "afsnnn.#.ext", where "nnn" is
+a process ID, "#" is the tracked model number, and "ext" is an extension
+indicating the contents of file.
+.nf
+afsnnn.pkmod     - model produced by Imodfindbeads
+afsnnn.#.seed    - seed model for tracking from one view
+afsnnn.#.track   - model tracked from one view
+afsnnn.#.xyzpt   - text file with X/Y/Z coordinates of tracked beads
+afsnnn.#.elong   - text file with mean residual and elongation data
+afsnnn.#.xyzmod  - 3D model of beads tracked from one view
+afsnnn.#.sortmod - 3D model after sorting onto two surfaces
+afsnnn.#.surf    - text file with surface assignments
+
+The ".seed", ".xyzpt", and ".surf" files are cleaned after a run;
+the ".track", ".xyzmod", and ".elong" files are needed for rerunning
+SortbeadSurfs(1) and Pickbestseed(1), and the  "pkmod" and ".sortmod" files
+are left solely for user information.
 
 .SH AUTHOR
 .nf
