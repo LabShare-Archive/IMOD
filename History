@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/5/12: In eTomo fixed a bug which cause Tomogram Setup to fail when there was
+a subdirectory in the target directory.(Bug# 1640)
+
 8/30/12: Supermontaging changes: split Edgepatches into two, with a new program 
 Setupstitch to set up the info file.  Added options to edgepatches to help with
 fixing problems in initial 2D correlations.  Changed Stitchalign and
