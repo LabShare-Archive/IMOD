@@ -51,8 +51,11 @@ public class DataFileFilter extends javax.swing.filechooser.FileFilter implement
    * @see javax.swing.filechooser.FileFilter#accept(File)
    */
   public boolean accept(File f) {
+    if (!f.isFile()) {
+      return false;
+    }
     // If this is a file test its extension, all others should return true
-    if (f.isFile() && !f.getAbsolutePath().endsWith(DataFileType.RECON.extension)
+    if (!f.getAbsolutePath().endsWith(DataFileType.RECON.extension)
         && !f.getAbsolutePath().endsWith(DataFileType.JOIN.extension)
         && !f.getAbsolutePath().endsWith(DataFileType.PARALLEL.extension)
         && !f.getAbsolutePath().endsWith(DataFileType.PEET.extension)
