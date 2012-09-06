@@ -29,12 +29,21 @@ with that of the original image file so that the model can be displayed on it.
 [Field = AreaModel]
 short = area
 type = FN
-usage = Model with contours enclosing areas to analyze
+usage = Model with contours enclosing areas to analyze or exclude
 tooltip = 
-manpage = Model with contours enclosing areas to analyze.  More than one
+manpage = Model with contours enclosing areas to analyze or to exclude from
+analysis, depending on whether the -exclude option is given also.  More than one
 contour can be included on each section.  If there are no contours on a
 section within the range being analyzed, the contours on the nearest section
 with contours will be used.
+
+[Field = ExcludeInsideAreas]
+short = exclude
+type = B
+usage = Use the area model to exclude regions from analysis
+tooltip =
+manpage = Use the contours in the area model to define regions to exclude from
+analysis rather than regions to include.
 
 [Field = AddToModel]
 short = add

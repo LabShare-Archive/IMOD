@@ -71,12 +71,21 @@ has equal numbers of beads on the two surfaces if possible.
 [Field = BoundaryModel]
 short = boundary
 type = FN
-usage = Model containing contours enclosing areas in which to find beads
+usage = Model containing contours enclosing areas in which to use or exclude beads
 tooltip =
-manpage = manpage = Name of model file whose first object contains contours enclosing
-areas in which to find beads.  If more than one contour is drawn on a view,
-points inside any one of the contours will be accepted.  This program will
+manpage = Name of model file whose first object contains contours enclosing
+areas in which to use or to exclude beads, depending on whther -exclude is
+entered.  If more than one contour is drawn on a view, points inside any one
+of the contours will be considered inside the area.  This program will
 use only the contours on the view closest to the middle section for tracking.
+
+[Field = ExcludeInsideAreas]
+short = exclude
+type = B
+usage = Use the boundary model to exclude regions from analysis
+tooltip =
+manpage = Use the contours in the boundary model to define regions to exclude from
+analysis rather than regions to include.
 
 [Field = TargetNumberOfBeads]
 short = number
@@ -139,7 +148,7 @@ short = rotation
 type = F
 usage = Angle of rotation of the tilt axis in the images
 tooltip =
-manpage =   Angle of rotation of the tilt axis in the images; specifically, the
+manpage = Angle of rotation of the tilt axis in the images; specifically, the
 angle from the vertical to the tilt axis (counterclockwise positive).
 
 [Field = HighestTiltAngle]
