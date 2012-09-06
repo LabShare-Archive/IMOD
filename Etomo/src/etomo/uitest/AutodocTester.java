@@ -1125,7 +1125,7 @@ final class AutodocTester extends Assert implements VariableList {
       if (subjectType == UITestSubjectType.FILE) {
         touchFile(command.getValue(0));
       }
-      if (subjectType == UITestSubjectType.DIR) {
+      else if (subjectType == UITestSubjectType.DIR) {
         touchDir(command.getValue(0));
       }
       else {
