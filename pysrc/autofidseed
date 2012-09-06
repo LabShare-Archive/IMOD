@@ -233,6 +233,8 @@ def runFindBeads():
       comlines.append(fmtstr('KernelSigma {}', ksigma))
    if boundModel:
       comlines.append('AreaModel ' + boundModel)
+      if excludeAreas:
+         comlines.append('ExcludeInsideAreas 1')
 
    prnstr('RUNNING IMODFINDBEADS' + viewStr)
    prnstr(' ')
@@ -401,6 +403,7 @@ if targetNumber < 1 and targetDensity <= 0.:
    exitError('You must enter a positive number or density of beads as the target for ' + \
                 'the seed model')
 boundModel = PipGetString('BoundaryModel', '')
+excludeAreas = PipGetBoolean('ExcludeInsideAreas', 0)
 (minSubareaNum, minSubareaSize) = PipGetTwoIntegers('SortAreasMinNumAndSize',
                                                     minSubareaNum, minSubareaSize)
 ifPick = 1 - PipGetErrNo()
@@ -825,6 +828,8 @@ if twoSurf:
    pickcom.append('TwoSurfaces')
 if boundModel:
    pickcom.append('BoundaryModel ' + boundModel)
+   if excludeAreas:
+      pickcom.append('ExcludeInsideAreas 1')
 if clustered:
    pickcom.append(fmtstr('ClusteredPointsAllowed {}', clustered))
    if lowTarget:
