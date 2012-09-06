@@ -1,0 +1,120 @@
+#!/bin/sh
+#
+# Description: startup script for eTomo
+# 
+# Copyright: Copyright (c) 2002, 2003
+# Boulder Laboratory for 3D Fine Structure, University of Colorado
+# 
+# $Author$
+# 
+# $Revision$
+# 
+
+# To increase the memory limit for Java, increase the number here
+#
+
+if [ $# -eq 0 ] ; then
+  echo "usage: runjar Jar_file_path"
+  exit
+fi
+
+
+# To increase the memory limit for Java, define this environment variable
+# to a higher number
+#
+export ETOMO_MEM_LIM=${ETOMO_MEM_LIM:=128m}
+
+
+# If you wish to use a different java runtime than the default uncomment the
+# following line and define the path to the desired runtime directory
+
+# Make sure all PIP programs print entries
+export PIP_PRINT_ENTRIES=1
+
+# Test for existance of IMOD_DIR
+if [ -z "$IMOD_DIR" ]; then
+  echo "The IMOD_DIR environment variable has not been set"
+  echo "Set it to point to the directory where IMOD is installed"
+  exit
+fi
+if [ ! -e "$IMOD_DIR" ]; then
+  echo "IMOD_DIR=" ${IMOD_DIR} " does not exist"
+  echo "Set it to point to the directory where IMOD is installed"
+  exit
+fi
+
+
+# In Windows the class path must be in quotes and the separator must be a
+# semicolon.
+
+osname=`uname -s`
+if [[ $osname == CYGWIN* ]] ; then
+  class_separator=${IMOD_CLASS_SEPARATOR:=;}
+else
+  class_separator=${IMOD_CLASS_SEPARATOR:=:}
+fi
+
+path_separator=${IMOD_PATH_SEPARATOR:=/}
+
+class_path=$1
+
+if [ ! -z "$IMOD_JAVADIR" ]; then
+  export PATH=${IMOD_JAVADIR}/bin:${PATH}
+fi
+
+# Test for appropriate java run time
+if ! which java 2>&1 > /dev/null ; then
+  echo "There is no java runtime in the current search path.  A Java runtime"
+  echo "environment needs to be installed and the command search path needs"
+  echo "to be defined to locate the java command."
+  exit
+fi
+
+if java -version 2>&1 | grep GNU > /dev/null ; then
+  echo "eTomo will not work with GNU java.  You should install a Sun version"
+  echo "of the Java runtime environment and put it on your command search path"
+  if [ ! -z "$IMOD_JAVADIR" ]; then
+      echo "or make a link to it from $IMOD_JAVADIR"
+  fi
+  exit
+fi
+
+#  Workaround for java 1.4.0 / new threading library clash
+#  Really needed to be gone for Fedora Core 5, so make it 2.4 specific
+osname=`uname -s`
+if [ $osname == 'Linux' ] ; then
+  kvers=`uname -r | sed '/\./s// /g'`
+  kvers1=`echo $kvers | awk '{print $1}'`
+  kvers2=`echo $kvers | awk '{print $2}'`
+  if [[ ${kvers1} -eq 2 && ${kvers2} -eq 4 ]] ; then
+    export LD_ASSUME_KERNEL=2.4.1
+  fi
+fi
+
+# If the system-dependent script for setting the library search path exists,
+# source it.  This takes care of putting our Qt libraries on the right path
+# variable, and allows other directories to be placed on the path too, to
+# prevent clashes with libraries supplied by other packages
+
+if [ -e "${IMOD_DIR}/bin/setlibpath" ]; then
+  . "${IMOD_DIR}/bin/setlibpath"
+fi
+
+# Copy the previous out log file to backup
+outlog=etomo_out.log
+errlog=etomo_err.log
+
+if [ -e ${errlog} ]; then
+  cp -p ${errlog} ${errlog}~
+fi
+
+if [ -e ${outlog} ]; then
+  cp -p ${outlog} ${outlog}~
+fi
+
+export IMOD_TEST_SECTION=$1
+echo "starting eTomo UI test:  Test section $IMOD_TEST_SECTION"
+echo "class_path:  $class_path"
+java -Xmx${ETOMO_MEM_LIM} -cp "$class_path" \
+etomo.EtomoDirector 2>${errlog} >${outlog}
+
