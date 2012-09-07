@@ -3289,7 +3289,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
       fineAlignmentDialog.getParameters(metaData);
-      if (fineAlignmentDialog.getTiltalignParams(tiltalignParam, doValidation)) {
+      if (!fineAlignmentDialog.getTiltalignParams(tiltalignParam, doValidation)) {
         return null;
       }
       UIExpertUtilities.INSTANCE.rollAlignComAngles(this, axisID);
