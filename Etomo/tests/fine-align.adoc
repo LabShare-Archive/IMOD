@@ -113,6 +113,7 @@ cb.do-robust-fitting-with-tuning-factor=on
   tf.do-robust-fitting-with-tuning-factor=abc
   bn.compute-alignment=
   wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
   tf.do-robust-fitting-with-tuning-factor=
 [[]]
 bn.compute-alignment=

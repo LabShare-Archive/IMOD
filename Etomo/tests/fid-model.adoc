@@ -341,6 +341,7 @@ cb.break-contours-into-pieces=on
   tf.break-contours-into-pieces=16,4abc
   bn.track-patches=
   wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
   tf.break-contours-into-pieces=16,4
 [[]]
 bn.track-patches=

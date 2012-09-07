@@ -78,6 +78,7 @@ bn.open-raw-stack=
   tf.robust-fitting-for-criterion=1.0abc
   bn.make-blended-stack=
   wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
   tf.robust-fitting-for-criterion=1.0
   cb.robust-fitting-for-criterion=off
 [[]]
