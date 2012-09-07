@@ -128,7 +128,7 @@ public final class DatasetTool {
       errorMessage = "No data file type specified";
     }
     else {
-      File[] fileList = directory.listFiles(new DataFileFilter());
+      File[] fileList = directory.listFiles(new DataFileFilter(true));
       if (fileList == null || fileList.length == 0) {
         return true;
       }
