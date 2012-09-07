@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/6/12: IMOD_4-6-11
 9/6/12: In eTomo fixed a bug which caused Tomogram Setup to fail when there was
 a subdirectory in the target directory.(Bug# 1640)
 
