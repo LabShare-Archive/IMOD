@@ -552,7 +552,7 @@ public final class ParsedArray extends ParsedElement {
     return false;
   }
 
-  void setRawString(int index, float number) {
+  void setRawString(int index, double number) {
     ParsedNumber element;
     element = ParsedNumber.getInstance(type, etomoNumberType, debug, defaultValue,
         allowNan);

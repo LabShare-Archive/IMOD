@@ -48,11 +48,11 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam, CommandParam
   private final EtomoBoolean2 invertTiltAngles = new EtomoBoolean2(
       CtfPhaseFlipParam.INVERT_TILT_ANGLES_OPTION);
   private final ScriptParameter amplitudeContrast = new ScriptParameter(
-      EtomoNumber.Type.FLOAT, CtfPhaseFlipParam.AMPLITUDE_CONTRAST_OPTION);
+      EtomoNumber.Type.DOUBLE, CtfPhaseFlipParam.AMPLITUDE_CONTRAST_OPTION);
   private final StringParameter configFile = new StringParameter(CONFIG_FILE_OPTION);
   private final ScriptParameter expectedDefocus = new ScriptParameter(
-      EtomoNumber.Type.FLOAT, EXPECTED_DEFOCUS_OPTION);
-  private final ScriptParameter offsetToAdd = new ScriptParameter(EtomoNumber.Type.FLOAT,
+      EtomoNumber.Type.DOUBLE, EXPECTED_DEFOCUS_OPTION);
+  private final ScriptParameter offsetToAdd = new ScriptParameter(EtomoNumber.Type.DOUBLE,
       OFFSET_TO_ADD_OPTION);
 
   public void parseComScriptCommand(ComScriptCommand scriptCommand)

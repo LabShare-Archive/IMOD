@@ -125,12 +125,12 @@ public final class TomogramTool {
    * errror message and returns null.
    * @param height - unbinned subarea tomogram height in Y
    * @param yShift - unbinned Y shift of the subarea tomogram
-   * @return starting slice (long), empty etomoNumber (empty params or missing aligned stack), or null (invalid params)
+   * @return starting slice, empty etomoNumber (empty params or missing aligned stack), or null (invalid params)
    */
   public static ConstEtomoNumber getYStartingSlice(final BaseManager manager,
       final AxisID axisID, final String yHeight, String yShift,
       final String yHeightLabel, final String yShiftLabel) {
-    EtomoNumber enStartingSlice = new EtomoNumber(EtomoNumber.Type.LONG);
+    EtomoNumber enStartingSlice = new EtomoNumber();
     if (yHeight == null || yHeight.matches("\\s*")) {
       return enStartingSlice;
     }
@@ -151,7 +151,7 @@ public final class TomogramTool {
       return enStartingSlice;
     }
     // Get the unbinned tomogram height in Y of the aligned stack
-    long tomoHeight = header.getNRows()
+    int tomoHeight = header.getNRows()
         * Utilities.getStackBinning(manager, axisID, FileType.ALIGNED_STACK);
     EtomoNumber enYHeight = new EtomoNumber();
     enYHeight.set(yHeight);
@@ -167,7 +167,7 @@ public final class TomogramTool {
           + enYShift.getInvalidReason() + "", "Entry Error", axisID);
       return null;
     }
-    enStartingSlice.set((long)((tomoHeight - enYHeight.getInt()) / 2 - enYShift.getDouble()));
+    enStartingSlice.set(((tomoHeight - enYHeight.getInt()) / 2 - enYShift.getDouble()));
     if (!enStartingSlice.isValid()) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Invalid starting slice - "
           + enStartingSlice.getInvalidReason() + "", "Entry Error", axisID);
@@ -252,7 +252,7 @@ public final class TomogramTool {
     if (size.isNull()) {
       size.set(fileN);
     }
-    EtomoNumber shift = new EtomoNumber(EtomoNumber.Type.FLOAT);
+    EtomoNumber shift = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     shift.set(shiftString);
     errorMsg = shift.validate(shiftDescr);
     if (errorMsg != null) {
@@ -262,8 +262,8 @@ public final class TomogramTool {
     if (shift.isNull()) {
       shift.set(0);
     }
-    int starting = Math.round((fileN - size.getInt()) / 2 - shift.getFloat());
-    int ending = Math.round((fileN + size.getInt()) / 2 - shift.getFloat() - 1);
+    int starting = (int) Math.round((fileN - size.getInt()) / 2 - shift.getDouble());
+    int ending = (int) Math.round((fileN + size.getInt()) / 2 - shift.getDouble() - 1);
     return new int[] { starting, ending };
   }
 
@@ -271,14 +271,14 @@ public final class TomogramTool {
    * Calculates the ending slice for a subarea tomogram.  If height is
    * invalid, or the one of the results of the calculations is invalid, popups up an
    * errror message and returns null.
-   * @param startingSlice (long) - assumes this parameter is a valid number
+   * @param startingSlice - assumes this parameter is a valid number
    * @param height - unbinned subarea tomogram height in Y
-   * @return ending slice (long), empty etomoNumber (empty params or missing aligned stack), or null (invalid params)
+   * @return ending slice, empty etomoNumber (empty params or missing aligned stack), or null (invalid params)
    */
   public static ConstEtomoNumber getYEndingSlice(final BaseManager manager,
       final AxisID axisID, final ConstEtomoNumber startingSlice, final String yHeight,
       final String yHeightLabel) {
-    EtomoNumber enEndingSlice = new EtomoNumber(EtomoNumber.Type.LONG);
+    EtomoNumber enEndingSlice = new EtomoNumber();
     if (startingSlice.isNull() || yHeight == null || yHeight.matches("\\s*")) {
       return enEndingSlice;
     }
@@ -296,7 +296,7 @@ public final class TomogramTool {
       return enEndingSlice;
     }
     // Get the unbinned tomogram height in Y of the aligned stack
-    long tomoHeight = header.getNRows()
+    int tomoHeight = header.getNRows()
         * Utilities.getStackBinning(manager, axisID, FileType.ALIGNED_STACK);
     EtomoNumber enYHeight = new EtomoNumber();
     enYHeight.set(yHeight);
@@ -305,7 +305,7 @@ public final class TomogramTool {
           + enYHeight.getInvalidReason() + "", "Entry Error", axisID);
       return null;
     }
-    enEndingSlice.set(startingSlice.getLong() + enYHeight.getLong() - 1);
+    enEndingSlice.set(startingSlice.getInt() + enYHeight.getInt() - 1);
     if (!enEndingSlice.isValid()) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Invalid starting slice - "
           + enEndingSlice.getInvalidReason() + "", "Entry Error", axisID);
@@ -325,11 +325,11 @@ public final class TomogramTool {
    * @param axisID
    * @param yStartingSlice
    * @param yEndingSlice
-   * @return pair of floats (height, shift) or null if aligned stack is missing.
+   * @return pair of ints (height, shift) or null if aligned stack is missing.
    */
-  public static long[] getYHeightAndShift(final BaseManager manager, final AxisID axisID,
-      final long yStartingSlice, final long yEndingSlice) {
-    long height = yEndingSlice + 1 - yStartingSlice;
+  public static int[] getYHeightAndShift(final BaseManager manager, final AxisID axisID,
+      final int yStartingSlice, final int yEndingSlice) {
+    int height = yEndingSlice + 1 - yStartingSlice;
     MRCHeader header = MRCHeader.getInstanceFromFileName(manager, axisID,
         FileType.ALIGNED_STACK.getFileName(manager, axisID));
     try {
@@ -344,10 +344,10 @@ public final class TomogramTool {
       return null;
     }
     // Get the unbinned tomogram height in Y of the aligned stack
-    long tomoHeight = header.getNRows()
+    int tomoHeight = header.getNRows()
         * Utilities.getStackBinning(manager, axisID, FileType.ALIGNED_STACK);
-    long shift = (tomoHeight - height) / 2 - yStartingSlice;
-    return new long[] { height, shift };
+    int shift = (tomoHeight - height) / 2 - yStartingSlice;
+    return new int[] { height, shift };
   }
 
   /**
@@ -359,17 +359,17 @@ public final class TomogramTool {
   public static ConstEtomoNumber[] convertShiftsToOffsets(final String shiftX,
       final String shiftY) {
     EtomoNumber[] offsets = new EtomoNumber[2];
-    offsets[0] = new EtomoNumber(EtomoNumber.Type.FLOAT);
-    offsets[1] = new EtomoNumber(EtomoNumber.Type.FLOAT);
+    offsets[0] = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+    offsets[1] = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     int index = 0;
     offsets[index].set(shiftX);
     if (!offsets[index].isNull() && offsets[index].isValid()) {
-      offsets[index].set(offsets[index].getFloat() * -1);
+      offsets[index].set(offsets[index].getDouble() * -1);
     }
     index = 1;
     offsets[index].set(shiftY);
     if (!offsets[index].isNull() && offsets[index].isValid()) {
-      offsets[index].set(offsets[index].getFloat() * -1);
+      offsets[index].set(offsets[index].getDouble() * -1);
     }
     return offsets;
   }
@@ -380,10 +380,10 @@ public final class TomogramTool {
    * @return
    */
   public static ConstEtomoNumber convertOffsetToShift(final String offset) {
-    EtomoNumber shift = new EtomoNumber(EtomoNumber.Type.FLOAT);
+    EtomoNumber shift = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     shift.set(offset);
     if (!shift.isNull() && shift.isValid()) {
-      shift.set(shift.getFloat() * -1);
+      shift.set(shift.getDouble() * -1);
     }
     return shift;
   }

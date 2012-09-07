@@ -141,12 +141,12 @@ public final class LogPanel implements Storable, LogInterface {
             }
             catch (LogFile.LockException e) {
               e.printStackTrace();
-              UIHarness.INSTANCE.openMessageDialog(null,
+              UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
                   "Unabled to load " + file.getAbsolutePath(), "System Error");
             }
             catch (IOException e) {
               e.printStackTrace();
-              UIHarness.INSTANCE.openMessageDialog(null,
+              UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
                   "Unabled to load " + file.getAbsolutePath(), "System Error");
             }
           }
@@ -233,7 +233,7 @@ public final class LogPanel implements Storable, LogInterface {
       e.printStackTrace();
       if (!writeFailed) {
         writeFailed = true;
-        UIHarness.INSTANCE.openMessageDialog(null,
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
             "Unabled to write to file " + file.getAbsolutePath(), "System Error");
         if (writerId != null && !writerId.isEmpty()) {
           file.closeWriter(writerId);
@@ -244,7 +244,7 @@ public final class LogPanel implements Storable, LogInterface {
       e.printStackTrace();
       if (!writeFailed) {
         writeFailed = true;
-        UIHarness.INSTANCE.openMessageDialog(null,
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
             "Unabled to write to file " + file.getAbsolutePath(), "System Error");
         if (writerId != null && !writerId.isEmpty()) {
           file.closeWriter(writerId);
@@ -271,7 +271,7 @@ public final class LogPanel implements Storable, LogInterface {
         e.printStackTrace();
         if (!fileFailed) {
           fileFailed = true;
-          UIHarness.INSTANCE.openMessageDialog(null, "Unabled to access file " + fileName
+          UIHarness.INSTANCE.openMessageDialog((BaseManager) null, "Unabled to access file " + fileName
               + " in " + userDir, "System Error");
         }
         return false;

@@ -413,7 +413,7 @@ public final class PeetManager extends BaseManager {
   static public boolean isInterfaceAvailable() {
     if (!EnvironmentVariable.INSTANCE.exists(null,
         EtomoDirector.INSTANCE.getOriginalUserDir(), "PARTICLE_DIR", AxisID.ONLY)) {
-      UIHarness.INSTANCE.openMessageDialog(null,
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
           "PEET is an optional package for particle averaging, which has "
               + "not been installed and correctly configured.  See the "
               + "PEET link under Other Programs at " + "http://bio3d.colorado.edu/.",

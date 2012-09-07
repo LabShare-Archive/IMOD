@@ -54,7 +54,7 @@ public class SolvematchmodParam
       fiducialMatchListA.parseString(inputArgs[i++].getArgument());
     }
     xAxistTilt.validateAndSet(inputArgs[i++].getArgument());
-    residualThreshold = Float.parseFloat(inputArgs[i++].getArgument());
+    residualThreshold = Double.parseDouble(inputArgs[i++].getArgument());
     nSurfaces = Integer.parseInt(inputArgs[i++].getArgument());
     toReconstructionFile = inputArgs[i++].getArgument();
     toMatchingModel = inputArgs[i++].getArgument();
@@ -209,7 +209,7 @@ public class SolvematchmodParam
    * Sets the residualThreshold.
    * @param residualThreshold The residualThreshold to set
    */
-  public void setResidualThreshold(float residualThreshold) {
+  public void setResidualThreshold(double residualThreshold) {
     this.residualThreshold = residualThreshold;
   }
 

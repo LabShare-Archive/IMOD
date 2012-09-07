@@ -126,7 +126,7 @@ public class XfproductParam extends ConstXfproductParam implements CommandParam 
   /**
    * @param scaleShifts The scaleShifts to set.
    */
-  public void setScaleShifts(long binning) throws FortranInputSyntaxException {
+  public void setScaleShifts(int binning) throws FortranInputSyntaxException {
     if (binning > 1) {
       scaleShifts.validateAndSet("1," + String.valueOf(binning));
     }

@@ -232,10 +232,10 @@ public final class SettingsDialog extends JDialog {
 
   public void getParameters(final UserConfiguration userConfig) {
     // Convert the tooltips times to milliseconds
-    float delay = Float.parseFloat(ltfTooltipsInitialDelay.getText());
+    double delay = Double.parseDouble(ltfTooltipsInitialDelay.getText());
     userConfig.setToolTipsInitialDelay((int) (delay * 1000));
 
-    delay = Float.parseFloat(ltfTooltipsDismissDelay.getText());
+    delay = Double.parseDouble(ltfTooltipsDismissDelay.getText());
     userConfig.setToolTipsDismissDelay((int) (delay * 1000));
     userConfig.setAutoFit(cbAutoFit.isSelected());
     userConfig.setNativeLookAndFeel(cbNativeLAF.isSelected());

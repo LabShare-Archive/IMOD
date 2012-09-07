@@ -66,7 +66,7 @@ import etomo.util.Utilities;
 public class EtomoDirector {
   public static final String rcsid = "$Id$";
 
-  private static final long TO_BYTES = 1024;
+  private static final int TO_BYTES = 1024;
   public static final double MIN_AVAILABLE_MEMORY_REQUIRED = 2 * TO_BYTES * TO_BYTES;
   public static final int NUMBER_STORABLES = 2;
   private static final String JAVA_MEMORY_LIMIT_ENV_VAR = "ETOMO_MEM_LIM";
@@ -147,8 +147,9 @@ public class EtomoDirector {
     }
     catch (OutOfMemoryError e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(null, "WARNING:  Ran out of memory."
-          + "\nPlease close open log file windows or exit Etomo.", "Out of Memory");
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
+          "WARNING:  Ran out of memory."
+              + "\nPlease close open log file windows or exit Etomo.", "Out of Memory");
       throw e;
     }
   }
@@ -346,7 +347,7 @@ public class EtomoDirector {
     String sJavaMemoryLimit = EnvironmentVariable.INSTANCE.getValue(null,
         originalUserDir, JAVA_MEMORY_LIMIT_ENV_VAR, AxisID.ONLY);
     if (sJavaMemoryLimit != null) {
-      long conversionNumber = 1;
+      int conversionNumber = 1;
       if (sJavaMemoryLimit.endsWith("k") || sJavaMemoryLimit.endsWith("K")) {
         conversionNumber = TO_BYTES;
         sJavaMemoryLimit = sJavaMemoryLimit.substring(0, sJavaMemoryLimit.length() - 1);
@@ -606,7 +607,8 @@ public class EtomoDirector {
     if (etomoSerialSectionsFile == null) {
       return openSerialSections(makeCurrent, axisID);
     }
-    return openSerialSections(etomoSerialSectionsFile.getAbsolutePath(), makeCurrent, axisID);
+    return openSerialSections(etomoSerialSectionsFile.getAbsolutePath(), makeCurrent,
+        axisID);
   }
 
   private ManagerKey openJoin(String etomoJoinFileName, boolean makeCurrent, AxisID axisID) {
