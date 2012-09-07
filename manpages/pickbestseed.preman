@@ -11,7 +11,109 @@ fof the desired number, using bead models tracked starting from several
 different views and using information on the quality of the tracking, the
 shape of the beads, and on which of two surfaces they are located.
 .P
-This man page is still under construction.
+The program operates with the following steps:
+
+1) It reads in the different tracked models and identifies cases where the
+same bead was tracked in different models, as signified by tracks that are
+sufficiently close to each other over the whole range of views tracked
+(controlled by parameters 1 and 6 below).
+
+2) Each unique bead becomes a candidate, and information on the mean
+residual, success of tracking, and divergence between multiple tracks is combined
+into a single score for each candidate (lower being better).  When beads are
+located on two surfaces, each candidate is assigned to a surface based on
+which assignment predominates in the multiple surface analyses available.
+
+3) The total area to be analyzed is measured, so that it is possible to
+convert between number of beads and average density per unit area.
+ 
+4) Information on the elongation of beads is analyzed, namely values for the
+median standard deviation of pixels around the bead and for the median
+elongation.  The values are analyzed by taking the median, finding the median
+absolute deviation, and considering values as outliers if their deviation from
+the median is more than the normalized
+median absolute deviation (MADN) times a criterion (parameter 12 below).  A
+candidate is marked as elongated if it is an outlier by either of these
+measures or if the elongation exceeds an absolute threshold (parameter 16 below).
+
+5) Beads are identified as clustered if they are within a criterion
+distance (parameter 5 below) of any other bead on the same surface.  This
+distance is evaluated at the highest tilt angle of the series, assuming that
+the distance between beads perpendicualr to the tilt axis is foreshortened by tilting.
+
+6) Elongation is analyzed again, considering only points that are not
+identified as clustered.  When there are many clustered points, which also
+tend to have high elongation values, this can skew the criterion for
+identifying outliers, so analyzing unclustered points separately can identify
+additional outliers.  Each unclustered point is given the maximum of the
+elongation score from the two analyses.
+
+7) Beads are sorted in order by their overall score and two different
+procedures are used to accept points in the final model, in a set of phases.
+Only unclustered, unelongated beads are considered for the first 4 phases.
+Once some points have been accepted, the program computes a continuous 2D
+density function from the points using kernel density estimation with a
+triweight kernel.  Specifically, for each bead, a component proportional to 
+(1 - (dist / H)^2)^3 is added for a point at distance "dist" from the bead.  H
+is chosen based on the target spacing to be achieved between points in the
+current phase, times parameter 10 below.
+
+7.1) Phase 1: The target density is converted to an equivalent spacing and beads are
+accepted in order by their score, provided that they are not within a certain
+fraction of this spacing (parameter 14 below).  This procedure is then
+repeated with the best half of the candidates, adding them if they are not
+within a lower fraction of the target spacing (parameter 15 below).  When
+there are beads on two surfaces, this procedure is done separately for each
+surface.
+
+7.2) Phase 2: A gap-filling routine is used to add further points up to a
+desired density, if necessary.  This routine repeatedly finds the point with
+lowest density then searches out from that point in successively wider rings
+for a bead to add.  The ring spacing is the target spacing times parameter 3
+below.  If multiple beads are found in a ring, they are prioritized by an
+adjusted score, which is their overall score divided by the distance to the
+nearest accepted bead.  In addition, if clustered and overlapped points are
+being accepted (in a later phase), the score is increased for a clustered or
+overlapped point, and a point within the clustering distance of another
+accepted point is simply excluded.  After a search is done in one location,
+points within a certain distance of the density minimum are excluded from
+further consideration on that call of the gap-filling routine.  (This
+criterion distance is the target spacing times parameter 2 below.)  The search
+is terminated when all density minima below a fraction of the target density
+are examined.  This fraction is parameter 8 below, but if there are two
+surfaces and the ratio of minority to majority surface is less than parameter
+13 below, it uses the higher fraction in parameter 9 instead for the minority
+surface. The gap-filling routine is called twice, once allowing two rings,
+then allowing the number of rings in parameter 4 below.
+
+7.3) Phase 3: If there are two surfaces, it now tries to beef up the number on
+the majority surface to make up for the deficiency.  The target number for
+this surface is the full target number minus the number on the minority
+surface, unless the "-nobeef" option is entered, in which case the target is
+still half the full target.  First it calls the routine that considers points
+in order by score and adds them if their distance from other points is high
+enough.  Then calls the gap-filling routine, but now density is computed from
+points on both surfaces so that it can fill gaps left by the beads on the
+minority surface preferentially.  Again, the gap-filling routine is called
+twice with two different numbers of rings.
+
+7.4) Phase 4: If points are still deficient, it calls the gap-filling routine,
+examining points with density up to the higher fraction (parameter 9) of the
+target density.  A revised target is used for the majority surface unless
+"-nobeef" is entered, and the original target is used for the minority
+surface.  Densities are computed per surface, and the routine is called only
+once with the full number of rings.
+
+7.5) Phases 5-8: If clustered and elongated points are allowed to be included,
+then it runs the same procedure as in phase 4, first allowing clustered points
+and then elongated points with progressively higher elongation numbers, which
+are based on the fraction of tracked models in which the bead was identified
+as elongated.
+
+8) Accepted points are put into the output model, along with a general value
+equal to inverse of the score.  With two surfaces, points on the top surface
+are given surface number 1, which is assigned magenta color.
+
 .SS Options
 Pickbestseed uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
