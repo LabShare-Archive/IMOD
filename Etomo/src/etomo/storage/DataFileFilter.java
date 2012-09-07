@@ -47,15 +47,27 @@ public class DataFileFilter extends javax.swing.filechooser.FileFilter implement
     java.io.FileFilter {
   public static final String rcsid = "$Id$";
 
+  // turn filesOnly on for building a list of just files, off for a filechooser
+  private final boolean filesOnly;
+
+  public DataFileFilter() {
+    filesOnly = false;
+  }
+
+  public DataFileFilter(final boolean filesOnly) {
+    this.filesOnly = filesOnly;
+  }
+
   /**
    * @see javax.swing.filechooser.FileFilter#accept(File)
    */
   public boolean accept(File f) {
-    if (!f.isFile()) {
+    if (filesOnly && !f.isFile()) {
       return false;
     }
-    // If this is a file test its extension, all others should return true
-    if (!f.getAbsolutePath().endsWith(DataFileType.RECON.extension)
+    // If this is a file test its extension, all others should return true when filesOnly
+    // is off
+    if (f.isFile() && !f.getAbsolutePath().endsWith(DataFileType.RECON.extension)
         && !f.getAbsolutePath().endsWith(DataFileType.JOIN.extension)
         && !f.getAbsolutePath().endsWith(DataFileType.PARALLEL.extension)
         && !f.getAbsolutePath().endsWith(DataFileType.PEET.extension)
