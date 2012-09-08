@@ -190,22 +190,6 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(defaultValue == copy.getDefaultedDouble());
   }
 
-  public void testGetDisplayInteger() {
-    int displayValue = 1;
-    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-    test.setDisplayValue(displayValue);
-    try {
-      test.getDisplayInteger();
-      fail("Display value should be stored as a double because of the type setting.");
-    }
-    catch (IllegalStateException e) {
-    }
-    test = new EtomoNumber();
-    test.setDisplayValue(displayValue);
-    assertEquals("Function should return the display value", displayValue, test
-        .getDisplayInteger());
-  }
-
   public void testSetInvalidReason() {
     EtomoNumber test = new EtomoNumber();
     //Pass when there are no validation settings
@@ -435,30 +419,10 @@ public final class ConstEtomoNumberTest extends TestCase {
 
   public final void testValidateReturnTypeInteger() {
     int displayValue = 2;
-    //double
-    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-    ///test corruption prevention
-    try {
-      test.getDisplayInteger();
-      fail("A double can't be returned in an integer");
-    }
-    catch (IllegalStateException e) {
-    }
-    test.internalTest();
     //integer
-    test = new EtomoNumber(EtomoNumber.Type.INTEGER);
+    EtomoNumber  test = new EtomoNumber(EtomoNumber.Type.INTEGER);
     ///test no exception thrown
     test.getDisplayInteger();
-    test.internalTest();
-    //long
-    test = new EtomoNumber(EtomoNumber.Type.LONG);
-    ///test corruption prevention
-    try {
-      test.getDisplayInteger();
-      fail("A long can't be returned in an integer");
-    }
-    catch (IllegalStateException e) {
-    }
     test.internalTest();
   }
 
@@ -630,26 +594,6 @@ public final class ConstEtomoNumberTest extends TestCase {
     EtomoNumber test = new EtomoNumber();
     test.set(1);
     test.getInt();
-    //long should fail
-    test = new EtomoNumber(EtomoNumber.Type.LONG);
-    test.set(1);
-    try {
-      test.getInt();
-      fail("getInt() should fail when the type is long");
-    }
-    catch (IllegalStateException e) {
-    }
-    test.internalTest();
-    //double should fail
-    test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-    test.set(1);
-    try {
-      test.getInt();
-      fail("getInt() should fail when the type is double");
-    }
-    catch (IllegalStateException e) {
-    }
-    test.internalTest();
   }
 
   public final void testIs() {
@@ -705,14 +649,6 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.getLong();
     test = new EtomoNumber(EtomoNumber.Type.LONG);
     test.getLong();
-    test.internalTest();
-    test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-    try {
-      test.getLong();
-      fail("getLong() should fail when the type is double");
-    }
-    catch (IllegalStateException e) {
-    }
     test.internalTest();
   }
 
