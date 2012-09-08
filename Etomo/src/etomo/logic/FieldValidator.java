@@ -35,7 +35,7 @@ public final class FieldValidator {
    * @param fieldType
    * @param component
    * @param descr
-   * @return trimmed fieldText
+   * @return fieldText, trimmed if validation is possible on fieldType
    * @throws FieldValidationFailedException if the validation fails
    */
   public static String validateText(final String fieldText, final FieldType fieldType,
@@ -47,6 +47,10 @@ public final class FieldValidator {
     // Trim because Number.parse... will fail on external spaces.
     String text = fieldText.trim();
     if (fieldType.isCollection()) {
+      // Empty fields are valid
+      if (text.equals("")) {
+        return text;
+      }
       // Validate arrays and lists.
       String[] elementList = text.split(fieldType.getSplitter());
       if (fieldType.hasRequiredSize()) {
@@ -63,7 +67,8 @@ public final class FieldValidator {
           String[] commaList = text.split("[^\\,]");
           if (commaList != null && commaList.length > 0) {
             if (ends) {
-              // Count the commas at the end of the text: ",," equals one extra element, ",,,"
+              // Count the commas at the end of the text: ",," equals one extra element,
+              // ",,,"
               // equals two extra elements, etc.
               nElements += commaList[commaList.length - 1].length() - 1;
             }
@@ -87,7 +92,8 @@ public final class FieldValidator {
               + ":wrong number of elements:" + "fieldText:" + fieldText
               + ",elementList.length:" + elementList.length + ",requiredSize+:"
               + fieldType.requiredSize);
-          if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+          if (EtomoDirector.INSTANCE.getArguments().isDebug()
+              || EtomoDirector.INSTANCE.getArguments().isTest()) {
             fe.printStackTrace();
           }
           throw fe;
@@ -141,7 +147,8 @@ public final class FieldValidator {
           + ".\n" + e.getMessage(), TITLE);
       FieldValidationFailedException fe = new FieldValidationFailedException(descr
           + ":text" + text + ",validationType+:" + validationType);
-      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()
+          || EtomoDirector.INSTANCE.getArguments().isTest()) {
         fe.printStackTrace();
       }
       throw fe;

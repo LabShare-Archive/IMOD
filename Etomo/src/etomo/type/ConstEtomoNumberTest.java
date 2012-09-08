@@ -190,16 +190,6 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(defaultValue == copy.getDefaultedDouble());
   }
 
-  public void testGetDisplayInteger() {
-    int displayValue = 1;
-    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-    test.setDisplayValue(displayValue);
-    test = new EtomoNumber();
-    test.setDisplayValue(displayValue);
-    assertEquals("Function should return the display value", displayValue, test
-        .getDisplayInteger());
-  }
-
   public void testSetInvalidReason() {
     EtomoNumber test = new EtomoNumber();
     //Pass when there are no validation settings
@@ -429,11 +419,8 @@ public final class ConstEtomoNumberTest extends TestCase {
 
   public final void testValidateReturnTypeInteger() {
     int displayValue = 2;
-    //double
-    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-    test.internalTest();
     //integer
-    test = new EtomoNumber(EtomoNumber.Type.INTEGER);
+    EtomoNumber  test = new EtomoNumber(EtomoNumber.Type.INTEGER);
     ///test no exception thrown
     test.getDisplayInteger();
     test.internalTest();
@@ -607,7 +594,6 @@ public final class ConstEtomoNumberTest extends TestCase {
     EtomoNumber test = new EtomoNumber();
     test.set(1);
     test.getInt();
-    test.internalTest();
   }
 
   public final void testIs() {
