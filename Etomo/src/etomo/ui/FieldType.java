@@ -25,6 +25,8 @@ public final class FieldType {
       ValidationType.FLOATING_POINT);
   public static final FieldType INTEGER_PAIR = new FieldType(ValidationType.INTEGER,
       CollectionType.ARRAY, 2);
+  public static final FieldType FLOATING_POINT_PAIR = new FieldType(
+      ValidationType.FLOATING_POINT, CollectionType.ARRAY, 2);
 
   public final ValidationType validationType;
   private final CollectionType collectionType;
@@ -44,6 +46,11 @@ public final class FieldType {
     this.validationType = validationType;
     this.collectionType = collectionType;
     this.requiredSize = requiredSize;
+  }
+
+  public String toString() {
+    return "[validationType:" + validationType + ",collectionType:" + collectionType
+        + ",requiredSize:" + requiredSize;
   }
 
   public boolean hasRequiredSize() {
