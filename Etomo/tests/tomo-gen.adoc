@@ -112,7 +112,7 @@ run.function.setup-patch-tracking=
   #test field validation
   tf.take-logarithm-of-densities-with-offset=0.0abc
   bn.generate-tomogram=
-  wait.popup.field-valiadation-failed=OK
+  wait.popup.field-validation-failed=OK
   tf.take-logarithm-of-densities-with-offset=0.0
 [[]]
 cb.parallel-processing=on
