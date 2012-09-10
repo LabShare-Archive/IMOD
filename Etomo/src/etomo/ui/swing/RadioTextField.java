@@ -12,6 +12,7 @@ import javax.swing.JPanel;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EnumeratedType;
 import etomo.type.ParsedElement;
+import etomo.ui.FieldType;
 
 /**
  * <p>Description: </p>
@@ -70,6 +71,7 @@ final class RadioTextField implements RadioButtonInterface {
   private final JPanel rootPanel = new JPanel();
   private final RadioButton radioButton;
   private final TextField textField;
+  final FieldType fieldType;
 
   /**
    * Constructs local instance, adds listener, and returns.
@@ -77,38 +79,20 @@ final class RadioTextField implements RadioButtonInterface {
    * @param group
    * @return
    */
-  static RadioTextField getInstance(final String label, final ButtonGroup group) {
-    RadioTextField radioTextField = new RadioTextField(label, group);
+  static RadioTextField getInstance(final FieldType fieldType, final String label,
+      final ButtonGroup group) {
+    RadioTextField radioTextField = new RadioTextField(fieldType, label, group);
     radioTextField.addListeners();
     return radioTextField;
   }
 
-  /**
-   * Constructs local instance, adds listener, and returns.
-   * @param label
-   * @param group
-   * @param radioValue
-   * @return
-   */
-  /* static RadioTextField getInstance(final String label, final ButtonGroup group,
-   * EnumeratedType enumeratedType) { RadioTextField radioTextField = new
-   * RadioTextField(label, group, enumeratedType); radioTextField.addListeners(); return
-   * radioTextField; } */
-
-  private RadioTextField(final String label, final ButtonGroup group) {
+  private RadioTextField(final FieldType fieldType, final String label,
+      final ButtonGroup group) {
+    this.fieldType = fieldType;
     radioButton = new RadioButton(label);
     textField = new TextField(label);
     init(group);
   }
-
-  /**
-   * Do not use constructor directly.  Internal listener added in getInstance.
-   * @param label
-   * @param group
-   */
-  /* private RadioTextField(final String label, final ButtonGroup group, EnumeratedType
-   * enumeratedType) { radioButton = new RadioButton(label, enumeratedType); textField =
-   * new TextField(label); init(group); } */
 
   private void init(final ButtonGroup group) {
     radioButton.setModel(new RadioButton.RadioButtonModel(this));
