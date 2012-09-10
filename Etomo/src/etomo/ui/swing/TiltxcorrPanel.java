@@ -295,9 +295,10 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       "Size of patches (X,Y): ");
   private final ButtonGroup bgPatchLayout = new ButtonGroup();
   private final RadioTextField rtfOverlapOfPatchesXandY = RadioTextField.getInstance(
-      "Fractional overlap of patches (X,Y): ", bgPatchLayout);
+      FieldType.FLOATING_POINT_PAIR, "Fractional overlap of patches (X,Y): ",
+      bgPatchLayout);
   private final RadioTextField rtfNumberOfPatchesXandY = RadioTextField.getInstance(
-      "Number of patches (X,Y): ", bgPatchLayout);
+      FieldType.INTEGER_PAIR, "Number of patches (X,Y): ", bgPatchLayout);
   private final Spinner spIterateCorrelations = Spinner.getLabeledInstance(
       "Iterations to increase subpixel accuracy: ",
       TiltxcorrParam.ITERATE_CORRELATIONS_DEFAULT,
