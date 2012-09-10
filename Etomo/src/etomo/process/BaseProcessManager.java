@@ -1479,14 +1479,14 @@ public abstract class BaseProcessManager {
    * @param stdOutput
    * @param stdError
    */
-  private void logProcessOutput(final String descr, final String[] stdOutput,
+  private void logProcessOutput(final String commandAction, final String[] stdOutput,
       String[] stdError) {
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       return;
     }
     if ((stdOutput != null && stdOutput.length > 0)
         || (stdError != null && stdError.length > 0)) {
-      System.err.println("Output from " + descr + ":");
+      System.err.println("Output from " + commandAction + ":");
       int linesToLog = 10;
       if (stdOutput != null && stdOutput.length > 0) {
         System.err.println("Standard out:");
@@ -1494,7 +1494,8 @@ public abstract class BaseProcessManager {
           System.err.println(stdOutput[i]);
         }
       }
-      if (stdError != null && stdError.length > 0) {
+      if (stdError != null && stdError.length > 0
+          && !stdError[0].trim().startsWith("Python PID:")) {
         System.err.println("Standard error:");
         for (int i = stdError.length > linesToLog ? stdError.length - linesToLog : 0; i < stdError.length; i++) {
           System.err.println(stdError[i]);
@@ -1544,7 +1545,7 @@ public abstract class BaseProcessManager {
       errorProcess(script);
     }
     else {
-      logProcessOutput(script.getComScriptName() + ", " + script.getProcessName(),
+      logProcessOutput(script.getCommandAction(),
           script.getStdOutput(), script.getStdError());
       postProcess(script);
       ProcessMessages messages = script.getProcessMessages();/* Warning */
@@ -1865,7 +1866,7 @@ public abstract class BaseProcessManager {
       errorProcess(process);
     }
     else {
-      logProcessOutput(process.getCommandName(), process.getStdOutput(),
+      logProcessOutput(process.getCommandAction(), process.getStdOutput(),
           process.getStdError());
       postProcess(process);
     }
@@ -1904,7 +1905,7 @@ public abstract class BaseProcessManager {
       errorProcess(process);
     }
     else {
-      logProcessOutput(process.getCommandName(), process.getStdOutput(),
+      logProcessOutput(process.getCommandAction(), process.getStdOutput(),
           process.getStdError());
       postProcess(process);
       ProcessMessages messages = process.getProcessMessages();
@@ -1936,7 +1937,7 @@ public abstract class BaseProcessManager {
 
   public final void msgInteractiveSystemProgramDone(
       final InteractiveSystemProgram program, final int exitValue) {
-    logProcessOutput(program.getCommandName(), program.getStdOutput(),
+    logProcessOutput(program.getCommandAction(), program.getStdOutput(),
         program.getStdError());
     postProcess(program);
     manager.saveStorables(program.getAxisID());
