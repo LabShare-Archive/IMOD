@@ -112,9 +112,9 @@ final class TiltalignPanel implements Expandable {
   private final CheckBox cbLocalAlignments = new CheckBox("Enable local alignments");
   private final ButtonGroup bgLocalPatches = new ButtonGroup();
   private final RadioTextField rtfTargetPatchSizeXandY = RadioTextField.getInstance(
-      "Target patch size (x,y): ", bgLocalPatches);
+      FieldType.INTEGER_PAIR, "Target patch size (x,y): ", bgLocalPatches);
   private final RadioTextField rtfNLocalPatches = RadioTextField.getInstance(
-      "# of local patches (x,y): ", bgLocalPatches);
+      FieldType.INTEGER_PAIR, "# of local patches (x,y): ", bgLocalPatches);
   private final LabeledTextField ltfMinLocalPatchSize = new LabeledTextField(
       MIN_LOCAL_PATCH_SIZE_OVERLAP_ONLY_LABEL);
   private final LabeledTextField ltfMinLocalFiducials = new LabeledTextField(
@@ -240,7 +240,7 @@ final class TiltalignPanel implements Expandable {
   private final ButtonGroup bgBeamTiltOption = new ButtonGroup();
   private final RadioButton rbNoBeamTilt = new RadioButton("No beam tilt");
   private final RadioTextField rtfFixedBeamTilt = RadioTextField.getInstance(
-      "Fixed beam tilt (degrees): ", bgBeamTiltOption);
+      FieldType.FLOATING_POINT, "Fixed beam tilt (degrees): ", bgBeamTiltOption);
   private final RadioButton rbSolveForBeamTilt = new RadioButton("Solve for beam tilt");
   private final EtomoPanel pnlBeamTilt = new EtomoPanel();
   private final JPanel pnlBeamTiltBody = new JPanel();
