@@ -259,8 +259,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private boolean applyOffsetsFirst;
   private String transformFile;
   private String useTransformLines;
-  private float rotateByAngle;
-  private float expandByFactor;
+  private double rotateByAngle;
+  private double expandByFactor;
   private int binByFactor;
   private boolean linearInterpolation;
   private int floatDensities;
@@ -319,8 +319,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     applyOffsetsFirst = false;
     transformFile = "";
     useTransformLines = "";
-    rotateByAngle = Float.NaN;
-    expandByFactor = Float.NaN;
+    rotateByAngle = Double.NaN;
+    expandByFactor = Double.NaN;
     binByFactor = Integer.MIN_VALUE;
     linearInterpolation = false;
     floatDensities = Integer.MIN_VALUE;
@@ -410,11 +410,11 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
         }
         else if (cmdLineArgs[i].toLowerCase().startsWith("-r")) {
           i++;
-          rotateByAngle = Float.parseFloat(cmdLineArgs[i]);
+          rotateByAngle = Double.parseDouble(cmdLineArgs[i]);
         }
         else if (cmdLineArgs[i].toLowerCase().startsWith("-e")) {
           i++;
-          expandByFactor = Float.parseFloat(cmdLineArgs[i]);
+          expandByFactor = Double.parseDouble(cmdLineArgs[i]);
         }
         else if (cmdLineArgs[i].toLowerCase().startsWith("-b")) {
           i++;
@@ -537,11 +537,11 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
       cmdLineArgs.add("-uselines");
       cmdLineArgs.add(useTransformLines);
     }
-    if (!Float.isNaN(rotateByAngle)) {
+    if (!Double.isNaN(rotateByAngle)) {
       cmdLineArgs.add("-rotate");
       cmdLineArgs.add(String.valueOf(rotateByAngle));
     }
-    if (!Float.isNaN(expandByFactor)) {
+    if (!Double.isNaN(expandByFactor)) {
       cmdLineArgs.add("-expand");
       cmdLineArgs.add(String.valueOf(expandByFactor));
     }
@@ -667,7 +667,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   /**
    * @param expandByFactor The expandByFactor to set.
    */
-  public void setExpandByFactor(final float expandByFactor) {
+  public void setExpandByFactor(final double expandByFactor) {
     this.expandByFactor = expandByFactor;
   }
 
@@ -792,7 +792,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   /**
    * @param rotateByAngle The rotateByAngle to set.
    */
-  public void setRotateByAngle(final float rotateByAngle) {
+  public void setRotateByAngle(final double rotateByAngle) {
     this.rotateByAngle = rotateByAngle;
   }
 
@@ -964,7 +964,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   /**
    * @return Returns the expandByFactor.
    */
-  public float getExpandByFactor() {
+  public double getExpandByFactor() {
     return expandByFactor;
   }
 
@@ -1102,7 +1102,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   /**
    * @return Returns the rotateByAngle.
    */
-  public float getRotateByAngle() {
+  public double getRotateByAngle() {
     return rotateByAngle;
   }
 
@@ -1232,10 +1232,6 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     if (field == Field.USE_LINEAR_INTERPOLATION) {
       return linearInterpolation;
     }
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public float getFloatValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 

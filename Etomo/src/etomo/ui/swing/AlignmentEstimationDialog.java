@@ -432,15 +432,18 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     pnlTiltalign.setParameters(tiltalignParam);
   }
 
-  public void getTiltalignParams(final TiltalignParam tiltalignParam)
-      throws FortranInputSyntaxException {
+  public boolean getTiltalignParams(final TiltalignParam tiltalignParam,
+      final boolean doValidation) throws FortranInputSyntaxException {
     try {
-      pnlTiltalign.getParameters(tiltalignParam);
+      if (!pnlTiltalign.getParameters(tiltalignParam, doValidation)) {
+        return false;
+      }
     }
     catch (FortranInputSyntaxException except) {
       String message = "Axis: " + axisID.getExtension() + except.getMessage();
       throw new FortranInputSyntaxException(message);
     }
+    return true;
   }
 
   public boolean isValid() {
@@ -489,7 +492,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     addLogFileTab("taCoordinates", "Coordinates", logFileList, alignLabels);
     addLogFileTab("taBeamtilt", "Beam Tilt", logFileList, alignLabels);
     addLogFileTab("taRobust", "Robust", logFileList, alignLabels);
-    
+
     Vector logFile = new Vector(1);
     logFile.add(logFileList.toArray(new String[logFileList.size()]));
     Vector logFileLabel = new Vector(1);

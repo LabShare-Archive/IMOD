@@ -46,8 +46,8 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
   private final EtomoBoolean2 noOptions = new EtomoBoolean2("NoOptions");
   private final EtomoBoolean2 numberToFitGlobalAlignment = new EtomoBoolean2(
       "NumberToFitGlobalAlignment");
-  private final EtomoNumber shiftX = new EtomoNumber(EtomoNumber.Type.FLOAT, "ShiftX");
-  private final EtomoNumber shiftY = new EtomoNumber(EtomoNumber.Type.FLOAT, "ShiftY");
+  private final EtomoNumber shiftX = new EtomoNumber(EtomoNumber.Type.DOUBLE, "ShiftX");
+  private final EtomoNumber shiftY = new EtomoNumber(EtomoNumber.Type.DOUBLE, "ShiftY");
   private final EtomoNumber sizeX = new EtomoNumber("SizeX");
   private final EtomoNumber sizeY = new EtomoNumber("SizeY");
   private final EtomoNumber tab = new EtomoNumber("Tab");

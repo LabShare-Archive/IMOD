@@ -42,9 +42,9 @@ public final class ParallelState extends BaseState {
   private static final String GROUP_KEY = "State";
 
   private final ParsedArray testKValueList = ParsedArray.getInstance(
-      EtomoNumber.Type.FLOAT, "TestKValueList");
+      EtomoNumber.Type.DOUBLE, "TestKValueList");
   private final EtomoNumber testIteration = new EtomoNumber("TestIteration");
-  private final EtomoNumber testKValue = new EtomoNumber(EtomoNumber.Type.FLOAT,
+  private final EtomoNumber testKValue = new EtomoNumber(EtomoNumber.Type.DOUBLE,
       "TestKValue");
 
   /**
@@ -115,7 +115,7 @@ public final class ParallelState extends BaseState {
     return testIterationList;
   }
 
-  public void setTestKValue(float input) {
+  public void setTestKValue(double input) {
     testKValue.set(input);
   }
 

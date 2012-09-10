@@ -300,7 +300,10 @@ public final class SerialSectionsManager extends BaseManager {
       processSeries.startFailProcess(axisID);
       return;
     }
-    BlendmontParam param = updatePreblendComscript(axisID);
+    BlendmontParam param = updatePreblendComscript(axisID, true);
+    if (param == null) {
+      return;
+    }
     String threadName = null;
     try {
       threadName = processMgr.blend(param, axisID, processSeries);
@@ -604,11 +607,14 @@ public final class SerialSectionsManager extends BaseManager {
     return param;
   }
 
-  private BlendmontParam updatePreblendComscript(final AxisID axisID) {
+  private BlendmontParam updatePreblendComscript(final AxisID axisID,
+      final boolean doValidation) {
     comScriptMgr.loadPreblend(axisID);
     BlendmontParam param = comScriptMgr.getBlendmontParamFromPreblend(axisID, getName());
     param.setMode(BlendmontParam.Mode.SERIAL_SECTION_PREBLEND);
-    dialog.getPreblendParameters(param);
+    if (!dialog.getPreblendParameters(param, doValidation)) {
+      return null;
+    }
     param.setBlendmontState(state.getInvalidEdgeFunctions());
     comScriptMgr.savePreblend(param, axisID);
     return param;
@@ -794,7 +800,7 @@ public final class SerialSectionsManager extends BaseManager {
     }
     dialog.getParameters(metaData);
     if (getViewType() == ViewType.MONTAGE) {
-      updatePreblendComscript(AXIS_ID);
+      updatePreblendComscript(AXIS_ID, false);
       updateBlendComscript(AXIS_ID);
     }
     else {

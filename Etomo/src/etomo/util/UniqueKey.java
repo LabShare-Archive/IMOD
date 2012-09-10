@@ -37,13 +37,13 @@ public class UniqueKey {
   public static final String rcsid = "$Id$";
 
   private final String name;
-  private final long count;
+  private final int count;
 
   UniqueKey(String name, UniqueHashedArray keyedStorage) {
     this.name = name;
     //make instance unique in keyedStorage by making count one more then the
     //largest stored key with the same name
-    long tempCount = 0;
+    int tempCount = 0;
     for (int i = 0; i < keyedStorage.size(); i++) {
       UniqueKey storedKey = (UniqueKey) keyedStorage.getKey(i);
       if (storedKey.name.equals(name)) {
@@ -68,8 +68,8 @@ public class UniqueKey {
   }
 
   public int hashCode() {
-    Long longCount = new Long(this.count);
-    return name.hashCode() + longCount.hashCode();
+    Integer intCount = new Integer(this.count);
+    return name.hashCode() + intCount.hashCode();
   }
 
   public String toString() {

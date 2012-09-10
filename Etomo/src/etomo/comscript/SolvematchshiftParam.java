@@ -90,7 +90,7 @@ public class SolvematchshiftParam extends ConstSolvematchshiftParam implements
       fiducialMatchListA.parseString(inputArgs[i++].getArgument());
     }
     xAxistTilt.validateAndSet(inputArgs[i++].getArgument());
-    residualThreshold = Float.parseFloat(inputArgs[i++].getArgument());
+    residualThreshold = Double.parseDouble(inputArgs[i++].getArgument());
     nSurfaces = Integer.parseInt(inputArgs[i++].getArgument());
     outputTransformationFile = inputArgs[i++].getArgument();
   }
@@ -212,7 +212,7 @@ public class SolvematchshiftParam extends ConstSolvematchshiftParam implements
    * Sets the residualThreshold.
    * @param residualThreshold The residualThreshold to set
    */
-  public void setResidualThreshold(float residualThreshold) {
+  public void setResidualThreshold(double residualThreshold) {
     this.residualThreshold = residualThreshold;
   }
 
