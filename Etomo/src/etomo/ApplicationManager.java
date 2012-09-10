@@ -1304,7 +1304,7 @@ public final class ApplicationManager extends BaseManager implements
     else {
       coarseAlignDialog.getParameters(getScreenState(axisID));
       // Get the user input data from the dialog box
-      updateXcorrCom(coarseAlignDialog.getTiltXcorrDisplay(), axisID, false);
+      updateXcorrCom(coarseAlignDialog.getTiltXcorrDisplay(), axisID, false, false);
       updateBlendmontInXcorrCom(axisID);
       try {
         if (metaData.getViewType() != ViewType.MONTAGE) {
@@ -1358,7 +1358,7 @@ public final class ApplicationManager extends BaseManager implements
       processSeries = new ProcessSeries(this, dialogType);
     }
     // Get the parameters from the dialog box
-    ConstTiltxcorrParam tiltxcorrParam = updateXcorrCom(display, axisID, true);
+    ConstTiltxcorrParam tiltxcorrParam = updateXcorrCom(display, axisID, true, true);
     if (tiltxcorrParam == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -1812,7 +1812,7 @@ public final class ApplicationManager extends BaseManager implements
    *         script
    */
   private ConstTiltxcorrParam updateXcorrCom(TiltXcorrDisplay display, AxisID axisID,
-      final boolean validate) {
+      final boolean validate, final boolean doFieldValidation) {
     TiltxcorrParam tiltXcorrParam = null;
     TiltxcorrParam toParam = null;
     PanelId panelId = display.getPanelId();
@@ -1830,7 +1830,7 @@ public final class ApplicationManager extends BaseManager implements
         toParam = comScriptMgr.getTiltxcorrParam(axisID);
       }
       tiltXcorrParam.setValidate(validate);
-      if (!display.getParameters(tiltXcorrParam)) {
+      if (!display.getParameters(tiltXcorrParam, doFieldValidation)) {
         return null;
       }
       if (toParam != null) {
@@ -2090,7 +2090,7 @@ public final class ApplicationManager extends BaseManager implements
       fiducialModelDialog.getParameters(metaData);
       // Get the user input data from the dialog box
       updateTrackCom(fiducialModelDialog.getBeadTrackDisplay(), axisID);
-      updateXcorrCom(fiducialModelDialog.getTiltxcorrDisplay(), axisID, false);
+      updateXcorrCom(fiducialModelDialog.getTiltxcorrDisplay(), axisID, false, false);
       if (exitState == DialogExitState.EXECUTE) {
         processTrack.setFiducialModelState(ProcessState.COMPLETE, axisID);
         mainPanel.setFiducialModelState(ProcessState.COMPLETE, axisID);
@@ -2384,8 +2384,8 @@ public final class ApplicationManager extends BaseManager implements
     return retval;
   }
 
-  public long getBeadfixerDiameter(AxisID axisID) {
-    return Math.round(metaData.getFiducialDiameter() / metaData.getPixelSize()
+  public int getBeadfixerDiameter(AxisID axisID) {
+    return (int) Math.round(metaData.getFiducialDiameter() / metaData.getPixelSize()
         / UIExpertUtilities.INSTANCE.getStackBinning(this, axisID, ".preali"));
   }
 
@@ -2804,7 +2804,7 @@ public final class ApplicationManager extends BaseManager implements
     else {
       fineAlignmentDialog.getParameters(getScreenState(axisID));
       // Get the user input data from the dialog box
-      updateAlignCom(axisID);
+      updateAlignCom(axisID, false);
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
         mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
@@ -2969,7 +2969,7 @@ public final class ApplicationManager extends BaseManager implements
     if (fineAlignmentDialog != null && !fineAlignmentDialog.isValid()) {
       return;
     }
-    ConstTiltalignParam tiltalignParam = updateAlignCom(axisID);
+    ConstTiltalignParam tiltalignParam = updateAlignCom(axisID, true);
     if (tiltalignParam == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -3275,7 +3275,8 @@ public final class ApplicationManager extends BaseManager implements
    * the alignment estimation dialog. This also updates the local alignment
    * state of the appropriate tilt files.
    */
-  private ConstTiltalignParam updateAlignCom(final AxisID axisID) {
+  private ConstTiltalignParam updateAlignCom(final AxisID axisID,
+      final boolean doValidation) {
     AlignmentEstimationDialog fineAlignmentDialog = (AlignmentEstimationDialog) getDialog(
         DialogType.FINE_ALIGNMENT, axisID);
     if (fineAlignmentDialog == null) {
@@ -3288,7 +3289,9 @@ public final class ApplicationManager extends BaseManager implements
     try {
       tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
       fineAlignmentDialog.getParameters(metaData);
-      fineAlignmentDialog.getTiltalignParams(tiltalignParam);
+      if (!fineAlignmentDialog.getTiltalignParams(tiltalignParam, doValidation)) {
+        return null;
+      }
       UIExpertUtilities.INSTANCE.rollAlignComAngles(this, axisID);
       comScriptMgr.saveAlign(tiltalignParam, axisID);
       // Update the tilt.com script with the dependent parameters
@@ -4152,7 +4155,7 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public boolean equalsBinning(AxisID axisID, int binning, FileType fileType) {
-    long fileBinning = UIExpertUtilities.INSTANCE.getStackBinning(this, axisID, fileType);
+    int fileBinning = UIExpertUtilities.INSTANCE.getStackBinning(this, axisID, fileType);
     return binning == fileBinning;
   }
 
@@ -4578,7 +4581,7 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
-    ConstTiltParam tiltParam = updateTilt3dFindCom(display, axisID);
+    ConstTiltParam tiltParam = updateTilt3dFindCom(display, axisID, true);
     if (tiltParam == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
@@ -4608,7 +4611,7 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
-    ConstTiltParam tiltParam = updateTiltCom(display, axisID);
+    ConstTiltParam tiltParam = updateTiltCom(display, axisID, true);
     if (tiltParam == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
@@ -4638,7 +4641,7 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
-    ConstTiltParam tiltParam = updateTrialTiltCom(display, axisID);
+    ConstTiltParam tiltParam = updateTrialTiltCom(display, axisID, true);
     if (tiltParam == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
@@ -4682,7 +4685,7 @@ public final class ApplicationManager extends BaseManager implements
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
-    ConstTiltParam param = updateTilt3dFindReprojectCom(display, axisID);
+    ConstTiltParam param = updateTilt3dFindReprojectCom(display, axisID, true);
     if (param == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
@@ -4707,7 +4710,7 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
-    ConstTiltParam param = updateTilt3dFindCom(display, axisID);
+    ConstTiltParam param = updateTilt3dFindCom(display, axisID, true);
     if (param == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
@@ -4731,7 +4734,7 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
-    ConstTiltParam param = updateTiltCom(display, axisID);
+    ConstTiltParam param = updateTiltCom(display, axisID, true);
     if (param == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
@@ -4757,7 +4760,7 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
-    ConstTiltParam param = updateTrialTiltCom(display, axisID);
+    ConstTiltParam param = updateTrialTiltCom(display, axisID, true);
     if (param == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
@@ -4926,13 +4929,14 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID
    * @return true if successful
    */
-  public ConstTiltParam updateTilt3dFindReprojectCom(TiltDisplay display, AxisID axisID) {
+  public ConstTiltParam updateTilt3dFindReprojectCom(TiltDisplay display, AxisID axisID,
+      final boolean doValidation) {
     TiltParam tiltParam = null;
     try {
       tiltParam = comScriptMgr.getTiltParamFromTilt3dFindReproject(axisID);
       getParametersForTilt3dFindReproject(tiltParam, axisID);
       if (display != null) {
-        display.getParameters(tiltParam);
+        display.getParameters(tiltParam, doValidation);
       }
       updateExcludeList(tiltParam, axisID);
       comScriptMgr.saveTilt3dFindReproject(tiltParam, axisID);
@@ -4986,7 +4990,8 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID
    * @return true if successful
    */
-  public ConstTiltParam updateTilt3dFindCom(TiltDisplay display, AxisID axisID) {
+  public ConstTiltParam updateTilt3dFindCom(TiltDisplay display, AxisID axisID,
+      final boolean doValidation) {
     // Set a reference to the correct object
     if (display == null) {
       UIHarness.INSTANCE.openMessageDialog(this,
@@ -4998,7 +5003,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       tiltParam = comScriptMgr.getTiltParamFromTilt3dFind(axisID);
       tiltParam.setFiducialess(metaData.isFiducialess(axisID));
-      if (!display.getParameters(tiltParam)) {
+      if (!display.getParameters(tiltParam, doValidation)) {
         return null;
       }
       updateExcludeList(tiltParam, axisID);
@@ -5041,7 +5046,8 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID
    * @return true if successful
    */
-  public ConstTiltParam updateTiltCom(TiltDisplay display, AxisID axisID) {
+  public ConstTiltParam updateTiltCom(TiltDisplay display, AxisID axisID,
+      final boolean doValidation) {
     // Set a reference to the correct object
     if (display == null) {
       UIHarness.INSTANCE.openMessageDialog(this,
@@ -5056,7 +5062,7 @@ public final class ApplicationManager extends BaseManager implements
         return tiltParam;
       }
       tiltParam.setFiducialess(metaData.isFiducialess(axisID));
-      if (!display.getParameters(tiltParam)) {
+      if (!display.getParameters(tiltParam, doValidation)) {
         return null;
       }
       String outputFileName;
@@ -5115,7 +5121,8 @@ public final class ApplicationManager extends BaseManager implements
    * 
    * @return a ConstTiltParam instance if successful
    */
-  public ConstTiltParam updateTrialTiltCom(TrialTiltDisplay display, AxisID axisID) {
+  public ConstTiltParam updateTrialTiltCom(TrialTiltDisplay display, AxisID axisID,
+      final boolean doValidation) {
     // Set a reference to the correct object
     if (display == null) {
       UIHarness.INSTANCE.openMessageDialog(this,
@@ -5127,7 +5134,7 @@ public final class ApplicationManager extends BaseManager implements
     try {
       tiltParam = comScriptMgr.getTiltParam(axisID);
       tiltParam.setFiducialess(metaData.isFiducialess(axisID));
-      if (!display.getParameters(tiltParam)) {
+      if (!display.getParameters(tiltParam, doValidation)) {
         return null;
       }
       String trialTomogramName = display.getTrialTomogramName();
@@ -6022,7 +6029,7 @@ public final class ApplicationManager extends BaseManager implements
     comScriptMgr.loadVolcombine();
     // try to load reduction factor
     ConstSetParam setParam = comScriptMgr.getSetParamFromVolcombine(
-        SetParam.COMBINEFFT_REDUCTION_FACTOR_NAME, EtomoNumber.Type.FLOAT);
+        SetParam.COMBINEFFT_REDUCTION_FACTOR_NAME, EtomoNumber.Type.DOUBLE);
     tomogramCombinationDialog.setReductionFactorParams(setParam);
     tomogramCombinationDialog.enableReductionFactor(setParam != null
         && setParam.isValid());
@@ -6083,7 +6090,7 @@ public final class ApplicationManager extends BaseManager implements
       // Make sure the reduction factor set command is available in
       // volcombine.com
       SetParam setParam = comScriptMgr.getSetParamFromVolcombine(
-          SetParam.COMBINEFFT_REDUCTION_FACTOR_NAME, EtomoNumber.Type.FLOAT);
+          SetParam.COMBINEFFT_REDUCTION_FACTOR_NAME, EtomoNumber.Type.DOUBLE);
       boolean setParamIsValid = setParam != null && setParam.isValid();
       tomogramCombinationDialog.enableReductionFactor(setParamIsValid);
       tomogramCombinationDialog.getReductionFactorParam(setParam);
@@ -7862,7 +7869,7 @@ public final class ApplicationManager extends BaseManager implements
     sendMsgProcessStarting(processResultDisplay);
     updateTiltCom(
         ((TomogramGenerationExpert) getUIExpert(dialogType, axisID)).getTiltDisplay(),
-        axisID);
+        axisID, true);
     SirtsetupParam param = updateSirtSetupCom(axisID, display, true);
     if (param == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);

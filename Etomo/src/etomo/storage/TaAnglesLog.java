@@ -64,7 +64,7 @@ public final class TaAnglesLog {
    */
   public ConstEtomoNumber getCenterToCenterThickness() throws LogFile.LockException,
       FileNotFoundException, IOException {
-    EtomoNumber centerToCenterThickness = new EtomoNumber(EtomoNumber.Type.FLOAT);
+    EtomoNumber centerToCenterThickness = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     //refresh the log file
     LogFile taAnglesLog = LogFile.getInstance(userDir, axisID,
         AlignLogGenerator.ANGLES_LOG_NAME);
@@ -94,7 +94,7 @@ public final class TaAnglesLog {
    */
   public ConstEtomoNumber getIncrementalShiftToCenter() throws LogFile.LockException,
       FileNotFoundException, IOException {
-    EtomoNumber incrementalShiftToCenter = new EtomoNumber(EtomoNumber.Type.FLOAT);
+    EtomoNumber incrementalShiftToCenter = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     //refresh the log file
     LogFile taAnglesLog = LogFile.getInstance(userDir, axisID,
         AlignLogGenerator.ANGLES_LOG_NAME);

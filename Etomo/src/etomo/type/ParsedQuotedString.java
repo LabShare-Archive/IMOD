@@ -223,7 +223,7 @@ public final class ParsedQuotedString extends ParsedElement {
     return null;
   }
 
-  void setRawString(int index, float number) {
+  void setRawString(int index, double number) {
     if (index > 0) {
       return;
     }

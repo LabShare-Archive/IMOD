@@ -505,18 +505,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private final EtomoBoolean2 fixedBeamTiltSelectedA = new EtomoBoolean2(
       AxisID.FIRST.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
           + ".FixedBeamTiltSelected");
-  private final EtomoNumber fixedBeamTiltA = new EtomoNumber(EtomoNumber.Type.FLOAT,
-      AxisID.FIRST.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
-          + ".FixedBeamTilt");
+  private final EtomoNumber fixedBeamTiltA = new EtomoNumber(AxisID.FIRST.getExtension()
+      + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTilt");
   private final EtomoBoolean2 noBeamTiltSelectedB = new EtomoBoolean2(
       AxisID.SECOND.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
           + ".NoBeamTiltSelected");
   private final EtomoBoolean2 fixedBeamTiltSelectedB = new EtomoBoolean2(
       AxisID.SECOND.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
           + ".FixedBeamTiltSelected");
-  private final EtomoNumber fixedBeamTiltB = new EtomoNumber(EtomoNumber.Type.FLOAT,
-      AxisID.SECOND.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
-          + ".FixedBeamTilt");
+  private final EtomoNumber fixedBeamTiltB = new EtomoNumber(AxisID.SECOND.getExtension()
+      + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTilt");
   private final FortranInputString sizeToOutputInXandYA = new FortranInputString(2);
   private final FortranInputString sizeToOutputInXandYB = new FortranInputString(2);
   /**
@@ -579,8 +577,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + USE_KEY + RAW_STACK_KEY);
   private final EtomoNumber trackRaptorMarkA = new EtomoNumber(TRACK_KEY + "."
       + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + MARK_KEY);
-  private final EtomoNumber trackRaptorDiamA = new EtomoNumber(EtomoNumber.Type.LONG,
-      TRACK_KEY + "." + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + DIAM_KEY);
+  private final EtomoNumber trackRaptorDiamA = new EtomoNumber(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + DIAM_KEY);
 
   private final EtomoBoolean2 stackEraseGoldModelUseFidA = new EtomoBoolean2(STACK_KEY
       + "." + FIRST_AXIS_KEY + "." + ERASE_GOLD_KEY + "." + MODEL_USE_FID_KEY);
@@ -916,7 +914,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public void setDistortionFile(final String distortionFile) {
     this.distortionFile = distortionFile;
   }
-  
+
   public void setEraseBeadsInitialized(final boolean input) {
     eraseBeadsInitialized.set(input);
   }
@@ -1720,7 +1718,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
         TILT_3D_FIND_A_TILT_PARALLEL_KEY, props, prepend);
     tilt3dFindTiltParallelB = EtomoBoolean2.load(tilt3dFindTiltParallelB,
         TILT_3D_FIND_B_TILT_PARALLEL_KEY, props, prepend);
-    eraseBeadsInitialized.load(props,prepend);
+    eraseBeadsInitialized.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(final AxisID axisID, final boolean selected) {
@@ -1856,7 +1854,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public String getSecondAxisPrepend() {
     return secondAxisPrepend;
   }
-  
+
   String getGroupKey() {
     return "Setup";
   }
@@ -2035,7 +2033,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     postTrimvolScaleXMax.store(props, prepend);
     postTrimvolScaleYMin.store(props, prepend);
     postTrimvolScaleYMax.store(props, prepend);
-    eraseBeadsInitialized.store(props,prepend);
+    eraseBeadsInitialized.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -2739,7 +2737,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public boolean isDistortionCorrection() {
     return !distortionFile.equals("") || !magGradientFile.equals("");
   }
-  
+
   public boolean isEraseBeadsInitialized() {
     return eraseBeadsInitialized.is();
   }

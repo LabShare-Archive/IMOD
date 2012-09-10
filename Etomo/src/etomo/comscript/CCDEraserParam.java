@@ -442,8 +442,8 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
     if (!annulusWidth.equals("") || outerRadius.equals("") || maximumRadius.equals("")) {
       return;
     }
-    annulusWidth = String.valueOf(Float.parseFloat(outerRadius)
-        - Float.parseFloat(maximumRadius));
+    annulusWidth = String.valueOf(Double.parseDouble(outerRadius)
+        - Double.parseDouble(maximumRadius));
   }
 
   public void setInputFile(String inputFile) {

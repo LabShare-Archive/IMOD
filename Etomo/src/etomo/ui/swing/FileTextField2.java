@@ -65,7 +65,6 @@ final class FileTextField2 implements FileTextFieldInterface {
    */
   private boolean originEtomoRunDir = false;
 
-
   private FileTextField2(final BaseManager manager, final String label,
       final boolean labeled, final boolean peet) {
     if (!peet) {
@@ -123,7 +122,7 @@ final class FileTextField2 implements FileTextFieldInterface {
 
   private void createPanel() {
     // init
-    field.setTextPreferredSize(new Dimension(250 * Math.round(UIParameters.INSTANCE
+    field.setTextPreferredSize(new Dimension(250 * (int) Math.round(UIParameters.INSTANCE
         .getFontSizeAdjustment()), FixedDim.folderButton.height));
     button.setName(label.getText());
     button.setPreferredSize(FixedDim.folderButton);
@@ -230,7 +229,7 @@ final class FileTextField2 implements FileTextFieldInterface {
   boolean isEmpty() {
     return field.getText() == null || field.getText().matches("\\s*");
   }
-  
+
   boolean isEnabled() {
     return button.isEnabled();
   }
