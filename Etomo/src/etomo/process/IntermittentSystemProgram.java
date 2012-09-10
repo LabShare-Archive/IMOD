@@ -59,8 +59,8 @@ public class IntermittentSystemProgram {
       String propertyUserDir, String intermittentCommand, AxisID axisID,
       String outputKeyPhrase) {
 
-    return new IntermittentSystemProgram(manager, propertyUserDir, intermittentCommand
-        .split("\\s+"), axisID, outputKeyPhrase, false);
+    return new IntermittentSystemProgram(manager, propertyUserDir,
+        intermittentCommand.split("\\s+"), axisID, outputKeyPhrase, false);
   }
 
   boolean useStartCommand() {
@@ -85,10 +85,9 @@ public class IntermittentSystemProgram {
    * by running stderr.get();
    */
   void clearStdError() {
-    if (program == null || program.stderr == null) {
-      return;
+    if (program != null) {
+      program.clearStdError();
     }
-    program.stderr.clear();
   }
 
   public boolean isDone() {
@@ -129,11 +128,7 @@ public class IntermittentSystemProgram {
    * the program.  Each line of standard out is stored in a String.
    */
   public String[] getStdOutput(IntermittentProcessMonitor monitor) {
-    if (program.stdout == null) {
-      return null;
-    }
-    String[] stdOutputArray = program.stdout.get(monitor);
-    return stdOutputArray;
+    return program.getStdOutput(monitor);
   }
 
   /**
@@ -142,17 +137,11 @@ public class IntermittentSystemProgram {
    * the program.  Each line of standard err is stored in a String.
    */
   public String[] getStdError(IntermittentProcessMonitor monitor) {
-    if (program.stderr == null) {
-      return null;
-    }
-    String[] stdErrorArray = program.stderr.get(monitor);
-    return stdErrorArray;
+    return program.getStdError(monitor);
   }
 
   public void msgDroppedMonitor(IntermittentProcessMonitor monitor) {
-    if (program.stdout != null) {
-      program.stdout.dropListener(monitor);
-    }
+    program.dropStdOutputListener(monitor);
   }
 }
 /**

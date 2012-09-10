@@ -1474,6 +1474,38 @@ public abstract class BaseProcessManager {
   }
 
   /**
+   * Log the end of the stdout and stderr, unless debug is on.
+   * @param descr
+   * @param stdOutput
+   * @param stdError
+   */
+  private void logProcessOutput(final String commandAction, final String[] stdOutput,
+      String[] stdError) {
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+      return;
+    }
+    if ((stdOutput != null && stdOutput.length > 0)
+        || (stdError != null && stdError.length > 0)) {
+      System.err.println("Output from " + commandAction + ":");
+      int linesToLog = 10;
+      if (stdOutput != null && stdOutput.length > 0) {
+        System.err.println("Standard out:");
+        for (int i = stdOutput.length > linesToLog ? stdOutput.length - linesToLog : 0; i < stdOutput.length; i++) {
+          System.err.println(stdOutput[i]);
+        }
+      }
+      if (stdError != null && stdError.length > 0
+          && !stdError[0].trim().startsWith("Python PID:")) {
+        System.err.println("Standard error:");
+        for (int i = stdError.length > linesToLog ? stdError.length - linesToLog : 0; i < stdError.length; i++) {
+          System.err.println(stdError[i]);
+        }
+      }
+      System.err.println();
+    }
+  }
+
+  /**
    * A message specifying that a com script has finished execution
    * 
    * @param script
@@ -1513,6 +1545,8 @@ public abstract class BaseProcessManager {
       errorProcess(script);
     }
     else {
+      logProcessOutput(script.getCommandAction(),
+          script.getStdOutput(), script.getStdError());
       postProcess(script);
       ProcessMessages messages = script.getProcessMessages();/* Warning */
       if (messages.warningListSize() > 0) {
@@ -1568,6 +1602,7 @@ public abstract class BaseProcessManager {
       errorProcess(script);
     }
     else {
+      logProcessOutput(name, script.getStdOutput(), script.getStdError());
       postProcess(script);
       ProcessMessages messages = script.getProcessMessages();/* Warning */
       if (messages.warningListSize() > 0) {
@@ -1831,6 +1866,8 @@ public abstract class BaseProcessManager {
       errorProcess(process);
     }
     else {
+      logProcessOutput(process.getCommandAction(), process.getStdOutput(),
+          process.getStdError());
       postProcess(process);
     }
     manager.saveStorables(process.getAxisID());
@@ -1868,6 +1905,8 @@ public abstract class BaseProcessManager {
       errorProcess(process);
     }
     else {
+      logProcessOutput(process.getCommandAction(), process.getStdOutput(),
+          process.getStdError());
       postProcess(process);
       ProcessMessages messages = process.getProcessMessages();
       if (messages != null && messages.warningListSize() > 0) {
@@ -1898,6 +1937,8 @@ public abstract class BaseProcessManager {
 
   public final void msgInteractiveSystemProgramDone(
       final InteractiveSystemProgram program, final int exitValue) {
+    logProcessOutput(program.getCommandAction(), program.getStdOutput(),
+        program.getStdError());
     postProcess(program);
     manager.saveStorables(program.getAxisID());
   }

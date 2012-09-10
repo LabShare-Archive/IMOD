@@ -500,10 +500,22 @@ public class Utilities {
     return ACTION_TAG + "Copied " + from.getName() + " to " + to.getName();
   }
 
-  public static String prepareCommandActionMessage(final String[] commandArray,
+  /**
+   * Returns the command action message.  Returns null if the --actions parameter was not
+   * set, or the commandAction string is null.
+   * @param commandAction
+   * @return
+   */
+  public static String getCommandActionMessage(final String commandAction) {
+    if (EtomoDirector.INSTANCE.getArguments().isActions() || commandAction == null) {
+      return null;
+    }
+    return ACTION_TAG + "Ran " + commandAction;
+  }
+
+  public static String getCommandAction(final String[] commandArray,
       final String[] stdInput) {
-    if (!EtomoDirector.INSTANCE.getArguments().isActions() || commandArray == null
-        || commandArray.length == 0) {
+    if (commandArray == null || commandArray.length == 0) {
       return null;
     }
     String command = commandArray[0].trim();
@@ -516,6 +528,7 @@ public class Utilities {
       return null;
     }
     int commandLength = 1;
+
     int stdMax = 0;
     if (command.endsWith(ProcessName.CLIP.toString())) {
       commandLength = 2;
@@ -542,6 +555,9 @@ public class Utilities {
     }
     else if (command.endsWith("cmd.exe")) {
       commandLength = 3;
+    }
+    else if (command.startsWith("sh")) {
+      commandLength = 2;
     }
     StringBuffer buffer = new StringBuffer();
     String param = null;
@@ -663,12 +679,11 @@ public class Utilities {
         }
       }
     }
-    return ACTION_TAG + "Ran " + buffer;
+    return buffer.toString();
   }
 
-  public static String prepareCommandActionMessage(String commandLine) {
-    if (!EtomoDirector.INSTANCE.getArguments().isActions() || commandLine == null
-        || commandLine.length() == 0) {
+  public static String getCommandAction(String commandLine) {
+    if (commandLine == null || commandLine.length() == 0) {
       return null;
     }
     commandLine = commandLine.trim();
@@ -678,7 +693,7 @@ public class Utilities {
         || commandLine.indexOf("imodsendevent") != -1) {
       return null;
     }
-    return ACTION_TAG + "Ran " + commandLine;
+    return commandLine;
   }
 
   /**
