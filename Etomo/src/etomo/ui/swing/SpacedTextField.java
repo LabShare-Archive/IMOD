@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.KeyListener;
 
@@ -10,9 +11,12 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import etomo.EtomoDirector;
+import etomo.logic.FieldValidator;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.Utilities;
 
 /**
@@ -28,15 +32,18 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class SpacedTextField {
+final class SpacedTextField implements UIComponent {
   public static final String rcsid = "$Id$";
 
-  private JTextField textField = new JTextField();
-  private JLabel label = null;
-  private JPanel fieldPanel = null;
-  private JPanel yAxisPanel = null;
+  private final JTextField textField = new JTextField();
+  private final JPanel fieldPanel = new JPanel();
+  private final JPanel yAxisPanel = new JPanel();
 
-  SpacedTextField(String label) {
+  private final JLabel label;
+  private final FieldType fieldType;
+
+  SpacedTextField(final FieldType fieldType, String label) {
+    this.fieldType = fieldType;
     // set name
     String name = Utilities.convertLabelToName(label);
     textField.setName(UITestFieldType.TEXT_FIELD.toString()
@@ -48,9 +55,7 @@ final class SpacedTextField {
     label = label.trim();
     this.label = new JLabel(label);
     // panels
-    yAxisPanel = new JPanel();
     yAxisPanel.setLayout(new BoxLayout(yAxisPanel, BoxLayout.Y_AXIS));
-    fieldPanel = new JPanel();
     fieldPanel.setLayout(new BoxLayout(fieldPanel, BoxLayout.X_AXIS));
     // fieldPanel
     fieldPanel.add(Box.createRigidArea(FixedDim.x5_y0));
@@ -63,7 +68,7 @@ final class SpacedTextField {
     yAxisPanel.add(Box.createRigidArea(FixedDim.x0_y5));
   }
 
-  final void setToolTipText(String text) {
+  void setToolTipText(String text) {
     String tooltip = TooltipFormatter.INSTANCE.format(text);
     textField.setToolTipText(tooltip);
     label.setToolTipText(tooltip);
@@ -71,7 +76,14 @@ final class SpacedTextField {
     yAxisPanel.setToolTipText(tooltip);
   }
 
-  final Container getContainer() {
+  Container getContainer() {
+    if (yAxisPanel != null) {
+      return yAxisPanel;
+    }
+    return fieldPanel;
+  }
+
+  public Component getComponent() {
     if (yAxisPanel != null) {
       return yAxisPanel;
     }
@@ -102,8 +114,17 @@ final class SpacedTextField {
     return label.getText();
   }
 
-  final String getText() {
-    return textField.getText();
+  final String getText(final boolean doValidation) throws FieldValidationFailedException {
+    String text = textField.getText();
+    if (doValidation && textField.isEnabled() && textField.isVisible()
+        && fieldType.validationType.canValidate) {
+      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel());
+    }
+    return text;
+  }
+
+  String getQuotedLabel() {
+    return Utilities.quoteLabel(label.getText());
   }
 
   final void setVisible(boolean visible) {
