@@ -638,11 +638,17 @@ final class TiltalignPanel implements Expandable {
   }
 
   void getParameters(final MetaData metaData) {
-    metaData.setTargetPatchSizeXandY(rtfTargetPatchSizeXandY.getText());
-    metaData.setNumberOfLocalPatchesXandY(rtfNLocalPatches.getText());
-    metaData.setNoBeamTiltSelected(axisID, rbNoBeamTilt.isSelected());
-    metaData.setFixedBeamTiltSelected(axisID, rtfFixedBeamTilt.isSelected());
-    metaData.setFixedBeamTilt(axisID, rtfFixedBeamTilt.getText());
+    boolean doValidation = false;
+    try {
+      metaData.setTargetPatchSizeXandY(rtfTargetPatchSizeXandY.getText(doValidation));
+      metaData.setNumberOfLocalPatchesXandY(rtfNLocalPatches.getText(doValidation));
+      metaData.setNoBeamTiltSelected(axisID, rbNoBeamTilt.isSelected());
+      metaData.setFixedBeamTiltSelected(axisID, rtfFixedBeamTilt.isSelected());
+      metaData.setFixedBeamTilt(axisID, rtfFixedBeamTilt.getText(doValidation));
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
   }
 
   /**
@@ -741,11 +747,11 @@ final class TiltalignPanel implements Expandable {
 
         badParameter = rtfTargetPatchSizeXandY.getLabel();
         params.setTargetPatchSizeXandYActive(rtfTargetPatchSizeXandY.isSelected());
-        params.setTargetPatchSizeXandY(rtfTargetPatchSizeXandY.getText());
+        params.setTargetPatchSizeXandY(rtfTargetPatchSizeXandY.getText(doValidation));
 
         badParameter = rtfNLocalPatches.getLabel();
         params.setNumberOfLocalPatchesXandYActive(rtfNLocalPatches.isSelected());
-        params.setNumberOfLocalPatchesXandY(rtfNLocalPatches.getText());
+        params.setNumberOfLocalPatchesXandY(rtfNLocalPatches.getText(doValidation));
 
         badParameter = ltfMinLocalPatchSize.getLabel();
         params.setMinSizeOrOverlapXandY(ltfMinLocalPatchSize.getText());
@@ -916,7 +922,7 @@ final class TiltalignPanel implements Expandable {
         else if (rtfFixedBeamTilt.isSelected()) {
           badParameter = rtfFixedBeamTilt.getLabel();
           params.setBeamTiltOption(TiltalignParam.FIXED_OPTION);
-          params.setFixedOrInitialBeamTilt(rtfFixedBeamTilt.getText());
+          params.setFixedOrInitialBeamTilt(rtfFixedBeamTilt.getText(doValidation));
         }
         else if (rbSolveForBeamTilt.isSelected()) {
           badParameter = rbSolveForBeamTilt.getText();
@@ -939,17 +945,22 @@ final class TiltalignPanel implements Expandable {
   }
 
   boolean isValid() {
-    if (rtfFixedBeamTilt.isSelected() && rtfFixedBeamTilt.getText().equals("")) {
-      UIHarness.INSTANCE.openMessageDialog(appMgr, rtfFixedBeamTilt.getLabel()
-          + " can not be empty when it is selected.", "Entry Error");
-      return false;
+    try {
+      if (rtfFixedBeamTilt.isSelected() && rtfFixedBeamTilt.getText(false).equals("")) {
+        UIHarness.INSTANCE.openMessageDialog(appMgr, rtfFixedBeamTilt.getLabel()
+            + " can not be empty when it is selected.", "Entry Error");
+        return false;
+      }
+      if (patchTracking && rbDualFiducialSurfaces.isSelected()) {
+        UIHarness.INSTANCE.openMessageDialog(appMgr,
+            "Patch tracking puts fiducials only on one side.  Select \""
+                + rbSingleFiducialSurface.getText() + "\" for better results.",
+            "Entry Warning", axisID);
+        // This is just a warning so don't return false.
+      }
     }
-    if (patchTracking && rbDualFiducialSurfaces.isSelected()) {
-      UIHarness.INSTANCE.openMessageDialog(appMgr,
-          "Patch tracking puts fiducials only on one side.  Select \""
-              + rbSingleFiducialSurface.getText() + "\" for better results.",
-          "Entry Warning", axisID);
-      // This is just a warning so don't return false.
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
     }
     return true;
   }

@@ -644,8 +644,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       boolean doValidation = false;
       if (panelId == PanelId.PATCH_TRACKING) {
         metaData
-            .setTrackOverlapOfPatchesXandY(axisID, rtfOverlapOfPatchesXandY.getText());
-        metaData.setTrackNumberOfPatchesXandY(axisID, rtfNumberOfPatchesXandY.getText());
+            .setTrackOverlapOfPatchesXandY(axisID, rtfOverlapOfPatchesXandY.getText(doValidation));
+        metaData.setTrackNumberOfPatchesXandY(axisID, rtfNumberOfPatchesXandY.getText(doValidation));
         metaData.setTrackLengthAndOverlap(axisID,
             ctfLengthAndOverlap.getText(doValidation));
       }
@@ -746,14 +746,14 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
           }
           currentParam = rtfOverlapOfPatchesXandY.getLabel();
           if (rtfOverlapOfPatchesXandY.isSelected()) {
-            tiltXcorrParams.setOverlapOfPatchesXandY(rtfOverlapOfPatchesXandY.getText());
+            tiltXcorrParams.setOverlapOfPatchesXandY(rtfOverlapOfPatchesXandY.getText(doValidation));
           }
           else {
             tiltXcorrParams.resetOverlapOfPatchesXandY();
           }
           currentParam = rtfNumberOfPatchesXandY.getLabel();
           if (rtfNumberOfPatchesXandY.isSelected()) {
-            tiltXcorrParams.setNumberOfPatchesXandY(rtfNumberOfPatchesXandY.getText());
+            tiltXcorrParams.setNumberOfPatchesXandY(rtfNumberOfPatchesXandY.getText(doValidation));
           }
           else {
             tiltXcorrParams.resetNumberOfPatchesXandY();
