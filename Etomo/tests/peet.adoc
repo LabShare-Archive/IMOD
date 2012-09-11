@@ -340,6 +340,13 @@ sp.particles-per-cpu=1
 #save=
 #write.file = %{dataset}.prm|flgMeanFill = 1
 #
+[[if == test-gui]]
+  tf.particle=abc
+  bn.run=
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tf.particle=
+[[]]
 bn.run=
 wait.process.processchunks-%{dataset}=done
 [[if = test-gui]]
