@@ -475,6 +475,14 @@ mb.find-beads-3d=+
 	rb.set-threshold-for-storing=
 	assert.enabled.tf.set-threshold-for-storing=
 	rb.store-some-points-below-threshold=
+	#test field validation
+	rb.set-threshold-for-storing=
+	tf.set-threshold-for-storing=abc
+	bn.run-findbeads3d=
+	wait.popup.field-validation-failed=OK
+	assert.disabled.bn.kill-process=
+	tf.set-threshold-for-storing=
+	rb.store-some-points-below-threshold=
 [[]]
 # run
 bn.run-findbeads3d=
