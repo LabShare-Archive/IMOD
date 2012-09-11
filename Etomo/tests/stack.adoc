@@ -591,6 +591,12 @@ tb.create.3=
 	mb.2d-filtering=A
 	assert.enabled.tf.starting-and-ending-views=
 	mb.2d-filtering=B
+	#test field validation
+	tf.starting-and-ending-views=abc
+	bn.filter =
+	wait.popup.field-validation-failed=OK
+	assert.disabled.bn.kill-process=
+	tf.starting-and-ending-views=
 [[]]
 
 # Inverse Filtering Parameters
