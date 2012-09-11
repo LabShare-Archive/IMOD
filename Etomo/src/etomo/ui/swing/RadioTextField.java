@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -9,10 +10,13 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
+import etomo.logic.FieldValidator;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EnumeratedType;
 import etomo.type.ParsedElement;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -65,13 +69,13 @@ import etomo.ui.FieldType;
  * <p> JTextField when the radio button is not selected.
  * <p> </p>
  */
-final class RadioTextField implements RadioButtonInterface {
+final class RadioTextField implements RadioButtonInterface, UIComponent {
   public static final String rcsid = "$Id$";
 
   private final JPanel rootPanel = new JPanel();
   private final RadioButton radioButton;
   private final TextField textField;
-  final FieldType fieldType;
+  private final FieldType fieldType;
 
   /**
    * Constructs local instance, adds listener, and returns.
@@ -113,6 +117,10 @@ final class RadioTextField implements RadioButtonInterface {
     return rootPanel;
   }
 
+  public Component getComponent() {
+    return rootPanel;
+  }
+
   void setText(final int value) {
     textField.setText(String.valueOf(value));
   }
@@ -146,12 +154,19 @@ final class RadioTextField implements RadioButtonInterface {
     return radioButton.getText();
   }
 
-  String getText() {
+  String getText(final boolean doValidation) throws FieldValidationFailedException {
     String text = textField.getText();
+    if (doValidation && textField.isEnabled() && fieldType.validationType.canValidate) {
+      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel());
+    }
     if (text == null || text.matches("\\s*")) {
       return "";
     }
     return text;
+  }
+
+  String getQuotedLabel() {
+    return Utilities.quoteLabel(radioButton.getText());
   }
 
   public EnumeratedType getEnumeratedType() {
