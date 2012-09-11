@@ -1121,9 +1121,16 @@ final class AutodocTester extends Assert implements VariableList {
     else if (actionType == UITestActionType.TOUCH) {
       assertTrue("only the always modifier is allowed with this actionType (" + command
           + ")", modifierType == null);
-      // copy.file = file_name
-      assertEquals("can only touch a file", UITestSubjectType.FILE, subjectType);
-      testRunner.touchFile(command.getValue(0));
+      // touch.file = file_name
+      if (subjectType == UITestSubjectType.FILE) {
+        touchFile(command.getValue(0));
+      }
+      else if (subjectType == UITestSubjectType.DIR) {
+        touchDir(command.getValue(0));
+      }
+      else {
+        fail("can only touch a file or a directory");
+      }
     }
     // UNSET
     else if (actionType == UITestActionType.SET) {
@@ -1303,6 +1310,42 @@ final class AutodocTester extends Assert implements VariableList {
       fail("unexpected command (" + command.toString() + ")");
     }
     return true;
+  }
+
+  /**
+   * touch a file in the working directory.
+   * @param fileName
+   */
+  private void touchFile(final String fileName) {
+    if (fileName == null || fileName.matches("\\s*")) {
+      return;
+    }
+    touch(new File(System.getProperty("user.dir"), fileName));
+  }
+
+  /**
+   * touch a directory in the working directory if it exists, otherwise create it.
+   * @param fileName
+   */
+  private void touchDir(final String dirName) {
+    if (dirName == null || dirName.matches("\\s*")) {
+      return;
+    }
+    File dir = new File(System.getProperty("user.dir"), dirName);
+    if (dir.exists()) {
+      touch(dir);
+    }
+    else {
+      SystemProgram mkdir = new SystemProgram(null, System.getProperty("user.dir"),
+          new String[] { "mkdir", dir.getAbsolutePath() }, AxisID.ONLY);
+      mkdir.run();
+    }
+  }
+
+  private void touch(final File file) {
+    SystemProgram copy = new SystemProgram(null, System.getProperty("user.dir"),
+        new String[] { "touch", file.getAbsolutePath() }, AxisID.ONLY);
+    copy.run();
   }
 
   boolean isDialogSectionComplete(final String dialogSection) {
