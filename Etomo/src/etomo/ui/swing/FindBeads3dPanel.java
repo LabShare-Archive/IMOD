@@ -28,6 +28,7 @@ import etomo.type.FileType;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -247,22 +248,29 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     }
   }
 
-  public void getParameters(FindBeads3dParam param) {
-    param.setInputFile(FileType.TILT_3D_FIND_OUTPUT);
-    param.setOutputFile(FileType.FIND_BEADS_3D_OUTPUT_MODEL.getFileName(manager, axisID));
-    param.setBeadSize(ltfBeadSize.getText());
-    param.setMinSpacing(ltfMinSpacing.getText());
-    param.setGuessNumBeads(ltfGuessNumBeads.getText());
-    param.setMinRelativeStrength(ltfMinRelativeStrength.getText());
-    param.setThresholdForAveraging(ltfThresholdForAveraging.getText());
-    if (!rtfStorageThreshold.isSelected()) {
-      param.setStorageThreshold(((RadioButton.RadioButtonModel) bgStorageThreshold
-          .getSelection()).getEnumeratedType().getValue());
+  public boolean getParameters(final FindBeads3dParam param, final boolean doValidation) {
+    try {
+      param.setInputFile(FileType.TILT_3D_FIND_OUTPUT);
+      param.setOutputFile(FileType.FIND_BEADS_3D_OUTPUT_MODEL
+          .getFileName(manager, axisID));
+      param.setBeadSize(ltfBeadSize.getText());
+      param.setMinSpacing(ltfMinSpacing.getText());
+      param.setGuessNumBeads(ltfGuessNumBeads.getText());
+      param.setMinRelativeStrength(ltfMinRelativeStrength.getText());
+      param.setThresholdForAveraging(ltfThresholdForAveraging.getText());
+      if (!rtfStorageThreshold.isSelected()) {
+        param.setStorageThreshold(((RadioButton.RadioButtonModel) bgStorageThreshold
+            .getSelection()).getEnumeratedType().getValue());
+      }
+      else {
+        param.setStorageThreshold(rtfStorageThreshold.getText(doValidation));
+      }
+      param.setMaxNumBeads(ltfMaxNumBeads.getText());
     }
-    else {
-      param.setStorageThreshold(rtfStorageThreshold.getText());
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-    param.setMaxNumBeads(ltfMaxNumBeads.getText());
+    return true;
   }
 
   public String getBeadSize() {
