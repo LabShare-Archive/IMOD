@@ -51,6 +51,8 @@ import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
 import etomo.type.ViewType;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.DatasetFiles;
 
 /**
@@ -231,7 +233,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
       "View Filtered Stack", this);
   private final MultiLineButton btnUseFilter;
   private final SpacedTextField ltfStartingAndEndingZ = new SpacedTextField(
-      "Starting and ending views: ");
+      FieldType.INTEGER_PAIR, "Starting and ending views: ");
 
   // headers should not go into garbage collection
   private final PanelHeader filterHeader = PanelHeader.getAdvancedBasicOnlyInstance(
@@ -511,8 +513,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     return ltfMtfFile.getText();
   }
 
-  String getStartingAndEndingZ() {
-    return ltfStartingAndEndingZ.getText();
+  String getStartingAndEndingZ(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfStartingAndEndingZ.getText(doValidation);
   }
 
   void setUseExpectedDefocus(boolean input) {
@@ -960,7 +963,12 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   }
 
   public void startingAndEndingZKeyReleased(KeyEvent event) {
-    expert.enableUseFilter();
+    try {
+      expert.enableUseFilter(false);
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
   }
 
   void done() {
