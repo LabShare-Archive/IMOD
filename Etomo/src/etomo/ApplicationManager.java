@@ -4333,7 +4333,7 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     ConstFindBeads3dParam param = null;
-    param = updateFindBeads3dCom(display, axisID);
+    param = updateFindBeads3dCom(display, axisID, true);
     if (param == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -4359,7 +4359,8 @@ public final class ApplicationManager extends BaseManager implements
         ProcessName.FIND_BEADS_3D);
   }
 
-  public FindBeads3dParam updateFindBeads3dCom(FindBeads3dDisplay display, AxisID axisID) {
+  public FindBeads3dParam updateFindBeads3dCom(final FindBeads3dDisplay display,
+      final AxisID axisID, final boolean doValidation) {
     FindBeads3dParam param = comScriptMgr.getFindBeads3dParam(axisID);
     if (!state.isTrackLightBeadsNull(axisID)) {
       param.setLightBeads(state.isTrackLightBeads(axisID));
@@ -4369,7 +4370,9 @@ public final class ApplicationManager extends BaseManager implements
       // Get light beads from track.com.
       BeadtrackParam beadtrackParam = comScriptMgr.getBeadtrackParam(axisID);
     }
-    display.getParameters(param);
+    if (!display.getParameters(param, doValidation)) {
+      return null;
+    }
     comScriptMgr.saveFindBeads3d(param, axisID);
     return param;
   }
