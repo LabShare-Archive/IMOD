@@ -23,6 +23,7 @@ import etomo.type.ConstPeetMetaData;
 import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.FilePath;
 
 /**
@@ -184,11 +185,17 @@ final class ReferencePanel {
    * @param metaData
    */
   void getParameters(final PeetMetaData metaData) {
-    metaData.setReferenceVolume(sVolume.getValue());
-    metaData.setReferenceParticle(rtfParticle.getText());
-    metaData.setReferenceFile(ftfFile.getText());
-    metaData.setReferenceMultiparticleLevel(MultiparticleReference
-        .convertIndexToLevel(cmbMultiparticle.getSelectedIndex()));
+    boolean doValidation = false;
+    try {
+      metaData.setReferenceVolume(sVolume.getValue());
+      metaData.setReferenceParticle(rtfParticle.getText(doValidation));
+      metaData.setReferenceFile(ftfFile.getText());
+      metaData.setReferenceMultiparticleLevel(MultiparticleReference
+          .convertIndexToLevel(cmbMultiparticle.getSelectedIndex()));
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
   }
 
   /**
@@ -228,19 +235,25 @@ final class ReferencePanel {
    * Send active data to MatlabParam.
    * @param matlabParam
    */
-  void getParameters(final MatlabParam matlabParam) {
-    if (rtfParticle.isSelected()) {
-      matlabParam.setReferenceVolume(sVolume.getValue());
-      matlabParam.setReferenceParticle(rtfParticle.getText());
+  boolean getParameters(final MatlabParam matlabParam, final boolean doValidation) {
+    try {
+      if (rtfParticle.isSelected()) {
+        matlabParam.setReferenceVolume(sVolume.getValue());
+        matlabParam.setReferenceParticle(rtfParticle.getText(doValidation));
+      }
+      else if (rbFile.isSelected()) {
+        matlabParam.setReferenceFile(ftfFile.getText());
+      }
+      else if (rbMultiparticle.isSelected()) {
+        matlabParam.setFlgFairReference(true);
+        matlabParam.setReferenceLevel(MultiparticleReference
+            .convertIndexToLevel(cmbMultiparticle.getSelectedIndex()));
+      }
     }
-    else if (rbFile.isSelected()) {
-      matlabParam.setReferenceFile(ftfFile.getText());
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-    else if (rbMultiparticle.isSelected()) {
-      matlabParam.setFlgFairReference(true);
-      matlabParam.setReferenceLevel(MultiparticleReference
-          .convertIndexToLevel(cmbMultiparticle.getSelectedIndex()));
-    }
+    return true;
   }
 
   /**
