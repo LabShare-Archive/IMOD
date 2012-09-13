@@ -1,5 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/12/12: Added a program, Joinwarp2model, to produce a model file from warping
+control points in joining, which should be used as starting point for a
+refining model.
+
+9/12/12: Properly added Setupstitch to distribution.
+
+9/12/12: Fixed an inadequate memory allocation in Tiltalign.
+
+9/12/12: Etomo fixed to deal with KFactorScaling entry properly.
+
 9/6/12: IMOD_4-6-11
 9/6/12: In eTomo fixed a bug which caused Tomogram Setup to fail when there was
 a subdirectory in the target directory.(Bug# 1640)

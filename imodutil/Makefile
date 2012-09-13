@@ -17,7 +17,7 @@ PROGS = clonemodel$(E) clonevolume$(E) imodauto$(E) imod-dist$(E) \
  imod2meta$(E) wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) \
  imodexplode$(E) patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) \
  imodcurvature$(E) imodfindbeads$(E) point2model$(E) flattenwarp$(E) \
- slashmasksort$(E) slashsplitconts$(E) $(IMODWINCPU)
+ slashmasksort$(E) slashsplitconts$(E) joinwarp2model$(E) $(IMODWINCPU)
 
 all : $(PROGS) slashfindspheres$(E)
 
@@ -45,6 +45,10 @@ imodmop$(E) : imodmop.$(O)
 
 imodauto$(E) : imodauto.$(O) 
 	$(CC) -o imodauto imodauto.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
+
+joinwarp2model$(E) : joinwarp2model.$(O) 
+	$(CC) -o joinwarp2model joinwarp2model.$(O) $(LDFLAGS) $(LIWARP) $(IILIBS) \
+	$(CLIBS)
 
 rec2imod$(E) : rec2imod.$(O) recfile.$(O)
 	$(CC) -o rec2imod rec2imod.$(O) recfile.$(O) $(LDFLAGS) $(MODLIBS) \

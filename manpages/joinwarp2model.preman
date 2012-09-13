@@ -1,0 +1,45 @@
+.na
+.nh
+.TH joinwarp2model 1 4.6.12 BL3DEMC
+.SH NAME
+joinwarp2model \- Selects best seed points for autofidseed
+.SH SYNOPSIS
+joinwarp2model options warping_xf_file model_file
+.SH DESCRIPTION
+Joinwarp2model produces a model file that can be used as a starting point for
+a refining model when joining serial tomograms where warping has been applied in the
+first alignment stage of joining.  Each warping control point introduced in
+Midas(1) is converted to a contour with a pair of points.  These two points
+will display just below and
+just above the junction in the joined file that a refining model is being
+built on, as required by Xfjointomo(1).  The premise here is that you have
+already identified each such pair of points as corresponding between the two
+sections when you imposed the warping.  It is thus appropriate and important
+to keep all of these correspondences in the refining model.  In the ideal
+case, if the modeled
+trajectories are all perfectly consistent with these correspondences, then the
+correspondences will be retained and the transform fitting will produce a unit
+transformation at the correct gap between sections.  More realistically, the
+correspondences implied by the trajectories will not agree perfectly with the
+correspondences created by warping, and the fitting will average over all of
+the data, producing a non-unit linear transformation and shifting the
+warping points out of correspondence to some extent.
+.SS Options
+Joinwarp2model uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -).  Options can be abbreviated to unique letters; the currently
+valid abbreviations for short names are shown in parentheses.
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH AUTHOR
+.nf
+David Mastronarde
+.fi
+.SH SEE ALSO
+xfjointomo(1), midas(1), finishjoin(1)
+.P
+Email bug reports to mast@colorado.edu.
