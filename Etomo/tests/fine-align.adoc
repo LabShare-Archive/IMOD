@@ -266,7 +266,7 @@ assert.enabled.tf.tilt-axis-z-shift=
 [function = minimization-parameters-test-gui-advanced]
 # check values
 assert.cb.do-robust-fitting-with-tuning-factor=off
-assert.tf.do-robust-fitting-with-tuning-factor=
+assert.tf.do-robust-fitting-with-tuning-factor=1.0
 assert.tf.metro-factor=0.25
 assert.tf.cycle-limit=1000
 # check enabled/disabled
