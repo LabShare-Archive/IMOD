@@ -116,8 +116,7 @@ final class SpacedTextField implements UIComponent {
 
   final String getText(final boolean doValidation) throws FieldValidationFailedException {
     String text = textField.getText();
-    if (doValidation && textField.isEnabled() && textField.isVisible()
-        && fieldType.validationType.canValidate) {
+    if (doValidation && textField.isEnabled() && fieldType.validationType.canValidate) {
       text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel());
     }
     return text;
