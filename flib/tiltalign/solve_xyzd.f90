@@ -236,7 +236,7 @@ CONTAINS
   !
   subroutine solveIteratively(maxSolve)
     integer*4 maxSolve
-    real*4 errList(maxSolve)
+    real*4 errList(maxSolve + 5)
     integer*4 itry, iminTilt, isolMinInit, isolMin, isolve, iv, ipt, nsum
     real*4 errMinInit, errMin, cgx, cgy
 
