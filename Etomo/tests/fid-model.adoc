@@ -348,6 +348,7 @@ bn.track-patches=
 wait.process.cross-correlating-stack=done
 [[if = test-gui]]
   assert.contains.file=xcorr_pt.com|TiltFile*%{dataset}%{axis}.rawtlt
+  tf.break-contours-into-pieces=16,4abc
 [[]]
 
 
