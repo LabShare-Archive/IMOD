@@ -790,6 +790,7 @@ if twoSurf:
       viewStr = str(includedViews[seedViews[ind]] + 1)
       sortcom = ['TextFileWithSurfaces ' + tmpsurf[ind],
                  'ValuesToRestrainSorting 1',
+                 'FlipYandZ 0',
                  'InputFile ' + tmpxyzmod[ind],
                  'OutputFile ' + tmpsortmod[ind]]
       if subareaSize:
