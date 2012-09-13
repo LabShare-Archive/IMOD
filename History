@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/12/12: IMOD_4-6-12
 9/12/12: Added a program, Joinwarp2model, to produce a model file from warping
 control points in joining, which should be used as starting point for a
 refining model.
