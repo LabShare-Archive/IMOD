@@ -50,6 +50,12 @@ bn.ok=
 run.function.initial-blend=
 run.function.align=
 run.function.make-stack=
+[[if = test-gui]]
+  #field validation should not be preformed when just saving a dialog
+  tb.initial-blend=
+  cb.robust-fitting-for-criterion=on
+  tf.robust-fitting-for-criterion=1.0abc
+[[]]
 
 
 [function = initial-blend]

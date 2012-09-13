@@ -68,6 +68,9 @@ assert.exists.file=%{dataset}%{axis}_fid.xf~
 run.function.copy=
 bn.compute-alignment=
 wait.process.aligning-stack=done
+[[if = test-gui]]
+  tf.do-robust-fitting-with-tuning-factor=abc
+[[]]
 
 
 [function = compute-with-simple-align]
