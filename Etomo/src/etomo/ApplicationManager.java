@@ -79,8 +79,10 @@ import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
+import etomo.storage.LoggableCollection;
 import etomo.storage.Storable;
 import etomo.storage.TaErrorLog;
+import etomo.storage.TaRobustLog;
 import etomo.storage.XrayStackArchiveFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -2402,14 +2404,22 @@ public final class ApplicationManager extends BaseManager implements
         * 100)) / 100.0;
   }
 
-  public void logTaErrorLogMessage(AxisID axisID) {
-    logMessage(TaErrorLog.getInstance(getPropertyUserDir(), axisID), axisID);
+  /**
+   * Logs messages to the project log from the tilt align error log and robust fitting
+   * log.
+   * @param axisID
+   */
+  public void logTiltAlignLogMessage(AxisID axisID) {
+    LoggableCollection collection = new LoggableCollection();
+    collection.addLoggable(TaErrorLog.getInstance(getPropertyUserDir(), axisID));
+    collection.addLoggable(TaRobustLog.getInstance(getPropertyUserDir(), axisID));
+    logMessage(collection, axisID);
   }
 
   public void getContinuousMessage(String message, AxisID axisID) {
     if (message != null && message.indexOf("Tiltalign ran with exit code 0") != -1) {
       processMgr.generateAlignLogs(axisID);
-      logTaErrorLogMessage(axisID);
+      logTiltAlignLogMessage(axisID);
     }
   }
 
