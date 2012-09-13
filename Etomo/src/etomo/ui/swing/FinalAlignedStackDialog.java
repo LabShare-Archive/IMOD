@@ -963,12 +963,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   }
 
   public void startingAndEndingZKeyReleased(KeyEvent event) {
-    try {
-      expert.enableUseFilter(false);
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    expert.enableUseFilter();
   }
 
   void done() {
