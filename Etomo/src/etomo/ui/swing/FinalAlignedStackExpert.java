@@ -33,6 +33,7 @@ import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
 import etomo.type.ViewType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -441,11 +442,11 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       manager.updateNewstCom(dialog.getNewstackDisplay(), axisID, false);
       manager.updateNewst3dFindCom(dialog.getNewstack3dFindDisplay(), axisID, false);
     }
-    updateMTFFilterCom();
+    updateMTFFilterCom(false);
     updateCtfPlotterCom();
     updateCtfCorrectionCom();
-    manager.updateTilt3dFindCom(dialog.getTilt3dFindDisplay(), axisID);
-    manager.updateFindBeads3dCom(dialog.getFindBeads3dDisplay(), axisID);
+    manager.updateTilt3dFindCom(dialog.getTilt3dFindDisplay(), axisID, false);
+    manager.updateFindBeads3dCom(dialog.getFindBeads3dDisplay(), axisID, false);
     manager.updateCcdEraserParam(dialog.getCcdEraserBeadsDisplay(), axisID);
     manager.saveStorables(axisID);
   }
@@ -470,7 +471,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
    * @param axisID
    * @return true if successful
    */
-  private ConstMTFFilterParam updateMTFFilterCom() {
+  private ConstMTFFilterParam updateMTFFilterCom(final boolean doValidation) {
     // Set a reference to the correct object
     if (dialog == null) {
       UIHarness.INSTANCE.openMessageDialog(manager,
@@ -481,7 +482,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     MTFFilterParam mtfFilterParam = null;
     try {
       mtfFilterParam = comScriptMgr.getMTFFilterParam(axisID);
-      getParameters(mtfFilterParam);
+      if (!getParameters(mtfFilterParam, doValidation)) {
+        return null;
+      }
       String inputFileName;
       String outputFileName;
       if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
@@ -534,7 +537,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     sendMsgProcessStarting(processResultDisplay);
     ConstMTFFilterParam param;
-    if ((param = updateMTFFilterCom()) == null) {
+    if ((param = updateMTFFilterCom(true)) == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -777,7 +780,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     state.setUseFilteredStackWarning(axisID, false);
   }
 
-  private void updateFilter(boolean enable) {
+  private void updateFilter(final boolean enable) {
     if (dialog == null) {
       return;
     }
@@ -795,7 +798,13 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       dialog.setUseFilterEnabled(false);
       return;
     }
-    String startingAndEndingZ = dialog.getStartingAndEndingZ();
+    String startingAndEndingZ = null;
+    try {
+      startingAndEndingZ = dialog.getStartingAndEndingZ(false);
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
     if (startingAndEndingZ.length() == 0 || startingAndEndingZ.matches("\\s+")) {
       // btnFilter.setSelected(false);
       dialog.setUseFilterEnabled(true);
@@ -817,16 +826,22 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     return new File(manager.getPropertyUserDir());
   }
 
-  private void getParameters(MTFFilterParam mtfFilterParam)
-      throws FortranInputSyntaxException {
+  private boolean getParameters(final MTFFilterParam mtfFilterParam,
+      final boolean doValidation) throws FortranInputSyntaxException {
     if (dialog == null) {
-      return;
+      return false;
     }
-    mtfFilterParam.setLowPassRadiusSigma(dialog.getLowPassRadiusSigma());
-    mtfFilterParam.setStartingAndEndingZ(dialog.getStartingAndEndingZ());
-    mtfFilterParam.setMtfFile(dialog.getMtfFile());
-    mtfFilterParam.setMaximumInverse(dialog.getMaximumInverse());
-    mtfFilterParam.setInverseRolloffRadiusSigma(dialog.getInverseRolloffRadiusSigma());
+    try {
+      mtfFilterParam.setLowPassRadiusSigma(dialog.getLowPassRadiusSigma());
+      mtfFilterParam.setStartingAndEndingZ(dialog.getStartingAndEndingZ(doValidation));
+      mtfFilterParam.setMtfFile(dialog.getMtfFile());
+      mtfFilterParam.setMaximumInverse(dialog.getMaximumInverse());
+      mtfFilterParam.setInverseRolloffRadiusSigma(dialog.getInverseRolloffRadiusSigma());
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
+    return true;
   }
 
   private void setParameters(ConstCtfPlotterParam param) {
@@ -896,9 +911,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
         * Utilities.getStackBinning(manager, axisID, FileType.ALIGNED_STACK));
   }
 
-  private void setParameters(ConstMTFFilterParam mtfFilterParam) {
+  private boolean setParameters(final ConstMTFFilterParam mtfFilterParam) {
     if (dialog == null) {
-      return;
+      return false;
     }
     dialog.setMtfFile(mtfFilterParam.getMtfFile());
     dialog.setMaximumInverse(mtfFilterParam.getMaximumInverseString());
@@ -907,5 +922,6 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     dialog.setInverseRolloffRadiusSigma(mtfFilterParam
         .getInverseRolloffRadiusSigmaString());
     enableUseFilter();
+    return true;
   }
 }

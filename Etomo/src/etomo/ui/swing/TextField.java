@@ -120,6 +120,10 @@ final class TextField {
     return textField.isEditable();
   }
 
+  boolean isVisible() {
+    return textField.isVisible();
+  }
+
   private void setName(String reference) {
     String name = Utilities.convertLabelToName(reference);
     textField.setName(UITestFieldType.TEXT_FIELD.toString()

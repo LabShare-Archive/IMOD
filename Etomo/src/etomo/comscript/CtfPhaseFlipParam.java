@@ -68,7 +68,7 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam, CommandP
   private final EtomoBoolean2 invertTiltAngles = new EtomoBoolean2(
       INVERT_TILT_ANGLES_OPTION);
   private final ScriptParameter amplitudeContrast = new ScriptParameter(
-      EtomoNumber.Type.FLOAT, AMPLITUDE_CONTRAST_OPTION);
+      EtomoNumber.Type.DOUBLE, AMPLITUDE_CONTRAST_OPTION);
   private final StringParameter defocusFile = new StringParameter("DefocusFile");
   private final ScriptParameter interpolationWidth = new ScriptParameter(
       INTERPOLATION_WIDTH_OPTION);

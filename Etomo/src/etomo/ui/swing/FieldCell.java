@@ -339,12 +339,12 @@ final class FieldCell extends InputCell implements ActionTarget {
     }
   }
 
-  float getFloatValue() {
+  double getDoubleValue() {
     try {
-      return Float.parseFloat(textField.getText());
+      return Double.parseDouble(textField.getText());
     }
     catch (NumberFormatException e) {
-      return EtomoNumber.FLOAT_NULL_VALUE;
+      return EtomoNumber.DOUBLE_NULL_VALUE;
     }
   }
 
@@ -358,10 +358,6 @@ final class FieldCell extends InputCell implements ActionTarget {
 
   ConstEtomoNumber getEtomoNumber(EtomoNumber.Type type) {
     return state.convertToEtomoNumber(type, textField.getText());
-  }
-
-  long getLongValue() {
-    return state.convertToLong(textField.getText());
   }
 
   void setForeground() {

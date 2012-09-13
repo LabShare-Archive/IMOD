@@ -146,7 +146,7 @@ final class FileTextField implements FileTextFieldInterface {
       panel.add(this.label);
     }
     field = new TextField(label);
-    field.setTextPreferredSize(new Dimension(250 * Math.round(UIParameters.INSTANCE
+    field.setTextPreferredSize(new Dimension(250 * (int) Math.round(UIParameters.INSTANCE
         .getFontSizeAdjustment()), FOLDER_BUTTON_SIZE.height));
     constraints.insets = new Insets(0, 0, 0, -1);
     layout.setConstraints(field.getComponent(), constraints);
@@ -284,7 +284,7 @@ final class FileTextField implements FileTextFieldInterface {
   boolean isEmpty() {
     return field.getText().matches("\\s*");
   }
-  
+
   boolean isEditable() {
     return field.isEditable();
   }

@@ -775,7 +775,7 @@ public final class SectionTableRow implements Highlightable {
         valid = false;
         return valid;
       }
-      if (start.getLong() > end.getLong()) {
+      if (start.getInt() > end.getInt()) {
         UIHarness.INSTANCE.openMessageDialog(manager, start.getDescription()
             + " must be less then or equal to " + start.getDescription()
             + ".  Invalid numbers in section " + rowNumber.getText(), "Entry Error",

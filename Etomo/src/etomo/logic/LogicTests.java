@@ -35,6 +35,7 @@ public class LogicTests {
     suite.addTestSuite(MultiparticleReferenceTest.class);
     suite.addTestSuite(TextFieldStateTest.class);
     suite.addTestSuite(DatasetToolTest.class);
+    suite.addTestSuite(FieldValidatorTest.class);
     // $JUnit-END$
     return suite;
   }
