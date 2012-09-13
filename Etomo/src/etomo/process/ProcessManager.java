@@ -2196,7 +2196,7 @@ public class ProcessManager extends BaseProcessManager {
             processDetails.getDoubleValue(TiltalignParam.Fields.ANGLE_OFFSET));
         appManager.postProcess(axisID, processName, processDetails,
             script.getProcessResultDisplay());
-        appManager.logTaErrorLogMessage(axisID);
+        appManager.logTiltAlignLogMessage(axisID);
       }
       else if (processName == ProcessName.ERASER) {
         if (command != null && command.getCommandMode() == CCDEraserParam.Mode.X_RAYS) {
