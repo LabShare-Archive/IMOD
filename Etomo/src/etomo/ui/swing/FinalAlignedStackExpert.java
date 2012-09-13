@@ -310,7 +310,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     setParameters(comScriptMgr.getCtfPlotterParam(axisID));
     dialog.setParameters(screenState);
     comScriptMgr.loadMTFFilter(axisID);
-    setParameters(comScriptMgr.getMTFFilterParam(axisID), false);
+    setParameters(comScriptMgr.getMTFFilterParam(axisID));
     // updateDialog()
     updateFilter(Utilities.fileExists(manager, ".ali", axisID));
 
@@ -784,19 +784,13 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
-    try {
-      enableFiltering = enable;
-      dialog.setFilterButtonEnabled(enableFiltering);
-      dialog.setViewFilterButtonEnabled(enableFiltering);
-      enableUseFilter(false);
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    enableFiltering = enable;
+    dialog.setFilterButtonEnabled(enableFiltering);
+    dialog.setViewFilterButtonEnabled(enableFiltering);
+    enableUseFilter();
   }
 
-  protected void enableUseFilter(final boolean doValidation)
-      throws FieldValidationFailedException {
+  protected void enableUseFilter() {
     if (dialog == null) {
       return;
     }
@@ -804,7 +798,13 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       dialog.setUseFilterEnabled(false);
       return;
     }
-    String startingAndEndingZ = dialog.getStartingAndEndingZ(doValidation);
+    String startingAndEndingZ = null;
+    try {
+      startingAndEndingZ = dialog.getStartingAndEndingZ(false);
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
     if (startingAndEndingZ.length() == 0 || startingAndEndingZ.matches("\\s+")) {
       // btnFilter.setSelected(false);
       dialog.setUseFilterEnabled(true);
@@ -911,23 +911,17 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
         * Utilities.getStackBinning(manager, axisID, FileType.ALIGNED_STACK));
   }
 
-  private boolean setParameters(final ConstMTFFilterParam mtfFilterParam,
-      final boolean doValidation) {
+  private boolean setParameters(final ConstMTFFilterParam mtfFilterParam) {
     if (dialog == null) {
       return false;
     }
-    try {
-      dialog.setMtfFile(mtfFilterParam.getMtfFile());
-      dialog.setMaximumInverse(mtfFilterParam.getMaximumInverseString());
-      dialog.setLowPassRadiusSigma(mtfFilterParam.getLowPassRadiusSigmaString());
-      dialog.setStartingAndEndingZ(mtfFilterParam.getStartingAndEndingZString());
-      dialog.setInverseRolloffRadiusSigma(mtfFilterParam
-          .getInverseRolloffRadiusSigmaString());
-      enableUseFilter(doValidation);
-    }
-    catch (FieldValidationFailedException e) {
-      return false;
-    }
+    dialog.setMtfFile(mtfFilterParam.getMtfFile());
+    dialog.setMaximumInverse(mtfFilterParam.getMaximumInverseString());
+    dialog.setLowPassRadiusSigma(mtfFilterParam.getLowPassRadiusSigmaString());
+    dialog.setStartingAndEndingZ(mtfFilterParam.getStartingAndEndingZString());
+    dialog.setInverseRolloffRadiusSigma(mtfFilterParam
+        .getInverseRolloffRadiusSigmaString());
+    enableUseFilter();
     return true;
   }
 }
