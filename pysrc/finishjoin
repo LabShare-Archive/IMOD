@@ -293,6 +293,15 @@ try:
       runcmd(fmtstr('xfproduct {0} {1}.tmpxg {2} {1}.tomoxg', scaleOpt, joinroot,
                     xformFile))
 
+      # But if no refinement is done, copy a warping tomoxg for use by joinwarp2model
+   elif warping:
+      warpxg = joinroot + '.warpxg'
+      makeBackupFile(warpxg)
+      try:
+         shutil.copyfile(tomoxg, warpxg)
+      except:
+         exitError('Copying ' + tomoxg + ' to ' + warpxg)
+
    # Now if max size is wanted, call the program
    if sizeOnly:
       if linesave == 0:
