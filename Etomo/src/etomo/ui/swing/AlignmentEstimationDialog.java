@@ -458,7 +458,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
       final List<String> logFileList, final List<String> labelList) {
     String name = logFileName + axisID.getExtension() + ".log";
     File log = new File(applicationManager.getPropertyUserDir(), name);
-    if (log.length() > 0) {
+    if (log.length() > 10) {
       logFileList.add(name);
       labelList.add(label);
     }
@@ -479,16 +479,16 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     // Add tabs
     List<String> logFileList = new ArrayList<String>();
     List<String> alignLabels = new ArrayList<String>();
+    addLogFileTab("taRobust", "Robust", logFileList, alignLabels);
     addLogFileTab("taError", "Errors", logFileList, alignLabels);
     addLogFileTab("taSolution", "Solution", logFileList, alignLabels);
     addLogFileTab("taAngles", "Surface Angles", logFileList, alignLabels);
     addLogFileTab("taLocals", "Locals", logFileList, alignLabels);
-    addLogFileTab("align", "Complete Log", logFileList, alignLabels);
     addLogFileTab("taResiduals", "Large Residual", logFileList, alignLabels);
     addLogFileTab("taMappings", "Large Mappings", logFileList, alignLabels);
     addLogFileTab("taCoordinates", "Coordinates", logFileList, alignLabels);
     addLogFileTab("taBeamtilt", "Beam Tilt", logFileList, alignLabels);
-    addLogFileTab("taRobust", "Robust", logFileList, alignLabels);
+    addLogFileTab("align", "Complete Log", logFileList, alignLabels);
     
     Vector logFile = new Vector(1);
     logFile.add(logFileList.toArray(new String[logFileList.size()]));
