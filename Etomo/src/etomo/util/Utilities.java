@@ -507,7 +507,7 @@ public class Utilities {
    * @return
    */
   public static String getCommandActionMessage(final String commandAction) {
-    if (EtomoDirector.INSTANCE.getArguments().isActions() || commandAction == null) {
+    if (!EtomoDirector.INSTANCE.getArguments().isActions() || commandAction == null) {
       return null;
     }
     return ACTION_TAG + "Ran " + commandAction;
@@ -672,14 +672,14 @@ public class Utilities {
           }
         }
         if (param != null) {
-          buffer.append(param + " ");
+          buffer.append(param);
         }
         if (done) {
           break;
         }
       }
     }
-    return buffer.toString();
+    return buffer.toString().trim();
   }
 
   public static String getCommandAction(String commandLine) {
