@@ -1475,7 +1475,7 @@ public abstract class BaseProcessManager {
 
   /**
    * Log the end of the stdout and stderr, unless debug is on.
-   * @param descr
+   * @param commandAction
    * @param stdOutput
    * @param stdError
    */
@@ -1484,25 +1484,27 @@ public abstract class BaseProcessManager {
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       return;
     }
-    if ((stdOutput != null && stdOutput.length > 0)
-        || (stdError != null && stdError.length > 0)) {
-      System.err.println("Output from " + commandAction + ":");
-      int linesToLog = 10;
-      if (stdOutput != null && stdOutput.length > 0) {
-        System.err.println("Standard out:");
-        for (int i = stdOutput.length > linesToLog ? stdOutput.length - linesToLog : 0; i < stdOutput.length; i++) {
-          System.err.println(stdOutput[i]);
-        }
-      }
-      if (stdError != null && stdError.length > 0
-          && !stdError[0].trim().startsWith("Python PID:")) {
-        System.err.println("Standard error:");
-        for (int i = stdError.length > linesToLog ? stdError.length - linesToLog : 0; i < stdError.length; i++) {
-          System.err.println(stdError[i]);
-        }
-      }
-      System.err.println();
+    boolean printStdOutput = stdOutput != null && stdOutput.length > 0;
+    boolean printStdError = stdError != null && stdError.length > 0
+        && stdError[0].indexOf("PID:") == -1;
+    if (!printStdOutput && !printStdError) {
+      return;
     }
+    System.err.println("Output from " + commandAction + ":");
+    int linesToLog = 10;
+    if (printStdOutput) {
+      System.err.println("Standard out:");
+      for (int i = stdOutput.length > linesToLog ? stdOutput.length - linesToLog : 0; i < stdOutput.length; i++) {
+        System.err.println(stdOutput[i]);
+      }
+    }
+    if (printStdError) {
+      System.err.println("Standard error:");
+      for (int i = stdError.length > linesToLog ? stdError.length - linesToLog : 0; i < stdError.length; i++) {
+        System.err.println(stdError[i]);
+      }
+    }
+    System.err.println();
   }
 
   /**
@@ -1545,8 +1547,8 @@ public abstract class BaseProcessManager {
       errorProcess(script);
     }
     else {
-      logProcessOutput(script.getCommandAction(),
-          script.getStdOutput(), script.getStdError());
+      logProcessOutput(script.getCommandAction(), script.getStdOutput(),
+          script.getStdError());
       postProcess(script);
       ProcessMessages messages = script.getProcessMessages();/* Warning */
       if (messages.warningListSize() > 0) {
@@ -1678,8 +1680,13 @@ public abstract class BaseProcessManager {
       final ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = new BackgroundProcess(manager, commandArray,
         this, axisID, processName, processSeries);
-    return startBackgroundProcess(backgroundProcess, commandArray.toString(), axisID,
-        null);
+    StringBuffer commandLine = new StringBuffer();
+    if (commandArray != null) {
+      for (int i = 0; i < commandArray.length; i++) {
+        commandLine.append(commandArray[i] + " ");
+      }
+    }
+    return startBackgroundProcess(backgroundProcess, commandLine.toString(), axisID, null);
   }
 
   final BackgroundProcess startDetachedProcess(
