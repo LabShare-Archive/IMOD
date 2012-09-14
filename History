@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/13/12: IMOD_4-6-13
+9/13/12: With robust fitting in Tiltalign, eTomo now puts the weighted mean
+residual in the project and shows the Robust tab first in the align log.
+
+9/13/12: Made Autofidseed keep Sortbeadsurfs from flipping Y and Z.
+
 9/12/12: IMOD_4-6-12
 9/12/12: Added a program, Joinwarp2model, to produce a model file from warping
 control points in joining, which should be used as starting point for a

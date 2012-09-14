@@ -700,6 +700,7 @@ int surfaceSort(float *xyz, int numPts, int markersInGroup, int *group)
   free(cluster);
   free(clusterSY);
   free(clusterSX);
+  fflush(stdout);
   return 0;
 } 
 
