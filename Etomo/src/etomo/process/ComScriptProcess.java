@@ -477,7 +477,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
    */
   private int demoTime = 5000;
   private boolean debug = false;
-  private SystemProgram systemProgram;
+  private SystemProgram systemProgram = null;
   private SystemProgram vmstopy;
   private StringBuffer cshProcessID;
   private AxisID axisID;
@@ -851,6 +851,9 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   }
 
   public String toString() {
+    if (systemProgram == null) {
+      return getComScriptName();
+    }
     return systemProgram.getCommandLine();
   }
 
@@ -971,6 +974,13 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
 
   public CommandDetails getCommandDetails() {
     return commandDetails;
+  }
+
+  public String getCommandAction() {
+    if (systemProgram == null) {
+      return getComScriptName();
+    }
+    return systemProgram.getCommandAction();
   }
 
   public ProcessName getProcessName() {

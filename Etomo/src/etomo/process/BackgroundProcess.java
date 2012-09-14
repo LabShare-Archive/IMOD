@@ -730,6 +730,14 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     return words[0];
   }
 
+  final String getCommandAction() {
+    String commandAction = null;
+    if (program == null || (commandAction = program.getCommandAction()) == null) {
+      return getCommandName();
+    }
+    return commandAction;
+  }
+
   /**
    * Set the working directory in which the com script is to be run.
    */
