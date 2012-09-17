@@ -98,7 +98,7 @@ public final class UIParameters {
   public static final String rcsid = "$Id$";
 
   public static final UIParameters INSTANCE = new UIParameters();
-  private static final float DEFAULT_FONT_SIZE = 12;
+  private static final double DEFAULT_FONT_SIZE = 12;
   private static final double DEFAULT_HEIGHT = 21;
 
   private final Dimension dimButton = new Dimension();
@@ -108,8 +108,8 @@ public final class UIParameters {
   private final Dimension dimFileChooser = new Dimension();
   private final Dimension dimAxisButton = new Dimension();
 
-  private float fontSize = DEFAULT_FONT_SIZE;
-  private float fontSizeAdjustment = 1;
+  private double fontSize = DEFAULT_FONT_SIZE;
+  private double fontSizeAdjustment = 1;
   private int numericWidth;
   private int wideNumericWidth;
   private int sectionsWidth;
@@ -198,7 +198,7 @@ public final class UIParameters {
    * Get the amount to adjust a fields based on the current font size
    * @return
    */
-  float getFontSizeAdjustment() {
+  double getFontSizeAdjustment() {
     return fontSizeAdjustment;
   }
 

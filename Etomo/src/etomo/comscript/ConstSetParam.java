@@ -34,9 +34,9 @@ public class ConstSetParam {
   public static  final String  rcsid =  "$Id$";
   public static final String COMMAND_NAME = "set";
   public static final String COMBINEFFT_REDUCTION_FACTOR_NAME = "combinefft_reduce";
-  public static final EtomoNumber.Type COMBINEFFT_REDUCTION_FACTOR_TYPE = EtomoNumber.Type.FLOAT;
+  public static final EtomoNumber.Type COMBINEFFT_REDUCTION_FACTOR_TYPE = EtomoNumber.Type.DOUBLE;
   public static final String COMBINEFFT_LOW_FROM_BOTH_RADIUS_NAME = "combinefft_lowboth";
-  public static final EtomoNumber.Type COMBINEFFT_LOW_FROM_BOTH_RADIUS_TYPE = EtomoNumber.Type.FLOAT;
+  public static final EtomoNumber.Type COMBINEFFT_LOW_FROM_BOTH_RADIUS_TYPE = EtomoNumber.Type.DOUBLE;
   
   protected static final String delimiter = "=";
   

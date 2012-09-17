@@ -180,7 +180,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     advanced = dialog.isAdvanced();
     // Get the user input data from the dialog box
     getParameters(screenState);
-    manager.updateTiltCom(dialog.getTiltDisplay(), axisID);
+    manager.updateTiltCom(dialog.getTiltDisplay(), axisID,false);
     try {
       getParameters(metaData);
     }

@@ -360,7 +360,7 @@ final class MaskingPanel {
           + MaskingPanel.MASK_TYPE_CYLINDER_LABEL + " is selected.";
     }
     // validate cylinder orientation
-    EtomoNumber rotation = new EtomoNumber(EtomoNumber.Type.FLOAT);
+    EtomoNumber rotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     // validate Z Rotation
     if (ltfZRotation.isEnabled()) {
       rotation.set(ltfZRotation.getText());
@@ -370,7 +370,7 @@ final class MaskingPanel {
 
       }
       if (!rotation.isNull()) {
-        float fZRotation = Math.abs(rotation.getFloat());
+        double fZRotation = Math.abs(rotation.getDouble());
         if (fZRotation < 0 || fZRotation > 90) {
           return "Valid values for " + description + " are 0 to 90.";
         }

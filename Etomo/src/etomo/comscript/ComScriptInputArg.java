@@ -109,13 +109,6 @@ public class ComScriptInputArg {
   }
 
   /**
-   * Set the argument line with a float.
-   */
-  public void setArgument(float arg) {
-    argument = String.valueOf(arg);
-  }
-
-  /**
    * Set the argument line with a double.
    */
   public void setArgument(double arg) {

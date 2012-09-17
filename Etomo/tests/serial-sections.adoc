@@ -50,6 +50,12 @@ bn.ok=
 run.function.initial-blend=
 run.function.align=
 run.function.make-stack=
+[[if = test-gui]]
+  #field validation should not be preformed when just saving a dialog
+  tb.initial-blend=
+  cb.robust-fitting-for-criterion=on
+  tf.robust-fitting-for-criterion=1.0abc
+[[]]
 
 
 [function = initial-blend]
@@ -72,6 +78,16 @@ if.not.var.montage.return=
 [[]]
 cb.treat-as-very-sloppy-blend=on
 bn.open-raw-stack=
+[[if = test-gui]]
+  #test field validation
+  cb.robust-fitting-for-criterion=on
+  tf.robust-fitting-for-criterion=1.0abc
+  bn.make-blended-stack=
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tf.robust-fitting-for-criterion=1.0
+  cb.robust-fitting-for-criterion=off
+[[]]
 bn.make-blended-stack=
 wait.process.initial-blend=done
 [[if = test-gui]]

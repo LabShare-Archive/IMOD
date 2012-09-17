@@ -132,9 +132,9 @@ final class RadialPanel {
       if (ltfRadialMax.getText().matches("\\S+")
           || ltfRadialFallOff.getText().matches("\\S+")) {
         badParameter = ltfRadialMax.getLabel();
-        tiltParam.setRadialBandwidth(Float.parseFloat(ltfRadialMax.getText()));
+        tiltParam.setRadialBandwidth(Double.parseDouble(ltfRadialMax.getText()));
         badParameter = ltfRadialFallOff.getLabel();
-        tiltParam.setRadialFalloff(Float.parseFloat(ltfRadialFallOff.getText()));
+        tiltParam.setRadialFalloff(Double.parseDouble(ltfRadialFallOff.getText()));
       }
       else {
         tiltParam.resetRadialFilter();

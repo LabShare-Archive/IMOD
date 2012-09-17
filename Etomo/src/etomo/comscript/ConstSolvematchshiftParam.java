@@ -54,7 +54,7 @@ public class ConstSolvematchshiftParam {
   protected StringList fiducialMatchListA = new StringList(0);
   protected StringList fiducialMatchListB = new StringList(0);
   protected FortranInputString xAxistTilt = new FortranInputString(2);
-  protected float residualThreshold;
+  protected double residualThreshold;
   protected int nSurfaces;
   protected String outputTransformationFile;
 
@@ -97,9 +97,9 @@ public class ConstSolvematchshiftParam {
   }
 
   /**
-   * @return float
+   * @return double
    */
-  public float getResidualThreshold() {
+  public double getResidualThreshold() {
     return residualThreshold;
   }
 
