@@ -20,6 +20,8 @@ import javax.swing.filechooser.FileFilter;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.FilePath;
 import etomo.util.Utilities;
 
@@ -40,6 +42,10 @@ import etomo.util.Utilities;
 */
 final class FileTextField2 implements FileTextFieldInterface {
   public static final String rcsid = "$Id:$";
+
+  // Assuming the field type is always non-numeric
+  private final FieldType STRING_FIELD_TYPE = FieldType.STRING;
+  private final boolean NO_VALIDATION = false;
 
   private final JPanel panel = new JPanel();
   private final GridBagLayout layout = new GridBagLayout();
@@ -76,7 +82,7 @@ final class FileTextField2 implements FileTextFieldInterface {
           ClassLoader.getSystemResource("images/openFilePeet.png")));
     }
     button.setName(label);
-    field = new TextField(label);
+    field = new TextField(STRING_FIELD_TYPE, label);
     this.label = new JLabel(label);
     this.labeled = labeled;
     this.manager = manager;
@@ -227,7 +233,14 @@ final class FileTextField2 implements FileTextFieldInterface {
   }
 
   boolean isEmpty() {
-    return field.getText() == null || field.getText().matches("\\s*");
+    String text = null;
+    try {
+      text = field.getText(false);
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
+    return text == null || text.matches("\\s*");
   }
 
   boolean isEnabled() {
@@ -239,7 +252,14 @@ final class FileTextField2 implements FileTextFieldInterface {
   }
 
   public File getFile() {
-    return FilePath.buildAbsoluteFile(getOriginDir(), field.getText());
+    String text = null;
+    try {
+      text = field.getText(NO_VALIDATION);
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
+    return FilePath.buildAbsoluteFile(getOriginDir(), text);
   }
 
   /**
@@ -291,7 +311,14 @@ final class FileTextField2 implements FileTextFieldInterface {
   }
 
   String getText() {
-    return field.getText();
+    String text = null;
+    try {
+      text = field.getText(NO_VALIDATION);
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
+    return text;
   }
 
   void setText(final String text) {
