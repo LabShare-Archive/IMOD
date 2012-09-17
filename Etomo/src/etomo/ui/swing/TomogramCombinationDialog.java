@@ -463,7 +463,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(parallelPanelContainer);
-    //  Construct the main panel for this dialog panel
+    // Construct the main panel for this dialog panel
     tabbedPane.add(lblSetup, pnlSetup.getContainer());
     tabbedPane.add(lblInitial, pnlInitial.getContainer());
     tabbedPane.add(lblFinal, pnlFinal.getContainer());
@@ -618,9 +618,9 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * @param patchcrawl3DParams
    * @throws NumberFormatException
    */
-  public void getPatchcrawl3DParams(Patchcrawl3DParam patchcrawl3DParams)
-      throws NumberFormatException {
-    pnlFinal.getPatchcrawl3DParams(patchcrawl3DParams);
+  public boolean getPatchcrawl3DParams(Patchcrawl3DParam patchcrawl3DParams,
+      final boolean doValidation) throws NumberFormatException {
+    return pnlFinal.getPatchcrawl3DParams(patchcrawl3DParams, doValidation);
   }
 
   public void getReductionFactorParam(SetParam setParam) {
@@ -684,8 +684,8 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   public ProcessingMethod getRunProcessingMethod() {
     String tabTitle = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
     if (tabTitle.equals(lblInitial)) {
-      //Tabs copy their data to other tabs when other tabs is selected, so
-      //either setup or final should be correct.
+      // Tabs copy their data to other tabs when other tabs is selected, so
+      // either setup or final should be correct.
       return pnlFinal.getProcessingMethod();
     }
     else {
@@ -864,7 +864,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     int idxNewTab = tabbedPane.getSelectedIndex();
     synchronize(tabbedPane.getTitleAt(idxLastTab), true);
     setVisible(tabbedPane.getTitleAt(idxNewTab));
-    //  Set the last tab index to current tab so that we are ready for tab
+    // Set the last tab index to current tab so that we are ready for tab
     // change
     idxLastTab = tabbedPane.getSelectedIndex();
     mediator.setMethod(this, getProcessingMethod());
