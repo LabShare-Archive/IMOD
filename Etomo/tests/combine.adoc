@@ -76,5 +76,23 @@ assert.exists.file = matchvol1.log~
 assert.exists.file = patchcorr.log~
 assert.exists.file = solvematch.log~
 sleep = 
+[[if = test-gui]]
+  run.function.test-final-match=
+[[]]
 bn.replace-patch-vectors =
 bn.done =
+
+
+[function = test-final-match]
+#field validation
+tb.setup.2=
+cb.kernel-filtering-with-sigma=on
+tf.kernel-filtering-with-sigma=1.0abc
+#test field validation suppression
+save=
+#test field validation
+bn.restart-at-patchcorr=
+wait.popup.field-validation-failed=OK
+assert.disabled.bn.kill-process=
+tf.kernel-filtering-with-sigma=1.0
+cb.kernel-filtering-with-sigma=off

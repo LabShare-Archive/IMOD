@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/15/12: Added the last 10 lines of stdout and stderr to eTomo's log (when
+--debug is not set).(Bug# 1615)
+
 9/13/12: IMOD_4-6-13
 9/13/12: With robust fitting in Tiltalign, eTomo now puts the weighted mean
 residual in the project and shows the Robust tab first in the align log.

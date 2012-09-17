@@ -5746,7 +5746,7 @@ public final class ApplicationManager extends BaseManager implements
       if (!tomogramCombinationDialog.isChanged(state)) {
         updateSolvematchCom();
         updateMatchvol1Com();
-        updatePatchcorrCom();
+        updatePatchcorrCom(false);
         updateMatchorwarpCom(false);
         updateVolcombineCom();
       }
@@ -6061,7 +6061,7 @@ public final class ApplicationManager extends BaseManager implements
    * 
    * @return boolean
    */
-  private boolean updatePatchcorrCom() {
+  private boolean updatePatchcorrCom(final boolean doValidation) {
     // Set a reference to the correct object
     if (tomogramCombinationDialog == null) {
       uiHarness.openMessageDialog(this,
@@ -6071,7 +6071,10 @@ public final class ApplicationManager extends BaseManager implements
     }
     try {
       Patchcrawl3DParam patchcrawl3DParam = comScriptMgr.getPatchcrawl3D();
-      tomogramCombinationDialog.getPatchcrawl3DParams(patchcrawl3DParam);
+      if (!tomogramCombinationDialog.getPatchcrawl3DParams(patchcrawl3DParam,
+          doValidation)) {
+        return false;
+      }
       comScriptMgr.savePatchcorr(patchcrawl3DParam);
     }
     catch (NumberFormatException except) {
@@ -6293,7 +6296,7 @@ public final class ApplicationManager extends BaseManager implements
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    if (!updatePatchcorrCom()) {
+    if (!updatePatchcorrCom(true)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -6357,7 +6360,7 @@ public final class ApplicationManager extends BaseManager implements
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    if (!updatePatchcorrCom()) {
+    if (!updatePatchcorrCom(true)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -6431,7 +6434,7 @@ public final class ApplicationManager extends BaseManager implements
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    if (!updatePatchcorrCom()) {
+    if (!updatePatchcorrCom(true)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
