@@ -68,9 +68,6 @@ assert.exists.file=%{dataset}%{axis}_fid.xf~
 run.function.copy=
 bn.compute-alignment=
 wait.process.aligning-stack=done
-[[if = test-gui]]
-  tf.do-robust-fitting-with-tuning-factor=abc
-[[]]
 
 
 [function = compute-with-simple-align]
@@ -112,12 +109,15 @@ wait.process.aligning-stack=done
 [function = compute]
 cb.do-robust-fitting-with-tuning-factor=on
 [[if = test-gui]]
+  #field validation
+  tf.do-robust-fitting-with-tuning-factor=1.0abc
+  #test field validation suppression
+  save=
   #test field validation
-  tf.do-robust-fitting-with-tuning-factor=abc
   bn.compute-alignment=
   wait.popup.field-validation-failed=OK
   assert.disabled.bn.kill-process=
-  tf.do-robust-fitting-with-tuning-factor=
+  tf.do-robust-fitting-with-tuning-factor=1.0
 [[]]
 bn.compute-alignment=
 wait.process.aligning-stack=done

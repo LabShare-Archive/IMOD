@@ -19,16 +19,6 @@ bn.create-full-aligned-stack=
 if.not.var.montage.wait.process.creating-aligned-stack = done
 if.var.montage.wait.process.full-alignment = done
 if.var.test-gui.run.function.test-files=
-[[if = test-gui]]
-  #field validation should not be done when just saving
-  tb.create.2=
-  mb.find-beads-3d=+
-  rb.set-threshold-for-storing=
-  tf.set-threshold-for-storing=abc
-  tb.create.3=
-  mb.2d-filtering=A
-  tf.starting-and-ending-views=abc
-[[]]
 bn.done =
 if.var.fidless.return=
 
@@ -485,9 +475,12 @@ mb.find-beads-3d=+
 	rb.set-threshold-for-storing=
 	assert.enabled.tf.set-threshold-for-storing=
 	rb.store-some-points-below-threshold=
-	#test field validation
+	#field validation
 	rb.set-threshold-for-storing=
 	tf.set-threshold-for-storing=abc
+	#test field validation suppression
+	save=
+	#test field validation
 	bn.run-findbeads3d=
 	wait.popup.field-validation-failed=OK
 	assert.disabled.bn.kill-process=
@@ -582,9 +575,13 @@ assert.bn.use-erased-stack=on
 [function = 2d-filter]
 tb.create.3=
 [[if = test-gui]]
-  #test field validation
+  #field validation
   mb.2d-filtering=A
   tf.starting-and-ending-views=abc
+  #test field validation suppression
+  save=
+  wait.popup.mtf-filter-parameter-syntax-error=OK
+  #test field validation
   assert.disabled.bn.kill-process=
   bn.filter =
   wait.popup.field-validation-failed=OK

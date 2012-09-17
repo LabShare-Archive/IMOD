@@ -8,11 +8,6 @@ run.function.tilt=
 if.var.test-gui.run.function.test-files=
 if.var.build.bn.done=
 if.var.build.return=
-[[if = test-gui]]
-  #field validation should not be used when just saving
-  rb.back-projection=
-  tf.take-logarithm-of-densities-with-offset=0.0abc
-[[]]
 bn.done=
 
 
@@ -114,8 +109,12 @@ run.function.trial-tilt=
 run.function.setup-patch-tracking=
 # run with parallel processing
 [[if = test-gui]]
-  #test field validation
+  #field validation
   tf.take-logarithm-of-densities-with-offset=0.0abc
+  #test field validation suppression
+  save=
+  wait.popup.tilt-parameter-syntax-error=OK
+  #test field validation
   bn.generate-tomogram=
   wait.popup.field-validation-failed=OK
   tf.take-logarithm-of-densities-with-offset=0.0

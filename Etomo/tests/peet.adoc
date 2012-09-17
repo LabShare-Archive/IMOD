@@ -42,11 +42,6 @@ bn.ok=
 [[]]
 run.function.setup=
 run.function.runtab=
-[[if = test-gui]]
-	run.function.check-prm=
-  tb.setup.0=
-  tf.particle=abc
-[[]]
 
 
 [function = setup]
@@ -343,8 +338,12 @@ sp.particles-per-cpu=1
 #write.file = %{dataset}.prm|flgMeanFill = 1
 #
 [[if == test-gui]]
+  #field validation
   tb.setup.0=
   tf.particle=abc
+  #test field validation suppression
+  save=
+  #test field validation
   tb.setup.1=
   bn.run=
   wait.popup.field-validation-failed=OK
