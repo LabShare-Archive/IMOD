@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/18/12: Fixed 3dmod crashing on X-ray model with no objects (In 4.5).
+
 9/15/12: Added the last 10 lines of stdout and stderr to eTomo's log (when
 --debug is not set).(Bug# 1615)
 

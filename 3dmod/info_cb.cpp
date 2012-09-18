@@ -401,7 +401,8 @@ void imod_info_setocp(void)
 
   // Clear the selection list if no current contour and not a mesh-only object,
   // or it is not on list
-  meshOnly = imod->obj[sImodObjCnum].meshsize && !imod->obj[sImodObjCnum].contsize;
+  meshOnly = sImodObjCnum >= 0 && imod->obj[sImodObjCnum].meshsize && 
+    !imod->obj[sImodObjCnum].contsize;
   if ((!meshOnly && !cont) || imodSelectionListQuery(App->cvi, imod->cindex.object,
                                      imod->cindex.contour) < -1)
     imodSelectionListClear(App->cvi);
