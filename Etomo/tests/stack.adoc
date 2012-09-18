@@ -579,8 +579,10 @@ tb.create.3=
   mb.2d-filtering=A
   tf.starting-and-ending-views=abc
   #test field validation suppression
-  save=
+  bn.pos=
   wait.popup.mtf-filter-parameter-syntax-error=OK
+  bn.stack=
+  tf.starting-and-ending-views=abc
   #test field validation
   assert.disabled.bn.kill-process=
   bn.filter =
