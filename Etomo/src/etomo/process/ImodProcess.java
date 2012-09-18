@@ -11,6 +11,7 @@ import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
+import etomo.type.OSType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
@@ -861,6 +862,14 @@ public class ImodProcess {
     // copying the clipboard onto the message area. 3dmod will crash if there is
     // something big in the clipboard.
 
+    // TEMP Bug# 1646
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+      commandOptions.add("-D");
+      if (OSType.getInstance() == OSType.MAC && outputWindowID && !listenToStdin) {
+        commandOptions.add("-L");
+      }
+    }
+
     if (outputWindowID) {
       commandOptions.add("-W");
     }
@@ -907,7 +916,7 @@ public class ImodProcess {
     if (useModv) {
       commandOptions.add("-view");
     }
-    /*if (debug) { commandOptions.add("-DC"); } */
+    /* if (debug) { commandOptions.add("-DC"); } */
     if (binning > defaultBinning
         || (menuOptions.isBinBy2() && menuOptions.isAllowBinningInZ())) {
       commandOptions.add("-B");
@@ -1992,6 +2001,10 @@ public class ImodProcess {
             }
             return;
           }
+          // TEMP Bug# 1646
+          if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+            System.err.println("Setting stdin " + Utilities.getDateTimeStamp());
+          }
           imod.setCurrentStdInput(buffer.toString());
         }
         catch (IOException exception) {
@@ -2032,6 +2045,10 @@ public class ImodProcess {
         }
         // process response
         boolean failure = false;
+        // TEMP Bug# 1646
+        if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+          System.err.println("Waiting for response " + Utilities.getDateTimeStamp());
+        }
         while ((response = stderr.getQuickMessage()) != null) {
           responseReceived = true;
           if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
@@ -2040,6 +2057,10 @@ public class ImodProcess {
           response = response.trim();
           if (response.equals("OK")) {
             // OK is sent last, so this is done
+            // TEMP Bug# 1646
+            if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+              System.err.println("Received OK " + Utilities.getDateTimeStamp());
+            }
             break;
           }
           // if the response is not OK or an error message meant for the user
