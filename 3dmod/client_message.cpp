@@ -16,6 +16,7 @@
 #include <qdir.h>
 #include <qregexp.h>
 #include <qtimer.h>
+#include <QTime>
 #include <qapplication.h>
 #include <qclipboard.h>
 #include "imod.h"
@@ -314,9 +315,12 @@ bool ImodClipboard::executeMessage()
     }
 
     if (Imod_debug) {
-      wprint("Executing message action %d\n", message_action);
-      imodPrintStderr("imodHCM in executeMessage: executing message action "
-                      "%d\n", message_action);
+      QTime curTime = QTime::currentTime();
+      wprint("%02d:%02d.%03d: Executing message action %d\n", 
+             curTime.minute(), curTime.second(), curTime.msec(), message_action);
+      imodPrintStderr("%02d:%02d.%03d: imodHCM in executeMessage: executing message "
+                      "action %d\n", 
+                      curTime.minute(), curTime.second(), curTime.msec(), message_action);
       if (imodDebug('C')) {
         newCheck = imodChecksum(App->cvi->imod);
         wprint("Checksum before = %d\n", newCheck);
