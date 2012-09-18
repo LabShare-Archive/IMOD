@@ -246,7 +246,7 @@ final class TiltalignPanel implements Expandable {
   private final JPanel pnlBeamTiltBody = new JPanel();
 
   private final CheckTextField ctfRobustFittingAndKFactorScaling = CheckTextField
-      .getInstance(FieldType.INTEGER, "Do robust fitting with tuning factor:");
+      .getInstance(FieldType.FLOATING_POINT, "Do robust fitting with tuning factor:");
   private final PanelHeader phBeamTilt;
 
   private Tab currentTab = Tab.GENERAL;
