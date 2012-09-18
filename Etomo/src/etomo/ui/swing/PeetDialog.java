@@ -803,7 +803,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     volumeTable.getParameters(matlabParam);
     iterationTable.getParameters(matlabParam);
     matlabParam.setFnOutput(ltfFnOutput.getText());
-    referencePanel.getParameters(matlabParam);
+    if (!referencePanel.getParameters(matlabParam, forRun)) {
+      return false;
+    }
     missingWedgeCompensationPanel.getParameters(matlabParam);
     matlabParam
         .setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl.getSelection())

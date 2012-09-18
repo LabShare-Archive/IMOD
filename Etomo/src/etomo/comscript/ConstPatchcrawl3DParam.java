@@ -69,7 +69,7 @@ public class ConstPatchcrawl3DParam {
   protected final FortranInputString initialShiftXYZ = new FortranInputString(
       INITIAL_SHIFT_XYZ_KEY, 3);
   protected final ScriptParameter kernelSigma = new ScriptParameter(
-      EtomoNumber.Type.FLOAT, KERNEL_SIGMA_KEY);
+      EtomoNumber.Type.DOUBLE, KERNEL_SIGMA_KEY);
 
   protected String referenceFile = null;
   protected String fileToAlign = null;

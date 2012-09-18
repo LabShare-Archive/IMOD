@@ -1288,7 +1288,7 @@ public class ImodProcess {
     }
   }
 
-  public void setBeadfixerDiameter(long beadfixerDiameter) {
+  public void setBeadfixerDiameter(int beadfixerDiameter) {
     beadfixerDiameterSet = true;
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER,
         String.valueOf(beadfixerDiameter));

@@ -25,8 +25,6 @@ public interface ProcessDetails extends Loggable{
 
   public int getIntValue(FieldInterface field);
 
-  public float getFloatValue(FieldInterface field);
-
   public boolean getBooleanValue(FieldInterface field);
 
   public double getDoubleValue(FieldInterface field);

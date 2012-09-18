@@ -126,7 +126,7 @@ final class ReprojectModelPanel implements TiltDisplay, Run3dmodButtonContainer 
     return false;
   }
 
-  public boolean getParameters(TiltParam param) {
+  public boolean getParameters(TiltParam param,final boolean doValidation) {
     return true;
   }
 

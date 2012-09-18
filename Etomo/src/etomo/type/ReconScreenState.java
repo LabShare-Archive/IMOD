@@ -232,7 +232,7 @@ public final class ReconScreenState extends BaseScreenState {
       combineFinalMatchorwarpHeaderState.load(props, prepend);
       combineFinalVolcombineHeaderState.load(props, prepend);
       patchcorrKernelSigma = EtomoNumber.load(patchcorrKernelSigma,
-          EtomoNumber.Type.FLOAT, PATCHCORR_KERNEL_SIGMA_KEY, props, prepend);
+          EtomoNumber.Type.DOUBLE, PATCHCORR_KERNEL_SIGMA_KEY, props, prepend);
     }
   }
 
@@ -332,7 +332,7 @@ public final class ReconScreenState extends BaseScreenState {
 
   public void setPatchcorrKernelSigma(String patchcorrKernelSigma) {
     if (this.patchcorrKernelSigma == null) {
-      this.patchcorrKernelSigma = new EtomoNumber(EtomoNumber.Type.FLOAT,
+      this.patchcorrKernelSigma = new EtomoNumber(EtomoNumber.Type.DOUBLE,
           PATCHCORR_KERNEL_SIGMA_KEY);
     }
     this.patchcorrKernelSigma.set(patchcorrKernelSigma);

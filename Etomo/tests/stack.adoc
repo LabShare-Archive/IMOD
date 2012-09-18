@@ -475,6 +475,17 @@ mb.find-beads-3d=+
 	rb.set-threshold-for-storing=
 	assert.enabled.tf.set-threshold-for-storing=
 	rb.store-some-points-below-threshold=
+	#field validation
+	rb.set-threshold-for-storing=
+	tf.set-threshold-for-storing=abc
+	#test field validation suppression
+	save=
+	#test field validation
+	bn.run-findbeads3d=
+	wait.popup.field-validation-failed=OK
+	assert.disabled.bn.kill-process=
+	tf.set-threshold-for-storing=
+	rb.store-some-points-below-threshold=
 [[]]
 # run
 bn.run-findbeads3d=
@@ -564,6 +575,21 @@ assert.bn.use-erased-stack=on
 [function = 2d-filter]
 tb.create.3=
 [[if = test-gui]]
+  #field validation
+  mb.2d-filtering=A
+  tf.starting-and-ending-views=abc
+  #test field validation suppression
+  bn.pos=
+  wait.popup.mtf-filter-parameter-syntax-error=OK
+  bn.stack=
+  tf.starting-and-ending-views=abc
+  #test field validation
+  assert.disabled.bn.kill-process=
+  bn.filter =
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tf.starting-and-ending-views=
+  mb.2d-filtering=B
 	# check uninitialized errors
 	bn.use-filtered-stack=
 	wait.popup.filtered-full-aligned-stack-missing=OK

@@ -12,9 +12,12 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
 import etomo.EtomoDirector;
+import etomo.logic.FieldValidator;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.Utilities;
 
 /**
@@ -60,7 +63,7 @@ import etomo.util.Utilities;
  * <p> bug# 1311 A checkbox which enables/disables a text field.
  * <p> </p>
  */
-final class CheckTextField {
+final class CheckTextField implements UIComponent {
   public static final String rcsid = "$Id$";
 
   private final JPanel pnlRoot = new JPanel();
@@ -68,28 +71,31 @@ final class CheckTextField {
   private final JTextField textField = new JTextField();
   private final String label;
   private final EtomoNumber.Type numericType;
+  private final FieldType fieldType;
 
   private String checkpointValue = null;
   private EtomoNumber nCheckpointValue = null;
 
-  private CheckTextField(final String label, final EtomoNumber.Type numericType) {
+  private CheckTextField(final FieldType fieldType, final String label,
+      final EtomoNumber.Type numericType) {
     this.label = label;
     this.numericType = numericType;
+    this.fieldType = fieldType;
     checkBox = new CheckBox();
     setLabel(label);
   }
 
-  static CheckTextField getInstance(final String label) {
-    CheckTextField instance = new CheckTextField(label, null);
+  static CheckTextField getInstance(final FieldType fieldType, final String label) {
+    CheckTextField instance = new CheckTextField(fieldType, label, null);
     instance.createPanel();
     instance.updateDisplay();
     instance.addListeners();
     return instance;
   }
 
-  static CheckTextField getNumericInstance(final String tfLabel,
-      final EtomoNumber.Type numericType) {
-    CheckTextField instance = new CheckTextField(tfLabel, numericType);
+  static CheckTextField getNumericInstance(final FieldType fieldType,
+      final String tfLabel, final EtomoNumber.Type numericType) {
+    CheckTextField instance = new CheckTextField(fieldType, tfLabel, numericType);
     instance.createPanel();
     instance.updateDisplay();
     instance.addListeners();
@@ -225,8 +231,20 @@ final class CheckTextField {
     return checkBox.isSelected();
   }
 
-  String getText() {
-    return textField.getText();
+  public Component getComponent() {
+    return pnlRoot;
+  }
+
+  String getText(final boolean doValidation) throws FieldValidationFailedException {
+    String text = textField.getText();
+    if (doValidation && textField.isEnabled() && fieldType.validationType.canValidate) {
+      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel());
+    }
+    return text;
+  }
+
+  String getQuotedLabel() {
+    return Utilities.quoteLabel(checkBox.getText());
   }
 
   void setTextPreferredWidth(int width) {

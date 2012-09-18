@@ -1481,7 +1481,7 @@ public class Utilities {
    * the raw stack's pixel spacing.
    * @return binning (default 1)
    */
-  public static long getStackBinning(BaseManager manager, AxisID axisID,
+  public static int getStackBinning(BaseManager manager, AxisID axisID,
       FileType stackFileType) {
     MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, stackFileType);
     MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, FileType.RAW_STACK);
@@ -1498,10 +1498,10 @@ public class Utilities {
     catch (IOException e) {
       return 1;
     }
-    long binning = 1;
+    int binning = 1;
     double rawstackXPixelSpacing = rawstackHeader.getXPixelSpacing();
     if (rawstackXPixelSpacing > 0) {
-      binning = Math.round(stackHeader.getXPixelSpacing() / rawstackXPixelSpacing);
+      binning = (int) Math.round(stackHeader.getXPixelSpacing() / rawstackXPixelSpacing);
     }
     if (binning != 1 && binning < 1) {
       return 1;
