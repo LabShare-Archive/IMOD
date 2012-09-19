@@ -33,6 +33,7 @@ import junit.extensions.jfcunit.eventdata.JSpinnerMouseEventData;
 import junit.extensions.jfcunit.eventdata.JTabbedPaneMouseEventData;
 import junit.extensions.jfcunit.eventdata.MouseEventData;
 import junit.extensions.jfcunit.finder.AbstractButtonFinder;
+import junit.extensions.jfcunit.finder.ComponentFinder;
 import junit.extensions.jfcunit.finder.NamedComponentFinder;
 import junit.framework.Assert;
 import etomo.BaseManager;
@@ -45,6 +46,7 @@ import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
+import etomo.type.ProcessEndState;
 import etomo.type.UITestActionType;
 import etomo.type.UITestFieldType;
 import etomo.type.UITestSubjectType;
@@ -382,7 +384,8 @@ final class AutodocTester extends Assert implements VariableList {
   private AutodocTester childTester = null;
   private Map globalVariableMap = null;
   private Map variableMap = null;
-  private NamedComponentFinder finder = null;
+  private NamedComponentFinder namedFinder = null;
+  private ComponentFinder finder = null;
   private AbstractButtonFinder buttonFinder = null;
   private Command command = null;
   private String skipToDialogSection = null;
@@ -1157,12 +1160,15 @@ final class AutodocTester extends Assert implements VariableList {
       assertNotNull("value is required (" + command + ")", value);
       // wait.file-chooser.file_chooser_title = chosen_file
       if (subjectType == UITestSubjectType.FILE_CHOOSER) {
-        setupNamedComponentFinder(JFileChooser.class, subjectName);
+        setupComponentFinder(JFileChooser.class);
         JFileChooser fileChooser = (JFileChooser) finder.find();
         if (fileChooser == null) {
           wait = true;
         }
         else {
+          // Make sure its the right fileChooser
+          assertEquals("wrong file chooser - " + value + " (" + command + ")",
+              subjectName, fileChooser.getName());
           wait = false;
           File file;
           if (value.startsWith(File.separator)
@@ -1190,12 +1196,15 @@ final class AutodocTester extends Assert implements VariableList {
           wait = true;
         }
         // Try to get the pop up immediately
-        setupNamedComponentFinder(JOptionPane.class, subjectName);
+        setupComponentFinder(JOptionPane.class);
         Container popup = (Container) finder.find();
         // If popup hasn't popped up, keep waiting.
         if (popup == null) {
           return true;
         }
+        // Make sure its the right popup
+        assertEquals("wrong popup - " + value + " (" + command + ")", subjectName,
+            popup.getName());
         // close popup
         setupAbstractButtonFinder(value);
         AbstractButton button = (AbstractButton) buttonFinder.find(popup, 0);
@@ -1227,15 +1236,15 @@ final class AutodocTester extends Assert implements VariableList {
         setupNamedComponentFinder(JButton.class,
             UITestFieldType.BUTTON.toString() + AutodocTokenizer.SEPARATOR_CHAR
                 + Utilities.convertLabelToName(AxisProcessPanel.KILL_BUTTON_LABEL));
-        JButton killButton = (JButton) finder.find(currentPanel, 0);
+        JButton killButton = (JButton) namedFinder.find(currentPanel, 0);
         assertNotNull("can't find kill button (" + command + ")", killButton);
         // Get the progress bar label
         setupNamedComponentFinder(JLabel.class, ProgressPanel.LABEL_NAME);
-        JLabel progressBarLabel = (JLabel) finder.find(currentPanel, 0);
+        JLabel progressBarLabel = (JLabel) namedFinder.find(currentPanel, 0);
         assertNotNull("can't find progress bar label (" + command + ")", progressBarLabel);
         // Get the progress bar
         setupNamedComponentFinder(JProgressBar.class, ProgressPanel.NAME);
-        JProgressBar progressBar = (JProgressBar) finder.find(currentPanel, 0);
+        JProgressBar progressBar = (JProgressBar) namedFinder.find(currentPanel, 0);
         assertNotNull("can't find progress bar label (" + command + ")", progressBar);
         // Decide if the process is still running
         if (killButton.isEnabled()) {
@@ -1244,7 +1253,7 @@ final class AutodocTester extends Assert implements VariableList {
         // The killButton turns on and off in between processes. Avoid exiting
         // in that case.
         try {
-          Thread.sleep(1000);
+          Thread.sleep(500);
         }
         catch (InterruptedException e) {
         }
@@ -1252,7 +1261,7 @@ final class AutodocTester extends Assert implements VariableList {
           return true;
         }
         try {
-          Thread.sleep(1000);
+          Thread.sleep(500);
         }
         catch (InterruptedException e) {
         }
@@ -1260,7 +1269,7 @@ final class AutodocTester extends Assert implements VariableList {
           return true;
         }
         try {
-          Thread.sleep(1000);
+          Thread.sleep(500);
         }
         catch (InterruptedException e) {
         }
@@ -1272,16 +1281,16 @@ final class AutodocTester extends Assert implements VariableList {
         if (!progressBarName.equals(subjectName)) {
           return true;
         }
+        String progressString = progressBar.getString();
+        if (!isFinalProgressString(progressString, value)) {
+          // A final progress string is either the command, or "killed", "paused", etc.
+          return true;
+        }
         // The right process is done
         wait = false;
         // Check the end_state
-        try {
-          Thread.sleep(1100);
-        }
-        catch (InterruptedException e) {
-        }
         assertEquals("process ended with the wrong state -" + value + " (" + command
-            + ")", value, progressBar.getString());
+            + ")", value, progressString);
       }
       // wait.test
       else if (subjectType == UITestSubjectType.TEST) {
@@ -1310,6 +1319,24 @@ final class AutodocTester extends Assert implements VariableList {
       fail("unexpected command (" + command.toString() + ")");
     }
     return true;
+  }
+
+  /**
+   * Returns true if progressString is a end string like "done" or "killed".  Also returns
+   * true is progressString equals expectedString.
+   * @param progressString
+   * @param expectedString
+   * @return
+   */
+  private boolean isFinalProgressString(final String progressString,
+      final String expectedString) {
+    if (ProcessEndState.isValid(progressString)) {
+      return true;
+    }
+    if (progressString == null) {
+      return false;
+    }
+    return progressString.equals(expectedString);
   }
 
   /**
@@ -1843,11 +1870,11 @@ final class AutodocTester extends Assert implements VariableList {
     setupNamedComponentFinder(AbstractButton.class, fieldType.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (debug) {
-      finder.setDebug(true);
+      namedFinder.setDebug(true);
     }
     AbstractButton button = null;
     while (button == null && formatted < MAX_FORMAT) {
-      button = (AbstractButton) finder.find(currentPanel, index);
+      button = (AbstractButton) namedFinder.find(currentPanel, index);
       if (button == null) {
         formatApplication();
         formatted++;
@@ -1862,7 +1889,7 @@ final class AutodocTester extends Assert implements VariableList {
         + AutodocTokenizer.SEPARATOR_CHAR + name);
     JCheckBox checkBox = null;
     while (checkBox == null && formatted < MAX_FORMAT) {
-      checkBox = (JCheckBox) finder.find(currentPanel, index);
+      checkBox = (JCheckBox) namedFinder.find(currentPanel, index);
       if (checkBox == null) {
         formatApplication();
         formatted++;
@@ -1877,7 +1904,7 @@ final class AutodocTester extends Assert implements VariableList {
         + AutodocTokenizer.SEPARATOR_CHAR + name);
     JComboBox comboBox = null;
     while (comboBox == null && formatted < MAX_FORMAT) {
-      comboBox = (JComboBox) finder.find(currentPanel, index);
+      comboBox = (JComboBox) namedFinder.find(currentPanel, index);
       if (comboBox == null) {
         formatApplication();
         formatted++;
@@ -1892,7 +1919,7 @@ final class AutodocTester extends Assert implements VariableList {
         + AutodocTokenizer.SEPARATOR_CHAR + name);
     JMenuItem menuItem = null;
     while (menuItem == null && formatted < MAX_FORMAT) {
-      menuItem = (JMenuItem) finder.find();
+      menuItem = (JMenuItem) namedFinder.find();
       if (menuItem == null) {
         formatApplication();
         formatted++;
@@ -1905,7 +1932,7 @@ final class AutodocTester extends Assert implements VariableList {
   private void findContainer(String name) {
     setupNamedComponentFinder(JPanel.class, UITestFieldType.PANEL.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
-    currentPanel = (Container) finder.find();
+    currentPanel = (Container) namedFinder.find();
   }
 
   private JRadioButton findRadioButton(final String name, final int index) {
@@ -1914,7 +1941,7 @@ final class AutodocTester extends Assert implements VariableList {
         + AutodocTokenizer.SEPARATOR_CHAR + name);
     JRadioButton radioButton = null;
     while (radioButton == null && formatted < MAX_FORMAT) {
-      radioButton = (JRadioButton) finder.find(currentPanel, index);
+      radioButton = (JRadioButton) namedFinder.find(currentPanel, index);
       if (radioButton == null) {
         formatApplication();
         formatted++;
@@ -1929,7 +1956,7 @@ final class AutodocTester extends Assert implements VariableList {
         + AutodocTokenizer.SEPARATOR_CHAR + name);
     JSpinner spinner = null;
     while (spinner == null && formatted < MAX_FORMAT) {
-      spinner = (JSpinner) finder.find(currentPanel, index);
+      spinner = (JSpinner) namedFinder.find(currentPanel, index);
       if (spinner == null) {
         formatApplication();
         formatted++;
@@ -1944,7 +1971,7 @@ final class AutodocTester extends Assert implements VariableList {
         + AutodocTokenizer.SEPARATOR_CHAR + name);
     JTabbedPane tabbedPane = null;
     while (tabbedPane == null && formatted < MAX_FORMAT) {
-      tabbedPane = (JTabbedPane) finder.find(currentPanel, 0);
+      tabbedPane = (JTabbedPane) namedFinder.find(currentPanel, 0);
       if (tabbedPane == null) {
         formatApplication();
         formatted++;
@@ -1959,7 +1986,7 @@ final class AutodocTester extends Assert implements VariableList {
         + AutodocTokenizer.SEPARATOR_CHAR + name);
     JTextComponent textField = null;
     while (textField == null && formatted < MAX_FORMAT) {
-      textField = (JTextComponent) finder.find(currentPanel, index);
+      textField = (JTextComponent) namedFinder.find(currentPanel, index);
       if (textField == null) {
         formatApplication();
         formatted++;
@@ -2667,14 +2694,31 @@ final class AutodocTester extends Assert implements VariableList {
    * @param fieldName
    */
   private void setupNamedComponentFinder(final Class componentoClass, final String name) {
+    if (namedFinder == null) {
+      namedFinder = new NamedComponentFinder(componentoClass, name);
+      namedFinder.setWait(2);
+      namedFinder.setOperation(NamedComponentFinder.OP_EQUALS);
+    }
+    else {
+      namedFinder.setComponentClass(componentoClass);
+      namedFinder.setName(name);
+    }
+  }
+
+  /**
+   * Creates or reuses the named component finder.  Updates the component class
+   * and name.  Sets the wait to 2.  Sets the operation to OP_EQUALS.
+   * @param componentoClass
+   * @param fieldName
+   */
+  private void setupComponentFinder(final Class componentoClass) {
     if (finder == null) {
-      finder = new NamedComponentFinder(componentoClass, name);
+      finder = new ComponentFinder(componentoClass);
       finder.setWait(2);
       finder.setOperation(NamedComponentFinder.OP_EQUALS);
     }
     else {
       finder.setComponentClass(componentoClass);
-      finder.setName(name);
     }
   }
 
