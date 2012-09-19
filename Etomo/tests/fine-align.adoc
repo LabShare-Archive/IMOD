@@ -109,11 +109,8 @@ wait.process.aligning-stack=done
 [function = compute]
 cb.do-robust-fitting-with-tuning-factor=on
 [[if = test-gui]]
-  #field validation
-  tf.do-robust-fitting-with-tuning-factor=1.0abc
-  #test field validation suppression
-  save=
   #test field validation
+  tf.do-robust-fitting-with-tuning-factor=1.0abc
   bn.compute-alignment=
   wait.popup.field-validation-failed=OK
   assert.disabled.bn.kill-process=

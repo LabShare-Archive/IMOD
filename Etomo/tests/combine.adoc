@@ -84,13 +84,10 @@ bn.done =
 
 
 [function = test-final-match]
-#field validation
+#test field validation
 tb.setup.2=
 cb.kernel-filtering-with-sigma=on
 tf.kernel-filtering-with-sigma=1.0abc
-#test field validation suppression
-save=
-#test field validation
 bn.restart-at-patchcorr=
 wait.popup.field-validation-failed=OK
 assert.disabled.bn.kill-process=

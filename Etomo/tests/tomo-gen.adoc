@@ -109,14 +109,11 @@ run.function.trial-tilt=
 run.function.setup-patch-tracking=
 # run with parallel processing
 [[if = test-gui]]
-  #field validation
-  tf.take-logarithm-of-densities-with-offset=0.0abc
-  #test field validation suppression
-  save=
-  wait.popup.tilt-parameter-syntax-error=OK
   #test field validation
+  tf.take-logarithm-of-densities-with-offset=0.0abc
   bn.generate-tomogram=
   wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
   tf.take-logarithm-of-densities-with-offset=0.0
 [[]]
 cb.parallel-processing=on

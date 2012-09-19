@@ -76,9 +76,6 @@ bn.open-raw-stack=
   #field validation
   cb.robust-fitting-for-criterion=on
   tf.robust-fitting-for-criterion=1.0abc
-  #test field validation suppression
-  save=
-  #test field validation
   bn.make-blended-stack=
   wait.popup.field-validation-failed=OK
   assert.disabled.bn.kill-process=

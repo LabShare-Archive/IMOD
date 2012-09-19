@@ -1,6 +1,7 @@
 Version = 1.2
 
 [function = main]
+#temp
 if.var.quick.run.function.quick=
 if.var.quick.return=
 run.function.fiducial-model-generation=
@@ -338,12 +339,8 @@ assert.exists.file=%{dataset}%{axis}.fid~
 if.equals.var.axis.return=b
 cb.break-contours-into-pieces=on
 [[if = test-gui]]
-  #field validation
-  tf.break-contours-into-pieces=16,4abc
-  #test field validation suppression
-  save=
-  wait.popup.xcorr-parameter-syntax-error=OK
   #test field validation
+  tf.break-contours-into-pieces=16,4abc
   bn.track-patches=
   wait.popup.field-validation-failed=OK
   assert.disabled.bn.kill-process=
