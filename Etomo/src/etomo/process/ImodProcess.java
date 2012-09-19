@@ -1009,6 +1009,10 @@ public class ImodProcess {
 
       // Check the stderr of the 3dmod process for the windowID and the
       String line;
+      // TEMP Bug# 1646
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+        System.err.println("Bug# 1646:  open " + Utilities.getDateTimeStamp(true));
+      }
       while (imodThread.isAlive() && windowID.equals("")) {
         while ((line = stderr.getQuickMessage()) != null) {
           if (line.indexOf("Window id = ") != -1) {
@@ -1020,7 +1024,6 @@ public class ImodProcess {
           }
         }
       }
-
       // If imod exited before getting the window report the problem to the user
       if (windowID.equals("") && outputWindowID) {
         String message = "3dmod returned: " + String.valueOf(imod.getExitValue()) + "\n";
@@ -1029,7 +1032,7 @@ public class ImodProcess {
           System.err.println(line);
           message = message + "stderr: " + line + "\n";
         }
-
+        
         while ((line = imod.readStdout()) != null) {
           message = message + "stdout: " + line + "\n";
           line = imod.readStdout();
@@ -1542,7 +1545,6 @@ public class ImodProcess {
           message = message + "stderr: " + line + "\n";
           line = imodSendEvent.readStderr();
         }
-
         line = imodSendEvent.readStdout();
         while (line != null) {
           message = message + "stdout: " + line + "\n";
@@ -1856,6 +1858,10 @@ public class ImodProcess {
      * @return
      */
     private String getRequestMessage() {
+      // TEMP Bug# 1646
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+        System.err.println("Bug# 1646:  get request message " + Utilities.getDateTimeStamp(true));
+      }
       readStderr();
       return (String) requestQueue.poll();
     }
@@ -1938,6 +1944,10 @@ public class ImodProcess {
      */
     public synchronized void run() {
       try {
+        // TEMP Bug# 1646
+        if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+          System.err.println("Bug# 1646:  continuous listener " + Utilities.getDateTimeStamp(true));
+        }
         do {
           Thread.sleep(500);
           String message = stderr.getContinuousMessage();
@@ -2003,7 +2013,7 @@ public class ImodProcess {
           }
           // TEMP Bug# 1646
           if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-            System.err.println("Setting stdin " + Utilities.getDateTimeStamp());
+            System.err.println("Bug# 1646:  setting stdin " + Utilities.getDateTimeStamp(true));
           }
           imod.setCurrentStdInput(buffer.toString());
         }
@@ -2039,6 +2049,10 @@ public class ImodProcess {
       String response = null;
       StringBuffer userMessage = new StringBuffer();
       // wait for the response for at most 5 seconds
+      // TEMP Bug# 1646
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+        System.err.println("Bug# 1646:  read response " + Utilities.getDateTimeStamp(true));
+      }
       for (int timeout = 0; timeout < 30; timeout++) {
         if (responseReceived) {
           break;
@@ -2047,7 +2061,7 @@ public class ImodProcess {
         boolean failure = false;
         // TEMP Bug# 1646
         if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-          System.err.println("Waiting for response " + Utilities.getDateTimeStamp());
+          System.err.println("Bug# 1646:  waiting for response " + Utilities.getDateTimeStamp(true));
         }
         while ((response = stderr.getQuickMessage()) != null) {
           responseReceived = true;
@@ -2059,7 +2073,7 @@ public class ImodProcess {
             // OK is sent last, so this is done
             // TEMP Bug# 1646
             if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-              System.err.println("Received OK " + Utilities.getDateTimeStamp());
+              System.err.println("Bug# 1646:  received OK " + Utilities.getDateTimeStamp(true));
             }
             break;
           }

@@ -1211,12 +1211,18 @@ public class Utilities {
     startTime = new Date().getTime();
   }
 
+  public static String getDateTimeStamp(final boolean includeMs) {
+    Date date = new Date();
+    return date.toString()
+        + (includeMs ? ", " + date.getTime() % 1000 + " ms" : "");
+  }
+
   public static String getDateTimeStamp() {
-    return new Date().toString();
+    return getDateTimeStamp(false);
   }
 
   public static void dateTimeStamp() {
-    System.err.println(new Date().toString());
+    System.err.println(getDateTimeStamp(false));
   }
 
   public static void managerStamp(String dir, String name) {
