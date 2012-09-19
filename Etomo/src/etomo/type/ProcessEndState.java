@@ -40,6 +40,11 @@ public class ProcessEndState {
     name = toString(index);
   }
 
+  public static boolean isValid(final String string) {
+    return DONE.equals(string) || FAILED.equals(string) || KILLED.equals(string)
+        || PAUSED.equals(string);
+  }
+
   /**
    * Returns a string representation of the object.
    */
@@ -88,6 +93,10 @@ public class ProcessEndState {
       return PAUSED_NAME;
     }
     return "";
+  }
+
+  public boolean equals(final String string) {
+    return name.equals(string);
   }
 
   public static ProcessEndState getInstance(String name) {
