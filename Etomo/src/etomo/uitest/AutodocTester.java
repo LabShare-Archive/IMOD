@@ -2,6 +2,7 @@ package etomo.uitest;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -31,6 +32,7 @@ import javax.swing.text.JTextComponent;
 import junit.extensions.jfcunit.JFCTestHelper;
 import junit.extensions.jfcunit.eventdata.JSpinnerMouseEventData;
 import junit.extensions.jfcunit.eventdata.JTabbedPaneMouseEventData;
+import junit.extensions.jfcunit.eventdata.KeyEventData;
 import junit.extensions.jfcunit.eventdata.MouseEventData;
 import junit.extensions.jfcunit.finder.AbstractButtonFinder;
 import junit.extensions.jfcunit.finder.ComponentFinder;
@@ -1167,8 +1169,12 @@ final class AutodocTester extends Assert implements VariableList {
         }
         else {
           // Make sure its the right fileChooser
-          assertEquals("wrong file chooser - " + value + " (" + command + ")",
-              subjectName, fileChooser.getName());
+          String fileChooserName = fileChooser.getName();
+          if (fileChooserName == null || !fileChooserName.equals(subjectName)) {
+            //Close incorrect fileChooser and fail
+            helper.sendKeyAction(new KeyEventData(testRunner, fileChooser, KeyEvent.VK_ESCAPE));
+            fail("wrong file chooser - " + fileChooserName + " (" + command + ")");
+          }
           wait = false;
           File file;
           if (value.startsWith(File.separator)
@@ -1203,8 +1209,12 @@ final class AutodocTester extends Assert implements VariableList {
           return true;
         }
         // Make sure its the right popup
-        assertEquals("wrong popup - " + value + " (" + command + ")", subjectName,
-            popup.getName());
+        String popupName = popup.getName();
+        if (popupName == null || !popupName.equals(subjectName)) {
+          //Close incorrect popup and fail
+          helper.sendKeyAction(new KeyEventData(testRunner, popup, KeyEvent.VK_ESCAPE));
+          fail("wrong popup - " + popupName + " (" + command + ")");
+        }
         // close popup
         setupAbstractButtonFinder(value);
         AbstractButton button = (AbstractButton) buttonFinder.find(popup, 0);
