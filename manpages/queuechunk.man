@@ -2,12 +2,12 @@
 .nh
 .TH queuechunk 1 3.10.18 BL3DEMC
 .SH NAME
-queuechunk \- Place a csh script file on a queue or kill a job
+queuechunk \- Place a csh or python script file on a queue or kill a job
 .SH SYNOPSIS
 queuechunk [options] <root name of script file>
 
 .SH DESCRIPTION
-Queuechunk will take a csh script file and submit it to a cluster queue,
+Queuechunk will take a csh or python script file and submit it to a cluster queue,
 and also allows such jobs to be removed from the queue.  It is designed to
 perform these actions when it is
 called by Processchunks(1) with csh files produced from IMOD command files
@@ -71,9 +71,10 @@ eTomo, the program must also respond to the L action with
 either NA for no information, or one or more values separated by commas.
 
 A secondary script file should be created to submit to the queue, with the
-name rootname.job.  It should run rootname.csh with "csh -ef" and end by
-deleting the rootname.csh file.  The .job file will be cleaned up by
-Processchunks.
+name rootname.job.  It should be prepared to deal with a script file named
+either rootname.csh or rootname.py.  It should run rootname.csh with "csh -ef"
+or rootname.py with "python -u" and end by deleting the rootname.csh or
+rootname.py file.  The .job file will be cleaned up by Processchunks.
 
 Output from the queue when the job is submitted should be placed into a file
 named rootname.qid.  This file will also be cleaned up by Processchunks.
@@ -81,7 +82,8 @@ named rootname.qid.  This file will also be cleaned up by Processchunks.
 When a job is run with the S action, the program must not return until the job
 is finished, and should exit with an error status if the job failed.
 Queuechunk does this by submitting to the queue, but as an alternative,
-the .csh file could be run on the local host with "csh -ef".
+the .csh or .py file could be run on the local host with "csh -ef" or 
+"python -u".
 
 .SH FILES
 The program creates a script file named rootname.job and places queue
