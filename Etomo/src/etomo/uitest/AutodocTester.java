@@ -1117,6 +1117,21 @@ final class AutodocTester extends Assert implements VariableList {
       catch (InterruptedException e) {
       }
     }
+    // TOUCH
+    else if (actionType == UITestActionType.TOUCH) {
+      assertTrue("only the always modifier is allowed with this actionType (" + command
+          + ")", modifierType == null);
+      // touch.file = file_name
+      if (subjectType == UITestSubjectType.FILE) {
+        touchFile(command.getValue(0));
+      }
+      else if (subjectType == UITestSubjectType.DIR) {
+        touchDir(command.getValue(0));
+      }
+      else {
+        fail("can only touch a file or a directory");
+      }
+    }
     // UNSET
     else if (actionType == UITestActionType.SET) {
       // unset.var.variable_name
@@ -1237,7 +1252,7 @@ final class AutodocTester extends Assert implements VariableList {
           return true;
         }
         try {
-          Thread.sleep(1500);
+          Thread.sleep(1000);
         }
         catch (InterruptedException e) {
         }
@@ -1245,7 +1260,7 @@ final class AutodocTester extends Assert implements VariableList {
           return true;
         }
         try {
-          Thread.sleep(800);
+          Thread.sleep(1000);
         }
         catch (InterruptedException e) {
         }
@@ -1260,6 +1275,11 @@ final class AutodocTester extends Assert implements VariableList {
         // The right process is done
         wait = false;
         // Check the end_state
+        try {
+          Thread.sleep(1100);
+        }
+        catch (InterruptedException e) {
+        }
         assertEquals("process ended with the wrong state -" + value + " (" + command
             + ")", value, progressBar.getString());
       }
@@ -1290,6 +1310,42 @@ final class AutodocTester extends Assert implements VariableList {
       fail("unexpected command (" + command.toString() + ")");
     }
     return true;
+  }
+
+  /**
+   * touch a file in the working directory.
+   * @param fileName
+   */
+  private void touchFile(final String fileName) {
+    if (fileName == null || fileName.matches("\\s*")) {
+      return;
+    }
+    touch(new File(System.getProperty("user.dir"), fileName));
+  }
+
+  /**
+   * touch a directory in the working directory if it exists, otherwise create it.
+   * @param fileName
+   */
+  private void touchDir(final String dirName) {
+    if (dirName == null || dirName.matches("\\s*")) {
+      return;
+    }
+    File dir = new File(System.getProperty("user.dir"), dirName);
+    if (dir.exists()) {
+      touch(dir);
+    }
+    else {
+      SystemProgram mkdir = new SystemProgram(null, System.getProperty("user.dir"),
+          new String[] { "mkdir", dir.getAbsolutePath() }, AxisID.ONLY);
+      mkdir.run();
+    }
+  }
+
+  private void touch(final File file) {
+    SystemProgram copy = new SystemProgram(null, System.getProperty("user.dir"),
+        new String[] { "touch", file.getAbsolutePath() }, AxisID.ONLY);
+    copy.run();
   }
 
   boolean isDialogSectionComplete(final String dialogSection) {
@@ -1604,11 +1660,20 @@ final class AutodocTester extends Assert implements VariableList {
     }
     // Compare lines.
     for (int i = 0; i < stdOut.length; i++) {
-      if (!stdOut[i].trim().equals(storedStdOut[i].trim())) {
-        // Found an unequal line that is not a comment.
-        fail("Unequal lines:" + file.getAbsolutePath() + ":\n" + stdOut[i] + "\n"
-            + storedFile.getAbsolutePath() + ":\n" + storedStdOut[i] + ".\n(" + command
-            + ")\n");
+      String[] line = stdOut[i].trim().split("\\s+");
+      String[] storedLine = storedStdOut[i].trim().split("\\s+");
+      for (int j = 0; j < line.length; j++) {
+        if (j >= storedLine.length) {
+          fail("Unequal line lengths:" + file.getAbsolutePath() + ":\n" + stdOut[i]
+              + "\n" + storedFile.getAbsolutePath() + ":\n" + storedStdOut[i] + ".\n("
+              + command + ")\n");
+        }
+        else if (!line[j].equals(storedLine[j])) {
+          // Found an unequal line that is not a comment.
+          fail("Unequal lines:" + file.getAbsolutePath() + ":\n" + stdOut[i] + "\n"
+              + storedFile.getAbsolutePath() + ":\n" + storedStdOut[i] + ".\n(" + command
+              + ")\n");
+        }
       }
     }
   }

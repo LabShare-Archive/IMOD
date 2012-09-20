@@ -19,7 +19,9 @@ DDEESSCCRRIIPPTTIIOONN
 
   Binvol uses the PIP package for input (see the manual page for pip(1)).
   The following options can be specified either as command line arguments
-  (with the -) or one per line in a command file (without the -):
+  (with the -) or one per line in a command file (without the -).  Options can
+  be abbreviated to unique letters; the currently valid abbreviations for
+  short names are shown in parentheses.
 
 INSERT OPTION TEXT HERE
 

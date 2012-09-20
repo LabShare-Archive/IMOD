@@ -66,6 +66,11 @@ model is rotated.
 Give this name to the model object.  The name is useful for indicating what
 kind of values are stored with the vectors.
 .TP
+.B -d
+Set the flag to display stored values in false color 3dmod.  This option has
+the same effect as turning on the "Show stored values" button in the Values
+panel of the Edit-Objects dialog of the Model View window.
+.TP
 .B -z
 Ignore zero values when computing the mean and SD of values.  The program
 computes the actual maximum value and the mean and SD, and then stores a

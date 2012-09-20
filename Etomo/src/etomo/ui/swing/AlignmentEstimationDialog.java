@@ -5,6 +5,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.Box;
@@ -344,7 +346,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     pnlTiltalign = TiltalignPanel.getInstance(axisID, appMgr, btnAdvanced);
     btnExecute.setText("Done");
 
-    //  Create the first tiltalign panel
+    // Create the first tiltalign panel
     panelButton.setLayout(new BoxLayout(panelButton, BoxLayout.Y_AXIS));
 
     btnComputeAlignment.setSize();
@@ -364,7 +366,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     bottomButtonPanel.setBoxLayout(BoxLayout.X_AXIS);
     btnView3DModel.setSize();
     bottomButtonPanel.add(btnView3DModel);
-    //panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
+    // panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
     btnViewResiduals.setSize();
     bottomButtonPanel.add(btnViewResiduals);
     panelButton.add(bottomButtonPanel.getContainer());
@@ -376,13 +378,13 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     pnlAlignEst.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlAlignEst.add(panelButton);
 
-    //  Construct the main panel from the alignment panel and exist buttons
+    // Construct the main panel from the alignment panel and exist buttons
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     JScrollPane scrollPane = new JScrollPane(pnlAlignEst);
     rootPanel.add(pnlAlignEst, BorderLayout.CENTER);
     addExitButtons();
 
-    //  Bind the action listeners to the buttons
+    // Bind the action listeners to the buttons
     actionListener = new AlignmentEstimationActionListner(this);
 
     btnComputeAlignment.addActionListener(actionListener);
@@ -390,7 +392,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     btnViewResiduals.addActionListener(actionListener);
     btnImod.addActionListener(actionListener);
 
-    //  Mouse adapter for context menu
+    // Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
     pnlTiltalign.getContainer().addMouseListener(mouseAdapter);
@@ -446,46 +448,52 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
   }
 
   /**
+   * Adds a log file to logFileList and labelList, if the log file is not empty.
+   * @param logFileName
+   * @param label
+   * @param logFileList
+   * @param alignLabels
+   */
+  private void addLogFileTab(final String logFileName, final String label,
+      final List<String> logFileList, final List<String> labelList) {
+    String name = logFileName + axisID.getExtension() + ".log";
+    File log = new File(applicationManager.getPropertyUserDir(), name);
+    if (log.length() > 10) {
+      logFileList.add(name);
+      labelList.add(label);
+    }
+  }
+
+  /**
    * Right mouse button context menu
    */
   public void popUpContextMenu(final MouseEvent mouseEvent) {
     String[] manPagelabel = { "Tiltalign", "Xfproduct", "3dmod" };
     String[] manPage = { "tiltalign.html", "xfproduct.html", "3dmod.html" };
-    Vector logFileLabel = new Vector(1);
     String[] logWindowLabel = { "Align" };
 
     if (axisID != AxisID.ONLY) {
       logWindowLabel[0] = "Align Axis:" + axisID.getExtension();
     }
     String alignCommandName = logWindowLabel[0];
-
-    String[] alignLabels = { "Errors", "Solution", "Surface Angles", "Locals",
-        "Complete Log", "Large Residual", "Mappings", "Coordinates", "Beam Tilt" };
-    logFileLabel.add(alignLabels);
-
+    // Add tabs
+    List<String> logFileList = new ArrayList<String>();
+    List<String> alignLabels = new ArrayList<String>();
+    addLogFileTab("taRobust", "Robust", logFileList, alignLabels);
+    addLogFileTab("taError", "Errors", logFileList, alignLabels);
+    addLogFileTab("taSolution", "Solution", logFileList, alignLabels);
+    addLogFileTab("taAngles", "Surface Angles", logFileList, alignLabels);
+    addLogFileTab("taLocals", "Locals", logFileList, alignLabels);
+    addLogFileTab("taResiduals", "Large Residual", logFileList, alignLabels);
+    addLogFileTab("taMappings", "Large Mappings", logFileList, alignLabels);
+    addLogFileTab("taCoordinates", "Coordinates", logFileList, alignLabels);
+    addLogFileTab("taBeamtilt", "Beam Tilt", logFileList, alignLabels);
+    addLogFileTab("align", "Complete Log", logFileList, alignLabels);
+    
     Vector logFile = new Vector(1);
-    String beamtiltLogName = "taBeamtilt" + axisID.getExtension() + ".log";
-    File beamtiltLog = new File(applicationManager.getPropertyUserDir(), beamtiltLogName);
-    String[] logFileList;
-    if (beamtiltLog.length() > 0) {
-      logFileList = new String[9];
-    }
-    else {
-      logFileList = new String[8];
-    }
-    logFileList[0] = "taError" + axisID.getExtension() + ".log";
-    logFileList[1] = "taSolution" + axisID.getExtension() + ".log";
-    logFileList[2] = "taAngles" + axisID.getExtension() + ".log";
-    logFileList[3] = "taLocals" + axisID.getExtension() + ".log";
-    logFileList[4] = "align" + axisID.getExtension() + ".log";
-    logFileList[5] = "taResiduals" + axisID.getExtension() + ".log";
-    logFileList[6] = "taMappings" + axisID.getExtension() + ".log";
-    logFileList[7] = "taCoordinates" + axisID.getExtension() + ".log";
-    if (beamtiltLog.length() > 0) {
-      logFileList[8] = beamtiltLogName;
-    }
-
-    logFile.add(logFileList);
+    logFile.add(logFileList.toArray(new String[logFileList.size()]));
+    Vector logFileLabel = new Vector(1);
+    logFileLabel.add(alignLabels.toArray(new String[alignLabels.size()]));
 
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
         "FINAL ALIGNMENT", manPagelabel, manPage, logWindowLabel, logFileLabel, logFile,
@@ -498,8 +506,8 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     setDisplayed(false);
   }
 
-  //  This is a separate function so it can be called at initialization time
-  //  as well as from the button action above
+  // This is a separate function so it can be called at initialization time
+  // as well as from the button action above
   private void updateAdvanced() {
     pnlTiltalign.updateAdvanced(isAdvanced());
     UIHarness.INSTANCE.pack(axisID, applicationManager);
@@ -510,7 +518,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 
-  //  Event handler for panel buttons
+  // Event handler for panel buttons
   void buttonAction(String command, final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnComputeAlignment.getActionCommand())) {
       applicationManager.fineAlignment(axisID, btnComputeAlignment, null);
@@ -528,7 +536,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     }
   }
 
-  //	ActionListener class for buttons
+  // ActionListener class for buttons
   class AlignmentEstimationActionListner implements ActionListener {
 
     AlignmentEstimationDialog adaptee;

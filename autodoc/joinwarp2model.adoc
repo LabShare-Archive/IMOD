@@ -1,0 +1,87 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputWarpFile]
+short = input
+type = FN
+usage = Name of input transform file with warping control points
+tooltip =
+manpage = Name of input transform file with warping control points.  When
+eTomo runs Finishjoin(1), this is the file "joinroot.xf".
+If this option is not entered, the first nonoption argument is used for this
+filename.  One or the other entry is required.
+
+[Field = OutputModelFile]
+short = output
+type = FN
+usage = Name of output file for model of warp points
+tooltip =
+manpage = Name of output file for model of warp points.
+If this option is not entered, the second nonoption argument is used for this
+filename.  One or the other entry is required.
+
+[Field = JoinedFile]
+short = joined
+type = FN
+usage = Name of join file being modeled
+tooltip =
+manpage = Name of join file being modeled.  After "Refine Join" is pressed in
+eTomo, this is the file "joinroot_modeled.join".  If this filename is not
+entered, then the "-size" and "-pixel" options must be entered.
+
+[Field = AppliedTransformFile]
+short = xform
+type = FN
+usage = Name of file of G transforms applied to make the join file
+tooltip =
+manpage = Name of file of G transforms applied to make the join file.  When
+Finishjoin(1) is run without the "-xform" option, this is the file
+"joinroot.tomoxg", which is copied to "joinroot.warpxg" if there is warping. 
+However, when Finishjoin(1) is run with the "-xform"
+option to make the refined join, "joinroot.tomoxg" is the final transform
+file, not the file needed here.  Thus, use "joinroot.warpxg".  This entry is required.
+
+[Field = SizeOfJoinInXandY]
+short = size
+type = IP
+usage = Actual size in X and Y of the join file being modeled
+tooltip =
+manpage = Actual size in X and Y of the join file being modeled, in binned
+pixels if binning was used.  This entry is needed if "-joined" is not entered.
+
+[Field = PixelSpacing]
+short = pixel
+type = F
+usage = Actual pixel spacing in Angstroms of join file being modeled
+tooltip =
+manpage = Actual pixel spacing in Angstroms of join file being modeled, which
+includes any binning applied to make the file.  This entry is needed if
+"-joined" is not entered.
+
+[Field = OffsetInXandY]
+short = offset
+type = IP
+usage = Unbinned offset applied when building the join file
+tooltip =
+manpage = Offset applied when building the join file, in unbinned pixels if
+binning was applied.  This entry should be the same as the "-offset" entry to
+Finishjoin(1), which is the negative of the "Shift" values in the text boxes in
+eTomo.
+
+[Field = BinningOfJoin]
+short = binning
+type = I
+usage = Binning applied when building the join file
+tooltip =
+manpage = Binning applied when building the join file; this entry is required
+if binning was applied. 
+
+[Field = ChunkSizes]
+short = chunks
+type = IA
+usage = Number of slices in each section of the join file
+tooltip =
+manpage = Number of slices in each section of the join file.  This entry
+is required so that the program can put the model points at the right
+locations just before and after each junction between sections.
+

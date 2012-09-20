@@ -11,15 +11,15 @@ E = $(BINEXT)
 IILIBS    = $(LIIMOD) $(LIMOD) $(LCFSHR) $(TIFFLIBS)
 MODLIBS   = $(LIMOD) $(LCFSHR)
 
-PROGS = clonemodel$(E) clonevolume$(E) imodauto$(E) \
+PROGS = clonemodel$(E) clonevolume$(E) imodauto$(E) imod-dist$(E) \
  imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) rec2imod$(E) \
- imod2rib$(E) imod2vrml$(E) imod2vrml2$(E) imod2obj$(E) \
+ imod2rib$(E) imod2vrml$(E) imod2vrml2$(E) imod2obj$(E) pickbestseed$(E) \
  imod2meta$(E) wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) \
  imodexplode$(E) patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) \
  imodcurvature$(E) imodfindbeads$(E) point2model$(E) flattenwarp$(E) \
- $(IMODWINCPU)
+ slashmasksort$(E) slashsplitconts$(E) joinwarp2model$(E) $(IMODWINCPU)
 
-all : $(PROGS)
+all : $(PROGS) slashfindspheres$(E)
 
 clonemodel$(E) : clonemodel.$(O)
 	$(CC) -o clonemodel clonemodel.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
@@ -29,6 +29,9 @@ clonevolume$(E) : clonevolume.$(O)
 
 imodinfo$(E) : imodinfo.$(O)
 	$(CC) -o imodinfo imodinfo.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+
+imod-dist$(E) : imod-dist.$(O)
+	$(CC) -o imod-dist imod-dist.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imodmesh$(E) : imodmesh.$(O) 
 	$(CC) -o imodmesh imodmesh.$(O) \
@@ -42,6 +45,10 @@ imodmop$(E) : imodmop.$(O)
 
 imodauto$(E) : imodauto.$(O) 
 	$(CC) -o imodauto imodauto.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
+
+joinwarp2model$(E) : joinwarp2model.$(O) 
+	$(CC) -o joinwarp2model joinwarp2model.$(O) $(LDFLAGS) $(LIWARP) $(IILIBS) \
+	$(CLIBS)
 
 rec2imod$(E) : rec2imod.$(O) recfile.$(O)
 	$(CC) -o rec2imod rec2imod.$(O) recfile.$(O) $(LDFLAGS) $(MODLIBS) \
@@ -59,7 +66,7 @@ imod2vrml2$(E) : imod2vrml2.$(O)
 imod2obj$(E) : imod2obj.$(O)
 	$(CXX) -o imod2obj imod2obj.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
-imod2ccdbxml $(E) : imod2ccdbxml.$(O)
+imod2ccdbxml$(E) : imod2ccdbxml.$(O)
 	$(CC) -o imod2ccdbxml imod2ccdbxml.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imod2meta$(E) : imod2meta.$(O)
@@ -104,6 +111,9 @@ point2model$(E) : point2model.$(O)
 	$(CC) -o point2model point2model.$(O) $(LDFLAGS) $(IILIBS) \
 	$(CLIBS)
 
+pickbestseed$(E) : pickbestseed.$(O)
+	$(CXX) -o pickbestseed pickbestseed.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
+
 flattenwarp$(E) : flattenwarp.$(O)
 	$(LAPACKLINK) -o flattenwarp flattenwarp.$(O) $(LDFLAGS) $(MODLIBS) \
 	$(CLIBS) $(LAPACKLIBS) $(LAPACK_FLIBS) $(LIMESH)
@@ -114,12 +124,21 @@ imodwincpu.exe : imodwincpu.obj
 imodwincpu.obj : imodwincpu.cpp CpuUsage.h PerfCounters.h
 	$(CXX) -c $(CXXFLAGS) $(WINCPUVC) imodwincpu.cpp
 
+slashsplitconts$(E) : slashsplitconts.$(O)
+	$(CXX) -o slashsplitconts slashsplitconts.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+
+slashmasksort$(E) : slashmasksort.$(O)
+	$(CXX) -o slashmasksort slashmasksort.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+
+slashfindspheres$(E) : slashfindspheres.$(O)
+	$(CXX) -o slashfindspheres slashfindspheres.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
+
 install : $(PROGS)
 	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean : 
-	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
+	$(FIND) . -type f -name "*.$(OBJEXT)" -exec rm "{}" \;
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "core*" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.exe" -exec rm "{}" \;
@@ -137,16 +156,3 @@ imod2synu : imod2synu.$(O)
 
 imod2wmod : imod2wmod.$(O) $(IMODELOBJS)
 	$(CC) -o imod2wmod imod2wmod.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
-
-# oldpore, help edit old yeast pore models
-oldpore : oldpore.$(O)
-	$(CC) -o oldpore oldpore.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
-
-imodclean : imodclean.$(O)
-	$(CC) -o imodclean imodclean.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
-
-imodold : imodold.$(O) 
-	$(CC) -o imodold imodold.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
-
-imodmkhv : imodmkhv.$(O) 
-	$(CC) -o imodmkhv imodmkhv.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)

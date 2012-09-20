@@ -17,6 +17,7 @@ ImageFile	g5a.preali
 ImagesAreBinned	1
 InputSeedModel	g5a.seed
 OutputModel	g5a.fid
+PrealignTransformFile	g5a.prexg
 #SkipViews
 RotationAngle	0
 FirstTiltAngle	-60.

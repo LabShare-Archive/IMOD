@@ -5,7 +5,6 @@
 # Author: David Mastronarde
 #
 # $Id$
-# Log at end
 #
 
 progname = 'fitpatches'
@@ -152,7 +151,7 @@ for z in range(zrunStart, zrunEnd + 1):
 
                      if madeReduced or rescale:
                         modname = edge['name'] + '_reduce.mod'
-                        patchcom = fmtstr('patch2imod -s {:f} -c {} -f -n ' +\
+                        patchcom = fmtstr('patch2imod -s {:f} -c {} -d -f -n ' +\
                                           '"Values are CCCs; clip planes ' +\
                                           'exist" {} {}', scale, clipsize,
                                           edge[kReduce], modname)
@@ -198,7 +197,7 @@ for z in range(zrunStart, zrunEnd + 1):
                         addedKeys = 1
                      edge[kResid] = residname
                      modname = edge['name'] + '_resid.mod'
-                     patchcom = fmtstr('patch2imod -s {:f} -c {} -f -n ' +\
+                     patchcom = fmtstr('patch2imod -s {:f} -c {} -d -f -n ' +\
                                        '"Values are residuals; clip planes ' +\
                                        'exist" {} {}', scale, clipsize,
                                        residname, modname)
@@ -219,12 +218,3 @@ for z in range(zrunStart, zrunEnd + 1):
 
 if wroteFile:
    prnstr('\nNew info file written')
-
-#
-#  $Log$
-#  Revision 1.2  2009/12/10 21:26:26  mast
-#  Move update patch function to supermont.py
-#
-#  Revision 1.1  2009/09/08 23:26:12  mast
-#  Added to package
-#

@@ -93,6 +93,7 @@
 #define getimodobjrange GETIMODOBJRANGE
 #define imodarraylimits IMODARRAYLIMITS
 #define imodhasimageref IMODHASIMAGEREF
+#define clearimodobjstore CLEARIMODOBJSTORE
 #else
 #define newimod      newimod_
 #define deleteimod   deleteimod_
@@ -148,6 +149,7 @@
 #define getimodobjrange getimodobjrange_
 #define imodarraylimits imodarraylimits_
 #define imodhasimageref imodhasimageref_
+#define clearimodobjstore clearimodobjstore_
 #endif
 
 /* Declare anything that is going to be called internally! */
@@ -495,8 +497,9 @@ int getimodobjrange(int *objStart, int *objEnd, int ibase[], int npt[],
     return FWRAP_ERROR_MEMORY;
   for (i = 0; i < ninList; i++)
     objList[i] = *objStart + i;
-  return (getimodobjlist(objList, &ninList, ibase, npt, coord, color, npoint, 
-                         nobject));
+  i = getimodobjlist(objList, &ninList, ibase, npt, coord, color, npoint, nobject);
+  free(objList);
+  return i;
 }
 
 /*
@@ -995,6 +998,22 @@ int putpointvalue(int *ob, int *co, int *pt, float *value)
   return FWRAP_NOERROR;
 }
 
+/*!
+ * Deletes the store structure for the given object [ob], if any.
+ */
+int clearimodobjstore(int *ob)
+{
+  Iobj *obj;
+  if (!Fimod)
+    return(FWRAP_ERROR_NO_MODEL);
+  if (*ob < 1 || *ob > Fimod->objsize)
+    return(FWRAP_ERROR_BAD_OBJNUM);
+  obj = &Fimod->obj[*ob - 1];
+  if (obj->store)
+    ilistDelete(obj->store);
+  obj->store = NULL;
+  return FWRAP_NOERROR;
+}
 
 #define OBJ_EMPTY    -2
 #define OBJ_HAS_DATA -1
@@ -1220,10 +1239,14 @@ int putimod(int ibase[], int npt[], float coord[][3], int cindex[],
    *  Remove old contours that were not replaced
    */     
   for (ob = 0; ob < Fimod->objsize; ob++) {
-    if (imodContoursDeleteToEnd(&(Fimod->obj[ob]), nsaved[ob]))
+    if (imodContoursDeleteToEnd(&(Fimod->obj[ob]), nsaved[ob])) {
+      free(objlookup);
+      free(nsaved);
       return FWRAP_ERROR_MEMORY;
+    }
   }   
-
+  free(objlookup);
+  free(nsaved);
   return FWRAP_NOERROR;
 }
 

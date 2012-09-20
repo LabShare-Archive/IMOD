@@ -65,7 +65,7 @@ import etomo.comscript.TrimvolParam;
 import etomo.comscript.WarpVolParam;
 import etomo.comscript.XfmodelParam;
 import etomo.comscript.XfproductParam;
-import etomo.logic.TomogramSize;
+import etomo.logic.TomogramTool;
 import etomo.logic.TrimvolInputFileState;
 import etomo.process.BaseProcessManager;
 import etomo.process.ContinuousListenerTarget;
@@ -79,8 +79,10 @@ import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
+import etomo.storage.LoggableCollection;
 import etomo.storage.Storable;
 import etomo.storage.TaErrorLog;
+import etomo.storage.TaRobustLog;
 import etomo.storage.XrayStackArchiveFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -151,6 +153,7 @@ import etomo.ui.swing.TomogramCombinationDialog;
 import etomo.ui.swing.TomogramGenerationExpert;
 import etomo.ui.swing.TomogramPositioningExpert;
 import etomo.ui.swing.TrialTiltDisplay;
+import etomo.ui.swing.UIComponent;
 import etomo.ui.swing.UIExpert;
 import etomo.ui.swing.UIExpertUtilities;
 import etomo.ui.swing.UIHarness;
@@ -218,7 +221,7 @@ public final class ApplicationManager extends BaseManager implements
 
   private TomogramGenerationExpert tomogramGenerationExpertB = null;
 
-  protected TomogramCombinationDialog tomogramCombinationDialog = null;
+  private TomogramCombinationDialog tomogramCombinationDialog = null;
 
   private PostProcessingDialog postProcessingDialog = null;
 
@@ -289,10 +292,6 @@ public final class ApplicationManager extends BaseManager implements
       setupDialogExpert.doAutomation();
     }
     super.doAutomation();
-  }
-
-  public boolean setParamFile() {
-    return loadedParamFile;
   }
 
   /**
@@ -549,11 +548,11 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.updateAllProcessingStates(processTrack);
     setPanel();
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
-      reconnect(processMgr.getSavedProcessData(AxisID.FIRST), AxisID.FIRST);
-      reconnect(processMgr.getSavedProcessData(AxisID.SECOND), AxisID.SECOND);
+      reconnect(axisProcessData.getSavedProcessData(AxisID.FIRST), AxisID.FIRST);
+      reconnect(axisProcessData.getSavedProcessData(AxisID.SECOND), AxisID.SECOND);
     }
     else {
-      reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY);
+      reconnect(axisProcessData.getSavedProcessData(AxisID.ONLY), AxisID.ONLY);
     }
   }
 
@@ -562,10 +561,6 @@ public final class ApplicationManager extends BaseManager implements
       return reconnectRunB;
     }
     return reconnectRunA;
-  }
-
-  public boolean isInManagerFrame() {
-    return false;
   }
 
   private void setReconnectRun(AxisID axisID) {
@@ -1507,13 +1502,13 @@ public final class ApplicationManager extends BaseManager implements
         ProcessName.EXTRACTTILTS);
   }
 
-  private void extractpieces(AxisID axisID, ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, final DialogType dialogType) {
+  public void extractpieces(AxisID axisID, ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, final DialogType dialogType, final ViewType viewType) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
     processSeries.setNextProcess(ExtractmagradParam.COMMAND_NAME, null);
-    if (metaData.getViewType() != ViewType.MONTAGE && processSeries != null) {
+    if (viewType != ViewType.MONTAGE && processSeries != null) {
       processSeries.startNextProcess(axisID, processResultDisplay);
       return;
     }
@@ -1538,7 +1533,7 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME, axisID,
+    getMainPanel().startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME, axisID,
         ProcessName.EXTRACTPIECES);
   }
 
@@ -1894,7 +1889,8 @@ public final class ApplicationManager extends BaseManager implements
     if (metaData.getViewType() == ViewType.MONTAGE) {
       blendmontParam = comScriptMgr.getBlendmontParamFromTiltxcorr(axisID);
       GotoParam gotoParam = comScriptMgr.getGotoParamFromTiltxcorr(axisID);
-      runningBlendmont = blendmontParam.setBlendmontState();
+      runningBlendmont = blendmontParam.setBlendmontState(state
+          .getInvalidEdgeFunctions(axisID));
       if (runningBlendmont) {
         gotoParam.setLabel(BlendmontParam.GOTO_LABEL);
       }
@@ -1918,7 +1914,7 @@ public final class ApplicationManager extends BaseManager implements
   private void updateUndistortCom(AxisID axisID) {
     BlendmontParam blendmontParam = comScriptMgr.getBlendmontParamFromTiltxcorr(axisID);
     blendmontParam.setMode(BlendmontParam.Mode.UNDISTORT);
-    blendmontParam.setBlendmontState();
+    blendmontParam.setBlendmontState(state.getInvalidEdgeFunctions(axisID));
     comScriptMgr.saveXcorrToUndistort(blendmontParam, axisID);
   }
 
@@ -1965,7 +1961,7 @@ public final class ApplicationManager extends BaseManager implements
     if (!display.getParameters(preblendParam)) {
       return null;
     }
-    preblendParam.setBlendmontState();
+    preblendParam.setBlendmontState(state.getInvalidEdgeFunctions(axisID));
     comScriptMgr.savePreblend(preblendParam, axisID);
     return preblendParam;
   }
@@ -2408,14 +2404,22 @@ public final class ApplicationManager extends BaseManager implements
         * 100)) / 100.0;
   }
 
-  public void logTaErrorLogMessage(AxisID axisID) {
-    logMessage(TaErrorLog.getInstance(getPropertyUserDir(), axisID), axisID);
+  /**
+   * Logs messages to the project log from the tilt align error log and robust fitting
+   * log.
+   * @param axisID
+   */
+  public void logTiltAlignLogMessage(AxisID axisID) {
+    LoggableCollection collection = new LoggableCollection();
+    collection.addLoggable(TaErrorLog.getInstance(getPropertyUserDir(), axisID));
+    collection.addLoggable(TaRobustLog.getInstance(getPropertyUserDir(), axisID));
+    logMessage(collection, axisID);
   }
 
   public void getContinuousMessage(String message, AxisID axisID) {
     if (message != null && message.indexOf("Tiltalign ran with exit code 0") != -1) {
       processMgr.generateAlignLogs(axisID);
-      logTaErrorLogMessage(axisID);
+      logTiltAlignLogMessage(axisID);
     }
   }
 
@@ -2827,10 +2831,6 @@ public final class ApplicationManager extends BaseManager implements
       }
       saveStorables(axisID);
     }
-  }
-
-  public String getFileSubdirectoryName() {
-    return null;
   }
 
   public void closeImods(String key, AxisID axisID, String description) {
@@ -3964,7 +3964,7 @@ public final class ApplicationManager extends BaseManager implements
       return null;
     }
     blendParam.setMode(BlendmontParam.Mode.BLEND);
-    blendParam.setBlendmontState();
+    blendParam.setBlendmontState(state.getInvalidEdgeFunctions(axisID));
     comScriptMgr.saveBlend(blendParam, axisID);
     return blendParam;
   }
@@ -3985,8 +3985,8 @@ public final class ApplicationManager extends BaseManager implements
       return null;
     }
     blendParam.setMode(BlendmontParam.Mode.BLEND_3DFIND);
-    blendParam.setBlendmontState();
-    blendParam.setImageOutputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT);
+    blendParam.setBlendmontState(state.getInvalidEdgeFunctions(axisID));
+    blendParam.setImageOutputFileFor3dFind(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT);
     comScriptMgr.saveBlend3dFind(blendParam, axisID);
     // Update mrctaper
     MrcTaperParam mrcTaperParam = comScriptMgr.getMrcTaperParamFromBlend3dFind(axisID);
@@ -5424,8 +5424,8 @@ public final class ApplicationManager extends BaseManager implements
       CombineParams combineParams = new CombineParams(metaData.getCombineParams());
       if (!combineParams.isPatchBoundarySet()) {
         // The first time combine is opened for this dataset, set tomogram size
-        TomogramSize.saveTomogramSize(this, AxisID.FIRST, AxisID.ONLY);
-        TomogramSize.saveTomogramSize(this, AxisID.SECOND, AxisID.ONLY);
+        TomogramTool.saveTomogramSize(this, AxisID.FIRST, AxisID.ONLY);
+        TomogramTool.saveTomogramSize(this, AxisID.SECOND, AxisID.ONLY);
         String recFileName;
         MatchMode matchMode = combineParams.getMatchMode();
         if (matchMode == null || matchMode == MatchMode.B_TO_A) {
@@ -5829,8 +5829,8 @@ public final class ApplicationManager extends BaseManager implements
     loadVolcombine();
     loadCombineComscript();
     mainPanel.stopProgressBar(AxisID.ONLY);
-    TomogramSize.saveTomogramSize(this, AxisID.FIRST, AxisID.ONLY);
-    TomogramSize.saveTomogramSize(this, AxisID.SECOND, AxisID.ONLY);
+    TomogramTool.saveTomogramSize(this, AxisID.FIRST, AxisID.ONLY);
+    TomogramTool.saveTomogramSize(this, AxisID.SECOND, AxisID.ONLY);
     return true;
   }
 
@@ -7410,9 +7410,9 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Start the next process specified by the nextProcess string
    */
-  void startNextProcess(AxisID axisID, ProcessSeries.Process process,
-      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display) {
+  void startNextProcess(final UIComponent uiComponent, AxisID axisID,
+      ProcessSeries.Process process, ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, DialogType dialogType, ProcessDisplay display) {
     UIExpert uiExpert = getUIExpert(dialogType, axisID);
     if (uiExpert != null) {
       uiExpert.startNextProcess(process, processResultDisplay, processSeries, dialogType,
@@ -7433,7 +7433,8 @@ public final class ApplicationManager extends BaseManager implements
       splitcombine(processSeries, null, null, dialogType, process.getProcessingMethod());
     }
     else if (process.equals(ExtractpiecesParam.COMMAND_NAME)) {
-      extractpieces(axisID, processResultDisplay, processSeries, dialogType);
+      extractpieces(axisID, processResultDisplay, processSeries, dialogType,
+          metaData.getViewType());
     }
     else if (process.equals(ExtractmagradParam.COMMAND_NAME)) {
       extractmagrad(axisID, processResultDisplay, processSeries);
@@ -7562,6 +7563,10 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel = new MainTomogramPanel(this);
   }
 
+  public ViewType getViewType() {
+    return metaData.getViewType();
+  }
+
   /**
    * Set the data set parameter file. This also updates the mainframe data
    * parameters.
@@ -7570,7 +7575,7 @@ public final class ApplicationManager extends BaseManager implements
    *          a File object specifying the data set parameter file.
    */
   public void setParamFile(File paramFile) {
-    this.paramFile = paramFile;
+    super.setParamFile(paramFile);
     // Update main window information and status bar
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
   }
@@ -7761,24 +7766,6 @@ public final class ApplicationManager extends BaseManager implements
 
   BaseProcessTrack getProcessTrack() {
     return processTrack;
-  }
-
-  /**
-   * Interrupt the currently running thread for this axis
-   * 
-   * @param axisID
-   */
-  public void kill(AxisID axisID) {
-    processMgr.kill(axisID);
-  }
-
-  /**
-   * Interrupt the currently running thread for this axis
-   * 
-   * @param axisID
-   */
-  public void pause(AxisID axisID) {
-    processMgr.pause(axisID);
   }
 
   private ProcessResult splittilt(AxisID axisID,
@@ -8172,10 +8159,6 @@ public final class ApplicationManager extends BaseManager implements
     // to
     // do a Save As.
     return this.loadedParamFile;
-  }
-
-  public boolean canSnapshot() {
-    return !isNewManager();
   }
 
   public String getName() {

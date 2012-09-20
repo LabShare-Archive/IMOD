@@ -1,0 +1,161 @@
+.na
+.nh
+.TH setupstitch 1 3.10.5 BL3DEMC
+.SH NAME
+setupstitch \- Initial set up for stitching montage of overlapping tomograms
+.SH SYNOPSIS
+setupstitch options supermontage_info_file
+.SH DESCRIPTION
+Setupstitch is a Python program that performs the first step in stitching
+together tomograms that overlap laterally, which are referred to as a
+supermontage.  Stitching is done by running five different programs in
+sequence: Setupstitch, Edgepatches(1), Fitpatches(1), Stitchalign(1), and Tomostitch(1).  
+Setupstitch allows you to
+set up a master file with information about the tomograms and their overlap
+regions, referred to as a supermontage info file.  
+Edgepatches(1) performs 2D and 3D
+cross-correlations to determine the shifts between the volumes, then
+correlates local patches between overlapping volumes to obtain a set of 
+local displacements in the overlap zones.  Next, you run Fitpatches(1) to
+assess the quality of the patch displacements by seeing how well local
+transformations fit
+to them.  Fitpatches(1) also generates patch vector models that you can edit
+to improve these fits and to prevent aberrant vectors from subsequently giving
+bad warping transformations. 
+The next step is to run Stitchalign(1)
+to take this information and determine how the volumes can be transformed into
+alignment.  That program first derives an overall linear transformation
+(including shifts, rotations, size changes, and stretches as appropriate) to
+apply to each volume, and it also produces a set of vectors for each volume
+indicating how that volume needs to be warped to match up with adjacent ones
+where they overlap.  Finally, you run Tomostitch(1) to perform a series
+of tasks for building the stitched volume: 1) Deriving warping transformations
+from the warping vector fields; 2) Applying these warping transformations to
+each volume; 3) Adjusting densities of the volumes so that they match where
+they overlap; 4) Stacking the volumes so that they represent a montage readable
+by Blendmont(1); 5) Running Blendmont(1) to blend the 2D montaged images into
+one.
+.P
+Setupstitch can set up the info file when given the right information.
+For complex situations, you will probably want to name your volumes following
+one of the conventions supported by this program and let the program do this
+initial setup.  For simple situations, you have the option of
+starting the info file yourself with a text editor.  In any case, there are
+some situations that require manually inserting information about individual
+volumes into the info file.
+.P
+The info file is in the BL3DEMC autodoc format, which consists of sections
+of defined types, each containing information as key-value pairs.  In the
+abstract, this looks like:
+.nf
+[section_type = name]
+key1 = value1
+key2 = value2
+...
+.fi
+
+The defined kinds of autodoc sections (not to be confused with the physical slices
+that were reconstructed) are:
+.nf
+Section       Information about a slice as a whole; the name value 
+              is the name of the physical slice; the default is 
+              "rootname_Zvalue" if the slices have a defined Z value,
+              or just "rootname" if not.
+Piece         Information about a volume; the name value is the name
+              of the reconstruction file.
+Edge          Information about an overlap zone between two volumes.
+              The name value is a standard name based on the rootname
+              and the options that have been entered, such as 
+              set1_x1-2y1 for an edge between piece 1,1 and piece 2,1
+.fi
+
+The standard names for pieces and edges are determined from the rootname
+and the entries for three options: -ext, -underscore and -noz.  The -ext 
+option simply specifies an extension for the tomograms; the default is
+".rec".  With the default extension, the names are:
+.nf
+  Options         Piece name                Edge name
+                  rootname_x1y1z1.rec       rootname_x1-2y1z1
+-noz              rootname_x1y1.rec         rootname_x1-2y1
+-underscore       rootname_x1_y1_z1.rec     rootname_x1-2_y1_z1
+-noz -underscore  rootname_x1_y1.rec        rootname_x1-2_y1
+.fi
+where in each case the piece names are for piece 1,1 and the edge names are
+for the edge between piece 1,1 and piece 2,1.  The expected names for specific
+patch region models would be the piece name with "_region.mod" instead of
+".rec".
+.P
+To have the program set up the info file, decide on one of these naming
+conventions and have the volumes named appropriately.  Your choice will depend
+on whether you have multiple sections, and whether you want the section number
+to be represented by a Z at the end or as part of the rootname.  Then run
+Edgepatches with entries for -root, -xyadd (the number of frames in X and Y),
+-overlap (the expected overlap between frames in X and Y), and either
+-zadd (if you are doing multiple sections with the above naming convention)
+or -noz (to indicate there are no Z values in the names).
+The other option to specify at this time is -model (a default patch region
+model that is used if no specific model is found for a piece.)  When you run
+the program will all of these options, it will search for the piece volumes
+as well as patch region models under the names implied by your options.  Thus,
+if individual volumes need region models to constrain the area used for patch
+correlations, you should make them before running the program.
+.P
+To set up an info file yourself, you need to make a section for each piece
+with one or two entries:
+  [Piece = left.rec]
+  Frame = 1 1 0
+  Model = left_region.mod
+
+Here the frame entry specifies the frame number in X, Y, and Z; you can leave
+out the Z value if you want.  If you need to use a region model, specify it
+as shown.  With a section already in place for each piece, you can then run
+the program with -root, -overlap, your choice of -noz and -underscore to
+govern the naming of edge-related files, and a -model entry for a default
+region model.
+.P
+Regardless of whether you add the supermontage using the program or specify
+pieces by hand, this program will add sections for all the
+edges and other data to the info file.  
+There are two items that you may need to edit in by hand after
+creating an info file.  One would be a region model, specified in the section
+for a piece with
+   Model = piecename_region.mod
+.br
+where the name can be whatever you want if you are inserting this yourself.
+The second item would be lower and upper limits for the Z range from which
+patches can be taken for correlation.  These limits can be entered in the
+section for a piece, in which case they will be used when that piece is the
+lower one in a pair, or in the section for an edge, in which case the limits
+will apply only for that overlap zone.  The entry is
+   Zlimits = zlo zhi
+.br
+where zlo and zhi are the limits, numbered from 1.  For a particular edge, the
+Z limits are taken first from an entry for that edge if that exists; then from
+an entry for the lower piece if that exists; then from the Z border entered
+with the -borders option if neither exists.
+
+.SS Options
+Setupstitch uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -).  Options can be abbreviated to unique letters; the currently
+valid abbreviations for short names are shown in parentheses.
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH FILES
+When the info file is modified, the existing copy is renamed to a backup
+with the ~ extension.  
+.SH AUTHOR
+.nf
+David Mastronarde
+.fi
+.SH SEE ALSO
+corrsearch3d(1), xyzproj(1), tiltxcorr(1), edgepatches(1), fitpatches(1), stitchalign(1),
+tomostitch(1)
+.SH BUGS
+Comments in the info file will not be preserved.
+.P
+Email bug reports to mast@colorado.edu.

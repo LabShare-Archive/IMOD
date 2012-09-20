@@ -51,7 +51,8 @@ tf.fiducial-diameter = %{fiducial-diameter}
 if.not.var.test-gui.return=
 rb.montage=
 bn.create-com-scripts=
-wait.popup.setup-dialog-error=OK
+wait.popup.incorrect-frame-type=OK
+#wait.popup.invalid-dataset-directory=OK
 rb.single-frame=
 [[]]
 [[if = test-gui]]
@@ -59,6 +60,7 @@ rb.single-frame=
 	bn.view-raw-image-stack=
 	if.not.var.single.bn.view-raw-image-stack.1=
 [[]]
+touch.dir=test
 bn.create-com-scripts=
 
 

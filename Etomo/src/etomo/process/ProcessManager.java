@@ -1026,6 +1026,7 @@ import etomo.comscript.ConstMTFFilterParam;
 import etomo.comscript.ConstSplitCorrectionParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.CtfPhaseFlipParam;
+import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.FlattenWarpParam;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.ConstNewstParam;
@@ -1034,7 +1035,6 @@ import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.ExtractmagradParam;
-import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.ExtracttiltsParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.RunraptorParam;
@@ -1219,15 +1219,16 @@ public class ProcessManager extends BaseProcessManager {
       ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries)
       throws SystemProcessException {
     // Create the required tiltalign command
-    String command = BlendmontParam.getProcessName(BlendmontParam.Mode.UNDISTORT)
-        .getComscript(axisID);
+    ProcessName processName = BlendmontParam
+        .getProcessName(BlendmontParam.Mode.UNDISTORT);
+    String command = processName.getComscript(axisID);
     // Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
         appManager, axisID, BlendmontParam.Mode.UNDISTORT);
 
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, blendmontProcessMonitor,
-        axisID, processResultDisplay, processSeries);
+        axisID, processResultDisplay, processSeries, processName.resumable);
     return comScriptProcess.getName();
   }
 
@@ -1599,7 +1600,7 @@ public class ProcessManager extends BaseProcessManager {
 
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, null, axisID,
-        processResultDisplay, processSeries);
+        processResultDisplay, processSeries, ProcessName.TOMOPITCH.resumable);
     return comScriptProcess.getName();
 
   }
@@ -1672,11 +1673,11 @@ public class ProcessManager extends BaseProcessManager {
     try {
       ReconnectProcess process = ReconnectProcess.getInstance(appManager, this,
           TiltProcessMonitor.getReconnectInstance(appManager, axisID),
-          getSavedProcessData(axisID), axisID, processSeries);
+          axisProcessData.getSavedProcessData(axisID), axisID, processSeries);
       process.setProcessResultDisplay(processResultDisplay);
       Thread thread = new Thread(process);
       thread.start();
-      mapAxisThread(process, axisID);
+      axisProcessData.mapAxisThread(process, axisID);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -1905,7 +1906,8 @@ public class ProcessManager extends BaseProcessManager {
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startBackgroundComScript(comscript,
         combineProcessMonitor, AxisID.ONLY, combineComscriptState,
-        CombineComscriptState.COMSCRIPT_WATCHED_FILE, processSeries);
+        CombineComscriptState.COMSCRIPT_WATCHED_FILE, processSeries,
+        ProcessName.COMBINE.resumable);
     return comScriptProcess.getName();
   }
 
@@ -1921,7 +1923,7 @@ public class ProcessManager extends BaseProcessManager {
 
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, null, AxisID.ONLY,
-        processSeries);
+        processSeries, ProcessName.SOLVEMATCH.resumable);
     return comScriptProcess.getName();
 
   }
@@ -1938,7 +1940,7 @@ public class ProcessManager extends BaseProcessManager {
 
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, null, AxisID.ONLY,
-        processSeries);
+        processSeries, ProcessName.MATCHVOL1.resumable);
     return comScriptProcess.getName();
 
   }
@@ -1957,7 +1959,7 @@ public class ProcessManager extends BaseProcessManager {
 
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, patchcorrProcessWatcher,
-        AxisID.ONLY, "patch.out", processSeries);
+        AxisID.ONLY, "patch.out", processSeries, ProcessName.PATCHCORR.resumable);
     return comScriptProcess.getName();
 
   }
@@ -1974,7 +1976,7 @@ public class ProcessManager extends BaseProcessManager {
 
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, null, AxisID.ONLY,
-        processSeries);
+        processSeries, ProcessName.MATCHORWARP.resumable);
     return comScriptProcess.getName();
 
   }
@@ -1993,7 +1995,7 @@ public class ProcessManager extends BaseProcessManager {
 
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, volcombineProcessMonitor,
-        AxisID.ONLY, processSeries);
+        AxisID.ONLY, processSeries, ProcessName.VOLCOMBINE.resumable);
     return comScriptProcess.getName();
 
   }
@@ -2139,9 +2141,6 @@ public class ProcessManager extends BaseProcessManager {
     }
   }
 
-  void postProcess(ReconnectProcess script) {
-  }
-
   void postProcess(final DetachedProcess process) {
     super.postProcess(process);
     try {
@@ -2197,7 +2196,7 @@ public class ProcessManager extends BaseProcessManager {
             processDetails.getDoubleValue(TiltalignParam.Fields.ANGLE_OFFSET));
         appManager.postProcess(axisID, processName, processDetails,
             script.getProcessResultDisplay());
-        appManager.logTaErrorLogMessage(axisID);
+        appManager.logTiltAlignLogMessage(axisID);
       }
       else if (processName == ProcessName.ERASER) {
         if (command != null && command.getCommandMode() == CCDEraserParam.Mode.X_RAYS) {
@@ -2298,9 +2297,6 @@ public class ProcessManager extends BaseProcessManager {
       e.printStackTrace();
       System.err.println("ERROR:  Unable to record state.");
     }
-  }
-
-  void errorProcess(ReconnectProcess script) {
   }
 
   void errorProcess(ComScriptProcess script) {
@@ -2418,9 +2414,6 @@ public class ProcessManager extends BaseProcessManager {
       e.printStackTrace();
       System.err.println("ERROR:  Unable to record state.");
     }
-  }
-
-  void postProcess(InteractiveSystemProgram program) {
   }
 
   BaseManager getManager() {

@@ -46,7 +46,6 @@ public class ComScriptTests {
     TestSuite suite = new TestSuite("Tests:  " + TEST_DIR);
     suite.addTestSuite(StringListTest.class);
     suite.addTestSuite(FortranInputStringTest.class);
-    suite.addTestSuite(NewstParamTest.class);
     
     //suite.addTestSuite(CombineComscriptStateTest.class);
     //suite.addTest(new NewstParamTest("testParseComScriptCommand"));

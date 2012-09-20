@@ -315,19 +315,17 @@ QAction *utilTBPushButton(const char *text, QWidget *parent, QToolBar *toolBar,
 }  
 
 /*
- * Take two X11 bitmaps in bitList and convert to off and on icons for num
+ * Takes pairs of icon images in fileList and convert to off and on icons for num
  * buttons
  */
-void utilBitListsToIcons(unsigned char *bitList[][2], QIcon *icons[], int num)
+void utilFileListsToIcons(const char *fileList[][2], QIcon *icons[], int num)
 {
   for (int i = 0; i < num; i++) {
     icons[i] = new QIcon();
-    icons[i]->addPixmap
-      (QBitmap::fromData(QSize(BM_WIDTH, BM_HEIGHT), bitList[i][0]),
-       QIcon::Normal, QIcon::Off);
-    icons[i]->addPixmap
-      (QBitmap::fromData(QSize(BM_WIDTH, BM_HEIGHT), bitList[i][1]), 
-       QIcon::Normal, QIcon::On);
+    icons[i]->addFile(QString(fileList[i][0]), QSize(BM_WIDTH, BM_HEIGHT),
+                      QIcon::Normal, QIcon::Off);
+    icons[i]->addFile(QString(fileList[i][1]), QSize(BM_WIDTH, BM_HEIGHT),
+                      QIcon::Normal, QIcon::On);
   }
 }
 

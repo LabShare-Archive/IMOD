@@ -219,4 +219,10 @@ found by Xfsimplex for each pair of images.
 The difference measure is the mean difference per pixel expressed as a multiple of the
 image standard deviation.
 
-
+[Field = SectionsNumberedFromOne]
+short = one
+type = B
+usage = Section number entries are numbered from 1 instead of from 0
+tooltip =
+manpage = Section numbers in the -skip and -break section list entries are
+numbered from 1 instead of from 0.

@@ -429,6 +429,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     // make the test directory path
     testDir = new File(JfcUnitTests.TEST_ROOT_DIR, testDirName);
     variableMap.put(UITestSubjectType.TESTDIR.toString(), testDir.getAbsolutePath());
+    variableMap.put(UITestSubjectType.TESTDIR.toString() + "-name", testDir.getName());
     keepDatasetDir = command.getModifierType() == UITestModifierType.KEEP;
     if (keepDatasetDir) {
       variableMap.put("keep-dataset-dir", "");

@@ -130,7 +130,7 @@ c
 c       function ONEINTRP used interpolation in a real array CRRAY
 c       (dimensions NX,NY) to find the pixel value of the point at
 c       coordinates (X,Y).  Coordinates run from 0 to NX-1.  A real value
-c       is returned.  If the pixel is not within the array, DMEAN is returned
+c       is returned.  If the pixel is not within the array, DFILL is returned
 c       (from value in common).  IZPC is the piece number (numbered from 1)
 c       The interpolation order is set from the value in common.
 c       
@@ -145,7 +145,7 @@ c
       real*4 dx,dy,xp,yp,v2,v4,v6,v8,v5,a,b,c,d,vmin,vmax
       real*4 dxm1,dxdxm1,fx1,fx2,fx3,fx4,dym1,dydym1,v1,v3
 c       
-      oneintrp=dmean
+      oneintrp=dfill
       xp=x+1.
       yp=y+1.
       if (doFields) then
@@ -267,7 +267,7 @@ c       2x2 matrix AMAT and FDX and FDY, where these must be prepared so that
 c       the coordinates in the input array (range 0 to NXC-1 etc) are
 c       obtained simply by X = A11 * INDX + A12 * INDY + DX et (i.e. no
 c       center offsets are needed).  Pixels outside the input array are
-c       filled with DMEAN from common.  IZPC is the piece number.
+c       filled with DFILL from common.  IZPC is the piece number.
 c       
       subroutine fastinterp(drray,nxd,nyd, crray,nxc,nyc,indxlo,
      &    indxhi,indylo, indyhi,newpcxll,amat,fdx, fdy,izpc)
@@ -295,7 +295,7 @@ c           Linear interpolation
 c           
           do indx=indxlo,indxhi
             ixout=indx+1-newpcxll
-            pixval=dmean
+            pixval=dfill
             rx = indx
             if (secHasWarp) then
               call interpolateGrid(rx - 0.5, indy - 0.5, warpDx, warpDy, lmWarpX, nxWarp,
@@ -337,7 +337,7 @@ c           Old quadratic interpolation
 c           
           do indx=indxlo,indxhi
             ixout=indx+1-newpcxll
-            pixval=dmean
+            pixval=dfill
             rx = indx
             if (secHasWarp) then
               call interpolateGrid(rx - 0.5, indy - 0.5, warpDx, warpDy, lmWarpX, nxWarp,
@@ -408,7 +408,7 @@ c           cubic interpolation
 c           
           do indx=indxlo,indxhi
             ixout=indx+1-newpcxll
-            pixval=dmean
+            pixval=dfill
             rx = indx
             if (secHasWarp) then
               call interpolateGrid(rx - 0.5, indy - 0.5, warpDx, warpDy, lmWarpX, nxWarp,

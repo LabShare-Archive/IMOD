@@ -62,6 +62,7 @@ import etomo.type.AxisID;
 public class AlignLogGenerator {
   public static final String ERROR_LOG_NAME = "taError";
   public static final String ANGLES_LOG_NAME = "taAngles";
+  public static final String ROBUST_LOG_NAME = "taRobust";
 
   AxisID axisID;
   String[] alignLogCommand = null;
@@ -96,6 +97,7 @@ public class AlignLogGenerator {
     runArgument("-r", "taResiduals");
     runArgument("-s", "taSolution");
     runArgument("-b", "taBeamtilt");
+    runArgument("-w", "taRobust");
   }
 
   private void runArgument(String argument, String logFile) throws IOException {

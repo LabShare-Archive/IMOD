@@ -194,7 +194,6 @@ EXPORTS
 	imodRead
 	imodPointPlaneEdge
 	imodObjectClip
-	imodel_transform
 	imodPointNormalize
 	istorePointIsGap
 	imodContourGetPoints
@@ -203,6 +202,7 @@ EXPORTS
 	imodMatScale
 	imodContourCopy
 	imodPointArea
+	CLEARIMODOBJSTORE
 	imodel_contour_check_wild
 	imodClipsRead
 	istoreDeletePoint
@@ -234,6 +234,7 @@ EXPORTS
 	imodPlaneAxisRotate
 	imodMeshGetBBox
 	istoreDump
+	makeAreaContList
 	imodContourCircularity
 	imodPrevObject
 	imodPointIsEqual
@@ -303,6 +304,7 @@ EXPORTS
 	imodMeshGetVerts
 	imodPointSetSize
 	imodMatTransform
+	imodPointInsideArea
 	imodNewContour
 	imodel_point_dist
 	imodContourGetMaxPoint

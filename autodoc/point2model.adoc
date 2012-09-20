@@ -60,6 +60,21 @@ usage = Objects and contours are numbered from 0 instead of 1
 tooltip = 
 manpage = 
 
+[Field = ValuesInLastColumn]
+short = values
+type = I
+usage = 1 or -1 to store last number on each line as a point or contour value
+tooltip = 
+manpage = Use this option to indicate that lines have a general value
+at the end, after the Z coordinate.   Enter 1 to have the value stored as a
+point value, or -1 to have the value stored as a contour value.  With point
+values, a value must appear on every line.  With contour values, the first
+point in each contour must have a value, and values on later points in a
+contour will be ignored and need not be present.  Note that if a file has
+values and this option is not given, the coordinates will NOT be read correctly
+unless the file has both object and contour numbers, because the program will
+think that the X coordinate is a contour number.
+
 [Field = CircleSize]
 short = circle
 type = I
@@ -104,3 +119,26 @@ manpage = Make the model's coordinate system match this image file.  This
 is not needed for loading the model onto this image in 3dmod, but will allow
 the model to be used together with this image file in various programs
 (e.g., Beadtrack) without having to load it into 3dmod and save it.
+
+[Field = PixelSpacingOfImage]
+short = pixel
+type = FT
+usage = Pixel spacing, or scale in X, Y, and Z, of the model's coordinate system
+tooltip =
+manpage = Set the reference scaling information of the model to the given X,
+Y, and Z scale factors, which would correspond to the pixel spacing in an
+image file header.  The entry together with -origin provides an alternative to the
+-image option, so -image cannot be used together with -pixel or -origin.
+Like -image, these entries are not needed for loading the model into 3dmod
+together with an image file of the same scaling, but would be useful for
+loading into 3dmod with an image at a different binning, or for use in other
+programs that require the scaling to be correct.  This entry does not set the
+pixel size entry in the model header.
+
+[Field = OriginOfImage]
+short = origin
+type = FT
+usage = Origin in X, Y, and Z of the model's coordinate system
+tooltip =
+manpage = Set the reference information of the model to the given X, Y, and Z
+translations, which would correspond to the origin in an image file header.

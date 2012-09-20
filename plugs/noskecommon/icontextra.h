@@ -619,7 +619,7 @@ inline void deleteAllPts( Icont *cont )
 
 inline float getZ( Icont *cont )
 {
-  return imodContourZValue( cont );
+  return (float)imodContourZValue( cont );
 }
 
 //------------------------
@@ -627,7 +627,7 @@ inline float getZ( Icont *cont )
 
 inline int getZInt( Icont *cont )
 {
-  return floor(imodContourZValue( cont ) + 0.5);
+  return imodContourZValue( cont );
 }
 
 //------------------------

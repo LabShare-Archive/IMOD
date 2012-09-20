@@ -1,0 +1,885 @@
+#!/usr/bin/env python
+# autofidseed - finds fiducial seed model
+#
+# Author: David Mastronarde
+#
+# $Id$
+#
+
+progname = 'autofidseed'
+prefix = 'ERROR: ' + progname + ' - '
+
+# Clean up all the temp files before exiting
+def cleanup(exts, pidstr):
+   if leavetmp:
+      leftStr = 'All'
+   else:
+      leftStr = 'Some'
+      for ext in exts:
+         cleanlist = glob.glob(tmproot + '*' + ext)
+         cleanupFiles(cleanlist)
+
+   if leavetmp or len(exts) == len(cleanExts):
+      leftStr += ' temporary files left as ' + tmpdir + '/afs' + pidInfo + '*'
+      if pidstr != pidInfo and leavetmp:
+         leftStr += ' or ' + 'afs' + pidstr + '*'
+      prnstr(leftStr)
+         
+
+# Cleanup files, issue top message if any, and do the Imod error exit
+def cleanExitError(message = ''):
+   cleanup(cleanExts + resumeExts + infoExts, pid)
+   if message:
+      prnstr(prefix + message)
+   exitFromImodError(progname)
+
+
+# Compute a default border size if needed
+def setBorderSize(sizeForBorder, entered):
+   if entered > 0:
+      return entered
+   border = (lowBorderPixPerK * sizeForBorder) // 1024
+   if sizeForBorder > lowHighBreakpoint:
+      border = (highBorderPixPerK * lowHighBreakpoint + lowBorderPixPerK * \
+                   (sizeForBorder - lowHighBreakpoint)) // 1024
+   return border
+
+
+# Fill in first gap in view list going out from middle in given direction
+def fillFirstGap(viewList, lookDir, midz):
+   print viewList
+   print lookDir, midz, trackStart, trackEnd
+   rangeLo = range(midz, trackStart - 1, -1)
+   rangeHi = range(midz, trackEnd + 1)
+   trackRange = rangeLo + rangeHi
+   if lookDir > 0:
+      trackRange = rangeHi + rangeLo
+   print rangeLo, rangeHi, trackRange
+   for view in trackRange:
+      if view not in viewList:
+         return view
+   else:
+      exitError('Inconsistency picking seed views')
+
+
+# Select set of seed views given the number desired
+def selectSeedViews(numNeeded):
+   angCrit = 1.9
+   
+   # If all views in range are needed, just return that to avoid violating assumptions
+   # of the logic below
+   if numNeeded == trackEnd + 1 - trackStart:
+      return range(trackStart, trackEnd + 1)
+
+   # Get the 3 basic views at least 2 degrees apart inside the range
+   seedViews = [midView - 1, midView, midView + 1]
+   for ind in (0, 2):
+      while seedViews[ind] > trackStart and seedViews[ind] < trackEnd and \
+             fabs(tiltIncluded[midView] - tiltIncluded[seedViews[ind]]) < angCrit:
+         seedViews[ind] += ind - 1
+
+   # If the min tilt view is not in the list, force it in
+   if minTiltInd not in seedViews:
+
+      # Find which one is closest to the zero tilt
+      subInd = 0
+      for ind in (1, 2):
+         if fabs(tiltIncluded[seedViews[subInd]]) > fabs(tiltIncluded[seedViews[ind]]):
+            subInd = ind
+
+      # put the min tilt view in that spot and set up to walk out from there in steps
+      seedViews[subInd] = minTiltInd
+      if subInd == 1:
+         dirList = [-1, 1]
+         endInds = [trackStart, trackEnd]
+      elif subInd == 0:
+         dirList = [1, 1]
+         endInds = [trackEnd - 1, trackEnd]
+      else:
+         dirList = [-1, -1]
+         endInds = [trackStart + 1, trackStart]
+         
+      # Take two steps in the listed directions and with the proper end point for each
+      # step and find the next view at the correct separation
+      for loop in (0, 1):
+         indDir = dirList[loop]
+         ind = subInd + indDir
+         seedViews[ind] = seedViews[subInd] + indDir
+         while seedViews[ind] != endInds[loop] and \
+                fabs(tiltIncluded[seedViews[subInd]] - \
+                        tiltIncluded[seedViews[ind]]) < angCrit:
+            seedViews[ind] += indDir
+         if dirList[0] == dirList[1]:
+            subInd += indDir
+         
+   checkDir = -1
+   endView = seedViews[0]
+   divided = [0, 0]
+   midZ = seedViews[1]
+   for loop in (0, 1):
+      if len(seedViews) >= numNeeded:
+         return seedViews
+      
+      viewTry = endView + checkDir
+
+      # Try to extend by another 2 degrees
+      while viewTry > trackStart and viewTry < trackEnd and \
+             fabs(tiltIncluded[endView] - tiltIncluded[viewTry]) < angCrit:
+         viewTry += checkDir
+
+      # Find insertion between the two with most balanced intervals
+      minView = -1
+      if endView - checkDir != midZ:
+         checkLo = min(endView - checkDir, midZ + checkDir)
+         checkHi = max(endView - checkDir, midZ + checkDir) + 1
+         minDiff = 1000.
+         for view in range(checkLo, checkHi):
+            interval1 = fabs(tiltIncluded[endView] - tiltIncluded[view])
+            interval2 = fabs(tiltIncluded[midZ] - tiltIncluded[view])
+            diff = fabs(interval1 - interval2)
+            if diff < minDiff:
+               minDiff = diff
+               minView = view
+               minInterval = min(interval1, interval2)          
+
+      # If there was any, and either the extension is invalid or the minimum interval
+      # by dividing this range is larger than the extension interval, divide range
+      if minView >= 0:
+         if viewTry < trackStart or viewTry > trackEnd or minInterval > \
+                1.5 * fabs(tiltIncluded[endView] - tiltIncluded[viewTry]):
+            viewTry = minView
+            divided[loop] = 1
+
+      # And if there is still nothing valid, just fill first gap from this direction
+      if viewTry < trackStart or viewTry > trackEnd:
+         viewTry = fillFirstGap(seedViews, checkDir, midZ)
+      seedViews.append(viewTry)
+      seedViews.sort()
+      checkDir = -checkDir
+      endView = seedViews[3]
+
+   # Next select 6th and 7th ones
+   endInd = 0
+   midInd = 2
+   for loop in (0, 1):
+      if len(seedViews) >= numNeeded:
+         return seedViews
+      viewTry = -1
+      endView = seedViews[endInd]
+
+      # If this side was divided previously, try again to go outside
+      if divided[loop]:
+         viewTry = endView + checkDir
+         while viewTry > trackStart and viewTry < trackEnd and \
+                fabs(tiltIncluded[endView] - tiltIncluded[viewTry]) < angCrit:
+            viewTry += checkDir
+
+      # If nothing picked yet, find biggest gap in range
+      if viewTry < trackStart or viewTry > trackEnd:
+         fillInd = (endInd + midInd) / 2
+
+         # There must be a gap in range
+         if midZ + 2 * checkDir != endView:
+
+            # If there is no gap on one side or other of filled value, use the other side
+            if midZ + checkDir == seedViews[fillInd]:
+               viewTry = (seedViews[fillInd] + endView) / 2
+            elif seedViews[fillInd] + checkDir == endView:
+               viewTry = (midZ + seedViews[fillInd]) / 2
+
+               # Otherwise pick the biggest angle gap
+            elif fabs(tiltIncluded[midZ] - tiltIncluded[seedViews[fillInd]]) > \
+                   fabs(tiltIncluded[endView] - tiltIncluded[seedViews[fillInd]]):
+               viewTry = (midZ + seedViews[fillInd]) / 2
+            else:
+               viewTry = (seedViews[fillInd] + endView) / 2
+
+      # And if there is still nothing valid, just fill first gap from this direction
+      if viewTry < trackStart or viewTry > trackEnd:
+         viewTry = fillFirstGap(seedViews, checkDir, midZ)
+      seedViews.append(viewTry)
+      seedViews.sort()
+      checkDir = -checkDir
+      midInd = 3
+      endInd = 5
+
+   return seedViews
+
+
+# Run imodfindbeads with current selection of views
+def runFindBeads():
+   sectOpt = fmtstr('SectionsToDo {}', includedViews[seedViews[0]])
+   viewStr = fmtstr(' on views {}', includedViews[seedViews[0]] + 1)
+   for i in range(1, numSeedViews):
+      seedVw = includedViews[seedViews[i]]
+      sectOpt += ',' + str(seedVw)
+      if i < numSeedViews - 1:
+         viewStr += ', ' + str(seedVw + 1)
+      else:
+         viewStr += ', and ' + str(seedVw + 1)
+                           
+   comlines = ['InputImageFile ' + imageFile,
+               'OutputModelFile ' + tmppeak,
+               sectOpt,
+               fmtstr('BeadSize {}', beadSize),
+               fmtstr('MinSpacing {}', spacing),
+               fmtstr('LinearInterpolation {}', linear),
+               fmtstr('StorageThreshold {}', -peakFraction)]
+   if lightBeads:
+      comlines.append('LightBeads 1')
+   if ifGuess:
+      comlines.append(fmtstr('MinGuessNumBeads {}', guess))
+   if usingSobel and kernelArr:
+      comlines.append(fmtstr('KernelSigma {}', ksigma))
+   if boundModel:
+      comlines.append('AreaModel ' + boundModel)
+      if excludeAreas:
+         comlines.append('ExcludeInsideAreas 1')
+
+   prnstr('RUNNING IMODFINDBEADS' + viewStr)
+   prnstr(' ')
+   try:
+      findlines = runcmd('imodfindbeads -StandardInput', comlines)
+   except ImodpyError:
+      cleanExitError('Running imodfindbeads' + viewStr)
+      
+   for l in findlines:
+      prnstr(l, end='')
+   last = len(findlines) - 1
+   if findlines[last - 1].find('peaks are above') < 0 or \
+          findlines[last].find('total peaks being') < 0:
+      if (findlines[last].find('Failed to find dip')) >= 0:
+         exitError('Cannot proceed; imodfindbeads cannot identify the gold beads')
+      exitError('Output from imodfindbeads does not end in the expected way')
+   lsplit = findlines[last].split()
+   numPeaksTot = convertToInteger(lsplit[0], 'number of total peaks stored')
+   prnstr(' ')
+   return numPeaksTot
+
+
+# Find out if a higher number of seed views is needed to try to reach target
+def reviseNumSeedViews(peaksTot, nsViews):
+   numPerView = peaksTot / nsViews
+   targNum = targetNumber
+   needed = 3
+   if targetDensity > 0.:
+      targNum = targetDensity * nx * ny * 1.e-6
+   if numPerView < moreViewCrit5 * targNum:
+      needed = min(numViews, 5)
+   if numPerView < moreViewCrit7 * targNum:
+      needed = min(numViews, 7)
+   return needed
+
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal, glob, math
+from math import fabs
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except Exception:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+from pysed import *
+
+# Fallbacks from ../manpages/autodoc2man 3 1 autofidseed
+options = ["track:TrackCommandFile:FN:", "guess:MinGuessNumBeads:I:",
+           "spacing:MinSpacing:F:", "size:BeadSize:F:", "peak:PeakStorageFraction:F:",
+           "views:NumberOfSeedViews:I:", "boundary:BoundaryModel:FN:",
+           "border:BordersInXandY:IP:", "two:TwoSurfaces:B:",
+           "number:TargetNumberOfBeads:I:", "density:TargetDensityOfBeads:F:",
+           "ratio:MaxMajorToMinorRatio:F:", "cluster:ClusteredPointsAllowed:I:",
+           "lower:LowerTargetForClustered:F:", "subarea:SubareaSize:I:",
+           "sort:SortAreasMinNumAndSize:IP:", "ignore:IgnoreSurfaceData:LI:",
+           "drop:DropTracks:LI:", "pick:PickSeedOptions:CH:",
+           "remove:RemoveTempFiles:I:", "output:OutputSeedModel:FN:",
+           "info:InfoFile:FN:", "tempdir:TemporaryDirectory:FN:",
+           "leave:LeaveTempFiles:B:"]
+
+(opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 2, 0, 0)
+
+spacing = 0.85
+optLocalPoints = 20
+optLocalSize = 1000
+minLocalSize = 500
+minLocalPoints = 10
+minPointsForLocal = 20
+minSubareaNum = 50
+minSubareaSize = 2500
+lowBorderPixPerK = 32
+highBorderPixPerK = 24
+lowHighBreakpoint = 2048
+moreViewCrit5 = 1.    # Not all points are usable
+moreViewCrit7 = 0.5   # This is unlikely to help more so make the threshold low
+leavetmp = 0
+
+# Extensions for files that are always cleaned up, files that are left for resumin
+# and files that are left for user edification only
+cleanExts = ['.seed', '.xyzpt', '.surf']
+resumeExts = ['.track', '.xyzmod', '.elong']
+infoExts = ['pkmod', '.sortmod']
+
+# Get track command file
+trackcom = PipGetString('TrackCommandFile', '')
+if not trackcom:
+   exitError('You must enter the name of a beadtrack command file')
+
+# Compose info file name
+(troot, ext) = os.path.splitext(trackcom)
+infoSuffix = ''
+if troot.endswith('a'):
+   infoSuffix = '_a'
+if troot.endswith('b'):
+   infoSuffix = '_b'
+infoName = progname + infoSuffix + '.info'
+
+# Set root of names for temp files
+deftmpdir = progname + infoSuffix + '.dir'
+tmpdir = PipGetString('TemporaryDirectory', deftmpdir)
+if tmpdir == deftmpdir and not os.path.exists(tmpdir):
+   try:
+      os.mkdir(tmpdir)
+   except:
+      exitError('Making the temporary directory ' + tmpdir)
+
+if not (os.path.isdir(tmpdir) and os.access(tmpdir, os.W_OK)):
+   exitError('Cannot write to temporary directory ' + tmpdir)
+      
+pid = str(os.getpid()) + '.'
+tmproot = 'afs'
+if tmpdir:
+   tmproot = tmpdir + '/' + tmproot
+
+# Get alternate name,, keep track if using default
+infoName = PipGetString('InfoFile', infoName)
+defaultInfo = PipGetErrNo()
+
+# Get info file
+oldValid = os.path.exists(infoName)
+if oldValid:
+   infoLines = readTextFile(infoName)
+   pidInfo = optionValue(infoLines, 'PID', 0)
+
+# See if cleaning up, so we can exit now
+clean = PipGetInteger('RemoveTempFiles', 0)
+if clean != 0 and oldValid and pidInfo:
+   cleanup(resumeExts + infoExts, pidInfo)
+   oldValid = False
+   if clean < 0:
+      if tmpdir == deftmpdir:
+         cleanlist = glob.glob(tmpdir + '/' + '*')
+         cleanupFiles(cleanlist)
+         try:
+            os.rmdir(tmpdir)
+         except:
+            prnstr('WARNING: could not remove temporary directory ' + tmpdir)
+      sys.exit(0)
+   
+# Get more options
+guess = PipGetInteger('MinGuessNumBeads', 0)
+ifGuess = 1 - PipGetErrNo()
+twoSurf = PipGetBoolean('TwoSurfaces', 0)
+spacing = PipGetFloat('MinSpacing', spacing)
+peakFraction = PipGetFloat('PeakStorageFraction', 1.0)
+targetNumber = PipGetInteger('TargetNumberOfBeads', 0)
+targetDensity = PipGetFloat('TargetDensityOfBeads', 0.)
+if targetNumber < 1 and targetDensity <= 0.:
+   exitError('You must enter a positive number or density of beads as the target for ' + \
+                'the seed model')
+boundModel = PipGetString('BoundaryModel', '')
+excludeAreas = PipGetBoolean('ExcludeInsideAreas', 0)
+(minSubareaNum, minSubareaSize) = PipGetTwoIntegers('SortAreasMinNumAndSize',
+                                                    minSubareaNum, minSubareaSize)
+ifPick = 1 - PipGetErrNo()
+subareaSize = PipGetInteger('SubareaSize', 0)
+if ifPick and subareaSize:
+   exitError('You cannot enter both -sort and -subarea')
+leavetmp = PipGetBoolean('LeaveTempFiles', 0)
+clustered = PipGetInteger("ClusteredPointsAllowed", 0)
+lowTarget = PipGetFloat("LowerTargetForClustered", 0.)
+maxMajorMinor = PipGetFloat("MaxMajorToMinorRatio", 0.)
+pickOptions = PipGetString('PickSeedOptions', '')
+seedFile = PipGetString('OutputSeedModel', '')
+(xborder, yborder) = PipGetTwoIntegers('BordersInXandY', 0, 0)
+numSeedViews = PipGetInteger('NumberOfSeedViews', 3)
+viewsEntered = 1 - PipGetErrNo()
+if numSeedViews < 3 or numSeedViews > 7:
+   exitError('The number of views to use as seeds must be between 3 and 7')
+
+dropStr = PipGetString('DropTracks', '')
+dropList = []
+if dropStr:
+   dropList = parselist(dropStr)
+ignoreStr = PipGetString('IgnoreSurfaceData', '')
+ignoreList = []
+if ignoreStr:
+   ignoreList = parselist(ignoreStr)
+   
+# Read com file and get critical entries
+tracklines = readTextFile(trackcom)
+
+# find beadtrack command line then end of input (from transferfid)
+startline = -1
+for i in range(len(tracklines)):
+   line = tracklines[i].strip()
+   if line.startswith('$') and line.find('beadtrack') >=0 and line.find('-Standard') > 0:
+      startline = i + 1
+   elif startline > 0 and line.startswith('$'):
+      endline = i
+
+if startline < 0:
+   exitError('Old version of ' + trackcom + ' cannot be used; convert it by opening ' +\
+             'and closing the fiducial tracking panel in etomo')
+
+tracklines = tracklines[startline:endline]
+
+imageFile = optionValue(tracklines, 'ImageFile', 0)
+if not seedFile:
+   seedFile = optionValue(tracklines, 'InputSeedModel', 0)
+lightBeads = optionValue(tracklines, 'LightBeads', 3)
+rotationArr = optionValue(tracklines, 'RotationAngle', 2);
+if not os.path.exists(imageFile):
+   exitError("The prealigned stack " + imageFile + " does not exist yet")
+   
+try:
+   (nx, ny, nz) = getmrcsize(imageFile)
+except ImodpyError:
+   exitFromImodError(progname)
+
+# Get the border sizes
+xborder = setBorderSize((nx + ny) // 2, xborder)
+yborder = setBorderSize((nx + ny) // 2, yborder)
+
+# Get the bead size and imageBinned value if no -size entered and produce the value
+# needed for findbeads
+beadSize = PipGetFloat('BeadSize', 0.)
+if PipGetErrNo():
+   sizeArr = optionValue(tracklines, 'BeadDiameter', 2)
+   if sizeArr:
+      beadSize = sizeArr[0]
+   else:
+      exitError('There is no BeadDiameter entry in ' + trackcom + \
+                   '; fix this or enter a size with -size')
+   binning = 1
+   binArr = optionValue(tracklines, 'ImagesAreBinned', 1)
+   if binArr:
+      binning = binArr[0]
+   beadSize /= binning
+
+# Get filtering information if sobel activated
+usingSobel = optionValue(tracklines, 'Sobel', 3)
+kernelArr = None
+linear = 0
+if usingSobel:
+   kernelArr = optionValue(tracklines, 'Kernel', 2)
+   if kernelArr:
+      ksigma = kernelArr[0]
+      if ksigma >= 1.49:
+         linear = 1
+
+# Get tilt angle options and make list of tilt angles
+tiltFile = optionValue(tracklines, 'TiltFile', 0)
+tiltAngles = []
+if tiltFile:
+   tiltLines = readTextFile(tiltFile)
+   try:
+      for i in range(len(tiltLines)):
+         tiltAngles.append(float(tiltLines[i]))
+   except ValueError:
+      exitError('Converting lines in ' + tiltfile + ' to floating point values')
+
+else:
+   first = optionValue(tracklines, 'FirstTiltAngle', 2)
+   increment = optionValue(tracklines, 'TiltIncrement', 2)
+   if not (first and increment):
+      exitError('The track command file must have either a tilt angle file or starting '+\
+                   'and increment tilt angles')
+   for i in range(nz):
+      tiltAngles.append(first[0] + i * increment[0])
+
+
+# Get the exclude list, which is numbered from 1
+skipListStr = optionValue(tracklines,'SkipViews', 0)
+excludeList = []
+if skipListStr:
+   excludeList = parselist(skipListStr)
+
+# Make a list of included views and get the number of them
+numViews = len(tiltAngles)
+includedViews = []
+tiltIncluded = []
+for iv in range(numViews):
+   if iv + 1 not in excludeList:
+      includedViews.append(iv)
+      tiltIncluded.append(tiltAngles[iv])
+
+numIncluded = len(includedViews)
+   
+# Find minimum tilt view and highest tilt
+minTiltInd = 0
+highestTilt = 0.
+if numIncluded < 3:
+   exitError('There must be at least 3 views in the tilt series and not in a skip list')
+numSeedViews = min(numIncluded, numSeedViews)
+
+for iv in range(numViews):
+   highestTilt = max(highestTilt, fabs(tiltAngles[iv]))
+
+for incl in range(numIncluded):
+   if fabs(tiltIncluded[minTiltInd]) + 0.1 >= fabs(tiltIncluded[incl]):
+      minTiltInd = incl;
+
+# Get view range for tracking: do 11 views unless range is > 20 deg, or 9 views unless
+# range is still > 20 deg; or 7 views
+for viewInc in (10, 8, 6):
+   trackStart = max(0, minTiltInd - viewInc / 2)
+   trackEnd = min(numIncluded - 1, trackStart + viewInc)
+   trackStart = max(0, trackEnd - viewInc)
+   if fabs(tiltIncluded[trackStart] - tiltIncluded[trackEnd]) <= 20.1:
+      break
+
+# midView, trackStart, trackEnd and seed lists will all be included view indexes
+# so need to take includedViews[view] to get true Z
+midView = (trackEnd + trackStart) / 2
+
+trackMtime = int(os.stat(trackcom).st_mtime)
+imageMtime = int(os.stat(imageFile).st_mtime)
+beadStr = str(beadSize)
+spacingStr = str(spacing)
+if boundModel:
+   boundMtime = int(os.stat(boundModel).st_mtime)
+
+# Process info file fully now
+if oldValid:
+   infoLines = readTextFile(infoName)
+   pidInfo = optionValue(infoLines, 'PID', 0)
+   trackInfo = optionValue(infoLines, 'TrackCom', 0)
+   trackTimeArr = optionValue(infoLines, 'TrackTime', 1)
+   imageTimeArr = optionValue(infoLines, 'ImageTime', 1)
+   beadInfo = optionValue(infoLines, 'BeadSize', 0)
+   guessInfoArr = optionValue(infoLines, 'MinGuess', 1)
+   peakFracInfoArr = optionValue(infoLines, 'PeakFraction', 2)
+   spacingInfo = optionValue(infoLines, 'Spacing', 0)
+   twoSurfInfo = optionValue(infoLines, 'TwoSurf', 3)
+   boundInfo = optionValue(infoLines, 'BoundFile', 0)
+   boundTimeArr = optionValue(infoLines, 'BoundTime', 1)
+   numPeakArr = optionValue(infoLines, 'NumPeaks', 1)
+   numSeedArr = optionValue(infoLines, 'NumViews', 1)
+   viewEnterInfo = optionValue(infoLines, 'ViewsEntered', 3)
+   oldValid = pidInfo and trackInfo == trackcom and \
+       trackTimeArr and trackTimeArr[0] == trackMtime and \
+       imageTimeArr and imageTimeArr[0] == imageMtime and \
+       beadInfo == beadStr and \
+       guessInfoArr and guessInfoArr[0] == guess and \
+       peakFracInfoArr and peakFracInfoArr[0] == peakFraction and \
+       spacingInfo == spacingStr and \
+       twoSurf <= twoSurfInfo and \
+       (numSeedArr and numPeakArr and \
+           ((not viewsEntered and not viewEnterInfo) or \
+               (viewsEntered and numSeedArr[0] == numSeedViews))) and \
+       ((boundInfo and boundInfo == boundModel and boundTimeArr and \
+            boundMtime == boundTimeArr[0]) or (not boundInfo and boundModel == ''))
+
+   if oldValid and not viewsEntered:
+      needed = reviseNumSeedViews(numPeakArr[0], numSeedArr[0])
+      if needed > numSeedArr[0]:
+         oldValid = False
+         numSeedViews = needed
+         
+   # Passed that test (!), now make sure all the required files are still there
+   if oldValid:
+      for ind in range(numSeedArr[0]):
+         if not oldValid:
+            break
+         for ext in resumeExts:
+            if ext == resumeExts[1] and not twoSurfInfo:
+               continue
+            if not os.path.exists(tmproot + pidInfo + str(ind) + ext):
+               oldValid = False
+               break
+
+   # If not resuming and there was an old PID, clean up old files
+   if pidInfo and not oldValid:
+      leaveSave = leavetmp
+      leavetmp = 0
+      cleanup(resumeExts + infoExts, pidInfo)
+      leavetmp = leaveSave
+
+   # Adjust number of seed views if resuming
+   if oldValid:
+      numSeedViews = numSeedArr[0]
+
+# If making a new info file with default name, make sure current directory is writable
+if defaultInfo and not oldValid and not os.access('.', os.W_OK):
+   exitError("You cannot write to the current directory; use -info to make the info "
+             "file elsewhere")
+
+# Check validity of drop and ignore lists
+if (dropList or ignoreList):
+   if not oldValid:
+      exitError("You cannot list tracks to drop or ignore unless resuming with " + \
+                "existing tracks")
+   numDrop = 0
+   numIgnore = 0
+   for i in range(numSeedViews):
+      if i in dropList:
+         numDrop += 1
+      if i in ignoreList:
+         numIgnore += 1
+   if numDrop == numSeedViews:
+      exitError('The list of tracks to drop includes all tracks')
+   if numIgnore == numSeedViews:
+      exitError('The list of tracks to ignore surface data from includes all tracks')
+   
+# For testing that incredible selection logic 
+#for i in range(3,8):
+#   seedViews = selectSeedViews(i)
+#   print seedViews
+#sys.exit(0)
+
+seedViews = selectSeedViews(numSeedViews)
+skipList = ''
+trackVwStart = includedViews[trackStart]
+trackVwEnd = includedViews[trackEnd]
+if trackVwStart == 1:
+   skipList = '1'
+elif trackVwStart > 1:
+   skipList = '1-' + str(trackVwStart)
+if trackVwEnd < nz - 1 and skipList != '':
+   skipList += ','
+if trackVwEnd == nz - 2:
+   skipList += str(nz)
+elif trackVwEnd < nz - 2:
+   skipList += fmtstr('{}-{}', trackVwEnd + 2, nz)
+if skipList == '':
+   skipList = '0'
+   
+# Ready to find the beads
+if not oldValid:
+   pidInfo = pid
+   tmppeak = tmproot + pid + infoExts[0]
+   numPeaksTot = runFindBeads()
+
+   # Unless number of views was specified, check if there are not enough and retrack with
+   # more views
+   if not viewsEntered:
+      numSeedViews = reviseNumSeedViews(numPeaksTot, numSeedViews)
+      if numSeedViews > 3:
+         prnstr('REDOING IMODFINDBEADS with more views to try to get more points')
+         seedViews = selectSeedViews(numSeedViews)
+         numPeaksTot = runFindBeads()
+
+# Extract the seed models
+tmpseed = []
+tmptrack = []
+tmpsurf = []
+tmpxyzpt = []
+tmpxyzmod = []
+tmpelong = []
+tmpsortmod = []
+
+for ind in range(numSeedViews):
+   tmpseed.append(tmproot + pid + str(ind) + cleanExts[0])
+   tmptrack.append(tmproot + pidInfo + str(ind) + resumeExts[0])
+   tmpxyzpt.append(tmproot + pid + str(ind) + cleanExts[1])
+   tmpsurf.append(tmproot + pid + str(ind) + cleanExts[2])
+   tmpxyzmod.append(tmproot + pidInfo + str(ind) + resumeExts[1])
+   tmpelong.append(tmproot + pidInfo + str(ind) + resumeExts[2])
+   tmpsortmod.append(tmproot + pidInfo + str(ind) + infoExts[1])
+   
+   seedVw = includedViews[seedViews[ind]]
+   viewStr = str(seedVw + 1)
+
+   if not oldValid:
+      try:
+         cliplines = runcmd(fmtstr('clipmodel -zmin {0},{0} "{1}" "{2}"', seedVw,
+                                   tmppeak, tmpseed[ind]))
+      except ImodpyError:
+         cleanExitError('Running clipmodel to extract seed for view ' + viewStr)
+      numPeaks = -1
+      for l in cliplines:
+         if l.find('Number of points') > 0:
+            lsplit = l.split()
+            numPeaks = convertToInteger(lsplit[len(lsplit) - 1],
+                                        'number of points remaining')
+            if numPeaks < (numPeaksTot / numSeedViews) / 3:
+               exitError(fmtstr('Found only {} out of {} points on view {}', numPeaks,
+                                numPeaksTot, seedVw + 1))
+            break
+      else:
+         cleanExitError('Clipmodel did not give expected output when extracting ' +\
+                                  'points for view ' + viewStr)
+
+      localSize = 1000
+      localTrack = 0
+      if numPeaks >= minPointsForLocal:
+         localTrack = 1
+         density = numPeaks / float(nx * ny)
+         localSize = max(minLocalSize, \
+                            int((optLocalPoints * optLocalSize / density)**0.333))
+         if density * localSize**2 < minLocalPoints:
+            localSize = int(math.sqrt(minLocalPoints / density))
+         if localSize > 0.8 * nx and localSize > 0.8 * ny:
+            localTrack = 0
+         
+      sedcom = ['?^InputSeedModel?s?[ 	].*? ' + tmpseed[ind] + '?',
+                '?^OutputModel?s?[ 	].*? ' + tmptrack[ind] + '?',
+                '?^SkipViews?d',
+                '?^RoundsOfTracking?s?[ 	].*? 2?',
+                fmtstr('?^LocalAreaTracking?s?[ 	].*? {}?', localTrack),
+                fmtstr('?^LocalAreaTargetSize?s?[ 	].*? {}?', localSize),
+                '?^OutputModel?a?ElongationOutputFile ' + tmpelong[ind] + '?',
+                '?^OutputModel?a?SkipViews ' + skipList + '?']
+      if twoSurf:
+         sedcom.append('?^OutputModel?a?XYZOutputFile ' + tmpxyzpt[ind] + '?')
+      sedlines = pysed(sedcom, tracklines, None, False, '?')
+      prnstr('RUNNING BEADTRACK with seed from view ' + viewStr, flush = True)
+      try:
+         tracklog = runcmd('beadtrack -StandardInput', sedlines)
+      except ImodpyError:
+         cleanExitError('Running beadtrack with seed from view ' + viewStr)
+
+      # Convert point list to model file
+      if twoSurf:
+         pointcom = fmtstr('point2model -values -1 -sphere {} "{}" "{}"',
+                           int((beadSize + 2.) / 2.), tmpxyzpt[ind], tmpxyzmod[ind])
+         try:
+            runcmd(pointcom)
+         except ImodpyError:
+            cleanExitError('Running point2model with XYZ data from view ' + viewStr)
+
+# The info file can now be saved for a new run
+if not oldValid:
+   newinfo = ['PID ' + pid,
+              'TrackCom ' + trackcom,
+              'TrackTime ' + str(trackMtime),
+              'ImageTime ' + str(imageMtime),
+              'BeadSize ' + beadStr,
+              'MinGuess ' + str(guess),
+              'PeakFraction ' + str(peakFraction),
+              'Spacing ' + spacingStr,
+              'TwoSurf ' + str(twoSurf),
+              'NumPeaks ' + str(numPeaksTot),
+              'NumViews ' + str(numSeedViews),
+              'ViewsEntered ' + str(viewsEntered)]
+   if boundModel:
+      newinfo += ['BoundFile ' + boundModel, 'BoundTime ' + str(boundMtime)]
+   writeTextFile(infoName, newinfo)
+
+# Sort the beads onto two surfaces for each model
+if twoSurf:
+   for ind in range(numSeedViews):
+      if ind in dropList or ind in ignoreList:
+         continue
+      viewStr = str(includedViews[seedViews[ind]] + 1)
+      sortcom = ['TextFileWithSurfaces ' + tmpsurf[ind],
+                 'ValuesToRestrainSorting 1',
+                 'FlipYandZ 0',
+                 'InputFile ' + tmpxyzmod[ind],
+                 'OutputFile ' + tmpsortmod[ind]]
+      if subareaSize:
+         sortcom.append('SubareaSize ' + str(subareaSize))
+      else:
+         sortcom.append(fmtstr('PickAreasMinNumAndSize {} {}', minSubareaNum,
+                               minSubareaSize))
+      prnstr(' ')
+      prnstr('RUNNING SORTBEADSURFS with XYZ positions from view ' + viewStr)
+      try:
+         runcmd('sortbeadsurfs -Stand', sortcom, 'stdout')
+      except ImodpyError:
+         cleanup(cleanExts, pid)
+         prnstr(prefix + 'Running sortbeadsurfs with XYZ values from view ' + viewStr)
+         exitFromImodError(progname)
+         
+# Now run pickbestseed; for this we need the seed view with minimum tilt
+lowestTilt = 1000.
+for ind in range(numSeedViews):
+   if ind not in dropList and fabs(tiltIncluded[seedViews[ind]]) < fabs(lowestTilt):
+      zeroView = seedViews[ind]
+      lowestTilt = tiltIncluded[zeroView]
+
+pickcom = ['OutputSeedModel ' + seedFile,
+           fmtstr('ImageSizeXandY {} {}', nx, ny),
+           fmtstr('BordersInXandY {} {}', xborder, yborder),
+           fmtstr('BeadSize {}', beadSize),
+           fmtstr('MiddleZvalue {}', includedViews[zeroView])]
+for ind in range(numSeedViews):
+   if ind not in dropList:
+      pickcom += ['TrackedModel ' + tmptrack[ind], 'ElongationFile ' + tmpelong[ind]]
+      if ind not in ignoreList:
+         pickcom.append('SurfaceFile ' + tmpsurf[ind])
+   
+if twoSurf:
+   pickcom.append('TwoSurfaces')
+if boundModel:
+   pickcom.append('BoundaryModel ' + boundModel)
+   if excludeAreas:
+      pickcom.append('ExcludeInsideAreas 1')
+if clustered:
+   pickcom.append(fmtstr('ClusteredPointsAllowed {}', clustered))
+   if lowTarget:
+      pickcom.append(fmtstr('LowerTargetForClustered {}', lowTarget))
+if rotationArr:
+   pickcom.append(fmtstr('RotationAngle {}', rotationArr[0]))
+   pickcom.append(fmtstr('HighestTiltAngle {}', highestTilt))
+   
+if pickOptions:
+   psplit = pickOptions.split(' -')
+   for opt in psplit:
+      pickcom.append(opt.lstrip('-'))
+
+if targetDensity > 0.:
+   pickcom.append(fmtstr('TargetDensityOfBeads {}', targetDensity))
+else:
+   pickcom.append(fmtstr('TargetNumberOfBeads {}', targetNumber))
+
+prnstr(' ')
+prnstr('RUNNING PICKBESTSEED')
+prnstr(' ')
+try:
+   pickLines = runcmd('pickbestseed -StandardInput', pickcom)
+   for l in pickLines:
+      prnstr(l, end='')
+   if twoSurf and maxMajorMinor > 0.:
+      lsplit = pickLines[len(pickLines) - 1].split()
+      numBeads = []
+      for ind in range(len(lsplit) - 2, -1, -1):
+         if lsplit[ind].endswith('='):
+            numBeads.append(convertToInteger(lsplit[ind + 1],
+                                             'point number in last line'))
+      if  len(numBeads) < 3:
+         exitError('Unable to find enough point numbers in last line to assess ratio ' +\
+                      'between the surfaces')
+      major = max(numBeads[0], numBeads[1])
+      minor = min(numBeads[0], numBeads[1])
+      if major > maxMajorMinor * minor + 1:
+         prnstr(' ')
+         prnstr('The ratio between surfaces is too high; running again with lower target')
+         prnstr(' ')
+         newTarget = int(2 * maxMajorMinor * minor) + 1
+         pickcom[len(pickcom) - 1] = fmtstr('TargetNumberOfBeads {}', newTarget)
+         pickcom.append('LimitMajorityToTarget')
+         runcmd('pickbestseed -StandardInput', pickcom, 'stdout')
+        
+except ImodpyError:
+   cleanup(cleanExts, pid)
+   prnstr(prefix + 'Running pickbestseed on tracked models')
+   exitFromImodError(progname)
+           
+cleanup(cleanExts, pid)

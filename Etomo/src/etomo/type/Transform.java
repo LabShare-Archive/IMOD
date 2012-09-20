@@ -36,6 +36,8 @@ public class Transform {
       ROTATION_TRANSLATION_VALUE);
   public static final Transform TRANSLATION = new Transform(TRANSLATION_VALUE);
 
+  public static final Transform DEFAULT = FULL_LINEAR_TRANSFORMATION;
+
   private static final String KEY = "Transform";
   private final String value;
 
@@ -46,6 +48,11 @@ public class Transform {
       props.remove(prepend + '.' + key);
     }
     props.setProperty(prepend + '.' + key, transform.toString());
+  }
+
+  public static void remove(Properties props, String prepend, String key) {
+    prepend = createPrepend(prepend);
+    props.remove(prepend + '.' + key);
   }
 
   public static Transform load(Properties props, String prepend, String key,

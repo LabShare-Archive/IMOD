@@ -1286,7 +1286,6 @@ bool GridSetObj::setupPts( bool applySubRectsIfOn )
 			}
 	}
 	
-	
 	return true;
 }
 
@@ -2420,6 +2419,12 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
 		case Qt::Key_N:	
 		{
 			return (plug.window->isStereologyObjSelected(true)) ? 1 : 0;
+		}
+		
+		case Qt::Key_B:	
+		{
+			plug.window->goToFirstInvalidPoint();
+			break;
 		}
 		
     default:
@@ -3666,6 +3671,12 @@ Stereology::Stereology(QWidget *parent, const char *name) :
 						"Allows you to change the classification of stereology\n"
 						"points inside and/or outside a set of closed contours\n"
 						"within a closed (non-stereology) object." );
+	addAction( optionsMenu, SLOT(applyMasks()), "Apply batch masks",
+						"Allows you to change the classification of all stereology \n"
+						"points inside several (closed contour) objects at once. \n"
+						"Unlike the option above, this function checks for contour 'holes' \n"
+						"(contours inside contours), but has far fewer options and \n"
+						"assumes that each point should have only one category." );
 	addAction( optionsMenu, SLOT(applyIntercepts()), "Add intersection points",
 						"Allows you to automatically add 'intersection' points where\n"
 						"test lines intersect closed or open contours within your model. \n"
@@ -4782,6 +4793,32 @@ void Stereology::initValues()
 	plug.agreeFinalizeDlg     = false;
 	plug.showBigIntercCH      = false;
 	
+	plug.maskObjOpt						= RG_CURR;			// 0=current object only,  1=all, 2=custom
+	plug.maskInverseOpt				= 0;						// 0=mask is inside contours, 1=outside
+	plug.maskSectionsOpt			= RG_CURR;			// 0=current section only, 1=all, 2=custom
+	plug.maskSelPtsOpt				= SEL_OFF;			// 0=all, 1=checked, 2=unchecked only
+	plug.maskChangeToCheckedOpt = SEL_ON;			// 0=don't change, 1=checked, 2=unchecked
+	
+	plug.masksDefaultUse      = true;
+	plug.masksDefaultCat      = 0;
+	plug.masksDefaultChecked  = 1;
+	plug.masksPrintChanges    = false;
+	
+	plug.masksUse[0]          = true;				// masksUse[NUM_MASKS]
+	plug.masksUse[1]          = true;
+	plug.masksUse[2]          = true;
+	plug.masksUse[3]          = true;
+	plug.masksUse[4]          = false;
+	plug.masksObj[0]          = 1;						// masksObj[NUM_MASKS]
+	plug.masksObj[1]          = 2;
+	plug.masksObj[2]          = 3;
+	plug.masksObj[3]          = 4;
+	plug.masksObj[4]          = 5;
+	plug.masksCat[0]          = 1;						// masksCat[NUM_MASKS]
+	plug.masksCat[1]          = 4;
+	plug.masksCat[2]          = 2;
+	plug.masksCat[3]          = 3;
+	plug.masksCat[4]          = 5;
 	
 	//## IF BIG IMAGE THEN INCREASE DEFAULT SIZE
 	
@@ -4878,6 +4915,33 @@ void Stereology::loadSettings()
 		plug.agreeFinalizeDlg     = savedValues[39];
 		plug.showBigIntercCH      = savedValues[40];
 		
+		plug.maskObjOpt						= savedValues[41];
+		plug.maskInverseOpt				= savedValues[42];
+		plug.maskSectionsOpt			= savedValues[43];
+		plug.maskSelPtsOpt				= savedValues[44];
+		plug.maskChangeToCheckedOpt = savedValues[45];
+		
+		plug.masksDefaultUse      = savedValues[46];
+		plug.masksDefaultCat      = savedValues[47];
+		plug.masksDefaultChecked  = savedValues[48];
+		plug.masksPrintChanges    = savedValues[49];
+		
+		
+		plug.masksUse[0]					= savedValues[50];			// masksUse[NUM_MASKS]
+		plug.masksUse[1]					= savedValues[51];
+		plug.masksUse[2]					= savedValues[52];
+		plug.masksUse[3]					= savedValues[53];
+		plug.masksUse[4]					= savedValues[54];
+		plug.masksObj[0]					= savedValues[55];						// masksObj[NUM_MASKS]
+		plug.masksObj[1]					= savedValues[56];
+		plug.masksObj[2]					= savedValues[57];
+		plug.masksObj[3]					= savedValues[58];
+		plug.masksObj[4]					= savedValues[59];
+		plug.masksCat[0]					= savedValues[60];						// masksCat[NUM_MASKS]
+		plug.masksCat[1]					= savedValues[61];
+		plug.masksCat[2]					= savedValues[62];
+		plug.masksCat[3]					= savedValues[63];
+		plug.masksCat[4]					= savedValues[64];
 		
 		if(plug.paintRadius <= 0)
 			plug.paintRadius = 10.0f;
@@ -4976,6 +5040,33 @@ void Stereology::saveSettings()
 	saveValues[38] = plug.randomSymbols;
 	saveValues[39] = plug.agreeFinalizeDlg;
 	saveValues[40] = plug.showBigIntercCH;
+	
+	saveValues[41] = plug.maskObjOpt;
+	saveValues[42] = plug.maskInverseOpt;
+	saveValues[43] = plug.maskSectionsOpt;
+	saveValues[44] = plug.maskSelPtsOpt;
+	saveValues[45] = plug.maskChangeToCheckedOpt;
+	
+	saveValues[46] = plug.masksDefaultUse;
+	saveValues[47] = plug.masksDefaultCat;
+	saveValues[48] = plug.masksDefaultChecked;
+	saveValues[49] = plug.masksPrintChanges;
+	
+	saveValues[50] = plug.masksUse[0];			// masksUse[NUM_MASKS]
+	saveValues[51] = plug.masksUse[1];
+	saveValues[52] = plug.masksUse[2];
+	saveValues[53] = plug.masksUse[3];
+	saveValues[54] = plug.masksUse[4];
+	saveValues[55] = plug.masksObj[0];			// masksObj[NUM_MASKS]
+	saveValues[56] = plug.masksObj[1];
+	saveValues[57] = plug.masksObj[2];
+	saveValues[58] = plug.masksObj[3];
+	saveValues[59] = plug.masksObj[4];
+	saveValues[60] = plug.masksCat[0];			// masksCat[NUM_MASKS]
+	saveValues[61] = plug.masksCat[1];
+	saveValues[62] = plug.masksCat[2];
+	saveValues[63] = plug.masksCat[3];
+	saveValues[64] = plug.masksCat[4];
 	
   prefSaveGenericSettings("Stereology",NUM_SAVED_VALS,saveValues);
 }
@@ -6159,10 +6250,10 @@ bool Stereology::loadGridPtsFromImodObjs( GridSetObj *g, bool makeSureGridSetup,
 	{
 		if( isStereologyObj(g->objIdx) )
 		{
-			if( g->pts.size() > 0 )
-			{
-				cout << g->pts[0].pos.x << "," << g->pts[0].pos.y << "," << g->pts[0].pos.z << "," << endl;
-			}
+			//if( g->pts.size() > 0 ) {
+			//	cout<<"top most point: ";
+			//	cout<<g->pts[0].pos.x<<","<<g->pts[0].pos.y<<","<<g->pts[0].pos.z<<endl;
+			//}
 			
 			badPtsInObj  = 0;
 			goodPtsInObj = 0;
@@ -9448,9 +9539,37 @@ bool Stereology::isStereologyObjSelected( bool showErrorIfTrue, const char *cust
 	return false;
 }
 
+//------------------------
+//-- Jumps to the first invalid point in the current grid.
+//-- Returns true there is an invalid point, or returns 
+//-- false and shows a message if all points are valid.
 
-
-
+bool Stereology::goToFirstInvalidPoint()
+{
+	//## SEARCH FOR BAD POINTS:
+	
+	GridSetObj *g = getCurrGridSetObj();
+	long firstBadPtIdx = -1;
+	QString badPtsStr;
+	int numCheckedPtsNoCat;
+	int numPtsMultiCat;
+	bool pointsValid = g->validatePtValues( &badPtsStr, &firstBadPtIdx, 
+																				 &numCheckedPtsNoCat, &numPtsMultiCat );
+	
+	//## IF POINTS INVALID POINTS FOUND: SELECT AND JUMP TO THE FIRST OF THEM
+	
+	if( firstBadPtIdx != -1 )
+	{
+		g->setCurrPt( firstBadPtIdx, false );
+		updateCurrPtInGui( true, true );
+		return true;
+	}
+	else
+	{
+		MsgBox( this, "...", "All points appear valid" );
+		return false;
+	}
+}
 
 
 
@@ -9871,14 +9990,7 @@ void Stereology::applyMask()
 	int  currZ = edit_getZOfTopZap();
 	if( currZ == -1 )
 		currZ = 0;
-	
-	static int maskObjOpt      = RG_CURR;		// 0=current object only,  1=all, 2=custom
-	static int maskInverseOpt  = 0;					// 0=mask is inside contours, 1=outside
-	static int maskSectionsOpt = RG_CURR;		// 0=current section only, 1=all, 2=custom
-	static int maskSelPtsOpt   = SEL_OFF;		// 0=all, 1=checked, 2=unchecked only
-	static int changeToCheckedOpt = SEL_ON;	// 0=don't change, 1=checked, 2=unchecked
-										// NOTE: Most of these use the enums (see: ptchange & rangeopts)
-	
+		
 	CustomDialog ds("Apply Mask", this);
 	
 	ds.addLabel   ( "--- MASK TO APPLY ---", true );
@@ -9886,7 +9998,7 @@ void Stereology::applyMask()
 	ds.addComboBox( "using contours from:",
 									"object " + QStr(objIdx+1) + " only|"
 									"all closed objects|"
-									"let me enter a range", &maskObjOpt,
+									"let me enter a range", &plug.maskObjOpt,
 									"Specifies which object(s) you want to use to create the mask. \n"
 								  "If you select 'let me enter a range' you can enter a range in \n"
 								  "the next window. Any objects which are not closed objects \n"
@@ -9894,7 +10006,7 @@ void Stereology::applyMask()
 	
 	ds.addRadioGrp( "select points:",
 								  "INSIDE closed contours|"
-								  "OUTSIDE closed contours", &maskInverseOpt,
+								  "OUTSIDE closed contours", &plug.maskInverseOpt,
 								  "The first option means only points inside contours will be changed.\n"
 								  "The secton option 'inverses' this mask and means only stereology \n"
 								  "points outside closed contours will be changed. Note also that \n"
@@ -9905,7 +10017,7 @@ void Stereology::applyMask()
 	ds.addComboBox( "and apply over:",
 								  "section " + QStr(currZ+1) + " only|"
 								  "all sections (all grids)|"
-								  "let me enter a range", &maskSectionsOpt,
+								  "let me enter a range", &plug.maskSectionsOpt,
 								  "Specifies which sections you want to to change. \n"
 								  "By default it will change only the current grid. \n"
 								  "If you select 'let me enter a range' you can enter \n"
@@ -9914,7 +10026,7 @@ void Stereology::applyMask()
 	ds.addComboBox( "and change only:",
 								  "all points (in mask)|"
 								  "checked points|"
-								  "unchecked points", &maskSelPtsOpt,
+								  "unchecked points", &plug.maskSelPtsOpt,
 								  "By default, this is set to 'unchecked points', meaning that \n"
 								  "any points you have already checked will be unaltered. \n"
 								  "In some rare cases however, you can opt that only checked points \n"
@@ -9931,7 +10043,7 @@ void Stereology::applyMask()
 								 "don't change|"
 								 "checked|"
 								 "unchecked|"
-								 "toggle", &changeToCheckedOpt,
+								 "toggle", &plug.maskChangeToCheckedOpt,
 								 "All selected points inside the mask will be changed to show \n"
 								 "this value" );
 	
@@ -9947,7 +10059,7 @@ void Stereology::applyMask()
 		QString catName = "[" + QStr(c) + "] " + catObj->categoryName;
 		ds.addComboBox( catName,
 									 "-|"
-									 "turn on|"
+									 "turn ON|"
 									 "turn off|"
 									 "toggle", &catObj->changeOpt,
 									 "All selected points inside the mask will be changed to show \n"
@@ -9980,15 +10092,16 @@ void Stereology::applyMask()
 	static int minZRange = 1;
 	static int maxZRange = plug.zsize;
 	
-	if( maskObjOpt == RG_CUSTOM || maskSectionsOpt == RG_CUSTOM )
+	
+	if( plug.maskObjOpt == RG_CUSTOM || plug.maskSectionsOpt == RG_CUSTOM )
 	{
 		if( minZRange > maxZRange )												  minZRange = maxZRange;
-		if( maxObjRange > osize(imod) || maxObjRange < 1 )	maxObjRange = osize(imod) - 1;
+		if( maxObjRange > osize(imod) || maxObjRange < 1 )	maxObjRange = osize(imod);
 		if( minObjRange > maxObjRange || minObjRange < 1 )	minObjRange = maxObjRange;
 		
 		CustomDialog dsR("Set Mask Range", this);
 		
-		if( maskObjOpt == RG_CUSTOM )
+		if( plug.maskObjOpt == RG_CUSTOM )
 		{
 			dsR.addLabel( "" );
 			dsR.addLabel( "Use only closed contours in these objects:", true );
@@ -9999,7 +10112,7 @@ void Stereology::applyMask()
 															  "to generate the mask to change stereology points" );
 		}
 		
-		if( maskSectionsOpt == RG_CUSTOM )
+		if( plug.maskSectionsOpt == RG_CUSTOM )
 		{
 			dsR.addLabel( "" );
 			dsR.addLabel( "Only change grids between these sections:", true );
@@ -10018,25 +10131,33 @@ void Stereology::applyMask()
 	
 	//## DETERMINE FINAL RANGE OF OBJECTS AND SECTIONS FOR MASK:
 	
-	int minObjIdx = (maskSectionsOpt==RG_CURR) ? objIdx : 0;
-	int maxObjIdx = (maskSectionsOpt==RG_CURR) ? objIdx : osize(imod)-1;
+	int minObjIdx = objIdx;			// |-- final range of objects
+	int maxObjIdx = objIdx;			// |   to consider
 	
-	int minZ = (maskObjOpt==RG_CURR) ? currZ : 0;
-	int maxZ = (maskObjOpt==RG_CURR) ? currZ : plug.zsize;
-	
-	if(maskSectionsOpt==RG_CUSTOM)
-	{
-		minObjIdx = minObjRange - 1;
-		maxObjIdx = minObjRange - 1;
+	if( plug.maskObjOpt==RG_ALL )	{
+		minObjIdx = 0;
+		maxObjIdx = osize(imod)-1;
 	}
-	if(maskObjOpt==RG_CUSTOM)
-	{
-		minZ = minZRange - 1;
-		maxZ = maxZRange - 1;
+	else if( plug. maskObjOpt==RG_CUSTOM )	{
+		minObjIdx = minObjRange - 1;
+		maxObjIdx = maxObjRange - 1;
 	}
 	
 	keepWithinRange( minObjIdx, 0,         osize(imod)-1 );
 	keepWithinRange( maxObjIdx, minObjIdx, osize(imod)-1 );
+	
+	
+	int minZ = currZ;						// |-- final range of sections
+	int maxZ = currZ;						// |   to consider
+	
+	if( plug.maskSectionsOpt==RG_ALL )	{
+		minZ = 0;
+		maxZ = plug.zsize;
+	}
+	else if( plug.maskSectionsOpt==RG_CUSTOM )	{
+		minZ = minZRange - 1;
+		maxZ = maxZRange - 1;
+	}	
 	
 	
 	//## FOR EACH STEREOLOGY POINT: CHECK IF IN Z RANGE, AND IF SO GO OVER ALL MASK
@@ -10057,8 +10178,8 @@ void Stereology::applyMask()
 		if( z < minZ || z > maxZ )									// if point outside z range:
 			continue;																		// exit early
 		
-		if(  (maskSelPtsOpt==SEL_OFF &&  spt->checked)
-		  || (maskSelPtsOpt==SEL_ON  && !spt->checked) )
+		if(  (plug.maskSelPtsOpt==SEL_OFF &&  spt->checked)
+		  || (plug.maskSelPtsOpt==SEL_ON  && !spt->checked) )
 			continue;
 													// if we want only "unchecked" or "checked" points and this
 													//  point doesn't match, it is disqualified
@@ -10085,8 +10206,8 @@ void Stereology::applyMask()
 			}
 		}
 		
-		bool ptIsInMask = ( maskInverseOpt==0 && ptIsInCont )
-									 || ( maskInverseOpt==1 && !ptIsInCont  );
+		bool ptIsInMask = ( plug.maskInverseOpt==0 && ptIsInCont )
+									 || ( plug.maskInverseOpt==1 && !ptIsInCont  );
 		
 		
 		//## IF POINT IS INSIDE MASK: CHANGE IT AS APPROPRIATE:
@@ -10098,17 +10219,17 @@ void Stereology::applyMask()
 			
 			//## CHANGED CHECKED VALUE (IF NEEDED):
 			
-			if( changeToCheckedOpt==SEL_ON && !spt->checked )					// want to make checked
+			if( plug.maskChangeToCheckedOpt==SEL_ON && !spt->checked )	
 			{
-				changePtCheckedAndUpdateObj( spt, true );
+				changePtCheckedAndUpdateObj( spt, true );						// want to make checked
 				ptChanged = true;
 			}
-			else if( changeToCheckedOpt==SEL_OFF && spt->checked )		// want to make unchecked
+			else if( plug.maskChangeToCheckedOpt==SEL_OFF && spt->checked )	
 			{
-				changePtCheckedAndUpdateObj( spt, false );
+				changePtCheckedAndUpdateObj( spt, false );					// want to make unchecked
 				ptChanged = true;
 			}
-			else if( changeToCheckedOpt==SEL_TOGGLE )									// want to toggle
+			else if( plug.maskChangeToCheckedOpt==SEL_TOGGLE )		// want to toggle
 			{
 				changePtCheckedAndUpdateObj( spt, !spt->checked );
 				ptChanged = true;
@@ -10153,6 +10274,164 @@ void Stereology::applyMask()
 	drawBlackObject(true);			// redraw in case some objects were checked/unchecked
 }
 
+//------------------------
+//-- Shows a dialog where the user can choose multiple mask operations over
+//-- all sections. Unlike "Apply Masks" there are fewer options.
+//-- This function does not support undo, and the user is warned such.
+
+void Stereology::applyMasks()
+{
+	GridSetObj *g = getCurrGridSetObj();
+	int nCatObjs  = (int)g->catObj.size();
+	Imod *imod      = ivwGetModel(plug.view);
+	int nObjs       = osize(imod);
+	
+	//## IF POINT COUNTING NOT STARTED: EXIT EARLY:
+	
+	if( g->countingStarted==false )
+	{
+		MsgBox( this, "...",
+					 "Sorry - you can't apply a mask to points until you have finalized "
+					 "categories and started counting/categorizing points!");
+		return;
+	}
+	
+	//## GET USER TO SELECT MASK OBJECTS AND CATEGORIES TO APPLY VIA A CUSTOM DIALOG:
+		
+	QString catOptions = "";
+	for(int c=0; c<nCatObjs; c++)
+	{
+		if(c>0) catOptions += "|";
+		catOptions += "[" + QStr(c)+ "] " + g->catObj[c].categoryName;
+	}
+	
+	CustomDialog ds("Apply Batch Masks", this);
+	
+	for(int i=0; i<NUM_MASKS; i++)
+	{
+		ds.addCheckBox( "Rule #" + QStr(i+1) + ":  -------------------------------",
+									  &plug.masksUse[i], "Untick if you don't want to use this rule" );
+		ds.addSpinBox ( "   > if point is in object: ", 1, nObjs, &plug.masksObj[i], 1,
+									  "Choose which closed contour object you want to use as a mask" );
+		ds.addComboBox( "   > flip on category:", catOptions, &plug.masksCat[i],
+									  "Choose which category which be on (all others will will turn off)" );
+	}
+	
+	ds.addLabel( "===================================");
+	ds.addCheckBox( "Set all other points to", 
+								 &plug.masksDefaultUse, "" );
+	ds.addComboBox( "  ... category:", catOptions, &plug.masksDefaultCat,
+								  "Choose which category which be on (all others will will turn off)" );
+	ds.addComboBox( "  ... set as:", "unchanged|checked|unchecked",
+								  &plug.masksDefaultChecked );
+	
+	ds.addLabel( "===================================");
+	ds.addCheckBox( "Write changed points to console", &plug.masksPrintChanges, "" );
+	
+	ds.setMinimumWidth( 200 );
+	
+	ds.exec();
+	if( ds.wasCancelled() )
+		return;
+	
+	
+	//## FOR EACH STEREOLOGY POINT: CHECK IF IN Z RANGE, AND IF SO GO OVER ALL MASK
+	//## OBJECTS TO DETERMINE IF POINT IS INSIDE MASK REGION AND SHOULD BE CHANGED:
+	
+	long nPtsInMask  = 0;
+	long nPtsChanged = 0;
+	long nSPts = g->ptsize();
+	
+	if( plug.masksPrintChanges )	cout << "LIST OF CHANGED POINTS:";
+	
+	for( long i=0; i<nSPts; i++ )
+	{
+		Spoint *spt = g->getSPt(i);
+		Ipoint *pt  = &spt->pos;
+		int z = (int)pt->z;
+		
+		int newCategory = -1;
+		
+		//## FOR EACH MASK OBJECT, CHECK IF POINT IS INSIDE ANY CLOSED CONTOUR:
+		
+		for(int m=0; m<NUM_MASKS; m++)
+		{
+			if( plug.masksUse[m]==false )
+				continue;
+			
+			int objIdx = plug.masksObj[m]-1;
+			Iobj *obj  = getObj(imod, objIdx );
+						
+			bool ptIsInCont = false;							// is this point inside a closed contour
+			
+			for(int c=0; c<csize(obj); c++)
+			{
+				Icont *cont = getCont(obj,c);
+				if( getZInt(cont) != z || !isContClosed(obj,cont) )	// if cont open or diff z:
+					continue;																						// exit early
+				
+				if( imodPointInsideCont( cont, pt ) )			// if points is inside contour
+					ptIsInCont = !ptIsInCont;									// toggle value (might be in a hole)
+			}
+			
+			if(ptIsInCont)
+				newCategory = plug.masksCat[m];		// this is the category we want on
+		}
+		
+		//## DETERMINE IF WAS IN MASK AND UPDATE CHECKED VALUE:
+		
+		if( newCategory >= 0 ) {
+			changePtCheckedAndUpdateObj( spt, true );
+			nPtsInMask++;
+		}
+		
+		if( newCategory < 0 && plug.masksDefaultUse  )	// if not in mask and we 
+		{																								//  want to use default cat:
+			newCategory = plug.masksDefaultCat;									// mark for default category
+			if(plug.masksDefaultChecked==1)		changePtCheckedAndUpdateObj( spt, true  );
+			if(plug.masksDefaultChecked==2)		changePtCheckedAndUpdateObj( spt, false );	
+		}
+		
+		//## IF POINT IS INSIDE MASK: CHANGE IT AS APPROPRIATE:
+		
+		if( newCategory >= 0 )
+		{
+			//## FOR EACH CATEGORY: CHANGE ON/OFF STAGE (IF NEEDED):
+			
+			bool ptChanged = false;
+			
+			for( int c=0; c<(int)spt->catSel.size() && c<nCatObjs; c++ )
+			{
+				bool newCatVal = (c==newCategory);
+				
+				if( spt->isCatOn(c) != newCatVal )			// if the current category is wrong
+				{
+					changePtCatAndUpdateObj(spt, c, c==newCategory);
+					
+					if( plug.masksPrintChanges ) {		// if we want to print changes:
+						if(ptChanged==false)	cout << endl << "Pt #" << i+1 << ": \t";
+						else									cout << ", ";
+						cout << "cat:" << c << "->" << ((newCatVal) ? "ON" : "off" );
+					}
+					ptChanged = true;
+				}
+			}
+			
+			if(ptChanged)
+				nPtsChanged++;
+		}
+	}
+	
+	//## OUTPUT RESULTS:
+	
+	if( plug.masksPrintChanges )	cout << endl;
+	MsgBox( this, "Mask results",
+				 "A total of " + QStr(nPtsInMask ) + " pts were inside a mask\n"
+				 "A total of " + QStr(nPtsChanged) + " pts were changed category\n");
+	
+	updateCatsSelectedGui();		// update GUI
+	drawBlackObject(true);			// redraw in case some objects were checked/unchecked
+}
 
 
 //------------------------
@@ -10558,7 +10837,7 @@ void Stereology::applyRulesToChangePts()
 		QString catName = "[" + QStr(c) + "] " + catObj->categoryName;
 		ds.addComboBox( catName,
 									 "-|"
-									 "turn on|"
+									 "turn ON|"
 									 "turn off|"
 									 "toggle", &catObj->changeOpt,
 									 "All selected points inside will be changed to show this value" );
@@ -10636,7 +10915,7 @@ void Stereology::applyRulesToChangePts()
 		
 		if( rejectPt )
 			continue;
-			
+		
 		
 		//## CHANGED CHECKED VALUE (IF NEEDED):
 		
@@ -10840,7 +11119,7 @@ void Stereology::validatePoints()
 								// tallies and returns a list and text representation of bad points
 	
 	
-	//## IF POINTS INVALID POINTS FOUND: SELECT AND JUMPT TO THE FIRST OF THEM
+	//## IF POINTS INVALID POINTS FOUND: SELECT AND JUMP TO THE FIRST OF THEM
 	
 	if( !pointsValid && firstBadPtIdx != -1 )
 	{

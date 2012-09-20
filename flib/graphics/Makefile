@@ -3,8 +3,6 @@ E        = $(BINEXT)
 O        = $(OBJEXT)
 LDFLG    = $(LDFFLAGS)
 
-# DNM 3/11/01: renamed MODLIBS and MODIMLIBS to GRAPHLIBS
-
 PROGS = genhstplt$(E) avgstatplot$(E) mtpairing$(E) mtoverlap$(E) \
 filterplot$(E)
 
@@ -32,7 +30,7 @@ install: $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *.exe *~ $(PROGS)
+	-\rm -f *.$(OBJEXT) *.exe *~ $(PROGS)
 
 mtpairing.$(O): $(INCDIR)/model.inc
 mtoverlap.$(O): $(INCDIR)/model.inc

@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.EtomoBoolean2;
 import etomo.type.Run3dmodMenuOptions;
@@ -793,6 +794,12 @@ public final class ImodState {
       else {
         process.setMovieModeMessage();
       }
+    }
+    // TEMP Bug# 1646
+    if ((modelView || useModv) && interpolation == null && usingMode
+        && mode != MODEL_MODE && EtomoDirector.INSTANCE.getArguments().isDebug()) {
+      System.err.println("sendMessages");
+      Thread.dumpStack();
     }
     process.sendMessages();
     reset();

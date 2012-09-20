@@ -170,8 +170,8 @@ button (\fBbn\fR) is to push it.
 .TP 4
 .I action
 .B assert\fR, \fBcopy\fR, \fBend\fR, \fBformat\fR, \fBif\fR, \fBgoto\fR, \fBopen\fR,
-\fBreturn\fR, \fBrun\fR, \fBset\fR, \fBskipto\fR, \fBsleep\fR, \fBstart\fR, \fBunset\fR,
-\fBuse\fR, \fBwait\fR, \fBwrite
+\fBreturn\fR, \fBrun\fR, \fBset\fR, \fBskipto\fR, \fBsleep\fR, \fBstart\fR, \fBtouch\fR,
+\fBunset\fR, \fBuse\fR, \fBwait\fR, \fBwrite
 
 .TP 4
 .I subcommand_action
@@ -190,9 +190,9 @@ button (\fBbn\fR) is to push it.
 
 .TP 4
 .I subject_type
-.B adoc\fR, \fBdataset\fR, \fBdebug\fR, \fBdialog\fR, \fBfile\fR, \fBfile-chooser\fR,
-\fBframe\fR, \fBfunction\fR, \fBindex\fR, \fBinterface\fR, \fBparam\fR, \fBpopup\fR,
-\fBprocess\fR, \fBsection\fR, \fBtest\fR, \fBtestdir\fR, \fBvar
+.B adoc\fR, \fBdataset\fR, \fBdebug\fR, \fBdialog\fR, \fBdir\fR, \fBfile\fR,
+\fBfile-chooser\fR, \fBframe\fR, \fBfunction\fR, \fBindex\fR, \fBinterface\fR, \fBparam\fR, \fBpopup\fR, \fBprocess\fR, \fBsection\fR, \fBtest\fR, \fBtestdir\fR,
+\fBvar
 
 .TP 4
 .I subject_name
@@ -384,7 +384,13 @@ assert.contains.file=logb.txt|%{axis} is a variable
 
 .TP 4
 .B testdir
-A global variable created when the set.testdir command executed in a Test section.
+A global variable containing the test directory path, which is created when the
+set.testdir command executed in a Test section.
+
+.TP 4
+.B testdir-name
+A global variable containing the test directory name, which is created when the
+set.testdir command executed in a Test section.
 
 .TP 4
 .B dataset
@@ -493,7 +499,9 @@ run.  \fITest_Directory\fR will be created under \fB./UITests\fR.  If the
 directory already exists and the \fBkeep\fR modifier was not used, the directory
 will be deleted and re-added.  The \fBkeep\fR modifier makes it possible to test
 a partially completed dataset by keeping the \fItest_directory\fR from being
-deleted.
+deleted.  This command also causes two global variables to be created:  \fBtestdir\fR,
+which contains the directory path of the test directory, and \fBtestdir-name\fR, which
+contains the name of the test directory.
 
 .TP 4
 .B set.adoc.\fItest_section_type\fR[\fB.\fR(\fBa\fR|\fBb\fR)]\fB = \fItest_autodoc_name\fB.adoc
@@ -759,7 +767,7 @@ that has been pressed is dark), the check box is checked, or the radio button is
 selected.
 
 .TP 4
-.B assert.contains.file = \fIfile_name\fB|\fIliteral_string
+.B assert.contains.file = \fR(\fIfile_name\fR|\fIrelative_path\fR)\fB|\fIliteral_string
 Tests whether a file in the \fItest_directory\fR called \fIfile_name\fR contains
 \fIliteral_string\fR.  All or part of the \fIliteral_string\fR can be quoted with
 double quotes (\fB"\fR) to prevent variable substitution.  The wildcard (\fB*\fR)
@@ -1080,6 +1088,20 @@ referred to with index.  See Naming above.
 .B tf.\fItext_field_name\fR[\fB.\fIindex\fR]\fB = \fR[\fItext\fR|\fInumber\fR]
 Write value to a text field called \fItext_field_name\fR.  If there are multiple
 text fields of the same name, use \fIindex\fR.  See Naming above.
+
+.TP 4
+.B touch.dir = \fIdirectory_name
+Causes the last modified date of the directory called \fIdirectory_name\fR
+in the \fItest_directory\fR (see \fBset.testdir\fR) to be changed to the current
+date and time.  If the directory doesn't exist, this command creates an empty
+directory called \fIdirectory_name\fR in the \fItest_directory\fR.
+
+.TP 4
+.B touch.file = \fIfile_name
+Causes the last modified date of the file called \fIfile_name\fR in the
+\fItest_directory\fR (see \fBset.testdir\fR) to be changed to the current date
+and time.  If the file doesn't exist, this command creates an empty file called
+\fIfile_name\fR in the \fItest_directory\fR.
 
 .TP 4
 .B unset.var.\fIvariable_name\fB = 

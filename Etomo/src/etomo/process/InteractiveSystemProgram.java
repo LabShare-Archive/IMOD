@@ -1,6 +1,8 @@
 package etomo.process;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import etomo.BaseManager;
 import etomo.comscript.Command;
@@ -117,62 +119,55 @@ import etomo.util.Utilities;
  * <p>
  * <p> </p>
  */
-public class InteractiveSystemProgram implements Runnable {
+final class InteractiveSystemProgram implements Runnable {
   public static final String rcsid = "$Id$";
 
-  private BaseProcessManager processManager = null;
+  private static final List<String> STD_OUTPUT = new ArrayList<String>();
+  private static final List<String> STD_ERROR = new ArrayList<String>();
 
-  private String threadName = null;
-
-  private EtomoNumber outputFileLastModified = new EtomoNumber(EtomoNumber.Type.LONG, "");
+  private final EtomoNumber outputFileLastModified = new EtomoNumber(
+      EtomoNumber.Type.LONG, "");
 
   private final BaseManager manager;
+  private final AxisID axisID;
 
+  private BaseProcessManager processManager = null;
+  private String threadName = null;
   /**
    * The exit value of the command
    */
   private int exitValue = Integer.MIN_VALUE;
-
-  private AxisID axisID;
-
   /**
    * The command to run
    */
   private String commandLine = null;
-
   private String[] commandArray = null;
-
   private Command command = null;
-
   /**
    * The buffered IO streams connecting to the commmand.
    */
-  BufferedWriter inputBuffer = null;
-
-  BufferedReader outputBuffer;
-
-  BufferedReader errorBuffer;
-
+  private BufferedWriter inputBuffer = null;
+  private BufferedReader outputBuffer = null;
+  private BufferedReader errorBuffer = null;
   private File workingDirectory = null;
-
   private String exceptionMessage = "";
-
   private OutputStream cmdIn = null;
+  private String commandAction = null;
 
   /**
    * Creates a SystemProgram object to execute the program specified by the
    * argument <i>command</i>
    * @param command The string containng the command to run
    */
-  public InteractiveSystemProgram(BaseManager manager, String[] commandArray,
-      AxisID axisID) {
+  InteractiveSystemProgram(final BaseManager manager, final String[] commandArray,
+      final AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
   }
 
-  public InteractiveSystemProgram(BaseManager manager, Command command,
-      BaseProcessManager processManager, AxisID axisID) {
+  InteractiveSystemProgram(final BaseManager manager, final Command command,
+      final BaseProcessManager processManager, final AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     this.processManager = processManager;
@@ -193,7 +188,7 @@ public class InteractiveSystemProgram implements Runnable {
     manager.closeStaleFile(command.getOutputImageFileType2(), axisID);
   }
 
-  public void setCurrentStdInput(String input) throws IOException {
+  void setCurrentStdInput(final String input) throws IOException {
     if (inputBuffer != null) {
       inputBuffer.write(input);
       inputBuffer.newLine();
@@ -204,11 +199,11 @@ public class InteractiveSystemProgram implements Runnable {
     }
   }
 
-  public AxisID getAxisID() {
+  AxisID getAxisID() {
     return axisID;
   }
 
-  public void setName(String threadName) {
+  void setName(final String threadName) {
     this.threadName = threadName;
   }
 
@@ -217,19 +212,26 @@ public class InteractiveSystemProgram implements Runnable {
    * directory is not specified then current user.dir is the default.
    * @param workingDirectory a File object specifying the working directory
    */
-  public void setWorkingDirectory(File workingDirectory) {
+  void setWorkingDirectory(final File workingDirectory) {
     this.workingDirectory = workingDirectory;
   }
 
-  public String getCommandLine() {
+  String getCommandLine() {
     return commandLine;
   }
 
-  public String getCommandName() {
+  String getCommandName() {
     if (command == null) {
       return null;
     }
     return command.getCommandName();
+  }
+
+  String getCommandAction() {
+    if (commandAction == null) {
+      return getCommandName();
+    }
+    return commandAction;
   }
 
   /**
@@ -239,7 +241,6 @@ public class InteractiveSystemProgram implements Runnable {
     // Setup the Process object and run the command
     Process process = null;
     File outputFile = null;
-    String actionMessage = null;
     if (command != null) {
       outputFile = command.getCommandOutputFile();
       outputFileLastModified.set(outputFile.lastModified());
@@ -248,10 +249,10 @@ public class InteractiveSystemProgram implements Runnable {
       if (workingDirectory == null) {
         File currentUserDirectory = new File(manager.getPropertyUserDir());
         if (commandArray != null) {
-          actionMessage = Utilities.prepareCommandActionMessage(commandArray, null);
+          commandAction = Utilities.getCommandAction(commandArray, null);
         }
         else {
-          actionMessage = Utilities.prepareCommandActionMessage(commandLine);
+          commandAction = Utilities.getCommandAction(commandLine);
         }
         if (commandArray != null) {
           process = Runtime.getRuntime().exec(commandArray, null, currentUserDirectory);
@@ -295,8 +296,10 @@ public class InteractiveSystemProgram implements Runnable {
     try {
       process.waitFor();
       exitValue = process.exitValue();
-      if (actionMessage != null && exitValue == 0) {
-        System.err.println(actionMessage);
+      String msg = null;
+      if (exitValue == 0
+          && (msg = Utilities.getCommandActionMessage(commandAction)) != null) {
+        System.err.println(msg);
       }
     }
     catch (InterruptedException except) {
@@ -317,7 +320,7 @@ public class InteractiveSystemProgram implements Runnable {
    * Send text to the program's standard input
    * @param line the string to send to the program's standard input
    */
-  public void writeStdin(String line) {
+  void writeStdin(final String line) {
     try {
       if (inputBuffer != null) {
         inputBuffer.write(line);
@@ -335,11 +338,14 @@ public class InteractiveSystemProgram implements Runnable {
    * Read one line from the stdout buffer if available, if one isn't available
    * then null is returned
    */
-  public String readStdout() {
+  String readStdout() {
     String line = null;
     try {
       if (outputBuffer != null && outputBuffer.ready()) {
         line = outputBuffer.readLine();
+        if (line != null) {
+          STD_OUTPUT.add(line);
+        }
       }
     }
     catch (IOException except) {
@@ -349,11 +355,41 @@ public class InteractiveSystemProgram implements Runnable {
     return line;
   }
 
-  public Command getCommand() {
+  /**
+   * Put all of stdout into stdOutput and then return stdOutput
+   * @return
+   */
+  String[] getStdOutput() {
+    while (readStdout() != null) {
+    }
+    return getStringArray(STD_OUTPUT);
+  }
+
+  /**
+   * Put all of stderr into stdError and then return stdError
+   * @return
+   */
+  String[] getStdError() {
+    while (readStderr() != null) {
+    }
+    return getStringArray(STD_ERROR);
+  }
+
+  private String[] getStringArray(final List<String> list) {
+    if (list == null || list.size() == 0) {
+      return null;
+    }
+    if (list.size() == 1) {
+      return new String[] { list.get(0) };
+    }
+    return list.toArray(new String[list.size()]);
+  }
+
+  Command getCommand() {
     return command;
   }
 
-  public ConstEtomoNumber getOutputFileLastModified() {
+  ConstEtomoNumber getOutputFileLastModified() {
     return outputFileLastModified;
   }
 
@@ -361,11 +397,14 @@ public class InteractiveSystemProgram implements Runnable {
    * Read one line from the stderr buffer if available, if one isn't available
    * then null is returned
    */
-  public String readStderr() {
+  String readStderr() {
     String line = null;
     try {
       if (errorBuffer != null && errorBuffer.ready()) {
         line = errorBuffer.readLine();
+        if (line != null) {
+          STD_ERROR.add(line);
+        }
       }
     }
     catch (IOException except) {
@@ -375,15 +414,15 @@ public class InteractiveSystemProgram implements Runnable {
     return line;
   }
 
-  public int getExitValue() {
+  int getExitValue() {
     return exitValue;
   }
 
-  public String getName() {
+  String getName() {
     return threadName;
   }
 
-  public String getExceptionMessage() {
+  String getExceptionMessage() {
     return exceptionMessage;
   }
 }

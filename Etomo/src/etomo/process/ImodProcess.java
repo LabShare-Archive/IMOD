@@ -11,6 +11,7 @@ import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
+import etomo.type.OSType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
@@ -861,6 +862,14 @@ public class ImodProcess {
     // copying the clipboard onto the message area. 3dmod will crash if there is
     // something big in the clipboard.
 
+    // TEMP Bug# 1646
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+      commandOptions.add("-D");
+      if (OSType.getInstance() == OSType.MAC && outputWindowID && !listenToStdin) {
+        commandOptions.add("-L");
+      }
+    }
+
     if (outputWindowID) {
       commandOptions.add("-W");
     }
@@ -907,11 +916,7 @@ public class ImodProcess {
     if (useModv) {
       commandOptions.add("-view");
     }
-    /*
-    if (debug) {
-      commandOptions.add("-DC");
-    }
-*/
+    /* if (debug) { commandOptions.add("-DC"); } */
     if (binning > defaultBinning
         || (menuOptions.isBinBy2() && menuOptions.isAllowBinningInZ())) {
       commandOptions.add("-B");
@@ -1004,6 +1009,10 @@ public class ImodProcess {
 
       // Check the stderr of the 3dmod process for the windowID and the
       String line;
+      // TEMP Bug# 1646
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+        System.err.println("Bug# 1646:  open " + Utilities.getDateTimeStamp(true));
+      }
       while (imodThread.isAlive() && windowID.equals("")) {
         while ((line = stderr.getQuickMessage()) != null) {
           if (line.indexOf("Window id = ") != -1) {
@@ -1015,7 +1024,6 @@ public class ImodProcess {
           }
         }
       }
-
       // If imod exited before getting the window report the problem to the user
       if (windowID.equals("") && outputWindowID) {
         String message = "3dmod returned: " + String.valueOf(imod.getExitValue()) + "\n";
@@ -1024,7 +1032,7 @@ public class ImodProcess {
           System.err.println(line);
           message = message + "stderr: " + line + "\n";
         }
-
+        
         while ((line = imod.readStdout()) != null) {
           message = message + "stdout: " + line + "\n";
           line = imod.readStdout();
@@ -1537,7 +1545,6 @@ public class ImodProcess {
           message = message + "stderr: " + line + "\n";
           line = imodSendEvent.readStderr();
         }
-
         line = imodSendEvent.readStdout();
         while (line != null) {
           message = message + "stdout: " + line + "\n";
@@ -1815,6 +1822,7 @@ public class ImodProcess {
     private final Queue requestQueue = new LinkedList();
 
     private InteractiveSystemProgram imod = null;
+    private boolean receivedInterruptedException = false;
 
     private Stderr() {
     }
@@ -1850,6 +1858,10 @@ public class ImodProcess {
      * @return
      */
     private String getRequestMessage() {
+      // TEMP Bug# 1646
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+        System.err.println("Bug# 1646:  get request message " + Utilities.getDateTimeStamp(true));
+      }
       readStderr();
       return (String) requestQueue.poll();
     }
@@ -1866,6 +1878,7 @@ public class ImodProcess {
         Thread.sleep(500);
       }
       catch (InterruptedException e) {
+        receivedInterruptedException = true;
       }
       if (imod == null) {
         return;
@@ -1931,6 +1944,10 @@ public class ImodProcess {
      */
     public synchronized void run() {
       try {
+        // TEMP Bug# 1646
+        if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+          System.err.println("Bug# 1646:  continuous listener " + Utilities.getDateTimeStamp(true));
+        }
         do {
           Thread.sleep(500);
           String message = stderr.getContinuousMessage();
@@ -1994,6 +2011,10 @@ public class ImodProcess {
             }
             return;
           }
+          // TEMP Bug# 1646
+          if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+            System.err.println("Bug# 1646:  setting stdin " + Utilities.getDateTimeStamp(true));
+          }
           imod.setCurrentStdInput(buffer.toString());
         }
         catch (IOException exception) {
@@ -2028,12 +2049,20 @@ public class ImodProcess {
       String response = null;
       StringBuffer userMessage = new StringBuffer();
       // wait for the response for at most 5 seconds
+      // TEMP Bug# 1646
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+        System.err.println("Bug# 1646:  read response " + Utilities.getDateTimeStamp(true));
+      }
       for (int timeout = 0; timeout < 30; timeout++) {
         if (responseReceived) {
           break;
         }
         // process response
         boolean failure = false;
+        // TEMP Bug# 1646
+        if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+          System.err.println("Bug# 1646:  waiting for response " + Utilities.getDateTimeStamp(true));
+        }
         while ((response = stderr.getQuickMessage()) != null) {
           responseReceived = true;
           if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
@@ -2042,6 +2071,10 @@ public class ImodProcess {
           response = response.trim();
           if (response.equals("OK")) {
             // OK is sent last, so this is done
+            // TEMP Bug# 1646
+            if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+              System.err.println("Bug# 1646:  received OK " + Utilities.getDateTimeStamp(true));
+            }
             break;
           }
           // if the response is not OK or an error message meant for the user
@@ -2063,6 +2096,10 @@ public class ImodProcess {
       }
       if (!responseReceived) {
         if (isRunning()) {
+          if (EtomoDirector.INSTANCE.getArguments().isDebug()
+              && stderr.receivedInterruptedException) {
+            System.err.println("\nsleep interrupted");
+          }
           // no response received and 3dmod is running - "throw" exception
           SystemProcessException exception = new SystemProcessException(
               "No response received from 3dmod.  datasetName=" + datasetName

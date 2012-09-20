@@ -19,7 +19,7 @@ $(LIBRARY): $(OBJS)
 	$(STATICRANLIB) $(LIBRARY)
 
 clean:
-	-\rm -f *.o* *.a *.lib *~
+	-\rm -f *.$(OBJEXT) *.a *.lib *~
 
 $(OBJS): *.h *.hpp
 

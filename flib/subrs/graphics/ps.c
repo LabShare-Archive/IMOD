@@ -1,16 +1,11 @@
 /* Postscript drawing routines
+ *
+ *  Copyright (C) 1995-2012 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.1  2005/04/03 02:59:25  mast
-Added internal setting of linewidth, and filled and open circles, triangles
-and quadrangles
-*/
 
 #include "ps.h"
 PS *PSopen(char *filename, double dpi, double x, double y)
@@ -50,8 +45,8 @@ PS *PSopen(char *filename, double dpi, double x, double y)
           "{newpath moveto 1 0 rlineto 0 1 rlineto -1 0 rlineto "
           "closepath fill} def\n");
   fprintf(ps->fp, "/drawline { newpath moveto lineto stroke } def\n");
-  fprintf(ps->fp, "/opencircle { 0 360 arc stroke } def\n");
-  fprintf(ps->fp, "/fillcircle { 0 360 arc fill } def\n");
+  fprintf(ps->fp, "/opencircle { newpath 0 360 arc stroke } def\n");
+  fprintf(ps->fp, "/fillcircle { newpath 0 360 arc fill } def\n");
   fprintf(ps->fp, "/opentri { newpath moveto lineto lineto closepath "
           "stroke } def\n");
   fprintf(ps->fp, "/filltri { newpath moveto lineto lineto closepath "

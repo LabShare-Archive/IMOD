@@ -122,7 +122,8 @@ OOPPTTIIOONNSS
   was converted to PIP input, to maintain compatibility with old command
   files.  The following options can be specified either as command line
   arguments (with the -) or one per line in a command file or parameter file
-  (without the -):
+  (without the -).  Options can be abbreviated to unique letters; the
+  currently valid abbreviations for short names are shown in parentheses.
 
 INSERT OPTION TEXT HERE
 
