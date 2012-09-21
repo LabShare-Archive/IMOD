@@ -290,10 +290,16 @@ public class EtomoDirector {
     if (manager != null) {
       UIHarness.INSTANCE.setCurrentManager(manager, currentManagerKey.getKey(), true);
     }
-    UIHarness.INSTANCE.selectWindowMenuItem(currentManagerKey.getKey());
+    if (currentManagerKey != null) {
+      UIHarness.INSTANCE.selectWindowMenuItem(currentManagerKey.getKey());
+    }
     setCurrentManager(currentManagerKey, false);
     UIHarness.INSTANCE.setMRUFileLabels(userConfig.getMRUFileList());
     UIHarness.INSTANCE.pack(manager);
+    if (manager == null) {
+      UIHarness.INSTANCE.openMessageDialog(null, "Invalid dataset file",
+          "Unable to Open Dataset");
+    }
     UIHarness.INSTANCE.setVisible(manager, true);
     System.err.println("imod:  " + getIMODDirectory());
     if (manager == null) {
@@ -606,7 +612,8 @@ public class EtomoDirector {
     if (etomoSerialSectionsFile == null) {
       return openSerialSections(makeCurrent, axisID);
     }
-    return openSerialSections(etomoSerialSectionsFile.getAbsolutePath(), makeCurrent, axisID);
+    return openSerialSections(etomoSerialSectionsFile.getAbsolutePath(), makeCurrent,
+        axisID);
   }
 
   private ManagerKey openJoin(String etomoJoinFileName, boolean makeCurrent, AxisID axisID) {
