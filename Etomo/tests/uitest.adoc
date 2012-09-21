@@ -501,7 +501,7 @@ open.dialog.rejoin.tb.setup.4 =
 [interface = PEET]
 [[open = interface]]
 	pnl.main-frame=
-	bn.particle-estimation=
+	bn.subvolume-averaging=
 [[]]
 
 [Interface = Nad]
