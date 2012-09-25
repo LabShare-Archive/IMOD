@@ -86,6 +86,7 @@ bn.done =
 [function = test-final-match]
 #test field validation
 tb.setup.2=
+mb.patchcorr-parameters.1=A
 cb.kernel-filtering-with-sigma=on
 tf.kernel-filtering-with-sigma=1.0abc
 bn.restart-at-patchcorr=
