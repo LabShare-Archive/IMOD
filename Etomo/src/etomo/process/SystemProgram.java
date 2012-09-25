@@ -378,14 +378,14 @@ public class SystemProgram implements Runnable {
   }
 
   String[] getStdError(final Object listenerKey) {
-    if (stderr != null) {
+    if (stderr == null) {
       return null;
     }
     return stderr.get(listenerKey);
   }
 
   String[] getStdOutput(final Object listenerKey) {
-    if (stdout != null) {
+    if (stdout == null) {
       return null;
     }
     return stdout.get(listenerKey);
