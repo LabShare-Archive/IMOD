@@ -38,6 +38,7 @@ public final class FieldValidator {
    * @return fieldText, trimmed if validation is possible on fieldType
    * @throws FieldValidationFailedException if the validation fails
    */
+  // TEMP 1614
   public static String validateText(final String fieldText, final FieldType fieldType,
       final UIComponent component, final String descr)
       throws FieldValidationFailedException {
@@ -56,27 +57,19 @@ public final class FieldValidator {
       if (fieldType.hasRequiredSize()) {
         // Count elements
         int nElements = 0;
-        // The commas at the start and end of the collection count as elements. Splitting
-        // will eliminate these commas, so they have to be counted.
-        boolean starts = text.startsWith(",");
-        boolean ends = text.endsWith(",");
-        if (starts || ends) {
+        // The commas at the end of the collection count as elements. Splitting will
+        // eliminate these commas, so they have to be counted.
+        if (text.endsWith(",")) {
           // Remove all whitespace
           text = text.replaceAll("\\s+", "");
-          // Make a list of commas
-          String[] commaList = text.split("[^\\,]");
-          if (commaList != null && commaList.length > 0) {
-            if (ends) {
-              // Count the commas at the end of the text: ",," equals one extra element,
-              // ",,,"
-              // equals two extra elements, etc.
-              nElements += commaList[commaList.length - 1].length() - 1;
+          // Count ending commas. The last comma doesn't count because an extra comma is
+          // necessary to add an element onto the end.
+          for (int i = text.length() - 2; i >= 0; i--) {
+            if (text.charAt(i) == ',') {
+              nElements++;
             }
-            // Don't look at the same element twice
-            if (commaList.length > 1 && starts) {
-              // Count the commas at the start of the text; each comma represents one
-              // element.
-              nElements += commaList[0].length();
+            else {
+              break;
             }
           }
         }
@@ -90,7 +83,7 @@ public final class FieldValidator {
               + fieldType.requiredSize + " elements.", TITLE);
           FieldValidationFailedException fe = new FieldValidationFailedException(descr
               + ":wrong number of elements:" + "fieldText:" + fieldText
-              + ",elementList.length:" + elementList.length + ",requiredSize+:"
+              + ",elementList.length:" + elementList.length + ",requiredSize:"
               + fieldType.requiredSize);
           if (EtomoDirector.INSTANCE.getArguments().isDebug()
               || EtomoDirector.INSTANCE.getArguments().isTest()) {
