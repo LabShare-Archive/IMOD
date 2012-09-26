@@ -451,7 +451,7 @@ class MultiLineButton implements ProcessResultDisplay {
     if (label.toLowerCase().startsWith("<html>")) {
       return label;
     }
-    label = "<html><b>".concat(label).concat("</b>");
+    label = "<html><b><center>".concat(label).concat("</center></b>");
     if (debug) {
       System.err.println("label=" + label);
     }

@@ -29,7 +29,7 @@ public class ProcessTests {
     //$JUnit-BEGIN$
     suite.addTestSuite(ImodManagerTest.class);
     suite.addTestSuite(ProcessMessagesTest.class);
-
+    suite.addTestSuite(ImodProcessTest.class);
     //suite.addTest(new ImodManagerTest("testFiducialModel"));
     //$JUnit-END$
     return suite;

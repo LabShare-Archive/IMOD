@@ -44,7 +44,7 @@ final class EtomoMenu {
   static final String GENERIC_LABEL = "Generic Parallel Process";
   static final String NAD_LABEL = "Nonlinear Anisotropic "
       + (Utilities.isAprilFools() ? "Delusion" : "Diffusion");
-  static final String PEET_LABEL = "Particle Estimation (PEET)";
+  static final String PEET_LABEL = "Subvolume Averaging (PEET)";
   static final String FLATTEN_VOLUME_LABEL = "Flatten Volume";
   static final String GPU_TILT_TEST_LABEL = "Test GPU";
   static final String SERIAL_SECTIONS_LABEL = "Align Serial Sections";
@@ -56,6 +56,7 @@ final class EtomoMenu {
 
   private final JMenu menuFile = new Menu("File");
   private final JMenuItem menuOpen = new MenuItem("Open...", KeyEvent.VK_O);
+  private final JMenuItem menuRecentDocuments =new Menu("Recent Documents");
   private final JMenuItem menuSave = new MenuItem("Save", KeyEvent.VK_S);
   private final JMenuItem menuSaveAs = new MenuItem("Save As", KeyEvent.VK_A);
   private final JMenuItem menuClose = new MenuItem("Close", KeyEvent.VK_C);
@@ -157,6 +158,7 @@ final class EtomoMenu {
     if (!forManagerFrame) {
       // Mnemonics for the main menu bar
       menuFile.setMnemonic(KeyEvent.VK_F);
+      menuRecentDocuments.setMnemonic(KeyEvent.VK_U);
       // Accelerators
       menuAxisA.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
           ActionEvent.CTRL_MASK));
@@ -198,13 +200,15 @@ final class EtomoMenu {
     // File menu
     menuFile.add(menuNew);
     menuFile.add(menuOpen);
+    menuFile.add(menuRecentDocuments);
+    menuFile.addSeparator();
+    menuFile.add(menuClose);
     menuFile.add(menuSave);
     menuFile.add(menuSaveAs);
-    menuFile.add(menuClose);
-    menuFile.add(menuExit);
     menuFile.addSeparator();
     menuFile.add(menuTomosnapshot);
     menuFile.addSeparator();
+    menuFile.add(menuExit);
 
     // New menu
     menuNew.add(menuNewTomogram);
@@ -221,7 +225,7 @@ final class EtomoMenu {
       menuMRUList[i] = new MenuItem();
       menuMRUList[i].addActionListener(fileMRUListActionListener);
       menuMRUList[i].setVisible(false);
-      menuFile.add(menuMRUList[i]);
+      menuRecentDocuments.add(menuMRUList[i]);
     }
 
     // Tool menu

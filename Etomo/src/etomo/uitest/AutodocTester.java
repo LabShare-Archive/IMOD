@@ -2112,7 +2112,7 @@ final class AutodocTester extends Assert implements VariableList {
       // if value is present,only click on mini-button when it matches value
       // mb.title_with_mini_button =
       // mb.title_with_mini_button = current_label
-      if (value == null || miniButton.getText().equals("<html><b>" + value + "</b>")) {
+      if (value == null || miniButton.getText().equals("<html><b><center>" + value + "</center></b>")) {
         helper.enterClickAndLeave(new MouseEventData(testRunner, miniButton));
         try {
           Thread.sleep(REDRAW_WAIT);

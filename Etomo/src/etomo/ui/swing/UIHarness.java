@@ -239,7 +239,9 @@ public final class UIHarness {
 
   public void pack(BaseManager manager) {
     if (isHead()) {
-      manager.pack();
+      if (manager != null) {
+        manager.pack();
+      }
       AbstractFrame abstractFrame = getFrame(manager);
       abstractFrame.repaint();
       abstractFrame.pack();

@@ -1811,6 +1811,46 @@ public class ImodProcess {
   }
 
   /**
+   * Class to allow testing of the quick listener queue functionality in Stderr.
+   * @author sueh
+   *
+   */
+  static final class QuickListenerQueueTestWrapper {
+    private final Stderr stderr = new Stderr();
+
+    QuickListenerQueueTestWrapper() {
+    }
+
+    int getExpectedRegistrants() {
+      return Stderr.EXPECTED_REGISTRANTS;
+    }
+
+    Integer register() {
+      return stderr.register();
+    }
+
+    int getPurgeSize() {
+      return Stderr.PURGE_SIZE;
+    }
+
+    void add(final String input) {
+      stderr.quickListenerQueue.add(input);
+    }
+
+    public String toString() {
+      return stderr.quickListenerQueue.toString();
+    }
+
+    String getQuickMessage(final Integer regId) {
+      return stderr.getQuickMessage(regId);
+    }
+
+    void purge() {
+      stderr.purgeQuickListenerQueue();
+    }
+  }
+
+  /**
    * Class to get messages from the stderr and place them in queues.  This is
    * only way that imod.stderr should be accessed.
    * @author sueh
@@ -1818,8 +1858,7 @@ public class ImodProcess {
    */
   private static final class Stderr {
     private static final int EXPECTED_REGISTRANTS = 2;
-    // temp increase to 10
-    private static final int PURGE_SIZE = 2;
+    private static final int PURGE_SIZE = 10;
 
     /**
      * Contains an id and the last index used to read quickListenerQueue.
@@ -1871,10 +1910,10 @@ public class ImodProcess {
      * the queue is empty.
      * @return
      */
-    private synchronized String getQuickMessage(final Integer id) {
+    private synchronized String getQuickMessage(final Integer regId) {
       int queueSize = quickListenerQueue.size();
       readStderr();
-      EtomoNumber index = registration.get(id);
+      EtomoNumber index = registration.get(regId);
       // Read a string from the queue, if there is anything left to read.
       if (index.lt(quickListenerQueue.size() - 1)) {
         // Increment the index.
@@ -1896,27 +1935,30 @@ public class ImodProcess {
           || quickListenerQueue.size() < PURGE_SIZE) {
         return;
       }
-      int readByAllIndex = -1;
       Iterator<Map.Entry<Integer, EtomoNumber>> i = registration.entrySet().iterator();
       // Get the lowest index, which is the last string that all the registrants have
       // read.
-      while (i.hasNext()) {
-        readByAllIndex = Math.min(readByAllIndex, i.next().getValue().getInt());
-      }
-      // Purging is expensive - decide if its worth purging.
-      if (readByAllIndex > PURGE_SIZE / 2) {
-        for (int j = 0; j <= readByAllIndex; j++) {
-          quickListenerQueue.remove(j);
+      int readByAllIndex = -1;
+      if (i.hasNext()) {
+        readByAllIndex = i.next().getValue().getInt();
+        while (i.hasNext()) {
+          readByAllIndex = Math.min(readByAllIndex, i.next().getValue().getInt());
         }
       }
-      // Now all the indexes are wrong - fix them.
-      i = registration.entrySet().iterator();
-      // Get the lowest index, which is the last string that all the registrants have
-      // read.
-      while (i.hasNext()) {
-        EtomoNumber index = i.next().getValue();
-        // Reduce the saved indices by the number of elements that where removed.
-        index.set(index.getInt() - readByAllIndex - 1);
+      // Purging is expensive - decide if its worth purging.
+      if (readByAllIndex >= PURGE_SIZE / 2) {
+        for (int j = 0; j <= readByAllIndex; j++) {
+          quickListenerQueue.remove(0);
+        }
+        // Now all the indexes are wrong - fix them.
+        i = registration.entrySet().iterator();
+        // Get the lowest index, which is the last string that all the registrants have
+        // read.
+        while (i.hasNext()) {
+          EtomoNumber index = i.next().getValue();
+          // Reduce the saved indices by the number of elements that where removed.
+          index.set(index.getInt() - readByAllIndex - 1);
+        }
       }
     }
 

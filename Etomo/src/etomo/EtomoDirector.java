@@ -291,10 +291,16 @@ public class EtomoDirector {
     if (manager != null) {
       UIHarness.INSTANCE.setCurrentManager(manager, currentManagerKey.getKey(), true);
     }
-    UIHarness.INSTANCE.selectWindowMenuItem(currentManagerKey.getKey());
+    if (currentManagerKey != null) {
+      UIHarness.INSTANCE.selectWindowMenuItem(currentManagerKey.getKey());
+    }
     setCurrentManager(currentManagerKey, false);
     UIHarness.INSTANCE.setMRUFileLabels(userConfig.getMRUFileList());
     UIHarness.INSTANCE.pack(manager);
+    if (manager == null) {
+      UIHarness.INSTANCE.openMessageDialog(null, "Invalid dataset file",
+          "Unable to Open Dataset");
+    }
     UIHarness.INSTANCE.setVisible(manager, true);
     System.err.println("imod:  " + getIMODDirectory());
     if (manager == null) {

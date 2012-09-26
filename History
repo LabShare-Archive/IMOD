@@ -1,5 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/25/12: ETomo: fixed null pointer exceptions.(Bug# 1645)
+
+9/24/12: ETomo: fixed a problem involving the incorrect handling of 3dmod's
+stderr, which could potentially cause eTomo to lock up until 3dmod exits.
+(Bug# 1647)
+
+9/21/12: ETomo:  rearranged the file, fixed the crash that happened when the
+wrong file type was passed to eTomo, and other miscellaneous changes.
+(Bug# 1643).
+
 9/18/12: Fixed 3dmod crashing on X-ray model with no objects (In 4.5).
 
 9/15/12: Added the last 10 lines of stdout and stderr to eTomo's log (when

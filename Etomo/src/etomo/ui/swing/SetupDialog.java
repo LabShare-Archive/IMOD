@@ -153,10 +153,6 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     addExitButtons();
     UIUtilities.alignComponentsX(rootPanel, Component.CENTER_ALIGNMENT);
 
-    // Mouse adapter for context menu
-    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-    rootPanel.addMouseListener(mouseAdapter);
-
     // Resize the standard panel buttons
     UIUtilities.setButtonSizeAll(pnlExitButtons,
         UIParameters.INSTANCE.getButtonDimension());
@@ -554,8 +550,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   void backupDirectoryAction() {
     try {
-      ftfBackupDirectory.setText(getFile(expert.getCurrentBackupDirectory(), null,
-          JFileChooser.DIRECTORIES_ONLY).getCanonicalPath());
+      File file = getFile(expert.getCurrentBackupDirectory(), null,
+          JFileChooser.DIRECTORIES_ONLY);
+      if (file != null) {
+        ftfBackupDirectory.setText(file.getCanonicalPath());
+      }
     }
     catch (Exception excep) {
       excep.printStackTrace();
@@ -564,8 +563,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   void distortionFileAction() {
     try {
-      ftfDistortionFile.setText(getFile(expert.getCurrentDistortionDir(),
-          new DistortionFileFilter(), JFileChooser.FILES_ONLY).getAbsolutePath());
+      File file = getFile(expert.getCurrentDistortionDir(), new DistortionFileFilter(),
+          JFileChooser.FILES_ONLY);
+      if (file != null) {
+        ftfDistortionFile.setText(file.getAbsolutePath());
+      }
     }
     catch (Exception excep) {
       excep.printStackTrace();
@@ -578,8 +580,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
    */
   void magGradientFileAction() {
     try {
-      ftfMagGradientFile.setText(getFile(expert.getCurrentMagGradientDir(),
-          new MagGradientFileFilter(), JFileChooser.FILES_ONLY).getAbsolutePath());
+      File file = getFile(expert.getCurrentMagGradientDir(), new MagGradientFileFilter(),
+          JFileChooser.FILES_ONLY);
+      if (file != null) {
+        ftfMagGradientFile.setText(file.getAbsolutePath());
+      }
     }
     catch (Exception excep) {
       excep.printStackTrace();
@@ -601,6 +606,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   private void addListeners() {
+    // Mouse adapter for context menu
+    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
+    rootPanel.addMouseListener(mouseAdapter);
     ftfDataset.addActionListener(new DatasetActionListener(this));
     ftfBackupDirectory.addActionListener(new BackupDirectoryActionListener(this));
     ftfDistortionFile.addActionListener(new DistortionFileActionListener(this));
