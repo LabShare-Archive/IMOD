@@ -219,15 +219,16 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
 
   // MTF Filter objects
   private final LabeledTextField ltfLowPassRadiusSigma = new LabeledTextField(
-      "Low pass (cutoff,sigma): ");
+      FieldType.FLOATING_POINT_PAIR, "Low pass (cutoff,sigma): ");
   private final ImageIcon iconFolder = new ImageIcon(
       ClassLoader.getSystemResource("images/openFile.gif"));
-  private final LabeledTextField ltfMtfFile = new LabeledTextField(MTF_FILE_LABEL);
+  private final LabeledTextField ltfMtfFile = new LabeledTextField(FieldType.STRING,
+      MTF_FILE_LABEL);
   private final SimpleButton btnMtfFile = new SimpleButton(iconFolder);
   private final LabeledTextField ltfMaximumInverse = new LabeledTextField(
-      "Maximum Inverse: ");
+      FieldType.FLOATING_POINT, "Maximum Inverse: ");
   private final LabeledTextField ltfInverseRolloffRadiusSigma = new LabeledTextField(
-      "Rolloff (radius,sigma): ");
+      FieldType.FLOATING_POINT_PAIR, "Rolloff (radius,sigma): ");
   private final Run3dmodButton btnFilter;
   private final Run3dmodButton btnViewFilter = Run3dmodButton.get3dmodInstance(
       "View Filtered Stack", this);
@@ -255,20 +256,21 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
       .getAdvancedBasicOnlyInstance("CTF Correction", this, DIALOG_TYPE, btnAdvanced);
   private final SpacedPanel ctfCorrectionBodyPanel = SpacedPanel.getInstance(true);
   private final FileTextField ftfConfigFile = new FileTextField("Config file: ");
-  private final LabeledTextField ltfVoltage = new LabeledTextField("Voltage (KV): ");
+  private final LabeledTextField ltfVoltage = new LabeledTextField(FieldType.INTEGER,
+      "Voltage (KV): ");
   private final LabeledTextField ltfSphericalAberration = new LabeledTextField(
-      "Spherical Aberration (mm): ");
+      FieldType.FLOATING_POINT, "Spherical Aberration (mm): ");
   private final CheckBox cbInvertTiltAngles = new CheckBox("Invert sign of tilt angles");
   private final LabeledTextField ltfAmplitudeContrast = new LabeledTextField(
-      "Amplitude contrast: ");
+      FieldType.FLOATING_POINT, "Amplitude contrast: ");
   private final LabeledTextField ltfExpectedDefocus = new LabeledTextField(
-      "Expected defocus (microns): ");
+      FieldType.FLOATING_POINT, "Expected defocus (microns): ");
   private final LabeledTextField ltfOffsetToAdd = new LabeledTextField(
-      "Offset to add to image values: ");
+      FieldType.FLOATING_POINT, "Offset to add to image values: ");
   private final LabeledTextField ltfInterpolationWidth = new LabeledTextField(
-      "Interpolation width (pixels): ");
+      FieldType.INTEGER, "Interpolation width (pixels): ");
   private final CheckBox cbParallelProcess = new CheckBox(ParallelPanel.FIELD_LABEL);
-  private final LabeledTextField ltfDefocusTol = new LabeledTextField(
+  private final LabeledTextField ltfDefocusTol = new LabeledTextField(FieldType.INTEGER,
       "Defocus tolerance (nm): ");
   private final MultiLineButton btnCtfPlotter = new MultiLineButton("Run Ctf Plotter");
   private final Run3dmodButton btnCtfCorrection;

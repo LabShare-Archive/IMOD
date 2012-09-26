@@ -16,6 +16,7 @@ import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.ParallelMetaData;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
 
 /**
  * <p>Description: </p>
@@ -60,7 +61,8 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final Run3dmodButton btnRunFilterFullVolume = Run3dmodButton
       .getDeferred3dmodInstance(FILTER_FULL_VOLUME_LABEL, this);
-  private final LabeledTextField ltfKValue = new LabeledTextField("K value: ");
+  private final LabeledTextField ltfKValue = new LabeledTextField(
+      FieldType.FLOATING_POINT, "K value: ");
   private final Spinner spIteration = Spinner.getLabeledInstance("Iterations: ", 10, 1,
       200);
   private final Spinner spMemoryPerChunk = Spinner.getLabeledInstance(
@@ -102,33 +104,33 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
   }
 
   private void createPanel() {
-    //initialization
+    // initialization
     ltfKValue.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
     btnRunFilterFullVolume.setSize();
     btnViewFilteredVolume.setSize();
     btnCleanup.setSize();
-    //local panels
+    // local panels
     SpacedPanel pnlFields = SpacedPanel.getInstance();
     SpacedPanel pnlButtons = SpacedPanel.getInstance();
     JPanel pnlCheckBox = new JPanel();
-    //root panel
+    // root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.setBorder(new EtchedBorder(FILTER_FULL_VOLUME_LABEL).getBorder());
     pnlRoot.add(pnlFields);
     pnlRoot.add(pnlCheckBox);
     pnlRoot.add(pnlButtons);
-    //fields panel
+    // fields panel
     pnlFields.setBoxLayout(BoxLayout.X_AXIS);
     pnlFields.add(ltfKValue);
     pnlFields.add(spIteration);
     pnlFields.add(spMemoryPerChunk);
     pnlFields.add(Box.createHorizontalGlue());
-    //checkbox panel
+    // checkbox panel
     pnlCheckBox.setLayout(new BoxLayout(pnlCheckBox, BoxLayout.X_AXIS));
     pnlCheckBox.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlCheckBox.add(cbOverlapTimesFour);
     pnlCheckBox.add(Box.createHorizontalGlue());
-    //buttons panel
+    // buttons panel
     pnlButtons.setBoxLayout(BoxLayout.X_AXIS);
     btnRunFilterFullVolume.setDeferred3dmodButton(btnViewFilteredVolume);
     pnlButtons.add(btnRunFilterFullVolume);
@@ -190,8 +192,8 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
       parent.cleanUp();
     }
     else if (command.equals(btnViewFilteredVolume.getActionCommand())) {
-      manager.imod(FileType.ANISOTROPIC_DIFFUSION_OUTPUT, run3dmodMenuOptions, parent
-          .isLoadWithFlipping());
+      manager.imod(FileType.ANISOTROPIC_DIFFUSION_OUTPUT, run3dmodMenuOptions,
+          parent.isLoadWithFlipping());
     }
   }
 

@@ -263,36 +263,41 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   private final CheckBox cbExcludeCentralPeak = new CheckBox(
       "Exclude central peak due to fixed pattern noise");
 
-  private final LabeledTextField ltfTestOutput = new LabeledTextField("Test output: ");
+  private final LabeledTextField ltfTestOutput = new LabeledTextField(FieldType.STRING,
+      "Test output: ");
   private final LabeledTextField ltfFilterSigma1 = new LabeledTextField(
-      "Low frequency rolloff sigma: ");
+      FieldType.FLOATING_POINT, "Low frequency rolloff sigma: ");
   private final LabeledTextField ltfFilterRadius2 = new LabeledTextField(
-      "High frequency cutoff radius: ");
+      FieldType.FLOATING_POINT, "High frequency cutoff radius: ");
   private final LabeledTextField ltfFilterSigma2 = new LabeledTextField(
-      "High frequency rolloff sigma: ");
-  private final LabeledTextField ltfTrim = new LabeledTextField("Pixels to trim (x,y): ");
-  private final LabeledTextField ltfXMin = new LabeledTextField("X axis min ");
-  private final LabeledTextField ltfXMax = new LabeledTextField("Max ");
-  private final LabeledTextField ltfYMin = new LabeledTextField("Y axis min ");
-  private final LabeledTextField ltfYMax = new LabeledTextField("Max ");
+      FieldType.FLOATING_POINT, "High frequency rolloff sigma: ");
+  private final LabeledTextField ltfTrim = new LabeledTextField(FieldType.INTEGER_PAIR,
+      "Pixels to trim (x,y): ");
+  private final LabeledTextField ltfXMin = new LabeledTextField(FieldType.INTEGER,
+      "X axis min ");
+  private final LabeledTextField ltfXMax = new LabeledTextField(FieldType.INTEGER, "Max ");
+  private final LabeledTextField ltfYMin = new LabeledTextField(FieldType.INTEGER,
+      "Y axis min ");
+  private final LabeledTextField ltfYMax = new LabeledTextField(FieldType.INTEGER, "Max ");
   private final LabeledTextField ltfPadPercent = new LabeledTextField(
-      "Pixels to pad (x,y): ");
+      FieldType.INTEGER_PAIR, "Pixels to pad (x,y): ");
   private final LabeledTextField ltfTaperPercent = new LabeledTextField(
-      "Pixels to taper (x,y): ");
+      FieldType.INTEGER_PAIR, "Pixels to taper (x,y): ");
   private final CheckBox cbCumulativeCorrelation = new CheckBox("Cumulative correlation");
   private final CheckBox cbAbsoluteCosineStretch = new CheckBox("Absolute Cosine Stretch");
   private final CheckBox cbNoCosineStretch = new CheckBox("No Cosine Stretch");
   private final LabeledTextField ltfViewRange = new LabeledTextField(
-      "View range (start,end): ");
+      FieldType.INTEGER_PAIR, "View range (start,end): ");
   private final LabeledTextField ltfAngleOffset = new LabeledTextField(
-      "Tilt angle offset: ");
+      FieldType.FLOATING_POINT, "Tilt angle offset: ");
   private final CrossCorrelationActionListener actionListener = new CrossCorrelationActionListener(
       this);
-  private final LabeledTextField ltfSkipViews = new LabeledTextField("Views to skip: ");
+  private final LabeledTextField ltfSkipViews = new LabeledTextField(
+      FieldType.INTEGER_LIST, "Views to skip: ");
 
   // Patch tracking
   private final LabeledTextField ltfSizeOfPatchesXandY = new LabeledTextField(
-      "Size of patches (X,Y): ");
+      FieldType.INTEGER_PAIR, "Size of patches (X,Y): ");
   private final ButtonGroup bgPatchLayout = new ButtonGroup();
   private final RadioTextField rtfOverlapOfPatchesXandY = RadioTextField.getInstance(
       FieldType.FLOATING_POINT_PAIR, "Fractional overlap of patches (X,Y): ",
@@ -304,7 +309,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       TiltxcorrParam.ITERATE_CORRELATIONS_DEFAULT,
       TiltxcorrParam.ITERATE_CORRELATIONS_MIN, TiltxcorrParam.ITERATE_CORRELATIONS_MAX);
   private final LabeledTextField ltfShiftLimitsXandY = new LabeledTextField(
-      "Limits on shifts from correlation (X,Y): ");
+      FieldType.INTEGER_PAIR, "Limits on shifts from correlation (X,Y): ");
   private final CheckTextField ctfLengthAndOverlap = CheckTextField.getInstance(
       FieldType.INTEGER_PAIR, "Break contours into pieces (length, overlap): ");
   private final CheckBox cbBoundaryModel = new CheckBox("Use boundary model");
@@ -643,9 +648,10 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     try {
       boolean doValidation = false;
       if (panelId == PanelId.PATCH_TRACKING) {
-        metaData
-            .setTrackOverlapOfPatchesXandY(axisID, rtfOverlapOfPatchesXandY.getText(doValidation));
-        metaData.setTrackNumberOfPatchesXandY(axisID, rtfNumberOfPatchesXandY.getText(doValidation));
+        metaData.setTrackOverlapOfPatchesXandY(axisID,
+            rtfOverlapOfPatchesXandY.getText(doValidation));
+        metaData.setTrackNumberOfPatchesXandY(axisID,
+            rtfNumberOfPatchesXandY.getText(doValidation));
         metaData.setTrackLengthAndOverlap(axisID,
             ctfLengthAndOverlap.getText(doValidation));
       }
@@ -746,14 +752,16 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
           }
           currentParam = rtfOverlapOfPatchesXandY.getLabel();
           if (rtfOverlapOfPatchesXandY.isSelected()) {
-            tiltXcorrParams.setOverlapOfPatchesXandY(rtfOverlapOfPatchesXandY.getText(doValidation));
+            tiltXcorrParams.setOverlapOfPatchesXandY(rtfOverlapOfPatchesXandY
+                .getText(doValidation));
           }
           else {
             tiltXcorrParams.resetOverlapOfPatchesXandY();
           }
           currentParam = rtfNumberOfPatchesXandY.getLabel();
           if (rtfNumberOfPatchesXandY.isSelected()) {
-            tiltXcorrParams.setNumberOfPatchesXandY(rtfNumberOfPatchesXandY.getText(doValidation));
+            tiltXcorrParams.setNumberOfPatchesXandY(rtfNumberOfPatchesXandY
+                .getText(doValidation));
           }
           else {
             tiltXcorrParams.resetNumberOfPatchesXandY();

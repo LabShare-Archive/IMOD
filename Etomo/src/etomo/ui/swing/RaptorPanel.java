@@ -21,6 +21,7 @@ import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
+import etomo.ui.FieldType;
 
 /**
  * <p>Description:.</p>
@@ -73,9 +74,10 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
   private final JPanel pnlInput = new JPanel();
   private final Run3dmodButton btnOpenStack = Run3dmodButton.get3dmodInstance(
       "Open Stack in 3dmod", this);
-  private final LabeledTextField ltfMark = new LabeledTextField(MARK_LABEL + ": ");
-  private final LabeledTextField ltfDiam = new LabeledTextField(DIAM_LABEL
-      + " (in pixels): ");
+  private final LabeledTextField ltfMark = new LabeledTextField(FieldType.INTEGER,
+      MARK_LABEL + ": ");
+  private final LabeledTextField ltfDiam = new LabeledTextField(FieldType.INTEGER,
+      DIAM_LABEL + " (in pixels): ");
   private final ButtonGroup bgInput = new ButtonGroup();
   private final RadioButton rbInputPreali = new RadioButton(
       "Run against the coarse aligned stack", bgInput);
@@ -148,25 +150,25 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
     pnlRoot.add(ltfDiam.getContainer());
     SpacedPanel pnlRaptorButtons = SpacedPanel.getInstance();
     pnlRoot.add(pnlRaptorButtons);
-    //RAPTOR input source panel
+    // RAPTOR input source panel
     pnlInput.setLayout(new BoxLayout(pnlInput, BoxLayout.Y_AXIS));
     pnlInput.setBorder(BorderFactory.createEtchedBorder());
     pnlInput.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlInput.add(rbInputPreali.getComponent());
     pnlInput.add(rbInputRaw.getComponent());
-    //RAPTOR button panel
+    // RAPTOR button panel
     pnlRaptorButtons.setBoxLayout(BoxLayout.X_AXIS);
     pnlRaptorButtons.add(btnRaptor.getComponent());
     pnlRaptorButtons.add(btnOpenRaptorResult.getComponent());
     pnlRaptorButtons.add(btnUseRaptorResult.getComponent());
-    //set initial values
+    // set initial values
     rbInputPreali.setSelected(true);
     btnRaptor.setSize();
     btnOpenRaptorResult.setSize();
     btnUseRaptorResult.setSize();
     btnOpenStack.setSize();
     btnOpenStack.setAlignmentX(Box.CENTER_ALIGNMENT);
-    //raptor button
+    // raptor button
     btnRaptor.setContainer(this);
     btnRaptor.setDeferred3dmodButton(btnOpenRaptorResult);
   }
@@ -225,7 +227,7 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
       if (manager.getMetaData().getViewType() == ViewType.MONTAGE) {
         rbInputPreali.setSelected(true);
         rbInputRaw.setEnabled(false);
-        //pnlInput.setVisible(false);
+        // pnlInput.setVisible(false);
       }
     }
   }

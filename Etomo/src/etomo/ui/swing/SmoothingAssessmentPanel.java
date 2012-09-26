@@ -25,6 +25,7 @@ import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.type.PanelId;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
 
 /**
  * <p>Description: </p>
@@ -72,7 +73,7 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final LabeledTextField ltfLambdaForSmoothing = new LabeledTextField(
-      LAMBDA_FOR_SMOOTHING_LABEL + ": ");
+      FieldType.FLOATING_POINT_ARRAY, LAMBDA_FOR_SMOOTHING_LABEL + ": ");
   private final Run3dmodButton btn3dmod = Run3dmodButton.get3dmodInstance(
       "Open Assessment in 3dmod", this);
   private final ActionListener actionListener = new SmoothingAssessmentActionListener(
@@ -148,22 +149,22 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
   }
 
   private void createPanel() {
-    //initialize
+    // initialize
     btnFlattenWarp.setSize();
     btnFlattenWarp.setContainer(this);
     btnFlattenWarp.setDeferred3dmodButton(btn3dmod);
     btn3dmod.setSize();
     ltfLambdaForSmoothing
         .setText(FlattenWarpParam.LAMBDA_FOR_SMOOTHING_ASSESSMENT_DEFAULT);
-    //Local panels
+    // Local panels
     JPanel pnlButtons = new JPanel();
-    //root panel
+    // root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.setBorder(new EtchedBorder("Smoothing Assessment").getBorder());
     pnlRoot.add(ltfLambdaForSmoothing.getContainer());
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlRoot.add(pnlButtons);
-    //Buttons panel
+    // Buttons panel
     pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
     pnlButtons.add(btnFlattenWarp.getComponent());
     pnlButtons.add(Box.createRigidArea(FixedDim.x5_y0));

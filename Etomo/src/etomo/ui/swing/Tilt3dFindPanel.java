@@ -24,6 +24,7 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
 import etomo.util.InvalidParameterException;
 
 /**
@@ -108,9 +109,9 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
   private static final PanelId PANEL_ID = PanelId.TILT_3D_FIND;
 
   private final LabeledTextField ltfCenterToCenterThickness = new LabeledTextField(
-      CENTER_TO_CENTER_THICKNESS_LABEL + ": ");
+      FieldType.FLOATING_POINT, CENTER_TO_CENTER_THICKNESS_LABEL + ": ");
   private final LabeledTextField ltfAdditionalDiameters = new LabeledTextField(
-      ADDITION_UNBINNED_DIAMETERS_TO_ADD + ": ");
+      FieldType.INTEGER, ADDITION_UNBINNED_DIAMETERS_TO_ADD + ": ");
 
   private final Tilt3dFindParent parent;
   private final Component extraButton;

@@ -76,15 +76,16 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
   private final JPanel pnlRoot = new JPanel();
   private final ActionListener actionListener = new FindBeads3dPanelActionListener(this);
   private final SpacedPanel pnlBody = SpacedPanel.getInstance(true);
-  private final LabeledTextField ltfBeadSize = new LabeledTextField(BEAD_SIZE_LABEL
-      + " (pixels): ");
-  private final LabeledTextField ltfMinSpacing = new LabeledTextField("Minimum spacing: ");
+  private final LabeledTextField ltfBeadSize = new LabeledTextField(
+      FieldType.FLOATING_POINT, BEAD_SIZE_LABEL + " (pixels): ");
+  private final LabeledTextField ltfMinSpacing = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Minimum spacing: ");
   private final LabeledTextField ltfGuessNumBeads = new LabeledTextField(
-      "Estimated number of beads: ");
+      FieldType.INTEGER, "Estimated number of beads: ");
   private final LabeledTextField ltfMinRelativeStrength = new LabeledTextField(
-      "Minimum peak strength: ");
+      FieldType.FLOATING_POINT, "Minimum peak strength: ");
   private final LabeledTextField ltfThresholdForAveraging = new LabeledTextField(
-      "Threshold for averaging: ");
+      FieldType.FLOATING_POINT, "Threshold for averaging: ");
   private final ButtonGroup bgStorageThreshold = new ButtonGroup();
   private final RadioButton rbStorageThresholdSomeBelow = new RadioButton(
       "Store some points below threshold", StorageThresholdEnum.SOME_BELOW,
@@ -94,7 +95,7 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
       bgStorageThreshold);
   private final RadioTextField rtfStorageThreshold = RadioTextField.getInstance(
       FieldType.FLOATING_POINT, "Set threshold for storing: ", bgStorageThreshold);
-  private final LabeledTextField ltfMaxNumBeads = new LabeledTextField(
+  private final LabeledTextField ltfMaxNumBeads = new LabeledTextField(FieldType.INTEGER,
       "Max points to analyze: ");
   private final Run3dmodButton btn3dmodFindBeads3d = Run3dmodButton.get3dmodInstance(
       "View 3D Model on Tomogram", this);

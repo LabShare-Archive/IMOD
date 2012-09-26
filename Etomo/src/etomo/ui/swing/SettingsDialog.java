@@ -11,6 +11,7 @@ import etomo.EtomoDirector;
 import etomo.storage.Network;
 import etomo.type.AxisID;
 import etomo.type.UserConfiguration;
+import etomo.ui.FieldType;
 
 /**
  * @author rickg
@@ -26,11 +27,12 @@ public final class SettingsDialog extends JDialog {
   // Font selection panel
   private final FontFamilies fontFamilies = new FontFamilies();
   private final JList listFontFamily = new JList(fontFamilies.getFontFamilies());
-  private final LabeledTextField ltfFontSize = new LabeledTextField("Size: ");
+  private final LabeledTextField ltfFontSize = new LabeledTextField(FieldType.INTEGER,
+      "Size: ");
   private final LabeledTextField ltfTooltipsInitialDelay = new LabeledTextField(
-      "Tooltips initial delay: ");
+      FieldType.FLOATING_POINT, "Tooltips initial delay: ");
   private final LabeledTextField ltfTooltipsDismissDelay = new LabeledTextField(
-      "Tooltips dismiss delay: ");
+      FieldType.FLOATING_POINT, "Tooltips dismiss delay: ");
   private final CheckBox cbNativeLAF = new CheckBox("Native look & feel");
   private final CheckBox cbAdvancedDialogs = new CheckBox("Always use advanced dialogs");
   private final CheckBox cbAutoFit = new CheckBox("Auto-fit");
@@ -41,7 +43,8 @@ public final class SettingsDialog extends JDialog {
   private final CheckBox cbParallelProcessing = new CheckBox("Enable "
       + ParallelPanel.FIELD_LABEL);
   private final CheckBox cbGpuProcessing = new CheckBox("Enable graphics processing");
-  private final LabeledTextField ltfCpus = new LabeledTextField("# CPUs: ");
+  private final LabeledTextField ltfCpus = new LabeledTextField(FieldType.INTEGER,
+      "# CPUs: ");
   private final CheckBox cbSingleAxis = new CheckBox(SetupDialog.AXIS_TYPE_LABEL + ":  "
       + SetupDialog.SINGLE_AXIS_LABEL);
   private final CheckBox cbMontage = new CheckBox(SetupDialog.FRAME_TYPE_LABEL + ":  "
@@ -55,11 +58,11 @@ public final class SettingsDialog extends JDialog {
   private final CheckBox cbSwapYAndZ = new CheckBox(
       TrimvolPanel.REORIENTATION_GROUP_LABEL + "  " + TrimvolPanel.SWAP_YZ_LABEL);
   private final LabeledTextField ltfParallelTableSize = new LabeledTextField(
-      "Parallel table size: ");
+      FieldType.INTEGER, "Parallel table size: ");
   private final LabeledTextField ltfJoinTableSize = new LabeledTextField(
-      "Join tables size: ");
+      FieldType.INTEGER, "Join tables size: ");
   private final LabeledTextField ltfPeetTableSize = new LabeledTextField(
-      "PEET table size: ");
+      FieldType.INTEGER, "PEET table size: ");
 
   private final String propertyUserDir;
 

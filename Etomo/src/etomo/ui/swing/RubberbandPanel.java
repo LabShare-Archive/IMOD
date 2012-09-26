@@ -18,6 +18,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.MetaData;
 import etomo.type.ParallelMetaData;
+import etomo.ui.FieldType;
 
 /**
  * <p>Description: </p>
@@ -39,12 +40,18 @@ public final class RubberbandPanel {
 
   private final SpacedPanel pnlRubberband = SpacedPanel.getInstance();
   private final JPanel pnlRange = new JPanel();
-  private final LabeledTextField ltfXMin = new LabeledTextField("X min: ");
-  private final LabeledTextField ltfXMax = new LabeledTextField("X max: ");
-  private final LabeledTextField ltfYMin = new LabeledTextField("Y min: ");
-  private final LabeledTextField ltfYMax = new LabeledTextField("Y max: ");
-  private final LabeledTextField ltfZMin = new LabeledTextField("Z min: ");
-  private final LabeledTextField ltfZMax = new LabeledTextField("Z max: ");
+  private final LabeledTextField ltfXMin = new LabeledTextField(FieldType.INTEGER,
+      "X min: ");
+  private final LabeledTextField ltfXMax = new LabeledTextField(FieldType.INTEGER,
+      "X max: ");
+  private final LabeledTextField ltfYMin = new LabeledTextField(FieldType.INTEGER,
+      "Y min: ");
+  private final LabeledTextField ltfYMax = new LabeledTextField(FieldType.INTEGER,
+      "Y max: ");
+  private final LabeledTextField ltfZMin = new LabeledTextField(FieldType.INTEGER,
+      "Z min: ");
+  private final LabeledTextField ltfZMax = new LabeledTextField(FieldType.INTEGER,
+      "Z max: ");
   private final MultiLineButton btnRubberband;
   private final String imodKey;
   private final String xMinTooltip;
@@ -54,7 +61,7 @@ public final class RubberbandPanel {
   private final String zMinTooltip;
   private final String zMaxTooltip;
   private final Run3dmodButton btnImod;
-  private final RubberbandContainer container;//optional,
+  private final RubberbandContainer container;// optional,
   private final boolean placeButtons;
 
   private RubberbandPanel(BaseManager manager, RubberbandContainer container,

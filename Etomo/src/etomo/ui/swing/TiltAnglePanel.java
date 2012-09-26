@@ -9,6 +9,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
+import etomo.ui.FieldType;
 import etomo.ui.swing.TooltipFormatter;
 
 /**
@@ -87,8 +88,10 @@ final class TiltAnglePanel {
   private final JPanel pnlAngle = new JPanel();
   private final RadioButton rbSpecify = new RadioButton(
       "Specify the starting angle and step (degrees)");
-  private final LabeledTextField ltfMin = new LabeledTextField("Starting angle:");
-  private final LabeledTextField ltfStep = new LabeledTextField("Increment:");
+  private final LabeledTextField ltfMin = new LabeledTextField(FieldType.FLOATING_POINT,
+      "Starting angle:");
+  private final LabeledTextField ltfStep = new LabeledTextField(FieldType.FLOATING_POINT,
+      "Increment:");
   private final RadioButton rbFile = new RadioButton(EXISTING_RAWTILT_FILE);
 
   private final TiltAnglePanelExpert expert;
@@ -112,7 +115,7 @@ final class TiltAnglePanel {
     pnlSource.setAlignmentX(Component.CENTER_ALIGNMENT);
 
     //
-    //  Build button group
+    // Build button group
     //
     ButtonGroup bgSource = new ButtonGroup();
     bgSource.add(rbExtract.getAbstractButton());

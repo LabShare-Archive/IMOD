@@ -13,6 +13,7 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.FieldType;
 import etomo.util.Utilities;
 
 /**
@@ -212,6 +213,7 @@ final class LabeledTextField {
   private final JLabel label = new JLabel();
   private final JTextField textField = new JTextField();
   private final EtomoNumber.Type numericType;
+  private final FieldType fieldType;
 
   private boolean debug = false;
   private String checkpointValue = null;
@@ -233,8 +235,9 @@ final class LabeledTextField {
     return textField.getDocument() == document;
   }
 
-  private LabeledTextField(final String tfLabel, final EtomoNumber.Type numericType,
-      final int hgap) {
+  private LabeledTextField(final FieldType fieldType, final String tfLabel,
+      final EtomoNumber.Type numericType, final int hgap) {
+    this.fieldType = fieldType;
     this.numericType = numericType;
     // set label
     setLabel(tfLabel);
@@ -258,21 +261,25 @@ final class LabeledTextField {
     textField.setMaximumSize(maxSize);
   }
 
-  LabeledTextField(final String tfLabel) {
-    this(tfLabel, null, 0);
+  LabeledTextField(final FieldType fieldType, final String tfLabel) {
+    this(fieldType, tfLabel, null, 0);
   }
 
-  LabeledTextField(final String tfLabel, final int hgap) {
-    this(tfLabel, null, hgap);
+  LabeledTextField(final FieldType fieldType, final String tfLabel, final int hgap) {
+    this(fieldType, tfLabel, null, hgap);
   }
 
   static LabeledTextField getNumericInstance(final String tfLabel,
       final EtomoNumber.Type numericType) {
-    return new LabeledTextField(tfLabel, numericType, 0);
+    FieldType fieldType = FieldType.INTEGER;
+    if (numericType == EtomoNumber.Type.DOUBLE) {
+      fieldType = FieldType.FLOATING_POINT;
+    }
+    return new LabeledTextField(fieldType, tfLabel, numericType, 0);
   }
 
   static LabeledTextField getNumericInstance(final String tfLabel) {
-    return new LabeledTextField(tfLabel, EtomoNumber.Type.INTEGER, 0);
+    return getNumericInstance(tfLabel, EtomoNumber.Type.INTEGER);
   }
 
   private void setName(final String tfLabel) {
@@ -434,7 +441,7 @@ final class LabeledTextField {
   void setText(final int value) {
     textField.setText(String.valueOf(value));
   }
-  
+
   void setText(final long value) {
     textField.setText(String.valueOf(value));
   }

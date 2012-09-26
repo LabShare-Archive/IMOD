@@ -28,6 +28,7 @@ import etomo.type.EtomoVersion;
 import etomo.type.PanelHeaderState;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessingMethod;
+import etomo.ui.FieldType;
 import etomo.util.HashedArray;
 
 /**
@@ -61,9 +62,9 @@ public final class ParallelPanel implements Expandable, Storable {
   private final EtomoPanel tablePanel = new EtomoPanel();
   private final EtomoPanel computerTablePanel = new EtomoPanel();
   private final EtomoPanel queueTablePanel = new EtomoPanel();
-  private final LabeledTextField ltfCPUsSelected = new LabeledTextField(
+  private final LabeledTextField ltfCPUsSelected = new LabeledTextField(FieldType.INTEGER,
       CPUS_SELECTED_LABEL);
-  private final LabeledTextField ltfChunksFinished = new LabeledTextField(
+  private final LabeledTextField ltfChunksFinished = new LabeledTextField(FieldType.INTEGER,
       "Chunks finished: ");
   private final MultiLineButton btnResume = new MultiLineButton(RESUME_LABEL);
   private final MultiLineButton btnPause = new MultiLineButton("Pause");

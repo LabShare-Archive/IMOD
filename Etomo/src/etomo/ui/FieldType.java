@@ -27,6 +27,14 @@ public final class FieldType {
       CollectionType.ARRAY, 2);
   public static final FieldType FLOATING_POINT_PAIR = new FieldType(
       ValidationType.FLOATING_POINT, CollectionType.ARRAY, 2);
+  public static final FieldType INTEGER_TRIPLE = new FieldType(ValidationType.INTEGER,
+      CollectionType.ARRAY, 3);
+  public static final FieldType FLOATING_POINT_ARRAY = new FieldType(ValidationType.FLOATING_POINT,
+      CollectionType.ARRAY);
+  public static final FieldType INTEGER_ARRAY = new FieldType(ValidationType.INTEGER,
+      CollectionType.ARRAY);
+  public static final FieldType INTEGER_LIST = new FieldType(ValidationType.INTEGER,
+      CollectionType.LIST);
 
   public final ValidationType validationType;
   private final CollectionType collectionType;
@@ -39,6 +47,13 @@ public final class FieldType {
     this.validationType = validationType;
     collectionType = null;
     requiredSize = -1;
+  }
+
+  private FieldType(final ValidationType validationType,
+      final CollectionType collectionType) {
+    this.validationType = validationType;
+    this.collectionType = collectionType;
+    this.requiredSize = -1;
   }
 
   private FieldType(final ValidationType validationType,
