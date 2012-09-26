@@ -76,7 +76,7 @@ final class TiltalignPanel implements Expandable {
   private final JPanel pnlGeneralBody = new JPanel();
 
   private final LabeledTextField ltfResidualThreshold = new LabeledTextField(
-      "Threshold for residual report: ");
+      FieldType.FLOATING_POINT, "Threshold for residual report: ");
 
   private final RadioButton rbResidAllViews = new RadioButton("All views");
   private final RadioButton rbResidNeighboring = new RadioButton("Neighboring views");
@@ -91,20 +91,22 @@ final class TiltalignPanel implements Expandable {
   private final EtomoPanel pnlFiducialSurfaces = new EtomoPanel();
 
   private final LabeledTextField ltfExcludeList = new LabeledTextField(
-      "List of views to exclude: ");
+      FieldType.INTEGER_LIST, "List of views to exclude: ");
   private final LabeledTextField ltfSeparateViewGroups = new LabeledTextField(
-      "Separate view groups: ");
+      FieldType.INTEGER_LIST, "Separate view groups: ");
 
   private final EtomoPanel pnlVolumeParameters = new EtomoPanel();
   private final LabeledTextField ltfTiltAngleOffset = new LabeledTextField(
-      "Total tilt angle offset: ");
+      FieldType.FLOATING_POINT, "Total tilt angle offset: ");
   private final LabeledTextField ltfTiltAxisZShift = new LabeledTextField(
-      "Tilt axis z shift: ");
+      FieldType.FLOATING_POINT, "Tilt axis z shift: ");
 
   private final EtomoPanel pnlMinimizationParams = new EtomoPanel();
   private final JPanel pnlMetroFactor = new JPanel();
-  private final LabeledTextField ltfMetroFactor = new LabeledTextField("Metro factor: ");
-  private final LabeledTextField ltfCycleLimit = new LabeledTextField("Cycle limit: ");
+  private final LabeledTextField ltfMetroFactor = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Metro factor: ");
+  private final LabeledTextField ltfCycleLimit = new LabeledTextField(FieldType.INTEGER,
+      "Cycle limit: ");
 
   private final EtomoPanel pnlLocalParameters = new EtomoPanel();
   private final EtomoPanel pnlLocalParametersBody = new EtomoPanel();
@@ -116,9 +118,9 @@ final class TiltalignPanel implements Expandable {
   private final RadioTextField rtfNLocalPatches = RadioTextField.getInstance(
       FieldType.INTEGER_PAIR, "# of local patches (x,y): ", bgLocalPatches);
   private final LabeledTextField ltfMinLocalPatchSize = new LabeledTextField(
-      MIN_LOCAL_PATCH_SIZE_OVERLAP_ONLY_LABEL);
+      FieldType.FLOATING_POINT_PAIR, MIN_LOCAL_PATCH_SIZE_OVERLAP_ONLY_LABEL);
   private final LabeledTextField ltfMinLocalFiducials = new LabeledTextField(
-      "Min. # of fiducials (total, each surface): ");
+      FieldType.INTEGER_PAIR, "Min. # of fiducials (total, each surface): ");
   private final CheckBox cbFixXYZCoordinates = new CheckBox(
       "Use global X-Y-Z coordinates");
 
@@ -135,9 +137,9 @@ final class TiltalignPanel implements Expandable {
   private final EtomoPanel pnlTiltAngleSolution = new EtomoPanel();
 
   private final LabeledTextField ltfTiltAngleGroupSize = new LabeledTextField(
-      "Group size: ");
+      FieldType.INTEGER, "Group size: ");
   private final LabeledTextField ltfTiltAngleNonDefaultGroups = new LabeledTextField(
-      "Non-default grouping: ");
+      FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
 
   // Magnfication pane
   private final RadioButton rbMagnificationFixed = new RadioButton(
@@ -149,11 +151,11 @@ final class TiltalignPanel implements Expandable {
   private final EtomoPanel pnlMagnificationSolution = new EtomoPanel();
 
   private final LabeledTextField ltfMagnificationReferenceView = new LabeledTextField(
-      "Reference view: ");
+      FieldType.INTEGER, "Reference view: ");
   private final LabeledTextField ltfMagnificationGroupSize = new LabeledTextField(
-      "Group size: ");
+      FieldType.INTEGER, "Group size: ");
   private final LabeledTextField ltfMagnificationNonDefaultGroups = new LabeledTextField(
-      "Non-default grouping: ");
+      FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
 
   // GlobalDistortion pane
   private final EtomoPanel pnlDistortionSolution = new EtomoPanel();
@@ -163,14 +165,14 @@ final class TiltalignPanel implements Expandable {
   private final ButtonGroup bgDistortionSolution = new ButtonGroup();
 
   private final LabeledTextField ltfXstretchGroupSize = new LabeledTextField(
-      "X stretch group size: ");
+      FieldType.INTEGER, "X stretch group size: ");
   private final LabeledTextField ltfXstretchNonDefaultGroups = new LabeledTextField(
-      "X stretch non-default grouping: ");
+      FieldType.INTEGER_TRIPLE, "X stretch non-default grouping: ");
 
   private final LabeledTextField ltfSkewGroupSize = new LabeledTextField(
-      "Skew group size: ");
+      FieldType.INTEGER, "Skew group size: ");
   private final LabeledTextField ltfSkewNonDefaultGroups = new LabeledTextField(
-      "Skew non-default grouping: ");
+      FieldType.INTEGER_TRIPLE, "Skew non-default grouping: ");
 
   // Local variables pane
   private final EtomoPanel pnlLocalSolution = new EtomoPanel();
@@ -181,27 +183,27 @@ final class TiltalignPanel implements Expandable {
   private final CheckBox cbLocalRotation = new CheckBox("Enable");
 
   private final LabeledTextField ltfLocalRotationGroupSize = new LabeledTextField(
-      "Group size: ");
+      FieldType.INTEGER, "Group size: ");
   private final LabeledTextField ltfLocalRotationNonDefaultGroups = new LabeledTextField(
-      "Non-default grouping: ");
+      FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
 
   // Local tilt angle pane
   private final EtomoPanel pnlLocalTiltAngleSolution = new EtomoPanel();
   private final CheckBox cbLocalTiltAngle = new CheckBox("Enable");
 
   private final LabeledTextField ltfLocalTiltAngleGroupSize = new LabeledTextField(
-      "Group size: ");
+      FieldType.INTEGER, "Group size: ");
   private final LabeledTextField ltfLocalTiltAngleNonDefaultGroups = new LabeledTextField(
-      "Non-default grouping: ");
+      FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
 
   // Local magnfication pane
   private final EtomoPanel pnlLocalMagnificationSolution = new EtomoPanel();
   private final CheckBox cbLocalMagnification = new CheckBox("Enable");
 
   private final LabeledTextField ltfLocalMagnificationGroupSize = new LabeledTextField(
-      "Group size: ");
+      FieldType.INTEGER, "Group size: ");
   private final LabeledTextField ltfLocalMagnificationNonDefaultGroups = new LabeledTextField(
-      "Non-default grouping: ");
+      FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
 
   // Local distortion pane
   private final EtomoPanel pnlLocalDistortionSolution = new EtomoPanel();
@@ -212,14 +214,14 @@ final class TiltalignPanel implements Expandable {
   private final ButtonGroup bgLocalDistortionSolution = new ButtonGroup();
 
   private final LabeledTextField ltfLocalXstretchGroupSize = new LabeledTextField(
-      "X stretch group size: ");
+      FieldType.INTEGER, "X stretch group size: ");
   private final LabeledTextField ltfLocalXstretchNonDefaultGroups = new LabeledTextField(
-      "X stretch non-default grouping: ");
+      FieldType.INTEGER_TRIPLE, "X stretch non-default grouping: ");
 
   private final LabeledTextField ltfLocalSkewGroupSize = new LabeledTextField(
-      "Skew group size: ");
+      FieldType.INTEGER, "Skew group size: ");
   private final LabeledTextField ltfLocalSkewNonDefaultGroups = new LabeledTextField(
-      "Skew non-default grouping: ");
+      FieldType.INTEGER_TRIPLE, "Skew non-default grouping: ");
 
   // Rotation pane
   private final RadioButton rbRotationNone = new RadioButton("No rotation");
@@ -229,11 +231,11 @@ final class TiltalignPanel implements Expandable {
   private final ButtonGroup bgRotationSolution = new ButtonGroup();
   private final EtomoPanel pnlRotationSolution = new EtomoPanel();
   private final LabeledTextField ltfRotationAngle = new LabeledTextField(
-      "Rotation angle: ");
+      FieldType.FLOATING_POINT, "Rotation angle: ");
   private final LabeledTextField ltfRotationGroupSize = new LabeledTextField(
-      "Group size: ");
+      FieldType.INTEGER, "Group size: ");
   private final LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
-      "Non-default grouping: ");
+      FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
   private final CheckBox cbProjectionStretch = new CheckBox(
       "Solve for single stretch during projection");
   private final ApplicationManager appMgr;

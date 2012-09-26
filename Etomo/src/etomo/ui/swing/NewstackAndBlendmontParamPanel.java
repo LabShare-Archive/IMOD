@@ -26,6 +26,7 @@ import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.MetaData;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
 import etomo.util.InvalidParameterException;
 
 /**
@@ -102,9 +103,9 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
       new SpinnerNumberModel(1, 1, 8, 1), 1);
 
   private final LabeledTextField ltfSizeToOutputInXandY = new LabeledTextField(
-      SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + " (X,Y - unbinned): ");
+      FieldType.INTEGER_PAIR, SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + " (X,Y - unbinned): ");
   private final LabeledTextField ltfRotation = new LabeledTextField(
-      "Tilt axis rotation: ");
+      FieldType.FLOATING_POINT, "Tilt axis rotation: ");
   private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
   private final CheckBox cbUseLinearInterpolation = new CheckBox(
       "Use linear interpolation");
@@ -186,11 +187,11 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     blendmontParam.setBinByFactor(getBinning());
     blendmontParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
     try {
-     if (! blendmontParam.convertToStartingAndEndingXandY(ltfSizeToOutputInXandY.getText(),
-          manager.getMetaData().getImageRotation(axisID).getDouble(),
-          ltfSizeToOutputInXandY.getLabel())) {
-       return false;
-     }
+      if (!blendmontParam.convertToStartingAndEndingXandY(
+          ltfSizeToOutputInXandY.getText(), manager.getMetaData()
+              .getImageRotation(axisID).getDouble(), ltfSizeToOutputInXandY.getLabel())) {
+        return false;
+      }
     }
     catch (FortranInputSyntaxException e) {
       e.printStackTrace();
@@ -215,8 +216,8 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
       newstParam.setBinByFactor(Integer.MIN_VALUE);
     }
     newstParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
-   return newstParam.setSizeToOutputInXandY(ltfSizeToOutputInXandY.getText(), getBinning(),
-        manager.getMetaData().getImageRotation(axisID).getDouble(),
+    return newstParam.setSizeToOutputInXandY(ltfSizeToOutputInXandY.getText(),
+        getBinning(), manager.getMetaData().getImageRotation(axisID).getDouble(),
         ltfSizeToOutputInXandY.getLabel());
   }
 

@@ -28,6 +28,7 @@ import etomo.type.EtomoAutodoc;
 import etomo.type.FiducialMatch;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
 
 /**
  * <p>Description: </p>
@@ -230,11 +231,11 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
   private final Run3dmodButton btnImodMatchModels = Run3dmodButton.get3dmodInstance(
       "Create Matching Models in 3dmod", this);
   private final LabeledTextField ltfFiducialMatchListA = new LabeledTextField(
-      "Corresponding fiducial list A: ");
+      FieldType.INTEGER_LIST, "Corresponding fiducial list A: ");
   private final LabeledTextField ltfFiducialMatchListB = new LabeledTextField(
-      "Corresponding fiducial list B: ");
+      FieldType.INTEGER_LIST, "Corresponding fiducial list B: ");
   private final LabeledTextField ltfUseList = new LabeledTextField(
-      "Starting points to use from A: ");
+      FieldType.INTEGER_LIST, "Starting points to use from A: ");
   private final CheckBox cbUseCorrespondingPoints = new CheckBox(
       "Specify corresponding points instead of using coordinate file");
 
@@ -247,7 +248,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
   private boolean binningWarning = false;
   private boolean initialPanel = true;
 
-  //initial tab only
+  // initial tab only
   private Run3dmodButton btnRestart = null;
   private LabeledTextField ltfResidulThreshold = null;
   private LabeledTextField ltfCenterShiftLimit = null;
@@ -260,15 +261,17 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     parentTitle = title;
     applicationManager = appMgr;
     this.headerGroup = headerGroup;
-    //  Create the fiducial relationship panel
+    // Create the fiducial relationship panel
     pnlFiducialRadio.setLayout(new BoxLayout(pnlFiducialRadio, BoxLayout.Y_AXIS));
-    //create inital button and fields
+    // create inital button and fields
     if (title.equals(TomogramCombinationDialog.lblInitial)) {
       btnRestart = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
           .getRestartCombine();
       btnRestart.setContainer(this);
-      ltfResidulThreshold = new LabeledTextField("Limit on maximum residual: ");
-      ltfCenterShiftLimit = new LabeledTextField("Limit on center shift: ");
+      ltfResidulThreshold = new LabeledTextField(FieldType.FLOATING_POINT,
+          "Limit on maximum residual: ");
+      ltfCenterShiftLimit = new LabeledTextField(FieldType.FLOATING_POINT,
+          "Limit on center shift: ");
     }
     else {
       initialPanel = false;
@@ -283,7 +286,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     bgFiducialParams.add(rbUseModel.getAbstractButton());
     bgFiducialParams.add(rbUseModelOnly.getAbstractButton());
     JPanel opnlFiducialRadio = new JPanel();
-    opnlFiducialRadio.setLayout(new BoxLayout(opnlFiducialRadio,BoxLayout.X_AXIS));
+    opnlFiducialRadio.setLayout(new BoxLayout(opnlFiducialRadio, BoxLayout.X_AXIS));
     opnlFiducialRadio.setAlignmentX(Component.CENTER_ALIGNMENT);
     opnlFiducialRadio.add(pnlFiducialRadio);
     opnlFiducialRadio.add(Box.createHorizontalGlue());
@@ -321,7 +324,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       UIUtilities.addWithYSpace(pnlBody, ltfCenterShiftLimit.getContainer());
       btnRestart.setSize();
       JPanel pnlRestart = new JPanel();
-      pnlRestart.setLayout(new BoxLayout(pnlRestart,BoxLayout.X_AXIS));
+      pnlRestart.setLayout(new BoxLayout(pnlRestart, BoxLayout.X_AXIS));
       pnlRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
       pnlRestart.add(Box.createHorizontalGlue());
       pnlRestart.add(btnRestart.getComponent());
@@ -373,7 +376,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
   }
 
   private void addListeners() {
-    //  Bind the ui elements to their listeners
+    // Bind the ui elements to their listeners
     SolvematchPanelActionListener actionListener = new SolvematchPanelActionListener(this);
     if (initialPanel) {
       btnRestart.addActionListener(actionListener);
@@ -394,7 +397,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
   }
 
   // FIXME there are current two ways to get the parameters into and out of the
-  // panel.  Does this need to be the case?  It seem redundant.
+  // panel. Does this need to be the case? It seem redundant.
   void setParameters(ConstCombineParams combineParams) {
     if (combineParams.getFiducialMatch() == FiducialMatch.BOTH_SIDES) {
       rbBothSides.setSelected(true);
@@ -505,11 +508,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     ltfUseList.setText(solvematchParam.getUsePoints().toString());
   }
 
-  /*
-   void visibleResidual(boolean state) {
-   ltfResidulThreshold.setVisible(state);
-   }
-   */
+  /*void visibleResidual(boolean state) { ltfResidulThreshold.setVisible(state); } */
   /**
    * Get the parameters from the ui and filling in the appropriate fields in the
    * SolvematchParam object 
@@ -614,7 +613,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
         run3dmodMenuOptions);
   }
 
-  //  Action functions for setup panel buttons
+  // Action functions for setup panel buttons
   private void buttonAction(final String command,
       Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
@@ -622,7 +621,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       updateUseCorrespondingPoints();
     }
     else {
-      //  Synchronize this panel with the others
+      // Synchronize this panel with the others
       tomogramCombinationDialog.synchronize(parentTitle, true);
       if (command.equals(cbBinBy2.getActionCommand())) {
         if (!binningWarning && cbBinBy2.isSelected()) {

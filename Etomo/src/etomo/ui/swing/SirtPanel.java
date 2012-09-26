@@ -41,6 +41,7 @@ import etomo.type.PanelId;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
+import etomo.ui.FieldType;
 
 /**
 * <p>Description: </p>
@@ -89,10 +90,10 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
   private final CheckBox cbSubarea = new CheckBox("Reconstruct subarea");
   private final LabeledTextField ltfYOffsetOfSubarea = LabeledTextField
       .getNumericInstance(" Offset in Y: ");
-  private final LabeledTextField ltfSubareaSize = new LabeledTextField("Size in X and Y"
-      + ": ");
+  private final LabeledTextField ltfSubareaSize = new LabeledTextField(
+      FieldType.INTEGER_PAIR, "Size in X and Y" + ": ");
   private final LabeledTextField ltfLeaveIterations = new LabeledTextField(
-      "Iteration #'s to retain: ");
+      FieldType.INTEGER_LIST, "Iteration #'s to retain: ");
   private final CheckBox cbScaleToInteger = new CheckBox(
       "Scale retained volumes to integers");
   private final ActionListener listener = new SirtActionListener(this);
@@ -101,7 +102,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
   private final CheckBox cbCleanUpPastStart = new CheckBox(
       "Delete existing reconstructions after starting point");
   private final LabeledTextField ltfFlatFilterFraction = new LabeledTextField(
-      "Flat filter fraction: ");
+      FieldType.FLOATING_POINT, "Flat filter fraction: ");
   private final SpacedPanel pnlSirtsetupParamsBody = SpacedPanel.getInstance(true);
   private final ButtonGroup bgStartingIteration = new ButtonGroup();
   private final RadioButton rbStartFromZero = new RadioButton("Start from beginning",
@@ -212,7 +213,8 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     pnlScaleToInteger.add(cbScaleToInteger);
     pnlScaleToInteger.add(Box.createHorizontalGlue());
     // SkipVertSliceOutput panel
-    pnlSkipVertSliceOutput.setLayout(new BoxLayout(pnlSkipVertSliceOutput, BoxLayout.X_AXIS));
+    pnlSkipVertSliceOutput.setLayout(new BoxLayout(pnlSkipVertSliceOutput,
+        BoxLayout.X_AXIS));
     pnlSkipVertSliceOutput.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlSkipVertSliceOutput.add(cbSkipVertSliceOutput);
     pnlSkipVertSliceOutput.add(Box.createHorizontalGlue());
@@ -688,7 +690,8 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     cmbResumeFromIteration.setToolTipText(tooltip);
     btnSirt
         .setToolTipText("Run sirtsetup, and then run the resulting .com files with processchunks.");
-    btnUseSirt.setToolTipText("Use a SIRT result as the tomogram (change the extension to .rec).");
+    btnUseSirt
+        .setToolTipText("Use a SIRT result as the tomogram (change the extension to .rec).");
 
   }
 

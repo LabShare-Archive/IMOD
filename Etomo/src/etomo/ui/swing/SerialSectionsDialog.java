@@ -98,10 +98,13 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       "Open Aligned Stack", this);
   private CheckBoxSpinner cbsReferenceSection = new CheckBoxSpinner(
       "Reference section for alignment: ");
-  private LabeledTextField ltfSizeX = new LabeledTextField(SIZE_LABEL + "X: ");
-  private LabeledTextField ltfSizeY = new LabeledTextField("Y: ");
-  private LabeledTextField ltfShiftX = new LabeledTextField(SHIFT_LABEL + "X: ");
-  private LabeledTextField ltfShiftY = new LabeledTextField("Y: ");
+  private LabeledTextField ltfSizeX = new LabeledTextField(FieldType.INTEGER, SIZE_LABEL
+      + "X: ");
+  private LabeledTextField ltfSizeY = new LabeledTextField(FieldType.INTEGER, "Y: ");
+  private LabeledTextField ltfShiftX = new LabeledTextField(FieldType.FLOATING_POINT,
+      SHIFT_LABEL + "X: ");
+  private LabeledTextField ltfShiftY = new LabeledTextField(FieldType.FLOATING_POINT,
+      "Y: ");
   private Spinner spBinByFactor = Spinner.getLabeledInstance("Binning: ", 1, 1, 8);
   private CheckBox cbFillWithZero = new CheckBox("Fill empty areas with 0");
   private CheckTextField ctfRobustFitCriterion = CheckTextField.getInstance(

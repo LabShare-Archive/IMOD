@@ -18,6 +18,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.EtomoAutodoc;
 import etomo.type.PanelId;
+import etomo.ui.FieldType;
 
 /**
 * <p>Description: </p>
@@ -46,8 +47,9 @@ final class RadialPanel {
 
   private final JPanel pnlRoot = new JPanel();
   private final LabeledTextField ltfRadialMax = new LabeledTextField(
-      "Radial filter cutoff: ");
-  private final LabeledTextField ltfRadialFallOff = new LabeledTextField(" Falloff: ");
+      FieldType.FLOATING_POINT, "Radial filter cutoff: ");
+  private final LabeledTextField ltfRadialFallOff = new LabeledTextField(
+      FieldType.FLOATING_POINT, " Falloff: ");
 
   final PanelId panelId;
   final BaseManager manager;

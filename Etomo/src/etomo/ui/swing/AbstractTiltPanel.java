@@ -143,7 +143,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   private final CheckTextField ctfLog = CheckTextField.getNumericInstance(
       FieldType.FLOATING_POINT, "Take logarithm of densities with offset: ",
       EtomoNumber.Type.DOUBLE);
-  private final LabeledTextField ltfTomoWidth = new LabeledTextField(
+  private final LabeledTextField ltfTomoWidth = new LabeledTextField(FieldType.INTEGER,
       "Tomogram width in X: ");
   final LabeledTextField ltfTomoThickness = LabeledTextField.getNumericInstance(
       "Tomogram thickness in Z: ", EtomoNumber.Type.INTEGER);
@@ -152,7 +152,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   private final LabeledTextField ltfTiltAngleOffset = LabeledTextField
       .getNumericInstance("Tilt angle offset: ", EtomoNumber.Type.DOUBLE);
   private final LabeledTextField ltfExtraExcludeList = new LabeledTextField(
-      "Extra views to exclude: ");
+      FieldType.INTEGER_LIST, "Extra views to exclude: ");
   private final LabeledTextField ltfLogDensityScaleFactor = LabeledTextField
       .getNumericInstance("Logarithm density scaling factor: ", EtomoNumber.Type.DOUBLE);
   private final LabeledTextField ltfLogDensityScaleOffset = LabeledTextField
@@ -163,12 +163,14 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       .getNumericInstance(" Offset: ", EtomoNumber.Type.DOUBLE);
   final LabeledTextField ltfZShift = LabeledTextField.getNumericInstance(" Z shift: ",
       EtomoNumber.Type.DOUBLE);
-  private final LabeledTextField ltfXShift = new LabeledTextField("X shift: ");
+  private final LabeledTextField ltfXShift = new LabeledTextField(
+      FieldType.FLOATING_POINT, "X shift: ");
   private final CheckBox cbUseLocalAlignment = new CheckBox("Use local alignments");
   private final CheckBox cbUseZFactors = new CheckBox("Use Z factors");
-  private final LabeledTextField ltfTomoHeight = new LabeledTextField(
+  private final LabeledTextField ltfTomoHeight = new LabeledTextField(FieldType.INTEGER,
       "Tomogram height in Y: ");
-  private final LabeledTextField ltfYShift = new LabeledTextField(" Y shift: ");
+  private final LabeledTextField ltfYShift = new LabeledTextField(FieldType.INTEGER,
+      " Y shift: ");
   private final RadialPanel radialPanel;
   /**
    * cbParallelProcess: Call mediator.msgChangedMethod when

@@ -25,6 +25,7 @@ import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.InvalidEtomoNumberException;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
 
 /**
  * <p>Description: </p>
@@ -219,66 +220,67 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
   private final Run3dmodButton btnFixModel;
 
   private final LabeledTextField ltfViewSkipList = new LabeledTextField(
-      VIEW_SKIP_LIST_LABEL + ": ");
+      FieldType.INTEGER_LIST, VIEW_SKIP_LIST_LABEL + ": ");
   private final LabeledTextField ltfAdditionalViewSets = new LabeledTextField(
-      "Separate view groups: ");
+      FieldType.INTEGER_LIST, "Separate view groups: ");
   private final LabeledTextField ltfTiltAngleGroupSize = new LabeledTextField(
-      "Tilt angle group size: ");
+      FieldType.INTEGER, "Tilt angle group size: ");
   private final LabeledTextField ltfTiltAngleGroups = new LabeledTextField(
-      "Non-default tilt angle groups: ");
+      FieldType.INTEGER_TRIPLE, "Non-default tilt angle groups: ");
   private final LabeledTextField ltfMagnificationGroupSize = new LabeledTextField(
-      "Magnification group size: ");
+      FieldType.INTEGER, "Magnification group size: ");
   private final LabeledTextField ltfMagnificationGroups = new LabeledTextField(
-      "Non-default magnification groups: ");
-  private final LabeledTextField ltfNMinViews = new LabeledTextField(
+      FieldType.INTEGER_TRIPLE, "Non-default magnification groups: ");
+  private final LabeledTextField ltfNMinViews = new LabeledTextField(FieldType.INTEGER,
       "Minimum # of views for tilt alignment: ");
   private final LabeledTextField ltfBeadDiameter = new LabeledTextField(
-      "Unbinned bead diameter: ");
+      FieldType.FLOATING_POINT, "Unbinned bead diameter: ");
   private final CheckBox cbLightBeads = new CheckBox(LIGHT_BEADS_LABEL);
   CheckBox cbFillGaps = new CheckBox("Fill seed model gaps");
-  private final LabeledTextField ltfMaxGap = new LabeledTextField("Maximum gap size: ");
+  private final LabeledTextField ltfMaxGap = new LabeledTextField(FieldType.INTEGER,
+      "Maximum gap size: ");
   private final LabeledTextField ltfMinTiltRangeToFindAxis = new LabeledTextField(
-      "Minimum tilt range for finding axis: ");
+      FieldType.FLOATING_POINT, "Minimum tilt range for finding axis: ");
   private final LabeledTextField ltfMinTiltRangeToFindAngle = new LabeledTextField(
-      "Minimum tilt range for finding angles: ");
+      FieldType.FLOATING_POINT, "Minimum tilt range for finding angles: ");
   private final LabeledTextField ltfSearchBoxPixels = new LabeledTextField(
-      "Search box size (pixels): ");
+      FieldType.INTEGER_PAIR, "Search box size (pixels): ");
   private final LabeledTextField ltfMaxFiducialsAvg = new LabeledTextField(
-      "Maximum # of views for fiducial avg.: ");
+      FieldType.INTEGER, "Maximum # of views for fiducial avg.: ");
   private final LabeledTextField ltfFiducialExtrapolationParams = new LabeledTextField(
-      "Fiducial extrapolation limits: ");
+      FieldType.INTEGER_PAIR, "Fiducial extrapolation limits: ");
   private final LabeledTextField ltfRescueAttemptParams = new LabeledTextField(
-      "Rescue attempt criteria: ");
+      FieldType.FLOATING_POINT_PAIR, "Rescue attempt criteria: ");
   private final LabeledTextField ltfMinRescueDistance = new LabeledTextField(
-      "Distance criterion for rescue (pixels): ");
+      FieldType.FLOATING_POINT, "Distance criterion for rescue (pixels): ");
   private final LabeledTextField ltfRescueRelaxtionParams = new LabeledTextField(
-      "Rescue relaxation factors: ");
+      FieldType.FLOATING_POINT_PAIR, "Rescue relaxation factors: ");
   private final LabeledTextField ltfResidualDistanceLimit = new LabeledTextField(
-      "First pass residual limit for deletion: ");
+      FieldType.FLOATING_POINT, "First pass residual limit for deletion: ");
   private final LabeledTextField ltfMeanResidChangeLimits = new LabeledTextField(
-      "Residual change limits: ");
+      FieldType.INTEGER_PAIR, "Residual change limits: ");
   private final LabeledTextField ltfDeletionParams = new LabeledTextField(
-      "Deletion residual parameters: ");
+      FieldType.FLOATING_POINT_PAIR, "Deletion residual parameters: ");
   private final LabeledTextField ltfDensityRelaxationPostFit = new LabeledTextField(
-      "Second pass density relaxation: ");
+      FieldType.FLOATING_POINT, "Second pass density relaxation: ");
   private final LabeledTextField ltfMaxRescueDistance = new LabeledTextField(
-      "Second pass maximum rescue distance: ");
+      FieldType.FLOATING_POINT, "Second pass maximum rescue distance: ");
 
   private final CheckBox cbLocalAreaTracking = new CheckBox("Local tracking");
   private final LabeledTextField ltfLocalAreaTargetSize = new LabeledTextField(
-      "Local area size: ");
+      FieldType.INTEGER, "Local area size: ");
   private final LabeledTextField ltfMinBeadsInArea = new LabeledTextField(
-      "Minimum beads in area: ");
+      FieldType.INTEGER, "Minimum beads in area: ");
   private final LabeledTextField ltfMinOverlapBeads = new LabeledTextField(
-      "Minimum beads overlapping: ");
+      FieldType.INTEGER, "Minimum beads overlapping: ");
   private final LabeledTextField ltfMaxViewsInAlign = new LabeledTextField(
-      "Max. # views to include in align: ");
+      FieldType.INTEGER, "Max. # views to include in align: ");
   private final LabeledTextField ltfRoundsOfTracking = new LabeledTextField(
-      "Rounds of tracking: ");
+      FieldType.INTEGER, "Rounds of tracking: ");
   private final CheckBox cbSobelFilterCentering = new CheckBox(
       "Refine center with Sobel filter");
   private final LabeledTextField ltfKernelSigmaForSobel = new LabeledTextField(
-      "Sigma for kernel filter: ");
+      FieldType.FLOATING_POINT, "Sigma for kernel filter: ");
 
   private final JPanel pnlCheckbox = new JPanel();
   private final JPanel pnlLightBeads = new JPanel();

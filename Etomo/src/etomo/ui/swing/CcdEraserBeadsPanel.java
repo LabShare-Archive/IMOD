@@ -28,6 +28,7 @@ import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
 import etomo.util.DatasetFiles;
 
 /**
@@ -90,7 +91,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
       this);
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final LabeledTextField ltfFiducialDiameter = new LabeledTextField(
-      "Diameter to erase (pixels): ");
+      FieldType.FLOATING_POINT, "Diameter to erase (pixels): ");
   private final CheckBoxSpinner cbspExpandCircleIterations = new CheckBoxSpinner(
       "Iterations to grow circular areas:", 2, 1, 5);
   private final ButtonGroup bgPolynomialOrder = new ButtonGroup();
@@ -135,7 +136,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
 
   void initialize() {
     ltfFiducialDiameter.setText(manager.calcBinnedBeadDiameterPixels(axisID,
-        FileType.ALIGNED_STACK,1));
+        FileType.ALIGNED_STACK, 1));
   }
 
   private void createPanel() {

@@ -33,6 +33,7 @@ import etomo.type.ProcessingMethod;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
+import etomo.ui.FieldType;
 import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -489,19 +490,23 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   private JPanel pnlPatchRegion = new JPanel();
   private final EtomoPanel pnlVolcombineControls = new EtomoPanel();
   private final JPanel pnlVolcombineControlsBody = new JPanel();
-  private LabeledTextField ltfXMin = new LabeledTextField("X axis min: ");
-  private LabeledTextField ltfXMax = new LabeledTextField("X axis max: ");
-  private LabeledTextField ltfYMin = new LabeledTextField("Y axis min: ");
-  private LabeledTextField ltfYMax = new LabeledTextField("Y axis max: ");
-  private LabeledTextField ltfZMin = new LabeledTextField(
+  private LabeledTextField ltfXMin = new LabeledTextField(FieldType.INTEGER,
+      "X axis min: ");
+  private LabeledTextField ltfXMax = new LabeledTextField(FieldType.INTEGER,
+      "X axis max: ");
+  private LabeledTextField ltfYMin = new LabeledTextField(FieldType.INTEGER,
+      "Y axis min: ");
+  private LabeledTextField ltfYMax = new LabeledTextField(FieldType.INTEGER,
+      "Y axis max: ");
+  private LabeledTextField ltfZMin = new LabeledTextField(FieldType.INTEGER,
       ConstCombineParams.PATCH_Z_MIN_LABEL + ": ");
-  private LabeledTextField ltfZMax = new LabeledTextField(
+  private LabeledTextField ltfZMax = new LabeledTextField(FieldType.INTEGER,
       ConstCombineParams.PATCH_Z_MAX_LABEL + ": ");
   private int maxZMax = 0;
 
   private EtomoPanel pnlTempDirectory = new EtomoPanel();
   private JPanel pnlTempDirectoryBody = new JPanel();
-  private LabeledTextField ltfTempDirectory = new LabeledTextField(
+  private LabeledTextField ltfTempDirectory = new LabeledTextField(FieldType.STRING,
       "Temporary directory: ");
   private CheckBox cbManualCleanup = new CheckBox("Manual cleanup");
 
