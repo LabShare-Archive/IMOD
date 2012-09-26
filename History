@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-9/21/12: ETomo:  rearranged the file, fixed the crash that happened when the
+9/25/12: ETomo:  rearranged the file, fixed the crash that happened when the
 wrong file type was passed to eTomo, and other miscellaneous changes.
 (Bug# 1643).
 
