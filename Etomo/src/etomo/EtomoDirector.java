@@ -298,7 +298,7 @@ public class EtomoDirector {
     UIHarness.INSTANCE.setMRUFileLabels(userConfig.getMRUFileList());
     UIHarness.INSTANCE.pack(manager);
     if (manager == null) {
-      UIHarness.INSTANCE.openMessageDialog(null, "Invalid dataset file",
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null, "Invalid dataset file",
           "Unable to Open Dataset");
     }
     UIHarness.INSTANCE.setVisible(manager, true);
