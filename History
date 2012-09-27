@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/26/12: Enabled the GPU check box in the Setup Tomogram dialog when the local
+host has a GPU available (eTomo).(Bug# 1642)
+
 9/25/12: ETomo: fixed null pointer exceptions.(Bug# 1645)
 
 9/25/12: ETomo:  rearranged the file, fixed the crash that happened when the
