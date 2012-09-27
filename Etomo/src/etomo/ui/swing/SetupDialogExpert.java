@@ -384,7 +384,7 @@ public final class SetupDialogExpert {
     }
     return DatasetTool.validateViewType(
         dialog.isSingleViewSelected() ? ViewType.SINGLE_VIEW : ViewType.MONTAGE,
-        manager.getPropertyUserDir(), getStackFileName(), manager,null, AxisID.ONLY);
+        manager.getPropertyUserDir(), getStackFileName(), manager, null, AxisID.ONLY);
   }
 
   public MetaData getMetaData() {
@@ -484,8 +484,10 @@ public final class SetupDialogExpert {
     else if (!parallelProcessingEnabled) {
       dialog.setParallelProcessEnabled(false);
     }
-    boolean gpuProcessingEnabled = Network.isNonLocalOnlyGpuProcessingEnabled(manager,
-        AxisID.ONLY, manager.getPropertyUserDir());
+    boolean gpuProcessingEnabled = Network.isNonLocalHostGpuProcessingEnabled(manager,
+        AxisID.ONLY, manager.getPropertyUserDir())
+        || Network.isLocalHostGpuProcessingEnabled(manager, AxisID.ONLY,
+            manager.getPropertyUserDir());
     dialog.setGpuProcessingEnabled(gpuProcessingEnabled);
     dialog.setGpuProcessing(gpuProcessingEnabled && userConfig.getGpuProcessingDefault());
     dialog.setBackupDirectory(metaData.getBackupDirectory());
