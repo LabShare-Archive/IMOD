@@ -8,6 +8,7 @@ import etomo.comscript.TrimvolParam;
 import etomo.process.ImodProcess;
 import etomo.type.ConstMetaData;
 import etomo.type.MetaData;
+import etomo.ui.FieldType;
 
 /**
  * <p>Description: </p>
@@ -37,12 +38,18 @@ final class VolumeRangePanel {
   public static final String rcsid = "$Id$";
 
   private final EtomoPanel pnlRoot = new EtomoPanel();
-  private final LabeledTextField ltfXMin = new LabeledTextField("X min: ");
-  private final LabeledTextField ltfXMax = new LabeledTextField("X max: ");
-  private final LabeledTextField ltfYMin = new LabeledTextField("Y min: ");
-  private final LabeledTextField ltfYMax = new LabeledTextField("Y max: ");
-  private final LabeledTextField ltfZMin = new LabeledTextField("Z min: ");
-  private final LabeledTextField ltfZMax = new LabeledTextField("Z max: ");
+  private final LabeledTextField ltfXMin = new LabeledTextField(FieldType.INTEGER,
+      "X min: ");
+  private final LabeledTextField ltfXMax = new LabeledTextField(FieldType.INTEGER,
+      "X max: ");
+  private final LabeledTextField ltfYMin = new LabeledTextField(FieldType.INTEGER,
+      "Y min: ");
+  private final LabeledTextField ltfYMax = new LabeledTextField(FieldType.INTEGER,
+      "Y max: ");
+  private final LabeledTextField ltfZMin = new LabeledTextField(FieldType.INTEGER,
+      "Z min: ");
+  private final LabeledTextField ltfZMax = new LabeledTextField(FieldType.INTEGER,
+      "Z max: ");
 
   private VolumeRangePanel() {
   }
@@ -55,7 +62,7 @@ final class VolumeRangePanel {
   }
 
   private void createPanel() {
-    //Root panel
+    // Root panel
     pnlRoot.setLayout(new GridLayout(3, 2, 5, 5));
     pnlRoot.setBorder(new EtchedBorder("Volume Range").getBorder());
     pnlRoot.add(ltfXMin.getContainer());
@@ -69,7 +76,6 @@ final class VolumeRangePanel {
   Component getComponent() {
     return pnlRoot;
   }
-  
 
   /**
    * Set the panel values with the specified parameters
@@ -96,7 +102,7 @@ final class VolumeRangePanel {
     ltfZMin.setText(metaData.getPostTrimvolZMin());
     ltfZMax.setText(metaData.getPostTrimvolZMax());
   }
-  
+
   void getParameters(MetaData metaData) {
     metaData.setPostTrimvolXMin(ltfXMin.getText());
     metaData.setPostTrimvolXMax(ltfXMax.getText());

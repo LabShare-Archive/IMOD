@@ -2,6 +2,9 @@ package etomo.ui.swing;
 
 import javax.swing.ButtonGroup;
 
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
+
 import junit.framework.TestCase;
 
 /**
@@ -42,38 +45,45 @@ public final class RadioTextFieldTest extends TestCase {
   public RadioTextFieldTest() {
     super();
     group = new ButtonGroup();
-    test = RadioTextField.getInstance(LABEL, group);
+    test = RadioTextField.getInstance(FieldType.STRING, LABEL, group);
   }
 
-  /*
-   * Test method for 'etomo.ui.RadioTextField.getInstance(String, ButtonGroup)'
-   */
+  /* Test method for 'etomo.ui.RadioTextField.getInstance(String, ButtonGroup)' */
   public void testGetInstance() {
-    assertNotNull("Instance was created", test);
-    assertNotNull("Container was created", test.getContainer());
-    assertEquals("Label was set", test.getLabel(), LABEL);
-    assertEquals("Text wasn't set", test.getText(), "");
-    assertFalse("Defaults to unselected", test.isSelected());
-    validate();
-    RadioTextField sameGroup = RadioTextField.getInstance("Same Group", group);
-    String error = sameGroup.validate();
-    assertNull(error, error);
-    validate();
+    try {
+      assertNotNull("Instance was created", test);
+      assertNotNull("Container was created", test.getContainer());
+      assertEquals("Label was set", test.getLabel(), LABEL);
+      assertEquals("Text wasn't set", test.getText(false), "");
+      assertFalse("Defaults to unselected", test.isSelected());
+      validate();
+      RadioTextField sameGroup = RadioTextField.getInstance(FieldType.STRING,
+          "Same Group", group);
+      String error = sameGroup.validate();
+      assertNull(error, error);
+      validate();
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+      fail("did not run field validation");
+    }
   }
 
-  /*
-   * Test method for 'etomo.ui.RadioTextField.setText(String)'
-   */
+  /* Test method for 'etomo.ui.RadioTextField.setText(String)' */
   public void testSetText() {
-    final String text = "test string";
-    test.setText(text);
-    assertEquals("Text was set", test.getText(), text);
-    validate();
+    try {
+      final String text = "test string";
+      test.setText(text);
+      assertEquals("Text was set", test.getText(false), text);
+      validate();
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+      fail("did not run field validation");
+    }
   }
 
-  /*
-   * Test method for 'etomo.ui.RadioTextField.setEnabled(boolean)'
-   */
+  /* Test method for 'etomo.ui.RadioTextField.setEnabled(boolean)' */
   public void testSetEnabled() {
     test.setEnabled(false);
     validate();
@@ -81,24 +91,21 @@ public final class RadioTextFieldTest extends TestCase {
     validate();
   }
 
-  /*
-   * Test method for 'etomo.ui.RadioTextField.msgSelected()'
-   */
+  /* Test method for 'etomo.ui.RadioTextField.msgSelected()' */
   public void testMsgSelected() {
     test.msgSelected();
     validate();
   }
 
-  /*
-   * Test method for 'etomo.ui.RadioTextField.setSelected(boolean)'
-   */
+  /* Test method for 'etomo.ui.RadioTextField.setSelected(boolean)' */
   public void testSetSelected() {
     test.setSelected(true);
     assertTrue("SetSelected worked", test.isSelected());
-    RadioTextField sameGroup = RadioTextField.getInstance("Same Group", group);
+    RadioTextField sameGroup = RadioTextField.getInstance(FieldType.STRING, "Same Group",
+        group);
     sameGroup.setSelected(true);
-    assertTrue("SetSelected worked with multiple buttons in the group", sameGroup
-        .isSelected());
+    assertTrue("SetSelected worked with multiple buttons in the group",
+        sameGroup.isSelected());
     assertFalse("Only one button in the group can be selected", test.isSelected());
   }
 

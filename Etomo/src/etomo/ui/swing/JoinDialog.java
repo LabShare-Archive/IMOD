@@ -48,6 +48,7 @@ import etomo.type.JoinState;
 import etomo.type.NullRequiredNumberException;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.AutoAlignmentDisplay;
+import etomo.ui.FieldType;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -552,7 +553,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
   private LabeledTextField ltfShiftInX;
   private LabeledTextField ltfShiftInY;
   private final CheckBox cbLocalFits = new CheckBox("Do local linear fits");
-  private LabeledTextField ltfMidasLimit = new LabeledTextField("Squeeze samples to ");
+  private LabeledTextField ltfMidasLimit = new LabeledTextField(FieldType.INTEGER,
+      "Squeeze samples to ");
   private JLabel lblMidasLimit = new JLabel("pixels if bigger.");
   private CheckBoxSpinner cbsAlignmentRefSection;
   private LabeledSpinner spinDensityRefSection;
@@ -588,14 +590,19 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
   private SpacedPanel pnlTransformations = null;
   private final TransformChooserPanel tcModel = new TransformChooserPanel();
   private final LabeledTextField ltfBoundariesToAnalyze = new LabeledTextField(
-      "Boundaries to analyze: ");
+      FieldType.INTEGER_LIST, "Boundaries to analyze: ");
   private final LabeledTextField ltfObjectsToInclude = new LabeledTextField(
-      "Objects to include: ");
-  private final LabeledTextField ltfGapStart = new LabeledTextField("Start: ");
-  private final LabeledTextField ltfGapEnd = new LabeledTextField("End: ");
-  private final LabeledTextField ltfGapInc = new LabeledTextField("Increment: ");
-  private final LabeledTextField ltfPointsToFitMin = new LabeledTextField("Min: ");
-  private final LabeledTextField ltfPointsToFitMax = new LabeledTextField("Max: ");
+      FieldType.INTEGER_LIST, "Objects to include: ");
+  private final LabeledTextField ltfGapStart = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Start: ");
+  private final LabeledTextField ltfGapEnd = new LabeledTextField(
+      FieldType.FLOATING_POINT, "End: ");
+  private final LabeledTextField ltfGapInc = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Increment: ");
+  private final LabeledTextField ltfPointsToFitMin = new LabeledTextField(
+      FieldType.INTEGER, "Min: ");
+  private final LabeledTextField ltfPointsToFitMax = new LabeledTextField(
+      FieldType.INTEGER, "Max: ");
   private JPanel pnlTables = null;
   private JPanel pnlRejoin = null;
 
@@ -1037,7 +1044,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     ftfWorkingDir = new FileTextField(WORKING_DIRECTORY_TEXT + ": ");
     ftfWorkingDir.setText(workingDirName);
     // second component
-    ltfRootName = new LabeledTextField("Root name for output file: ");
+    ltfRootName = new LabeledTextField(FieldType.STRING, "Root name for output file: ");
     // third component
     pnlSectionTable = new SectionTablePanel(this, manager, state);
     // midas limit panel
@@ -1239,7 +1246,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     pnlTransformModel.setBorder(new EtchedBorder("Transform Model").getBorder());
     pnlTransformModel.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     pnlTransformModel.add(ftfModelFile.getContainer());
-    ltfTransformedModel = new LabeledTextField("Output file: ");
+    ltfTransformedModel = new LabeledTextField(FieldType.STRING, "Output file: ");
     pnlTransformModel.add(ltfTransformedModel.getContainer());
     // transform model buttons
     JPanel pnlTransformModelButtons = new JPanel();
@@ -1287,17 +1294,17 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     // third component
     SpacedPanel finishJoinPanel2 = SpacedPanel.getInstance();
     finishJoinPanel2.setBoxLayout(BoxLayout.X_AXIS);
-    ltfSizeInX = new LabeledTextField("Size in X: ");
+    ltfSizeInX = new LabeledTextField(FieldType.INTEGER, "Size in X: ");
     finishJoinPanel2.add(ltfSizeInX);
-    ltfSizeInY = new LabeledTextField("Y: ");
+    ltfSizeInY = new LabeledTextField(FieldType.INTEGER, "Y: ");
     finishJoinPanel2.add(ltfSizeInY);
     pnlFinishJoin.add(finishJoinPanel2);
     // fourth component
     SpacedPanel finishJoinPanel3 = SpacedPanel.getInstance();
     finishJoinPanel3.setBoxLayout(BoxLayout.X_AXIS);
-    ltfShiftInX = new LabeledTextField("Shift in X: ");
+    ltfShiftInX = new LabeledTextField(FieldType.INTEGER, "Shift in X: ");
     finishJoinPanel3.add(ltfShiftInX);
-    ltfShiftInY = new LabeledTextField("Y: ");
+    ltfShiftInY = new LabeledTextField(FieldType.INTEGER, "Y: ");
     finishJoinPanel3.add(ltfShiftInY);
     pnlFinishJoin.add(finishJoinPanel3);
     JPanel pnlLocalFits = new JPanel();

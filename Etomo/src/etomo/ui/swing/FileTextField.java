@@ -16,6 +16,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import etomo.type.ConstStringParameter;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -98,6 +100,9 @@ final class FileTextField implements FileTextFieldInterface {
   public static final String rcsid = "$Id$";
 
   private final static Dimension FOLDER_BUTTON_SIZE = FixedDim.folderButton;
+  // Assuming the field type is always non-numeric
+  private final FieldType FIELD_TYPE = FieldType.STRING;
+  private final boolean DO_VALIDATION = false;
 
   private final SimpleButton button = new SimpleButton(new ImageIcon(
       ClassLoader.getSystemResource("images/openFile.gif")));
@@ -145,8 +150,8 @@ final class FileTextField implements FileTextFieldInterface {
       layout.setConstraints(this.label, constraints);
       panel.add(this.label);
     }
-    field = new TextField(label);
-    field.setTextPreferredSize(new Dimension(250 * Math.round(UIParameters.INSTANCE
+    field = new TextField(FIELD_TYPE, label);
+    field.setTextPreferredSize(new Dimension(250 * (int) Math.round(UIParameters.INSTANCE
         .getFontSizeAdjustment()), FOLDER_BUTTON_SIZE.height));
     constraints.insets = new Insets(0, 0, 0, -1);
     layout.setConstraints(field.getComponent(), constraints);
@@ -282,9 +287,16 @@ final class FileTextField implements FileTextFieldInterface {
    * @return
    */
   boolean isEmpty() {
-    return field.getText().matches("\\s*");
+    String text = "";
+    try {
+      text = field.getText(false);
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
+    return text.matches("\\s*");
   }
-  
+
   boolean isEditable() {
     return field.isEditable();
   }
@@ -339,7 +351,13 @@ final class FileTextField implements FileTextFieldInterface {
     if (showPartialPath) {
       return;
     }
-    String text = field.getText();
+    String text = null;
+    try {
+      text = field.getText(false);
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
     if (text == null || text.matches("\\s*")) {
       file = null;
     }
@@ -387,7 +405,14 @@ final class FileTextField implements FileTextFieldInterface {
    * @return
    */
   String getText() {
-    return field.getText();
+    String text = null;
+    try {
+      text = field.getText(DO_VALIDATION);
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
+    return text;
   }
 
   void setToolTipText(String text) {

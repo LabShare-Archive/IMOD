@@ -1,10 +1,12 @@
 Version = 1.2
 
 [function = main]
+#temp
 if.var.quick.run.function.quick=
 if.var.quick.return=
 run.function.fiducial-model-generation=
 bn.done=
+
 
 
 [function = quick]
@@ -336,11 +338,16 @@ assert.exists.file=%{dataset}%{axis}.fid~
 #don't break contours for midzone2b (doesn't need it)
 if.equals.var.axis.return=b
 cb.break-contours-into-pieces=on
+[[if = test-gui]]
+  #test field validation
+  tf.break-contours-into-pieces=16,4abc
+  bn.track-patches=
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tf.break-contours-into-pieces=16,4
+[[]]
 bn.track-patches=
 wait.process.cross-correlating-stack=done
-[[if = test-gui]]
-  assert.contains.file=xcorr_pt.com|TiltFile*%{dataset}%{axis}.rawtlt
-[[]]
 
 
 [function = patch-layout]

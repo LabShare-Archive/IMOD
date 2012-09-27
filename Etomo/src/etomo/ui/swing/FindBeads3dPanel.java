@@ -27,6 +27,8 @@ import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -74,15 +76,16 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
   private final JPanel pnlRoot = new JPanel();
   private final ActionListener actionListener = new FindBeads3dPanelActionListener(this);
   private final SpacedPanel pnlBody = SpacedPanel.getInstance(true);
-  private final LabeledTextField ltfBeadSize = new LabeledTextField(BEAD_SIZE_LABEL
-      + " (pixels): ");
-  private final LabeledTextField ltfMinSpacing = new LabeledTextField("Minimum spacing: ");
+  private final LabeledTextField ltfBeadSize = new LabeledTextField(
+      FieldType.FLOATING_POINT, BEAD_SIZE_LABEL + " (pixels): ");
+  private final LabeledTextField ltfMinSpacing = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Minimum spacing: ");
   private final LabeledTextField ltfGuessNumBeads = new LabeledTextField(
-      "Estimated number of beads: ");
+      FieldType.INTEGER, "Estimated number of beads: ");
   private final LabeledTextField ltfMinRelativeStrength = new LabeledTextField(
-      "Minimum peak strength: ");
+      FieldType.FLOATING_POINT, "Minimum peak strength: ");
   private final LabeledTextField ltfThresholdForAveraging = new LabeledTextField(
-      "Threshold for averaging: ");
+      FieldType.FLOATING_POINT, "Threshold for averaging: ");
   private final ButtonGroup bgStorageThreshold = new ButtonGroup();
   private final RadioButton rbStorageThresholdSomeBelow = new RadioButton(
       "Store some points below threshold", StorageThresholdEnum.SOME_BELOW,
@@ -91,8 +94,8 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
       "Store only points above threshold", StorageThresholdEnum.ONLY_ABOVE,
       bgStorageThreshold);
   private final RadioTextField rtfStorageThreshold = RadioTextField.getInstance(
-      "Set threshold for storing: ", bgStorageThreshold);
-  private final LabeledTextField ltfMaxNumBeads = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Set threshold for storing: ", bgStorageThreshold);
+  private final LabeledTextField ltfMaxNumBeads = new LabeledTextField(FieldType.INTEGER,
       "Max points to analyze: ");
   private final Run3dmodButton btn3dmodFindBeads3d = Run3dmodButton.get3dmodInstance(
       "View 3D Model on Tomogram", this);
@@ -134,22 +137,22 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
   }
 
   private void createPanel() {
-    //Initialize
+    // Initialize
     btnFindBeads3d.setContainer(this);
     btnFindBeads3d.setDeferred3dmodButton(btn3dmodFindBeads3d);
     btnFindBeads3d.setSize();
     btn3dmodFindBeads3d.setSize();
-    //Local panels
+    // Local panels
     JPanel pnlStorageThreshold = new JPanel();
     SpacedPanel pnlButtons = SpacedPanel.getInstance();
     SpacedPanel pnlA = SpacedPanel.getInstance();
     SpacedPanel pnlB = SpacedPanel.getInstance();
-    //Root panel
+    // Root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.add(header.getContainer());
     pnlRoot.setBorder(BorderFactory.createEtchedBorder());
     pnlRoot.add(pnlBody.getContainer());
-    //Body panel
+    // Body panel
     pnlBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlBody.add(ltfBeadSize.getContainer());
     pnlBody.add(pnlA);
@@ -157,21 +160,21 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     pnlBody.add(pnlStorageThreshold);
     pnlBody.add(ltfMaxNumBeads.getContainer());
     pnlBody.add(pnlButtons);
-    //Panel A
+    // Panel A
     pnlA.setBoxLayout(BoxLayout.X_AXIS);
     pnlA.add(ltfMinSpacing.getContainer());
     pnlA.add(ltfGuessNumBeads.getContainer());
-    //Panel B
+    // Panel B
     pnlB.setBoxLayout(BoxLayout.X_AXIS);
     pnlB.add(ltfMinRelativeStrength.getContainer());
     pnlB.add(ltfThresholdForAveraging.getContainer());
-    //Storage threshold panel
+    // Storage threshold panel
     pnlStorageThreshold.setLayout(new GridLayout(3, 2, 3, 3));
     pnlStorageThreshold.setBorder(new EtchedBorder("Storage Threshold").getBorder());
     pnlStorageThreshold.add(rbStorageThresholdSomeBelow.getComponent());
     pnlStorageThreshold.add(rbStorageThresholdOnlyAbove.getComponent());
     pnlStorageThreshold.add(rtfStorageThreshold.getContainer());
-    //Button panel
+    // Button panel
     pnlButtons.setBoxLayout(BoxLayout.X_AXIS);
     pnlButtons.add(btnFindBeads3d.getComponent());
     pnlButtons.add(btn3dmodFindBeads3d.getComponent());
@@ -218,7 +221,7 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
 
   void setParameters(ConstFindBeads3dParam param, boolean initialize) {
     if (initialize) {
-      //Bead size starts out as unbinned bead diameter is pixels.
+      // Bead size starts out as unbinned bead diameter is pixels.
       ltfBeadSize.setText(manager.calcUnbinnedBeadDiameterPixels());
       ltfMinSpacing.setText(.9);
       ltfMinRelativeStrength.setText(.05);
@@ -229,7 +232,7 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
       ltfGuessNumBeads.setText(param.getGuessNumBeads());
       ltfMinRelativeStrength.setText(param.getMinRelativeStrength());
       ltfThresholdForAveraging.setText(param.getThresholdForAveraging());
-      //Set StorageThreshold
+      // Set StorageThreshold
       ConstEtomoNumber storageThreshold = param.getStorageThreshold();
       StorageThresholdEnum storageThresholdEnum = StorageThresholdEnum
           .getInstance(storageThreshold);
@@ -246,22 +249,29 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     }
   }
 
-  public void getParameters(FindBeads3dParam param) {
-    param.setInputFile(FileType.TILT_3D_FIND_OUTPUT);
-    param.setOutputFile(FileType.FIND_BEADS_3D_OUTPUT_MODEL.getFileName(manager, axisID));
-    param.setBeadSize(ltfBeadSize.getText());
-    param.setMinSpacing(ltfMinSpacing.getText());
-    param.setGuessNumBeads(ltfGuessNumBeads.getText());
-    param.setMinRelativeStrength(ltfMinRelativeStrength.getText());
-    param.setThresholdForAveraging(ltfThresholdForAveraging.getText());
-    if (!rtfStorageThreshold.isSelected()) {
-      param.setStorageThreshold(((RadioButton.RadioButtonModel) bgStorageThreshold
-          .getSelection()).getEnumeratedType().getValue());
+  public boolean getParameters(final FindBeads3dParam param, final boolean doValidation) {
+    try {
+      param.setInputFile(FileType.TILT_3D_FIND_OUTPUT);
+      param.setOutputFile(FileType.FIND_BEADS_3D_OUTPUT_MODEL
+          .getFileName(manager, axisID));
+      param.setBeadSize(ltfBeadSize.getText());
+      param.setMinSpacing(ltfMinSpacing.getText());
+      param.setGuessNumBeads(ltfGuessNumBeads.getText());
+      param.setMinRelativeStrength(ltfMinRelativeStrength.getText());
+      param.setThresholdForAveraging(ltfThresholdForAveraging.getText());
+      if (!rtfStorageThreshold.isSelected()) {
+        param.setStorageThreshold(((RadioButton.RadioButtonModel) bgStorageThreshold
+            .getSelection()).getEnumeratedType().getValue());
+      }
+      else {
+        param.setStorageThreshold(rtfStorageThreshold.getText(doValidation));
+      }
+      param.setMaxNumBeads(ltfMaxNumBeads.getText());
     }
-    else {
-      param.setStorageThreshold(rtfStorageThreshold.getText());
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-    param.setMaxNumBeads(ltfMaxNumBeads.getText());
+    return true;
   }
 
   public String getBeadSize() {
@@ -357,8 +367,8 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
       if (ONLY_ABOVE.value.equals(storageThreshold)) {
         return ONLY_ABOVE;
       }
-      //Don't return default because some values do not belong in one of these
-      //categories.
+      // Don't return default because some values do not belong in one of these
+      // categories.
       return null;
     }
 

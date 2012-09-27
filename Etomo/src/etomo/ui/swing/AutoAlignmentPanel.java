@@ -21,6 +21,7 @@ import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
+import etomo.ui.FieldType;
 import etomo.util.SharedConstants;
 
 /**
@@ -44,11 +45,11 @@ public final class AutoAlignmentPanel {
   private final SpacedPanel pnlRoot = SpacedPanel.getFocusableInstance();
   private final SpacedPanel pnlParameters = SpacedPanel.getInstance();
   private final LabeledTextField ltfSigmaLowFrequency = new LabeledTextField(
-      "Sigma for low-frequency filter: ");
+      FieldType.FLOATING_POINT, "Sigma for low-frequency filter: ");
   private final LabeledTextField ltfCutoffHighFrequency = new LabeledTextField(
-      "Cutoff for high-frequency filter: ");
+      FieldType.FLOATING_POINT, "Cutoff for high-frequency filter: ");
   private final LabeledTextField ltfSigmaHighFrequency = new LabeledTextField(
-      "Sigma for high-frequency filter: ");
+      FieldType.FLOATING_POINT, "Sigma for high-frequency filter: ");
   private final TransformChooserPanel tcAlign = new TransformChooserPanel();
   private final SpacedPanel pnlButtons = SpacedPanel.getInstance();
   private final MultiLineButton btnInitialAutoAlignment = new MultiLineButton(
@@ -63,11 +64,11 @@ public final class AutoAlignmentPanel {
   private final LabeledSpinner spReduceByBinning = new LabeledSpinner("Binning: ",
       new SpinnerNumberModel(2, 1, 50, 1), 1);
   private final LabeledTextField ltfSkipSectionsFrom1 = new LabeledTextField(
-      "Sections to skip: ");
+      FieldType.INTEGER_LIST, "Sections to skip: ");
   private final CheckBox cbPreCrossCorrelation = new CheckBox(
       "Do cross-correlate in initial alignment");
   private final LabeledTextField ltfEdgeToIgnore = new LabeledTextField(
-      "Fraction to ignore on edges: ");
+      FieldType.FLOATING_POINT, "Fraction to ignore on edges: ");
   private final Spinner spMidasBinning = Spinner.getLabeledInstance("Midas binning: ", 1,
       1, 8);
 

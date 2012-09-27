@@ -38,6 +38,7 @@ import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
 import etomo.util.Utilities;
 
 /**
@@ -444,27 +445,28 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private static final String SETUP_TAB_LABEL = "Setup";
   private static final String RUN_TAB_LABEL = "Run";
   private final EtomoPanel rootPanel = new EtomoPanel();
-  private final LabeledTextField ltfDirectory = new LabeledTextField(DIRECTORY_LABEL
-      + ": ");
-  private final LabeledTextField ltfFnOutput = new LabeledTextField(FN_OUTPUT_LABEL
-      + ": ");
+  private final LabeledTextField ltfDirectory = new LabeledTextField(FieldType.STRING,
+      DIRECTORY_LABEL + ": ");
+  private final LabeledTextField ltfFnOutput = new LabeledTextField(FieldType.STRING,
+      FN_OUTPUT_LABEL + ": ");
   private final SpacedPanel pnlSetupBody = SpacedPanel.getInstance();
   private final CheckBox cbAlignedBaseName = new CheckBox(
       "Save individual aligned particles");
   private final CheckBox cbFlgStrictSearchLimits = new CheckBox(
       "Strict search limit checking");
   private final LabeledTextField ltfLowCutoff = new LabeledTextField(
-      "Low frequency cutoff:", 5);
-  private final LabeledTextField ltfLowCutoffSigma = new LabeledTextField("Sigma: ");
+      FieldType.FLOATING_POINT, "Low frequency cutoff:", 5);
+  private final LabeledTextField ltfLowCutoffSigma = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Sigma: ");
   private final CheckBox cbRefFlagAllTom = new CheckBox("For new references");
   private final LabeledTextField ltfLstThresholdsStart = new LabeledTextField(
-      LST_THRESHOLD_START_TITLE + ": ");
+      FieldType.INTEGER, LST_THRESHOLD_START_TITLE + ": ");
   private final LabeledTextField ltfLstThresholdsIncrement = new LabeledTextField(
-      LST_THRESHOLD_INCREMENT_TITLE + ": ");
+      FieldType.INTEGER, LST_THRESHOLD_INCREMENT_TITLE + ": ");
   private final LabeledTextField ltfLstThresholdsEnd = new LabeledTextField(
-      LST_THRESHOLD_END_TITLE + ": ");
-  private final LabeledTextField ltfLstThresholdsAdditional = new LabeledTextField(" "
-      + LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE + ": ");
+      FieldType.INTEGER, LST_THRESHOLD_END_TITLE + ": ");
+  private final LabeledTextField ltfLstThresholdsAdditional = new LabeledTextField(
+      FieldType.INTEGER_ARRAY, " " + LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE + ": ");
   private final CheckBox cbLstFlagAllTom = new CheckBox("For average volumes");
   private final SpacedPanel pnlRunBody = SpacedPanel.getInstance(true);
   private final MultiLineButton btnRun = new MultiLineButton(RUN_LABEL);
@@ -803,7 +805,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     volumeTable.getParameters(matlabParam);
     iterationTable.getParameters(matlabParam);
     matlabParam.setFnOutput(ltfFnOutput.getText());
-    referencePanel.getParameters(matlabParam);
+    if (!referencePanel.getParameters(matlabParam, forRun)) {
+      return false;
+    }
     missingWedgeCompensationPanel.getParameters(matlabParam);
     matlabParam
         .setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl.getSelection())

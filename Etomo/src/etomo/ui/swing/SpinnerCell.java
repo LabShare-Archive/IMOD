@@ -43,10 +43,6 @@ class SpinnerCell extends InputCell {
     return new SpinnerCell(min, max);
   }
 
-  static SpinnerCell getLongInstance(long min, long max) {
-    return new SpinnerCell(min, max);
-  }
-
   /**
    * The buttons should still work
    */
@@ -88,10 +84,6 @@ class SpinnerCell extends InputCell {
     setValue(new EtomoNumber(type).set(value).getNumber());
   }
 
-  final void setValue(long value) {
-    setValue(new EtomoNumber(type).set(value).getNumber());
-  }
-
   final void setValue(String value) {
     setValue(new EtomoNumber(type).set(value).getNumber());
   }
@@ -104,16 +96,9 @@ class SpinnerCell extends InputCell {
     return ((Integer) spinner.getValue()).intValue();
   }
 
-  final long getLongValue() {
-    return ((Long) spinner.getValue()).longValue();
-  }
-
   final String getStringValue() {
     if (type == EtomoNumber.Type.INTEGER) {
       return String.valueOf(getIntValue());
-    }
-    if (type == EtomoNumber.Type.LONG) {
-      return String.valueOf(getLongValue());
     }
     return null;
   }
@@ -157,17 +142,6 @@ class SpinnerCell extends InputCell {
     disabledValue = new EtomoNumber();
     savedValue = new EtomoNumber();
     spinner = new JSpinner(new SpinnerNumberModel(min, min, max, 1));
-    spinner.setBorder(BorderFactory.createEtchedBorder());
-    getTextField().setHorizontalAlignment(JTextField.LEFT);
-  }
-
-  private SpinnerCell(long min, long max) {
-    super();
-    type = EtomoNumber.Type.LONG;
-    disabledValue = new EtomoNumber(EtomoNumber.Type.LONG);
-    savedValue = new EtomoNumber(EtomoNumber.Type.LONG);
-    spinner = new JSpinner(new SpinnerNumberModel(new Long(min), new Long(min), new Long(
-        max), new Long(1)));
     spinner.setBorder(BorderFactory.createEtchedBorder());
     getTextField().setHorizontalAlignment(JTextField.LEFT);
     setBackground();

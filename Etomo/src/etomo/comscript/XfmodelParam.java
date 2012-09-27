@@ -166,8 +166,8 @@ public final class XfmodelParam implements CommandDetails {
     if (startListWalker.size() == endListWalker.size()) {
       StringBuffer buffer = new StringBuffer();
       while (startListWalker.hasNext()) {
-        long start = startListWalker.nextEtomoNumber().getLong();
-        long end = endListWalker.nextEtomoNumber().getLong();
+        int start = startListWalker.nextEtomoNumber().getInt();
+        int end = endListWalker.nextEtomoNumber().getInt();
         if (end >= start) {
           buffer.append(String.valueOf(end - start + 1));
         }
@@ -356,10 +356,6 @@ public final class XfmodelParam implements CommandDetails {
   }
 
   public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
-    throw new IllegalArgumentException("field=" + fieldInterface);
-  }
-
-  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 

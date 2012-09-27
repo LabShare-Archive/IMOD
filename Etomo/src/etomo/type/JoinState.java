@@ -134,9 +134,9 @@ public final class JoinState extends BaseState implements ConstJoinState {
   private final EtomoVersion joinVersion = EtomoVersion.getEmptyInstance(JOIN_KEY + '.'
       + EtomoVersion.DEFAULT_KEY);
   private final IntKeyList joinStartList = IntKeyList.getNumberInstance(JOIN_KEY + '.'
-      + START_LIST_KEY, EtomoNumber.Type.LONG);
+      + START_LIST_KEY);
   private final IntKeyList joinEndList = IntKeyList.getNumberInstance(JOIN_KEY + '.'
-      + END_LIST_KEY, EtomoNumber.Type.LONG);
+      + END_LIST_KEY);
   private final EtomoNumber joinAlignmentRefSection = new EtomoNumber(JOIN_KEY + '.'
       + ALIGNMENT_REF_SECTION_KEY);
   private final ScriptParameter joinShiftInX = new ScriptParameter(JOIN_KEY + '.'
@@ -153,9 +153,9 @@ public final class JoinState extends BaseState implements ConstJoinState {
   private final EtomoVersion joinTrialVersion = EtomoVersion.getEmptyInstance(JOIN_KEY
       + '.' + TRIAL_KEY + '.' + EtomoVersion.DEFAULT_KEY);
   private final IntKeyList joinTrialStartList = IntKeyList.getNumberInstance(JOIN_KEY
-      + '.' + TRIAL_KEY + '.' + START_LIST_KEY, EtomoNumber.Type.LONG);
+      + '.' + TRIAL_KEY + '.' + START_LIST_KEY);
   private final IntKeyList joinTrialEndList = IntKeyList.getNumberInstance(JOIN_KEY + '.'
-      + TRIAL_KEY + '.' + END_LIST_KEY, EtomoNumber.Type.LONG);
+      + TRIAL_KEY + '.' + END_LIST_KEY);
   private final EtomoNumber joinTrialAlignmentRefSection = new EtomoNumber(JOIN_KEY + '.'
       + TRIAL_KEY + '.' + ALIGNMENT_REF_SECTION_KEY);
   private final ScriptParameter joinTrialShiftInX = new ScriptParameter(JOIN_KEY + '.'
@@ -171,9 +171,9 @@ public final class JoinState extends BaseState implements ConstJoinState {
   private final EtomoNumber joinTrialBinning = new EtomoNumber(JOIN_KEY + '.' + TRIAL_KEY
       + '.' + "Binning");
   private final IntKeyList refineStartList = IntKeyList.getNumberInstance(REFINE_KEY
-      + '.' + START_LIST_KEY, EtomoNumber.Type.LONG);
+      + '.' + START_LIST_KEY);
   private final IntKeyList refineEndList = IntKeyList.getNumberInstance(REFINE_KEY + '.'
-      + END_LIST_KEY, EtomoNumber.Type.LONG);
+      + END_LIST_KEY);
   private String xfModelOutputFile = null;
   private boolean debug = false;
   private final EtomoNumber joinTrialUseEveryNSlices = new EtomoNumber(JOIN_KEY + '.'

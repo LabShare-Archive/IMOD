@@ -48,7 +48,7 @@ public final class UIExpertUtilities {
    * @param stackExtension
    * @return
    */
-  public long getStackBinning(BaseManager manager, AxisID axisID, String stackExtension) {
+  public int getStackBinning(BaseManager manager, AxisID axisID, String stackExtension) {
     return getStackBinning(manager, axisID, stackExtension, false);
   }
 
@@ -62,10 +62,10 @@ public final class UIExpertUtilities {
    * @param nullIfFailed
    * @return
    */
-  public long getStackBinning(BaseManager manager, AxisID axisID, String stackExtension,
+  public int getStackBinning(BaseManager manager, AxisID axisID, String stackExtension,
       boolean nullIfFailed) {
-    return getStackBinning(manager, axisID, MRCHeader.getInstance(manager, axisID,
-        stackExtension), false);
+    return getStackBinning(manager, axisID,
+        MRCHeader.getInstance(manager, axisID, stackExtension), false);
   }
 
   /**
@@ -77,9 +77,12 @@ public final class UIExpertUtilities {
    * @param stackFileType
    * @return
    */
-  public long getStackBinning(BaseManager manager, AxisID axisID, FileType stackFileType) {
-    return getStackBinning(manager, axisID, MRCHeader.getInstance(manager
-        .getPropertyUserDir(), stackFileType.getFileName(manager, axisID), axisID), false);
+  public int getStackBinning(BaseManager manager, AxisID axisID, FileType stackFileType) {
+    return getStackBinning(
+        manager,
+        axisID,
+        MRCHeader.getInstance(manager.getPropertyUserDir(),
+            stackFileType.getFileName(manager, axisID), axisID), false);
   }
 
   /**
@@ -92,13 +95,13 @@ public final class UIExpertUtilities {
    * @param nullIfFailed
    * @return
    */
-  public long getStackBinningFromFileName(BaseManager manager, AxisID axisID,
+  public int getStackBinningFromFileName(BaseManager manager, AxisID axisID,
       String fileName, boolean nullIfFailed) {
     if (fileName == null || fileName.matches("\\s*")) {
       return 1;
     }
-    return getStackBinning(manager, axisID, MRCHeader.getInstance(manager
-        .getPropertyUserDir(), fileName, axisID), false);
+    return getStackBinning(manager, axisID,
+        MRCHeader.getInstance(manager.getPropertyUserDir(), fileName, axisID), false);
   }
 
   /**
@@ -111,27 +114,27 @@ public final class UIExpertUtilities {
    * on failure.
    * @return
    */
-  public long getStackBinning(BaseManager manager, AxisID axisID, MRCHeader stackHeader,
+  public int getStackBinning(BaseManager manager, AxisID axisID, MRCHeader stackHeader,
       boolean nullIfFailed) {
     MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st");
-    long defaultValue = nullIfFailed ? EtomoNumber.LONG_NULL_VALUE : 1;
+    int defaultValue = nullIfFailed ? EtomoNumber.INTEGER_NULL_VALUE : 1;
     try {
       if (!rawstackHeader.read(manager) || !stackHeader.read(manager)) {
         return defaultValue;
       }
     }
     catch (InvalidParameterException e) {
-      //missing file
+      // missing file
       e.printStackTrace();
       return defaultValue;
     }
     catch (IOException e) {
       return defaultValue;
     }
-    long binning = defaultValue;
+    int binning = defaultValue;
     double rawstackXPixelSpacing = rawstackHeader.getXPixelSpacing();
     if (rawstackXPixelSpacing > 0) {
-      binning = Math.round(stackHeader.getXPixelSpacing() / rawstackXPixelSpacing);
+      binning = (int) Math.round(stackHeader.getXPixelSpacing() / rawstackXPixelSpacing);
     }
     if (binning != defaultValue && binning < 1) {
       return 1;
@@ -149,10 +152,10 @@ public final class UIExpertUtilities {
    */
   public boolean updateFiducialessParams(ApplicationManager manager,
       FiducialessParams dialog, AxisID axisID) {
-    float tiltAxisAngle;
+    double tiltAxisAngle;
     try {
-      return updateFiducialessParams(manager, dialog.getImageRotation(), dialog
-          .isFiducialess(), axisID);
+      return updateFiducialessParams(manager, dialog.getImageRotation(),
+          dialog.isFiducialess(), axisID);
     }
     catch (NumberFormatException except) {
       String[] errorMessage = new String[2];
@@ -198,13 +201,13 @@ public final class UIExpertUtilities {
    */
   private void updateRotationXF(BaseManager manager, String propertyUserDir,
       String angle, AxisID axisID) {
-    //  Open the appropriate rotation file
+    // Open the appropriate rotation file
     String fnRotationXF = propertyUserDir + File.separator + "rotation"
         + axisID.getExtension() + ".xf";
     File rotationXF = new File(fnRotationXF);
     try {
       BufferedWriter out = new BufferedWriter(new FileWriter(rotationXF));
-      //  Write out the transform to perform the rotation
+      // Write out the transform to perform the rotation
       EtomoNumber nAngle = new EtomoNumber(EtomoNumber.Type.DOUBLE);
       nAngle.set(angle);
       double rads = -1 * nAngle.getDouble() * Math.PI / 180;
@@ -212,7 +215,7 @@ public final class UIExpertUtilities {
           + "   " + String.valueOf(Math.sin(rads)) + "   "
           + String.valueOf(Math.cos(rads)) + "   0   0");
       out.newLine();
-      //  Close the file
+      // Close the file
       out.close();
     }
     catch (IOException except) {
@@ -252,8 +255,8 @@ public final class UIExpertUtilities {
     if (!tiltalignParam.isOldVersion()) {
       return;
     }
-    long correctionBinning = getBackwardCompatibleAlignBinning(manager, axisID);
-    long currentBinning = getStackBinning(manager, axisID, ".preali");
+    int correctionBinning = getBackwardCompatibleAlignBinning(manager, axisID);
+    int currentBinning = getStackBinning(manager, axisID, ".preali");
     if (tiltalignParam.upgradeOldVersion(correctionBinning, currentBinning)) {
       rollAlignComAngles(manager, axisID);
       manager.getComScriptManager().saveAlign(tiltalignParam, axisID);
@@ -272,7 +275,7 @@ public final class UIExpertUtilities {
       return;
     }
     int correctionBinning = getBackwardCompatibleTiltBinning(manager, axisID, tiltParam);
-    long currentBinning = getStackBinning(manager, axisID, ".ali");
+    int currentBinning = getStackBinning(manager, axisID, ".ali");
     if (tiltParam.upgradeOldVersion(correctionBinning, currentBinning)) {
       rollTiltComAngles(manager, axisID);
       manager.getComScriptManager().saveTilt(tiltParam, axisID);
@@ -293,7 +296,7 @@ public final class UIExpertUtilities {
    * @param tiltParam
    * @return
    */
-  private long getBackwardCompatibleAlignBinning(ApplicationManager manager, AxisID axisID) {
+  private int getBackwardCompatibleAlignBinning(ApplicationManager manager, AxisID axisID) {
     MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st");
     try {
       if (!rawstackHeader.read(manager)) {
@@ -317,41 +320,41 @@ public final class UIExpertUtilities {
       fidXyzFailed = true;
     }
     if (!fidXyzFailed) {
-      //Another layer of backward compatibility.  Handle the time before fid.xyz
-      //files where created.  This also handles the situation where align.com has
-      //not been run and has the original values from copytomocoms.
+      // Another layer of backward compatibility. Handle the time before fid.xyz
+      // files where created. This also handles the situation where align.com has
+      // not been run and has the original values from copytomocoms.
       if (!fidXyz.exists()) {
         return 1;
       }
-      //Align.com must have failed.  The fallback is to use pixel spacing from
-      //.preali.
+      // Align.com must have failed. The fallback is to use pixel spacing from
+      // .preali.
       if (fidXyz.isEmpty()) {
         fidXyzFailed = true;
       }
-      //Another layer of backward compatibility.  There was a small period of
-      //time when binning existed but the pixel spacing was not added to fid.xyz
-      //(3.2.7 (3/16/04) - 3.2.20 (6/19/04).  If this fid.xyz was created before
-      //binning we could return 1, but we don't know that and we can't trust
-      //change times on old files that could have been copied, so we need to use
-      //the fallback in this case.
+      // Another layer of backward compatibility. There was a small period of
+      // time when binning existed but the pixel spacing was not added to fid.xyz
+      // (3.2.7 (3/16/04) - 3.2.20 (6/19/04). If this fid.xyz was created before
+      // binning we could return 1, but we don't know that and we can't trust
+      // change times on old files that could have been copied, so we need to use
+      // the fallback in this case.
       else if (!fidXyz.isPixelSizeSet()) {
         fidXyzFailed = true;
       }
     }
     double rawstackXPixelSpacing = rawstackHeader.getXPixelSpacing();
-    //Unable to calculate binning
+    // Unable to calculate binning
     if (rawstackXPixelSpacing <= 0) {
       return 1;
     }
-    //calculate binning from fid.xyz
+    // calculate binning from fid.xyz
     if (!fidXyzFailed) {
-      long binning = Math.round(fidXyz.getPixelSize() / rawstackXPixelSpacing);
+      int binning = (int) Math.round(fidXyz.getPixelSize() / rawstackXPixelSpacing);
       if (binning < 1) {
         return 1;
       }
       return binning;
     }
-    //fallback to .preali
+    // fallback to .preali
     MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".preali");
     try {
       if (!stackHeader.read(manager)) {
@@ -366,7 +369,8 @@ public final class UIExpertUtilities {
       e.printStackTrace();
       return 1;
     }
-    long binning = Math.round(stackHeader.getXPixelSpacing() / rawstackXPixelSpacing);
+    int binning = (int) Math
+        .round(stackHeader.getXPixelSpacing() / rawstackXPixelSpacing);
     if (binning < 1) {
       return 1;
     }
@@ -400,7 +404,7 @@ public final class UIExpertUtilities {
     }
     int binning = 1;
     int tiltFullImageX = tiltParam.getFullImageX();
-    //defaults to Integer.MIN_VALUE in ConstTiltParam
+    // defaults to Integer.MIN_VALUE in ConstTiltParam
     if (tiltFullImageX > 0) {
       binning = Math.round(rawstackHeader.getNColumns() / tiltFullImageX);
     }
@@ -412,8 +416,7 @@ public final class UIExpertUtilities {
 
   public FidXyz getFidXyz(ApplicationManager manager, AxisID axisID) {
     return new FidXyz(manager.getPropertyUserDir(), manager.getMetaData()
-        .getDatasetName()
-        + axisID.getExtension() + "fid.xyz");
+        .getDatasetName() + axisID.getExtension() + "fid.xyz");
   }
 
   public void rollAlignComAngles(ApplicationManager manager, AxisID axisID) {

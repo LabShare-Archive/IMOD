@@ -10,6 +10,7 @@ import javax.swing.BoxLayout;
 import etomo.storage.MatlabParam;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
+import etomo.ui.FieldType;
 
 /**
  * <p>Description: </p>
@@ -42,9 +43,12 @@ final class MissingWedgeCompensationPanel {
   private static final String MISSING_WEDGE_COMPENSATION_LABEL = "Missing Wedge Compensation";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
-  private final LabeledTextField ltfVolumeSizeX = new LabeledTextField("X: ");
-  private final LabeledTextField ltfVolumeSizeY = new LabeledTextField("Y: ");
-  private final LabeledTextField ltfVolumeSizeZ = new LabeledTextField("Z: ");
+  private final LabeledTextField ltfVolumeSizeX = new LabeledTextField(FieldType.INTEGER,
+      "X: ");
+  private final LabeledTextField ltfVolumeSizeY = new LabeledTextField(FieldType.INTEGER,
+      "Y: ");
+  private final LabeledTextField ltfVolumeSizeZ = new LabeledTextField(FieldType.INTEGER,
+      "Z: ");
   private final CheckBox cbMissingWedgeCompensation = new CheckBox("Enabled");
   private final Spinner sEdgeShift = Spinner.getLabeledInstance("Edge shift: ",
       MatlabParam.EDGE_SHIFT_DEFAULT, MatlabParam.EDGE_SHIFT_MIN,

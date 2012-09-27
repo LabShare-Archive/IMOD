@@ -258,10 +258,6 @@ public final class ClipParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public float getFloatValue(final FieldInterface field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
   public String[] getStringArray(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }

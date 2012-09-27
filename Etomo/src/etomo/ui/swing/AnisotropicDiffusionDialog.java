@@ -27,6 +27,7 @@ import etomo.type.ParallelMetaData;
 import etomo.type.ProcessName;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
 import etomo.util.Utilities;
 
 /**
@@ -165,7 +166,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   private final Run3dmodButton btnViewTestVolume = Run3dmodButton.get3dmodInstance(
       "View Test Volume", this);
   private final CheckBox cbLoadWithFlipping = new CheckBox("Load with flipping");
-  private final LabeledTextField ltfTestKValueList = new LabeledTextField(
+  private final LabeledTextField ltfTestKValueList = new LabeledTextField(FieldType.FLOATING_POINT_ARRAY,
       K_VALUE_LIST_LABEL);
   private final Spinner spTestIteration = Spinner.getLabeledInstance(ITERATION_LABEL, 10,
       1, 200);
@@ -173,8 +174,8 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
       "Run with Different K Values", this);
   private final Run3dmodButton btnViewVaryingK = Run3dmodButton.get3dmodInstance(
       "View Different K Values Test Results", this);
-  private final LabeledTextField ltfTestKValue = new LabeledTextField(K_VALUE_LABEL);
-  private final LabeledTextField ltfTestIterationList = new LabeledTextField(
+  private final LabeledTextField ltfTestKValue = new LabeledTextField(FieldType.FLOATING_POINT,K_VALUE_LABEL);
+  private final LabeledTextField ltfTestIterationList = new LabeledTextField(FieldType.INTEGER_LIST,
       ITERATION_LIST_LABEL);
   private final Run3dmodButton btnRunVaryingIteration = Run3dmodButton
       .getDeferred3dmodInstance("Run with Different Iterations", this);

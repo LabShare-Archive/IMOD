@@ -23,6 +23,7 @@ import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoNumber;
 import etomo.type.PeetMetaData;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
 import etomo.util.FilePath;
 
 /**
@@ -79,11 +80,13 @@ final class MaskingPanel {
       MASK_TYPE_CYLINDER_LABEL, MatlabParam.MaskType.CYLINDER, bgMaskType);
   private final FileTextField2 ftfMaskTypeFile;
   private final LabeledTextField ltfInsideMaskRadius = new LabeledTextField(
-      INSIDE_MASK_RADIUS_LABEL);
+      FieldType.INTEGER, INSIDE_MASK_RADIUS_LABEL);
   private final LabeledTextField ltfOutsideMaskRadius = new LabeledTextField(
-      OUTSIDE_MASK_RADIUS_LABEL);
-  private final LabeledTextField ltfZRotation = new LabeledTextField("Z Rotation: ");
-  private final LabeledTextField ltfYRotation = new LabeledTextField("Y Rotation: ");
+      FieldType.INTEGER, OUTSIDE_MASK_RADIUS_LABEL);
+  private final LabeledTextField ltfZRotation = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Z Rotation: ");
+  private final LabeledTextField ltfYRotation = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Y Rotation: ");
   private final CheckBox cbCylinderOrientation = new CheckBox(
       "Manual Cylinder Orientation");
 
@@ -360,7 +363,7 @@ final class MaskingPanel {
           + MaskingPanel.MASK_TYPE_CYLINDER_LABEL + " is selected.";
     }
     // validate cylinder orientation
-    EtomoNumber rotation = new EtomoNumber(EtomoNumber.Type.FLOAT);
+    EtomoNumber rotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     // validate Z Rotation
     if (ltfZRotation.isEnabled()) {
       rotation.set(ltfZRotation.getText());
@@ -370,7 +373,7 @@ final class MaskingPanel {
 
       }
       if (!rotation.isNull()) {
-        float fZRotation = Math.abs(rotation.getFloat());
+        double fZRotation = Math.abs(rotation.getDouble());
         if (fZRotation < 0 || fZRotation > 90) {
           return "Valid values for " + description + " are 0 to 90.";
         }

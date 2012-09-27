@@ -36,6 +36,7 @@ import etomo.type.ImageFileType;
 import etomo.type.MetaData;
 import etomo.type.PanelId;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
 import etomo.util.FrontEndLogic;
 
 /**
@@ -123,11 +124,11 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
       "Make Surface Model", this);
   private final CheckBox cbOneSurface = new CheckBox("Contours are all on one surface");
   private final LabeledTextField ltfWarpSpacingX = new LabeledTextField(
-      WARP_SPACING_X_LABEL + ": ");
-  private final LabeledTextField ltfWarpSpacingY = new LabeledTextField(" "
-      + WARP_SPACING_Y_LABEL + ": ");
+      FieldType.FLOATING_POINT, WARP_SPACING_X_LABEL + ": ");
+  private final LabeledTextField ltfWarpSpacingY = new LabeledTextField(
+      FieldType.FLOATING_POINT, " " + WARP_SPACING_Y_LABEL + ": ");
   private final LabeledTextField ltfLambdaForSmoothing = new LabeledTextField(
-      LAMBDA_FOR_SMOOTHING_LABEL + ": ");
+      FieldType.FLOATING_POINT_ARRAY, LAMBDA_FOR_SMOOTHING_LABEL + ": ");
   ActionListener actionListener = new FlattenVolumeActionListener(this);
   private final ButtonGroup bgInputFile = new ButtonGroup();
   private final RadioButton rbInputFileTrimVol = new RadioButton(
@@ -135,7 +136,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
   private final RadioButton rbInputFileSqueezeVol = new RadioButton(
       "Flatten the squeezevol output", bgInputFile);
   private final CheckBox cbInterpolationOrderLinear = new CheckBox("Linear interpolation");
-  private final LabeledTextField ltfOutputSizeZ = new LabeledTextField(
+  private final LabeledTextField ltfOutputSizeZ = new LabeledTextField(FieldType.INTEGER,
       OUTPUT_SIZE_Z_LABEL + ": ");
   private final Run3dmodButton btnImodFlatten = Run3dmodButton.get3dmodInstance(
       "Open Flattened Tomogram", this);
@@ -472,11 +473,11 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
         inputFileAction();
       }
       else {
-        //Must keep checking the dataset directory because a tools interface cannot
-        //take pocession of a directory.
+        // Must keep checking the dataset directory because a tools interface cannot
+        // take pocession of a directory.
         File file = ftfInputFile.getFile();
-        if (!DatasetTool.validateDatasetName(toolsManager, axisID,
-            file.getParentFile(), file.getName(), DataFileType.TOOLS, null)) {
+        if (!DatasetTool.validateDatasetName(toolsManager, axisID, file.getParentFile(),
+            file.getName(), DataFileType.TOOLS, null)) {
           return;
         }
         if (command.equals(btnFlatten.getActionCommand())) {
@@ -523,8 +524,8 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
         return;
       }
       if (toolsManager != null) {
-        if (!DatasetTool.validateDatasetName(toolsManager, axisID,
-            file.getParentFile(), file.getName(), DataFileType.TOOLS, null)) {
+        if (!DatasetTool.validateDatasetName(toolsManager, axisID, file.getParentFile(),
+            file.getName(), DataFileType.TOOLS, null)) {
           return;
         }
         if (toolsManager.isConflictingDatasetName(axisID, file)) {

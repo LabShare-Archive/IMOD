@@ -25,6 +25,7 @@ import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.ParallelMetaData;
 import etomo.type.ProcessingMethod;
+import etomo.ui.FieldType;
 import etomo.util.Utilities;
 
 /**
@@ -51,7 +52,8 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final JPanel pnlProcessName = new JPanel();
   private final SimpleButton btnChunkComscript = new SimpleButton(iconFolder);
-  private final LabeledTextField ltfProcessName = new LabeledTextField(PROCESS_NAME_LABEL);
+  private final LabeledTextField ltfProcessName = new LabeledTextField(FieldType.STRING,
+      PROCESS_NAME_LABEL);
   private final MultiLineButton btnRunProcess = MultiLineButton
       .getToggleButtonInstance("Run Parallel Process");
   private final GridBagLayout layout = new GridBagLayout();
@@ -79,7 +81,7 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
     constraints.weighty = 0.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
-    ltfProcessName.setTextPreferredSize(new Dimension(125 * Math
+    ltfProcessName.setTextPreferredSize(new Dimension(125 * (int) Math
         .round(UIParameters.INSTANCE.getFontSizeAdjustment()),
         FixedDim.folderButton.height));
     constraints.insets = new Insets(0, 0, 0, -1);

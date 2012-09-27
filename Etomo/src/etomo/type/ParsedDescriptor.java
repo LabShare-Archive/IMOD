@@ -282,7 +282,7 @@ abstract class ParsedDescriptor extends ParsedElement {
     descriptor.set(index, element);
   }
 
-  void setRawString(final int index, final float number) {
+  void setRawString(final int index, final double number) {
     ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
         defaultValue, allowNan);
     element.setRawString(number);

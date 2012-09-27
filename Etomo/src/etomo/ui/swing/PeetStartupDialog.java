@@ -23,6 +23,7 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.DataFileType;
 import etomo.type.UITestFieldType;
+import etomo.ui.FieldType;
 import etomo.util.Utilities;
 
 /**
@@ -48,7 +49,8 @@ public final class PeetStartupDialog implements UIComponent {
 
   private final JPanel pnlRoot = new JPanel();
   private final CheckBox cbCopyFrom = new CheckBox(COPY_FROM_LABEL);
-  private final LabeledTextField ltfBaseName = new LabeledTextField("Base name: ");
+  private final LabeledTextField ltfBaseName = new LabeledTextField(FieldType.STRING,
+      "Base name: ");
   private final MultiLineButton btnOk = new MultiLineButton("OK");
   private final MultiLineButton btnCancel = new MultiLineButton("Cancel");
 
