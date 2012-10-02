@@ -34,7 +34,9 @@ passed to Pickbestseed(1), which takes everything into account to pick out the
 best beads for a seed and produces the final seed model.
 .P
 The various intermediate files involved are placed in a temporary
-directory created in the current directory (see the "-tempdir" option).
+directory created in the current directory (see the 
+.B -tempdir
+option).
 Some of them are cleaned up after a run, but
 some are kept so that Pickbestseed(1) can be run over again with different
 parameters, without having to rerun the bead finding and tracking, and some
@@ -99,24 +101,32 @@ with some of the selected beads assigned to the wrong surface, then one remedy
 is to exclude bad surface information from particular Beadtrack(1) runs.
 Use 3dmodv(1) to examine the sorted models with extension ".sortmod" in the
 temporary directory.  If at least one of these models shows proper sorting and
-some models do not, use the "-ignore" option to exclude surface information
+some models do not, use the 
+.B -ignore
+option to exclude surface information
 from the runs with bad sorting.  If that is unsuccessful, you can try
-the "-drop" option instead to omit those tracked models completely from
+the 
+.B -drop
+option instead to omit those tracked models completely from
 consideration.
 .P
 Another remedy for problems created by large clumps is to use a boundary model
 to exclude them.  Note that it is possible to draw contours just around areas
-to exclude, rather than around areas to include, if you use the "-exclude"
+to exclude, rather than around areas to include, if you use the 
+.B -exclude
 option.
 .P
 If there are particles other than gold selected as beads, or if some gold
 particles seem not to be found, it may help to examine the ".pkmod" model
 produced by Imodfindbeads(s) and left in the temporary directory.  Open the
 Bead Fixer in 3dmod to see whether adjusting the threshold upward removes
-undesired points; if so you can try the "-peaks" option with a value less than
-1 to remove a fraction
+undesired points; if so you can try the 
+.B -peaks
+option with a value less than 1 to remove a fraction
 of the points with the lowest peak strengths.  To add more points than appear
-in this model, use "-peaks" options with a value greater than 1.
+in this model, use 
+.B -peaks
+options with a value greater than 1.
 .P
 When sorting onto two surfaces is requested, the points are still placed in a single
 object in the output model, but the ones on the top surface are given a
@@ -163,11 +173,13 @@ afsnnn.#.elong   - text file with mean residual and elongation data
 afsnnn.#.xyzmod  - 3D model of beads tracked from one view
 afsnnn.#.sortmod - 3D model after sorting onto two surfaces
 afsnnn.#.surf    - text file with surface assignments
-
+.fi
 The ".seed", ".xyzpt", and ".surf" files are cleaned after a run;
 the ".track", ".xyzmod", and ".elong" files are needed for rerunning
 SortbeadSurfs(1) and Pickbestseed(1), and the  "pkmod" and ".sortmod" files
-are left solely for user information.
+are left solely for user information.  A copy of the track command file is
+also placed in the temporary directory so that the program can make sure that
+it has changed.
 
 .SH AUTHOR
 .nf
