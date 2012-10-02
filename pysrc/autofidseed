@@ -16,7 +16,7 @@ def cleanup(exts, pidstr):
    else:
       leftStr = 'Some'
       for ext in exts:
-         cleanlist = glob.glob(tmproot + '*' + ext)
+         cleanlist = glob.glob(tmproot + '*' + ext + '*')
          cleanupFiles(cleanlist)
 
    if leavetmp or len(exts) == len(cleanExts):
@@ -274,7 +274,7 @@ def reviseNumSeedViews(peaksTot, nsViews):
 #### MAIN PROGRAM  ####
 #
 # load System Libraries
-import os, sys, os.path, signal, glob, math
+import os, sys, os.path, signal, glob, math, shutil
 from math import fabs
 
 #
@@ -325,12 +325,13 @@ minSubareaSize = 2500
 lowBorderPixPerK = 32
 highBorderPixPerK = 24
 lowHighBreakpoint = 2048
+minDoTilt = 40.
 moreViewCrit5 = 1.    # Not all points are usable
 moreViewCrit7 = 0.5   # This is unlikely to help more so make the threshold low
 leavetmp = 0
 
-# Extensions for files that are always cleaned up, files that are left for resumin
-# and files that are left for user edification only
+# Extensions for files that are always cleaned up, files that are left for resuming
+# and files that are left for user edification only.  Make all extensions unique
 cleanExts = ['.seed', '.xyzpt', '.surf']
 resumeExts = ['.track', '.xyzmod', '.elong']
 infoExts = ['pkmod', '.sortmod']
@@ -432,12 +433,13 @@ if ignoreStr:
    ignoreList = parselist(ignoreStr)
    
 # Read com file and get critical entries
-tracklines = readTextFile(trackcom)
+rawTracklines = readTextFile(trackcom)
 
 # find beadtrack command line then end of input (from transferfid)
 startline = -1
-for i in range(len(tracklines)):
-   line = tracklines[i].strip()
+endline = len(rawTracklines)
+for i in range(endline):
+   line = rawTracklines[i].strip()
    if line.startswith('$') and line.find('beadtrack') >=0 and line.find('-Standard') > 0:
       startline = i + 1
    elif startline > 0 and line.startswith('$'):
@@ -447,13 +449,16 @@ if startline < 0:
    exitError('Old version of ' + trackcom + ' cannot be used; convert it by opening ' +\
              'and closing the fiducial tracking panel in etomo')
 
-tracklines = tracklines[startline:endline]
+tracklines = rawTracklines[startline:endline]
 
 imageFile = optionValue(tracklines, 'ImageFile', 0)
 if not seedFile:
    seedFile = optionValue(tracklines, 'InputSeedModel', 0)
 lightBeads = optionValue(tracklines, 'LightBeads', 3)
 rotationArr = optionValue(tracklines, 'RotationAngle', 2);
+doTiltArr = optionValue(tracklines, 'MinTiltRangeToFindAngles', 2)
+if doTiltArr and doTiltArr[0] > minDoTilt:
+   minDoTilt = doTiltArr[0]
 if not os.path.exists(imageFile):
    exitError("The prealigned stack " + imageFile + " does not exist yet")
    
@@ -565,6 +570,9 @@ spacingStr = str(spacing)
 if boundModel:
    boundMtime = int(os.stat(boundModel).st_mtime)
 
+(comdir, comname) = os.path.split(trackcom)
+comSaved = tmpdir + '/' + comname
+
 # Process info file fully now
 if oldValid:
    infoLines = readTextFile(infoName)
@@ -582,8 +590,22 @@ if oldValid:
    numPeakArr = optionValue(infoLines, 'NumPeaks', 1)
    numSeedArr = optionValue(infoLines, 'NumViews', 1)
    viewEnterInfo = optionValue(infoLines, 'ViewsEntered', 3)
+
+   # Need to check contents of track.com if it doesn't match time
+   trackMatches = False
+   if trackInfo == trackcom and trackTimeArr and trackTimeArr[0] != trackMtime:
+      if os.path.exists(comSaved):
+         savedLines = readTextFile(comSaved)
+         if len(savedLines) == len(rawTracklines):
+            for ind in range(len(savedLines)):
+               if savedLines[ind] != rawTracklines[ind]:
+                  break
+            else:
+               trackMatches = True
+
+   # Now ready to evaluate validity
    oldValid = pidInfo and trackInfo == trackcom and \
-       trackTimeArr and trackTimeArr[0] == trackMtime and \
+       trackTimeArr and (trackTimeArr[0] == trackMtime or trackMatches) and \
        imageTimeArr and imageTimeArr[0] == imageMtime and \
        beadInfo == beadStr and \
        guessInfoArr and guessInfoArr[0] == guess and \
@@ -744,6 +766,7 @@ for ind in range(numSeedViews):
                 '?^RoundsOfTracking?s?[ 	].*? 2?',
                 fmtstr('?^LocalAreaTracking?s?[ 	].*? {}?', localTrack),
                 fmtstr('?^LocalAreaTargetSize?s?[ 	].*? {}?', localSize),
+                fmtstr('?^MinTiltRangeToFindAngles?s?[ 	].*? {}?', minDoTilt),
                 '?^OutputModel?a?ElongationOutputFile ' + tmpelong[ind] + '?',
                 '?^OutputModel?a?SkipViews ' + skipList + '?']
       if twoSurf:
@@ -781,6 +804,11 @@ if not oldValid:
    if boundModel:
       newinfo += ['BoundFile ' + boundModel, 'BoundTime ' + str(boundMtime)]
    writeTextFile(infoName, newinfo)
+   cleanupFiles(comSaved)
+   try:
+      shutil.copyfile(trackcom, comSaved)
+   except:
+      print 'WARNING: autofidseed - failed to copy ' + trackcom + ' to ' + tmpdir
 
 # Sort the beads onto two surfaces for each model
 if twoSurf:
