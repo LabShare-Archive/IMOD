@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/2/12: Changed Autofidseed to keep Beadtrack from solving for tilt angles
+and to save a copy of the track com file for comparison.
+
 9/28/12: Keeping most of the 3dmod debug code in eTomo (debug level 3).
 (Bug# 1646)
 
