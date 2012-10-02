@@ -772,6 +772,7 @@ if doblend:
                          xpc + 1 - xlo, ypc + 1 - ylo, xory, zlo - 1, zhi - 1))
 
    # Output a command file before running it
+   sys.stdout.flush()
    comlist = ['$blendmont -StandardInput\n']
    for l in input:
       comlist.append(l + '\n')
