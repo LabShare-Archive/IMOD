@@ -124,7 +124,7 @@ public class EtomoDirector {
           Object key = iterator.next();
           System.err.println(key + ":  " + env.get(key));
         }
-        if (EtomoDirector.INSTANCE.arguments.getDebugLevel() > 1) {
+        if (EtomoDirector.INSTANCE.arguments.isDebugLevel(2)) {
           System.err.println();
           System.err.println("Java lib:");
           File libDir = new File(new File(System.getProperty("java.home")), "lib");
@@ -974,7 +974,7 @@ public class EtomoDirector {
     catch (Exception excep) {
       System.err.println("Could not set " + lookAndFeelClassName + " look and feel");
     }
-    if (arguments.getDebugLevel() > 1) {
+    if (arguments.isDebugLevel(2)) {
       // print look and feel info
       System.err.println("\nLook and feel defaults:");
       UIDefaults uiDefaults = UIManager.getLookAndFeelDefaults();

@@ -868,8 +868,7 @@ public class ImodProcess {
     // copying the clipboard onto the message area. 3dmod will crash if there is
     // something big in the clipboard.
 
-    // TEMP Bug# 1646
-    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+    if (EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
       commandOptions.add("-D");
       if (OSType.getInstance() == OSType.MAC && outputWindowID && !listenToStdin) {
         commandOptions.add("-L");
@@ -1015,9 +1014,8 @@ public class ImodProcess {
 
       // Check the stderr of the 3dmod process for the windowID and the
       String line;
-      // TEMP Bug# 1646
-      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-        System.err.println("Bug# 1646:  open " + Utilities.getDateTimeStamp(true));
+      if (EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
+        System.err.println("ImodProcess:open " + Utilities.getDateTimeStamp(true));
       }
       Integer stderrRegId = stderr.register();
       while (imodThread.isAlive() && windowID.equals("")) {
@@ -1979,11 +1977,6 @@ public class ImodProcess {
      * @return
      */
     private String getRequestMessage() {
-      // TEMP Bug# 1646
-      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-        System.err.println("Bug# 1646:  get request message "
-            + Utilities.getDateTimeStamp(true));
-      }
       readStderr();
       return (String) requestQueue.poll();
     }
@@ -2067,10 +2060,9 @@ public class ImodProcess {
      */
     public synchronized void run() {
       try {
-        // TEMP Bug# 1646
-        if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-          System.err.println("Bug# 1646:  continuous listener "
-              + Utilities.getDateTimeStamp(true));
+        if (EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
+          System.err
+              .println("ContinuousListener:run " + Utilities.getDateTimeStamp(true));
         }
         do {
           Thread.sleep(500);
@@ -2135,9 +2127,8 @@ public class ImodProcess {
             }
             return;
           }
-          // TEMP Bug# 1646
-          if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-            System.err.println("Bug# 1646:  setting stdin "
+          if (EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
+            System.err.println("ImodProcess:MessageSender:run:Setting stdin "
                 + Utilities.getDateTimeStamp(true));
           }
           imod.setCurrentStdInput(buffer.toString());
@@ -2174,9 +2165,8 @@ public class ImodProcess {
       String response = null;
       StringBuffer userMessage = new StringBuffer();
       // wait for the response for at most 5 seconds
-      // TEMP Bug# 1646
-      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-        System.err.println("Bug# 1646:  read response "
+      if (EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
+        System.err.println("ImodProcess:MessageSender:readResponse "
             + Utilities.getDateTimeStamp(true));
       }
       for (int timeout = 0; timeout < 30; timeout++) {
@@ -2185,11 +2175,6 @@ public class ImodProcess {
         }
         // process response
         boolean failure = false;
-        // TEMP Bug# 1646
-        if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-          System.err.println("Bug# 1646:  waiting for response "
-              + Utilities.getDateTimeStamp(true));
-        }
         while ((response = stderr.getQuickMessage(messageSenderRegId)) != null) {
           responseReceived = true;
           if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
@@ -2198,11 +2183,6 @@ public class ImodProcess {
           response = response.trim();
           if (response.equals("OK")) {
             // OK is sent last, so this is done
-            // TEMP Bug# 1646
-            if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-              System.err.println("Bug# 1646:  received OK "
-                  + Utilities.getDateTimeStamp(true));
-            }
             break;
           }
           // if the response is not OK or an error message meant for the user

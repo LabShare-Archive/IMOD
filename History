@@ -1,17 +1,23 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-9/26/12: Enabled the GPU check box in the Setup Tomogram dialog when the local
-host has a GPU available (eTomo).(Bug# 1642)
+10/2/12: Changed Autofidseed to keep Beadtrack from solving for tilt angles
+and to save a copy of the track com file for comparison.
 
-9/25/12: ETomo: fixed null pointer exceptions.(Bug# 1645)
+9/28/12: Keeping most of the 3dmod debug code in eTomo (debug level 3).
+(Bug# 1646)
+
+9/27/12: ETomo: fixed a problem involving the incorrect handling of 3dmod's
+stderr, which could potentially cause eTomo to lock up until 3dmod exits.
+(Bug# 1647)
+
+9/27/12: ETomo: fixed null pointer exceptions.(Bug# 1645)
+
+9/27/12: Enabled the GPU check box in the Setup Tomogram dialog when the local
+host has a GPU available (eTomo).(Bug# 1642)
 
 9/25/12: ETomo:  rearranged the file, fixed the crash that happened when the
 wrong file type was passed to eTomo, and other miscellaneous changes.
 (Bug# 1643).
-
-9/24/12: ETomo: fixed a problem involving the incorrect handling of 3dmod's
-stderr, which could potentially cause eTomo to lock up until 3dmod exits.
-(Bug# 1647)
 
 9/18/12: Fixed 3dmod crashing on X-ray model with no objects (In 4.5).
 
