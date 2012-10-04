@@ -32,14 +32,14 @@ int main(int argc, char *argv[])
   int lines, linesDone, version, linesPerChunk, doChunks = 0;
   size_t xysize, allocSize;
   int i, j, slmode, z, iarg = 1, stack = 0, resolution = 0, initialNum = -1;
-  int oldcode = 0, convert = 0;
+  int oldcode = 0, convert = 0, usePixel = 0;
   int compression = 1, black = 0, white = 255, zmin = -1, zmax = -1;
   int quality = -1;
   b3dUInt32 ifdOffset = 0, dataOffset = 0;
   float chunkCriterion = 100.;
   float savecrit, dmin, dmax, smin =0., smax = 0.;
   float val[3];
-  float scale, offset;
+  float scale, offset, xscale, yscale, zscale;
   char prefix[100];
   IloadInfo li;
   ImodImageFile *iifile = iiNew();
@@ -85,6 +85,10 @@ int main(int argc, char *argv[])
         resolution = atoi(argv[++iarg]);
         break;
 
+      case 'P':
+        usePixel = 1;
+        break;
+
       case 'S':
         sscanf(argv[++iarg], "%f%*c%f", &smin, &smax);
         convert = 1;
@@ -123,9 +127,10 @@ int main(int argc, char *argv[])
 
   if (oldcode && compression != 1)
     exitError("Compression not available with old writing code");
-  if (oldcode && resolution > 0)
+  if (oldcode && (resolution > 0 || usePixel))
     exitError("Resolution setting is not available with old writing code");
-
+  if (resolution > 0 && usePixel)
+    exitError("You cannot enter both -r and -P");
 
   if (argc - iarg != 2){
     printf("%s version %s \n", progname, VERSION_NAME);
@@ -146,6 +151,7 @@ int main(int argc, char *argv[])
     printf("    -z min,max Starting and ending Z (from 0) to output\n");
     printf("    -i #       Initial file number (default is starting Z)\n");
     printf("    -r #       Resolution setting in dots per inch\n");
+    printf("    -P         Use pixel spacing in MRC header for resolution setting\n");
     printf("    -t #       Criterion image size in megabytes for processing "
            "file in strips\n");
     printf("    -o         Write file with old IMOD code instead of libtiff"
@@ -159,6 +165,10 @@ int main(int argc, char *argv[])
   if (mrc_head_read(fin, &hdata))
     exitError("Can't Read Input Header from %s", argv[iarg]);
   iarg++;
+  if (usePixel) {
+    mrc_get_scale(&hdata, &xscale, &yscale, &zscale);
+    resolution = 2.54e8 / xscale;
+  }
 
   if (zmin == -1 && zmax == -1) {
     zmin = 0;
