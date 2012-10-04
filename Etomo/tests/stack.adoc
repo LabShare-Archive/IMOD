@@ -88,6 +88,11 @@ run.function.final-align-command=
 	cb.fiducialless-alignment=on
 	assert.enabled.tf.tilt-axis-rotation=
 	cb.fiducialless-alignment=off
+	#test field validation
+	tf.tilt-axis-rotation=%{image-rotation}abc
+	bn.create-full-aligned-stack=
+	wait.popup.field-validation-failed=OK
+	tf.tilt-axis-rotation=%{image-rotation}
 [[]]
 [[ifnot = build]]
 	# run binned
@@ -149,6 +154,11 @@ run.function.ctf-correction=
 	assert.tf.amplitude-contrast=0.07
 	assert.cb.invert-sign-of-tilt-angles=off
 	mb.ctf-correction=B
+	#test field validation
+	tf.amplitude-contrast=0.07abc
+	bn.run-ctf-plotter=
+	wait.popup.field-validation-failed=OK
+	tf.amplitude-contrast=0.07
 [[]]
 run.function.ctf-plotter=
 run.function.ctf-phase-flip=
@@ -188,6 +198,8 @@ run.function.ctf-phase-flip=
 	assert.tf.interpolation-width=20
 	assert.bn.correct-ctf=off
 	assert.bn.use-ctf-correction=off
+  mb.ctf-correction=A
+  assert.tf.defocus-tolerance=200
 	# check enabled/disabled
 	assert.enabled.cb.use-expected-defocus-instead-of-ctfplotter-output=
 	assert.enabled.cb.parallel-processing=
@@ -195,6 +207,13 @@ run.function.ctf-phase-flip=
 	assert.enabled.bn.correct-ctf=
 	assert.enabled.bn.view-ctf-correction=
 	assert.enabled.bn.use-ctf-correction=
+  assert.enabled.tf.defocus-tolerance=
+	#test field validation
+	tf.defocus-tolerance=200abc
+	bn.correct-ctf=
+	wait.popup.field-validation-failed=OK
+	tf.defocus-tolerance=200
+	mb.ctf-correction=B
 [[]]
 # run with parallel processing
 cb.parallel-processing=on
@@ -550,6 +569,11 @@ mb.find-beads-3d=-
 	assert.enabled.bn.erase-beads=
 	assert.enabled.bn.view-erased-stack=
 	assert.enabled.bn.use-erased-stack=
+	#test field validation
+	tf.diameter-to-erase=%{rounded-unbinned-bead-diameter}abc
+	bn.erase-beads=
+  wait.popup.field-validation-failed=OK
+	tf.diameter-to-erase=%{rounded-unbinned-bead-diameter}
 [[]]
 # run
 bn.erase-beads=
@@ -665,4 +689,9 @@ assert.not-exists.file = %{dataset}%{axis}_filt.ali
 	assert.enabled.tf.maximum-inverse=
 	assert.enabled.tf.rolloff=
 	mb.2d-filtering=B
+	#test field validation
+	tf.rolloff=0.12,0.05abc
+	bn.filter=
+	wait.popup.field-validation-failed=OK
+	tf.rolloff=0.12,0.05
 [[]]

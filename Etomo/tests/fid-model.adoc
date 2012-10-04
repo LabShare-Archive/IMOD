@@ -5,6 +5,10 @@ Version = 1.2
 if.var.quick.run.function.quick=
 if.var.quick.return=
 run.function.fiducial-model-generation=
+[[if = test-gui]]
+  #test field validation suppression
+  tf.view-skip-list=abc
+[[]]
 bn.done=
 
 
@@ -184,6 +188,11 @@ mb.beadtracker=+
 	assert.disabled.tf.minimum-beads-in-area=
 	assert.disabled.tf.minimum-beads-overlapping=
 	mb.beadtracker.1=B
+	#Test field validation
+	tf.view-skip-list=abc
+	bn.track-seed-model=
+	wait.popup.field-validation-failed=OK
+	tf.view-skip-list=
 [[]]
 run.function.expert-parameters=
 cb.refine-center-with-sobel-filter=on
