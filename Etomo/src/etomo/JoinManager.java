@@ -47,7 +47,6 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SlicerAngles;
-import etomo.ui.FieldValidationFailedException;
 import etomo.ui.swing.Deferred3dmodButton;
 import etomo.ui.swing.JoinDialog;
 import etomo.ui.swing.LogInterface;
@@ -600,11 +599,10 @@ public final class JoinManager extends BaseManager {
     return retval;
   }
 
-  public boolean setParamFile(final boolean doValidation)
-      throws FieldValidationFailedException {
+  public boolean setParamFile() {
     if (!loadedParamFile && joinDialog != null) {
       String dir = joinDialog.getWorkingDirName();
-      String root = joinDialog.getRootName(doValidation);
+      String root = joinDialog.getRootName();
       if (dir != null && !dir.matches("\\s*") && root != null && !root.matches("\\s*")) {
         File file = new File(dir, root + DataFileType.JOIN.extension);
         if (!file.exists()) {
@@ -698,13 +696,7 @@ public final class JoinManager extends BaseManager {
       }
       propertyUserDir = workingDir;
     }
-    String rootName = null;
-    try {
-      rootName = joinDialog.getRootName(true);
-    }
-    catch (FieldValidationFailedException e) {
-      return false;
-    }
+    String rootName = joinDialog.getRootName();
     if (rootName == null) {
       return false;
     }
@@ -1121,9 +1113,9 @@ public final class JoinManager extends BaseManager {
   public void xfjointomo(ConstProcessSeries processSeries) {
     XfjointomoParam xfjointomoParam = new XfjointomoParam(this, state.getRefineTrial()
         .is());
-   if (! joinDialog.getParameters(xfjointomoParam, true)) {
-     return;
-   }
+    if (!joinDialog.getParameters(xfjointomoParam, true)) {
+      return;
+    }
     try {
       threadNameA = processMgr.xfjointomo(xfjointomoParam, processSeries);
     }
