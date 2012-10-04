@@ -10,6 +10,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.ui.swing.TooltipFormatter;
 
 /**
@@ -173,16 +174,16 @@ final class TiltAnglePanel {
     return rbFile.isSelected();
   }
 
-  String getMin() {
-    return ltfMin.getText();
+  String getMin(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfMin.getText(doValidation);
   }
 
   boolean isMinEmpty() {
     return ltfMin.isEmpty();
   }
 
-  String getStep() {
-    return ltfStep.getText();
+  String getStep(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfStep.getText(doValidation);
   }
 
   boolean isStepEmpty() {

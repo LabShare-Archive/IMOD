@@ -392,7 +392,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   private FiducialModelDialog(final ApplicationManager appMgr, final AxisID axisID,
       final AxisType axisType) {
     super(appMgr, axisID, DialogType.FIDUCIAL_MODEL);
-    //initialize final member variables
+    // initialize final member variables
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
     btnSeed = (Run3dmodButton) displayFactory.getSeedFiducialModel();
@@ -400,7 +400,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     pnlBeadtrack = BeadtrackPanel.getInstance(appMgr, axisID, dialogType, btnAdvanced);
     tiltxcorrPanel = TiltxcorrPanel.getPatchTrackingInstance(appMgr, axisID,
         DialogType.FIDUCIAL_MODEL, btnAdvanced);
-    //root panel
+    // root panel
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     JPanel opnlMethod = new JPanel();
     opnlMethod.setLayout(new BoxLayout(opnlMethod, BoxLayout.X_AXIS));
@@ -410,7 +410,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     opnlMethod.add(Box.createHorizontalGlue());
     pnlFiducialModel.add(opnlMethod);
     rootPanel.add(pnlFiducialModel.getContainer());
-    //fiducial model panel
+    // fiducial model panel
     pnlFiducialModel.setBoxLayout(BoxLayout.Y_AXIS);
     pnlFiducialModel
         .setBorder(new BeveledBorder("Fiducial Model Generation").getBorder());
@@ -432,32 +432,32 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     pnlSeed.add(Box.createHorizontalGlue());
     pnlFiducialModel.add(pnlSeed);
     pnlFiducialModel.add(pnlBeadtrack.getContainer());
-    //transfer fiducials panel
+    // transfer fiducials panel
     if (pnlTransferfid != null) {
       pnlTransferfid.setDeferred3dmodButtons();
     }
-    //Method panel
+    // Method panel
     pnlMethod.setLayout(new BoxLayout(pnlMethod, BoxLayout.Y_AXIS));
     pnlMethod.setBorder(BorderFactory.createEtchedBorder());
     pnlMethod.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlMethod.add(rbMethodSeed.getComponent());
     pnlMethod.add(rbMethodPatchTracking.getComponent());
     pnlMethod.add(rbMethodRaptor.getComponent());
-    //RAPTOR panel
+    // RAPTOR panel
 
-    //exit button panel
+    // exit button panel
     addExitButtons();
-    //set initial values
+    // set initial values
     rbMethodSeed.setSelected(true);
-    //seed button
+    // seed button
     btnSeed.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnSeed.setSize();
     btnSeed.setContainer(this);
     //
     btnExecute.setText("Done");
-    //tool tips
+    // tool tips
     setToolTipText();
-    //set dialog display state
+    // set dialog display state
     if (axisType == AxisType.DUAL_AXIS && axisID == AxisID.SECOND) {
       turnOffRaptor();
     }
@@ -523,7 +523,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   /**
    * Set the parameters for the specified beadtrack panel
    */
-  public void setBeadtrackParams(final/*Const*/BeadtrackParam beadtrackParams) {
+  public void setBeadtrackParams(final/* Const */BeadtrackParam beadtrackParams) {
     raptorPanel.setBeadtrackParams(beadtrackParams);
     pnlBeadtrack.setParameters(beadtrackParams);
   }
@@ -549,8 +549,8 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     }
   }
 
-  public boolean getParameters(final RunraptorParam param) {
-    return raptorPanel.getParameters(param);
+  public boolean getParameters(final RunraptorParam param, final boolean doValidation) {
+    return raptorPanel.getParameters(param, doValidation);
   }
 
   public void getParameters(final MetaData metaData) {
@@ -589,21 +589,23 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     if (pnlTransferfid != null) {
       pnlTransferfid.setParameters(screenState);
     }
-    //btnSeed.setButtonState(screenState.getButtonState(btnSeed
-    //   .getButtonStateKey()));
+    // btnSeed.setButtonState(screenState.getButtonState(btnSeed
+    // .getButtonStateKey()));
     pnlBeadtrack.setParameters(screenState);
   }
 
-  public void getTransferFidParams() {
+  public boolean getTransferFidParams(final boolean doValidation) {
     if (pnlTransferfid != null) {
-      pnlTransferfid.getParameters();
+      return pnlTransferfid.getParameters(doValidation);
     }
+    return true;
   }
 
-  public void getTransferFidParams(final TransferfidParam transferFidParam) {
+  public boolean getTransferFidParams(final TransferfidParam transferFidParam,final boolean doValidation) {
     if (pnlTransferfid != null) {
-      pnlTransferfid.getParameters(transferFidParam);
+   return   pnlTransferfid.getParameters(transferFidParam,doValidation);
     }
+    return true;
   }
 
   public void setTransferfidEnabled(final boolean fileExists) {
@@ -626,7 +628,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     logFile[0] = "track" + axisID.getExtension() + ".log";
     logFile[1] = "transferfid.log";
 
-    //    ContextPopup contextPopup =
+    // ContextPopup contextPopup =
     new ContextPopup(pnlFiducialModel.getContainer(), mouseEvent, "GETTING FIDUCIAL",
         ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
         applicationManager, axisID);
@@ -651,7 +653,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
         run3dmodMenuOptions);
   }
 
-  //  Action function for buttons
+  // Action function for buttons
   private void buttonAction(final String command,
       Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
@@ -714,7 +716,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   }
 
   //
-  //	Action listener adapters
+  // Action listener adapters
   //
   private final class FiducialModelActionListener implements ActionListener {
 

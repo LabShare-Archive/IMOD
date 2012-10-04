@@ -61,7 +61,9 @@ public final class AutoAlignmentController {
     XfalignParam xfalignParam = new XfalignParam(manager.getName(),
         manager.getPropertyUserDir(), manager.getAutoAlignmentMetaData(),
         XfalignParam.Mode.INITIAL, tomogramAverages);
-    display.getAutoAlignmentParameters(xfalignParam);
+    if (!display.getAutoAlignmentParameters(xfalignParam, true)) {
+      return;
+    }
     try {
       manager.setThreadName(processManager.xfalign(xfalignParam, axisID, processSeries),
           axisID);
@@ -85,7 +87,9 @@ public final class AutoAlignmentController {
     XfalignParam xfalignParam = new XfalignParam(manager.getName(),
         manager.getPropertyUserDir(), manager.getAutoAlignmentMetaData(),
         XfalignParam.Mode.REFINE, tomogramAverages);
-    display.getAutoAlignmentParameters(xfalignParam);
+    if (!display.getAutoAlignmentParameters(xfalignParam, true)) {
+      return;
+    }
     if (!copyMostRecentXfFile(description)) {
       return;
     }
@@ -211,7 +215,7 @@ public final class AutoAlignmentController {
     return true;
   }
 
-   boolean copyMostRecentXfFile(final String commandDescription) {
+  boolean copyMostRecentXfFile(final String commandDescription) {
     FileType newestXfFileType = Utilities.mostRecentFile(manager, axisID,
         LOCAL_TRANSFORMATION_LIST_FILES, 2/* EMPTY_LOCAL_TRANSFORMATION_LIST */);
     // If the most recent .xf file is not root.xf, copy it to root.xf

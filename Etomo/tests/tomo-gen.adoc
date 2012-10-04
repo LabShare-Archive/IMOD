@@ -8,6 +8,10 @@ run.function.tilt=
 if.var.test-gui.run.function.test-files=
 if.var.build.bn.done=
 if.var.build.return=
+[[if = test-gui]]
+  #test field validation suppression with a field that is normally blank
+  tf.tomogram-width-in-x=abc
+[[]]
 bn.done=
 
 

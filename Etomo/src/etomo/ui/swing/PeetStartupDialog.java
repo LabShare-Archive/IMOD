@@ -24,6 +24,7 @@ import etomo.type.AxisID;
 import etomo.type.DataFileType;
 import etomo.type.UITestFieldType;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.Utilities;
 
 /**
@@ -172,16 +173,20 @@ public final class PeetStartupDialog implements UIComponent {
   }
 
   /**
-   * Returns filleed peet startup data instance.  Does not do validation.
+   * Returns filled peet startup data instance.  Does not do validation.
    * @return
    */
   private PeetStartupData getStartupData() {
     PeetStartupData startupData = new PeetStartupData();
-    startupData.setDirectory(ftfDirectory.getText());
-    if (cbCopyFrom.isSelected()) {
-      startupData.setCopyFrom(ftfCopyFrom.getText());
+    try {
+      startupData.setDirectory(ftfDirectory.getText());
+      if (cbCopyFrom.isSelected()) {
+        startupData.setCopyFrom(ftfCopyFrom.getText());
+      }
+      startupData.setBaseName(ltfBaseName.getText(false));
     }
-    startupData.setBaseName(ltfBaseName.getText());
+    catch (FieldValidationFailedException e) {
+    }
     return startupData;
   }
 
@@ -244,9 +249,14 @@ public final class PeetStartupDialog implements UIComponent {
       }
     }
     if (errorMessage == null) {
-      if (!DatasetTool.validateDatasetName(manager, this, axisID, ftfDirectory.getFile(),
-          ltfBaseName.getText(), DataFileType.PEET, null)) {
-        return false;
+      try {
+        if (!DatasetTool.validateDatasetName(manager, this, axisID,
+            ftfDirectory.getFile(), ltfBaseName.getText(false), DataFileType.PEET, null)) {
+          return false;
+        }
+      }
+      catch (FieldValidationFailedException e) {
+        e.printStackTrace();
       }
       return true;
     }

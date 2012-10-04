@@ -11,6 +11,7 @@ import javax.swing.ButtonGroup;
 import etomo.BaseManager;
 import etomo.storage.MatlabParam;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -141,10 +142,16 @@ final class SphericalSamplingForThetaAndPsiPanel {
     ltfSampleInterval.setText(matlabParam.getSampleInterval());
   }
 
-  void getParameters(final MatlabParam matlabParam) {
-    matlabParam.setSampleSphere(((RadioButton.RadioButtonModel) bgSampleSphere
-        .getSelection()).getEnumeratedType());
-    matlabParam.setSampleInterval(ltfSampleInterval.getText());
+  boolean getParameters(final MatlabParam matlabParam, final boolean doValidation) {
+    try {
+      matlabParam.setSampleSphere(((RadioButton.RadioButtonModel) bgSampleSphere
+          .getSelection()).getEnumeratedType());
+      matlabParam.setSampleInterval(ltfSampleInterval.getText(doValidation));
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   /**

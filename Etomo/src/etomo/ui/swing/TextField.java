@@ -77,6 +77,13 @@ final class TextField implements UIComponent {
     textField.setText(text);
   }
 
+  /**
+   * Validates and returns text in text field.  Should never throw a
+   * FieldValidationFailedException when doValidation is false.
+   * @param doValidation
+   * @return
+   * @throws FieldValidationFailedException
+   */
   String getText(final boolean doValidation) throws FieldValidationFailedException {
     String text = textField.getText();
     if (doValidation && textField.isEnabled() && fieldType.validationType.canValidate) {

@@ -15,6 +15,7 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.FidXyz;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -151,18 +152,23 @@ public final class UIExpertUtilities {
    * @return
    */
   public boolean updateFiducialessParams(ApplicationManager manager,
-      FiducialessParams dialog, AxisID axisID) {
-    double tiltAxisAngle;
+      FiducialessParams dialog, AxisID axisID, final boolean doValidation) {
     try {
-      return updateFiducialessParams(manager, dialog.getImageRotation(),
-          dialog.isFiducialess(), axisID);
+      double tiltAxisAngle;
+      try {
+        return updateFiducialessParams(manager, dialog.getImageRotation(doValidation),
+            dialog.isFiducialess(), axisID);
+      }
+      catch (NumberFormatException except) {
+        String[] errorMessage = new String[2];
+        errorMessage[0] = "Tilt axis rotation format error";
+        errorMessage[1] = except.getMessage();
+        UIHarness.INSTANCE.openMessageDialog(manager, errorMessage,
+            "Tilt axis rotation syntax error", axisID);
+        return false;
+      }
     }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[2];
-      errorMessage[0] = "Tilt axis rotation format error";
-      errorMessage[1] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage,
-          "Tilt axis rotation syntax error", axisID);
+    catch (FieldValidationFailedException e) {
       return false;
     }
   }

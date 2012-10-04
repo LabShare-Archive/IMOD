@@ -42,6 +42,7 @@ import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
 * <p>Description: </p>
@@ -341,9 +342,12 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
   }
 
   void getParameters(final MetaData metaData) {
+    try {
     metaData.setGenSubarea(axisID, cbSubarea.isSelected());
-    metaData.setGenSubareaSize(axisID, ltfSubareaSize.getText());
-    metaData.setGenYOffsetOfSubarea(axisID, ltfYOffsetOfSubarea.getText());
+    metaData.setGenSubareaSize(axisID, ltfSubareaSize.getText(false));
+    metaData.setGenYOffsetOfSubarea(axisID, ltfYOffsetOfSubarea.getText(false));}catch(FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
   }
 
   void setParameters(final ConstMetaData metaData) {
@@ -353,31 +357,34 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     loadResumeFrom();
   }
 
-  public boolean getParameters(final SirtsetupParam param) {
+  public boolean getParameters(final SirtsetupParam param,final boolean doValidation) {
+    try {
     try {
       if (ltfLeaveIterations.isEmpty()) {
         UIHarness.INSTANCE.openMessageDialog(manager, ltfLeaveIterations.getLabel()
             + " is empty.", "Entry Error", axisID);
         return false;
       }
-      param.setLeaveIterations(ltfLeaveIterations.getText());
+      param.setLeaveIterations(ltfLeaveIterations.getText(doValidation));
       if (cbSubarea.isSelected()) {
         if (ltfSubareaSize.isEmpty()) {
           UIHarness.INSTANCE.openMessageDialog(manager, ltfSubareaSize.getLabel()
               + " is empty.", "Entry Error", axisID);
           return false;
         }
-        param.setSubareaSize(ltfSubareaSize.getText());
-        param.setYOffsetOfSubarea(ltfYOffsetOfSubarea.getText());
+        param.setSubareaSize(ltfSubareaSize.getText(doValidation));
+        param.setYOffsetOfSubarea(ltfYOffsetOfSubarea.getText(doValidation));
       }
       else {
         param.resetSubareaSize();
         param.resetYOffsetOfSubarea();
       }
       param.setScaleToInteger(cbScaleToInteger.isSelected());
-      radiusAndSigmaPanel.getParameters(param);
+     if (! radiusAndSigmaPanel.getParameters(param,doValidation)) {
+       return false;
+     }
       param.setCleanUpPastStart(cbCleanUpPastStart.isSelected());
-      param.setFlatFilterFraction(ltfFlatFilterFraction.getText());
+      param.setFlatFilterFraction(ltfFlatFilterFraction.getText(doValidation));
       param.setSkipVertSliceOutput(cbSkipVertSliceOutput.isSelected());
     }
     catch (FortranInputSyntaxException e) {
@@ -404,7 +411,9 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
           "Please select an enabled starting option.", "Entry Error", axisID);
       return false;
     }
-    return true;
+    return true;}catch(FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   void setParameters(final SirtsetupParam param) {

@@ -1,5 +1,7 @@
 package etomo.ui.swing;
 
+import etomo.ui.FieldValidationFailedException;
+
 /**
 * <p>Description: </p>
 *
@@ -50,27 +52,27 @@ interface FinalCombineFields {
 
   public void setXMin(String xMin);
 
-  public String getXMin();
+  public String getXMin(final boolean doValidation) throws FieldValidationFailedException;
 
   public void setXMax(String xMax);
 
-  public String getXMax();
+  public String getXMax(final boolean doValidation) throws FieldValidationFailedException;
 
   public void setYMin(String yMin);
 
-  public String getYMin();
+  public String getYMin(final boolean doValidation) throws FieldValidationFailedException;
 
   public void setYMax(String yMax);
 
-  public String getYMax();
+  public String getYMax(final boolean doValidation) throws FieldValidationFailedException;
 
   public void setZMin(String zMin);
 
-  public String getZMin();
+  public String getZMin(final boolean doValidation) throws FieldValidationFailedException;
 
   public void setZMax(String zMax);
 
-  public String getZMax();
+  public String getZMax(final boolean doValidation) throws FieldValidationFailedException;
 
   public void setParallel(boolean parallel);
 

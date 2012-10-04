@@ -34,6 +34,7 @@ import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -990,53 +991,61 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
    * @param combineParams
    * @throws NumberFormatException
    */
-  public void getParameters(CombineParams combineParams) throws NumberFormatException {
-    String badParameter = "unknown";
+  public boolean getParameters(CombineParams combineParams, final boolean doValidation)
+      throws NumberFormatException {
     try {
-      combineParams.setMatchMode(rbBtoA.isSelected());
-      pnlSolvematch.getParameters(combineParams);
+      String badParameter = "unknown";
+      try {
+        combineParams.setMatchMode(rbBtoA.isSelected());
+        if (!pnlSolvematch.getParameters(combineParams, doValidation)) {
+          return false;
+        }
 
-      if (rbSmallPatch.isSelected()) {
-        combineParams.setPatchSize(CombinePatchSize.SMALL);
-      }
-      if (rbMediumPatch.isSelected()) {
-        combineParams.setPatchSize(CombinePatchSize.MEDIUM);
-      }
-      if (rbLargePatch.isSelected()) {
-        combineParams.setPatchSize(CombinePatchSize.LARGE);
-      }
+        if (rbSmallPatch.isSelected()) {
+          combineParams.setPatchSize(CombinePatchSize.SMALL);
+        }
+        if (rbMediumPatch.isSelected()) {
+          combineParams.setPatchSize(CombinePatchSize.MEDIUM);
+        }
+        if (rbLargePatch.isSelected()) {
+          combineParams.setPatchSize(CombinePatchSize.LARGE);
+        }
 
-      if (cbPatchRegionModel.isSelected()) {
-        combineParams.setDefaultPatchRegionModel();
+        if (cbPatchRegionModel.isSelected()) {
+          combineParams.setDefaultPatchRegionModel();
+        }
+        else {
+          combineParams.setPatchRegionModel("");
+        }
+
+        badParameter = ltfXMin.getLabel();
+        combineParams.setPatchXMin(Integer.parseInt(ltfXMin.getText(doValidation)));
+        badParameter = ltfXMax.getLabel();
+        combineParams.setPatchXMax(Integer.parseInt(ltfXMax.getText(doValidation)));
+        badParameter = ltfYMin.getLabel();
+        combineParams.setPatchYMin(Integer.parseInt(ltfYMin.getText(doValidation)));
+        badParameter = ltfYMax.getLabel();
+        combineParams.setPatchYMax(Integer.parseInt(ltfYMax.getText(doValidation)));
+        badParameter = ltfZMin.getLabel();
+        combineParams.setPatchZMin(ltfZMin.getText(doValidation));
+        badParameter = ltfZMax.getLabel();
+        combineParams.setPatchZMax(ltfZMax.getText(doValidation));
+        combineParams.setMaxPatchZMax(maxZMax);
+        badParameter = "unknown";
+
+        combineParams.setTempDirectory(ltfTempDirectory.getText(doValidation));
+
+        combineParams.setManualCleanup(cbManualCleanup.isSelected());
       }
-      else {
-        combineParams.setPatchRegionModel("");
+      catch (NumberFormatException except) {
+        String message = badParameter + " " + except.getMessage();
+        throw new NumberFormatException(message);
       }
-
-      badParameter = ltfXMin.getLabel();
-      combineParams.setPatchXMin(Integer.parseInt(ltfXMin.getText()));
-      badParameter = ltfXMax.getLabel();
-      combineParams.setPatchXMax(Integer.parseInt(ltfXMax.getText()));
-      badParameter = ltfYMin.getLabel();
-      combineParams.setPatchYMin(Integer.parseInt(ltfYMin.getText()));
-      badParameter = ltfYMax.getLabel();
-      combineParams.setPatchYMax(Integer.parseInt(ltfYMax.getText()));
-      badParameter = ltfZMin.getLabel();
-      combineParams.setPatchZMin(ltfZMin.getText());
-      badParameter = ltfZMax.getLabel();
-      combineParams.setPatchZMax(ltfZMax.getText());
-      combineParams.setMaxPatchZMax(maxZMax);
-      badParameter = "unknown";
-
-      combineParams.setTempDirectory(ltfTempDirectory.getText());
-
-      combineParams.setManualCleanup(cbManualCleanup.isSelected());
+      return true;
     }
-    catch (NumberFormatException except) {
-      String message = badParameter + " " + except.getMessage();
-      throw new NumberFormatException(message);
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-
   }
 
   public void setUsePatchRegionModel(boolean usePatchRegionModel) {
@@ -1052,40 +1061,40 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     ltfXMin.setText(xMin);
   }
 
-  public String getXMin() {
-    return ltfXMin.getText();
+  public String getXMin(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfXMin.getText(doValidation);
   }
 
   public void setXMax(String xMax) {
     ltfXMax.setText(xMax);
   }
 
-  public String getXMax() {
-    return ltfXMax.getText();
+  public String getXMax(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfXMax.getText(doValidation);
   }
 
   public void setYMin(String yMin) {
     ltfYMin.setText(yMin);
   }
 
-  public String getYMin() {
-    return ltfYMin.getText();
+  public String getYMin(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfYMin.getText(doValidation);
   }
 
   public void setYMax(String yMax) {
     ltfYMax.setText(yMax);
   }
 
-  public String getYMax() {
-    return ltfYMax.getText();
+  public String getYMax(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfYMax.getText(doValidation);
   }
 
   public void setZMin(String zMin) {
     ltfZMin.setText(zMin);
   }
 
-  public String getZMin() {
-    return ltfZMin.getText();
+  public String getZMin(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfZMin.getText(doValidation);
   }
 
   ProcessResultDisplay getCombineProcessResultDisplay() {
@@ -1096,8 +1105,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     ltfZMax.setText(zMax);
   }
 
-  public String getZMax() {
-    return ltfZMax.getText();
+  public String getZMax(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfZMax.getText(doValidation);
   }
 
   // InitialiCombineFields interface pass-thru
@@ -1135,20 +1144,23 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pnlSolvematch.setUseList(useList);
   }
 
-  public String getUseList() {
-    return pnlSolvematch.getUseList();
+  public String getUseList(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return pnlSolvematch.getUseList(doValidation);
   }
 
-  public String getFiducialMatchListA() {
-    return pnlSolvematch.getFiducialMatchListA();
+  public String getFiducialMatchListA(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return pnlSolvematch.getFiducialMatchListA(doValidation);
   }
 
   public void setFiducialMatchListB(String fiducialMatchListB) {
     pnlSolvematch.setFiducialMatchListB(fiducialMatchListB);
   }
 
-  public String getFiducialMatchListB() {
-    return pnlSolvematch.getFiducialMatchListB();
+  public String getFiducialMatchListB(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return pnlSolvematch.getFiducialMatchListB(doValidation);
   }
 
   public void action(final Run3dmodButton button,
@@ -1242,13 +1254,18 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   private void updateMatchTo() {
     // Swap the X and Y values if the matching state changes
     if ((matchBtoA && rbAtoB.isSelected()) || (!matchBtoA && rbBtoA.isSelected())) {
-      String temp = ltfXMin.getText();
-      ltfXMin.setText(ltfYMin.getText());
-      ltfYMin.setText(temp);
+      try {
+        String temp = ltfXMin.getText(false);
+        ltfXMin.setText(ltfYMin.getText(false));
+        ltfYMin.setText(temp);
 
-      temp = ltfXMax.getText();
-      ltfXMax.setText(ltfYMax.getText());
-      ltfYMax.setText(temp);
+        temp = ltfXMax.getText(false);
+        ltfXMax.setText(ltfYMax.getText(false));
+        ltfYMax.setText(temp);
+      }
+      catch (FieldValidationFailedException e) {
+        e.printStackTrace();
+      }
     }
 
     if (rbAtoB.isSelected()) {

@@ -422,11 +422,12 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     dialog.getParameters(screenState);
     UIExpertUtilities.INSTANCE.updateFiducialessParams(manager,
-        dialog.getFiducialessParams(), axisID);
+        dialog.getFiducialessParams(), axisID, false);
     if (metaData.getViewType() == ViewType.MONTAGE) {
       try {
-        manager.updateBlendCom(dialog.getBlendmontDisplay(), axisID, false);
-        manager.updateBlend3dFindCom(dialog.getBlendmont3dFindDisplay(), axisID, false);
+        manager.updateBlendCom(dialog.getBlendmontDisplay(), axisID, false, false);
+        manager.updateBlend3dFindCom(dialog.getBlendmont3dFindDisplay(), axisID, false,
+            false);
       }
       catch (FortranInputSyntaxException e) {
         UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Update Com Error");
@@ -439,28 +440,33 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       }
     }
     else {
-      manager.updateNewstCom(dialog.getNewstackDisplay(), axisID, false);
-      manager.updateNewst3dFindCom(dialog.getNewstack3dFindDisplay(), axisID, false);
+      manager.updateNewstCom(dialog.getNewstackDisplay(), axisID, false, false);
+      manager.updateNewst3dFindCom(dialog.getNewstack3dFindDisplay(), axisID, false,
+          false);
     }
     updateMTFFilterCom(false);
-    updateCtfPlotterCom();
-    updateCtfCorrectionCom();
+    updateCtfPlotterCom(false);
+    updateCtfCorrectionCom(false);
     manager.updateTilt3dFindCom(dialog.getTilt3dFindDisplay(), axisID, false);
     manager.updateFindBeads3dCom(dialog.getFindBeads3dDisplay(), axisID, false);
-    manager.updateCcdEraserParam(dialog.getCcdEraserBeadsDisplay(), axisID);
+    manager.updateCcdEraserParam(dialog.getCcdEraserBeadsDisplay(), axisID, false);
     manager.saveStorables(axisID);
   }
 
-  private ConstCtfPlotterParam updateCtfPlotterCom() {
+  private ConstCtfPlotterParam updateCtfPlotterCom(final boolean doValidation) {
     CtfPlotterParam param = comScriptMgr.getCtfPlotterParam(axisID);
-    getParameters(param);
+    if (!getParameters(param, doValidation)) {
+      return null;
+    }
     comScriptMgr.saveCtfPlotter(param, axisID);
     return param;
   }
 
-  private ConstCtfPhaseFlipParam updateCtfCorrectionCom() {
+  private ConstCtfPhaseFlipParam updateCtfCorrectionCom(final boolean doValidation) {
     CtfPhaseFlipParam param = comScriptMgr.getCtfPhaseFlipParam(axisID);
-    getParameters(param);
+    if (!getParameters(param, doValidation)) {
+      return null;
+    }
     comScriptMgr.saveCtfPhaseFlip(param, axisID);
     return param;
   }
@@ -552,7 +558,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
-    ConstCtfPlotterParam param = updateCtfPlotterCom();
+    ConstCtfPlotterParam param = updateCtfPlotterCom(true);
     if (param == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
@@ -567,61 +573,66 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
    * matter.
    * @return
    */
-  boolean createSimpleDefocusFile() {
-    boolean updateToDate = false;
-    LogFile file = null;
-    LogFile.ReaderId readerId = null;
-    LogFile.WriterId writerId = null;
+  boolean createSimpleDefocusFile(final boolean doValidation) {
     try {
-      file = LogFile.getInstance(DatasetFiles.getSimpleDefocusFile(manager, axisID));
-      if (file.exists()) {
-        readerId = file.openReader();
-        String line = file.readLine(readerId);
-        if (file.closeRead(readerId)) {
-          readerId = null;
+      boolean updateToDate = false;
+      LogFile file = null;
+      LogFile.ReaderId readerId = null;
+      LogFile.WriterId writerId = null;
+      try {
+        file = LogFile.getInstance(DatasetFiles.getSimpleDefocusFile(manager, axisID));
+        if (file.exists()) {
+          readerId = file.openReader();
+          String line = file.readLine(readerId);
+          if (file.closeRead(readerId)) {
+            readerId = null;
+          }
+          String[] array = line.split("\\s+");
+          if (array[4].equals(Utilities.convertMicronsToNanometers(dialog
+              .getExpectedDefocus(doValidation)))) {
+            updateToDate = true;
+          }
+          else {
+            file.backup();
+          }
         }
-        String[] array = line.split("\\s+");
-        if (array[4].equals(Utilities.convertMicronsToNanometers(dialog
-            .getExpectedDefocus()))) {
+        if (!updateToDate) {
+          writerId = file.openWriter();
+          file.write(
+              "1 1 0 0 "
+                  + Utilities.convertMicronsToNanometers(dialog
+                      .getExpectedDefocus(doValidation)), writerId);
+          file.newLine(writerId);
           updateToDate = true;
+          if (file.closeWriter(writerId)) {
+            writerId = null;
+          }
         }
-        else {
-          file.backup();
-        }
+      }
+      catch (LogFile.LockException e) {
+        e.printStackTrace();
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+      if (readerId != null && !readerId.isEmpty()) {
+        file.closeRead(readerId);
+      }
+      if (writerId != null && !writerId.isEmpty()) {
+        file.closeWriter(writerId);
       }
       if (!updateToDate) {
-        writerId = file.openWriter();
-        file.write(
-            "1 1 0 0 "
-                + Utilities.convertMicronsToNanometers(dialog.getExpectedDefocus()),
-            writerId);
-        file.newLine(writerId);
-        updateToDate = true;
-        if (file.closeWriter(writerId)) {
-          writerId = null;
+        if (!UIHarness.INSTANCE.openYesNoDialog(manager,
+            DatasetFiles.getSimpleDefocusFileName(manager, axisID)
+                + " may not be up to date.  Continue?", axisID)) {
+          return false;
         }
       }
+      return true;
     }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    if (readerId != null && !readerId.isEmpty()) {
-      file.closeRead(readerId);
-    }
-    if (writerId != null && !writerId.isEmpty()) {
-      file.closeWriter(writerId);
-    }
-    if (!updateToDate) {
-      if (!UIHarness.INSTANCE.openYesNoDialog(manager,
-          DatasetFiles.getSimpleDefocusFileName(manager, axisID)
-              + " may not be up to date.  Continue?", axisID)) {
-        return false;
-      }
-    }
-    return true;
   }
 
   void ctfCorrection(ProcessResultDisplay processResultDisplay,
@@ -635,7 +646,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       processSeries = new ProcessSeries(manager, dialogType);
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
-    if (dialog.isUseExpectedDefocus() && !createSimpleDefocusFile()) {
+    if (dialog.isUseExpectedDefocus() && !createSimpleDefocusFile(true)) {
       return;
     }
     if (!correctionProcessingMethod.isLocal()) {
@@ -652,7 +663,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
-    ConstCtfPhaseFlipParam param = updateCtfCorrectionCom();
+    ConstCtfPhaseFlipParam param = updateCtfCorrectionCom(true);
     if (param == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
@@ -662,29 +673,37 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
         processResultDisplay);
   }
 
-  private ConstSplitCorrectionParam updateSplitCorrectionParam() {
+  private ConstSplitCorrectionParam updateSplitCorrectionParam(final boolean doValidation) {
     if (dialog == null) {
       return null;
     }
     SplitCorrectionParam param = new SplitCorrectionParam(axisID);
-    getParameters(param);
+    if (!getParameters(param,doValidation)){
+      return null;
+    }
     return param;
   }
 
-  void getParameters(final SplitCorrectionParam param) {
-    param.setCpus(getParallelPanel().getCPUsSelected());
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        DatasetFiles.getFullAlignedStackFileName(manager, axisID), axisID);
+  boolean getParameters(final SplitCorrectionParam param, final boolean doValidation) {
     try {
-      if (header.read(manager)) {
-        param.setMaxZ(header.getNSections());
+      param.setCpus(getParallelPanel().getCPUsSelected(doValidation));
+      MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+          DatasetFiles.getFullAlignedStackFileName(manager, axisID), axisID);
+      try {
+        if (header.read(manager)) {
+          param.setMaxZ(header.getNSections());
+        }
       }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+      catch (InvalidParameterException e) {
+        e.printStackTrace();
+      }
+      return true;
     }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (InvalidParameterException e) {
-      e.printStackTrace();
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
@@ -694,8 +713,10 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
-    updateCtfCorrectionCom();
-    ConstSplitCorrectionParam param = updateSplitCorrectionParam();
+    if (updateCtfCorrectionCom(true) == null) {
+      return;
+    }
+    ConstSplitCorrectionParam param = updateSplitCorrectionParam(true);
     if (param == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
@@ -832,11 +853,12 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return false;
     }
     try {
-      mtfFilterParam.setLowPassRadiusSigma(dialog.getLowPassRadiusSigma());
+      mtfFilterParam.setLowPassRadiusSigma(dialog.getLowPassRadiusSigma(doValidation));
       mtfFilterParam.setStartingAndEndingZ(dialog.getStartingAndEndingZ(doValidation));
-      mtfFilterParam.setMtfFile(dialog.getMtfFile());
-      mtfFilterParam.setMaximumInverse(dialog.getMaximumInverse());
-      mtfFilterParam.setInverseRolloffRadiusSigma(dialog.getInverseRolloffRadiusSigma());
+      mtfFilterParam.setMtfFile(dialog.getMtfFile(doValidation));
+      mtfFilterParam.setMaximumInverse(dialog.getMaximumInverse(doValidation));
+      mtfFilterParam.setInverseRolloffRadiusSigma(dialog
+          .getInverseRolloffRadiusSigma(doValidation));
     }
     catch (FieldValidationFailedException e) {
       return false;
@@ -854,18 +876,24 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     dialog.setOffsetToAdd(param.getOffsetToAdd());
   }
 
-  private void getParameters(CtfPlotterParam param) {
+  private boolean getParameters(CtfPlotterParam param, final boolean doValidation) {
     if (dialog == null) {
-      return;
+      return false;
     }
-    param.setVoltage(dialog.getVoltage());
-    param.setSphericalAberration(dialog.getSphericalAberration());
-    param.setInvertTiltAngles(dialog.getInvertTiltAngles());
-    param.setAmplitudeContrast(dialog.getAmplitudeContrast());
-    param.setExpectedDefocus(Utilities.convertMicronsToNanometers(dialog
-        .getExpectedDefocus()));
-    param.setOffsetToAdd(dialog.getOffsetToAdd());
-    param.setConfigFile(dialog.getConfigFile());
+    try {
+      param.setVoltage(dialog.getVoltage(doValidation));
+      param.setSphericalAberration(dialog.getSphericalAberration(doValidation));
+      param.setInvertTiltAngles(dialog.getInvertTiltAngles());
+      param.setAmplitudeContrast(dialog.getAmplitudeContrast(doValidation));
+      param.setExpectedDefocus(Utilities.convertMicronsToNanometers(dialog
+          .getExpectedDefocus(doValidation)));
+      param.setOffsetToAdd(dialog.getOffsetToAdd(doValidation));
+      param.setConfigFile(dialog.getConfigFile());
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   public void setTiltState() {
@@ -890,25 +918,31 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     dialog.updateCtfPlotter();
   }
 
-  private void getParameters(CtfPhaseFlipParam param) {
+  private boolean getParameters(CtfPhaseFlipParam param, final boolean doValidation) {
     if (dialog == null) {
-      return;
+      return false;
     }
-    param.setVoltage(dialog.getVoltage());
-    param.setSphericalAberration(dialog.getSphericalAberration());
-    param.setInvertTiltAngles(dialog.getInvertTiltAngles());
-    param.setAmplitudeContrast(dialog.getAmplitudeContrast());
-    if (dialog.isUseExpectedDefocus()) {
-      param.setDefocusFile(DatasetFiles.getSimpleDefocusFileName(manager, axisID));
+    try {
+      param.setVoltage(dialog.getVoltage(doValidation));
+      param.setSphericalAberration(dialog.getSphericalAberration(doValidation));
+      param.setInvertTiltAngles(dialog.getInvertTiltAngles());
+      param.setAmplitudeContrast(dialog.getAmplitudeContrast(doValidation));
+      if (dialog.isUseExpectedDefocus()) {
+        param.setDefocusFile(DatasetFiles.getSimpleDefocusFileName(manager, axisID));
+      }
+      else {
+        param.setDefocusFile(DatasetFiles.getCtfPlotterFileName(manager, axisID));
+      }
+      param.setInterpolationWidth(dialog.getInterpolationWidth(doValidation));
+      param.setDefocusTol(dialog.getDefocusTol(doValidation));
+      param.setOutputFileName(DatasetFiles.getCtfCorrectionFileName(manager, axisID));
+      param.setPixelSize(metaData.getPixelSize()
+          * Utilities.getStackBinning(manager, axisID, FileType.ALIGNED_STACK));
+      return true;
     }
-    else {
-      param.setDefocusFile(DatasetFiles.getCtfPlotterFileName(manager, axisID));
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-    param.setInterpolationWidth(dialog.getInterpolationWidth());
-    param.setDefocusTol(dialog.getDefocusTol());
-    param.setOutputFileName(DatasetFiles.getCtfCorrectionFileName(manager, axisID));
-    param.setPixelSize(metaData.getPixelSize()
-        * Utilities.getStackBinning(manager, axisID, FileType.ALIGNED_STACK));
   }
 
   private boolean setParameters(final ConstMTFFilterParam mtfFilterParam) {

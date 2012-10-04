@@ -39,7 +39,7 @@ interface TrialTiltParent {
   public boolean getParameters(TiltParam tiltParam, boolean doValidation)
       throws NumberFormatException, InvalidParameterException, IOException;
 
-  public boolean getParameters(final SplittiltParam param);
+  public boolean getParameters(final SplittiltParam param,boolean doValidation);
 
   public ProcessingMethod getProcessingMethod();
 }

@@ -49,6 +49,7 @@ import etomo.type.NullRequiredNumberException;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.AutoAlignmentDisplay;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -1436,21 +1437,24 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     ltfSizeInY.setText(defaultYSize);
   }
 
-  public ConstEtomoNumber getSizeInY() {
+  public ConstEtomoNumber getSizeInY(final boolean doValidation)
+      throws FieldValidationFailedException {
     EtomoNumber sizeInY = new EtomoNumber(EtomoNumber.Type.INTEGER);
-    sizeInY.set(ltfSizeInY.getText());
+    sizeInY.set(ltfSizeInY.getText(doValidation));
     return sizeInY;
   }
 
-  public ConstEtomoNumber getShiftInX() {
+  public ConstEtomoNumber getShiftInX(final boolean doValidation)
+      throws FieldValidationFailedException {
     EtomoNumber shiftInX = new EtomoNumber(EtomoNumber.Type.INTEGER);
-    shiftInX.set(ltfShiftInX.getText());
+    shiftInX.set(ltfShiftInX.getText(doValidation));
     return shiftInX;
   }
 
-  public ConstEtomoNumber getShiftInY() {
+  public ConstEtomoNumber getShiftInY(final boolean doValidation)
+      throws FieldValidationFailedException {
     EtomoNumber shiftInY = new EtomoNumber(EtomoNumber.Type.INTEGER);
-    shiftInY.set(ltfShiftInY.getText());
+    shiftInY.set(ltfShiftInY.getText(doValidation));
     return shiftInY;
   }
 
@@ -1481,14 +1485,21 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     return pnlSectionTable.getMode();
   }
 
-  public void getParameters(XfjointomoParam param) {
-    param.setTransform(tcModel.get());
-    param.setBoundariesToAnalyze(ltfBoundariesToAnalyze.getText());
-    param.setObjectsToInclude(ltfObjectsToInclude.getText());
-    param.setPointsToFit(ltfPointsToFitMin.getText(), ltfPointsToFitMax.getText());
-    if (cbGap.isSelected()) {
-      param.setGapStartEndInc(ltfGapStart.getText(), ltfGapEnd.getText(),
-          ltfGapInc.getText());
+  public boolean getParameters(XfjointomoParam param, final boolean doValidation) {
+    try {
+      param.setTransform(tcModel.get());
+      param.setBoundariesToAnalyze(ltfBoundariesToAnalyze.getText(doValidation));
+      param.setObjectsToInclude(ltfObjectsToInclude.getText(doValidation));
+      param.setPointsToFit(ltfPointsToFitMin.getText(doValidation),
+          ltfPointsToFitMax.getText(doValidation));
+      if (cbGap.isSelected()) {
+        param.setGapStartEndInc(ltfGapStart.getText(doValidation),
+            ltfGapEnd.getText(doValidation), ltfGapInc.getText(doValidation));
+      }
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
@@ -1496,8 +1507,10 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     manager.getParameters(param, axisID);
   }
 
-  public void getAutoAlignmentParameters(final XfalignParam param) {
+  public boolean getAutoAlignmentParameters(final XfalignParam param,
+      final boolean doValidation) {
     manager.getParameters(param, axisID);
+    return true;
   }
 
   public void setXfjointomoResult() throws LogFile.LockException, FileNotFoundException,
@@ -1507,32 +1520,37 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
 
   public boolean getMetaData(JoinMetaData metaData) {
     synchronize();
-    metaData.setRootName(ltfRootName.getText());
-    metaData.setDensityRefSection(spinDensityRefSection.getValue());
-    autoAlignmentPanel.getParameters(metaData.getAutoAlignmentMetaData());
-    metaData.setUseAlignmentRefSection(cbsAlignmentRefSection.isSelected());
-    metaData.setAlignmentRefSection(cbsAlignmentRefSection.getValue());
-    metaData.setSizeInX(ltfSizeInX.getText());
-    metaData.setSizeInY(ltfSizeInY.getText());
-    metaData.setShiftInX(ltfShiftInX.getText());
-    metaData.setShiftInY(ltfShiftInY.getText());
-    metaData.setLocalFits(cbLocalFits.isSelected());
-    metaData.setUseEveryNSlices(spinUseEveryNSlices.getValue());
-    metaData.setRejoinUseEveryNSlices(spinRejoinUseEveryNSlices.getValue());
-    metaData.setTrialBinning(spinTrialBinning.getValue());
-    metaData.setMidasLimit(ltfMidasLimit.getText());
-    metaData.setModelTransform(tcModel.get());
-    metaData.setBoundariesToAnalyze(ltfBoundariesToAnalyze.getText());
-    metaData.setObjectsToInclude(ltfObjectsToInclude.getText());
-    metaData.setGap(cbGap.isSelected());
-    metaData.setGapStart(ltfGapStart.getText());
-    metaData.setGapEnd(ltfGapEnd.getText());
-    metaData.setGapInc(ltfGapInc.getText());
-    metaData.setPointsToFitMin(ltfPointsToFitMin.getText());
-    metaData.setPointsToFitMax(ltfPointsToFitMax.getText());
-    metaData.setRejoinTrialBinning(spinRejoinTrialBinning.getValue());
-    boundaryTable.getMetaData();
-    return pnlSectionTable.getMetaData(metaData);
+    try {
+      metaData.setRootName(ltfRootName.getText(false));
+      metaData.setDensityRefSection(spinDensityRefSection.getValue());
+      autoAlignmentPanel.getParameters(metaData.getAutoAlignmentMetaData());
+      metaData.setUseAlignmentRefSection(cbsAlignmentRefSection.isSelected());
+      metaData.setAlignmentRefSection(cbsAlignmentRefSection.getValue());
+      metaData.setSizeInX(ltfSizeInX.getText(false));
+      metaData.setSizeInY(ltfSizeInY.getText(false));
+      metaData.setShiftInX(ltfShiftInX.getText(false));
+      metaData.setShiftInY(ltfShiftInY.getText(false));
+      metaData.setLocalFits(cbLocalFits.isSelected());
+      metaData.setUseEveryNSlices(spinUseEveryNSlices.getValue());
+      metaData.setRejoinUseEveryNSlices(spinRejoinUseEveryNSlices.getValue());
+      metaData.setTrialBinning(spinTrialBinning.getValue());
+      metaData.setMidasLimit(ltfMidasLimit.getText(false));
+      metaData.setModelTransform(tcModel.get());
+      metaData.setBoundariesToAnalyze(ltfBoundariesToAnalyze.getText(false));
+      metaData.setObjectsToInclude(ltfObjectsToInclude.getText(false));
+      metaData.setGap(cbGap.isSelected());
+      metaData.setGapStart(ltfGapStart.getText(false));
+      metaData.setGapEnd(ltfGapEnd.getText(false));
+      metaData.setGapInc(ltfGapInc.getText(false));
+      metaData.setPointsToFitMin(ltfPointsToFitMin.getText(false));
+      metaData.setPointsToFitMax(ltfPointsToFitMax.getText(false));
+      metaData.setRejoinTrialBinning(spinRejoinTrialBinning.getValue());
+      boundaryTable.getMetaData();
+      return pnlSectionTable.getMetaData(metaData);
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   SectionTablePanel getSectionTable() {
@@ -1610,8 +1628,9 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     return new File(ftfWorkingDir.getText());
   }
 
-  public String getRootName() {
-    return ltfRootName.getText();
+  public String getRootName(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfRootName.getText(doValidation);
   }
 
   public void abortAddSection() {
@@ -1629,49 +1648,55 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
    * @return
    */
   public boolean equals(ConstJoinMetaData metaData) {
-    if (!ltfRootName.equals(metaData.getDatasetName())) {
+    try {
+      if (!ltfRootName.equals(metaData.getDatasetName())) {
+        return false;
+      }
+      if (!metaData.getDensityRefSection().equals(
+          (Number) spinDensityRefSection.getValue())) {
+        return false;
+      }
+      if (!autoAlignmentPanel.equals(metaData)) {
+        return false;
+      }
+      if (cbsAlignmentRefSection.isSelected() != metaData.isUseAlignmentRefSection()) {
+        return false;
+      }
+      if (!metaData.getAlignmentRefSection().equals(
+          (Number) cbsAlignmentRefSection.getValue())) {
+        return false;
+      }
+      if (!metaData.getSizeInX().equals(ltfSizeInX.getText(false))) {
+        return false;
+      }
+      if (!metaData.getSizeInY().equals(ltfSizeInY.getText(false))) {
+        return false;
+      }
+      if (!metaData.getShiftInX().equals(ltfShiftInX.getText(false))) {
+        return false;
+      }
+      if (!metaData.getShiftInY().equals(ltfShiftInY.getText(false))) {
+        return false;
+      }
+      if (!metaData.getUseEveryNSlices().equals((Number) spinUseEveryNSlices.getValue())) {
+        return false;
+      }
+      if (!metaData.getRejoinUseEveryNSlices().equals(
+          (Number) spinRejoinUseEveryNSlices.getValue())) {
+        return false;
+      }
+      if (!metaData.getTrialBinning().equals((Number) spinTrialBinning.getValue())) {
+        return false;
+      }
+      if (!pnlSectionTable.equals(metaData)) {
+        return false;
+      }
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
       return false;
     }
-    if (!metaData.getDensityRefSection()
-        .equals((Number) spinDensityRefSection.getValue())) {
-      return false;
-    }
-    if (!autoAlignmentPanel.equals(metaData)) {
-      return false;
-    }
-    if (cbsAlignmentRefSection.isSelected() != metaData.isUseAlignmentRefSection()) {
-      return false;
-    }
-    if (!metaData.getAlignmentRefSection().equals(
-        (Number) cbsAlignmentRefSection.getValue())) {
-      return false;
-    }
-    if (!metaData.getSizeInX().equals(ltfSizeInX.getText())) {
-      return false;
-    }
-    if (!metaData.getSizeInY().equals(ltfSizeInY.getText())) {
-      return false;
-    }
-    if (!metaData.getShiftInX().equals(ltfShiftInX.getText())) {
-      return false;
-    }
-    if (!metaData.getShiftInY().equals(ltfShiftInY.getText())) {
-      return false;
-    }
-    if (!metaData.getUseEveryNSlices().equals((Number) spinUseEveryNSlices.getValue())) {
-      return false;
-    }
-    if (!metaData.getRejoinUseEveryNSlices().equals(
-        (Number) spinRejoinUseEveryNSlices.getValue())) {
-      return false;
-    }
-    if (!metaData.getTrialBinning().equals((Number) spinTrialBinning.getValue())) {
-      return false;
-    }
-    if (!pnlSectionTable.equals(metaData)) {
-      return false;
-    }
-    return true;
   }
 
   /**
@@ -1747,136 +1772,141 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
    */
   private void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (command.equals(btnMakeSamples.getActionCommand())) {
-      if (ftfWorkingDir.isEditable()
-          && !DatasetTool.validateDatasetName(manager, axisID, ftfWorkingDir.getFile(),
-              ltfRootName.getText(), DataFileType.JOIN, null)) {
-        return;
+    try {
+      if (command.equals(btnMakeSamples.getActionCommand())) {
+        if (ftfWorkingDir.isEditable()
+            && !DatasetTool.validateDatasetName(manager, axisID, ftfWorkingDir.getFile(),
+                ltfRootName.getText(false), DataFileType.JOIN, null)) {
+          return;
+        }
+        manager.makejoincom(null, deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
       }
-      manager.makejoincom(null, deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
-    }
-    else if (command.equals(btnFinishJoin.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.FINISH_JOIN, FINISH_JOIN_TEXT, null,
-          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
-    }
-    else if (command.equals(btnGetMaxSize.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.MAX_SIZE, GET_MAX_SIZE_TEXT, null, null,
-          null, DIALOG_TYPE);
-    }
-    else if (command.equals(btnTrialJoin.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.TRIAL, TRIAL_JOIN_TEXT, null,
-          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
-    }
-    else if (command.equals(btnGetSubarea.getActionCommand())) {
-      try {
-        setSizeAndShift(manager.imodGetRubberbandCoordinates(ImodManager.TRIAL_JOIN_KEY,
-            AxisID.ONLY));
+      else if (command.equals(btnFinishJoin.getActionCommand())) {
+        manager.finishjoin(FinishjoinParam.Mode.FINISH_JOIN, FINISH_JOIN_TEXT, null,
+            deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
       }
-      catch (NullRequiredNumberException e) {
-        UIHarness.INSTANCE.openMessageDialog(manager,
-            "Unable to retrieve the trial join's binning, size and/or shift.  Please "
-                + "press " + btnGetMaxSize.getUnformattedLabel()
-                + " and then rebuild the trial join in order get a correct subarea "
-                + "size and " + "shift.\n" + e.getMessage(), "Rerun Trial Join");
+      else if (command.equals(btnGetMaxSize.getActionCommand())) {
+        manager.finishjoin(FinishjoinParam.Mode.MAX_SIZE, GET_MAX_SIZE_TEXT, null, null,
+            null, DIALOG_TYPE);
       }
-    }
-    else if (command.equals(btnChangeSetup.getActionCommand())) {
-      // Prepare for Revert: meta data file should match the screen
-      JoinMetaData metaData = manager.getJoinMetaData();
-      getMetaData(metaData);
-      try {
-        ParameterStore parameterStore = manager.getParameterStore();
-        if (parameterStore != null) {
-          parameterStore.save(metaData);
+      else if (command.equals(btnTrialJoin.getActionCommand())) {
+        manager.finishjoin(FinishjoinParam.Mode.TRIAL, TRIAL_JOIN_TEXT, null,
+            deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
+      }
+      else if (command.equals(btnGetSubarea.getActionCommand())) {
+        try {
+          setSizeAndShift(manager.imodGetRubberbandCoordinates(
+              ImodManager.TRIAL_JOIN_KEY, AxisID.ONLY));
+        }
+        catch (NullRequiredNumberException e) {
+          UIHarness.INSTANCE.openMessageDialog(manager,
+              "Unable to retrieve the trial join's binning, size and/or shift.  Please "
+                  + "press " + btnGetMaxSize.getUnformattedLabel()
+                  + " and then rebuild the trial join in order get a correct subarea "
+                  + "size and " + "shift.\n" + e.getMessage(), "Rerun Trial Join");
         }
       }
-      catch (LogFile.LockException e) {
-        UIHarness.INSTANCE.openMessageDialog(manager,
-            "Unable to save or write JoinMetaData.\n" + e.getMessage(), "Etomo Error");
+      else if (command.equals(btnChangeSetup.getActionCommand())) {
+        // Prepare for Revert: meta data file should match the screen
+        JoinMetaData metaData = manager.getJoinMetaData();
+        getMetaData(metaData);
+        try {
+          ParameterStore parameterStore = manager.getParameterStore();
+          if (parameterStore != null) {
+            parameterStore.save(metaData);
+          }
+        }
+        catch (LogFile.LockException e) {
+          UIHarness.INSTANCE.openMessageDialog(manager,
+              "Unable to save or write JoinMetaData.\n" + e.getMessage(), "Etomo Error");
+        }
+        catch (IOException e) {
+          UIHarness.INSTANCE.openMessageDialog(manager,
+              "Unable to save or write JoinMetaData.\n" + e.getMessage(), "Etomo Error");
+        }
+        setMode(JoinDialog.CHANGING_SAMPLE_MODE);
       }
-      catch (IOException e) {
-        UIHarness.INSTANCE.openMessageDialog(manager,
-            "Unable to save or write JoinMetaData.\n" + e.getMessage(), "Etomo Error");
+      else if (command.equals(btnRevertToLastSetup.getActionCommand())) {
+        ConstJoinMetaData metaData = manager.getConstMetaData();
+        if (!state.isSampleProduced()) {
+          throw new IllegalStateException(
+              "sample produced is false but Revert to Last Setup is enabled");
+        }
+        pnlSectionTable.deleteSections();
+        setMetaData(manager.getConstMetaData());
+        state.revert();
+        setMode(SAMPLE_PRODUCED_MODE);
       }
-      setMode(JoinDialog.CHANGING_SAMPLE_MODE);
-    }
-    else if (command.equals(btnRevertToLastSetup.getActionCommand())) {
-      ConstJoinMetaData metaData = manager.getConstMetaData();
-      if (!state.isSampleProduced()) {
-        throw new IllegalStateException(
-            "sample produced is false but Revert to Last Setup is enabled");
+      else if (command.equals(btnRefineJoin.getActionCommand())) {
+        startRefine();
       }
-      pnlSectionTable.deleteSections();
-      setMetaData(manager.getConstMetaData());
-      state.revert();
-      setMode(SAMPLE_PRODUCED_MODE);
-    }
-    else if (command.equals(btnRefineJoin.getActionCommand())) {
-      startRefine();
-    }
-    else if (command.equals(btnXfjointomo.getActionCommand())) {
-      manager.xfjointomo(null);
-    }
-    else if (command.equals(btnRejoin.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.REJOIN, REJOIN_TEXT, null,
-          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
-    }
-    else if (command.equals(btnTrialRejoin.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.TRIAL_REJOIN, TRIAL_REJOIN_TEXT, null,
-          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
-    }
-    else if (command.equals(cbGap.getActionCommand())) {
-      updateDisplay();
-    }
-    else if (command.equals(btnTransformModel.getActionCommand())) {
-      manager.xfmodel(ftfModelFile.getText(), ltfTransformedModel.getText(), null,
-          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
-    }
-    else if (command.equals(btnTransformAndViewModel.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.SUPPRESS_EXECUTION, REJOIN_TEXT, null,
-          null, null, DIALOG_TYPE);
-    }
-    else if (command.equals(btnOpenSample.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_SAMPLES_KEY, run3dmodMenuOptions);
-    }
-    else if (command.equals(btnOpenSampleAverages.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_SAMPLE_AVERAGES_KEY, run3dmodMenuOptions);
-    }
-    else if (command.equals(b3bOpenIn3dmod.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenIn3dmod.getBinningInXandY(),
-          run3dmodMenuOptions);
-    }
-    else if (command.equals(b3bOpenTrialIn3dmod.getActionCommand())) {
-      manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
-          b3bOpenTrialIn3dmod.getBinningInXandY(), run3dmodMenuOptions);
-    }
-    else if (command.equals(btnMakeRefiningModel.getActionCommand())) {
-      manager.imodOpen(AxisID.ONLY, ImodManager.MODELED_JOIN_KEY,
-          DatasetFiles.getRefineModelFileName(manager), run3dmodMenuOptions, true);
-    }
-    else if (command.equals(b3bOpenRejoin.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoin.getBinningInXandY(),
-          DatasetFiles.getRefineAlignedModelFileName(manager), run3dmodMenuOptions);
-    }
-    else if (command.equals(b3bOpenTrialRejoin.getActionCommand())) {
-      ConstEtomoNumber useEveryNSlices = state.getRefineTrialUseEveryNSlices();
-      if (useEveryNSlices.isNull() || useEveryNSlices.gt(1)) {
-        // don't open the model if all the slices have not been included
+      else if (command.equals(btnXfjointomo.getActionCommand())) {
+        manager.xfjointomo(null);
+      }
+      else if (command.equals(btnRejoin.getActionCommand())) {
+        manager.finishjoin(FinishjoinParam.Mode.REJOIN, REJOIN_TEXT, null,
+            deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
+      }
+      else if (command.equals(btnTrialRejoin.getActionCommand())) {
+        manager.finishjoin(FinishjoinParam.Mode.TRIAL_REJOIN, TRIAL_REJOIN_TEXT, null,
+            deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
+      }
+      else if (command.equals(cbGap.getActionCommand())) {
+        updateDisplay();
+      }
+      else if (command.equals(btnTransformModel.getActionCommand())) {
+        manager.xfmodel(ftfModelFile.getText(), ltfTransformedModel.getText(true), null,
+            deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
+      }
+      else if (command.equals(btnTransformAndViewModel.getActionCommand())) {
+        manager.finishjoin(FinishjoinParam.Mode.SUPPRESS_EXECUTION, REJOIN_TEXT, null,
+            null, null, DIALOG_TYPE);
+      }
+      else if (command.equals(btnOpenSample.getActionCommand())) {
+        manager.imodOpen(ImodManager.JOIN_SAMPLES_KEY, run3dmodMenuOptions);
+      }
+      else if (command.equals(btnOpenSampleAverages.getActionCommand())) {
+        manager.imodOpen(ImodManager.JOIN_SAMPLE_AVERAGES_KEY, run3dmodMenuOptions);
+      }
+      else if (command.equals(b3bOpenIn3dmod.getActionCommand())) {
+        manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenIn3dmod.getBinningInXandY(),
+            run3dmodMenuOptions);
+      }
+      else if (command.equals(b3bOpenTrialIn3dmod.getActionCommand())) {
         manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
-            b3bOpenTrialRejoin.getBinningInXandY(), run3dmodMenuOptions);
+            b3bOpenTrialIn3dmod.getBinningInXandY(), run3dmodMenuOptions);
       }
-      else {
-        manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
-            b3bOpenTrialRejoin.getBinningInXandY(),
+      else if (command.equals(btnMakeRefiningModel.getActionCommand())) {
+        manager.imodOpen(AxisID.ONLY, ImodManager.MODELED_JOIN_KEY,
+            DatasetFiles.getRefineModelFileName(manager), run3dmodMenuOptions, true);
+      }
+      else if (command.equals(b3bOpenRejoin.getActionCommand())) {
+        manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoin.getBinningInXandY(),
             DatasetFiles.getRefineAlignedModelFileName(manager), run3dmodMenuOptions);
       }
+      else if (command.equals(b3bOpenTrialRejoin.getActionCommand())) {
+        ConstEtomoNumber useEveryNSlices = state.getRefineTrialUseEveryNSlices();
+        if (useEveryNSlices.isNull() || useEveryNSlices.gt(1)) {
+          // don't open the model if all the slices have not been included
+          manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
+              b3bOpenTrialRejoin.getBinningInXandY(), run3dmodMenuOptions);
+        }
+        else {
+          manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
+              b3bOpenTrialRejoin.getBinningInXandY(),
+              DatasetFiles.getRefineAlignedModelFileName(manager), run3dmodMenuOptions);
+        }
+      }
+      else if (command.equals(b3bOpenRejoinWithModel.getActionCommand())) {
+        manager.imodOpen(ImodManager.JOIN_KEY,
+            b3bOpenRejoinWithModel.getBinningInXandY(),
+            ltfTransformedModel.getText(true), run3dmodMenuOptions);
+      }
+      else {
+        throw new IllegalStateException("Unknown command " + command);
+      }
     }
-    else if (command.equals(b3bOpenRejoinWithModel.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoinWithModel.getBinningInXandY(),
-          ltfTransformedModel.getText(), run3dmodMenuOptions);
-    }
-    else {
-      throw new IllegalStateException("Unknown command " + command);
+    catch (FieldValidationFailedException e) {
     }
   }
 

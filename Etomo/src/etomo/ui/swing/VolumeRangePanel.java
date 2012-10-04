@@ -9,6 +9,7 @@ import etomo.process.ImodProcess;
 import etomo.type.ConstMetaData;
 import etomo.type.MetaData;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -104,25 +105,36 @@ final class VolumeRangePanel {
   }
 
   void getParameters(MetaData metaData) {
-    metaData.setPostTrimvolXMin(ltfXMin.getText());
-    metaData.setPostTrimvolXMax(ltfXMax.getText());
-    metaData.setPostTrimvolYMin(ltfYMin.getText());
-    metaData.setPostTrimvolYMax(ltfYMax.getText());
-    metaData.setPostTrimvolZMin(ltfZMin.getText());
-    metaData.setPostTrimvolZMax(ltfZMax.getText());
+    try {
+      metaData.setPostTrimvolXMin(ltfXMin.getText(false));
+      metaData.setPostTrimvolXMax(ltfXMax.getText(false));
+      metaData.setPostTrimvolYMin(ltfYMin.getText(false));
+      metaData.setPostTrimvolYMax(ltfYMax.getText(false));
+      metaData.setPostTrimvolZMin(ltfZMin.getText(false));
+      metaData.setPostTrimvolZMax(ltfZMax.getText(false));
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
   }
 
   /**
    * Get the parameter values from the panel 
    * @param trimvolParam
    */
-  void getParameters(TrimvolParam trimvolParam) {
-    trimvolParam.setXMin(ltfXMin.getText());
-    trimvolParam.setXMax(ltfXMax.getText());
-    trimvolParam.setYMin(ltfYMin.getText());
-    trimvolParam.setYMax(ltfYMax.getText());
-    trimvolParam.setZMin(ltfZMin.getText());
-    trimvolParam.setZMax(ltfZMax.getText());
+  boolean getParameters(TrimvolParam trimvolParam, final boolean doValidation) {
+    try {
+      trimvolParam.setXMin(ltfXMin.getText(doValidation));
+      trimvolParam.setXMax(ltfXMax.getText(doValidation));
+      trimvolParam.setYMin(ltfYMin.getText(doValidation));
+      trimvolParam.setYMax(ltfYMax.getText(doValidation));
+      trimvolParam.setZMin(ltfZMin.getText(doValidation));
+      trimvolParam.setZMax(ltfZMax.getText(doValidation));
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   void setXYMinAndMax(Vector coordinates) {

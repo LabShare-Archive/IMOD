@@ -45,7 +45,6 @@ final class FileTextField2 implements FileTextFieldInterface {
 
   // Assuming the field type is always non-numeric
   private final FieldType STRING_FIELD_TYPE = FieldType.STRING;
-  private final boolean NO_VALIDATION = false;
 
   private final JPanel panel = new JPanel();
   private final GridBagLayout layout = new GridBagLayout();
@@ -254,7 +253,7 @@ final class FileTextField2 implements FileTextFieldInterface {
   public File getFile() {
     String text = null;
     try {
-      text = field.getText(NO_VALIDATION);
+      text = field.getText(false);
     }
     catch (FieldValidationFailedException e) {
       e.printStackTrace();
@@ -313,7 +312,7 @@ final class FileTextField2 implements FileTextFieldInterface {
   String getText() {
     String text = null;
     try {
-      text = field.getText(NO_VALIDATION);
+      text = field.getText(false);
     }
     catch (FieldValidationFailedException e) {
       e.printStackTrace();

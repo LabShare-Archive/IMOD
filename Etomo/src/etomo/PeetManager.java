@@ -42,6 +42,7 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldValidationFailedException;
 import etomo.ui.swing.LogInterface;
 import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainPanel;
@@ -689,7 +690,7 @@ public final class PeetManager extends BaseManager {
   public void save() throws LogFile.LockException, IOException {
     super.save();
     mainPanel.done();
-    savePeetDialog(false);
+    savePeetDialog(false, false);
   }
 
   public int getParallelProcessingDefaultNice() {
@@ -772,7 +773,7 @@ public final class PeetManager extends BaseManager {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
-    if (!savePeetDialog(true)) {
+    if (!savePeetDialog(true, true)) {
       return;
     }
     if (matlabParam == null) {
@@ -810,7 +811,7 @@ public final class PeetManager extends BaseManager {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
-    if (!savePeetDialog(true)) {
+    if (!savePeetDialog(true, true)) {
       return;
     }
     if (matlabParam == null) {
@@ -995,7 +996,7 @@ public final class PeetManager extends BaseManager {
     }
   }
 
-  private boolean savePeetDialog(final boolean forRun) {
+  private boolean savePeetDialog(final boolean forRun, final boolean doValidation) {
     if (peetDialog == null) {
       return false;
     }
@@ -1009,7 +1010,7 @@ public final class PeetManager extends BaseManager {
     }
     peetDialog.getParameters(metaData);
     saveStorables(AXIS_ID);
-    if (!peetDialog.getParameters(matlabParam, forRun))
+    if (!peetDialog.getParameters(matlabParam, forRun, doValidation))
       return false;
     matlabParam.write(this);
     return true;
@@ -1024,16 +1025,22 @@ public final class PeetManager extends BaseManager {
     if (peetDialog == null) {
       return;
     }
-    ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY,
-        peetDialog.getFnOutput(), outputImageFileType);
-    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
-    peetDialog.getParameters(param);
-    if (!parallelPanel.getParameters(param)) {
-      getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
+    try {
+      ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY,
+          peetDialog.getFnOutput(true), outputImageFileType);
+      ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
+      peetDialog.getParameters(param);
+      if (!parallelPanel.getParameters(param, true)) {
+        getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
+        return;
+      }
+      // param should never be set to resume
+      parallelPanel.getParallelProgressDisplay().resetResults();
+      processchunks(AxisID.ONLY, param, null, processSeries, false, processingMethod,
+          true);
+    }
+    catch (FieldValidationFailedException e) {
       return;
     }
-    // param should never be set to resume
-    parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, null, processSeries, false, processingMethod, true);
   }
 }

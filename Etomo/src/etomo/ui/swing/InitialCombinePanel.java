@@ -24,6 +24,7 @@ import etomo.type.ProcessingMethod;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -427,8 +428,14 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     return tomogramCombinationDialog.isTabEnabled(TomogramCombinationDialog.lblInitial);
   }
 
-  public void getParameters(MatchvolParam param) {
-    param.setOutputSizeY(ltfOutputSizeY.getText());
+  public boolean getParameters(MatchvolParam param, final boolean doValidation) {
+    try {
+      param.setOutputSizeY(ltfOutputSizeY.getText(doValidation));
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   public void setParameters(MatchvolParam param) {
@@ -462,8 +469,9 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
    * Get the solvematch parameters from the UI
    * @param solvematchsParam
    */
-  public void getSolvematchParams(SolvematchParam solvematchParam) {
-    pnlSolvematch.getParameters(solvematchParam);
+  public boolean getSolvematchParams(SolvematchParam solvematchParam,
+      final boolean doValidation) {
+    return pnlSolvematch.getParameters(solvematchParam, doValidation);
   }
 
   final void setParameters(ReconScreenState screenState) {
@@ -497,20 +505,23 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     pnlSolvematch.setFiducialMatchListA(fiducialMatchListA);
   }
 
-  public String getUseList() {
-    return pnlSolvematch.getUseList();
+  public String getUseList(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return pnlSolvematch.getUseList(doValidation);
   }
 
-  public String getFiducialMatchListA() {
-    return pnlSolvematch.getFiducialMatchListA();
+  public String getFiducialMatchListA(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return pnlSolvematch.getFiducialMatchListA(doValidation);
   }
 
   public void setFiducialMatchListB(String fiducialMatchListB) {
     pnlSolvematch.setFiducialMatchListB(fiducialMatchListB);
   }
 
-  public String getFiducialMatchListB() {
-    return pnlSolvematch.getFiducialMatchListB();
+  public String getFiducialMatchListB(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return pnlSolvematch.getFiducialMatchListB(doValidation);
   }
 
   /**

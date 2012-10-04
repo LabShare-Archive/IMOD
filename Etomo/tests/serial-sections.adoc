@@ -50,6 +50,10 @@ bn.ok=
 run.function.initial-blend=
 run.function.align=
 run.function.make-stack=
+[[if = test-gui]]
+  #test field validation suppression
+  tf.sections-to-skip=abc
+[[]]
 
 
 [function = initial-blend]
@@ -135,6 +139,11 @@ tb.initial-blend.1=
   assert.enabled.tf.fraction-to-ignore-on-edges=
   assert.enabled.sp.binning=
   assert.enabled.sp.midas-binning=
+  #test field validation
+  tf.sections-to-skip=abc
+  bn.initial-auto-alignment=
+  wait.popup.field-validation-failed=OK
+  tf.sections-to-skip=
 [[]]
 bn.initial-auto-alignment=
 wait.process.initial-xfalign=done

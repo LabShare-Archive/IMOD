@@ -20,6 +20,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: Tomogram Positioning User Interface</p>
@@ -518,16 +519,18 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     ltfRotation.setText(tiltAxisAngle);
   }
 
-  public String getImageRotation() throws NumberFormatException {
-    return ltfRotation.getText();
+  public String getImageRotation(final boolean doValidation)
+      throws NumberFormatException, FieldValidationFailedException {
+    return ltfRotation.getText(doValidation);
   }
 
-  String getOrigTiltAngleOffset() {
-    return cpTiltAngleOffset.getOriginal();
+  String getOrigTiltAngleOffset(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return cpTiltAngleOffset.getOriginal(doValidation);
   }
 
-  String getOrigZShift() {
-    return cpZShift.getOriginal();
+  String getOrigZShift(final boolean doValidation) throws FieldValidationFailedException {
+    return cpZShift.getOriginal(doValidation);
   }
 
   void setAngleOffset(ConstEtomoNumber angleOffset) {
@@ -571,36 +574,42 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     ltfThickness.setText(thickness);
   }
 
-  String getAngleOffsetTotal() {
-    return cpAngleOffset.getTotal();
+  String getAngleOffsetTotal(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return cpAngleOffset.getTotal(doValidation);
   }
 
-  String getTiltAxisZShiftTotal() {
-    return cpTiltAxisZShift.getTotal();
+  String getTiltAxisZShiftTotal(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return cpTiltAxisZShift.getTotal(doValidation);
   }
 
-  String getExtraThickness() {
-    return ltfExtraThickness.getText();
+  String getExtraThickness(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfExtraThickness.getText(doValidation);
   }
 
-  String getXAxisTiltTotal() {
-    return cpXAxisTilt.getTotal();
+  String getXAxisTiltTotal(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return cpXAxisTilt.getTotal(doValidation);
   }
 
-  String getZShift() {
-    return cpZShift.getTotal();
+  String getZShift(final boolean doValidation) throws FieldValidationFailedException {
+    return cpZShift.getTotal(doValidation);
   }
 
-  String getThickness() {
-    return ltfThickness.getText();
+  String getThickness(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfThickness.getText(doValidation);
   }
 
-  String getTiltAngleOffset() {
-    return cpTiltAngleOffset.getTotal();
+  String getTiltAngleOffset(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return cpTiltAngleOffset.getTotal(doValidation);
   }
 
-  String getSampleThickness() {
-    return ltfSampleThickness.getText();
+  String getSampleThickness(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfSampleThickness.getText(doValidation);
   }
 
   boolean isWholeTomogram() {
@@ -961,20 +970,21 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
       }
     }
 
-    String getOriginal() {
-      return ltfOriginal.getText();
+    String getOriginal(final boolean doValidation) throws FieldValidationFailedException {
+      return ltfOriginal.getText(doValidation);
     }
 
-    String getAdded() {
-      return ltfAdded.getText();
+    String getAdded(final boolean doValidation) throws FieldValidationFailedException {
+      return ltfAdded.getText(doValidation);
     }
 
-    String getTotal() {
-      return ltfTotal.getText();
+    String getTotal(final boolean doValidation) throws FieldValidationFailedException {
+      return ltfTotal.getText(doValidation);
     }
 
-    double getTotalDouble() {
-      return number.set(ltfTotal.getText()).getDouble();
+    double getTotalDouble(final boolean doValidation)
+        throws FieldValidationFailedException {
+      return number.set(ltfTotal.getText(doValidation)).getDouble();
     }
   }
 }

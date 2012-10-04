@@ -74,7 +74,7 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
   }
 
   private void addListeners() {
-    //  Mouse adapter for context menu
+    // Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
     tabbedPane.addMouseListener(mouseAdapter);
@@ -117,7 +117,7 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
     trimvolPanel.setParameters(screenState);
     squeezeVolPanel.setParameters(screenState);
   }
-  
+
   public void setParameters(final TrimvolParam param) {
     trimvolPanel.setParameters(param);
   }
@@ -132,7 +132,7 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
   public FlattenWarpDisplay getFlattenWarpDisplay() {
     return flattenVolumePanel.getFlattenWarpDisplay();
   }
-  
+
   public void setStartupWarnings(final TrimvolInputFileState inputFileState) {
     trimvolPanel.setStartupWarnings(inputFileState);
   }
@@ -144,8 +144,8 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
     metaData.setPostCurTab(curTab.index);
   }
 
-  public boolean getParameters(WarpVolParam param) {
-    return flattenVolumePanel.getParameters(param);
+  public boolean getParameters(WarpVolParam param, final boolean doValidation) {
+    return flattenVolumePanel.getParameters(param, doValidation);
   }
 
   public void setParameters(ConstWarpVolParam param) {
@@ -156,16 +156,16 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
    * Get the panel values
    * @param squeezevolParam
    */
-  public void getParameters(SqueezevolParam squeezevolParam) {
-    squeezeVolPanel.getParameters(squeezevolParam);
+  public boolean getParameters(SqueezevolParam squeezevolParam, final boolean doValidation) {
+    return squeezeVolPanel.getParameters(squeezevolParam, doValidation);
   }
 
   /**
    * Get the trimvol parameter values from the panel 
    * @param trimvolParam
    */
-  public boolean getParameters(final TrimvolParam trimvolParam) {
-    return trimvolPanel.getParameters(trimvolParam);
+  public boolean getParameters(final TrimvolParam trimvolParam, final boolean doValidation) {
+    return trimvolPanel.getParameters(trimvolParam, doValidation);
   }
 
   /**
@@ -175,7 +175,7 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
     String[] manPagelabel = { "Trimvol" };
     String[] manPage = { "trimvol.html" };
 
-    //    ContextPopup contextPopup =
+    // ContextPopup contextPopup =
     new ContextPopup(rootPanel, mouseEvent, "POST-PROCESSING", ContextPopup.TOMO_GUIDE,
         manPagelabel, manPage, applicationManager, axisID);
   }

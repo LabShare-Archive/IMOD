@@ -39,6 +39,7 @@ import etomo.type.PeetMetaData;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.Utilities;
 
 /**
@@ -797,43 +798,53 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     updateDisplay();
   }
 
-  public boolean getParameters(final MatlabParam matlabParam, final boolean forRun) {
+  public boolean getParameters(final MatlabParam matlabParam, final boolean forRun,
+      final boolean doValidation) {
     if (!matlabParam.validate(forRun)) {
       return false;
     }
     matlabParam.clear();
     volumeTable.getParameters(matlabParam);
     iterationTable.getParameters(matlabParam);
-    matlabParam.setFnOutput(ltfFnOutput.getText());
-    if (!referencePanel.getParameters(matlabParam, forRun)) {
+    try {
+      matlabParam.setFnOutput(ltfFnOutput.getText(doValidation));
+      if (!referencePanel.getParameters(matlabParam, forRun)) {
+        return false;
+      }
+      missingWedgeCompensationPanel.getParameters(matlabParam, doValidation);
+      matlabParam.setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl
+          .getSelection()).getEnumeratedType());
+      if (cbAlignedBaseName.isSelected()) {
+        matlabParam.setAlignedBaseName("aligned");
+      }
+      else {
+        matlabParam.resetAlignedBaseName();
+      }
+      matlabParam.setFlgStrictSearchLimits(cbFlgStrictSearchLimits.isSelected());
+      matlabParam.setLowCutoff(ltfLowCutoff.getText(doValidation),
+          ltfLowCutoffSigma.getText(doValidation));
+      matlabParam.setDebugLevel(lsDebugLevel.getValue());
+      matlabParam.setLstThresholdsStart(ltfLstThresholdsStart.getText(doValidation));
+      matlabParam.setLstThresholdsIncrement(ltfLstThresholdsIncrement
+          .getText(doValidation));
+      matlabParam.setLstThresholdsEnd(ltfLstThresholdsEnd.getText(doValidation));
+      matlabParam.setLstThresholdsAdditional(ltfLstThresholdsAdditional
+          .getText(doValidation));
+      matlabParam.setRefFlagAllTom(!cbRefFlagAllTom.isSelected());
+      matlabParam.setLstFlagAllTom(!cbLstFlagAllTom.isSelected());
+      matlabParam.setParticlePerCPU(lsParticlePerCPU.getValue());
+      yAxisTypePanel.getParameters(matlabParam);
+      if (!sphericalSamplingForThetaAndPsiPanel.getParameters(matlabParam, doValidation)) {
+        return false;
+      }
+      maskingPanel.getParameters(matlabParam, doValidation);
+      matlabParam.setFlgAlignAverages(cbflgAlignAverages.isSelected());
+      matlabParam.setFlgAbsValue(cbFlgAbsValue.isSelected());
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
       return false;
     }
-    missingWedgeCompensationPanel.getParameters(matlabParam);
-    matlabParam
-        .setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl.getSelection())
-            .getEnumeratedType());
-    if (cbAlignedBaseName.isSelected()) {
-      matlabParam.setAlignedBaseName("aligned");
-    }
-    else {
-      matlabParam.resetAlignedBaseName();
-    }
-    matlabParam.setFlgStrictSearchLimits(cbFlgStrictSearchLimits.isSelected());
-    matlabParam.setLowCutoff(ltfLowCutoff.getText(), ltfLowCutoffSigma.getText());
-    matlabParam.setDebugLevel(lsDebugLevel.getValue());
-    matlabParam.setLstThresholdsStart(ltfLstThresholdsStart.getText());
-    matlabParam.setLstThresholdsIncrement(ltfLstThresholdsIncrement.getText());
-    matlabParam.setLstThresholdsEnd(ltfLstThresholdsEnd.getText());
-    matlabParam.setLstThresholdsAdditional(ltfLstThresholdsAdditional.getText());
-    matlabParam.setRefFlagAllTom(!cbRefFlagAllTom.isSelected());
-    matlabParam.setLstFlagAllTom(!cbLstFlagAllTom.isSelected());
-    matlabParam.setParticlePerCPU(lsParticlePerCPU.getValue());
-    yAxisTypePanel.getParameters(matlabParam);
-    sphericalSamplingForThetaAndPsiPanel.getParameters(matlabParam);
-    maskingPanel.getParameters(matlabParam);
-    matlabParam.setFlgAlignAverages(cbflgAlignAverages.isSelected());
-    matlabParam.setFlgAbsValue(cbFlgAbsValue.isSelected());
-    return true;
   }
 
   public boolean isReferenceFileSelected() {
@@ -848,12 +859,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     return referencePanel.isReferenceParticleSelected();
   }
 
-  public String getFnOutput() {
-    return ltfFnOutput.getText();
+  public String getFnOutput(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfFnOutput.getText(doValidation);
   }
 
-  public String getDirectoryString() {
-    return ltfDirectory.getText();
+  public String getDirectoryString(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfDirectory.getText(doValidation);
   }
 
   public void setDirectory(final String directory) {

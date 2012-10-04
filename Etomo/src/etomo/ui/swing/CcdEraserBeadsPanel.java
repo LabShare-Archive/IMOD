@@ -29,6 +29,7 @@ import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.DatasetFiles;
 
 /**
@@ -204,12 +205,17 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
    * @throws FortranInputSyntaxException
    */
   void getParameters(final MetaData metaData) throws FortranInputSyntaxException {
-    metaData.setFinalStackFiducialDiameter(axisID, ltfFiducialDiameter.getText());
-    metaData.setFinalStackExpandCircleIterations(axisID,
-        cbspExpandCircleIterations.getValue());
-    metaData.setUseFinalStackExpandCircleIterations(axisID,
-        cbspExpandCircleIterations.isSelected());
-    metaData.setFinalStackPolynomialOrder(axisID, getPolynomialOrder());
+    try {
+      metaData.setFinalStackFiducialDiameter(axisID, ltfFiducialDiameter.getText(false));
+      metaData.setFinalStackExpandCircleIterations(axisID,
+          cbspExpandCircleIterations.getValue());
+      metaData.setUseFinalStackExpandCircleIterations(axisID,
+          cbspExpandCircleIterations.isSelected());
+      metaData.setFinalStackPolynomialOrder(axisID, getPolynomialOrder());
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
   }
 
   void setParameters(final ConstMetaData metaData) {
@@ -240,19 +246,24 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
     }
   }
 
-  public boolean getParameters(final CCDEraserParam param) {
-    param.setInputFile(DatasetFiles.getFullAlignedStackFileName(manager, axisID));
-    param
-        .setModelFile(FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(manager, axisID));
-    param.setOutputFile(FileType.ERASED_BEADS_STACK);
-    EtomoNumber fiducialDiameter = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-    fiducialDiameter.set(ltfFiducialDiameter.getText());
-    param.setBetterRadius(fiducialDiameter.getDouble() / 2.0);
-    if (cbspExpandCircleIterations.isSelected()) {
-      param.setExpandCircleIterations(cbspExpandCircleIterations.getValue());
+  public boolean getParameters(final CCDEraserParam param, final boolean doValidation) {
+    try {
+      param.setInputFile(DatasetFiles.getFullAlignedStackFileName(manager, axisID));
+      param.setModelFile(FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(manager,
+          axisID));
+      param.setOutputFile(FileType.ERASED_BEADS_STACK);
+      EtomoNumber fiducialDiameter = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+      fiducialDiameter.set(ltfFiducialDiameter.getText(doValidation));
+      param.setBetterRadius(fiducialDiameter.getDouble() / 2.0);
+      if (cbspExpandCircleIterations.isSelected()) {
+        param.setExpandCircleIterations(cbspExpandCircleIterations.getValue());
+      }
+      param.setPolynomialOrder(getPolynomialOrder());
+      return param.validate();
     }
-    param.setPolynomialOrder(getPolynomialOrder());
-    return param.validate();
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   public void action(final Run3dmodButton button,
