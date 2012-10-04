@@ -26,6 +26,10 @@ Otherwise, it will convert each one independently into a temporary file, then
 make a stack from the temporary files with newstack(1).  DM files that contain
 stacks of identically sized images will be handled; all of the images from each 
 file will be included in the output file.
+.P
+The program will use the pixel size in the input files to set the pixel
+spacing in the header of the output file, if one can be determined.  It uses
+the value from the first input file having a pixel size.
 .SH OPTIONS
 .TP
 .B -s
