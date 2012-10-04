@@ -7,7 +7,7 @@
 #
 # Global setup
 #
-set imod_copyright    = '1994-2010'
+set imod_copyright    = '1994-2012'
 set lab_name1     = 'Boulder Laboratory for 3-Dimensional'
 set lab_name2     = 'Electron Microscopy of Cells'
 set source_dir    = `pwd`
