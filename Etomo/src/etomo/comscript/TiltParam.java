@@ -836,7 +836,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       if (!tempSlice.isEmpty()) {
         String[] params = tempSlice.toString().split("\\s+", 3);
         idxSliceStart = Integer.parseInt(params[0]);
-        idxSliceStop =  Integer.parseInt(params[1]);
+        idxSliceStop = Integer.parseInt(params[1]);
         // increment is being ignored
       }
       tempSubsetStart.parse(scriptCommand);
@@ -950,7 +950,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       }
       if (tokens[0].equalsIgnoreCase("SLICE")) {
         String[] params = tokens[1].split("\\s+", 3);
-        idxSliceStart =  Integer.parseInt(params[0]);
+        idxSliceStart = Integer.parseInt(params[0]);
         idxSliceStop = Integer.parseInt(params[1]);
         // Increment is being ignored
       }
@@ -1198,10 +1198,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         }
         // Multiply header output by binning to work with the goodframe output,
         // which is unbinned.
-        idxXSubsetStart =  ((goodframeX - header.getNColumns()
-            * setImageBinned().getInt()) / 2);
-        idxYSubsetStart =  ((goodframeY - header.getNRows()
-            * setImageBinned().getInt()) / 2);
+        idxXSubsetStart = ((goodframeX - header.getNColumns() * setImageBinned().getInt()) / 2);
+        idxYSubsetStart = ((goodframeY - header.getNRows() * setImageBinned().getInt()) / 2);
       }
       catch (IOException e) {
         // ok if tilt is being updated before .ali exists
@@ -1243,10 +1241,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         stackX = stackHeader.getNColumns();
         stackY = stackHeader.getNRows();
       }
-      idxXSubsetStart =  ((stackX - aliHeader.getNColumns()
-          * setImageBinned().getInt()) / 2);
-      idxYSubsetStart =  ((stackY - aliHeader.getNRows()
-          * setImageBinned().getInt()) / 2);
+      idxXSubsetStart = ((stackX - aliHeader.getNColumns() * setImageBinned().getInt()) / 2);
+      idxYSubsetStart = ((stackY - aliHeader.getNRows() * setImageBinned().getInt()) / 2);
     }
     catch (IOException e) {
       e.printStackTrace();
