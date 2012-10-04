@@ -19,7 +19,7 @@
 #include "form_rawimage.h"
 
 // Resident info structure
-static RawImageInfo info = {0, 64, 64, 1, 0, 0, 0., 255., 1, 0, 0, 0};
+static RawImageInfo info = {0, 64, 64, 1, 0, 0, 0., 255., 1, 0, 0, 0, 0.};
 
 /*
  * Routines to modify the structure from command line
