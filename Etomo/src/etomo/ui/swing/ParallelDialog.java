@@ -26,6 +26,7 @@ import etomo.type.DialogType;
 import etomo.type.ParallelMetaData;
 import etomo.type.ProcessingMethod;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.Utilities;
 
 /**
@@ -162,7 +163,12 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
   }
 
   public void getParameters(ParallelMetaData metaData) {
-    metaData.setRootName(ltfProcessName.getText());
+    try {
+      metaData.setRootName(ltfProcessName.getText(false));
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
   }
 
   public void getParameters(ParallelParam param) {
@@ -174,15 +180,19 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
   }
 
   void action(ActionEvent event) {
-    String command = event.getActionCommand();
-    if (command.equals(btnRunProcess.getText())) {
-      if (ltfProcessName.isEditable()
-          && !DatasetTool.validateDatasetName(manager, axisID, workingDir,
-              ltfProcessName.getText(), DataFileType.PARALLEL, null)) {
-        return;
+    try {
+      String command = event.getActionCommand();
+      if (command.equals(btnRunProcess.getText())) {
+        if (ltfProcessName.isEditable()
+            && !DatasetTool.validateDatasetName(manager, axisID, workingDir,
+                ltfProcessName.getText(true), DataFileType.PARALLEL, null)) {
+          return;
+        }
+        manager.processchunks(btnRunProcess, null, ltfProcessName.getText(true), null,
+            mediator.getRunMethodForProcessInterface(getProcessingMethod()));
       }
-      manager.processchunks(btnRunProcess, null, ltfProcessName.getText(), null,
-          mediator.getRunMethodForProcessInterface(getProcessingMethod()));
+    }
+    catch (FieldValidationFailedException e) {
     }
   }
 

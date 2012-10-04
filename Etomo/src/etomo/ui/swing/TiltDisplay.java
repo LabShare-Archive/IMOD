@@ -41,7 +41,7 @@ public interface TiltDisplay extends ProcessDisplay {
   public boolean getParameters(TiltParam param, boolean doValidation)
       throws NumberFormatException, InvalidParameterException, IOException;
 
-  public boolean getParameters(final SplittiltParam param);
+  public boolean getParameters(final SplittiltParam param,boolean doValidation);
 
   public boolean allowTiltComSave();
 }

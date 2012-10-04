@@ -260,8 +260,8 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
     metaData.setTiltParallel(axisID, PANEL_ID, isParallelProcess());
   }
 
-  public boolean getParameters(final SplittiltParam param) {
-    if (!super.getParameters(param)) {
+  public boolean getParameters(final SplittiltParam param, final boolean doValidation) {
+    if (!super.getParameters(param, doValidation)) {
       return false;
     }
     param.setName(ProcessName.TILT_3D_FIND.toString());

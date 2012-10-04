@@ -646,14 +646,12 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
    */
   void getParameters(MetaData metaData) {
     try {
-      boolean doValidation = false;
       if (panelId == PanelId.PATCH_TRACKING) {
         metaData.setTrackOverlapOfPatchesXandY(axisID,
-            rtfOverlapOfPatchesXandY.getText(doValidation));
+            rtfOverlapOfPatchesXandY.getText(false));
         metaData.setTrackNumberOfPatchesXandY(axisID,
-            rtfNumberOfPatchesXandY.getText(doValidation));
-        metaData.setTrackLengthAndOverlap(axisID,
-            ctfLengthAndOverlap.getText(doValidation));
+            rtfNumberOfPatchesXandY.getText(false));
+        metaData.setTrackLengthAndOverlap(axisID, ctfLengthAndOverlap.getText(false));
       }
     }
     catch (FieldValidationFailedException e) {
@@ -679,7 +677,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   public boolean getParameters(final TiltxcorrParam tiltXcorrParams,
       final boolean doValidation) throws FortranInputSyntaxException {
     try {
-      tiltXcorrParams.setTestOutput(ltfTestOutput.getText());
+      tiltXcorrParams.setTestOutput(ltfTestOutput.getText(doValidation));
       if (panelId == PanelId.CROSS_CORRELATION) {
         tiltXcorrParams.setExcludeCentralPeak(cbExcludeCentralPeak.isSelected());
       }
@@ -711,31 +709,31 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       String currentParam = "unknown";
       try {
         currentParam = ltfAngleOffset.getLabel();
-        tiltXcorrParams.setAngleOffset(ltfAngleOffset.getText());
+        tiltXcorrParams.setAngleOffset(ltfAngleOffset.getText(doValidation));
         currentParam = ltfTrim.getLabel();
-        tiltXcorrParams.setBordersInXandY(ltfTrim.getText());
+        tiltXcorrParams.setBordersInXandY(ltfTrim.getText(doValidation));
         currentParam = "X" + ltfXMin.getLabel();
-        tiltXcorrParams.setXMin(ltfXMin.getText());
+        tiltXcorrParams.setXMin(ltfXMin.getText(doValidation));
         currentParam = "X" + ltfXMax.getLabel();
-        tiltXcorrParams.setXMax(ltfXMax.getText());
+        tiltXcorrParams.setXMax(ltfXMax.getText(doValidation));
         currentParam = "Y" + ltfYMin.getLabel();
-        tiltXcorrParams.setYMin(ltfYMin.getText());
+        tiltXcorrParams.setYMin(ltfYMin.getText(doValidation));
         currentParam = "Y" + ltfYMax.getLabel();
-        tiltXcorrParams.setYMax(ltfYMax.getText());
+        tiltXcorrParams.setYMax(ltfYMax.getText(doValidation));
         currentParam = ltfPadPercent.getLabel();
-        tiltXcorrParams.setPadsInXandY(ltfPadPercent.getText());
+        tiltXcorrParams.setPadsInXandY(ltfPadPercent.getText(doValidation));
         currentParam = ltfTaperPercent.getLabel();
-        tiltXcorrParams.setTapersInXandY(ltfTaperPercent.getText());
+        tiltXcorrParams.setTapersInXandY(ltfTaperPercent.getText(doValidation));
         currentParam = ltfViewRange.getLabel();
-        tiltXcorrParams.setStartingEndingViews(ltfViewRange.getText());
+        tiltXcorrParams.setStartingEndingViews(ltfViewRange.getText(doValidation));
         currentParam = ltfSkipViews.getLabel();
-        tiltXcorrParams.setSkipViews(ltfSkipViews.getText());
+        tiltXcorrParams.setSkipViews(ltfSkipViews.getText(doValidation));
         currentParam = ltfFilterSigma1.getLabel();
-        tiltXcorrParams.setFilterSigma1(ltfFilterSigma1.getText());
+        tiltXcorrParams.setFilterSigma1(ltfFilterSigma1.getText(doValidation));
         currentParam = ltfFilterRadius2.getLabel();
-        tiltXcorrParams.setFilterRadius2(ltfFilterRadius2.getText());
+        tiltXcorrParams.setFilterRadius2(ltfFilterRadius2.getText(doValidation));
         currentParam = ltfFilterSigma2.getLabel();
-        tiltXcorrParams.setFilterSigma2(ltfFilterSigma2.getText());
+        tiltXcorrParams.setFilterSigma2(ltfFilterSigma2.getText(doValidation));
         if (panelId == PanelId.CROSS_CORRELATION) {
           currentParam = cbCumulativeCorrelation.getText();
           tiltXcorrParams.setCumulativeCorrelation(cbCumulativeCorrelation.isSelected());
@@ -746,7 +744,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
         }
         else if (panelId == PanelId.PATCH_TRACKING) {
           currentParam = ltfSizeOfPatchesXandY.getLabel();
-          if (!tiltXcorrParams.setSizeOfPatchesXandY(ltfSizeOfPatchesXandY.getText(),
+          if (!tiltXcorrParams.setSizeOfPatchesXandY(
+              ltfSizeOfPatchesXandY.getText(doValidation),
               ltfSizeOfPatchesXandY.getLabel())) {
             return false;
           }
@@ -767,7 +766,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
             tiltXcorrParams.resetNumberOfPatchesXandY();
           }
           currentParam = ltfShiftLimitsXandY.getLabel();
-          tiltXcorrParams.setShiftLimitsXandY(ltfShiftLimitsXandY.getText());
+          tiltXcorrParams.setShiftLimitsXandY(ltfShiftLimitsXandY.getText(doValidation));
           currentParam = ctfLengthAndOverlap.getLabel();
           if (ctfLengthAndOverlap.isSelected()) {
             tiltXcorrParams

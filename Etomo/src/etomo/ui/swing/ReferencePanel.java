@@ -185,10 +185,9 @@ final class ReferencePanel {
    * @param metaData
    */
   void getParameters(final PeetMetaData metaData) {
-    boolean doValidation = false;
     try {
       metaData.setReferenceVolume(sVolume.getValue());
-      metaData.setReferenceParticle(rtfParticle.getText(doValidation));
+      metaData.setReferenceParticle(rtfParticle.getText(false));
       metaData.setReferenceFile(ftfFile.getText());
       metaData.setReferenceMultiparticleLevel(MultiparticleReference
           .convertIndexToLevel(cmbMultiparticle.getSelectedIndex()));

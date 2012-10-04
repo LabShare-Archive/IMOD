@@ -536,7 +536,14 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   }
 
   final boolean isZShiftSet() {
-    return ltfZShift.getText().matches("\\S+");
+    String text = null;
+    try {
+      text = ltfZShift.getText(false);
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
+    return text.matches("\\S+");
   }
 
   final boolean isUseLocalAlignment() {
@@ -573,15 +580,16 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   }
 
   void getParameters(final MetaData metaData) throws FortranInputSyntaxException {
-    boolean doValidation = false;
     try {
       metaData.setTiltParallel(axisID, panelId, isParallelProcess());
       trialTiltPanel.getParameters(metaData);
-      metaData.setGenLog(axisID, ctfLog.getText(doValidation));
-      metaData.setGenScaleFactorLog(axisID, ltfLogDensityScaleFactor.getText());
-      metaData.setGenScaleOffsetLog(axisID, ltfLogDensityScaleOffset.getText());
-      metaData.setGenScaleFactorLinear(axisID, ltfLinearDensityScaleFactor.getText());
-      metaData.setGenScaleOffsetLinear(axisID, ltfLinearDensityScaleOffset.getText());
+      metaData.setGenLog(axisID, ctfLog.getText(false));
+      metaData.setGenScaleFactorLog(axisID, ltfLogDensityScaleFactor.getText(false));
+      metaData.setGenScaleOffsetLog(axisID, ltfLogDensityScaleOffset.getText(false));
+      metaData
+          .setGenScaleFactorLinear(axisID, ltfLinearDensityScaleFactor.getText(false));
+      metaData
+          .setGenScaleOffsetLinear(axisID, ltfLinearDensityScaleOffset.getText(false));
     }
     catch (FieldValidationFailedException e) {
       // Shouldn't happen because no validation is done when saving to meta data.
@@ -738,7 +746,14 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     }
     if (initialize && log) {
       EtomoNumber logScale = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-      logScale.set(ltfLogDensityScaleFactor.getText());
+      String text = null;
+      try {
+        text = ltfLogDensityScaleFactor.getText(false);
+      }
+      catch (FieldValidationFailedException e) {
+        e.printStackTrace();
+      }
+      logScale.set(text);
       if (log && !logScale.isNull() && logScale.isValid()) {
         ltfLinearDensityScaleFactor
             .setText(Math.round(logScale.getDouble() / 5000. * 10.) / 10.);
@@ -765,27 +780,33 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         .getButtonStateKey()));
   }
 
-  public boolean getParameters(final SplittiltParam param) {
-    ParallelPanel parallelPanel = manager.getMainPanel().getParallelPanel(axisID);
-    if (parallelPanel == null) {
+  public boolean getParameters(final SplittiltParam param, final boolean doValidation) {
+    try {
+      ParallelPanel parallelPanel = manager.getMainPanel().getParallelPanel(axisID);
+      if (parallelPanel == null) {
+        return false;
+      }
+      ConstEtomoNumber numMachines = param.setNumMachines(parallelPanel
+          .getCPUsSelected(doValidation));
+      if (!numMachines.isValid()) {
+        if (numMachines.equals(0)) {
+          UIHarness.INSTANCE.openMessageDialog(manager,
+              parallelPanel.getNoCpusSelectedErrorMessage(), "Unable to run splittilt",
+              axisID);
+          return false;
+        }
+        else {
+          UIHarness.INSTANCE
+              .openMessageDialog(manager, parallelPanel.getCPUsSelectedLabel() + " "
+                  + numMachines.getInvalidReason(), "Unable to run splittilt", axisID);
+          return false;
+        }
+      }
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
       return false;
     }
-    ConstEtomoNumber numMachines = param.setNumMachines(parallelPanel.getCPUsSelected());
-    if (!numMachines.isValid()) {
-      if (numMachines.equals(0)) {
-        UIHarness.INSTANCE.openMessageDialog(manager,
-            parallelPanel.getNoCpusSelectedErrorMessage(), "Unable to run splittilt",
-            axisID);
-        return false;
-      }
-      else {
-        UIHarness.INSTANCE.openMessageDialog(manager,
-            parallelPanel.getCPUsSelectedLabel() + " " + numMachines.getInvalidReason(),
-            "Unable to run splittilt", axisID);
-        return false;
-      }
-    }
-    return true;
   }
 
   /**
@@ -797,15 +818,17 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       if (isResume()) {
         return true;
       }
-      radialPanel.getParameters(tiltParam);
+      if (!radialPanel.getParameters(tiltParam, doValidation)) {
+        return false;
+      }
       String badParameter = "";
       try {
         badParameter = "IMAGEBINNED";
         tiltParam.setImageBinned();
         // Do not manage full image size. It is coming from copytomocoms.
-        if (ltfTomoWidth.getText().matches("\\S+")) {
+        if (ltfTomoWidth.getText(false).matches("\\S+")) {
           badParameter = ltfTomoWidth.getLabel();
-          tiltParam.setWidth(Integer.parseInt(ltfTomoWidth.getText()));
+          tiltParam.setWidth(Integer.parseInt(ltfTomoWidth.getText(doValidation)));
         }
         else {
           tiltParam.resetWidth();
@@ -814,15 +837,15 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         // set Z Shift
         if (isZShiftSet()) {
           badParameter = ltfZShift.getLabel();
-          tiltParam.setZShift(ltfZShift.getText());
+          tiltParam.setZShift(ltfZShift.getText(doValidation));
         }
         else {
           tiltParam.resetZShift();
         }
         // set X Shift
-        if (ltfXShift.getText().matches("\\S+")) {
+        if (ltfXShift.getText(false).matches("\\S+")) {
           badParameter = ltfXShift.getLabel();
-          tiltParam.setXShift(Double.parseDouble(ltfXShift.getText()));
+          tiltParam.setXShift(Double.parseDouble(ltfXShift.getText(doValidation)));
         }
         else if (isZShiftSet()) {
           tiltParam.setXShift(0);
@@ -833,8 +856,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         }
 
         ConstEtomoNumber startingSlice = TomogramTool.getYStartingSlice(manager, axisID,
-            ltfTomoHeight.getText(), ltfYShift.getText(), ltfTomoHeight.getQuotedLabel(),
-            ltfYShift.getQuotedLabel());
+            ltfTomoHeight.getText(doValidation), ltfYShift.getText(doValidation),
+            ltfTomoHeight.getQuotedLabel(), ltfYShift.getQuotedLabel());
         if (startingSlice == null) {
           return false;
         }
@@ -843,7 +866,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         }
         else {
           ConstEtomoNumber endingSlice = TomogramTool.getYEndingSlice(manager, axisID,
-              startingSlice, ltfTomoHeight.getText(), ltfTomoHeight.getQuotedLabel());
+              startingSlice, ltfTomoHeight.getText(doValidation),
+              ltfTomoHeight.getQuotedLabel());
           if (endingSlice == null) {
             return false;
           }
@@ -856,48 +880,49 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
           }
         }
 
-        if (ltfTomoThickness.getText().matches("\\S+")) {
+        if (ltfTomoThickness.getText(false).matches("\\S+")) {
           badParameter = ltfTomoThickness.getLabel();
-          tiltParam.setThickness(ltfTomoThickness.getText());
+          tiltParam.setThickness(ltfTomoThickness.getText(doValidation));
         }
         else {
           tiltParam.resetThickness();
         }
 
-        if (ltfXAxisTilt.getText().matches("\\S+")) {
+        if (ltfXAxisTilt.getText(false).matches("\\S+")) {
           badParameter = ltfXAxisTilt.getLabel();
-          tiltParam.setXAxisTilt(ltfXAxisTilt.getText());
+          tiltParam.setXAxisTilt(ltfXAxisTilt.getText(doValidation));
         }
         else {
           tiltParam.resetXAxisTilt();
         }
 
-        if (ltfTiltAngleOffset.getText().matches("\\S+")) {
+        if (ltfTiltAngleOffset.getText(false).matches("\\S+")) {
           badParameter = ltfTiltAngleOffset.getLabel();
-          tiltParam.setTiltAngleOffset(ltfTiltAngleOffset.getText());
+          tiltParam.setTiltAngleOffset(ltfTiltAngleOffset.getText(doValidation));
         }
         else {
           tiltParam.resetTiltAngleOffset();
         }
 
         if (ltfLogDensityScaleOffset.isEnabled()
-            && (ltfLogDensityScaleOffset.getText().matches("\\S+") || ltfLogDensityScaleFactor
-                .getText().matches("\\S+"))) {
+            && (ltfLogDensityScaleOffset.getText(false).matches("\\S+") || ltfLogDensityScaleFactor
+                .getText(false).matches("\\S+"))) {
           badParameter = ltfLogDensityScaleFactor.getLabel();
-          tiltParam.setScaleCoeff(Double.parseDouble(ltfLogDensityScaleFactor.getText()));
+          tiltParam.setScaleCoeff(Double.parseDouble(ltfLogDensityScaleFactor
+              .getText(doValidation)));
           badParameter = ltfLogDensityScaleOffset.getLabel();
-          tiltParam
-              .setScaleFLevel(Double.parseDouble(ltfLogDensityScaleOffset.getText()));
+          tiltParam.setScaleFLevel(Double.parseDouble(ltfLogDensityScaleOffset
+              .getText(doValidation)));
         }
         else if (ltfLinearDensityScaleOffset.isEnabled()
-            && (ltfLinearDensityScaleOffset.getText().matches("\\S+") || ltfLinearDensityScaleFactor
-                .getText().matches("\\S+"))) {
+            && (ltfLinearDensityScaleOffset.getText(false).matches("\\S+") || ltfLinearDensityScaleFactor
+                .getText(false).matches("\\S+"))) {
           badParameter = ltfLinearDensityScaleFactor.getLabel();
           tiltParam.setScaleCoeff(Double.parseDouble(ltfLinearDensityScaleFactor
-              .getText()));
+              .getText(doValidation)));
           badParameter = ltfLinearDensityScaleOffset.getLabel();
           tiltParam.setScaleFLevel(Double.parseDouble(ltfLinearDensityScaleOffset
-              .getText()));
+              .getText(doValidation)));
         }
         else {
           tiltParam.resetScale();
@@ -935,7 +960,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
 
         tiltParam.setUseZFactors(isUseZFactors() && cbUseZFactors.isEnabled());
         metaData.setUseZFactors(axisID, isUseZFactors());
-        tiltParam.setExcludeList2(ltfExtraExcludeList.getText());
+        tiltParam.setExcludeList2(ltfExtraExcludeList.getText(doValidation));
         badParameter = TiltParam.SUBSETSTART_KEY;
         if (metaData.getViewType() == ViewType.MONTAGE) {
           tiltParam.setMontageSubsetStart();

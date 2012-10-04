@@ -19,6 +19,7 @@ import etomo.type.ConstMetaData;
 import etomo.type.MetaData;
 import etomo.type.ParallelMetaData;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -257,47 +258,69 @@ public final class RubberbandPanel {
   }
 
   public void getParameters(MetaData metaData) {
-    metaData.setPostTrimvolScaleXMin(ltfXMin.getText());
-    metaData.setPostTrimvolScaleXMax(ltfXMax.getText());
-    metaData.setPostTrimvolScaleYMin(ltfYMin.getText());
-    metaData.setPostTrimvolScaleYMax(ltfYMax.getText());
-    if (btnImod != null) {
-      metaData.setPostTrimvolSectionScaleMin(ltfZMin.getText());
-      metaData.setPostTrimvolSectionScaleMax(ltfZMax.getText());
+    try {
+      metaData.setPostTrimvolScaleXMin(ltfXMin.getText(false));
+      metaData.setPostTrimvolScaleXMax(ltfXMax.getText(false));
+      metaData.setPostTrimvolScaleYMin(ltfYMin.getText(false));
+      metaData.setPostTrimvolScaleYMax(ltfYMax.getText(false));
+      if (btnImod != null) {
+        metaData.setPostTrimvolSectionScaleMin(ltfZMin.getText(false));
+        metaData.setPostTrimvolSectionScaleMax(ltfZMax.getText(false));
+      }
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
     }
   }
 
-  public void getParameters(TrimvolParam trimvolParam) {
-    trimvolParam.setXMin(ltfXMin.getText());
-    trimvolParam.setXMax(ltfXMax.getText());
-    trimvolParam.setYMin(ltfYMin.getText());
-    trimvolParam.setYMax(ltfYMax.getText());
-    if (btnImod != null) {
-      trimvolParam.setZMin(ltfZMin.getText());
-      trimvolParam.setZMax(ltfZMax.getText());
+  public boolean getParameters(TrimvolParam trimvolParam, final boolean doValidation) {
+    try {
+      trimvolParam.setXMin(ltfXMin.getText(doValidation));
+      trimvolParam.setXMax(ltfXMax.getText(doValidation));
+      trimvolParam.setYMin(ltfYMin.getText(doValidation));
+      trimvolParam.setYMax(ltfYMax.getText(doValidation));
+      if (btnImod != null) {
+        trimvolParam.setZMin(ltfZMin.getText(doValidation));
+        trimvolParam.setZMax(ltfZMax.getText(doValidation));
+      }
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
-  public void getScaleParameters(TrimvolParam trimvolParam) {
-    XYParam xyParam = trimvolParam.getScaleXYParam();
-    xyParam.setXMin(ltfXMin.getText());
-    xyParam.setXMax(ltfXMax.getText());
-    xyParam.setYMin(ltfYMin.getText());
-    xyParam.setYMax(ltfYMax.getText());
-    if (btnImod != null) {
-      trimvolParam.setSectionScaleMin(ltfZMin.getText());
-      trimvolParam.setSectionScaleMax(ltfZMax.getText());
+  public boolean getScaleParameters(TrimvolParam trimvolParam, final boolean doValidation) {
+    try {
+      XYParam xyParam = trimvolParam.getScaleXYParam();
+      xyParam.setXMin(ltfXMin.getText(doValidation));
+      xyParam.setXMax(ltfXMax.getText(doValidation));
+      xyParam.setYMin(ltfYMin.getText(doValidation));
+      xyParam.setYMax(ltfYMax.getText(doValidation));
+      if (btnImod != null) {
+        trimvolParam.setSectionScaleMin(ltfZMin.getText(doValidation));
+        trimvolParam.setSectionScaleMax(ltfZMax.getText(doValidation));
+      }
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
   public void getParameters(ParallelMetaData metaData) {
-    metaData.setXMin(ltfXMin.getText());
-    metaData.setXMax(ltfXMax.getText());
-    metaData.setYMin(ltfYMin.getText());
-    metaData.setYMax(ltfYMax.getText());
-    if (btnImod != null) {
-      metaData.setZMin(ltfZMin.getText());
-      metaData.setZMax(ltfZMax.getText());
+    try {
+      metaData.setXMin(ltfXMin.getText(false));
+      metaData.setXMax(ltfXMax.getText(false));
+      metaData.setYMin(ltfYMin.getText(false));
+      metaData.setYMax(ltfYMax.getText(false));
+      if (btnImod != null) {
+        metaData.setZMin(ltfZMin.getText(false));
+        metaData.setZMax(ltfZMax.getText(false));
+      }
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
     }
   }
 

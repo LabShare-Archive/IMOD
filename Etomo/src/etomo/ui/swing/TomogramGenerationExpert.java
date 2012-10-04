@@ -180,14 +180,14 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     advanced = dialog.isAdvanced();
     // Get the user input data from the dialog box
     getParameters(screenState);
-    manager.updateTiltCom(dialog.getTiltDisplay(), axisID,false);
+    manager.updateTiltCom(dialog.getTiltDisplay(), axisID, false);
     try {
       getParameters(metaData);
     }
     catch (FortranInputSyntaxException e) {
       UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Data File Error");
     }
-    manager.updateSirtSetupCom(axisID, dialog.getSirtsetupDisplay(), false);
+    manager.updateSirtSetupCom(axisID, dialog.getSirtsetupDisplay(), false,false);
     manager.saveStorables(axisID);
   }
 

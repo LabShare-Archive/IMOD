@@ -254,11 +254,11 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
       param.setInputFile(FileType.TILT_3D_FIND_OUTPUT);
       param.setOutputFile(FileType.FIND_BEADS_3D_OUTPUT_MODEL
           .getFileName(manager, axisID));
-      param.setBeadSize(ltfBeadSize.getText());
-      param.setMinSpacing(ltfMinSpacing.getText());
-      param.setGuessNumBeads(ltfGuessNumBeads.getText());
-      param.setMinRelativeStrength(ltfMinRelativeStrength.getText());
-      param.setThresholdForAveraging(ltfThresholdForAveraging.getText());
+      param.setBeadSize(ltfBeadSize.getText(doValidation));
+      param.setMinSpacing(ltfMinSpacing.getText(doValidation));
+      param.setGuessNumBeads(ltfGuessNumBeads.getText(doValidation));
+      param.setMinRelativeStrength(ltfMinRelativeStrength.getText(doValidation));
+      param.setThresholdForAveraging(ltfThresholdForAveraging.getText(doValidation));
       if (!rtfStorageThreshold.isSelected()) {
         param.setStorageThreshold(((RadioButton.RadioButtonModel) bgStorageThreshold
             .getSelection()).getEnumeratedType().getValue());
@@ -266,7 +266,7 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
       else {
         param.setStorageThreshold(rtfStorageThreshold.getText(doValidation));
       }
-      param.setMaxNumBeads(ltfMaxNumBeads.getText());
+      param.setMaxNumBeads(ltfMaxNumBeads.getText(doValidation));
     }
     catch (FieldValidationFailedException e) {
       return false;
@@ -274,8 +274,9 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     return true;
   }
 
-  public String getBeadSize() {
-    return ltfBeadSize.getText();
+  public String getBeadSize(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfBeadSize.getText(doValidation);
   }
 
   public void action(final Run3dmodButton button,

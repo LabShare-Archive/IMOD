@@ -17,6 +17,7 @@ import etomo.logic.DatasetTool;
 import etomo.type.AxisID;
 import etomo.type.DataFileType;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
 * <p>Description: </p>
@@ -91,9 +92,15 @@ public class GpuTiltTestPanel implements ToolPanel, ContextMenu {
     btnRunTest.addActionListener(new GpuTiltTestActionListener(this));
   }
 
-  public void getParameters(final GpuTiltTestParam param) {
-    param.setNMinutes(ltfNMinutes.getText());
-    param.setGpuNumber(spGpuNumber.getValue());
+  public boolean getParameters(final GpuTiltTestParam param, final boolean doValidation) {
+    try {
+      param.setNMinutes(ltfNMinutes.getText(doValidation));
+      param.setGpuNumber(spGpuNumber.getValue());
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   private void action() {

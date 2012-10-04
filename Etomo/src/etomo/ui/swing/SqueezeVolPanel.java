@@ -21,6 +21,7 @@ import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -193,23 +194,29 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
    * Get the panel values
    * @param squeezevolParam
    */
-  public void getParameters(SqueezevolParam squeezevolParam) {
-    squeezevolParam.setReductionFactorX(ltfReductionFactorXY.getText());
-    boolean flipped = squeezevolParam.setFlipped(manager.isTrimvolFlipped());
-    if (flipped) {
-      squeezevolParam.setReductionFactorY(ltfReductionFactorXY.getText());
-      squeezevolParam.setReductionFactorZ(ltfReductionFactorZ.getText());
+  public boolean getParameters(SqueezevolParam squeezevolParam, final boolean doValidation) {
+    try {
+      squeezevolParam.setReductionFactorX(ltfReductionFactorXY.getText(doValidation));
+      boolean flipped = squeezevolParam.setFlipped(manager.isTrimvolFlipped());
+      if (flipped) {
+        squeezevolParam.setReductionFactorY(ltfReductionFactorXY.getText(doValidation));
+        squeezevolParam.setReductionFactorZ(ltfReductionFactorZ.getText(doValidation));
+      }
+      else {
+        squeezevolParam.setReductionFactorY(ltfReductionFactorZ.getText(doValidation));
+        squeezevolParam.setReductionFactorZ(ltfReductionFactorXY.getText(doValidation));
+      }
+      squeezevolParam.setLinearInterpolation(cbLinearInterpolation.isSelected());
+      if (rbInputFileTrimVol.isSelected()) {
+        squeezevolParam.setInputFile(ImageFileType.TRIM_VOL_OUTPUT);
+      }
+      else {
+        squeezevolParam.setInputFile(ImageFileType.FLATTEN_OUTPUT);
+      }
+      return true;
     }
-    else {
-      squeezevolParam.setReductionFactorY(ltfReductionFactorZ.getText());
-      squeezevolParam.setReductionFactorZ(ltfReductionFactorXY.getText());
-    }
-    squeezevolParam.setLinearInterpolation(cbLinearInterpolation.isSelected());
-    if (rbInputFileTrimVol.isSelected()) {
-      squeezevolParam.setInputFile(ImageFileType.TRIM_VOL_OUTPUT);
-    }
-    else {
-      squeezevolParam.setInputFile(ImageFileType.FLATTEN_OUTPUT);
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 

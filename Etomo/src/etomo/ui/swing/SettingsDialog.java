@@ -12,6 +12,7 @@ import etomo.storage.Network;
 import etomo.type.AxisID;
 import etomo.type.UserConfiguration;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * @author rickg
@@ -233,34 +234,42 @@ public final class SettingsDialog extends JDialog {
     updateDisplay();
   }
 
-  public void getParameters(final UserConfiguration userConfig) {
-    // Convert the tooltips times to milliseconds
-    double delay = Double.parseDouble(ltfTooltipsInitialDelay.getText());
-    userConfig.setToolTipsInitialDelay((int) (delay * 1000));
+  public boolean getParameters(final UserConfiguration userConfig,
+      final boolean doValidation) {
+    try {
+      // Convert the tooltips times to milliseconds
+      double delay = Double.parseDouble(ltfTooltipsInitialDelay.getText(doValidation));
+      userConfig.setToolTipsInitialDelay((int) (delay * 1000));
 
-    delay = Double.parseDouble(ltfTooltipsDismissDelay.getText());
-    userConfig.setToolTipsDismissDelay((int) (delay * 1000));
-    userConfig.setAutoFit(cbAutoFit.isSelected());
-    userConfig.setNativeLookAndFeel(cbNativeLAF.isSelected());
-    userConfig.setAdvancedDialogs(cbAdvancedDialogs.isSelected());
-    userConfig.setCompactDisplay(cbCompactDisplay.isSelected());
-    userConfig.setFontSize(Integer.parseInt(ltfFontSize.getText()));
-    userConfig.setFontFamily(fontFamilies.getName(listFontFamily.getSelectedIndex()));
-    userConfig.setSingleAxis(cbSingleAxis.isSelected());
-    userConfig.setMontage(cbMontage.isSelected());
-    userConfig.setNoParallelProcessing(cbNoParallelProcessing.isSelected());
-    userConfig.setGpuProcessingDefault(cbGpuProcessingDefault.isSelected());
-    userConfig.setTiltAnglesRawtltFile(cbTiltAnglesRawtltFile.isSelected());
-    userConfig.setSwapYAndZ(cbSwapYAndZ.isSelected());
-    userConfig.setParallelProcessing(cbParallelProcessing.isSelected());
-    userConfig.setGpuProcessing(cbGpuProcessing.isSelected());
-    userConfig.setCpus(ltfCpus.getText());
-    userConfig.setParallelTableSize(ltfParallelTableSize.getText());
-    userConfig.setJoinTableSize(ltfJoinTableSize.getText());
-    userConfig.setPeetTableSize(ltfPeetTableSize.getText());
+      delay = Double.parseDouble(ltfTooltipsDismissDelay.getText(doValidation));
+      userConfig.setToolTipsDismissDelay((int) (delay * 1000));
+      userConfig.setAutoFit(cbAutoFit.isSelected());
+      userConfig.setNativeLookAndFeel(cbNativeLAF.isSelected());
+      userConfig.setAdvancedDialogs(cbAdvancedDialogs.isSelected());
+      userConfig.setCompactDisplay(cbCompactDisplay.isSelected());
+      userConfig.setFontSize(Integer.parseInt(ltfFontSize.getText(doValidation)));
+      userConfig.setFontFamily(fontFamilies.getName(listFontFamily.getSelectedIndex()));
+      userConfig.setSingleAxis(cbSingleAxis.isSelected());
+      userConfig.setMontage(cbMontage.isSelected());
+      userConfig.setNoParallelProcessing(cbNoParallelProcessing.isSelected());
+      userConfig.setGpuProcessingDefault(cbGpuProcessingDefault.isSelected());
+      userConfig.setTiltAnglesRawtltFile(cbTiltAnglesRawtltFile.isSelected());
+      userConfig.setSwapYAndZ(cbSwapYAndZ.isSelected());
+      userConfig.setParallelProcessing(cbParallelProcessing.isSelected());
+      userConfig.setGpuProcessing(cbGpuProcessing.isSelected());
+      userConfig.setCpus(ltfCpus.getText(doValidation));
+      userConfig.setParallelTableSize(ltfParallelTableSize.getText(doValidation));
+      userConfig.setJoinTableSize(ltfJoinTableSize.getText(doValidation));
+      userConfig.setPeetTableSize(ltfPeetTableSize.getText(doValidation));
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   public boolean isAppearanceSettingChanged(final UserConfiguration userConfig) {
+    try {
     if (userConfig.getNativeLookAndFeel() != cbNativeLAF.isSelected()
         || userConfig.getCompactDisplay() != cbCompactDisplay.isSelected()
         || userConfig.getSingleAxis() != cbSingleAxis.isSelected()
@@ -269,19 +278,23 @@ public final class SettingsDialog extends JDialog {
         || userConfig.getGpuProcessingDefault() != cbGpuProcessingDefault.isSelected()
         || userConfig.getTiltAnglesRawtltFile() != cbTiltAnglesRawtltFile.isSelected()
         || userConfig.getSwapYAndZ() != cbSwapYAndZ.isSelected()
-        || userConfig.getFontSize() != Integer.parseInt(ltfFontSize.getText())
+        || userConfig.getFontSize() != Integer.parseInt(ltfFontSize.getText(false))
         || !userConfig.getFontFamily().equals(
             fontFamilies.getName(listFontFamily.getSelectedIndex()))
         || userConfig.isParallelProcessing() != cbParallelProcessing.isSelected()
         || userConfig.isGpuProcessing() != cbGpuProcessing.isSelected()
-        || !userConfig.getCpus().toString().equals(ltfCpus.getText())
+        || !userConfig.getCpus().toString().equals(ltfCpus.getText(false))
         || !userConfig.getParallelTableSize().toString()
-            .equals(ltfParallelTableSize.getText())
-        || !userConfig.getJoinTableSize().toString().equals(ltfJoinTableSize.getText())
-        || !userConfig.getPeetTableSize().toString().equals(ltfPeetTableSize.getText())) {
+            .equals(ltfParallelTableSize.getText(false))
+        || !userConfig.getJoinTableSize().toString().equals(ltfJoinTableSize.getText(false))
+        || !userConfig.getPeetTableSize().toString().equals(ltfPeetTableSize.getText(false))) {
       return true;
     }
-    return false;
+    return false;}
+    catch(FieldValidationFailedException e) {
+      e.printStackTrace();
+      return false;
+    }
   }
 
   void action(final String command) {

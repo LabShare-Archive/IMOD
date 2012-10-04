@@ -443,20 +443,21 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     ltfOffsetToAdd.setText(input);
   }
 
-  String getDefocusTol() {
-    return ltfDefocusTol.getText();
+  String getDefocusTol(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfDefocusTol.getText(doValidation);
   }
 
   public void setTiltState(TomogramState state, ConstMetaData metaData) {
     eraseGoldPanel.setTiltState(state, metaData);
   }
 
-  String getExpectedDefocus() {
-    return ltfExpectedDefocus.getText();
+  String getExpectedDefocus(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfExpectedDefocus.getText(doValidation);
   }
 
-  String getOffsetToAdd() {
-    return ltfOffsetToAdd.getText();
+  String getOffsetToAdd(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfOffsetToAdd.getText(doValidation);
   }
 
   void setUseFilterEnabled(boolean enable) {
@@ -495,24 +496,28 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     return curTab;
   }
 
-  String getInterpolationWidth() {
-    return ltfInterpolationWidth.getText();
+  String getInterpolationWidth(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfInterpolationWidth.getText(doValidation);
   }
 
-  String getInverseRolloffRadiusSigma() {
-    return ltfInverseRolloffRadiusSigma.getText();
+  String getInverseRolloffRadiusSigma(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfInverseRolloffRadiusSigma.getText(doValidation);
   }
 
-  String getMaximumInverse() {
-    return ltfMaximumInverse.getText();
+  String getMaximumInverse(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfMaximumInverse.getText(doValidation);
   }
 
-  String getLowPassRadiusSigma() {
-    return ltfLowPassRadiusSigma.getText();
+  String getLowPassRadiusSigma(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfLowPassRadiusSigma.getText(doValidation);
   }
 
-  String getMtfFile() {
-    return ltfMtfFile.getText();
+  String getMtfFile(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfMtfFile.getText(doValidation);
   }
 
   String getStartingAndEndingZ(final boolean doValidation)
@@ -534,12 +539,13 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
         .getButtonStateKey()));
   }
 
-  String getVoltage() {
-    return ltfVoltage.getText();
+  String getVoltage(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfVoltage.getText(doValidation);
   }
 
-  String getSphericalAberration() {
-    return ltfSphericalAberration.getText();
+  String getSphericalAberration(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfSphericalAberration.getText(doValidation);
   }
 
   boolean getInvertTiltAngles() {
@@ -597,8 +603,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     return newstackOrBlendmontPanel.getFiducialessParams();
   }
 
-  String getAmplitudeContrast() {
-    return ltfAmplitudeContrast.getText();
+  String getAmplitudeContrast(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfAmplitudeContrast.getText(doValidation);
   }
 
   void getFilterHeaderState(PanelHeaderState state) {
@@ -882,31 +889,37 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   void btnMtfFileAction(ActionEvent event) {
     // Open up the file chooser in the $IMOD_CALIB_DIR/Camera, if available,
     // otherwise open in the working directory
-    String currentMtfDirectory = ltfMtfFile.getText();
-    if (currentMtfDirectory.equals("")) {
-      File calibrationDir = EtomoDirector.INSTANCE.getIMODCalibDirectory();
-      File cameraDir = new File(calibrationDir.getAbsolutePath(), "Camera");
-      if (cameraDir.exists()) {
-        currentMtfDirectory = cameraDir.getAbsolutePath();
+    String currentMtfDirectory = null;
+    try {
+      currentMtfDirectory = ltfMtfFile.getText(true);
+      if (currentMtfDirectory.equals("")) {
+        File calibrationDir = EtomoDirector.INSTANCE.getIMODCalibDirectory();
+        File cameraDir = new File(calibrationDir.getAbsolutePath(), "Camera");
+        if (cameraDir.exists()) {
+          currentMtfDirectory = cameraDir.getAbsolutePath();
+        }
+        else {
+          currentMtfDirectory = applicationManager.getPropertyUserDir();
+        }
       }
-      else {
-        currentMtfDirectory = applicationManager.getPropertyUserDir();
+      JFileChooser chooser = new FileChooser(new File(currentMtfDirectory));
+      MtfFileFilter mtfFileFilter = new MtfFileFilter();
+      chooser.setFileFilter(mtfFileFilter);
+      chooser.setPreferredSize(FixedDim.fileChooser);
+      chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+      int returnVal = chooser.showOpenDialog(rootPanel);
+      if (returnVal == JFileChooser.APPROVE_OPTION) {
+        File mtfFile = chooser.getSelectedFile();
+        try {
+          ltfMtfFile.setText(mtfFile.getAbsolutePath());
+        }
+        catch (Exception excep) {
+          excep.printStackTrace();
+        }
       }
     }
-    JFileChooser chooser = new FileChooser(new File(currentMtfDirectory));
-    MtfFileFilter mtfFileFilter = new MtfFileFilter();
-    chooser.setFileFilter(mtfFileFilter);
-    chooser.setPreferredSize(FixedDim.fileChooser);
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(rootPanel);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      File mtfFile = chooser.getSelectedFile();
-      try {
-        ltfMtfFile.setText(mtfFile.getAbsolutePath());
-      }
-      catch (Exception excep) {
-        excep.printStackTrace();
-      }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
     }
   }
 

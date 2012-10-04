@@ -19,6 +19,7 @@ import etomo.type.DialogType;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -221,33 +222,39 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     header.getButtonStates(screenState);
   }
 
-  void getParameters() {
-    getParameters(new TransferfidParam(manager, axisID));
+  boolean getParameters(final boolean doValidation) {
+    return getParameters(new TransferfidParam(manager, axisID), doValidation);
   }
 
   /**
    * Get the values from the panel filling in the TransferfidParam object
    */
-  void getParameters(TransferfidParam params) {
-    params.setRunMidas(cbRunMidas.isSelected());
-    params.setCenterViewA(ltfCenterViewA.getText());
-    params.setCenterViewB(ltfCenterViewB.getText());
-    if (rbSearchBoth.isSelected()) {
-      params.getSearchDirection().reset();
+  boolean getParameters(TransferfidParam params, final boolean doValidation) {
+    try {
+      params.setRunMidas(cbRunMidas.isSelected());
+      params.setCenterViewA(ltfCenterViewA.getText(doValidation));
+      params.setCenterViewB(ltfCenterViewB.getText(doValidation));
+      if (rbSearchBoth.isSelected()) {
+        params.getSearchDirection().reset();
+      }
+      if (rbSearchPlus90.isSelected()) {
+        params.setSearchDirection(1);
+      }
+      if (rbSearchMinus90.isSelected()) {
+        params.setSearchDirection(-1);
+      }
+      params.setNumberViews(ltfNumberViews.getText(doValidation));
+      params.setMirrorInX(cbMirrorInX.isSelected());
+      if (axisID == AxisID.SECOND) {
+        manager.getMetaData().setTransferfidBFields(params);
+      }
+      else {
+        manager.getMetaData().setTransferfidAFields(params);
+      }
+      return true;
     }
-    if (rbSearchPlus90.isSelected()) {
-      params.setSearchDirection(1);
-    }
-    if (rbSearchMinus90.isSelected()) {
-      params.setSearchDirection(-1);
-    }
-    params.setNumberViews(ltfNumberViews.getText());
-    params.setMirrorInX(cbMirrorInX.isSelected());
-    if (axisID == AxisID.SECOND) {
-      manager.getMetaData().setTransferfidBFields(params);
-    }
-    else {
-      manager.getMetaData().setTransferfidAFields(params);
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 

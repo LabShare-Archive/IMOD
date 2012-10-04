@@ -640,13 +640,12 @@ final class TiltalignPanel implements Expandable {
   }
 
   void getParameters(final MetaData metaData) {
-    boolean doValidation = false;
     try {
-      metaData.setTargetPatchSizeXandY(rtfTargetPatchSizeXandY.getText(doValidation));
-      metaData.setNumberOfLocalPatchesXandY(rtfNLocalPatches.getText(doValidation));
+      metaData.setTargetPatchSizeXandY(rtfTargetPatchSizeXandY.getText(false));
+      metaData.setNumberOfLocalPatchesXandY(rtfNLocalPatches.getText(false));
       metaData.setNoBeamTiltSelected(axisID, rbNoBeamTilt.isSelected());
       metaData.setFixedBeamTiltSelected(axisID, rtfFixedBeamTilt.isSelected());
-      metaData.setFixedBeamTilt(axisID, rtfFixedBeamTilt.getText(doValidation));
+      metaData.setFixedBeamTilt(axisID, rtfFixedBeamTilt.getText(false));
     }
     catch (FieldValidationFailedException e) {
       e.printStackTrace();
@@ -714,7 +713,7 @@ final class TiltalignPanel implements Expandable {
         }
 
         badParameter = ltfResidualThreshold.getLabel();
-        double resid = Double.parseDouble(ltfResidualThreshold.getText());
+        double resid = Double.parseDouble(ltfResidualThreshold.getText(doValidation));
         if (rbResidNeighboring.isSelected()) {
           resid *= -1;
         }
@@ -723,26 +722,26 @@ final class TiltalignPanel implements Expandable {
         // Currently only supports Exclude list or blank entries
         badParameter = ltfExcludeList.getLabel();
         if (ltfExcludeList.isEnabled()) {
-          params.setExcludeList(ltfExcludeList.getText());
+          params.setExcludeList(ltfExcludeList.getText(doValidation));
         }
         badParameter = ltfSeparateViewGroups.getLabel();
-        params.setSeparateGroup(ltfSeparateViewGroups.getText());
+        params.setSeparateGroup(ltfSeparateViewGroups.getText(doValidation));
 
         badParameter = ltfTiltAngleOffset.getLabel();
-        params.setAngleOffset(ltfTiltAngleOffset.getText());
+        params.setAngleOffset(ltfTiltAngleOffset.getText(doValidation));
 
         badParameter = ltfTiltAxisZShift.getLabel();
-        params.setAxisZShift(ltfTiltAxisZShift.getText());
+        params.setAxisZShift(ltfTiltAxisZShift.getText(doValidation));
 
         badParameter = ctfRobustFittingAndKFactorScaling.getLabel();
         params.setRobustFitting(ctfRobustFittingAndKFactorScaling.isSelected());
         params.setKFactorScaling(ctfRobustFittingAndKFactorScaling.getText(doValidation));
 
         badParameter = ltfMetroFactor.getLabel();
-        params.setMetroFactor(ltfMetroFactor.getText());
+        params.setMetroFactor(ltfMetroFactor.getText(doValidation));
 
         badParameter = ltfCycleLimit.getLabel();
-        params.setMaximumCycles(ltfCycleLimit.getText());
+        params.setMaximumCycles(ltfCycleLimit.getText(doValidation));
 
         badParameter = cbLocalAlignments.getText();
         params.setLocalAlignments(cbLocalAlignments.isSelected());
@@ -756,10 +755,10 @@ final class TiltalignPanel implements Expandable {
         params.setNumberOfLocalPatchesXandY(rtfNLocalPatches.getText(doValidation));
 
         badParameter = ltfMinLocalPatchSize.getLabel();
-        params.setMinSizeOrOverlapXandY(ltfMinLocalPatchSize.getText());
+        params.setMinSizeOrOverlapXandY(ltfMinLocalPatchSize.getText(doValidation));
 
         badParameter = ltfMinLocalFiducials.getLabel();
-        params.setMinFidsTotalAndEachSurface(ltfMinLocalFiducials.getText());
+        params.setMinFidsTotalAndEachSurface(ltfMinLocalFiducials.getText(doValidation));
 
         badParameter = cbFixXYZCoordinates.getText();
         params.setFixXYZCoordinates(cbFixXYZCoordinates.isSelected());
@@ -774,14 +773,14 @@ final class TiltalignPanel implements Expandable {
           type = 5;
         params.setTiltOption(type);
         badParameter = ltfTiltAngleGroupSize.getLabel();
-        params.setTiltDefaultGrouping(ltfTiltAngleGroupSize.getText());
+        params.setTiltDefaultGrouping(ltfTiltAngleGroupSize.getText(doValidation));
 
         badParameter = ltfTiltAngleNonDefaultGroups.getLabel();
-        params.setTiltNondefaultGroup(ltfTiltAngleNonDefaultGroups.getText());
+        params.setTiltNondefaultGroup(ltfTiltAngleNonDefaultGroups.getText(doValidation));
 
         // Magnification pane
         badParameter = ltfMagnificationReferenceView.getLabel();
-        params.setMagReferenceView(ltfMagnificationReferenceView.getText());
+        params.setMagReferenceView(ltfMagnificationReferenceView.getText(doValidation));
 
         if (rbMagnificationFixed.isSelected())
           type = 0;
@@ -792,10 +791,11 @@ final class TiltalignPanel implements Expandable {
         params.setMagOption(type);
 
         badParameter = ltfMagnificationGroupSize.getLabel();
-        params.setMagDefaultGrouping(ltfMagnificationGroupSize.getText());
+        params.setMagDefaultGrouping(ltfMagnificationGroupSize.getText(doValidation));
 
         badParameter = ltfMagnificationNonDefaultGroups.getLabel();
-        params.setMagNondefaultGroup(ltfMagnificationNonDefaultGroups.getText());
+        params.setMagNondefaultGroup(ltfMagnificationNonDefaultGroups
+            .getText(doValidation));
 
         // Rotation pane
         if (rbRotationNone.isSelected())
@@ -809,11 +809,11 @@ final class TiltalignPanel implements Expandable {
         }
         params.setRotOption(type);
         badParameter = ltfRotationAngle.getLabel();
-        params.setRotationAngle(ltfRotationAngle.getText());
+        params.setRotationAngle(ltfRotationAngle.getText(doValidation));
         badParameter = ltfRotationGroupSize.getLabel();
-        params.setRotDefaultGrouping(ltfRotationGroupSize.getText());
+        params.setRotDefaultGrouping(ltfRotationGroupSize.getText(doValidation));
         badParameter = ltfRotationNonDefaultGroups.getLabel();
-        params.setRotNondefaultGroup(ltfRotationNonDefaultGroups.getText());
+        params.setRotNondefaultGroup(ltfRotationNonDefaultGroups.getText(doValidation));
 
         // Distortion pane
         type = 0;
@@ -833,16 +833,17 @@ final class TiltalignPanel implements Expandable {
         }
 
         badParameter = ltfSkewGroupSize.getLabel();
-        params.setSkewDefaultGrouping(ltfSkewGroupSize.getText());
+        params.setSkewDefaultGrouping(ltfSkewGroupSize.getText(doValidation));
 
         badParameter = ltfSkewNonDefaultGroups.getLabel();
-        params.setSkewNondefaultGroup(ltfSkewNonDefaultGroups.getText());
+        params.setSkewNondefaultGroup(ltfSkewNonDefaultGroups.getText(doValidation));
 
         badParameter = ltfXstretchGroupSize.getLabel();
-        params.setXStretchDefaultGrouping(ltfXstretchGroupSize.getText());
+        params.setXStretchDefaultGrouping(ltfXstretchGroupSize.getText(doValidation));
 
         badParameter = ltfXstretchNonDefaultGroups.getLabel();
-        params.setXStretchNondefaultGroup(ltfXstretchNonDefaultGroups.getText());
+        params.setXStretchNondefaultGroup(ltfXstretchNonDefaultGroups
+            .getText(doValidation));
 
         badParameter = cbProjectionStretch.getText();
         params.setProjectionStretch(cbProjectionStretch.isSelected());
@@ -855,10 +856,12 @@ final class TiltalignPanel implements Expandable {
           type = params.getLocalRotOption().getDisplayInteger();
         params.setLocalRotOption(type);
         badParameter = ltfLocalRotationGroupSize.getLabel();
-        params.setLocalRotDefaultGrouping(ltfLocalRotationGroupSize.getText());
+        params
+            .setLocalRotDefaultGrouping(ltfLocalRotationGroupSize.getText(doValidation));
 
         badParameter = ltfLocalRotationNonDefaultGroups.getLabel();
-        params.setLocalRotNondefaultGroup(ltfLocalRotationNonDefaultGroups.getText());
+        params.setLocalRotNondefaultGroup(ltfLocalRotationNonDefaultGroups
+            .getText(doValidation));
 
         // Tilt angle pane
         type = 0;
@@ -866,10 +869,12 @@ final class TiltalignPanel implements Expandable {
           type = params.getLocalTiltOption().getDisplayInteger();
         params.setLocalTiltOption(type);
         badParameter = ltfLocalTiltAngleGroupSize.getLabel();
-        params.setLocalTiltDefaultGrouping(ltfLocalTiltAngleGroupSize.getText());
+        params.setLocalTiltDefaultGrouping(ltfLocalTiltAngleGroupSize
+            .getText(doValidation));
 
         badParameter = ltfLocalTiltAngleNonDefaultGroups.getLabel();
-        params.setLocalTiltNondefaultGroup(ltfLocalTiltAngleNonDefaultGroups.getText());
+        params.setLocalTiltNondefaultGroup(ltfLocalTiltAngleNonDefaultGroups
+            .getText(doValidation));
 
         // Local magnification pane
         if (cbLocalMagnification.isSelected()) {
@@ -880,11 +885,12 @@ final class TiltalignPanel implements Expandable {
         }
 
         badParameter = ltfLocalMagnificationGroupSize.getLabel();
-        params.setLocalMagDefaultGrouping(ltfLocalMagnificationGroupSize.getText());
+        params.setLocalMagDefaultGrouping(ltfLocalMagnificationGroupSize
+            .getText(doValidation));
 
         badParameter = ltfLocalMagnificationNonDefaultGroups.getLabel();
-        params
-            .setLocalMagNondefaultGroup(ltfLocalMagnificationNonDefaultGroups.getText());
+        params.setLocalMagNondefaultGroup(ltfLocalMagnificationNonDefaultGroups
+            .getText(doValidation));
 
         // Distortion pane
         type = 0;
@@ -902,17 +908,19 @@ final class TiltalignPanel implements Expandable {
           }
         }
         badParameter = ltfLocalSkewGroupSize.getLabel();
-        params.setLocalSkewDefaultGrouping(ltfLocalSkewGroupSize.getText());
+        params.setLocalSkewDefaultGrouping(ltfLocalSkewGroupSize.getText(doValidation));
 
         badParameter = ltfLocalSkewNonDefaultGroups.getLabel();
-        params.setLocalSkewNondefaultGroup(ltfLocalSkewNonDefaultGroups.getText());
+        params.setLocalSkewNondefaultGroup(ltfLocalSkewNonDefaultGroups
+            .getText(doValidation));
 
         badParameter = ltfLocalXstretchGroupSize.getLabel();
-        params.setLocalXStretchDefaultGrouping(ltfLocalXstretchGroupSize.getText());
+        params.setLocalXStretchDefaultGrouping(ltfLocalXstretchGroupSize
+            .getText(doValidation));
 
         badParameter = ltfLocalXstretchNonDefaultGroups.getLabel();
-        params
-            .setLocalXStretchNondefaultGroup(ltfLocalXstretchNonDefaultGroups.getText());
+        params.setLocalXStretchNondefaultGroup(ltfLocalXstretchNonDefaultGroups
+            .getText(doValidation));
         // params needs to have other values set before it can set OutputZFactorFile
         params.setOutputZFactorFile();
 

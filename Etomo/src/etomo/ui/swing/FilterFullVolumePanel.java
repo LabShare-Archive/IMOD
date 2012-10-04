@@ -17,6 +17,7 @@ import etomo.type.FileType;
 import etomo.type.ParallelMetaData;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -143,10 +144,15 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
   }
 
   void getParameters(final ParallelMetaData metaData) {
-    metaData.setKValue(ltfKValue.getText());
-    metaData.setIteration(spIteration.getValue());
-    metaData.setMemoryPerChunk(spMemoryPerChunk.getValue());
-    metaData.setOverlapTimesFour(cbOverlapTimesFour.isSelected());
+    try {
+      metaData.setKValue(ltfKValue.getText(false));
+      metaData.setIteration(spIteration.getValue());
+      metaData.setMemoryPerChunk(spMemoryPerChunk.getValue());
+      metaData.setOverlapTimesFour(cbOverlapTimesFour.isSelected());
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
   }
 
   Number getMemoryPerChunk() {
@@ -160,9 +166,15 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
     cbOverlapTimesFour.setSelected(metaData.isOverlapTimesFour());
   }
 
-  void getParameters(final AnisotropicDiffusionParam param) {
-    param.setKValue(ltfKValue.getText());
-    param.setIteration(spIteration.getValue());
+  boolean getParameters(final AnisotropicDiffusionParam param, final boolean doValidation) {
+    try {
+      param.setKValue(ltfKValue.getText(doValidation));
+      param.setIteration(spIteration.getValue());
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   void getParameters(final ChunksetupParam param) {

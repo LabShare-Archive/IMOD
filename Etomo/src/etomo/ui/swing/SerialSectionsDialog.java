@@ -346,9 +346,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
   }
 
   public void getParameters(final SerialSectionsMetaData metaData) {
-    boolean doValidation = false;
     try {
-      metaData.setRobustFitCriterion(ctfRobustFitCriterion.getText(doValidation));
+      metaData.setRobustFitCriterion(ctfRobustFitCriterion.getText(false));
       metaData.setMidasBinning(spMidasBinning.getValue());
       autoAlignmentPanel.getParameters(metaData.getAutoAlignmentMetaData());
       metaData.setNoOptions(rbNoOptions.isSelected());
@@ -358,10 +357,10 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       metaData.setNumberToFitGlobalAlignment(rbNumberToFitGlobalAlignment.isSelected());
       metaData.setUseReferenceSection(cbsReferenceSection.isSelected());
       metaData.setReferenceSection(cbsReferenceSection.getValue());
-      metaData.setSizeX(ltfSizeX.getText());
-      metaData.setSizeY(ltfSizeY.getText());
-      metaData.setShiftX(ltfShiftX.getText());
-      metaData.setShiftY(ltfShiftY.getText());
+      metaData.setSizeX(ltfSizeX.getText(false));
+      metaData.setSizeY(ltfSizeY.getText(false));
+      metaData.setShiftX(ltfShiftX.getText(false));
+      metaData.setShiftY(ltfShiftY.getText(false));
       metaData.setTab(curTab.index);
     }
     catch (FieldValidationFailedException e) {
@@ -423,22 +422,29 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     }
   }
 
-  public void getBlendParameters(final BlendmontParam param) {
-    if (ltfSizeX.isEmpty() && ltfSizeY.isEmpty() && ltfShiftX.isEmpty()
-        && ltfShiftY.isEmpty()) {
-      param.resetStartingAndEndingXandY();
+  public boolean getBlendParameters(final BlendmontParam param, final boolean doValidation) {
+    try {
+      if (ltfSizeX.isEmpty() && ltfSizeY.isEmpty() && ltfShiftX.isEmpty()
+          && ltfShiftY.isEmpty()) {
+        param.resetStartingAndEndingXandY();
+      }
+      else {
+        param.setStartingAndEndingXAndY(TomogramTool.getStartingAndEndingXAndY(
+            FileType.PREBLEND_OUTPUT_MRC, ltfSizeX.getText(doValidation),
+            ltfShiftX.getText(doValidation), ltfSizeY.getText(doValidation),
+            ltfShiftY.getText(doValidation), manager, axisID, ltfSizeX.getQuotedLabel(),
+            ltfShiftX.getQuotedLabel(),
+            Utilities.quoteLabel(SIZE_LABEL + ltfSizeY.getLabel()),
+            Utilities.quoteLabel(SHIFT_LABEL + ltfShiftY.getLabel()), "Entry Error"));
+      }
+      param.setBinByFactor(spBinByFactor.getValue());
+      if (cbFillWithZero.isSelected()) {
+        param.setFillValue(0);
+      }
+      return true;
     }
-    else {
-      param.setStartingAndEndingXAndY(TomogramTool.getStartingAndEndingXAndY(
-          FileType.PREBLEND_OUTPUT_MRC, ltfSizeX.getText(), ltfShiftX.getText(),
-          ltfSizeY.getText(), ltfShiftY.getText(), manager, axisID,
-          ltfSizeX.getQuotedLabel(), ltfShiftX.getQuotedLabel(),
-          Utilities.quoteLabel(SIZE_LABEL + ltfSizeY.getLabel()),
-          Utilities.quoteLabel(SHIFT_LABEL + ltfShiftY.getLabel()), "Entry Error"));
-    }
-    param.setBinByFactor(spBinByFactor.getValue());
-    if (cbFillWithZero.isSelected()) {
-      param.setFillValue(0);
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
@@ -447,15 +453,21 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     cbFillWithZero.setSelected(param.fillValueEquals(0));
   }
 
-  public void getParameters(final NewstParam param) throws FortranInputSyntaxException,
-      InvalidParameterException, IOException {
-    param.setSizeToOutputInXandY(ltfSizeX.getText(), ltfSizeY.getText(), spBinByFactor
-        .getValue().intValue(), 0, "Size");
-    param.setOffsetsInXandY(TomogramTool.convertShiftsToOffsets(ltfShiftX.getText(),
-        ltfShiftY.getText()));
-    param.setBinByFactor(spBinByFactor.getValue());
-    if (cbFillWithZero.isSelected()) {
-      param.setFillValue(0);
+  public boolean getParameters(final NewstParam param, final boolean doValidation)
+      throws FortranInputSyntaxException, InvalidParameterException, IOException {
+    try {
+      param.setSizeToOutputInXandY(ltfSizeX.getText(doValidation),
+          ltfSizeY.getText(doValidation), spBinByFactor.getValue().intValue(), 0, "Size");
+      param.setOffsetsInXandY(TomogramTool.convertShiftsToOffsets(
+          ltfShiftX.getText(doValidation), ltfShiftY.getText(doValidation)));
+      param.setBinByFactor(spBinByFactor.getValue());
+      if (cbFillWithZero.isSelected()) {
+        param.setFillValue(0);
+      }
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
@@ -466,9 +478,10 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     cbFillWithZero.setSelected(param.fillValueEquals(0));
   }
 
-  public void getAutoAlignmentParameters(final XfalignParam param) {
+  public boolean getAutoAlignmentParameters(final XfalignParam param,
+      final boolean doValidation) {
     manager.getAutoAlignmentParameters(param, axisID);
-    autoAlignmentPanel.getParameters(param);
+    return autoAlignmentPanel.getParameters(param, doValidation);
   }
 
   public void getParameters(final XftoxgParam param) {

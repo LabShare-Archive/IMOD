@@ -33,6 +33,7 @@ import etomo.type.MetaData;
 import etomo.type.ProcessingMethod;
 import etomo.type.ReconScreenState;
 import etomo.type.TomogramState;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -514,8 +515,9 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * @param combineParams
    * @throws NumberFormatException
    */
-  public void getCombineParams(CombineParams combineParams) throws NumberFormatException {
-    pnlSetup.getParameters(combineParams);
+  public boolean getCombineParams(CombineParams combineParams, final boolean doValidation)
+      throws NumberFormatException {
+    return pnlSetup.getParameters(combineParams, doValidation);
   }
 
   Run3dmodButton getImodCombinedButton() {
@@ -586,13 +588,14 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * @param solvematchParams
    * @throws NumberFormatException
    */
-  public void getSolvematchParams(SolvematchParam solvematchParams)
-      throws NumberFormatException {
-    pnlInitial.getSolvematchParams(solvematchParams);
+  public boolean getSolvematchParams(SolvematchParam solvematchParams,
+      final boolean doValidation) throws NumberFormatException {
+    return pnlInitial.getSolvematchParams(solvematchParams, doValidation);
   }
 
-  public void getParameters(MatchvolParam param) throws NumberFormatException {
-    pnlInitial.getParameters(param);
+  public boolean getParameters(MatchvolParam param, final boolean doValidation)
+      throws NumberFormatException {
+    return pnlInitial.getParameters(param, doValidation);
   }
 
   /**
@@ -623,12 +626,12 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     return pnlFinal.getPatchcrawl3DParams(patchcrawl3DParams, doValidation);
   }
 
-  public void getReductionFactorParam(SetParam setParam) {
-    pnlFinal.getReductionFactorParam(setParam);
+  public boolean getReductionFactorParam(SetParam setParam, final boolean doValidation) {
+    return pnlFinal.getReductionFactorParam(setParam, doValidation);
   }
 
-  public void getLowFromBothRadiusParam(SetParam setParam) {
-    pnlFinal.getLowFromBothRadiusParam(setParam);
+  public boolean getLowFromBothRadiusParam(SetParam setParam, final boolean doValidation) {
+    return pnlFinal.getLowFromBothRadiusParam(setParam, doValidation);
   }
 
   public void enableReductionFactor(boolean enable) {
@@ -739,13 +742,18 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     if (!fromPanel.isEnabled() || !toPanel.isEnabled()) {
       return;
     }
-    toPanel.setSurfacesOrModels(fromPanel.getSurfacesOrModels());
-    toPanel.setBinBy2(fromPanel.isBinBy2());
-    toPanel.setFiducialMatchListA(fromPanel.getFiducialMatchListA());
-    toPanel.setFiducialMatchListB(fromPanel.getFiducialMatchListB());
-    toPanel.setUseCorrespondingPoints(fromPanel.isUseCorrespondingPoints());
-    toPanel.setUseList(fromPanel.getUseList());
-    toPanel.setMatchMode(fromPanel.getMatchMode());
+    try {
+      toPanel.setSurfacesOrModels(fromPanel.getSurfacesOrModels());
+      toPanel.setBinBy2(fromPanel.isBinBy2());
+      toPanel.setFiducialMatchListA(fromPanel.getFiducialMatchListA(false));
+      toPanel.setFiducialMatchListB(fromPanel.getFiducialMatchListB(false));
+      toPanel.setUseCorrespondingPoints(fromPanel.isUseCorrespondingPoints());
+      toPanel.setUseList(fromPanel.getUseList(false));
+      toPanel.setMatchMode(fromPanel.getMatchMode());
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
   }
 
   /**
@@ -758,16 +766,21 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     if (!fromPanel.isEnabled() || !toPanel.isEnabled()) {
       return;
     }
-    toPanel.setUsePatchRegionModel(fromPanel.isUsePatchRegionModel());
-    toPanel.setXMin(fromPanel.getXMin());
-    toPanel.setXMax(fromPanel.getXMax());
-    toPanel.setYMin(fromPanel.getYMin());
-    toPanel.setYMax(fromPanel.getYMax());
-    toPanel.setZMin(fromPanel.getZMin());
-    toPanel.setZMax(fromPanel.getZMax());
-    toPanel.setParallel(fromPanel.isParallel());
-    toPanel.setParallelEnabled(fromPanel.isParallelEnabled());
-    toPanel.setNoVolcombine(fromPanel.isNoVolcombine());
+    try {
+      toPanel.setUsePatchRegionModel(fromPanel.isUsePatchRegionModel());
+      toPanel.setXMin(fromPanel.getXMin(false));
+      toPanel.setXMax(fromPanel.getXMax(false));
+      toPanel.setYMin(fromPanel.getYMin(false));
+      toPanel.setYMax(fromPanel.getYMax(false));
+      toPanel.setZMin(fromPanel.getZMin(false));
+      toPanel.setZMax(fromPanel.getZMax(false));
+      toPanel.setParallel(fromPanel.isParallel());
+      toPanel.setParallelEnabled(fromPanel.isParallelEnabled());
+      toPanel.setNoVolcombine(fromPanel.isNoVolcombine());
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
   }
 
   public boolean isChanged(TomogramState state) {
@@ -806,9 +819,9 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * @param matchorwarpParams
    * @throws NumberFormatException
    */
-  public void getMatchorwarpParams(MatchorwarpParam matchorwarpParams)
-      throws NumberFormatException {
-    pnlFinal.getMatchorwarpParams(matchorwarpParams);
+  public boolean getMatchorwarpParams(MatchorwarpParam matchorwarpParams,
+      final boolean doValidation) throws NumberFormatException {
+    return pnlFinal.getMatchorwarpParams(matchorwarpParams, doValidation);
   }
 
   public void synchronizeFromCurrentTab() {

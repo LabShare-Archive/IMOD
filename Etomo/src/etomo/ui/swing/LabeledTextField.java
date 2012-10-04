@@ -9,11 +9,13 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
 import etomo.EtomoDirector;
+import etomo.logic.FieldValidator;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.Utilities;
 
 /**
@@ -206,7 +208,7 @@ import etomo.util.Utilities;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-final class LabeledTextField {
+final class LabeledTextField implements UIComponent {
   public static final String rcsid = "$Id$";
 
   private final JPanel panel = new JPanel();
@@ -374,7 +376,13 @@ final class LabeledTextField {
   }
 
   boolean equals(final String thatText) {
-    String text = getText();
+    String text = null;
+    try {
+      text = getText(false);
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
     if (text == null) {
       if (thatText == null) {
         return true;
@@ -399,6 +407,10 @@ final class LabeledTextField {
     }
   }
 
+  public Component getComponent() {
+    return panel;
+  }
+
   Container getContainer() {
     return panel;
   }
@@ -416,8 +428,12 @@ final class LabeledTextField {
     setName(label);
   }
 
-  String getText() {
-    return textField.getText();
+  String getText(final boolean doValidation) throws FieldValidationFailedException {
+    String text = textField.getText();
+    if (doValidation && textField.isEnabled() && fieldType.validationType.canValidate) {
+      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel());
+    }
+    return text;
   }
 
   boolean isEmpty() {

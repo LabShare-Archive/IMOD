@@ -24,6 +24,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.PeetMetaData;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.FilePath;
 
 /**
@@ -262,10 +263,15 @@ final class MaskingPanel {
   }
 
   public void getParameters(final PeetMetaData metaData) {
-    metaData.setMaskModelPtsZRotation(ltfZRotation.getText());
-    metaData.setMaskModelPtsYRotation(ltfYRotation.getText());
-    metaData.setMaskTypeVolume(ftfMaskTypeFile.getText());
-    metaData.setManualCylinderOrientation(cbCylinderOrientation.isSelected());
+    try {
+      metaData.setMaskModelPtsZRotation(ltfZRotation.getText(false));
+      metaData.setMaskModelPtsYRotation(ltfYRotation.getText(false));
+      metaData.setMaskTypeVolume(ftfMaskTypeFile.getText());
+      metaData.setManualCylinderOrientation(cbCylinderOrientation.isSelected());
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
   }
 
   /**
@@ -319,22 +325,30 @@ final class MaskingPanel {
     ltfOutsideMaskRadius.setText(matlabParam.getOutsideMaskRadius());
   }
 
-  public void getParameters(final MatlabParam matlabParam) {
-    if (rbMaskTypeFile.isSelected()) {
-      matlabParam.setMaskType(ftfMaskTypeFile.getText());
+  public boolean getParameters(final MatlabParam matlabParam, final boolean doValidation) {
+    try {
+      if (rbMaskTypeFile.isSelected()) {
+        matlabParam.setMaskType(ftfMaskTypeFile.getText());
+      }
+      else {
+        matlabParam
+            .setMaskType(((RadioButton.RadioButtonModel) bgMaskType.getSelection())
+                .getEnumeratedType());
+      }
+      if (cbCylinderOrientation.isEnabled() && cbCylinderOrientation.isSelected()) {
+        matlabParam.setMaskModelPts(ltfZRotation.getText(doValidation),
+            ltfYRotation.getText(doValidation));
+      }
+      else {
+        matlabParam.clearMaskModelPts();
+      }
+      matlabParam.setInsideMaskRadius(ltfInsideMaskRadius.getText(doValidation));
+      matlabParam.setOutsideMaskRadius(ltfOutsideMaskRadius.getText(doValidation));
+      return true;
     }
-    else {
-      matlabParam.setMaskType(((RadioButton.RadioButtonModel) bgMaskType.getSelection())
-          .getEnumeratedType());
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-    if (cbCylinderOrientation.isEnabled() && cbCylinderOrientation.isSelected()) {
-      matlabParam.setMaskModelPts(ltfZRotation.getText(), ltfYRotation.getText());
-    }
-    else {
-      matlabParam.clearMaskModelPts();
-    }
-    matlabParam.setInsideMaskRadius(ltfInsideMaskRadius.getText());
-    matlabParam.setOutsideMaskRadius(ltfOutsideMaskRadius.getText());
   }
 
   void setDefaults() {
@@ -366,7 +380,12 @@ final class MaskingPanel {
     EtomoNumber rotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     // validate Z Rotation
     if (ltfZRotation.isEnabled()) {
-      rotation.set(ltfZRotation.getText());
+      try {
+        rotation.set(ltfZRotation.getText(false));
+      }
+      catch (FieldValidationFailedException e) {
+        e.printStackTrace();
+      }
       String description = ltfZRotation.getLabel() + " field in " + pnlRoot.getName();
       if (!rotation.isValid()) {
         return description + " must be numeric - " + rotation.getInvalidReason() + ".";
@@ -381,7 +400,12 @@ final class MaskingPanel {
     }
     // validate Y Rotation
     if (ltfZRotation.isEnabled()) {
-      rotation.set(ltfZRotation.getText());
+      try {
+        rotation.set(ltfZRotation.getText(false));
+      }
+      catch (FieldValidationFailedException e) {
+        e.printStackTrace();
+      }
       if (!rotation.isValid()) {
         return ltfYRotation.getLabel() + " field in " + pnlRoot.getName()
             + " must be numeric - " + rotation.getInvalidReason() + ".";

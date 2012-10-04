@@ -29,6 +29,7 @@ import etomo.type.FiducialMatch;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -462,30 +463,36 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
    * CombineParams object 
    * @param combineParams
    */
-  void getParameters(CombineParams combineParams) {
-    if (rbBothSides.isSelected()) {
-      combineParams.setFiducialMatch(FiducialMatch.BOTH_SIDES);
+  boolean getParameters(CombineParams combineParams, final boolean doValidation) {
+    try {
+      if (rbBothSides.isSelected()) {
+        combineParams.setFiducialMatch(FiducialMatch.BOTH_SIDES);
+      }
+      if (rbOneSide.isSelected()) {
+        combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE);
+      }
+      if (rbOneSideInverted.isSelected()) {
+        combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE_INVERTED);
+      }
+      if (rbUseModel.isSelected()) {
+        combineParams.setFiducialMatch(FiducialMatch.USE_MODEL);
+      }
+      if (rbUseModelOnly.isSelected()) {
+        combineParams.setFiducialMatch(FiducialMatch.USE_MODEL_ONLY);
+      }
+      combineParams.setTransfer(!cbUseCorrespondingPoints.isSelected());
+      combineParams.setFiducialMatchListA(ltfFiducialMatchListA.getText(doValidation));
+      combineParams.setFiducialMatchListB(ltfFiducialMatchListB.getText(doValidation));
+      if (ltfUseList.getText(false).matches("\\s*/\\s*")) {
+        combineParams.setUseList("");
+      }
+      else {
+        combineParams.setUseList(ltfUseList.getText(doValidation));
+      }
+      return true;
     }
-    if (rbOneSide.isSelected()) {
-      combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE);
-    }
-    if (rbOneSideInverted.isSelected()) {
-      combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE_INVERTED);
-    }
-    if (rbUseModel.isSelected()) {
-      combineParams.setFiducialMatch(FiducialMatch.USE_MODEL);
-    }
-    if (rbUseModelOnly.isSelected()) {
-      combineParams.setFiducialMatch(FiducialMatch.USE_MODEL_ONLY);
-    }
-    combineParams.setTransfer(!cbUseCorrespondingPoints.isSelected());
-    combineParams.setFiducialMatchListA(ltfFiducialMatchListA.getText());
-    combineParams.setFiducialMatchListB(ltfFiducialMatchListB.getText());
-    if (ltfUseList.getText().matches("\\s*/\\s*")) {
-      combineParams.setUseList("");
-    }
-    else {
-      combineParams.setUseList(ltfUseList.getText());
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
@@ -508,29 +515,39 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     ltfUseList.setText(solvematchParam.getUsePoints().toString());
   }
 
-  /*void visibleResidual(boolean state) { ltfResidulThreshold.setVisible(state); } */
+  /* void visibleResidual(boolean state) { ltfResidulThreshold.setVisible(state); } */
   /**
    * Get the parameters from the ui and filling in the appropriate fields in the
    * SolvematchParam object 
    * @param combineParams
    */
-  void getParameters(SolvematchParam solvematchParam) {
-    solvematchParam.setSurfacesOrModel(getSurfacesOrModels());
+  boolean getParameters(SolvematchParam solvematchParam, final boolean doValidation) {
+    try {
+      solvematchParam.setSurfacesOrModel(getSurfacesOrModels());
 
-    if (solvematchParam.isMatchBToA()) {
-      solvematchParam.setToCorrespondenceList(ltfFiducialMatchListA.getText());
-      solvematchParam.setFromCorrespondenceList(ltfFiducialMatchListB.getText());
+      if (solvematchParam.isMatchBToA()) {
+        solvematchParam.setToCorrespondenceList(ltfFiducialMatchListA
+            .getText(doValidation));
+        solvematchParam.setFromCorrespondenceList(ltfFiducialMatchListB
+            .getText(doValidation));
+      }
+      else {
+        solvematchParam.setFromCorrespondenceList(ltfFiducialMatchListA
+            .getText(doValidation));
+        solvematchParam.setToCorrespondenceList(ltfFiducialMatchListB
+            .getText(doValidation));
+      }
+      if (initialPanel) {
+        solvematchParam.setMaximumResidual(ltfResidulThreshold.getText(doValidation));
+        solvematchParam.setCenterShiftLimit(ltfCenterShiftLimit.getText(doValidation));
+      }
+      solvematchParam.setTransferCoordinateFile(cbUseCorrespondingPoints.isSelected());
+      solvematchParam.setUsePoints(ltfUseList.getText(doValidation));
+      return true;
     }
-    else {
-      solvematchParam.setFromCorrespondenceList(ltfFiducialMatchListA.getText());
-      solvematchParam.setToCorrespondenceList(ltfFiducialMatchListB.getText());
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-    if (initialPanel) {
-      solvematchParam.setMaximumResidual(ltfResidulThreshold.getText());
-      solvematchParam.setCenterShiftLimit(ltfCenterShiftLimit.getText());
-    }
-    solvematchParam.setTransferCoordinateFile(cbUseCorrespondingPoints.isSelected());
-    solvematchParam.setUsePoints(ltfUseList.getText());
   }
 
   /**
@@ -591,20 +608,22 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     ltfFiducialMatchListA.setText(fiducialMatchListA);
   }
 
-  String getUseList() {
-    return ltfUseList.getText();
+  String getUseList(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfUseList.getText(doValidation);
   }
 
-  public String getFiducialMatchListA() {
-    return ltfFiducialMatchListA.getText();
+  public String getFiducialMatchListA(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfFiducialMatchListA.getText(doValidation);
   }
 
   public void setFiducialMatchListB(String fiducialMatchListB) {
     ltfFiducialMatchListB.setText(fiducialMatchListB);
   }
 
-  public String getFiducialMatchListB() {
-    return ltfFiducialMatchListB.getText();
+  public String getFiducialMatchListB(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfFiducialMatchListB.getText(doValidation);
   }
 
   public void action(final Run3dmodButton button,

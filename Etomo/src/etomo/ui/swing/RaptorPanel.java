@@ -22,6 +22,7 @@ import etomo.type.MetaData;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description:.</p>
@@ -184,28 +185,37 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
     }
   }
 
-  public boolean getParameters(final RunraptorParam param) {
-    param.setUseRawStack(rbInputRaw.isSelected());
-    String errorMessage = param.setMark(ltfMark.getText());
-    if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Error in " + MARK_LABEL + ": "
-          + errorMessage, "Entry Error", axisID);
+  public boolean getParameters(final RunraptorParam param, final boolean doValidation) {
+    try {
+      param.setUseRawStack(rbInputRaw.isSelected());
+      String errorMessage = param.setMark(ltfMark.getText(doValidation));
+      if (errorMessage != null) {
+        UIHarness.INSTANCE.openMessageDialog(manager, "Error in " + MARK_LABEL + ": "
+            + errorMessage, "Entry Error", axisID);
+        return false;
+      }
+      errorMessage = param.setDiam(ltfDiam.getText(doValidation),
+          rbInputPreali.isSelected());
+      if (errorMessage != null) {
+        UIHarness.INSTANCE.openMessageDialog(manager, "Error in " + DIAM_LABEL + ": "
+            + errorMessage, "Entry Error", axisID);
+        return false;
+      }
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
       return false;
     }
-    errorMessage = param.setDiam(ltfDiam.getText(), rbInputPreali.isSelected());
-    if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Error in " + DIAM_LABEL + ": "
-          + errorMessage, "Entry Error", axisID);
-      return false;
-    }
-    return true;
   }
 
   public void getParameters(final MetaData metaData) {
+    try {
     if (axisID != AxisID.SECOND) {
       metaData.setTrackRaptorUseRawStack(rbInputRaw.isSelected());
-      metaData.setTrackRaptorMark(ltfMark.getText());
-      metaData.setTrackRaptorDiam(ltfDiam.getText());
+      metaData.setTrackRaptorMark(ltfMark.getText(false));
+      metaData.setTrackRaptorDiam(ltfDiam.getText(false));
+    }}catch(FieldValidationFailedException e) {
+      e.printStackTrace();
     }
   }
 

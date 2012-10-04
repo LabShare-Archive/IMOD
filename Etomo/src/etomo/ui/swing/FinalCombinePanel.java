@@ -842,8 +842,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     ltfXLow.setText(xMin);
   }
 
-  public String getXMin() {
-    return ltfXLow.getText();
+  public String getXMin(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfXLow.getText(doValidation);
   }
 
   public void setXMax(String xMax) {
@@ -854,40 +854,40 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     return tomogramCombinationDialog.isTabEnabled(TomogramCombinationDialog.lblFinal);
   }
 
-  public String getXMax() {
-    return ltfXHigh.getText();
+  public String getXMax(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfXHigh.getText(doValidation);
   }
 
   public void setYMin(String yMin) {
     ltfZLow.setText(yMin);
   }
 
-  public String getYMin() {
-    return ltfZLow.getText();
+  public String getYMin(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfZLow.getText(doValidation);
   }
 
   public void setYMax(String yMax) {
     ltfZHigh.setText(yMax);
   }
 
-  public String getYMax() {
-    return ltfZHigh.getText();
+  public String getYMax(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfZHigh.getText(doValidation);
   }
 
   public void setZMin(String zMin) {
     ltfYLow.setText(zMin);
   }
 
-  public String getZMin() {
-    return ltfYLow.getText();
+  public String getZMin(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfYLow.getText(doValidation);
   }
 
   public void setZMax(String zMax) {
     ltfYHigh.setText(zMax);
   }
 
-  public String getZMax() {
-    return ltfYHigh.getText();
+  public String getZMax(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfYHigh.getText(doValidation);
   }
 
   boolean isRunVolcombine() {
@@ -920,14 +920,13 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   }
 
   final void getParameters(ReconScreenState screenState) {
-    boolean doValidation = false;
     try {
       patchRegionModelHeader
           .getState(screenState.getCombineFinalPatchRegionHeaderState());
       patchcorrHeader.getState(screenState.getCombineFinalPatchcorrHeaderState());
       matchorwarpHeader.getState(screenState.getCombineFinalPatchcorrHeaderState());
       volcombineHeader.getState(screenState.getCombineFinalVolcombineHeaderState());
-      screenState.setPatchcorrKernelSigma(tfKernelSigma.getText(doValidation));
+      screenState.setPatchcorrKernelSigma(tfKernelSigma.getText(false));
     }
     catch (FieldValidationFailedException e) {
       e.printStackTrace();
@@ -1034,18 +1033,30 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     cbParallelProcess.setEnabled(parallelEnabled);
   }
 
-  void getReductionFactorParam(SetParam param) {
+  boolean getReductionFactorParam(SetParam param, final boolean doValidation) {
     if (param == null) {
-      return;
+      return false;
     }
-    param.setValue(ltfReductionFactor.getText());
+    try {
+      param.setValue(ltfReductionFactor.getText(doValidation));
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
-  void getLowFromBothRadiusParam(SetParam param) {
+  boolean getLowFromBothRadiusParam(SetParam param, final boolean doValidation) {
     if (param == null) {
-      return;
+      return false;
     }
-    param.setValue(ltfLowFromBothRadius.getText());
+    try {
+      param.setValue(ltfLowFromBothRadius.getText(doValidation));
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   void enableReductionFactor(boolean enable) {
@@ -1070,35 +1081,38 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       badParameter = cbUsePatchRegionModel.getText();
       patchcrawl3DParam.setUseBoundaryModel(cbUsePatchRegionModel.isSelected());
       badParameter = ltfXPatchSize.getLabel();
-      patchcrawl3DParam.setXPatchSize(Integer.parseInt(ltfXPatchSize.getText()));
+      patchcrawl3DParam.setXPatchSize(Integer.parseInt(ltfXPatchSize
+          .getText(doValidation)));
       badParameter = ltfYPatchSize.getLabel();
-      patchcrawl3DParam.setYPatchSize(Integer.parseInt(ltfYPatchSize.getText()));
+      patchcrawl3DParam.setYPatchSize(Integer.parseInt(ltfYPatchSize
+          .getText(doValidation)));
       badParameter = ltfZPatchSize.getLabel();
-      patchcrawl3DParam.setZPatchSize(Integer.parseInt(ltfZPatchSize.getText()));
+      patchcrawl3DParam.setZPatchSize(Integer.parseInt(ltfZPatchSize
+          .getText(doValidation)));
       badParameter = ltfXNPatches.getLabel();
-      patchcrawl3DParam.setNX(Integer.parseInt(ltfXNPatches.getText()));
+      patchcrawl3DParam.setNX(Integer.parseInt(ltfXNPatches.getText(doValidation)));
       badParameter = ltfYNPatches.getLabel();
-      patchcrawl3DParam.setNY(Integer.parseInt(ltfYNPatches.getText()));
+      patchcrawl3DParam.setNY(Integer.parseInt(ltfYNPatches.getText(doValidation)));
       badParameter = ltfZNPatches.getLabel();
-      patchcrawl3DParam.setNZ(Integer.parseInt(ltfZNPatches.getText()));
+      patchcrawl3DParam.setNZ(Integer.parseInt(ltfZNPatches.getText(doValidation)));
       badParameter = ltfXLow.getLabel();
-      patchcrawl3DParam.setXLow(Integer.parseInt(ltfXLow.getText()));
+      patchcrawl3DParam.setXLow(Integer.parseInt(ltfXLow.getText(doValidation)));
       badParameter = ltfXHigh.getLabel();
-      patchcrawl3DParam.setXHigh(Integer.parseInt(ltfXHigh.getText()));
+      patchcrawl3DParam.setXHigh(Integer.parseInt(ltfXHigh.getText(doValidation)));
       badParameter = ltfYLow.getLabel();
-      patchcrawl3DParam.setYLow(Integer.parseInt(ltfYLow.getText()));
+      patchcrawl3DParam.setYLow(Integer.parseInt(ltfYLow.getText(doValidation)));
       badParameter = ltfYHigh.getLabel();
-      patchcrawl3DParam.setYHigh(Integer.parseInt(ltfYHigh.getText()));
+      patchcrawl3DParam.setYHigh(Integer.parseInt(ltfYHigh.getText(doValidation)));
       badParameter = ltfZLow.getLabel();
-      patchcrawl3DParam.setZLow(Integer.parseInt(ltfZLow.getText()));
+      patchcrawl3DParam.setZLow(Integer.parseInt(ltfZLow.getText(doValidation)));
       badParameter = ltfZHigh.getLabel();
-      patchcrawl3DParam.setZHigh(Integer.parseInt(ltfZHigh.getText()));
+      patchcrawl3DParam.setZHigh(Integer.parseInt(ltfZHigh.getText(doValidation)));
       badParameter = ltfInitialShiftX.getLabel();
-      patchcrawl3DParam.setInitialShiftX(ltfInitialShiftX.getText());
+      patchcrawl3DParam.setInitialShiftX(ltfInitialShiftX.getText(doValidation));
       badParameter = ltfInitialShiftY.getLabel();
-      patchcrawl3DParam.setInitialShiftY(ltfInitialShiftY.getText());
+      patchcrawl3DParam.setInitialShiftY(ltfInitialShiftY.getText(doValidation));
       badParameter = ltfInitialShiftZ.getLabel();
-      patchcrawl3DParam.setInitialShiftZ(ltfInitialShiftZ.getText());
+      patchcrawl3DParam.setInitialShiftZ(ltfInitialShiftZ.getText(doValidation));
       badParameter = cbKernelSigma.getText();
       patchcrawl3DParam.setKernelSigma(cbKernelSigma.isSelected(),
           tfKernelSigma.getText(doValidation));
@@ -1150,66 +1164,73 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
    * @param matchorwarpParam
    * @throws NumberFormatException
    */
-  public void getMatchorwarpParams(MatchorwarpParam matchorwarpParam)
-      throws NumberFormatException {
-    String badParameter = "";
-
+  public boolean getMatchorwarpParams(MatchorwarpParam matchorwarpParam,
+      final boolean doValidation) throws NumberFormatException {
     try {
-      badParameter = cbUsePatchRegionModel.getText();
-      if (cbUsePatchRegionModel.isSelected()) {
-        matchorwarpParam.setDefaultModelFile();
-      }
-      else {
-        matchorwarpParam.setModelFile("");
-      }
+      String badParameter = "";
 
-      badParameter = ltfWarpLimit.getLabel();
-      matchorwarpParam.setWarpLimit(ltfWarpLimit.getText());
+      try {
+        badParameter = cbUsePatchRegionModel.getText();
+        if (cbUsePatchRegionModel.isSelected()) {
+          matchorwarpParam.setDefaultModelFile();
+        }
+        else {
+          matchorwarpParam.setModelFile("");
+        }
 
-      badParameter = ltfRefineLimit.getLabel();
-      matchorwarpParam.setRefineLimit(Double.parseDouble(ltfRefineLimit.getText()));
+        badParameter = ltfWarpLimit.getLabel();
+        matchorwarpParam.setWarpLimit(ltfWarpLimit.getText(doValidation));
 
-      badParameter = ltfXLowerExclude.getLabel();
-      String text = ltfXLowerExclude.getText();
-      if (text.matches("\\S+")) {
-        matchorwarpParam.setXLowerExclude(Integer.parseInt(text));
-      }
-      else {
-        matchorwarpParam.setXLowerExclude(0);
-      }
+        badParameter = ltfRefineLimit.getLabel();
+        matchorwarpParam.setRefineLimit(Double.parseDouble(ltfRefineLimit
+            .getText(doValidation)));
 
-      badParameter = ltfXUpperExclude.getLabel();
-      text = ltfXUpperExclude.getText();
-      if (text.matches("\\S+")) {
-        matchorwarpParam.setXUpperExclude(Integer.parseInt(text));
-      }
-      else {
-        matchorwarpParam.setXUpperExclude(0);
-      }
+        badParameter = ltfXLowerExclude.getLabel();
+        String text = ltfXLowerExclude.getText(doValidation);
+        if (text.matches("\\S+")) {
+          matchorwarpParam.setXLowerExclude(Integer.parseInt(text));
+        }
+        else {
+          matchorwarpParam.setXLowerExclude(0);
+        }
 
-      badParameter = ltfZLowerExclude.getLabel();
-      text = ltfZLowerExclude.getText();
-      if (text.matches("\\S+")) {
-        matchorwarpParam.setZLowerExclude(Integer.parseInt(text));
-      }
-      else {
-        matchorwarpParam.setZLowerExclude(0);
-      }
+        badParameter = ltfXUpperExclude.getLabel();
+        text = ltfXUpperExclude.getText(doValidation);
+        if (text.matches("\\S+")) {
+          matchorwarpParam.setXUpperExclude(Integer.parseInt(text));
+        }
+        else {
+          matchorwarpParam.setXUpperExclude(0);
+        }
 
-      badParameter = ltfZUpperExclude.getLabel();
-      text = ltfZUpperExclude.getText();
-      if (text.matches("\\S+")) {
-        matchorwarpParam.setZUpperExclude(Integer.parseInt(text));
+        badParameter = ltfZLowerExclude.getLabel();
+        text = ltfZLowerExclude.getText(doValidation);
+        if (text.matches("\\S+")) {
+          matchorwarpParam.setZLowerExclude(Integer.parseInt(text));
+        }
+        else {
+          matchorwarpParam.setZLowerExclude(0);
+        }
+
+        badParameter = ltfZUpperExclude.getLabel();
+        text = ltfZUpperExclude.getText(doValidation);
+        if (text.matches("\\S+")) {
+          matchorwarpParam.setZUpperExclude(Integer.parseInt(text));
+        }
+        else {
+          matchorwarpParam.setZUpperExclude(0);
+        }
+        badParameter = cbUseLinearInterpolation.getText();
+        matchorwarpParam.setUseLinearInterpolation(cbUseLinearInterpolation.isSelected());
       }
-      else {
-        matchorwarpParam.setZUpperExclude(0);
+      catch (NumberFormatException except) {
+        String message = badParameter + " " + except.getMessage();
+        throw new NumberFormatException(message);
       }
-      badParameter = cbUseLinearInterpolation.getText();
-      matchorwarpParam.setUseLinearInterpolation(cbUseLinearInterpolation.isSelected());
+      return true;
     }
-    catch (NumberFormatException except) {
-      String message = badParameter + " " + except.getMessage();
-      throw new NumberFormatException(message);
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
@@ -1249,65 +1270,75 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     // and then round to ints
     // since they are in
     // pixels
-    if (command.equals(btnPatchsizeDecrease.getActionCommand())) {
-      ltfXPatchSize.setText(Math.round(Integer.parseInt(ltfXPatchSize.getText()) / 1.2f));
-      ltfYPatchSize.setText(Math.round(Integer.parseInt(ltfYPatchSize.getText()) / 1.2f));
-      ltfZPatchSize.setText(Math.round(Integer.parseInt(ltfZPatchSize.getText()) / 1.2f));
-    }
-    // Increase patch sizes by 20% and then round to ints since they are
-    // in
-    // pixels
-    else if (command.equals(btnPatchsizeIncrease.getActionCommand())) {
-      ltfXPatchSize.setText(Math.round(Integer.parseInt(ltfXPatchSize.getText()) * 1.2f));
-      ltfYPatchSize.setText(Math.round(Integer.parseInt(ltfYPatchSize.getText()) * 1.2f));
-      ltfZPatchSize.setText(Math.round(Integer.parseInt(ltfZPatchSize.getText()) * 1.2f));
-    }
-    else if (command.equals(btnPatchcorrRestart.getActionCommand())) {
-      applicationManager.patchcorrCombine(btnPatchcorrRestart, null, deferred3dmodButton,
-          run3dmodMenuOptions, dialogType,
-          tomogramCombinationDialog.getRunProcessingMethod());
-    }
-    else if (command.equals(btnMatchorwarpRestart.getActionCommand())) {
-      applicationManager.matchorwarpCombine(btnMatchorwarpRestart, null,
-          deferred3dmodButton, run3dmodMenuOptions, dialogType,
-          tomogramCombinationDialog.getRunProcessingMethod());
-    }
-    else if (command.equals(btnMatchorwarpTrial.getActionCommand())) {
-      applicationManager.matchorwarpTrial(null);
-    }
-    else if (command.equals(btnVolcombineRestart.getActionCommand())) {
-      if (cbParallelProcess.isSelected()) {
-        applicationManager.splitcombine(null, deferred3dmodButton, run3dmodMenuOptions,
-            dialogType, tomogramCombinationDialog.getRunProcessingMethod());
+    try {
+      if (command.equals(btnPatchsizeDecrease.getActionCommand())) {
+        ltfXPatchSize
+            .setText(Math.round(Integer.parseInt(ltfXPatchSize.getText(true)) / 1.2f));
+        ltfYPatchSize
+            .setText(Math.round(Integer.parseInt(ltfYPatchSize.getText(true)) / 1.2f));
+        ltfZPatchSize
+            .setText(Math.round(Integer.parseInt(ltfZPatchSize.getText(true)) / 1.2f));
       }
-      else {
-        applicationManager.volcombine(btnVolcombineRestart, null, deferred3dmodButton,
-            run3dmodMenuOptions, dialogType);
+      // Increase patch sizes by 20% and then round to ints since they are
+      // in
+      // pixels
+      else if (command.equals(btnPatchsizeIncrease.getActionCommand())) {
+        ltfXPatchSize
+            .setText(Math.round(Integer.parseInt(ltfXPatchSize.getText(true)) * 1.2f));
+        ltfYPatchSize
+            .setText(Math.round(Integer.parseInt(ltfYPatchSize.getText(true)) * 1.2f));
+        ltfZPatchSize
+            .setText(Math.round(Integer.parseInt(ltfZPatchSize.getText(true)) * 1.2f));
+      }
+      else if (command.equals(btnPatchcorrRestart.getActionCommand())) {
+        applicationManager.patchcorrCombine(btnPatchcorrRestart, null,
+            deferred3dmodButton, run3dmodMenuOptions, dialogType,
+            tomogramCombinationDialog.getRunProcessingMethod());
+      }
+      else if (command.equals(btnMatchorwarpRestart.getActionCommand())) {
+        applicationManager.matchorwarpCombine(btnMatchorwarpRestart, null,
+            deferred3dmodButton, run3dmodMenuOptions, dialogType,
+            tomogramCombinationDialog.getRunProcessingMethod());
+      }
+      else if (command.equals(btnMatchorwarpTrial.getActionCommand())) {
+        applicationManager.matchorwarpTrial(null);
+      }
+      else if (command.equals(btnVolcombineRestart.getActionCommand())) {
+        if (cbParallelProcess.isSelected()) {
+          applicationManager.splitcombine(null, deferred3dmodButton, run3dmodMenuOptions,
+              dialogType, tomogramCombinationDialog.getRunProcessingMethod());
+        }
+        else {
+          applicationManager.volcombine(btnVolcombineRestart, null, deferred3dmodButton,
+              run3dmodMenuOptions, dialogType);
+        }
+      }
+      else if (command.equals(btnPatchVectorModel.getActionCommand())) {
+        applicationManager.imodPatchVectorModel(ImodManager.PATCH_VECTOR_MODEL_KEY);
+      }
+      else if (command.equals(btnPatchVectorCCCModel.getActionCommand())) {
+        applicationManager.imodPatchVectorModel(ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
+      }
+      else if (command.equals(btnReplacePatchOut.getActionCommand())) {
+        applicationManager.modelToPatch();
+      }
+      else if (command.equals(cbParallelProcess.getActionCommand())) {
+        sendProcessingMethodMessage();
+      }
+      else if (command.equals(cbKernelSigma.getActionCommand())) {
+        updateKernelSigma();
+      }
+      else if (command.equals(btnPatchRegionModel.getActionCommand())) {
+        applicationManager.imodPatchRegionModel(run3dmodMenuOptions);
+      }
+      else if (command.equals(btnImodMatchedTo.getActionCommand())) {
+        applicationManager.imodMatchedToTomogram(run3dmodMenuOptions);
+      }
+      else if (command.equals(btnImodCombined.getActionCommand())) {
+        applicationManager.imodCombinedTomogram(run3dmodMenuOptions);
       }
     }
-    else if (command.equals(btnPatchVectorModel.getActionCommand())) {
-      applicationManager.imodPatchVectorModel(ImodManager.PATCH_VECTOR_MODEL_KEY);
-    }
-    else if (command.equals(btnPatchVectorCCCModel.getActionCommand())) {
-      applicationManager.imodPatchVectorModel(ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
-    }
-    else if (command.equals(btnReplacePatchOut.getActionCommand())) {
-      applicationManager.modelToPatch();
-    }
-    else if (command.equals(cbParallelProcess.getActionCommand())) {
-      sendProcessingMethodMessage();
-    }
-    else if (command.equals(cbKernelSigma.getActionCommand())) {
-      updateKernelSigma();
-    }
-    else if (command.equals(btnPatchRegionModel.getActionCommand())) {
-      applicationManager.imodPatchRegionModel(run3dmodMenuOptions);
-    }
-    else if (command.equals(btnImodMatchedTo.getActionCommand())) {
-      applicationManager.imodMatchedToTomogram(run3dmodMenuOptions);
-    }
-    else if (command.equals(btnImodCombined.getActionCommand())) {
-      applicationManager.imodCombinedTomogram(run3dmodMenuOptions);
+    catch (FieldValidationFailedException e) {
     }
   }
 

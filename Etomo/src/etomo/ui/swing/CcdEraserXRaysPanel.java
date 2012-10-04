@@ -39,6 +39,7 @@ import etomo.type.FileType;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     CcdEraserDisplay, Expandable {
@@ -80,8 +81,8 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
       "Create Manual Replacement Model", this);
   private final LabeledTextField ltfBorderPixels = new LabeledTextField(
       FieldType.INTEGER, "Border pixels: ");
-  private final LabeledTextField ltfPolynomialOrder = new LabeledTextField(FieldType.INTEGER,
-      "Polynomial order: ");
+  private final LabeledTextField ltfPolynomialOrder = new LabeledTextField(
+      FieldType.INTEGER, "Polynomial order: ");
   private final CheckBox cbIncludeAdjacentPoints = new CheckBox("Include adjacent points");
   private final Run3dmodButton btnViewErased = Run3dmodButton.get3dmodInstance(
       "View Fixed Stack", this);
@@ -279,30 +280,39 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     // .getButtonStateKey()));
   }
 
-  public boolean getParameters(final CCDEraserParam ccdEraserParams) {
-    ccdEraserParams.setFindPeaks(cbXrayReplacement.isSelected());
-    ccdEraserParams.setPeakCriterion(ltfPeakCriterion.getText());
-    ccdEraserParams.setDiffCriterion(ltfDiffCriterion.getText());
-    ccdEraserParams.setGrowCriterion(ltfGrowCriterion.getText());
-    ccdEraserParams.setScanCriterion(ltfScanCriterion.getText());
-    ccdEraserParams.setMaximumRadius(ltfMaximumRadius.getText());
-    ccdEraserParams.setAnnulusWidth(ltfAnnulusWidth.getText());
-    ccdEraserParams.setXyScanSize(ltfScanRegionSize.getText());
-    ccdEraserParams.setEdgeExclusion(ltfEdgeExclusion.getText());
-    ccdEraserParams.setGlobalReplacementList(ltfGlobalReplacementList.getText());
-    ccdEraserParams.setLocalReplacementList(ltfLocalReplacementList.getText());
-    ccdEraserParams.setBoundaryReplacementList(ltfBoundaryReplacementList.getText());
-    ccdEraserParams.setBorderPixels(ltfBorderPixels.getText());
-    ccdEraserParams.setPolynomialOrder(ltfPolynomialOrder.getText());
-    ccdEraserParams.setIncludeAdjacentPoints(cbIncludeAdjacentPoints.isSelected());
-    if (cbManualReplacement.isSelected()) {
-      ccdEraserParams.setModelFile(applicationManager.getMetaData().getDatasetName()
-          + axisID.getExtension() + ".erase");
+  public boolean getParameters(final CCDEraserParam ccdEraserParams,
+      final boolean doValidation) {
+    try {
+      ccdEraserParams.setFindPeaks(cbXrayReplacement.isSelected());
+      ccdEraserParams.setPeakCriterion(ltfPeakCriterion.getText(doValidation));
+      ccdEraserParams.setDiffCriterion(ltfDiffCriterion.getText(doValidation));
+      ccdEraserParams.setGrowCriterion(ltfGrowCriterion.getText(doValidation));
+      ccdEraserParams.setScanCriterion(ltfScanCriterion.getText(doValidation));
+      ccdEraserParams.setMaximumRadius(ltfMaximumRadius.getText(doValidation));
+      ccdEraserParams.setAnnulusWidth(ltfAnnulusWidth.getText(doValidation));
+      ccdEraserParams.setXyScanSize(ltfScanRegionSize.getText(doValidation));
+      ccdEraserParams.setEdgeExclusion(ltfEdgeExclusion.getText(doValidation));
+      ccdEraserParams.setGlobalReplacementList(ltfGlobalReplacementList
+          .getText(doValidation));
+      ccdEraserParams.setLocalReplacementList(ltfLocalReplacementList
+          .getText(doValidation));
+      ccdEraserParams.setBoundaryReplacementList(ltfBoundaryReplacementList
+          .getText(doValidation));
+      ccdEraserParams.setBorderPixels(ltfBorderPixels.getText(doValidation));
+      ccdEraserParams.setPolynomialOrder(ltfPolynomialOrder.getText(doValidation));
+      ccdEraserParams.setIncludeAdjacentPoints(cbIncludeAdjacentPoints.isSelected());
+      if (cbManualReplacement.isSelected()) {
+        ccdEraserParams.setModelFile(applicationManager.getMetaData().getDatasetName()
+            + axisID.getExtension() + ".erase");
+      }
+      else {
+        ccdEraserParams.setModelFile("");
+      }
+      return true;
     }
-    else {
-      ccdEraserParams.setModelFile("");
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-    return true;
   }
 
   /**

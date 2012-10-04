@@ -28,6 +28,7 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.Utilities;
 
 /**
@@ -166,17 +167,18 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   private final Run3dmodButton btnViewTestVolume = Run3dmodButton.get3dmodInstance(
       "View Test Volume", this);
   private final CheckBox cbLoadWithFlipping = new CheckBox("Load with flipping");
-  private final LabeledTextField ltfTestKValueList = new LabeledTextField(FieldType.FLOATING_POINT_ARRAY,
-      K_VALUE_LIST_LABEL);
+  private final LabeledTextField ltfTestKValueList = new LabeledTextField(
+      FieldType.FLOATING_POINT_ARRAY, K_VALUE_LIST_LABEL);
   private final Spinner spTestIteration = Spinner.getLabeledInstance(ITERATION_LABEL, 10,
       1, 200);
   private final Run3dmodButton btnRunVaryingK = Run3dmodButton.getDeferred3dmodInstance(
       "Run with Different K Values", this);
   private final Run3dmodButton btnViewVaryingK = Run3dmodButton.get3dmodInstance(
       "View Different K Values Test Results", this);
-  private final LabeledTextField ltfTestKValue = new LabeledTextField(FieldType.FLOATING_POINT,K_VALUE_LABEL);
-  private final LabeledTextField ltfTestIterationList = new LabeledTextField(FieldType.INTEGER_LIST,
-      ITERATION_LIST_LABEL);
+  private final LabeledTextField ltfTestKValue = new LabeledTextField(
+      FieldType.FLOATING_POINT, K_VALUE_LABEL);
+  private final LabeledTextField ltfTestIterationList = new LabeledTextField(
+      FieldType.INTEGER_LIST, ITERATION_LIST_LABEL);
   private final Run3dmodButton btnRunVaryingIteration = Run3dmodButton
       .getDeferred3dmodInstance("Run with Different Iterations", this);
   private final Run3dmodButton btnViewVaryingIteration = Run3dmodButton.get3dmodInstance(
@@ -409,13 +411,18 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   }
 
   public void getParameters(final ParallelMetaData metaData) {
-    metaData.setLoadWithFlipping(cbLoadWithFlipping.isSelected());
-    pnlTestVolumeRubberband.getParameters(metaData);
-    metaData.setTestKValueList(ltfTestKValueList.getText());
-    metaData.setTestIteration(spTestIteration.getValue());
-    metaData.setTestKValue(ltfTestKValue.getText());
-    metaData.setTestIterationList(ltfTestIterationList.getText());
-    filterFullVolumePanel.getParameters(metaData);
+    try {
+      metaData.setLoadWithFlipping(cbLoadWithFlipping.isSelected());
+      pnlTestVolumeRubberband.getParameters(metaData);
+      metaData.setTestKValueList(ltfTestKValueList.getText(false));
+      metaData.setTestIteration(spTestIteration.getValue());
+      metaData.setTestKValue(ltfTestKValue.getText(false));
+      metaData.setTestIterationList(ltfTestIterationList.getText(false));
+      filterFullVolumePanel.getParameters(metaData);
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
   }
 
   public Number getMemoryPerChunk() {
@@ -439,49 +446,62 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
    * Get the parameter values from the panel 
    * @param trimvolParam
    */
-  public void getParameters(TrimvolParam param) {
-    pnlTestVolumeRubberband.getParameters(param);
+  public boolean getParameters(TrimvolParam param, final boolean doValidation) {
+    if (!pnlTestVolumeRubberband.getParameters(param, doValidation)) {
+      return false;
+    }
     param.setFlippedVolume(cbLoadWithFlipping.isSelected());
     param.setSwapYZ(false);
     param.setRotateX(false);
     param.setConvertToBytes(false);
     param.setInputFileName(ftfVolume.getFileName());
     param.setOutputFileName(new File(subdirName, TEST_VOLUME_NAME).getPath());
-  }
-
-  public boolean getParametersForVaryingK(AnisotropicDiffusionParam param) {
-    String errorMessage = null;
-    if (debug) {
-      System.out.println("getParametersForVaryingK:ltfTestKValueList.getText()="
-          + ltfTestKValueList.getText());
-    }
-    errorMessage = param.setKValueList(ltfTestKValueList.getText());
-    if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, K_VALUE_LIST_LABEL + errorMessage,
-          "Entry Error");
-      return false;
-    }
-    param.setIteration(spTestIteration.getValue());
-    // Must use an absolute file when testing file existance. Changing the
-    // working directory by changing the user.dir property doesn't work for
-    // relative file paths. The path looks correct, but File.exists() returns an
-    // incorrect result.
-    if (!(new File(new File(manager.getPropertyUserDir(), subdirName), TEST_VOLUME_NAME)
-        .exists())) {
-      UIHarness.INSTANCE
-          .openMessageDialog(manager,
-              "Test volume has not been created.  Please extract test volume.",
-              "Entry Error");
-      return false;
-    }
-    param.setSubdirName(subdirName);
-    param.setInputFileName(TEST_VOLUME_NAME);
     return true;
   }
 
-  public void getParameters(AnisotropicDiffusionParam param) {
+  public boolean getParametersForVaryingK(AnisotropicDiffusionParam param,
+      final boolean doValidation) {
+    try {
+      String errorMessage = null;
+      if (debug) {
+        try {
+          System.out.println("getParametersForVaryingK:ltfTestKValueList.getText()="
+              + ltfTestKValueList.getText(false));
+        }
+        catch (FieldValidationFailedException e) {
+          e.printStackTrace();
+        }
+      }
+      errorMessage = param.setKValueList(ltfTestKValueList.getText(doValidation));
+      if (errorMessage != null) {
+        UIHarness.INSTANCE.openMessageDialog(manager, K_VALUE_LIST_LABEL + errorMessage,
+            "Entry Error");
+        return false;
+      }
+      param.setIteration(spTestIteration.getValue());
+      // Must use an absolute file when testing file existance. Changing the
+      // working directory by changing the user.dir property doesn't work for
+      // relative file paths. The path looks correct, but File.exists() returns an
+      // incorrect result.
+      if (!(new File(new File(manager.getPropertyUserDir(), subdirName), TEST_VOLUME_NAME)
+          .exists())) {
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "Test volume has not been created.  Please extract test volume.",
+            "Entry Error");
+        return false;
+      }
+      param.setSubdirName(subdirName);
+      param.setInputFileName(TEST_VOLUME_NAME);
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
+  }
+
+  public boolean getParameters(AnisotropicDiffusionParam param, final boolean doValidation) {
     param.setSubdirName(subdirName);
-    filterFullVolumePanel.getParameters(param);
+    return filterFullVolumePanel.getParameters(param, doValidation);
   }
 
   public void getParameters(ChunksetupParam param) {
@@ -492,15 +512,21 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     param.setOutputFile(getOutputFileName(ftfVolume.getFileName()));
   }
 
-  public boolean getParametersForVaryingIteration(AnisotropicDiffusionParam param) {
-    String errorMessage = null;
-    param.setKValue(ltfTestKValue.getText());
-    if (!param.setIterationList(ltfTestIterationList.getText())) {
+  public boolean getParametersForVaryingIteration(AnisotropicDiffusionParam param,
+      final boolean doValidation) {
+    try {
+      String errorMessage = null;
+      param.setKValue(ltfTestKValue.getText(doValidation));
+      if (!param.setIterationList(ltfTestIterationList.getText(doValidation))) {
+        return false;
+      }
+      param.setSubdirName(subdirName);
+      param.setInputFileName(TEST_VOLUME_NAME);
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
       return false;
     }
-    param.setSubdirName(subdirName);
-    param.setInputFileName(TEST_VOLUME_NAME);
-    return true;
   }
 
   /**
@@ -601,7 +627,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
           "Entry Error");
       return;
     }
-    if (!DatasetTool.validateDatasetName(manager,null, AxisID.ONLY, volume,
+    if (!DatasetTool.validateDatasetName(manager, null, AxisID.ONLY, volume,
         DataFileType.PARALLEL, null)) {
       return;
     }

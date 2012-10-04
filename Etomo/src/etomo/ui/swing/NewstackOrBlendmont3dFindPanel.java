@@ -17,6 +17,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.MetaData;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -130,7 +131,12 @@ abstract class NewstackOrBlendmont3dFindPanel implements Run3dmodButtonContainer
       return;
     }
     EtomoNumber beadSize = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-    beadSize.set(parent.getBeadSize());
+    try {
+      beadSize.set(parent.getBeadSize(false));
+    }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
+    }
     if (!beadSize.isNull() && beadSize.isValid()) {
       spinBinning.setValue(Math.max((int) Math.round((beadSize.getDouble() / 5f)), 1));
     }
@@ -141,7 +147,12 @@ abstract class NewstackOrBlendmont3dFindPanel implements Run3dmodButtonContainer
     // Warn if the pixel size is too small
     if (binning > 1) {
       EtomoNumber beadSize = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-      beadSize.set(parent.getBeadSize());
+      try {
+        beadSize.set(parent.getBeadSize(false));
+      }
+      catch (FieldValidationFailedException e) {
+        e.printStackTrace();
+      }
       if (!beadSize.isNull() && beadSize.isValid() && beadSize.getDouble() / binning < 4) {
         if (!UIHarness.INSTANCE.openYesNoWarningDialog(manager,
             "The binned fiducial diameter will be less then 4 pixels.  Do you "

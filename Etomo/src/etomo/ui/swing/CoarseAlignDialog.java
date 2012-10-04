@@ -301,6 +301,7 @@ import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 public final class CoarseAlignDialog extends ProcessDialog implements ContextMenu,
     FiducialessParams, Run3dmodButtonContainer {
@@ -473,8 +474,9 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     ltfRotation.setText(tiltAxisAngle);
   }
 
-  public String getImageRotation() {
-    return ltfRotation.getText();
+  public String getImageRotation(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfRotation.getText(doValidation);
   }
 
   void updateAdvanced() {
