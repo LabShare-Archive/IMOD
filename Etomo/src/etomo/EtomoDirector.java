@@ -1050,7 +1050,7 @@ public class EtomoDirector {
                 "You must exit from eTomo and re-run it for this change to fully take effect.",
                 "Settings", AxisID.FIRST);
       }
-      settingsDialog.getParameters(userConfig);
+      settingsDialog.getParameters(userConfig, false);
       setUserPreferences();
       UIHarness.INSTANCE.repaintWindow(null);
     }

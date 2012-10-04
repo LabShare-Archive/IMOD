@@ -302,6 +302,7 @@ public final class SerialSectionsManager extends BaseManager {
     }
     BlendmontParam param = updatePreblendComscript(axisID, true);
     if (param == null) {
+      processSeries.startFailProcess(axisID);
       return;
     }
     String threadName = null;
@@ -516,7 +517,13 @@ public final class SerialSectionsManager extends BaseManager {
     }
     String threadName = null;
     if (metaData.getViewType() == ViewType.MONTAGE) {
-      BlendmontParam param = updateBlendComscript(axisID);
+      BlendmontParam param = updateBlendComscript(axisID, true);
+      if (param == null) {
+        if (processSeries != null) {
+          processSeries.startFailProcess(axisID);
+        }
+        return;
+      }
       try {
         threadName = processMgr.blend(param, axisID, processSeries);
       }
@@ -534,7 +541,7 @@ public final class SerialSectionsManager extends BaseManager {
       }
     }
     else {
-      ConstNewstParam param = updateNewstCom(axisID);
+      ConstNewstParam param = updateNewstCom(axisID,true);
       if (param == null) {
         if (processSeries != null) {
           processSeries.startFailProcess(axisID);
@@ -560,7 +567,7 @@ public final class SerialSectionsManager extends BaseManager {
     setThreadName(threadName, axisID);
   }
 
-  private ConstNewstParam updateNewstCom(final AxisID axisID) {
+  private ConstNewstParam updateNewstCom(final AxisID axisID,final boolean doValidation) {
     if (dialog == null) {
       return null;
     }
@@ -571,7 +578,9 @@ public final class SerialSectionsManager extends BaseManager {
       param.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
       param.setTransformFile(FileType.GLOBAL_TRANSFORMATION_LIST
           .getFileName(this, axisID));
-      dialog.getParameters(param);
+     if (! dialog.getParameters(param,doValidation)) {
+       return null;
+     }
       comScriptMgr.saveNewst(param, axisID);
     }
     catch (NumberFormatException except) {
@@ -624,7 +633,8 @@ public final class SerialSectionsManager extends BaseManager {
     return state;
   }
 
-  private BlendmontParam updateBlendComscript(final AxisID axisID) {
+  private BlendmontParam updateBlendComscript(final AxisID axisID,
+      final boolean doValidation) {
     comScriptMgr.loadBlend(axisID);
     BlendmontParam param = comScriptMgr.getBlendmontParamFromBlend(axisID, getName());
     param.setMode(BlendmontParam.Mode.SERIAL_SECTION_BLEND);
@@ -634,7 +644,9 @@ public final class SerialSectionsManager extends BaseManager {
     if (log.findUnalignedStartingXandY(FileType.PREBLEND_LOG.getFile(this, axisID))) {
       param.setUnalignedStartingXandY(log.getUnalignedStartingXandY());
     }
-    dialog.getBlendParameters(param);
+    if (!dialog.getBlendParameters(param, doValidation)) {
+      return null;
+    }
     param.setBlendmontState(state.getInvalidEdgeFunctions());
     comScriptMgr.saveBlend(param, axisID);
     return param;
@@ -801,10 +813,10 @@ public final class SerialSectionsManager extends BaseManager {
     dialog.getParameters(metaData);
     if (getViewType() == ViewType.MONTAGE) {
       updatePreblendComscript(AXIS_ID, false);
-      updateBlendComscript(AXIS_ID);
+      updateBlendComscript(AXIS_ID,false);
     }
     else {
-      updateNewstCom(AXIS_ID);
+      updateNewstCom(AXIS_ID,false);
     }
     saveStorables(AXIS_ID);
     return true;
