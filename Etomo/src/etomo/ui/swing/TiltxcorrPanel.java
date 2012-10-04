@@ -645,18 +645,10 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
    * @param metaData
    */
   void getParameters(MetaData metaData) {
-    try {
-      if (panelId == PanelId.PATCH_TRACKING) {
-        metaData.setTrackOverlapOfPatchesXandY(axisID,
-            rtfOverlapOfPatchesXandY.getText(false));
-        metaData.setTrackNumberOfPatchesXandY(axisID,
-            rtfNumberOfPatchesXandY.getText(false));
-        metaData.setTrackLengthAndOverlap(axisID, ctfLengthAndOverlap.getText(false));
-      }
-    }
-    catch (FieldValidationFailedException e) {
-      // should not happen
-      e.printStackTrace();
+    if (panelId == PanelId.PATCH_TRACKING) {
+      metaData.setTrackOverlapOfPatchesXandY(axisID, rtfOverlapOfPatchesXandY.getText());
+      metaData.setTrackNumberOfPatchesXandY(axisID, rtfNumberOfPatchesXandY.getText());
+      metaData.setTrackLengthAndOverlap(axisID, ctfLengthAndOverlap.getText());
     }
   }
 

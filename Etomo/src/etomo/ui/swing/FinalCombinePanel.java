@@ -842,8 +842,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     ltfXLow.setText(xMin);
   }
 
-  public String getXMin(final boolean doValidation) throws FieldValidationFailedException {
-    return ltfXLow.getText(doValidation);
+  public String getXMin() {
+    return ltfXLow.getText();
   }
 
   public void setXMax(String xMax) {
@@ -854,40 +854,40 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     return tomogramCombinationDialog.isTabEnabled(TomogramCombinationDialog.lblFinal);
   }
 
-  public String getXMax(final boolean doValidation) throws FieldValidationFailedException {
-    return ltfXHigh.getText(doValidation);
+  public String getXMax() {
+    return ltfXHigh.getText();
   }
 
   public void setYMin(String yMin) {
     ltfZLow.setText(yMin);
   }
 
-  public String getYMin(final boolean doValidation) throws FieldValidationFailedException {
-    return ltfZLow.getText(doValidation);
+  public String getYMin() {
+    return ltfZLow.getText();
   }
 
   public void setYMax(String yMax) {
     ltfZHigh.setText(yMax);
   }
 
-  public String getYMax(final boolean doValidation) throws FieldValidationFailedException {
-    return ltfZHigh.getText(doValidation);
+  public String getYMax() {
+    return ltfZHigh.getText();
   }
 
   public void setZMin(String zMin) {
     ltfYLow.setText(zMin);
   }
 
-  public String getZMin(final boolean doValidation) throws FieldValidationFailedException {
-    return ltfYLow.getText(doValidation);
+  public String getZMin() {
+    return ltfYLow.getText();
   }
 
   public void setZMax(String zMax) {
     ltfYHigh.setText(zMax);
   }
 
-  public String getZMax(final boolean doValidation) throws FieldValidationFailedException {
-    return ltfYHigh.getText(doValidation);
+  public String getZMax() {
+    return ltfYHigh.getText();
   }
 
   boolean isRunVolcombine() {
@@ -920,17 +920,11 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   }
 
   final void getParameters(ReconScreenState screenState) {
-    try {
-      patchRegionModelHeader
-          .getState(screenState.getCombineFinalPatchRegionHeaderState());
-      patchcorrHeader.getState(screenState.getCombineFinalPatchcorrHeaderState());
-      matchorwarpHeader.getState(screenState.getCombineFinalPatchcorrHeaderState());
-      volcombineHeader.getState(screenState.getCombineFinalVolcombineHeaderState());
-      screenState.setPatchcorrKernelSigma(tfKernelSigma.getText(false));
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    patchRegionModelHeader.getState(screenState.getCombineFinalPatchRegionHeaderState());
+    patchcorrHeader.getState(screenState.getCombineFinalPatchcorrHeaderState());
+    matchorwarpHeader.getState(screenState.getCombineFinalPatchcorrHeaderState());
+    volcombineHeader.getState(screenState.getCombineFinalVolcombineHeaderState());
+    screenState.setPatchcorrKernelSigma(tfKernelSigma.getText());
   }
 
   final void setVisible(boolean visible) {

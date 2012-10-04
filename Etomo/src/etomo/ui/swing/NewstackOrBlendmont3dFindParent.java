@@ -1,7 +1,5 @@
 package etomo.ui.swing;
 
-import etomo.ui.FieldValidationFailedException;
-
 /**
  * <p>Description: </p>
  * 
@@ -23,6 +21,5 @@ import etomo.ui.FieldValidationFailedException;
 interface NewstackOrBlendmont3dFindParent {
   public static final String rcsid = "$Id$";
 
-  public String getBeadSize(final boolean doValidation)
-      throws FieldValidationFailedException;
+  public String getBeadSize();
 }

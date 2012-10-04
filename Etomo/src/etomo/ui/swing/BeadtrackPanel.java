@@ -765,39 +765,38 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
   }
 
   void buttonAction(String command, Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (command.equals(btnTrack.getActionCommand())) {
-      manager.fiducialModelTrack(axisID, btnTrack, null, dialogType, this);
-    }
-    else if (command.equals(btnUseModel.getActionCommand())) {
-      if (manager.makeFiducialModelSeedModel(axisID)) {
-        manager.fiducialModelTrack(axisID, btnUseModel, null, dialogType, this);
+    try {
+      if (command.equals(btnTrack.getActionCommand())) {
+        manager.fiducialModelTrack(axisID, btnTrack, null, dialogType, this);
       }
-    }
-    else if (command.equals(cbLocalAreaTracking.getText())
-        || command.equals(cbSobelFilterCentering.getText())) {
-      setEnabled();
-    }
-    else if (command.equals(btnFixModel.getActionCommand())) {
-      // Validate skipList
-      String skipList = null;
-      try {
-        skipList = ltfViewSkipList.getText(true).trim();
-      }
-      catch (FieldValidationFailedException e) {
-        return;
-      }
-      if (skipList.length() > 0) {
-        if (skipList.matches(".*\\s+.*")) {
-          UIHarness.INSTANCE.openMessageDialog(manager, VIEW_SKIP_LIST_LABEL
-              + " cannot contain embedded spaces.", "Entry Error", axisID);
-          return;
+      else if (command.equals(btnUseModel.getActionCommand())) {
+        if (manager.makeFiducialModelSeedModel(axisID)) {
+          manager.fiducialModelTrack(axisID, btnUseModel, null, dialogType, this);
         }
       }
-      else {
-        skipList = null;
+      else if (command.equals(cbLocalAreaTracking.getText())
+          || command.equals(cbSobelFilterCentering.getText())) {
+        setEnabled();
       }
-      manager.imodFixFiducials(axisID, run3dmodMenuOptions, btnFixModel,
-          ImodProcess.BeadFixerMode.GAP_MODE, skipList);
+      else if (command.equals(btnFixModel.getActionCommand())) {
+        // Validate skipList
+        String skipList = ltfViewSkipList.getText(true).trim();
+        if (skipList.length() > 0) {
+          if (skipList.matches(".*\\s+.*")) {
+            UIHarness.INSTANCE.openMessageDialog(manager, VIEW_SKIP_LIST_LABEL
+                + " cannot contain embedded spaces.", "Entry Error", axisID);
+            return;
+          }
+        }
+        else {
+          skipList = null;
+        }
+        manager.imodFixFiducials(axisID, run3dmodMenuOptions, btnFixModel,
+            ImodProcess.BeadFixerMode.GAP_MODE, skipList);
+      }
+    }
+    catch (FieldValidationFailedException e) {
+      return;
     }
   }
 

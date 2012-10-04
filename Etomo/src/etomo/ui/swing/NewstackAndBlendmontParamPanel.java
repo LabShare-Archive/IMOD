@@ -179,13 +179,8 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
    * @throws FortranInputSyntaxException
    */
   void getParameters(MetaData metaData) throws FortranInputSyntaxException {
-    try {
-      metaData.setSizeToOutputInXandY(axisID, ltfSizeToOutputInXandY.getText(false));
-      metaData.setStackBinning(axisID, getBinning());
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    metaData.setSizeToOutputInXandY(axisID, ltfSizeToOutputInXandY.getText());
+    metaData.setStackBinning(axisID, getBinning());
   }
 
   public boolean getParameters(BlendmontParam blendmontParam, final boolean doValidation)

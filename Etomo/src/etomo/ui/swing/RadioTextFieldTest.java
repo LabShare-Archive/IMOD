@@ -3,7 +3,6 @@ package etomo.ui.swing;
 import javax.swing.ButtonGroup;
 
 import etomo.ui.FieldType;
-import etomo.ui.FieldValidationFailedException;
 
 import junit.framework.TestCase;
 
@@ -50,37 +49,25 @@ public final class RadioTextFieldTest extends TestCase {
 
   /* Test method for 'etomo.ui.RadioTextField.getInstance(String, ButtonGroup)' */
   public void testGetInstance() {
-    try {
-      assertNotNull("Instance was created", test);
-      assertNotNull("Container was created", test.getContainer());
-      assertEquals("Label was set", test.getLabel(), LABEL);
-      assertEquals("Text wasn't set", test.getText(false), "");
-      assertFalse("Defaults to unselected", test.isSelected());
-      validate();
-      RadioTextField sameGroup = RadioTextField.getInstance(FieldType.STRING,
-          "Same Group", group);
-      String error = sameGroup.validate();
-      assertNull(error, error);
-      validate();
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-      fail("did not run field validation");
-    }
+    assertNotNull("Instance was created", test);
+    assertNotNull("Container was created", test.getContainer());
+    assertEquals("Label was set", test.getLabel(), LABEL);
+    assertEquals("Text wasn't set", test.getText(), "");
+    assertFalse("Defaults to unselected", test.isSelected());
+    validate();
+    RadioTextField sameGroup = RadioTextField.getInstance(FieldType.STRING, "Same Group",
+        group);
+    String error = sameGroup.validate();
+    assertNull(error, error);
+    validate();
   }
 
   /* Test method for 'etomo.ui.RadioTextField.setText(String)' */
   public void testSetText() {
-    try {
-      final String text = "test string";
-      test.setText(text);
-      assertEquals("Text was set", test.getText(false), text);
-      validate();
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-      fail("did not run field validation");
-    }
+    final String text = "test string";
+    test.setText(text);
+    assertEquals("Text was set", test.getText(), text);
+    validate();
   }
 
   /* Test method for 'etomo.ui.RadioTextField.setEnabled(boolean)' */

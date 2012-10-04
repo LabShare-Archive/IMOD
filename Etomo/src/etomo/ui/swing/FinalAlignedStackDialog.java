@@ -525,6 +525,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     return ltfStartingAndEndingZ.getText(doValidation);
   }
 
+  String getStartingAndEndingZ() {
+    return ltfStartingAndEndingZ.getText();
+  }
+
   void setUseExpectedDefocus(boolean input) {
     cbUseExpectedDefocus.setSelected(input);
   }

@@ -163,12 +163,7 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
   }
 
   public void getParameters(ParallelMetaData metaData) {
-    try {
-      metaData.setRootName(ltfProcessName.getText(false));
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    metaData.setRootName(ltfProcessName.getText());
   }
 
   public void getParameters(ParallelParam param) {

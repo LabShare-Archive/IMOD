@@ -33,7 +33,6 @@ import etomo.type.MetaData;
 import etomo.type.ProcessingMethod;
 import etomo.type.ReconScreenState;
 import etomo.type.TomogramState;
-import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -742,18 +741,13 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     if (!fromPanel.isEnabled() || !toPanel.isEnabled()) {
       return;
     }
-    try {
-      toPanel.setSurfacesOrModels(fromPanel.getSurfacesOrModels());
-      toPanel.setBinBy2(fromPanel.isBinBy2());
-      toPanel.setFiducialMatchListA(fromPanel.getFiducialMatchListA(false));
-      toPanel.setFiducialMatchListB(fromPanel.getFiducialMatchListB(false));
-      toPanel.setUseCorrespondingPoints(fromPanel.isUseCorrespondingPoints());
-      toPanel.setUseList(fromPanel.getUseList(false));
-      toPanel.setMatchMode(fromPanel.getMatchMode());
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    toPanel.setSurfacesOrModels(fromPanel.getSurfacesOrModels());
+    toPanel.setBinBy2(fromPanel.isBinBy2());
+    toPanel.setFiducialMatchListA(fromPanel.getFiducialMatchListA());
+    toPanel.setFiducialMatchListB(fromPanel.getFiducialMatchListB());
+    toPanel.setUseCorrespondingPoints(fromPanel.isUseCorrespondingPoints());
+    toPanel.setUseList(fromPanel.getUseList());
+    toPanel.setMatchMode(fromPanel.getMatchMode());
   }
 
   /**
@@ -766,21 +760,16 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     if (!fromPanel.isEnabled() || !toPanel.isEnabled()) {
       return;
     }
-    try {
-      toPanel.setUsePatchRegionModel(fromPanel.isUsePatchRegionModel());
-      toPanel.setXMin(fromPanel.getXMin(false));
-      toPanel.setXMax(fromPanel.getXMax(false));
-      toPanel.setYMin(fromPanel.getYMin(false));
-      toPanel.setYMax(fromPanel.getYMax(false));
-      toPanel.setZMin(fromPanel.getZMin(false));
-      toPanel.setZMax(fromPanel.getZMax(false));
-      toPanel.setParallel(fromPanel.isParallel());
-      toPanel.setParallelEnabled(fromPanel.isParallelEnabled());
-      toPanel.setNoVolcombine(fromPanel.isNoVolcombine());
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    toPanel.setUsePatchRegionModel(fromPanel.isUsePatchRegionModel());
+    toPanel.setXMin(fromPanel.getXMin());
+    toPanel.setXMax(fromPanel.getXMax());
+    toPanel.setYMin(fromPanel.getYMin());
+    toPanel.setYMax(fromPanel.getYMax());
+    toPanel.setZMin(fromPanel.getZMin());
+    toPanel.setZMax(fromPanel.getZMax());
+    toPanel.setParallel(fromPanel.isParallel());
+    toPanel.setParallelEnabled(fromPanel.isParallelEnabled());
+    toPanel.setNoVolcombine(fromPanel.isNoVolcombine());
   }
 
   public boolean isChanged(TomogramState state) {

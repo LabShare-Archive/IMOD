@@ -1061,40 +1061,40 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     ltfXMin.setText(xMin);
   }
 
-  public String getXMin(final boolean doValidation) throws FieldValidationFailedException {
-    return ltfXMin.getText(doValidation);
+  public String getXMin() {
+    return ltfXMin.getText();
   }
 
   public void setXMax(String xMax) {
     ltfXMax.setText(xMax);
   }
 
-  public String getXMax(final boolean doValidation) throws FieldValidationFailedException {
-    return ltfXMax.getText(doValidation);
+  public String getXMax() {
+    return ltfXMax.getText();
   }
 
   public void setYMin(String yMin) {
     ltfYMin.setText(yMin);
   }
 
-  public String getYMin(final boolean doValidation) throws FieldValidationFailedException {
-    return ltfYMin.getText(doValidation);
+  public String getYMin() {
+    return ltfYMin.getText();
   }
 
   public void setYMax(String yMax) {
     ltfYMax.setText(yMax);
   }
 
-  public String getYMax(final boolean doValidation) throws FieldValidationFailedException {
-    return ltfYMax.getText(doValidation);
+  public String getYMax() {
+    return ltfYMax.getText();
   }
 
   public void setZMin(String zMin) {
     ltfZMin.setText(zMin);
   }
 
-  public String getZMin(final boolean doValidation) throws FieldValidationFailedException {
-    return ltfZMin.getText(doValidation);
+  public String getZMin() {
+    return ltfZMin.getText();
   }
 
   ProcessResultDisplay getCombineProcessResultDisplay() {
@@ -1105,8 +1105,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     ltfZMax.setText(zMax);
   }
 
-  public String getZMax(final boolean doValidation) throws FieldValidationFailedException {
-    return ltfZMax.getText(doValidation);
+  public String getZMax() {
+    return ltfZMax.getText();
   }
 
   // InitialiCombineFields interface pass-thru
@@ -1149,9 +1149,17 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     return pnlSolvematch.getUseList(doValidation);
   }
 
+  public String getUseList() {
+    return pnlSolvematch.getUseList();
+  }
+
   public String getFiducialMatchListA(final boolean doValidation)
       throws FieldValidationFailedException {
     return pnlSolvematch.getFiducialMatchListA(doValidation);
+  }
+
+  public String getFiducialMatchListA() {
+    return pnlSolvematch.getFiducialMatchListA();
   }
 
   public void setFiducialMatchListB(String fiducialMatchListB) {
@@ -1161,6 +1169,10 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   public String getFiducialMatchListB(final boolean doValidation)
       throws FieldValidationFailedException {
     return pnlSolvematch.getFiducialMatchListB(doValidation);
+  }
+
+  public String getFiducialMatchListB() {
+    return pnlSolvematch.getFiducialMatchListB();
   }
 
   public void action(final Run3dmodButton button,
@@ -1254,18 +1266,13 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   private void updateMatchTo() {
     // Swap the X and Y values if the matching state changes
     if ((matchBtoA && rbAtoB.isSelected()) || (!matchBtoA && rbBtoA.isSelected())) {
-      try {
-        String temp = ltfXMin.getText(false);
-        ltfXMin.setText(ltfYMin.getText(false));
-        ltfYMin.setText(temp);
+      String temp = ltfXMin.getText();
+      ltfXMin.setText(ltfYMin.getText());
+      ltfYMin.setText(temp);
 
-        temp = ltfXMax.getText(false);
-        ltfXMax.setText(ltfYMax.getText(false));
-        ltfYMax.setText(temp);
-      }
-      catch (FieldValidationFailedException e) {
-        e.printStackTrace();
-      }
+      temp = ltfXMax.getText();
+      ltfXMax.setText(ltfYMax.getText());
+      ltfYMax.setText(temp);
     }
 
     if (rbAtoB.isSelected()) {

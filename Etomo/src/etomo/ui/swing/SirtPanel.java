@@ -342,12 +342,9 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
   }
 
   void getParameters(final MetaData metaData) {
-    try {
     metaData.setGenSubarea(axisID, cbSubarea.isSelected());
-    metaData.setGenSubareaSize(axisID, ltfSubareaSize.getText(false));
-    metaData.setGenYOffsetOfSubarea(axisID, ltfYOffsetOfSubarea.getText(false));}catch(FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    metaData.setGenSubareaSize(axisID, ltfSubareaSize.getText());
+    metaData.setGenYOffsetOfSubarea(axisID, ltfYOffsetOfSubarea.getText());
   }
 
   void setParameters(final ConstMetaData metaData) {
@@ -357,61 +354,63 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     loadResumeFrom();
   }
 
-  public boolean getParameters(final SirtsetupParam param,final boolean doValidation) {
+  public boolean getParameters(final SirtsetupParam param, final boolean doValidation) {
     try {
-    try {
-      if (ltfLeaveIterations.isEmpty()) {
-        UIHarness.INSTANCE.openMessageDialog(manager, ltfLeaveIterations.getLabel()
-            + " is empty.", "Entry Error", axisID);
-        return false;
-      }
-      param.setLeaveIterations(ltfLeaveIterations.getText(doValidation));
-      if (cbSubarea.isSelected()) {
-        if (ltfSubareaSize.isEmpty()) {
-          UIHarness.INSTANCE.openMessageDialog(manager, ltfSubareaSize.getLabel()
+      try {
+        if (ltfLeaveIterations.isEmpty()) {
+          UIHarness.INSTANCE.openMessageDialog(manager, ltfLeaveIterations.getLabel()
               + " is empty.", "Entry Error", axisID);
           return false;
         }
-        param.setSubareaSize(ltfSubareaSize.getText(doValidation));
-        param.setYOffsetOfSubarea(ltfYOffsetOfSubarea.getText(doValidation));
+        param.setLeaveIterations(ltfLeaveIterations.getText(doValidation));
+        if (cbSubarea.isSelected()) {
+          if (ltfSubareaSize.isEmpty()) {
+            UIHarness.INSTANCE.openMessageDialog(manager, ltfSubareaSize.getLabel()
+                + " is empty.", "Entry Error", axisID);
+            return false;
+          }
+          param.setSubareaSize(ltfSubareaSize.getText(doValidation));
+          param.setYOffsetOfSubarea(ltfYOffsetOfSubarea.getText(doValidation));
+        }
+        else {
+          param.resetSubareaSize();
+          param.resetYOffsetOfSubarea();
+        }
+        param.setScaleToInteger(cbScaleToInteger.isSelected());
+        if (!radiusAndSigmaPanel.getParameters(param, doValidation)) {
+          return false;
+        }
+        param.setCleanUpPastStart(cbCleanUpPastStart.isSelected());
+        param.setFlatFilterFraction(ltfFlatFilterFraction.getText(doValidation));
+        param.setSkipVertSliceOutput(cbSkipVertSliceOutput.isSelected());
+      }
+      catch (FortranInputSyntaxException e) {
+        UIHarness.INSTANCE.openMessageDialog(manager, ltfSubareaSize.getLabel()
+            + " is an invalid list of integers.", "Entry Error", axisID);
+        return false;
+      }
+      if (rbStartFromZero.isSelected()) {
+        param.setStartFromZero(true);
+        param.resetResumeFromIteration();
+      }
+      else if (rbResumeFromLastIteration.isEnabled()
+          && rbResumeFromLastIteration.isSelected()) {
+        param.setStartFromZero(false);
+        param.resetResumeFromIteration();
+      }
+      else if (rbResumeFromIteration.isEnabled() && rbResumeFromIteration.isSelected()) {
+        param.setStartFromZero(false);
+        param.setResumeFromIteration((ConstEtomoNumber) cmbResumeFromIteration
+            .getSelectedItem());
       }
       else {
-        param.resetSubareaSize();
-        param.resetYOffsetOfSubarea();
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "Please select an enabled starting option.", "Entry Error", axisID);
+        return false;
       }
-      param.setScaleToInteger(cbScaleToInteger.isSelected());
-     if (! radiusAndSigmaPanel.getParameters(param,doValidation)) {
-       return false;
-     }
-      param.setCleanUpPastStart(cbCleanUpPastStart.isSelected());
-      param.setFlatFilterFraction(ltfFlatFilterFraction.getText(doValidation));
-      param.setSkipVertSliceOutput(cbSkipVertSliceOutput.isSelected());
+      return true;
     }
-    catch (FortranInputSyntaxException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager, ltfSubareaSize.getLabel()
-          + " is an invalid list of integers.", "Entry Error", axisID);
-      return false;
-    }
-    if (rbStartFromZero.isSelected()) {
-      param.setStartFromZero(true);
-      param.resetResumeFromIteration();
-    }
-    else if (rbResumeFromLastIteration.isEnabled()
-        && rbResumeFromLastIteration.isSelected()) {
-      param.setStartFromZero(false);
-      param.resetResumeFromIteration();
-    }
-    else if (rbResumeFromIteration.isEnabled() && rbResumeFromIteration.isSelected()) {
-      param.setStartFromZero(false);
-      param.setResumeFromIteration((ConstEtomoNumber) cmbResumeFromIteration
-          .getSelectedItem());
-    }
-    else {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Please select an enabled starting option.", "Entry Error", axisID);
-      return false;
-    }
-    return true;}catch(FieldValidationFailedException e) {
+    catch (FieldValidationFailedException e) {
       return false;
     }
   }

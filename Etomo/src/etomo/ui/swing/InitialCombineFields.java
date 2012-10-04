@@ -58,10 +58,14 @@ interface InitialCombineFields {
   public String getFiducialMatchListA(boolean doValidation)
       throws FieldValidationFailedException;
 
+  public String getFiducialMatchListA();
+
   public void setFiducialMatchListB(String fiducialMatchListB);
 
   public String getFiducialMatchListB(boolean doValidation)
       throws FieldValidationFailedException;
+
+  public String getFiducialMatchListB();
 
   public boolean isEnabled();
 
@@ -73,6 +77,8 @@ interface InitialCombineFields {
 
   public String getUseList(final boolean doValidation)
       throws FieldValidationFailedException;
+
+  public String getUseList();
 
   public MatchMode getMatchMode();
 

@@ -29,7 +29,6 @@ import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
 import etomo.type.ViewType;
-import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: Panel to use findbeads3d to find all the beads in an existing
@@ -269,13 +268,8 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
     tilt3dFindPanel.setParameters(metaData);
   }
 
-  public String getBeadSize(final boolean doValidation) {
-    try {
-      return findBeads3dPanel.getBeadSize(doValidation);
-    }
-    catch (FieldValidationFailedException e) {
-      return null;
-    }
+  public String getBeadSize() {
+    return findBeads3dPanel.getBeadSize();
   }
 
   public void tilt3dFindAction(final ProcessResultDisplay processResultDisplay,

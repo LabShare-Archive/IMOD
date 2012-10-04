@@ -183,12 +183,7 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
   }
 
   void getParameters(final MetaData metaData) {
-    try {
-      metaData.setLambdaForSmoothingList(ltfLambdaForSmoothing.getText(false));
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    metaData.setLambdaForSmoothingList(ltfLambdaForSmoothing.getText());
   }
 
   private boolean validateFlattenWarp() {

@@ -518,22 +518,17 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
   }
 
   public void getParameters(final MetaData metaData) {
-    try {
-      volumeRangePanel.getParameters(metaData);
-      metaData.setPostTrimvolSwapYZ(rbSwapYZ.isSelected());
-      metaData.setPostTrimvolRotateX(rbRotateX.isSelected());
-      metaData.setPostTrimvolConvertToBytes(cbConvertToBytes.isSelected());
-      metaData.setPostTrimvolFixedScaling(rbScaleFixed.isSelected());
-      metaData.setPostTrimvolFixedScaleMin(ltfFixedScaleMin.getText(false));
-      metaData.setPostTrimvolFixedScaleMax(ltfFixedScaleMax.getText(false));
-      metaData.setPostTrimvolSectionScaleMin(ltfSectionScaleMin.getText(false));
-      metaData.setPostTrimvolSectionScaleMax(ltfSectionScaleMax.getText(false));
-      // get the xyParam and set the values in it
-      pnlScaleRubberband.getParameters(metaData);
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    volumeRangePanel.getParameters(metaData);
+    metaData.setPostTrimvolSwapYZ(rbSwapYZ.isSelected());
+    metaData.setPostTrimvolRotateX(rbRotateX.isSelected());
+    metaData.setPostTrimvolConvertToBytes(cbConvertToBytes.isSelected());
+    metaData.setPostTrimvolFixedScaling(rbScaleFixed.isSelected());
+    metaData.setPostTrimvolFixedScaleMin(ltfFixedScaleMin.getText());
+    metaData.setPostTrimvolFixedScaleMax(ltfFixedScaleMax.getText());
+    metaData.setPostTrimvolSectionScaleMin(ltfSectionScaleMin.getText());
+    metaData.setPostTrimvolSectionScaleMax(ltfSectionScaleMax.getText());
+    // get the xyParam and set the values in it
+    pnlScaleRubberband.getParameters(metaData);
   }
 
   /**

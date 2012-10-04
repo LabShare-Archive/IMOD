@@ -678,7 +678,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return null;
     }
     SplitCorrectionParam param = new SplitCorrectionParam(axisID);
-    if (!getParameters(param,doValidation)){
+    if (!getParameters(param, doValidation)) {
       return null;
     }
     return param;
@@ -820,12 +820,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return;
     }
     String startingAndEndingZ = null;
-    try {
-      startingAndEndingZ = dialog.getStartingAndEndingZ(false);
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    startingAndEndingZ = dialog.getStartingAndEndingZ();
     if (startingAndEndingZ.length() == 0 || startingAndEndingZ.matches("\\s+")) {
       // btnFilter.setSelected(false);
       dialog.setUseFilterEnabled(true);

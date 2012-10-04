@@ -243,6 +243,13 @@ final class CheckTextField implements UIComponent {
     return text;
   }
 
+  /**
+   * Get text without validation
+   */
+  String getText() {
+    return textField.getText();
+  }
+
   String getQuotedLabel() {
     return Utilities.quoteLabel(checkBox.getText());
   }

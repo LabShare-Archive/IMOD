@@ -21,7 +21,6 @@ import javax.swing.filechooser.FileFilter;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.ui.FieldType;
-import etomo.ui.FieldValidationFailedException;
 import etomo.util.FilePath;
 import etomo.util.Utilities;
 
@@ -232,13 +231,7 @@ final class FileTextField2 implements FileTextFieldInterface {
   }
 
   boolean isEmpty() {
-    String text = null;
-    try {
-      text = field.getText(false);
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    String text = field.getText();
     return text == null || text.matches("\\s*");
   }
 
@@ -251,13 +244,7 @@ final class FileTextField2 implements FileTextFieldInterface {
   }
 
   public File getFile() {
-    String text = null;
-    try {
-      text = field.getText(false);
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    String text = field.getText();
     return FilePath.buildAbsoluteFile(getOriginDir(), text);
   }
 
@@ -310,14 +297,7 @@ final class FileTextField2 implements FileTextFieldInterface {
   }
 
   String getText() {
-    String text = null;
-    try {
-      text = field.getText(false);
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
-    return text;
+    return field.getText();
   }
 
   void setText(final String text) {

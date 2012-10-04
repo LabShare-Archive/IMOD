@@ -536,13 +536,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   }
 
   final boolean isZShiftSet() {
-    String text = null;
-    try {
-      text = ltfZShift.getText(false);
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    String text = ltfZShift.getText();
     return text.matches("\\S+");
   }
 
@@ -580,21 +574,13 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   }
 
   void getParameters(final MetaData metaData) throws FortranInputSyntaxException {
-    try {
-      metaData.setTiltParallel(axisID, panelId, isParallelProcess());
-      trialTiltPanel.getParameters(metaData);
-      metaData.setGenLog(axisID, ctfLog.getText(false));
-      metaData.setGenScaleFactorLog(axisID, ltfLogDensityScaleFactor.getText(false));
-      metaData.setGenScaleOffsetLog(axisID, ltfLogDensityScaleOffset.getText(false));
-      metaData
-          .setGenScaleFactorLinear(axisID, ltfLinearDensityScaleFactor.getText(false));
-      metaData
-          .setGenScaleOffsetLinear(axisID, ltfLinearDensityScaleOffset.getText(false));
-    }
-    catch (FieldValidationFailedException e) {
-      // Shouldn't happen because no validation is done when saving to meta data.
-      e.printStackTrace();
-    }
+    metaData.setTiltParallel(axisID, panelId, isParallelProcess());
+    trialTiltPanel.getParameters(metaData);
+    metaData.setGenLog(axisID, ctfLog.getText());
+    metaData.setGenScaleFactorLog(axisID, ltfLogDensityScaleFactor.getText());
+    metaData.setGenScaleOffsetLog(axisID, ltfLogDensityScaleOffset.getText());
+    metaData.setGenScaleFactorLinear(axisID, ltfLinearDensityScaleFactor.getText());
+    metaData.setGenScaleOffsetLinear(axisID, ltfLinearDensityScaleOffset.getText());
   }
 
   final void getParameters(final ReconScreenState screenState) {
@@ -747,12 +733,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     if (initialize && log) {
       EtomoNumber logScale = new EtomoNumber(EtomoNumber.Type.DOUBLE);
       String text = null;
-      try {
-        text = ltfLogDensityScaleFactor.getText(false);
-      }
-      catch (FieldValidationFailedException e) {
-        e.printStackTrace();
-      }
+      text = ltfLogDensityScaleFactor.getText();
       logScale.set(text);
       if (log && !logScale.isNull() && logScale.isValid()) {
         ltfLinearDensityScaleFactor
@@ -826,7 +807,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         badParameter = "IMAGEBINNED";
         tiltParam.setImageBinned();
         // Do not manage full image size. It is coming from copytomocoms.
-        if (ltfTomoWidth.getText(false).matches("\\S+")) {
+        if (ltfTomoWidth.getText().matches("\\S+")) {
           badParameter = ltfTomoWidth.getLabel();
           tiltParam.setWidth(Integer.parseInt(ltfTomoWidth.getText(doValidation)));
         }
@@ -843,7 +824,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
           tiltParam.resetZShift();
         }
         // set X Shift
-        if (ltfXShift.getText(false).matches("\\S+")) {
+        if (ltfXShift.getText().matches("\\S+")) {
           badParameter = ltfXShift.getLabel();
           tiltParam.setXShift(Double.parseDouble(ltfXShift.getText(doValidation)));
         }
@@ -880,7 +861,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
           }
         }
 
-        if (ltfTomoThickness.getText(false).matches("\\S+")) {
+        if (ltfTomoThickness.getText().matches("\\S+")) {
           badParameter = ltfTomoThickness.getLabel();
           tiltParam.setThickness(ltfTomoThickness.getText(doValidation));
         }
@@ -888,7 +869,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
           tiltParam.resetThickness();
         }
 
-        if (ltfXAxisTilt.getText(false).matches("\\S+")) {
+        if (ltfXAxisTilt.getText().matches("\\S+")) {
           badParameter = ltfXAxisTilt.getLabel();
           tiltParam.setXAxisTilt(ltfXAxisTilt.getText(doValidation));
         }
@@ -896,7 +877,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
           tiltParam.resetXAxisTilt();
         }
 
-        if (ltfTiltAngleOffset.getText(false).matches("\\S+")) {
+        if (ltfTiltAngleOffset.getText().matches("\\S+")) {
           badParameter = ltfTiltAngleOffset.getLabel();
           tiltParam.setTiltAngleOffset(ltfTiltAngleOffset.getText(doValidation));
         }
@@ -905,8 +886,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         }
 
         if (ltfLogDensityScaleOffset.isEnabled()
-            && (ltfLogDensityScaleOffset.getText(false).matches("\\S+") || ltfLogDensityScaleFactor
-                .getText(false).matches("\\S+"))) {
+            && (ltfLogDensityScaleOffset.getText().matches("\\S+") || ltfLogDensityScaleFactor
+                .getText().matches("\\S+"))) {
           badParameter = ltfLogDensityScaleFactor.getLabel();
           tiltParam.setScaleCoeff(Double.parseDouble(ltfLogDensityScaleFactor
               .getText(doValidation)));
@@ -915,8 +896,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
               .getText(doValidation)));
         }
         else if (ltfLinearDensityScaleOffset.isEnabled()
-            && (ltfLinearDensityScaleOffset.getText(false).matches("\\S+") || ltfLinearDensityScaleFactor
-                .getText(false).matches("\\S+"))) {
+            && (ltfLinearDensityScaleOffset.getText().matches("\\S+") || ltfLinearDensityScaleFactor
+                .getText().matches("\\S+"))) {
           badParameter = ltfLinearDensityScaleFactor.getLabel();
           tiltParam.setScaleCoeff(Double.parseDouble(ltfLinearDensityScaleFactor
               .getText(doValidation)));
@@ -928,7 +909,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
           tiltParam.resetScale();
         }
 
-        if (ctfLog.isSelected() && ctfLog.getText(false).matches("\\S+")) {
+        if (ctfLog.isSelected() && ctfLog.getText().matches("\\S+")) {
           badParameter = ctfLog.getLabel();
           tiltParam.setLogShift(Double.parseDouble(ctfLog.getText(doValidation)));
         }

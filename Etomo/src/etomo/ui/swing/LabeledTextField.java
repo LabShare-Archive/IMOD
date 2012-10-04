@@ -376,13 +376,7 @@ final class LabeledTextField implements UIComponent {
   }
 
   boolean equals(final String thatText) {
-    String text = null;
-    try {
-      text = getText(false);
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    String text = getText();
     if (text == null) {
       if (thatText == null) {
         return true;
@@ -434,6 +428,13 @@ final class LabeledTextField implements UIComponent {
       text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel());
     }
     return text;
+  }
+
+  /**
+   * return text without validation
+   */
+  String getText() {
+    return textField.getText();
   }
 
   boolean isEmpty() {

@@ -640,16 +640,11 @@ final class TiltalignPanel implements Expandable {
   }
 
   void getParameters(final MetaData metaData) {
-    try {
-      metaData.setTargetPatchSizeXandY(rtfTargetPatchSizeXandY.getText(false));
-      metaData.setNumberOfLocalPatchesXandY(rtfNLocalPatches.getText(false));
-      metaData.setNoBeamTiltSelected(axisID, rbNoBeamTilt.isSelected());
-      metaData.setFixedBeamTiltSelected(axisID, rtfFixedBeamTilt.isSelected());
-      metaData.setFixedBeamTilt(axisID, rtfFixedBeamTilt.getText(false));
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    metaData.setTargetPatchSizeXandY(rtfTargetPatchSizeXandY.getText());
+    metaData.setNumberOfLocalPatchesXandY(rtfNLocalPatches.getText());
+    metaData.setNoBeamTiltSelected(axisID, rbNoBeamTilt.isSelected());
+    metaData.setFixedBeamTiltSelected(axisID, rtfFixedBeamTilt.isSelected());
+    metaData.setFixedBeamTilt(axisID, rtfFixedBeamTilt.getText());
   }
 
   /**
@@ -955,22 +950,17 @@ final class TiltalignPanel implements Expandable {
   }
 
   boolean isValid() {
-    try {
-      if (rtfFixedBeamTilt.isSelected() && rtfFixedBeamTilt.getText(false).equals("")) {
-        UIHarness.INSTANCE.openMessageDialog(appMgr, rtfFixedBeamTilt.getLabel()
-            + " can not be empty when it is selected.", "Entry Error");
-        return false;
-      }
-      if (patchTracking && rbDualFiducialSurfaces.isSelected()) {
-        UIHarness.INSTANCE.openMessageDialog(appMgr,
-            "Patch tracking puts fiducials only on one side.  Select \""
-                + rbSingleFiducialSurface.getText() + "\" for better results.",
-            "Entry Warning", axisID);
-        // This is just a warning so don't return false.
-      }
+    if (rtfFixedBeamTilt.isSelected() && rtfFixedBeamTilt.getText().equals("")) {
+      UIHarness.INSTANCE.openMessageDialog(appMgr, rtfFixedBeamTilt.getLabel()
+          + " can not be empty when it is selected.", "Entry Error");
+      return false;
     }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
+    if (patchTracking && rbDualFiducialSurfaces.isSelected()) {
+      UIHarness.INSTANCE.openMessageDialog(appMgr,
+          "Patch tracking puts fiducials only on one side.  Select \""
+              + rbSingleFiducialSurface.getText() + "\" for better results.",
+          "Entry Warning", axisID);
+      // This is just a warning so don't return false.
     }
     return true;
   }

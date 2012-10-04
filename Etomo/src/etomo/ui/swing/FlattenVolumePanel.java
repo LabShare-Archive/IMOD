@@ -341,33 +341,22 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
    * @param metaData
    */
   void getParameters(final MetaData metaData) {
-    try {
-      metaData.setPostFlattenWarpInputTrimVol(rbInputFileTrimVol.isSelected());
-      metaData.setPostFlattenWarpContoursOnOneSurface(cbOneSurface.isSelected());
-      metaData.setPostFlattenWarpSpacingInX(ltfWarpSpacingX.getText(false));
-      metaData.setPostFlattenWarpSpacingInY(ltfWarpSpacingY.getText(false));
-      metaData.setLambdaForSmoothing(ltfLambdaForSmoothing.getText(false));
-      smoothingAssessmentPanel.getParameters(metaData);
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    metaData.setPostFlattenWarpInputTrimVol(rbInputFileTrimVol.isSelected());
+    metaData.setPostFlattenWarpContoursOnOneSurface(cbOneSurface.isSelected());
+    metaData.setPostFlattenWarpSpacingInX(ltfWarpSpacingX.getText());
+    metaData.setPostFlattenWarpSpacingInY(ltfWarpSpacingY.getText());
+    metaData.setLambdaForSmoothing(ltfLambdaForSmoothing.getText());
+    smoothingAssessmentPanel.getParameters(metaData);
   }
 
   private boolean validateFlattenWarp() {
-    try {
-      String lambdaForSmoothing = ltfLambdaForSmoothing.getText(false);
-      if (lambdaForSmoothing == null || lambdaForSmoothing.matches("\\s*")) {
-        UIHarness.INSTANCE.openMessageDialog(manager, LAMBDA_FOR_SMOOTHING_LABEL
-            + " is a required field.", "Entry Error", axisID);
-        return false;
-      }
-      return true;
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
+    String lambdaForSmoothing = ltfLambdaForSmoothing.getText();
+    if (lambdaForSmoothing == null || lambdaForSmoothing.matches("\\s*")) {
+      UIHarness.INSTANCE.openMessageDialog(manager, LAMBDA_FOR_SMOOTHING_LABEL
+          + " is a required field.", "Entry Error", axisID);
       return false;
     }
+    return true;
   }
 
   public boolean getParameters(final FlattenWarpParam param, final boolean doValidation) {

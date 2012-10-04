@@ -263,15 +263,10 @@ final class MaskingPanel {
   }
 
   public void getParameters(final PeetMetaData metaData) {
-    try {
-      metaData.setMaskModelPtsZRotation(ltfZRotation.getText(false));
-      metaData.setMaskModelPtsYRotation(ltfYRotation.getText(false));
-      metaData.setMaskTypeVolume(ftfMaskTypeFile.getText());
-      metaData.setManualCylinderOrientation(cbCylinderOrientation.isSelected());
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    metaData.setMaskModelPtsZRotation(ltfZRotation.getText());
+    metaData.setMaskModelPtsYRotation(ltfYRotation.getText());
+    metaData.setMaskTypeVolume(ftfMaskTypeFile.getText());
+    metaData.setManualCylinderOrientation(cbCylinderOrientation.isSelected());
   }
 
   /**
@@ -380,12 +375,7 @@ final class MaskingPanel {
     EtomoNumber rotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     // validate Z Rotation
     if (ltfZRotation.isEnabled()) {
-      try {
-        rotation.set(ltfZRotation.getText(false));
-      }
-      catch (FieldValidationFailedException e) {
-        e.printStackTrace();
-      }
+      rotation.set(ltfZRotation.getText());
       String description = ltfZRotation.getLabel() + " field in " + pnlRoot.getName();
       if (!rotation.isValid()) {
         return description + " must be numeric - " + rotation.getInvalidReason() + ".";
@@ -400,12 +390,7 @@ final class MaskingPanel {
     }
     // validate Y Rotation
     if (ltfZRotation.isEnabled()) {
-      try {
-        rotation.set(ltfZRotation.getText(false));
-      }
-      catch (FieldValidationFailedException e) {
-        e.printStackTrace();
-      }
+      rotation.set(ltfZRotation.getText());
       if (!rotation.isValid()) {
         return ltfYRotation.getLabel() + " field in " + pnlRoot.getName()
             + " must be numeric - " + rotation.getInvalidReason() + ".";

@@ -205,17 +205,12 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
    * @throws FortranInputSyntaxException
    */
   void getParameters(final MetaData metaData) throws FortranInputSyntaxException {
-    try {
-      metaData.setFinalStackFiducialDiameter(axisID, ltfFiducialDiameter.getText(false));
-      metaData.setFinalStackExpandCircleIterations(axisID,
-          cbspExpandCircleIterations.getValue());
-      metaData.setUseFinalStackExpandCircleIterations(axisID,
-          cbspExpandCircleIterations.isSelected());
-      metaData.setFinalStackPolynomialOrder(axisID, getPolynomialOrder());
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    metaData.setFinalStackFiducialDiameter(axisID, ltfFiducialDiameter.getText());
+    metaData.setFinalStackExpandCircleIterations(axisID,
+        cbspExpandCircleIterations.getValue());
+    metaData.setUseFinalStackExpandCircleIterations(axisID,
+        cbspExpandCircleIterations.isSelected());
+    metaData.setFinalStackPolynomialOrder(axisID, getPolynomialOrder());
   }
 
   void setParameters(final ConstMetaData metaData) {

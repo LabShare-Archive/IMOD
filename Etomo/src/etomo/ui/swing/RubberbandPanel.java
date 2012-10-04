@@ -258,18 +258,13 @@ public final class RubberbandPanel {
   }
 
   public void getParameters(MetaData metaData) {
-    try {
-      metaData.setPostTrimvolScaleXMin(ltfXMin.getText(false));
-      metaData.setPostTrimvolScaleXMax(ltfXMax.getText(false));
-      metaData.setPostTrimvolScaleYMin(ltfYMin.getText(false));
-      metaData.setPostTrimvolScaleYMax(ltfYMax.getText(false));
-      if (btnImod != null) {
-        metaData.setPostTrimvolSectionScaleMin(ltfZMin.getText(false));
-        metaData.setPostTrimvolSectionScaleMax(ltfZMax.getText(false));
-      }
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
+    metaData.setPostTrimvolScaleXMin(ltfXMin.getText());
+    metaData.setPostTrimvolScaleXMax(ltfXMax.getText());
+    metaData.setPostTrimvolScaleYMin(ltfYMin.getText());
+    metaData.setPostTrimvolScaleYMax(ltfYMax.getText());
+    if (btnImod != null) {
+      metaData.setPostTrimvolSectionScaleMin(ltfZMin.getText());
+      metaData.setPostTrimvolSectionScaleMax(ltfZMax.getText());
     }
   }
 
@@ -309,18 +304,13 @@ public final class RubberbandPanel {
   }
 
   public void getParameters(ParallelMetaData metaData) {
-    try {
-      metaData.setXMin(ltfXMin.getText(false));
-      metaData.setXMax(ltfXMax.getText(false));
-      metaData.setYMin(ltfYMin.getText(false));
-      metaData.setYMax(ltfYMax.getText(false));
-      if (btnImod != null) {
-        metaData.setZMin(ltfZMin.getText(false));
-        metaData.setZMax(ltfZMax.getText(false));
-      }
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
+    metaData.setXMin(ltfXMin.getText());
+    metaData.setXMax(ltfXMax.getText());
+    metaData.setYMin(ltfYMin.getText());
+    metaData.setYMax(ltfYMax.getText());
+    if (btnImod != null) {
+      metaData.setZMin(ltfZMin.getText());
+      metaData.setZMax(ltfZMax.getText());
     }
   }
 

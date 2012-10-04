@@ -510,9 +510,17 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     return pnlSolvematch.getUseList(doValidation);
   }
 
+  public String getUseList() {
+    return pnlSolvematch.getUseList();
+  }
+
   public String getFiducialMatchListA(final boolean doValidation)
       throws FieldValidationFailedException {
     return pnlSolvematch.getFiducialMatchListA(doValidation);
+  }
+
+  public String getFiducialMatchListA() {
+    return pnlSolvematch.getFiducialMatchListA();
   }
 
   public void setFiducialMatchListB(String fiducialMatchListB) {
@@ -522,6 +530,10 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   public String getFiducialMatchListB(final boolean doValidation)
       throws FieldValidationFailedException {
     return pnlSolvematch.getFiducialMatchListB(doValidation);
+  }
+
+  public String getFiducialMatchListB() {
+    return pnlSolvematch.getFiducialMatchListB();
   }
 
   /**

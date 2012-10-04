@@ -483,7 +483,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       combineParams.setTransfer(!cbUseCorrespondingPoints.isSelected());
       combineParams.setFiducialMatchListA(ltfFiducialMatchListA.getText(doValidation));
       combineParams.setFiducialMatchListB(ltfFiducialMatchListB.getText(doValidation));
-      if (ltfUseList.getText(false).matches("\\s*/\\s*")) {
+      if (ltfUseList.getText().matches("\\s*/\\s*")) {
         combineParams.setUseList("");
       }
       else {
@@ -612,9 +612,17 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     return ltfUseList.getText(doValidation);
   }
 
+  String getUseList() {
+    return ltfUseList.getText();
+  }
+
   public String getFiducialMatchListA(final boolean doValidation)
       throws FieldValidationFailedException {
     return ltfFiducialMatchListA.getText(doValidation);
+  }
+
+  public String getFiducialMatchListA() {
+    return ltfFiducialMatchListA.getText();
   }
 
   public void setFiducialMatchListB(String fiducialMatchListB) {
@@ -624,6 +632,10 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
   public String getFiducialMatchListB(final boolean doValidation)
       throws FieldValidationFailedException {
     return ltfFiducialMatchListB.getText(doValidation);
+  }
+
+  public String getFiducialMatchListB() {
+    return ltfFiducialMatchListB.getText();
   }
 
   public void action(final Run3dmodButton button,

@@ -864,11 +864,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     return ltfFnOutput.getText(doValidation);
   }
 
-  public String getDirectoryString(final boolean doValidation)
-      throws FieldValidationFailedException {
-    return ltfDirectory.getText(doValidation);
-  }
-
   public void setDirectory(final String directory) {
     ltfDirectory.setText(directory);
   }

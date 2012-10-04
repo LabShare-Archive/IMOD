@@ -105,17 +105,12 @@ final class VolumeRangePanel {
   }
 
   void getParameters(MetaData metaData) {
-    try {
-      metaData.setPostTrimvolXMin(ltfXMin.getText(false));
-      metaData.setPostTrimvolXMax(ltfXMax.getText(false));
-      metaData.setPostTrimvolYMin(ltfYMin.getText(false));
-      metaData.setPostTrimvolYMax(ltfYMax.getText(false));
-      metaData.setPostTrimvolZMin(ltfZMin.getText(false));
-      metaData.setPostTrimvolZMax(ltfZMax.getText(false));
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    metaData.setPostTrimvolXMin(ltfXMin.getText());
+    metaData.setPostTrimvolXMax(ltfXMax.getText());
+    metaData.setPostTrimvolYMin(ltfYMin.getText());
+    metaData.setPostTrimvolYMax(ltfYMax.getText());
+    metaData.setPostTrimvolZMin(ltfZMin.getText());
+    metaData.setPostTrimvolZMax(ltfZMax.getText());
   }
 
   /**

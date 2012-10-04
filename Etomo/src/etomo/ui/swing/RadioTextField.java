@@ -153,6 +153,18 @@ final class RadioTextField implements RadioButtonInterface {
     return text;
   }
 
+  /**
+   * return text without validation
+   * @return
+   */
+  String getText() {
+    String text = textField.getText();
+    if (text == null || text.matches("\\s*")) {
+      return "";
+    }
+    return text;
+  }
+
   public EnumeratedType getEnumeratedType() {
     return radioButton.getEnumeratedType();
   }
@@ -162,13 +174,7 @@ final class RadioTextField implements RadioButtonInterface {
   }
 
   boolean isEmpty() {
-    String text = null;
-    try {
-      text = textField.getText(false);
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    String text = textField.getText();
     return text == null || text.matches("\\s*");
   }
 

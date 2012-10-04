@@ -1437,27 +1437,6 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     ltfSizeInY.setText(defaultYSize);
   }
 
-  public ConstEtomoNumber getSizeInY(final boolean doValidation)
-      throws FieldValidationFailedException {
-    EtomoNumber sizeInY = new EtomoNumber(EtomoNumber.Type.INTEGER);
-    sizeInY.set(ltfSizeInY.getText(doValidation));
-    return sizeInY;
-  }
-
-  public ConstEtomoNumber getShiftInX(final boolean doValidation)
-      throws FieldValidationFailedException {
-    EtomoNumber shiftInX = new EtomoNumber(EtomoNumber.Type.INTEGER);
-    shiftInX.set(ltfShiftInX.getText(doValidation));
-    return shiftInX;
-  }
-
-  public ConstEtomoNumber getShiftInY(final boolean doValidation)
-      throws FieldValidationFailedException {
-    EtomoNumber shiftInY = new EtomoNumber(EtomoNumber.Type.INTEGER);
-    shiftInY.set(ltfShiftInY.getText(doValidation));
-    return shiftInY;
-  }
-
   public void setSizeInX(ConstEtomoNumber sizeInX) {
     ltfSizeInX.setText(sizeInX.toString());
   }
@@ -1520,37 +1499,32 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
 
   public boolean getMetaData(JoinMetaData metaData) {
     synchronize();
-    try {
-      metaData.setRootName(ltfRootName.getText(false));
-      metaData.setDensityRefSection(spinDensityRefSection.getValue());
-      autoAlignmentPanel.getParameters(metaData.getAutoAlignmentMetaData());
-      metaData.setUseAlignmentRefSection(cbsAlignmentRefSection.isSelected());
-      metaData.setAlignmentRefSection(cbsAlignmentRefSection.getValue());
-      metaData.setSizeInX(ltfSizeInX.getText(false));
-      metaData.setSizeInY(ltfSizeInY.getText(false));
-      metaData.setShiftInX(ltfShiftInX.getText(false));
-      metaData.setShiftInY(ltfShiftInY.getText(false));
-      metaData.setLocalFits(cbLocalFits.isSelected());
-      metaData.setUseEveryNSlices(spinUseEveryNSlices.getValue());
-      metaData.setRejoinUseEveryNSlices(spinRejoinUseEveryNSlices.getValue());
-      metaData.setTrialBinning(spinTrialBinning.getValue());
-      metaData.setMidasLimit(ltfMidasLimit.getText(false));
-      metaData.setModelTransform(tcModel.get());
-      metaData.setBoundariesToAnalyze(ltfBoundariesToAnalyze.getText(false));
-      metaData.setObjectsToInclude(ltfObjectsToInclude.getText(false));
-      metaData.setGap(cbGap.isSelected());
-      metaData.setGapStart(ltfGapStart.getText(false));
-      metaData.setGapEnd(ltfGapEnd.getText(false));
-      metaData.setGapInc(ltfGapInc.getText(false));
-      metaData.setPointsToFitMin(ltfPointsToFitMin.getText(false));
-      metaData.setPointsToFitMax(ltfPointsToFitMax.getText(false));
-      metaData.setRejoinTrialBinning(spinRejoinTrialBinning.getValue());
-      boundaryTable.getMetaData();
-      return pnlSectionTable.getMetaData(metaData);
-    }
-    catch (FieldValidationFailedException e) {
-      return false;
-    }
+    metaData.setRootName(ltfRootName.getText());
+    metaData.setDensityRefSection(spinDensityRefSection.getValue());
+    autoAlignmentPanel.getParameters(metaData.getAutoAlignmentMetaData());
+    metaData.setUseAlignmentRefSection(cbsAlignmentRefSection.isSelected());
+    metaData.setAlignmentRefSection(cbsAlignmentRefSection.getValue());
+    metaData.setSizeInX(ltfSizeInX.getText());
+    metaData.setSizeInY(ltfSizeInY.getText());
+    metaData.setShiftInX(ltfShiftInX.getText());
+    metaData.setShiftInY(ltfShiftInY.getText());
+    metaData.setLocalFits(cbLocalFits.isSelected());
+    metaData.setUseEveryNSlices(spinUseEveryNSlices.getValue());
+    metaData.setRejoinUseEveryNSlices(spinRejoinUseEveryNSlices.getValue());
+    metaData.setTrialBinning(spinTrialBinning.getValue());
+    metaData.setMidasLimit(ltfMidasLimit.getText());
+    metaData.setModelTransform(tcModel.get());
+    metaData.setBoundariesToAnalyze(ltfBoundariesToAnalyze.getText());
+    metaData.setObjectsToInclude(ltfObjectsToInclude.getText());
+    metaData.setGap(cbGap.isSelected());
+    metaData.setGapStart(ltfGapStart.getText());
+    metaData.setGapEnd(ltfGapEnd.getText());
+    metaData.setGapInc(ltfGapInc.getText());
+    metaData.setPointsToFitMin(ltfPointsToFitMin.getText());
+    metaData.setPointsToFitMax(ltfPointsToFitMax.getText());
+    metaData.setRejoinTrialBinning(spinRejoinTrialBinning.getValue());
+    boundaryTable.getMetaData();
+    return pnlSectionTable.getMetaData(metaData);
   }
 
   SectionTablePanel getSectionTable() {
@@ -1628,9 +1602,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     return new File(ftfWorkingDir.getText());
   }
 
-  public String getRootName(final boolean doValidation)
-      throws FieldValidationFailedException {
-    return ltfRootName.getText(doValidation);
+  public String getRootName() {
+    return ltfRootName.getText();
   }
 
   public void abortAddSection() {
@@ -1648,55 +1621,49 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
    * @return
    */
   public boolean equals(ConstJoinMetaData metaData) {
-    try {
-      if (!ltfRootName.equals(metaData.getDatasetName())) {
-        return false;
-      }
-      if (!metaData.getDensityRefSection().equals(
-          (Number) spinDensityRefSection.getValue())) {
-        return false;
-      }
-      if (!autoAlignmentPanel.equals(metaData)) {
-        return false;
-      }
-      if (cbsAlignmentRefSection.isSelected() != metaData.isUseAlignmentRefSection()) {
-        return false;
-      }
-      if (!metaData.getAlignmentRefSection().equals(
-          (Number) cbsAlignmentRefSection.getValue())) {
-        return false;
-      }
-      if (!metaData.getSizeInX().equals(ltfSizeInX.getText(false))) {
-        return false;
-      }
-      if (!metaData.getSizeInY().equals(ltfSizeInY.getText(false))) {
-        return false;
-      }
-      if (!metaData.getShiftInX().equals(ltfShiftInX.getText(false))) {
-        return false;
-      }
-      if (!metaData.getShiftInY().equals(ltfShiftInY.getText(false))) {
-        return false;
-      }
-      if (!metaData.getUseEveryNSlices().equals((Number) spinUseEveryNSlices.getValue())) {
-        return false;
-      }
-      if (!metaData.getRejoinUseEveryNSlices().equals(
-          (Number) spinRejoinUseEveryNSlices.getValue())) {
-        return false;
-      }
-      if (!metaData.getTrialBinning().equals((Number) spinTrialBinning.getValue())) {
-        return false;
-      }
-      if (!pnlSectionTable.equals(metaData)) {
-        return false;
-      }
-      return true;
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
+    if (!ltfRootName.equals(metaData.getDatasetName())) {
       return false;
     }
+    if (!metaData.getDensityRefSection()
+        .equals((Number) spinDensityRefSection.getValue())) {
+      return false;
+    }
+    if (!autoAlignmentPanel.equals(metaData)) {
+      return false;
+    }
+    if (cbsAlignmentRefSection.isSelected() != metaData.isUseAlignmentRefSection()) {
+      return false;
+    }
+    if (!metaData.getAlignmentRefSection().equals(
+        (Number) cbsAlignmentRefSection.getValue())) {
+      return false;
+    }
+    if (!metaData.getSizeInX().equals(ltfSizeInX.getText())) {
+      return false;
+    }
+    if (!metaData.getSizeInY().equals(ltfSizeInY.getText())) {
+      return false;
+    }
+    if (!metaData.getShiftInX().equals(ltfShiftInX.getText())) {
+      return false;
+    }
+    if (!metaData.getShiftInY().equals(ltfShiftInY.getText())) {
+      return false;
+    }
+    if (!metaData.getUseEveryNSlices().equals((Number) spinUseEveryNSlices.getValue())) {
+      return false;
+    }
+    if (!metaData.getRejoinUseEveryNSlices().equals(
+        (Number) spinRejoinUseEveryNSlices.getValue())) {
+      return false;
+    }
+    if (!metaData.getTrialBinning().equals((Number) spinTrialBinning.getValue())) {
+      return false;
+    }
+    if (!pnlSectionTable.equals(metaData)) {
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -1776,7 +1743,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
       if (command.equals(btnMakeSamples.getActionCommand())) {
         if (ftfWorkingDir.isEditable()
             && !DatasetTool.validateDatasetName(manager, axisID, ftfWorkingDir.getFile(),
-                ltfRootName.getText(false), DataFileType.JOIN, null)) {
+                ltfRootName.getText(), DataFileType.JOIN, null)) {
           return;
         }
         manager.makejoincom(null, deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);

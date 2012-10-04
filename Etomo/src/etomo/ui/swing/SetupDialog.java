@@ -38,7 +38,6 @@ import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
-import etomo.ui.FieldValidationFailedException;
 
 final class SetupDialog extends ProcessDialog implements ContextMenu,
     Run3dmodButtonContainer, Expandable {
@@ -377,12 +376,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     return spnBinning.getValue();
   }
 
-  String getExcludeList(final AxisID axisID, final boolean doValidation)
-      throws FieldValidationFailedException {
+  String getExcludeList(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      return ltfExcludeListB.getText(doValidation);
+      return ltfExcludeListB.getText();
     }
-    return ltfExcludeListA.getText(doValidation);
+    return ltfExcludeListA.getText();
   }
 
   void setExcludeList(final AxisID axisID, final String input) {
@@ -451,18 +449,16 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     return cbAdjustedFocusA.isSelected();
   }
 
-  String getPixelSize(final boolean doValidation) throws FieldValidationFailedException {
-    return ltfPixelSize.getText(doValidation);
+  String getPixelSize() {
+    return ltfPixelSize.getText();
   }
 
-  String getFiducialDiameter(final boolean doValidation)
-      throws FieldValidationFailedException {
-    return ltfFiducialDiameter.getText(doValidation);
+  String getFiducialDiameter() {
+    return ltfFiducialDiameter.getText();
   }
 
-  String getImageRotation(final boolean doValidation)
-      throws FieldValidationFailedException {
-    return ltfImageRotation.getText(doValidation);
+  String getImageRotation() {
+    return ltfImageRotation.getText();
   }
 
   boolean equalsSingleAxisActionCommand(final String actionCommand) {

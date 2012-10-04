@@ -814,12 +814,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
-    try {
-      metaData.setSampleThickness(axisID, dialog.getSampleThickness(false));
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    metaData.setSampleThickness(axisID, dialog.getSampleThickness());
   }
 
   /**

@@ -612,6 +612,10 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     return ltfSampleThickness.getText(doValidation);
   }
 
+  String getSampleThickness() {
+    return ltfSampleThickness.getText();
+  }
+
   boolean isWholeTomogram() {
     return cbWholeTomogram.isSelected();
   }
@@ -974,17 +978,8 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
       return ltfOriginal.getText(doValidation);
     }
 
-    String getAdded(final boolean doValidation) throws FieldValidationFailedException {
-      return ltfAdded.getText(doValidation);
-    }
-
     String getTotal(final boolean doValidation) throws FieldValidationFailedException {
       return ltfTotal.getText(doValidation);
-    }
-
-    double getTotalDouble(final boolean doValidation)
-        throws FieldValidationFailedException {
-      return number.set(ltfTotal.getText(doValidation)).getDouble();
     }
   }
 }

@@ -17,7 +17,6 @@ import javax.swing.JPanel;
 
 import etomo.type.ConstStringParameter;
 import etomo.ui.FieldType;
-import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -102,7 +101,6 @@ final class FileTextField implements FileTextFieldInterface {
   private final static Dimension FOLDER_BUTTON_SIZE = FixedDim.folderButton;
   // Assuming the field type is always non-numeric
   private final FieldType FIELD_TYPE = FieldType.STRING;
-  private final boolean DO_VALIDATION = false;
 
   private final SimpleButton button = new SimpleButton(new ImageIcon(
       ClassLoader.getSystemResource("images/openFile.gif")));
@@ -287,13 +285,7 @@ final class FileTextField implements FileTextFieldInterface {
    * @return
    */
   boolean isEmpty() {
-    String text = "";
-    try {
-      text = field.getText(false);
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    String text = field.getText();
     return text.matches("\\s*");
   }
 
@@ -351,13 +343,7 @@ final class FileTextField implements FileTextFieldInterface {
     if (showPartialPath) {
       return;
     }
-    String text = null;
-    try {
-      text = field.getText(false);
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    String text = field.getText();
     if (text == null || text.matches("\\s*")) {
       file = null;
     }
@@ -405,14 +391,7 @@ final class FileTextField implements FileTextFieldInterface {
    * @return
    */
   String getText() {
-    String text = null;
-    try {
-      text = field.getText(DO_VALIDATION);
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
-    return text;
+    return field.getText();
   }
 
   void setToolTipText(String text) {

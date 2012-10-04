@@ -185,16 +185,11 @@ final class ReferencePanel {
    * @param metaData
    */
   void getParameters(final PeetMetaData metaData) {
-    try {
-      metaData.setReferenceVolume(sVolume.getValue());
-      metaData.setReferenceParticle(rtfParticle.getText(false));
-      metaData.setReferenceFile(ftfFile.getText());
-      metaData.setReferenceMultiparticleLevel(MultiparticleReference
-          .convertIndexToLevel(cmbMultiparticle.getSelectedIndex()));
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    metaData.setReferenceVolume(sVolume.getValue());
+    metaData.setReferenceParticle(rtfParticle.getText());
+    metaData.setReferenceFile(ftfFile.getText());
+    metaData.setReferenceMultiparticleLevel(MultiparticleReference
+        .convertIndexToLevel(cmbMultiparticle.getSelectedIndex()));
   }
 
   /**

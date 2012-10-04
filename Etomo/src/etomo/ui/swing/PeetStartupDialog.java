@@ -24,7 +24,6 @@ import etomo.type.AxisID;
 import etomo.type.DataFileType;
 import etomo.type.UITestFieldType;
 import etomo.ui.FieldType;
-import etomo.ui.FieldValidationFailedException;
 import etomo.util.Utilities;
 
 /**
@@ -178,15 +177,11 @@ public final class PeetStartupDialog implements UIComponent {
    */
   private PeetStartupData getStartupData() {
     PeetStartupData startupData = new PeetStartupData();
-    try {
-      startupData.setDirectory(ftfDirectory.getText());
-      if (cbCopyFrom.isSelected()) {
-        startupData.setCopyFrom(ftfCopyFrom.getText());
-      }
-      startupData.setBaseName(ltfBaseName.getText(false));
+    startupData.setDirectory(ftfDirectory.getText());
+    if (cbCopyFrom.isSelected()) {
+      startupData.setCopyFrom(ftfCopyFrom.getText());
     }
-    catch (FieldValidationFailedException e) {
-    }
+    startupData.setBaseName(ltfBaseName.getText());
     return startupData;
   }
 
@@ -249,14 +244,9 @@ public final class PeetStartupDialog implements UIComponent {
       }
     }
     if (errorMessage == null) {
-      try {
-        if (!DatasetTool.validateDatasetName(manager, this, axisID,
-            ftfDirectory.getFile(), ltfBaseName.getText(false), DataFileType.PEET, null)) {
-          return false;
-        }
-      }
-      catch (FieldValidationFailedException e) {
-        e.printStackTrace();
+      if (!DatasetTool.validateDatasetName(manager, this, axisID, ftfDirectory.getFile(),
+          ltfBaseName.getText(), DataFileType.PEET, null)) {
+        return false;
       }
       return true;
     }

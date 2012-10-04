@@ -274,9 +274,8 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     return true;
   }
 
-  public String getBeadSize(final boolean doValidation)
-      throws FieldValidationFailedException {
-    return ltfBeadSize.getText(doValidation);
+  public String getBeadSize() {
+    return ltfBeadSize.getText();
   }
 
   public void action(final Run3dmodButton button,

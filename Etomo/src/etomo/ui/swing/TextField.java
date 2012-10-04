@@ -91,6 +91,14 @@ final class TextField implements UIComponent {
     }
     return text;
   }
+  
+  /**
+   * get text without validation
+   * @return
+   */
+  String getText()   {
+   return textField.getText();
+  }
 
   private String getQuotedReference() {
     return Utilities.quoteLabel(reference);

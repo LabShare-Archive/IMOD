@@ -122,6 +122,10 @@ final class SpacedTextField implements UIComponent {
     return text;
   }
 
+  final String getText() {
+    return textField.getText();
+  }
+
   String getQuotedLabel() {
     return Utilities.quoteLabel(label.getText());
   }

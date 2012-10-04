@@ -144,15 +144,10 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
   }
 
   void getParameters(final ParallelMetaData metaData) {
-    try {
-      metaData.setKValue(ltfKValue.getText(false));
-      metaData.setIteration(spIteration.getValue());
-      metaData.setMemoryPerChunk(spMemoryPerChunk.getValue());
-      metaData.setOverlapTimesFour(cbOverlapTimesFour.isSelected());
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    metaData.setKValue(ltfKValue.getText());
+    metaData.setIteration(spIteration.getValue());
+    metaData.setMemoryPerChunk(spMemoryPerChunk.getValue());
+    metaData.setOverlapTimesFour(cbOverlapTimesFour.isSelected());
   }
 
   Number getMemoryPerChunk() {

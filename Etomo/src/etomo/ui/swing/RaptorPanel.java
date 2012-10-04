@@ -209,13 +209,10 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
   }
 
   public void getParameters(final MetaData metaData) {
-    try {
     if (axisID != AxisID.SECOND) {
       metaData.setTrackRaptorUseRawStack(rbInputRaw.isSelected());
-      metaData.setTrackRaptorMark(ltfMark.getText(false));
-      metaData.setTrackRaptorDiam(ltfDiam.getText(false));
-    }}catch(FieldValidationFailedException e) {
-      e.printStackTrace();
+      metaData.setTrackRaptorMark(ltfMark.getText());
+      metaData.setTrackRaptorDiam(ltfDiam.getText());
     }
   }
 

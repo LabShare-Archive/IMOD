@@ -411,18 +411,13 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   }
 
   public void getParameters(final ParallelMetaData metaData) {
-    try {
-      metaData.setLoadWithFlipping(cbLoadWithFlipping.isSelected());
-      pnlTestVolumeRubberband.getParameters(metaData);
-      metaData.setTestKValueList(ltfTestKValueList.getText(false));
-      metaData.setTestIteration(spTestIteration.getValue());
-      metaData.setTestKValue(ltfTestKValue.getText(false));
-      metaData.setTestIterationList(ltfTestIterationList.getText(false));
-      filterFullVolumePanel.getParameters(metaData);
-    }
-    catch (FieldValidationFailedException e) {
-      e.printStackTrace();
-    }
+    metaData.setLoadWithFlipping(cbLoadWithFlipping.isSelected());
+    pnlTestVolumeRubberband.getParameters(metaData);
+    metaData.setTestKValueList(ltfTestKValueList.getText());
+    metaData.setTestIteration(spTestIteration.getValue());
+    metaData.setTestKValue(ltfTestKValue.getText());
+    metaData.setTestIterationList(ltfTestIterationList.getText());
+    filterFullVolumePanel.getParameters(metaData);
   }
 
   public Number getMemoryPerChunk() {
@@ -464,13 +459,8 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     try {
       String errorMessage = null;
       if (debug) {
-        try {
-          System.out.println("getParametersForVaryingK:ltfTestKValueList.getText()="
-              + ltfTestKValueList.getText(false));
-        }
-        catch (FieldValidationFailedException e) {
-          e.printStackTrace();
-        }
+        System.out.println("getParametersForVaryingK:ltfTestKValueList.getText()="
+            + ltfTestKValueList.getText());
       }
       errorMessage = param.setKValueList(ltfTestKValueList.getText(doValidation));
       if (errorMessage != null) {
