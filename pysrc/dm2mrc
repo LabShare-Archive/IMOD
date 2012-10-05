@@ -165,8 +165,9 @@ for num in range(nfiles):
          propstxt = propsarr[0].split()
          try:
             props = []
-            for txt in propstxt:
-               if len(props) < 5:
+            for ind in range(len(propstxt)):
+               txt = propstxt[ind]
+               if ind < 5:
                   props.append(int(txt))
                else:
                   props.append(float(txt))
@@ -180,7 +181,7 @@ for num in range(nfiles):
       exitError(fname + ' is not recognized as a DM file')
 
    # Take the first pixel size that shows up
-   if pixelOpt == '' and len(props) >= 5:
+   if pixelOpt == '' and len(props) > 5:
       pixelOpt = '-p ' + str(props[5])
       
    # add properties to wordlists, and check for consistency
