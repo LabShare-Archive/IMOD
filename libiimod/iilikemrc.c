@@ -616,7 +616,7 @@ int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *
         gotScale = 1;
         memcpy(&scale, &buf[c + scaleOff[dmind]], 4);
 #ifndef B3D_LITTLE_ENDIAN
-        mrc_swap_longs((b3dInt32 *)scale, 1);
+        mrc_swap_longs((b3dInt32 *)(&scale), 1);
 #endif
       }
 
