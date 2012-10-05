@@ -129,10 +129,21 @@ range for the output data type (e.g., between 0 and 255 for byte output).  For
 color image output, the fill value will be used for red, green, and blue
 components.
 .TP
+.B -P
+Set the pixel spacing in the header of the output file from resolution values
+in the TIFF file, if any, regardless of the size of these values.  The default
+is to use a resolution value only if the resulting pixel size is no bigger
+that 1 micron.  This option is one way to override that limit.  To
+override the limit automatically, define the environment variable TIFF_RES_PIXEL_LIMIT
+to the desired limit, a floating point number in microns.  Pixel size is
+assigned from the size found in the first input file.
+.TP
 .B -p <#>
 Set the pixel spacing in the header of the output file to the given value.
 This spacing is defined as having units of Angstroms, but you can place
-arbitrary values there.
+arbitrary values there.  This option cannot be used with 
+.B -p
+and the entered value supercedes any resolution value in the TIFF file.
 .TP 
 .B -b file
 This option loads a background file in TIFF format.

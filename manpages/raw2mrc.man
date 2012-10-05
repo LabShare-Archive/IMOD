@@ -76,7 +76,10 @@ stored as 0 to 32767.  Also,
 can be used to store the numbers as unsigned integers in a file of mode 6.
 If values in the input files are all less than 32768, 
 then specify the type as long instead of ulong.
-
+.TP
+.B -P <pixel>
+Set the pixel spacing of the MRC file header to the given value, which should
+generally be a pixel size in Angstroms.
 .SH FILES
 If the output file already exists, it will be made a backup file by adding ~
 to its name.

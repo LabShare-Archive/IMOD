@@ -99,6 +99,7 @@ differ = 0
 swap = 0
 dm2 = 0
 dm3 = 0
+pixelOpt = ''
 
 # Read all files
 prnstr('Scanning files...')
@@ -165,9 +166,12 @@ for num in range(nfiles):
          try:
             props = []
             for txt in propstxt:
-               props.append(int(txt))
+               if len(props) < 5:
+                  props.append(int(txt))
+               else:
+                  props.append(float(txt))
          except Exception:
-            exitError('Converting output of dm3props to integers')
+            exitError('Converting output of dm3props to numbers')
       except ImodpyError:
          exitFromImodError(progname)
          
@@ -175,7 +179,10 @@ for num in range(nfiles):
    else:
       exitError(fname + ' is not recognized as a DM file')
 
-
+   # Take the first pixel size that shows up
+   if pixelOpt == '' and len(props) >= 5:
+      pixelOpt = '-p ' + str(props[5])
+      
    # add properties to wordlists, and check for consistency
    xsizes.append(props[0])
    ysizes.append(props[1])
@@ -243,8 +250,8 @@ if os.path.exists(outfile):
 
 prnstr('Converting files...')
 if not differ:
-   rawcom = fmtstr('raw2mrc -f -o {} {} -t {} -x {} -y {} -z {} {} {} {}', offset, swap,
-                   type, xsize, ysize, zsize, convert, divide, unsigned)
+   rawcom = fmtstr('raw2mrc -f -o {} {} -t {} -x {} -y {} -z {} {} {} {} {}', offset,
+                   swap, type, xsize, ysize, zsize, convert, divide, unsigned, pixelOpt)
    for fname in fnames:
       rawcom += ' ' + fname
    rawcom += ' "' + outfile + '"'
@@ -262,9 +269,9 @@ try:
       fname = PipGetNonOptionArg(i)
       outtmp = fname + pid
       tmplist.append(outtmp)
-      rawcom = fmtstr('raw2mrc -f -o {} {} -t {} -x {} -y {} -z {} {} {} {} "{}" "{}"',
+      rawcom = fmtstr('raw2mrc -f -o {} {} -t {} -x {} -y {} -z {} {} {} {} {} "{}" "{}"',
                       offsets[i], swap, types[i], xsizes[i], ysizes[i], zsizes[i],
-                      convert, divide, unsigned, fname, outtmp)
+                      convert, divide, unsigned, pixelOpt, fname, outtmp)
       try:
          runcmd(rawcom, None, 'stdout')
       except ImodpyError:

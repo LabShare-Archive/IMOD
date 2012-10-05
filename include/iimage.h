@@ -110,6 +110,7 @@ extern "C" {
     int  contigSamples;      /* # of contiguous samples per pixel in plane */
     int  multipleSizes;      /* Flag that TIFF file has multiple sizes */
     int  rgbSamples;         /* Number of samples for RGB TIFF file */
+    int  anyTiffPixSize;     /* Set non-0 to have TIFF pixel size put into [xyz]scale */
 
     /* Callback functions used by different file formats. */
     iiSectionFunc readSection;
@@ -137,6 +138,7 @@ extern "C" {
     int sectionSkip;    /* Padding after each section - there may be no padding
                            after last section */
     int yInverted;      /* Lines are inverted in Y */
+    float pixel;        /* Pixel size in Angstroms, set to 0. if unknown */
   } RawImageInfo;
 /* END_CODE */
 

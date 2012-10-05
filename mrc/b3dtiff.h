@@ -143,7 +143,7 @@ unsigned char *tiff_read_mrc(FILE *fp, struct MRCheader *hdata);
 unsigned char *tiff_read_section(FILE *fp, Tf_info *tiff, int section);    
 
 unsigned char *tiff_read_file(FILE *fp, Tf_info *tiff);
-int tiff_open_file(char *filename, char *mode, Tf_info *tiff);
+int tiff_open_file(char *filename, char *mode, Tf_info *tiff, int anyTifPixel);
      void tiff_close_file(Tf_info *tiff);
 
 int read_tiffheader(FILE *fp, Tf_header *header);
