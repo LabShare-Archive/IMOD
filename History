@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/4/12: IMOD_4-6-14
+10/4/12: IMOD_4-6-15
 10/4/12: Pixel sizes are now obtained from DigitalMicrograph files and stored
 in output file by dm2mrc.  They are read from TIFF files and stored in output
 file by tif2mrc if they are less than 1 micron, with an option and environment
