@@ -41,10 +41,10 @@ public final class ParallelMetaData extends BaseMetaData {
   private final EtomoNumber zMax = new EtomoNumber("ZMax");
   private final StringProperty testKValueList = new StringProperty("TestKValueList");
   private final EtomoNumber testIteration = new EtomoNumber("TestIteration");
-  private final EtomoNumber testKValue = new EtomoNumber(EtomoNumber.Type.FLOAT,
+  private final EtomoNumber testKValue = new EtomoNumber(EtomoNumber.Type.DOUBLE,
       "TestKValue");
   private final StringProperty testIterationList = new StringProperty("TestIterationList");
-  private final EtomoNumber kValue = new EtomoNumber(EtomoNumber.Type.FLOAT, "KValue");
+  private final EtomoNumber kValue = new EtomoNumber(EtomoNumber.Type.DOUBLE, "KValue");
   private final EtomoNumber iteration = new EtomoNumber("Iteration");
   private final EtomoNumber memoryPerChunk = new EtomoNumber("MemoryPerChunk");
   private final EtomoBoolean2 overlapTimesFour = new EtomoBoolean2("OverlapTimesFour");

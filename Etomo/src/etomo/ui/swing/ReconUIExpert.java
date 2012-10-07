@@ -184,7 +184,7 @@ public abstract class ReconUIExpert implements UIExpert {
         outputImageFileType);
     ParallelPanel parallelPanel = manager.getMainPanel().getParallelPanel(axisID);
     dialog.getParameters(param);
-    if (!parallelPanel.getParameters(param)) {
+    if (!parallelPanel.getParameters(param,true)) {
       manager.getMainPanel().stopProgressBar(axisID, ProcessEndState.FAILED);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;

@@ -10,6 +10,8 @@ import javax.swing.ButtonGroup;
 
 import etomo.BaseManager;
 import etomo.storage.MatlabParam;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -55,7 +57,7 @@ final class SphericalSamplingForThetaAndPsiPanel {
   private final RadioButton rbSampleSphereHalf = new RadioButton(
       SAMPLE_SPHERE_HALF_LABEL, MatlabParam.SampleSphere.HALF, bgSampleSphere);
   private final LabeledTextField ltfSampleInterval = new LabeledTextField(
-      SAMPLE_INTERVAL_LABEL + " (degrees) : ");
+      FieldType.FLOATING_POINT, SAMPLE_INTERVAL_LABEL + " (degrees) : ");
 
   private final BaseManager manager;
   private final SphericalSamplingForThetaAndPsiParent parent;
@@ -85,9 +87,9 @@ final class SphericalSamplingForThetaAndPsiPanel {
   }
 
   private void createPanel() {
-    //init
+    // init
     ltfSampleInterval.setPreferredWidth(60);
-    //root
+    // root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
     pnlRoot.setBorder(new EtchedBorder(SPHERICAL_SAMPLING_LABEL).getBorder());
     pnlRoot.add(Box.createRigidArea(FixedDim.x20_y0));
@@ -140,10 +142,16 @@ final class SphericalSamplingForThetaAndPsiPanel {
     ltfSampleInterval.setText(matlabParam.getSampleInterval());
   }
 
-  void getParameters(final MatlabParam matlabParam) {
-    matlabParam.setSampleSphere(((RadioButton.RadioButtonModel) bgSampleSphere
-        .getSelection()).getEnumeratedType());
-    matlabParam.setSampleInterval(ltfSampleInterval.getText());
+  boolean getParameters(final MatlabParam matlabParam, final boolean doValidation) {
+    try {
+      matlabParam.setSampleSphere(((RadioButton.RadioButtonModel) bgSampleSphere
+          .getSelection()).getEnumeratedType());
+      matlabParam.setSampleInterval(ltfSampleInterval.getText(doValidation));
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   /**
@@ -162,8 +170,8 @@ final class SphericalSamplingForThetaAndPsiPanel {
    * @return true if valid, false if invalid
    */
   boolean validateRun() {
-    //spherical sampling for theta and psi:
-    //If full sphere or half sphere is selected, sample interval is required.
+    // spherical sampling for theta and psi:
+    // If full sphere or half sphere is selected, sample interval is required.
     if ((rbSampleSphereFull.isSelected() || rbSampleSphereHalf.isSelected())
         && ltfSampleInterval.isEnabled() && ltfSampleInterval.isEmpty()) {
       UIHarness.INSTANCE.openMessageDialog(manager, "In " + SPHERICAL_SAMPLING_LABEL
@@ -187,17 +195,14 @@ final class SphericalSamplingForThetaAndPsiPanel {
     rbSampleSphereNone
         .setToolTipText("Use the angular search parameters specified in the "
             + "Iteration Table for the first iteration.");
-    rbSampleSphereFull
-        .setToolTipText("At the first iteration, perform an optimized "
-            + "search with Theta varying from -90 to 90 degrees and Psi, "
-            + "varying from -180 to 180 degrees. Optimization prevents "
-            + "over-sampling near the poles. Phi Max should be set to "
-            + "180 degrees.");
-    rbSampleSphereHalf
-        .setToolTipText("At the first iteration, perform an optimized "
-            + "search with Theta and Psi both varying from -90 to 90 degrees. "
-            + "Optimization prevents over-sampling near the poles. Phi Max "
-            + "should be set to 180 degrees.");
+    rbSampleSphereFull.setToolTipText("At the first iteration, perform an optimized "
+        + "search with Theta varying from -90 to 90 degrees and Psi, "
+        + "varying from -180 to 180 degrees. Optimization prevents "
+        + "over-sampling near the poles. Phi Max should be set to " + "180 degrees.");
+    rbSampleSphereHalf.setToolTipText("At the first iteration, perform an optimized "
+        + "search with Theta and Psi both varying from -90 to 90 degrees. "
+        + "Optimization prevents over-sampling near the poles. Phi Max "
+        + "should be set to 180 degrees.");
 
     ltfSampleInterval.setToolTipText("The interval, in degrees, at which theta will be "
         + "sampled when using spherical sampling. Psi will also be sampled "

@@ -122,11 +122,11 @@ final class ReprojectModelPanel implements TiltDisplay, Run3dmodButtonContainer 
   /**
    * Don't need parallel processing for reprojection of a model.
    */
-  public boolean getParameters(final SplittiltParam param) {
+  public boolean getParameters(final SplittiltParam param,final boolean doValidation) {
     return false;
   }
 
-  public boolean getParameters(TiltParam param) {
+  public boolean getParameters(TiltParam param,final boolean doValidation) {
     return true;
   }
 

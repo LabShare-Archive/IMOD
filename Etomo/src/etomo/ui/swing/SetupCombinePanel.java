@@ -33,6 +33,8 @@ import etomo.type.ProcessingMethod;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -489,19 +491,23 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   private JPanel pnlPatchRegion = new JPanel();
   private final EtomoPanel pnlVolcombineControls = new EtomoPanel();
   private final JPanel pnlVolcombineControlsBody = new JPanel();
-  private LabeledTextField ltfXMin = new LabeledTextField("X axis min: ");
-  private LabeledTextField ltfXMax = new LabeledTextField("X axis max: ");
-  private LabeledTextField ltfYMin = new LabeledTextField("Y axis min: ");
-  private LabeledTextField ltfYMax = new LabeledTextField("Y axis max: ");
-  private LabeledTextField ltfZMin = new LabeledTextField(
+  private LabeledTextField ltfXMin = new LabeledTextField(FieldType.INTEGER,
+      "X axis min: ");
+  private LabeledTextField ltfXMax = new LabeledTextField(FieldType.INTEGER,
+      "X axis max: ");
+  private LabeledTextField ltfYMin = new LabeledTextField(FieldType.INTEGER,
+      "Y axis min: ");
+  private LabeledTextField ltfYMax = new LabeledTextField(FieldType.INTEGER,
+      "Y axis max: ");
+  private LabeledTextField ltfZMin = new LabeledTextField(FieldType.INTEGER,
       ConstCombineParams.PATCH_Z_MIN_LABEL + ": ");
-  private LabeledTextField ltfZMax = new LabeledTextField(
+  private LabeledTextField ltfZMax = new LabeledTextField(FieldType.INTEGER,
       ConstCombineParams.PATCH_Z_MAX_LABEL + ": ");
   private int maxZMax = 0;
 
   private EtomoPanel pnlTempDirectory = new EtomoPanel();
   private JPanel pnlTempDirectoryBody = new JPanel();
-  private LabeledTextField ltfTempDirectory = new LabeledTextField(
+  private LabeledTextField ltfTempDirectory = new LabeledTextField(FieldType.STRING,
       "Temporary directory: ");
   private CheckBox cbManualCleanup = new CheckBox("Manual cleanup");
 
@@ -985,53 +991,61 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
    * @param combineParams
    * @throws NumberFormatException
    */
-  public void getParameters(CombineParams combineParams) throws NumberFormatException {
-    String badParameter = "unknown";
+  public boolean getParameters(CombineParams combineParams, final boolean doValidation)
+      throws NumberFormatException {
     try {
-      combineParams.setMatchMode(rbBtoA.isSelected());
-      pnlSolvematch.getParameters(combineParams);
+      String badParameter = "unknown";
+      try {
+        combineParams.setMatchMode(rbBtoA.isSelected());
+        if (!pnlSolvematch.getParameters(combineParams, doValidation)) {
+          return false;
+        }
 
-      if (rbSmallPatch.isSelected()) {
-        combineParams.setPatchSize(CombinePatchSize.SMALL);
-      }
-      if (rbMediumPatch.isSelected()) {
-        combineParams.setPatchSize(CombinePatchSize.MEDIUM);
-      }
-      if (rbLargePatch.isSelected()) {
-        combineParams.setPatchSize(CombinePatchSize.LARGE);
-      }
+        if (rbSmallPatch.isSelected()) {
+          combineParams.setPatchSize(CombinePatchSize.SMALL);
+        }
+        if (rbMediumPatch.isSelected()) {
+          combineParams.setPatchSize(CombinePatchSize.MEDIUM);
+        }
+        if (rbLargePatch.isSelected()) {
+          combineParams.setPatchSize(CombinePatchSize.LARGE);
+        }
 
-      if (cbPatchRegionModel.isSelected()) {
-        combineParams.setDefaultPatchRegionModel();
+        if (cbPatchRegionModel.isSelected()) {
+          combineParams.setDefaultPatchRegionModel();
+        }
+        else {
+          combineParams.setPatchRegionModel("");
+        }
+
+        badParameter = ltfXMin.getLabel();
+        combineParams.setPatchXMin(Integer.parseInt(ltfXMin.getText(doValidation)));
+        badParameter = ltfXMax.getLabel();
+        combineParams.setPatchXMax(Integer.parseInt(ltfXMax.getText(doValidation)));
+        badParameter = ltfYMin.getLabel();
+        combineParams.setPatchYMin(Integer.parseInt(ltfYMin.getText(doValidation)));
+        badParameter = ltfYMax.getLabel();
+        combineParams.setPatchYMax(Integer.parseInt(ltfYMax.getText(doValidation)));
+        badParameter = ltfZMin.getLabel();
+        combineParams.setPatchZMin(ltfZMin.getText(doValidation));
+        badParameter = ltfZMax.getLabel();
+        combineParams.setPatchZMax(ltfZMax.getText(doValidation));
+        combineParams.setMaxPatchZMax(maxZMax);
+        badParameter = "unknown";
+
+        combineParams.setTempDirectory(ltfTempDirectory.getText(doValidation));
+
+        combineParams.setManualCleanup(cbManualCleanup.isSelected());
       }
-      else {
-        combineParams.setPatchRegionModel("");
+      catch (NumberFormatException except) {
+        String message = badParameter + " " + except.getMessage();
+        throw new NumberFormatException(message);
       }
-
-      badParameter = ltfXMin.getLabel();
-      combineParams.setPatchXMin(Integer.parseInt(ltfXMin.getText()));
-      badParameter = ltfXMax.getLabel();
-      combineParams.setPatchXMax(Integer.parseInt(ltfXMax.getText()));
-      badParameter = ltfYMin.getLabel();
-      combineParams.setPatchYMin(Integer.parseInt(ltfYMin.getText()));
-      badParameter = ltfYMax.getLabel();
-      combineParams.setPatchYMax(Integer.parseInt(ltfYMax.getText()));
-      badParameter = ltfZMin.getLabel();
-      combineParams.setPatchZMin(ltfZMin.getText());
-      badParameter = ltfZMax.getLabel();
-      combineParams.setPatchZMax(ltfZMax.getText());
-      combineParams.setMaxPatchZMax(maxZMax);
-      badParameter = "unknown";
-
-      combineParams.setTempDirectory(ltfTempDirectory.getText());
-
-      combineParams.setManualCleanup(cbManualCleanup.isSelected());
+      return true;
     }
-    catch (NumberFormatException except) {
-      String message = badParameter + " " + except.getMessage();
-      throw new NumberFormatException(message);
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-
   }
 
   public void setUsePatchRegionModel(boolean usePatchRegionModel) {
@@ -1130,8 +1144,18 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pnlSolvematch.setUseList(useList);
   }
 
+  public String getUseList(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return pnlSolvematch.getUseList(doValidation);
+  }
+
   public String getUseList() {
     return pnlSolvematch.getUseList();
+  }
+
+  public String getFiducialMatchListA(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return pnlSolvematch.getFiducialMatchListA(doValidation);
   }
 
   public String getFiducialMatchListA() {
@@ -1140,6 +1164,11 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
 
   public void setFiducialMatchListB(String fiducialMatchListB) {
     pnlSolvematch.setFiducialMatchListB(fiducialMatchListB);
+  }
+
+  public String getFiducialMatchListB(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return pnlSolvematch.getFiducialMatchListB(doValidation);
   }
 
   public String getFiducialMatchListB() {

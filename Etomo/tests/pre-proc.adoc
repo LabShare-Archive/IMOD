@@ -72,6 +72,8 @@ run.function.use-fixed-stack=
 	assert.exists.file=%{dataset}%{axis}.st
 	assert.exists.file=clipstats_%{dataset}%{axis}.st.log
 	assert.exists.file=clipstats_%{dataset}%{axis}_fixed.st.log
+	#test field validation suppression
+	tf.all-section-replacement-list=abc
 [[]]
 bn.done=
 [[ifnot = needs-pre-proc]]
@@ -146,6 +148,11 @@ assert.disabled.tf.annulus-width=
 assert.disabled.tf.xy-scan-size=
 assert.disabled.tf.scan-criterion=
 cb.automatic-x-ray-replacement=on
+#test field validation
+tf.peak-criterion=10.abc
+bn.find-x-rays=
+wait.popup.field-validation-failed=OK
+tf.peak-criterion=10.
 # Test with manual model
 cb.manual-replacement=on
 # todo remove .erase

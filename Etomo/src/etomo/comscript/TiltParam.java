@@ -315,28 +315,28 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   private int fullImageY = Integer.MIN_VALUE;
   private final StringParameter localAlignFile = new StringParameter("LOCALFILE");
   // TODO localScale not used and doesn't go into the .com file - what is it for?
-  private float localScale = Float.NaN;
-  private final ScriptParameter logOffset = new ScriptParameter(EtomoNumber.Type.FLOAT,
+  private double localScale = Double.NaN;
+  private final ScriptParameter logOffset = new ScriptParameter(EtomoNumber.Type.DOUBLE,
       LOG_KEY);
   private final ScriptParameter mode = new ScriptParameter("MODE");
   // tempOffset is not kept up to date
   private final StringParameter tempOffset = new StringParameter("OFFSET");
   private final EtomoNumber tiltAngleOffset = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-  private float tiltAxisOffset = Float.NaN;
+  private double tiltAxisOffset = Double.NaN;
   private final EtomoBoolean2 parallel = new EtomoBoolean2("PARALLEL");
   private final EtomoBoolean2 perpendicular = new EtomoBoolean2("PERPENDICULAR");
   private final StringParameter tempRadial = new StringParameter("RADIAL");
-  private float radialBandwidth = Float.NaN;
-  private float radialFalloff = Float.NaN;
+  private double radialBandwidth = Double.NaN;
+  private double radialFalloff = Double.NaN;
   private final StringParameter tempScale = new StringParameter("SCALE");
-  private float scaleFLevel = Float.NaN;
-  private float scaleCoeff = Float.NaN;
+  private double scaleFLevel = Double.NaN;
+  private double scaleCoeff = Double.NaN;
   private final StringParameter tempShift = new StringParameter("SHIFT");
-  private float xShift = Float.NaN;
+  private double xShift = Double.NaN;
   private final EtomoNumber zShift = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private final StringParameter tempSlice = new StringParameter("SLICE");
-  private long idxSliceStart = Long.MIN_VALUE;
-  private long idxSliceStop = Long.MIN_VALUE;
+  private int idxSliceStart = Integer.MIN_VALUE;
+  private int idxSliceStop = Integer.MIN_VALUE;
   private final StringParameter tempSubsetStart = new StringParameter(SUBSETSTART_KEY);
   private int idxXSubsetStart = Integer.MIN_VALUE;
   private int idxYSubsetStart = Integer.MIN_VALUE;
@@ -354,8 +354,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
 
   private final StringList excludeList2 = new StringList(0);
   private final StringList excludeList = new StringList(0);
-  private final ScriptParameter imageBinned = new ScriptParameter(EtomoNumber.Type.LONG,
-      "IMAGEBINNED");
+  private final ScriptParameter imageBinned = new ScriptParameter("IMAGEBINNED");
 
   private final EtomoBoolean2 fiducialess = new EtomoBoolean2("Fiducialess");
   /**
@@ -548,12 +547,12 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     return perpendicular.is();
   }
 
-  public float getRadialBandwidth() {
+  public double getRadialBandwidth() {
     return radialBandwidth;
   }
 
   public boolean hasRadialWeightingFunction() {
-    if (Float.isNaN(radialBandwidth))
+    if (Double.isNaN(radialBandwidth))
       return false;
     return true;
   }
@@ -597,7 +596,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   /**
    * @return
    */
-  public float getRadialFalloff() {
+  public double getRadialFalloff() {
     return radialFalloff;
   }
 
@@ -615,12 +614,12 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   /**
    * @return
    */
-  public float getXShift() {
+  public double getXShift() {
     return xShift;
   }
 
   public boolean hasXShift() {
-    if (Float.isNaN(xShift))
+    if (Double.isNaN(xShift))
       return false;
     return true;
   }
@@ -643,19 +642,19 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   /**
    * @return
    */
-  public long getIdxSliceStart() {
+  public int getIdxSliceStart() {
     return idxSliceStart;
   }
 
   /**
    * @return
    */
-  public long getIdxSliceStop() {
+  public int getIdxSliceStop() {
     return idxSliceStop;
   }
 
   public boolean hasSlice() {
-    if (idxSliceStop == Long.MIN_VALUE)
+    if (idxSliceStop == Integer.MIN_VALUE)
       return false;
     return true;
   }
@@ -674,12 +673,12 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   /**
    * @return
    */
-  public float getTiltAxisOffset() {
+  public double getTiltAxisOffset() {
     return tiltAxisOffset;
   }
 
   public boolean hasTiltAxisOffset() {
-    if (Float.isNaN(tiltAxisOffset))
+    if (Double.isNaN(tiltAxisOffset))
       return false;
     return true;
   }
@@ -687,19 +686,19 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   /**
    * @return
    */
-  public float getScaleCoeff() {
+  public double getScaleCoeff() {
     return scaleCoeff;
   }
 
   /**
    * @return
    */
-  public float getScaleFLevel() {
+  public double getScaleFLevel() {
     return scaleFLevel;
   }
 
   public boolean hasScale() {
-    if (Float.isNaN(scaleFLevel))
+    if (Double.isNaN(scaleFLevel))
       return false;
     return true;
   }
@@ -733,10 +732,6 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     if (field == Field.ADJUST_ORIGIN) {
       return adjustOrigin.is();
     }
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public float getFloatValue(FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -812,7 +807,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         String[] params = tempOffset.toString().split("\\s+", 2);
         tiltAngleOffset.set(params[0]);
         if (params.length > 1) {
-          tiltAxisOffset = Float.parseFloat(params[1]);
+          tiltAxisOffset = Double.parseDouble(params[1]);
         }
       }
       parallel.parse(scriptCommand);
@@ -820,19 +815,19 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       tempRadial.parse(scriptCommand);
       if (!tempRadial.isEmpty()) {
         String[] params = tempRadial.toString().split("\\s+", 2);
-        radialBandwidth = Float.parseFloat(params[0]);
-        radialFalloff = Float.parseFloat(params[1]);
+        radialBandwidth = Double.parseDouble(params[0]);
+        radialFalloff = Double.parseDouble(params[1]);
       }
       tempScale.parse(scriptCommand);
       if (!tempScale.isEmpty()) {
         String[] params = tempScale.toString().split("\\s+", 2);
-        scaleFLevel = Float.parseFloat(params[0]);
-        scaleCoeff = Float.parseFloat(params[1]);
+        scaleFLevel = Double.parseDouble(params[0]);
+        scaleCoeff = Double.parseDouble(params[1]);
       }
       tempShift.parse(scriptCommand);
       if (!tempShift.isEmpty()) {
         String[] params = tempShift.toString().split("\\s+", 2);
-        xShift = Float.parseFloat(params[0]);
+        xShift = Double.parseDouble(params[0]);
         if (params.length > 1) {
           zShift.set(params[1]);
         }
@@ -840,8 +835,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       tempSlice.parse(scriptCommand);
       if (!tempSlice.isEmpty()) {
         String[] params = tempSlice.toString().split("\\s+", 3);
-        idxSliceStart = Long.parseLong(params[0]);
-        idxSliceStop = Long.parseLong(params[1]);
+        idxSliceStart = Integer.parseInt(params[0]);
+        idxSliceStop = Integer.parseInt(params[1]);
         // increment is being ignored
       }
       tempSubsetStart.parse(scriptCommand);
@@ -925,7 +920,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         String[] params = tokens[1].split("\\s+", 2);
         tiltAngleOffset.set(params[0]);
         if (params.length > 1) {
-          tiltAxisOffset = Float.parseFloat(params[1]);
+          tiltAxisOffset = Double.parseDouble(params[1]);
         }
       }
       if (tokens[0].equalsIgnoreCase("PARALLEL")) {
@@ -938,25 +933,25 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       }
       if (tokens[0].equalsIgnoreCase("RADIAL")) {
         String[] params = tokens[1].split("\\s+", 2);
-        radialBandwidth = Float.parseFloat(params[0]);
-        radialFalloff = Float.parseFloat(params[1]);
+        radialBandwidth = Double.parseDouble(params[0]);
+        radialFalloff = Double.parseDouble(params[1]);
       }
       if (tokens[0].equalsIgnoreCase("SCALE")) {
         String[] params = tokens[1].split("\\s+", 2);
-        scaleFLevel = Float.parseFloat(params[0]);
-        scaleCoeff = Float.parseFloat(params[1]);
+        scaleFLevel = Double.parseDouble(params[0]);
+        scaleCoeff = Double.parseDouble(params[1]);
       }
       if (tokens[0].equalsIgnoreCase("SHIFT")) {
         String[] params = tokens[1].split("\\s+", 2);
-        xShift = Float.parseFloat(params[0]);
+        xShift = Double.parseDouble(params[0]);
         if (params.length > 1) {
           zShift.set(params[1]);
         }
       }
       if (tokens[0].equalsIgnoreCase("SLICE")) {
         String[] params = tokens[1].split("\\s+", 3);
-        idxSliceStart = Long.parseLong(params[0]);
-        idxSliceStop = Long.parseLong(params[1]);
+        idxSliceStart = Integer.parseInt(params[0]);
+        idxSliceStop = Integer.parseInt(params[1]);
         // Increment is being ignored
       }
       if (tokens[0].equalsIgnoreCase("SUBSETSTART")) {
@@ -1024,7 +1019,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     mode.updateComScript(scriptCommand);
     if (!tiltAngleOffset.isNull()) {
       String arg = tiltAngleOffset.toString();
-      if (!Float.isNaN(tiltAxisOffset)) {
+      if (!Double.isNaN(tiltAxisOffset)) {
         arg += " " + String.valueOf(tiltAxisOffset);
       }
       tempOffset.set(arg);
@@ -1035,7 +1030,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     tempOffset.updateComScript(scriptCommand);
     parallel.updateComScript(scriptCommand);
     perpendicular.updateComScript(scriptCommand);
-    if (!Float.isNaN(radialBandwidth)) {
+    if (!Double.isNaN(radialBandwidth)) {
       tempRadial.set(String.valueOf(radialBandwidth) + " "
           + String.valueOf(radialFalloff));
     }
@@ -1043,7 +1038,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       tempRadial.reset();
     }
     tempRadial.updateComScript(scriptCommand);
-    if (!Float.isNaN(scaleFLevel)) {
+    if (!Double.isNaN(scaleFLevel)) {
       tempScale.set(String.valueOf(scaleFLevel) + " " + String.valueOf(scaleCoeff));
     }
     else {
@@ -1051,9 +1046,9 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     }
     tempScale.updateComScript(scriptCommand);
     StringBuffer shiftBuffer = new StringBuffer();
-    if (!Float.isNaN(xShift) || !zShift.isNull()) {
+    if (!Double.isNaN(xShift) || !zShift.isNull()) {
       StringBuffer arg = new StringBuffer();
-      if (Float.isNaN(xShift)) {
+      if (Double.isNaN(xShift)) {
         arg.append("0 ");
       }
       else {
@@ -1068,7 +1063,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       tempShift.reset();
     }
     tempShift.updateComScript(scriptCommand);
-    if (idxSliceStart > Long.MIN_VALUE) {
+    if (idxSliceStart > Integer.MIN_VALUE) {
       String arg = String.valueOf(idxSliceStart) + " " + String.valueOf(idxSliceStop);
       tempSlice.set(arg);
     }
@@ -1127,17 +1122,13 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     return this.imageBinned.set(imageBinned);
   }
 
-  public void setImageBinned(final long input) {
-    imageBinned.set(input);
-  }
-
   /**
    * If the current binning can be retrieved, set imageBinned to current
    * binning.  If not, and imageBinned is null then set imageBinned to 1.
    * @return
    */
   public ConstEtomoNumber setImageBinned() {
-    EtomoNumber currentBinning = new EtomoNumber(EtomoNumber.Type.LONG);
+    EtomoNumber currentBinning = new EtomoNumber();
     currentBinning.set(UIExpertUtilities.INSTANCE.getStackBinningFromFileName(manager,
         axisID, inputFile.toString(), true));
     if (!currentBinning.isNull()) {
@@ -1207,10 +1198,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         }
         // Multiply header output by binning to work with the goodframe output,
         // which is unbinned.
-        idxXSubsetStart = (int) ((goodframeX - header.getNColumns()
-            * setImageBinned().getLong()) / 2);
-        idxYSubsetStart = (int) ((goodframeY - header.getNRows()
-            * setImageBinned().getLong()) / 2);
+        idxXSubsetStart = ((goodframeX - header.getNColumns() * setImageBinned().getInt()) / 2);
+        idxYSubsetStart = ((goodframeY - header.getNRows() * setImageBinned().getInt()) / 2);
       }
       catch (IOException e) {
         // ok if tilt is being updated before .ali exists
@@ -1252,10 +1241,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         stackX = stackHeader.getNColumns();
         stackY = stackHeader.getNRows();
       }
-      idxXSubsetStart = (int) ((stackX - aliHeader.getNColumns()
-          * setImageBinned().getLong()) / 2);
-      idxYSubsetStart = (int) ((stackY - aliHeader.getNRows()
-          * setImageBinned().getLong()) / 2);
+      idxXSubsetStart = ((stackX - aliHeader.getNColumns() * setImageBinned().getInt()) / 2);
+      idxYSubsetStart = ((stackY - aliHeader.getNRows() * setImageBinned().getInt()) / 2);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -1338,14 +1325,14 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   /**
    * @param i
    */
-  public void setIdxSliceStart(final long i) {
+  public void setIdxSliceStart(final int i) {
     idxSliceStart = i;
   }
 
   /**
    * @param i
    */
-  public void setIdxSliceStop(final long i) {
+  public void setIdxSliceStop(final int i) {
     idxSliceStop = i;
   }
 
@@ -1358,8 +1345,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   }
 
   public void resetIdxSlice() {
-    idxSliceStart = Long.MIN_VALUE;
-    idxSliceStop = Long.MIN_VALUE;
+    idxSliceStart = Integer.MIN_VALUE;
+    idxSliceStop = Integer.MIN_VALUE;
   }
 
   public void setInputFile(final String file) {
@@ -1378,11 +1365,11 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     localAlignFile.set(filename);
   }
 
-  public void setLocalScale(final float input) {
+  public void setLocalScale(final double input) {
     localScale = input;
   }
 
-  public void setLogOffset(final float input) {
+  public void setLogOffset(final double input) {
     logOffset.set(input);
   }
 
@@ -1394,7 +1381,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     localAlignFile.set("");
   }
 
-  public void setLogShift(final float shift) {
+  public void setLogShift(final double shift) {
     logOffset.set(shift);
   }
 
@@ -1444,43 +1431,43 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     perpendicular.reset();
   }
 
-  public void setRadialBandwidth(final float value) {
+  public void setRadialBandwidth(final double value) {
     radialBandwidth = value;
   }
 
   /**
    * @param string
    */
-  public void setRadialFalloff(final float value) {
+  public void setRadialFalloff(final double value) {
     radialFalloff = value;
   }
 
   public void resetRadialFilter() {
-    radialBandwidth = Float.NaN;
-    radialFalloff = Float.NaN;
+    radialBandwidth = Double.NaN;
+    radialFalloff = Double.NaN;
   }
 
-  public void setScale(final float fLevel, final float coef) {
+  public void setScale(final double fLevel, final double coef) {
     scaleCoeff = coef;
     scaleFLevel = fLevel;
   }
 
   public void resetScale() {
-    scaleCoeff = Float.NaN;
-    scaleFLevel = Float.NaN;
+    scaleCoeff = Double.NaN;
+    scaleFLevel = Double.NaN;
   }
 
   /**
    * @param scaleCoeff
    */
-  public void setScaleCoeff(final float scaleCoeff) {
+  public void setScaleCoeff(final double scaleCoeff) {
     this.scaleCoeff = scaleCoeff;
   }
 
   /**
    * @param scaleFLevel
    */
-  public void setScaleFLevel(final float scaleFLevel) {
+  public void setScaleFLevel(final double scaleFLevel) {
     this.scaleFLevel = scaleFLevel;
   }
 
@@ -1507,12 +1494,12 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   /**
    * @param d
    */
-  public void setTiltAxisOffset(final float d) {
+  public void setTiltAxisOffset(final double d) {
     tiltAxisOffset = d;
   }
 
   public void resetTiltAxisOffset() {
-    tiltAxisOffset = Float.NaN;
+    tiltAxisOffset = Double.NaN;
   }
 
   public void setTiltFile(final String filename) {
@@ -1545,7 +1532,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   /**
    * @param d
    */
-  public void setXShift(final float d) {
+  public void setXShift(final double d) {
     xShift = d;
   }
 
@@ -1564,7 +1551,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   }
 
   public void resetXShift() {
-    xShift = Float.NaN;
+    xShift = Double.NaN;
   }
 
   /**
@@ -1617,7 +1604,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    * @param binning
    * @return true if changes where made
    */
-  public boolean upgradeOldVersion(final int correctionBinning, final long currentBinning) {
+  public boolean upgradeOldVersion(final int correctionBinning, final int currentBinning) {
     if (!isOldVersion()) {
       return false;
     }
@@ -1635,16 +1622,16 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         width.multiply(correctionBinning);
       }
       if (!zShift.isNull()) {
-        float fZShift = zShift.getFloat();
+        double fZShift = zShift.getDouble();
         if (fZShift != 0) {
           fZShift *= correctionBinning;
           zShift.set(fZShift);
         }
       }
-      if (!Float.isNaN(xShift) && xShift != 0) {
+      if (!Double.isNaN(xShift) && xShift != 0) {
         xShift *= correctionBinning;
       }
-      if (idxSliceStart != Long.MIN_VALUE && idxSliceStart != 0) {
+      if (idxSliceStart != Integer.MIN_VALUE && idxSliceStart != 0) {
         idxSliceStart *= correctionBinning;
       }
       if (idxSliceStop != Integer.MIN_VALUE && idxSliceStop != 0) {

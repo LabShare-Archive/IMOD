@@ -324,7 +324,7 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     }
   }
 
-  public boolean getParameters(NewstParam prenewstParams) {
+  public boolean getParameters(NewstParam prenewstParams,final boolean doValidation) {
     int binning = ((Integer) spinBinning.getValue()).intValue();
 
     // Only explcitly write out the binning if its value is something other than
@@ -357,7 +357,7 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     return ProcessName.PRENEWST;
   }
 
-  public boolean getParameters(BlendmontParam blendmontParam) {
+  public boolean getParameters(BlendmontParam blendmontParam,final boolean doValidation) {
     blendmontParam.setBinByFactor(((Integer) spinBinning.getValue()).intValue());
     return true;
   }

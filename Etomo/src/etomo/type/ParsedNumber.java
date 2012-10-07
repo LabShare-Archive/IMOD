@@ -253,7 +253,7 @@ public final class ParsedNumber extends ParsedElement {
   }
 
   /**
-   * return the raw number.  If the type is floating point or double, return it
+   * return the raw number.  If the type is double, return it
    * as an int or long if there is no decimal value
    */
   public String getParsableString() {
@@ -273,16 +273,10 @@ public final class ParsedNumber extends ParsedElement {
     }
     Number number = rawNumber.getDefaultedNumber();
     // Remove unnecessary decimal points.
-    if (etomoNumberType == EtomoNumber.Type.FLOAT) {
-      float floatNumber = number.floatValue();
-      if (Math.round(floatNumber) == floatNumber) {
-        return new Integer(number.intValue()).toString();
-      }
-    }
-    else if (etomoNumberType == EtomoNumber.Type.DOUBLE) {
+    if (etomoNumberType == EtomoNumber.Type.DOUBLE) {
       double doubleNumber = number.doubleValue();
       if (Math.round(doubleNumber) == doubleNumber) {
-        return new Long(number.longValue()).toString();
+        return new Integer(number.intValue()).toString();
       }
     }
     return number.toString();
@@ -330,7 +324,7 @@ public final class ParsedNumber extends ParsedElement {
     return getFailedMessage();
   }
 
-  void setRawString(float number) {
+  void setRawString(double number) {
     rawNumber.set(number);
   }
 
@@ -338,7 +332,7 @@ public final class ParsedNumber extends ParsedElement {
     return rawNumber.equals(input.rawNumber);
   }
 
-  void setRawString(int index, float number) {
+  void setRawString(int index, double number) {
     if (index != 0) {
       return;
     }

@@ -42,7 +42,7 @@ import etomo.util.InvalidParameterException;
 public interface NewstackDisplay {
   public static final String rcsid = "$Id$";
 
-  public boolean getParameters(NewstParam newstParam) throws FortranInputSyntaxException,
+  public boolean getParameters(NewstParam newstParam,boolean doValidation) throws FortranInputSyntaxException,
       InvalidParameterException, IOException;
 
   public void setParameters(ConstNewstParam param);

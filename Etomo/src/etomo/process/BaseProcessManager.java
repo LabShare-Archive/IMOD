@@ -1264,12 +1264,12 @@ public abstract class BaseProcessManager {
     if (processID == null || processID.equals("")) {
       return;
     }
-    long pid = Long.parseLong(processID);
+    int pid = Integer.parseInt(processID);
     if (pid == 0 || pid == 1) {
       return;
     }
-    long groupPid = pid * -1;
-    String groupProcessID = Long.toString(groupPid);
+    int groupPid = pid * -1;
+    String groupProcessID = Integer.toString(groupPid);
     kill("-19", groupProcessID, axisID);
     kill("-9", groupProcessID, axisID);
   }

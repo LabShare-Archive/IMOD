@@ -26,7 +26,7 @@ public final class GpuTiltTestParam {
   public static final String rcsid = "$Id:$";
   
   public static final String OUTPUT_KEYWORD = "differed";
-  private final EtomoNumber nMinutes = new EtomoNumber(EtomoNumber.Type.FLOAT);
+  private final EtomoNumber nMinutes = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private final EtomoNumber gpuNumber = new EtomoNumber();
 
   public void setNMinutes(final String input) {

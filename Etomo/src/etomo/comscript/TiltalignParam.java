@@ -478,7 +478,7 @@ public final class TiltalignParam extends ConstTiltalignParam implements Command
     this.imageFile = imageFile;
   }
 
-  public void setImagesAreBinned(final long imagesAreBinned) {
+  public void setImagesAreBinned(final int imagesAreBinned) {
     this.imagesAreBinned.set(imagesAreBinned);
   }
 
@@ -920,7 +920,7 @@ public final class TiltalignParam extends ConstTiltalignParam implements Command
    * @param binning
    * @return true if changes where made
    */
-  public boolean upgradeOldVersion(long correctionBinning, long currentBinning) {
+  public boolean upgradeOldVersion(int correctionBinning, int currentBinning) {
     if (!isOldVersion()) {
       return false;
     }

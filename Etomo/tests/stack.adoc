@@ -19,7 +19,21 @@ bn.create-full-aligned-stack=
 if.not.var.montage.wait.process.creating-aligned-stack = done
 if.var.montage.wait.process.full-alignment = done
 if.var.test-gui.run.function.test-files=
+[[if = test-gui]]
+  #test field validation suppression with a field that is normally blank
+  tb.create.2=
+  rb.use-findbeads3d=
+  mb.find-beads-3d=+
+  rb.set-threshold-for-storing=
+  tf.set-threshold-for-storing=abc
+  tb.create.3=
+  mb.2d-filtering=A
+  tf.starting-and-ending-views=abc
+[[]]
 bn.done =
+[[if = test-gui]]
+  wait.popup.mtf-filter-parameter-syntax-error=OK
+[[]]
 if.var.fidless.return=
 
 
@@ -135,6 +149,11 @@ run.function.ctf-correction=
 	assert.tf.amplitude-contrast=0.07
 	assert.cb.invert-sign-of-tilt-angles=off
 	mb.ctf-correction=B
+	#test field validation
+	tf.amplitude-contrast=0.07abc
+	bn.run-ctf-plotter=
+	wait.popup.field-validation-failed=OK
+	tf.amplitude-contrast=0.07
 [[]]
 run.function.ctf-plotter=
 run.function.ctf-phase-flip=
@@ -174,6 +193,8 @@ run.function.ctf-phase-flip=
 	assert.tf.interpolation-width=20
 	assert.bn.correct-ctf=off
 	assert.bn.use-ctf-correction=off
+  mb.ctf-correction=A
+  assert.tf.defocus-tolerance=200
 	# check enabled/disabled
 	assert.enabled.cb.use-expected-defocus-instead-of-ctfplotter-output=
 	assert.enabled.cb.parallel-processing=
@@ -181,6 +202,13 @@ run.function.ctf-phase-flip=
 	assert.enabled.bn.correct-ctf=
 	assert.enabled.bn.view-ctf-correction=
 	assert.enabled.bn.use-ctf-correction=
+  assert.enabled.tf.defocus-tolerance=
+	#test field validation
+	tf.defocus-tolerance=200abc
+	bn.correct-ctf=
+	wait.popup.field-validation-failed=OK
+	tf.defocus-tolerance=200
+	mb.ctf-correction=B
 [[]]
 # run with parallel processing
 cb.parallel-processing=on
@@ -475,6 +503,14 @@ mb.find-beads-3d=+
 	rb.set-threshold-for-storing=
 	assert.enabled.tf.set-threshold-for-storing=
 	rb.store-some-points-below-threshold=
+	#test field validation
+	rb.set-threshold-for-storing=
+	tf.set-threshold-for-storing=abc
+	bn.run-findbeads3d=
+	wait.popup.field-validation-failed=OK
+	assert.disabled.bn.kill-process=
+	tf.set-threshold-for-storing=
+	rb.store-some-points-below-threshold=
 [[]]
 # run
 bn.run-findbeads3d=
@@ -528,6 +564,11 @@ mb.find-beads-3d=-
 	assert.enabled.bn.erase-beads=
 	assert.enabled.bn.view-erased-stack=
 	assert.enabled.bn.use-erased-stack=
+	#test field validation
+	tf.diameter-to-erase=%{rounded-unbinned-bead-diameter}abc
+	bn.erase-beads=
+  wait.popup.field-validation-failed=OK
+	tf.diameter-to-erase=%{rounded-unbinned-bead-diameter}
 [[]]
 # run
 bn.erase-beads=
@@ -564,6 +605,15 @@ assert.bn.use-erased-stack=on
 [function = 2d-filter]
 tb.create.3=
 [[if = test-gui]]
+  #test field validation
+  mb.2d-filtering=A
+  tf.starting-and-ending-views=abc
+  assert.disabled.bn.kill-process=
+  bn.filter =
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tf.starting-and-ending-views=
+  mb.2d-filtering=B
 	# check uninitialized errors
 	bn.use-filtered-stack=
 	wait.popup.filtered-full-aligned-stack-missing=OK
@@ -634,4 +684,9 @@ assert.not-exists.file = %{dataset}%{axis}_filt.ali
 	assert.enabled.tf.maximum-inverse=
 	assert.enabled.tf.rolloff=
 	mb.2d-filtering=B
+	#test field validation
+	tf.rolloff=0.12,0.05abc
+	bn.filter=
+	wait.popup.field-validation-failed=OK
+	tf.rolloff=0.12,0.05
 [[]]

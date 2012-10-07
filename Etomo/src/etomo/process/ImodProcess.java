@@ -1296,7 +1296,7 @@ public class ImodProcess {
     }
   }
 
-  public void setBeadfixerDiameter(long beadfixerDiameter) {
+  public void setBeadfixerDiameter(int beadfixerDiameter) {
     beadfixerDiameterSet = true;
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER,
         String.valueOf(beadfixerDiameter));
@@ -1622,6 +1622,13 @@ public class ImodProcess {
   private void sendCommands(String[] args, Vector imodReturnValues, boolean readResponse)
       throws IOException {
     MessageSender messageSender = new MessageSender(args, imodReturnValues, readResponse);
+    /*
+    //patch for quicklistener shared queue problem
+    try {
+      Thread.sleep(200);
+    }
+    catch (InterruptedException e) {
+    }*/
     if (imodReturnValues == null) {
       new Thread(messageSender).start();
     }

@@ -26,5 +26,5 @@ import etomo.comscript.WarpVolParam;
 public interface WarpVolDisplay {
   public static final String rcsid = "$Id$";
 
-  public boolean getParameters(WarpVolParam param);
+  public boolean getParameters(WarpVolParam param, boolean doValidation);
 }

@@ -186,7 +186,10 @@ public final class ToolsManager extends BaseManager {
   }
 
   public void gpuTiltTest(final AxisID axisID) {
-    GpuTiltTestParam param = updateGpuTiltTest(axisID);
+    GpuTiltTestParam param = updateGpuTiltTest(axisID, true);
+    if (param==null) {
+      return;
+    }
     String threadName;
     try {
       threadName = processMgr.gpuTiltTest(param, axisID);
@@ -214,7 +217,7 @@ public final class ToolsManager extends BaseManager {
       processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
-    WarpVolParam param = updateWarpVolParam(display, axisID);
+    WarpVolParam param = updateWarpVolParam(display, axisID, false);
     if (param == null) {
       return;
     }
@@ -236,26 +239,29 @@ public final class ToolsManager extends BaseManager {
     setThreadName(threadName, axisID);
   }
 
-  private GpuTiltTestParam updateGpuTiltTest(final AxisID axisID) {
+  private GpuTiltTestParam updateGpuTiltTest(final AxisID axisID,
+      final boolean doValidation) {
     GpuTiltTestParam param = new GpuTiltTestParam();
     if (toolsDialog == null) {
       uiHarness.openMessageDialog(this, "Unable to get information from the dialog.",
           "Etomo Error", axisID);
       return null;
     }
-    toolsDialog.getParameters(param);
+    if (!toolsDialog.getParameters(param, doValidation)) {
+      return null;
+    }
     return param;
   }
 
   private WarpVolParam updateWarpVolParam(final WarpVolDisplay display,
-      final AxisID axisID) {
+      final AxisID axisID, final boolean doValidation) {
     WarpVolParam param = comScriptMgr.getWarpVolParamFromFlatten(axisID);
     if (display == null) {
       uiHarness.openMessageDialog(this, "Unable to get information from the display.",
           "Etomo Error", axisID);
       return null;
     }
-    if (!display.getParameters(param)) {
+    if (!display.getParameters(param, doValidation)) {
       return null;
     }
     comScriptMgr.saveFlatten(param, axisID);
@@ -359,7 +365,7 @@ public final class ToolsManager extends BaseManager {
       processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
-    FlattenWarpParam param = updateFlattenWarpParam(display, axisID);
+    FlattenWarpParam param = updateFlattenWarpParam(display, axisID, true);
     if (param == null) {
       return;
     }
@@ -384,14 +390,14 @@ public final class ToolsManager extends BaseManager {
   }
 
   private FlattenWarpParam updateFlattenWarpParam(FlattenWarpDisplay display,
-      final AxisID axisID) {
+      final AxisID axisID, final boolean doValidation) {
     FlattenWarpParam param = new FlattenWarpParam(this);
     if (display == null) {
       uiHarness.openMessageDialog(this, "Unable to get information from the display.",
           "Etomo Error", axisID);
       return null;
     }
-    if (!display.getParameters(param)) {
+    if (!display.getParameters(param, doValidation)) {
       return null;
     }
     return param;

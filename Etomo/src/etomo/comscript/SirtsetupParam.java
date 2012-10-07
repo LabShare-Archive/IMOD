@@ -332,10 +332,6 @@ public final class SirtsetupParam implements CommandParam, CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public float getFloatValue(final FieldInterface field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
   public ConstIntKeyList getIntKeyList(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
