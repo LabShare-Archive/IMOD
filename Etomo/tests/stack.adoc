@@ -88,11 +88,6 @@ run.function.final-align-command=
 	cb.fiducialless-alignment=on
 	assert.enabled.tf.tilt-axis-rotation=
 	cb.fiducialless-alignment=off
-	#test field validation
-	tf.tilt-axis-rotation=%{image-rotation}abc
-	bn.create-full-aligned-stack=
-	wait.popup.field-validation-failed=OK
-	tf.tilt-axis-rotation=%{image-rotation}
 [[]]
 [[ifnot = build]]
 	# run binned
