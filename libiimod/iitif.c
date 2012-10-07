@@ -77,11 +77,14 @@ int iiTIFFCheck(ImodImageFile *inFile)
   b3dUInt16 buf;
   int dirnum = 1;
   uint16 bits, samples, photometric, sampleformat, planarConfig;
-  uint16 bitsIm, samplesIm, photoIm, formatIm, planarIm;
+  uint16 bitsIm, samplesIm, photoIm, formatIm, planarIm, resUnit;
   int nxim, nyim, formatDef;
-  int defined, i, j, mismatch = 0, err = 0;
+  int defined, i, j, hasPixelIm, hasPixel = 0, mismatch = 0, err = 0;
+  float xResol, yResol, xPixelIm = 0., yPixelIm = 0., xPixel, yPixel, resScale;
   double minmax;
   b3dUInt16 *redp, *greenp, *bluep;
+  char *resvar;
+  float pixelLimit = 1.;
 
   if (!inFile) 
     return IIERR_BAD_CALL;
@@ -121,6 +124,9 @@ int iiTIFFCheck(ImodImageFile *inFile)
   inFile->multipleSizes = 0;
   inFile->planesPerImage = 1;
   inFile->contigSamples = 1;
+  resvar = getenv("TIFF_RES_PIXEL_LIMIT");
+  if (resvar)
+    pixelLimit = atof(resvar);
 
   /* Read each directory of the file, get properties and count usable images */
   do {
@@ -140,6 +146,18 @@ int iiTIFFCheck(ImodImageFile *inFile)
 
     defined = TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &formatIm);
 
+    /* Handle pixel sizes */
+    hasPixelIm = TIFFGetField(tif, TIFFTAG_XRESOLUTION, &xResol);
+    resUnit = 0;
+    TIFFGetField(tif, TIFFTAG_RESOLUTIONUNIT, &resUnit);
+    if (resUnit > 1 && hasPixelIm) {
+      if (!TIFFGetField(tif, TIFFTAG_YRESOLUTION, &yResol))
+        yResol = xResol;
+      resScale = 1.e8 * (resUnit == 2 ? 2.54 : 1.);
+      xPixelIm = resScale / xResol;
+      yPixelIm = resScale / yResol;
+    }
+
     /* If this is a bigger image, it is a new standard, so set all the
        properties and reset to one directory */
     if ((float)nxim * (float)nyim > (float)inFile->nx * (float)inFile->ny) {
@@ -151,6 +169,9 @@ int iiTIFFCheck(ImodImageFile *inFile)
       samples = samplesIm;
       formatDef = defined;
       sampleformat = formatIm;
+      hasPixel = hasPixelIm;
+      xPixel = xPixelIm;
+      yPixel = yPixelIm;
       
       if (dirnum)
         inFile->multipleSizes = 1;
@@ -295,6 +316,13 @@ int iiTIFFCheck(ImodImageFile *inFile)
     inFile->amin = minmax;
   if (TIFFGetField(tif, TIFFTAG_SMAXSAMPLEVALUE, &minmax))
     inFile->amax = minmax;
+
+  /* Handle pixel size if it is above threshold */
+  if (hasPixel && (inFile->anyTiffPixSize || xPixel / 1.e4 <= pixelLimit)) {
+    inFile->xscale = xPixel;
+    inFile->yscale = yPixel;
+    inFile->zscale = xPixel;
+  }
 
   inFile->smin   = inFile->amin;
   inFile->smax   = inFile->amax;

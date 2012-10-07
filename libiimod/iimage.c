@@ -98,6 +98,7 @@ ImodImageFile *iiNew()
   ofile->smax   = 255;
   ofile->axis   = 3;
   ofile->mirrorFFT = 0;
+  ofile->anyTiffPixSize = 0;
   ofile->format = IIFILE_UNKNOWN;
   ofile->fp     = NULL;
   ofile->readSection     = NULL;

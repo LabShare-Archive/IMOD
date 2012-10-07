@@ -56,7 +56,7 @@ final class EtomoMenu {
 
   private final JMenu menuFile = new Menu("File");
   private final JMenuItem menuOpen = new MenuItem("Open...", KeyEvent.VK_O);
-  private final JMenuItem menuRecentDocuments =new Menu("Recent Documents");
+  private final JMenuItem menuRecentProjects = new Menu("Recent Projects");
   private final JMenuItem menuSave = new MenuItem("Save", KeyEvent.VK_S);
   private final JMenuItem menuSaveAs = new MenuItem("Save As", KeyEvent.VK_A);
   private final JMenuItem menuClose = new MenuItem("Close", KeyEvent.VK_C);
@@ -158,7 +158,6 @@ final class EtomoMenu {
     if (!forManagerFrame) {
       // Mnemonics for the main menu bar
       menuFile.setMnemonic(KeyEvent.VK_F);
-      menuRecentDocuments.setMnemonic(KeyEvent.VK_U);
       // Accelerators
       menuAxisA.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
           ActionEvent.CTRL_MASK));
@@ -200,7 +199,7 @@ final class EtomoMenu {
     // File menu
     menuFile.add(menuNew);
     menuFile.add(menuOpen);
-    menuFile.add(menuRecentDocuments);
+    menuFile.add(menuRecentProjects);
     menuFile.addSeparator();
     menuFile.add(menuClose);
     menuFile.add(menuSave);
@@ -225,7 +224,7 @@ final class EtomoMenu {
       menuMRUList[i] = new MenuItem();
       menuMRUList[i].addActionListener(fileMRUListActionListener);
       menuMRUList[i].setVisible(false);
-      menuRecentDocuments.add(menuMRUList[i]);
+      menuRecentProjects.add(menuMRUList[i]);
     }
 
     // Tool menu

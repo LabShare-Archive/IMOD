@@ -169,6 +169,13 @@ sequentially numbered log files with the given number of digits, or to -1 to
 Set this variable to an alternative message to be used when subm (submfg)
 completes execution of a command file.
 .TP
+.B TIFF_RES_PIXEL_LIMIT
+This variable sets an upper limit on the pixel size, in microns, that is set
+when reading a TIFF file that has resolution tags in it.  This setting affects
+whether tif2mrc(1) automatically puts a pixel size from the TIFF input into the
+output file, and whether 3dmod(1) thinks that a read-in TIFF file has a pixel
+size other than 1.  The default value is 1.0 microns.
+.TP
 .B WRITE_MODE0_SIGNED
 Set this variable to 1 to have all MRC files in mode 0 written as signed
 bytes.  In some future IMOD version, this may be the default behavior, and
