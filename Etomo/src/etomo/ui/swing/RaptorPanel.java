@@ -91,17 +91,14 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
   private final RaptorPanelActionListener actionListener = new RaptorPanelActionListener(
       this);
 
-  private final RaptorPanelParent parent;
   private final AxisID axisID;
   private final ApplicationManager manager;
   private final DialogType dialogType;
 
-  private RaptorPanel(ApplicationManager manager, AxisID axisID, DialogType dialogType,
-      RaptorPanelParent parent) {
+  private RaptorPanel(ApplicationManager manager, AxisID axisID, DialogType dialogType) {
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-    this.parent = parent;
     ProcessResultDisplayFactory displayFactory = manager
         .getProcessResultDisplayFactory(axisID);
     btnRaptor = (Run3dmodButton) displayFactory.getRaptor();
@@ -109,8 +106,8 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
   }
 
   static RaptorPanel getInstance(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType, RaptorPanelParent parent) {
-    RaptorPanel instance = new RaptorPanel(manager, axisID, dialogType, parent);
+      DialogType dialogType) {
+    RaptorPanel instance = new RaptorPanel(manager, axisID, dialogType);
     instance.createPanel();
     instance.addListeners();
     instance.setToolTipText();
@@ -230,12 +227,10 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
         ltfDiam.setText(diam);
       }
     }
-    if (parent.isPickVisible()) {
-      if (manager.getMetaData().getViewType() == ViewType.MONTAGE) {
-        rbInputPreali.setSelected(true);
-        rbInputRaw.setEnabled(false);
-        // pnlInput.setVisible(false);
-      }
+    if (manager.getMetaData().getViewType() == ViewType.MONTAGE) {
+      rbInputPreali.setSelected(true);
+      rbInputRaw.setEnabled(false);
+      // pnlInput.setVisible(false);
     }
   }
 
