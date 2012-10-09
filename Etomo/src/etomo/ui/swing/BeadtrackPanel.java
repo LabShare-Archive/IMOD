@@ -296,8 +296,12 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
   private final MultiLineButton btnUseModel = new MultiLineButton(USE_MODEL_LABEL);
   private final BeadtrackPanelActionListener actionListener = new BeadtrackPanelActionListener(
       this);
+  private final JPanel pnlFillGaps = new JPanel();
+  private final JPanel pnlTrack = new JPanel();
 
   private final DialogType dialogType;
+
+  private boolean autofidseedMode = false;
 
   /**
    * Construct a new beadtrack panel.
@@ -323,7 +327,6 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     panelBeadtrackBody.setLayout(new BoxLayout(panelBeadtrackBody, BoxLayout.Y_AXIS));
     panelBeadtrackBody.add(Box.createRigidArea(FixedDim.x0_y5));
     panelBeadtrackBody.add(ltfViewSkipList.getContainer());
-    panelBeadtrackBody.add(ltfViewSkipList.getContainer());
     panelBeadtrackBody.add(ltfAdditionalViewSets.getContainer());
     panelBeadtrackBody.add(ltfTiltAngleGroupSize.getContainer());
     panelBeadtrackBody.add(ltfTiltAngleGroups.getContainer());
@@ -343,7 +346,6 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     panelBeadtrackBody.add(Box.createRigidArea(FixedDim.x0_y2));
     pnlCheckbox.setLayout(new BoxLayout(pnlCheckbox, BoxLayout.Y_AXIS));
     pnlCheckbox.setAlignmentX(Component.CENTER_ALIGNMENT);
-    JPanel pnlFillGaps = new JPanel();
     pnlFillGaps.setLayout(new BoxLayout(pnlFillGaps, BoxLayout.X_AXIS));
     pnlFillGaps.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlFillGaps.add(cbFillGaps);
@@ -400,7 +402,6 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     btnTrack.setSize();
     panelBeadtrackBody.add(btnTrack.getComponent());
 
-    JPanel pnlTrack = new JPanel();
     pnlTrack.setLayout(new BoxLayout(pnlTrack, BoxLayout.X_AXIS));
     pnlTrack.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnFixModel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -418,6 +419,40 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     panelBeadtrack.add(header);
     panelBeadtrack.add(panelBeadtrackBody);
     setToolTipText();
+  }
+
+  /**
+   * Changes the display to/from autofidseedMode.  Does nothing if autofidseedMode would
+   * be unchanged.
+   * @param input
+   */
+  void updateAutofidseed(final boolean input) {
+    if (input == autofidseedMode) {
+      return;
+    }
+    autofidseedMode = input;
+    ltfTiltAngleGroupSize.setVisible(!autofidseedMode);
+    ltfTiltAngleGroups.setVisible(!autofidseedMode);
+    ltfMagnificationGroupSize.setVisible(!autofidseedMode);
+    ltfMagnificationGroups.setVisible(!autofidseedMode);
+    ltfNMinViews.setVisible(!autofidseedMode);
+    ltfBeadDiameter.setVisible(!autofidseedMode);
+    pnlCheckbox.setVisible(!autofidseedMode);
+    ltfMaxGap.setVisible(!autofidseedMode);
+    pnlFillGaps.setVisible(!autofidseedMode);
+    pnlLocalAreaTracking.setVisible(!autofidseedMode);
+    ltfLocalAreaTargetSize.setVisible(!autofidseedMode);
+    ltfMinBeadsInArea.setVisible(!autofidseedMode);
+    ltfMinOverlapBeads.setVisible(!autofidseedMode);
+    ltfMaxViewsInAlign.setVisible(!autofidseedMode);
+    ltfRoundsOfTracking.setVisible(!autofidseedMode);
+    ltfMinTiltRangeToFindAxis.setVisible(!autofidseedMode);
+    ltfMinTiltRangeToFindAngle.setVisible(!autofidseedMode);
+    ltfSearchBoxPixels.setVisible(!autofidseedMode);
+    pnlExpertParameters.setVisible(!autofidseedMode);
+    btnTrack.setVisible(!autofidseedMode);
+    pnlTrack.setVisible(!autofidseedMode);
+    updateAdvanced(header.isAdvanced());
   }
 
   public static BeadtrackPanel getInstance(ApplicationManager manager, AxisID id,
@@ -824,13 +859,16 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
    * Makes the advanced components visible or invisible
    */
   void updateAdvanced(boolean state) {
+    cbLightBeads.setVisible(state);
+    if (autofidseedMode) {
+      return;
+    }
     ltfTiltAngleGroupSize.setVisible(state);
     ltfTiltAngleGroups.setVisible(state);
     ltfMagnificationGroupSize.setVisible(state);
     ltfMagnificationGroups.setVisible(state);
     ltfNMinViews.setVisible(state);
     ltfBeadDiameter.setVisible(state);
-    cbLightBeads.setVisible(state);
     ltfMaxGap.setVisible(state);
     ltfMinTiltRangeToFindAxis.setVisible(state);
     ltfMinTiltRangeToFindAngle.setVisible(state);
