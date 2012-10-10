@@ -51,6 +51,7 @@ set.var.seed-button=view-seed-model
 [[]]
 rb.make-seed-and-track=
 run.function.transfer-fiducials=
+rb.make-seed-model-manually=
 [[if = test-gui]]
 	#test values
 	assert.bn.%{seed-button}=off
