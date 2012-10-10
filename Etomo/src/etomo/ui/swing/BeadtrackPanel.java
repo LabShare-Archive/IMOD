@@ -846,6 +846,10 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     }
     catch (FieldValidationFailedException e) {
       return;
+      }
+    }
+    catch (FieldValidationFailedException e) {
+      return;
     }
   }
 
