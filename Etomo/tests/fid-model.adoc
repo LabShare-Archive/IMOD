@@ -32,6 +32,7 @@ bn.done=
 
 [function = transfer-fiducials-quick]
 if.not-equals.var.axis.return = b
+rb.transfer-seed-model-from-the-other-axis=
 bn.transfer-fiducials-from-other-axis =
 wait.process.transferring-fiducials = done
 bn.done=
@@ -71,6 +72,7 @@ run.function.beadtracker=
 [function = transfer-fiducials]
 if.not-equals.var.axis.return = b
 rb.make-seed-and-track=
+rb.transfer-seed-model-from-the-other-axis=
 mb.transfer-fiducials=+
 [[if = test-gui]]
 	#Test values
@@ -110,6 +112,7 @@ assert.exists.file=%{dataset}%{axis}.seed
 
 
 [function = beadtracker]
+tb.seed-model.1=
 mb.beadtracker=+
 [[if = test-gui]]
 	#Test values
@@ -222,9 +225,7 @@ copy.file=%{dataset}%{axis}.fid
 
 
 [function = expert-parameters]
-[[if = dual]]
-	mb.transfer-fiducials=-
-[[]]
+tb.seed-model.1=
 mb.beadtracker.1=A
 mb.expert-parameters=+
 [[if = test-gui]]
@@ -253,9 +254,6 @@ mb.expert-parameters=+
 [[]]
 mb.expert-parameters=-
 mb.beadtracker.1=B
-[[if = dual]]
-	mb.transfer-fiducials=+
-[[]]
 
 
 [function = patch-tracking]
