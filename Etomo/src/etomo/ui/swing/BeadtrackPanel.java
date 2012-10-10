@@ -435,7 +435,7 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
       return;
     }
     autofidseedMode = input;
-    //Change the padding
+    // Change the padding
     panelBeadtrackX.removeAll();
     if (autofidseedMode) {
       panelBeadtrackX.add(Box.createRigidArea(FixedDim.x197_y0));
@@ -842,10 +842,6 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
         }
         manager.imodFixFiducials(axisID, run3dmodMenuOptions, btnFixModel,
             ImodProcess.BeadFixerMode.GAP_MODE, skipList);
-      }
-    }
-    catch (FieldValidationFailedException e) {
-      return;
       }
     }
     catch (FieldValidationFailedException e) {
