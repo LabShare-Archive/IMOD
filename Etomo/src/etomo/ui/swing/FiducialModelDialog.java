@@ -20,6 +20,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
 import etomo.util.DatasetFiles;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.ConstTiltxcorrParam;
@@ -362,7 +363,7 @@ import etomo.comscript.TransferfidParam;
  * <p> </p>
  */
 public final class FiducialModelDialog extends ProcessDialog implements ContextMenu,
-    Run3dmodButtonContainer {
+    Run3dmodButtonContainer, Expandable {
   public static final String rcsid = "$Id$";
 
   static final String SEEDING_NOT_DONE_LABEL = "Seed Fiducial Model";
@@ -397,6 +398,46 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   private final JPanel[] pnlSeedModelArray = new JPanel[SeedModelEnumeratedType.NUM];
   private final JPanel pnlAutoSeedModel = new JPanel();
   private final JPanel pnlAutofidseed = new JPanel();
+
+  private final CheckBox cbBoundaryModel = new CheckBox("Make boundary model: ");
+  private final Run3dmodButton btnBoundaryModel = Run3dmodButton.get3dmodInstance(
+      "Open Boundary Model", this);
+  private final CheckBox cbExcludeInsideAreas = new CheckBox(
+      "Exclude inside boundary contours");
+  private final LabeledTextField ltfBordersInXandY = new LabeledTextField(
+      FieldType.INTEGER_PAIR, "Borders in X & Y: ");
+  private final LabeledTextField ltfMinGuessNumBeads = new LabeledTextField(
+      FieldType.INTEGER, "Estimated number of beads in sample: ");
+  private final LabeledTextField ltfMinSpacing = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Minimum spacing: ");
+  private final LabeledTextField ltfPeakStorageFraction = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Fraction of peak to store: ");
+
+  private final ButtonGroup bgTarget = new ButtonGroup();
+  private final RadioTextField rtfTargetNumberOfBeads = RadioTextField.getInstance(
+      FieldType.INTEGER, "Total number:", bgTarget);
+  private final RadioTextField rtfTargetDensityOfBeads = RadioTextField.getInstance(
+      FieldType.FLOATING_POINT, "Density (per megapixel):", bgTarget);
+  private final CheckBox cbTwoSurfaces = new CheckBox("Select beads on two surfaces");
+  private final LabeledTextField ltfgnoreSurfaceData = new LabeledTextField(
+      FieldType.INTEGER_LIST, "Ignore sorting in tracked models: ");
+  private final LabeledTextField ltfDropTracks = new LabeledTextField(
+      FieldType.INTEGER_LIST, "Drop tracked models: ");
+  private final LabeledTextField ltfMaxMajorToMinorRatio = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Maximum ratio between surfaces: ");
+  private final CheckBox cbClusteredPointsAllowed1 = new CheckBox("Allow clustered beads");
+  private final CheckBoxSpinner cbsClusteredPointsAllowedElongated = CheckBoxSpinner
+      .getInstance("Allow elongated beads of severity: ", 1, 1, 3);
+  private final Run3dmodButton btnAutofidseed = Run3dmodButton.getDeferred3dmodInstance(
+      "Generate Seed Model", this);
+  private final Run3dmodButton btn3dmodAutofidseed = Run3dmodButton.get3dmodInstance(
+      "Open Seed Model", this);
+  private final Run3dmodButton btn3dmodInitialBeadFinding = Run3dmodButton
+      .get3dmodInstance("Open Initial Bead Model", this);
+  private final Run3dmodButton btn3dmodBeadSortingAndSearching = Run3dmodButton
+      .get3dmodInstance("Open Sorted 3D Models", this);
+  private final MultiLineButton btnCleanup = new MultiLineButton(
+      "Clean Up Temporary Files");
 
   final Run3dmodButton btnSeed;
   private final BeadtrackPanel pnlBeadtrack;
@@ -450,10 +491,33 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     JPanel pnlMethodX = new JPanel();
     JPanel pnlSeedModel = new JPanel();
     JPanel pnlSeedModelX = new JPanel();
+    JPanel pnlAutofidseedParam = new JPanel();
+    JPanel pnlInitialBeadFinding = new JPanel();
+    JPanel pnlBoundaryModel = new JPanel();
+    JPanel pnl3dmodInitialBeadFinding = new JPanel();
+    JPanel pnlBeadSearchingAndSorting = new JPanel();
+    JPanel pnlExcludeInsideAreas = new JPanel();
+    JPanel pnlTarget = new JPanel();
+    JPanel pnlTwoSurfaces = new JPanel();
+    JPanel pnlClusteredPointsAllowed1 = new JPanel();
+    JPanel pnl3dmodBeadSortingAndSearching = new JPanel();
+    JPanel pnlButtons = new JPanel();
     // Init
     btnSeed.setContainer(this);
     btnSeed.setSize();
+    ltfMinSpacing.setText("0.85");
+    ltfPeakStorageFraction.setText("1");
+    btnBoundaryModel.setSize();
+    btnAutofidseed.setDeferred3dmodButton(btn3dmodAutofidseed);
+    btnAutofidseed.setSize();
+    btn3dmodAutofidseed.setSize();
+    btn3dmodInitialBeadFinding.setSize();
+    btn3dmodInitialBeadFinding.setEnabled(false);
+    btn3dmodBeadSortingAndSearching.setSize();
+    btn3dmodBeadSortingAndSearching.setEnabled(false);
+    btnCleanup.setSize();
     btnExecute.setText("Done");
+    rtfTargetNumberOfBeads.setSelected(true);
     // Root
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new BeveledBorder("Fiducial Model Generation").getBorder());
@@ -537,14 +601,97 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     if (pnlTransferfid != null) {
       pnlSeedModelArray[i].add(pnlTransferfid.getContainer());
     }
+    // Auto seed model
+    pnlAutoSeedModel.setLayout(new BoxLayout(pnlAutoSeedModel, BoxLayout.Y_AXIS));
     // Autofidseed - goes on the AutoSeedModel panel under the shared beadtrack panel
-
+    pnlAutofidseed.setLayout(new BoxLayout(pnlAutofidseed, BoxLayout.Y_AXIS));
+    pnlAutofidseed.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAutofidseed.add(pnlAutofidseedParam);
+    pnlAutofidseed.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlAutofidseed.add(pnlButtons);
+    // AutofidseedParam
+    // Autofidseed - goes on the AutoSeedModel panel under the shared beadtrack panel
+    pnlAutofidseedParam.setLayout(new BoxLayout(pnlAutofidseedParam, BoxLayout.X_AXIS));
+    pnlAutofidseedParam.add(pnlInitialBeadFinding);
+    pnlAutofidseedParam.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlAutofidseedParam.add(pnlBeadSearchingAndSorting);
+    // Initial bead finding
+    pnlInitialBeadFinding
+        .setLayout(new BoxLayout(pnlInitialBeadFinding, BoxLayout.Y_AXIS));
+    pnlInitialBeadFinding.setBorder(new EtchedBorder("Initial Bead Finding Parameters")
+        .getBorder());
+    pnlInitialBeadFinding.setAlignmentY(Box.TOP_ALIGNMENT);
+    pnlInitialBeadFinding.add(pnlBoundaryModel);
+    pnlInitialBeadFinding.add(pnlExcludeInsideAreas);
+    pnlInitialBeadFinding.add(ltfBordersInXandY.getComponent());
+    pnlInitialBeadFinding.add(ltfMinGuessNumBeads.getComponent());
+    pnlInitialBeadFinding.add(ltfMinSpacing.getComponent());
+    pnlInitialBeadFinding.add(ltfPeakStorageFraction.getComponent());
+    pnlInitialBeadFinding.add(Box.createRigidArea(FixedDim.x0_y3));
+    pnlInitialBeadFinding.add(pnl3dmodInitialBeadFinding);
+    // Boundary model
+    pnlBoundaryModel.setLayout(new BoxLayout(pnlBoundaryModel, BoxLayout.X_AXIS));
+    pnlBoundaryModel.add(cbBoundaryModel);
+    pnlBoundaryModel.add(btnBoundaryModel.getComponent());
+    // ExcludeInsideAreas
+    pnlExcludeInsideAreas
+        .setLayout(new BoxLayout(pnlExcludeInsideAreas, BoxLayout.X_AXIS));
+    pnlExcludeInsideAreas.add(cbExcludeInsideAreas);
+    pnlExcludeInsideAreas.add(Box.createHorizontalGlue());
+    // 3dmodInitialBeadFinding
+    pnl3dmodInitialBeadFinding.setLayout(new BoxLayout(pnl3dmodInitialBeadFinding,
+        BoxLayout.X_AXIS));
+    pnl3dmodInitialBeadFinding.add(Box.createHorizontalGlue());
+    pnl3dmodInitialBeadFinding.add(btn3dmodInitialBeadFinding.getComponent());
+    pnl3dmodInitialBeadFinding.add(Box.createHorizontalGlue());
+    // Bead sorting and searching
+    pnlBeadSearchingAndSorting.setLayout(new BoxLayout(pnlBeadSearchingAndSorting,
+        BoxLayout.Y_AXIS));
+    pnlBeadSearchingAndSorting.setBorder(new EtchedBorder(
+        "Selection and Sorting Parameters").getBorder());
+    pnlBeadSearchingAndSorting.setAlignmentY(Box.TOP_ALIGNMENT);
+    pnlBeadSearchingAndSorting.add(pnlTarget);
+    pnlBeadSearchingAndSorting.add(pnlTwoSurfaces);
+    pnlBeadSearchingAndSorting.add(ltfgnoreSurfaceData.getComponent());
+    pnlBeadSearchingAndSorting.add(ltfDropTracks.getComponent());
+    pnlBeadSearchingAndSorting.add(ltfMaxMajorToMinorRatio.getComponent());
+    pnlBeadSearchingAndSorting.add(pnlClusteredPointsAllowed1);
+    pnlBeadSearchingAndSorting.add(cbsClusteredPointsAllowedElongated.getContainer());
+    pnlBeadSearchingAndSorting.add(Box.createRigidArea(FixedDim.x0_y3));
+    pnlBeadSearchingAndSorting.add(pnl3dmodBeadSortingAndSearching);
+    // Target
+    pnlTarget.setLayout(new BoxLayout(pnlTarget, BoxLayout.Y_AXIS));
+    pnlTarget.setBorder(new EtchedBorder("Seed Points to Select").getBorder());
+    pnlTarget.add(rtfTargetNumberOfBeads.getContainer());
+    pnlTarget.add(rtfTargetDensityOfBeads.getContainer());
+    // TwoSurfaces
+    pnlTwoSurfaces.setLayout(new BoxLayout(pnlTwoSurfaces, BoxLayout.X_AXIS));
+    pnlTwoSurfaces.add(cbTwoSurfaces);
+    pnlTwoSurfaces.add(Box.createHorizontalGlue());
+    // ClusteredPointsAllowed1
+    pnlClusteredPointsAllowed1.setLayout(new BoxLayout(pnlClusteredPointsAllowed1,
+        BoxLayout.X_AXIS));
+    pnlClusteredPointsAllowed1.add(cbClusteredPointsAllowed1);
+    pnlClusteredPointsAllowed1.add(Box.createHorizontalGlue());
+    // 3dmodBeadSortingAndSearching
+    pnl3dmodBeadSortingAndSearching.setLayout(new BoxLayout(
+        pnl3dmodBeadSortingAndSearching, BoxLayout.X_AXIS));
+    pnl3dmodBeadSortingAndSearching.add(Box.createHorizontalGlue());
+    pnl3dmodBeadSortingAndSearching.add(btn3dmodBeadSortingAndSearching.getComponent());
+    pnl3dmodBeadSortingAndSearching.add(Box.createHorizontalGlue());
+    // Buttons
+    pnlButtons.add(btnAutofidseed.getComponent());
+    pnlButtons.add(Box.createHorizontalGlue());
+    pnlButtons.add(btn3dmodAutofidseed.getComponent());
+    pnlButtons.add(Box.createHorizontalGlue());
+    pnlButtons.add(btnCleanup.getComponent());
     // update
     updateAdvanced();
     updateEnabled();
     updateMethod();
     changeSeedAndTrackTab();
     updateSeedModel();
+    updateDisplay();
   }
 
   /**
@@ -552,6 +699,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
    * currently selected radio button in the main panel.
    */
   private void updateMethod() {
+    // Changed the panel
     if (curMethodIndex != -1) {
       pnlMain.remove(pnlMethodArray[curMethodIndex]);
     }
@@ -576,6 +724,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
    */
   private void changeSeedAndTrackTab() {
     int newIndex = tpSeedAndTrack.getSelectedIndex();
+    // Change the tab body panel
     if ((curSeedAndTrackTab == null && newIndex != -1)
         || !curSeedAndTrackTab.equals(newIndex)) {
       // If the tab has changed:
@@ -611,6 +760,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
    */
   private void changeRunRaptorTab() {
     int newIndex = tpRunRaptor.getSelectedIndex();
+    // Change the tab body panel
     if ((curRunRaptorTab == null && newIndex != -1) || !curRunRaptorTab.equals(newIndex)) {
       // If the tab has changed:
       // Remove the body from previous tab so that the size of the tabbed pane won't
@@ -638,6 +788,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   private void updateSeedModel() {
     int newIndex = ((RadioButton.RadioButtonModel) bgSeedModel.getSelection())
         .getEnumeratedType().getValue().getInt();
+    // Change the panel
     if ((curSeedModelIndex == -1 && newIndex != -1) || curSeedModelIndex != newIndex) {
       // If a different radio button has been selected:
       if (curSeedModelIndex != -1) {
@@ -670,6 +821,8 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     rbSeedModelAuto.addActionListener(actionListener);
     rbSeedModelTransfer.addActionListener(actionListener);
     btnSeed.addActionListener(actionListener);
+    cbBoundaryModel.addActionListener(actionListener);
+    btnAdvanced.register(this);
   }
 
   public static String getUseRaptorResultLabel() {
@@ -683,17 +836,42 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     else {
       btnSeed.setText(SEEDING_NOT_DONE_LABEL);
     }
+    boolean selected = cbBoundaryModel.isSelected();
+    btnBoundaryModel.setEnabled(selected);
+    cbExcludeInsideAreas.setEnabled(selected);
+  }
+
+  public void expand(GlobalExpandButton button) {
+    updateAdvanced(button.isExpanded());
+  }
+
+  public void expand(ExpandButton button) {
   }
 
   /**
    * Set the advanced state for the dialog box
    */
   private void updateAdvanced() {
-    pnlBeadtrack.updateAdvanced(isAdvanced());
+    updateAdvanced(isAdvanced());
+  }
+
+  private void updateAdvanced(final boolean advanced) {
+    pnlBeadtrack.updateAdvanced(advanced);
     if (pnlTransferfid != null) {
-      pnlTransferfid.updateAdvanced(isAdvanced());
+      pnlTransferfid.updateAdvanced(advanced);
     }
-    tiltxcorrPanel.updateAdvanced(isAdvanced());
+    tiltxcorrPanel.updateAdvanced(advanced);
+
+    ltfBordersInXandY.setVisible(advanced);
+    ltfMinGuessNumBeads.setVisible(advanced);
+    ltfMinSpacing.setVisible(advanced);
+    ltfPeakStorageFraction.setVisible(advanced);
+    ltfgnoreSurfaceData.setVisible(advanced);
+    ltfDropTracks.setVisible(advanced);
+    ltfMaxMajorToMinorRatio.setVisible(advanced);
+    cbClusteredPointsAllowed1.setVisible(advanced);
+    cbsClusteredPointsAllowedElongated.setVisible(advanced);
+
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
@@ -861,6 +1039,9 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
           ImodManager.COARSE_ALIGNED_KEY,
           DatasetFiles.getSeedFileName(applicationManager, axisID),
           DatasetFiles.getRawTiltFile(applicationManager, axisID), dialogType);
+    }
+    else if (command.equals(cbBoundaryModel.getActionCommand())) {
+      updateDisplay();
     }
   }
 
