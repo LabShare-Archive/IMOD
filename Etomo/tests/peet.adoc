@@ -673,9 +673,9 @@ rb.none=
 
 
 [function = number-of-particles-to-average-check-prm]
-tf.additional-numbers=4
+tf.additional-numbers=10
 save=
-assert.contains.file=%{dataset}.prm|lstThresholds = [3:3:9, 4]
+assert.contains.file=%{dataset}.prm|lstThresholds = [3:3:9, 10]
 
 
 [function = optional-advanced-features-check-prm]
