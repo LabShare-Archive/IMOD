@@ -54,9 +54,11 @@ int main( int argc, char *argv[])
   int forceSigned = 0;
   int readFirst = 0;
   int useNTSC = 0;
+  int anyTifPixel = 0;
+  int pixelEntered = 0;
   int xsize, ysize;
   int mrcxsize = 0, mrcysize = 0, mrcsizeset;
-  float userFill, fillVal, mean, tmean, pixelSize = 1.;
+  float userFill, fillVal, mean, tmean, pixelSize = 1., yPixelSize = 1.;
   float chunkCriterion = 100.;
   b3dInt16 *sptr;
   b3dInt16 *bgshort;
@@ -97,6 +99,7 @@ int main( int argc, char *argv[])
     printf("\t-s      Store as signed integers (mode 1) even if data "
             "are unsigned\n");
     printf("\t-p  #   Set pixel spacing in MRC header to given #\n");
+    printf("\t-P      Set pixel spacing in MRC header from resolution in TIFF file\n");
     printf("\t-f      Read only first image of multi-page file\n");
     printf("\t-o x,y  Set output file size in X and Y\n");
     printf("\t-F  #   Set value to fill areas with no image data to given #\n");
@@ -144,6 +147,13 @@ int main( int argc, char *argv[])
         pixelSize = atof(argv[++iarg]);
         if (pixelSize <= 0.)
           pixelSize = 1.;
+        else
+          pixelEntered = 1;
+        yPixelSize = pixelSize;
+        break;
+
+      case 'P': /* Use resolution from TIFF file regardless of value */
+        anyTifPixel = 1;
         break;
 
       case 'f': /* read only first image */
@@ -193,6 +203,8 @@ int main( int argc, char *argv[])
     forceSigned = 1;
   tiffFilterWarnings();
   chunkCriterion *= 1024 * 1024;
+  if (pixelEntered && anyTifPixel)
+    exitError("You cannot enter both -p and -P");
 
   if (iarg == (argc - 2) && !readFirst){
 
@@ -200,7 +212,7 @@ int main( int argc, char *argv[])
     /* Open the TIFF file. */
     int tiffPages;
 
-    if (tiff_open_file(argv[iarg], openmode, &tiff))
+    if (tiff_open_file(argv[iarg], openmode, &tiff, anyTifPixel))
       exitError("Couldn't open %s.", argv[iarg]);
        
     tiffp = tiff.fp;
@@ -281,13 +293,17 @@ int main( int argc, char *argv[])
         free(tifdata);
       }
       /* write more info to mrc header. 1/17/04 eliminate unneeded rewind */
+      if (tiff.iifile && !pixelEntered) {
+        pixelSize = tiff.iifile->xscale;
+        yPixelSize = tiff.iifile->yscale;
+      }
       hdata.nx = xsize;
       hdata.ny = ysize;
       hdata.mx = hdata.nx;
       hdata.my = hdata.ny;
       hdata.mz = hdata.nz;
       hdata.xlen = hdata.nx * pixelSize;
-      hdata.ylen = hdata.ny * pixelSize;
+      hdata.ylen = hdata.ny * yPixelSize;
       hdata.zlen = hdata.nz * pixelSize;
       if (mode == MRC_MODE_RGB) {
         hdata.amax = 255;
@@ -313,10 +329,9 @@ int main( int argc, char *argv[])
   
   /* read in bg file */
   if (bg){
-    if (tiff_open_file(bgfile, openmode, &tiff))
+    if (tiff_open_file(bgfile, openmode, &tiff, anyTifPixel))
       exitError("Couldn't open %s.", bgfile);
     bgfp = tiff.fp;
-
     bgdata = (unsigned char *)tiff_read_file(bgfp, &tiff);
     if (!bgdata)
       exitError("Reading %s.", bgfile);
@@ -371,7 +386,7 @@ int main( int argc, char *argv[])
   for (; iarg < argc - 1 ; iarg++){
        
     /* Open the TIFF file. */
-    if (tiff_open_file(argv[iarg], openmode, &tiff))
+    if (tiff_open_file(argv[iarg], openmode, &tiff, anyTifPixel))
       exitError("Couldn't open %s.", argv[iarg]);
     printf("Opening %s for input\n", argv[iarg]);
     fflush(stdout);
@@ -420,6 +435,12 @@ int main( int argc, char *argv[])
           mrcysize = ysize;
         }
         manageMode(&tiff, keepUshort, forceSigned, makegray, &pixSize, &mode);
+
+        /* Collect the pixel size the first time */
+        if (tiff.iifile && !pixelEntered) {
+          pixelSize = tiff.iifile->xscale;
+          yPixelSize = tiff.iifile->yscale;
+        }
       }
 
       if ((tiff.BitsPerSample == 16 && mode != MRC_MODE_SHORT && 
@@ -549,7 +570,7 @@ int main( int argc, char *argv[])
   hdata.my = hdata.ny;
   hdata.mz = hdata.nz;
   hdata.xlen = hdata.nx * pixelSize;
-  hdata.ylen = hdata.ny * pixelSize;
+  hdata.ylen = hdata.ny * yPixelSize;
   hdata.zlen = hdata.nz * pixelSize;
   if (mode == MRC_MODE_RGB) {
     hdata.amax = 255;

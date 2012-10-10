@@ -1,5 +1,21 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/4/12: IMOD_4-6-15
+10/4/12: Pixel sizes are now obtained from DigitalMicrograph files and stored
+in output file by dm2mrc.  They are read from TIFF files and stored in output
+file by tif2mrc if they are less than 1 micron, with an option and environment
+variable to override that limit.  3dmod will assign these pixel sizes to a new
+model when reading such files.
+
+10/4/12: Fixed Blendmont for using good edge limits with the new stitching
+scheme. 
+
+10/2/12: Changed Autofidseed to keep Beadtrack from solving for tilt angles
+and to save a copy of the track com file for comparison.
+
+9/28/12: Keeping most of the 3dmod debug code in eTomo (debug level 3).
+(Bug# 1646)
+
 9/27/12: ETomo: fixed a problem involving the incorrect handling of 3dmod's
 stderr, which could potentially cause eTomo to lock up until 3dmod exits.
 (Bug# 1647)

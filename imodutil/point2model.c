@@ -211,7 +211,6 @@ int main( int argc, char *argv[])
     // Skip line with no values
     if (nread <= 0)
       continue;
-    printf("%s : %d %d\n", line, nread, nvals);
     if (B3DMIN(5 + hasValues, nread) != nvals + hasValues &&
         !(contValues && nread == nvals)) 
       exitError("Every line should have %d entries; line %d has %d",

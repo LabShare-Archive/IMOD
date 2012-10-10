@@ -795,10 +795,9 @@ public final class ImodState {
         process.setMovieModeMessage();
       }
     }
-    // TEMP Bug# 1646
     if ((modelView || useModv) && interpolation == null && usingMode
-        && mode != MODEL_MODE && EtomoDirector.INSTANCE.getArguments().isDebug()) {
-      System.err.println("sendMessages");
+        && mode != MODEL_MODE && EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
+      System.err.println("ImodState:open: sendMessages");
       Thread.dumpStack();
     }
     process.sendMessages();

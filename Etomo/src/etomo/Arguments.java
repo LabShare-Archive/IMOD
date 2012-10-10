@@ -180,8 +180,9 @@ public final class Arguments {
       + "not be printed.\n\n  " + DEBUG_TAG + " [level]"
       + "\n\t\tSend extra information to standard error.  The " + DEBUG_TAG + " option"
       + "\n\t\tincludes the following options:  " + MEMORY_TAG + " and " + TIMESTAMP_TAG
-      + ".\n\t\tLevel can be 0 (debug is off), 1 (default) or 2 (more "
-      + "\n\t\tinformation)." + "\n\n  " + IGNORE_SETTINGS_TAG
+      + ".\n\t\tLevel can be 0 (debug is off), 1 (default), 2 (more "
+      + "\n\t\tinformation), or 3 (output that may degrade eTomo's performance)."
+      + "\n\n  " + IGNORE_SETTINGS_TAG
       + "\n\t\tPrevents the .etomo from loading from and saving to the .etomo "
       + "\n\t\tconfiguration file." + "\n\n  " + MEMORY_TAG + " [interval]"
       + "\n\t\tLog memory usage statements before and after processes are run.  "
@@ -400,6 +401,7 @@ public final class Arguments {
       }
       else if (args[i].equals(DEBUG_TAG)) {
         debug = true;
+        debugLevel = 1;
         // --debug can be used alone, or followed by an integer
         // (debugLevel).
         if (i < args.length - 1) {
@@ -411,7 +413,6 @@ public final class Arguments {
             i++;
           }
           catch (NumberFormatException e) {
-            debugLevel = 1;
           }
         }
       }
@@ -516,8 +517,8 @@ public final class Arguments {
     return displayMemoryInterval;
   }
 
-  int getDebugLevel() {
-    return debugLevel;
+  public boolean isDebugLevel(final int level) {
+    return debugLevel >= level;
   }
 
   boolean isDisplayMemory() {

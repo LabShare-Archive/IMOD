@@ -121,10 +121,10 @@ Either this option or -density must be entered.
 [Field = TargetDensityOfBeads]
 short = density
 type = F
-usage = Desired density of beads in final seed model per 1000 square pixels 
+usage = Desired density of beads in final seed model per 1K x 1K area
 tooltip =
-manpage = Desired density of beads in final seed model per 1000 square pixels
-of area, excluding the area outside boundary contours if any.  This option
+manpage = Desired density of beads in final seed model per megapixel (1K x 1K
+of area), excluding the area outside boundary contours if any.  This option
 provides an alternative way of specifying the target that is independent of
 data set size.
 
@@ -134,9 +134,9 @@ type = F
 usage = Maximum ratio between beads on majority and minority surface
 tooltip =
 manpage = Maximum ratio between number of beads on the surface with more beads
-and the number on the ohter surface.  If this ratio is exceeded after running
+and the number on the other surface.  If this ratio is exceeded after running
 Pickbestseed, the target is revised and Pickbetseed is run again.  The default
-is no limit, which means that the program will seek to reach the target nunber
+is no limit, which means that the program will seek to reach the target number
 of beads regardless of the imbalance between surfaces.
 
 [Field = ClusteredPointsAllowed]
@@ -260,6 +260,4 @@ type = B
 usage = Leave temporary files in temporary directory
 tooltip =
 manpage = For diagnosing problems, leave temporary files that would ordinarily
-be deleted in the standard
-temporary directory (/usr/tmp, /tmp, or defined by IMOD_TMPDIR) or in the
-current directory if there is no temporary directory.
+be deleted in the temporary directory.

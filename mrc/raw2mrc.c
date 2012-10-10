@@ -67,6 +67,7 @@ void usage(void)
   fprintf(stderr, "\t-u      Save unsigned shorts in unsigned file mode (6) \n");
   fprintf(stderr, "\t-c      Convert long or ulong input to 16-bit"
           " integers, not floats\n");
+  fprintf(stderr, "\t-p #    Pixel size in Angstroms to set in file header\n");
   return;
 }
 
@@ -101,6 +102,7 @@ int main( int argc, char *argv[] )
   b3dUInt16 usval;
   int datasize;
   float  f, pixel;
+  double pixSpacing = 0.;
   float  mean = 0.0f, tmean = 0.0f, max = -5e29f, min= 5e29f;
   int start = 0;
   b3dByte *sbdata, sbval;
@@ -160,6 +162,9 @@ int main( int argc, char *argv[] )
         break;
       case 'c':
         convert = 1;
+        break;
+      case 'p':
+        pixSpacing = atof(argv[++i]);
         break;
       }
     }else break;
@@ -232,6 +237,8 @@ int main( int argc, char *argv[] )
 
   /* 7/21/11: make header now so signed byte output is known */
   mrc_head_new(&hdata, x, y, nsecs, outtype);
+  if (pixSpacing > 0)
+    mrc_set_scale(&hdata, pixSpacing, pixSpacing, pixSpacing);
 
   for (j = i ; j < argc-1 ; j++) {
     fin = fopen(argv[j], "rb");

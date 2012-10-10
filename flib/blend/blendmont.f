@@ -490,9 +490,13 @@ c
      &      'ReadInXcorrs WITH MULTIPLE NEGATIVES')
         if (fromedge .and. xclegacy .and. .not.undistortOnly) call exitError
      &      ('YOU CANNOT USE BOTH ShiftFromEdges AND ShiftFromXcorrs')
-        if ((izUseDefLow .ge. 0 .or. numUseEdge .gt. 0) .and. shifteach .and.
-     &      .not. sameEdgeShifts) call
-     &      exitError('YOU CANNOT USE GOOD EDGE LIMITS WHEN SHIFTING PIECES')
+        if ((izUseDefLow .ge. 0 .or. numUseEdge .gt. 0) .and. shifteach) then
+          if (.not. sameEdgeShifts) call
+     &        exitError('YOU CANNOT USE GOOD EDGE LIMITS WHEN SHIFTING PIECES')
+          if (fromedge)
+     &        call exitError('YOU CANNOT USE ShiftFromEdges WITH GOOD EDGE LIMITS')
+          xclegacy = .true.
+        endif
       else
         if(anyneg)then
           print *,'There are multi-negative specifications in list file'
@@ -1975,7 +1979,7 @@ c
 c                       
 c                       get indices of pieces and edges and the weighting
 c                       of each piece: for now, numbers
-                      call getPieceIndicesAndWeighting()
+                      call getPieceIndicesAndWeighting(useEdges)
 c                       
 c                       NOW SORT OUT THE CASES OF 1, 2, 3 or 4 PIECES
 
@@ -3129,12 +3133,13 @@ c
 
 c       GET INDICES OF PIECES AND EDGES AND THE WEIGHTING OF EACH PIECE
 c
-      subroutine getPieceIndicesAndWeighting()
+      subroutine getPieceIndicesAndWeighting(useEdges)
       use blendvars
       implicit none
+      logical*4 useEdges
       real*4 er3,eb3,el4,eb4,fx,fy,dr1,dt1,dl2,dt2,dr3,db3,dl4,db4,dla,dra
       real*4 dba,dta,ax,ay,f12,f13,f34,f24,er1,et1,el2,et2
-      integer*4 ipfrom, ipxto, ipyto, ixyDisjoint, ied, ipc,i, indedg
+      integer*4 ipfrom, ipxto, ipyto, ixyDisjoint, ied, ipc,i, indedg, ixy, jedge
       real*4 bwof, edstart, edend, wsum
 
 c       for now, numbers 1 to 4 represent lower left, lower right, upper left,
@@ -3299,6 +3304,14 @@ c             First find the missing edges and set some indexes
               ipfrom = indp1
               ipxto = indp3
               ipyto = indp2
+            endif
+c             
+c             Replace with used edge numbers
+            if (useEdges) then
+              do ixy = 1, 2
+                call findEdgeToUse(inedge(2, ixy), ixy, jedge)
+                if (jedge .ne. 0) inedge(2, ixy) = jedge
+              enddo
             endif
 c             
 c             Analyze X edge first then Y edge - don't worry if both are bad
