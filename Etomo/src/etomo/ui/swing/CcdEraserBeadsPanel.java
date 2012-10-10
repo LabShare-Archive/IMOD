@@ -93,7 +93,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final LabeledTextField ltfFiducialDiameter = new LabeledTextField(
       FieldType.FLOATING_POINT, "Diameter to erase (pixels): ");
-  private final CheckBoxSpinner cbspExpandCircleIterations = new CheckBoxSpinner(
+  private final CheckBoxSpinner cbspExpandCircleIterations = CheckBoxSpinner.getInstance(
       "Iterations to grow circular areas:", 2, 1, 5);
   private final ButtonGroup bgPolynomialOrder = new ButtonGroup();
   private final RadioButton rbPolynomialOrderUseMean = new RadioButton(
