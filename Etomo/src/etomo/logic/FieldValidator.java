@@ -79,8 +79,8 @@ public final class FieldValidator {
         // Validate the number of elements
         if (nElements != fieldType.requiredSize) {
           // Wrong number of elements
-          UIHarness.INSTANCE.openMessageDialog(component, descr + " should have "
-              + fieldType.requiredSize + " elements.", TITLE);
+          UIHarness.INSTANCE.openMessageDialog(component, "The value in " + descr
+              + " should have " + fieldType.requiredSize + " elements.", TITLE);
           FieldValidationFailedException fe = new FieldValidationFailedException(descr
               + ":wrong number of elements:" + "fieldText:" + fieldText
               + ",elementList.length:" + elementList.length + ",requiredSize:"
@@ -136,8 +136,8 @@ public final class FieldValidator {
       if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
         e.printStackTrace();
       }
-      UIHarness.INSTANCE.openMessageDialog(component, descr + " is not " + validationType
-          + ".\n" + e.getMessage(), TITLE);
+      UIHarness.INSTANCE.openMessageDialog(component, "The value in " + descr
+          + " is not " + validationType + ".\n" + e.getMessage(), TITLE);
       FieldValidationFailedException fe = new FieldValidationFailedException(descr
           + ":text" + text + ",validationType+:" + validationType);
       if (EtomoDirector.INSTANCE.getArguments().isDebug()
