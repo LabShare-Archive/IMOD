@@ -215,6 +215,7 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
   private static final String VIEW_SKIP_LIST_LABEL = "View skip list";
   static final String LIGHT_BEADS_LABEL = "Light fiducial markers";
 
+  private final EtomoPanel panelBeadtrackX = new EtomoPanel();
   private final EtomoPanel panelBeadtrack = new EtomoPanel();
   private final JPanel panelBeadtrackBody = new JPanel();
   private final AxisID axisID;
@@ -418,6 +419,9 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     panelBeadtrack.setBorder(BorderFactory.createEtchedBorder());
     panelBeadtrack.add(header);
     panelBeadtrack.add(panelBeadtrackBody);
+
+    panelBeadtrackX.setLayout(new BoxLayout(panelBeadtrackX, BoxLayout.X_AXIS));
+    panelBeadtrackX.add(panelBeadtrack);
     setToolTipText();
   }
 
@@ -431,6 +435,16 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
       return;
     }
     autofidseedMode = input;
+    //Change the padding
+    panelBeadtrackX.removeAll();
+    if (autofidseedMode) {
+      panelBeadtrackX.add(Box.createRigidArea(FixedDim.x197_y0));
+    }
+    panelBeadtrackX.add(panelBeadtrack);
+    if (autofidseedMode) {
+      panelBeadtrackX.add(Box.createRigidArea(FixedDim.x197_y0));
+    }
+    // Change visibility of fields
     ltfTiltAngleGroupSize.setVisible(!autofidseedMode);
     ltfTiltAngleGroups.setVisible(!autofidseedMode);
     ltfMagnificationGroupSize.setVisible(!autofidseedMode);
@@ -472,7 +486,7 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
   }
 
   void setVisible(final boolean visible) {
-    panelBeadtrack.setVisible(visible);
+    panelBeadtrackX.setVisible(visible);
   }
 
   public void expand(GlobalExpandButton button) {
@@ -796,7 +810,7 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
   }
 
   public JPanel getContainer() {
-    return panelBeadtrack;
+    return panelBeadtrackX;
   }
 
   void buttonAction(String command, Run3dmodMenuOptions run3dmodMenuOptions) {
