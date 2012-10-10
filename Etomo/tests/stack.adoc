@@ -19,17 +19,6 @@ bn.create-full-aligned-stack=
 if.not.var.montage.wait.process.creating-aligned-stack = done
 if.var.montage.wait.process.full-alignment = done
 if.var.test-gui.run.function.test-files=
-[[if = test-gui]]
-  #test field validation suppression with a field that is normally blank
-  tb.create.2=
-  rb.use-findbeads3d=
-  mb.find-beads-3d=+
-  rb.set-threshold-for-storing=
-  tf.set-threshold-for-storing=abc
-  tb.create.3=
-  mb.2d-filtering=A
-  tf.starting-and-ending-views=abc
-[[]]
 bn.done =
 [[if = test-gui]]
   wait.popup.mtf-filter-parameter-syntax-error=OK
@@ -153,6 +142,7 @@ run.function.ctf-correction=
 	tf.amplitude-contrast=0.07abc
 	bn.run-ctf-plotter=
 	wait.popup.field-validation-failed=OK
+	assert.disabled.bn.kill-process=
 	tf.amplitude-contrast=0.07
 [[]]
 run.function.ctf-plotter=
@@ -207,6 +197,7 @@ run.function.ctf-phase-flip=
 	tf.defocus-tolerance=200abc
 	bn.correct-ctf=
 	wait.popup.field-validation-failed=OK
+	assert.disabled.bn.kill-process=
 	tf.defocus-tolerance=200
 	mb.ctf-correction=B
 [[]]
@@ -568,6 +559,7 @@ mb.find-beads-3d=-
 	tf.diameter-to-erase=%{rounded-unbinned-bead-diameter}abc
 	bn.erase-beads=
   wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
 	tf.diameter-to-erase=%{rounded-unbinned-bead-diameter}
 [[]]
 # run
@@ -608,7 +600,6 @@ tb.create.3=
   #test field validation
   mb.2d-filtering=A
   tf.starting-and-ending-views=abc
-  assert.disabled.bn.kill-process=
   bn.filter =
   wait.popup.field-validation-failed=OK
   assert.disabled.bn.kill-process=
@@ -688,5 +679,6 @@ assert.not-exists.file = %{dataset}%{axis}_filt.ali
 	tf.rolloff=0.12,0.05abc
 	bn.filter=
 	wait.popup.field-validation-failed=OK
+	assert.disabled.bn.kill-process=
 	tf.rolloff=0.12,0.05
 [[]]

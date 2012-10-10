@@ -5,10 +5,6 @@ Version = 1.2
 if.var.quick.run.function.quick=
 if.var.quick.return=
 run.function.fiducial-model-generation=
-[[if = test-gui]]
-  #test field validation suppression
-  tf.view-skip-list=abc
-[[]]
 bn.done=
 
 
@@ -192,6 +188,7 @@ mb.beadtracker=+
 	tf.view-skip-list=abc
 	bn.track-seed-model=
 	wait.popup.field-validation-failed=OK
+	assert.disabled.bn.kill-process=
 	tf.view-skip-list=
 [[]]
 run.function.expert-parameters=
