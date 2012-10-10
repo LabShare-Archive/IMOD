@@ -50,10 +50,6 @@ bn.ok=
 run.function.initial-blend=
 run.function.align=
 run.function.make-stack=
-[[if = test-gui]]
-  #test field validation suppression
-  tf.sections-to-skip=abc
-[[]]
 
 
 [function = initial-blend]
