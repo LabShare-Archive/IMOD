@@ -1282,7 +1282,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     pnlFinishJoin.setBorder(BorderFactory.createEtchedBorder());
     pnlFinishJoin.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     // first component
-    cbsAlignmentRefSection = new CheckBoxSpinner("Reference section for alignment: ");
+    cbsAlignmentRefSection = CheckBoxSpinner
+        .getInstance("Reference section for alignment: ");
     SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1, numSections < 1 ? 1
         : numSections, 1);
     cbsAlignmentRefSection.setModel(spinnerModel);
