@@ -96,8 +96,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       "Make Aligned Stack", this);
   private final Run3dmodButton btn3dmodAlign = Run3dmodButton.get3dmodInstance(
       "Open Aligned Stack", this);
-  private CheckBoxSpinner cbsReferenceSection = new CheckBoxSpinner(
-      "Reference section for alignment: ");
+  private CheckBoxSpinner cbsReferenceSection = CheckBoxSpinner
+      .getInstance("Reference section for alignment: ");
   private LabeledTextField ltfSizeX = new LabeledTextField(FieldType.INTEGER, SIZE_LABEL
       + "X: ");
   private LabeledTextField ltfSizeY = new LabeledTextField(FieldType.INTEGER, "Y: ");
