@@ -121,9 +121,10 @@ static Filt filters[NUM_FILT] = {
 static int zoom_debug = 0;	/* debug level: 0=none, 2=filters */
 
 /* ZOOM-SPECIFIC FILTER PARAMETERS */
-static double support;   /* filter scale (spacing between centers in a space) */
-static double scale;     /* scaled filter support radius */
-static int width;        /* filter width: max number of nonzero samples */
+static double support;           /* filter scale (spacing between centers in a space) */
+static double scale;             /* scaled filter support radius */
+static int width;                /* filter width: max number of nonzero samples */
+static float valueScaling = 1.0; /* Scaling factor for image values */
 
 /* The selected filter function */
 static fn_proc filt_func = NULL;
@@ -131,7 +132,7 @@ static double mitchP0, mitchP2, mitchP3, mitchQ0, mitchQ1, mitchQ2, mitchQ3;
 
 /*!
  * Selects which filter to use in image reduction with [type] and sets the scaling factor
- * with [zoom], a value less that must be less than 1.  The type can be 0 for a box 
+ * with [zoom], a value that must be less than 1.  The type can be 0 for a box 
  * (equivalent to binning), 1 for a Blackman window, 2 for a triangle filter, 3 for a
  * Mitchell filter, or 4 or 5 for Lanczos 2 or Lanczos 3.  The total 
  * width of the filter in the source image is returned in [outWidth].  Returns 1 for
@@ -163,13 +164,22 @@ int selectzoomfilter(int *type, float *zoom, int *outWidth)
 }
 
 /*!
+ * Sets a factor for scaling the output values from image reduction of data types other
+ *  than bytes and RGB.
+ */
+void setZoomValueScaling(float factor)
+{
+  valueScaling = factor;
+}
+
+/*!
  * Reduces an image using the interpolation filter and zoom specified in 
  * @selectZoomFilter. ^
  * [slines] - array of line pointers for the input image ^
  * [aXsize], [aYsize] - size of input image ^
  * [aXoff], [aYoff] - coordinate in the input image at which the lower left pixel of the 
  * output starts ^
- * [bXsize], [bYsize] - size output image to be created, potentially from a subset of 
+ * [bXsize], [bYsize] - size of output image to be created, potentially from a subset of 
  * the input in X or Y and into a subset of the output array ^
  * [bXdim] - X dimension of the full output image array ^
  * [bXoff] - Index of first pixel in X to fill in output array ^
@@ -287,37 +297,37 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
       xweights[bx].weight.f = xwfp;
     else
       xweights[bx].weight.s = xwp;
-	make_weighttab(bx, aXoff + (bx + 0.5) * scale, aXsize, dtype, &xweights[bx]);
+    make_weighttab(bx, aXoff + (bx + 0.5) * scale, aXsize, dtype, &xweights[bx]);
   }
 
 #pragma omp parallel for num_threads(numThreads)                    \
   shared(bYsize, aYoff, scale, aYsize, dtype, yweight, psizeAccum, accumBuf, \
          aXsize, slines, outData, psizeFilt, bXsize, mapping, filtBuf, xweights, \
-         cindex, bindex)                                                \
+         cindex, bindex, valueScaling)                                               \
   private(by, thr, i, ayf, sweight, fweight, lineb, obufb)
   for (by = 0; by < bYsize; by++) {
     thr = b3dOMPthreadNum();
-
-	/* prepare a weighttab for dest y position by */
-	make_weighttab(by, aYoff + (by + 0.5) * scale, aYsize, dtype, &yweight[thr]);
-
+    
+    /* prepare a weighttab for dest y position by */
+    make_weighttab(by, aYoff + (by + 0.5) * scale, aYsize, dtype, &yweight[thr]);
+    
     /* Zero the scanline accum buffer */
     for (i = 0; i < aXsize * psizeAccum / 4; i++)
       accumBuf[thr][i] = 0;
-
-	/* loop over source scanlines that influence this dest scanline */
-	for (ayf = yweight[thr].i0; ayf < yweight[thr].i1; ayf++) {
+    
+    /* loop over source scanlines that influence this dest scanline */
+    for (ayf = yweight[thr].i0; ayf < yweight[thr].i1; ayf++) {
       if (psizeWgt == 2)
         sweight = yweight[thr].weight.s[ayf-yweight[thr].i0];
       else
-        fweight = yweight[thr].weight.f[ayf-yweight[thr].i0];
+        fweight = yweight[thr].weight.f[ayf-yweight[thr].i0] * valueScaling;
       
       lineb = (unsigned char *)slines[ayf];
       /* add weighted tbuf into accum (these do yfilt) */
       scanline_accum(lineb, dtype, aXsize, accumBuf[thr], sweight, fweight);
     }
-
-	/* and filter it into the appropriate line of output or into filtBuf */
+    
+    /* and filter it into the appropriate line of output or into filtBuf */
     obufb = (unsigned char *)outData + psizeFilt * (by * bXdim + bXoff);
     if (mapping)
       obufb = filtBuf[thr];
@@ -325,14 +335,14 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
       printf("%.1f ", *((float *)accumBuf[thr] + i));
       printf("\n"); */
     scanline_filter(accumBuf[thr], dtype, aXsize, obufb, bXsize, xweights, FINALSHIFT);
-
+    
     /* Map to RGBA output, always 4 bytes, if index tables provided */
     if (mapping) {
       obufb = (unsigned char *)outData + 4 * (by * bXdim + bXoff);
       scanline_remap(filtBuf[thr], dtype, bXsize, obufb, cindex, bindex);
     }
   }    
-
+  
   B3DFREE(xweights);
   B3DFREE(xweightSbuf);
   for (by = 0; by < numThreads; by++) {
