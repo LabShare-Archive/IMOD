@@ -208,6 +208,7 @@ extern "C" {
 
   /* zoomdown.c */
   int selectZoomFilter(int type, double zoom, int *outWidth);
+  void setZoomValueScaling(float factor);
   int zoomWithFilter(unsigned char **slines, int sXsize, int sYsize, float sXoff,
                      float sYoff, int dXsize, int dYsize, int dXdim, int dXoff, int dtype,
                      void *outData, b3dUInt32 *cindex, unsigned char *bindex);
