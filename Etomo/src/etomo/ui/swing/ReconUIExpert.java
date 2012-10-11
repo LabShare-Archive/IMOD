@@ -184,7 +184,7 @@ public abstract class ReconUIExpert implements UIExpert {
         outputImageFileType);
     ParallelPanel parallelPanel = manager.getMainPanel().getParallelPanel(axisID);
     dialog.getParameters(param);
-    if (!parallelPanel.getParameters(param,true)) {
+    if (!parallelPanel.getParameters(param, true)) {
       manager.getMainPanel().stopProgressBar(axisID, ProcessEndState.FAILED);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
@@ -207,6 +207,10 @@ public abstract class ReconUIExpert implements UIExpert {
   final public void setProgressBar(String label, int nSteps, AxisID axisID,
       ProcessName processName) {
     mainPanel.setProgressBar(label, nSteps, axisID);
+  }
+
+  final public void startProgressBar(final String label, final AxisID axisID) {
+    mainPanel.startProgressBar(label, axisID);
   }
 
   final public void stopProgressBar(AxisID axisID) {
