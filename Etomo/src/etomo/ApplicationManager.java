@@ -8060,13 +8060,14 @@ public final class ApplicationManager extends BaseManager implements
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return false;
     }
-    mainPanel.setProgressBar(
-        "Using " + useFile.getName() + " as " + outputFileType.getDescription(this), 1,
+    mainPanel.startProgressBar(
+        "Using " + useFile.getName() + " as " + outputFileType.getDescription(this),
         axisID);
     if (!useFile.exists()) {
       UIHarness.INSTANCE.openMessageDialog(this, useFile.getName()
           + " doesn't exist.  Press " + runButtonLabel + " to create this file.",
           runButtonLabel + " Output Missing", axisID);
+      mainPanel.stopProgressBar(axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return false;
     }
@@ -8078,6 +8079,7 @@ public final class ApplicationManager extends BaseManager implements
       if (!Utilities.isValidStack(useFile, this, axisID)) {
         uiHarness.openMessageDialog(this,
             useFile.getName() + " is not a valid MRC file.", "Entry Error", axisID);
+        mainPanel.stopProgressBar(axisID);
         sendMsgProcessFailedToStart(processResultDisplay);
         return false;
       }
@@ -8088,6 +8090,7 @@ public final class ApplicationManager extends BaseManager implements
         UIHarness.INSTANCE.openMessageDialog(this,
             "Unable to backup " + outputFileType.getFileName(this, axisID) + "\n"
                 + except.getMessage(), "File Rename Error", axisID);
+        mainPanel.stopProgressBar(axisID);
         sendMsg(ProcessResult.FAILED, processResultDisplay);
         return false;
       }
@@ -8103,6 +8106,7 @@ public final class ApplicationManager extends BaseManager implements
     catch (IOException except) {
       UIHarness.INSTANCE.openMessageDialog(this, except.getMessage(),
           "File Rename Error", axisID);
+      mainPanel.stopProgressBar(axisID);
       sendMsg(ProcessResult.FAILED, processResultDisplay);
       return false;
     }
