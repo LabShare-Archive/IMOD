@@ -99,10 +99,15 @@ tf.kernel-filtering-with-sigma=1.0
 cb.kernel-filtering-with-sigma=off
 mb.patchcorr-parameters.1=B
 
+
 [function = test-volcombine]
 tb.setup.2=
 #test fields
 assert.tf.reduction-factor-for-matching-amplitudes-in-combined-FFT=0.0
+assert.tf.radius-below-which-to-average-components-from-both-tomograms=0.0
+#test enabled/disabled
+assert.enabled.tf.reduction-factor-for-matching-amplitudes-in-combined-FFT=
+assert.enabled.tf.radius-below-which-to-average-components-from-both-tomograms=
 #test field validation
 mb.volcombine-parameters.1=A
 tf.reduction-factor-for-matching-amplitudes-in-combined-FFT=0.0abc
@@ -110,4 +115,27 @@ bn.restart-at-volcombine=
 wait.popup.field-validation-failed=OK
 assert.disabled.bn.kill-process=
 tf.reduction-factor-for-matching-amplitudes-in-combined-FFT=0.0
+#
+mb.volcombine-parameters.1=A
+tf.radius-below-which-to-average-components-from-both-tomograms=0.0abc
+bn.restart-at-volcombine=
+wait.popup.field-validation-failed=OK
+assert.disabled.bn.kill-process=
+tf.radius-below-which-to-average-components-from-both-tomograms=0.0
 mb.volcombine-parameters.1=B
+
+
+[function = test-matchvol1]
+tb.setup.1=
+#test fields
+assert.tf.initial-match-size=76
+#test enabled/disabled
+assert.enabled.tf.initial-match-size=
+#test field validation
+mb.matchvol1.1=A
+tf.initial-match-size=76abc
+bn.restart-at-matchvol1=
+wait.popup.field-validation-failed=OK
+assert.disabled.bn.kill-process=
+tf.initial-match-size=76
+mb.matchvol1.1=B

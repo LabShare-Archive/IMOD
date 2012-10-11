@@ -42,6 +42,9 @@ bn.ok=
 [[]]
 run.function.setup=
 run.function.runtab=
+[[if = test-gui]]
+  run.function.check-prm=
+[[]]
 
 
 [function = setup]
@@ -347,6 +350,18 @@ sp.particles-per-cpu=1
   assert.disabled.bn.kill-process=
   tb.setup.0=
   tf.particle=2
+  #
+  rb.sphere=
+  cb.manual-cylinder-orientation=on
+  tf.z-rotation=abc
+  tb.setup.1=
+  bn.run=
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tb.setup.0=
+  tf.z-rotation=
+  cb.manual-cylinder-orientation=off
+  rb.none=
   tb.setup.1=
 [[]]
 bn.run=

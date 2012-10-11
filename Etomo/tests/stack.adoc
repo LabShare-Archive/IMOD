@@ -20,9 +20,6 @@ if.not.var.montage.wait.process.creating-aligned-stack = done
 if.var.montage.wait.process.full-alignment = done
 if.var.test-gui.run.function.test-files=
 bn.done =
-[[if = test-gui]]
-  wait.popup.mtf-filter-parameter-syntax-error=OK
-[[]]
 if.var.fidless.return=
 
 
@@ -674,11 +671,11 @@ assert.not-exists.file = %{dataset}%{axis}_filt.ali
 	assert.enabled.tf.mtf-file=
 	assert.enabled.tf.maximum-inverse=
 	assert.enabled.tf.rolloff=
-	mb.2d-filtering=B
 	#test field validation
 	tf.rolloff=0.12,0.05abc
 	bn.filter=
 	wait.popup.field-validation-failed=OK
 	assert.disabled.bn.kill-process=
 	tf.rolloff=0.12,0.05
+	 mb.2d-filtering=B
 [[]]

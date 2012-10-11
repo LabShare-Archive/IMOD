@@ -48,6 +48,12 @@ run.function.smoothing-asessment=
 	#check error - can't run from squeezevol output when it hasn't been created.
 	bn.flatten=
 	wait.popup.comscript-terminated=OK
+	#test field validation
+	tf.output-thickness-in-z=abc
+	bn.run-flattenwarp=
+	wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+	tf.output-thickness-in-z=
 [[]]
 bn.run-flattenwarp=
 wait.process.running-flattenwarp=done
