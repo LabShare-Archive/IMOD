@@ -755,7 +755,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (manager.isAxisBusy(axisID, processResultDisplay)) {
       return;
     }
-    setProgressBar("Using filtered full aligned stack", 1, axisID);
+    startProgressBar("Using filtered full aligned stack", axisID);
     File mtfFilteredStack = FileType.MTF_FILTERED_STACK.getFile(manager, axisID);
     if (!mtfFilteredStack.exists()) {
       UIHarness.INSTANCE
@@ -763,6 +763,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
               manager,
               "The filtered full aligned stack doesn't exist.  Create the filtered full aligned stack first",
               "Filtered full aligned stack missing", axisID);
+      stopProgressBar(axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -772,6 +773,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       if (!Utilities.isValidStack(mtfFilteredStack, manager, axisID)) {
         UIHarness.INSTANCE.openMessageDialog(manager, mtfFilteredStack.getName()
             + " is not a valid MRC file.", "Entry Error", axisID);
+        stopProgressBar(axisID);
         sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
         return;
       }
@@ -782,6 +784,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
         UIHarness.INSTANCE.openMessageDialog(manager,
             "Unable to backup " + FileType.ALIGNED_STACK.getFileName(manager, axisID)
                 + "\n" + except.getMessage(), "File Rename Error", axisID);
+        stopProgressBar(axisID);
         sendMsg(ProcessResult.FAILED, processResultDisplay);
         return;
       }
@@ -793,6 +796,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     catch (IOException except) {
       UIHarness.INSTANCE.openMessageDialog(manager, except.getMessage(),
           "File Rename Error", axisID);
+      stopProgressBar(axisID);
       sendMsg(ProcessResult.FAILED, processResultDisplay);
       return;
     }
