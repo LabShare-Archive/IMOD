@@ -38,6 +38,8 @@ import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SerialSectionsMetaData;
 import etomo.type.ViewType;
 import etomo.ui.AutoAlignmentDisplay;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 import etomo.util.SharedConstants;
@@ -94,16 +96,19 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       "Make Aligned Stack", this);
   private final Run3dmodButton btn3dmodAlign = Run3dmodButton.get3dmodInstance(
       "Open Aligned Stack", this);
-  private CheckBoxSpinner cbsReferenceSection = new CheckBoxSpinner(
-      "Reference section for alignment: ");
-  private LabeledTextField ltfSizeX = new LabeledTextField(SIZE_LABEL + "X: ");
-  private LabeledTextField ltfSizeY = new LabeledTextField("Y: ");
-  private LabeledTextField ltfShiftX = new LabeledTextField(SHIFT_LABEL + "X: ");
-  private LabeledTextField ltfShiftY = new LabeledTextField("Y: ");
+  private CheckBoxSpinner cbsReferenceSection = CheckBoxSpinner
+      .getInstance("Reference section for alignment: ");
+  private LabeledTextField ltfSizeX = new LabeledTextField(FieldType.INTEGER, SIZE_LABEL
+      + "X: ");
+  private LabeledTextField ltfSizeY = new LabeledTextField(FieldType.INTEGER, "Y: ");
+  private LabeledTextField ltfShiftX = new LabeledTextField(FieldType.FLOATING_POINT,
+      SHIFT_LABEL + "X: ");
+  private LabeledTextField ltfShiftY = new LabeledTextField(FieldType.FLOATING_POINT,
+      "Y: ");
   private Spinner spBinByFactor = Spinner.getLabeledInstance("Binning: ", 1, 1, 8);
   private CheckBox cbFillWithZero = new CheckBox("Fill empty areas with 0");
-  private CheckTextField ctfRobustFitCriterion = CheckTextField
-      .getInstance("Robust fitting for criterion: ");
+  private CheckTextField ctfRobustFitCriterion = CheckTextField.getInstance(
+      FieldType.FLOATING_POINT, "Robust fitting for criterion: ");
   private final Spinner spMidasBinning = Spinner.getLabeledInstance("Binning: ", 1, 1, 8);
   private final Run3dmodButton btn3dmodRawStack = Run3dmodButton.get3dmodInstance(
       "Open Raw Stack", this);
@@ -397,29 +402,43 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     }
   }
 
-  public void getPreblendParameters(final BlendmontParam param) {
-    param.setVerySloppyMontage(cbVerySloppyMontage.isSelected());
-    if (ctfRobustFitCriterion.isSelected()) {
-      param.setRobustFitCriterion(ctfRobustFitCriterion.getText());
+  public boolean getPreblendParameters(final BlendmontParam param,
+      final boolean doValidation) {
+    try {
+      param.setVerySloppyMontage(cbVerySloppyMontage.isSelected());
+      if (ctfRobustFitCriterion.isSelected()) {
+        param.setRobustFitCriterion(ctfRobustFitCriterion.getText(doValidation));
+      }
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
-  public void getBlendParameters(final BlendmontParam param) {
-    if (ltfSizeX.isEmpty() && ltfSizeY.isEmpty() && ltfShiftX.isEmpty()
-        && ltfShiftY.isEmpty()) {
-      param.resetStartingAndEndingXandY();
+  public boolean getBlendParameters(final BlendmontParam param, final boolean doValidation) {
+    try {
+      if (ltfSizeX.isEmpty() && ltfSizeY.isEmpty() && ltfShiftX.isEmpty()
+          && ltfShiftY.isEmpty()) {
+        param.resetStartingAndEndingXandY();
+      }
+      else {
+        param.setStartingAndEndingXAndY(TomogramTool.getStartingAndEndingXAndY(
+            FileType.PREBLEND_OUTPUT_MRC, ltfSizeX.getText(doValidation),
+            ltfShiftX.getText(doValidation), ltfSizeY.getText(doValidation),
+            ltfShiftY.getText(doValidation), manager, axisID, ltfSizeX.getQuotedLabel(),
+            ltfShiftX.getQuotedLabel(),
+            Utilities.quoteLabel(SIZE_LABEL + ltfSizeY.getLabel()),
+            Utilities.quoteLabel(SHIFT_LABEL + ltfShiftY.getLabel()), "Entry Error"));
+      }
+      param.setBinByFactor(spBinByFactor.getValue());
+      if (cbFillWithZero.isSelected()) {
+        param.setFillValue(0);
+      }
+      return true;
     }
-    else {
-      param.setStartingAndEndingXAndY(TomogramTool.getStartingAndEndingXAndY(
-          FileType.PREBLEND_OUTPUT_MRC, ltfSizeX.getText(), ltfShiftX.getText(),
-          ltfSizeY.getText(), ltfShiftY.getText(), manager, axisID,
-          ltfSizeX.getQuotedLabel(), ltfShiftX.getQuotedLabel(),
-          Utilities.quoteLabel(SIZE_LABEL + ltfSizeY.getLabel()),
-          Utilities.quoteLabel(SHIFT_LABEL + ltfShiftY.getLabel()), "Entry Error"));
-    }
-    param.setBinByFactor(spBinByFactor.getValue());
-    if (cbFillWithZero.isSelected()) {
-      param.setFillValue(0);
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
@@ -428,15 +447,21 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     cbFillWithZero.setSelected(param.fillValueEquals(0));
   }
 
-  public void getParameters(final NewstParam param) throws FortranInputSyntaxException,
-      InvalidParameterException, IOException {
-    param.setSizeToOutputInXandY(ltfSizeX.getText(), ltfSizeY.getText(), spBinByFactor
-        .getValue().intValue(), 0, "Size");
-    param.setOffsetsInXandY(TomogramTool.convertShiftsToOffsets(ltfShiftX.getText(),
-        ltfShiftY.getText()));
-    param.setBinByFactor(spBinByFactor.getValue());
-    if (cbFillWithZero.isSelected()) {
-      param.setFillValue(0);
+  public boolean getParameters(final NewstParam param, final boolean doValidation)
+      throws FortranInputSyntaxException, InvalidParameterException, IOException {
+    try {
+      param.setSizeToOutputInXandY(ltfSizeX.getText(doValidation),
+          ltfSizeY.getText(doValidation), spBinByFactor.getValue().intValue(), 0, "Size");
+      param.setOffsetsInXandY(TomogramTool.convertShiftsToOffsets(
+          ltfShiftX.getText(doValidation), ltfShiftY.getText(doValidation)));
+      param.setBinByFactor(spBinByFactor.getValue());
+      if (cbFillWithZero.isSelected()) {
+        param.setFillValue(0);
+      }
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
@@ -447,9 +472,10 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     cbFillWithZero.setSelected(param.fillValueEquals(0));
   }
 
-  public void getAutoAlignmentParameters(final XfalignParam param) {
+  public boolean getAutoAlignmentParameters(final XfalignParam param,
+      final boolean doValidation) {
     manager.getAutoAlignmentParameters(param, axisID);
-    autoAlignmentPanel.getParameters(param);
+    return autoAlignmentPanel.getParameters(param, doValidation);
   }
 
   public void getParameters(final XftoxgParam param) {
@@ -667,7 +693,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       rbHybridFitsTranslationsRotations.setToolTipText(text);
       rbNumberToFitGlobalAlignment.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           XftoxgParam.NUMBER_TO_FIT_KEY));
-      cbsReferenceSection.setToolTipText(EtomoAutodoc.getTooltip(autodoc, XftoxgParam.REFERENCE_SECTION));
+      cbsReferenceSection.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          XftoxgParam.REFERENCE_SECTION));
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

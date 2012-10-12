@@ -168,7 +168,7 @@ public interface ConstNewstParam extends CommandDetails {
   /**
    * @return Returns the expandByFactor.
    */
-  public float getExpandByFactor();
+  public double getExpandByFactor();
 
   /**
    * @return Returns the fileOfInputs.
@@ -238,7 +238,7 @@ public interface ConstNewstParam extends CommandDetails {
   /**
    * @return Returns the rotateByAngle.
    */
-  public float getRotateByAngle();
+  public double getRotateByAngle();
 
   /**
    * @return Returns the scaleMinAndMax.

@@ -64,7 +64,7 @@ import etomo.util.DatasetFiles;
 
 public class SolvematchParam extends ConstSolvematchParam implements CommandParam {
 
-  private static final float CENTER_SHIFT_LIMIT_DEFAULT = 10;
+  private static final double CENTER_SHIFT_LIMIT_DEFAULT = 10;
 
   private final BaseManager manager;
 
@@ -296,12 +296,12 @@ public class SolvematchParam extends ConstSolvematchParam implements CommandPara
   /**
    * @param maximumResidual The maximumResidual to set.
    */
-  public void setMaximumResidual(float maximumResidual) {
+  public void setMaximumResidual(double maximumResidual) {
     this.maximumResidual = maximumResidual;
   }
 
   public void setMaximumResidual(String value) {
-    this.maximumResidual = ParamUtilities.parseFloat(value);
+    this.maximumResidual = ParamUtilities.parseDouble(value);
   }
 
   public void setCenterShiftLimit(String centerShiftLimit) {

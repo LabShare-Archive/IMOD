@@ -163,16 +163,16 @@ final class EraseGoldPanel implements ContextMenu {
   }
 
   private void createPanel() {
-    //Local panels
+    // Local panels
     JPanel pnlModel = new JPanel();
-    //Root panel
+    // Root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new EtchedBorder("Bead Eraser").getBorder());
     pnlRoot.add(pnlModel);
     pnlRoot.add(xfModelPanel.getComponent());
     pnlRoot.add(beads3dFindPanel.getComponent());
     pnlRoot.add(ccdEraserBeadsPanel.getComponent());
-    //Model panel
+    // Model panel
     pnlModel.setLayout(new BoxLayout(pnlModel, BoxLayout.Y_AXIS));
     pnlModel.setBorder(new EtchedBorder("Model Creation Method").getBorder());
     pnlModel.setAlignmentX(Box.CENTER_ALIGNMENT);
@@ -183,7 +183,7 @@ final class EraseGoldPanel implements ContextMenu {
   Component getComponent() {
     return pnlRoot;
   }
-  
+
   void initialize() {
     ccdEraserBeadsPanel.initialize();
   }

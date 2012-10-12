@@ -42,9 +42,6 @@ bn.ok=
 [[]]
 run.function.setup=
 run.function.runtab=
-[[if = test-gui]]
-	run.function.check-prm=
-[[]]
 
 
 [function = setup]
@@ -340,6 +337,18 @@ sp.particles-per-cpu=1
 #save=
 #write.file = %{dataset}.prm|flgMeanFill = 1
 #
+[[if = test-gui]]
+  #test field validation
+  tb.setup.0=
+  tf.particle=2abc
+  tb.setup.1=
+  bn.run=
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tb.setup.0=
+  tf.particle=2
+  tb.setup.1=
+[[]]
 bn.run=
 wait.process.processchunks-%{dataset}=done
 [[if = test-gui]]
@@ -664,9 +673,9 @@ rb.none=
 
 
 [function = number-of-particles-to-average-check-prm]
-tf.additional-numbers=4
+tf.additional-numbers=10
 save=
-assert.contains.file=%{dataset}.prm|lstThresholds = [3:3:9, 4]
+assert.contains.file=%{dataset}.prm|lstThresholds = [3:3:9, 10]
 
 
 [function = optional-advanced-features-check-prm]

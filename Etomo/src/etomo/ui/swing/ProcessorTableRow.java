@@ -382,8 +382,8 @@ final class ProcessorTableRow implements Storable {
     }
   }
 
-  long getSuccesses() {
-    return cellSuccesses.getLongValue();
+  int getSuccesses() {
+    return cellSuccesses.getIntValue();
   }
 
   int getCPUsSelected() {

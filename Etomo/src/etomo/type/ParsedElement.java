@@ -100,7 +100,7 @@ public abstract class ParsedElement {
 
   abstract ParsedElement getElement(int index);
 
-  abstract void setRawString(int index, float number);
+  abstract void setRawString(int index, double number);
 
   abstract void setRawString(int index, String string);
 

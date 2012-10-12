@@ -76,5 +76,38 @@ assert.exists.file = matchvol1.log~
 assert.exists.file = patchcorr.log~
 assert.exists.file = solvematch.log~
 sleep = 
+[[if = test-gui]]
+  run.function.test-final-match=
+  run.function.test-volcombine=
+[[]]
 bn.replace-patch-vectors =
 bn.done =
+
+
+[function = test-final-match]
+tb.setup.2=
+#test fields
+assert.tf.kernel-filtering-with-sigma=1.0
+#test field validation
+mb.patchcorr-parameters.1=A
+cb.kernel-filtering-with-sigma=on
+tf.kernel-filtering-with-sigma=1.0abc
+bn.restart-at-patchcorr=
+wait.popup.field-validation-failed=OK
+assert.disabled.bn.kill-process=
+tf.kernel-filtering-with-sigma=1.0
+cb.kernel-filtering-with-sigma=off
+mb.patchcorr-parameters.1=B
+
+[function = test-volcombine]
+tb.setup.2=
+#test fields
+assert.tf.reduction-factor-for-matching-amplitudes-in-combined-FFT=0.0
+#test field validation
+mb.volcombine-parameters.1=A
+tf.reduction-factor-for-matching-amplitudes-in-combined-FFT=0.0abc
+bn.restart-at-volcombine=
+wait.popup.field-validation-failed=OK
+assert.disabled.bn.kill-process=
+tf.reduction-factor-for-matching-amplitudes-in-combined-FFT=0.0
+mb.volcombine-parameters.1=B

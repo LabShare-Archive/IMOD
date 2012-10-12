@@ -23,6 +23,28 @@ assert.exists.file=%{subdir}
 sleep=
 assert.exists.file=%{subdir}/test.input
 bn.view-test-volume=
+[[if = test-gui]]
+  #Test field validation
+  tf.list-of-k-values=.001,.005,.01,.05,.1abc,.5,1,5,10,50,100
+  bn.run-with-different-k-values=
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tf.list-of-k-values=
+  #Test field validation
+  tf.k-value=10abc
+  tf.list-of-iterations=10 20 30 100
+  bn.run-with-different-iterations=
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tf.k-value=
+  tf.list-of-iterations=
+  #test field validation
+  tf.k-value.1=10abc
+  bn.filter-full-volume=
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tf.k-value.1=
+[[]]
 #Find K value.
 tf.list-of-k-values=.001,.005,.01,.05,.1,.5,1,5,10,50,100
 bn.run-with-different-k-values=

@@ -41,6 +41,8 @@ import etomo.type.PanelId;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
 * <p>Description: </p>
@@ -89,10 +91,10 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
   private final CheckBox cbSubarea = new CheckBox("Reconstruct subarea");
   private final LabeledTextField ltfYOffsetOfSubarea = LabeledTextField
       .getNumericInstance(" Offset in Y: ");
-  private final LabeledTextField ltfSubareaSize = new LabeledTextField("Size in X and Y"
-      + ": ");
+  private final LabeledTextField ltfSubareaSize = new LabeledTextField(
+      FieldType.INTEGER_PAIR, "Size in X and Y" + ": ");
   private final LabeledTextField ltfLeaveIterations = new LabeledTextField(
-      "Iteration #'s to retain: ");
+      FieldType.INTEGER_LIST, "Iteration #'s to retain: ");
   private final CheckBox cbScaleToInteger = new CheckBox(
       "Scale retained volumes to integers");
   private final ActionListener listener = new SirtActionListener(this);
@@ -101,7 +103,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
   private final CheckBox cbCleanUpPastStart = new CheckBox(
       "Delete existing reconstructions after starting point");
   private final LabeledTextField ltfFlatFilterFraction = new LabeledTextField(
-      "Flat filter fraction: ");
+      FieldType.FLOATING_POINT, "Flat filter fraction: ");
   private final SpacedPanel pnlSirtsetupParamsBody = SpacedPanel.getInstance(true);
   private final ButtonGroup bgStartingIteration = new ButtonGroup();
   private final RadioButton rbStartFromZero = new RadioButton("Start from beginning",
@@ -212,7 +214,8 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     pnlScaleToInteger.add(cbScaleToInteger);
     pnlScaleToInteger.add(Box.createHorizontalGlue());
     // SkipVertSliceOutput panel
-    pnlSkipVertSliceOutput.setLayout(new BoxLayout(pnlSkipVertSliceOutput, BoxLayout.X_AXIS));
+    pnlSkipVertSliceOutput.setLayout(new BoxLayout(pnlSkipVertSliceOutput,
+        BoxLayout.X_AXIS));
     pnlSkipVertSliceOutput.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlSkipVertSliceOutput.add(cbSkipVertSliceOutput);
     pnlSkipVertSliceOutput.add(Box.createHorizontalGlue());
@@ -351,58 +354,65 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     loadResumeFrom();
   }
 
-  public boolean getParameters(final SirtsetupParam param) {
+  public boolean getParameters(final SirtsetupParam param, final boolean doValidation) {
     try {
-      if (ltfLeaveIterations.isEmpty()) {
-        UIHarness.INSTANCE.openMessageDialog(manager, ltfLeaveIterations.getLabel()
-            + " is empty.", "Entry Error", axisID);
-        return false;
-      }
-      param.setLeaveIterations(ltfLeaveIterations.getText());
-      if (cbSubarea.isSelected()) {
-        if (ltfSubareaSize.isEmpty()) {
-          UIHarness.INSTANCE.openMessageDialog(manager, ltfSubareaSize.getLabel()
+      try {
+        if (ltfLeaveIterations.isEmpty()) {
+          UIHarness.INSTANCE.openMessageDialog(manager, ltfLeaveIterations.getLabel()
               + " is empty.", "Entry Error", axisID);
           return false;
         }
-        param.setSubareaSize(ltfSubareaSize.getText());
-        param.setYOffsetOfSubarea(ltfYOffsetOfSubarea.getText());
+        param.setLeaveIterations(ltfLeaveIterations.getText(doValidation));
+        if (cbSubarea.isSelected()) {
+          if (ltfSubareaSize.isEmpty()) {
+            UIHarness.INSTANCE.openMessageDialog(manager, ltfSubareaSize.getLabel()
+                + " is empty.", "Entry Error", axisID);
+            return false;
+          }
+          param.setSubareaSize(ltfSubareaSize.getText(doValidation));
+          param.setYOffsetOfSubarea(ltfYOffsetOfSubarea.getText(doValidation));
+        }
+        else {
+          param.resetSubareaSize();
+          param.resetYOffsetOfSubarea();
+        }
+        param.setScaleToInteger(cbScaleToInteger.isSelected());
+        if (!radiusAndSigmaPanel.getParameters(param, doValidation)) {
+          return false;
+        }
+        param.setCleanUpPastStart(cbCleanUpPastStart.isSelected());
+        param.setFlatFilterFraction(ltfFlatFilterFraction.getText(doValidation));
+        param.setSkipVertSliceOutput(cbSkipVertSliceOutput.isSelected());
+      }
+      catch (FortranInputSyntaxException e) {
+        UIHarness.INSTANCE.openMessageDialog(manager, ltfSubareaSize.getLabel()
+            + " is an invalid list of integers.", "Entry Error", axisID);
+        return false;
+      }
+      if (rbStartFromZero.isSelected()) {
+        param.setStartFromZero(true);
+        param.resetResumeFromIteration();
+      }
+      else if (rbResumeFromLastIteration.isEnabled()
+          && rbResumeFromLastIteration.isSelected()) {
+        param.setStartFromZero(false);
+        param.resetResumeFromIteration();
+      }
+      else if (rbResumeFromIteration.isEnabled() && rbResumeFromIteration.isSelected()) {
+        param.setStartFromZero(false);
+        param.setResumeFromIteration((ConstEtomoNumber) cmbResumeFromIteration
+            .getSelectedItem());
       }
       else {
-        param.resetSubareaSize();
-        param.resetYOffsetOfSubarea();
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "Please select an enabled starting option.", "Entry Error", axisID);
+        return false;
       }
-      param.setScaleToInteger(cbScaleToInteger.isSelected());
-      radiusAndSigmaPanel.getParameters(param);
-      param.setCleanUpPastStart(cbCleanUpPastStart.isSelected());
-      param.setFlatFilterFraction(ltfFlatFilterFraction.getText());
-      param.setSkipVertSliceOutput(cbSkipVertSliceOutput.isSelected());
+      return true;
     }
-    catch (FortranInputSyntaxException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager, ltfSubareaSize.getLabel()
-          + " is an invalid list of integers.", "Entry Error", axisID);
+    catch (FieldValidationFailedException e) {
       return false;
     }
-    if (rbStartFromZero.isSelected()) {
-      param.setStartFromZero(true);
-      param.resetResumeFromIteration();
-    }
-    else if (rbResumeFromLastIteration.isEnabled()
-        && rbResumeFromLastIteration.isSelected()) {
-      param.setStartFromZero(false);
-      param.resetResumeFromIteration();
-    }
-    else if (rbResumeFromIteration.isEnabled() && rbResumeFromIteration.isSelected()) {
-      param.setStartFromZero(false);
-      param.setResumeFromIteration((ConstEtomoNumber) cmbResumeFromIteration
-          .getSelectedItem());
-    }
-    else {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Please select an enabled starting option.", "Entry Error", axisID);
-      return false;
-    }
-    return true;
   }
 
   void setParameters(final SirtsetupParam param) {
@@ -688,7 +698,8 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     cmbResumeFromIteration.setToolTipText(tooltip);
     btnSirt
         .setToolTipText("Run sirtsetup, and then run the resulting .com files with processchunks.");
-    btnUseSirt.setToolTipText("Use a SIRT result as the tomogram (change the extension to .rec).");
+    btnUseSirt
+        .setToolTipText("Use a SIRT result as the tomogram (change the extension to .rec).");
 
   }
 

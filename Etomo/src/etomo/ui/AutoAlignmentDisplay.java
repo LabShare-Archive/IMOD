@@ -31,5 +31,5 @@ public interface AutoAlignmentDisplay {
 
   public void getAutoAlignmentParameters(MidasParam param);
 
-  public void getAutoAlignmentParameters(XfalignParam param);
+  public boolean getAutoAlignmentParameters(XfalignParam param, boolean doValidation);
 }
