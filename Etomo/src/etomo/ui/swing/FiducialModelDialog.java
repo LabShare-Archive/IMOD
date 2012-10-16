@@ -822,6 +822,11 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     rbSeedModelTransfer.addActionListener(actionListener);
     btnSeed.addActionListener(actionListener);
     cbBoundaryModel.addActionListener(actionListener);
+    btnAutofidseed.addActionListener(actionListener);
+    btn3dmodAutofidseed.addActionListener(actionListener);
+    btn3dmodInitialBeadFinding.addActionListener(actionListener);
+    btn3dmodBeadSortingAndSearching.addActionListener(actionListener);
+    btnCleanup.addActionListener(actionListener);
     btnAdvanced.register(this);
   }
 
@@ -1042,6 +1047,21 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     }
     else if (command.equals(cbBoundaryModel.getActionCommand())) {
       updateDisplay();
+    }
+    else if (command.equals(btnAutofidseed)) {
+      // TODO
+    }
+    else if (command.equals(btn3dmodAutofidseed)) {
+      // TODO
+    }
+    else if (command.equals(btn3dmodInitialBeadFinding)) {
+      // TODO
+    }
+    else if (command.equals(btn3dmodBeadSortingAndSearching)) {
+      // TODO
+    }
+    else if (command.equals(btnCleanup)) {
+      // TODO
     }
   }
 
