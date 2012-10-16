@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/16/12: ETomo: Added field validation and better white space handling for
+numeric text fields.(bug# 1614)
+
 10/4/12: IMOD_4-6-15
 10/4/12: Pixel sizes are now obtained from DigitalMicrograph files and stored
 in output file by dm2mrc.  They are read from TIFF files and stored in output
