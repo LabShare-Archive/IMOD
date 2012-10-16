@@ -86,10 +86,10 @@ bn.done =
 
 [function = test-final-match]
 tb.setup.2=
+mb.patchcorr-parameters.1=A
 #test fields
 assert.tf.kernel-filtering-with-sigma=1.0
 #test field validation
-mb.patchcorr-parameters.1=A
 cb.kernel-filtering-with-sigma=on
 tf.kernel-filtering-with-sigma=1.0abc
 bn.restart-at-patchcorr=
@@ -102,19 +102,19 @@ mb.patchcorr-parameters.1=B
 
 [function = test-volcombine]
 tb.setup.2=
+mb.volcombine-parameters.1=A
 #test fields
-assert.tf.reduction-factor-for-matching-amplitudes-in-combined-FFT=0.0
+assert.tf.reduction-factor-for-matching-amplitudes-in-combined-fft=0.0
 assert.tf.radius-below-which-to-average-components-from-both-tomograms=0.0
 #test enabled/disabled
-assert.enabled.tf.reduction-factor-for-matching-amplitudes-in-combined-FFT=
+assert.enabled.tf.reduction-factor-for-matching-amplitudes-in-combined-fft=
 assert.enabled.tf.radius-below-which-to-average-components-from-both-tomograms=
 #test field validation
-mb.volcombine-parameters.1=A
-tf.reduction-factor-for-matching-amplitudes-in-combined-FFT=0.0abc
+tf.reduction-factor-for-matching-amplitudes-in-combined-fft=0.0abc
 bn.restart-at-volcombine=
 wait.popup.field-validation-failed=OK
 assert.disabled.bn.kill-process=
-tf.reduction-factor-for-matching-amplitudes-in-combined-FFT=0.0
+tf.reduction-factor-for-matching-amplitudes-in-combined-fft=0.0
 #
 mb.volcombine-parameters.1=A
 tf.radius-below-which-to-average-components-from-both-tomograms=0.0abc
