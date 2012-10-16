@@ -541,7 +541,7 @@ public final class SerialSectionsManager extends BaseManager {
       }
     }
     else {
-      ConstNewstParam param = updateNewstCom(axisID,true);
+      ConstNewstParam param = updateNewstCom(axisID, true);
       if (param == null) {
         if (processSeries != null) {
           processSeries.startFailProcess(axisID);
@@ -567,7 +567,7 @@ public final class SerialSectionsManager extends BaseManager {
     setThreadName(threadName, axisID);
   }
 
-  private ConstNewstParam updateNewstCom(final AxisID axisID,final boolean doValidation) {
+  private ConstNewstParam updateNewstCom(final AxisID axisID, final boolean doValidation) {
     if (dialog == null) {
       return null;
     }
@@ -578,9 +578,9 @@ public final class SerialSectionsManager extends BaseManager {
       param.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
       param.setTransformFile(FileType.GLOBAL_TRANSFORMATION_LIST
           .getFileName(this, axisID));
-     if (! dialog.getParameters(param,doValidation)) {
-       return null;
-     }
+      if (!dialog.getParameters(param, doValidation)) {
+        return null;
+      }
       comScriptMgr.saveNewst(param, axisID);
     }
     catch (NumberFormatException except) {
@@ -810,13 +810,13 @@ public final class SerialSectionsManager extends BaseManager {
         return false;
       }
     }
-    dialog.getParameters(metaData);
+    dialog.getParameters(metaData, false);
     if (getViewType() == ViewType.MONTAGE) {
       updatePreblendComscript(AXIS_ID, false);
-      updateBlendComscript(AXIS_ID,false);
+      updateBlendComscript(AXIS_ID, false);
     }
     else {
-      updateNewstCom(AXIS_ID,false);
+      updateNewstCom(AXIS_ID, false);
     }
     saveStorables(AXIS_ID);
     return true;
@@ -963,8 +963,11 @@ public final class SerialSectionsManager extends BaseManager {
     return metaData.getAutoAlignmentMetaData();
   }
 
-  public boolean updateMetaData(final DialogType dialogType, final AxisID axisID) {
-    dialog.getParameters(metaData);
+  public boolean updateMetaData(final DialogType dialogType, final AxisID axisID,
+      final boolean doValidation) {
+    if (!dialog.getParameters(metaData, doValidation)) {
+      return false;
+    }
     return true;
   }
 
