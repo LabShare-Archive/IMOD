@@ -83,6 +83,26 @@ public final class DatasetTool {
 
   /**
    * Validates the dataset directory, including sharing.
+   * @param manager
+   * @param axisID
+   * @param inputFile
+   * @param dataFileType
+   * @param axisType
+   * @return
+   */
+  public static boolean validateDatasetName(final BaseManager manager,
+      final AxisID axisID, final File inputFile, final DataFileType dataFileType,
+      final AxisType axisType) {
+    if (inputFile == null) {
+      UIHarness.INSTANCE.openMessageDialog(manager, null, "The input file is empty.",
+          MESSAGE_TITLE, axisID);
+    }
+    return validateDatasetName(manager, null, axisID, inputFile.getParentFile(),
+        inputFile.getName(), dataFileType, axisType);
+  }
+
+  /**
+   * Validates the dataset directory, including sharing.
    * @param manager - for popping up error message
    * @param axisID - for popping up error message
    * @param directory - directory in which the new dataset will be created
