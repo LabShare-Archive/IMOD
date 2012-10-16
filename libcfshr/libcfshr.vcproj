@@ -48,6 +48,7 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
+				OpenMP="true"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\Release/libcfshr.pch"
 				AssemblerListingLocation=".\Release/"
@@ -357,6 +358,22 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\dsyevc3.c"
+				>
+			</File>
+			<File
+				RelativePath=".\dsyevh3.c"
+				>
+			</File>
+			<File
+				RelativePath=".\dsyevq3.c"
+				>
+			</File>
+			<File
+				RelativePath=".\dsytrd3.c"
+				>
+			</File>
+			<File
 				RelativePath="filtxcorr.c"
 				>
 				<FileConfiguration
@@ -616,6 +633,10 @@
 						BasicRuntimeChecks="3"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\regression.c"
+				>
 			</File>
 			<File
 				RelativePath=".\robuststat.c"

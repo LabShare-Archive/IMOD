@@ -308,6 +308,7 @@ EXPORTS
 	AdocGetInteger
 	b3dFseek
 	PIPGETTWOINTEGERS
+	setZoomValueScaling
 	SLICEEDGEMEAN
 	PipReadOptionFile
 	AdocNew
