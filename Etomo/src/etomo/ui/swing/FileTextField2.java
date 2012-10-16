@@ -20,6 +20,7 @@ import javax.swing.filechooser.FileFilter;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.ui.FieldType;
 import etomo.util.FilePath;
 import etomo.util.Utilities;
 
@@ -40,6 +41,9 @@ import etomo.util.Utilities;
 */
 final class FileTextField2 implements FileTextFieldInterface {
   public static final String rcsid = "$Id:$";
+
+  // Assuming the field type is always non-numeric
+  private final FieldType STRING_FIELD_TYPE = FieldType.STRING;
 
   private final JPanel panel = new JPanel();
   private final GridBagLayout layout = new GridBagLayout();
@@ -65,7 +69,6 @@ final class FileTextField2 implements FileTextFieldInterface {
    */
   private boolean originEtomoRunDir = false;
 
-
   private FileTextField2(final BaseManager manager, final String label,
       final boolean labeled, final boolean peet) {
     if (!peet) {
@@ -77,7 +80,7 @@ final class FileTextField2 implements FileTextFieldInterface {
           ClassLoader.getSystemResource("images/openFilePeet.png")));
     }
     button.setName(label);
-    field = new TextField(label);
+    field = new TextField(STRING_FIELD_TYPE, label);
     this.label = new JLabel(label);
     this.labeled = labeled;
     this.manager = manager;
@@ -123,7 +126,7 @@ final class FileTextField2 implements FileTextFieldInterface {
 
   private void createPanel() {
     // init
-    field.setTextPreferredSize(new Dimension(250 * Math.round(UIParameters.INSTANCE
+    field.setTextPreferredSize(new Dimension(250 * (int) Math.round(UIParameters.INSTANCE
         .getFontSizeAdjustment()), FixedDim.folderButton.height));
     button.setName(label.getText());
     button.setPreferredSize(FixedDim.folderButton);
@@ -228,9 +231,10 @@ final class FileTextField2 implements FileTextFieldInterface {
   }
 
   boolean isEmpty() {
-    return field.getText() == null || field.getText().matches("\\s*");
+    String text = field.getText();
+    return text == null || text.matches("\\s*");
   }
-  
+
   boolean isEnabled() {
     return button.isEnabled();
   }
@@ -240,7 +244,8 @@ final class FileTextField2 implements FileTextFieldInterface {
   }
 
   public File getFile() {
-    return FilePath.buildAbsoluteFile(getOriginDir(), field.getText());
+    String text = field.getText();
+    return FilePath.buildAbsoluteFile(getOriginDir(), text);
   }
 
   /**

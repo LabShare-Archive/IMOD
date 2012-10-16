@@ -1914,7 +1914,7 @@ public abstract class BaseManager {
       }
     }
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
-    if (!parallelPanel.getResumeParameters(param)) {
+    if (!parallelPanel.getResumeParameters(param, true)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }

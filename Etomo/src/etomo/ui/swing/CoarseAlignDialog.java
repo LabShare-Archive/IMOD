@@ -300,6 +300,8 @@ import etomo.type.DialogType;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 public final class CoarseAlignDialog extends ProcessDialog implements ContextMenu,
     FiducialessParams, Run3dmodButtonContainer {
@@ -313,12 +315,13 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
 
   private final JPanel pnlFiducialess = new JPanel();
   private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
-  private final LabeledTextField ltfRotation = new LabeledTextField("Tilt axis rotation:");
+  private final LabeledTextField ltfRotation = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Tilt axis rotation:");
   private final ActionListener actionListener;
 
   private final MultiLineButton btnMidas;
 
-  //Montaging
+  // Montaging
   private final MultiLineButton btnFixEdgesMidas;
   private final MultiLineButton btnDistortionCorrectedStack;
 
@@ -366,8 +369,8 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
 
     // Set the alignment and size of the UI objects
     UIUtilities.alignComponentsX(pnlCoarseAlign, Component.CENTER_ALIGNMENT);
-    UIUtilities.setButtonSizeAll(pnlCoarseAlign, UIParameters.INSTANCE
-        .getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlCoarseAlign,
+        UIParameters.INSTANCE.getButtonDimension());
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     UIUtilities.addWithSpace(rootPanel, pnlCoarseAlign, FixedDim.x0_y10);
@@ -385,12 +388,12 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
   }
 
   private void addListeners() {
-    //  Action listener assignment for the buttons
+    // Action listener assignment for the buttons
     btnMidas.addActionListener(actionListener);
     btnFixEdgesMidas.addActionListener(actionListener);
     btnDistortionCorrectedStack.addActionListener(actionListener);
 
-    //  Mouse adapter for context menu
+    // Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlCoarseAlign.addMouseListener(mouseAdapter);
   }
@@ -446,12 +449,12 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
   public void setParameters(ReconScreenState screenState) {
     tiltxcorrPanel.setParameters(screenState);
     pnlPrenewst.setParameters(screenState);
-    //btnMidas.setButtonState(screenState.getButtonState(btnMidas
-    //    .getButtonStateKey()));
-    //btnFixEdgesMidas.setButtonState(screenState.getButtonState(btnFixEdgesMidas
-    //    .getButtonStateKey()));
-    //btnDistortionCorrectedStack.setButtonState(screenState
-    //    .getButtonState(btnDistortionCorrectedStack.getButtonStateKey()));
+    // btnMidas.setButtonState(screenState.getButtonState(btnMidas
+    // .getButtonStateKey()));
+    // btnFixEdgesMidas.setButtonState(screenState.getButtonState(btnFixEdgesMidas
+    // .getButtonStateKey()));
+    // btnDistortionCorrectedStack.setButtonState(screenState
+    // .getButtonState(btnDistortionCorrectedStack.getButtonStateKey()));
   }
 
   public void getParameters(BaseScreenState screenState) {
@@ -471,8 +474,9 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     ltfRotation.setText(tiltAxisAngle);
   }
 
-  public String getImageRotation() {
-    return ltfRotation.getText();
+  public String getImageRotation(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfRotation.getText(doValidation);
   }
 
   void updateAdvanced() {

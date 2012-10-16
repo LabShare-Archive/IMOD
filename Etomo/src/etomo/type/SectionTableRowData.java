@@ -210,7 +210,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    */
   private final void convertVersion(String storedVersion, Properties props, String prepend) {
     if (storedVersion == null) {
-      //convert from version 1.0 to 1.1
+      // convert from version 1.0 to 1.1
       if (setupFinalStart.equals(EtomoNumber.INTEGER_NULL_VALUE)) {
         setupFinalStart.reset();
       }
@@ -240,11 +240,11 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     else {
       copySetupToJoin();
     }
-    //If inverted: start must be greater then end
-    //If not inverted:  end must be greater then start
+    // If inverted: start must be greater then end
+    // If not inverted: end must be greater then start
     if ((inverted.is() && joinFinalEnd.gt(joinFinalStart))
         || (!inverted.is() && joinFinalStart.gt(joinFinalEnd))) {
-      long temp = joinFinalEnd.getLong();
+      int temp = joinFinalEnd.getInt();
       joinFinalEnd.set(joinFinalStart);
       joinFinalStart.set(temp);
     }
@@ -321,20 +321,20 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    * @param z
    * @return converted z
    */
-  private final long convertToRotatedZ(ConstEtomoNumber z) {
+  private final int convertToRotatedZ(ConstEtomoNumber z) {
     double cosXY = Math.cos(Math.toRadians(rotationAngleX.getDefaultedDouble()))
         * Math.cos(Math.toRadians(rotationAngleY.getDefaultedDouble()));
     if (Math.abs(cosXY) <= COS_X_Y_THRESHOLD) {
-      return z.getLong();
+      return z.getInt();
     }
     double zSlice = z.getDouble();
     double zSize = setupZMax;
     double zSizeRotated = joinZMax;
-    //System.out.println("z=" + z + ",cosXY=" + cosXY + ",zSlice=" + zSlice
-    //    + ",zSize=" + zSize + ",zSizeRotated=" + zSizeRotated);
+    // System.out.println("z=" + z + ",cosXY=" + cosXY + ",zSlice=" + zSlice
+    // + ",zSize=" + zSize + ",zSizeRotated=" + zSizeRotated);
     double convertedZ = cosXY * (zSlice - (zSize + 1.) / 2.) + (zSizeRotated + 1.) / 2.;
-    //System.out.println("convertedZ=" + convertedZ);
-    return Math.round(convertedZ);
+    // System.out.println("convertedZ=" + convertedZ);
+    return (int) Math.round(convertedZ);
   }
 
   /**
@@ -350,20 +350,20 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    * @param z
    * @return converted z
    */
-  private final long convertFromRotatedZ(ConstEtomoNumber z) {
+  private final int convertFromRotatedZ(ConstEtomoNumber z) {
     double cosXY = Math.cos(Math.toRadians(rotationAngleX.getDefaultedDouble()))
         * Math.cos(Math.toRadians(rotationAngleY.getDefaultedDouble()));
     if (Math.abs(cosXY) <= COS_X_Y_THRESHOLD) {
-      return z.getLong();
+      return z.getInt();
     }
     double zSlice = z.getDouble();
     double zSize = setupZMax;
     double zSizeRotated = joinZMax;
-    //System.out.println("z=" + z + ",cosXY=" + cosXY + ",zSlice=" + zSlice
-    //    + ",zSize=" + zSize + ",zSizeRotated=" + zSizeRotated);
+    // System.out.println("z=" + z + ",cosXY=" + cosXY + ",zSlice=" + zSlice
+    // + ",zSize=" + zSize + ",zSizeRotated=" + zSizeRotated);
     double convertedZ = (zSlice - (zSizeRotated + 1.) / 2.) / cosXY + (zSize + 1.) / 2.;
-    //System.out.println("convertedZ=" + convertedZ);
-    return Math.round(convertedZ);
+    // System.out.println("convertedZ=" + convertedZ);
+    return (int)Math.round(convertedZ);
   }
 
   public void setRowNumber(int rowNumber) {

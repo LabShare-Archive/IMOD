@@ -88,6 +88,16 @@ public final class UIHarness {
     }
   }
 
+  public synchronized void openMessageDialog(final UIComponent uiComponent,
+      final String message, final String title) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
+      getFrame(null).displayMessage(null, uiComponent, message, title, null);
+    }
+    else {
+      log("openMessageDialog", message, title, null);
+    }
+  }
+
   public synchronized void openInfoMessageDialog(BaseManager manager, String message,
       String title, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {

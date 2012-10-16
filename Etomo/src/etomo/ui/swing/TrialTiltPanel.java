@@ -76,8 +76,8 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
   private final DialogType dialogType;
   private final TrialTiltParent parent;
 
-  //A way to know what items are currently in the trial tomogram combo box.
-  //It is set from MetaData, which is assumed to be not null.
+  // A way to know what items are currently in the trial tomogram combo box.
+  // It is set from MetaData, which is assumed to be not null.
   private IntKeyList trialTomogramList = null;
   private boolean resume = false;
 
@@ -107,29 +107,29 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
    * Layout the trial tomogram panel
    */
   private void createPanel() {
-    //Initialize
+    // Initialize
     cmboTrialTomogramName.setEditable(true);
     btnTrial.setSize();
     btn3dmodTrial.setSize();
     btnUseTrial.setSize();
-    //Local panels
+    // Local panels
     SpacedPanel northPanel = SpacedPanel.getInstance();
     SpacedPanel buttonPanel = SpacedPanel.getInstance();
-    //Root panel
+    // Root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(BorderFactory.createEtchedBorder());
     pnlRoot.add(header);
     pnlRoot.add(pnlBody.getContainer());
-    //Body panel
+    // Body panel
     pnlBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlBody.addRigidArea();
     pnlBody.add(northPanel);
     pnlBody.add(buttonPanel);
-    //North panel
+    // North panel
     northPanel.setBoxLayout(BoxLayout.X_AXIS);
     northPanel.add(lblTrialTomogramName);
     northPanel.add(cmboTrialTomogramName);
-    //Button panel
+    // Button panel
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     buttonPanel.add(btnTrial);
     buttonPanel.add(btn3dmodTrial);
@@ -206,10 +206,10 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
     return trialTomogramName;
   }
 
-  public boolean getParameters(TiltParam tiltParam) throws NumberFormatException,
-      InvalidParameterException, IOException {
+  public boolean getParameters(TiltParam tiltParam, final boolean doValidation)
+      throws NumberFormatException, InvalidParameterException, IOException {
     tiltParam.setCommandMode(TiltParam.Mode.TRIAL_TILT);
-    return parent.getParameters(tiltParam);
+    return parent.getParameters(tiltParam, doValidation);
   }
 
   void getParameters(ReconScreenState screenState) {
@@ -220,8 +220,8 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
     metaData.setTomoGenTrialTomogramNameList(axisID, trialTomogramList);
   }
 
-  public boolean getParameters(final SplittiltParam param) {
-    return parent.getParameters(param);
+  public boolean getParameters(final SplittiltParam param, final boolean doValidation) {
+    return parent.getParameters(param, doValidation);
   }
 
   void setParameters(ConstMetaData metaData) {
@@ -231,8 +231,8 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
 
   final void setParameters(ReconScreenState screenState) {
     header.setState(screenState.getTomoGenTrialTiltHeaderState());
-    btnUseTrial.setButtonState(screenState
-        .getButtonState(btnUseTrial.getButtonStateKey()));
+    btnUseTrial
+        .setButtonState(screenState.getButtonState(btnUseTrial.getButtonStateKey()));
   }
 
   public void expand(final GlobalExpandButton button) {
@@ -263,8 +263,13 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
   void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnTrial.getActionCommand())) {
-      manager.trialAction(btnTrial, null, this, axisID, dialogType, manager
-          .getProcessingMethodMediator(axisID).getRunMethodForProcessInterface(
+      manager.trialAction(
+          btnTrial,
+          null,
+          this,
+          axisID,
+          dialogType,
+          manager.getProcessingMethodMediator(axisID).getRunMethodForProcessInterface(
               parent.getProcessingMethod()));
     }
     else if (command.equals(btnUseTrial.getActionCommand())) {

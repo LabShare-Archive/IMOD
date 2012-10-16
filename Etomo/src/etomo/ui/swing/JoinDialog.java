@@ -48,6 +48,8 @@ import etomo.type.JoinState;
 import etomo.type.NullRequiredNumberException;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.AutoAlignmentDisplay;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -552,7 +554,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
   private LabeledTextField ltfShiftInX;
   private LabeledTextField ltfShiftInY;
   private final CheckBox cbLocalFits = new CheckBox("Do local linear fits");
-  private LabeledTextField ltfMidasLimit = new LabeledTextField("Squeeze samples to ");
+  private LabeledTextField ltfMidasLimit = new LabeledTextField(FieldType.INTEGER,
+      "Squeeze samples to ");
   private JLabel lblMidasLimit = new JLabel("pixels if bigger.");
   private CheckBoxSpinner cbsAlignmentRefSection;
   private LabeledSpinner spinDensityRefSection;
@@ -588,14 +591,19 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
   private SpacedPanel pnlTransformations = null;
   private final TransformChooserPanel tcModel = new TransformChooserPanel();
   private final LabeledTextField ltfBoundariesToAnalyze = new LabeledTextField(
-      "Boundaries to analyze: ");
+      FieldType.INTEGER_LIST, "Boundaries to analyze: ");
   private final LabeledTextField ltfObjectsToInclude = new LabeledTextField(
-      "Objects to include: ");
-  private final LabeledTextField ltfGapStart = new LabeledTextField("Start: ");
-  private final LabeledTextField ltfGapEnd = new LabeledTextField("End: ");
-  private final LabeledTextField ltfGapInc = new LabeledTextField("Increment: ");
-  private final LabeledTextField ltfPointsToFitMin = new LabeledTextField("Min: ");
-  private final LabeledTextField ltfPointsToFitMax = new LabeledTextField("Max: ");
+      FieldType.INTEGER_LIST, "Objects to include: ");
+  private final LabeledTextField ltfGapStart = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Start: ");
+  private final LabeledTextField ltfGapEnd = new LabeledTextField(
+      FieldType.FLOATING_POINT, "End: ");
+  private final LabeledTextField ltfGapInc = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Increment: ");
+  private final LabeledTextField ltfPointsToFitMin = new LabeledTextField(
+      FieldType.INTEGER, "Min: ");
+  private final LabeledTextField ltfPointsToFitMax = new LabeledTextField(
+      FieldType.INTEGER, "Max: ");
   private JPanel pnlTables = null;
   private JPanel pnlRejoin = null;
 
@@ -1037,7 +1045,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     ftfWorkingDir = new FileTextField(WORKING_DIRECTORY_TEXT + ": ");
     ftfWorkingDir.setText(workingDirName);
     // second component
-    ltfRootName = new LabeledTextField("Root name for output file: ");
+    ltfRootName = new LabeledTextField(FieldType.STRING, "Root name for output file: ");
     // third component
     pnlSectionTable = new SectionTablePanel(this, manager, state);
     // midas limit panel
@@ -1239,7 +1247,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     pnlTransformModel.setBorder(new EtchedBorder("Transform Model").getBorder());
     pnlTransformModel.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     pnlTransformModel.add(ftfModelFile.getContainer());
-    ltfTransformedModel = new LabeledTextField("Output file: ");
+    ltfTransformedModel = new LabeledTextField(FieldType.STRING, "Output file: ");
     pnlTransformModel.add(ltfTransformedModel.getContainer());
     // transform model buttons
     JPanel pnlTransformModelButtons = new JPanel();
@@ -1274,7 +1282,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     pnlFinishJoin.setBorder(BorderFactory.createEtchedBorder());
     pnlFinishJoin.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     // first component
-    cbsAlignmentRefSection = new CheckBoxSpinner("Reference section for alignment: ");
+    cbsAlignmentRefSection = CheckBoxSpinner
+        .getInstance("Reference section for alignment: ");
     SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1, numSections < 1 ? 1
         : numSections, 1);
     cbsAlignmentRefSection.setModel(spinnerModel);
@@ -1287,17 +1296,17 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     // third component
     SpacedPanel finishJoinPanel2 = SpacedPanel.getInstance();
     finishJoinPanel2.setBoxLayout(BoxLayout.X_AXIS);
-    ltfSizeInX = new LabeledTextField("Size in X: ");
+    ltfSizeInX = new LabeledTextField(FieldType.INTEGER, "Size in X: ");
     finishJoinPanel2.add(ltfSizeInX);
-    ltfSizeInY = new LabeledTextField("Y: ");
+    ltfSizeInY = new LabeledTextField(FieldType.INTEGER, "Y: ");
     finishJoinPanel2.add(ltfSizeInY);
     pnlFinishJoin.add(finishJoinPanel2);
     // fourth component
     SpacedPanel finishJoinPanel3 = SpacedPanel.getInstance();
     finishJoinPanel3.setBoxLayout(BoxLayout.X_AXIS);
-    ltfShiftInX = new LabeledTextField("Shift in X: ");
+    ltfShiftInX = new LabeledTextField(FieldType.INTEGER, "Shift in X: ");
     finishJoinPanel3.add(ltfShiftInX);
-    ltfShiftInY = new LabeledTextField("Y: ");
+    ltfShiftInY = new LabeledTextField(FieldType.INTEGER, "Y: ");
     finishJoinPanel3.add(ltfShiftInY);
     pnlFinishJoin.add(finishJoinPanel3);
     JPanel pnlLocalFits = new JPanel();
@@ -1429,24 +1438,6 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     ltfSizeInY.setText(defaultYSize);
   }
 
-  public ConstEtomoNumber getSizeInY() {
-    EtomoNumber sizeInY = new EtomoNumber(EtomoNumber.Type.INTEGER);
-    sizeInY.set(ltfSizeInY.getText());
-    return sizeInY;
-  }
-
-  public ConstEtomoNumber getShiftInX() {
-    EtomoNumber shiftInX = new EtomoNumber(EtomoNumber.Type.INTEGER);
-    shiftInX.set(ltfShiftInX.getText());
-    return shiftInX;
-  }
-
-  public ConstEtomoNumber getShiftInY() {
-    EtomoNumber shiftInY = new EtomoNumber(EtomoNumber.Type.INTEGER);
-    shiftInY.set(ltfShiftInY.getText());
-    return shiftInY;
-  }
-
   public void setSizeInX(ConstEtomoNumber sizeInX) {
     ltfSizeInX.setText(sizeInX.toString());
   }
@@ -1474,14 +1465,21 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     return pnlSectionTable.getMode();
   }
 
-  public void getParameters(XfjointomoParam param) {
-    param.setTransform(tcModel.get());
-    param.setBoundariesToAnalyze(ltfBoundariesToAnalyze.getText());
-    param.setObjectsToInclude(ltfObjectsToInclude.getText());
-    param.setPointsToFit(ltfPointsToFitMin.getText(), ltfPointsToFitMax.getText());
-    if (cbGap.isSelected()) {
-      param.setGapStartEndInc(ltfGapStart.getText(), ltfGapEnd.getText(),
-          ltfGapInc.getText());
+  public boolean getParameters(XfjointomoParam param, final boolean doValidation) {
+    try {
+      param.setTransform(tcModel.get());
+      param.setBoundariesToAnalyze(ltfBoundariesToAnalyze.getText(doValidation));
+      param.setObjectsToInclude(ltfObjectsToInclude.getText(doValidation));
+      param.setPointsToFit(ltfPointsToFitMin.getText(doValidation),
+          ltfPointsToFitMax.getText(doValidation));
+      if (cbGap.isSelected()) {
+        param.setGapStartEndInc(ltfGapStart.getText(doValidation),
+            ltfGapEnd.getText(doValidation), ltfGapInc.getText(doValidation));
+      }
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
@@ -1489,8 +1487,10 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     manager.getParameters(param, axisID);
   }
 
-  public void getAutoAlignmentParameters(final XfalignParam param) {
+  public boolean getAutoAlignmentParameters(final XfalignParam param,
+      final boolean doValidation) {
     manager.getParameters(param, axisID);
+    return true;
   }
 
   public void setXfjointomoResult() throws LogFile.LockException, FileNotFoundException,
@@ -1740,136 +1740,141 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
    */
   private void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (command.equals(btnMakeSamples.getActionCommand())) {
-      if (ftfWorkingDir.isEditable()
-          && !DatasetTool.validateDatasetName(manager, axisID, ftfWorkingDir.getFile(),
-              ltfRootName.getText(), DataFileType.JOIN, null)) {
-        return;
+    try {
+      if (command.equals(btnMakeSamples.getActionCommand())) {
+        if (ftfWorkingDir.isEditable()
+            && !DatasetTool.validateDatasetName(manager, axisID, ftfWorkingDir.getFile(),
+                ltfRootName.getText(), DataFileType.JOIN, null)) {
+          return;
+        }
+        manager.makejoincom(null, deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
       }
-      manager.makejoincom(null, deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
-    }
-    else if (command.equals(btnFinishJoin.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.FINISH_JOIN, FINISH_JOIN_TEXT, null,
-          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
-    }
-    else if (command.equals(btnGetMaxSize.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.MAX_SIZE, GET_MAX_SIZE_TEXT, null, null,
-          null, DIALOG_TYPE);
-    }
-    else if (command.equals(btnTrialJoin.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.TRIAL, TRIAL_JOIN_TEXT, null,
-          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
-    }
-    else if (command.equals(btnGetSubarea.getActionCommand())) {
-      try {
-        setSizeAndShift(manager.imodGetRubberbandCoordinates(ImodManager.TRIAL_JOIN_KEY,
-            AxisID.ONLY));
+      else if (command.equals(btnFinishJoin.getActionCommand())) {
+        manager.finishjoin(FinishjoinParam.Mode.FINISH_JOIN, FINISH_JOIN_TEXT, null,
+            deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
       }
-      catch (NullRequiredNumberException e) {
-        UIHarness.INSTANCE.openMessageDialog(manager,
-            "Unable to retrieve the trial join's binning, size and/or shift.  Please "
-                + "press " + btnGetMaxSize.getUnformattedLabel()
-                + " and then rebuild the trial join in order get a correct subarea "
-                + "size and " + "shift.\n" + e.getMessage(), "Rerun Trial Join");
+      else if (command.equals(btnGetMaxSize.getActionCommand())) {
+        manager.finishjoin(FinishjoinParam.Mode.MAX_SIZE, GET_MAX_SIZE_TEXT, null, null,
+            null, DIALOG_TYPE);
       }
-    }
-    else if (command.equals(btnChangeSetup.getActionCommand())) {
-      // Prepare for Revert: meta data file should match the screen
-      JoinMetaData metaData = manager.getJoinMetaData();
-      getMetaData(metaData);
-      try {
-        ParameterStore parameterStore = manager.getParameterStore();
-        if (parameterStore != null) {
-          parameterStore.save(metaData);
+      else if (command.equals(btnTrialJoin.getActionCommand())) {
+        manager.finishjoin(FinishjoinParam.Mode.TRIAL, TRIAL_JOIN_TEXT, null,
+            deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
+      }
+      else if (command.equals(btnGetSubarea.getActionCommand())) {
+        try {
+          setSizeAndShift(manager.imodGetRubberbandCoordinates(
+              ImodManager.TRIAL_JOIN_KEY, AxisID.ONLY));
+        }
+        catch (NullRequiredNumberException e) {
+          UIHarness.INSTANCE.openMessageDialog(manager,
+              "Unable to retrieve the trial join's binning, size and/or shift.  Please "
+                  + "press " + btnGetMaxSize.getUnformattedLabel()
+                  + " and then rebuild the trial join in order get a correct subarea "
+                  + "size and " + "shift.\n" + e.getMessage(), "Rerun Trial Join");
         }
       }
-      catch (LogFile.LockException e) {
-        UIHarness.INSTANCE.openMessageDialog(manager,
-            "Unable to save or write JoinMetaData.\n" + e.getMessage(), "Etomo Error");
+      else if (command.equals(btnChangeSetup.getActionCommand())) {
+        // Prepare for Revert: meta data file should match the screen
+        JoinMetaData metaData = manager.getJoinMetaData();
+        getMetaData(metaData);
+        try {
+          ParameterStore parameterStore = manager.getParameterStore();
+          if (parameterStore != null) {
+            parameterStore.save(metaData);
+          }
+        }
+        catch (LogFile.LockException e) {
+          UIHarness.INSTANCE.openMessageDialog(manager,
+              "Unable to save or write JoinMetaData.\n" + e.getMessage(), "Etomo Error");
+        }
+        catch (IOException e) {
+          UIHarness.INSTANCE.openMessageDialog(manager,
+              "Unable to save or write JoinMetaData.\n" + e.getMessage(), "Etomo Error");
+        }
+        setMode(JoinDialog.CHANGING_SAMPLE_MODE);
       }
-      catch (IOException e) {
-        UIHarness.INSTANCE.openMessageDialog(manager,
-            "Unable to save or write JoinMetaData.\n" + e.getMessage(), "Etomo Error");
+      else if (command.equals(btnRevertToLastSetup.getActionCommand())) {
+        ConstJoinMetaData metaData = manager.getConstMetaData();
+        if (!state.isSampleProduced()) {
+          throw new IllegalStateException(
+              "sample produced is false but Revert to Last Setup is enabled");
+        }
+        pnlSectionTable.deleteSections();
+        setMetaData(manager.getConstMetaData());
+        state.revert();
+        setMode(SAMPLE_PRODUCED_MODE);
       }
-      setMode(JoinDialog.CHANGING_SAMPLE_MODE);
-    }
-    else if (command.equals(btnRevertToLastSetup.getActionCommand())) {
-      ConstJoinMetaData metaData = manager.getConstMetaData();
-      if (!state.isSampleProduced()) {
-        throw new IllegalStateException(
-            "sample produced is false but Revert to Last Setup is enabled");
+      else if (command.equals(btnRefineJoin.getActionCommand())) {
+        startRefine();
       }
-      pnlSectionTable.deleteSections();
-      setMetaData(manager.getConstMetaData());
-      state.revert();
-      setMode(SAMPLE_PRODUCED_MODE);
-    }
-    else if (command.equals(btnRefineJoin.getActionCommand())) {
-      startRefine();
-    }
-    else if (command.equals(btnXfjointomo.getActionCommand())) {
-      manager.xfjointomo(null);
-    }
-    else if (command.equals(btnRejoin.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.REJOIN, REJOIN_TEXT, null,
-          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
-    }
-    else if (command.equals(btnTrialRejoin.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.TRIAL_REJOIN, TRIAL_REJOIN_TEXT, null,
-          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
-    }
-    else if (command.equals(cbGap.getActionCommand())) {
-      updateDisplay();
-    }
-    else if (command.equals(btnTransformModel.getActionCommand())) {
-      manager.xfmodel(ftfModelFile.getText(), ltfTransformedModel.getText(), null,
-          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
-    }
-    else if (command.equals(btnTransformAndViewModel.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.SUPPRESS_EXECUTION, REJOIN_TEXT, null,
-          null, null, DIALOG_TYPE);
-    }
-    else if (command.equals(btnOpenSample.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_SAMPLES_KEY, run3dmodMenuOptions);
-    }
-    else if (command.equals(btnOpenSampleAverages.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_SAMPLE_AVERAGES_KEY, run3dmodMenuOptions);
-    }
-    else if (command.equals(b3bOpenIn3dmod.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenIn3dmod.getBinningInXandY(),
-          run3dmodMenuOptions);
-    }
-    else if (command.equals(b3bOpenTrialIn3dmod.getActionCommand())) {
-      manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
-          b3bOpenTrialIn3dmod.getBinningInXandY(), run3dmodMenuOptions);
-    }
-    else if (command.equals(btnMakeRefiningModel.getActionCommand())) {
-      manager.imodOpen(AxisID.ONLY, ImodManager.MODELED_JOIN_KEY,
-          DatasetFiles.getRefineModelFileName(manager), run3dmodMenuOptions, true);
-    }
-    else if (command.equals(b3bOpenRejoin.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoin.getBinningInXandY(),
-          DatasetFiles.getRefineAlignedModelFileName(manager), run3dmodMenuOptions);
-    }
-    else if (command.equals(b3bOpenTrialRejoin.getActionCommand())) {
-      ConstEtomoNumber useEveryNSlices = state.getRefineTrialUseEveryNSlices();
-      if (useEveryNSlices.isNull() || useEveryNSlices.gt(1)) {
-        // don't open the model if all the slices have not been included
+      else if (command.equals(btnXfjointomo.getActionCommand())) {
+        manager.xfjointomo(null);
+      }
+      else if (command.equals(btnRejoin.getActionCommand())) {
+        manager.finishjoin(FinishjoinParam.Mode.REJOIN, REJOIN_TEXT, null,
+            deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
+      }
+      else if (command.equals(btnTrialRejoin.getActionCommand())) {
+        manager.finishjoin(FinishjoinParam.Mode.TRIAL_REJOIN, TRIAL_REJOIN_TEXT, null,
+            deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
+      }
+      else if (command.equals(cbGap.getActionCommand())) {
+        updateDisplay();
+      }
+      else if (command.equals(btnTransformModel.getActionCommand())) {
+        manager.xfmodel(ftfModelFile.getText(), ltfTransformedModel.getText(true), null,
+            deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
+      }
+      else if (command.equals(btnTransformAndViewModel.getActionCommand())) {
+        manager.finishjoin(FinishjoinParam.Mode.SUPPRESS_EXECUTION, REJOIN_TEXT, null,
+            null, null, DIALOG_TYPE);
+      }
+      else if (command.equals(btnOpenSample.getActionCommand())) {
+        manager.imodOpen(ImodManager.JOIN_SAMPLES_KEY, run3dmodMenuOptions);
+      }
+      else if (command.equals(btnOpenSampleAverages.getActionCommand())) {
+        manager.imodOpen(ImodManager.JOIN_SAMPLE_AVERAGES_KEY, run3dmodMenuOptions);
+      }
+      else if (command.equals(b3bOpenIn3dmod.getActionCommand())) {
+        manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenIn3dmod.getBinningInXandY(),
+            run3dmodMenuOptions);
+      }
+      else if (command.equals(b3bOpenTrialIn3dmod.getActionCommand())) {
         manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
-            b3bOpenTrialRejoin.getBinningInXandY(), run3dmodMenuOptions);
+            b3bOpenTrialIn3dmod.getBinningInXandY(), run3dmodMenuOptions);
       }
-      else {
-        manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
-            b3bOpenTrialRejoin.getBinningInXandY(),
+      else if (command.equals(btnMakeRefiningModel.getActionCommand())) {
+        manager.imodOpen(AxisID.ONLY, ImodManager.MODELED_JOIN_KEY,
+            DatasetFiles.getRefineModelFileName(manager), run3dmodMenuOptions, true);
+      }
+      else if (command.equals(b3bOpenRejoin.getActionCommand())) {
+        manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoin.getBinningInXandY(),
             DatasetFiles.getRefineAlignedModelFileName(manager), run3dmodMenuOptions);
       }
+      else if (command.equals(b3bOpenTrialRejoin.getActionCommand())) {
+        ConstEtomoNumber useEveryNSlices = state.getRefineTrialUseEveryNSlices();
+        if (useEveryNSlices.isNull() || useEveryNSlices.gt(1)) {
+          // don't open the model if all the slices have not been included
+          manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
+              b3bOpenTrialRejoin.getBinningInXandY(), run3dmodMenuOptions);
+        }
+        else {
+          manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
+              b3bOpenTrialRejoin.getBinningInXandY(),
+              DatasetFiles.getRefineAlignedModelFileName(manager), run3dmodMenuOptions);
+        }
+      }
+      else if (command.equals(b3bOpenRejoinWithModel.getActionCommand())) {
+        manager.imodOpen(ImodManager.JOIN_KEY,
+            b3bOpenRejoinWithModel.getBinningInXandY(),
+            ltfTransformedModel.getText(true), run3dmodMenuOptions);
+      }
+      else {
+        throw new IllegalStateException("Unknown command " + command);
+      }
     }
-    else if (command.equals(b3bOpenRejoinWithModel.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoinWithModel.getBinningInXandY(),
-          ltfTransformedModel.getText(), run3dmodMenuOptions);
-    }
-    else {
-      throw new IllegalStateException("Unknown command " + command);
+    catch (FieldValidationFailedException e) {
     }
   }
 

@@ -2,6 +2,7 @@ package etomo.ui.swing;
 
 import etomo.type.FiducialMatch;
 import etomo.type.MatchMode;
+import etomo.ui.FieldValidationFailedException;
 
 /**
 * <p>Description: </p>
@@ -54,9 +55,15 @@ interface InitialCombineFields {
 
   public void setFiducialMatchListA(String fiducialMatchListA);
 
+  public String getFiducialMatchListA(boolean doValidation)
+      throws FieldValidationFailedException;
+
   public String getFiducialMatchListA();
 
   public void setFiducialMatchListB(String fiducialMatchListB);
+
+  public String getFiducialMatchListB(boolean doValidation)
+      throws FieldValidationFailedException;
 
   public String getFiducialMatchListB();
 
@@ -67,6 +74,9 @@ interface InitialCombineFields {
   public void setUseCorrespondingPoints(boolean use);
 
   public void setUseList(String useList);
+
+  public String getUseList(final boolean doValidation)
+      throws FieldValidationFailedException;
 
   public String getUseList();
 

@@ -209,9 +209,14 @@ final class Spinner {
   }
 
   void setVisible(final boolean visible) {
-    panel.setVisible(visible);
+    if (panel == null) {
+      spinner.setVisible(visible);
+    }
+    else {
+      panel.setVisible(visible);
+    }
   }
-  
+
   boolean isVisible() {
     return panel.isVisible();
   }

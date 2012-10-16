@@ -22,6 +22,8 @@ import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.FilePath;
 
 /**
@@ -66,8 +68,8 @@ final class ReferencePanel {
 
   private final EtomoPanel pnlRoot = new EtomoPanel();
   private final ButtonGroup bgReference = new ButtonGroup();
-  private final RadioTextField rtfParticle = RadioTextField.getInstance("Particle ",
-      bgReference);
+  private final RadioTextField rtfParticle = RadioTextField.getInstance(
+      FieldType.INTEGER, "Particle ", bgReference);
   private final Spinner sVolume = Spinner.getLabeledInstance("In Volume: ");
   private final RadioButton rbFile = new RadioButton(REFERENCE_FILE_LABEL, bgReference);
   private final FileTextField2 ftfFile;
@@ -227,19 +229,25 @@ final class ReferencePanel {
    * Send active data to MatlabParam.
    * @param matlabParam
    */
-  void getParameters(final MatlabParam matlabParam) {
-    if (rtfParticle.isSelected()) {
-      matlabParam.setReferenceVolume(sVolume.getValue());
-      matlabParam.setReferenceParticle(rtfParticle.getText());
+  boolean getParameters(final MatlabParam matlabParam, final boolean doValidation) {
+    try {
+      if (rtfParticle.isSelected()) {
+        matlabParam.setReferenceVolume(sVolume.getValue());
+        matlabParam.setReferenceParticle(rtfParticle.getText(doValidation));
+      }
+      else if (rbFile.isSelected()) {
+        matlabParam.setReferenceFile(ftfFile.getText());
+      }
+      else if (rbMultiparticle.isSelected()) {
+        matlabParam.setFlgFairReference(true);
+        matlabParam.setReferenceLevel(MultiparticleReference
+            .convertIndexToLevel(cmbMultiparticle.getSelectedIndex()));
+      }
     }
-    else if (rbFile.isSelected()) {
-      matlabParam.setReferenceFile(ftfFile.getText());
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-    else if (rbMultiparticle.isSelected()) {
-      matlabParam.setFlgFairReference(true);
-      matlabParam.setReferenceLevel(MultiparticleReference
-          .convertIndexToLevel(cmbMultiparticle.getSelectedIndex()));
-    }
+    return true;
   }
 
   /**

@@ -146,6 +146,12 @@ assert.disabled.tf.annulus-width=
 assert.disabled.tf.xy-scan-size=
 assert.disabled.tf.scan-criterion=
 cb.automatic-x-ray-replacement=on
+#test field validation
+tf.peak-criterion=10.abc
+bn.find-x-rays=
+wait.popup.field-validation-failed=OK
+assert.disabled.bn.kill-process=
+tf.peak-criterion=10.
 # Test with manual model
 cb.manual-replacement=on
 # todo remove .erase

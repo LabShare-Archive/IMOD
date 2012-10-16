@@ -673,12 +673,12 @@ public final class JoinManager extends BaseManager {
     return paramFile;
   }
 
-  public void getParameters(final MidasParam param,final AxisID axisID) {
-    param.setInputFileName(FileType.JOIN_SAMPLE.getFileName(this,axisID));
+  public void getParameters(final MidasParam param, final AxisID axisID) {
+    param.setInputFileName(FileType.JOIN_SAMPLE.getFileName(this, axisID));
     param.setSectionTableRowData(metaData.getSectionTableData());
   }
 
-  public void getParameters(final XfalignParam param,final AxisID axisID) {
+  public void getParameters(final XfalignParam param, final AxisID axisID) {
     param.setInputFileName(FileType.JOIN_SAMPLE_AVERAGES.getFileName(this, axisID));
   }
 
@@ -697,6 +697,9 @@ public final class JoinManager extends BaseManager {
       propertyUserDir = workingDir;
     }
     String rootName = joinDialog.getRootName();
+    if (rootName == null) {
+      return false;
+    }
     if (!loadedParamFile && rootName != null && !rootName.matches("\\s*+")) {
       paramFile = new File(propertyUserDir, rootName + metaData.getFileExtension());
       if (!paramFile.exists()) {
@@ -1110,7 +1113,9 @@ public final class JoinManager extends BaseManager {
   public void xfjointomo(ConstProcessSeries processSeries) {
     XfjointomoParam xfjointomoParam = new XfjointomoParam(this, state.getRefineTrial()
         .is());
-    joinDialog.getParameters(xfjointomoParam);
+    if (!joinDialog.getParameters(xfjointomoParam, true)) {
+      return;
+    }
     try {
       threadNameA = processMgr.xfjointomo(xfjointomoParam, processSeries);
     }
@@ -1366,7 +1371,8 @@ public final class JoinManager extends BaseManager {
   /**
    * Start the next process specified by the nextProcess string
    */
-  void startNextProcess(final UIComponent uiComponent,final AxisID axisID, final ProcessSeries.Process process,
+  void startNextProcess(final UIComponent uiComponent, final AxisID axisID,
+      final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       DialogType dialogType, ProcessDisplay display) {
     if (debug) {

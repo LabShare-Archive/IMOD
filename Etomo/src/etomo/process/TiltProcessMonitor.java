@@ -173,9 +173,9 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
   /* (non-Javadoc)
    * @see etomo.process.FileSizeProcessMonitor#calcFileSize() */
   final boolean calcFileSize() throws InvalidParameterException, IOException {
-    long nX;
-    long nY;
-    long nZ;
+    int nX;
+    int nY;
+    int nZ;
     int modeBytes = 4;
 
     // Get the depth, mode, any mods to the X and Y size from the tilt
@@ -200,21 +200,21 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
       modeBytes = getModeBytes(tiltParam.getMode());
     }
     // Get the imageBinned from prenewst.com script
-    long imageBinned = 1;
+    int imageBinned = 1;
     ConstEtomoNumber number = tiltParam.getImageBinned();
     if (number != null) {
-      imageBinned = number.getLong();
+      imageBinned = number.getInt();
     }
     // adjust x and y
     if (tiltParam.hasWidth()) {
       nX = tiltParam.getWidth() / imageBinned;
     }
     if (tiltParam.hasSlice()) {
-      long sliceRange = tiltParam.getIdxSliceStop() - tiltParam.getIdxSliceStart() + 1;
+      int sliceRange = tiltParam.getIdxSliceStop() - tiltParam.getIdxSliceStart() + 1;
       // Divide by the step size if present
       nY = sliceRange / imageBinned;
     }
-    long fileSize = 1024 + ((long) nX * nY) * (nZ / imageBinned) * modeBytes;
+    int fileSize = 1024 + (nX * nY) * (nZ / imageBinned) * modeBytes;
     nKBytes = (int) (fileSize / 1024);
 
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {

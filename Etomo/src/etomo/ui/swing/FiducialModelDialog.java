@@ -4,6 +4,8 @@ import java.awt.Component;
 import java.awt.event.*;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import etomo.ApplicationManager;
 import etomo.process.ImodManager;
@@ -18,6 +20,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
 import etomo.util.DatasetFiles;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.ConstTiltxcorrParam;
@@ -360,21 +363,15 @@ import etomo.comscript.TransferfidParam;
  * <p> </p>
  */
 public final class FiducialModelDialog extends ProcessDialog implements ContextMenu,
-    Run3dmodButtonContainer, RaptorPanelParent {
+    Run3dmodButtonContainer, Expandable {
   public static final String rcsid = "$Id$";
 
   static final String SEEDING_NOT_DONE_LABEL = "Seed Fiducial Model";
   private static final String SEEDING_DONE_LABEL = "View Seed Model";
 
-  private final SpacedPanel pnlFiducialModel = SpacedPanel.getInstance();
+  private final JPanel pnlMain = new JPanel();
   private final FiducialModelActionListener actionListener = new FiducialModelActionListener(
       this);
-
-  final Run3dmodButton btnSeed;
-  private final BeadtrackPanel pnlBeadtrack;
-  private final TransferfidPanel pnlTransferfid;
-
-  private final JPanel pnlMethod = new JPanel();
   private final ButtonGroup bgMethod = new ButtonGroup();
   private final RadioButton rbMethodSeed = new RadioButton("Make seed and track",
       MethodEnumeratedType.SEED, bgMethod);
@@ -383,110 +380,449 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
       bgMethod);
   private final RadioButton rbMethodRaptor = new RadioButton("Run RAPTOR and fix",
       MethodEnumeratedType.RAPTOR, bgMethod);
-  private final TiltxcorrPanel tiltxcorrPanel;
+  private final JPanel[] pnlMethodArray = new JPanel[MethodEnumeratedType.NUM];
+  private TabbedPane tpSeedAndTrack = new TabbedPane();
+  private final JPanel[] pnlSeedAndTrackArray = new JPanel[SeedAndTrackTab.NUM_TABS];
+  private final JPanel[] pnlSeedAndTrackBodyArray = new JPanel[SeedAndTrackTab.NUM_TABS];
+  private TabbedPane tpRunRaptor = new TabbedPane();
+  private final JPanel[] pnlRunRaptorArray = new JPanel[RunRaptorTab.NUM_TABS];
+  private final JPanel[] pnlRunRaptorBodyArray = new JPanel[RunRaptorTab.NUM_TABS];
+  private final ButtonGroup bgSeedModel = new ButtonGroup();
+  private final RadioButton rbSeedModelManual = new RadioButton(
+      "Make seed model manually", SeedModelEnumeratedType.MANUAL, bgSeedModel);
+  private final RadioButton rbSeedModelAuto = new RadioButton(
+      "Generate seed model automatically", SeedModelEnumeratedType.AUTO, bgSeedModel);
+  private final RadioButton rbSeedModelTransfer = new RadioButton(
+      "Transfer seed model from the other axis", SeedModelEnumeratedType.TRANSFER,
+      bgSeedModel);
+  private final JPanel[] pnlSeedModelArray = new JPanel[SeedModelEnumeratedType.NUM];
+  private final JPanel pnlAutoSeedModel = new JPanel();
+  private final JPanel pnlAutofidseed = new JPanel();
 
+  private final CheckBox cbBoundaryModel = new CheckBox("Make boundary model: ");
+  private final Run3dmodButton btnBoundaryModel = Run3dmodButton.get3dmodInstance(
+      "Open Boundary Model", this);
+  private final CheckBox cbExcludeInsideAreas = new CheckBox(
+      "Exclude inside boundary contours");
+  private final LabeledTextField ltfBordersInXandY = new LabeledTextField(
+      FieldType.INTEGER_PAIR, "Borders in X & Y: ");
+  private final LabeledTextField ltfMinGuessNumBeads = new LabeledTextField(
+      FieldType.INTEGER, "Estimated number of beads in sample: ");
+  private final LabeledTextField ltfMinSpacing = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Minimum spacing: ");
+  private final LabeledTextField ltfPeakStorageFraction = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Fraction of peak to store: ");
+
+  private final ButtonGroup bgTarget = new ButtonGroup();
+  private final RadioTextField rtfTargetNumberOfBeads = RadioTextField.getInstance(
+      FieldType.INTEGER, "Total number:", bgTarget);
+  private final RadioTextField rtfTargetDensityOfBeads = RadioTextField.getInstance(
+      FieldType.FLOATING_POINT, "Density (per megapixel):", bgTarget);
+  private final CheckBox cbTwoSurfaces = new CheckBox("Select beads on two surfaces");
+  private final LabeledTextField ltfgnoreSurfaceData = new LabeledTextField(
+      FieldType.INTEGER_LIST, "Ignore sorting in tracked models: ");
+  private final LabeledTextField ltfDropTracks = new LabeledTextField(
+      FieldType.INTEGER_LIST, "Drop tracked models: ");
+  private final LabeledTextField ltfMaxMajorToMinorRatio = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Maximum ratio between surfaces: ");
+  private final CheckBox cbClusteredPointsAllowed1 = new CheckBox("Allow clustered beads");
+  private final CheckBoxSpinner cbsClusteredPointsAllowedElongated = CheckBoxSpinner
+      .getInstance("Allow elongated beads of severity: ", 1, 1, 3);
+  private final Run3dmodButton btnAutofidseed = Run3dmodButton.getDeferred3dmodInstance(
+      "Generate Seed Model", this);
+  private final Run3dmodButton btn3dmodAutofidseed = Run3dmodButton.get3dmodInstance(
+      "Open Seed Model", this);
+  private final Run3dmodButton btn3dmodInitialBeadFinding = Run3dmodButton
+      .get3dmodInstance("Open Initial Bead Model", this);
+  private final Run3dmodButton btn3dmodBeadSortingAndSearching = Run3dmodButton
+      .get3dmodInstance("Open Sorted 3D Models", this);
+  private final MultiLineButton btnCleanup = new MultiLineButton(
+      "Clean Up Temporary Files");
+
+  final Run3dmodButton btnSeed;
+  private final BeadtrackPanel pnlBeadtrack;
+  private final TransferfidPanel pnlTransferfid;
+  private final TiltxcorrPanel tiltxcorrPanel;
   private final RaptorPanel raptorPanel;
+  private final AxisType axisType;
 
   private boolean transferfidEnabled = false;
+  private int curMethodIndex = -1;
+  private SeedAndTrackTab curSeedAndTrackTab = null;
+  private int curSeedModelIndex = -1;
+  private RunRaptorTab curRunRaptorTab = null;
 
   private FiducialModelDialog(final ApplicationManager appMgr, final AxisID axisID,
       final AxisType axisType) {
     super(appMgr, axisID, DialogType.FIDUCIAL_MODEL);
-    //initialize final member variables
-    ProcessResultDisplayFactory displayFactory = appMgr
-        .getProcessResultDisplayFactory(axisID);
-    btnSeed = (Run3dmodButton) displayFactory.getSeedFiducialModel();
-    raptorPanel = RaptorPanel.getInstance(appMgr, axisID, dialogType, this);
+    this.axisType = axisType;
+    btnSeed = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(axisID)
+        .getSeedFiducialModel();
+    if (axisType != AxisType.DUAL_AXIS || axisID != AxisID.SECOND) {
+      raptorPanel = RaptorPanel.getInstance(appMgr, axisID, dialogType);
+    }
+    else {
+      raptorPanel = null;
+    }
     pnlBeadtrack = BeadtrackPanel.getInstance(appMgr, axisID, dialogType, btnAdvanced);
     tiltxcorrPanel = TiltxcorrPanel.getPatchTrackingInstance(appMgr, axisID,
         DialogType.FIDUCIAL_MODEL, btnAdvanced);
-    //root panel
-    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    JPanel opnlMethod = new JPanel();
-    opnlMethod.setLayout(new BoxLayout(opnlMethod, BoxLayout.X_AXIS));
-    opnlMethod.setAlignmentX(Component.CENTER_ALIGNMENT);
-    opnlMethod.add(Box.createHorizontalGlue());
-    opnlMethod.add(pnlMethod);
-    opnlMethod.add(Box.createHorizontalGlue());
-    pnlFiducialModel.add(opnlMethod);
-    rootPanel.add(pnlFiducialModel.getContainer());
-    //fiducial model panel
-    pnlFiducialModel.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlFiducialModel
-        .setBorder(new BeveledBorder("Fiducial Model Generation").getBorder());
     if (applicationManager.isDualAxis()) {
       pnlTransferfid = TransferfidPanel.getInstance(applicationManager, axisID,
           dialogType, this, btnAdvanced);
-      pnlFiducialModel.add(pnlTransferfid.getContainer());
     }
     else {
       pnlTransferfid = null;
     }
-    pnlFiducialModel.add(tiltxcorrPanel.getPanel());
-    pnlFiducialModel.add(raptorPanel.getComponent());
-    JPanel pnlSeed = new JPanel();
-    pnlSeed.setLayout(new BoxLayout(pnlSeed, BoxLayout.X_AXIS));
-    pnlSeed.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlSeed.add(Box.createHorizontalGlue());
-    pnlSeed.add(btnSeed.getComponent());
-    pnlSeed.add(Box.createHorizontalGlue());
-    pnlFiducialModel.add(pnlSeed);
-    pnlFiducialModel.add(pnlBeadtrack.getContainer());
-    //transfer fiducials panel
-    if (pnlTransferfid != null) {
-      pnlTransferfid.setDeferred3dmodButtons();
-    }
-    //Method panel
-    pnlMethod.setLayout(new BoxLayout(pnlMethod, BoxLayout.Y_AXIS));
-    pnlMethod.setBorder(BorderFactory.createEtchedBorder());
-    pnlMethod.setAlignmentX(Box.CENTER_ALIGNMENT);
-    pnlMethod.add(rbMethodSeed.getComponent());
-    pnlMethod.add(rbMethodPatchTracking.getComponent());
-    pnlMethod.add(rbMethodRaptor.getComponent());
-    //RAPTOR panel
-
-    //exit button panel
-    addExitButtons();
-    //set initial values
-    rbMethodSeed.setSelected(true);
-    //seed button
-    btnSeed.setAlignmentX(Component.CENTER_ALIGNMENT);
-    btnSeed.setSize();
-    btnSeed.setContainer(this);
-    //
-    btnExecute.setText("Done");
-    //tool tips
-    setToolTipText();
-    //set dialog display state
-    if (axisType == AxisType.DUAL_AXIS && axisID == AxisID.SECOND) {
-      turnOffRaptor();
-    }
-    updateAdvanced();
-    updateEnabled();
-    updateDisplay();
-  }
-
-  private void turnOffRaptor() {
-    rbMethodRaptor.setVisible(false);
-    if (rbMethodRaptor.isSelected()) {
-      rbMethodSeed.setSelected(true);
-    }
-    updatePick();
   }
 
   public static FiducialModelDialog getInstance(final ApplicationManager appMgr,
       final AxisID axisID, final AxisType axisType) {
     FiducialModelDialog instance = new FiducialModelDialog(appMgr, axisID, axisType);
+    instance.createPanel();
+    instance.setToolTipText();
     instance.addListeners();
     return instance;
   }
 
+  private void createPanel() {
+    // Local panels
+    JPanel pnlMethod = new JPanel();
+    JPanel pnlMethodX = new JPanel();
+    JPanel pnlSeedModel = new JPanel();
+    JPanel pnlSeedModelX = new JPanel();
+    JPanel pnlAutofidseedParam = new JPanel();
+    JPanel pnlInitialBeadFinding = new JPanel();
+    JPanel pnlBoundaryModel = new JPanel();
+    JPanel pnl3dmodInitialBeadFinding = new JPanel();
+    JPanel pnlBeadSearchingAndSorting = new JPanel();
+    JPanel pnlExcludeInsideAreas = new JPanel();
+    JPanel pnlTarget = new JPanel();
+    JPanel pnlTwoSurfaces = new JPanel();
+    JPanel pnlClusteredPointsAllowed1 = new JPanel();
+    JPanel pnl3dmodBeadSortingAndSearching = new JPanel();
+    JPanel pnlButtons = new JPanel();
+    // Init
+    btnSeed.setContainer(this);
+    btnSeed.setSize();
+    ltfMinSpacing.setText("0.85");
+    ltfPeakStorageFraction.setText("1");
+    btnBoundaryModel.setSize();
+    btnAutofidseed.setDeferred3dmodButton(btn3dmodAutofidseed);
+    btnAutofidseed.setSize();
+    btn3dmodAutofidseed.setSize();
+    btn3dmodInitialBeadFinding.setSize();
+    btn3dmodInitialBeadFinding.setEnabled(false);
+    btn3dmodBeadSortingAndSearching.setSize();
+    btn3dmodBeadSortingAndSearching.setEnabled(false);
+    btnCleanup.setSize();
+    btnExecute.setText("Done");
+    rtfTargetNumberOfBeads.setSelected(true);
+    // Root
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
+    rootPanel.setBorder(new BeveledBorder("Fiducial Model Generation").getBorder());
+    rootPanel.add(pnlMain);
+    addExitButtons();
+    // Main
+    pnlMain.setLayout(new BoxLayout(pnlMain, BoxLayout.Y_AXIS));
+    pnlMain.add(pnlMethodX);
+    // Method
+    // center the radio button panel
+    pnlMethodX.setLayout(new BoxLayout(pnlMethodX, BoxLayout.X_AXIS));
+    pnlMethodX.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlMethodX.add(Box.createHorizontalGlue());
+    pnlMethodX.add(pnlMethod);
+    pnlMethodX.add(Box.createHorizontalGlue());
+    // radio button panel
+    pnlMethod.setLayout(new BoxLayout(pnlMethod, BoxLayout.Y_AXIS));
+    pnlMethod.setBorder(BorderFactory.createEtchedBorder());
+    pnlMethod.add(rbMethodSeed.getComponent());
+    pnlMethod.add(rbMethodPatchTracking.getComponent());
+    if (raptorPanel != null) {
+      pnlMethod.add(rbMethodRaptor.getComponent());
+    }
+    // panels to switch when the radio buttons change
+    for (int i = 0; i < MethodEnumeratedType.NUM; i++) {
+      pnlMethodArray[i] = new JPanel();
+    }
+    int i = MethodEnumeratedType.SEED.value.getInt();
+    pnlMethodArray[i].add(tpSeedAndTrack);
+    i = MethodEnumeratedType.PATCH_TRACKING.value.getInt();
+    pnlMethodArray[i].add(tiltxcorrPanel.getPanel());
+    i = MethodEnumeratedType.RAPTOR.value.getInt();
+    pnlMethodArray[i].add(tpRunRaptor);
+    // Seed and track
+    // panels to switch when the tab changes
+    for (i = 0; i < SeedAndTrackTab.NUM_TABS; i++) {
+      pnlSeedAndTrackArray[i] = new JPanel();
+      tpSeedAndTrack
+          .addTab(SeedAndTrackTab.getInstance(i).title, pnlSeedAndTrackArray[i]);
+      pnlSeedAndTrackBodyArray[i] = new JPanel();
+      pnlSeedAndTrackBodyArray[i].setLayout(new BoxLayout(pnlSeedAndTrackBodyArray[i],
+          BoxLayout.Y_AXIS));
+    }
+    i = SeedAndTrackTab.SEED.index;
+    pnlSeedAndTrackBodyArray[i].add(pnlSeedModelX);
+    // Run raptor
+    // panels to switch when the tab changes
+    for (i = 0; i < RunRaptorTab.NUM_TABS; i++) {
+      pnlRunRaptorArray[i] = new JPanel();
+      tpRunRaptor.addTab(RunRaptorTab.getInstance(i).title, pnlRunRaptorArray[i]);
+      pnlRunRaptorBodyArray[i] = new JPanel();
+    }
+    i = RunRaptorTab.RAPTOR.index;
+    if (raptorPanel != null) {
+      pnlRunRaptorBodyArray[i].add(raptorPanel.getComponent());
+    }
+    // Seed model
+    // center the radio button panel
+    pnlSeedModelX.setLayout(new BoxLayout(pnlSeedModelX, BoxLayout.X_AXIS));
+    pnlSeedModelX.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlSeedModelX.add(Box.createHorizontalGlue());
+    pnlSeedModelX.add(pnlSeedModel);
+    pnlSeedModelX.add(Box.createHorizontalGlue());
+    // radio button panel
+    pnlSeedModel.setLayout(new BoxLayout(pnlSeedModel, BoxLayout.Y_AXIS));
+    pnlSeedModel.setBorder(BorderFactory.createEtchedBorder());
+    pnlSeedModel.add(rbSeedModelManual.getComponent());
+    pnlSeedModel.add(rbSeedModelAuto.getComponent());
+    if (pnlTransferfid != null) {
+      pnlSeedModel.add(rbSeedModelTransfer.getComponent());
+    }
+    // panels to switch when the radio buttons change
+    for (i = 0; i < SeedModelEnumeratedType.NUM; i++) {
+      pnlSeedModelArray[i] = new JPanel();
+    }
+    i = SeedModelEnumeratedType.MANUAL.value.getInt();
+    pnlSeedModelArray[i].add(btnSeed.getComponent());
+    i = SeedModelEnumeratedType.AUTO.value.getInt();
+    pnlSeedModelArray[i].add(pnlAutoSeedModel);
+    i = SeedModelEnumeratedType.TRANSFER.value.getInt();
+    if (pnlTransferfid != null) {
+      pnlSeedModelArray[i].add(pnlTransferfid.getContainer());
+    }
+    // Auto seed model
+    pnlAutoSeedModel.setLayout(new BoxLayout(pnlAutoSeedModel, BoxLayout.Y_AXIS));
+    // Autofidseed - goes on the AutoSeedModel panel under the shared beadtrack panel
+    pnlAutofidseed.setLayout(new BoxLayout(pnlAutofidseed, BoxLayout.Y_AXIS));
+    pnlAutofidseed.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAutofidseed.add(pnlAutofidseedParam);
+    pnlAutofidseed.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlAutofidseed.add(pnlButtons);
+    // AutofidseedParam
+    // Autofidseed - goes on the AutoSeedModel panel under the shared beadtrack panel
+    pnlAutofidseedParam.setLayout(new BoxLayout(pnlAutofidseedParam, BoxLayout.X_AXIS));
+    pnlAutofidseedParam.add(pnlInitialBeadFinding);
+    pnlAutofidseedParam.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlAutofidseedParam.add(pnlBeadSearchingAndSorting);
+    // Initial bead finding
+    pnlInitialBeadFinding
+        .setLayout(new BoxLayout(pnlInitialBeadFinding, BoxLayout.Y_AXIS));
+    pnlInitialBeadFinding.setBorder(new EtchedBorder("Initial Bead Finding Parameters")
+        .getBorder());
+    pnlInitialBeadFinding.setAlignmentY(Box.TOP_ALIGNMENT);
+    pnlInitialBeadFinding.add(pnlBoundaryModel);
+    pnlInitialBeadFinding.add(pnlExcludeInsideAreas);
+    pnlInitialBeadFinding.add(ltfBordersInXandY.getComponent());
+    pnlInitialBeadFinding.add(ltfMinGuessNumBeads.getComponent());
+    pnlInitialBeadFinding.add(ltfMinSpacing.getComponent());
+    pnlInitialBeadFinding.add(ltfPeakStorageFraction.getComponent());
+    pnlInitialBeadFinding.add(Box.createRigidArea(FixedDim.x0_y3));
+    pnlInitialBeadFinding.add(pnl3dmodInitialBeadFinding);
+    // Boundary model
+    pnlBoundaryModel.setLayout(new BoxLayout(pnlBoundaryModel, BoxLayout.X_AXIS));
+    pnlBoundaryModel.add(cbBoundaryModel);
+    pnlBoundaryModel.add(btnBoundaryModel.getComponent());
+    // ExcludeInsideAreas
+    pnlExcludeInsideAreas
+        .setLayout(new BoxLayout(pnlExcludeInsideAreas, BoxLayout.X_AXIS));
+    pnlExcludeInsideAreas.add(cbExcludeInsideAreas);
+    pnlExcludeInsideAreas.add(Box.createHorizontalGlue());
+    // 3dmodInitialBeadFinding
+    pnl3dmodInitialBeadFinding.setLayout(new BoxLayout(pnl3dmodInitialBeadFinding,
+        BoxLayout.X_AXIS));
+    pnl3dmodInitialBeadFinding.add(Box.createHorizontalGlue());
+    pnl3dmodInitialBeadFinding.add(btn3dmodInitialBeadFinding.getComponent());
+    pnl3dmodInitialBeadFinding.add(Box.createHorizontalGlue());
+    // Bead sorting and searching
+    pnlBeadSearchingAndSorting.setLayout(new BoxLayout(pnlBeadSearchingAndSorting,
+        BoxLayout.Y_AXIS));
+    pnlBeadSearchingAndSorting.setBorder(new EtchedBorder(
+        "Selection and Sorting Parameters").getBorder());
+    pnlBeadSearchingAndSorting.setAlignmentY(Box.TOP_ALIGNMENT);
+    pnlBeadSearchingAndSorting.add(pnlTarget);
+    pnlBeadSearchingAndSorting.add(pnlTwoSurfaces);
+    pnlBeadSearchingAndSorting.add(ltfgnoreSurfaceData.getComponent());
+    pnlBeadSearchingAndSorting.add(ltfDropTracks.getComponent());
+    pnlBeadSearchingAndSorting.add(ltfMaxMajorToMinorRatio.getComponent());
+    pnlBeadSearchingAndSorting.add(pnlClusteredPointsAllowed1);
+    pnlBeadSearchingAndSorting.add(cbsClusteredPointsAllowedElongated.getContainer());
+    pnlBeadSearchingAndSorting.add(Box.createRigidArea(FixedDim.x0_y3));
+    pnlBeadSearchingAndSorting.add(pnl3dmodBeadSortingAndSearching);
+    // Target
+    pnlTarget.setLayout(new BoxLayout(pnlTarget, BoxLayout.Y_AXIS));
+    pnlTarget.setBorder(new EtchedBorder("Seed Points to Select").getBorder());
+    pnlTarget.add(rtfTargetNumberOfBeads.getContainer());
+    pnlTarget.add(rtfTargetDensityOfBeads.getContainer());
+    // TwoSurfaces
+    pnlTwoSurfaces.setLayout(new BoxLayout(pnlTwoSurfaces, BoxLayout.X_AXIS));
+    pnlTwoSurfaces.add(cbTwoSurfaces);
+    pnlTwoSurfaces.add(Box.createHorizontalGlue());
+    // ClusteredPointsAllowed1
+    pnlClusteredPointsAllowed1.setLayout(new BoxLayout(pnlClusteredPointsAllowed1,
+        BoxLayout.X_AXIS));
+    pnlClusteredPointsAllowed1.add(cbClusteredPointsAllowed1);
+    pnlClusteredPointsAllowed1.add(Box.createHorizontalGlue());
+    // 3dmodBeadSortingAndSearching
+    pnl3dmodBeadSortingAndSearching.setLayout(new BoxLayout(
+        pnl3dmodBeadSortingAndSearching, BoxLayout.X_AXIS));
+    pnl3dmodBeadSortingAndSearching.add(Box.createHorizontalGlue());
+    pnl3dmodBeadSortingAndSearching.add(btn3dmodBeadSortingAndSearching.getComponent());
+    pnl3dmodBeadSortingAndSearching.add(Box.createHorizontalGlue());
+    // Buttons
+    pnlButtons.add(btnAutofidseed.getComponent());
+    pnlButtons.add(Box.createHorizontalGlue());
+    pnlButtons.add(btn3dmodAutofidseed.getComponent());
+    pnlButtons.add(Box.createHorizontalGlue());
+    pnlButtons.add(btnCleanup.getComponent());
+    // update
+    updateAdvanced();
+    updateEnabled();
+    updateMethod();
+    changeSeedAndTrackTab();
+    updateSeedModel();
+    updateDisplay();
+  }
+
+  /**
+   * Responds to the method radio buttons.  Places the panel which corresponds to the
+   * currently selected radio button in the main panel.
+   */
+  private void updateMethod() {
+    // Changed the panel
+    if (curMethodIndex != -1) {
+      pnlMain.remove(pnlMethodArray[curMethodIndex]);
+    }
+    curMethodIndex = ((RadioButton.RadioButtonModel) bgMethod.getSelection())
+        .getEnumeratedType().getValue().getInt();
+    pnlMain.add(pnlMethodArray[curMethodIndex]);
+    // Refresh the tabs if necessary
+    if (curMethodIndex == MethodEnumeratedType.SEED.value.getInt()) {
+      changeSeedAndTrackTab();
+    }
+    else if (curMethodIndex == MethodEnumeratedType.RAPTOR.value.getInt()) {
+      changeRunRaptorTab();
+    }
+    else {
+      UIHarness.INSTANCE.pack(axisID, applicationManager);
+    }
+  }
+
+  /**
+   * Responds to the make seed and track tabs.  Places the body panel into the panel in
+   * the tab which the user selected.
+   */
+  private void changeSeedAndTrackTab() {
+    int newIndex = tpSeedAndTrack.getSelectedIndex();
+    // Change the tab body panel
+    if ((curSeedAndTrackTab == null && newIndex != -1)
+        || !curSeedAndTrackTab.equals(newIndex)) {
+      // If the tab has changed:
+      // Remove the body from previous tab so that the size of the tabbed pane won't
+      // reflect it.
+      if (curSeedAndTrackTab != null) {
+        pnlSeedAndTrackArray[curSeedAndTrackTab.index]
+            .remove(pnlSeedAndTrackBodyArray[curSeedAndTrackTab.index]);
+      }
+      // Update the current tab and add the body to the tabbed pane
+      curSeedAndTrackTab = SeedAndTrackTab.getInstance(newIndex);
+      pnlSeedAndTrackArray[curSeedAndTrackTab.index]
+          .add(pnlSeedAndTrackBodyArray[curSeedAndTrackTab.index]);
+    }
+    // Replace shared panels
+    if (curSeedAndTrackTab == SeedAndTrackTab.TRACK) {
+      pnlSeedAndTrackBodyArray[curSeedAndTrackTab.index].add(pnlBeadtrack.getContainer());
+      pnlBeadtrack.updateAutofidseed(false);
+    }
+    // Refresh the auto seed panel if necessary
+    if (curSeedAndTrackTab == SeedAndTrackTab.SEED
+        && curSeedModelIndex == SeedModelEnumeratedType.AUTO.value.getInt()) {
+      updateSeedModel();
+    }
+    else {
+      UIHarness.INSTANCE.pack(axisID, applicationManager);
+    }
+  }
+
+  /**
+   * Responds to the make run raptor tabs.  Places the body panel into the panel in the
+   * tab which the user selected.
+   */
+  private void changeRunRaptorTab() {
+    int newIndex = tpRunRaptor.getSelectedIndex();
+    // Change the tab body panel
+    if ((curRunRaptorTab == null && newIndex != -1) || !curRunRaptorTab.equals(newIndex)) {
+      // If the tab has changed:
+      // Remove the body from previous tab so that the size of the tabbed pane won't
+      // reflect it.
+      if (curRunRaptorTab != null) {
+        pnlRunRaptorArray[curRunRaptorTab.index]
+            .remove(pnlRunRaptorBodyArray[curRunRaptorTab.index]);
+      }
+      curRunRaptorTab = RunRaptorTab.getInstance(newIndex);
+      pnlRunRaptorArray[curRunRaptorTab.index]
+          .add(pnlRunRaptorBodyArray[curRunRaptorTab.index]);
+    }
+    // Replace shared panels
+    if (curRunRaptorTab == RunRaptorTab.TRACK) {
+      pnlRunRaptorBodyArray[curRunRaptorTab.index].add(pnlBeadtrack.getContainer());
+      pnlBeadtrack.updateAutofidseed(false);
+    }
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
+  }
+
+  /**
+   * Responds to the seed model radio buttons.  Places the panel which corresponds to the
+   * currently selected radio button in the seed tab's body panel.
+   */
+  private void updateSeedModel() {
+    int newIndex = ((RadioButton.RadioButtonModel) bgSeedModel.getSelection())
+        .getEnumeratedType().getValue().getInt();
+    // Change the panel
+    if ((curSeedModelIndex == -1 && newIndex != -1) || curSeedModelIndex != newIndex) {
+      // If a different radio button has been selected:
+      if (curSeedModelIndex != -1) {
+        pnlSeedAndTrackBodyArray[SeedAndTrackTab.SEED.index]
+            .remove(pnlSeedModelArray[curSeedModelIndex]);
+      }
+      curSeedModelIndex = newIndex;
+      pnlSeedAndTrackBodyArray[SeedAndTrackTab.SEED.index]
+          .add(pnlSeedModelArray[curSeedModelIndex]);
+    }
+    // Replace shared panels
+    if (curSeedAndTrackTab == SeedAndTrackTab.SEED
+        && curSeedModelIndex == SeedModelEnumeratedType.AUTO.value.getInt()) {
+      pnlAutoSeedModel.remove(pnlAutofidseed);
+      pnlAutoSeedModel.add(pnlBeadtrack.getContainer());
+      pnlAutoSeedModel.add(pnlAutofidseed);
+      pnlBeadtrack.updateAutofidseed(true);
+    }
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
+  }
+
   private void addListeners() {
-    pnlFiducialModel.addMouseListener(new GenericMouseAdapter(this));
+    rootPanel.addMouseListener(new GenericMouseAdapter(this));
+    tpSeedAndTrack.addChangeListener(new SeedAndTrackTabChangeListener(this));
+    tpRunRaptor.addChangeListener(new RunRaptorTabChangeListener(this));
     rbMethodSeed.addActionListener(actionListener);
     rbMethodPatchTracking.addActionListener(actionListener);
     rbMethodRaptor.addActionListener(actionListener);
+    rbSeedModelManual.addActionListener(actionListener);
+    rbSeedModelAuto.addActionListener(actionListener);
+    rbSeedModelTransfer.addActionListener(actionListener);
     btnSeed.addActionListener(actionListener);
+    cbBoundaryModel.addActionListener(actionListener);
+    btnAdvanced.register(this);
   }
 
   public static String getUseRaptorResultLabel() {
@@ -500,17 +836,42 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     else {
       btnSeed.setText(SEEDING_NOT_DONE_LABEL);
     }
+    boolean selected = cbBoundaryModel.isSelected();
+    btnBoundaryModel.setEnabled(selected);
+    cbExcludeInsideAreas.setEnabled(selected);
+  }
+
+  public void expand(GlobalExpandButton button) {
+    updateAdvanced(button.isExpanded());
+  }
+
+  public void expand(ExpandButton button) {
   }
 
   /**
    * Set the advanced state for the dialog box
    */
   private void updateAdvanced() {
-    pnlBeadtrack.updateAdvanced(isAdvanced());
+    updateAdvanced(isAdvanced());
+  }
+
+  private void updateAdvanced(final boolean advanced) {
+    pnlBeadtrack.updateAdvanced(advanced);
     if (pnlTransferfid != null) {
-      pnlTransferfid.updateAdvanced(isAdvanced());
+      pnlTransferfid.updateAdvanced(advanced);
     }
-    tiltxcorrPanel.updateAdvanced(isAdvanced());
+    tiltxcorrPanel.updateAdvanced(advanced);
+
+    ltfBordersInXandY.setVisible(advanced);
+    ltfMinGuessNumBeads.setVisible(advanced);
+    ltfMinSpacing.setVisible(advanced);
+    ltfPeakStorageFraction.setVisible(advanced);
+    ltfgnoreSurfaceData.setVisible(advanced);
+    ltfDropTracks.setVisible(advanced);
+    ltfMaxMajorToMinorRatio.setVisible(advanced);
+    cbClusteredPointsAllowed1.setVisible(advanced);
+    cbsClusteredPointsAllowedElongated.setVisible(advanced);
+
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
@@ -518,13 +879,20 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     if (pnlTransferfid != null) {
       pnlTransferfid.setEnabled(transferfidEnabled);
     }
+    rbSeedModelTransfer.setEnabled(transferfidEnabled);
+    if (rbSeedModelTransfer.isSelected()) {
+      rbSeedModelManual.setSelected(true);
+      updateMethod();
+    }
   }
 
   /**
    * Set the parameters for the specified beadtrack panel
    */
-  public void setBeadtrackParams(final/*Const*/BeadtrackParam beadtrackParams) {
-    raptorPanel.setBeadtrackParams(beadtrackParams);
+  public void setBeadtrackParams(final/* Const */BeadtrackParam beadtrackParams) {
+    if (raptorPanel != null) {
+      raptorPanel.setBeadtrackParams(beadtrackParams);
+    }
     pnlBeadtrack.setParameters(beadtrackParams);
   }
 
@@ -549,12 +917,15 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     }
   }
 
-  public boolean getParameters(final RunraptorParam param) {
-    return raptorPanel.getParameters(param);
+  public boolean getParameters(final RunraptorParam param, final boolean doValidation) {
+    if (raptorPanel != null) {
+      return raptorPanel.getParameters(param, doValidation);
+    }
+    return true;
   }
 
   public void getParameters(final MetaData metaData) {
-    if (axisID != AxisID.SECOND) {
+    if (raptorPanel != null) {
       raptorPanel.getParameters(metaData);
     }
     metaData.setTrackMethod(axisID, ((RadioButton.RadioButtonModel) bgMethod
@@ -574,11 +945,11 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     else if (axisID != AxisID.SECOND && method == MethodEnumeratedType.RAPTOR) {
       rbMethodRaptor.setSelected(true);
     }
-    if (axisID != AxisID.SECOND) {
+    if (raptorPanel != null) {
       raptorPanel.setParameters(metaData);
     }
     tiltxcorrPanel.setParameters(metaData);
-    updatePick();
+    updateMethod();
   }
 
   public void setParameters(final ConstTiltxcorrParam tiltXcorrParams) {
@@ -589,29 +960,28 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     if (pnlTransferfid != null) {
       pnlTransferfid.setParameters(screenState);
     }
-    //btnSeed.setButtonState(screenState.getButtonState(btnSeed
-    //   .getButtonStateKey()));
+    // btnSeed.setButtonState(screenState.getButtonState(btnSeed
+    // .getButtonStateKey()));
     pnlBeadtrack.setParameters(screenState);
   }
 
-  public void getTransferFidParams() {
+  public boolean getTransferFidParams(final boolean doValidation) {
     if (pnlTransferfid != null) {
-      pnlTransferfid.getParameters();
+      return pnlTransferfid.getParameters(doValidation);
     }
+    return true;
   }
 
-  public void getTransferFidParams(final TransferfidParam transferFidParam) {
+  public boolean getTransferFidParams(final TransferfidParam transferFidParam,
+      final boolean doValidation) {
     if (pnlTransferfid != null) {
-      pnlTransferfid.getParameters(transferFidParam);
+      return pnlTransferfid.getParameters(transferFidParam, doValidation);
     }
+    return true;
   }
 
   public void setTransferfidEnabled(final boolean fileExists) {
     transferfidEnabled = fileExists;
-  }
-
-  public boolean isPickVisible() {
-    return pnlMethod.isVisible();
   }
 
   /**
@@ -626,10 +996,9 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     logFile[0] = "track" + axisID.getExtension() + ".log";
     logFile[1] = "transferfid.log";
 
-    //    ContextPopup contextPopup =
-    new ContextPopup(pnlFiducialModel.getContainer(), mouseEvent, "GETTING FIDUCIAL",
-        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
-        applicationManager, axisID);
+    // ContextPopup contextPopup =
+    new ContextPopup(rootPanel, mouseEvent, "GETTING FIDUCIAL", ContextPopup.TOMO_GUIDE,
+        manPagelabel, manPage, logFileLabel, logFile, applicationManager, axisID);
   }
 
   /**
@@ -651,14 +1020,19 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
         run3dmodMenuOptions);
   }
 
-  //  Action function for buttons
+  // Action function for buttons
   private void buttonAction(final String command,
       Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(rbMethodSeed.getActionCommand())
         || command.equals(rbMethodPatchTracking.getActionCommand())
         || command.equals(rbMethodRaptor.getActionCommand())) {
-      updatePick();
+      updateMethod();
+    }
+    else if (command.equals(rbSeedModelManual.getActionCommand())
+        || command.equals(rbSeedModelAuto.getActionCommand())
+        || command.equals(rbSeedModelTransfer.getActionCommand())) {
+      updateSeedModel();
     }
     else if (command.equals(btnSeed.getActionCommand())) {
       applicationManager.imodSeedModel(axisID, run3dmodMenuOptions, btnSeed,
@@ -666,39 +1040,9 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
           DatasetFiles.getSeedFileName(applicationManager, axisID),
           DatasetFiles.getRawTiltFile(applicationManager, axisID), dialogType);
     }
-  }
-
-  private void updatePick() {
-    if (rbMethodPatchTracking.isSelected()) {
-      tiltxcorrPanel.setVisible(true);
-      raptorPanel.setVisible(false);
-      btnSeed.setVisible(false);
-      pnlBeadtrack.setVisible(false);
-      if (pnlTransferfid != null) {
-        pnlTransferfid.setVisible(false);
-      }
+    else if (command.equals(cbBoundaryModel.getActionCommand())) {
+      updateDisplay();
     }
-    else if (rbMethodRaptor.isSelected()) {
-      raptorPanel.setVisible(true);
-      tiltxcorrPanel.setVisible(false);
-      btnSeed.setVisible(false);
-      pnlBeadtrack.setVisible(true);
-      pnlBeadtrack.pickRaptor();
-      if (pnlTransferfid != null) {
-        pnlTransferfid.setVisible(false);
-      }
-    }
-    else {
-      raptorPanel.setVisible(false);
-      tiltxcorrPanel.setVisible(false);
-      btnSeed.setVisible(true);
-      pnlBeadtrack.setVisible(true);
-      pnlBeadtrack.pickSeed();
-      if (pnlTransferfid != null) {
-        pnlTransferfid.setVisible(true);
-      }
-    }
-    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   void done() {
@@ -706,7 +1050,9 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     if (pnlTransferfid != null) {
       pnlTransferfid.done();
     }
-    raptorPanel.done();
+    if (raptorPanel != null) {
+      raptorPanel.done();
+    }
     btnSeed.removeActionListener(actionListener);
     pnlBeadtrack.done();
     tiltxcorrPanel.done();
@@ -714,7 +1060,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   }
 
   //
-  //	Action listener adapters
+  // Action listener adapters
   //
   private final class FiducialModelActionListener implements ActionListener {
 
@@ -729,6 +1075,30 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     }
   }
 
+  private static final class SeedAndTrackTabChangeListener implements ChangeListener {
+    private final FiducialModelDialog dialog;
+
+    public SeedAndTrackTabChangeListener(final FiducialModelDialog dialog) {
+      this.dialog = dialog;
+    }
+
+    public void stateChanged(final ChangeEvent changeEvent) {
+      dialog.changeSeedAndTrackTab();
+    }
+  }
+
+  private static final class RunRaptorTabChangeListener implements ChangeListener {
+    private final FiducialModelDialog dialog;
+
+    public RunRaptorTabChangeListener(final FiducialModelDialog dialog) {
+      this.dialog = dialog;
+    }
+
+    public void stateChanged(final ChangeEvent changeEvent) {
+      dialog.changeRunRaptorTab();
+    }
+  }
+
   public static final class MethodEnumeratedType implements EnumeratedType {
     private static final MethodEnumeratedType SEED = new MethodEnumeratedType(true, 0,
         "Seed");
@@ -736,6 +1106,8 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
         false, 1, "PatchTracking");
     public static final MethodEnumeratedType RAPTOR = new MethodEnumeratedType(false, 2,
         "Raptor");
+
+    private static final int NUM = 3;
 
     private final boolean isDefault;
     private final EtomoNumber value = new EtomoNumber();
@@ -774,6 +1146,122 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
 
     public String toString() {
       return string;
+    }
+  }
+
+  public static final class SeedModelEnumeratedType implements EnumeratedType {
+    private static final SeedModelEnumeratedType MANUAL = new SeedModelEnumeratedType(
+        true, 0, "Manual");
+    private static final SeedModelEnumeratedType AUTO = new SeedModelEnumeratedType(
+        false, 1, "Auto");
+    public static final SeedModelEnumeratedType TRANSFER = new SeedModelEnumeratedType(
+        false, 2, "Transfer");
+
+    private static final int NUM = 3;
+
+    private final boolean isDefault;
+    private final EtomoNumber value = new EtomoNumber();
+    private final String string;
+
+    private SeedModelEnumeratedType(final boolean isDefault, final int value,
+        final String string) {
+      this.isDefault = isDefault;
+      this.value.set(value);
+      this.string = string;
+    }
+
+    private static SeedModelEnumeratedType getInstance(final String string) {
+      if (string == null) {
+        return null;
+      }
+      if (string.equals(MANUAL.string)) {
+        return MANUAL;
+      }
+      if (string.equals(AUTO.string)) {
+        return AUTO;
+      }
+      if (string.equals(TRANSFER.string)) {
+        return TRANSFER;
+      }
+      return null;
+    }
+
+    public boolean isDefault() {
+      return isDefault;
+    }
+
+    public ConstEtomoNumber getValue() {
+      return value;
+    }
+
+    public String toString() {
+      return string;
+    }
+  }
+
+  private static final class SeedAndTrackTab {
+    private static final SeedAndTrackTab SEED = new SeedAndTrackTab(0, "Seed Model");
+    private static final SeedAndTrackTab TRACK = new SeedAndTrackTab(1, "Track Beads");
+
+    private static final SeedAndTrackTab DEFAULT = SEED;
+
+    private static final int NUM_TABS = 2;
+
+    private final int index;
+    private final String title;
+
+    private SeedAndTrackTab(final int index, final String title) {
+      this.index = index;
+      this.title = title;
+    }
+
+    private static SeedAndTrackTab getInstance(final int index) {
+      if (index == SEED.index) {
+        return SEED;
+      }
+      if (index == TRACK.index) {
+        return TRACK;
+      }
+      return DEFAULT;
+    }
+
+    public boolean equals(final int index) {
+      return index == this.index;
+    }
+
+    public String toString() {
+      return "[index:" + index + ",title:" + title + "]";
+    }
+  }
+
+  private static final class RunRaptorTab {
+    private static final RunRaptorTab RAPTOR = new RunRaptorTab(0, "Run RAPTOR");
+    private static final RunRaptorTab TRACK = new RunRaptorTab(1, "Track Beads");
+
+    private static final RunRaptorTab DEFAULT = RAPTOR;
+
+    private static final int NUM_TABS = 2;
+
+    private final int index;
+    private final String title;
+
+    private RunRaptorTab(final int index, final String title) {
+      this.index = index;
+      this.title = title;
+    }
+
+    private static RunRaptorTab getInstance(final int index) {
+      if (index == RAPTOR.index) {
+        return RAPTOR;
+      }
+      if (index == TRACK.index) {
+        return TRACK;
+      }
+      return DEFAULT;
+    }
+
+    public boolean equals(final int index) {
+      return index == this.index;
     }
   }
 }
