@@ -239,7 +239,8 @@ public abstract class BaseManager {
     return null;
   }
 
-  public boolean updateMetaData(final DialogType dialogType, final AxisID axisID) {
+  public boolean updateMetaData(final DialogType dialogType, final AxisID axisID,
+      final boolean doValidation) {
     return false;
   }
 
