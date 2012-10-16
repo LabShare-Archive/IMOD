@@ -436,6 +436,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   public static final String DIRECTORY_LABEL = "Directory";
   public static final String RUN_LABEL = "Run";
   public static final String AVERAGE_ALL_LABEL = "Remake Averages";
+  static final String SETUP_LOCATION_DESCR = "the Setup tab";
 
   private static final DialogType DIALOG_TYPE = DialogType.PEET;
   private static final String LST_THRESHOLD_START_TITLE = "Start";
@@ -837,7 +838,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       if (!sphericalSamplingForThetaAndPsiPanel.getParameters(matlabParam, doValidation)) {
         return false;
       }
-      maskingPanel.getParameters(matlabParam, doValidation);
+      if (!maskingPanel.getParameters(matlabParam, doValidation)) {
+        return false;
+      }
       matlabParam.setFlgAlignAverages(cbflgAlignAverages.isSelected());
       matlabParam.setFlgAbsValue(cbFlgAbsValue.isSelected());
       return true;

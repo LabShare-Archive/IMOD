@@ -81,13 +81,13 @@ final class MaskingPanel {
       MASK_TYPE_CYLINDER_LABEL, MatlabParam.MaskType.CYLINDER, bgMaskType);
   private final FileTextField2 ftfMaskTypeFile;
   private final LabeledTextField ltfInsideMaskRadius = new LabeledTextField(
-      FieldType.INTEGER, INSIDE_MASK_RADIUS_LABEL);
+      FieldType.INTEGER, INSIDE_MASK_RADIUS_LABEL,PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfOutsideMaskRadius = new LabeledTextField(
-      FieldType.INTEGER, OUTSIDE_MASK_RADIUS_LABEL);
+      FieldType.INTEGER, OUTSIDE_MASK_RADIUS_LABEL,PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfZRotation = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Z Rotation: ");
+      FieldType.FLOATING_POINT, "Z Rotation: ",PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfYRotation = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Y Rotation: ");
+      FieldType.FLOATING_POINT, "Y Rotation: ",PeetDialog.SETUP_LOCATION_DESCR);
   private final CheckBox cbCylinderOrientation = new CheckBox(
       "Manual Cylinder Orientation");
 

@@ -81,15 +81,22 @@ final class RadioTextField implements RadioButtonInterface {
    */
   static RadioTextField getInstance(final FieldType fieldType, final String label,
       final ButtonGroup group) {
-    RadioTextField radioTextField = new RadioTextField(fieldType, label, group);
+    RadioTextField radioTextField = new RadioTextField(fieldType, label, group,null);
+    radioTextField.addListeners();
+    return radioTextField;
+  }
+
+  static RadioTextField getInstance(final FieldType fieldType, final String label,
+      final ButtonGroup group, String locationDescr) {
+    RadioTextField radioTextField = new RadioTextField(fieldType, label, group,locationDescr);
     radioTextField.addListeners();
     return radioTextField;
   }
 
   private RadioTextField(final FieldType fieldType, final String label,
-      final ButtonGroup group) {
+      final ButtonGroup group, final String locationDescr) {
     radioButton = new RadioButton(label);
-    textField = new TextField(fieldType, label);
+    textField = new TextField(fieldType, label, locationDescr);
     init(group);
   }
 

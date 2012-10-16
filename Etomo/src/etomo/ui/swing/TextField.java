@@ -35,8 +35,10 @@ final class TextField implements UIComponent {
 
   private final FieldType fieldType;
   private final String reference;
+  private final String locationDescr;
 
-  TextField(final FieldType fieldType, final String reference) {
+  TextField(final FieldType fieldType, final String reference, final String locationDescr) {
+    this.locationDescr = locationDescr;
     this.fieldType = fieldType;
     this.reference = reference;
     setName(reference);
@@ -87,17 +89,18 @@ final class TextField implements UIComponent {
   String getText(final boolean doValidation) throws FieldValidationFailedException {
     String text = textField.getText();
     if (doValidation && textField.isEnabled() && fieldType.validationType.canValidate) {
-      text = FieldValidator.validateText(text, fieldType, this, getQuotedReference());
+      text = FieldValidator.validateText(text, fieldType, this, getQuotedReference()
+          + (locationDescr == null ? "" : " in " + locationDescr));
     }
     return text;
   }
-  
+
   /**
    * get text without validation
    * @return
    */
-  String getText()   {
-   return textField.getText();
+  String getText() {
+    return textField.getText();
   }
 
   private String getQuotedReference() {

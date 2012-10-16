@@ -148,7 +148,7 @@ final class FileTextField implements FileTextFieldInterface {
       layout.setConstraints(this.label, constraints);
       panel.add(this.label);
     }
-    field = new TextField(FIELD_TYPE, label);
+    field = new TextField(FIELD_TYPE, label, null);
     field.setTextPreferredSize(new Dimension(250 * (int) Math.round(UIParameters.INSTANCE
         .getFontSizeAdjustment()), FOLDER_BUTTON_SIZE.height));
     constraints.insets = new Insets(0, 0, 0, -1);

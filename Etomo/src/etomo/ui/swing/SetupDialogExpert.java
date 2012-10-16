@@ -23,6 +23,7 @@ import etomo.type.MetaData;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
 import etomo.type.ViewType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -402,52 +403,63 @@ public final class SetupDialogExpert {
     return metaData;
   }
 
-  public MetaData getFields() {
-    MetaData metaData = getMetaData();
-    AxisType axisType = getAxisType();
-    metaData.setBackupDirectory(dialog.getBackupDirectory());
-    metaData.setDistortionFile(dialog.getDistortionFile());
-    metaData.setMagGradientFile(dialog.getMagGradientFile());
-    metaData.setDefaultParallel(dialog.isParallelProcessSelected());
-    metaData.setDefaultGpuProcessing(dialog.isGpuProcessingSelected());
-    metaData.setAdjustedFocusA(dialog.isAdjustedFocusSelected(AxisID.FIRST));
-    metaData.setAdjustedFocusB(dialog.isAdjustedFocusSelected(AxisID.SECOND));
-    metaData.setViewType(getViewType());
-    String currentField = "";
-    currentField = "Image Rotation";
-    metaData.setImageRotation(dialog.getImageRotation(), AxisID.FIRST);
-    if (!metaData.getImageRotation(AxisID.FIRST).isValid()) {
-      UIHarness.INSTANCE.openMessageDialog(manager, currentField + " must be numeric.",
-          "Setup Dialog Error", AxisID.ONLY);
-      return null;
-    }
+  public MetaData getFields(final boolean doValidation) {
     try {
-      currentField = "Pixel Size";
-      metaData.setPixelSize(dialog.getPixelSize());
-      currentField = "Fiducial Diameter";
-      metaData.setFiducialDiameter(dialog.getFiducialDiameter());
-      if (axisType == AxisType.DUAL_AXIS) {
-        metaData.setImageRotation(dialog.getImageRotation(), AxisID.SECOND);
+      MetaData metaData = getMetaData();
+      AxisType axisType = getAxisType();
+      metaData.setBackupDirectory(dialog.getBackupDirectory());
+      metaData.setDistortionFile(dialog.getDistortionFile());
+      metaData.setMagGradientFile(dialog.getMagGradientFile());
+      metaData.setDefaultParallel(dialog.isParallelProcessSelected());
+      metaData.setDefaultGpuProcessing(dialog.isGpuProcessingSelected());
+      metaData.setAdjustedFocusA(dialog.isAdjustedFocusSelected(AxisID.FIRST));
+      metaData.setAdjustedFocusB(dialog.isAdjustedFocusSelected(AxisID.SECOND));
+      metaData.setViewType(getViewType());
+      String currentField = "";
+      currentField = "Image Rotation";
+      metaData.setImageRotation(dialog.getImageRotation(doValidation), AxisID.FIRST);
+      if (!metaData.getImageRotation(AxisID.FIRST).isValid()) {
+        UIHarness.INSTANCE.openMessageDialog(manager, currentField + " must be numeric.",
+            "Setup Dialog Error", AxisID.ONLY);
+        return null;
       }
-      currentField = "Axis A starting and step angles";
-      tiltAnglePanelExpertA.getFields(metaData.getTiltAngleSpecA());
-      currentField = "Axis B starting and step angles";
-      tiltAnglePanelExpertB.getFields(metaData.getTiltAngleSpecB());
+      try {
+        currentField = "Pixel Size";
+        metaData.setPixelSize(dialog.getPixelSize(doValidation));
+        currentField = "Fiducial Diameter";
+        metaData.setFiducialDiameter(dialog.getFiducialDiameter(doValidation));
+        if (axisType == AxisType.DUAL_AXIS) {
+          metaData.setImageRotation(dialog.getImageRotation(doValidation), AxisID.SECOND);
+        }
+        currentField = "Axis A starting and step angles";
+        if (!tiltAnglePanelExpertA.getFields(metaData.getTiltAngleSpecA(), doValidation)) {
+          return null;
+        }
+        currentField = "Axis B starting and step angles";
+        if (!tiltAnglePanelExpertB.getFields(metaData.getTiltAngleSpecB(), doValidation)) {
+          return null;
+        }
+      }
+      catch (NumberFormatException e) {
+        UIHarness.INSTANCE.openMessageDialog(manager, currentField + " must be numeric.",
+            "Setup Dialog Error", AxisID.ONLY);
+        return null;
+      }
+      metaData.setBinning(dialog.getBinning());
+      metaData.setExcludeProjections(dialog.getExcludeList(AxisID.FIRST, doValidation),
+          AxisID.FIRST);
+      metaData.setExcludeProjections(dialog.getExcludeList(AxisID.SECOND, doValidation),
+          AxisID.SECOND);
+      if (axisType == AxisType.DUAL_AXIS) {
+        File bStack = DatasetFiles.getStack(manager.getPropertyUserDir(), metaData,
+            AxisID.SECOND);
+        metaData.setBStackProcessed(bStack.exists());
+      }
+      return metaData;
     }
-    catch (NumberFormatException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager, currentField + " must be numeric.",
-          "Setup Dialog Error", AxisID.ONLY);
+    catch (FieldValidationFailedException e) {
       return null;
     }
-    metaData.setBinning(dialog.getBinning());
-    metaData.setExcludeProjections(dialog.getExcludeList(AxisID.FIRST), AxisID.FIRST);
-    metaData.setExcludeProjections(dialog.getExcludeList(AxisID.SECOND), AxisID.SECOND);
-    if (axisType == AxisType.DUAL_AXIS) {
-      File bStack = DatasetFiles.getStack(manager.getPropertyUserDir(), metaData,
-          AxisID.SECOND);
-      metaData.setBStackProcessed(bStack.exists());
-    }
-    return metaData;
   }
 
   public DialogExitState getExitState() {

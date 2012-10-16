@@ -69,7 +69,7 @@ final class ReferencePanel {
   private final EtomoPanel pnlRoot = new EtomoPanel();
   private final ButtonGroup bgReference = new ButtonGroup();
   private final RadioTextField rtfParticle = RadioTextField.getInstance(
-      FieldType.INTEGER, "Particle ", bgReference);
+      FieldType.INTEGER, "Particle ", bgReference,PeetDialog.SETUP_LOCATION_DESCR);
   private final Spinner sVolume = Spinner.getLabeledInstance("In Volume: ");
   private final RadioButton rbFile = new RadioButton(REFERENCE_FILE_LABEL, bgReference);
   private final FileTextField2 ftfFile;

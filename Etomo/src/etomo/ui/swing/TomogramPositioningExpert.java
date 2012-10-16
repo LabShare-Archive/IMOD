@@ -593,7 +593,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     // parameters back to the tilt{|a|b}.com
     try {
       TomopitchParam tomopitchParam = comScriptMgr.getTomopitchParam(axisID);
-      getTomopitchParam(tomopitchParam, doValidation);
+      if (!getTomopitchParam(tomopitchParam, doValidation)) {
+        return false;
+      }
       comScriptMgr.saveTomopitch(tomopitchParam, axisID);
     }
     catch (NumberFormatException except) {

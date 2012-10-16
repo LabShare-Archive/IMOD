@@ -1498,34 +1498,42 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     boundaryTable.setXfjointomoResult();
   }
 
-  public boolean getMetaData(JoinMetaData metaData) {
+  public boolean getMetaData(JoinMetaData metaData, final boolean doValidation) {
     synchronize();
-    metaData.setRootName(ltfRootName.getText());
-    metaData.setDensityRefSection(spinDensityRefSection.getValue());
-    autoAlignmentPanel.getParameters(metaData.getAutoAlignmentMetaData());
-    metaData.setUseAlignmentRefSection(cbsAlignmentRefSection.isSelected());
-    metaData.setAlignmentRefSection(cbsAlignmentRefSection.getValue());
-    metaData.setSizeInX(ltfSizeInX.getText());
-    metaData.setSizeInY(ltfSizeInY.getText());
-    metaData.setShiftInX(ltfShiftInX.getText());
-    metaData.setShiftInY(ltfShiftInY.getText());
-    metaData.setLocalFits(cbLocalFits.isSelected());
-    metaData.setUseEveryNSlices(spinUseEveryNSlices.getValue());
-    metaData.setRejoinUseEveryNSlices(spinRejoinUseEveryNSlices.getValue());
-    metaData.setTrialBinning(spinTrialBinning.getValue());
-    metaData.setMidasLimit(ltfMidasLimit.getText());
-    metaData.setModelTransform(tcModel.get());
-    metaData.setBoundariesToAnalyze(ltfBoundariesToAnalyze.getText());
-    metaData.setObjectsToInclude(ltfObjectsToInclude.getText());
-    metaData.setGap(cbGap.isSelected());
-    metaData.setGapStart(ltfGapStart.getText());
-    metaData.setGapEnd(ltfGapEnd.getText());
-    metaData.setGapInc(ltfGapInc.getText());
-    metaData.setPointsToFitMin(ltfPointsToFitMin.getText());
-    metaData.setPointsToFitMax(ltfPointsToFitMax.getText());
-    metaData.setRejoinTrialBinning(spinRejoinTrialBinning.getValue());
-    boundaryTable.getMetaData();
-    return pnlSectionTable.getMetaData(metaData);
+    try {
+      metaData.setRootName(ltfRootName.getText(doValidation));
+      metaData.setDensityRefSection(spinDensityRefSection.getValue());
+      if (!autoAlignmentPanel.getParameters(metaData.getAutoAlignmentMetaData(),
+          doValidation)) {
+        return false;
+      }
+      metaData.setUseAlignmentRefSection(cbsAlignmentRefSection.isSelected());
+      metaData.setAlignmentRefSection(cbsAlignmentRefSection.getValue());
+      metaData.setSizeInX(ltfSizeInX.getText(doValidation));
+      metaData.setSizeInY(ltfSizeInY.getText(doValidation));
+      metaData.setShiftInX(ltfShiftInX.getText(doValidation));
+      metaData.setShiftInY(ltfShiftInY.getText(doValidation));
+      metaData.setLocalFits(cbLocalFits.isSelected());
+      metaData.setUseEveryNSlices(spinUseEveryNSlices.getValue());
+      metaData.setRejoinUseEveryNSlices(spinRejoinUseEveryNSlices.getValue());
+      metaData.setTrialBinning(spinTrialBinning.getValue());
+      metaData.setMidasLimit(ltfMidasLimit.getText(doValidation));
+      metaData.setModelTransform(tcModel.get());
+      metaData.setBoundariesToAnalyze(ltfBoundariesToAnalyze.getText(doValidation));
+      metaData.setObjectsToInclude(ltfObjectsToInclude.getText(doValidation));
+      metaData.setGap(cbGap.isSelected());
+      metaData.setGapStart(ltfGapStart.getText(doValidation));
+      metaData.setGapEnd(ltfGapEnd.getText(doValidation));
+      metaData.setGapInc(ltfGapInc.getText(doValidation));
+      metaData.setPointsToFitMin(ltfPointsToFitMin.getText(doValidation));
+      metaData.setPointsToFitMax(ltfPointsToFitMax.getText(doValidation));
+      metaData.setRejoinTrialBinning(spinRejoinTrialBinning.getValue());
+      boundaryTable.getMetaData();
+      return pnlSectionTable.getMetaData(metaData);
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   SectionTablePanel getSectionTable() {
@@ -1777,7 +1785,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
       else if (command.equals(btnChangeSetup.getActionCommand())) {
         // Prepare for Revert: meta data file should match the screen
         JoinMetaData metaData = manager.getJoinMetaData();
-        getMetaData(metaData);
+        getMetaData(metaData, false);
         try {
           ParameterStore parameterStore = manager.getParameterStore();
           if (parameterStore != null) {

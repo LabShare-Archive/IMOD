@@ -45,11 +45,11 @@ final class MissingWedgeCompensationPanel {
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final LabeledTextField ltfVolumeSizeX = new LabeledTextField(FieldType.INTEGER,
-      "X: ");
+      "X: ",PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfVolumeSizeY = new LabeledTextField(FieldType.INTEGER,
-      "Y: ");
+      "Y: ",PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfVolumeSizeZ = new LabeledTextField(FieldType.INTEGER,
-      "Z: ");
+      "Z: ",PeetDialog.SETUP_LOCATION_DESCR);
   private final CheckBox cbMissingWedgeCompensation = new CheckBox("Enabled");
   private final Spinner sEdgeShift = Spinner.getLabeledInstance("Edge shift: ",
       MatlabParam.EDGE_SHIFT_DEFAULT, MatlabParam.EDGE_SHIFT_MIN,

@@ -456,7 +456,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       "Number of Y patches :");
   private CheckBox cbKernelSigma = new CheckBox(KERNEL_SIGMA_LABEL);
   private TextField tfKernelSigma = new TextField(FieldType.FLOATING_POINT,
-      KERNEL_SIGMA_LABEL);
+      KERNEL_SIGMA_LABEL, null);
 
   private JPanel pnlBoundary = new JPanel();
   private LabeledTextField ltfXLow = new LabeledTextField(FieldType.INTEGER, "X Low :");

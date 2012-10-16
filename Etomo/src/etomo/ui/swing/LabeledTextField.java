@@ -216,6 +216,7 @@ final class LabeledTextField implements UIComponent {
   private final JTextField textField = new JTextField();
   private final EtomoNumber.Type numericType;
   private final FieldType fieldType;
+  private final String locationDescr;
 
   private boolean debug = false;
   private String checkpointValue = null;
@@ -238,7 +239,8 @@ final class LabeledTextField implements UIComponent {
   }
 
   private LabeledTextField(final FieldType fieldType, final String tfLabel,
-      final EtomoNumber.Type numericType, final int hgap) {
+      final EtomoNumber.Type numericType, final int hgap, final String locationDescr) {
+    this.locationDescr = locationDescr;
     this.fieldType = fieldType;
     this.numericType = numericType;
     // set label
@@ -264,11 +266,16 @@ final class LabeledTextField implements UIComponent {
   }
 
   LabeledTextField(final FieldType fieldType, final String tfLabel) {
-    this(fieldType, tfLabel, null, 0);
+    this(fieldType, tfLabel, null, 0, null);
+  }
+
+  LabeledTextField(final FieldType fieldType, final String tfLabel,
+      final String locationDescr) {
+    this(fieldType, tfLabel, null, 0, locationDescr);
   }
 
   LabeledTextField(final FieldType fieldType, final String tfLabel, final int hgap) {
-    this(fieldType, tfLabel, null, hgap);
+    this(fieldType, tfLabel, null, hgap, null);
   }
 
   static LabeledTextField getNumericInstance(final String tfLabel,
@@ -277,7 +284,7 @@ final class LabeledTextField implements UIComponent {
     if (numericType == EtomoNumber.Type.DOUBLE) {
       fieldType = FieldType.FLOATING_POINT;
     }
-    return new LabeledTextField(fieldType, tfLabel, numericType, 0);
+    return new LabeledTextField(fieldType, tfLabel, numericType, 0, null);
   }
 
   static LabeledTextField getNumericInstance(final String tfLabel) {
@@ -425,7 +432,8 @@ final class LabeledTextField implements UIComponent {
   String getText(final boolean doValidation) throws FieldValidationFailedException {
     String text = textField.getText();
     if (doValidation && textField.isEnabled() && fieldType.validationType.canValidate) {
-      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel());
+      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel()
+          + (locationDescr == null ? "" : " in " + locationDescr));
     }
     return text;
   }

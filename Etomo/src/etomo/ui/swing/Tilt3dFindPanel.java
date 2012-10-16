@@ -205,7 +205,9 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
     param.setOutputFile(FileType.TILT_3D_FIND_OUTPUT.getFileName(manager, axisID));
     param.setCommandMode(TiltParam.Mode.TILT_3D_FIND);
     param.setProcessName(ProcessName.TILT_3D_FIND);
-    super.getParameters(param, doValidation);
+    if (!super.getParameters(param, doValidation)) {
+      return false;
+    }
     return true;
   }
 

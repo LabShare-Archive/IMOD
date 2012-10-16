@@ -35,9 +35,11 @@ import etomo.storage.StackFileFilter;
 import etomo.storage.DistortionFileFilter;
 import etomo.type.AxisID;
 import etomo.type.DataFileType;
+import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 final class SetupDialog extends ProcessDialog implements ContextMenu,
     Run3dmodButtonContainer, Expandable {
@@ -182,8 +184,10 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   public void done() {
-    applicationManager.doneSetupDialog();
-    setDisplayed(false);
+    if (applicationManager
+        .doneSetupDialog(expert.getExitState() == DialogExitState.EXECUTE)) {
+      setDisplayed(false);
+    }
   }
 
   public void buttonExecuteAction() {
@@ -376,11 +380,12 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     return spnBinning.getValue();
   }
 
-  String getExcludeList(final AxisID axisID) {
+  String getExcludeList(final AxisID axisID, final boolean doValidation)
+      throws FieldValidationFailedException {
     if (axisID == AxisID.SECOND) {
-      return ltfExcludeListB.getText();
+      return ltfExcludeListB.getText(doValidation);
     }
-    return ltfExcludeListA.getText();
+    return ltfExcludeListA.getText(doValidation);
   }
 
   void setExcludeList(final AxisID axisID, final String input) {
@@ -449,16 +454,18 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     return cbAdjustedFocusA.isSelected();
   }
 
-  String getPixelSize() {
-    return ltfPixelSize.getText();
+  String getPixelSize(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfPixelSize.getText(doValidation);
   }
 
-  String getFiducialDiameter() {
-    return ltfFiducialDiameter.getText();
+  String getFiducialDiameter(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfFiducialDiameter.getText(doValidation);
   }
 
-  String getImageRotation() {
-    return ltfImageRotation.getText();
+  String getImageRotation(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfImageRotation.getText(doValidation);
   }
 
   boolean equalsSingleAxisActionCommand(final String actionCommand) {

@@ -491,8 +491,8 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
         // Must keep checking the dataset directory because a tools interface cannot
         // take pocession of a directory.
         File file = ftfInputFile.getFile();
-        if (!DatasetTool.validateDatasetName(toolsManager, axisID, file.getParentFile(),
-            file.getName(), DataFileType.TOOLS, null)) {
+        if (!DatasetTool.validateDatasetName(toolsManager, axisID, file,
+            DataFileType.TOOLS, null)) {
           return;
         }
         if (command.equals(btnFlatten.getActionCommand())) {
@@ -539,8 +539,8 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
         return;
       }
       if (toolsManager != null) {
-        if (!DatasetTool.validateDatasetName(toolsManager, axisID, file.getParentFile(),
-            file.getName(), DataFileType.TOOLS, null)) {
+        if (!DatasetTool.validateDatasetName(toolsManager, axisID, file,
+            DataFileType.TOOLS, null)) {
           return;
         }
         if (toolsManager.isConflictingDatasetName(axisID, file)) {

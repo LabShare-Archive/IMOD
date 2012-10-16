@@ -80,7 +80,7 @@ final class FileTextField2 implements FileTextFieldInterface {
           ClassLoader.getSystemResource("images/openFilePeet.png")));
     }
     button.setName(label);
-    field = new TextField(STRING_FIELD_TYPE, label);
+    field = new TextField(STRING_FIELD_TYPE, label, null);
     this.label = new JLabel(label);
     this.labeled = labeled;
     this.manager = manager;

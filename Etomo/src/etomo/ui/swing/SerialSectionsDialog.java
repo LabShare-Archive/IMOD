@@ -345,22 +345,32 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     autoAlignmentPanel.enableMidas();
   }
 
-  public void getParameters(final SerialSectionsMetaData metaData) {
-    metaData.setRobustFitCriterion(ctfRobustFitCriterion.getText());
-    metaData.setMidasBinning(spMidasBinning.getValue());
-    autoAlignmentPanel.getParameters(metaData.getAutoAlignmentMetaData());
-    metaData.setNoOptions(rbNoOptions.isSelected());
-    metaData.setHybridFitsTranslations(rbHybridFitsTranslations.isSelected());
-    metaData.setHybridFitsTranslationsRotations(rbHybridFitsTranslationsRotations
-        .isSelected());
-    metaData.setNumberToFitGlobalAlignment(rbNumberToFitGlobalAlignment.isSelected());
-    metaData.setUseReferenceSection(cbsReferenceSection.isSelected());
-    metaData.setReferenceSection(cbsReferenceSection.getValue());
-    metaData.setSizeX(ltfSizeX.getText());
-    metaData.setSizeY(ltfSizeY.getText());
-    metaData.setShiftX(ltfShiftX.getText());
-    metaData.setShiftY(ltfShiftY.getText());
-    metaData.setTab(curTab.index);
+  public boolean getParameters(final SerialSectionsMetaData metaData,
+      final boolean doValidation) {
+    try {
+      metaData.setRobustFitCriterion(ctfRobustFitCriterion.getText(doValidation));
+      metaData.setMidasBinning(spMidasBinning.getValue());
+      if (!autoAlignmentPanel.getParameters(metaData.getAutoAlignmentMetaData(),
+          doValidation)) {
+        return false;
+      }
+      metaData.setNoOptions(rbNoOptions.isSelected());
+      metaData.setHybridFitsTranslations(rbHybridFitsTranslations.isSelected());
+      metaData.setHybridFitsTranslationsRotations(rbHybridFitsTranslationsRotations
+          .isSelected());
+      metaData.setNumberToFitGlobalAlignment(rbNumberToFitGlobalAlignment.isSelected());
+      metaData.setUseReferenceSection(cbsReferenceSection.isSelected());
+      metaData.setReferenceSection(cbsReferenceSection.getValue());
+      metaData.setSizeX(ltfSizeX.getText(doValidation));
+      metaData.setSizeY(ltfSizeY.getText(doValidation));
+      metaData.setShiftX(ltfShiftX.getText(doValidation));
+      metaData.setShiftY(ltfShiftY.getText(doValidation));
+      metaData.setTab(curTab.index);
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   public void setParameters(final ConstSerialSectionsMetaData metaData) {

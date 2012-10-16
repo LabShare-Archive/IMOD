@@ -178,16 +178,22 @@ public final class AutoAlignmentPanel {
     return pnlRoot.getContainer();
   }
 
-  void getParameters(final AutoAlignmentMetaData metaData) {
-    metaData.setSigmaLowFrequency(ltfSigmaLowFrequency.getText());
-    metaData.setCutoffHighFrequency(ltfCutoffHighFrequency.getText());
-    metaData.setSigmaHighFrequency(ltfSigmaHighFrequency.getText());
-    metaData.setAlignTransform(tcAlign.get());
-    metaData.setPreCrossCorrelation(cbPreCrossCorrelation.isSelected());
-    metaData.setSkipSectionsFrom1(ltfSkipSectionsFrom1.getText());
-    metaData.setEdgeToIgnore(ltfEdgeToIgnore.getText());
-    metaData.setReduceByBinning(spReduceByBinning.getValue());
-    metaData.setMidasBinning(spMidasBinning.getValue());
+  boolean getParameters(final AutoAlignmentMetaData metaData, final boolean doValidation) {
+    try {
+      metaData.setSigmaLowFrequency(ltfSigmaLowFrequency.getText(doValidation));
+      metaData.setCutoffHighFrequency(ltfCutoffHighFrequency.getText(doValidation));
+      metaData.setSigmaHighFrequency(ltfSigmaHighFrequency.getText(doValidation));
+      metaData.setAlignTransform(tcAlign.get());
+      metaData.setPreCrossCorrelation(cbPreCrossCorrelation.isSelected());
+      metaData.setSkipSectionsFrom1(ltfSkipSectionsFrom1.getText(doValidation));
+      metaData.setEdgeToIgnore(ltfEdgeToIgnore.getText(doValidation));
+      metaData.setReduceByBinning(spReduceByBinning.getValue());
+      metaData.setMidasBinning(spMidasBinning.getValue());
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   void setParameters(final AutoAlignmentMetaData metaData) {
