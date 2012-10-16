@@ -38,7 +38,6 @@ public final class FieldValidator {
    * @return fieldText, trimmed if validation is possible on fieldType
    * @throws FieldValidationFailedException if the validation fails
    */
-  // TEMP 1614
   public static String validateText(final String fieldText, final FieldType fieldType,
       final UIComponent component, final String descr)
       throws FieldValidationFailedException {
