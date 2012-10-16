@@ -423,7 +423,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Close message from the setup dialog window
    */
-  public boolean doneSetupDialog() {
+  public boolean doneSetupDialog(final boolean doValidation) {
     // Get the selected exit button
     DialogExitState exitState = setupDialogExpert.getExitState();
     if (exitState != DialogExitState.CANCEL) {
@@ -441,7 +441,7 @@ public final class ApplicationManager extends BaseManager implements
         propertyUserDir = oldUserDir;
         return false;
       }
-      metaData = setupDialogExpert.getFields();
+      metaData = setupDialogExpert.getFields(doValidation);
       if (metaData == null) {
         return false;
       }
