@@ -711,7 +711,7 @@ public final class JoinManager extends BaseManager {
         mainPanel.setStatusBarText(paramFile, metaData, logPanel);
       }
     }
-    joinDialog.getMetaData(metaData);
+    joinDialog.getMetaData(metaData, false);
     joinDialog.getScreenState(screenState);
     state.setDoneMode(joinDialog.getMode());
     saveStorables(AxisID.ONLY);
@@ -919,7 +919,7 @@ public final class JoinManager extends BaseManager {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
-    if (!joinDialog.getMetaData(metaData)) {
+    if (!joinDialog.getMetaData(metaData, true)) {
       return;
     }
     if (!metaData.isValid(joinDialog.getWorkingDirName())) {
@@ -937,7 +937,7 @@ public final class JoinManager extends BaseManager {
     if (paramFile == null) {
       endSetupMode();
     }
-    if (!joinDialog.getMetaData(metaData)) {
+    if (!joinDialog.getMetaData(metaData, true)) {
       return;
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
@@ -1230,7 +1230,7 @@ public final class JoinManager extends BaseManager {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
-    if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
+    if (!updateMetaDataFromJoinDialog(AxisID.ONLY, true)) {
       return;
     }
     FinishjoinParam param = new FinishjoinParam(this, mode);
@@ -1266,8 +1266,8 @@ public final class JoinManager extends BaseManager {
     }
   }
 
-  private boolean updateMetaDataFromJoinDialog(AxisID axisID) {
-    if (!joinDialog.getMetaData(metaData)) {
+  private boolean updateMetaDataFromJoinDialog(AxisID axisID, final boolean doValidation) {
+    if (!joinDialog.getMetaData(metaData, doValidation)) {
       return false;
     }
     if (!metaData.isValid(propertyUserDir)) {
@@ -1424,8 +1424,9 @@ public final class JoinManager extends BaseManager {
     return metaData.getAutoAlignmentMetaData();
   }
 
-  public boolean updateMetaData(final DialogType dialogType, final AxisID axisID) {
-    return joinDialog.getMetaData(metaData);
+  public boolean updateMetaData(final DialogType dialogType, final AxisID axisID,
+      final boolean doValidation) {
+    return joinDialog.getMetaData(metaData, doValidation);
   }
 
   /**
