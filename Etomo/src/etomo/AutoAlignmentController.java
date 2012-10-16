@@ -55,7 +55,7 @@ public final class AutoAlignmentController {
 
   public void xfalignInitial(final ConstProcessSeries processSeries,
       final boolean tomogramAverages) {
-    if (!updateMetaData()) {
+    if (!updateMetaData(true)) {
       return;
     }
     XfalignParam xfalignParam = new XfalignParam(manager.getName(),
@@ -81,7 +81,7 @@ public final class AutoAlignmentController {
 
   public void xfalignRefine(ConstProcessSeries processSeries,
       final boolean tomogramAverages, final String description) {
-    if (!updateMetaData()) {
+    if (!updateMetaData(true)) {
       return;
     }
     XfalignParam xfalignParam = new XfalignParam(manager.getName(),
@@ -129,7 +129,7 @@ public final class AutoAlignmentController {
    * Run midas on the sample
    */
   public void midasSample(final String description) {
-    if (!updateMetaData()) {
+    if (!updateMetaData(true)) {
       return;
     }
     MidasParam midasParam = new MidasParam(manager, axisID, Mode.SAMPLE);
@@ -200,8 +200,8 @@ public final class AutoAlignmentController {
     }
   }
 
-  private boolean updateMetaData() {
-    if (!manager.updateMetaData(display.getDialogType(), axisID)) {
+  private boolean updateMetaData(final boolean doValidation) {
+    if (!manager.updateMetaData(display.getDialogType(), axisID, doValidation)) {
       return false;
     }
     if (!manager.getBaseMetaData().isValid()) {
