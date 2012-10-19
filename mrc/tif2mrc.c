@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <stdlib.h>
@@ -28,6 +27,7 @@ static void expandIndexToRGB(unsigned char **datap, ImodImageFile *iifile,
 static void convertLongToFloat(unsigned char *tifdata, ImodImageFile *iifile);
 static void manageMode(Tf_info *tiff, int keepUshort, int forceSigned, 
                        int makegray, int *pixSize, int *mode);
+static int manageTVIPSdata(ImodImageFile *iifile, char *label, float *tiltAngle);
 
 int main( int argc, char *argv[])
 {
@@ -58,7 +58,7 @@ int main( int argc, char *argv[])
   int pixelEntered = 0;
   int xsize, ysize;
   int mrcxsize = 0, mrcysize = 0, mrcsizeset;
-  float userFill, fillVal, mean, tmean, pixelSize = 1., yPixelSize = 1.;
+  float userFill, fillVal, mean, tmean, tiltAngle, pixelSize = 1., yPixelSize = 1.;
   float chunkCriterion = 100.;
   b3dInt16 *sptr;
   b3dInt16 *bgshort;
@@ -68,6 +68,9 @@ int main( int argc, char *argv[])
   unsigned char byteFill[3];
   b3dInt16 shortFill;
   b3dUInt16 ushortFill;
+  char label[MRC_LABEL_SIZE];
+  char *tiltFile = NULL;
+  FILE *tiltfp;
   char *openmode = "rb";
   char *bgfile;
   char *progname = imodProgName(argv[0]);
@@ -80,6 +83,7 @@ int main( int argc, char *argv[])
   mean = 0;
   min = 100000;
   max = -100000;
+  label[0] = 0x00;
 
   if (argc < 3){
     printf("Tif2mrc Version %s %s %s\n" , VERSION_NAME,
@@ -100,6 +104,7 @@ int main( int argc, char *argv[])
             "are unsigned\n");
     printf("\t-p  #   Set pixel spacing in MRC header to given #\n");
     printf("\t-P      Set pixel spacing in MRC header from resolution in TIFF file\n");
+    printf("\t-T file Output tilt angles from TVIPS input files to given file\n");
     printf("\t-f      Read only first image of multi-page file\n");
     printf("\t-o x,y  Set output file size in X and Y\n");
     printf("\t-F  #   Set value to fill areas with no image data to given #\n");
@@ -183,6 +188,9 @@ int main( int argc, char *argv[])
         chunkCriterion = atof(argv[++iarg]);
         break;
 
+      case 'T':
+        tiltFile = strdup(argv[++iarg]);
+
       default:
         break;
       }
@@ -205,6 +213,12 @@ int main( int argc, char *argv[])
   chunkCriterion *= 1024 * 1024;
   if (pixelEntered && anyTifPixel)
     exitError("You cannot enter both -p and -P");
+  if (tiltFile) {
+    imodBackupFile(tiltFile);
+    tiltfp = fopen(tiltFile, "w");
+    if (!tiltfp)
+      exitError("Opening tilt angle file %s", tiltFile);
+  }
 
   if (iarg == (argc - 2) && !readFirst){
 
@@ -391,6 +405,12 @@ int main( int argc, char *argv[])
     printf("Opening %s for input\n", argv[iarg]);
     fflush(stdout);
     tiffp = tiff.fp;
+    k = manageTVIPSdata(tiff.iifile, label, &tiltAngle);
+    if (tiltFile) {
+      if (k)
+        exitError("There is no tilt angle value in this file");
+      fprintf(tiltfp, "%7.2f\n", tiltAngle);
+    }
 
     /* Decide whether to set up chunks */
     doChunks = 0;
@@ -584,12 +604,19 @@ int main( int argc, char *argv[])
   }
   hdata.mode = mode;
   mrc_head_label(&hdata, "tif2mrc: Converted to MRC format.");
+  if (label[0] != 0x00) {
+    for (k = strlen(label); k < MRC_LABEL_SIZE; k++)
+      label[k] = ' ';
+    memcpy(&hdata.labels[hdata.nlabl], label, MRC_LABEL_SIZE);
+    hdata.nlabl++;
+  }
   mrc_head_write(mrcfp, &hdata);
 
   /* cleanup */
   if (mrcfp)
     fclose(mrcfp);
-
+  if (tiltFile)
+    fclose(tiltfp);
   exit(0);
 
 }
@@ -773,59 +800,66 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
   return (tmean / (xysize));
 }
 
-/* 
-   $Log$
-   Revision 3.25  2011/07/26 17:41:51  mast
-   Fixed test for files having same mode to include byte output
+static int manageTVIPSdata(ImodImageFile *iifile, char *label, float *tiltAngle)
+{
+  float axisAngle, spotFloat;
+  static float lastAxis;
+  int spotInt, binning;
+  static int lastSpot, lastBinning;
+  static int sameSpot = -1, sameBin = -1, sameAxis = -1;
+  if (!iifile || !iifile->userData || iifile->userCount < 4260 || 
+      !(iifile->userFlags & IIFLAG_TVIPS_DATA))
+    return 1;
 
-   Revision 3.24  2011/07/25 02:53:10  mast
-   Fix name of byte shifting function
+  /* Fetch the items and swap them if necessary */
+  memcpy(&axisAngle, &iifile->userData[3704], 4);
+  memcpy(tiltAngle, &iifile->userData[3564], 4);
+  memcpy(&spotFloat, &iifile->userData[3624], 4);
+  memcpy(&binning, &iifile->userData[3944], 4);
+  if (iifile->userFlags & IIFLAG_BYTES_SWAPPED) {
+    mrc_swap_floats(&axisAngle, 1);
+    mrc_swap_floats(tiltAngle, 1);
+    mrc_swap_floats(&spotFloat, 1);
+    mrc_swap_longs(&binning, 1);
+  }
+  spotInt = B3DNINT(spotFloat);
 
-   Revision 3.23  2011/07/25 02:45:17  mast
-   Changes for working with signed bytes
+  /* Keep track of whether items have been the same every time */
+  if (spotInt < 1)
+    sameSpot = 0;
+  if (binning < 1)
+    sameBin = 0;
+  if (sameSpot < 0)
+    sameSpot = 1;
+  else if (sameSpot > 0 && spotInt != lastSpot)
+    sameSpot = 0;
+  if (sameBin < 0)
+    sameBin = 1;
+  else if (sameBin > 0 && binning != lastBinning)
+    sameBin = 0;
+  if (sameAxis < 0)
+    sameAxis = 1;
+  else if (sameAxis > 0 && fabs((double)axisAngle - lastAxis) > 1.e-5)
+    sameAxis = 0;
+  lastAxis = axisAngle;
+  lastSpot = spotInt;
+  lastBinning = binning;
 
-   Revision 3.22  2011/03/05 03:42:02  mast
-   Allow environment variable to prevent backing up file
+  /* Convert to angle relative to Y and print out whatever matches */
+  axisAngle -= 90.;
+  if (axisAngle < -180.)
+    axisAngle += 360.;
+  if (axisAngle > 180.)
+    axisAngle -= 360.;
 
-   Revision 3.21  2011/01/31 17:35:14  mast
-   Fixed stacking of files of different sizes
-
-   Revision 3.20  2010/12/18 18:47:08  mast
-   Added ability to read in chunks and made it work with > 2 GB files.
-
-   Revision 3.19  2009/06/19 20:49:31  mast
-   Added ability to read integer files
-
-   Revision 3.18  2009/04/01 00:00:47  mast
-   Suppress warnings on unrecognized tags, add pixel size option
-
-   Revision 3.17  2008/05/23 22:56:08  mast
-   Added float support, NTSC gray option, standardized error output
-
-   Revision 3.16  2007/10/15 21:42:57  mast
-   Fixed log setup
-
-   Revision 3.15  2007/10/15 21:36:24  mast
-   Fixed output of unequal sized data to use b3dFwrite instead of fputc, made
-   it put out centered data and work for all modes, added output size option
-
-   Revision 3.14  2006/08/28 05:26:44  mast
-   Added abiity to handle colormapped images
-   
-   Revision 3.13  2006/01/13 05:00:50  mast
-   Added option to suppress reading of multiple pages.
-   
-   Revision 3.12  2005/11/11 21:55:28  mast
-   Outputs unsigned file mode
-   
-   Revision 3.11  2005/02/11 01:42:34  mast
-   Warning cleanup: implicit declarations, main return type, parentheses, etc.
-   
-   Revision 3.10  2004/11/05 18:53:10  mast
-   Include local files with quotes, not brackets
-   
-   Revision 3.9  2004/09/10 21:33:31  mast
-   Eliminated long variables
-   
-*/
-
+  if (sameAxis > 0 && sameSpot > 0 && sameBin > 0)
+    sprintf(label, "    Tilt axis angle = %.1f, binning = %d  spot = %d", axisAngle, 
+            binning, spotInt);
+  else if (sameAxis > 0 && sameBin > 0)
+    sprintf(label, "    Tilt axis angle = %.1f, binning = %d", axisAngle, binning);
+  else if (sameAxis > 0)
+    sprintf(label, "    Tilt axis angle = %.1f", axisAngle);
+  else
+    label[0] = 0x00;
+  return 0;
+}
