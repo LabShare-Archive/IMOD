@@ -49,6 +49,10 @@ extern "C" {
 #define IIERR_IO_ERROR   2
 #define IIERR_MEMORY_ERR 3
 #define IIERR_NO_SUPPORT 4
+
+  /* Flags for userData */
+#define IIFLAG_BYTES_SWAPPED   1
+#define IIFLAG_TVIPS_DATA      2
 /* END_CODE */
 
   /* DOC_CODE Raw mode codes */
@@ -105,6 +109,8 @@ extern "C" {
     int   sectionSkip;
     char *header;
     char *userData;
+    unsigned int userFlags;  /* Flags for the userData */
+    int userCount;           /* Number of bytes of userData */
     unsigned char *colormap;
     int  planesPerImage;     /* # of planes per TIFF image */
     int  contigSamples;      /* # of contiguous samples per pixel in plane */
