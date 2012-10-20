@@ -187,7 +187,7 @@ extern "C" {
   int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection);
   void tiffClose(ImodImageFile *inFile);
   int tiffGetField(ImodImageFile *inFile, int tag, void *value);
-  int tiffGetArray(ImodImageFile *inFile, int tag, int *count, void *value);
+  int tiffGetArray(ImodImageFile *inFile, int tag, b3dUInt16 *count, void *value);
   void tiffSuppressWarnings(void);
   void tiffSuppressErrors(void);
   void tiffFilterWarnings(void);
