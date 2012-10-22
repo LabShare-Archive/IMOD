@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/23/12: Fixed Model View shifting with mouse and montage snapshot when
+Invert Z is on, and added flush statements to prevent failures in montage
+snapshots with vertex buffer drawing on (In 4.5).
+
 9/18/12: Fixed 3dmod crashing on X-ray model with no objects (In 4.5).
 
 8/29/12: IMOD_4-5-7
