@@ -1246,7 +1246,7 @@ void InfoWindow::helpSlot(int item)
 
   switch (item){
   case HELP_MENU_MAN:
-    imodShowHelpPage("../man/3dmod.html");
+    imodShowHelpPage("../man/3dmod.html#TOP");
     break;
   case HELP_MENU_MENUS:
     imodShowHelpPage("menus.html#TOP");
