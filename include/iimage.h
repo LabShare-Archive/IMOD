@@ -145,6 +145,7 @@ extern "C" {
                            after last section */
     int yInverted;      /* Lines are inverted in Y */
     float pixel;        /* Pixel size in Angstroms, set to 0. if unknown */
+    float zPixel;       /* Pixel size in Z if different, set to 0. otherwise */
   } RawImageInfo;
 /* END_CODE */
 
