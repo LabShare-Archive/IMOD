@@ -508,17 +508,7 @@ static void imodvMakeMontage(int frames, int overlap)
     /* Compute translation offsets implied by the given pixel shifts in X and
        Y in the display, using same code as imodv_translated */
     mat = imodMatNew(3);
-    imodMatId(mat);
-    imodMatRot(mat, -(double)vw->rot.x, b3dX);
-    imodMatRot(mat, -(double)vw->rot.y, b3dY);
-    imodMatRot(mat, -(double)vw->rot.z, b3dZ);
-    
-    scrnscale = 0.5 * B3DMIN(a->winx, a->winy) / vw->rad;
-    
-    spt.x = 1.0f/scrnscale;
-    spt.y = 1.0f/scrnscale;
-    spt.z = 1.0f/scrnscale * 1.0f/a->mod[m]->zscale;
-    imodMatScale(mat, &spt);
+    imodvRotScaleMatrix(a, mat, a->mod[m]);
     
     ipt.x = a->winx - overlap;
     ipt.y = 0.;
@@ -562,6 +552,7 @@ static void imodvMakeMontage(int frames, int overlap)
       if (a->scaleBarSize > 0)
         imodPrintStderr("Scale bar for montage is %g %s\n", a->scaleBarSize,
                         imodUnits(a->imod));
+      glFlush();
       glReadPixels(0, 0, a->winx, a->winy, GL_RGBA, GL_UNSIGNED_BYTE, 
                    framePix);
       glFlush();

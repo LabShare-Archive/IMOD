@@ -1932,6 +1932,7 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
   glPixelZoom(1.0,1.0);
   xysize = rpWidth * rpHeight;
   pixout = (unsigned char *)pixels;
+  glFlush();
 
   /* DNM: add rgb mode support */
   if (rgbmode && !data) {
@@ -2144,6 +2145,7 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
     }
   }
   glPixelZoom(1.0,1.0);
+  glFlush();
 
   if (!data && rgbmode) {
     glReadPixels(rpx, rpy, rpWidth, rpHeight,

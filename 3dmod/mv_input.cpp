@@ -747,17 +747,7 @@ static void imodvTranslateByDelta(ImodvApp *a, int x, int y, int z)
 
   for (m = mstrt; m < mend; m++) {
     imod = a->mod[m];
-    imodMatId(mat);
-    imodMatRot(mat, -(double)imod->view->rot.x, b3dX);
-    imodMatRot(mat, -(double)imod->view->rot.y, b3dY);
-    imodMatRot(mat, -(double)imod->view->rot.z, b3dZ);
-
-    scrnscale = 0.5 * B3DMIN(a->winx, a->winy) / imod->view->rad;
-    
-    spt.x = 1.0f/scrnscale;
-    spt.y = 1.0f/scrnscale;
-    spt.z = 1.0f/scrnscale * 1.0f/a->mod[a->cm]->zscale;
-    imodMatScale(mat, &spt);
+    imodvRotScaleMatrix(a, mat, imod);
     
     ipt.x = x;
     ipt.y = y;
@@ -966,6 +956,27 @@ void imodvResolveRotation(Imat *mat, float x, float y, float z)
   imodMatRot(mat, -gamma, b3dZ);
   imodMatRot(mat, alpha, b3dX);
   imodMatRot(mat, gamma + z, b3dZ);
+}
+
+/* Compute the current rotation and scaling matrix to apply to a screen shift and get
+   a model */
+void imodvRotScaleMatrix(ImodvApp *a, Imat *mat, Imod *imod)
+{
+  float scrnscale;
+  Ipoint spt;
+  imodMatId(mat);
+  imodMatRot(mat, -(double)imod->view->rot.x, b3dX);
+  imodMatRot(mat, -(double)imod->view->rot.y, b3dY);
+  imodMatRot(mat, -(double)imod->view->rot.z, b3dZ);
+
+  scrnscale = 0.5 * B3DMIN(a->winx, a->winy) / imod->view->rad;
+    
+  spt.x = 1.0f/scrnscale;
+  spt.y = 1.0f/scrnscale;
+  spt.z = 1.0f/scrnscale * 1.0f/imod->zscale;
+  if (imod->view->world & VIEW_WORLD_INVERT_Z)
+      spt.z = -spt.z;
+  imodMatScale(mat, &spt);
 }
 
 
