@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/23/12: Fixed Model View shifting with mouse and montage snapshot when
+Invert Z is on, and added flush statements to prevent failures in montage
+snapshots with vertex buffer drawing on (In 4.5).
+
 10/19/12: Made Tif2mrc able to read metadata in files from TVIPS acquisition
 software and produce a .rawtlt file and a title in the header with tilt axis
 rotation angle.
