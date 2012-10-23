@@ -152,6 +152,14 @@ the values in the rest of the files.
 The background file must have the same data type as the images from which
 it is being subtracted (8-bit or 16-bit grayscale).
 .TP
+.B -T <file>
+When the input files are produced by TVIPS data acquisition software (after
+October, 2012), this option can be used to output tilt angles, one per line,
+to the given file.  Regardless of whether this option is used, when the
+program recognizes such files, it will
+add a title to the header with the tilt axis rotation angle, binning, and spot
+size if available.
+.TP
 .B -m
 Turn off file-to-memory mapping in the TIFF library.  This mapping could be a
 problem working with large files on some systems.  If you experience

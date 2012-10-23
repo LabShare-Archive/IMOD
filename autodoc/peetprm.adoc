@@ -166,6 +166,9 @@ comment = The tilt angles used to acquire the tilt series [min max].
 ^Used to compensate for the missing wedge during alignment and
 ^averaging.  An empty array, [] or {}, disables this compensation 
 ^(and uses more efficient but less accurate real-space averaging).
+^For use with dual or multiple axes, tiltRange can also be a (cell) array
+^of strings, with each string specifying the path to an appropriate
+^binary mask.
 
 [Field = edgeShift]
 comment = The number of pixels to shift the edge of the wedge mask to 

@@ -913,7 +913,7 @@ void ContourJoin::buttonPressed(int which)
     break;
 
   case 2: 
-    imodShowHelpPage("contourJoin.html");
+    imodShowHelpPage("contourJoin.html#TOP");
     break;
   }
 }
@@ -1613,7 +1613,7 @@ void ContourMove::buttonPressed(int which)
     break;
 
   case 2: 
-    imodShowHelpPage("contourMove.html");
+    imodShowHelpPage("contourMove.html#TOP");
     break;
   }
 }
@@ -1920,7 +1920,7 @@ void iceGhostToggled(int state, int flag)
 
 void iceShowHelp()
 {
-  imodShowHelpPage("contourType.html");
+  imodShowHelpPage("contourType.html#TOP");
   return;
 }
 

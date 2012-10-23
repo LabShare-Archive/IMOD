@@ -26,6 +26,7 @@ void imodvMousePress(QMouseEvent *event);
 void imodvMouseRelease(QMouseEvent *event);
 void imodvMouseMove(QMouseEvent *event);
 void imodvScrollWheel(QWheelEvent *e);
+void imodvRotScaleMatrix(ImodvApp *a, Imat *mat, Imod *mod);
 void imodv_rotate_model(ImodvApp *a, int x, int y, int z);
 void imodv_zoomd(ImodvApp *a, double zoom);
 int imodv_sys_time(void);

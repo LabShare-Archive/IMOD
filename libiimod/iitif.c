@@ -8,7 +8,6 @@
  *   Colorado.
  *
  *  $Id$
- *  Log at end of file
  */
 
 /************************************************************************** 
@@ -84,6 +83,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
   double minmax;
   b3dUInt16 *redp, *greenp, *bluep;
   char *resvar;
+  uint16 TVIPStag = 37708;
   float pixelLimit = 1.;
 
   if (!inFile) 
@@ -310,7 +310,14 @@ int iiTIFFCheck(ImodImageFile *inFile)
       }
     }
   }
-  
+
+  if (TIFFGetField(tif, TVIPStag, &bits, &inFile->userData) > 0) {
+    inFile->userCount = bits;
+    inFile->userFlags = IIFLAG_TVIPS_DATA;
+    if (TIFFIsByteSwapped(tif))
+      inFile->userFlags |= IIFLAG_BYTES_SWAPPED;
+  }
+
   /* Use min and max from file if defined (better be there for float/int) */
   if (TIFFGetField(tif, TIFFTAG_SMINSAMPLEVALUE, &minmax))
     inFile->amin = minmax;
@@ -377,7 +384,7 @@ int tiffGetField(ImodImageFile *inFile, int tag, void *value)
 }
 /* Get the value for a field that returns the address of an array.  The count
    argument seems to be required but does not seem to return the count */
-int tiffGetArray(ImodImageFile *inFile, int tag, int *count, void *value)
+int tiffGetArray(ImodImageFile *inFile, int tag, uint16 *count, void *value)
 {
   TIFF *tif;
   if (!inFile)
@@ -1091,88 +1098,3 @@ int tiffVersion(int *minor)
   sscanf(substr + 7, "%d.%d.%d", &version, minor, &update);
   return version;
 }    
-
-/*
-  $Log$
-  Revision 3.26  2011/03/14 22:55:07  mast
-  Changes for scaling to ushorts; also simplified integer and float loading with
-  scaling and limited the values from scaling without a map.
-
-  Revision 3.25  2011/01/29 15:59:29  mast
-  Fixed test for output file size to include data size
-
-  Revision 3.24  2010/12/21 05:28:40  mast
-  Added quality argument to tiff writing
-
-  Revision 3.23  2010/12/18 18:43:18  mast
-  Changes to write files in chunks and for big tiff files
-
-  Revision 3.22  2010/12/15 06:21:58  mast
-  Added ability to set resolution when writing
-
-  Revision 3.21  2010/07/06 03:20:00  mast
-  Put out module too, which sometimes has the filename!
-
-  Revision 3.20  2010/07/05 20:01:19  mast
-  Fixed warning handler to not try to call TIFF handler
-
-  Revision 3.19  2009/06/19 21:02:30  mast
-  Took out debug output
-
-  Revision 3.18  2009/06/19 20:45:28  mast
-  Added ability to read long integer and RGBA files
-
-  Revision 3.17  2009/04/18 19:11:32  mast
-  Added date-time stamp to tiff file
-
-  Revision 3.16  2009/04/01 03:18:57  mast
-  Use routine to prevent buffer overrun in warning handler
-
-  Revision 3.15  2009/03/31 23:47:35  mast
-  Added writing function and support for multiple samples as images either
-  in contiguous bytes or separate planes and for multiple sizes in file
-
-  Revision 3.14  2008/11/25 16:32:11  mast
-  Visual C wants all declarations before executable statements
-
-  Revision 3.13  2008/11/25 16:24:31  mast
-  Made stripping of b mode fancier, switched back to non-allocated fmode
-
-  Revision 3.12  2008/11/24 23:59:25  mast
-  Changes for using from SerialEM: field-getting
-
-  Revision 3.11  2008/05/23 22:15:22  mast
-  Added float support and fixed assignment of min and max when it exists
-
-  Revision 3.10  2007/06/13 17:12:07  sueh
-  bug# 1019 In iiTIFFCheck and tiffReopen, setting inFile->sectionSkip to 0.
-
-  Revision 3.9  2006/09/12 15:49:58  mast
-  Added include
-
-  Revision 3.8  2006/09/03 22:17:59  mast
-  Reorganized and switched to IIERR codes
-
-  Revision 3.7  2006/08/27 23:46:28  mast
-  Added color map support
-  
-  Revision 3.6  2005/05/19 23:51:40  mast
-  Made open routine reopen the file if it fails as a tiff
-  
-  Revision 3.5  2005/02/11 01:42:33  mast
-  Warning cleanup: implicit declarations, main return type, parentheses, etc.
-  
-  Revision 3.4  2004/11/05 18:53:04  mast
-  Include local files with quotes, not brackets
-  
-  Revision 3.3  2004/01/21 00:56:50  mast
-  Stopped freeing map from byte_map
-  
-  Revision 3.2  2004/01/05 17:51:16  mast
-  renamed imin/imax to smin/smax or outmin/outmax as appropriate, changed
-  unsigned short to b3dUInt16
-  
-  Revision 3.1  2003/02/27 17:08:23  mast
-  Set default upper coordinates to -1 rather than 0.
-  
-*/
