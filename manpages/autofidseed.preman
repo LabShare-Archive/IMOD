@@ -4,7 +4,7 @@
 .SH NAME
 autofidseed \- Automatically make a seed model for tilt series fiducial tracking
 .SH SYNOPSIS
-autofidseed [options] data_file
+autofidseed [options]
 .SH DESCRIPTION
 Autofidseed uses a series of other programs to generate a seed model for
 tracking tilt series fiducial particles in Beadtrack(1).  Given a desired
