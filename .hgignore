@@ -223,6 +223,7 @@ flib/ndasda/nda
 flib/ndasda/sda
 flib/tilt/tilt
 flib/tiltalign/tiltalign
+flib/tiltalign/xfforfidless
 imodutil/clonemodel
 imodutil/clonevolume
 imodutil/echo2
@@ -246,10 +247,16 @@ imodutil/imodmesh
 imodutil/imodmop
 imodutil/imodsortsurf
 imodutil/imodtrans
+imodutil/joinwarp2model
 imodutil/patch2imod
+imodutil/pickbestseed
 imodutil/point2model
 imodutil/rec2imod
+imodutil/slashfindspheres
+imodutil/slashmasksort
+imodutil/slashsplitconts
 imodutil/wmod2imod
+
 manpages/autodoc2man
 manpages/mantohtml
 midas/midas
