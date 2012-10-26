@@ -137,7 +137,8 @@ int main( int argc, char *argv[])
   if (fgetline(infp, line, 1024) <= 0)
     exitError("Reading beginning of file");
       
-  nvals = sscanf(line, "%f %f %f %f %f %f", &tst1, &tst2, &xx, &yy, &zz, &value);
+  nvals = sscanf(line, "%f%*c %f%*c %f%*c %f%*c %f%*c %f", 
+                 &tst1, &tst2, &xx, &yy, &zz, &value);
   nvals -= hasValues;
   if (nvals < 3)
     exitError("There must be at least %d values per line", 3 + hasValues);
@@ -197,12 +198,14 @@ int main( int argc, char *argv[])
       continue;
  
     if (nvals == 3) {
-      nread = sscanf(line, "%f %f %f %f", &xx, &yy, &zz, &value);
+      nread = sscanf(line, "%f%*c %f%*c %f%*c %f", &xx, &yy, &zz, &value);
     } else if (nvals == 4) {
-      nread = sscanf(line, "%d %f %f %f %f", &co, &xx, &yy, &zz, &value);
+      nread = sscanf(line, "%d%*c %f%*c %f%*c %f%*c %f", 
+                     &co, &xx, &yy, &zz, &value);
       co -= numOffset;
     } else {
-      nread = sscanf(line, "%d %d %f %f %f %f", &ob, &co, &xx, &yy, &zz, &value);
+      nread = sscanf(line, "%d%*c %d%*c %f%*c %f%*c %f%*c %f",
+                     &ob, &co, &xx, &yy, &zz, &value);
       co -= numOffset;
       ob -= numOffset;
     }
