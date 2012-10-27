@@ -523,7 +523,7 @@ double CCCoefficientTwoPads(float *array, float *brray, int nxdim, int nx, int n
 double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx, int ny,
                           float xpeak, float ypeak, int nxpad, int nypad, int *nsum)
 {
-  return XCorrCCCoefficient2(array, brray, nxdim, nx, ny, xpeak, ypeak, nxpad, nypad, 
+  return CCCoefficientTwoPads(array, brray, nxdim, nx, ny, xpeak, ypeak, nxpad, nypad, 
                              nxpad, nypad, 25, nsum);
 }
 
