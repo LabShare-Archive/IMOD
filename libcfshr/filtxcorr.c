@@ -475,26 +475,28 @@ void conjugateproduct(float *array, float *brray, int *nx, int *ny)
  * Returns the cross-correlation coefficient between the images in [array] and
  * [brray] at a shift between the images given by [xpeak], [ypeak].  The images
  * have sizes [nx] by [ny] and the arrays have X dimension [nxdim].  Areas on
- * each size of [nxpad] in X and [nypad] in Y are excluded from the 
+ * each side of [nxpadA] in X and [nypadA] in Y in [array], and of [nxpadB] and [nypadB]
+ * in [brray], are excluded from the 
  * correlation.  Otherwise, the correlation will include all the pixels in the 
  * overlap between the images at the given shift.  The number of pixels will
- * be returned in [nsum].
+ * be returned in [nsum], but no computation will be done and 0. will be returned if
+ * this number is less than [minPixels].
  */
-double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx,
-                          int ny, float xpeak, float ypeak, int nxpad,
-                          int nypad, int *nsum)
+double CCCoefficientTwoPads(float *array, float *brray, int nxdim, int nx, int ny,
+                            float xpeak, float ypeak, int nxpadA, int nypadA, int nxpadB, 
+                            int nypadB, int minPixels, int *nsum)
 {
   double asum, bsum, csum, asumsq, bsumsq, ccc, aval, bval;
   int delx, dely, xstrt, xend, ystrt, yend, ix, iy;
   delx = (int)floor(xpeak + 0.5);
-  xstrt = B3DMAX(nxpad, nxpad + delx);
-  xend = B3DMIN(nx - nxpad, nx - nxpad + delx);
+  xstrt = B3DMAX(nxpadB, nxpadA + delx);
+  xend = B3DMIN(nx - nxpadB, nx - nxpadA + delx);
   dely = (int)floor(ypeak + 0.5);
-  ystrt = B3DMAX(nypad, nypad + dely);
-  yend = B3DMIN(ny - nypad, ny - nypad + dely);
+  ystrt = B3DMAX(nypadB, nypadA + dely);
+  yend = B3DMIN(ny - nypadB, ny - nypadA + dely);
   asum = bsum = csum = asumsq = bsumsq = 0.;
   *nsum = (xend + 1 - xstrt) * (yend + 1 - ystrt);
-  if (xend < xstrt || yend < ystrt || *nsum < 25)
+  if (xend < xstrt || yend < ystrt || *nsum < minPixels)
     return 0.;
   for (iy = ystrt; iy < yend; iy++) {
     for (ix = xstrt; ix < xend; ix++) {
@@ -512,6 +514,17 @@ double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx,
     return 0.;
   ccc = (*nsum * csum - asum * bsum) / sqrt(ccc);
   return ccc;
+}
+
+/*!
+ * Calls @CCCoefficientTwoPads with both excluded areas specified by [nxpad], [nypad]
+ * and with a value of 25 for [minPixels].
+ */
+double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx, int ny,
+                          float xpeak, float ypeak, int nxpad, int nypad, int *nsum)
+{
+  return XCorrCCCoefficient2(array, brray, nxdim, nx, ny, xpeak, ypeak, nxpad, nypad, 
+                             nxpad, nypad, 25, nsum);
 }
 
 /*!
