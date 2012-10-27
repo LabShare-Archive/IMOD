@@ -87,6 +87,7 @@ EXPORTS
 	ADOCREAD
 	AdocWrite
 	AdocSetKeyValue
+	CCCoefficientTwoPads
 	mrcHugeSeek
 	PIPREADOPTIONFILE
 	PipGetString
