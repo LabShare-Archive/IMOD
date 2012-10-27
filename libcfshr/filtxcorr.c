@@ -489,13 +489,13 @@ double CCCoefficientTwoPads(float *array, float *brray, int nxdim, int nx, int n
   double asum, bsum, csum, asumsq, bsumsq, ccc, aval, bval;
   int delx, dely, xstrt, xend, ystrt, yend, ix, iy;
   delx = (int)floor(xpeak + 0.5);
-  xstrt = B3DMAX(nxpadB, nxpadA + delx);
-  xend = B3DMIN(nx - nxpadB, nx - nxpadA + delx);
+  xstrt = B3DMAX(nxpadA, nxpadB + delx);
+  xend = B3DMIN(nx - nxpadA, nx - nxpadB + delx);
   dely = (int)floor(ypeak + 0.5);
-  ystrt = B3DMAX(nypadB, nypadA + dely);
-  yend = B3DMIN(ny - nypadB, ny - nypadA + dely);
+  ystrt = B3DMAX(nypadA, nypadB + dely);
+  yend = B3DMIN(ny - nypadA, ny - nypadB + dely);
   asum = bsum = csum = asumsq = bsumsq = 0.;
-  *nsum = (xend + 1 - xstrt) * (yend + 1 - ystrt);
+  *nsum = B3DMAX(0, xend + 1 - xstrt) * B3DMAX(0, yend + 1 - ystrt);
   if (xend < xstrt || yend < ystrt || *nsum < minPixels)
     return 0.;
   for (iy = ystrt; iy < yend; iy++) {
