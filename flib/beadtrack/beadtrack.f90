@@ -8,7 +8,7 @@
 ! David Mastronarde, 1995
 ! added tilt alignment, 10 / 6 / 97
 !
-! $Id$
+! $Id: beadtrack.f90,v 1.1 2012/10/29 02:03:40 mast Exp $
 !
 program beadtrack
   use tltcntrl
@@ -1872,8 +1872,9 @@ CONTAINS
           numAvg = numAvg + 1
           ivFit(numAvg) = idif
           wsFit(numavg) = wLocalMeans(idif)
-          if (numAvg >= maxLocalForPred)  &
-              exit LOCAL_FIT_LOOP
+          if (numAvg >= maxLocalForPred) then
+            exit LOCAL_FIT_LOOP
+          endif
         endif
       enddo
     enddo LOCAL_FIT_LOOP
@@ -1914,8 +1915,9 @@ CONTAINS
             endif
           endif
         enddo
-        if (numAvg >= maxWavg) &
-            exit
+        if (numAvg >= maxWavg) then
+          exit
+        endif
       enddo
 
       ! Divide the ones just added to the list by the bead mean so the list now has
@@ -1974,8 +1976,9 @@ CONTAINS
               endif
             endif
           enddo
-          if (numPctl >= maxWavg) &
-              exit
+          if (numPctl >= maxWavg) then
+            exit
+          endif
         enddo
 
         call sums_to_avgsd(wsum, wsumsq, numAvg, wsumAvg, wsumSD)
