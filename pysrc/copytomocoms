@@ -56,6 +56,19 @@ def runGoodframe(xsize, ysize):
    exitError('Running goodframe to get full aligned or prealigned stack size')
 
 
+# Look for the Fei title to determine if it is an FEI file
+def isFileFromFEI(filename):
+   try:
+      headout = runcmd('header "' + filename + '"')
+   except ImodpyError:
+      exitFromImodError(progname)
+
+   for l in headout:
+      if l.startswith('Fei Company'):
+         return True
+   return False
+
+
 # Warning function prints to stderr AND adds another newline, since etomo parses
 # this output for multiline warnings terminated by a blank line
 def warning(text):
@@ -132,6 +145,7 @@ backupdir = PipGetString('BackupDirectory', '')
 backup = 1 - PipGetErrNo()
 xsize = PipGetInteger('XImageSize', -1)
 ysize = PipGetInteger('XImageSize', -1)
+setFEIpixel = PipGetBoolean('SetFEIPixelSize', 0)
 
 pixsize = PipGetFloat('PixelSize', -1.)
 if pixsize < 0:
@@ -306,6 +320,28 @@ for iaxis in range(naxis):
    # GET X AND Y SIZE FROM STACK IF IT EXISTS
    stackExists = os.path.exists(stackname)
    if stackExists:
+
+      # Determine if file is from FEI and try to fix the pixel before getting it
+      if setFEIpixel:
+         isFEI = isFileFromFEI(stackname)
+         if isFEI:
+            alterLines = ['FEIPIXEL', '-1', 'done']
+            try:
+               alterOut = runcmd('alterheader "' + stackname + '"', alterLines)
+            except ImodpyError:
+               exitFromImodError(progname)
+            lastind = max(0, len(alterOut) - 1);
+            if 'header' in alterOut[lastind]:
+               warnout = 'Pixel spacing of FEI file was not set.  Output from ' +\
+                   'alterheader:\n'
+               if 'not being' in alterOut[lastind]:
+                  warnout += alterOut[max(0, lastind - 1)].rstrip() + '\n'
+               warnout += alterOut[lastind].rstrip()
+               warning(warnout)
+            else:
+               printInfo('Pixel spacing was set in FEI file from value in extended ' +\
+                            'header')
+               
       try:
 
          # Regardless of file type, run this full header once here
@@ -500,28 +536,20 @@ for iaxis in range(naxis):
                       'density of\n   ' + stackname + ' is negative and the minimum '+\
                       'density is < -10000')
          else:
-            try:
 
-               # Look for the Fei title, if it started
-               # as an FEI file and min is still negative, assume it is needs a base
-               headout = runcmd('header "' + stackname + '"')
-            except ImodpyError:
-               exitFromImodError(progname)
+            if not setFEIpixel:
+               isFEI = isFileFromFEI(stackname)
 
-            isFEI = False
-            for l in headout:
-               if l.startswith('Fei Company'):
-                  isFEI = True
-                  if mindens < 0:
-                     logbase = 32768
-                     printInfo('Setting logarithm offset for Tilt to 32768 because '+\
-                               stackname + '\n   came from FEI software and has a '+\
-                               'minimum < 0')
-                  else:
-                     warning('You may need a logarithm offset of 32768 for Tilt '+\
-                               'because ' + stackname + '\n   came from FEI software, '+\
-                               'unless you already shifted the data up by 32768')
-                  break
+            if isFEI:
+               if mindens < 0:
+                  logbase = 32768
+                  printInfo('Setting logarithm offset for Tilt to 32768 because '+\
+                            stackname + '\n   came from FEI software and has a '+\
+                            'minimum < 0')
+               else:
+                  warning('You may need a logarithm offset of 32768 for Tilt '+\
+                            'because ' + stackname + '\n   came from FEI software, '+\
+                            'unless you already shifted the data up by 32768')
                   
             if not isFEI and meandens < 0:
                warning(fmtstr('{} has a negative mean density ({:.1f}) and you may need'+\
