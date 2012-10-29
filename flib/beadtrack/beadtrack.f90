@@ -8,7 +8,7 @@
 ! David Mastronarde, 1995
 ! added tilt alignment, 10 / 6 / 97
 !
-! $Id: beadtrack.f90,v 1.1 2012/10/29 02:03:40 mast Exp $
+! $Id$
 !
 program beadtrack
   use tltcntrl
