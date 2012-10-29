@@ -215,6 +215,18 @@ correction, 3: both)
 manpage = Just copy files for CTF plotting and correction (1 for plotting, 2
 for correction, 3 for both) 
 
+[Field = SetFEIPixelSize]
+short = fei
+type = B
+usage = Set standard pixel spacing in image file(s) from FEI software
+tooltip = 
+manpage = Set the standard pixel spacing in the header of each image file if
+it comes from FEI software.  The pixel size from the extended header will be
+multiplied by the binning of the images, if any, and placed in the standard
+header location, so that it will propagate through the processing.  If there
+is already a standard pixel spacing not equal to 1, 2, 3, or 4, it will not be
+modified.
+
 [Field = XImageSize]
 short = xsize
 type = I
