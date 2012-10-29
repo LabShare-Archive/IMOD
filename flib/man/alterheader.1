@@ -87,7 +87,10 @@ DDEESSCCRRIIPPTTIIOONN
   resulting in a pixel spacing of 1, 1, 1.
 
   FEIPIXEL - Set the pixel spacing in X, Y, Z from the value for the pixel
-  size of the first section in an Agard/FEI-style extended header.
+  size of the first section in an Agard/FEI-style extended header.  If the
+  existing pixel spacing is not 1 but is equal to 2, 3, or 4, this will be
+  assumed to represent a binning of the data, and the pixel size will be
+  multiplied by this value.
 
   FIXEXTRA - Change the flags in the header so that 3dmod no longer
   interprets the extended header as having piece coordinates for a montage.
