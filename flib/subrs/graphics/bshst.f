@@ -233,8 +233,8 @@ c
       call minmax(xx,nx,xmin,xmax)
       xrange=xmax-xmin
       iftyp=0
-      write(*,'('' histograms (1), means only (-1), skip (0),
-     1    exit (-123), plot out (209): '',$)')
+      write(*,'('' histograms (1), means only (-1), skip (0),'//
+     &    ' exit (-123), plot out (209): '',$)')
       read(5,*)iskp
       if(iskp.eq.209.or.iskp.eq.208)then
         call pltout(209-iskp)
@@ -252,8 +252,8 @@ c
         xlnmx=10.**xmax
         write(*,'('' linear values:'',2f10.3)')xlnmn,xlnmx
       endif
-14    write(*,'('' lowest value (linear even if log), bin width or -h,
-     1    # of bins: '',$)')
+14    write(*,'('' lowest value (linear even if log), bin width or -h,'//
+     &    ' # of bins: '',$)')
       read(5,*)xloin,dxin,binsin
       nbins=binsin
       xlo=xloin
@@ -284,8 +284,7 @@ c
         ibmax=max(ibmax,jz(ibin))
       enddo
       write(*,*) 'highest bin is',ibmax
-      write(*,'('' full scale count (0 terminal plot, -1 
-     1    labels also, -2 counts): '',$)')
+      write(*,'('' full scale count (0 terminal plot, -1 labels also, -2 counts): '',$)')
       read(5,*)fsc
       call erase(-1)
       if(fsc.le.0.)then
@@ -327,8 +326,8 @@ c                   &               call chrout(ichar(hisymb(max(1,nsymb(ngx(i))
       do i=1,nbins
         jz(i)=0
       enddo
-      write(*,'('' Draw n lines (n+1), type out (1), output to
-     &    file (-1), or not (0): '',$)')
+      write(*,'('' Draw n lines (n+1), type out (1), output to file (-1), or not'//
+     &    ' (0): '',$)')
       read(5,*)iftyp
       nlines=0
       if(iftyp.gt.1)then
@@ -416,8 +415,8 @@ c                   &               call chrout(ichar(hisymb(max(1,nsymb(ngx(i))
       write(*,109)xlo,xhi
 109   format(' x from',f9.2,' to',f9.2)
       call xyset(1)
-      write(*,'('' 4-7 or 11-16 for plot (-# for no points),
-     1    return (0), redisplay (10): '',$)')
+      write(*,'('' 4-7 or 11-16 for plot (-# for no points),'//
+     &    ' return (0), redisplay (10): '',$)')
       read(5,*)ifplt
       ifcrv=0
       if(iabs(ifplt).gt.100)then
@@ -428,8 +427,7 @@ c                   &               call chrout(ichar(hisymb(max(1,nsymb(ngx(i))
       if(ifplt.eq.10)go to 11
       iaplt=iabs(ifplt)
       if(abs(fsc).lt.ibmax.and.iaplt.ne.7)then
-        write(*,'('' highest bin is'',i4,'', enter full scale count: '',$)')
-     1      ibmax
+        write(*,'('' highest bin is'',i4,'', enter full scale count: '',$)') ibmax
         read(5,*)fsc
       elseif(iaplt.eq.7)then
         write(*,'(1x,a,$)')'# of groups to put below axis: '
@@ -453,8 +451,8 @@ c                   &               call chrout(ichar(hisymb(max(1,nsymb(ngx(i))
             endif
 64        continue
 66      continue
-        write(*,'('' highest bins up & down are'',2i4
-     &      ,'', enter full scale counts: '',$)')maxup,maxbin
+        write(*,'('' highest bins up & down are'',2i4'//
+     &      ','', enter full scale counts: '',$)')maxup,maxbin
         read(5,*)fscup,fscdown
       endif
       ifimg=iaplt-3
@@ -486,12 +484,11 @@ c                   &               call chrout(ichar(hisymb(max(1,nsymb(ngx(i))
       elseif(iaplt.lt.2)then
         yl=5*defscl
       elseif(iaplt.gt.2)then
-        write(*,'('' X and Y size, lower left X and Y, # ticks X and
-     1      Y: '',$)')
+        write(*,'('' X and Y size, lower left X and Y, # ticks X and Y: '',$)')
         read(5,*)xran,yran,xl,yl,ntx,nty
         if (ifimg.gt.0)then
-          write(*,'('' symbol and tick size, grid, histogram and symbol
-     1        thickness, 1 for box: '',$)')
+          write(*,'('' symbol and tick size, grid, histogram and symbol'//
+     &        ' thickness, 1 for box: '',$)')
           read(5,*)symwid,tiksiz,ithgrd,ithhis,ithsym,ifbox
         endif
         if(yl.lt.0.)then
@@ -676,8 +673,8 @@ c
       if(itycrv.gt.1)inst=inst+4
       go to 95
 97    if(ncrvs.eq.0)go to 81
-87    write(*,'('' curve # to plot, 1 if sum (-1 this curve range
-     1    only), thickness: '',$)')
+87    write(*,'('' curve # to plot, 1 if sum (-1 this curve range'//
+     &    ' only), thickness: '',$)')
       read(5,*)ncrplt,ifsum,ithcrv
       if(ncrplt.le.0.or.ncrplt.gt.ncrvs)go to 81
       if(ifsum.ne.0)then
