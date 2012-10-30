@@ -241,8 +241,8 @@ usage = Alternative path and name for info file
 tooltip =
 manpage = File name for the info file that is written on a first run and read
 on later runs.  The default info file is written in the current directory with 
-the name autofidseed_a.info if the root of the Beadtrack command file name ends
-in "a", autofidseed_b.info it it ends in "b", otherwise autofidseed.info.
+the name autofidseeda.info if the root of the Beadtrack command file name ends
+in "a", autofidseedb.info it it ends in "b", otherwise autofidseed.info.
 
 [Field = TemporaryDirectory]
 short = tempdir
@@ -250,8 +250,8 @@ type = FN
 usage = Path for temporary directory
 tooltip =
 manpage = Path to temporary directory.  The default is to create a directory
-in the current directory with the name autofidseed.tmp, autofidseed_a.tmp, or 
-autofidseed_b.tmp, depending on the ending of the root of the Beadtrack command
+in the current directory with the name autofidseed.tmp, autofidseeda.tmp, or 
+autofidseedb.tmp, depending on the ending of the root of the Beadtrack command
 file.
 
 [Field = LeaveTempFiles]
