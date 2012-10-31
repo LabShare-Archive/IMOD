@@ -27,8 +27,8 @@ public final class ProcessResultDisplayFactory implements
   private final BaseScreenState screenState;
   private final Vector dependentDisplayList = new Vector();
 
-  //Recon
-  //preprocessing
+  // Recon
+  // preprocessing
 
   private final ProcessResultDisplay findXRays = Run3dmodButton
       .getDeferredToggle3dmodInstance("Find X-rays (Trial Mode)",
@@ -40,7 +40,7 @@ public final class ProcessResultDisplayFactory implements
       .getToggleButtonInstance(CcdEraserXRaysPanel.USE_FIXED_STACK_LABEL,
           DialogType.PRE_PROCESSING);
 
-  //coarse alignment
+  // coarse alignment
 
   private final ProcessResultDisplay coarseTiltxcorr = MultiLineButton
       .getToggleButtonInstance("Calculate Cross- Correlation",
@@ -56,7 +56,7 @@ public final class ProcessResultDisplayFactory implements
   private final ProcessResultDisplay midas = MultiLineButton.getToggleButtonInstance(
       "Fix Alignment With Midas", DialogType.COARSE_ALIGNMENT);
 
-  //fiducial model
+  // fiducial model
 
   private final ProcessResultDisplay transferFiducials = Run3dmodButton
       .getDeferredToggle3dmodInstance("Transfer Fiducials From Other Axis",
@@ -75,13 +75,15 @@ public final class ProcessResultDisplayFactory implements
       .getToggle3dmodInstance("Fix Fiducial Model", DialogType.FIDUCIAL_MODEL);
   private final ProcessResultDisplay trackTiltxcorr = Run3dmodButton
       .getDeferredToggle3dmodInstance("Track Patches", DialogType.FIDUCIAL_MODEL);
+  private final Run3dmodButton autofidseed = Run3dmodButton
+      .getDeferredToggle3dmodInstance("Generate Seed Model", DialogType.FIDUCIAL_MODEL);
 
-  //fine alignment
+  // fine alignment
 
   private final ProcessResultDisplay computeAlignment = MultiLineButton
       .getToggleButtonInstance("Compute Alignment", DialogType.FINE_ALIGNMENT);
 
-  //positioning
+  // positioning
 
   private final ProcessResultDisplay sampleTomogram = Run3dmodButton
       .getDeferredToggle3dmodInstance(TomogramPositioningExpert.SAMPLE_TOMOGRAMS_LABEL,
@@ -92,7 +94,7 @@ public final class ProcessResultDisplayFactory implements
   private final ProcessResultDisplay finalAlignment = MultiLineButton
       .getToggleButtonInstance("Create Final Alignment", DialogType.TOMOGRAM_POSITIONING);
 
-  //final aligned stack
+  // final aligned stack
 
   private final ProcessResultDisplay fullAlignedStack = Run3dmodButton
       .getDeferredToggle3dmodInstance(NewstackOrBlendmontPanel.RUN_BUTTON_LABEL,
@@ -126,7 +128,7 @@ public final class ProcessResultDisplayFactory implements
       .getToggleButtonInstance(FinalAlignedStackDialog.USE_FILTERED_STACK_LABEL,
           DialogType.FINAL_ALIGNED_STACK);
 
-  //generation
+  // generation
 
   private final ProcessResultDisplay useTrialTomogram = MultiLineButton
       .getToggleButtonInstance("Use Current Trial Tomogram",
@@ -141,7 +143,7 @@ public final class ProcessResultDisplayFactory implements
   private final ProcessResultDisplay useSirt = MultiLineButton.getToggleButtonInstance(
       "Use SIRT Output File", DialogType.TOMOGRAM_GENERATION);
 
-  //combination
+  // combination
 
   private final ProcessResultDisplay createCombine = MultiLineButton
       .getToggleButtonInstance("Create Combine Scripts", DialogType.TOMOGRAM_COMBINATION);
@@ -162,7 +164,7 @@ public final class ProcessResultDisplayFactory implements
       .getDeferredToggle3dmodInstance("Restart at Volcombine",
           DialogType.TOMOGRAM_COMBINATION);
 
-  //post processing
+  // post processing
   private final ProcessResultDisplay trimVolume = Run3dmodButton
       .getDeferredToggle3dmodInstance("Trim Volume", DialogType.POST_PROCESSING);
   private final ProcessResultDisplay flatten = Run3dmodButton
@@ -187,33 +189,34 @@ public final class ProcessResultDisplayFactory implements
   }
 
   private void initialize() {
-    //initialize global dependency list
-    //all displays should be added to this list
-    //preprocessing
+    // initialize global dependency list
+    // all displays should be added to this list
+    // preprocessing
     addDependency(findXRays);
     addDependency(createFixedStack);
     addDependency(useFixedStack);
-    //coarse alignment
+    // coarse alignment
     addDependency(coarseTiltxcorr);
     addDependency(distortionCorrectedStack);
     addDependency(fixEdgesMidas);
     addDependency(coarseAlign);
     addDependency(midas);
-    //fiducial model
+    // fiducial model
     addDependency(transferFiducials);
     addDependency(seedFiducialModel);
+    addDependency(autofidseed);
     addDependency(trackTiltxcorr);
     addDependency(raptor);
     addDependency(useRaptor);
     addDependency(trackFiducials);
     addDependency(fixFiducialModel);
-    //fine alignment
+    // fine alignment
     addDependency(computeAlignment);
-    //positioning
+    // positioning
     addDependency(sampleTomogram);
     addDependency(computePitch);
     addDependency(finalAlignment);
-    //stack
+    // stack
     addDependency(fullAlignedStack);
     addDependency(ctfCorrection);
     addDependency(useCtfCorrection);
@@ -225,13 +228,13 @@ public final class ProcessResultDisplayFactory implements
     addDependency(useCcdEraserBeads);
     addDependency(filter);
     addDependency(useFilteredStack);
-    //generation
+    // generation
     addDependency(useTrialTomogram);
     addDependency(genTilt);
     addDependency(deleteAlignedStack);
     addDependency(sirtsetup);
     addDependency(useSirt);
-    //combination
+    // combination
     addDependency(createCombine);
     addDependency(combine);
     addDependency(restartCombine);
@@ -239,40 +242,41 @@ public final class ProcessResultDisplayFactory implements
     addDependency(restartPatchcorr);
     addDependency(restartMatchorwarp);
     addDependency(restartVolcombine);
-    //post processing
+    // post processing
     addDependency(trimVolume);
     addDependency(smoothingAssessment);
     addDependency(flattenWarp);
     addDependency(flatten);
     addDependency(squeezeVolume);
 
-    //set screeen state
+    // set screeen state
 
-    //preprocessing
+    // preprocessing
     findXRays.setScreenState(screenState);
     createFixedStack.setScreenState(screenState);
     useFixedStack.setScreenState(screenState);
-    //coarse alignment
+    // coarse alignment
     coarseTiltxcorr.setScreenState(screenState);
     distortionCorrectedStack.setScreenState(screenState);
     fixEdgesMidas.setScreenState(screenState);
     coarseAlign.setScreenState(screenState);
     midas.setScreenState(screenState);
-    //fiducial model
+    // fiducial model
     transferFiducials.setScreenState(screenState);
     trackTiltxcorr.setScreenState(screenState);
     raptor.setScreenState(screenState);
     useRaptor.setScreenState(screenState);
     seedFiducialModel.setScreenState(screenState);
+    autofidseed.setScreenState(screenState);
     trackFiducials.setScreenState(screenState);
     fixFiducialModel.setScreenState(screenState);
-    //fine alignment
+    // fine alignment
     computeAlignment.setScreenState(screenState);
-    //positioning
+    // positioning
     sampleTomogram.setScreenState(screenState);
     computePitch.setScreenState(screenState);
     finalAlignment.setScreenState(screenState);
-    //stack
+    // stack
     fullAlignedStack.setScreenState(screenState);
     ctfCorrection.setScreenState(screenState);
     useCtfCorrection.setScreenState(screenState);
@@ -284,13 +288,13 @@ public final class ProcessResultDisplayFactory implements
     useCcdEraserBeads.setScreenState(screenState);
     filter.setScreenState(screenState);
     useFilteredStack.setScreenState(screenState);
-    //generation
+    // generation
     useTrialTomogram.setScreenState(screenState);
     genTilt.setScreenState(screenState);
     deleteAlignedStack.setScreenState(screenState);
     sirtsetup.setScreenState(screenState);
     useSirt.setScreenState(screenState);
-    //combination
+    // combination
     createCombine.setScreenState(screenState);
     combine.setScreenState(screenState);
     restartCombine.setScreenState(screenState);
@@ -298,48 +302,49 @@ public final class ProcessResultDisplayFactory implements
     restartPatchcorr.setScreenState(screenState);
     restartMatchorwarp.setScreenState(screenState);
     restartVolcombine.setScreenState(screenState);
-    //post processing
+    // post processing
     trimVolume.setScreenState(screenState);
     smoothingAssessment.setScreenState(screenState);
     flattenWarp.setScreenState(screenState);
     flatten.setScreenState(screenState);
     squeezeVolume.setScreenState(screenState);
 
-    //turn off everything after button
+    // turn off everything after button
 
-    //preprocessing
+    // preprocessing
     addDependents(findXRays);
     addDependents(createFixedStack);
     addDependents(useFixedStack);
-    //coarse alignment
+    // coarse alignment
     addDependents(coarseTiltxcorr);
     addDependents(distortionCorrectedStack);
     addDependents(fixEdgesMidas);
     addDependents(coarseAlign);
-    //fiducial model
+    // fiducial model
     addDependents(trackTiltxcorr);
     addDependents(transferFiducials);
     addDependents(seedFiducialModel);
+    addDependents(autofidseed);
     addDependents(useRaptor);
     addDependents(trackFiducials);
     addDependents(fixFiducialModel);
-    //fine alignment
+    // fine alignment
     addDependents(computeAlignment);
-    //positioning
+    // positioning
     addDependents(sampleTomogram);
     addDependents(computePitch);
     addDependents(finalAlignment);
-    //stack
+    // stack
     addDependents(fullAlignedStack);
     addDependents(useCtfCorrection);
     addDependents(useCcdEraserBeads);
     addDependents(useFilteredStack);
-    //generation
+    // generation
     addDependents(genTilt);
     addDependents(useTrialTomogram);
     addDependents(sirtsetup);
     addDependents(useSirt);
-    //combination
+    // combination
     addDependents(createCombine);
     addDependents(combine);
     addDependents(restartCombine);
@@ -347,14 +352,14 @@ public final class ProcessResultDisplayFactory implements
     addDependents(restartPatchcorr);
     addDependents(restartMatchorwarp);
     addDependents(restartVolcombine);
-    //post processing
+    // post processing
     addDependents(trimVolume);
 
-    //turn off selected buttons
+    // turn off selected buttons
 
-    //fiducial model
+    // fiducial model
     raptor.addDependentDisplay(useRaptor);
-    //stack
+    // stack
     ctfCorrection.addDependentDisplay(useCtfCorrection);
     xfModel.addDependentDisplay(ccdEraserBeads);
     xfModel.addDependentDisplay(useCcdEraserBeads);
@@ -369,23 +374,23 @@ public final class ProcessResultDisplayFactory implements
     reprojectModel.addDependentDisplay(useCcdEraserBeads);
     ccdEraserBeads.addDependentDisplay(useCcdEraserBeads);
     filter.addDependentDisplay(useFilteredStack);
-    //gen
+    // gen
     genTilt.addDependentDisplay(useTrialTomogram);
     sirtsetup.addDependentDisplay(useSirt);
     deleteAlignedStack.addDependentDisplay(fullAlignedStack);
-    //combination
+    // combination
     combine.addFailureDisplay(restartCombine);
     combine.addSuccessDisplay(restartCombine);
     restartCombine.addFailureDisplay(combine);
     restartCombine.addSuccessDisplay(combine);
-    //post processing
+    // post processing
     flattenWarp.addDependentDisplay(flatten);
   }
 
   private synchronized void addDependency(ProcessResultDisplay display) {
     dependentDisplayList.add(display);
-    //DependencyIndex should be unique and match the index of the
-    //dependentDisplayList where the display is stored.
+    // DependencyIndex should be unique and match the index of the
+    // dependentDisplayList where the display is stored.
     display.setDependencyIndex(dependentDisplayList.size() - 1);
   }
 
@@ -413,7 +418,7 @@ public final class ProcessResultDisplayFactory implements
     }
   }
 
-  //preprocessing
+  // preprocessing
 
   public ProcessResultDisplay getFindXRays() {
     return findXRays;
@@ -427,7 +432,7 @@ public final class ProcessResultDisplayFactory implements
     return useFixedStack;
   }
 
-  //coarse alignment
+  // coarse alignment
 
   public ProcessResultDisplay getTiltxcorr(final DialogType dialogType) {
     if (dialogType == DialogType.COARSE_ALIGNMENT) {
@@ -437,6 +442,10 @@ public final class ProcessResultDisplayFactory implements
       return trackTiltxcorr;
     }
     return null;
+  }
+
+  public ProcessResultDisplay getAutofidseed() {
+    return autofidseed;
   }
 
   public ProcessResultDisplay getDistortionCorrectedStack() {
@@ -455,7 +464,7 @@ public final class ProcessResultDisplayFactory implements
     return midas;
   }
 
-  //fiducial model
+  // fiducial model
 
   public ProcessResultDisplay getTransferFiducials() {
     return transferFiducials;
@@ -481,13 +490,13 @@ public final class ProcessResultDisplayFactory implements
     return fixFiducialModel;
   }
 
-  //fine alignment
+  // fine alignment
 
   public ProcessResultDisplay getComputeAlignment() {
     return computeAlignment;
   }
 
-  //positioning
+  // positioning
 
   public ProcessResultDisplay getSampleTomogram() {
     return sampleTomogram;
@@ -501,7 +510,7 @@ public final class ProcessResultDisplayFactory implements
     return finalAlignment;
   }
 
-  //stack
+  // stack
 
   public ProcessResultDisplay getFullAlignedStack() {
     return fullAlignedStack;
@@ -558,7 +567,7 @@ public final class ProcessResultDisplayFactory implements
     return useFilteredStack;
   }
 
-  //generation
+  // generation
 
   public ProcessResultDisplay getUseTrialTomogram() {
     return useTrialTomogram;
@@ -568,7 +577,7 @@ public final class ProcessResultDisplayFactory implements
     return deleteAlignedStack;
   }
 
-  //combination
+  // combination
 
   public ProcessResultDisplay getCreateCombine() {
     return createCombine;
@@ -598,7 +607,7 @@ public final class ProcessResultDisplayFactory implements
     return restartVolcombine;
   }
 
-  //post processing
+  // post processing
 
   public ProcessResultDisplay getTrimVolume() {
     return trimVolume;
