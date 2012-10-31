@@ -201,7 +201,7 @@ public class ProcessTrack implements BaseProcessTrack {
         .fromString(props.getProperty(group + "CleanUp", "Not started"));
 
     // Added separate process for A and B axis for 2.0 layout
-    if (Float.parseFloat(revisionNumber) < 2.0) {
+    if (Double.parseDouble(revisionNumber) < 2.0) {
       preProcessingA = ProcessState.fromString(props.getProperty(group + "PreProcessing",
           "Not started"));
       preProcessingB = preProcessingA;

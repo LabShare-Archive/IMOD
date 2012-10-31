@@ -16,6 +16,8 @@ import etomo.comscript.GpuTiltTestParam;
 import etomo.logic.DatasetTool;
 import etomo.type.AxisID;
 import etomo.type.DataFileType;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
 * <p>Description: </p>
@@ -34,11 +36,12 @@ import etomo.type.DataFileType;
 */
 public class GpuTiltTestPanel implements ToolPanel, ContextMenu {
   public static final String rcsid = "$Id:$";
-  
+
   private static final String DATASET_ROOT = "gputest";
 
   private final JPanel pnlRoot = new JPanel();
-  private final LabeledTextField ltfNMinutes = new LabeledTextField("# of minutes: ");
+  private final LabeledTextField ltfNMinutes = new LabeledTextField(
+      FieldType.FLOATING_POINT, "# of minutes: ");
   private final LabeledSpinner spGpuNumber = new LabeledSpinner("GPU #: ",
       new SpinnerNumberModel(0, 0, 8, 1), 0);
   private final MultiLineButton btnRunTest = new MultiLineButton("Run GPU Test");
@@ -89,9 +92,15 @@ public class GpuTiltTestPanel implements ToolPanel, ContextMenu {
     btnRunTest.addActionListener(new GpuTiltTestActionListener(this));
   }
 
-  public void getParameters(final GpuTiltTestParam param) {
-    param.setNMinutes(ltfNMinutes.getText());
-    param.setGpuNumber(spGpuNumber.getValue());
+  public boolean getParameters(final GpuTiltTestParam param, final boolean doValidation) {
+    try {
+      param.setNMinutes(ltfNMinutes.getText(doValidation));
+      param.setGpuNumber(spGpuNumber.getValue());
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   private void action() {

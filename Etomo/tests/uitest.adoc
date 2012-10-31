@@ -264,6 +264,18 @@ set.var.volume=unicross1.rec
 set.interface.Nad=
 
 
+[Test = nad-test-gui]
+set.testdir = nad
+set.adoc.dialog = nad.adoc
+set.var.dataset = unicross
+set.dataset = unicross
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.var.test-gui=
+set.var.volume=unicross1.rec
+set.interface.Nad=
+
+
 [Test = peet]
 set.testdir = peet
 set.adoc.dialog = peet.adoc

@@ -203,9 +203,9 @@ public final class TextFieldState {
     return number;
   }
 
-  public long convertToLong(final String text) {
+  public int convertToInt(final String text) {
     try {
-      return new Long(text).longValue();
+      return new Integer(text).intValue();
     }
     catch (NumberFormatException e) {
       return 0;

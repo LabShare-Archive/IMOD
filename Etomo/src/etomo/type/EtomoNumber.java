@@ -406,10 +406,6 @@ public class EtomoNumber extends ConstEtomoNumber {
     return set(newNumber(value));
   }
 
-  public EtomoNumber set(float value) {
-    return set(newNumber(value));
-  }
-
   public EtomoNumber set(double value) {
     return set(newNumber(value));
   }

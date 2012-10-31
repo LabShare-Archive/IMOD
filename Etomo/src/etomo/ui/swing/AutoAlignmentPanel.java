@@ -21,6 +21,8 @@ import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.SharedConstants;
 
 /**
@@ -44,11 +46,11 @@ public final class AutoAlignmentPanel {
   private final SpacedPanel pnlRoot = SpacedPanel.getFocusableInstance();
   private final SpacedPanel pnlParameters = SpacedPanel.getInstance();
   private final LabeledTextField ltfSigmaLowFrequency = new LabeledTextField(
-      "Sigma for low-frequency filter: ");
+      FieldType.FLOATING_POINT, "Sigma for low-frequency filter: ");
   private final LabeledTextField ltfCutoffHighFrequency = new LabeledTextField(
-      "Cutoff for high-frequency filter: ");
+      FieldType.FLOATING_POINT, "Cutoff for high-frequency filter: ");
   private final LabeledTextField ltfSigmaHighFrequency = new LabeledTextField(
-      "Sigma for high-frequency filter: ");
+      FieldType.FLOATING_POINT, "Sigma for high-frequency filter: ");
   private final TransformChooserPanel tcAlign = new TransformChooserPanel();
   private final SpacedPanel pnlButtons = SpacedPanel.getInstance();
   private final MultiLineButton btnInitialAutoAlignment = new MultiLineButton(
@@ -63,11 +65,11 @@ public final class AutoAlignmentPanel {
   private final LabeledSpinner spReduceByBinning = new LabeledSpinner("Binning: ",
       new SpinnerNumberModel(2, 1, 50, 1), 1);
   private final LabeledTextField ltfSkipSectionsFrom1 = new LabeledTextField(
-      "Sections to skip: ");
+      FieldType.INTEGER_LIST, "Sections to skip: ");
   private final CheckBox cbPreCrossCorrelation = new CheckBox(
       "Do cross-correlate in initial alignment");
   private final LabeledTextField ltfEdgeToIgnore = new LabeledTextField(
-      "Fraction to ignore on edges: ");
+      FieldType.FLOATING_POINT, "Fraction to ignore on edges: ");
   private final Spinner spMidasBinning = Spinner.getLabeledInstance("Midas binning: ", 1,
       1, 8);
 
@@ -176,16 +178,22 @@ public final class AutoAlignmentPanel {
     return pnlRoot.getContainer();
   }
 
-  void getParameters(final AutoAlignmentMetaData metaData) {
-    metaData.setSigmaLowFrequency(ltfSigmaLowFrequency.getText());
-    metaData.setCutoffHighFrequency(ltfCutoffHighFrequency.getText());
-    metaData.setSigmaHighFrequency(ltfSigmaHighFrequency.getText());
-    metaData.setAlignTransform(tcAlign.get());
-    metaData.setPreCrossCorrelation(cbPreCrossCorrelation.isSelected());
-    metaData.setSkipSectionsFrom1(ltfSkipSectionsFrom1.getText());
-    metaData.setEdgeToIgnore(ltfEdgeToIgnore.getText());
-    metaData.setReduceByBinning(spReduceByBinning.getValue());
-    metaData.setMidasBinning(spMidasBinning.getValue());
+  boolean getParameters(final AutoAlignmentMetaData metaData, final boolean doValidation) {
+    try {
+      metaData.setSigmaLowFrequency(ltfSigmaLowFrequency.getText(doValidation));
+      metaData.setCutoffHighFrequency(ltfCutoffHighFrequency.getText(doValidation));
+      metaData.setSigmaHighFrequency(ltfSigmaHighFrequency.getText(doValidation));
+      metaData.setAlignTransform(tcAlign.get());
+      metaData.setPreCrossCorrelation(cbPreCrossCorrelation.isSelected());
+      metaData.setSkipSectionsFrom1(ltfSkipSectionsFrom1.getText(doValidation));
+      metaData.setEdgeToIgnore(ltfEdgeToIgnore.getText(doValidation));
+      metaData.setReduceByBinning(spReduceByBinning.getValue());
+      metaData.setMidasBinning(spMidasBinning.getValue());
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   void setParameters(final AutoAlignmentMetaData metaData) {
@@ -200,30 +208,36 @@ public final class AutoAlignmentPanel {
     spMidasBinning.setValue(metaData.getMidasBinning());
   }
 
-  public void getParameters(final XfalignParam param) {
-    if (cbPreCrossCorrelation.isVisible()) {
-      param.setPreCrossCorrelation(cbPreCrossCorrelation.isSelected());
+  public boolean getParameters(final XfalignParam param, final boolean doValidation) {
+    try {
+      if (cbPreCrossCorrelation.isVisible()) {
+        param.setPreCrossCorrelation(cbPreCrossCorrelation.isSelected());
+      }
+      else {
+        param.setPreCrossCorrelation(false);
+      }
+      if (ltfSkipSectionsFrom1.isVisible()) {
+        param.setSkipSectionsFrom1(ltfSkipSectionsFrom1.getText(doValidation));
+      }
+      else {
+        param.resetSkipSectionsFrom1();
+      }
+      if (ltfEdgeToIgnore.isVisible()) {
+        param.setEdgeToIgnore(ltfEdgeToIgnore.getText(doValidation));
+      }
+      else {
+        param.resetEdgeToIgnore();
+      }
+      if (spReduceByBinning.isVisible()) {
+        param.setReduceByBinning(spReduceByBinning.getValue());
+      }
+      else {
+        param.resetReduceByBinning();
+      }
+      return true;
     }
-    else {
-      param.setPreCrossCorrelation(false);
-    }
-    if (ltfSkipSectionsFrom1.isVisible()) {
-      param.setSkipSectionsFrom1(ltfSkipSectionsFrom1.getText());
-    }
-    else {
-      param.resetSkipSectionsFrom1();
-    }
-    if (ltfEdgeToIgnore.isVisible()) {
-      param.setEdgeToIgnore(ltfEdgeToIgnore.getText());
-    }
-    else {
-      param.resetEdgeToIgnore();
-    }
-    if (spReduceByBinning.isVisible()) {
-      param.setReduceByBinning(spReduceByBinning.getValue());
-    }
-    else {
-      param.resetReduceByBinning();
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 

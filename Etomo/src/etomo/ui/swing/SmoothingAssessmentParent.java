@@ -1,5 +1,7 @@
 package etomo.ui.swing;
 
+import etomo.ui.FieldValidationFailedException;
+
 /**
  * <p>Description: </p>
  * 
@@ -23,7 +25,9 @@ interface SmoothingAssessmentParent {
 
   public boolean isOneSurface();
 
-  public String getWarpSpacingX();
+  public String getWarpSpacingX(boolean doValidation)
+      throws FieldValidationFailedException;
 
-  public String getWarpSpacingY();
+  public String getWarpSpacingY(boolean doValidation)
+      throws FieldValidationFailedException;
 }

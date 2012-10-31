@@ -171,9 +171,9 @@ public final class TransferfidParam implements Storable {
   // null => both, -1 => -90, 1=> +90
   private final EtomoNumber searchDirection = new EtomoNumber(EtomoNumber.Type.INTEGER,
       "SearchDirection");
-  private final EtomoNumber centerViewA = new EtomoNumber(EtomoNumber.Type.LONG,
+  private final EtomoNumber centerViewA = new EtomoNumber(
       "CenterViewA");
-  private final EtomoNumber centerViewB = new EtomoNumber(EtomoNumber.Type.LONG,
+  private final EtomoNumber centerViewB = new EtomoNumber(
       "CenterViewB");
   private final ScriptParameter numberViews = new ScriptParameter(
       EtomoNumber.Type.INTEGER, "NumberViews");

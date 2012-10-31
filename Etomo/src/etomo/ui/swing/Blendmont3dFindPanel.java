@@ -74,8 +74,8 @@ final class Blendmont3dFindPanel extends NewstackOrBlendmont3dFindPanel implemen
   public void setParameters(BlendmontParam param) {
   }
 
-  public boolean getParameters(BlendmontParam param) throws FortranInputSyntaxException,
-      InvalidParameterException, IOException {
+  public boolean getParameters(BlendmontParam param, final boolean doValidation)
+      throws FortranInputSyntaxException, InvalidParameterException, IOException {
     param.setBinByFactor(getBinning());
     param.setMode(BlendmontParam.Mode.BLEND_3DFIND);
     // Opt out of validation because state should be correct sinces it's data is from a

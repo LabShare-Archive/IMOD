@@ -86,8 +86,8 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
     ((FlattenVolumePanel) toolPanel).setParameters(param);
   }
 
-  public void getParameters(final GpuTiltTestParam param) {
-    ((GpuTiltTestPanel) toolPanel).getParameters(param);
+  public boolean getParameters(final GpuTiltTestParam param, final boolean doValidation) {
+    return ((GpuTiltTestPanel) toolPanel).getParameters(param, doValidation);
   }
 
   public void logMessage(Loggable loggable, AxisID axisID) {
@@ -101,7 +101,7 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
   public void logMessage(String title, AxisID axisID, List message) {
     logger.logMessage(title, axisID, message);
   }
-  
+
   public void logMessage(String title, AxisID axisID) {
     logger.logMessage(title, axisID);
   }

@@ -170,14 +170,14 @@ public class TextFieldStateTest extends TestCase {
     n = testInstance.convertToEtomoNumber("1");
     assertTrue("return number", n.equals(1));
 
-    n = testInstance.convertToEtomoNumber(EtomoNumber.Type.FLOAT, "1.5");
+    n = testInstance.convertToEtomoNumber(EtomoNumber.Type.DOUBLE, "1.5");
     assertTrue("return number", n.equals(1.5));
   }
 
-  public void testConvertToLong() {
+  public void testConvertToInt() {
     TextFieldState testInstance = new TextFieldState(false, null, null);
-    assertEquals("null number - return 0", 0, testInstance.convertToLong(null));
-    assertEquals("bad number - return 0", 0, testInstance.convertToLong("not a number"));
-    assertEquals("return number", 1, testInstance.convertToLong("1"));
+    assertEquals("null number - return 0", 0, testInstance.convertToInt(null));
+    assertEquals("bad number - return 0", 0, testInstance.convertToInt("not a number"));
+    assertEquals("return number", 1, testInstance.convertToInt("1"));
   }
 }

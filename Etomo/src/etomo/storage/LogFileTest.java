@@ -77,7 +77,7 @@ public class LogFileTest extends TestCase {
   public static final String rcsid = "$Id$";
 
   private static final File testDir = new File(StorageTests.TEST_ROOT_DIR, "LogFile");
-  //private static final long WAIT_LIMIT = 10;
+  //private static final int WAIT_LIMIT = 10;
 
   private final File log = new File(testDir, ProcessName.BLEND + DatasetFiles.LOG_EXT);
   private final File backupLog = new File(log.getAbsolutePath()

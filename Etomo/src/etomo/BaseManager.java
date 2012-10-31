@@ -239,7 +239,8 @@ public abstract class BaseManager {
     return null;
   }
 
-  public boolean updateMetaData(final DialogType dialogType, final AxisID axisID) {
+  public boolean updateMetaData(final DialogType dialogType, final AxisID axisID,
+      final boolean doValidation) {
     return false;
   }
 
@@ -1914,7 +1915,7 @@ public abstract class BaseManager {
       }
     }
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
-    if (!parallelPanel.getResumeParameters(param)) {
+    if (!parallelPanel.getResumeParameters(param, true)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
