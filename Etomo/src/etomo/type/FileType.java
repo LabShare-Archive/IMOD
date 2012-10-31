@@ -139,6 +139,8 @@ public final class FileType {
       true, false, "_refine", ".alimod", ImodManager.TRANSFORMED_MODEL_KEY);
   public static final FileType XCORR_BLEND_OUTPUT = FileType.getInstance(true, true, "",
       ".bl");
+  public static final FileType AUTOFIDSEED_COMSCRIPT = FileType.getInstance(false, true,
+      "autofidseed", ".com");
   public static final FileType BLEND_COMSCRIPT = FileType.getInstance(false, true,
       "blend", ".com");
   public static final FileType PREBLEND_COMSCRIPT = FileType.getInstance(false, true,
@@ -171,6 +173,8 @@ public final class FileType {
       true, "xcorr_pt", ".com");
   public static final FileType DISTORTION_CORRECTED_STACK = FileType.getInstance(true,
       true, "", ".dcst");
+  public static final FileType AUTOFIDSEED_DIR = FileType.getInstance(false,
+      true, "autofidseed", ".dir");
   public static final FileType PIECE_SHIFTS = FileType
       .getInstance(true, true, "", ".ecd");
   public static final FileType FIDUCIAL_MODEL = FileType.getInstance(true, true, "",
@@ -195,6 +199,8 @@ public final class FileType {
       "preblend", ".log");
   public static final FileType FIND_BEADS_3D_OUTPUT_MODEL = FileType.getInstance(true,
       true, "_3dfind", ".mod");
+  public static final FileType AUTOFIDSEED_BOUNDARY_MODEL = FileType.getInstance(true,
+      true, "_afsbound", ".mod");
   public static final FileType SMOOTHING_ASSESSMENT_OUTPUT_MODEL = FileType
       .getImodInstance(true, true, "_checkflat", ".mod",
           ImodManager.SMOOTHING_ASSESSMENT_KEY);
@@ -235,6 +241,8 @@ public final class FileType {
       false, "", ".sampavg", ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
   public static final FileType JOIN_SAMPLE = FileType.getImodInstance(true, false, "",
       ".sample", ImodManager.JOIN_SAMPLES_KEY);
+  public static final FileType SEED_MODEL = FileType.getInstance(true,
+      true, "", ".seed");
   public static final FileType SIRT_SUBAREA_SCALED_OUTPUT_TEMPLATE = FileType
       .getTemplateInstance(true, true, "_sub", ".sint");
   public static final FileType SQUEEZE_VOL_OUTPUT = FileType.getImodInstance(true, false,
