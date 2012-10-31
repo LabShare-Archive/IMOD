@@ -324,7 +324,7 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     }
   }
 
-  public boolean getParameters(NewstParam prenewstParams,final boolean doValidation) {
+  public boolean getParameters(NewstParam prenewstParams, final boolean doValidation) {
     int binning = ((Integer) spinBinning.getValue()).intValue();
 
     // Only explcitly write out the binning if its value is something other than
@@ -357,7 +357,7 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     return ProcessName.PRENEWST;
   }
 
-  public boolean getParameters(BlendmontParam blendmontParam,final boolean doValidation) {
+  public boolean getParameters(BlendmontParam blendmontParam, final boolean doValidation) {
     blendmontParam.setBinByFactor(((Integer) spinBinning.getValue()).intValue());
     return true;
   }
@@ -417,7 +417,7 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
           menuOptions, dialogType, this, this);
     }
     else if (command.equals(btnImod.getActionCommand())) {
-      applicationManager.imodCoarseAlign(axisID, menuOptions);
+      applicationManager.imodCoarseAlign(axisID, menuOptions, null);
     }
   }
 
