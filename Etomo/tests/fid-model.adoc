@@ -50,13 +50,32 @@ set.var.seed-button=view-seed-model
 	return.var.seed-button=
 [[]]
 rb.make-seed-and-track=
+if.var.test-gui.run.function.test-make-seed-and-track=
 run.function.transfer-fiducials=
+run.function.generate-seed-model=
+run.function.manual-seed-model=
+run.function.beadtracker=
+
+
+[function = test-make-seed-and-track]
+#test values
+assert.rb.make-seed-model-manually=on
+assert.rb.generate-seed-model-automatically=off
+[[if = dual]]
+  assert.rb.transfer-seed-model-from-the-other-axis=off
+[[]]
+#test enabled/disabled
+assert.enabled.rb.make-seed-model-manually=
+assert.enabled.rb.generate-seed-model-automatically=
+
+
+[function = manual-seed-model]
 rb.make-seed-model-manually=
 [[if = test-gui]]
-	#test values
-	assert.bn.%{seed-button}=off
-	#test enabled/disabled
-	assert.enabled.bn.%{seed-button}=
+  #test values
+  assert.bn.%{seed-button}=off
+  #test enabled/disabled
+  assert.enabled.bn.%{seed-button}=
 [[]]
 bn.%{seed-button}=
 [[if = axis]]
@@ -64,10 +83,132 @@ bn.%{seed-button}=
   copy.file=%{dataset}%{axis}.seed
 [[]]
 [[if = test-gui]]
-	#test values
-	assert.bn.%{seed-button}=on
+  #test values
+  assert.bn.%{seed-button}=on
 [[]]
-run.function.beadtracker=
+
+
+[function = generate-seed-model]
+rb.generate-seed-model-automatically=
+[[if = test-gui]]
+  #basic
+  #test values
+  assert.cb.make-boundary-model=off
+  assert.cb.exclude-inside-boundary-contours=off
+  assert.rb.total-number=on
+  assert.tf.total-number=
+  assert.rb.density=off
+  assert.tf.density=
+  assert.cb.select-beads-on-two-surfaces=off
+  assert.bn.generate-seed-model=off
+  #test enabled/disabled
+  assert.enabled.cb.make-boundary-model=
+  assert.disabled.bn.open-boundary-model=
+  assert.disabled.cb.exclude-inside-boundary-contours=
+  assert.disabled.bn.open-initial-bead-model=
+  assert.enabled.rb.total-number=
+  assert.enabled.tf.total-number=
+  assert.enabled.rb.density=
+  assert.disabled.tf.density=
+  assert.enabled.cb.select-beads-on-two-surfaces=
+  assert.disabled.bn.open-sorted-3d-models=
+  assert.enabled.bn.generate-seed-model=
+  assert.enabled.bn.open-seed-model=
+  assert.enabled.bn.clean-up-temporary-files=
+  #behavior
+  cb.make-boundary-model=on
+  assert.enabled.bn.open-boundary-model=
+  assert.enabled.cb.exclude-inside-boundary-contours=
+  cb.make-boundary-model=off
+  #
+  rb.density=
+  assert.disabled.tf.total-number=
+  assert.enabled.tf.density=
+  rb.total-number=
+  #advanced
+  bn.advanced=
+  #test values
+  assert.tf.borders-in-x-&-y=
+  assert.tf.estimated-number-of-beads-in-sample=
+  assert.tf.minimum-spacing=0.85
+  assert.tf.fraction-of-peak-to-store=1.0
+  assert.tf.drop-tracked-models=
+  assert.tf.maximum-ratio-between-surfaces=
+  assert.cb.allow-clustered-beads=off
+  assert.cb.allow-elongated-beads-of-severity=off
+  assert.sp.allow-elongated-beads-of-severity=1
+  #test enabled/disabled
+  assert.enabled.tf.borders-in-x-&-y=
+  assert.enabled.tf.estimated-number-of-beads-in-sample=
+  assert.enabled.tf.minimum-spacing=
+  assert.enabled.tf.fraction-of-peak-to-store=
+  assert.enabled.tf.drop-tracked-models=
+  assert.enabled.tf.maximum-ratio-between-surfaces=
+  assert.enabled.cb.allow-clustered-beads=
+  assert.disabled.cb.allow-elongated-beads-of-severity=
+  assert.disabled.sp.allow-elongated-beads-of-severity=
+  #behavior
+  cb.allow-clustered-beads=on
+  assert.enabled.cb.allow-elongated-beads-of-severity=
+  assert.disabled.sp.allow-elongated-beads-of-severity=
+  cb.allow-elongated-beads-of-severity=on
+  assert.enabled.sp.allow-elongated-beads-of-severity=
+  cb.allow-elongated-beads-of-severity=off
+  cb.allow-elongated-beads-of-severity=off
+  bn.basic=
+[[]]
+tf.total-number=40
+bn.generate-seed-model=
+wait.process.autofidseed=done
+[[if = test-gui]]
+  #test values
+  bn.generate-seed-model=on
+  #test enabled/disabled
+  bn.enabled.open-initial-bead-model=
+  bn.disabled.open-sorted-3d-models=
+  #files
+  assert.exists.file=autofidseed%{axis}.com
+  assert.exists.file=autofidseed%{axis}.info
+  assert.exists.file=%{dataset}%{axis}.seed
+  assert.exists.file=autofidseeda%{axis}.dir
+  assert.exists.file=autofidseeda%{axis}.log
+  assert.exists.file=autofidseeda%{axis}.dir/afs*.pkmod
+  assert.exists.file=autofidseeda%{axis}.dir/afs*.*.elong
+  assert.exists.file=autofidseeda%{axis}.dir/afs*.*.track
+  assert.exists.file=autofidseeda%{axis}.dir/track%{axis}.com
+[[]]
+cb.select-beads-on-two-surfaces=on
+bn.generate-seed-model=
+wait.process.autofidseed=done
+[[if = test-gui]]
+  #test enabled/disabled
+  bn.enabled.open-sorted-3d-models=
+  #files
+  assert.exists.file=%{dataset}%{axis}.seed~
+  assert.exists.file=autofidseeda%{axis}.log~
+  assert.exists.file=autofidseeda%{axis}.dir/afs*.*.xyzmod
+  assert.exists.file=autofidseeda%{axis}.dir/afs*.*.sortmod
+[[]]
+bn.generate-seed-model=
+wait.process.autofidseed=done
+[[if = test-gui]]
+  #files
+  assert.exists.file=autofidseeda%{axis}.dir/afs*.*.sortmod~
+  #3dmod
+  bn.open-seed-model=
+  bn.open-initial-bead-model=
+  bn.open-sorted-3d-models=
+[[]]
+# clean up
+bn.clean-up-temporary-files=
+wait.process.deleting-temporary-directory=done
+[[if = test-gui]]
+  #test enabled/disabled
+  bn.disabled.open-initial-bead-model=
+  bn.disabled.open-sorted-3d-models=
+  #files
+  assert.not-exists.file=autofidseeda%{axis}.dir
+[[]]
 
 
 [function = transfer-fiducials]
