@@ -4,7 +4,7 @@
 .SH NAME
 autofidseed \- Automatically make a seed model for tilt series fiducial tracking
 .SH SYNOPSIS
-autofidseed [options] data_file
+autofidseed [options]
 .SH DESCRIPTION
 Autofidseed uses a series of other programs to generate a seed model for
 tracking tilt series fiducial particles in Beadtrack(1).  Given a desired
@@ -45,9 +45,9 @@ of files.)
 Autofidseed retains a file with information about the initial steps so that
 it can tell whether the existing temporary files are valid on a new run.  The
 default name of this file is
-"autofidseed.info" for a single axis data set, or "autofidseed_a.info" or
-"autofidseed_b.info" for dual axis data, while the temporary directory
-is "autofidseed.dir", "autofidse_a.dir", or "autofidseed_b.dir".
+"autofidseed.info" for a single axis data set, or "autofidseeda.info" or
+"autofidseedb.info" for dual axis data, while the temporary directory
+is "autofidseed.dir", "autofidseeda.dir", or "autofidseedb.dir".
 If Autofidseed is run with the option
 "-remove 1" it will clean up existing files and start a new run from scratch;
 with the option "-remove -1" it will simply clean up files, remove the

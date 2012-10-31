@@ -77,9 +77,14 @@ can be used to store the numbers as unsigned integers in a file of mode 6.
 If values in the input files are all less than 32768, 
 then specify the type as long instead of ulong.
 .TP
-.B -P <pixel>
+.B -p <pixel>
 Set the pixel spacing of the MRC file header to the given value, which should
 generally be a pixel size in Angstroms.
+.B -pz <pixel>
+Set the Z pixel spacing of the MRC file header to the given value if it is 
+different from the one given with the 
+.B -p
+option.
 .SH FILES
 If the output file already exists, it will be made a backup file by adding ~
 to its name.

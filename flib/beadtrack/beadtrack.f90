@@ -1872,8 +1872,9 @@ CONTAINS
           numAvg = numAvg + 1
           ivFit(numAvg) = idif
           wsFit(numavg) = wLocalMeans(idif)
-          if (numAvg >= maxLocalForPred)  &
-              exit LOCAL_FIT_LOOP
+          if (numAvg >= maxLocalForPred) then
+            exit LOCAL_FIT_LOOP
+          endif
         endif
       enddo
     enddo LOCAL_FIT_LOOP
@@ -1914,8 +1915,9 @@ CONTAINS
             endif
           endif
         enddo
-        if (numAvg >= maxWavg) &
-            exit
+        if (numAvg >= maxWavg) then
+          exit
+        endif
       enddo
 
       ! Divide the ones just added to the list by the bead mean so the list now has
@@ -1974,8 +1976,9 @@ CONTAINS
               endif
             endif
           enddo
-          if (numPctl >= maxWavg) &
-              exit
+          if (numPctl >= maxWavg) then
+            exit
+          endif
         enddo
 
         call sums_to_avgsd(wsum, wsumsq, numAvg, wsumAvg, wsumSD)

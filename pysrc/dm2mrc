@@ -100,6 +100,7 @@ swap = 0
 dm2 = 0
 dm3 = 0
 pixelOpt = ''
+zPixelOpt = ''
 
 # Read all files
 prnstr('Scanning files...')
@@ -183,6 +184,8 @@ for num in range(nfiles):
    # Take the first pixel size that shows up
    if pixelOpt == '' and len(props) > 5:
       pixelOpt = '-p ' + str(props[5])
+   if zPixelOpt == '' and pixelOpt != '' and len(props) > 6:
+      zPixelOpt = '-pz ' + str(props[6])
       
    # add properties to wordlists, and check for consistency
    xsizes.append(props[0])
@@ -251,8 +254,9 @@ if os.path.exists(outfile):
 
 prnstr('Converting files...')
 if not differ:
-   rawcom = fmtstr('raw2mrc -f -o {} {} -t {} -x {} -y {} -z {} {} {} {} {}', offset,
-                   swap, type, xsize, ysize, zsize, convert, divide, unsigned, pixelOpt)
+   rawcom = fmtstr('raw2mrc -f -o {} {} -t {} -x {} -y {} -z {} {} {} {} {} {}', offset,
+                   swap, type, xsize, ysize, zsize, convert, divide, unsigned, pixelOpt,
+                   zPixelOpt)
    for fname in fnames:
       rawcom += ' ' + fname
    rawcom += ' "' + outfile + '"'

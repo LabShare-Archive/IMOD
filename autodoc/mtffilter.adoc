@@ -83,9 +83,10 @@ with a spatial frequency in reciprocal pixels and an MTF value on each line.
 [Field = StockCurve]
 short = stock
 type = I
-usage = The number of the stock (built-in) curve to use
+usage = 1 to use the stock (built-in) MTF curve
 tooltip =
-manpage = 
+manpage = The number of the stock (built-in) MTF curve to use.  Since there is
+only one curve, only an entry of 1 is allowed.
 
 [Field = MaximumInverse]
 short = maxinv

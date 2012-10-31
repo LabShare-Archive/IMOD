@@ -108,6 +108,7 @@ int iiLikeMRCCheck(ImodImageFile *inFile)
   info.sectionSkip = 0;
   info.yInverted = 0;
   info.pixel = 0.;
+  info.zPixel = 0.;
 
   if (!inFile) 
     return IIERR_BAD_CALL;
@@ -163,8 +164,11 @@ int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
   hdr->yInverted = info->yInverted;
   hdr->bytesSigned = info->type == RAW_MODE_SBYTE ? 1 : 0;
   hdr->fp = inFile->fp;
-  if (info->pixel)
+  if (info->pixel) {
     inFile->xscale = inFile->yscale = inFile->zscale = info->pixel;
+    if (info->zPixel)
+      inFile->zscale = info->zPixel;
+  }
 
   /* Set flags for type of data */
   switch(info->type) {
@@ -465,8 +469,8 @@ int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *
   char buf[BUFSIZE];
   char *found;
   int lowbyte, hibyte;
-  int offset, type, xsize, ysize, zsize, gotCal, gotDim, gotScale;
-  float scale, pixel = 0.;
+  int offset, type, xsize, ysize, zsize, gotCal, gotDim, gotScale, gotMeta, gotDimInfo;
+  float scale, tmpPixel, pixel = 0., zPixel = 0.;
   off_t typeOffset, maxread, plausibleOff;
   struct stat statbuf;
 
@@ -574,7 +578,7 @@ int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *
 
   plausibleOff = typeOffset - (off_t)(xsize * ysize) * zsize * dataSize[type];
   buf[maxread - 1] = 0x00;
-  gotCal = gotDim = gotScale = 0;
+  gotCal = gotDim = gotScale = gotMeta = gotDimInfo = 0;
   for (c = 0; c < maxread; c++) {
     if (buf[c] == 68) {
       found = foundDMtag(&buf[c], "Data", "Data%%%%", dmind, 12);
@@ -595,20 +599,29 @@ int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *
           offset = toffset;
           break; 
           } */        
+      } else if (gotMeta && strstr(&buf[c], "Dimension info")) {
+        gotDimInfo = 1;
       }
 
       /* Always look for start of the Calibrations sequence */
     } else if (buf[c] == 67) {
       if (strstr(&buf[c], "Calibrations")) {
         gotCal = 1;
-        gotDim = gotScale = 0;
+        gotDim = gotScale = gotMeta = gotDimInfo = 0;
       }
       
-      /* Look for \tDimension if have Calibrations, and Scale if have Dimension */
-    } else if (gotCal && !gotDim && buf[c] == '\t') {
-      if (strstr(&buf[c], "\tDimension"))
+      /* Look for \tDimension if have Calibrations, or always look for Meta Data */
+    } else if (buf[c] == '\t') {
+      
+      if (gotCal && !gotDim && strstr(&buf[c], "\tDimension"))
         gotDim = 1;
-    } else if (gotDim && !gotScale && buf[c] == 'S') {
+      if (strstr(&buf[c], "\tMeta Data")) {
+        gotMeta = 1;
+        gotCal = gotDim = gotScale = gotDimInfo = 0;
+      }
+
+      /* Look for Scale if have Dimension or Dimension info */
+    } else if ((gotDim || gotDimInfo) && !gotScale && buf[c] == 'S') {
       found = foundDMtag(&buf[c], "Scale", "Scale%%%%", dmind, 13);
       if (found) {
 
@@ -625,17 +638,20 @@ int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *
     } else if (gotScale &&  buf[c] == 'U') {
       found = foundDMtag(&buf[c], "Units", "Units%%%%", dmind, 13);
       toffset = found - buf;
-      if (!pixel || toffset <= plausibleOff) {
+      if ((gotDim && !pixel) || (gotDimInfo && !zPixel) || toffset <= plausibleOff) {
         if (buf[c + unitsOff[dmind] + 2] == 'm') {
           if (buf[c + unitsOff[dmind]] == 'n')
-            pixel = scale * 10.;
+            tmpPixel = scale * 10.;
           else if ((unsigned char)buf[c + unitsOff[dmind]] == 181)
-            pixel = scale * 10000.;
+            tmpPixel = scale * 10000.;
+          if (gotDimInfo)
+            zPixel = tmpPixel;
+          else
+            pixel = tmpPixel;
         }
       }
-      gotCal = gotDim = gotScale = 0;
+      gotCal = gotDim = gotScale = gotMeta = gotDimInfo = 0;
     }
-          
   }
   if (!offset) {
     b3dError(stderr, "ERROR: analyzeDM3 - Data string not found in %s\n",
@@ -649,6 +665,7 @@ int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *
   info->headerSize = offset;
   info->yInverted = 1;
   info->pixel = pixel;
+  info->zPixel = zPixel;
   *dmtype = type;
 #ifdef B3D_LITTLE_ENDIAN
   info->swapBytes = 0;

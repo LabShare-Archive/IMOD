@@ -49,6 +49,10 @@ extern "C" {
 #define IIERR_IO_ERROR   2
 #define IIERR_MEMORY_ERR 3
 #define IIERR_NO_SUPPORT 4
+
+  /* Flags for userData */
+#define IIFLAG_BYTES_SWAPPED   1
+#define IIFLAG_TVIPS_DATA      2
 /* END_CODE */
 
   /* DOC_CODE Raw mode codes */
@@ -105,6 +109,8 @@ extern "C" {
     int   sectionSkip;
     char *header;
     char *userData;
+    unsigned int userFlags;  /* Flags for the userData */
+    int userCount;           /* Number of bytes of userData */
     unsigned char *colormap;
     int  planesPerImage;     /* # of planes per TIFF image */
     int  contigSamples;      /* # of contiguous samples per pixel in plane */
@@ -139,6 +145,7 @@ extern "C" {
                            after last section */
     int yInverted;      /* Lines are inverted in Y */
     float pixel;        /* Pixel size in Angstroms, set to 0. if unknown */
+    float zPixel;       /* Pixel size in Z if different, set to 0. otherwise */
   } RawImageInfo;
 /* END_CODE */
 
@@ -181,7 +188,7 @@ extern "C" {
   int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection);
   void tiffClose(ImodImageFile *inFile);
   int tiffGetField(ImodImageFile *inFile, int tag, void *value);
-  int tiffGetArray(ImodImageFile *inFile, int tag, int *count, void *value);
+  int tiffGetArray(ImodImageFile *inFile, int tag, b3dUInt16 *count, void *value);
   void tiffSuppressWarnings(void);
   void tiffSuppressErrors(void);
   void tiffFilterWarnings(void);

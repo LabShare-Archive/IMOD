@@ -69,6 +69,9 @@ extern "C" {
   double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx,
                             int ny, float xpeak, float ypeak, int nxpad,
                             int nypad, int *nsum);
+  double CCCoefficientTwoPads(float *array, float *brray, int nxdim, int nx, int ny,
+                              float xpeak, float ypeak, int nxpadA, int nypadA,
+                              int nxpadB, int nypadB, int minPixels, int *nsum);
   void sliceGaussianKernel(float *mat, int dim, float sigma);
   void scaledGaussianKernel(float *mat, int *dim, int limit, float sigma);
   void applyKernelFilter(float *array, float *brray, int nxdim, int nx, int ny,

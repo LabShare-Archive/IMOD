@@ -345,9 +345,9 @@ if not trackcom:
 (troot, ext) = os.path.splitext(trackcom)
 infoSuffix = ''
 if troot.endswith('a'):
-   infoSuffix = '_a'
+   infoSuffix = 'a'
 if troot.endswith('b'):
-   infoSuffix = '_b'
+   infoSuffix = 'b'
 infoName = progname + infoSuffix + '.info'
 
 # Set root of names for temp files

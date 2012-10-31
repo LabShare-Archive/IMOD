@@ -1,5 +1,27 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/30/12: Removed underscore from Autofidseed info file and temporary
+directory names for eTomo. 
+
+10/29/12: Made Header report of pixel size from extended header take account
+of binning  up to 4; made Alterheader FEIPIXEL do the same and modify the
+pixel size enough to prevent the operation from being done twice; added option
+to Copytomocoms for converting pixel sizes of FEI files.
+
+10/24/12: IMOD_4-6-16
+10/24/12: Removed Tilt's setting of pixel size from extended header (8/28/12)
+because it screws up bead erasing and combining.
+
+10/23/12: Added ability to get Z pixel size from DigitalMicrograph files.
+
+10/23/12: Fixed Model View shifting with mouse and montage snapshot when
+Invert Z is on, and added flush statements to prevent failures in montage
+snapshots with vertex buffer drawing on (In 4.5).
+
+10/19/12: Made Tif2mrc able to read metadata in files from TVIPS acquisition
+software and produce a .rawtlt file and a title in the header with tilt axis
+rotation angle.
+
 10/16/12: ETomo: Added field validation and better white space handling for
 numeric text fields.(bug# 1614)
 

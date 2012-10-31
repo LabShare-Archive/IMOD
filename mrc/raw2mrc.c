@@ -68,6 +68,7 @@ void usage(void)
   fprintf(stderr, "\t-c      Convert long or ulong input to 16-bit"
           " integers, not floats\n");
   fprintf(stderr, "\t-p #    Pixel size in Angstroms to set in file header\n");
+  fprintf(stderr, "\t-pz #   Pixel size in Z in Angstroms, if different\n");
   return;
 }
 
@@ -102,7 +103,7 @@ int main( int argc, char *argv[] )
   b3dUInt16 usval;
   int datasize;
   float  f, pixel;
-  double pixSpacing = 0.;
+  double pixSpacing = 0., zPixel = 0.;
   float  mean = 0.0f, tmean = 0.0f, max = -5e29f, min= 5e29f;
   int start = 0;
   b3dByte *sbdata, sbval;
@@ -123,7 +124,7 @@ int main( int argc, char *argv[] )
      
 
   for (i = 1; i < argc ; i++){
-    if (argv[i][0] == '-' && strlen(argv[i]) <= 2){
+    if (argv[i][0] == '-' && strlen(argv[i]) <= 3){
       switch (argv[i][1]){
 
       case 't': /* input file type */
@@ -164,7 +165,11 @@ int main( int argc, char *argv[] )
         convert = 1;
         break;
       case 'p':
-        pixSpacing = atof(argv[++i]);
+        if (argv[i][2] == 'z'){
+          zPixel = atof(argv[++i]);
+        } else {
+          pixSpacing = atof(argv[++i]);
+        }
         break;
       }
     }else break;
@@ -237,8 +242,11 @@ int main( int argc, char *argv[] )
 
   /* 7/21/11: make header now so signed byte output is known */
   mrc_head_new(&hdata, x, y, nsecs, outtype);
-  if (pixSpacing > 0)
-    mrc_set_scale(&hdata, pixSpacing, pixSpacing, pixSpacing);
+  if (pixSpacing > 0) {
+    if (!zPixel)
+      zPixel = pixSpacing;
+    mrc_set_scale(&hdata, pixSpacing, pixSpacing, zPixel);
+  }
 
   for (j = i ; j < argc-1 ; j++) {
     fin = fopen(argv[j], "rb");
