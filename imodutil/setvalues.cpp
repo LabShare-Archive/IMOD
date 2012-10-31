@@ -65,7 +65,7 @@ int main( int argc, char *argv[])
   if (!valFP)
     exitError("Error opening value file %s!", valueFile);
 
-  int nValuesPerLine = fscanf(valFP, "%g%*[,] %g%*[,] %g%*[,] %g*c\n",
+  int nValuesPerLine = fscanf(valFP, "%g, %g, %g, %g \n",
                               &f1, &f2, &f3, &f4);
   rewind(valFP);
 
@@ -101,7 +101,7 @@ int main( int argc, char *argv[])
         contour = &object->cont[iContNum];
         nPoints = contour->psize;
         for (iPointNum = 0; iPointNum < nPoints; iPointNum++) {
-          if (fscanf(valFP, "%g\n", &store.value.f) != 1)
+          if (fscanf(valFP, "%g \n", &store.value.f) != 1)
             exitError("Error reading %s!", valueFile);
           store.index.i = iPointNum;
           // Apply the specified value only to a single point
@@ -114,7 +114,7 @@ int main( int argc, char *argv[])
 
   else if (nValuesPerLine == 3) {
     // Set values for the specified contours
-    while ((iErr = fscanf(valFP, "%d%*[,] %d%*[,] %g\n", &iObjNum, &iContNum,
+    while ((iErr = fscanf(valFP, "%d, %d, %g \n", &iObjNum, &iContNum,
 			  &store.value.f)) != EOF) {
       if (iErr != 3)
         exitError("Error reading %s!", valueFile);
@@ -142,7 +142,7 @@ int main( int argc, char *argv[])
 
   else if (nValuesPerLine == 4) {
     // Set values for the specified points
-    while ((iErr = fscanf(valFP, "%d%*[,] %d%*[,] %d*c %g\n", &iObjNum, 
+    while ((iErr = fscanf(valFP, "%d, %d, %d, %g \n", &iObjNum, 
 			  &iContNum, &iPointNum, &store.value.f)) != EOF) {
       if (iErr != 4)
 	exitError("Error reading %s!", valueFile);
@@ -211,7 +211,7 @@ int main( int argc, char *argv[])
   // Apply user-supplied min/max values
   if (minMaxFP) {
     int nDone = 0;
-    while ((iErr = fscanf(minMaxFP, "%d%*[,] %g%*[,] %g\n", &iObjNum, &f1, &f2))
+    while ((iErr = fscanf(minMaxFP, "%d, %g, %g \n", &iObjNum, &f1, &f2))
 	   != EOF) {
       if (iErr != 3)
         exitError("Error reading %s!", minMaxFile);
@@ -245,8 +245,7 @@ int main( int argc, char *argv[])
 int countInputLines(FILE *fp)
 {
   int n = 0;
-  float v;
-  while (fscanf(fp, "%g\n", &v) == 1)
+  while (fscanf(fp, "%*[^\n]\n") != EOF)
     n += 1;
   rewind(fp);
 

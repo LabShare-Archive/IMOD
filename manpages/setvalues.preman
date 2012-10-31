@@ -8,8 +8,8 @@ setvalues <values file> <input model> <output model>
 
 .SH DESCRIPTION
 Store or modify per point or per contour values in an IMOD model, and 
-configure the views to display these values in pseudo-color. The text
-file <values file> specifies the (possibly floating point) values to be 
+configure the views to display these values in pseudo-color. Input file
+<values file> specifies the (possibly floating point) values to be 
 stored and their desired location in the model. Three different modes of 
 operation are supported, depending on the number of columns in the
 values file.
@@ -21,38 +21,35 @@ model. Values will be stored sequentially from the first point in the
 first contour of the first object, to the last point in the last 
 contour of the last object.
 
-2) If 3 columns are present, the first two columns must be
-integer values and will be taken as 1-based object and contour numbers,
-respectively, while the third (possibly floating point) column,
+2) If 3 comma-separated columns are present, the first two columns must
+be integer values and will be taken as 1-based object and contour 
+numbers, respectively, while the third (possibly floating point) column,
 represents the value to be stored for the specified object / contour.
 
-3) Finally, if 4 columns are present, the first 3 columns will be
-interpreted as 1-based object, contour, and point numbers, and the
-final column as the value to be stored for the specified 
-object / contour / point.
+3) Finally, if 4 comma-separated columns are present, the first 3 
+columns will be interpreted as 1-based object, contour, and point 
+numbers, and the final column as the value to be stored for the 
+specified object / contour / point.
 
-Entries in the values file may be separated with commas, whitespace, or
-both, but any comma separator must immediately follow the preceeding 
-number.
+Each object modified by setvalues will automatically have its minimum 
+and maximum values updated to reflect the range of values stored in that
+object. The resulting default pseudo-color display will stretch the
+color map used from <min> to <max> independently for each object.
+Intensity rather than pseudo-color display is also possible, but must be
+manually selected in 3dmod. Additionally, user-defined color maps can 
+also be specified using the -cm option to 3dmod. 
 
-Each object modified by setvalues will automatically have its minimum and
-maximum values updated to reflect the range of values stored in that object. 
-The resulting default pseudo-color display will stretch the color map used 
-from <min> to <max> independently for each object. Intensity rather than 
-pseudo-color display is also possible, but must be manually selected in 
-3dmod. Additionally, user-defined color maps can also be specified using 
-the -cm option to 3dmod. 
-
-Manual specification of the pseudo-coloring range, rather than auto-scaling 
-is desirable in some cases. (For example, you may wish to display multiple
-objects or contours on a common scale with known limits). This can be
-accomplished by specifying an optional min/max file using the -minMax (or e
-quivalent -MinMaxFile) option. The min/max file is similar to the values
-file but must contain 3 columns with each line containing an integer object 
-number, followed by (possibly floating point) minimum and maximum values for 
-that object. Minimum / maximum values can be specified for any valid object,
-not just those modifed by values file. In fact, when a min/max file is 
-specified (and only then), the values file can optionally be empty.
+Manual specification of the pseudo-coloring range, rather than 
+auto-scaling is desirable in some cases. (For example, you may wish to
+display multiple objects or contours on a common scale with known 
+limits). This can be accomplished by specifying an optional min/max file
+using the -minMax (or equivalent -MinMaxFile) option. Each line of the
+min/max file must contain 3 comma-separated values: an integer object 
+number, followed by (possibly floating point) minimum and maximum values
+for that object. Minimum / maximum values can be specified for any valid 
+object, not just those effected by the values file. In fact, when a 
+min/max file is specified (and only then), the values file can 
+optionally  be empty.
 
 .SS Options
 Setvalues uses the PIP package for input (see the manual page for pip(1)).

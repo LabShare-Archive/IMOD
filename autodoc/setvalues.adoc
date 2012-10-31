@@ -16,7 +16,7 @@ type = FN
 usage = Input model file
 tooltip = 
 manpage = Input model file to clone. If this option is not entered, 
-the second1g non-option argument will be used for the input file.
+the second non-option argument will be used for the input file.
 
 [Field = OutputFile]
 short = output
