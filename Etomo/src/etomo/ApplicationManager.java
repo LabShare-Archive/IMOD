@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.List;
 
 import etomo.comscript.ArchiveorigParam;
+import etomo.comscript.AutofidseedParam;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.CCDEraserParam;
@@ -1404,6 +1405,57 @@ public final class ApplicationManager extends BaseManager implements
     setThreadName(threadName, axisID);
   }
 
+  public void cleanupAutofidseed(final AxisID axisID) {
+    mainPanel.startProgressBar("Deleting temporary file", axisID, ProcessName.AUTOFIDSEED);
+    if (!Utilities.deleteFileType(this, axisID, FileType.AUTOFIDSEED_DIR)) {
+      mainPanel.stopProgressBar(axisID, ProcessEndState.FAILED);
+    }
+    else {
+      mainPanel.stopProgressBar(axisID);
+    }
+  }
+
+  /**
+   * Get the parameters from the display and run the autofidseed script
+   */
+  public void autofidseed(final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay,
+      final Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions run3dmodMenuOptions, ProcessSeries processSeries,
+      final DialogType dialogType, final FiducialModelDialog display) {
+    sendMsgProcessStarting(processResultDisplay);
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    // Get the parameters from the dialog box
+    AutofidseedParam param = updateAutofidseedCom(display, axisID, true);
+    if (param == null) {
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
+    processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
+    String threadName;
+    try {
+      threadName = processMgr.autofidseed(param, axisID, processResultDisplay,
+          processSeries);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute autofidseed" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(this, message, "Unable to execute com script", axisID);
+      sendMsgProcessFailed(processResultDisplay);
+      return;
+    }
+    if (deferred3dmodButton != null) {
+      processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    }
+    setThreadName(threadName, axisID);
+    mainPanel.startProgressBar("Autofidseed", axisID, ProcessName.AUTOFIDSEED);
+  }
+
   /**
    * if the b stack hasn't been processed, run extracttilts before running
    * crossCorrelate().
@@ -1735,10 +1787,31 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
+  public void imodSortedModels(final AxisID axisID,
+      final Run3dmodMenuOptions menuOptions, final List<String> modelNameList) {
+    try {
+      imodManager.open(ImodManager.SORTED_MODELS_KEY, axisID, modelNameList, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Problem opening coarse stack", axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
+    }
+  }
+
   /**
    * Open 3dmod to view the coarsely aligned stack
    */
-  public void imodCoarseAlign(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+  public void imodCoarseAlign(final AxisID axisID, final Run3dmodMenuOptions menuOptions,
+      final String modelName) {
     try {
       imodManager.setOpenLogOff(ImodManager.COARSE_ALIGNED_KEY, axisID);
       File tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
@@ -1749,7 +1822,12 @@ public final class ApplicationManager extends BaseManager implements
       else {
         imodManager.resetTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID);
       }
-      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, menuOptions);
+      if (modelName == null) {
+        imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, menuOptions);
+      }
+      else {
+        imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, modelName, menuOptions);
+      }
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1818,8 +1896,8 @@ public final class ApplicationManager extends BaseManager implements
    * script. Handles xcorr.com and xcorr_pt.com. Use syncTiltxcorrParam to keep
    * the inactive .com file update to date.
    * 
-   * @return true if successful in getting the parameters and saving the com
-   *         script
+   * @return the param if successful in getting the parameters and saving the com
+   *         script, return null if not successfull
    */
   private ConstTiltxcorrParam updateXcorrCom(TiltXcorrDisplay display, AxisID axisID,
       final boolean validate, final boolean doFieldValidation) {
@@ -1880,6 +1958,46 @@ public final class ApplicationManager extends BaseManager implements
       return null;
     }
     return tiltXcorrParam;
+  }
+
+  /**
+   * Get the required parameters from the dialog box and update the autofidseed.com
+   * script.
+   * @return the param if successful in getting the parameters and saving the com
+   *         script, return null if not successfull
+   */
+  private AutofidseedParam updateAutofidseedCom(FiducialModelDialog display,
+      AxisID axisID, final boolean doValidation) {
+    AutofidseedParam param = null;
+    try {
+      param = comScriptMgr.getAutofidseedParam(axisID);
+      comScriptMgr.loadAutofidseed(axisID, false);
+      if (!display.getParameters(param, doValidation)) {
+        return null;
+      }
+      comScriptMgr.saveAutofidseed(param, axisID);
+    }
+    catch (NumberFormatException except) {
+      except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Autofidseed Parameter Syntax Error";
+      errorMessage[1] = axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      uiHarness.openMessageDialog(this, errorMessage,
+          "Autofidseed Parameter Syntax Error", axisID);
+      return null;
+    }
+    catch (FortranInputSyntaxException except) {
+      except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Autofidseed Parameter Syntax Error";
+      errorMessage[1] = axisID.getExtension();
+      errorMessage[2] = except.getMessage();
+      uiHarness.openMessageDialog(this, errorMessage,
+          "Autofidseed Parameter Syntax Error", axisID);
+      return null;
+    }
+    return param;
   }
 
   /**
@@ -2043,6 +2161,20 @@ public final class ApplicationManager extends BaseManager implements
       tiltXcorrPtParam = comScriptMgr.getTiltxcorrParamFromXcorrPt(axisID);
     }
     fiducialModelDialog.setParameters(tiltXcorrPtParam);
+    // Autofidseed
+    AutofidseedParam autofidseedParam = null;
+    if (!comScriptMgr.loadAutofidseed(axisID, false)) {
+      BaseProcessManager.touch(
+          new File(propertyUserDir, FileType.AUTOFIDSEED_COMSCRIPT.getFileName(this,
+              axisID)).getAbsolutePath(), this);
+      comScriptMgr.loadAutofidseed(axisID, true);
+      autofidseedParam = new AutofidseedParam(this, axisID);
+      comScriptMgr.saveAutofidseed(autofidseedParam, axisID);
+    }
+    else {
+      autofidseedParam = comScriptMgr.getAutofidseedParam(axisID);
+    }
+    fiducialModelDialog.setParameters(autofidseedParam);
     fiducialModelDialog.setParameters(getScreenState(axisID));
     mainPanel.showProcess(fiducialModelDialog.getContainer(), axisID);
     if (actionMessage != null) {
@@ -2102,6 +2234,7 @@ public final class ApplicationManager extends BaseManager implements
       // Get the user input data from the dialog box
       updateTrackCom(fiducialModelDialog.getBeadTrackDisplay(), axisID, false);
       updateXcorrCom(fiducialModelDialog.getTiltxcorrDisplay(), axisID, false, false);
+      updateAutofidseedCom(fiducialModelDialog, axisID, false);
       if (exitState == DialogExitState.EXECUTE) {
         processTrack.setFiducialModelState(ProcessState.COMPLETE, axisID);
         mainPanel.setFiducialModelState(ProcessState.COMPLETE, axisID);
@@ -7936,6 +8069,11 @@ public final class ApplicationManager extends BaseManager implements
   public void msgSirtsetupSucceeded(final AxisID axisID) {
     ((TomogramGenerationExpert) getUIExpert(DialogType.TOMOGRAM_GENERATION, axisID))
         .msgSirtsetupSucceeded();
+  }
+
+  public void msgAutofidseedSucceeded(final AxisID axisID) {
+    (axisID == AxisID.SECOND ? fiducialModelDialogB : fiducialModelDialogA)
+        .updateEnabled();
   }
 
   public void sirtsetup(final AxisID axisID,
