@@ -170,12 +170,9 @@ wait.process.autofidseed=done
   assert.exists.file=autofidseed%{axis}.com
   assert.exists.file=autofidseed%{axis}.info
   assert.exists.file=%{dataset}%{axis}.seed
-  assert.exists.file=autofidseeda%{axis}.dir
-  assert.exists.file=autofidseeda%{axis}.log
-  assert.exists.file=autofidseeda%{axis}.dir/afs*.pkmod
-  assert.exists.file=autofidseeda%{axis}.dir/afs*.*.elong
-  assert.exists.file=autofidseeda%{axis}.dir/afs*.*.track
-  assert.exists.file=autofidseeda%{axis}.dir/track%{axis}.com
+  assert.exists.file=autofidseed%{axis}.dir
+  assert.exists.file=autofidseed%{axis}.log
+  assert.exists.file=autofidseed%{axis}.dir/track%{axis}.com
 [[]]
 cb.select-beads-on-two-surfaces=on
 bn.generate-seed-model=
@@ -185,15 +182,11 @@ wait.process.autofidseed=done
   bn.enabled.open-sorted-3d-models=
   #files
   assert.exists.file=%{dataset}%{axis}.seed~
-  assert.exists.file=autofidseeda%{axis}.log~
-  assert.exists.file=autofidseeda%{axis}.dir/afs*.*.xyzmod
-  assert.exists.file=autofidseeda%{axis}.dir/afs*.*.sortmod
+  assert.exists.file=autofidseed%{axis}.log~
 [[]]
 bn.generate-seed-model=
 wait.process.autofidseed=done
 [[if = test-gui]]
-  #files
-  assert.exists.file=autofidseeda%{axis}.dir/afs*.*.sortmod~
   #3dmod
   bn.open-seed-model=
   bn.open-initial-bead-model=
@@ -207,7 +200,7 @@ wait.process.deleting-temporary-directory=done
   bn.disabled.open-initial-bead-model=
   bn.disabled.open-sorted-3d-models=
   #files
-  assert.not-exists.file=autofidseeda%{axis}.dir
+  assert.not-exists.file=autofidseed%{axis}.dir
 [[]]
 
 
