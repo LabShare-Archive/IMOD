@@ -1,6 +1,7 @@
 package etomo.process;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
 import java.util.Set;
 import java.util.Iterator;
@@ -572,6 +573,7 @@ public class ImodManager {
   public static final String FULL_VOLUME_KEY = new String("full volume");
   public static final String COMBINED_TOMOGRAM_KEY = new String("combined tomogram");
   public static final String FIDUCIAL_MODEL_KEY = new String("fiducial model");
+  public static final String SORTED_MODELS_KEY = new String("sorted models");
   public static final String TRIMMED_VOLUME_KEY = new String("trimmed volume");
   public static final String PATCH_VECTOR_MODEL_KEY = new String("patch vector model");
   public static final String MATCH_CHECK_KEY = new String("match check");
@@ -623,6 +625,7 @@ public class ImodManager {
   private static final String fullVolumeKey = FULL_VOLUME_KEY;
   private String combinedTomogramKey;
   private static final String fiducialModelKey = FIDUCIAL_MODEL_KEY;
+  private static final String sortedModelsKey = SORTED_MODELS_KEY;
   private static final String trimmedVolumeKey = TRIMMED_VOLUME_KEY;
   private static final String patchVectorModelKey = PATCH_VECTOR_MODEL_KEY;
   private static final String matchCheckKey = MATCH_CHECK_KEY;
@@ -958,6 +961,25 @@ public class ImodManager {
       }
       else {
         imodState.open(model, menuOptions);
+      }
+    }
+  }
+  
+  public void open(String key, AxisID axisID, List<String> modelList,
+      Run3dmodMenuOptions menuOptions) throws AxisTypeException, SystemProcessException,
+      IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID);
+      imodState = get(key, axisID);
+    }
+    if (imodState != null) {
+      if (modelList == null) {
+        imodState.open(menuOptions);
+      }
+      else {
+        imodState.open(modelList, menuOptions);
       }
     }
   }
@@ -1735,6 +1757,9 @@ public class ImodManager {
     if (key.equals(FIDUCIAL_MODEL_KEY) && axisID != null) {
       return newFiducialModel(axisID);
     }
+    if (key.equals(SORTED_MODELS_KEY) && axisID != null) {
+      return newSortedModels(axisID);
+    }
     if (key.equals(TRIMMED_VOLUME_KEY)) {
       return newTrimmedVolume();
     }
@@ -2011,6 +2036,11 @@ public class ImodManager {
   private ImodState newFiducialModel(AxisID axisID) {
     ImodState imodState = new ImodState(manager, ImodState.MODV, axisID);
     imodState.setNoMenuOptions(true);
+    return imodState;
+  }
+  private ImodState newSortedModels(AxisID axisID) {
+    ImodState imodState = new ImodState(manager, ImodState.MODV, axisID);
+    imodState.addWindowOpenOption(ImodProcess.WindowOpenOption.MODEL_EDIT);
     return imodState;
   }
 
