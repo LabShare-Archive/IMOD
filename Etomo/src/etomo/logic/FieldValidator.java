@@ -39,8 +39,20 @@ public final class FieldValidator {
    * @throws FieldValidationFailedException if the validation fails
    */
   public static String validateText(final String fieldText, final FieldType fieldType,
-      final UIComponent component, final String descr)
+      final UIComponent component, final String descr, final boolean required)
       throws FieldValidationFailedException {
+    if (required && (fieldText == null || fieldText.equals(""))) {
+      UIHarness.INSTANCE.openMessageDialog(component, descr + " is a required field.",
+          TITLE);
+      FieldValidationFailedException fe = new FieldValidationFailedException(descr
+          + ":required field:" + "fieldText:" + fieldText);
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()
+          || EtomoDirector.INSTANCE.getArguments().isTest()) {
+        fe.printStackTrace();
+      }
+      throw fe;
+
+    }
     if (!fieldType.validationType.canValidate || fieldText == null) {
       return fieldText;
     }
