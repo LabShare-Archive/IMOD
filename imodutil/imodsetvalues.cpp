@@ -1,5 +1,5 @@
 /*
- *  setvalues.cpp - set per point or per contour values in an IMOD model.
+ *  imodsetvalues.cpp - set per point or per contour values in a model.
  *
  *  Author: John Heumann   email: heumannj@colorado.edu
  *
