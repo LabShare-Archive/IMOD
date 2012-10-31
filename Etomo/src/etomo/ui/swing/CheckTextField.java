@@ -237,8 +237,8 @@ final class CheckTextField implements UIComponent {
 
   String getText(final boolean doValidation) throws FieldValidationFailedException {
     String text = textField.getText();
-    if (doValidation && textField.isEnabled() && fieldType.validationType.canValidate) {
-      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel());
+    if (doValidation && textField.isEnabled()) {
+      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel(),false);
     }
     return text;
   }
