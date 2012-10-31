@@ -1,0 +1,35 @@
+Version = 1.0
+Pip = 1
+
+[Field = ValueFile]
+short = values
+type = FN
+usage = Input values file
+tooltip = 
+manpage = Input file containing values to be stored in the model. 
+If this option is not entered, the first non-option argument will 
+be used for the input file.
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input model file
+tooltip = 
+manpage = Input model file to clone. If this option is not entered, 
+the second1g non-option argument will be used for the input file.
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output model file to create
+tooltip = 
+manpage = Name to give the output model. If this option is not entered,
+the third non-option argument will be used.
+
+[Field = MinMaxFile]
+short = minMax
+type = FN
+usage = Per object min and max values for pseudo-coloring
+tooltip = 
+manpage = Input file giving the minimum and maximum values for 
+pseudo-coloring specific objects.

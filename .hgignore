@@ -252,6 +252,7 @@ imodutil/patch2imod
 imodutil/pickbestseed
 imodutil/point2model
 imodutil/rec2imod
+imodutil/setvalues
 imodutil/slashfindspheres
 imodutil/slashmasksort
 imodutil/slashsplitconts
