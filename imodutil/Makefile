@@ -17,7 +17,8 @@ PROGS = clonemodel$(E) clonevolume$(E) imodauto$(E) imod-dist$(E) \
  imod2meta$(E) wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) \
  imodexplode$(E) patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) \
  imodcurvature$(E) imodfindbeads$(E) point2model$(E) flattenwarp$(E) \
- slashmasksort$(E) slashsplitconts$(E) joinwarp2model$(E) $(IMODWINCPU)
+ setvalues$(E) slashmasksort$(E) slashsplitconts$(E) joinwarp2model$(E) \
+ $(IMODWINCPU)
 
 all : $(PROGS) slashfindspheres$(E)
 
@@ -123,6 +124,9 @@ imodwincpu.exe : imodwincpu.obj
 
 imodwincpu.obj : imodwincpu.cpp CpuUsage.h PerfCounters.h
 	$(CXX) -c $(CXXFLAGS) $(WINCPUVC) imodwincpu.cpp
+
+setvalues$(E) : setvalues.$(O)
+	$(CXX) -o setvalues setvalues.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 slashsplitconts$(E) : slashsplitconts.$(O)
 	$(CXX) -o slashsplitconts slashsplitconts.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
