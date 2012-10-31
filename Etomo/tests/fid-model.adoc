@@ -162,10 +162,10 @@ bn.generate-seed-model=
 wait.process.autofidseed=done
 [[if = test-gui]]
   #test values
-  bn.generate-seed-model=on
+  assert.bn.generate-seed-model=on
   #test enabled/disabled
-  bn.enabled.open-initial-bead-model=
-  bn.disabled.open-sorted-3d-models=
+  assert.enabled.bn.open-initial-bead-model=
+  assert.disabled.bn.open-sorted-3d-models=
   #files
   assert.exists.file=autofidseed%{axis}.com
   assert.exists.file=autofidseed%{axis}.info
