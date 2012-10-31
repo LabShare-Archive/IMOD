@@ -990,6 +990,7 @@
 
 package etomo.process;
 
+import etomo.storage.AutofidseedLog;
 import etomo.storage.FlattenWarpLog;
 import etomo.storage.LogFile;
 import etomo.storage.TrackLog;
@@ -1013,6 +1014,7 @@ import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 import etomo.util.Utilities;
 import etomo.comscript.ArchiveorigParam;
+import etomo.comscript.AutofidseedParam;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.CCDEraserParam;
@@ -1212,6 +1214,15 @@ public class ProcessManager extends BaseProcessManager {
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(param, tiltxcorrProcessWatcher,
         axisID, processResultDisplay, processSeries);
+    return comScriptProcess.getName();
+  }
+
+  public String autofidseed(AutofidseedParam param, AxisID axisID,
+      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries)
+      throws SystemProcessException {
+    // Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(param, null, axisID,
+        processResultDisplay, processSeries);
     return comScriptProcess.getName();
   }
 
@@ -2285,6 +2296,11 @@ public class ProcessManager extends BaseProcessManager {
               processDetails.getIntValue(SirtsetupParam.Field.Y_OFFSET_OF_SUBSET));
         }
         appManager.msgSirtsetupSucceeded(axisID);
+      }
+      else if (processName == ProcessName.AUTOFIDSEED) {
+        appManager.msgAutofidseedSucceeded(axisID);
+        appManager.logMessage(
+            AutofidseedLog.getInstance(appManager.getPropertyUserDir(), axisID), axisID);
       }
       else {
         // For processes that can also be done with processchunks.
