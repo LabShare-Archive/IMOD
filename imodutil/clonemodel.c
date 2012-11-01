@@ -45,8 +45,11 @@ int main( int argc, char *argv[])
     "at:AtPoints:FN:", "x:XRange:IP:", "y:YRange:IP:", "z:ZRange:IP:",
     "input:InputFile:FN:", "output:OutputFile:FN:", 
     "contours:ContourNumbers:LI:"};
+  const char *usageString[] = 
+    "Usage: clonemodel [options] -at locations inputModel outputModel";
 
   /* Parse parameters */
+  PipSetUsageString(usageString);
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 3, 1,
                         1, &numOptArgs, &numNonOptArgs, 
                         imodUsageHeader);

@@ -85,8 +85,10 @@ int main( int argc, char *argv[])
     "at:AtPoints:FN:", "x:XRange:IP:", "y:YRange:IP:", "z:ZRange:IP:",
     "input:InputFile:FN:", "output:OutputFile:FN:",  "into:IntoFile:FN:",
     "contours:ContourNumbers:LI:", "alpha:AlphaTransparency:F:"};
-
+  const char *UsageString =
+    "Usage: clonevolume [options] -into target -at locations inputVol outputVol";
   /* Parse parameters */
+  PipSetUsageString(UsageString);
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 4, 1, 
                         1, &numOptArgs, &numNonOptArgs, 
                         imodUsageHeader);
