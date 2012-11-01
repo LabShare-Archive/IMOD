@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include "b3dutil.h"
 
 #define NON_OPTION_STRING "NonOptionArgument"
 #define STANDARD_INPUT_STRING "StandardInput"
