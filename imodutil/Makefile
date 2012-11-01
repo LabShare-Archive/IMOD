@@ -14,10 +14,11 @@ MODLIBS   = $(LIMOD) $(LCFSHR)
 PROGS = clonemodel$(E) clonevolume$(E) imodauto$(E) imod-dist$(E) \
  imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) rec2imod$(E) \
  imod2rib$(E) imod2vrml$(E) imod2vrml2$(E) imod2obj$(E) pickbestseed$(E) \
- imod2meta$(E) wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) \
- imodexplode$(E) patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) \
- imodcurvature$(E) imodfindbeads$(E) point2model$(E) flattenwarp$(E) \
- slashmasksort$(E) slashsplitconts$(E) joinwarp2model$(E) $(IMODWINCPU)
+ imod2meta$(E) wmod2imod$(E) imodjoin$(E) imodextract$(E) \
+ imodsetvalues$(E) imodsortsurf$(E) imodexplode$(E) patch2imod$(E) \
+ imod2patch$(E) echo2$(E) imodfillin$(E) imodcurvature$(E) \
+ imodfindbeads$(E) point2model$(E) flattenwarp$(E) slashmasksort$(E) \
+ slashsplitconts$(E) joinwarp2model$(E) $(IMODWINCPU)
 
 all : $(PROGS) slashfindspheres$(E)
 
@@ -107,6 +108,16 @@ imodfindbeads$(E) : imodfindbeads.$(O)
 	$(CC) -o imodfindbeads imodfindbeads.$(O) $(LDFLAGS) $(IILIBS) \
 	$(LIFFT) $(CLIBS)
 
+imodsetvalues$(E) : imodsetvalues.$(O)
+	$(CXX) -o imodsetvalues imodsetvalues.$(O) $(LDFLAGS) $(MODLIBS) \
+	$(CLIBS)
+
+imodwincpu.exe : imodwincpu.obj
+	$(CC) -o imodwincpu imodwincpu.obj $(LDFLAGS)
+
+imodwincpu.obj : imodwincpu.cpp CpuUsage.h PerfCounters.h
+	$(CXX) -c $(CXXFLAGS) $(WINCPUVC) imodwincpu.cpp
+
 point2model$(E) : point2model.$(O)
 	$(CC) -o point2model point2model.$(O) $(LDFLAGS) $(IILIBS) \
 	$(CLIBS)
@@ -117,12 +128,6 @@ pickbestseed$(E) : pickbestseed.$(O)
 flattenwarp$(E) : flattenwarp.$(O)
 	$(LAPACKLINK) -o flattenwarp flattenwarp.$(O) $(LDFLAGS) $(MODLIBS) \
 	$(CLIBS) $(LAPACKLIBS) $(LAPACK_FLIBS) $(LIMESH)
-
-imodwincpu.exe : imodwincpu.obj
-	$(CC) -o imodwincpu imodwincpu.obj $(LDFLAGS)
-
-imodwincpu.obj : imodwincpu.cpp CpuUsage.h PerfCounters.h
-	$(CXX) -c $(CXXFLAGS) $(WINCPUVC) imodwincpu.cpp
 
 slashsplitconts$(E) : slashsplitconts.$(O)
 	$(CXX) -o slashsplitconts slashsplitconts.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)

@@ -111,5 +111,6 @@ commandArr = [prog, '-collectionFile', os.environ['IMOD_DIR'] +  '/html/IMOD.qhc
                  '-showUrl', url, '-show', 'contents', '-show', 'index', \
                  '-show', 'search', '-activate', 'contents']
 
+print commandArr
 bkgdProcess(commandArr)
 sys.exit(0)
