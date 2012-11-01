@@ -245,6 +245,7 @@ imodutil/imodinfo
 imodutil/imodjoin
 imodutil/imodmesh
 imodutil/imodmop
+imodutil/imodsetvalues
 imodutil/imodsortsurf
 imodutil/imodtrans
 imodutil/joinwarp2model
