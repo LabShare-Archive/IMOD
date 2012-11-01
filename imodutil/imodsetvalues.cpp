@@ -44,7 +44,7 @@ int main( int argc, char *argv[])
                              "minMax:MinMaxFile:FN:"};
 
   // Parse parameters 
-  PipReadOrParseOptions(argc, argv, options, nOptions, progname, 0, 2, 
+  PipReadOrParseOptions(argc, argv, options, nOptions, progname, 3, 2, 
                         1, &nOptArgs, &nNonOptArgs, imodUsageHeader);
   if (PipGetInOutFile("ValueFile", 0, &valueFile))
     exitError("No value file specified");
