@@ -38,6 +38,7 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
 		 int outputFiles);
 int PipGetError(char **errString);
 int PipSetError(const char *errString);
+int PipSetUsageString(const char *usage);
 int PipNumberOfEntries(const char *option, int *numEntries);
 void PipDone(void);
 int PipParseInput(int argc, char *argv[], const char *options[], int numOptions,

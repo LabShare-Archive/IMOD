@@ -5,7 +5,6 @@
  *   Colorado.
  *
  *   $Id$
- *   Log at end
  */                                                                           
 
 
@@ -36,6 +35,7 @@
 #define pipprintentries PIPPRINTENTRIES
 #define pipgeterror PIPGETERROR
 #define pipseterror PIPSETERROR
+#define pipsetusagestring PIPSETUSAGESTRING
 #define pipnumberofentries PIPNUMBEROFENTRIES
 #define pipdone PIPDONE
 #define pipparseinput PIPPARSEINPUT
@@ -69,6 +69,7 @@
 #define pipprintentries pipprintentries_
 #define pipgeterror pipgeterror_
 #define pipseterror pipseterror_
+#define pipsetusagestring pipsetusagestring_
 #define pipnumberofentries pipnumberofentries_
 #define pipdone pipdone_
 #define pipparseinput pipparseinput_
@@ -364,6 +365,19 @@ int pipseterror(char *errString, int stringSize)
   return err;
 }
 
+int pipsetusagestring(char *errString, int stringSize)
+{
+  char *cStr;
+  int err;
+  if (!(cStr = pipf2cstr(errString, stringSize))) {
+    PipSetError("Memory error in pipsetusagestring_");
+    return -1;
+  }
+  err = PipSetUsageString(cStr);
+  free(cStr);
+  return err;
+}
+
 int pipsetlinkedoption(char *option, int optionSize)
 {
   char *cStr;
@@ -414,47 +428,3 @@ static char *pipf2cstr(char *str, int strSize)
     PipSetError("Memory error converting string from Fortran to C");
   return newStr;
 }
-
-/*
-
-$Log$
-Revision 1.6  2011/06/16 15:11:13  mast
-linked options
-
-Revision 1.5  2011/05/27 04:31:24  mast
-renamed pipexitonerror since there is now a higher level wrapper
-
-Revision 1.4  2011/02/10 04:38:14  mast
-Unused variable cleanup
-
-Revision 1.3  2009/12/04 21:32:32  mast
-Fixed define
-
-Revision 1.2  2009/12/04 20:27:42  mast
-Added new functions for printing entries
-
-Revision 1.1  2007/09/20 02:43:08  mast
-Moved to new library
-
-Revision 3.7  2007/06/22 05:01:38  mast
-Chnages for special flags
-
-Revision 3.6  2005/02/11 01:42:34  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.5  2003/10/24 03:02:14  mast
-move routines to new b3dutil file
-
-Revision 3.4  2003/10/08 17:20:55  mast
-New functions for autodoc files
-
-Revision 3.3  2003/08/08 16:22:26  mast
-Add functiond for getting two numbers
-
-Revision 3.2  2003/06/10 23:21:54  mast
-Avoid freeing strings that were never allocated
-
-Revision 3.1  2003/06/05 00:24:02  mast
-Addition to IMOD
-
-*/

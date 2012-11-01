@@ -119,6 +119,7 @@ static int sTableSize = 0;
 static int sNumOptions = 0;
 static int sNonOptInd;
 static char *sErrorString = NULL;
+static char *sUsageString = NULL;
 static char sExitPrefix[PREFIX_SIZE] = "";
 static int sErrorDest = 0;
 static int sNextOption = 0;
@@ -199,43 +200,35 @@ void PipDone(void)
   PipOptions *optp;
   for (i = 0; i < sTableSize; i++) {
     optp = &sOptTable[i];
-    if (optp->shortName)
-      free(optp->shortName);
-    if (optp->longName)
-      free(optp->longName);
-    if (optp->type)
-      free(optp->type);
-    if (optp->helpString)
-      free(optp->helpString);
+    B3DFREE(optp->shortName);
+    B3DFREE(optp->longName);
+    B3DFREE(optp->type);
+    B3DFREE(optp->helpString);
     if (optp->valuePtr) {
-      for (j = 0; j < optp->count; j++)
-        if (optp->valuePtr[j])
-          free(optp->valuePtr[j]);
+      for (j = 0; j < optp->count; j++) {
+        B3DFREE(optp->valuePtr[j]);
+      }
       free(optp->valuePtr);
     }
-    if (optp->nextLinked)
-      free(optp->nextLinked);
+    B3DFREE(optp->nextLinked);
   }
-  if (sOptTable)
-    free(sOptTable);
+  B3DFREE(sOptTable);
   sOptTable = NULL;
   sTableSize = 0;
   sNumOptions = 0;
-  if (sErrorString)
-    free(sErrorString);
+  B3DFREE(sErrorString);
   sErrorString = NULL;
-  if (sLinkedOption)
-    free (sLinkedOption);
+  B3DFREE(sUsageString);
+  sUsageString = NULL;
+  B3DFREE(sLinkedOption);
   sLinkedOption = NULL;
   sNextOption = 0;
   sNextArgBelongsTo = -1;
   sNumOptionArguments = 0;
   sAllowDefaults = 0;
-  if (sTempStr)
-    free(sTempStr);
+  B3DFREE(sTempStr);
   sTempStr = NULL;
-  if (sLineStr)
-    free(sLineStr);
+  B3DFREE(sLineStr);
   sLineStr = NULL;
   if (sProgramName != sNullString)
     free(sProgramName);
@@ -279,6 +272,15 @@ void PipSetManpageOutput(int val)
   sOutputManpage = val;
 }
 
+int PipSetUsageString(const char *usage)
+{
+  B3DFREE(sUsageString);
+  sUsageString = strdup(usage);
+  if (PipMemoryError(sUsageString, "PipSetUsageString"))
+    return -1;
+  return 0;
+}
+
 void PipEnableEntryOutput(int val)
 {
   sPrintEntries = val;
@@ -286,8 +288,7 @@ void PipEnableEntryOutput(int val)
 
 int PipSetLinkedOption(const char *option)
 {
-  if (sLinkedOption)
-    free(sLinkedOption);
+  B3DFREE(sLinkedOption);
   sLinkedOption = strdup(option);
   if (PipMemoryError(sLinkedOption, "PipSetLinkedOption"))
     return -1;
@@ -712,17 +713,21 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
   }
 
   if (!sOutputManpage) {
-    fprintf(out, "Usage: %s ", progName);
-    if (sNumOptions)
-      fprintf(out, "[Options]");
-    if (inputFiles)
-      fprintf(out, " input_file");
-    if (inputFiles > 1)
-      fprintf(out, "s...");
-    if (outputFiles)
-      fprintf(out, " output_file");
-    if (outputFiles > 1)
-      fprintf(out, "s...");
+    if (sUsageString) {
+      fprintf(out, "%s", sUsageString);
+    } else {
+      fprintf(out, "Usage: %s ", progName);
+      if (sNumOptions)
+        fprintf(out, "[Options]");
+      if (inputFiles)
+        fprintf(out, " input_file");
+      if (inputFiles > 1)
+        fprintf(out, "s...");
+      if (outputFiles)
+        fprintf(out, " output_file");
+      if (outputFiles > 1)
+        fprintf(out, "s...");
+    }
     fprintf(out,"\n");
 
     if (!numReal)
