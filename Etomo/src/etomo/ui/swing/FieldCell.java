@@ -11,7 +11,6 @@ import javax.swing.JTextField;
 import etomo.logic.TextFieldState;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
-import etomo.type.ParsedArray;
 import etomo.type.ParsedElementType;
 import etomo.type.UITestFieldType;
 
@@ -350,10 +349,6 @@ final class FieldCell extends InputCell implements ActionTarget {
 
   ConstEtomoNumber getEtomoNumber() {
     return state.convertToEtomoNumber(textField.getText());
-  }
-
-  ParsedArray getParsedArray() {
-    return state.convertToParsedArray(textField.getText());
   }
 
   ConstEtomoNumber getEtomoNumber(EtomoNumber.Type type) {
