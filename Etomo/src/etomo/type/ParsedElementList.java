@@ -76,6 +76,7 @@ public final class ParsedElementList {
   private final Map map = new HashMap();
   private final EtomoNumber.Type etomoNumberType;
   private final boolean allowNan;
+  private final String descr;
 
   private int size = 0;
   private boolean debug = false;
@@ -83,12 +84,13 @@ public final class ParsedElementList {
   private int minSize = -1;
 
   ParsedElementList(ParsedElementType type, EtomoNumber.Type etomoNumberType,
-      boolean debug, EtomoNumber defaultValue, final boolean allowNan) {
+      boolean debug, EtomoNumber defaultValue, final boolean allowNan, final String descr) {
     this.type = type;
     this.etomoNumberType = etomoNumberType;
     this.debug = debug;
     this.defaultValue = defaultValue;
     this.allowNan = allowNan;
+    this.descr = descr;
   }
 
   public String toString() {
@@ -161,11 +163,11 @@ public final class ParsedElementList {
   ParsedElement setEmptyElement(int index) {
     ParsedElement element;
     if (type == ParsedElementType.STRING) {
-      element = ParsedQuotedString.getInstance(debug);
+      element = ParsedQuotedString.getInstance(debug,descr);
     }
     else {
       element = ParsedNumber.getInstance(type, etomoNumberType, debug, defaultValue,
-          allowNan);
+          allowNan, descr);
     }
     set(index, element);
     return element;
