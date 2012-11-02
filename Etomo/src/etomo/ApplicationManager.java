@@ -1406,7 +1406,7 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public void cleanupAutofidseed(final AxisID axisID) {
-    mainPanel.startProgressBar("Deleting temporary file", axisID, ProcessName.AUTOFIDSEED);
+    mainPanel.startProgressBar("Deleting temporary directory", axisID, ProcessName.AUTOFIDSEED);
     if (!Utilities.deleteFileType(this, axisID, FileType.AUTOFIDSEED_DIR)) {
       mainPanel.stopProgressBar(axisID, ProcessEndState.FAILED);
     }
