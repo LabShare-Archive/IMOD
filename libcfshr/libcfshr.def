@@ -88,6 +88,7 @@ EXPORTS
 	AdocWrite
 	AdocSetKeyValue
 	CCCoefficientTwoPads
+	PipSetUsageString
 	mrcHugeSeek
 	PIPREADOPTIONFILE
 	PipGetString
@@ -261,6 +262,7 @@ EXPORTS
 	REDUCE_BY_BINNING
 	sliceInit
 	percentileInt
+	PIPSETUSAGESTRING
 	PIPGETFLOATARRAY
 	PERCENTILEFLOAT
 	LSFIT2PRED
