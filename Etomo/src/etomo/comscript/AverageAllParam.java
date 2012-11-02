@@ -196,10 +196,6 @@ public final class AverageAllParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
-    throw new IllegalArgumentException("field=" + fieldInterface);
-  }
-
   public double getDoubleValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }

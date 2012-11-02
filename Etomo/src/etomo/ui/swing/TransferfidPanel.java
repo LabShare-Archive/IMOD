@@ -18,6 +18,8 @@ import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -37,9 +39,11 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
   private final EtomoPanel panelTransferfid = new EtomoPanel();
   private final JPanel panelTransferfidBody = new JPanel();
   private final CheckBox cbRunMidas = new CheckBox("Run midas");
-  private final LabeledTextField ltfCenterViewA = new LabeledTextField("Center view A: ");
-  private final LabeledTextField ltfCenterViewB = new LabeledTextField("Center view B: ");
-  private final LabeledTextField ltfNumberViews = new LabeledTextField(
+  private final LabeledTextField ltfCenterViewA = new LabeledTextField(FieldType.INTEGER,
+      "Center view A: ");
+  private final LabeledTextField ltfCenterViewB = new LabeledTextField(FieldType.INTEGER,
+      "Center view B: ");
+  private final LabeledTextField ltfNumberViews = new LabeledTextField(FieldType.INTEGER,
       "Number of views in the search: ");
   private final CheckBox cbMirrorInX = new CheckBox("Mirror one image around the X axis");
   private final EtomoPanel panelSearchDirection = new EtomoPanel();
@@ -68,14 +72,14 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
         globalAdvancedButton);
     panelTransferfidBody.setLayout(new BoxLayout(panelTransferfidBody, BoxLayout.Y_AXIS));
     JPanel pnlRunMidas = new JPanel();
-    pnlRunMidas.setLayout(new BoxLayout(pnlRunMidas,BoxLayout.X_AXIS));
+    pnlRunMidas.setLayout(new BoxLayout(pnlRunMidas, BoxLayout.X_AXIS));
     pnlRunMidas.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlRunMidas.add(cbRunMidas);
     pnlRunMidas.add(Box.createHorizontalGlue());
     cbRunMidas.setAlignmentX(Component.RIGHT_ALIGNMENT);
     panelTransferfidBody.add(pnlRunMidas);
 
-    //  Add a horizontal strut to keep the panel a minimum size    
+    // Add a horizontal strut to keep the panel a minimum size
     panelTransferfidBody.add(Box.createHorizontalStrut(300));
     panelTransferfidBody.add(ltfCenterViewA.getContainer());
     panelTransferfidBody.add(ltfCenterViewB.getContainer());
@@ -85,7 +89,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     bgSearchDirection.add(rbSearchPlus90.getAbstractButton());
     bgSearchDirection.add(rbSearchMinus90.getAbstractButton());
     JPanel opnlSearchDirection = new JPanel();
-    opnlSearchDirection.setLayout(new BoxLayout(opnlSearchDirection,BoxLayout.X_AXIS));
+    opnlSearchDirection.setLayout(new BoxLayout(opnlSearchDirection, BoxLayout.X_AXIS));
     opnlSearchDirection.setAlignmentX(Box.CENTER_ALIGNMENT);
     opnlSearchDirection.add(Box.createHorizontalGlue());
     opnlSearchDirection.add(panelSearchDirection);
@@ -102,7 +106,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     panelTransferfidBody.add(Box.createRigidArea(FixedDim.x0_y5));
 
     JPanel pnlTransferfid = new JPanel();
-    pnlTransferfid.setLayout(new BoxLayout(pnlTransferfid,BoxLayout.X_AXIS));
+    pnlTransferfid.setLayout(new BoxLayout(pnlTransferfid, BoxLayout.X_AXIS));
     pnlTransferfid.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlTransferfid.add(Box.createHorizontalGlue());
     buttonTransferfid = (Run3dmodButton) manager.getProcessResultDisplayFactory(axisID)
@@ -218,33 +222,39 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     header.getButtonStates(screenState);
   }
 
-  void getParameters() {
-    getParameters(new TransferfidParam(manager, axisID));
+  boolean getParameters(final boolean doValidation) {
+    return getParameters(new TransferfidParam(manager, axisID), doValidation);
   }
 
   /**
    * Get the values from the panel filling in the TransferfidParam object
    */
-  void getParameters(TransferfidParam params) {
-    params.setRunMidas(cbRunMidas.isSelected());
-    params.setCenterViewA(ltfCenterViewA.getText());
-    params.setCenterViewB(ltfCenterViewB.getText());
-    if (rbSearchBoth.isSelected()) {
-      params.getSearchDirection().reset();
+  boolean getParameters(TransferfidParam params, final boolean doValidation) {
+    try {
+      params.setRunMidas(cbRunMidas.isSelected());
+      params.setCenterViewA(ltfCenterViewA.getText(doValidation));
+      params.setCenterViewB(ltfCenterViewB.getText(doValidation));
+      if (rbSearchBoth.isSelected()) {
+        params.getSearchDirection().reset();
+      }
+      if (rbSearchPlus90.isSelected()) {
+        params.setSearchDirection(1);
+      }
+      if (rbSearchMinus90.isSelected()) {
+        params.setSearchDirection(-1);
+      }
+      params.setNumberViews(ltfNumberViews.getText(doValidation));
+      params.setMirrorInX(cbMirrorInX.isSelected());
+      if (axisID == AxisID.SECOND) {
+        manager.getMetaData().setTransferfidBFields(params);
+      }
+      else {
+        manager.getMetaData().setTransferfidAFields(params);
+      }
+      return true;
     }
-    if (rbSearchPlus90.isSelected()) {
-      params.setSearchDirection(1);
-    }
-    if (rbSearchMinus90.isSelected()) {
-      params.setSearchDirection(-1);
-    }
-    params.setNumberViews(ltfNumberViews.getText());
-    params.setMirrorInX(cbMirrorInX.isSelected());
-    if (axisID == AxisID.SECOND) {
-      manager.getMetaData().setTransferfidBFields(params);
-    }
-    else {
-      manager.getMetaData().setTransferfidAFields(params);
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
@@ -276,7 +286,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     cbMirrorInX.setEnabled(isEnabled);
   }
 
-  //  ToolTip string setup
+  // ToolTip string setup
   private void setToolTipText() {
     cbRunMidas.setToolTipText("Run Midas to adjust initial alignment manually.");
     ltfCenterViewA

@@ -35,8 +35,11 @@ import etomo.storage.StackFileFilter;
 import etomo.storage.DistortionFileFilter;
 import etomo.type.AxisID;
 import etomo.type.DataFileType;
+import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 final class SetupDialog extends ProcessDialog implements ContextMenu,
     Run3dmodButtonContainer, Expandable {
@@ -85,11 +88,12 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final JPanel pnlImageRows = new JPanel();
 
   private final JPanel pnlStackInfo = new JPanel();
-  private final LabeledTextField ltfPixelSize = new LabeledTextField("Pixel size (nm): ");
+  private final LabeledTextField ltfPixelSize = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Pixel size (nm): ");
   private final LabeledTextField ltfFiducialDiameter = new LabeledTextField(
-      FIDUCIAL_DIAMETER_LABEL);
+      FieldType.FLOATING_POINT, FIDUCIAL_DIAMETER_LABEL);
   private final LabeledTextField ltfImageRotation = new LabeledTextField(
-      "Image rotation (degrees): ");
+      FieldType.FLOATING_POINT, "Image rotation (degrees): ");
 
   private final JPanel pnlDistortionInfo = new JPanel();
   private final FileTextField ftfDistortionFile = new FileTextField(
@@ -105,14 +109,16 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   // Tilt angle GUI objects
   // private TiltAnglePanel tiltAnglesA = new TiltAnglePanel();
-  private final LabeledTextField ltfExcludeListA = new LabeledTextField("Exclude views: ");
+  private final LabeledTextField ltfExcludeListA = new LabeledTextField(
+      FieldType.INTEGER_LIST, "Exclude views: ");
   private final JPanel pnlAdjustedFocusA = new JPanel();
   private final CheckBox cbAdjustedFocusA = new CheckBox(
       "Focus was adjusted between montage frames");
 
   private final BeveledBorder borderAxisInfoB = new BeveledBorder("Axis B: ");
   // private TiltAnglePanel tiltAnglesB = new TiltAnglePanel();
-  private final LabeledTextField ltfExcludeListB = new LabeledTextField("Exclude views: ");
+  private final LabeledTextField ltfExcludeListB = new LabeledTextField(
+      FieldType.INTEGER_LIST, "Exclude views: ");
   private final JPanel pnlAdjustedFocusB = new JPanel();
   private final CheckBox cbAdjustedFocusB = new CheckBox(
       "Focus was adjusted between montage frames");
@@ -178,8 +184,10 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   public void done() {
-    applicationManager.doneSetupDialog();
-    setDisplayed(false);
+    if (applicationManager
+        .doneSetupDialog(expert.getExitState() == DialogExitState.EXECUTE)) {
+      setDisplayed(false);
+    }
   }
 
   public void buttonExecuteAction() {
@@ -372,11 +380,12 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     return spnBinning.getValue();
   }
 
-  String getExcludeList(final AxisID axisID) {
+  String getExcludeList(final AxisID axisID, final boolean doValidation)
+      throws FieldValidationFailedException {
     if (axisID == AxisID.SECOND) {
-      return ltfExcludeListB.getText();
+      return ltfExcludeListB.getText(doValidation);
     }
-    return ltfExcludeListA.getText();
+    return ltfExcludeListA.getText(doValidation);
   }
 
   void setExcludeList(final AxisID axisID, final String input) {
@@ -445,16 +454,18 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     return cbAdjustedFocusA.isSelected();
   }
 
-  String getPixelSize() {
-    return ltfPixelSize.getText();
+  String getPixelSize(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfPixelSize.getText(doValidation);
   }
 
-  String getFiducialDiameter() {
-    return ltfFiducialDiameter.getText();
+  String getFiducialDiameter(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfFiducialDiameter.getText(doValidation);
   }
 
-  String getImageRotation() {
-    return ltfImageRotation.getText();
+  String getImageRotation(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfImageRotation.getText(doValidation);
   }
 
   boolean equalsSingleAxisActionCommand(final String actionCommand) {

@@ -10,6 +10,8 @@ import javax.swing.BoxLayout;
 import etomo.storage.MatlabParam;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -42,9 +44,12 @@ final class MissingWedgeCompensationPanel {
   private static final String MISSING_WEDGE_COMPENSATION_LABEL = "Missing Wedge Compensation";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
-  private final LabeledTextField ltfVolumeSizeX = new LabeledTextField("X: ");
-  private final LabeledTextField ltfVolumeSizeY = new LabeledTextField("Y: ");
-  private final LabeledTextField ltfVolumeSizeZ = new LabeledTextField("Z: ");
+  private final LabeledTextField ltfVolumeSizeX = new LabeledTextField(FieldType.INTEGER,
+      "X: ",PeetDialog.SETUP_LOCATION_DESCR);
+  private final LabeledTextField ltfVolumeSizeY = new LabeledTextField(FieldType.INTEGER,
+      "Y: ",PeetDialog.SETUP_LOCATION_DESCR);
+  private final LabeledTextField ltfVolumeSizeZ = new LabeledTextField(FieldType.INTEGER,
+      "Z: ",PeetDialog.SETUP_LOCATION_DESCR);
   private final CheckBox cbMissingWedgeCompensation = new CheckBox("Enabled");
   private final Spinner sEdgeShift = Spinner.getLabeledInstance("Edge shift: ",
       MatlabParam.EDGE_SHIFT_DEFAULT, MatlabParam.EDGE_SHIFT_MIN,
@@ -197,26 +202,32 @@ final class MissingWedgeCompensationPanel {
         || (cbTiltRange.isVisible() && cbTiltRange.isSelected());
   }
 
-  public void getParameters(final MatlabParam matlabParam) {
-    matlabParam.setSzVolX(ltfVolumeSizeX.getText());
-    matlabParam.setSzVolY(ltfVolumeSizeY.getText());
-    matlabParam.setSzVolZ(ltfVolumeSizeZ.getText());
-    // If cbTiltRange is off, this overrides what was set in the volumeTable.
-    if (!cbMissingWedgeCompensation.isSelected()
-        && (!cbTiltRange.isVisible() || !cbTiltRange.isSelected())) {
-      matlabParam.setTiltRangeEmpty();
+  public boolean getParameters(final MatlabParam matlabParam, final boolean doValidation) {
+    try {
+      matlabParam.setSzVolX(ltfVolumeSizeX.getText(doValidation));
+      matlabParam.setSzVolY(ltfVolumeSizeY.getText(doValidation));
+      matlabParam.setSzVolZ(ltfVolumeSizeZ.getText(doValidation));
+      // If cbTiltRange is off, this overrides what was set in the volumeTable.
+      if (!cbMissingWedgeCompensation.isSelected()
+          && (!cbTiltRange.isVisible() || !cbTiltRange.isSelected())) {
+        matlabParam.setTiltRangeEmpty();
+      }
+      matlabParam.setFlgWedgeWeight(cbMissingWedgeCompensation.isSelected()
+          || (cbTiltRange.isVisible() && cbTiltRange.isSelected() && cbFlgWedgeWeight
+              .isSelected()));
+      if (sEdgeShift.isEnabled()) {
+        matlabParam.setEdgeShift(sEdgeShift.getValue());
+      }
+      if (sNWeightGroup.isEnabled()) {
+        matlabParam.setNWeightGroup(sNWeightGroup.getValue());
+      }
+      else {
+        matlabParam.setNWeightGroup(MatlabParam.N_WEIGHT_GROUP_OFF);
+      }
+      return true;
     }
-    matlabParam.setFlgWedgeWeight(cbMissingWedgeCompensation.isSelected()
-        || (cbTiltRange.isVisible() && cbTiltRange.isSelected() && cbFlgWedgeWeight
-            .isSelected()));
-    if (sEdgeShift.isEnabled()) {
-      matlabParam.setEdgeShift(sEdgeShift.getValue());
-    }
-    if (sNWeightGroup.isEnabled()) {
-      matlabParam.setNWeightGroup(sNWeightGroup.getValue());
-    }
-    else {
-      matlabParam.setNWeightGroup(MatlabParam.N_WEIGHT_GROUP_OFF);
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 

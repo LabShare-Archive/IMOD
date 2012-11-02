@@ -215,8 +215,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   private final StringParameter skipViews = new StringParameter(SKIP_VIEWS_KEY);
   private final StringParameter prealignmentTransformFile = new StringParameter(
       "PrealignmentTransformFile");
-  private ScriptParameter imagesAreBinned = new ScriptParameter(EtomoNumber.Type.LONG,
-      "ImagesAreBinned");
+  private ScriptParameter imagesAreBinned = new ScriptParameter("ImagesAreBinned");
 
   private boolean partialSave = false;
   private boolean validate = false;
@@ -297,7 +296,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       header.read(manager);
       int z = header.getNSections();
       if (z != -1) {
-        lengthAndOverlap.set(Math.round((float) (z / 5)));
+        lengthAndOverlap.set(Math.round((z / 5)));
       }
     }
     catch (IOException e) {
@@ -321,12 +320,12 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       if (x == -1) {
         return "";
       }
-      bordersInX.set(Math.round((float) (x * .05)));
+      bordersInX.set(Math.round((x * .05)));
       int y = header.getNRows();
       if (y == -1) {
         return "";
       }
-      bordersInY.set(Math.round((float) (y * .05)));
+      bordersInY.set(Math.round((y * .05)));
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -951,7 +950,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     prealignmentTransformFile.set(FileType.PRE_XG.getFileName(manager, axisID));
   }
 
-  public void setImagesAreBinned(long input) {
+  public void setImagesAreBinned(int input) {
     imagesAreBinned.set(input);
   }
 

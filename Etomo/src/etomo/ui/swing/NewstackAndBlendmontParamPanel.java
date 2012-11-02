@@ -26,6 +26,8 @@ import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.MetaData;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.InvalidParameterException;
 
 /**
@@ -102,9 +104,9 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
       new SpinnerNumberModel(1, 1, 8, 1), 1);
 
   private final LabeledTextField ltfSizeToOutputInXandY = new LabeledTextField(
-      SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + " (X,Y - unbinned): ");
+      FieldType.INTEGER_PAIR, SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + " (X,Y - unbinned): ");
   private final LabeledTextField ltfRotation = new LabeledTextField(
-      "Tilt axis rotation: ");
+      FieldType.FLOATING_POINT, "Tilt axis rotation: ");
   private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
   private final CheckBox cbUseLinearInterpolation = new CheckBox(
       "Use linear interpolation");
@@ -181,43 +183,54 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     metaData.setStackBinning(axisID, getBinning());
   }
 
-  public boolean getParameters(BlendmontParam blendmontParam)
+  public boolean getParameters(BlendmontParam blendmontParam, final boolean doValidation)
       throws FortranInputSyntaxException, InvalidParameterException, IOException {
-    blendmontParam.setBinByFactor(getBinning());
-    blendmontParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
     try {
-     if (! blendmontParam.convertToStartingAndEndingXandY(ltfSizeToOutputInXandY.getText(),
-          manager.getMetaData().getImageRotation(axisID).getDouble(),
-          ltfSizeToOutputInXandY.getLabel())) {
-       return false;
-     }
+      blendmontParam.setBinByFactor(getBinning());
+      blendmontParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
+      try {
+        if (!blendmontParam.convertToStartingAndEndingXandY(
+            ltfSizeToOutputInXandY.getText(doValidation), manager.getMetaData()
+                .getImageRotation(axisID).getDouble(), ltfSizeToOutputInXandY.getLabel())) {
+          return false;
+        }
+      }
+      catch (FortranInputSyntaxException e) {
+        e.printStackTrace();
+        throw new FortranInputSyntaxException(
+            NewstackAndBlendmontParamPanel.SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + ":  "
+                + e.getMessage());
+      }
+      blendmontParam.setFiducialess(cbFiducialess.isSelected());
+      return true;
     }
-    catch (FortranInputSyntaxException e) {
-      e.printStackTrace();
-      throw new FortranInputSyntaxException(
-          NewstackAndBlendmontParamPanel.SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + ":  "
-              + e.getMessage());
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-    blendmontParam.setFiducialess(cbFiducialess.isSelected());
-    return true;
   }
 
   // Copy the newstack parameters from the GUI to the NewstParam object
-  public boolean getParameters(NewstParam newstParam) throws FortranInputSyntaxException,
-      InvalidParameterException, IOException {
-    int binning = getBinning();
-    // Only explicitly write out the binning if its value is something other than
-    // the default of 1 to keep from cluttering up the com script
-    if (binning > 1) {
-      newstParam.setBinByFactor(binning);
+  public boolean getParameters(NewstParam newstParam, final boolean doValidation)
+      throws FortranInputSyntaxException, InvalidParameterException, IOException {
+    try {
+      int binning = getBinning();
+      // Only explicitly write out the binning if its value is something other than
+      // the default of 1 to keep from cluttering up the com script
+      if (binning > 1) {
+        newstParam.setBinByFactor(binning);
+      }
+      else {
+        newstParam.setBinByFactor(Integer.MIN_VALUE);
+      }
+      newstParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
+      return newstParam.setSizeToOutputInXandY(
+          ltfSizeToOutputInXandY.getText(doValidation), getBinning(), manager
+              .getMetaData().getImageRotation(axisID).getDouble(),
+          ltfSizeToOutputInXandY.getLabel());
     }
-    else {
-      newstParam.setBinByFactor(Integer.MIN_VALUE);
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-    newstParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
-   return newstParam.setSizeToOutputInXandY(ltfSizeToOutputInXandY.getText(), getBinning(),
-        manager.getMetaData().getImageRotation(axisID).getDouble(),
-        ltfSizeToOutputInXandY.getLabel());
   }
 
   void setParameters(ConstMetaData metaData) {
@@ -252,8 +265,9 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     ltfRotation.setEnabled(cbFiducialess.isSelected());
   }
 
-  public String getImageRotation() {
-    return ltfRotation.getText();
+  public String getImageRotation(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfRotation.getText(doValidation);
   }
 
   void updateAdvanced(boolean advanced) {

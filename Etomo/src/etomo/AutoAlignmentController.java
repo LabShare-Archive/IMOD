@@ -55,13 +55,15 @@ public final class AutoAlignmentController {
 
   public void xfalignInitial(final ConstProcessSeries processSeries,
       final boolean tomogramAverages) {
-    if (!updateMetaData()) {
+    if (!updateMetaData(true)) {
       return;
     }
     XfalignParam xfalignParam = new XfalignParam(manager.getName(),
         manager.getPropertyUserDir(), manager.getAutoAlignmentMetaData(),
         XfalignParam.Mode.INITIAL, tomogramAverages);
-    display.getAutoAlignmentParameters(xfalignParam);
+    if (!display.getAutoAlignmentParameters(xfalignParam, true)) {
+      return;
+    }
     try {
       manager.setThreadName(processManager.xfalign(xfalignParam, axisID, processSeries),
           axisID);
@@ -79,13 +81,15 @@ public final class AutoAlignmentController {
 
   public void xfalignRefine(ConstProcessSeries processSeries,
       final boolean tomogramAverages, final String description) {
-    if (!updateMetaData()) {
+    if (!updateMetaData(true)) {
       return;
     }
     XfalignParam xfalignParam = new XfalignParam(manager.getName(),
         manager.getPropertyUserDir(), manager.getAutoAlignmentMetaData(),
         XfalignParam.Mode.REFINE, tomogramAverages);
-    display.getAutoAlignmentParameters(xfalignParam);
+    if (!display.getAutoAlignmentParameters(xfalignParam, true)) {
+      return;
+    }
     if (!copyMostRecentXfFile(description)) {
       return;
     }
@@ -125,7 +129,7 @@ public final class AutoAlignmentController {
    * Run midas on the sample
    */
   public void midasSample(final String description) {
-    if (!updateMetaData()) {
+    if (!updateMetaData(true)) {
       return;
     }
     MidasParam midasParam = new MidasParam(manager, axisID, Mode.SAMPLE);
@@ -196,8 +200,8 @@ public final class AutoAlignmentController {
     }
   }
 
-  private boolean updateMetaData() {
-    if (!manager.updateMetaData(display.getDialogType(), axisID)) {
+  private boolean updateMetaData(final boolean doValidation) {
+    if (!manager.updateMetaData(display.getDialogType(), axisID, doValidation)) {
       return false;
     }
     if (!manager.getBaseMetaData().isValid()) {
@@ -211,7 +215,7 @@ public final class AutoAlignmentController {
     return true;
   }
 
-   boolean copyMostRecentXfFile(final String commandDescription) {
+  boolean copyMostRecentXfFile(final String commandDescription) {
     FileType newestXfFileType = Utilities.mostRecentFile(manager, axisID,
         LOCAL_TRANSFORMATION_LIST_FILES, 2/* EMPTY_LOCAL_TRANSFORMATION_LIST */);
     // If the most recent .xf file is not root.xf, copy it to root.xf

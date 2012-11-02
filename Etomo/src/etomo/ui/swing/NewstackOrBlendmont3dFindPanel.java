@@ -89,7 +89,7 @@ abstract class NewstackOrBlendmont3dFindPanel implements Run3dmodButtonContainer
   }
 
   final void createPanel() {
-    //Initialize
+    // Initialize
     btn3dmodFull.setSize();
     pnlRoot.add(spinBinning.getContainer());
   }
@@ -129,20 +129,20 @@ abstract class NewstackOrBlendmont3dFindPanel implements Run3dmodButtonContainer
     if (!initialize) {
       return;
     }
-    EtomoNumber beadSize = new EtomoNumber(EtomoNumber.Type.FLOAT);
+    EtomoNumber beadSize = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     beadSize.set(parent.getBeadSize());
     if (!beadSize.isNull() && beadSize.isValid()) {
-      spinBinning.setValue(Math.max(Math.round(beadSize.getFloat() / 5f), 1));
+      spinBinning.setValue(Math.max((int) Math.round((beadSize.getDouble() / 5f)), 1));
     }
   }
 
   public final boolean validate() {
     int binning = spinBinning.getValue().intValue();
-    //Warn if the pixel size is too small
+    // Warn if the pixel size is too small
     if (binning > 1) {
-      EtomoNumber beadSize = new EtomoNumber(EtomoNumber.Type.FLOAT);
+      EtomoNumber beadSize = new EtomoNumber(EtomoNumber.Type.DOUBLE);
       beadSize.set(parent.getBeadSize());
-      if (!beadSize.isNull() && beadSize.isValid() && beadSize.getFloat() / binning < 4) {
+      if (!beadSize.isNull() && beadSize.isValid() && beadSize.getDouble() / binning < 4) {
         if (!UIHarness.INSTANCE.openYesNoWarningDialog(manager,
             "The binned fiducial diameter will be less then 4 pixels.  Do you "
                 + "want to continue?", axisID)) {

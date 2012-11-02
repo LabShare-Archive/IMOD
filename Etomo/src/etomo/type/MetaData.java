@@ -505,18 +505,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private final EtomoBoolean2 fixedBeamTiltSelectedA = new EtomoBoolean2(
       AxisID.FIRST.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
           + ".FixedBeamTiltSelected");
-  private final EtomoNumber fixedBeamTiltA = new EtomoNumber(EtomoNumber.Type.FLOAT,
-      AxisID.FIRST.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
-          + ".FixedBeamTilt");
+  private final EtomoNumber fixedBeamTiltA = new EtomoNumber(AxisID.FIRST.getExtension()
+      + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTilt");
   private final EtomoBoolean2 noBeamTiltSelectedB = new EtomoBoolean2(
       AxisID.SECOND.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
           + ".NoBeamTiltSelected");
   private final EtomoBoolean2 fixedBeamTiltSelectedB = new EtomoBoolean2(
       AxisID.SECOND.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
           + ".FixedBeamTiltSelected");
-  private final EtomoNumber fixedBeamTiltB = new EtomoNumber(EtomoNumber.Type.FLOAT,
-      AxisID.SECOND.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
-          + ".FixedBeamTilt");
+  private final EtomoNumber fixedBeamTiltB = new EtomoNumber(AxisID.SECOND.getExtension()
+      + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTilt");
   private final FortranInputString sizeToOutputInXandYA = new FortranInputString(2);
   private final FortranInputString sizeToOutputInXandYB = new FortranInputString(2);
   /**
@@ -579,8 +577,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + USE_KEY + RAW_STACK_KEY);
   private final EtomoNumber trackRaptorMarkA = new EtomoNumber(TRACK_KEY + "."
       + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + MARK_KEY);
-  private final EtomoNumber trackRaptorDiamA = new EtomoNumber(EtomoNumber.Type.LONG,
-      TRACK_KEY + "." + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + DIAM_KEY);
+  private final EtomoNumber trackRaptorDiamA = new EtomoNumber(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + DIAM_KEY);
 
   private final EtomoBoolean2 stackEraseGoldModelUseFidA = new EtomoBoolean2(STACK_KEY
       + "." + FIRST_AXIS_KEY + "." + ERASE_GOLD_KEY + "." + MODEL_USE_FID_KEY);
@@ -744,6 +742,44 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + ".Trimvol.ScaleYMax");
   private final EtomoBoolean2 eraseBeadsInitialized = new EtomoBoolean2(STACK_KEY
       + ".EraseBeadsInitialized");
+
+  private final EtomoBoolean2 trackSeedModelManualA = new EtomoBoolean2(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + ".SeedModel.Manual");
+  private final EtomoBoolean2 trackSeedModelManualB = new EtomoBoolean2(TRACK_KEY + "."
+      + SECOND_AXIS_KEY + ".SeedModel.Manual");
+  private final EtomoBoolean2 trackSeedModelAutoA = new EtomoBoolean2(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + ".SeedModel.Auto");
+  private final EtomoBoolean2 trackSeedModelAutoB = new EtomoBoolean2(TRACK_KEY + "."
+      + SECOND_AXIS_KEY + ".SeedModel.Auto");
+  private final EtomoBoolean2 trackSeedModelTransferA = new EtomoBoolean2(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + ".SeedModel.Transfer");
+  private final EtomoBoolean2 trackSeedModelTransferB = new EtomoBoolean2(TRACK_KEY + "."
+      + SECOND_AXIS_KEY + ".SeedModel.Transfer");
+  private final EtomoBoolean2 trackExcludeInsideAreasA = new EtomoBoolean2(TRACK_KEY
+      + "." + FIRST_AXIS_KEY + ".ExcludeInsideAreas");
+  private final EtomoBoolean2 trackExcludeInsideAreasB = new EtomoBoolean2(TRACK_KEY
+      + "." + SECOND_AXIS_KEY + ".ExcludeInsideAreas");
+  private final EtomoNumber trackTargetNumberOfBeadsA = new EtomoNumber(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + ".TargetNumberOfBeads");
+  private final EtomoNumber trackTargetNumberOfBeadsB = new EtomoNumber(TRACK_KEY + "."
+      + SECOND_AXIS_KEY + ".TargetNumberOfBeads");
+  private final EtomoNumber trackTargetDensityOfBeadsA = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, TRACK_KEY + "." + FIRST_AXIS_KEY + ".TargetDensityOfBeads");
+  private final EtomoNumber trackTargetDensityOfBeadsB = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, TRACK_KEY + "." + SECOND_AXIS_KEY
+          + ".TargetDensityOfBeads");
+  private final EtomoBoolean2 trackClusteredPointsAllowedElongatedA = new EtomoBoolean2(
+      TRACK_KEY + "." + FIRST_AXIS_KEY + ".ClusteredPointsAllowed.Elongated");
+  private final EtomoBoolean2 trackClusteredPointsAllowedElongatedB = new EtomoBoolean2(
+      TRACK_KEY + "." + SECOND_AXIS_KEY + ".ClusteredPointsAllowed.Elongated");
+  private final EtomoNumber trackClusteredPointsAllowedElongatedValueA = new EtomoNumber(
+      TRACK_KEY + "." + FIRST_AXIS_KEY + ".ClusteredPointsAllowed.Elongated.Value");
+  private final EtomoNumber trackClusteredPointsAllowedElongatedValueB = new EtomoNumber(
+      TRACK_KEY + "." + SECOND_AXIS_KEY + ".ClusteredPointsAllowed.Elongated.Value");
+  private final EtomoBoolean2 trackAdvancedA = new EtomoBoolean2(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + ".Advanced");
+  private final EtomoBoolean2 trackAdvancedB = new EtomoBoolean2(TRACK_KEY + "."
+      + SECOND_AXIS_KEY + ".Advanced");
 
   public MetaData(final ApplicationManager manager) {
     this.manager = manager;
@@ -916,9 +952,92 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public void setDistortionFile(final String distortionFile) {
     this.distortionFile = distortionFile;
   }
-  
+
   public void setEraseBeadsInitialized(final boolean input) {
     eraseBeadsInitialized.set(input);
+  }
+
+  public void setTrackSeedModelManual(final boolean input, final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackSeedModelManualB.set(input);
+    }
+    else {
+      trackSeedModelManualA.set(input);
+    }
+  }
+
+  public void setTrackSeedModelAuto(final boolean input, final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackSeedModelAutoB.set(input);
+    }
+    else {
+      trackSeedModelAutoA.set(input);
+    }
+  }
+
+  public void setTrackSeedModelTransfer(final boolean input, final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackSeedModelTransferB.set(input);
+    }
+    else {
+      trackSeedModelTransferA.set(input);
+    }
+  }
+
+  public void setTrackExcludeInsideAreas(final boolean input, final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackExcludeInsideAreasB.set(input);
+    }
+    else {
+      trackExcludeInsideAreasA.set(input);
+    }
+  }
+
+  public void setTrackTargetNumberOfBeads(final String input, final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackTargetNumberOfBeadsB.set(input);
+    }
+    else {
+      trackTargetNumberOfBeadsA.set(input);
+    }
+  }
+
+  public void setTrackTargetDensityOfBeads(final String input, final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackTargetDensityOfBeadsB.set(input);
+    }
+    else {
+      trackTargetDensityOfBeadsA.set(input);
+    }
+  }
+
+  public void setTrackClusteredPointsAllowedElongated(final boolean input,
+      final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackClusteredPointsAllowedElongatedB.set(input);
+    }
+    else {
+      trackClusteredPointsAllowedElongatedA.set(input);
+    }
+  }
+
+  public void setTrackClusteredPointsAllowedElongatedValue(final Number input,
+      final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackClusteredPointsAllowedElongatedValueB.set(input);
+    }
+    else {
+      trackClusteredPointsAllowedElongatedValueA.set(input);
+    }
+  }
+
+  public void setTrackAdvanced(final boolean input, final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackAdvancedB.set(input);
+    }
+    else {
+      trackAdvancedA.set(input);
+    }
   }
 
   public void setMagGradientFile(final String magGradientFile) {
@@ -1454,6 +1573,25 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     postTrimvolScaleYMin.reset();
     postTrimvolScaleYMax.reset();
     eraseBeadsInitialized.reset();
+
+    trackSeedModelManualA.reset();
+    trackSeedModelManualB.reset();
+    trackSeedModelAutoA.reset();
+    trackSeedModelAutoB.reset();
+    trackSeedModelTransferA.reset();
+    trackSeedModelTransferB.reset();
+    trackExcludeInsideAreasA.reset();
+    trackExcludeInsideAreasB.reset();
+    trackTargetNumberOfBeadsA.reset();
+    trackTargetNumberOfBeadsB.reset();
+    trackTargetDensityOfBeadsA.reset();
+    trackTargetDensityOfBeadsB.reset();
+    trackClusteredPointsAllowedElongatedA.reset();
+    trackClusteredPointsAllowedElongatedB.reset();
+    trackClusteredPointsAllowedElongatedValueA.reset();
+    trackClusteredPointsAllowedElongatedValueB.reset();
+    trackAdvancedA.reset();
+    trackAdvancedB.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1720,7 +1858,26 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
         TILT_3D_FIND_A_TILT_PARALLEL_KEY, props, prepend);
     tilt3dFindTiltParallelB = EtomoBoolean2.load(tilt3dFindTiltParallelB,
         TILT_3D_FIND_B_TILT_PARALLEL_KEY, props, prepend);
-    eraseBeadsInitialized.load(props,prepend);
+    eraseBeadsInitialized.load(props, prepend);
+
+    trackSeedModelManualA.load(props, prepend);
+    trackSeedModelManualB.load(props, prepend);
+    trackSeedModelAutoA.load(props, prepend);
+    trackSeedModelAutoB.load(props, prepend);
+    trackSeedModelTransferA.load(props, prepend);
+    trackSeedModelTransferB.load(props, prepend);
+    trackExcludeInsideAreasA.load(props, prepend);
+    trackExcludeInsideAreasB.load(props, prepend);
+    trackTargetNumberOfBeadsA.load(props, prepend);
+    trackTargetNumberOfBeadsB.load(props, prepend);
+    trackTargetDensityOfBeadsA.load(props, prepend);
+    trackTargetDensityOfBeadsB.load(props, prepend);
+    trackClusteredPointsAllowedElongatedA.load(props, prepend);
+    trackClusteredPointsAllowedElongatedB.load(props, prepend);
+    trackClusteredPointsAllowedElongatedValueA.load(props, prepend);
+    trackClusteredPointsAllowedElongatedValueB.load(props, prepend);
+    trackAdvancedA.load(props, prepend);
+    trackAdvancedB.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(final AxisID axisID, final boolean selected) {
@@ -1856,7 +2013,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public String getSecondAxisPrepend() {
     return secondAxisPrepend;
   }
-  
+
   String getGroupKey() {
     return "Setup";
   }
@@ -2035,7 +2192,26 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     postTrimvolScaleXMax.store(props, prepend);
     postTrimvolScaleYMin.store(props, prepend);
     postTrimvolScaleYMax.store(props, prepend);
-    eraseBeadsInitialized.store(props,prepend);
+    eraseBeadsInitialized.store(props, prepend);
+
+    trackSeedModelManualA.store(props, prepend);
+    trackSeedModelManualB.store(props, prepend);
+    trackSeedModelAutoA.store(props, prepend);
+    trackSeedModelAutoB.store(props, prepend);
+    trackSeedModelTransferA.store(props, prepend);
+    trackSeedModelTransferB.store(props, prepend);
+    trackExcludeInsideAreasA.store(props, prepend);
+    trackExcludeInsideAreasB.store(props, prepend);
+    trackTargetNumberOfBeadsA.store(props, prepend);
+    trackTargetNumberOfBeadsB.store(props, prepend);
+    trackTargetDensityOfBeadsA.store(props, prepend);
+    trackTargetDensityOfBeadsB.store(props, prepend);
+    trackClusteredPointsAllowedElongatedA.store(props, prepend);
+    trackClusteredPointsAllowedElongatedB.store(props, prepend);
+    trackClusteredPointsAllowedElongatedValueA.store(props, prepend);
+    trackClusteredPointsAllowedElongatedValueB.store(props, prepend);
+    trackAdvancedA.store(props, prepend);
+    trackAdvancedB.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -2739,9 +2915,72 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public boolean isDistortionCorrection() {
     return !distortionFile.equals("") || !magGradientFile.equals("");
   }
-  
+
   public boolean isEraseBeadsInitialized() {
     return eraseBeadsInitialized.is();
+  }
+
+  public boolean isTrackSeedModelManual(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackSeedModelManualB.is();
+    }
+    return trackSeedModelManualA.is();
+  }
+
+  public boolean isTrackSeedModelAuto(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackSeedModelAutoB.is();
+    }
+    return trackSeedModelAutoA.is();
+  }
+
+  public boolean isTrackSeedModelTransfer(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackSeedModelTransferB.is();
+    }
+    return trackSeedModelTransferA.is();
+  }
+
+  public boolean isTrackExcludeInsideAreas(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackExcludeInsideAreasB.is();
+    }
+    return trackExcludeInsideAreasA.is();
+  }
+
+  public String getTrackTargetNumberOfBeads(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackTargetNumberOfBeadsB.toString();
+    }
+    return trackTargetNumberOfBeadsA.toString();
+  }
+
+  public String getTrackTargetDensityOfBeads(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackTargetDensityOfBeadsB.toString();
+    }
+    return trackTargetDensityOfBeadsA.toString();
+  }
+
+  public boolean isTrackClusteredPointsAllowedElongated(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackClusteredPointsAllowedElongatedB.is();
+    }
+    return trackClusteredPointsAllowedElongatedA.is();
+  }
+
+  public int getTrackClusteredPointsAllowedElongatedValue(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackClusteredPointsAllowedElongatedValueB.getInt();
+    }
+    return trackClusteredPointsAllowedElongatedValueA.getInt();
+  }
+
+  public boolean isTrackAdvanced(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackAdvancedB.is();
+    }
+    return trackAdvancedA.is();
   }
 
   public boolean isWholeTomogramSample(final AxisID axisID) {

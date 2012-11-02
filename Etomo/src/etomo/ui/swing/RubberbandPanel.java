@@ -18,6 +18,8 @@ import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.MetaData;
 import etomo.type.ParallelMetaData;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -39,12 +41,18 @@ public final class RubberbandPanel {
 
   private final SpacedPanel pnlRubberband = SpacedPanel.getInstance();
   private final JPanel pnlRange = new JPanel();
-  private final LabeledTextField ltfXMin = new LabeledTextField("X min: ");
-  private final LabeledTextField ltfXMax = new LabeledTextField("X max: ");
-  private final LabeledTextField ltfYMin = new LabeledTextField("Y min: ");
-  private final LabeledTextField ltfYMax = new LabeledTextField("Y max: ");
-  private final LabeledTextField ltfZMin = new LabeledTextField("Z min: ");
-  private final LabeledTextField ltfZMax = new LabeledTextField("Z max: ");
+  private final LabeledTextField ltfXMin = new LabeledTextField(FieldType.INTEGER,
+      "X min: ");
+  private final LabeledTextField ltfXMax = new LabeledTextField(FieldType.INTEGER,
+      "X max: ");
+  private final LabeledTextField ltfYMin = new LabeledTextField(FieldType.INTEGER,
+      "Y min: ");
+  private final LabeledTextField ltfYMax = new LabeledTextField(FieldType.INTEGER,
+      "Y max: ");
+  private final LabeledTextField ltfZMin = new LabeledTextField(FieldType.INTEGER,
+      "Z min: ");
+  private final LabeledTextField ltfZMax = new LabeledTextField(FieldType.INTEGER,
+      "Z max: ");
   private final MultiLineButton btnRubberband;
   private final String imodKey;
   private final String xMinTooltip;
@@ -54,7 +62,7 @@ public final class RubberbandPanel {
   private final String zMinTooltip;
   private final String zMaxTooltip;
   private final Run3dmodButton btnImod;
-  private final RubberbandContainer container;//optional,
+  private final RubberbandContainer container;// optional,
   private final boolean placeButtons;
 
   private RubberbandPanel(BaseManager manager, RubberbandContainer container,
@@ -260,26 +268,38 @@ public final class RubberbandPanel {
     }
   }
 
-  public void getParameters(TrimvolParam trimvolParam) {
-    trimvolParam.setXMin(ltfXMin.getText());
-    trimvolParam.setXMax(ltfXMax.getText());
-    trimvolParam.setYMin(ltfYMin.getText());
-    trimvolParam.setYMax(ltfYMax.getText());
-    if (btnImod != null) {
-      trimvolParam.setZMin(ltfZMin.getText());
-      trimvolParam.setZMax(ltfZMax.getText());
+  public boolean getParameters(TrimvolParam trimvolParam, final boolean doValidation) {
+    try {
+      trimvolParam.setXMin(ltfXMin.getText(doValidation));
+      trimvolParam.setXMax(ltfXMax.getText(doValidation));
+      trimvolParam.setYMin(ltfYMin.getText(doValidation));
+      trimvolParam.setYMax(ltfYMax.getText(doValidation));
+      if (btnImod != null) {
+        trimvolParam.setZMin(ltfZMin.getText(doValidation));
+        trimvolParam.setZMax(ltfZMax.getText(doValidation));
+      }
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
-  public void getScaleParameters(TrimvolParam trimvolParam) {
-    XYParam xyParam = trimvolParam.getScaleXYParam();
-    xyParam.setXMin(ltfXMin.getText());
-    xyParam.setXMax(ltfXMax.getText());
-    xyParam.setYMin(ltfYMin.getText());
-    xyParam.setYMax(ltfYMax.getText());
-    if (btnImod != null) {
-      trimvolParam.setSectionScaleMin(ltfZMin.getText());
-      trimvolParam.setSectionScaleMax(ltfZMax.getText());
+  public boolean getScaleParameters(TrimvolParam trimvolParam, final boolean doValidation) {
+    try {
+      XYParam xyParam = trimvolParam.getScaleXYParam();
+      xyParam.setXMin(ltfXMin.getText(doValidation));
+      xyParam.setXMax(ltfXMax.getText(doValidation));
+      xyParam.setYMin(ltfYMin.getText(doValidation));
+      xyParam.setYMax(ltfYMax.getText(doValidation));
+      if (btnImod != null) {
+        trimvolParam.setSectionScaleMin(ltfZMin.getText(doValidation));
+        trimvolParam.setSectionScaleMax(ltfZMax.getText(doValidation));
+      }
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 

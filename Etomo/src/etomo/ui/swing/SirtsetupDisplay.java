@@ -20,5 +20,5 @@ import etomo.comscript.SirtsetupParam;
 public interface SirtsetupDisplay {
   public static  final String  rcsid =  "$Id$";
   
-  public boolean getParameters(SirtsetupParam param);
+  public boolean getParameters(SirtsetupParam param,boolean doValidation);
 }

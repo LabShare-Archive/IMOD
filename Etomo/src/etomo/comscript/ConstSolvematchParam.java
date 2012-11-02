@@ -83,7 +83,7 @@ public class ConstSolvematchParam {
   protected StringList fromCorrespondenceList = new StringList(0);
   protected FortranInputString xAxistTilt = new FortranInputString(2);
   protected int surfacesOrModel = Integer.MIN_VALUE;
-  protected float maximumResidual = Float.NaN;
+  protected double maximumResidual = Double.NaN;
   protected String toMatchingModel = "";
   protected String fromMatchingModel = "";
   protected String toTomogramOrSizeXYZ = "";
@@ -94,7 +94,7 @@ public class ConstSolvematchParam {
   protected String bFiducialModel = null;
   protected StringList usePoints = new StringList(0);
   protected ScriptParameter centerShiftLimit = new ScriptParameter(
-      EtomoNumber.Type.FLOAT, CENTER_SHIFT_LIMIT_KEY);
+      EtomoNumber.Type.DOUBLE, CENTER_SHIFT_LIMIT_KEY);
 
   /**
    * @return FortranInputString
@@ -148,7 +148,7 @@ public class ConstSolvematchParam {
   /**
    * @return Returns the maximumResidual.
    */
-  public float getMaximumResidual() {
+  public double getMaximumResidual() {
     return maximumResidual;
   }
 

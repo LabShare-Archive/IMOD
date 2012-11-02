@@ -307,7 +307,7 @@ public final class ParallelManager extends BaseManager {
         outputImageFileType);
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
     parallelDialog.getParameters(param);
-    if (!parallelPanel.getParameters(param)) {
+    if (!parallelPanel.getParameters(param, true)) {
       getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -461,18 +461,21 @@ public final class ParallelManager extends BaseManager {
     return true;
   }
 
-  private TrimvolParam updateTrimvolParam() {
+  private TrimvolParam updateTrimvolParam(final boolean doValidation) {
     // Get trimvol param data from dialog.
     TrimvolParam param = new TrimvolParam(this, TrimvolParam.Mode.NAD);
-    anisotropicDiffusionDialog.getParameters(param);
+    if (!anisotropicDiffusionDialog.getParameters(param, doValidation)) {
+      return null;
+    }
     return param;
   }
 
   private AnisotropicDiffusionParam updateAnisotropicDiffusionParamForVaryingK(
-      final String subdirName) throws LogFile.LockException, IOException {
+      final String subdirName, final boolean doValidation) throws LogFile.LockException,
+      IOException {
     AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this,
         AnisotropicDiffusionParam.Mode.VARYING_K);
-    if (!anisotropicDiffusionDialog.getParametersForVaryingK(param)) {
+    if (!anisotropicDiffusionDialog.getParametersForVaryingK(param, doValidation)) {
       return null;
     }
     param.deleteTestFiles();
@@ -480,11 +483,13 @@ public final class ParallelManager extends BaseManager {
     return param;
   }
 
-  private AnisotropicDiffusionParam updateAnisotropicDiffusionParam()
-      throws LogFile.LockException, IOException {
+  private AnisotropicDiffusionParam updateAnisotropicDiffusionParam(
+      final boolean doValidation) throws LogFile.LockException, IOException {
     AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this,
         AnisotropicDiffusionParam.Mode.FULL);
-    anisotropicDiffusionDialog.getParameters(param);
+    if (!anisotropicDiffusionDialog.getParameters(param, doValidation)) {
+      return null;
+    }
     param.createFilterFullFile();
     return param;
   }
@@ -495,9 +500,12 @@ public final class ParallelManager extends BaseManager {
     return param;
   }
 
-  public boolean setupAnisotropicDiffusion() {
+  public boolean setupAnisotropicDiffusion(final boolean doValidation) {
     try {
-      AnisotropicDiffusionParam param = updateAnisotropicDiffusionParam();
+      AnisotropicDiffusionParam param = updateAnisotropicDiffusionParam(doValidation);
+      if (param == null) {
+        return false;
+      }
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -517,10 +525,10 @@ public final class ParallelManager extends BaseManager {
   }
 
   private AnisotropicDiffusionParam updateAnisotropicDiffusionParamForVaryingIteration(
-      final String subdirName) {
+      final String subdirName, final boolean doValidation) {
     AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this,
         AnisotropicDiffusionParam.Mode.VARYING_ITERATIONS);
-    if (!anisotropicDiffusionDialog.getParametersForVaryingIteration(param)) {
+    if (!anisotropicDiffusionDialog.getParametersForVaryingIteration(param, doValidation)) {
       return null;
     }
     return param;
@@ -537,7 +545,7 @@ public final class ParallelManager extends BaseManager {
           "Program logic error", AxisID.ONLY);
       return;
     }
-    if (!setupAnisotropicDiffusion()) {
+    if (!setupAnisotropicDiffusion(true)) {
       return;
     }
     ChunksetupParam param = updateChunksetupParam();
@@ -575,7 +583,8 @@ public final class ParallelManager extends BaseManager {
           "Program logic error", AxisID.ONLY);
       return;
     }
-    AnisotropicDiffusionParam param = updateAnisotropicDiffusionParamForVaryingIteration(subdirName);
+    AnisotropicDiffusionParam param = updateAnisotropicDiffusionParamForVaryingIteration(
+        subdirName, true);
     if (param == null) {
       return;
     }
@@ -613,7 +622,7 @@ public final class ParallelManager extends BaseManager {
         ProcessName.ANISOTROPIC_DIFFUSION, FileType.ANISOTROPIC_DIFFUSION_OUTPUT);
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
     anisotropicDiffusionDialog.getParameters(param);
-    if (!parallelPanel.getParameters(param)) {
+    if (!parallelPanel.getParameters(param, true)) {
       getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
       return;
     }
@@ -681,7 +690,8 @@ public final class ParallelManager extends BaseManager {
     }
     AnisotropicDiffusionParam anisotropicDiffusionParam;
     try {
-      anisotropicDiffusionParam = updateAnisotropicDiffusionParamForVaryingK(subdirName);
+      anisotropicDiffusionParam = updateAnisotropicDiffusionParamForVaryingK(subdirName,
+          true);
       if (anisotropicDiffusionParam == null) {
         return;
       }
@@ -708,7 +718,7 @@ public final class ParallelManager extends BaseManager {
     param.setSubcommandDetails(anisotropicDiffusionParam);
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
     anisotropicDiffusionDialog.getParameters(param);
-    if (!parallelPanel.getParameters(param)) {
+    if (!parallelPanel.getParameters(param, true)) {
       getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
       return;
     }
@@ -726,7 +736,7 @@ public final class ParallelManager extends BaseManager {
           "Program logic error", AxisID.ONLY);
       return;
     }
-    TrimvolParam param = updateTrimvolParam();
+    TrimvolParam param = updateTrimvolParam(true);
     if (param == null) {
       return;
     }

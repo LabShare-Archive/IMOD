@@ -34,7 +34,7 @@ public interface Command {
 
   public AxisID getAxisID();
 
-  public String getCommand();//return the command or comscript file name
+  public String getCommand();//return the command that will be run or passed to vmstopy
 
   public CommandDetails getSubcommandDetails();
 

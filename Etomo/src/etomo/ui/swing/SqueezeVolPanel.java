@@ -20,6 +20,8 @@ import etomo.type.ImageFileType;
 import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -64,8 +66,9 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
   private final RadioButton rbInputFileFlattenWarp = new RadioButton(
       "Squeeze the flatten output", bgInputFile);
   private final LabeledTextField ltfReductionFactorXY = new LabeledTextField(
-      "Reduction factor in X and Y ");
-  private final LabeledTextField ltfReductionFactorZ = new LabeledTextField("in Z ");
+      FieldType.FLOATING_POINT, "Reduction factor in X and Y ");
+  private final LabeledTextField ltfReductionFactorZ = new LabeledTextField(
+      FieldType.FLOATING_POINT, "in Z ");
   private final CheckBox cbLinearInterpolation = new CheckBox("Linear interpolation");
   private final Run3dmodButton btnImodSqueezedVolume = Run3dmodButton.get3dmodInstance(
       "Open Squeezed Volume in 3dmod", this);
@@ -112,7 +115,7 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
   private void createPanel() {
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.setBorder(new BeveledBorder("Squeeze Volume").getBorder());
-    //Choose input file
+    // Choose input file
     JPanel pnlInputFile = new JPanel();
     pnlInputFile.setLayout(new BoxLayout(pnlInputFile, BoxLayout.Y_AXIS));
     pnlInputFile.setBorder(new BeveledBorder("Set Input File").getBorder());
@@ -121,13 +124,13 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
     rbInputFileTrimVol.setSelected(true);
     pnlInputFile.add(rbInputFileFlattenWarp.getComponent());
     pnlRoot.add(pnlInputFile);
-    //Reduction factor panel
+    // Reduction factor panel
     SpacedPanel pnlReductionFactor = SpacedPanel.getInstance();
     pnlReductionFactor.setBoxLayout(BoxLayout.X_AXIS);
     pnlReductionFactor.add(ltfReductionFactorXY);
     pnlReductionFactor.add(ltfReductionFactorZ);
     pnlRoot.add(pnlReductionFactor);
-    //Linear interpolation panel
+    // Linear interpolation panel
     cbLinearInterpolation.setAlignmentX(Component.RIGHT_ALIGNMENT);
     JPanel pnlLinearInterpolation = new JPanel();
     pnlLinearInterpolation.setLayout(new BoxLayout(pnlLinearInterpolation,
@@ -136,7 +139,7 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
     pnlLinearInterpolation.add(cbLinearInterpolation);
     pnlLinearInterpolation.add(Box.createHorizontalGlue());
     pnlRoot.add(pnlLinearInterpolation);
-    //third component
+    // third component
     SpacedPanel pnlButtons = SpacedPanel.getInstance();
     pnlButtons.setBoxLayout(BoxLayout.X_AXIS);
     btnSqueezeVolume.setContainer(this);
@@ -191,23 +194,29 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
    * Get the panel values
    * @param squeezevolParam
    */
-  public void getParameters(SqueezevolParam squeezevolParam) {
-    squeezevolParam.setReductionFactorX(ltfReductionFactorXY.getText());
-    boolean flipped = squeezevolParam.setFlipped(manager.isTrimvolFlipped());
-    if (flipped) {
-      squeezevolParam.setReductionFactorY(ltfReductionFactorXY.getText());
-      squeezevolParam.setReductionFactorZ(ltfReductionFactorZ.getText());
+  public boolean getParameters(SqueezevolParam squeezevolParam, final boolean doValidation) {
+    try {
+      squeezevolParam.setReductionFactorX(ltfReductionFactorXY.getText(doValidation));
+      boolean flipped = squeezevolParam.setFlipped(manager.isTrimvolFlipped());
+      if (flipped) {
+        squeezevolParam.setReductionFactorY(ltfReductionFactorXY.getText(doValidation));
+        squeezevolParam.setReductionFactorZ(ltfReductionFactorZ.getText(doValidation));
+      }
+      else {
+        squeezevolParam.setReductionFactorY(ltfReductionFactorZ.getText(doValidation));
+        squeezevolParam.setReductionFactorZ(ltfReductionFactorXY.getText(doValidation));
+      }
+      squeezevolParam.setLinearInterpolation(cbLinearInterpolation.isSelected());
+      if (rbInputFileTrimVol.isSelected()) {
+        squeezevolParam.setInputFile(ImageFileType.TRIM_VOL_OUTPUT);
+      }
+      else {
+        squeezevolParam.setInputFile(ImageFileType.FLATTEN_OUTPUT);
+      }
+      return true;
     }
-    else {
-      squeezevolParam.setReductionFactorY(ltfReductionFactorZ.getText());
-      squeezevolParam.setReductionFactorZ(ltfReductionFactorXY.getText());
-    }
-    squeezevolParam.setLinearInterpolation(cbLinearInterpolation.isSelected());
-    if (rbInputFileTrimVol.isSelected()) {
-      squeezevolParam.setInputFile(ImageFileType.TRIM_VOL_OUTPUT);
-    }
-    else {
-      squeezevolParam.setInputFile(ImageFileType.FLATTEN_OUTPUT);
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 

@@ -264,8 +264,8 @@ public final class ProcessSeries implements ConstProcessSeries {
       System.out.println("ProcessSeries.startNextProcess:process=" + process);
     }
     forceNextProcess = process.forceNextProcess;
-    manager.startNextProcess(uiComponent,axisID, process, processResultDisplay, this, dialogType,
-        processDisplay);
+    manager.startNextProcess(uiComponent, axisID, process, processResultDisplay, this,
+        dialogType, processDisplay);
     return true;
   }
 
@@ -292,8 +292,8 @@ public final class ProcessSeries implements ConstProcessSeries {
       }
       Process process = failProcess;
       failProcess = null;
-      manager.startNextProcess(uiComponent,axisID, process, processResultDisplay, this, dialogType,
-          processDisplay);
+      manager.startNextProcess(uiComponent, axisID, process, processResultDisplay, this,
+          dialogType, processDisplay);
     }
   }
 
@@ -425,6 +425,9 @@ public final class ProcessSeries implements ConstProcessSeries {
       return true;
     }
     if (processData == null) {
+      return false;
+    }
+    if (lastProcess == null) {
       return false;
     }
     // Return true of the last process information in processData doesn't match the

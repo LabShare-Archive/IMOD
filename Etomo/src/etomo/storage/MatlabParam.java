@@ -408,10 +408,10 @@ public final class MatlabParam {
   private final ParsedNumber flgWedgeWeight = ParsedNumber.getMatlabInstance();
   private final ParsedQuotedString sampleSphere = ParsedQuotedString.getInstance();
   private final ParsedNumber sampleInterval = ParsedNumber
-      .getMatlabInstance(EtomoNumber.Type.FLOAT);
+      .getMatlabInstance(EtomoNumber.Type.DOUBLE);
   private final ParsedQuotedString maskType = ParsedQuotedString.getInstance();
   private final ParsedArray maskModelPts = ParsedArray.getMatlabInstance(
-      EtomoNumber.Type.FLOAT, false);
+      EtomoNumber.Type.DOUBLE, false);
   private final ParsedNumber insideMaskRadius = ParsedNumber.getMatlabInstance();
   private final ParsedNumber outsideMaskRadius = ParsedNumber.getMatlabInstance();
   private final ParsedNumber nWeightGroup = ParsedNumber.getMatlabInstance();
@@ -1184,7 +1184,7 @@ public final class MatlabParam {
     volumeList.clear();
     int size = 0;
     // relativeOrient
-    ParsedList relativeOrient = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
+    ParsedList relativeOrient = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
     relativeOrient.parse(autodoc.getAttribute(RELATIVE_ORIENT_KEY));
     size = Math.max(size, relativeOrient.size());
     // fnVolume
@@ -1208,7 +1208,7 @@ public final class MatlabParam {
       initMotlCode = InitMotlCode.getInstance(attribute);
     }
     // tiltRange
-    ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
+    ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
     tiltRange.parse(autodoc.getAttribute(TILT_RANGE_KEY));
     size = Math.max(size, tiltRange.size());
     // Add elements to volumeList
@@ -1239,15 +1239,15 @@ public final class MatlabParam {
     iterationList.clear();
     int size = 0;
     // dPhi
-    ParsedList dPhi = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
+    ParsedList dPhi = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
     dPhi.parse(autodoc.getAttribute(D_PHI_KEY));
     size = Math.max(size, dPhi.size());
     // dTheta
-    ParsedList dTheta = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
+    ParsedList dTheta = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
     dTheta.parse(autodoc.getAttribute(D_THETA_KEY));
     size = Math.max(size, dTheta.size());
     // dPsi
-    ParsedList dPsi = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
+    ParsedList dPsi = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
     dPsi.parse(autodoc.getAttribute(D_PSI_KEY));
     size = Math.max(size, dPsi.size());
     // searchRadius
@@ -1255,14 +1255,14 @@ public final class MatlabParam {
     searchRadius.parse(autodoc.getAttribute(SEARCH_RADIUS_KEY));
     size = Math.max(size, searchRadius.size());
     // lowCutoff
-    ParsedList lowCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
+    ParsedList lowCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
     lowCutoff.parse(autodoc.getAttribute(LOW_CUTOFF_KEY));
     // hiCutoff
-    ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
+    ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
     hiCutoff.parse(autodoc.getAttribute(HI_CUTOFF_KEY));
     size = Math.max(size, hiCutoff.size());
     // refThreshold
-    ParsedList refThreshold = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
+    ParsedList refThreshold = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
     refThreshold.parse(autodoc.getAttribute(REF_THRESHOLD_KEY));
     // duplicateShiftTolerance
     ParsedArray duplicateShiftTolerance = ParsedArray.getMatlabInstance();
@@ -1356,7 +1356,7 @@ public final class MatlabParam {
     if (initMotlCode == null) {
       initMotlFile = ParsedList.getStringInstance();
     }
-    ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
+    ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
     // build the lists
     for (int i = 0; i < volumeList.size(); i++) {
       Volume volume = (Volume) volumeList.get(i);
@@ -1384,13 +1384,13 @@ public final class MatlabParam {
    * @param valueMap
    */
   private void buildParsableIterationValues(final Map valueMap) {
-    ParsedList dPhi = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
-    ParsedList dTheta = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
-    ParsedList dPsi = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
+    ParsedList dPhi = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
+    ParsedList dTheta = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
+    ParsedList dPsi = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
     ParsedList searchRadius = ParsedList.getMatlabInstance();
-    ParsedList lowCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
-    ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
-    ParsedList refThreshold = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
+    ParsedList lowCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
+    ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
+    ParsedList refThreshold = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
     ParsedArray duplicateShiftTolerance = ParsedArray.getMatlabInstance();
     ParsedArray duplicateAngularTolerance = ParsedArray.getMatlabInstance();
     // build the lists
@@ -1875,12 +1875,12 @@ public final class MatlabParam {
     private static final int START_INDEX = 0;
     private static final int END_INDEX = 1;
     private final ParsedArray tiltRange = ParsedArray
-        .getMatlabInstance(EtomoNumber.Type.FLOAT);
+        .getMatlabInstance(EtomoNumber.Type.DOUBLE);
     /**
      * @deprecated - only for validation
      */
     private final ParsedArray relativeOrient = ParsedArray
-        .getInstance(EtomoNumber.Type.FLOAT);
+        .getInstance(EtomoNumber.Type.DOUBLE);
     private final ParsedQuotedString fnVolume = ParsedQuotedString.getInstance();
     private final ParsedQuotedString fnModParticle = ParsedQuotedString.getInstance();
     private final ParsedQuotedString initMotl = ParsedQuotedString.getInstance();
@@ -2000,7 +2000,7 @@ public final class MatlabParam {
    */
   private static final class SearchAngleArea {
     private final ParsedArrayDescriptor descriptor = ParsedArrayDescriptor
-        .getInstance(EtomoNumber.Type.FLOAT);
+        .getInstance(EtomoNumber.Type.DOUBLE);
 
     /**
      * Sets both the End and Start values.  The Start is set to the negation of
@@ -2008,7 +2008,7 @@ public final class MatlabParam {
      * @param input
      */
     private void setEnd(final String input) {
-      EtomoNumber end = new EtomoNumber(EtomoNumber.Type.FLOAT);
+      EtomoNumber end = new EtomoNumber(EtomoNumber.Type.DOUBLE);
       end.set(input);
       if (end.isNull()) {
         end.set(0);
@@ -2025,7 +2025,7 @@ public final class MatlabParam {
      * @param input
      */
     private void setIncrement(final String input) {
-      EtomoNumber increment = new EtomoNumber(EtomoNumber.Type.FLOAT);
+      EtomoNumber increment = new EtomoNumber(EtomoNumber.Type.DOUBLE);
       increment.set(input);
       if (increment.equals(0)) {
         increment.set(1);
@@ -2056,11 +2056,11 @@ public final class MatlabParam {
 
     private final ParsedArray searchRadius = ParsedArray.getMatlabInstance();
     private final ParsedArray lowCutoff = ParsedArray
-        .getMatlabInstance(EtomoNumber.Type.FLOAT);
+        .getMatlabInstance(EtomoNumber.Type.DOUBLE);
     private final ParsedArray hiCutoff = ParsedArray
-        .getMatlabInstance(EtomoNumber.Type.FLOAT);
+        .getMatlabInstance(EtomoNumber.Type.DOUBLE);
     private final ParsedNumber refThreshold = ParsedNumber
-        .getMatlabInstance(EtomoNumber.Type.FLOAT);
+        .getMatlabInstance(EtomoNumber.Type.DOUBLE);
     private final ParsedNumber duplicateShiftTolerance = ParsedNumber.getMatlabInstance();
     private final ParsedNumber duplicateAngularTolerance = ParsedNumber
         .getMatlabInstance();

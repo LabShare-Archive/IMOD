@@ -101,20 +101,20 @@ final class BoundaryRow {
     this.layout = layout;
     this.constraints = constraints;
     this.table = table;
-    //boundary
+    // boundary
     String firstSection = Integer.toString(key);
     boundary.setText(firstSection);
     sections.setText(firstSection + " & " + Integer.toString(key + 1));
-    //bestGap
+    // bestGap
     bestGap.setValue(screenState.getBestGap(key));
-    //meanError
+    // meanError
     meanError.setValue(screenState.getMeanError(key));
-    //maxError
+    // maxError
     maxError.setValue(screenState.getMaxError(key));
-    //origEnd
+    // origEnd
     SectionTableRowData data = (SectionTableRowData) metaData.getSectionTableData().get(
         key - 1);
-    origEnd.setValue(data.getJoinFinalEnd().getLong());
+    origEnd.setValue(data.getJoinFinalEnd().getInt());
     endInverted = data.getInverted().is();
     if (endInverted) {
       origEnd.setWarning(true, INVERTED_TOOLTIP);
@@ -123,9 +123,9 @@ final class BoundaryRow {
       origEnd.setWarning(false, null);
     }
     zMaxEnd = data.getSetupZMax();
-    //origStart
+    // origStart
     data = (SectionTableRowData) metaData.getSectionTableData().get(key);
-    origStart.setValue(data.getJoinFinalStart().getLong());
+    origStart.setValue(data.getJoinFinalStart().getInt());
     startInverted = data.getInverted().is();
     if (startInverted) {
       origStart.setWarning(true, INVERTED_TOOLTIP);
@@ -134,13 +134,13 @@ final class BoundaryRow {
       origStart.setWarning(false, null);
     }
     zMaxStart = data.getSetupZMax();
-    //adjustedEnd and adjustedStart
-    adjustedEnd = SpinnerCell.getLongInstance(zMaxEnd * 2 * -1, zMaxEnd * 2);
+    // adjustedEnd and adjustedStart
+    adjustedEnd = SpinnerCell.getIntInstance(zMaxEnd * 2 * -1, zMaxEnd * 2);
     adjustedEnd.setEditable(false);
-    adjustedStart = SpinnerCell.getLongInstance(zMaxStart * 2 * -1, zMaxStart * 2);
+    adjustedStart = SpinnerCell.getIntInstance(zMaxStart * 2 * -1, zMaxStart * 2);
     adjustedStart.setEditable(false);
     setAdjustedValues(metaData);
-    //listeners
+    // listeners
     adjustedEndChangeListener = new AdjustedEndChangeListener(this);
     adjustedStartChangeListener = new AdjustedStartChangeListener(this);
     adjustedEnd.addChangeListener(adjustedEndChangeListener);
@@ -148,10 +148,10 @@ final class BoundaryRow {
   }
 
   void setNames() {
-    adjustedStart.setHeaders(BoundaryTable.TABLE_LABEL, sections, table
-        .getAdjustedHeaderCell());
-    adjustedEnd.setHeaders(BoundaryTable.TABLE_LABEL, sections, table
-        .getAdjustedHeaderCell());
+    adjustedStart.setHeaders(BoundaryTable.TABLE_LABEL, sections,
+        table.getAdjustedHeaderCell());
+    adjustedEnd.setHeaders(BoundaryTable.TABLE_LABEL, sections,
+        table.getAdjustedHeaderCell());
   }
 
   /**
@@ -161,8 +161,8 @@ final class BoundaryRow {
   synchronized private void setAdjustedValues(final ConstJoinMetaData metaData) {
     adjustedEnd.removeChangeListener(adjustedEndChangeListener);
     adjustedStart.removeChangeListener(adjustedStartChangeListener);
-    gap = new Gap(Math.round(bestGap.getFloatValue()), origEnd.getLongValue(), origStart
-        .getLongValue(), endInverted, startInverted, zMaxEnd, zMaxStart);
+    gap = new Gap((int) Math.round(bestGap.getDoubleValue()), origEnd.getIntValue(),
+        origStart.getIntValue(), endInverted, startInverted, zMaxEnd, zMaxStart);
     ConstEtomoNumber endNumber;
     if (metaData == null || metaData.isBoundaryRowEndListEmpty()
         || (endNumber = metaData.getBoundaryRowEnd(boundary.getInt())) == null) {
@@ -170,7 +170,7 @@ final class BoundaryRow {
       adjustedStart.setValue(gap.getAdjustedRight());
     }
     else {
-      long end = endNumber.getLong();
+      int end = endNumber.getInt();
       adjustedEnd.setValue(end);
       gap.msgLeftGapBoundaryChanged(end);
       adjustedStart.setValue(gap.getAdjustedRight());
@@ -201,19 +201,19 @@ final class BoundaryRow {
    * @param orig (either origEnd or origStart)
    * @return
    */
-  private long calculateNegativeAdjustment(final int roundedBestGap, final long orig) {
+  private int calculateNegativeAdjustment(final int roundedBestGap, final int orig) {
     if (roundedBestGap < 0 || orig <= 0) {
       throw new IllegalStateException(
           "Only pass the absolute value of roundedBestGap.  Orig is either origEnd or origStart and must be at least 1.\nroundedBestGap="
               + roundedBestGap + ",orig=" + orig);
     }
-    long adjustment = roundedBestGap / 2;
-    //Will have to add negative adjustment to orig and the result must be at
-    //least 1.
+    int adjustment = roundedBestGap / 2;
+    // Will have to add negative adjustment to orig and the result must be at
+    // least 1.
     if (adjustment > orig - 1) {
       adjustment = orig - 1;
     }
-    //Make adjustment negative.
+    // Make adjustment negative.
     return adjustment * -1;
   }
 
@@ -307,7 +307,7 @@ final class BoundaryRow {
       setAdjustedValues(null);
     }
     adjustedStart.removeChangeListener(adjustedStartChangeListener);
-    gap.msgLeftGapBoundaryChanged(adjustedEnd.getLongValue());
+    gap.msgLeftGapBoundaryChanged(adjustedEnd.getIntValue());
     adjustedStart.setValue(gap.getAdjustedRight());
     setAdjustedValueWarnings();
     adjustedStart.addChangeListener(adjustedStartChangeListener);
@@ -318,7 +318,7 @@ final class BoundaryRow {
       setAdjustedValues(null);
     }
     adjustedEnd.removeChangeListener(adjustedEndChangeListener);
-    gap.msgRightGapBoundaryChanged(adjustedStart.getLongValue());
+    gap.msgRightGapBoundaryChanged(adjustedStart.getIntValue());
     adjustedEnd.setValue(gap.getAdjustedLeft());
     setAdjustedValueWarnings();
     adjustedEnd.addChangeListener(adjustedEndChangeListener);
@@ -349,11 +349,11 @@ final class BoundaryRow {
   }
 
   private static final class Gap {
-    private final long gap;
+    private final int gap;
     private final GapBoundary leftBoundary;
     private final GapBoundary rightBoundary;
 
-    private Gap(long gap, long origLeft, long origRight, boolean leftInverted,
+    private Gap(int gap, int origLeft, int origRight, boolean leftInverted,
         boolean rightInverted, int okMaxLeft, int okMaxRight) {
       this.gap = gap;
       leftBoundary = new GapBoundary(origLeft, leftInverted, okMaxLeft, true);
@@ -365,10 +365,10 @@ final class BoundaryRow {
       if (gap < 0) {
         positiveGap = false;
       }
-      //Increment the absolute values of the left and right boundary
-      //until the absolute values of the adjustments equal the absolute gap.
-      //Try to stay in the ok range.
-      long absGap = Math.abs(gap);
+      // Increment the absolute values of the left and right boundary
+      // until the absolute values of the adjustments equal the absolute gap.
+      // Try to stay in the ok range.
+      int absGap = Math.abs(gap);
       boolean leftSucceeded;
       boolean rightSucceeded = true;
       boolean stayInOkRange = true;
@@ -377,38 +377,38 @@ final class BoundaryRow {
         if (leftBoundary.getAdjustmentAbsValue() + rightBoundary.getAdjustmentAbsValue() < absGap) {
           rightSucceeded = rightBoundary.adjust(positiveGap, stayInOkRange);
         }
-        //see if have to go outside of ok range
+        // see if have to go outside of ok range
         stayInOkRange = leftSucceeded || rightSucceeded;
       }
     }
 
-    void msgLeftGapBoundaryChanged(long adjustedLeft) {
-      long gapChange = leftBoundary.move(adjustedLeft);
-      //The gap has been changed on the left side, change the right side to get
-      //back to the original gap
+    void msgLeftGapBoundaryChanged(int adjustedLeft) {
+      int gapChange = leftBoundary.move(adjustedLeft);
+      // The gap has been changed on the left side, change the right side to get
+      // back to the original gap
       boolean increasedGap = gapChange > 0;
-      long absGapChange = Math.abs(gapChange);
-      for (long l = 0; l < absGapChange; l++) {
+      int absGapChange = Math.abs(gapChange);
+      for (int l = 0; l < absGapChange; l++) {
         rightBoundary.adjust(increasedGap, false);
       }
     }
 
-    void msgRightGapBoundaryChanged(long adjustedRight) {
-      long gapChange = rightBoundary.move(adjustedRight);
-      //The gap has been changed on the right side, change the left side to get
-      //back to the original gap
+    void msgRightGapBoundaryChanged(int adjustedRight) {
+      int gapChange = rightBoundary.move(adjustedRight);
+      // The gap has been changed on the right side, change the left side to get
+      // back to the original gap
       boolean increasedGap = gapChange > 0;
-      long absGapChange = Math.abs(gapChange);
-      for (long l = 0; l < absGapChange; l++) {
+      int absGapChange = Math.abs(gapChange);
+      for (int l = 0; l < absGapChange; l++) {
         leftBoundary.adjust(increasedGap, false);
       }
     }
 
-    long getAdjustedLeft() {
+    int getAdjustedLeft() {
       return leftBoundary.getAdjusted();
     }
 
-    long getAdjustedRight() {
+    int getAdjustedRight() {
       return rightBoundary.getAdjusted();
     }
 
@@ -421,14 +421,14 @@ final class BoundaryRow {
     }
 
     private static final class GapBoundary {
-      private final long orig;
+      private final int orig;
       private final boolean inverted;
       private final boolean leftSide;
       private final int okMin = 1;
       private final int okMax;
-      private long adjustment = 0;
+      private int adjustment = 0;
 
-      private GapBoundary(long orig, boolean inverted, int okMax, boolean leftSide) {
+      private GapBoundary(int orig, boolean inverted, int okMax, boolean leftSide) {
         this.orig = orig;
         this.inverted = inverted;
         this.okMax = okMax;
@@ -478,14 +478,14 @@ final class BoundaryRow {
        * @param adjusted
        * @return change in gap size -- positive if gap was increased, negative if gap was decreased
        */
-      long move(long adjusted) {
-        long newAdjustment = adjusted - orig;
-        long change = newAdjustment - adjustment;
+      int move(int adjusted) {
+        int newAdjustment = adjusted - orig;
+        int change = newAdjustment - adjustment;
         adjustment = newAdjustment;
         if (change == 0) {
           return 0;
         }
-        //Find out if this move increased the gap size or decreased it
+        // Find out if this move increased the gap size or decreased it
         if ((change > 0 && !leftSide && !inverted)
             || (change > 0 && leftSide && inverted)
             || (change < 0 && leftSide && !inverted)
@@ -502,15 +502,15 @@ final class BoundaryRow {
       }
 
       boolean isOk() {
-        long adjusted = orig + adjustment;
+        int adjusted = orig + adjustment;
         return adjusted >= okMin && adjusted <= okMax;
       }
 
-      long getAdjustmentAbsValue() {
+      int getAdjustmentAbsValue() {
         return Math.abs(adjustment);
       }
 
-      long getAdjusted() {
+      int getAdjusted() {
         return orig + adjustment;
       }
     }
