@@ -441,6 +441,8 @@ public final class ComScriptManager extends BaseComScriptManager {
   private ComScript scriptSirtsetupB;
   private ComScript scriptTiltForSirtA;
   private ComScript scriptTiltForSirtB;
+  private ComScript scriptAutofidseedA;
+  private ComScript scriptAutofidseedB;
 
   public ComScriptManager(ApplicationManager appManager) {
     super(appManager);
@@ -452,7 +454,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @param axisID the AxisID to load.
    */
   public void loadEraser(AxisID axisID) {
-    //  Assign the new ComScript object object to the appropriate reference
+    // Assign the new ComScript object object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptEraserB = loadComScript("eraser", axisID, true, false, false);
     }
@@ -469,7 +471,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public CCDEraserParam getCCDEraserParam(AxisID axisID, CommandMode mode) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript eraser;
     if (axisID == AxisID.SECOND) {
       eraser = scriptEraserB;
@@ -492,7 +494,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void saveEraser(CCDEraserParam ccdEraserParam, AxisID axisID) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptEraser;
     if (axisID == AxisID.SECOND) {
       scriptEraser = scriptEraserB;
@@ -511,7 +513,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @param axisID the AxisID to load.
    */
   public void loadXcorr(AxisID axisID) {
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptXcorrB = loadComScript("xcorr", axisID, true, false, false);
     }
@@ -544,7 +546,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * with the input arguments from xcorr in the com script.
    */
   public TiltxcorrParam getTiltxcorrParamFromXcorrPt(AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript xcorrPt;
     if (axisID == AxisID.SECOND) {
       xcorrPt = scriptXcorrPtB;
@@ -561,13 +563,35 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   /**
+   * Get the autofidseed parameters
+   * @param axisID the AxisID to read.
+   * @return a TiltxcorrParam object that will be created and initialized
+   * with the input arguments from xcorr in the com script.
+   */
+  public AutofidseedParam getAutofidseedParam(AxisID axisID) {
+    // Get a reference to the appropriate script object
+    ComScript comScript;
+    if (axisID == AxisID.SECOND) {
+      comScript = scriptAutofidseedB;
+    }
+    else {
+      comScript = scriptAutofidseedA;
+    }
+
+    // Initialize a TiltxcorrParam object from the com script command object
+    AutofidseedParam param = new AutofidseedParam(appManager, axisID);
+    initialize(param, comScript, "autofidseed", axisID, false, false);
+    return param;
+  }
+
+  /**
    * Get the tiltxcorr parameters from the specified xcorr script object
    * @param axisID the AxisID to read.
    * @return a TiltxcorrParam object that will be created and initialized
    * with the input arguments from xcorr in the com script.
    */
   public TiltxcorrParam getTiltxcorrParam(AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript xcorr;
     if (axisID == AxisID.SECOND) {
       xcorr = scriptXcorrB;
@@ -591,7 +615,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void saveXcorrPt(TiltxcorrParam tiltXcorrParam, AxisID axisID) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptXcorrPt;
     if (axisID == AxisID.SECOND) {
       scriptXcorrPt = scriptXcorrPtB;
@@ -603,6 +627,24 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   /**
+   * Save the specified autofidseed com script, updating the autofidseed parameters
+   * @param axisID the AxisID to load.
+   * @param param an AutofidseedParam object that will be used to update
+   * the autofidseed com script
+   */
+  public void saveAutofidseed(AutofidseedParam param, AxisID axisID) {
+    // Get a reference to the appropriate script object
+    ComScript comScript;
+    if (axisID == AxisID.SECOND) {
+      comScript = scriptAutofidseedB;
+    }
+    else {
+      comScript = scriptAutofidseedA;
+    }
+    modifyCommand(comScript, param, "autofidseed", axisID, false, false);
+  }
+
+  /**
    * Save the specified xcorr com script updating the tiltxcorr parameters
    * @param axisID the AxisID to load.
    * @param tiltXcorrParam a TiltxcorrParam object that will be used to update
@@ -610,7 +652,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void saveXcorr(TiltxcorrParam tiltXcorrParam, AxisID axisID) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptXcorr;
     if (axisID == AxisID.SECOND) {
       scriptXcorr = scriptXcorrB;
@@ -627,7 +669,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @param axisID
    */
   public void saveXcorr(BlendmontParam blendmontParam, AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptXcorr;
     if (axisID == AxisID.SECOND) {
       scriptXcorr = scriptXcorrB;
@@ -640,7 +682,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public void saveXcorrToUndistort(BlendmontParam blendmontParam, AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptUndistort;
     ComScript scriptXcorr;
     if (axisID == AxisID.SECOND) {
@@ -662,7 +704,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @param axisID
    */
   public void saveXcorr(GotoParam gotoParam, AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptXcorr;
     if (axisID == AxisID.SECOND) {
       scriptXcorr = scriptXcorrB;
@@ -680,7 +722,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void loadPrenewst(AxisID axisID) {
 
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptPrenewstB = loadComScript("prenewst", axisID, true, false, false);
     }
@@ -690,7 +732,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public void loadPreblend(AxisID axisID) {
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptPreblendB = loadComScript(
           BlendmontParam.getProcessName(BlendmontParam.Mode.PREBLEND), axisID, true,
@@ -704,7 +746,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public void loadBlend(AxisID axisID) {
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptBlendB = loadComScript(
           BlendmontParam.getProcessName(BlendmontParam.Mode.BLEND), axisID, true, false,
@@ -718,7 +760,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public void loadBlend3dFind(AxisID axisID) {
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptBlend3dFindB = loadComScript(ProcessName.BLEND_3D_FIND, axisID, true, false,
           false);
@@ -734,8 +776,27 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @param required
    * @return true if script has loaded
    */
+  public boolean loadAutofidseed(AxisID axisID, boolean required) {
+    // Assign the new ComScriptObject object to the appropriate reference
+    if (axisID == AxisID.SECOND) {
+      scriptAutofidseedB = loadComScript(
+          FileType.AUTOFIDSEED_COMSCRIPT.getFileName(appManager, axisID), axisID, true,
+          required, false, false);
+      return scriptAutofidseedB != null;
+    }
+    scriptAutofidseedA = loadComScript(
+        FileType.AUTOFIDSEED_COMSCRIPT.getFileName(appManager, axisID), axisID, true,
+        required, false, false);
+    return scriptAutofidseedA != null;
+  }
+
+  /**
+   * @param axisID
+   * @param required
+   * @return true if script has loaded
+   */
   public boolean loadXcorrPt(AxisID axisID, boolean required) {
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptXcorrPtB = loadComScript(
           FileType.PATCH_TRACKING_COMSCRIPT.getFileName(appManager, axisID), axisID,
@@ -749,7 +810,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public boolean loadSirtsetup(AxisID axisID) {
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptSirtsetupB = loadComScript(
           FileType.SIRTSETUP_COMSCRIPT.getFileName(appManager, axisID), axisID, true,
@@ -763,7 +824,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public SirtsetupParam getSirtsetupParam(AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript sirtsetup;
     if (axisID == AxisID.SECOND) {
       sirtsetup = scriptSirtsetupB;
@@ -781,7 +842,7 @@ public final class ComScriptManager extends BaseComScriptManager {
 
   public void saveSirtsetup(SirtsetupParam param, AxisID axisID) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript script;
     if (axisID == AxisID.SECOND) {
       script = scriptSirtsetupB;
@@ -798,7 +859,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @return true if script has loaded
    */
   public boolean loadCtfPlotter(AxisID axisID, boolean required) {
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptCtfPlotterB = loadComScript(ProcessName.CTF_PLOTTER.getComscript(axisID),
           axisID, true, required, false, false);
@@ -810,7 +871,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public boolean loadCtfCorrection(AxisID axisID, boolean required) {
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptCtfCorrectionB = loadComScript(
           ProcessName.CTF_CORRECTION.getComscript(axisID), axisID, true, required, false,
@@ -829,7 +890,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * with the input arguments from prenewst in the com script.
    */
   public NewstParam getPrenewstParam(AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptPrenewst;
     if (axisID == AxisID.SECOND) {
       scriptPrenewst = scriptPrenewstB;
@@ -839,7 +900,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a NewstParam object from the com script command object
-    NewstParam prenewstParam =  NewstParam.getInstance(appManager, axisID);
+    NewstParam prenewstParam = NewstParam.getInstance(appManager, axisID);
 
     // Implementation note: since the name of the command newst was changed to
     // newstack we need to figure out which one it is before calling initialize.
@@ -850,7 +911,7 @@ public final class ComScriptManager extends BaseComScriptManager {
 
   public BlendmontParam getPreblendParam(AxisID axisID) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptPreblend;
     if (axisID == AxisID.SECOND) {
       scriptPreblend = scriptPreblendB;
@@ -868,7 +929,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public BlendmontParam getBlendParam(AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptBlend;
     if (axisID == AxisID.SECOND) {
       scriptBlend = scriptBlendB;
@@ -890,7 +951,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @return
    */
   public BlendmontParam getBlendParamFromBlend3dFind(AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptBlend3dFind;
     if (axisID == AxisID.SECOND) {
       scriptBlend3dFind = scriptBlend3dFindB;
@@ -913,7 +974,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @return
    */
   public MrcTaperParam getMrcTaperParamFromBlend3dFind(AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptBlend3dFind;
     if (axisID == AxisID.SECOND) {
       scriptBlend3dFind = scriptBlend3dFindB;
@@ -936,7 +997,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void savePrenewst(NewstParam prenewstParam, AxisID axisID) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptPrenewst;
     if (axisID == AxisID.SECOND) {
       scriptPrenewst = scriptPrenewstB;
@@ -952,9 +1013,9 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public void savePreblend(BlendmontParam blendmontParam, AxisID axisID) {
-    //TEMP
+    // TEMP
     System.err.println("savePreblend:mode=" + blendmontParam.getMode());
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptPreblend;
     if (axisID == AxisID.SECOND) {
       scriptPreblend = scriptPreblendB;
@@ -967,9 +1028,9 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public void saveBlend(BlendmontParam blendmontParam, AxisID axisID) {
-    //TEMP
+    // TEMP
     System.err.println("saveBlend:mode=" + blendmontParam.getMode());
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptBlend;
     if (axisID == AxisID.SECOND) {
       scriptBlend = scriptBlendB;
@@ -982,7 +1043,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public void saveBlend3dFind(BlendmontParam blendmontParam, AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptBlend3dFind;
     if (axisID == AxisID.SECOND) {
       scriptBlend3dFind = scriptBlend3dFindB;
@@ -995,7 +1056,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public void saveBlend3dFind(MrcTaperParam param, AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptBlend3dFind;
     if (axisID == AxisID.SECOND) {
       scriptBlend3dFind = scriptBlend3dFindB;
@@ -1047,7 +1108,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void loadTrack(AxisID axisID) {
 
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptTrackB = loadComScript("track", axisID, true, false, false);
     }
@@ -1062,7 +1123,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void loadFindBeads3d(AxisID axisID) {
 
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptFindBeads3dB = loadComScript(ProcessName.FIND_BEADS_3D.toString(), axisID,
           true, false, false);
@@ -1081,7 +1142,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public BeadtrackParam getBeadtrackParam(AxisID axisID) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript track;
     if (axisID == AxisID.SECOND) {
       track = scriptTrackB;
@@ -1104,7 +1165,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void saveTrack(BeadtrackParam beadtrackParam, AxisID axisID) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptTrack;
     if (axisID == AxisID.SECOND) {
       scriptTrack = scriptTrackB;
@@ -1122,7 +1183,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void loadAlign(AxisID axisID) {
 
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptAlignB = loadComScript("align", axisID, true, false, false);
     }
@@ -1139,7 +1200,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public TiltalignParam getTiltalignParam(AxisID axisID) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript align;
     if (axisID == AxisID.SECOND) {
       align = scriptAlignB;
@@ -1161,7 +1222,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @return
    */
   public XfproductParam getXfproductInAlign(AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript align;
     if (axisID == AxisID.SECOND) {
       align = scriptAlignB;
@@ -1184,7 +1245,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void saveAlign(TiltalignParam tiltalignParam, AxisID axisID) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptAlign;
     if (axisID == AxisID.SECOND) {
       scriptAlign = scriptAlignB;
@@ -1193,7 +1254,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       scriptAlign = scriptAlignA;
     }
 
-    //  update the tiltalign parameters
+    // update the tiltalign parameters
     modifyCommand(scriptAlign, tiltalignParam, "tiltalign", axisID, false, false);
   }
 
@@ -1203,7 +1264,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @param axisID
    */
   public void saveXfproductInAlign(XfproductParam xfproductParam, AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptAlign;
     if (axisID == AxisID.SECOND) {
       scriptAlign = scriptAlignB;
@@ -1212,7 +1273,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       scriptAlign = scriptAlignA;
     }
 
-    //  update the tiltalign parameters
+    // update the tiltalign parameters
     modifyCommand(scriptAlign, xfproductParam, "xfproduct", axisID, false, false);
   }
 
@@ -1221,7 +1282,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @param axisID the AxisID to load.
    */
   public void loadNewst(AxisID axisID) {
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptNewstB = loadComScript("newst", axisID, true, false, false);
     }
@@ -1235,7 +1296,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @param axisID the AxisID to load.
    */
   public void loadNewst3dFind(AxisID axisID) {
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptNewst3dFindB = loadComScript(ProcessName.NEWST_3D_FIND, axisID, true, false,
           false);
@@ -1278,7 +1339,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public NewstParam getNewstComNewstParam(AxisID axisID) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptNewst;
     if (axisID == AxisID.SECOND) {
       scriptNewst = scriptNewstB;
@@ -1288,7 +1349,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a NewstParam object from the com script command object
-    NewstParam newstParam =  NewstParam.getInstance(appManager, axisID);
+    NewstParam newstParam = NewstParam.getInstance(appManager, axisID);
 
     // Implementation note: since the name of the command newst was changed to
     // newstack we need to figure out which one it is before calling initialize.
@@ -1304,7 +1365,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * with the input arguments from newst in the com script.
    */
   public NewstParam getNewstParamFromNewst3dFind(AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptNewst3dfind;
     if (axisID == AxisID.SECOND) {
       scriptNewst3dfind = scriptNewst3dFindB;
@@ -1314,7 +1375,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a NewstParam object from the com script command object
-    NewstParam newstParam =  NewstParam.getInstance(appManager, axisID);
+    NewstParam newstParam = NewstParam.getInstance(appManager, axisID);
 
     // Implementation note: since the name of the command newst was changed to
     // newstack we need to figure out which one it is before calling initialize.
@@ -1343,7 +1404,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * with the input arguments from newst in the com script.
    */
   public MrcTaperParam getMrcTaperParamFromNewst3dFind(AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptNewst3dfind;
     if (axisID == AxisID.SECOND) {
       scriptNewst3dfind = scriptNewst3dFindB;
@@ -1369,7 +1430,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void saveNewst(NewstParam newstParam, AxisID axisID) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptNewst;
     if (axisID == AxisID.SECOND) {
       scriptNewst = scriptNewstB;
@@ -1393,7 +1454,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * NewstParam command in the newst_3dfind com script
    */
   public void saveNewst3dFind(NewstParam newstParam, AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptNewst3dFind;
     if (axisID == AxisID.SECOND) {
       scriptNewst3dFind = scriptNewst3dFindB;
@@ -1417,7 +1478,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * MrcTaperParam command in the newst_3dfind com script
    */
   public void saveNewst3dFind(MrcTaperParam param, AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptNewst3dFind;
     if (axisID == AxisID.SECOND) {
       scriptNewst3dFind = scriptNewst3dFindB;
@@ -1435,7 +1496,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @param axisID the AxisID to load.
    */
   public void loadTilt(AxisID axisID) {
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptTiltB = loadComScript(ProcessName.TILT, axisID, false, true, true);
     }
@@ -1449,7 +1510,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @param axisID the AxisID to load.
    */
   public void loadTiltForSirt(AxisID axisID) {
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptTiltForSirtB = loadComScript(FileType.TILT_FOR_SIRT_COMSCRIPT, axisID, false,
           true, true);
@@ -1465,7 +1526,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @param axisID the AxisID to load.
    */
   public void loadTilt3dFind(AxisID axisID) {
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptTilt3dFindB = loadComScript("tilt_3dfind", axisID, false, true, true);
     }
@@ -1497,7 +1558,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public TiltParam getTiltParam(AxisID axisID) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript tilt;
     if (axisID == AxisID.SECOND) {
       tilt = scriptTiltB;
@@ -1520,7 +1581,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * with the input arguments from tilt in the tilt for sirt com script.
    */
   public TiltParam getTiltParamFromTiltForSirt(AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript comScript;
     if (axisID == AxisID.SECOND) {
       comScript = scriptTiltForSirtB;
@@ -1543,7 +1604,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public TiltParam getTiltParamFromTilt3dFind(AxisID axisID) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript tilt;
     if (axisID == AxisID.SECOND) {
       tilt = scriptTilt3dFindB;
@@ -1568,7 +1629,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public TiltParam getTiltParamFromTilt3dFindReproject(AxisID axisID) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript tilt;
     if (axisID == AxisID.SECOND) {
       tilt = scriptTilt3dFindReprojectB;
@@ -1591,7 +1652,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * tiltalign command in the align com script
    */
   public void saveTilt(TiltParam tiltParam, AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptTilt;
     if (axisID == AxisID.SECOND) {
       scriptTilt = scriptTiltB;
@@ -1609,7 +1670,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * tilt command in the tilt_3dfind com script
    */
   public void saveTilt3dFind(TiltParam tiltParam, AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptTilt;
     if (axisID == AxisID.SECOND) {
       scriptTilt = scriptTilt3dFindB;
@@ -1628,7 +1689,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * tilt command in the tilt_3dfind_reproject com script
    */
   public void saveTilt3dFindReproject(TiltParam tiltParam, AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptTilt;
     if (axisID == AxisID.SECOND) {
       scriptTilt = scriptTilt3dFindReprojectB;
@@ -1644,7 +1705,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @param axisID the AxisID to load.
    */
   public void loadTomopitch(AxisID axisID) {
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptTomopitchB = loadComScript("tomopitch", axisID, true, false, false);
     }
@@ -1661,7 +1722,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public TomopitchParam getTomopitchParam(AxisID axisID) {
 
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript tomopitch;
     if (axisID == AxisID.SECOND) {
       tomopitch = scriptTomopitchB;
@@ -1683,7 +1744,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * tomopitch command in the tomopitch com script
    */
   public void saveTomopitch(TomopitchParam tomopitchParam, AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptTomopitch;
     if (axisID == AxisID.SECOND) {
       scriptTomopitch = scriptTomopitchB;
@@ -1695,7 +1756,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public void loadMTFFilter(AxisID axisID) {
-    //  Assign the new ComScriptObject object to the appropriate reference
+    // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptMTFFilterB = loadComScript(MTFFILTER_COMMAND, axisID, false, false, false);
     }
@@ -1705,7 +1766,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public CtfPhaseFlipParam getCtfPhaseFlipParam(AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript ctfPhaseflip;
     if (axisID == AxisID.SECOND) {
       ctfPhaseflip = scriptCtfCorrectionB;
@@ -1722,7 +1783,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public CtfPlotterParam getCtfPlotterParam(AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript ctfPlotter;
     if (axisID == AxisID.SECOND) {
       ctfPlotter = scriptCtfPlotterB;
@@ -1738,7 +1799,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public MTFFilterParam getMTFFilterParam(AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript mtfFilter;
     if (axisID == AxisID.SECOND) {
       mtfFilter = scriptMTFFilterB;
@@ -1754,7 +1815,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   public void saveMTFFilter(MTFFilterParam mtfFilterParam, AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript scriptMTFFilter;
     if (axisID == AxisID.SECOND) {
       scriptMTFFilter = scriptMTFFilterB;
@@ -1845,7 +1906,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @return
    */
   public BlendmontParam getBlendmontParamFromTiltxcorr(AxisID axisID) {
-    //  Get a reference to the appropriate script object
+    // Get a reference to the appropriate script object
     ComScript xcorr;
     if (axisID == AxisID.SECOND) {
       xcorr = scriptXcorrB;
@@ -2152,7 +2213,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public EchoParam getEchoParamFromCombine(String previousCommand) {
     // Initialize an EchoParam object from a location after previousCommand
-    //in the com script command
+    // in the com script command
     // object
     EchoParam echoParam = new EchoParam();
     if (!initialize(echoParam, scriptCombine, EchoParam.COMMAND_NAME, AxisID.ONLY, false,
@@ -2336,12 +2397,12 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
     Utilities.timestamp("update", command, script, Utilities.STARTED_STATUS);
 
-    //locate previous command
+    // locate previous command
     ComScriptCommand previousComScriptCommand = null;
     int previousCommandIndex = script.getScriptCommandIndex(previousCommand,
         caseInsensitive, separateWithASpace);
 
-    //previous command must exist
+    // previous command must exist
     if (previousCommandIndex == -1) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to update " + script.getName() + ".  ";
@@ -2352,11 +2413,11 @@ public final class ComScriptManager extends BaseComScriptManager {
       Utilities.timestamp("update", command, script, Utilities.FAILED_STATUS);
       return false;
     }
-    //  Update the specified com script command from the CommandParam object
+    // Update the specified com script command from the CommandParam object
     ComScriptCommand comScriptCommand = null;
     int commandIndex = script.getScriptCommandIndex(command, previousCommandIndex + 1,
         addNew, caseInsensitive, separateWithASpace);
-    //optional return false if failed
+    // optional return false if failed
     if (optional && commandIndex == -1) {
       Utilities.timestamp("updateComScript", command, script, Utilities.FAILED_STATUS);
       return false;
@@ -2380,7 +2441,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     // Replace the specified command by the updated comScriptCommand
     script.setScriptComand(commandIndex, comScriptCommand);
 
-    //  Write the script back out to disk
+    // Write the script back out to disk
     try {
       script.writeComFile();
     }
@@ -2424,20 +2485,20 @@ public final class ComScriptManager extends BaseComScriptManager {
       return;
     }
     Utilities.timestamp("update", command, toScript, Utilities.STARTED_STATUS);
-    //If no fromScript, then default to reading from and writing to the
-    //toScript.
+    // If no fromScript, then default to reading from and writing to the
+    // toScript.
     if (fromScript == null) {
       modifyCommand(toScript, params, command, axisID, true, false, caseInsensitive,
           separateWithASpace);
       Utilities.timestamp("update", command, toScript, Utilities.FINISHED_STATUS);
       return;
     }
-    //  Update the specified com script command from the CommandParam object
+    // Update the specified com script command from the CommandParam object
     ComScriptCommand comScriptCommand = null;
     int toScriptCommandIndex = toScript.getScriptCommandIndex(command, true,
         caseInsensitive, separateWithASpace);
     try {
-      //Get comScriptCommand from fromScript
+      // Get comScriptCommand from fromScript
       comScriptCommand = fromScript.getScriptCommand(command, caseInsensitive,
           separateWithASpace);
     }
@@ -2453,7 +2514,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       return;
     }
     try {
-      //Update comScriptCommand
+      // Update comScriptCommand
       params.updateComScriptCommand(comScriptCommand);
     }
     catch (BadComScriptException except) {
@@ -2468,10 +2529,10 @@ public final class ComScriptManager extends BaseComScriptManager {
       return;
     }
 
-    //Replace the specified command by the updated comScriptCommand in toScript
+    // Replace the specified command by the updated comScriptCommand in toScript
     toScript.setScriptComand(toScriptCommandIndex, comScriptCommand);
 
-    //Write toScript back out to disk
+    // Write toScript back out to disk
     try {
       toScript.writeComFile();
     }
@@ -2511,7 +2572,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       return -1;
     }
     Utilities.timestamp("update", command, script, Utilities.STARTED_STATUS);
-    //locate previous command
+    // locate previous command
     ComScriptCommand previousComScriptCommand = null;
     int previousCommandIndex = script.getScriptCommandIndex(previousCommand,
         caseInsensitive, separateWithASpace);
@@ -2567,7 +2628,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       return -1;
     }
 
-    //  Update the specified com script command from the CommandParam object
+    // Update the specified com script command from the CommandParam object
     ComScriptCommand comScriptCommand = null;
     int commandIndex = previousCommandIndex + 1;
 
@@ -2590,7 +2651,7 @@ public final class ComScriptManager extends BaseComScriptManager {
 
     // Replace the specified command by the updated comScriptCommand
     script.setScriptComand(commandIndex, comScriptCommand);
-    //  Write the script back out to disk
+    // Write the script back out to disk
     try {
       script.writeComFile();
     }
@@ -2621,7 +2682,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
     Utilities.timestamp("delete", command, script, Utilities.STARTED_STATUS);
 
-    //locate previous command
+    // locate previous command
     ComScriptCommand previousComScriptCommand = null;
     int previousCommandIndex = script.getScriptCommandIndex(previousCommand,
         caseInsensitive, separateWithASpace);
@@ -2637,7 +2698,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       return;
     }
 
-    //  Update the specified com script command from the CommandParam object
+    // Update the specified com script command from the CommandParam object
     ComScriptCommand comScriptCommand = null;
     int commandIndex = script.getScriptCommandIndex(command, previousCommandIndex + 1,
         caseInsensitive, separateWithASpace);
@@ -2648,7 +2709,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
     script.deleteCommand(commandIndex);
 
-    //  Write the script back out to disk
+    // Write the script back out to disk
     try {
       script.writeComFile();
     }
@@ -2678,7 +2739,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
     Utilities.timestamp("delete", command, script, Utilities.STARTED_STATUS);
 
-    //  Update the specified com script command from the CommandParam object
+    // Update the specified com script command from the CommandParam object
     ComScriptCommand comScriptCommand = null;
     int commandIndex = script.getScriptCommandIndex(command, caseInsensitive,
         separateWithASpace);
@@ -2702,7 +2763,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     // Delete the specified command
     script.deleteCommand(commandIndex);
 
-    //  Write the script back out to disk
+    // Write the script back out to disk
     try {
       script.writeComFile();
     }
@@ -2745,7 +2806,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       param.initializeDefaults();
     }
     else {
-      //locate previous command
+      // locate previous command
       ComScriptCommand previousComScriptCommand = null;
       int previousCommandIndex = comScript.getScriptCommandIndex(previousCommand,
           caseInsensitive, separateWithASpace);

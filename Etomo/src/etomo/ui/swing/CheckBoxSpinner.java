@@ -116,6 +116,7 @@ final class CheckBoxSpinner {
 
   void setCheckBoxEnabled(final boolean enabled) {
     checkBox.setEnabled(enabled);
+    enableSpinner();
   }
 
   void setModel(final SpinnerNumberModel model) {

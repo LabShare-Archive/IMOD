@@ -118,6 +118,7 @@ public final class AutodocFactory {
   public static final String BLENDMONT = "blendmont";
   public static final String XFTOXG = "xftoxg";
   public static final String XFALIGN = "xfalign";
+  public static final String AUTOFIDSEED = "autofidseed";
 
   private static final String TEST = "test";
   private static final String UITEST_AXIS = "uitest_axis";
@@ -147,6 +148,7 @@ public final class AutodocFactory {
   private static Autodoc BLENDMONT_INSTANCE = null;
   private static Autodoc XFTOXG_INSTANCE = null;
   private static Autodoc XFALIGN_INSTANCE = null;
+  private static Autodoc AUTOFIDSEED_INSTANCE = null;
 
   private static final HashMap UITEST_AXIS_MAP = new HashMap();
 
@@ -435,6 +437,9 @@ public final class AutodocFactory {
     if (name.equals(XFALIGN)) {
       return XFALIGN_INSTANCE;
     }
+    if (name.equals(AUTOFIDSEED)) {
+      return AUTOFIDSEED_INSTANCE;
+    }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
 
@@ -517,6 +522,9 @@ public final class AutodocFactory {
     }
     else if (name.equals(XFALIGN)) {
       XFALIGN_INSTANCE = null;
+    }
+    else if (name.equals(AUTOFIDSEED)) {
+      AUTOFIDSEED_INSTANCE = null;
     }
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");

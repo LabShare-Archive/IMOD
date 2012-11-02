@@ -339,6 +339,7 @@ import java.util.Date;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.process.SystemProgram;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -938,20 +939,35 @@ public class Utilities {
     }
   }
 
-  public static void deleteFileType(BaseManager manager, AxisID axisID, FileType fileType) {
+  public static boolean deleteFileType(BaseManager manager, AxisID axisID,
+      FileType fileType) {
     File file = new File(manager.getPropertyUserDir(), fileType.getFileName(manager,
         axisID));
-    if (file.exists()) {
-      if (!file.delete()) {
-        StringBuffer message = new StringBuffer("Unable to delete file: "
-            + file.getAbsolutePath());
-        if (Utilities.isWindowsOS()) {
-          message.append("\nIf this file is open in 3dmod, close 3dmod.");
+    if (file.isFile()) {
+      if (file.exists()) {
+        if (!file.delete()) {
+          StringBuffer message = new StringBuffer("Unable to delete file: "
+              + file.getAbsolutePath());
+          if (Utilities.isWindowsOS()) {
+            message.append("\nIf this file is open in 3dmod, close 3dmod.");
+          }
+          UIHarness.INSTANCE.openMessageDialog(manager, message.toString(),
+              "Can not delete file", axisID);
+          return false;
         }
-        UIHarness.INSTANCE.openMessageDialog(manager, message.toString(),
-            "Can not delete file", axisID);
       }
     }
+    else if (file.isDirectory()) {
+      SystemProgram remove = new SystemProgram(manager, manager.getPropertyUserDir(),
+          new String[] { "rm", "-fr", file.getAbsolutePath() }, axisID);
+      remove.run();
+      if (file.exists()) {
+        UIHarness.INSTANCE.openMessageDialog(manager, "Cannot delete the directory",
+            "Can not delete directory", axisID);
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -1213,8 +1229,7 @@ public class Utilities {
 
   public static String getDateTimeStamp(final boolean includeMs) {
     Date date = new Date();
-    return date.toString()
-        + (includeMs ? ", " + date.getTime() % 1000 + " ms" : "");
+    return date.toString() + (includeMs ? ", " + date.getTime() % 1000 + " ms" : "");
   }
 
   public static String getDateTimeStamp() {

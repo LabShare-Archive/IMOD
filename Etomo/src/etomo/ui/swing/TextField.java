@@ -37,6 +37,8 @@ final class TextField implements UIComponent {
   private final String reference;
   private final String locationDescr;
 
+  private boolean required = false;
+
   TextField(final FieldType fieldType, final String reference, final String locationDescr) {
     this.locationDescr = locationDescr;
     this.fieldType = fieldType;
@@ -79,6 +81,10 @@ final class TextField implements UIComponent {
     textField.setText(text);
   }
 
+  void setRequired(final boolean required) {
+    this.required = required;
+  }
+
   /**
    * Validates and returns text in text field.  Should never throw a
    * FieldValidationFailedException when doValidation is false.
@@ -88,9 +94,9 @@ final class TextField implements UIComponent {
    */
   String getText(final boolean doValidation) throws FieldValidationFailedException {
     String text = textField.getText();
-    if (doValidation && textField.isEnabled() && fieldType.validationType.canValidate) {
+    if (doValidation && textField.isEnabled()) {
       text = FieldValidator.validateText(text, fieldType, this, getQuotedReference()
-          + (locationDescr == null ? "" : " in " + locationDescr));
+          + (locationDescr == null ? "" : " in " + locationDescr), required);
     }
     return text;
   }

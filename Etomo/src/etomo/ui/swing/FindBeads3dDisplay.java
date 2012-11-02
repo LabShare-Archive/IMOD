@@ -23,5 +23,5 @@ import etomo.comscript.FindBeads3dParam;
 public interface FindBeads3dDisplay {
   public static final String rcsid = "$Id$";
 
-  boolean getParameters(FindBeads3dParam param,boolean doValidation);
+  boolean getParameters(FindBeads3dParam param, boolean doValidation);
 }

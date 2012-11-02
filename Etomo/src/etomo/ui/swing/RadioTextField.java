@@ -72,6 +72,8 @@ final class RadioTextField implements RadioButtonInterface {
   private final JPanel rootPanel = new JPanel();
   private final RadioButton radioButton;
   private final TextField textField;
+  
+  private boolean debug = false;
 
   /**
    * Constructs local instance, adds listener, and returns.
@@ -81,14 +83,15 @@ final class RadioTextField implements RadioButtonInterface {
    */
   static RadioTextField getInstance(final FieldType fieldType, final String label,
       final ButtonGroup group) {
-    RadioTextField radioTextField = new RadioTextField(fieldType, label, group,null);
+    RadioTextField radioTextField = new RadioTextField(fieldType, label, group, null);
     radioTextField.addListeners();
     return radioTextField;
   }
 
   static RadioTextField getInstance(final FieldType fieldType, final String label,
       final ButtonGroup group, String locationDescr) {
-    RadioTextField radioTextField = new RadioTextField(fieldType, label, group,locationDescr);
+    RadioTextField radioTextField = new RadioTextField(fieldType, label, group,
+        locationDescr);
     radioTextField.addListeners();
     return radioTextField;
   }
@@ -142,6 +145,14 @@ final class RadioTextField implements RadioButtonInterface {
 
   void setText(final String text) {
     textField.setText(text);
+    if (debug) {
+      System.out.println("RadioTextField:setText:text:" + text);
+      Thread.dumpStack();
+    }
+  }
+  
+  void setDebug(final boolean debug) {
+    this.debug=debug;
   }
 
   void setText(final ConstEtomoNumber text) {
@@ -150,6 +161,10 @@ final class RadioTextField implements RadioButtonInterface {
 
   String getLabel() {
     return radioButton.getText();
+  }
+
+  void setRequired(final boolean required) {
+    textField.setRequired(required);
   }
 
   String getText(final boolean doValidation) throws FieldValidationFailedException {
@@ -196,6 +211,9 @@ final class RadioTextField implements RadioButtonInterface {
 
   void setSelected(boolean selected) {
     radioButton.setSelected(selected);
+    if (debug) {
+      System.out.println("RadioTextField:setSelected:selected:"+selected);
+    }
   }
 
   void setToolTipText(final String text) {
