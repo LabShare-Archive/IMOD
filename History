@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/2/12: ETomo: Fixed the estimated time of completion for process monitors
+that watch a log file.(Bug# 1632)
+
 11/1/12: ETomo - PEET: handling parsing failures in the .prm file.(Bug# 1644)
 
 11/1/12: ETomo: Added an interface for autofidseed to the Fiducial Model
