@@ -217,6 +217,8 @@ public final class FileType {
       "", ".preali", ImodManager.COARSE_ALIGNED_KEY);
   public static final FileType PRE_XG = FileType.getImodInstance(true, true, "",
       ".prexg", null);
+  public static final FileType MATLAB_PARAM_FILE = FileType.getInstance(true, false, "",
+      ".prm");
   public static final FileType RAW_TILT_ANGLES = FileType.getInstance(true, true, "",
       ".rawtlt");
   public static final FileType TRIM_VOL_OUTPUT = FileType.getImodInstance(true, false,
