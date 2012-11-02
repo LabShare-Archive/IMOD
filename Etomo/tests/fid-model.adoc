@@ -72,8 +72,6 @@ assert.enabled.rb.generate-seed-model-automatically=
 [function = manual-seed-model]
 rb.make-seed-model-manually=
 [[if = test-gui]]
-  #test values
-  assert.bn.%{seed-button}=off
   #test enabled/disabled
   assert.enabled.bn.%{seed-button}=
 [[]]
@@ -179,7 +177,7 @@ bn.generate-seed-model=
 wait.process.autofidseed=done
 [[if = test-gui]]
   #test enabled/disabled
-  bn.enabled.open-sorted-3d-models=
+  assert.enabled.bn.open-sorted-3d-models=
   #files
   assert.exists.file=%{dataset}%{axis}.seed~
   assert.exists.file=autofidseed%{axis}.log~
@@ -197,8 +195,8 @@ bn.clean-up-temporary-files=
 wait.process.deleting-temporary-directory=done
 [[if = test-gui]]
   #test enabled/disabled
-  bn.disabled.open-initial-bead-model=
-  bn.disabled.open-sorted-3d-models=
+  assert.disabled.bn.open-initial-bead-model=
+  assert.disabled.bn.open-sorted-3d-models=
   #files
   assert.not-exists.file=autofidseed%{axis}.dir
 [[]]
