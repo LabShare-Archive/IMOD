@@ -4,7 +4,6 @@ import java.io.File;
 
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
-import etomo.type.ParsedArray;
 import etomo.type.ParsedElementType;
 import etomo.util.FilePath;
 
@@ -130,18 +129,6 @@ public final class TextFieldState {
   public String convertRangeToFieldText(int start, int end) {
     return convertToFieldText(new Integer(start).toString() + " - "
         + new Integer(end).toString());
-  }
-
-  public ParsedArray convertToParsedArray(final String text) {
-    ParsedArray array;
-    if (parsedElementType == null) {
-      array = ParsedArray.getInstance(EtomoNumber.Type.INTEGER);
-    }
-    else {
-      array = ParsedArray.getInstance(parsedElementType);
-    }
-    array.setRawString(text);
-    return array;
   }
 
   public String convertToContractedString(final String text) {
