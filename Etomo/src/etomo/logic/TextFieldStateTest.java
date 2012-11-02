@@ -4,7 +4,6 @@ import java.io.File;
 
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
-import etomo.type.ParsedElementType;
 
 import junit.framework.TestCase;
 
@@ -104,12 +103,6 @@ public class TextFieldStateTest extends TestCase {
     assertEquals("negative number work", "-10 - -1",
         testInstance.convertRangeToFieldText(-10, -1));
 
-  }
-
-  public void testConvertToParsedArray() {
-    TextFieldState testInstance = new TextFieldState(false, ParsedElementType.MATLAB_ARRAY, null);
-    assertEquals("builds parsed array", "1, 2, 3",
-        testInstance.convertToParsedArray("1,2,3").getRawString());
   }
 
   public void testConvertToContractedString() {

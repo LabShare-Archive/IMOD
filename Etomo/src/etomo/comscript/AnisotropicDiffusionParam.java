@@ -113,7 +113,8 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   private static final String COMMAND_CHAR = "$";
   private static final ProcessName PROCESS_NAME = ProcessName.ANISOTROPIC_DIFFUSION;
 
-  private final ParsedArray kValueList = ParsedArray.getInstance(EtomoNumber.Type.DOUBLE);
+  private final ParsedArray kValueList = ParsedArray.getInstance(EtomoNumber.Type.DOUBLE,
+      "K value");
   private final EtomoNumber iteration = new EtomoNumber();
   private final EtomoNumber kValue = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private final List command = new ArrayList();
@@ -229,10 +230,11 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
               + TestNADFileFilter.FILE_NAME_EXT));
       testFile.create();
       LogFile.WriterId writerId = testFile.openWriter();
-      testFile.write(COMMAND_CHAR + PROCESS_NAME + " " + K_VALUE_TAG + " "
-          + kValueList.getRawString(i) + " " + ITERATION_TAG + " " + iteration.toString()
-          + " " + inputFileName + " " + getTestFileName(k, iteration.toString()),
-          writerId);
+      testFile.write(
+          COMMAND_CHAR + PROCESS_NAME + " " + K_VALUE_TAG + " "
+              + kValueList.getRawString(i) + " " + ITERATION_TAG + " "
+              + iteration.toString() + " " + inputFileName + " "
+              + getTestFileName(k, iteration.toString()), writerId);
       testFile.newLine(writerId);
       testFile.write(COMMAND_CHAR + "echo CHUNK DONE", writerId);
       testFile.newLine(writerId);

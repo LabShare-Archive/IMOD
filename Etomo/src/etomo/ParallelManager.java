@@ -339,7 +339,9 @@ public final class ParallelManager extends BaseManager {
       return false;
     }
     imodManager.setMetaData(metaData);
-    setParamFile(new File(propertyUserDir, metaData.getMetaDataFileName()));
+    if (!setParamFile(new File(propertyUserDir, metaData.getMetaDataFileName()))) {
+      return false;
+    }
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getRootName());
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
     return true;
@@ -779,7 +781,9 @@ public final class ParallelManager extends BaseManager {
           "Anisotropic Diffusion Error", AXIS_ID);
       return false;
     }
-    setParamFile(new File(propertyUserDir, metaData.getMetaDataFileName()));
+    if (!setParamFile(new File(propertyUserDir, metaData.getMetaDataFileName()))) {
+      return false;
+    }
     System.err.println("paramFile: " + paramFile);
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getRootName());
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
