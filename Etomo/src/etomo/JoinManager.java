@@ -1346,10 +1346,13 @@ public final class JoinManager extends BaseManager {
    * parameters.
    * @param paramFile a File object specifying the data set parameter file.
    */
-  public void setParamFile(File paramFile) {
-    super.setParamFile(paramFile);
+  public boolean setParamFile(File paramFile) {
+    if (!super.setParamFile(paramFile)) {
+      return false;
+    }
     // Update main window information and status bar
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+    return true;
   }
 
   public ConstJoinMetaData getConstMetaData() {

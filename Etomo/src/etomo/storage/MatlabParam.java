@@ -390,36 +390,56 @@ public final class MatlabParam {
   private static final int Z_ROTATION_INDEX = 0;
   private static final int Y_ROTATION_INDEX = 1;
 
-  private final ParsedNumber particlePerCpu = ParsedNumber.getMatlabInstance();
-  private final ParsedArray szVol = ParsedArray.getMatlabInstance();
-  private final ParsedQuotedString fnOutput = ParsedQuotedString.getInstance();
-  private final ParsedNumber refFlagAllTom = ParsedNumber.getMatlabInstance();
-  private final ParsedNumber edgeShift = ParsedNumber.getMatlabInstance();
-  private final ParsedArray lstThresholds = ParsedArray.getMatlabInstance();
-  private final ParsedNumber lstFlagAllTom = ParsedNumber.getMatlabInstance();
-  private final ParsedQuotedString alignedBaseName = ParsedQuotedString.getInstance();
-  private final ParsedNumber debugLevel = ParsedNumber.getMatlabInstance();
+  private final ParsedNumber particlePerCpu = ParsedNumber
+      .getMatlabInstance(PARTICLE_PER_CPU_KEY);
+  private final ParsedArray szVol = ParsedArray.getMatlabInstance(SZ_VOL_KEY);
+  private final ParsedQuotedString fnOutput = ParsedQuotedString
+      .getInstance(FN_OUTPUT_KEY);
+  private final ParsedNumber refFlagAllTom = ParsedNumber
+      .getMatlabInstance(REF_FLAG_ALL_TOM_KEY);
+  private final ParsedNumber edgeShift = ParsedNumber.getMatlabInstance(EDGE_SHIFT_KEY);
+  private final ParsedArray lstThresholds = ParsedArray
+      .getMatlabInstance(LST_THRESHOLDS_KEY);
+  private final ParsedNumber lstFlagAllTom = ParsedNumber
+      .getMatlabInstance(LST_FLAG_ALL_TOM_KEY);
+  private final ParsedQuotedString alignedBaseName = ParsedQuotedString
+      .getInstance(ALIGNED_BASE_NAME_KEY);
+  private final ParsedNumber debugLevel = ParsedNumber.getMatlabInstance(DEBUG_LEVEL_KEY);
   private final List<Volume> volumeList = new ArrayList<Volume>();
   private final List iterationList = new ArrayList();
-  private final ParsedQuotedString referenceFile = ParsedQuotedString.getInstance();
-  private final ParsedArray reference = ParsedArray.getMatlabInstance();
-  private final ParsedNumber yaxisObjectNum = ParsedNumber.getMatlabInstance();
-  private final ParsedNumber yaxisContourNum = ParsedNumber.getMatlabInstance();
-  private final ParsedNumber flgWedgeWeight = ParsedNumber.getMatlabInstance();
-  private final ParsedQuotedString sampleSphere = ParsedQuotedString.getInstance();
-  private final ParsedNumber sampleInterval = ParsedNumber
-      .getMatlabInstance(EtomoNumber.Type.DOUBLE);
-  private final ParsedQuotedString maskType = ParsedQuotedString.getInstance();
+  private final ParsedQuotedString referenceFile = ParsedQuotedString
+      .getInstance(REFERENCE_KEY);
+  private final ParsedArray reference = ParsedArray.getMatlabInstance(REFERENCE_KEY);
+  private final ParsedNumber yaxisObjectNum = ParsedNumber
+      .getMatlabInstance(YAXIS_OBJECT_NUM_KEY);
+  private final ParsedNumber yaxisContourNum = ParsedNumber
+      .getMatlabInstance(YAXIS_CONTOUR_NUM_KEY);
+  private final ParsedNumber flgWedgeWeight = ParsedNumber
+      .getMatlabInstance(FLG_WEDGE_WEIGHT_KEY);
+  private final ParsedQuotedString sampleSphere = ParsedQuotedString
+      .getInstance(SAMPLE_SPHERE_KEY);
+  private final ParsedNumber sampleInterval = ParsedNumber.getMatlabInstance(
+      EtomoNumber.Type.DOUBLE, SAMPLE_INTERVAL_KEY);
+  private final ParsedQuotedString maskType = ParsedQuotedString
+      .getInstance(MASK_TYPE_KEY);
   private final ParsedArray maskModelPts = ParsedArray.getMatlabInstance(
-      EtomoNumber.Type.DOUBLE, false);
-  private final ParsedNumber insideMaskRadius = ParsedNumber.getMatlabInstance();
-  private final ParsedNumber outsideMaskRadius = ParsedNumber.getMatlabInstance();
-  private final ParsedNumber nWeightGroup = ParsedNumber.getMatlabInstance();
-  private final ParsedNumber flgRemoveDuplicates = ParsedNumber.getMatlabInstance();
-  private final ParsedNumber flgAlignAverages = ParsedNumber.getMatlabInstance();
-  private final ParsedNumber flgFairReference = ParsedNumber.getMatlabInstance();
-  private final ParsedNumber flgAbsValue = ParsedNumber.getMatlabInstance();
-  private final ParsedNumber flgStrictSearchLimits = ParsedNumber.getMatlabInstance();
+      EtomoNumber.Type.DOUBLE, false, MASK_MODEL_PTS_KEY);
+  private final ParsedNumber insideMaskRadius = ParsedNumber
+      .getMatlabInstance(INSIDE_MASK_RADIUS_KEY);
+  private final ParsedNumber outsideMaskRadius = ParsedNumber
+      .getMatlabInstance(OUTSIDE_MASK_RADIUS_KEY);
+  private final ParsedNumber nWeightGroup = ParsedNumber
+      .getMatlabInstance(N_WEIGHT_GROUP_KEY);
+  private final ParsedNumber flgRemoveDuplicates = ParsedNumber
+      .getMatlabInstance(FLG_REMOVE_DUPLICATES_KEY);
+  private final ParsedNumber flgAlignAverages = ParsedNumber
+      .getMatlabInstance(FLG_ALIGN_AVERAGES_KEY);
+  private final ParsedNumber flgFairReference = ParsedNumber
+      .getMatlabInstance(FLG_FAIR_REFERENCE_KEY);
+  private final ParsedNumber flgAbsValue = ParsedNumber
+      .getMatlabInstance(FLG_ABS_VALUE_KEY);
+  private final ParsedNumber flgStrictSearchLimits = ParsedNumber
+      .getMatlabInstance(FLG_STRICT_SEARCH_LIMITS_KEY);
 
   private final BaseManager manager;
   private final AxisID axisID;
@@ -462,7 +482,7 @@ public final class MatlabParam {
   /**
    * Reads data from the .prm autodoc.
    */
-  public synchronized boolean read(BaseManager manager) {
+  public synchronized boolean read(BaseManager manager, final List<String> errorList) {
     clear();
     // if newFile is on, either there is no file, or the user doesn't want to read it
     if (newFile) {
@@ -476,7 +496,10 @@ public final class MatlabParam {
             "Unable to read " + file.getAbsolutePath() + ".", "File Error");
         return false;
       }
-      parseData(autodoc);
+      parseData(autodoc, errorList);
+      if (errorList != null && !errorList.isEmpty()) {
+        return false;
+      }
     }
     catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog(
@@ -1097,73 +1120,118 @@ public final class MatlabParam {
     return lstThresholds.getRawStringsExceptFirstArrayDescriptor();
   }
 
+  private void addError(final ParsedElement element, final List<String> errorList) {
+    if (errorList != null) {
+      String error = element.validate();
+      if (error != null) {
+        errorList.add(error);
+      }
+    }
+  }
+
+  private void addError(final ParsedList list, final List<String> errorList) {
+    if (errorList != null) {
+      String error = list.validate();
+      if (error != null) {
+        errorList.add(error);
+      }
+    }
+  }
+
   /**
    * Called by read().  Parses data from the the file.
    * @param autodoc
    */
-  private void parseData(final ReadOnlyAutodoc autodoc) {
-    parseVolumeData(autodoc);
-    parseIterationData(autodoc);
+  private void parseData(final ReadOnlyAutodoc autodoc, final List<String> errorList) {
+    parseVolumeData(autodoc, errorList);
+    parseIterationData(autodoc, errorList);
+    String error = null;
     // reference
     ReadOnlyAttribute attribute = autodoc.getAttribute(REFERENCE_KEY);
     if (ParsedQuotedString.isQuotedString(attribute)) {
       useReferenceFile = true;
       referenceFile.parse(attribute);
+      addError(referenceFile, errorList);
     }
     else {
       useReferenceFile = false;
       reference.parse(attribute);
+      addError(reference, errorList);
     }
     // particlePerCPU
     particlePerCpu.parse(autodoc.getAttribute(PARTICLE_PER_CPU_KEY));
+    addError(particlePerCpu, errorList);
     // szVol
     szVol.parse(autodoc.getAttribute(SZ_VOL_KEY));
+    addError(szVol, errorList);
     // fnOutput
     fnOutput.parse(autodoc.getAttribute(FN_OUTPUT_KEY));
+    addError(fnOutput, errorList);
     // refFlagAllTom
     refFlagAllTom.parse(autodoc.getAttribute(REF_FLAG_ALL_TOM_KEY));
+    addError(refFlagAllTom, errorList);
     // edgeShift
     edgeShift.parse(autodoc.getAttribute(EDGE_SHIFT_KEY));
+    addError(edgeShift, errorList);
     // lstThresholds
     lstThresholds.parse(autodoc.getAttribute(LST_THRESHOLDS_KEY));
+    addError(lstThresholds, errorList);
     // lstFlagAllTom
     lstFlagAllTom.parse(autodoc.getAttribute(LST_FLAG_ALL_TOM_KEY));
+    addError(lstFlagAllTom, errorList);
     // alignedBaseName
     alignedBaseName.parse(autodoc.getAttribute(ALIGNED_BASE_NAME_KEY));
+    addError(alignedBaseName, errorList);
     // debugLevel
     debugLevel.parse(autodoc.getAttribute(DEBUG_LEVEL_KEY));
+    addError(debugLevel, errorList);
     // YaxisType
     yAxisType = YAxisType.getInstance(autodoc.getAttribute(YAXIS_TYPE_KEY));
     // YaxisObjectNum
     yaxisObjectNum.parse(autodoc.getAttribute(YAXIS_OBJECT_NUM_KEY));
+    addError(yaxisObjectNum, errorList);
     // YaxisContourNum
     yaxisContourNum.parse(autodoc.getAttribute(YAXIS_CONTOUR_NUM_KEY));
+    addError(yaxisContourNum, errorList);
     // flgWedgeWeight
     flgWedgeWeight.parse(autodoc.getAttribute(FLG_WEDGE_WEIGHT_KEY));
+    addError(flgWedgeWeight, errorList);
     // sampleSphere
     sampleSphere.parse(autodoc.getAttribute(SAMPLE_SPHERE_KEY));
+    addError(sampleSphere, errorList);
     // sampleInterval
     sampleInterval.parse(autodoc.getAttribute(SAMPLE_INTERVAL_KEY));
+    addError(sampleInterval, errorList);
     // maskType
     maskType.parse(autodoc.getAttribute(MASK_TYPE_KEY));
+    addError(maskType, errorList);
     // maskModelPts
     maskModelPts.parse(autodoc.getAttribute(MASK_MODEL_PTS_KEY));
+    addError(maskModelPts, errorList);
     // insideMaskRadius
     insideMaskRadius.parse(autodoc.getAttribute(INSIDE_MASK_RADIUS_KEY));
+    addError(insideMaskRadius, errorList);
     // outsideMaskRadius
     outsideMaskRadius.parse(autodoc.getAttribute(OUTSIDE_MASK_RADIUS_KEY));
+    addError(outsideMaskRadius, errorList);
     // nWeightGroup
     nWeightGroup.parse(autodoc.getAttribute(N_WEIGHT_GROUP_KEY));
+    addError(nWeightGroup, errorList);
     // flgRemoveDuplicates
     flgRemoveDuplicates.parse(autodoc.getAttribute(FLG_REMOVE_DUPLICATES_KEY));
+    addError(flgRemoveDuplicates, errorList);
     // flgAlignAverages
     flgAlignAverages.parse(autodoc.getAttribute(FLG_ALIGN_AVERAGES_KEY));
+    addError(flgAlignAverages, errorList);
     // flgFairReference
     flgFairReference.parse(autodoc.getAttribute(FLG_FAIR_REFERENCE_KEY));
+    addError(flgFairReference, errorList);
     // flgAbsValue
     flgAbsValue.parse(autodoc.getAttribute(FLG_ABS_VALUE_KEY));
+    addError(flgAbsValue, errorList);
     // flgStrictSearchLimits
     flgStrictSearchLimits.parse(autodoc.getAttribute(FLG_STRICT_SEARCH_LIMITS_KEY));
+    addError(flgStrictSearchLimits, errorList);
   }
 
   public boolean validate(final boolean forRun) {
@@ -1180,36 +1248,44 @@ public final class MatlabParam {
    * Parses data from the the file.
    * @param autodoc
    */
-  private void parseVolumeData(final ReadOnlyAutodoc autodoc) {
+  private void parseVolumeData(final ReadOnlyAutodoc autodoc, final List<String> errorList) {
     volumeList.clear();
     int size = 0;
+    String error = null;
     // relativeOrient
-    ParsedList relativeOrient = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
+    ParsedList relativeOrient = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
+        RELATIVE_ORIENT_KEY);
     relativeOrient.parse(autodoc.getAttribute(RELATIVE_ORIENT_KEY));
+    addError(relativeOrient, errorList);
     size = Math.max(size, relativeOrient.size());
     // fnVolume
-    ParsedList fnVolume = ParsedList.getStringInstance();
+    ParsedList fnVolume = ParsedList.getStringInstance(FN_VOLUME_KEY);
     fnVolume.parse(autodoc.getAttribute(FN_VOLUME_KEY));
+    addError(fnVolume, errorList);
     size = Math.max(size, fnVolume.size());
     // fnModParticle
-    ParsedList fnModParticle = ParsedList.getStringInstance();
+    ParsedList fnModParticle = ParsedList.getStringInstance(FN_MOD_PARTICLE_KEY);
     fnModParticle.parse(autodoc.getAttribute(FN_MOD_PARTICLE_KEY));
+    addError(fnModParticle, errorList);
     size = Math.max(size, fnModParticle.size());
     // initMOTL
     ParsedList initMotlFile = null;
     ReadOnlyAttribute attribute = autodoc.getAttribute(INIT_MOTL_KEY);
     if (ParsedList.isList(attribute)) {
       initMotlCode = null;
-      initMotlFile = ParsedList.getStringInstance();
+      initMotlFile = ParsedList.getStringInstance(INIT_MOTL_KEY);
       initMotlFile.parse(attribute);
+      addError(initMotlFile, errorList);
       size = Math.max(size, initMotlFile.size());
     }
     else {
       initMotlCode = InitMotlCode.getInstance(attribute);
     }
     // tiltRange
-    ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
+    ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
+        TILT_RANGE_KEY);
     tiltRange.parse(autodoc.getAttribute(TILT_RANGE_KEY));
+    addError(tiltRange, errorList);
     size = Math.max(size, tiltRange.size());
     // Add elements to volumeList
     for (int i = 0; i < size; i++) {
@@ -1235,42 +1311,58 @@ public final class MatlabParam {
    * Parses data from the the file.
    * @param autodoc
    */
-  private void parseIterationData(final ReadOnlyAutodoc autodoc) {
+  private void parseIterationData(final ReadOnlyAutodoc autodoc,
+      final List<String> errorList) {
     iterationList.clear();
     int size = 0;
     // dPhi
-    ParsedList dPhi = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
+    ParsedList dPhi = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE, D_PHI_KEY);
     dPhi.parse(autodoc.getAttribute(D_PHI_KEY));
+    addError(dPhi, errorList);
     size = Math.max(size, dPhi.size());
     // dTheta
-    ParsedList dTheta = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
+    ParsedList dTheta = ParsedList
+        .getMatlabInstance(EtomoNumber.Type.DOUBLE, D_THETA_KEY);
     dTheta.parse(autodoc.getAttribute(D_THETA_KEY));
+    addError(dTheta, errorList);
     size = Math.max(size, dTheta.size());
     // dPsi
-    ParsedList dPsi = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
+    ParsedList dPsi = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE, D_PSI_KEY);
     dPsi.parse(autodoc.getAttribute(D_PSI_KEY));
+    addError(dPsi, errorList);
     size = Math.max(size, dPsi.size());
     // searchRadius
-    ParsedList searchRadius = ParsedList.getMatlabInstance();
+    ParsedList searchRadius = ParsedList.getMatlabInstance(SEARCH_RADIUS_KEY);
     searchRadius.parse(autodoc.getAttribute(SEARCH_RADIUS_KEY));
+    addError(searchRadius, errorList);
     size = Math.max(size, searchRadius.size());
     // lowCutoff
-    ParsedList lowCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
+    ParsedList lowCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
+        LOW_CUTOFF_KEY);
     lowCutoff.parse(autodoc.getAttribute(LOW_CUTOFF_KEY));
+    addError(lowCutoff, errorList);
     // hiCutoff
-    ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
+    ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
+        HI_CUTOFF_KEY);
     hiCutoff.parse(autodoc.getAttribute(HI_CUTOFF_KEY));
+    addError(hiCutoff, errorList);
     size = Math.max(size, hiCutoff.size());
     // refThreshold
-    ParsedList refThreshold = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
+    ParsedList refThreshold = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
+        REF_THRESHOLD_KEY);
     refThreshold.parse(autodoc.getAttribute(REF_THRESHOLD_KEY));
+    addError(refThreshold, errorList);
     // duplicateShiftTolerance
-    ParsedArray duplicateShiftTolerance = ParsedArray.getMatlabInstance();
+    ParsedArray duplicateShiftTolerance = ParsedArray
+        .getMatlabInstance(DUPLICATE_SHIFT_TOLERANCE_KEY);
     duplicateShiftTolerance.parse(autodoc.getAttribute(DUPLICATE_SHIFT_TOLERANCE_KEY));
+    addError(duplicateShiftTolerance, errorList);
     // duplicateAngularTolerance
-    ParsedArray duplicateAngularTolerance = ParsedArray.getMatlabInstance();
+    ParsedArray duplicateAngularTolerance = ParsedArray
+        .getMatlabInstance(DUPLICATE_ANGULAR_TOLERANCE_KEY);
     duplicateAngularTolerance
         .parse(autodoc.getAttribute(DUPLICATE_ANGULAR_TOLERANCE_KEY));
+    addError(duplicateAngularTolerance, errorList);
     size = Math.max(size, refThreshold.size());
     // add elements to iterationList
     for (int i = 0; i < size; i++) {
@@ -1350,13 +1442,14 @@ public final class MatlabParam {
    * @param valueMap
    */
   private void buildParsableVolumeValues(final Map valueMap) {
-    ParsedList fnVolume = ParsedList.getStringInstance();
-    ParsedList fnModParticle = ParsedList.getStringInstance();
+    ParsedList fnVolume = ParsedList.getStringInstance(FN_VOLUME_KEY);
+    ParsedList fnModParticle = ParsedList.getStringInstance(FN_MOD_PARTICLE_KEY);
     ParsedList initMotlFile = null;
     if (initMotlCode == null) {
-      initMotlFile = ParsedList.getStringInstance();
+      initMotlFile = ParsedList.getStringInstance(INIT_MOTL_KEY);
     }
-    ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
+    ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
+        TILT_RANGE_KEY);
     // build the lists
     for (int i = 0; i < volumeList.size(); i++) {
       Volume volume = (Volume) volumeList.get(i);
@@ -1384,15 +1477,21 @@ public final class MatlabParam {
    * @param valueMap
    */
   private void buildParsableIterationValues(final Map valueMap) {
-    ParsedList dPhi = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
-    ParsedList dTheta = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
-    ParsedList dPsi = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
-    ParsedList searchRadius = ParsedList.getMatlabInstance();
-    ParsedList lowCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
-    ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
-    ParsedList refThreshold = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE);
-    ParsedArray duplicateShiftTolerance = ParsedArray.getMatlabInstance();
-    ParsedArray duplicateAngularTolerance = ParsedArray.getMatlabInstance();
+    ParsedList dPhi = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE, D_PHI_KEY);
+    ParsedList dTheta = ParsedList
+        .getMatlabInstance(EtomoNumber.Type.DOUBLE, D_THETA_KEY);
+    ParsedList dPsi = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE, D_PSI_KEY);
+    ParsedList searchRadius = ParsedList.getMatlabInstance(SEARCH_RADIUS_KEY);
+    ParsedList lowCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
+        LOW_CUTOFF_KEY);
+    ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
+        HI_CUTOFF_KEY);
+    ParsedList refThreshold = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
+        REF_THRESHOLD_KEY);
+    ParsedArray duplicateShiftTolerance = ParsedArray
+        .getMatlabInstance(DUPLICATE_SHIFT_TOLERANCE_KEY);
+    ParsedArray duplicateAngularTolerance = ParsedArray
+        .getMatlabInstance(DUPLICATE_ANGULAR_TOLERANCE_KEY);
     // build the lists
     for (int i = 0; i < iterationList.size(); i++) {
       Iteration iteration = (Iteration) iterationList.get(i);
@@ -1874,16 +1973,19 @@ public final class MatlabParam {
   public static final class Volume {
     private static final int START_INDEX = 0;
     private static final int END_INDEX = 1;
-    private final ParsedArray tiltRange = ParsedArray
-        .getMatlabInstance(EtomoNumber.Type.DOUBLE);
+    private final ParsedArray tiltRange = ParsedArray.getMatlabInstance(
+        EtomoNumber.Type.DOUBLE, TILT_RANGE_KEY);
     /**
      * @deprecated - only for validation
      */
-    private final ParsedArray relativeOrient = ParsedArray
-        .getInstance(EtomoNumber.Type.DOUBLE);
-    private final ParsedQuotedString fnVolume = ParsedQuotedString.getInstance();
-    private final ParsedQuotedString fnModParticle = ParsedQuotedString.getInstance();
-    private final ParsedQuotedString initMotl = ParsedQuotedString.getInstance();
+    private final ParsedArray relativeOrient = ParsedArray.getInstance(
+        EtomoNumber.Type.DOUBLE, RELATIVE_ORIENT_KEY);
+    private final ParsedQuotedString fnVolume = ParsedQuotedString
+        .getInstance(FN_VOLUME_KEY);
+    private final ParsedQuotedString fnModParticle = ParsedQuotedString
+        .getInstance(FN_MOD_PARTICLE_KEY);
+    private final ParsedQuotedString initMotl = ParsedQuotedString
+        .getInstance(INIT_MOTL_KEY);
 
     private final BaseManager manager;
     private final AxisID axisID;
@@ -1999,8 +2101,8 @@ public final class MatlabParam {
    * to the negation of End.  Sets Increment to 1 if it is 0.
    */
   private static final class SearchAngleArea {
-    private final ParsedArrayDescriptor descriptor = ParsedArrayDescriptor
-        .getInstance(EtomoNumber.Type.DOUBLE);
+    private final ParsedArrayDescriptor descriptor = ParsedArrayDescriptor.getInstance(
+        EtomoNumber.Type.DOUBLE, null);
 
     /**
      * Sets both the End and Start values.  The Start is set to the negation of
@@ -2054,16 +2156,18 @@ public final class MatlabParam {
     private static final int CUTOFF_INDEX = 0;
     private static final int SIGMA_INDEX = 1;
 
-    private final ParsedArray searchRadius = ParsedArray.getMatlabInstance();
-    private final ParsedArray lowCutoff = ParsedArray
-        .getMatlabInstance(EtomoNumber.Type.DOUBLE);
-    private final ParsedArray hiCutoff = ParsedArray
-        .getMatlabInstance(EtomoNumber.Type.DOUBLE);
-    private final ParsedNumber refThreshold = ParsedNumber
-        .getMatlabInstance(EtomoNumber.Type.DOUBLE);
-    private final ParsedNumber duplicateShiftTolerance = ParsedNumber.getMatlabInstance();
+    private final ParsedArray searchRadius = ParsedArray
+        .getMatlabInstance(SEARCH_RADIUS_KEY);
+    private final ParsedArray lowCutoff = ParsedArray.getMatlabInstance(
+        EtomoNumber.Type.DOUBLE, LOW_CUTOFF_KEY);
+    private final ParsedArray hiCutoff = ParsedArray.getMatlabInstance(
+        EtomoNumber.Type.DOUBLE, HI_CUTOFF_KEY);
+    private final ParsedNumber refThreshold = ParsedNumber.getMatlabInstance(
+        EtomoNumber.Type.DOUBLE, REF_THRESHOLD_KEY);
+    private final ParsedNumber duplicateShiftTolerance = ParsedNumber
+        .getMatlabInstance(DUPLICATE_SHIFT_TOLERANCE_KEY);
     private final ParsedNumber duplicateAngularTolerance = ParsedNumber
-        .getMatlabInstance();
+        .getMatlabInstance(DUPLICATE_ANGULAR_TOLERANCE_KEY);
 
     // search spaces
     private final SearchAngleArea dPhi = new SearchAngleArea();

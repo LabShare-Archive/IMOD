@@ -448,8 +448,7 @@ abstract class EtomoFrame extends AbstractFrame {
           + currentManager.getBaseMetaData().getFileExtension());
 
     }
-    currentManager.setParamFile(dataFile);
-    return true;
+   return currentManager.setParamFile(dataFile);
   }
 
   void pack(AxisID axisID) {

@@ -94,16 +94,17 @@ public final class ParsedQuotedString extends ParsedElement {
   private String rawString = "";
   private boolean debug = false;
 
-  private ParsedQuotedString(boolean debug) {
+  private ParsedQuotedString(boolean debug, final String descr) {
+    super(descr);
     setDebug(debug);
   }
 
-  public static ParsedQuotedString getInstance() {
-    return new ParsedQuotedString(false);
+  public static ParsedQuotedString getInstance(final String descr) {
+    return new ParsedQuotedString(false, descr);
   }
 
-  static ParsedQuotedString getInstance(boolean debug) {
-    return new ParsedQuotedString(debug);
+  static ParsedQuotedString getInstance(boolean debug, final String descr) {
+    return new ParsedQuotedString(debug, descr);
   }
 
   public void setDebug(final boolean input) {
@@ -160,7 +161,7 @@ public final class ParsedQuotedString extends ParsedElement {
     if (index == 0) {
       return rawString;
     }
-    return new ParsedQuotedString(debug).getRawString();
+    return new ParsedQuotedString(debug, descr).getRawString();
   }
 
   void setRawString(int index, String string) {
@@ -230,7 +231,7 @@ public final class ParsedQuotedString extends ParsedElement {
     rawString = String.valueOf(number);
   }
 
-  String validate() {
+  public String validate() {
     return null;
   }
 
@@ -243,7 +244,7 @@ public final class ParsedQuotedString extends ParsedElement {
         token = tokenizer.next();
       }
       if (token == null || !token.equals(Token.Type.SYMBOL, DELIMITER_SYMBOL.charValue())) {
-        fail(DELIMITER_SYMBOL + " not found.");
+        fail("Missing delimiter: '" + DELIMITER_SYMBOL + "'");
         return token;
       }
       token = tokenizer.next();
@@ -253,7 +254,7 @@ public final class ParsedQuotedString extends ParsedElement {
         return token;
       }
       if (token == null || !token.equals(Token.Type.SYMBOL, DELIMITER_SYMBOL.charValue())) {
-        fail(DELIMITER_SYMBOL + " not found.");
+        fail("Missing delimiter: '" + DELIMITER_SYMBOL + "'");
         return token;
       }
       token = tokenizer.next();
@@ -274,7 +275,8 @@ public final class ParsedQuotedString extends ParsedElement {
   ParsedElementList getParsedNumberExpandedArray(
       ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
-      parsedNumberExpandedArray = new ParsedElementList(type, null, debug, null, false);
+      parsedNumberExpandedArray = new ParsedElementList(type, null, debug, null, false,
+          descr);
     }
     return parsedNumberExpandedArray;
   }

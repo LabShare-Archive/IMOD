@@ -259,9 +259,10 @@ public class EtomoDirector {
     }
     else {
       ManagerKey saveKey = null;
+      ManagerKey managerKey = null;
       for (int i = 0; i < paramFileNameListSize; i++) {
         paramFileName = (String) paramFileNameList.get(i);
-        ManagerKey managerKey = null;
+        managerKey = null;
         if (paramFileName.endsWith(DataFileType.RECON.extension)) {
           managerKey = openTomogram(paramFileName, false, AxisID.ONLY);
         }
@@ -280,6 +281,10 @@ public class EtomoDirector {
         if (i == 0) {
           saveKey = managerKey;
         }
+      }
+      if (saveKey == null) {
+        managerKey = openFrontPage(true, AxisID.ONLY);
+        saveKey = managerKey;
       }
       currentManagerKey = saveKey;
     }
