@@ -76,6 +76,7 @@ for plug in plugfiles:
 # Copy to man pages and insert those
 copyToINSERT(instext2)
 manfiles = glob.glob(os.path.join('man', '*.html'))
+manfiles.sort()
 for man in manfiles:
    (progname, ext) = os.path.splitext(os.path.basename(man))
    if progname not in excludes:
@@ -84,6 +85,7 @@ for man in manfiles:
 # Copy to library pages
 copyToINSERT(instext3)
 libfiles = glob.glob(os.path.join('libhelp', '*.html'))
+libfiles.sort()
 for lib in libfiles:
    basename = os.path.basename(lib)
    title = findTitle(lib)
