@@ -109,6 +109,6 @@ public final class SetupDialogExpertTest extends TestCase {
     ApplicationManager manager = (ApplicationManager) EtomoDirector.INSTANCE
         .getCurrentManagerForTest();
     manager.openSetupDialog();
-    assertFalse("Fields are not filled so done should fail.", manager.doneSetupDialog());
+    assertFalse("Fields are not filled so done should fail.", manager.doneSetupDialog(false));
   }
 }

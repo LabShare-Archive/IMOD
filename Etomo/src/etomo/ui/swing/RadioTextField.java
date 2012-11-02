@@ -12,6 +12,8 @@ import javax.swing.JPanel;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EnumeratedType;
 import etomo.type.ParsedElement;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -77,38 +79,26 @@ final class RadioTextField implements RadioButtonInterface {
    * @param group
    * @return
    */
-  static RadioTextField getInstance(final String label, final ButtonGroup group) {
-    RadioTextField radioTextField = new RadioTextField(label, group);
+  static RadioTextField getInstance(final FieldType fieldType, final String label,
+      final ButtonGroup group) {
+    RadioTextField radioTextField = new RadioTextField(fieldType, label, group,null);
     radioTextField.addListeners();
     return radioTextField;
   }
 
-  /**
-   * Constructs local instance, adds listener, and returns.
-   * @param label
-   * @param group
-   * @param radioValue
-   * @return
-   */
-  /* static RadioTextField getInstance(final String label, final ButtonGroup group,
-   * EnumeratedType enumeratedType) { RadioTextField radioTextField = new
-   * RadioTextField(label, group, enumeratedType); radioTextField.addListeners(); return
-   * radioTextField; } */
-
-  private RadioTextField(final String label, final ButtonGroup group) {
-    radioButton = new RadioButton(label);
-    textField = new TextField(label);
-    init(group);
+  static RadioTextField getInstance(final FieldType fieldType, final String label,
+      final ButtonGroup group, String locationDescr) {
+    RadioTextField radioTextField = new RadioTextField(fieldType, label, group,locationDescr);
+    radioTextField.addListeners();
+    return radioTextField;
   }
 
-  /**
-   * Do not use constructor directly.  Internal listener added in getInstance.
-   * @param label
-   * @param group
-   */
-  /* private RadioTextField(final String label, final ButtonGroup group, EnumeratedType
-   * enumeratedType) { radioButton = new RadioButton(label, enumeratedType); textField =
-   * new TextField(label); init(group); } */
+  private RadioTextField(final FieldType fieldType, final String label,
+      final ButtonGroup group, final String locationDescr) {
+    radioButton = new RadioButton(label);
+    textField = new TextField(fieldType, label, locationDescr);
+    init(group);
+  }
 
   private void init(final ButtonGroup group) {
     radioButton.setModel(new RadioButton.RadioButtonModel(this));
@@ -128,12 +118,16 @@ final class RadioTextField implements RadioButtonInterface {
   Container getContainer() {
     return rootPanel;
   }
-  
+
   void setText(final int value) {
     textField.setText(String.valueOf(value));
   }
 
-  void setText(final float value) {
+  void setText(final long value) {
+    textField.setText(String.valueOf(value));
+  }
+
+  void setText(final double value) {
     textField.setText(String.valueOf(value));
   }
 
@@ -158,6 +152,18 @@ final class RadioTextField implements RadioButtonInterface {
     return radioButton.getText();
   }
 
+  String getText(final boolean doValidation) throws FieldValidationFailedException {
+    String text = textField.getText(doValidation);
+    if (text == null || text.matches("\\s*")) {
+      return "";
+    }
+    return text;
+  }
+
+  /**
+   * return text without validation
+   * @return
+   */
   String getText() {
     String text = textField.getText();
     if (text == null || text.matches("\\s*")) {

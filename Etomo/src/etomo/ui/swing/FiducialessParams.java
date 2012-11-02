@@ -33,10 +33,13 @@
  */
 package etomo.ui.swing;
 
+import etomo.ui.FieldValidationFailedException;
+
 public interface FiducialessParams {
   public static final String rcsid = "$Id$";
 
   public boolean isFiducialess();
 
-  public String getImageRotation();
+  public String getImageRotation(boolean doValidation)
+      throws FieldValidationFailedException;
 }

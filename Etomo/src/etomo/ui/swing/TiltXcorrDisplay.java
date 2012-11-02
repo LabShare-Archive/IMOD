@@ -28,7 +28,7 @@ import etomo.type.PanelId;
 public interface TiltXcorrDisplay extends ProcessDisplay {
   public static final String rcsid = "$Id$";
 
-  public boolean getParameters(TiltxcorrParam tiltXcorrParams)
+  public boolean getParameters(TiltxcorrParam tiltXcorrParams,boolean doValidation)
       throws FortranInputSyntaxException;
 
   public PanelId getPanelId();

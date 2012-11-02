@@ -131,19 +131,19 @@ public interface ConstTiltParam extends CommandDetails {
 
   public int getFullImageX();
 
-  public long getIdxSliceStart();
+  public int getIdxSliceStart();
 
-  public long getIdxSliceStop();
+  public int getIdxSliceStop();
 
   public String getLogShift();
 
-  public float getRadialBandwidth();
+  public double getRadialBandwidth();
 
-  public float getRadialFalloff();
+  public double getRadialFalloff();
 
-  public float getScaleCoeff();
+  public double getScaleCoeff();
 
-  public float getScaleFLevel();
+  public double getScaleFLevel();
 
   public int getThickness();
 
@@ -153,7 +153,7 @@ public interface ConstTiltParam extends CommandDetails {
 
   public double getXAxisTilt();
 
-  public float getXShift();
+  public double getXShift();
 
   public ConstEtomoNumber getZShift();
 

@@ -198,6 +198,12 @@ run.function.smoothing-asessment=
 	bn.flatten=
 	wait.popup.comscript-terminated=OK
 	rb.flatten-the-trimvol-output=
+	#test field validation
+	tf.smoothing-factor=2.5abc
+	bn.run-flattenwarp=
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tf.smoothing-factor=2.5
 [[]]
 bn.run-flattenwarp=
 wait.process.running-flattenwarp=done

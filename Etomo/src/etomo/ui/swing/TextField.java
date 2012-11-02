@@ -8,8 +8,11 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import etomo.EtomoDirector;
+import etomo.logic.FieldValidator;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.UITestFieldType;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.Utilities;
 
 /**
@@ -25,12 +28,19 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class TextField {
+final class TextField implements UIComponent {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField = new JTextField();
 
-  TextField(String reference) {
+  private final FieldType fieldType;
+  private final String reference;
+  private final String locationDescr;
+
+  TextField(final FieldType fieldType, final String reference, final String locationDescr) {
+    this.locationDescr = locationDescr;
+    this.fieldType = fieldType;
+    this.reference = reference;
     setName(reference);
     // Set the maximum height of the text field box to twice the
     // font size since it is not set by default
@@ -49,7 +59,7 @@ final class TextField {
     textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 
-  Component getComponent() {
+  public Component getComponent() {
     return textField;
   }
 
@@ -69,8 +79,32 @@ final class TextField {
     textField.setText(text);
   }
 
+  /**
+   * Validates and returns text in text field.  Should never throw a
+   * FieldValidationFailedException when doValidation is false.
+   * @param doValidation
+   * @return
+   * @throws FieldValidationFailedException
+   */
+  String getText(final boolean doValidation) throws FieldValidationFailedException {
+    String text = textField.getText();
+    if (doValidation && textField.isEnabled() && fieldType.validationType.canValidate) {
+      text = FieldValidator.validateText(text, fieldType, this, getQuotedReference()
+          + (locationDescr == null ? "" : " in " + locationDescr));
+    }
+    return text;
+  }
+
+  /**
+   * get text without validation
+   * @return
+   */
   String getText() {
     return textField.getText();
+  }
+
+  private String getQuotedReference() {
+    return Utilities.quoteLabel(reference);
   }
 
   Font getFont() {
@@ -118,6 +152,10 @@ final class TextField {
 
   boolean isEditable() {
     return textField.isEditable();
+  }
+
+  boolean isVisible() {
+    return textField.isVisible();
   }
 
   private void setName(String reference) {

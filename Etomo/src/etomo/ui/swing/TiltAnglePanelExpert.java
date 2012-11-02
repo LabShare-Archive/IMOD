@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
 import etomo.type.UserConfiguration;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -66,18 +67,24 @@ final class TiltAnglePanelExpert {
     panel.setStepEnabled(enable);
   }
 
-  void getFields(final TiltAngleSpec tiltAngleSpec) {
-    if (panel.isExtractSelected()) {
-      tiltAngleSpec.setType(TiltAngleType.EXTRACT);
+  boolean getFields(final TiltAngleSpec tiltAngleSpec, final boolean doValidation) {
+    try {
+      if (panel.isExtractSelected()) {
+        tiltAngleSpec.setType(TiltAngleType.EXTRACT);
+      }
+      if (panel.isSpecifySelected()) {
+        tiltAngleSpec.setType(TiltAngleType.RANGE);
+      }
+      if (panel.isFileSelected()) {
+        tiltAngleSpec.setType(TiltAngleType.FILE);
+      }
+      tiltAngleSpec.setRangeMin(panel.getMin(doValidation));
+      tiltAngleSpec.setRangeStep(panel.getStep(doValidation));
+      return true;
     }
-    if (panel.isSpecifySelected()) {
-      tiltAngleSpec.setType(TiltAngleType.RANGE);
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-    if (panel.isFileSelected()) {
-      tiltAngleSpec.setType(TiltAngleType.FILE);
-    }
-    tiltAngleSpec.setRangeMin(panel.getMin());
-    tiltAngleSpec.setRangeStep(panel.getStep());
   }
 
   /**

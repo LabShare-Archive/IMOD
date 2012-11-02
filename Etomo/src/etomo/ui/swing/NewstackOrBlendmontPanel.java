@@ -106,25 +106,25 @@ abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer, Expa
   }
 
   void createPanel() {
-    //Initialize
+    // Initialize
     btnRunProcess.setContainer(this);
     btnRunProcess.setDeferred3dmodButton(btn3dmodFull);
     btnRunProcess.setSize();
     btn3dmodFull.setSize();
-    //Local panels
+    // Local panels
     SpacedPanel pnlButtons = SpacedPanel.getInstance();
-    //Root panel
+    // Root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlRoot.setBorder(BorderFactory.createEtchedBorder());
     pnlRoot.add(header.getContainer());
     pnlRoot.add(pnlBody.getContainer());
     UIUtilities.alignComponentsX(pnlRoot, Component.LEFT_ALIGNMENT);
-    //Body Panel
+    // Body Panel
     pnlBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlBody.add(newstackAndBlendmontParamPanel.getComponent());
     pnlBody.add(pnlButtons);
-    //Button panel
+    // Button panel
     pnlButtons.setBoxLayout(BoxLayout.X_AXIS);
     pnlButtons.add(btnRunProcess.getComponent());
     pnlButtons.add(btn3dmodFull.getComponent());
@@ -156,20 +156,20 @@ abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer, Expa
     newstackAndBlendmontParamPanel.setParameters(newstParam);
   }
 
-  //  Copy the newstack parameters from the GUI to the NewstParam object
-  public final boolean getParameters(NewstParam newstParam)
+  // Copy the newstack parameters from the GUI to the NewstParam object
+  public final boolean getParameters(NewstParam newstParam,final boolean doValidation)
       throws FortranInputSyntaxException, InvalidParameterException, IOException {
-  return  newstackAndBlendmontParamPanel.getParameters(newstParam);
+    return newstackAndBlendmontParamPanel.getParameters(newstParam,doValidation);
   }
 
   public final void setParameters(BlendmontParam param) {
     newstackAndBlendmontParamPanel.setParameters(param);
   }
 
-  //  Copy the newstack parameters from the GUI to the NewstParam object
-  public final boolean getParameters(BlendmontParam param)
+  // Copy the newstack parameters from the GUI to the NewstParam object
+  public final boolean getParameters(BlendmontParam param, final boolean doValidation)
       throws FortranInputSyntaxException, InvalidParameterException, IOException {
-   return newstackAndBlendmontParamPanel.getParameters(param);
+    return newstackAndBlendmontParamPanel.getParameters(param, doValidation);
   }
 
   /**

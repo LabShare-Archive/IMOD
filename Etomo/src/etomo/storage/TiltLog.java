@@ -25,8 +25,8 @@ public final class TiltLog {
   //created in initialization
   private LogFile file;
 
-  private final EtomoNumber minAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
-  private final EtomoNumber maxAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
+  private final EtomoNumber minAngle = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber maxAngle = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
   private TiltLog() {
   }

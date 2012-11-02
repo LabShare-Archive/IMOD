@@ -201,7 +201,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
   private AxisID axisID = null;
   // private BufferedReader logFileReader = null;
   private LogFile.ReaderId logFileReaderId = null;
-  private long sleepCount = 0;
+  private int sleepCount = 0;
   private ProcessEndState endState = null;
 
   // if processRunning is false at any time before the process ends, it can

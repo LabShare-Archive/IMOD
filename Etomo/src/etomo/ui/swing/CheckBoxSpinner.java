@@ -52,48 +52,73 @@ import etomo.type.ConstEtomoNumber;
 final class CheckBoxSpinner {
   public static final String rcsid = "$Id$";
 
+  private final JPanel panel = new JPanel();
+
   private final Spinner spinner;
   private final CheckBox checkBox;
 
-  private JPanel panel = null;
   private Color panelBackground = null;
   private Color panelHighlightBackground = null;
 
-  CheckBoxSpinner(String text) {
+  private CheckBoxSpinner(final String text) {
     checkBox = new CheckBox(text);
     spinner = Spinner.getInstance(checkBox.getText());
-    spinner.setEnabled(false);
-    checkBox.addActionListener(new CheckBoxSpinnerActionListener(this));
+
   }
 
-  CheckBoxSpinner(String text, final int value, final int minimum, final int maximum) {
+  private CheckBoxSpinner(final String text, final int value, final int minimum,
+      final int maximum) {
     checkBox = new CheckBox(text);
     spinner = Spinner.getInstance(text, value, minimum, maximum);
+  }
+
+  static CheckBoxSpinner getInstance(final String text) {
+    CheckBoxSpinner instance = new CheckBoxSpinner(text);
+    instance.createPanel();
+    instance.addListeners();
+    return instance;
+  }
+
+  static CheckBoxSpinner getInstance(final String text, final int value,
+      final int minimum, final int maximum) {
+    CheckBoxSpinner instance = new CheckBoxSpinner(text, value, minimum, maximum);
+    instance.createPanel();
+    instance.addListeners();
+    return instance;
+  }
+
+  private void createPanel() {
+    // init
     spinner.setEnabled(false);
+    // panel
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+    panel.add(Box.createHorizontalGlue());
+    panel.add(checkBox);
+    panel.add(spinner.getContainer());
+    panel.add(Box.createHorizontalGlue());
+  }
+
+  private void addListeners() {
     checkBox.addActionListener(new CheckBoxSpinnerActionListener(this));
   }
 
   Container getContainer() {
-    if (panel == null) {
-      panel = new JPanel();
-      panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-      panel.add(Box.createHorizontalGlue());
-      panel.add(checkBox);
-      panel.add(spinner.getContainer());
-      panel.add(Box.createHorizontalGlue());
-    }
     return panel;
   }
 
-  void enableSpinner() {
+  private void enableSpinner() {
     spinner.setEnabled(checkBox.isSelected() && checkBox.isEnabled());
+  }
+
+  void setVisible(final boolean input) {
+    panel.setVisible(input);
   }
 
   void setCheckBoxEnabled(final boolean enabled) {
     checkBox.setEnabled(enabled);
   }
 
-  void setModel(SpinnerNumberModel model) {
+  void setModel(final SpinnerNumberModel model) {
     spinner.setModel(model);
   }
 
@@ -101,7 +126,7 @@ final class CheckBoxSpinner {
     spinner.setMax(max);
   }
 
-  void setMaximumSize(Dimension maximumSize) {
+  void setMaximumSize(final Dimension maximumSize) {
     spinner.setMaximumSize(maximumSize);
   }
 
@@ -113,20 +138,20 @@ final class CheckBoxSpinner {
     return checkBox.isSelected();
   }
 
-  void setSelected(boolean selected) {
+  void setSelected(final boolean selected) {
     checkBox.setSelected(selected);
     enableSpinner();
   }
 
-  void setValue(int value) {
+  void setValue(final int value) {
     spinner.setValue(value);
   }
 
-  void setValue(ConstEtomoNumber value) {
+  void setValue(final ConstEtomoNumber value) {
     spinner.setValue(value);
   }
 
-  void setHighlight(boolean highlight) {
+  void setHighlight(final boolean highlight) {
     if (panelBackground == null) {
       panelBackground = panel.getBackground();
       // greying out the highlight color to match the panel's original color
@@ -148,23 +173,22 @@ final class CheckBoxSpinner {
     setSpinnerToolTipText(text);
   }
 
-  void setCheckBoxToolTipText(String text) {
+  void setCheckBoxToolTipText(final String text) {
     checkBox.setToolTipText(text);
   }
 
-  void setSpinnerToolTipText(String text) {
+  void setSpinnerToolTipText(final String text) {
     spinner.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 
-  private class CheckBoxSpinnerActionListener implements ActionListener {
+  private final class CheckBoxSpinnerActionListener implements ActionListener {
+    private final CheckBoxSpinner adaptee;
 
-    CheckBoxSpinner adaptee;
-
-    CheckBoxSpinnerActionListener(CheckBoxSpinner adaptee) {
+    private CheckBoxSpinnerActionListener(final CheckBoxSpinner adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
+    public void actionPerformed(final ActionEvent event) {
       adaptee.enableSpinner();
     }
   }

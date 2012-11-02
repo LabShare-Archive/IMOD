@@ -1,10 +1,12 @@
 Version = 1.2
 
 [function = main]
+#temp
 if.var.quick.run.function.quick=
 if.var.quick.return=
 run.function.fiducial-model-generation=
 bn.done=
+
 
 
 [function = quick]
@@ -30,6 +32,7 @@ bn.done=
 
 [function = transfer-fiducials-quick]
 if.not-equals.var.axis.return = b
+rb.transfer-seed-model-from-the-other-axis=
 bn.transfer-fiducials-from-other-axis =
 wait.process.transferring-fiducials = done
 bn.done=
@@ -48,6 +51,7 @@ set.var.seed-button=view-seed-model
 [[]]
 rb.make-seed-and-track=
 run.function.transfer-fiducials=
+rb.make-seed-model-manually=
 [[if = test-gui]]
 	#test values
 	assert.bn.%{seed-button}=off
@@ -69,6 +73,7 @@ run.function.beadtracker=
 [function = transfer-fiducials]
 if.not-equals.var.axis.return = b
 rb.make-seed-and-track=
+rb.transfer-seed-model-from-the-other-axis=
 mb.transfer-fiducials=+
 [[if = test-gui]]
 	#Test values
@@ -108,6 +113,7 @@ assert.exists.file=%{dataset}%{axis}.seed
 
 
 [function = beadtracker]
+tb.seed-model.1=
 mb.beadtracker=+
 [[if = test-gui]]
 	#Test values
@@ -182,6 +188,12 @@ mb.beadtracker=+
 	assert.disabled.tf.minimum-beads-in-area=
 	assert.disabled.tf.minimum-beads-overlapping=
 	mb.beadtracker.1=B
+	#Test field validation
+	tf.view-skip-list=abc
+	bn.track-seed-model=
+	wait.popup.field-validation-failed=OK
+	assert.disabled.bn.kill-process=
+	tf.view-skip-list=
 [[]]
 run.function.expert-parameters=
 cb.refine-center-with-sobel-filter=on
@@ -214,9 +226,7 @@ copy.file=%{dataset}%{axis}.fid
 
 
 [function = expert-parameters]
-[[if = dual]]
-	mb.transfer-fiducials=-
-[[]]
+tb.seed-model.1=
 mb.beadtracker.1=A
 mb.expert-parameters=+
 [[if = test-gui]]
@@ -245,9 +255,6 @@ mb.expert-parameters=+
 [[]]
 mb.expert-parameters=-
 mb.beadtracker.1=B
-[[if = dual]]
-	mb.transfer-fiducials=+
-[[]]
 
 
 [function = patch-tracking]
@@ -336,11 +343,16 @@ assert.exists.file=%{dataset}%{axis}.fid~
 #don't break contours for midzone2b (doesn't need it)
 if.equals.var.axis.return=b
 cb.break-contours-into-pieces=on
+[[if = test-gui]]
+  #test field validation
+  tf.break-contours-into-pieces=16,4abc
+  bn.track-patches=
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tf.break-contours-into-pieces=16,4
+[[]]
 bn.track-patches=
 wait.process.cross-correlating-stack=done
-[[if = test-gui]]
-  assert.contains.file=xcorr_pt.com|TiltFile*%{dataset}%{axis}.rawtlt
-[[]]
 
 
 [function = patch-layout]
