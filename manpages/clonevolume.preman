@@ -6,7 +6,7 @@ clonevolume \- clone copies of a volume (typically a PEET averaged
 subvolume) back to the aligned positions and orientations in a starting 
 volume.
 .SH SYNOPSIS
-clonevolume -at <csvFile> -into <intoVol> [options] <inVol> <outVol>
+clonevolume [options] -at <csvFile> -into <intoVol> <inVol> <outVol>
 
 .SH DESCRIPTION
 After aligning and averaging a set of subvolumes with PEET, it is often 

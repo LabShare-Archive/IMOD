@@ -5,7 +5,7 @@
 clonemodel \- clone copies of a model (e.g. an isosurface from a PEET average)
 back to the aligned positions and orientations.
 .SH SYNOPSIS
-clonemodel -at <csvFile> [options] <inputModel> <outputModel>
+clonemodel [options] -at <csvFile> <inputModel> <outputModel>
 
 .SH DESCRIPTION
 After aligning and averaging a set of subvolumes with PEET and creating an 
