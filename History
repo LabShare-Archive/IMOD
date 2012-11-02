@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/1/12: ETomo - PEET: handling parsing failures in the .prm file.(Bug# 1644)
+
 11/1/12: ETomo: Added an interface for autofidseed to the Fiducial Model
 dialog.(Bug# 1655)
 
