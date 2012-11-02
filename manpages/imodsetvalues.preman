@@ -4,7 +4,7 @@
 .SH NAME
 imodsetvalues \- store per point or per contour values in an IMOD model.
 .SH SYNOPSIS
-imodsetvalues <values file> <input model> <output model>
+imodsetvalues [options] -values <values file> <input model> <output model>
 
 .SH DESCRIPTION
 Store or modify per point or per contour values in an IMOD model, and 

@@ -30,7 +30,7 @@ int main( int argc, char *argv[])
   FILE *valFP = NULL, *minMaxFP = NULL;
   float f1, f2, f3, f4;
   int iContNum, iErr, iObjNum, iOldObjNum = -1, iPointNum, iView;
-  int nContours, nPoints, nOptArgs, nNonOptArgs;
+  int nContours, nPoints, nOptArgs, nNonOptArgs, nValuesPerLine;
   Icont *contour;
   Iobj *object;
   Iobjview *view;
@@ -38,20 +38,36 @@ int main( int argc, char *argv[])
   set<int> objectsModified;
 
   const int nOptions = 4;
-    const char *options[] = {"input:InputFile:FN:", 
-                             "output:OutputFile:FN:", 
-                             "values:ValuesFile:FN:", 
-                             "minMax:MinMaxFile:FN:"};
+  const char *options[] = {"input:InputFile:FN:", 
+			   "output:OutputFile:FN:", 
+			   "values:ValuesFile:FN:", 
+			   "minMax:MinMaxFile:FN:"};
+  const char *usageString = 
+    "Usage: imodsetvalues [options] -values valuesFile inputModel OutputModel";
 
   // Parse parameters 
-  PipReadOrParseOptions(argc, argv, options, nOptions, progname, 3, 2, 
+  PipSetUsageString(usageString);
+  PipReadOrParseOptions(argc, argv, options, nOptions, progname, 3, 1, 
                         1, &nOptArgs, &nNonOptArgs, imodUsageHeader);
-  if (PipGetInOutFile("ValueFile", 0, &valueFile))
-    exitError("No value file specified");
-  if (PipGetInOutFile((char *)"InputFile", 1, &inFile))
+
+  if (PipGetInOutFile((char *)"InputFile", 0, &inFile))
     exitError("No input file specified");
-  if (PipGetInOutFile("OutputFile", 2, &outFile))
+  
+  if (PipGetInOutFile("OutputFile", 1, &outFile))
     exitError("No output file specified");
+  
+  if (!PipGetString("ValueFile",  &valueFile)) {
+    valFP = fopen(valueFile, "r");
+    if (!valFP)
+      exitError("Error opening value file %s!", valueFile);
+    // count the number of values on the first line
+    nValuesPerLine = fscanf(valFP, "%g, %g, %g, %g \n",
+			    &f1, &f2, &f3, &f4);
+    rewind(valFP);
+  }
+  else 
+    exitError("No value file specified");
+  
   if (!PipGetString("MinMaxFile", &minMaxFile)) {
     minMaxFP = fopen(minMaxFile, "r");
     if (!minMaxFP) {
@@ -59,15 +75,6 @@ int main( int argc, char *argv[])
     }
   }
   PipDone();
-
-  // Open the value file count the number of values per line
-  valFP = fopen(valueFile, "r");
-  if (!valFP)
-    exitError("Error opening value file %s!", valueFile);
-
-  int nValuesPerLine = fscanf(valFP, "%g, %g, %g, %g \n",
-                              &f1, &f2, &f3, &f4);
-  rewind(valFP);
 
   // Open the input model and get number of objects and views
   Imod *model = imodRead(inFile);
