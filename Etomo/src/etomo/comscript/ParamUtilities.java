@@ -243,19 +243,6 @@ public class ParamUtilities {
   }
 
   /**
-   * Parse a float value from a string returning the default value the string
-   * is white space
-   * @param value
-   * @return
-   */
-  public static float parseFloat(String value) {
-    if (value == null || !value.matches("\\S+")) {
-      return Float.NaN;
-    }
-    return Float.parseFloat(value);
-  }
-
-  /**
    * Parse a double value from a string returning the default value the string
    * is white space
    * @param value
@@ -359,22 +346,6 @@ public class ParamUtilities {
   }
 
   /**
-   * Return the float parameter if it is present in the com script command
-   * object, otherwise return the notPresentValue
-   * @param scriptCommand
-   * @param keyword
-   * @param notPresentValue
-   * @return
-   * @throws InvalidParameterException NumberFormatException 
-   */
-  public static float setParamIfPresent(ComScriptCommand scriptCommand, String keyword,
-      float notPresentValue) throws InvalidParameterException, NumberFormatException {
-
-    return (scriptCommand.hasKeyword(keyword)) ? Float.parseFloat(scriptCommand
-        .getValue(keyword)) : notPresentValue;
-  }
-
-  /**
    * Return the double parameter if it is present in the com script command
    * object, otherwise return the notPresentValue
    * @param scriptCommand
@@ -386,7 +357,7 @@ public class ParamUtilities {
   public static double setParamIfPresent(ComScriptCommand scriptCommand, String keyword,
       double notPresentValue) throws InvalidParameterException, NumberFormatException {
 
-    return (scriptCommand.hasKeyword(keyword)) ? Integer.parseInt(scriptCommand
+    return (scriptCommand.hasKeyword(keyword)) ? Double.parseDouble(scriptCommand
         .getValue(keyword)) : notPresentValue;
   }
 
@@ -498,25 +469,6 @@ public class ParamUtilities {
     }
     if (!(value == Integer.MIN_VALUE)) {
       scriptCommand.setValue(key, Integer.toString(value));
-    }
-    else {
-      scriptCommand.deleteKey(key);
-    }
-  }
-
-  /**
-   * @param scriptCommand
-   * @param key
-   * @param value
-   */
-  public static void updateScriptParameter(ComScriptCommand scriptCommand, String key,
-      float value) {
-
-    if (key == null) {
-      throw new NullPointerException();
-    }
-    if (!Float.isNaN(value)) {
-      scriptCommand.setValue(key, Float.toString(value));
     }
     else {
       scriptCommand.deleteKey(key);

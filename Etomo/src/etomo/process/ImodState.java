@@ -1,5 +1,6 @@
 package etomo.process;
 
+import java.util.List;
 import java.util.Vector;
 import java.io.File;
 import java.io.IOException;
@@ -488,6 +489,7 @@ public final class ImodState {
   private EtomoBoolean2 deleteAllSections = null;
   private String fileName = null;
   private EtomoBoolean2 interpolation = null;
+  private List<String> modelNameList=null;
 
   // constructors
   // they can set final state variables
@@ -819,6 +821,12 @@ public final class ImodState {
     open(menuOptions);
   }
 
+  void open(List<String> modelNameList, Run3dmodMenuOptions menuOptions)
+      throws SystemProcessException, IOException {
+    setModelNameList(modelNameList);
+    open(menuOptions);
+  }
+
   public void open(String modelName, boolean modelMode, Run3dmodMenuOptions menuOptions)
       throws SystemProcessException, IOException {
     setModelName(modelName);
@@ -968,9 +976,14 @@ public final class ImodState {
     return modelName;
   }
 
-  public void setModelName(String modelName) {
+  private void setModelName(String modelName) {
     this.modelName = modelName;
     process.setModelName(modelName);
+  }
+  
+  private void setModelNameList(List<String> modelNameList) {
+    this.modelNameList = modelNameList;
+    process.setModelNameList(modelNameList);
   }
 
   void setLoadAsIntegers() {

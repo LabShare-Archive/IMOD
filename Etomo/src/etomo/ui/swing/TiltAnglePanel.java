@@ -9,6 +9,8 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.ui.swing.TooltipFormatter;
 
 /**
@@ -87,8 +89,10 @@ final class TiltAnglePanel {
   private final JPanel pnlAngle = new JPanel();
   private final RadioButton rbSpecify = new RadioButton(
       "Specify the starting angle and step (degrees)");
-  private final LabeledTextField ltfMin = new LabeledTextField("Starting angle:");
-  private final LabeledTextField ltfStep = new LabeledTextField("Increment:");
+  private final LabeledTextField ltfMin = new LabeledTextField(FieldType.FLOATING_POINT,
+      "Starting angle:");
+  private final LabeledTextField ltfStep = new LabeledTextField(FieldType.FLOATING_POINT,
+      "Increment:");
   private final RadioButton rbFile = new RadioButton(EXISTING_RAWTILT_FILE);
 
   private final TiltAnglePanelExpert expert;
@@ -112,7 +116,7 @@ final class TiltAnglePanel {
     pnlSource.setAlignmentX(Component.CENTER_ALIGNMENT);
 
     //
-    //  Build button group
+    // Build button group
     //
     ButtonGroup bgSource = new ButtonGroup();
     bgSource.add(rbExtract.getAbstractButton());
@@ -170,16 +174,16 @@ final class TiltAnglePanel {
     return rbFile.isSelected();
   }
 
-  String getMin() {
-    return ltfMin.getText();
+  String getMin(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfMin.getText(doValidation);
   }
 
   boolean isMinEmpty() {
     return ltfMin.isEmpty();
   }
 
-  String getStep() {
-    return ltfStep.getText();
+  String getStep(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfStep.getText(doValidation);
   }
 
   boolean isStepEmpty() {

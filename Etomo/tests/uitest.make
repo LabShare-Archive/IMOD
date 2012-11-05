@@ -1,7 +1,8 @@
-all: gpu-test-gui single-test-gui single-patch-tracking-test-gui single-fidless single-simple-align dual-test-gui single-montage-test-gui dual-montage-test-gui dual-montage-patch-tracking peet-test-gui join-test-gui serial-sections-test-gui serial-sections-montage-test-gui nad generic flatten-volume-test-gui
-back: gpu-test-gui flatten-volume-test-gui generic nad serial-sections-montage-test-gui serial-sections-test-gui join-test-gui peet-test-gui dual-montage-patch-tracking dual-montage-test-gui single-montage-test-gui dual-test-gui single-simple-align single-fidless single-patch-tracking-test-gui single-test-gui
+all: gpu-test-gui single-test-gui single-patch-tracking-test-gui single-fidless single-simple-align dual-test-gui single-montage-test-gui dual-montage-test-gui dual-montage-patch-tracking peet-test-gui join-test-gui serial-sections-test-gui serial-sections-montage-test-gui nad-test-gui generic flatten-volume-test-gui
+back: gpu-test-gui flatten-volume-test-gui generic nad-test-gui serial-sections-montage-test-gui serial-sections-test-gui join-test-gui peet-test-gui dual-montage-patch-tracking dual-montage-test-gui single-montage-test-gui dual-test-gui single-simple-align single-fidless single-patch-tracking-test-gui single-test-gui
 all-pt: single-patch-tracking-test-gui single-patch-tracking dual-montage-patch-tracking
 all-peet: peet peet-test-gui
+build: single dual single-montage dual-montage join nad peet generic flatten-volume
 
 temp: 
 
@@ -41,6 +42,8 @@ serial-sections-montage-test-gui: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest serial-sections-montage-test-gui
 nad: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest nad
+nad-test-gui: dummy
+	$(IMOD_UITEST_SCRIPT)/uitest nad-test-gui
 peet: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest peet
 peet-test-gui: dummy

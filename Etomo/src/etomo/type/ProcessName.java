@@ -251,6 +251,7 @@ public final class ProcessName {
   public static final ProcessName SIRTSETUP = new ProcessName("sirtsetup");
   // The axis letter goes after tilt.
   public static final ProcessName TILT_SIRT = new ProcessName("tilt_sirt");
+  public static final ProcessName AUTOFIDSEED = new ProcessName("autofidseed");
 
   /**
    * Returns a string representation of the object.
@@ -550,6 +551,9 @@ public final class ProcessName {
     }
     if (name.compareToIgnoreCase(TILT_SIRT.name) == 0) {
       return TILT_SIRT;
+    }
+    if (name.compareToIgnoreCase(AUTOFIDSEED.name) == 0) {
+      return AUTOFIDSEED;
     }
     return null;
   }

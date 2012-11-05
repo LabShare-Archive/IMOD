@@ -135,10 +135,10 @@ public final class XfjointomoParam {
         ConstEtomoNumber start = startListWalker.nextEtomoNumber();
         ConstEtomoNumber end = endListWalker.nextEtomoNumber();
         if (start.gt(end)) {
-          sizesOfSections.append(start.getLong() - end.getLong() + 1);
+          sizesOfSections.append(start.getInt() - end.getInt() + 1);
         }
         else {
-          sizesOfSections.append(end.getLong() - start.getLong() + 1);
+          sizesOfSections.append(end.getInt() - start.getInt() + 1);
         }
         if (startListWalker.hasNext()) {
           sizesOfSections.append(',');

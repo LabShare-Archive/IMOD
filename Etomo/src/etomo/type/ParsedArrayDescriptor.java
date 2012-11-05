@@ -228,7 +228,7 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
   /**
    * Set number at index if index between 0 and 2.
    */
-  void setRawString(final int index, float number) {
+  void setRawString(final int index, double number) {
     if (index < 0) {
       return;
     }

@@ -686,6 +686,7 @@ public class ImodProcess {
   private File[] fileList = null;
   private boolean loadAsIntegers = false;
   private boolean montageSeparation = false;
+  private List<String> modelNameList = null;
 
   /**
    * If true, run 3dmod with -L.  This means that imodsentevent will not be used
@@ -811,6 +812,10 @@ public class ImodProcess {
    */
   public void setModelName(String modelName) {
     this.modelName = modelName;
+  }
+
+  public void setModelNameList(List<String> modelNameList) {
+    this.modelNameList = modelNameList;
   }
 
   public void setWorkingDirectory(File workingDirectory) {
@@ -974,8 +979,16 @@ public class ImodProcess {
       }
     }
 
-    if (openWithModel && !modelName.equals("")) {
-      commandOptions.add(modelName);
+    if (openWithModel) {
+      if (!modelName.equals("")) {
+        commandOptions.add(modelName);
+      }
+      if (modelNameList != null) {
+        Iterator<String> i = modelNameList.iterator();
+        while (i.hasNext()) {
+          commandOptions.add(i.next());
+        }
+      }
     }
 
     String[] commandArray = new String[commandOptions.size()];
@@ -1296,7 +1309,7 @@ public class ImodProcess {
     }
   }
 
-  public void setBeadfixerDiameter(long beadfixerDiameter) {
+  public void setBeadfixerDiameter(int beadfixerDiameter) {
     beadfixerDiameterSet = true;
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER,
         String.valueOf(beadfixerDiameter));
@@ -1622,6 +1635,8 @@ public class ImodProcess {
   private void sendCommands(String[] args, Vector imodReturnValues, boolean readResponse)
       throws IOException {
     MessageSender messageSender = new MessageSender(args, imodReturnValues, readResponse);
+    /* //patch for quicklistener shared queue problem try { Thread.sleep(200); } catch
+     * (InterruptedException e) { } */
     if (imodReturnValues == null) {
       new Thread(messageSender).start();
     }
@@ -2248,10 +2263,9 @@ public class ImodProcess {
     static final String OPTION = "-E";
 
     static final WindowOpenOption IMODV_OBJECTS = new WindowOpenOption("O", true);
-
     static final WindowOpenOption ISOSURFACE = new WindowOpenOption("U", true);
-
     static final WindowOpenOption OBJECT_LIST = new WindowOpenOption("L", true);
+    static final WindowOpenOption MODEL_EDIT = new WindowOpenOption("M", true);
 
     private final String windowKey;
 

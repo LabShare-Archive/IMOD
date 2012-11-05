@@ -26,5 +26,5 @@ import etomo.comscript.CCDEraserParam;
 public interface CcdEraserDisplay extends ProcessDisplay {
   public static final String rcsid = "$Id$";
 
-  public boolean getParameters(final CCDEraserParam ccdEraserParams);
+  public boolean getParameters(final CCDEraserParam ccdEraserParams, boolean doValidation);
 }

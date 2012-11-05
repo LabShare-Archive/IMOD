@@ -72,6 +72,16 @@ if.not.var.montage.return=
 [[]]
 cb.treat-as-very-sloppy-blend=on
 bn.open-raw-stack=
+[[if = test-gui]]
+  #field validation
+  cb.robust-fitting-for-criterion=on
+  tf.robust-fitting-for-criterion=1.0abc
+  bn.make-blended-stack=
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tf.robust-fitting-for-criterion=1.0
+  cb.robust-fitting-for-criterion=off
+[[]]
 bn.make-blended-stack=
 wait.process.initial-blend=done
 [[if = test-gui]]
@@ -125,6 +135,12 @@ tb.initial-blend.1=
   assert.enabled.tf.fraction-to-ignore-on-edges=
   assert.enabled.sp.binning=
   assert.enabled.sp.midas-binning=
+  #test field validation
+  tf.sections-to-skip=abc
+  bn.initial-auto-alignment=
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tf.sections-to-skip=
 [[]]
 bn.initial-auto-alignment=
 wait.process.initial-xfalign=done

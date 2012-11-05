@@ -38,10 +38,10 @@ import etomo.util.InvalidParameterException;
 public interface TiltDisplay extends ProcessDisplay {
   public static final String rcsid = "$Id$";
 
-  public boolean getParameters(TiltParam param) throws NumberFormatException,
-      InvalidParameterException, IOException;
+  public boolean getParameters(TiltParam param, boolean doValidation)
+      throws NumberFormatException, InvalidParameterException, IOException;
 
-  public boolean getParameters(final SplittiltParam param);
+  public boolean getParameters(final SplittiltParam param,boolean doValidation);
 
   public boolean allowTiltComSave();
 }

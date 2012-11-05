@@ -83,7 +83,7 @@ final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel implement
     setBinning(param.getBinByFactor());
   }
 
-  public boolean getParameters(NewstParam newstParam) throws FortranInputSyntaxException,
+  public boolean getParameters(NewstParam newstParam,final boolean doValidation) throws FortranInputSyntaxException,
       InvalidParameterException, IOException {
     newstParam.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
     newstParam.setFiducialessAlignment(manager.getMetaData().isFiducialessAlignment(

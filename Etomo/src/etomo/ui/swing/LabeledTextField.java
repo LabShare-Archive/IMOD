@@ -9,10 +9,13 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
 import etomo.EtomoDirector;
+import etomo.logic.FieldValidator;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.Utilities;
 
 /**
@@ -205,13 +208,15 @@ import etomo.util.Utilities;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-final class LabeledTextField {
+final class LabeledTextField implements UIComponent {
   public static final String rcsid = "$Id$";
 
   private final JPanel panel = new JPanel();
   private final JLabel label = new JLabel();
   private final JTextField textField = new JTextField();
   private final EtomoNumber.Type numericType;
+  private final FieldType fieldType;
+  private final String locationDescr;
 
   private boolean debug = false;
   private String checkpointValue = null;
@@ -233,8 +238,10 @@ final class LabeledTextField {
     return textField.getDocument() == document;
   }
 
-  private LabeledTextField(final String tfLabel, final EtomoNumber.Type numericType,
-      final int hgap) {
+  private LabeledTextField(final FieldType fieldType, final String tfLabel,
+      final EtomoNumber.Type numericType, final int hgap, final String locationDescr) {
+    this.locationDescr = locationDescr;
+    this.fieldType = fieldType;
     this.numericType = numericType;
     // set label
     setLabel(tfLabel);
@@ -258,21 +265,30 @@ final class LabeledTextField {
     textField.setMaximumSize(maxSize);
   }
 
-  LabeledTextField(final String tfLabel) {
-    this(tfLabel, null, 0);
+  LabeledTextField(final FieldType fieldType, final String tfLabel) {
+    this(fieldType, tfLabel, null, 0, null);
   }
 
-  LabeledTextField(final String tfLabel, final int hgap) {
-    this(tfLabel, null, hgap);
+  LabeledTextField(final FieldType fieldType, final String tfLabel,
+      final String locationDescr) {
+    this(fieldType, tfLabel, null, 0, locationDescr);
+  }
+
+  LabeledTextField(final FieldType fieldType, final String tfLabel, final int hgap) {
+    this(fieldType, tfLabel, null, hgap, null);
   }
 
   static LabeledTextField getNumericInstance(final String tfLabel,
       final EtomoNumber.Type numericType) {
-    return new LabeledTextField(tfLabel, numericType, 0);
+    FieldType fieldType = FieldType.INTEGER;
+    if (numericType == EtomoNumber.Type.DOUBLE) {
+      fieldType = FieldType.FLOATING_POINT;
+    }
+    return new LabeledTextField(fieldType, tfLabel, numericType, 0, null);
   }
 
   static LabeledTextField getNumericInstance(final String tfLabel) {
-    return new LabeledTextField(tfLabel, EtomoNumber.Type.INTEGER, 0);
+    return getNumericInstance(tfLabel, EtomoNumber.Type.INTEGER);
   }
 
   private void setName(final String tfLabel) {
@@ -282,19 +298,6 @@ final class LabeledTextField {
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(textField.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
           + ' ');
-    }
-  }
-
-  /**
-   * Saves value as the checkpoint.
-   */
-  void checkpoint(final float value) {
-    checkpointValue = new Float(value).toString();
-    if (numericType != null) {
-      if (nCheckpointValue == null) {
-        nCheckpointValue = new EtomoNumber(numericType);
-      }
-      nCheckpointValue.set(checkpointValue);
     }
   }
 
@@ -405,6 +408,10 @@ final class LabeledTextField {
     }
   }
 
+  public Component getComponent() {
+    return panel;
+  }
+
   Container getContainer() {
     return panel;
   }
@@ -422,6 +429,18 @@ final class LabeledTextField {
     setName(label);
   }
 
+  String getText(final boolean doValidation) throws FieldValidationFailedException {
+    String text = textField.getText();
+    if (doValidation && textField.isEnabled()) {
+      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel()
+          + (locationDescr == null ? "" : " in " + locationDescr),false);
+    }
+    return text;
+  }
+
+  /**
+   * return text without validation
+   */
   String getText() {
     return textField.getText();
   }
@@ -445,10 +464,6 @@ final class LabeledTextField {
   }
 
   void setText(final int value) {
-    textField.setText(String.valueOf(value));
-  }
-
-  void setText(final float value) {
     textField.setText(String.valueOf(value));
   }
 
@@ -500,7 +515,7 @@ final class LabeledTextField {
 
   void setPreferredWidth(final int width) {
     Dimension dim = textField.getPreferredSize();
-    dim.width = width * Math.round(UIParameters.INSTANCE.getFontSizeAdjustment());
+    dim.width = width * (int) Math.round(UIParameters.INSTANCE.getFontSizeAdjustment());
     textField.setPreferredSize(dim);
     textField.setMaximumSize(dim);
   }

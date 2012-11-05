@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/1/12: ETomo: Added an interface for autofidseed to the Fiducial Model
+dialog.(Bug# 1655)
+
 10/30/12: Removed underscore from Autofidseed info file and temporary
 directory names for eTomo. 
 
@@ -21,6 +24,9 @@ snapshots with vertex buffer drawing on (In 4.5).
 10/19/12: Made Tif2mrc able to read metadata in files from TVIPS acquisition
 software and produce a .rawtlt file and a title in the header with tilt axis
 rotation angle.
+
+10/16/12: ETomo: Added field validation and better white space handling for
+numeric text fields.(Bug# 1614)
 
 10/4/12: IMOD_4-6-15
 10/4/12: Pixel sizes are now obtained from DigitalMicrograph files and stored

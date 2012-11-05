@@ -26,5 +26,5 @@ import etomo.comscript.FlattenWarpParam;
 public interface FlattenWarpDisplay {
   public static final String rcsid = "$Id$";
 
-  public boolean getParameters(FlattenWarpParam param);
+  public boolean getParameters(FlattenWarpParam param, boolean doValidation);
 }
