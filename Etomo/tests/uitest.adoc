@@ -170,6 +170,20 @@ set.var.run_sirt=
 set.var.test-gui=
 #set.var.quick=
 
+[Test = single-montage-patch-tracking]
+set.testdir = single-montage-patch-tracking
+set.adoc.dialog = recon.adoc
+set.var.dataset = midzone2a
+set.dataset = midzone2
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.param = --actions
+#set.param = midzone2.edf
+set.var.single=
+set.var.montage=
+set.var.run_sirt=
+set.var.patch-tracking=
+
 [Test = dual-montage-test-gui]
 set.testdir = dual-montage-test-gui
 #set.keep.testdir = dual-montage-test-gui
