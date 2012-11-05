@@ -4,9 +4,9 @@ IMOD History
 directory names for eTomo. 
 
 10/29/12: Made Header report of pixel size from extended header take account
-of binning  up to 4; made Alterheader FEIPIXEL do the same and modify the
-pixel size enough to prevent the operation from being done twice; added option
-to Copytomocoms for converting pixel sizes of FEI files.
+of binning  up to 4; made Alterheader FEIPIXEL do the same and set a flag to
+prevent the operation from being done twice; added option to Copytomocoms for
+converting pixel sizes of FEI files. 
 
 10/24/12: IMOD_4-6-16
 10/24/12: Removed Tilt's setting of pixel size from extended header (8/28/12)
