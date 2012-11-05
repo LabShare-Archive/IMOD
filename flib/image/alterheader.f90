@@ -31,7 +31,7 @@ program alterheader
   real*4 dmin, dmax, dmean, origx, origy, origz, v1, v2
   real*4 dmins, dmaxs, sd, rms, pixel
   real*8 dmeans, sums, sumsqs, totn, tsum, sumsq
-  integer*4 maxLines, numChunks, iChunk, numLines
+  integer*4 maxLines, numChunks, iChunk, numLines, iflags, ifImod
   logical*4 nbytes_and_flags, noBinning
   !
   ! Read in input file
@@ -254,7 +254,7 @@ program alterheader
       enddo
     enddo
     print *,'Enter new label'
-    read(6, '(a)') filin
+    read(6, 101) filin
     read(filin, '(20a4)') (title(j, iold + 1), j = 1, 20)
     newtitle = ntitle + 1
   else
@@ -276,7 +276,7 @@ program alterheader
     write(*,'(a,/)') ' New label list would be:'
     write(*,'(i3,1x,19a4)') (i, (title(j, i), j = 1, 19), i = 1, newtitle)
   else
-    write(*,'(a)') ' New label list would be empty'
+    write(*,101) ' New label list would be empty'
   endif
   write(*,'(/,1x,a,$)') '1 to confirm changing to this label list, 0 not to: '
   read(5,*) ifok
@@ -397,7 +397,8 @@ program alterheader
     go to 30
   endif
   call irtdel(2, delt)
-  noBinning = .false.
+  call irtImodFlags(2, iflags, ifImod)
+  noBinning = iand(iflags, 2) .ne. 0
   do i = 1, 3
     iBinning(i) = nint(delt(i))
     if (abs(delt(i) - iBinning(i)) > 1.e-6 .or. iBinning(i) <= 0 .or. iBinning(i) > 4) &
@@ -405,13 +406,20 @@ program alterheader
   enddo
   if (noBinning) then
     iBinning(1:3) = 1
+    if (iand(iflags, 2) .ne. 0) write(*,2194)
+2194 format(/,'The pixel size has already been transferred to the standard pixel spacing')
     write(*,219) pixel
 219 format('Pixel size in extended header is',g11.4,' Angstroms',/, 'Enter', &
         ' 1 to set the pixel spacing to this value, 0 not to, -1 to abort: ',$)
     read(5,*) ifok
     if (ifok < 0) then
-      write(*, '(/,a,/,a)')'The existing regular pixel spacing did not correspond to '// &
-          'a binning', 'The pixel size in the extended header is not being used'
+      if (iand(iflags, 2) .ne. 0) then
+        write(*,2194)
+      else
+        write(*, '(/,a)')'The existing regular pixel spacing did not correspond to '// &
+            'a binning'
+      endif
+      write(*,101)'The pixel size in the extended header is not being used'
       call exit(0)
     endif
     iBinning(1:3) = 1
@@ -426,9 +434,8 @@ program alterheader
   endif
   if (ifok == 0) go to 30
 
-  ! Adjust the pixel size away from an exact integer to prevent this being from done twice
-  if (abs(nint(pixel) - pixel) < 1.e-6 .and. pixel >= 1. .and. pixel <= 4.) &
-      pixel = pixel + 2.e-6
+  iflags = ior(iflags, 2)
+  call ialImodFlags(2, iflags)
   call irtsam(2, mxyz)
   call irtcel(2, cell)
   cell(1:3) = mxyz(1:3) * pixel * iBinning(1:3)
