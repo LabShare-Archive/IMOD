@@ -28,6 +28,8 @@ dual-montage: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest dual-montage
 single-montage-test-gui: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest single-montage-test-gui
+single-montage-patch-tracking: dummy
+	$(IMOD_UITEST_SCRIPT)/uitest single-montage-patch-tracking
 dual-montage-test-gui: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest dual-montage-test-gui
 dual-montage-patch-tracking: dummy
