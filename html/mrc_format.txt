@@ -82,6 +82,7 @@ OFFSET  SIZE DATA    NAME	Description
                                  other software that uses bit flags in the following field
 156 234  4   int     imodFlags   Bit flags:
                                  1 = bytes are stored as signed
+                                 2 = pixel spacing was set from size in extended header 
 
                               Explanation of type of data.
 160 240  2   short   idtype;  ( 0 = mono, 1 = tilt, 2 = tilts, 3 = lina, 4 = lins)
