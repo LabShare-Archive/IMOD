@@ -23,7 +23,7 @@ program header
   character*25 extractCom(ntypes) /'extracttilts', 'extractpieces', &
       'extracttilts -stage', 'extracttilts -mag', 'extracttilts -int', &
       'extracttilts -exp'/
-  integer*4 numInputFiles, nfilein, ifBrief, iBinning
+  integer*4 numInputFiles, nfilein, ifBrief, iBinning, iflags, ifImod
   logical*4 doSize, doMode, doMin, doMax, doMean, silent, doPixel, doOrigin
   real*4 DMIN, DMAX, DMEAN, pixel, tiltaxis, delta(3)
   logical pipinput
@@ -133,7 +133,8 @@ program header
           endif
           pixel = array(numInt + 12) * 1.e9
           call irtdel(1, delta)
-          if (pixel > 0.01 .and. pixel < 10000.) then
+          call irtImodFlags(1, iflags, ifImod)
+          if (pixel > 0.01 .and. pixel < 10000 .and. iand(iflags, 2) .eq. 0) then
             do j = 3, 1, -1
               iBinning = nint(delta(j))
               if (abs(delta(j) - iBinning) > 1.e-6 .or. iBinning <= 0 .or. &
