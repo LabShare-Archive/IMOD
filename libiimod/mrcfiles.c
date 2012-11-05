@@ -101,6 +101,10 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
     hdata->amean += 128.;
   }
 
+  /* If not an IMOD file, clear out the flags, otherwise retain them */
+  if (hdata->imodStamp != IMOD_MRC_STAMP)
+    hdata->imodFlags = 0;
+
   for ( i = 0; i < MRC_NLABELS; i ++){
     if (fread(hdata->labels[i], MRC_LABEL_SIZE, 1, fin) == 0){  
       b3dError(stderr, "ERROR: mrc_head_read - reading label %d.\n", i);
@@ -192,7 +196,7 @@ int mrc_head_write(FILE *fout, MrcHeader *hdata)
 
   /* Set the IMOD stamp and flags and clear out old creator field when writing */
   hdata->imodStamp = IMOD_MRC_STAMP;
-  hdata->imodFlags = hdata->bytesSigned ? MRC_FLAGS_SBYTES : 0;
+  setOrClearFlags(&hdata->imodFlags, MRC_FLAGS_SBYTES, hdata->bytesSigned);
   hdata->creatid = 0;
   hdata->blank[0] = 0;
   hdata->blank[1] = 0;

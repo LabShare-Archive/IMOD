@@ -1,20 +1,24 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/5/12: ETomo: Added an interface for autofidseed to the Fiducial Model
+dialog.(Bug# 1655)
+
+11/5/12: ETomo: Added field validation and better white space handling for
+numeric text fields.(Bug# 1614)
+
 11/2/12: ETomo: Fixed the estimated time of completion for process monitors
 that watch a log file.(Bug# 1632)
 
 11/1/12: ETomo - PEET: handling parsing failures in the .prm file.(Bug# 1644)
 
-11/1/12: ETomo: Added an interface for autofidseed to the Fiducial Model
-dialog.(Bug# 1655)
 
 10/30/12: Removed underscore from Autofidseed info file and temporary
 directory names for eTomo. 
 
 10/29/12: Made Header report of pixel size from extended header take account
-of binning  up to 4; made Alterheader FEIPIXEL do the same and modify the
-pixel size enough to prevent the operation from being done twice; added option
-to Copytomocoms for converting pixel sizes of FEI files.
+of binning  up to 4; made Alterheader FEIPIXEL do the same and set a flag to
+prevent the operation from being done twice; added option to Copytomocoms for
+converting pixel sizes of FEI files. 
 
 10/24/12: IMOD_4-6-16
 10/24/12: Removed Tilt's setting of pixel size from extended header (8/28/12)
@@ -29,9 +33,6 @@ snapshots with vertex buffer drawing on (In 4.5).
 10/19/12: Made Tif2mrc able to read metadata in files from TVIPS acquisition
 software and produce a .rawtlt file and a title in the header with tilt axis
 rotation angle.
-
-10/16/12: ETomo: Added field validation and better white space handling for
-numeric text fields.(Bug# 1614)
 
 10/4/12: IMOD_4-6-15
 10/4/12: Pixel sizes are now obtained from DigitalMicrograph files and stored
