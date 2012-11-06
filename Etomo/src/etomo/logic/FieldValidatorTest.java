@@ -99,18 +99,20 @@ public class FieldValidatorTest extends TestCase {
   private static final String IGNORED_SYNTAX_ERROR_MSG = "syntax error ignored";
   private static final String ARRAY_SYNTAX_MSG = "arrays do not take dashes";
   private static final String VALID_LIST_MSG = "valid list";
+  private static final String LIST_SYNTAX_MSG = "too many dashes";
   private static final String REQUIRED_EMPTY_MSG = "required field cannot be empty";
-  private static final String REQUIRED_NOT_EMPTY_MSG = "required field should be accepted if it has any characters (including whitespace) in it";
+  private static final String REQUIRED_EMPTY_WHITESPACE_MSG = "required field cannot be empty - whitespace only is considered empty";
 
   public void testValidateString() {
     FieldType fieldType = FieldType.STRING;
-    String msg = "no validation for string field - no trimming done";
+    String msg = "no validation(except for required) for string field - no trimming done";
+    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(EMPTY, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(SPACES, fieldType, false, null, REQUIRED_EMPTY_WHITESPACE_MSG);
+    testValidateRequired(INVALID_NUMBER, fieldType, true, INVALID_NUMBER, msg);
     testValidate(null, fieldType, true, null, msg);
     testValidate(EMPTY, fieldType, true, EMPTY, msg);
     testValidate(SPACES, fieldType, true, SPACES, msg);
-    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
-    testValidateRequired(EMPTY, fieldType, false, EMPTY, REQUIRED_EMPTY_MSG);
-    testValidateRequired(SPACES, fieldType, true, SPACES, REQUIRED_NOT_EMPTY_MSG);
     testValidate(INVALID_NUMBER, fieldType, true, INVALID_NUMBER, msg);
     testValidate(INT, fieldType, true, INT, msg);
     testValidate(FLOAT, fieldType, true, FLOAT, msg);
@@ -153,12 +155,13 @@ public class FieldValidatorTest extends TestCase {
 
   public void testValidateInteger() {
     FieldType fieldType = FieldType.INTEGER;
+    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(EMPTY, fieldType, false, EMPTY, REQUIRED_EMPTY_MSG);
+    testValidateRequired(SPACES, fieldType, false, SPACES, REQUIRED_EMPTY_WHITESPACE_MSG);
+    testValidateRequired(INT, fieldType, true, INT.trim(), "valid int");
     testValidate(null, fieldType, true, null, NULL_STRING_MSG);
     testValidate(EMPTY, fieldType, true, EMPTY, EMPTY_STRING_MSG);
     testValidate(SPACES, fieldType, true, SPACES.trim(), EMPTY_STRING_MSG);
-    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
-    testValidateRequired(EMPTY, fieldType, false, EMPTY, REQUIRED_EMPTY_MSG);
-    testValidateRequired(SPACES, fieldType, true, SPACES, REQUIRED_NOT_EMPTY_MSG);
     testValidate(INVALID_NUMBER, fieldType, false, null, INVALID_NUMBER_MSG);
     testValidate(INT, fieldType, true, INT.trim(), "valid int");
     testValidate(FLOAT, fieldType, false, null, FLOAT_NOT_COMPATIBLE_MSG);
@@ -198,12 +201,13 @@ public class FieldValidatorTest extends TestCase {
 
   public void testValidateFloatingPoint() {
     FieldType fieldType = FieldType.FLOATING_POINT;
+    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(EMPTY, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(SPACES, fieldType, false, null, REQUIRED_EMPTY_WHITESPACE_MSG);
+    testValidateRequired(INT, fieldType, true, INT.trim(), INT_COMPATIBLE_MSG);
     testValidate(null, fieldType, true, null, NULL_STRING_MSG);
     testValidate(EMPTY, fieldType, true, EMPTY, EMPTY_STRING_MSG);
     testValidate(SPACES, fieldType, true, SPACES.trim(), EMPTY_STRING_MSG);
-    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
-    testValidateRequired(EMPTY, fieldType, false, EMPTY, REQUIRED_EMPTY_MSG);
-    testValidateRequired(SPACES, fieldType, true, SPACES, REQUIRED_NOT_EMPTY_MSG);
     testValidate(INVALID_NUMBER, fieldType, false, null, INVALID_NUMBER_MSG);
     testValidate(INT, fieldType, true, INT.trim(), INT_COMPATIBLE_MSG);
     testValidate(FLOAT, fieldType, true, FLOAT.trim(), "valid float");
@@ -243,12 +247,13 @@ public class FieldValidatorTest extends TestCase {
 
   public void testValidateIntegerPair() {
     FieldType fieldType = FieldType.INTEGER_PAIR;
+    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(EMPTY, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(SPACES, fieldType, false, null, REQUIRED_EMPTY_WHITESPACE_MSG);
+    testValidateRequired(PAIR_EMPTY, fieldType, true, PAIR_EMPTY.trim(), VALID_PAIR_MSG);
     testValidate(null, fieldType, true, null, NULL_STRING_MSG);
     testValidate(EMPTY, fieldType, true, EMPTY, EMPTY_STRING_MSG);
     testValidate(SPACES, fieldType, true, SPACES.trim(), EMPTY_STRING_MSG);
-    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
-    testValidateRequired(EMPTY, fieldType, false, EMPTY, REQUIRED_EMPTY_MSG);
-    testValidateRequired(SPACES, fieldType, true, SPACES, REQUIRED_NOT_EMPTY_MSG);
     testValidate(INT, fieldType, false, null, PAIR_ELEMENTS_MSG);
     testValidate(FLOAT, fieldType, false, null, PAIR_ELEMENTS_MSG);
     testValidate(PAIR_EMPTY, fieldType, true, PAIR_EMPTY.trim(), VALID_PAIR_MSG);
@@ -287,12 +292,13 @@ public class FieldValidatorTest extends TestCase {
 
   public void testValidateFloatingPointPair() {
     FieldType fieldType = FieldType.FLOATING_POINT_PAIR;
+    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(EMPTY, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(SPACES, fieldType, false, null, REQUIRED_EMPTY_WHITESPACE_MSG);
+    testValidateRequired(PAIR_EMPTY, fieldType, true, PAIR_EMPTY.trim(), VALID_PAIR_MSG);
     testValidate(null, fieldType, true, null, NULL_STRING_MSG);
     testValidate(EMPTY, fieldType, true, EMPTY, EMPTY_STRING_MSG);
     testValidate(SPACES, fieldType, true, SPACES.trim(), EMPTY_STRING_MSG);
-    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
-    testValidateRequired(EMPTY, fieldType, false, EMPTY, REQUIRED_EMPTY_MSG);
-    testValidateRequired(SPACES, fieldType, true, SPACES, REQUIRED_NOT_EMPTY_MSG);
     testValidate(INT, fieldType, false, null, PAIR_ELEMENTS_MSG);
     testValidate(FLOAT, fieldType, false, null, PAIR_ELEMENTS_MSG);
     testValidate(PAIR_EMPTY, fieldType, true, PAIR_EMPTY.trim(), VALID_PAIR_MSG);
@@ -335,12 +341,14 @@ public class FieldValidatorTest extends TestCase {
   // TEMP 1614
   public void testValidateIntegerTriple() {
     FieldType fieldType = FieldType.INTEGER_TRIPLE;
+    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(EMPTY, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(SPACES, fieldType, false, null, REQUIRED_EMPTY_WHITESPACE_MSG);
+    testValidateRequired(TRIPLE_EMPTY, fieldType, true, TRIPLE_EMPTY.trim(),
+        VALID_TRIPLE_MSG);
     testValidate(null, fieldType, true, null, NULL_STRING_MSG);
     testValidate(EMPTY, fieldType, true, EMPTY, EMPTY_STRING_MSG);
     testValidate(SPACES, fieldType, true, SPACES.trim(), EMPTY_STRING_MSG);
-    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
-    testValidateRequired(EMPTY, fieldType, false, EMPTY, REQUIRED_EMPTY_MSG);
-    testValidateRequired(SPACES, fieldType, true, SPACES, REQUIRED_NOT_EMPTY_MSG);
     testValidate(INT, fieldType, false, null, TRIPLE_ELEMENTS_MSG);
     testValidate(FLOAT, fieldType, false, null, TRIPLE_ELEMENTS_MSG);
     testValidate(PAIR_EMPTY, fieldType, false, null, TRIPLE_ELEMENTS_MSG);
@@ -382,12 +390,13 @@ public class FieldValidatorTest extends TestCase {
 
   public void testValidateIntegerArray() {
     FieldType fieldType = FieldType.INTEGER_ARRAY;
+    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(EMPTY, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(SPACES, fieldType, false, null, REQUIRED_EMPTY_WHITESPACE_MSG);
+    testValidateRequired(INT, fieldType, true, INT.trim(), VALID_ARRAY_MSG);
     testValidate(null, fieldType, true, null, NULL_STRING_MSG);
     testValidate(EMPTY, fieldType, true, EMPTY, EMPTY_STRING_MSG);
     testValidate(SPACES, fieldType, true, SPACES.trim(), EMPTY_STRING_MSG);
-    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
-    testValidateRequired(EMPTY, fieldType, false, EMPTY, REQUIRED_EMPTY_MSG);
-    testValidateRequired(SPACES, fieldType, true, SPACES, REQUIRED_NOT_EMPTY_MSG);
     testValidate(INT, fieldType, true, INT.trim(), VALID_ARRAY_MSG);
     testValidate(FLOAT, fieldType, false, null, FLOAT_NOT_COMPATIBLE_MSG);
     testValidate(PAIR_EMPTY, fieldType, true, PAIR_EMPTY.trim(), VALID_PAIR_MSG);
@@ -435,12 +444,13 @@ public class FieldValidatorTest extends TestCase {
 
   public void testValidateFloatingPointArray() {
     FieldType fieldType = FieldType.FLOATING_POINT_ARRAY;
+    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(EMPTY, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(SPACES, fieldType, false, null, REQUIRED_EMPTY_WHITESPACE_MSG);
+    testValidateRequired(INT, fieldType, true, INT.trim(), VALID_ARRAY_MSG);
     testValidate(null, fieldType, true, null, NULL_STRING_MSG);
     testValidate(EMPTY, fieldType, true, EMPTY, EMPTY_STRING_MSG);
     testValidate(SPACES, fieldType, true, SPACES.trim(), EMPTY_STRING_MSG);
-    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
-    testValidateRequired(EMPTY, fieldType, false, EMPTY, REQUIRED_EMPTY_MSG);
-    testValidateRequired(SPACES, fieldType, true, SPACES, REQUIRED_NOT_EMPTY_MSG);
     testValidate(INT, fieldType, true, INT.trim(), VALID_ARRAY_MSG);
     testValidate(FLOAT, fieldType, true, FLOAT.trim(), VALID_ARRAY_MSG);
     testValidate(PAIR_EMPTY, fieldType, true, PAIR_EMPTY.trim(), VALID_PAIR_MSG);
@@ -487,23 +497,25 @@ public class FieldValidatorTest extends TestCase {
   }
 
   public void testValidateIntegerList() {
-    FieldType fieldType = FieldType.FLOATING_POINT_ARRAY;
+    FieldType fieldType = FieldType.INTEGER_LIST;
+    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(EMPTY, fieldType, false, null, REQUIRED_EMPTY_MSG);
+    testValidateRequired(SPACES, fieldType, false, null, REQUIRED_EMPTY_WHITESPACE_MSG);
+    testValidateRequired(INT, fieldType, true, INT.trim(), VALID_ARRAY_MSG);
     testValidate(null, fieldType, true, null, NULL_STRING_MSG);
     testValidate(EMPTY, fieldType, true, EMPTY, EMPTY_STRING_MSG);
     testValidate(SPACES, fieldType, true, SPACES.trim(), EMPTY_STRING_MSG);
-    testValidateRequired(null, fieldType, false, null, REQUIRED_EMPTY_MSG);
-    testValidateRequired(EMPTY, fieldType, false, EMPTY, REQUIRED_EMPTY_MSG);
-    testValidateRequired(SPACES, fieldType, true, SPACES, REQUIRED_NOT_EMPTY_MSG);
-    testValidate(INT, fieldType, false, null, PAIR_ELEMENTS_MSG);
+    testValidate(INT, fieldType, true, INT.trim(), VALID_LIST_MSG);
     testValidate(FLOAT, fieldType, false, null, FLOAT_NOT_COMPATIBLE_MSG);
-    testValidate(PAIR_EMPTY, fieldType, true, PAIR_EMPTY.trim(), VALID_PAIR_MSG);
+    testValidate(PAIR_EMPTY, fieldType, true, PAIR_EMPTY.trim(), VALID_LIST_MSG);
     testValidate(INT_PAIR_EMPTY0, fieldType, true, INT_PAIR_EMPTY0.trim(), VALID_LIST_MSG);
     testValidate(INT_PAIR_EMPTY1, fieldType, true, INT_PAIR_EMPTY1.trim(), VALID_LIST_MSG);
     testValidate(INT_PAIR, fieldType, true, INT_PAIR.trim(), VALID_LIST_MSG);
     testValidate(INT_PAIR_INVALID_NUMBER0, fieldType, false, null, INVALID_NUMBER_MSG);
     testValidate(FLOAT_PAIR_EMPTY1, fieldType, false, null, FLOAT_NOT_COMPATIBLE_MSG);
     testValidate(FLOAT_PAIR, fieldType, false, null, FLOAT_NOT_COMPATIBLE_MSG);
-    testValidate(FLOAT_PAIR_INVALID_NUMBER1, fieldType, false, null, INVALID_NUMBER_MSG);
+    testValidate(FLOAT_PAIR_INVALID_NUMBER1, fieldType, false, null,
+        FLOAT_NOT_COMPATIBLE_MSG);
     testValidate(TRIPLE_EMPTY, fieldType, true, TRIPLE_EMPTY.trim(), VALID_LIST_MSG);
     testValidate(INT_TRIPLE_EMPTY02, fieldType, true, INT_TRIPLE_EMPTY02.trim(),
         VALID_LIST_MSG);
@@ -512,26 +524,27 @@ public class FieldValidatorTest extends TestCase {
     testValidate(INT_TRIPLE_EMPTY2, fieldType, true, INT_TRIPLE_EMPTY2.trim(),
         VALID_LIST_MSG);
     testValidate(INT_TRIPLE, fieldType, true, INT_TRIPLE.trim(), VALID_LIST_MSG);
-    testValidate(INT_TRIPLE_EMPTY_INVALID, fieldType, false, null, INVALID_NUMBER_MSG);
+    testValidate(INT_TRIPLE_EMPTY_INVALID, fieldType, true,
+        INT_TRIPLE_EMPTY_INVALID.trim(), VALID_LIST_MSG);
     testValidate(FLOAT_TRIPLE_EMPTY02, fieldType, false, null, FLOAT_NOT_COMPATIBLE_MSG);
     testValidate(FLOAT_TRIPLE, fieldType, false, null, FLOAT_NOT_COMPATIBLE_MSG);
     testValidate(FLOAT_TRIPLE_INT1, fieldType, false, null, FLOAT_NOT_COMPATIBLE_MSG);
-    testValidate(FLOAT_TRIPLE_INVALID_NUMBER0, fieldType, false, null, INVALID_NUMBER_MSG);
+    testValidate(FLOAT_TRIPLE_INVALID_NUMBER0, fieldType, false, null, FLOAT_NOT_COMPATIBLE_MSG);
     testValidate(ARRAY_EMPTY, fieldType, true, ARRAY_EMPTY.trim(), VALID_LIST_MSG);
     testValidate(FLOAT_ARRAY, fieldType, false, null, FLOAT_NOT_COMPATIBLE_MSG);
-    testValidate(FLOAT_ARRAY_IGNORED_SYNTAX_ERROR, fieldType, false, null,
-        FLOAT_NOT_COMPATIBLE_MSG);
-    testValidate(FLOAT_ARRAY_INVALID_NUMBER, fieldType, false, null, INVALID_NUMBER_MSG);
+    testValidate(FLOAT_ARRAY_IGNORED_SYNTAX_ERROR, fieldType, false,
+     null, FLOAT_NOT_COMPATIBLE_MSG);
+    testValidate(FLOAT_ARRAY_INVALID_NUMBER, fieldType, false, null, FLOAT_NOT_COMPATIBLE_MSG);
     testValidate(INT_ARRAY, fieldType, true, INT_ARRAY.trim(), VALID_LIST_MSG);
     testValidate(INT_ARRAY_IGNORED_SYNTAX_ERROR, fieldType, true,
-        INT_ARRAY_IGNORED_SYNTAX_ERROR.trim(), VALID_LIST_MSG);
-    testValidate(INT_ARRAY_INVALID_FLOAT, fieldType, false, null,
-        FLOAT_NOT_COMPATIBLE_MSG);
+        INT_ARRAY_IGNORED_SYNTAX_ERROR.trim(), IGNORED_SYNTAX_ERROR_MSG);
+    testValidate(INT_ARRAY_INVALID_FLOAT, fieldType, false,
+      null, FLOAT_NOT_COMPATIBLE_MSG);
     testValidate(INT_ARRAY_INVALID_NUMBER, fieldType, false, null, INVALID_NUMBER_MSG);
-    testValidate(LIST_EMPTY, fieldType, false, null, VALID_LIST_MSG);
-    testValidate(INT_LIST, fieldType, false, null, VALID_LIST_MSG);
+    testValidate(LIST_EMPTY, fieldType, true, LIST_EMPTY.trim(), VALID_LIST_MSG);
+    testValidate(INT_LIST, fieldType, true, INT_LIST.trim(), VALID_LIST_MSG);
     testValidate(INT_LIST_INVALID_FLOAT, fieldType, false, null, FLOAT_NOT_COMPATIBLE_MSG);
-    testValidate(INT_LIST_INVALID_NUMBER, fieldType, false, null, INVALID_NUMBER_MSG);
+    testValidate(INT_LIST_INVALID_NUMBER, fieldType, false, null, LIST_SYNTAX_MSG);
   }
 
   private void testValidate(final String testString, final FieldType fieldType,
