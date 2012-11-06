@@ -30,18 +30,20 @@ public final class FieldValidator {
    * Validates field text based on field type.  Pops up an error message and throws an
    * exception if the validation fails.  Does number format validation on individual
    * numbers and on arrays and lists.  Validates the number of elements in pairs and
-   * triples.  Does not validate or interprete the syntax of an array or list.
+   * triples.  Does minimal validatation of the syntax of arrays and lists.  If required
+   * is true, validation fails when the field is empty or contains nothing but whitespace.
    * @param fieldText
    * @param fieldType
    * @param component
    * @param descr
+   * @param required
    * @return fieldText, trimmed if validation is possible on fieldType
    * @throws FieldValidationFailedException if the validation fails
    */
   public static String validateText(final String fieldText, final FieldType fieldType,
       final UIComponent component, final String descr, final boolean required)
       throws FieldValidationFailedException {
-    if (required && (fieldText == null || fieldText.equals(""))) {
+    if (required && (fieldText == null || fieldText.matches("\\s+"))) {
       UIHarness.INSTANCE.openMessageDialog(component, descr + " is a required field.",
           TITLE);
       FieldValidationFailedException fe = new FieldValidationFailedException(descr
