@@ -6,6 +6,12 @@ dialog.(Bug# 1655)
 11/5/12: ETomo: Added field validation and better white space handling for
 numeric text fields.(Bug# 1614)
 
+11/2/12: ETomo: Fixed the estimated time of completion for process monitors
+that watch a log file.(Bug# 1632)
+
+11/1/12: ETomo - PEET: handling parsing failures in the .prm file.(Bug# 1644)
+
+
 10/30/12: Removed underscore from Autofidseed info file and temporary
 directory names for eTomo. 
 

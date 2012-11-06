@@ -344,6 +344,7 @@ public final class PeetManager extends BaseManager {
   private MatlabParam matlabParam = null;
   private MainPeetPanel mainPanel;
   private PeetStartupDialog peetStartupDialog = null;
+  private LoadState loadState = null;
   /**
    * valid is for handling failure before the manager key is set in EtomoDirector.
    */
@@ -373,7 +374,9 @@ public final class PeetManager extends BaseManager {
 
   static PeetManager getInstance(final String paramFileName) {
     PeetManager instance = new PeetManager(paramFileName);
-    instance.openDialog();
+    if (instance.loadState != LoadState.EXIT) {
+      instance.openDialog();
+    }
     return instance;
   }
 
@@ -401,7 +404,7 @@ public final class PeetManager extends BaseManager {
   }
 
   public boolean isValid() {
-    return valid;
+    return valid && loadState != LoadState.EXIT;
   }
 
   void initializeUIParameters(final String paramFileName, final AxisID axisID) {
@@ -561,11 +564,14 @@ public final class PeetManager extends BaseManager {
       BaseProcessManager.touch(destMatlabFile.getAbsolutePath(), this);
     }
     // Load the .prm file
-    MatlabParam param = new MatlabParam(this, AXIS_ID, destMatlabFile, false);
-    if (param.read(this)) {
+    MatlabParam param = loadMatlabParam(destMatlabFile, false);
+    if (loadState == LoadState.SUCCESS) {
       param.setFnOutput(fnOutput);
       param.setFile(destDir.getAbsolutePath());
       param.write(this);
+    }
+    else if (loadState == LoadState.EXIT) {
+      return;
     }
 
     // load the dateset into the manager and dialog
@@ -600,7 +606,7 @@ public final class PeetManager extends BaseManager {
     }
   }
 
-  public void setParamFile(final File paramFile) {
+  public boolean setParamFile(final File paramFile) {
     if (!paramFile.exists()) {
       processMgr.createNewFile(paramFile.getAbsolutePath());
     }
@@ -610,12 +616,16 @@ public final class PeetManager extends BaseManager {
       metaData.setName(rootName);
       imodManager.setMetaData(metaData);
       setMatlabParam(false);
+      if (loadState == LoadState.EXIT) {
+        return false;
+      }
       if (peetDialog != null) {
         peetDialog.setDirectory(paramFile.getParent());
         peetDialog.setFnOutput(rootName);
         peetDialog.updateDisplay(true);
       }
     }
+    return true;
   }
 
   /**
@@ -660,6 +670,9 @@ public final class PeetManager extends BaseManager {
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
     if (matlabParam == null) {
       setMatlabParam(true);
+      if (loadState == LoadState.EXIT) {
+        return false;
+      }
     }
     if (peetDialog != null) {
       peetDialog.updateDisplay(true);
@@ -676,7 +689,9 @@ public final class PeetManager extends BaseManager {
     try {
       if (super.exitProgram(axisID)) {
         endThreads();
-        saveParamFile();
+        if (loadState != LoadState.EXIT) {
+          saveParamFile();
+        }
         return true;
       }
       return false;
@@ -896,9 +911,42 @@ public final class PeetManager extends BaseManager {
     if (!loadedParamFile || matlabParam != null || paramFile == null) {
       return;
     }
-    matlabParam = new MatlabParam(this, AXIS_ID, DatasetFiles.getMatlabParamFile(this),
-        newFile);
-    matlabParam.read(this);
+    matlabParam = loadMatlabParam(DatasetFiles.getMatlabParamFile(this), newFile);
+  }
+
+  public MatlabParam loadMatlabParam(final File matlabFile, final boolean newFile) {
+    MatlabParam param = null;
+    do {
+      // Load the .prm file
+      param = new MatlabParam(this, AXIS_ID, matlabFile, newFile);
+      List<String> errorList = new ArrayList<String>();
+      if (param.read(this, errorList)) {
+        loadState = LoadState.SUCCESS;
+      }
+      else if (!errorList.isEmpty()) {
+        // Handle error in the .prm file
+        List<String> message = new ArrayList();
+        message.add("Unable to successfully parse " + matlabFile.getAbsolutePath() + ".");
+        message.add("");
+        message
+            .add("Fix the .prm file and press Yes to reload.  Or press No to exit from this dataset.");
+        message.add("");
+        message.add("Error(s):");
+        errorList.addAll(0, message);
+        if (UIHarness.INSTANCE.openYesNoDialog(this,
+            errorList.toArray(new String[errorList.size()]), AxisID.ONLY)) {
+          // The .prm file has been fixed - must reload.
+          loadState = LoadState.RELOAD;
+        }
+        else {
+          // Must exit from etomo without saving to the .prm file, if the .prm can't be
+          // fixed.
+          loadState = LoadState.EXIT;
+          EtomoDirector.INSTANCE.closeCurrentManager(AxisID.ONLY, false);
+        }
+      }
+    } while (loadState == LoadState.RELOAD);
+    return param;
   }
 
   private void createState() {
@@ -964,9 +1012,15 @@ public final class PeetManager extends BaseManager {
     openPeetDialog(startupData);
     if (startupData.isCopyFrom()) {
       copyDataset(startupData);
+      if (loadState == LoadState.EXIT) {
+        return;
+      }
     }
     else {
       setParamFile(startupData);
+      if (loadState == LoadState.EXIT) {
+        return;
+      }
     }
     if (!loadedParamFile) {
       mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.FAILED);
@@ -1012,7 +1066,9 @@ public final class PeetManager extends BaseManager {
     saveStorables(AXIS_ID);
     if (!peetDialog.getParameters(matlabParam, forRun, doValidation))
       return false;
-    matlabParam.write(this);
+    if (loadState != LoadState.EXIT) {
+      matlabParam.write(this);
+    }
     return true;
   }
 
@@ -1041,6 +1097,15 @@ public final class PeetManager extends BaseManager {
     }
     catch (FieldValidationFailedException e) {
       return;
+    }
+  }
+
+  private static final class LoadState {
+    private static final LoadState SUCCESS = new LoadState();
+    private static final LoadState RELOAD = new LoadState();
+    private static final LoadState EXIT = new LoadState();
+
+    private LoadState() {
     }
   }
 }

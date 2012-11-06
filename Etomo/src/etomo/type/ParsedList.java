@@ -153,6 +153,7 @@ public final class ParsedList {
   private final ParsedElementList list;
   private final EtomoNumber.Type etomoNumberType;
   private final boolean allowNan;
+  private final String descr;
 
   /**
    * Place the entire array into parsed arrays and the individual elements into
@@ -162,25 +163,28 @@ public final class ParsedList {
 
   private boolean failed = false;
   private boolean debug = false;
+  private String failedMessage = null;
 
   private ParsedList(ParsedElementType type, EtomoNumber.Type etomoNumberType,
-      final boolean allowNan) {
+      final boolean allowNan, final String descr) {
     this.type = type;
     this.allowNan = allowNan;
-    list = new ParsedElementList(type, etomoNumberType, debug, defaultValue, allowNan);
+    this.descr = descr;
+    list = new ParsedElementList(type, etomoNumberType, debug, defaultValue, allowNan,descr);
     this.etomoNumberType = etomoNumberType;
   }
 
-  public static ParsedList getMatlabInstance() {
-    return new ParsedList(ParsedElementType.MATLAB_NUMBER, null, true);
+  public static ParsedList getMatlabInstance(final String descr) {
+    return new ParsedList(ParsedElementType.MATLAB_NUMBER, null, true, descr);
   }
 
-  public static ParsedList getMatlabInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedList(ParsedElementType.MATLAB_NUMBER, etomoNumberType, true);
+  public static ParsedList getMatlabInstance(EtomoNumber.Type etomoNumberType,
+      final String descr) {
+    return new ParsedList(ParsedElementType.MATLAB_NUMBER, etomoNumberType, true, descr);
   }
 
-  public static ParsedList getStringInstance() {
-    return new ParsedList(ParsedElementType.STRING, null, false);
+  public static ParsedList getStringInstance(final String descr) {
+    return new ParsedList(ParsedElementType.STRING, null, false, descr);
   }
 
   /**
@@ -309,7 +313,7 @@ public final class ParsedList {
         token = tokenizer.next();
       }
       if (token == null || !token.equals(Token.Type.SYMBOL, OPEN_SYMBOL.charValue())) {
-        fail();
+        fail("Missing delimiter: '" + OPEN_SYMBOL + "'");
         return;
       }
       token = tokenizer.next();
@@ -326,13 +330,13 @@ public final class ParsedList {
       }
       // if the close symbol wasn't found, fail
       if (token == null || !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
-        fail();
+        fail("Missing delimiter: '" + CLOSE_SYMBOL + "'");
         return;
       }
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail();
+      fail(e.getMessage());
     }
   }
 
@@ -343,11 +347,11 @@ public final class ParsedList {
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail();
+      fail(e.getMessage());
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      fail();
+      fail(e.getMessage());
     }
     return tokenizer;
   }
@@ -388,7 +392,7 @@ public final class ParsedList {
       }
       catch (IOException e) {
         e.printStackTrace();
-        fail();
+        fail(e.getMessage());
       }
     }
     return token;
@@ -402,29 +406,30 @@ public final class ParsedList {
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail();
+      fail(e.getMessage());
     }
     if (token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
       // Found an empty element.
       list.add(ParsedNumber.getInstance(type, etomoNumberType, isDebug(), defaultValue,
-          allowNan));
+          allowNan,descr));
       return token;
     }
     // May have found an element.
     ParsedElement element;
     if (type == ParsedElementType.STRING) {
-      element = ParsedQuotedString.getInstance(isDebug());
+      element = ParsedQuotedString.getInstance(isDebug(),descr);
       token = element.parse(token, tokenizer);
     }
     else if (ParsedArray.isArray(token)) {
-      element = ParsedArray.getInstance(type, etomoNumberType, isDebug(), defaultValue);
+      element = ParsedArray.getInstance(type, etomoNumberType, isDebug(), defaultValue,
+          descr);
       token = element.parse(token, tokenizer);
     }
     else {
       // Array descriptors don't have their own open and close symbols, so they
       // look like numbers until to you get to the first divider (":"or "-").
       ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type, etomoNumberType,
-          isDebug(), defaultValue, allowNan);
+          isDebug(), defaultValue, allowNan, descr);
       token = descriptor.parse(token, tokenizer);
       // create the correct type of element
       if (descriptor.isEmpty()) {
@@ -444,6 +449,37 @@ public final class ParsedList {
     return token;
   }
 
+  /**
+   * @return an error message if invalid, otherwise null
+   */
+  public String validate() {
+    String errorMessage = null;
+    for (int i = 0; i < list.size(); i++) {
+      ParsedElement element = list.get(i);
+      if (element != null) {
+        errorMessage = element.validate();
+      }
+      if (errorMessage != null) {
+        return errorMessage;
+      }
+    }
+    return getFailedMessage();
+  }
+
+  /**
+   * Returns null if not failed, otherwise returns a string.
+   * @return
+   */
+  final String getFailedMessage() {
+    if (!failed) {
+      return null;
+    }
+    if (failedMessage == null) {
+      return (descr != null ? descr : "") + ": Unable to parse.";
+    }
+    return failedMessage;
+  }
+
   private boolean isDebug() {
     return debug;
   }
@@ -454,10 +490,12 @@ public final class ParsedList {
 
   final void resetFailed() {
     failed = false;
+    failedMessage = null;
   }
 
-  final void fail() {
+  final void fail(final String message) {
     failed = true;
+    failedMessage = (descr != null ? descr : "") + ": " + message;
   }
 
   private static final class Type {

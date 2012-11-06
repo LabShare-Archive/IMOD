@@ -272,8 +272,9 @@ public abstract class BaseManager {
     return loadedParamFile;
   }
 
-  public void setParamFile(final File paramFile) {
+  public boolean setParamFile(final File paramFile) {
     this.paramFile = paramFile;
+    return true;
   }
 
   void startNextProcess(final UIComponent uiComponent, final AxisID axisID,

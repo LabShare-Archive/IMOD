@@ -69,13 +69,14 @@ abstract class ParsedDescriptor extends ParsedElement {
   abstract boolean isDebug();
 
   ParsedDescriptor(ParsedElementType type, EtomoNumber.Type etomoNumberType,
-      boolean debug, EtomoNumber defaultValue, final boolean allowNan) {
+      boolean debug, EtomoNumber defaultValue, final boolean allowNan, final String descr) {
+    super(descr);
     this.type = type;
     this.etomoNumberType = etomoNumberType;
     this.defaultValue = defaultValue;
     this.allowNan = allowNan;
     descriptor = new ParsedElementList(type, etomoNumberType, debug, defaultValue,
-        allowNan);
+        allowNan, descr);
     setDebug(debug);
   }
 
@@ -98,12 +99,13 @@ abstract class ParsedDescriptor extends ParsedElement {
    */
   static ParsedDescriptor getInstance(ParsedElementType type,
       EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue,
-      final boolean allowNan) {
+      final boolean allowNan, final String descr) {
     if (debug) {
       System.out.println("ParsedDescriptor.getInstance");
     }
     if (type.isMatlab()) {
-      return new ParsedArrayDescriptor(etomoNumberType, debug, defaultValue, allowNan);
+      return new ParsedArrayDescriptor(etomoNumberType, debug, defaultValue, allowNan,
+          descr);
     }
     return null;
   }
@@ -220,7 +222,7 @@ abstract class ParsedDescriptor extends ParsedElement {
   final Token parseElement(Token token, final PrimativeTokenizer tokenizer) {
     // parse a number
     ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
-        defaultValue, allowNan);
+        defaultValue, allowNan, descr);
     element.setDebug(isDebug());
     element.setDefault(defaultValue);
     token = element.parse(token, tokenizer);
@@ -277,14 +279,14 @@ abstract class ParsedDescriptor extends ParsedElement {
       return;
     }
     ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
-        defaultValue, allowNan);
+        defaultValue, allowNan, descr);
     element.setRawString(string);
     descriptor.set(index, element);
   }
 
   void setRawString(final int index, final double number) {
     ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
-        defaultValue, allowNan);
+        defaultValue, allowNan, descr);
     element.setRawString(number);
     descriptor.set(index, element);
   }
@@ -296,7 +298,7 @@ abstract class ParsedDescriptor extends ParsedElement {
   /**
    * @return null if valid.
    */
-  String validate() {
+  public String validate() {
     for (int i = 0; i < descriptor.size(); i++) {
       ParsedElement element = descriptor.get(i);
       String errorMessage = null;
@@ -355,14 +357,14 @@ abstract class ParsedDescriptor extends ParsedElement {
       ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
       parsedNumberExpandedArray = new ParsedElementList(type, etomoNumberType, isDebug(),
-          defaultValue, allowNan);
+          defaultValue, allowNan, descr);
     }
     if (descriptor.size() == 0) {
       return parsedNumberExpandedArray;
     }
     // exclude empty descriptor numbers
     ParsedElementList list = new ParsedElementList(type, etomoNumberType, isDebug(),
-        defaultValue, allowNan);
+        defaultValue, allowNan, descr);
     for (int i = 0; i < descriptor.size(); i++) {
       ParsedElement element = descriptor.get(i);
       if (element != null && !element.isEmpty()) {
@@ -414,7 +416,7 @@ abstract class ParsedDescriptor extends ParsedElement {
     while (!done) {
       prevNumber = curNumber;
       curNumber = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
-          defaultValue, allowNan);
+          defaultValue, allowNan, descr);
       curNumber.setRawString(prevNumber.getRawNumber());
       curNumber.plus(increment);
       if ((increment.isPositive() && curNumber.le(lastNumber))
