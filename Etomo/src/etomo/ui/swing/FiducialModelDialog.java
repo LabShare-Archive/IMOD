@@ -27,6 +27,7 @@ import etomo.type.DialogType;
 import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
@@ -845,6 +846,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     rbSeedModelTransfer.addActionListener(actionListener);
     cbBoundaryModel.addActionListener(actionListener);
     cbClusteredPointsAllowedClustered.addActionListener(actionListener);
+    btnBoundaryModel.addActionListener(actionListener);
   }
 
   public static String getUseRaptorResultLabel() {
@@ -1262,6 +1264,10 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     else if (command.equals(btnCleanup.getActionCommand())) {
       applicationManager.cleanupAutofidseed(axisID);
       updateEnabled();
+    }
+    else if (command.equals(btnBoundaryModel.getActionCommand())) {
+      applicationManager.imodModel(FileType.PREALIGNED_STACK,
+          FileType.AUTOFIDSEED_BOUNDARY_MODEL, axisID, run3dmodMenuOptions,true);
     }
   }
 

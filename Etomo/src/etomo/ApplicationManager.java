@@ -1406,7 +1406,8 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public void cleanupAutofidseed(final AxisID axisID) {
-    mainPanel.startProgressBar("Deleting temporary directory", axisID, ProcessName.AUTOFIDSEED);
+    mainPanel.startProgressBar("Deleting temporary directory", axisID,
+        ProcessName.AUTOFIDSEED);
     if (!Utilities.deleteFileType(this, axisID, FileType.AUTOFIDSEED_DIR)) {
       mainPanel.stopProgressBar(axisID, ProcessEndState.FAILED);
     }
@@ -5785,13 +5786,13 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
-   * Open a model
+   * Open a model for editing
    */
-  public void imodModel(FileType fileType, FileType modelFileType, AxisID axisID,
-      Run3dmodMenuOptions menuOptions) {
+  public void imodModel(final FileType fileType, final FileType modelFileType,
+      final AxisID axisID, final Run3dmodMenuOptions menuOptions, final boolean modelMode) {
     try {
       imodManager.open(fileType.getImodManagerKey(this), axisID,
-          modelFileType.getFileName(this, axisID), false, menuOptions);
+          modelFileType.getFileName(this, axisID), modelMode, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
