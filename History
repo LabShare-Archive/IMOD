@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-11/5/12: ETomo: Added an interface for autofidseed to the Fiducial Model
+11/6/12: ETomo: Added an interface for autofidseed to the Fiducial Model
 dialog.(Bug# 1655)
 
 11/5/12: ETomo: Added field validation and better white space handling for
