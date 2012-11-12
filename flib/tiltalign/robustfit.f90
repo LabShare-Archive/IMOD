@@ -32,7 +32,7 @@ subroutine setupWeightGroups(maxRings, minRes, minTiltView, ierr)
   NUM_RING_LOOP:  do nring = maxRings, 1, -1
     nrealPerRing = nrealPt / nring
     if (nrealPerRing == 0) cycle
-    neededViews = minRes / nrealPerRing
+    neededViews = max(1, minRes / nrealPerRing)
     if (neededViews > maxViewsForRings(nring) .and. nring > 1) then
       !print *, 'rejecting ', nring, ' rings out of hand'
       cycle

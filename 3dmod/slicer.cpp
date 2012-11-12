@@ -1354,7 +1354,7 @@ void SlicerFuncs::mousePress(QMouseEvent *event)
   lastmy = firstmy = event->y();
   if (event->buttons() & ImodPrefs->actualButton(1)) {
     if (mClassic) {
-      attachPoint(event->x(), event->y());
+      attachPoint(event->x(), event->y(), ctrl);
     } else {
       but1downt.start();
     }
@@ -1379,7 +1379,7 @@ void SlicerFuncs::mouseRelease(QMouseEvent *event)
       mousePanning = 0;
       drawSelfAndLinked();
     } else
-      attachPoint(event->x(), event->y());
+      attachPoint(event->x(), event->y(), event->modifiers() & Qt::ControlModifier);
   }
   if (mouseRotating) {
     mouseRotating = 0;
@@ -1503,14 +1503,14 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
 }
 
 // Process first mouse button - attach in model, set current point in movie
-void SlicerFuncs::attachPoint(int x, int y)
+void SlicerFuncs::attachPoint(int x, int y, int ctrlDown)
 {
   Ipoint pnt, norm;
   float delta;
   float distance;
   ImodView *vi = mVi;
   Imod *imod = vi->imod;
-  Iindex index;
+  Iindex index, indSave;
   float selsize = IMOD_SELSIZE / mZoom;
   int drawflag = IMOD_DRAW_XYZ;
 
@@ -1520,8 +1520,11 @@ void SlicerFuncs::attachPoint(int x, int y)
     pnt.y = vi->ymouse;
     pnt.z = vi->zmouse;
     setForwardMatrix();
+    indSave = vi->imod->cindex;
 
     distance = imodAllObjNearest(vi, &index , &pnt, selsize, mMat);
+    if (distance >= 0.)
+      imodSelectionNewCurPoint(vi, imod, indSave, ctrlDown);
 
     if (imod->cindex.point >= 0 && !mClassic) {
       

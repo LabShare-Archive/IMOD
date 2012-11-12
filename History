@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/12/12: Added ability to select multiple contours in slicer and made slicer
+draw selected contours thicker.
+
 11/7/12: ETomo: Fixed the estimated time of completion for process monitors
 that watch a log file.(Bug# 1632)
 

@@ -72,7 +72,7 @@ class SlicerFuncs {
   void drawSelfAndLinked();
   int setxyz(int x, int y);
   int getxyz(int x, int y, float &xm, float &ym, float &zm);
-  void attachPoint(int x, int y);
+  void attachPoint(int x, int y, int ctrlDown);
   void insertPoint(int x, int y, int ctrl);
   void modifyPoint(int x, int y, int ctrl);
   void updateImage();

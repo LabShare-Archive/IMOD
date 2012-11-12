@@ -18,7 +18,7 @@
 #include "sslice.h"
 #include "finegrain.h"
 
-static void imodDrawContourLines(ImodView * vi, Iobj *obj, int co,
+static void imodDrawContourLines(ImodView * vi, Iobj *obj, int obnum, int co,
                                  GLenum mode);
 static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj);
 static void imodDrawSpheres(ImodView *vi, Iobj *obj, float zscale);
@@ -72,9 +72,9 @@ void imodDrawModel(ImodView *vi, Imod *imod, int drawCurrent, float zscale)
 	
 	if (iobjOpen(obj->flags) || (cont->flags & ICONT_OPEN) ||
             (ob == curob && co == curco))
-	  imodDrawContourLines(vi, obj, co, GL_LINE_STRIP);
+	  imodDrawContourLines(vi, obj, ob, co, GL_LINE_STRIP);
 	else
-	  imodDrawContourLines(vi, obj, co, GL_LINE_LOOP);
+	  imodDrawContourLines(vi, obj, ob, co, GL_LINE_LOOP);
       }
     }
     imodDrawObjectSymbols(vi, obj);
@@ -118,7 +118,8 @@ void imodDrawModel(ImodView *vi, Imod *imod, int drawCurrent, float zscale)
   }   
 }
 
-static void imodDrawContourLines(ImodView * vi, Iobj *obj, int co, GLenum mode)
+static void imodDrawContourLines(ImodView * vi, Iobj *obj, int obnum, int co,
+                                 GLenum mode)
 {
   Ipoint *point;
   Icont *cont = &obj->cont[co];
@@ -127,6 +128,7 @@ static void imodDrawContourLines(ImodView * vi, Iobj *obj, int co, GLenum mode)
   int nextChange, stateFlags, changeFlags;
   int handleFlags = HANDLE_LINE_COLOR | HANDLE_2DWIDTH;
   int scaleSizes = getSlicerThicknessScaling();
+  bool selected = imodSelectionListQuery(vi, obnum, co) > -2;
      
   if (ifgGetValueSetupState())
     handleFlags |= HANDLE_VALUE1;
@@ -134,7 +136,7 @@ static void imodDrawContourLines(ImodView * vi, Iobj *obj, int co, GLenum mode)
   point = cont->pts;
   lpt = cont->psize;
   nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, &stateFlags,
-                                   handleFlags, 0, scaleSizes);
+                                   handleFlags, selected, scaleSizes);
   if (contProps.gap)
     return;
 
