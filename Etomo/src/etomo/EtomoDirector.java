@@ -248,6 +248,10 @@ public class EtomoDirector {
       return;
     }
     UIHarness.INSTANCE.createMainFrame();
+    if (!arguments.validate(UIHarness.INSTANCE.getMainFrame())) {
+      UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      return;
+    }
     initIMODDirectory();
     int paramFileNameListSize = paramFileNameList.size();
     String paramFileName = null;
@@ -864,9 +868,11 @@ public class EtomoDirector {
    */
   public boolean exitProgram(AxisID axisID) {
     try {
-      while (managerList.size() != 0) {
-        if (!closeCurrentManager(axisID, true)) {
-          return false;
+      if (managerList != null) {
+        while (managerList.size() != 0) {
+          if (!closeCurrentManager(axisID, true)) {
+            return false;
+          }
         }
       }
       if (utilityThread != null) {
