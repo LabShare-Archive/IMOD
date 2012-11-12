@@ -941,7 +941,9 @@ void Processchunks::setupComFileJobs() {
     QDirIterator *dit = new QDirIterator(mCurrentDir.path(), filters);
     while (dit->hasNext()) {
       dit->next();
-      list << dit->fileName();
+      if (!dit->fileName().endsWith("-start.com") && !dit->fileName().endsWith("-finish.com")) {
+        list << dit->fileName();
+      }
     }
     delete dit;
     list.sort();
@@ -955,7 +957,9 @@ void Processchunks::setupComFileJobs() {
     dit = new QDirIterator(mCurrentDir.path(), filters);
     while (dit->hasNext()) {
       dit->next();
-      list << dit->fileName();
+      if (!dit->fileName().endsWith("-start.com") && !dit->fileName().endsWith("-finish.com")) {
+        list << dit->fileName();
+      }
     }
     delete dit;
     list.sort();
@@ -969,7 +973,9 @@ void Processchunks::setupComFileJobs() {
     dit = new QDirIterator(mCurrentDir.path(), filters);
     while (dit->hasNext()) {
       dit->next();
-      list << dit->fileName();
+      if (!dit->fileName().endsWith("-start.com") && !dit->fileName().endsWith("-finish.com")) {
+        list << dit->fileName();
+      }
     }
     delete dit;
     list.sort();
