@@ -19,6 +19,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
+import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
@@ -126,6 +127,8 @@ public final class SetupDialogExpert {
   private final TiltAnglePanelExpert tiltAnglePanelExpertA = new TiltAnglePanelExpert();
   private final TiltAnglePanelExpert tiltAnglePanelExpertB = new TiltAnglePanelExpert();
 
+  private File dir = null;
+
   private SetupDialogExpert(ApplicationManager manager, boolean calibrationAvailable) {
     dialog = SetupDialog.getInstance(this, manager, AxisID.ONLY, DialogType.SETUP_RECON,
         calibrationAvailable);
@@ -147,21 +150,17 @@ public final class SetupDialogExpert {
   public void doAutomation() {
     Arguments arguments = EtomoDirector.INSTANCE.getArguments();
     // build and set dataset
-    StringBuffer buffer = new StringBuffer();
-    String dir = arguments.getDir();
-    if (dir != null && !dir.equals(".")) {
-      buffer.append(dir);
-    }
+    dir = arguments.getDir();
     String dataset = arguments.getDataset();
     if (dataset != null) {
-      if (buffer.length() != 0
-          && buffer.charAt(buffer.length() - 1) != File.separatorChar) {
-        buffer.append(File.separatorChar);
+      // If the directory was set and dataset is a file (not the dataset name), pass the
+      // absolute path to the dialog.
+      if (dir != null && dataset.endsWith(FileType.RAW_STACK.getExtension(manager))) {
+        dialog.setDataset(new File(dir, dataset).getAbsolutePath());
       }
-      buffer.append(dataset);
-    }
-    if (buffer.length() != 0) {
-      dialog.setDataset(buffer.toString());
+      else {
+        dialog.setDataset(arguments.getDataset());
+      }
     }
     // check radio buttons
     AxisType axis = arguments.getAxis();
@@ -215,7 +214,7 @@ public final class SetupDialogExpert {
    *         references don't exist.
    */
   public boolean checkForSharedDirectory() {
-    String propertyUserDir = manager.getPropertyUserDir();
+    String propertyUserDir = getPropertyUserDir();
     File directory = new File(propertyUserDir);
     // Get all the edf files in propertyUserDir.
     File[] edfFiles = directory.listFiles(new EtomoFileFilter());
@@ -385,7 +384,8 @@ public final class SetupDialogExpert {
     }
     return DatasetTool.validateViewType(
         dialog.isSingleViewSelected() ? ViewType.SINGLE_VIEW : ViewType.MONTAGE,
-        manager.getPropertyUserDir(), getStackFileName(), manager, null, AxisID.ONLY);
+        getPropertyUserDir() ,
+        getStackFileName(), manager, null, AxisID.ONLY);
   }
 
   public MetaData getMetaData() {
@@ -398,7 +398,7 @@ public final class SetupDialogExpert {
       metaData.setDatasetName(dialog.getDataset());
     }
     else {
-      metaData.setDatasetName(manager.getPropertyUserDir() + "/" + dialog.getDataset());
+      metaData.setDatasetName(getPropertyUserDir() + "/" + dialog.getDataset());
     }
     return metaData;
   }
@@ -451,7 +451,7 @@ public final class SetupDialogExpert {
       metaData.setExcludeProjections(dialog.getExcludeList(AxisID.SECOND, doValidation),
           AxisID.SECOND);
       if (axisType == AxisType.DUAL_AXIS) {
-        File bStack = DatasetFiles.getStack(manager.getPropertyUserDir(), metaData,
+        File bStack = DatasetFiles.getStack(getPropertyUserDir(), metaData,
             AxisID.SECOND);
         metaData.setBStackProcessed(bStack.exists());
       }
@@ -475,21 +475,21 @@ public final class SetupDialogExpert {
     File dataset = new File(datasetText);
     if (!dataset.isAbsolute()) {
 
-      dataset = new File(manager.getPropertyUserDir() + File.separator + datasetText);
+      dataset = new File(getPropertyUserDir() + File.separator + datasetText);
     }
     return dataset.getParentFile();
   }
 
   public void initializeFields(ConstMetaData metaData, UserConfiguration userConfig) {
     if (!metaData.getDatasetName().equals("")) {
-      String canonicalPath = manager.getPropertyUserDir() + "/"
+      String canonicalPath = getPropertyUserDir() + "/"
           + metaData.getDatasetName();
       dialog.setDataset(canonicalPath);
     }
     // Parallel processing is optional in tomogram reconstruction, so only use it
     // if the user set it up.
     boolean parallelProcessingEnabled = Network.isParallelProcessingEnabled(manager,
-        AxisID.ONLY, manager.getPropertyUserDir());
+        AxisID.ONLY, getPropertyUserDir());
     if (parallelProcessingEnabled && !userConfig.getNoParallelProcessing()) {
       dialog.setParallelProcess(true);
     }
@@ -497,9 +497,9 @@ public final class SetupDialogExpert {
       dialog.setParallelProcessEnabled(false);
     }
     boolean gpuProcessingEnabled = Network.isNonLocalHostGpuProcessingEnabled(manager,
-        AxisID.ONLY, manager.getPropertyUserDir())
+        AxisID.ONLY, getPropertyUserDir())
         || Network.isLocalHostGpuProcessingEnabled(manager, AxisID.ONLY,
-            manager.getPropertyUserDir());
+            getPropertyUserDir());
     dialog.setGpuProcessingEnabled(gpuProcessingEnabled);
     dialog.setGpuProcessing(gpuProcessingEnabled && userConfig.getGpuProcessingDefault());
     dialog.setBackupDirectory(metaData.getBackupDirectory());
@@ -562,7 +562,17 @@ public final class SetupDialogExpert {
   }
 
   String getDatasetDir() {
+    if (dir != null) {
+      return dir.getAbsolutePath();
+    }
     return EtomoDirector.INSTANCE.getOriginalUserDir();
+  }
+
+  String getPropertyUserDir() {
+    if (dir != null) {
+      return dir.getAbsolutePath();
+    }
+    return manager.getPropertyUserDir();
   }
 
   String getCurrentBackupDirectory() {
@@ -585,7 +595,7 @@ public final class SetupDialogExpert {
         currentDistortionDir = distortionDir.getAbsolutePath();
       }
       else {
-        currentDistortionDir = manager.getPropertyUserDir();
+        currentDistortionDir = getPropertyUserDir();
       }
     }
     return currentDistortionDir;
@@ -602,7 +612,7 @@ public final class SetupDialogExpert {
         currentMagGradientDir = magGradientDir.getAbsolutePath();
       }
       else {
-        currentMagGradientDir = manager.getPropertyUserDir();
+        currentMagGradientDir = getPropertyUserDir();
       }
     }
     return currentMagGradientDir;
@@ -738,8 +748,8 @@ public final class SetupDialogExpert {
     if (stackFileName == null) {
       return null;
     }
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), stackFileName,
-        AxisID.ONLY);
+    MRCHeader header = MRCHeader.getInstance(getPropertyUserDir()
+       , stackFileName, AxisID.ONLY);
     try {
       if (!header.read(manager)) {
         UIHarness.INSTANCE.openMessageDialog(manager, "File does not exist.",

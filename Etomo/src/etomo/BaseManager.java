@@ -1563,7 +1563,7 @@ public abstract class BaseManager {
 
   public void doAutomation() {
     if (EtomoDirector.INSTANCE.getArguments().isExit()) {
-      uiHarness.exit(AxisID.ONLY);
+      uiHarness.exit(AxisID.ONLY, 0);
     }
   }
 
@@ -1582,7 +1582,7 @@ public abstract class BaseManager {
               + ", and run etomo in order to connect to this process.  Exit "
               + "Etomo Y/N?", axisID)) {
         // Exit from etomo.
-        uiHarness.exit(AxisID.ONLY);
+        uiHarness.exit(AxisID.ONLY, 0);
       }
     }
     else if (processData.isSshFailed()) {

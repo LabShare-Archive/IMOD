@@ -230,6 +230,10 @@ final class FileTextField2 implements FileTextFieldInterface {
     origin = input;
   }
 
+  void setOrigin(final String input) {
+    origin = new File(input);
+  }
+
   boolean isEmpty() {
     String text = field.getText();
     return text == null || text.matches("\\s*");
@@ -318,6 +322,14 @@ final class FileTextField2 implements FileTextFieldInterface {
     text = TooltipFormatter.INSTANCE.format(text);
     panel.setToolTipText(text);
     button.setToolTipText(text);
+  }
+
+  void setFieldToolTipText(final String text) {
+    field.setToolTipText(text);
+  }
+
+  void setButtonToolTipText(final String text) {
+    button.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 
   private final class FileTextField2ActionListener implements ActionListener {

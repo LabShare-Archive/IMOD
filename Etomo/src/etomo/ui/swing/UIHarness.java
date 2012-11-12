@@ -98,6 +98,16 @@ public final class UIHarness {
     }
   }
 
+  public synchronized void openMessageDialog(final UIComponent uiComponent,
+      final String[] message, final String title) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
+      getFrame(null).displayMessage(null, uiComponent, message, title, null);
+    }
+    else {
+      log("openMessageDialog", message, title, null);
+    }
+  }
+
   public synchronized void openInfoMessageDialog(BaseManager manager, String message,
       String title, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
@@ -259,6 +269,10 @@ public final class UIHarness {
       return mainFrame;
     }
     return (ManagerFrame) managerFrameTable.get(manager);
+  }
+
+  public AbstractFrame getMainFrame() {
+    return mainFrame;
   }
 
   public void pack(boolean force, BaseManager manager) {
@@ -500,7 +514,7 @@ public final class UIHarness {
     }
   }
 
-  public void exit(AxisID axisID) {
+  public void exit(final AxisID axisID, final int exitValue) {
     // Store the current location of the frame in case etomo exits.
     if (isHead()) {
       mainFrame.saveLocation();
@@ -511,7 +525,7 @@ public final class UIHarness {
     }
     // Check to see if etomo an exit, save data, and then exit.
     if (EtomoDirector.INSTANCE.exitProgram(axisID)) {
-      System.exit(0);
+      System.exit(exitValue);
     }
   }
 

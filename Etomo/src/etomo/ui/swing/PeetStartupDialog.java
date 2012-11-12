@@ -245,7 +245,7 @@ public final class PeetStartupDialog implements UIComponent {
     }
     if (errorMessage == null) {
       if (!DatasetTool.validateDatasetName(manager, this, axisID, ftfDirectory.getFile(),
-          ltfBaseName.getText(), DataFileType.PEET, null)) {
+          ltfBaseName.getText(), DataFileType.PEET, null, true)) {
         return false;
       }
       return true;
