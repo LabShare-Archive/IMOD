@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/12:12 Processchunks: fixed a problem where a "+" in the dataset name caused
+processchunks to fail.(Bug# 1662)
+
 11/12/12: Added ability to select multiple contours in slicer and made slicer
 draw selected contours thicker.
 
