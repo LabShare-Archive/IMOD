@@ -810,7 +810,9 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
             fprintf(out, "\n    ");
             linePos = 5;
           } else {
-            fprintf(out, "\n           ");
+
+            /* Emacs indents as it is pasted in so take out the leading spaces */
+            fprintf(out, "\n");
             linePos = 12;
           }
         }
