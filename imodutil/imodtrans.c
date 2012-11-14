@@ -289,7 +289,7 @@ int main(int argc, char *argv[])
   fclose(fin);
 
   if (imodBackupFile(argv[i + 1])) {
-    fprintf(stderr, "ERROR: %s - couldn't create backup file", progname);
+    fprintf(stderr, "ERROR: %s - couldn't create backup file\n", progname);
     exit(3);
   }
 
