@@ -279,23 +279,24 @@ int main(int argc, char *argv[])
     exit(3);
   }
       
+  imodDefault(&model);
+  model.file = fin;
+  if (imodReadFile(&model)){
+    fprintf(stderr, "ERROR: %s - Error reading imod model. (%s)\n", progname, 
+            argv[i]);
+    exit(3);
+  }
+  fclose(fin);
+
   if (imodBackupFile(argv[i + 1])) {
     fprintf(stderr, "ERROR: %s - couldn't create backup file", progname);
     exit(3);
   }
 
   fout = fopen(argv[i + 1], "wb");
-  if (!fin){
+  if (!fout){
     fprintf(stderr, "ERROR: %s - error opening output file %s\n", progname, 
             argv[i + 1]);
-    exit(3);
-  }
-
-  imodDefault(&model);
-  model.file = fin;
-  if (imodReadFile(&model)){
-    fprintf(stderr, "ERROR: %s - Error reading imod model. (%s)\n", progname, 
-            argv[i]);
     exit(3);
   }
 
