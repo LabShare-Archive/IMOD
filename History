@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/14:12 Fixed imodtrans so output file can be same as input file on Windows.
+
 11/12:12 Processchunks: fixed a problem where a "+" in the dataset name caused
 processchunks to fail.(Bug# 1662)
 
