@@ -404,7 +404,7 @@ else:
 os.chdir(namedir)
       
 # At last we can add pylib to the path and import imodpy
-sys.path.append('./pylib')
+sys.path.insert(0, './pylib')
 from imodpy import *
 from pysed import *
 defaultstr = defaultdir + '/IMOD'
