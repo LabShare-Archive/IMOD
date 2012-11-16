@@ -35,7 +35,9 @@
 <br /><a HREF="#Number of Particles to Average">3.4. Number of Particles to Average</a> 
 <br /><a HREF="#Use Equal Numbers of Particles from All Tomograms">3.5. Use Equal Numbers of Particles From All Tomograms</a>
 <br /><a HREF="#Optional / Advanced Features">3.6. Optional / Advanced Features</a>
-<br /><a HREF="#3.7. Action Buttons">3.7. Action Buttons</a>
+<br /><a HREF="#3.7 Action Buttons">3.7. Action Buttons</a>
+<br /><a HREF="#Resampling Existing Volumes / Models">3.8. Resampling
+  Existing Volumes / Models</a>
 <br /><br />
 
 <hr />
@@ -47,10 +49,19 @@ particles/subvolumes extracted from 3D volumes.&nbsp;  It iteratively refines
 the alignment of each particle with a reference volume over several iterations.&nbsp;
 Subsequent iterations refine the best alignment found in the
 previous iteration by aligning to a new reference generated from a subset
-of the previously aligned particles.&nbsp;  A graphical user interface permits
- users to set up options (search parameters, etc.), 
+of the previously aligned particles.&nbsp;  A eTomo graphical user interface 
+permits  users to set up options (search parameters, etc.), 
 and to control the execution of the process.&nbsp;  This guide will explain
-the options in the interface.</p>
+the options in that interface.&nbsp; For more details on individual PEET
+programs, please consult the PEET man pages by 
+<b>???????? WRITE ME ????????</b> from eTomo, by browsing to 
+<a href="http://bio3d.colorado.edu/ftp/PEET/man/html/index.html">
+http://bio3d.colorado.edu/ftp/PEET/man/html/index.html</a>,
+or by executing "PEETHelp" at the command line of a system on which PEET
+has been installed.&nbsp; Man pages for individual programs are also
+available at the command prompt using "man" command followed by the name
+of the desired program.
+ </p>
 
 <p>Each PEET project must reside in its own directory because of the  potentially large 
 number of intermediate and output files created.&nbsp; Input files (IMOD models and
@@ -551,12 +562,12 @@ with standard deviation given by the <b>Sigma</b> field.&nbsp;
 Both the reference and the particle are filtered separately, so the
 correlation is essentially filtered twice.&nbsp;  One way to see what
 a reference or particle looks like with a particular filter is apply
-the same filter to a file with the IMOD program <a href="man/mtffilter.html#TOP">
-mtffilter</a>, e.g., with
-the command "mtffilter -3d -low cutoff,sigma input_file output_file".&nbsp;
+the same filter to a file with the IMOD program 
+<a href="man/mtffilter.html#TOP">mtffilter</a>, e.g., with
+the command "mtffilter -3d -low cutoff, sigma input_file output_file".&nbsp;
 You can do this with the reference particle
 extracted by PEET, or you can extract a particle from the tomogram in
-3dmod using the rubber band in the Zap window and the Extract entry
+<a href="man/3dmod.html#TOP">3dmod</a> using the rubber band in the Zap window and the Extract entry
 in the File menu.</p>
 
 <p><b>Reference Threshold</b> controls how many particles
@@ -702,7 +713,7 @@ is the standard deviation of the Gaussian whose left half defines the shape of t
 resulting high-pass filter.&nbsp; We have rarely found low frequency filtering to
 be useful, and do not recommend its routine use.</p>
 
-<H4><A NAME="3.7. Action Buttons"></A>3.7. Action Buttons</H4>
+<H4><A NAME="3.7 Action Buttons"></A>3.7. Action Buttons</H4>
 
 <p>After reviewing and selecting Systems and / or processors in the
 Processing Table, press <b>Run</b> to start processing.&nbsp;
@@ -726,6 +737,52 @@ the references generated at each iteration.&nbsp;  You can also select
 <b>Remake Averaged Volumes</b> to recompute averages using the existing
 alignment, e.g. after changing the number of particles to average or
 other settings.</p> 
+
+<H4><A NAME="Resampling Existing Volumes / Models"></A>3.8 Resampling
+  Existing Volumes / Models</H4>
+
+<p>In some cases it may be desirable to change the origin, image size,
+or voxel size of an existing IMOD volume and its corresponding
+model for use with PEET.&nbsp; For example, one may wish to create a
+binned version to reduce memory requirements or to speed preliminary
+characterization.&nbsp; This is easy to do using IMOD, but must be done in a 
+specific way to preserve compatability with both PEET and 
+<a href="man/3dmod.html#TOP">3dmod</a>.</p> 
+
+<p>First, it is necessary to ensure the starting model contains
+information about the associated volume.&nbsp; To do this, simply open the
+volume and the model together in <a href="man/3dmod.html#TOP">3dmod</a>, 
+and then re-save the model;&nbsp; equivalently, use 
+"<a href="man/imodtrans.html#TOP">imodtrans</a> -i" to update the existing 
+model, as illustrated below.&nbsp; Second, create the modified volume
+using IMOD tools such as "<a href="man/binvol.html#TOP">binvol</a>" or 
+"<a href="man/clip.html#TOP">clip</a> -resize".&nbsp; Finally, generate
+the revised model either by a) opening the modified volume and the 
+original model together in <a href="man/3dmod.html#TOP">3dmod</a>, or 
+b) by using "<a href="man/imodtrans.html#TOP">imodtrans</a> -i".</p>
+
+<p>
+For example, to bin down 2-fold a dataset in which the original volume
+and model were named "old.rec" and "old.mod", respectively, one might use<BR>
+<BLOCKQUOTE>
+imodtrans -i old.rec old.mod old.mod<BR>
+binvol -b 2 old.rec new.rec<BR>
+imodtrans -i new.rec old.mod new.mod<BR>
+</BLOCKQUOTE>
+
+In this case, the first operation could also have been done by
+running "3dmod old.rec old.mod" and then selecting the "File / Save" menu
+entry.&nbsp; Similarly, the final operation could have been done by running
+"3dmod new.rec old.mod", selecting "File / Save As", and specifying 
+"new.mod" as the name for the new model.</p>
+<p>
+Finally, for use with PEET, you will also need to make sure that the paramter
+file settings have been chosen appropriately for the modified volume.&nbsp;
+Offsets in columns 11-13 of any pre-existing initial motive list will 
+need to be smanually caled appropriately.&nbsp; Motive lists are stored in 
+comma-separated-value (csv) format, so a spreadsheet program can be used 
+to make any changes required.
+</p>
 
 </body>
 
