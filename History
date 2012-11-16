@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/16/12: Fixed installer to put pylib on front, not end, of path (In 4.5)
+
 10/23/12: Fixed Model View shifting with mouse and montage snapshot when
 Invert Z is on, and added flush statements to prevent failures in montage
 snapshots with vertex buffer drawing on (In 4.5).
