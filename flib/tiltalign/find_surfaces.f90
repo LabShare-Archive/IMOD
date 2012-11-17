@@ -17,17 +17,17 @@
 ! obtained at a single tilt angle [tiltMax] and at zero tilt and will
 ! estimate the true tilt angle of the section, returned in [tiltNew].
 ! [tiltAdd] should be set to an existing change in tilt angles so that
-! the total tilt angle change can be output.  The values in [znew], the
-! amount to shift the tilt axis in Z, and in [imageBinned] allow it to
+! the total tilt angle change can be output.  The values in [znew] and [znewInput], the
+! actual and input amounts to shift the tilt axis in Z, and in [imageBinned] allow it to
 ! report on the unbinned thickness between fiducials and shift needed to
 ! center them.
 ! !
 ! $Id$
 !
 subroutine find_surfaces(xyz, numRealPt, numSurface, tiltMax, &
-    iunit2, tiltNew, igroup, ifComp, tiltAdd, znew, imageBinned)
+    iunit2, tiltNew, igroup, ifComp, tiltAdd, znew, znewInput, imageBinned)
   implicit none
-  real*4 xyz(3,*), tiltMax, tiltNew, tiltAdd, bintcpMinus, bintcp, znew
+  real*4 xyz(3,*), tiltMax, tiltNew, tiltAdd, bintcpMinus, bintcp, znew, znewInput
   integer*4 numRealPt, numSurface, iunit2, ifComp, imageBinned, maxReal
   real*4, allocatable :: xx(:), yy(:), zz(:), zrot(:)
   integer*4, allocatable :: icheck(:)
@@ -146,6 +146,7 @@ subroutine find_surfaces(xyz, numRealPt, numSurface, tiltMax, &
     thick = imageBinned * (topExtreme - botExtreme)
     shiftTot = imageBinned * (topExtreme + botExtreme) / 2.
     shiftInc = shiftTot - imageBinned * znew
+    shiftTot = shiftInc + imageBinned * znewInput
     do iun = 6, iunit2
       write(iun, 103) thick, shiftInc, shiftTot
 103   format(' Unbinned thickness needed to contain centers of all ', &
