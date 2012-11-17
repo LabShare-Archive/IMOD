@@ -832,8 +832,20 @@ type = F
 usage = Amount to shift tilt axis in Z, or 1000 to put at midpoint of range
 tooltip = Distance to shift tilt axis in Z for reconstruction.
 manpage = Amount to shift the tilt axis in Z, relative to the centroid in
-Z of the fiducial points, or 1000 to shift the tilt axis to the
-midpoint of the range of Z values.  Enter this value in unbinned pixels.
+Z of the fiducial points or relative to the original Z axis location if
+ShiftZFromOriginal is entered. It is also possible to enter 1000 to shift the
+tilt axis to the midpoint of the range of Z values.  Enter this value in
+unbinned pixels.
+
+[Field = ShiftZFromOriginal]
+short = 
+type = B
+usage = Apply Z shift relative to original tilt axis location
+tooltip = 
+manpage = Apply Z shift relative to original tilt axis location.  If images
+were initially aligned by cross-correlation, this option will keep specimen
+material near the center of the reconstruction even if fiducials are on one
+surface.
 
 [Field = AxisXShift]
 short = 
