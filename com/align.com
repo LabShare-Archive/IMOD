@@ -57,6 +57,7 @@ KFactorScaling	1.
 # ADD a recommended amount to shift up to the existing AxisZShift value
 #
 AxisZShift	0.
+ShiftZFromOriginal      1
 #
 # Set to 1 to do local alignments
 #
