@@ -52,7 +52,7 @@ program tiltalign
   integer*4 numLocalRes, numSurface, iwhichOut, metroError, i, itry
   integer*4 inputAlf, mapAlfEnd, ifVarOut, ifResOut, ifXyzOut, ifLocal
   integer*4 iv, nvarSearch, nvarGeometric, index, nvarAngle, nvarScaled
-  real*4 errCrit, facm, znew, xtiltNew, scaleXY, errSum
+  real*4 errCrit, facm, znew, xtiltNew, scaleXY, errSum, znewInput
   real*4 errSqsm, residErr, vwErrSum, vwErrSq, sxoz, szox, sxox, szoz
   real*4 xo, zo, xShift, zShift, rollPoints, cosTheta, sinTheta, xtmp, compInc, compAbs
   integer*4 nviewAdd, ninViewSum, ivst, ivnd, iunit2, numUnknownTot, iunit
@@ -64,7 +64,7 @@ program tiltalign
   real*4 errMean, errSd, errnosd, tiltMax, fixedMax, xsum, ysum, zsum
   integer*4 idxPatch, idyPatch, ipatchX, ipatchy, ixsPatch, iysPatch
   integer*4 nxp, nyp, minSurf, nbot, ntop, ixmin, ixmax, iymin, iymax, kk
-  integer*4 nprojpt, minTiltView, ncompSearch, mapTiltStart, ifBTSearch
+  integer*4 nprojpt, minTiltView, ncompSearch, mapTiltStart, ifBTSearch, ifOriginalZ
   real*4 xcen, ycen, ffinal, dxmin, tmp, tiltNew, fixedDum, tiltAdd, allBorder
   integer*4 ixtry, itmp, iord, ixPatch, iyPatch, ierr, ifZfac, ifDoRobust
   integer*4 nxTarget, nyTarget, minInitError, minResRobust, minLocalResRobust
@@ -157,6 +157,7 @@ program tiltalign
   dxmin = 0.
   dyavg = 0.
   ifZfac = 0
+  ifOriginalZ = 0
   imageBinned = 1
   ifDoLocal = 0
   binStepIni = 1.
@@ -228,7 +229,7 @@ program tiltalign
     errCrit = 3.0
     numSurface = 0
     ncycle = 1000
-    znew = 0.
+    znewInput = 0.
     xtiltNew = 0.
     ierr = PipGetFloat('ResidualReportCriterion', errCrit)
     ierr = PipGetInteger('SurfacesToAnalyze', numSurface)
@@ -238,7 +239,8 @@ program tiltalign
     ierr = PipGetTwoIntegers('MinWeightGroupSizes', minResRobust, minLocalResRobust)
     if (PipGetFloat('KFactorScaling', cosTmp) .eq. 0)  &
         kfacRobust = kfacRobust * cosTmp
-    ierr = PipGetFloat('AxisZShift', znew)
+    ierr = PipGetFloat('AxisZShift', znewInput)
+    ierr = PipGetBoolean('ShiftZFromOriginal', ifOriginalZ)
     ierr = PipGetFloat('AxisXShift', xtiltNew)
     ierr = PipGetInteger('ImagesAreBinned', imageBinned)
     imageBinned = max(1, imageBinned)
@@ -266,7 +268,7 @@ program tiltalign
       print *,'Z shift in tilt axis relative to centroid,'
       write(*,'(1x,a,$)') &
           '         or 1000 to shift to middle of z range: '
-      read(5,*) znew
+      read(5,*) znewInput
       !
       ! get new position of tilt axis in x
       !
@@ -276,7 +278,7 @@ program tiltalign
     endif
   endif
   !
-  if (nint(znew) .ne. 1000) znew = znew / imageBinned
+  if (nint(znewInput) .ne. 1000) znewInput = znewInput / imageBinned
   xtiltNew = xtiltNew / imageBinned
   orderErr = .true.
   nearbyErr = errCrit < 0.
@@ -404,8 +406,8 @@ program tiltalign
         fixedMax = tilt(iv)
   enddo
   if (fixedMax >= 5.) tiltMax = fixedMax
-  if (numSurface > 0) call find_surfaces(xyz, nrealPt, numSurface, &
-      tiltMax, iunit2, tiltNew, igroup, ncompSearch, tiltAdd, znew, imageBinned)
+  if (numSurface > 0) call find_surfaces(xyz, nrealPt, numSurface, tiltMax, iunit2, &
+      tiltNew, igroup, ncompSearch, tiltAdd, znew, znewInput, imageBinned)
   call write_xyz_model(modelFile, allxyz, igroup, nrealPt)
   !
   ! Write separate residual outputs now that surfaces are known
@@ -908,10 +910,6 @@ CONTAINS
     ! shift axis in z by making proper shifts in x
     !
     if (iwhichOut >= 0) then
-      if (znew == 1000.) znew = zmiddle
-      if (ifLocal .ne. 0) znew = -zShift
-      dysum = 0.
-
       do iv = 1, nview
         !
         ! To compute transform, first get the coefficients of the full
@@ -1006,9 +1004,24 @@ CONTAINS
 !!$        call xfwrite(6, fb, *299)
 !!$        call xfwrite(6, fa, *299)
 !!$299     continue
-        !
-        ! adjust dx by the factor needed to shift axis in Z
-        !
+        ! Set up to fit shifts against sines and determine z shift from original
+        h(iv) = fl(1, 3, iv)
+        h(iv + nview) = sind(tilt(iv))
+      enddo
+
+      ! If Z change is relative to original position, determine component needed to
+      ! get back to original
+      znew = znewInput
+      if (ifLocal == 0 .and. ifOriginalZ .ne. 0 .and. nint(znew) .ne. 1000) then
+        call lsfit(h(1 + nview), h, nview, zShift, dxmid, offmin)
+        znew = znew + zShift
+      endif
+      if (nint(znew) == 1000) znew = zmiddle
+      if (ifLocal .ne. 0) znew = -zShift
+
+      ! adjust dx by the factor needed to shift axis in Z and set up for working on Y
+      dysum = 0.
+      do iv = 1, nview
         fl(1, 3, iv) = fl(1, 3, iv) - znew * sind(tilt(iv))
         h(iv) = 1. - cosd(tilt(iv))
         dysum = dysum + fl(2, 3, iv)
