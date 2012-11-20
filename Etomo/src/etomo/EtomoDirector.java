@@ -173,7 +173,11 @@ public class EtomoDirector {
    */
   private void doAutomation(final ManagerKey managerKey) {
     if (managerList == null) {
-      return;
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
+          "Unable to open interface.", "Interface Failed");
+      if (arguments.isHeadless()) {
+        UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      }
     }
     BaseManager manager = null;
     if (managerKey != null) {
@@ -868,6 +872,7 @@ public class EtomoDirector {
    */
   public boolean exitProgram(AxisID axisID) {
     try {
+      saveLogs();
       if (managerList != null) {
         while (managerList.size() != 0) {
           if (!closeCurrentManager(axisID, true)) {
