@@ -11,7 +11,7 @@ import etomo.type.BaseMetaData;
 import etomo.type.FrontPageMetaData;
 import etomo.type.InterfaceType;
 import etomo.type.ProcessName;
-import etomo.ui.swing.FrontPageDialog;
+import etomo.ui.FrontPageUIHarness;
 import etomo.ui.swing.LogInterface;
 import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainFrontPagePanel;
@@ -59,7 +59,7 @@ public final class FrontPageManager extends BaseManager {
   public static final String rcsid = "$Id$";
 
   private static final AxisID AXIS_ID = AxisID.ONLY;
-  private FrontPageDialog frontPageDialog = null;
+  private FrontPageUIHarness dialogExpert = new FrontPageUIHarness(this, AXIS_ID);
   private MainFrontPagePanel mainPanel;
   private final FrontPageMetaData metaData;
 
@@ -78,7 +78,7 @@ public final class FrontPageManager extends BaseManager {
 
   public void doAutomation() {
     if (EtomoDirector.INSTANCE.getArguments().isReconAutomation()) {
-      frontPageDialog.reconActionForAutomation();
+      dialogExpert.reconActionForAutomation();
     }
 
     super.doAutomation();
@@ -100,10 +100,10 @@ public final class FrontPageManager extends BaseManager {
     return null;
   }
 
-   void processSucceeded(final AxisID axisID, final ProcessName processName) {
+  void processSucceeded(final AxisID axisID, final ProcessName processName) {
   }
 
-   void createMainPanel() {
+  void createMainPanel() {
     mainPanel = new MainFrontPagePanel(this);
   }
 
@@ -165,9 +165,6 @@ public final class FrontPageManager extends BaseManager {
   }
 
   private void openFrontPageDialog() {
-    if (frontPageDialog == null) {
-      frontPageDialog = FrontPageDialog.getInstance();
-    }
-    mainPanel.showProcess(frontPageDialog.getContainer(), AXIS_ID);
+    dialogExpert.openDialog();
   }
 }

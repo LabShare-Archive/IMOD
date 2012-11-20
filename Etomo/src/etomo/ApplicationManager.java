@@ -120,6 +120,7 @@ import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
 import etomo.type.TomogramState;
 import etomo.type.ViewType;
+import etomo.ui.SetupReconUIHarness;
 import etomo.ui.swing.AbstractParallelDialog;
 import etomo.ui.swing.AlignmentEstimationDialog;
 import etomo.ui.swing.BeadTrackDisplay;
@@ -257,6 +258,8 @@ public final class ApplicationManager extends BaseManager implements
 
   ComScriptManager comScriptMgr = new ComScriptManager(this);
 
+  private SetupReconUIHarness setupReconUIHarness = null;
+
   /**
    * Does initialization and loads the .edf file. Opens the setup dialog if
    * there is no .edf file.
@@ -289,9 +292,10 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public void doAutomation() {
-    if (setupDialogExpert != null) {
-      setupDialogExpert.doAutomation();
+    if (setupReconUIHarness == null) {
+      setupReconUIHarness = new SetupReconUIHarness();
     }
+    setupReconUIHarness.doAutomation();
     super.doAutomation();
   }
 
@@ -404,8 +408,8 @@ public final class ApplicationManager extends BaseManager implements
       // check for distortion directory
       File distortionDir = DatasetFiles.getDistortionDir(this, propertyUserDir,
           AxisID.ONLY);
-      setupDialogExpert = SetupDialogExpert.getInstance(this, distortionDir != null
-          && distortionDir.exists());
+      setupDialogExpert = setupReconUIHarness.getSetupDialogExpert(this,
+          distortionDir != null && distortionDir.exists());
       Utilities.timestamp("new", "SetupDialog", Utilities.FINISHED_STATUS);
       setupDialogExpert.initializeFields((ConstMetaData) metaData, userConfig);
     }
@@ -516,6 +520,7 @@ public final class ApplicationManager extends BaseManager implements
     // Switch the main window to the procesing panel
     openProcessingPanel();
     // Free the dialog
+    setupReconUIHarness.freeDialog();
     setupDialogExpert = null;
     saveStorables(AxisID.ONLY);
     return true;

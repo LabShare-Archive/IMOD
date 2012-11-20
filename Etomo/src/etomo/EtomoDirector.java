@@ -173,7 +173,11 @@ public class EtomoDirector {
    */
   private void doAutomation(final ManagerKey managerKey) {
     if (managerList == null) {
-      return;
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
+          "Unable to open interface.", "Interface Failed");
+      if (arguments.isHeadless()) {
+        UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      }
     }
     BaseManager manager = null;
     if (managerKey != null) {
@@ -248,6 +252,10 @@ public class EtomoDirector {
       return;
     }
     UIHarness.INSTANCE.createMainFrame();
+    if (!arguments.validate(UIHarness.INSTANCE.getMainFrame())) {
+      UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      return;
+    }
     initIMODDirectory();
     int paramFileNameListSize = paramFileNameList.size();
     String paramFileName = null;
@@ -864,9 +872,12 @@ public class EtomoDirector {
    */
   public boolean exitProgram(AxisID axisID) {
     try {
-      while (managerList.size() != 0) {
-        if (!closeCurrentManager(axisID, true)) {
-          return false;
+      saveLogs();
+      if (managerList != null) {
+        while (managerList.size() != 0) {
+          if (!closeCurrentManager(axisID, true)) {
+            return false;
+          }
         }
       }
       if (utilityThread != null) {

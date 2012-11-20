@@ -180,7 +180,7 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
       if (command.equals(btnRunProcess.getText())) {
         if (ltfProcessName.isEditable()
             && !DatasetTool.validateDatasetName(manager, axisID, workingDir,
-                ltfProcessName.getText(true), DataFileType.PARALLEL, null)) {
+                ltfProcessName.getText(true), DataFileType.PARALLEL, null, true)) {
           return;
         }
         manager.processchunks(btnRunProcess, null, ltfProcessName.getText(true), null,

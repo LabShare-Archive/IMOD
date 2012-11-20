@@ -33,6 +33,8 @@ import etomo.util.UniqueKey;
 public final class UIHarness {
   public static final String rcsid = "$Id$";
 
+  private static final String LOG_TAG = "LOG:";
+
   public static final UIHarness INSTANCE = new UIHarness();
 
   private final Hashtable managerFrameTable = new Hashtable();
@@ -68,7 +70,7 @@ public final class UIHarness {
       getFrame(manager).displayMessage(manager, message, title, axisID);
     }
     else {
-      log("openMessageDialog", message, title, axisID);
+      log(message, title, axisID);
     }
   }
 
@@ -84,7 +86,7 @@ public final class UIHarness {
       getFrame(manager).displayMessage(manager, uiComponent, message, title, axisID);
     }
     else {
-      log("openMessageDialog", message, title, axisID);
+      log(message, title, axisID);
     }
   }
 
@@ -94,7 +96,17 @@ public final class UIHarness {
       getFrame(null).displayMessage(null, uiComponent, message, title, null);
     }
     else {
-      log("openMessageDialog", message, title, null);
+      log(message, title, null);
+    }
+  }
+
+  public synchronized void openMessageDialog(final UIComponent uiComponent,
+      final String[] message, final String title) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
+      getFrame(null).displayMessage(null, uiComponent, message, title, null);
+    }
+    else {
+      log(message, title, null);
     }
   }
 
@@ -104,7 +116,7 @@ public final class UIHarness {
       getFrame(manager).displayInfoMessage(manager, message, title, axisID);
     }
     else {
-      log("openMessageDialog", message, title, axisID);
+      log(message, title, axisID);
     }
   }
 
@@ -119,7 +131,7 @@ public final class UIHarness {
       getFrame(manager).displayErrorMessage(manager, message, title, axisID);
     }
     else {
-      logError("openMessageDialog", message, title, axisID);
+      logError(message, title, axisID);
     }
   }
 
@@ -134,7 +146,7 @@ public final class UIHarness {
       getFrame(manager).displayWarningMessage(manager, messages, title, axisID);
     }
     else {
-      logWarning("openMessageDialog", messages, title, axisID);
+      logWarning(messages, title, axisID);
     }
   }
 
@@ -149,7 +161,7 @@ public final class UIHarness {
       getFrame(manager).displayMessage(manager, message, title);
     }
     else {
-      log("openMessageDialog", message, title);
+      log(message, title);
     }
   }
 
@@ -164,7 +176,7 @@ public final class UIHarness {
       getFrame(manager).displayMessage(manager, message, title, axisID);
     }
     else {
-      log("openMessageDialog", message, title, axisID);
+      log(message, title, axisID);
     }
   }
 
@@ -173,7 +185,7 @@ public final class UIHarness {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayYesNoCancelMessage(manager, message, axisID);
     }
-    log("openYesNoCancelDialog", message, axisID);
+    log(message, axisID);
     return JOptionPane.YES_OPTION;
   }
 
@@ -182,7 +194,7 @@ public final class UIHarness {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayYesNoMessage(manager, message, axisID);
     }
-    log("openYesNoDialog", message, axisID);
+    log(message, axisID);
     return true;
   }
 
@@ -191,7 +203,7 @@ public final class UIHarness {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayDeleteMessage(manager, message, axisID);
     }
-    log("openDeleteDialog", message, axisID);
+    log(message, axisID);
     return true;
   }
 
@@ -200,7 +212,7 @@ public final class UIHarness {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayYesNoWarningDialog(manager, message, axisID);
     }
-    log("openYesNoWarningDialog", message, axisID);
+    log(message, axisID);
     return true;
   }
 
@@ -209,7 +221,7 @@ public final class UIHarness {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayYesNoMessage(manager, message, axisID);
     }
-    log("openYesNoDialog", message, axisID);
+    log(message, axisID);
     return true;
   }
 
@@ -259,6 +271,10 @@ public final class UIHarness {
       return mainFrame;
     }
     return (ManagerFrame) managerFrameTable.get(manager);
+  }
+
+  public AbstractFrame getMainFrame() {
+    return mainFrame;
   }
 
   public void pack(boolean force, BaseManager manager) {
@@ -500,7 +516,7 @@ public final class UIHarness {
     }
   }
 
-  public void exit(AxisID axisID) {
+  public void exit(final AxisID axisID, final int exitValue) {
     // Store the current location of the frame in case etomo exits.
     if (isHead()) {
       mainFrame.saveLocation();
@@ -511,7 +527,7 @@ public final class UIHarness {
     }
     // Check to see if etomo an exit, save data, and then exit.
     if (EtomoDirector.INSTANCE.exitProgram(axisID)) {
-      System.exit(0);
+      System.exit(exitValue);
     }
   }
 
@@ -542,8 +558,8 @@ public final class UIHarness {
    * @param message
    * @param axisID
    */
-  private void log(String function, String message, AxisID axisID) {
-    log(function, message, null, axisID);
+  private void log(String message, AxisID axisID) {
+    log(message, null, axisID);
   }
 
   /**
@@ -553,8 +569,8 @@ public final class UIHarness {
    * @param title
    * @param axisID
    */
-  private void log(String function, String message, String title) {
-    log(function, message, title, AxisID.ONLY);
+  private void log(String message, String title) {
+    log(message, title, AxisID.ONLY);
   }
 
   /**
@@ -564,26 +580,24 @@ public final class UIHarness {
    * @param title
    * @param axisID
    */
-  private void log(String function, String message, String title, AxisID axisID) {
-    System.err.println();
-    System.err.println(function + ", " + axisID + ", " + title + ":");
+  private void log(String message, String title, AxisID axisID) {
+    System.err.println(LOG_TAG + title + "(" + axisID + "):");
     System.err.println(message);
+    System.err.println();
     System.err.flush();
   }
 
-  private void logError(String function, ProcessMessages processMessages, String title,
-      AxisID axisID) {
-    System.err.println();
-    System.err.println(function + ", " + axisID + ", " + title + ":");
+  private void logError(ProcessMessages processMessages, String title, AxisID axisID) {
+    System.err.println(LOG_TAG + ": " + title + "(" + axisID + "):");
     processMessages.printError();
+    System.err.println();
     System.err.flush();
   }
 
-  private void logWarning(String function, ProcessMessages processMessages, String title,
-      AxisID axisID) {
-    System.err.println();
-    System.err.println(function + ", " + axisID + ", " + title + ":");
+  private void logWarning(ProcessMessages processMessages, String title, AxisID axisID) {
+    System.err.println(LOG_TAG + ": " + title + "(" + axisID + "):");
     processMessages.printWarning();
+    System.err.println();
     System.err.flush();
   }
 
@@ -593,8 +607,8 @@ public final class UIHarness {
    * @param message
    * @param axisID
    */
-  private void log(String function, String[] message, AxisID axisID) {
-    log(function, message, null, axisID);
+  private void log(String[] message, AxisID axisID) {
+    log(message, null, axisID);
   }
 
   /**
@@ -604,20 +618,15 @@ public final class UIHarness {
    * @param title
    * @param axisID
    */
-  private void log(String function, String[] message, String title, AxisID axisID) {
-    System.err.println();
-    if (title == null) {
-      System.err.print(function + ", " + axisID + ":");
-    }
-    else {
-      System.err.print(function + ", " + axisID + ", " + title + ":");
-    }
-    System.err.println();
+  private void log(String[] message, String title, AxisID axisID) {
+    System.err.println(LOG_TAG + ": " + (title == null ? "" : title) + "(" + axisID
+        + "):");
     if (message != null) {
       for (int i = 0; i < message.length; i++) {
         System.err.println(message[i]);
       }
     }
+    System.err.println();
     System.err.flush();
   }
 }

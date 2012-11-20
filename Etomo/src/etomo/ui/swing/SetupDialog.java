@@ -37,6 +37,7 @@ import etomo.type.AxisID;
 import etomo.type.DataFileType;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
+import etomo.type.FileType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
@@ -60,7 +61,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final ImageIcon iconFolder = new ImageIcon(
       ClassLoader.getSystemResource("images/openFile.gif"));
 
-  private final FileTextField ftfDataset = new FileTextField(DATASET_NAME_LABEL);
+  private final FileTextField2 ftfDataset = FileTextField2.getInstance(
+      applicationManager, DATASET_NAME_LABEL);
 
   private final FileTextField ftfBackupDirectory = new FileTextField(
       BACKUP_DIRECTORY_LABEL);
@@ -133,6 +135,10 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     this.expert = expert;
     this.calibrationAvailable = calibrationAvailable;
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
+    ftfDataset.setFileSelectionMode(FileChooser.FILES_ONLY);
+    ftfDataset.setOrigin(expert.getDatasetDir());
+    ftfDataset.setAbsolutePath(true);
+    ftfDataset.setFileFilter(new StackFileFilter());
     createDatasetPanel();
     createDataTypePanel();
     createPerAxisInfoPanel();
@@ -190,22 +196,24 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
-  public void buttonExecuteAction() {
+  public boolean buttonExecuteAction() {
     String sDataset = ftfDataset.getText();
     if (sDataset.indexOf(File.separator) != -1) {
       if (!DatasetTool.validateDatasetName(applicationManager, null, AxisID.ONLY,
           ftfDataset.getFile(), DataFileType.RECON, expert.getAxisType())) {
-        return;
+        return false;
       }
     }
     else {
+      String datasetName = ftfDataset.getText();
       if (!DatasetTool.validateDatasetName(applicationManager, null, AxisID.ONLY,
-          new File(applicationManager.getPropertyUserDir()), ftfDataset.getText(),
-          DataFileType.RECON, expert.getAxisType())) {
-        return;
+          new File(expert.getPropertyUserDir()), datasetName, DataFileType.RECON,
+          expert.getAxisType(),
+          !datasetName.endsWith(FileType.RAW_STACK.getExtension(applicationManager)))) {
+        return false;
       }
     }
-    super.buttonExecuteAction();
+    return super.buttonExecuteAction();
   }
 
   public void action(final Run3dmodButton button,
@@ -532,29 +540,6 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     return null;
   }
 
-  void datasetAction() {
-    try {
-      File file = getFile(expert.getDatasetDir(), new StackFileFilter(),
-          JFileChooser.FILES_ONLY);
-      if (file == null) {
-        return;
-      }
-      String dir = file.getParent();
-      if (dir.endsWith(" ")) {
-        UIHarness.INSTANCE.openMessageDialog(applicationManager, "The directory, " + dir
-            + ", cannot be used because it ends with a space.",
-            "Unusable Directory Name", AxisID.ONLY);
-        return;
-      }
-      if (file != null) {
-        ftfDataset.setText(file.getAbsolutePath());
-      }
-    }
-    catch (Exception excep) {
-      excep.printStackTrace();
-    }
-  }
-
   void backupDirectoryAction() {
     try {
       File file = getFile(expert.getCurrentBackupDirectory(), null,
@@ -616,7 +601,6 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     // Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
-    ftfDataset.addActionListener(new DatasetActionListener(this));
     ftfBackupDirectory.addActionListener(new BackupDirectoryActionListener(this));
     ftfDistortionFile.addActionListener(new DistortionFileActionListener(this));
     ftfMagGradientFile.addActionListener(new MagGradientFileActionListener(this));
@@ -638,7 +622,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     // Add the GUI objects to the pnl
     pnlDataset.add(Box.createRigidArea(FixedDim.x5_y0));
 
-    pnlDataset.add(ftfDataset.getContainer());
+    pnlDataset.add(ftfDataset.getRootPanel());
     pnlDataset.add(Box.createRigidArea(FixedDim.x10_y0));
 
     pnlDataset.add(ftfBackupDirectory.getContainer());
@@ -802,20 +786,6 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlPerAxisInfo.setLayout(new BoxLayout(pnlPerAxisInfo, BoxLayout.X_AXIS));
     pnlPerAxisInfo.add(pnlAxisInfoA);
     pnlPerAxisInfo.add(pnlAxisInfoB);
-  }
-
-  // Button action listener classes
-  private static final class DatasetActionListener implements ActionListener {
-
-    private final SetupDialog adaptee;
-
-    private DatasetActionListener(final SetupDialog adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(final ActionEvent event) {
-      adaptee.datasetAction();
-    }
   }
 
   private static final class BackupDirectoryActionListener implements ActionListener {
