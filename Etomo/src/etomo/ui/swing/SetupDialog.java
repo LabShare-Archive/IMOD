@@ -196,12 +196,12 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
-  public void buttonExecuteAction() {
+  public boolean buttonExecuteAction() {
     String sDataset = ftfDataset.getText();
     if (sDataset.indexOf(File.separator) != -1) {
       if (!DatasetTool.validateDatasetName(applicationManager, null, AxisID.ONLY,
           ftfDataset.getFile(), DataFileType.RECON, expert.getAxisType())) {
-        return;
+        return false;
       }
     }
     else {
@@ -210,10 +210,10 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
           new File(expert.getPropertyUserDir()), datasetName, DataFileType.RECON,
           expert.getAxisType(),
           !datasetName.endsWith(FileType.RAW_STACK.getExtension(applicationManager)))) {
-        return;
+        return false;
       }
     }
-    super.buttonExecuteAction();
+    return super.buttonExecuteAction();
   }
 
   public void action(final Run3dmodButton button,
