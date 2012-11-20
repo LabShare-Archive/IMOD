@@ -523,8 +523,7 @@ public final class Arguments {
       else if (args[i].equals(DIRECTIVES_TAG)) {
         directives = true;
         reconAutomation = true;
-        // TEMP
-        // headless = true;
+        headless = true;
         exit = true;
         if (i < args.length - 1) {
           // The quotes have already been stripped.
