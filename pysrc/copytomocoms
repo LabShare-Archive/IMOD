@@ -29,17 +29,21 @@ srcext = '.com'
 backuplist = []
 backupline = '$if (-e ' + backupname + ') ' + backupname
 dstext = ""
+setlet = ""
+
 
 # This function does the boilerplate of defining source and destination files,
 # backing up the diestination file and adding it to the backuplist, running pysed,
 # adding the savework command to the output, and writing the output file
-def editAndWrite(srcRoot, dstRoot, sedcom):
+def editAndWrite(srcRoot, dstRoot, sedcom, doChanges = True):
    srcfile = os.path.join(srcdir, srcRoot + srcext)
    dstfile = dstRoot + dstext
    backuplist.append(dstfile)
    makeBackupFile(dstfile)
    sedlines = pysed(sedcom, srcfile, None)
    sedlines.append(backupline)
+   if doChanges and len(changeList) > 0:
+      sedlines = modifyForChangeList(sedlines, srcRoot, setlet, changeList)
    writeTextFile(dstfile, sedlines)
 
 
@@ -103,6 +107,7 @@ else:
 from imodpy import *
 from pip import *
 from pysed import *
+from comchanger import *
 
 subdistort = 'gibberish'
 voltsub = "gibberish"
@@ -146,6 +151,23 @@ backup = 1 - PipGetErrNo()
 xsize = PipGetInteger('XImageSize', -1)
 ysize = PipGetInteger('XImageSize', -1)
 setFEIpixel = PipGetBoolean('SetFEIPixelSize', 0)
+
+changeList = []
+numChangers = PipNumberOfEntries('ChangeParametersFile')
+for chan in range(numChangers):
+   changeFile = PipGetString('ChangeParametersFile', '')
+   changeLines = readTextFile(changeFile)
+   for line in changeLines:
+      change = changeToAddToList(changeList, line, changeFile, 'comparam', 4)
+      if change:
+         changeList.append(change)
+
+numChangers = PipNumberOfEntries('OneParameterChange')
+for chan in range(numChangers):
+   line = PipGetString('OneParameterChange', '')
+   change = changeToAddToList(changeList, line, '', 'comparam', 4)
+   if change:
+      changeList.append(change)
 
 pixsize = PipGetFloat('PixelSize', -1.)
 if pixsize < 0:
@@ -278,6 +300,10 @@ elif beadrad < 7.:
 else:
    boxsize = 8 * int((2 * beadsize + 26) / 8)
    boxsize = min(100, boxsize)
+   eraserad = 3.6
+
+# If 0 radius entered, just set eraser param generously large
+if beadnm == 0.:
    eraserad = 3.6
 
 # LOOP ON THE AXES
@@ -645,6 +671,8 @@ for iaxis in range(naxis):
    sedlines = pysed(sedcom, srcfile, None)
    dstlines.extend(sedlines)
    dstlines.append(backupline)
+   if changeList:
+      dstlines = modifyForChangeList(dstlines, 'xcorr', setlet, changeList)
    writeTextFile(dstfile, dstlines)
 
    if not montage:
@@ -652,14 +680,14 @@ for iaxis in range(naxis):
       # GET PRENEWST
       sedcom = [srcToDist,
                 "/newst/s/-xf/" + xftext + "/"]
-      editAndWrite('prenewst', "prenewst", sedcom)
+      editAndWrite('prenewst', "prenewst", sedcom, False)
 
       # GET NEWST
       sedcom = [srcToDist,
                 "/newst/s/-xf/" + xftext + "/",
                 fmtstr("/newst/s/-size ,,/{} -size {},{}/g", newstmode,
                        newstwidth, SAMPLESIZE)]
-      editAndWrite('ccdnewst', "newst", sedcom)
+      editAndWrite('ccdnewst', "newst", sedcom, False)
       
    else:
 
@@ -755,6 +783,8 @@ for iaxis in range(naxis):
                    fmtstr("$if (-e {0}.resid) patch2imod -s {1} {0}.resid {0}.resmod",
                           setname, RESIDUAL_SCALE),
                    backupline])
+   if changeList:
+      dstlines = modifyForChangeList(dstlines, 'align', setlet, changeList)
    writeTextFile(dstfile, sedlines)
    backuplist.extend([dstfile, setname + "local.xf", setname + "fid.xyz",
                       setname + ".xf", setname + ".tlt", setname + ".resid",
@@ -854,12 +884,16 @@ for iaxis in range(naxis):
                    "/mrctaper/d",
                    "/Command file/s//Commands/"]
          sedlines = pysed(sedcom, 'blend' + dstext, None)
+         if changeList:
+            sedlines = modifyForChangeList(sedlines, 'sample', setlet, changeList)
 
       dstlines.extend(sedlines)
       dstlines.append(fmtstr("$sampletilt {} {} {} {} {} tilt{}", slmin, slmax, ystart,
                              setname, bmtarr[ind], dstext))
 
    dstlines.append(backupline)
+   if changeList:
+      dstlines = modifyForChangeList(dstlines, 'sample', setlet, changeList)
    writeTextFile(dstfile, dstlines)
 
    # SKIP FINDSEC until it is useful!
