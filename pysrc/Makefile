@@ -12,7 +12,7 @@ gputilttest b3dremove b3dcopy b3dcatfiles findsirtdiffs dm2mrc archiveorig runra
 splitcorrection transferfid xfalign startprocess imodhelp submfg etomo colornewst \
 autofidseed onegenplot setupstitch
 
-MODULES = imodpy.py pysed.py supermont.py pip.py
+MODULES = imodpy.py pysed.py supermont.py pip.py comchanger.py
 
 all:
 
