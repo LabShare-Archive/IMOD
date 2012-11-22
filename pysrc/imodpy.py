@@ -11,8 +11,8 @@
 This module provides the following functions:
   runcmd(cmd[, input][,outfile][, inStderr]) - spawn a command with optional input,
                                    return its output or print to stdout or a file
-  bkgdProcess(commandArr, [outfile] [, errfile]) - Run a process in background
-                                                   with optional redirection
+  bkgdProcess(commandArr, [outfile] [, errfile] [, returnOnErr]) - Run a process
+                                    in background with optional redirection
   getmrcsize(file)     - run the 'header' command on <file>.
                          returns a triple of x,y,z size integers
   getmrc(file, doAll)  - run the 'header' command on <file>.
@@ -22,11 +22,11 @@ This module provides the following functions:
   exitFromImodError(pn, errout) - prints the error strings in errout and
                                   prepends 'ERROR: pn - ' to the last one
   parselist(line)      -  convert list entry in <line> into list of integers
-  readTextFile(filename[ , descrip])  - reads in text file, strips line endings
-                                        returns a list of strings
-  writeTextFile(filename, strings) - writes set of strings to a text file
-  optionValue(linelist, option, type, ignorecase = False) - finds option value
-                                                              in list of lines
+  readTextFile(filename[ , descrip] [, returnOnErr]) - reads in text file, strips
+                                       line endings, returns a list of strings
+  writeTextFile(filename, strings [, returnOnErr]) - writes set of strings to a text file
+  optionValue(linelist, option, type, ignorecase = False, numVal = 0) -
+                                           finds option value in list of lines
   convertToInteger(valstr, description) - Convert string to int with error 
                                            message if it fails
   completeAndCheckComFile(comfile) - returns complete com file name and root
@@ -47,6 +47,9 @@ pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
 
 if pyVersion < 300:
    import exceptions
+
+# Variables used like an enum for selecting optionValue type
+STRING_VALUE, INT_VALUE, FLOAT_VALUE, BOOL_VALUE = 0, 1, 2, 3
 
 # The global place to stash error strings and last exit status
 errStrings = []
@@ -283,7 +286,7 @@ def getLastExitStatus():
 
 
 # Run a process in background with optional redirection of all output
-def bkgdProcess(commandArr, outfile=None, errfile='stdout'):
+def bkgdProcess(commandArr, outfile=None, errfile='stdout', returnOnErr = False):
    """bkgdProcess(commandArr, [outfile] [, errfile]) - Run a process in background
    with optional redirection of standard output to a file, and of standard error
    to a separate file or to standard out by default.
@@ -305,7 +308,10 @@ def bkgdProcess(commandArr, outfile=None, errfile='stdout'):
             errf = open(errfile, 'w')
             errToFile = True
       except IOError:
-         exitError(action + "  - " + str(sys.exc_info()[1]))
+         errString = action + "  - " + str(sys.exc_info()[1])
+         if returnOnErr:
+            return errString
+         exitError(errString)
 
       # Use detached flag on Windows, although it may not be needed
       # In fact, unless stderr is going to a file it keeps it from running there
@@ -315,7 +321,7 @@ def bkgdProcess(commandArr, outfile=None, errfile='stdout'):
                creationflags=DETACHED_PROCESS)
       else:
          Popen(commandArr, shell=False, stdout=outf, stderr=errf)
-      return
+      return None
 
    # Otherwise use system call: wrap all args in quotes and add the redirects
    comstr = commandArr[0]
@@ -329,6 +335,7 @@ def bkgdProcess(commandArr, outfile=None, errfile='stdout'):
       comstr += ' 2> "' + errfile + '"'
    comstr += ' &'
    os.system(comstr)
+   return None
          
 
 # Get essential data from the header of an MRC file
@@ -504,13 +511,14 @@ def parselist (line):
 
 
 # Function to read in a text file and strip line endings
-def readTextFile(filename, descrip = None):
+def readTextFile(filename, descrip = None, returnOnErr = False):
    """readTextFile(filename[ , descrip])  - read in text file, strip endings
 
    Reads in the text file in <filename>, strips the line endings and blanks
    from the end of each line, and returns a list of strings.  Exits with
    exitError on an error opening or reading the file, and adds the optional
-   description in <descrip> to the error message
+   description in <descrip> to the error message.  Or, if returnOnErr is True,
+   it returns the error string itself
    """
    if not descrip:
       descrip = " "
@@ -520,18 +528,27 @@ def readTextFile(filename, descrip = None):
       errString = "Reading"
       lines = textfile.readlines()
    except IOError:
-      exitError(fmtstr("{} {} {}: {}", errString, descrip, filename, \
-                       str(sys.exc_info()[1])))
+      errString = fmtstr("{} {} {}: {}", errString, descrip, filename, \
+                       str(sys.exc_info()[1]))
+      if returnOnErr:
+         try:
+            textfile.close()
+         except:
+            pass
+         return errString
+      exitError(errString)
+
    textfile.close()
    for i in range(len(lines)):
       lines[i] = lines[i].rstrip(' \t\r\n')
    return lines
 
 # Function to write a text file with lines that have no endings
-def writeTextFile(filename, strings):
+def writeTextFile(filename, strings, returnOnErr = False):
    """writeTextFile(filename, strings) - write set of strings to a text file
    Opens the file <filename> and writes the set of strings in the list
-   <strings>, adding a line ending to each.  Exits with exitError upon error.
+   <strings>, adding a line ending to each.  Exits with exitError upon error,
+   or returns an error string if returnOnErr is True.
    """
    try:
       action = 'Opening'
@@ -541,25 +558,36 @@ def writeTextFile(filename, strings):
          prnstr(line, file=comf)
       comf.close()
    except IOError:
-      exitError(action + " file: " + filename + "  - " + str(sys.exc_info()[1]))
-
+      errString = action + " file: " + filename + "  - " + str(sys.exc_info()[1])
+      if returnOnErr:
+         try:
+            comf.close()
+         except:
+            pass
+         return errString
+      exitError(errString)
 
 
 # Function to find an option value from a list of strings
-def optionValue(linelist, option, type, ignorecase = False):
-   """optionValue(linelist, option, type[, nocase]) - get option value in strings
-
+def optionValue(linelist, option, type, ignorecase = False, numVal = 0):
+   """optionValue(linelist, option, type[, nocase] [, numVal]) - get option value
+   in strings
    Given a list of strings in <linelist>, searches for one(s) that contain the
    text in <option> and that are not commented out.  The search is
    case-insensitive if optional argument <nocase> is supplied and is not False
    or None.  The return value depends on the value of <type>:
-   0 : a string with white space stripped and a comment removed from the end
-   1 : an array of integers
-   2 : an array of floats
-   3 : a boolean value, True or false
-   It returns None if the option is not found or if its value is empty or
-   contains inappropriate characters; in the latter case it issues a WARNING:.
-   If the option occurs more than once, the latest value applies.
+   0 = STRING_VALUE: a string with white space stripped and a comment removed from the end
+   1 = INT_VALUE: an array of integers, or one integer if numVal = 1
+   2 = FLOAT_VALUE: an array of floats, or one float if numVal = 1
+   3 = BOOL_VALUE: a boolean value, True or false
+   It returns all values found if numVal = 0, otherwise it returns just the indicated
+   number of values.  Values may be separated by commas or whitespace (commas will be
+   converted to spaces before splitting).
+   It returns None if the option is not found or if its value is empty, has fewer than
+   numVal values, or contains inappropriate characters; in the latter case it issues a
+   WARNING:.
+   If the option occurs more than once, the latest value applies unless there is a an
+   error return from the first occurrence.
    """
    flags = 0
    if ignorecase:
@@ -588,9 +616,15 @@ def optionValue(linelist, option, type, ignorecase = False):
             retval = valstr
          else:
             retval = []
-            splits = valstr.split()
+            splits = valstr.replace(',', ' ').split()
             try:
-               for val in splits:
+               numConv = len(splits)
+               if numVal:
+                  if numConv < numVal:
+                     return None
+                  numConv = numVal
+               for ind in range(numConv):
+                  val = splits[ind]
                   if type == 1:
                      retval.append(int(val))
                   else:
@@ -598,6 +632,10 @@ def optionValue(linelist, option, type, ignorecase = False):
             except Exception:
                prnstr("WARNING: optionValue - Bad character in numeric " + \
                      "entry in: " + line)
+               return None
+
+            if numVal == 1:
+               retval = retval[0]
                
    return retval
 
