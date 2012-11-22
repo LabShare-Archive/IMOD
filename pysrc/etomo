@@ -147,7 +147,7 @@ help = 0
 foreground = 0
 if '-h' in sys.argv or '--help' in sys.argv:
    help = 1
-if '--fg' in sys.argv:
+if '--fg' in sys.argv or '--directives' in sys.argv:
    foreground = 1
 
 # Build the common java command
@@ -262,6 +262,10 @@ else:
    except Exception:
       prnstr('An error occurred opening the standard output or error output log file')
       sys.exit(1)
-   runcmd(javacom, None, outfile, errfile)
+   try:
+      runcmd(javacom, None, outfile, errfile)
+   except ImodpyError:
+      prnstr('ERROR: etomo exited with an error status, check: ' + errlog)
+      sys.exit(1)
 
 sys.exit(0)
