@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
     printf("    -c val     Compress data; val can be lzw, zip, jpeg, or "
            "numbers defined\n\t\t in libtiff\n");
     printf("    -q #       Quality for jpeg compression (0-100) or for zip "
-           "compression (1-9)");
+           "compression (1-9)\n");
     printf("    -S min,max Initial scaling limits for conversion to bytes\n");
     printf("    -C b,w     Contrast black/white values for conversion to "
            "bytes\n");
