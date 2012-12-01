@@ -56,7 +56,7 @@ class MyApp : public QApplication
     void setPS(double *rAvg){mRAverage=rAvg;}
     double* getPS(){return mRAverage;}
     //recompute mRAverage for the central strips after calling setSlice();
-    int computeInitPS();  
+    void computeInitPS();  
     int autoFitToRanges(float minAngle, float maxAngle, float rangeSize, 
                         float rangeStep, int numIter);
     void setNoiseForMean(double mean);
