@@ -323,7 +323,7 @@ void MyApp::setSlice(const char *stackFile, char *angleFile)
 /*
  * Computes PS from central tiles only
  */
-int  MyApp::computeInitPS()
+void MyApp::computeInitPS()
 {
   float stripPixelNum=0.0;
   int halfSize=mTileSize/2;
@@ -395,45 +395,40 @@ int  MyApp::computeInitPS()
     printf("computeInitPS() includes %d tiles\n", counter);
   mTotalTileIncluded=counter;
 
-  if(counter){
-    int *freqCounter = mCache.getFreqCount();
+  if (!counter)
+    exitError("No tile is included, counter=0");
 
-    for (i = 0; i < mDim; i++) {
-      mRAverage[i]=0.0;
-      mFreqTileCounter[i] = 0;
-    }
+  int *freqCounter = mCache.getFreqCount();
 
-    mStackMean=localMean/counter; //stack is Not noise, set mStackMean;
+  for (i = 0; i < mDim; i++) {
+    mRAverage[i]=0.0;
+    mFreqTileCounter[i] = 0;
+  }
+
+  mStackMean=localMean/counter; //stack is Not noise, set mStackMean;
+  if (mNumNoiseFiles) 
+    setNoiseForMean(mStackMean);
+
+  // Add the PS sum in to the bins of the average, and add the count of
+  // pixels times the tile count into the counter
+  // Also make it the divided PS.  RAverage used to be kept as undivided, 
+  // then needed to be divided in moreTiles and undivided at end
+  for (i = 0; i < psSize - mHyperRes / 2; i++) {
+    ii = (i + mHyperRes / 2) / mHyperRes;
     if (mNumNoiseFiles) 
-      setNoiseForMean(mStackMean);
+      mRAverage[ii] += psSum[i] / mNoisePS[ii];
+    else
+      mRAverage[ii] += psSum[i];
+    mFreqTileCounter[ii] += freqCounter[i] * counter;
+  }
 
-    // Add the PS sum in to the bins of the average, and add the count of
-    // pixels times the tile count into the counter
-    // Also make it the divided PS.  RAverage used to be kept as undivided, 
-    // then needed to be divided in moreTiles and undivided at end
-    for (i = 0; i < psSize - mHyperRes / 2; i++) {
-      ii = (i + mHyperRes / 2) / mHyperRes;
-      if (mNumNoiseFiles) 
-        mRAverage[ii] += psSum[i] / mNoisePS[ii];
-      else
-        mRAverage[ii] += psSum[i];
-      mFreqTileCounter[ii] += freqCounter[i] * counter;
-    }
-
-    //return the PS
-    for (i = 0; i < mDim; i++) {
-      if (mFreqTileCounter[i])
-        mRAverage[i]=mRAverage[i]/mFreqTileCounter[i];
-      //printf("%d %d %f  %f\n", i, mFreqTileCounter[i], mRAverage[i], mRAverage[i]*mFreqTileCounter[i]);
-    }
-    free(psSum);
-    return -1;
-  }else{//need to compute mean;
-    exitError("Error: no tile is included, counter=0");
-    // DNM removed alternate code here
-  }// else
+  //return the PS
+  for (i = 0; i < mDim; i++) {
+    if (mFreqTileCounter[i])
+      mRAverage[i]=mRAverage[i]/mFreqTileCounter[i];
+    //printf("%d %d %f  %f\n", i, mFreqTileCounter[i], mRAverage[i], mRAverage[i]*mFreqTileCounter[i]);
+  }
   free(psSum);
-  return 0;
 }
 
 /*
