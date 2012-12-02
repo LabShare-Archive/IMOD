@@ -10,6 +10,15 @@ manpage = Command file for running Beadtrack(1).  This entry is required as the
 command file is used both for tracking points found by Imodfindbeads and to
 obtain several parameters.
 
+[Field = AppendToSeedModel]
+short = append
+type = B
+usage = Read in existing output seed model and add points to it
+tooltip =
+manpage = Read in existing output seed model and add points to it.  All points
+will be retained in this model and additional points will be sought to reach
+the target number.
+
 [Field = MinGuessNumBeads]
 short = guess
 type = I
@@ -17,7 +26,10 @@ usage = A guess for the minimum number of beads per section
 tooltip = 
 manpage = A guess for the minimum number of beads per section.  This entry may
 sometimes be required to help Imodfindbeads find a dip in the histogram,
-especially if there are very few beads.
+especially if there are very few beads.  The default is one-fourth of the
+target number of beads if -number is entered; if -density is entered, the
+default is one-eight or one-fourth of the density times the area, depending on 
+whether a boundary model is entered or not.
 
 [Field = MinSpacing]
 short = spacing

@@ -224,11 +224,10 @@ def runFindBeads():
                fmtstr('BeadSize {}', beadSize),
                fmtstr('MinSpacing {}', spacing),
                fmtstr('LinearInterpolation {}', linear),
-               fmtstr('StorageThreshold {}', -peakFraction)]
+               fmtstr('StorageThreshold {}', -peakFraction),
+               fmtstr('MinGuessNumBeads {}', guess)]
    if lightBeads:
       comlines.append('LightBeads 1')
-   if ifGuess:
-      comlines.append(fmtstr('MinGuessNumBeads {}', guess))
    if usingSobel and kernelArr:
       comlines.append(fmtstr('KernelSigma {}', ksigma))
    if boundModel:
@@ -329,6 +328,8 @@ minDoTilt = 40.
 moreViewCrit5 = 1.    # Not all points are usable
 moreViewCrit7 = 0.5   # This is unlikely to help more so make the threshold low
 leavetmp = 0
+targetToGuessFrac = 0.25
+guessBoundFrac = 0.5
 
 # Extensions for files that are always cleaned up, files that are left for resuming
 # and files that are left for user edification only.  Make all extensions unique
@@ -396,6 +397,7 @@ if clean != 0 and oldValid and pidInfo:
 guess = PipGetInteger('MinGuessNumBeads', 0)
 ifGuess = 1 - PipGetErrNo()
 twoSurf = PipGetBoolean('TwoSurfaces', 0)
+appendToSeed = PipGetBoolean('AppendToSeedModel', 0)
 spacing = PipGetFloat('MinSpacing', spacing)
 peakFraction = PipGetFloat('PeakStorageFraction', 1.0)
 targetNumber = PipGetInteger('TargetNumberOfBeads', 0)
@@ -470,6 +472,15 @@ except ImodpyError:
 # Get the border sizes
 xborder = setBorderSize((nx + ny) // 2, xborder)
 yborder = setBorderSize((nx + ny) // 2, yborder)
+
+# Get the target number roughly, if density entered, and set a default guess
+if targetDensity > 0.:
+   targetNumber = targetDensity * nx * ny * 1.e-6
+   if not ifGuess:
+      guess = round(targetNumber * targetToGuessFrac)
+      if boundMod:
+         guess = round(targetNumber * targetToGuessFrac * guessBoundFrac)
+      guess = max(1, guess)
 
 # Get the bead size and imageBinned value if no -size entered and produce the value
 # needed for findbeads
@@ -855,6 +866,8 @@ for ind in range(numSeedViews):
    
 if twoSurf:
    pickcom.append('TwoSurfaces')
+if appendToSeed:
+   pickcom.append('AppendToSeedModel')
 if boundModel:
    pickcom.append('BoundaryModel ' + boundModel)
    if excludeAreas:
