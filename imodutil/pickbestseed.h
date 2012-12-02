@@ -71,7 +71,7 @@ class PickSeeds
   int domainIndex(float x, float y);
   void computeAreaFracs(float H);
   void getTrackDeviation(int co1, int mod1, int co2, int mod2, float &meanDev,
-                         float &fracClose);
+                         float &fracClose, Icont *baseCont = NULL);
   void computeDensities(int topBot, float H);
   void reviseDensities(int acceptNew, float H);
   void outputDensities(int topBot);
@@ -99,6 +99,7 @@ class PickSeeds
   int *mAcceptList;
   int *mRankIndex;
   int mPhase;
+  int mAppendToSeed;
   float mBeadSize;
   float mDelXgrid, mDelYgrid;
   int mExcludeAreas;

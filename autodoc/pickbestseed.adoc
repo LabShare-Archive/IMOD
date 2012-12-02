@@ -32,6 +32,16 @@ usage = Name of final output model file
 tooltip =
 manpage = 
 
+[Field = AppendToSeedModel]
+short = append
+type = B
+usage = Read in existing output seed model and add points to it
+tooltip =
+manpage = Read in existing output seed model and add points to it.  All points
+will be retained from this model.  Candidate points that match these points
+will be accepted before phase 1, then the regular sequence of phases will be
+followed to reach the target number.
+
 [Field = BeadSize]
 short = size
 type = F

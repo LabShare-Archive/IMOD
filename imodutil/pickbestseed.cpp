@@ -44,6 +44,7 @@ PickSeeds::PickSeeds()
 {
   mNumAreaCont = 0;
   mAreaMod = NULL;
+  mAppendToSeed = 0;
   mPhase = 1;
   mExcludeAreas = 0;
   mVerbose = 0;
@@ -113,15 +114,17 @@ void PickSeeds::main(int argc, char *argv[])
   int len, co, surfNumber, numDomains, maxGridPerDom, ix, iy, jx, jy, ind, maxTrackLen;
   float targetDensity, totalArea, targetSpacing, surfDensity, surfSpacing,kernelH;
   float gridSpacing, xx, yy, dzmin, dz, fracClose, meanDev, compSum, resSum;
-  int imin, ncum, idom, neigh, neighCo, neighMod, coMod, ndev, botSum, topSum;
+  int imin, ncum, idom, neigh, neighCo, neighMod, coMod, ndev, botSum, topSum, ob;
   int useDens2, majorNumber, numPhase, phase, overlapThresh, topBot, surf;
   float resid, sdMean, sdMed, sdSD, termDens, bestResForPos;
   float clusterThresh, majorDensity, majorSpacing, majorKernelH, valmin, valmax;
   float eloMean, eloMed;
-  int numModels, numClust, numOver, numIgnore;
+  int numModels, numClust, numOver, numIgnore, numBaseCand;
+  bool lookMore;
   int *trackList;
   float *edgeSDs, *edgeTmp, *elongs, *elongTmp;
   Imod *imod;
+  Imod *baseMod;
   Iobj *obj;
   Icont *cont;
   Candidate candid;
@@ -179,6 +182,7 @@ void PickSeeds::main(int argc, char *argv[])
 
   PipGetBoolean("TwoSurfaces", &twoSurf);
   PipGetBoolean("PhaseOutput", &phaseAsSurf);
+  PipGetBoolean("AppendToSeedModel", &mAppendToSeed);
   PipGetInteger("VerboseOutput", &mVerbose);
   PipGetString("DensityOutputRootname", &mDensPlotName);
   PipGetFloat("RotationAngle", &rotation);
@@ -228,6 +232,13 @@ void PickSeeds::main(int argc, char *argv[])
   mAreaYmin = yBorder;
   mAreaYmax = nyImage - yBorder;
   totalArea = (nxImage - 2 * xBorder) * (nyImage - 2 * yBorder);
+
+  // Read base model to append to
+  if (mAppendToSeed) {
+    baseMod = imodRead(outName);
+    if (!baseMod)
+      exitError("Reading existing seed model %s", outName);
+  }
 
   // Read area model if any and get the area
   if (!PipGetString("BoundaryModel", &filename)) {
@@ -665,12 +676,50 @@ void PickSeeds::main(int argc, char *argv[])
 
   rsSortIndexedFloats(edgeTmp, mRankIndex, mNumCandidates);
 
+  for (ind = 0; ind < 3; ind++)
+    mNumAccepted[ind] = 0;
+
+  // If appending, go through each existing point and find it in candidate list and
+  // accept the candidate
+  if (mAppendToSeed) {
+    for (ob = 0; ob < baseMod->objsize; ob++) {
+      for (co = 0; co < baseMod->obj[ob].contsize; co++) {
+        cont = &baseMod->obj[ob].cont[co];
+        if (!cont->psize)
+          continue;
+        i = cont->psize / 2;
+        ind = domainIndex(cont->pts[i].x, cont->pts[i].y);
+        if (ind < 0)
+          continue;
+        lookMore = true;
+        for (neigh = 0; neigh < mDomains[ind].numNeighbors && lookMore; neigh++) {
+          idom = mDomains[ind].neighbors[neigh];
+          for (i = 0; i < mDomains[idom].numCandidates && lookMore; i++) {
+            neighCo = mCandidList[mDomains[idom].candStartInd + i];
+            candp = &mCandidates[neighCo];
+            if (candp->accepted)
+              continue;
+            for (j = 0; j < numModels && lookMore; j++) {
+              if (candp->contours[j] >= 0) {
+                getTrackDeviation(candp->contours[j], j, 0, 0, meanDev, fracClose, cont);
+                if (fracClose > 0.) {
+                  lookMore = false;
+                  acceptCandidate(neighCo, candp->topBot);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    mPhase++;
+  }
+
   // Phase 1:
   // For each surface, go through points in order by ranking and and accept them
   // if they are on that surface, not in cluster, and not too close to existing point
-  mNumAccepted[2] = 0;
+  numBaseCand = mNumAccepted[2];
   for (topBot = 0; topBot <= twoSurf; topBot++) {
-    mNumAccepted[topBot] = 0;
     addBestSpacedPoints(topBot, surfNumber, mNumCandidates, initAddSpacingFac * 
                         surfSpacing);
     addBestSpacedPoints(topBot, surfNumber, mNumCandidates / 2, halfAddSpacingFac * 
@@ -767,28 +816,55 @@ void PickSeeds::main(int argc, char *argv[])
  
   outputNumAccepted(twoSurf, 1);
 
-  // Compose the model: clear out object of one model
-  imod = mTrackMods[numModels / 2];
-  obj = &imod->obj[0];
-  imodContoursDelete(obj->cont, obj->contsize);
-  obj->cont = imodContoursNew(mNumAccepted[2]);
-  if (!obj->cont)
-    exitError("Allocating new array of contours");
-  obj->contsize = mNumAccepted[2];
-  if (obj->store)
-    ilistDelete(obj->store);
-  obj->store = NULL;
-  
-  // Add candidates as contours, with scores
-  co = 0;
-  store.type = GEN_STORE_VALUE1;
-  store.flags = GEN_STORE_FLOAT << 2;
+  // Compose the model
   valmin = 1.e20;
   valmax = -valmin;
+  if (mAppendToSeed) {
+    imod = baseMod;
+    obj = &imod->obj[0];
+    co = obj->contsize;
+    if (mNumAccepted[2] > numBaseCand) {
+      ind = co + mNumAccepted[2] - numBaseCand;
+      cont = imodContoursNew(ind);
+      if (!cont)
+        exitError("Allocating new array of contours");
+      for (i = 0; i < co; i++)
+        imodContourCopy(&obj->cont[i], &cont[i]);
+      obj->cont = cont;
+      obj->contsize = ind;
+    }
+    if (istoreGetMinMax(obj->store, obj->contsize, GEN_STORE_MINMAX1, &xx, &yy)) {
+      valmin = xx;
+      valmax = yy;
+    }
+
+  } else {
+
+    // clear out object of one model if not appending
+    imod = mTrackMods[numModels / 2];
+    obj = &imod->obj[0];
+    imodContoursDelete(obj->cont, obj->contsize);
+    obj->cont = imodContoursNew(mNumAccepted[2]);
+    if (!obj->cont)
+      exitError("Allocating new array of contours");
+    obj->contsize = mNumAccepted[2];
+    if (obj->store)
+      ilistDelete(obj->store);
+    obj->store = NULL;
+    co = 0;
+  }
+  
+  // Add candidates as contours, with scores
+  store.type = GEN_STORE_VALUE1;
+  store.flags = GEN_STORE_FLOAT << 2;
   for (idom = 0; idom < numDomains; idom++) {
     for (i = 0; i < mDomains[idom].numAccepted; i++) {
       ind = mAcceptList[mDomains[idom].candStartInd + i];
       candp = &mCandidates[ind];
+
+      // Skip ones that were accepted because they matched ones in base model
+      if (mAppendToSeed && candp->accepted == 1)
+        continue;
       if (!imodPointAppend(&obj->cont[co], &candp->pos))
         exitError("Adding point to new model");
 
@@ -801,7 +877,7 @@ void PickSeeds::main(int argc, char *argv[])
       valmin = B3DMIN(valmin, store.value.f);
       valmax = B3DMAX(valmax, store.value.f);
       if (phaseAsSurf)
-        obj->cont[co].surf = (twoSurf+1) * (candp->accepted - 1) + 
+        obj->cont[co].surf = (twoSurf+1) * (candp->accepted - 1 - mAppendToSeed) + 
           twoSurf * candp->topBot;
       else if (twoSurf)
         obj->cont[co].surf = candp->topBot;
@@ -816,16 +892,21 @@ void PickSeeds::main(int argc, char *argv[])
   if (phaseAsSurf)
     ncum = (twoSurf + 1) * mPhase + twoSurf - 1;
   obj->surfsize = ncum;
-  store.type = GEN_STORE_COLOR;
-  store.flags = (GEN_STORE_BYTE << 2) | GEN_STORE_SURFACE;
-  for (i = 0; i < ncum; i++) {
-    store.index.i = i + 1;
-    ind = i % MAX_COLORS;
-    for (j = 0; j < 4; j++)
-      store.value.b[j] = rgba[ind][j];
-    if (istoreInsert(&obj->store, &store))
-      exitError("Could not add general storage item");
+  if (!mAppendToSeed) {
+    store.type = GEN_STORE_COLOR;
+    store.flags = (GEN_STORE_BYTE << 2) | GEN_STORE_SURFACE;
+    for (i = 0; i < ncum; i++) {
+      store.index.i = i + 1;
+      ind = i % MAX_COLORS;
+      for (j = 0; j < 4; j++)
+        store.value.b[j] = rgba[ind][j];
+      if (istoreInsert(&obj->store, &store))
+        exitError("Could not add general storage item");
+    }
   }
+
+  // Turn off low flag set originally by imodfindbeads and high one just in case
+  obj->matflags2 &= ~(MATFLAGS2_SKIP_LOW | MATFLAGS2_SKIP_HIGH);
 
   if (imodBackupFile(outName))
     printf("WARNING: pickbestseed - Could not rename existing output file to %s~",
@@ -1072,14 +1153,16 @@ int PickSeeds::domainIndex(float x, float y)
  * between them and the fraction of points that are close
  */
 void PickSeeds::getTrackDeviation(int co1, int mod1, int co2, int mod2, float &meanDev,
-                              float &fracClose)
+                                  float &fracClose, Icont *baseCont)
 {
   Icont *cont1 = &mTrackMods[mod1]->obj[0].cont[co1];
-  Icont *cont2 = &mTrackMods[mod2]->obj[0].cont[co2];
+  Icont *cont2 = baseCont;
   float dx, dy, dev;
   int pt1 = 0, pt2 = 0;
   int nsum = 0, nclose = 0;
   float devsum = 0.;
+  if (!cont2)
+    cont2 = &mTrackMods[mod2]->obj[0].cont[co2];
   while (pt1 < cont1->psize && pt2 < cont2->psize) {
     if (B3DNINT(cont1->pts[pt1].z) < B3DNINT(cont2->pts[pt2].z)) {
       pt1++;
@@ -1327,7 +1410,7 @@ void PickSeeds::outputNumAccepted(int twoSurf, int final)
   if (final)
     printf("Final:   ");
   else
-    printf("Phase %d: ", mPhase);
+    printf("Phase %d: ", mPhase - mAppendToSeed);
   printf("total points accepted = %d", mNumAccepted[2]);
   if (twoSurf)
     printf("   -   on bottom = %d , on top = %d\n", mNumAccepted[0], mNumAccepted[1]);
