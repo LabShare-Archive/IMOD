@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */                                                                           
 
 #include <stdlib.h>
@@ -561,32 +560,3 @@ static void convertSpecialCodes(QString &str, char *progname, int debug)
   if (debug)
     puts(LATIN1(str));
 }
-
-/*
-
-$Log$
-Revision 1.8  2008/08/23 00:11:49  mast
-Changed order of tags to put anchor inside header for pdf links to work
-
-Revision 1.7  2006/07/07 19:09:11  mast
-Added ability to import code blocks
-
-Revision 1.6  2005/05/27 23:20:39  mast
-Fixed if there is white space between function name and (
-
-Revision 1.5  2005/03/21 19:21:39  mast
-Removed calls to libimod functions - it needs to run from build environment
-
-Revision 1.4  2005/03/20 19:57:33  mast
-Added ability to have multiple sections of one name; added END_SECTION
-
-Revision 1.3  2005/03/08 16:09:54  mast
-Replaced & with html code
-
-Revision 1.2  2005/02/25 03:18:27  mast
-Added standard includes, changed fortran to fort77 to make intel happy
-
-Revision 1.1  2005/02/25 02:46:52  mast
-Addition to package
-
-*/
