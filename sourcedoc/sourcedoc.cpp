@@ -532,7 +532,7 @@ static void convertSpecialCodes(QString &str, char *progname, int debug)
     } else {
       while (ind1 < (int)str.length() && str.at(ind1) == ' ')
         ind1++;
-      ind2 = str.indexOf(QRegExp("[ ,.;]"), ind1);
+      ind2 = str.indexOf(QRegExp("[ ,.;()]"), ind1);
       if (ind2 < ind1)
         ind2 = str.length();
       ind3 = ind2;
