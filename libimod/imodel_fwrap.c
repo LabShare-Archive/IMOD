@@ -94,6 +94,7 @@
 #define imodarraylimits IMODARRAYLIMITS
 #define imodhasimageref IMODHASIMAGEREF
 #define clearimodobjstore CLEARIMODOBJSTORE
+#define deleteimodcont DELETEIMODCONT
 #else
 #define newimod      newimod_
 #define deleteimod   deleteimod_
@@ -150,6 +151,7 @@
 #define imodarraylimits imodarraylimits_
 #define imodhasimageref imodhasimageref_
 #define clearimodobjstore clearimodobjstore_
+#define deleteimodcont deleteimodcont_
 #endif
 
 /* Declare anything that is going to be called internally! */
@@ -1015,6 +1017,25 @@ int clearimodobjstore(int *ob)
   return FWRAP_NOERROR;
 }
 
+/*!
+ * Deletes contour [co] in object [ob] using @imodel.html#imodDeleteContour, which will
+ * adjust contour numbers in an object store, if any.
+ */
+int deleteimodcont(int *ob, int *co)
+{
+  if (!Fimod)
+    return(FWRAP_ERROR_NO_MODEL);
+  if (*ob < 1 || *ob > Fimod->objsize)
+    return(FWRAP_ERROR_BAD_OBJNUM);
+  if (*co < 1 || *co > Fimod->obj[*ob - 1].contsize)
+    return(FWRAP_ERROR_BAD_OBJNUM);
+  imodSetIndex(Fimod, *ob - 1, *co - 1, -1);
+  if (imodDeleteContour(Fimod, *co - 1) < 0)
+    return(FWRAP_ERROR_BAD_OBJNUM);
+  return FWRAP_NOERROR;
+}
+
+
 #define OBJ_EMPTY    -2
 #define OBJ_HAS_DATA -1
 
@@ -1031,8 +1052,9 @@ static float Wmod_Colors[9][3]  =   { {0.90, 0.82, 0.37},  /* Dim Yellow  */
 
 /*!
  * Puts model contours from arrays back into IMOD model structure.  If partial
- * mode is off, all existing contours in all objects are deleted.  If partial
- * mode is on, existing contours will be deleted only from objects included 
+ * mode is off, all existing contour data in all objects are deleted, and replaced by
+ * the points in the contours being stored.  If partial
+ * mode is on, existing contour data will be deleted only from objects included 
  * in these data (as specified by the [color] values); other objects will be 
  * retained.
  * ^  [ibase]   = starting index of contours in [cindex] array, numbered from 0
