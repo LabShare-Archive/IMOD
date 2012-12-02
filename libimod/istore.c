@@ -491,8 +491,8 @@ int istoreConnectNumber(Ilist *list, int index)
 
 /*!
  * Adds an item containing the given [min] and [max], of the given [type]
- * (e.g., GEN_STORE_MINMAX1) to the storage list pointed to by [list].
- * Returns 1 for error.
+ * (e.g., GEN_STORE_MINMAX1) to the storage list pointed to by [list], or updates the
+ * values in such an item if it already exists. Returns 1 for error.
  */
 int istoreAddMinMax(Ilist **list, int type, float min, float max)
 {
@@ -522,8 +522,8 @@ int istoreAddMinMax(Ilist **list, int type, float min, float max)
 
 /*!
  * Computes the min and max values for all GEN_STORE_VALUE1 items in object
- * [obj] and its contours, and adds a GEN_STORE_MINMAX1 item with these values
- * for the object.
+ * [obj] and its contours, and adds or updates a GEN_STORE_MINMAX1 item with these 
+ * values for the object.
  */
 int istoreFindAddMinMax1(Iobj *obj)
 {
@@ -553,9 +553,9 @@ int istoreFindAddMinMax1(Iobj *obj)
 /*!
  * Looks for a min/max value in the given [list] for values of a given [type]
  * (e.g., GEN_STORE_MINMAX1).  The size of the entity containing this storage 
- * list is provided in [size].  Values are returned in [min] and [max] values 
- * if they are found and the return value is 1; otherwise the function returns
- * 0.
+ * list should be provided in [size], although this entry is currently unused (e.g., 
+ * {contsize} for an object store).  If a min/max entry is found, values are returned 
+ * in [min] and [max] and the return value is 1; otherwise the function returns 0.
  */
 int istoreGetMinMax(Ilist *list, int size, int type, float *min, float *max)
 {
