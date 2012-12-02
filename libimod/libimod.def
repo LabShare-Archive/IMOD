@@ -228,6 +228,7 @@ EXPORTS
 	imeshParamsDup
 	imodMatTrans
 	objGroupDelete
+	DELETEIMODCONT
 	imeshParamsDelete
 	imodGetByte
 	imodContourFindPoint
