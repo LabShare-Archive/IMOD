@@ -1,0 +1,136 @@
+.na
+.nh
+.TH makecomfile 1 4.6.18 BL3DEMC
+.SH NAME
+makecomfile \- Create single command file for optional step in tomogram generation
+.SH SYNOPSIS
+makecomfile [options] output_file
+
+.SH DESCRIPTION
+Makecomfile is used to make a single command file for an optional step in
+tomogram generation.  Such files are created by eTomo(1) and batchruntomo(1)
+upon need rather than when the data set is set up with Copytomocoms(1). The
+type of command file is determined by the output filename.  For each type of
+file, the program modifies file names as appropriate and inserts standard
+option entries as described below.  These standard entries can be modified and
+additional entries added using directives entered with the 
+.B -change
+and
+.B -one
+options.
+.P
+There are two kinds of options: ones that are used by several different
+command files (although with slightly different meaning in some cases), and
+ones that apply only to a particular command file.
+.SS Output File Types
+.TP
+.B xcorr_pt
+File to run Tiltxcorr(1) with patch tracking; requires 
+.B -root,
+.B -input
+with "xcorr[ab].com", and
+.B -binning
+with the binning of the prealigned stack.  Inserts PrealignmentTransformFile
+and ImagesAreBinned entries and sets output to "setname.fid".
+.TP
+.B autofidseed
+File to run Autofidseed(1); inserts TrackCommandFile, MinSpacing of 0.85, and
+PeakStorageFraction of 1.0.
+.TP
+.B transferfid
+File to run Transferfid(1); requires 
+.B -root.
+Inserts the CorrespondingCoordFile entry.
+.TP
+.B newst_3dfind
+File to run Newstack(1) to make an aligned stack for 3D gold finding with a
+different binning from the regular aligned stack; requires 
+.B -root,
+.B -input
+with "newst[ab].com", and
+.B -binning
+with the binning to apply.  Sets output to
+"setname_3dfind.ali".
+.TP
+.B blend_3dfind
+File to run Blendmont(1) to make an aligned stack for 3D gold finding with a
+different binning from the regular aligned stack; requires 
+.B -root,
+.B -input
+with "blend[ab].com", and
+.B -binning
+with the binning to apply.  Also sets OldEdgeFunctions to 1; sets output to
+"setname_3dfind.ali".
+.TP
+.B tilt_3dfind
+File to run Tilt(1) to make a tomogram from 3D gold finding; requires 
+.B -root,
+.B -input
+with "tilt[ab].com", and
+.B -binning
+with the binning of the aligned stack to be used.  Also requires 
+.B -thickness
+and can accept 
+.B -shift
+to specify a shift in Y and 
+.B -use
+to specify whether to use "setname_3dfind.ali" as the aligned stack.  Sets
+output to "setname_3dfind.rec".
+.B 
+.TP
+.B findbeads3d
+File to run Findbeads3d(1); requires 
+.B -root
+and
+.B -binning
+with the binning of the aligned stack that was used to build the tomogram.
+Also requires 
+.B -bead.
+Sets MinRelativeStrength to 0.05, MinSpacing to 0.9, StorageThreshold to 0,
+input to "setname_3dfind.rec" and output to "setname_3dfind.mod".
+.TP
+.B tilt_3dfind_reproject
+File to run Tilt(1) to reproject the model from Findbeads3d(1); requires 
+.B -root
+and
+.B -input
+with "tilt_3dfind[ab].com".  Adds ProjectModel entry with "setname_3dfind.mod"
+and sets output to "setname_erase.fid".
+.TP
+.B golderaser
+File to run Ccderaser(1) to erase gold beads from the aligned stack using
+"setname_erase.fid"; requires 
+.B -root
+and
+.B -bead,
+which is used to set BetterRadius.  Sets the output to "setname_erase.ali",
+and sets MergePatches to 1, ExcludeAdjacent to 1, CircleObjects to /, and
+PolynomialOrder to 0.
+
+.TP
+.B sirtsetup
+File to run Sirtsetup(1); sets StartFromZero and set RadiusAndSigma to 0.4,0.05.
+
+.SS Options
+Makecomfile uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
+or one per line in a command file (without the -).  Options can be abbreviated
+to unique letters; the currently valid abbreviations for short names are shown
+in parentheses.
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH FILES
+All files are modified from an input file or made from scratch.
+An existing copy of the output file will be made into a backup file by adding
+the extension ~.
+
+.SH AUTHOR
+David Mastronarde
+.SH BUGS
+Email bug reports to mast@colorado.edu
+.SH SEE ALSO
+copytomocoms(1)
+.SH HISTORY

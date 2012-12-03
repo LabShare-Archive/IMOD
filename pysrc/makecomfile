@@ -1,0 +1,234 @@
+#!/usr/bin/env python
+# makecomfile - makes single com files on the fly for optional steps
+#
+# Author: David Mastronarde
+#
+# $Id$
+#
+
+progname = 'makecomfile'
+prefix = 'ERROR: ' + progname + ' - '
+
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal 
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except Exception:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+from pysed import *
+from comchanger import *
+
+# Fallbacks from ../manpages/autodoc2man 3 1 makecomfile
+options = ["input:InputFile:FN:", "output:OutputFile:FN:",
+           "root:RootNameOfDataFiles:CH:", "single:SingleAxis:B:",
+           "binning:BinningOfImages:I:", "bead:BeadSize:F:", "use:Use3dfindAliInput:B:",
+           "thickness:ThicknessToMake:I:", "shift:ShiftInY:F:",
+           "change:ChangeParametersFile:FNM:", "one:OneParameterChange:CHM:"]
+
+# Table of com files and whether they need rootname binning, and input file
+# indexes to these elements.  Note tilt_3dfind_reproject must stay before tilt_3dfind
+needRoot = 1
+needBin = 2
+needInfile = 3
+typeTable = [['xcorr_pt', True, True, True],
+             ['autofidseed', False, False, False],
+             ['transferfid', True, False, False],
+             ['newst_3dfind', True, True, True],
+             ['blend_3dfind', True, True, True],
+             ['tilt_3dfind_reproject', True, False, True],
+             ['tilt_3dfind', True, True, True],
+             ['findbeads3d', True, True, False],
+             ['golderaser', True, False, False],
+             ['sirtsetup', False, False, False]]
+
+(opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 0, 1)
+
+outfile = PipGetInOutFile('OutputFile', 0)
+if not outfile:
+   exitError('Output com file must be entered')
+
+# Look up type from output name
+for ind in range(len(typeTable)):
+   if outfile.startswith(typeTable[ind][0]):
+      comType = ind
+      break
+else:
+   exitError(outfile + ' is not a recognized type of output com file')
+
+if typeTable[comType][needInfile]:
+   infile = PipGetInOutFile('InputFile', 0)
+   if not infile:
+      exitError('Input com file must be entered for this type of com file')
+   comlines = readTextFile(infile)
+
+# Set up axis letter and base output name without axis
+axislet = ''
+(baseout, ext) = os.path.splitext(outfile)
+single = PipGetString('SingleAxis', 0)
+if not single:
+   for let in ('a', 'b'):
+      if baseout.endswith(let):
+         axislet = let
+
+if axislet != '':
+   baseout = baseout[0 : len(baseout) - 1]
+
+if typeTable[comType][needRoot]:
+   rootname = PipGetString('RootNameOfDataFiles', '')
+   if not rootname:
+      exitError('Root name of dataset files must be entered')
+if typeTable[comType][needBin]:
+   binning = PipGetInteger('BinningOfImages', 0)
+   if binning <= 0:
+      exitError('Binning of images must be entered')
+
+# Get the change list
+sedcom = []
+baseChanges = []
+changeList = processChangeOptions('ChangeParametersFile', 'OneParameterChange',
+                                  'comparam')
+
+typeName = typeTable[comType][0]
+
+# XCORR_PT
+if typeName == 'xcorr_pt':
+
+   for ind in range(len(comlines)):
+      if re.search('^\$ *tiltxcorr', comlines[ind]):
+         comlines = comlines[ind:]
+         break
+   else:
+      exitError("Cannot find tiltxcorr command line in file")
+      
+   try:
+      (nx, ny, nz) = getmrcsize(rootname + '.preali')
+   except ImodpyError:
+      exitFromImodError(progname)
+
+   xborder = int(0.05 * nx + 0.5)
+   yborder = int(0.05 * ny + 0.5)
+   sedcom = [fmtstr('/^OutputFile/s/{0}.prexf/{0}.fid/', rootname),
+             fmtstr('/^InputFile/s/{0}.st/{0}.preali/', rootname),
+             '/^OutputFile/a/PrealignmentTransformFile	' + rootname + '.prexg/',
+             '/^OutputFile/a/ImagesAreBinned	' + str(binning) + '/']
+
+   prefix = [baseout + axislet, 'tiltxcorr']
+   baseChanges = [prefix + ['BordersInXandY', fmtstr('{},{}', xborder, yborder)],
+                  prefix + ['OverlapOfPatchesXandY', '0.33,0.33'],
+                  prefix + ['IterateCorrelations', '1']]
+
+# AUTOFIDSEED
+elif typeName == 'autofidseed':
+   comlines = ['# Command file for running autofidseed created by makeonecom',
+               '$autofidseed -StandardInput',
+               'TrackCommandFile	track' + axislet + '.com',
+               'MinSpacing	0.85',
+               'PeakStorageFraction	1.0']
+
+# TRANSFERFID
+elif typeName == 'transferfid':
+   comlines = ['# Command file for running transferfid created by makeonecom',
+               '$transferfid -StandardInput',
+               'Setname	' + rootname,
+               'CorrespondingCoordFile	transferfid.coord']
+
+# NEWST_3DFIND/BLEND_3DFIND
+elif typeName == 'newst_3dfind' or typeName == 'blend_3dfind':
+   sedcom = [fmtstr('/{0}.ali/s//{0}_3dfind.ali/', rootname)]
+   if typeName == 'newst_3dfind':
+      prefix = [baseout + axislet, 'newstack']
+   else:   
+      prefix = [baseout + axislet, 'blendmont']
+   baseChanges = [prefix + ['BinByFactor', str(binning)]]
+   if typeName == 'blend_3dfind':
+      baseChanges.append(prefix + ['OldEdgeFunctions', '1'])
+
+# TILT_3DFIND
+elif typeName == 'tilt_3dfind':
+   thickness = PipGetInteger('ThicknessToMake', 0)
+   if not thickness:
+      exitError('Thickness must be entered')
+   yshift = PipGetFloat('ShiftInY', 0.)
+   use3d = PipGetBoolean('Use3dfindAliInput', 0)
+   sedcom = ['/^OutputFile/s/[ 	].*/	' + rootname + '_3dfind.rec/']
+   if use3d:
+      sedcom.append('/^InputProjections/s/[ 	].*/	' + rootname + '_3dfind.ali/')
+   prefix = [baseout + axislet, 'tilt']
+   baseChanges = [prefix + ['IMAGEBINNED', str(binning)],
+                  prefix + ['THICKNESS', str(thickness)]]
+   if yshift:
+      baseChanges.append(prefix + ['SHIFT', fmtstr('0. {:.2f}', yshift)])
+
+# FINDBEADS3D
+elif typeName == 'findbeads3d':
+   beadSize = PipGetFloat('BeadSize', 0.)
+   if beadSize <= 0:
+      exitError('BeadSize must be entered')
+   comlines = ['# Command file for running findbeads3d created by makeonecom',
+               '$findbeads3d -StandardInput',
+               'InputFile	' + rootname + '_3dfind.rec',
+               'OutputFile	' + rootname + '_3dfind.mod',
+               'MinRelativeStrength	0.05',
+               'MinSpacing	0.9',
+               'StorageThreshold	0',
+               'BinningOfVolume	' + str(binning),
+               'BeadSize	' + fmtstr('{:.2f}', beadSize)]
+
+# GOLDERASER
+elif typeName == 'golderaser':
+   beadSize = PipGetFloat('BeadSize', 0.)
+   if beadSize <= 0:
+      exitError('BeadSize must be entered')
+   comlines = ['# Command file for running ccderaser created by makeonecom',
+               '$ccderaser -StandardInput',
+               'InputFile	' + rootname + '.ali',
+               'OutputFile	' + rootname + '_erase.ali',
+               'ModelFile	' + rootname + '_erase.fid',
+               'MergePatches	1',
+               'ExcludeAdjacent	1',
+               'CircleObjects	/',
+               'PolynomialOrder	0',
+               'BetterRadius	' + fmtstr('{:.2f}', beadSize / 2.)]
+
+# TILT_3DFIND_REPROJECT
+elif typeName == 'tilt_3dfind_reproject':
+   sedcom = [fmtstr('/^OutputFile/s/{0}_3dfind.rec/{0}_erase.fid/', rootname),
+             '/^OutputFile/a/ProjectModel	' + rootname + '_3dfind.mod/']
+
+# SIRTSETUP
+elif typeName == 'sirtsetup':
+   comlines = ['# Command file for running sirtsetup created by makeonecom',
+               '$sirtsetup -StandardInput',
+               'CommandFile	tilt' + axislet + '.com',
+               'RadiusAndSigma	0.4,0.05',
+               'StartFromZero']
+
+# Do common tasks and finish
+if sedcom:
+   sedlines = pysed(sedcom, comlines, None)
+else:
+   sedlines = comlines
+if baseChanges or changeList:
+   sedlines = modifyForChangeList(sedlines, baseout, axislet, baseChanges + changeList)
+makeBackupFile(outfile)
+writeTextFile(outfile, sedlines)
+sys.exit(0)
