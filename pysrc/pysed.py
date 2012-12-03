@@ -74,7 +74,7 @@ except at the end, and + anywhere in the string, for compatibility with sed.
    global caretMatch, dollarMatch, pysedReturnError
    pysedReturnError = retErr
 
-   # Set error prefix and try to open input and output files
+   # Set error prefix and try to open input file
    try:
       prefix = "ERROR: " + progname + " -"
    except:
@@ -90,14 +90,6 @@ except at the end, and + anywhere in the string, for compatibility with sed.
    else:
       srclines = src
    
-
-   if (dstfile) :
-      try:
-         sedout = open(dstfile, 'w')
-      except IOError:
-         return psReportErr(fmtstr("{} Opening {}: {}", prefix, dstfile,
-                                   sys.exc_info()[1]))
-
    if isinstance(sedregsIn, str):
       sedregs = (sedregsIn, )
    else:
@@ -228,10 +220,29 @@ except at the end, and + anywhere in the string, for compatibility with sed.
 
    if dstfile :
       try:
+         sedout = open(dstfile, 'w')
+      except IOError:
+         return psReportErr(fmtstr("{} Opening {}: {}", prefix, dstfile,
+                                   sys.exc_info()[1]))
+      try:
          for line in outlines:
             prnstr(line, file=sedout)
-      except:
+      except IOError:
          return psReportErr(fmtstr("{} Writing to output file", prefix))
       sedout.close()
       return None
+   
    return outlines
+
+
+# Two convenience routines that work if "option" is required to be at the beginning
+# of a line and result in more readable code than direct conversion of sed commands
+
+# Make two sed commands for removing an existing line and adding one with new value
+def sedDelAndAdd(option, value, afterLine):
+   return ['/^' + option + '/d', fmtstr('/^{}/a/{}	{}/', afterLine, option, value)]
+
+# Return a sed command (a string) for modifying the value for an option
+def sedModify(option, value):
+   return fmtstr('/^{}/s/[ 	].*/	{}/', option, value)
+   
