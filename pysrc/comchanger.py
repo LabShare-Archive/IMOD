@@ -9,48 +9,53 @@
 import re
 from imodpy import *
 from pysed import *
+from pip import *
 
-def modifyForChangeList(sedlines, srcRoot, setlet, changeList, returnOnErr = False):
+# Modify a set of command lines for relevant changes in a potentially large changeList
+# comlines are the lines, comRoot is the root of the com file name exclusive of axis
+# axisLet is a, b, or empty.
+def modifyForChangeList(comlines, comRoot, axisLet, changeList, returnOnErr = False):
+
    # Analyze the lines for command blocks
    procStarts = []
    procMatch = re.compile('^ *\$ *(\w+).*$')
-   for ind in range(len(sedlines)):
-      line = sedlines[ind]
+   for ind in range(len(comlines)):
+      line = comlines[ind]
       if re.search(procMatch, line):
          process = re.sub(procMatch, r'\1', line)
          procStarts.append((ind, process))
    numProcs = len(procStarts)
-   procStarts.append((len(sedlines), ''))
+   procStarts.append((len(comlines), ''))
 
    # Start output with any lines up to the first command
    outlines = []
    if procStarts[0][0]:
-      outlines += sedlines[0:procStarts[0][0]]
+      outlines += comlines[0:procStarts[0][0]]
 
    # Loop on the processes, for each one, run through the change lines and compile the
    # list of relevant changes
    for ind in range(numProcs):
-      proclines = sedlines[procStarts[ind][0]: procStarts[ind + 1][0]]
+      proclines = comlines[procStarts[ind][0]: procStarts[ind + 1][0]]
       process = procStarts[ind][1]
       if process == 'if':
          outlines += proclines
          continue
       
-      srcAxis = srcRoot + setlet
+      comAxis = comRoot + axisLet
       procChanges = []
       for change in changeList:
-         if (change[0] == srcAxis or change[0] == srcRoot) and change[1] == process:
+         if (change[0] == comAxis or change[0] == comRoot) and change[1] == process:
             for ichan in range(len(procChanges)):
                if procChanges[ichan][2] == change[2]:
 
                   # If single axis, ignore a change that is B-specific
-                  if setlet == '' and change[0] == srcRoot + 'b':
+                  if axisLet == '' and change[0] == comRoot + 'b':
                      break
                   
                   # Otherwise, replace with a later entry unless previous one was
                   # axis-specific while this one is generic
-                  if setlet == '' or not \
-                         (procChanges[ichan][0] == srcAxis and change[0] == srcRoot):
+                  if axisLet == '' or not \
+                         (procChanges[ichan][0] == comAxis and change[0] == comRoot):
                      procChanges[ichan] = change
                   break
             else:
@@ -60,7 +65,7 @@ def modifyForChangeList(sedlines, srcRoot, setlet, changeList, returnOnErr = Fal
 
 
       # build a sed command
-      sedcom2 = []
+      sedcom = []
       if procChanges:
          for change in procChanges:
 
@@ -69,19 +74,19 @@ def modifyForChangeList(sedlines, srcRoot, setlet, changeList, returnOnErr = Fal
             if change[3] != '':
                for line in proclines:
                   if line.startswith(change[2]):
-                     sedcom2.append(fmtstr('/^{}/s/[ 	].*/	{}/', change[2],
+                     sedcom.append(fmtstr('/^{}/s/[ 	].*/	{}/', change[2],
                                            change[3]))
                      break
                else:
-                  sedcom2.append(fmtstr('/ *$ *{}/a/{}	{}/', process, change[2],
+                  sedcom.append(fmtstr('/^ *$ *{}/a/{}	{}/', process, change[2],
                                         change[3]))
 
             else:
 
                # Or delete the line if there is no value
-               sedcom2.append('/^' + change[2] + '/d')
+               sedcom.append('/^' + change[2] + '/d')
 
-         tmplines = pysed(sedcom2, proclines, retErr = returnOnErr)
+         tmplines = pysed(sedcom, proclines, retErr = returnOnErr)
          if isinstance(tmplines, str):
             return tmplines
          outlines += tmplines
@@ -92,6 +97,9 @@ def modifyForChangeList(sedlines, srcRoot, setlet, changeList, returnOnErr = Fal
    return outlines
 
 
+# Add one change to the list with the given prefix and number of components
+# Store a change as a list of all components but the first and the value, which
+# can be blank unless valNeed is true
 def changeToAddToList(changeList, line, changeFile, prefix, numComponents, \
                          valNeeded = False):
    lsplit = line.split('=')
@@ -113,3 +121,24 @@ def changeToAddToList(changeList, line, changeFile, prefix, numComponents, \
       changeList.append(change)
 
 
+# Process changes from two kinds of options, specified by fileOption for a file,
+# and oneChangeOpt for an entry of one change, and look for changes starting with prefix
+def processChangeOptions(fileOption, oneChangeOpt, prefix, numComponents = 4,
+                         valNeeded = False):
+   changeList = []
+   if fileOption:
+      numChangers = PipNumberOfEntries(fileOption)
+      for chan in range(numChangers):
+         changeFile = PipGetString(fileOption, '')
+         changeLines = readTextFile(changeFile)
+         for line in changeLines:
+            changeToAddToList(changeList, line, changeFile, prefix, numComponents,
+                              valNeeded)
+
+   if oneChangeOpt:
+      numChangers = PipNumberOfEntries(oneChangeOpt)
+      for chan in range(numChangers):
+         line = PipGetString(oneChangeOpt, '')
+         changeToAddToList(changeList, line, '', prefix, numComponents, valNeeded)
+
+   return changeList
