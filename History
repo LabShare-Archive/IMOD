@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/2/12: Added script Makecomfile to make optional com files for tomogram
+generation.
+
+12/2/12: Made Autofidseed able to append to an existing seed model, modified
+Repackseed to retain surface numbers and values in Transferfid.
+
 11/17/12: Added option to Tiltalign and align.com so that Z shifts will be
 relative to the original centering produced by coarse alignment.
 
