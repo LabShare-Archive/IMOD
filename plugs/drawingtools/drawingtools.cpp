@@ -4650,9 +4650,10 @@ void DrawingTools::deleteRangeContours()
           continue;
       }
       
+      // DNM 12/4/12 changed && to ||
       if( criteriaPoints )
       {
-        if( psize(cont) > pointsMax && psize(cont) < pointsMin )
+        if( psize(cont) > pointsMax || psize(cont) < pointsMin )
           continue;
       }
       
