@@ -395,7 +395,7 @@ void MyApp::computeInitPS()
     printf("computeInitPS() includes %d tiles\n", counter);
   mTotalTileIncluded = counter;
 
-  if (counter) {
+  if (counter)
     exitError("No tile is included, counter=0");
 
   int *freqCounter = mCache.getFreqCount();
