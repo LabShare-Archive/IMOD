@@ -4,9 +4,9 @@
 *  Authors: Quanren Xiong and David Mastronarde
 *
 *  Copyright (C) 2008 by Boulder Laboratory for 3-Dimensional Electron
-*  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+*  Microscopy of Cells ("BL3DEMC") and the Regents of the University of
 *  Colorado.  See dist/COPYRIGHT for full copyright notice.
-* 
+*
 *  $Id$
 */
 
@@ -38,42 +38,42 @@
 #define MY_PI 3.1415926
 #define MIN_ANGLE 1.0e-6  //tilt Angle less than this is treated as 0.0;
 
-int MyApp::mDim=0;
-int MyApp::mTileSize=0;
+int MyApp::mDim = 0;
+int MyApp::mTileSize = 0;
 
-MyApp::MyApp(int &argc, char *argv[], int volt, double pSize, 
-             double ampRatio, float cs, char *defFn, int dim, int hyper, 
+MyApp::MyApp(int &argc, char *argv[], int volt, double pSize,
+             double ampRatio, float cs, char *defFn, int dim, int hyper,
              double focusTol, int tSize, double tAxisAngle, double lAngle,
-             double hAngle, double expDefocus, double leftTol, 
+             double hAngle, double expDefocus, double leftTol,
              double rightTol, int maxCacheSize, int invertAngles)
-  :QApplication(argc, argv), 
-   defocusFinder(volt, pSize, ampRatio, cs, dim, expDefocus), 
-   mCache(maxCacheSize)
+  : QApplication(argc, argv),
+    defocusFinder(volt, pSize, ampRatio, cs, dim, expDefocus),
+    mCache(maxCacheSize)
 {
   mSaveModified = false;
   mSaveAndExit = false;
-  mDim=dim;
+  mDim = dim;
   mHyperRes = hyper;
-  mDefocusTol=focusTol;
-  mTileSize=tSize;
-  mTiltAxisAngle=tAxisAngle;
-  mPixelSize=pSize;
-  mVoltage=volt;
-  mLowAngle=lAngle;
-  mHighAngle=hAngle;
-  mX1MethodIndex=1; //0:Linear, 1:Simplex;
-  mX2MethodIndex=1; //0:Linear, 1:Simplex;
-  mZeroFitMethod = 0;  // 2 intersection, 0 CTF, 1 polynomial
+  mDefocusTol = focusTol;
+  mTileSize = tSize;
+  mTiltAxisAngle = tAxisAngle;
+  mPixelSize = pSize;
+  mVoltage = volt;
+  mLowAngle = lAngle;
+  mHighAngle = hAngle;
+  mX1MethodIndex = 1; //0:Linear, 1:Simplex;
+  mX2MethodIndex = 1; //0:Linear, 1:Simplex;
+  mZeroFitMethod = 0; // 0 CTF, 1 polynomial, 2 intersection
   mVaryCtfPowerInFit = false;
   mPolynomialOrder = 4;
-  mDefocusOption=0; //use expected defocus;
-  mInitialTileOption=0; //only use central tiles initially;
-  mLeftDefTol=leftTol;
-  mRightDefTol=rightTol;
+  mDefocusOption = 0;     //use expected defocus;
+  mInitialTileOption = 0; //only use central tiles initially;
+  mLeftDefTol = leftTol;
+  mRightDefTol = rightTol;
   mBackedUp = false;
-  mFnDefocus=defFn;
-  mTileIncluded=NULL;
-  mStackMean=-1000.0;
+  mFnDefocus = defFn;
+  mTileIncluded = NULL;
+  mStackMean = -1000.0;
   mFreqTileCounter = (int *)malloc(mDim * sizeof(int));
   mNumNoiseFiles = 0;
   mNoisePS = (double *)malloc(mDim * sizeof(double));
@@ -81,7 +81,7 @@ MyApp::MyApp(int &argc, char *argv[], int volt, double pSize,
   mSortedAngles = NULL;
   mAngleSign = invertAngles ? -1. : 1.;
 
-  // read in existing defocus data 
+  // read in existing defocus data
   mSaved = readDefocusFile(mFnDefocus);
 }
 
@@ -108,24 +108,25 @@ void MyApp::saveAllPs()
   sprintf(fnSubtracted, "%s.final", mFnDefocus);
   sprintf(fnDim, "%s.dim", mFnDefocus);
 
-  FILE *fpInit=fopen(fnInitPs,"w");
-  FILE *fpFloor=fopen(fnBackPs, "w");
-  FILE *fpFinal=fopen(fnSubtracted, "w");
-  FILE *fpDim=fopen(fnDim, "w");
+  FILE *fpInit = fopen(fnInitPs, "w");
+  FILE *fpFloor = fopen(fnBackPs, "w");
+  FILE *fpFinal = fopen(fnSubtracted, "w");
+  FILE *fpDim = fopen(fnDim, "w");
 
   int ii;
-  double *ps=(double*)malloc(mDim*sizeof(double) );
+  double *ps = (double *)malloc(mDim * sizeof(double));
   setNoiseForMean(mStackMean);
-  PlotSettings settings=mPlotter->mZoomStack[mPlotter->mCurZoom];
+  PlotSettings settings = mPlotter->mZoomStack[mPlotter->mCurZoom];
 
-  for(ii=0;ii<mDim;ii++){
-      if( settings.minX>ii/100.0 || settings.maxX< ii/100.0) continue;
-      fprintf(fpDim, "%7.4f\n", ii/100.0);
-      fprintf(fpFinal, "%7.4f\n", log(mRAverage[ii]) ) ;
-      fprintf(fpFloor, "%7.4f\n", log(mNoisePS[ii]) );
-      ps[ii]=mRAverage[ii] * mNoisePS[ii];
-      fprintf(fpInit, "%7.4f\n", log(ps[ii]) );
-    }
+  for (ii = 0; ii < mDim; ii++) {
+    if (settings.minX > ii / 100.0 || settings.maxX < ii / 100.0)
+      continue;
+    fprintf(fpDim, "%7.4f\n", ii / 100.0);
+    fprintf(fpFinal, "%7.4f\n", log(mRAverage[ii])) ;
+    fprintf(fpFloor, "%7.4f\n", log(mNoisePS[ii]));
+    ps[ii] = mRAverage[ii] * mNoisePS[ii];
+    fprintf(fpInit, "%7.4f\n", log(ps[ii]));
+  }
 
   fclose(fpInit);
   fclose(fpFloor);
@@ -134,28 +135,28 @@ void MyApp::saveAllPs()
   free(ps);
 }
 
-//plot and fit the PS stored in 'mRAverage', find the defocus and update display;
+//plot and fit the PS stored in mRAverage, find the defocus and update display
 void MyApp::plotFitPS(bool flagSetInitSetting)
 {
-  double *ps=(double*)malloc(mDim*sizeof(double) );
+  double *ps = (double *)malloc(mDim * sizeof(double));
   QVector<QPointF> data;
   int ii;
 
   // Dividing by the Noise PS happened earlier
-    
-  PlotSettings plotSetting=PlotSettings();
-  double initialMaxY=-100;
-  for (ii = 0; ii < mDim; ii++) { 
+
+  PlotSettings plotSetting = PlotSettings();
+  double initialMaxY = -100;
+  for (ii = 0; ii < mDim; ii++) {
     ps[ii] = log(mRAverage[ii]);
-    data.append( QPointF(ii/(float)(mDim-1), ps[ii]) );
-    if(ps[ii] > initialMaxY)
-      initialMaxY=ps[ii];
+    data.append(QPointF(ii / (float)(mDim - 1), ps[ii]));
+    if (ps[ii] > initialMaxY)
+      initialMaxY = ps[ii];
   }
-  initialMaxY=ceil(initialMaxY);
-  plotSetting.maxY=initialMaxY;
+  initialMaxY = ceil(initialMaxY);
+  plotSetting.maxY = initialMaxY;
 
   //adjust initial plot setting to data if needed;
-  if(flagSetInitSetting) 
+  if (flagSetInitSetting)
     mPlotter->setPlotSettings(plotSetting);
   mPlotter->setCurveData(0, data);
 
@@ -171,16 +172,16 @@ void MyApp::plotFitPS(bool flagSetInitSetting)
 void MyApp::fitPsFindZero()
 {
   QVector<QPointF> data, data1;
-  double *resLeftFit=(double*)malloc(mDim*sizeof(double));
-  double *resRightFit=(double *)malloc(mDim*sizeof(double));
-  double inc=1.0/(mDim-1);
+  double *resLeftFit = (double *)malloc(mDim * sizeof(double));
+  double *resRightFit = (double *)malloc(mDim * sizeof(double));
+  double inc = 1.0 / (mDim - 1);
   double zero, defocus, err;
 
-  double model[7]={0,1.0,2.0,3.0,4.0,5.0,6.0};
+  double model[7] = {0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
   int ii, order, error, error2 = 0;
 
   switch (mZeroFitMethod) {
-  case 0:
+  case 0:   // CTF like curve
     simplexEngine->setRange(mX1Idx1, mX2Idx2);
     order = mVaryCtfPowerInFit ? 5 : 4;
     // To experiment with restricted fitting when there is one slice
@@ -196,10 +197,10 @@ void MyApp::fitPsFindZero()
     mPlotter->clearCurve(2);
     break;
 
-  case 1:
+  case 1:   // Polynomial fit
     order = B3DMIN(mPolynomialOrder, mX2Idx2 - mX1Idx1);
     if ((error = linearEngine->computeFitting(resLeftFit, model, order + 1,
-                                              mX1Idx1, mX2Idx2, zero)))
+					      mX1Idx1, mX2Idx2, zero)))
       printf("linearEngine error\n");
     else {
       defocusFinder.setZero(zero);
@@ -207,65 +208,65 @@ void MyApp::fitPsFindZero()
     }
     mPlotter->clearCurve(2);
     break;
-
-  case 2:
+    
+  case 2:   // Intersection of two curves
     switch (mX1MethodIndex) {
-    case 0:
-      if ((error = linearEngine->computeFitting(resLeftFit, model, 2, mX1Idx1, 
-                                                mX1Idx2, zero)))
-        printf("linearEngine error\n");
+    case 0: // Linear
+      if ((error = linearEngine->computeFitting(resLeftFit, model, 2, mX1Idx1,
+						mX1Idx2, zero)))
+	printf("linearEngine error\n");
       break;
-    case 1:
+    case 1: // Gaussian
       simplexEngine->setRange(mX1Idx1, mX1Idx2);
       if ((error = simplexEngine->fitGaussian(resLeftFit, err, 0)))
-        printf("simplexEngine error\n");
+	printf("simplexEngine error\n");
       break;
     default:
       error = 1;
-      printf("unknown fitting method chosen\n"); 
+      printf("unknown fitting method chosen\n");
     }
 
     switch (mX2MethodIndex) {
-    case 0:
-      if ((error2 = linearEngine->computeFitting(resRightFit, model, 2, 
-                                                 mX2Idx1, mX2Idx2, zero)))
-        printf("linearEngine error\n");
+    case 0:  // Linear
+      if ((error2 = linearEngine->computeFitting(resRightFit, model, 2,
+						 mX2Idx1, mX2Idx2, zero)))
+	printf("linearEngine error\n");
       break;
-    case 1:
+    case 1: // Gaussian
       simplexEngine->setRange(mX2Idx1, mX2Idx2);
       if ((error2 = simplexEngine->fitGaussian(resRightFit, err, 1)))
-        printf("simplexEngine error\n");
+	printf("simplexEngine error\n");
       break;
     default:
       error2 = 1;
-      printf("unknown fitting method chosen\n"); 
+      printf("unknown fitting method chosen\n");
     }
     if (!error2) {
       for (ii = 0; ii < mDim; ii++)
-        data1.append(QPointF(ii * inc, resRightFit[ii]));
+	data1.append(QPointF(ii * inc, resRightFit[ii]));
       mPlotter->setCurveData(2, data1);
     }
     break;
-
+    
   default:
     break;
   }
-   
+
   if (!error) {
     for (ii = 0; ii < mDim; ii++)
       data.append(QPointF(ii * inc, resLeftFit[ii]));
     mPlotter->setCurveData(1, data);
   }
-  
-  
+
+
   // calculate defocus and update display;
   if (!(error + error2) && mZeroFitMethod == 2) {
-    error = defocusFinder.findZero(resLeftFit, resRightFit, mX1Idx1, 
-                                   (mX2Idx1+mX2Idx2)/2, &zero);
+    error = defocusFinder.findZero(resLeftFit, resRightFit, mX1Idx1,
+                                   (mX2Idx1 + mX2Idx2) / 2, &zero);
     if (!error)
       defocusFinder.findDefocus(&defocus);
   }
-  if (error + error2) 
+  if (error + error2)
     defocusFinder.setDefocus(-2000.0);
   mPlotter->manageLabels(zero, defocus, 0., 0., error);
   defocusFinder.setAvgDefocus(-1.);
@@ -289,7 +290,7 @@ void MyApp::setSlice(const char *stackFile, char *angleFile)
   mMinAngle = 10000.;
   mMaxAngle = -10000.;
   if (angleFile) {
-    mTiltAngles = readTiltAngles(angleFile, mNzz, mAngleSign, mMinAngle, 
+    mTiltAngles = readTiltAngles(angleFile, mNzz, mAngleSign, mMinAngle,
                                  mMaxAngle);
     B3DFREE(mSortedAngles);
     mSortedAngles = B3DMALLOC(float, mNzz);
@@ -298,26 +299,26 @@ void MyApp::setSlice(const char *stackFile, char *angleFile)
     memcpy(mSortedAngles, mTiltAngles, mNzz * sizeof(float));
     rsSortFloats(mSortedAngles, mNzz);
     mAutoFromAngle = mSortedAngles[0];
-    mAutoToAngle = mSortedAngles[mNzz-1];
+    mAutoToAngle = mSortedAngles[mNzz - 1];
 
     // Now that we finally know z size, we can check the starting and ending
     // slices and fix them if they are off by 1 or otherwise inconsistent
-    if (ilistSize(mSaved) && 
+    if (ilistSize(mSaved) &&
         checkAndFixDefocusList(mSaved, mTiltAngles, mNzz)) {
       QMessageBox::warning
-        (0, "Warning: Inconsistent view numbers", 
-         "The view numbers in the existing defocus file were not all\n"
-         "consistent with the angular ranges.  You should find the defocus\n"
-         "again in all of the ranges and save the new data.");
+      (0, "Warning: Inconsistent view numbers",
+       "The view numbers in the existing defocus file were not all\n"
+       "consistent with the angular ranges.  You should find the defocus\n"
+       "again in all of the ranges and save the new data.");
       qApp->processEvents();
-    }                               
+    }
   }
 
-  mCache.whatIsNeeded(mLowAngle, mHighAngle, mStartingSlice, mEndingSlice); 
+  mCache.whatIsNeeded(mLowAngle, mHighAngle, mStartingSlice, mEndingSlice);
 
-  if(mTileIncluded)
+  if (mTileIncluded)
     free(mTileIncluded);
-  mTileIncluded=(int *)malloc(mNzz*sizeof(int));
+  mTileIncluded = (int *)malloc(mNzz * sizeof(int));
 }
 
 /*
@@ -325,56 +326,55 @@ void MyApp::setSlice(const char *stackFile, char *angleFile)
  */
 int  MyApp::computeInitPS()
 {
-  float stripPixelNum=0.0;
-  int halfSize=mTileSize/2;
+  float stripWidthPixels = 0.0;
+  int halfSize = mTileSize / 2;
   int psSize = mDim * mHyperRes;
-  double *psSum = (double*)malloc(psSize *sizeof(double));
+  double *psSum = (double *)malloc(psSize * sizeof(double));
   int counter;
   double localMean, tmpMean;
-  int i,j,k,ii;
-  double diagonal=sqrt((double)(mNxx * mNxx + mNyy * mNyy) );
-  double axisXAngle, centerX, centerY, r, alpha,d;
+  int i, j, k, ii;
+  double diagonal = sqrt((double)(mNxx * mNxx + mNyy * mNyy));
+  double axisXAngle, centerX, centerY, r, alpha, d;
 
   //tilt axis angle with X coordinate, [0, 2*pi];
-  axisXAngle=90+mTiltAxisAngle; 
-  axisXAngle=axisXAngle*MY_PI/180.0;
+  axisXAngle = 90 + mTiltAxisAngle;
+  axisXAngle = axisXAngle * MY_PI / 180.0;
   //if(axisXAngle<0) axisXAngle=2.0*M_PI+axisXAngle;
 
-  counter=0;
-  localMean=0.0;
+  counter = 0;
+  localMean = 0.0;
   for (i = 0; i < psSize; i++)
     psSum[i] = 0.;
-  for (i = 0; i < mNzz; i++) 
+  for (i = 0; i < mNzz; i++)
     mTileIncluded[i] = 0;
 
-  std::vector<int> accessOrder=mCache.optimalAccessOrder();
+  std::vector<int> accessOrder = mCache.optimalAccessOrder();
   float *currPS;
   float currAngle;
   int whichSlice;
 
   mNumSlicesDone = accessOrder.size();
   for (k = 0; k < accessOrder.size(); k++) {
-    whichSlice=accessOrder[k];
-    currAngle=mCache.getAngle( whichSlice );
-    //'stripPixelNum' is the strip width in pixels
-    if(fabs(currAngle)>MIN_ANGLE) 
-      stripPixelNum=fabs( mDefocusTol/tan(currAngle) )/mPixelSize;
-    else 
-      stripPixelNum=diagonal;
-    if(stripPixelNum>diagonal) 
-      stripPixelNum=diagonal;
+    whichSlice = accessOrder[k];
+    currAngle = mCache.getAngle(whichSlice);
+    if (fabs(currAngle) > MIN_ANGLE)
+      stripWidthPixels = fabs(mDefocusTol / tan(currAngle)) / mPixelSize;
+    else
+      stripWidthPixels = diagonal;
+    if (stripWidthPixels > diagonal)
+      stripWidthPixels = diagonal;
 
-    for (i = 0; i < mNxx/halfSize-1; i++) {
-      for (j = 0; j < mNyy/halfSize-1; j++) {
-        centerX=i*halfSize+halfSize-mNxx/2;//center coordinate of the tile;
-        centerY=j*halfSize+halfSize-mNyy/2;
-        r=sqrt((double)(centerX*centerX+centerY*centerY));
-        alpha=atan2(centerY, centerX);
+    for (i = 0; i < mNxx / halfSize - 1; i++) {
+      for (j = 0; j < mNyy / halfSize - 1; j++) {
+        centerX = i * halfSize + halfSize - mNxx / 2; //center coordinate of the tile
+        centerY = j * halfSize + halfSize - mNyy / 2;
+        r = sqrt((double)(centerX * centerX + centerY * centerY));
+        alpha = atan2(centerY, centerX);
         //if(alpha<0) alpha=2.0*M_PI+alpha;//convert to [0,2*pi];
-        d=r*fabs(sin(alpha-axisXAngle));// distance to the tilt axis in pixels;
+        d = r * fabs(sin(alpha - axisXAngle)); // distance to the tilt axis in pixels
 
         //outside of the strip, continue;
-        if (d > stripPixelNum/2.0) 
+        if (d > stripWidthPixels / 2.0)
           continue;
 
         counter++;
@@ -386,34 +386,34 @@ int  MyApp::computeInitPS()
         localMean += tmpMean;
       }
     }
-    if( debugLevel>=1)
+    if (debugLevel >= 1)
       printf("Slice %d has %d central tiles included initially\n", whichSlice,
              mTileIncluded[whichSlice]);
   }//k loop;
 
-  if( debugLevel>=1)
+  if (debugLevel >= 1)
     printf("computeInitPS() includes %d tiles\n", counter);
-  mTotalTileIncluded=counter;
+  mTotalTileIncluded = counter;
 
-  if(counter){
+  if (counter) {
     int *freqCounter = mCache.getFreqCount();
 
     for (i = 0; i < mDim; i++) {
-      mRAverage[i]=0.0;
+      mRAverage[i] = 0.0;
       mFreqTileCounter[i] = 0;
     }
 
-    mStackMean=localMean/counter; //stack is Not noise, set mStackMean;
-    if (mNumNoiseFiles) 
+    mStackMean = localMean / counter; //stack is Not noise, set mStackMean;
+    if (mNumNoiseFiles)
       setNoiseForMean(mStackMean);
 
     // Add the PS sum in to the bins of the average, and add the count of
     // pixels times the tile count into the counter
-    // Also make it the divided PS.  RAverage used to be kept as undivided, 
+    // Also make it the divided PS.  RAverage used to be kept as undivided,
     // then needed to be divided in moreTiles and undivided at end
     for (i = 0; i < psSize - mHyperRes / 2; i++) {
       ii = (i + mHyperRes / 2) / mHyperRes;
-      if (mNumNoiseFiles) 
+      if (mNumNoiseFiles)
         mRAverage[ii] += psSum[i] / mNoisePS[ii];
       else
         mRAverage[ii] += psSum[i];
@@ -423,12 +423,13 @@ int  MyApp::computeInitPS()
     //return the PS
     for (i = 0; i < mDim; i++) {
       if (mFreqTileCounter[i])
-        mRAverage[i]=mRAverage[i]/mFreqTileCounter[i];
-      //printf("%d %d %f  %f\n", i, mFreqTileCounter[i], mRAverage[i], mRAverage[i]*mFreqTileCounter[i]);
+        mRAverage[i] = mRAverage[i] / mFreqTileCounter[i];
+      //printf("%d %d %f  %f\n", i, mFreqTileCounter[i], mRAverage[i], 
+      //       mRAverage[i]*mFreqTileCounter[i]);
     }
     free(psSum);
     return -1;
-  }else{//need to compute mean;
+  } else { //need to compute mean;
     exitError("Error: no tile is included, counter=0");
     // DNM removed alternate code here
   }// else
@@ -455,23 +456,23 @@ void MyApp::moreTileCenterIncluded()
 void MyApp::moreTile(bool hasIncludedCentralTiles)
 {
 
-  int halfSize=mTileSize/2;
+  int halfSize = mTileSize / 2;
   int leftCounter, rightCounter;
   int k, ii;
   int psSize = mDim * mHyperRes;
-  double *leftPsSum = (double*)malloc(psSize *sizeof(double));
-  double *rightPsSum = (double*)malloc(psSize *sizeof(double));
+  double *leftPsSum = (double *)malloc(psSize * sizeof(double));
+  double *rightPsSum = (double *)malloc(psSize * sizeof(double));
   double deltaZ; // in microns;
-  float freqInc=1.0/(mDim-1);
-  int *stripCounter=(int*)malloc(mDim*sizeof(int));;
-  double *stripAvg=(double*)malloc(mDim*sizeof(double));
+  float freqInc = 1.0 / (mDim - 1);
+  int *stripCounter = (int *)malloc(mDim * sizeof(int));;
+  double *stripAvg = (double *)malloc(mDim * sizeof(double));
   double leftMean, rightMean, tmpMean, effectiveDefocus;
 
-  int tileMax=floor((float)mNxx/(float)halfSize);
+  int tileMax = floor((float)mNxx / (float)halfSize);
   double axisXAngle; //tilt axis angle with X coordinate, [0, 2*pi];
-  double diagonal=sqrt((double)(mNxx * mNxx + mNyy * mNyy));
-  double stripPixelNum; 
-  double centerX, centerY, r, alpha,d, delf1, delf2;
+  double diagonal = sqrt((double)(mNxx * mNxx + mNyy * mNyy));
+  double stripWidthPixels;
+  double centerX, centerY, r, alpha, d, delf1, delf2;
   double centerZero1, centerZero2, shiftedZero1, shiftedZero2;
   double rightScale, rightAdd, leftScale, leftAdd;
   double rightDelFmin, rightDelFmax, leftDelFmin, leftDelFmax;
@@ -480,7 +481,7 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
   bool isOnLeft; // is the tile center on the left of the tilt axis;
   float *currPS;
 
-  if(mDefocusOption && defocusFinder.getDefocus()<0){
+  if (mDefocusOption && defocusFinder.getDefocus() < 0) {
     printf("Warning invalid defocus, computation halts\n");
     free(rightPsSum);
     free(leftPsSum);
@@ -491,22 +492,22 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
   //defocusFinder.setDefocus(defocusFinder.getExpDefocus());
 
   mPlotter->mTileButton->setEnabled(false);
- 
-  tileMax=(tileMax-1)*(tileMax-1);
-  
-  //tilt axis angle with X coordinate, [0, 2*pi];
-  axisXAngle=90+mTiltAxisAngle; 
-  axisXAngle=axisXAngle*MY_PI/180.0;
-  if(axisXAngle<0) 
-    axisXAngle=2.0*MY_PI+axisXAngle;
 
-  if(mDefocusOption)
-    effectiveDefocus=defocusFinder.getDefocus();
+  tileMax = (tileMax - 1) * (tileMax - 1);
+
+  //tilt axis angle with X coordinate, [0, 2*pi];
+  axisXAngle = 90 + mTiltAxisAngle;
+  axisXAngle = axisXAngle * MY_PI / 180.0;
+  if (axisXAngle < 0)
+    axisXAngle = 2.0 * MY_PI + axisXAngle;
+
+  if (mDefocusOption)
+    effectiveDefocus = defocusFinder.getDefocus();
   else
-    effectiveDefocus=defocusFinder.getExpDefocus();
+    effectiveDefocus = defocusFinder.getExpDefocus();
   defocusFinder.getTwoZeros(effectiveDefocus, centerZero1, centerZero2);
 
-  std::vector<int> accessOrder=mCache.optimalAccessOrder();
+  std::vector<int> accessOrder = mCache.optimalAccessOrder();
 
   float currAngle;
   int whichSlice;
@@ -515,26 +516,25 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
   int mItrNum;
   mNumSlicesDone = accessOrder.size();
   for (k = 0; k < accessOrder.size(); k++) {
-    whichSlice=accessOrder[k];
-    currAngle=mCache.getAngle(whichSlice);
-    mItrNum=0;
-    //'stripPixelNum' is the strip width in pixels
-    if(fabs(currAngle)>MIN_ANGLE) 
-      stripPixelNum=fabs( mDefocusTol/tan(currAngle) )/mPixelSize;
-    else 
-      stripPixelNum=diagonal;
-    if(stripPixelNum>diagonal)
-      stripPixelNum=diagonal;
-    
-    scanCounter=0;
-    while( scanCounter<tileMax ){
+    whichSlice = accessOrder[k];
+    currAngle = mCache.getAngle(whichSlice);
+    mItrNum = 0;
+    if (fabs(currAngle) > MIN_ANGLE)
+      stripWidthPixels = fabs(mDefocusTol / tan(currAngle)) / mPixelSize;
+    else
+      stripWidthPixels = diagonal;
+    if (stripWidthPixels > diagonal)
+      stripWidthPixels = diagonal;
+
+    scanCounter = 0;
+    while (scanCounter < tileMax) {
 
       // Get the delta Z for this strip, then the defocus and the first and
       // second zeros and scaling to center zeros on right and left sides
       // Make deltaZ signed
-      deltaZ=(mItrNum+0.5)*(stripPixelNum/2.0)*mPixelSize*
-        tan(currAngle)/1000.0; // in microns;
-      tmpMean=effectiveDefocus+deltaZ;
+      deltaZ = (mItrNum + 0.5) * (stripWidthPixels / 2.0) * mPixelSize *
+               tan(currAngle) / 1000.0; // in microns;
+      tmpMean = effectiveDefocus + deltaZ;
       defocusFinder.getTwoZeros(tmpMean, shiftedZero1, shiftedZero2);
       rightScale = (centerZero2 - centerZero1) / (shiftedZero2 - shiftedZero1);
       rightAdd = centerZero1 - shiftedZero1 * rightScale;
@@ -542,13 +542,13 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
       delf2 = centerZero2 - shiftedZero2;
       rightDelFmin = B3DMIN(delf1, delf2);
       rightDelFmax = B3DMAX(delf1, delf2);
-      if (debugLevel>=2)
+      if (debugLevel >= 2)
         printf("Right: Z1  %f -> %f   Z2  %f -> %f  scale %f  add %f  "
-               "delmin %f  delmax %f\n", 
-               centerZero1, shiftedZero1, centerZero2, shiftedZero2, 
+               "delmin %f  delmax %f\n",
+               centerZero1, shiftedZero1, centerZero2, shiftedZero2,
                rightScale, rightAdd, rightDelFmin, rightDelFmax);
 
-      tmpMean=effectiveDefocus-deltaZ;
+      tmpMean = effectiveDefocus - deltaZ;
       defocusFinder.getTwoZeros(tmpMean, shiftedZero1, shiftedZero2);
       leftScale = (centerZero2 - centerZero1) / (shiftedZero2 - shiftedZero1);
       leftAdd = centerZero1 - shiftedZero1 * leftScale;
@@ -556,47 +556,47 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
       delf2 = centerZero2 - shiftedZero2;
       leftDelFmin = B3DMIN(delf1, delf2);
       leftDelFmax = B3DMAX(delf1, delf2);
-      if( debugLevel>=2)
+      if (debugLevel >= 2)
         printf("Left: Z1  %f -> %f   Z2  %f -> %f  scale %f  add %f  "
-               "delmin %f  delmax %f\n", 
-               centerZero1, shiftedZero1, centerZero2, shiftedZero2, 
+               "delmin %f  delmax %f\n",
+               centerZero1, shiftedZero1, centerZero2, shiftedZero2,
                leftScale, leftAdd, leftDelFmin, leftDelFmax);
-                         
+
       // Zero out the PS sums on each side and the counters
       for (ii = 0; ii < psSize; ii++) {
         leftPsSum[ii] = 0.0;
         rightPsSum[ii] = 0.0;
       }
-      leftCounter=0;
-      rightCounter=0;
-      leftMean=0.0;
-      rightMean=0.0;
+      leftCounter = 0;
+      rightCounter = 0;
+      leftMean = 0.0;
+      rightMean = 0.0;
 
-      for (x = 0; x < mNxx/halfSize - 1; x++) {
-        for (y = 0; y < mNyy/halfSize - 1; y++) {
-          centerX=x*halfSize+halfSize-mNxx/2;//center coordinate of the tile;
-          centerY=y*halfSize+halfSize-mNyy/2;
-          r=sqrt((double)(centerX*centerX+centerY*centerY));
-          alpha=atan2(centerY, centerX);
-          if(alpha<0) 
-            alpha=2.0*MY_PI+alpha;//convert to [0,2*pi];
-          d=r*fabs(sin(alpha-axisXAngle));//distance to the tilt axis in pixels;
+      for (x = 0; x < mNxx / halfSize - 1; x++) {
+        for (y = 0; y < mNyy / halfSize - 1; y++) {
+          centerX = x * halfSize + halfSize - mNxx / 2; //center coordinate of the tile
+          centerY = y * halfSize + halfSize - mNyy / 2;
+          r = sqrt((double)(centerX * centerX + centerY * centerY));
+          alpha = atan2(centerY, centerX);
+          if (alpha < 0)
+            alpha = 2.0 * MY_PI + alpha; //convert to [0,2*pi];
+          d = r * fabs(sin(alpha - axisXAngle)); //distance to the tilt axis in pixels
 
           /*if(x==0 && y==0 && mItrNum==1){
             printf("d=%f leftLimit=%f rightLimit=%f \n",
-                d, mItrNum*stripPixelNum/2.0, (mItrNum+1)*stripPixelNum/2.0);
+                d, mItrNum*stripWidthPixels/2.0, (mItrNum+1)*stripWidthPixels/2.0);
           }*/
 
           //outside of the strip, continue;
-          if (d < mItrNum*stripPixelNum/2.0 || 
-              d > (mItrNum+1)*stripPixelNum/2.0) 
+          if (d < mItrNum * stripWidthPixels / 2.0 ||
+              d > (mItrNum + 1)*stripWidthPixels / 2.0)
             continue;
 
           //printf("mItrNum=%d tile x=%d y=%d is included  \n", mItrNum, x, y);
           scanCounter++;
 
           //skip central tiles since they already included
-          if (hasIncludedCentralTiles && d <= stripPixelNum/2.0)
+          if (hasIncludedCentralTiles && d <= stripWidthPixels / 2.0)
             continue;
 
           if (axisXAngle <= MY_PI)
@@ -604,9 +604,9 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
           else
             isOnLeft = alpha > axisXAngle || alpha < axisXAngle - MY_PI;
 
-          d=d*mPixelSize*fabs(tan(currAngle)); //defocus difference in nm;
+          d = d * mPixelSize * fabs(tan(currAngle)); //defocus difference in nm;
 
-          if( (isOnLeft && d>mLeftDefTol) || (!isOnLeft && d>mRightDefTol))
+          if ((isOnLeft && d > mLeftDefTol) || (!isOnLeft && d > mRightDefTol))
             continue;
 
           // Get the PS for this tile
@@ -627,42 +627,43 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
             for (ii = 0; ii < psSize; ii++)
               rightPsSum[ii] += currPS[ii];
           }
-        } 
+        }
       } //for x-y loop;
 
       // Add in left side
       scaleAndAddStrip(leftPsSum, stripAvg, stripCounter, leftCounter,
                        leftMean, leftScale, leftAdd,
                        freqInc, leftDelFmin, leftDelFmax);
-      
+
       //right side
       scaleAndAddStrip(rightPsSum, stripAvg, stripCounter, rightCounter,
                        rightMean, rightScale,
                        rightAdd, freqInc, rightDelFmin, rightDelFmax);
       mTileIncluded[whichSlice] += leftCounter + rightCounter;
-      if( debugLevel>=2 )
-         printf("scanCounter=%d leftCounter=%d rightCounter=%d mTileIncluded[%d]=%d\n",
-         scanCounter, leftCounter, rightCounter, whichSlice, mTileIncluded[whichSlice]);
+      if (debugLevel >= 2)
+        printf("scanCounter=%d leftCounter=%d rightCounter=%d mTileIncluded[%d]=%d\n",
+           scanCounter, leftCounter, rightCounter, whichSlice, mTileIncluded[whichSlice]);
       mItrNum++;
     }//while loop;
-    
-    if(debugLevel>=1)
-      printf("%d tiles of slice %d have been included\n",
-          mTileIncluded[whichSlice], whichSlice);
 
-    if( debugLevel>=2)
-       printf("***mItrNum=%d deltaZ=%f(microns) scanCounter=%d \
+    if (debugLevel >= 1)
+      printf("%d tiles of slice %d have been included\n",
+             mTileIncluded[whichSlice], whichSlice);
+
+    if (debugLevel >= 2)
+      printf("***mItrNum=%d deltaZ=%f(microns) scanCounter=%d \
          mTileIncluded[%d]=%d\n",
-         mItrNum, deltaZ, scanCounter, whichSlice,
-         mTileIncluded[whichSlice]);
+             mItrNum, deltaZ, scanCounter, whichSlice,
+             mTileIncluded[whichSlice]);
   }// the k-th slice
 
-  if( debugLevel>=2) 
+  if (debugLevel >= 2)
     printf("FFT time %.4f  Total time %.4f\n", procCum, wallTime() - allTime);
 
   /*  int csum = 0;
   for (ii = 0; ii < mDim; ii++) {
-    //printf("%d %d %f  %f\n", ii, mFreqTileCounter[ii], mRAverage[ii], mRAverage[ii]*mFreqTileCounter[ii]);
+    //printf("%d %d %f  %f\n", ii, mFreqTileCounter[ii], mRAverage[ii],
+    //       mRAverage[ii]*mFreqTileCounter[ii]);
       csum+=mFreqTileCounter[ii];
       }*/
   //printf("total %d\n", csum);
@@ -671,16 +672,16 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
   free(rightPsSum);
   free(stripCounter);
   free(stripAvg);
-}  
+}
 
 /*
  * Rotationally average the strip FFT sum with frequency scaling to match
  * zeros
  */
 void MyApp::scaleAndAddStrip
-    (double *psSum, double *stripAvg, int *stripCounter, int counter,
-     double mean, double xScale, double xAdd, float freqInc, double delFmin,
-     double delFmax)
+(double *psSum, double *stripAvg, int *stripCounter, int counter,
+ double mean, double xScale, double xAdd, float freqInc, double delFmin,
+ double delFmax)
 {
   int ii, jj, npsIndex, stripRIndex, stripLIndex, lnum;
   double freq, delfreq, freqst, freqnd, lfrac;
@@ -691,16 +692,16 @@ void MyApp::scaleAndAddStrip
     return;
 
   // Get the mean intensity and noise PS based on this mean
-  mean=mean/counter;
+  mean = mean / counter;
   setNoiseForMean(mean);
-  
+
   // Zero average arrays
   for (ii = 0; ii < mDim; ii++) {
     stripCounter[ii] = 0;
     stripAvg[ii] = 0.0;
   }
-  
-  // Loop over average PS, divide by the noise appropriate to the 
+
+  // Loop over average PS, divide by the noise appropriate to the
   // unshifted frequency, then scale/shift the frequency and add into the
   // average
   for (ii = 0; ii < mDim * mHyperRes - mHyperRes / 2; ii++) {
@@ -708,7 +709,7 @@ void MyApp::scaleAndAddStrip
     // Get index for dividing by noise
     npsIndex = (ii + mHyperRes / 2) / mHyperRes;
 
-    // Get starting and ending frequency of hyper bin and adjust them, get 
+    // Get starting and ending frequency of hyper bin and adjust them, get
     // index of strip bin each side falls into
     freqst = ii * hyperInc;
     freqnd = freqst + hyperInc;
@@ -719,8 +720,8 @@ void MyApp::scaleAndAddStrip
     delfreq = freqnd * xScale + xAdd - freqnd;
     delfreq = B3DMIN(delFmax, B3DMAX(delFmin, delfreq));
     stripRIndex = B3DNINT((freqnd + delfreq) / freqInc);
-    if (stripRIndex >= mDim || stripLIndex < 0) 
-        continue;
+    if (stripRIndex >= mDim || stripLIndex < 0)
+      continue;
 
     // If both sides of hyper bin are in the strip bin, then just add it in
     if (stripRIndex == stripLIndex) {
@@ -744,15 +745,16 @@ void MyApp::scaleAndAddStrip
 
   /*printf("xShift=%d mTotalTileIncluded=%d counter=%d\n", xShift,
     mTotalTileIncluded, counter);
-    
-    printf("iterNum=%d, before change: mRAverage[0]=%f stripAvg[0]=%f\n",mItrNum,  mRAverage[0], stripAvg[0]);
+
+    printf("iterNum=%d, before change: mRAverage[0]=%f stripAvg[0]=%f\n",
+           mItrNum,  mRAverage[0], stripAvg[0]);
   */
 
-  for (ii=0; ii<mDim; ii++) {
+  for (ii = 0; ii < mDim; ii++) {
     jj = stripCounter[ii];
     if (jj) {
-      mRAverage[ii]=(mFreqTileCounter[ii] * mRAverage[ii] + stripAvg[ii]) / 
-        (mFreqTileCounter[ii] + jj);
+      mRAverage[ii] = (mFreqTileCounter[ii] * mRAverage[ii] + stripAvg[ii]) /
+                      (mFreqTileCounter[ii] + jj);
       mFreqTileCounter[ii] += jj;
     }
   }
@@ -766,22 +768,22 @@ void MyApp::scaleAndAddStrip
  */
 void MyApp::rangeChanged(double x1_1, double x1_2, double x2_1, double x2_2)
 {
-  mX1Idx1 = x1_1 * (mDim-1);
-  mX1Idx2 = x1_2 * (mDim-1);
-  mX2Idx1 = x2_1 * (mDim-1);
-  mX2Idx2 = x2_2 * (mDim-1);
+  mX1Idx1 = x1_1 * (mDim - 1);
+  mX1Idx2 = x1_2 * (mDim - 1);
+  mX2Idx1 = x2_1 * (mDim - 1);
+  mX2Idx2 = x2_2 * (mDim - 1);
   fitPsFindZero();
 }
 
 /*
- * Slot for responding to angle range change or change in tile definition by 
+ * Slot for responding to angle range change or change in tile definition by
  * computing tile PS if needed and recomputing the PS curves
  */
-void MyApp::angleChanged(double lAngle, double hAngle, double expDefocus, 
-   double defTol, int tSize, double axisAngle, double leftTol, double rightTol)
-{  
+void MyApp::angleChanged(double lAngle, double hAngle, double expDefocus,
+  double defTol, int tSize, double axisAngle, double leftTol, double rightTol)
+{
   //If tilt angle range does not change, do not need to reload slices;
-  if(lAngle!=mLowAngle || hAngle!=mHighAngle){
+  if (lAngle != mLowAngle || hAngle != mHighAngle) {
     setLowAngle(lAngle);
     setHighAngle(hAngle);
     //setSlice();
@@ -789,42 +791,41 @@ void MyApp::angleChanged(double lAngle, double hAngle, double expDefocus,
   }
   if (mStartingSlice < 0 || mEndingSlice < 0)
     return;
-  
+
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-  
-  mDefocusTol=defTol;
-  mLeftDefTol=leftTol;
-  mRightDefTol=rightTol;
+
+  mDefocusTol = defTol;
+  mLeftDefTol = leftTol;
+  mRightDefTol = rightTol;
   if (tSize != mTileSize)
     mCache.clearAndSetSize(mDim, mHyperRes, tSize);
-  mTileSize=tSize;
-  mTiltAxisAngle=axisAngle;
+  mTileSize = tSize;
+  mTiltAxisAngle = axisAngle;
   defocusFinder.setExpDefocus(expDefocus);
-  
-   //computeInitPS();
-  
-   //plot and fit the new initial PS;
-  if(mInitialTileOption){
+
+  //computeInitPS();
+
+  //plot and fit the new initial PS;
+  if (mInitialTileOption) {
     int i;
     //following variables need to be re-set or re-initialized;
     //mStackMean;
-    mTotalTileIncluded=0;
-    for(i=0;i<mNzz;i++) 
-      mTileIncluded[i]=0;
-    for(i=0;i<mDim;i++) {
-      mRAverage[i]=0.0;
+    mTotalTileIncluded = 0;
+    for (i = 0; i < mNzz; i++)
+      mTileIncluded[i] = 0;
+    for (i = 0; i < mDim; i++) {
+      mRAverage[i] = 0.0;
       mFreqTileCounter[i] = 0;
     }
-    
+
     moreTile(false); //include all the tiles and plot;
     plotFitPS(false);
-  }
-  else {
+  } else {
     computeInitPS();
     mPlotter->mTileButton->setEnabled(true);
     plotFitPS(false); // only plot;
   }
-  
+
   QApplication::restoreOverrideCursor();
 }
 
@@ -835,7 +836,7 @@ void MyApp::angleChanged(double lAngle, double hAngle, double expDefocus,
  * If rangeStep is 0, it does a fit to every individual picture, regardless of of the
  * value of rangeSize.
  */
-int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize, 
+int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
                            float rangeStep, int numIter)
 {
   int tSize, numSteps, i, step, sortInd, indLo, indHi, lastIndLo, lastIndHi, numDel, iter;
@@ -846,7 +847,7 @@ int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
   double defTol, axisAngle, leftTol, rightTol;
   double trueStep, minDel, maxDel, mid, minMid, maxMid, loAngle, hiAngle;
   bool tolOk = mPlotter->mAngleDia->getTileTolerances(defTol, tSize, axisAngle, leftTol,
-                                                      rightTol);
+						      rightTol);
 
   if (!tolOk)
     return 1;
@@ -902,7 +903,7 @@ int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
       str.sprintf("Do you want to remove existing defocus values listed in the \n"
                   "table with midpoint tilt angles from %.2f to %.2f degrees?", minMid,
                   maxMid);
-      i = QMessageBox::question(NULL, QString("Ctfplotter"), str, 
+      i = QMessageBox::question(NULL, QString("Ctfplotter"), str,
                                 QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
                                 QMessageBox::Yes);
     }
@@ -945,7 +946,7 @@ int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
 
     // Iterate
     for (iter = 0; iter < numIter; iter++) {
-      angleChanged(loAngle, hiAngle, expDefocus, defTol, tSize, axisAngle, leftTol, 
+      angleChanged(loAngle, hiAngle, expDefocus, defTol, tSize, axisAngle, leftTol,
                    rightTol);
       mDefocusOption = 1;
     }
@@ -958,17 +959,17 @@ int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
   return 0;
 }
 
-void MyApp::setInitTileOption(int index) 
+void MyApp::setInitTileOption(int index)
 {
   mPlotter->mTileButton->setEnabled(false);
-  mInitialTileOption=index;
+  mInitialTileOption = index;
 }
 
 /*
  * Determine the noise images to interpolate between and computethe noise PS for
  * the given mean level
  */
-void MyApp::setNoiseForMean(double mean) 
+void MyApp::setNoiseForMean(double mean)
 {
   int i, highInd = mNumNoiseFiles - 1;
   double lowMean, highMean;
@@ -987,7 +988,7 @@ void MyApp::setNoiseForMean(double mean)
   highPs = mAllNoisePS + mNoiseIndexes[highInd] * mDim;
   for (i = 0; i < mDim; i++)
     mNoisePS[i] = lowPs[i] + (highPs[i] - lowPs[i]) * (mean - lowMean) /
-              (highMean - lowMean);
+                  (highMean - lowMean);
 }
 
 /*
@@ -996,12 +997,12 @@ void MyApp::setNoiseForMean(double mean)
 void MyApp::saveCurrentDefocus()
 {
   SavedDefocus toSave;
-   
-  toSave.startingSlice=getStartingSliceNum();
-  toSave.endingSlice=getEndingSliceNum();
-  toSave.lAngle=getLowAngle();
-  toSave.hAngle=getHighAngle();
-  toSave.defocus=defocusFinder.getDefocus();
+
+  toSave.startingSlice = getStartingSliceNum();
+  toSave.endingSlice = getEndingSliceNum();
+  toSave.lAngle = getLowAngle();
+  toSave.hAngle = getHighAngle();
+  toSave.defocus = defocusFinder.getDefocus();
   addItemToDefocusList(mSaved, toSave);
   mSaveModified = true;
   if (mPlotter->mAngleDia)
@@ -1021,7 +1022,7 @@ void MyApp::writeDefocusFile()
   if (!mBackedUp)
     imodBackupFile(mFnDefocus);
   mBackedUp = true;
-  fp = fopen(mFnDefocus,"w");
+  fp = fopen(mFnDefocus, "w");
   if (!fp) {
     if (mSaveAndExit)
       exitError("Cannot open output file for saving defocus values");
@@ -1029,12 +1030,12 @@ void MyApp::writeDefocusFile()
                           "Can not open output file");
     return;
   }
-  
+
   for (i = 0; i < ilistSize(mSaved); i++) {
     item = (SavedDefocus *)ilistItem(mSaved, i);
-    fprintf(fp, "%d\t%d\t%5.2f\t%5.2f\t%6.0f\n", item->startingSlice + 1, 
+    fprintf(fp, "%d\t%d\t%5.2f\t%5.2f\t%6.0f\n", item->startingSlice + 1,
             item->endingSlice + 1, item->lAngle, item->hAngle,
-            item->defocus*1000);
+            item->defocus * 1000);
   }
   fclose(fp);
   mSaveModified = false;
