@@ -411,7 +411,7 @@ void MyApp::computeInitPS()
 
   // Add the PS sum in to the bins of the average, and add the count of
   // pixels times the tile count into the counter
-    // Also make it the divided PS.  RAverage used to be kept as undivided,
+  // Also make it the divided PS.  RAverage used to be kept as undivided,
   // then needed to be divided in moreTiles and undivided at end
   for (i = 0; i < psSize - mHyperRes / 2; i++) {
     ii = (i + mHyperRes / 2) / mHyperRes;
@@ -425,12 +425,11 @@ void MyApp::computeInitPS()
   //return the PS
   for (i = 0; i < mDim; i++) {
     if (mFreqTileCounter[i])
-        mRAverage[i] = mRAverage[i] / mFreqTileCounter[i];
+      mRAverage[i] = mRAverage[i] / mFreqTileCounter[i];
       //printf("%d %d %f  %f\n", i, mFreqTileCounter[i], mRAverage[i], 
       //       mRAverage[i]*mFreqTileCounter[i]);
   }
   free(psSum);
-  } else { //need to compute mean;
 }
 
 /*
