@@ -211,12 +211,12 @@ void MyApp::fitPsFindZero()
     
   case 2:   // Intersection of two curves
     switch (mX1MethodIndex) {
-    case 0: // Linear (in coefficients) Least squares
-      if ((error = linearEngine->computeFitting(resLeftFit, model, 2, mX1Idx1,
-						mX1Idx2, zero)))
+    case 0: // Line
+      if ((error = linearEngine->computeFitting(resLeftFit, model, 2, 
+						mX1Idx1, mX1Idx2, zero)))
 	printf("linearEngine error\n");
       break;
-    case 1: // Downhill Simplex
+    case 1: // Gaussian
       simplexEngine->setRange(mX1Idx1, mX1Idx2);
       if ((error = simplexEngine->fitGaussian(resLeftFit, err, 0)))
 	printf("simplexEngine error\n");
@@ -227,12 +227,12 @@ void MyApp::fitPsFindZero()
     }
 
     switch (mX2MethodIndex) {
-    case 0: // Linear (in coefficients) Least Squares
+    case 0: // Line
       if ((error2 = linearEngine->computeFitting(resRightFit, model, 2,
 						 mX2Idx1, mX2Idx2, zero)))
 	printf("linearEngine error\n");
       break;
-    case 1: // Downhill Simplex
+    case 1: // Gaussian
       simplexEngine->setRange(mX2Idx1, mX2Idx2);
       if ((error2 = simplexEngine->fitGaussian(resRightFit, err, 1)))
 	printf("simplexEngine error\n");
