@@ -211,12 +211,12 @@ void MyApp::fitPsFindZero()
     
   case 2:   // Intersection of two curves
     switch (mX1MethodIndex) {
-    case 0: // Linear
+    case 0: // Linear (in coefficients) Least squares
       if ((error = linearEngine->computeFitting(resLeftFit, model, 2, mX1Idx1,
 						mX1Idx2, zero)))
 	printf("linearEngine error\n");
       break;
-    case 1: // Gaussian
+    case 1: // Downhill Simplex
       simplexEngine->setRange(mX1Idx1, mX1Idx2);
       if ((error = simplexEngine->fitGaussian(resLeftFit, err, 0)))
 	printf("simplexEngine error\n");
@@ -227,12 +227,12 @@ void MyApp::fitPsFindZero()
     }
 
     switch (mX2MethodIndex) {
-    case 0:  // Linear
+    case 0: // Linear (in coefficients) Least Squares
       if ((error2 = linearEngine->computeFitting(resRightFit, model, 2,
 						 mX2Idx1, mX2Idx2, zero)))
 	printf("linearEngine error\n");
       break;
-    case 1: // Gaussian
+    case 1: // Downhill Simplex
       simplexEngine->setRange(mX2Idx1, mX2Idx2);
       if ((error2 = simplexEngine->fitGaussian(resRightFit, err, 1)))
 	printf("simplexEngine error\n");
@@ -508,12 +508,12 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
   int whichSlice;
 
   allTime = wallTime();
-  int mItrNum;
+  int iterNum;
   mNumSlicesDone = accessOrder.size();
   for (k = 0; k < accessOrder.size(); k++) {
     whichSlice = accessOrder[k];
     currAngle = mCache.getAngle(whichSlice);
-    mItrNum = 0;
+    iterNum = 0;
     if (fabs(currAngle) > MIN_ANGLE)
       stripWidthPixels = fabs(mDefocusTol / tan(currAngle)) / mPixelSize;
     else
@@ -527,7 +527,7 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
       // Get the delta Z for this strip, then the defocus and the first and
       // second zeros and scaling to center zeros on right and left sides
       // Make deltaZ signed
-      deltaZ = (mItrNum + 0.5) * (stripWidthPixels / 2.0) * mPixelSize *
+      deltaZ = (iterNum + 0.5) * (stripWidthPixels / 2.0) * mPixelSize *
                tan(currAngle) / 1000.0; // in microns;
       tmpMean = effectiveDefocus + deltaZ;
       defocusFinder.getTwoZeros(tmpMean, shiftedZero1, shiftedZero2);
@@ -577,17 +577,17 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
             alpha = 2.0 * MY_PI + alpha; //convert to [0,2*pi];
           d = r * fabs(sin(alpha - axisXAngle)); //distance to the tilt axis in pixels
 
-          /*if(x==0 && y==0 && mItrNum==1){
+          /*if(x==0 && y==0 && iterNum==1){
             printf("d=%f leftLimit=%f rightLimit=%f \n",
-                d, mItrNum*stripWidthPixels/2.0, (mItrNum+1)*stripWidthPixels/2.0);
+                d, iterNum*stripWidthPixels/2.0, (iterNum+1)*stripWidthPixels/2.0);
           }*/
 
           //outside of the strip, continue;
-          if (d < mItrNum * stripWidthPixels / 2.0 ||
-              d > (mItrNum + 1)*stripWidthPixels / 2.0)
+          if (d < iterNum * stripWidthPixels / 2.0 ||
+              d > (iterNum + 1)*stripWidthPixels / 2.0)
             continue;
 
-          //printf("mItrNum=%d tile x=%d y=%d is included  \n", mItrNum, x, y);
+          //printf("iterNum=%d tile x=%d y=%d is included  \n", iterNum, x, y);
           scanCounter++;
 
           //skip central tiles since they already included
@@ -638,7 +638,7 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
       if (debugLevel >= 2)
         printf("scanCounter=%d leftCounter=%d rightCounter=%d mTileIncluded[%d]=%d\n",
            scanCounter, leftCounter, rightCounter, whichSlice, mTileIncluded[whichSlice]);
-      mItrNum++;
+      iterNum++;
     }//while loop;
 
     if (debugLevel >= 1)
@@ -646,9 +646,9 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
              mTileIncluded[whichSlice], whichSlice);
 
     if (debugLevel >= 2)
-      printf("***mItrNum=%d deltaZ=%f(microns) scanCounter=%d \
+      printf("***iterNum=%d deltaZ=%f(microns) scanCounter=%d \
          mTileIncluded[%d]=%d\n",
-             mItrNum, deltaZ, scanCounter, whichSlice,
+             iterNum, deltaZ, scanCounter, whichSlice,
              mTileIncluded[whichSlice]);
   }// the k-th slice
 
@@ -742,7 +742,7 @@ void MyApp::scaleAndAddStrip
     mTotalTileIncluded, counter);
 
     printf("iterNum=%d, before change: mRAverage[0]=%f stripAvg[0]=%f\n",
-           mItrNum,  mRAverage[0], stripAvg[0]);
+           iterNum,  mRAverage[0], stripAvg[0]);
   */
 
   for (ii = 0; ii < mDim; ii++) {
@@ -754,7 +754,7 @@ void MyApp::scaleAndAddStrip
     }
   }
 
-  //printf("iterNum=%d, mRAverage[0]=%f\n",mItrNum,  mRAverage[0]);
+  //printf("iterNum=%d, mRAverage[0]=%f\n",iterNum,  mRAverage[0]);
   mTotalTileIncluded += counter;
 }
 
