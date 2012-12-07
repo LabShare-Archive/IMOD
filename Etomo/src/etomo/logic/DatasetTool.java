@@ -560,4 +560,36 @@ public final class DatasetTool {
     }
     return true;
   }
+
+  public static boolean validateTiltAngle(final BaseManager manager,
+      final AxisID messageAxisID, final String errorTitle, final AxisID axisID,
+      final boolean manual, final String angle, final String increment) {
+    if (!manual) {
+      return true;
+    }
+    String axisDescr = getAxisDescr(axisID);
+    String message = null;
+    if (angle == null || angle.matches("\\s*")) {
+      message = "Starting angle cannot be empty";
+    }
+    else if (increment == null || increment.matches("\\s*")) {
+      message = "Increment cannot be empty";
+    }
+    if (message != null) {
+      UIHarness.INSTANCE.openMessageDialog(manager, message
+          + (axisDescr == null ? "." : axisDescr), errorTitle, messageAxisID);
+      return false;
+    }
+    return true;
+  }
+
+  private static String getAxisDescr(final AxisID axisID) {
+    if (axisID == AxisID.FIRST) {
+      return " in Axis A.";
+    }
+    if (axisID == AxisID.SECOND) {
+      return " in Axis B.";
+    }
+    return null;
+  }
 }
