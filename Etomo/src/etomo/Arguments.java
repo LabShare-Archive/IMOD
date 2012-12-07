@@ -105,7 +105,9 @@ public final class Arguments {
   private static final String IGNORE_LOC_TAG = "--ignoreloc";
   private static final String IGNORE_SETTINGS_TAG = "--ignoresettings";
   private static final String ACTIONS_TAG = "--actions";
-  private static final String DIRECTIVES_TAG = "--directives";
+  public static final String DIRECTIVES_TAG = "--directives";
+  private static final String CPUS_TAG = "--cpus";
+  private static final String GPUS_TAG = "--gpus";
 
   static final String HELP_MESSAGE = "\nOptions:" + "\n  " + HELP1_TAG + ", " + HELP2_TAG
       + "\tSend this message to standard out and exit."
@@ -119,24 +121,25 @@ public final class Arguments {
       + "\tSend timestamps to standard error before and after processes"
       + "\n\t\tare run."
 
-      + "\n\nFull Automation Options:"
+      + "\n\nFile-Based Automation Options:"
 
-      + "\n  " + DIRECTIVES_TAG + " \"directive file\""
-      + "\n\t\tThe directive file contains instructions for automation."
-      + "\n\t\tCauses eTomo to be run headless (with no GUI) and in the"
-      + "\n\t\tforeground rather then in the background."
+      + "\n  " + DIRECTIVES_TAG + " \"directives file\""
+      + "\n\t\tCauses automation to be performed based on the directives file."
+      + "\n\t\tNo interface will come up and most command-line-based"
+      + "\n\t\tautomation options (below) will be ignored.  However " + CPUS_TAG + " and"
+      + "\n\t\t" + GPUS_TAG + " work with both types of automation.  Implied options:"
+      + "\n\t\t" + FG_TAG + ", " + HEADLESS_TAG + ", " + CREATE_TAG + ", and " + EXIT_TAG
+      + "."
 
-      + "\n\nParameter Automation Options:"
+      + "\n\nCommand-Line-Based Automation Options:"
 
-      + "\n  " + FG_TAG
-      + "\t\tUsed with automation.  Causes Etomo to be run in the foreground"
-      + "\n\t\trather then in the background.  This is useful when running"
-      + "\n\t\tEtomo with automation from a script; a script will not wait"
-      + "\n\t\tuntil Etomo is done unless Etomo is running in the foreground."
-
-      + "\n\n  " + AXIS_TAG + " " + AxisType.SINGLE_AXIS.getValue() + "|"
+      + "\n  " + AXIS_TAG + " " + AxisType.SINGLE_AXIS.getValue() + "|"
       + AxisType.DUAL_AXIS.getValue()
       + "\n\t\tFor automation.  Sets the Axis Type in the Setup Tomogram"
+      + "\n\t\tdialog."
+
+      + "\n\n  " + CPUS_TAG + " [ignored]"
+      + "\n\t\tTurns on the Parallel Processing checkbox in the Setup Tomogram"
       + "\n\t\tdialog."
 
       + "\n\n  " + CREATE_TAG
@@ -159,6 +162,12 @@ public final class Arguments {
       + "\tFor automation.  Causes Etomo to exit after the Setup Tomogram"
       + "\n\t\tdialog is completed."
 
+      + "\n\n  " + FG_TAG
+      + "\t\tUsed with automation.  Causes Etomo to be run in the foreground"
+      + "\n\t\trather then in the background.  This is useful when running"
+      + "\n\t\tEtomo with automation from a script; a script will not wait"
+      + "\n\t\tuntil Etomo is done unless Etomo is running in the foreground."
+
       + "\n\n  " + FIDUCIAL_TAG + " fiducial_diameter"
       + "\n\t\tFor automation.  Sets the Fiducial Diameter (a double) in the"
       + "\n\t\tSetup Tomogram dialog."
@@ -167,6 +176,10 @@ public final class Arguments {
       + ViewType.MONTAGE.getParamValue()
       + "\n\t\tFor automation.  Sets the Frame Type in the Setup Tomogram"
       + "\n\t\tdialog."
+
+      + "\n\n  " + GPUS_TAG + " [ignored]"
+      + "\n\t\tTurns on the Graphics Card Processing checkbox in the Setup"
+      + "\n\t\tTomogram dialog."
 
       + "\n\n  " + SCAN_TAG
       + "\tFor automation.  Runs Scan Header in the Setup Tomogram dialog."
@@ -220,7 +233,7 @@ public final class Arguments {
       + "\tMay cause Etomo to run with unreleased functionality."
 
       + "\n\n  " + TEST_TAG
-      + "\tFor testing.  Test mode used for unit testing and automated"
+      + "\tFor testing.  Test mode is used for unit testing and automated"
       + "\n\t\tregression testing."
 
       + "\n\nDeprecated Options:"
@@ -270,7 +283,10 @@ public final class Arguments {
   private boolean directives = false;
   private File fDirectives = null;
   private List<String> errorMessageList = new ArrayList<String>();
+  private List<String> warningMessageList = new ArrayList<String>();
   private boolean fiducial = false;
+  private boolean cpus = false;
+  private boolean gpus = false;
 
   private final EtomoNumber enFiducial = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
@@ -299,6 +315,14 @@ public final class Arguments {
    */
   public boolean isDemo() {
     return false;
+  }
+
+  public boolean isDirectives() {
+    return directives;
+  }
+
+  public File getDirectives() {
+    return fDirectives;
   }
 
   public AxisType getAxis() {
@@ -369,6 +393,14 @@ public final class Arguments {
     return actions;
   }
 
+  public boolean isCpus() {
+    return cpus;
+  }
+
+  public boolean isGpus() {
+    return gpus;
+  }
+
   /**
    * Parse the command line. This method will return a non-empty string if there
    * is a etomo data .
@@ -386,7 +418,7 @@ public final class Arguments {
     while (i < args.length) {
       // Filename argument should be the only one not beginning with at least
       // one dash
-      if (!args[i].startsWith("-")) {
+      if (!args[i].startsWith("--")) {
         paramFileNameList.add(args[i]);
       }
       else if (args[i].equals(HELP1_TAG) || args[i].equals(HELP2_TAG)) {
@@ -406,11 +438,10 @@ public final class Arguments {
       }
       else if (args[i].equals(MEMORY_TAG)) {
         displayMemory = true;
-        // --memory can be used alone, or followed by an integer
-        // (displayMemoryInterval). If displayMemoryInterval is set, then the
-        // memory usage will be sent to etomo_err.log every displayMemoryInterval
-        // minutes.
-        if (i < args.length - 1) {
+        // Optional value: --memory can be used alone, or followed by an integer
+        // (displayMemoryInterval). If displayMemoryInterval is set, then the memory usage
+        // will be sent to etomo_err.log every displayMemoryInterval minutes.
+        if (i < args.length - 1 && !args[i + 1].startsWith("--")) {
           try {
             iDisplayMemory = Math.abs(Integer.parseInt(args[i + 1]));
             i++;
@@ -423,9 +454,9 @@ public final class Arguments {
       else if (args[i].equals(DEBUG_TAG)) {
         debug = true;
         debugLevel = 1;
-        // --debug can be used alone, or followed by an integer
+        // Optional value: --debug can be used alone, or followed by an integer
         // (debugLevel).
-        if (i < args.length - 1) {
+        if (i < args.length - 1 && !args[i + 1].startsWith("--")) {
           try {
             debugLevel = Math.abs(Integer.parseInt(args[i + 1]));
             if (debugLevel == 0) {
@@ -475,7 +506,6 @@ public final class Arguments {
         reconAutomation = true;
         if (i < args.length - 1) {
           vtFrame = ViewType.fromString(args[i + 1]);
-          System.out.println("A:args[i + 1]:" + args[i + 1] + ",vtFrame:" + vtFrame);
           if (vtFrame != null) {
             i++;
           }
@@ -524,10 +554,27 @@ public final class Arguments {
         directives = true;
         reconAutomation = true;
         headless = true;
+        create = true;
         exit = true;
         if (i < args.length - 1) {
           // The quotes have already been stripped.
           fDirectives = new File(args[i + 1]);
+          i++;
+        }
+      }
+      else if (args[i].equals(CPUS_TAG)) {
+        cpus = true;
+        // Ignored optional value: the parallel processing description is currently being
+        // ignored.
+        if (i < args.length - 1 && !args[i + 1].startsWith("--")) {
+          i++;
+        }
+      }
+      else if (args[i].equals(GPUS_TAG)) {
+        gpus = true;
+        // Ignored optional value: the gpu processing description is currently being
+        // ignored.
+        if (i < args.length - 1 && !args[i + 1].startsWith("--")) {
           i++;
         }
       }
@@ -553,13 +600,20 @@ public final class Arguments {
         errorMessageList.add(DIRECTIVES_TAG + " parameter value, "
             + fDirectives.getAbsolutePath() + ", does not exist.");
       }
-      else if (fDirectives.isDirectory()) {
-        errorMessageList.add(DIRECTIVES_TAG + " parameter value, "
-            + fDirectives.getAbsolutePath() + ", is a directory.");
+      else {
+        if (fDirectives.isDirectory()) {
+          errorMessageList.add(DIRECTIVES_TAG + " parameter value, "
+              + fDirectives.getAbsolutePath() + ", is a directory.");
+        }
+        if (!fDirectives.canRead()) {
+          errorMessageList.add(DIRECTIVES_TAG + " parameter value, "
+              + fDirectives.getAbsolutePath() + ", is not readable.");
+        }
       }
-      else if (!fDirectives.canRead()) {
-        errorMessageList.add(DIRECTIVES_TAG + " parameter value, "
-            + fDirectives.getAbsolutePath() + ", is not readable.");
+      if (axis || dataset || dir || fiducial || frame) {
+        warningMessageList.add("The parameters: " + AXIS_TAG + ", " + DATASET_TAG + ", "
+            + DIR_TAG + ", " + FIDUCIAL_TAG + ", and " + FRAME_TAG + " are ignored when "
+            + DIRECTIVES_TAG + " is used.");
       }
     }
     if (axis && atAxis == null) {
@@ -576,17 +630,19 @@ public final class Arguments {
         errorMessageList.add(DIR_TAG + " parameter value, " + fDir.getAbsolutePath()
             + ", does not exist.");
       }
-      else if (!fDir.isDirectory()) {
-        errorMessageList.add(DIR_TAG + " parameter value, " + fDir.getAbsolutePath()
-            + ", is not a directory.");
-      }
-      else if (!fDir.canRead()) {
-        errorMessageList.add(DIR_TAG + " parameter value, " + fDir.getAbsolutePath()
-            + ", is not readable.");
-      }
-      else if (!fDir.canWrite()) {
-        errorMessageList.add(DIR_TAG + " parameter value, " + fDir.getAbsolutePath()
-            + ", is not writable.");
+      else {
+        if (!fDir.isDirectory()) {
+          errorMessageList.add(DIR_TAG + " parameter value, " + fDir.getAbsolutePath()
+              + ", is not a directory.");
+        }
+        if (!fDir.canRead()) {
+          errorMessageList.add(DIR_TAG + " parameter value, " + fDir.getAbsolutePath()
+              + ", is not readable.");
+        }
+        if (!fDir.canWrite()) {
+          errorMessageList.add(DIR_TAG + " parameter value, " + fDir.getAbsolutePath()
+              + ", is not writable.");
+        }
       }
     }
     if (fiducial) {
@@ -621,6 +677,19 @@ public final class Arguments {
             errorMessageList.toArray(new String[errorMessageList.size()]), title);
       }
       return false;
+    }
+    if (!warningMessageList.isEmpty()) {
+      String title = "Parameter Warning";
+      String message = "Parameter Warning:";
+      if (warningMessageList.size() == 1) {
+        UIHarness.INSTANCE.openMessageDialog(component, message + "\n"
+            + warningMessageList.get(0), title);
+      }
+      else {
+        warningMessageList.add(0, message);
+        UIHarness.INSTANCE.openMessageDialog(component,
+            warningMessageList.toArray(new String[warningMessageList.size()]), title);
+      }
     }
     return true;
   }
