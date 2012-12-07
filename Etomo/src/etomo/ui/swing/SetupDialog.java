@@ -39,11 +39,13 @@ import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.TiltAngleSpec;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.SetupReconInterface;
 
 final class SetupDialog extends ProcessDialog implements ContextMenu,
-    Run3dmodButtonContainer, Expandable {
+    Run3dmodButtonContainer, Expandable, SetupReconInterface {
   public static final String rcsid = "$Id$";
 
   static final String DATASET_NAME_LABEL = "Dataset name: ";
@@ -190,8 +192,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   public void done() {
-    if (applicationManager
-        .doneSetupDialog(expert.getExitState() == DialogExitState.EXECUTE)) {
+    if (applicationManager.doneSetupDialog(
+        expert.getExitState() == DialogExitState.EXECUTE, null)) {
       setDisplayed(false);
     }
   }
@@ -348,15 +350,15 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     rbSingleAxis.setSelected(input);
   }
 
-  boolean isSingleAxisSelected() {
+  public boolean isSingleAxisSelected() {
     return rbSingleAxis.isSelected();
   }
 
-  boolean isSingleViewSelected() {
+  public boolean isSingleViewSelected() {
     return rbSingleView.isSelected();
   }
 
-  boolean isDualAxisSelected() {
+  public boolean isDualAxisSelected() {
     return rbDualAxis.isSelected();
   }
 
@@ -364,7 +366,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     rbDualAxis.setSelected(input);
   }
 
-  void setPixelSize(final double input) {
+  public void setPixelSize(final double input) {
     ltfPixelSize.setText(input);
   }
 
@@ -372,7 +374,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     ltfFiducialDiameter.setText(input);
   }
 
-  void setImageRotation(final String input) {
+  public void setImageRotation(final String input) {
     ltfImageRotation.setText(input);
   }
 
@@ -380,15 +382,15 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     ltfImageRotation.setText(input);
   }
 
-  void setBinning(final int input) {
+  public void setBinning(final int input) {
     spnBinning.setValue(input);
   }
 
-  Number getBinning() {
-    return spnBinning.getValue();
+  public String getBinning() {
+    return spnBinning.getValue().toString();
   }
 
-  String getExcludeList(final AxisID axisID, final boolean doValidation)
+  public String getExcludeList(final AxisID axisID, final boolean doValidation)
       throws FieldValidationFailedException {
     if (axisID == AxisID.SECOND) {
       return ltfExcludeListB.getText(doValidation);
@@ -431,47 +433,60 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     rbMontage.setSelected(input);
   }
 
-  String getDataset() {
+  public String getDataset() {
     return ftfDataset.getText();
   }
 
-  String getBackupDirectory() {
+  public boolean getTiltAngleFields(final AxisID axisID,
+      final TiltAngleSpec tiltAngleSpec, final boolean doValidation) {
+    return expert.getTiltAngleFields(axisID, tiltAngleSpec, doValidation);
+  }
+
+  public String getBackupDirectory() {
     return ftfBackupDirectory.getText();
   }
 
-  String getDistortionFile() {
+  public String getDistortionFile() {
     return ftfDistortionFile.getText();
   }
 
-  String getMagGradientFile() {
+  public String getMagGradientFile() {
     return ftfMagGradientFile.getText();
   }
 
-  boolean isParallelProcessSelected() {
+  public boolean isParallelProcessSelected() {
     return cbParallelProcess.isSelected();
   }
 
-  boolean isGpuProcessingSelected() {
+  public boolean isGpuProcessingSelected() {
     return cbGpuProcessing.isSelected();
   }
 
-  boolean isAdjustedFocusSelected(final AxisID axisID) {
+  public boolean isAdjustedFocusSelected(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return cbAdjustedFocusB.isSelected();
     }
     return cbAdjustedFocusA.isSelected();
   }
 
-  String getPixelSize(final boolean doValidation) throws FieldValidationFailedException {
+  public String getPixelSize(final boolean doValidation)
+      throws FieldValidationFailedException {
     return ltfPixelSize.getText(doValidation);
   }
 
-  String getFiducialDiameter(final boolean doValidation)
+  public boolean validateTiltAngle(final AxisID axisID, final String errorTitle) {
+    return expert.validateTiltAngle(axisID, errorTitle);
+  }
+
+  public String getFiducialDiameter(final boolean doValidation)
       throws FieldValidationFailedException {
     return ltfFiducialDiameter.getText(doValidation);
   }
 
-  String getImageRotation(final boolean doValidation)
+  /**
+   * @param axisID has no effect
+   */
+  public String getImageRotation(final AxisID axisID, final boolean doValidation)
       throws FieldValidationFailedException {
     return ltfImageRotation.getText(doValidation);
   }
