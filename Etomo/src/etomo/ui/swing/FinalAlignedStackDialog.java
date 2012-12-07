@@ -727,6 +727,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   void setParameters(ConstTiltalignParam param, boolean initialize) {
     eraseGoldPanel.setParameters(param, initialize);
   }
+  
+  void setOverrideParameters(final ConstMetaData metaData) {
+    eraseGoldPanel.setOverrideParameters(metaData);
+  }
 
   void setParameters(ConstNewstParam param) {
     if (applicationManager.getMetaData().getViewType() != ViewType.MONTAGE) {
