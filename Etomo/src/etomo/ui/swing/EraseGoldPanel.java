@@ -275,6 +275,10 @@ final class EraseGoldPanel implements ContextMenu {
   void setParameters(ConstTiltalignParam param, boolean initialize) {
     beads3dFindPanel.setParameters(param, initialize);
   }
+  
+  void setOverrideParameters(final ConstMetaData metaData) {
+    beads3dFindPanel.setOverrideParameters(metaData);
+  }
 
   private void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
