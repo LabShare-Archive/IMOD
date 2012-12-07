@@ -16,6 +16,7 @@ import etomo.comscript.TiltParam;
 import etomo.storage.TaAnglesLog;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.MetaData;
@@ -255,6 +256,16 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
       catch (Exception e) {
         e.printStackTrace();
       }
+    }
+  }
+  
+  /**
+   * Get values from meta data that override the com script values.
+   * @param metaData
+   */
+  void setOverrideParameters(final ConstMetaData metaData) {
+    if (metaData.isStack3dFindThicknessSet(axisID)) {
+      ltfTomoThickness.setText(metaData.getStack3dFindThickness(axisID));
     }
   }
 
