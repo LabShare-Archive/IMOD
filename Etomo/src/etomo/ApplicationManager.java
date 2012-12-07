@@ -79,6 +79,7 @@ import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.storage.CpuAdoc;
+import etomo.storage.DirectivesFile;
 import etomo.storage.LogFile;
 import etomo.storage.LoggableCollection;
 import etomo.storage.Storable;
@@ -272,6 +273,11 @@ public final class ApplicationManager extends BaseManager implements
     initializeUIParameters(paramFileName, axisID);
     initializeAdvanced();
     // Open the etomo data file if one was found on the command line
+    boolean newDataset = (!paramFileName.equals("") && !loadedParamFile)
+        || paramFileName.equals("");
+    if (newDataset) {
+      setupReconUIHarness = new SetupReconUIHarness(this, AxisID.ONLY);
+    }
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       if (!paramFileName.equals("")) {
         imodManager.setMetaData(metaData);
@@ -279,23 +285,17 @@ public final class ApplicationManager extends BaseManager implements
           openProcessingPanel();
           mainPanel.setStatusBarText(paramFile, metaData, logPanel);
         }
-        else {
-          openSetupDialog();
-          return;
-        }
       }
-      else {
+      if (newDataset) {
         openSetupDialog();
-        return;
       }
     }
   }
 
   public void doAutomation() {
-    if (setupReconUIHarness == null) {
-      setupReconUIHarness = new SetupReconUIHarness();
+    if (setupReconUIHarness != null) {
+      setupReconUIHarness.doAutomation();
     }
-    setupReconUIHarness.doAutomation();
     super.doAutomation();
   }
 
@@ -405,11 +405,7 @@ public final class ApplicationManager extends BaseManager implements
     String actionMessage = setCurrentDialogType(DialogType.SETUP_RECON, AxisID.ONLY);
     if (setupDialogExpert == null) {
       Utilities.timestamp("new", "SetupDialog", Utilities.STARTED_STATUS);
-      // check for distortion directory
-      File distortionDir = DatasetFiles.getDistortionDir(this, propertyUserDir,
-          AxisID.ONLY);
-      setupDialogExpert = setupReconUIHarness.getSetupDialogExpert(this,
-          distortionDir != null && distortionDir.exists());
+      setupDialogExpert = setupReconUIHarness.getSetupDialogExpert();
       Utilities.timestamp("new", "SetupDialog", Utilities.FINISHED_STATUS);
       setupDialogExpert.initializeFields((ConstMetaData) metaData, userConfig);
     }
@@ -428,17 +424,18 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Close message from the setup dialog window
    */
-  public boolean doneSetupDialog(final boolean doValidation) {
+  public boolean doneSetupDialog(final boolean doValidation,
+      final DirectivesFile directivesFile) {
     // Get the selected exit button
-    DialogExitState exitState = setupDialogExpert.getExitState();
+    DialogExitState exitState = setupReconUIHarness.getExitState();
     if (exitState != DialogExitState.CANCEL) {
-      if (!setupDialogExpert.isValid()) {
+      if (!setupReconUIHarness.isValid()) {
         return false;
       }
       // Set the current working directory for the application saving the
       // old user.dir property until the meta data is valid
       String oldUserDir = propertyUserDir;
-      propertyUserDir = setupDialogExpert.getWorkingDirectory().getAbsolutePath();
+      propertyUserDir = setupReconUIHarness.getWorkingDirectory().getAbsolutePath();
       if (propertyUserDir.endsWith(" ")) {
         uiHarness.openMessageDialog(this, "The directory, " + propertyUserDir
             + ", cannot be used because it ends with a space.",
@@ -446,12 +443,12 @@ public final class ApplicationManager extends BaseManager implements
         propertyUserDir = oldUserDir;
         return false;
       }
-      metaData = setupDialogExpert.getFields(doValidation);
+      metaData = setupReconUIHarness.getFields(doValidation);
       if (metaData == null) {
         return false;
       }
       if (metaData.isValid()) {
-        if (setupDialogExpert.checkForSharedDirectory()) {
+        if (setupReconUIHarness.checkForSharedDirectory()) {
           uiHarness.openMessageDialog(this, "This directory (" + propertyUserDir
               + ") is already being used by an .edf file.  Either open the "
               + "existing .edf file or create a new directory for the new "
@@ -482,7 +479,8 @@ public final class ApplicationManager extends BaseManager implements
       }
       // This is really the method to use the existing com scripts
       if (exitState == DialogExitState.EXECUTE) {
-        ProcessMessages messages = processMgr.setupComScripts(AxisID.ONLY);
+        ProcessMessages messages = processMgr
+            .setupComScripts(AxisID.ONLY, directivesFile);
         if (messages == null) {
           return false;
         }
@@ -1208,7 +1206,7 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     String key = ImodManager.PREVIEW_KEY;
-    MetaData previewMetaData = setupDialogExpert.getMetaData();
+    MetaData previewMetaData = setupReconUIHarness.getMetaData();
     imodManager.setPreviewMetaData(previewMetaData);
     File previewWorkingDir = previewMetaData.getValidDatasetDirectory(setupDialogExpert
         .getWorkingDirectory().getAbsolutePath());
