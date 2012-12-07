@@ -536,4 +536,8 @@ public interface ConstMetaData {
   public int getTrackClusteredPointsAllowedElongatedValue(AxisID axisID);
 
   public boolean isTrackAdvanced(AxisID axisID);
+  
+  public boolean isStack3dFindThicknessSet(AxisID axisID);
+  
+  public String getStack3dFindThickness(AxisID axisID);
 }
