@@ -991,6 +991,7 @@
 package etomo.process;
 
 import etomo.storage.AutofidseedLog;
+import etomo.storage.DirectivesFile;
 import etomo.storage.FlattenWarpLog;
 import etomo.storage.LogFile;
 import etomo.storage.TrackLog;
@@ -1071,7 +1072,7 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   public void setupCtfPlotterComScript(CtfPhaseFlipParam ctfPhaseFlipParam, AxisID axisID) {
-    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, null);
     copyTomoComs.setCTFFiles(CopyTomoComs.CtfFilesValue.CTF_PLOTTER);
     copyTomoComs.setVoltage(ctfPhaseFlipParam.getVoltage());
     copyTomoComs.setSphericalAberration(ctfPhaseFlipParam.getSphericalAberration());
@@ -1079,13 +1080,14 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   public void setupCtfCorrectionComScript(AxisID axisID) {
-    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, null);
     copyTomoComs.setCTFFiles(CopyTomoComs.CtfFilesValue.CTF_CORRECTION);
     setupComScripts(copyTomoComs, axisID);
   }
 
-  public ProcessMessages setupComScripts(AxisID axisID) {
-    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
+  public ProcessMessages setupComScripts(AxisID axisID,
+      final DirectivesFile directivesFile) {
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, directivesFile);
 
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       System.err.println("copytomocoms command line: " + copyTomoComs.getCommandLine());
