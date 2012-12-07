@@ -33,7 +33,7 @@ import etomo.util.UniqueKey;
 public final class UIHarness {
   public static final String rcsid = "$Id$";
 
-  private static final String LOG_TAG = "LOG:";
+  private static final String LOG_TAG = "LOG";
 
   public static final UIHarness INSTANCE = new UIHarness();
 
@@ -527,6 +527,7 @@ public final class UIHarness {
     }
     // Check to see if etomo an exit, save data, and then exit.
     if (EtomoDirector.INSTANCE.exitProgram(axisID)) {
+      System.err.println("exitValue:"+exitValue);
       System.exit(exitValue);
     }
   }
@@ -581,21 +582,21 @@ public final class UIHarness {
    * @param axisID
    */
   private void log(String message, String title, AxisID axisID) {
-    System.err.println(LOG_TAG + title + "(" + axisID + "):");
+    logHeader(title, axisID);
     System.err.println(message);
     System.err.println();
     System.err.flush();
   }
 
   private void logError(ProcessMessages processMessages, String title, AxisID axisID) {
-    System.err.println(LOG_TAG + ": " + title + "(" + axisID + "):");
+    logHeader(title, axisID);
     processMessages.printError();
     System.err.println();
     System.err.flush();
   }
 
   private void logWarning(ProcessMessages processMessages, String title, AxisID axisID) {
-    System.err.println(LOG_TAG + ": " + title + "(" + axisID + "):");
+    logHeader(title, axisID);
     processMessages.printWarning();
     System.err.println();
     System.err.flush();
@@ -619,8 +620,7 @@ public final class UIHarness {
    * @param axisID
    */
   private void log(String[] message, String title, AxisID axisID) {
-    System.err.println(LOG_TAG + ": " + (title == null ? "" : title) + "(" + axisID
-        + "):");
+    logHeader(title, axisID);
     if (message != null) {
       for (int i = 0; i < message.length; i++) {
         System.err.println(message[i]);
@@ -628,6 +628,11 @@ public final class UIHarness {
     }
     System.err.println();
     System.err.flush();
+  }
+
+  private void logHeader(final String title, final AxisID axisID) {
+    System.err.println(LOG_TAG + ": " + (title == null ? "" : title)
+        + (axisID == null || axisID == AxisID.ONLY ? "" : "(" + axisID + ")") + ":");
   }
 }
 /**
