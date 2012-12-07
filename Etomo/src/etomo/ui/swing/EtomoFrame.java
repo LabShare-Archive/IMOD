@@ -150,7 +150,7 @@ abstract class EtomoFrame extends AbstractFrame {
       EtomoDirector.INSTANCE.closeCurrentManager(axisID, false);
     }
     else if (menu.equalsExit(event)) {
-      UIHarness.INSTANCE.exit(axisID);
+      UIHarness.INSTANCE.exit(axisID, 0);
     }
     else if (menu.equalsTomosnapshot(event)) {
       currentManager.tomosnapshot(axisID);
@@ -448,7 +448,7 @@ abstract class EtomoFrame extends AbstractFrame {
           + currentManager.getBaseMetaData().getFileExtension());
 
     }
-   return currentManager.setParamFile(dataFile);
+    return currentManager.setParamFile(dataFile);
   }
 
   void pack(AxisID axisID) {

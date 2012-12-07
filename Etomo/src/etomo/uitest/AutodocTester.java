@@ -1065,7 +1065,7 @@ final class AutodocTester extends Assert implements VariableList {
         }
         // set.adoc.section_type = autodoc_name
         else {
-          functionAutodoc = AutodocFactory.getInstance(manager, sourceDir, value,
+          functionAutodoc = AutodocFactory.getTestInstance(manager, sourceDir, value,
               AxisID.ONLY);
         }
       }

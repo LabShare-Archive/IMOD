@@ -29,8 +29,8 @@ public final class FieldType {
       ValidationType.FLOATING_POINT, CollectionType.ARRAY, 2);
   public static final FieldType INTEGER_TRIPLE = new FieldType(ValidationType.INTEGER,
       CollectionType.ARRAY, 3);
-  public static final FieldType FLOATING_POINT_ARRAY = new FieldType(ValidationType.FLOATING_POINT,
-      CollectionType.ARRAY);
+  public static final FieldType FLOATING_POINT_ARRAY = new FieldType(
+      ValidationType.FLOATING_POINT, CollectionType.ARRAY);
   public static final FieldType INTEGER_ARRAY = new FieldType(ValidationType.INTEGER,
       CollectionType.ARRAY);
   public static final FieldType INTEGER_LIST = new FieldType(ValidationType.INTEGER,
@@ -106,7 +106,7 @@ public final class FieldType {
    * Contains the types of collections and a splitter that can be used to divide them
    * into numeric elements.
    */
-  private static final class CollectionType {
+  public static final class CollectionType {
     /**
      * Array separators are commas and whitespace.
      */
@@ -121,6 +121,10 @@ public final class FieldType {
 
     private CollectionType(final String splitter) {
       this.splitter = splitter;
+    }
+
+    public String getSplitter() {
+      return splitter;
     }
   }
 }

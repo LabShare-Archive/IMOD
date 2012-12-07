@@ -42,8 +42,8 @@ public final class SetupDialogExpertTest extends TestCase {
     ApplicationManager manager = (ApplicationManager) EtomoDirector.INSTANCE
         .getCurrentManagerForTest();
     manager.openSetupDialog();
-    assertNotNull("Manager should be able to create expert.", manager
-        .getSetupDialogExpert());
+    assertNotNull("Manager should be able to create expert.",
+        manager.getSetupDialogExpert());
   }
 
   public void testAction() {
@@ -109,6 +109,7 @@ public final class SetupDialogExpertTest extends TestCase {
     ApplicationManager manager = (ApplicationManager) EtomoDirector.INSTANCE
         .getCurrentManagerForTest();
     manager.openSetupDialog();
-    assertFalse("Fields are not filled so done should fail.", manager.doneSetupDialog(false));
+    assertFalse("Fields are not filled so done should fail.",
+        manager.doneSetupDialog(false, null));
   }
 }

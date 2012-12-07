@@ -1,6 +1,5 @@
 package etomo.ui.swing;
 
-import java.awt.Container;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,6 +9,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.PeetManager;
 import etomo.type.AxisID;
@@ -90,11 +90,16 @@ public final class FrontPageDialog {
   private final MultiLineButton btnGpuTiltTest = new MultiLineButton(
       EtomoMenu.GPU_TILT_TEST_LABEL);
 
-  private FrontPageDialog() {
+  private final BaseManager manager;
+  private final AxisID axisID;
+
+  private FrontPageDialog(final BaseManager manager, final AxisID axisID) {
+    this.manager = manager;
+    this.axisID = axisID;
   }
 
-  public static FrontPageDialog getInstance() {
-    FrontPageDialog instance = new FrontPageDialog();
+  public static FrontPageDialog getInstance(final BaseManager manager, final AxisID axisID) {
+    FrontPageDialog instance = new FrontPageDialog(manager, axisID);
     instance.createPanel();
     instance.setTooltips();
     instance.addListeners();
@@ -160,41 +165,37 @@ public final class FrontPageDialog {
     btnGpuTiltTest.addActionListener(actionListener);
   }
 
-  public Container getContainer() {
-    return pnlRoot;
-  }
-
-  public void reconActionForAutomation() {
-    EtomoDirector.INSTANCE.openTomogramAndDoAutomation(true, AxisID.ONLY);
+  public void show() {
+    manager.getMainPanel().showProcess(pnlRoot, axisID);
   }
 
   private void action(ActionEvent actionEvent) {
     String actionCommand = actionEvent.getActionCommand();
     if (actionCommand.equals(btnRecon.getActionCommand())) {
-      EtomoDirector.INSTANCE.openTomogram(true, AxisID.ONLY);
+      EtomoDirector.INSTANCE.openTomogram(true, axisID);
     }
     else if (actionCommand.equals(btnJoin.getActionCommand())) {
-      EtomoDirector.INSTANCE.openJoin(true, AxisID.ONLY);
+      EtomoDirector.INSTANCE.openJoin(true, axisID);
     }
     else if (actionCommand.equals(btnNad.getActionCommand())) {
-      EtomoDirector.INSTANCE.openAnisotropicDiffusion(true, AxisID.ONLY);
+      EtomoDirector.INSTANCE.openAnisotropicDiffusion(true, axisID);
     }
     else if (actionCommand.equals(btnGeneric.getActionCommand())) {
-      EtomoDirector.INSTANCE.openGenericParallel(true, AxisID.ONLY);
+      EtomoDirector.INSTANCE.openGenericParallel(true, axisID);
     }
     else if (actionCommand.equals(btnPeet.getActionCommand())) {
       if (PeetManager.isInterfaceAvailable()) {
-        EtomoDirector.INSTANCE.openPeet(true, AxisID.ONLY);
+        EtomoDirector.INSTANCE.openPeet(true, axisID);
       }
     }
     else if (actionCommand.equals(btnSerialSections.getActionCommand())) {
-      EtomoDirector.INSTANCE.openSerialSections(true, AxisID.ONLY);
+      EtomoDirector.INSTANCE.openSerialSections(true, axisID);
     }
     else if (actionCommand.equals(btnFlattenVolume.getActionCommand())) {
-      EtomoDirector.INSTANCE.openTools(AxisID.ONLY, ToolType.FLATTEN_VOLUME);
+      EtomoDirector.INSTANCE.openTools(axisID, ToolType.FLATTEN_VOLUME);
     }
     else if (actionCommand.equals(btnGpuTiltTest.getActionCommand())) {
-      EtomoDirector.INSTANCE.openTools(AxisID.ONLY, ToolType.GPU_TILT_TEST);
+      EtomoDirector.INSTANCE.openTools(axisID, ToolType.GPU_TILT_TEST);
     }
   }
 

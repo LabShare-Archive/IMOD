@@ -221,6 +221,10 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
   void setParameters(ConstTiltalignParam param, boolean initialize) {
     tilt3dFindPanel.setParameters(param, initialize);
   }
+  
+  void setOverrideParameters(final ConstMetaData metaData) {
+    tilt3dFindPanel.setOverrideParameters(metaData);
+  }
 
   void setParameters(ReconScreenState screenState) {
     header.setState(screenState.getStackAlignAndTiltHeaderState());

@@ -446,7 +446,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       "ImageRotationA");
   private EtomoNumber imageRotationB = new EtomoNumber(EtomoNumber.Type.DOUBLE,
       "ImageRotationB");
-  private int binning = 1;
+  EtomoNumber binning = new EtomoNumber("Binning");
 
   private boolean fiducialessAlignmentA = false;
   private boolean fiducialessAlignmentB = false;
@@ -781,8 +781,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private final EtomoBoolean2 trackAdvancedB = new EtomoBoolean2(TRACK_KEY + "."
       + SECOND_AXIS_KEY + ".Advanced");
 
+  // stack3dFindThickness must override the .com file values when it is not null
+  private final EtomoNumber stack3dFindThicknessA = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, STACK_KEY + "." + FIRST_AXIS_KEY + ".3dFind.Thickness");
+  private final EtomoNumber stack3dFindThicknessB = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, STACK_KEY + "." + SECOND_AXIS_KEY + ".3dFind.Thickness");
+
   public MetaData(final ApplicationManager manager) {
     this.manager = manager;
+    binning.setDisplayValue(1);
     squeezevolParam = new SqueezevolParam(manager);
     combineParams = new CombineParams(manager);
     transferfidParamA = new TransferfidParam(manager, AxisID.FIRST);
@@ -823,10 +830,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    * end of the string
    */
   public void setDatasetName(final String fileName) {
-    String pathName = fileName.trim();
-    File file = new File(pathName);
-    String path = file.getPath();
-    datasetName = file.getName();
+    // Trim off the path, if it exists
+    datasetName = new File(fileName).getName();
     fixDatasetName();
     Utilities.managerStamp(null, datasetName);
   }
@@ -946,11 +951,21 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    * end of the string
    */
   public void setBackupDirectory(final String backupDir) {
-    backupDirectory = backupDir.trim();
+    if (backupDir == null) {
+      backupDirectory = "";
+    }
+    else {
+      backupDirectory = backupDir.trim();
+    }
   }
 
   public void setDistortionFile(final String distortionFile) {
-    this.distortionFile = distortionFile;
+    if (distortionFile == null) {
+      this.distortionFile = "";
+    }
+    else {
+      this.distortionFile = distortionFile;
+    }
   }
 
   public void setEraseBeadsInitialized(final boolean input) {
@@ -1040,8 +1055,22 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
+  public void setStack3dFindThickness(final AxisID axisID, final String input) {
+    if (axisID == AxisID.SECOND) {
+      stack3dFindThicknessB.set(input);
+    }
+    else {
+      stack3dFindThicknessA.set(input);
+    }
+  }
+
   public void setMagGradientFile(final String magGradientFile) {
-    this.magGradientFile = magGradientFile;
+    if (magGradientFile == null) {
+      this.magGradientFile = "";
+    }
+    else {
+      this.magGradientFile = magGradientFile;
+    }
   }
 
   public void setAdjustedFocusA(final boolean adjustedFocus) {
@@ -1120,7 +1149,25 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
+  public void setStackBinning(final AxisID axisID, final String binning) {
+    if (axisID == AxisID.SECOND) {
+      stackBinningB.set(binning);
+    }
+    else {
+      stackBinningA.set(binning);
+    }
+  }
+
   public void setStack3dFindBinning(final AxisID axisID, final int binning) {
+    if (axisID == AxisID.SECOND) {
+      stack3dFindBinningB.set(binning);
+    }
+    else {
+      stack3dFindBinningA.set(binning);
+    }
+  }
+
+  public void setStack3dFindBinning(final AxisID axisID, final String binning) {
     if (axisID == AxisID.SECOND) {
       stack3dFindBinningB.set(binning);
     }
@@ -1260,7 +1307,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     this.fiducialDiameter = fiducialDiameter;
   }
 
-  public void setFiducialDiameter(final String fiducialDiameter) {
+  public void setFiducialDiameter(String fiducialDiameter) {
+    if (fiducialDiameter == null) {
+      fiducialDiameter = "";
+    }
     this.fiducialDiameter = Double.parseDouble(fiducialDiameter);
   }
 
@@ -1273,8 +1323,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setBinning(final Number binning) {
-    this.binning = binning.intValue();
+  public void setBinning(final String binning) {
+    this.binning.set(binning);
   }
 
   public void setTiltAngleSpecA(final TiltAngleSpec tiltAngleSpec) {
@@ -1282,6 +1332,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public void setExcludeProjections(final String list, final AxisID axisID) {
+    if (list == null) {
+      return;
+    }
     // Strip whitespace.
     String[] array = list.trim().split("\\s+");
     if (array != null && array.length > 1) {
@@ -1446,7 +1499,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     revisionNumber.reset();
     distortionFile = "";
     magGradientFile = "";
-    binning = 1;
+    binning.reset();
     useLocalAlignmentsA = true;
     useLocalAlignmentsB = true;
     useZFactorsA.reset();
@@ -1592,6 +1645,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackClusteredPointsAllowedElongatedValueB.reset();
     trackAdvancedA.reset();
     trackAdvancedB.reset();
+    stack3dFindThicknessA.reset();
+    stack3dFindThicknessB.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1732,8 +1787,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     combineParams.load(props, group);
     distortionFile = props.getProperty(group + "DistortionFile", distortionFile);
     magGradientFile = props.getProperty(group + "MagGradientFile", magGradientFile);
-    binning = Integer.parseInt(props.getProperty(group + "Binning",
-        Integer.toString(binning)));
+    binning.load(props, prepend);
 
     fiducialessAlignmentA = Boolean.valueOf(
         props.getProperty(group + "FiducialessAlignmentA", "false")).booleanValue();
@@ -1878,6 +1932,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackClusteredPointsAllowedElongatedValueB.load(props, prepend);
     trackAdvancedA.load(props, prepend);
     trackAdvancedB.load(props, prepend);
+    stack3dFindThicknessA.load(props, prepend);
+    stack3dFindThicknessB.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(final AxisID axisID, final boolean selected) {
@@ -2051,7 +2107,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     combineParams.store(props, group);
     props.setProperty(group + "DistortionFile", distortionFile);
     props.setProperty(group + "MagGradientFile", magGradientFile);
-    props.setProperty(group + "Binning", String.valueOf(binning));
+    binning.store(props, prepend);
     props.setProperty(group + "FiducialessAlignmentA",
         String.valueOf(fiducialessAlignmentA));
     props.setProperty(group + "FiducialessAlignmentB",
@@ -2212,6 +2268,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackClusteredPointsAllowedElongatedValueB.store(props, prepend);
     trackAdvancedA.store(props, prepend);
     trackAdvancedB.store(props, prepend);
+    stack3dFindThicknessA.store(props, prepend);
+    stack3dFindThicknessB.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -2829,7 +2887,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public int getBinning() {
-    return binning;
+    return binning.getInt();
   }
 
   public ConstEtomoNumber getBStackProcessed() {
@@ -2981,6 +3039,20 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return trackAdvancedB.is();
     }
     return trackAdvancedA.is();
+  }
+
+  public boolean isStack3dFindThicknessSet(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !stack3dFindThicknessB.isNull();
+    }
+    return !stack3dFindThicknessA.isNull();
+  }
+
+  public String getStack3dFindThickness(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return stack3dFindThicknessB.toString();
+    }
+    return stack3dFindThicknessA.toString();
   }
 
   public boolean isWholeTomogramSample(final AxisID axisID) {
