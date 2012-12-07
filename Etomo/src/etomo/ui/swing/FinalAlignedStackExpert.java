@@ -319,6 +319,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     dialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
     dialog.setImageRotation(metaData.getImageRotation(axisID).toString());
     dialog.setTiltState(state, metaData);
+    dialog.setOverrideParameters(metaData);
     openDialog(dialog, actionMessage);
   }
 
