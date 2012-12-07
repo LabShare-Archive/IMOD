@@ -26,7 +26,7 @@ import etomo.ui.swing.Token;
  * 
  * @version $Revision$
  */
-final class AttributeList {
+final class AttributeList implements ReadOnlyAttributeList {
   public static final String rcsid = "$Id$";
 
   private final WriteOnlyAttributeList parent;
@@ -36,8 +36,8 @@ final class AttributeList {
    * occurrences of a name in this attribute list.  Attributes are never removed,
    * but the number of occurrences they contain can be reduced to 0.
    */
-  private final Map map = new HashMap();
-  private final List list = new ArrayList();
+  private final Map<String, Attribute> map = new HashMap<String, Attribute>();
+  private final List<Attribute> list = new ArrayList<Attribute>();
 
   AttributeList(WriteOnlyAttributeList parent) {
     this.parent = parent;
@@ -50,14 +50,14 @@ final class AttributeList {
    */
   WriteOnlyAttributeList addAttribute(Token name) {
     String key = Attribute.getKey(name);
-    Attribute attribute = (Attribute) map.get(Attribute.getKey(name));
+    Attribute attribute = map.get(Attribute.getKey(name));
     if (attribute == null) {
       attribute = new Attribute(parent, name);
       map.put(key, attribute);
       list.add(attribute);
     }
     else {
-      //add another occurrence of this attribute
+      // add another occurrence of this attribute
       attribute.add();
     }
     return attribute;
@@ -67,12 +67,19 @@ final class AttributeList {
     if (map == null) {
       return null;
     }
-    Attribute attribute = (Attribute) map.get(Attribute.getKey(name));
+    Attribute attribute = map.get(Attribute.getKey(name));
     if (attribute == null || !attribute.exists()) {
-      //if !exists(), then all occurrences of this attribute have been removed
+      // if !exists(), then all occurrences of this attribute have been removed
       return null;
     }
     return attribute;
+  }
+
+  /**
+   * @return An iterator for the list of attributes.
+   */
+  public ReadOnlyAttributeIterator iterator() {
+    return new ReadOnlyAttributeIterator(list);
   }
 
   /**
@@ -81,7 +88,7 @@ final class AttributeList {
    */
   ReadOnlyAttribute getFirstAttribute() {
     for (int i = 0; i < list.size(); i++) {
-      Attribute attribute = (Attribute) list.get(i);
+      Attribute attribute = list.get(i);
       if (attribute.exists()) {
         return attribute;
       }
@@ -96,7 +103,7 @@ final class AttributeList {
       Iterator iterator = collection.iterator();
       if (iterator.hasNext()) {
         while (iterator.hasNext()) {
-          //This bypasses the exists() check, but Attribute.print() also checks exists()
+          // This bypasses the exists() check, but Attribute.print() also checks exists()
           attribute = (Attribute) iterator.next();
           attribute.print(level);
         }
