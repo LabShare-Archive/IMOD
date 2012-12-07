@@ -741,8 +741,10 @@ public class EtomoDirector {
   }
 
   private void saveLogs() {
-    for (int i = 0; i < managerList.size(); i++) {
-      ((BaseManager) managerList.get(i)).saveLog();
+    if (managerList != null) {
+      for (int i = 0; i < managerList.size(); i++) {
+        ((BaseManager) managerList.get(i)).saveLog();
+      }
     }
   }
 
