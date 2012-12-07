@@ -315,7 +315,7 @@ public final class AutodocFactory {
    * @throws FileNotFoundException
    * @throws IOException
    */
-  public static Autodoc getInstance(BaseManager manager, File directory,
+  public static Autodoc getTestInstance(BaseManager manager, File directory,
       String autodocFileName, AxisID axisID) throws FileNotFoundException, IOException,
       LogFile.LockException {
     if (autodocFileName == null) {
@@ -336,6 +336,32 @@ public final class AutodocFactory {
     autodoc = new Autodoc(stripFileExtension(autodocFileName));
     UITEST_AXIS_MAP.put(autodocFile, autodoc);
     autodoc.initializeUITestAxis(manager, LogFile.getInstance(autodocFile), axisID);
+    return autodoc;
+  }
+
+  /**
+   * open and return an autodoc without a type.
+   * @param autodocFile
+   * @param axisID
+   * @return
+   * @throws FileNotFoundException
+   * @throws IOException
+   */
+  public static Autodoc getInstance(final BaseManager manager, final File autodocFile,
+      final AxisID axisID) throws FileNotFoundException, IOException,
+      LogFile.LockException {
+    if (autodocFile == null) {
+      return null;
+    }
+    AutodocFilter filter = new AutodocFilter();
+    if (!filter.accept(autodocFile)) {
+      throw new IllegalArgumentException(autodocFile + " is not an autodoc.");
+    }
+    if (EtomoDirector.INSTANCE.getArguments().isTest()) {
+      System.err.println("autodoc file:" + autodocFile.getAbsolutePath());
+    }
+    Autodoc autodoc = new Autodoc(stripFileExtension(autodocFile.getName()));
+    autodoc.initialize(manager, LogFile.getInstance(autodocFile), axisID);
     return autodoc;
   }
 
