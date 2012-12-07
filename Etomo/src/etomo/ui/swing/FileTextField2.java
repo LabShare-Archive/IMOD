@@ -231,7 +231,9 @@ final class FileTextField2 implements FileTextFieldInterface {
   }
 
   void setOrigin(final String input) {
-    origin = new File(input);
+    if (input != null) {
+      origin = new File(input);
+    }
   }
 
   boolean isEmpty() {
