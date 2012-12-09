@@ -7,7 +7,6 @@ c
 c       See man page for details.
 c       
 c       $Id$
-c       Log at end of file
 c	
       implicit none
       integer limpix,limstack,limproj,limray
@@ -18,9 +17,10 @@ c       9/16/09: Increased stack size increases page faulting and CPU time
       real*4 array(limstack)
       character*320 filin,filout
       character*1 xyz
-      integer*4 nxyzin(3),mxyzin(3),nxyzout(3),nxyzst(3)
-      real*4 cell(6),title(20)
+      integer*4 nxyzin(3),mxyzin(3),nxyzout(3),nxyzst(3), mapScales(3,3)
+      real*4 cell(6),title(20), delta(3)
       data nxyzst/0,0,0/,cell/0.,0.,0.,90.,90.,90./
+      data mapScales/2,1,2, 1,2,1, 1,3,1/
       integer*4 nxin,nyin,nzin,nxout,nyout,nzout
       common /nxyz/nxin,nyin,nzin,nxout,nyout,nzout
       equivalence (nxyzin(1),nxin),(nxyzout(1),nxout)
@@ -34,7 +34,7 @@ c       9/16/09: Increased stack size increases page faulting and CPU time
       integer*4 load0,loaddir,modeout,ifrayscale, loadylo, loadyhi
       real*4 dmin,dmax,dmean,tiltstr,tiltend,tiltinc,scaladd,scalfac
       real*4 fill,dmin2,dmax2,dmean2,dsum,angle,projMiddle
-      integer*4 istackdel,limslices,nloads,ioutbase,iproj,ixout
+      integer*4 istackdel,limslices,nloads,ioutbase,iproj,ixout, indAxis
       integer*4 iyoutstr,nslices,load1,invertAng,nview
       integer*4 izsec,indstack,iraybase,nraypts,iray,ipix
       real*4 xray,yray,dx,dy,v2,v4,v5,v6,v8,vmin,vmax,a,b,c,d
@@ -190,6 +190,7 @@ c
         lenload=nyblock
         load0=ix0
         loaddir=1
+        indAxis = 1
       elseif(xyz.eq.'y'.or.xyz.eq.'Y')then      !tilt around Y
         nxslice=nxblock
         nyslice=nzblock
@@ -199,6 +200,7 @@ c
         load0=iy0
         loaddir=1
         invertAng = -1
+        indAxis = 2
       elseif(xyz.eq.'z'.or.xyz.eq.'Z')then      !tilt around Z
         nxslice=nxblock
         nyslice=nyblock
@@ -207,6 +209,7 @@ c
         lenload=0
         load0=iz0
         loaddir=idirz
+        indAxis = 3
       else
         call exiterror('YOU MUST ENTER ONE OF X, Y, Z, x, y, or z FOR AXIS')
       endif
@@ -282,9 +285,10 @@ c
       call itrhdr(2,1)
       call ialmod(2,modeout)
       call ialsiz(2,nxyzout,nxyzst)
-      call ialsam(2,nxyzst)
+      call ialsam(2,nxyzout)
+      call irtdel(1, delta)
       do i=1,3
-        cell(i)=nxyzout(i)
+        cell(i)=nxyzout(i) * delta(mapScales(i, indAxis))
       enddo
       call ialcel(2,cell)
       call time(tim)
@@ -748,30 +752,3 @@ c$$$     &      projang, tilt, axisy, ix, xend,yend,iylo,iylotfs,iyhi,iyhitfs
       enddo
       return
       end
-
-c       
-c       $Log$
-c       Revision 3.7  2007/07/15 20:57:03  mast
-c       Fixed edge fill with the constant scaling option
-c
-c       Revision 3.6  2007/04/26 19:16:01  mast
-c       Added option to give constant scaling
-c
-c       Revision 3.5  2006/06/20 04:52:09  mast
-c       Converted to PIP, changed for changes in set_projection_rays
-c
-c       Revision 3.4  2006/05/17 00:09:15  mast
-c       Fixed scaling to avoid excessive amplification near edges; it now
-c       scales as if the block is padded with fill data on the sides.
-c       Added proper error exits.
-c
-c       Revision 3.3  2005/12/09 04:45:32  mast
-c       gfortran: .xor., continuation, or byte fixes
-c	
-c       Revision 3.2  2002/02/26 22:34:47  mast
-c       Had to decrease limray size to avoid exceeding stack limit on SGI; it
-c       only needs to be big enough to allow lots of images or very big images
-c	
-c       Revision 3.1  2002/01/28 16:14:22  mast
-c       Increased limit on number of projections and added check on limit.
-c       Added declarations for implicit none.
