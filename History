@@ -1,5 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/8/12: Modified Imodtrans to adjust model max coordinates when image file is
+given for reference coordinates, added option to allow scaling of transform
+shifts, and allowed translations to be combined with transforms.
+
+12/8/12: Changed Imodfindbeads and autofidseed to provide a default minimum
+guess and a fallback number to store in model if histogram dip is not found.
+
+12/8/12: Modified Imodtrans, Imodjoin, and raw2mrc to put error output to 
+standard output.
+
 12/2/12: Added script Makecomfile to make optional com files for tomogram
 generation.
 
