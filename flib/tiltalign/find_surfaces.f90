@@ -59,7 +59,7 @@ subroutine find_surfaces(xyz, numRealPt, numSurface, tiltMax, &
     igroup(i) = 0
   enddo
   call lsfit2Resid(xx, yy, zz, numRealPt, aSlope, bSlope, bintcp, alpha, slope, &
-      resid, cosTheta, sinTheta)
+      resid, botExtreme, topExtreme)
 
   do iun = 6, iunit2
     write(iun, '(/,a,//,a,//,a,/,a,f8.4)') ' SURFACE ANALYSIS:', &
@@ -139,24 +139,24 @@ subroutine find_surfaces(xyz, numRealPt, numSurface, tiltMax, &
           ' Average X axis tilt needed =',f10.2)
     enddo
     call calcTiltNew(slopeAvg, tiltMax, iunit2, tiltNew, ifComp, tiltAdd)
-    !
-    ! Get the unbinned thickness and shifts needed to center the gold
-    ! The direction is opposite to expected because the positive Z points
-    ! come out on the bottom of the tomogram, presumably due to rotation
-    thick = imageBinned * (topExtreme - botExtreme)
-    shiftTot = imageBinned * (topExtreme + botExtreme) / 2.
-    shiftInc = shiftTot - imageBinned * znew
-    shiftTot = shiftInc + imageBinned * znewInput
-    do iun = 6, iunit2
-      write(iun, 103) thick, shiftInc, shiftTot
-103   format(' Unbinned thickness needed to contain centers of all ', &
-          'fiducials =', f13.0,/, &
-          ' Incremental unbinned shift needed to center range of fi', &
-          'ducials in Z =',f8.1,/, &
-          ' Total unbinned shift needed to center range of fiducial', &
-          's in Z =',f14.1)
-    enddo
   endif
+  !
+  ! Get the unbinned thickness and shifts needed to center the gold
+  ! The direction is opposite to expected because the positive Z points
+  ! come out on the bottom of the tomogram, presumably due to rotation
+  thick = imageBinned * (topExtreme - botExtreme)
+  shiftTot = imageBinned * (topExtreme + botExtreme) / 2.
+  shiftInc = shiftTot - imageBinned * znew
+  shiftTot = shiftInc + imageBinned * znewInput
+  do iun = 6, iunit2
+    write(iun, 103) thick, shiftInc, shiftTot
+103 format(' Unbinned thickness needed to contain centers of all ', &
+        'fiducials =', f13.0,/, &
+        ' Incremental unbinned shift needed to center range of fi', &
+        'ducials in Z =',f8.1,/, &
+        ' Total unbinned shift needed to center range of fiducial', &
+        's in Z =',f14.1)
+  enddo
   deallocate( xx, yy, zz, zrot, icheck, stat = iter)
   return
 end subroutine find_surfaces
