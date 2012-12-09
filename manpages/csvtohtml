@@ -1,0 +1,91 @@
+#!/usr/bin/python -u
+# csvtohtml - converts csv file to html table
+# The csv file must start with a title row, an html header row, and a table header row
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+# Find index of last non-empty string in the row
+def lastNonEmptyIndex(row):
+   last = -1;
+   for ind in range(len(row)):
+      if len(row[ind]):
+         last = ind
+   return last
+
+import csv, sys
+sys.path.append('../pysrc')
+from imodpy import *
+
+if len(sys.argv) < 3:
+   prnstr('Usage: csvtohtml input_file output_file')
+   sys.exit(1)
+
+csvfile = open(sys.argv[1], 'r')
+reader = csv.reader(csvfile)
+needTitle = True
+needHeader = True
+needTableHead = True
+lastBlank = False
+outlines = ['<HTML>',
+            '<HEAD>']
+inrows = []
+maxlen = 0
+for row in reader:
+   inrows.append(row)
+   maxlen = max(maxlen, len(row))
+
+for row in inrows:
+   lastNonEmpty = lastNonEmptyIndex(row)
+   tdtag = 'TD'
+   if needTitle:
+      if lastNonEmpty < 0:
+         continue
+      outlines += ['<TITLE>' + row[0] + '</TITLE>',
+                   '</HEAD>',
+                   '<BODY>']
+      needTitle = False
+      continue
+
+   elif needHeader:
+      if lastNonEmpty < 0:
+         continue
+      outlines += ['<A NAME = "TOP"><H2 ALIGN=center>' + row[0] + '</H2></A>',
+                   '<TABLE BORDER COLS=2>',
+                   '<THEAD>']
+      needHeader = False
+      continue
+   
+   elif needTableHead:
+      if lastNonEmpty < 0:
+         continue
+      tdtag = 'TH'
+
+   line = '<TR>'
+   for ind in range(maxlen):
+      if ind <= lastNonEmpty:
+         cell = row[ind]
+      else:
+         cell = ''
+      if cell == '':
+         cell = '&nbsp;'
+      if lastBlank and lastNonEmpty == 0 and ind == 0:
+         line += fmtstr('<{}><B>{}</B></{}>', tdtag, cell, tdtag)
+      else:
+         line += fmtstr('<{}>{}</{}>', tdtag, cell, tdtag)
+   line += '</TR>'
+   outlines.append(line)
+   lastBlank = lastNonEmpty < 0
+   if needTableHead:
+      outlines += ['</THEAD>',
+                    '<TBODY>']
+      needTableHead = False
+
+outlines += ['</TBODY>',
+             '</TABLE>'
+             '</BODY>',
+             '</HTML>']
+
+writeTextFile(sys.argv[2], outlines)
+sys.exit(0)
