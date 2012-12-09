@@ -47,18 +47,15 @@ def setBorderSize(sizeForBorder, entered):
 
 # Fill in first gap in view list going out from middle in given direction
 def fillFirstGap(viewList, lookDir, midz):
-   print viewList
-   print lookDir, midz, trackStart, trackEnd
    rangeLo = range(midz, trackStart - 1, -1)
    rangeHi = range(midz, trackEnd + 1)
    trackRange = rangeLo + rangeHi
    if lookDir > 0:
       trackRange = rangeHi + rangeLo
-   print rangeLo, rangeHi, trackRange
    for view in trackRange:
       if view not in viewList:
          return view
-   else:
+   else:   # ELSE ON FOR
       exitError('Inconsistency picking seed views')
 
 
@@ -225,7 +222,9 @@ def runFindBeads():
                fmtstr('MinSpacing {}', spacing),
                fmtstr('LinearInterpolation {}', linear),
                fmtstr('StorageThreshold {}', -peakFraction),
-               fmtstr('MinGuessNumBeads {}', guess)]
+               fmtstr('MinGuessNumBeads {}', guess),
+               fmtstr('FallbackThresholds {},{}', averageFallback * numSeedViews,
+                      storageFallback * numSeedViews)]
    if lightBeads:
       comlines.append('LightBeads 1')
    if usingSobel and kernelArr:
@@ -245,9 +244,10 @@ def runFindBeads():
    for l in findlines:
       prnstr(l, end='')
    last = len(findlines) - 1
-   if findlines[last - 1].find('peaks are above') < 0 or \
-          findlines[last].find('total peaks being') < 0:
-      if (findlines[last].find('Failed to find dip')) >= 0:
+   if ('peaks are above' not in findlines[last - 1] and \
+          'using fallback' not in findlines[last - 1]) or \
+          'total peaks being' not in findlines[last]:
+      if 'Failed to find dip' in findlines[last]:
          exitError('Cannot proceed; imodfindbeads cannot identify the gold beads')
       exitError('Output from imodfindbeads does not end in the expected way')
    lsplit = findlines[last].split()
@@ -287,6 +287,7 @@ if os.getenv('IMOD_DIR') != None:
    os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
                         os.pathsep + os.environ['PATH']
    sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+   os.environ['PIP_PRINT_ENTRIES'] = '0'
 else:
    sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
    sys.exit(1)
@@ -329,7 +330,8 @@ moreViewCrit5 = 1.    # Not all points are usable
 moreViewCrit7 = 0.5   # This is unlikely to help more so make the threshold low
 leavetmp = 0
 targetToGuessFrac = 0.25
-guessBoundFrac = 0.5
+targetToAverageFB = 0.33
+targetToStorageFB = 2.0
 
 # Extensions for files that are always cleaned up, files that are left for resuming
 # and files that are left for user edification only.  Make all extensions unique
@@ -407,6 +409,8 @@ if targetNumber < 1 and targetDensity <= 0.:
                 'the seed model')
 boundModel = PipGetString('BoundaryModel', '')
 excludeAreas = PipGetBoolean('ExcludeInsideAreas', 0)
+if boundModel and not os.path.exists(boundModel):
+   exitError('Boundary model ' + boundModel + ' dose not exist')
 (minSubareaNum, minSubareaSize) = PipGetTwoIntegers('SortAreasMinNumAndSize',
                                                     minSubareaNum, minSubareaSize)
 ifPick = 1 - PipGetErrNo()
@@ -442,7 +446,7 @@ startline = -1
 endline = len(rawTracklines)
 for i in range(endline):
    line = rawTracklines[i].strip()
-   if line.startswith('$') and line.find('beadtrack') >=0 and line.find('-Standard') > 0:
+   if line.startswith('$') and 'beadtrack' in line and '-Standard' in line:
       startline = i + 1
    elif startline > 0 and line.startswith('$'):
       endline = i
@@ -473,17 +477,13 @@ except ImodpyError:
 xborder = setBorderSize((nx + ny) // 2, xborder)
 yborder = setBorderSize((nx + ny) // 2, yborder)
 
-# Get the target number roughly, if density entered, and set a default guess
-if targetDensity > 0.:
-   targetNumber = targetDensity * nx * ny * 1.e-6
-   if not ifGuess:
-      guess = round(targetNumber * targetToGuessFrac)
-      if boundMod:
-         guess = round(targetNumber * targetToGuessFrac * guessBoundFrac)
-      guess = max(1, guess)
+# Get the binning
+binning = 1
+binArr = optionValue(tracklines, 'ImagesAreBinned', 1)
+if binArr:
+   binning = binArr[0]
 
-# Get the bead size and imageBinned value if no -size entered and produce the value
-# needed for findbeads
+# Get the bead size if no -size entered and produce the value needed for findbeads
 beadSize = PipGetFloat('BeadSize', 0.)
 if PipGetErrNo():
    sizeArr = optionValue(tracklines, 'BeadDiameter', 2)
@@ -492,10 +492,6 @@ if PipGetErrNo():
    else:
       exitError('There is no BeadDiameter entry in ' + trackcom + \
                    '; fix this or enter a size with -size')
-   binning = 1
-   binArr = optionValue(tracklines, 'ImagesAreBinned', 1)
-   if binArr:
-      binning = binArr[0]
    beadSize /= binning
 
 # Get filtering information if sobel activated
@@ -573,6 +569,40 @@ for viewInc in (10, 8, 6):
 # midView, trackStart, trackEnd and seed lists will all be included view indexes
 # so need to take includedViews[view] to get true Z
 midView = (trackEnd + trackStart) / 2
+
+# Convert a density to a target number
+# If there is a boundary model, find out the total area from imodfindbeads
+if targetDensity > 0.:
+   targetDensity *= binning * binning
+   totalArea = nx * ny * 1.e-6
+   if boundModel:
+      comlines = ['InputImageFile ' + imageFile,
+                  'AreaModel ' + boundModel,
+                  'QueryAreaOnSection ' + str(includedViews[minTiltInd])]
+      if excludeAreas:
+         comlines.append('ExcludeInsideAreas 1')
+      try:
+         findlines = runcmd('imodfindbeads -StandardInput', comlines)
+         for l in findlines:
+            ind = l.find('=')
+            if ind > 0 and 'Area (megapixels)' in l:
+               totalArea = float(l[ind + 1:])
+               break
+         else:
+            exitError('Cannot find area being analyzed from imodfindbeads output')
+      except ImodpyError:
+         cleanExitError('Running imodfindbeads to determine area being analyzed')
+      except ValueError:
+         exitError('Converting area being analyzed from imodfindbeads output')
+
+   targetNumber = targetDensity * totalArea
+
+# Now it is possible to convert to get fallbacks for the guess and thresholds
+if not ifGuess:
+   guess = int(round(targetNumber * targetToGuessFrac))
+averageFallback = int(round(targetNumber * targetToAverageFB))
+storageFallback = int(round(targetNumber * targetToStorageFB))
+
 
 trackMtime = int(os.stat(trackcom).st_mtime)
 imageMtime = int(os.stat(imageFile).st_mtime)
@@ -747,7 +777,7 @@ for ind in range(numSeedViews):
          cleanExitError('Running clipmodel to extract seed for view ' + viewStr)
       numPeaks = -1
       for l in cliplines:
-         if l.find('Number of points') > 0:
+         if 'Number of points' in l:
             lsplit = l.split()
             numPeaks = convertToInteger(lsplit[len(lsplit) - 1],
                                         'number of points remaining')
@@ -819,7 +849,7 @@ if not oldValid:
    try:
       shutil.copyfile(trackcom, comSaved)
    except:
-      print 'WARNING: autofidseed - failed to copy ' + trackcom + ' to ' + tmpdir
+      prnstr('WARNING: autofidseed - failed to copy ' + trackcom + ' to ' + tmpdir)
 
 # Sort the beads onto two surfaces for each model
 if twoSurf:
