@@ -41,7 +41,7 @@ int imodPointAppendXYZ(Icont *cont, float x, float y, float z)
 
 /*!
  * Adds point [pnt] to contour [cont] at the given [index].  Manages point
- * sizes and labels correctly.  Returns number of 
+ * sizes, labels, and general storage items correctly.  Returns number of 
  * points in contour, or 0 if an error occurs.
  */
 int imodPointAdd(Icont *cont, Ipoint *pnt, int index)
@@ -113,8 +113,8 @@ int imodPointAdd(Icont *cont, Ipoint *pnt, int index)
 
 /*!
  * Deletes the point at [index] from contour [cont].  Frees the point and size
- * arrays if the only point is deleted, and manages point sizes and labels 
- * correctly.  Returns the size of the contour or -1 for error.
+ * arrays if the only point is deleted, and manages point sizes, labels, and general
+ * storage items correctly.  Returns the size of the contour or -1 for error.
  */
 int imodPointDelete(Icont *cont, int index)
 {
