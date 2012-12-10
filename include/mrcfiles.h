@@ -95,25 +95,25 @@ typedef struct MRCheader
   b3dInt32   nz;         /*  # of Sections.                */
   b3dInt32   mode;       /*  given by #define MRC_MODE...  */
 
-  b3dInt32   nxstart;    /*  Starting point of sub image.  */
+  b3dInt32   nxstart;    /*  Starting point of sub image.  UNSUPPORTED */
   b3dInt32   nystart;
   b3dInt32   nzstart;
 
-  b3dInt32   mx;         /* Number of rows to read.        */
-  b3dInt32   my;
+  b3dInt32   mx;         /* "Grid size", # of pixels in "unit cell"    */
+  b3dInt32   my;         /* Keep the same as nx, ny, nz                */
   b3dInt32   mz;
 
-  b3dFloat   xlen;       /* length of x element in um.     */
-  b3dFloat   ylen;       /* get scale = xlen/nx ...        */
+  b3dFloat   xlen;       /* length of unit cell in Angstroms           */
+  b3dFloat   ylen;       /* get scale = xlen/nx ...                    */
   b3dFloat   zlen;
 
-  b3dFloat   alpha;      /* cell angles, ignore */
+  b3dFloat   alpha;      /* cell angles, ignored, set to 90            */
   b3dFloat   beta;
   b3dFloat   gamma;
 
-  b3dInt32   mapc;       /* map coloumn 1=x,2=y,3=z.       */
-  b3dInt32   mapr;       /* map row     1=x,2=y,3=z.       */
-  b3dInt32   maps;       /* map section 1=x,2=y,3=z.       */
+  b3dInt32   mapc;       /* map column  1=x,2=y,3=z.     UNSUPPORTED  */
+  b3dInt32   mapr;       /* map row     1=x,2=y,3=z.                  */
+  b3dInt32   maps;       /* map section 1=x,2=y,3=z.                  */
 
   b3dFloat   amin;
   b3dFloat   amax;
