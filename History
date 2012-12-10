@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/10/12: Made Splittilt turn GPU failure from warning to error so that one
+machine doesn't fall back to CPU while others are on GPU.
+
 12/9/12: Fixed Xyzproj and clip 2D average to preserve pixel size.
 
 12/9/12: If Z pixel size is 0, MRC header gets fixed so it matches X pixel
