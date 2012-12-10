@@ -45,7 +45,7 @@
  * If [center] is 0, the scaled image is computed and returned without Sobel 
  * filtering. ^
  * The filtering operation is parallelized with OpenMP with the same limitation on
- * number of threads as used in @cubinterp.  ^
+ * number of threads as used in @@cubinterp@.  ^
  * The call from Fortran is the same as that from C.
  */
 int scaledSobel(float *inImage, int nxin, int nyin, float scaleFac, 

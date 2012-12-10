@@ -6,7 +6,6 @@
  * Colorado.  See dist/COPYRIGHT for full notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include "imodconfig.h"
@@ -129,7 +128,7 @@ int parWrtInitialize(char *filename, int nxin, int nyin)
 
 /*!
  * Simple Fortran wrapper for @parWrtInitialize, called by the Fortran
- * parWrtInitialize funtion.
+ * parWrtInitialize function.
  */
 int parwrtinitializefw(char *filename, int *nxin, int *nyin, int strlen)
 {
@@ -165,7 +164,7 @@ int parWrtProperties(int *allSec, int *linesBound, int *nfiles)
 }
 
 /*!
- * Fortran wrapper for @parWrtProperties.
+ * Fortran wrapper for @parWrtProperties
  */
 int parwrtproperties(int *allSec, int *linesBound, int *nfiles)
 {
@@ -289,21 +288,3 @@ int parwrtgetregion(int *regionNum, char *filename, int *sections,
   startLines[1] = regions[reg].startLine[1];
   return c2fString(regions[reg].file, filename, strlen);
 }
-
-/*
-
-$Log$
-Revision 1.4  2011/02/10 04:38:14  mast
-Unused variable cleanup
-
-Revision 1.3  2010/06/23 15:25:03  mast
-Modify boundary lines when no boundary for Y chunk
-
-Revision 1.2  2009/09/18 14:57:20  mast
-Corrected test for good reading of a line
-
-Revision 1.1  2009/02/16 06:15:03  mast
-Added to package
-
-
-*/
