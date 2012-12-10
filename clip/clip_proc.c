@@ -1448,7 +1448,8 @@ int clip_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout, ClipOptions *opt
     }
     if ( (h1->nx != hdr[f]->nx) || (h1->ny != hdr[f]->ny) ||
          (h1->nz != hdr[f]->nz) || (h1->mode != hdr[f]->mode )) {
-      fprintf(stderr, "clip volume combining: all files must be the same size and mode.");
+      fprintf(stderr, "clip volume combining: all files must be the same size and "
+              "mode.\n");
       return(-1);
     }
   }
@@ -1547,7 +1548,7 @@ int clip2d_average(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   Ival val, aval;
   int k, z, i, j, l, variance = 0;
   int thresh = FALSE;
-  float dval,scale,dscale;
+  float dval,scale,dscale, sx, sy, sz;
      
   if (opt->ox != IP_DEFAULT || opt->oy != IP_DEFAULT || 
       opt->oz != IP_DEFAULT)
@@ -1679,6 +1680,8 @@ int clip2d_average(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   hout->amax = B3DMAX(avgs->max, hout->amax);
   if (opt->add2file != IP_APPEND_OVERWRITE)
     hout->amean += avgs->mean / hout->nz;
+  mrc_get_scale(hin, &sx, &sy, &sz);
+  mrc_set_scale(hout, sx, sy, sz);
   if (mrc_write_slice((void *)avgs->data.b, hout->fp, hout, z, 'z'))
     return -1;
   if (mrc_head_write(hout->fp, hout))
@@ -2205,8 +2208,12 @@ int clip_stat(MrcHeader *hin, ClipOptions *opt)
   std = (vsumsq - ptnum * vmean * vmean) / B3DMAX(1.,(ptnum - 1.));
   std = sqrt(B3DMAX(0., std));
 
-  printf(" all  %9.4f (@ z=%5d) %9.4f (@ z=%5d      ) %9.4f  %9.4f\n",
-         vmin, zmin, vmax, zmax, vmean, std);
+  if (li.plist)
+    printf(" all  %9.4f (@ piece =%5d) %9.4f (@ piece =%5d) %9.4f  %9.4f\n",
+           vmin, zmin + 1, vmax, zmax+1, vmean, std);
+  else
+    printf(" all  %9.4f (@ z=%5d) %9.4f (@ z=%5d      ) %9.4f  %9.4f\n",
+           vmin, zmin, vmax, zmax, vmean, std);
 
   if (outliers) {
     printf("\n%s with %sextreme values:", 
