@@ -1,0 +1,226 @@
+.na
+.nh
+.TH batchruntomo 1 4.6.18 BL3DEMC
+.SH NAME
+batchruntomo \- Align tilt series and generate tomograms automatically
+.SH SYNOPSIS
+batchruntomo [options] directive_files
+
+.SH DESCRIPTION
+Batchruntomo runs all the operations required to align a tilt series and build
+a tomogram, following a set of instructions called "directives" provided in a
+text file.  These directives indicate either parameter settings or which
+pathway to follow at various points in the processing sequence.  The program
+will perform operations in a fixed order determined by these choices; the
+order of the directives does not affect this order.
+
+.SS Directives
+Directives consist of key-value pairs separated by equals signs,
+where the key has 2 to 4 components separated by periods.  The first component
+is a prefix that indicates the type of directive or the stage at which it is
+applied.  The value may be blank if appropriate but the equals sign must be
+present.  There are currently three prefixes: "setupset", for directives
+involved when setting up a data set; "comparam", for directives used to set
+options in command files; and "runtime", for directives interpreted by
+Batchruntomo or etomo.  A description of all directives is contained in the file 
+ "IMOD/com/directives.csv", which is in comma-separated values format.  It is
+accessible in a more readable form from the IMOD help index via the link
+"Directives for batch processing and eTomo templates" (available from
+"imodhelp" or when accessing the html package of IMOD documentation with a
+browser).
+.P
+"setupset" directives have two forms.  The majority have the form 
+.br
+   setupset.copyarg.<copytomocoms short option name>=value
+.br
+These directives will be processed generically by eTomo and sent to
+Copytomocoms(1) as command line arguments.  The short option name must be
+given in full.  The rule for boolean options is that the value must be blank
+if the option is true, and the directive must not be present if the option is
+false.
+.P
+Other "setupset" directives are interpreted exclusively by Batchruntomo or
+etomo and have the form
+.br
+   setupset.<parameter or option>=value
+.br
+Here, a boolean option may have a value; it is interpreted as true if the
+value is blank or 1, and false if the value is 0.
+.P
+"comparam" directives are interpreted generically when a command file is
+created either by Copytomocoms(1) or by Makecomfile(1).  They have the form
+.br
+   comparam.<root name of file>.<program>.<Long option name>=value
+.br
+The root name of the command file may include an axis letter ("a" or "b").
+For a single axis data set, directives without a letter and with an "a" are
+treated as equivalent and ones with "b" are ignored.  For a dual axis data
+set, a directive without a letter can apply to either axis, but will be
+overridden by a directive with a letter matching the specific axis, regardless
+of which one occurs later in the processing sequence.  The long option name
+must be given in full.  Options to Tilt(1) must match the case shown in the
+Tilt(1) man page, even though Tilt(1) accepts case-insensitive options.  If
+the value for any kind of option is blank, it is interpreted to mean that the 
+option should be removed from the command file if present.
+A boolean option can be set to true with a value of 1, or to false either with
+a blank value (removing it from the command file) or with a value of 0 (adding
+it to or leaving it in the command file with a value of 0).
+.P
+Because "comparam" directives are treated generically, they are not restricted
+to the ones listed in the table of directives.  Any valid option can be used,
+although some would be meaningless in the context of automation and some would
+conflict with the management provided by Copytomocoms(1) and Makecomfile(1).
+.P
+"runtime" directives have the form
+.br
+   runtime.<Processing step>.<axis>.<parameter or option>=value
+.br
+Here the processing step and parameter have names that have been made up just
+for the directive.  The convention is for the processing step to be capitalized
+and the parameter to start with lower case.  The axis must be either "a", "b",
+or "any".  For a single axis data set, directives with "any" or "a" are
+treated as equivalent and ones with "b" are ignored.  For a dual axis data
+set, a directive with "any" can apply to either axis, but will be
+overridden by a directive with a letter matching the specific axis, regardless
+of which one occurs later in the processing sequence.  A boolean parameter is
+interpreted as true if its value is 1 or empty, or as false if its value is 0.
+.P
+To summarize the diverse situation with boolean directives: 
+   1) "setupset.copyarg" boolean directives must have an empty value and are
+   true if present, and false if absent.
+   2) other "setupset" and "runtime" boolean directives are true if the value
+   is empty or 1, and false if the value is 0 or the directive is absent.
+   3) "comparam" boolean directives are true if the value is 1, and
+false if the value is 0 or empty; if a directive is absent a value
+already present in the command file is retained.
+.P
+If a processing step is being skipped or bypassed by an alternative method of
+processing, then all the directives related to it have no effect on the
+processing that is done.  It is thus generally safe to leave unused directives
+in a file.  Such directives with prefix "comparam" will be used to set
+parameters in command files produced by Copytomocoms(1), but directives for
+parameters in other command files will have no effect because those files will
+not be produced.  Directives with prefix "runtime" are simply ignored if they
+are not relevant to the chosen processing sequence.
+
+.SS Template and Microscope Files
+Directives exist to define a microscope file, a system template file,
+and a user template file.  The current plan is for the microscope file to have
+parameters specific to a microscope or microscope/camera combination, and to
+have the template files contain a subset of directives just like those
+described defining options that would not be dataset-specific.  Template
+files can be used now, but there is not yet support for microscope files in
+eTomo.  There is a
+heirarchy among these directives: ones in the user template file override ones
+in the system template file, while ones in the batch directive file override
+ones in both template files.
+Batchruntomo simply passes the microscope file on to eTomo in order for it to
+set options to Copytomocoms.  It reads the template files and uses their
+contents along with those of the directive file to determine the values for
+parameters.  eTomo passes all three files on to Copytomocoms(1) to use in this
+way, and Batchruntomo passes them to Makecomfile(1) to use similarly when
+making optional command files.
+.P
+The program checks all directives after it reads them, including the ones from the
+template file, against the master list in "directives.csv".  All "setupset"
+and "runtime" directives must match ones in this file.  It is
+possible to enter "comparam" directives not listed in this file, provided that
+the command file name and program name match those of other directives in the
+master file.  The program will consult the autodoc file for the program to
+determine whether the option is valid.  It will issue a warning if an autodoc
+cannot be found; otherwise, it will be able to determine validity definitively.
+.SS Processing Steps Available
+This section describes some of the capabilities and current limitations of various
+steps.
+.P
+.B X-ray removal 
+is optional; if selected, automatic X-ray removal will be done.
+A manual replacement model can be specified.  It is suggested that object 1
+contain patches specified in the default way, by a point on each pixel; object
+2 contain lines, if any; object 3 contain patches specified by boundary
+contours, if any; and that directives be added to specify these choices and
+that objects 1-3 are all-section objects.  These suggestions will be enforced
+when there is a GUI for setting up batch directives.
+.P
+.B Coarse alignment
+is always performed.  The binning of a prealigned stack can
+be specified.
+.P
+.B Fiducialless alignment
+can be chosen, in which case tomogram thickness must be
+specified.  The tomogram will not be reoriented at all (no angle offset or
+X-axis tilt applied).
+.P
+.B Patch tracking
+can be chosen.  Again, tomogram thickness must be specified,
+but in this case the tomogram will be reoriented based on angles found by
+Tiltalign(1).
+Also, if you specify gold erasing after 3D bead finding, the 
+thickness must be specified for the tomogram used to find the beads.
+.P
+.B Gold fiducial tracking 
+can be done either with automatic seed-finding then
+bead tracking, or with RAPTOR followed by optional bead tracking.  For a
+second axis, Transferfid(1) can be run, followed by automatic seed-finding to
+fill in the resulting model.  RAPTOR can be run instead for the second axis
+(unlike in eTomo),
+although there will then be no list of corresponding fiducials.  Beadtrack(1)
+can be run more than once, because this completes a model more reliably than
+selecting further rounds of tracking in a single run.
+.P
+.B Fine alignment 
+with Tiltalign(1) can include local alignments in all cases.  There is a
+directive to enable the stretching (distortion) solution.  When enabled,
+stretching will be solved for only if there are gold fiducials on two
+surfaces, and if there are enough on the minority surface overall and relative
+to the total number.
+Stretching may be solved for in the global solution but not in the local one
+if there are too few fiducials on the minority surface per local area.  The
+fine alignment always produces an angle offset and an X-axis tilt that is
+applied when building the tomogram.  In addition, if there is gold on two
+surfaces, the distance between the gold particles provides an estimate of
+thickness that can be used as the basis for the tomogram thickness.
+Otherwise, it is required to specify the thickness for the final tomogram and,
+if gold is to be erased after 3D bead finding, the thickness for the required
+tomogram. 
+.P
+.B The aligned stack 
+can have specified binning and size.  Optional modifications
+of the aligned stack are
+performed in the standard order.
+.B CTF correction 
+can be done with a single
+nominal defocus value.  Alternatively, Ctfplotter(1) can be used to find the
+defocus automatically if the "autofitRangeAndStep" directive is present.
+Currently, however, Ctfplotter(1) needs to open the plotter window, so this will
+not work if the batch process cannot access a windowing system (e.g., when
+running on a Mac or Windows machine via ssh).  
+.B Gold erasing
+can be done with
+automatic finding of beads in a tomogram, or by transforming the fiducial
+model, although the latter is of limited value until a completed model is put
+out by Tiltalign(1).  
+.B 2D filtering 
+can be specified.
+.P
+A tomogram can be computed with weighted backprojection, with SIRT, or with
+both methods.  The iterations to leave can be specified for SIRT.
+
+.SS Options
+Batchruntomo uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
+or one per line in a command file (without the -).  Options can be abbreviated
+to unique letters; the currently valid abbreviations for short names are shown
+in parentheses.
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH AUTHOR
+David Mastronarde
+.SH BUGS
+Email bug reports to mast@colorado.edu
+.SH SEE ALSO
+etomo(1)
+.SH HISTORY
