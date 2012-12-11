@@ -237,7 +237,7 @@ import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
-import etomo.storage.DirectivesFile;
+import etomo.storage.DirectiveFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
@@ -257,7 +257,7 @@ public final class CopyTomoComs {
   private final EtomoNumber ctfFiles = new EtomoNumber();
 
   private final ApplicationManager manager;
-  private final DirectivesFile directivesFile;
+  private final DirectiveFile directiveFile;
 
   private StringBuffer commandLine = null;
   private int exitValue;
@@ -265,9 +265,9 @@ public final class CopyTomoComs {
   private boolean debug;
   private SystemProgram copytomocoms = null;
 
-  public CopyTomoComs(ApplicationManager manager, final DirectivesFile directivesFile) {
+  public CopyTomoComs(ApplicationManager manager, final DirectiveFile directiveFile) {
     this.manager = manager;
-    this.directivesFile = directivesFile;
+    this.directiveFile = directiveFile;
     metaData = manager.getConstMetaData();
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
   }
@@ -281,7 +281,7 @@ public final class CopyTomoComs {
     command.add("python");
     command.add("-u");
     command.add(ApplicationManager.getIMODBinPath() + "copytomocoms");
-    if (directivesFile == null) {
+    if (directiveFile == null) {
       if (!genOptions()) {
         return false;
       }
@@ -323,7 +323,7 @@ public final class CopyTomoComs {
    * Add options from directive file.
    */
   private void genOptionsFromFile() {
-    DirectivesFile.CopyArgIterator iterator = directivesFile.getCopyArgIterator();
+    DirectiveFile.CopyArgIterator iterator = directiveFile.getCopyArgIterator();
     if (iterator == null) {
       return;
     }
