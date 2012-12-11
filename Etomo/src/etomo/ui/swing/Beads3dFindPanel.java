@@ -213,11 +213,10 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
 
   void setParameters(ConstFindBeads3dParam param, boolean initialize) {
     findBeads3dPanel.setParameters(param, initialize);
-    // This uses bead size in findBeads3dPanel, so is can be called after the
-    // findBeads3dPanel.setParameter call.
-    newstackOrBlendmont3dFindPanel.setParameters(initialize);
   }
-
+  void initialize() {
+    newstackOrBlendmont3dFindPanel.initialize();
+  }
   void setParameters(ConstTiltalignParam param, boolean initialize) {
     tilt3dFindPanel.setParameters(param, initialize);
   }
