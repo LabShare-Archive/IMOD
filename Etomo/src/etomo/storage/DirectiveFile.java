@@ -40,7 +40,7 @@ import etomo.ui.swing.UIHarness;
 * 
 * <p> $Log$ </p>
 */
-public final class DirectivesFile implements SetupReconInterface {
+public final class DirectiveFile implements SetupReconInterface {
   public static final String rcsid = "$Id:$";
 
   private static final String A_AXIS_NAME = "a";
@@ -76,20 +76,20 @@ public final class DirectivesFile implements SetupReconInterface {
   private ReadOnlyAttribute runtime = null;
   private ReadOnlyAttribute setupSet = null;
 
-  private DirectivesFile(final BaseManager manager, final AxisID axisID) {
+  private DirectiveFile(final BaseManager manager, final AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
   }
 
   /**
-   * @return a valid DirectivesFile instance or null if it there was an initialization
+   * @return a valid DirectiveFile instance or null if it there was an initialization
    * failure.
    * @param manager
    * @param axisID
    * @return
    */
-  public static DirectivesFile getInstance(final BaseManager manager, final AxisID axisID) {
-    DirectivesFile instance = new DirectivesFile(manager, axisID);
+  public static DirectiveFile getInstance(final BaseManager manager, final AxisID axisID) {
+    DirectiveFile instance = new DirectiveFile(manager, axisID);
     if (!instance.init()) {
       return null;
     }
@@ -103,7 +103,7 @@ public final class DirectivesFile implements SetupReconInterface {
   private boolean init() {
     try {
       ReadOnlyAutodoc autodoc = (ReadOnlyAutodoc) AutodocFactory.getInstance(manager,
-          EtomoDirector.INSTANCE.getArguments().getDirectives(), axisID);
+          EtomoDirector.INSTANCE.getArguments().getDirective(), axisID);
       setupSet = autodoc.getAttribute("setupset");
       if (setupSet != null) {
         copyArg = setupSet.getAttribute("copyarg");
@@ -112,17 +112,17 @@ public final class DirectivesFile implements SetupReconInterface {
     }
     catch (FileNotFoundException e) {
       UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-          "Directives File Not Found");
+          "Directive File Not Found");
       return false;
     }
     catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-          "Directives File Read Failure");
+          "Directive File Read Failure");
       return false;
     }
     catch (LogFile.LockException e) {
       UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-          "Directives File Read Failure");
+          "Directive File Read Failure");
       return false;
     }
     return true;
