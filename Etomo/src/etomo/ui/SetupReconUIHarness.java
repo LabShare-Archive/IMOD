@@ -7,7 +7,7 @@ import etomo.ApplicationManager;
 import etomo.Arguments;
 import etomo.EtomoDirector;
 import etomo.logic.DatasetTool;
-import etomo.storage.DirectivesFile;
+import etomo.storage.DirectiveFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
@@ -41,13 +41,13 @@ public final class SetupReconUIHarness {
 
   private static final String NO_GUI_ERROR_TITLE = "No GUI";
   private static final String NO_GUI_ERROR_MESSAGE = "GUI not found.  To run automation "
-      + "without the GUI, use the " + Arguments.DIRECTIVES_TAG + " option.";
+      + "without the GUI, use the " + Arguments.DIRECTIVE_TAG + " option.";
 
   private final ApplicationManager manager;
   private final AxisID axisID;
 
   private SetupDialogExpert expert = null;
-  private DirectivesFile directivesFile = null;
+  private DirectiveFile directiveFile = null;
 
   public SetupReconUIHarness(final ApplicationManager manager, final AxisID axisID) {
     this.manager = manager;
@@ -56,10 +56,10 @@ public final class SetupReconUIHarness {
 
   /**
    * Runs the doAutomation function in the dialog expert, or handles an automation
-   * directives file.
+   * directive file.
    */
   public void doAutomation() {
-    if (!EtomoDirector.INSTANCE.getArguments().isDirectives()) {
+    if (!EtomoDirector.INSTANCE.getArguments().isDirective()) {
       if (expert != null) {
         expert.doAutomation();
       }
@@ -69,8 +69,8 @@ public final class SetupReconUIHarness {
       }
       return;
     }
-    directivesFile = DirectivesFile.getInstance(manager, axisID);
-    if (!doDirectivesAutomation()) {
+    directiveFile = DirectiveFile.getInstance(manager, axisID);
+    if (!doDirectiveAutomation()) {
       UIHarness.INSTANCE.exit(axisID, 1);
     }
     else {
@@ -78,25 +78,25 @@ public final class SetupReconUIHarness {
     }
   }
 
-  private boolean doDirectivesAutomation() {
-    if (directivesFile == null) {
+  private boolean doDirectiveAutomation() {
+    if (directiveFile == null) {
       return false;
     }
     AxisType axisType = AxisType.SINGLE_AXIS;
-    if (directivesFile.isDual()) {
+    if (directiveFile.isDual()) {
       axisType = AxisType.DUAL_AXIS;
     }
     if (!DatasetTool.validateDatasetName(manager, null, axisID, new File(
-        getPropertyUserDir()), directivesFile.getName(), DataFileType.RECON, axisType,
+        getPropertyUserDir()), directiveFile.getName(), DataFileType.RECON, axisType,
         true)) {
       return false;
     }
-    if (directivesFile.isScanHeader()) {
-      if (!scanHeaderAction(directivesFile)) {
+    if (directiveFile.isScanHeader()) {
+      if (!scanHeaderAction(directiveFile)) {
         return false;
       }
     }
-    if (manager.doneSetupDialog(true, directivesFile)) {
+    if (manager.doneSetupDialog(true, directiveFile)) {
       return true;
     }
     return false;
@@ -126,8 +126,8 @@ public final class SetupReconUIHarness {
   }
 
   private SetupReconInterface getSetupReconInterface() {
-    if (directivesFile != null) {
-      return directivesFile;
+    if (directiveFile != null) {
+      return directiveFile;
     }
     if (expert != null) {
       return expert.getSetupReconInterface();
@@ -138,7 +138,7 @@ public final class SetupReconUIHarness {
   }
 
   public DialogExitState getExitState() {
-    if (directivesFile != null) {
+    if (directiveFile != null) {
       return DialogExitState.EXECUTE;
     }
     if (expert != null) {
@@ -162,7 +162,7 @@ public final class SetupReconUIHarness {
   }
 
   public File getWorkingDirectory() {
-    if (directivesFile != null) {
+    if (directiveFile != null) {
       return new File(getPropertyUserDir());
     }
     if (expert != null) {
@@ -213,8 +213,8 @@ public final class SetupReconUIHarness {
    * @return
    */
   public String getPropertyUserDir() {
-    if (directivesFile != null && directivesFile.isDatasetDirectory()) {
-      return directivesFile.getDatasetDirectory();
+    if (directiveFile != null && directiveFile.isDatasetDirectory()) {
+      return directiveFile.getDatasetDirectory();
     }
     else if (expert != null) {
       File dir = expert.getDir();
@@ -445,7 +445,7 @@ public final class SetupReconUIHarness {
             .getStack(getPropertyUserDir(), metaData, AxisID.SECOND);
         metaData.setBStackProcessed(bStack.exists());
       }
-      if (directivesFile != null) {
+      if (directiveFile != null) {
         saveDirectives(metaData);
       }
       return metaData;
@@ -456,17 +456,17 @@ public final class SetupReconUIHarness {
   }
 
   private void saveDirectives(final MetaData metaData) {
-    if (directivesFile == null) {
+    if (directiveFile == null) {
       return;
     }
     // Ignore Preprocessing removeXrays
-    directivesFile.getFiducialsFiducialless(metaData);
-    directivesFile.getFiducialsTrackingMethod(metaData);
-    directivesFile.getFiducialsSeedingMethod(metaData);
+    directiveFile.getFiducialsFiducialless(metaData);
+    directiveFile.getFiducialsTrackingMethod(metaData);
+    directiveFile.getFiducialsSeedingMethod(metaData);
     // Ignore BeadTracking numberOfRuns
     // Ignore SeedFinding rawBoundaryModel
-    directivesFile.getRaptorUseAlignedStack(metaData);
-    directivesFile.getRaptorNumberOfMarkers(metaData);
+    directiveFile.getRaptorUseAlignedStack(metaData);
+    directiveFile.getRaptorNumberOfMarkers(metaData);
     // Ignore PatchTracking rawBoudaryModel
     // Ignore PatchTracking contourPieces
     // Ignore PatchTracking adjustTiltAngles
@@ -475,14 +475,14 @@ public final class SetupReconUIHarness {
     // Ignore AlignedStack eraseGold
     // Ignore AlignedStack filterStack
     // Ignore AlignedStack linearInterpolation
-    directivesFile.getAlignedStackBinByFactor(metaData);
-    directivesFile.getAlignedStackSizeInXandY(metaData);
+    directiveFile.getAlignedStackBinByFactor(metaData);
+    directiveFile.getAlignedStackSizeInXandY(metaData);
     // Ignore CTFplotting autoFitRangeAndStep
-    directivesFile.getGoldErasingBinning(metaData);
+    directiveFile.getGoldErasingBinning(metaData);
     // Ignore GoldErasing extraDiameter
-    directivesFile.getGoldErasingThickness(metaData);// overrides the .com file
+    directiveFile.getGoldErasingThickness(metaData);// overrides the .com file
     //Ignore Reconstruction extraThickness
-    directivesFile.getReconstructionUseSirt(metaData);
+    directiveFile.getReconstructionUseSirt(metaData);
     // Ignore Reconstruction doBackprojAlso
   }
 }
