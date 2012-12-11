@@ -391,6 +391,8 @@ public interface ConstMetaData {
 
   public int getStackBinning(AxisID axisID);
 
+  public boolean isStack3dFindBinningSet(AxisID axisID);
+
   public int getStack3dFindBinning(AxisID axisID);
 
   public ConstEtomoNumber getTiltParallel(AxisID axisID, PanelId panelId);
@@ -536,8 +538,8 @@ public interface ConstMetaData {
   public int getTrackClusteredPointsAllowedElongatedValue(AxisID axisID);
 
   public boolean isTrackAdvanced(AxisID axisID);
-  
+
   public boolean isStack3dFindThicknessSet(AxisID axisID);
-  
+
   public String getStack3dFindThickness(AxisID axisID);
 }
