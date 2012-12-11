@@ -1,10 +1,8 @@
 package etomo.comscript;
 
 import java.io.File;
-import java.util.ArrayList;
 
 import etomo.ApplicationManager;
-import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
@@ -136,52 +134,13 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
   public String[] getCommandArray() {
     if (commandArray == null) {
       if (mode == Mode.BEADS) {
-        ArrayList options = genOptions();
-        commandArray = new String[options.size() + COMMAND_SIZE];
-        commandArray[0] = BaseManager.getIMODBinPath()
-            + ProcessName.CCD_ERASER.toString();
-        for (int i = 0; i < options.size(); i++) {
-          commandArray[i + COMMAND_SIZE] = (String) options.get(i);
-        }
-        if (debug) {
-          StringBuffer buffer = new StringBuffer();
-          for (int i = 0; i < commandArray.length; i++) {
-            buffer.append(commandArray[i]);
-            if (i < commandArray.length - 1) {
-              buffer.append(' ');
-            }
-          }
-          System.err.println(buffer.toString());
-        }
+        return new String[] { ProcessName.GOLD_ERASER.getComscript(axisID) };
       }
       else {
         return new String[] { ProcessName.ERASER.getComscript(axisID) };
       }
     }
     return commandArray;
-  }
-
-  private ArrayList genOptions() {
-    ArrayList options = new ArrayList();
-    options.add("-" + INPUT_FILE_KEY);
-    options.add(inputFile);
-    options.add("-" + OUTPUT_FILE_KEY);
-    options.add(outputFile);
-    options.add("-" + "ModelFile");
-    options.add(modelFile);
-    options.add("-" + betterRadius.getName());
-    options.add(betterRadius.toString());
-    options.add("-" + POLYNOMIAL_ORDER_KEY);
-    options.add(polynomialOrder);
-    if (expandCircleIterations.matches("\\S+")) {
-      options.add("-" + EXPAND_CIRCLE_ITERATIONS_KEY);
-      options.add(expandCircleIterations);
-    }
-    options.add("-MergePatches");
-    options.add("-ExcludeAdjacent");
-    options.add("-CircleObjects");
-    options.add("/");
-    return options;
   }
 
   public boolean validate() {
@@ -579,7 +538,7 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
 
   public String getCommand() {
     if (mode == Mode.BEADS) {
-      return ProcessName.CCD_ERASER.toString();
+      return ProcessName.GOLD_ERASER.getComscript(axisID);
     }
     return ProcessName.ERASER.getComscript(axisID);
   }
@@ -589,16 +548,6 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
   }
 
   public String getCommandLine() {
-    if (mode == Mode.BEADS) {
-      if (commandArray == null) {
-        return "";
-      }
-      StringBuffer buffer = new StringBuffer();
-      for (int i = 0; i < commandArray.length; i++) {
-        buffer.append(commandArray[i] + " ");
-      }
-      return buffer.toString();
-    }
     return getCommand();
   }
 
@@ -607,7 +556,10 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
   }
 
   public String getCommandName() {
-    return ProcessName.CCD_ERASER.toString();
+    if (mode == Mode.BEADS) {
+      return ProcessName.GOLD_ERASER.toString();
+    }
+    return ProcessName.ERASER.toString();
   }
 
   public File getCommandOutputFile() {
@@ -627,7 +579,7 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
 
   public ProcessName getProcessName() {
     if (mode == Mode.BEADS) {
-      return ProcessName.CCD_ERASER;
+      return ProcessName.GOLD_ERASER;
     }
     return ProcessName.ERASER;
   }
