@@ -816,8 +816,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     posBinningB.setDisplayValue(3);
     stackBinningA.setDisplayValue(1);
     stackBinningB.setDisplayValue(1);
-    stack3dFindBinningA.setDisplayValue(1);
-    stack3dFindBinningB.setDisplayValue(1);
 
     stackEraseGoldModelUseFidA.setDisplayValue(ERASE_GOLD_MODEL_USE_FID_DEFAULT);
     stackEraseGoldModelUseFidB.setDisplayValue(ERASE_GOLD_MODEL_USE_FID_DEFAULT);
@@ -2814,11 +2812,18 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return stackBinningA.getDefaultedInt();
   }
 
+  public boolean isStack3dFindBinningSet(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !stack3dFindBinningB.isNull();
+    }
+    return !stack3dFindBinningA.isNull();
+  }
+
   public int getStack3dFindBinning(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      return stack3dFindBinningB.getDefaultedInt();
+      return stack3dFindBinningB.getInt();
     }
-    return stack3dFindBinningA.getDefaultedInt();
+    return stack3dFindBinningA.getInt();
   }
 
   public ConstEtomoNumber getPostCurTab() {
