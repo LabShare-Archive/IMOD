@@ -1,0 +1,121 @@
+package etomo.comscript;
+
+import java.util.ArrayList;
+
+import etomo.ApplicationManager;
+import etomo.process.ProcessMessages;
+import etomo.process.SystemProgram;
+import etomo.type.AxisID;
+import etomo.type.FileType;
+import etomo.type.ProcessName;
+
+/**
+* <p>Description: </p>
+* 
+* <p>Copyright: Copyright 2012</p>
+*
+* <p>Organization:
+* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+* University of Colorado</p>
+* 
+* @author $Author$
+* 
+* @version $Revision$
+* 
+* <p> $Log$ </p>
+*/
+public class MakecomfileParam {
+  public static final String rcsid = "$Id:$";
+
+  private final ArrayList command = new ArrayList();
+
+  private final ApplicationManager manager;
+  private final AxisID axisID;
+  private final FileType fileType;
+
+  private StringBuffer commandLine = null;
+  private SystemProgram makecomfile = null;
+  private int exitValue = -1;
+
+  public MakecomfileParam(final ApplicationManager manager, final AxisID axisID,
+      final FileType fileType) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.fileType = fileType;
+  }
+
+  public boolean setup() {
+    command.add("python");
+    command.add("-u");
+    command.add(ApplicationManager.getIMODBinPath() + ProcessName.MAKECOMFILE);
+    if (fileType == FileType.GOLD_ERASER_COMSCRIPT) {
+      command.add("-root");
+      command.add(manager.getName() + axisID.getExtension());
+      command.add("-bead");
+      command.add(manager.calcUnbinnedBeadDiameterPixels());
+    }
+    else {
+      return false;
+    }
+    command.add(fileType.getFileName(manager, axisID));
+    makecomfile = new SystemProgram(manager, manager.getPropertyUserDir(), command,
+        AxisID.ONLY);
+    return true;
+  }
+
+  /**
+   * Return the current command line string
+   * 
+   * @return
+   */
+  public String getCommandLine() {
+    if (makecomfile == null) {
+      return "";
+    }
+    return makecomfile.getCommandLine();
+  }
+
+  /**
+   * Execute the copytomocoms script
+   * 
+   * @return @throws
+   *         IOException
+   */
+  public int run() {
+    if (makecomfile == null) {
+      return -1;
+    }
+    int exitValue;
+
+    // Execute the script
+    makecomfile.run();
+    exitValue = makecomfile.getExitValue();
+    return exitValue;
+  }
+
+  public String getStdErrorString() {
+    if (makecomfile == null) {
+      return "ERROR: makecomfile is null.";
+    }
+    return makecomfile.getStdErrorString();
+  }
+
+  public String[] getStdError() {
+    if (makecomfile == null) {
+      return new String[] { "ERROR: makecomfile is null." };
+    }
+    return makecomfile.getStdError();
+  }
+
+  /**
+   * returns a String array of warnings - one warning per element
+   * make sure that warnings get into the error log
+   * @return
+   */
+  public ProcessMessages getProcessMessages() {
+    if (makecomfile == null) {
+      return null;
+    }
+    return makecomfile.getProcessMessages();
+  }
+}
