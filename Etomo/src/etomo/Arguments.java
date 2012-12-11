@@ -105,9 +105,10 @@ public final class Arguments {
   private static final String IGNORE_LOC_TAG = "--ignoreloc";
   private static final String IGNORE_SETTINGS_TAG = "--ignoresettings";
   private static final String ACTIONS_TAG = "--actions";
-  public static final String DIRECTIVES_TAG = "--directives";
+  public static final String DIRECTIVE_TAG = "--directive";
   private static final String CPUS_TAG = "--cpus";
   private static final String GPUS_TAG = "--gpus";
+  private static final String FROM_BRT_TAG = "--fromBRT";
 
   static final String HELP_MESSAGE = "\nOptions:" + "\n  " + HELP1_TAG + ", " + HELP2_TAG
       + "\tSend this message to standard out and exit."
@@ -123,8 +124,13 @@ public final class Arguments {
 
       + "\n\nFile-Based Automation Options:"
 
-      + "\n  " + DIRECTIVES_TAG + " \"directives file\""
-      + "\n\t\tCauses automation to be performed based on the directives file."
+      + "\n  " + FROM_BRT_TAG
+      + "\tPrevents eTomo from validating the directive file and the"
+      + "\n\t\ttemplate files.  Used by batchruntomo.  Not useful when eTomo"
+      + "\n\t\tis called from the command line."
+
+      + "\n\n  " + DIRECTIVE_TAG + " \"directive file\""
+      + "\n\t\tCauses automation to be performed based on the directive file."
       + "\n\t\tNo interface will come up and most command-line-based"
       + "\n\t\tautomation options (below) will be ignored.  However " + CPUS_TAG + " and"
       + "\n\t\t" + GPUS_TAG + " work with both types of automation.  Implied options:"
@@ -280,13 +286,14 @@ public final class Arguments {
   private boolean reconAutomation = false;
   private boolean ignoreSettings = false;
   private boolean actions = false;
-  private boolean directives = false;
-  private File fDirectives = null;
+  private boolean directive = false;
+  private File fDirective = null;
   private List<String> errorMessageList = new ArrayList<String>();
   private List<String> warningMessageList = new ArrayList<String>();
   private boolean fiducial = false;
   private boolean cpus = false;
   private boolean gpus = false;
+  private boolean fromBRT = false;
 
   private final EtomoNumber enFiducial = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
@@ -317,12 +324,12 @@ public final class Arguments {
     return false;
   }
 
-  public boolean isDirectives() {
-    return directives;
+  public boolean isDirective() {
+    return directive;
   }
 
-  public File getDirectives() {
-    return fDirectives;
+  public File getDirective() {
+    return fDirective;
   }
 
   public AxisType getAxis() {
@@ -347,6 +354,10 @@ public final class Arguments {
 
   public boolean isExit() {
     return exit;
+  }
+  
+  public boolean isFromBRT() {
+    return fromBRT;
   }
 
   public boolean isPrintNames() {
@@ -550,15 +561,15 @@ public final class Arguments {
       else if (args[i].equals(ACTIONS_TAG)) {
         actions = true;
       }
-      else if (args[i].equals(DIRECTIVES_TAG)) {
-        directives = true;
+      else if (args[i].equals(DIRECTIVE_TAG)) {
+        directive = true;
         reconAutomation = true;
         headless = true;
         create = true;
         exit = true;
         if (i < args.length - 1) {
           // The quotes have already been stripped.
-          fDirectives = new File(args[i + 1]);
+          fDirective = new File(args[i + 1]);
           i++;
         }
       }
@@ -578,6 +589,9 @@ public final class Arguments {
           i++;
         }
       }
+      else if (args[i].equals(FROM_BRT_TAG)) {
+        fromBRT = true;
+      }
       else {
         errorMessageList.add("WARNING:  unknown argument, " + args[i] + ", ignored.");
       }
@@ -592,28 +606,28 @@ public final class Arguments {
    * @return
    */
   boolean validate(final UIComponent component) {
-    if (directives) {
-      if (fDirectives == null) {
-        errorMessageList.add("Missing " + DIRECTIVES_TAG + " parameter value.");
+    if (directive) {
+      if (fDirective == null) {
+        errorMessageList.add("Missing " + DIRECTIVE_TAG + " parameter value.");
       }
-      else if (!fDirectives.exists()) {
-        errorMessageList.add(DIRECTIVES_TAG + " parameter value, "
-            + fDirectives.getAbsolutePath() + ", does not exist.");
+      else if (!fDirective.exists()) {
+        errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
+            + fDirective.getAbsolutePath() + ", does not exist.");
       }
       else {
-        if (fDirectives.isDirectory()) {
-          errorMessageList.add(DIRECTIVES_TAG + " parameter value, "
-              + fDirectives.getAbsolutePath() + ", is a directory.");
+        if (fDirective.isDirectory()) {
+          errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
+              + fDirective.getAbsolutePath() + ", is a directory.");
         }
-        if (!fDirectives.canRead()) {
-          errorMessageList.add(DIRECTIVES_TAG + " parameter value, "
-              + fDirectives.getAbsolutePath() + ", is not readable.");
+        if (!fDirective.canRead()) {
+          errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
+              + fDirective.getAbsolutePath() + ", is not readable.");
         }
       }
       if (axis || dataset || dir || fiducial || frame) {
         warningMessageList.add("The parameters: " + AXIS_TAG + ", " + DATASET_TAG + ", "
             + DIR_TAG + ", " + FIDUCIAL_TAG + ", and " + FRAME_TAG + " are ignored when "
-            + DIRECTIVES_TAG + " is used.");
+            + DIRECTIVE_TAG + " is used.");
       }
     }
     if (axis && atAxis == null) {
