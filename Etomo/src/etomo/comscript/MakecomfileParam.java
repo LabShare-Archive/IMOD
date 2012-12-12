@@ -1,6 +1,7 @@
 package etomo.comscript;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import etomo.ApplicationManager;
 import etomo.process.ProcessMessages;
@@ -27,7 +28,7 @@ import etomo.type.ProcessName;
 public class MakecomfileParam {
   public static final String rcsid = "$Id:$";
 
-  private final ArrayList command = new ArrayList();
+  private final List<String> command = new ArrayList<String>();
 
   private final ApplicationManager manager;
   private final AxisID axisID;
@@ -52,7 +53,7 @@ public class MakecomfileParam {
       command.add("-root");
       command.add(manager.getName() + axisID.getExtension());
       command.add("-bead");
-      command.add(manager.calcUnbinnedBeadDiameterPixels());
+      command.add(Double.toString(manager.calcUnbinnedBeadDiameterPixels()));
     }
     else {
       return false;
