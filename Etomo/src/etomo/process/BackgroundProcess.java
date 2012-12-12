@@ -1,7 +1,7 @@
 package etomo.process;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import etomo.BaseManager;
@@ -308,7 +308,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
 
   public static final String rcsid = "$Id$";
 
-  private final ArrayList commandArrayList;
+  private final List<String> commandArrayList;
   private final ProcessData processData;
   private final ConstProcessSeries processSeries;
   private final BaseProcessManager processManager;
@@ -336,7 +336,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   private ProcessResultDisplay processResultDisplay = null;
   private boolean popupChunkWarnings = true;
 
-  BackgroundProcess(BaseManager manager, ArrayList commandArrayList,
+  BackgroundProcess(BaseManager manager, List<String> commandArrayList,
       BaseProcessManager processManager, AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessName processName,
       ConstProcessSeries processSeries) {
@@ -700,7 +700,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
       else if (commandArrayList != null) {
         buffer = new StringBuffer();
         for (int i = 0; i < commandArrayList.size(); i++) {
-          buffer.append((String) commandArrayList.get(i) + " ");
+          buffer.append( commandArrayList.get(i) + " ");
         }
         commandLine = buffer.toString();
       }
