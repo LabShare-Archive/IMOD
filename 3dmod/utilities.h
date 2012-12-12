@@ -67,6 +67,7 @@ void utilFinishMontSnap(unsigned char **linePtrs,
 void utilFreeMontSnapArrays(unsigned char **fullPix, int numChunks, 
                             unsigned char *framePix, unsigned char **linePtrs);
 float utilWheelToPointSizeScaling(float zoom);
+void utilWprintMeasure(QString &baseMess, Imod *imod, float measure, bool area = false);
 char *imodwfname(const char *intro);
 char *imodwEithername(const char *intro, const char *filein, int modelFirst);
 char *imodwGivenName(const char *intro, const char *filein);

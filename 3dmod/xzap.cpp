@@ -1313,6 +1313,7 @@ void ZapFuncs::keyInput(QKeyEvent *event)
   int shifted = event->modifiers() & Qt::ShiftModifier;
   int ctrl = event->modifiers() & Qt::ControlModifier;
   int handled = 0;
+  QString str;
   Iindex indadd;
   Iindex *indp;
   Ipoint selmin, selmax;
@@ -1664,11 +1665,11 @@ void ZapFuncs::keyInput(QKeyEvent *event)
     getixy(ix, iy, cx, cy, i);
     dx = cx - vi->xmouse;
     dy = cy - vi->ymouse;
-    dist2d  = (float)sqrt(vi->xybin * (dx * dx + dy * dy));
-    wprint("Distance from (%.1f, %.1f) to (%.1f, %.1f) =\n"
-           "  %.1f %spixels, %g %s\n", vi->xmouse+1., vi->ymouse+1., cx+1., cy+1.,
-           dist2d, vi->xybin > 1 ? "unbinned " : "",
-           dist2d * imod->pixsize, imodUnits(imod));
+    dist2d  = (float)(vi->xybin * sqrt(dx * dx + dy * dy));
+    wprint("From (%.1f, %.1f) to (%.1f, %.1f) =\n", vi->xmouse+1,
+           vi->ymouse+1., cx+1., cy+1.);
+    str.sprintf("  %.1f %spixels", dist2d, vi->xybin > 1 ? "unbinned " : "");
+    utilWprintMeasure(str, imod, dist2d);
     break;
 
     /*
@@ -1884,9 +1885,11 @@ void ZapFuncs::mousePress(QMouseEvent *event)
 void ZapFuncs::mouseRelease(QMouseEvent *event)
 {
   Iobj *obj;
-  int imz, button1, button2, button3, ifdraw = 0, drew = 0;
+  int imz, ind, button1, button2, button3, ifdraw = 0, drew = 0;
+  float area, length;
   bool needDraw, releaseBand;
   float imx, imy;
+  QString str;
   button1 = event->button() == ImodPrefs->actualButton(1) ? 1 : 0;
   button2 = event->button() == ImodPrefs->actualButton(2) ? 1 : 0;
   button3 = event->button() == ImodPrefs->actualButton(3) ? 1 : 0;
@@ -1961,6 +1964,16 @@ void ZapFuncs::mouseRelease(QMouseEvent *event)
         mDrawingLasso = false;
         setOrClearFlags(&obj->cont->flags, ICONT_OPEN, 0);
         imodTrimContourLoops(obj->cont, 0);
+        for (ind = 0; ind < 2; ind++) {
+          length = mVi->xybin * imodContourLength(obj->cont, ind);
+          str.sprintf("%s length %.1f %spixels", ind ? "Closed" : "Open", length, 
+                      mVi->xybin > 1 ? "unbin " : "");
+          utilWprintMeasure(str, mVi->imod, length);
+        }
+        area = mVi->xybin * mVi->xybin * imodContourArea(obj->cont);
+        str.sprintf("Area %g %spixels^2", area, mVi->xybin > 1 ? "unbin " : "");
+        utilWprintMeasure(str, mVi->imod, area, true);
+
         setMouseTracking();
         setCursor(mMousemode, true);
       }
