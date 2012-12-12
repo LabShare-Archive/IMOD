@@ -232,6 +232,7 @@ package etomo.comscript;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
@@ -251,7 +252,7 @@ import etomo.ui.swing.UIHarness;
 public final class CopyTomoComs {
   public static final String rcsid = "$Id$";
 
-  private final ArrayList command = new ArrayList();
+  private final List<String> command = new ArrayList<String>();
   private final EtomoNumber voltage = new EtomoNumber();
   private final EtomoNumber sphericalAberration = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private final EtomoNumber ctfFiles = new EtomoNumber();
