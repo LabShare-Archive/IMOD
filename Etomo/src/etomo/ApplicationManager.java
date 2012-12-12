@@ -12,6 +12,7 @@ import java.util.List;
 
 import etomo.comscript.ArchiveorigParam;
 import etomo.comscript.AutofidseedParam;
+import etomo.comscript.BatchruntomoParam;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.CCDEraserParam;
@@ -40,6 +41,7 @@ import etomo.comscript.FindBeads3dParam;
 import etomo.comscript.FlattenWarpParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.GotoParam;
+import etomo.comscript.MakecomfileParam;
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.MatchshiftsParam;
 import etomo.comscript.MatchvolParam;
@@ -79,6 +81,7 @@ import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.storage.CpuAdoc;
+import etomo.storage.DirectiveFile;
 import etomo.storage.LogFile;
 import etomo.storage.LoggableCollection;
 import etomo.storage.Storable;
@@ -120,6 +123,7 @@ import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
 import etomo.type.TomogramState;
 import etomo.type.ViewType;
+import etomo.ui.SetupReconUIHarness;
 import etomo.ui.swing.AbstractParallelDialog;
 import etomo.ui.swing.AlignmentEstimationDialog;
 import etomo.ui.swing.BeadTrackDisplay;
@@ -257,6 +261,8 @@ public final class ApplicationManager extends BaseManager implements
 
   ComScriptManager comScriptMgr = new ComScriptManager(this);
 
+  private SetupReconUIHarness setupReconUIHarness = null;
+
   /**
    * Does initialization and loads the .edf file. Opens the setup dialog if
    * there is no .edf file.
@@ -269,6 +275,11 @@ public final class ApplicationManager extends BaseManager implements
     initializeUIParameters(paramFileName, axisID);
     initializeAdvanced();
     // Open the etomo data file if one was found on the command line
+    boolean newDataset = (!paramFileName.equals("") && !loadedParamFile)
+        || paramFileName.equals("");
+    if (newDataset) {
+      setupReconUIHarness = new SetupReconUIHarness(this, AxisID.ONLY);
+    }
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       if (!paramFileName.equals("")) {
         imodManager.setMetaData(metaData);
@@ -276,21 +287,16 @@ public final class ApplicationManager extends BaseManager implements
           openProcessingPanel();
           mainPanel.setStatusBarText(paramFile, metaData, logPanel);
         }
-        else {
-          openSetupDialog();
-          return;
-        }
       }
-      else {
+      if (newDataset) {
         openSetupDialog();
-        return;
       }
     }
   }
 
   public void doAutomation() {
-    if (setupDialogExpert != null) {
-      setupDialogExpert.doAutomation();
+    if (setupReconUIHarness != null) {
+      setupReconUIHarness.doAutomation();
     }
     super.doAutomation();
   }
@@ -401,11 +407,7 @@ public final class ApplicationManager extends BaseManager implements
     String actionMessage = setCurrentDialogType(DialogType.SETUP_RECON, AxisID.ONLY);
     if (setupDialogExpert == null) {
       Utilities.timestamp("new", "SetupDialog", Utilities.STARTED_STATUS);
-      // check for distortion directory
-      File distortionDir = DatasetFiles.getDistortionDir(this, propertyUserDir,
-          AxisID.ONLY);
-      setupDialogExpert = SetupDialogExpert.getInstance(this, distortionDir != null
-          && distortionDir.exists());
+      setupDialogExpert = setupReconUIHarness.getSetupDialogExpert();
       Utilities.timestamp("new", "SetupDialog", Utilities.FINISHED_STATUS);
       setupDialogExpert.initializeFields((ConstMetaData) metaData, userConfig);
     }
@@ -424,17 +426,18 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Close message from the setup dialog window
    */
-  public boolean doneSetupDialog(final boolean doValidation) {
+  public boolean doneSetupDialog(final boolean doValidation,
+      final DirectiveFile directiveFile) {
     // Get the selected exit button
-    DialogExitState exitState = setupDialogExpert.getExitState();
+    DialogExitState exitState = setupReconUIHarness.getExitState();
     if (exitState != DialogExitState.CANCEL) {
-      if (!setupDialogExpert.isValid()) {
+      if (!setupReconUIHarness.isValid()) {
         return false;
       }
       // Set the current working directory for the application saving the
       // old user.dir property until the meta data is valid
       String oldUserDir = propertyUserDir;
-      propertyUserDir = setupDialogExpert.getWorkingDirectory().getAbsolutePath();
+      propertyUserDir = setupReconUIHarness.getWorkingDirectory().getAbsolutePath();
       if (propertyUserDir.endsWith(" ")) {
         uiHarness.openMessageDialog(this, "The directory, " + propertyUserDir
             + ", cannot be used because it ends with a space.",
@@ -442,12 +445,12 @@ public final class ApplicationManager extends BaseManager implements
         propertyUserDir = oldUserDir;
         return false;
       }
-      metaData = setupDialogExpert.getFields(doValidation);
+      metaData = setupReconUIHarness.getFields(doValidation);
       if (metaData == null) {
         return false;
       }
       if (metaData.isValid()) {
-        if (setupDialogExpert.checkForSharedDirectory()) {
+        if (setupReconUIHarness.checkForSharedDirectory()) {
           uiHarness.openMessageDialog(this, "This directory (" + propertyUserDir
               + ") is already being used by an .edf file.  Either open the "
               + "existing .edf file or create a new directory for the new "
@@ -478,7 +481,17 @@ public final class ApplicationManager extends BaseManager implements
       }
       // This is really the method to use the existing com scripts
       if (exitState == DialogExitState.EXECUTE) {
-        ProcessMessages messages = processMgr.setupComScripts(AxisID.ONLY);
+        if (directiveFile != null) {
+          if (!EtomoDirector.INSTANCE.getArguments().isFromBRT()) {
+            // Etomo is responsible for validating the directive file.
+            BatchruntomoParam param = new BatchruntomoParam(this);
+            if (!processMgr.batchruntomo(AxisID.ONLY, param)) {
+              return false;
+            }
+          }
+        }
+        ProcessMessages messages = processMgr
+            .setupComScripts(AxisID.ONLY, directiveFile);
         if (messages == null) {
           return false;
         }
@@ -516,6 +529,7 @@ public final class ApplicationManager extends BaseManager implements
     // Switch the main window to the procesing panel
     openProcessingPanel();
     // Free the dialog
+    setupReconUIHarness.freeDialog();
     setupDialogExpert = null;
     saveStorables(AxisID.ONLY);
     return true;
@@ -1203,7 +1217,7 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     String key = ImodManager.PREVIEW_KEY;
-    MetaData previewMetaData = setupDialogExpert.getMetaData();
+    MetaData previewMetaData = setupReconUIHarness.getMetaData();
     imodManager.setPreviewMetaData(previewMetaData);
     File previewWorkingDir = previewMetaData.getValidDatasetDirectory(setupDialogExpert
         .getWorkingDirectory().getAbsolutePath());
@@ -7885,16 +7899,27 @@ public final class ApplicationManager extends BaseManager implements
         run3dmodMenuOptions, false);
   }
 
-  public CCDEraserParam updateCcdEraserParam(final CcdEraserDisplay display,
+  public CCDEraserParam updateGoldEraserParam(final CcdEraserDisplay display,
       final AxisID axisID, final boolean doValidation) {
-    CCDEraserParam param = new CCDEraserParam(this, axisID, CCDEraserParam.Mode.BEADS);
-    if (display.getParameters(param, doValidation)) {
-      return param;
+    if (!comScriptMgr.loadGoldEraser(axisID, false)) {
+      makecomfile(axisID, FileType.GOLD_ERASER_COMSCRIPT);
+      comScriptMgr.loadGoldEraser(axisID, true);
     }
-    return null;
+    CCDEraserParam param = comScriptMgr.getGoldEraserParam(axisID,
+        CCDEraserParam.Mode.BEADS);
+    if (!display.getParameters(param, doValidation)) {
+      return null;
+    }
+    comScriptMgr.saveGoldEraser(param, axisID);
+    return param;
   }
 
-  public void ccdEraser(ProcessResultDisplay processResultDisplay,
+  private boolean makecomfile(final AxisID axisID, final FileType fileType) {
+    MakecomfileParam param = new MakecomfileParam(this, axisID, fileType);
+    return processMgr.makecomfile(axisID, param);
+  }
+
+  public void goldEraser(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
       Run3dmodMenuOptions run3dmodMenuOptions, AxisID axisID, DialogType dialogType,
       CcdEraserDisplay display) {
@@ -7903,7 +7928,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     sendMsgProcessStarting(processResultDisplay);
-    CCDEraserParam param = updateCcdEraserParam(display, axisID, true);
+    CCDEraserParam param = updateGoldEraserParam(display, axisID, true);
     if (param == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -7931,14 +7956,14 @@ public final class ApplicationManager extends BaseManager implements
     catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
-      message[0] = "Can not execute " + ProcessName.CCD_ERASER;
+      message[0] = "Can not execute " + ProcessName.GOLD_ERASER;
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
       return ProcessResult.FAILED_TO_START;
     }
     setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Running " + ProcessName.CCD_ERASER, axisID,
-        ProcessName.CCD_ERASER);
+    mainPanel.startProgressBar("Running " + ProcessName.GOLD_ERASER, axisID,
+        ProcessName.GOLD_ERASER);
     return null;
   }
 

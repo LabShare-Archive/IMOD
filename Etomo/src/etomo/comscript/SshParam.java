@@ -42,8 +42,8 @@ final class SshParam {
 
   private EtomoBoolean2 timeoutAvailable = null;
 
-  final List getCommand(BaseManager manager, boolean useTimeoutIfPossible, String computer) {
-    List command = new ArrayList();
+  final List<String> getCommand(BaseManager manager, boolean useTimeoutIfPossible, String computer) {
+    List<String> command = new ArrayList<String>();
     command.add("ssh");
     command.add("-x");
     //prevents ssh from waiting for an answer when connecting to a computer for

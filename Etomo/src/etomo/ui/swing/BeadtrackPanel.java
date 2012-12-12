@@ -579,11 +579,11 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
       beadtrackParams.setSobelFilterCentering(cbSobelFilterCentering.isSelected());
       beadtrackParams
           .setKernelSigmaForSobel(ltfKernelSigmaForSobel.getText(doValidation));
+      beadtrackParams.setImagesAreBinned(UIExpertUtilities.INSTANCE.getStackBinning(
+          manager, axisID, ".preali"));
 
       if (!autofidseedMode) {
         beadtrackParams.setFillGaps(cbFillGaps.isSelected());
-        beadtrackParams.setImagesAreBinned(UIExpertUtilities.INSTANCE.getStackBinning(
-            manager, axisID, ".preali"));
 
         String errorTitle = "FieldInterface Error";
         String badParameter = "";

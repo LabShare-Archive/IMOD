@@ -3,6 +3,7 @@ package etomo.process;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
@@ -1634,7 +1635,7 @@ public abstract class BaseProcessManager {
    * @param axisID
    * @throws SystemProcessException
    */
-  final BackgroundProcess startBackgroundProcess(final ArrayList command,
+  final BackgroundProcess startBackgroundProcess(final List<String> command,
       final AxisID axisID, final ProcessResultDisplay processResultDisplay,
       final ProcessName processName, final ConstProcessSeries processSeries)
       throws SystemProcessException {
