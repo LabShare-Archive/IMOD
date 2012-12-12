@@ -1,6 +1,7 @@
 package etomo.comscript;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
@@ -28,7 +29,7 @@ import etomo.type.ProcessName;
 public class BatchruntomoParam {
   public static final String rcsid = "$Id:$";
 
-  private final ArrayList command = new ArrayList();
+  private final List<String> command = new ArrayList<String>();
 
   private final BaseManager manager;
 
