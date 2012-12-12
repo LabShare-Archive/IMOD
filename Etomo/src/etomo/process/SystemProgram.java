@@ -287,8 +287,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
@@ -333,14 +333,14 @@ public class SystemProgram implements Runnable {
    * accidentally lost in path or arguments. 
    */
   public SystemProgram(final BaseManager manager, final String propertyUserDir,
-      final ArrayList command, final AxisID axisID) {
+      final List<String> command, final AxisID axisID) {
     this.manager = manager;
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
     processMessages = ProcessMessages.getMultiLineInstance();
     commandArray = new String[command.size()];
     for (int i = 0; i < command.size(); i++) {
-      commandArray[i] = (String) command.get(i);
+      commandArray[i] =  command.get(i);
       // System.out.print(commandArray[i]+" ");
     }
     // System.out.println();
