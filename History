@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/12/12: 3dmod prints length and area of lasso when it is completed.
+
 12/10/12: Made Splittilt turn GPU failure from warning to error so that one
 machine doesn't fall back to CPU while others are on GPU.
 
