@@ -7,8 +7,6 @@ type = FN
 usage = Input values file
 tooltip = 
 manpage = Input file containing values to be stored in the model. 
-If this option is not entered, the first non-option argument will 
-be used for the input file.
 
 [Field = InputFile]
 short = input
@@ -16,7 +14,7 @@ type = FN
 usage = Input model file
 tooltip = 
 manpage = Input model file to clone. If this option is not entered, 
-the second non-option argument will be used for the input file.
+the first non-option argument will be used for the input file.
 
 [Field = OutputFile]
 short = output
@@ -24,7 +22,7 @@ type = FN
 usage = Output model file to create
 tooltip = 
 manpage = Name to give the output model. If this option is not entered,
-the third non-option argument will be used.
+the second non-option argument will be used.
 
 [Field = MinMaxFile]
 short = minMax
