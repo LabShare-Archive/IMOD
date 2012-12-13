@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/13/12 Added a button for viewing the seed model to the Transfer Fiducials
+panel.(Bug# 1669)
+
 12/2/12: Added script Makecomfile to make optional com files for tomogram
 generation.
 
