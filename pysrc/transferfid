@@ -514,10 +514,12 @@ try:
    modscale = pxa / modpixel
 
    # clip out the model and remap it to z = 1
-   clipcom = [fidfile, tmpclip, '0', '0', '0', '/',
-              fmtstr('{},{}', asecbest - 0.5, asecbest + 0.5), '0']
+   clipcom = ['InputFile ' + fidfile,
+              'OutputFile ' + tmpclip,
+              fmtstr('ZMinAndMax {},{}', asecbest - 0.5, asecbest + 0.5),
+              'KeepEmptyContours']
    try:
-      runcmd('clipmodel', clipcom)
+      runcmd('clipmodel -StandardInput', clipcom)
    except ImodpyError:
       cleanExitError('Clipping out best view from ' + AA + ' fiducial model')
    try:
