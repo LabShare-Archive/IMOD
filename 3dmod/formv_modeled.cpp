@@ -21,6 +21,7 @@
 #include <QCloseEvent>
 
 #include "imod.h"
+#include "imodv.h"
 #include "mv_modeled.h"
 #include "mv_input.h"
 #include "dia_qtutils.h"
@@ -46,7 +47,8 @@ imodvModeledForm::imodvModeledForm(QWidget* parent, Qt::WindowFlags fl)
   editGroup->addButton(editAllRadio, 1);
   connect(editGroup, SIGNAL(buttonClicked(int)), this,
           SLOT(editClicked(int)));
-
+  connect(sameScaleButton, SIGNAL(clicked()), this, SLOT(sameScaleClicked()));
+  sameScaleButton->setEnabled(Imodv->standalone != 0);
 }
 
 /*
@@ -97,6 +99,11 @@ void imodvModeledForm::nameChanged( const QString &name )
 void imodvModeledForm::newPixelSize()
 {
   imodvModeledScale(1);
+}
+
+void imodvModeledForm::sameScaleClicked()
+{
+  imodvModeledSameScale();
 }
 
 void imodvModeledForm::donePressed()
