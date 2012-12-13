@@ -671,10 +671,38 @@ def PipParseInput(argv, options):
    return (PipParseEntries(argv))
 
 
+# Try to open an autodoc at AUTODOC_DIR or IMOD_DIR/autodoc
+#
+def PipOpenInstalledAdoc(progName):
+   global OPTDIR_VARIABLE, PATH_SEPARATOR, OPTFILE_DIR, OPTFILE_EXT
+   optFile = None
+   pipDir = os.getenv(OPTDIR_VARIABLE)
+   if (pipDir):
+      bigStr = pipDir + PATH_SEPARATOR + progName + "." + OPTFILE_EXT
+      try:
+         # print "Looking for file " + bigStr
+         optFile = open(bigStr, "r")
+      except:
+         optFile = None
+
+   if (not optFile):
+      pipDir = os.getenv("IMOD_DIR")
+      if (pipDir):
+         bigStr = pipDir + PATH_SEPARATOR + OPTFILE_DIR +\
+                  PATH_SEPARATOR + progName + "." + OPTFILE_EXT
+         try:
+            #print "Looking for file " + bigStr
+            optFile = open(bigStr, "r")
+         except:
+            optFile = None
+
+   return optFile
+
+
 # Alternative routine to have options read from a file
 #
 def PipReadOptionFile(progName, helpLevel, localDir):
-   global OPTDIR_VARIABLE, PATH_SEPARATOR, OPTFILE_DIR, OPTFILE_EXT
+   global PATH_SEPARATOR, OPTFILE_DIR, OPTFILE_EXT
    global sOptTable, sValueDelim, sProgramName
    optFile = None
    sProgramName = progName
@@ -682,25 +710,7 @@ def PipReadOptionFile(progName, helpLevel, localDir):
    # If local directory not set, look for environment variable pointing
    # directly to where the file should be
    if (not localDir):
-      pipDir = os.getenv(OPTDIR_VARIABLE)
-      if (pipDir):
-         bigStr = pipDir + PATH_SEPARATOR + progName + "." + OPTFILE_EXT
-         try:
-            # print "Looking for file " + bigStr
-            optFile = open(bigStr, "r")
-         except:
-            optFile = None
-
-      if (not optFile):
-         pipDir = os.getenv("IMOD_DIR")
-         if (pipDir):
-            bigStr = pipDir + PATH_SEPARATOR + OPTFILE_DIR +\
-                     PATH_SEPARATOR + progName + "." + OPTFILE_EXT
-            try:
-               #print "Looking for file " + bigStr
-               optFile = open(bigStr, "r")
-            except:
-               optFile = None
+      optFile = PipOpenInstalledAdoc(progName)
   
    # If local directory set, set up name with ../ as many times as specified
    # and look for file there

@@ -697,6 +697,20 @@ int imodShowHelpPage(const char *page)
     return 1;
 }
 
+/*
+ * Prints a measurement with optional conversion to units 
+ */
+void utilWprintMeasure(QString &baseMess, Imod *imod, float measure, bool area)
+{
+  measure *= imod->pixsize;
+  if (area)
+    measure *= imod->pixsize;
+  if (strcmp("pixels", imodUnits(imod)))
+    wprint("%s, %g %s%s\n", LATIN1(baseMess), measure, imodUnits(imod), area ? "^2" : "");
+  else
+    wprint("%s\n", LATIN1(baseMess));
+}
+
 /***********************************************************************
  * Core application plugin lookup functions.
  *

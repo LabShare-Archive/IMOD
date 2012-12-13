@@ -1,0 +1,93 @@
+Version = 1.0
+Pip = 1
+
+[Field = DirectiveFile]
+short = directive
+type = FNM
+usage = Input file with directives for automating one data set
+tooltip = 
+manpage = Input file with directives for automating one data set.  All
+non-option arguments will be taken as such input files.
+
+[Field = CPUMachineList]
+short = cpus
+type = CH
+usage = Machines to use in parallel processing, or number of local cores
+tooltip = 
+manpage = 
+
+[Field = SingleOnFirstCPU]
+short = single
+type = B
+usage = Run single command files on first machine in CPU list
+tooltip = 
+manpage = Run single command files on the first machine in the CPU list, instead of
+on the local machine.
+
+[Field = GPUMachineList]
+short = gpus
+type = CH
+usage = Machines to use for parallel processing with a GPU, or 1 for local GPU
+tooltip = 
+manpage = 
+
+[Field = NiceValue]
+short = nice
+type = I
+usage = Priority level or niceness for running jobs; default is 15
+tooltip = 
+manpage = Priority level or niceness for running jobs.  Note that this applies
+to all computations, not just those run with parallel processing.  The default is 15.
+
+[Field = RemoteDirectory]
+short = remote
+type = FN
+usage = Path to starting directory on remote machines
+tooltip = 
+manpage = Path on remote machines to directory from which this program is started.
+
+[Field = CheckFile]
+short = check
+type = FN
+usage = File to check for quit signals
+tooltip = 
+manpage = File to check for quit signals.  The default is batchrunner###.input
+in the directory where this program is started, where ### is the process ID.
+The file is passed to processchunks when it runs jobs, and is checked before
+and after running jobs.  Only a Q should be placed in this file.  This will
+terminate any running jobs and stop all processing.
+
+[Field = ValidationType]
+short = validation
+type = I
+usage = 0/1/2 to validate directives (1/2 to do this then exit), or -1 not to
+tooltip = 
+manpage = By default, the program will check all directives in the directive
+and template files against the master list of directives in
+IMOD_DIR/com/directives.csv.  Enter 1 to run the program just to check
+a directive file and exit, 2 to check a template file and exit, or -1 to skip
+this step.  When checking a directive file, the directive file is first processed to
+find certain required values, and an error in that step will prevent the
+checking of directives.  Template files referenced by the directive file will
+be checked as well.  With an entry of 2, the file will be checked right after
+reading, it is not required to contain the values expected in a directive
+file, and directives pointing to template files will be ignored.
+
+[Field = StartingStep]
+short = start
+type = I
+usage = Step to start with for first set
+tooltip = 
+manpage = "Step to start with for first set: 0 = setup, 1 = preprocessing, 2 =
+xcorr, 3 = prealigned stack, 4 = patch tracking or seeding or RAPTOR, 5 =
+beadtrack, 6 = aligned stack, 7 = CTF correction, 8 = erase gold, 9 = filter,
+10 = reconstruction.  Add 100 to start with this step in the second axis of a
+dual-axis data set."
+
+[Field = ExitOnError]
+short = exit
+type = B
+usage = Exit on error instead of going on to next axis or data set
+tooltip =
+manpage =
+

@@ -874,7 +874,7 @@ int getimodsurfaces(int *surfs)
 /*!
  * Returns surface numbers for all contours in object [ob] into the array [surfs].
  * If [sortSurfs] > 0, it analyzes a mesh to sort contours into surfaces using 
- * @iobj.html#imodObjectSortSurf .
+ * @@iobj.html#imodObjectSortSurf@.
  */
 int getobjsurfaces(int *ob, int *sortSurfs, int *surfs)
 {
@@ -928,7 +928,7 @@ int getcontvalue(int *ob, int *co, float *value)
 
 /*!
  * Returns the general value for point [pt] in contour [co] of object [ob]
- * into [value].  If [pt] <= 0, has the same effect as @getcontvalue.
+ * into [value].  If [pt] <= 0, has the same effect as @@getcontvalue@.
  */
 int getpointvalue(int *ob, int *co, int *pt, float *value)
 {
@@ -977,7 +977,7 @@ int putcontvalue(int *ob, int *co, float *value)
 
 /*!
  * Stores a general value [value] for point [pt] in contour [co] of object 
- * [ob].  If [pt] is <= 0 then the effect is the same as calling @putcontvalue.
+ * [ob].  If [pt] is <= 0 then the effect is the same as calling @@putcontvalue@.
  */
 int putpointvalue(int *ob, int *co, int *pt, float *value)
 {

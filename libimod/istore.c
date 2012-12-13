@@ -523,7 +523,8 @@ int istoreAddMinMax(Ilist **list, int type, float min, float max)
 /*!
  * Computes the min and max values for all GEN_STORE_VALUE1 items in object
  * [obj] and its contours, and adds or updates a GEN_STORE_MINMAX1 item with these 
- * values for the object.
+ * values for the object.  Returns -1 if there are no values in the object, or 1 if
+ * there is an error inserting the min/max in the object store.
  */
 int istoreFindAddMinMax1(Iobj *obj)
 {

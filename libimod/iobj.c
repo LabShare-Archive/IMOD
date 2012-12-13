@@ -525,7 +525,7 @@ int imodObjectInsertContour(Iobj *obj, Icont *ncont, int index)
 /*!
  * Removes the contour at [index] from object [obj] without deleting the 
  * contour data; this is thus appropriate after adding the contour to another
- * object with @imodObjectAddContour.  Returns 1 if error.
+ * object with @@imodObjectAddContour@.  Returns 1 if error.
  */
 int imodObjectRemoveContour(Iobj *obj, int index)
 {

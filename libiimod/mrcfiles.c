@@ -115,8 +115,7 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
   }
 
   if ((hdata->mode > 31) || (hdata->mode < 0)) {
-    b3dError(stderr, "ERROR: mrc_head_read - bad file mode %d.\n",
-             hdata->mode);
+    b3dError(stderr, "ERROR: mrc_head_read - bad file mode %d.\n", hdata->mode);
     return(1);
   }
   if (hdata->nlabl > MRC_NLABELS) {
@@ -124,6 +123,15 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
              "labels, %d.\n", hdata->nlabl);
     return(1);
   }
+
+  /* 12/9/12: To match what is done in irdhdr when mx or xlen is zero; 
+     also if Z pixel size is 0, set Z cell to match X pixel size */
+  if (!hdata->mx || hdata->xlen < 1.e-5) {
+    hdata->mx = hdata->my = hdata->mz = 1;
+    hdata->xlen = hdata->ylen = hdata->zlen = 1.;
+  }
+  if (hdata->zlen < 1.e5) 
+    hdata->zlen = hdata->mz * hdata->xlen / hdata->mx;
 
   /* DNM 7/2/02: This calculation is won't work for big files and is
      a bad idea anyway, so comment out the test below */

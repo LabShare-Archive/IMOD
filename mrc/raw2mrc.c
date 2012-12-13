@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <stdlib.h>
@@ -17,6 +16,7 @@
 #include <string.h>
 #include "mrcfiles.h"
 #include "b3dutil.h"
+#include "parse_params.h"
 
 /* input data types */
 #define DTYPE_CHAR   1
@@ -42,33 +42,33 @@ static void rawswap(unsigned char *indata, int pixsize, int xysize);
 static void rawdecompress
 (void *indata, int pixsize, int xysize, int compression);
 
-int setintype(char *stype, int *size, int *otype);
+static int setintype(char *stype, int *size, int *otype);
 
 void usage(void)
 {     
-  fprintf(stderr, "raw2mrc %s %s %s.\n", VERSION_NAME, __DATE__,
+  printf("raw2mrc %s %s %s.\n", VERSION_NAME, __DATE__,
           __TIME__);
   imodCopyright();
-  fprintf(stderr, "Converts raw data into mrc file format.\n");
-  fprintf(stderr, "Usage raw2mrc [options] <input files...> <output file>\n");
-  fprintf(stderr, "Options:\n");
-  fprintf(stderr, "\t-x #    Width of input image, default 640\n");
-  fprintf(stderr, "\t-y #    Height of input image, default 480\n");
-  fprintf(stderr, "\t-z #    Number of sections in input, default 1\n");
-  fprintf(stderr, "\t-t type Input data type. \n"
+  printf("Converts raw data into mrc file format.\n");
+  printf("Usage raw2mrc [options] <input files...> <output file>\n");
+  printf("Options:\n");
+  printf("\t-x #    Width of input image, default 640\n");
+  printf("\t-y #    Height of input image, default 480\n");
+  printf("\t-z #    Number of sections in input, default 1\n");
+  printf("\t-t type Input data type. \n"
           "\t        (byte, sbyte, short, ushort, "
           "long, ulong, float, rgb)\n");
-  fprintf(stderr, "\t-s      Swap input bytes.\n");
-  fprintf(stderr, "\t-o #    Offset at beginning of file, default 0\n");
-  fprintf(stderr, "\t-oz #   Offset between each pair of sections, "
+  printf("\t-s      Swap input bytes.\n");
+  printf("\t-o #    Offset at beginning of file, default 0\n");
+  printf("\t-oz #   Offset between each pair of sections, "
           "default 0\n");
-  fprintf(stderr, "\t-f      Flip image around X axis\n");
-  fprintf(stderr, "\t-d      Divide unsigned shorts by 2 instead of subtracting 32767\n");
-  fprintf(stderr, "\t-u      Save unsigned shorts in unsigned file mode (6) \n");
-  fprintf(stderr, "\t-c      Convert long or ulong input to 16-bit"
+  printf("\t-f      Flip image around X axis\n");
+  printf("\t-d      Divide unsigned shorts by 2 instead of subtracting 32767\n");
+  printf("\t-u      Save unsigned shorts in unsigned file mode (6) \n");
+  printf("\t-c      Convert long or ulong input to 16-bit"
           " integers, not floats\n");
-  fprintf(stderr, "\t-p #    Pixel size in Angstroms to set in file header\n");
-  fprintf(stderr, "\t-pz #   Pixel size in Z in Angstroms, if different\n");
+  printf("\t-p #    Pixel size in Angstroms to set in file header\n");
+  printf("\t-pz #   Pixel size in Z in Angstroms, if different\n");
   return;
 }
 
@@ -80,7 +80,7 @@ int main( int argc, char *argv[] )
   FILE   *fin;
   FILE   *fout;
   int    intype = -1;
-  int    outtype, datatype;
+  int    outtype;
   int    outPixsize = -1;
   int    compression = 0;
   int    byteswap = FALSE;
@@ -94,28 +94,24 @@ int main( int argc, char *argv[] )
   int    csize = 1;
   int    zoffset = 0;
   int    pixsize = 1;
-  float  angle = 90.0;
-  float  xlen, ylen, zlen;
-  char   line[128];
-  unsigned char buf[4];
-  char   c, c1, c2;
-  b3dInt16  s;
-  b3dUInt16 usval;
   int datasize;
-  float  f, pixel;
+  float  pixel;
   double pixSpacing = 0., zPixel = 0.;
   float  mean = 0.0f, tmean = 0.0f, max = -5e29f, min= 5e29f;
   int start = 0;
-  b3dByte *sbdata, sbval;
-  b3dUByte *bdata, bval;
-  b3dInt16 *sdata, sval;
+  b3dByte *sbdata;
+  b3dUByte *bdata;
+  b3dInt16 *sdata;
   b3dUInt16 *usdata;
   b3dInt32 *ldata;
   b3dUInt32 *uldata;
-  b3dFloat *fdata, fval;
+  b3dFloat *fdata;
   void *indata;
   int val;
   char *progname = imodProgName(argv[0]);
+  char prefix[100];
+  sprintf(prefix, "ERROR: %s - ", progname);
+  setExitPrefix(prefix);
 
   if (argc < 3){
     usage();
@@ -176,7 +172,7 @@ int main( int argc, char *argv[] )
   }
      
   if ( (argc - 1) < (i + 1)){
-    fprintf(stderr, "ERROR: %s - insufficient arguments\n", progname);
+    printf("ERROR: %s - insufficient arguments\n", progname);
     usage();
     exit(3);
   }
@@ -189,15 +185,12 @@ int main( int argc, char *argv[] )
       intype = setintype("ulong2short", &pixsize, &outtype);
       outPixsize = 2;
     } else
-      fprintf(stderr, "WARNING: %s - conversion option -c ignored with "
+      printf("WARNING: %s - conversion option -c ignored with "
              "specified input type\n", progname);
   }
 
-  if (divide && keepUshort) {
-    fprintf(stderr, "ERROR: %s - You cannot divide by 2 and keep mode as "
-            "unsigned\n", progname);
-    exit(3);
-  }
+  if (divide && keepUshort) 
+    exitError("You cannot divide by 2 and keep mode as unsigned");
 
   if (intype < 0)
     intype = setintype("byte", &pixsize, &outtype);
@@ -208,8 +201,7 @@ int main( int argc, char *argv[] )
     if (intype == DTYPE_USHORT || intype == DTYPE_ULONG2SHORT)
       outtype = MRC_MODE_USHORT;
     else
-      fprintf(stderr, "WARNING: %s - option -u ignored with "
-             "specified input type\n", progname);
+      printf("WARNING: %s - option -u ignored with specified input type\n", progname);
   }
 
   nfiles = argc - (i + 1);
@@ -217,16 +209,11 @@ int main( int argc, char *argv[] )
 
   /* printf("nfiles = %d, argc = %d\n",nfiles, argc); */
 
-  if (!getenv("IMOD_NO_IMAGE_BACKUP") && imodBackupFile(argv[argc - 1])) {
-    fprintf(stderr, "ERROR: %s - couldn't create backup file", progname);
-    exit(3);
-  }
+  if (!getenv("IMOD_NO_IMAGE_BACKUP") && imodBackupFile(argv[argc - 1])) 
+    exitError("Couldn't create backup file");
   fout = fopen(argv[argc - 1], "wb");
-  if (!fout){
-    fprintf(stderr, "ERROR: %s - opening %s for output\n", progname,
-            argv[argc -1]);
-    exit(3);
-  }
+  if (!fout)
+    exitError("Opening %s for output", argv[argc -1]);
 
   for (j = 0; j < 1024; j++)
     b3dFwrite(&start , 1, 1, fout);
@@ -235,10 +222,8 @@ int main( int argc, char *argv[] )
   xysize = x * y * csize;
 
   indata = (void *)malloc(pixsize * xysize);
-  if (!indata){
-    fprintf(stderr, "ERROR: %s - getting memory.\n", progname);
-    exit(3);
-  }
+  if (!indata)
+    exitError("Getting memory");
 
   /* 7/21/11: make header now so signed byte output is known */
   mrc_head_new(&hdata, x, y, nsecs, outtype);
@@ -250,32 +235,20 @@ int main( int argc, char *argv[] )
 
   for (j = i ; j < argc-1 ; j++) {
     fin = fopen(argv[j], "rb");
-    if (!fin){
-      fprintf(stderr, "ERROR: %s - opening %s for input\n", progname,
-              argv[j]);
-      exit(3);
-    }
+    if (!fin)
+      exitError("Opening %s for input", argv[j]);
 
-    if (b3dFseek(fin, hsize, SEEK_CUR)) {
-      fprintf(stderr, "ERROR: %s - seeking to data in file  %s\n",
-              progname, argv[j]);
-      exit(3);
-    }
+    if (b3dFseek(fin, hsize, SEEK_CUR)) 
+      exitError("Seeking to data in file  %s", argv[j]);
 
     for (k = 0; k < z; k++) {
       tmean = 0.0f;
       if (k > 0) {
-        if (b3dFseek(fin, zoffset, SEEK_CUR)) {
-          fprintf(stderr, "ERROR: %s - seeking to data at section %d in "
-                  "file  %s\n", progname, k, argv[j]);
-          exit(3);
-        }
+        if (b3dFseek(fin, zoffset, SEEK_CUR)) 
+          exitError("Seeking to data at section %d in file  %s", k, argv[j]);
       }
-      if (b3dFread(indata, pixsize, xysize, fin) != xysize) {
-        fprintf(stderr, "ERROR: %s - reading data from file  %s\n", progname,
-                argv[j]);
-        exit(3);
-      }
+      if (b3dFread(indata, pixsize, xysize, fin) != xysize) 
+        exitError("Reading data from file  %s", argv[j]);
       if (compression){
         rawdecompress(indata, pixsize, xysize, compression);
       }
@@ -411,18 +384,14 @@ int main( int argc, char *argv[] )
       }
 
       if (flip == 0) {
-        if (b3dFwrite(indata, outPixsize, xysize, fout) != xysize) {
-          fprintf(stderr, "ERROR: %s - writing data to file\n", progname);
-          exit(3);
-        }
+        if (b3dFwrite(indata, outPixsize, xysize, fout) != xysize) 
+          exitError("Writing data to file");
       } else {
 
         for (i = y - 1; i >= 0 ; i--) {
           bdata = ((unsigned char *)indata) + i * outPixsize * x;
-          if (b3dFwrite(bdata, outPixsize, x, fout) != x) {
-            fprintf(stderr, "ERROR: %s - writing data to file\n", progname);
-            exit(3);
-          }
+          if (b3dFwrite(bdata, outPixsize, x, fout) != x) 
+            exitError("Writing data to file");
         }
       }
       mean += (tmean / (float)xysize);
@@ -493,7 +462,7 @@ static void rawswap(b3dUByte *indata, int pixsize, int xysize)
   return;
 }
 
-int setintype(char *stype, int *size, int *otype)
+static int setintype(char *stype, int *size, int *otype)
 {
   if (!strcmp(stype,"byte")) {
     *size = 1;
@@ -555,68 +524,3 @@ int setintype(char *stype, int *size, int *otype)
 
   return(-1);
 }
-
-/*
-$Log$
-Revision 3.19  2011/07/25 02:45:17  mast
-Changes for working with signed bytes
-
-Revision 3.18  2011/03/05 03:42:13  mast
-Allow environment variable to prevent backing up file
-
-Revision 3.17  2009/08/04 15:50:15  mast
-Made it accept files starting in dash
-
-Revision 3.16  2005/11/11 21:55:08  mast
-Outputs unsigned mode
-
-Revision 3.15  2005/02/11 01:42:34  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.14  2004/09/10 21:33:31  mast
-Eliminated long variables
-
-Revision 3.11.2.2  2004/07/08 22:55:03  mast
-Backport to 3.3
-
-Revision 3.13  2004/07/08 22:29:33  mast
-Had to make prewriting of header bytes us 3dFwrite too
-
-Revision 3.12  2004/07/07 19:25:31  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.11  2004/06/19 22:13:36  mast
-Fixed seek error message
-
-Revision 3.10  2004/06/06 00:48:39  mast
-Added an option for converting long to short
-
-Revision 3.9  2004/01/17 20:38:45  mast
-Eliminate unneeded rewind call
-
-Revision 3.8  2004/01/06 21:20:07  mast
-Made it make a backup file of an existing output file
-
-Revision 3.7  2003/11/18 19:29:32  mast
-changes to call b3dF* functions for 2GB problem on Windows
-
-Revision 3.6  2003/10/24 02:28:42  mast
-strip directory from program name and/or use routine to make backup file
-
-Revision 3.5  2002/11/05 23:22:22  mast
-Changed to use library routine for writing header
-
-Revision 3.4  2002/11/05 23:35:08  mast
-Changed to call imodCopyright
-
-Revision 3.3  2001/12/29 01:30:23  mast
-Fixed byte swapping for 4-byte entities
-
-Revision 3.2  2001/12/29 01:04:09  mast
-*** empty log message ***
-
-Revision 3.1  2001/12/29 00:49:24  mast
-Made signed long work, made signed and unsigned bytes work on PC,
-eliminated two lines of diagnostic output
-
-*/

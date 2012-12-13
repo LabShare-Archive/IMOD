@@ -45,6 +45,16 @@ tooltip =
 manpage = Use the contours in the area model to define regions to exclude from
 analysis rather than regions to include.
 
+[Field = QueryAreaOnSection]
+short = query
+type = I
+usage = Report area included by area model on the given section and exit
+tooltip =
+manpage = Report area in megapixels that an area model includes
+in the analysis for the given section, and then exit.  This is the sum of
+areas inside the contours, or the whole image area minus that sum if -exclude
+is given.  With this option, only the input and area models need to be entered.
+
 [Field = AddToModel]
 short = add
 type = FN
@@ -171,6 +181,17 @@ strength above which peaks will be stored.  Enter a negative number to specify
 the number to store as a fraction of the number above the histogram dip (e.g.,
 -1 for all points above the dip, -0.33 for the strongest 1/3 above the dip,
 -1.33 for all above plus 1/3 that many below the dip.)
+
+[Field = FallbackThresholds]
+short = fallback
+type = IP
+usage = # of peaks to average and # to store if no histogram dip is found
+tooltip =
+manpage = Number of peaks to average to make the reference for the second
+round, and number of peaks to store in the model, if no dip is found when
+analyzing the histogram of the respective set of peaks.  If this option is not
+entered, or if 0 is entered for one of the fallbacks, then the program exits
+with an error after failing to find a histogram dip.
 
 [Field = BackgroundGroups]
 short = bkgd

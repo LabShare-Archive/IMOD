@@ -51,7 +51,6 @@ tooltip =
 manpage = Set the name of the output file for the seed model; the default is
 setnameb.seed (or setnamea.fid with the "-b" option.)
 
-
 [Field = ViewsToSearch]
 short = n
 type = I
@@ -117,6 +116,13 @@ tooltip =
 manpage = Use this option to have corresponding fiducial coordinates on the best matching
 views placed into an output file.  This file will also record the section
 numbers in the two sets and whether the transfer was from "b" to "a".
+
+[Field = LowestTiltTransformFile]
+short = lowest
+type = FN
+usage = File in which to save transform for lowest tilt pair of views
+tooltip =
+manpage = 
 
 [Field = LeaveTempFiles]
 short = t

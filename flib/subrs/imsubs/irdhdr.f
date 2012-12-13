@@ -181,6 +181,13 @@ c       1/12/12: Eliminated zeroing of nbsym if ispg was not between 0 and 220!
         enddo
       endif
 c       
+c       12/9/12: fix a zero Z cell to give same pixel size as X
+c       0 pixel size was seen in files from GMS v 2.14
+      if (cel(3, j) < 1.e-5) cel(3, j) = max(1, nxyz(3,j)) * cel(1, j) / nxyz(1, j)
+      do k = 1,3
+        delt(k) = cel(mapcrs(k,j),j)/max(1,nxyz(mapcrs(k,j),j))
+      enddo
+c       
 c       DNM 6/3/03: replace null in titles with space to avoid binary output
 c       
       do k = 1,nlab(j)
@@ -212,10 +219,6 @@ C
 C       Write out header information
 c       DNM 7/30/01: eliminate wavelength
 C       
-      do k = 1,3
-        delt(k) = 1.0
-        delt(k) = cel(mapcrs(k,j),j)/nxyz(mapcrs(k,j),j)
-      enddo
       call move(idat,stuff(19,j),12)
       idtype = idat(1)
       lens = idat(2)

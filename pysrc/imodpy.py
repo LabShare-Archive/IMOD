@@ -36,7 +36,7 @@ This module provides the following functions:
   imodTempDir() - returns a temporary directory: IMOD_TEMPDIR, /usr/tmp, or /tmp
   setLibPath() - Set path variables for executing Qt programs
   fmtstr(string, *args) - formats a string with replacement fields
-  prnstr(string, file = sys.stdout, end = '\n') - replaces print function
+  prnstr(string, file = sys.stdout, end = '\n', flush = False) - replaces print function
 """
 
 # other modules needed by imodpy
@@ -514,7 +514,8 @@ def parselist (line):
 def readTextFile(filename, descrip = None, returnOnErr = False):
    """readTextFile(filename[ , descrip])  - read in text file, strip endings
 
-   Reads in the text file in <filename>, strips the line endings and blanks
+   Reads in the text file in <filename> if this is a string, or reads from it
+   as an open file object if not, strips the line endings and blanks
    from the end of each line, and returns a list of strings.  Exits with
    exitError on an error opening or reading the file, and adds the optional
    description in <descrip> to the error message.  Or, if returnOnErr is True,
@@ -524,7 +525,10 @@ def readTextFile(filename, descrip = None, returnOnErr = False):
       descrip = " "
    try:
       errString = "Opening"
-      textfile = open(filename, 'r')
+      if isinstance(filename, str):
+         textfile = open(filename, 'r')
+      else:
+         textfile = filename
       errString = "Reading"
       lines = textfile.readlines()
    except IOError:

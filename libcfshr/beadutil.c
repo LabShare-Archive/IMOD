@@ -51,7 +51,7 @@ void makeModelBead(int boxSize, float beadSize, float *array)
   }
 }
 
-/*! Fortran wrapper for @makeModelbead. */
+/*! Fortran wrapper for @@makeModelbead@. */
 void makemodelbead(int *boxSize, float *beadSize, float *array)
 {
   makeModelBead(*boxSize, *beadSize, array);

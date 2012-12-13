@@ -1004,6 +1004,7 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
   int docheck = 0;
   int keypad = event->modifiers() & Qt::KeypadModifier;
   float unit, dist3d;
+  QString str;
   Ipoint *p1, *p2, *pnt;
   int ob, co, pt, axis, start, end, ix, iy;
   Icont *cont;
@@ -1097,10 +1098,10 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
     scale.y = vi->imod->yscale * vi->xybin;
     scale.z = vi->imod->zscale * vi->zbin;
     dist3d  = imodPoint3DScaleDistance(pnt, &moupt, &scale);
-    wprint("From (%.1f, %.1f, %.1f) to (%.1f, %.1f, %.1f) ="
-           " %.1f %spixels, %g %s\n", pnt->x+1., pnt->y+1., pnt->z+1., moupt.x+1., 
-           moupt.y+1., moupt.z+1., dist3d, vi->zbin * vi->xybin > 1 ? "unbinned " : "",
-           dist3d * vi->imod->pixsize, imodUnits(vi->imod));
+    str.sprintf("From (%.1f, %.1f, %.1f) to (%.1f, %.1f, %.1f) = %.1f %spixels", 
+                pnt->x+1., pnt->y+1., pnt->z+1., moupt.x+1., moupt.y+1., moupt.z+1., 
+                dist3d, vi->zbin * vi->xybin > 1 ? "unbinned " : "");
+    utilWprintMeasure(str, vi->imod, dist3d);
 
     break;
 

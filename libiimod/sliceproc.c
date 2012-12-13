@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <math.h>
@@ -599,7 +598,7 @@ int sliceAnisoDiff(Islice *sl,  int outMode, int CC, double k, double lambda,
 /*! 
  * Does anisotropic diffusion on slice [sl], which must contain bytes.
  * [image] and [image2] are float arrays of size {xsize} + 2 by {ysize} + 2 
- * that have already been allocated with @allocate2D_float.
+ * that have already been allocated with @@allocate2D_float@.
  * [CC] is edge stopping type (1, 2, 3),
  * [k] is the threshold parameter, [lambda] is the step size, [iterations] is 
  * the number of iterations to run.  [iterDone] is maintained with the total
@@ -801,68 +800,3 @@ int niceFrame(int num, int idnum, int limit)
   } while (numtmp > 1);
   return numin;
 }
-
-
-/*
-    $Log$
-    Revision 3.13  2008/06/24 04:45:26  mast
-    Moved taper at fill function to libcfshr
-
-    Revision 3.12  2008/05/27 05:57:32  mast
-    Changed to not scale when converting to bytes if min/max=0
-
-    Revision 3.11  2007/11/22 20:47:10  mast
-    Make the scaling function global
-
-    Revision 3.10  2007/10/01 15:28:34  mast
-    Moved slice taper function to libcfshr
-
-    Revision 3.9  2007/09/14 05:24:29  mast
-    *** empty log message ***
-
-    Revision 3.8  2007/08/15 00:06:21  mast
-    Added taperinpad function, renamed from xcorr
-
-    Revision 3.7  2007/05/27 21:17:57  mast
-    Added taper routine here, and documented
-
-    Revision 3.6  2005/11/11 22:15:23  mast
-    Changes for unsigned file mode
-
-    Revision 3.5  2005/03/09 21:17:15  mast
-    Converted diffusion to float, removed processor argument
-
-    Revision 3.4  2005/02/10 22:03:30  mast
-    Need to include stdlib.h for mallocs to work in 64-bit land
-
-    Revision 3.3  2005/01/28 05:41:11  mast
-    Needed separate byte routine for anisotropic diffusion
-
-    Revision 3.2  2005/01/27 05:56:56  mast
-    Added anisotropic diffusion
-
-    Revision 3.1  2005/01/07 20:00:45  mast
-    Moved to libiimod to make available to clip, added median filter
-
-    Revision 3.6  2004/12/22 15:21:15  mast
-    Fixed problems discovered with Visual C compiler
-
-    Revision 3.5  2004/11/07 23:01:27  mast
-    Really fixed scaling, used short slices to prevent loss of resolution
-
-    Revision 3.4  2004/11/05 19:08:12  mast
-    Include local files with quotes, not brackets
-
-    Revision 3.3  2004/10/29 22:16:55  mast
-    Fixed some scaling problems
-
-    Revision 3.2  2004/09/24 18:15:55  mast
-    Fixed bug in Sobel filter
-
-    Revision 3.1  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
-*/
-/* DNM 11-11-98: changed loops for filling in the edges after processing
-   so that the corners would not have spurious data */
-

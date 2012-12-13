@@ -24,6 +24,7 @@ clean : cleanjunk
 	$(FIND) plughelp -type f -name "*"   -exec rm "{}" \;
 	$(FIND) libhelp -type f -name "*"   -exec rm "{}" \;
 	$(FIND) man -type f -name "*"   -exec rm "{}" \;
+	$(FIND) . -type f -name "directives.html"   -exec rm "{}" \;
 
 docs :
 	mkdir -p $(HTML_ARCDIR)
