@@ -130,7 +130,7 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
     hdata->mx = hdata->my = hdata->mz = 1;
     hdata->xlen = hdata->ylen = hdata->zlen = 1.;
   }
-  if (hdata->zlen < 1.e5) 
+  if (hdata->zlen < 1.e-5)
     hdata->zlen = hdata->mz * hdata->xlen / hdata->mx;
 
   /* DNM 7/2/02: This calculation is won't work for big files and is
