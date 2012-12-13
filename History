@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/12/12: 3dmod prints length and area of lasso when it is completed.
+12/13/12: Added button the Model View Edit-Models dialog to show all models at
+the same scale.
+
+12/12/12: Made 3dmod print length and area of lasso when it is completed.
 
 12/10/12: Made Splittilt turn GPU failure from warning to error so that one
 machine doesn't fall back to CPU while others are on GPU.
