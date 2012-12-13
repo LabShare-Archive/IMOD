@@ -77,6 +77,15 @@ tooltip =
 manpage = Retain only the longest segment of a contour that is within the
 volume being included, instead of all segments.
 
+[Field = KeepEmptyContours]
+short = keep
+type = B
+usage = Keep contours that have no points
+tooltip = 
+manpage = Keep contours that have no points, so that contours have their original
+numbers in the output model.  This was the behavior before IMOD 4.6.18.
+The default is now to remove empty contours.
+
 [Field = ObjectList]
 short = objects
 type = LI
@@ -94,6 +103,44 @@ usage = Number of points to clip from start and end of contours
 tooltip = 
 manpage = Number of points to clip from start and end of contours for the
 objects specified by -objects; the latter must be entered.
+
+[Field = ValuesInOrOutOfRange]
+short = values
+type = I
+usage = Delete contours, points, or both with values in or out of a range
+tooltip = 
+manpage = Use this option to delete contours or points that have stored values
+inside of or outside of a defined range.  Enter 1 or -1 to delete contours, 2
+or -2 to delete points, or 3 or -3 to delete both, with a positive or negative
+number to delete if values are inside or outside the range, respectively.  For
+example, if a model is produced by Imodfindbeads(1) with the default storage
+option, contours with values below threshold can be removed with "clipmodel -values 1
+input_file output_file".
+
+[Field = RangeForValues]
+short = range
+type = FP
+usage = Lower and upper values of range for deleting or retaining points/contours
+tooltip = 
+manpage = Lower and upper values of the range used to decide whether a 
+point or contour is to be deleted.  If this option is not entered,
+the default range for each object is all values below the lower threshold
+stored in the model by Imodfindbeads(1), Findbeads3d(1), 3dmod(1), or other
+programs.  In
+3dmod(1), this threshold appears in the Bead Fixer dialog and also as the
+Black slider setting in the Values panel of the Edit-Objects dialog of the
+Model View window.
+
+[Field = UpdateObjectMinMax]
+short = update
+type = B
+usage = Update the stored minimum and maximum values for all objects
+tooltip =
+manpage = Update the stored minimum and maximum values of each object based
+on the stored values of all contours and points in the object.  These minimum
+and maximum values determine the range of the Black/White sliders in the
+Values panel of the Edit-Objects dialog of the Model View window.  This option
+cannot be used together with -keep.
 
 [Field = ParameterFile]
 short = param
