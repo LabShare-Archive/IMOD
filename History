@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/13/12: Made Clipmodel able to clip contours or points by value and retain
+fine grained properties in all operations; added option to update object min/max
+value; changed it to remove empty contours and added option to keep them.
+
 12/13/12: Added button the Model View Edit-Models dialog to show all models at
 the same scale.
 
