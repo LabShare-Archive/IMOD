@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.comscript.TransferfidParam;
+import etomo.process.ImodManager;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
@@ -20,6 +21,7 @@ import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.util.DatasetFiles;
 
 /**
  * <p>Description: </p>
@@ -53,21 +55,20 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
   private final RadioButton rbSearchMinus90 = new RadioButton("-90 (CW) only");
   private final TransferfidPanelActionListener actionListener = new TransferfidPanelActionListener(
       this);
+  private final Run3dmodButton btn3dmodSeed = Run3dmodButton.get3dmodInstance(
+      "Open Seed Model", this);
 
   private final PanelHeader header;
   private final Run3dmodButton buttonTransferfid;
   private final AxisID axisID;
   private final ApplicationManager manager;
-  private final FiducialModelDialog parent;
   private final DialogType dialogType;
 
   private TransferfidPanel(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType, FiducialModelDialog parent,
-      GlobalExpandButton globalAdvancedButton) {
+      DialogType dialogType, GlobalExpandButton globalAdvancedButton) {
     this.dialogType = dialogType;
     this.manager = manager;
     this.axisID = axisID;
-    this.parent = parent;
     header = PanelHeader.getAdvancedBasicInstance("Transfer Fiducials", this, dialogType,
         globalAdvancedButton);
     panelTransferfidBody.setLayout(new BoxLayout(panelTransferfidBody, BoxLayout.Y_AXIS));
@@ -114,7 +115,11 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     buttonTransferfid.setContainer(this);
     buttonTransferfid.setAlignmentX(Component.CENTER_ALIGNMENT);
     buttonTransferfid.setSize();
+    btn3dmodSeed.setSize();
+    buttonTransferfid.setDeferred3dmodButton(btn3dmodSeed);
     pnlTransferfid.add(buttonTransferfid.getComponent());
+    pnlTransferfid.add(Box.createHorizontalGlue());
+    pnlTransferfid.add(btn3dmodSeed.getComponent());
     pnlTransferfid.add(Box.createHorizontalGlue());
     panelTransferfidBody.add(pnlTransferfid);
     panelTransferfidBody.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -127,16 +132,11 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
   }
 
   static TransferfidPanel getInstance(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType, FiducialModelDialog parent,
-      GlobalExpandButton globalAdvancedButton) {
-    TransferfidPanel instance = new TransferfidPanel(manager, axisID, dialogType, parent,
+      DialogType dialogType, GlobalExpandButton globalAdvancedButton) {
+    TransferfidPanel instance = new TransferfidPanel(manager, axisID, dialogType,
         globalAdvancedButton);
     instance.addListeners();
     return instance;
-  }
-
-  void setDeferred3dmodButtons() {
-    buttonTransferfid.setDeferred3dmodButton(parent.btnSeed);
   }
 
   public void action(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
@@ -157,6 +157,11 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     if (command.equals(buttonTransferfid.getActionCommand())) {
       manager.transferfid(axisID, buttonTransferfid, null, deferred3dmodButton,
           run3dmodMenuOptions, dialogType);
+    }
+    else if (command.equals(btn3dmodSeed.getActionCommand())) {
+      manager.imodSeedModel(axisID, run3dmodMenuOptions, btn3dmodSeed,
+          ImodManager.COARSE_ALIGNED_KEY, DatasetFiles.getSeedFileName(manager, axisID),
+          DatasetFiles.getRawTiltFile(manager, axisID), dialogType);
     }
   }
 
@@ -260,6 +265,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
 
   private void addListeners() {
     buttonTransferfid.addActionListener(actionListener);
+    btn3dmodSeed.addActionListener(actionListener);
   }
 
   void done() {
