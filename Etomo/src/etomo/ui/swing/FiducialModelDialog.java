@@ -453,7 +453,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   private final MultiLineButton btnCleanup = new MultiLineButton(
       "Clean Up Temporary Files");
 
-  final Run3dmodButton btnSeed;
+  private final Run3dmodButton btnSeed;
   private final BeadtrackPanel pnlBeadtrack;
   private final TransferfidPanel pnlTransferfid;
   private final TiltxcorrPanel tiltxcorrPanel;
@@ -485,7 +485,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
         btnAdvanced);
     if (applicationManager.isDualAxis()) {
       pnlTransferfid = TransferfidPanel.getInstance(applicationManager, axisID,
-          dialogType, this, btnAdvanced);
+          dialogType, btnAdvanced);
     }
     else {
       pnlTransferfid = null;
@@ -1267,7 +1267,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     }
     else if (command.equals(btnBoundaryModel.getActionCommand())) {
       applicationManager.imodModel(FileType.PREALIGNED_STACK,
-          FileType.AUTOFIDSEED_BOUNDARY_MODEL, axisID, run3dmodMenuOptions,true);
+          FileType.AUTOFIDSEED_BOUNDARY_MODEL, axisID, run3dmodMenuOptions, true);
     }
   }
 
