@@ -164,6 +164,16 @@ void imodvModeledEdit(int item)
   Imodv->crosset = item;
 }
 
+// User wants models at same scale
+void imodvModeledSameScale()
+{
+  if (!Imodv->standalone)
+    return;
+  for (int m = 0; m < Imodv->nm; m++)
+    Imodv->mod[m]->view->rad = Imodv->imod->view->rad;
+  imodvDraw(Imodv);
+}
+
 // User changes the name
 void imodvModeledName(QString nameStr)
 {

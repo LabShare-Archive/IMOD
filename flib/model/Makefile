@@ -129,7 +129,7 @@ fiberpitch$(E): fiberpitch.$(O)
 	$(FC) -o fiberpitch fiberpitch.$(O) $(LDFLG) $(WLIBS)
 
 repackseed$(E): repackseed.$(O)
-	$(FC) -o repackseed repackseed.$(O) $(LDFLG) $(WLIBS)
+	$(FC) -o repackseed repackseed.$(O) $(LDFLG) $(SMALLLIBS)
 
 resamplemod$(E): resamplemod.$(O)
 	$(FC) -o resamplemod resamplemod.$(O) $(LDFLG) $(WLIBS)

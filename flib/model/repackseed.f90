@@ -18,7 +18,7 @@ program repackseed
   real*4 dum, xOrig(idim), yOrig(idim), xImScale, yImScale, zImScale
   character*1 abtext(2) /'A', 'B'/
   integer*4 getImodScales, deleteImodCont
-  logical*4 readw_or_imod
+  logical*4 readSmallMod
   !
   call setExitPrefix('ERROR: REPACKSEED - ')
   write(*,'(1x,a,$)') 'Name of fiducial file from first axis: '
@@ -42,7 +42,7 @@ program repackseed
   !
   ! read original file
   !
-  if (.not.readw_or_imod(fidName)) call exitError('Reading original fiducial file')
+  if (.not.readSmallMod(fidName)) call exitError('Reading original fiducial file')
   call scale_model(0)
   !
   ! read xyz file if any
@@ -100,7 +100,7 @@ program repackseed
   !
   ! read new seed model
   !
-  if (.not.readw_or_imod(seedName)) call exitError('Reading new seed file')
+  if (.not.readSmallMod(seedName)) call exitError('Reading new seed file')
   call scale_model(0)
   if (matchName .ne. ' ') then
     call dopen(1, matchName, 'new', 'f')

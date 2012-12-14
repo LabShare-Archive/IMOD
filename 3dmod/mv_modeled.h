@@ -27,5 +27,6 @@ void imodvModeledEdit(int item);
 void imodvModeledName(QString nameStr);
 void imodvModeledScale(int update);
 void imodvModelDrawRange(ImodvApp *a, int &mstart, int &mend);
+void imodvModeledSameScale();
 
 #endif
