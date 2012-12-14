@@ -3,14 +3,12 @@ package etomo.comscript;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
 import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -21,6 +19,8 @@ import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
+import etomo.type.ScriptParameter;
+import etomo.type.StringParameter;
 import etomo.ui.swing.UIHarness;
 import etomo.util.MRCHeader;
 
@@ -205,12 +205,16 @@ import etomo.util.MRCHeader;
 public final class NewstParam implements ConstNewstParam, CommandParam {
   public static final String rcsid = "$Id$";
 
+  private static final String INPUT_FILE_KEY = "InputFile";
+  private static final String SECTIONS_TO_READ_KEY = "SectionsToRead";
+  private static final String NUMBER_TO_OUTPUT_KEY = "NumberToOutput";
+
   public static final String SIZE_TO_OUTPUT_IN_X_AND_Y = "SizeToOutputInXandY";
   public static final String IMAGES_ARE_BINNED_KEY = "ImagesAreBinned";
   public static final String DISTORTION_FIELD_KEY = "DistortionField";
-  public static final String OFFSETS_IN_X_AND_Y_KEY ="OffsetsInXandY";
-  public static final String BIN_BY_FACTOR_KEY ="BinByFactor";
-  public static final String FILL_VALUE_KEY ="FillValue";
+  public static final String OFFSETS_IN_X_AND_Y_KEY = "OffsetsInXandY";
+  public static final String BIN_BY_FACTOR_KEY = "BinByFactor";
+  public static final String FILL_VALUE_KEY = "FillValue";
   // data mode
   public static final String DATA_MODE_OPTION = "-mo";
   public static final int DATA_MODE_DEFAULT = Integer.MIN_VALUE;
@@ -221,54 +225,60 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   public static final int FLOAT_DENSITIES_DEFAULT = Integer.MIN_VALUE;
   public static final int FLOAT_DENSITIES_MEAN = 2;
 
-  // defaults
-  public static final int BIN_BY_FACTOR_DEFAULT = 1;
-
   private static final String COMMAND_FILE_EXTENSION = ".com";
 
-  private final Vector inputFile = new Vector();
-  private String outputFile = null;
+  private final List<String> inputFile = new Vector<String>();
+  private final StringParameter outputFile = new StringParameter("OutputFile");
+  private final StringParameter fileOfInputs = new StringParameter("FileOfInputs");
+  private final StringParameter fileOfOutputs = new StringParameter("FileOfOutputs");
+  private final List<String> sectionsToRead = new Vector<String>();
+  private final List<String> numberToOutput = new Vector<String>();
+  private final FortranInputString sizeToOutputInXandY = new FortranInputString(
+      "SizeToOutputInXandY", 2);
+  private final ScriptParameter modeToOutput = new ScriptParameter("ModeToOutput");
+  private final FortranInputString userSizeToOutputInXandY = new FortranInputString(2);
+  private final FortranInputString offsetsInXandY = new FortranInputString(
+      OFFSETS_IN_X_AND_Y_KEY, 2);
+  private final Vector<FortranInputString> offsetsInXandYExtraEntries = new Vector<FortranInputString>();
+  private final EtomoBoolean2 applyOffsetsFirst = new EtomoBoolean2("ApplyOffsetsFirst");
+  private final StringParameter transformFile = new StringParameter("TransformFile");
+  private final StringParameter useTransformLines = new StringParameter(
+      "UseTransformLines");
+  private final ScriptParameter rotateByAngle = new ScriptParameter(
+      EtomoNumber.Type.DOUBLE, "RotateByAngle");
+  private final ScriptParameter expandByFactor = new ScriptParameter(
+      EtomoNumber.Type.DOUBLE, "ExpandByFactor");
+  private final ScriptParameter binByFactor = new ScriptParameter("BinByFactor");
+  private final EtomoBoolean2 linearInterpolation = new EtomoBoolean2(
+      "LinearInterpolation");
+  private final ScriptParameter floatDensities = new ScriptParameter("FloatDensities");
+  private final FortranInputString contrastBlackWhite = new FortranInputString(
+      "ContrastBlackWhite", 2);
+  private final FortranInputString scaleMinAndMax = new FortranInputString(
+      "ScaleMinAndMax", 2);
+  private final StringParameter distortionField = new StringParameter("DistortionField");
+  private final ScriptParameter imagesAreBinned = new ScriptParameter("ImagesAreBinned");
+  private final FortranInputString testLimits = new FortranInputString("TestLimits", 2);
+  private final StringParameter gradientFile = new StringParameter("GradientFile");
+  /**
+   * @version 3.10
+   * Script is from an earlier version if false.
+   */
+  private final EtomoBoolean2 adjustOrigin = new EtomoBoolean2("AdjustOrigin");
+  private final FortranInputString taperAtFill = new FortranInputString("TaperAtFill", 2);
+  private final ScriptParameter fillValue = new ScriptParameter(EtomoNumber.Type.DOUBLE,
+      "FillValue");
+
+  private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+
   /**
    * Set when outputFile is set from the dialog, otherwise set to null when
    * outputFile changed.
    */
   private FileType outputFileType = null;
-  private final Vector sectionsToRead = new Vector();
-  private final FortranInputString sizeToOutputInXandY = new FortranInputString(2);
-  private final FortranInputString userSizeToOutputInXandY = new FortranInputString(2);
-  private final FortranInputString offsetsInXandY = new FortranInputString(2);
-  private final Vector<FortranInputString> offsetsInXandYExtraEntries = new Vector<FortranInputString>();
-  private final FortranInputString contrastBlackWhite = new FortranInputString(2);
-  private final FortranInputString testLimits = new FortranInputString(2);
-  private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-  private final FortranInputString taper = new FortranInputString(2);
-  private final EtomoNumber fillValue = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-
   private ProcessName processName = ProcessName.NEWST;
-  /**
-   * @version 3.10
-   * Script is from an earlier version if false.
-   */
-  private final EtomoBoolean2 adjustOrigin = new EtomoBoolean2();
 
-  private Vector numberToOutput;
-  private FortranInputString scaleMinAndMax = new FortranInputString(2);
-  private String fileOfInputs;
-  private String fileOfOutputs;
-  private int modeToOutput;
-  private boolean applyOffsetsFirst;
-  private String transformFile;
-  private String useTransformLines;
-  private double rotateByAngle;
-  private double expandByFactor;
-  private int binByFactor;
-  private boolean linearInterpolation;
-  private int floatDensities;
-  private String distortionField;
-  private int imagesAreBinned;
-  private String parameterFile;
   private boolean fiducialessAlignment;
-  private String magGradientFile;
   private Mode mode;
   private final AxisID axisID;
   private final BaseManager manager;
@@ -281,12 +291,12 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     this.manager = manager;
     this.axisID = axisID;
     this.useColorNewst = useColorNewst;
-    boolean[] allIntegerType = new boolean[] { true, true };
-    sizeToOutputInXandY.setIntegerType(allIntegerType);
-    userSizeToOutputInXandY.setIntegerType(allIntegerType);
-    contrastBlackWhite.setIntegerType(allIntegerType);
-    testLimits.setIntegerType(allIntegerType);
-    taper.setIntegerType(allIntegerType);
+    sizeToOutputInXandY.setIntegerType(true);
+    userSizeToOutputInXandY.setIntegerType(true);
+    binByFactor.setDisplayValue(1);
+    contrastBlackWhite.setIntegerType(true);
+    testLimits.setIntegerType(true);
+    taperAtFill.setIntegerType(true);
     reset();
   }
 
@@ -305,34 +315,34 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private void reset() {
     validate = false;
     inputFile.clear();
-    outputFile = null;
+    outputFile.reset();
     outputFileType = null;
-    fileOfInputs = "";
-    fileOfOutputs = "";
+    fileOfInputs.reset();
+    fileOfOutputs.reset();
     sectionsToRead.clear();
-    numberToOutput = new Vector();
+    numberToOutput.clear();
     sizeToOutputInXandY.reset();
     userSizeToOutputInXandY.reset();
-    modeToOutput = Integer.MIN_VALUE;
+    modeToOutput.reset();
     offsetsInXandY.reset();
     offsetsInXandYExtraEntries.clear();
-    applyOffsetsFirst = false;
-    transformFile = "";
-    useTransformLines = "";
-    rotateByAngle = Double.NaN;
-    expandByFactor = Double.NaN;
-    binByFactor = Integer.MIN_VALUE;
-    linearInterpolation = false;
-    floatDensities = Integer.MIN_VALUE;
+    applyOffsetsFirst.reset();
+    transformFile.reset();
+    useTransformLines.reset();
+    rotateByAngle.reset();
+    expandByFactor.reset();
+    binByFactor.reset();
+    linearInterpolation.reset();
+    floatDensities.reset();
     contrastBlackWhite.reset();
-    scaleMinAndMax = new FortranInputString(2);
-    distortionField = "";
-    imagesAreBinned = Integer.MIN_VALUE;
+    scaleMinAndMax.reset();
+    distortionField.reset();
+    imagesAreBinned.reset();
     testLimits.reset();
-    parameterFile = "";
     fiducialessAlignment = false;
-    magGradientFile = null;
+    gradientFile.reset();
     adjustOrigin.reset();
+    taperAtFill.reset();
     imageRotation.reset();
     fillValue.reset();
   }
@@ -344,137 +354,198 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    */
   public void parseComScriptCommand(final ComScriptCommand scriptCommand)
       throws FortranInputSyntaxException, InvalidParameterException {
-    String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     reset();
-    for (int i = 0; i < cmdLineArgs.length; i++) {
-      // Is it an argument or filename
-      if (cmdLineArgs[i].startsWith("-")) {
-        if (cmdLineArgs[i].toLowerCase().startsWith("-in")) {
-          i++;
-          inputFile.add(cmdLineArgs[i]);
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-ou")) {
-          i++;
-          outputFile = cmdLineArgs[i];
-          outputFileType = null;
-        }
-        else if (cmdLineArgs[i].startsWith("-filei")
-            || cmdLineArgs[i].startsWith("-FileOfI")) {
-          i++;
-          fileOfInputs = cmdLineArgs[i];
-        }
-        else if (cmdLineArgs[i].startsWith("-fileo")
-            || cmdLineArgs[i].startsWith("-FileOfO")) {
-          i++;
-          fileOfOutputs = cmdLineArgs[i];
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-se")) {
-          i++;
-          sectionsToRead.add(cmdLineArgs[i]);
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-nu")) {
-          i++;
-          numberToOutput.add(cmdLineArgs[i]);
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-si")) {
-          i++;
-          sizeToOutputInXandY.validateAndSet(cmdLineArgs[i]);
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-mo")) {
-          i++;
-          modeToOutput = Integer.parseInt(cmdLineArgs[i]);
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-of")) {
-          i++;
-          // The first entry goes into the single variable, the next entries go into the
-          // vector.
-          if (offsetsInXandY.isNull()) {
-            offsetsInXandY.validateAndSet(cmdLineArgs[i]);
-          }
-          else {
-            FortranInputString input = new FortranInputString(2);
-            input.validateAndSet(cmdLineArgs[i]);
-            offsetsInXandYExtraEntries.add(input);
-          }
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-a")) {
-          applyOffsetsFirst = true;
-        }
-        else if (cmdLineArgs[i].startsWith("-x") || cmdLineArgs[i].startsWith("-Tr")) {
-          i++;
-          transformFile = cmdLineArgs[i];
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-use")) {
-          i++;
-          useTransformLines = cmdLineArgs[i];
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-r")) {
-          i++;
-          rotateByAngle = Double.parseDouble(cmdLineArgs[i]);
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-e")) {
-          i++;
-          expandByFactor = Double.parseDouble(cmdLineArgs[i]);
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-b")) {
-          i++;
-          binByFactor = Integer.parseInt(cmdLineArgs[i]);
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-l")) {
-          linearInterpolation = true;
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-fl")) {
-          i++;
-          floatDensities = Integer.parseInt(cmdLineArgs[i]);
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-c")) {
-          i++;
-          contrastBlackWhite.validateAndSet(cmdLineArgs[i]);
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-sc")) {
-          i++;
-          scaleMinAndMax.validateAndSet(cmdLineArgs[i]);
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-d")) {
-          i++;
-          distortionField = cmdLineArgs[i];
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-im")) {
-          i++;
-          imagesAreBinned = Integer.parseInt(cmdLineArgs[i]);
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-te")) {
-          i++;
-          testLimits.validateAndSet(cmdLineArgs[i]);
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-grad")) {
-          i++;
-          magGradientFile = cmdLineArgs[i];
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-or")) {
-          adjustOrigin.set(true);
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-taper")) {
-          i++;
-          taper.validateAndSet(cmdLineArgs[i]);
-        }
-        else if (cmdLineArgs[i].toLowerCase().startsWith("-fill")) {
-          i++;
-          fillValue.set(cmdLineArgs[i]);
-        }
-        else {
-          String message = "Unknown argument: " + cmdLineArgs[i];
-          throw new InvalidParameterException(message);
+    if (scriptCommand.isKeywordValuePairs()) {
+      // Read in everything that the backwards compatibility code is reading in, even if
+      // it is not used or changed.
+      String[] array = scriptCommand.getValues(INPUT_FILE_KEY);
+      if (array != null) {
+        for (int i = 0; i < array.length; i++) {
+          inputFile.add(array[i]);
         }
       }
-      // input and output filename arguments
-      else {
-        if (i == (cmdLineArgs.length - 1)) {
-          outputFile = cmdLineArgs[i];
-          outputFileType = null;
+      outputFile.parse(scriptCommand);
+      fileOfInputs.parse(scriptCommand);
+      fileOfOutputs.parse(scriptCommand);
+      array = scriptCommand.getValues(SECTIONS_TO_READ_KEY);
+      if (array != null) {
+        for (int i = 0; i < array.length; i++) {
+          sectionsToRead.add(array[i]);
         }
+      }
+      array = scriptCommand.getValues(NUMBER_TO_OUTPUT_KEY);
+      if (array != null) {
+        for (int i = 0; i < array.length; i++) {
+          numberToOutput.add(array[i]);
+        }
+      }
+      sizeToOutputInXandY.validateAndSet(scriptCommand);
+      modeToOutput.parse(scriptCommand);
+      array = scriptCommand.getValues(OFFSETS_IN_X_AND_Y_KEY);
+      if (array != null) {
+        for (int i = 0; i < array.length; i++) {
+          if (i == 0) {
+            offsetsInXandY.validateAndSet(array[i]);
+          }
+          else {
+            FortranInputString fis = new FortranInputString(OFFSETS_IN_X_AND_Y_KEY, 2);
+            fis.validateAndSet(array[i]);
+            offsetsInXandYExtraEntries.add(fis);
+          }
+        }
+      }
+      applyOffsetsFirst.parse(scriptCommand);
+      transformFile.parse(scriptCommand);
+      useTransformLines.parse(scriptCommand);
+      rotateByAngle.parse(scriptCommand);
+      expandByFactor.parse(scriptCommand);
+      binByFactor.parse(scriptCommand);
+      linearInterpolation.parse(scriptCommand);
+      floatDensities.parse(scriptCommand);
+      contrastBlackWhite.validateAndSet(scriptCommand);
+      scaleMinAndMax.validateAndSet(scriptCommand);
+      distortionField.parse(scriptCommand);
+      imagesAreBinned.parse(scriptCommand);
+      testLimits.validateAndSet(scriptCommand);
+      gradientFile.parse(scriptCommand);
+      adjustOrigin.parse(scriptCommand);
+      taperAtFill.validateAndSet(scriptCommand);
+      fillValue.parse(scriptCommand);
+    }
+    else {
+      // Backwards compatibility
+      String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
+      reset();
+      for (int i = 0; i < cmdLineArgs.length; i++) {
+        // Is it an argument or filename
+        if (cmdLineArgs[i].startsWith("-")) {
+          if (cmdLineArgs[i].toLowerCase().startsWith("-in")) {
+            i++;
+            inputFile.add(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-ou")) {
+            i++;
+            outputFile.set(cmdLineArgs[i]);
+            outputFileType = null;
+          }
+          else if (cmdLineArgs[i].startsWith("-filei")
+              || cmdLineArgs[i].startsWith("-FileOfI")) {
+            i++;
+            fileOfInputs.set(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].startsWith("-fileo")
+              || cmdLineArgs[i].startsWith("-FileOfO")) {
+            i++;
+            fileOfOutputs.set(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-se")) {
+            i++;
+            sectionsToRead.add(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-nu")) {
+            i++;
+            numberToOutput.add(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-si")) {
+            i++;
+            sizeToOutputInXandY.validateAndSet(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-mo")) {
+            i++;
+            modeToOutput.set(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-of")) {
+            i++;
+            // The first entry goes into the single variable, the next entries go into the
+            // vector.
+            if (offsetsInXandY.isNull()) {
+              offsetsInXandY.validateAndSet(cmdLineArgs[i]);
+            }
+            else {
+              FortranInputString input = new FortranInputString(2);
+              input.validateAndSet(cmdLineArgs[i]);
+              offsetsInXandYExtraEntries.add(input);
+            }
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-a")) {
+            applyOffsetsFirst.set(true);
+          }
+          else if (cmdLineArgs[i].startsWith("-x") || cmdLineArgs[i].startsWith("-Tr")) {
+            i++;
+            transformFile.set(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-use")) {
+            i++;
+            useTransformLines.set(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-r")) {
+            i++;
+            rotateByAngle.set(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-e")) {
+            i++;
+            expandByFactor.set(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-b")) {
+            i++;
+            binByFactor.set(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-l")) {
+            linearInterpolation.set(true);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-fl")) {
+            i++;
+            floatDensities.set(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-c")) {
+            i++;
+            contrastBlackWhite.validateAndSet(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-sc")) {
+            i++;
+            scaleMinAndMax.validateAndSet(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-d")) {
+            i++;
+            distortionField.set(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-im")) {
+            i++;
+            imagesAreBinned.set(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-te")) {
+            i++;
+            testLimits.validateAndSet(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-grad")) {
+            i++;
+            gradientFile.set(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-or")) {
+            adjustOrigin.set(true);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-taper")) {
+            i++;
+            taperAtFill.validateAndSet(cmdLineArgs[i]);
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-fill")) {
+            i++;
+            fillValue.set(cmdLineArgs[i]);
+          }
+          else {
+            String message = "Unknown argument: " + cmdLineArgs[i];
+            throw new InvalidParameterException(message);
+          }
+        }
+        // input and output filename arguments
         else {
-          inputFile.add(cmdLineArgs[i]);
+          if (i == (cmdLineArgs.length - 1)) {
+            outputFile.set(cmdLineArgs[i]);
+            outputFileType = null;
+          }
+          else {
+            inputFile.add(cmdLineArgs[i]);
+          }
         }
       }
     }
@@ -487,209 +558,73 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    */
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
       throws BadComScriptException {
-    // Create a new command line argument array
-
-    ArrayList cmdLineArgs = new ArrayList();
-    if (!fileOfInputs.equals("")) {
-      cmdLineArgs.add("-fileinlist");
-      cmdLineArgs.add(fileOfInputs);
+    scriptCommand.useKeywordValue();
+    for (Iterator<String> i = inputFile.iterator(); i.hasNext();) {
+      scriptCommand.setValue(INPUT_FILE_KEY, i.next());
     }
-    if (!fileOfOutputs.equals("")) {
-      cmdLineArgs.add("-fileoutlist");
-      cmdLineArgs.add(fileOfOutputs);
+    outputFile.updateComScript(scriptCommand);
+    fileOfInputs.updateComScript(scriptCommand);
+    fileOfOutputs.updateComScript(scriptCommand);
+    for (Iterator<String> i = sectionsToRead.iterator(); i.hasNext();) {
+      scriptCommand.setValue(SECTIONS_TO_READ_KEY, i.next());
     }
-    for (Iterator i = sectionsToRead.iterator(); i.hasNext();) {
-      cmdLineArgs.add("-secs");
-      cmdLineArgs.add((String) i.next());
+    for (Iterator<String> i = numberToOutput.iterator(); i.hasNext();) {
+      scriptCommand.setValue(NUMBER_TO_OUTPUT_KEY, i.next());
     }
-    for (Iterator i = numberToOutput.iterator(); i.hasNext();) {
-      cmdLineArgs.add("-numout");
-      cmdLineArgs.add((String) i.next());
-    }
-    if (sizeToOutputInXandY.valuesSet() && (!sizeToOutputInXandY.isDefault())) {
-      cmdLineArgs.add("-size");
-      cmdLineArgs.add(sizeToOutputInXandY.toString());
-    }
-    if (modeToOutput > Integer.MIN_VALUE) {
-      cmdLineArgs.add(DATA_MODE_OPTION);
-      cmdLineArgs.add(String.valueOf(modeToOutput));
-    }
-    if (!offsetsInXandY.isNull()) {
-      cmdLineArgs.add("-offset");
-      cmdLineArgs.add(offsetsInXandY.toString(true));
-    }
+    sizeToOutputInXandY.updateScriptParameter(scriptCommand);
+    modeToOutput.updateComScript(scriptCommand);
+    offsetsInXandY.updateScriptParameter(scriptCommand);
     for (Iterator<FortranInputString> i = offsetsInXandYExtraEntries.iterator(); i
         .hasNext();) {
-      FortranInputString fis = i.next();
-      if (!fis.isNull()) {
-        cmdLineArgs.add("-offset");
-        cmdLineArgs.add(fis.toString(true));
-      }
+      i.next().updateScriptParameter(scriptCommand);
     }
-    if (applyOffsetsFirst) {
-      cmdLineArgs.add("-applyfirst");
-    }
-    if (!transformFile.equals("")) {
-      cmdLineArgs.add("-xform");
-      cmdLineArgs.add(transformFile);
-    }
-    if (!useTransformLines.equals("")) {
-      cmdLineArgs.add("-uselines");
-      cmdLineArgs.add(useTransformLines);
-    }
-    if (!Double.isNaN(rotateByAngle)) {
-      cmdLineArgs.add("-rotate");
-      cmdLineArgs.add(String.valueOf(rotateByAngle));
-    }
-    if (!Double.isNaN(expandByFactor)) {
-      cmdLineArgs.add("-expand");
-      cmdLineArgs.add(String.valueOf(expandByFactor));
-    }
-    if (binByFactor > Integer.MIN_VALUE) {
-      cmdLineArgs.add("-bin");
-      cmdLineArgs.add(String.valueOf(binByFactor));
-    }
-    if (linearInterpolation) {
-      cmdLineArgs.add("-linear");
-    }
-    if (floatDensities > Integer.MIN_VALUE) {
-      cmdLineArgs.add(FLOAT_DENSITIES_OPTION);
-      cmdLineArgs.add(String.valueOf(floatDensities));
-    }
-    if (contrastBlackWhite.valuesSet() && (!contrastBlackWhite.isDefault())) {
-      cmdLineArgs.add("-contrast");
-      cmdLineArgs.add(String.valueOf(contrastBlackWhite.toString()));
-    }
-    if (scaleMinAndMax.valuesSet() && (!scaleMinAndMax.isDefault())) {
-      cmdLineArgs.add("-scale");
-      cmdLineArgs.add(String.valueOf(scaleMinAndMax.toString()));
-    }
-    if (!distortionField.equals("")) {
-      cmdLineArgs.add("-distort");
-      cmdLineArgs.add(distortionField);
-    }
-    if (imagesAreBinned > Integer.MIN_VALUE) {
-      cmdLineArgs.add("-imagebinned");
-      cmdLineArgs.add(String.valueOf(imagesAreBinned));
-    }
-    if (testLimits.valuesSet() && (!testLimits.isDefault())) {
-      cmdLineArgs.add("-test");
-      cmdLineArgs.add(String.valueOf(testLimits.toString()));
-    }
-    if (!parameterFile.equals("")) {
-      cmdLineArgs.add("-param");
-      cmdLineArgs.add(parameterFile);
-    }
-    if (magGradientFile != null && !magGradientFile.matches("\\s*+")) {
-      cmdLineArgs.add("-grad");
-      cmdLineArgs.add(magGradientFile);
-    }
-    if (adjustOrigin.is()) {
-      cmdLineArgs.add("-origin");
-    }
-    if (taper.valuesSet() && (!taper.isDefault())) {
-      cmdLineArgs.add("-taper");
-      cmdLineArgs.add(String.valueOf(taper.toString()));
-    }
-    if (!fillValue.isNull()) {
-      cmdLineArgs.add("-fill");
-      cmdLineArgs.add(fillValue.toString());
-    }
-    // Add input file(s) and output file last and without a parameter tag.
-    for (Iterator i = inputFile.iterator(); i.hasNext();) {
-      // cmdLineArgs.add("-input");
-      cmdLineArgs.add((String) i.next());
-    }
-    // cmdLineArgs.add("-output");
-    cmdLineArgs.add(outputFile);
-    int nArgs = cmdLineArgs.size();
-    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs.toArray(new String[nArgs]));
-
-    // If the command is currently newst change it to newstack
-    scriptCommand.setCommand(getCommandName());
-    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-      System.err.println(scriptCommand.getCommand());
-      String[] commandArray = scriptCommand.getCommandLineArgs();
-      if (commandArray != null) {
-        for (int i = 0; i < commandArray.length; i++) {
-          System.err.print(commandArray[i] + " ");
-        }
-        System.err.println();
-      }
-    }
+    applyOffsetsFirst.updateComScript(scriptCommand);
+    transformFile.updateComScript(scriptCommand);
+    useTransformLines.updateComScript(scriptCommand);
+    rotateByAngle.updateComScript(scriptCommand);
+    expandByFactor.updateComScript(scriptCommand);
+    binByFactor.updateComScript(scriptCommand);
+    linearInterpolation.updateComScript(scriptCommand);
+    floatDensities.updateComScript(scriptCommand);
+    contrastBlackWhite.updateScriptParameter(scriptCommand);
+    scaleMinAndMax.updateScriptParameter(scriptCommand);
+    distortionField.updateComScript(scriptCommand);
+    imagesAreBinned.updateComScript(scriptCommand);
+    testLimits.updateScriptParameter(scriptCommand);
+    gradientFile.updateComScript(scriptCommand);
+    adjustOrigin.updateComScript(scriptCommand);
+    taperAtFill.updateScriptParameter(scriptCommand);
+    fillValue.updateComScript(scriptCommand);
   }
 
   public void initializeDefaults() {
   }
 
-  /**
-   * @param applyOffsetsFirst The applyOffsetsFirst to set.
-   */
-  public void setApplyOffsetsFirst(final boolean applyOffsetsFirst) {
-    this.applyOffsetsFirst = applyOffsetsFirst;
-  }
-
-  /**
-   * @param binByFactor The binByFactor to set.
-   */
-  public void setBinByFactor(int binByFactor) {
-    this.binByFactor = binByFactor;
-  }
-
   public void setBinByFactor(final Number input) {
     if (input == null) {
-      binByFactor = 1;
+      binByFactor.set(1);
     }
     else {
-      binByFactor = input.intValue();
+      binByFactor.set(input);
     }
-  }
-
-  /**
-   * @param contrast The contrastBlackWhite to set.
-   */
-  public void setContrastBlackWhite(final String contrast)
-      throws FortranInputSyntaxException {
-    contrastBlackWhite.validateAndSet(contrast);
   }
 
   public void resetDistortionField() {
-    distortionField = "";
+    distortionField.reset();
   }
 
   /**
    * @param distortionField The distortionField to set.
    */
   public void setDistortionField(final String distortionField) {
-    this.distortionField = distortionField;
-  }
-
-  /**
-   * @param expandByFactor The expandByFactor to set.
-   */
-  public void setExpandByFactor(final double expandByFactor) {
-    this.expandByFactor = expandByFactor;
-  }
-
-  /**
-   * @param fileOfInputs The fileOfInputs to set.
-   */
-  public void setFileOfInputs(final String fileOfInputs) {
-    this.fileOfInputs = fileOfInputs;
-  }
-
-  /**
-   * @param fileOfOutputs The fileOfOutputs to set.
-   */
-  public void setFileOfOutputs(final String fileOfOutputs) {
-    this.fileOfOutputs = fileOfOutputs;
+    this.distortionField.set(distortionField);
   }
 
   /**
    * @param floatDensities The floatDensities to set.
    */
   public void setFloatDensities(final int floatDensities) {
-    this.floatDensities = floatDensities;
+    this.floatDensities.set(floatDensities);
   }
 
   public void setFiducialessAlignment(final boolean fiducialessAlignment) {
@@ -700,19 +635,12 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     fillValue.set(input);
   }
 
-  /**
-   * @param imagesAreBinned The imagesAreBinned to set.
-   */
-  public void setImagesAreBinned(final int imagesAreBinned) {
-    this.imagesAreBinned = imagesAreBinned;
-  }
-
   public void setImagesAreBinned(final Number input) {
     if (input == null) {
-      imagesAreBinned = Integer.MIN_VALUE;
+      imagesAreBinned.reset();
     }
     else {
-      imagesAreBinned = input.intValue();
+      imagesAreBinned.set(input.intValue());
     }
   }
 
@@ -732,21 +660,14 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    * @param linearInterpolation The linearInterpolation to set.
    */
   public void setLinearInterpolation(final boolean linearInterpolation) {
-    this.linearInterpolation = linearInterpolation;
+    this.linearInterpolation.set(linearInterpolation);
   }
 
   /**
    * @param modeToOutput The modeToOutput to set.
    */
   public void setModeToOutput(final int modeToOutput) {
-    this.modeToOutput = modeToOutput;
-  }
-
-  /**
-   * @param numberToOutput The numberToOutput to set.
-   */
-  public void setNumberToOutput(final Vector numberToOutput) {
-    this.numberToOutput = numberToOutput;
+    this.modeToOutput.set(modeToOutput);
   }
 
   public void setOffsetsInXandY(final ConstEtomoNumber[] pair) {
@@ -766,7 +687,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    */
   public void setOutputFile(final FileType fileType, final String rootName,
       final AxisType axisType) {
-    outputFile = fileType.deriveFileName(rootName, axisType, manager, axisID);
+    outputFile.set(fileType.deriveFileName(rootName, axisType, manager, axisID));
     outputFileType = fileType;
   }
 
@@ -774,7 +695,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    * @param outputFile The outputFile to set.
    */
   public void setOutputFile(final FileType fileType) {
-    outputFile = fileType.getFileName(manager, axisID);
+    outputFile.set(fileType.getFileName(manager, axisID));
     outputFileType = fileType;
   }
 
@@ -782,40 +703,9 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     adjustOrigin.set(input);
   }
 
-  /**
-   * @param parameterFile The parameterFile to set.
-   */
-  public void setParameterFile(final String parameterFile) {
-    this.parameterFile = parameterFile;
-  }
-
-  /**
-   * @param rotateByAngle The rotateByAngle to set.
-   */
-  public void setRotateByAngle(final double rotateByAngle) {
-    this.rotateByAngle = rotateByAngle;
-  }
-
-  /**
-   * @param scaleMinAndMax The scaleMinAndMax to set.
-   */
-  public void setScaleMinAndMax(final FortranInputString scaleMinAndMax) {
-    this.scaleMinAndMax = scaleMinAndMax;
-  }
-
-  /**
-   * @param sectionsToRead The sectionsToRead to set.
-   */
-  public void setSectionsToRead(final Vector sections) {
-    // Defensively copy argument, since the objects are primatives we only need
-    // copy the collection of references
-    sectionsToRead.clear();
-    sectionsToRead.addAll(sections);
-  }
-
   public void resetSizeToOutputInXandY() throws FortranInputSyntaxException {
-    sizeToOutputInXandY.validateAndSet("/");
-    userSizeToOutputInXandY.validateAndSet("/");
+    sizeToOutputInXandY.reset();
+    userSizeToOutputInXandY.reset();
     imageRotation.reset();
   }
 
@@ -897,24 +787,10 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   }
 
   /**
-   * @param testLimits The testLimits to set.
-   */
-  public void setTestLimits(final String limits) throws FortranInputSyntaxException {
-    testLimits.validateAndSet(limits);
-  }
-
-  /**
    * @param transformFile The transformFile to set.
    */
   public void setTransformFile(final String transformFile) {
-    this.transformFile = transformFile;
-  }
-
-  /**
-   * @param useTransformLines The useTransformLines to set.
-   */
-  public void setUseTransformLines(final String useTransformLines) {
-    this.useTransformLines = useTransformLines;
+    this.transformFile.set(transformFile);
   }
 
   public void setProcessName(final ProcessName input) {
@@ -929,13 +805,6 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     return axisID;
   }
 
-  /**
-   * @return Returns the applyOffsetsFirst.
-   */
-  public boolean isApplyOffsetsFirst() {
-    return applyOffsetsFirst;
-  }
-
   public boolean fillValueEquals(final int value) {
     return fillValue.equals(value);
   }
@@ -944,28 +813,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    * @return Returns the binByFactor.
    */
   public int getBinByFactor() {
-    return ParamUtilities.get(binByFactor, BIN_BY_FACTOR_DEFAULT);
-  }
-
-  /**
-   * @return Returns the contrastBlackWhite.
-   */
-  public String getContrastBlackWhite() {
-    return contrastBlackWhite.toString();
-  }
-
-  /**
-   * @return Returns the distortionField.
-   */
-  public String getDistortionField() {
-    return distortionField;
-  }
-
-  /**
-   * @return Returns the expandByFactor.
-   */
-  public double getExpandByFactor() {
-    return expandByFactor;
+    return binByFactor.getInt();
   }
 
   public CommandDetails getSubcommandDetails() {
@@ -977,31 +825,10 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   }
 
   /**
-   * @return Returns the fileOfInputs.
-   */
-  public String getFileOfInputs() {
-    return fileOfInputs;
-  }
-
-  /**
-   * @return Returns the fileOfOutputs.
-   */
-  public String getFileOfOutputs() {
-    return fileOfOutputs;
-  }
-
-  /**
    * @return Returns the floatDensities.
    */
   public int getFloatDensities() {
-    return floatDensities;
-  }
-
-  /**
-   * @return Returns the imagesAreBinned.
-   */
-  public int getImagesAreBinned() {
-    return imagesAreBinned;
+    return floatDensities.getInt();
   }
 
   /**
@@ -1010,44 +837,21 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    * @return Returns the inputFile.
    */
   public String getInputFile() {
-    return (String) inputFile.get(0);
-  }
-
-  /**
-   * Create a defensive copy of the internal object inputFile
-   * @return
-   */
-  public Vector getInputFiles() {
-    Vector copy = new Vector(inputFile);
-    return copy;
+    return inputFile.get(0);
   }
 
   /**
    * @return Returns the linearInterpolation.
    */
   public boolean isLinearInterpolation() {
-    return linearInterpolation;
+    return linearInterpolation.is();
   }
 
   /**
    * @return Returns the modeToOutput.
    */
   public int getModeToOutput() {
-    return modeToOutput;
-  }
-
-  /**
-   * @return Returns the numberToOutput.
-   */
-  public Vector getNumberToOutput() {
-    return numberToOutput;
-  }
-
-  /**
-   * @return Returns the elements in offsetsInXandY.
-   */
-  public String getOffsetsInXandY() {
-    return offsetsInXandY.toString();
+    return modeToOutput.getInt();
   }
 
   /**
@@ -1070,17 +874,17 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    * @return Returns the outputFile.
    */
   public String getOutputFile() {
-    if (outputFile == null) {
+    if (outputFile.isEmpty()) {
       return "";
     }
-    return outputFile;
+    return outputFile.toString();
   }
 
   public FileType getOutputImageFileType() {
     if (outputFileType != null) {
       return outputFileType;
     }
-    return FileType.getInstance(manager, axisID, true, true, outputFile);
+    return FileType.getInstance(manager, axisID, true, true, outputFile.toString());
   }
 
   public FileType getOutputImageFileType2() {
@@ -1092,42 +896,6 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     return null;
   }
 
-  /**
-   * @return Returns the parameterFile.
-   */
-  public String getParameterFile() {
-    return parameterFile;
-  }
-
-  /**
-   * @return Returns the rotateByAngle.
-   */
-  public double getRotateByAngle() {
-    return rotateByAngle;
-  }
-
-  /**
-   * @return Returns the scaleMinAndMax.
-   */
-  public FortranInputString getScaleMinAndMax() {
-    return scaleMinAndMax;
-  }
-
-  /**
-   * @return Returns the sectionsToRead.
-   */
-  public Vector getSectionsToRead() {
-    Vector copy = new Vector(sectionsToRead);
-    return copy;
-  }
-
-  /**
-   * @return Returns the sizeToOutputInXandY.
-   */
-  public String getSizeToOutputInXandY() {
-    return sizeToOutputInXandY.toString();
-  }
-
   public int getSizeToOutputInX() {
     return sizeToOutputInXandY.getInt(0);
   }
@@ -1136,29 +904,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     return sizeToOutputInXandY.getInt(1);
   }
 
-  /**
-   * @return Returns the testLimits.
-   */
-  public String getTestLimits() {
-    return testLimits.toString();
-  }
-
-  /**
-   * @return Returns the transformFile.
-   */
-  public String getTransformFile() {
-    return transformFile;
-  }
-
-  /**
-   * @return Returns the useTransformLines.
-   */
-  public String getUseTransformLines() {
-    return useTransformLines;
-  }
-
   public boolean isSizeToOutputInXandYSet() {
-    return sizeToOutputInXandY.valuesSet() && (!sizeToOutputInXandY.isDefault());
+    return !sizeToOutputInXandY.isNull();
   }
 
   public String getCommand() {
@@ -1230,7 +977,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
       return fiducialessAlignment;
     }
     if (field == Field.USE_LINEAR_INTERPOLATION) {
-      return linearInterpolation;
+      return linearInterpolation.is();
     }
     throw new IllegalArgumentException("field=" + field);
   }
@@ -1241,7 +988,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
 
   public String getString(final FieldInterface field) {
     if (field == Field.USER_SIZE_TO_OUTPUT_IN_X_AND_Y) {
-      return userSizeToOutputInXandY.toString();
+      return userSizeToOutputInXandY.toString(true);
     }
     throw new IllegalArgumentException("field=" + field);
   }
