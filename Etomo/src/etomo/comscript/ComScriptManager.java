@@ -443,6 +443,8 @@ public final class ComScriptManager extends BaseComScriptManager {
   private ComScript scriptTiltForSirtB;
   private ComScript scriptAutofidseedA;
   private ComScript scriptAutofidseedB;
+  private ComScript scriptGoldEraserA;
+  private ComScript scriptGoldEraserB;
 
   public ComScriptManager(ApplicationManager appManager) {
     super(appManager);
@@ -461,6 +463,25 @@ public final class ComScriptManager extends BaseComScriptManager {
     else {
       scriptEraserA = loadComScript("eraser", axisID, true, false, false);
     }
+  }
+  
+  /**
+   * @param axisID
+   * @param required
+   * @return true if script has loaded
+   */
+  public boolean loadGoldEraser(AxisID axisID, boolean required) {
+    // Assign the new ComScriptObject object to the appropriate reference
+    if (axisID == AxisID.SECOND) {
+      scriptGoldEraserB = loadComScript(
+          FileType.GOLD_ERASER_COMSCRIPT.getFileName(appManager, axisID), axisID, true,
+          required, false, false);
+      return scriptGoldEraserB != null;
+    }
+    scriptGoldEraserA = loadComScript(
+        FileType.GOLD_ERASER_COMSCRIPT.getFileName(appManager, axisID), axisID, true,
+        required, false, false);
+    return scriptGoldEraserA != null;
   }
 
   /**
@@ -485,6 +506,29 @@ public final class ComScriptManager extends BaseComScriptManager {
     initialize(ccdEraserParam, eraser, "ccderaser", axisID, false, false);
     return ccdEraserParam;
   }
+  
+  /**
+   * Get the CCD eraser parameters from the specified eraser script object
+   * @param axisID the AxisID to read.
+   * @return a CCDEraserParam object that will be created and initialized
+   * with the input arguments from eraser in the com script.
+   */
+  public CCDEraserParam getGoldEraserParam(AxisID axisID, CommandMode mode) {
+
+    // Get a reference to the appropriate script object
+    ComScript eraser;
+    if (axisID == AxisID.SECOND) {
+      eraser = scriptGoldEraserB;
+    }
+    else {
+      eraser = scriptGoldEraserA;
+    }
+
+    // Initialize a CCDEraserParam object from the com script command object
+    CCDEraserParam ccdEraserParam = new CCDEraserParam(appManager, axisID, mode);
+    initialize(ccdEraserParam, eraser, "ccderaser", axisID, false, false);
+    return ccdEraserParam;
+  }
 
   /**
    * Save the specified eraser com script updating the ccderaser parmaeters
@@ -501,6 +545,27 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
     else {
       scriptEraser = scriptEraserA;
+    }
+
+    // update the ccderaser parameters
+    modifyCommand(scriptEraser, ccdEraserParam, "ccderaser", axisID, false, false);
+  }
+  
+  /**
+   * Save the specified gold eraser com script updating the ccderaser parmaeters
+   * @param axisID the AxisID to load.
+   * @param ccdEraserParam a CCDEraserParam object containing the new input
+   * parameters for the ccderaser command.
+   */
+  public void saveGoldEraser(CCDEraserParam ccdEraserParam, AxisID axisID) {
+
+    // Get a reference to the appropriate script object
+    ComScript scriptEraser;
+    if (axisID == AxisID.SECOND) {
+      scriptEraser = scriptGoldEraserB;
+    }
+    else {
+      scriptEraser = scriptGoldEraserA;
     }
 
     // update the ccderaser parameters

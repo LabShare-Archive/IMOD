@@ -180,7 +180,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
                     + command + ")", sectionType);
             // Create an autodoc tester for this autodoc.
             AutodocTester autodocTester = AutodocTester.getAutodocTester(this, helper,
-                AutodocFactory.getInstance(null, dir, value, AxisID.ONLY), dir,
+                AutodocFactory.getTestInstance(null, dir, value, AxisID.ONLY), dir,
                 sectionType, axisID, this);
             autodocTesterList.add(autodocTester);
             // Assuming that AxisID can be a unique key for the testers

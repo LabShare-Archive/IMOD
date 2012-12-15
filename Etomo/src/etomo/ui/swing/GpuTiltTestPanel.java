@@ -105,7 +105,8 @@ public class GpuTiltTestPanel implements ToolPanel, ContextMenu {
 
   private void action() {
     if (!DatasetTool.validateDatasetName(manager, axisID,
-        new File(manager.getPropertyUserDir()), DATASET_ROOT, DataFileType.TOOLS, null)) {
+        new File(manager.getPropertyUserDir()), DATASET_ROOT, DataFileType.TOOLS, null,
+        true)) {
       return;
     }
     manager.gpuTiltTest(axisID);

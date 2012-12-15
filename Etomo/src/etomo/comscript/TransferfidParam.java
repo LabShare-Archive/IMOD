@@ -142,6 +142,7 @@
 package etomo.comscript;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import etomo.ApplicationManager;
@@ -323,11 +324,11 @@ public final class TransferfidParam implements Storable {
   /**
    * Get the command string specified by the current state
    */
-  public ArrayList getCommand() {
+  public List<String> getCommand() {
     // Do not use the -e flag for tcsh since David's scripts handle the failure
     // of commands and then report appropriately. The exception to this is the
     // com scripts which require the -e flag. RJG: 2003-11-06
-    ArrayList command = new ArrayList();
+    List<String> command = new ArrayList<String>();
     command.add("bash");
     command.add(ApplicationManager.getIMODBinPath() + "runpyscript");
     command.add("-P");

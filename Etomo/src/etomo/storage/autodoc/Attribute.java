@@ -142,9 +142,9 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
   private AttributeList children = null;
 
   Attribute(WriteOnlyAttributeList parent,
-  /*WriteOnlyNameValuePairList nameValuePairList,*/Token name) {
+  /* WriteOnlyNameValuePairList nameValuePairList, */Token name) {
     this.parent = parent;
-    //this.nameValuePairList = nameValuePairList;
+    // this.nameValuePairList = nameValuePairList;
     this.name = name;
     key = name.getKey();
   }
@@ -194,25 +194,19 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
     return Token.convertToKey(name);
   }
 
-  /*
-   boolean equalsName(String name) {
-   if (name == null) {
-   return false;
-   }
-   return key.equals(Token.convertToKey(name));
-   }
-   */
+  /*boolean equalsName(String name) { if (name == null) { return false; } return
+   * key.equals(Token.convertToKey(name)); } */
   WriteOnlyAttributeList addAttribute(Token name) {
     if (children == null) {
-      children = new AttributeList(this/*, nameValuePairList*/);
+      children = new AttributeList(this/* , nameValuePairList */);
     }
     return children.addAttribute(name);
   }
 
   synchronized void addNameValuePair(NameValuePair nameValuePair) {
     if (nameValuePairList == null) {
-      //complete construction before assigning to keep the unsynchronized
-      //functions from seeing a partially constructed instance.
+      // complete construction before assigning to keep the unsynchronized
+      // functions from seeing a partially constructed instance.
       Vector vector = new Vector();
       nameValuePairList = vector;
     }
@@ -221,13 +215,13 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
 
   public synchronized void setValue(String newValue) {
     if (nameValuePairList == null) {
-      //This attribute is never the last attribute in a name/value pair.
-      //Therefore there is no value to change
-      //To add a value to this attribute you would have to create the name/value pair
-      //where this attribute is the last attribute in the name.
+      // This attribute is never the last attribute in a name/value pair.
+      // Therefore there is no value to change
+      // To add a value to this attribute you would have to create the name/value pair
+      // where this attribute is the last attribute in the name.
       return;
     }
-    //current we can only modify the last name/value pair found
+    // current we can only modify the last name/value pair found
     NameValuePair nameValuePair = getNameValuePair();
     Token value = new Token();
     value.set(Token.Type.ANYTHING, newValue);
@@ -312,6 +306,10 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
 
   public String getName() {
     return name.getValues();
+  }
+
+  public ReadOnlyAttributeList getChildren() {
+    return children;
   }
 
   public String getMultiLineValue() {

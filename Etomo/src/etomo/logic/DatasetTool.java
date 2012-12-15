@@ -76,9 +76,15 @@ public final class DatasetTool {
     if (extIndex != -1) {
       inputFileRoot = inputFileName.substring(0, extIndex);
     }
+    if (inputFile.getParent().endsWith(" ")) {
+      UIHarness.INSTANCE.openMessageDialog(manager, uiComponent,
+          "The dataset directory cannot end in a space: " + inputFile.getAbsolutePath(),
+          MESSAGE_TITLE, axisID);
+      return false;
+    }
     File directory = inputFile.getParentFile();
     return validateDatasetName(manager, uiComponent, axisID, directory, inputFileRoot,
-        dataFileType, axisType);
+        dataFileType, axisType, false);
   }
 
   /**
@@ -98,7 +104,7 @@ public final class DatasetTool {
           MESSAGE_TITLE, axisID);
     }
     return validateDatasetName(manager, null, axisID, inputFile.getParentFile(),
-        inputFile.getName(), dataFileType, axisType);
+        inputFile.getName(), dataFileType, axisType, false);
   }
 
   /**
@@ -113,9 +119,9 @@ public final class DatasetTool {
    */
   public static boolean validateDatasetName(final BaseManager manager,
       final AxisID axisID, final File directory, final String inputFileRoot,
-      final DataFileType dataFileType, final AxisType axisType) {
+      final DataFileType dataFileType, final AxisType axisType, final boolean datasetName) {
     return validateDatasetName(manager, null, axisID, directory, inputFileRoot,
-        dataFileType, axisType);
+        dataFileType, axisType, datasetName);
   }
 
   /**
@@ -130,7 +136,8 @@ public final class DatasetTool {
    */
   public static boolean validateDatasetName(final BaseManager manager,
       final UIComponent uiComponent, final AxisID axisID, final File directory,
-      final String inputFileRoot, final DataFileType dataFileType, final AxisType axisType) {
+      final String inputFileRoot, final DataFileType dataFileType,
+      final AxisType axisType, final boolean datasetName) {
     String errorMessage = null;
     if (!directory.exists()) {
       errorMessage = "Directory does not exist: " + directory.getAbsolutePath();
@@ -164,10 +171,11 @@ public final class DatasetTool {
                   "Setup.AxisType"));
             }
             canShare = canShareWith(dataFileType, inputFileRoot, axisType,
-                fileList[i].getName(), fileAxisType);
+                fileList[i].getName(), fileAxisType, datasetName);
           }
           else {
-            canShare = canShareWith(dataFileType, inputFileRoot, fileList[i].getName());
+            canShare = canShareWith(dataFileType, inputFileRoot, fileList[i].getName(),
+                datasetName);
           }
           if (!canShare) {
             errorMessage = "Cannot create " + dataFileType + " dataset " + inputFileRoot
@@ -198,14 +206,15 @@ public final class DatasetTool {
    * @return
    */
   static boolean canShareWith(final DataFileType newDataFileType, final String newRoot,
-      final String existingDataFileName) {
+      final String existingDataFileName, final boolean datasetName) {
     if (newDataFileType.hasAxisType) {
       // handle incorrect data file type
       new InvalidParameterException("Warning: unable to share directories containing "
           + newDataFileType
           + " file types.  Wrong canShareWith called.  Calling correct canShareWith "
           + "without axis type information.").printStackTrace();
-      return canShareWith(newDataFileType, newRoot, null, existingDataFileName, null);
+      return canShareWith(newDataFileType, newRoot, null, existingDataFileName, null,
+          datasetName);
     }
     // Get the type of the existing data file
     DataFileType existingDataFileType = DataFileType.getInstance(existingDataFileName);
@@ -277,7 +286,7 @@ public final class DatasetTool {
    */
   static boolean canShareWith(final DataFileType newDataFileType, String newRoot,
       final AxisType newAxisType, final String existingDataFileName,
-      final AxisType existingAxisType) {
+      final AxisType existingAxisType, final boolean datasetName) {
     // check new root
     if (newRoot == null || newRoot.matches("\\s*")) {
       return false;
@@ -287,7 +296,7 @@ public final class DatasetTool {
       new IllegalStateException("Wrong canShareWith function called - " + newDataFileType
           + " does not have an axis type.  Calling correct canShareWith.  newRoot:"
           + newRoot).printStackTrace();
-      return canShareWith(newDataFileType, existingDataFileName, newRoot);
+      return canShareWith(newDataFileType, existingDataFileName, newRoot, datasetName);
     }
     // Get the type of the existing data file
     DataFileType existingDataFileType = DataFileType.getInstance(existingDataFileName);
@@ -352,11 +361,13 @@ public final class DatasetTool {
           }
           return true;
         }
-        if (existingAxisType == AxisType.DUAL_AXIS) {
+        if (existingAxisType == AxisType.DUAL_AXIS && !datasetName) {
           // The existing data file is associated with roota.st/rootb.st, while the new
           // .edf with be associated with root.st, so they cannot share the directory.
           return false;
         }
+        // If it is dual axis and it is the dataset name, then root is associated with
+        // roota.st/rootb.st.
         return true;
       }
       // Don't add an axis letter to a root that didn't originally have one
@@ -387,21 +398,41 @@ public final class DatasetTool {
       // Add the stripped axis letters back to find a match with root. This is because
       // dual can share a dataset with single or dual if they use the same stack(s).
       if (root.equals(newRoot + AxisID.FIRST.getExtension())) {
-        if (existingAxisType == AxisType.DUAL_AXIS) {
-          // The existing data file is associated with rootaa.st/rootab.st, while
-          // the new .edf with be associated with roota.st, so they cannot share the
-          // directory.
+        if (!datasetName) {
+          if (existingAxisType == AxisType.DUAL_AXIS) {
+            // The existing data file is associated with rootaa.st/rootab.st, while
+            // the new .edf with be associated with roota.st, so they cannot share the
+            // directory.
+            return false;
+          }
+        }
+        else if (existingAxisType == AxisType.SINGLE_AXIS) {
+          // The existing data file is associated with roota.edf/roota.st, while
+          // the new .edf with be associated with rootaa.st/rootab.st, so they cannot
+          // share the directory.
           return false;
         }
+        // If its a dataset name then roota is associated with rootaa.st/rootab.st.
+        // If its not a dataset name then roota is associated with roota.edf/roota.st.
         return true;
       }
       if (root.equals(newRoot + AxisID.SECOND.getExtension())) {
-        if (existingAxisType == AxisType.DUAL_AXIS) {
-          // The existing data file is associated with rootba.st/rootbb.st, while
-          // the new .edf with be associated with rootb.st, so they cannot share the
-          // directory.
+        if (!datasetName) {
+          if (existingAxisType == AxisType.DUAL_AXIS) {
+            // The existing data file is associated with rootba.st/rootbb.st, while
+            // the new .edf with be associated with rootb.st, so they cannot share the
+            // directory.
+            return false;
+          }
+        }
+        else if (existingAxisType == AxisType.SINGLE_AXIS) {
+          // The existing data file is associated with roota.edf/roota.st, while
+          // the new .edf with be associated with rootaa.st/rootab.st, so they cannot
+          // share the directory.
           return false;
         }
+        // If its a dataset name then rootb is associated with rootba.st/rootbb.st.
+        // If its not a dataset name then rootb is associated with rootb.edf/rootb.st.
         return true;
       }
       return false;
@@ -528,5 +559,37 @@ public final class DatasetTool {
       }
     }
     return true;
+  }
+
+  public static boolean validateTiltAngle(final BaseManager manager,
+      final AxisID messageAxisID, final String errorTitle, final AxisID axisID,
+      final boolean manual, final String angle, final String increment) {
+    if (!manual) {
+      return true;
+    }
+    String axisDescr = getAxisDescr(axisID);
+    String message = null;
+    if (angle == null || angle.matches("\\s*")) {
+      message = "Starting angle cannot be empty";
+    }
+    else if (increment == null || increment.matches("\\s*")) {
+      message = "Increment cannot be empty";
+    }
+    if (message != null) {
+      UIHarness.INSTANCE.openMessageDialog(manager, message
+          + (axisDescr == null ? "." : axisDescr), errorTitle, messageAxisID);
+      return false;
+    }
+    return true;
+  }
+
+  private static String getAxisDescr(final AxisID axisID) {
+    if (axisID == AxisID.FIRST) {
+      return " in Axis A.";
+    }
+    if (axisID == AxisID.SECOND) {
+      return " in Axis B.";
+    }
+    return null;
   }
 }

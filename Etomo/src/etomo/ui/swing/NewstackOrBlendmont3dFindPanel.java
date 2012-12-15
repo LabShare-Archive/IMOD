@@ -122,15 +122,14 @@ abstract class NewstackOrBlendmont3dFindPanel implements Run3dmodButtonContainer
   }
 
   final void setParameters(final ConstMetaData metaData) {
-    spinBinning.setValue(metaData.getStack3dFindBinning(axisID));
+    if (metaData.isStack3dFindBinningSet(axisID)) {
+      spinBinning.setValue(metaData.getStack3dFindBinning(axisID));
+    }
   }
 
-  void setParameters(boolean initialize) {
-    if (!initialize) {
-      return;
-    }
+  void initialize() {
     EtomoNumber beadSize = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-    beadSize.set(parent.getBeadSize());
+    beadSize.set(manager.calcUnbinnedBeadDiameterPixels());
     if (!beadSize.isNull() && beadSize.isValid()) {
       spinBinning.setValue(Math.max((int) Math.round((beadSize.getDouble() / 5f)), 1));
     }

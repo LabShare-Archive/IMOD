@@ -369,7 +369,7 @@ set.var.rounded-unbinned-bead-diameter = 5.0
 set.var.findbeads3d-binning = 1
 # center-to-center-thickness + additional-unbinned-diameters-to-add*int-unbinned-bead-diameter
 set.var.erase-gold-thickness=98
-set.var.incremental-shift-to-center.a=-12.9
+set.var.incremental-shift-to-center.a=-12.5
 set.var.incremental-shift-to-center.b=-13.9
 set.var.incremental-shift-to-center-simple-align.a=-12.4
 set.var.incremental-shift-to-center-simple-align.b=-13.9

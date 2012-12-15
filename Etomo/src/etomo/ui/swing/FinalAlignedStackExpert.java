@@ -201,6 +201,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     dialog = FinalAlignedStackDialog.getInstance(manager, this, axisID, curTab);
     Utilities.timestamp("new", "FinalAlignedStackDialog", Utilities.FINISHED_STATUS);
 
+    dialog.initialize();
     dialog.setParameters(metaData);// TEMP metadata
 
     // no longer managing image size
@@ -319,6 +320,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     dialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
     dialog.setImageRotation(metaData.getImageRotation(axisID).toString());
     dialog.setTiltState(state, metaData);
+    dialog.setOverrideParameters(metaData);
     openDialog(dialog, actionMessage);
   }
 
@@ -449,7 +451,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     updateCtfCorrectionCom(false);
     manager.updateTilt3dFindCom(dialog.getTilt3dFindDisplay(), axisID, false);
     manager.updateFindBeads3dCom(dialog.getFindBeads3dDisplay(), axisID, false);
-    manager.updateCcdEraserParam(dialog.getCcdEraserBeadsDisplay(), axisID, false);
+    manager.updateGoldEraserParam(dialog.getCcdEraserBeadsDisplay(), axisID, false);
     manager.saveStorables(axisID);
   }
 

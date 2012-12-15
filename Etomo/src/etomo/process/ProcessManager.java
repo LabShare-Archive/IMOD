@@ -991,6 +991,7 @@
 package etomo.process;
 
 import etomo.storage.AutofidseedLog;
+import etomo.storage.DirectiveFile;
 import etomo.storage.FlattenWarpLog;
 import etomo.storage.LogFile;
 import etomo.storage.TrackLog;
@@ -1015,6 +1016,7 @@ import etomo.util.MRCHeader;
 import etomo.util.Utilities;
 import etomo.comscript.ArchiveorigParam;
 import etomo.comscript.AutofidseedParam;
+import etomo.comscript.BatchruntomoParam;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.CCDEraserParam;
@@ -1030,6 +1032,7 @@ import etomo.comscript.ConstTiltParam;
 import etomo.comscript.CtfPhaseFlipParam;
 import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.FlattenWarpParam;
+import etomo.comscript.MakecomfileParam;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSqueezevolParam;
@@ -1071,7 +1074,7 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   public void setupCtfPlotterComScript(CtfPhaseFlipParam ctfPhaseFlipParam, AxisID axisID) {
-    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, null);
     copyTomoComs.setCTFFiles(CopyTomoComs.CtfFilesValue.CTF_PLOTTER);
     copyTomoComs.setVoltage(ctfPhaseFlipParam.getVoltage());
     copyTomoComs.setSphericalAberration(ctfPhaseFlipParam.getSphericalAberration());
@@ -1079,13 +1082,14 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   public void setupCtfCorrectionComScript(AxisID axisID) {
-    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, null);
     copyTomoComs.setCTFFiles(CopyTomoComs.CtfFilesValue.CTF_CORRECTION);
     setupComScripts(copyTomoComs, axisID);
   }
 
-  public ProcessMessages setupComScripts(AxisID axisID) {
-    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
+  public ProcessMessages setupComScripts(AxisID axisID,
+      final DirectiveFile directiveFile) {
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, directiveFile);
 
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       System.err.println("copytomocoms command line: " + copyTomoComs.getCommandLine());
@@ -1129,6 +1133,62 @@ public class ProcessManager extends BaseProcessManager {
     return messages;
   }
 
+  public boolean batchruntomo(final AxisID axisID, final BatchruntomoParam param) {
+    if (!param.setup()) {
+      return false;
+    }
+    int exitValue = param.run();
+    // process messages
+    ProcessMessages messages = param.getProcessMessages();
+    boolean err = messages.isError();
+    if (err) {
+      StringBuffer errorMessage = new StringBuffer("Error running Batchruntomo");
+      for (int i = 0; i < messages.errorListSize(); i++) {
+        errorMessage.append("\n" + messages.getError(i));
+      }
+      UIHarness.INSTANCE.openMessageDialog(appManager, errorMessage.toString(),
+          "Batchruntomo Error", axisID);
+    }
+    for (int i = 0; i < messages.warningListSize(); i++) {
+      UIHarness.INSTANCE.openMessageDialog(appManager, messages.getWarning(i),
+          "Batchruntomo Warning", axisID);
+    }
+    if (exitValue != 0) {
+      UIHarness.INSTANCE.openMessageDialog(appManager, param.getStdErrorString(),
+          "Batchruntomo Error", axisID);
+      return false;
+    }
+    return err;
+  }
+
+  public boolean makecomfile(final AxisID axisID, final MakecomfileParam param) {
+    if (!param.setup()) {
+      return false;
+    }
+    int exitValue = param.run();
+    // process messages
+    ProcessMessages messages = param.getProcessMessages();
+    boolean err = messages.isError();
+    if (err) {
+      StringBuffer errorMessage = new StringBuffer("Error running Batchruntomo");
+      for (int i = 0; i < messages.errorListSize(); i++) {
+        errorMessage.append("\n" + messages.getError(i));
+      }
+      UIHarness.INSTANCE.openMessageDialog(appManager, errorMessage.toString(),
+          "Batchruntomo Error", axisID);
+    }
+    for (int i = 0; i < messages.warningListSize(); i++) {
+      UIHarness.INSTANCE.openMessageDialog(appManager, messages.getWarning(i),
+          "Batchruntomo Warning", axisID);
+    }
+    if (exitValue != 0) {
+      UIHarness.INSTANCE.openMessageDialog(appManager, param.getStdErrorString(),
+          "Batchruntomo Error", axisID);
+      return false;
+    }
+    return err;
+  }
+
   /**
    * Erase the specified pixels
    * 
@@ -1168,7 +1228,7 @@ public class ProcessManager extends BaseProcessManager {
       ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param, axisID,
-        processResultDisplay, ProcessName.CCD_ERASER, processSeries);
+        processResultDisplay, ProcessName.GOLD_ERASER, processSeries);
     return backgroundProcess.getName();
   }
 
@@ -2363,7 +2423,7 @@ public class ProcessManager extends BaseProcessManager {
       else if (process.getProcessName() == ProcessName.RUNRAPTOR) {
         appManager.getState().setUseRaptorResultWarning(true);
       }
-      else if (process.getProcessName() == ProcessName.CCD_ERASER) {
+      else if (process.getProcessName() == ProcessName.GOLD_ERASER) {
         appManager.getState().setUseErasedStackWarning(process.getAxisID(), true);
       }
       else {

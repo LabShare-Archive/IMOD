@@ -724,8 +724,16 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     eraseGoldPanel.setParameters(param, initialize);
   }
 
+  void initialize() {
+    eraseGoldPanel.initialize();
+  }
+
   void setParameters(ConstTiltalignParam param, boolean initialize) {
     eraseGoldPanel.setParameters(param, initialize);
+  }
+
+  void setOverrideParameters(final ConstMetaData metaData) {
+    eraseGoldPanel.setOverrideParameters(metaData);
   }
 
   void setParameters(ConstNewstParam param) {
@@ -1099,7 +1107,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     }
     else if (curTab == Tab.CCD_ERASER) {
       if (!eraseBeadsInitialized) {
-        eraseGoldPanel.initialize();
+        eraseGoldPanel.initializeBeads();
         eraseBeadsInitialized = true;
       }
       eraseGoldPanel.registerProcessingMethodMediator();
