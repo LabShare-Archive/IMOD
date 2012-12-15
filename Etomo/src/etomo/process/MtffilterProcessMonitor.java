@@ -156,7 +156,7 @@ final class MtffilterProcessMonitor extends FileSizeProcessMonitor {
 
     // Assumption: newst will write the output file with the same mode as the
     // the input file
-    double fileSize = 1024.0d + nX * nY * nZ * modeBytes;
+    double fileSize = 1024 + nX * (double) nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
     manager.getMainPanel().setProgressBar("Running MTF filter", nKBytes, axisID);
     return true;
