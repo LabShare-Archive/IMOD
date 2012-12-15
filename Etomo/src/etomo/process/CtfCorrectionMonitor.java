@@ -102,7 +102,7 @@ public final class CtfCorrectionMonitor extends FileSizeProcessMonitor {
     modeBytes = (double) getModeBytes(outputHeader.getMode());
     // Assumption: newst will write the output file with the same mode as the
     // the input file
-    double fileSize = 1024.0d + nX * nY * nZ * modeBytes;
+    double fileSize = 1024.0d + nX * (double) nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
     manager.getMainPanel().setProgressBar("Running CTF Correction", nKBytes, axisID);
     return true;
