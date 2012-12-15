@@ -214,7 +214,7 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
       // Divide by the step size if present
       nY = sliceRange / imageBinned;
     }
-    int fileSize = 1024 + (nX * nY) * (nZ / imageBinned) * modeBytes;
+    long fileSize = 1024 + ((long) nX * nY) * (nZ / imageBinned) * modeBytes;
     nKBytes = (int) (fileSize / 1024);
 
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
