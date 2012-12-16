@@ -25,12 +25,18 @@ mtoverlap$(E): mtoverlap.$(O)
 filterplot$(E): filterplot.$(O)
 	$(FC) -o filterplot filterplot.$(O) $(LDFLG) $(LWMOD)  $(LIMOD) $(LIBS)
 
+genhstplt.$(O): plotvars.$(O)
+mtpairing.$(O): plotvars.$(O)
+
+plotvars.$(O): ../subrs/graphics/plotvars.f90
+	$(FC) -c $(LIBFFLAGS) ../subrs/graphics/plotvars.f90
+
 install: $(PROGS)
 	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.$(OBJEXT) *.exe *~ $(PROGS)
+	-\rm -f *.$(OBJEXT) *.exe *~ $(PROGS) *.mod
 
 mtpairing.$(O): $(INCDIR)/model.inc
 mtoverlap.$(O): $(INCDIR)/model.inc
