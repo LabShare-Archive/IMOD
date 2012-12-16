@@ -3,25 +3,8 @@
  *   Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.
+ *   $Id$
  */                                                                           
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.3  2005/01/21 18:19:28  mast
-Allow IMOD_PS_FONT to be set to set the font
-
-Revision 3.2  2004/11/05 18:53:39  mast
-Include local files with quotes, not brackets
-
-Revision 3.1  2003/10/29 04:31:14  mast
-switch to calling f2cString
-
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,6 +35,7 @@ typedef struct
 #define pslinewidth PSLINEWIDTH
 #define pstriangle PSTRIANGLE
 #define psquadrangle PSQUADRANGLE
+#define pssetcolor PSSETCOLOR
 #else
 #define psopen psopen_
 #define psclose psclose_
@@ -64,6 +48,7 @@ typedef struct
 #define pslinewidth pslinewidth_
 #define pstriangle pstriangle_
 #define psquadrangle psquadrangle_
+#define pssetcolor pssetcolor_
 #endif
 
 #include "ps.h"
@@ -111,28 +96,38 @@ int psopen(
 void pslinewidth(float *width)
 {
   double dw = *width;
-  PSsetLineWidth(ps, dw);
+  if (ps)
+    PSsetLineWidth(ps, dw);
+}
+
+void pssetcolor(int *red, int *green, int *blue)
+{
+  if (ps)
+    PSsetColor(ps, *red, *green, *blue);
 }
 
 void point(float *ix, float *iy)
 {
   double x = *ix;
   double y = *iy;
-  PSdrawPoint(ps, x, y);
+  if (ps)
+    PSdrawPoint(ps, x, y);
 }
 
 void frstpt(float *ix, float *iy)
 {
   double x = *ix;
   double y = *iy;
-  PSsetPoint(ps, x, y);
+  if (ps)
+    PSsetPoint(ps, x, y);
 }
 
 void vector(float *ix, float *iy)
 {
   double x = *ix;
   double y = *iy;
-  PSdrawVector(ps, x, y);
+  if (ps)
+    PSdrawVector(ps, x, y);
 }
 
 void pscircle(float *ix, float *iy, float *irad, int *fill)
@@ -140,7 +135,8 @@ void pscircle(float *ix, float *iy, float *irad, int *fill)
   double x = *ix;
   double y = *iy;
   double rad = *irad;
-  PSdrawCircle(ps, x, y, rad, *fill);
+  if (ps)
+    PSdrawCircle(ps, x, y, rad, *fill);
 }
 
 void pstriangle(float *ix, float *iy, int *fill)
@@ -151,7 +147,8 @@ void pstriangle(float *ix, float *iy, int *fill)
     x[i] = ix[i];
     y[i] = iy[i];
   }
-  PSdrawTriangle(ps, x, y, *fill);
+  if (ps)
+    PSdrawTriangle(ps, x, y, *fill);
 }
 
 void psquadrangle(float *ix, float *iy, int *fill)
@@ -162,10 +159,15 @@ void psquadrangle(float *ix, float *iy, int *fill)
     x[i] = ix[i];
     y[i] = iy[i];
   }
-  PSdrawQuadrangle(ps, x, y, *fill);
+  if (ps)
+    PSdrawQuadrangle(ps, x, y, *fill);
 }
 
-void frame(){PSpage(ps);}
+void frame()
+{
+  if (ps)
+    PSpage(ps);
+}
 
 void wtstr(float *ix, float *iy,
 #ifdef F77STRING
@@ -197,14 +199,20 @@ void wtstr(float *ix, float *iy,
 
   if(lastsize != *jsize){
     lastsize = *jsize;
-    PSsetFont(ps, useFont, lastsize);
+    if (ps)
+      PSsetFont(ps, useFont, lastsize);
   }
 
-  PSdrawText(ps, ctext, x, y, *jor, *jctr);
+  if (ps)
+    PSdrawText(ps, ctext, x, y, *jor, *jctr);
 
   /* DNM 3/23/01: plug the leak? */
   free(ctext);
 }
 
-void psclose(){PSclose(ps);}
+void psclose()
+{
+  if (ps)
+    PSclose(ps);
+}
 
