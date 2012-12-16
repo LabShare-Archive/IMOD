@@ -15,6 +15,9 @@ typedef struct
   double fontSize;
   double pointSize;
   int    pointStyle;
+  int    red;
+  int    green;
+  int    blue;
   char   fontName[80];
     
 }PS;
@@ -55,6 +58,7 @@ void  PSsetLineWidth(PS *ps, double width);
 void  PSdrawCircle(PS *ps, double x, double y, double rad, int fill);
 void  PSdrawTriangle(PS *ps, double *x, double *y, int fill);
 void  PSdrawQuadrangle(PS *ps, double *x, double *y, int fill);
+void  PSsetColor(PS *ps, int red, int green, int blue);
 
 /*void  PSdrawLine(PS *ps, double x1, double y1, double x2, double y2); */
 
