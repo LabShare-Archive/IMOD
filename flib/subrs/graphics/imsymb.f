@@ -1,10 +1,6 @@
 c       Symbol drawing functions, now relying on postscript capabilities
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
+c       $Id$
 c       
       subroutine imsymb(x,y,ityp)
       common /imparm/ nthick,width,upi,safe,xcur,ycur
@@ -32,7 +28,7 @@ c       square, diamond, triangle, X, cross, up tri, U, S, -, |
       character*4 dummy,dumm2
       if(ityp.eq.0.or.ityp.gt.21)return
       if(ityp.lt.0)then
-        iscal=nint(2**15*0.87*symscl/width)
+        iscal=nint(107. * symscl)
         write(dummy,'(i4)')-ityp
         nchar=alog10(float(-ityp))+1.0001
         dumm2=' '
