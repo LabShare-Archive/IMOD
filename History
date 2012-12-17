@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/17/12: Fixed some of the log file monitors, which had the file size defined
+as an integer rather then a long, causing an overflow for larger tomograms.
+(bug# 1632)
+
 12/17/12: Modified eTomo to run from a directive file.  ETomo will without an
 interface in this situation.(Bug# 1662)
 
