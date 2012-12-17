@@ -11,6 +11,7 @@ if.var.quick.return=
 	assert.tf.fiducial-diameter=
 	assert.tf.image-rotation=
 	assert.cb.parallel-processing=on
+	assert.cb.set-pixel-size-in-files-from-fei=on
 	if.exists.bn.advanced.run.function.test-advanced=
 	#check enabled/disabled
 	assert.enabled.tf.dataset-name=
@@ -23,6 +24,7 @@ if.var.quick.return=
 	assert.enabled.bn.cancel=
 	assert.enabled.bn.use-existing-coms=
 	assert.enabled.bn.create-com-scripts=
+	assert.enabled.cb.set-pixel-size-in-files-from-fei=
 	#check error
 	bn.scan-header=
 	wait.popup.missing-dataset-name=OK

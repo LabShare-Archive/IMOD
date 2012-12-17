@@ -126,6 +126,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final JPanel pnlAdjustedFocusB = new JPanel();
   private final CheckBox cbAdjustedFocusB = new CheckBox(
       "Focus was adjusted between montage frames");
+  private final CheckBox cbSetFEIPixelSize = new CheckBox(
+      "Set pixel size in files from FEI");
 
   private final SetupDialogExpert expert;
   private final boolean calibrationAvailable;
@@ -734,6 +736,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlImageRows.add(pnlDistortionInfo);
     pnlImageRows.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlImageRows.add(pnlMagGradientInfo);
+    pnlImageRows.add(cbSetFEIPixelSize);
     UIUtilities.alignComponentsX(pnlImageRows, Component.LEFT_ALIGNMENT);
 
     pnlImageRows.setAlignmentY(Component.CENTER_ALIGNMENT);
@@ -879,6 +882,12 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     public void actionPerformed(final ActionEvent event) {
       adaptee.action(event.getActionCommand());
     }
+  }
+
+  void setTooltips() {
+    cbSetFEIPixelSize.setToolTipText(TooltipFormatter.INSTANCE
+        .format("During tomogram setup, transfer pixel size from extended header to "
+            + "pixel."));
   }
 }
 /**
