@@ -452,7 +452,7 @@ c
       pltofsy=1.
       ifpage=0
 c       
-      call p_start
+      call plax_open()
       call build_lut(0,240)
 c       
       call opencomfile
@@ -1155,7 +1155,7 @@ c             &           yfree=ymin-idirdraw*2*spacenon
             enddo
           endif
         enddo
-        call p_b_flush
+        call plax_flush()
       endif
 c       
 c       calculate overlap factors
@@ -1409,7 +1409,7 @@ c       else
 c       call p_ldphv(6,9,12,81,1,4,37,1024,1)
 c       call p_pan(0,1023)
 c       endif
-c       call p_b_flush()
+c       call plax_flush()
 c       go to 70
 c       
 98    write(*,'(1x,a,/,a,/,a,4f7.2,i4,a,$)') 'Enter X and Y size'
@@ -1432,8 +1432,8 @@ c
       go to 70
 c       
 99    call p_box(0,0,0,1279,1023)
-      call p_b_flush
-      call p_end
+      call plax_flush()
+      call plax_close()
       call imexit
       end
 
@@ -1850,7 +1850,7 @@ c
       call p_clt8(253,255,255,0)
       call p_clt8(254,255,0,255)
       call p_clt8(255,0,255,255)
-      call p_b_flush
+      call plax_flush()
       return
       end
 

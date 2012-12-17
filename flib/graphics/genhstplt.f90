@@ -13,6 +13,7 @@ program genhstplt
 end program genhstplt
 
 subroutine realGraphicsMain()
+  use plotvars
   implicit none
   integer MAX_ROWS, MAX_AVERAGES, MAX_GROUPS
   parameter (MAX_ROWS = 1000000, MAX_AVERAGES = 50000, MAX_GROUPS = 100)
@@ -24,16 +25,14 @@ subroutine realGraphicsMain()
   real*4 selectMin(MAX_GROUPS), selectMax(MAX_GROUPS)
   integer*4 icolSelect(MAX_GROUPS), ifSelExclude(MAX_GROUPS)
   integer*4 i, iGroup, icolDenom, icolDivide, icolIn, icolWithNum, icolWithSD
-  integer*4 ifConnect, ifLogX, ifLogXin, ifLogY, ifNoTerm, ifOneTypePerGrp, ifRetain
-  integer*4 ifTerm, ifTypes, ifail, igenPltType, igroupStart, inGroup, iopt
+  integer*4 ifLogX, ifLogXin, ifLogY, ifOneTypePerGrp, ifRetain
+  integer*4 ifTerm, ifTypes, ifail, igroupStart, inGroup, iopt
   integer*4 isel, ix, j, jEnd, jStart, k, newCol, nfields, nnVal, numAvgGroups, numAvgTot
-  integer*4 numCol, numData, numGroups, numInGroup, numKeys, numSelect, numSkip
-  integer*4 numTypes, numXvals, nxTmp, numColOrig
+  integer*4 numCol, numData, numGroups, numInGroup, numSelect, numSkip
+  integer*4 numTypes, numXvals, nxTmp, numColOrig, ifReverse, ifNegOptShown
   real*4 quotientHiLim, quotientLoLim, sdVal, selVal
   real*4 tCrit, tValue, SEMval, baseLog, err, errBarFac
   character*1024 name
-  character*80 keys(8), xaxisLabel
-  common /pltp/ igenPltType, ifNoTerm, ifConnect, numKeys, keys, xaxisLabel
   !
   ifTerm = -1
   ifTypes = 0
@@ -43,6 +42,8 @@ subroutine realGraphicsMain()
   numXvals = 0
   baseLog = 0
   numSelect = 0
+  ifReverse = 0
+  ifNegOptShown = 0
 5 continue
   if (ifNoTerm == 0) then
     write(*,'(1x,a,$)') &
@@ -52,7 +53,7 @@ subroutine realGraphicsMain()
   endif
   if (ifNoTerm .ne. 0) ifTerm = 0
   !
-  call grfopn(ifTerm)
+  call scrnOpen(ifTerm)
   !
   write(*,'(1x,a,/,a,$)') '1 if there are types in first column, 0 if there are '// &
       'no types,', &
@@ -196,6 +197,15 @@ subroutine realGraphicsMain()
   ifLogX = iabs(ifLogX)
   call gnhst(xx, iXgroup, numXvals, iSymbol, numGroups, ifLogX)
   !
+  if (ifNegOptShown == 0) then
+    ifNegOptShown = 1
+    write(*,103)
+103 format('Control options also available:',/, &
+        '  -2 to enter X axis label and keys for symbols',/, &
+        '  -3 to reverse display contrast',/, &
+        '  -4 to enter colors for groups in screen display and postscript plots',/, &
+        '  -8 to wait until window closes then exit')
+  endif
 50 write(*,104)
 104 format(' Enter 1 for new column or 14 for new column to replace Y and retain X,',/, &
       '       2 for plot of this column versus previous column or 17 with connectors,' &
@@ -228,9 +238,11 @@ subroutine realGraphicsMain()
   endif
   if (iopt == -2) go to 1155
   if (iopt == -3) then
-    call reverseGraphContrast(1)
+    ifReverse = 1 - ifReverse
+    call reverseGraphContrast(ifReverse)
     go to 50
   endif
+  if (iopt == -4) go to 1158
   if (iopt == 209) iopt = 7
   if (iopt <= 0 .or. iopt > 17) go to 50
   go to(30, 60, 70, 20, 5, 90, 90, 99, 110, 70, 70, 130, 1130, 1140, 1150, 1160, 60) iopt
@@ -435,6 +447,13 @@ subroutine realGraphicsMain()
     read(*, '(a)') keys(i)
   enddo
   go to 50
+1158 write(*,'(1x,a,$)') 'Number of groups to define color for: '
+  read(5,*) numColors
+  numColors = max(0, min(LIM_COLORS, numColors))
+  if (numColors == 0) go to 50
+  print *,'For each group, enter group #, red, green, blue values (0-255)'
+  read(5,*) ((icolors(j, i), j = 1, 4), i = 1, numColors)
+  go to 50
   !
 1160 ifLogX = 0
   j = 0
@@ -445,8 +464,8 @@ subroutine realGraphicsMain()
   enddo
   go to 50
   !
-99 call plxoff
-  call imexit
+99 call scrnClose()
+  call psExit()
 end subroutine realGraphicsMain
 
 
