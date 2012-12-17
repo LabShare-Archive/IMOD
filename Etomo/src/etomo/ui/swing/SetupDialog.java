@@ -454,11 +454,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     return ftfMagGradientFile.getText();
   }
 
-  public boolean isParallelProcessSelected() {
+  public boolean isParallelProcessSelected(final String propertyUserDir) {
     return cbParallelProcess.isSelected();
   }
 
-  public boolean isGpuProcessingSelected() {
+  public boolean isGpuProcessingSelected(final String propertyUserDir) {
     return cbGpuProcessing.isSelected();
   }
 
