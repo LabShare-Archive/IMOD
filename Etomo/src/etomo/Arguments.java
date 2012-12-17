@@ -129,13 +129,13 @@ public final class Arguments {
       + "\n\t\ttemplate files.  Used by batchruntomo.  Not useful when eTomo"
       + "\n\t\tis called from the command line."
 
-      + "\n\n  " + DIRECTIVE_TAG + " \"directive file\""
+      + "\n\n  " + DIRECTIVE_TAG + " \"directive-file.adoc\""
       + "\n\t\tCauses automation to be performed based on the directive file."
       + "\n\t\tNo interface will come up and most command-line-based"
       + "\n\t\tautomation options (below) will be ignored.  However " + CPUS_TAG + " and"
       + "\n\t\t" + GPUS_TAG + " work with both types of automation.  Implied options:"
       + "\n\t\t" + FG_TAG + ", " + HEADLESS_TAG + ", " + CREATE_TAG + ", and " + EXIT_TAG
-      + "."
+      + ".  The directive file must end in \".adoc\" and conform to autodoc syntax."
 
       + "\n\nCommand-Line-Based Automation Options:"
 
