@@ -7937,12 +7937,12 @@ public final class ApplicationManager extends BaseManager implements
       processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     }
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
-    ProcessResult processResult = ccdEraser(axisID, processResultDisplay, processSeries,
+    ProcessResult processResult = goldEraser(axisID, processResultDisplay, processSeries,
         param, dialogType);
     sendMsg(processResult, processResultDisplay);
   }
 
-  private ProcessResult ccdEraser(AxisID axisID,
+  private ProcessResult goldEraser(AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       final CCDEraserParam param, final DialogType dialogType) {
     if (processSeries == null) {
@@ -7950,8 +7950,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     String threadName;
     try {
-      threadName = processMgr.ccdEraser(param, axisID, processResultDisplay,
-          processSeries);
+      threadName = processMgr.goldEraser(axisID,  processResultDisplay,
+           processSeries, param);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
