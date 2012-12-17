@@ -1087,8 +1087,7 @@ public class ProcessManager extends BaseProcessManager {
     setupComScripts(copyTomoComs, axisID);
   }
 
-  public ProcessMessages setupComScripts(AxisID axisID,
-      final DirectiveFile directiveFile) {
+  public ProcessMessages setupComScripts(AxisID axisID, final DirectiveFile directiveFile) {
     CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, directiveFile);
 
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
@@ -1212,24 +1211,21 @@ public class ProcessManager extends BaseProcessManager {
     return comScriptProcess.getName();
   }
 
-  /**
-   * This function is using CCDEraserParam to run ccderaser without a comscript.
-   * It uses the same monitor as eraser.com.  The ProcessName is CCD_ERASER, not
-   * ERASER, because ccderaser is running by itself, not wrapped in the
-   * eraser.com file.
-   * @param param
-   * @param axisID
-   * @param processResultDisplay
-   * @param processSeries
-   * @return
-   * @throws SystemProcessException
-   */
-  public String ccdEraser(CCDEraserParam param, AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries)
+  public String goldEraser(AxisID axisID, ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, Command ccdEraserParam)
       throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(param, axisID,
-        processResultDisplay, ProcessName.GOLD_ERASER, processSeries);
-    return backgroundProcess.getName();
+    // Create the process monitor
+    CCDEraserProcessMonitor ccdEraserProcessMonitor = new CCDEraserProcessMonitor(
+        appManager, axisID);
+
+    // Create the required command string
+    String command = "golderaser" + axisID.getExtension() + ".com";
+
+    // Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(command, ccdEraserProcessMonitor,
+        axisID, processResultDisplay, ccdEraserParam, processSeries);
+
+    return comScriptProcess.getName();
   }
 
   /**
@@ -2335,6 +2331,9 @@ public class ProcessManager extends BaseProcessManager {
       else if (processName == ProcessName.BLEND_3D_FIND) {
         state.setStackUsingNewstOrBlend3dFindOutput(axisID, true);
       }
+      else if (processName == ProcessName.GOLD_ERASER) {
+        appManager.getState().setUseErasedStackWarning(script.getAxisID(), true);
+      }
       else if (processName == ProcessName.TRACK) {
         File fiducialFile = DatasetFiles.getFiducialModelFile(appManager, axisID);
         if (fiducialFile.exists()) {
@@ -2422,9 +2421,6 @@ public class ProcessManager extends BaseProcessManager {
       }
       else if (process.getProcessName() == ProcessName.RUNRAPTOR) {
         appManager.getState().setUseRaptorResultWarning(true);
-      }
-      else if (process.getProcessName() == ProcessName.GOLD_ERASER) {
-        appManager.getState().setUseErasedStackWarning(process.getAxisID(), true);
       }
       else {
         String commandName = process.getCommandName();
