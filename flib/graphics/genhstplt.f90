@@ -53,7 +53,7 @@ subroutine realGraphicsMain()
   endif
   if (ifNoTerm .ne. 0) ifTerm = 0
   !
-  call grfopn(ifTerm)
+  call scrnOpen(ifTerm)
   !
   write(*,'(1x,a,/,a,$)') '1 if there are types in first column, 0 if there are '// &
       'no types,', &
@@ -464,8 +464,8 @@ subroutine realGraphicsMain()
   enddo
   go to 50
   !
-99 call plxoff
-  call imexit
+99 call scrnClose()
+  call psExit()
 end subroutine realGraphicsMain
 
 

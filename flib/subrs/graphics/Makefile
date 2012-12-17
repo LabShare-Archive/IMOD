@@ -14,6 +14,9 @@ OBJS = bshst.$(O) impak.$(O) bsplt.$(O) graphpak.$(O) imsymb.$(O) scale.$(O) \
 all: $(OBJS)
 
 bsplt.$(O): plotvars.$(O)
+fraxbx.$(O): impak.$(O)
+imsymb.$(O): impak.$(O)
+trnc.$(O): impak.$(O)
 
 moc_qtplax.cpp: qtplax.h
 	$(MOC) qtplax.h -o moc_qtplax.cpp

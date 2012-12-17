@@ -61,11 +61,11 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
   endif
   !
   ! Draw the axes then the data, not by group
-  call dsaxes(xmin, xmax, ymin, ymax, xscale, xadd, yscale, yadd, dx, xlow, dy, ylow)
+  call scrnAxes(xmin, xmax, ymin, ymax, xscale, xadd, yscale, yadd, dx, xlow, dy, ylow)
   if (ifTerm == 0) then
     igrpLast = -1
     do icl = 1, numColors
-      call p_clt8(icl + 100, icolors(2, icl), icolors(3, icl), icolors(4, icl))
+      call plax_mapcolor(icl + 100, icolors(2, icl), icolors(3, icl), icolors(4, icl))
     enddo
     do i = 1, numPoints
       igroup = igroupNum(i)
@@ -73,7 +73,7 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
         icolorUse = 241
         call lookupColorIndex(igroup, icl)
         if (icl > 0) icolorUse = 100 + icl
-        call chgcol(icolorUse)
+        call scrnChangeColor(icolorUse)
       endif
       igrpLast = igroup
       ix = xscale * xx(i) + xadd
@@ -83,44 +83,44 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
       ! if the symbol type is 0, draw connected lines instead
       if (igenPltType < 0 .or. isymbTemp == 0 .or. ifConnect .ne. 0) then
         if (i > 1 .and. igroupNum(i) == igroupNum(max(1, i - 1))) then
-          call va(ix, iy)
+          call scrnVectAbs(ix, iy)
         else
-          call ma(ix, iy)
+          call scrnMoveAbs(ix, iy)
         endif
       endif
       !
       ! Draw symbols and error bars
       if (isymbTemp < 0) isymbTemp = -i
-      call scpnt(ix, iy, isymbTemp)
+      call scrnSymbol(ix, iy, isymbTemp)
       if (igenPltType < 0) then
         idy = yscale * colx(i)
-        call ma(ix, iy + idy)
-        call va(ix, iy - idy)
-        call ma(ix, iy)
+        call scrnMoveAbs(ix, iy + idy)
+        call scrnVectAbs(ix, iy - idy)
+        call scrnMoveAbs(ix, iy)
       endif
     enddo
-    if (numColors > 0) call chgcol(241)
+    if (numColors > 0) call scrnChangeColor(241)
     !
     ! Output symbols and keys on right
     do i = 1, min(numKeys, numGroups)
       icolorUse = 241
       call lookupColorIndex(i, icl)
       if (icl > 0) icolorUse = 100 + icl
-      call chgcol(icolorUse)
+      call scrnChangeColor(icolorUse)
       ix = (xlow + 10. * dx) * xscale + xadd + 30
       iy = (ylow + (10.5 - i) * dy) * yscale + yadd
-      if (isymbol(i) > 0) call scpnt(ix, iy, isymbol(i))
+      if (isymbol(i) > 0) call scrnSymbol(ix, iy, isymbol(i))
       call plax_next_text_align(14)
-      call p_sctext(1, 8, 8, icolorUse, ix + 20, iy, keys(i))
+      call plax_sctext(1, 8, 8, icolorUse, ix + 20, iy, keys(i))
     enddo
-    if (numColors > 0 .and. numKeys > 0) call chgcol(241)
+    if (numColors > 0 .and. numKeys > 0) call scrnChangeColor(241)
     if (xaxisLabel .ne. ' ') then
       call plax_next_text_align(3)
-      call p_sctext(1, 8, 8, 241, nint((xlow + 5. * dx) * xscale + xadd), 2, xaxisLabel)
+      call plax_sctext(1, 8, 8, 241, nint((xlow + 5. * dx) * xscale + xadd), 2,xaxisLabel)
     endif
     numKeys = 0
     xaxisLabel = ' '
-    call updat(1)
+    call scrnUpdate(1)
   elseif (ifTerm > 0) then
     do i = 1, numPoints
       jcol = 7.9999 * (xx(i) - xlow) / dx
@@ -173,7 +173,7 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
   if (ifPlot == 0 .and. ifType == 0) go to 60
   defScale = 1.
   if (doPlot) then
-    call imset(1, widthInch, c2, c3, 0)
+    call psSetup(1, widthInch, c2, c3, 0)
     defScale = 0.74 * widthInch / 7.5
     iabsPlot = iabsPlot - 5
   endif
@@ -241,7 +241,7 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
       fracBoxTick = 0.
       write(*,'(1x,a,$)') 'fraction box width, height, tick size: '
       read(5,*) fracBoxWidth, fracBoxHeight, fracBoxTick
-      call fbxset(fracBoxWidth, fracBoxHeight, fracBoxTick)
+      call psFracBoxParams(fracBoxWidth, fracBoxHeight, fracBoxTick)
     endif
   else
     xLowerLeft = xllStock(iabsPlot) * defScale
@@ -259,19 +259,19 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
   endif
   iabsNumXtick = iabs(numXticks)
   iabsNumYtick = iabs(numYticks)
-  call symsiz(symWidth)
-  call imset(ithickGrid, c1, c2, c3, 0)
+  call psSymSize(symWidth)
+  call psSetup(ithickGrid, c1, c2, c3, 0)
   write(*,'('' new page (0 or 1)?: '',$)')
   read(5,*) ifNewPage
-  if (ifNewPage .ne. 0) call frame()
+  if (ifNewPage .ne. 0) call psFrame()
   xadd = xLowerLeft + 0.1
   yadd = yLowerLeft + 0.1
   ! 
   ! Draw the axes
   if (ifLogX == 0 .or. ifPlot > 0) then
     xscale = xrange / (xhigh - xlow)
-    call imgrid(xadd, yadd - yGridOfs, xrange, 0., numXticks, tickSize)
-    if (ifBox .ne. 0) call imgrid(xadd, yadd + yrange + yGridOfs, xrange, 0., &
+    call psGridLine(xadd, yadd - yGridOfs, xrange, 0., numXticks, tickSize)
+    if (ifBox .ne. 0) call psGridLine(xadd, yadd + yrange + yGridOfs, xrange, 0., &
         numXticks, -tickSize)
   else
     xlow = alog10(xlow)
@@ -279,14 +279,14 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
     write(*,'(i3,'' x ticks: '',$)') iabsNumXtick
     read(5,*) (xtick(i), i = 1, iabsNumXtick)
     xscale = xrange / (xhigh - xlow)
-    call imlgrd(xadd, yadd - yGridOfs, xscale, 0., xtick, numXticks, tickSize)
-    if (ifBox .ne. 0) call imlgrd(xadd, yadd + yrange + yGridOfs, xscale, 0., xtick, &
+    call psLogGrid(xadd, yadd - yGridOfs, xscale, 0., xtick, numXticks, tickSize)
+    if (ifBox .ne. 0) call psLogGrid(xadd, yadd + yrange + yGridOfs, xscale, 0., xtick, &
         numXticks, -tickSize)
   endif
   if (ifLogY == 0 .or. ifPlot >= 0) then
     yscale = yrange / (yhigh - ylow)
-    call imgrid(xadd - xGridOfs, yadd, 0., yrange, numYticks, tickSize)
-    if (ifBox .ne. 0) call imgrid(xadd + xrange + xGridOfs, yadd, 0., yrange, &
+    call psGridLine(xadd - xGridOfs, yadd, 0., yrange, numYticks, tickSize)
+    if (ifBox .ne. 0) call psGridLine(xadd + xrange + xGridOfs, yadd, 0., yrange, &
           numYticks, -tickSize)
   else
     ylow = alog10(ylow)
@@ -294,11 +294,11 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
     write(*,'(i3,'' y ticks: '',$)') iabsNumYtick
     read(5,*) (ytick(i), i = 1, iabsNumYtick)
     yscale = yrange / (yhigh - ylow)
-    call imlgrd(xadd - xGridOfs, yadd, 0., yscale, ytick, numYticks, tickSize)
-    if (ifBox .ne. 0) call imlgrd(xadd + xrange + xGridOfs, yadd, 0., yscale, ytick, &
+    call psLogGrid(xadd - xGridOfs, yadd, 0., yscale, ytick, numYticks, tickSize)
+    if (ifBox .ne. 0) call psLogGrid(xadd + xrange + xGridOfs, yadd, 0., yscale, ytick, &
         numYticks, -tickSize)
   endif
-  call imset(isymThick, c1, unitsPerInch, c3, 0)
+  call psSetup(isymThick, c1, unitsPerInch, c3, 0)
   ! 
   ! Came here if no plots, so need to test for plotting in this section
   ! Which does the line fits and tukey box plots
@@ -374,7 +374,7 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
       !
       ! get percentiles and draw box
       !
-      call imset(ithickTukey, c1, c2, c3, 0)
+      call psSetup(ithickTukey, c1, c2, c3, 0)
       tukeyAdjust = (ithickTukey - 1) / unitsPerInch
       p10 = pctile(colx, nn, 0.10)
       p25 = pctile(colx, nn, 0.25)
@@ -394,22 +394,22 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
       xright = xcen + tukeyWidth / 2.
       tickLeft = xcen - tukeyTick / 2.
       tickRight = xcen + tukeyTick / 2.
-      call imma(xleft, y50)
-      call imva(xright, y50)
-      call imma(xleft, y25)
-      call imva(xright, y25)
-      call imva(xright, y75)
-      call imva(xleft, y75)
-      call imva(xleft, y25)
-      call imma(xcen, y25)
-      call imva(xcen, y10)
-      call imma(xcen, y75)
-      call imva(xcen, y90)
-      call imma(tickLeft, y10)
-      call imva(tickRight, y10)
-      call imma(tickLeft, y90)
-      call imva(tickRight, y90)
-      call imset(isymThick, c1, c2, c3, 0)
+      call psMoveAbs(xleft, y50)
+      call psVectAbs(xright, y50)
+      call psMoveAbs(xleft, y25)
+      call psVectAbs(xright, y25)
+      call psVectAbs(xright, y75)
+      call psVectAbs(xleft, y75)
+      call psVectAbs(xleft, y25)
+      call psMoveAbs(xcen, y25)
+      call psVectAbs(xcen, y10)
+      call psMoveAbs(xcen, y75)
+      call psVectAbs(xcen, y90)
+      call psMoveAbs(tickLeft, y10)
+      call psVectAbs(tickRight, y10)
+      call psMoveAbs(tickLeft, y90)
+      call psVectAbs(tickRight, y90)
+      call psSetup(isymThick, c1, c2, c3, 0)
       !
       ! plot points outside 10/90 plus gap
       !
@@ -417,7 +417,7 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
         ytrunc = max(ylow, min(yhigh, colx(i)))
         ry = yscale * (ytrunc - ylow) + yadd
         if (ry < y10 - tukeyGap .or. ry > y90 + tukeyGap) &
-            call imsymb(rx, ry, isymbol(igroup))
+            call psSymbol(rx, ry, isymbol(igroup))
       enddo
     endif
   enddo
@@ -450,7 +450,7 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
       rxAdj = rx - connectAdjust
       ryAdj = ry - connectAdjust
       if (doConnect) then
-        call imset(ifPlotConnect, c1, c2, c3, 0)
+        call psSetup(ifPlotConnect, c1, c2, c3, 0)
         cutDist = 1.1 * symWidth
         fracCut = 0.
         distTot = sqrt((rxAdj - rxLast)**2 + (ryAdj - ryLast)**2)
@@ -458,33 +458,33 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
         if (fracCut <= 0.45) then
           xcut = fracCut * (rxAdj - rxLast)
           ycut = fracCut * (ryAdj - ryLast)
-          call imma(rxLast + xcut, ryLast + ycut)
-          call imva(rxAdj - xcut, ryAdj - ycut)
+          call psMoveAbs(rxLast + xcut, ryLast + ycut)
+          call psVectAbs(rxAdj - xcut, ryAdj - ycut)
         endif
-        call imset(isymThick, c1, c2, c3, 0)
+        call psSetup(isymThick, c1, c2, c3, 0)
       endif
       rxLast = rxAdj
       ryLast = ryAdj
       isymbTemp = isymbol(igroupNum(i))
       if (isymbTemp == -2) then
-        call fracbx(rx, ry, colx(i))
+        call psFracBox(rx, ry, colx(i))
       else
         if (isymbTemp < 0) isymbTemp = -i
-        call imsymb(rx, ry, isymbTemp)
+        call psSymbol(rx, ry, isymbTemp)
       endif
       if (igenPltType < 0 .and. ifNonZero .ne. 0) then
         yPlus = yscale * (max(ylow, min(yhigh, yy(i) + colx(i))) - ylow) + yadd - &
             connectAdjust
         yMinus = yscale * (max(ylow, min(yhigh, yy(i) - colx(i))) - ylow) + yadd - &
             connectAdjust
-        if (ifPlotConnect > 0) call imset(ifPlotConnect, c1, c2, c3, 0)
-        call imma(rxAdj - errLen / 2., yMinus)
-        call imva(rxAdj + errLen / 2., yMinus)
-        call imma(rxAdj - errLen / 2., yPlus)
-        call imva(rxAdj + errLen / 2., yPlus)
-        call imma(rxAdj, yMinus)
-        call imva(rxAdj, yPlus)
-        if (doConnect) call imset(isymThick, c1, c2, c3, 0)
+        if (ifPlotConnect > 0) call psSetup(ifPlotConnect, c1, c2, c3, 0)
+        call psMoveAbs(rxAdj - errLen / 2., yMinus)
+        call psVectAbs(rxAdj + errLen / 2., yMinus)
+        call psMoveAbs(rxAdj - errLen / 2., yPlus)
+        call psVectAbs(rxAdj + errLen / 2., yPlus)
+        call psMoveAbs(rxAdj, yMinus)
+        call psVectAbs(rxAdj, yPlus)
+        if (doConnect) call psSetup(isymThick, c1, c2, c3, 0)
       endif
     enddo
     if (numColors > 0) call psSetColor(0, 0, 0)
@@ -492,14 +492,14 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
   !
   ! Finally draw extra things
   do il = 1, numLines
-    call imdash(xscale, xlow, xadd, yscale, ylow, yadd)
+    call psDashInteractive(xscale, xlow, xadd, yscale, ylow, yadd)
   enddo
   if (ifPlot < 0 .and. doPlot) then
     call label_axis(xadd, yadd - yGridOfs, xrange, xscale, abs(numXticks), xtick, &
         ifLogX, 0)
     call label_axis(xadd - xGridOfs, yadd, yrange, yscale, abs(numYticks), ytick, &
         ifLogY, 1)
-    call immisc(xscale, xlow, xadd, xrange, yscale, ylow, yadd, yrange)
+    call psMiscItems(xscale, xlow, xadd, xrange, yscale, ylow, yadd, yrange)
   endif
   return
 end subroutine bsplt

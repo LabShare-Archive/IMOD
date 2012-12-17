@@ -13,16 +13,6 @@
 #include "imodconfig.h"
 #include "b3dutil.h"
 
-#ifdef F77STRING
-typedef struct
-{
-  unsigned short length;
-  char dum1;
-  char dum2;
-  char *string;
-} FString;
-#endif
-
 #ifdef F77FUNCAP
 #define psopen PSOPEN
 #define psclose PSCLOSE
@@ -39,11 +29,11 @@ typedef struct
 #else
 #define psopen psopen_
 #define psclose psclose_
-#define point  point_
-#define frstpt frstpt_
-#define vector vector_
-#define frame  frame_
-#define wtstr  wtstr_
+#define pspoint  pspoint_
+#define psfirstpoint psfirstpoint_
+#define psvector psvector_
+#define psframe  psframe_
+#define pswritetext  pswritetext_
 #define pscircle pscircle_
 #define pslinewidth pslinewidth_
 #define pstriangle pstriangle_
@@ -57,28 +47,12 @@ static PS *ps = NULL;
 static char defaultFont[] = "Helvetica";
 static int lastsize = 0;
 
-int psopen(
-#ifdef F77STRING
-           FString *f77str,
-#else
-           char *filename,
-#endif
-
-           float *lm, float *bm, float *dpi
-
-#ifndef F77STRING
-           , int filename_size
-#endif
-           )
+int psopen(char *filename, float *lm, float *bm, float *dpi, int filename_size)
 {
-#ifdef F77STRING
-  int  filename_size  = f77str->length;
-  char *filename      = f77str->string;
-#endif
   double ddpi, dlm, dbm;
   char *fname = f2cString(filename, filename_size);
   if (!fname) {
-    fprintf(stderr, "libps: error getting memory\n");
+    fprintf(stderr, "psopen: error getting memory\n");
     return(-1);
   }
   ddpi = *dpi; dlm = *lm; dbm = *bm;
@@ -106,7 +80,7 @@ void pssetcolor(int *red, int *green, int *blue)
     PSsetColor(ps, *red, *green, *blue);
 }
 
-void point(float *ix, float *iy)
+void pspoint(float *ix, float *iy)
 {
   double x = *ix;
   double y = *iy;
@@ -114,7 +88,7 @@ void point(float *ix, float *iy)
     PSdrawPoint(ps, x, y);
 }
 
-void frstpt(float *ix, float *iy)
+void psfirstpoint(float *ix, float *iy)
 {
   double x = *ix;
   double y = *iy;
@@ -122,7 +96,7 @@ void frstpt(float *ix, float *iy)
     PSsetPoint(ps, x, y);
 }
 
-void vector(float *ix, float *iy)
+void psvector(float *ix, float *iy)
 {
   double x = *ix;
   double y = *iy;
@@ -163,32 +137,18 @@ void psquadrangle(float *ix, float *iy, int *fill)
     PSdrawQuadrangle(ps, x, y, *fill);
 }
 
-void frame()
+void psframe()
 {
   if (ps)
     PSpage(ps);
 }
 
-void wtstr(float *ix, float *iy,
-#ifdef F77STRING
-           FString *f77str,
-#else
-           char *text,
-#endif
-           int *jsize, int *jor, int *jctr
-
-#ifndef F77STRING
-           , int text_size
-#endif
-           )
+void pswritetext(float *ix, float *iy, char *text, int *jsize, int *jor, int *jctr, 
+           int text_size)
 
 {
   float x = *ix;
   float y = *iy;
-#ifdef F77STRING
-  int  text_size  = f77str->length;
-  char *text      = f77str->string;
-#endif
 
   char *useFont = getenv("IMOD_PS_FONT");
   char *ctext = (char *)malloc(text_size + 1);

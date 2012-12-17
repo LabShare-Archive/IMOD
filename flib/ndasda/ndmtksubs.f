@@ -353,7 +353,7 @@ c
       if(iplot.eq.0)then
         call label_axis(xlo,ylo,xsize,xscal,abs(ntx),xtick,0,0)
         call label_axis(xlo,ylo,ysize,yscal,abs(nty),ytick,0,1)
-        call immisc(xscal,0.,xlo,xsize,yscal,0.,ylo,ysize)
+        call psMiscItems(xscal,0.,xlo,xsize,yscal,0.,ylo,ysize)
       endif
       return
       end
