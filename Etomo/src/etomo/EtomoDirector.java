@@ -150,7 +150,25 @@ public class EtomoDirector {
       UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
           "WARNING:  Ran out of memory."
               + "\nPlease close open log file windows or exit Etomo.", "Out of Memory");
+      if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+        UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      }
       throw e;
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage(),
+          "Exception");
+      if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+        UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      }
+    }
+    catch (Error e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage(), "Error");
+      if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+        UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      }
     }
   }
 
