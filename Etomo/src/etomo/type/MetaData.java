@@ -2865,12 +2865,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return finalStackCtfCorrectionParallelA;
   }
 
-  public ConstEtomoNumber getDefaultParallel() {
-    return defaultParallel;
+  public boolean isDefaultParallel() {
+    return defaultParallel.is();
   }
 
-  public ConstEtomoNumber getDefaultGpuProcessing() {
-    return defaultGpuProcessing;
+  public boolean isDefaultGpuProcessing() {
+    return defaultGpuProcessing.is();
   }
 
   public ConstEtomoNumber getUseZFactors(final AxisID axisID) {
