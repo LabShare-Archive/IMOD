@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/17/12: Modified eTomo to run from a directive file.  ETomo will without an
+interface in this situation.(Bug# 1662)
+
 12/14/12: Converted newstack comscripts to PIP.(Bug# 1665)
 
 12/14/12: Added a button for viewing the seed model to the Transfer Fiducials
@@ -46,7 +49,7 @@ relative to the original centering produced by coarse alignment.
 11/14:12: Fixed imodtrans so output file can be same as input file on Windows.
 
 11/12:12: Processchunks: fixed a problem where a "+" in the dataset name caused
-processchunks to fail.(Bug# 1662)
+processchunks to fail.(Bug# 1649)
 
 11/12/12: Added ability to select multiple contours in slicer and made slicer
 draw selected contours thicker.
