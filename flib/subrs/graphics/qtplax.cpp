@@ -145,8 +145,8 @@ PlaxWindow::PlaxWindow(QWidget *parent, Qt::WFlags fl) :
   mTimerID = 0;
   mRedrawCount = 0;
   mNumRedraws = 1;
-  if (getenv("PCALL_REDRAWS"))
-    mNumRedraws = atoi(getenv("PCALL_REDRAWS"));
+  if (getenv("PLAX_REDRAWS"))
+    mNumRedraws = atoi(getenv("PLAX_REDRAWS"));
   B3DCLAMP(mNumRedraws, 1, 10);
 }
 
@@ -376,7 +376,7 @@ void plax_wait_for_close(void)
 }
 
 // Under Linux, it hangs on a Ctrl C, so kill the process group
-#ifdef QTPCALL_ATEXIT_HACK
+#ifdef QTPLAX_ATEXIT_HACK
 static void exitQAppOnExit()
 {
   char buf[64];
@@ -392,7 +392,7 @@ static int startPlaxApp()
   sApp = new QApplication(argc, argv);
   setlocale(LC_NUMERIC, "C");
 
-#ifdef QTPCALL_ATEXIT_HACK
+#ifdef QTPLAX_ATEXIT_HACK
   atexit(exitQAppOnExit);
 #endif
 
