@@ -394,8 +394,10 @@ public final class SetupReconUIHarness {
       metaData.setBackupDirectory(setupInterface.getBackupDirectory());
       metaData.setDistortionFile(setupInterface.getDistortionFile());
       metaData.setMagGradientFile(setupInterface.getMagGradientFile());
-      metaData.setDefaultParallel(setupInterface.isParallelProcessSelected());
-      metaData.setDefaultGpuProcessing(setupInterface.isGpuProcessingSelected());
+      metaData.setDefaultParallel(setupInterface
+          .isParallelProcessSelected(getPropertyUserDir()));
+      metaData.setDefaultGpuProcessing(setupInterface
+          .isGpuProcessingSelected(getPropertyUserDir()));
       metaData.setAdjustedFocusA(setupInterface.isAdjustedFocusSelected(AxisID.FIRST));
       metaData.setAdjustedFocusB(setupInterface.isAdjustedFocusSelected(AxisID.SECOND));
       metaData.setViewType(getViewType(setupInterface));
@@ -481,7 +483,7 @@ public final class SetupReconUIHarness {
     directiveFile.getGoldErasingBinning(metaData);
     // Ignore GoldErasing extraDiameter
     directiveFile.getGoldErasingThickness(metaData);// overrides the .com file
-    //Ignore Reconstruction extraThickness
+    // Ignore Reconstruction extraThickness
     directiveFile.getReconstructionUseSirt(metaData);
     // Ignore Reconstruction doBackprojAlso
   }
