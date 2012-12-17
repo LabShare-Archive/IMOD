@@ -1327,9 +1327,9 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   }
 
   public static final class MethodEnumeratedType implements EnumeratedType {
-    private static final MethodEnumeratedType SEED = new MethodEnumeratedType(true, 0,
+    public static final MethodEnumeratedType SEED = new MethodEnumeratedType(true, 0,
         "Seed");
-    private static final MethodEnumeratedType PATCH_TRACKING = new MethodEnumeratedType(
+    public static final MethodEnumeratedType PATCH_TRACKING = new MethodEnumeratedType(
         false, 1, "PatchTracking");
     public static final MethodEnumeratedType RAPTOR = new MethodEnumeratedType(false, 2,
         "Raptor");
@@ -1347,17 +1347,17 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
       this.string = string;
     }
 
-    private static MethodEnumeratedType getInstance(final String string) {
-      if (string == null) {
+    private static MethodEnumeratedType getInstance(final String value) {
+      if (value == null) {
         return null;
       }
-      if (string.equals(SEED.string)) {
+      if (SEED.value.equals(value)) {
         return SEED;
       }
-      if (string.equals(PATCH_TRACKING.string)) {
+      if (PATCH_TRACKING.value.equals(value)) {
         return PATCH_TRACKING;
       }
-      if (string.equals(RAPTOR.string)) {
+      if (RAPTOR.value.equals(value)) {
         return RAPTOR;
       }
       return null;

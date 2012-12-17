@@ -1752,7 +1752,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
       if (command.equals(btnMakeSamples.getActionCommand())) {
         if (ftfWorkingDir.isEditable()
             && !DatasetTool.validateDatasetName(manager, axisID, ftfWorkingDir.getFile(),
-                ltfRootName.getText(), DataFileType.JOIN, null)) {
+                ltfRootName.getText(), DataFileType.JOIN, null, true)) {
           return;
         }
         manager.makejoincom(null, deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);

@@ -17,6 +17,7 @@ c
       end
 
       subroutine realgraphicsmain()
+      use plotvars
       parameter (limbun=200,limmt=10000,limdsp=2000,limtyp=60)
       parameter (limpt=1000000,limpair=20000,limclust=600,limgrf=90)
       real*4 zstrt(limmt),zend(limmt),datdisp(3,limdsp)
@@ -50,7 +51,6 @@ c
       integer*4 itypcheck(limtyp),listclust(limclust),iord(limpair)
       integer*4 liststrtuse(limtyp),listenduse(limtyp),itythrs(limtyp)
       integer*4 itycntrd(limtyp)
-      common /pltp/ifgpl,ifNoTerm
       logical b3dxor
 c       
       ifchange=1

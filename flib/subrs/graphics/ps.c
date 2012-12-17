@@ -8,19 +8,21 @@
  */
 
 #include "ps.h"
+#include "b3dutil.h"
+
 PS *PSopen(char *filename, double dpi, double x, double y)
 {
   PS *ps = (PS *)malloc(sizeof(PS));
 
   if (!ps){
-    fprintf(stderr, "libps: error getting memory\n");
+    fprintf(stderr, "PSopen: error getting memory\n");
     return(NULL);
   }
 
   ps->fp = fopen(filename, "w");
   if (!(ps->fp)){
     free(ps);
-    perror("libps: error getting output file. ");
+    perror("PSopen: error getting output file. ");
     return(NULL);
   }
 
@@ -31,8 +33,8 @@ PS *PSopen(char *filename, double dpi, double x, double y)
   ps->pointSize = 1.0/dpi;
   ps->lineWidth = 1;
 
-  fprintf(ps->fp, "%%!PS-Boulder-Laboratory-for-3D-Fine-Structure\n");
-  fprintf(ps->fp, "%%%%Created by the BL3DFS PS Library. Compiled %s %s\n",
+  fprintf(ps->fp, "%%!PS-Boulder-Laboratory-for-3D-EM-of-Cells\n");
+  fprintf(ps->fp, "%%%%Created by the BL3DEMC PS module. Compiled %s %s\n",
           __DATE__, __TIME__);
      
   fprintf(ps->fp, "/inch {%g mul} def\n", dpi);
@@ -129,6 +131,17 @@ void  PSsetFont(PS *ps, char *name, int size)
           name, ps->fontSize);
 }
 
+void  PSsetColor(PS *ps, int red, int green, int blue)
+{
+  if (ps->red == red && ps->green == green && ps->blue == blue)
+    return;
+  ps->red = B3DMAX(0, B3DMIN(255, red));
+  ps->green = B3DMAX(0, B3DMIN(255, green));
+  ps->blue = B3DMAX(0, B3DMIN(255, blue));
+  fprintf(ps->fp, "%f %f %f setrgbcolor\n", ps->red / 255., ps->green / 255., 
+          ps->blue / 255.);
+}
+
 void  PSdrawText(PS *ps, char *text, 
                  double x, double y,
                  int rotation, int placement)
@@ -142,7 +155,7 @@ void  PSdrawText(PS *ps, char *text,
   char code;
 
   if (ps->fontSize <= 0.0){
-    fprintf(stderr, "libps: bad font size\n");
+    fprintf(stderr, "PSdrawText: bad font size\n");
     return;
   }
 

@@ -102,7 +102,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   private LogFile autodocFile = null;
   private AutodocParser parser = null;
 
-  //data
+  // data
   private final List sectionList = new ArrayList();
   private final HashMap sectionMap = new HashMap();
   private final List statementList = new ArrayList();
@@ -202,17 +202,17 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * add a name/value pair with a name containing one attribute
    */
   public void addNameValuePair(String name, String value) {
-    //add attribute
+    // add attribute
     Token nameToken = new Token();
     nameToken.set(Token.Type.ANYTHING, name);
     attributeList.addAttribute(nameToken);
-    //add value to attribute
+    // add value to attribute
     Attribute attribute = attributeList.getAttribute(name);
     Token valueToken = new Token();
     valueToken.set(Token.Type.ANYTHING, value);
-    //add name/value pair
+    // add name/value pair
     NameValuePair pair = addNameValuePair();
-    //add attribute and value to pair
+    // add attribute and value to pair
     pair.addAttribute(attribute);
     pair.addValue(valueToken);
   }
@@ -225,7 +225,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   public WritableStatement removeNameValuePair(String name) {
     Attribute attribute = attributeList.getAttribute(name);
     if (attribute == null) {
-      //unable to find an attribute with this name
+      // unable to find an attribute with this name
       return null;
     }
     NameValuePair pair = attribute.getNameValuePair();
@@ -371,7 +371,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     if (sectionType == null || attributeName == null) {
       return null;
     }
-    //Create attributeValues
+    // Create attributeValues
     HashMap attributeValues = new HashMap();
     SectionLocation sectionLocation = getSectionLocation(sectionType);
     ReadOnlySection section = nextSection(sectionLocation);
@@ -388,9 +388,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
         }
       }
       catch (NullPointerException e) {
-        //An attribute with attributeName doesn't exist
+        // An attribute with attributeName doesn't exist
       }
-      //Go to next section
+      // Go to next section
       section = nextSection(sectionLocation);
     }
     return attributeValues;
@@ -402,7 +402,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 
   public void printStoredData() {
     System.out.println("Printing stored data:");
-    //name value pair list
+    // name value pair list
     System.out.println("LIST:");
     if (statementList != null) {
       Statement statement = null;
@@ -411,10 +411,10 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
         statement.print(0);
       }
     }
-    //attribute map
+    // attribute map
     System.out.println("Attributes:");
     attributeList.print(0);
-    //section list
+    // section list
     for (int i = 0; i < sectionList.size(); i++) {
       Section section = (Section) sectionList.get(i);
       section.print(0);
@@ -444,8 +444,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
       return getAutodocFile(dir, name, notFoundMessage == null);
     }
     if (envVariable != null && !envVariable.matches("\\s*+")) {
-      //if envVariable is set, then it points to the only valid directory for this
-      //autodoc
+      // if envVariable is set, then it points to the only valid directory for this
+      // autodoc
       dir = Utilities.getExistingDir(manager, envVariable, axisID, notFoundMessage);
       if (dir == null) {
         if (notFoundMessage == null) {
@@ -485,8 +485,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
       return getAutodocFile(dir, name, true);
     }
     if (envVariable != null && !envVariable.matches("\\s*+")) {
-      //if envVariable is set, then it points to the only valid directory for this
-      //autodoc
+      // if envVariable is set, then it points to the only valid directory for this
+      // autodoc
       dir = Utilities.getExistingDir(manager, envVariable, axisID);
       if (dir == null) {
         System.err.println("Warning:  can't open the " + name
@@ -593,12 +593,16 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   void initializeUITestAxis(BaseManager manager, LogFile autodocFile, AxisID axisID)
       throws FileNotFoundException, IOException, LogFile.LockException {
     this.autodocFile = autodocFile;
-    /*if (autodocFile.getName().equals("setup-recon.adoc")) {
-     initialize(null, axisID, null, false);
-     }
-     else {*/
+    /* if (autodocFile.getName().equals("setup-recon.adoc")) { initialize(null, axisID,
+     * null, false); } else { */
     initialize(manager, null, axisID, null, true);
-    //}
+    // }
+  }
+
+  void initialize(BaseManager manager, LogFile autodocFile, AxisID axisID)
+      throws FileNotFoundException, IOException, LogFile.LockException {
+    this.autodocFile = autodocFile;
+    initialize(manager, null, axisID, null, true);
   }
 
   public boolean isDebug() {

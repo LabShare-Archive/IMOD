@@ -130,8 +130,8 @@ extern "C" {
   void realgraphicsmain_();
 }
 
-enum {PLAX_MAPCOLOR, PLAX_BOX, PLAX_BOXO, PLAX_VECT, PLAX_VECTW, PLAX_CIRC,
-      PLAX_CIRCO, PLAX_POLY, PLAX_POLYO, PLAX_SCTEXT, PLAX_ALIGN};
+enum {PCALL_MAPCOLOR, PCALL_BOX, PCALL_BOXO, PCALL_VECT, PCALL_VECTW, PCALL_CIRC,
+      PCALL_CIRCO, PCALL_POLY, PCALL_POLYO, PCALL_SCTEXT, PCALL_ALIGN};
 
 
 PlaxWindow::PlaxWindow(QWidget *parent, Qt::WFlags fl) :
@@ -427,49 +427,49 @@ static int startPlaxApp()
  */
 void plax_mapcolor(int *color, int *ired, int *igreen, int *iblue)
 {
-  addFourArgs(PLAX_MAPCOLOR, color, ired, igreen, iblue);
+  addFourArgs(PCALL_MAPCOLOR, color, ired, igreen, iblue);
 }
 
 void plax_box(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2)
 {
-  addFiveArgs(PLAX_BOX, cindex, ix1, iy1, ix2, iy2);
+  addFiveArgs(PCALL_BOX, cindex, ix1, iy1, ix2, iy2);
 }
 
 void plax_boxo(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2)
 {
-  addFiveArgs(PLAX_BOXO, cindex, ix1, iy1, ix2, iy2);
+  addFiveArgs(PCALL_BOXO, cindex, ix1, iy1, ix2, iy2);
 }
 
 void plax_vect(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2)
 {
-  addFiveArgs(PLAX_VECT, cindex, ix1, iy1, ix2, iy2);
+  addFiveArgs(PCALL_VECT, cindex, ix1, iy1, ix2, iy2);
 }
 
 void plax_vectw(int *linewidth, int *cindex, 
                 int *ix1, int *iy1, int *ix2, int *iy2)
 {
   sPlaxWidget->lock();
-  addSixArgs(PLAX_VECTW, linewidth, cindex, ix1, iy1, ix2, iy2);
+  addSixArgs(PCALL_VECTW, linewidth, cindex, ix1, iy1, ix2, iy2);
   sPlaxWidget->unlock();
 }
 
 /* filled circle */
 void plax_circ(int *cindex, int *radius, int *ix, int *iy)
 {
-  addFourArgs(PLAX_CIRC, cindex, radius, ix, iy);
+  addFourArgs(PCALL_CIRC, cindex, radius, ix, iy);
 }
 
 /* open circle */
 void plax_circo(int *cindex, int *radius, int *ix, int *iy)
 {
-  addFourArgs(PLAX_CIRCO, cindex, radius, ix, iy);
+  addFourArgs(PCALL_CIRCO, cindex, radius, ix, iy);
 }
 
 /* closed filled polygon */
 void plax_poly(int *cindex, int *size, b3dInt16 *vec)
 {
   sPlaxWidget->lock();
-  if (!addTwoArgs(PLAX_POLY, cindex, size))
+  if (!addTwoArgs(PCALL_POLY, cindex, size))
     addBytesToList((char *)vec, 4 * *size);
   sPlaxWidget->unlock();
 }
@@ -477,7 +477,7 @@ void plax_poly(int *cindex, int *size, b3dInt16 *vec)
 void plax_polyo(int *cindex, int *size, b3dInt16 *vec)
 {
   sPlaxWidget->lock();
-  if (!addTwoArgs(PLAX_POLYO, cindex, size))
+  if (!addTwoArgs(PCALL_POLYO, cindex, size))
       addBytesToList((char *)vec, 4 * *size);
   sPlaxWidget->unlock();
 }
@@ -491,7 +491,7 @@ void plax_sctext(int *thickness,
                  )
 {
   sPlaxWidget->lock();
-  if (!addSixArgs(PLAX_SCTEXT, thickness, iysize, cindex, ix, iy, 
+  if (!addSixArgs(PCALL_SCTEXT, thickness, iysize, cindex, ix, iy, 
                   &strsize))
     addBytesToList(string, strsize);
   sPlaxWidget->unlock();
@@ -502,7 +502,7 @@ void plax_next_text_align(int *type)
   if (sListSize + 4 > sListMax)
     if (allocate_list_chunk())
       return;
-  sDrawList[sListSize++] = PLAX_ALIGN;
+  sDrawList[sListSize++] = PCALL_ALIGN;
   sDrawList[sListSize++] = *type;
 }
 
@@ -627,7 +627,7 @@ static void draw()
 
     ind = sOutListInd++;
     switch (sDrawList[ind++]) {
-    case PLAX_MAPCOLOR:
+    case PCALL_MAPCOLOR:
       sRGB[sDrawList[ind]] = qRgb(sDrawList[ind + 1], sDrawList[ind + 2], 
                                     sDrawList[ind + 3]);
       sPenColor = -1;
@@ -635,66 +635,66 @@ static void draw()
       sOutListInd += 4;
       break;
 
-    case PLAX_BOX:
+    case PCALL_BOX:
       plax_set_brush(sDrawList[ind], 1);
       plax_draw_box(sDrawList[ind], sDrawList[ind + 1], sDrawList[ind + 2], 
                     sDrawList[ind + 3], sDrawList[ind + 4]);
       sOutListInd += 5;
       break;
 
-    case PLAX_BOXO:
+    case PCALL_BOXO:
       plax_set_brush(sDrawList[ind], 0);
       plax_draw_box(sDrawList[ind], sDrawList[ind + 1], sDrawList[ind + 2], 
                     sDrawList[ind + 3], sDrawList[ind + 4]);
       sOutListInd += 5;
       break;
 
-    case PLAX_VECT:
+    case PCALL_VECT:
       plax_set_pen(sDrawList[ind], 0);
       plax_draw_vect(sDrawList[ind + 1], sDrawList[ind + 2], sDrawList[ind + 3],
                      sDrawList[ind + 4]);
       sOutListInd += 5;
       break;
 
-    case PLAX_VECTW:
+    case PCALL_VECTW:
       plax_set_pen(sDrawList[ind + 1], sDrawList[ind]);
       plax_draw_vect(sDrawList[ind + 2], sDrawList[ind + 3], sDrawList[ind + 4],
                      sDrawList[ind + 5]);
       sOutListInd += 6;
       break;
 
-    case PLAX_CIRC:
+    case PCALL_CIRC:
       plax_set_brush(sDrawList[ind], 1);
       plax_draw_circ(sDrawList[ind], sDrawList[ind + 1], sDrawList[ind + 2],
                      sDrawList[ind + 3]);
       sOutListInd += 4;
       break;
 
-    case PLAX_CIRCO:
+    case PCALL_CIRCO:
       plax_set_brush(sDrawList[ind], 0);
       plax_draw_circ(sDrawList[ind], sDrawList[ind + 1], sDrawList[ind + 2],
                      sDrawList[ind + 3]);
       sOutListInd += 4;
       break;
 
-    case PLAX_POLY:
+    case PCALL_POLY:
       plax_draw_poly(sDrawList[ind], sDrawList[ind + 1], 
                      (b3dInt16 *)(&sDrawList[ind + 2]), 1);
       break;
 
-    case PLAX_POLYO:
+    case PCALL_POLYO:
       plax_draw_poly(sDrawList[ind], sDrawList[ind + 1], 
                      (b3dInt16 *)(&sDrawList[ind + 2]), 0);
       break;
 
-    case PLAX_SCTEXT:
+    case PCALL_SCTEXT:
       plax_draw_text(sDrawList[ind], sDrawList[ind + 1], sDrawList[ind + 2],
                      sDrawList[ind + 3], sDrawList[ind + 4], sDrawList[ind + 5],
                      (char *)(&sDrawList[ind + 6]));
       sOutListInd += 6 + (sDrawList[ind + 5] + 3) / 4;
       break;
 
-    case PLAX_ALIGN:
+    case PCALL_ALIGN:
       sNextTextAlign = sDrawList[ind];
       sOutListInd += 1;
       break;

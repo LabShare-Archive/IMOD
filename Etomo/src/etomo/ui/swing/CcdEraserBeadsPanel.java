@@ -271,7 +271,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnCcdEraser.getActionCommand())) {
-      manager.ccdEraser(btnCcdEraser, null, deferred3dmodButton, run3dmodMenuOptions,
+      manager.goldEraser(btnCcdEraser, null, deferred3dmodButton, run3dmodMenuOptions,
           axisID, dialogType, this);
     }
     else if (command.equals(btn3dmodCcdEraser.getActionCommand())) {

@@ -143,6 +143,8 @@ public final class FileType {
       "autofidseed", ".com");
   public static final FileType BLEND_COMSCRIPT = FileType.getInstance(false, true,
       "blend", ".com");
+  public static final FileType GOLD_ERASER_COMSCRIPT = FileType.getInstance(false, true,
+      "golderaser", ".com");
   public static final FileType PREBLEND_COMSCRIPT = FileType.getInstance(false, true,
       "preblend", ".com");
   public static final FileType CTF_CORRECTION_COMSCRIPT = FileType.getInstance(false,
@@ -173,8 +175,8 @@ public final class FileType {
       true, "xcorr_pt", ".com");
   public static final FileType DISTORTION_CORRECTED_STACK = FileType.getInstance(true,
       true, "", ".dcst");
-  public static final FileType AUTOFIDSEED_DIR = FileType.getInstance(false,
-      true, "autofidseed", ".dir");
+  public static final FileType AUTOFIDSEED_DIR = FileType.getInstance(false, true,
+      "autofidseed", ".dir");
   public static final FileType PIECE_SHIFTS = FileType
       .getInstance(true, true, "", ".ecd");
   public static final FileType FIDUCIAL_MODEL = FileType.getInstance(true, true, "",
@@ -243,8 +245,7 @@ public final class FileType {
       false, "", ".sampavg", ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
   public static final FileType JOIN_SAMPLE = FileType.getImodInstance(true, false, "",
       ".sample", ImodManager.JOIN_SAMPLES_KEY);
-  public static final FileType SEED_MODEL = FileType.getInstance(true,
-      true, "", ".seed");
+  public static final FileType SEED_MODEL = FileType.getInstance(true, true, "", ".seed");
   public static final FileType SIRT_SUBAREA_SCALED_OUTPUT_TEMPLATE = FileType
       .getTemplateInstance(true, true, "_sub", ".sint");
   public static final FileType SQUEEZE_VOL_OUTPUT = FileType.getImodInstance(true, false,

@@ -210,12 +210,22 @@ DDEESSCCRRIIPPTTIIOONN
   axis, and the ordinal values will be moved into the "previous" column to
   serve as the X axis.
 
-  There are several additional options used by Onegenplot(1):
+  There are several additional options used by Onegenplot(1); option -4 is
+  also generally useful if making postscript plots:
 
-     -2 Enter X axis label and symbol key strings.  Follow with the X axis
-         label or blank for none, then with the number of key strings (between
-         0 and 8), then with the key strings on separate lines
-     -3 Invert display contrast to be black lines on white background
+     -2 Enter X axis label and symbol key strings to appear to right of graph.
+         Follow with the X axis label or blank for none, then with the number
+         of key strings (between 0 and 8), then with the key strings on
+         separate lines.
+     -3 Invert display contrast to be black lines on white background, or back
+         to white on black.
+     -4 Enter a set of colors for selected groups, which will be applied for
+         symbols, lines in both screen plots and postscript plots.  First
+         enter the number of colors to be entered; 0 eliminates all color
+         drawing.  Then enter 4 values that number of times: a group number
+         (numbered from 1), and red, green, and blue components ranging from 0
+         to 255.  A color will be ignored if the graph has fewer groups than
+         the color's group number.
      -8 Wait until graph window is closed then exit
 
 HHIISSTTOORRYY

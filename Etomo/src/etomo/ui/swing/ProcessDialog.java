@@ -208,7 +208,7 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
   final AxisID axisID;
   final DialogType dialogType;
   final EtomoPanel rootPanel = new EtomoPanel();
-  //  Exit buttons
+  // Exit buttons
   final JPanel pnlExitButtons = new JPanel();
   final MultiLineButton btnCancel = new MultiLineButton("Cancel");
   final MultiLineButton btnPostpone = new MultiLineButton("Postpone");
@@ -233,12 +233,12 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
     applicationManager = appManager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-    //Get the default initial advanced state - dialog must set themselves up
-    //according to this state.
+    // Get the default initial advanced state - dialog must set themselves up
+    // according to this state.
     btnAdvanced.changeState(appManager.isAdvanced(dialogType, axisID));
     setToolTipText();
 
-    //  Layout the buttons
+    // Layout the buttons
     pnlExitButtons.setLayout(new BoxLayout(pnlExitButtons, BoxLayout.X_AXIS));
     pnlExitButtons.add(Box.createHorizontalGlue());
     pnlExitButtons.add(btnCancel.getComponent());
@@ -250,10 +250,10 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
     pnlExitButtons.add(btnAdvanced.getComponent());
     pnlExitButtons.add(Box.createHorizontalGlue());
 
-    UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters.INSTANCE
-        .getNarrowButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlExitButtons,
+        UIParameters.INSTANCE.getNarrowButtonDimension());
 
-    //  Exit action listeners
+    // Exit action listeners
     btnCancel.addActionListener(new buttonCancelActionAdapter(this));
     btnPostpone.addActionListener(new buttonPostponeActionAdapter(this));
     btnExecute.addActionListener(new buttonExecuteActionAdapter(this));
@@ -316,10 +316,11 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
    * Action to take when the execute button is pressed, the default action is
    * to set the exitState attribute to EXECUTE.
    */
-  public void buttonExecuteAction() {
+  public boolean buttonExecuteAction() {
     Utilities.buttonTimestamp("done", dialogType.toString());
     exitState = DialogExitState.EXECUTE;
     done();
+    return true;
   }
 
   public void saveAction() {
@@ -333,7 +334,7 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
   }
 
   //
-  //  Default tool tip text for the buttons.
+  // Default tool tip text for the buttons.
   //
   private void setToolTipText() {
     String line1, line2, line3, line4;

@@ -652,13 +652,13 @@ c                   &               call chrout(ichar(hisymb(max(1,nsymb(ngx(i))
 80      continue
 801   continue 
       do 805 i=1,nlines
-        call imdash(xscal/dx,xlo,xll,abs(yscal),0.,yll)
+        call psDashInteractive(xscal/dx,xlo,xll,abs(yscal),0.,yll)
 805   continue
       if(ifimg.gt.0 .and. iaplt.gt.2 .and. iaplt.lt.7)then
         call label_axis(xll,xaxisy,xran,xran/(xhi-xlo),abs(ntx),
      &      xtick,iflog,0)
         call label_axis(xll,ylorig,yran,abs(yscal),abs(nty), xtick,0,1)
-        call immisc(xscal/dx,xlo,xll,xran,abs(yscal),0.,ylorig,yran)
+        call psMiscItems(xscal/dx,xlo,xll,xran,abs(yscal),0.,ylorig,yran)
       endif
 c       
       if(ifcrv.eq.0)go to 81
