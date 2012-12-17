@@ -871,7 +871,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     // Use GPU
     dialog.setUseGpuEnabled(Network.isLocalHostGpuProcessingEnabled(manager, axisID,
         manager.getPropertyUserDir()));
-    dialog.setUseGpuSelected(metaData.getDefaultGpuProcessing().is());
+    dialog.setUseGpuSelected(metaData.isDefaultGpuProcessing());
     dialog.setBinning(metaData.getPosBinning(axisID));
     dialog.setSampleThickness(metaData.getSampleThickness(axisID));
   }
