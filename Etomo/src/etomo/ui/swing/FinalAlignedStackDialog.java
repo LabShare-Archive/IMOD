@@ -691,7 +691,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     cbParallelProcess.setEnabled(validAutodoc && !processingMethodLocked);
     ConstEtomoNumber parallel = metaData.getFinalStackCtfCorrectionParallel(axisID);
     if (parallel == null) {
-      setParallelProcess(validAutodoc && metaData.getDefaultParallel().is());
+      setParallelProcess(validAutodoc && metaData.isDefaultParallel());
     }
     else {
       setParallelProcess(validAutodoc && parallel.is());
