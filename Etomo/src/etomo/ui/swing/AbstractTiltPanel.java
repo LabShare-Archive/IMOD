@@ -600,7 +600,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         axisID, manager.getPropertyUserDir());
     localGpuAvailable = Network.isLocalHostGpuProcessingEnabled(manager, axisID,
         manager.getPropertyUserDir());
-    cbUseGpu.setSelected(metaData.getDefaultGpuProcessing().is());
+    cbUseGpu.setSelected(metaData.isDefaultGpuProcessing());
     // updateUseGpu();
     // Parallel processing
     cbParallelProcess.setEnabled(validAutodoc);
@@ -609,7 +609,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     // select the parallel processing checkbox.
     if (nonLocalHostGpusAvailable || !cbUseGpu.isSelected()) {
       if (tiltParallel == null) {
-        cbParallelProcess.setSelected(validAutodoc && metaData.getDefaultParallel().is());
+        cbParallelProcess.setSelected(validAutodoc && metaData.isDefaultParallel());
       }
       else {
         cbParallelProcess.setSelected(validAutodoc && tiltParallel.is());
