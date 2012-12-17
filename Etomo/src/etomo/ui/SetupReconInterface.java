@@ -58,9 +58,9 @@ public interface SetupReconInterface {
 
   public boolean isSingleAxisSelected();
 
-  public boolean isGpuProcessingSelected();
+  public boolean isGpuProcessingSelected(String propertyUserDir);
 
-  public boolean isParallelProcessSelected();
+  public boolean isParallelProcessSelected(String propertyUserDir);
 
   public boolean getTiltAngleFields(AxisID axisID, TiltAngleSpec tiltAngleSpec,
       boolean doValidation);
