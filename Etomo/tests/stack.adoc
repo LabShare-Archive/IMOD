@@ -561,12 +561,12 @@ mb.find-beads-3d=-
 [[]]
 # run
 bn.erase-beads=
-wait.process.running-ccderaser = done
+wait.process.ccd-eraser = done
 # check files
 assert.exists.file=%{dataset}%{axis}_erase.ali
 # run again
 bn.erase-beads=
-wait.process.running-ccderaser = done
+wait.process.ccd-eraser = done
 # check files
 assert.exists.file=%{dataset}%{axis}_erase.ali
 assert.exists.file=%{dataset}%{axis}_erase.ali~
