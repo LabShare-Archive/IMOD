@@ -11,6 +11,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.logic.DatasetTool;
+import etomo.logic.UserEnv;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAttributeIterator;
@@ -583,12 +584,12 @@ public final class DirectiveFile implements SetupReconInterface {
     return isDual();
   }
 
-  public boolean isGpuProcessingSelected() {
-    return EtomoDirector.INSTANCE.getArguments().isGpus();
+  public boolean isGpuProcessingSelected(final String propertyUserDir) {
+    return UserEnv.isGpuProcessing(manager, axisID, propertyUserDir);
   }
 
-  public boolean isParallelProcessSelected() {
-    return EtomoDirector.INSTANCE.getArguments().isCpus();
+  public boolean isParallelProcessSelected(final String propertyUserDir) {
+    return UserEnv.isParallelProcessing(manager, axisID, propertyUserDir);
   }
 
   public boolean isScanHeader() {
