@@ -6,9 +6,9 @@ import java.io.File;
 import etomo.ApplicationManager;
 import etomo.Arguments;
 import etomo.EtomoDirector;
+import etomo.logic.UserEnv;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.LogFile;
-import etomo.storage.Network;
 import etomo.storage.ParameterStore;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -372,20 +372,14 @@ public final class SetupDialogExpert {
     }
     // Parallel processing is optional in tomogram reconstruction, so only use it
     // if the user set it up.
-    boolean parallelProcessingEnabled = Network.isParallelProcessingEnabled(manager,
-        AxisID.ONLY, getPropertyUserDir());
-    if (parallelProcessingEnabled && !userConfig.getNoParallelProcessing()) {
-      dialog.setParallelProcess(true);
-    }
-    else if (!parallelProcessingEnabled) {
-      dialog.setParallelProcessEnabled(false);
-    }
-    boolean gpuProcessingEnabled = Network.isNonLocalHostGpuProcessingEnabled(manager,
-        AxisID.ONLY, getPropertyUserDir())
-        || Network.isLocalHostGpuProcessingEnabled(manager, AxisID.ONLY,
-            getPropertyUserDir());
-    dialog.setGpuProcessingEnabled(gpuProcessingEnabled);
-    dialog.setGpuProcessing(gpuProcessingEnabled && userConfig.getGpuProcessingDefault());
+    dialog.setParallelProcess(UserEnv.isParallelProcessing(manager, AxisID.ONLY,
+        getPropertyUserDir()));
+    dialog.setParallelProcessEnabled(UserEnv.isParallelProcessingEnabled(manager,
+        AxisID.ONLY, getPropertyUserDir()));
+    dialog.setGpuProcessingEnabled(UserEnv.isGpuProcessingEnabled(manager, AxisID.ONLY,
+        getPropertyUserDir()));
+    dialog.setGpuProcessing(UserEnv.isGpuProcessing(manager, AxisID.ONLY,
+        getPropertyUserDir()));
     dialog.setBackupDirectory(metaData.getBackupDirectory());
     dialog.setDistortionFile(metaData.getDistortionFile());
     dialog.setMagGradientFile(metaData.getMagGradientFile());
