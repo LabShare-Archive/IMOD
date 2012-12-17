@@ -883,6 +883,12 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
       adaptee.action(event.getActionCommand());
     }
   }
+
+  void setTooltips() {
+    cbSetFEIPixelSize.setToolTipText(TooltipFormatter.INSTANCE
+        .format("During tomogram setup, transfer pixel size from extended header to "
+            + "pixel."));
+  }
 }
 /**
  * <p> $Log$
