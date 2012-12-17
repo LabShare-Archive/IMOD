@@ -365,9 +365,9 @@ public interface ConstMetaData {
 
   public ConstEtomoNumber getCombineVolcombineParallel();
 
-  public ConstEtomoNumber getDefaultParallel();
+  public boolean isDefaultParallel();
 
-  public ConstEtomoNumber getDefaultGpuProcessing();
+  public boolean isDefaultGpuProcessing();
 
   public String getFirstAxisPrepend();
 
