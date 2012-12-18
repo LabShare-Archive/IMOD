@@ -447,6 +447,7 @@ public final class SetupReconUIHarness {
             .getStack(getPropertyUserDir(), metaData, AxisID.SECOND);
         metaData.setBStackProcessed(bStack.exists());
       }
+      metaData.setSetFEIPixelSize(setupInterface.isSetFEIPixelSize());
       if (directiveFile != null) {
         saveDirectives(metaData);
       }
