@@ -20,6 +20,9 @@
 #include <QResizeEvent>
 #include <QEvent>
 #include <QWaitCondition>
+#include <QMenu>
+#include <QImage>
+#include <QAction>
 #include "b3dutil.h"
 #ifdef QTPLAX_ATEXIT_HACK
 #include <sys/types.h>
@@ -30,7 +33,10 @@
 #include <qfont.h>
 #include <qdatetime.h>
 #include <qpen.h>
+#include <qfiledialog.h>
 #include <qpainter.h>
+#include <qprinter.h>
+#include <qprintdialog.h>
 #include <qpolygon.h>
 #include <qbrush.h>
 #include <qlabel.h>
@@ -65,6 +71,7 @@ static char *sProgName = NULL;
 static QApplication *sApp = NULL;
 static PlaxWindow *sPlaxWidget = NULL;
 static QPainter *sPainter = NULL;
+static bool sSpecialPainter = false;
 static int sPlaxWidth = 5 * DEFAULT_HEIGHT / 4;
 static int sPlaxHeight = DEFAULT_HEIGHT;
 static int sPlaxTop = 30;
@@ -163,8 +170,8 @@ void PlaxWindow::paintEvent ( QPaintEvent * e)
 {
   sPlaxExposed = 1;
   sOutListInd = 0;
-  /*fprintf(stderr, "paint %d %d %d %d\n", e->rect().top(), e->rect().left(),
-    e->rect().width(), e->rect().height()); */
+  /* fprintf(stderr, "paint %d %d %d %d\n", e->rect().top(), e->rect().left(),
+     e->rect().width(), e->rect().height()); */
   draw();
 }
 
@@ -233,6 +240,54 @@ void PlaxWindow::unlock()
   sMutex->unlock();
 }
 
+void PlaxWindow::mousePressEvent(QMouseEvent * e )
+{
+  QMenu popup(this);
+  QAction *savePng = popup.addAction("Save to PNG");
+  QAction *print = popup.addAction("Print");
+  connect(savePng, SIGNAL(triggered(bool)), this, SLOT(savePNGslot(bool)));
+  connect(print, SIGNAL(triggered(bool)), this, SLOT(printSlot(bool)));
+  popup.exec(QCursor::pos());
+}
+
+void PlaxWindow::savePNGslot(bool state)
+{
+  QImage *image = new QImage(sPlaxWidth, sPlaxHeight, QImage::Format_RGB32);
+  sSpecialPainter = true;
+  sPainter = new QPainter(image);
+  sOutListInd = 0;
+  QCoreApplication::postEvent(sPlaxWidget, new QPaintEvent
+                              (QRect(0, 0, sPlaxWidth, sPlaxHeight)));
+  QApplication::processEvents();
+  QString filename = QFileDialog::getSaveFileName(this, "File name for saving as PNG");
+  if (!filename.endsWith(".png", Qt::CaseInsensitive))
+    filename += ".png";
+  image->save(filename, "PNG");
+  delete sPainter;
+  delete image;
+  sSpecialPainter = false;
+}
+void PlaxWindow::printSlot(bool state)
+{
+  QPrinter printer;
+#if QT_VERSION >= 0x040400
+  printer.setPaperSize(QPrinter::Letter);
+#endif
+  QPrintDialog *dialog = new QPrintDialog(&printer, this);
+  dialog->setWindowTitle(tr("Print Graph"));
+  if (dialog->exec() != QDialog::Accepted)
+    return;
+  sSpecialPainter = true;
+  sPainter = new QPainter(&printer);
+  sOutListInd = 0;
+  QCoreApplication::postEvent(sPlaxWidget, new QPaintEvent
+                              (QRect(0, 0, sPlaxWidth, sPlaxHeight)));
+  QApplication::processEvents();
+  delete sPainter;
+  sSpecialPainter = false;
+
+}
+
 // The thread class
 PlaxThread::PlaxThread()
 {
@@ -265,8 +320,7 @@ void plax_initialize(char *string, int strsize)
   argc = fortiargc_() + 1;
   argv = (char **)malloc((argc + 1) * sizeof(char *));
   if (!argv) {
-    fprintf(stderr, "ERROR: %s - getting memory for program arguments.\n",
-            sProgName);
+    fprintf(stderr, "ERROR: %s - getting memory for program arguments.\n", sProgName);
     exit (3);
   }
   
@@ -275,8 +329,7 @@ void plax_initialize(char *string, int strsize)
     
     argv[i] = f2cString(fstring, FSTRING_LEN);
     if (!argv[i]) {
-      fprintf(stderr, "ERROR: %s - getting memory for program arguments.\n",
-              sProgName);
+      fprintf(stderr, "ERROR: %s - getting memory for program arguments.\n", sProgName);
       exit (3);
     }
   }
@@ -411,6 +464,8 @@ static int startPlaxApp()
   sScaleX = sScaleY = 0.5f;
   sPlaxWidget->setGeometry(sPlaxLeft, sPlaxTop, sPlaxWidth, sPlaxHeight);
   sPlaxWidget->setAttribute(Qt::WA_DeleteOnClose);
+  sPlaxWidget->setWindowTitle(QString(sProgName) +
+                              "   (Right click to save as PNG or print)");
   sPlaxExposed = 0;
   if (sToolTip)
     sPlaxWidget->setToolTip(sToolTip);
@@ -616,7 +671,8 @@ static void draw()
 {
   int ind;
   
-  sPainter = new QPainter(sPlaxWidget);
+  if (!sSpecialPainter)
+    sPainter = new QPainter(sPlaxWidget);
   sLastSize = 0;
   sPlaxWidget->lock();
 
@@ -703,7 +759,8 @@ static void draw()
   }
   sPlaxWidget->unlock();
   //sPainter->flush();
-  delete sPainter;
+  if (!sSpecialPainter)
+    delete sPainter;
   //  plax_input();
 }
 
