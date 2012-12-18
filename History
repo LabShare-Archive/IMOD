@@ -1,11 +1,21 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/17/12: Added right click menu to Plax graphing window to allowing printing
+the graph or saving to a PNG file.  Made Genhstplt draw black on white by
+default.
+
+12/17/12: Added -option to Tomosnapshot to take thumbnails of selected files.
+
 12/17/12: Fixed some of the log file monitors, which had the file size defined
 as an integer rather then a long, causing an overflow for larger tomograms.
-(bug# 1632)
+(Bug# 1632)
 
-12/17/12: Modified eTomo to run from a directive file.  ETomo will without an
-interface in this situation.(Bug# 1662)
+12/17/12: Modified eTomo to run from a directive file.  ETomo will run without
+an interface in this situation.(Bug# 1662)
+
+12/16/12: Made Genhstplt able to plot in color in the graphics window and in
+the postscript output; added option to Onegenplot to specify color by R,G,B or
+by a standard color name.
 
 12/14/12: Converted newstack comscripts to PIP.(Bug# 1665)
 
