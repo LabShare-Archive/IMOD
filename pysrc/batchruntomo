@@ -120,6 +120,17 @@ def readTextFileReportErr(filename, message = None):
    return lines
 
 
+# Print out errors from directive file reading or validation
+def printDirectiveErrors(errors):
+   if errors:
+      prnstr('ERROR: Incorrect directive(s) as listed below:')
+      for l in errors:
+         prnstr(l)
+      prnstr('')
+      abortSet('Bad directives')
+   return len(errors)
+   
+
 # Read a directive or template file and convert to a dictionary, skipping comment
 # lines and lines without an =
 def readDirectiveOrTemplate(filename, index):
@@ -127,15 +138,21 @@ def readDirectiveOrTemplate(filename, index):
    if isinstance(directLines, str):
       abortSet('Error ' + directLines)
       return 1
+   validErr = []
    for ind in range(len(directLines)):
-      line = directLines[ind]
-      if line.lstrip().startswith('#'):
+      line = directLines[ind].lstrip()
+      if line.startswith('#') or line == '':
          continue
       lsplit = line.split('=')
-      if len(lsplit) < 2 or lsplit[0].strip() == '':
+      if len(lsplit) < 2:
+         validErr.append('Directive from ' + filename + ' lacks an = separator: ' + line)
+         continue
+      if lsplit[0].strip() == '':
+         validErr.append('Directive from ' + filename + ' lacks a key: ' + line)
          continue
       allDirectives[index][lsplit[0].strip()] = (lsplit[1].strip(), ind)
-   return 0
+
+   return printDirectiveErrors(validErr)
    
 
 # Look for a directive with the given prefix and "option" (which might include a process)
@@ -259,6 +276,9 @@ def checkForQuit():
       
 # Runs a com file or com chunks using processchunks
 def runOneProcess(comfile, single = True, usingGPU = False):
+   if not os.path.exists(comfile):
+      abortSet('Command file ' + comfile + ' does not exist')
+      return 1
    sleepTime = 0.2
    startingTimeOut = 60.
    readErrorTimeout = 30.
@@ -397,7 +417,7 @@ def runOneProcess(comfile, single = True, usingGPU = False):
       seconds = int(used)
       frac = int(round((used - seconds) * 10))
       
-      prnstr(fmtstr('Successfully finished {}   in {}:{:02d}.{}', comfile, minutes,
+      prnstr(fmtstr('Successfully finished {}   in {:02d}:{:02d}.{}', comfile, minutes,
                     seconds, frac), flush=True)
    return finished < 0
 
@@ -692,13 +712,7 @@ def checkAllDirectives(mainFile = 'directive'):
          if badCase:
             errors.append('D' + messfrom + ' has incorrect case: ' + direc)
 
-   if errors:
-      prnstr('ERROR: Incorrect directive(s) as listed below:')
-      for l in errors:
-         prnstr(l)
-      prnstr('')
-      abortSet('Bad directives')
-   return len(errors)
+   return printDirectiveErrors(errors)
 
 
 # Look through directives for templates and basic setup parameters
@@ -1810,59 +1824,62 @@ for dfile in dirFiles:
    prnstr('Starting data set ' + setName)
 
    if startingStep <= 0:
-      # temporarily running copytomocoms directly
-      copyargs = []
-      for key in allDirectives[2]:
-         if copyPrefix in key:
-            arg = key[len(copyPrefix):]
-            val = allDirectives[2][key][0]
-            copyargs.append(arg + ' ' + val)
-      if sysTmplText in allDirectives[2]:
-         copyargs.append('change ' + allDirectives[2][sysTmplText][0])
-      if userTmplText in allDirectives[2]:
-         copyargs.append('change ' + allDirectives[2][userTmplText][0])
-      copyargs.append('change ' + absDirectiveFile)
-      try:
-         runcmd('copytomocoms -StandardInput', copyargs, 'stdout')
-      except ImodpyError:
-         reportImodError('Error running copytomocoms')
-         continue
+      # # temporarily running copytomocoms directly
+      # copyargs = []
+      # for key in allDirectives[2]:
+      #    if copyPrefix in key:
+      #       arg = key[len(copyPrefix):]
+      #       val = allDirectives[2][key][0]
+      #       copyargs.append(arg + ' ' + val)
+      # if sysTmplText in allDirectives[2]:
+      #    copyargs.append('change ' + allDirectives[2][sysTmplText][0])
+      # if userTmplText in allDirectives[2]:
+      #    copyargs.append('change ' + allDirectives[2][userTmplText][0])
+      # copyargs.append('change ' + absDirectiveFile)
+      # try:
+      #    runcmd('copytomocoms -StandardInput', copyargs, 'stdout')
+      # except ImodpyError:
+      #    reportImodError('Error running copytomocoms')
+      #    continue
    
-   # # Run etomo for setup and try to report errors
-   # # if parallelCPU > 1 add -cpu cpuList, if gpuList != '', add -gpu gpuList
-   # # Add argument to suppress reverse call for validation
-   # failed = False
-   # errlog = ''
-   # try:
-   #    etlines = runcmd('etomo --directives """' + absDirectiveFile + '"""')
-   #    for l in etlines:
-   #       prnstr(l.rstrip())
-   #       ind = l.find('with log in')
-   #       if ind > 0:
-   #          errlog = l(ind + 11:).strip()
-   # except ImodpyError:
-   #    failed = True
-   #    for l in getErrStrings():
-   #       ind = l.find('check:')
-   #       if ind > 0:
-   #          errlog = l[ind + 7:].strip()
+      # Run etomo for setup and try to report errors
+      failed = False
+      errlog = ''
+      try:
+         comline = 'etomo --fromBRT --directive """' + absDirectiveFile + '"""'
+         if parallelCPU > 1:
+            comline += ' -cpus """' + cpuList + '"""'
+         if gpuList != '':
+            comline += ' -gpus """' + gpuList + '"""'
+         etlines = runcmd(comline)
+         for l in etlines:
+            prnstr(l.rstrip())
+            ind = l.find('with log in')
+            if ind > 0:
+               errlog = l[ind + 11:].strip()
+      except ImodpyError:
+         failed = True
+         for l in getErrStrings():
+            ind = l.find('check:')
+            if ind > 0:
+               errlog = l[ind + 7:].strip()
 
 
-   # if errlog:
-   #    if '/' in errlog or '\\' in errlog:
-   #       try:
-   #          shutil.copy(errlog, '.')
-   #       except Exception:
-   #          prnstr('WARNING: failed to copy ' + errlog + ' to dataset directory')
-   #    printTaggedMessages(errlog, [('INFO:', 1), ('LOG:', 3)])
-   # else:
-   #    if failed:
-   #       prnstr('Running etomo failed, no error information available')
-   #    else:
-   #       prnstr('Cannot access an error log from running etomo')
-   # if failed:
-   #    reportImodError('etomo setup failed, cannot proceed with this data set')
-   #    continue
+      if errlog:
+         if '/' in errlog or '\\' in errlog:
+            try:
+               shutil.copy(errlog, '.')
+            except Exception:
+               prnstr('WARNING: failed to copy ' + errlog + ' to dataset directory')
+         printTaggedMessages(errlog, [('INFO:', 1), ('LOG:', 3)])
+      else:
+         if failed:
+            prnstr('Running etomo failed, no error information available')
+         else:
+            prnstr('Cannot access an error log from running etomo')
+      if failed:
+         reportImodError('etomo setup failed, cannot proceed with this data set')
+         continue
 
 
    fidSizePix = fidSizeNm / pixelSize
