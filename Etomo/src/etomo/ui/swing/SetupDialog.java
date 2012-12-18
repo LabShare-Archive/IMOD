@@ -56,6 +56,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   static final String MONTAGE_LABEL = "Montage";
   static final String SINGLE_FRAME_LABEL = "Single frame";
   private final String BACKUP_DIRECTORY_LABEL = "Backup directory: ";
+  static final String SET_FEI_PIXEL_SIZE = "Set pixel size in files from FEI";
 
   private final JPanel pnlDataParameters = new JPanel();
   // Dataset GUI objects
@@ -126,8 +127,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final JPanel pnlAdjustedFocusB = new JPanel();
   private final CheckBox cbAdjustedFocusB = new CheckBox(
       "Focus was adjusted between montage frames");
-  private final CheckBox cbSetFEIPixelSize = new CheckBox(
-      "Set pixel size in files from FEI");
+  private final CheckBox cbSetFEIPixelSize = new CheckBox(SET_FEI_PIXEL_SIZE);
 
   private final SetupDialogExpert expert;
   private final boolean calibrationAvailable;
@@ -248,6 +248,10 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   void setParallelProcessEnabled(final boolean input) {
     cbParallelProcess.setEnabled(input);
+  }
+
+  void setSetFEIPixelSize(final boolean input) {
+    cbSetFEIPixelSize.setSelected(input);
   }
 
   void setGpuProcessingEnabled(final boolean input) {
@@ -458,6 +462,10 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   public boolean isParallelProcessSelected(final String propertyUserDir) {
     return cbParallelProcess.isSelected();
+  }
+
+  public boolean isSetFEIPixelSize() {
+    return cbSetFEIPixelSize.isSelected();
   }
 
   public boolean isGpuProcessingSelected(final String propertyUserDir) {
