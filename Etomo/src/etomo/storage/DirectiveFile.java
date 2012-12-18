@@ -63,10 +63,12 @@ public final class DirectiveFile implements SetupReconInterface {
   private static final String RUNTIME_NAME = "runtime";
   private static final String SEEDING_METHOD_NAME = "seedingMethod";
   private static final String SIZE_IN_X_AND_Y_NAME = "sizeInXandY";
+  private static final String SYSTEM_TEMPLATE_NAME = "systemTemplate";
   private static final String THICKNESS_NAME = "thickness";
   private static final String TRACKING_METHOD_NAME = "trackingMethod";
   private static final String USE_ALIGNED_STACK_NAME = "useAlignedStack";
   private static final String USE_SIRT_NAME = "useSirt";
+  private static final String USER_TEMPLATE_NAME = "userTemplate";
 
   private final AxisID axisID;
   private final BaseManager manager;
@@ -538,6 +540,12 @@ public final class DirectiveFile implements SetupReconInterface {
     }
   }
 
+  public String getSystemTemplate() {
+    return getAttributeValue(setupSet, SYSTEM_TEMPLATE_NAME);
+  }
+  public String getUserTemplate() {
+    return getAttributeValue(setupSet, USER_TEMPLATE_NAME);
+  }
   /**
    * @param doValidation has no effect.
    * @return true
@@ -602,6 +610,14 @@ public final class DirectiveFile implements SetupReconInterface {
 
   public boolean isSingleViewSelected() {
     return copyArg != null && copyArg.getAttribute("montage") == null;
+  }
+
+  public boolean isSystemTemplateSet() {
+    return getAttribute(setupSet, SYSTEM_TEMPLATE_NAME) != null;
+  }
+
+  public boolean isUserTemplateSet() {
+    return getAttribute(setupSet, USER_TEMPLATE_NAME) != null;
   }
 
   public void setBinning(final int input) {
