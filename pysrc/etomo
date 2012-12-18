@@ -147,7 +147,7 @@ help = 0
 foreground = 0
 if '-h' in sys.argv or '--help' in sys.argv:
    help = 1
-if '--fg' in sys.argv or '--directives' in sys.argv:
+if '--fg' in sys.argv or '--directive' in sys.argv:
    foreground = 1
 
 # Build the common java command
