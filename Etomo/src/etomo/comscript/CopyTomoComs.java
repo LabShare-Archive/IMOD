@@ -288,7 +288,7 @@ public final class CopyTomoComs {
       }
     }
     else {
-      genOptionsFromFile();
+      genOptionsFromDirectiveFile();
     }
     copytomocoms = new SystemProgram(manager, manager.getPropertyUserDir(), command,
         AxisID.ONLY);
@@ -323,7 +323,7 @@ public final class CopyTomoComs {
   /**
    * Add options from directive file.
    */
-  private void genOptionsFromFile() {
+  private void genOptionsFromDirectiveFile() {
     DirectiveFile.CopyArgIterator iterator = directiveFile.getCopyArgIterator();
     if (iterator == null) {
       return;
@@ -339,6 +339,16 @@ public final class CopyTomoComs {
         }
       }
     }
+    if(directiveFile.isSystemTemplateSet()) {
+      command.add("-change");
+      command.add(directiveFile.getSystemTemplate());
+    }
+    if(directiveFile.isUserTemplateSet()) {
+      command.add("-change");
+      command.add(directiveFile.getUserTemplate());
+    }
+    command.add("-change");
+    command.add(EtomoDirector.INSTANCE.getArguments().getDirective().getAbsolutePath());
   }
 
   private boolean genOptions() {
