@@ -288,7 +288,7 @@ public final class CopyTomoComs {
       }
     }
     else {
-      genOptionsFromFile();
+      genOptionsFromDirectiveFile();
     }
     copytomocoms = new SystemProgram(manager, manager.getPropertyUserDir(), command,
         AxisID.ONLY);
@@ -323,7 +323,7 @@ public final class CopyTomoComs {
   /**
    * Add options from directive file.
    */
-  private void genOptionsFromFile() {
+  private void genOptionsFromDirectiveFile() {
     DirectiveFile.CopyArgIterator iterator = directiveFile.getCopyArgIterator();
     if (iterator == null) {
       return;
@@ -339,6 +339,7 @@ public final class CopyTomoComs {
         }
       }
     }
+    genCommonOptions();
   }
 
   private boolean genOptions() {
@@ -413,7 +414,7 @@ public final class CopyTomoComs {
       command.add("-CTFfiles");
       command.add(ctfFiles.toString());
     }
-
+    genCommonOptions();
     // Undistort images with the given .idf file
     String distortionFile = metaData.getDistortionFile();
     if (!distortionFile.equals("")) {
@@ -471,6 +472,16 @@ public final class CopyTomoComs {
     // Always yes tiltalign relies on local entries to save default values
     // even if they are not used.
     return true;
+  }
+
+  /**
+   * Add options that are created the same way, whether or not there is a directive file
+   * present.
+   */
+  private void genCommonOptions() {
+    if (metaData.isSetFEIPixelSize()) {
+      command.add("-fei");
+    }
   }
 
   /**
