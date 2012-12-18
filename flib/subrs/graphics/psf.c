@@ -16,11 +16,11 @@
 #ifdef F77FUNCAP
 #define psopen PSOPEN
 #define psclose PSCLOSE
-#define point  POINT
-#define frstpt FRSTPT
-#define vector VECTOR
-#define frame  FRAME
-#define wtstr  WTSTR
+#define pspoint  PSPOINT
+#define psfrstpt PSFIRSTPOINT
+#define psvector PSVECTOR
+#define psframe  PSFRAME
+#define pswtstr  PSWRITETEXT
 #define pscircle PSCIRCLE
 #define pslinewidth PSLINEWIDTH
 #define pstriangle PSTRIANGLE
