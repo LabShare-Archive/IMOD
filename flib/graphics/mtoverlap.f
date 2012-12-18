@@ -4,360 +4,7 @@ c       MTOVERLAP allows one to display sets of "bundles" of microtubules
 c       (MT's) and to compute overlap between MT's coming from the two
 c       different directions.  It has a lot of flexibility but one can select
 c       a default, standard display format fairly easily.
-c       
-c       Before running the program, you must figure out how to specify which
-c       MT's are in a bundle.  If all of the MT's in a model belong to
-c       one bundle, then this task is easy.  If you have several bundles in
-c       one model, then you have several alternatives.  One is to determine
-c       the lower and upper X, Y and Z coordinates of a box, such that the
-c       bundle consists of all MT's that contain at least one point within
-c       the box.  Another way is to make a model contour within the plane
-c       of one section to serve as a boundary contour.  This contour,
-c       together with a lower and upper Z coordinate, specifies a "cylinder",
-c       and this program will include in the bundle any MT with at least one
-c       point inside this cylinder.  The most elaborate way is to make a
-c       series of model contours for boundary contours in different sections.
-c       The program will then include in the bundle any MT that is included
-c       within any one of the contours.
-c       
-c       For each bundle that the program deals with, it will want to know a
-c       center Z coordinate; this center value is used to align different
-c       bundles for display and to compute the average distance past center
-c       that each class of MT extends.  The program can compute the center
-c       value that makes two classes of MT's extend past the center by the
-c       same amount (in opposite directions).  It can do this computation
-c       for each bundle separately, for all bundles pooled together, or
-c       for any combination of bundles that you desire.  Alternatively, you
-c       may enter the center Z coordinates.
-c       
-c       When you enter X, Y or Z coordinates for either of the above
-c       purposes, they must be index coordinates of the image file.  That
-c       is, X and Y values must be in terms of pixel coordinates, and Z
-c       values must be in units of the original section numbers, before
-c       adjustment for tilt or scaling by section thickness.
-c       
-c       If the sections were significantly tilted during microscopy, the
-c       program can adjust for these tilts given the proper information.
-c       Prepare a file in which the first line shows the Z value and the
-c       tilt of the first tilted section (or of the first section, if that
-c       one was tilted), and each successive line shows the Z value and tilt
-c       for each section on which tilt was changed.  Z values should occur in
-c       ascending order.
-c       
-c       The program refers to different kinds of MTs as "types".  For an IMOD
-c       model, the type is simply the object numer; for data from a WIMP
-c       model file, the type is 256 minus the object color, or the negative
-c       of this value if the WIMP object is turned off.  A default display 
-c       format is set up to be used with either kind of model file.  To use
-c       the defaults with an IMOD model, MTs starting at low and high Z
-c       should be in objects 1 and 2 respectively; continuous MTs in object
-c       3, and free MTs in object 4.  With a WIMP model, MTs from low and
-c       high Z should have colors 250 and 251 (types 6 and 5 in the
-c       program), and continuous and free MTs 252 and 255 (types 4 and 1).
-c       
-c       When you start the program, you will have to make a standard series
-c       of entries until you get the first display.  From there, you can
-c       select a number of options to loop back and change those entries.
-c       Initial entries in order are:
-c       
-c       Name of command file to take entries from, or Return to continue
-c       making entries from the keyboard. The program can read entries from
-c       a file instead of from the keyboard, then switch back to keyboard
-c       input if the file ends with the appropriate entry. 
-c       
-c       A list of types to be mapped, or changed, into new types, or
-c       Return for no mapping of one type into another.  This option is
-c       useful if you have several different types that you want to combine
-c       into one.  For example, if you want to treat types 11 and 13 like
-c       type 1, and types 12 and 14 like 2, and if you also have some
-c       existing MT's of types 1 and 2 that you don't want to include
-c       with these types, then you need to remap all of these types by
-c       entering 11-14,1,2
-c       
-c       IF you entered some types to remap, next enter the types to change
-c       them into.  For the example just described, you would enter:
-c       1,2,31,32
-c       
-c       Number of bundles to read from model files, or 0 if the entries
-c       specifying all of the bundles are in yet another file.
-c       
-c       IF you enter a positive number, then enter for each bundle:
-c       
-c       .  Name of model file with bundle in it, or Return to use same file
-c       .  as previous bundle
-c       
-c       .  IF you enter the name of file, make the following 1-3 entries:
-c       
-c       .     Name of file with information on tilt angles, or Return if
-c       .     there is no such file (pictures taken at 0 tilt)
-c       
-c       .     IF the model header has no scaling information, make the next
-c       .     two entries as well to specify scaling:
-c       
-c       .       Section thickness in nm, to scale Z coordinates to microns;
-c       .       or / to leave Z values unscaled
-c       
-c       .       Magnification of negatives, and scale of digitization (the
-c       .       value of microns/pixel from VIDS), to scale the X/Y
-c       .       coordinates correctly; or / to leave X/Y coordinates
-c       .       unscaled.  This entry makes no difference unless you choose
-c       .       to calculate one of the special three-dimensional overlap
-c       .       factors.
-c       
-c       .  Number of limiting regions (boundary contours or rectangles
-c       .  defined by X/Y coordinates) needed to specify the bundle, or
-c       .  0 to take all of the objects in the model.
-c       .
-c       .  For each limiting region, then enter:
-c       
-c       .     Either IMOD object number and contour number of the boundary
-c       .     contour, or a WIMP object number and 0 for data taken from a
-c       .     WIMP model file, or 0,0 to enter limiting X and Y coordinates
-c       .     of a box.
-c       
-c       .        IF you entered 0,0 next enter the lower and upper X index
-c       .        coordinates and the lower and upper Y coordinates of the
-c       .        box, or enter / to have no limit on the X and Y coordinates
-c       .        THEN enter the lower and upper Z coordinates of the box (in
-c       .        units of sections), or / to have no limits on Z coordinates
-c       
-c       .        IF you entered numbers for a boundary contour, next enter
-c       .        lower and upper Z coordinates of the "cylinder", or /
-c       .        to set those limiting coordinates to the Z coordinate of the
-c       .        boundary contour.  The latter is typical if one uses several
-c       .        contours in different sections to specify the bundle.
-c       
-c       IF you entered 0 for the number of bundles, next enter instead the 
-c       name of a file.  The first line of this file should have the number
-c       of bundles specified there.  The rest of the file should be all of
-c       the entries just described for each bundle.
-c       
-c       Enter 0 if you want to specify EVERYTHING or 1 to use the default
-c       format for types, display colors, etc. with an IMOD model, or 2 to
-c       use defaults for a WIMP model.  With an entry of 1, you will
-c       get centers of bundles calculated from MT types 1 and 2, overlap
-c       calculated from types 1 and 2, and a display occupying the whole
-c       screen with, from top down, type 4 in order by increasing length,
-c       types 1 and 2 interleaved with 1 in order by increasing Z of
-c       endpoint and 2 in order by decreasing Z or startpoint, then type
-c       3 in order by increasing length.
-c       
-c       Enter a list of numbers of the bundles to work with.  Ranges may be
-c       entered, e.g. 1-3,7-9.
-c       
-c       Enter 1 to have each bundle's center computed separately, 2 to have a
-c       single center Z value computed with all bundles pooled together,
-c       3 to specify a single center Z coordinate for all bundles, or
-c       4 to control center specification more intimately.
-c       
-c       IF you entered 3, next enter the Z value to use as center for all
-c       bundles, in units of original section numbers.
-c       
-c       IF you entered 4, next enter a set of numbers, one for each bundle:
-c       either a specific Z center section value for that bundle, or the
-c       negative of a specific Z center value in microns, or 0 to have its
-c       center computed separately from other bundles, or a negative number
-c       less than -100; all bundles with the same negative number will be
-c       pooled and given the same computed center value.
-c       
-c       IF you did not select default display, next enter two lists of
-c       types to calculate the center from, where ranges may be entered:
-c       
-c       .  List of types coming from low Z
-c       
-c       .  List of types extending to high Z
-c       
-c       IF you did not select default display, next enter two lists of types
-c       to compute the overlap from, or 2 Returns to omit computing overlap:
-c       
-c       .  List of types coming from low Z
-c       
-c       .  List of types extending to high Z
-c       
-c       Enter 0 for simple overlap factor (without considering proximity
-c       in the X/Y plane), or 1, 2 or 3 for a 3-D overlap factor, where the
-c       amount of overlap between two MT's per section decays with increasing
-c       distance between them in the X/Y plane, either as a step function (1
-c       within a certain distance and 0 beyond it), an inverse power, or
-c       exponentially.
-c       
-c       .  IF you entered 1-3, next enter 0 to compute an average
-c       .  overlap factor for each MT, then average those values over the
-c       .  MT's, or 1 to compute the sum of overlap factors for each MT, then
-c       .  average those sums over the MT's.  In the latter case, the
-c       .  resulting values may depend heavily on bundle size.
-c       
-c       .  IF you entered 1-3, next enter the distance in the X/Y plane
-c       .  at and below which overlap will equal 1.  The distance should be
-c       .  in microns if you have scaled X/Y values, or in pixels if you
-c       .  have not.  For the step function option, enter the maximum
-c       .  preferred distance between MT's.
-c       
-c       .  IF you entered 2, next enter the power for the decay (e.g., with
-c       .     a power of 2, overlap will decay as the inverse square of
-c       .     distance)
-c       
-c       .  IF you entered 3, enter instead the space constant for exponential
-c       .  decay.  Overlap will be 1/e less for MT's separated by 2 space
-c       .  constants than for MT's separated by 1 space constant.  Distance
-c       .  should be in microns if you have scaled X/Y values, or in pixels
-c       .  if you have not.
-c       
-c       IF you did not select default display, make the following entries
-c       to control the display:
-c       
-c       .  List of types to display, or Return for no display.  Ranges OK.
-c       
-c       .  Colors to display them as, or / to take standard colors.  Colors
-c       .  are specified as numbers from 0 to 255.  0-240 correspond to gray
-c       .  scales from black to white, then 237-255 give olive, dim yellow,
-c       .  orange, red, green, blue, yellow, magenta, and cyan. For data
-c       .  from an IMOD model, / will assign colors as 256 minus the type.
-c       .  For data from a WIMP model, / will give the same colors as in the
-c       .  model, unless types have been remapped.
-c       
-c       .  Enter a number for each type to control the ordering of the MT's
-c       .  from the top down: 1 or -1 to have in order by increasing or
-c       .  decreasing Z of the starting point; 2 or -2 for order by
-c       .  increasing or decreasing ending Z; 3 or -3 for order by
-c       .  increasing or decreasing length
-c       
-c       .  Enter a positional value for each type, where positions are
-c       .  numbered from the top down; two types with the same position
-c       .  number will be displayed with their MT's interleaved.
-c       
-c       Enter 1 to plot all bundles in the same graph, 2 to plot each bundle
-c       in a separate graph, or 3 to specify more complicated combinations
-c       
-c       IF you entered 3, enter a graph number for each bundle included in
-c       the display, where graphs are numbered from the top down.  Bundles
-c       with the same graph number will be pooled for display.
-c       
-c       IF you did not select default display, make three more entries
-c       
-c       .  Either the negative of the total horizontal size of display, in
-c       .  pixels, or the number of pixels per unit of Z,
-c       .  or / to use the default indicated (initally 1280 pixels).
-c       
-c       .  Total vertical size of display, in pixels, or / to use the default
-c       
-c       .  Line spacing in regions where MT's are interleaved relative to
-c       .  spacing in non-interleaved regions, line thickness, axis
-c       .  thickness, label thickness, and lengths of major and minor ticks.
-c       .  (It will tell you what the defaults are.)  A thickness of 2 IS
-c       .  available, but higher even thicknesses are rounded up by 1 (so
-c       .  only odd thicknesses are available above 3).  To get lines drawn
-c       .  in order from the bottom up instead of from the top down, enter
-c       .  the negative of the desired value for interleaved line spacing
-c       .  (typically, the negative of the indicated default value.)
-c       
-c       .  Colors for the axes, the labels, and the fitted lines; size of
-c       .  labels; # of pixels of additional shift leftward and downward
-c       .  for labels; intervals (in # of ticks) at which to have major
-c       .  ticks and labels.  It will tell you the defaults; enter / to use
-c       .  them.
-c       
-c       At this point you will get the display and some output: the number of
-c       each type of tube in each graph and the mean and standard deviation
-c       of their lengths, and computed overlap values for each bundle
-c       separately and for all bundles together (the last line of output).
-c       Four overlap values are computed (mean, S.D., and # of MT's
-c       contributing to each value are printed).  The first is the
-c       distance past the center that each MT extends.  The other three are
-c       overlap values for MT's coming from low Z (from the left), for
-c       MT's coming from high Z (from the right), and for both of those sets
-c       of MT's combined.  With the simplest overlap computation, the
-c       overlap value for a single MT is the average amount of Z overlapping
-c       with other MT's, where the average is only over those MT's from the
-c       other direction that actually do overlap with the given MT.  The
-c       values printed out are the mean and S.D. of these averages for all
-c       the MT's from the given direction.
-c       
-c       With the inverse power or exponential decay options, instead of
-c       counting 1 unit of overlap per section of overlap between two MT's,
-c       the amount of "overlap" in each section is computed from the
-c       distance between the two MT's in that section, giving a number that
-c       is 1 for nearest neighbor MT's and less for more separated MT's.
-c       This overlap factor is then summed over all sections in which both
-c       MT's appear.  For a given MT, the program will then form either the
-c       mean or the sum of the summed overlap factor between that MT and all
-c       other overlapping MT's.  The sum is probably a more meaningful
-c       measure.  Finally, these means or sums are averaged over all MT's
-c       from a given direction, including MT's with 0 overlap.
-c       
-c       Now you can loop back to various parts of the program. Enter:
-c       1 to combine the overlap calculation for a group of bundles
-c       2 to change the display size or interleave/non-interleave spacing
-c       3 to specify which bundles should go in which graphs
-c       4 to specify the types to display, and their colors, positions and
-c       .  ordering parameters
-c       5 to specify the types to compute overlap from, or the way of
-c       .  computing the overlap factor
-c       6 to change which bundles are included in the display or computations
-c       7 to control output of numbers of MT's and overlap values to a file
-c       8 to read in new bundles and add them to existing ones
-c       9 to read in new bundles and replace previously read ones
-c       10 to take commands from a file (next enter filename, or Return to
-c       .  take input from the keyboard)
-c       11 to exit
-c       12 to fit lines to the starting and ending points of certain types
-c       13 to change the mapping of one type into another
-c       14 to plot the graph to a postscript file
-c       15 to display such a postscript file on the screen
-c       16 to print the postcript file
-c       
-c       IF you enter 1, next enter the list of bundles to combine for
-c       computing overlap (ranges are ok).  If there are, say, 4 bundles 
-c       included in the computation and/or display, they are referred to as
-c       numbers 1 to 4, regardless of their numbers among the entire set of
-c       bundles that have been read in.
-c       
-c       IF you enter 7, on the first such occasion, enter the name of a file
-c       to store output into.  Then enter:
-c       0 to turn off output to the file
-c       1 to output only the overlap calculations to the file
-c       2 to output only the numbers of MT's to the file
-c       3 to output both overlap and numbers.
-c       
-c       IF you enter 6, 8, or 9, you will loop back and have to make all of
-c       entries that follow the point to which you looped back; other options
-c       involve re-entering only a subset of the parameters.
-c       
-c       IF you enter 12, the program will fit a line to the starting points
-c       of one type of MT, and another line to the ending points of another
-c       type of MT.  It will display the fitted lines and report two factors:
-c       the slope, in units of percent of that type of MT starting (or
-c       ending) per unit of Z; and the distance past the center at which the
-c       line crosses the level of 50% of the MT's.  It reports these factors
-c       separately for the two lines, and also shows the average of the
-c       values for the two lines.  If there are too few MTs to derive a
-c       value, the value is reported as 0.  It also reports the number of
-c       MT's used to derive the factors.  Each line displayed on the screen
-c       occupies the vertical extent of the MT's included in the fit.  When
-c       you enter 12, you next make two entries:
-c       
-c       .  The type to whose starting points a line will be fit, and the type
-c       .  to whose ending points a line will be fit, or / to accept the
-c       .  defaults, which are initially the types used to calculate overlap.
-c       
-c       .  The lower and upper percentile limits for the MT's to be included
-c       .  in the fits, or / to accept the defaults shown in parentheses.
-c       .  MT's are counted from the top of the display downward.  For
-c       .  example, if you enter 5 and 85, then the top 5% and the bottom 15%
-c       .  of MT's in each type will NOT be included in the fits.
-c       
-c       IF you enter 13 to change type mapping, you should then select
-c       option 6 in order to make sure that the new types are being used
-c       correctly for display or computation.
-c       
-c       IF you enter 14 to plot the graphs, the program will ask for the 
-c       X and Y size and lower left X and Y coordinates, in inches, of
-c       the location on paper corresponding to the full screen display.  You
-c       can use these entries to change the size or aspect ratio of the
-c       display.  Next the program will ask for a label for the X axis; enter
-c       Return for no label.  The size and spacing of the axis numeric and
-c       text labels can be controlled by the entries that one sets when
-c       displaying the graphs on the screen.
+c       See man page for details.
 c       
 c       David Mastronarde  10/3/90
 c       2/21/92: changes to scale data into microns, add line fits
@@ -368,24 +15,7 @@ c       .        at the bottom of each set to obviate need to invert drawing
 c       6/14/96: added plotting output
 c       4/28/97: changes for IMOD models
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.5  2005/12/09 04:43:27  mast
-c       gfortran: .xor., continuation, format tab continuation or byte fixes
-c
-c       Revision 3.4  2005/04/03 02:41:20  mast
-c       Removed imparm from trnc
-c       
-c       Revision 3.3  2003/10/26 15:31:19  mast
-c       switch from long prints to formatted writes for Intel compiler
-c       
-c       Revision 3.2  2003/08/29 17:34:17  mast
-c       Change to use new multithreaded Plax graphics
+c       $Id$
 c       
 c       
       call plax_initialize('mtoverlap')
@@ -832,7 +462,7 @@ c
 c       display bundles
 c       
 60    if(ntypdisp.gt.0)then
-        call p_box(0,0,0,1279,1023)
+        call plax_box(0,0,0,1279,1023)
 c         
 c         for each type, build list of starts and ends relative to center
 c         
@@ -984,18 +614,18 @@ c         ix1=zrelmax*zscale+zadd
         ix1=int(izaxfac*zrelmax)*zscale/izaxfac + zadd
         yfree=iyaxtop-margtop-majorlen
         if(idirdraw.lt.0)yfree=iyaxbot+margax
-        call p_vectw(iaxthick,icolax,ix0,iyaxtop,ix1,iyaxtop)
-        call p_vectw(iaxthick,icolax,ix0,iyaxbot,ix1,iyaxbot)
+        call plax_vectw(iaxthick,icolax,ix0,iyaxtop,ix1,iyaxtop)
+        call plax_vectw(iaxthick,icolax,ix0,iyaxbot,ix1,iyaxbot)
         if(doplot)then
-          call imset(iaxthick,c1,c2,c3,0)
+          call psSetup(iaxthick,c1,c2,c3,0)
           yaxbot=iyaxbot*pltscly+pltofsy
           yaxtop=iyaxtop*pltscly+pltofsy
           x0=ix0*pltsclx+pltofsx
           x1=ix1*pltsclx+pltofsx
-          call imma(x0,yaxbot)
-          call imva(x1,yaxbot)
-          call imma(x0,yaxtop)
-          call imva(x1,yaxtop)
+          call psMoveAbs(x0,yaxbot)
+          call psVectAbs(x1,yaxbot)
+          call psMoveAbs(x0,yaxtop)
+          call psVectAbs(x1,yaxtop)
         endif
         do iz=-int(-izaxfac*zrelmin),int(izaxfac*zrelmax)
           ixx=iz*zscale/izaxfac+zadd
@@ -1004,26 +634,26 @@ c         ix1=zrelmax*zscale+zadd
             ilen=majorlen
             if(mod(iz,labmod).eq.0)then
               write(dummy4,'(i4)')iz/izaxfac
-              call p_sctext(labthick,isiztxt,isiztxt,icollab,
+              call plax_sctext(labthick,isiztxt,isiztxt,icollab,
      &            ixx-46-idxtxt,512-nytot/2-idytxt,dummy4)
               if(doplot)then
                 call int_iwrite(dummy4,iz/izaxfac,nchr)
                 xlab=ixx*pltsclx+pltofsx
                 ylab=(512-nytot/2-idytxt)*pltscly+pltofsy+.005*jsize
-                call pwritx(xlab,ylab,dummy4,nchr,jsize,0,0)
+                call psWriteText(xlab,ylab,dummy4(1:nchr),jsize,0,0)
               endif
             endif
           endif
           if(ilen.gt.0)then
-            call p_vectw(iaxthick,icolax,ixx,iyaxtop,ixx,iyaxtop-ilen)
-            call p_vectw(iaxthick,icolax,ixx,iyaxbot,ixx,iyaxbot-ilen)
+            call plax_vectw(iaxthick,icolax,ixx,iyaxtop,ixx,iyaxtop-ilen)
+            call plax_vectw(iaxthick,icolax,ixx,iyaxbot,ixx,iyaxbot-ilen)
             if(doplot)then
               ylen=ilen*pltscly
               xx=ixx*pltsclx+pltofsx
-              call imma(xx,yaxtop)
-              call imva(xx,yaxtop+ylen)
-              call imma(xx,yaxbot)
-              call imva(xx,yaxbot-ylen)
+              call psMoveAbs(xx,yaxtop)
+              call psVectAbs(xx,yaxtop+ylen)
+              call psMoveAbs(xx,yaxbot)
+              call psVectAbs(xx,yaxbot-ylen)
             endif
           endif
         enddo
@@ -1031,7 +661,7 @@ c         ix1=zrelmax*zscale+zadd
           lbllen=lnblnk(xlabel)
           xlab=(0.5*(zrelmin+zrelmax)*zscale+zadd)*pltsclx+pltofsx
           ylab=(512-nytot/2-idytxt)*pltscly+pltofsy-.012*jsize
-          call pwritx(xlab,ylab,xlabel,lbllen,jsize,0,0)
+          call psWriteText(xlab,ylab,xlabel(1:lbllen),jsize,0,0)
         endif
 c         
 c         finally, plot the data sets
@@ -1050,7 +680,7 @@ c
 102         format(' Graph Type   #   mean - length - s.d.')
           enddo
         endif
-        if(doplot)call imset(linthick,c1,c2,c3,0)
+        if(doplot)call psSetup(linthick,c1,c2,c3,0)
         do igrf=1,ngrftot
           do i=1,3
             nfitslp(i)=0
@@ -1080,13 +710,13 @@ c
                 xx1=datdisp(2,ind)*zscale+zadd
                 ix1=xx1
                 iyy=yy
-                call p_vectw(linthick,icoldisp(itd),ix0,iyy,ix1,iyy)
+                call plax_vectw(linthick,icoldisp(itd),ix0,iyy,ix1,iyy)
                 if(drawtwice)
-     &              call p_vectw(1,icoldisp(itd),ix0,iyy-1,ix1,iyy-1)
+     &              call plax_vectw(1,icoldisp(itd),ix0,iyy-1,ix1,iyy-1)
                 if(doplot)then
                   yplt=yy*pltscly+pltofsy
-                  call imma(xx0*pltsclx+pltofsx,yplt)
-                  call imva(xx1*pltsclx+pltofsx,yplt)
+                  call psMoveAbs(xx0*pltsclx+pltofsx,yplt)
+                  call psVectAbs(xx1*pltsclx+pltofsx,yplt)
                 endif
                 sumlen=sumlen+datdisp(3,ind)
                 sumsq=sumsq+datdisp(3,ind)**2
@@ -1114,12 +744,12 @@ c
                   ixend=xxend
                   iystr=yystr
                   iyend=yyend
-                  call p_vectw(linthick,icolfit,ixstr,iystr,ixend,
+                  call plax_vectw(linthick,icolfit,ixstr,iystr,ixend,
      &                iyend)
                   if(doplot)then
-                    call imma(xxstr*pltsclx+pltofsx,yystr*pltscly+
+                    call psMoveAbs(xxstr*pltsclx+pltofsx,yystr*pltscly+
      &                  pltofsy)
-                    call imva(xxend*pltsclx+pltofsx,yyend*pltscly+
+                    call psVectAbs(xxend*pltsclx+pltofsx,yyend*pltscly+
      &                  pltofsy)
                   endif
                   nfitslp(indslp)=nslp
@@ -1423,7 +1053,7 @@ c
       doplot = .true.
       print *,'Enter text label for axis, or Return for none'
       read(5,'(a)')xlabel
-      if(ifpage.ne.0)call frame()
+      if(ifpage.ne.0)call psFrame()
       ifpage=1
       go to 60
 c       
@@ -1431,10 +1061,10 @@ c
       ifpage=0
       go to 70
 c       
-99    call p_box(0,0,0,1279,1023)
+99    call plax_box(0,0,0,1279,1023)
       call plax_flush()
       call plax_close()
-      call imexit
+      call psexit
       end
 
 
@@ -1829,27 +1459,27 @@ c
       scl = 255./del
       val = 0
       do j = 0,imin-1
-        call p_clt8(j,0,0,0)
+        call plax_mapcolor(j,0,0,0)
       enddo
       do j = imax+1,maxval
-        call p_clt8(j,255,255,255)
+        call plax_mapcolor(j,255,255,255)
       enddo
       do j = imin,imax
         ival = val + .5
-        call p_clt8(j,ival,ival,ival)
+        call plax_mapcolor(j,ival,ival,ival)
         val = val + scl
       enddo
-      call p_clt8(245,255,255,255)
-      call p_clt8(246,255,255,255)
-      call p_clt8(247,229,209,95)
-      call p_clt8(248,138,131,3)
-      call p_clt8(249,239,125,0)
-      call p_clt8(250,255,0,0)
-      call p_clt8(251,0,255,0)
-      call p_clt8(252,0,0,255)
-      call p_clt8(253,255,255,0)
-      call p_clt8(254,255,0,255)
-      call p_clt8(255,0,255,255)
+      call plax_mapcolor(245,255,255,255)
+      call plax_mapcolor(246,255,255,255)
+      call plax_mapcolor(247,229,209,95)
+      call plax_mapcolor(248,138,131,3)
+      call plax_mapcolor(249,239,125,0)
+      call plax_mapcolor(250,255,0,0)
+      call plax_mapcolor(251,0,255,0)
+      call plax_mapcolor(252,0,0,255)
+      call plax_mapcolor(253,255,255,0)
+      call plax_mapcolor(254,255,0,255)
+      call plax_mapcolor(255,0,255,255)
       call plax_flush()
       return
       end

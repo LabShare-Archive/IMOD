@@ -4,6 +4,8 @@ c       dashed lines.
 c       The parameters define a transformation between plotting area and user
 c       units: x (in inches) = XSCAL*(x in user units - XLO)+XAD
 c       XRAN, YRAN are total ranges of graph frame in inches
+c
+c       $Id$
 c       
       subroutine psMiscItems(xscal,xlo,xad,xran,yscal,ylo,yad,yran)
       character*160 line
@@ -14,8 +16,6 @@ c
 c       
 c       modified for PS - Postscript
       data pwxupi/107./
-c       
-      call setpwrmode
 c       
       write(*,'(1x,a,$)')'Number of text strings, letters in '//
      &    'circles, symbols in boxes, lines: '
@@ -31,8 +31,7 @@ c
         jsize=pwxupi*size
         write(*,*)'Enter text string'
         read(5,'(a)')line
-        call pwritx_parse(line,pwrstr,nchar)
-        call pwritx(xpos,ypos,pwrstr,nchar,jsize,jor,just)
+        call psWriteText(xpos,ypos,trim(line),jsize,jor,just)
 10    continue
 c       
       do 20 icirc=1,ncirc
@@ -50,7 +49,7 @@ c
 c         modified for PS - Postscript
         call psSetup(ithick,c1,c2,c3,0)
         thkofs=0.5*(ithick-1)/c2
-        call pwritx(xpos+thkofs,ypos+thkofs-0.007,letter,1,jsize,0,0)
+        call psWriteText(xpos+thkofs,ypos+thkofs-0.007,letter(1:1),jsize,0,0)
         call psMoveAbs(xpos+circsize/2.,ypos)
         do 15 i=0,32
           theta=i*3.14159/16.

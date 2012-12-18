@@ -194,28 +194,7 @@ subroutine imlgrd(xStart, yStart, xRange, yRange, tickVals, nTicks, tickSize)
 end subroutine imlgrd
 
 ! Wrappers to old names in psf.c
-subroutine point(x, y)
-  call psPoint(x, y)
-  return
-end subroutine point
-
-subroutine frstpt(x, y)
-  call psFirstPoint(x, y)
-  return
-end subroutine frstpt
-
-subroutine vector(x, y)
-  call psVector(x, y)
-  return
-end subroutine vector
-
 subroutine frame()
   call psFrame()
   return
 end subroutine frame
-
-subroutine wtstr(x, y, text, jsize, jor, jctr)
-  character*(*) text
-  call psWriteText(x, y, text, jsize, jor, jctr)
-  return
-end subroutine wtstr

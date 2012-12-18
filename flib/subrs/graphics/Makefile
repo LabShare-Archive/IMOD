@@ -8,7 +8,7 @@ O        = $(OBJEXT)
 OBJS = bshst.$(O) psplotpak.$(O) bsplt.$(O) screenpak.$(O) pssymbol.$(O) scale.$(O) \
  chrout.$(O) grupnt.$(O) label_axis.$(O) shiftpt.$(O) dsaxes.$(O) psdashline.$(O) \
  minmax.$(O) flnam.$(O) psgrid.$(O) $(XPLAX) fracbx.$(O) psmisc.$(O) \
- pwrit.$(O) psf.$(O) ps.$(O) trnc.$(O) plotvars.$(O)
+ psf.$(O) ps.$(O) trnc.$(O) plotvars.$(O)
 
 
 all: $(OBJS)
