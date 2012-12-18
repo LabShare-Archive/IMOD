@@ -417,6 +417,7 @@ public final class SetupDialogExpert {
       dialog.setExcludeListEnabled(AxisID.SECOND, false);
       dialog.setViewRawStackEnabled(AxisID.SECOND, false);
     }
+    dialog.setSetFEIPixelSize(userConfig.isSetFEIPixelSize());
   }
 
   boolean validateTiltAngle(final AxisID axisID, final String errorTitle) {
