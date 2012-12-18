@@ -587,7 +587,7 @@ public final class SetupDialogExpert {
     dialog.setViewRawStackTooltip("View the current raw image stack.");
     dialog.setAdjustedFocusTooltip("Set this if \"Change focus with height\" was "
         + "selected when the montage was acquired in SerialEM.");
-
+    dialog.setTooltips();
   }
 
   // View type radio button
