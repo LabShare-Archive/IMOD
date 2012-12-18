@@ -1157,7 +1157,7 @@ public class ProcessManager extends BaseProcessManager {
           "Batchruntomo Error", axisID);
       return false;
     }
-    return err;
+    return !err;
   }
 
   public boolean makecomfile(final AxisID axisID, final MakecomfileParam param) {
