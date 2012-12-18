@@ -93,6 +93,8 @@ import etomo.type.AxisID;
 public final class AutodocFactory {
   public static final String rcsid = "$Id$";
 
+  public static final String EXTENSION = ".adoc";
+  
   public static final String VERSION = "1.2";
   public static final String TILTXCORR = "tiltxcorr";
   public static final String MTF_FILTER = "mtffilter";
