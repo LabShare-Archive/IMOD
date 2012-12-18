@@ -188,8 +188,12 @@ if bifextract:
    buserawtlt = 1
 
 if ifangles + firstinc + userawtlt != 1:
+   if ifextract:
+      exitError('You must enter one and only one of -angles, -firstinc, and -extract')
    exitError('You must enter one and only one of -angles, -firstinc, and -userawtlt')
 if naxis > 1 and ifbangles + bfirstinc + buserawtlt != 1:
+   if bifextract:
+      exitError('You must enter one and only one of -bangles, -bfirstinc, and -bextract')
    exitError('You must enter one and only one of -bangles, -bfirstinc, and -buserawtlt')
 
 excludelistin = PipGetString('ViewsToSkip', '')
