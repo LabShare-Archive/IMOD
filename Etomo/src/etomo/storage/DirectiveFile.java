@@ -541,9 +541,6 @@ public final class DirectiveFile implements SetupReconInterface {
   }
 
   public boolean isSetFEIPixelSize() {
-    System.out
-        .println("A:EtomoDirector.INSTANCE.getUserConfiguration().isSetFEIPixelSize():"
-            + EtomoDirector.INSTANCE.getUserConfiguration().isSetFEIPixelSize());
     return EtomoDirector.INSTANCE.getUserConfiguration().isSetFEIPixelSize();
   }
 
