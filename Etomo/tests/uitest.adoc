@@ -379,7 +379,7 @@ set.var.ctfcorrection-binned-pixel-size=4.04
 #TomoGen
 set.var.output-density-scaling-factor=1000.0
 set.var.linear-density-scaling-factor=0.2
-set.var.tomogram-thickness-in-z.a=76
+set.var.tomogram-thickness-in-z.a=84
 set.var.tomogram-thickness-in-z.b=78
 set.var.tomogram-thickness-in-z-patch-tracking.a=88
 set.var.x-axis-tilt.a=1.76
