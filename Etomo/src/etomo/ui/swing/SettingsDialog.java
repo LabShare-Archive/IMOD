@@ -63,6 +63,7 @@ public final class SettingsDialog extends JDialog {
       FieldType.INTEGER, "Join tables size: ");
   private final LabeledTextField ltfPeetTableSize = new LabeledTextField(
       FieldType.INTEGER, "PEET table size: ");
+  private final CheckBox cbSetFEIPixelSize = new CheckBox(SetupDialog.SET_FEI_PIXEL_SIZE);
 
   private final String propertyUserDir;
 
@@ -143,6 +144,7 @@ public final class SettingsDialog extends JDialog {
     panelDefaults.add(cbGpuProcessingDefault);
     panelDefaults.add(cbTiltAnglesRawtltFile);
     panelDefaults.add(cbSwapYAndZ);
+    panelDefaults.add(cbSetFEIPixelSize);
     pnlMain.add(panelDefaults.getContainer());
     // table settings
     EtomoPanel pnlTableSize = new EtomoPanel();
@@ -205,6 +207,7 @@ public final class SettingsDialog extends JDialog {
     cbGpuProcessingDefault.setSelected(userConfig.getGpuProcessingDefault());
     cbTiltAnglesRawtltFile.setSelected(userConfig.getTiltAnglesRawtltFile());
     cbSwapYAndZ.setSelected(userConfig.getSwapYAndZ());
+    cbSetFEIPixelSize.setSelected(userConfig.isSetFEIPixelSize());
     cbParallelProcessing.setSelected(userConfig.isParallelProcessing());
     cbGpuProcessing.setSelected(userConfig.isGpuProcessing());
     ltfCpus.setText(userConfig.getCpus());
@@ -252,6 +255,7 @@ public final class SettingsDialog extends JDialog {
     userConfig.setGpuProcessingDefault(cbGpuProcessingDefault.isSelected());
     userConfig.setTiltAnglesRawtltFile(cbTiltAnglesRawtltFile.isSelected());
     userConfig.setSwapYAndZ(cbSwapYAndZ.isSelected());
+    userConfig.setSetFEIPixelSize(cbSetFEIPixelSize.isSelected());
     userConfig.setParallelProcessing(cbParallelProcessing.isSelected());
     userConfig.setGpuProcessing(cbGpuProcessing.isSelected());
     userConfig.setCpus(ltfCpus.getText());
@@ -269,6 +273,7 @@ public final class SettingsDialog extends JDialog {
         || userConfig.getGpuProcessingDefault() != cbGpuProcessingDefault.isSelected()
         || userConfig.getTiltAnglesRawtltFile() != cbTiltAnglesRawtltFile.isSelected()
         || userConfig.getSwapYAndZ() != cbSwapYAndZ.isSelected()
+        || userConfig.isSetFEIPixelSize() != cbSetFEIPixelSize.isSelected()
         || userConfig.getFontSize() != Integer.parseInt(ltfFontSize.getText())
         || !userConfig.getFontFamily().equals(
             fontFamilies.getName(listFontFamily.getSelectedIndex()))

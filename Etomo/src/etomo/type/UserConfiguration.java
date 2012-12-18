@@ -133,6 +133,8 @@ public final class UserConfiguration implements Storable {
   private final EtomoNumber mainLastLocationY = new EtomoNumber("Main.LastLocationY");
   private final EtomoNumber subLastLocationX = new EtomoNumber("Sub.LastLocationX");
   private final EtomoNumber subLastLocationY = new EtomoNumber("Sub.LastLocationY");
+  private final EtomoBoolean2 setFEIPixelSize = new EtomoBoolean2(DEFAULTS_KEY
+      + ".SetFEIPixelSize");
 
   private EtomoBoolean2 montage = null;
   private EtomoBoolean2 parallelProcessing = null;
@@ -150,6 +152,7 @@ public final class UserConfiguration implements Storable {
     parallelTableSize.setDisplayValue(15);
     joinTableSize.setDisplayValue(10);
     peetTableSize.setDisplayValue(10);
+    setFEIPixelSize.setDisplayValue(true);
   }
 
   public String toString() {
@@ -210,6 +213,7 @@ public final class UserConfiguration implements Storable {
     mainLastLocationY.store(props, prepend);
     subLastLocationX.store(props, prepend);
     subLastLocationY.store(props, prepend);
+    setFEIPixelSize.store(props, prepend);
 
     props.setProperty(group + "MainWindowWidth", String.valueOf(mainWindowWidth));
     props.setProperty(group + "MainWindowHeight", String.valueOf(mainWindowHeight));
@@ -355,6 +359,7 @@ public final class UserConfiguration implements Storable {
     }
     subLastLocationX.load(props, prepend);
     subLastLocationY.load(props, prepend);
+    setFEIPixelSize.load(props, prepend);
   }
 
   /**
@@ -663,6 +668,10 @@ public final class UserConfiguration implements Storable {
     return swapYAndZ.is();
   }
 
+  public boolean isSetFEIPixelSize() {
+    return setFEIPixelSize.is();
+  }
+
   public boolean getTiltAnglesRawtltFile() {
     if (tiltAnglesRawtltFile == null) {
       return false;
@@ -734,6 +743,10 @@ public final class UserConfiguration implements Storable {
       swapYAndZ = new EtomoBoolean2(SWAP_Y_AND_Z_KEY);
     }
     swapYAndZ.set(input);
+  }
+
+  public void setSetFEIPixelSize(boolean input) {
+    setFEIPixelSize.set(input);
   }
 
   public void setTiltAnglesRawtltFile(boolean input) {

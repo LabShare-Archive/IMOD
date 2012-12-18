@@ -339,6 +339,7 @@ public final class CopyTomoComs {
         }
       }
     }
+    genCommonOptions();
     if(directiveFile.isSystemTemplateSet()) {
       command.add("-change");
       command.add(directiveFile.getSystemTemplate());
@@ -423,7 +424,7 @@ public final class CopyTomoComs {
       command.add("-CTFfiles");
       command.add(ctfFiles.toString());
     }
-
+    genCommonOptions();
     // Undistort images with the given .idf file
     String distortionFile = metaData.getDistortionFile();
     if (!distortionFile.equals("")) {
@@ -481,6 +482,16 @@ public final class CopyTomoComs {
     // Always yes tiltalign relies on local entries to save default values
     // even if they are not used.
     return true;
+  }
+
+  /**
+   * Add options that are created the same way, whether or not there is a directive file
+   * present.
+   */
+  private void genCommonOptions() {
+    if (metaData.isSetFEIPixelSize()) {
+      command.add("-fei");
+    }
   }
 
   /**
