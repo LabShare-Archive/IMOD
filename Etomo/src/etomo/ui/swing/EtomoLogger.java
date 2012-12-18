@@ -45,7 +45,8 @@ final class EtomoLogger {
     this.logInterface = logInterface;
   }
 
-  synchronized void loadMessages(List lineList) throws LogFile.LockException, IOException {
+  synchronized void loadMessages(List<String> lineList) throws LogFile.LockException,
+      IOException {
     SwingUtilities.invokeLater(new AppendLater(true, lineList));
   }
 
@@ -60,8 +61,7 @@ final class EtomoLogger {
     }
     try {
       SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), loggable
-          .getName()
-          + " - " + axisID + " axis:", loggable.getLogMessage()));
+          .getName() + " - " + axisID + " axis:", loggable.getLogMessage()));
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -79,17 +79,17 @@ final class EtomoLogger {
     SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title
         + " - " + axisID + " axis:", message));
   }
-  
-  public void logMessage(String title, AxisID axisID, List message) {
+
+  public void logMessage(String title, AxisID axisID, List<String> message) {
     SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title
         + " - " + axisID + " axis:", message));
   }
-  
-  public void logMessage(final String title,final  AxisID axisID) {
+
+  public void logMessage(final String title, final AxisID axisID) {
     SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title
         + " - " + axisID + " axis:"));
   }
-  
+
   public void logMessage(final String message) {
     SwingUtilities.invokeLater(new AppendLater(message));
   }
@@ -100,8 +100,8 @@ final class EtomoLogger {
     private String line2 = null;
     private String line3 = null;
     private String[] stringArray = null;
-    private List lineList = null;
-    
+    private List<String> lineList = null;
+
     private AppendLater(String line1) {
       this.line1 = line1;
     }
@@ -123,13 +123,13 @@ final class EtomoLogger {
       this.stringArray = stringArray;
     }
 
-    private AppendLater(String line1, String line2, List lineList) {
+    private AppendLater(String line1, String line2, List<String> lineList) {
       this.line1 = line1;
       this.line2 = line2;
       this.lineList = lineList;
     }
 
-    private AppendLater(boolean loadingFromFile, List lineList) {
+    private AppendLater(boolean loadingFromFile, List<String> lineList) {
       this.loadingFromFile = loadingFromFile;
       this.lineList = lineList;
     }
@@ -160,7 +160,7 @@ final class EtomoLogger {
       if (lineList != null) {
         for (int i = 0; i < lineList.size(); i++) {
           newLine();
-          logInterface.append((String) lineList.get(i));
+          logInterface.append(lineList.get(i));
         }
       }
       if (!loadingFromFile) {
@@ -174,7 +174,7 @@ final class EtomoLogger {
      */
     private void newLine() {
       try {
-        //messages should be alone on a line
+        // messages should be alone on a line
         int lastLineEndOffset = logInterface.getLineEndOffset();
         if (lastLineEndOffset != 0) {
           logInterface.append("\n");
