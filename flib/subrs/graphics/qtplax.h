@@ -128,12 +128,15 @@ class PlaxWindow : public QWidget
 
   public slots:
   void redrawSlot();
+  void savePNGslot(bool state);
+  void printSlot(bool state);
 
  protected:
     void closeEvent ( QCloseEvent * e );
     void paintEvent ( QPaintEvent * );
     void resizeEvent ( QResizeEvent * );
     void timerEvent(QTimerEvent *e);
+    void mousePressEvent(QMouseEvent * e );
 
  private:
     int mTimerID;
