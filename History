@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/18/12: Added the SetFEIPixelSize copytomocoms parameter to Setup Tomogram.
+(Bug# 1661).
+
 12/17/12: Added right click menu to Plax graphing window to allowing printing
 the graph or saving to a PNG file.  Made Genhstplt draw black on white by
 default.
