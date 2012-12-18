@@ -5,6 +5,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import etomo.storage.autodoc.AutodocFactory;
 import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
@@ -355,7 +356,7 @@ public final class Arguments {
   public boolean isExit() {
     return exit;
   }
-  
+
   public boolean isFromBRT() {
     return fromBRT;
   }
@@ -610,18 +611,24 @@ public final class Arguments {
       if (fDirective == null) {
         errorMessageList.add("Missing " + DIRECTIVE_TAG + " parameter value.");
       }
-      else if (!fDirective.exists()) {
-        errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
-            + fDirective.getAbsolutePath() + ", does not exist.");
-      }
       else {
-        if (fDirective.isDirectory()) {
+        if (!fDirective.getName().endsWith(AutodocFactory.EXTENSION)) {
           errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
-              + fDirective.getAbsolutePath() + ", is a directory.");
+              + fDirective.getAbsolutePath() + ", does not exist.");
         }
-        if (!fDirective.canRead()) {
+        if (!fDirective.exists()) {
           errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
-              + fDirective.getAbsolutePath() + ", is not readable.");
+              + fDirective.getAbsolutePath() + ", does not exist.");
+        }
+        else {
+          if (fDirective.isDirectory()) {
+            errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
+                + fDirective.getAbsolutePath() + ", is a directory.");
+          }
+          if (!fDirective.canRead()) {
+            errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
+                + fDirective.getAbsolutePath() + ", is not readable.");
+          }
         }
       }
       if (axis || dataset || dir || fiducial || frame) {
