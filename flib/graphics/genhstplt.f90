@@ -42,7 +42,7 @@ subroutine realGraphicsMain()
   numXvals = 0
   baseLog = 0
   numSelect = 0
-  ifReverse = 0
+  ifReverse = 1
   ifNegOptShown = 0
 5 continue
   if (ifNoTerm == 0) then
@@ -54,6 +54,7 @@ subroutine realGraphicsMain()
   if (ifNoTerm .ne. 0) ifTerm = 0
   !
   call scrnOpen(ifTerm)
+  call reverseGraphContrast(ifReverse)
   !
   write(*,'(1x,a,/,a,$)') '1 if there are types in first column, 0 if there are '// &
       'no types,', &
