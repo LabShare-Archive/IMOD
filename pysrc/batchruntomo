@@ -1846,11 +1846,11 @@ for dfile in dirFiles:
       failed = False
       errlog = ''
       try:
-         comline = 'etomo --fromBRT --directive """' + absDirectiveFile + '"""'
+         comline = 'etomo --fromBRT --directive "' + absDirectiveFile + '"'
          if parallelCPU > 1:
-            comline += ' -cpus """' + cpuList + '"""'
+            comline += ' --cpus "' + cpuList + '"'
          if gpuList != '':
-            comline += ' -gpus """' + gpuList + '"""'
+            comline += ' --gpus "' + gpuList + '"'
          etlines = runcmd(comline)
          for l in etlines:
             prnstr(l.rstrip())
