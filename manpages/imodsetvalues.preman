@@ -19,15 +19,17 @@ the values to be stored. In this case the number of lines / entries in
 the values file, must exactly match the total number of points in the
 model. Values will be stored sequentially from the first point in the 
 first contour of the first object, to the last point in the last 
-contour of the last object.
+contour of the last object. Similar behavior can also be obtained 
+using a selected column from a multi-column values file using the
+"skip" option described below.
 
-2) If 3 comma-separated columns are present, the first two columns must
-be integer values and will be taken as 1-based object and contour 
+2) If exactly 3 comma-separated columns are present, the first two columns
+must be integer values and will be taken as 1-based object and contour 
 numbers, respectively, while the third (possibly floating point) column,
 represents the value to be stored for the specified object / contour.
 
-3) Finally, if 4 comma-separated columns are present, the first 3 
-columns will be interpreted as 1-based object, contour, and point 
+3) Finally, if exactly 4 comma-separated columns are present, the first 
+3 columns will be interpreted as 1-based object, contour, and point 
 numbers, and the final column as the value to be stored for the 
 specified object / contour / point.
 
