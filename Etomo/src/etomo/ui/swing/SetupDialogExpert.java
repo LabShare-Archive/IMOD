@@ -417,6 +417,7 @@ public final class SetupDialogExpert {
       dialog.setExcludeListEnabled(AxisID.SECOND, false);
       dialog.setViewRawStackEnabled(AxisID.SECOND, false);
     }
+    dialog.setSetFEIPixelSize(userConfig.isSetFEIPixelSize());
   }
 
   boolean validateTiltAngle(final AxisID axisID, final String errorTitle) {
@@ -587,7 +588,7 @@ public final class SetupDialogExpert {
     dialog.setViewRawStackTooltip("View the current raw image stack.");
     dialog.setAdjustedFocusTooltip("Set this if \"Change focus with height\" was "
         + "selected when the montage was acquired in SerialEM.");
-
+    dialog.setTooltips();
   }
 
   // View type radio button

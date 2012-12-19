@@ -98,7 +98,7 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
     logger.logMessage(title, axisID, message);
   }
 
-  public void logMessage(String title, AxisID axisID, List message) {
+  public void logMessage(String title, AxisID axisID, List<String> message) {
     logger.logMessage(title, axisID, message);
   }
 

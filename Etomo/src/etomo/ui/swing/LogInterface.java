@@ -38,7 +38,7 @@ public interface LogInterface {
 
   public void logMessage(String title, AxisID axisID, String[] message);
 
-  public void logMessage(String title, AxisID axisID, List message);
+  public void logMessage(String title, AxisID axisID, List<String> message);
 
   public void logMessage(Loggable loggable, AxisID axisID);
 

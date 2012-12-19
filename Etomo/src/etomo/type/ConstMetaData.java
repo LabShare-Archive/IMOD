@@ -542,4 +542,6 @@ public interface ConstMetaData {
   public boolean isStack3dFindThicknessSet(AxisID axisID);
 
   public String getStack3dFindThickness(AxisID axisID);
+
+  public boolean isSetFEIPixelSize();
 }

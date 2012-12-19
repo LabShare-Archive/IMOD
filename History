@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/18/12: Added the SetFEIPixelSize copytomocoms parameter to Setup Tomogram.
+(Bug# 1661).
+
 12/17/12: Added right click menu to Plax graphing window to allowing printing
 the graph or saving to a PNG file.  Made Genhstplt draw black on white by
 default.
@@ -10,7 +13,7 @@ default.
 as an integer rather then a long, causing an overflow for larger tomograms.
 (Bug# 1632)
 
-12/17/12: Modified eTomo to run from a directive file.  ETomo will run without
+12/18/12: Modified eTomo to run from a directive file.  ETomo will run without
 an interface in this situation.(Bug# 1662)
 
 12/16/12: Made Genhstplt able to plot in color in the graphics window and in

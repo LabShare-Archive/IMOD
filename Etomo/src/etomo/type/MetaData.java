@@ -786,6 +786,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       EtomoNumber.Type.DOUBLE, STACK_KEY + "." + FIRST_AXIS_KEY + ".3dFind.Thickness");
   private final EtomoNumber stack3dFindThicknessB = new EtomoNumber(
       EtomoNumber.Type.DOUBLE, STACK_KEY + "." + SECOND_AXIS_KEY + ".3dFind.Thickness");
+  
+  private final EtomoBoolean2 setFEIPixelSize = new EtomoBoolean2("SetFEIPixelSize");
 
   public MetaData(final ApplicationManager manager) {
     this.manager = manager;
@@ -1060,6 +1062,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     else {
       stack3dFindThicknessA.set(input);
     }
+  }
+  
+  public void setSetFEIPixelSize(final boolean input) {
+    setFEIPixelSize.set(input);
   }
 
   public void setMagGradientFile(final String magGradientFile) {
@@ -1645,6 +1651,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackAdvancedB.reset();
     stack3dFindThicknessA.reset();
     stack3dFindThicknessB.reset();
+    setFEIPixelSize.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1932,6 +1939,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackAdvancedB.load(props, prepend);
     stack3dFindThicknessA.load(props, prepend);
     stack3dFindThicknessB.load(props, prepend);
+    setFEIPixelSize.load(props,prepend);
   }
 
   public void setNoBeamTiltSelected(final AxisID axisID, final boolean selected) {
@@ -2268,6 +2276,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackAdvancedB.store(props, prepend);
     stack3dFindThicknessA.store(props, prepend);
     stack3dFindThicknessB.store(props, prepend);
+    setFEIPixelSize.store(props,prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -3051,6 +3060,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return !stack3dFindThicknessB.isNull();
     }
     return !stack3dFindThicknessA.isNull();
+  }
+  
+  public boolean isSetFEIPixelSize() {
+    return setFEIPixelSize.is();
   }
 
   public String getStack3dFindThickness(final AxisID axisID) {

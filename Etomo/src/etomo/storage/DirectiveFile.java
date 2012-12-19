@@ -540,6 +540,10 @@ public final class DirectiveFile implements SetupReconInterface {
     }
   }
 
+  public boolean isSetFEIPixelSize() {
+    return EtomoDirector.INSTANCE.getUserConfiguration().isSetFEIPixelSize();
+  }
+
   public String getSystemTemplate() {
     return getAttributeValue(setupSet, SYSTEM_TEMPLATE_NAME);
   }

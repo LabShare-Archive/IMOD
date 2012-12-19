@@ -403,7 +403,7 @@ public abstract class BaseManager {
     }
   }
 
-  public void logMessage(List message, String title, AxisID axisID) {
+  public void logMessage(List<String> message, String title, AxisID axisID) {
     LogInterface logInterface = getLogInterface();
     if (logInterface != null) {
       logInterface.logMessage(title, axisID, message);
@@ -411,9 +411,9 @@ public abstract class BaseManager {
     else {
       System.err.println(Utilities.getDateTimeStamp() + "\n" + title + " - " + axisID
           + " axis:");
-      Iterator i = message.iterator();
+      Iterator<String> i = message.iterator();
       while (i.hasNext()) {
-        System.err.println((String) i.next());
+        System.err.println(i.next());
       }
     }
   }
