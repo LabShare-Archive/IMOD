@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -264,7 +265,7 @@ public class EtomoDirector {
           "Can't load user configuration.\n" + except.getMessage(), "Etomo Error");
     }
     setUserPreferences();
-    ArrayList paramFileNameList = arguments.getParamFileNameList();
+    List<String> paramFileNameList = arguments.getParamFileNameList();
     if (arguments.isHelp()) {
       printUsageMessage();
       return;
@@ -287,7 +288,7 @@ public class EtomoDirector {
       ManagerKey saveKey = null;
       ManagerKey managerKey = null;
       for (int i = 0; i < paramFileNameListSize; i++) {
-        paramFileName = (String) paramFileNameList.get(i);
+        paramFileName =  paramFileNameList.get(i);
         managerKey = null;
         if (paramFileName.endsWith(DataFileType.RECON.extension)) {
           managerKey = openTomogram(paramFileName, false, AxisID.ONLY);
