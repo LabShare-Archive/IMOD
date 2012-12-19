@@ -2929,20 +2929,19 @@ SUBROUTINE INPUT()
       cell(3) = ithickBP * delta(1)
       cell(2) = nslice * idelSlice * delta(2)
     END IF
-    if (reprojBP .or. numSIRTiter > 0) then
-      if (reprojBP) then
-        NOXYZ(2) = NSLICE
-        NOXYZ(3) = numReproj
-        cell(2) = nslice * idelSlice * delta(2)
-        cell(3) = delta(1) * numReproj
-      endif
+    if (reprojBP) then
+      NOXYZ(2) = NSLICE
+      NOXYZ(3) = numReproj
+      cell(2) = nslice * idelSlice * delta(2)
+      cell(3) = delta(1) * numReproj
       j = iwidth * numReproj
       allocate(xRayStart(j), yRayStart(j), numPixInRay(j), maxRayPixels(numReproj),  &
           stat = ierr)
-      if (ierr .ne. 0) call exitError( &
-          'ALLOCATING ARRAYS FOR PROJECTION RAY DATA')
+      if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS FOR PROJECTION RAY DATA')
       do i = 1, numReproj
         j = (i - 1) * iwidth + 1
+        !
+        ! Note that this will set cosReproj to 0 after you carefully kept it from being 0
         call set_projection_rays(sinReproj(i), cosReproj(i), iwidth, ithickBP, &
             iwidth, xRayStart(j), yRayStart(j), numPixInRay(j), maxRayPixels(i))
       enddo
