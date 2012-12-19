@@ -370,7 +370,7 @@ set.var.findbeads3d-binning = 1
 # center-to-center-thickness + additional-unbinned-diameters-to-add*int-unbinned-bead-diameter
 set.var.erase-gold-thickness=98
 set.var.incremental-shift-to-center.a=-12.5
-set.var.incremental-shift-to-center.b=-13.9
+set.var.incremental-shift-to-center.b=-12.3
 set.var.incremental-shift-to-center-simple-align.a=-12.4
 set.var.incremental-shift-to-center-simple-align.b=-13.9
 set.var.final-align-comscript=newst
@@ -383,11 +383,11 @@ set.var.tomogram-thickness-in-z.a=84
 set.var.tomogram-thickness-in-z.b=78
 set.var.tomogram-thickness-in-z-patch-tracking.a=88
 set.var.x-axis-tilt.a=1.94
-set.var.x-axis-tilt.b=0.13
+set.var.x-axis-tilt.b=-0.08
 set.var.x-axis-tilt-patch-tracking.a=1.48
 #PostProc
 set.var.scaling-z-min=28
-set.var.scaling-z-max=50
+set.var.scaling-z-max=56
 set.var.scaling-z-min-patch-tracking=29
 set.var.scaling-z-max-patch-tracking=58
 
