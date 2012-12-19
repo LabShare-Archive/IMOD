@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/19/12: Modified eTomo to run from a directive file.  ETomo will run without
+an interface in this situation.(Bug# 1662)
+
 12/18/12: Fixed Edgepatches to use original Z shift when using X/Y shift from
 projxf.
 
@@ -19,9 +22,6 @@ default.
 12/17/12: Fixed some of the log file monitors, which had the file size defined
 as an integer rather then a long, causing an overflow for larger tomograms.
 (Bug# 1632)
-
-12/18/12: Modified eTomo to run from a directive file.  ETomo will run without
-an interface in this situation.(Bug# 1662)
 
 12/16/12: Made Genhstplt able to plot in color in the graphics window and in
 the postscript output; added option to Onegenplot to specify color by R,G,B or
