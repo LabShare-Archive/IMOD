@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/19/12: Fixed Tilt when running internal SIRT on CPU with 90 degree angles.
+
 12/19/12: Modified eTomo to run from a directive file.  ETomo will run without
 an interface in this situation.(Bug# 1662)
 
