@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/18/12: Fixed Edgepatches to use original Z shift when using X/Y shift from
+projxf.
+
 12/18/12: A new script, Batchruntomo, can build tomograms automatically with
 fiducial, patch tracking, or fiducialless alignment given a text file of
 "directives" to set parameters.
