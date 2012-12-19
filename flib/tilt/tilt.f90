@@ -86,7 +86,7 @@ program tilt
   lreadStart = -1
   lreadEnd = -1
   lfillStart = -1
-  ycenfix = ycen
+  ycenfix = ycenOut
   abssal = abs(sinAlpha(1))
   composedOne = ifAlpha >= 0
   numVertSum = 0
@@ -267,8 +267,8 @@ program tilt
             !
             ! Undo the scaling that was used to write, and apply a
             ! scaling that will make the data close for projecting
-            array(ibase:ibase + isliceSizeBP-1) = (array(ibase:ibase + isliceSizeBP-1) / &
-                outScale - outAdd) / filterScale
+            array(ibase:ibase + isliceSizeBP - 1) = (array(ibase:ibase + isliceSizeBP -  &
+                1) / outScale - outAdd) / filterScale
             ibase = ibase + inPlaneSize
           enddo
         endif
@@ -319,12 +319,12 @@ program tilt
         ! If new-style X tilt, set  the Y center based on the slice
         ! number, and adjust the y offset slightly
         !
-        if (ifAlpha < 0) ycen = ycenfix + (1. / cosAlpha(1) - 1.) * yOffset &
+        if (ifAlpha < 0) ycenOut = ycenfix + (1. / cosAlpha(1) - 1.) * yOffset &
             - nint(tanalpha * (lslice - centerSlice))
         if (numSIRTiter == 0) then
           !
           ! print *,indLoadBase, lslice, inloadstr
-          ! print *,'projecting', lslice, ' at', istart, ', ycen =', ycen
+          ! print *,'projecting', lslice, ' at', istart, ', ycen =', ycenOut
           CALL PROJECT(ISTART, lslice)
           if (maskEdges) call maskSlice(indOutSlice, ithickBP)
           !
@@ -333,7 +333,7 @@ program tilt
           if (ifAlpha < 0) then
             ! print *,'moving slice to ring position', nextfreevs
             ioffset = isliceSizeBP + (nextfreevs - 1) * ithickBP * iwidth
-            do i = indOutSlice, indOutSlice + ithickBP * iwidth-1
+            do i = indOutSlice, indOutSlice + ithickBP * iwidth - 1
               array(i + ioffset) = array(i)
             enddo
             call manageRing(numVertNeeded, nvsinring, nextfreevs, lvsstart, &
@@ -374,7 +374,7 @@ program tilt
             ! Backproject and maskEdges/taper edges
             call project(indWorkPlane, lslice)
             if (maskEdges) call maskSlice(indOutSlice, ithickBP)
-            array(ibaseSIRT:ibaseSIRT + isliceSizeBP-1) = array(indOutSlice:mapEnd) / &
+            array(ibaseSIRT:ibaseSIRT + isliceSizeBP - 1) = array(indOutSlice:mapEnd) / &
                 recscale
             iset = 2
             if (ifOutSirtRec == 3) then
@@ -458,7 +458,7 @@ program tilt
 
             if (useGPU) then
               ierr = gpuReprojOneSlice(array(ibaseSIRT), array(indWorkPlane), &
-                  sinReproj, cosReproj, ycen, numViews, rpfill)
+                  sinReproj, cosReproj, ycenOut, numViews, rpfill)
             endif
             if (ierr .ne. 0) then
               do iv = 1, numViews
@@ -470,7 +470,7 @@ program tilt
                 call reprojOneAngle(array(ibaseSIRT), array(j), 1, 1, 1, &
                     cosReproj(iv), -sinReproj(iv), 1., 0., cosReproj(iv), &
                     iwidth, ithickBP, iwidth * ithickBP, iwidth, 1, 1, 0., 0., &
-                    iwidth / 2 + 0.5, ycen, iwidth / 2 + 0.5, &
+                    iwidth / 2 + 0.5, ycenOut, iwidth / 2 + 0.5, &
                     centerSlice, 0, 0., 0., rpfill)
               enddo
             endif
@@ -712,7 +712,7 @@ program tilt
       ' FILE; CHECK THE OUTPUT SCALING FACTOR',/)
 920 FORMAT(//' ERROR: TILT -  reading in view',I3,' for slice' &
       ,I5,/)
-930 FORMAT(//' Header on ',a,' file'/ &
+930 FORMAT(//' Header on ',a,' file' / &
       ' --------------------------------'//)
 
 CONTAINS
@@ -993,8 +993,8 @@ SUBROUTINE MASKPREP(lslice)
   if (maskEdges) then
     !
     ! Adjust the Y center for alpha tilt (already adjusted for ifAlpha < 0)
-    ycenuse = ycen
-    if (ifAlpha > 0) ycenuse = ycen + (1. / cosAlpha(1) - 1.) * yOffset &
+    ycenuse = ycenOut
+    if (ifAlpha > 0) ycenuse = ycenOut + (1. / cosAlpha(1) - 1.) * yOffset &
         - nint((lslice - centerSlice) * sinAlpha(1) / cosAlpha(1))
     !
     ! Get square of radius of arcs of edge of input data from input center
@@ -1193,15 +1193,15 @@ SUBROUTINE PROJECT(ISTART, lslice)
     ind = 1
     if (ifAlpha <= 0 .and. nxWarp == 0) then
       ind = gpubpnox(array(indOutSlice), array(istart), sinBeta, cosBeta, nxProj, &
-          xcenIn + axisXoffset, xcenOut, ycen, edgeFill)
+          xcenIn + axisXoffset, xcenOut, ycenOut, edgeFill)
     else if (nxWarp == 0 .and. loadGpuStart > 0) then
       ind = gpubpxtilt(array(indOutSlice), sinBeta, cosBeta, sinAlpha, cosAlpha, xzfac, &
-          yzfac, nxProj, nyProj, xcenIn + axisXoffset, xcenOut, ycen, lslice, &
+          yzfac, nxProj, nyProj, xcenIn + axisXoffset, xcenOut, ycenOut, lslice, &
           centerSlice, edgeFill)
     else if (loadGpuStart > 0) then
       ind = gpubplocal(array(indOutSlice), lslice, nxWarp, nyWarp, ixStartWarp, &
-          iyStartWarp, idelXwarp, idelYwarp, nxProj, xcenOut, xcenIn, axisXoffset, ycen, &
-          centerSlice, edgeFill)
+          iyStartWarp, idelXwarp, idelYwarp, nxProj, xcenOut, xcenIn, axisXoffset, &
+          ycenOut, centerSlice, edgeFill)
     endif
     if (ind == 0) then
       if (debug) write(*, '(a,f8.4)') 'GPU backprojection time', &
@@ -1211,7 +1211,7 @@ SUBROUTINE PROJECT(ISTART, lslice)
   endif
   !
   ! CPU backprojection: clear out the slice
-  DO I = 0, isliceSizeBP-1
+  DO I = 0, isliceSizeBP - 1
     array(indOutSlice + I) = 0.
   enddo
   ipdel = idelSlice * inPlaneSize
@@ -1230,7 +1230,7 @@ SUBROUTINE PROJECT(ISTART, lslice)
       INDEX = indOutSlice
       !
       DO I = 1, ithickBP
-        ZZ = (I - YCEN) * compress(iv)
+        ZZ = (I - ycenOut) * compress(iv)
         if (ifAlpha <= 0) then
           zPART = zz * SBETA + xcenIn + axisXoffset
         else
@@ -1381,8 +1381,8 @@ SUBROUTINE PROJECT(ISTART, lslice)
       ! way across the slice
       !
       ifytest = 0
-      zbot = (1 - ycen) * compress(iv)
-      ztop = (ithickBP - ycen) * compress(iv)
+      zbot = (1 - ycenOut) * compress(iv)
+      ztop = (ithickBP - ycenOut) * compress(iv)
       DO J = 1, iwidth
         !
         ! get the fixed and z-dependent component of the
@@ -1440,7 +1440,7 @@ SUBROUTINE PROJECT(ISTART, lslice)
       ! loop over the slice, outer loop on z levels
       !
       DO I = 1, ithickBP
-        ZZ = (I - YCEN) * compress(iv)
+        ZZ = (I - ycenOut) * compress(iv)
         jlft = max(jtstlft, ixUnmaskedSE(1, i))
         jrt = min(jtstrt, ixUnmaskedSE(2, i))
         index = index + ixUnmaskedSE(1, i) - 1
@@ -1585,7 +1585,7 @@ subroutine compose(lsliceout, lvsstart, lvsend, idir, iringstart, composeFill)
       if (ind1(i) == 0 .or. ind2(i) == 0 .or. ind3(i) == 0 .or. &
           ind4(i) == 0) ifmiss = 1
     enddo
-    ibase = indOutSlice + (j - 1) * iwidth-1
+    ibase = indOutSlice + (j - 1) * iwidth - 1
     if (interpOrdXtilt > 2 .and. ifmiss == 0) then
       !
       ! cubic interpolation if selected, and no data missing
@@ -1823,19 +1823,19 @@ SUBROUTINE DUMP(LSLICE, DMIN, DMAX, DTOT8)
         !
         ! SIRT subtraction from base with possible sign constraints
         if (isignConstraint == 0) then
-          array(index:index + iwidth-1) = projLine(1:iwidth) / outScale - outAdd - &
-              array(index:index + iwidth-1)
+          array(index:index + iwidth - 1) = projLine(1:iwidth) / outScale - outAdd - &
+              array(index:index + iwidth - 1)
         else if (isignConstraint < 0) then
-          array(index:index + iwidth-1) = min(0., projLine(1:iwidth) / outScale - &
-              outAdd - array(index:index + iwidth-1))
+          array(index:index + iwidth - 1) = min(0., projLine(1:iwidth) / outScale - &
+              outAdd - array(index:index + iwidth - 1))
         else
-          array(index:index + iwidth-1) = max(0., projLine(1:iwidth) / outScale - &
-              outAdd - array(index:index + iwidth-1))
+          array(index:index + iwidth - 1) = max(0., projLine(1:iwidth) / outScale - &
+              outAdd - array(index:index + iwidth - 1))
         endif
       else
         !
         ! Generic addition of the scaled base data
-        array(index:index + iwidth-1) = array(index:index + iwidth-1) + &
+        array(index:index + iwidth - 1) = array(index:index + iwidth - 1) + &
             projLine(1:iwidth) / baseOutScale - baseOutAdd
       endif
       index = index + iwidth
@@ -1843,7 +1843,7 @@ SUBROUTINE DUMP(LSLICE, DMIN, DMAX, DTOT8)
   endif
   !
   nparextra = 100
-  IEND = IMAPOUT + ithickOut * iwidth-1
+  IEND = IMAPOUT + ithickOut * iwidth - 1
   !
   ! outScale
   ! DNM simplified and fixed bug in getting min/max/mean
@@ -2523,7 +2523,8 @@ SUBROUTINE INPUT()
       indWarp(ipos) = indbase
       read(3,*,err = 2410, end = 2410) (delBeta(i), i = indbase + 1, indbase + numViews)
       if (ifDelAlpha > 0) then
-        read(3,*,err = 2410, end=2410) (delAlpha(i), i = indbase + 1, indbase + numViews)
+        read(3,*,err = 2410, end = 2410) (delAlpha(i), i = indbase + 1, indbase + &
+            numViews)
       else
         do i = indbase + 1, indbase + numViews
           delAlpha(i) = 0.
@@ -3001,7 +3002,7 @@ SUBROUTINE INPUT()
       !
       ! Full adjustment if requested
       origx = origx  - delta(1) * (nprojXyz(1) / 2 - iwidth / 2 - xoffset)
-      origz = origy - delta(1) * float(max(0, isliceStart-1))
+      origz = origy - delta(1) * float(max(0, isliceStart - 1))
       if (minTotSlice > 0 .and. isliceStart <= 0) &
           origz = origy - delta(1) * (minTotSlice-1)
       origy = delta(1) * (ithickBP / 2 + yOffset)
@@ -3010,7 +3011,7 @@ SUBROUTINE INPUT()
       ! Legacy origin.  All kinds of wrong.
       origx = cell(1) / 2. +axisXoffset
       origy = cell(2) / 2.
-      origz = -float(max(0, isliceStart-1))
+      origz = -float(max(0, isliceStart - 1))
     endif
 
     if (.not.projModel) then
@@ -3245,7 +3246,7 @@ SUBROUTINE INPUT()
   centerSlice = nyfull / 2. +0.5 - iysubset
   xoffAdj = xoffset - (nprojXyz(1) / 2 + ixsubset - nxfull / 2)
   xcenOut = iwidth / 2 + 0.5 + axisXoffset + xoffAdj
-  YCEN = ithickBP / 2 + 0.5 + yOffset
+  ycenOut = ithickBP / 2 + 0.5 + yOffset
   if (numSIRTiter > 0 .and. abs(xoffAdj + axisXoffset) > 0.1) call exitError( &
       'CANNOT DO SIRT WITH A TILT AXIS OFFSET FROM CENTER OF INPUT IMAGES')
   !
@@ -3537,7 +3538,7 @@ SUBROUTINE INPUT()
       ifAlpha = 1
       ithickBP = ithickOut
       isliceSizeBP = iwidth * ithickBP
-      YCEN = ithickBP / 2 + 0.5 + yOffset
+      ycenOut = ithickBP / 2 + 0.5 + yOffset
       indLoadBase = indOutSlice + isliceSizeBP
       ipExtraSize = 0
       inPlaneSize = nxprj2 * numViews
@@ -3655,7 +3656,7 @@ SUBROUTINE INPUT()
 501 FORMAT(/' Radial weighting function parameters IRMAX =',I5, &
       '  IWIDE =',I5)
 601 FORMAT(/' Output map rotated by',F6.1,' degrees about tilt axis', &
-      ' with respect to tilt origin'/ &
+      ' with respect to tilt origin' / &
       ' Tilt axis displaced by',F9.2,' pixels from centre' &
       ,' of projection')
 701 FORMAT(/' Output map densities incremented by',F8.2, &
@@ -4009,39 +4010,39 @@ end subroutine localProjFactors
 ! This is the former code for assessing backprojection positions,
 ! new method using localProjFactors verified to give the same result
 ! But this shows how the BP position can be computed directly
-!!$      call local_factors (ixsam, itry, mapUsedView(iv), ind1, ind2, &
-!!$          ind3, ind4, f1, f2, f3, f4)
+!!$  call local_factors (ixsam, itry, mapUsedView(iv), ind1, ind2, &
+!!$      ind3, ind4, f1, f2, f3, f4)
 !!$c
-!!$c       for each position, find back-projection location
-!!$c       transform if necessary, and use to get min and
-!!$c       max slices needed to get this position
+!!$c   for each position, find back - projection location
+!!$c   transform if necessary, and use to get min and
+!!$c   max slices needed to get this position
 !!$c
-!!$      xx=ixsam-xcenOut
-!!$      yy=itry-centerSlice
-!!$      zz=iy-ycen
-!!$c       Global bp position
-!!$      xp=xx*cosBeta(iv) +yy*sinAlpha(iv)*sinBeta(iv) + zz*(cosAlpha(iv)*sinBeta(iv) +xzfac(iv)) + &
-!!$          xcenIn+axisXoffset
-!!$      yp=yy*cosAlpha(iv) -zz*(sinAlpha(iv) -yzfac(iv)) +centerSlice
-!!$c       Local position:
-!!$      xp=xx*cWarpBeta(ind1) +yy*sWarpAlpha(ind1)*sWarpBeta(ind1) + &
-!!$          zz*(cWarpAlpha(ind1)*sWarpBeta(ind1) +warpXZfac(ind1)) + xcenIn+axisXoffset
-!!$      yp=yy*cWarpAlpha(ind1) - zz*(sWarpAlpha(ind1) -warpYZfac(ind1)) +centerSlice
-!!$      call xfapply(fwarp(1, 1, ind1), xcenIn, centerSlice, xp, yp, xp, yp)
-!!$      xp2=xx*cWarpBeta(ind2) +yy*sWarpAlpha(ind2)*sWarpBeta(ind2) + &
-!!$          zz*(cWarpAlpha(ind2)*sWarpBeta(ind2) +warpXZfac(ind2)) + xcenIn+axisXoffset
-!!$      yp2=yy*cWarpAlpha(ind2) - zz*(sWarpAlpha(ind2) -warpYZfac(ind2)) +centerSlice
-!!$      call xfapply(fwarp(1, 1, ind2), xcenIn, centerSlice, xp2, yp2, xp2, yp2)
-!!$      xp3=xx*cWarpBeta(ind3) +yy*sWarpAlpha(ind3)*sWarpBeta(ind3) + &
-!!$          zz*(cWarpAlpha(ind3)*sWarpBeta(ind3) +warpXZfac(ind3)) + xcenIn+axisXoffset
-!!$      yp3=yy*cWarpAlpha(ind3) - zz*(sWarpAlpha(ind3) -warpYZfac(ind3)) +centerSlice
-!!$      call xfapply(fwarp(1, 1, ind3), xcenIn, centerSlice, xp3, yp3, xp3, yp3)
-!!$      xp4=xx*cWarpBeta(ind4) +yy*sWarpAlpha(ind4)*sWarpBeta(ind4) + &
-!!$          zz*(cWarpAlpha(ind4)*sWarpBeta(ind4) +warpXZfac(ind4)) + xcenIn+axisXoffset
-!!$      yp4=yy*cWarpAlpha(ind4) - zz*(sWarpAlpha(ind4) -warpYZfac(ind4)) +centerSlice
-!!$      call xfapply(fwarp(1, 1, ind4), xcenIn, centerSlice, xp4, yp4, xp4, yp4)
-!!$      xp=f1*xp+f2*xp2+f3*xp3+f4*xp4
-!!$      yp=f1*yp+f2*yp2+f3*yp3+f4*yp4
+!!$  xx = ixsam - xcenOut
+!!$  yy = itry - centerSlice
+!!$  zz = iy - ycenOut
+!!$c   Global bp position
+!!$  xp = xx * cosBeta(iv) + yy * sinAlpha(iv) * sinBeta(iv) + zz * (cosAlpha(iv) * sinBeta(iv) + xzfac(iv)) + &
+!!$      xcenIn + axisXoffset
+!!$  yp = yy * cosAlpha(iv) - zz * (sinAlpha(iv) - yzfac(iv)) + centerSlice
+!!$c   Local position:
+!!$  xp = xx * cWarpBeta(ind1) + yy * sWarpAlpha(ind1) * sWarpBeta(ind1) + &
+!!$      zz * (cWarpAlpha(ind1) * sWarpBeta(ind1) + warpXZfac(ind1)) + xcenIn + axisXoffset
+!!$  yp = yy * cWarpAlpha(ind1) - zz * (sWarpAlpha(ind1) - warpYZfac(ind1)) + centerSlice
+!!$  call xfapply(fwarp(1, 1, ind1), xcenIn, centerSlice, xp, yp, xp, yp)
+!!$  xp2 = xx * cWarpBeta(ind2) + yy * sWarpAlpha(ind2) * sWarpBeta(ind2) + &
+!!$      zz * (cWarpAlpha(ind2) * sWarpBeta(ind2) + warpXZfac(ind2)) + xcenIn + axisXoffset
+!!$  yp2 = yy * cWarpAlpha(ind2) - zz * (sWarpAlpha(ind2) - warpYZfac(ind2)) + centerSlice
+!!$  call xfapply(fwarp(1, 1, ind2), xcenIn, centerSlice, xp2, yp2, xp2, yp2)
+!!$  xp3 = xx * cWarpBeta(ind3) + yy * sWarpAlpha(ind3) * sWarpBeta(ind3) + &
+!!$      zz * (cWarpAlpha(ind3) * sWarpBeta(ind3) + warpXZfac(ind3)) + xcenIn + axisXoffset
+!!$  yp3 = yy * cWarpAlpha(ind3) - zz * (sWarpAlpha(ind3) - warpYZfac(ind3)) + centerSlice
+!!$  call xfapply(fwarp(1, 1, ind3), xcenIn, centerSlice, xp3, yp3, xp3, yp3)
+!!$  xp4 = xx * cWarpBeta(ind4) + yy * sWarpAlpha(ind4) * sWarpBeta(ind4) + &
+!!$      zz * (cWarpAlpha(ind4) * sWarpBeta(ind4) + warpXZfac(ind4)) + xcenIn + axisXoffset
+!!$  yp4 = yy * cWarpAlpha(ind4) - zz * (sWarpAlpha(ind4) - warpYZfac(ind4)) + centerSlice
+!!$  call xfapply(fwarp(1, 1, ind4), xcenIn, centerSlice, xp4, yp4, xp4, yp4)
+!!$  xp = f1 * xp + f2 * xp2 + f3 * xp3 + f4 * xp4
+!!$  yp = f1 * yp + f2 * yp2 + f3 * yp3 + f4 * yp4
 
 
 ! Finds the point at centered Z coordinate zz projecting to
@@ -4124,18 +4125,18 @@ subroutine set_cos_stretch()
     !
     ! find min and max position of 8 corners of reconstruction
     !
-    do ix = 1, iwidth, iwidth-1
+    do ix = 1, iwidth, iwidth - 1
       do iy = 1, ithickBP, ithickBP - 1
         do lslice = lsmin, lsmax, max(1, lsmax - lsmin)
-          ZZ = (IY - YCEN) * compress(iv)
-          if (ifAlpha < 0) zz = compress(iv)* &
-              (iy - (ycen - nint(tanal * (lslice - centerSlice))))
+          ZZ = (IY - ycenOut) * compress(iv)
+          if (ifAlpha < 0) zz = compress(iv) * &
+              (iy - (ycenOut - nint(tanal * (lslice - centerSlice))))
           if (ifAlpha <= 0) then
             zPART = zz * sinBeta(iv) + xcenIn + axisXoffset
           else
             yy = lslice - centerSlice
-            zpart = yy * sinAlpha(iv) * sinBeta(iv) + zz * (cosAlpha(iv) * sinBeta(iv) + xzfac(iv)) + &
-                xcenIn + axisXoffset
+            zpart = yy * sinAlpha(iv) * sinBeta(iv) + zz * (cosAlpha(iv) * sinBeta(iv) + &
+                xzfac(iv)) + xcenIn + axisXoffset
           endif
           xproj = zpart + (ix - xcenOut) * cosBeta(iv)
           xpmin = max(1., min(xpmin, xproj))
@@ -4200,11 +4201,11 @@ subroutine setNeededSlices(maxNeeds, numEval)
       !
       if (nxWarp == 0) then
         nxassay = 2
-        dxassay = iwidth-1
+        dxassay = iwidth - 1
       else
         dxtmp = idelXwarp / 2
         nxassay = max(2., iwidth / dxtmp + 1.)
-        dxassay = (iwidth-1.) / (nxassay - 1.)
+        dxassay = (iwidth - 1.) / (nxassay - 1.)
       endif
       !
       ! sample top and bottom at each position
@@ -4228,7 +4229,7 @@ subroutine setNeededSlices(maxNeeds, numEval)
               !
               xx = ixsam - xcenOut
               yy = itry - centerSlice
-              zz = iy - ycen
+              zz = iy - ycenOut
               xp = xx * cosBeta(iv) + yy * sinAlpha(iv) * sinBeta(iv) + &
                   zz * (cosAlpha(iv) * sinBeta(iv) + xzfac(iv)) + xcenIn + axisXoffset
               yp = yy * cosAlpha(iv) - zz * (sinAlpha(iv) - yzfac(iv)) + centerSlice
@@ -4249,11 +4250,11 @@ subroutine setNeededSlices(maxNeeds, numEval)
             xproj = ixassay + xprojOffset
             yproj = itry + yprojOffset
             do iy = 1, ithickReproj, ithickReproj - 1
-              zz = iy + minYreproj - 1 - ycen
+              zz = iy + minYreproj - 1 - ycenOut
               yy = (yproj + zz * (sinAlpha(iv) - yzfac(iv)) - centerSlice) /  &
                   cosAlpha(iv) + centerSlice
               if (nxWarp .ne. 0) then
-                xx = (xproj - yy * sinAlpha(iv) * sinBeta(iv) - zz * (cosAlpha(iv)* &
+                xx = (xproj - yy * sinAlpha(iv) * sinBeta(iv) - zz * (cosAlpha(iv) * &
                     sinBeta(iv) + xzfac(iv)) - xcenIn - axisXoffset) / cosBeta(iv) + &
                     xcenOut
                 call findProjectingPoint(xproj, yproj, zz, iv, xx, yy)
@@ -4425,7 +4426,7 @@ subroutine reprojectRec(lsStart, lsEnd, inloadstr, inloadend, DMIN, DMAX, &
   nxload = maxXload + 1 - minXload
   tstart = walltime()
   tcumul = 0.
-  ycenAdj = ycen - (minYreproj - 1)
+  ycenAdj = ycenOut - (minYreproj - 1)
   !
   if (useGPU .and. loadGpuStart > 0) then
     ijump = 1
@@ -4447,7 +4448,7 @@ subroutine reprojectRec(lsStart, lsEnd, inloadstr, inloadend, DMIN, DMAX, &
           ijump = gpuReproject(reprojLines, sinBeta(iv), cosBeta(iv), sinAlpha(iv), &
               cosAlpha(iv), xzfac(iv), yzfac(iv), delz, lsStart, lgpuEnd, &
               ithickReproj, xcenOut, xcenIn + axisXoffset, minXreproj, xprojOffset, &
-              ycen, minYreproj, yprojOffset, centerSlice, ifAlpha, dmeanIn)
+              ycenOut, minYreproj, yprojOffset, centerSlice, ifAlpha, dmeanIn)
         else
           !
           ! GPU with local alignments: fill warpDelz array for all lines
@@ -4511,7 +4512,7 @@ subroutine reprojectRec(lsStart, lsEnd, inloadstr, inloadend, DMIN, DMAX, &
         call reprojOneAngle(array(indLoadBase), reprojLines(lineBase), &
             inLoadStr, inLoadEnd, line, cbeta, sbeta, calf, salf, &
             delz, iwidth, ithickReproj, inPlaneSize, nxload, minXreproj, &
-            minYreproj, xprojOffset, yprojOffset, xcenOut, ycen, &
+            minYreproj, xprojOffset, yprojOffset, xcenOut, ycenOut, &
             xcenIn + axisXoffset, centerSlice, ifAlpha, xzfac(iv), yzfac(iv), dmeanIn)
       enddo
     else
@@ -4519,7 +4520,7 @@ subroutine reprojectRec(lsStart, lsEnd, inloadstr, inloadend, DMIN, DMAX, &
       ! LOCAL ALIGNMENTS
       !
       ! first step: precompute all the x/yprojf/z  for all slices
-      ! general BUG ycenAdj replaces ycen - minYreproj (off by 1)
+      ! general BUG ycenAdj replaces ycenOut - minYreproj (off by 1)
       xprojMin = 10000000.
       xprojMax = 0.
       do load = inloadstr, inloadend
@@ -4597,7 +4598,7 @@ subroutine reprojectRec(lsStart, lsEnd, inloadstr, inloadend, DMIN, DMAX, &
                 iy = yy
                 fy = yy - iy
                 omfy = 1. - fy
-                ! BUG ????  Shouldn't this be + ycen - minYreproj?
+                ! BUG ????  Shouldn't this be + ycenOut - minYreproj?
                 iz = max(1., zz + ycenAdj)
                 fz = zz + ycenAdj - iz
                 omfz = 1. - fz
@@ -4825,14 +4826,14 @@ end subroutine loadedProjectingPoint
 !
 subroutine reprojOneAngle(array, reprojLines, inLoadStr, inLoadEnd, line, &
     cbeta, sbeta, calf, salf, delzIn, iwidth, ithickReproj, inPlaneSize, &
-    nxload, minXreproj, minYreproj, xprojOffset, yprojOffset, xcenOut, ycen, &
+    nxload, minXreproj, minYreproj, xprojOffset, yprojOffset, xcenOut, ycenOut, &
     xcenPdelxx, centerSlice, ifAlpha, xzfacv, yzfacv, dmeanIn)
   implicit none
   real*4 array(*), reprojLines(*), cbeta, sbeta, calf, salf, delx, delzIn
   integer*4 inLoadStr, inLoadEnd, line, iwidth, ithickReproj, inPlaneSize, nxload
   integer*4 minXreproj, minYreproj, ifAlpha
   real*4 xprojOffset, yprojOffset, centerSlice, xzfacv, yzfacv, dmeanIn
-  real*4 xcenOut, ycen, xcenPdelxx
+  real*4 xcenOut, ycenOut, xcenPdelxx
   !
   integer*4 ix, iz, i, numz, kz, iys, ixnd, ixst, ind, indbase
   real*4 znum, fz, omfz, zz, xx, fx, ytol, pfill, salfsbetdcal, xcenAdj, ysl, dely
@@ -4870,7 +4871,7 @@ subroutine reprojOneAngle(array, reprojLines, inLoadStr, inLoadEnd, line, &
         omfz = 0.
         pfill = dmeanIn * fz
       endif
-      zz = zz + minYreproj - 1 - ycen
+      zz = zz + minYreproj - 1 - ycenOut
       !
       ! Get y slice for this z value
       yproj = line + yprojOffset
@@ -5030,7 +5031,7 @@ subroutine reprojOneAngle(array, reprojLines, inLoadStr, inLoadEnd, line, &
       yy = (yproj + zz * (salf - yzfacv) - centerSlice) / calf
       yslice = yy + centerSlice - yprojOffset
       if (ifAlpha == 0) yslice = line
-      zz = zz - (minYreproj - 1 - ycen)
+      zz = zz - (minYreproj - 1 - ycenOut)
       !
       ! Get starting X proj limit based on Z
       ixst = 1

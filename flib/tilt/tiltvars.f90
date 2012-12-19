@@ -140,7 +140,7 @@
 ! wgtAngles          Full set of angles for computing weighting by local tilt increment
 ! xcenIn             center coordinate of input slice
 ! xcenOut            center x coordinate of output slice
-! ycen               center y coordinate of output slice
+! ycenOut            center y coordinate of output slice
 ! xprojfs            Projection factors for reprojection from local aligned rec
 ! yprojfs            
 ! xprojzs            
@@ -169,7 +169,7 @@ module tiltvars
   LOGICAL*4 maskEdges, perpendicular, reprojBP, recReproj, debug, readBaseRec, useGPU
   logical*4 recSubtraction, projSubtraction, vertSirtInput, saveVertSlices, sirtFromZero
   !
-  real*4 axisXoffset, xcenIn, centerSlice, xcenOut, YCEN, baseForLog, yOffset
+  real*4 axisXoffset, xcenIn, centerSlice, xcenOut, ycenOut, baseForLog, yOffset
   real*4, allocatable ::  xzfac(:), yzfac(:), compress(:), exposeWeight(:), angles(:)
   real*4 edgeFill, zeroWeight, flatFrac, ycenModProj
   integer*4 indOutSlice, indLoadBase, isliceSizeBP , idelSlice, newMode, ifLog
