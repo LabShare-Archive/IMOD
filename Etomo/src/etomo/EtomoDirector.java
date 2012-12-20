@@ -65,6 +65,8 @@ import etomo.util.Utilities;
 
 public class EtomoDirector {
   public static final String rcsid = "$Id$";
+  
+  public static final String USER_CONFIG_FILE_EXT = ".etomo";
 
   private static final int TO_BYTES = 1024;
   public static final double MIN_AVAILABLE_MEMORY_REQUIRED = 2 * TO_BYTES * TO_BYTES;
@@ -234,7 +236,7 @@ public class EtomoDirector {
     // create the user config file
     File userConfigFile = null;
     try {
-      userConfigFile = new File(homeDirectory, ".etomo");
+      userConfigFile = new File(homeDirectory, USER_CONFIG_FILE_EXT);
     }
     catch (Exception except) {
       System.err.println("Could not create .etomo:");
