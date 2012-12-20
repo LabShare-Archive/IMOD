@@ -158,8 +158,11 @@ if userhome:
    comArray.append(userhome)
 comArray += ['-cp', IMOD_DIR + '/bin/etomo', '-jar', IMOD_DIR + '/bin/etomo.jar']
 for ind in range(1, len(sys.argv)):
-   javacom += ' "' + sys.argv[ind] + '"'
-   comArray.append(sys.argv[ind])
+   arg = sys.argv[ind]
+   javacom += ' "' + arg + '"'
+   comArray.append(arg)
+   if arg.startswith('-') and not arg.startswith('--'):
+      prnstr('WARNING: YOU ENTERED AN ARGUMENT WITH A SINGLE DASH: ' + arg)
 
 #prnstr(javacom)
 

@@ -41,6 +41,7 @@
 #define plax_initialize  PLAX_INITIALIZE
 #define plax_wait_for_close PLAX_WAIT_FOR_CLOSE
 #define plax_next_text_align PLAX_NEXT_TEXT_ALIGN
+#define plax_drawing_scale PLAX_DRAWING_SCALE
 
 #else
 
@@ -63,6 +64,7 @@
 #define plax_initialize  plax_initialize__
 #define plax_wait_for_close plax_wait_for_close__
 #define plax_next_text_align plax_next_text_align__
+#define plax_drawing_scale plax_drawing_scale__
 
 #else
 
@@ -83,6 +85,7 @@
 #define plax_initialize  plax_initialize_
 #define plax_wait_for_close plax_wait_for_close_
 #define plax_next_text_align plax_next_text_align_
+#define plax_drawing_scale plax_drawing_scale_
 
 #endif
 
@@ -107,13 +110,10 @@ void plax_circ(int *cindex, int *radius, int *ix, int *iy);
 void plax_circo(int *cindex, int *radius, int *ix, int *iy);
 void plax_poly(int *cindex, int *size, b3dInt16 *vec);
 void plax_polyo(int *cindex, int *size, b3dInt16 *vec);
-void plax_sctext(int *thickness,
-		 int *xsize,
-		 int *iysize,
-		 int *cindex,
-		 int *ix, int *iy,
-                 char *string, int strsize);
+void plax_sctext(int *thickness, int *xsize, int *iysize, int *cindex,
+                 int *ix, int *iy, char *string, int strsize);
 void plax_next_text_align(int *type);
+void plax_drawing_scale(float *xscale, float *xadd, float *yscale, float *yadd);
 }
 
 class PlaxWindow : public QWidget

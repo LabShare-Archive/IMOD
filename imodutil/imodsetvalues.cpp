@@ -21,6 +21,8 @@ using namespace std;
 // Forward declarations
 int countInputLines(FILE *fp);
 int countModelPoints(Imod *model);
+void skipLines(int nSkipLines, FILE *fp);
+int readColumn(int columnNumber, FILE *fp);
 
 // Main entry point
 int main( int argc, char *argv[])
@@ -31,17 +33,21 @@ int main( int argc, char *argv[])
   float f1, f2, f3, f4;
   int iContNum, iErr, iObjNum, iOldObjNum = -1, iPointNum, iView;
   int nContours, nPoints, nOptArgs, nNonOptArgs, nValuesPerLine;
+  int nSkipLines, columnNumber;
+  const int UNKNOWN = -9999;
   Icont *contour;
   Iobj *object;
   Iobjview *view;
   Istore store;
   set<int> objectsModified;
 
-  const int nOptions = 4;
+  const int nOptions = 6;
   const char *options[] = {"input:InputFile:FN:", 
 			   "output:OutputFile:FN:", 
 			   "values:ValuesFile:FN:", 
-			   "minMax:MinMaxFile:FN:"};
+			   "minMax:MinMaxFile:FN:",
+                           "skip:SkipLines:I",
+                           "column:ColumnNumber:I"};
   const char *usageString = 
     "Usage: imodsetvalues [options] -values valuesFile inputModel OutputModel";
 
@@ -60,10 +66,6 @@ int main( int argc, char *argv[])
     valFP = fopen(valueFile, "r");
     if (!valFP)
       exitError("Error opening value file %s!", valueFile);
-    // count the number of values on the first line
-    nValuesPerLine = fscanf(valFP, "%g, %g, %g, %g \n",
-			    &f1, &f2, &f3, &f4);
-    rewind(valFP);
   }
   else 
     exitError("No value file specified");
@@ -74,6 +76,21 @@ int main( int argc, char *argv[])
       exitError("Error opening min/max file %s!", minMaxFile);
     }
   }
+
+  if (!PipGetInteger("SkipLines", &nSkipLines)) {
+    if (nSkipLines <= 0)
+      exitError("Number of lines to skip must > 0!");
+  }
+  else 
+    nSkipLines = 0;
+
+  if (!PipGetInteger("ColumnNumber", &columnNumber)) {
+    if (columnNumber <= 0)
+      exitError("Column number must be > 0!");
+  }
+  else 
+    columnNumber = UNKNOWN;
+
   PipDone();
 
   // Open the input model and get number of objects and views
@@ -92,9 +109,23 @@ int main( int argc, char *argv[])
   store.flags = GEN_STORE_FLOAT << 2;
   store.type = GEN_STORE_VALUE1;
   
-  if (nValuesPerLine == 1) {
-    // Set values for every point in the model
+  // Unless we've been told to use a specific column, count the 
+  // number of values on the first non-skipped line of the values file.
+  if (columnNumber == UNKNOWN) {
+    skipLines(nSkipLines, valFP);
+    nValuesPerLine = fscanf(valFP, "%g, %g, %g, %g \n",
+			    &f1, &f2, &f3, &f4);
+    rewind(valFP);
+    if (nValuesPerLine == 1)
+      columnNumber = 1;
+  }
+  else
+    nValuesPerLine = UNKNOWN;
 
+  skipLines(nSkipLines, valFP);
+  
+  if (nValuesPerLine == 1 || columnNumber != UNKNOWN) {
+    // Set values for every point in the model
     // Sanity check: there must be exactly 1 value per model point.
     if (countInputLines(valFP) != countModelPoints(model))
       exitError("Number of values must match the number of model points!");
@@ -108,8 +139,18 @@ int main( int argc, char *argv[])
         contour = &object->cont[iContNum];
         nPoints = contour->psize;
         for (iPointNum = 0; iPointNum < nPoints; iPointNum++) {
-          if (fscanf(valFP, "%g \n", &store.value.f) != 1)
+	  int nextColumn = 1;
+          // Skip to the desired column, if necessary
+          while (nextColumn < columnNumber) {
+	    fscanf(valFP, "%*g,");
+	    nextColumn++;
+	  }
+          // Read the value
+          if (fscanf(valFP, "%g", &store.value.f) != 1)
             exitError("Error reading %s!", valueFile);
+          // Skip to the next line
+	  skipLines(1, valFP);
+
           store.index.i = iPointNum;
           // Apply the specified value only to a single point
           istoreInsertChange(&contour->store, &store);
@@ -249,15 +290,20 @@ int main( int argc, char *argv[])
 
 /**********************************************************************/
 
+/*
+ * Count the number of lines in the specified file starting from the
+ * current position. 
+ */
 int countInputLines(FILE *fp)
 {
   int n = 0;
+  const long int fpos = ftell(fp);
+  
   while (fscanf(fp, "%*[^\n]\n") != EOF)
     n += 1;
-  rewind(fp);
+  fseek(fp, fpos, SEEK_SET);
 
   return n;
-
 }
 
 /**********************************************************************/
@@ -278,5 +324,21 @@ int countModelPoints(Imod *model)
 
   return n;
 }
+
+/**********************************************************************/
+
+void skipLines(int nSkipLines, FILE *fp)
+{
+  int i, c, n;
+
+  for (i = 0; i < nSkipLines; i++) {
+    // The following fscanf may fail if we're already at EOL.
+    // That's ok, and why the subsequent fgetc is a separate call.
+    fscanf(fp, "%*[^\n]");
+    c = fgetc(fp);
+    if (c != '\n' && c != EOF)
+      exitError("Unable to skip requested number of lines!");
+  }
+} 
 
 /**********************************************************************/

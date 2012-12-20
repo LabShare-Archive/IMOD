@@ -28,12 +28,16 @@ def findEdgeShifts(lower, upper, edge):
    intshift = [int(round(edge[kShift][0])), int(round(edge[kShift][1])),
               int(round(edge[kShift][2]))]
 
-   # Use last shifts when using projxf, or use original shifts
+   # Use last shifts plus original Z shift when using projxf, or use original shifts
+   # when ignoring shifts
    if useProjxf:
       if kLastShift not in edge:
          exitError('Cannot use .projxf shifts; there is no lastCorrShift entry for ' + \
                       'this edge in the info file')
-      intshift = [edge[kLastShift][0], edge[kLastShift][1], int(round(edge[kShift][2]))]
+      zshift = edge[kShift][2]
+      if kOrigShift in edge:
+         zshift = edge[kOrigShift][2]
+      intshift = [edge[kLastShift][0], edge[kLastShift][1], int(round(zshift))]
                   
    elif ignoreShifts:
       if kOrigShift not in edge:

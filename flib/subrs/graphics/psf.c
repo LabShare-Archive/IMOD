@@ -17,10 +17,10 @@
 #define psopen PSOPEN
 #define psclose PSCLOSE
 #define pspoint  PSPOINT
-#define psfrstpt PSFIRSTPOINT
+#define psfirstpoint PSFIRSTPOINT
 #define psvector PSVECTOR
 #define psframe  PSFRAME
-#define pswtstr  PSWRITETEXT
+#define pswritetext  PSWRITETEXT
 #define pscircle PSCIRCLE
 #define pslinewidth PSLINEWIDTH
 #define pstriangle PSTRIANGLE

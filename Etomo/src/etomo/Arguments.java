@@ -3,8 +3,10 @@ package etomo;
 import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import etomo.storage.DataFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
@@ -247,7 +249,7 @@ public final class Arguments {
 
       + "\n  " + DEMO_TAG + "\tDeprecated.";
 
-  private final ArrayList paramFileNameList = new ArrayList();
+  private final List<String> paramFileNameList = new ArrayList<String>();
 
   private boolean debug = false;
   private int debugLevel = 0;
@@ -422,183 +424,192 @@ public final class Arguments {
    * @return A string that will be set to the etomo data filename if one is
    *         found on the command line otherwise it is "".
    */
-  ArrayList parse(String[] args) {
+  void parse(String[] args) {
     test = false;
     selfTest = false;
     // Parse the command line arguments
     int i = 0;
     while (i < args.length) {
       // Filename argument should be the only one not beginning with at least
-      // one dash
+      // one dash.
       if (!args[i].startsWith("--")) {
         paramFileNameList.add(args[i]);
       }
-      else if (args[i].equals(HELP1_TAG) || args[i].equals(HELP2_TAG)) {
-        help = true;
-      }
-      else if (args[i].equals(TEST_TAG)) {
-        test = true;
-      }
-      else if (args[i].equals(HEADLESS_TAG)) {
-        headless = true;
-      }
-      else if (args[i].equals(SELFTEST_TAG)) {
-        selfTest = true;
-      }
-      else if (args[i].equals(NAMES_TAG)) {
-        printNames = true;
-      }
-      else if (args[i].equals(MEMORY_TAG)) {
-        displayMemory = true;
-        // Optional value: --memory can be used alone, or followed by an integer
-        // (displayMemoryInterval). If displayMemoryInterval is set, then the memory usage
-        // will be sent to etomo_err.log every displayMemoryInterval minutes.
-        if (i < args.length - 1 && !args[i + 1].startsWith("--")) {
-          try {
-            iDisplayMemory = Math.abs(Integer.parseInt(args[i + 1]));
-            i++;
-          }
-          catch (NumberFormatException e) {
-            iDisplayMemory = 0;
-          }
-        }
-      }
-      else if (args[i].equals(DEBUG_TAG)) {
-        debug = true;
-        debugLevel = 1;
-        // Optional value: --debug can be used alone, or followed by an integer
-        // (debugLevel).
-        if (i < args.length - 1 && !args[i + 1].startsWith("--")) {
-          try {
-            debugLevel = Math.abs(Integer.parseInt(args[i + 1]));
-            if (debugLevel == 0) {
-              debug = false;
-            }
-            i++;
-          }
-          catch (NumberFormatException e) {
-          }
-        }
-      }
-      else if (args[i].equals(TIMESTAMP_TAG)) {
-        Utilities.setTimestamp(true);
-      }
-      else if (args[i].equals(NEWSTUFF_TAG)) {
-        newstuff = true;
-      }
-      else if (args[i].equals(DATASET_TAG)) {
-        dataset = true;
-        reconAutomation = true;
-        if (i < args.length - 1) {
-          sDataset = args[i + 1];
-          i++;
-        }
-      }
-      else if (args[i].equals(DIR_TAG)) {
-        dir = true;
-        reconAutomation = true;
-        if (i < args.length - 1) {
-          // The quotes have already been stripped.
-          fDir = new File(args[i + 1]);
-          i++;
-        }
-      }
-      else if (args[i].equals(AXIS_TAG)) {
-        axis = true;
-        reconAutomation = true;
-        if (i < args.length - 1) {
-          atAxis = AxisType.fromString(args[i + 1]);
-          if (atAxis != null) {
-            i++;
-          }
-        }
-      }
-      else if (args[i].equals(FRAME_TAG)) {
-        frame = true;
-        reconAutomation = true;
-        if (i < args.length - 1) {
-          vtFrame = ViewType.fromString(args[i + 1]);
-          if (vtFrame != null) {
-            i++;
-          }
-        }
-      }
-      else if (args[i].equals(FIDUCIAL_TAG)) {
-        fiducial = true;
-        reconAutomation = true;
-        if (i < args.length - 1) {
-          enFiducial.set(args[i + 1]);
-          if (!enFiducial.isNull()) {
-            i++;
-          }
-        }
-      }
-      else if (args[i].equals(SCAN_TAG)) {
-        reconAutomation = true;
-        scan = true;
-      }
-      else if (args[i].equals(CREATE_TAG)) {
-        reconAutomation = true;
-        create = true;
-      }
-      else if (args[i].equals(EXIT_TAG)) {
-        exit = true;
-      }
-      else if (args[i].equals(FG_TAG)) {
-        reconAutomation = true;
-      }
-      else if (args[i].equals(LISTEN_TAG)) {
-        listen = true;
-      }
-      else if (args[i].equals(AUTO_CLOSE_3DMOD_TAG)) {
-        autoClose3dmod = true;
-      }
-      else if (args[i].equals(IGNORE_LOC_TAG)) {
-        ignoreLoc = true;
-      }
-      else if (args[i].equals(IGNORE_SETTINGS_TAG)) {
-        ignoreSettings = true;
-      }
-      else if (args[i].equals(ACTIONS_TAG)) {
-        actions = true;
-      }
-      else if (args[i].equals(DIRECTIVE_TAG)) {
-        directive = true;
-        reconAutomation = true;
-        headless = true;
-        create = true;
-        exit = true;
-        if (i < args.length - 1) {
-          // The quotes have already been stripped.
-          fDirective = new File(args[i + 1]);
-          i++;
-        }
-      }
-      else if (args[i].equals(CPUS_TAG)) {
-        cpus = true;
-        // Ignored optional value: the parallel processing description is currently being
-        // ignored.
-        if (i < args.length - 1 && !args[i + 1].startsWith("--")) {
-          i++;
-        }
-      }
-      else if (args[i].equals(GPUS_TAG)) {
-        gpus = true;
-        // Ignored optional value: the gpu processing description is currently being
-        // ignored.
-        if (i < args.length - 1 && !args[i + 1].startsWith("--")) {
-          i++;
-        }
-      }
-      else if (args[i].equals(FROM_BRT_TAG)) {
-        fromBRT = true;
-      }
       else {
-        errorMessageList.add("WARNING:  unknown argument, " + args[i] + ", ignored.");
+        if (paramFileNameList.size() > 0) {
+          // File name arguments can only be at the end of the command.
+          errorMessageList.add("WARNING:  unknown argument(s), "
+              + paramFileNameList.toString() + ", ignored.");
+          paramFileNameList.clear();
+        }
+        if (args[i].equals(HELP1_TAG) || args[i].equals(HELP2_TAG)) {
+          help = true;
+        }
+        else if (args[i].equals(TEST_TAG)) {
+          test = true;
+        }
+        else if (args[i].equals(HEADLESS_TAG)) {
+          headless = true;
+        }
+        else if (args[i].equals(SELFTEST_TAG)) {
+          selfTest = true;
+        }
+        else if (args[i].equals(NAMES_TAG)) {
+          printNames = true;
+        }
+        else if (args[i].equals(MEMORY_TAG)) {
+          displayMemory = true;
+          // Optional value: --memory can be used alone, or followed by an integer
+          // (displayMemoryInterval). If displayMemoryInterval is set, then the memory
+          // usage
+          // will be sent to etomo_err.log every displayMemoryInterval minutes.
+          if (i < args.length - 1 && !args[i + 1].startsWith("--")) {
+            try {
+              iDisplayMemory = Math.abs(Integer.parseInt(args[i + 1]));
+              i++;
+            }
+            catch (NumberFormatException e) {
+              iDisplayMemory = 0;
+            }
+          }
+        }
+        else if (args[i].equals(DEBUG_TAG)) {
+          debug = true;
+          debugLevel = 1;
+          // Optional value: --debug can be used alone, or followed by an integer
+          // (debugLevel).
+          if (i < args.length - 1 && !args[i + 1].startsWith("--")) {
+            try {
+              debugLevel = Math.abs(Integer.parseInt(args[i + 1]));
+              if (debugLevel == 0) {
+                debug = false;
+              }
+              i++;
+            }
+            catch (NumberFormatException e) {
+            }
+          }
+        }
+        else if (args[i].equals(TIMESTAMP_TAG)) {
+          Utilities.setTimestamp(true);
+        }
+        else if (args[i].equals(NEWSTUFF_TAG)) {
+          newstuff = true;
+        }
+        else if (args[i].equals(DATASET_TAG)) {
+          dataset = true;
+          reconAutomation = true;
+          if (i < args.length - 1) {
+            sDataset = args[i + 1];
+            i++;
+          }
+        }
+        else if (args[i].equals(DIR_TAG)) {
+          dir = true;
+          reconAutomation = true;
+          if (i < args.length - 1) {
+            // The quotes have already been stripped.
+            fDir = new File(args[i + 1]);
+            i++;
+          }
+        }
+        else if (args[i].equals(AXIS_TAG)) {
+          axis = true;
+          reconAutomation = true;
+          if (i < args.length - 1) {
+            atAxis = AxisType.fromString(args[i + 1]);
+            if (atAxis != null) {
+              i++;
+            }
+          }
+        }
+        else if (args[i].equals(FRAME_TAG)) {
+          frame = true;
+          reconAutomation = true;
+          if (i < args.length - 1) {
+            vtFrame = ViewType.fromString(args[i + 1]);
+            if (vtFrame != null) {
+              i++;
+            }
+          }
+        }
+        else if (args[i].equals(FIDUCIAL_TAG)) {
+          fiducial = true;
+          reconAutomation = true;
+          if (i < args.length - 1) {
+            enFiducial.set(args[i + 1]);
+            if (!enFiducial.isNull()) {
+              i++;
+            }
+          }
+        }
+        else if (args[i].equals(SCAN_TAG)) {
+          reconAutomation = true;
+          scan = true;
+        }
+        else if (args[i].equals(CREATE_TAG)) {
+          reconAutomation = true;
+          create = true;
+        }
+        else if (args[i].equals(EXIT_TAG)) {
+          exit = true;
+        }
+        else if (args[i].equals(FG_TAG)) {
+          reconAutomation = true;
+        }
+        else if (args[i].equals(LISTEN_TAG)) {
+          listen = true;
+        }
+        else if (args[i].equals(AUTO_CLOSE_3DMOD_TAG)) {
+          autoClose3dmod = true;
+        }
+        else if (args[i].equals(IGNORE_LOC_TAG)) {
+          ignoreLoc = true;
+        }
+        else if (args[i].equals(IGNORE_SETTINGS_TAG)) {
+          ignoreSettings = true;
+        }
+        else if (args[i].equals(ACTIONS_TAG)) {
+          actions = true;
+        }
+        else if (args[i].equals(DIRECTIVE_TAG)) {
+          directive = true;
+          reconAutomation = true;
+          // headless = true;
+          create = true;
+          exit = true;
+          if (i < args.length - 1) {
+            // The quotes have already been stripped.
+            fDirective = new File(args[i + 1]);
+            i++;
+          }
+        }
+        else if (args[i].equals(CPUS_TAG)) {
+          cpus = true;
+          // Ignored optional value: the parallel processing description is currently
+          // being
+          // ignored.
+          if (i < args.length - 1 && !args[i + 1].startsWith("--")) {
+            i++;
+          }
+        }
+        else if (args[i].equals(GPUS_TAG)) {
+          gpus = true;
+          // Ignored optional value: the gpu processing description is currently being
+          // ignored.
+          if (i < args.length - 1 && !args[i + 1].startsWith("--")) {
+            i++;
+          }
+        }
+        else if (args[i].equals(FROM_BRT_TAG)) {
+          fromBRT = true;
+        }
+        else {
+          errorMessageList.add("WARNING:  unknown argument, " + args[i] + ", ignored.");
+        }
       }
       i++;
     }
-    return paramFileNameList;
   }
 
   /**
@@ -607,6 +618,32 @@ public final class Arguments {
    * @return
    */
   boolean validate(final UIComponent component) {
+    for (Iterator<String> i = paramFileNameList.iterator(); i.hasNext();) {
+      File file = new File(i.next());
+      if (!file.exists()) {
+        errorMessageList.add("File parameter, " + file.getAbsolutePath()
+            + ", does not exist.");
+      }
+      else {
+        if (!file.canRead()) {
+          errorMessageList.add("File parameter, " + file.getAbsolutePath()
+              + ", is not readable.");
+        }
+        if (file.isDirectory()) {
+          errorMessageList.add("File parameter, " + file.getAbsolutePath()
+              + ", is a directory.");
+        }
+        if (!file.canWrite()) {
+          errorMessageList.add("File parameter, " + file.getAbsolutePath()
+              + ", is not writable.");
+        }
+        DataFileFilter fileFilter = new DataFileFilter();
+        if (!fileFilter.accept(file)) {
+          errorMessageList.add("File parameter, " + file.getAbsolutePath() + ", is not a "
+              + fileFilter.getDescription() + ".");
+        }
+      }
+    }
     if (directive) {
       if (fDirective == null) {
         errorMessageList.add("Missing " + DIRECTIVE_TAG + " parameter value.");
@@ -621,13 +658,13 @@ public final class Arguments {
               + fDirective.getAbsolutePath() + ", does not exist.");
         }
         else {
-          if (fDirective.isDirectory()) {
-            errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
-                + fDirective.getAbsolutePath() + ", is a directory.");
-          }
           if (!fDirective.canRead()) {
             errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
                 + fDirective.getAbsolutePath() + ", is not readable.");
+          }
+          if (fDirective.isDirectory()) {
+            errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
+                + fDirective.getAbsolutePath() + ", is a directory.");
           }
         }
       }
@@ -652,13 +689,13 @@ public final class Arguments {
             + ", does not exist.");
       }
       else {
-        if (!fDir.isDirectory()) {
-          errorMessageList.add(DIR_TAG + " parameter value, " + fDir.getAbsolutePath()
-              + ", is not a directory.");
-        }
         if (!fDir.canRead()) {
           errorMessageList.add(DIR_TAG + " parameter value, " + fDir.getAbsolutePath()
               + ", is not readable.");
+        }
+        if (!fDir.isDirectory()) {
+          errorMessageList.add(DIR_TAG + " parameter value, " + fDir.getAbsolutePath()
+              + ", is not a directory.");
         }
         if (!fDir.canWrite()) {
           errorMessageList.add(DIR_TAG + " parameter value, " + fDir.getAbsolutePath()
@@ -715,7 +752,7 @@ public final class Arguments {
     return true;
   }
 
-  ArrayList getParamFileNameList() {
+  List<String> getParamFileNameList() {
     return paramFileNameList;
   }
 
