@@ -63,6 +63,7 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
   ! Draw the axes then the data, not by group
   call scrnAxes(xmin, xmax, ymin, ymax, xscale, xadd, yscale, yadd, dx, xlow, dy, ylow)
   if (ifTerm == 0) then
+    call plax_drawing_scale(xscale, xadd, yscale, yadd);
     igrpLast = -1
     do icl = 1, numColors
       call plax_mapcolor(icl + 100, icolors(2, icl), icolors(3, icl), icolors(4, icl))

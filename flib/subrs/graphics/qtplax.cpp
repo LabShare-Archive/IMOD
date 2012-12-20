@@ -87,6 +87,8 @@ static int sNoGraph = 0;
 static char *sMessage = NULL;
 static char *sToolTip = NULL;
 static int sExitOnClose = 0;
+static bool sUserScaleSet = false;
+static float sUserXscale, sUserXadd, sUserYscale, sUserYadd;
 static int argc;
 static char **argv;
 
@@ -242,6 +244,20 @@ void PlaxWindow::unlock()
 
 void PlaxWindow::mousePressEvent(QMouseEvent * e )
 {
+  if (e->buttons() & Qt::LeftButton && sUserScaleSet) {
+    QMenu popup(this);
+    QString str;
+    float xx = e->x() / sScaleX;
+    float yy = 1023. - e->y() / sScaleY;
+    str = QString("%1, %2").arg((xx - sUserXadd) / sUserXscale, 0, 'g', 3).
+      arg((yy - sUserYadd) / sUserYscale, 0, 'g', 3);
+    popup.addAction(str);
+    popup.exec(QCursor::pos());
+    return;
+  }
+
+  if (!(e->buttons() & Qt::RightButton))
+    return;
   QMenu popup(this);
   QAction *savePng = popup.addAction("Save to PNG");
   QAction *print = popup.addAction("Print");
@@ -464,8 +480,8 @@ static int startPlaxApp()
   sScaleX = sScaleY = 0.5f;
   sPlaxWidget->setGeometry(sPlaxLeft, sPlaxTop, sPlaxWidth, sPlaxHeight);
   sPlaxWidget->setAttribute(Qt::WA_DeleteOnClose);
-  sPlaxWidget->setWindowTitle(QString(sProgName) +
-                              "   (Right click to save as PNG or print)");
+  sPlaxWidget->setWindowTitle(QString(sProgName) + "   (Left click for position, "
+                              "right click to save as PNG or print)");
   sPlaxExposed = 0;
   if (sToolTip)
     sPlaxWidget->setToolTip(sToolTip);
@@ -559,6 +575,15 @@ void plax_next_text_align(int *type)
       return;
   sDrawList[sListSize++] = PCALL_ALIGN;
   sDrawList[sListSize++] = *type;
+}
+
+void plax_drawing_scale(float *xscale, float *xadd, float *yscale, float *yadd)
+{
+  sUserScaleSet = true;
+  sUserXscale = *xscale;
+  sUserXadd = *xadd;
+  sUserYscale = *yscale;
+  sUserYadd = *yadd;
 }
 
 void plax_erase()

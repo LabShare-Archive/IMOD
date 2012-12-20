@@ -178,12 +178,12 @@ module tiltvars
   integer*4 numExtraMaskPix, numVertNeeded
   !
   integer*4, allocatable ::  nxStretched(:), indStretchLine(:), mapUsedView(:)
-  real*4, allocatable ::  stretchOffset(:), wgtAngles(:), iviewSubtract(:)
+  real*4, allocatable ::  stretchOffset(:), wgtAngles(:)
   !
   integer*4 numTiltIncWgt, numWgtAngles
   real*4 tiltIncWgts(20)
   !
-  integer*4, allocatable :: ixUnmaskedSE(:,:)
+  integer*4, allocatable :: ixUnmaskedSE(:,:), iviewSubtract(:), maxRayPixels(:)
   !
   real*4 outAdd, outScale, baseOutAdd, baseOutScale, effectiveScale
   !
@@ -198,7 +198,6 @@ module tiltvars
   real*4, allocatable :: warpYZfac(:), warpDelz(:), xRayStart(:), yRayStart(:)
   real*4, allocatable :: xprojfs(:), xprojzs(:), yprojfs(:), yprojzs(:)
   !
-  real*4, allocatable :: maxRayPixels(:)
   integer*4 numReproj, maxZreproj
   integer*4 minXreproj, maxXreproj, minYreproj, maxYreproj, minZreproj
   integer*4 ithickReproj, minXload, maxXload, numWarpDelz
