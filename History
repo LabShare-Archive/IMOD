@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/20/12: Added Tomodataplots for graphing various data from tilt series
+processing (clip stats, blendmont errors, tiltalign mean residuals).
+
 12/19/12: Fixed Tilt when running internal SIRT on CPU with 90 degree angles.
 
 12/19/12: Modified eTomo to run from a directive file.  ETomo will run without
@@ -16,8 +19,8 @@ fiducial, patch tracking, or fiducialless alignment given a text file of
 (Bug# 1661).
 
 12/17/12: Added right click menu to Plax graphing window to allowing printing
-the graph or saving to a PNG file.  Made Genhstplt draw black on white by
-default.
+the graph or saving to a PNG file; also, in Genhstplt, left-clicking pops up
+the coordinates clicked.  Made Genhstplt draw black on white by default.
 
 12/17/12: Added option -t to Tomosnapshot to take thumbnails of selected files.
 
