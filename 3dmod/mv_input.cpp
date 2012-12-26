@@ -268,6 +268,11 @@ void imodvKeyPress(QKeyEvent *event)
     }
     break;
 
+  case Qt::Key_N:
+    if (shifted)
+      mvMovieSequenceDialog(Imodv, 1);
+    break;
+
   case Qt::Key_I:
     if (shifted && imodvByteImagesExist())
       imodvImageEditDialog(Imodv, 1);
