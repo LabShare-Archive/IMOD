@@ -66,6 +66,7 @@
                         <section title="Image View Dialog" ref="./3dmodHelp/modvImage.html#TOP"></section>
                         <section title="Isosurface View Dialog" ref="./3dmodHelp/modvIsosurface.html#TOP"></section>
                         <section title="Model Movie &amp; Montage Control" ref="./3dmodHelp/modelMovie.html#TOP"></section>
+                        <section title="Model Movie Sequence Dialog" ref="./3dmodHelp/movieSequence.html#TOP"></section>
                         <section title="Model edit" ref="./3dmodHelp/modvModelEdit.html#TOP"></section>
                         <section title="View edit" ref="./3dmodHelp/modvViewEdit.html#TOP"></section>
                         <section title="Depth Cueing" ref="./3dmodHelp/depthcue.html#TOP"></section>

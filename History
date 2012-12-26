@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/26/12: Added dialog to Model View for saving and running a sequence of
+movie segments with different settings.
+
 12/20/12: Added Tomodataplots for graphing various data from tilt series
 processing (clip stats, blendmont errors, tiltalign mean residuals).
 
