@@ -84,6 +84,7 @@ static AdocSection *getSection(const char *collName, int sectInd);
 static int addComments(AdocSection *sect, char **comments, int *numComments,
                        int index);
 static int writeFile(FILE *afile, int writeAll);
+static int findSectionInAdocList(int collInd, int sectInd);
 
 /*!
  * Reads an autodoc from the file specified by [filename], and returns the 
@@ -525,6 +526,95 @@ int AdocAddSection(const char *typeName, const char *name)
     return -1;
   return coll->numSections - 1;
 }
+
+/*!
+ * Inserts a section with name given by [name] into the collection of sections of type 
+ * [typeName], at the index [sectInd].  The collection must exist unless [sectInd] is 0,
+ * and [sectInd] must be less than or equal to the number of sections in that collection.
+ * Returns -1 for error.  (Untested)
+ */
+int AdocInsertSection(const char *typeName, int sectInd, const char *name)
+{
+  AdocCollection *coll;
+  int i, collInd, masterInd, numSect = 0;
+  AdocSection newSect;
+  if (!curAdoc || !typeName || !name)
+    return -1;
+  collInd = lookupCollection(curAdoc, typeName);
+  if (collInd >= 0)
+    numSect = curAdoc->collections[collInd].numSections;
+  if (sectInd < 0 || sectInd > numSect)
+    return -1;
+  
+  /* Find the index of this section in the master list if it needs to be shuffled */
+  if (sectInd < numSect) {
+    masterInd = findSectionInAdocList(collInd, sectInd);
+    if (masterInd < 0)
+      return -1;
+  }
+
+  /* Add section to end regardless, then return if that is all that is needed */
+  coll = &curAdoc->collections[collInd];
+  if (AdocAddSection(typeName, name))
+      return -1;
+  if (sectInd == numSect)
+    return 0;
+
+  /* Save the new section then move existing sections up and copy new one into place */
+  memcpy(&newSect, &coll->sections[coll->numSections - 1], sizeof(AdocSection));
+  for (i = coll->numSections - 1; i > sectInd; i--)
+    memcpy(&coll->sections[i], &coll->sections[i - 1], sizeof(AdocSection));
+  memcpy(&coll->sections[sectInd], &newSect, sizeof(AdocSection));
+  
+  /* Move the master lists up and decrement any other indices in this collection */
+  for (i = curAdoc->numSections - 1; i > masterInd; i--) {
+    curAdoc->collList[i] = curAdoc->collList[i - 1];
+    curAdoc->sectList[i] = curAdoc->sectList[i - 1];
+    if (curAdoc->collList[i] == collInd && curAdoc->sectList[i] >= sectInd)
+      curAdoc->sectList[i]++;
+  }
+
+  return 0;
+}
+
+/*!
+ * Deletes the section at index [sectInd] from the collection of sections of type 
+ * [typeName].  Returns -1 for error.  (Untested)
+ */
+int AdocDeleteSection(const char *typeName, int sectInd)
+{
+  AdocCollection *coll;
+  int collInd, i, masterInd;
+  if (!curAdoc || !typeName)
+    return -1;
+  collInd = lookupCollection(curAdoc, typeName);
+  if (collInd < 0)
+    return -1;
+  coll = &curAdoc->collections[collInd];
+  if (sectInd < 0 || sectInd >= coll->numSections)
+    return -1;
+
+  /* Find the index of this section in the master list */
+  masterInd = findSectionInAdocList(collInd, sectInd);
+  if (masterInd < 0)
+    return -1;
+
+  /* Repack the sections */
+  for (i = sectInd + 1; i < coll->numSections; i++)
+    memcpy(&coll->sections[i - 1], &coll->sections[i], sizeof(AdocSection));
+  coll->numSections--;
+
+  /* Repack the master list and decrement any other indices in this collection */
+  for (i = masterInd + 1; i < curAdoc->numSections; i++) {
+    if (curAdoc->collList[i] == collInd && curAdoc->sectList[i] > sectInd)
+      curAdoc->sectList[i]--;
+    curAdoc->collList[i - 1] = curAdoc->collList[i];
+    curAdoc->sectList[i - 1] = curAdoc->sectList[i];
+  }
+  curAdoc->numSections--;
+  return 0;
+}
+
 
 /*!
  * Sets a key-value pair to [key] and [value] in the section with index 
@@ -1211,4 +1301,14 @@ static int addComments(AdocSection *sect, char **comments, int *numComments,
   }
   *numComments = 0;
   return 0;
+}
+
+/* Find the index of a section in the master list */
+static int findSectionInAdocList(int collInd, int sectInd)
+{
+  int i;
+  for (i = 0; i < curAdoc->numSections; i++)
+    if (curAdoc->collList[i] == collInd && curAdoc->sectList[i] == sectInd)
+      return i;
+  return -1;
 }
