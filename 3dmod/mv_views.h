@@ -21,6 +21,8 @@ void imodvViewsDone();
 void imodvViewsClosing();
 void imodvViewsSave();;
 void imodvViewsGoto(int item, bool draw, bool regChg = true);
+void imodvViewsSetView(ImodvApp *a, int view, bool draw, bool external, 
+                       bool regChg = true);
 void imodvViewsStore(int item);
 void imodvViewsNew(const char *label);;
 void imodvViewsDelete(int item, int newCurrent);
