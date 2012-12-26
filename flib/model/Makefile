@@ -17,7 +17,7 @@ PROGS = convertmod$(E) model2point$(E) imavgstat$(E) solvematch$(E) \
  refinematch$(E) findwarp$(E) sumdensity$(E) mtrotlong$(E) howflared$(E) \
  tomopitch$(E) fiberpitch$(E) corrsearch3d$(E) repackseed$(E) resamplemod$(E) \
  findhotpixels$(E) xfjointomo$(E) boxavg$(E) tiltxcorr$(E) findbeads3d$(E) \
- sortbeadsurfs$(E) edmont$(E)
+ sortbeadsurfs$(E) edmont$(E) filltomo$(E)
 # mtteach$(E)  tomoblobs$(E)
 
 WLIBS = $(LWMOD) $(LIMOD) $(IMLIBS) $(FORTCLIBS)
@@ -52,6 +52,9 @@ edmont$(E): edmont.$(O)
 
 endmodel$(E): endmodel.$(O)
 	$(FC) -o endmodel endmodel.$(O) $(LDFLG) $(WLIBS)
+
+filltomo$(E): filltomo.$(O)
+	$(FC) -o filltomo filltomo.$(O) $(LDFLG) $(SMALLLIBS)
 
 realscalemod$(E): realscalemod.$(O)
 	$(FC) -o realscalemod realscalemod.$(O) $(LDFLG) $(WLIBS)
