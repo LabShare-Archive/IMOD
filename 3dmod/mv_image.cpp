@@ -42,7 +42,7 @@
 enum {IIS_X_COORD = 0, IIS_Y_COORD, IIS_Z_COORD, IIS_X_SIZE, IIS_Y_SIZE,
       IIS_Z_SIZE, IIS_SLICES, IIS_TRANSPARENCY, IIS_BLACK, IIS_WHITE};
 
-static void mkcmap(void);
+static void makeColorMap(void);
 static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
                             Ipoint *clamp, unsigned char *data,
                             int width, int height);
@@ -98,7 +98,7 @@ void imodvImageEditDialog(ImodvApp *a, int state)
   sDia = new ImodvImage(imodvDialogManager.parent(IMODV_DIALOG), "image view");
   sA = a;
 
-  mkcmap();
+  makeColorMap();
   imodvDialogManager.add((QWidget *)sDia, IMODV_DIALOG);
   adjustGeometryAndShow((QWidget *)sDia, IMODV_DIALOG);
   imodvImageUpdate(a);
@@ -164,12 +164,94 @@ int imodvImageGetTransparency(void)
   return sImageTrans;
 }
 
+// Return the current state of drawing into a movie segment structure
+void mvImageGetMovieState(MovieSegment &segment)
+{
+  segment.imgAxisFlags = sFlags;
+  if (!Imodv->texMap) {
+    segment.imgAxisFlags = 0;
+    return;
+  }
+  segment.imgWhiteLevel = sWhiteLevel;
+  segment.imgBlackLevel = sBlackLevel;
+  segment.imgFalseColor = sFalsecolor;
+  segment.imgXsize = sXdrawSize;
+  segment.imgYsize = sYdrawSize;
+  segment.imgZsize = sZdrawSize;
+}
+
+// Set ancillary parameters to the state for a movie segment
+int mvImageSetMovieDrawState(MovieSegment &segment)
+{
+ if (!segment.imgAxisFlags) {
+
+    // If there is no image drawing, turn off Imodv flag and then, if there is currently,
+    // take the update route to updating this module
+    Imodv->texMap = 0;
+    if (sFlags) 
+      imodvImageUpdate(Imodv);
+    return 1;
+  }
+  sFlags = segment.imgAxisFlags;
+  Imodv->texMap = 1;
+  sWhiteLevel = segment.imgWhiteLevel;
+  sBlackLevel = segment.imgBlackLevel;
+  sFalsecolor = segment.imgFalseColor;
+  makeColorMap();
+  sXdrawSize = B3DMIN(segment.imgXsize, Imodv->vi->xsize);
+  sYdrawSize = B3DMIN(segment.imgYsize, Imodv->vi->ysize);
+  sZdrawSize = B3DMIN(segment.imgZsize, Imodv->vi->zsize);
+
+  // Update the dialog as needed
+  if (sDia) {
+
+    sDia->mSliders->setValue(IIS_X_SIZE, sXdrawSize);
+    sDia->mSliders->setValue(IIS_Y_SIZE, sYdrawSize);
+    sDia->mSliders->setValue(IIS_Z_SIZE, sZdrawSize);
+    diaSetChecked(sDia->mViewXBox, (sFlags & IMODV_DRAW_CX) != 0);
+    diaSetChecked(sDia->mViewYBox, (sFlags & IMODV_DRAW_CY) != 0);
+    diaSetChecked(sDia->mViewZBox, (sFlags & IMODV_DRAW_CZ) != 0);
+    sDia->mSliders->setValue(IIS_BLACK, sBlackLevel);
+    sDia->mSliders->setValue(IIS_WHITE, sWhiteLevel);
+    diaSetChecked(sDia->mFalseBox, sFalsecolor != 0);
+  }
+  return 0;
+}
+
+// Set the drawing state and dialog to the start or end of the given movie segment
+void mvImageSetMovieEndState(int startEnd, MovieSegment &segment)
+{
+  MovieTerminus *term = &segment.start;
+  int maxSlices = B3DMIN(Imodv->vi->zsize, MAX_SLICES);
+  if (startEnd == IMODV_MOVIE_END_STATE)
+    term = &segment.end;
+
+  if (mvImageSetMovieDrawState(segment))
+    return;
+ 
+  // Otherwise set the image position and copy all the data over
+  sImageTrans = term->imgTransparency;
+  ivwSetLocation(Imodv->vi, term->imgXcenter - 1, term->imgYcenter - 1, 
+                 term->imgZcenter - 1);
+  sNumSlices = B3DMIN(term->imgSlices, maxSlices);
+
+  // Update the dialog as needed
+  if (sDia) {
+
+    // Set this to prevent Y/Z swapping of sizes in the update
+    sLastYsize = Imodv->vi->ysize;
+    sDia->updateCoords();
+    sDia->mSliders->setValue(IIS_SLICES, sNumSlices);
+    sDia->mSliders->setValue(IIS_TRANSPARENCY, sImageTrans);
+  }
+}
+
 /****************************************************************************/
 /* TEXTURE MAP IMAGE. */
 /****************************************************************************/
 
 // Make a color map
-static void mkcmap(void)
+static void makeColorMap(void)
 {
   int rampsize, cmapReverse = 0;
   float slope, point;
@@ -324,7 +406,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   ivwGetTime(a->vi, &curtime);
   if (!sCmapInit || (a->vi->colormapImage && 
                     (ciz != cmapZ || curtime != cmapTime))) {
-    mkcmap();
+    makeColorMap();
     cmapTime = curtime;
     cmapZ = ciz;
   }
@@ -399,8 +481,8 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   // This used to be 1 with RGB data being passed in
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
   glEnable(GL_TEXTURE_2D);
-
-  /* Draw Current Z image. */
+ 
+ /* Draw Current Z image. */
   if (sFlags & IMODV_DRAW_CZ) {
 
     setSliceLimits(ciz, miz, invertZ, drawTrans, zstr, zend, idir);
@@ -803,26 +885,16 @@ ImodvImage::ImodvImage(QWidget *parent, const char *name)
   (mSliders->getLayout())->setSpacing(4);
   connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
           SLOT(sliderMoved(int, int, bool)));
-  mSliders->getSlider(IIS_X_COORD)->setToolTip(
-                "Set current image X coordinate");
-  mSliders->getSlider(IIS_Y_COORD)->setToolTip(
-                "Set current image Y coordinate");
-  mSliders->getSlider(IIS_Z_COORD)->setToolTip(
-                "Set current image Z coordinate");
-  mSliders->getSlider(IIS_X_SIZE)->setToolTip(
-                "Set image size to display in X");
-  mSliders->getSlider(IIS_Y_SIZE)->setToolTip(
-                "Set image size to display in Y");
-  mSliders->getSlider(IIS_Z_SIZE)->setToolTip(
-                "Set image size to display in Z");
-  mSliders->getSlider(IIS_SLICES)->setToolTip(
-                "Set number of slices to display");
-  mSliders->getSlider(IIS_TRANSPARENCY)->setToolTip(
-                "Set percent transparency");
-  mSliders->getSlider(IIS_BLACK)->setToolTip(
-                "Set minimum black level of contrast ramp");
-  mSliders->getSlider(IIS_WHITE)->setToolTip(
-                "Set maximum white level of contrast ramp");
+  mSliders->getSlider(IIS_X_COORD)->setToolTip("Set current image X coordinate");
+  mSliders->getSlider(IIS_Y_COORD)->setToolTip("Set current image Y coordinate");
+  mSliders->getSlider(IIS_Z_COORD)->setToolTip("Set current image Z coordinate");
+  mSliders->getSlider(IIS_X_SIZE)->setToolTip("Set image size to display in X");
+  mSliders->getSlider(IIS_Y_SIZE)->setToolTip("Set image size to display in Y");
+  mSliders->getSlider(IIS_Z_SIZE)->setToolTip("Set image size to display in Z");
+  mSliders->getSlider(IIS_SLICES)->setToolTip("Set number of slices to display");
+  mSliders->getSlider(IIS_TRANSPARENCY)->setToolTip("Set percent transparency");
+  mSliders->getSlider(IIS_BLACK)->setToolTip("Set minimum black level of contrast ramp");
+  mSliders->getSlider(IIS_WHITE)->setToolTip("Set maximum white level of contrast ramp");
 
   QPushButton *copyBut = diaPushButton("Use 3dmod Black/White", this, mLayout);
   copyBut->setToolTip("Set black and white levels from sliders in 3dmod Info window");
@@ -927,11 +999,11 @@ void ImodvImage::sliderMoved(int which, int value, bool dragging)
 
   case IIS_BLACK:
     sBlackLevel = value;
-    mkcmap();
+    makeColorMap();
     break;
   case IIS_WHITE:
     sWhiteLevel = value;
-    mkcmap();
+    makeColorMap();
     break;
   }
 
@@ -951,7 +1023,7 @@ void ImodvImage::copyBWclicked()
   sWhiteLevel = App->cvi->whiteInRange;
   mSliders->setValue(IIS_BLACK, sBlackLevel);
   mSliders->setValue(IIS_WHITE, sWhiteLevel);
-  mkcmap();
+  makeColorMap();
   imodvDraw(Imodv);
 }
 
@@ -959,7 +1031,7 @@ void ImodvImage::copyBWclicked()
 void ImodvImage::falseToggled(bool state)
 {
   sFalsecolor = state ? 1 : 0;
-  mkcmap();
+  makeColorMap();
   imodvDraw(Imodv);
 }
 

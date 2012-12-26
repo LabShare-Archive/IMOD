@@ -1,6 +1,3 @@
-//Added by qt3to4:
-#include <QKeyEvent>
-#include <QCloseEvent>
 /*   mv_image.h  -  declarations for mv_image.cpp
  *
  *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
@@ -12,6 +9,9 @@
 
 #ifndef IMODV_IMAGE_H
 #define IMODV_IMAGE_H
+#include <QKeyEvent>
+#include <QCloseEvent>
+#include "mv_movie.h"
 
 typedef struct __imodv_struct ImodvApp;
 
@@ -28,6 +28,9 @@ int imodvImageGetThickness(void);
 int imodvImageGetTransparency(void);
 int imodvImageGetFlags(void);
 void imodvImageCleanup();
+void mvImageGetMovieState(MovieSegment &segment);
+void mvImageSetMovieEndState(int startEnd, MovieSegment &segment);
+int mvImageSetMovieDrawState(MovieSegment &segment);
 
 #include "dialog_frame.h"
 class MultiSlider;
@@ -44,6 +47,7 @@ class ImodvImage : public DialogFrame
   void updateCoords();
 
   QCheckBox *mViewXBox, *mViewYBox, *mViewZBox;
+  QCheckBox *mFalseBox;
   MultiSlider *mSliders;
 
   public slots:
@@ -63,7 +67,6 @@ class ImodvImage : public DialogFrame
 
  private:
   bool mCtrlPressed;
-  QCheckBox *mFalseBox;
 };
 
 #endif
