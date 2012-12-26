@@ -122,6 +122,8 @@ void imodvMovieForm::init()
   writeGroup->addButton(pngRadioButton, 2);
   connect(writeGroup, SIGNAL(buttonClicked(int)), this, 
           SLOT(rgbTiffSelected(int)));
+  connect(fpsSpinBox, SIGNAL(valueChanged(int)), this, SLOT(fpsChanged(int)));
+  connect(sequenceButton, SIGNAL(clicked()), this, SLOT(sequenceClicked()));
   adjustSize();
   setNonTifLabel();
 }
@@ -187,6 +189,18 @@ void imodvMovieForm::rgbTiffSelected( int item )
 void imodvMovieForm::writeToggled( bool state )
 {
   mWriteFiles = state;
+  fpsSpinBox->setEnabled(!state);
+  fpsLabel->setEnabled(!state);
+}
+
+void imodvMovieForm::fpsChanged(int value)
+{
+  mFPS = value;
+}
+
+void imodvMovieForm::sequenceClicked()
+{
+  mvMovieSequenceDialog(Imodv, 1);
 }
 
 // Respond to botton action buttons
@@ -222,24 +236,27 @@ void imodvMovieForm::readStartEnd( int item, float &startVal, float &endVal )
 // Set the contents of start or end edit boxes
 void imodvMovieForm::setStart( int item, float value )
 {
-  mStr.sprintf("%g", value);
+  mStr =QString("%1").arg((double)value, 0, 'g', 4);
   startEdits[item]->setText(mStr);
 }
 
 void imodvMovieForm::setEnd( int item, float value )
 {
-  mStr.sprintf("%g", value);
+  mStr =QString("%1").arg((double)value, 0, 'g', 4);
   endEdits[item]->setText(mStr);
 }
 
 // Initialize the states of the buttons.  Try to get away with not blocking signals
 void imodvMovieForm::setButtonStates( bool longWay, bool reverse, int movieMont,
-				      int rgbTiff, bool writeFiles )
+                                      int rgbTiff, bool writeFiles, int fps)
 {
   longWayBox->setChecked(longWay);
   reverseBox->setChecked(reverse);
   writeBox->setChecked(writeFiles);
   diaSetGroup(makeGroup, movieMont);
+  diaSetSpinBox(fpsSpinBox, fps);
+  fpsSpinBox->setEnabled(!writeFiles);
+  fpsLabel->setEnabled(!writeFiles);
   mRgbTiff = rgbTiff;
   if (ImodPrefs->snapFormat2().isEmpty() && rgbTiff > 1)
     mRgbTiff = 1;
@@ -249,17 +266,19 @@ void imodvMovieForm::setButtonStates( bool longWay, bool reverse, int movieMont,
   mReverse = reverse;
   mMovieMont = movieMont;
   mWriteFiles = writeFiles;
+  mFPS = fps;
 }
 
 // Get the button states back
 void imodvMovieForm::getButtonStates( int &longWay, int &reverse, int &movieMont,
-				      int &rgbTiff, int &writeFiles )
+                                      int &rgbTiff, int &writeFiles, int &fps)
 {
   longWay = mLongWay ? 1 : 0;
   reverse = mReverse ? 1 : 0;
   movieMont = mMovieMont;
   rgbTiff = mRgbTiff;
   writeFiles = mWriteFiles ? 1 : 0;
+  fps = mFPS;
 }
 
 // Get the values in the boxes not in the start-end lists
@@ -276,6 +295,12 @@ void imodvMovieForm::setFrameBoxes( int nMovieFrames, int nMontFrames)
   mStr.sprintf("%d", nMovieFrames);
   framesEdit->setText(mStr);
   montageFramesBox->setValue(nMontFrames);
+}
+
+// Manage the Sequence button
+void imodvMovieForm::sequenceOpen(bool state)
+{
+  sequenceButton->setEnabled(!state);
 }
 
 // Enable the movie or montage part of the form

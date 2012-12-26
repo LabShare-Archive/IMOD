@@ -17,6 +17,7 @@ class imodvMovieForm : public QWidget, public Ui::imodvMovieForm
     public:
   imodvMovieForm(QWidget* parent = 0, Qt::WindowFlags fl = 0);
   ~imodvMovieForm();
+  void sequenceOpen(bool state);
 
   public slots:
     virtual void init();
@@ -30,6 +31,8 @@ class imodvMovieForm : public QWidget, public Ui::imodvMovieForm
   virtual void movieMontSelected( int item );
   virtual void rgbTiffSelected( int item );
   virtual void writeToggled( bool state );
+  virtual void fpsChanged(int value);
+  virtual void sequenceClicked();
   virtual void closePressed();
   virtual void makePressed();
   virtual void stopPressed();
@@ -37,8 +40,8 @@ class imodvMovieForm : public QWidget, public Ui::imodvMovieForm
   virtual void readStartEnd( int item, float & startVal, float & endVal );
   virtual void setStart( int item, float value );
   virtual void setEnd( int item, float value );
-  virtual void setButtonStates( bool longWay, bool reverse, int movieMont, int rgbTiff, bool writeFiles );
-  virtual void getButtonStates( int & longWay, int & reverse, int & movieMont, int & rgbTiff, int & writeFiles );
+  virtual void setButtonStates( bool longWay, bool reverse, int movieMont, int rgbTiff, bool writeFiles, int fps );
+  virtual void getButtonStates( int & longWay, int & reverse, int & movieMont, int & rgbTiff, int & writeFiles, int &fps);
   virtual void getFrameBoxes( int & nMovieFrames, int & nMontFrames );
   virtual void setFrameBoxes( int nMovieFrames, int nMontFrames );
   virtual void manageSensitivities( int movieMont );
@@ -55,6 +58,7 @@ class imodvMovieForm : public QWidget, public Ui::imodvMovieForm
   int mRgbTiff;
   int mMovieMont;
   bool mWriteFiles;
+  int mFPS;
   QButtonGroup *makeGroup;
   QButtonGroup *writeGroup;
 
