@@ -21,13 +21,13 @@ typedef struct __imodv_struct ImodvApp;
 
 /* Image Control functions. */
 void imodvDrawImage(ImodvApp *a, int drawTrans);
-void imodvImageEditDialog(ImodvApp *a, int state);
-void imodvImageUpdate(ImodvApp *a);
-void imodvImageSetThickTrans(int slices, int trans);
-int imodvImageGetThickness(void);
-int imodvImageGetTransparency(void);
-int imodvImageGetFlags(void);
-void imodvImageCleanup();
+void mvImageEditDialog(ImodvApp *a, int state);
+void mvImageUpdate(ImodvApp *a);
+void mvImageSetThickTrans(int slices, int trans);
+int mvImageGetThickness(void);
+int mvImageGetTransparency(void);
+int mvImageGetFlags(void);
+void mvImageCleanup();
 void mvImageGetMovieState(MovieSegment &segment);
 void mvImageSetMovieEndState(int startEnd, MovieSegment &segment);
 int mvImageSetMovieDrawState(MovieSegment &segment);

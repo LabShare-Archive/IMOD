@@ -202,7 +202,7 @@ static void initstruct(ImodView *vw, ImodvApp *a)
   a->fullscreen = 0;
 
   a->standalone = 0;
-  a->texMap  = imodvImageGetFlags() ? 1 : 0;
+  a->texMap  = mvImageGetFlags() ? 1 : 0;
   a->texTrans = 0;
   a->vi = vw;
 
@@ -779,7 +779,7 @@ void imodvQuit()
   onceOpened = 1;
   lastGeom = ivwRestorableGeometry(a->mainWin);
   vbCleanupVBD(Imodv->imod);
-  imodvImageCleanup();
+  mvImageCleanup();
 
   if (a->boundBoxExtraObj > 0)
     ivwFreeExtraObject(a->vi, a->boundBoxExtraObj);

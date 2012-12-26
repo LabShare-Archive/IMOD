@@ -85,7 +85,7 @@ void imodvEditMenu(int item)
     imodvViewEditDialog(Imodv, 1);
     break;
   case VEDIT_MENU_IMAGE: /* image */
-    imodvImageEditDialog(Imodv, 1);
+    mvImageEditDialog(Imodv, 1);
     break;
   case VEDIT_MENU_ISOSURFACE: /*isosurface*/
     imodvIsosurfaceEditDialog(Imodv, 1);
@@ -346,7 +346,7 @@ void imodvFileMenu(int item)
     break;
 
   case VFILE_MENU_MOVIE:
-    imodvMovieDialog(Imodv, 1);
+    mvMovieDialog(Imodv, 1);
     break;
  
   case VFILE_MENU_SEQUENCE:
@@ -577,11 +577,11 @@ void imodvOpenSelectedWindows(char *keys)
     if (strchr(keys, 'M'))
       imodvModelEditDialog(Imodv, 1);
     if (strchr(keys, 'm'))
-      imodvMovieDialog(Imodv, 1);
+      mvMovieDialog(Imodv, 1);
     if (strchr(keys, 'N'))
       mvMovieSequenceDialog(Imodv, 1);
     if (strchr(keys, 'I') && !Imodv->standalone)
-      imodvImageEditDialog(Imodv, 1);
+      mvImageEditDialog(Imodv, 1);
     if (strchr(keys, 'U') && !Imodv->standalone)
       imodvIsosurfaceEditDialog(Imodv, 1);
     if (strchr(keys, 'S'))

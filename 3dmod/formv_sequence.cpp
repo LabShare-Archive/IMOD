@@ -246,7 +246,7 @@ void MovieSequenceForm::runAllClicked()
   int i;
   for (i = 0; i < mSegments->size(); i++) {
     mvMovieSetSegment(mSegments->at(i));
-    if (imodvMovieMake())
+    if (mvMovieMake())
       break;
   }
 }

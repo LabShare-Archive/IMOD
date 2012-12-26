@@ -83,7 +83,7 @@ int    sFlags = 0;
 static double sWallLoad, sWallDraw;
 
 // Open, close, or raise the dialog box
-void imodvImageEditDialog(ImodvApp *a, int state)
+void mvImageEditDialog(ImodvApp *a, int state)
 {
   if (!state){
     if (sDia)
@@ -101,11 +101,11 @@ void imodvImageEditDialog(ImodvApp *a, int state)
   makeColorMap();
   imodvDialogManager.add((QWidget *)sDia, IMODV_DIALOG);
   adjustGeometryAndShow((QWidget *)sDia, IMODV_DIALOG);
-  imodvImageUpdate(a);
+  mvImageUpdate(a);
 }
 
 // Update the dialog box (just the view flag for now)
-void imodvImageUpdate(ImodvApp *a)
+void mvImageUpdate(ImodvApp *a)
 {
   if (a->texMap && !sFlags) {
     sFlags |= IMODV_DRAW_CZ;
@@ -113,7 +113,7 @@ void imodvImageUpdate(ImodvApp *a)
       diaSetChecked(sDia->mViewZBox, true);
   } else if (!a->texMap && sFlags) {
     sFlags = 0;
-    imodvImageCleanup();
+    mvImageCleanup();
     if (sDia) {
       diaSetChecked(sDia->mViewXBox, false);
       diaSetChecked(sDia->mViewYBox, false);
@@ -127,14 +127,14 @@ void imodvImageUpdate(ImodvApp *a)
   }
 }
 
-int imodvImageGetFlags(void)
+int mvImageGetFlags(void)
 {
   return sFlags;
 }
 
 // Set the number of slices and the transparency from movie controller - 
 // do not update the image
-void imodvImageSetThickTrans(int slices, int trans)
+void mvImageSetThickTrans(int slices, int trans)
 {
  int maxSlices = Imodv->vi->zsize < MAX_SLICES ?
     Imodv->vi->zsize : MAX_SLICES;
@@ -155,11 +155,11 @@ void imodvImageSetThickTrans(int slices, int trans)
 }
 
 // Return the number of slices and transparancy
-int imodvImageGetThickness(void)
+int mvImageGetThickness(void)
 {
   return sNumSlices;
 }
-int imodvImageGetTransparency(void)
+int mvImageGetTransparency(void)
 {
   return sImageTrans;
 }
@@ -189,7 +189,7 @@ int mvImageSetMovieDrawState(MovieSegment &segment)
     // take the update route to updating this module
     Imodv->texMap = 0;
     if (sFlags) 
-      imodvImageUpdate(Imodv);
+      mvImageUpdate(Imodv);
     return 1;
   }
   sFlags = segment.imgAxisFlags;
@@ -819,11 +819,11 @@ static void endTexMapping()
 {
   sFlags = 0;
   Imodv->texMap = 0;
-  imodvImageCleanup();
+  mvImageCleanup();
 }
 
 // Free up image and texture arrays
-void imodvImageCleanup()
+void mvImageCleanup()
 {
   B3DFREE(sTdata);
   if (sTexImageSize)

@@ -147,22 +147,22 @@ void imodvMovieForm::setNonTifLabel()
 
 void imodvMovieForm::fullXPressed()
 {
-  imodvMovieFullAxis(IMODV_MOVIE_FULLAXIS_X);
+  mvMovieFullAxis(IMODV_MOVIE_FULLAXIS_X);
 }
 
 void imodvMovieForm::fullYPressed()
 {
-  imodvMovieFullAxis(IMODV_MOVIE_FULLAXIS_Y);
+  mvMovieFullAxis(IMODV_MOVIE_FULLAXIS_Y);
 }
 
 void imodvMovieForm::setStartPressed()
 {
-  imodvMovieSetStart();
+  mvMovieSetStart();
 }
 
 void imodvMovieForm::setEndPressed()
 {
-  imodvMovieSetEnd();
+  mvMovieSetEnd();
 }
 
 // Record the state of toggle buttons
@@ -206,22 +206,22 @@ void imodvMovieForm::sequenceClicked()
 // Respond to botton action buttons
 void imodvMovieForm::closePressed()
 {
-  imodvMovieQuit();
+  mvMovieQuit();
 }
 
 void imodvMovieForm::makePressed()
 {
-  imodvMovieMake();
+  mvMovieMake();
 }
 
 void imodvMovieForm::stopPressed()
 {
-  imodvMovieStop();
+  mvMovieStop();
 }
 
 void imodvMovieForm::helpPressed()
 {
-  imodvMovieHelp();
+  mvMovieHelp();
 }
 
 // Read out the start and end edit boxes
@@ -326,7 +326,7 @@ void imodvMovieForm::manageSensitivities( int movieMont )
 
 void imodvMovieForm::closeEvent( QCloseEvent * e )
 {
-  imodvMovieClosing();
+  mvMovieClosing();
   e->accept();
 }
 
@@ -334,7 +334,7 @@ void imodvMovieForm::closeEvent( QCloseEvent * e )
 void imodvMovieForm::keyPressEvent( QKeyEvent * e )
 {
   if (utilCloseKey(e))
-    imodvMovieQuit();
+    mvMovieQuit();
   else
     imodvKeyPress(e);
 }

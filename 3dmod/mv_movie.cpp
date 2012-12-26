@@ -62,7 +62,7 @@ static void readStartEndInts(int index, int &startVal, int &endVal);
 static void setSegmentState(MovieSegment &segment, MovieTerminus *term);
 
 
-void imodvMovieHelp()
+void mvMovieHelp()
 {
   imodShowHelpPage("modelMovie.html#TOP");
 }
@@ -105,13 +105,13 @@ static void setAllStartOrEnd(int startEnd)
     setOneStartOrEnd(startEnd, 7, (int)(Imodv->vi->xmouse + 1.5));
     setOneStartOrEnd(startEnd, 8, (int)(Imodv->vi->ymouse + 1.5));
     setOneStartOrEnd(startEnd, 9, (int)(Imodv->vi->zmouse + 1.5));
-    setOneStartOrEnd(startEnd, 10, imodvImageGetTransparency());
-    setOneStartOrEnd(startEnd, 11, imodvImageGetThickness());
+    setOneStartOrEnd(startEnd, 10, mvImageGetTransparency());
+    setOneStartOrEnd(startEnd, 11, mvImageGetThickness());
   }
 }
 
 // Set the starting values to the current display values
-void imodvMovieSetStart()
+void mvMovieSetStart()
 {
   Iview *vw = &Imodv->imod->view[0];
   setAllStartOrEnd(IMODV_MOVIE_START_STATE);
@@ -119,7 +119,7 @@ void imodvMovieSetStart()
 }
 
 // Set the ending values to the current display values
-void imodvMovieSetEnd()
+void mvMovieSetEnd()
 {
   Iview *vw = &Imodv->imod->view[0];
   setAllStartOrEnd(IMODV_MOVIE_END_STATE);
@@ -127,10 +127,10 @@ void imodvMovieSetEnd()
 }
 
 // Do full axis rotation: set start and end both to same values
-void imodvMovieFullAxis(int ixy)
+void mvMovieFullAxis(int ixy)
 {
-  imodvMovieSetStart();
-  imodvMovieSetEnd();
+  mvMovieSetStart();
+  mvMovieSetEnd();
   sFullaxis = ixy;
 }
 
@@ -143,13 +143,13 @@ void mvMovieMontSelection(int mont)
 }
 
 // The dialog say it wants to close, so send it close signal
-void imodvMovieQuit()
+void mvMovieQuit()
 {
   sDia->close();
 }
 
 // When the dialog actually closes, get button states, clean up and stop movie
-void imodvMovieClosing()
+void mvMovieClosing()
 {
   sDia->getButtonStates(sLongway, sReverse, sMontage,
                         sFile_format, sSaved, sTrialFPS);
@@ -161,12 +161,12 @@ void imodvMovieClosing()
     sSequenceDia->updateEnables(false, false);
 }
 
-void imodvMovieStop()
+void mvMovieStop()
 {
   sAbort = 1;
 }
 
-int imodvMovieMake()
+int mvMovieMake()
 {
   sDia->getButtonStates(sLongway, sReverse, sMontage,
                         sFile_format, sSaved, sTrialFPS);
@@ -182,7 +182,7 @@ int imodvMovieMake()
   return 0;
 }
 
-void imodvMovieDialog(ImodvApp *a, int state)
+void mvMovieDialog(ImodvApp *a, int state)
 {
   if (!state){
     if (sDia) 
@@ -210,8 +210,8 @@ void imodvMovieDialog(ImodvApp *a, int state)
   setModvDialogTitle(sDia, "3dmodv Movie: ");
 
   // Set the states
-  imodvMovieSetStart();
-  imodvMovieSetEnd();
+  mvMovieSetStart();
+  mvMovieSetEnd();
   sDia->setButtonStates(sLongway, sReverse, sMontage,
                         sFile_format, sSaved, sTrialFPS);
   sDia->setFrameBoxes(sFrames, sMontFrames);
@@ -437,7 +437,7 @@ static void setstep(int index, int frame, int loLim, int hiLim, float *start,
   }
 }
 
-void imodvMovieUpdate()
+void mvMovieUpdate()
 {
   if (sDia)
     sDia->setNonTifLabel();
@@ -513,7 +513,7 @@ static int makeMovie(int frames)
     a->vi->xmouse = (int)(xImStart - 0.5);
     a->vi->ymouse = (int)(yImStart - 0.5);
     a->vi->zmouse = (int)(zImStart - 0.5);
-    imodvImageSetThickTrans((int)(thickStart + 0.5), (int)(transpStart + 0.5));
+    mvImageSetThickTrans((int)(thickStart + 0.5), (int)(transpStart + 0.5));
   }
 
   /* get incremental rotation matrix */
@@ -605,7 +605,7 @@ static int makeMovie(int frames)
         a->vi->xmouse = (int)(xImStart + frame * xImStep - 0.5);
         a->vi->ymouse = (int)(yImStart + frame * yImStep - 0.5);
         a->vi->zmouse = (int)(zImStart + frame * zImStep - 0.5);
-        imodvImageSetThickTrans((int)(thickStart + frame * thickStep + 0.5),
+        mvImageSetThickTrans((int)(thickStart + frame * thickStep + 0.5),
                                 (int)(transpStart + frame * transpStep + 0.5));
       }
       for (pl = 0; pl < B3DMIN(sStartClips.count, sEndClips.count); pl++) {
