@@ -721,21 +721,11 @@ void imodvNewModelAngles(Ipoint *rot)
 void imodvSetCaption()
 {
   ImodvApp *a = Imodv;
-  char *window_name;
-  QString str;
   if (ImodvClosed)
     return;
 
-  window_name = imodwEithername((char *)(a->standalone ? "3dmodv:" : 
-                                 "3dmod Model View: "), a->imod->fileName, 1);
-  if (window_name) {
-    str = window_name;
-    free(window_name);
-  } 
-  if (str.isEmpty())
-    str = "3dmod Model View";
-
-  a->mainWin->setWindowTitle(str);
+  setModvDialogTitle(a->mainWin, (char *)(a->standalone ? "3dmodv:" :
+                                          "3dmod Model View: "));
 }
 
 // To call imodDraw if not in standalone mode
