@@ -360,7 +360,7 @@ subroutine getBoundaryLimits(pipinput, ibinning, optPrefix, nxyz, imUnit, ixStar
         enddo
       endif
     enddo
-    write(*,'(5(2x,3i4))')(iz,ixstart(iz),ixend(iz),iz=1,nxyz(3))
+    ! write(*,'(5(2x,3i4))')(iz,ixstart(iz),ixend(iz),iz=1,nxyz(3))
   endif
   return
 end subroutine getBoundaryLimits
