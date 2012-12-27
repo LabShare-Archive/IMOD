@@ -43,7 +43,7 @@ program filltomo
   real*4 sem, scale, facAdd, zcen, ycen, xcen, xp, yp, zp, val, dminOut, dmaxOut, dmeanOut
   real*4 dmin, dmax, dmean
   integer (kind = 8) numPtFilled
-  logical pipinput, doFill, doSrcTests
+  logical pipinput, doFill, doMatTests
   integer*4  numOptArg, numNonOptArg, ierr, ifSrcLimits, ifMatLimits
   integer*4 PipGetInOutFile, PipGetString, PipGetTwoIntegers, PipGetInteger
   !
@@ -166,7 +166,7 @@ program filltomo
   scale = sd(1) / sd(2)
   facAdd = avg(1) - avg(2) * scale
   !
-  doSrcTests = ifSrcLimits > 0 .or. nLeftFill > 0 .or. nRightFill > 0 .or. &
+  doMatTests = ifMatLimits > 0 .or. nLeftFill > 0 .or. nRightFill > 0 .or. &
       nBotFill > 0 .or. nTopFill > 0
   numSecRead = 0
   numPtFilled = 0
@@ -197,7 +197,7 @@ program filltomo
 
         ! Then if filling, only fill if inside the usable boundaries in matched volume
         ! But fill regardless outside the specified borders
-        if (doSrcTests) then
+        if (doMatTests) then
           doFill = (doFill .and. ix >= ixMatStart(iz + 1) .and. ix <= ixMatEnd(iz + 1))  &
               .or. ix < nLeftFill .or. nx - ix <= nRightFill .or. iz < nBotFill .or. &
               nz - iz <= nTopFill
