@@ -53,8 +53,11 @@ edmont$(E): edmont.$(O)
 endmodel$(E): endmodel.$(O)
 	$(FC) -o endmodel endmodel.$(O) $(LDFLG) $(WLIBS)
 
-filltomo$(E): filltomo.$(O)
-	$(FC) -o filltomo filltomo.$(O) $(LDFLG) $(SMALLLIBS)
+filltomo$(E): filltomo.$(O) get_region_contours.$(O)
+	$(FC) -o filltomo filltomo.$(O) get_region_contours.$(O) $(LDFLG) $(SMALLLIBS)
+
+filltomo.$(O): filltomo.f90
+	$(FC) $(FFLAGS) $(OPENMPF) -c filltomo.f90
 
 realscalemod$(E): realscalemod.$(O)
 	$(FC) -o realscalemod realscalemod.$(O) $(LDFLG) $(WLIBS)
