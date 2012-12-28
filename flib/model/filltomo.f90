@@ -15,8 +15,8 @@
 !
 program filltomo
   implicit none
-  integer maxSample
-  parameter (maxSample = 100000)
+  integer maxSample, limThreads
+  parameter (maxSample = 100000, limThreads = 8)
   !
   integer*4 nxyz(3), mxyz(3), nxyzst(3)
   real*4, allocatable :: array(:), brray(:)
@@ -24,8 +24,7 @@ program filltomo
   character*320 inFile, outFile
   !
   integer*4 nxIn, nyIn, nzIn, nxOut, nyOut, nzOut, nx, ny, nz, mode
-
-  real*4 cxyzIn(3), cxyzOut(3), cenXin, cenYin, cenZin, cenXout, cenYout, cenZout
+    real*4 cxyzIn(3), cxyzOut(3), cenXin, cenYin, cenZin, cenXout, cenYout, cenZout
   integer*4 nxyzIn(3), nxyzOut(3), idim
   common /xyz/ nxIn, nyIn, nzIn, nxOut, nyOut, nzOut, cenXin, cenYin, cenZin, cenXout, &
       cenYout, cenZout, nx, ny, nz
@@ -33,7 +32,7 @@ program filltomo
   equivalence (cxyzIn(1), cenXin), (cxyzOut(1), cenXout)
   equivalence (nx, nxyz)
   real*4 minv(3,3), title(20)
-  real*4 avg(2), sd(2)
+  real*4 avg(2), sd(2), dminThread, dmaxThread
   integer*4, allocatable :: ixSrcStart(:), ixSrcEnd(:), ixMatStart(:), ixMatEnd(:)
   character dat*9, tim*8
   character*80 titlech
@@ -42,10 +41,13 @@ program filltomo
   integer*4 numSampZ, izStart, ndat, jz, jy, iy, jx, ix, numSecRead, ind, kti
   real*4 sem, scale, facAdd, zcen, ycen, xcen, xp, yp, zp, val, dminOut, dmaxOut, dmeanOut
   real*4 dmin, dmax, dmean
+  integer*4 indBase, numFillThread, numThreads
   integer (kind = 8) numPtFilled
   logical pipinput, doFill, doMatTests
   integer*4  numOptArg, numNonOptArg, ierr, ifSrcLimits, ifMatLimits
   integer*4 PipGetInOutFile, PipGetString, PipGetTwoIntegers, PipGetInteger
+  integer*4 numOMPthreads, b3dOMPthreadNum
+  ! real*8 wallTime, wallStart, wallTot
   !
   ! fallbacks from ../../manpages/autodoc2man -3 2  filltomo
   integer numOptions
@@ -168,17 +170,35 @@ program filltomo
   !
   doMatTests = ifMatLimits > 0 .or. nLeftFill > 0 .or. nRightFill > 0 .or. &
       nBotFill > 0 .or. nTopFill > 0
+  numThreads = numOMPthreads(limThreads)
   numSecRead = 0
   numPtFilled = 0
+  ! wallTot = 0.
   do iz = 0, nz - 1
-    numFillOnSec = 0
     zcen = iz - cenZout
     call imposn(1, iz, 0)
-    call irdsec(1, array,*99)
     call imposn(2, iz, 0)
-    call irdsec(2, brray,*99)
+    call irdsec(1, array, *99)
+    call irdsec(2, brray, *99)
+    numFillOnSec = 0
+    ! wallStart = wallTime()
+    
+    !$OMP PARALLEL NUM_THREADS(numThreads) &
+    !$OMP SHARED(nx, ny, nz, minv, cenXin, cenYin, cenZin, nxIn, nyIn, nzIn) &
+    !$OMP SHARED(numFillOnSec, ifSrcLimits, ixSrcStart, ixSrcEnd, doMatTests) &
+    !$OMP SHARED(ixMatEnd, nLeftFill, nRightFill, nBotFill, nTopFill, scale, array) &
+    !$OMP SHARED(iz, zcen, brray, ixMatStart, cenZout, cenYout, cenXout, facAdd) &
+    !$OMP SHARED(dminOut, dmaxOut)&
+    !$OMP PRIVATE(iy, ycen, indBase, ix, xcen, xp, yp, zp, doFill, izSrc) &
+    !$OMP PRIVATE(ind, val, numFillThread, dminThread, dmaxThread) &
+    !$OMP DEFAULT(NONE)
+    dminThread = 1.e37
+    dmaxThread = -1.e37
+    numFillThread = 0
+    !$OMP DO
     do iy = 0, ny - 1
       ycen = iy - cenYout
+      indBase = 1 + iy * nx
       do ix = 0, nx - 1
         xcen = ix - cenXout
 
@@ -186,8 +206,8 @@ program filltomo
         xp = minv(1, 1) * xcen + minv(1, 2) * ycen + minv(1, 3) * zcen + cenXin
         yp = minv(2, 1) * xcen + minv(2, 2) * ycen + minv(2, 3) * zcen + cenYin
         zp = minv(3, 1) * xcen + minv(3, 2) * ycen + minv(3, 3) * zcen + cenZin
-        doFill = xp < 0. .or. xp > nxIn - 1 .or. yp < 0. .or. yp > nyIn - 1 .or. zp < 0. &
-            .or. zp > nzIn - 1
+        doFill = xp < 0. .or. xp > nxIn - 1 .or. yp < 0. .or. yp > nyIn - 1 .or.  &
+            zp < 0. .or. zp > nzIn - 1
 
         ! Then if NOT filling, check against the boundary limits in source volume
         if (ifSrcLimits > 0 .and. .not. doFill) then
@@ -198,20 +218,30 @@ program filltomo
         ! Then if filling, only fill if inside the usable boundaries in matched volume
         ! But fill regardless outside the specified borders
         if (doMatTests) then
-          doFill = (doFill .and. ix >= ixMatStart(iz + 1) .and. ix <= ixMatEnd(iz + 1))  &
-              .or. ix < nLeftFill .or. nx - ix <= nRightFill .or. iz < nBotFill .or. &
-              nz - iz <= nTopFill
+          doFill = (doFill .and. ix >= ixMatStart(iz + 1) .and.  &
+              ix <= ixMatEnd(iz + 1)) .or. ix < nLeftFill .or. nx - ix <= nRightFill &
+              .or. iz < nBotFill .or. nz - iz <= nTopFill
         endif
         if (doFill) then
-          numFillOnSec = numFillOnSec + 1
-          ind = 1 + ix + iy * nx
+          numFillThread = numFillThread + 1
+          ind = indBase + ix 
           val = scale * brray(ind) + facAdd
           array(ind) = val
-          dminOut = min(dminOut, val)
-          dmaxOut = max(dmaxOut, val)
+          dminThread = min(dminThread, val)
+          dmaxThread = max(dmaxThread, val)
         endif
       enddo
     enddo
+    !$OMP END DO
+    !$OMP CRITICAL
+    numFillOnSec = numFillOnSec + numFillThread
+    dminOut = min(dminOut, dminThread)
+    dmaxOut = max(dmaxOut, dmaxThread)
+    !$OMP END CRITICAL
+    
+    !$OMP END PARALLEL
+
+    ! wallTot = wallTot + wallTime() - wallStart
     if (numFillOnSec > 0) then
       call imposn(1, iz, 0)
       call iwrsec(1, array)
@@ -219,6 +249,7 @@ program filltomo
       numPtFilled = numPtFilled + numFillOnSec
     endif
   enddo
+  ! write(*,'(a,f8.3)')'Parallel section time', wallTot
   call b3ddate(dat)
   call time(tim)
   write(titlech, 3000) dat, tim
@@ -287,14 +318,11 @@ subroutine getBoundaryLimits(pipinput, ibinning, optPrefix, nxyz, imUnit, ixStar
       call xfrdall2(12, flist, numFlist, nzRaw, icont)
       if (icont > 1) call exitError('READING '//trim(optPrefix)//' STACK TRANSFORM FILE')
 
-      ! Adjust sizes and transform shifts for binning
+      ! Adjust sizes for binning, zero out transform shifts
       nxRaw = nxRaw / ibinning
       nyRaw = nyRaw / ibinning
       nzRaw = nzRaw / ibinning
-      do icont = 1, numFlist
-        flist(1, 3, icont) = flist(1, 3, icont) / ibinning
-        flist(2, 3, icont) = flist(2, 3, icont) / ibinning
-      enddo
+      flist(1:2, 3, 1:numFlist) = 0.
 
       ! Average over the assumed middle of the tilt series
       numApply = max(1, min(10, numFlist / 6))
