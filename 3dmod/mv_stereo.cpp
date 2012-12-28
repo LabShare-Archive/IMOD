@@ -426,7 +426,7 @@ void ImodvStereo::sliderMoved(int which, int value, bool dragging)
 void ImodvStereo::imageToggled(bool state)
 {
   Imodv->imageStereo = state ? 1 : 0;
-  imodvImageUpdate(Imodv);
+  mvImageUpdate(Imodv);
   update();
   imodvDraw(Imodv);
 }

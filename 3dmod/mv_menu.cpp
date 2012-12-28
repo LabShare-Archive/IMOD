@@ -85,7 +85,7 @@ void imodvEditMenu(int item)
     imodvViewEditDialog(Imodv, 1);
     break;
   case VEDIT_MENU_IMAGE: /* image */
-    imodvImageEditDialog(Imodv, 1);
+    mvImageEditDialog(Imodv, 1);
     break;
   case VEDIT_MENU_ISOSURFACE: /*isosurface*/
     imodvIsosurfaceEditDialog(Imodv, 1);
@@ -346,7 +346,11 @@ void imodvFileMenu(int item)
     break;
 
   case VFILE_MENU_MOVIE:
-    imodvMovieDialog(Imodv, 1);
+    mvMovieDialog(Imodv, 1);
+    break;
+ 
+  case VFILE_MENU_SEQUENCE:
+    mvMovieSequenceDialog(Imodv, 1);
     break;
  
   case VFILE_MENU_QUIT:
@@ -573,9 +577,11 @@ void imodvOpenSelectedWindows(char *keys)
     if (strchr(keys, 'M'))
       imodvModelEditDialog(Imodv, 1);
     if (strchr(keys, 'm'))
-      imodvMovieDialog(Imodv, 1);
+      mvMovieDialog(Imodv, 1);
+    if (strchr(keys, 'N'))
+      mvMovieSequenceDialog(Imodv, 1);
     if (strchr(keys, 'I') && !Imodv->standalone)
-      imodvImageEditDialog(Imodv, 1);
+      mvImageEditDialog(Imodv, 1);
     if (strchr(keys, 'U') && !Imodv->standalone)
       imodvIsosurfaceEditDialog(Imodv, 1);
     if (strchr(keys, 'S'))
@@ -590,9 +596,6 @@ void imodvOpenSelectedWindows(char *keys)
 // Background color class
 void ImodvBkgColor::openDialog()
 {
-  QString qstr;
-  char *window_name;
-
   mSelector = new ColorSelector(imodvDialogManager.parent(IMODV_DIALOG), 
                                 "3dmodv background color.",
                                 Imodv->rbgcolor->red(),
@@ -609,13 +612,7 @@ void ImodvBkgColor::openDialog()
   connect(mSelector, SIGNAL(keyRelease(QKeyEvent *)), this, 
           SLOT(keyReleaseSlot(QKeyEvent *)));
 
-  window_name = imodwEithername("3dmodv: ", Imodv->imod->fileName, 1);
-  qstr = window_name;
-  if (window_name)
-    free(window_name);
-  if (qstr.isEmpty())
-    qstr = "3dmodv";
-  mSelector->setWindowTitle(qstr);
+  setModvDialogTitle(mSelector, "3dmodv: ");
 
   imodvDialogManager.add((QWidget *)mSelector, IMODV_DIALOG);
   adjustGeometryAndShow((QWidget *)mSelector, IMODV_DIALOG);

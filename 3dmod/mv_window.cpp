@@ -76,6 +76,7 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   ADD_ACTION(file, "&Zero Snap File #", VFILE_MENU_ZEROSNAP);
   ADD_ACTION(file, "S&et Snap Dir...", VFILE_MENU_SNAPDIR);
   ADD_ACTION_KEY(file, "&Movie/Montage...", VFILE_MENU_MOVIE, Qt::Key_M);
+  ADD_ACTION_KEY(file, "Movie Seque&nce...", VFILE_MENU_SEQUENCE, Qt::Key_N);
 
   ADD_ACTION_KEY(file, a->standalone ? "&Quit" : "&Close", VFILE_MENU_QUIT,
                  Qt::CTRL + Qt::Key_Q);

@@ -33,7 +33,7 @@ you want to take snapshots at a specific size.
 .TP
 .B -E <keys>
 Open the windows specified by the key letters, which are the same as the
-hot keys for opening windows (m, O, C, L, B, M, V, I, U), plus D for
+hot keys for opening windows (m, O, C, L, B, M, N, V, I, U), plus D for
 depth cue and S for stereo.
 .TP
 .B -L
@@ -104,6 +104,9 @@ Open Movie control dialog.
 .TP
 .B M
 Open Model editing dialog.
+.TP
+.B N
+Open Movie Sequence dialog.
 .TP
 .B O
 Open the Object editing dialog.

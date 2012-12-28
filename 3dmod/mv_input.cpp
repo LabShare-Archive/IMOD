@@ -264,13 +264,18 @@ void imodvKeyPress(QKeyEvent *event)
     if (shifted){
       imodvModelEditDialog(Imodv, 1);
     }else{
-      imodvMovieDialog(Imodv, 1);
+      mvMovieDialog(Imodv, 1);
     }
+    break;
+
+  case Qt::Key_N:
+    if (shifted)
+      mvMovieSequenceDialog(Imodv, 1);
     break;
 
   case Qt::Key_I:
     if (shifted && imodvByteImagesExist())
-      imodvImageEditDialog(Imodv, 1);
+      mvImageEditDialog(Imodv, 1);
     break;
 
   case Qt::Key_U:
@@ -421,7 +426,7 @@ void imodvKeyPress(QKeyEvent *event)
       inputUndoRedo(a->vi, 0);
     else if (!a->standalone) {
       a->texMap = 1 - a->texMap;
-      imodvImageUpdate(a);
+      mvImageUpdate(a);
       imodvStereoUpdate();
       imodvDraw(a);
     }

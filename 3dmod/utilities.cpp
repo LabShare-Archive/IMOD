@@ -27,6 +27,7 @@
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include "imod.h"
+#include "imodv.h"
 #include "utilities.h"
 #include "b3dgfx.h"
 #include "preferences.h"
@@ -548,6 +549,24 @@ char *imodwEithername(const char *intro, const char *filein, int modelFirst)
   return(retString);
 }
 
+/* Sets the window title of a model view dialog */
+void setModvDialogTitle(QWidget *dia, const char *intro)
+{
+  QString qstr;
+  char *window_name;
+  int ind;
+  window_name = imodwEithername(intro, Imodv->imod->fileName, 1);
+  qstr = window_name;
+  if (window_name)
+    free(window_name);
+  if (qstr.isEmpty()) {
+    qstr = intro;
+    ind = qstr.lastIndexOf(':');
+    if (ind > 0)
+      qstr = qstr.left(ind);
+  }
+  dia->setWindowTitle(qstr);
+}
 
 /* Appends the given name to window name */
 char *imodwGivenName(const char *intro, const char *filein)

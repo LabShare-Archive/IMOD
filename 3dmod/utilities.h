@@ -70,6 +70,7 @@ float utilWheelToPointSizeScaling(float zoom);
 void utilWprintMeasure(QString &baseMess, Imod *imod, float measure, bool area = false);
 char *imodwfname(const char *intro);
 char *imodwEithername(const char *intro, const char *filein, int modelFirst);
+void setModvDialogTitle(QWidget *dia, const char *intro);
 char *imodwGivenName(const char *intro, const char *filein);
 QString imodCaption(const char *intro);
 #endif

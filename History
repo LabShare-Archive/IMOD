@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/26/12: Added dialog to Model View for saving and running a sequence of
+movie segments with different settings.
+
 12/20/12: Creating a second backup file for dataset files, the .prm file, and
 the project long.(Bug# 1488)
 

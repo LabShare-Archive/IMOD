@@ -697,13 +697,13 @@ void InfoWindow::timerEvent(QTimerEvent *e)
     raise();
 }
 
-void InfoWindow::openSelectedWindows(char *keys)
+void InfoWindow::openSelectedWindows(char *keys, int modelViewOpen)
 {
   bool imageOK = !(App->cvi->fakeImage || App->cvi->rgbStore);
   if (!keys)
     return;
 
-  // Model view uses mBCDILMOSV
+  // Model view uses mBCDILMOSVN
   if (strchr(keys, 'a'))
     editContourSlot(ECONTOUR_MENU_AUTO);
   if (strchr(keys, 'b'))
@@ -722,7 +722,7 @@ void InfoWindow::openSelectedWindows(char *keys)
     editContourSlot(ECONTOUR_MENU_JOIN);
   if (strchr(keys, 'l'))
     editObjectSlot(EOBJECT_MENU_COLOR);
-  if (strchr(keys, 'm') && imageOK)
+  if (strchr(keys, 'm') && imageOK && modelViewOpen == FALSE)
     imageSlot(IMAGE_MENU_LOCATOR);
   if (strchr(keys, 'n'))
     fileSlot(FILE_MENU_MOVIEMONT);

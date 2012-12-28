@@ -901,7 +901,7 @@ int main( int argc, char *argv[])
     imod_info_setbw(App->cvi->black, App->cvi->white);
 
   /* Open up requested dialog windows */
-  ImodInfoWin->openSelectedWindows(windowKeys);
+  ImodInfoWin->openSelectedWindows(windowKeys, modelViewOpen);
     
   /* Start main application input loop. */
   if (Imod_debug)

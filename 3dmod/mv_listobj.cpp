@@ -65,8 +65,6 @@ static bool grouping = false;
 void imodvObjectListDialog(ImodvApp *a, int state)
 {
   int m;
-  QString qstr;
-  char *window_name;
 
   if (!state){
     if (Oolist_dialog)
@@ -123,14 +121,7 @@ void imodvObjectListDialog(ImodvApp *a, int state)
     newHeight = QApplication::desktop()->height() - 100;
   Oolist_dialog->resize(newWidth, newHeight);
 
-  window_name = imodwEithername("3dmodv Object List: ", a->imod->fileName, 1);
-  if (window_name) {
-    qstr = window_name;
-    free(window_name);
-  }
-  if (qstr.isEmpty())
-    qstr = "3dmodv Object List";
-  Oolist_dialog->setWindowTitle(qstr);
+  setModvDialogTitle(Oolist_dialog, "3dmodv Object List: ");
   imodvDialogManager.add((QWidget *)Oolist_dialog, IMODV_DIALOG);
 
   // After getting size with group buttons present, maybe hide them
