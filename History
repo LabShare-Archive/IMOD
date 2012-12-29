@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/28/12: Converted Filltomo and added options to specify the area in the B
+tomogram that has valid data and made Setupcombine add these options when
+appropriate.  This helps fill in bad regions when using over-sized
+reconstructions that have a substantial shift between them.
+
 12/26/12: Added dialog to Model View for saving and running a sequence of
 movie segments with different settings.
 
