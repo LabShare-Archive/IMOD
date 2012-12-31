@@ -1559,7 +1559,7 @@ int putimodscat(int *ob, float *verts)
   Icont *cont;
   int co, pt, v;
      
-  if ((co == checkAssignObject(ob)))
+  if ((co = checkAssignObject(ob)))
     return co;
   if (!iobjScat(sObj->flags)) return(2);
 
@@ -2113,7 +2113,7 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
   int eco;
   int numwarn = -1;
 
-  if ((co == checkAssignObject(ob)))
+  if ((co = checkAssignObject(ob)))
     return co;
   if (*arraySize <= sObj->contsize)
     return(FWRAP_ERROR_FILE_TO_BIG);
