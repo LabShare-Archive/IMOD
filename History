@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/31/12: Fixed -scaled option to Model2point, which was never read in.
+
 12/28/12: Converted Filltomo and added options to specify the area in the B
 tomogram that has valid data and made Setupcombine add these options when
 appropriate.  This helps fill in bad regions when using over-sized
