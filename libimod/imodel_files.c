@@ -1121,7 +1121,7 @@ int imodReadAscii(Imod *imod)
   int mh, vsize, lsize;
   char line[MAXLINE];
   char *strptr;
-  int len, idata, idata2, idata3, idata4, activeVal, nval, gotObjMM;
+  int len, idata, idata2, idata3, activeVal, nval, gotObjMM;
   SlicerAngles slan;
   float value, size, valmin, valmax, objvmin, objvmax;
   Istore store;
@@ -1373,6 +1373,10 @@ int imodReadAscii(Imod *imod)
     if (substr(line, "pixsize"))
       imod->pixsize = (float)atof(&(line[7]));
 
+    if (substr(line, "flipped"))
+      if (atoi(&(line[7])))
+        imod->flags |= IMODF_FLIPYZ;
+
     if (substr(line, "units")){
       if (strstr(line, "mm"))
         imod->units = IMOD_UNIT_MM;
@@ -1482,7 +1486,7 @@ int imodReadAscii(Imod *imod)
     if (substr(line, "Meshsurf") && mh >= 0 && mh < obj->meshsize)
       obj->mesh[mh].surf = atoi(&(line[8]));
 
-    if (substr(line, "view")) {
+    if (substr(line, "view ")) {
       if (imodViewModelNew(imod))
         return(-1);
       view = &imod->view[imod->viewsize - 1];
@@ -1585,6 +1589,7 @@ int imodWriteAscii(Imod *imod)
   fprintf(imod->file, "threshold  %d\n", imod->thresh);
   fprintf(imod->file, "pixsize    %g\n", imod->pixsize);
   fprintf(imod->file, "units      %s\n", imodUnits(imod));
+  fprintf(imod->file, "flipped    %d\n", (imod->flags & IMODF_FLIPYZ) ? 1 : 0);
   if (ref) {
     fprintf(imod->file, "refcurscale %g %g %g\n",
             ref->cscale.x, ref->cscale.y, ref->cscale.z);
