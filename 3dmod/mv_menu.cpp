@@ -39,9 +39,11 @@
 #include "preferences.h"
 #include "control.h"
 #include "scalebar.h"
+#include "utilities.h"
 
 static ImodvBkgColor bkgColor;
 static void toggleWorldFlag(int &globalVal, b3dUInt32 mask, int menuID);
+static int writeOpenedModelFile(ImodvApp *a, FILE *fout);
 
 /* DNM 12/1/02: make this the single path to opening the window, and have
    it keep track of whether window is open or not, and return if it is */
@@ -151,6 +153,7 @@ int imodvLoadModel()
   tmod = imodRead(LATIN1(qname));
   if (!tmod)
     return(-1);
+  utilExchangeFlipRotation(tmod, FLIP_TO_ROTATION);
 
   /* DNM 6/20/01: find out max time and set current time */
   tmod->tmax = 0;
@@ -214,14 +217,7 @@ void imodvFileSave()
                  "wb");
 
   if (fout){
-    a->imod->file = fout;
-    error = imodWrite(a->imod, a->imod->file);
-    /*        error = imodWrite(Imodv->imod, Imodv->imod->file); */
-    fflush(fout);
-    fclose(fout);
-    a->imod->file = NULL;
-    if (!error)
-      dia_puts("Model file saved.");
+    error = writeOpenedModelFile(a, fout);
   } else
     error = 1;
 
@@ -271,11 +267,7 @@ void imodvSaveModelAs()
 
   fout = fopen(LATIN1(QDir::convertSeparators(QString(filename))), "wb");
   if (fout){
-    a->imod->file = fout;
-    error = imodWrite(Imodv->imod, fout);
-    fflush(fout);
-    fclose(fout);
-    Imodv->imod->file = NULL;
+    error = writeOpenedModelFile(a, fout);
 
     if (!error) {
       if (a->imod->fileName)
@@ -288,8 +280,6 @@ void imodvSaveModelAs()
         memcpy(a->imod->name, filename, strlen(filename)+1);
       else
         a->imod->name[0] = 0x00;
-          
-      dia_puts("Model file saved.");
     }
   } else {
     error = 1;
@@ -302,6 +292,23 @@ void imodvSaveModelAs()
   }
   free(nfname1);
   free(filename);
+}
+
+// Do common functions for writing model file after file opened
+// Convert rotation to flip for saving, and back afterwards
+static int writeOpenedModelFile(ImodvApp *a, FILE *fout)
+{
+  int error;
+  a->imod->file = fout;
+  utilExchangeFlipRotation(a->imod, ROTATION_TO_FLIP);
+  error = imodWrite(a->imod, a->imod->file);
+  utilExchangeFlipRotation(a->imod, FLIP_TO_ROTATION);
+  fflush(fout);
+  fclose(fout);
+  a->imod->file = NULL;
+  if (!error)
+    dia_puts("Model file saved.");
+  return error;
 }
 
 // The file menu dispatch function

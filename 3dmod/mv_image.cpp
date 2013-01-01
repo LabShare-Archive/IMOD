@@ -47,7 +47,7 @@ static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
                             Ipoint *clamp, unsigned char *data,
                             int width, int height);
 static void setAlpha(int iz, int zst, int znd, int izdir);
-static void setSliceLimits(int ciz, int miz, bool invertZ, int drawTrans, 
+static void setSliceLimits(int ciz, int zsize, bool invertZ, int drawTrans, 
                            int &zst, int &znd, int &izdir);
 static void setCoordLimits(int cur, int maxSize, int drawSize, 
                            int &str, int &end);
@@ -305,15 +305,15 @@ static void makeColorMap(void)
 }
 
 // Determine starting and ending slice and direction, and set the alpha
-static void setSliceLimits(int ciz, int miz, bool invertZ, int drawTrans, 
+static void setSliceLimits(int ciz, int zsize, bool invertZ, int drawTrans, 
                            int &zst, int &znd, int &izdir)
 {
   zst = ciz - sNumSlices / 2;
   znd = zst + sNumSlices - 1;
   if (zst < 0)
     zst = 0;
-  if (znd >= miz)
-    znd = miz - 1;
+  if (znd >= zsize)
+    znd = zsize - 1;
   izdir = 1;
 
   // If transparency is needed and it is time to draw solid, or no transparency
@@ -373,12 +373,12 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   Ipoint ll, lr, ur, ul, clamp;
   int tstep;
   int cix, ciy, ciz;
-  int mix, miy, miz;
+  int xsize, ysize, zsize;
   int xstr, xend, ystr, yend, zstr, zend, fillXsize;
   unsigned char **idata;
   b3dUInt16 **usidata;
   unsigned char pix;
-  int i, j, ypatch, jend, xpatch, zpatch, iend;
+  int i, j, ypatch, jend, xpatch, zpatch, iend, xconst;
   int u, v, uvind;
   int iz, idir, numSave;
   int cacheSum, curtime;
@@ -393,9 +393,9 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   drawTime.start();
   sWallLoad = sWallDraw = 0.;
      
-  mix = a->vi->xsize;
-  miy = a->vi->ysize;
-  miz = a->vi->zsize;
+  xsize = a->vi->xsize;
+  ysize = a->vi->ysize;
+  zsize = a->vi->zsize;
   if (sDia)
     sDia->updateCoords();
 
@@ -412,9 +412,9 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   }
 
   if (sXdrawSize < 0) {
-    sXdrawSize = mix;
-    sYdrawSize = miy;
-    sZdrawSize = miz;
+    sXdrawSize = xsize;
+    sYdrawSize = ysize;
+    sZdrawSize = zsize;
   }
 
   // If doing stereo pairs, draw the pair as long as the step up stays in the
@@ -485,9 +485,9 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
  /* Draw Current Z image. */
   if (sFlags & IMODV_DRAW_CZ) {
 
-    setSliceLimits(ciz, miz, invertZ, drawTrans, zstr, zend, idir);
-    setCoordLimits(cix, mix, sXdrawSize, xstr, xend);
-    setCoordLimits(ciy, miy, sYdrawSize, ystr, yend);
+    setSliceLimits(ciz, zsize, invertZ, drawTrans, zstr, zend, idir);
+    setCoordLimits(cix, xsize, sXdrawSize, xstr, xend);
+    setCoordLimits(ciy, ysize, sYdrawSize, ystr, yend);
     for (iz = zstr; idir * (zend - iz) >= 0 ; iz += idir) {
       setAlpha(iz, zstr, zend, idir);
       ll.z = lr.z = ur.z = ul.z = iz;
@@ -552,9 +552,9 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   if ((sFlags & IMODV_DRAW_CX) && 
       !(a->stereo && a->imageStereo)) {
 
-    setSliceLimits(cix, mix, invertX, drawTrans, xstr, xend, idir);
-    setCoordLimits(ciy, miy, sYdrawSize, ystr, yend);
-    setCoordLimits(ciz, miz, sZdrawSize, zstr, zend);
+    setSliceLimits(cix, xsize, invertX, drawTrans, xstr, xend, idir);
+    setCoordLimits(ciy, ysize, sYdrawSize, ystr, yend);
+    setCoordLimits(ciz, zsize, sZdrawSize, zstr, zend);
 
     for (xpatch = xstr; idir * (xend - xpatch) >= 0 ; xpatch += idir) {
       setAlpha(xpatch, xstr, xend, idir);
@@ -587,16 +587,19 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
             for (i = ypatch-1; i < iend+1; i++) {
               u = i - (ypatch-1);
               if (imdata[i]) {
+                
+                // Invert Z when accessing cache for flipped data
+                xconst = xpatch + (zsize - 1) * xsize;
                 if (a->vi->ushortStore) {
                   for (j = zpatch-1; j < jend+1; j++) {
                     v = j - (zpatch-1);
-                    pix = bmap[usimdata[i][xpatch + (j * mix)]];
+                    pix = bmap[usimdata[i][xconst - j * xsize]];
                     FILLDATA(pix);
                   }
                 } else {
                   for (j = zpatch-1; j < jend+1; j++) {
                     v = j - (zpatch-1);
-                    pix = imdata[i][xpatch + (j * mix)];
+                    pix = imdata[i][xconst - j * xsize];
                     FILLDATA(pix);
                   }
                 }
@@ -614,13 +617,13 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
                 if (a->vi->ushortStore) {
                   for (i = ypatch-1; i < iend+1; i++) {
                     u = i - (ypatch-1);
-                    pix = bmap[usimdata[j][xpatch + (i * mix)]];
+                    pix = bmap[usimdata[j][xpatch + (i * xsize)]];
                     FILLDATA(pix);
                   }
                 } else {
                   for (i = ypatch-1; i < iend+1; i++) {
                     u = i - (ypatch-1);
-                    pix = imdata[j][xpatch + (i * mix)];
+                    pix = imdata[j][xpatch + (i * xsize)];
                     FILLDATA(pix);
                   }
                 }
@@ -644,9 +647,9 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   /* Draw Current Y image. */
   if ((sFlags & IMODV_DRAW_CY) && 
       !(a->stereo && a->imageStereo)) {
-    setSliceLimits(ciy, miy, invertY, drawTrans, ystr, yend, idir);
-    setCoordLimits(cix, mix, sXdrawSize, xstr, xend);
-    setCoordLimits(ciz, miz, sZdrawSize, zstr, zend);
+    setSliceLimits(ciy, ysize, invertY, drawTrans, ystr, yend, idir);
+    setCoordLimits(cix, xsize, sXdrawSize, xstr, xend);
+    setCoordLimits(ciz, zsize, sZdrawSize, zstr, zend);
 
     for (ypatch = ystr; idir * (yend - ypatch) >= 0 ; ypatch += idir) {
       setAlpha(ypatch, ystr, yend, idir);
@@ -678,16 +681,17 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           for (j = zpatch-1; j < jend+1; j++) {
             v = j - (zpatch-1);
             if (flipped && imdata[ypatch]) {
+              xconst = (zsize - 1 - j) * xsize;
               if (a->vi->ushortStore) {
                 for (i = xpatch-1; i < iend+1; i++) {
                   u = i - (xpatch-1);
-                  pix = bmap[usimdata[ypatch][i + (j * mix)]];
+                  pix = bmap[usimdata[ypatch][i + xconst]];
                   FILLDATA(pix);
                 }
               } else {
                 for (i = xpatch-1; i < iend+1; i++) {
                   u = i - (xpatch-1);
-                  pix = imdata[ypatch][i + (j * mix)];
+                  pix = imdata[ypatch][i + xconst];
                   FILLDATA(pix);
                 }
               }
@@ -695,13 +699,13 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
               if (a->vi->ushortStore) {
                 for (i = xpatch-1; i < iend+1; i++) {
                   u = i - (xpatch-1);
-                  pix = bmap[usimdata[j][i + (ypatch * mix)]];
+                  pix = bmap[usimdata[j][i + (ypatch * xsize)]];
                   FILLDATA(pix);
                 }
               } else {
                 for (i = xpatch-1; i < iend+1; i++) {
                   u = i - (xpatch-1);
-                  pix = imdata[j][i + (ypatch * mix)];
+                  pix = imdata[j][i + (ypatch * xsize)];
                   FILLDATA(pix);
                 }
               }

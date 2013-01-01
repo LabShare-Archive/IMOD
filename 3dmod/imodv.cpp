@@ -42,6 +42,7 @@
 #include "imod_assistant.h"
 #include "sslice.h"
 #include "vertexbuffer.h"
+#include "utilities.h"
 
 #include "b3dicon.xpm"
 
@@ -462,7 +463,7 @@ static int load_models(int n, char **fname, ImodvApp *a)
       return(-1);
     }
     mod = a->mod[i];
-
+    utilExchangeFlipRotation(mod, FLIP_TO_ROTATION);
 
     /* DNM 6/20/01: find out max time and set current time */
     mod->tmax = 0;
