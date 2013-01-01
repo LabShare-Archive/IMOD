@@ -2,7 +2,11 @@ IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 1/1/13: Turned YZ flipping in 3dmod into 90 degree rotation about X to
 preserve handedness; models saved from this state still have Y and Z swapped
-to keep other programs working.
+to keep other programs working.  Modified Trimvol and Findcontrast to work
+with new Z values and to have an option to treat Z values in old way.  Running
+Trimvol in eTomo will work with newly selected Z values but rerunning with
+existing Z values will not work right until eTomo adds a flag to know when
+values are from new-style flipping.
 
 12/31/12: Fixed reading of views from ascii model file.
 
