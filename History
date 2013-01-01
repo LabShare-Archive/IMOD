@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/1/13: Turned YZ flipping in 3dmod into 90 degree rotation about X to
+preserve handedness; models saved from this state still have Y and Z swapped
+to keep other programs working.
+
 12/31/12: Fixed reading of views from ascii model file.
 
 12/31/12: Fixed -scaled option to Model2point, which was never read in.
