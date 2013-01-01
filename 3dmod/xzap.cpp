@@ -3703,7 +3703,7 @@ QString ZapFuncs::printInfo(bool toInfoWindow)
 {
   float xl, xr, yb, yt;
   int ixl, ixr, iyb, iyt, iz;
-  int ixcen, iycen, ixofs, iyofs, imx, imy;
+  int ixcen, iycen, ixofs, iyofs, imx, imy, itmp;
   int bin = mVi->xybin;
   bool ifpad, flipped = mVi->li->axis == 2;
 
@@ -3743,6 +3743,11 @@ QString ZapFuncs::printInfo(bool toInfoWindow)
     wprint("ERROR: %s is out of range.\n", flipped ? "-y" : "-z");
     if (!toInfoWindow)
       return "";
+  }
+  if (flipped) {
+    itmp =  mVi->zsize + 1 - lowSection;
+    lowSection = mVi->zsize + 1 - highSection;
+    highSection = itmp;
   }
   lowSection = mVi->zbin * (lowSection - 1) + 1;
   highSection *= mVi->zbin;
