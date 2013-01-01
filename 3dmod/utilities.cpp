@@ -530,6 +530,18 @@ float utilWheelToPointSizeScaling(float zoom)
   return wheelScale;
 }
 
+/* Converts a flipped model to a rotated one if direction is FLIP_TO_ROTATION, or
+ * a rotated model to a flipped one if direction is ROTATION_TO_FLIP, otherwise
+ * does nothing */
+void utilExchangeFlipRotation(Imod *imod, int direction)
+{
+  if ((direction == FLIP_TO_ROTATION && !(imod->flags & IMODF_FLIPYZ)) ||
+      (direction == ROTATION_TO_FLIP && !(imod->flags & IMODF_ROT90X)))
+    return;
+  imodInvertZ(imod);
+  setOrClearFlags(&imod->flags, IMODF_ROT90X, direction == FLIP_TO_ROTATION ? 1 : 0);
+  setOrClearFlags(&imod->flags, IMODF_FLIPYZ, direction == ROTATION_TO_FLIP ? 1 : 0);
+}
 
 /* Appends either the model or file name to the window name, giving
    first priority to the model name if "modelFirst" is set */
