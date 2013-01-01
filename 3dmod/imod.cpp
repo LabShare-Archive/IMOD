@@ -96,7 +96,7 @@ void imod_usage(char *name)
   qstr += "   -C #  Set # of sections or Mbytes to cache (#M or #m for"
     " Mbytes).\n";
   qstr += "   -F    Fill cache right after starting program.\n";
-  qstr += "   -Y    Flip volume to model planes normal to Y axis.\n";
+  qstr += "   -Y    Rotate volume around X to model planes normal to Y axis.\n";
   qstr += "   -B #  Bin images by # in X, Y, and Z.\n";
   qstr += "   -b nxy,nz  Bin images by nxy in X and Y, by nz in Z (nz "
     "default=1).\n";

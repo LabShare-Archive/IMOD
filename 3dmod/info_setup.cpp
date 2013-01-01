@@ -184,7 +184,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   ADD_ACTION(ePoint, "S&ort by dist", EPOINT_MENU_SORTDIST);
 
   // Edit Image submenu
-  ADD_ACTION(eImage, "F&lip", EIMAGE_MENU_FLIP);
+  ADD_ACTION(eImage, "F&lip/Rotate", EIMAGE_MENU_FLIP);
   ADD_ACTION(eImage, "P&rocess...", EIMAGE_MENU_PROCESS);
   ADD_ACTION(eImage, "R&eload...", EIMAGE_MENU_RELOAD);
   ADD_ACTION(eImage, "F&ill Cache", EIMAGE_MENU_FILLCACHE);
