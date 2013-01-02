@@ -35,6 +35,7 @@ class SliceCache
    void clearAndSetSize(int dim, int hyper, int tSize);
    int *getFreqCount() {return mFreqCount;};
    MrcHeader *getHeader() {return &mHeader;};
+   ~SliceCache();
       
   private:
    int mMaxCacheSize; // in megs;

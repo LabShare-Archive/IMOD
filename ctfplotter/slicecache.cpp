@@ -14,7 +14,7 @@
   (When it was a class for holding slices)
   1) initCache() to init the class;
   2) whatIsNeeded() to tell the class what slices will be needed;
-  3) mAccessOrder=optimalAccessOrder(). It needs to be called before 
+  3) mAccessOrder=optimalAccessOrder(). It needs to be called before
      getSlice() is called.
   4) use getSlice(mAccessOrder[i]), getAngle(mAccessOrder[i])
      to read slices starting from mAccessOrder[0].
@@ -40,6 +40,32 @@ SliceCache::SliceCache(int cacheSize)
   mPsTmp = NULL;
   mFreqCount = NULL;
   mTileToPsInd = NULL;
+}
+
+SliceCache::~SliceCache()
+{
+  for (int i = 0; i < (int)mCachedPS.size(); i++) {
+    free(mCachedPS[i]);
+    free(mCachedTileDone[i]);
+    free(mCachedMeans[i]);
+  }
+  if (mTile)
+    free(mTile);
+  if (mTileToPsInd)
+    free(mTileToPsInd);
+  if (mFreqCount)
+    free(mFreqCount);
+  if (mSliceData)
+    free(mSliceData);
+  if (mPsTmp)
+    free(mPsTmp);
+
+  // Clear cache components
+  mCachedPS.clear();
+  mCachedMeans.clear();
+  mCachedTileDone.clear();
+  mSliceAngles.clear();
+  mCachedSliceMap.clear();
 }
 
 //init SliceCache and clear its old contents
@@ -89,7 +115,7 @@ void SliceCache::clearAndSetSize(int dim, int hyper, int tSize)
   mNumYtiles = mHeader.ny / (tSize / 2) - 1;
   mPsArraySize = numXtiles * mNumYtiles * mPsDim;
   mMaxSliceNum = mMaxCacheSize * 1024 * 1024 / (mPsArraySize * sizeof(float));
-  for (i = 0; i < mCachedPS.size(); i++) {
+  for (i = 0; i < (int)mCachedPS.size(); i++) {
     free(mCachedPS[i]);
     free(mCachedTileDone[i]);
     free(mCachedMeans[i]);
@@ -232,8 +258,8 @@ float *SliceCache::getHyperPS(int tileX, int tileY, int whichSlice,
   int ii, jj, ind, ind2, ix0, iy0;
 
   if (sliceIdx > -1) { // already in cache
-    /*if (debugLevel >= 2)
-      printf("Slice %d is in cache and is included\n", whichSlice); */
+    //if (debugLevel >= 2)
+    //  printf("Slice %d is in cache and is included\n", whichSlice);
 
   } else if (currCacheSize < mMaxSliceNum) { //not in cache and cache not full
     float *newPS = (float *)malloc(mPsArraySize * sizeof(float));
@@ -296,7 +322,7 @@ float *SliceCache::getHyperPS(int tileX, int tileY, int whichSlice,
       unsigned char *bdata = (unsigned char *)mSliceData;
       b3dUInt16 *usdata = (b3dUInt16 *)mSliceData;
       b3dInt16 *sdata = (b3dInt16 *)mSliceData;
-      
+
       switch (mHeader.mode) {
       case MRC_MODE_BYTE:
 	for (ii = mHeader.nx * mHeader.ny - 1; ii >= 0; ii--)

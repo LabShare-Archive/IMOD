@@ -94,6 +94,7 @@ Read parameter entries from standard input
 .nf
 Quanren Xiong
 David Mastronarde
+John Heumann
 .fi
 .SH SEE ALSO
 ctfphaseflip(1)
