@@ -106,7 +106,7 @@ flipyz = PipGetBoolean('FlippedCoordinates', 0)
 oldFlip = PipGetInteger('OldFlippedCoordinates', 0)
 if flipyz:
    fliparg = '-flip'
-   if oldFlip:
+   if oldFlip // 2 > 0:
       fliparg += ' -oldflip'
 
 doflip = PipGetBoolean('FlipYZ', 0)
@@ -137,7 +137,7 @@ if flipyz:
    ifysz = ifzsz
    ifzsz = stmp
    stmp = (ystart, yend)
-   if oldFlip:
+   if oldFlip % 2 > 0:
       (ystart, yend) = (zstart, zend)
    elif index:
       (ystart, yend) = (ny - 1 - zend, ny - 1 - zstart)
