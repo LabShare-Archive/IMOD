@@ -4,6 +4,7 @@ import java.io.File;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
+import etomo.storage.autodoc.AutodocFactory;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
@@ -412,7 +413,7 @@ public final class DatasetFiles {
   }
 
   final static String getAutodocName(String name) {
-    return name + ".adoc";
+    return name + AutodocFactory.EXTENSION;
   }
 
   public static File getShellScript(BaseManager manager, String commandName, AxisID axisID) {

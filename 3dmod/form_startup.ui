@@ -1,39 +1,40 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>StartupForm</class>
- <widget class="QDialog" name="StartupForm" >
-  <property name="geometry" >
+ <widget class="QDialog" name="StartupForm">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>805</width>
+    <width>839</width>
     <height>509</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>3dmod Startup</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_4" >
+  <layout class="QVBoxLayout" name="verticalLayout_4">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3" >
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <layout class="QVBoxLayout" >
+      <layout class="QVBoxLayout">
        <item>
-        <layout class="QHBoxLayout" >
-         <property name="spacing" >
+        <layout class="QHBoxLayout">
+         <property name="spacing">
           <number>6</number>
          </property>
-         <property name="margin" >
+         <property name="margin">
           <number>0</number>
          </property>
          <item>
-          <spacer name="Spacer11" >
-           <property name="orientation" >
+          <spacer name="Spacer11">
+           <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
-           <property name="sizeType" >
+           <property name="sizeType">
             <enum>QSizePolicy::Expanding</enum>
            </property>
-           <property name="sizeHint" stdset="0" >
+           <property name="sizeHint" stdset="0">
             <size>
              <width>53</width>
              <height>16</height>
@@ -42,39 +43,39 @@
           </spacer>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox" >
-           <property name="title" >
+          <widget class="QGroupBox" name="groupBox">
+           <property name="title">
             <string>Start program as</string>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout" >
-            <property name="leftMargin" >
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <property name="leftMargin">
              <number>5</number>
             </property>
-            <property name="topMargin" >
+            <property name="topMargin">
              <number>2</number>
             </property>
-            <property name="rightMargin" >
+            <property name="rightMargin">
              <number>5</number>
             </property>
-            <property name="bottomMargin" >
+            <property name="bottomMargin">
              <number>5</number>
             </property>
             <item>
-             <widget class="QRadioButton" name="start3dmodRadio" >
-              <property name="toolTip" >
+             <widget class="QRadioButton" name="start3dmodRadio">
+              <property name="toolTip">
                <string>Start full 3dmod program</string>
               </property>
-              <property name="text" >
+              <property name="text">
                <string>3dmod - open Info and image windows</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QRadioButton" name="startModvRadio" >
-              <property name="toolTip" >
+             <widget class="QRadioButton" name="startModvRadio">
+              <property name="toolTip">
                <string>Start 3dmodv in standalone model view mode</string>
               </property>
-              <property name="text" >
+              <property name="text">
                <string>3dmodv - open Model View window only</string>
               </property>
              </widget>
@@ -83,14 +84,14 @@
           </widget>
          </item>
          <item>
-          <spacer name="Spacer10" >
-           <property name="orientation" >
+          <spacer name="Spacer10">
+           <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
-           <property name="sizeType" >
+           <property name="sizeType">
             <enum>QSizePolicy::Expanding</enum>
            </property>
-           <property name="sizeHint" stdset="0" >
+           <property name="sizeHint" stdset="0">
             <size>
              <width>53</width>
              <height>16</height>
@@ -101,154 +102,154 @@
         </layout>
        </item>
        <item>
-        <layout class="QGridLayout" >
-         <item row="1" column="1" >
-          <widget class="QLineEdit" name="modelFileEdit" />
+        <layout class="QGridLayout">
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="modelFileEdit"/>
          </item>
-         <item row="0" column="1" >
-          <widget class="QLineEdit" name="imageFilesEdit" />
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="imageFilesEdit"/>
          </item>
-         <item row="1" column="2" >
-          <widget class="QPushButton" name="modelSelectButton" >
-           <property name="focusPolicy" >
+         <item row="1" column="2">
+          <widget class="QPushButton" name="modelSelectButton">
+           <property name="focusPolicy">
             <enum>Qt::NoFocus</enum>
            </property>
-           <property name="text" >
+           <property name="text">
             <string>Select...</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="1" >
-          <widget class="QLineEdit" name="pieceFileEdit" />
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="pieceFileEdit"/>
          </item>
-         <item row="0" column="2" >
-          <widget class="QPushButton" name="imageSelectButton" >
-           <property name="focusPolicy" >
+         <item row="0" column="2">
+          <widget class="QPushButton" name="imageSelectButton">
+           <property name="focusPolicy">
             <enum>Qt::NoFocus</enum>
            </property>
-           <property name="text" >
+           <property name="text">
             <string>Select...</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="2" >
-          <widget class="QPushButton" name="pieceSelectButton" >
-           <property name="focusPolicy" >
+         <item row="2" column="2">
+          <widget class="QPushButton" name="pieceSelectButton">
+           <property name="focusPolicy">
             <enum>Qt::NoFocus</enum>
            </property>
-           <property name="text" >
+           <property name="text">
             <string>Select...</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="0" >
-          <widget class="QLabel" name="imageFilesLabel" >
-           <property name="text" >
+         <item row="0" column="0">
+          <widget class="QLabel" name="imageFilesLabel">
+           <property name="text">
             <string>Image file(s):</string>
            </property>
-           <property name="wordWrap" >
+           <property name="wordWrap">
             <bool>false</bool>
            </property>
           </widget>
          </item>
-         <item row="2" column="0" >
-          <widget class="QLabel" name="pieceFileLabel" >
-           <property name="text" >
+         <item row="2" column="0">
+          <widget class="QLabel" name="pieceFileLabel">
+           <property name="text">
             <string>Piece file:</string>
            </property>
-           <property name="wordWrap" >
+           <property name="wordWrap">
             <bool>false</bool>
            </property>
           </widget>
          </item>
-         <item row="3" column="0" >
-          <widget class="QLabel" name="angleFileLabel" >
-           <property name="text" >
+         <item row="3" column="0">
+          <widget class="QLabel" name="angleFileLabel">
+           <property name="text">
             <string>Angle file:</string>
            </property>
-           <property name="wordWrap" >
+           <property name="wordWrap">
             <bool>false</bool>
            </property>
           </widget>
          </item>
-         <item row="3" column="2" >
-          <widget class="QPushButton" name="angleSelectButton" >
-           <property name="focusPolicy" >
+         <item row="3" column="2">
+          <widget class="QPushButton" name="angleSelectButton">
+           <property name="focusPolicy">
             <enum>Qt::NoFocus</enum>
            </property>
-           <property name="text" >
+           <property name="text">
             <string>Select...</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="0" >
-          <widget class="QLabel" name="modelFileLabel" >
-           <property name="text" >
+         <item row="1" column="0">
+          <widget class="QLabel" name="modelFileLabel">
+           <property name="text">
             <string>Model file:</string>
            </property>
-           <property name="wordWrap" >
+           <property name="wordWrap">
             <bool>false</bool>
            </property>
           </widget>
          </item>
-         <item row="3" column="1" >
-          <widget class="QLineEdit" name="angleFileEdit" />
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="angleFileEdit"/>
          </item>
         </layout>
        </item>
        <item>
-        <widget class="Line" name="Line1" >
-         <property name="frameShape" >
+        <widget class="Line" name="Line1">
+         <property name="frameShape">
           <enum>QFrame::HLine</enum>
          </property>
-         <property name="frameShadow" >
+         <property name="frameShadow">
           <enum>QFrame::Sunken</enum>
          </property>
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" >
+        <layout class="QHBoxLayout">
          <item>
-          <layout class="QVBoxLayout" >
+          <layout class="QVBoxLayout">
            <item>
-            <widget class="QGroupBox" name="subsetsBox" >
-             <property name="title" >
+            <widget class="QGroupBox" name="subsetsBox">
+             <property name="title">
               <string>Load image subset (numbered from 0)</string>
              </property>
-             <layout class="QVBoxLayout" >
-              <property name="spacing" >
+             <layout class="QVBoxLayout">
+              <property name="spacing">
                <number>6</number>
               </property>
-              <property name="margin" >
+              <property name="margin">
                <number>11</number>
               </property>
               <item>
-               <layout class="QHBoxLayout" >
-                <property name="spacing" >
+               <layout class="QHBoxLayout">
+                <property name="spacing">
                  <number>6</number>
                 </property>
-                <property name="margin" >
+                <property name="margin">
                  <number>0</number>
                 </property>
                 <item>
-                 <widget class="QLabel" name="xMinLabel" >
-                  <property name="text" >
+                 <widget class="QLabel" name="xMinLabel">
+                  <property name="text">
                    <string>X from:</string>
                   </property>
-                  <property name="wordWrap" >
+                  <property name="wordWrap">
                    <bool>false</bool>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="xFromEdit" >
-                  <property name="sizePolicy" >
-                   <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+                 <widget class="QLineEdit" name="xFromEdit">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
-                  <property name="maximumSize" >
+                  <property name="maximumSize">
                    <size>
                     <width>60</width>
                     <height>32767</height>
@@ -257,27 +258,27 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLabel" name="xToLabel" >
-                  <property name="text" >
+                 <widget class="QLabel" name="xToLabel">
+                  <property name="text">
                    <string>to:</string>
                   </property>
-                  <property name="alignment" >
+                  <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                   </property>
-                  <property name="wordWrap" >
+                  <property name="wordWrap">
                    <bool>false</bool>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="xToEdit" >
-                  <property name="sizePolicy" >
-                   <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+                 <widget class="QLineEdit" name="xToEdit">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
-                  <property name="maximumSize" >
+                  <property name="maximumSize">
                    <size>
                     <width>60</width>
                     <height>32767</height>
@@ -288,32 +289,32 @@
                </layout>
               </item>
               <item>
-               <layout class="QHBoxLayout" >
-                <property name="spacing" >
+               <layout class="QHBoxLayout">
+                <property name="spacing">
                  <number>6</number>
                 </property>
-                <property name="margin" >
+                <property name="margin">
                  <number>0</number>
                 </property>
                 <item>
-                 <widget class="QLabel" name="yMinLabel" >
-                  <property name="text" >
+                 <widget class="QLabel" name="yMinLabel">
+                  <property name="text">
                    <string>Y from:</string>
                   </property>
-                  <property name="wordWrap" >
+                  <property name="wordWrap">
                    <bool>false</bool>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="yFromEdit" >
-                  <property name="sizePolicy" >
-                   <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+                 <widget class="QLineEdit" name="yFromEdit">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
-                  <property name="maximumSize" >
+                  <property name="maximumSize">
                    <size>
                     <width>60</width>
                     <height>32767</height>
@@ -322,27 +323,27 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLabel" name="yToLabel" >
-                  <property name="text" >
+                 <widget class="QLabel" name="yToLabel">
+                  <property name="text">
                    <string>to:</string>
                   </property>
-                  <property name="alignment" >
+                  <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                   </property>
-                  <property name="wordWrap" >
+                  <property name="wordWrap">
                    <bool>false</bool>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="yToEdit" >
-                  <property name="sizePolicy" >
-                   <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+                 <widget class="QLineEdit" name="yToEdit">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
-                  <property name="maximumSize" >
+                  <property name="maximumSize">
                    <size>
                     <width>60</width>
                     <height>32767</height>
@@ -353,32 +354,32 @@
                </layout>
               </item>
               <item>
-               <layout class="QHBoxLayout" >
-                <property name="spacing" >
+               <layout class="QHBoxLayout">
+                <property name="spacing">
                  <number>6</number>
                 </property>
-                <property name="margin" >
+                <property name="margin">
                  <number>0</number>
                 </property>
                 <item>
-                 <widget class="QLabel" name="zMinLabel" >
-                  <property name="text" >
+                 <widget class="QLabel" name="zMinLabel">
+                  <property name="text">
                    <string>Z from:</string>
                   </property>
-                  <property name="wordWrap" >
+                  <property name="wordWrap">
                    <bool>false</bool>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="zFromEdit" >
-                  <property name="sizePolicy" >
-                   <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+                 <widget class="QLineEdit" name="zFromEdit">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
-                  <property name="maximumSize" >
+                  <property name="maximumSize">
                    <size>
                     <width>60</width>
                     <height>32767</height>
@@ -387,27 +388,27 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLabel" name="zToLabel" >
-                  <property name="text" >
+                 <widget class="QLabel" name="zToLabel">
+                  <property name="text">
                    <string>to:</string>
                   </property>
-                  <property name="alignment" >
+                  <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                   </property>
-                  <property name="wordWrap" >
+                  <property name="wordWrap">
                    <bool>false</bool>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="zToEdit" >
-                  <property name="sizePolicy" >
-                   <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+                 <widget class="QLineEdit" name="zToEdit">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
-                  <property name="maximumSize" >
+                  <property name="maximumSize">
                    <size>
                     <width>60</width>
                     <height>32767</height>
@@ -421,53 +422,53 @@
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" >
+            <layout class="QHBoxLayout">
              <item>
-              <widget class="QLabel" name="binByLabel" >
-               <property name="text" >
+              <widget class="QLabel" name="binByLabel">
+               <property name="text">
                 <string>Bin by</string>
                </property>
-               <property name="wordWrap" >
+               <property name="wordWrap">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QSpinBox" name="binXYSpinBox" >
-               <property name="minimum" >
+              <widget class="QSpinBox" name="binXYSpinBox">
+               <property name="minimum">
                 <number>1</number>
                </property>
-               <property name="maximum" >
+               <property name="maximum">
                 <number>32</number>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="binByXYLabel" >
-               <property name="text" >
+              <widget class="QLabel" name="binByXYLabel">
+               <property name="text">
                 <string>in X/Y, </string>
                </property>
-               <property name="wordWrap" >
+               <property name="wordWrap">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QSpinBox" name="binZSpinBox" >
-               <property name="minimum" >
+              <widget class="QSpinBox" name="binZSpinBox">
+               <property name="minimum">
                 <number>1</number>
                </property>
-               <property name="maximum" >
+               <property name="maximum">
                 <number>32</number>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="binByZLabel" >
-               <property name="text" >
+              <widget class="QLabel" name="binByZLabel">
+               <property name="text">
                 <string>in Z</string>
                </property>
-               <property name="wordWrap" >
+               <property name="wordWrap">
                 <bool>false</bool>
                </property>
               </widget>
@@ -477,35 +478,35 @@
           </layout>
          </item>
          <item>
-          <widget class="QGroupBox" name="openWhichBox" >
-           <property name="title" >
+          <widget class="QGroupBox" name="openWhichBox">
+           <property name="title">
             <string>Open</string>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_5" >
+           <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
-             <widget class="QCheckBox" name="openXYZBox" >
-              <property name="text" >
+             <widget class="QCheckBox" name="openXYZBox">
+              <property name="text">
                <string>XYZ window</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="openModvBox" >
-              <property name="text" >
+             <widget class="QCheckBox" name="openModvBox">
+              <property name="text">
                <string>Model View</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="openZapBox" >
-              <property name="text" >
+             <widget class="QCheckBox" name="openZapBox">
+              <property name="text">
                <string>Zap window</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="openSlicerBox" >
-              <property name="text" >
+             <widget class="QCheckBox" name="openSlicerBox">
+              <property name="text">
                <string>Slicer</string>
               </property>
              </widget>
@@ -516,32 +517,32 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" >
-         <property name="spacing" >
+        <layout class="QHBoxLayout">
+         <property name="spacing">
           <number>6</number>
          </property>
-         <property name="margin" >
+         <property name="margin">
           <number>0</number>
          </property>
          <item>
-          <widget class="QLabel" name="scaleImageLabel" >
-           <property name="text" >
+          <widget class="QLabel" name="scaleImageLabel">
+           <property name="text">
             <string>Scale image intensities:</string>
            </property>
-           <property name="wordWrap" >
+           <property name="wordWrap">
             <bool>false</bool>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="scaleFromEdit" >
-           <property name="sizePolicy" >
-            <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+          <widget class="QLineEdit" name="scaleFromEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="maximumSize" >
+           <property name="maximumSize">
             <size>
              <width>60</width>
              <height>32767</height>
@@ -550,24 +551,24 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="to0Label" >
-           <property name="text" >
+          <widget class="QLabel" name="to0Label">
+           <property name="text">
             <string>to 0,</string>
            </property>
-           <property name="wordWrap" >
+           <property name="wordWrap">
             <bool>false</bool>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="scaleToEdit" >
-           <property name="sizePolicy" >
-            <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+          <widget class="QLineEdit" name="scaleToEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="maximumSize" >
+           <property name="maximumSize">
             <size>
              <width>60</width>
              <height>32767</height>
@@ -576,24 +577,24 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="to255Label" >
-           <property name="text" >
+          <widget class="QLabel" name="to255Label">
+           <property name="text">
             <string>to 255</string>
            </property>
-           <property name="wordWrap" >
+           <property name="wordWrap">
             <bool>false</bool>
            </property>
           </widget>
          </item>
          <item>
-          <spacer name="Spacer12" >
-           <property name="orientation" >
+          <spacer name="Spacer12">
+           <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
-           <property name="sizeType" >
+           <property name="sizeType">
             <enum>QSizePolicy::Expanding</enum>
            </property>
-           <property name="sizeHint" stdset="0" >
+           <property name="sizeHint" stdset="0">
             <size>
              <width>30</width>
              <height>0</height>
@@ -606,35 +607,35 @@
       </layout>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_3" >
+      <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <widget class="QGroupBox" name="groupBox_2" >
-         <property name="title" >
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
           <string/>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout" >
-          <property name="margin" >
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="margin">
            <number>5</number>
           </property>
           <item>
-           <widget class="QLabel" name="useCacheLabel" >
-            <property name="text" >
+           <widget class="QLabel" name="useCacheLabel">
+            <property name="text">
              <string>Use cache, set to:</string>
             </property>
-            <property name="wordWrap" >
+            <property name="wordWrap">
              <bool>false</bool>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="cacheSizeEdit" >
-            <property name="sizePolicy" >
-             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+           <widget class="QLineEdit" name="cacheSizeEdit">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="maximumSize" >
+            <property name="maximumSize">
              <size>
               <width>60</width>
               <height>32767</height>
@@ -643,15 +644,15 @@
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="cacheSectionsButton" >
-            <property name="text" >
+           <widget class="QRadioButton" name="cacheSectionsButton">
+            <property name="text">
              <string>Sections</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="megabyteButton" >
-            <property name="text" >
+           <widget class="QRadioButton" name="megabyteButton">
+            <property name="text">
              <string>Megabytes</string>
             </property>
            </widget>
@@ -660,112 +661,112 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="fillCacheBox" >
-         <property name="text" >
+        <widget class="QCheckBox" name="fillCacheBox">
+         <property name="text">
           <string>Fill cache upon startup</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="flipCheckBox" >
-         <property name="text" >
-          <string>Flip Y and Z</string>
+        <widget class="QCheckBox" name="flipCheckBox">
+         <property name="text">
+          <string>Flip Y and Z sizes by rotating around X</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="loadUshortBox" >
-         <property name="text" >
+        <widget class="QCheckBox" name="loadUshortBox">
+         <property name="text">
           <string>Load non-byte data in as 16-bit integers</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="showRGBGrayBox" >
-         <property name="text" >
+        <widget class="QCheckBox" name="showRGBGrayBox">
+         <property name="text">
           <string>Show RGB images as grayscale</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="loadSepTimesBox" >
-         <property name="text" >
+        <widget class="QCheckBox" name="loadSepTimesBox">
+         <property name="text">
           <string>Load single-image files as separate times, not sections</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="loadFramesBox" >
-         <property name="text" >
+        <widget class="QCheckBox" name="loadFramesBox">
+         <property name="text">
           <string>Load montage as single frames</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="loadUnscaledBox" >
-         <property name="text" >
+        <widget class="QCheckBox" name="loadUnscaledBox">
+         <property name="text">
           <string>Load model without scaling coordinates</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="loadNoMirrorBox" >
-         <property name="text" >
+        <widget class="QCheckBox" name="loadNoMirrorBox">
+         <property name="text">
           <string>Load FFT without mirroring data on left side</string>
          </property>
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" >
-         <property name="spacing" >
+        <layout class="QHBoxLayout">
+         <property name="spacing">
           <number>6</number>
          </property>
-         <property name="margin" >
+         <property name="margin">
           <number>0</number>
          </property>
          <item>
-          <widget class="QCheckBox" name="showMontageBox" >
-           <property name="text" >
+          <widget class="QCheckBox" name="showMontageBox">
+           <property name="text">
             <string>Show images as montage</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="xMontageSpinBox" >
-           <property name="minimum" >
+          <widget class="QSpinBox" name="xMontageSpinBox">
+           <property name="minimum">
             <number>1</number>
            </property>
-           <property name="maximum" >
+           <property name="maximum">
             <number>200</number>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="xMontageLabel" >
-           <property name="text" >
+          <widget class="QLabel" name="xMontageLabel">
+           <property name="text">
             <string>in X by</string>
            </property>
-           <property name="wordWrap" >
+           <property name="wordWrap">
             <bool>false</bool>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="yMontageSpinBox" >
-           <property name="minimum" >
+          <widget class="QSpinBox" name="yMontageSpinBox">
+           <property name="minimum">
             <number>1</number>
            </property>
-           <property name="maximum" >
+           <property name="maximum">
             <number>200</number>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="yMontageLabel" >
-           <property name="text" >
+          <widget class="QLabel" name="yMontageLabel">
+           <property name="text">
             <string>in Y</string>
            </property>
-           <property name="wordWrap" >
+           <property name="wordWrap">
             <bool>false</bool>
            </property>
           </widget>
@@ -773,22 +774,22 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" >
-         <property name="spacing" >
+        <layout class="QHBoxLayout">
+         <property name="spacing">
           <number>6</number>
          </property>
-         <property name="margin" >
+         <property name="margin">
           <number>0</number>
          </property>
          <item>
-          <spacer name="Spacer5" >
-           <property name="orientation" >
+          <spacer name="Spacer5">
+           <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
-           <property name="sizeType" >
+           <property name="sizeType">
             <enum>QSizePolicy::Expanding</enum>
            </property>
-           <property name="sizeHint" stdset="0" >
+           <property name="sizeHint" stdset="0">
             <size>
              <width>30</width>
              <height>0</height>
@@ -797,66 +798,66 @@
           </spacer>
          </item>
          <item>
-          <widget class="QLabel" name="xOverlapLabel" >
-           <property name="text" >
+          <widget class="QLabel" name="xOverlapLabel">
+           <property name="text">
             <string>Overlap pieces in X:</string>
            </property>
-           <property name="alignment" >
+           <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
-           <property name="wordWrap" >
+           <property name="wordWrap">
             <bool>false</bool>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="xOverlapSpinBox" >
-           <property name="minimum" >
+          <widget class="QSpinBox" name="xOverlapSpinBox">
+           <property name="minimum">
             <number>-100</number>
            </property>
-           <property name="maximum" >
+           <property name="maximum">
             <number>200</number>
            </property>
-           <property name="value" >
+           <property name="value">
             <number>4</number>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="yOverlapLabel" >
-           <property name="text" >
+          <widget class="QLabel" name="yOverlapLabel">
+           <property name="text">
             <string>in Y:</string>
            </property>
-           <property name="alignment" >
+           <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
-           <property name="wordWrap" >
+           <property name="wordWrap">
             <bool>false</bool>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="yOverlapSpinBox" >
-           <property name="minimum" >
+          <widget class="QSpinBox" name="yOverlapSpinBox">
+           <property name="minimum">
             <number>-100</number>
            </property>
-           <property name="maximum" >
+           <property name="maximum">
             <number>200</number>
            </property>
-           <property name="value" >
+           <property name="value">
             <number>4</number>
            </property>
           </widget>
          </item>
          <item>
-          <spacer name="Spacer6" >
-           <property name="orientation" >
+          <spacer name="Spacer6">
+           <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
-           <property name="sizeType" >
+           <property name="sizeType">
             <enum>QSizePolicy::Expanding</enum>
            </property>
-           <property name="sizeHint" stdset="0" >
+           <property name="sizeHint" stdset="0">
             <size>
              <width>30</width>
              <height>0</height>
@@ -867,16 +868,16 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2" >
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <spacer name="Spacer9" >
-           <property name="orientation" >
+          <spacer name="Spacer9">
+           <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
-           <property name="sizeType" >
+           <property name="sizeType">
             <enum>QSizePolicy::Expanding</enum>
            </property>
-           <property name="sizeHint" stdset="0" >
+           <property name="sizeHint" stdset="0">
             <size>
              <width>30</width>
              <height>0</height>
@@ -885,96 +886,96 @@
           </spacer>
          </item>
          <item>
-          <widget class="QGroupBox" name="winSizeGroupBox" >
-           <property name="title" >
+          <widget class="QGroupBox" name="winSizeGroupBox">
+           <property name="title">
             <string>Model View window size</string>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_2" >
-            <property name="spacing" >
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="spacing">
              <number>0</number>
             </property>
-            <property name="leftMargin" >
+            <property name="leftMargin">
              <number>5</number>
             </property>
-            <property name="topMargin" >
+            <property name="topMargin">
              <number>2</number>
             </property>
-            <property name="rightMargin" >
+            <property name="rightMargin">
              <number>5</number>
             </property>
-            <property name="bottomMargin" >
+            <property name="bottomMargin">
              <number>5</number>
             </property>
             <item>
-             <widget class="QRadioButton" name="defaultSizeButton" >
-              <property name="text" >
+             <widget class="QRadioButton" name="defaultSizeButton">
+              <property name="text">
                <string>Default size (512 x 512)</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QRadioButton" name="fullScreenButton" >
-              <property name="text" >
+             <widget class="QRadioButton" name="fullScreenButton">
+              <property name="text">
                <string>Full screen</string>
               </property>
              </widget>
             </item>
             <item>
-             <layout class="QHBoxLayout" >
-              <property name="spacing" >
+             <layout class="QHBoxLayout">
+              <property name="spacing">
                <number>6</number>
               </property>
-              <property name="margin" >
+              <property name="margin">
                <number>0</number>
               </property>
               <item>
-               <widget class="QRadioButton" name="setSizeButton" >
-                <property name="text" >
+               <widget class="QRadioButton" name="setSizeButton">
+                <property name="text">
                  <string>Set to X:</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QSpinBox" name="xSizeSpinBox" >
-                <property name="minimum" >
+               <widget class="QSpinBox" name="xSizeSpinBox">
+                <property name="minimum">
                  <number>8</number>
                 </property>
-                <property name="maximum" >
+                <property name="maximum">
                  <number>2048</number>
                 </property>
-                <property name="singleStep" >
+                <property name="singleStep">
                  <number>8</number>
                 </property>
-                <property name="value" >
+                <property name="value">
                  <number>512</number>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="ySizeLabel" >
-                <property name="text" >
+               <widget class="QLabel" name="ySizeLabel">
+                <property name="text">
                  <string>Y:</string>
                 </property>
-                <property name="alignment" >
+                <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
-                <property name="wordWrap" >
+                <property name="wordWrap">
                  <bool>false</bool>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QSpinBox" name="ySizeSpinBox" >
-                <property name="minimum" >
+               <widget class="QSpinBox" name="ySizeSpinBox">
+                <property name="minimum">
                  <number>8</number>
                 </property>
-                <property name="maximum" >
+                <property name="maximum">
                  <number>2048</number>
                 </property>
-                <property name="singleStep" >
+                <property name="singleStep">
                  <number>8</number>
                 </property>
-                <property name="value" >
+                <property name="value">
                  <number>512</number>
                 </property>
                </widget>
@@ -985,14 +986,14 @@
           </widget>
          </item>
          <item>
-          <spacer name="Spacer8" >
-           <property name="orientation" >
+          <spacer name="Spacer8">
+           <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
-           <property name="sizeType" >
+           <property name="sizeType">
             <enum>QSizePolicy::Expanding</enum>
            </property>
-           <property name="sizeHint" stdset="0" >
+           <property name="sizeHint" stdset="0">
             <size>
              <width>30</width>
              <height>0</height>
@@ -1007,36 +1008,36 @@
     </layout>
    </item>
    <item>
-    <widget class="Line" name="line2" >
-     <property name="frameShape" >
+    <widget class="Line" name="line2">
+     <property name="frameShape">
       <enum>QFrame::VLine</enum>
      </property>
-     <property name="frameShadow" >
+     <property name="frameShadow">
       <enum>QFrame::Sunken</enum>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="Line" name="line3" >
-     <property name="frameShape" >
+    <widget class="Line" name="line3">
+     <property name="frameShape">
       <enum>QFrame::HLine</enum>
      </property>
-     <property name="frameShadow" >
+     <property name="frameShadow">
       <enum>QFrame::Sunken</enum>
      </property>
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" >
+    <layout class="QHBoxLayout">
      <item>
-      <spacer name="Spacer3" >
-       <property name="orientation" >
+      <spacer name="Spacer3">
+       <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeType" >
+       <property name="sizeType">
         <enum>QSizePolicy::Expanding</enum>
        </property>
-       <property name="sizeHint" stdset="0" >
+       <property name="sizeHint" stdset="0">
         <size>
          <width>200</width>
          <height>16</height>
@@ -1045,24 +1046,24 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="OKButton" >
-       <property name="text" >
+      <widget class="QPushButton" name="OKButton">
+       <property name="text">
         <string>OK</string>
        </property>
-       <property name="default" >
+       <property name="default">
         <bool>true</bool>
        </property>
       </widget>
      </item>
      <item>
-      <spacer name="Spacer1" >
-       <property name="orientation" >
+      <spacer name="Spacer1">
+       <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeType" >
+       <property name="sizeType">
         <enum>QSizePolicy::Expanding</enum>
        </property>
-       <property name="sizeHint" stdset="0" >
+       <property name="sizeHint" stdset="0">
         <size>
          <width>100</width>
          <height>16</height>
@@ -1071,21 +1072,21 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="cancelButton" >
-       <property name="text" >
+      <widget class="QPushButton" name="cancelButton">
+       <property name="text">
         <string>Cancel</string>
        </property>
       </widget>
      </item>
      <item>
-      <spacer name="Spacer1_2" >
-       <property name="orientation" >
+      <spacer name="Spacer1_2">
+       <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeType" >
+       <property name="sizeType">
         <enum>QSizePolicy::Expanding</enum>
        </property>
-       <property name="sizeHint" stdset="0" >
+       <property name="sizeHint" stdset="0">
         <size>
          <width>100</width>
          <height>16</height>
@@ -1094,21 +1095,21 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="helpButton" >
-       <property name="text" >
+      <widget class="QPushButton" name="helpButton">
+       <property name="text">
         <string>Help</string>
        </property>
       </widget>
      </item>
      <item>
-      <spacer name="Spacer2" >
-       <property name="orientation" >
+      <spacer name="Spacer2">
+       <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeType" >
+       <property name="sizeType">
         <enum>QSizePolicy::Expanding</enum>
        </property>
-       <property name="sizeHint" stdset="0" >
+       <property name="sizeHint" stdset="0">
         <size>
          <width>200</width>
          <height>16</height>
@@ -1120,7 +1121,7 @@
    </item>
   </layout>
  </widget>
- <layoutdefault spacing="6" margin="11" />
+ <layoutdefault spacing="6" margin="11"/>
  <tabstops>
   <tabstop>start3dmodRadio</tabstop>
   <tabstop>startModvRadio</tabstop>
@@ -1171,11 +1172,11 @@
    <receiver>StartupForm</receiver>
    <slot>showMontageToggled(bool)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1187,11 +1188,11 @@
    <receiver>StartupForm</receiver>
    <slot>imageSelectClicked()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1203,11 +1204,11 @@
    <receiver>StartupForm</receiver>
    <slot>modelSelectClicked()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1219,11 +1220,11 @@
    <receiver>StartupForm</receiver>
    <slot>pieceSelectClicked()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1235,11 +1236,11 @@
    <receiver>StartupForm</receiver>
    <slot>imageChanged(QString)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1251,11 +1252,11 @@
    <receiver>StartupForm</receiver>
    <slot>modelChanged(QString)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1267,11 +1268,11 @@
    <receiver>StartupForm</receiver>
    <slot>pfileChanged(QString)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1283,11 +1284,11 @@
    <receiver>StartupForm</receiver>
    <slot>accept()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1299,11 +1300,11 @@
    <receiver>StartupForm</receiver>
    <slot>reject()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1315,11 +1316,11 @@
    <receiver>StartupForm</receiver>
    <slot>helpClicked()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1331,11 +1332,11 @@
    <receiver>StartupForm</receiver>
    <slot>angleSelectClicked()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1347,11 +1348,11 @@
    <receiver>StartupForm</receiver>
    <slot>angleFileChanged(QString)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>

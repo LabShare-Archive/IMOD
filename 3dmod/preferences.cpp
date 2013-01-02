@@ -772,7 +772,7 @@ void ImodPreferences::donePressed()
   mTabDlg->close();
   mTabDlg = NULL;
   imcUpdateDialog();
-  imodvMovieUpdate();
+  mvMovieUpdate();
 }
 
 // When cancel is pressed, get the current tab then go through common cancel

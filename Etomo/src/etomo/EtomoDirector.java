@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -150,7 +151,25 @@ public class EtomoDirector {
       UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
           "WARNING:  Ran out of memory."
               + "\nPlease close open log file windows or exit Etomo.", "Out of Memory");
+      if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+        UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      }
       throw e;
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage(),
+          "Exception");
+      if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+        UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      }
+    }
+    catch (Error e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage(), "Error");
+      if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+        UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      }
     }
   }
 
@@ -173,7 +192,11 @@ public class EtomoDirector {
    */
   private void doAutomation(final ManagerKey managerKey) {
     if (managerList == null) {
-      return;
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
+          "Unable to open interface.", "Interface Failed");
+      if (arguments.isHeadless()) {
+        UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      }
     }
     BaseManager manager = null;
     if (managerKey != null) {
@@ -242,12 +265,16 @@ public class EtomoDirector {
           "Can't load user configuration.\n" + except.getMessage(), "Etomo Error");
     }
     setUserPreferences();
-    ArrayList paramFileNameList = arguments.getParamFileNameList();
+    List<String> paramFileNameList = arguments.getParamFileNameList();
     if (arguments.isHelp()) {
       printUsageMessage();
       return;
     }
     UIHarness.INSTANCE.createMainFrame();
+    if (!arguments.validate(UIHarness.INSTANCE.getMainFrame())) {
+      UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      return;
+    }
     initIMODDirectory();
     int paramFileNameListSize = paramFileNameList.size();
     String paramFileName = null;
@@ -261,7 +288,7 @@ public class EtomoDirector {
       ManagerKey saveKey = null;
       ManagerKey managerKey = null;
       for (int i = 0; i < paramFileNameListSize; i++) {
-        paramFileName = (String) paramFileNameList.get(i);
+        paramFileName =  paramFileNameList.get(i);
         managerKey = null;
         if (paramFileName.endsWith(DataFileType.RECON.extension)) {
           managerKey = openTomogram(paramFileName, false, AxisID.ONLY);
@@ -733,8 +760,10 @@ public class EtomoDirector {
   }
 
   private void saveLogs() {
-    for (int i = 0; i < managerList.size(); i++) {
-      ((BaseManager) managerList.get(i)).saveLog();
+    if (managerList != null) {
+      for (int i = 0; i < managerList.size(); i++) {
+        ((BaseManager) managerList.get(i)).saveLog();
+      }
     }
   }
 
@@ -864,9 +893,12 @@ public class EtomoDirector {
    */
   public boolean exitProgram(AxisID axisID) {
     try {
-      while (managerList.size() != 0) {
-        if (!closeCurrentManager(axisID, true)) {
-          return false;
+      saveLogs();
+      if (managerList != null) {
+        while (managerList.size() != 0) {
+          if (!closeCurrentManager(axisID, true)) {
+            return false;
+          }
         }
       }
       if (utilityThread != null) {

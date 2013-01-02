@@ -38,7 +38,7 @@ public final class PsParam {
   private final String startTimeHeader;
   private final String startTimeCommand;
 
-  private final ArrayList command = new ArrayList();
+  private final List<String> command = new ArrayList<String>();
   private final ArrayList valuesArray = new ArrayList();
 
   private String[] output = null;
@@ -86,11 +86,11 @@ public final class PsParam {
       // of this constructor promises to run the command in a worker thread. An
       // ssh on the main thread can lock up the user interface.
       if (willRunOnWorkerThread || SshParam.INSTANCE.isTimeoutAvailable(manager)) {
-        List sshCommand = SshParam.INSTANCE.getCommand(manager, true, hostName);
+        List<String> sshCommand = SshParam.INSTANCE.getCommand(manager, true, hostName);
         if (sshCommand != null) {
-          Iterator iterator = sshCommand.iterator();
+          Iterator<String> iterator = sshCommand.iterator();
           while (iterator.hasNext()) {
-            Object element = iterator.next();
+            String element = iterator.next();
             if (element != null && !element.equals("")) {
               command.add(element);
             }
@@ -124,7 +124,7 @@ public final class PsParam {
     return new Row(this);
   }
 
-  public ArrayList getCommandArray() {
+  public List<String> getCommandArray() {
     return command;
   }
 

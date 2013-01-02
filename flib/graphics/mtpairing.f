@@ -17,6 +17,7 @@ c
       end
 
       subroutine realgraphicsmain()
+      use plotvars
       parameter (limbun=200,limmt=10000,limdsp=2000,limtyp=60)
       parameter (limpt=1000000,limpair=20000,limclust=600,limgrf=90)
       real*4 zstrt(limmt),zend(limmt),datdisp(3,limdsp)
@@ -50,7 +51,6 @@ c
       integer*4 itypcheck(limtyp),listclust(limclust),iord(limpair)
       integer*4 liststrtuse(limtyp),listenduse(limtyp),itythrs(limtyp)
       integer*4 itycntrd(limtyp)
-      common /pltp/ifgpl,ifNoTerm
       logical b3dxor
 c       
       ifchange=1
@@ -63,7 +63,7 @@ c
         ifNoTerm = 1
       endif
 c       
-      call grfopn(iffil)
+      call scrnOpen(iffil)
 c       
       call opencomfile
 c       
@@ -776,7 +776,7 @@ c
 c       
 77    write(*,'(1x,a,$)')'Lower left corner X, Y, 1 for new page: '
       read(5,*)xll,yll,ifpage
-      if(ifpage.ne.0)call frame
+      if(ifpage.ne.0)call psFrame()
       ifpage=0
       write(*,'(1x,a,f8.2,a,$)')
      &    'Minimum Z value, or / for current minimum [',zmin,']: '
@@ -814,7 +814,7 @@ c
         if(isymstrt.ne.0.or.isymend.ne.0)then
           write(*,'(1x,a,$)')'symbol size, thickness: '
           read(5,*)symwid,isymthk
-          call symsiz(symwid)
+          call psSymSize(symwid)
           rightmarg=0.6*symwid
           horizofs=horizofs+rightmarg
           vertofs=max(vertofs,rightmarg)
@@ -881,34 +881,34 @@ c
         endif
       enddo
 c       
-      call imset(mtthick,c1,upi,c3,0)
+      call psSetup(mtthick,c1,upi,c3,0)
       thkadj=0.5*(mtthick-1)/upi
-      itxtsiz=3175.*charsize
+      itxtsiz=3175.*charsize/32.
       do imt=iclustrt,iclusend
-        call imset(mtthick,c1,upi,c3,0)
+        call psSetup(mtthick,c1,upi,c3,0)
         mtnum=mtclust(imt)
         yline=yll+vertofs+(imt-iclustrt)*yscale
         xlinstr=xll+horizofs+(zstrt(mtnum)-zmin)*xscale
         xlinend=xll+horizofs+(zend(mtnum)-zmin)*xscale
-        call imma(xlinstr,yline)
-        call imva(xlinend,yline)
+        call psMoveAbs(xlinstr,yline)
+        call psVectAbs(xlinend,yline)
         if(isymstrt.ne.0.and.
      &      typeonlist(itype(mtnum),markstrt,nmarkstrt))then
-          call imset(isymthk,c1,c2,c3,0)
-          call imsymb(xlinstr,yline+thkadj,isymstrt)
+          call psSetup(isymthk,c1,c2,c3,0)
+          call psSymbol(xlinstr,yline+thkadj,isymstrt)
         endif
         if(isymend.ne.0.and.
      &      typeonlist(itype(mtnum),markend,nmarkend))then
-          call imset(isymthk,c1,c2,c3,0)
-          call imsymb(xlinend+2.*thkadj,yline+thkadj,isymend)
+          call psSetup(isymthk,c1,c2,c3,0)
+          call psSymbol(xlinend+2.*thkadj,yline+thkadj,isymend)
         endif
         if(itxtsiz.ne.0.)then
           write(objtext,'(i4)')icontnum(mtnum)
-          call pwrit(xll,yline,objtext,4,itxtsiz,0,-1)
+          call psWriteText(xll,yline,objtext(1:4),itxtsiz,0,-1)
         endif
       enddo
 c       
-      call imset(1,c1,c2,c3,0)
+      call psSetup(1,c1,c2,c3,0)
       do ilink=1,nlinks
         imt=imtlnk(ilink)
         jmt=jmtlnk(ilink)
@@ -923,8 +923,8 @@ c
           if(mtline.lt.jmt-1)ytop=ytop-gapsize
           do iline=1,nline
             xline=min(xlnkstr+(iline-1)/upi,xlnkend)
-            call imma(xline,ytop)
-            call imva(xline,ybot)
+            call psMoveAbs(xline,ytop)
+            call psVectAbs(xline,ybot)
           enddo
         enddo
       enddo
@@ -1178,8 +1178,8 @@ c
 91    call opencomfile
       go to 50
 c       
-99    call plxoff
-      call imexit
+99    call scrnClose
+      call psexit
       end
 
 

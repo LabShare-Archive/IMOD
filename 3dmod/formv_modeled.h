@@ -25,6 +25,7 @@ class imodvModeledForm : public QWidget, public Ui::imodvModeledForm
   virtual void viewSelected( int which );
   virtual void nameChanged( const QString & name );
   virtual void newPixelSize();
+  virtual void sameScaleClicked();
   virtual void donePressed();
   virtual void helpPressed();
   virtual QString getPixelString();

@@ -1,4 +1,4 @@
-! DSAXES receives the range of X and Y values, determines "nice" limits
+! SCRNAXES receives the range of X and Y values, determines "nice" limits
 ! of X and Y that contain those values, draws axes with labels on a graphics device, and
 ! returns scaling factors to the calling program in xScale, xAdd, yScale, yAdd.
 ! Also returns the starting data values in XLO, YLO and 1/10 of the data range in DX and
@@ -6,7 +6,7 @@
 !
 !  $Id$
 !
-subroutine dsaxes(xMin, xMax, yMin, yMax, xScale, xAdd, yScale, yAdd, dx, xlo, dy, ylo)
+subroutine scrnAxes(xMin, xMax, yMin, yMax, xScale, xAdd, yScale, yAdd, dx, xlo, dy, ylo)
   implicit none
   real*4 xMin, xMax, yMin, yMax, xScale, xAdd, yScale, yAdd, dx, xlo, dy, ylo
   integer*4 itextSize, leftX, nintNeededX, maxLenX, nintNeededY, maxLenY, i, numXdiv
@@ -17,7 +17,7 @@ subroutine dsaxes(xMin, xMax, yMin, yMax, xScale, xAdd, yScale, yAdd, dx, xlo, d
 
   itextSize = 8
   iyBot = 80
-  call erase(-1)
+  call scrnErase(-1)
   call axsub(xMin, xMax, dx, xlo, 'X', numXdiv, dxDiv)
   call formatForAxis(dxDiv, xlo, numXdiv, xformat, nintNeededX, maxLenX)
   call axsub(yMin, yMax, dy, ylo, 'Y', numYdiv, dyDiv)
@@ -34,7 +34,7 @@ subroutine dsaxes(xMin, xMax, yMin, yMax, xScale, xAdd, yScale, yAdd, dx, xlo, d
     else
       write(label, fmt = xformat, err = 10) xlo + i * 2 * dxDiv
     endif
-10  call p_sctext(1, itextSize, itextSize, 241, leftX + i * 2 * ixDelta, iyBot - 15,  &
+10  call plax_sctext(1, itextSize, itextSize, 241, leftX + i * 2 * ixDelta, iyBot - 15,  &
         adjustl(label))
   enddo
 
@@ -45,20 +45,20 @@ subroutine dsaxes(xMin, xMax, yMin, yMax, xScale, xAdd, yScale, yAdd, dx, xlo, d
     else
       write(label, fmt = yformat, err = 20) ylo + i * 2 * dyDiv
     endif
-20  call p_sctext(1, itextSize, itextSize, 241, leftX - 15, iyBot + i * 2 * iyDelta, &
+20  call plax_sctext(1, itextSize, itextSize, 241, leftX - 15, iyBot + i * 2 * iyDelta, &
         label)
   enddo
-  call dsgrd(leftX, iyBot, ixDelta, 0, numXdiv)
-  call dsgrd(leftX + ixRange, iyBot, 0, iyDelta, numYdiv)
-  call dsgrd(leftX + ixRange, iyBot + iyRange, -ixDelta, 0, numXdiv)
-  call dsgrd(leftX, iyBot + iyRange, 0, -iyDelta, numYdiv)
-  call updat
+  call scrnGridLine(leftX, iyBot, ixDelta, 0, numXdiv)
+  call scrnGridLine(leftX + ixRange, iyBot, 0, iyDelta, numYdiv)
+  call scrnGridLine(leftX + ixRange, iyBot + iyRange, -ixDelta, 0, numXdiv)
+  call scrnGridLine(leftX, iyBot + iyRange, 0, -iyDelta, numYdiv)
+  call scrnUpdate
   xScale = ixDelta / dxDiv
   yScale = iyDelta / dyDiv
   xAdd = leftX - xlo * xScale
   yAdd = iyBot - ylo * yScale
   return
-end subroutine dsaxes
+end subroutine scrnAxes
 
 
 ! Run the routine to determine scaling and print the scaling on the terminal

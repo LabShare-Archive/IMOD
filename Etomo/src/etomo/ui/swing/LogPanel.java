@@ -131,7 +131,7 @@ public final class LogPanel implements Storable, LogInterface {
             try {
               readerId = file.openReader();
               String line = file.readLine(readerId);
-              List lineList = new ArrayList();
+              List<String> lineList = new ArrayList<String>();
               while (line != null) {
                 lineList.add(line);
                 line = file.readLine(readerId);
@@ -288,7 +288,7 @@ public final class LogPanel implements Storable, LogInterface {
     logger.logMessage(title, axisID, message);
   }
 
-  public void logMessage(String title, AxisID axisID, List message) {
+  public void logMessage(String title, AxisID axisID, List<String> message) {
     logger.logMessage(title, axisID, message);
   }
 

@@ -39,9 +39,11 @@
 #include "preferences.h"
 #include "control.h"
 #include "scalebar.h"
+#include "utilities.h"
 
 static ImodvBkgColor bkgColor;
 static void toggleWorldFlag(int &globalVal, b3dUInt32 mask, int menuID);
+static int writeOpenedModelFile(ImodvApp *a, FILE *fout);
 
 /* DNM 12/1/02: make this the single path to opening the window, and have
    it keep track of whether window is open or not, and return if it is */
@@ -85,7 +87,7 @@ void imodvEditMenu(int item)
     imodvViewEditDialog(Imodv, 1);
     break;
   case VEDIT_MENU_IMAGE: /* image */
-    imodvImageEditDialog(Imodv, 1);
+    mvImageEditDialog(Imodv, 1);
     break;
   case VEDIT_MENU_ISOSURFACE: /*isosurface*/
     imodvIsosurfaceEditDialog(Imodv, 1);
@@ -151,6 +153,7 @@ int imodvLoadModel()
   tmod = imodRead(LATIN1(qname));
   if (!tmod)
     return(-1);
+  utilExchangeFlipRotation(tmod, FLIP_TO_ROTATION);
 
   /* DNM 6/20/01: find out max time and set current time */
   tmod->tmax = 0;
@@ -214,14 +217,7 @@ void imodvFileSave()
                  "wb");
 
   if (fout){
-    a->imod->file = fout;
-    error = imodWrite(a->imod, a->imod->file);
-    /*        error = imodWrite(Imodv->imod, Imodv->imod->file); */
-    fflush(fout);
-    fclose(fout);
-    a->imod->file = NULL;
-    if (!error)
-      dia_puts("Model file saved.");
+    error = writeOpenedModelFile(a, fout);
   } else
     error = 1;
 
@@ -271,11 +267,7 @@ void imodvSaveModelAs()
 
   fout = fopen(LATIN1(QDir::convertSeparators(QString(filename))), "wb");
   if (fout){
-    a->imod->file = fout;
-    error = imodWrite(Imodv->imod, fout);
-    fflush(fout);
-    fclose(fout);
-    Imodv->imod->file = NULL;
+    error = writeOpenedModelFile(a, fout);
 
     if (!error) {
       if (a->imod->fileName)
@@ -288,8 +280,6 @@ void imodvSaveModelAs()
         memcpy(a->imod->name, filename, strlen(filename)+1);
       else
         a->imod->name[0] = 0x00;
-          
-      dia_puts("Model file saved.");
     }
   } else {
     error = 1;
@@ -302,6 +292,23 @@ void imodvSaveModelAs()
   }
   free(nfname1);
   free(filename);
+}
+
+// Do common functions for writing model file after file opened
+// Convert rotation to flip for saving, and back afterwards
+static int writeOpenedModelFile(ImodvApp *a, FILE *fout)
+{
+  int error;
+  a->imod->file = fout;
+  utilExchangeFlipRotation(a->imod, ROTATION_TO_FLIP);
+  error = imodWrite(a->imod, a->imod->file);
+  utilExchangeFlipRotation(a->imod, FLIP_TO_ROTATION);
+  fflush(fout);
+  fclose(fout);
+  a->imod->file = NULL;
+  if (!error)
+    dia_puts("Model file saved.");
+  return error;
 }
 
 // The file menu dispatch function
@@ -346,7 +353,11 @@ void imodvFileMenu(int item)
     break;
 
   case VFILE_MENU_MOVIE:
-    imodvMovieDialog(Imodv, 1);
+    mvMovieDialog(Imodv, 1);
+    break;
+ 
+  case VFILE_MENU_SEQUENCE:
+    mvMovieSequenceDialog(Imodv, 1);
     break;
  
   case VFILE_MENU_QUIT:
@@ -573,9 +584,11 @@ void imodvOpenSelectedWindows(char *keys)
     if (strchr(keys, 'M'))
       imodvModelEditDialog(Imodv, 1);
     if (strchr(keys, 'm'))
-      imodvMovieDialog(Imodv, 1);
+      mvMovieDialog(Imodv, 1);
+    if (strchr(keys, 'N'))
+      mvMovieSequenceDialog(Imodv, 1);
     if (strchr(keys, 'I') && !Imodv->standalone)
-      imodvImageEditDialog(Imodv, 1);
+      mvImageEditDialog(Imodv, 1);
     if (strchr(keys, 'U') && !Imodv->standalone)
       imodvIsosurfaceEditDialog(Imodv, 1);
     if (strchr(keys, 'S'))
@@ -590,9 +603,6 @@ void imodvOpenSelectedWindows(char *keys)
 // Background color class
 void ImodvBkgColor::openDialog()
 {
-  QString qstr;
-  char *window_name;
-
   mSelector = new ColorSelector(imodvDialogManager.parent(IMODV_DIALOG), 
                                 "3dmodv background color.",
                                 Imodv->rbgcolor->red(),
@@ -609,13 +619,7 @@ void ImodvBkgColor::openDialog()
   connect(mSelector, SIGNAL(keyRelease(QKeyEvent *)), this, 
           SLOT(keyReleaseSlot(QKeyEvent *)));
 
-  window_name = imodwEithername("3dmodv: ", Imodv->imod->fileName, 1);
-  qstr = window_name;
-  if (window_name)
-    free(window_name);
-  if (qstr.isEmpty())
-    qstr = "3dmodv";
-  mSelector->setWindowTitle(qstr);
+  setModvDialogTitle(mSelector, "3dmodv: ");
 
   imodvDialogManager.add((QWidget *)mSelector, IMODV_DIALOG);
   adjustGeometryAndShow((QWidget *)mSelector, IMODV_DIALOG);

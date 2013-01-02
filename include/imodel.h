@@ -111,6 +111,7 @@
 #define IMOD_ERROR_MEMORY  50
 
 /* model flags. */
+#define IMODF_ROT90X (1l << 17)  /* Model is rotated by 90 about X (internal to 3dmod) */
 #define IMODF_FLIPYZ (1l << 16)  /* data is stored with y,z coords flipped. */
 #define IMODF_TILTOK (1l << 15)  /* current tilt angles properly stored */
 #define IMODF_OTRANS_ORIGIN (1l << 14)  /* otrans has image origin values */
@@ -537,6 +538,8 @@ extern "C" {
   int   imodDefault(Imod *imod);
   void  imodCleanSurf(Imod *imod);
   void  imodFlipYZ(Imod *imod);
+  void imodInvertZ(Imod *imod);
+  void imodRot90X(Imod *imod, int toNative);
   int imodSetRefImage(Imod *imod, MrcHeader *hdata);
   void imodTransForSubsetLoad(Imod *imod, MrcHeader *hdata, IloadInfo *li);
   int imodTransFromRefImage(Imod *imod, IrefImage *iref, Ipoint binScale);

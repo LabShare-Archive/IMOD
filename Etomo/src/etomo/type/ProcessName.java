@@ -157,7 +157,7 @@ public final class ProcessName {
   private static final String ctfPlotter = "ctfplotter";
   private static final String ctfCorrection = "ctfcorrection";
   private static final String splitCorrection = "splitcorrection";
-  private static final String ccderaser = "ccderaser";
+  private static final String golderaser = "golderaser";
   private static final String clip = "clip";
   private static final String runraptor = "runraptor";
   private static final String flattenwarp = "flattenwarp";
@@ -190,7 +190,7 @@ public final class ProcessName {
   public static final ProcessName TRACK = new ProcessName(track);
   public static final ProcessName ALIGN = new ProcessName(align);
   public static final ProcessName NEWST = new ProcessName(newst);
-  public static final ProcessName TILT = new ProcessName(tilt,true);
+  public static final ProcessName TILT = new ProcessName(tilt, true);
   public static final ProcessName MTFFILTER = new ProcessName(mtffilter);
   public static final ProcessName SOLVEMATCHSHIFT = new ProcessName(solvematchshift);
   public static final ProcessName SOLVEMATCHMOD = new ProcessName(solvematchmod);
@@ -206,7 +206,7 @@ public final class ProcessName {
   public static final ProcessName UNDISTORT = new ProcessName(undistort);
   public static final ProcessName SOLVEMATCH = new ProcessName(solvematch);
   public static final ProcessName STARTJOIN = new ProcessName(startjoin);
-  public static final ProcessName PROCESSCHUNKS = new ProcessName(processchunks,true);
+  public static final ProcessName PROCESSCHUNKS = new ProcessName(processchunks, true);
   public static final ProcessName TOMOSNAPSHOT = new ProcessName(tomosnapshot);
   public static final ProcessName TRANSFERFID = new ProcessName(transferfid);
   public static final ProcessName CLIPFLIPYZ = new ProcessName(clipflipyz);
@@ -233,7 +233,7 @@ public final class ProcessName {
   public static final ProcessName CTF_PLOTTER = new ProcessName(ctfPlotter);
   public static final ProcessName CTF_CORRECTION = new ProcessName(ctfCorrection);
   public static final ProcessName SPLIT_CORRECTION = new ProcessName(splitCorrection);
-  public static final ProcessName CCD_ERASER = new ProcessName(ccderaser);
+  public static final ProcessName GOLD_ERASER = new ProcessName(golderaser);
   public static final ProcessName CLIP = new ProcessName(clip);
   public static final ProcessName RUNRAPTOR = new ProcessName(runraptor);
   public static final ProcessName FLATTEN_WARP = new ProcessName(flattenwarp);
@@ -247,11 +247,13 @@ public final class ProcessName {
       tilt_3dfind_reproject);
   public static final ProcessName MIDAS = new ProcessName(midas);
   public static final ProcessName XCORR_PT = new ProcessName(xcorr_pt);
-  public static final ProcessName PROCHUNKS_CSH = new ProcessName(prochunks_csh,true);
+  public static final ProcessName PROCHUNKS_CSH = new ProcessName(prochunks_csh, true);
   public static final ProcessName SIRTSETUP = new ProcessName("sirtsetup");
   // The axis letter goes after tilt.
   public static final ProcessName TILT_SIRT = new ProcessName("tilt_sirt");
   public static final ProcessName AUTOFIDSEED = new ProcessName("autofidseed");
+  public static final ProcessName BATCHRUNTOMO = new ProcessName("batchruntomo");
+  public static final ProcessName MAKECOMFILE = new ProcessName("makecomfile");
 
   /**
    * Returns a string representation of the object.
@@ -510,8 +512,8 @@ public final class ProcessName {
     if (name.compareToIgnoreCase(splitCorrection) == 0) {
       return SPLIT_CORRECTION;
     }
-    if (name.compareToIgnoreCase(ccderaser) == 0) {
-      return CCD_ERASER;
+    if (name.compareToIgnoreCase(golderaser) == 0) {
+      return GOLD_ERASER;
     }
     if (name.compareToIgnoreCase(clip) == 0) {
       return CLIP;
@@ -554,6 +556,12 @@ public final class ProcessName {
     }
     if (name.compareToIgnoreCase(AUTOFIDSEED.name) == 0) {
       return AUTOFIDSEED;
+    }
+    if (name.compareToIgnoreCase(BATCHRUNTOMO.name) == 0) {
+      return BATCHRUNTOMO;
+    }
+    if (name.compareToIgnoreCase(MAKECOMFILE.name) == 0) {
+      return MAKECOMFILE;
     }
     return null;
   }

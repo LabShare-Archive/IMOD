@@ -2,6 +2,8 @@ package etomo.storage;
 
 import java.io.File;
 
+import etomo.storage.autodoc.AutodocFactory;
+
 /**
  * <p>Description: </p>
  * 
@@ -25,7 +27,7 @@ public class AutodocFilter extends javax.swing.filechooser.FileFilter implements
       return false;
     }
     String name = f.getName();
-    if (name.endsWith(".adoc")) {
+    if (name.endsWith(AutodocFactory.EXTENSION)) {
       return true;
     }
     return false;

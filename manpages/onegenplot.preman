@@ -27,6 +27,10 @@ of values versus one other column.  If there are types, you can graph one
 column versus another for one or more types.  In addition, you use a sequence
 of numbers instead of a data column for the X values, and thus plot the
 sequential values of one or more columns or types.
+.P
+Note that the graph window can be saved as a PNG file or printed from a popup
+menu brought up by right-clicking in the window.  For publication-quality
+graphs in Postscript, it is necessary to run Genhstplt(1) directly.
 .SS Options
 Onegenplot uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line

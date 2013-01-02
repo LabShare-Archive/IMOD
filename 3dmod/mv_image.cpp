@@ -42,12 +42,12 @@
 enum {IIS_X_COORD = 0, IIS_Y_COORD, IIS_Z_COORD, IIS_X_SIZE, IIS_Y_SIZE,
       IIS_Z_SIZE, IIS_SLICES, IIS_TRANSPARENCY, IIS_BLACK, IIS_WHITE};
 
-static void mkcmap(void);
+static void makeColorMap(void);
 static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
                             Ipoint *clamp, unsigned char *data,
                             int width, int height);
 static void setAlpha(int iz, int zst, int znd, int izdir);
-static void setSliceLimits(int ciz, int miz, bool invertZ, int drawTrans, 
+static void setSliceLimits(int ciz, int zsize, bool invertZ, int drawTrans, 
                            int &zst, int &znd, int &izdir);
 static void setCoordLimits(int cur, int maxSize, int drawSize, 
                            int &str, int &end);
@@ -83,7 +83,7 @@ int    sFlags = 0;
 static double sWallLoad, sWallDraw;
 
 // Open, close, or raise the dialog box
-void imodvImageEditDialog(ImodvApp *a, int state)
+void mvImageEditDialog(ImodvApp *a, int state)
 {
   if (!state){
     if (sDia)
@@ -98,14 +98,14 @@ void imodvImageEditDialog(ImodvApp *a, int state)
   sDia = new ImodvImage(imodvDialogManager.parent(IMODV_DIALOG), "image view");
   sA = a;
 
-  mkcmap();
+  makeColorMap();
   imodvDialogManager.add((QWidget *)sDia, IMODV_DIALOG);
   adjustGeometryAndShow((QWidget *)sDia, IMODV_DIALOG);
-  imodvImageUpdate(a);
+  mvImageUpdate(a);
 }
 
 // Update the dialog box (just the view flag for now)
-void imodvImageUpdate(ImodvApp *a)
+void mvImageUpdate(ImodvApp *a)
 {
   if (a->texMap && !sFlags) {
     sFlags |= IMODV_DRAW_CZ;
@@ -113,7 +113,7 @@ void imodvImageUpdate(ImodvApp *a)
       diaSetChecked(sDia->mViewZBox, true);
   } else if (!a->texMap && sFlags) {
     sFlags = 0;
-    imodvImageCleanup();
+    mvImageCleanup();
     if (sDia) {
       diaSetChecked(sDia->mViewXBox, false);
       diaSetChecked(sDia->mViewYBox, false);
@@ -127,14 +127,14 @@ void imodvImageUpdate(ImodvApp *a)
   }
 }
 
-int imodvImageGetFlags(void)
+int mvImageGetFlags(void)
 {
   return sFlags;
 }
 
 // Set the number of slices and the transparency from movie controller - 
 // do not update the image
-void imodvImageSetThickTrans(int slices, int trans)
+void mvImageSetThickTrans(int slices, int trans)
 {
  int maxSlices = Imodv->vi->zsize < MAX_SLICES ?
     Imodv->vi->zsize : MAX_SLICES;
@@ -155,13 +155,95 @@ void imodvImageSetThickTrans(int slices, int trans)
 }
 
 // Return the number of slices and transparancy
-int imodvImageGetThickness(void)
+int mvImageGetThickness(void)
 {
   return sNumSlices;
 }
-int imodvImageGetTransparency(void)
+int mvImageGetTransparency(void)
 {
   return sImageTrans;
+}
+
+// Return the current state of drawing into a movie segment structure
+void mvImageGetMovieState(MovieSegment &segment)
+{
+  segment.imgAxisFlags = sFlags;
+  if (!Imodv->texMap) {
+    segment.imgAxisFlags = 0;
+    return;
+  }
+  segment.imgWhiteLevel = sWhiteLevel;
+  segment.imgBlackLevel = sBlackLevel;
+  segment.imgFalseColor = sFalsecolor;
+  segment.imgXsize = sXdrawSize;
+  segment.imgYsize = sYdrawSize;
+  segment.imgZsize = sZdrawSize;
+}
+
+// Set ancillary parameters to the state for a movie segment
+int mvImageSetMovieDrawState(MovieSegment &segment)
+{
+ if (!segment.imgAxisFlags) {
+
+    // If there is no image drawing, turn off Imodv flag and then, if there is currently,
+    // take the update route to updating this module
+    Imodv->texMap = 0;
+    if (sFlags) 
+      mvImageUpdate(Imodv);
+    return 1;
+  }
+  sFlags = segment.imgAxisFlags;
+  Imodv->texMap = 1;
+  sWhiteLevel = segment.imgWhiteLevel;
+  sBlackLevel = segment.imgBlackLevel;
+  sFalsecolor = segment.imgFalseColor;
+  makeColorMap();
+  sXdrawSize = B3DMIN(segment.imgXsize, Imodv->vi->xsize);
+  sYdrawSize = B3DMIN(segment.imgYsize, Imodv->vi->ysize);
+  sZdrawSize = B3DMIN(segment.imgZsize, Imodv->vi->zsize);
+
+  // Update the dialog as needed
+  if (sDia) {
+
+    sDia->mSliders->setValue(IIS_X_SIZE, sXdrawSize);
+    sDia->mSliders->setValue(IIS_Y_SIZE, sYdrawSize);
+    sDia->mSliders->setValue(IIS_Z_SIZE, sZdrawSize);
+    diaSetChecked(sDia->mViewXBox, (sFlags & IMODV_DRAW_CX) != 0);
+    diaSetChecked(sDia->mViewYBox, (sFlags & IMODV_DRAW_CY) != 0);
+    diaSetChecked(sDia->mViewZBox, (sFlags & IMODV_DRAW_CZ) != 0);
+    sDia->mSliders->setValue(IIS_BLACK, sBlackLevel);
+    sDia->mSliders->setValue(IIS_WHITE, sWhiteLevel);
+    diaSetChecked(sDia->mFalseBox, sFalsecolor != 0);
+  }
+  return 0;
+}
+
+// Set the drawing state and dialog to the start or end of the given movie segment
+void mvImageSetMovieEndState(int startEnd, MovieSegment &segment)
+{
+  MovieTerminus *term = &segment.start;
+  int maxSlices = B3DMIN(Imodv->vi->zsize, MAX_SLICES);
+  if (startEnd == IMODV_MOVIE_END_STATE)
+    term = &segment.end;
+
+  if (mvImageSetMovieDrawState(segment))
+    return;
+ 
+  // Otherwise set the image position and copy all the data over
+  sImageTrans = term->imgTransparency;
+  ivwSetLocation(Imodv->vi, term->imgXcenter - 1, term->imgYcenter - 1, 
+                 term->imgZcenter - 1);
+  sNumSlices = B3DMIN(term->imgSlices, maxSlices);
+
+  // Update the dialog as needed
+  if (sDia) {
+
+    // Set this to prevent Y/Z swapping of sizes in the update
+    sLastYsize = Imodv->vi->ysize;
+    sDia->updateCoords();
+    sDia->mSliders->setValue(IIS_SLICES, sNumSlices);
+    sDia->mSliders->setValue(IIS_TRANSPARENCY, sImageTrans);
+  }
 }
 
 /****************************************************************************/
@@ -169,7 +251,7 @@ int imodvImageGetTransparency(void)
 /****************************************************************************/
 
 // Make a color map
-static void mkcmap(void)
+static void makeColorMap(void)
 {
   int rampsize, cmapReverse = 0;
   float slope, point;
@@ -223,15 +305,15 @@ static void mkcmap(void)
 }
 
 // Determine starting and ending slice and direction, and set the alpha
-static void setSliceLimits(int ciz, int miz, bool invertZ, int drawTrans, 
+static void setSliceLimits(int ciz, int zsize, bool invertZ, int drawTrans, 
                            int &zst, int &znd, int &izdir)
 {
   zst = ciz - sNumSlices / 2;
   znd = zst + sNumSlices - 1;
   if (zst < 0)
     zst = 0;
-  if (znd >= miz)
-    znd = miz - 1;
+  if (znd >= zsize)
+    znd = zsize - 1;
   izdir = 1;
 
   // If transparency is needed and it is time to draw solid, or no transparency
@@ -291,12 +373,12 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   Ipoint ll, lr, ur, ul, clamp;
   int tstep;
   int cix, ciy, ciz;
-  int mix, miy, miz;
+  int xsize, ysize, zsize;
   int xstr, xend, ystr, yend, zstr, zend, fillXsize;
   unsigned char **idata;
   b3dUInt16 **usidata;
   unsigned char pix;
-  int i, j, ypatch, jend, xpatch, zpatch, iend;
+  int i, j, ypatch, jend, xpatch, zpatch, iend, xconst;
   int u, v, uvind;
   int iz, idir, numSave;
   int cacheSum, curtime;
@@ -311,9 +393,9 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   drawTime.start();
   sWallLoad = sWallDraw = 0.;
      
-  mix = a->vi->xsize;
-  miy = a->vi->ysize;
-  miz = a->vi->zsize;
+  xsize = a->vi->xsize;
+  ysize = a->vi->ysize;
+  zsize = a->vi->zsize;
   if (sDia)
     sDia->updateCoords();
 
@@ -324,15 +406,15 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   ivwGetTime(a->vi, &curtime);
   if (!sCmapInit || (a->vi->colormapImage && 
                     (ciz != cmapZ || curtime != cmapTime))) {
-    mkcmap();
+    makeColorMap();
     cmapTime = curtime;
     cmapZ = ciz;
   }
 
   if (sXdrawSize < 0) {
-    sXdrawSize = mix;
-    sYdrawSize = miy;
-    sZdrawSize = miz;
+    sXdrawSize = xsize;
+    sYdrawSize = ysize;
+    sZdrawSize = zsize;
   }
 
   // If doing stereo pairs, draw the pair as long as the step up stays in the
@@ -399,13 +481,13 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   // This used to be 1 with RGB data being passed in
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
   glEnable(GL_TEXTURE_2D);
-
-  /* Draw Current Z image. */
+ 
+ /* Draw Current Z image. */
   if (sFlags & IMODV_DRAW_CZ) {
 
-    setSliceLimits(ciz, miz, invertZ, drawTrans, zstr, zend, idir);
-    setCoordLimits(cix, mix, sXdrawSize, xstr, xend);
-    setCoordLimits(ciy, miy, sYdrawSize, ystr, yend);
+    setSliceLimits(ciz, zsize, invertZ, drawTrans, zstr, zend, idir);
+    setCoordLimits(cix, xsize, sXdrawSize, xstr, xend);
+    setCoordLimits(ciy, ysize, sYdrawSize, ystr, yend);
     for (iz = zstr; idir * (zend - iz) >= 0 ; iz += idir) {
       setAlpha(iz, zstr, zend, idir);
       ll.z = lr.z = ur.z = ul.z = iz;
@@ -470,9 +552,9 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   if ((sFlags & IMODV_DRAW_CX) && 
       !(a->stereo && a->imageStereo)) {
 
-    setSliceLimits(cix, mix, invertX, drawTrans, xstr, xend, idir);
-    setCoordLimits(ciy, miy, sYdrawSize, ystr, yend);
-    setCoordLimits(ciz, miz, sZdrawSize, zstr, zend);
+    setSliceLimits(cix, xsize, invertX, drawTrans, xstr, xend, idir);
+    setCoordLimits(ciy, ysize, sYdrawSize, ystr, yend);
+    setCoordLimits(ciz, zsize, sZdrawSize, zstr, zend);
 
     for (xpatch = xstr; idir * (xend - xpatch) >= 0 ; xpatch += idir) {
       setAlpha(xpatch, xstr, xend, idir);
@@ -505,16 +587,19 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
             for (i = ypatch-1; i < iend+1; i++) {
               u = i - (ypatch-1);
               if (imdata[i]) {
+                
+                // Invert Z when accessing cache for flipped data
+                xconst = xpatch + (zsize - 1) * xsize;
                 if (a->vi->ushortStore) {
                   for (j = zpatch-1; j < jend+1; j++) {
                     v = j - (zpatch-1);
-                    pix = bmap[usimdata[i][xpatch + (j * mix)]];
+                    pix = bmap[usimdata[i][xconst - j * xsize]];
                     FILLDATA(pix);
                   }
                 } else {
                   for (j = zpatch-1; j < jend+1; j++) {
                     v = j - (zpatch-1);
-                    pix = imdata[i][xpatch + (j * mix)];
+                    pix = imdata[i][xconst - j * xsize];
                     FILLDATA(pix);
                   }
                 }
@@ -532,13 +617,13 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
                 if (a->vi->ushortStore) {
                   for (i = ypatch-1; i < iend+1; i++) {
                     u = i - (ypatch-1);
-                    pix = bmap[usimdata[j][xpatch + (i * mix)]];
+                    pix = bmap[usimdata[j][xpatch + (i * xsize)]];
                     FILLDATA(pix);
                   }
                 } else {
                   for (i = ypatch-1; i < iend+1; i++) {
                     u = i - (ypatch-1);
-                    pix = imdata[j][xpatch + (i * mix)];
+                    pix = imdata[j][xpatch + (i * xsize)];
                     FILLDATA(pix);
                   }
                 }
@@ -562,9 +647,9 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   /* Draw Current Y image. */
   if ((sFlags & IMODV_DRAW_CY) && 
       !(a->stereo && a->imageStereo)) {
-    setSliceLimits(ciy, miy, invertY, drawTrans, ystr, yend, idir);
-    setCoordLimits(cix, mix, sXdrawSize, xstr, xend);
-    setCoordLimits(ciz, miz, sZdrawSize, zstr, zend);
+    setSliceLimits(ciy, ysize, invertY, drawTrans, ystr, yend, idir);
+    setCoordLimits(cix, xsize, sXdrawSize, xstr, xend);
+    setCoordLimits(ciz, zsize, sZdrawSize, zstr, zend);
 
     for (ypatch = ystr; idir * (yend - ypatch) >= 0 ; ypatch += idir) {
       setAlpha(ypatch, ystr, yend, idir);
@@ -596,16 +681,17 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           for (j = zpatch-1; j < jend+1; j++) {
             v = j - (zpatch-1);
             if (flipped && imdata[ypatch]) {
+              xconst = (zsize - 1 - j) * xsize;
               if (a->vi->ushortStore) {
                 for (i = xpatch-1; i < iend+1; i++) {
                   u = i - (xpatch-1);
-                  pix = bmap[usimdata[ypatch][i + (j * mix)]];
+                  pix = bmap[usimdata[ypatch][i + xconst]];
                   FILLDATA(pix);
                 }
               } else {
                 for (i = xpatch-1; i < iend+1; i++) {
                   u = i - (xpatch-1);
-                  pix = imdata[ypatch][i + (j * mix)];
+                  pix = imdata[ypatch][i + xconst];
                   FILLDATA(pix);
                 }
               }
@@ -613,13 +699,13 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
               if (a->vi->ushortStore) {
                 for (i = xpatch-1; i < iend+1; i++) {
                   u = i - (xpatch-1);
-                  pix = bmap[usimdata[j][i + (ypatch * mix)]];
+                  pix = bmap[usimdata[j][i + (ypatch * xsize)]];
                   FILLDATA(pix);
                 }
               } else {
                 for (i = xpatch-1; i < iend+1; i++) {
                   u = i - (xpatch-1);
-                  pix = imdata[j][i + (ypatch * mix)];
+                  pix = imdata[j][i + (ypatch * xsize)];
                   FILLDATA(pix);
                 }
               }
@@ -737,11 +823,11 @@ static void endTexMapping()
 {
   sFlags = 0;
   Imodv->texMap = 0;
-  imodvImageCleanup();
+  mvImageCleanup();
 }
 
 // Free up image and texture arrays
-void imodvImageCleanup()
+void mvImageCleanup()
 {
   B3DFREE(sTdata);
   if (sTexImageSize)
@@ -803,26 +889,16 @@ ImodvImage::ImodvImage(QWidget *parent, const char *name)
   (mSliders->getLayout())->setSpacing(4);
   connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
           SLOT(sliderMoved(int, int, bool)));
-  mSliders->getSlider(IIS_X_COORD)->setToolTip(
-                "Set current image X coordinate");
-  mSliders->getSlider(IIS_Y_COORD)->setToolTip(
-                "Set current image Y coordinate");
-  mSliders->getSlider(IIS_Z_COORD)->setToolTip(
-                "Set current image Z coordinate");
-  mSliders->getSlider(IIS_X_SIZE)->setToolTip(
-                "Set image size to display in X");
-  mSliders->getSlider(IIS_Y_SIZE)->setToolTip(
-                "Set image size to display in Y");
-  mSliders->getSlider(IIS_Z_SIZE)->setToolTip(
-                "Set image size to display in Z");
-  mSliders->getSlider(IIS_SLICES)->setToolTip(
-                "Set number of slices to display");
-  mSliders->getSlider(IIS_TRANSPARENCY)->setToolTip(
-                "Set percent transparency");
-  mSliders->getSlider(IIS_BLACK)->setToolTip(
-                "Set minimum black level of contrast ramp");
-  mSliders->getSlider(IIS_WHITE)->setToolTip(
-                "Set maximum white level of contrast ramp");
+  mSliders->getSlider(IIS_X_COORD)->setToolTip("Set current image X coordinate");
+  mSliders->getSlider(IIS_Y_COORD)->setToolTip("Set current image Y coordinate");
+  mSliders->getSlider(IIS_Z_COORD)->setToolTip("Set current image Z coordinate");
+  mSliders->getSlider(IIS_X_SIZE)->setToolTip("Set image size to display in X");
+  mSliders->getSlider(IIS_Y_SIZE)->setToolTip("Set image size to display in Y");
+  mSliders->getSlider(IIS_Z_SIZE)->setToolTip("Set image size to display in Z");
+  mSliders->getSlider(IIS_SLICES)->setToolTip("Set number of slices to display");
+  mSliders->getSlider(IIS_TRANSPARENCY)->setToolTip("Set percent transparency");
+  mSliders->getSlider(IIS_BLACK)->setToolTip("Set minimum black level of contrast ramp");
+  mSliders->getSlider(IIS_WHITE)->setToolTip("Set maximum white level of contrast ramp");
 
   QPushButton *copyBut = diaPushButton("Use 3dmod Black/White", this, mLayout);
   copyBut->setToolTip("Set black and white levels from sliders in 3dmod Info window");
@@ -927,11 +1003,11 @@ void ImodvImage::sliderMoved(int which, int value, bool dragging)
 
   case IIS_BLACK:
     sBlackLevel = value;
-    mkcmap();
+    makeColorMap();
     break;
   case IIS_WHITE:
     sWhiteLevel = value;
-    mkcmap();
+    makeColorMap();
     break;
   }
 
@@ -951,7 +1027,7 @@ void ImodvImage::copyBWclicked()
   sWhiteLevel = App->cvi->whiteInRange;
   mSliders->setValue(IIS_BLACK, sBlackLevel);
   mSliders->setValue(IIS_WHITE, sWhiteLevel);
-  mkcmap();
+  makeColorMap();
   imodvDraw(Imodv);
 }
 
@@ -959,7 +1035,7 @@ void ImodvImage::copyBWclicked()
 void ImodvImage::falseToggled(bool state)
 {
   sFalsecolor = state ? 1 : 0;
-  mkcmap();
+  makeColorMap();
   imodvDraw(Imodv);
 }
 

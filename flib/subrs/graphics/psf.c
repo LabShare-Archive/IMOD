@@ -3,25 +3,8 @@
  *   Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.
+ *   $Id$
  */                                                                           
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.3  2005/01/21 18:19:28  mast
-Allow IMOD_PS_FONT to be set to set the font
-
-Revision 3.2  2004/11/05 18:53:39  mast
-Include local files with quotes, not brackets
-
-Revision 3.1  2003/10/29 04:31:14  mast
-switch to calling f2cString
-
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,40 +13,32 @@ switch to calling f2cString
 #include "imodconfig.h"
 #include "b3dutil.h"
 
-#ifdef F77STRING
-typedef struct
-{
-  unsigned short length;
-  char dum1;
-  char dum2;
-  char *string;
-} FString;
-#endif
-
 #ifdef F77FUNCAP
 #define psopen PSOPEN
 #define psclose PSCLOSE
-#define point  POINT
-#define frstpt FRSTPT
-#define vector VECTOR
-#define frame  FRAME
-#define wtstr  WTSTR
+#define pspoint  PSPOINT
+#define psfirstpoint PSFIRSTPOINT
+#define psvector PSVECTOR
+#define psframe  PSFRAME
+#define pswritetext  PSWRITETEXT
 #define pscircle PSCIRCLE
 #define pslinewidth PSLINEWIDTH
 #define pstriangle PSTRIANGLE
 #define psquadrangle PSQUADRANGLE
+#define pssetcolor PSSETCOLOR
 #else
 #define psopen psopen_
 #define psclose psclose_
-#define point  point_
-#define frstpt frstpt_
-#define vector vector_
-#define frame  frame_
-#define wtstr  wtstr_
+#define pspoint  pspoint_
+#define psfirstpoint psfirstpoint_
+#define psvector psvector_
+#define psframe  psframe_
+#define pswritetext  pswritetext_
 #define pscircle pscircle_
 #define pslinewidth pslinewidth_
 #define pstriangle pstriangle_
 #define psquadrangle psquadrangle_
+#define pssetcolor pssetcolor_
 #endif
 
 #include "ps.h"
@@ -72,28 +47,12 @@ static PS *ps = NULL;
 static char defaultFont[] = "Helvetica";
 static int lastsize = 0;
 
-int psopen(
-#ifdef F77STRING
-           FString *f77str,
-#else
-           char *filename,
-#endif
-
-           float *lm, float *bm, float *dpi
-
-#ifndef F77STRING
-           , int filename_size
-#endif
-           )
+int psopen(char *filename, float *lm, float *bm, float *dpi, int filename_size)
 {
-#ifdef F77STRING
-  int  filename_size  = f77str->length;
-  char *filename      = f77str->string;
-#endif
   double ddpi, dlm, dbm;
   char *fname = f2cString(filename, filename_size);
   if (!fname) {
-    fprintf(stderr, "libps: error getting memory\n");
+    fprintf(stderr, "psopen: error getting memory\n");
     return(-1);
   }
   ddpi = *dpi; dlm = *lm; dbm = *bm;
@@ -111,28 +70,38 @@ int psopen(
 void pslinewidth(float *width)
 {
   double dw = *width;
-  PSsetLineWidth(ps, dw);
+  if (ps)
+    PSsetLineWidth(ps, dw);
 }
 
-void point(float *ix, float *iy)
+void pssetcolor(int *red, int *green, int *blue)
+{
+  if (ps)
+    PSsetColor(ps, *red, *green, *blue);
+}
+
+void pspoint(float *ix, float *iy)
 {
   double x = *ix;
   double y = *iy;
-  PSdrawPoint(ps, x, y);
+  if (ps)
+    PSdrawPoint(ps, x, y);
 }
 
-void frstpt(float *ix, float *iy)
+void psfirstpoint(float *ix, float *iy)
 {
   double x = *ix;
   double y = *iy;
-  PSsetPoint(ps, x, y);
+  if (ps)
+    PSsetPoint(ps, x, y);
 }
 
-void vector(float *ix, float *iy)
+void psvector(float *ix, float *iy)
 {
   double x = *ix;
   double y = *iy;
-  PSdrawVector(ps, x, y);
+  if (ps)
+    PSdrawVector(ps, x, y);
 }
 
 void pscircle(float *ix, float *iy, float *irad, int *fill)
@@ -140,7 +109,8 @@ void pscircle(float *ix, float *iy, float *irad, int *fill)
   double x = *ix;
   double y = *iy;
   double rad = *irad;
-  PSdrawCircle(ps, x, y, rad, *fill);
+  if (ps)
+    PSdrawCircle(ps, x, y, rad, *fill);
 }
 
 void pstriangle(float *ix, float *iy, int *fill)
@@ -151,7 +121,8 @@ void pstriangle(float *ix, float *iy, int *fill)
     x[i] = ix[i];
     y[i] = iy[i];
   }
-  PSdrawTriangle(ps, x, y, *fill);
+  if (ps)
+    PSdrawTriangle(ps, x, y, *fill);
 }
 
 void psquadrangle(float *ix, float *iy, int *fill)
@@ -162,31 +133,22 @@ void psquadrangle(float *ix, float *iy, int *fill)
     x[i] = ix[i];
     y[i] = iy[i];
   }
-  PSdrawQuadrangle(ps, x, y, *fill);
+  if (ps)
+    PSdrawQuadrangle(ps, x, y, *fill);
 }
 
-void frame(){PSpage(ps);}
+void psframe()
+{
+  if (ps)
+    PSpage(ps);
+}
 
-void wtstr(float *ix, float *iy,
-#ifdef F77STRING
-           FString *f77str,
-#else
-           char *text,
-#endif
-           int *jsize, int *jor, int *jctr
-
-#ifndef F77STRING
-           , int text_size
-#endif
-           )
+void pswritetext(float *ix, float *iy, char *text, int *jsize, int *jor, int *jctr, 
+           int text_size)
 
 {
   float x = *ix;
   float y = *iy;
-#ifdef F77STRING
-  int  text_size  = f77str->length;
-  char *text      = f77str->string;
-#endif
 
   char *useFont = getenv("IMOD_PS_FONT");
   char *ctext = (char *)malloc(text_size + 1);
@@ -197,14 +159,20 @@ void wtstr(float *ix, float *iy,
 
   if(lastsize != *jsize){
     lastsize = *jsize;
-    PSsetFont(ps, useFont, lastsize);
+    if (ps)
+      PSsetFont(ps, useFont, lastsize);
   }
 
-  PSdrawText(ps, ctext, x, y, *jor, *jctr);
+  if (ps)
+    PSdrawText(ps, ctext, x, y, *jor, *jctr);
 
   /* DNM 3/23/01: plug the leak? */
   free(ctext);
 }
 
-void psclose(){PSclose(ps);}
+void psclose()
+{
+  if (ps)
+    PSclose(ps);
+}
 

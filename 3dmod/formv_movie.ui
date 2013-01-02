@@ -1,97 +1,98 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>imodvMovieForm</class>
- <widget class="QWidget" name="imodvMovieForm" >
-  <property name="geometry" >
+ <widget class="QWidget" name="imodvMovieForm">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>302</width>
-    <height>616</height>
+    <width>298</width>
+    <height>615</height>
    </rect>
   </property>
-  <property name="focusPolicy" >
+  <property name="focusPolicy">
    <enum>Qt::StrongFocus</enum>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>3dmodv Movies</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3" >
+  <layout class="QVBoxLayout" name="verticalLayout_5">
    <item>
-    <layout class="QGridLayout" >
-     <item row="1" column="2" >
-      <widget class="QCheckBox" name="reverseBox" >
-       <property name="focusPolicy" >
+    <layout class="QGridLayout">
+     <item row="1" column="2">
+      <widget class="QCheckBox" name="reverseBox">
+       <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Select to go backwards from end to start</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Reverse</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="0" >
-      <widget class="QPushButton" name="setStartButton" >
-       <property name="focusPolicy" >
+     <item row="1" column="0">
+      <widget class="QPushButton" name="setStartButton">
+       <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Set starting parameters from current position</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Set Start</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="0" >
-      <widget class="QPushButton" name="fullXButton" >
-       <property name="focusPolicy" >
+     <item row="0" column="0">
+      <widget class="QPushButton" name="fullXButton">
+       <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Set start &amp; end parameters for complete rotation around X axis</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Full 360 X</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1" >
-      <widget class="QPushButton" name="fullYButton" >
-       <property name="focusPolicy" >
+     <item row="0" column="1">
+      <widget class="QPushButton" name="fullYButton">
+       <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Set start &amp; end parameters for complete rotation around Y axis</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Full 360 Y</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="2" >
-      <widget class="QCheckBox" name="longWayBox" >
-       <property name="focusPolicy" >
+     <item row="0" column="2">
+      <widget class="QCheckBox" name="longWayBox">
+       <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Select to rotate by more than 180 degrees from start to end position</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Long way</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1" >
-      <widget class="QPushButton" name="setEndButton" >
-       <property name="focusPolicy" >
+     <item row="1" column="1">
+      <widget class="QPushButton" name="setEndButton">
+       <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Set ending parameters from current position</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Set End</string>
        </property>
       </widget>
@@ -99,618 +100,618 @@
     </layout>
    </item>
    <item>
-    <layout class="QGridLayout" >
-     <property name="spacing" >
+    <layout class="QGridLayout">
+     <property name="spacing">
       <number>1</number>
      </property>
-     <item row="6" column="1" >
-      <widget class="QLineEdit" name="zoomEnd" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="6" column="1">
+      <widget class="QLineEdit" name="zoomEnd">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="2" column="0" >
-      <widget class="QLineEdit" name="zRotStart" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="2" column="0">
+      <widget class="QLineEdit" name="zRotStart">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="7" column="2" >
-      <widget class="QLabel" name="xSliceLabel" >
-       <property name="text" >
+     <item row="7" column="2">
+      <widget class="QLabel" name="xSliceLabel">
+       <property name="text">
         <string>X Slice</string>
        </property>
-       <property name="alignment" >
+       <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
-       <property name="wordWrap" >
+       <property name="wordWrap">
         <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="0" column="1" >
-      <widget class="QLineEdit" name="xRotEnd" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="xRotEnd">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="4" column="1" >
-      <widget class="QLineEdit" name="yTransEnd" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="4" column="1">
+      <widget class="QLineEdit" name="yTransEnd">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="3" column="1" >
-      <widget class="QLineEdit" name="xTransEnd" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="xTransEnd">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="10" column="0" >
-      <widget class="QLineEdit" name="transpStart" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="10" column="0">
+      <widget class="QLineEdit" name="transpStart">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="9" column="2" >
-      <widget class="QLabel" name="zSliceLabel" >
-       <property name="text" >
+     <item row="9" column="2">
+      <widget class="QLabel" name="zSliceLabel">
+       <property name="text">
         <string>Z Slice</string>
        </property>
-       <property name="alignment" >
+       <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
-       <property name="wordWrap" >
+       <property name="wordWrap">
         <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="10" column="2" >
-      <widget class="QLabel" name="transpLabel" >
-       <property name="text" >
+     <item row="10" column="2">
+      <widget class="QLabel" name="transpLabel">
+       <property name="text">
         <string>Transparency</string>
        </property>
-       <property name="alignment" >
+       <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
-       <property name="wordWrap" >
+       <property name="wordWrap">
         <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="1" column="2" >
-      <widget class="QLabel" name="TextLabel1_2" >
-       <property name="text" >
+     <item row="1" column="2">
+      <widget class="QLabel" name="TextLabel1_2">
+       <property name="text">
         <string>Y Rotation</string>
        </property>
-       <property name="alignment" >
+       <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
-       <property name="wordWrap" >
+       <property name="wordWrap">
         <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="1" column="0" >
-      <widget class="QLineEdit" name="yRotStart" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="1" column="0">
+      <widget class="QLineEdit" name="yRotStart">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="6" column="0" >
-      <widget class="QLineEdit" name="zoomStart" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="6" column="0">
+      <widget class="QLineEdit" name="zoomStart">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="4" column="0" >
-      <widget class="QLineEdit" name="yTransStart" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="4" column="0">
+      <widget class="QLineEdit" name="yTransStart">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="7" column="0" >
-      <widget class="QLineEdit" name="xSliceStart" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="7" column="0">
+      <widget class="QLineEdit" name="xSliceStart">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="11" column="0" >
-      <widget class="QLineEdit" name="thickStart" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="11" column="0">
+      <widget class="QLineEdit" name="thickStart">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="3" column="2" >
-      <widget class="QLabel" name="TextLabel1_4" >
-       <property name="text" >
+     <item row="3" column="2">
+      <widget class="QLabel" name="TextLabel1_4">
+       <property name="text">
         <string>X Translation</string>
        </property>
-       <property name="alignment" >
+       <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
-       <property name="wordWrap" >
+       <property name="wordWrap">
         <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="0" column="0" >
-      <widget class="QLineEdit" name="xRotStart" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="0" column="0">
+      <widget class="QLineEdit" name="xRotStart">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="10" column="1" >
-      <widget class="QLineEdit" name="transpEnd" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="10" column="1">
+      <widget class="QLineEdit" name="transpEnd">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="11" column="2" >
-      <widget class="QLabel" name="thickLabel" >
-       <property name="text" >
+     <item row="11" column="2">
+      <widget class="QLabel" name="thickLabel">
+       <property name="text">
         <string>Thickness</string>
        </property>
-       <property name="alignment" >
+       <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
-       <property name="wordWrap" >
+       <property name="wordWrap">
         <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="8" column="2" >
-      <widget class="QLabel" name="ySliceLabel" >
-       <property name="text" >
+     <item row="8" column="2">
+      <widget class="QLabel" name="ySliceLabel">
+       <property name="text">
         <string>Y Slice</string>
        </property>
-       <property name="alignment" >
+       <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
-       <property name="wordWrap" >
+       <property name="wordWrap">
         <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="8" column="0" >
-      <widget class="QLineEdit" name="ySliceStart" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="8" column="0">
+      <widget class="QLineEdit" name="ySliceStart">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="0" column="2" >
-      <widget class="QLabel" name="TextLabel1" >
-       <property name="text" >
+     <item row="0" column="2">
+      <widget class="QLabel" name="TextLabel1">
+       <property name="text">
         <string>X Rotation</string>
        </property>
-       <property name="alignment" >
+       <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
-       <property name="wordWrap" >
+       <property name="wordWrap">
         <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="5" column="0" >
-      <widget class="QLineEdit" name="zTransStart" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="5" column="0">
+      <widget class="QLineEdit" name="zTransStart">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="5" column="2" >
-      <widget class="QLabel" name="TextLabel1_6" >
-       <property name="text" >
+     <item row="5" column="2">
+      <widget class="QLabel" name="TextLabel1_6">
+       <property name="text">
         <string>Z Translation</string>
        </property>
-       <property name="alignment" >
+       <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
-       <property name="wordWrap" >
+       <property name="wordWrap">
         <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="1" column="1" >
-      <widget class="QLineEdit" name="yRotEnd" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="yRotEnd">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="2" column="1" >
-      <widget class="QLineEdit" name="zRotEnd" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="zRotEnd">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="5" column="1" >
-      <widget class="QLineEdit" name="zTransEnd" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="5" column="1">
+      <widget class="QLineEdit" name="zTransEnd">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="8" column="1" >
-      <widget class="QLineEdit" name="ySliceEnd" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="8" column="1">
+      <widget class="QLineEdit" name="ySliceEnd">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="4" column="2" >
-      <widget class="QLabel" name="TextLabel1_5" >
-       <property name="text" >
+     <item row="4" column="2">
+      <widget class="QLabel" name="TextLabel1_5">
+       <property name="text">
         <string>Y Translation</string>
        </property>
-       <property name="alignment" >
+       <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
-       <property name="wordWrap" >
+       <property name="wordWrap">
         <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="2" column="2" >
-      <widget class="QLabel" name="TextLabel1_3" >
-       <property name="text" >
+     <item row="2" column="2">
+      <widget class="QLabel" name="TextLabel1_3">
+       <property name="text">
         <string>Z Rotation</string>
        </property>
-       <property name="alignment" >
+       <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
-       <property name="wordWrap" >
+       <property name="wordWrap">
         <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="6" column="2" >
-      <widget class="QLabel" name="TextLabel1_7" >
-       <property name="text" >
+     <item row="6" column="2">
+      <widget class="QLabel" name="TextLabel1_7">
+       <property name="text">
         <string>Zoom Factor</string>
        </property>
-       <property name="alignment" >
+       <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
-       <property name="wordWrap" >
+       <property name="wordWrap">
         <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="9" column="1" >
-      <widget class="QLineEdit" name="zSliceEnd" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="9" column="1">
+      <widget class="QLineEdit" name="zSliceEnd">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="11" column="1" >
-      <widget class="QLineEdit" name="thickEnd" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="11" column="1">
+      <widget class="QLineEdit" name="thickEnd">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="3" column="0" >
-      <widget class="QLineEdit" name="xTransStart" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="3" column="0">
+      <widget class="QLineEdit" name="xTransStart">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="9" column="0" >
-      <widget class="QLineEdit" name="zSliceStart" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="9" column="0">
+      <widget class="QLineEdit" name="zSliceStart">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
      </item>
-     <item row="7" column="1" >
-      <widget class="QLineEdit" name="xSliceEnd" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+     <item row="7" column="1">
+      <widget class="QLineEdit" name="xSliceEnd">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>90</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
       </widget>
@@ -718,54 +719,54 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" >
-     <property name="spacing" >
+    <layout class="QHBoxLayout">
+     <property name="spacing">
       <number>6</number>
      </property>
-     <property name="margin" >
+     <property name="margin">
       <number>0</number>
      </property>
      <item>
-      <widget class="QLineEdit" name="framesEdit" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+      <widget class="QLineEdit" name="framesEdit">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>60</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Enter total number of positions from start to end</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="TextLabel2" >
-       <property name="text" >
+      <widget class="QLabel" name="TextLabel2">
+       <property name="text">
         <string># of movie frames</string>
        </property>
-       <property name="wordWrap" >
+       <property name="wordWrap">
         <bool>false</bool>
        </property>
       </widget>
      </item>
      <item>
-      <spacer name="Spacer9" >
-       <property name="orientation" >
+      <spacer name="Spacer9">
+       <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeType" >
+       <property name="sizeType">
         <enum>QSizePolicy::Expanding</enum>
        </property>
-       <property name="sizeHint" stdset="0" >
+       <property name="sizeHint" stdset="0">
         <size>
          <width>30</width>
          <height>0</height>
@@ -776,51 +777,51 @@
     </layout>
    </item>
    <item>
-    <widget class="Line" name="Line1_2" >
-     <property name="frameShape" >
+    <widget class="Line" name="Line1_2">
+     <property name="frameShape">
       <enum>QFrame::HLine</enum>
      </property>
-     <property name="frameShadow" >
+     <property name="frameShadow">
       <enum>QFrame::Sunken</enum>
      </property>
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" >
+    <layout class="QHBoxLayout">
      <item>
-      <widget class="QSpinBox" name="montageFramesBox" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+      <widget class="QSpinBox" name="montageFramesBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize" >
+       <property name="minimumSize">
         <size>
          <width>60</width>
          <height>0</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
-       <property name="keyboardTracking" >
+       <property name="keyboardTracking">
         <bool>false</bool>
        </property>
-       <property name="minimum" >
+       <property name="minimum">
         <number>2</number>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="TextLabel3" >
-       <property name="text" >
+      <widget class="QLabel" name="TextLabel3">
+       <property name="text">
         <string># of montage frames in X &amp; Y</string>
        </property>
-       <property name="alignment" >
+       <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
-       <property name="wordWrap" >
+       <property name="wordWrap">
         <bool>false</bool>
        </property>
       </widget>
@@ -828,117 +829,134 @@
     </layout>
    </item>
    <item>
-    <widget class="Line" name="Line1" >
-     <property name="frameShape" >
+    <widget class="Line" name="Line1">
+     <property name="frameShape">
       <enum>QFrame::HLine</enum>
      </property>
-     <property name="frameShadow" >
+     <property name="frameShadow">
       <enum>QFrame::Sunken</enum>
      </property>
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" >
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QGroupBox" name="groupBox" >
-       <property name="title" >
-        <string>Make</string>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout" >
-        <property name="leftMargin" >
-         <number>5</number>
-        </property>
-        <property name="topMargin" >
-         <number>2</number>
-        </property>
-        <property name="rightMargin" >
-         <number>5</number>
-        </property>
-        <property name="bottomMargin" >
-         <number>5</number>
-        </property>
-        <item>
-         <widget class="QRadioButton" name="movieRadioButton" >
-          <property name="focusPolicy" >
-           <enum>Qt::NoFocus</enum>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Make</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <property name="leftMargin">
+           <number>5</number>
           </property>
-          <property name="toolTip" >
-           <string>Make a movie of frames from starting to ending position</string>
+          <property name="topMargin">
+           <number>2</number>
           </property>
-          <property name="text" >
-           <string>Movie</string>
+          <property name="rightMargin">
+           <number>5</number>
           </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="montageRadioButton" >
-          <property name="focusPolicy" >
-           <enum>Qt::NoFocus</enum>
+          <property name="bottomMargin">
+           <number>5</number>
           </property>
-          <property name="toolTip" >
-           <string>Make a montage of adjacent zoomed-up frames</string>
-          </property>
-          <property name="text" >
-           <string>Montage</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
+          <item>
+           <widget class="QRadioButton" name="movieRadioButton">
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="toolTip">
+             <string>Make a movie of frames from starting to ending position</string>
+            </property>
+            <property name="text">
+             <string>Movie</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="montageRadioButton">
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="toolTip">
+             <string>Make a montage of adjacent zoomed-up frames</string>
+            </property>
+            <property name="text">
+             <string>Montage</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="writeBox">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>Turn this on to save frames to files</string>
+         </property>
+         <property name="text">
+          <string>Write files</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item>
-      <widget class="QGroupBox" name="groupBox_2" >
-       <property name="title" >
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="title">
         <string>Save as</string>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout_2" >
-        <property name="leftMargin" >
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="leftMargin">
          <number>5</number>
         </property>
-        <property name="topMargin" >
+        <property name="topMargin">
          <number>2</number>
         </property>
-        <property name="rightMargin" >
+        <property name="rightMargin">
          <number>5</number>
         </property>
-        <property name="bottomMargin" >
+        <property name="bottomMargin">
          <number>5</number>
         </property>
         <item>
-         <widget class="QRadioButton" name="tiffRadioButton" >
-          <property name="focusPolicy" >
+         <widget class="QRadioButton" name="tiffRadioButton">
+          <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Write frames as TIFF files</string>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>TIFFs</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="rgbRadioButton" >
-          <property name="focusPolicy" >
+         <widget class="QRadioButton" name="rgbRadioButton">
+          <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Write frames as files in current non-TIFF format</string>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>RGBs</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="pngRadioButton" >
-          <property name="focusPolicy" >
+         <widget class="QRadioButton" name="pngRadioButton">
+          <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Write frames as files in current non-TIFF format</string>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>PNGs</string>
           </property>
          </widget>
@@ -947,134 +965,171 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="writeBox" >
-       <property name="focusPolicy" >
-        <enum>Qt::NoFocus</enum>
-       </property>
-       <property name="toolTip" >
-        <string>Turn this on to save frames to files</string>
-       </property>
-       <property name="text" >
-        <string>Write files</string>
-       </property>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QSpinBox" name="fpsSpinBox">
+           <property name="focusPolicy">
+            <enum>Qt::ClickFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string>Set display rate when NOT writing files</string>
+           </property>
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>1000</number>
+           </property>
+           <property name="singleStep">
+            <number>5</number>
+           </property>
+           <property name="value">
+            <number>20</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="fpsLabel">
+           <property name="text">
+            <string>FPS</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QPushButton" name="sequenceButton">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>Open dialog to store/run sequence of movies</string>
+         </property>
+         <property name="text">
+          <string>Sequence...</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
    <item>
-    <widget class="Line" name="Line1_3" >
-     <property name="frameShape" >
+    <widget class="Line" name="Line1_3">
+     <property name="frameShape">
       <enum>QFrame::HLine</enum>
      </property>
-     <property name="frameShadow" >
+     <property name="frameShadow">
       <enum>QFrame::Sunken</enum>
      </property>
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" >
-     <property name="spacing" >
+    <layout class="QHBoxLayout">
+     <property name="spacing">
       <number>6</number>
      </property>
-     <property name="margin" >
+     <property name="margin">
       <number>0</number>
      </property>
      <item>
-      <widget class="QPushButton" name="makeButton" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+      <widget class="QPushButton" name="makeButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>60</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Start the sequence of frames for a movie or montage</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Make</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="stopButton" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+      <widget class="QPushButton" name="stopButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>60</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Stop an ongoing sequence of frames</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Stop</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="closeButton" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+      <widget class="QPushButton" name="closeButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>60</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Close this dialog box</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Done</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="helpButton" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+      <widget class="QPushButton" name="helpButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>60</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Open a help window</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Help</string>
        </property>
       </widget>
@@ -1083,7 +1138,7 @@
    </item>
   </layout>
  </widget>
- <layoutdefault spacing="6" margin="11" />
+ <layoutdefault spacing="6" margin="11"/>
  <resources/>
  <connections>
   <connection>
@@ -1092,11 +1147,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>longWayToggled(bool)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1108,11 +1163,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>reverseToggled(bool)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1124,11 +1179,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>writeToggled(bool)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1140,11 +1195,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>fullXPressed()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1156,11 +1211,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>fullYPressed()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1172,11 +1227,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setStartPressed()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1188,11 +1243,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setEndPressed()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1204,11 +1259,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>closePressed()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1220,11 +1275,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>makePressed()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1236,11 +1291,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>stopPressed()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1252,11 +1307,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>helpPressed()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1268,11 +1323,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1284,11 +1339,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1300,11 +1355,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1316,11 +1371,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1332,11 +1387,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1348,11 +1403,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1364,11 +1419,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1380,11 +1435,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1396,11 +1451,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1412,11 +1467,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1428,11 +1483,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1444,11 +1499,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1460,11 +1515,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1476,11 +1531,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1492,11 +1547,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1508,11 +1563,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1524,11 +1579,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1540,11 +1595,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1556,11 +1611,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1572,11 +1627,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1588,11 +1643,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1604,11 +1659,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1620,11 +1675,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1636,11 +1691,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1652,11 +1707,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -1668,11 +1723,11 @@
    <receiver>imodvMovieForm</receiver>
    <slot>setFocus()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>

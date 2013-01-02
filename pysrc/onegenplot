@@ -35,6 +35,27 @@ from imodpy import *
 from pip import *
 
 defSymbols = [9, 7, 5, 8, 13, 14, 1, 11, 3, 10, 6, 2, 12, 4]
+stockColors = {'aqua' : (0, 255, 255),
+               'blue' : (0, 0, 255),
+               'cyan' : (0, 255, 255),
+               'darkblue' : (0, 0, 139),
+               'darkgreen' : (0, 100, 0),
+               'darkmagenta' : (139, 0, 139),
+               'darkorange' : (255, 140, 0),
+               'darkred' : (139, 0, 0),
+               'darkviolet' : (148, 0, 211),
+               'fuchsia' : (255, 0, 255),
+               'green' : (0, 128, 0),
+               'lime' : (0, 255, 0),
+               'magenta' : (255, 0, 255),
+               'maroon' : (128, 0, 0),
+               'navy' : (0, 0, 128),
+               'olive' : (128, 128, 0),
+               'orange' : (255, 165, 0),
+               'purple' : (128, 0, 128),
+               'red' : (255, 0, 0),
+               'teal' : (0, 128, 128),
+               'yellow' : (255, 255, 0)}
 
 # Fallbacks from ../manpages/autodoc2man 3 1 onegenplot
 options = ["input:InputDataFile:FN:", "iftypes:IfTypesInFirstColumn:B:",
@@ -45,6 +66,14 @@ options = ["input:InputDataFile:FN:", "iftypes:IfTypesInFirstColumn:B:",
            "ylog:YLogOrRootAndBase:FP:", "axis:XaxisLabel:CH:", "keys:KeyLabels:CHM:"]
 
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 0, 0)
+
+if PipGetBoolean('StockColorList', 0):
+   prnstr('Standard colors available by name:')
+   for col in stockColors:
+      longer = col + (13 - len(col)) * ' '
+      prnstr(fmtstr('  {} {:3d}  {:3d}  {:3d}', longer, stockColors[col][0],
+                    stockColors[col][1], stockColors[col][2]))
+   sys.exit(0)
 
 dataName = PipGetInOutFile('InputDataFile', 0)
 if not dataName:
@@ -66,6 +95,26 @@ keys = []
 for ind in range(numKeys):
    oneKey = PipGetString('KeyLabels', '')
    keys.append(oneKey)
+
+numColors = PipNumberOfEntries('ColorOfGroup')
+colors = []
+for ind in range(numColors):
+   colorStr = PipGetString('ColorOfGroup', '')
+   csplit = colorStr.split(',')
+   if len(csplit) != 2 and len(csplit) != 4:
+      exitError('The color entry ' + colorStr + ' does not have 2 or 4 components')
+   group = convertToInteger(csplit[0], 'group number of color entry')
+   if len(csplit) == 2:
+      col = csplit[1]
+      if col not in stockColors:
+         exitError(col + ' is not in the list of stock colors')
+      colors.append(fmtstr('{},{},{},{}', group, stockColors[col][0], stockColors[col][1],
+                           stockColors[col][2]))
+   else:
+      red = convertToInteger(csplit[1], 'second component of color entry')
+      green = convertToInteger(csplit[2], 'third component of color entry')
+      blue = convertToInteger(csplit[3], 'fourth component of color entry')
+      colors.append(fmtstr('{},{},{},{}', group, red, green, blue))
 
 message = ''
 tooltip = ''
@@ -250,11 +299,13 @@ inlist += ['1',
            str(columnList[1 - ordinals]),
            fmtstr('{},{}', int(ylog), ybase),
            '0',
-           '-3',   # Reverse contrast
            '-2',
            axisLabel,
            str(numCurves)]
 inlist += keys
+if colors:
+   inlist += ['-4', (str(len(colors)))] + colors
+
 if connect:
    inlist += ['17']
 else:

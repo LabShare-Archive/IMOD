@@ -140,7 +140,7 @@ int mrc_plist_proc(IloadInfo *li, int nx, int ny, int nz)
 /*!
  * Creates a piece list in [li] for [nz] sections of size [nx] by [ny], with
  * the number of frames in X and Y given by [nfx] and [nfy], and overlap in X
- * and Y given by [ovx] and [ovy].  Processes the list with @mrc_plist_proc.
+ * and Y given by [ovx] and [ovy].  Processes the list with @@mrc_plist_proc@.
  * Returns 1 for memory error.
  */
 int mrc_plist_create(IloadInfo *li, int nx, int ny, int nz,

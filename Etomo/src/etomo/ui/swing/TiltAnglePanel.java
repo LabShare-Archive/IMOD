@@ -174,20 +174,20 @@ final class TiltAnglePanel {
     return rbFile.isSelected();
   }
 
+  String getMin() {
+    return ltfMin.getText();
+  }
+
   String getMin(final boolean doValidation) throws FieldValidationFailedException {
     return ltfMin.getText(doValidation);
   }
 
-  boolean isMinEmpty() {
-    return ltfMin.isEmpty();
+  String getStep() {
+    return ltfStep.getText();
   }
 
   String getStep(final boolean doValidation) throws FieldValidationFailedException {
     return ltfStep.getText(doValidation);
-  }
-
-  boolean isStepEmpty() {
-    return ltfStep.isEmpty();
   }
 
   void setSourceEnabled(final boolean enable) {

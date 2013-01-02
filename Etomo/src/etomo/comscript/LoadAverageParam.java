@@ -109,11 +109,11 @@ public class LoadAverageParam implements IntermittentCommand {
   }
 
   private final void buildRemoteStartCommand() {
-    List command = SshParam.INSTANCE.getCommand(manager, false, computer);
+    List<String> command = SshParam.INSTANCE.getCommand(manager, false, computer);
     int commandSize = command.size();
     remoteStartCommandArray = new String[commandSize];
     for (int i = 0; i < commandSize; i++) {
-      remoteStartCommandArray[i] = (String) command.get(i);
+      remoteStartCommandArray[i] = command.get(i);
     }
   }
 

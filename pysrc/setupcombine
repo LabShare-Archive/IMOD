@@ -35,13 +35,25 @@ def readTiltOptions(tilt):
    if tiltarr:
       offset = tiltarr[0]
    tiltarr = optionValue(comlines, 'shift', 2, True)
+   xshift = 0.
    zshift = 0.
+   if tiltarr:
+      xshift = tiltarr[0]
    if tiltarr and len(tiltarr) > 1:
       zshift = tiltarr[1]
+   binning = 1
    tiltarr = optionValue(comlines, 'imagebinned', 1, True)
    if tiltarr:
-      zshift /= tiltarr[0]
-   return (xaxis, offset, zshift)
+      binning = tiltarr[0]
+   zshift /= binning
+   sliceStart = 0
+   sliceEnd = 0
+   tiltarr = optionValue(comlines, 'slice', 1, True)
+   if tiltarr and len(tiltarr) > 1:
+      sliceStart = tiltarr[0]
+      sliceEnd = tiltarr[1]
+   
+   return (xaxis, offset, zshift, xshift, binning, sliceStart, sliceEnd)
 
 def warning(text):
    prnstr(' ', file=sys.stderr)
@@ -188,12 +200,14 @@ tilta = "tilt" + tolet + ".com"
 tiltb = "tilt" + fromlet + ".com"
 
 if os.path.exists(tilta) and os.path.exists(tiltb):
-   (xaxisa, angoffa, zshifta) = readTiltOptions(tilta)
-   (xaxisb, angoffb, zshiftb) = readTiltOptions(tiltb)
+   (xaxisa, angoffa, zshifta, xshifta, binninga, sliceStarta, sliceEnda) = \
+       readTiltOptions(tilta)
+   (xaxisb, angoffb, zshiftb, xshiftb, binningb, sliceStartb, sliceEndb) = \
+       readTiltOptions(tiltb)
 else:
    xaxisa = xaxisb = angoffa = angoffb = zshifta = zshiftb = 0.
-   warning("CANNOT FIND tilta.com or tiltb.com; CANNOT SET X-AXIS "+\
-           "TILTS CORRECTLY")
+   binninga = binningb = 0
+   warning("CANNOT FIND tilta.com or tiltb.com; CANNOT SET X-AXIS TILTS CORRECTLY")
 
 # set up some filenames
 recfile = toname + ".rec"
@@ -416,6 +430,57 @@ except ImodpyError:
 for i in range(len(ranlist)):
    ranlist[i] = str(ranlist[i]).rstrip('\r\n')
 
+# Set up filltomo command and check all the conditions for specifying valid area
+fillcom = ['MatchedToTomogram	' + recfile,
+           'SourceTomogram	' + origfile,
+           'InverseTransformFile	' + invfile]
+
+if xshifta == 0. and xshiftb == 0. and os.path.exists(fromname + '.st') and \
+       os.path.exists(fromname + '.xf') and binninga and \
+       ((sliceStarta == 0 and sliceEnda == 0) or os.path.exists(toname + '.ali')) and \
+       ((sliceStartb == 0 and sliceEndb == 0) or os.path.exists(fromname + '.ali')):
+
+   # Get the size of the raw stack from montage or stack
+   # If anything goes wrong, just forget it
+   try:
+      rawSize = ''
+      if os.path.exists('newst' + fromlet + '.com'):
+         (nxraw, nyraw, nzraw) = getmrcsize(fromname + '.st')
+         rawSize = fmtstr('{} {} {}', nxraw, nyraw, nzraw)
+
+      elif os.path.exists('blend' + fromlet + '.com'):
+         command = 'montagesize ' + fromname + '.st'
+         if os.path.exists(fromname + '.pl'):
+            command += ' ' + fromname + '.pl'
+         msout = runcmd(command)
+         lastline = msout[len(msout) - 1]
+         ind = lastline.find('NZ:')
+         if ind > 0:
+            rawSize = lastline[ind + 3:].strip()
+      
+      # Then check for centering in Y if there are slice entries
+      if rawSize and (sliceStarta != 0 or sliceEnda != 0):
+         (nxali, nyali, nzali) = getmrcsize(toname + '.ali')
+         diff = (sliceStarta + sliceEnda) // 2 - nyali
+         if diff > 4 or diff < -4:
+            rawSize = ''
+            
+      if rawSize and (sliceStartb != 0 or sliceEndb != 0):
+         (nxali, nyali, nzali) = getmrcsize(fromname + '.ali')
+         diff = (sliceStartb + sliceEndb) // 2 - nyali
+         if diff > 4 or diff < -4:
+            rawSize = ''
+         
+   except ImodpyError:
+      rawSize = ''
+      pass
+
+   # Things are good, add the source commands
+   if rawSize:
+      fillcom += [fmtstr('ImagesAreBinned	{}', binningb),
+                  'SourceRawStackSize	' + rawSize,
+                  'SourceStackTransforms	' + fromname + '.xf']
+   
 voltext += ['$set nonomatch',
             '$\\rm -f ' + tmppath + '*.mat~ ' + tmppath + 'mat.fft* ' + \
             tmppath + 'rec.fft* ' + tmppath + 'sum.fft* ' + sumname + '* ' +\
@@ -425,12 +490,9 @@ voltext += ['$set nonomatch',
             'THE .MAT FILE',
             '$echo ',
             '#',
-            '$filltomo',
-            tmpmatfile,
-            recfile,
-            origfile,
-            invfile,
-            '/']
+            '$filltomo -StandardInput',
+            'FillTomogram	' + tmpmatfile] + \
+            fillcom
 line = ranlist[0].split()
 npiecex = int(line[0])
 npiecey = int(line[1])
@@ -494,12 +556,9 @@ voltext += ['#',
             '$echo ',
             '#', 
             '$\\rm ' + tmppath + 'sum[1-9]*.rec',
-            '$filltomo',
-            sumname,
-            recfile,
-            origfile,
-            invfile,
-            '/']
+            '$filltomo -StandardInput',
+            'FillTomogram	' + sumname] + \
+            fillcom
 
 if tmpdir and not handclean:
    voltext.append('$\\rm -r ' + tmpdir)

@@ -600,7 +600,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         axisID, manager.getPropertyUserDir());
     localGpuAvailable = Network.isLocalHostGpuProcessingEnabled(manager, axisID,
         manager.getPropertyUserDir());
-    cbUseGpu.setSelected(metaData.getDefaultGpuProcessing().is());
+    cbUseGpu.setSelected(metaData.isDefaultGpuProcessing());
     // updateUseGpu();
     // Parallel processing
     cbParallelProcess.setEnabled(validAutodoc);
@@ -609,7 +609,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     // select the parallel processing checkbox.
     if (nonLocalHostGpusAvailable || !cbUseGpu.isSelected()) {
       if (tiltParallel == null) {
-        cbParallelProcess.setSelected(validAutodoc && metaData.getDefaultParallel().is());
+        cbParallelProcess.setSelected(validAutodoc && metaData.isDefaultParallel());
       }
       else {
         cbParallelProcess.setSelected(validAutodoc && tiltParallel.is());
@@ -723,8 +723,16 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       ctfLog.setText(tiltParam.getLogShift());
     }
     if ((log || initialize) && tiltParam.hasScale()) {
-      ltfLogDensityScaleOffset.setText(tiltParam.getScaleFLevel());
-      ltfLogDensityScaleFactor.setText(tiltParam.getScaleCoeff());
+      if (log) {
+        ltfLogDensityScaleOffset.setText(tiltParam.getScaleFLevel());
+        ltfLogDensityScaleFactor.setText(tiltParam.getScaleCoeff());
+      }
+      else {
+        //New combination of parameters: !log and initialize
+        ltfLinearDensityScaleOffset.setText(tiltParam.getScaleFLevel());
+        ltfLinearDensityScaleFactor
+            .setText((Math.round(tiltParam.getScaleCoeff() * 5000. / 10.) * 10.));
+      }
     }
     if (!log && tiltParam.hasScale()) {
       ltfLinearDensityScaleOffset.setText(tiltParam.getScaleFLevel());
@@ -737,7 +745,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       logScale.set(text);
       if (log && !logScale.isNull() && logScale.isValid()) {
         ltfLinearDensityScaleFactor
-            .setText(Math.round(logScale.getDouble() / 5000. * 10.) / 10.);
+            .setText(Math.round(logScale.getDouble() / 5000. * 1000.) / 1000.);
       }
     }
     if (!initialize) {

@@ -57,7 +57,7 @@ extern "C" int iiQImageCheck(ImodImageFile *inFile);
 
 /******************************* Globals *************************************/
 ImodApp *App;
-Imod    *Model;
+Imod    *Model = NULL;
 
 char   *Imod_imagefile;
 QString Imod_IFDpath;
@@ -96,7 +96,7 @@ void imod_usage(char *name)
   qstr += "   -C #  Set # of sections or Mbytes to cache (#M or #m for"
     " Mbytes).\n";
   qstr += "   -F    Fill cache right after starting program.\n";
-  qstr += "   -Y    Flip volume to model planes normal to Y axis.\n";
+  qstr += "   -Y    Rotate volume around X to model planes normal to Y axis.\n";
   qstr += "   -B #  Bin images by # in X, Y, and Z.\n";
   qstr += "   -b nxy,nz  Bin images by nxy in X and Y, by nz in Z (nz "
     "default=1).\n";
@@ -143,13 +143,12 @@ int main( int argc, char *argv[])
   int sliceropen   = FALSE;
   int zapOpen      = FALSE;
   int modelViewOpen= FALSE;
-  int print_wid    = FALSE;
+  bool print_wid   = false;
   int fillCache    = FALSE;
-  int new_model_created = FALSE;
+  bool newModelCreated = false;
   int i      = 0;
   int nx, ny, nz, mode;
   int minxpiece, numXpieces, xoverlap, minypiece, numYpieces, yoverlap;
-  int namelen;
   int frames = 0;
   int firstfile = 0;
   int lastimage;
@@ -471,7 +470,7 @@ int main( int argc, char *argv[])
           break;
         
         case 'W':
-          print_wid = TRUE;
+          print_wid = true;
           break;
         
         case 'r':
@@ -568,7 +567,6 @@ int main( int argc, char *argv[])
   tiffFilterWarnings();
 
   QDir *curdir = new QDir();
-  Model = NULL;
 
   /* Try to open the last file if there is one */
   if (firstfile) {
@@ -582,24 +580,26 @@ int main( int argc, char *argv[])
         exit(10);
       }
       
-      /* But if there are other files, open new model with that name*/
+      /* But if there are other files, set up to open new model with that name*/
       imodPrintStderr("Model file (%s) not found: opening "
         "new model by that name.\n", argv[argc - 1]);
 
-      Model = imodNew();
       lastimage = argc - 2;
-      new_model_created = TRUE;
+      newModelCreated = true;
     } else {
       
     /*
     * Try loading file as a model.  Turn it on if successful
       */
-      Model = (struct Mod_Model *)LoadModel(mfin);
-      if (Model){
+      Model = LoadModel(mfin);
+      if (Model) {
         if (Imod_debug)
           imodPrintStderr("Loaded model %s\n", argv[argc -1]);
         lastimage = argc - 2;
         Model->drawmode = 1;
+
+        // Set this now in case image load is interrupted
+        Model->csum = imodChecksum(Model);
       } else {
         /* If fail, last file is an image */
         lastimage = argc - 1;
@@ -634,12 +634,10 @@ int main( int argc, char *argv[])
 
   } else if (lastimage < firstfile && Model) {
 
-    /* If we have a model and no image files before that, then it's a fake
-       image */
+    /* If we have a model and no image files before that, then it's a fake image */
     vi.fakeImage = 1;
     Imod_imagefile = NULL;
     vi.nt = Model->tmax = imodGetMaxTime(Model);
-    ivwCheckWildFlag(Model);
     
   } else if (!firstfile || lastimage == firstfile) {
     
@@ -773,26 +771,13 @@ int main( int argc, char *argv[])
       vi.flippable = 0;
   }
 
-  /* set the model filename, or get a new model with null name */
-  if (Model) {
+  /* set the model filename, or set to get a new model with empty name */
+  if (Model || newModelCreated) {
     setImod_filename(LATIN1(curdir->cleanPath(QString(argv[argc - 1]))));
   } else {
-    Model = imodNew();
     Imod_filename[0] = 0x00;
-    new_model_created = TRUE;
+    newModelCreated = true;
   }
-
-  /* If new model created, initialize views and make first object */
-  if (new_model_created)
-    initNewModel(Model);
-
-  Model->mousemode = IMOD_MMOVIE;
-  vi.imod = Model;
-
-  /* DNM: set this now in case image load is interrupted */
-  Model->csum = imodChecksum(Model);
-  if (imodDebug('C'))
-    wprint("main set checksum %d\n", Model->csum);
 
   // Read tilt angles if any
   if (anglefname)
@@ -801,17 +786,11 @@ int main( int argc, char *argv[])
   /*********************/
   /* Open Main Window. */
   imod_info_open(); 
-
   if (Imod_debug)
     imodPuts("info opened");
-  //imod_color_init(App);
-  imod_set_mmode(IMOD_MMOVIE);
 
-  /* Copy filename into model structure */
-  namelen = strlen(Imod_filename)+1;
-  Model->fileName = (char *)malloc(namelen);
-  if (Model->fileName)
-    memcpy(Model->fileName, Imod_filename, namelen);
+  if (Model && imodDebug('C'))
+    wprint("main set checksum %d\n", Model->csum);
 
   /* report window before loading data */
   if (print_wid) {
@@ -901,7 +880,7 @@ int main( int argc, char *argv[])
     imod_info_setbw(App->cvi->black, App->cvi->white);
 
   /* Open up requested dialog windows */
-  ImodInfoWin->openSelectedWindows(windowKeys);
+  ImodInfoWin->openSelectedWindows(windowKeys, modelViewOpen);
     
   /* Start main application input loop. */
   if (Imod_debug)
@@ -910,7 +889,7 @@ int main( int argc, char *argv[])
 
   nx = ImodPrefs->autoConAtStart();
   if (!vi.fakeImage && !vi.rgbStore && 
-      (nx > 1 || (nx && (new_model_created || (Model->flags & IMODF_NEW_TO_3DMOD)))))
+      (nx > 1 || (nx && (newModelCreated || (Model->flags & IMODF_NEW_TO_3DMOD)))))
     ImodInfoWin->setupAutoContrast();
 
   loopStarted = 1;
@@ -967,8 +946,7 @@ void imod_quit(void)
     return;
   }
 
-  done = dia_choice("Save model before quitting?",
-                    "Yes", "No", "Cancel");
+  done = dia_choice("Save model before quitting?", "Yes", "No", "Cancel");
 
   switch(done){
   case 1:

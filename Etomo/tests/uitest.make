@@ -3,6 +3,7 @@ back: gpu-test-gui flatten-volume-test-gui generic nad-test-gui serial-sections-
 all-pt: single-patch-tracking-test-gui single-patch-tracking dual-montage-patch-tracking
 all-peet: peet peet-test-gui
 build: single dual single-montage dual-montage join nad peet generic flatten-volume
+recon: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-patch-tracking-test-gui single-patch-tracking single-montage dual-montage single-montage-test-gui single-montage-patch-tracking dual-montage-test-gui dual-montage-patch-tracking
 
 temp: 
 

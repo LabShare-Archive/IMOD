@@ -24,7 +24,6 @@ TILTSCALES = (1000, 700, 500, 330,   250,  170,  125,    80,    60,    40)
 
 single_srcname = "g5a"
 seedname = "empty.seed"
-disttext = "-xf"
 srcext = '.com'
 backuplist = []
 backupline = '$if (-e ' + backupname + ') ' + backupname
@@ -149,25 +148,11 @@ montage = PipGetBoolean('MontagedImages', 0)
 backupdir = PipGetString('BackupDirectory', '')
 backup = 1 - PipGetErrNo()
 xsize = PipGetInteger('XImageSize', -1)
-ysize = PipGetInteger('XImageSize', -1)
+ysize = PipGetInteger('YImageSize', -1)
 setFEIpixel = PipGetBoolean('SetFEIPixelSize', 0)
 
-changeList = []
-numChangers = PipNumberOfEntries('ChangeParametersFile')
-for chan in range(numChangers):
-   changeFile = PipGetString('ChangeParametersFile', '')
-   changeLines = readTextFile(changeFile)
-   for line in changeLines:
-      change = changeToAddToList(changeList, line, changeFile, 'comparam', 4)
-      if change:
-         changeList.append(change)
-
-numChangers = PipNumberOfEntries('OneParameterChange')
-for chan in range(numChangers):
-   line = PipGetString('OneParameterChange', '')
-   change = changeToAddToList(changeList, line, '', 'comparam', 4)
-   if change:
-      changeList.append(change)
+changeList = processChangeOptions('ChangeParametersFile', 'OneParameterChange',
+                                  'comparam')
 
 pixsize = PipGetFloat('PixelSize', -1.)
 if pixsize < 0:
@@ -203,8 +188,12 @@ if bifextract:
    buserawtlt = 1
 
 if ifangles + firstinc + userawtlt != 1:
+   if ifextract:
+      exitError('You must enter one and only one of -angles, -firstinc, and -extract')
    exitError('You must enter one and only one of -angles, -firstinc, and -userawtlt')
 if naxis > 1 and ifbangles + bfirstinc + buserawtlt != 1:
+   if bifextract:
+      exitError('You must enter one and only one of -bangles, -bfirstinc, and -bextract')
    exitError('You must enter one and only one of -bangles, -bfirstinc, and -buserawtlt')
 
 excludelistin = PipGetString('ViewsToSkip', '')
@@ -275,7 +264,6 @@ if distort:
 
    # Then set the parameters
    distort = newDistort
-   disttext = fmtstr("-distort {} -imagebinned {} -xf", distort, binning)
    subdistort = "DistortionField"
 
 
@@ -313,7 +301,6 @@ for iaxis in range(naxis):
    modext = ".mod"
    logext = ".log"
    recext = ".rec"
-   xftext = disttext
    gradspec = " "
    subgradient = 'gibberish'
    if naxis > 1:
@@ -504,7 +491,6 @@ for iaxis in range(naxis):
                              stackname, axisangle, gradient, gradspec))
 
       if gradok:
-         xftext = "-grad " + gradspec + " " + disttext
          subgradient = "GradientFile"
 
    # Set up tilt angle variables
@@ -554,7 +540,7 @@ for iaxis in range(naxis):
       if mode == 2:
          tiltmode = 2
       if mode == 0:
-         newstmode = "-mode 1"
+         newstmode = "ModeToOutput 1"
       if mode == 1:
          if  meandens < -1000 and mindens < -10000:
             logbase = 32768
@@ -675,43 +661,40 @@ for iaxis in range(naxis):
       dstlines = modifyForChangeList(dstlines, 'xcorr', setlet, changeList)
    writeTextFile(dstfile, dstlines)
 
+
+   # Set up lines for adding distortion corrections
+   distSeds = [fmtstr("/^#*{}/s/.*/DistortionField	{}/", subdistort, distort),
+               fmtstr("/^ImagesAreBinned/s/1/{}/", binning),
+               fmtstr("/^#*{}/s/^#//", subgradient)]
+
    if not montage:
 
       # GET PRENEWST
-      sedcom = [srcToDist,
-                "/newst/s/-xf/" + xftext + "/"]
-      editAndWrite('prenewst', "prenewst", sedcom, False)
+      sedcom = [srcToDist] + distSeds
+      editAndWrite('prenewst', "prenewst", sedcom, True)
 
       # GET NEWST
-      sedcom = [srcToDist,
-                "/newst/s/-xf/" + xftext + "/",
-                fmtstr("/newst/s/-size ,,/{} -size {},{}/g", newstmode,
-                       newstwidth, SAMPLESIZE)]
+      sedcom = [srcToDist] + distSeds + \
+          [fmtstr("/^SizeToOutputInXandY/s/[ 	].*/	{},{}/", newstwidth, SAMPLESIZE)]
+      if newstmode:
+         sedcom.append(fmtstr("/^OutputFile/a/{}/", newstmode))
       editAndWrite('ccdnewst', "newst", sedcom, False)
       
    else:
 
       # OR, GET PREBLEND AND BLEND
-      sedcom = [srcToDist,
-                fmtstr("/^#*{}/s/.*/DistortionField	{}/", subdistort, distort),
-                fmtstr("/^ImagesAreBinned/s/1/{}/", binning),
-                fmtstr("/^#*{}/s/^#//", subgradient),
-                fmtstr("/^AdjustedFocus/s/0/{}/", focusAdj)]
+      sedcom = [srcToDist] + distSeds + \
+          [fmtstr("/^AdjustedFocus/s/0/{}/", focusAdj)]
       editAndWrite('ccdpreblend', "preblend", sedcom)
 
-      sedcom = [srcToDist,
-                fmtstr("/^#*{}/s/.*/DistortionField	{}/", subdistort, distort),
-                fmtstr("/^ImagesAreBinned/s/1/{}/", binning),
-                fmtstr("/^#*{}/s/^#//", subgradient),
-                fmtstr("/^AdjustedFocus/s/0/{}/", focusAdj),
-                "/^SloppyMontage/s/0/1/",
-                "/^ShiftPieces/s/0/1/",
-                "/^ReadInXcorrs/s/0/1/",
-                "/^OldEdgeFunctions/s/0/1/",
-                fmtstr("/^StartingAndEndingX/s/[ 	].*/	{} {}/", blxstart,
-                       blxend),
-                fmtstr("/^StartingAndEndingY/s/[ 	].*/	{} {}/", blystart,
-                       blyend)]
+      sedcom = [srcToDist] + distSeds + \
+          [fmtstr("/^AdjustedFocus/s/0/{}/", focusAdj),
+           "/^SloppyMontage/s/0/1/",
+           "/^ShiftPieces/s/0/1/",
+           "/^ReadInXcorrs/s/0/1/",
+           "/^OldEdgeFunctions/s/0/1/",
+           fmtstr("/^StartingAndEndingX/s/[ 	].*/	{} {}/", blxstart, blxend),
+           fmtstr("/^StartingAndEndingY/s/[ 	].*/	{} {}/", blystart, blyend)]
       editAndWrite('blend', "blend", sedcom)
       backuplist.append(setname + '.ecd')
 
@@ -784,7 +767,7 @@ for iaxis in range(naxis):
                           setname, RESIDUAL_SCALE),
                    backupline])
    if changeList:
-      dstlines = modifyForChangeList(dstlines, 'align', setlet, changeList)
+      sedlines = modifyForChangeList(sedlines, 'align', setlet, changeList)
    writeTextFile(dstfile, sedlines)
    backuplist.extend([dstfile, setname + "local.xf", setname + "fid.xyz",
                       setname + ".xf", setname + ".tlt", setname + ".resid",
@@ -869,11 +852,11 @@ for iaxis in range(naxis):
       ymax = ysize // 2 + offind + halfsampali
       ystart = fully // 2 + offind - halfsampali
       if not montage:
-         sedcom = [fmtstr("s/-offset 0,0/-offset 0,{}/", offind),
-                   fmtstr("/\(-size *[0-9]*,\)[0-9]* /s//\\g<1>{} /", sampali),
+         sedcom = [fmtstr("/^OffsetsInXandY/s/[ 	].*/	 0,{}/", offind),
+                   fmtstr("/^SizeToOutputInXandY/s/,.*/,{}/", sampali),
                    "/if (-e/d",
-                   "/-origin/s///",
-                   "/mrctaper/d",
+                   "/AdjustOrigin/d",
+                   "/TaperAtFill/d",
                    "/THIS IS A COMMAND FILE/s//THESE ARE COMMANDS/"]
          sedlines = pysed(sedcom, 'newst' + dstext, None)
       else:

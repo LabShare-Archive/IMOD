@@ -81,6 +81,7 @@ EXPORTS
 	PUTIMODFLAG
 	GETMODELNAME
 	imodLabelItemMove
+	imodInvertZ
 	imodContourMakeDirection
 	imodContourMakeZTables
 	istoreCountContSurfItems
@@ -166,6 +167,7 @@ EXPORTS
 	imodMatUniqueRotationPt
 	imodel_dist
 	GETIMODSCAT
+	GETOBJVALUETHRESH
 	PUTIMOD
 	imodViewModelRead
 	imodel_contour_sort
@@ -204,6 +206,7 @@ EXPORTS
 	imodPointArea
 	CLEARIMODOBJSTORE
 	imodel_contour_check_wild
+	DELETEIMODPOINT
 	imodClipsRead
 	istoreDeletePoint
 	imodObjectGetMesh
@@ -281,6 +284,7 @@ EXPORTS
 	imodCleanSurf
 	istoreFindBreak
 	imodMatGetNatAngles
+	FINDADDMINMAX1VALUE
 	istoreCopyContSurfItems
 	imodGetFlipped
 	objGroupListRemove
@@ -296,6 +300,7 @@ EXPORTS
 	imodPointIntersect
 	imodObjectsDelete
 	imodGetMaxObject
+	imodRot90X
 	imodContourSetLabel
 	imodFlipYZ
 	imodObjviewsFree

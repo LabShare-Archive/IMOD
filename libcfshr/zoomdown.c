@@ -174,7 +174,7 @@ void setZoomValueScaling(float factor)
 
 /*!
  * Reduces an image using the interpolation filter and zoom specified in 
- * @selectZoomFilter. ^
+ * @@selectZoomFilter@. ^
  * [slines] - array of line pointers for the input image ^
  * [aXsize], [aYsize] - size of input image ^
  * [aXoff], [aYoff] - coordinate in the input image at which the lower left pixel of the 

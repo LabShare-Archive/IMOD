@@ -125,7 +125,7 @@ void statMatrices(float *x, int xsize, int colFast, int m, int msize, int ndata,
 }
 
 /*!
- * Fortran wrapper for @statMatrices.
+ * Fortran wrapper for @statMatrices
  */
 void statmatrices(float *x, int *xsize, int *colFast, int *m, int *msize, int *ndata,
                   float *sx, float *ss, float *ssd, float *d, float *r, float *xm,
@@ -309,7 +309,7 @@ Also, a bigger work array is needed not just for doubles but also for dsysv.
  * constant term in [intcpt].  The equation fit is:  ^
  * Y = intcpt + slopes[0] * X + slopes[1] * X**2 + ...  ^
  * [work] is an array whose size must be at least ([order] + 1) * ([order] + 3 + [ndata]).
- * The return value is the value returned by @multRegress.
+ * The return value is the value returned by @@multRegress@.
  */
 int polynomialFit(float *x, float *y, int ndata, int order, float *slopes, float *intcpt,
                   float *work)
@@ -331,7 +331,7 @@ int polynomialFit(float *x, float *y, int ndata, int order, float *slopes, float
 }
 
 /*
- * Fortran wrapper to @polynomialFit.  Note that a Fortran function polyfit takes care
+ * Fortran wrapper to @@polynomialFit@.  Note that a Fortran function polyfit takes care
  * of allocating [work] to the needed size and calling this wrapper.
  */
 int polynomialfit(float *x, float *y, int *ndata, int *order, float *slopes, 

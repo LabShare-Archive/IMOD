@@ -27,6 +27,7 @@
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include "imod.h"
+#include "imodv.h"
 #include "utilities.h"
 #include "b3dgfx.h"
 #include "preferences.h"
@@ -529,6 +530,18 @@ float utilWheelToPointSizeScaling(float zoom)
   return wheelScale;
 }
 
+/* Converts a flipped model to a rotated one if direction is FLIP_TO_ROTATION, or
+ * a rotated model to a flipped one if direction is ROTATION_TO_FLIP, otherwise
+ * does nothing */
+void utilExchangeFlipRotation(Imod *imod, int direction)
+{
+  if ((direction == FLIP_TO_ROTATION && !(imod->flags & IMODF_FLIPYZ)) ||
+      (direction == ROTATION_TO_FLIP && !(imod->flags & IMODF_ROT90X)))
+    return;
+  imodInvertZ(imod);
+  setOrClearFlags(&imod->flags, IMODF_ROT90X, direction == FLIP_TO_ROTATION ? 1 : 0);
+  setOrClearFlags(&imod->flags, IMODF_FLIPYZ, direction == ROTATION_TO_FLIP ? 1 : 0);
+}
 
 /* Appends either the model or file name to the window name, giving
    first priority to the model name if "modelFirst" is set */
@@ -548,6 +561,24 @@ char *imodwEithername(const char *intro, const char *filein, int modelFirst)
   return(retString);
 }
 
+/* Sets the window title of a model view dialog */
+void setModvDialogTitle(QWidget *dia, const char *intro)
+{
+  QString qstr;
+  char *window_name;
+  int ind;
+  window_name = imodwEithername(intro, Imodv->imod->fileName, 1);
+  qstr = window_name;
+  if (window_name)
+    free(window_name);
+  if (qstr.isEmpty()) {
+    qstr = intro;
+    ind = qstr.lastIndexOf(':');
+    if (ind > 0)
+      qstr = qstr.left(ind);
+  }
+  dia->setWindowTitle(qstr);
+}
 
 /* Appends the given name to window name */
 char *imodwGivenName(const char *intro, const char *filein)
@@ -695,6 +726,20 @@ int imodShowHelpPage(const char *page)
     return (ImodHelp->showPage(page) > 0 ? 1 : 0);
   else
     return 1;
+}
+
+/*
+ * Prints a measurement with optional conversion to units 
+ */
+void utilWprintMeasure(QString &baseMess, Imod *imod, float measure, bool area)
+{
+  measure *= imod->pixsize;
+  if (area)
+    measure *= imod->pixsize;
+  if (strcmp("pixels", imodUnits(imod)))
+    wprint("%s, %g %s%s\n", LATIN1(baseMess), measure, imodUnits(imod), area ? "^2" : "");
+  else
+    wprint("%s\n", LATIN1(baseMess));
 }
 
 /***********************************************************************

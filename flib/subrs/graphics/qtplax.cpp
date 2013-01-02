@@ -20,6 +20,9 @@
 #include <QResizeEvent>
 #include <QEvent>
 #include <QWaitCondition>
+#include <QMenu>
+#include <QImage>
+#include <QAction>
 #include "b3dutil.h"
 #ifdef QTPLAX_ATEXIT_HACK
 #include <sys/types.h>
@@ -30,7 +33,10 @@
 #include <qfont.h>
 #include <qdatetime.h>
 #include <qpen.h>
+#include <qfiledialog.h>
 #include <qpainter.h>
+#include <qprinter.h>
+#include <qprintdialog.h>
 #include <qpolygon.h>
 #include <qbrush.h>
 #include <qlabel.h>
@@ -65,6 +71,7 @@ static char *sProgName = NULL;
 static QApplication *sApp = NULL;
 static PlaxWindow *sPlaxWidget = NULL;
 static QPainter *sPainter = NULL;
+static bool sSpecialPainter = false;
 static int sPlaxWidth = 5 * DEFAULT_HEIGHT / 4;
 static int sPlaxHeight = DEFAULT_HEIGHT;
 static int sPlaxTop = 30;
@@ -80,6 +87,8 @@ static int sNoGraph = 0;
 static char *sMessage = NULL;
 static char *sToolTip = NULL;
 static int sExitOnClose = 0;
+static bool sUserScaleSet = false;
+static float sUserXscale, sUserXadd, sUserYscale, sUserYadd;
 static int argc;
 static char **argv;
 
@@ -130,8 +139,8 @@ extern "C" {
   void realgraphicsmain_();
 }
 
-enum {PLAX_MAPCOLOR, PLAX_BOX, PLAX_BOXO, PLAX_VECT, PLAX_VECTW, PLAX_CIRC,
-      PLAX_CIRCO, PLAX_POLY, PLAX_POLYO, PLAX_SCTEXT, PLAX_ALIGN};
+enum {PCALL_MAPCOLOR, PCALL_BOX, PCALL_BOXO, PCALL_VECT, PCALL_VECTW, PCALL_CIRC,
+      PCALL_CIRCO, PCALL_POLY, PCALL_POLYO, PCALL_SCTEXT, PCALL_ALIGN};
 
 
 PlaxWindow::PlaxWindow(QWidget *parent, Qt::WFlags fl) :
@@ -163,8 +172,8 @@ void PlaxWindow::paintEvent ( QPaintEvent * e)
 {
   sPlaxExposed = 1;
   sOutListInd = 0;
-  /*fprintf(stderr, "paint %d %d %d %d\n", e->rect().top(), e->rect().left(),
-    e->rect().width(), e->rect().height()); */
+  /* fprintf(stderr, "paint %d %d %d %d\n", e->rect().top(), e->rect().left(),
+     e->rect().width(), e->rect().height()); */
   draw();
 }
 
@@ -233,6 +242,68 @@ void PlaxWindow::unlock()
   sMutex->unlock();
 }
 
+void PlaxWindow::mousePressEvent(QMouseEvent * e )
+{
+  if (e->buttons() & Qt::LeftButton && sUserScaleSet) {
+    QMenu popup(this);
+    QString str;
+    float xx = e->x() / sScaleX;
+    float yy = 1023. - e->y() / sScaleY;
+    str = QString("%1, %2").arg((xx - sUserXadd) / sUserXscale, 0, 'g', 3).
+      arg((yy - sUserYadd) / sUserYscale, 0, 'g', 3);
+    popup.addAction(str);
+    popup.exec(QCursor::pos());
+    return;
+  }
+
+  if (!(e->buttons() & Qt::RightButton))
+    return;
+  QMenu popup(this);
+  QAction *savePng = popup.addAction("Save to PNG");
+  QAction *print = popup.addAction("Print");
+  connect(savePng, SIGNAL(triggered(bool)), this, SLOT(savePNGslot(bool)));
+  connect(print, SIGNAL(triggered(bool)), this, SLOT(printSlot(bool)));
+  popup.exec(QCursor::pos());
+}
+
+void PlaxWindow::savePNGslot(bool state)
+{
+  QImage *image = new QImage(sPlaxWidth, sPlaxHeight, QImage::Format_RGB32);
+  sSpecialPainter = true;
+  sPainter = new QPainter(image);
+  sOutListInd = 0;
+  QCoreApplication::postEvent(sPlaxWidget, new QPaintEvent
+                              (QRect(0, 0, sPlaxWidth, sPlaxHeight)));
+  QApplication::processEvents();
+  QString filename = QFileDialog::getSaveFileName(this, "File name for saving as PNG");
+  if (!filename.endsWith(".png", Qt::CaseInsensitive))
+    filename += ".png";
+  image->save(filename, "PNG");
+  delete sPainter;
+  delete image;
+  sSpecialPainter = false;
+}
+void PlaxWindow::printSlot(bool state)
+{
+  QPrinter printer;
+#if QT_VERSION >= 0x040400
+  printer.setPaperSize(QPrinter::Letter);
+#endif
+  QPrintDialog *dialog = new QPrintDialog(&printer, this);
+  dialog->setWindowTitle(tr("Print Graph"));
+  if (dialog->exec() != QDialog::Accepted)
+    return;
+  sSpecialPainter = true;
+  sPainter = new QPainter(&printer);
+  sOutListInd = 0;
+  QCoreApplication::postEvent(sPlaxWidget, new QPaintEvent
+                              (QRect(0, 0, sPlaxWidth, sPlaxHeight)));
+  QApplication::processEvents();
+  delete sPainter;
+  sSpecialPainter = false;
+
+}
+
 // The thread class
 PlaxThread::PlaxThread()
 {
@@ -265,8 +336,7 @@ void plax_initialize(char *string, int strsize)
   argc = fortiargc_() + 1;
   argv = (char **)malloc((argc + 1) * sizeof(char *));
   if (!argv) {
-    fprintf(stderr, "ERROR: %s - getting memory for program arguments.\n",
-            sProgName);
+    fprintf(stderr, "ERROR: %s - getting memory for program arguments.\n", sProgName);
     exit (3);
   }
   
@@ -275,8 +345,7 @@ void plax_initialize(char *string, int strsize)
     
     argv[i] = f2cString(fstring, FSTRING_LEN);
     if (!argv[i]) {
-      fprintf(stderr, "ERROR: %s - getting memory for program arguments.\n",
-              sProgName);
+      fprintf(stderr, "ERROR: %s - getting memory for program arguments.\n", sProgName);
       exit (3);
     }
   }
@@ -411,6 +480,8 @@ static int startPlaxApp()
   sScaleX = sScaleY = 0.5f;
   sPlaxWidget->setGeometry(sPlaxLeft, sPlaxTop, sPlaxWidth, sPlaxHeight);
   sPlaxWidget->setAttribute(Qt::WA_DeleteOnClose);
+  sPlaxWidget->setWindowTitle(QString(sProgName) + "   (Left click for position, "
+                              "right click to save as PNG or print)");
   sPlaxExposed = 0;
   if (sToolTip)
     sPlaxWidget->setToolTip(sToolTip);
@@ -427,49 +498,49 @@ static int startPlaxApp()
  */
 void plax_mapcolor(int *color, int *ired, int *igreen, int *iblue)
 {
-  addFourArgs(PLAX_MAPCOLOR, color, ired, igreen, iblue);
+  addFourArgs(PCALL_MAPCOLOR, color, ired, igreen, iblue);
 }
 
 void plax_box(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2)
 {
-  addFiveArgs(PLAX_BOX, cindex, ix1, iy1, ix2, iy2);
+  addFiveArgs(PCALL_BOX, cindex, ix1, iy1, ix2, iy2);
 }
 
 void plax_boxo(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2)
 {
-  addFiveArgs(PLAX_BOXO, cindex, ix1, iy1, ix2, iy2);
+  addFiveArgs(PCALL_BOXO, cindex, ix1, iy1, ix2, iy2);
 }
 
 void plax_vect(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2)
 {
-  addFiveArgs(PLAX_VECT, cindex, ix1, iy1, ix2, iy2);
+  addFiveArgs(PCALL_VECT, cindex, ix1, iy1, ix2, iy2);
 }
 
 void plax_vectw(int *linewidth, int *cindex, 
                 int *ix1, int *iy1, int *ix2, int *iy2)
 {
   sPlaxWidget->lock();
-  addSixArgs(PLAX_VECTW, linewidth, cindex, ix1, iy1, ix2, iy2);
+  addSixArgs(PCALL_VECTW, linewidth, cindex, ix1, iy1, ix2, iy2);
   sPlaxWidget->unlock();
 }
 
 /* filled circle */
 void plax_circ(int *cindex, int *radius, int *ix, int *iy)
 {
-  addFourArgs(PLAX_CIRC, cindex, radius, ix, iy);
+  addFourArgs(PCALL_CIRC, cindex, radius, ix, iy);
 }
 
 /* open circle */
 void plax_circo(int *cindex, int *radius, int *ix, int *iy)
 {
-  addFourArgs(PLAX_CIRCO, cindex, radius, ix, iy);
+  addFourArgs(PCALL_CIRCO, cindex, radius, ix, iy);
 }
 
 /* closed filled polygon */
 void plax_poly(int *cindex, int *size, b3dInt16 *vec)
 {
   sPlaxWidget->lock();
-  if (!addTwoArgs(PLAX_POLY, cindex, size))
+  if (!addTwoArgs(PCALL_POLY, cindex, size))
     addBytesToList((char *)vec, 4 * *size);
   sPlaxWidget->unlock();
 }
@@ -477,7 +548,7 @@ void plax_poly(int *cindex, int *size, b3dInt16 *vec)
 void plax_polyo(int *cindex, int *size, b3dInt16 *vec)
 {
   sPlaxWidget->lock();
-  if (!addTwoArgs(PLAX_POLYO, cindex, size))
+  if (!addTwoArgs(PCALL_POLYO, cindex, size))
       addBytesToList((char *)vec, 4 * *size);
   sPlaxWidget->unlock();
 }
@@ -491,7 +562,7 @@ void plax_sctext(int *thickness,
                  )
 {
   sPlaxWidget->lock();
-  if (!addSixArgs(PLAX_SCTEXT, thickness, iysize, cindex, ix, iy, 
+  if (!addSixArgs(PCALL_SCTEXT, thickness, iysize, cindex, ix, iy, 
                   &strsize))
     addBytesToList(string, strsize);
   sPlaxWidget->unlock();
@@ -502,8 +573,17 @@ void plax_next_text_align(int *type)
   if (sListSize + 4 > sListMax)
     if (allocate_list_chunk())
       return;
-  sDrawList[sListSize++] = PLAX_ALIGN;
+  sDrawList[sListSize++] = PCALL_ALIGN;
   sDrawList[sListSize++] = *type;
+}
+
+void plax_drawing_scale(float *xscale, float *xadd, float *yscale, float *yadd)
+{
+  sUserScaleSet = true;
+  sUserXscale = *xscale;
+  sUserXadd = *xadd;
+  sUserYscale = *yscale;
+  sUserYadd = *yadd;
 }
 
 void plax_erase()
@@ -616,7 +696,8 @@ static void draw()
 {
   int ind;
   
-  sPainter = new QPainter(sPlaxWidget);
+  if (!sSpecialPainter)
+    sPainter = new QPainter(sPlaxWidget);
   sLastSize = 0;
   sPlaxWidget->lock();
 
@@ -627,7 +708,7 @@ static void draw()
 
     ind = sOutListInd++;
     switch (sDrawList[ind++]) {
-    case PLAX_MAPCOLOR:
+    case PCALL_MAPCOLOR:
       sRGB[sDrawList[ind]] = qRgb(sDrawList[ind + 1], sDrawList[ind + 2], 
                                     sDrawList[ind + 3]);
       sPenColor = -1;
@@ -635,66 +716,66 @@ static void draw()
       sOutListInd += 4;
       break;
 
-    case PLAX_BOX:
+    case PCALL_BOX:
       plax_set_brush(sDrawList[ind], 1);
       plax_draw_box(sDrawList[ind], sDrawList[ind + 1], sDrawList[ind + 2], 
                     sDrawList[ind + 3], sDrawList[ind + 4]);
       sOutListInd += 5;
       break;
 
-    case PLAX_BOXO:
+    case PCALL_BOXO:
       plax_set_brush(sDrawList[ind], 0);
       plax_draw_box(sDrawList[ind], sDrawList[ind + 1], sDrawList[ind + 2], 
                     sDrawList[ind + 3], sDrawList[ind + 4]);
       sOutListInd += 5;
       break;
 
-    case PLAX_VECT:
+    case PCALL_VECT:
       plax_set_pen(sDrawList[ind], 0);
       plax_draw_vect(sDrawList[ind + 1], sDrawList[ind + 2], sDrawList[ind + 3],
                      sDrawList[ind + 4]);
       sOutListInd += 5;
       break;
 
-    case PLAX_VECTW:
+    case PCALL_VECTW:
       plax_set_pen(sDrawList[ind + 1], sDrawList[ind]);
       plax_draw_vect(sDrawList[ind + 2], sDrawList[ind + 3], sDrawList[ind + 4],
                      sDrawList[ind + 5]);
       sOutListInd += 6;
       break;
 
-    case PLAX_CIRC:
+    case PCALL_CIRC:
       plax_set_brush(sDrawList[ind], 1);
       plax_draw_circ(sDrawList[ind], sDrawList[ind + 1], sDrawList[ind + 2],
                      sDrawList[ind + 3]);
       sOutListInd += 4;
       break;
 
-    case PLAX_CIRCO:
+    case PCALL_CIRCO:
       plax_set_brush(sDrawList[ind], 0);
       plax_draw_circ(sDrawList[ind], sDrawList[ind + 1], sDrawList[ind + 2],
                      sDrawList[ind + 3]);
       sOutListInd += 4;
       break;
 
-    case PLAX_POLY:
+    case PCALL_POLY:
       plax_draw_poly(sDrawList[ind], sDrawList[ind + 1], 
                      (b3dInt16 *)(&sDrawList[ind + 2]), 1);
       break;
 
-    case PLAX_POLYO:
+    case PCALL_POLYO:
       plax_draw_poly(sDrawList[ind], sDrawList[ind + 1], 
                      (b3dInt16 *)(&sDrawList[ind + 2]), 0);
       break;
 
-    case PLAX_SCTEXT:
+    case PCALL_SCTEXT:
       plax_draw_text(sDrawList[ind], sDrawList[ind + 1], sDrawList[ind + 2],
                      sDrawList[ind + 3], sDrawList[ind + 4], sDrawList[ind + 5],
                      (char *)(&sDrawList[ind + 6]));
       sOutListInd += 6 + (sDrawList[ind + 5] + 3) / 4;
       break;
 
-    case PLAX_ALIGN:
+    case PCALL_ALIGN:
       sNextTextAlign = sDrawList[ind];
       sOutListInd += 1;
       break;
@@ -703,7 +784,8 @@ static void draw()
   }
   sPlaxWidget->unlock();
   //sPainter->flush();
-  delete sPainter;
+  if (!sSpecialPainter)
+    delete sPainter;
   //  plax_input();
 }
 

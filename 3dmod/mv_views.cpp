@@ -133,8 +133,6 @@ void imodvViewsClosing()
 // Open, close, or raise the dialog box
 void imodvViewEditDialog(ImodvApp *a, int state)
 {
-  QString qstr;
-  char *window_name;
   static int first = 1;
 
   if (first){
@@ -156,12 +154,7 @@ void imodvViewEditDialog(ImodvApp *a, int state)
                                 Qt::Window);
 
   // Set title bar
-  window_name = imodwEithername("3dmodv Views: ", a->imod->fileName, 1);
-  qstr = window_name;
-  if (window_name)
-    free(window_name);
-  if (!qstr.isEmpty())
-    ved->dia->setWindowTitle(qstr);
+  setModvDialogTitle(ved->dia, "3dmodv Views: ");
 
   build_list(a);
   ved->dia->setAutostore(auto_store);
@@ -189,29 +182,38 @@ void imodvViewsGoto(int item, bool draw, bool regChg)
   if (!ved->a->imod)
     return;
 
+  imodvViewsSetView(ved->a, item, draw, false, regChg);
+}
+
+// A call that can be made when the dialog is not open and from external sources
+// View is numbered from 1 here
+void imodvViewsSetView(ImodvApp *a, int view, bool draw, bool external, bool regChg)
+{
   /* If registering changes, do so before the autostore to capture revertable
      state */
   if (regChg) {
-    if (!ved->a->standalone)
-      ved->a->vi->undo->modelChange(UndoRedo::ViewChanged);
+    if (!a->standalone)
+      a->vi->undo->modelChange(UndoRedo::ViewChanged);
     imodvFinishChgUnit();
   }
 
   /* If changing views, store the current view before changing */
-  if (item != ved->a->imod->cview)
-    imodvAutoStoreView(ved->a);
+  if (view != a->imod->cview)
+    imodvAutoStoreView(a);
 
-  ved->a->imod->cview = item;
+  a->imod->cview = view;
 
-  imodViewUse(ved->a->imod);
-  imodvNewModelAngles(&ved->a->imod->view->rot);
-  imodvDrawImodImages(ved->a->linkToSlicer);
+  imodViewUse(a->imod);
+  imodvNewModelAngles(&a->imod->view->rot);
+  imodvDrawImodImages(a->linkToSlicer);
+  if (ved->dia)
+    ved->dia->selectItem(view - 1, true);
 
-  imodvUpdateView(ved->a);
+  imodvUpdateView(a);
   if (draw) 
-    imodvDraw(Imodv);
-}
+    imodvDraw(a);
 
+}
 
 /* 
  * The store view callback.

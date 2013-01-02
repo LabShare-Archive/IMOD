@@ -4,8 +4,10 @@ c       dashed lines.
 c       The parameters define a transformation between plotting area and user
 c       units: x (in inches) = XSCAL*(x in user units - XLO)+XAD
 c       XRAN, YRAN are total ranges of graph frame in inches
+c
+c       $Id$
 c       
-      subroutine immisc(xscal,xlo,xad,xran,yscal,ylo,yad,yran)
+      subroutine psMiscItems(xscal,xlo,xad,xran,yscal,ylo,yad,yran)
       character*160 line
       character*320 pwrstr
       character*1 letter
@@ -14,8 +16,6 @@ c
 c       
 c       modified for PS - Postscript
       data pwxupi/107./
-c       
-      call setpwrmode
 c       
       write(*,'(1x,a,$)')'Number of text strings, letters in '//
      &    'circles, symbols in boxes, lines: '
@@ -31,8 +31,7 @@ c
         jsize=pwxupi*size
         write(*,*)'Enter text string'
         read(5,'(a)')line
-        call pwritx_parse(line,pwrstr,nchar)
-        call pwritx(xpos,ypos,pwrstr,nchar,jsize,jor,just)
+        call psWriteText(xpos,ypos,trim(line),jsize,jor,just)
 10    continue
 c       
       do 20 icirc=1,ncirc
@@ -48,15 +47,15 @@ c
         read(5,'(a)')letter
 c         
 c         modified for PS - Postscript
-        call imset(ithick,c1,c2,c3,0)
+        call psSetup(ithick,c1,c2,c3,0)
         thkofs=0.5*(ithick-1)/c2
-        call pwritx(xpos+thkofs,ypos+thkofs-0.007,letter,1,jsize,0,0)
-        call imma(xpos+circsize/2.,ypos)
+        call psWriteText(xpos+thkofs,ypos+thkofs-0.007,letter(1:1),jsize,0,0)
+        call psMoveAbs(xpos+circsize/2.,ypos)
         do 15 i=0,32
           theta=i*3.14159/16.
           xx=xpos+0.5*circsize*cos(theta)
           yy=ypos+0.5*circsize*sin(theta)
-          call imva(xx,yy)
+          call psVectAbs(xx,yy)
 15      continue 
 20    continue
 c       
@@ -68,18 +67,18 @@ c
      &      '    and box size (0 for none) and thickness: '
         read(5,*)itype,size,isymthk,boxsiz,iboxthk
         if(itype.ne.0)then
-          call symsiz(size)
-          call imset(isymthk,c1,upi,c3,0)
-          call imsymb(xpos,ypos,itype)
+          call psSymSize(size)
+          call psSetup(isymthk,c1,upi,c3,0)
+          call psSymbol(xpos,ypos,itype)
         endif
         if(boxsiz.ne.0.)then
-          call imset(iboxthk,c1,upi,c3,0)
+          call psSetup(iboxthk,c1,upi,c3,0)
           xyadj=0.5*(iboxthk-1)/upi
-          call imma(xpos-xyadj-boxsiz/2.,ypos-xyadj-boxsiz/2.)
-          call imvi(boxsiz,0.)
-          call imvi(0.,boxsiz)
-          call imvi(-boxsiz,0.)
-          call imvi(0.,-boxsiz)
+          call psMoveAbs(xpos-xyadj-boxsiz/2.,ypos-xyadj-boxsiz/2.)
+          call psVectInc(boxsiz,0.)
+          call psVectInc(0.,boxsiz)
+          call psVectInc(-boxsiz,0.)
+          call psVectInc(0.,-boxsiz)
         endif
 30    continue
 c       
@@ -94,13 +93,13 @@ c
      1      (0,0 no dash): '',$)')
         read(5,*)b,a,xstr,xend,linthk,dshon,dshoff
         if(iscltyp.gt.0)then
-          call dodash(1.,0.,0.,1.,0.,0.,b,a,xstr,xend,linthk,dshon,
+          call psDashedLine(1.,0.,0.,1.,0.,0.,b,a,xstr,xend,linthk,dshon,
      &        dshoff)
         elseif(iscltyp.lt.0)then
-          call dodash(xran,0.,xad,yran,0.,yad,b,a,xstr,xend, linthk,
+          call psDashedLine(xran,0.,xad,yran,0.,yad,b,a,xstr,xend, linthk,
      &        dshon,dshoff)
         else
-          call dodash(xscal,xlo,xad,yscal,ylo,yad,b,a,xstr,xend,
+          call psDashedLine(xscal,xlo,xad,yscal,ylo,yad,b,a,xstr,xend,
      &        linthk, dshon,dshoff)
         endif
 50    continue
@@ -108,8 +107,7 @@ c
       end
 
 
-      subroutine cnvrtpos(xscal,xlo,xad,xran,yscal,ylo,yad,yran,xpos,
-     &    ypos)
+      subroutine cnvrtpos(xscal,xlo,xad,xran,yscal,ylo,yad,yran,xpos, ypos)
       write(*,'(1x,a,/,a,$)')'Enter X and Y coordinates, and 0 if'//
      &    ' user units','    or 1 if absolute inches or -1 if'//
      &    ' relative to graph frame: '

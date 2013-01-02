@@ -1,16 +1,4 @@
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.2  2003/10/26 05:33:27  mast
-c       change command files to use unit 4 instead reopening 5
-c	
-c       Revision 3.1  2003/08/08 16:40:06  mast
-c       Added function to export graph and function to check if model file
-c       is needed for a particular option
+c       $Id$
 c	
 c       
 C       GRAPHDSP displays one graph in histogram format in one of 4 windows
@@ -225,7 +213,7 @@ c
       ofsetbot=0.1
       ofsettop=0.1
       ntxtchr=7
-      itxtsiz=256
+      itxtsiz=8
 c       
 c       extra size of page
 c       
@@ -251,8 +239,8 @@ c
         xsize=xpltsiz*width-0.1-ofsetlft-ofsetrt
         ysize=ypltsiz*width-0.1-ofsettop-ofsetbot
         write(label,'(i2)')jgrf
-        call pwrit(xlo+0.2,ylo+ysize-0.3,label,2
-     &      ,itxtsiz*2,0,0)
+c        call pwrit(xlo+0.2,ylo+ysize-0.3,label,2 ,itxtsiz*2,0,0)
+        call psWriteText(xlo+0.2,ylo+ysize-0.3,label(1:2) ,itxtsiz*2,0,0)
 c         
 c         do X labels then y
 c         
@@ -261,7 +249,8 @@ c
           xval=ii*xmax/10.
           write(label,fmt=formt,err=30)xval
 30        xlab=xlo+ii*xsize/10
-          call pwrit(xlab,ylo-0.12,label,ntxtchr,itxtsiz,0,0)
+c          call pwrit(xlab,ylo-0.12,label,ntxtchr,itxtsiz,0,0)
+          call psWriteText(xlab,ylo-0.12,label(1:ntxtchr),itxtsiz,0,0)
         enddo
 c         
         call makefmt(ymax,ntxtchr,formt)
@@ -269,7 +258,8 @@ c
           yval=ii*ymax/10.
           write(label,fmt=formt,err=40)yval
 40        ylab=ylo+ii*ysize/10
-          call pwrit(xlo-0.05,ylab,label,ntxtchr,itxtsiz,0,1)
+c          call pwrit(xlo-0.05,ylab,label,ntxtchr,itxtsiz,0,1)
+          call psWriteText(xlo-0.05,ylab,label(1:ntxtchr),itxtsiz,0,1)
         enddo
 c         
       elseif(iplot.lt.0.and.irow.gt.0.and.icol.gt.0)then
@@ -353,7 +343,7 @@ c
       if(iplot.eq.0)then
         call label_axis(xlo,ylo,xsize,xscal,abs(ntx),xtick,0,0)
         call label_axis(xlo,ylo,ysize,yscal,abs(nty),ytick,0,1)
-        call immisc(xscal,0.,xlo,xsize,yscal,0.,ylo,ysize)
+        call psMiscItems(xscal,0.,xlo,xsize,yscal,0.,ylo,ysize)
       endif
       return
       end

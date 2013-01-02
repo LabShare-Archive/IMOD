@@ -348,7 +348,7 @@ float imodContourArea(Icont *cont)
 /*!
  * Returns area of contour [cont] in the X/Y plane in square pixels, or 0 for
  * an error.  Area is measured by converting to a scan contour and summing the
- * length of the scan lines.  Used (only) by @imodContourCircularity.
+ * length of the scan lines.  Used (only) by @@imodContourCircularity@.
  */
 int imodel_contour_area(Icont *icont)
 {
@@ -448,7 +448,7 @@ double imodel_contour_length(Icont *cont)
  * order of the moment is [a] in X and [b] in Y.  It computes the sum
  * x**a * y**b over all pixels within the contour.  [cont] can be scan contour;
  * if it is not, a temporary scan contour is generated.  Returns 0 for error.
- * Used (only) by @imodContourCenterOfMass.
+ * Used (only) by @@imodContourCenterOfMass@.
  */
 double imodContourMoment(Icont *cont, int a, int b)
 {
@@ -1547,7 +1547,7 @@ Icont *imodContourBreak(Icont *cont, int p1, int p2)
 /*!
  * Sorts points in contour [cont] from index [bgnpt] through index [endpt]
  * by their X coordinates; preserves sizes but not label indexes.
- * Returns -1 for error.  Used (only) by @imodel_contour_scan.
+ * Returns -1 for error.  Used (only) by @@imodel_contour_scan@.
  */
 int imodel_contour_sortx(Icont *cont, int bgnpt, int endpt)
 {

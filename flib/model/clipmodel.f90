@@ -19,39 +19,49 @@ program clipmodel
   integer LIMZ, LIMOBJ
   parameter (LIMZ = 100000, LIMOBJ = 100000)
   integer*4 listz(LIMZ), iobjElim(LIMOBJ), iflags(LIMOBJ), inclExclList(LIMOBJ)
-  logical exist, readw_or_imod, inside, lastInside, getModelObjectRange
-  integer*4 getImodFlags, getImodHead, getImodScales, getImodObjSize
+  logical exist, readw_or_imod, inside, lastInside, getModelObjectRange, doValues
   character*320 modelFile
   character*10240 listString
   character*2 inOrEx
   character*7 pixelMicrons
+  integer*4, allocatable :: ipntToDelete(:)
   integer*4 i, ibase, icl, ierr, ifCut, ifExclude, ifFlip, ifKeepAll, ifLoop, ifPoint
   integer*4 ifStartCut, ifTreat, il, imodObj, inList, indY, indZ, iobj
   integer*4 iobjTest, ipt, iptEndBest, iptInside, iptStart, iptStartBest, ixMax, ixMin
   integer*4 ixx, iyMax, iyMin, iyy, izMax, izMin, izz, jpnt, lpnt, modFlag
   integer*4 nlistz, nonEmptyNew, nonEmptyOld, numInObj, numObjElim, numObjTot, numPtsTot
-  integer*4 numPtsTotOld, numRemEnd, numRemStart, numLoops, loop, noActions
-  real*4 cutSum, defScale, volume, xmax, xmin, xofs, xx
-  real*4 xyScale, ymax, ymin, yofs, yy, zFullScale, zScale, zmax, zmin, zofs, zz
+  integer*4 numPtsTotOld, numRemEnd, numRemStart, numLoops, loop, noActions, ixyzSum
+  integer*4 ifValRange, ioptValues, iptOut, iptDelSize, numToDelete, maxNumPts
+  real*4 cutSum, defScale, volume, xmax, xmin, xofs, xx, valRangeMin, valRangeMax
+  real*4 xyScale, ymax, ymin, yofs, yy, zFullScale, zScale, zmax, zmin, zofs, zz, gsval
+  logical*4 keepEmpty, updateMM
+  integer*4 getImodFlags, getImodHead, getImodScales, getImodObjSize, findAddMinMax1Value
+  integer*4 getObjValueThresh, getContValue, getPointValue, deleteImodPoint
   logical pipinput
   integer*4 numOptArg, numNonOptArg
-  integer*4 PipGetInteger,PipGetBoolean, PipNumberOfEntries
+  integer*4 PipGetInteger,PipGetBoolean, PipNumberOfEntries, PipGetLogical
   integer*4 PipGetFloat, PipGetString, PipGetTwoIntegers, PipGetTwoFloats
   integer*4 PipGetInOutFile, PipGetIntegerArray
 
   !
   ! fallbacks from ../../manpages/autodoc2man -3 2  clipmodel
   integer numOptions
-  parameter (numOptions = 12)
+  parameter (numOptions = 16)
   character*(40 * numOptions) options(1)
   options(1) = &
-      'input:InputFile:FN:@output:OutputFile:FN:@longest:LongestContourSegment:B:@'// &
-      'point:PointOutput:I:@xminmax:XMinAndMax:FPM:@yminmax:YMinAndMax:FPM:@'// &
-      'zminmax:ZMinAndMax:FPM:@exclude:ExcludeOrInclude:IA:@objects:ObjectList:LI:@'// &
-      'ends:ClipFromStartAndEnd:IP:@param:ParameterFile:PF:@help:usage:B:'
-
+      'input:InputFile:FN:@output:OutputFile:FN:@point:PointOutput:I:@'// &
+      'xminmax:XMinAndMax:FPM:@yminmax:YMinAndMax:FPM:@zminmax:ZMinAndMax:FPM:@'// &
+      'exclude:ExcludeOrInclude:IA:@longest:LongestContourSegment:B:@'// &
+      'keep:KeepEmptyContours:B:@objects:ObjectList:LI:@ends:ClipFromStartAndEnd:IP:@'// &
+      'values:ValuesInOrOutOfRange:I:@range:RangeForValues:FP:@'// &
+      'update:UpdateObjectMinMax:B:@param:ParameterFile:PF:@help:usage:B:'
   ifPoint = 0
   ifKeepAll = 1
+  keepEmpty = .false.
+  ifValRange = 0
+  ioptValues = 0
+  iptDelSize = 0
+  updateMM = .false.
 
   ! Pip startup: set error, parse options, check help, set flag if used
   call PipReadOrParseOptions(options, numOptions, 'clipmodel', 'ERROR: CLIPMODEL - ', &
@@ -73,6 +83,11 @@ program clipmodel
     i = 1 - ifKeepAll
     ierr = PipGetBoolean('LongestContourSegment', i)
     ifKeepAll = 1 - i
+    ierr = PipGetLogical('KeepEmptyContours', keepEmpty)
+    ierr = PipGetInteger('ValuesInOrOutOfRange', ioptValues)
+    ifValRange = 1 - PipGetTwoFloats('RangeForValues', valRangeMin, valRangeMax)
+    ierr = PipGetLogical('UpdateObjectMinMax', updateMM)
+    if (updateMM .and. keepEmpty) call exitError('YOU CANNOT USE -update WITH -keep')
   else
     write(*,'(1x,a,$)') '0 for model output, 1 for point file'// &
         ' output (-1 for corner points also): '
@@ -114,16 +129,23 @@ program clipmodel
     ierr = PipNumberOfEntries('XMinAndMax', ixMin)
     ierr = PipNumberOfEntries('YMinAndMax', iyMin)
     ierr = PipNumberOfEntries('ZMinAndMax', izMin)
+    ixyzSum = ixMin + iyMin + izMin
     noActions = PipGetIntegerArray('ExcludeOrInclude', inclExclList, numLoops, LIMOBJ)
     iobj = 1 - PipGetString('ObjectList', listString)
     if (iobj > 0) call parseList2(listString, iobjElim, numObjElim, LIMOBJ)
     ifCut = 1 - PipGetTwoIntegers('ClipFromStartAndEnd', numRemStart, numRemEnd)
-    if (iobj > 0 .and. (noActions == 0 .or. ixMin + iyMin + izMin > 0)) call exitError( &
+    if (iobj > 0 .and. (noActions == 0 .or. ixyzSum > 0)) call exitError( &
         'YOU CANNOT ENTER AN OBJECT LIST WITH COORDINATE INCLUSION/EXCLUSIONS')
     if (ifCut > 0 .and. iobj == 0) call exitError( &
         'YOU MUST ENTER AN OBJECT LIST WHEN CLIPPING FROM STARTS AND ENDS')
+    if (abs(ioptValues) > 1 .and. (noActions == 0 .or. ixMin + iyMin + izMin > 0))  &
+        call exitError('YOU CANNOT CLIP POINTS BY VALUE TOGETHER WITH COORDINATE '// &
+        'INCLUSION/EXCLUSIONS')
+    if (ifCut > 0 .and. abs(ioptValues) > 1) call exitError( &
+        'YOU CANNOT CLIP POINTS BY VALUE WHEN CLIPPING FROM STARTS AND ENDS')
+    if (noActions .ne. 0 .and. iobj == 0 .and. ioptValues == 0 .and. ixyzSum == 0)  &
+        call exitError('YOU MUST SPECIFY SOMETHING TO DO')
     if (noActions .ne. 0 .and. iobj == 0) then
-      if (ixMin + iyMin + izMin == 0) call exitError('YOU MUST SPECIFY SOMETHING TO DO')
       numLoops = 1
       inclExclList(1) = 0
       noActions = 0
@@ -147,6 +169,12 @@ program clipmodel
 
   !
   do loop = 1, numLoops
+    xmin = -1.e9
+    xmax = 1.e9
+    ymin = -1.e9
+    ymax = 1.e9
+    zmin = -1.e9
+    zmax = 1.e9
     if (pipinput) then
       ifExclude = inclExclList(loop)
     else
@@ -159,12 +187,6 @@ program clipmodel
       inOrEx = 'in'
       if (ifExclude .ne. 0) inOrEx = 'ex'
       !
-      xmin = -1.e9
-      xmax = 1.e9
-      ymin = -1.e9
-      ymax = 1.e9
-      zmin = -1.e9
-      zmax = 1.e9
       if (pipInput) then
         ierr = PipGetTwoFloats('XMinAndMax', xmin, xmax)
         ierr = PipGetTwoFloats('YMinAndMax', ymin, ymax)
@@ -188,6 +210,11 @@ program clipmodel
         write(*,105) volume, pixelMicrons
 105     format(/,' Selected volume is',g15.6,' cubic ',a)
       endif
+
+      ! Increase Z limits a bit in case there are slightly off Z values
+      zmin = zmin - 0.005
+      zmax = zmax + 0.005
+
     else if (.not. pipinput) then
       if (ifExclude < -1) then
         write(*,'(1x,a,$)') 'Number of points to remove from start,' &
@@ -201,9 +228,6 @@ program clipmodel
     endif
     !
     ! look at each object, find longest contiguous segment within area
-    ! Increase Z limits a bit in case there are slightly off Z values
-    zmin = zmin - 0.005
-    zmax = zmax + 0.005
     numPtsTot = 0
     numPtsTotOld = 0
     cutSum = 0.
@@ -217,22 +241,76 @@ program clipmodel
       endif
       call scale_model(0)
       !
+      maxNumPts = 0
       do iobj = 1, max_mod_obj
         numPtsTotOld = numPtsTotOld + npt_in_obj(iobj)
+        maxNumPts = max(maxNumPts, npt_in_obj(iobj))
       enddo
+
+      ! Maintain array for keeping track of deleted points
+      if (maxNumPts > iptDelSize) then
+        if (iptDelSize == 0) deallocate(ipntToDelete, stat=ierr)
+        iptDelSize = maxNumPts + 1000
+        allocate(ipntToDelete(iptDelSize), stat=ierr)
+        call memoryError(ierr, 'ALLOCATING ARRAY FOR DELETED POINT LIST')
+      endif
+
+      ! If doing values and no range was entered, get the object threshold
+      ! If there is not one, skip the object
+      doValues = ioptValues .ne. 0
+      if (doValues .and. ifValRange == 0) then
+        doValues = getObjValueThresh(imodObj, valRangeMax) == 0
+        valRangeMin = -1.e37
+      endif
       !
+      ! Loop on the contours
       do iobj = 1, max_mod_obj
         numInObj = npt_in_obj(iobj)
+        numToDelete = 0
+        if (numInObj > 0) nonEmptyOld = nonEmptyOld + 1
+        if (doValues .and. mod(abs(ioptValues), 2) > 0) then
+          !
+          ! If doing values, get the contour value and eliminate it by just zeroing it
+          ! But also set up to delete the contour data
+          if (getContValue(imodObj, iobj, gsval) .eq. 0) then
+            inside = gsval >= valRangeMin .and. gsval <= valRangeMax
+            if (ioptValues < 0) inside = .not. inside
+            if (inside) then
+              call addToDeletionList(1, numInObj)
+              npt_in_obj(iobj) = 0
+              numInObj = 0
+            endif
+          endif
+        endif
+        !
+        ! Then do other operations if that did not delete contour
         if (numInObj > 0) then
-          nonEmptyOld = nonEmptyOld + 1
-          if (ifExclude >= 0) then
+          iptOut = 0
+          ibase = ibase_obj(iobj)
+          if (doValues .and. abs(ioptValues) > 1) then
+            !
+            ! point clipping by value, repack object array with retained points
+            do ipt = 1, numInObj
+              if (getPointValue(imodObj, iobj, ipt, gsval) .eq. 0) then
+                inside = gsval >= valRangeMin .and. gsval <= valRangeMax
+                if (ioptValues < 0) inside = .not. inside
+                if (inside) then
+                  call addToDeletionList(ipt, ipt)
+                else
+                  iptOut = iptOut + 1
+                  object(ibase + iptOut) = object(ibase + ipt) 
+                endif
+              endif
+            enddo
+            npt_in_obj(iobj) = iptOut
+
+          else if (ifExclude >= 0) then
             ! imodObj=256-obj_color(2, iobj)
-            ibase = ibase_obj(iobj)
             if (ifKeepAll == 0 .and. mod(iflags(imodObj), 4) .ne. 2) then
               !
               ! keeping only longest segment inside limits: can be used for
               ! open or closed contours but not scattered points
-              !
+              ! Loop and find largest segment
               lastInside = .false.
               iptStartBest = 1
               iptEndBest = 0
@@ -261,19 +339,21 @@ program clipmodel
                 lastInside = inside
               enddo
               !
-              ! truncate object and point base to new start
+              ! Add to deletion list
+              call addToDeletionList(1, iptStartBest - 1)
+              call addToDeletionList(iptEndBest + 1, numInObj)
               !
+              ! truncate object and point base to new start
               npt_in_obj(iobj) = iptEndBest + 1 - iptStartBest
               ibase_obj(iobj) = ibase_obj(iobj) + iptStartBest - 1
             else
               !
               ! keeping all points inside limits
-              !
-              ipt = 1
+              ! repack the object array with just the points being retained
               ifCut = 0
               ifStartCut = 0
               modFlag = mod(iflags(imodObj), 4)
-              do while (ipt <= numInObj)
+              do ipt = 1, numInObj
                 jpnt = abs(object(ipt + ibase))
                 xx = p_coord(1, jpnt)
                 yy = p_coord(indY, jpnt)
@@ -286,7 +366,7 @@ program clipmodel
                 if (ifExclude .ne. 0) inside = .not.inside
                 if (inside) then
                   if (ifCut .ne. 0 .and. modFlag .ne. 2) then
-                    if (ipt == 1) then
+                    if (iptOut == 0) then
                       !
                       ! if last point was cut out and we are still at the
                       ! start, then mark the start as cut
@@ -304,23 +384,20 @@ program clipmodel
                     endif
                   endif
                   ifCut = 0
-                  ipt = ipt + 1
+                  iptOut = iptOut + 1
+                  object(ibase + iptOut) = object(ibase + ipt) 
                   lpnt = jpnt
                 else
-                  do i = ipt + ibase + 1, 1 + ibase + numInObj
-                    object(i - 1) = object(i)
-                  enddo
-                  numInObj = numInObj - 1
                   ifCut = 1
+                  call addToDeletionList(ipt, ipt)
                 endif
               enddo
-              npt_in_obj(iobj) = numInObj
+              npt_in_obj(iobj) = iptOut
               !
               ! If there are any points left, and either the start was cut
               ! or the last point was cut, and this is a closed contour,
               ! then add distance between endpoints as a cut edge
-              !
-              if (numInObj > 0 .and. (ifStartCut > 0 .or. ifCut .ne. 0) .and. &
+              if (iptOut > 0 .and. (ifStartCut > 0 .or. ifCut .ne. 0) .and. &
                   modFlag == 0) then
                 jpnt = abs(object(1 + ibase))
                 cutSum = cutSum + sqrt( &
@@ -331,7 +408,6 @@ program clipmodel
             endif
             !
             ! if getting rid of certain color, check for color
-            !
           else
             iobjTest = 256 - obj_color(2, iobj)
             if (obj_color(1, iobj) == 0) iobjTest = -iobjTest
@@ -341,8 +417,15 @@ program clipmodel
             enddo
             if (ifTreat == 1) then
               if (ifExclude == -1) then
+                !
+                ! Getting rid of whole object, point deletion should be gratuitous
                 npt_in_obj(iobj) = 0
+                call addToDeletionList(1, numInObj)
               else
+                !
+                ! Clipping ends, do point deletion and move object base
+                call addToDeletionList(1, numRemStart)
+                call addToDeletionList(numInObj + 1 - numRemEnd, numInObj)
                 npt_in_obj(iobj) = max(0, numInObj - numRemStart - numRemEnd)
                 ibase_obj(iobj) = ibase_obj(iobj) + numRemStart
               endif
@@ -355,7 +438,18 @@ program clipmodel
             nonEmptyNew = nonEmptyNew + 1
           endif
         endif
+        !
+        ! Delete points from model in inverse order
+        do ipt = numToDelete, 1, -1
+          ierr = deleteImodPoint(imodObj, iobj, ipntToDelete(ipt))
+          if (ierr .ne. 0) call exitError('Deleting point from IMOD model')
+        enddo
       enddo
+      if (.not. keepEmpty) call removeEmptyContours(imodObj)
+      if (updateMM) then
+        if (findAddMinMax1Value(imodObj) .ne. 0)  &
+            call exitError('Adding min/max to object in IMOD model')
+      endif
       call scale_model(1)
       call putModelObjects()
     enddo
@@ -387,7 +481,7 @@ program clipmodel
   !
   if (ifPoint == 0) then
     n_point = -1
-77  call write_wmod(modelFile)
+    call write_wmod(modelFile)
     print *,'CLIPPED MODEL WRITTEN'
   else
     call dopen(1, modelFile, 'new', 'f')
@@ -439,4 +533,55 @@ program clipmodel
     print *, 'POINT LIST WRITTEN'
   endif
   call exit(0)
+
+CONTAINS
+  
+  ! Add a range of point numbers to the list of points to delete
+  subroutine addToDeletionList(istart, iend)
+    integer*4 istart, iend, iptmp
+    do iptmp = istart, iend
+      numToDelete = numToDelete + 1
+      ipntToDelete(numToDelete) = iptmp
+    enddo
+    return
+  end subroutine addToDeletionList
+
 end program clipmodel
+
+subroutine removeEmptyContours(loadedObj)
+  implicit none
+  include 'model.inc90'
+  integer*4 imodObj(max_mod_obj), imodCont(max_mod_obj), iobjToDelete(max_mod_obj)
+  integer*4 numKeep, numDelete, iobj, idel, deleteImodCont, loadedObj
+  numKeep = 0
+  numDelete = 0
+  if (loadedObj > 0) then
+    do iobj = 1, max_mod_obj
+      call objToCont(iobj, obj_color, imodObj(iobj), imodCont(iobj))
+    enddo
+  else 
+    do iobj = 1, max_mod_obj
+      imodObj(iobj) = loadedObj
+      imodCont(iobj) = iobj
+    enddo
+  endif
+  do iobj = 1, max_mod_obj
+    if (npt_in_obj(iobj) > 0) then
+      numKeep = numKeep + 1
+      npt_in_obj(numKeep) = npt_in_obj(iobj)
+      ibase_obj(numKeep) = ibase_obj(iobj)
+      obj_color(1, numKeep) = obj_color(1, iobj)
+      obj_color(2, numKeep) = obj_color(2, iobj)
+    else
+      numDelete = numDelete + 1
+      iobjToDelete(numDelete) = iobj
+    endif
+  enddo
+  do idel = numDelete, 1, -1
+    iobj = iobjToDelete(idel)
+    if (deleteImodCont(imodObj(iobj), imodCont(iobj)) .ne. 0)  &
+        call exitError('Deleting contour from IMOD model')
+  enddo
+  max_mod_obj = numKeep
+  return
+end subroutine removeEmptyContours

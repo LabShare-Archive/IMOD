@@ -816,7 +816,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     ConstEtomoNumber combineVolcombineParallel = metaData.getCombineVolcombineParallel();
     cbParallelProcess.setEnabled(validAutodoc && !processingMethodLocked);
     if (combineVolcombineParallel == null) {
-      cbParallelProcess.setSelected(validAutodoc && metaData.getDefaultParallel().is());
+      cbParallelProcess.setSelected(validAutodoc && metaData.isDefaultParallel());
     }
     else {
       cbParallelProcess.setSelected(validAutodoc && combineVolcombineParallel.is());

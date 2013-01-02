@@ -184,7 +184,7 @@ final class EraseGoldPanel implements ContextMenu {
     return pnlRoot;
   }
 
-  void initialize() {
+  void initializeBeads() {
     ccdEraserBeadsPanel.initialize();
   }
 
@@ -272,8 +272,16 @@ final class EraseGoldPanel implements ContextMenu {
     beads3dFindPanel.setParameters(param, initialize);
   }
 
+  void initialize() {
+    beads3dFindPanel.initialize();
+  }
+
   void setParameters(ConstTiltalignParam param, boolean initialize) {
     beads3dFindPanel.setParameters(param, initialize);
+  }
+
+  void setOverrideParameters(final ConstMetaData metaData) {
+    beads3dFindPanel.setOverrideParameters(metaData);
   }
 
   private void action(final String command, Deferred3dmodButton deferred3dmodButton,

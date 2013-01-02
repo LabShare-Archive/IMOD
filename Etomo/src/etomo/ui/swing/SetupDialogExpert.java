@@ -2,15 +2,13 @@ package etomo.ui.swing;
 
 import java.awt.Container;
 import java.io.File;
-import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.Arguments;
 import etomo.EtomoDirector;
-import etomo.logic.DatasetTool;
+import etomo.logic.UserEnv;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.LogFile;
-import etomo.storage.Network;
 import etomo.storage.ParameterStore;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -19,14 +17,14 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
+import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.TiltAngleSpec;
 import etomo.type.UserConfiguration;
 import etomo.type.ViewType;
-import etomo.ui.FieldValidationFailedException;
-import etomo.util.DatasetFiles;
-import etomo.util.InvalidParameterException;
-import etomo.util.MRCHeader;
+import etomo.ui.SetupReconInterface;
+import etomo.ui.SetupReconUIHarness;
 import etomo.util.SharedConstants;
 
 /**
@@ -121,20 +119,28 @@ import etomo.util.SharedConstants;
 public final class SetupDialogExpert {
   public static final String rcsid = "$Id$";
 
+  private final TiltAnglePanelExpert tiltAnglePanelExpertA;
+  private final TiltAnglePanelExpert tiltAnglePanelExpertB;
   private final SetupDialog dialog;
   private final ApplicationManager manager;
-  private final TiltAnglePanelExpert tiltAnglePanelExpertA = new TiltAnglePanelExpert();
-  private final TiltAnglePanelExpert tiltAnglePanelExpertB = new TiltAnglePanelExpert();
+  private final SetupReconUIHarness setupUIHarness;
 
-  private SetupDialogExpert(ApplicationManager manager, boolean calibrationAvailable) {
+  private File dir = null;
+
+  private SetupDialogExpert(final ApplicationManager manager,
+      final SetupReconUIHarness setupUIHarness, final boolean calibrationAvailable) {
+    this.manager = manager;
+    this.setupUIHarness = setupUIHarness;
+    tiltAnglePanelExpertA = new TiltAnglePanelExpert(manager, AxisID.FIRST);
+    tiltAnglePanelExpertB = new TiltAnglePanelExpert(manager, AxisID.SECOND);
     dialog = SetupDialog.getInstance(this, manager, AxisID.ONLY, DialogType.SETUP_RECON,
         calibrationAvailable);
-    this.manager = manager;
   }
 
   public static SetupDialogExpert getInstance(ApplicationManager manager,
-      boolean calibrationAvailable) {
-    SetupDialogExpert instance = new SetupDialogExpert(manager, calibrationAvailable);
+      final SetupReconUIHarness setupUIHarness, boolean calibrationAvailable) {
+    SetupDialogExpert instance = new SetupDialogExpert(manager, setupUIHarness,
+        calibrationAvailable);
     instance.setTooltips();
     return instance;
   }
@@ -147,21 +153,17 @@ public final class SetupDialogExpert {
   public void doAutomation() {
     Arguments arguments = EtomoDirector.INSTANCE.getArguments();
     // build and set dataset
-    StringBuffer buffer = new StringBuffer();
-    String dir = arguments.getDir();
-    if (dir != null && !dir.equals(".")) {
-      buffer.append(dir);
-    }
+    dir = arguments.getDir();
     String dataset = arguments.getDataset();
     if (dataset != null) {
-      if (buffer.length() != 0
-          && buffer.charAt(buffer.length() - 1) != File.separatorChar) {
-        buffer.append(File.separatorChar);
+      // If the directory was set and dataset is a file (not the dataset name), pass the
+      // absolute path to the dialog.
+      if (dir != null && dataset.endsWith(FileType.RAW_STACK.getExtension(manager))) {
+        dialog.setDataset(new File(dir, dataset).getAbsolutePath());
       }
-      buffer.append(dataset);
-    }
-    if (buffer.length() != 0) {
-      dialog.setDataset(buffer.toString());
+      else {
+        dialog.setDataset(arguments.getDataset());
+      }
     }
     // check radio buttons
     AxisType axis = arguments.getAxis();
@@ -182,7 +184,13 @@ public final class SetupDialogExpert {
     }
     // scan header
     if (arguments.isScan()) {
-      scanHeaderAction();
+      setupUIHarness.scanHeaderAction(dialog);
+    }
+    if (arguments.isCpus()) {
+      dialog.setParallelProcess(true);
+    }
+    if (arguments.isGpus()) {
+      dialog.setGpuProcessing(true);
     }
     // complete the dialog
     if (arguments.isCreate()) {
@@ -190,8 +198,16 @@ public final class SetupDialogExpert {
     }
   }
 
+  public File getDir() {
+    return dir;
+  }
+
   public String getDataset() {
     return dialog.getDataset();
+  }
+
+  public SetupReconInterface getSetupReconInterface() {
+    return dialog;
   }
 
   /**
@@ -215,7 +231,7 @@ public final class SetupDialogExpert {
    *         references don't exist.
    */
   public boolean checkForSharedDirectory() {
-    String propertyUserDir = manager.getPropertyUserDir();
+    String propertyUserDir = getPropertyUserDir();
     File directory = new File(propertyUserDir);
     // Get all the edf files in propertyUserDir.
     File[] edfFiles = directory.listFiles(new EtomoFileFilter());
@@ -327,139 +343,8 @@ public final class SetupDialogExpert {
     return false;
   }
 
-  public boolean isValid() {
-    String errorMessageTitle = new String("Setup Dialog Error");
-    String datasetText = dialog.getDataset();
-    String panelErrorMessage;
-    if (datasetText.equals("")) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Dataset name has not been entered.",
-          errorMessageTitle, AxisID.ONLY);
-      return false;
-    }
-    File dataset = new File(datasetText);
-    String datasetFileName = dataset.getName();
-    if (datasetFileName.equals("a.st") || datasetFileName.equals("b.st")
-        || datasetFileName.equals(".")) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "The name " + datasetFileName
-          + " cannot be used as a dataset name.", errorMessageTitle, AxisID.ONLY);
-      return false;
-    }
-    // validate image distortion field file name
-    // optional
-    // file must exist
-    String distortionFileText = dialog.getDistortionFile();
-    if (!distortionFileText.equals("")) {
-      File distortionFile = new File(distortionFileText);
-      if (!distortionFile.exists()) {
-        String distortionFileName = distortionFile.getName();
-        UIHarness.INSTANCE.openMessageDialog(manager, "The image distortion field file "
-            + distortionFileName + " does not exist.", errorMessageTitle, AxisID.ONLY);
-        return false;
-      }
-    }
-    // validate mag gradient field file name
-    // optional
-    // file must exist
-    String magGradientFileText = dialog.getMagGradientFile();
-    if (!magGradientFileText.equals("")) {
-      File magGradientFile = new File(magGradientFileText);
-      if (!magGradientFile.exists()) {
-        String magGradientFileName = magGradientFile.getName();
-        UIHarness.INSTANCE.openMessageDialog(manager,
-            "The mag gradients correction file " + magGradientFileName
-                + " does not exist.", errorMessageTitle, AxisID.ONLY);
-        return false;
-      }
-    }
-    panelErrorMessage = tiltAnglePanelExpertA.getErrorMessage();
-    if (panelErrorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, panelErrorMessage + " in Axis A.",
-          errorMessageTitle, AxisID.ONLY);
-      return false;
-    }
-    panelErrorMessage = tiltAnglePanelExpertB.getErrorMessage();
-    if (panelErrorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, panelErrorMessage + " in Axis B.",
-          errorMessageTitle, AxisID.ONLY);
-      return false;
-    }
-    return DatasetTool.validateViewType(
-        dialog.isSingleViewSelected() ? ViewType.SINGLE_VIEW : ViewType.MONTAGE,
-        manager.getPropertyUserDir(), getStackFileName(), manager, null, AxisID.ONLY);
-  }
-
-  public MetaData getMetaData() {
-    MetaData metaData = new MetaData(manager);
-    metaData.setAxisType(getAxisType());
-
-    // The dataset name needs to be set after the axis type so the metadata
-    // object modifies the ending correctly
-    if (dialog.getDataset().startsWith("/")) {
-      metaData.setDatasetName(dialog.getDataset());
-    }
-    else {
-      metaData.setDatasetName(manager.getPropertyUserDir() + "/" + dialog.getDataset());
-    }
-    return metaData;
-  }
-
-  public MetaData getFields(final boolean doValidation) {
-    try {
-      MetaData metaData = getMetaData();
-      AxisType axisType = getAxisType();
-      metaData.setBackupDirectory(dialog.getBackupDirectory());
-      metaData.setDistortionFile(dialog.getDistortionFile());
-      metaData.setMagGradientFile(dialog.getMagGradientFile());
-      metaData.setDefaultParallel(dialog.isParallelProcessSelected());
-      metaData.setDefaultGpuProcessing(dialog.isGpuProcessingSelected());
-      metaData.setAdjustedFocusA(dialog.isAdjustedFocusSelected(AxisID.FIRST));
-      metaData.setAdjustedFocusB(dialog.isAdjustedFocusSelected(AxisID.SECOND));
-      metaData.setViewType(getViewType());
-      String currentField = "";
-      currentField = "Image Rotation";
-      metaData.setImageRotation(dialog.getImageRotation(doValidation), AxisID.FIRST);
-      if (!metaData.getImageRotation(AxisID.FIRST).isValid()) {
-        UIHarness.INSTANCE.openMessageDialog(manager, currentField + " must be numeric.",
-            "Setup Dialog Error", AxisID.ONLY);
-        return null;
-      }
-      try {
-        currentField = "Pixel Size";
-        metaData.setPixelSize(dialog.getPixelSize(doValidation));
-        currentField = "Fiducial Diameter";
-        metaData.setFiducialDiameter(dialog.getFiducialDiameter(doValidation));
-        if (axisType == AxisType.DUAL_AXIS) {
-          metaData.setImageRotation(dialog.getImageRotation(doValidation), AxisID.SECOND);
-        }
-        currentField = "Axis A starting and step angles";
-        if (!tiltAnglePanelExpertA.getFields(metaData.getTiltAngleSpecA(), doValidation)) {
-          return null;
-        }
-        currentField = "Axis B starting and step angles";
-        if (!tiltAnglePanelExpertB.getFields(metaData.getTiltAngleSpecB(), doValidation)) {
-          return null;
-        }
-      }
-      catch (NumberFormatException e) {
-        UIHarness.INSTANCE.openMessageDialog(manager, currentField + " must be numeric.",
-            "Setup Dialog Error", AxisID.ONLY);
-        return null;
-      }
-      metaData.setBinning(dialog.getBinning());
-      metaData.setExcludeProjections(dialog.getExcludeList(AxisID.FIRST, doValidation),
-          AxisID.FIRST);
-      metaData.setExcludeProjections(dialog.getExcludeList(AxisID.SECOND, doValidation),
-          AxisID.SECOND);
-      if (axisType == AxisType.DUAL_AXIS) {
-        File bStack = DatasetFiles.getStack(manager.getPropertyUserDir(), metaData,
-            AxisID.SECOND);
-        metaData.setBStackProcessed(bStack.exists());
-      }
-      return metaData;
-    }
-    catch (FieldValidationFailedException e) {
-      return null;
-    }
+  String getPropertyUserDir() {
+    return setupUIHarness.getPropertyUserDir();
   }
 
   public DialogExitState getExitState() {
@@ -475,33 +360,26 @@ public final class SetupDialogExpert {
     File dataset = new File(datasetText);
     if (!dataset.isAbsolute()) {
 
-      dataset = new File(manager.getPropertyUserDir() + File.separator + datasetText);
+      dataset = new File(getPropertyUserDir() + File.separator + datasetText);
     }
     return dataset.getParentFile();
   }
 
   public void initializeFields(ConstMetaData metaData, UserConfiguration userConfig) {
     if (!metaData.getDatasetName().equals("")) {
-      String canonicalPath = manager.getPropertyUserDir() + "/"
-          + metaData.getDatasetName();
+      String canonicalPath = getPropertyUserDir() + "/" + metaData.getDatasetName();
       dialog.setDataset(canonicalPath);
     }
     // Parallel processing is optional in tomogram reconstruction, so only use it
     // if the user set it up.
-    boolean parallelProcessingEnabled = Network.isParallelProcessingEnabled(manager,
-        AxisID.ONLY, manager.getPropertyUserDir());
-    if (parallelProcessingEnabled && !userConfig.getNoParallelProcessing()) {
-      dialog.setParallelProcess(true);
-    }
-    else if (!parallelProcessingEnabled) {
-      dialog.setParallelProcessEnabled(false);
-    }
-    boolean gpuProcessingEnabled = Network.isNonLocalHostGpuProcessingEnabled(manager,
-        AxisID.ONLY, manager.getPropertyUserDir())
-        || Network.isLocalHostGpuProcessingEnabled(manager, AxisID.ONLY,
-            manager.getPropertyUserDir());
-    dialog.setGpuProcessingEnabled(gpuProcessingEnabled);
-    dialog.setGpuProcessing(gpuProcessingEnabled && userConfig.getGpuProcessingDefault());
+    dialog.setParallelProcess(UserEnv.isParallelProcessing(manager, AxisID.ONLY,
+        getPropertyUserDir()));
+    dialog.setParallelProcessEnabled(UserEnv.isParallelProcessingEnabled(manager,
+        AxisID.ONLY, getPropertyUserDir()));
+    dialog.setGpuProcessingEnabled(UserEnv.isGpuProcessingEnabled(manager, AxisID.ONLY,
+        getPropertyUserDir()));
+    dialog.setGpuProcessing(UserEnv.isGpuProcessing(manager, AxisID.ONLY,
+        getPropertyUserDir()));
     dialog.setBackupDirectory(metaData.getBackupDirectory());
     dialog.setDistortionFile(metaData.getDistortionFile());
     dialog.setMagGradientFile(metaData.getMagGradientFile());
@@ -539,6 +417,11 @@ public final class SetupDialogExpert {
       dialog.setExcludeListEnabled(AxisID.SECOND, false);
       dialog.setViewRawStackEnabled(AxisID.SECOND, false);
     }
+    dialog.setSetFEIPixelSize(userConfig.isSetFEIPixelSize());
+  }
+
+  boolean validateTiltAngle(final AxisID axisID, final String errorTitle) {
+    return getTiltAnglesPanelExpert(axisID).validate(errorTitle);
   }
 
   TiltAnglePanelExpert getTiltAnglesPanelExpert(AxisID axisID) {
@@ -553,16 +436,22 @@ public final class SetupDialogExpert {
   }
 
   AxisType getAxisType() {
-    if (dialog.isSingleAxisSelected()) {
-      return AxisType.SINGLE_AXIS;
-    }
-    else {
-      return AxisType.DUAL_AXIS;
-    }
+    return setupUIHarness.getAxisType();
   }
 
   String getDatasetDir() {
+    if (dir != null) {
+      return dir.getAbsolutePath();
+    }
     return EtomoDirector.INSTANCE.getOriginalUserDir();
+  }
+
+  public boolean getTiltAngleFields(final AxisID axisID,
+      final TiltAngleSpec tiltAngleSpec, final boolean doValidation) {
+    if (axisID == AxisID.SECOND) {
+      return tiltAnglePanelExpertB.getFields(tiltAngleSpec, doValidation);
+    }
+    return tiltAnglePanelExpertA.getFields(tiltAngleSpec, doValidation);
   }
 
   String getCurrentBackupDirectory() {
@@ -585,7 +474,7 @@ public final class SetupDialogExpert {
         currentDistortionDir = distortionDir.getAbsolutePath();
       }
       else {
-        currentDistortionDir = manager.getPropertyUserDir();
+        currentDistortionDir = getPropertyUserDir();
       }
     }
     return currentDistortionDir;
@@ -602,7 +491,7 @@ public final class SetupDialogExpert {
         currentMagGradientDir = magGradientDir.getAbsolutePath();
       }
       else {
-        currentMagGradientDir = manager.getPropertyUserDir();
+        currentMagGradientDir = getPropertyUserDir();
       }
     }
     return currentMagGradientDir;
@@ -628,7 +517,7 @@ public final class SetupDialogExpert {
       dialog.setAdjustedFocusEnabled(AxisID.SECOND, true);
     }
     else if (dialog.equalsScanHeaderActionCommand(actionCommand)) {
-      scanHeaderAction();
+      setupUIHarness.scanHeaderAction(dialog);
     }
   }
 
@@ -699,116 +588,7 @@ public final class SetupDialogExpert {
     dialog.setViewRawStackTooltip("View the current raw image stack.");
     dialog.setAdjustedFocusTooltip("Set this if \"Change focus with height\" was "
         + "selected when the montage was acquired in SerialEM.");
-
-  }
-
-  /**
-   * Get the A or only stack name using dialog.getDataset()
-   * @return
-   */
-  private String getStackFileName() {
-    // Get the dataset name from the UI object
-    String datasetName = dialog.getDataset();
-    if (datasetName == null || datasetName.equals("")) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Dataset name has not been entered",
-          "Missing dataset name", AxisID.ONLY);
-      return null;
-    }
-    // Add the appropriate extension onto the filename if necessary
-    if (!datasetName.endsWith(".st")) {
-      if (dialog.isDualAxisSelected()) {
-        datasetName = datasetName + "a.st";
-      }
-      else {
-        datasetName = datasetName + ".st";
-
-      }
-    }
-    return datasetName;
-  }
-
-  /**
-   * Construction and read an MRCHeader object.
-   * @return the MRCHeader object
-   */
-  private MRCHeader readMRCHeader() {
-    // Run header on the dataset to the extract whatever information is
-    // available
-    String stackFileName = getStackFileName();
-    if (stackFileName == null) {
-      return null;
-    }
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), stackFileName,
-        AxisID.ONLY);
-    try {
-      if (!header.read(manager)) {
-        UIHarness.INSTANCE.openMessageDialog(manager, "File does not exist.",
-            "Entry Error", AxisID.ONLY);
-        return null;
-      }
-    }
-    catch (InvalidParameterException except) {
-      UIHarness.INSTANCE.openMessageDialog(manager, except.getMessage(),
-          "Invalid Parameter Exception", AxisID.ONLY);
-    }
-    catch (IOException except) {
-      UIHarness.INSTANCE.openMessageDialog(manager, except.getMessage(), "IO Exception",
-          AxisID.ONLY);
-    }
-    return header;
-  }
-
-  private void scanHeaderAction() {
-    MRCHeader header = readMRCHeader();
-    if (header == null) {
-      return;
-    }
-
-    // Set the image rotation if available
-    ConstEtomoNumber imageRotation = header.getImageRotation();
-    if (!imageRotation.isNull()) {
-      dialog.setImageRotation(imageRotation.toString());
-    }
-
-    // set the pixel size if available
-    double xPixelSize = header.getXPixelSize().getDouble();
-    double yPixelSize = header.getYPixelSize().getDouble();
-    if (Double.isNaN(xPixelSize) || Double.isNaN(yPixelSize)) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Pixel size is not defined in the image file header", "Pixel size is missing",
-          AxisID.ONLY);
-
-      return;
-    }
-
-    if (xPixelSize != yPixelSize) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "X & Y pixels sizes are different, don't know what to do",
-          "Pixel sizes are different", AxisID.ONLY);
-      return;
-    }
-    if (xPixelSize == 1.0) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Pixel size is not defined in the image file header", "Pixel size is missing",
-          AxisID.ONLY);
-      return;
-    }
-    xPixelSize = xPixelSize / 10.0;
-    dialog.setPixelSize(Math.round(xPixelSize * 1000000.0) / 1000000.0);
-    int binning = header.getBinning();
-    if (binning == Integer.MIN_VALUE) {
-      binning = 1;
-    }
-    dialog.setBinning(binning);
-  }
-
-  ViewType getViewType() {
-    if (dialog.isSingleViewSelected()) {
-      return ViewType.SINGLE_VIEW;
-    }
-    else {
-      return ViewType.MONTAGE;
-    }
+    dialog.setTooltips();
   }
 
   // View type radio button

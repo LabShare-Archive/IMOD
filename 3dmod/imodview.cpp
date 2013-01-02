@@ -39,11 +39,12 @@
 #include "xcramp.h"
 #include "workprocs.h"
 #include "vertexbuffer.h"
+#include "utilities.h"
 #include "preferences.h"
 #include "undoredo.h"
 
 static int ivwProcessImageList(ImodView *vi);
-static int ivwManageInitialFlips(ImodView *vi);
+static int initializeFlipAndModel(ImodView *vi);
 static int ivwCheckLinePtrAllocation(ImodView *vi, int ysize);
 static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz);
 static void deletePlistBuf(void);
@@ -218,7 +219,6 @@ unsigned char **ivwGetZSection(ImodView *vi, int section)
 {
   ivwSlice *tempSlicePtr = NULL;
   int sl, slmin, minused, pixSize, slice;
-  int cz = section;
 
   if (section < 0 || section >= vi->zsize) 
     return(NULL);
@@ -226,6 +226,10 @@ unsigned char **ivwGetZSection(ImodView *vi, int section)
     return(NULL);
   if (!vi->fullCacheFlipped && ivwPlistBlank(vi, section)) 
     return(NULL);
+
+  // Flip -> rotation: invert Z if flipped
+  if (vi->li->axis == 2)
+    section = vi->zsize - 1 - section;
 
   /* Plain, uncached data: make line pointers if not flipped */
   if (!vi->vmSize) {
@@ -271,7 +275,7 @@ unsigned char **ivwGetZSection(ImodView *vi, int section)
 
     /* DNM 12/12/01: add call to cache filler */
     if (icfGetAutofill())
-      return(ivwMakeLinePointers(vi, icfDoAutofill(vi, cz), vi->xsize,
+      return(ivwMakeLinePointers(vi, icfDoAutofill(vi, section), vi->xsize,
                                  vi->ysize, vi->rawImageStore));
 
     /* Find oldest slice to replace */
@@ -863,7 +867,7 @@ int idata_ivwGetValue(ImodView *vi, int x, int y, int z)
   if (vi->li->axis == 3)
     return(vi->idata[z][x + (y * vi->xsize)]);
   else
-    return(vi->idata[y][x + (z * vi->xsize)]);
+    return(vi->idata[y][x + ((vi->zsize - 1 - z) * vi->xsize)]);
 }
 
 /* 1/3/04: eliminated fileScale_ivwGetValue which was unussed, incorrect,
@@ -878,6 +882,10 @@ int cache_ivwGetValue(ImodView *vi, int x, int y, int z)
   size_t index;
 
   /* find pixel in cache */
+  // Flip -> rotation: invert Z
+  if (vi->li->axis == 2)
+    z = vi->zsize - 1 - z;
+
   /* If full cache and flipped, swap y and z */
   if (vi->fullCacheFlipped) {
     sl = z;
@@ -932,6 +940,9 @@ static b3dUInt16 **usimdata;
 static int imdataMax = 0;
 static int vmnullvalue;
 static int rgbChan;
+static int zsizeFac;
+static int xzsizeFac;
+static size_t xzsizeBigFac;
 
 /* A global variable with the appropriate function - because I had trouble
    returning that from the setup function */
@@ -950,12 +961,12 @@ static int idata_BigGetValue(int x, int y, int z)
 
 static int flipped_GetValue(int x, int y, int z)
 {
-  return(imdata[y][x + (z * imdataxsize)]);
+  return(imdata[y][x + xzsizeFac - (z * imdataxsize)]);
 }
 
 static int flipped_BigGetValue(int x, int y, int z)
 {
-  return(imdata[y][x + ((size_t)z * (size_t)imdataxsize)]);
+  return(imdata[y][x + xzsizeBigFac - ((size_t)z * (size_t)imdataxsize)]);
 }
 
 static int cache_GetValue(int x, int y, int z)
@@ -976,14 +987,14 @@ static int cache_GetFlipped(int x, int y, int z)
 {
   if (!imdata[y])
     return(vmnullvalue);
-  return(imdata[y][x + (z * vmdataxsize[y])]);
+  return(imdata[y][x + ((zsizeFac - z) * vmdataxsize[y])]);
 }
 
 static int cache_BigGetFlipped(int x, int y, int z)
 {
   if (!imdata[y])
     return(vmnullvalue);
-  return(imdata[y][x + ((size_t)z * (size_t)vmdataxsize[y])]);
+  return(imdata[y][x + ((size_t)(zsizeFac - z) * (size_t)vmdataxsize[y])]);
 }
 
 static int idata_ChanValue(int x, int y, int z)
@@ -998,12 +1009,12 @@ static int idata_BigChanValue(int x, int y, int z)
 
 static int flipped_ChanValue(int x, int y, int z)
 {
-  return(imdata[y][3 * (x + (z * imdataxsize)) + rgbChan]);
+  return(imdata[y][3 * (x + xzsizeFac - (z * imdataxsize)) + rgbChan]);
 }
 
 static int flipped_BigChanValue(int x, int y, int z)
 {
-  return(imdata[y][3 * (x + ((size_t)z * (size_t)imdataxsize)) + rgbChan]);
+  return(imdata[y][3 * (x + xzsizeBigFac - ((size_t)z * (size_t)imdataxsize)) + rgbChan]);
 }
 
 static int cache_ChanValue(int x, int y, int z)
@@ -1024,14 +1035,14 @@ static int cache_ChanFlipped(int x, int y, int z)
 {
   if (!imdata[y])
     return(vmnullvalue);
-  return(imdata[y][3 * (x + (z * vmdataxsize[y])) + rgbChan]);
+  return(imdata[y][3 * (x + ((zsizeFac - z) * vmdataxsize[y])) + rgbChan]);
 }
 
 static int cache_BigChanFlipped(int x, int y, int z)
 {
   if (!imdata[y])
     return(vmnullvalue);
-  return(imdata[y][3 * (x + ((size_t)z * (size_t)vmdataxsize[y])) + rgbChan]);
+  return(imdata[y][3 * (x + (size_t)(zsizeFac - z) * (size_t)vmdataxsize[y]) + rgbChan]);
 }
 
 static int idata_GetUSValue(int x, int y, int z)
@@ -1046,12 +1057,12 @@ static int idata_BigGetUSValue(int x, int y, int z)
 
 static int flipped_GetUSValue(int x, int y, int z)
 {
-  return(usimdata[y][x + (z * imdataxsize)]);
+  return(usimdata[y][x + xzsizeFac - (z * imdataxsize)]);
 }
 
 static int flipped_BigGetUSValue(int x, int y, int z)
 {
-  return(usimdata[y][x + ((size_t)z * (size_t)imdataxsize)]);
+  return(usimdata[y][x + xzsizeBigFac - ((size_t)z * (size_t)imdataxsize)]);
 }
 
 static int cache_GetUSValue(int x, int y, int z)
@@ -1072,14 +1083,14 @@ static int cache_GetUSFlipped(int x, int y, int z)
 {
   if (!usimdata[y])
     return(vmnullvalue);
-  return(usimdata[y][x + (z * vmdataxsize[y])]);
+  return(usimdata[y][x + ((zsizeFac - z) * vmdataxsize[y])]);
 }
 
 static int cache_BigGetUSFlipped(int x, int y, int z)
 {
   if (!usimdata[y])
     return(vmnullvalue);
-  return(usimdata[y][x + ((size_t)z * (size_t)vmdataxsize[y])]);
+  return(usimdata[y][x + ((size_t)(zsizeFac - z) * (size_t)vmdataxsize[y])]);
 }
 
 static int fake_GetValue(int x, int y, int z)
@@ -1136,19 +1147,26 @@ int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
 
   } else if (vi->vmSize) {
 
-    /* Cached data: fill up pointers that exist */
+    /* Cached data: fill up pointers that exist
+       The cache section is the inverse of an internal section number, so take the
+       inverse when looking up the index for a flipped cache */
     for (iz = 0; iz < size; iz++) {
-      i = vi->cacheIndex[iz * vi->vmTdim + time - vi->vmTbase];
+
+      if (vi->li->axis == 2 && !vi->fullCacheFlipped)
+        i = vi->cacheIndex[(vi->zsize -1 - iz) * vi->vmTdim + time - vi->vmTbase];
+      else
+        i = vi->cacheIndex[iz * vi->vmTdim + time - vi->vmTbase];
       if (i < 0) {
         imdata[iz] = NULL;
       } else {
         imdata[iz] = vi->vmCache[i].sec->data.b;
         vmdataxsize[iz] = vi->vmCache[i].sec->xsize;
-	*cacheSum += iz;
+        *cacheSum += iz;
       }
     }
     
     vmnullvalue = inNullvalue;
+    zsizeFac = vi->zsize - 1;
     if (vi->ushortStore) {
       if (vi->fullCacheFlipped)
         ivwFastGetValue = bigGets ? cache_BigGetUSFlipped : cache_GetUSFlipped;
@@ -1172,6 +1190,10 @@ int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
     for (i = 0; i < size; i++)
       imdata[i] = vi->idata[i];
     imdataxsize = vi->xsize;
+    if (bigGets)
+      xzsizeBigFac = (size_t)(vi->zsize - 1) * (size_t)imdataxsize;
+    else
+      xzsizeFac = (vi->zsize - 1) * imdataxsize;
     if (vi->ushortStore) {
       if (vi->li->axis == 3)
         ivwFastGetValue = bigGets ? idata_BigGetUSValue : idata_GetUSValue;
@@ -1365,13 +1387,13 @@ static int ivwSetCacheSize(ImodView *vi)
    used to access images */
 int ivwFlip(ImodView *vi)
 {
-  int nx, ny, nz;
+  int nx, newy, newz;
   int i, t, cacheFull;
   unsigned int nyz;
-  int oymouse, ozmouse;
+  int oldYmouse, oldZmouse;
 
   /* DNM 12/10/02: if loading image, flip the axis but defer until done */
-  if (vi->doingInitialLoad) {
+  if (vi->doingInitialLoad > 0) {
     vi->li->axis =  (vi->li->axis == 2) ? 3 : 2;
     return (1);
   }
@@ -1397,17 +1419,17 @@ int ivwFlip(ImodView *vi)
     return(-1);
   }
 
-  oymouse = (int)(vi->ymouse + 0.5f);
-  ozmouse = (int)(vi->zmouse + 0.5f);
+  oldYmouse = (int)(vi->ymouse + 0.5f);
+  oldZmouse = (int)(vi->zmouse + 0.5f);
 
   wprint("Flipping image data.\n");
 
   /* DNM: restore data before flipping, as well as resetting when done */
   iprocRethink(vi);
   nx = vi->xsize;
-  ny = vi->zsize;
-  nz = vi->ysize;
-  nyz = ny * nz;
+  newy = vi->zsize;
+  newz = vi->ysize;
+  nyz = newy * newz;
 
   vi->li->axis =  (vi->li->axis == 2) ? 3 : 2;
 
@@ -1436,9 +1458,9 @@ int ivwFlip(ImodView *vi)
        to avoid erosion on repeated flips */
     t = vi->nt > 0 ? vi->nt : 1;
     if (vi->vmSize == t * vi->zsize)
-      vi->vmSize = t * nz;
+      vi->vmSize = t * newz;
     else {
-      vi->vmSize = (vi->vmSize * vi->ysize + ny / 2) / ny;
+      vi->vmSize = (vi->vmSize * vi->ysize + newy / 2) / newy;
       if (!vi->vmSize)
         vi->vmSize = 1;
     }
@@ -1446,8 +1468,8 @@ int ivwFlip(ImodView *vi)
   }
 
   //vi->xsize = nx;
-  vi->ysize = ny;
-  vi->zsize = nz;
+  vi->ysize = newy;
+  vi->zsize = newz;
   vi->xysize = (size_t)vi->xsize * (size_t)vi->ysize;
   //vi->xmouse = 0;
   vi->ymouse = 0;
@@ -1457,17 +1479,24 @@ int ivwFlip(ImodView *vi)
   vi->yUnbinSize = vi->zUnbinSize;
   vi->zUnbinSize = nx;
 
-  ivwFlipModel(vi);
+  // Rotate here instead of flipping
+  if (!vi->doingInitialLoad)
+    ivwFlipModel(vi, true);
   iprocRethink(vi);
   autox_newsize(vi);
   imod_info_float_clear(-1, -1);
 
-  vi->ymouse = ozmouse;
-  vi->zmouse = oymouse;
+  if (vi->li->axis == 2) {
+    vi->ymouse = oldZmouse;
+    vi->zmouse = newz - 1 - oldYmouse;
+  } else {
+    vi->ymouse = newy - 1 - oldZmouse;
+    vi->zmouse = oldYmouse;
+  }
 
   /* Keep it in bounds */
-  if (vi->zmouse > nz - 1)
-    vi->zmouse = nz - 1;
+  if (vi->zmouse > newz - 1)
+    vi->zmouse = newz - 1;
 
   /* DNM: need to reset the movie controller because ny and nz changed */
   imcResetAll(vi);
@@ -1553,8 +1582,10 @@ int ivwGetTime(ImodView *vi, int *time)
 void ivwSetTime(ImodView *vi, int time)
 {
     
-  if (!vi->nt){
-    vi->ct = vi->imod->ctime = 0;
+  if (!vi->nt) {
+    vi->ct = 0;
+    if (vi->imod)
+      vi->imod->ctime = 0;
     return;
   }
      
@@ -1582,8 +1613,8 @@ void ivwSetTime(ImodView *vi, int time)
    }
   /* DNM: update scale window */
   imodImageScaleUpdate(vi);
-  vi->imod->ctime = vi->ct;
-  return;
+  if (vi->imod)
+    vi->imod->ctime = vi->ct;
 }
 
 const char *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex)
@@ -1749,6 +1780,8 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
       return ivwGetValue(vi, cx, cy, cz);
     return 0.0f;
   }
+  if (vi->li->axis == 2)
+    cz = vi->zsize - 1 - cz;
 
   fp = vi->image->fp;
   mrcheader = (MrcHeader *)vi->image->header;
@@ -1990,6 +2023,12 @@ void ivwSetModelTrans(ImodView *vi)
   Imod *imod = vi->imod;
   IrefImage *ref, *iref;
 
+  // Unconditionally set the maxes in the model; this works for fakeimage because
+  // size was set from model right away
+  imod->xmax = vi->xsize;
+  imod->ymax = vi->ysize;
+  imod->zmax = vi->zsize;
+
   if (vi->fakeImage)
     return;
 
@@ -2010,11 +2049,6 @@ void ivwSetModelTrans(ImodView *vi)
   ref->ctrans = iref->ctrans;
   ref->crot   = iref->crot;
 
-  if (vi->li->axis == 2)
-    imod->flags |= IMODF_FLIPYZ;
-  else
-    imod->flags &= ~IMODF_FLIPYZ;
-
   /* DNM 11/5/98: set this flag that tilt angles were properly saved */
   imod->flags |= IMODF_TILTOK;
 
@@ -2030,28 +2064,32 @@ void ivwSetModelTrans(ImodView *vi)
   free(iref);
 }
 
-/* Flips model IF it does not match current flip state of image */
+/* Flips or rotates model IF it does not match current flip state of image */
 
-void ivwFlipModel(ImodView *vi)
+void ivwFlipModel(ImodView *vi, bool rotate /* = false */)
 {
-  /* flip model y and z */
+  /* flip model y and z and manage the flag state */
   Imod  *imod = vi->imod;
+  int flag = rotate ? IMODF_ROT90X : IMODF_FLIPYZ;
+  int curState = (imod->flags & flag) ? 1 : 0;
+  //imodPrintStderr("axis %d  curstate %d  flag %d\n", vi->li->axis, curState, 
+  //  rotate?1:0);
+  if (vi->li->axis == 2 && curState)
+    return;
 
-  if (vi->li->axis == 2)
-    if ((imod->flags & IMODF_FLIPYZ))
-      return;
+  if ((vi->li->axis == 3 || vi->li->axis == 0) && !curState)
+    return;
 
-  if ((vi->li->axis == 3) || (vi->li->axis == 0))
-    if (!(imod->flags & IMODF_FLIPYZ))
-      return;
-
-  if (imod->flags & IMODF_FLIPYZ)
-    imod->flags &= ~IMODF_FLIPYZ;
+  if (curState)
+    imod->flags &= ~flag;
   else
-    imod->flags |= IMODF_FLIPYZ;
+    imod->flags |= flag;
 
-  imodFlipYZ(imod);
-  return;
+  if (rotate) {
+    //imodPrintStderr("curstate %d ymax %d zmax %d\n", curState, imod->ymax, imod->zmax);
+    imodRot90X(imod, curState);
+  } else
+    imodFlipYZ(imod);
 }
 
 
@@ -2063,37 +2101,45 @@ void ivwTransModel(ImodView *vi)
   Imod  *imod = vi->imod;
   Ipoint binScale;
 
-  /* If model doesn't have a reference coordinate system
-   * from an image, then use this image's coordinate
-   * system and return, unless there is binning;
+  /* If model doesn't have a reference coordinate system from an image, then use this
+   * image's coordinate system and return, unless there is binning;
    */
-  if ((!ImodTrans) || (!vi->imod->refImage)) {
+  if (!ImodTrans || !vi->imod->refImage) {
+
+    // When loading with no trans, if the model is flipped, need to invert it to restore 
+    // handedness and mark it as rotated if image is, to avoid further operations
+    if (!ImodTrans) {
+      utilExchangeFlipRotation(vi->imod, FLIP_TO_ROTATION);
+      setOrClearFlags(&vi->imod->flags, IMODF_ROT90X, vi->li->axis != 2 ? 1 : 0);
+    } else {
+
+      // Otherwise is needs to be in the right flip state before setting the trans data
+      ivwFlipModel(vi);
+    }
     ivwSetModelTrans(vi);
-    if ((!ImodTrans) || (!vi->imod->refImage) || (vi->xybin * vi->zbin == 1))
+    if (!ImodTrans || !vi->imod->refImage || vi->xybin * vi->zbin == 1)
       return;
   }
 
-  /* Try and get the coordinate system that we will
-   * transform the model to match.
+  /* Try and get the coordinate system that we will transform the model to match.
    * Set the old members if iref to the model's current members
    */
   iref = ivwGetImageRef(vi);
-  if (!iref) 
-    return;
+  if (iref) {
 
-  iref->orot   = vi->imod->refImage->crot;
-  iref->otrans = vi->imod->refImage->ctrans;
-  iref->oscale = vi->imod->refImage->cscale;
-  binScale.x = binScale.y = vi->xybin;
-  binScale.z = vi->zbin;
-
-  /* transform model to new coords (it will be unflipped if necessary) */
-  imodTransFromRefImage(imod, iref, binScale);
+    iref->orot   = vi->imod->refImage->crot;
+    iref->otrans = vi->imod->refImage->ctrans;
+    iref->oscale = vi->imod->refImage->cscale;
+    binScale.x = binScale.y = vi->xybin;
+    binScale.z = vi->zbin;
+    
+    /* transform model to new coords (it will be unflipped if necessary) */
+    imodTransFromRefImage(imod, iref, binScale);
+  }
 
   ivwFlipModel(vi);
   ivwSetModelTrans(vi);
-  free(iref);
-  return;
+  B3DFREE(iref);
 }
 
 /*****************************************************************************/
@@ -2375,10 +2421,10 @@ int ivwLoadImage(ImodView *vi)
 
   if (vi->fakeImage){
 
-    // Initialize various things for no image
-    vi->xsize = vi->imod->xmax;
-    vi->ysize = vi->imod->ymax;
-    vi->zsize = vi->imod->zmax;
+    // Initialize various things for no image; access Model not vi->imod
+    vi->xsize = Model->xmax;
+    vi->ysize = Model->ymax;
+    vi->zsize = Model->zmax;
     vi->xybin = 1;
     vi->zbin = 1;
     vi->xUnbinSize = vi->xsize;
@@ -2391,20 +2437,18 @@ int ivwLoadImage(ImodView *vi)
     ImodInfoWidget->hideLowHighGrid();
     imod_color_init(App);
 
-    wprint("Image size %d x %d, %d sections.\n",
-           vi->xsize, vi->ysize, vi->zsize);
+    wprint("Image size %d x %d, %d sections.\n", vi->xsize, vi->ysize, vi->zsize);
     best_ivwGetValue = fake_ivwGetValue;
 
     /* DNM: set the axis flag based on the model flip flag */
     if (vi->li->axis == 2) 
-      imodError(NULL, "The -Y flag is ignored when loading a model"
-              " without an image.\nUse Edit-Image-Flip to flip the"
-              " model if desired");
+      imodError(NULL, "The -Y flag is ignored when loading a model without an image.\n"
+                "Use Edit-Image-Flip to flip the model if desired");
     vi->li->axis = 3;
-    if (vi->imod->flags & IMODF_FLIPYZ)
+    if (Model->flags & IMODF_FLIPYZ)
       vi->li->axis = 2;
     ImodPrefs->setInfoGeometry();
-    return(0);
+    return (initializeFlipAndModel(vi));
   }
 
   ivwProcessImageList(vi); 
@@ -2427,8 +2471,7 @@ int ivwLoadImage(ImodView *vi)
     vi->idata = NULL;
 
     /* print load status */
-    wprint("Image size %d x %d, %d sections.\n", vi->xsize, vi->ysize, 
-           vi->zsize);
+    wprint("Image size %d x %d, %d sections.\n", vi->xsize, vi->ysize, vi->zsize);
           
     /* initialize cache, make sure axis is set for all data structures 
        Set axis to 3 for first initialization because vmSize has been 
@@ -2474,12 +2517,10 @@ int ivwLoadImage(ImodView *vi)
     }
   }
 
-  vi->doingInitialLoad = 0;
-
   if (App->depth == 8)
     ivwScale(vi);
      
-  return (ivwManageInitialFlips(vi));
+  return (initializeFlipAndModel(vi));
 }
 
 /* Process an image list and determine sizes and types of files */
@@ -2721,42 +2762,35 @@ static int ivwProcessImageList(ImodView *vi)
   return 0;
 }
 
-
-/* Take care of scaling the model, and flipping data and model as needed */
-static int ivwManageInitialFlips(ImodView *vi)
+/* Take care of initial flipping of data and initializing new or read-in model */
+static int initializeFlipAndModel(ImodView *vi)
 {
   int flipit;
   int retcode;
 
-  /* Transform model to match new image. */
-  ivwTransModel(vi); 
-     
-  /* Unflip it if that didn't */
-  if (vi->imod->flags & IMODF_FLIPYZ){
-    imodFlipYZ(vi->imod);
-    vi->imod->flags &= ~IMODF_FLIPYZ;
-  }
-     
-  /* Flip data and model if called for, but do not generate error if it is not 
-     flippable */
-  flipit = (vi->li->axis == 2) ? 1 : 0;
-  vi->li->axis = 3;
-  if (flipit) {
-    retcode = ivwFlip(vi);
-    if (retcode && retcode != -1)
-      return (retcode);
+  // Set this to -1 so image flipping works, but model initializing can skip things */
+  vi->doingInitialLoad = -1;
+
+  /* Flip data if called for, but do not generate error if it is not flippable */
+  if (!vi->fakeImage) {
+    flipit = (vi->li->axis == 2) ? 1 : 0;
+    vi->li->axis = 3;
+    if (flipit) {
+      retcode = ivwFlip(vi);
+      if (retcode && retcode != -1)
+        return (retcode);
+    }
   }
 
-  /* 10/14/05: Eliminated setting model max values and binning since they are
-     not needed as runtime values and it was confusing when and whether they
-     were being handled for loaded and new models */
-
-  vi->imod->csum = imodChecksum(vi->imod);
-  if (imodDebug('C'))
-    wprint("ivwManageInitialFlips set checksum %d\n", vi->imod->csum);
-
-  /* DNM: check wild flag here, after all the flipping is done */
-  ivwCheckWildFlag(vi->imod);
+  // Now that flipping is done, set up read-in or new model by standard routes
+  if (Model) {
+    initReadInModelData(Model, false);
+  } else {
+    retcode = createNewModel(Imod_filename);
+    if (retcode != IMOD_IO_SUCCESS)
+      return retcode;
+  }
+  vi->doingInitialLoad = 0;
   return 0;
 }    
 

@@ -225,6 +225,7 @@ mb.transfer-fiducials=+
 	#Test enabled/disabled
 	assert.enabled.cb.run-midas=
 	assert.enabled.bn.transfer-fiducials-from-other-axis=
+	assert.enabled.bn.open-seed-model=
 	#advanced
 	mb.transfer-fiducials.1=A
 	assert.enabled.tf.center-view-a=
@@ -239,9 +240,12 @@ mb.transfer-fiducials=+
 [[]]
 bn.transfer-fiducials-from-other-axis =
 wait.process.transferring-fiducials = done
+[[if = test-gui]]
 assert.exists.file=transferfid.log
 assert.exists.file=transferfid.coord
 assert.exists.file=%{dataset}%{axis}.seed
+bn.open-seed-model=
+[[]]
 
 
 [function = beadtracker]

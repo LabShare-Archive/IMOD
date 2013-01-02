@@ -94,16 +94,6 @@ would be scaled to the given values of minimum and maximum.  Newstack(1) is
 run with the -scale option and the entered values.  This option would be used
 to scale from mode 2 (floating point) to mode 1.
 
-[Field = FlipYZ]
-short = yz
-type = B
-usage = Exchange (flip) Y and Z in output volume
-tooltip =
-manpage = Flip Y and Z in the output volume by first creating a temporary trimmed volume
-with newstack then running "clip flipyz" on this volume to create the final
-output file.
-
-
 [Field = RotateX]
 short = rx
 type = B
@@ -115,6 +105,15 @@ with newstack then running "clip rotx" on this volume to create the final
 output file.  The slices will look the same as with the "-yz"
 option but rotating instead
 of flipping will preserve the handedness of structures.
+
+[Field = FlipYZ]
+short = yz
+type = B
+usage = Exchange (flip) Y and Z in output volume
+tooltip =
+manpage = Flip Y and Z in the output volume by first creating a temporary trimmed volume
+with newstack then running "clip flipyz" on this volume to create the final
+output file.  Do not use this option unless you intend to invert handedness.
 
 [Field = IndexCoordinates]
 short = i
@@ -128,13 +127,26 @@ coordinates numbered from 0, rather than as 3dmod coordinates numbered from 1.
 [Field = FlippedCoordinates]
 short = f
 type = B
-usage = Treat coordinates as coming from a flipped volume
+usage = Treat coordinates as coming from a volume viewed with flipping in 3dmod 
 tooltip =
 manpage = Interpret "-y", "-z", "-ny", "-nz", "-sy", and "-sz"
-entries as referring to a flipped volume, with Y and Z transposed.  In other
-words, if the volume is loaded into 3dmod with flipping (the -Y option), this
-option allows you to enter the coordinates as they appear in 3dmod.
+entries as referring to a volume viewed in flipped orientation in 3dmod, with
+Y and Z sizes swapped.  This
+option allows you to enter the coordinates as they appear in 3dmod when the
+volume is loaded with flipping (the -Y option).  The program assumes that
+flipping occurred by rotating around the X axis, unless the "-old" option is given.
 
+[Field = OldFlippedCoordinates]
+short = old
+type = I
+usage = Some or all Z coordinates are based on flipping with Y and Z axes swapped
+tooltip =
+manpage = This option indicates that Z coordinates were obtained by loading
+the volume with the -Y option into a 
+version of 3dmod prior to 4.6.18, where flipping was done by exchanging the Y
+and Y axes instead of rotating around X.  Enter the sum of 1 if the "-z" entry
+is based on such flipping and 2 if the "-sz" entry is based on such flipping.
+ 
 [Field = KeepOrigin]
 short = k
 type = B

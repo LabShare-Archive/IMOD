@@ -43,7 +43,7 @@ void ivwMultipleFiles(ImodView *iv, char *argv[], int firstfile,
 
 void ivwTransModel(ImodView *iv);
 void ivwSetModelTrans(ImodView *iv);
-void ivwFlipModel(ImodView *iv);
+void ivwFlipModel(ImodView *iv, bool rotate = false);
 void ivwCheckWildFlag(Imod *imod);
 void ivwScaleDepth8(ImodView *iv, ivwSlice *tempSlicePtr);
 void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);

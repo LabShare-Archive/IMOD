@@ -1155,7 +1155,7 @@ void XyzWindow::DrawImage()
   unsigned char **id;
   unsigned char *fdata;
   int cyi;
-  int cx, cy, cz;
+  int cx, cy, cz, cxz, zinv;
   int imdataxsize;
   unsigned char **imdata;
   b3dUInt16 **usim;
@@ -1255,20 +1255,21 @@ void XyzWindow::DrawImage()
       xslice = -1 - cx;
       mLx = cx;
       if (flipped && !mVi->fakeImage) {
+        cxz = cx + (mVi->zsize - 1) * imdataxsize;
         for (y = 0; y < ny; y++) {
           if (imdata[y]) {
             if (mVi->rgbStore) {
               for (z = 0; z < nz; z++) {
-                fdata[3 * (z + y * nz)] = imdata[y][3 * (cx + (z * imdataxsize))];
-                fdata[3 * (z + y * nz) + 1] = imdata[y][3 * (cx + (z * imdataxsize)) + 1];
-                fdata[3 * (z + y * nz) + 2] = imdata[y][3 * (cx + (z * imdataxsize)) + 2];
+                fdata[3 * (z + y * nz)] = imdata[y][3 * (cxz - z * imdataxsize)];
+                fdata[3 * (z + y * nz) + 1] = imdata[y][3 * (cxz - z * imdataxsize) + 1];
+                fdata[3 * (z + y * nz) + 2] = imdata[y][3 * (cxz - z * imdataxsize) + 2];
               }
             } else if (mVi->ushortStore) {
               for (z = 0; z < nz; z++)
-                usdata[z + y * nz] = usim[y][cx + (z * imdataxsize)];
+                usdata[z + y * nz] = usim[y][cxz - (z * imdataxsize)];
             } else
               for (z = 0; z < nz; z++) 
-                fdata[z + y * nz] = imdata[y][cx + (z * imdataxsize)];
+                fdata[z + y * nz] = imdata[y][cxz - (z * imdataxsize)];
           } else {
             if (mVi->rgbStore) {
               for (z = 0; z < nz; z++) {
@@ -1330,20 +1331,21 @@ void XyzWindow::DrawImage()
     if (cy != mLy || cacheSum != mLastCacheSum) {
       yslice = -1 - cy;
       mLy = cy;
-      for(i = 0,z = 0; z < nz; z++) {
+      for (i = 0, z = 0; z < nz; z++) {
         if (flipped && !mVi->fakeImage && imdata[cy]) {
+          zinv = mVi->zsize - 1 - z; 
           if (mVi->rgbStore) {
-            for(x = 0; x < nx; x++, i++) {
-              fdata[3 * i] = imdata[cy][3 * (x + (z * imdataxsize))];
-              fdata[3 * i + 1] = imdata[cy][3 * (x + (z * imdataxsize)) + 1];
-              fdata[3 * i + 2] = imdata[cy][3 * (x + (z * imdataxsize)) + 2];
+            for (x = 0; x < nx; x++, i++) {
+              fdata[3 * i] = imdata[cy][3 * (x + (zinv * imdataxsize))];
+              fdata[3 * i + 1] = imdata[cy][3 * (x + (zinv * imdataxsize)) + 1];
+              fdata[3 * i + 2] = imdata[cy][3 * (x + (zinv * imdataxsize)) + 2];
             }
           } else if (mVi->ushortStore)
             for(x = 0; x < nx; x++, i++)
-              usdata[i] = usim[cy][x + (z * imdataxsize)];
+              usdata[i] = usim[cy][x + (zinv * imdataxsize)];
           else
             for(x = 0; x < nx; x++, i++)
-              fdata[i] = imdata[cy][x + (z * imdataxsize)];
+              fdata[i] = imdata[cy][x + (zinv * imdataxsize)];
         } else if (!flipped && !mVi->fakeImage && imdata[z]) {
           if (mVi->rgbStore) {
             for(x = 0; x < nx; x++, i++) {

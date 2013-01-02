@@ -35,4 +35,5 @@ public interface ReadOnlyAttribute {
   public Attribute getAttribute(int name);
   public String getName();
   public String toString();
+  public ReadOnlyAttributeList getChildren();
 }

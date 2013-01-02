@@ -26,6 +26,7 @@ const char *imodIOGetErrorString(void);
 char *currentSavedModelFile(void);
 void setImod_filename(const char *name);
 int createNewModel(const char *modelFilename);
+void initReadInModelData(Imod *newModel, bool keepBW);
 int openModel(const char *modelFilename, bool keepBW, bool saveAs);
 Imod *LoadModel(FILE *mfin);
 int SaveModel(struct Mod_Model *mod);

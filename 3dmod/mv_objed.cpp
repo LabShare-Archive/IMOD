@@ -519,8 +519,6 @@ int object_edit_kill(void)
  *****************************************************************************/
 void objed(ImodvApp *a)
 {
-  QString qstr;
-  char *window_name;
   if (objed_dialog) {
     objed_dialog->raise();
     return;
@@ -535,13 +533,7 @@ void objed(ImodvApp *a)
   Imodv_objed_all = 0;  // May want to retain this setting
   setOnoffButtons();
 
-  window_name = imodwEithername("3dmodv Objects: ", a->imod->fileName, 1);
-  if (window_name) {
-    qstr = window_name;
-    free(window_name);
-  }
-  if (!qstr.isEmpty())
-      objed_dialog->setWindowTitle(qstr);
+  setModvDialogTitle(objed_dialog, "3dmodv Objects: ");
 
   ctrlPressed = false;
   objed_dialog->setCurrentFrame(CurrentObjectField, Imodv_objed_all);

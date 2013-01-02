@@ -447,7 +447,7 @@ int clearWarpFile(int index)
 
 /*!
  * Deletes all warp file data and resets pointers and indices; also calls 
- * @extrapolateDone.
+ * @@extrapolateDone@.
  */
 void warpFilesDone()
 {

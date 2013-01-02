@@ -126,6 +126,26 @@ tooltip =
 manpage = 1 to take the logarithm or 2 to take the square root of Y values,
 and the base to add before that operation.
 
+[Field = ColorOfGroup]
+short = color
+type = CHM
+usage = Group number and color name or red, green, blue (0-255)
+tooltip =
+manpage = This option can be used to specify a color for each group being
+plotted.  Groups are numbered from 1 and correspond to the types or columns
+being plotted in separate curves.  Enter either 4 integers separated by commas 
+(the group number and the red, green, and blue values, ranging from 0 to 255)
+or the group number and a stock color name separated by a comma.  Groups
+without a color will be drawn in black.
+
+[Field = StockColorList]
+short = stock
+type = B
+usage = List standard colors available by name
+tooltip =
+manpage = List standard colors available by name in the -color option.  These
+are a subset of standard HTML color names and values.
+
 [Field = XaxisLabel]
 short = axis
 type = CH

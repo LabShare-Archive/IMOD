@@ -42,6 +42,7 @@
 #include "imod_assistant.h"
 #include "sslice.h"
 #include "vertexbuffer.h"
+#include "utilities.h"
 
 #include "b3dicon.xpm"
 
@@ -202,7 +203,7 @@ static void initstruct(ImodView *vw, ImodvApp *a)
   a->fullscreen = 0;
 
   a->standalone = 0;
-  a->texMap  = imodvImageGetFlags() ? 1 : 0;
+  a->texMap  = mvImageGetFlags() ? 1 : 0;
   a->texTrans = 0;
   a->vi = vw;
 
@@ -462,7 +463,7 @@ static int load_models(int n, char **fname, ImodvApp *a)
       return(-1);
     }
     mod = a->mod[i];
-
+    utilExchangeFlipRotation(mod, FLIP_TO_ROTATION);
 
     /* DNM 6/20/01: find out max time and set current time */
     mod->tmax = 0;
@@ -721,21 +722,11 @@ void imodvNewModelAngles(Ipoint *rot)
 void imodvSetCaption()
 {
   ImodvApp *a = Imodv;
-  char *window_name;
-  QString str;
   if (ImodvClosed)
     return;
 
-  window_name = imodwEithername((char *)(a->standalone ? "3dmodv:" : 
-                                 "3dmod Model View: "), a->imod->fileName, 1);
-  if (window_name) {
-    str = window_name;
-    free(window_name);
-  } 
-  if (str.isEmpty())
-    str = "3dmod Model View";
-
-  a->mainWin->setWindowTitle(str);
+  setModvDialogTitle(a->mainWin, (char *)(a->standalone ? "3dmodv:" :
+                                          "3dmod Model View: "));
 }
 
 // To call imodDraw if not in standalone mode
@@ -789,7 +780,7 @@ void imodvQuit()
   onceOpened = 1;
   lastGeom = ivwRestorableGeometry(a->mainWin);
   vbCleanupVBD(Imodv->imod);
-  imodvImageCleanup();
+  mvImageCleanup();
 
   if (a->boundBoxExtraObj > 0)
     ivwFreeExtraObject(a->vi, a->boundBoxExtraObj);

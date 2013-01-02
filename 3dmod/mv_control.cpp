@@ -362,9 +362,6 @@ void imodvControlUpdate(ImodvApp *a)
 /* function for opening, closing, or raising the window */
 int imodv_control(ImodvApp *a, int state)
 {
-  QString qstr;
-  char *window_name;
-
   if (!state){
     if (dialog)
       dialog->close();
@@ -382,12 +379,7 @@ int imodv_control(ImodvApp *a, int state)
     dia_err("Failed to create 3dmodv controls window!");
     return(-1);
   }
-  window_name = imodwEithername("3dmodv Controls: ", a->imod->fileName, 1);
-  qstr = window_name;
-  if (window_name)
-    free(window_name);
-  if (!qstr.isEmpty())
-    dialog->setWindowTitle(qstr);
+  setModvDialogTitle(dialog, "3dmodv Controls: ");
 
   imodvDialogManager.add((QWidget *)dialog, IMODV_DIALOG);
   adjustGeometryAndShow((QWidget *)dialog, IMODV_DIALOG);

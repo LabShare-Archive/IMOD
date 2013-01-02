@@ -1,5 +1,4 @@
-c       LABEL_AXIS will label an axis with the quality characters produced by
-c       PWRITX.
+c       LABEL_AXIS will label an axis with quality characters 
 c       XLO, YLO are the starting coordinates of the axis, RANGE is the
 c       length of the axis, SCALE is the factor relating user units to
 c       inches, NTICKS is the number of division of a linear axis or the
@@ -7,6 +6,8 @@ c       number of ticks on a logarithmic axis, TICKS is an array with the
 c       values at which there are ticks for a log axis, IFLOG is 1 if the
 c       the axis is logarithmic, ifyax is 0 for an X axis, 1 for a left Y
 c       axis, or -1 for a right Y axis.
+c
+c       $Id$
 c       
       subroutine label_axis(xlo,ylo,range,scale,nticks,ticks,iflog,
      &    ifyax)
@@ -22,8 +23,6 @@ c
 c       
 c       modified for PS - Postscript
       data pwxupi/107./
-c       
-      call setpwrmode
 c       
       if(ifyax.gt.0)then
         axname='left'
@@ -71,7 +70,6 @@ c
           jsize=size*pwxupi
 c           
 c           modification for PS - Postscript
-c           call pwritx(1.,1.,'''PRU''',5,1,0,0)
           do 50 ilab=1,nlabs
             if(iflog.eq.0)then
               ofset=(ipos(ilab)-1)*range/nticks
@@ -79,14 +77,14 @@ c           call pwritx(1.,1.,'''PRU''',5,1,0,0)
               ofset=scale*alog10(ticks(ipos(ilab))/ticks(1))
             endif
             if(ifyax.gt.0)then
-              call pwritx(xlo-ofsline,ylo+ofset,labx(ilab),lenlab(ilab),
+              call psWriteText(xlo-ofsline,ylo+ofset,labx(ilab)(1:lenlab(ilab)),
      &            jsize,0,1)
             elseif(ifyax.lt.0)then
-              call pwritx(xlo+ofsline,ylo+ofset,labx(ilab),lenlab(ilab),
+              call psWriteText(xlo+ofsline,ylo+ofset,labx(ilab)(1:lenlab(ilab)),
      &            jsize,0,-1)
             else
-              call pwritx(xlo+ofset,ylo-ofsline-size/2.,labx(ilab),
-     &            lenlab(ilab), jsize,0,0)
+              call psWriteText(xlo+ofset,ylo-ofsline-size/2.,labx(ilab)(1:lenlab(ilab)),
+     &            jsize,0,0)
             endif
 50        continue
         endif
@@ -102,16 +100,15 @@ c
           jsize=size*pwxupi
           write(*,*)'Enter text label'
           read(5,'(a)')line
-          call pwritx_parse(line,pwrstr,nchar)
           if(ifyax.gt.0)then
-            call pwritx(xlo-ofsline-size/2.,ylo+cenofs+ofset,pwrstr,
-     &          nchar,jsize,90,0)
+            call psWriteText(xlo-ofsline-size/2.,ylo+cenofs+ofset,trim(line),
+     &          jsize,90,0)
           elseif(ifyax.lt.0)then
-            call pwritx(xlo+ofsline+size/2,ylo+cenofs+ofset,pwrstr,
-     &          nchar, jsize,90,0)
+            call psWriteText(xlo+ofsline+size/2,ylo+cenofs+ofset,trim(line),
+     &          jsize,90,0)
           else
-            call pwritx(xlo+cenofs+ofset,ylo-ofsline-size/2.,pwrstr,
-     &          nchar, jsize,0,0)
+            call psWriteText(xlo+cenofs+ofset,ylo-ofsline-size/2.,trim(line),
+     &          jsize,0,0)
           endif
 60      continue
         return

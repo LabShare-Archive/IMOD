@@ -68,7 +68,7 @@ void XCorrSetCTF(float sigma1, float sigma2, float radius1, float radius2,
 }
 
 /*!
- * Fortran wrapper for @XCorrSetCTF.
+ * Fortran wrapper for @XCorrSetCTF
  */
 void setctfwsr(float *sigma1, float *sigma2, float *radius1, float *radius2,
                float *ctf, int *nx, int *ny, float *delta)
@@ -176,7 +176,7 @@ void XCorrSetCTFnoScl(float sigma1, float sigma2, float radius1, float radius2,
 }
 
 /*!
- * Fortran wrapper for @XCorrSetCTFnoScl.
+ * Fortran wrapper for @XCorrSetCTFnoScl
  */
 void setctfnoscl(float *sigma1, float *sigma2, float *radius1, float *radius2,
                  float *ctf, int *nx, int *ny, float *delta, int *nsize)
@@ -404,7 +404,7 @@ void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
 }
 
 /*!
- * Fortran wrapper to @XCorrPeakFind.  If [maxpeaks] is 1, then [xpeak], 
+ * Fortran wrapper to @@XCorrPeakFind@.  If [maxpeaks] is 1, then [xpeak], 
  * [ypeak], and [peak] can be single variables instead of arrays.
  */
 void xcorrpeakfind(float *array, int *nxdim, int *ny, float  *xpeak,
@@ -528,7 +528,7 @@ double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx, int ny,
 }
 
 /*!
- * Fortran wrapper to @XCorrCCCoefficient.
+ * Fortran wrapper to @XCorrCCCoefficient
  */
 double cccoefficient(float *array, float *brray, int *nxdim, int *nx, int *ny,
                      float *xpeak, float *ypeak, int *nxpad, int *nypad,
