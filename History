@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/2/13: Made Ctfplotter not open windows when autofitting in batch mode.
+
 1/1/13: Turned YZ flipping in 3dmod into 90 degree rotation about X to
 preserve handedness; models saved from this state still have Y and Z swapped
 to keep other programs working.  Modified Trimvol and Findcontrast to work
