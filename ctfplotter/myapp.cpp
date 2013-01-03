@@ -1,14 +1,17 @@
 /*
-* myapp.cpp - the QApplication class for ctfplotter.
-*
-*  Authors: Quanren Xiong and David Mastronarde
-*
-*  Copyright (C) 2008 by Boulder Laboratory for 3-Dimensional Electron
-*  Microscopy of Cells ("BL3DEMC") and the Regents of the University of
-*  Colorado.  See dist/COPYRIGHT for full copyright notice.
-*
-*  $Id$
-*/
+ * myapp.cpp - the main class for ctfplotter
+ *
+ *  It was originally a QApplication but is now just a QObject so program can run in
+ *  autofit mode without making a UI and needing a window system
+ *  
+ *  Authors: Quanren Xiong, David Mastronarde, John Heumann
+ *
+ *  Copyright (C) 2008 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ */
 
 #include <QtGui>
 #include <qlabel.h>
@@ -41,17 +44,17 @@
 int MyApp::mDim = 0;
 int MyApp::mTileSize = 0;
 
-MyApp::MyApp(int &argc, char *argv[], int volt, double pSize,
+MyApp::MyApp(int volt, double pSize,
              double ampRatio, float cs, char *defFn, int dim, int hyper,
              double focusTol, int tSize, double tAxisAngle, double lAngle,
              double hAngle, double expDefocus, double leftTol,
              double rightTol, int maxCacheSize, int invertAngles,
              bool doFocalPairProcessing, double fpdz)
-  : QApplication(argc, argv),
-    defocusFinder(volt, pSize, ampRatio, cs, dim, expDefocus)
+    : defocusFinder(volt, pSize, ampRatio, cs, dim, expDefocus)
 {
   mSaveModified = false;
   mSaveAndExit = false;
+  mPlotter = NULL;
   mDim = dim;
   mHyperRes = hyper;
   mDefocusTol = focusTol;
@@ -81,12 +84,12 @@ MyApp::MyApp(int &argc, char *argv[], int volt, double pSize,
   mSortedAngles = NULL;
   mAngleSign = invertAngles ? -1. : 1.;
   if (doFocalPairProcessing) {
-    mCache = new SliceCache(maxCacheSize / 2);
-    mCache2 = new SliceCache(maxCacheSize / 2);
+    mCache = new SliceCache(maxCacheSize / 2, this);
+    mCache2 = new SliceCache(maxCacheSize / 2, this);
     mDefocusOffset = fpdz;
   }
   else {
-    mCache = new SliceCache(maxCacheSize);
+    mCache = new SliceCache(maxCacheSize, this);
     mCache2 = NULL;
     mDefocusOffset = 0;
   }
@@ -175,9 +178,10 @@ void MyApp::plotFitPS(bool flagSetInitSetting)
   plotSetting.maxY = initialMaxY;
 
   //adjust initial plot setting to data if needed;
-  if (flagSetInitSetting)
+  if (flagSetInitSetting && mPlotter)
     mPlotter->setPlotSettings(plotSetting);
-  mPlotter->setCurveData(0, data);
+  if (mPlotter)
+    mPlotter->setCurveData(0, data);
 
   simplexEngine->setRaw(&ps[0]);
   linearEngine->setRaw(&ps[0]);
@@ -213,32 +217,34 @@ void MyApp::fitPsFindZero()
       defocusFinder.setZero(zero);
       defocusFinder.setDefocus(defocus);
     }
-    mPlotter->clearCurve(2);
+    if (mPlotter)
+      mPlotter->clearCurve(2);
     break;
 
   case 1:   // Polynomial fit
     order = B3DMIN(mPolynomialOrder, mX2Idx2 - mX1Idx1);
     if ((error = linearEngine->computeFitting(resLeftFit, model, order + 1,
-					      mX1Idx1, mX2Idx2, zero)))
+                                              mX1Idx1, mX2Idx2, zero)))
       printf("linearEngine error\n");
     else {
       defocusFinder.setZero(zero);
       defocusFinder.findDefocus(&defocus);
     }
-    mPlotter->clearCurve(2);
+    if (mPlotter)
+      mPlotter->clearCurve(2);
     break;
 
   case 2:   // Intersection of two curves
     switch (mX1MethodIndex) {
     case 0: // Line
       if ((error = linearEngine->computeFitting(resLeftFit, model, 2,
-						mX1Idx1, mX1Idx2, zero)))
-	printf("linearEngine error\n");
+                                                mX1Idx1, mX1Idx2, zero)))
+        printf("linearEngine error\n");
       break;
     case 1: // Gaussian
       simplexEngine->setRange(mX1Idx1, mX1Idx2);
       if ((error = simplexEngine->fitGaussian(resLeftFit, err, 0)))
-	printf("simplexEngine error\n");
+        printf("simplexEngine error\n");
       break;
     default:
       error = 1;
@@ -248,13 +254,13 @@ void MyApp::fitPsFindZero()
     switch (mX2MethodIndex) {
     case 0: // Line
       if ((error2 = linearEngine->computeFitting(resRightFit, model, 2,
-						 mX2Idx1, mX2Idx2, zero)))
-	printf("linearEngine error\n");
+                                                 mX2Idx1, mX2Idx2, zero)))
+        printf("linearEngine error\n");
       break;
     case 1: // Gaussian
       simplexEngine->setRange(mX2Idx1, mX2Idx2);
       if ((error2 = simplexEngine->fitGaussian(resRightFit, err, 1)))
-	printf("simplexEngine error\n");
+        printf("simplexEngine error\n");
       break;
     default:
       error2 = 1;
@@ -262,8 +268,9 @@ void MyApp::fitPsFindZero()
     }
     if (!error2) {
       for (ii = 0; ii < mDim; ii++)
-	data1.append(QPointF(ii * inc, resRightFit[ii]));
-      mPlotter->setCurveData(2, data1);
+        data1.append(QPointF(ii * inc, resRightFit[ii]));
+      if (mPlotter)
+        mPlotter->setCurveData(2, data1);
     }
     break;
 
@@ -274,7 +281,8 @@ void MyApp::fitPsFindZero()
   if (!error) {
     for (ii = 0; ii < mDim; ii++)
       data.append(QPointF(ii * inc, resLeftFit[ii]));
-    mPlotter->setCurveData(1, data);
+    if (mPlotter)
+      mPlotter->setCurveData(1, data);
   }
 
 
@@ -287,7 +295,8 @@ void MyApp::fitPsFindZero()
   }
   if (error + error2)
     defocusFinder.setDefocus(-2000.0);
-  mPlotter->manageLabels(zero, defocus, 0., 0., error);
+  if (mPlotter)
+    mPlotter->manageLabels(zero, defocus, 0., 0., error);
   defocusFinder.setAvgDefocus(-1.);
   free(resLeftFit);
   free(resRightFit);
@@ -327,12 +336,11 @@ void MyApp::setSlice(const char *stackFile, char *angleFile,
     // slices and fix them if they are off by 1 or otherwise inconsistent
     if (ilistSize(mSaved) &&
         checkAndFixDefocusList(mSaved, mTiltAngles, mNzz)) {
-      QMessageBox::warning
-      (0, "Warning: Inconsistent view numbers",
-       "The view numbers in the existing defocus file were not all\n"
-       "consistent with the angular ranges.  You should find the defocus\n"
-       "again in all of the ranges and save the new data.");
-      qApp->processEvents();
+      const char title[] = "WARNING: Inconsistent view numbers";
+      const char message[] = "The view numbers in the existing defocus file were not"
+        " all\nconsistent with the angular ranges.  You should find the defocus\n"
+        "again in all of the ranges and save the new data.";
+      showWarning(title, message);
     }
   }
 
@@ -424,20 +432,20 @@ void MyApp::computeInitPS(bool noisePS)
             continue;
           
           if (tiltSeries == 0) { // primary tilt series: nominal defocus
-	    counter++;
-	    currPS = mCache->getHyperPS(i, j, whichSlice, tmpMean);
+            counter++;
+            currPS = mCache->getHyperPS(i, j, whichSlice, tmpMean);
             for (ii = 0; ii < psSize; ii++)
               psSum[ii] += currPS[ii];
-	    localMean += tmpMean;
+            localMean += tmpMean;
           }
           else {                 // secondary: nominal defocus + offset
             counter2++;
-	    currPS = mCache2->getHyperPS(i, j, whichSlice, tmpMean);
+            currPS = mCache2->getHyperPS(i, j, whichSlice, tmpMean);
             for (ii = 0; ii < psSize; ii++)
               psSum2[ii] += currPS[ii];
-	    localMean2 += tmpMean;
+            localMean2 += tmpMean;
           }
-	  mTileIncluded[whichSlice]++;
+          mTileIncluded[whichSlice]++;
         }
       }
       if (debugLevel >= 1)
@@ -559,7 +567,8 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
   }
   //defocusFinder.setDefocus(defocusFinder.getExpDefocus());
 
-  mPlotter->mTileButton->setEnabled(false);
+  if (mPlotter)
+    mPlotter->mTileButton->setEnabled(false);
 
   tileMax = (tileMax - 1) * (tileMax - 1);
 
@@ -652,13 +661,13 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
 
             // Add in to left or right FFT sums
             if (isOnLeft) {
-	      leftCounter++;
+              leftCounter++;
               leftMean += tmpMean;
               for (ii = 0; ii < psSize; ii++)
                 leftPsSum[ii] += currPS[ii];
 
             } else { //right side;
-	      rightCounter++;
+              rightCounter++;
               rightMean += tmpMean;
               for (ii = 0; ii < psSize; ii++)
                 rightPsSum[ii] += currPS[ii];
@@ -668,29 +677,29 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
 
         // Get the signed delta Z for this strip
         deltaZ = (iterNum + 0.5) * (stripWidthPixels / 2.0) * mPixelSize *
-	  tan(currAngle) / 1000.0; // in microns;
+          tan(currAngle) / 1000.0; // in microns;
 
         // Compute scale and offset for the strip to the right of center
         tmpMean = effectiveDefocus + deltaZ;
         if (tiltSeries > 0)
           tmpMean = tmpMean + mDefocusOffset / 1000.0;
         getScaleAndOffset(effectiveDefocus, tmpMean, scale,
-			  offset, delFMin, delFMax);
+                          offset, delFMin, delFMax);
         // Add in right side strip
         scaleAndAddStrip(rightPsSum, stripAvg, stripCounter, rightCounter,
                          rightMean, scale, offset, freqInc, delFMin, 
-			 delFMax, cachePtr);
+                         delFMax, cachePtr);
 
         // Compute scale and offset for the strip to the left of center
         tmpMean = effectiveDefocus - deltaZ;
         if (tiltSeries > 0)
           tmpMean = tmpMean + mDefocusOffset / 1000.0;
         getScaleAndOffset(effectiveDefocus, tmpMean, scale, 
-			  offset, delFMin, delFMax);
+                          offset, delFMin, delFMax);
         // Add in left side strip
         scaleAndAddStrip(leftPsSum, stripAvg, stripCounter, leftCounter,
                          leftMean, scale, offset, freqInc, delFMin, 
-			 delFMax, cachePtr);
+                         delFMax, cachePtr);
       }  // for tiltSeries
 
       mTileIncluded[whichSlice] += leftCounter + rightCounter;
@@ -832,7 +841,8 @@ void MyApp::angleChanged(double lAngle, double hAngle, double expDefocus,
   if (mStartingSlice < 0 || mEndingSlice < 0)
     return;
 
-  QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+  if (!mSaveAndExit)
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
   mDefocusTol = defTol;
   mLeftDefTol = leftTol;
@@ -863,11 +873,13 @@ void MyApp::angleChanged(double lAngle, double hAngle, double expDefocus,
     plotFitPS(false);
   } else {
     computeInitPS(false);
-    mPlotter->mTileButton->setEnabled(true);
+    if (mPlotter)
+      mPlotter->mTileButton->setEnabled(true);
     plotFitPS(false); // only plot;
   }
 
-  QApplication::restoreOverrideCursor();
+  if (!mSaveAndExit)
+    QApplication::restoreOverrideCursor();
 }
 
 /*
@@ -888,8 +900,17 @@ int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
   SavedDefocus *item;
   double defTol, axisAngle, leftTol, rightTol;
   double trueStep, minDel, maxDel, mid, minMid, maxMid, loAngle, hiAngle;
-  bool tolOk = mPlotter->mAngleDia->getTileTolerances(defTol, tSize, axisAngle, leftTol,
-						      rightTol);
+  bool tolOk = true;
+  if (mPlotter) {
+    tolOk = mPlotter->mAngleDia->getTileTolerances(defTol, tSize, axisAngle, leftTol, 
+                                                   rightTol);
+  } else {
+    defTol = mDefocusTol;
+    tSize = mTileSize;
+    axisAngle = mTiltAxisAngle;
+    leftTol = mLeftDefTol;
+    rightTol = mRightDefTol;
+  }
 
   if (!tolOk)
     return 1;
@@ -997,13 +1018,15 @@ int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
     // Save in table
     saveCurrentDefocus();
   }
-  mPlotter->mAngleDia->setAnglesClicked();
+  if (mPlotter)
+    mPlotter->mAngleDia->setAnglesClicked();
   return 0;
 }
 
 void MyApp::setInitTileOption(int index)
 {
-  mPlotter->mTileButton->setEnabled(false);
+  if (mPlotter)
+    mPlotter->mTileButton->setEnabled(false);
   mInitialTileOption = index;
 }
 
@@ -1047,7 +1070,7 @@ void MyApp::saveCurrentDefocus()
   toSave.defocus = defocusFinder.getDefocus();
   addItemToDefocusList(mSaved, toSave);
   mSaveModified = true;
-  if (mPlotter->mAngleDia)
+  if (mPlotter && mPlotter->mAngleDia)
     mPlotter->mAngleDia->updateTable();
 }
 
@@ -1095,14 +1118,27 @@ void MyApp::showHideWidget(QWidget *widget, bool state)
 }
 
 /*
+ * Function to print a warning or put up a message box
+ */
+void MyApp::showWarning(const char *title, const char *message)
+{
+  if (mSaveAndExit) {
+    printf("%s.  %s\n\n", title, message);
+  } else {
+    QMessageBox::warning(0, title, message, QMessageBox::Ok, QMessageBox::Ok);
+    qApp->processEvents();
+  }
+}
+
+/*
  * Determine the scale and offset required to align the first two CTF
  * zeros at underfocus dz2 to those at underfocus dz1. Also returns the
  * smaller and larger of the frequency difference between the first and
  * second zeros in delMin and delMax.
  */
 void MyApp::getScaleAndOffset(const double dz1, const double dz2, 
-			      double &scale, double &offset, 
-			      double &dfMin, double &dfMax)
+                              double &scale, double &offset, 
+                              double &dfMin, double &dfMax)
 {
   double zero1, zero2, shiftedZero1, shiftedZero2, delta1, delta2;
 
@@ -1116,8 +1152,8 @@ void MyApp::getScaleAndOffset(const double dz1, const double dz2,
   dfMax = B3DMAX(delta1, delta2);
   if (debugLevel >= 2) {
     printf("Right: Z1  %f -> %f   Z2  %f -> %f  scale %f  add %f  "
-	   "delmin %f  delmax %f\n", zero1, shiftedZero1, zero2, 
-	   shiftedZero2, scale, offset, dfMin, dfMax);
+           "delmin %f  delmax %f\n", zero1, shiftedZero1, zero2, 
+           shiftedZero2, scale, offset, dfMin, dfMax);
   }
 }
 

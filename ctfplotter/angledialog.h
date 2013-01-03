@@ -20,7 +20,7 @@ class AngleDialog :public QDialog
 {
   Q_OBJECT
   public:
-    AngleDialog(QWidget *parent=0);
+  AngleDialog(MyApp *app, QWidget *parent=0);
     void updateTable();
     bool getTileTolerances(double &defTol, int &tSize, double &axisAngle,
                            double &leftTol, double &rightTol);

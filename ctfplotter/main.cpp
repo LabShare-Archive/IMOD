@@ -63,6 +63,11 @@ int main(int argc, char *argv[])
   QString noiseCfgDir, noiseFile;
   SliceCache *cache, *cache2;
   MrcHeader *header;
+  QApplication *qapp = NULL;
+  QMainWindow *mainWin;
+  Plotter *plotter;
+  QLabel *label;
+  QWidget *splash;
 
   // Set some sensible defaults
   defocusTol = 200;
@@ -137,7 +142,8 @@ int main(int argc, char *argv[])
   if (ifFreqRange && (x1Start < 0.01 || x2End > 0.48 || x2End - x1Start < 0.03))
     exitError("Fitting range values are too extreme, out of order, or too close together"
              );
-  PipGetBoolean("SaveAndExit", &saveAndExit);
+  if (ifAutofit)
+    PipGetBoolean("SaveAndExit", &saveAndExit);
   PipGetBoolean("VaryExponentInFit", &varyExp);
   if (!PipGetFloat("FocalPairDefocusOffset", &fpdz)) {
     focalPairProcessing = true;
@@ -146,8 +152,13 @@ int main(int argc, char *argv[])
 
   double *rAvg = (double *)malloc(nDim *sizeof(double));
 
-  ctfHelp = new ImodAssistant("html", "IMOD.adp", "ctfguide");
-  MyApp app(argc, argv, volt, pixelSize, (double)ampContrast, cs, defFn,
+  // Instantiate the QApplication and Qt UI elements only if not doing autofit and exiting
+  // so that the program can run without a window system available
+  if (!saveAndExit) {
+    ctfHelp = new ImodAssistant("html", "IMOD.adp", "ctfguide");
+    qapp = new QApplication(argc, argv);
+  }
+  MyApp app(volt, pixelSize, (double)ampContrast, cs, defFn,
             (int)nDim, hyperRes, (double)defocusTol, tileSize,
             (double)tiltAxisAngle, -90.0, 90.0, (double)expectedDef,
             (double)leftDefTol, (double)rightDefTol, cacheSize, invertAngles,
@@ -157,13 +168,15 @@ int main(int argc, char *argv[])
   //set the angle range for noise PS computing;
   app.setPS(rAvg);
   app.setRangeStep((double)autoStep);
-  app.setSaveAndExit(ifAutofit != 0 && saveAndExit != 0);
+  app.setSaveAndExit(saveAndExit != 0);
   app.setVaryCtfPowerInFit(varyExp != 0);
 
-  QMainWindow mainWin;
-  Plotter plotter(&mainWin);
-  plotter.setWindowTitle(QObject::tr("CTF Plot"));
-  app.setPlotter(&plotter);
+  if (!saveAndExit) {
+    mainWin = new QMainWindow();
+    plotter = new Plotter(&app, mainWin);
+    plotter->setWindowTitle(QObject::tr("CTF Plot"));
+    app.setPlotter(plotter);
+  }
   if (ifAutofit)
     app.setInitTileOption(1);
 
@@ -175,26 +188,29 @@ int main(int argc, char *argv[])
   int read;
   int noiseFileCounter = 0;
 
-  // It could be just a label, but this makes it bigger and lets the whole
-  // title show up
-  QWidget *splash = new QWidget();
-  QVBoxLayout *layout = new QVBoxLayout;
-  splash->setLayout(layout);
-  layout->setMargin(30);
-  QLabel *label = new QLabel("Loading noise files ...", splash);
-  layout->addWidget(label);
-  splash->setWindowTitle("ctfplotter");
-  QSize hint = splash->sizeHint();
-  splash->move(QApplication::desktop()->width() / 2 - hint.width() / 2,
-               QApplication::desktop()->height() / 2 - hint.height() / 2);
-  splash->show();
+  if (!saveAndExit) {
 
-  // At least 4 of these are needed to make it work reliably!
-  qApp->flush();
-  qApp->syncX();
-  qApp->processEvents();
-  splash->repaint(0, 0, -1, -1);
-  qApp->processEvents();
+    // It could be just a label, but this makes it bigger and lets the whole
+    // title show up
+    splash = new QWidget();
+    QVBoxLayout *layout = new QVBoxLayout;
+    splash->setLayout(layout);
+    layout->setMargin(30);
+    label = new QLabel("Loading noise files ...", splash);
+    layout->addWidget(label);
+    splash->setWindowTitle("ctfplotter");
+    QSize hint = splash->sizeHint();
+    splash->move(QApplication::desktop()->width() / 2 - hint.width() / 2,
+                 QApplication::desktop()->height() / 2 - hint.height() / 2);
+    splash->show();
+
+    // At least 4 of these are needed to make it work reliably!
+    qApp->flush();
+    qApp->syncX();
+    qApp->processEvents();
+    splash->repaint(0, 0, -1, -1);
+    qApp->processEvents();
+  }
 
   // only to find how many noise files are provided;
   while ((read = fgetline(fpCfg, p, 1024)) >= 0)
@@ -270,8 +286,10 @@ int main(int argc, char *argv[])
   app.setAllNoisePS(noisePs);
   /****end of computing noise PS; ******/
 
-  label->setText("Loading slices ...");
-  qApp->processEvents();
+  if (!saveAndExit) {
+    label->setText("Loading slices ...");
+    qApp->processEvents();
+  }
   app.setLowAngle(lowAngle);
   app.setHighAngle(highAngle);
   if (focalPairProcessing) {
@@ -303,24 +321,24 @@ int main(int argc, char *argv[])
       if (header->amin < 0.) {
         ifOffset = 1;
       } else {
-        QMessageBox::warning(0, "Warning: Data Offset May Be Needed",
+        const char title[] = "WARNING: Data Offset May Be Needed";
+        char message[] = 
           "The image stack originated from FEI software,\nbut the usual offset of "
           "32768 is not being added\nbecause the minimum of the file is positive.\n\n"
           "You may need to specify an offset to make the\n"
-          "values be proportional to recorded electrons.",
-          QMessageBox::Ok, QMessageBox::Ok);
-        qApp->processEvents();
+          "values be proportional to recorded electrons.";
+        app.showWarning(title, message);
       }
     } else {
       if (header->amin < -20000 && header->amean < -1000) {
         ifOffset = 1;
-        QMessageBox::warning(0, "Warning: Data Offset Assumed",
+        const char title[] = "WARNING: Data Offset Assumed";
+        const char message[] = 
           "The image stack contains negative values\nunder -20000 and has a negative "
           "mean,\nso an offset of 32768 is being added.\n\n"
           "You may need to specify a different offset to make\n"
-          "the values be proportional to recorded electrons.",
-          QMessageBox::Ok, QMessageBox::Ok);
-        qApp->processEvents();
+          "the values be proportional to recorded electrons.";
+        app.showWarning(title, message);
       } else if (header->amean < 0)
         exitError("The mean of the input stack is negative.  You need to specify an "
           "offset to add to make values be proportional to recorded electrons");
@@ -357,19 +375,21 @@ int main(int argc, char *argv[])
     app.setX1Range(firstZeroIndex - 12, firstZeroIndex - 1);
     app.setX2Range(firstZeroIndex + 1, secZeroIndex);
   }
-  app.simplexEngine = new SimplexFitting(nDim);
+  app.simplexEngine = new SimplexFitting(nDim, &app);
   app.linearEngine = new LinearFitting(nDim);
   app.plotFitPS(true); //fit and plot the stack PS;
 
   fflush(stdout);
 
-  delete splash;
-  mainWin.setCentralWidget(&plotter);
-  mainWin.resize(768, 624);
-  mainWin.statusBar()->showMessage(QObject::tr("Ready"), 2000);
+  if (!saveAndExit) {
+    delete splash;
+    mainWin->setCentralWidget(plotter);
+    mainWin->resize(768, 624);
+    mainWin->statusBar()->showMessage(QObject::tr("Ready"), 2000);
 
-  mainWin.show();
-  plotter.angleDiag();
+    mainWin->show();
+    plotter->angleDiag();
+  }
   if (ifAutofit) {
     app.autoFitToRanges(app.getAutoFromAngle(), app.getAutoToAngle(),
                         autoRange, autoStep, 3);
@@ -378,7 +398,7 @@ int main(int argc, char *argv[])
       exit(0);
     }
   }
-  app.exec();
+  qapp->exec();
   if (app.getSaveModified()) {
     int retval =  QMessageBox::information(0, "Save File?",
       "There are unsaved changes to the defocus table - "
@@ -392,6 +412,8 @@ int main(int argc, char *argv[])
   free(noiseMean);
   free(index);
   delete(ctfHelp);
+  delete mainWin;
+  delete qapp;
   B3DFREE(cfgFn);
   B3DFREE(stackFn);
   B3DFREE(angleFn);

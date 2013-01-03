@@ -1,5 +1,5 @@
 /*
- * myapp.h - the QApplication class for ctfplotter.
+ * myapp.h - the main class for ctfplotter, originally a QApplication
  *
  *  $Id$
  *
@@ -7,7 +7,7 @@
 #ifndef MYAPP_H
 #define MYAPP_H
 
-#include <QApplication>
+#include <QObject>
 #include "defocusfinder.h"
 #include "mrcslice.h"
 #include "slicecache.h"
@@ -22,7 +22,7 @@ enum sliceCacheEnum {SLICE_CACHE_PRIMARY, SLICE_CACHE_SECONDARY};
 extern int debugLevel;
 int ctfShowHelpPage(const char *page);
 
-class MyApp : public QApplication
+class MyApp : public QObject
 {
   Q_OBJECT
   public:
@@ -93,8 +93,9 @@ class MyApp : public QApplication
     SliceCache *getCache() {return mCache;};
     SliceCache *getCache2() {return mCache2;};
     void showHideWidget(QWidget *widget, bool state);
+    void showWarning(const char *title, const char *message);
     
-    MyApp(int &argc, char *argv[], int volt, double pSize, 
+    MyApp(int volt, double pSize, 
           double ampRatio, float cs, char *defFn, int dim, int hyper, 
           double focusTol, int tSize, double tAxisAngle, double lAngle,
           double hAngle, double expDefocus, double leftTol, 

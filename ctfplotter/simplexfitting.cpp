@@ -9,7 +9,6 @@
 *  Colorado.  See dist/COPYRIGHT for full copyright notice.
 * 
 *  $Id$
-*  Log at end of file
 */
 #include <math.h>
 #include <stdio.h>
@@ -30,11 +29,12 @@ float SimplexFitting::mA[5] = {0., 0., 0., 0., 0.};
 double SimplexFitting::mExpZero = 0.;
 
 //SimplexFitting::SimplexFitting(double *rawData, int nRaw, int i_1, int i_2)
-SimplexFitting::SimplexFitting(int nRaw)
+SimplexFitting::SimplexFitting(int nRaw, MyApp *app)
 {
+  mApp = app;
   mRaw = new double[nRaw];
   mDim=nRaw;
-  mFinder = &((MyApp *)qApp)->defocusFinder;
+  mFinder = &mApp->defocusFinder;
 }
 
 SimplexFitting::~SimplexFitting()
@@ -199,7 +199,7 @@ int SimplexFitting::fitCTF(double* fitting, int nvar, double &err,
 
   // Get starting defocus depending on current option setting, and get 
   // the zero at that defocus
-  if (((MyApp *)qApp)->getDefocusOption())
+  if (mApp->getDefocusOption())
     startDef = mFinder->getDefocus();
   else
     startDef = mFinder->getExpDefocus();
@@ -298,21 +298,3 @@ void SimplexFitting::funkCTF(float* param, float* fValue)
     parUse[2], parUse[3]);*/
 }
 
-
-
-/*
-
-$Log$
-Revision 1.6  2010/03/14 19:10:22  mast
-Changed to use current defocus estimate for CTF-like fitting if selected
-
-Revision 1.5  2009/08/11 15:02:33  mast
-Cast float to double in pow to avoid harassment on Windows
-
-Revision 1.4  2009/08/10 22:23:22  mast
-Added the CTF-like fitting method
-
-Revision 1.3  2008/11/07 17:26:24  xiongq
-add the copyright heading
-
-*/

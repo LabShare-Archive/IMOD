@@ -21,7 +21,7 @@
 
   *************************************************************/
 #include <math.h>
-#include<vector>
+#include <vector>
 #include "mrcslice.h"
 #include "parse_params.h"
 #include "slicecache.h"
@@ -31,8 +31,9 @@
 
 #define MY_PI 3.1415926
 
-SliceCache::SliceCache(int cacheSize)
+SliceCache::SliceCache(int cacheSize, MyApp *app)
 {
+  mApp = app;
   mFpStack = NULL;
   mMaxCacheSize = cacheSize;
   mSliceData = NULL;
@@ -170,7 +171,7 @@ float  SliceCache::readAngle(int whichSlice)
     exitError("Slice index is out of range");
 
   float currAngle;
-  float *angles = ((MyApp *)qApp)->getTiltAngles();
+  float *angles = mApp->getTiltAngles();
   if (angles) {
     currAngle = angles[whichSlice];
     if (debugLevel >= 1)
@@ -194,7 +195,7 @@ void SliceCache::whatIsNeeded(float lowLimit, float highLimit, int &start,
   int k;
   float eps = 0.02f;
   float currAngle;
-  float *angles = ((MyApp *)qApp)->getTiltAngles();
+  float *angles = mApp->getTiltAngles();
   for (k = 0; k < mHeader.nz; k++) {
     if (angles) {
       currAngle = angles[k];

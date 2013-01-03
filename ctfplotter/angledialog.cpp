@@ -18,11 +18,11 @@
 #include "ilist.h"
 #include "parse_params.h" //for exitError()
 
-AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
+AngleDialog::AngleDialog(MyApp *app, QWidget *parent): QDialog(parent)
 {
   int width, i;
   mParamsOpen = true;
-  mApp = (MyApp *)qApp;
+  mApp = app;
   setWindowTitle(tr("Angle Range & Tile Selection"));
   mDefocusLabel = new QLabel(tr("E&xpected defocus (um): "), this);
   mDefocusEdit = new QLineEdit("6.0", this);
