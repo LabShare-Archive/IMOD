@@ -4,23 +4,6 @@ c       $Date$
 c       
 c       $Revision$
 c       
-c       $Log$
-c       Revision 3.5  2005/12/09 04:43:27  mast
-c       gfortran: .xor., continuation, format tab continuation or byte fixes
-c
-c       Revision 3.4  2003/10/26 05:33:27  mast
-c       change command files to use unit 4 instead reopening 5
-c       
-c       Revision 3.3  2003/08/29 17:32:35  mast
-c       Change to use new multithreaded Plax graphics
-c       
-c       Revision 3.2  2003/08/08 16:41:16  mast
-c       Added option to export graph
-c       
-c       Revision 3.1  2002/07/07 04:42:13  mast
-c       Remove extra argument from one call to getbinspec
-c       
-
 
 c       KNOWN BUG: It will not work on data with a zscale value modeled on
 c       a data stack flipped inside IMOD.  Make a flipped volume BEFORE
@@ -96,7 +79,7 @@ c
       write(*,'(1x,a,$)')
      &    '0 for graphs on plax, 1 to suppress graphs: '
       read(in5,*)iffil
-      call grfopn(iffil)
+      call scrnOpen(iffil)
 c       
 c       write(*,'(1x,a,$)')
 c       &           'Minimum distance between pore and surface in um: '
@@ -466,8 +449,8 @@ c
 2081    format(' 0 for plot on same page as previous plot(s),',
      &      ' 1 for new page: ',$)
         read(in5,*)ifpag
-        call imset(1,c1,c2,c3,0)
-        if(ifpag.ne.0)call frame
+        call psSetup(1,c1,c2,c3,0)
+        if(ifpag.ne.0)call psFrame
       endif
       call graphplt(graphs(1,jgrf),nbingrf(jgrf),delrgrf(jgrf),iplot,
      &    jgrf, xmaxdsp(iwin),ymaxdsp(iwin))
@@ -479,8 +462,8 @@ c
 209   if(ifanyplot.ne.0)then
         write(*,2081)
         read(in5,*)ifpag
-        call imset(1,c1,c2,c3,0)
-        if(ifpag.ne.0)call frame
+        call psSetup(1,c1,c2,c3,0)
+        if(ifpag.ne.0)call psFrame
       endif
       do iwn=1,4
         jgrf=igrfdsp(iwn)
@@ -503,8 +486,8 @@ c
       do iwn=1,4
         jgrf=igrfdsp(iwn)
         if(jgrf.gt.0)then
-          call imset(1,c1,c2,c3,0)
-          if(ifanyplot.ne.0.and.irow.eq.1.and.icol.eq.1)call frame
+          call psSetup(1,c1,c2,c3,0)
+          if(ifanyplot.ne.0.and.irow.eq.1.and.icol.eq.1)call psFrame
           if(ymaxfix.gt.0.and.ymaxfix.ne.ymaxdsp(iwn))then
             ymaxdsp(iwn)=ymaxfix
             call graphdsp(graphs(1,jgrf),nbingrf(jgrf),delrgrf(jgrf),
@@ -1040,8 +1023,8 @@ c
 c       
 c       exit
 c       
-225   call plxoff
-      call imexit
+225   call scrnClose
+      call psExit
 c       
 c       call to manipulate graphs
 c       

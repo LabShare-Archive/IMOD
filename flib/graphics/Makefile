@@ -25,10 +25,10 @@ mtoverlap$(E): mtoverlap.$(O)
 filterplot$(E): filterplot.$(O)
 	$(FC) -o filterplot filterplot.$(O) $(LDFLG) $(LWMOD)  $(LIMOD) $(LIBS)
 
-genhstplt.$(O): plotvars.$(O)
-mtpairing.$(O): plotvars.$(O)
+genhstplt.$(O): plotvars.mod
+mtpairing.$(O): plotvars.mod
 
-plotvars.$(O): ../subrs/graphics/plotvars.f90
+plotvars.mod: ../subrs/graphics/plotvars.f90
 	$(FC) -c $(LIBFFLAGS) ../subrs/graphics/plotvars.f90
 
 install: $(PROGS)

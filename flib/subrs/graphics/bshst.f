@@ -241,8 +241,8 @@ c
         return
       endif
       if(iskp.eq.-123)then
-        call plxoff
-        call imexit()
+        call scrnClose
+        call psExit()
       endif
       if(iskp)26,82,11
 11    write(*,101)xmin,xmax,xrange
@@ -286,7 +286,7 @@ c
       write(*,*) 'highest bin is',ibmax
       write(*,'('' full scale count (0 terminal plot, -1 labels also, -2 counts): '',$)')
       read(5,*)fsc
-      call erase(-1)
+      call scrnErase(-1)
       if(fsc.le.0.)then
         line(1:1)=' '
         do ibin=1,nbins
@@ -317,11 +317,11 @@ c                   &               call chrout(ichar(hisymb(max(1,nsymb(ngx(i))
         enddo
         call mypause(pausymb)
       else
-        call dsgrd(10,10,0,100,10)
+        call scrnGridLine(10,10,0,100,10)
         xscal=1000/nbins
         yscal=1000/fsc
         idx=xscal
-        call dsgrd(10,10,idx,0,nbins)
+        call scrnGridLine(10,10,idx,0,nbins)
       endif
       do i=1,nbins
         jz(i)=0
@@ -369,7 +369,7 @@ c                   &               call chrout(ichar(hisymb(max(1,nsymb(ngx(i))
               iy=yscal*(jz(ibin)-0.5)+10
               isymbt=nsymb(ng)
               if(isymbt.lt.0)isymbt=-i
-              call scpnt(ix,iy,isymbt)
+              call scrnSymbol(ix,iy,isymbt)
             endif
           endif
 50      continue
@@ -385,8 +385,8 @@ c                   &               call chrout(ichar(hisymb(max(1,nsymb(ngx(i))
             enddo
             ysum=ysum*35./(32.)
             iy=yscal*ysum+10
-            if(ixk.eq.0)call ma(ix,iy)
-            call va(ix,iy)
+            if(ixk.eq.0)call scrnMoveAbs(ix,iy)
+            call scrnVectAbs(ix,iy)
           enddo
         endif
         if(np.gt.0)then
@@ -398,23 +398,22 @@ c                   &               call chrout(ichar(hisymb(max(1,nsymb(ngx(i))
 105       format(' group',i3,'  avg =',f10.3,',  sd =',f10.3,',  sem='
      1        ,f10.3,',  n=',i4)
           if(iskp.ge.0.and.fsc.gt.0..and.dxin.ge.0.)then
-            call ma(10,10)
+            call scrnMoveAbs(10,10)
             ix=10
             do 56 ib=1,nbins
               iy=yscal*jz(ib)+10
-              call va(ix,iy)
+              call scrnVectAbs(ix,iy)
               ix=xscal*ib+10
-              call va(ix,iy)
+              call scrnVectAbs(ix,iy)
 56          continue
-            call va(ix,10)
+            call scrnVectAbs(ix,10)
           endif
         endif
 60    continue
-      call updat(1)
+      call scrnUpdate(1)
       if(iskp.lt.0)go to 82
       write(*,109)xlo,xhi
 109   format(' x from',f9.2,' to',f9.2)
-      call xyset(1)
       write(*,'('' 4-7 or 11-16 for plot (-# for no points),'//
      &    ' return (0), redisplay (10): '',$)')
       read(5,*)ifplt
@@ -458,7 +457,7 @@ c                   &               call chrout(ichar(hisymb(max(1,nsymb(ngx(i))
       ifimg=iaplt-3
       defscl=1.
       if(ifimg.gt.0)then
-        call imset(1,wthinch,c2,c3,0)
+        call psSetup(1,wthinch,c2,c3,0)
         defscl=0.74*wthinch/7.5
         iaplt=iaplt-3
       endif
@@ -500,59 +499,39 @@ c                   &               call chrout(ichar(hisymb(max(1,nsymb(ngx(i))
       if(ifimg.gt.0)then
         write(*,'('' new page (0 or 1: , gives'',i2,'')?: '',$)')ifnewp
         read(5,*)ifnewp
-        if(ifnewp.gt.0)call frame()
-        call symsiz(symwid)
+        if(ifnewp.gt.0)call psFrame()
+        call psSymSize(symwid)
         yscal=yran/abs(fsc)
         xll=xl+0.1
         yll=yl+0.1
         iabntx=iabs(ntx)
-        call imset(ithgrd,c1,c2,c3,0)
+        call psSetup(ithgrd,c1,c2,c3,0)
         xaxisy=yll-xaxofs
         ylorig=yll
         if(iflog.eq.0)then
-          call imgrid(xll,xaxisy,xran,0.,ntx,tiksiz)
+          call psGridLine(xll,xaxisy,xran,0.,ntx,tiksiz)
           if(ifbox.ne.0)
-     &        call imgrid(xll,yll+yran+xaxofs,xran,0.,ntx,-tiksiz)
+     &        call psGridLine(xll,yll+yran+xaxofs,xran,0.,ntx,-tiksiz)
         else
           write(*,'(i3,'' tick values: '',$)')iabntx
           read(5,*)(xtick(i),i=1,iabntx)
           xscl=xran/(xhi-xlo)
-          call imlgrd(xll,xaxisy,xscl,0.,xtick,ntx,tiksiz)
-          if(ifbox.ne.0)call imlgrd
+          call psLogGrid(xll,xaxisy,xscl,0.,xtick,ntx,tiksiz)
+          if(ifbox.ne.0)call psLogGrid
      &        (xll,yll+yran+xaxofs,xscl,0.,xtick,ntx,-tiksiz)
         endif
         xscal=xran/nbins
-        call imgrid(xll,yll,0.,yran,nty,tiksiz)
-        if(ifbox.ne.0)call imgrid(xll+xran,yll,0.,yran,nty,-tiksiz)
+        call psGridLine(xll,yll,0.,yran,nty,tiksiz)
+        if(ifbox.ne.0)call psGridLine(xll+xran,yll,0.,yran,nty,-tiksiz)
         if(iaplt.eq.4)then
           yscal=yran/(fscup+fscdown)
           yll=yll+yscal*fscdown
-          call imma(xll,yll)
-          call imva(xll+xran,yll)
+          call psMoveAbs(xll,yll)
+          call psVectAbs(xll+xran,yll)
           nhists=2
         endif
       else
-        iyran=102.*yran
-        idy=iyran/nty
-        iyran=nty*idy
-        yscal=iyran/abs(fsc)
-        ixran=102.*xran
-        ixlo=10+102.*xl
-        iylo=10+102.*yl
-        xll=ixlo
-        yll=iylo
-        if(iflog.eq.0)then
-          idx=ixran/ntx
-          ixran=ntx*idx
-          call xygrd(ixlo,iylo,idx,0,ntx)
-        else
-          write(*,'(i3,'' tick values: '',$)')ntx
-          read(5,*)(xtick(i),i=1,ntx)
-          xscl=ixran/(xhi-xlo)
-          call logax(ixlo,iylo,xscl,0.,xtick,ntx)
-        endif
-        xscal=(1.*ixran)/nbins
-        call xygrd(ixlo,iylo,0,idy,nty)
+        continue
       endif
       do 801 nupdown=1,nhists
         if(nupdown.eq.2)yscal=-yscal
@@ -562,7 +541,7 @@ c                   &               call chrout(ichar(hisymb(max(1,nsymb(ngx(i))
         do 80 ng=1,ngrps
           ifbelow=0
           np=0
-          call imset(ithsym,c1,upi,c3,0)
+          call psSetup(ithsym,c1,upi,c3,0)
           adjthk=0.5*(ithhis-1)/upi
           if(iaplt.eq.4)then
             do 65 jb=1,ngbelow
@@ -583,17 +562,16 @@ c                   &               call chrout(ichar(hisymb(max(1,nsymb(ngx(i))
                     yfilhi=yscal*jz(ibin)+yll
                     yfillo=yfilhi-yscal
                     xfillo=xscal*(ibin-1)+xll
-                    call imset(1,c1,upi,c3,0)
+                    call psSetup(1,c1,upi,c3,0)
                     nfill=xscal*upi
                     do 68 ifill=0,nfill
                       xfil=xfillo+ifill/upi
-                      call imma(xfil,yfillo)
-                      call imva(xfil,yfilhi)
+                      call psMoveAbs(xfil,yfillo)
+                      call psVectAbs(xfil,yfilhi)
 68                  continue 
                   elseif(dxin.ge.0.)then
                     if(isymbt.lt.0)isymbt=-i
-                    if(ifimg.gt.0)call imsymb(rx,ry,isymbt)
-                    if(ifimg.le.0)call symbl(int(rx),int(ry),isymbt)
+                    if(ifimg.gt.0)call psSymbol(rx,ry,isymbt)
                   endif
                 endif
               endif
@@ -601,7 +579,7 @@ c                   &               call chrout(ichar(hisymb(max(1,nsymb(ngx(i))
           endif
           if(np.gt.0)then
             if(dxin.lt.0.)then
-              call imset(ithhis,c1,c2,c3,0)
+              call psSetup(ithhis,c1,c2,c3,0)
 
               do ixk=0,nkpts
                 xk=xlo+(ixk/float(nkpts))*(xhi-xlo)
@@ -622,31 +600,22 @@ c                   &               call chrout(ichar(hisymb(max(1,nsymb(ngx(i))
                 enddo
                 ysum=ysum*35./(32.)
                 ry=yscal*ysum+yll
-                if(ixk.eq.0)call imma(rx,ry)
-                call imva(rx,ry)
+                if(ixk.eq.0)call psMoveAbs(rx,ry)
+                call psVectAbs(rx,ry)
               enddo
             elseif(ifimg.gt.0)then
-              call imset(ithhis,c1,c2,c3,0)
-              call imma(xll,yll)
+              call psSetup(ithhis,c1,c2,c3,0)
+              call psMoveAbs(xll,yll)
               rx=xll
               do 72 ib=1,nbins
                 ry=yscal*jz(ib)+yll
-                call imva(rx,ry)
+                call psVectAbs(rx,ry)
                 rx=xscal*ib+xll
-                call imva(rx,ry)
+                call psVectAbs(rx,ry)
 72            continue
-              call imva(rx,yll)
+              call psVectAbs(rx,yll)
             else
-              call xyma(ixlo,iylo)
-              ix=ixlo
-              do 76 ib=1,nbins
-                iy=yscal*jz(ib)+iylo
-                call xyva(ix,iy)
-                ix=xscal*ib+ixlo
-                call xyva(ix,iy)
-76            continue 
-              call xyva(ix,iylo)
-              call penup(1)
+              continue
             endif
           endif
 80      continue
@@ -682,7 +651,7 @@ c
         read(5,*)ncrpar
       endif
       inst=iz(ncrplt)
-      call imset(ithcrv,c1,c2,c3,0)
+      call psSetup(ithcrv,c1,c2,c3,0)
 90    itycrv=col(inst)+0.0001
 89    go to (91,93),itycrv
 91    slope=col(inst+1)
@@ -692,11 +661,11 @@ c
       rx=xscal*(xcrvlo-xlo)/dx+xll
       yact=slope*xcrvlo+bint
       ry=dx*yscal*yact+yll
-      call imma(rx,ry)
+      call psMoveAbs(rx,ry)
       rx=xscal*(xcrvhi-xlo)/dx+xll
       yact=slope*xcrvhi+bint
       ry=dx*yscal*yact+yll
-      call imva(rx,ry)
+      call psVectAbs(rx,ry)
       go to 87
 93    xcrvlo=amax1(xlo,col(inst+7))
       xcrvhi=amin1(xhi,col(inst+8))
@@ -713,8 +682,8 @@ c
         endif
         rx=xscal*(realx-xlo)/dx+xll
         ry=dx*yscal*yact+yll
-        if(i.eq.0)call imma(rx,ry)
-        if(i.ne.0)call imva(rx,ry)
+        if(i.eq.0)call psMoveAbs(rx,ry)
+        if(i.ne.0)call psVectAbs(rx,ry)
 96    continue
       go to 87
 81    if(abs(ifplt).le.10)go to 82

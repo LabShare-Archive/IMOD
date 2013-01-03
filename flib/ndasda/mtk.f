@@ -101,7 +101,7 @@ c
       write(*,'(1x,a,$)')
      &    '0 for graphs in Plax window, 1 to suppress graphs: '
       read(in5,*)iffil
-      call grfopn(iffil)
+      call scrnOpen(iffil)
 c       
       write(*,'(1x,a,/,a,$)')'0 for 3D density/closest approach '//
      &    'analysis','  or 1 for ends versus bundle analysis: '
@@ -492,8 +492,8 @@ c
 2081    format(' 0 for plot on same page as previous plot(s),',
      &      ' 1 for new page: ',$)
         read(in5,*)ifpag
-        call imset(1,c1,c2,c3,0)
-        if(ifpag.ne.0)call frame
+        call psSetup(1,c1,c2,c3,0)
+        if(ifpag.ne.0)call psFrame
       endif
       call graphplt(graphs(1,jgrf),nbingrf(jgrf),delrgrf(jgrf),iplot,
      &    jgrf, xmaxdsp(iwin),ymaxdsp(iwin))
@@ -505,8 +505,8 @@ c
 209   if(ifanyplot.ne.0)then
         write(*,2081)
         read(in5,*)ifpag
-        call imset(1,c1,c2,c3,0)
-        if(ifpag.ne.0)call frame
+        call psSetup(1,c1,c2,c3,0)
+        if(ifpag.ne.0)call psFrame
       endif
       do iwn=1,4
         jgrf=igrfdsp(iwn)
@@ -1099,8 +1099,8 @@ c
 c       
 c       exit
 c       
-225   call plxoff
-      call imexit
+225   call scrnClose
+      call psExit
 c       
 c       call to manipulate graphs
 c       
