@@ -81,10 +81,10 @@ void utilDrawSymbol(int mx, int my, int sym, int size, int flags)
 void utilGetLongestTimeString(ImodView *vi, QString *str)
 {
   int maxlen, time, len, tmax;
-  if (vi->nt){
+  if (vi->numTimes){
     *str = " (999)";
     maxlen = -1;
-    for (time = 1; time < vi->nt; time++) {
+    for (time = 1; time < vi->numTimes; time++) {
       len = strlen(ivwGetTimeIndexLabel(vi, time));
       if (len > maxlen) {
         maxlen = len;
@@ -612,11 +612,11 @@ char *imodwfname(const char *intro)
   filename = Imod_imagefile;
 
   /* DNM 7/21/02: if multiple files, output number of image files */
-  if (!filename && App->cvi->nt > 1) {
+  if (!filename && App->cvi->numTimes > 1) {
     filename = (char *)malloc(20 + strlen(intro));
     if (!filename)
       return NULL;
-    sprintf(filename, "%s %d image files", intro, App->cvi->nt);
+    sprintf(filename, "%s %d image files", intro, App->cvi->numTimes);
     return(filename);
   }
   return (imodwGivenName(intro, filename));

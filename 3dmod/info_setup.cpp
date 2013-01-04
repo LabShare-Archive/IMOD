@@ -436,8 +436,8 @@ void InfoWindow::manageMenus()
     (vi->rgbStore == 0 && vi->fakeImage == 0 && vi->multiFileZ <= 0 &&
      vi->noReadableImage == 0);
   /*fprintf(stderr, "vi->multiFileZ=%d\n", vi->multiFileZ);*/
-  mActions[EIMAGE_MENU_FILLCACHE]->setEnabled(vi->vmSize != 0 || vi->nt > 0);
-  mActions[EIMAGE_MENU_FILLER]->setEnabled(vi->vmSize != 0 || vi->nt > 0);
+  mActions[EIMAGE_MENU_FILLCACHE]->setEnabled(vi->vmSize != 0 || vi->numTimes > 0);
+  mActions[EIMAGE_MENU_FILLER]->setEnabled(vi->vmSize != 0 || vi->numTimes > 0);
   //mActions[IMAGE_MENU_SLICER]->setEnabled(vi->rawImageStore == 0);
   mActions[IMAGE_MENU_ISOSURFACE]->setEnabled(imageOK);
   mActions[ECONTOUR_MENU_AUTO]->setEnabled(imageOK);
@@ -712,7 +712,7 @@ void InfoWindow::openSelectedWindows(char *keys, int modelViewOpen)
     editContourSlot(ECONTOUR_MENU_COPY);
   if (strchr(keys, 'e'))
     editSlot(EDIT_MENU_SCALEBAR);
-  if (strchr(keys, 'f') && (App->cvi->vmSize != 0 || App->cvi->nt > 0))
+  if (strchr(keys, 'f') && (App->cvi->vmSize != 0 || App->cvi->numTimes > 0))
     editImageSlot(EIMAGE_MENU_FILLER);
   if (strchr(keys, 'g') && imageOK)
     imageSlot(IMAGE_MENU_GRAPH);

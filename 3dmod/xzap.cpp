@@ -5009,8 +5009,8 @@ void ZapFuncs::drawTools()
     mQtWindow->setSizeText(winx, winy);
   }
 
-  if (mVi->nt) {
-    int time = mTimeLock ? mTimeLock : mVi->ct;
+  if (mVi->numTimes) {
+    int time = mTimeLock ? mTimeLock : mVi->curTime;
     if (mToolTime != time){
       mToolTime = time;
       mQtWindow->setTimeLabel(time, QString(ivwGetTimeIndexLabel(mVi, time)));

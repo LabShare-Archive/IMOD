@@ -62,7 +62,7 @@ void ivwInit(ImodView *vi, bool modview)
   vi->fullXsize  = vi->fullYsize  = vi->fullZsize  = 0;
   vi->xysize = 0;
 
-  vi->nt = 0; vi->ct = 0;
+  vi->numTimes = 0; vi->curTime = 0;
 
   // Initialize things needed for model view and then stop if model view only
   vi->imod       = NULL;
@@ -173,23 +173,23 @@ unsigned char **ivwGetZSectionTime(ImodView *vi, int section, int time)
 
   if (!vi)
     return NULL;
-  if (!vi->nt)
+  if (!vi->numTimes)
     return(ivwGetZSection(vi, section));
 
   /* DNM: make test > instead of >= */
-  if (time < 1 || time > vi->nt)
+  if (time < 1 || time > vi->numTimes)
     return(NULL);
 
   ivwGetTime(vi, &oldTime);
   if (time == oldTime) 
     return(ivwGetZSection(vi, section));
 
-  vi->ct = time;
+  vi->curTime = time;
   vi->hdr = vi->image = &vi->imageList[time-1];
   ivwReopen(vi->image);
   imageData = ivwGetZSection(vi, section);
   iiClose(vi->image);
-  vi->ct = oldTime;
+  vi->curTime = oldTime;
   vi->hdr = vi->image = &vi->imageList[oldTime-1];
   return(imageData);
 }
@@ -254,7 +254,7 @@ unsigned char **ivwGetZSection(ImodView *vi, int section)
       return(NULL);
     pixSize = ivwGetPixelBytes(vi->rawImageStore);
     for (sl = 0; sl < vi->ysize; sl++) {
-      slice = vi->cacheIndex[sl*vi->vmTdim + vi->ct - vi->vmTbase];
+      slice = vi->cacheIndex[sl*vi->vmTdim + vi->curTime - vi->vmTbase];
       if (slice < 0)
         vi->linePtrs[sl] = vi->blankLine;
       else
@@ -265,7 +265,7 @@ unsigned char **ivwGetZSection(ImodView *vi, int section)
   }
 
   /* Cached data otherwise */
-  sl = vi->cacheIndex[section * vi->vmTdim + vi->ct - vi->vmTbase];
+  sl = vi->cacheIndex[section * vi->vmTdim + vi->curTime - vi->vmTbase];
   /* imodPrintStderr("sect %d slice %d\n", section, sl);*/
   if (sl >= 0)
     tempSlicePtr = &(vi->vmCache[sl]);
@@ -298,8 +298,8 @@ unsigned char **ivwGetZSection(ImodView *vi, int section)
     ivwScaleDepth8(vi, tempSlicePtr);
 
     tempSlicePtr->cz = section;
-    tempSlicePtr->ct = vi->ct;
-    vi->cacheIndex[section * vi->vmTdim + vi->ct - vi->vmTbase] = sl;
+    tempSlicePtr->ct = vi->curTime;
+    vi->cacheIndex[section * vi->vmTdim + vi->curTime - vi->vmTbase] = sl;
   }
 
   /* Adjust use count, assign to slice */
@@ -894,7 +894,7 @@ int cache_ivwGetValue(ImodView *vi, int x, int y, int z)
   }
 
   /* get slice if it is loaded */
-  sl = vi->cacheIndex[z * vi->vmTdim + vi->ct - vi->vmTbase];
+  sl = vi->cacheIndex[z * vi->vmTdim + vi->curTime - vi->vmTbase];
   if (sl < 0)
     return(0);
 
@@ -1108,7 +1108,7 @@ int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
 
   // Time is an optional argument with default of -1 for current time
   if (time < 0)
-    time = vi->ct;
+    time = vi->curTime;
 
   *cacheSum = 0;
   bigGets = ((double)vi->xsize) * vi->ysize > 2.e9 ? 1 : 0;
@@ -1260,8 +1260,8 @@ void ivwFlushCache(ImodView *vi, int time)
   }
   if (time < 0) {
     vi->vmCount = 0;
-    tst = vi->nt ? 1 : 0;
-    tnd = vi->nt ? vi->nt : 0;
+    tst = vi->numTimes ? 1 : 0;
+    tnd = vi->numTimes ? vi->numTimes : 0;
   } else {
     tst = time;
     tnd = time;
@@ -1280,8 +1280,8 @@ int ivwInitCache(ImodView *vi)
   int ysize = vi->li->ymax - vi->li->ymin + 1;
   int zsize = vi->li->zmax - vi->li->zmin + 1;
 
-  vi->vmTdim = vi->nt ? vi->nt : 1;
-  vi->vmTbase = vi->nt ? 1 : 0;
+  vi->vmTdim = vi->numTimes ? vi->numTimes : 1;
+  vi->vmTbase = vi->numTimes ? 1 : 0;
 
   if (vi->li->axis == 2) {
     ysize = vi->li->zmax - vi->li->zmin + 1;
@@ -1366,7 +1366,7 @@ static int ivwSetCacheSize(ImodView *vi)
         vi->zmouse = vi->li->pcoords[(3*i)+2] - vi->li->zmin;
   } else
     /* For non-montage, maximum cache is size * number of files */
-    dzsize *= (vi->nt > 0) ? vi->nt : 1;
+    dzsize *= (vi->numTimes > 0) ? vi->numTimes : 1;
 
   /* If no entry, just take the maximum size */
   /* Otherwise, limit the entry to the maximum size needed */
@@ -1441,8 +1441,8 @@ int ivwFlip(ImodView *vi)
     /* If Image data is cached from disk */
     /* tell images to flipaxis */
           
-    if ((vi->nt) && (vi->imageList)){
-      for (t = 0; t < vi->nt; t++){
+    if ((vi->numTimes) && (vi->imageList)){
+      for (t = 0; t < vi->numTimes; t++){
         vi->imageList[t].axis = vi->li->axis;
       }
     }
@@ -1456,7 +1456,7 @@ int ivwFlip(ImodView *vi)
        number of planes, including ones for each file
        Otherwise, set it to occupy same amount of memory, rounding up
        to avoid erosion on repeated flips */
-    t = vi->nt > 0 ? vi->nt : 1;
+    t = vi->numTimes > 0 ? vi->numTimes : 1;
     if (vi->vmSize == t * vi->zsize)
       vi->vmSize = t * newz;
     else {
@@ -1571,9 +1571,9 @@ void ivwGetLocationPoint(ImodView *inImodView, Ipoint *outPoint)
 int ivwGetTime(ImodView *vi, int *time)
 {
   if (time){
-    *time = vi->ct;
+    *time = vi->curTime;
   }
-  return(vi->nt);
+  return(vi->numTimes);
 }
 
 /* Set the current time index.  Time index ranges from 1 to maxtime 
@@ -1582,8 +1582,8 @@ int ivwGetTime(ImodView *vi, int *time)
 void ivwSetTime(ImodView *vi, int time)
 {
     
-  if (!vi->nt) {
-    vi->ct = 0;
+  if (!vi->numTimes) {
+    vi->curTime = 0;
     if (vi->imod)
       vi->imod->ctime = 0;
     return;
@@ -1592,17 +1592,17 @@ void ivwSetTime(ImodView *vi, int time)
   /* DNM 6/17/01: Don't do this */
   /* inputSetModelTime(vi, time); */  /* set model point to a good value. */
 
-  if (vi->ct > 0 && !vi->fakeImage)
-    iiClose(&vi->imageList[vi->ct-1]);
+  if (vi->curTime > 0 && !vi->fakeImage)
+    iiClose(&vi->imageList[vi->curTime-1]);
 
-  vi->ct = time;
-  if (vi->ct > vi->nt)
-    vi->ct = vi->nt;
-  if (vi->ct <= 0)
-    vi->ct = 1;
+  vi->curTime = time;
+  if (vi->curTime > vi->numTimes)
+    vi->curTime = vi->numTimes;
+  if (vi->curTime <= 0)
+    vi->curTime = 1;
 
   if (!vi->fakeImage){
-    vi->hdr = vi->image = &vi->imageList[vi->ct-1];
+    vi->hdr = vi->image = &vi->imageList[vi->curTime-1];
     if (vi->ushortStore)
       ImodInfoWidget->setLHSliders(vi->rangeLow, vi->rangeHigh, vi->image->smin, 
                                    vi->image->smax, vi-> image->type == IITYPE_FLOAT);
@@ -1614,14 +1614,14 @@ void ivwSetTime(ImodView *vi, int time)
   /* DNM: update scale window */
   imodImageScaleUpdate(vi);
   if (vi->imod)
-    vi->imod->ctime = vi->ct;
+    vi->imod->ctime = vi->curTime;
 }
 
 const char *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex)
 {
   if (!inImodView) return "";
   if (inIndex < 1) return "";
-  if (inIndex > inImodView->nt) return "";
+  if (inIndex > inImodView->numTimes) return "";
   if (inImodView->fakeImage) return "";
   return(inImodView->imageList[inIndex-1].description);
 }
@@ -1633,15 +1633,15 @@ const char *ivwGetTimeLabel(ImodView *inImodView)
 
 int  ivwGetMaxTime(ImodView *inImodView)
 {
-  return(inImodView->nt);
+  return(inImodView->numTimes);
 }
 
 // Set the time of a new contour - only if there are multiple times and the
 // object flags indicate time is to be stored
 void ivwSetNewContourTime(ImodView *vw, Iobj *obj, Icont *cont)
 {
-  if (vw->nt && obj && cont && iobjTime(obj->flags)) {
-    cont->time = vw->ct;
+  if (vw->numTimes && obj && cont && iobjTime(obj->flags)) {
+    cont->time = vw->curTime;
   }
 }
 
@@ -1789,7 +1789,7 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
   if (vi->li){
 
     /* get to index values in file from screen index values */
-    if (ivwGetImagePadding(vi, cy, cz, vi->ct, llx, xpad, fx, lly, ypad, fy, llz, 
+    if (ivwGetImagePadding(vi, cy, cz, vi->curTime, llx, xpad, fx, lly, ypad, fy, llz, 
                            zpad, fz) < 0)
         return 0.;
 
@@ -2332,8 +2332,8 @@ int ivwLoadIMODifd(ImodView *vi)
 
       /* DNM: set time and increment time counter here, not with
          the TIME label */
-      image->time = vi->nt;
-      vi->nt++;
+      image->time = vi->numTimes;
+      vi->numTimes++;
 
       if (filename)
         free(filename);
@@ -2389,8 +2389,8 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage)
     vi->fp = image->fp;
     vi->hdr = vi->image = image;
     
-    image->time = vi->nt;
-    vi->nt++;
+    image->time = vi->numTimes;
+    vi->numTimes++;
 
     /* Copy filename with directory stripped to the descriptor */
     /* There was strange comment about "Setting the fp keeps it from closing 
@@ -2430,7 +2430,7 @@ int ivwLoadImage(ImodView *vi)
     vi->xUnbinSize = vi->xsize;
     vi->yUnbinSize = vi->ysize;
     vi->zUnbinSize = vi->zsize;
-    if (vi->nt > 1)
+    if (vi->numTimes > 1)
       ivwSetTime(vi, 1);
 
     vi->rawImageStore = 0;
@@ -2458,7 +2458,7 @@ int ivwLoadImage(ImodView *vi)
   vi->doingInitialLoad = 1;
      
   /* Set up the cache and load it for a variety of conditions */
-  if (vi->li->plist || vi->nt || vi->multiFileZ > 0 || vi->vmSize || vi->ushortStore) {
+  if (vi->li->plist || vi->numTimes || vi->multiFileZ > 0 || vi->vmSize || vi->ushortStore) {
 
     /* DNM: only one mode won't work now; just exit in either case */
     if (vi->hdr->mode == MRC_MODE_COMPLEX_SHORT){
@@ -2682,7 +2682,7 @@ static int ivwProcessImageList(ImodView *vi)
     if (ilist->size > 1 && zsize == 1 && vi->multiFileZ >= 0) {
       zsize = ilist->size;
       vi->multiFileZ = ilist->size;
-      vi->ct = vi->nt = 0;
+      vi->curTime = vi->numTimes = 0;
     } 
 
     /* Use this to fix the load-in coordinates, then use those to set the
@@ -2727,7 +2727,7 @@ static int ivwProcessImageList(ImodView *vi)
     }
     memcpy(vi->image, ilist->data, sizeof(ImodImageFile));
     ivwReopen(vi->image);
-    vi->ct = vi->nt = 0;
+    vi->curTime = vi->numTimes = 0;
     vi->imageList = NULL;
     if (cmaps) {
       xcramp_copyfalsemap(&vi->image->colormap[768 * vi->li->zmin]);
@@ -3235,7 +3235,7 @@ void ivwSetOverlayMode(ImodView *vw, int sec, int reverse,
 Icont *ivwGetOrMakeContour(ImodView *vw, Iobj *obj, int timeLock)
 {
   Icont *cont = imodContourGet(vw->imod);
-  int curTime = timeLock ? timeLock : vw->ct;
+  int curTime = timeLock ? timeLock : vw->curTime;
   if (!cont || (obj->extra[IOBJ_EX_PNT_LIMIT] && 
                 cont->psize >= obj->extra[IOBJ_EX_PNT_LIMIT])) {
   
@@ -3277,8 +3277,8 @@ Icont *ivwGetOrMakeContour(ImodView *vw, Iobj *obj, int timeLock)
    current display time, which is either global time or timelock time */
 bool ivwTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 {
-  int time = timelock ? timelock : vi->ct;
-  return (vi->nt > 0 && iobjFlagTime(obj) && cont->time && 
+  int time = timelock ? timelock : vi->curTime;
+  return (vi->numTimes > 0 && iobjFlagTime(obj) && cont->time && 
           (time != cont->time));
 }
 

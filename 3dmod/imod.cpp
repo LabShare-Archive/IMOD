@@ -637,7 +637,7 @@ int main( int argc, char *argv[])
     /* If we have a model and no image files before that, then it's a fake image */
     vi.fakeImage = 1;
     Imod_imagefile = NULL;
-    vi.nt = Model->tmax = imodGetMaxTime(Model);
+    vi.numTimes = Model->tmax = imodGetMaxTime(Model);
     
   } else if (!firstfile || lastimage == firstfile) {
     
@@ -727,7 +727,7 @@ int main( int argc, char *argv[])
     }*/
 
   /* Now look for piece coordinates - moved up from below 1/2/04 */
-  if (!vi.fakeImage && vi.nt <= 1 && !vi.li->plist && !dataFromStdin) {
+  if (!vi.fakeImage && vi.numTimes <= 1 && !vi.li->plist && !dataFromStdin) {
     /* Check for piece list file and read it */
     iiPlistLoad(plistfname, vi.li, vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
 

@@ -66,7 +66,7 @@ void imodv_swapbuffers(ImodvApp *a)
     return;
   a->mainWin->mCurGLw->makeCurrent();
   
-  if (a->db)
+  if (a->dblBuf)
     a->mainWin->mCurGLw->swapBuffers();
   glFlush();
 }
@@ -78,9 +78,9 @@ static void imodv_clear(ImodvApp *a)
   glClearColor(a->rbgcolor->red() / 256., a->rbgcolor->green() / 256.,
 	       a->rbgcolor->blue() / 256., a->transBkgd ? 0.0 : 1.0);
   if (a->clearAfterStereo) {
-    glDrawBuffer(a->db ? GL_BACK_RIGHT : GL_RIGHT);
+    glDrawBuffer(a->dblBuf ? GL_BACK_RIGHT : GL_RIGHT);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDrawBuffer(a->db ? GL_BACK : GL_FRONT);
+    glDrawBuffer(a->dblBuf ? GL_BACK : GL_FRONT);
     a->clearAfterStereo = 0;
   }
      
@@ -94,7 +94,7 @@ static void imodv_clear(ImodvApp *a)
 */
 void imodv_setbuffer(ImodvApp *a, int db, int stereo, int alpha)
 {
-  int useStereo, useDb = a->db;
+  int useStereo, useDb = a->dblBuf;
   int inStereo = a->stereo == IMODV_STEREO_HW ? 1 : 0;
   int useAlpha = a->alphaVisual;
 
@@ -116,9 +116,9 @@ void imodv_setbuffer(ImodvApp *a, int db, int stereo, int alpha)
     useStereo = inStereo;
     useAlpha = alpha;
   } else {
-    if ((a->db && ((!stereo && a->enableDepthDB < 0 && a->enableDepthDBal < 0) || 
+    if ((a->dblBuf && ((!stereo && a->enableDepthDB < 0 && a->enableDepthDBal < 0) || 
                    (stereo && a->enableDepthDBst < 0 && a->enableDepthDBstAl < 0))) ||
-        (!a->db && ((!stereo && a->enableDepthSB < 0) || 
+        (!a->dblBuf && ((!stereo && a->enableDepthSB < 0) || 
                     (stereo && a->enableDepthSBst < 0 ))))
       return;
     useStereo = stereo;
@@ -130,7 +130,7 @@ void imodv_setbuffer(ImodvApp *a, int db, int stereo, int alpha)
     return;
 
   // Only if it succeeds do we update the state items
-  a->db = useDb;
+  a->dblBuf = useDb;
   a->alphaVisual = useAlpha;
   a->mainWin->setCheckableItem(VVIEW_MENU_DB, useDb);
   imodvStereoUpdate();
@@ -156,7 +156,7 @@ void imodvInitializeGL()
   glFogi(GL_FOG_MODE, GL_LINEAR);
   glFogf(GL_FOG_START,  0.0f);
   glFogf(GL_FOG_END, rad);
-  if (!Imodv->db)
+  if (!Imodv->dblBuf)
       glEnable(GL_LINE_SMOOTH);
   light_init();
 
@@ -185,11 +185,11 @@ void imodvDraw(ImodvApp *a)
   // But first update all model angles if linked to slicer
   if (a->linkToSlicer && !getTopSlicerAngles(angles, &center, time)) {
     if (!a->moveall) {
-      mstrt = a->cm;
+      mstrt = a->curMod;
       mend = mstrt + 1;
     } else {
       mstrt = 0;
-      mend = a->nm;
+      mend = a->numMods;
     }
 
     for (m = mstrt; m < mend; m++) {
@@ -262,12 +262,12 @@ void imodvPaintGL()
 
     // 6/8/04: The second clear may be superfluous, let stereo routine decide
     a->stereo *= -1;
-    stereoDrawBuffer(a->db ? GL_BACK_RIGHT : GL_RIGHT);
+    stereoDrawBuffer(a->dblBuf ? GL_BACK_RIGHT : GL_RIGHT);
     imodvStereoClear();
     imodvDraw_models(a);
 
     a->stereo *= -1;
-    stereoDrawBuffer(a->db ? GL_BACK_LEFT : GL_LEFT);
+    stereoDrawBuffer(a->dblBuf ? GL_BACK_LEFT : GL_LEFT);
     imodvStereoClear();
     imodvDraw_models(a);
     break;
@@ -393,9 +393,9 @@ int imodv_auto_snapshot(QString fname, int format_type)
 
   imodPrintStderr("3dmodv: Saving image to %s", LATIN1(sname));
 
-  if (a->db)
+  if (a->dblBuf)
     a->mainWin->mCurGLw->setBufferSwapAuto(false);
-  glReadBuffer(a->db ? GL_BACK : GL_FRONT);
+  glReadBuffer(a->dblBuf ? GL_BACK : GL_FRONT);
 
   if (format_type == SnapShot_TIF || 
       (format_type == SnapShot_RGB && ImodPrefs->snapFormat() != "RGB")) {
@@ -413,7 +413,7 @@ int imodv_auto_snapshot(QString fname, int format_type)
       imodPrintStderr(".\n");
   }
 
-  if (a->db) {
+  if (a->dblBuf) {
     imodv_swapbuffers(a);
     a->mainWin->mCurGLw->setBufferSwapAuto(true);
   }

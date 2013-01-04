@@ -597,7 +597,7 @@ void initReadInModelData(Imod *newModel, bool keepBW)
 
   /* DNM: check wild flags here, after any changes in model */
   ivwCheckWildFlag(newModel);
-  vi->imod->ctime = vi->ct;
+  vi->imod->ctime = vi->curTime;
 
   /* DNM: model should never start out in model mode! */
   imod_set_mmode(IMOD_MMOVIE);
@@ -685,7 +685,7 @@ int createNewModel(const char *modelFilename)
 
   vi->imod->mousemode = mode;
   imod_cmap(vi->imod);
-  vi->imod->ctime = vi->ct;
+  vi->imod->ctime = vi->curTime;
 
   imod_info_setobjcolor();
   if (!vi->doingInitialLoad)
@@ -716,7 +716,7 @@ void initNewModel(Imod *imod)
 
   /* DNM 5/16/02: if multiple image files, set time flag by default */
   obj = imodObjectGet(imod);
-  if (App->cvi->nt)
+  if (App->cvi->numTimes)
     obj->flags |= IMOD_OBJFLAG_TIME;
   setModelScalesFromImage(imod, true);
 }

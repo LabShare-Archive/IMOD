@@ -2208,7 +2208,7 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
   case Qt::Key_2:
     if (mTimeLock) {
       mTimeLock += (keysym == Qt::Key_1) ? -1 : 1;
-      mTimeLock = B3DMAX(1, B3DMIN(mVi->nt, mTimeLock));
+      mTimeLock = B3DMAX(1, B3DMIN(mVi->numTimes, mTimeLock));
       Draw();
     } else 
       handled = 0;

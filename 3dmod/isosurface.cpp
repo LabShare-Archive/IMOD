@@ -500,7 +500,7 @@ ImodvIsosurface::ImodvIsosurface(ImodView *vi, QWidget *parent, const char *name
   if (iisData.flags & IIS_CENTER_VOLUME) 
     setViewCenter();
   setBoundingObj();
-  for (int i = 0; i<mVi->nt+1; i++) {
+  for (int i = 0; i<mVi->numTimes+1; i++) {
     mStackThresholds.push_back(-1.0);
     mStackOuterLims.push_back(-1);
   }
@@ -597,10 +597,10 @@ bool ImodvIsosurface::allocArraysIfNeeded()
  */
 int ImodvIsosurface::getCurrStackIdx()
 {
-  if(mVi->nt == 0)
+  if(mVi->numTimes == 0)
     return 0;
   else
-    return mVi->ct - 1;
+    return mVi->curTime - 1;
 }
 
 /*

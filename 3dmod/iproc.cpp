@@ -347,7 +347,7 @@ void iprocUpdate(void)
 
   /* If time or section has changed, do an apply */
   if (B3DNINT(proc.vi->zmouse) != proc.idatasec || 
-      proc.vi->ct != proc.idatatime) 
+      proc.vi->curTime != proc.idatatime) 
     proc.dia->apply();
 }
 
@@ -506,7 +506,7 @@ static void copyAndDisplay()
         to[j][i] = *from++;
   }
 
-  imod_info_float_clear(cz, ip->vi->ct);
+  imod_info_float_clear(cz, ip->vi->curTime);
   imodDraw(ip->vi, IMOD_DRAW_IMAGE);
 }
 
@@ -1038,7 +1038,7 @@ void IProcWindow::buttonClicked(int which)
 
   case 1:  // More
     /* If this is not the same section, treat it as an Apply */
-    if (cz != ip->idatasec || ip->vi->ct != ip->idatatime) {
+    if (cz != ip->idatasec || ip->vi->curTime != ip->idatatime) {
       apply();
       break;
     }
@@ -1049,7 +1049,7 @@ void IProcWindow::buttonClicked(int which)
     break;
 
   case 2:  // Toggle
-    if (ip->modified && cz == ip->idatasec && ip->vi->ct == ip->idatatime)
+    if (ip->modified && cz == ip->idatasec && ip->vi->curTime == ip->idatatime)
       copyAndDisplay();
     break;
 
@@ -1081,7 +1081,7 @@ void IProcWindow::buttonPressed(int which)
   int cz =  (int)(ip->vi->zmouse + 0.5f);
 
   if (which != 2 || !ip->modified || cz != ip->idatasec || 
-      ip->vi->ct != ip->idatatime)
+      ip->vi->curTime != ip->idatatime)
     return;
      
   if (savedToImage(ip))
@@ -1105,9 +1105,9 @@ void IProcWindow::apply()
   ip->andfDoneLabel->setText("0 done");
 
   /* If this is a new section, save the data */
-  if (cz != ip->idatasec || ip->vi->ct != ip->idatatime) {
+  if (cz != ip->idatasec || ip->vi->curTime != ip->idatatime) {
     ip->idatasec = cz;
-    ip->idatatime = ip->vi->ct;
+    ip->idatatime = ip->vi->curTime;
     savesec(ip);
   }
 

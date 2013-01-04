@@ -674,7 +674,7 @@ static void makeMontage(int frames, int overlap)
     if (vw->fovy >= 1.0f) {
       imodError(NULL, "%s model has a perspective setting of %d (see "
                 "Edit-Controls window).\nThe montage will not work right "
-                "with perspective.", a->nm > 1 ? "One" : "This", (int)vw->fovy);
+                "with perspective.", a->numMods > 1 ? "One" : "This", (int)vw->fovy);
       return;
     }
   }
@@ -682,7 +682,7 @@ static void makeMontage(int frames, int overlap)
   a->xrotMovie = a->yrotMovie = a->zrotMovie = 0;
   a->movie = 0;
   a->moveall = 0;
-  mmd = B3DMALLOC(MontModelData, a->nm);
+  mmd = B3DMALLOC(MontModelData, a->numMods);
   if (!mmd) {
     imodError(NULL, "Failed to get memory for saving data per model.\n");
     return;
@@ -743,9 +743,9 @@ static void makeMontage(int frames, int overlap)
      in regular snapshot) */
   // But 4/6/05: It was needed to prevent getting an out-of-date image for
   // one machine under xorg-6.7.0
-  if (a->db)
+  if (a->dblBuf)
     a->mainWin->mCurGLw->setBufferSwapAuto(false);
-  glReadBuffer(a->db ? GL_BACK : GL_FRONT);
+  glReadBuffer(a->dblBuf ? GL_BACK : GL_FRONT);
 
   for (iy = 0; iy < frames; iy++) {
     for (ix = 0; ix < frames; ix++) {
@@ -805,7 +805,7 @@ static void makeMontage(int frames, int overlap)
   
   utilFreeMontSnapArrays(fullPix, numChunks, framePix, linePtrs);
   
-  if (a->db) {
+  if (a->dblBuf) {
     imodv_swapbuffers(a);
     a->mainWin->mCurGLw->setBufferSwapAuto(true);
   }

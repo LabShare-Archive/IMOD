@@ -108,14 +108,14 @@ static const char *blackString = "black";
    9/2/02: also called for model view initialization in imod */
 static int imodv_init(ImodvApp *a)
 {
-  a->nm = 0;
-  a->cm = 0;
+  a->numMods = 0;
+  a->curMod = 0;
   a->mod = NULL;
   a->imod = NULL;
   a->mat  = imodMatNew(3);
   a->rmat  = imodMatNew(3);
   a->obj = imodObjectNew();
-  a->ob = 0;
+  a->objNum = 0;
   a->cnear = 0;
   a->cfar = 1000;
   a->fovy = 0;
@@ -187,7 +187,7 @@ static void initstruct(ImodView *vw, ImodvApp *a)
 
   imodv_init(a);
 
-  a->nm = 1;
+  a->numMods = 1;
   a->mod = (Imod **)malloc(sizeof(Imod *));
   a->mod[0] = vw->imod;
   a->imod = vw->imod;
@@ -195,8 +195,8 @@ static void initstruct(ImodView *vw, ImodvApp *a)
   /* DNM 8/3/01: start with current object if defined */
   if (a->imod->cindex.object >= 0 && 
       a->imod->cindex.object < a->imod->objsize) {
-    a->ob = a->imod->cindex.object;
-    a->obj = &(a->imod->obj[a->ob]);
+    a->objNum = a->imod->cindex.object;
+    a->obj = &(a->imod->obj[a->objNum]);
   }
 
   /* control flags */
@@ -372,7 +372,8 @@ static int getVisuals(ImodvApp *a)
                     colorSBst, depthSBst);
 
   // set to double buffer if visual exists
-  a->db = (depthDB >= 0 || depthDBst >= 0 || depthDBal >= 0 || depthDBstAl >= 0) ? 1 : 0;
+  a->dblBuf = (depthDB >= 0 || depthDBst >= 0 || depthDBal >= 0 || depthDBstAl >= 0) ? 
+    1 : 0;
   return 0;
 }
 
@@ -454,8 +455,8 @@ static int load_models(int n, char **fname, ImodvApp *a)
   if (n < 1)
     return(0);
   a->mod = (Imod **)malloc(sizeof(Imod *) * n);
-  a->nm = n;
-  a->cm = 0;
+  a->numMods = n;
+  a->curMod = 0;
   for(i = 0; i < n; i++){
     a->mod[i] = imodRead(LATIN1(QDir::convertSeparators(QString(fname[i]))));
     if (!a->mod[i]){
@@ -485,12 +486,12 @@ static int load_models(int n, char **fname, ImodvApp *a)
     imodvViewsInitialize(mod);
   }
 
-  a->imod = (a->mod[a->cm]);
+  a->imod = (a->mod[a->curMod]);
   /* DNM 8/3/01: start with current object if defined */
   if (a->imod->cindex.object >= 0 && 
       a->imod->cindex.object < a->imod->objsize) {
-    a->ob = a->imod->cindex.object;
-    a->obj = &(a->imod->obj[a->ob]);
+    a->objNum = a->imod->cindex.object;
+    a->obj = &(a->imod->obj[a->objNum]);
   }
    
   return(0);
@@ -560,7 +561,7 @@ int imodv_main(int argc, char **argv)
       break;
   }
 
-  a->db        = 1;
+  a->dblBuf        = 1;
 
   // Make a vi structure and initialize extra objects
   a->vi = (ImodView *)malloc(sizeof(ImodView));

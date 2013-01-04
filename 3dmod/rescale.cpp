@@ -266,7 +266,7 @@ void ImageScaleWindow::applyLimits()
   if (vi->vmSize) {
 
     /* If cached data, flush the cache in all cases for the current time */
-    ivwFlushCache(vi, vi->ct);
+    ivwFlushCache(vi, vi->curTime);
 
     /* Then reload if we are supposed to keep cache full */
     if (vi->keepCacheFull) {
@@ -297,7 +297,7 @@ void ImageScaleWindow::applyLimits()
     ivwFlip(vi);
 
   /* DNM: clear any information for floating windows for this time */
-  imod_info_float_clear(-vi->zsize, vi->ct);
+  imod_info_float_clear(-vi->zsize, vi->curTime);
   imod_info_setbw(black, white);     
   xcramp_setlevels(vi->cramp,black,white);
 

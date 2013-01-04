@@ -163,16 +163,16 @@ int imodvLoadModel()
         tmod->tmax = tmod->obj[ob].cont[co].time;
   tmod->ctime = tmod->tmax ? 1 : 0;
 
-  tmoda = (Imod **)malloc(sizeof(Imod *) * (a->nm + 1));
-  for (i = 0; i < a->nm; i++)
+  tmoda = (Imod **)malloc(sizeof(Imod *) * (a->numMods + 1));
+  for (i = 0; i < a->numMods; i++)
     tmoda[i] = a->mod[i];
   tmoda[i] = tmod;
-  if (a->nm)
+  if (a->numMods)
     free(a->mod);
   a->mod = tmoda;
 
-  /*     a->cm = a->nm; */
-  a->nm++;
+  /*     a->curMod = a->numMods; */
+  a->numMods++;
   /*     a->imod = tmod; */
 
   /* DNM: changes for storage of object properties in view and 
@@ -180,7 +180,7 @@ int imodvLoadModel()
 
   imodvViewsInitialize(tmod);
 
-  imodvSelectModel(a, a->nm - 1);
+  imodvSelectModel(a, a->numMods - 1);
   return(0);
 }
 
@@ -377,8 +377,8 @@ void imodvViewMenu(int item)
   bool freeXobj;
   switch (item) {
   case VVIEW_MENU_DB:
-    imodv_setbuffer(a, 1 - a->db, -1, -1);
-    a->mainWin->setEnabledMenuItem(VVIEW_MENU_TRANSBKGD, a->db &&
+    imodv_setbuffer(a, 1 - a->dblBuf, -1, -1);
+    a->mainWin->setEnabledMenuItem(VVIEW_MENU_TRANSBKGD, a->dblBuf &&
                                    (a->enableDepthDBal >= 0 ||
                                     a->enableDepthDBstAl >= 0));
     break;

@@ -248,7 +248,7 @@ int getTopSlicerAngles(float angles[3], Ipoint *center, int &time)
   center->x = ss->mCx;
   center->y = ss->mCy;
   center->z = ss->mCz;
-  time = ss->mTimeLock ? ss->mTimeLock : ss->mVi->ct;
+  time = ss->mTimeLock ? ss->mTimeLock : ss->mVi->curTime;
   return 0;
 }
 
@@ -259,7 +259,7 @@ int getTopSlicerTime(bool &continuous)
   if (!ss)
     return -1;
   continuous = ss->mContinuous;
-  return ss->mTimeLock ? ss->mTimeLock : ss->mVi->ct;
+  return ss->mTimeLock ? ss->mTimeLock : ss->mVi->curTime;
 }
 
 // Notify the slicer angle dialog of a new time or general need to refresh
@@ -744,7 +744,7 @@ void SlicerFuncs::stateToggled(int index, int state)
     break;
 
   case SLICER_TOGGLE_TIMELOCK:
-    mTimeLock = state ? mVi->ct : 0;
+    mTimeLock = state ? mVi->curTime : 0;
     if (!state)
       draw();
     break;
@@ -917,7 +917,7 @@ int SlicerFuncs::synchronizeSlicers(bool draw)
 void SlicerFuncs::setCurrentOrNewRow(bool newrow)
 {
   ivwControlPriority(mVi, mCtrl);
-  sliceAngDia->setCurrentOrNewRow(mTimeLock ? mTimeLock : mVi->ct,
+  sliceAngDia->setCurrentOrNewRow(mTimeLock ? mTimeLock : mVi->curTime,
                                   newrow);
 }
 
@@ -925,7 +925,7 @@ void SlicerFuncs::setCurrentOrNewRow(bool newrow)
 void SlicerFuncs::setAnglesFromRow()
 {
   ivwControlPriority(mVi, mCtrl);
-  sliceAngDia->setAnglesFromRow(mTimeLock ? mTimeLock : mVi->ct);
+  sliceAngDia->setAnglesFromRow(mTimeLock ? mTimeLock : mVi->curTime);
 }
 
 /* 
@@ -2697,7 +2697,7 @@ void SlicerFuncs::paint()
     mDrawnZmouse = mVi->zmouse;
     if (sliceAngDia && (getTopSlicer() == this))
       sliceAngDia->topSlicerDrawing(mTang, mCx, mCy, mCz, 
-                                    mTimeLock ? mTimeLock : mVi->ct, 
+                                    mTimeLock ? mTimeLock : mVi->curTime, 
                                     sliderDragging + mousing, mContinuous);
   }
 
@@ -2729,8 +2729,8 @@ void SlicerFuncs::paint()
   mScaleBarSize = scaleBarDraw(mWinx, mWiny, mZoom, 0);
 
   // Update toolbar for time
-  if (mVi->nt) {
-    int time = mTimeLock ? mTimeLock : mVi->ct;
+  if (mVi->numTimes) {
+    int time = mTimeLock ? mTimeLock : mVi->curTime;
     if (mToolTime != time){
       mToolTime = time;
       mQtWindow->setTimeLabel(time, QString(ivwGetTimeIndexLabel(mVi, time)));

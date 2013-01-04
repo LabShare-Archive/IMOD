@@ -278,7 +278,7 @@ void imodInfoFloat(int state)
 {
   if (state) {
     sFloatOn = 1;
-    imod_info_bwfloat(App->cvi, (int)(App->cvi->zmouse + 0.5f), App->cvi->ct);
+    imod_info_bwfloat(App->cvi, (int)(App->cvi->zmouse + 0.5f), App->cvi->curTime);
     imod_info_setbw(App->cvi->black, App->cvi->white);
   } else
     sFloatOn = 0;
@@ -950,8 +950,8 @@ int imodInfoCurrentMeanSD(float &mean, float &sd, float &scaleLo, float &scaleHi
 
   // Get the limits to compute within, get images, get the mean & sd
   getSampleLimits(vi, ixStart, iyStart, nxUse, nyUse, sample, B3DNINT(vi->zmouse),
-                  vi->ct);
-  image = ivwGetZSectionTime(vi, B3DNINT(vi->zmouse), vi->ct);
+                  vi->curTime);
+  image = ivwGetZSectionTime(vi, B3DNINT(vi->zmouse), vi->curTime);
   if (!image)
     return 1;
   if (sampleMeanSD(image, vi->ushortStore ? 2 : 0, vi->xsize, vi->ysize, sample,

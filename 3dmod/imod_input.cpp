@@ -961,7 +961,7 @@ void inputNewObject(ImodView *vi)
     obj->fgcolor = App->objbase + vi->imod->cindex.object;
      
   /* DNM 5/16/02: if multiple image files, set time flag by default */
-  if (vi->nt)
+  if (vi->numTimes)
     obj->flags |= IMOD_OBJFLAG_TIME;
 
   if (imodSelectionListClear(vi))

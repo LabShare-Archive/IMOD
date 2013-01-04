@@ -184,12 +184,12 @@ void ImodWorkproc::movieProc()
   movie_inc(vi, &vi->ymouse, &vi->ymovie, 1, &show);
   movie_inc(vi, &vi->zmouse, &vi->zmovie, 2, &show);
 
-  timetmp = vi->ct;
+  timetmp = vi->curTime;
   movie_inc(vi, &timetmp, &vi->tmovie, 3, &show);
-  // vi->ct = (int)timetmp;
+  // vi->curTime = (int)timetmp;
 
   if (vi->tmovie != 0){
-    // vi->hdr = vi->image = &vi->imageList[vi->ct-1];
+    // vi->hdr = vi->image = &vi->imageList[vi->curTime-1];
     ivwSetTime(vi, (int)timetmp);
     drawflag |= IMOD_DRAW_IMAGE;
   }
