@@ -163,6 +163,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
       logReaderId = getLogFile().openReader();
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       return false;
     }
     catch (FileNotFoundException e) {
