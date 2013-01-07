@@ -51,7 +51,7 @@ public final class ParallelPanel implements Expandable, Storable {
   private static final String STORE_PREPEND = "ProcessorTable";
 
   private static final String TITLE = "Parallel Processing";
-  public static final String RESUME_LABEL = "Resume";
+  private static final String RESUME_LABEL = "Resume";
   static final String FIELD_LABEL = "Parallel processing";
   static final String MAX_CPUS_STRING = ":  Maximum number of CPUs recommended is ";
   private final String CPUS_SELECTED_LABEL = "CPUs: ";
@@ -259,9 +259,9 @@ public final class ParallelPanel implements Expandable, Storable {
   private void action(final ActionEvent event) {
     String command = event.getActionCommand();
     if (command == btnResume.getActionCommand()) {
-      manager.resume(axisID, processchunksParam, processResultDisplay, null, rootPanel,
-          null, popupChunkWarnings,
-          mediator.getRunMethodForParallelPanel(getProcessingMethod()), false);
+      manager.resume(axisID, processchunksParam, processResultDisplay, null, null,
+          popupChunkWarnings,
+          mediator.getRunMethodForParallelPanel(getProcessingMethod()), false, null);
     }
     else if (command == btnPause.getActionCommand()) {
       manager.pause(axisID);
@@ -417,11 +417,19 @@ public final class ParallelPanel implements Expandable, Storable {
 
   void msgKillingProcess() {
     btnPause.setEnabled(false);
-    btnResume.setEnabled(true);
+    btnResume.setEnabled(false);
   }
 
   void msgPausingProcess() {
     btnResume.setEnabled(true);
+  }
+
+  public void msgProcessDone() {
+    btnResume.setEnabled(true);
+  }
+
+  public void msgProcessStarted() {
+    btnResume.setEnabled(false);
   }
 
   /**
