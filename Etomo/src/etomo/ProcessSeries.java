@@ -189,6 +189,7 @@ public final class ProcessSeries implements ConstProcessSeries {
   private Process failProcess = null;
   private boolean debug = false;
   private boolean forceNextProcess = false;
+  private Process pauseProcess = null;
 
   public void dumpState() {
     System.err.print("[debug:" + debug + "]");
@@ -297,6 +298,28 @@ public final class ProcessSeries implements ConstProcessSeries {
     }
   }
 
+  /**
+   * All other processes are deleted and the pauseprocess is started if it exists.
+   * @returns true if a process was started
+   */
+  public boolean startPauseProcess(final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay) {
+    nextProcess = null;
+    processList = null;
+    lastProcess = null;
+    run3dmodButton = null;
+    run3dmodMenuOptions = null;
+    failProcess = null;
+    if (pauseProcess == null) {
+      return false;
+    }
+    Process process = pauseProcess;
+    pauseProcess = null;
+    manager.startNextProcess(uiComponent, axisID, process, processResultDisplay, this,
+        dialogType, processDisplay);
+    return true;
+  }
+
   public void setDebug(boolean input) {
     debug = input;
   }
@@ -323,6 +346,10 @@ public final class ProcessSeries implements ConstProcessSeries {
 
   public void setNextProcess(final TaskInterface task) {
     nextProcess = new Process(null, null, null, null, null, task, false);
+  }
+
+  public void setPauseProcess(final TaskInterface task) {
+    pauseProcess = new Process(null, null, null, null, null, task, false);
   }
 
   public void addProcess(final TaskInterface task) {
