@@ -42,9 +42,9 @@ secout = ''
 options = ["x:XStartAndEnd:IP:", "y:YStartAndEnd:IP:", "z:ZStartAndEnd:IP:",
            "nx:XSize:I:", "ny:YSize:I:", "nz:ZSize:I:", "sz:ZFindStartAndEnd:IP:",
            "sx:XFindStartAndEnd:IP:", "sy:YFindStartAndEnd:IP:",
-           "c:ContrastBlackWhite:IP:", "mm:IntegerMinMax:IP:", "yz:FlipYZ:B:",
-           "rx:RotateX:B:", "i:IndexCoordinates:B:", "f:FlippedCoordinates:B:",
-           "k:KeepOrigin:B:"]
+           "c:ContrastBlackWhite:IP:", "mm:IntegerMinMax:IP:", "rx:RotateX:B:",
+           "yz:FlipYZ:B:", "i:IndexCoordinates:B:", "f:FlippedCoordinates:B:",
+           "old:OldFlippedCoordinates:I:", "k:KeepOrigin:B:"]
 
 # Startup and get input and output files
 # Special case: give some good error messages for eliminated/renamed options
@@ -103,13 +103,16 @@ if ifzse + ifzsz > 1:
 
 # Flipping and rotation options
 flipyz = PipGetBoolean('FlippedCoordinates', 0)
+oldFlip = PipGetInteger('OldFlippedCoordinates', 0)
 if flipyz:
    fliparg = '-flip'
+   if oldFlip // 2 > 0:
+      fliparg += ' -oldflip'
 
 doflip = PipGetBoolean('FlipYZ', 0)
 dorot = PipGetBoolean('RotateX', 0)
 if dorot and doflip:
-   exitError('You cannot use both -eyz and -rx options')
+   exitError('You cannot use both -yz and -rx options')
 if doflip:
    doflip = 'flipyz'
 if dorot:
@@ -118,6 +121,12 @@ if dorot:
 if PipGetBoolean('KeepOrigin', 0):
    adjust = ''
 index = PipGetBoolean('IndexCoordinates', 0)
+
+# Get file size
+try:
+   (nx, ny, nz) = getmrcsize(inputFile)
+except ImodpyError:
+   exitFromImodError(progname)
 
 # If flipped coordinated, swap appropriate entries
 if flipyz:
@@ -128,17 +137,17 @@ if flipyz:
    ifysz = ifzsz
    ifzsz = stmp
    stmp = (ystart, yend)
-   (ystart, yend) = (zstart, zend)
+   if oldFlip % 2 > 0:
+      (ystart, yend) = (zstart, zend)
+   elif index:
+      (ystart, yend) = (ny - 1 - zend, ny - 1 - zstart)
+   else:
+      (ystart, yend) = (ny + 1 - zend, ny + 1 - zstart)
+
    (zstart, zend) = stmp
    stmp = ifyse
    ifyse = ifzse
    ifzse = stmp
-
-# Get file size
-try:
-   (nx, ny, nz) = getmrcsize(inputFile)
-except ImodpyError:
-   exitFromImodError(progname)
 
 # Check and set up the X coordinates
 xoffset = 0

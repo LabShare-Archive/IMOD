@@ -91,7 +91,7 @@ void imcResetAll(ImodView *vw)
   end[0] = vw->xsize - 1;
   end[1] = vw->ysize - 1;
   end[2] = vw->zsize - 1;
-  end[3] = vw->nt - 1;
+  end[3] = vw->numTimes - 1;
   for (i = 0; i < 4; i++) {
     if (end[i] < 0) end[i] = 0;
     maxend[i] = end[i];
@@ -336,7 +336,7 @@ void imodMovieConDialog(ImodView *vw)
   axiscon = 2;
   set_sliders();
   dia->setRateBox(realrate);
-  dia->enableTime(vw->nt);
+  dia->enableTime(vw->numTimes);
   adjustGeometryAndShow((QWidget *)dia, IMOD_DIALOG);
 }
 

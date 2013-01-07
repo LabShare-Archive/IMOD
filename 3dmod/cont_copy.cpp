@@ -252,7 +252,7 @@ ContourCopy::ContourCopy(QWidget *parent, const char *name)
   mToCombo->addItem("Copy to Next Section");
   mToCombo->addItem("Copy to Prev Section");
   mToCombo->addItem("Duplicate");
-  if (sData.vw->nt)
+  if (sData.vw->numTimes)
     mToCombo->addItem("Copy to Time Index #");
   mToCombo->setFocusPolicy(Qt::NoFocus);
   mToCombo->setCurrentIndex(sData.copyOperation);
@@ -283,7 +283,7 @@ ContourCopy::ContourCopy(QWidget *parent, const char *name)
   radio = diaRadioButton("All contours in object", gbox, mRadioGroup, 
                          gbLayout, 2, "Copy all eligible contours in object");
 
-  if (sData.vw->nt) {
+  if (sData.vw->numTimes) {
     mTimeRadio = diaRadioButton
       ("All contours in all objects", gbox, mRadioGroup, 
        gbLayout, 3, "Copy all contours at this time to selected time");
@@ -296,7 +296,7 @@ ContourCopy::ContourCopy(QWidget *parent, const char *name)
     radioVal = 1;
   if (sData.doAll)
     radioVal = 2;
-  if (sData.vw->nt && sData.doAllObj)
+  if (sData.vw->numTimes && sData.doAllObj)
     radioVal = 3;
   rangeSelected(radioVal);
   diaSetGroup(mRadioGroup, radioVal);
@@ -365,7 +365,7 @@ void ContourCopy::update()
 
   case COPY_TO_TIME:
     minVal = 1;
-    maxVal = vw->nt;
+    maxVal = vw->numTimes;
     sData.timeIndex = B3DMAX(1, B3DMIN(maxVal, sData.timeIndex));
     curVal = sData.timeIndex;
     break;
@@ -386,7 +386,7 @@ void ContourCopy::update()
   mToSpinBox->setEnabled(minVal > 0);
 
   // Enable the time radio button if appropriate
-  if (vw->nt)
+  if (vw->numTimes)
     mTimeRadio->setEnabled(sData.copyOperation == COPY_TO_TIME);
 
 }
@@ -454,9 +454,9 @@ void ContourCopy::apply()
 
   case COPY_TO_TIME:
     sData.currentTime = cont->time;
-    if ((sData.timeIndex > sData.vw->nt) ||
+    if ((sData.timeIndex > sData.vw->numTimes) ||
         ( sData.timeIndex < 1) || 
-        (sData.timeIndex ==  sData.vw->ct)) {
+        (sData.timeIndex ==  sData.vw->curTime)) {
       wprint("\a%sBad destination time index.\n", badCopy);
       return;
     }

@@ -66,14 +66,14 @@ end subroutine psMoveAbs
 
 subroutine psMoveInc(dx, dy)
   use psparams
-  call imma(xcur + dx, xcur + dy)
+  call psMoveAbs(xcur + dx, xcur + dy)
   return
 end subroutine psMoveInc
 
 
 subroutine psVectInc(dx, dy)
   use psparams
-  call imva(xcur + dx, ycur + dy)
+  call psVectAbs(xcur + dx, ycur + dy)
   return
 end subroutine psVectInc
 
@@ -153,48 +153,3 @@ subroutine pltout(metaScreen)
   return
 end subroutine pltout
 
-! Wrapper functions for old names in use here and symbol routine
-subroutine imset(ithickSet, widthSet, upiSet, safeSet, ifset)
-  call psSetup(ithickSet, widthSet, upiSet, safeSet, ifset)
-end subroutine imset
-
-subroutine imma(xin, yin)
-  call psMoveAbs(xin, yin)
-  return
-end subroutine imma
-
-subroutine imva(x, y)
-  call psVectAbs(x, y)
-  return
-end subroutine imva
-
-subroutine imexit()
-  call psExit()
-  return
-end subroutine imexit
-
-subroutine imsymb(x, y, itype)
-  call psSymbol(x, y, itype)
-  return
-end subroutine imsymb
-
-subroutine symsiz(size)
-  call psSymSize(size)
-  return
-end subroutine symsiz
-
-subroutine imgrid(xStart, yStart, xRange, yRange, nTicks, tickSize)
-  call psGridLine(xStart, yStart, xRange, yRange, nTicks, tickSize)
-  return
-end subroutine imgrid
-
-subroutine imlgrd(xStart, yStart, xRange, yRange, tickVals, nTicks, tickSize)
-  call psLogGrid(xStart, yStart, xRange, yRange, tickVals, nTicks, tickSize)
-  return
-end subroutine imlgrd
-
-! Wrappers to old names in psf.c
-subroutine frame()
-  call psFrame()
-  return
-end subroutine frame

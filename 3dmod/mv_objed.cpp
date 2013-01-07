@@ -276,7 +276,7 @@ void imodvObjedEditData(int option)
 // User selects a new object through spin box or slider
 void imodvObjedSelect(int which)
 {
-  Imodv->ob = which - 1;
+  Imodv->objNum = which - 1;
   objset(Imodv);
   if (Imodv->drawClip)
     imodvDraw(Imodv);
@@ -289,7 +289,7 @@ void imodvObjedName(const char *name)
   Iobj *obj = objedObject();
   if (!obj) return;
   
-  imodvRegisterObjectChg(Imodv->ob); 
+  imodvRegisterObjectChg(Imodv->objNum); 
   mi = strlen(name);
   if (mi >= IOBJ_STRSIZE)
     mi = IOBJ_STRSIZE - 1;
@@ -318,7 +318,7 @@ void objedToggleObj(int ob, bool state)
       imodvRegisterObjectChg(ob);
       if (state) {
         Imodv->mod[m]->obj[ob].flags &= ~IMOD_OBJFLAG_OFF;
-        Imodv->ob = ob;
+        Imodv->objNum = ob;
       } else
         Imodv->mod[m]->obj[ob].flags |= IMOD_OBJFLAG_OFF;
   }
@@ -380,18 +380,18 @@ static void objset(ImodvApp *a)
   unsigned int flag;
   char *namep;
   char tmpname[IOBJ_STRSIZE];
-  int numEditable = numEditableObjects(a->cm);
+  int numEditable = numEditableObjects(a->curMod);
 
   // If editable extra objects have just appeared, switch to first one
-  if (lastModNum == a->cm && numEditable > lastNumEditable && 
-      lastNumEditable == a->mod[a->cm]->objsize)
-    a->ob = lastNumEditable;
-  lastModNum = a->cm;
+  if (lastModNum == a->curMod && numEditable > lastNumEditable && 
+      lastNumEditable == a->mod[a->curMod]->objsize)
+    a->objNum = lastNumEditable;
+  lastModNum = a->curMod;
   lastNumEditable = numEditable;
 
   // Adjust object number and set structure variables
-  if (a->ob >= numEditable)
-    a->ob = 0;
+  if (a->objNum >= numEditable)
+    a->objNum = 0;
 
   // If editing Ons or a group, adjust object number to the nearest object that
   // was modified
@@ -399,12 +399,12 @@ static void objset(ImodvApp *a)
     type = 0;
     for (diff = 0; diff < a->imod->objsize && !type; diff++) {
       for (dir = -1; dir <= 1; dir += 2) {
-        ob = a->ob + dir * diff;
+        ob = a->objNum + dir * diff;
         if (ob < 0 || ob >= a->imod->objsize)
           continue;
         if ((Imodv_objed_all == editOns && !iobjOff(a->imod->obj[ob].flags)) ||
             (Imodv_objed_all == editGroup && imodvOlistObjInGroup(a, ob))) {
-          a->ob = ob;
+          a->objNum = ob;
           type = 1;
           break;
         }
@@ -441,12 +441,12 @@ static void objset(ImodvApp *a)
     }
 
     namep = obj->name;
-    if (!namep[0] && a->ob >= a->imod->objsize) {
+    if (!namep[0] && a->objNum >= a->imod->objsize) {
       namep = &tmpname[0];
-      sprintf(tmpname, "Extra object #%d", a->ob + 1 - a->imod->objsize);
+      sprintf(tmpname, "Extra object #%d", a->objNum + 1 - a->imod->objsize);
     }
 
-    objed_dialog->updateObject(a->ob + 1, numEditable, type, style, 
+    objed_dialog->updateObject(a->objNum + 1, numEditable, type, style, 
                                QColor((int)(255 * obj->red), 
                                       (int)(255 * obj->green),
                                       (int)(255 * obj->blue)), namep);
@@ -538,7 +538,7 @@ void objed(ImodvApp *a)
   ctrlPressed = false;
   objed_dialog->setCurrentFrame(CurrentObjectField, Imodv_objed_all);
   lastNumEditable = a->imod->objsize;
-  lastModNum = a->cm;
+  lastModNum = a->curMod;
   objset(a);
   imodvDialogManager.add((QWidget *)objed_dialog, IMODV_DIALOG);
   adjustGeometryAndShow((QWidget *)objed_dialog, IMODV_DIALOG);
@@ -574,7 +574,7 @@ void imodvObjedMakeOnOffs(QFrame *frame)
                    SLOT(toggleObjSlot(int)));
 
   // Make maximum number of buttons needed for all loaded models
-  for (m = 0; m < a->nm; m++)
+  for (m = 0; m < a->numMods; m++)
     num = B3DMAX(num, B3DMIN(MAX_ONOFF_BUTTONS, a->mod[m]->objsize));
   
   for (ob = 0; ob < num; ob++)
@@ -661,7 +661,7 @@ void ImodvObjed::lineColorSlot(int color, int value, bool dragging)
         setOnoffButtons();
         imodvOlistUpdateOnOffs(Imodv);
       } else
-        imodvOlistSetColor(Imodv, Imodv->ob);
+        imodvOlistSetColor(Imodv, Imodv->objNum);
     }
   } else if (color < 3)
     objed_dialog->updateColorBox(QColor((int)(255 * obj->red),
@@ -742,7 +742,7 @@ void ImodvObjed::fillColorSlot(int color, int value, bool dragging)
 
   // Register an object change the first time, set flag after that
   if (!sliding) {
-    imodvRegisterObjectChg(Imodv->ob);
+    imodvRegisterObjectChg(Imodv->objNum);
     imodvFinishChgUnit();
   }
   sliding = dragging;
@@ -1360,7 +1360,7 @@ void ImodvObjed::clipSkipSlot(bool state)
   Iobj *obj = objedObject();
   if (!obj)
     return;
-  imodvRegisterObjectChg(Imodv->ob);
+  imodvRegisterObjectChg(Imodv->objNum);
   if (state)
     obj->clips.flags |= (1 << 7);
   else
@@ -1378,7 +1378,7 @@ void ImodvObjed::clipPlaneSlot(int value)
   } else {
     if (!obj)
       return;
-    imodvRegisterObjectChg(Imodv->ob);
+    imodvRegisterObjectChg(Imodv->objNum);
     obj->clips.plane = value - 1;
   }
   imodvFinishChgUnit();
@@ -1401,7 +1401,7 @@ void ImodvObjed::clipResetSlot(int which)
   } else {
     if (!obj)
       return;
-    imodvRegisterObjectChg(Imodv->ob);
+    imodvRegisterObjectChg(Imodv->objNum);
     clips = &obj->clips;
     imodObjectGetBBox(obj, &min, &max);
   }
@@ -1434,7 +1434,7 @@ void ImodvObjed::clipInvertSlot()
   if (Imodv->imod->editGlobalClip)
     imodvRegisterModelChg();
   else
-    imodvRegisterObjectChg(Imodv->ob);
+    imodvRegisterObjectChg(Imodv->objNum);
   ipst = ipnd = clips->plane;
   if (Imodv->imod->view->world & WORLD_MOVE_ALL_CLIP) {
     ipst = 0;
@@ -1465,7 +1465,7 @@ void ImodvObjed::clipToggleSlot(bool state)
   if (Imodv->imod->editGlobalClip)
     imodvRegisterModelChg();
   else
-    imodvRegisterObjectChg(Imodv->ob);
+    imodvRegisterObjectChg(Imodv->objNum);
      
   ipst = ipnd = clips->plane;
   if (Imodv->imod->view->world & WORLD_MOVE_ALL_CLIP) {
@@ -1725,7 +1725,7 @@ void imodvObjedMoveToAxis(int which)
   imodvNewModelAngles(&rot);
 
   if (Imodv->moveall)
-    for (m = 0; m < Imodv->nm; m++)
+    for (m = 0; m < Imodv->numMods; m++)
       Imodv->mod[m]->view->rot = imod->view->rot;
 
   imodvDraw(Imodv);
@@ -2068,7 +2068,7 @@ static void setMakeMesh_cb(void)
   diaSetChecked(wMakeChecks[MAKE_MESH_CAP], cap); 
   diaSetChecked(wMakeChecks[MAKE_MESH_DOME], tube && 
                 (makeParams->flags & IMESH_MK_CAP_DOME));
-  wMakeDoButton->setEnabled(!scat && Imodv->ob < Imodv->imod->objsize);
+  wMakeDoButton->setEnabled(!scat && Imodv->objNum < Imodv->imod->objsize);
   wMakeChecks[MAKE_MESH_SKIP]->setEnabled(!tube && !scat);
   wMakeChecks[MAKE_MESH_TUBE]->setEnabled(iobjOpen(obj->flags) && !scat);
   wMakeChecks[MAKE_MESH_LOW]->setEnabled(!scat);
@@ -2227,7 +2227,7 @@ void ImodvObjed::makeDoAllSlot()
 {
   meshAllObjects = true;
   meshedObjNum = -1;
-  meshedModNum = Imodv->cm;
+  meshedModNum = Imodv->curMod;
 
   // This should keep going unless there is an error or thread used to run mesh
   while (!startMeshingNext()) {};
@@ -2256,8 +2256,8 @@ void ImodvObjed::makeDoitSlot()
   if (!obj->contsize)
     return;
   meshAllObjects = false;
-  meshedObjNum = Imodv->ob;
-  meshedModNum = Imodv->cm;
+  meshedObjNum = Imodv->objNum;
+  meshedModNum = Imodv->curMod;
   meshOneObject(obj);
 }
 
@@ -2369,7 +2369,7 @@ static int finishMesh()
       QString(b3dGetError());
     dia_err(LATIN1(str));
     retval = -1;
-  } else if (meshedModNum >= Imodv->nm || 
+  } else if (meshedModNum >= Imodv->numMods || 
       meshedObjNum >= Imodv->mod[meshedModNum]->objsize) {
     dia_err("The model changed in a way that prevents the mesh from being "
             "used - try again.");
@@ -2397,7 +2397,7 @@ static int finishMesh()
     // Switch between low and high res mode if it is still current model
     meshDupObj->meshsize = 0;
     meshDupObj->mesh = NULL;
-    if (meshedModNum == Imodv->cm && Imodv->lowres != resol && !ImodvClosed)
+    if (meshedModNum == Imodv->curMod && Imodv->lowres != resol && !ImodvClosed)
       imodvViewMenu(VVIEW_MENU_LOWRES);
  
     // Turn on mesh view same way as it is done from draw data selection
@@ -2419,8 +2419,8 @@ static int finishMesh()
       obj->flags &= ~IMOD_OBJFLAG_PNT_NOMODV;
 
     // Update various things
-    if (meshedModNum == Imodv->cm) {
-      if (meshedObjNum == Imodv->ob && objed_dialog)
+    if (meshedModNum == Imodv->curMod) {
+      if (meshedObjNum == Imodv->objNum && objed_dialog)
         objset(Imodv);
       if (turnon) {
         if (meshedObjNum < numOnoffButtons)
@@ -2471,10 +2471,10 @@ void MeshThread::run()
 Iobj *objedObject(void) 
 {
   // Make sure the object number is legal and refresh the object address
-  int num = numEditableObjects(Imodv->cm);
-  if (Imodv->ob > (num - 1))
-    Imodv->ob = B3DMAX(0, num - 1);
-  Imodv->obj = editableObject(Imodv->cm, Imodv->ob);
+  int num = numEditableObjects(Imodv->curMod);
+  if (Imodv->objNum > (num - 1))
+    Imodv->objNum = B3DMAX(0, num - 1);
+  Imodv->obj = editableObject(Imodv->curMod, Imodv->objNum);
   return Imodv->obj;
 }
 
@@ -2484,7 +2484,7 @@ static int numEditableObjects(int model)
 {
   Iobj *obj;
   int i, num = Imodv->imod->objsize;
-  if (model != Imodv->cm || Imodv->standalone)
+  if (model != Imodv->curMod || Imodv->standalone)
     return (Imodv->mod[model]->objsize);
   for (i = 0; i < Imodv->vi->numExtraObj; i++) {
     obj = ivwGetAnExtraObject(Imodv->vi, i);
@@ -2500,7 +2500,7 @@ static Iobj *editableObject(int model, int ob)
 {
   Iobj *obj;
   int i, num = Imodv->imod->objsize;
-  if (model != Imodv->cm || Imodv->standalone || ob < num) {
+  if (model != Imodv->curMod || Imodv->standalone || ob < num) {
     if (ob < 0 || ob >= Imodv->mod[model]->objsize)
       return NULL;
     return &Imodv->mod[model]->obj[ob];
@@ -2579,19 +2579,19 @@ static void finishChangeAndDraw(int doObjset, int drawImages)
     imodvDrawImodImages();
 }
 
-/* Maintain Imodv->ob and set the starting and ending model to change based 
+/* Maintain Imodv->objNum and set the starting and ending model to change based 
    on global flags and possible flag for individual entity*/
 static void setStartEndModel(int &mst, int &mnd, bool multipleOK)
 {
-  int num = numEditableObjects(Imodv->cm);
-  if (Imodv->ob > (num - 1))
-    Imodv->ob = num - 1;
+  int num = numEditableObjects(Imodv->curMod);
+  if (Imodv->objNum > (num - 1))
+    Imodv->objNum = num - 1;
 
   mst = 0;
-  mnd = Imodv->nm - 1;
+  mnd = Imodv->numMods - 1;
   if (!(Imodv->crosset && multipleOK && 
         !(Imodv_objed_all == editGroup && imodvOlistGrouping())))
-    mst = mnd = Imodv->cm;
+    mst = mnd = Imodv->curMod;
 }
 
 /* test whether the object ob should be changed in model m based on global
@@ -2600,7 +2600,7 @@ static bool changeModelObject(int m, int ob, bool multipleOK)
 {
   bool grouping = Imodv_objed_all == editGroup && imodvOlistGrouping() &&
     multipleOK;
-  bool retval = (ob == Imodv->ob && !grouping && (Imodv_objed_all != editOns ||
+  bool retval = (ob == Imodv->objNum && !grouping && (Imodv_objed_all != editOns ||
                                                   !multipleOK)) ||
     (grouping && imodvOlistObjInGroup(Imodv, ob)) ||
     (multipleOK && Imodv_objed_all == editAll) || 
@@ -2609,7 +2609,7 @@ static bool changeModelObject(int m, int ob, bool multipleOK)
 
   // If it is the current object and it is not being edited, then set flag for
   // objset to switch to a new object
-  if (!retval && ob == Imodv->ob && m == Imodv->cm)
+  if (!retval && ob == Imodv->objNum && m == Imodv->curMod)
     switchObjInObjset = true;
   return retval;
 }

@@ -39,9 +39,11 @@
 #include "preferences.h"
 #include "control.h"
 #include "scalebar.h"
+#include "utilities.h"
 
 static ImodvBkgColor bkgColor;
 static void toggleWorldFlag(int &globalVal, b3dUInt32 mask, int menuID);
+static int writeOpenedModelFile(ImodvApp *a, FILE *fout);
 
 /* DNM 12/1/02: make this the single path to opening the window, and have
    it keep track of whether window is open or not, and return if it is */
@@ -151,6 +153,7 @@ int imodvLoadModel()
   tmod = imodRead(LATIN1(qname));
   if (!tmod)
     return(-1);
+  utilExchangeFlipRotation(tmod, FLIP_TO_ROTATION);
 
   /* DNM 6/20/01: find out max time and set current time */
   tmod->tmax = 0;
@@ -160,16 +163,16 @@ int imodvLoadModel()
         tmod->tmax = tmod->obj[ob].cont[co].time;
   tmod->ctime = tmod->tmax ? 1 : 0;
 
-  tmoda = (Imod **)malloc(sizeof(Imod *) * (a->nm + 1));
-  for (i = 0; i < a->nm; i++)
+  tmoda = (Imod **)malloc(sizeof(Imod *) * (a->numMods + 1));
+  for (i = 0; i < a->numMods; i++)
     tmoda[i] = a->mod[i];
   tmoda[i] = tmod;
-  if (a->nm)
+  if (a->numMods)
     free(a->mod);
   a->mod = tmoda;
 
-  /*     a->cm = a->nm; */
-  a->nm++;
+  /*     a->curMod = a->numMods; */
+  a->numMods++;
   /*     a->imod = tmod; */
 
   /* DNM: changes for storage of object properties in view and 
@@ -177,7 +180,7 @@ int imodvLoadModel()
 
   imodvViewsInitialize(tmod);
 
-  imodvSelectModel(a, a->nm - 1);
+  imodvSelectModel(a, a->numMods - 1);
   return(0);
 }
 
@@ -214,14 +217,7 @@ void imodvFileSave()
                  "wb");
 
   if (fout){
-    a->imod->file = fout;
-    error = imodWrite(a->imod, a->imod->file);
-    /*        error = imodWrite(Imodv->imod, Imodv->imod->file); */
-    fflush(fout);
-    fclose(fout);
-    a->imod->file = NULL;
-    if (!error)
-      dia_puts("Model file saved.");
+    error = writeOpenedModelFile(a, fout);
   } else
     error = 1;
 
@@ -271,11 +267,7 @@ void imodvSaveModelAs()
 
   fout = fopen(LATIN1(QDir::convertSeparators(QString(filename))), "wb");
   if (fout){
-    a->imod->file = fout;
-    error = imodWrite(Imodv->imod, fout);
-    fflush(fout);
-    fclose(fout);
-    Imodv->imod->file = NULL;
+    error = writeOpenedModelFile(a, fout);
 
     if (!error) {
       if (a->imod->fileName)
@@ -288,8 +280,6 @@ void imodvSaveModelAs()
         memcpy(a->imod->name, filename, strlen(filename)+1);
       else
         a->imod->name[0] = 0x00;
-          
-      dia_puts("Model file saved.");
     }
   } else {
     error = 1;
@@ -302,6 +292,23 @@ void imodvSaveModelAs()
   }
   free(nfname1);
   free(filename);
+}
+
+// Do common functions for writing model file after file opened
+// Convert rotation to flip for saving, and back afterwards
+static int writeOpenedModelFile(ImodvApp *a, FILE *fout)
+{
+  int error;
+  a->imod->file = fout;
+  utilExchangeFlipRotation(a->imod, ROTATION_TO_FLIP);
+  error = imodWrite(a->imod, a->imod->file);
+  utilExchangeFlipRotation(a->imod, FLIP_TO_ROTATION);
+  fflush(fout);
+  fclose(fout);
+  a->imod->file = NULL;
+  if (!error)
+    dia_puts("Model file saved.");
+  return error;
 }
 
 // The file menu dispatch function
@@ -370,8 +377,8 @@ void imodvViewMenu(int item)
   bool freeXobj;
   switch (item) {
   case VVIEW_MENU_DB:
-    imodv_setbuffer(a, 1 - a->db, -1, -1);
-    a->mainWin->setEnabledMenuItem(VVIEW_MENU_TRANSBKGD, a->db &&
+    imodv_setbuffer(a, 1 - a->dblBuf, -1, -1);
+    a->mainWin->setEnabledMenuItem(VVIEW_MENU_TRANSBKGD, a->dblBuf &&
                                    (a->enableDepthDBal >= 0 ||
                                     a->enableDepthDBstAl >= 0));
     break;

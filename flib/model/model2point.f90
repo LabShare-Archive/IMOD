@@ -64,6 +64,7 @@ program model2point
   ierr = PipGetLogical('ObjectAndContour', printObj)
   ierr = PipGetLogical('Contour', printCont)
   ierr = PipGetLogical('FloatingPoint', floating)
+  ierr = PipGetLogical('ScaledCoordinates', scaled)
   ierr = PipGetBoolean('NumberedFromZero', numOffset)
   ierr = PipGetInteger('ValuesInLastColumn', ifValues)
   ierr = PipGetFloat('FillValue', fillVal)

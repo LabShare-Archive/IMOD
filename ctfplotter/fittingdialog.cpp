@@ -17,9 +17,9 @@
 #include "myapp.h"
 #define PRECISION 0.00005
 
-FittingDialog::FittingDialog(QWidget *parent) :QDialog(parent)
+FittingDialog::FittingDialog(MyApp *app, QWidget *parent) :QDialog(parent)
 {
-  mApp = (MyApp *)qApp;
+  mApp = app;
   float nDim=mApp->getDim()-1;
   float x1Idx1=mApp->getX1RangeLow()/nDim;
   float x1Idx2=mApp->getX1RangeHigh()/nDim;

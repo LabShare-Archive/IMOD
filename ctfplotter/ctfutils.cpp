@@ -4,9 +4,9 @@
 *  Author: David Mastronarde
 *
 *  Copyright (C) 2010 by Boulder Laboratory for 3-Dimensional Electron
-*  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+*  Microscopy of Cells ("BL3DEMC") and the Regents of the University of
 *  Colorado.  See dist/COPYRIGHT for full copyright notice.
-* 
+*
 *  $Id$
 */
 
@@ -20,66 +20,66 @@
 #define MAX_LINE 100
 
 /*
- * Reads a file of tilt angles whose name is in angleFile, and which must
- * have at least mNzz lines.  mAngleSign should be 1., or -1. to invert the
- * sign of the angles.  Minimum and maximum angles are returned in mMinAngle
- * and mMaxAngle.  The return value is the array of tilt angles.
+ * Ruueads a file of tilt angles whose name is in angleFile, and which must
+ * have at least nzz lines.  angleSign should be 1., or -1. to invert the
+ * sign of the angles.  Minimum and maximum angles are returned in minAngle
+ * and maxAngle.  The return value is the array of tilt angles.
  */
-float *readTiltAngles(const char *angleFile, int mNzz, float mAngleSign,
-                      float &mMinAngle, float &mMaxAngle)
+float *readTiltAngles(const char *angleFile, int nzz, float angleSign,
+                      float &minAngle, float &maxAngle)
 {
   char angleStr[MAX_LINE];
   FILE *fpAngle;
   int k, err;
   float currAngle;
-  float *mTiltAngles = (float *)malloc(mNzz * sizeof(float));
-  mMinAngle = 10000.;
-  mMaxAngle = -10000.;
-  if (!mTiltAngles)
+  float *tiltAngles = (float *)malloc(nzz * sizeof(float));
+  minAngle = 10000.;
+  maxAngle = -10000.;
+  if (!tiltAngles)
     exitError("Allocating array for tilt angles");
-  if ((fpAngle=fopen(angleFile, "r")) == 0)
+  if ((fpAngle = fopen(angleFile, "r")) == 0)
     exitError("Opening tilt angle file %s", angleFile);
-  for (k = 0; k < mNzz; k++) {
+  for (k = 0; k < nzz; k++) {
     do {
       err = fgetline(fpAngle, angleStr, MAX_LINE);
     } while (err == 0);
-    if (err == -1 || err == -2) 
-      exitError("%seading tilt angle file %s\n", 
+    if (err == -1 || err == -2)
+      exitError("%seading tilt angle file %s\n",
                 err == -1 ? "R" : "End of file while r", angleFile);
     sscanf(angleStr, "%f", &currAngle);
-    currAngle *= mAngleSign;
-    mMinAngle = B3DMIN(mMinAngle, currAngle);
-    mMaxAngle = B3DMAX(mMaxAngle, currAngle);
-    mTiltAngles[k] = currAngle;
+    currAngle *= angleSign;
+    minAngle = B3DMIN(minAngle, currAngle);
+    maxAngle = B3DMAX(maxAngle, currAngle);
+    tiltAngles[k] = currAngle;
   }
   fclose(fpAngle);
-  return mTiltAngles;
+  return tiltAngles;
 }
 
 /*
- * Reads a defocus file whose name is in mFnDefocus and stores the values
+ * Reads a defocus file whose name is in fnDefocus and stores the values
  * in an Ilist of SavedDefocus structures, eliminating duplications if any.
  * The return value is the Ilist, which may be empty if the file does not
  * exist.
  */
-Ilist *readDefocusFile(const char *mFnDefocus)
+Ilist *readDefocusFile(const char *fnDefocus)
 {
   FILE *fp;
   SavedDefocus saved;
   char line[MAX_LINE];
   int nchar;
   float langtmp, hangtmp, defoctmp;
-  Ilist *mSaved = ilistNew(sizeof(SavedDefocus), 10);
-  if (!mSaved)
+  Ilist *lstSaved = ilistNew(sizeof(SavedDefocus), 10);
+  if (!lstSaved)
     exitError("Allocating list for angles and defocuses");
-  fp = fopen(mFnDefocus, "r");
+  fp = fopen(fnDefocus, "r");
   if (fp) {
-    while(1) {
+    while (1) {
       nchar = fgetline(fp, line, MAX_LINE);
       if (nchar == -2)
         break;
       if (nchar == -1)
-        exitError("Error reading defocus file %s", mFnDefocus);
+        exitError("Error reading defocus file %s", fnDefocus);
       if (nchar) {
         sscanf(line, "%d %d %f %f %f", &saved.startingSlice, &saved.endingSlice
                , &langtmp, &hangtmp, &defoctmp);
@@ -88,29 +88,29 @@ Ilist *readDefocusFile(const char *mFnDefocus)
         saved.defocus = defoctmp / 1000.;
         saved.startingSlice--;
         saved.endingSlice--;
-        addItemToDefocusList(mSaved, saved);
+        addItemToDefocusList(lstSaved, saved);
       }
       if (nchar < 0)
         break;
     }
     fclose(fp);
   }
-  return mSaved;
+  return lstSaved;
 }
 
 /*
  * Adds one item to the defocus list, keeping the list in order and
  * and avoiding duplicate starting and ending view numbers
  */
-void addItemToDefocusList(Ilist *mSaved, SavedDefocus toSave)
+void addItemToDefocusList(Ilist *lstSaved, SavedDefocus toSave)
 {
   SavedDefocus *item;
   int i, matchInd = -1, insertInd = 0;
 
   // Look for match or place to insert
-  for (i = 0; i < ilistSize(mSaved); i++) {
-    item = (SavedDefocus *)ilistItem(mSaved, i);
-    if (item->startingSlice == toSave.startingSlice && 
+  for (i = 0; i < ilistSize(lstSaved); i++) {
+    item = (SavedDefocus *)ilistItem(lstSaved, i);
+    if (item->startingSlice == toSave.startingSlice &&
         item->endingSlice == toSave.endingSlice) {
       matchInd = i;
       *item = toSave;
@@ -119,9 +119,9 @@ void addItemToDefocusList(Ilist *mSaved, SavedDefocus toSave)
     if (item->lAngle + item->hAngle <= toSave.lAngle + toSave.hAngle)
       insertInd = i + 1;
   }
-  
+
   // If no match, now insert
-  if (matchInd < 0 && ilistInsert(mSaved, &toSave, insertInd))
+  if (matchInd < 0 && ilistInsert(lstSaved, &toSave, insertInd))
     exitError("Failed to add item to list of angles and defocuses");
 }
 
@@ -167,7 +167,7 @@ int checkAndFixDefocusList(Ilist *list, float *angles, int nz)
         // end of the range, provided this is not a single-image range
         if (!fabs(item->hAngle - item->lAngle) < tol) {
           if (fabs((double)(item->lAngle - angles[i])) < 1.01 * tol) {
-            if (angles[0] <= angles[nz-1])
+            if (angles[0] <= angles[nz - 1])
               startAmbig = 1;
             else
               endAmbig = 1;
@@ -175,7 +175,7 @@ int checkAndFixDefocusList(Ilist *list, float *angles, int nz)
                ,i, angles[i], item->lAngle, startAmbig, endAmbig); */
           }
           if (fabs((double)(item->hAngle - angles[i])) < 1.01 * tol) {
-            if (angles[0] <= angles[nz-1])
+            if (angles[0] <= angles[nz - 1])
               endAmbig = 1;
             else
               startAmbig = 1;
@@ -195,10 +195,10 @@ int checkAndFixDefocusList(Ilist *list, float *angles, int nz)
         continue;
       }
     }
-    if ((start != item->startingSlice && !startAmbig) || 
+    if ((start != item->startingSlice && !startAmbig) ||
         (end != item->endingSlice && !endAmbig))
       allEqual = 0;
-    if ((start != item->startingSlice + 1 && !startAmbig) || 
+    if ((start != item->startingSlice + 1 && !startAmbig) ||
         (end != item->endingSlice + 1 && !endAmbig))
       allOffByOne = 0;
   }
@@ -217,7 +217,7 @@ int checkAndFixDefocusList(Ilist *list, float *angles, int nz)
       item->startingSlice++;
       item->endingSlice++;
     }
-  }  
+  }
   if ((!allEqual && allOffByOne) || (allEqual && !allOffByOne))
     return 0;
   return 1;

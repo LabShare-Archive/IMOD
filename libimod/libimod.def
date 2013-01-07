@@ -81,6 +81,7 @@ EXPORTS
 	PUTIMODFLAG
 	GETMODELNAME
 	imodLabelItemMove
+	imodInvertZ
 	imodContourMakeDirection
 	imodContourMakeZTables
 	istoreCountContSurfItems
@@ -299,6 +300,7 @@ EXPORTS
 	imodPointIntersect
 	imodObjectsDelete
 	imodGetMaxObject
+	imodRot90X
 	imodContourSetLabel
 	imodFlipYZ
 	imodObjviewsFree

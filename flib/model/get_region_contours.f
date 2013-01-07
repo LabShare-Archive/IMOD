@@ -95,8 +95,8 @@ c
           indcur=indcur+nvert(ncont)
         endif
       enddo
-      print *,ncont,
-     &    ' contours available for deciding which patches to analyze'
+      if (progname .ne. 'FILLTOMO')
+     &    print *,ncont, ' contours available for deciding which patches to analyze'
       return
       end
 

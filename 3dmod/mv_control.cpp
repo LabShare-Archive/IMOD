@@ -56,8 +56,8 @@ void imodvControlKickClips(bool state)
 {
   ImodvApp *a = Imodv;
   int m, mst, mnd;
-  mst = a->crosset ? 0 : a->cm;
-  mnd = a->crosset ? a->nm - 1 : a->cm;
+  mst = a->crosset ? 0 : a->curMod;
+  mnd = a->crosset ? a->numMods - 1 : a->curMod;
 
   imodvRegisterModelChg();
   for (m = mst; m <= mnd; m++) {
@@ -98,7 +98,7 @@ void imodvControlClip(int plane, int value, bool dragging)
     view->cnear = Imodv->cnear * 0.001;
     view->cfar  = Imodv->cfar * 0.001;
     if (Imodv->crosset)
-      for (m = 0; m < Imodv->nm; m++) {
+      for (m = 0; m < Imodv->numMods; m++) {
         vwv = Imodv->mod[m]->view;
         vwv->cfar = view->cfar;
         if (vwv->cnear >= vwv->cfar)
@@ -115,7 +115,7 @@ void imodvControlClip(int plane, int value, bool dragging)
     view->cnear = Imodv->cnear * 0.001;
     view->cfar  = Imodv->cfar * 0.001;
     if (Imodv->crosset)
-      for (m = 0; m < Imodv->nm; m++) {
+      for (m = 0; m < Imodv->numMods; m++) {
         vwv = Imodv->mod[m]->view;
         vwv->cnear = view->cnear;
         if (vwv->cfar <= vwv->cnear)
@@ -127,7 +127,7 @@ void imodvControlClip(int plane, int value, bool dragging)
     Imodv->fovy = value;
     view->fovy  = Imodv->fovy;
     if (Imodv->crosset)
-      for (m = 0; m < Imodv->nm; m++) 
+      for (m = 0; m < Imodv->numMods; m++) 
         Imodv->mod[m]->view->fovy = view->fovy;
   }
 
@@ -144,8 +144,8 @@ void imodvControlZscale(int value, bool dragging)
   sliding = dragging;
 
   /*  int m, nm;
-      nm = Imodv->nm; */
-  Imodv->mod[Imodv->cm]->zscale = value / 100.0;
+      nm = Imodv->numMods; */
+  Imodv->mod[Imodv->curMod]->zscale = value / 100.0;
   /* DNM: this should not be adjusted in tandem in general */
   /*     if (Imodv->crosset)
          for(m = 0; m < nm; m++){
@@ -164,7 +164,7 @@ void imodvControlScale(float scale)
   a->imod->view->rad = 
     0.5 * (a->winx > a->winy ? a->winy : a->winx) / scale;
   if (Imodv->crosset)
-    for(m = 0; m < a->nm; m++)
+    for(m = 0; m < a->numMods; m++)
       a->mod[m]->view->rad = a->imod->view->rad;
   imodvDraw(Imodv);
 }
@@ -217,11 +217,11 @@ void imodvControlAxisText(int axis, float rot)
   ImodvApp *a = Imodv;
   int m, mstrt, mend;
   if (!a->moveall) {
-    mstrt = a->cm;
+    mstrt = a->curMod;
     mend = mstrt + 1;
   } else {
     mstrt = 0;
-    mend = a->nm;
+    mend = a->numMods;
   }
   
   switch(axis){

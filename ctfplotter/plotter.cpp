@@ -24,10 +24,10 @@
 
 using namespace std;
 
-Plotter::Plotter(QWidget *parent) : QWidget(parent)
+Plotter::Plotter(MyApp *app, QWidget *parent) : QWidget(parent)
 {
   int added = 0, width;
-  mApp = (MyApp *)qApp;
+  mApp = app;
   setBackgroundRole(QPalette::Dark);
   setAutoFillBackground(true);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -134,12 +134,12 @@ void Plotter::zoomIn()
 void Plotter::rangeDiag()
 {
   if(!mFittingDia) {
-    mFittingDia=new FittingDialog(this);
-    connect(mFittingDia, SIGNAL( range(double, double, double, double) ), qApp,
+    mFittingDia=new FittingDialog(mApp, this);
+    connect(mFittingDia, SIGNAL( range(double, double, double, double) ), mApp,
             SLOT( rangeChanged(double, double, double, double)) );
-    connect(mFittingDia, SIGNAL( x1MethodChosen(int) ), qApp,
+    connect(mFittingDia, SIGNAL( x1MethodChosen(int) ), mApp,
             SLOT(setX1Method(int)) );
-    connect(mFittingDia, SIGNAL( x2MethodChosen(int) ), qApp,
+    connect(mFittingDia, SIGNAL( x2MethodChosen(int) ), mApp,
             SLOT(setX2Method(int)) );    
   }
   mFittingDia->show();
@@ -155,16 +155,16 @@ void Plotter::angleDiag()
   QSize hint;
   bool newDia = !mAngleDia;
   if(!mAngleDia){
-    mAngleDia=new AngleDialog(this);
+    mAngleDia=new AngleDialog(mApp, this);
     connect(mAngleDia, SIGNAL(angle(double,double,double,double,int,double,
                                   double,double) ), 
-            qApp, SLOT(angleChanged(double,double,double,double,int,double,
+            mApp, SLOT(angleChanged(double,double,double,double,int,double,
                                     double,double)));
-    connect(mAngleDia, SIGNAL( defocusMethod(int)), qApp, 
+    connect(mAngleDia, SIGNAL( defocusMethod(int)), mApp, 
             SLOT( setDefOption(int)) );
-    connect(mAngleDia, SIGNAL( initialTileChoice(int)), qApp,
+    connect(mAngleDia, SIGNAL( initialTileChoice(int)), mApp,
             SLOT( setInitTileOption(int)) );
-    double expDefocus=((MyApp *)qApp)->defocusFinder.getExpDefocus();
+    double expDefocus=mApp->defocusFinder.getExpDefocus();
     double lowAngle=mApp->getLowAngle();
     double highAngle=mApp->getHighAngle();
     double defTol=mApp->getDefocusTol();

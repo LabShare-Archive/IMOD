@@ -191,7 +191,7 @@ c
       write(*,'(1x,a,$)')
      &    '0 for plots on parallax, 1 for terminal only: '
       read(*,*)iffil
-      call grfopn(iffil)
+      call scrnOpen(iffil)
 c       
       read(1,*)nregion
       read(1,*)(nsumarea(i),i=1,nregion)
@@ -480,6 +480,6 @@ c
       enddo
       write(iout,'(/)')
       go to 30
-60    call plxoff
-      call imexit()
+60    call scrnClose()
+      call psClose()
       end

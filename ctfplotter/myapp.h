@@ -1,5 +1,5 @@
 /*
- * myapp.h - the QApplication class for ctfplotter.
+ * myapp.h - the main class for ctfplotter, originally a QApplication
  *
  *  $Id$
  *
@@ -7,7 +7,7 @@
 #ifndef MYAPP_H
 #define MYAPP_H
 
-#include <QApplication>
+#include <QObject>
 #include "defocusfinder.h"
 #include "mrcslice.h"
 #include "slicecache.h"
@@ -17,10 +17,12 @@ class SimplexFitting;
 class LinearFitting;
 class Plotter;
 
+enum sliceCacheEnum {SLICE_CACHE_PRIMARY, SLICE_CACHE_SECONDARY};
+
 extern int debugLevel;
 int ctfShowHelpPage(const char *page);
 
-class MyApp : public QApplication
+class MyApp : public QObject
 {
   Q_OBJECT
   public:
@@ -33,7 +35,8 @@ class MyApp : public QApplication
     void plotFitPS(bool flagSetInitSetting );
     void fitPsFindZero();
     void setPlotter( Plotter *p){ mPlotter=p;}
-    void setSlice(const char *stackFile, char *angleFile);
+    void setSlice(const char *stackFile, char *angleFile, 
+                  sliceCacheEnum cacheSelector);
     double getLowAngle() {return mLowAngle;}
     char *getStackName() {return mFnStack;}
     void setStackMean(double mean){ mStackMean=mean;}
@@ -56,7 +59,7 @@ class MyApp : public QApplication
     void setPS(double *rAvg){mRAverage=rAvg;}
     double* getPS(){return mRAverage;}
     //recompute mRAverage for the central strips after calling setSlice();
-    void computeInitPS();  
+    void computeInitPS(bool noisePS);  
     int autoFitToRanges(float minAngle, float maxAngle, float rangeSize, 
                         float rangeStep, int numIter);
     void setNoiseForMean(double mean);
@@ -87,15 +90,19 @@ class MyApp : public QApplication
     bool getSaveModified() {return mSaveModified;};
     void setSaveAndExit(bool val) {mSaveAndExit = val;};
     bool getSaveAndExit() {return mSaveAndExit;};
-    SliceCache *getCache() {return &mCache;};
+    SliceCache *getCache() {return mCache;};
+    SliceCache *getCache2() {return mCache2;};
     void showHideWidget(QWidget *widget, bool state);
+    void showWarning(const char *title, const char *message);
     
-    MyApp(int &argc, char *argv[], int volt, double pSize, 
+    MyApp(int volt, double pSize, 
           double ampRatio, float cs, char *defFn, int dim, int hyper, 
           double focusTol, int tSize, double tAxisAngle, double lAngle,
           double hAngle, double expDefocus, double leftTol, 
-          double rightTol, int maxCacheSize, int invertAngles);
+          double rightTol, int maxCacheSize, int invertAngles,
+          bool doFocalPairProcessing, double fpdz);
     ~MyApp();
+
  public slots:
     void rangeChanged(double x1, double x2, double, double);
     void angleChanged(double mLowAngle, double mHighAngle, double defocus, 
@@ -110,12 +117,15 @@ class MyApp : public QApplication
     void setDefOption(int index){mDefocusOption=index;}
     void setInitTileOption(int index);
     int getInitTileOption(){return mInitialTileOption;}
-    void scaleAndAddStrip
-      (double *psSum, double *stripAvg, int *stripCounter,
-       int counter, double mean, double xScale, 
-       double xAdd, float freqInc, double delFmin, double delFmax);
+    void scaleAndAddStrip(
+      double *psSum, double *stripAvg, int *stripCounter, int counter,
+      double mean, double xScale, double xAdd, float freqInc, 
+      double delFmin, double delFmax, SliceCache *cachePtr);
     void saveCurrentDefocus();
     void writeDefocusFile();
+    void getScaleAndOffset(const double dz1, const double dz2, 
+                           double &scale, double &offset, 
+			   double &delMin, double &delMax);
 
  private:
     //declare as static so member functions can use resizable
@@ -147,7 +157,7 @@ class MyApp : public QApplication
     double mDefocusTol; // in nm;
     double mPixelSize;  //in nm;
     int mVoltage; // in Kv;
-    SliceCache mCache;
+    SliceCache *mCache, *mCache2;
     // x-direction tile numumber already included in PS computation;
     int *mTileIncluded; 
     int mTotalTileIncluded;
@@ -175,6 +185,7 @@ class MyApp : public QApplication
     double *mNoiseMeans;
     double *mAllNoisePS;
     double *mNoisePS;
+    double mDefocusOffset; // defocus offset between 1st and 2nd tilt series
 };
 
 #endif

@@ -79,7 +79,7 @@ void imodvObjectListDialog(ImodvApp *a, int state)
 
   // Get number of buttons, number of columns and number per column
   // Make maximum number of buttons needed for all loaded models
-  for (m = 0; m < a->nm; m++)
+  for (m = 0; m < a->numMods; m++)
     if (numOolistButtons < a->mod[m]->objsize) 
       numOolistButtons = a->mod[m]->objsize; 
   if (numOolistButtons > MAX_OOLIST_BUTTONS)

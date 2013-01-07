@@ -112,9 +112,9 @@ static void report_cache(ImodView *vi, char *string)
 static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
 {
   int filltable[3] = {1, 2, 4};
-  int ntimes = vi->nt ? vi->nt : 1;
+  int ntimes = vi->numTimes ? vi->numTimes : 1;
   int nfill = vi->vmSize / filltable[imodCacheFillData.fracfill];
-  int curtime = vi->nt ? vi->ct : 1;
+  int curtime = vi->numTimes ? vi->curTime : 1;
   int nleft, nbase, nextra, i, nshare, tstart, tend, nadj;
   int time, ct, z, sl, llysave, urysave,nslice, sect, offset;
   int minused, slmin, maxdtime, dtime, tdirlim, tdir, pixSize; 
@@ -143,7 +143,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
     nfill = 1;
 
   /* report_cache(vi,"starting"); */
-  if (imodCacheFillData.balance >= 2 || !vi->nt) {
+  if (imodCacheFillData.balance >= 2 || !vi->numTimes) {
 
     /* No times, or favor current time */
     /* Get number of slices before and after current one  for current
@@ -156,7 +156,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
       nleft = nfill - (zend[curtime] + 1 - zstart[curtime]);
       nbase = nleft / (ntimes - 1);
       nextra = nleft % (ntimes - 1);
-      for (i = 1; i <= vi->nt; i++) {
+      for (i = 1; i <= vi->numTimes; i++) {
 	if (i == curtime)
 	  continue;
 	nshare = nbase + (i <= nextra ? 1 : 0);
@@ -174,8 +174,8 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
     if (tstart < 1 )
       tstart = 1;
     tend = curtime + 1;
-    if (tend > vi->nt)
-      tend = vi->nt;
+    if (tend > vi->numTimes)
+      tend = vi->numTimes;
     nadj = tend + 1 - tstart;
     nshare = nfill / nadj;
     nleft = nfill;
@@ -188,7 +188,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
     if (ntimes > nadj) {
       nbase = nleft / (ntimes - nadj);
       nextra = nleft % (ntimes - nadj);
-      for (i = 1; i <= vi->nt; i++) {
+      for (i = 1; i <= vi->numTimes; i++) {
 	if (i >= tstart && i <= tend)
 	  continue;
 	nshare = nbase + (i <= nextra ? 1 : 0);
@@ -200,7 +200,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
     /* Treat all times equally */
     nbase = nfill / ntimes;
     nextra = nfill % ntimes;
-    for (i = 1; i <= vi->nt; i++) {
+    for (i = 1; i <= vi->numTimes; i++) {
       nshare = nbase + (i <= nextra ? 1 : 0);
       set_z_limits(vi, &zstart[i], &zend[i], nshare, cz, ovbefore, ovafter);
     }
@@ -213,7 +213,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
      already exist and are needed */
   for (time = 1; time <= ntimes; time++) {
     ct = time;
-    if (!vi->nt)
+    if (!vi->numTimes)
       ct = 0;
 
     zstall[time] = zstart[time];
@@ -251,8 +251,8 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
       } */
 
   /* Prepare to access multiple files */
-  if (vi->nt) {
-    iiClose(&vi->imageList[vi->ct-1]);
+  if (vi->numTimes) {
+    iiClose(&vi->imageList[vi->curTime-1]);
     if (!Imod_IFDpath.isEmpty())
       QDir::setCurrent(Imod_IFDpath);
   }
@@ -263,7 +263,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
       continue;
 
     ct = 0;
-    if (vi->nt) {
+    if (vi->numTimes) {
       ct = time;
       vi->hdr = vi->image = &vi->imageList[time-1];
       //ivwSetScale(vi);
@@ -281,7 +281,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
         
         /* DNM 4/18/03: process events so that text will show up and so that 
            the program can be killed */
-        if (vi->nt)
+        if (vi->numTimes)
           message.sprintf("Reading image file # %3.3d, Z = %d\r", time, z + 1);
         else
           message.sprintf("Reading image file, Z = %d\r", z + 1);
@@ -347,7 +347,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
       /* Loop on true Z slices, read in, copy lines to cache slices */
       for (sect = 0; sect < vi->ysize; sect++) {
         z = sect + vi->li->zmin;
-        if (vi->nt)
+        if (vi->numTimes)
           message.sprintf("Reading image # %3.3d, file Z = %d", time, z);
         else
           message.sprintf("Reading image, file Z = %d", z);
@@ -373,14 +373,14 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
       vi->image->axis = 2;
     }
 
-    if (vi->nt)
+    if (vi->numTimes)
       iiClose(vi->image);
   }
   imod_imgcnt("\n");
 
   /* Restore current image to be open */
-  if (vi->nt) {
-    vi->hdr = vi->image = &vi->imageList[vi->ct-1];
+  if (vi->numTimes) {
+    vi->hdr = vi->image = &vi->imageList[vi->curTime-1];
     //ivwSetScale(vi);
     ivwReopen(vi->image);
     if (!Imod_IFDpath.isEmpty())
@@ -399,7 +399,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
       if (time < 1 || time > ntimes)
 	continue;
       ct = time;
-      if (!vi->nt)
+      if (!vi->numTimes)
 	ct = 0;
 
       /* Move from farthest out z in to current z */
@@ -476,10 +476,10 @@ unsigned char *icfDoAutofill(ImodView *vi, int cz)
 
   /* Find out if Z before or after the current Z exists in the cache */
   if (cz > 0 && vi->cacheIndex[(cz - 1) * vi->vmTdim + 
-                               vi->ct - vi->vmTbase] >= 0)
+                               vi->curTime - vi->vmTbase] >= 0)
     ifbefore = 1;
   if (cz < vi->zsize - 1 && vi->cacheIndex[(cz + 1) * vi->vmTdim + 
-                               vi->ct - vi->vmTbase] >= 0)
+                               vi->curTime - vi->vmTbase] >= 0)
     ifafter = 1;
 
   /* Set the overlap factors before or after accordingly */
@@ -491,7 +491,7 @@ unsigned char *icfDoAutofill(ImodView *vi, int cz)
   if (fill_cache(vi, cz, ovbefore, ovafter))
     return NULL;
 
-  sl = vi->cacheIndex[cz * vi->vmTdim + vi->ct - vi->vmTbase];
+  sl = vi->cacheIndex[cz * vi->vmTdim + vi->curTime - vi->vmTbase];
   if (sl >= 0)
     return (vi->vmCache[sl].sec->data.b);
 
@@ -545,7 +545,7 @@ ImodCacheFill::ImodCacheFill(QWidget *parent, const char *name)
           SLOT(fractionSelected(int)));
   
   // Set up balance radio buttons only if times loaded
-  if (imodCacheFillData.vi->nt > 0) {
+  if (imodCacheFillData.vi->numTimes > 0) {
     mBalanceGroup = new QButtonGroup(this);
     gbox = new QGroupBox("Balance between times", this);
     mLayout->addWidget(gbox);

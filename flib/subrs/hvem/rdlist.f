@@ -41,7 +41,7 @@ c
       integer*4 list(*),nlist,limlist, parselistfw, ierr
       ierr = parselistfw(line, list, nlist, limlist)
       if (ierr == 0) return
-      if (ierr > 0) then
+      if (ierr < 0) then
         write(*,'(/,a)')'ERROR: PARSELIST - TOO MANY LIST VALUES FOR ARRAY'
         call exit(1)
       endif

@@ -2,8 +2,6 @@ c       FILTERPLOT - make graphs of filters based on 4 parameters
 c       
 c       $Id$
 c       
-c       $Log$
-
       call plax_initialize('plotfilter')
       call exit(0)
       end
@@ -33,7 +31,7 @@ c
 
       print *,'This program plots attenuation versus spatial frequency'//
      &    ' in reciprocal pixels'
-      call grfopn(0)
+      call scrnOpen(0)
 10    write(*,'(1x,a,$)')'Sigma1, sigma2, radius1, radius2: '
       read(5,*)sigma1, sigma2, radius1, radius2
       call setctfnoscl(sigma1,sigma2,radius1,radius2,ctf,1000,1000, delta,
@@ -44,9 +42,9 @@ c
 c       
       ixlo=20
       iylo=10
-      call erase(-1)
-      call p_clt8(251,0,255,0)
-      call p_box(0,ixlo,iylo,ixlo+ixwinsiz-1,iylo+iywinsiz-1)
+      call scrnErase(-1)
+      call plax_mapcolor(251,0,255,0)
+      call plax_box(0,ixlo,iylo,ixlo+ixwinsiz-1,iylo+iywinsiz-1)
 c         
 c       output x then y axis labels
 c       
@@ -55,14 +53,14 @@ c
         write(label,fmt=20,err=30)xval
 20      format(f3.1)
 30      ix=ixlo+max(0,ii*ixran/10+10+marglft- ifix(itxtsiz*(ntxtchr-.3)))
-        call p_sctext(1,itxtsiz,itxtsiz,251,ix,iylo, label(1:ntxtchr))
+        call plax_sctext(1,itxtsiz,itxtsiz,251,ix,iylo, label(1:ntxtchr))
       enddo
 c         
       do ii=0,10,2
         yval=ii*0.1
         write(label,fmt=20,err=40)yval
 40      iy=iylo+3+margbot+ii*iyran/10
-        call p_sctext(1,itxtsiz,itxtsiz,251,ixlo,iy, label(1:ntxtchr))
+        call plax_sctext(1,itxtsiz,itxtsiz,251,ixlo,iy, label(1:ntxtchr))
       enddo
 c       
 c       set scaling and output grids
@@ -71,8 +69,8 @@ c
       yscal=iyran/ymax
       ixlo=ixlo+10+marglft
       iylo=iylo+10+margbot
-      call dsgrd(ixlo,iylo,ixran/10,0,10)
-      call dsgrd(ixlo,iylo,0,iyran/10,10)
+      call scrnGridLine(ixlo,iylo,ixran/10,0,10)
+      call scrnGridLine(ixlo,iylo,0,iyran/10,10)
 c      call dsgrd(ixlo,iylo+iyran,ixran/10,0,10)
 c      call dsgrd(ixlo+ixran,iylo,0,iyran/10,10)
 c       
@@ -84,12 +82,12 @@ c
           ix = ixlo + xscal * xx
           iy = iylo + yscal * ctf(i)
           if(i.eq.1)then 
-            call ma(ix,iy)
+            call scrnMoveAbs(ix,iy)
           else
-            call va(ix,iy)
+            call scrnVectAbs(ix,iy)
           endif
         endif
       enddo
-      call updat(1)
+      call scrnUpdate(1)
       go to 10
       end

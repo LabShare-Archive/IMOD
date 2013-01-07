@@ -1,0 +1,146 @@
+Version=1.0
+Pip=1
+
+[Field = MatchedToTomogram]
+short = matched
+type = FN
+usage = Tomogram that was matched to, source of pixels used for filling
+tooltip =
+manpage = Tomogram that was matched to, typically "...a.rec" when matching the
+B to the A axis.  This tomogram is the source of pixels used for replacement.
+This input file is required.  If this option is not entered, the first
+non-option argument will be used for the filename.
+
+[Field = FillTomogram]
+short = fill
+type = FN
+usage = Tomogram to fill with pixels from the tomogram that was matched to
+tooltip =
+manpage = Transformed or combined tomogram to fill with pixels from the
+tomogram that was matched to, typically named "...b.mat" (when matching B to A) or
+"sum.rec", respectively.  This output file is required.  If this option is not
+entered, the second non-option argument will be used for the filename.  This
+file must have the same dimensions as the tomogram that was matched to.
+
+[Field = SourceTomogram]
+short = source
+type = CH
+usage = File name of source for transformed tomogram
+tooltip =
+manpage = Name of tomogram that was transformed to produce a matching tomogram,
+typically named "...b.rec" when matching B to A.  This entry is required.
+
+[Field = InverseTransformFile]
+short = inverse
+type = FN
+usage = File with inverse of transform applied to produce matching tomogram
+tooltip =
+manpage = File with inverse of 3D transform applied to produce matching
+tomogram.  This file is typically named "inverse.xf" and is produced when
+Refinematch(1) is run by Matchorwarp(1).  This entry is required.
+
+[Field = LeftRightFill]
+short = xfill
+type = IP
+usage = Number of pixels to fill regardless on left and right sides of tomogram
+tooltip =
+manpage = 
+
+[Field = BottomTopFill]
+short = yfill
+type = IP
+usage = Number of pixels to fill regardless on bottom and top sides of tomogram
+tooltip =
+manpage = 
+
+[Field = ImagesAreBinned]
+short = binning
+type = I
+usage = The binning of the tomograms relative to the original data (default 1)
+tooltip = 
+manpage = The binning of the aligned images used to beuild the tomomgrams,
+relative to the original data.  The default is 1.  This entry is needed if
+options specifying stack transforms are entered with unbinned sizes and
+binning was not 1. 
+
+[Field = SourceRawStackSize]
+short = sraw
+type = IT
+usage = Size in X, Y, and Z of the raw tilt series for transformed tomogram
+tooltip =
+manpage = Size in X, Y, and Z of the unaligned tilt series used to
+build the tomogram that was transformed to match.  If images were binned to
+make the aligned stack, either enter a binned size here, or enter an
+unbinned size and the -binning option.  This entry is required if
+-sxform is entered.  
+
+[Field = SourceStackTransforms]
+short = sxform
+type = FN
+usage = File of transforms applied to align tilt series for transformed tomogram
+tooltip =
+manpage = File of 2D transforms applied to align the tilt series images used
+to build the tomogram that was transformed to match.  With this option, the
+program will replace pixels that come from regions where there was not
+complete projection data available for backprojection.
+
+[Field = SourceBoundaryModel]
+short = sboundary
+type = FN
+usage = Model with boundary contour drawn on source for transformed tomogram
+tooltip =
+manpage = File with model drawn on the tomogram that was transformed to match,
+where the boundary contour indicates the region where data are good, and
+outside which data should be replaced.  This option cannot be used together
+with -sxform.  If there is more than one contour, the one closest to the
+midplane of the tomogram is used.
+
+[Field = MatchedToRawStackSize]
+short = mraw
+type = IT
+usage = Size in X, Y, and Z of the raw tilt series for matched-to tomogram
+tooltip =
+manpage = Size in X, Y, and Z of the unaligned tilt series used to
+build the tomogram that was matched.  Enter either a size adjusted for
+binning, or the unbinned size along with the -binning option.  This entry is
+required if -mxform is entered.
+
+[Field = MatchedToStackTransforms]
+short = mxform
+type = FN
+usage = File of transforms applied to align tilt series for matched-to tomogram
+tooltip =
+manpage = File of 2D transforms applied to align the tilt series images used
+to build the tomogram that was matched to.  With this option, the
+program will refrain from using replacement pixels from regions where there was not
+complete projection data available for backprojection, unless they are inside
+edge regions to be filled regardless (set by -xfill and -yfill options).
+
+[Field = MatchedToBoundaryModel]
+short = mboundary
+type = FN
+usage = Model with boundary contour drawn on tomogram that was matched to
+tooltip =
+manpage = File with model drawn on the tomogram that was matched to,
+where the boundary contour indicates the region where data are good, and
+outside of which data should be not be used for replacement.  Pixels inside of
+edge regions set by -xfill and -yfill options will still be replaced.
+This option cannot be used together
+with -mxform.  If there is more than one contour, the one closest to the
+midplane of the tomogram is used.
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
+
+

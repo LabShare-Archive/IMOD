@@ -124,11 +124,15 @@ int *parselist (const char *line, int *nlist)
  */
 int parselistfw(const char *line, int *list, int *nlist, int *limlist, int linelen)
 {
-  int ncopy, i;
+  int ncopy;
   int *retlist;
   char *tempstr =   f2cString(line, linelen);
   if (!tempstr)
     return 1;
+  if (tempstr[0] == 0x00) {
+    *nlist = 0;
+    return 0;
+  }
   retlist = parselist(tempstr, &ncopy);
   free(tempstr);
   if (!retlist && ncopy < 0)

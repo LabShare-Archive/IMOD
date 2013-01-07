@@ -15,11 +15,13 @@
 #include "b3dutil.h"
 #include "defocusfinder.h"
 
+class MyApp;
+
 class SimplexFitting
 {
  public:
   //SimplexFitting(double *rawData, int nRaw, int index1, int index2);
-  SimplexFitting(int nRaw);
+  SimplexFitting(int nRaw, MyApp *app);
   ~SimplexFitting();
   static void funk(float *, float *);
   static void funkCTF(float *, float *);
@@ -30,6 +32,7 @@ class SimplexFitting
   int getDim() {return mDim;}
 
  private:
+  MyApp *mApp;
   static int mDim;
   static int mIndex1;
   static int mIndex2;

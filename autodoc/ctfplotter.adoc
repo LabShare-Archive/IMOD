@@ -246,3 +246,16 @@ type = PF
 usage = Read parameter entries from file
 tooltip = 
 manpage = Read parameter entries from this file.
+
+[Field = FocalPairDefocusOffset]
+short = fpOffset
+type = F
+usage = Defocus offset in nanometers for a focal pair of aligned stacks
+tooltip = 
+manpage = Normally, ctfplotter processes a single stack whose name is
+given by InputStack. It can optionally process a pair of stacks with
+identical til angles and mutually aligned projections, taken with a
+constant defocus offset between them. If, for example, InputStack is 
+myData.st, one could place a stack with 6 um underfocus in myData_1.st and
+a stack with 2.175 um underfocus in myData_2.st and specify an
+ExpectedDefocus of 6000 and a FocalPairDefocusOffset of -3825.

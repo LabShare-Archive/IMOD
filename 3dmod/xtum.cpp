@@ -644,7 +644,7 @@ void TumblerWindow::fillSlice(TumblerStruct *xtum)
 
   /* Set up image pointer tables */
   vmnullvalue = (App->cvi->white + App->cvi->black) / 2;
-  if (ivwSetupFastAccess(xtum->vi, &imdata, vmnullvalue, &i, xtum->vi->ct))
+  if (ivwSetupFastAccess(xtum->vi, &imdata, vmnullvalue, &i, xtum->vi->curTime))
     return;
 
   fillASlice(xtum);

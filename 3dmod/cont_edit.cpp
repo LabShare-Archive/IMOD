@@ -1703,11 +1703,11 @@ void imodContEditSurfShow(void)
   surf.dia->setClosedOpen(closedOpen, enabled);
 
 
-  /* Show time data. Set maximum to max of vw->nt and model tmax*/
+  /* Show time data. Set maximum to max of vw->numTimes and model tmax*/
   val = -2;
   max = surf.vw->imod->tmax;
-  if (max < surf.vw->nt)
-    max = surf.vw->nt;
+  if (max < surf.vw->numTimes)
+    max = surf.vw->numTimes;
   if (obj && iobjTime(obj->flags)){
     val = -1;
     if (cont)

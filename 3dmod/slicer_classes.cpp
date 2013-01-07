@@ -782,7 +782,7 @@ void SlicerFuncs::fillImageArray(int panning, int meanOnly, int rgbChannel)
   /* Set up image pointer tables */
   vmnullvalue = (App->cvi->white + App->cvi->black) / 2;
   if (ivwSetupFastAccess(mVi, &imdata, vmnullvalue, &i, 
-                         mTimeLock ? mTimeLock : mVi->ct))
+                         mTimeLock ? mTimeLock : mVi->curTime))
     return;
 
   ivwSetRGBChannel(rgbChannel);

@@ -18,6 +18,9 @@
 #include "objgroup.h"
 
 static void flipClips(IclipPlanes *clips);
+static void rotClips(float yconst, float yfac, float zconst, float zfac, 
+                     IclipPlanes *clips);
+static void invertClips(float zconst, IclipPlanes *clips);
 
 /*!
  * Allocates a new model structure and returns a pointer to it, or NULL if 
@@ -1441,7 +1444,6 @@ void imodCleanSurf(Imod *imod)
     }
     obj->surfsize = maxsurf;
   }
-  return;
 }
 
 /* DNM 11/15/04: removed virtual in call */
@@ -1457,28 +1459,26 @@ void  imodFlipYZ(Imod *imod)
   float tmp;
   int    ob, co, pt, i;
 
-  for(ob = 0; ob < imod->objsize; ob++){
+  /* fFip contours and meshes */
+  for (ob = 0; ob < imod->objsize; ob++) {
     obj = &(imod->obj[ob]);
-    for(co = 0; co < obj->contsize; co++){
+    for (co = 0; co < obj->contsize; co++) {
       cont = &(obj->cont[co]);
-      for(pt = 0; pt < cont->psize; pt++){
-        tmp = cont->pts[pt].y;
-        cont->pts[pt].y = cont->pts[pt].z;
-        cont->pts[pt].z = tmp;
+      for (pt = 0; pt < cont->psize; pt++) {
+        B3DSWAP(cont->pts[pt].y, cont->pts[pt].z, tmp);
       }
     }
 
     flipClips(&obj->clips);
-    for(co = 0; co < obj->meshsize; co++){
+    for (co = 0; co < obj->meshsize; co++) {
       mesh = &(obj->mesh[co]);
-      for(pt = 0; pt < mesh->vsize; pt++){
-        tmp = mesh->vert[pt].y;
-        mesh->vert[pt].y = mesh->vert[pt].z;
-        mesh->vert[pt].z = tmp;
+      for (pt = 0; pt < mesh->vsize; pt++) {
+        B3DSWAP(mesh->vert[pt].y, mesh->vert[pt].z, tmp);
       }
     }
   }
 
+  /* View clip planes */
   for (i = 0; i < imod->viewsize; i++) {
     flipClips(&imod->view[i].clips);
     for (ob = 0; ob < imod->view[i].objvsize; ob++) {
@@ -1486,11 +1486,117 @@ void  imodFlipYZ(Imod *imod)
     }
   }
 
-  tmp = imod->ymax;
-  imod->ymax = imod->zmax;
-  imod->zmax = tmp;
-  return;
+  B3DSWAP(imod->ymax, imod->zmax, i);
 }
+
+/*!
+ * Rotates the model in [imod] by 90 degrees around the X axis and shifts along the
+ * appropriate axis to retain positive values.  The rotation is by -90 degrees if
+ * [toNative] is 0, corresponding to the Y-Z flip in 3dmod, and by +90 degrees if
+ * [toNative] is non-zero, corresponding to flipping back to native orientation.
+ * The incoming {ymax} and {zmax} values will be swapped and must be correct for the
+ * current model coordinates.
+ */
+void imodRot90X(Imod *imod, int toNative)
+{
+  Iobj  *obj;
+  Icont *cont;
+  Imesh *mesh;
+  float tmp;
+  int    ob, co, pt, i;
+  float yconst, yfac, zconst, zfac;
+
+  /* Set up the constants and multipliers from getting between Y and Z */
+  if (toNative) {
+    yconst = 0.;
+    yfac = 1.;
+    zconst = imod->zmax - 1.;
+    zfac = -1.;
+  } else {
+    zconst = 0.;
+    zfac = 1.;
+    yconst = imod->ymax - 1.;
+    yfac = -1.;
+  }
+  
+  /* Rotate the contours */
+  for (ob = 0; ob < imod->objsize; ob++) {
+    obj = &(imod->obj[ob]);
+    for (co = 0; co < obj->contsize; co++) {
+      cont = &(obj->cont[co]);
+      for (pt = 0; pt < cont->psize; pt++) {
+        tmp = yconst + yfac * cont->pts[pt].y;
+        cont->pts[pt].y = zconst + zfac * cont->pts[pt].z;
+        cont->pts[pt].z = tmp;
+      }
+    }
+
+    /* Rotate object clip planes and meshes */
+    rotClips(yconst, yfac, zconst, zfac, &obj->clips);
+    for (co = 0; co < obj->meshsize; co++) {
+      mesh = &(obj->mesh[co]);
+      for (pt = 0; pt < mesh->vsize; pt += 2) {
+        tmp = yconst + yfac * mesh->vert[pt].y;
+        mesh->vert[pt].y = zconst + zfac * mesh->vert[pt].z;
+        mesh->vert[pt].z = tmp;
+        tmp = yfac * mesh->vert[pt + 1].y;
+        mesh->vert[pt + 1].y = zfac * mesh->vert[pt + 1].z;
+        mesh->vert[pt + 1].z = tmp;
+      }
+    }
+  }
+
+  /* Rotate the view clip planes */
+  for (i = 0; i < imod->viewsize; i++) {
+    rotClips(yconst, yfac, zconst, zfac, &imod->view[i].clips);
+    for (ob = 0; ob < imod->view[i].objvsize; ob++) {
+      rotClips(yconst, yfac, zconst, zfac, &imod->view[i].objview[ob].clips);
+    }
+  }
+
+  B3DSWAP(imod->ymax, imod->zmax, i);
+}
+
+/*!
+ * Inverts the model in [imod] in the Z direction and shifts it in Z
+ * to retain positive values.  The incoming model {zmax} value must be correct for the
+ * current model coordinates.
+ */
+void imodInvertZ(Imod *imod)
+{
+  Iobj  *obj;
+  Icont *cont;
+  Imesh *mesh;
+  int    ob, co, pt, i;
+  float zconst = imod->zmax - 1.;
+  
+  /* Invert ocontours and meshes */
+  for (ob = 0; ob < imod->objsize; ob++) {
+    obj = &(imod->obj[ob]);
+    for (co = 0; co < obj->contsize; co++) {
+      cont = &(obj->cont[co]);
+      for (pt = 0; pt < cont->psize; pt++)
+        cont->pts[pt].z = zconst - cont->pts[pt].z;
+    }
+
+    invertClips(zconst, &obj->clips);
+    for (co = 0; co < obj->meshsize; co++) {
+      mesh = &(obj->mesh[co]);
+      for (pt = 0; pt < mesh->vsize; pt += 2) {
+        mesh->vert[pt].z = zconst - mesh->vert[pt].z;
+        mesh->vert[pt + 1].z = -mesh->vert[pt + 1].z;
+      }
+    }
+  }
+
+  /* Invert view clip planes */
+  for (i = 0; i < imod->viewsize; i++) {
+    invertClips(zconst, &imod->view[i].clips);
+    for (ob = 0; ob < imod->view[i].objvsize; ob++)
+      invertClips(zconst, &imod->view[i].objview[ob].clips);
+  }
+}
+
 
 /*!
  * Sets the @@IrefImage structure@ {refImage} in [imod] with the image 
@@ -1795,12 +1901,37 @@ static void flipClips(IclipPlanes *clips)
   int i;
   float tmp;
   for (i = 0; i < clips->count; i++) {
-    tmp = clips->point[i].y;
-    clips->point[i].y = clips->point[i].z;
+    B3DSWAP(clips->point[i].y, clips->point[i].z, tmp);
+    B3DSWAP(clips->normal[i].y, clips->normal[i].z, tmp);
+  }
+}
+
+/* Rotate clipping planes by 90 with given factors */
+static void rotClips(float yconst, float yfac, float zconst, float zfac, 
+                     IclipPlanes *clips)
+{
+  int i;
+  float tmp;
+
+  /* Clipping plane point is the negative of an actual point so need to take negative
+     before and after */
+  for (i = 0; i < clips->count; i++) {
+    tmp = -yconst + yfac * clips->point[i].y;
+    clips->point[i].y = -zconst + zfac * clips->point[i].z;
     clips->point[i].z = tmp;
-    tmp = clips->normal[i].y;
-    clips->normal[i].y = clips->normal[i].z;
+    tmp = yfac * clips->normal[i].y;
+    clips->normal[i].y = zfac * clips->normal[i].z;
     clips->normal[i].z = tmp;
+  }
+}
+
+/* Invert clipping planes in Z */
+static void invertClips(float zconst, IclipPlanes *clips)
+{
+  int i;
+  for (i = 0; i < clips->count; i++) {
+    clips->point[i].z = -zconst - clips->point[i].z;
+    clips->normal[i].z = - clips->normal[i].z;
   }
 }
 

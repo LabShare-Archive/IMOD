@@ -84,7 +84,8 @@ will fit into the cache.  In addition, there is a dialog box to fill the
 cache in various ways, available through the Edit-Image-Cache Filler menu
 entry.  Several other restrictions on image files exist.
 If any files other than MRC-type (MRC or raw) are loaded and the cache is used,
-the image volume cannot be flipped (Y and Z exchanged) unless it is fully
+the image volume cannot be flipped (rotated around the X axis with Y and Z
+sizes swapped) unless it is fully
 loaded into the cache.  The Pixel View
 window, high-resolution mode in the Graph window, and the f and F hot keys
 for finding pixel values will all give zeros for a non-MRC type file.
@@ -224,15 +225,15 @@ is entered.  These 4 options can all be used together to open a selected
 set of windows.
 .TP
 .B -Y
-This option causes the image data to be flipped after it
-has been loaded.  This allows one to model image planes
+This option causes the image data to be rotated by 90 degrees around the X
+axis after it has been loaded.  This allows one to model image planes
 that are normal to the Y-axis.
 The default is to model planes normal to the Z-axis.
 It is possible to flip back and forth between these two modeling
 orientations using the 
 .I Edit Image 
 menu item 
-.I Flip.
+.I Flip/Rotate.
 Certain cached data can not be flipped unless they are entirely loaded into
 memory: TIFF files, montaged images, images loaded with different binning
 in Z than in X and Y, and multiple single-image files.
@@ -653,8 +654,8 @@ Memory to TIFF... Write the whole section of a raw color image
                     to turn a montaged image bigger than the
                     screen into a single large image.
 Extract File...   Extract part of file selected by rubber band in
-                    top slicer window, with flipping if image is
-                    loaded flipped.
+                    top slicer window, with rotation around X if 
+                    image is loaded flipped.
 Save Info Text... Write the contents of the text panel to a file.
 Quit              Quit 3dmod.
 
@@ -748,7 +749,8 @@ Point
                     that the closest possible points are neighbors
 
 Image
-   Flip            Exchange Y and Z dimensions of the image data.
+   Flip/Rotate     Rotate around X, swapping Y and Z dimensions of 
+                      the image data.
    Process...      Process images by filtering.
    Reload...       Open the image scale reload requester.
    Fill Cache      Fill the cache if there is one.

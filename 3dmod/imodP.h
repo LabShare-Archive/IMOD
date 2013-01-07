@@ -107,7 +107,7 @@ typedef struct ViewInfo
   float  xmouse, ymouse, zmouse;   /* Current point in idata. */
   int   xUnbinSize, yUnbinSize, zUnbinSize;  /* Original size of data */
 
-  int   nt, ct; /* number of time frames, current time.       */
+  int   numTimes, curTime; /* number of time frames, current time.       */
 
   struct LoadInfo *li; 
   ImodImageFile   *image;
