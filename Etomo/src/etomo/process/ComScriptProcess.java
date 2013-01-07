@@ -447,12 +447,12 @@ import java.util.Map;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
+import etomo.ProcessSeries;
 import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
 import etomo.comscript.ProcessDetails;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
-import etomo.type.ConstProcessSeries;
 import etomo.type.FileType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
@@ -493,7 +493,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   private ProcessEndState endState = null;// used when processMonitor is null
   private final BaseManager manager;
   private final ProcessMessages processMessages = ProcessMessages.getInstance();
-  private final ConstProcessSeries processSeries;
+  private final ProcessSeries processSeries;
   private ProcessResultDisplay processResultDisplay = null;
   private boolean parseLogFile = true;
   private boolean nonBlocking = false;
@@ -505,7 +505,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       final BaseProcessManager processManager, final AxisID axisID,
       final String watchedFileName, final ProcessMonitor processMonitor,
       final ProcessResultDisplay processResultDisplay,
-      final ConstProcessSeries processSeries, final boolean resumable) {
+      final ProcessSeries processSeries, final boolean resumable) {
     this.manager = manager;
     this.comScriptName = comScript;
     this.processManager = processManager;
@@ -527,7 +527,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public ComScriptProcess(BaseManager manager, String comScript, Command command,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, FileType fileType) {
+      ProcessSeries processSeries, FileType fileType) {
     this.manager = manager;
     this.comScriptName = comScript;
     this.processManager = processManager;
@@ -575,7 +575,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       final BaseProcessManager processManager, final AxisID axisID,
       final String watchedFileName, final ProcessMonitor processMonitor,
       final ProcessResultDisplay processResultDisplay,
-      final ProcessDetails processDetails, final ConstProcessSeries processSeries,
+      final ProcessDetails processDetails, final ProcessSeries processSeries,
       final boolean resumable) {
     this.manager = manager;
     this.comScriptName = comScript;
@@ -599,7 +599,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public ComScriptProcess(BaseManager manager, String comScript,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
-      Command command, ConstProcessSeries processSeries) {
+      Command command, final ProcessSeries processSeries) {
     this.manager = manager;
     this.comScriptName = comScript;
     this.processManager = processManager;
@@ -629,7 +629,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public ComScriptProcess(BaseManager manager, String comScript,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
-      CommandDetails commandDetails, ConstProcessSeries processSeries) {
+      CommandDetails commandDetails, final ProcessSeries processSeries) {
     this.manager = manager;
     this.comScriptName = comScript;
     this.processManager = processManager;
@@ -661,7 +661,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public ComScriptProcess(final BaseManager manager, final String comScript,
       final BaseProcessManager processManager, final AxisID axisID,
       final String watchedFileName, final ProcessMonitor processMonitor,
-      final ConstProcessSeries processSeries, final boolean resumable) {
+      final ProcessSeries processSeries, final boolean resumable) {
     this.manager = manager;
     this.comScriptName = comScript;
     this.processManager = processManager;
@@ -680,7 +680,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
 
   public ComScriptProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
-      ProcessMonitor processMonitor, ConstProcessSeries processSeries) {
+      ProcessMonitor processMonitor, final ProcessSeries processSeries) {
     this.manager = manager;
     this.comScriptName = commandDetails.getCommand();
     this.processManager = processManager;
@@ -710,7 +710,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public ComScriptProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, final ProcessingMethod processingMethod) {
+      final ProcessSeries processSeries, final ProcessingMethod processingMethod) {
     this.manager = manager;
     this.comScriptName = commandDetails.getCommand();
     this.processManager = processManager;
@@ -743,7 +743,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public ComScriptProcess(BaseManager manager, Command command,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, final ProcessingMethod processingMethod) {
+      final ProcessSeries processSeries, final ProcessingMethod processingMethod) {
     this.manager = manager;
     this.comScriptName = command.getCommand();
     this.processManager = processManager;
@@ -823,7 +823,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     }
   }
 
-  public ConstProcessSeries getProcessSeries() {
+  public ProcessSeries getProcessSeries() {
     return processSeries;
   }
 
@@ -876,6 +876,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       }
     }
     catch (LogFile.LockException except) {
+      except.printStackTrace();
       if (processManager != null) {
         int exitValue = 0;
         if (vmstopy != null) {
