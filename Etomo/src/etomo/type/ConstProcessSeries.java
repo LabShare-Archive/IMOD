@@ -27,7 +27,7 @@ public interface ConstProcessSeries {
   public void dumpState();
 
   public String peekNextProcess();
-  
+
   public boolean startNextProcess(AxisID axisID);
 
   public boolean startNextProcess(AxisID axisID, ProcessResultDisplay processResultDisplay);
@@ -43,6 +43,9 @@ public interface ConstProcessSeries {
   public void startFailProcess(final AxisID axisID);
 
   public void startFailProcess(final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay);
+
+  public boolean startPauseProcess(final AxisID axisID,
       final ProcessResultDisplay processResultDisplay);
 
   public boolean willProcessListBeDropped();
