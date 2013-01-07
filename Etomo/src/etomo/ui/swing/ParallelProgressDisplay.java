@@ -90,4 +90,6 @@ public interface ParallelProgressDisplay {
    * @param computerMap
    */
   public void setComputerMap(Map computerMap);
+
+  public void msgProcessStarted();
 }

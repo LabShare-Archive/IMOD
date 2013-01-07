@@ -2,10 +2,10 @@ package etomo.ui.swing;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
+import etomo.ProcessSeries;
 import etomo.comscript.ProcesschunksParam;
 import etomo.process.ProcessState;
 import etomo.type.AxisID;
-import etomo.type.ConstProcessSeries;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.FileType;
@@ -172,7 +172,7 @@ public abstract class ReconUIExpert implements UIExpert {
   final void processchunks(final BaseManager manager,
       final AbstractParallelDialog dialog,
       final ProcessResultDisplay processResultDisplay,
-      final ConstProcessSeries processSeries, final String processName,
+      final ProcessSeries processSeries, final String processName,
       final FileType outputImageFileType, final ProcessingMethod processingMethod,
       final boolean multiLineMessages) {
     sendMsgProcessStarting(processResultDisplay);
@@ -193,7 +193,7 @@ public abstract class ReconUIExpert implements UIExpert {
     // param should never be set to resume
     parallelPanel.getParallelProgressDisplay().resetResults();
     manager.processchunks(axisID, param, processResultDisplay, processSeries, true,
-        processingMethod, multiLineMessages);
+        processingMethod, multiLineMessages, dialogType);
   }
 
   final ParallelPanel getParallelPanel() {

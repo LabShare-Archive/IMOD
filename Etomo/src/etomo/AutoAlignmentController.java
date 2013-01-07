@@ -11,7 +11,6 @@ import etomo.process.AutoAlignmentProcessManager;
 import etomo.process.BaseProcessManager;
 import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
-import etomo.type.ConstProcessSeries;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.ui.AutoAlignmentDisplay;
@@ -53,7 +52,7 @@ public final class AutoAlignmentController {
     processManager = new AutoAlignmentProcessManager(manager, this);
   }
 
-  public void xfalignInitial(final ConstProcessSeries processSeries,
+  public void xfalignInitial(final ProcessSeries processSeries,
       final boolean tomogramAverages) {
     if (!updateMetaData(true)) {
       return;
@@ -79,7 +78,7 @@ public final class AutoAlignmentController {
         ProcessName.XFALIGN);
   }
 
-  public void xfalignRefine(ConstProcessSeries processSeries,
+  public void xfalignRefine(ProcessSeries processSeries,
       final boolean tomogramAverages, final String description) {
     if (!updateMetaData(true)) {
       return;

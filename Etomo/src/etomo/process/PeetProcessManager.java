@@ -1,11 +1,11 @@
 package etomo.process;
 
 import etomo.PeetManager;
+import etomo.ProcessSeries;
 import etomo.comscript.AverageAllParam;
 import etomo.comscript.PeetParserParam;
 import etomo.comscript.ProcessDetails;
 import etomo.type.AxisID;
-import etomo.type.ConstProcessSeries;
 import etomo.type.PeetState;
 import etomo.type.ProcessName;
 
@@ -77,14 +77,14 @@ public final class PeetProcessManager extends BaseProcessManager {
     this.manager = manager;
   }
 
-  public String peetParser(PeetParserParam param, ConstProcessSeries processSeries)
+  public String peetParser(PeetParserParam param, final ProcessSeries processSeries)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param, AxisID.ONLY,
         ProcessName.PEET_PARSER, processSeries);
     return backgroundProcess.getName();
   }
 
-  public String averageAll(AverageAllParam param, ConstProcessSeries processSeries)
+  public String averageAll(AverageAllParam param, final ProcessSeries processSeries)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param, AxisID.ONLY,
         ProcessName.AVERAGE_ALL, processSeries);

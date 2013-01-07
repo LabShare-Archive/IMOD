@@ -1,12 +1,12 @@
 package etomo.process;
 
 import etomo.BaseManager;
+import etomo.ProcessSeries;
 import etomo.ToolsManager;
 import etomo.comscript.FlattenWarpParam;
 import etomo.comscript.GpuTiltTestParam;
 import etomo.comscript.WarpVolParam;
 import etomo.type.AxisID;
-import etomo.type.ConstProcessSeries;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -61,7 +61,7 @@ public final class ToolsProcessManager extends BaseProcessManager {
    */
   public String flatten(final WarpVolParam param, final AxisID axisID,
       final ProcessResultDisplay processResultDisplay,
-      final ConstProcessSeries processSeries, final FileType fileType)
+      final ProcessSeries processSeries, final FileType fileType)
       throws SystemProcessException {
     // Create the required tilt command
     String command = fileType.getFileName(manager, AxisID.ONLY);
@@ -76,7 +76,7 @@ public final class ToolsProcessManager extends BaseProcessManager {
 
   public String flattenWarp(final FlattenWarpParam param,
       final ProcessResultDisplay processResultDisplay,
-      final ConstProcessSeries processSeries, final AxisID axisID)
+      final ProcessSeries processSeries, final AxisID axisID)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param.getCommandArray(),
         axisID, processResultDisplay, param.getProcessName(), processSeries);
