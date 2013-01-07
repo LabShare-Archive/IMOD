@@ -2,13 +2,13 @@ package etomo.process;
 
 import etomo.BaseManager;
 import etomo.ParallelManager;
+import etomo.ProcessSeries;
 import etomo.comscript.AnisotropicDiffusionParam;
 import etomo.comscript.ChunksetupParam;
 import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
 import etomo.comscript.TrimvolParam;
 import etomo.type.AxisID;
-import etomo.type.ConstProcessSeries;
 import etomo.type.ParallelState;
 import etomo.type.ProcessName;
 
@@ -39,7 +39,7 @@ public final class ParallelProcessManager extends BaseProcessManager {
   /**
    * Run trimvol
    */
-  public String trimVolume(TrimvolParam trimvolParam, ConstProcessSeries processSeries)
+  public String trimVolume(TrimvolParam trimvolParam, final ProcessSeries processSeries)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(trimvolParam,
         AxisID.ONLY, ProcessName.TRIMVOL, processSeries);
@@ -47,13 +47,13 @@ public final class ParallelProcessManager extends BaseProcessManager {
   }
 
   public String anisotropicDiffusion(AnisotropicDiffusionParam param,
-      ConstProcessSeries processSeries) throws SystemProcessException {
+      final ProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param, AxisID.ONLY,
         ProcessName.ANISOTROPIC_DIFFUSION, processSeries);
     return backgroundProcess.getName();
   }
 
-  public String chunksetup(ChunksetupParam param, ConstProcessSeries processSeries)
+  public String chunksetup(ChunksetupParam param, final ProcessSeries processSeries)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param.getCommandArray(),
         AxisID.ONLY, ProcessName.CHUNKSETUP, processSeries);
