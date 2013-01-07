@@ -262,6 +262,7 @@ public class EtomoDirector {
       parameterStore.load(userConfig);
     }
     catch (LogFile.LockException except) {
+      except.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(getCurrentManager(),
           "Can't load user configuration.\n" + except.getMessage(), "Etomo Error");
     }
@@ -1122,6 +1123,7 @@ public class EtomoDirector {
       parameterStore.save(userConfig);
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(getCurrentManager(),
           "Unable to save or write preferences to " + parameterStore.getAbsolutePath()
               + ".\n" + e.getMessage(), "Etomo Error");
