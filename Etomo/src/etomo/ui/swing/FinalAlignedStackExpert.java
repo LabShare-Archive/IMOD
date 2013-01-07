@@ -274,6 +274,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
               + "able to use findbeads3d when erasing gold.", "Etomo Error");
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(manager,
           "Unable to copy to blend.com to blend_3d_find.com.  Will not be "
               + "able to use findbeads3d when erasing gold.", "Etomo Error");
@@ -331,18 +332,21 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
   /**
    * Start the next process specified by the nextProcess string
    */
-  public void startNextProcess(ProcessSeries.Process process,
+  public boolean startNextProcess(ProcessSeries.Process process,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       DialogType dialogType, ProcessDisplay display) {
     if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
       processchunks(manager, dialog, processResultDisplay, processSeries, process
           .getSubprocessName().toString() + axisID.getExtension(),
           process.getOutputImageFileType(), process.getProcessingMethod(), false);
+      return true;
     }
-    else if (process.equals(ProcessName.TILT_3D_FIND.toString())) {
+    if (process.equals(ProcessName.TILT_3D_FIND.toString())) {
       manager.tilt3dFindAction(processResultDisplay, processSeries, null, null,
           (TiltDisplay) display, axisID, dialogType, process.getProcessingMethod());
+      return true;
     }
+    return false;
   }
 
   void doneDialog() {
