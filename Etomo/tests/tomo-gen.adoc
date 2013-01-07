@@ -120,8 +120,10 @@ cb.parallel-processing=on
 [[if = test-gui]]
   #test pause
   bn.generate-tomogram=
+  sleep=
   assert.disabled.bn.resume=
   bn.pause=
+  sleep=3000
   assert.enabled.bn.resume=
   wait.process.processchunks-tilt%{axis}=paused
   #test order resume
