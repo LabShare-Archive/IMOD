@@ -8,11 +8,11 @@ import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.ProcessSeries;
 import etomo.comscript.ComscriptState;
 import etomo.storage.FileLocation;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
-import etomo.type.ConstProcessSeries;
 import etomo.util.Utilities;
 
 /**
@@ -231,12 +231,13 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * @param axisID
    * @param watchedFileName
    */
-  public BackgroundComScriptProcess(  final BaseManager manager,  final String comScript,
-      final   BaseProcessManager processManager,  final AxisID axisID, final  String watchedFileName,
-      final    DetachedProcessMonitor monitor,  final ComscriptState comscriptState,
-      final     ConstProcessSeries processSeries,final boolean resumable) {
+  public BackgroundComScriptProcess(final BaseManager manager, final String comScript,
+      final BaseProcessManager processManager, final AxisID axisID,
+      final String watchedFileName, final DetachedProcessMonitor monitor,
+      final ComscriptState comscriptState, final ProcessSeries processSeries,
+      final boolean resumable) {
     super(manager, comScript, processManager, axisID, watchedFileName, monitor,
-        processSeries,resumable);
+        processSeries, resumable);
     this.comscriptState = comscriptState;
     this.axisID = axisID;
     this.manager = manager;
@@ -325,6 +326,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
       renameFiles(getWatchedFileName(), getWorkingDirectory(), getLogFile());
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       getProcessMessages().addError(e.getMessage());
       getProcessMessages().addError(
           getComScriptName() + " may already be running.  Check the log file.");
