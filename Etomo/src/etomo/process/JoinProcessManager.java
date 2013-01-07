@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
+import etomo.ProcessSeries;
 import etomo.comscript.ClipParam;
 import etomo.comscript.Command;
 import etomo.comscript.ProcessDetails;
@@ -19,7 +20,6 @@ import etomo.comscript.XftoxgParam;
 import etomo.storage.LogFile;
 import etomo.storage.XfjointomoLog;
 import etomo.type.AxisID;
-import etomo.type.ConstProcessSeries;
 import etomo.type.JoinState;
 import etomo.type.ProcessName;
 import etomo.util.DatasetFiles;
@@ -230,20 +230,20 @@ public final class JoinProcessManager extends BaseProcessManager {
    * Run makejoincom
    */
   public String makejoincom(MakejoincomParam makejoincomParam,
-      ConstProcessSeries processSeries) throws SystemProcessException {
+      final ProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(makejoincomParam,
         AxisID.ONLY, ProcessName.MAKEJOINCOM, processSeries);
     return backgroundProcess.getName();
   }
 
-  public String remapmodel(RemapmodelParam param, ConstProcessSeries processSeries)
+  public String remapmodel(RemapmodelParam param, final ProcessSeries processSeries)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param, AxisID.ONLY,
         ProcessName.REMAPMODEL, processSeries);
     return backgroundProcess.getName();
   }
 
-  public String xftoxg(XftoxgParam param, ConstProcessSeries processSeries)
+  public String xftoxg(XftoxgParam param, final ProcessSeries processSeries)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param, AxisID.ONLY,
         ProcessName.XFTOXG, processSeries);
@@ -256,7 +256,7 @@ public final class JoinProcessManager extends BaseProcessManager {
    * @param finishjoinParam
    */
   public void saveFinishjoinState(FinishjoinParam finishjoinParam,
-      ConstProcessSeries processSeries) {
+      final ProcessSeries processSeries) {
     postProcess(new BackgroundProcess(manager, finishjoinParam, this, AxisID.ONLY,
         ProcessName.FINISHJOIN, processSeries));
   }
@@ -265,14 +265,14 @@ public final class JoinProcessManager extends BaseProcessManager {
    * Run finishjoin
    */
   public String finishjoin(FinishjoinParam finishjoinParam,
-      ConstProcessSeries processSeries) throws SystemProcessException {
+      final ProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(finishjoinParam,
         AxisID.ONLY, ProcessName.FINISHJOIN, processSeries);
     return backgroundProcess.getName();
   }
 
   public String xfjointomo(XfjointomoParam xfjointomoParam,
-      ConstProcessSeries processSeries) throws SystemProcessException {
+      final ProcessSeries processSeries) throws SystemProcessException {
     XfjointomoLog.getInstance(manager).reset();
     BackgroundProcess backgroundProcess = startBackgroundProcess(
         xfjointomoParam.getCommandArray(), AxisID.ONLY, null, ProcessName.XFJOINTOMO,
@@ -280,12 +280,10 @@ public final class JoinProcessManager extends BaseProcessManager {
     return backgroundProcess.getName();
   }
 
-
-
   /**
    * Run clip rotx
    */
-  public String rotx(ClipParam clipyzParam, ConstProcessSeries processSeries)
+  public String rotx(ClipParam clipyzParam, final ProcessSeries processSeries)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(clipyzParam,
         AxisID.ONLY, ProcessName.CLIP, processSeries);
@@ -295,14 +293,12 @@ public final class JoinProcessManager extends BaseProcessManager {
   /**
    * Run the startjoin com file
    */
-  public String startjoin(StartJoinParam param, ConstProcessSeries processSeries)
+  public String startjoin(StartJoinParam param, final ProcessSeries processSeries)
       throws SystemProcessException {
     ComScriptProcess comScriptProcess = startComScript(param, null, AxisID.ONLY,
         processSeries);
     return comScriptProcess.getName();
   }
-
-
 
   void postProcess(ComScriptProcess process) {
     String commandName = process.getComScriptName();
@@ -478,8 +474,6 @@ public final class JoinProcessManager extends BaseProcessManager {
       manager.setMode();
     }
   }
-
-
 
   BaseManager getManager() {
     return manager;
