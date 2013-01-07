@@ -1,5 +1,6 @@
 package etomo.process;
 
+import etomo.ProcessSeries;
 import etomo.SerialSectionsManager;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.Command;
@@ -10,7 +11,6 @@ import etomo.comscript.MidasParam;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.XftoxgParam;
 import etomo.type.AxisID;
-import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessName;
 import etomo.type.SerialSectionsState;
 import etomo.type.ViewType;
@@ -44,7 +44,7 @@ public final class SerialSectionsProcessManager extends BaseProcessManager {
    * Run extractpieces
    */
   public String extractpieces(final ExtractpiecesParam param, final AxisID axisID,
-      final ConstProcessSeries processSeries) throws SystemProcessException {
+      final ProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param.getCommand(),
         axisID, false, null, processSeries, ProcessName.EXTRACTPIECES);
     return backgroundProcess.getName();
@@ -57,7 +57,7 @@ public final class SerialSectionsProcessManager extends BaseProcessManager {
    * @throws SystemProcessException
    */
   public String blend(final BlendmontParam blendmontParam, final AxisID axisID,
-      final ConstProcessSeries processSeries) throws SystemProcessException {
+      final ProcessSeries processSeries) throws SystemProcessException {
     // Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
         manager, axisID, blendmontParam.getMode());
@@ -83,7 +83,7 @@ public final class SerialSectionsProcessManager extends BaseProcessManager {
    * @throws SystemProcessException
    */
   public String xftoxg(final XftoxgParam param, final AxisID axisID,
-      final ConstProcessSeries processSeries) throws SystemProcessException {
+      final ProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param, axisID,
         ProcessName.XFTOXG, processSeries);
     return backgroundProcess.getName();
@@ -93,7 +93,7 @@ public final class SerialSectionsProcessManager extends BaseProcessManager {
    * Run newst.com
    */
   public String newst(final ConstNewstParam newstParam, final AxisID axisID,
-      final ConstProcessSeries processSeries) throws SystemProcessException {
+      final ProcessSeries processSeries) throws SystemProcessException {
     // Start the com script in the background
     NewstProcessMonitor newstProcessMonitor = new NewstProcessMonitor(manager, axisID,
         ProcessName.NEWST, newstParam);
