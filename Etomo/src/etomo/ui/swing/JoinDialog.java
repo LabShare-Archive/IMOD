@@ -1793,6 +1793,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
           }
         }
         catch (LogFile.LockException e) {
+          e.printStackTrace();
           UIHarness.INSTANCE.openMessageDialog(manager,
               "Unable to save or write JoinMetaData.\n" + e.getMessage(), "Etomo Error");
         }
