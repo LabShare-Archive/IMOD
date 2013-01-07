@@ -7,10 +7,10 @@ import java.util.Map;
 import java.util.Vector;
 
 import etomo.BaseManager;
+import etomo.ProcessSeries;
 import etomo.ProcessingMethodMediator;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
-import etomo.type.ConstProcessSeries;
 import etomo.type.ConstStringProperty;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
@@ -40,7 +40,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
   private final ProcessMonitor monitor;
   private final ProcessData processData;
   private final AxisID axisID;
-  private ConstProcessSeries processSeries;
+  private ProcessSeries processSeries;
   private ProcessEndState endState = null;
   private ProcessResultDisplay processResultDisplay = null;
   private ProcessMessages messages = null;
@@ -104,7 +104,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
 
   private ReconnectProcess(BaseManager manager, BaseProcessManager processManager,
       ProcessMonitor monitor, ProcessData processData, AxisID axisID,
-      ConstProcessSeries processSeries) {
+      final ProcessSeries processSeries) {
     this.manager = manager;
     this.processManager = processManager;
     this.monitor = monitor;
@@ -115,7 +115,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
 
   static ReconnectProcess getInstance(BaseManager manager,
       BaseProcessManager processManager, ProcessMonitor monitor, ProcessData processData,
-      AxisID axisID, ConstProcessSeries processSeries) throws LogFile.LockException {
+      AxisID axisID, final ProcessSeries processSeries) throws LogFile.LockException {
     ReconnectProcess instance = new ReconnectProcess(manager, processManager, monitor,
         processData, axisID, processSeries);
     instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
@@ -126,7 +126,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
   static ReconnectProcess getLogInstance(BaseManager manager,
       BaseProcessManager processManager, ProcessMonitor monitor, ProcessData processData,
       AxisID axisID, String logFileName, String logSuccessTag,
-      ConstStringProperty subDirName, ConstProcessSeries processSeries)
+      ConstStringProperty subDirName, final ProcessSeries processSeries)
       throws LogFile.LockException {
     ReconnectProcess instance = new ReconnectProcess(manager, processManager, monitor,
         processData, axisID, processSeries);
@@ -150,7 +150,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
   public final void setComputerMap(Map computerMap) {
   }
 
-  public ConstProcessSeries getProcessSeries() {
+  public ProcessSeries getProcessSeries() {
     return processSeries;
   }
 
@@ -261,6 +261,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
       // manager, axisID, processData.getProcessName())));
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       return null;
     }
     catch (FileNotFoundException e) {
