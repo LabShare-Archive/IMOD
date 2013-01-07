@@ -543,6 +543,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
       return LogFile.getInstance(file);
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       System.err.println(errorMessageTag + ":  Cannot open the autodoc file "
           + file.getAbsolutePath() + ".");
       return null;
