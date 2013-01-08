@@ -786,8 +786,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       EtomoNumber.Type.DOUBLE, STACK_KEY + "." + FIRST_AXIS_KEY + ".3dFind.Thickness");
   private final EtomoNumber stack3dFindThicknessB = new EtomoNumber(
       EtomoNumber.Type.DOUBLE, STACK_KEY + "." + SECOND_AXIS_KEY + ".3dFind.Thickness");
-  
   private final EtomoBoolean2 setFEIPixelSize = new EtomoBoolean2("SetFEIPixelSize");
+  private final EtomoBoolean2 postTrimvolNewStyleZ = new EtomoBoolean2(POST_KEY
+      + "Trimvol.NewStyleZ");
+  private final EtomoBoolean2 postTrimvolScalingNewStyleZ = new EtomoBoolean2(POST_KEY
+      + "Trimvol.Scaling.NewStyleZ");
 
   public MetaData(final ApplicationManager manager) {
     this.manager = manager;
@@ -1063,9 +1066,23 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       stack3dFindThicknessA.set(input);
     }
   }
-  
+
   public void setSetFEIPixelSize(final boolean input) {
     setFEIPixelSize.set(input);
+  }
+
+  public void setPostTrimvolNewStyleZ(final String uiZMin, final String uiZMax) {
+    if (postTrimvolNewStyleZ.isNull() || !postTrimvolNewStyleZ.is()) {
+      postTrimvolNewStyleZ.set(!postTrimvolZMin.equals(uiZMin)
+          || !postTrimvolZMax.equals(uiZMax));
+    }
+  }
+
+  public void setPostTrimvolScalingNewStyleZ(final String uiZMin, final String uiZMax) {
+    if (postTrimvolScalingNewStyleZ.isNull() || !postTrimvolScalingNewStyleZ.is()) {
+      postTrimvolScalingNewStyleZ.set(!postTrimvolSectionScaleMin.equals(uiZMin)
+          || !postTrimvolSectionScaleMax.equals(uiZMax));
+    }
   }
 
   public void setMagGradientFile(final String magGradientFile) {
@@ -1652,6 +1669,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stack3dFindThicknessA.reset();
     stack3dFindThicknessB.reset();
     setFEIPixelSize.reset();
+    postTrimvolNewStyleZ.reset();
+    postTrimvolScalingNewStyleZ.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1939,7 +1958,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackAdvancedB.load(props, prepend);
     stack3dFindThicknessA.load(props, prepend);
     stack3dFindThicknessB.load(props, prepend);
-    setFEIPixelSize.load(props,prepend);
+    setFEIPixelSize.load(props, prepend);
+    postTrimvolNewStyleZ.load(props, prepend);
+    postTrimvolScalingNewStyleZ.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(final AxisID axisID, final boolean selected) {
@@ -2276,7 +2297,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackAdvancedB.store(props, prepend);
     stack3dFindThicknessA.store(props, prepend);
     stack3dFindThicknessB.store(props, prepend);
-    setFEIPixelSize.store(props,prepend);
+    setFEIPixelSize.store(props, prepend);
+    postTrimvolNewStyleZ.store(props, prepend);
+    postTrimvolScalingNewStyleZ.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -3061,9 +3084,17 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
     return !stack3dFindThicknessA.isNull();
   }
-  
+
   public boolean isSetFEIPixelSize() {
     return setFEIPixelSize.is();
+  }
+
+  public boolean isPostTrimvolNewStyleZ() {
+    return postTrimvolNewStyleZ.is();
+  }
+
+  public boolean isPostTrimvolScalingNewStyleZ() {
+    return postTrimvolScalingNewStyleZ.is();
   }
 
   public String getStack3dFindThickness(final AxisID axisID) {
