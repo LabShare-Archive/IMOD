@@ -290,6 +290,7 @@ public class TrimvolParam implements CommandDetails {
   private boolean nColumnsChanged = false;
   private boolean nRowsChanged = false;
   private boolean nSectionsChanged = false;
+  private final EtomoNumber oldFlippedCoordinates = new EtomoNumber("-old");
 
   private final BaseManager manager;
   private final CommandMode mode;
@@ -305,9 +306,9 @@ public class TrimvolParam implements CommandDetails {
 
   public static void convertIndexCoordsToImodCoords(final EtomoNumber xMin,
       final EtomoNumber xMax, final EtomoNumber yMin, final EtomoNumber yMax) {
-    //In the old version, scale x and y min and max had been converted to index
-    //coords.  In the current version, they should be imod coords.
-    //shift X
+    // In the old version, scale x and y min and max had been converted to index
+    // coords. In the current version, they should be imod coords.
+    // shift X
     int min;
     int max;
     int shift;
@@ -318,7 +319,7 @@ public class TrimvolParam implements CommandDetails {
       xMin.set(min + shift);
       xMax.set(max + shift);
     }
-    //shift Y
+    // shift Y
     if (!yMin.isNull()) {
       min = yMin.getInt();
       max = yMax.getInt();
@@ -337,14 +338,14 @@ public class TrimvolParam implements CommandDetails {
    * @return
    */
   static int getScaleShift(int min, int max) {
-    //Possibilities:
-    //min and max may be reduced by 1 or more
-    //min and max may not be reduced at all
-    //Assume min and max are reduced by 1, since that is the most likely 
-    //situation.
+    // Possibilities:
+    // min and max may be reduced by 1 or more
+    // min and max may not be reduced at all
+    // Assume min and max are reduced by 1, since that is the most likely
+    // situation.
     int shift = 1;
     if (min < 0) {
-      //min and max where reduce by more then 1 
+      // min and max where reduce by more then 1
       shift = 0 - min + 1;
     }
     return shift;
@@ -365,19 +366,19 @@ public class TrimvolParam implements CommandDetails {
   }
 
   private void createCommand() {
-    ArrayList options = genOptions();
+    List<String> options = genOptions();
     commandArray = new String[options.size() + commandSize];
-    // Do not use the -e flag for tcsh since David's scripts handle the failure 
-    // of commands and then report appropriately.  The exception to this is the
-    // com scripts which require the -e flag.  RJG: 2003-11-06  
+    // Do not use the -e flag for tcsh since David's scripts handle the failure
+    // of commands and then report appropriately. The exception to this is the
+    // com scripts which require the -e flag. RJG: 2003-11-06
     commandArray[0] = "bash";
     commandArray[1] = BaseManager.getIMODBinPath() + "runpyscript";
     commandArray[2] = "-P";
     commandArray[3] = commandName;
     for (int i = 0; i < options.size(); i++) {
-      commandArray[i + commandSize] = (String) options.get(i);
+      commandArray[i + commandSize] = options.get(i);
     }
-    //TEMP
+    // TEMP
     for (int i = 0; i < commandArray.length; i++) {
       System.err.print(commandArray[i] + " ");
     }
@@ -387,9 +388,9 @@ public class TrimvolParam implements CommandDetails {
   /**
    * Get the command string specified by the current state
    */
-  public ArrayList genOptions() {
-    ArrayList options = new ArrayList();
-    //options.add("-P");
+  public List<String> genOptions() {
+    List<String> options = new ArrayList<String>();
+    // options.add("-P");
 
     // TODO add error checking and throw an exception if the parameters have not
     // been set
@@ -441,6 +442,10 @@ public class TrimvolParam implements CommandDetails {
     }
     if (keepSameOrigin) {
       options.add("-k");
+    }
+    if (!oldFlippedCoordinates.isNull()) {
+      options.add(oldFlippedCoordinates.getName());
+      options.add(oldFlippedCoordinates.toString());
     }
     // TODO check to see that filenames are apropriate
     options.add(inputFile);
@@ -707,15 +712,15 @@ public class TrimvolParam implements CommandDetails {
    * @throws IOException
    */
   public void setDefaultRange(TrimvolInputFileState inputFileState, boolean dialogExists) {
-    //Don't override existing values unless the size of the trimvol input file
-    //has changed since the last time trimvol was run.
+    // Don't override existing values unless the size of the trimvol input file
+    // has changed since the last time trimvol was run.
     if (dialogExists && xMin.getInt() != Integer.MIN_VALUE && !inputFileState.isChanged()) {
       return;
     }
-    //Refresh X and Y together.  Refresh Z separately.
-    //Make sure that the dialog is refreshed the first time the dialog is
-    //displayed.  Also fix any null values that may have appeared.  This is
-    //done because there was a bug which caused null values.
+    // Refresh X and Y together. Refresh Z separately.
+    // Make sure that the dialog is refreshed the first time the dialog is
+    // displayed. Also fix any null values that may have appeared. This is
+    // done because there was a bug which caused null values.
     if (!dialogExists || inputFileState.isNColumnsChanged()
         || inputFileState.isNRowsChanged()) {
       xMin.set(1);
@@ -753,7 +758,7 @@ public class TrimvolParam implements CommandDetails {
         zMax.set(inputFileState.getNSections());
       }
     }
-    //zMax always contains the number of sections.
+    // zMax always contains the number of sections.
     sectionScaleMin.set(zMax.getInt() / 3);
     sectionScaleMax.set(zMax.getInt() * 2 / 3);
   }
@@ -816,6 +821,31 @@ public class TrimvolParam implements CommandDetails {
 
   public static String getOutputFileName(String datasetName) {
     return datasetName + ".rec";
+  }
+
+  public void setOldFlippedCoordinates(final boolean newStyleZ,
+      final boolean scalingNewStyleZ) {
+    if (newStyleZ && scalingNewStyleZ) {
+      oldFlippedCoordinates.reset();
+    }
+    else if (!newStyleZ && scalingNewStyleZ) {
+      oldFlippedCoordinates.set(1);
+    }
+    else if (newStyleZ && !scalingNewStyleZ) {
+      oldFlippedCoordinates.set(2);
+    }
+    else {
+      oldFlippedCoordinates.set(3);
+    }
+  }
+
+  public void setOldFlippedCoordinates(final boolean newStyleZ) {
+    if (newStyleZ) {
+      oldFlippedCoordinates.reset();
+    }
+    else {
+      oldFlippedCoordinates.set(1);
+    }
   }
 
   /**
