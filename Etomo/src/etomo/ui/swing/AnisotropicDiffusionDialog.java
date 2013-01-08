@@ -419,6 +419,10 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     metaData.setTestIterationList(ltfTestIterationList.getText());
     filterFullVolumePanel.getParameters(metaData);
   }
+  
+ public void getParametersForTrimvol(final ParallelMetaData metaData) {
+   pnlTestVolumeRubberband.getParametersForTrimvol(metaData);
+  }
 
   public Number getMemoryPerChunk() {
     return filterFullVolumePanel.getMemoryPerChunk();
