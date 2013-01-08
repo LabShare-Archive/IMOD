@@ -501,8 +501,7 @@ public final class ApplicationManager extends BaseManager implements
           if (infoMessages != null && infoMessages.size() != 0) {
             logMessage(infoMessages, "Copytomocoms", AxisID.ONLY);
           }
-          infoMessages = messages
-              .getInfoList("Pixel spacing was set in FEI");
+          infoMessages = messages.getInfoList("Pixel spacing was set in FEI");
           if (infoMessages != null && infoMessages.size() != 0) {
             for (Iterator<String> i = infoMessages.iterator(); i.hasNext();) {
               System.err.println(i.next());
@@ -6954,6 +6953,7 @@ public final class ApplicationManager extends BaseManager implements
           false);
       updateSqueezevolParam(false);
       postProcessingDialog.getParameters(metaData);
+      postProcessingDialog.getParametersForTrimvol(metaData);
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setPostProcessingState(ProcessState.INPROGRESS);
         mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
@@ -7562,6 +7562,7 @@ public final class ApplicationManager extends BaseManager implements
     if (!postProcessingDialog.getParameters(param, true)) {
       return null;
     }
+    postProcessingDialog.getParametersForTrimvol(metaData);
     // Add input and output files.
     param.setInputFileName(metaData.getAxisType(), metaData.getDatasetName());
     param.setOutputFileName(metaData.getDatasetName() + ".rec");
@@ -7569,6 +7570,8 @@ public final class ApplicationManager extends BaseManager implements
         && !state.isAdjustOrigin(AxisID.ONLY)) {
       param.setKeepSameOrigin(true);
     }
+    param.setOldFlippedCoordinates(metaData.isPostTrimvolNewStyleZ(),
+        metaData.isPostTrimvolScalingNewStyleZ());
     return param;
   }
 
