@@ -48,6 +48,7 @@ public final class ParallelMetaData extends BaseMetaData {
   private final EtomoNumber iteration = new EtomoNumber("Iteration");
   private final EtomoNumber memoryPerChunk = new EtomoNumber("MemoryPerChunk");
   private final EtomoBoolean2 overlapTimesFour = new EtomoBoolean2("OverlapTimesFour");
+  private final EtomoBoolean2 newStyleZ = new EtomoBoolean2("NewStyleZ");
 
   private DialogType dialogType = DialogType.getDefault(DataFileType.PARALLEL);
   private String revision = null;
@@ -220,8 +221,18 @@ public final class ParallelMetaData extends BaseMetaData {
     overlapTimesFour.set(input);
   }
 
+  public void setNewStyleZ(final String uiZMin, final String uiZMax) {
+    if (newStyleZ.isNull() || !newStyleZ.is()) {
+      newStyleZ.set(!zMin.equals(uiZMin) || !zMax.equals(uiZMax));
+    }
+  }
+
   public boolean isOverlapTimesFour() {
     return overlapTimesFour.is();
+  }
+
+  public boolean isNewStyleZ() {
+    return newStyleZ.is();
   }
 
   public void setTestKValue(String input) {
@@ -274,6 +285,7 @@ public final class ParallelMetaData extends BaseMetaData {
     iteration.reset();
     memoryPerChunk.reset();
     overlapTimesFour.reset();
+    newStyleZ.reset();
     // load
     dialogType = DialogType.load(DataFileType.PARALLEL, props);
     prepend = createPrepend(prepend);
@@ -297,6 +309,7 @@ public final class ParallelMetaData extends BaseMetaData {
     memoryPerChunk.load(props, prepend,
         AnisotropicDiffusionDialog.MEMORY_PER_CHUNK_DEFAULT);
     overlapTimesFour.load(props, prepend);
+    newStyleZ.load(props, prepend);
   }
 
   public void store(Properties props, String prepend) {
@@ -322,6 +335,7 @@ public final class ParallelMetaData extends BaseMetaData {
     iteration.store(props, prepend);
     memoryPerChunk.store(props, prepend);
     overlapTimesFour.store(props, prepend);
+    newStyleZ.store(props, prepend);
   }
 
   String getGroupKey() {
