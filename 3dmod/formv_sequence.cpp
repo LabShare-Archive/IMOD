@@ -568,7 +568,7 @@ void MovieSequenceForm::loadClicked()
 
 void MovieSequenceForm::helpClicked()
 {
-  imodShowHelpPage("movieSequences.html#TOP");
+  imodShowHelpPage("movieSequence.html#TOP");
 }
 
 /*
