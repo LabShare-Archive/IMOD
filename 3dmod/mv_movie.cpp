@@ -249,8 +249,8 @@ void mvMovieSequenceDialog(ImodvApp *a, int state)
   // Height is managed in the init function
   adjustGeometryAndShow(sSequenceDia, IMODV_DIALOG, false);
   sSequenceDia->updateEnables(sDia != NULL && !sMontage, sAbort == 0);
-  sDia->sequenceOpen(true);
-
+  if (sDia)
+    sDia->sequenceOpen(true);
 }
 
 void mvMovieSequenceClosing()
