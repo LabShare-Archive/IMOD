@@ -903,10 +903,13 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     if (pnlTransferfid != null) {
       pnlTransferfid.setEnabled(transferfidEnabled);
     }
-    rbSeedModelTransfer.setEnabled(transferfidEnabled);
-    if (rbSeedModelTransfer.isSelected()) {
+    if (!transferfidEnabled && rbSeedModelTransfer.isEnabled()) {
+      rbSeedModelTransfer.setEnabled(false);
       rbSeedModelManual.setSelected(true);
       updateMethod();
+    }
+    else if (transferfidEnabled){
+      rbSeedModelTransfer.setEnabled(true);
     }
     cbsClusteredPointsAllowedElongated
         .setCheckBoxEnabled(cbClusteredPointsAllowedClustered.isSelected());
