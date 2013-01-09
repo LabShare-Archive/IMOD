@@ -1,9 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1/8/13: Handled the change from flipping to rotation in 3dmod.(Bug# 1674)
+1/8/13: Creating a second backup file for dataset files, the .prm file, and
+the project long.(Bug# 1488)
 
-1/7/13: Changed the processchunks control panel to allow a Resume to be
+1/8/13: Changed the processchunks control panel to allow a Resume to be
 ordered before the Pause is completed.(Bug# 1434)
+
+1/8/13: Handled the change from flipping to rotation in 3dmod.(Bug# 1674)
 
 1/2/13: Made Ctfplotter not open windows when autofitting in batch mode.
 
@@ -26,9 +29,6 @@ reconstructions that have a substantial shift between them.
 
 12/26/12: Added dialog to Model View for saving and running a sequence of
 movie segments with different settings.
-
-12/20/12: Creating a second backup file for dataset files, the .prm file, and
-the project long.(Bug# 1488)
 
 12/20/12: Added Tomodataplots for graphing various data from tilt series
 processing (clip stats, blendmont errors, tiltalign mean residuals).
