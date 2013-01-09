@@ -257,7 +257,8 @@ void mvMovieSequenceClosing()
 {
   imodvDialogManager.remove(sSequenceDia);
   sSequenceDia = NULL;
-  sDia->sequenceOpen(false);
+  if (sDia)
+    sDia->sequenceOpen(false);
 }
 
 // Get all the properties that define a movie segment
