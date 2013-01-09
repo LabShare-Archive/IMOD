@@ -117,22 +117,6 @@ run.function.setup-patch-tracking=
   tf.take-logarithm-of-densities-with-offset=0.0
 [[]]
 cb.parallel-processing=on
-[[if = test-gui]]
-  #test pause
-  bn.generate-tomogram=
-  sleep=2000
-  assert.enabled.bn.pause=
-  assert.disabled.bn.resume=
-  bn.pause=
-  sleep=2000
-  assert.enabled.bn.resume=
-  wait.process.processchunks-tilt%{axis}=paused
-  #test order resume
-  bn.generate-tomogram=
-  bn.pause=
-  bn.resume=
-  wait.process.processchunks-tilt%{axis}=done
-[[]]
 bn.generate-tomogram=
 wait.process.processchunks-tilt%{axis}=done
 if.var.build.return=
