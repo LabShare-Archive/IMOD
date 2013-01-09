@@ -70,6 +70,7 @@ public final class LogFile {
 
   private File file = null;
   private File backupFile = null;
+  private File doubleBackupFile = null;
   private FileWriter fileWriter = null;
   private BufferedWriter bufferedWriter = null;
   private FileInputStream inputStream = null;
@@ -217,6 +218,38 @@ public final class LogFile {
     return backupResult;
   }
 
+  public boolean isBackedup() {
+    return backedUp;
+  }
+
+  public synchronized boolean doubleBackupOnce() throws LockException {
+    if (backedUp) {
+      return false;
+    }
+    boolean backupResult = false;
+    doubleBackup();
+    backupResult = backup();
+    backedUp = true;
+    return backupResult;
+  }
+
+  private void doubleBackup() throws LockException {
+    createBackupFile();
+    createDoubleBackupFile();
+    backup(backupFile, doubleBackupFile);
+    backupFile = null;
+    doubleBackupFile = null;
+  }
+
+  public synchronized boolean backup() throws LockException {
+    createFile();
+    createBackupFile();
+    boolean retval = backup(file, backupFile);
+    file = null;
+    backupFile = null;
+    return retval;
+  }
+
   /**
    * Delete the current backup file and rename the current file to be the new
    * backup file.  The current backup file will not be deleted unless the
@@ -225,17 +258,16 @@ public final class LogFile {
    * @return true if backup() successful or already backed up
    * @throws FileException
    */
-  public synchronized boolean backup() throws LockException {
+  public synchronized boolean backup(final File file, final File backupFile)
+      throws LockException {
     if (backedUp) {
       return false;
     }
-    createFile();
     if (!file.exists()) {
       return false;
     }
     FileId fileId = new FileId();
     lock.lock(LockType.FILE, fileId);
-    createBackupFile();
     if (!file.exists()) {
       // nothing to backup
       try {
@@ -299,8 +331,6 @@ public final class LogFile {
       System.err.println(actionMessage);
     }
     // reset the File variables sinces the file names may have changed.
-    file = null;
-    backupFile = null;
     try {
       lock.unlock(LockType.FILE, fileId);
     }
@@ -897,6 +927,14 @@ public final class LogFile {
       return;
     }
     backupFile = new File(fileAbsolutePath + DatasetFiles.BACKUP_CHAR);
+  }
+
+  private void createDoubleBackupFile() {
+    if (doubleBackupFile != null) {
+      return;
+    }
+    doubleBackupFile = new File(fileAbsolutePath + DatasetFiles.BACKUP_CHAR
+        + DatasetFiles.BACKUP_CHAR);
   }
 
   private void createWriter(final boolean append) throws IOException {

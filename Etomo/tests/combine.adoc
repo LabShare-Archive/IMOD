@@ -1,22 +1,5 @@
 Version = 1.2
 
-[function = copy]
-[[if = simple-align]]
-  copy.file = tomopitch%{axis}_simple-align.mod|tomopitch%{axis}.mod
-[[]]
-[[ifnot = simple-align]]
-  run.function.non-simple-align-copy=
-[[]]
-
-
-[function = non-simple-align-copy]
-[[if = patch-tracking]]
-  copy.file = tomopitch%{axis}_patch-tracking.mod|tomopitch%{axis}.mod
-[[]]
-[[ifnot = patch-tracking]]
-  copy.file = tomopitch%{axis}.mod
-[[]]
-
 [function = main]
 [[if = patch-tracking]]
 	#use matching models for patch tracking

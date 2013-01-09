@@ -551,7 +551,12 @@ public final class MatlabParam {
       }
       else {
         LogFile logFile = LogFile.getInstance(file);
-        logFile.backup();
+        if (!logFile.isBackedup()) {
+          logFile.doubleBackupOnce();
+        }
+        else {
+          logFile.backup();
+        }
       }
       if (commentAutodoc == null) {
         // The peetprm.adoc is not available.

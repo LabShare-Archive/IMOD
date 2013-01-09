@@ -141,13 +141,13 @@ public final class LogPanel implements Storable, LogInterface {
             }
             catch (LogFile.LockException e) {
               e.printStackTrace();
-              UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
-                  "Unabled to load " + file.getAbsolutePath(), "System Error");
+              UIHarness.INSTANCE.openMessageDialog((BaseManager) null, "Unabled to load "
+                  + file.getAbsolutePath(), "System Error");
             }
             catch (IOException e) {
               e.printStackTrace();
-              UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
-                  "Unabled to load " + file.getAbsolutePath(), "System Error");
+              UIHarness.INSTANCE.openMessageDialog((BaseManager) null, "Unabled to load "
+                  + file.getAbsolutePath(), "System Error");
             }
           }
         }
@@ -190,7 +190,12 @@ public final class LogPanel implements Storable, LogInterface {
       return;
     }
     try {
-      file.backup();
+      if (!file.isBackedup()) {
+        file.doubleBackupOnce();
+      }
+      else {
+        file.backup();
+      }
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -271,8 +276,8 @@ public final class LogPanel implements Storable, LogInterface {
         e.printStackTrace();
         if (!fileFailed) {
           fileFailed = true;
-          UIHarness.INSTANCE.openMessageDialog((BaseManager) null, "Unabled to access file " + fileName
-              + " in " + userDir, "System Error");
+          UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
+              "Unabled to access file " + fileName + " in " + userDir, "System Error");
         }
         return false;
       }
