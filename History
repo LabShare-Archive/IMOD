@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/9/13: Fixed two problems with the behavior of eTomo - Fiducial Model.
+(Bug# 1675)
+
 1/8/13: Creating a second backup file for dataset files, the .prm file, and
 the project long.(Bug# 1488)
 
