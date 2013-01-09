@@ -20,7 +20,6 @@ import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
-import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.InterfaceType;
@@ -206,13 +205,19 @@ public final class ParallelManager extends BaseManager {
     }
   }
 
-  void startNextProcess(final UIComponent uiComponent, final AxisID axisID,
+  boolean startNextProcess(final UIComponent uiComponent, final AxisID axisID,
       final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display) {
-    if (process.equals(ProcessName.ANISOTROPIC_DIFFUSION.toString())) {
-      anisotropicDiffusion(processSeries, process.getProcessingMethod());
+      final DialogType dialogType, ProcessDisplay display) {
+    if (super.startNextProcess(uiComponent, axisID, process, processResultDisplay,
+        processSeries, dialogType, display)) {
+      return true;
     }
+    if (process.equals(ProcessName.ANISOTROPIC_DIFFUSION.toString())) {
+      anisotropicDiffusion(processSeries, process.getProcessingMethod(), dialogType);
+      return true;
+    }
+    return false;
   }
 
   public String getName() {
@@ -287,8 +292,9 @@ public final class ParallelManager extends BaseManager {
    * run BaseManager.processchunks
    */
   public final void processchunks(final ProcessResultDisplay processResultDisplay,
-      final ConstProcessSeries processSeries, final String rootName,
-      final FileType outputImageFileType, final ProcessingMethod processingMethod) {
+      final ProcessSeries processSeries, final String rootName,
+      final FileType outputImageFileType, final ProcessingMethod processingMethod,
+      final DialogType dialogType) {
     if (parallelDialog == null) {
       return;
     }
@@ -314,7 +320,7 @@ public final class ParallelManager extends BaseManager {
     }
     parallelPanel.getParallelProgressDisplay().resetResults();
     processchunks(AxisID.ONLY, param, processResultDisplay, processSeries, true,
-        processingMethod, false);
+        processingMethod, false, dialogType);
   }
 
   public boolean setNewParamFile(final File file) {
@@ -613,8 +619,8 @@ public final class ParallelManager extends BaseManager {
         ProcessName.ANISOTROPIC_DIFFUSION);
   }
 
-  public void anisotropicDiffusion(ConstProcessSeries processSeries,
-      final ProcessingMethod processingMethod) {
+  public void anisotropicDiffusion(ProcessSeries processSeries,
+      final ProcessingMethod processingMethod, final DialogType dialogType) {
     if (anisotropicDiffusionDialog == null) {
       uiHarness.openMessageDialog(this, "Anisotropic diffusion dialog not open",
           "Program logic error", AxisID.ONLY);
@@ -629,7 +635,8 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     parallelPanel.resetResults();
-    processchunks(AxisID.ONLY, param, null, processSeries, true, processingMethod, false);
+    processchunks(AxisID.ONLY, param, null, processSeries, true, processingMethod, false,
+        dialogType);
   }
 
   /**
@@ -726,13 +733,14 @@ public final class ParallelManager extends BaseManager {
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     parallelPanel.resetResults();
-    processchunks(AxisID.ONLY, param, null, processSeries, true, processingMethod, false);
+    processchunks(AxisID.ONLY, param, null, processSeries, true, processingMethod, false,
+        dialogType);
   }
 
   /**
    * Execute trimvol
    */
-  public void trimVolume(ConstProcessSeries processSeries) {
+  public void trimVolume(final ProcessSeries processSeries) {
     if (anisotropicDiffusionDialog == null) {
       uiHarness.openMessageDialog(this, "Anisotropic diffusion dialog not open",
           "Program logic error", AxisID.ONLY);

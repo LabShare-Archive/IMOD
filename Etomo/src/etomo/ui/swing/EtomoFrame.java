@@ -175,6 +175,7 @@ abstract class EtomoFrame extends AbstractFrame {
       }
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(currentManager,
           "Unable to write parameters.\n" + e.getMessage(), "Etomo Error", axisID);
     }
@@ -191,6 +192,7 @@ abstract class EtomoFrame extends AbstractFrame {
       }
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(currentManager, "Unable to save parameters.\n"
           + e.getMessage(), "Etomo Error", axisID);
     }

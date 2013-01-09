@@ -124,6 +124,7 @@ public final class DirectiveFile implements SetupReconInterface {
       return false;
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
           "Directive File Read Failure");
       return false;

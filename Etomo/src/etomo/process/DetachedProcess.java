@@ -8,10 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import etomo.BaseManager;
+import etomo.ProcessSeries;
 import etomo.comscript.DetachedCommandDetails;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
-import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -53,7 +53,7 @@ final class DetachedProcess extends BackgroundProcess {
   DetachedProcess(BaseManager manager, DetachedCommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID, OutfileProcessMonitor monitor,
       ProcessResultDisplay processResultDisplay, ProcessName processName,
-      ConstProcessSeries processSeries, boolean popupChunkWarnings,
+      ProcessSeries processSeries, boolean popupChunkWarnings,
       final ProcessingMethod processingMethod) {
     super(manager, commandDetails, processManager, axisID, processName, processSeries,
         popupChunkWarnings);

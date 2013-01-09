@@ -509,6 +509,7 @@ public final class MatlabParam {
       return false;
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(
           manager,
           "Unable to read " + file.getAbsolutePath() + ".  LogFile.ReadException:  "
@@ -540,6 +541,7 @@ public final class MatlabParam {
           + ".adoc.\nIOException:  " + e.getMessage());
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       System.err.println("Problem with " + AutodocFactory.PEET_PRM
           + ".adoc.\nLogFile.ReadException:  " + e.getMessage());
     }

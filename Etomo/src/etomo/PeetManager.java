@@ -30,7 +30,6 @@ import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
-import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.InterfaceType;
@@ -782,7 +781,7 @@ public final class PeetManager extends BaseManager {
 
   public void peetParser(ProcessSeries processSeries, final DialogType dialogType,
       final ProcessingMethod peetProcessingMethod) {
-    if (processMgr.inUse(AxisID.ONLY, null)) {
+    if (processMgr.inUse(AxisID.ONLY, null, true)) {
       return;
     }
     if (processSeries == null) {
@@ -894,14 +893,20 @@ public final class PeetManager extends BaseManager {
   /**
    * Start the next process specified by the nextProcess string
    */
-  void startNextProcess(final UIComponent uiComponent, final AxisID axisID,
+  boolean startNextProcess(final UIComponent uiComponent, final AxisID axisID,
       final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
       final DialogType dialogType, final ProcessDisplay display) {
+    if (super.startNextProcess(uiComponent, axisID, process, processResultDisplay,
+        processSeries, dialogType, display)) {
+      return true;
+    }
     if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
       processchunks(processSeries, process.getOutputImageFileType(),
-          process.getProcessingMethod());
+          process.getProcessingMethod(), dialogType);
+      return true;
     }
+    return false;
   }
 
   /**
@@ -1076,8 +1081,9 @@ public final class PeetManager extends BaseManager {
    * Run processchunks.
    * @param axisID
    */
-  private void processchunks(final ConstProcessSeries processSeries,
-      final FileType outputImageFileType, final ProcessingMethod processingMethod) {
+  private void processchunks(final ProcessSeries processSeries,
+      final FileType outputImageFileType, final ProcessingMethod processingMethod,
+      final DialogType dialogType) {
     if (peetDialog == null) {
       return;
     }
@@ -1093,7 +1099,7 @@ public final class PeetManager extends BaseManager {
       // param should never be set to resume
       parallelPanel.getParallelProgressDisplay().resetResults();
       processchunks(AxisID.ONLY, param, null, processSeries, false, processingMethod,
-          true);
+          true, dialogType);
     }
     catch (FieldValidationFailedException e) {
       return;
