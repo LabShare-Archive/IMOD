@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/8/13: Handled the change from flipping to rotation in 3dmod.(Bug# 1674)
+
 1/2/13: Made Ctfplotter not open windows when autofitting in batch mode.
 
 1/1/13: Turned YZ flipping in 3dmod into 90 degree rotation about X to
