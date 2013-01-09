@@ -531,6 +531,12 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
     pnlScaleRubberband.getParameters(metaData);
   }
 
+  void getParametersForTrimvol(final MetaData metaData) {
+    volumeRangePanel.getParametersForTrimvol(metaData);
+    metaData.setPostTrimvolScalingNewStyleZ(ltfSectionScaleMin.getText(),
+        ltfSectionScaleMax.getText());
+  }
+
   /**
    * Get the parameter values from the panel 
    * @param trimvolParam
