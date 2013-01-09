@@ -144,6 +144,10 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
     metaData.setPostCurTab(curTab.index);
   }
 
+ public void getParametersForTrimvol(final MetaData metaData) {
+    trimvolPanel.getParametersForTrimvol(metaData);
+  }
+
   public boolean getParameters(WarpVolParam param, final boolean doValidation) {
     return flattenVolumePanel.getParameters(param, doValidation);
   }
