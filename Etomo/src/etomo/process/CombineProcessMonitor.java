@@ -229,7 +229,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
   private LogFile.WritingId childLogWritingId = null;
   private boolean stop = false;
   private boolean running = false;
-  
+
   public void dumpState() {
   }
 
@@ -489,6 +489,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
       }
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       endMonitor(ProcessEndState.FAILED);
       e.printStackTrace();
       UIHarness.INSTANCE
@@ -651,5 +652,12 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
 
   public final String getProcessOutputFileName() throws LogFile.LockException {
     return null;
+  }
+
+  public boolean isPausing() {
+    return false;
+  }
+
+  public void setWillResume() {
   }
 }

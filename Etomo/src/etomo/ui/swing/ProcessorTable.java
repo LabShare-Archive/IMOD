@@ -355,6 +355,10 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     parent.msgKillingProcess();
   }
 
+  public void msgProcessStarted() {
+    parent.msgProcessStarted();
+  }
+
   public void msgPausingProcess() {
     parent.msgPausingProcess();
   }

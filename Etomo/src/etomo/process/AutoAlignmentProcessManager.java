@@ -4,12 +4,12 @@ import java.io.File;
 
 import etomo.AutoAlignmentController;
 import etomo.BaseManager;
+import etomo.ProcessSeries;
 import etomo.comscript.Command;
 import etomo.comscript.MidasParam;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.XfalignParam;
 import etomo.type.AxisID;
-import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessName;
 
 /**
@@ -44,7 +44,7 @@ public final class AutoAlignmentProcessManager extends BaseProcessManager {
    * Run xfalign
    */
   public String xfalign(final XfalignParam xfalignParam, final AxisID axisID,
-      final ConstProcessSeries processSeries) throws SystemProcessException {
+      final ProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(xfalignParam, axisID,
         ProcessName.XFALIGN, processSeries);
     return backgroundProcess.getName();

@@ -23,7 +23,7 @@ public interface UIExpert {
 
   public void openDialog();
 
-  public void startNextProcess(ProcessSeries.Process process,
+  public boolean startNextProcess(ProcessSeries.Process process,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       DialogType dialogType, ProcessDisplay display);
 

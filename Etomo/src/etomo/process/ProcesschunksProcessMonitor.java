@@ -75,6 +75,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private int tcshErrorCountDown = NO_TCSH_ERROR;
   private ParallelProgressDisplay parallelProgressDisplay = null;
   private MessageReporter messageReporter = null;
+  private boolean willResume = false;
 
   public void dumpState() {
     System.err.print("[rootName:" + rootName + ",subdirName:" + subdirName
@@ -302,6 +303,15 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  public boolean isPausing() {
+    return pausing && processRunning;
+  }
+
+  public void setWillResume() {
+    willResume = true;
+    setProgressBarTitle();
   }
 
   public final String getStatusString() {
@@ -615,6 +625,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       }
       else if (pausing) {
         title.append(" - pausing:  finishing current chunks");
+        if (willResume) {
+          title.append(" - will resume");
+        }
       }
     }
     else if (killing) {
@@ -622,6 +635,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
     else if (pausing) {
       title.append(" - paused");
+      if (willResume) {
+        title.append(" - will resume");
+      }
     }
     manager.getMainPanel().setProgressBar(title.toString(), nChunks.getInt(), axisID,
         !reassembling && !killing);

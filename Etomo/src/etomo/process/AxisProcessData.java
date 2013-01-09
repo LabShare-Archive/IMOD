@@ -31,14 +31,16 @@ public final class AxisProcessData {
 
   private SystemProcessInterface threadAxisA = null;
   private SystemProcessInterface threadAxisB = null;
-  private Thread processMonitorA = null;
-  private Thread processMonitorB = null;
+  private Thread processMonitorThreadA = null;
+  private Thread processMonitorThreadB = null;
   private boolean blockAxisA = true;
   private boolean blockAxisB = true;
+  private Monitor monitorA = null;
+  private Monitor monitorB = null;
 
   void dumpState() {
-    System.err.println("[processMonitorA:" + processMonitorA + ",processMonitorB:"
-        + processMonitorB + ",killedList:");
+    System.err.println("[processMonitorThreadA:" + processMonitorThreadA
+        + ",processMonitorThreadB:" + processMonitorThreadB + ",killedList:");
     if (killedList != null) {
       System.err.println(killedList.toString());
     }
@@ -52,8 +54,8 @@ public final class AxisProcessData {
 
   public String toString() {
     return "threadAxisA=" + threadAxisA + ",threadAxisB=" + threadAxisB
-        + ",\nprocessMonitorA=" + processMonitorA + ",processMonitorB=" + processMonitorB
-        + ",\nkilledList=" + killedList;
+        + ",\nprocessMonitorThreadA=" + processMonitorThreadA + ",processMonitorThreadB="
+        + processMonitorThreadB + ",\nkilledList=" + killedList;
   }
 
   boolean isThreadAxisNull(final AxisID axisID) {
@@ -61,6 +63,22 @@ public final class AxisProcessData {
       return threadAxisB == null;
     }
     return threadAxisA == null;
+  }
+
+  public boolean isPausing(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return monitorB.isPausing();
+    }
+    return monitorA.isPausing();
+  }
+
+  public void setWillResume(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      monitorB.setWillResume();
+    }
+    else {
+      monitorA.setWillResume();
+    }
   }
 
   /**
@@ -95,12 +113,15 @@ public final class AxisProcessData {
    * @param processMonitor
    * @param axisID
    */
-  void mapAxisProcessMonitor(final Thread processMonitor, final AxisID axisID) {
+  void mapAxisProcessMonitor(final Thread processMonitorThread, final Monitor monitor,
+      final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      processMonitorB = processMonitor;
+      processMonitorThreadB = processMonitorThread;
+      monitorB = monitor;
     }
     else {
-      processMonitorA = processMonitor;
+      processMonitorThreadA = processMonitorThread;
+      monitorA = monitor;
     }
   }
 
@@ -108,17 +129,19 @@ public final class AxisProcessData {
     // Null out the correct thread
     // Interrupt the process monitor and nulll out the appropriate references
     if (threadAxisA == script) {
-      if (processMonitorA != null) {
-        processMonitorA.interrupt();
-        processMonitorA = null;
+      if (processMonitorThreadA != null) {
+        processMonitorThreadA.interrupt();
+        processMonitorThreadA = null;
       }
+      monitorA = null;
       threadAxisA = null;
     }
     if (threadAxisB == script) {
-      if (processMonitorB != null) {
-        processMonitorB.interrupt();
-        processMonitorB = null;
+      if (processMonitorThreadB != null) {
+        processMonitorThreadB.interrupt();
+        processMonitorThreadB = null;
       }
+      monitorB = null;
       threadAxisB = null;
     }
   }
@@ -127,17 +150,19 @@ public final class AxisProcessData {
     // Null out the correct thread
     // Interrupt the process monitor and nulll out the appropriate references
     if (threadAxisA == script) {
-      if (processMonitorA != null) {
-        processMonitorA.interrupt();
-        processMonitorA = null;
+      if (processMonitorThreadA != null) {
+        processMonitorThreadA.interrupt();
+        processMonitorThreadA = null;
       }
+      monitorA = null;
       threadAxisA = null;
     }
     if (threadAxisB == script) {
-      if (processMonitorB != null) {
-        processMonitorB.interrupt();
-        processMonitorB = null;
+      if (processMonitorThreadB != null) {
+        processMonitorThreadB.interrupt();
+        processMonitorThreadB = null;
       }
+      monitorB = null;
       threadAxisB = null;
     }
   }

@@ -582,4 +582,11 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   public void pause(SystemProcessInterface process, AxisID axisID) {
     throw new IllegalStateException("pause illegal in this monitor");
   }
+
+  public boolean isPausing() {
+    return false;
+  }
+
+  public void setWillResume() {
+  }
 }

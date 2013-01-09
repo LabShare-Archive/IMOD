@@ -248,34 +248,47 @@ public final class SerialSectionsManager extends BaseManager {
     }
   }
 
-  void startNextProcess(final UIComponent uiComponent, final AxisID axisID,
+  boolean startNextProcess(final UIComponent uiComponent, final AxisID axisID,
       final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
       final DialogType dialogType, final ProcessDisplay display) {
+    if (super.startNextProcess(uiComponent, axisID, process, processResultDisplay,
+        processSeries, dialogType, display)) {
+      return true;
+    }
     if (process.equals(Task.CHANGE_DIRECTORY)) {
       changeDirectory(axisID, processSeries);
+      return true;
     }
-    else if (process.equals(Task.EXTRACT_PIECES)) {
+    if (process.equals(Task.EXTRACT_PIECES)) {
       extractpieces(uiComponent, axisID, processSeries);
+      return true;
     }
-    else if (process.equals(Task.CREATE_COMSCRIPTS)) {
+    if (process.equals(Task.CREATE_COMSCRIPTS)) {
       createComscripts(uiComponent, axisID, processSeries);
+      return true;
     }
-    else if (process.equals(Task.COPY_DISTORTION_FIELD_FILE)) {
+    if (process.equals(Task.COPY_DISTORTION_FIELD_FILE)) {
       copyDistortionFieldFile(processSeries, uiComponent, axisID);
+      return true;
     }
-    else if (process.equals(Task.DONE_STARTUP_DIALOG)) {
+    if (process.equals(Task.DONE_STARTUP_DIALOG)) {
       doneStartupDialog(processSeries, axisID);
+      return true;
     }
-    else if (process.equals(Task.RESET_STARTUP_STATE)) {
+    if (process.equals(Task.RESET_STARTUP_STATE)) {
       resetStartupState(processSeries, axisID);
+      return true;
     }
-    else if (process.equals(Task.XFTOXG)) {
+    if (process.equals(Task.XFTOXG)) {
       xftoxg(processSeries, axisID);
+      return true;
     }
-    else if (process.equals(Task.ALIGN)) {
+    if (process.equals(Task.ALIGN)) {
       align(processSeries, axisID);
+      return true;
     }
+    return false;
   }
 
   public void completeStartup(final UIComponent uiComponent, final AxisID axisID) {
@@ -375,7 +388,7 @@ public final class SerialSectionsManager extends BaseManager {
    * @param axisID
    */
   private void extractpieces(final UIComponent uiComponent, final AxisID axisID,
-      final ConstProcessSeries processSeries) {
+      final ProcessSeries processSeries) {
     ViewType viewType = getViewType();
     if (viewType == null) {
       if (processSeries != null) {
@@ -477,7 +490,7 @@ public final class SerialSectionsManager extends BaseManager {
     }
   }
 
-  private void xftoxg(final ConstProcessSeries processSeries, final AxisID axisID) {
+  private void xftoxg(final ProcessSeries processSeries, final AxisID axisID) {
     if (dialog == null) {
       if (processSeries != null) {
         processSeries.startFailProcess(axisID);
@@ -508,7 +521,7 @@ public final class SerialSectionsManager extends BaseManager {
     mainPanel.startProgressBar(XftoxgParam.COMMAND_NAME, AxisID.ONLY, ProcessName.XFTOXG);
   }
 
-  private void align(final ConstProcessSeries processSeries, final AxisID axisID) {
+  private void align(final ProcessSeries processSeries, final AxisID axisID) {
     if (dialog == null) {
       if (processSeries != null) {
         processSeries.startFailProcess(axisID);

@@ -114,6 +114,8 @@ public abstract class BaseManager {
   private final ProcessingMethodMediator processingMethodMediatorB = new ProcessingMethodMediator();
   private final ManagerKey managerKey = new ManagerKey();
   final AxisProcessData axisProcessData = new AxisProcessData(this);
+  private final ResumeData resumeDataA = new ResumeData();
+  private final ResumeData resumeDataB = new ResumeData();
 
   public void dumpState() {
     System.err.println("[headless:" + headless + ",loadedParamFile:" + loadedParamFile
@@ -277,10 +279,27 @@ public abstract class BaseManager {
     return true;
   }
 
-  void startNextProcess(final UIComponent uiComponent, final AxisID axisID,
+  /**
+   * Returns true if a process was started.
+   * @param uiComponent
+   * @param axisID
+   * @param process
+   * @param processResultDisplay
+   * @param processSeries
+   * @param dialogType
+   * @param display
+   * @return
+   */
+  boolean startNextProcess(final UIComponent uiComponent, final AxisID axisID,
       final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
       final DialogType dialogType, final ProcessDisplay display) {
+    ResumeData resumeData = axisID == AxisID.SECOND ? resumeDataB : resumeDataA;
+    if (process.equals(Task.RESUME)) {
+      resume(axisID);
+      return true;
+    }
+    return false;
   }
 
   void updateDialog(final ProcessName processName, final AxisID axisID) {
@@ -396,6 +415,7 @@ public abstract class BaseManager {
       }
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
     }
     catch (FileNotFoundException e) {
     }
@@ -508,6 +528,7 @@ public abstract class BaseManager {
       parameterStore.save(getBaseMetaData());
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       uiHarness.openMessageDialog(this,
           "Cannot save or write to metaData.\n" + e.getMessage(), "Etomo Error");
     }
@@ -1461,7 +1482,7 @@ public abstract class BaseManager {
    */
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, ProcessEndState endState, boolean failed,
-      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries,
+      ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
       boolean nonBlocking) {
     processDone(threadName, exitValue, processName, axisID, false, endState, null,
         failed, processResultDisplay, processSeries, nonBlocking);
@@ -1470,7 +1491,7 @@ public abstract class BaseManager {
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, boolean forceNextProcess,
       ProcessEndState endState, boolean failed,
-      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries,
+      ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
       boolean nonBlocking) {
     processDone(threadName, exitValue, processName, axisID, forceNextProcess, endState,
         null, failed, processResultDisplay, processSeries, nonBlocking);
@@ -1485,7 +1506,7 @@ public abstract class BaseManager {
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, boolean forceNextProcess,
       ProcessEndState endState, String statusString, boolean failed,
-      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries,
+      ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
       boolean nonBlocking) {
     if (threadName.equals(threadNameA)) {
       getMainPanel().stopProgressBar(AxisID.FIRST, endState, statusString);
@@ -1503,16 +1524,29 @@ public abstract class BaseManager {
       uiHarness.openMessageDialog(this, "Unknown thread finished!!!" + "\nThread name: "
           + threadName, "Unknown Thread", axisID);
     }
+    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
+    if (parallelPanel != null) {
+      parallelPanel.msgProcessDone();
+    }
     if (processName != null) {
       updateDialog(processName, axisID);
     }
+    setPauseProcess(axisID, endState, processSeries);
     // Try to start the next process if the process succeeded, or if
     // forceNextProcess is true (unless the user killed the process, it makes
     // the
     // nextProcess execute even when the current process failed).
+    // If the process is
     if (endState != ProcessEndState.KILLED && (exitValue == 0 || forceNextProcess)) {
       if (processSeries == null
           || !processSeries.startNextProcess(axisID, processResultDisplay)) {
+        sendMsgProcessSucceeded(processResultDisplay);
+        processSucceeded(axisID, processName);
+      }
+    }
+    else if (endState == ProcessEndState.PAUSED) {
+      if (processSeries == null
+          || !processSeries.startPauseProcess(axisID, processResultDisplay)) {
         sendMsgProcessSucceeded(processResultDisplay);
         processSucceeded(axisID, processName);
       }
@@ -1662,9 +1696,8 @@ public abstract class BaseManager {
     MainPanel mainPanel = getMainPanel();
     // FIXME - null pointer getPArallelPanel
     String lastProcess = processData.getLastProcess();
-    ProcessSeries processSeries = null;
+    ProcessSeries processSeries = new ProcessSeries(this, processData.getDialogType());
     if (lastProcess != null) {
-      processSeries = new ProcessSeries(this, processData.getDialogType());
       processSeries.setLastProcess(lastProcess);
     }
     boolean ret = getProcessManager().reconnectProcesschunks(axisID, processData,
@@ -1679,9 +1712,12 @@ public abstract class BaseManager {
    * @param axisID
    */
   public void processchunks(final AxisID axisID, final ProcesschunksParam param,
-      final ProcessResultDisplay processResultDisplay,
-      final ConstProcessSeries processSeries, final boolean popupChunkWarnings,
-      final ProcessingMethod processingMethod, final boolean multiLineMessages) {
+      final ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
+      final boolean popupChunkWarnings, final ProcessingMethod processingMethod,
+      final boolean multiLineMessages, final DialogType dialogType) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
     BaseMetaData metaData = getBaseMetaData();
     metaData.setCurrentProcesschunksRootName(axisID, param.getRootName().toString());
@@ -1727,6 +1763,10 @@ public abstract class BaseManager {
    */
   final void processDone(AxisID axisID, ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) {
+    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
+    if (parallelPanel != null) {
+      parallelPanel.msgProcessDone();
+    }
     if (processSeries == null
         || !processSeries.startNextProcess(axisID, processResultDisplay)) {
       sendMsgProcessSucceeded(processResultDisplay);
@@ -1882,6 +1922,42 @@ public abstract class BaseManager {
     metaData.resetCurrentProcesschunksSubdirName(axisID);
   }
 
+  private void setPauseProcess(final AxisID axisID, final ProcessEndState endState,
+      final ProcessSeries processSeries) {
+    if (processSeries != null && endState == ProcessEndState.PAUSED
+        && !(axisID == AxisID.SECOND ? resumeDataB : resumeDataA).isNull()) {
+      processSeries.setPauseProcess(Task.RESUME);
+    }
+  }
+
+  private void saveResume(final AxisID axisID, final ProcesschunksParam param,
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final boolean popupChunkWarnings, final ProcessingMethod processingMethod,
+      final boolean multiLineMessages) {
+    if (axisProcessData.isPausing(axisID)) {
+      ResumeData resumeData = axisID == AxisID.SECOND ? resumeDataB : resumeDataA;
+      resumeData.set(param, processResultDisplay, processSeries, popupChunkWarnings,
+          processingMethod, multiLineMessages);
+      axisProcessData.setWillResume(axisID);
+    }
+  }
+
+  private void resume(final AxisID axisID) {
+    ResumeData resumeData = axisID == AxisID.SECOND ? resumeDataB : resumeDataA;
+    if (!resumeData.isNull()) {
+      try {
+        Thread.sleep(3000);
+      }
+      catch (InterruptedException e) {
+      }
+      resume(axisID, resumeData.getProcesschunksParam(),
+          resumeData.getProcessResultDisplay(), resumeData.getProcessSeries(),
+          resumeData.isPopupChunkWarnings(), resumeData.getProcessingMethod(),
+          resumeData.isMultiLineMessages());
+    }
+    resumeData.reset();
+  }
+
   /**
    * Get the current processchunks root name from meta data. If it exists,
    * attempt to resume processchunks.
@@ -1890,14 +1966,24 @@ public abstract class BaseManager {
    * @param param
    * @param processResultDisplay
    * @param processSeries
-   * @param root
    * @param subcommandDetails
    */
   public void resume(final AxisID axisID, ProcesschunksParam param,
-      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
-      final Container root, final CommandDetails subcommandDetails,
-      final boolean popupChunkWarnings, final ProcessingMethod processingMethod,
-      final boolean multiLineMessages) {
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
+      final CommandDetails subcommandDetails, final boolean popupChunkWarnings,
+      final ProcessingMethod processingMethod, final boolean multiLineMessages,
+      final DialogType dialogType) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    boolean axisInUse = getProcessManager().inUse(axisID, processResultDisplay, false);
+    ProcessResultDisplay origProcessResultDisplay = null;
+    if (axisInUse) {
+      // When the axis is in use, store the resume information. The result display should
+      // not change.
+      origProcessResultDisplay = processResultDisplay;
+      processResultDisplay = null;
+    }
     sendMsgProcessStarting(processResultDisplay);
     BaseMetaData metaData = getBaseMetaData();
     if (param == null) {
@@ -1920,9 +2006,24 @@ public abstract class BaseManager {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
+    if (axisInUse) {
+      saveResume(axisID, param, origProcessResultDisplay, processSeries,
+          popupChunkWarnings, processingMethod, multiLineMessages);
+      return;
+    }
+    resume(axisID, param, processResultDisplay, processSeries, popupChunkWarnings,
+        processingMethod, multiLineMessages);
+  }
+
+  private void resume(final AxisID axisID, final ProcesschunksParam param,
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final boolean popupChunkWarnings, final ProcessingMethod processingMethod,
+      final boolean multiLineMessages) {
+    BaseMetaData metaData = getBaseMetaData();
     metaData.setCurrentProcesschunksRootName(axisID, param.getRootName());
     metaData.setCurrentProcesschunksSubdirName(axisID, param.getSubdirName());
     saveStorable(axisID, metaData);
+    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
     String threadName;
     try {
       threadName = getProcessManager().processchunks(axisID, param,
@@ -1942,6 +2043,75 @@ public abstract class BaseManager {
 
   public final void tomosnapshot(AxisID axisID) {
     getProcessManager().tomosnapshot(axisID);
+  }
+
+  public static final class Task implements TaskInterface {
+    private static final Task RESUME = new Task();
+
+    private Task() {
+    }
+
+    public boolean okToDrop() {
+      return false;
+    }
+  }
+
+  private static final class ResumeData {
+    private ProcesschunksParam param = null;
+    private ProcessResultDisplay processResultDisplay = null;
+    private ProcessSeries processSeries = null;
+    private boolean popupChunkWarnings = false;
+    private ProcessingMethod processingMethod = null;
+    private boolean multiLineMessages = false;
+
+    private synchronized void set(final ProcesschunksParam param,
+        final ProcessResultDisplay processResultDisplay,
+        final ProcessSeries processSeries, final boolean popupChunkWarnings,
+        final ProcessingMethod processingMethod, final boolean multiLineMessages) {
+      this.param = param;
+      this.processResultDisplay = processResultDisplay;
+      this.processSeries = processSeries;
+      this.popupChunkWarnings = popupChunkWarnings;
+      this.processingMethod = processingMethod;
+      this.multiLineMessages = multiLineMessages;
+    }
+
+    private synchronized boolean isNull() {
+      return param == null;
+    }
+
+    private synchronized void reset() {
+      param = null;
+      processResultDisplay = null;
+      processSeries = null;
+      popupChunkWarnings = false;
+      processingMethod = null;
+      multiLineMessages = false;
+    }
+
+    private ProcesschunksParam getProcesschunksParam() {
+      return param;
+    }
+
+    private ProcessResultDisplay getProcessResultDisplay() {
+      return processResultDisplay;
+    }
+
+    private ProcessSeries getProcessSeries() {
+      return processSeries;
+    }
+
+    private ProcessingMethod getProcessingMethod() {
+      return processingMethod;
+    }
+
+    private boolean isMultiLineMessages() {
+      return multiLineMessages;
+    }
+
+    private boolean isPopupChunkWarnings() {
+      return popupChunkWarnings;
+    }
   }
 }
 /**

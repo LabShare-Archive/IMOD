@@ -26,7 +26,6 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
-import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
 import etomo.type.EtomoBoolean2;
 import etomo.type.FileType;
@@ -80,13 +79,15 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   /**
    * Start the next process specified by the nextProcess string
    */
-  public void startNextProcess(ProcessSeries.Process process,
+  public boolean startNextProcess(ProcessSeries.Process process,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       DialogType dialogType, ProcessDisplay display) {
     // whole tomogram
     if (process.equals(ProcessName.TILT.toString())) {
       sampleTilt(processResultDisplay, processSeries);
+      return true;
     }
+    return false;
   }
 
   /**
@@ -288,7 +289,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
    * Run the sample com script
    */
   public void createSample(ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      final ProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
     // Make sure that we have an active positioning dialog
     if (dialog == null) {
@@ -390,7 +391,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   }
 
   public void tomopitch(ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      final ProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
       UIHarness.INSTANCE.openMessageDialog(manager,
@@ -437,7 +438,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   }
 
   public void finalAlign(ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      final ProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
       UIHarness.INSTANCE.openMessageDialog(manager,
@@ -462,7 +463,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
    * @param processResultDisplay
    */
   private void sampleTilt(ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      final ProcessSeries processSeries) {
     comScriptMgr.loadTilt(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
     tiltParam.setCommandMode(TiltParam.Mode.WHOLE);

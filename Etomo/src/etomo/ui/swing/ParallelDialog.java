@@ -184,7 +184,7 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
           return;
         }
         manager.processchunks(btnRunProcess, null, ltfProcessName.getText(true), null,
-            mediator.getRunMethodForProcessInterface(getProcessingMethod()));
+            mediator.getRunMethodForProcessInterface(getProcessingMethod()), DIALOG_TYPE);
       }
     }
     catch (FieldValidationFailedException e) {

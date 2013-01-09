@@ -122,7 +122,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   /**
    * Start the next process specified by the nextProcess string
    */
-  public void startNextProcess(ProcessSeries.Process process,
+  public boolean startNextProcess(ProcessSeries.Process process,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       DialogType dialogType, ProcessDisplay display) {
     if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
@@ -136,10 +136,13 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
             ProcessName.TILT.toString() + axisID.getExtension() + "_sirt",
             process.getOutputImageFileType(), process.getProcessingMethod(), false);
       }
+      return true;
     }
-    else if (process.equals(SIRT_DONE)) {
+    if (process.equals(SIRT_DONE)) {
       msgSirtSucceeded();
+      return true;
     }
+    return false;
   }
 
   public boolean reconnectTilt(ProcessName processName) {
@@ -187,7 +190,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     catch (FortranInputSyntaxException e) {
       UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Data File Error");
     }
-    manager.updateSirtSetupCom(axisID, dialog.getSirtsetupDisplay(), false,false);
+    manager.updateSirtSetupCom(axisID, dialog.getSirtsetupDisplay(), false, false);
     manager.saveStorables(axisID);
   }
 

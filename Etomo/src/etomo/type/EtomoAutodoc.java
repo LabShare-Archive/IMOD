@@ -137,6 +137,7 @@ public class EtomoAutodoc {
       return value;
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       return value;
     }
     try {
@@ -200,6 +201,7 @@ public class EtomoAutodoc {
       return new String[] { value };
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       return new String[] { value };
     }
     try {

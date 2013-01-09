@@ -515,4 +515,11 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
   public final void pause(final SystemProcessInterface process, final AxisID axisID) {
     throw new IllegalStateException("pause illegal in this monitor");
   }
+
+  public boolean isPausing() {
+    return false;
+  }
+
+  public void setWillResume() {
+  }
 }

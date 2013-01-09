@@ -34,7 +34,6 @@ import etomo.type.BaseState;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstJoinState;
-import etomo.type.ConstProcessSeries;
 import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
@@ -1083,7 +1082,7 @@ public final class JoinManager extends BaseManager {
     return setMode(propertyUserDir);
   }
 
-  public void startjoin(ConstProcessSeries processSeries) {
+  public void startjoin(final ProcessSeries processSeries) {
     if (!metaData.isValid(joinDialog.getWorkingDir())) {
       uiHarness.openMessageDialog(this, metaData.getInvalidReason(), "Invalid Data",
           AxisID.ONLY);
@@ -1110,7 +1109,7 @@ public final class JoinManager extends BaseManager {
     joinDialog.enableMidas();
   }
 
-  public void xfjointomo(ConstProcessSeries processSeries) {
+  public void xfjointomo(final ProcessSeries processSeries) {
     XfjointomoParam xfjointomoParam = new XfjointomoParam(this, state.getRefineTrial()
         .is());
     if (!joinDialog.getParameters(xfjointomoParam, true)) {
@@ -1129,7 +1128,7 @@ public final class JoinManager extends BaseManager {
         ProcessName.XFJOINTOMO);
   }
 
-  private void remapmodel(ConstProcessSeries processSeries) {
+  private void remapmodel(final ProcessSeries processSeries) {
     RemapmodelParam param = new RemapmodelParam(this);
     try {
       threadNameA = processMgr.remapmodel(param, processSeries);
@@ -1283,6 +1282,7 @@ public final class JoinManager extends BaseManager {
       parameterStore.save(metaData);
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       uiHarness.openMessageDialog(this,
           "Cannot save or write to metaData.\n" + e.getMessage(), "Etomo Error");
     }
@@ -1307,7 +1307,7 @@ public final class JoinManager extends BaseManager {
     joinDialog.setShiftInY(shiftInY);
   }
 
-  public void rotx(File tomogram, File workingDir, ConstProcessSeries processSeries) {
+  public void rotx(File tomogram, File workingDir, final ProcessSeries processSeries) {
     ClipParam clipParam = ClipParam.getRotxInstance(this, AxisID.ONLY, tomogram,
         workingDir);
     try {
@@ -1374,28 +1374,38 @@ public final class JoinManager extends BaseManager {
   /**
    * Start the next process specified by the nextProcess string
    */
-  void startNextProcess(final UIComponent uiComponent, final AxisID axisID,
+  boolean startNextProcess(final UIComponent uiComponent, final AxisID axisID,
       final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       DialogType dialogType, ProcessDisplay display) {
+    if (super.startNextProcess(uiComponent, axisID, process, processResultDisplay,
+        processSeries, dialogType, display)) {
+      return true;
+    }
     if (debug) {
       System.err.println("startNextProcess:axisID=" + axisID + ",nextProcess=" + process);
     }
     if (process.equals("startjoin")) {
       startjoin(processSeries);
+      return true;
     }
-    else if (process.equals(ProcessName.XFTOXG.toString())) {
+    if (process.equals(ProcessName.XFTOXG.toString())) {
       xftoxg(processSeries, dialogType);
+      return true;
     }
-    else if (process.equals(ProcessName.XFMODEL.toString())) {
+    if (process.equals(ProcessName.XFMODEL.toString())) {
       xfmodel(processSeries, dialogType);
+      return true;
     }
-    else if (process.equals(ProcessName.REMAPMODEL.toString())) {
+    if (process.equals(ProcessName.REMAPMODEL.toString())) {
       remapmodel(processSeries);
+      return true;
     }
-    else if (process.equals(ImodManager.TRANSFORMED_MODEL_KEY)) {
+    if (process.equals(ImodManager.TRANSFORMED_MODEL_KEY)) {
       imodOpen(ImodManager.TRANSFORMED_MODEL_KEY);
+      return true;
     }
+    return false;
   }
 
   public BaseMetaData getBaseMetaData() {
