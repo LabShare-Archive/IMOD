@@ -417,18 +417,22 @@ public final class ParallelPanel implements Expandable, Storable {
 
   void msgKillingProcess() {
     btnPause.setEnabled(false);
+    System.err.println(">>>>>A:msgKillingProcess");
     btnResume.setEnabled(false);
   }
 
   void msgPausingProcess() {
+    System.err.println(">>>>>B:msgPausingProcess");
     btnResume.setEnabled(true);
   }
 
   public void msgProcessDone() {
+    System.err.println(">>>>>C:msgProcessDone");
     btnResume.setEnabled(true);
   }
 
   public void msgProcessStarted() {
+    System.err.println(">>>>>D:msgProcessStarted");
     btnResume.setEnabled(false);
   }
 
