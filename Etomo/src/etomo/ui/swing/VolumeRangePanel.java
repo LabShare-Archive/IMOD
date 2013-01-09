@@ -112,6 +112,10 @@ final class VolumeRangePanel {
     metaData.setPostTrimvolZMin(ltfZMin.getText());
     metaData.setPostTrimvolZMax(ltfZMax.getText());
   }
+  
+  void getParametersForTrimvol(final MetaData metaData) {
+    metaData.setPostTrimvolNewStyleZ(ltfZMin.getText(),ltfZMax.getText());
+  }
 
   /**
    * Get the parameter values from the panel 
