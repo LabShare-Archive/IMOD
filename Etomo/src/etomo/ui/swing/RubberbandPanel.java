@@ -314,6 +314,12 @@ public final class RubberbandPanel {
     }
   }
 
+  void getParametersForTrimvol(final ParallelMetaData metaData) {
+    if (btnImod != null) {
+      metaData.setNewStyleZ(ltfZMin.getText(), ltfZMax.getText());
+    }
+  }
+
   public void setParameters(TrimvolParam param) {
     ltfXMin.setText(param.getXMin());
     ltfXMax.setText(param.getXMax());

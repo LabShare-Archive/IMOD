@@ -279,6 +279,7 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     anisotropicDiffusionDialog.getParameters(metaData);
+    anisotropicDiffusionDialog.getParametersForTrimvol(metaData);
     saveStorables(AXIS_ID);
   }
 
@@ -469,6 +470,8 @@ public final class ParallelManager extends BaseManager {
     if (!anisotropicDiffusionDialog.getParameters(param, doValidation)) {
       return null;
     }
+    anisotropicDiffusionDialog.getParametersForTrimvol(metaData);
+    param.setOldFlippedCoordinates(metaData.isNewStyleZ());
     return param;
   }
 
