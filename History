@@ -1,22 +1,23 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/9/13: Fixed problems with 3dmod messaging caused by change to rotation.
+
 1/8/13: Creating a second backup file for dataset files, the .prm file, and
 the project long.(Bug# 1488)
 
 1/8/13: Changed the processchunks control panel to allow a Resume to be
 ordered before the Pause is completed.(Bug# 1434)
 
-1/8/13: Handled the change from flipping to rotation in 3dmod.(Bug# 1674)
+1/8/13: In eTomo, handled the change from flipping to rotation in 3dmod, so
+running trimvol will work both with newly selected Z values and ones set
+previously with old-style flipping.(Bug# 1674)
 
 1/2/13: Made Ctfplotter not open windows when autofitting in batch mode.
 
 1/1/13: Turned YZ flipping in 3dmod into 90 degree rotation about X to
 preserve handedness; models saved from this state still have Y and Z swapped
 to keep other programs working.  Modified Trimvol and Findcontrast to work
-with new Z values and to have an option to treat Z values in old way.  Running
-Trimvol in eTomo will work with newly selected Z values but rerunning with
-existing Z values will not work right until eTomo adds a flag to know when
-values are from new-style flipping.
+with new Z values and to have an option to treat Z values in old way.
 
 12/31/12: Fixed reading of views from ascii model file.
 
