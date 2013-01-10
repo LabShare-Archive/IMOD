@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <limits>
@@ -316,25 +315,16 @@ int main(int argc, char *argv[])
     currAngle = currAngle * MY_PI / 180.0;
     if (fabs(currAngle) > MIN_ANGLE) {
       stripPixelNum = fabs(defocusTol / tan(currAngle)) / pixelSize;
-      interPixelNum = fabs(iWidth / tan(currAngle)) / pixelSize;
     } else {
       stripPixelNum = nx;
-      interPixelNum = nx;
     }
     if (stripPixelNum > nx)
       stripPixelNum = nx;
-    if (interPixelNum > stripPixelNum)
-      interPixelNum = stripPixelNum;
 
     stripPixelNum = niceFrame(stripPixelNum, 2 , 19);
-    if (stripPixelNum > 256)
-      stripPixelNum = 256;
-    if (stripPixelNum < 128)
-      stripPixelNum = 128;
-    interPixelNum = iWidth;
+    B3DCLAMP(stripPixelNum, 128, 256);
 
-    //stripPixelNum = 256;
-    //interPixelNum = 36; // must be less than stripPixelNum/2;
+    interPixelNum = iWidth;
 
     //interPixelNum must be less than stripPixelNum/2;
     if (interPixelNum >= stripPixelNum / 2)
@@ -389,7 +379,8 @@ int main(int argc, char *argv[])
           fyy -= ny;
         for (fx = 0; fx < stripXdim / 2; fx++) {
           //convert defocus to Angstroms
-          f2 = fx * fx * freq_scalex * freq_scalex + fyy * fyy * freq_scaley * freq_scaley;
+          f2 = fx * fx * freq_scalex * freq_scalex + fyy * fyy * 
+            freq_scaley * freq_scaley;
           waveAberration = (C1 * stripDefocus * 10.0 + C2 * f2) * f2;
           ctf = -(sqrt(1 - ampContrast * ampContrast)) * sin(waveAberration)
                 - ampContrast * cos(waveAberration);
@@ -472,40 +463,3 @@ int main(int argc, char *argv[])
   fclose(fpStack);
   free(defocus);
 }
-
-/*
-
-$Log$
-Revision 3.18  2010/04/03 20:55:21  mast
-Skip checking the defocus list when only one line: it fails with "simple" file
-
-Revision 3.17  2010/04/02 00:22:09  mast
-Made it use utility functions for getting tilt angles and defocus and for
-adjusting old data for view numbers being off by 1
-
-Revision 3.16  2010/03/09 03:25:27  mast
-Added padding in Y if necessary so any size input can be used
-
-Revision 3.15  2010/01/13 01:18:42  mast
-Stop printing unset variable
-
-Revision 3.14  2009/08/10 23:03:39  mast
-Added tilt angle inversion option
-
-Revision 3.13  2009/03/24 00:37:00  mast
-Fixed initialization of max at 0
-
-Revision 3.12  2009/02/16 06:22:48  mast
-Modified to use new parallel write stuff
-
-Revision 3.11  2008/11/20 01:32:31  mast
-Restored \n on 3 printf's including critical min/max/mean statement
-
-Revision 3.10  2008/11/07 22:25:08  xiongq
-add fflush calls
-
-Revision 3.9  2008/09/04 15:21:59  mast
-Fixed program name in call to PIP and fallback options
-
-
-*/
