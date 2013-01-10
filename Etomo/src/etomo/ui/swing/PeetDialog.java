@@ -506,6 +506,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       "Align averages to have their Y axes vertical");
   private final CheckBox cbFlgAbsValue = new CheckBox(
       "Use absolute value of cross-correlation");
+  private final LabeledTextField ltfSelectClassID = new LabeledTextField(
+      FieldType.INTEGER, "Average only members of class: ");
 
   private final SphericalSamplingForThetaAndPsiPanel sphericalSamplingForThetaAndPsiPanel;
   private final YAxisTypePanel yAxisTypePanel;
@@ -796,6 +798,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     maskingPanel.setParameters(matlabParam);
     cbflgAlignAverages.setSelected(matlabParam.isFlgAlignAverages());
     cbFlgAbsValue.setSelected(matlabParam.isFlgAbsValue());
+    ltfSelectClassID.setText(matlabParam.getSelectClassID());
     updateDisplay();
   }
 
@@ -843,6 +846,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       }
       matlabParam.setFlgAlignAverages(cbflgAlignAverages.isSelected());
       matlabParam.setFlgAbsValue(cbFlgAbsValue.isSelected());
+      matlabParam.setSelectClassID(ltfSelectClassID.getText(doValidation));
       return true;
     }
     catch (FieldValidationFailedException e) {
@@ -959,6 +963,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         .setToolTipText("Additional numbers of particles for which averages are "
             + "desired.  Values must be listed in increasing order and must be "
             + "larger than End.");
+    ltfSelectClassID
+        .setToolTipText("Restrict averaging to members of the specified class. This is "
+            + "useful only when the motive list contains class numbers (e.g. generated "
+            + "by clusterPca). WARNING: if accidentally set when running a new alignment "
+            + "(or at any other time when class numbers have not been assigned in the "
+            + "motive list), you will get no particles in the new averages / "
+            + "references.");
   }
 
   private void setDefaults() {
@@ -1103,7 +1114,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlOptionalRight.add(lsParticlePerCPU.getContainer());
     pnlOptionalRight.add(lsDebugLevel.getContainer());
     pnlOptionalRight.add(pnlLowCutoff);
-    pnlOptionalRight.add(Box.createRigidArea(FixedDim.x0_y3));
+    pnlOptionalRight.add(ltfSelectClassID.getContainer());
     // low cutoff
     pnlLowCutoff.setLayout(new BoxLayout(pnlLowCutoff, BoxLayout.X_AXIS));
     pnlLowCutoff.add(ltfLowCutoff.getContainer());
