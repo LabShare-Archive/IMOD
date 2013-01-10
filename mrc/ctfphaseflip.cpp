@@ -352,7 +352,7 @@ int main(int argc, char *argv[])
     int stripStride, halfStrip, stripMid;
     halfStrip = stripPixelNum / 2;
 
-    // convert pixelSize to Angstrom;
+    // convert pixelSize to Angstroms from nm
     freq_scalex = 1.0 / (pixelSize * 10.0 * stripPixelNum);
     freq_scaley = 1.0 / (pixelSize * 10.0 * ny);
     stripIdx = 0;
@@ -388,8 +388,8 @@ int main(int argc, char *argv[])
         if (fy > ny / 2)
           fyy -= ny;
         for (fx = 0; fx < stripXdim / 2; fx++) {
+          //convert defocus to Angstroms
           f2 = fx * fx * freq_scalex * freq_scalex + fyy * fyy * freq_scaley * freq_scaley;
-          //convert defocus to Angston;
           waveAberration = (C1 * stripDefocus * 10.0 + C2 * f2) * f2;
           ctf = -(sqrt(1 - ampContrast * ampContrast)) * sin(waveAberration)
                 - ampContrast * cos(waveAberration);
