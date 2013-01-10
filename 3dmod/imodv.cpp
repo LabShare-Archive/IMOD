@@ -597,7 +597,7 @@ int imodv_main(int argc, char **argv)
     imodPrintStderr("Window id = %u\n", winID);
   }
   if (printID || useStdin)
-    ClipHandler = new ImodClipboard(useStdin);
+    ClipHandler = new ImodClipboard(useStdin, false);
 
   imodvOpenSelectedWindows(windowKeys);
 

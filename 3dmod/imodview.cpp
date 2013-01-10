@@ -22,6 +22,7 @@
 #include <qdir.h>
 #include "imod.h"
 #include "cachefill.h"
+#include "client_message.h"
 #include "iirawimage.h"
 #include "display.h"
 #include "info_cb.h"
@@ -2777,6 +2778,8 @@ static int initializeFlipAndModel(ImodView *vi)
     vi->li->axis = 3;
     if (flipit) {
       retcode = ivwFlip(vi);
+
+      // This leads to an exit so just returning is OK
       if (retcode && retcode != -1)
         return (retcode);
     }
@@ -2791,6 +2794,8 @@ static int initializeFlipAndModel(ImodView *vi)
       return retcode;
   }
   vi->doingInitialLoad = 0;
+  if (ClipHandler)
+    ClipHandler->doneWithLoad();
   return 0;
 }    
 

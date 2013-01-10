@@ -628,7 +628,7 @@ int main( int argc, char *argv[])
       exit(3);
     }
 
-    Imod_imagefile = "";
+    Imod_imagefile = strdup("");
     vi.noReadableImage = 1;
     ivwMultipleFiles(&vi, &Imod_imagefile, 0, 0);
 
@@ -802,7 +802,7 @@ int main( int argc, char *argv[])
 
   /* Get the clipboard messaging object on heap (doesn't work on stack!) */
   if (print_wid || useStdin)
-    ClipHandler = new ImodClipboard(useStdin);
+    ClipHandler = new ImodClipboard(useStdin, true);
   App->listening = (print_wid ? 1 : 0) + (useStdin ? 2 : 0);
 
   /********************************************/
