@@ -844,14 +844,6 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 
-  void pickSeed() {
-    btnTrack.setVisible(true);
-  }
-
-  void pickRaptor() {
-    btnTrack.setVisible(false);
-  }
-
   private void setEnabled() {
     ltfLocalAreaTargetSize.setEnabled(cbLocalAreaTracking.isSelected());
     ltfMinBeadsInArea.setEnabled(cbLocalAreaTracking.isSelected());
