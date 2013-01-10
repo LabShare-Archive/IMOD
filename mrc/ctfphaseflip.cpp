@@ -352,7 +352,7 @@ int main(int argc, char *argv[])
     int stripStride, halfStrip, stripMid;
     halfStrip = stripPixelNum / 2;
 
-    // convert pixelSize to Angston;
+    // convert pixelSize to Angstrom;
     freq_scalex = 1.0 / (pixelSize * 10.0 * stripPixelNum);
     freq_scaley = 1.0 / (pixelSize * 10.0 * ny);
     stripIdx = 0;
