@@ -77,7 +77,8 @@ int iiTIFFCheck(ImodImageFile *inFile)
   int dirnum = 1;
   uint16 bits, samples, photometric, sampleformat, planarConfig;
   uint16 bitsIm, samplesIm, photoIm, formatIm, planarIm, resUnit;
-  int nxim, nyim, formatDef;
+  uint32 rowsPerStrip;
+  int nxim, nyim, formatDef, tileWidth, tileLength;
   int defined, i, j, hasPixelIm, hasPixel = 0, mismatch = 0, err = 0;
   float xResol, yResol, xPixelIm = 0., yPixelIm = 0., xPixel, yPixel, resScale;
   double minmax;
@@ -163,6 +164,16 @@ int iiTIFFCheck(ImodImageFile *inFile)
     if ((float)nxim * (float)nyim > (float)inFile->nx * (float)inFile->ny) {
       inFile->nx = nxim;
       inFile->ny = nyim;
+
+      /* Record the strip and tile size for 3dmod caching */
+      inFile->tileSizeX = inFile->tileSizeY = 0;
+      if (TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &rowsPerStrip)) {
+        inFile->tileSizeY = rowsPerStrip;
+      } else if (TIFFGetField(tif, TIFFTAG_TILEWIDTH, &tileWidth) &&
+                 TIFFGetField(tif, TIFFTAG_TILELENGTH, &tileLength)) {
+        inFile->tileSizeX = tileWidth;
+        inFile->tileSizeY = tileLength;
+      }        
       bits = bitsIm;
       photometric = photoIm;
       planarConfig = planarIm;
