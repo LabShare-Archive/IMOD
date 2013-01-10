@@ -118,6 +118,7 @@ void InfoControls::init()
   modeGroup->addButton(modelRadioButton, 1);
   connect(modeGroup, SIGNAL(buttonClicked(int)), this, 
           SLOT(movieModelSelected(int)));
+  diaSetGroup(modeGroup, 0);
     
   // Set up mappings and initialize values to force updates
   for (i = 0; i < 3; i++) {
