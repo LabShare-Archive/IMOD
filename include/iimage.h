@@ -107,6 +107,7 @@ extern "C" {
     /* extra storage used by individual file format functions. */
     int   headerSize;
     int   sectionSkip;
+    int   hasPieceCoords;    /* Flag that MRC file has piece coordinates in header */
     char *header;
     char *userData;
     unsigned int userFlags;  /* Flags for the userData */
@@ -117,6 +118,8 @@ extern "C" {
     int  multipleSizes;      /* Flag that TIFF file has multiple sizes */
     int  rgbSamples;         /* Number of samples for RGB TIFF file */
     int  anyTiffPixSize;     /* Set non-0 to have TIFF pixel size put into [xyz]scale */
+    int  tileSizeX;          /* Tile size in X, or 0 if no tiles */
+    int  tileSizeY;          /* Tile size in Y if tiles, strip size if not */
 
     /* Callback functions used by different file formats. */
     iiSectionFunc readSection;
@@ -167,7 +170,7 @@ extern "C" {
   int iiReadSection(ImodImageFile *inFile, char *buf, int inSection);
   int iiReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
   int iiReadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
-  int iiLoadPCoord(ImodImageFile *inFile, int useMdoc, struct LoadInfo *li,
+  int iiLoadPCoord(ImodImageFile *inFile, int useMdoc, IloadInfo *li,
                    int nx, int ny, int nz);
 
   /* Create and write support. */
@@ -181,8 +184,9 @@ extern "C" {
   int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection);
   int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
   int iiMRCreadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
-  int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx,
+  int iiMRCLoadPCoord(ImodImageFile *inFile, IloadInfo *li, int nx,
                       int ny, int nz);
+  int iiMRCcheckPCoord(MrcHeader *hdr);
   int tiffReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
   int tiffReadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
   int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection);
