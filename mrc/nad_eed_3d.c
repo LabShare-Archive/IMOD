@@ -580,7 +580,7 @@ for (i=1; i<=nx; i++)
      {
         read_struct_tens(dxx[i][j][k], dxy[i][j][k], dxz[i][j][k], dyy[i][j][k], dyz[i][j][k], dzz[i][j][k], a);
         dsyevq3(a, q, w);
-        eigenSort(w, q, 3, 3, 1, 0);
+        eigenSort(w, &q[0][0], 3, 3, 1, 0);
         read_ei(w, q, ev11, ev12, ev13, ev21, ev22, ev23, ev31, ev32, ev33,  mu1, mu2, mu3);
 
         if (grd[i][j][k] > 0.0)
@@ -924,6 +924,8 @@ int main (int argc, char **argv)
         break;
       case 'i':
         writeList = parselist(argv[++iarg], &nWrite);
+        if (!writeList)
+          exitError("Bad entry in iteration list");
         writeArg = iarg;
         break;
       case 'P':
