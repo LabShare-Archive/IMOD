@@ -228,11 +228,15 @@ int main( int argc, char *argv[])
   if (!PipGetString("ObjectsToDo", &listString)) {
     objList = parselist(listString, &numObj);
     free(listString);
+    if (!objList)
+      exitError("Bad entry in list of objects to do");
   }
 
   if (!PipGetString("TubeObjects", &listString)) {
     tubeList = parselist(listString, &numTubes);
     free(listString);
+    if (!tubeList)
+      exitError("Bad entry in list of tube objects");
 
     numDiams = 0;
     if (PipGetFloatArray("DiameterForTubes", tubeDiams, &numDiams, 
@@ -251,6 +255,8 @@ int main( int argc, char *argv[])
   if (!PipGetString("AllSectionObjects", &listString)) {
     allsecList = parselist(listString, &numAllsec);
     free(listString);
+    if (!allsecList)
+      exitError("Bad entry in list of all-section objects");
     for (i = 0; i < numAllsec; i++) {
       objnum = allsecList[i] - 1;
       if (objnum < 0 || objnum >= imod->objsize ||
