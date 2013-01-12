@@ -192,6 +192,8 @@ int main( int argc, char *argv[])
     if (!PipGetString("ObjectsToDo", &listString)) {
       objList = parselist(listString, &numObj);
       free(listString);
+      if (!objList)
+        exitError("Bad entry in list of objects to do");
     }
     PipGetBoolean("Verbose", &verbose);
     PipGetTwoIntegers("TestSphereFits", &testCo, &testPt);

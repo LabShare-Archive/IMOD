@@ -262,7 +262,7 @@ int tiff_open_file(char *filename, char *mode, Tf_info *tiff, int anyTifPixel)
   if (tiff->iifile) {
     tiff->iifile->fp = tiff->fp;
     tiff->iifile->filename = strdup(filename);
-    tiff->iifile->fmode = mode;
+    tiff->iifile->fmode = strdup(mode);
     tiff->iifile->anyTiffPixSize = anyTifPixel;
     if (iiTIFFCheck(tiff->iifile)) {
 
