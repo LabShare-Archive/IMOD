@@ -43,9 +43,11 @@ c
       if (ierr == 0) return
       if (ierr < 0) then
         write(*,'(/,a)')'ERROR: PARSELIST - TOO MANY LIST VALUES FOR ARRAY'
-        call exit(1)
+      elseif (ierr == 1) then
+        write(*,'(/,a)')'ERROR: PARSELIST - FAILED TO ALLOCATE MEMORY FOR LIST'
+      else
+        write(*,'(/,a)')'ERROR: PARSELIST - BAD CHARACTER IN ENTRY'
       endif
-      write(*,'(/,a)')'ERROR: PARSELIST - FAILED TO ALLOCATE MEMORY FOR LIST'
       call exit(1)
       end
 

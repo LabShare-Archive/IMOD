@@ -74,6 +74,8 @@ int main( int argc, char *argv[])
   if (!PipGetString("ContourNumbers", &listString)) {
     contourList = parselist(listString, &numContours);
     free(listString);
+    if (!contourList)
+      exitError("Bad entry in list of contour numbers");
   }
   PipDone();
 

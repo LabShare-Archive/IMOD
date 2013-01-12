@@ -17,6 +17,8 @@
 #define parselistfw parselistfw_
 #endif
 
+#define NULL_RETURN(a) {*nlist = (a); B3DFREE(list); return NULL;}
+
 /*! 
  * Converts a list entry in the string [line] into a set of
  * integers, returns a pointer to the list of numbers, and returns the number 
@@ -26,7 +28,10 @@
  * and backward ranges (10-5) are handled.  Any characters besides
  * digits are valid separators.  A / at the beginning of the string will
  * return a NULL and a value of -1 in [nlist]; memory allocation errors return a NULL
- * and a nonnegative value in [nlist].  Negative numbers can be entered provided
+ * and -2 in [nlist].  Parsing stops and the list is returned when a  
+ * anything besides space, tab, comma, dash, or a digit occurs after a space or tab;
+ * otherwise other characters (as well as comma or dash right after the last number)
+ * make it return NULL and -3 in [nlist].  Negative numbers can be entered provided
  * that the minus sign immediately precedes the number.  E.g.: -3 - -1
  * or -3--1 will give -3,-2,-1; -3, -1,1 or -3,-1,1 will give -3,-1,1.
  */    
@@ -34,7 +39,7 @@ int *parselist (const char *line, int *nlist)
 {
   char intern[10];
   char next;
-  int dashlast, negnum, gotcomma, gotnum;
+  int dashlast, negnum, gotcomma, gotnum, gotSpace;
   int nchars;
   int number, lastnum, ind, numst, loopst, idir, i;
   int *list = NULL;
@@ -43,13 +48,14 @@ int *parselist (const char *line, int *nlist)
   negnum = False;
   gotcomma = False;
   gotnum = False;
+  gotSpace = False;
   nchars = strlen(line);
-  /*  printf("Entry: %s\n", line); */
+  /*printf("Entry: %s\n", line); */
   *nlist = 0;
-  if (line[0] == '/')  {
-    *nlist = -1;
+  if (line[0] == 0x00)
     return(NULL);
-  }
+  if (line[0] == '/')
+    NULL_RETURN(-1);
   ind = 0;
   lastnum = 0;
 
@@ -84,26 +90,37 @@ int *parselist (const char *line, int *nlist)
       }
       for (i = loopst; idir * i <= idir * number; i += idir) {
         if (*nlist)
-          list = (int *)realloc(list, (*nlist + 1) *
-                                sizeof(int));
+          list = (int *)realloc(list, (*nlist + 1) *sizeof(int));
         else
           list = (int *)malloc(sizeof(int));
         if (!list)
-          return(NULL);
+          NULL_RETURN(-2);
         list[(*nlist)++] = i;
       }
       lastnum = number;
       negnum = False;
       dashlast = False;
       gotcomma = False;
+      gotSpace = False;
       continue;
     }
-    
-    if (next != ',' && next != ' ' && next != '-') 
-      return(0);
-    if (next == ',') 
+
+    if (next == ' ' || next == '\t')
+      gotSpace = True;
+
+    /* With a non-allowed character, finish up if it is after a space, otherwise error */
+    if (next != ',' && next != ' ' && next != '-' && next != '\t') {
+      if (gotSpace)
+        break;
+      NULL_RETURN(-3);
+    }
+    if (next == ',') {
       gotcomma = True;
+      gotSpace = False;
+    }
+      
     if (next == '-') {
+      gotSpace = False;
       if (dashlast || !gotnum || gotcomma) 
         negnum = True;
       else
@@ -111,13 +128,18 @@ int *parselist (const char *line, int *nlist)
     }
     ind++;
   } while (ind < nchars);
+
+  /* If there are dangling commas or dashes it is an error too */
+  if (gotcomma || negnum || dashlast)
+    NULL_RETURN(-3);
   return list;
 }
 
 /*!
  * Fortran wrapper to @parselist, called by the Fortran parselist2 subroutine.  
  * The list is returned into array [list] and [limlist] is the size of that array, or
- * 0 if unknown.  The return value is 1 for a memory allocation error and -1 for the
+ * 0 if unknown.  The return value is 1 for a memory allocation error, 2 for a bad
+ * character in the entry, and -1 for the
  * list too big for the array; in the latter case the portion of the list that fits
  * is returned but parselist2 will exit with an error.  If a slash is entered, the input 
  * list is returned unchanged.
@@ -129,16 +151,16 @@ int parselistfw(const char *line, int *list, int *nlist, int *limlist, int linel
   char *tempstr =   f2cString(line, linelen);
   if (!tempstr)
     return 1;
-  if (tempstr[0] == 0x00) {
+  retlist = parselist(tempstr, &ncopy);
+  free(tempstr);
+  printf("retlist %d  ncopy %d\n", retlist ?1:0, ncopy);
+  if (!retlist && !ncopy) {
     *nlist = 0;
     return 0;
   }
-  retlist = parselist(tempstr, &ncopy);
-  free(tempstr);
+  /* Return 0 for -1 (/), 1 for -2, and 2 for -3 */
   if (!retlist && ncopy < 0)
-    return 0;
-  if (!retlist)
-    return 1;
+    return (-ncopy - 1);
   *nlist = ncopy;
   if (*limlist > 0 && ncopy > *limlist)
     *nlist = *limlist;

@@ -128,8 +128,8 @@ int main( int argc, char *argv[])
   int maxSec, numRuns, numZperRun, runsAddingOne, irun, indz;
   float cumStart, target, cumul, annMin, annMax, lowerLim, upperLim, threshUse;
   float selPeakMin, selPeakMax, selSlope, selIntcp, modeSlope, modeIntcp;
-  float selectPctile = 0.90;
-  float annMidval[MAX_GROUPS], annPctPeak[MAX_GROUPS], annDip[MAX_GROUPS];
+  //float annPctPeak[MAX_GROUPS], selectPctile = 0.90;
+  float annMidval[MAX_GROUPS], annDip[MAX_GROUPS];
   float annPeakAbove[MAX_GROUPS], dip, kernel[KERNEL_MAXSIZE * KERNEL_MAXSIZE];
   int numGroups = 4;
   int areaConts[MAX_AREAS];
@@ -283,6 +283,8 @@ int main( int argc, char *argv[])
   PipGetInteger("BoxSizeScaled", &boxScaled);
   if (!PipGetString("SectionsToDo", &filename)) {
     zlist = parselist(filename, &nzout);
+    if (!zlist)
+      exitError("Bad entry in list of sections to do");
     free(filename);
   } else {
     nzout = inhead.nz;

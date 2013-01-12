@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/10/13: Fixed problems with list reading from fortran introduced 8/24/12.
+
 1/9/13: Fixed problems with 3dmod messaging caused by change to rotation.
 
 1/9/13: Fixed two problems with the behavior of eTomo - Fiducial Model.
