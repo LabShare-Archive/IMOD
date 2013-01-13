@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/13/13: Fixed incorrect betterRadius in golderaser.com.(Bug# 1662)
+
 1/11/13: Added back to non-PIP support for colornewst.(Bug# 1665)
 
 1/10/13: Fixed problems with list reading from fortran introduced 8/24/12.
