@@ -175,6 +175,8 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
       scanCriterion = scriptCommand.getValue(SCAN_CRITERION_KEY);
       maximumRadius = scriptCommand.getValue(MAXIMUM_RADIUS_KEY);
       annulusWidth = scriptCommand.getValue(ANNULUS_WIDTH_KEY);
+      expandCircleIterations = scriptCommand.getValue(EXPAND_CIRCLE_ITERATIONS_KEY);
+      betterRadius.parse(scriptCommand);
       xyScanSize = scriptCommand.getValue(X_Y_SCAN_SIZE_KEY);
       edgeExclusion = scriptCommand.getValue(EDGE_EXCLUSION_WIDTH_KEY);
       pointModel = scriptCommand.getValue("PointModel");
@@ -293,7 +295,13 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
     else {
       scriptCommand.deleteKey(ANNULUS_WIDTH_KEY);
     }
-
+    if (!expandCircleIterations.equals("")) {
+      scriptCommand.setValue(EXPAND_CIRCLE_ITERATIONS_KEY, expandCircleIterations);
+    }
+    else {
+      scriptCommand.deleteKey(EXPAND_CIRCLE_ITERATIONS_KEY);
+    }
+    betterRadius.updateComScript(scriptCommand);
     if (!xyScanSize.equals("")) {
       scriptCommand.setValue(X_Y_SCAN_SIZE_KEY, xyScanSize);
     }
@@ -530,6 +538,10 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
 
   public void setExpandCircleIterations(Object input) {
     expandCircleIterations = input.toString();
+  }
+
+  public void resetExpandCircleIterations() {
+    expandCircleIterations = "";
   }
 
   public AxisID getAxisID() {

@@ -7,6 +7,7 @@ import etomo.ApplicationManager;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
+import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 
@@ -29,6 +30,7 @@ public class MakecomfileParam {
   public static final String rcsid = "$Id:$";
 
   private final List<String> command = new ArrayList<String>();
+  private final EtomoNumber beadSize = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
   private final ApplicationManager manager;
   private final AxisID axisID;
@@ -52,8 +54,11 @@ public class MakecomfileParam {
     if (fileType == FileType.GOLD_ERASER_COMSCRIPT) {
       command.add("-root");
       command.add(manager.getName() + axisID.getExtension());
+      if (beadSize.isNull()) {
+        return false;
+      }
       command.add("-bead");
-      command.add(Double.toString(manager.calcUnbinnedBeadDiameterPixels()));
+      command.add(beadSize.toString());
     }
     else {
       return false;
@@ -62,6 +67,10 @@ public class MakecomfileParam {
     makecomfile = new SystemProgram(manager, manager.getPropertyUserDir(), command,
         AxisID.ONLY);
     return true;
+  }
+
+  public void setBeadSize(final String input) {
+    beadSize.set(input);
   }
 
   /**

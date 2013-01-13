@@ -48,7 +48,7 @@ public final class Utilities {
   }
 
   static Goodframe getGoodframeFromMontageSize(AxisID axisID, BaseManager manager) {
-    Montagesize montagesize = Montagesize.getInstance(manager, axisID);
+    Montagesize montagesize = Montagesize.getInstance(manager, axisID,".st");
     try {
       montagesize.read(manager);
       if (montagesize.isFileExists()) {

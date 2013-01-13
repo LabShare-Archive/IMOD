@@ -29,6 +29,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ConstCCDEraserParam;
+import etomo.comscript.MakecomfileParam;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -313,6 +314,10 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     catch (FieldValidationFailedException e) {
       return false;
     }
+  }
+  
+  public boolean getParameters(final MakecomfileParam param, final boolean doValidation) {
+    return true;
   }
 
   /**

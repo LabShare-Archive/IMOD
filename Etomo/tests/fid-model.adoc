@@ -241,6 +241,7 @@ mb.transfer-fiducials=+
 bn.transfer-fiducials-from-other-axis =
 wait.process.transferring-fiducials = done
 [[if = test-gui]]
+assert.rb.transfer-seed-model-from-the-other-axis=on
 assert.exists.file=transferfid.log
 assert.exists.file=transferfid.coord
 assert.exists.file=%{dataset}%{axis}.seed

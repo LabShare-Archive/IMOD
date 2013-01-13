@@ -279,7 +279,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     if (fisSizeToOutputInXandY.isDefault() || fisSizeToOutputInXandY.isEmpty()) {
       return retval;
     }
-    Montagesize montagesize = Montagesize.getInstance(manager, axisID);
+    Montagesize montagesize = Montagesize.getInstance(manager, axisID,".st");
     montagesize.read(manager);
     convertToStartingAndEnding(startingAndEndingX, montagesize.getX().getInt(),
         fisSizeToOutputInXandY.getInt(0));

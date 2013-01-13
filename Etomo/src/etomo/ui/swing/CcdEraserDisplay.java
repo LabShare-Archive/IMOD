@@ -1,6 +1,7 @@
 package etomo.ui.swing;
 
 import etomo.comscript.CCDEraserParam;
+import etomo.comscript.MakecomfileParam;
 
 /**
  * <p>Description: </p>
@@ -26,5 +27,7 @@ import etomo.comscript.CCDEraserParam;
 public interface CcdEraserDisplay extends ProcessDisplay {
   public static final String rcsid = "$Id$";
 
-  public boolean getParameters(final CCDEraserParam ccdEraserParams, boolean doValidation);
+  public boolean getParameters(CCDEraserParam ccdEraserParams, boolean doValidation);
+
+  public boolean getParameters(MakecomfileParam param, boolean doValidation);
 }
