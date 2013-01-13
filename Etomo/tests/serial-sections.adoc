@@ -1,6 +1,7 @@
 Version = 1.2
 
 [dialog = starting-serial-sections]
+copy.file = %{dataset}.st|%{dataset}.rec
 pnl.starting-serial-sections =
 set.adoc.function=serial-sections.adoc
 run.function.start =
@@ -34,7 +35,7 @@ run.function.main =
   wait.popup.invalid-dataset-directory=OK
 [[]]
 bn.stack=
-wait.file-chooser.stack=%{dataset}.st
+wait.file-chooser.stack=%{dataset}.rec
 [[if = test-gui]]
   #test wrong view type
   if.not.var.montage.rb.montage=
