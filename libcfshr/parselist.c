@@ -153,7 +153,6 @@ int parselistfw(const char *line, int *list, int *nlist, int *limlist, int linel
     return 1;
   retlist = parselist(tempstr, &ncopy);
   free(tempstr);
-  printf("retlist %d  ncopy %d\n", retlist ?1:0, ncopy);
   if (!retlist && !ncopy) {
     *nlist = 0;
     return 0;
