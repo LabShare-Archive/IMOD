@@ -7926,7 +7926,12 @@ public final class ApplicationManager extends BaseManager implements
   public CCDEraserParam updateGoldEraserParam(final CcdEraserDisplay display,
       final AxisID axisID, final boolean doValidation) {
     if (!comScriptMgr.loadGoldEraser(axisID, false)) {
-      makecomfile(axisID, FileType.GOLD_ERASER_COMSCRIPT);
+      MakecomfileParam makecomFileParam = new MakecomfileParam(this, axisID,
+          FileType.GOLD_ERASER_COMSCRIPT);
+      if (!display.getParameters(makecomFileParam, true)) {
+        return null;
+      }
+      makecomfile(axisID, makecomFileParam);
       comScriptMgr.loadGoldEraser(axisID, true);
     }
     CCDEraserParam param = comScriptMgr.getGoldEraserParam(axisID,
@@ -7938,8 +7943,7 @@ public final class ApplicationManager extends BaseManager implements
     return param;
   }
 
-  private boolean makecomfile(final AxisID axisID, final FileType fileType) {
-    MakecomfileParam param = new MakecomfileParam(this, axisID, fileType);
+  private boolean makecomfile(final AxisID axisID, final MakecomfileParam param) {
     return processMgr.makecomfile(axisID, param);
   }
 
