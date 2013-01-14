@@ -8,7 +8,7 @@
 # Use VerySloppyMontage for stage montages 
 #
 $blendmont -StandardInput
-ImageInputFile	mediumscansb2.st
+ImageInputFile	mediumscansb2.rec
 PieceListInput	mediumscansb2.pl
 ImageOutputFile	mediumscansb2_preblend.mrc
 RootNameForEdges	mediumscansb2
