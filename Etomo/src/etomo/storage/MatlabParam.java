@@ -383,6 +383,7 @@ public final class MatlabParam {
   public static final boolean FLG_ABS_VALUE_DEFAULT = true;
   public static final String FLG_STRICT_SEARCH_LIMITS_KEY = "flgStrictSearchLimits";
   public static final boolean FLG_STRICT_SEARCH_LIMITS_DEFAULT = false;
+  public static final String SELECT_CLASS_ID_KEY = "selectClassID";
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
@@ -440,6 +441,8 @@ public final class MatlabParam {
       .getMatlabInstance(FLG_ABS_VALUE_KEY);
   private final ParsedNumber flgStrictSearchLimits = ParsedNumber
       .getMatlabInstance(FLG_STRICT_SEARCH_LIMITS_KEY);
+  private final ParsedNumber selectClassID = ParsedNumber
+      .getMatlabInstance(SELECT_CLASS_ID_KEY);
 
   private final BaseManager manager;
   private final AxisID axisID;
@@ -887,6 +890,8 @@ public final class MatlabParam {
     flgFairReference.setRawString(false);
     flgAbsValue.setRawString(FLG_ABS_VALUE_DEFAULT);
     flgStrictSearchLimits.setRawString(FLG_STRICT_SEARCH_LIMITS_DEFAULT);
+    selectClassID.clear();
+
   }
 
   public void clearEdgeShift() {
@@ -991,12 +996,20 @@ public final class MatlabParam {
     particlePerCpu.setRawString(input.toString());
   }
 
+  public void setSelectClassID(final String input) {
+    selectClassID.setRawString(input);
+  }
+
   public ConstEtomoNumber getDebugLevel() {
     return debugLevel.getEtomoNumber();
   }
 
   public ConstEtomoNumber getParticlePerCPU() {
     return particlePerCpu.getEtomoNumber();
+  }
+
+  public String getSelectClassID() {
+    return selectClassID.getRawString();
   }
 
   public String getSzVol() {
@@ -1239,6 +1252,9 @@ public final class MatlabParam {
     // flgStrictSearchLimits
     flgStrictSearchLimits.parse(autodoc.getAttribute(FLG_STRICT_SEARCH_LIMITS_KEY));
     addError(flgStrictSearchLimits, errorList);
+    // selectClassID
+    selectClassID.parse(autodoc.getAttribute(SELECT_CLASS_ID_KEY));
+    addError(selectClassID, errorList);
   }
 
   public boolean validate(final boolean forRun) {
@@ -1441,6 +1457,12 @@ public final class MatlabParam {
     valueMap.put(FLG_FAIR_REFERENCE_KEY, flgFairReference.getParsableString());
     valueMap.put(FLG_ABS_VALUE_KEY, flgAbsValue.getParsableString());
     valueMap.put(FLG_STRICT_SEARCH_LIMITS_KEY, flgStrictSearchLimits.getParsableString());
+    if (!selectClassID.isEmpty()) {
+      valueMap.put(SELECT_CLASS_ID_KEY, selectClassID.getParsableString());
+    }
+    else {
+      valueMap.remove(SELECT_CLASS_ID_KEY);
+    }
   }
 
   /**
@@ -1616,6 +1638,14 @@ public final class MatlabParam {
         (String) valueMap.get(FLG_ABS_VALUE_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, FLG_STRICT_SEARCH_LIMITS_KEY,
         (String) valueMap.get(FLG_STRICT_SEARCH_LIMITS_KEY), commentMap);
+    String value = (String) valueMap.get(SELECT_CLASS_ID_KEY);
+    if (value != null) {
+      setNameValuePairValue(manager, autodoc, SELECT_CLASS_ID_KEY,
+          (String) valueMap.get(SELECT_CLASS_ID_KEY), commentMap);
+    }
+    else {
+      removeNameValuePair(autodoc, SELECT_CLASS_ID_KEY);
+    }
   }
 
   /**
