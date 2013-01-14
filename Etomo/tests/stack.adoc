@@ -564,6 +564,7 @@ bn.erase-beads=
 wait.process.ccd-eraser = done
 # check files
 assert.exists.file=%{dataset}%{axis}_erase.ali
+assert.contains.file=golderaser%{axis}.com|BetterRadius*%{better-radius}
 # run again
 bn.erase-beads=
 wait.process.ccd-eraser = done
