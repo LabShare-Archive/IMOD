@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/14/12: Made Mrc2tif able to save TIFF files organized in tiles.
+
 1/13/13: Fixed an unhandled exception when montaged stack with an extension
 other then ".st" is used with Align Serial Sections.(Bug# 1676)
 

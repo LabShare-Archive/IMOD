@@ -69,7 +69,7 @@ compression types are LZW (value 5), Zip or Deflate (value 8), and JPEG
 (value 7).  For these types, the value can be given as a text string: "lzw",
 "zip", or "jpeg".  On Linux, see "man libtiff" for other numeric values that
 can be entered.  Not all of these options will be available on all operating
-systems.
+systems.  Also note that JPEG compression is not available with 16-bit data.
 .TP
 .B -q <value>
 Set the quality for JPEG or ZIP compression.  For JPEG the quality ranges from
@@ -101,6 +101,15 @@ If
 is entered alone, the initial scaling will be from the minimum in the input
 file to 0, and from the maximum in the file to 255.  If you have integer data
 and you want to convert it to bytes
+.TP -T <xsize,ysize> or <size>
+Organize output data in tiles instead of strips, which can allow faster access
+to subareas of very large images.  Enter one number for the tile size in both
+dimensions, or two numbers to specify a different size in X and Y.  The TIFF
+library requires that all tiles be the same size, which means that the image
+file will be padded so that tiles on the bottom and right sides have
+the same sizes as the rest.  The program will pick an actual tile size near
+the entered number that is a multiple of 16 and that minimizes the amount of
+padding required.
 .TP
 .B -t <value>
 Set the criterion for processing each image in strips to the given value in
