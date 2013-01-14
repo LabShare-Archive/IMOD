@@ -199,9 +199,8 @@ extern "C" {
   int tiffOpenNew(ImodImageFile *inFile);
   int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression, 
                        int inverted, int resolution, int quality);
-  int tiffWriteSetup(ImodImageFile *inFile, int compression, 
-                     int inverted, int resolution, int quality, 
-                     int *outRows, int *outNum);
+  int tiffWriteSetup(ImodImageFile *inFile, int compression, int inverted, int resolution,
+                     int quality, int *outRows, int *outNum, int *tileSizeX);
   int tiffWriteStrip(ImodImageFile *inFile, int strip, void *buf);
   void tiffWriteFinish(ImodImageFile *inFile);
   int tiffVersion(int *minor);

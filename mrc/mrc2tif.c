@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <stdio.h>
@@ -29,7 +28,7 @@ int main(int argc, char *argv[])
   FILE *fpTiff = NULL;
   Islice slice;
   int xsize, ysize, zsize, psize, filenum, outPsize, numChunks, chunk;
-  int lines, linesDone, version, linesPerChunk, doChunks = 0;
+  int lines, linesDone, version, linesPerChunk = 0, doChunks = 0;
   size_t xysize, allocSize;
   int i, j, slmode, z, iarg = 1, stack = 0, resolution = 0, initialNum = -1;
   int oldcode = 0, convert = 0, usePixel = 0;
@@ -38,6 +37,7 @@ int main(int argc, char *argv[])
   b3dUInt32 ifdOffset = 0, dataOffset = 0;
   float chunkCriterion = 100.;
   float savecrit, dmin, dmax, smin =0., smax = 0.;
+  int xTileSize = 0;
   float val[3];
   float scale, offset, xscale, yscale, zscale;
   char prefix[100];
@@ -111,6 +111,13 @@ int main(int argc, char *argv[])
         quality = atoi(argv[++iarg]);
         break;
 
+      case 'T':
+        sscanf(argv[++iarg], "%d%*c%d", &xTileSize, &linesPerChunk);
+        if (!linesPerChunk)
+          linesPerChunk = xTileSize;
+        doChunks = 1;
+        break;
+
       case 't':
         chunkCriterion = atof(argv[++iarg]);
         break;
@@ -129,6 +136,8 @@ int main(int argc, char *argv[])
     exitError("Compression not available with old writing code");
   if (oldcode && (resolution > 0 || usePixel))
     exitError("Resolution setting is not available with old writing code");
+  if (oldcode && xTileSize)
+    exitError("Tiling not available with old writing code");
   if (resolution > 0 && usePixel)
     exitError("You cannot enter both -r and -P");
 
@@ -152,6 +161,9 @@ int main(int argc, char *argv[])
     printf("    -i #       Initial file number (default is starting Z)\n");
     printf("    -r #       Resolution setting in dots per inch\n");
     printf("    -P         Use pixel spacing in MRC header for resolution setting\n");
+    printf("    -T nx[,ny] Output data in tiles of size nx by ny (nx by nx if "
+           "ny omitted)\n");
+    
     printf("    -t #       Criterion image size in megabytes for processing "
            "file in strips\n");
     printf("    -o         Write file with old IMOD code instead of libtiff"
@@ -281,16 +293,25 @@ int main(int argc, char *argv[])
       ifdOffset = 0;
       dataOffset = 0;
     }
-    if (!stack && slmode > 0 && !convert) {
+
+    /* Prepare to get min/max for a slice if not doing in chunks or converting to bytes */
+    if (!stack && slmode > 0 && !convert && !doChunks) {
       iifile->amin = 1.e30;
       iifile->amax = -1.e30;
-    }
+    } else if (slmode > 0 && !convert) {
 
+      /* Otherwise take file min/max, that is better than nothing */
+      iifile->amin = dmin;
+      iifile->amax = dmax;
+    }
+    
     /* If doing chunks, set up chunk loop */
     numChunks = 1;
     if (doChunks) {
       tiffWriteSetup(iifile, compression, 0, resolution, quality, 
-                     &linesPerChunk, &numChunks);
+                     &linesPerChunk, &numChunks, &xTileSize);
+      if (xTileSize > xsize + 16 || linesPerChunk > ysize + 16)
+        exitError("Entered tile size was too large");
       allocSize = xsize * linesPerChunk * psize;
       linesDone = 0;
     }
@@ -340,7 +361,7 @@ int main(int argc, char *argv[])
     
       /* Get min/max for int/float images, those are the only ones the write
          routine will put out min/max for */
-      if (!stack && slmode > 0 && !convert) {
+      if (!stack && slmode > 0 && !convert && !doChunks) {
         sliceMMM(&slice);
         iifile->amin = B3DMIN(iifile->amin, slice.min);
         iifile->amax = B3DMAX(iifile->amax, slice.max);
@@ -380,6 +401,8 @@ int main(int argc, char *argv[])
       iiClose(iifile);
   }
   fclose(fin);
+  if (xTileSize)
+    printf("Actual tile size = %d x %d\n", xTileSize, linesPerChunk);
   exit(0);
 }
 
@@ -403,58 +426,3 @@ static FILE *openEitherWay(ImodImageFile *iifile, char *iname, char *progname,
   }
   return fpTiff;
 }
-
-/*
-
-$Log$
-Revision 3.15  2010/12/18 18:46:20  mast
-Now it will work with up to 4 GB with version 3 libtiff, and above 4 GB
-for libtiff 4.  Reads files in chunks corresponding to output file strips
-above a certain size.
-
-Revision 3.14  2010/12/17 06:20:51  mast
-Maybe it will work with > 2 GB of data
-
-Revision 3.13  2010/12/15 06:21:24  mast
-Added options for setting resolution, controlling scaling, setting file
-number and doing a subset in Z
-
-Revision 3.12  2009/11/27 16:38:09  mast
-Added include to fix warnings
-
-Revision 3.11  2009/04/01 00:20:34  mast
-Call new writing routine with libtiff and add compression option
-
-Revision 3.10  2008/05/24 14:52:45  mast
-Fixed string length allocation
-
-Revision 3.9  2008/05/23 23:03:31  mast
-Added string include
-
-Revision 3.8  2008/05/23 22:57:17  mast
-Added float support, option for single stack, and standardized errors
-
-Revision 3.7  2006/06/19 19:29:23  mast
-Added ability to write unsigned ints from mode 6
-
-Revision 3.6  2006/02/19 17:53:53  mast
-Allocate an array only big enough for the data type, test on array 
-allocation, and issue standard error messages (but still to stderr)
-
-Revision 3.5  2005/02/11 01:42:34  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.4  2004/11/05 18:53:10  mast
-Include local files with quotes, not brackets
-
-Revision 3.3  2004/07/07 19:25:30  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.2  2003/10/24 02:28:42  mast
-strip directory from program name and/or use routine to make backup file
-
-Revision 3.1  2002/11/05 23:48:02  mast
-Changed to call imodCopyright
-
-*/
-
