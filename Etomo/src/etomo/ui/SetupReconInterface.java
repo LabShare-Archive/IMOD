@@ -64,6 +64,4 @@ public interface SetupReconInterface {
 
   public boolean getTiltAngleFields(AxisID axisID, TiltAngleSpec tiltAngleSpec,
       boolean doValidation);
-
-  public boolean isSetFEIPixelSize();
 }

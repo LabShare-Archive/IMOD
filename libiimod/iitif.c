@@ -60,6 +60,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection, int conv
 static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout, int byte,
                      int toShort, int pixsize, int type, int format, int samples,
                      float slope, float offset, int doscale, unsigned char *map);
+static void bestTileSize(int imSize, int *tileSize, int *numTiles);
 static TIFF *openWithoutBMode(ImodImageFile *inFile);
 static int setMatchingDirectory(ImodImageFile *inFile, int dirnum);
 static void closeWithError(ImodImageFile *inFile, char *message);
@@ -912,8 +913,8 @@ int tiffOpenNew(ImodImageFile *inFile)
   return 0;
 }
 
-static uint32 rowsPerStrip, lineBytes, stripBytes;
-static int linesDone, numStrips, alreadyInverted;
+static uint32 rowsPerStrip, lineBytes, stripBytes, xTileSize;
+static int linesDone, numStrips, alreadyInverted, numXtiles, pixSize;
 static char *tmpbuf;
 
 /*
@@ -924,10 +925,10 @@ static char *tmpbuf;
 int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression, 
                      int inverted, int resolution, int quality)
 {
-  int strip, lines, err;
+  int strip, lines, err, tileX = 0;
   char *sbuf;
   err = tiffWriteSetup(inFile, compression, inverted, resolution, quality,
-                       &strip, &lines);
+                       &strip, &lines, &tileX);
   if (err)
     return err;
   for (strip = 0; strip < numStrips; strip++) {
@@ -944,9 +945,19 @@ int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression,
   return 0;
 }
 
-int tiffWriteSetup(ImodImageFile *inFile, int compression, 
-                   int inverted, int resolution, int quality, 
-                   int *outRows, int *outNum)
+/*
+ * Set up the writing of a section, which then be written as either strips or tiles.
+ * Compression is done according to the given compression and quality values.  Data will
+ * be inverted before writing unless the inverted entry is nonzero.  outRows is returned
+ * with the number of rows per strip or tile; outNum is returned with number of strips or
+ * tiles in Y.  tileSizeX must be 0 to write in strips; in this case any incoming value 
+ * of outRows is ignored.  To write in tiles, supply the desired size in X in tileSizeX 
+ * and the size in Y in outRows.  These sizes will be adjusted to a multiple of 16 that
+ * minimizes the padding required to make all tiles equal in size.
+ */
+
+int tiffWriteSetup(ImodImageFile *inFile, int compression, int inverted, int resolution,
+                   int quality, int *outRows, int *outNum, int *tileSizeX)
 {
   uint32 stripTarget = 8192;
   int maxStrips = 4096;
@@ -1028,22 +1039,40 @@ int tiffWriteSetup(ImodImageFile *inFile, int compression,
   }
   TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, photometric);
   TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, samples);
-  
-  /* Increase the strip target size to avoid having too many strips, as per
-     recommendations that go with libtiff4 */
-  lineBytes = (samples * bits / 8) * inFile->nx;
-  if (inFile->ny > maxStrips)
-    stripTarget = (1 + inFile->ny / maxStrips) * lineBytes;
-  rowsPerStrip = B3DMAX(1, (stripTarget + lineBytes / 2) / lineBytes);
+  pixSize = samples * bits / 8;
 
-  /* For JPEG compression, rows must be multiple of 8 */
-  if (compression == COMPRESSION_JPEG && rowsPerStrip % 8) {
-    if (rowsPerStrip < 5 || rowsPerStrip % 8 > 4)
-      rowsPerStrip = 8 * ((rowsPerStrip + 7) / 8);
-    else
-      rowsPerStrip = 8 * (rowsPerStrip / 8);
+  if (*tileSizeX) {
+
+    rowsPerStrip = *outRows;
+    bestTileSize(inFile->nx, tileSizeX, &numXtiles);
+    bestTileSize(inFile->ny, &rowsPerStrip, &numStrips);
+    xTileSize = *tileSizeX;
+    TIFFSetField(tif, TIFFTAG_TILEWIDTH, xTileSize);
+    TIFFSetField(tif, TIFFTAG_TILELENGTH, rowsPerStrip);
+    lineBytes = pixSize * xTileSize;
+    
+  } else {
+  
+    /* Increase the strip target size to avoid having too many strips, as per
+       recommendations that go with libtiff4 */
+    lineBytes = pixSize * inFile->nx;
+    if (inFile->ny > maxStrips)
+      stripTarget = (1 + inFile->ny / maxStrips) * lineBytes;
+    rowsPerStrip = B3DMAX(1, (stripTarget + lineBytes / 2) / lineBytes);
+
+    /* For JPEG compression, rows must be multiple of 8 */
+    if (compression == COMPRESSION_JPEG && rowsPerStrip % 8) {
+      if (rowsPerStrip < 5 || rowsPerStrip % 8 > 4)
+        rowsPerStrip = 8 * ((rowsPerStrip + 7) / 8);
+      else
+        rowsPerStrip = 8 * (rowsPerStrip / 8);
+    }
+    TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, rowsPerStrip);
   }
-  TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, rowsPerStrip);
+  numStrips = (inFile->ny + rowsPerStrip - 1) / rowsPerStrip;
+  stripBytes = rowsPerStrip * lineBytes;
+  *outNum = numStrips;
+  *outRows = rowsPerStrip;
 
   time(&curtime);
   tm = localtime(&curtime);
@@ -1051,38 +1080,75 @@ int tiffWriteSetup(ImodImageFile *inFile, int compression,
           tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
   TIFFSetField(tif, TIFFTAG_DATETIME, datetime);
 
-  stripBytes = rowsPerStrip * lineBytes;
-  numStrips = (inFile->ny + rowsPerStrip - 1) / rowsPerStrip;
-  if (!inverted) {
+  if (!inverted || xTileSize) {
     tmpbuf = (char *)_TIFFmalloc(stripBytes);
     if (!tmpbuf)
       return IIERR_MEMORY_ERR;
   }
   linesDone = 0;
   alreadyInverted = inverted;
-  *outRows = rowsPerStrip;
-  *outNum = numStrips;
   return 0;
 }
 
+/* For tiles, make sure each dimension is multiple of 16, it is what tiffcp does 
+   But also increase tile size to the point that minimizes the extra amount that is
+   put out because tiles must be equal */
+static void bestTileSize(int imSize, int *tileSize, int *numTiles)
+{
+  *numTiles = (imSize + *tileSize - 1) / *tileSize;
+  *tileSize = 16 * (int)ceil(imSize / (16. * *numTiles));
+  *numTiles = (imSize + *tileSize - 1) / *tileSize;
+}
+
+/*
+ * Write a strip of the given number.  When writing tiles, the buffer must contain the
+ * whole strip of data; this routine will copy it into tiles for saving.
+ */
 int tiffWriteStrip(ImodImageFile *inFile, int strip, void *buf)
 {
-  int lines, i;
+  int lines, i, xOffset, xtile, numBytes;
+  size_t bufLine;
   char *inbuf;
   TIFF *tif = (TIFF *)inFile->header;
   lines = B3DMIN(rowsPerStrip, inFile->ny - linesDone);
-  if (alreadyInverted) {
-    tmpbuf = (char *)buf;
-  } else {
-    for (i = 0; i < lines; i++) {
-      inbuf = (char *)buf + (lines - (i + 1)) * lineBytes;
-      memcpy(tmpbuf + i * lineBytes, inbuf, lineBytes);
+
+  if (!xTileSize) {
+
+    /* Ordinary strip writing */
+    if (alreadyInverted) {
+      tmpbuf = (char *)buf;
+    } else {
+      for (i = 0; i < lines; i++) {
+        inbuf = (char *)buf + (lines - (i + 1)) * lineBytes;
+        memcpy(tmpbuf + i * lineBytes, inbuf, lineBytes);
+      }
     }
-  }
-  if (TIFFWriteEncodedStrip(tif, strip, tmpbuf, lineBytes * lines) < 0) {
-    if (!alreadyInverted)
-      free(tmpbuf);
-    return IIERR_IO_ERROR;
+    if (TIFFWriteEncodedStrip(tif, strip, tmpbuf, lineBytes * lines) < 0) {
+      if (!alreadyInverted)
+        _TIFFfree(tmpbuf);
+      return IIERR_IO_ERROR;
+    }
+  } else {
+    
+    /* Tile writing.  Copy just the data that exists in the strip given to us into
+     the portion of the buffer corresponding to its rows and columns */
+    for (xtile = 0; xtile < numXtiles; xtile++) {
+      xOffset = xtile * xTileSize * pixSize;
+      numBytes = B3DMIN(xTileSize, inFile->nx - xtile * xTileSize) * pixSize;
+      for (i = 0; i < lines; i++) {
+        bufLine = alreadyInverted ? i : lines - (i + 1);
+        inbuf = (char *)buf + bufLine * inFile->nx * pixSize + xOffset;
+        memcpy(tmpbuf + i * lineBytes, inbuf, numBytes);
+      }
+
+      /* But then write the entire buffer of data.  It is required to have the full 
+         size */
+      if (TIFFWriteEncodedTile(tif, xtile + strip * numXtiles, tmpbuf, 
+                               lineBytes * rowsPerStrip) < 0) {
+        _TIFFfree(tmpbuf);
+        return IIERR_IO_ERROR;
+      }
+    }
   }
   linesDone += lines;
   return 0;

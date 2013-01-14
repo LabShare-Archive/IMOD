@@ -63,7 +63,8 @@ public final class SettingsDialog extends JDialog {
       FieldType.INTEGER, "Join tables size: ");
   private final LabeledTextField ltfPeetTableSize = new LabeledTextField(
       FieldType.INTEGER, "PEET table size: ");
-  private final CheckBox cbSetFEIPixelSize = new CheckBox(SetupDialog.SET_FEI_PIXEL_SIZE);
+  private final CheckBox cbSetFEIPixelSize = new CheckBox(
+      "Set pixel size in files from FEI");
 
   private final String propertyUserDir;
 
@@ -76,6 +77,7 @@ public final class SettingsDialog extends JDialog {
     SettingsDialog instance = new SettingsDialog(propertyUserDir);
     instance.buildDialog();
     instance.loadData(manager, propertyUserDir);
+    instance.setTooltips();
     instance.addListeners();
     return instance;
   }
@@ -304,6 +306,12 @@ public final class SettingsDialog extends JDialog {
     else if (command.equals(cbParallelProcessing.getActionCommand())) {
       updateDisplay();
     }
+  }
+  
+  void setTooltips() {
+    cbSetFEIPixelSize.setToolTipText(TooltipFormatter.INSTANCE
+        .format("During tomogram setup, transfer pixel size from extended header to "
+            + "pixel."));
   }
 
   private static final class SettingsDialogListener implements ActionListener {
