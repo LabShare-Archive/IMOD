@@ -1457,7 +1457,12 @@ public final class MatlabParam {
     valueMap.put(FLG_FAIR_REFERENCE_KEY, flgFairReference.getParsableString());
     valueMap.put(FLG_ABS_VALUE_KEY, flgAbsValue.getParsableString());
     valueMap.put(FLG_STRICT_SEARCH_LIMITS_KEY, flgStrictSearchLimits.getParsableString());
-    valueMap.put(SELECT_CLASS_ID_KEY, selectClassID.getParsableString());
+    if (!selectClassID.isEmpty()) {
+      valueMap.put(SELECT_CLASS_ID_KEY, selectClassID.getParsableString());
+    }
+    else {
+      valueMap.remove(SELECT_CLASS_ID_KEY);
+    }
   }
 
   /**
@@ -1633,8 +1638,14 @@ public final class MatlabParam {
         (String) valueMap.get(FLG_ABS_VALUE_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, FLG_STRICT_SEARCH_LIMITS_KEY,
         (String) valueMap.get(FLG_STRICT_SEARCH_LIMITS_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, SELECT_CLASS_ID_KEY,
-        (String) valueMap.get(SELECT_CLASS_ID_KEY), commentMap);
+    String value = (String) valueMap.get(SELECT_CLASS_ID_KEY);
+    if (value != null) {
+      setNameValuePairValue(manager, autodoc, SELECT_CLASS_ID_KEY,
+          (String) valueMap.get(SELECT_CLASS_ID_KEY), commentMap);
+    }
+    else {
+      removeNameValuePair(autodoc, SELECT_CLASS_ID_KEY);
+    }
   }
 
   /**
