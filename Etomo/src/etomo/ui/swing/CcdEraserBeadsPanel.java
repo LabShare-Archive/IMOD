@@ -14,6 +14,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.CCDEraserParam;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.comscript.MakecomfileParam;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -253,12 +254,25 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
       if (cbspExpandCircleIterations.isSelected()) {
         param.setExpandCircleIterations(cbspExpandCircleIterations.getValue());
       }
+      else {
+        param.resetExpandCircleIterations();
+      }
       param.setPolynomialOrder(getPolynomialOrder());
       return param.validate();
     }
     catch (FieldValidationFailedException e) {
       return false;
     }
+  }
+
+  public boolean getParameters(final MakecomfileParam param, final boolean doValidation) {
+    try {
+      param.setBeadSize(ltfFiducialDiameter.getText(doValidation));
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
+    return true;
   }
 
   public void action(final Run3dmodButton button,

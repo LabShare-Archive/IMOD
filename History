@@ -1,5 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/13/13: Fixed an unhandled exception when montaged stack with an extension
+other then ".st" is used with Align Serial Sections.(Bug# 1676)
+
+1/13/13: Fixed incorrect betterRadius in golderaser.com.(Bug# 1662)
+
+1/13/13: Fixed two problems with the behavior of eTomo - Fiducial Model.
+(Bug# 1675)
+
+1/11/13: Added back to non-PIP support for colornewst.(Bug# 1665)
+
 1/10/13: Fixed problems with list reading from fortran introduced 8/24/12.
 
 1/9/13: Fixed problems with 3dmod messaging caused by change to rotation.

@@ -3,12 +3,14 @@ package etomo.comscript;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -558,43 +560,172 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    */
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
       throws BadComScriptException {
-    scriptCommand.useKeywordValue();
-    for (Iterator<String> i = inputFile.iterator(); i.hasNext();) {
-      scriptCommand.setValue(INPUT_FILE_KEY, i.next());
+    if (!useColorNewst) {
+      scriptCommand.useKeywordValue();
+      for (Iterator<String> i = inputFile.iterator(); i.hasNext();) {
+        scriptCommand.setValue(INPUT_FILE_KEY, i.next());
+      }
+      outputFile.updateComScript(scriptCommand);
+      fileOfInputs.updateComScript(scriptCommand);
+      fileOfOutputs.updateComScript(scriptCommand);
+      for (Iterator<String> i = sectionsToRead.iterator(); i.hasNext();) {
+        scriptCommand.setValue(SECTIONS_TO_READ_KEY, i.next());
+      }
+      for (Iterator<String> i = numberToOutput.iterator(); i.hasNext();) {
+        scriptCommand.setValue(NUMBER_TO_OUTPUT_KEY, i.next());
+      }
+      sizeToOutputInXandY.updateScriptParameter(scriptCommand);
+      modeToOutput.updateComScript(scriptCommand);
+      offsetsInXandY.updateScriptParameter(scriptCommand);
+      for (Iterator<FortranInputString> i = offsetsInXandYExtraEntries.iterator(); i
+          .hasNext();) {
+        i.next().updateScriptParameter(scriptCommand);
+      }
+      applyOffsetsFirst.updateComScript(scriptCommand);
+      transformFile.updateComScript(scriptCommand);
+      useTransformLines.updateComScript(scriptCommand);
+      rotateByAngle.updateComScript(scriptCommand);
+      expandByFactor.updateComScript(scriptCommand);
+      binByFactor.updateComScript(scriptCommand);
+      linearInterpolation.updateComScript(scriptCommand);
+      floatDensities.updateComScript(scriptCommand);
+      contrastBlackWhite.updateScriptParameter(scriptCommand);
+      scaleMinAndMax.updateScriptParameter(scriptCommand);
+      distortionField.updateComScript(scriptCommand);
+      imagesAreBinned.updateComScript(scriptCommand);
+      testLimits.updateScriptParameter(scriptCommand);
+      gradientFile.updateComScript(scriptCommand);
+      adjustOrigin.updateComScript(scriptCommand);
+      taperAtFill.updateScriptParameter(scriptCommand);
+      fillValue.updateComScript(scriptCommand);
     }
-    outputFile.updateComScript(scriptCommand);
-    fileOfInputs.updateComScript(scriptCommand);
-    fileOfOutputs.updateComScript(scriptCommand);
-    for (Iterator<String> i = sectionsToRead.iterator(); i.hasNext();) {
-      scriptCommand.setValue(SECTIONS_TO_READ_KEY, i.next());
+    else {
+      // Create a new command line argument array
+      List<String> cmdLineArgs = new ArrayList<String>();
+      if (!fileOfInputs.isEmpty()) {
+        cmdLineArgs.add("-fileinlist");
+        cmdLineArgs.add(fileOfInputs.toString());
+      }
+      if (!fileOfOutputs.isEmpty()) {
+        cmdLineArgs.add("-fileoutlist");
+        cmdLineArgs.add(fileOfOutputs.toString());
+      }
+      for (Iterator i = sectionsToRead.iterator(); i.hasNext();) {
+        cmdLineArgs.add("-secs");
+        cmdLineArgs.add((String) i.next());
+      }
+      for (Iterator i = numberToOutput.iterator(); i.hasNext();) {
+        cmdLineArgs.add("-numout");
+        cmdLineArgs.add((String) i.next());
+      }
+      if (sizeToOutputInXandY.valuesSet() && (!sizeToOutputInXandY.isDefault())) {
+        cmdLineArgs.add("-size");
+        cmdLineArgs.add(sizeToOutputInXandY.toString());
+      }
+      if (!modeToOutput.isNull()) {
+        cmdLineArgs.add(DATA_MODE_OPTION);
+        cmdLineArgs.add(modeToOutput.toString());
+      }
+      if (!offsetsInXandY.isNull()) {
+        cmdLineArgs.add("-offset");
+        cmdLineArgs.add(offsetsInXandY.toString(true));
+      }
+      for (Iterator<FortranInputString> i = offsetsInXandYExtraEntries.iterator(); i
+          .hasNext();) {
+        FortranInputString fis = i.next();
+        if (!fis.isNull()) {
+          cmdLineArgs.add("-offset");
+          cmdLineArgs.add(fis.toString(true));
+        }
+      }
+      if (applyOffsetsFirst.is()) {
+        cmdLineArgs.add("-applyfirst");
+      }
+      if (!transformFile.isEmpty()) {
+        cmdLineArgs.add("-xform");
+        cmdLineArgs.add(transformFile.toString());
+      }
+      if (!useTransformLines.isEmpty()) {
+        cmdLineArgs.add("-uselines");
+        cmdLineArgs.add(useTransformLines.toString());
+      }
+      if (!rotateByAngle.isNull()) {
+        cmdLineArgs.add("-rotate");
+        cmdLineArgs.add(rotateByAngle.toString());
+      }
+      if (!expandByFactor.isNull()) {
+        cmdLineArgs.add("-expand");
+        cmdLineArgs.add(expandByFactor.toString());
+      }
+      if (!binByFactor.isNull()) {
+        cmdLineArgs.add("-bin");
+        cmdLineArgs.add(binByFactor.toString());
+      }
+      if (linearInterpolation.is()) {
+        cmdLineArgs.add("-linear");
+      }
+      if (!floatDensities.isNull()) {
+        cmdLineArgs.add(FLOAT_DENSITIES_OPTION);
+        cmdLineArgs.add(floatDensities.toString());
+      }
+      if (contrastBlackWhite.valuesSet() && (!contrastBlackWhite.isDefault())) {
+        cmdLineArgs.add("-contrast");
+        cmdLineArgs.add(contrastBlackWhite.toString());
+      }
+      if (scaleMinAndMax.valuesSet() && (!scaleMinAndMax.isDefault())) {
+        cmdLineArgs.add("-scale");
+        cmdLineArgs.add(scaleMinAndMax.toString());
+      }
+      if (!distortionField.isEmpty()) {
+        cmdLineArgs.add("-distort");
+        cmdLineArgs.add(distortionField.toString());
+      }
+      if (!imagesAreBinned.isNull()) {
+        cmdLineArgs.add("-imagebinned");
+        cmdLineArgs.add(imagesAreBinned.toString());
+      }
+      if (testLimits.valuesSet() && (!testLimits.isDefault())) {
+        cmdLineArgs.add("-test");
+        cmdLineArgs.add(testLimits.toString());
+      }
+      if (!gradientFile.isEmpty()) {
+        cmdLineArgs.add("-grad");
+        cmdLineArgs.add(gradientFile.toString());
+      }
+      if (adjustOrigin.is()) {
+        cmdLineArgs.add("-origin");
+      }
+      if (taperAtFill.valuesSet() && (!taperAtFill.isDefault())) {
+        cmdLineArgs.add("-taper");
+        cmdLineArgs.add(taperAtFill.toString());
+      }
+      if (!fillValue.isNull()) {
+        cmdLineArgs.add("-fill");
+        cmdLineArgs.add(fillValue.toString());
+      }
+      // Add input file(s) and output file last and without a parameter tag.
+      for (Iterator i = inputFile.iterator(); i.hasNext();) {
+        // cmdLineArgs.add("-input");
+        cmdLineArgs.add((String) i.next());
+      }
+      // cmdLineArgs.add("-output");
+      cmdLineArgs.add(outputFile.toString());
+      int nArgs = cmdLineArgs.size();
+      scriptCommand.setCommandLineArgs((String[]) cmdLineArgs.toArray(new String[nArgs]));
+
+      // If the command is currently newst change it to newstack
+      scriptCommand.setCommand(getCommandName());
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+        System.err.println(scriptCommand.getCommand());
+        String[] commandArray = scriptCommand.getCommandLineArgs();
+        if (commandArray != null) {
+          for (int i = 0; i < commandArray.length; i++) {
+            System.err.print(commandArray[i] + " ");
+          }
+          System.err.println();
+        }
+      }
     }
-    for (Iterator<String> i = numberToOutput.iterator(); i.hasNext();) {
-      scriptCommand.setValue(NUMBER_TO_OUTPUT_KEY, i.next());
-    }
-    sizeToOutputInXandY.updateScriptParameter(scriptCommand);
-    modeToOutput.updateComScript(scriptCommand);
-    offsetsInXandY.updateScriptParameter(scriptCommand);
-    for (Iterator<FortranInputString> i = offsetsInXandYExtraEntries.iterator(); i
-        .hasNext();) {
-      i.next().updateScriptParameter(scriptCommand);
-    }
-    applyOffsetsFirst.updateComScript(scriptCommand);
-    transformFile.updateComScript(scriptCommand);
-    useTransformLines.updateComScript(scriptCommand);
-    rotateByAngle.updateComScript(scriptCommand);
-    expandByFactor.updateComScript(scriptCommand);
-    binByFactor.updateComScript(scriptCommand);
-    linearInterpolation.updateComScript(scriptCommand);
-    floatDensities.updateComScript(scriptCommand);
-    contrastBlackWhite.updateScriptParameter(scriptCommand);
-    scaleMinAndMax.updateScriptParameter(scriptCommand);
-    distortionField.updateComScript(scriptCommand);
-    imagesAreBinned.updateComScript(scriptCommand);
-    testLimits.updateScriptParameter(scriptCommand);
-    gradientFile.updateComScript(scriptCommand);
-    adjustOrigin.updateComScript(scriptCommand);
-    taperAtFill.updateScriptParameter(scriptCommand);
-    fillValue.updateComScript(scriptCommand);
   }
 
   public void initializeDefaults() {

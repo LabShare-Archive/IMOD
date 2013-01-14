@@ -29,7 +29,8 @@ import etomo.type.EtomoNumber;
  */
 public class Montagesize {
   public static final String rcsid = "$Id$";
-  private static final String fileExtension = ".st";
+  
+  private static final String EXT = ".pl";
   //
   // n'ton member variables
   //
@@ -74,7 +75,8 @@ public class Montagesize {
    * @param axisID
    * @return
    */
-  public static Montagesize getInstance(BaseManager manager, AxisID axisID) {
+  public static Montagesize getInstance(BaseManager manager, AxisID axisID,
+      final String fileExtension) {
     File keyFile = Utilities.getFile(manager, axisID, fileExtension);
     String key = makeKey(keyFile);
     Montagesize montagesize = (Montagesize) instances.get(key);
@@ -146,11 +148,11 @@ public class Montagesize {
    */
   private File makePieceListFile() {
     String filePath = file.getAbsolutePath();
-    int extensionIndex = filePath.lastIndexOf(fileExtension);
-    if (extensionIndex == -1) {
-      throw new IllegalStateException("bad file name: file=" + file.getAbsolutePath());
+    int extensionIndex = filePath.lastIndexOf(".");
+    if (extensionIndex == -1 || extensionIndex == 0) {
+      return new File(filePath + EXT);
     }
-    return new File(filePath.substring(0, extensionIndex) + ".pl");
+    return new File(filePath.substring(0, extensionIndex) + EXT);
   }
 
   public boolean pieceListFileExists() {

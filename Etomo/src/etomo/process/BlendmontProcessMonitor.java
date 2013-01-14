@@ -101,7 +101,7 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   protected void findNSections() throws InterruptedException, NumberFormatException,
       LogFile.LockException, InvalidParameterException, IOException {
     Montagesize montagesize = null;
-    montagesize = Montagesize.getInstance(manager, axisID);
+    montagesize = Montagesize.getInstance(manager, axisID,".st");
     montagesize.read(manager);
     nSections = montagesize.getZ().getInt();
   }
