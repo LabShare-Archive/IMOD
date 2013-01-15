@@ -24,7 +24,6 @@
 #include <qtextedit.h>
 #include <qscrollbar.h>
 #include <qapplication.h>
-#include <qfiledialog.h>
 #include <qfile.h>
 #include <qtextstream.h>
 #include "imod.h"
@@ -159,8 +158,7 @@ void wprint(const char *fmt, ...)
 void wprintWriteFile(void)
 {
   QString str;
-  QString qname = QFileDialog::getSaveFileName
-    (NULL, "File to save info text panel into:");
+  QString qname = imodPlugGetSaveName(NULL, "File to save info text panel into:");
   if (qname.isEmpty())
       return;
   imodBackupFile((char *)LATIN1(qname));

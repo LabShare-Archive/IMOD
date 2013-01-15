@@ -415,8 +415,8 @@ void BeadFixer::openFile()
 #if defined(Q_OS_MACX) && QT_VERSION >= 0x040500
   firstFilt = 1;
 #endif
-  qname  = diaOpenFileName(this, "Select Tiltalign log file", 2 - firstFilt,
-                           &filter[firstFilt]);
+  qname  = utilOpenFileName(this, "Select Tiltalign log file", 2 - firstFilt,
+                            &filter[firstFilt]);
   
   if (qname.isEmpty())
     return;

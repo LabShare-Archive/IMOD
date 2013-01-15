@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/15/12: Defined a file chooser plugin for 3dmod.
+
+1/15/12: Fixed behavior when startup window is used when started as 3dmod 
+and model view is selected, so that it actually runs 3dmodv.
+
 1/14/12: Made Mrc2tif able to save TIFF files organized in tiles.
 
 1/13/13: Fixed an unhandled exception when montaged stack with an extension

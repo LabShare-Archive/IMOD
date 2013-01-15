@@ -61,7 +61,7 @@ typedef struct imod_application
   int exiting;      // Flag that application exit has been called
   int listening;    // Flag that it was started with -L or -W
   int glInitialized;  // Flag that OpenGL version was gotten, and extensions for windows
-
+  int chooserPlugin;  // Flag that a file chooser plugin exists and should be used
 }ImodApp;
 
 extern ImodApp *App;

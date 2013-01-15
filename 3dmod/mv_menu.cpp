@@ -11,7 +11,6 @@
  *  $Id$
  */
 
-#include <qfiledialog.h>
 #include <qdir.h>
 //Added by qt3to4:
 #include <QKeyEvent>
@@ -145,7 +144,7 @@ int imodvLoadModel()
 
   // Need to release the keyboard because window grabs it on ctrl
   a->mainWin->releaseKeyboard();
-  qname = diaOpenFileName(NULL, "Select Model file to load", 1, filter);
+  qname = utilOpenFileName(NULL, "Select Model file to load", 1, filter);
 
   if (qname.isEmpty())
     return 1;
@@ -247,7 +246,7 @@ void imodvSaveModelAs()
   struct stat buf;
   
   a->mainWin->releaseKeyboard();
-  qname = QFileDialog::getSaveFileName(NULL, 
+  qname = imodPlugGetSaveName(NULL, 
                                        "Select file to save model into:");
   if (qname.isEmpty())
     return;
@@ -335,7 +334,7 @@ void imodvFileMenu(int item)
     Imodv->mainWin->releaseKeyboard();
     format = (item == VFILE_MENU_SNAPRGB) ? 
       ImodPrefs->snapFormat() : QString("TIFF");
-    qname = QFileDialog::getSaveFileName
+    qname = imodPlugGetSaveName
       (NULL, QString("File to save ") + format + " snapshot into:");
     if (qname.isEmpty())
       break;
