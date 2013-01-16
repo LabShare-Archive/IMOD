@@ -10,6 +10,7 @@
 #include <string.h>
 #include <qmenu.h>
 #include <qsignalmapper.h>
+#include <qfiledialog.h>
 #include <qaction.h>
 #include <qdir.h>
 #include <qlibrary.h>
@@ -27,7 +28,7 @@
 #endif
 
 enum {IP_INFO, IP_EXECUTE, IP_EXECUTETYPE, IP_KEYS, IP_MOUSE, IP_EVENT, 
-      IP_EXECUTE_MESSAGE};
+      IP_EXECUTE_MESSAGE, IP_OPEN_FILE_NAME, IP_OPEN_FILE_NAMES, IP_SAVE_FILE_NAME};
 
 typedef struct
 {
@@ -201,10 +202,11 @@ static int imodPlugLoad(QString plugpath)
     }
   }
   ilistAppend(plugList, &thePlug);
+  if (thePlug.type & IMOD_PLUG_CHOOSER)
+    App->chooserPlugin = 1;
     
   if (Imod_debug)
-    imodPrintStderr("loaded plugin : %s %s\n",
-                    LATIN1(plugpath), thePlug.name);
+    imodPrintStderr("loaded plugin : %s %s\n", LATIN1(plugpath), thePlug.name);
   return 0;
 }
 
@@ -303,8 +305,8 @@ void imodPlugMenu(QMenu *parent, QSignalMapper *mapper)
       if (!pd) continue;
                
       if (pd->type & IMOD_PLUG_MENU){
-	str = pd->name;
-	action = parent->addAction(str);
+        str = pd->name;
+        action = parent->addAction(str);
         QObject::connect(action, SIGNAL(triggered()), mapper, SLOT(map()));
         mapper->setMapping(action, i);
       }
@@ -363,8 +365,8 @@ int imodPlugHandleKey(ImodView *vw, QKeyEvent *event)
     if (pd->type & IMOD_PLUG_KEYS){
       fptr = (SpecialKeys)ipGetFunction(pd, IP_KEYS);
       if (fptr){
-	keyhandled = (*fptr)(vw, event);
-	if (keyhandled)
+        keyhandled = (*fptr)(vw, event);
+        if (keyhandled)
           return 1;
       }
 
@@ -392,8 +394,8 @@ int imodPlugHandleMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     if (pd->type & IMOD_PLUG_MOUSE){
       fptr = (SpecialMouse)ipGetFunction(pd, IP_MOUSE);
       if (fptr){
-	handled = (*fptr)(vw, event, imx, imy, but1, but2, but3);
-	if (handled & 1)
+        handled = (*fptr)(vw, event, imx, imy, but1, but2, but3);
+        if (handled & 1)
           return handled;
         needDraw |= handled;
       }
@@ -421,8 +423,8 @@ int imodPlugHandleEvent(ImodView *vw, QEvent *event, float imx, float imy)
     if (pd->type & IMOD_PLUG_EVENT){
       fptr = (SpecialEvent)ipGetFunction(pd, IP_EVENT);
       if (fptr){
-	handled = (*fptr)(vw, event, imx, imy);
-	if (handled & 1)
+        handled = (*fptr)(vw, event, imx, imy);
+        if (handled & 1)
           return handled;
         needDraw |= handled;
       }
@@ -476,6 +478,68 @@ int imodPlugMessage(ImodView *vw, QStringList *strings, int *arg)
 }
 
 /*
+ * File chooser calls
+ * For each of these, look for the first file chooser with the call and call it,
+ * or fall back to the Qt dialog
+ */
+QString imodPlugGetOpenName(QWidget *parent, const QString &caption,
+                            const QString &dir, const QString &filter)
+{
+  PlugData *pd;
+  int i, mi = ilistSize(plugList);
+  SpecialOpenFileName fptr;
+  if (App->chooserPlugin) {
+    for(i = 0; i < mi; i++) {
+      pd = (PlugData *)ilistItem(plugList, i);
+      if (pd->type & IMOD_PLUG_CHOOSER) {
+        fptr = (SpecialOpenFileName)ipGetFunction(pd, IP_OPEN_FILE_NAME);
+        if (fptr)
+          return (*fptr)(parent, caption, dir, filter);
+      }
+    }
+  }
+  return QFileDialog::getOpenFileName(parent, caption, dir, filter);
+}
+
+QStringList imodPlugGetOpenNames(QWidget *parent, const QString &caption,
+                                 const QString &dir, const QString &filter)
+{
+  PlugData *pd;
+  int i, mi = ilistSize(plugList);
+  SpecialOpenFileNames fptr;
+  if (App->chooserPlugin) {
+    for(i = 0; i < mi; i++) {
+      pd = (PlugData *)ilistItem(plugList, i);
+      if (pd->type & IMOD_PLUG_CHOOSER) {
+        fptr = (SpecialOpenFileNames)ipGetFunction(pd, IP_OPEN_FILE_NAMES);
+        if (fptr)
+          return (*fptr)(parent, caption, dir, filter);
+      }
+    }
+  }
+  return QFileDialog::getOpenFileNames(parent, caption, dir, filter);
+}
+
+QString imodPlugGetSaveName(QWidget *parent, const QString &caption)
+{
+  PlugData *pd;
+  int i, mi = ilistSize(plugList);
+  SpecialSaveFileName fptr;
+  if (App->chooserPlugin) {
+    for(i = 0; i < mi; i++) {
+      pd = (PlugData *)ilistItem(plugList, i);
+      if (pd->type & IMOD_PLUG_CHOOSER) {
+        fptr = (SpecialSaveFileName)ipGetFunction(pd, IP_SAVE_FILE_NAME);
+        if (fptr)
+          return (*fptr)(parent, caption);
+      }
+    }
+  }
+  return QFileDialog::getSaveFileName(parent, caption);
+}
+
+
+/*
  * Get a function - handle internal versus external and possibly 
  * system-dependent stuff here
  */
@@ -495,8 +559,14 @@ static void *ipGetFunction(PlugData *pd, int which)
       return (void *)pd->module->mKeys;
     case IP_MOUSE:
       return (void *)pd->module->mMouse;
+    case IP_OPEN_FILE_NAME:
+      return (void *)pd->module->mOpenFileName;
+    case IP_OPEN_FILE_NAMES:
+      return (void *)pd->module->mOpenFileNames;
+    case IP_SAVE_FILE_NAME:
+      return (void *)pd->module->mSaveFileName;
     default:
-      return NULL;
+      break;
     }
   } else {
     switch (which) {
@@ -514,8 +584,14 @@ static void *ipGetFunction(PlugData *pd, int which)
       return pd->library->resolve("imodPlugMouse");
     case IP_EVENT:
       return pd->library->resolve("imodPlugEvent");
+    case IP_OPEN_FILE_NAME:
+      return pd->library->resolve("imodPlugOpenFileName");
+    case IP_OPEN_FILE_NAMES:
+      return pd->library->resolve("imodPlugOpenFileNames");
+    case IP_SAVE_FILE_NAME:
+      return pd->library->resolve("imodPlugSaveFileName");
     default:
-      return NULL;
+      break;
     }
   }
   return NULL;

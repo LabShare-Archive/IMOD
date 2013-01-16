@@ -25,5 +25,9 @@ void imodPlugOpen(int item);
 void imodPlugOpenByName(const char *name);
 int imodPlugMessage(ImodView *vw, QStringList *strings, int *arg);
 void imodPlugOpenAllExternal(void);
+QString imodPlugGetOpenName(QWidget *parent, const QString &caption,
+                            const QString &dir, const QString &filter);
+QStringList imodPlugGetOpenNames(QWidget *parent, const QString &caption,
+                                 const QString &dir, const QString &filter);
 
 #endif

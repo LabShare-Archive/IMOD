@@ -26,8 +26,8 @@
 #include <sys/types.h>
 #include <time.h>
 #include <errno.h>
+#include <qdir.h>
 #include "info_setup.h"
-#include <qfiledialog.h>
 #include "imod.h"
 #include "display.h"
 #include "xcramp.h"
@@ -298,7 +298,7 @@ int SaveasModel(Imod *mod)
 
   lastError = IMOD_IO_SUCCESS;
      
-  qname = QFileDialog::getSaveFileName(NULL, "Model Save File:");
+  qname = imodPlugGetSaveName(NULL, "Model Save File:");
   if (qname.isEmpty()) {
     // OLD NOTE ABOUT dia_filename
     /* this dialog doesn't return if no file selected, so this is a cancel
@@ -469,7 +469,7 @@ static Imod *LoadModelFile(const char *filename)
 
   /* DNM 2/24/03: change to not destroy existing Imod_filename */
   if (filename == NULL) {
-    qname = diaOpenFileName(NULL, "Select Model file to LOAD", 1, filter);
+    qname = utilOpenFileName(NULL, "Select Model file to LOAD", 1, filter);
   
     if (qname.isEmpty()) {
       lastError = IMOD_IO_READ_CANCEL;

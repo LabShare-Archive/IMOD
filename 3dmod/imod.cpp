@@ -17,7 +17,6 @@
 #include <string.h>
 #include <errno.h>
 #include <locale.h>
-#include <qfiledialog.h>
 #include <qapplication.h>
 #include <qdir.h>
 #include <qdatetime.h>
@@ -168,6 +167,7 @@ int main( int argc, char *argv[])
   int useMdoc = 0;
   bool useStdin = false;
   bool dataFromStdin = false;
+  bool useChooserPlug = false;
   int argScan;
   QRect infoGeom;
   StartupForm *startup;
@@ -181,6 +181,7 @@ int main( int argc, char *argv[])
   App->base = Rampbase;
   App->convertSnap = 0;
   App->glInitialized = 0;
+  App->chooserPlugin = 0;
 
   /* Set up fixed indexes */
   App->background   = IMOD_BACKGROUND;
@@ -218,9 +219,9 @@ int main( int argc, char *argv[])
     if (argv[i][0] == '-' && argv[i][1] == 's' && argv[i][2] == 't'
         && argv[i][3] == 'y' && argv[i][4] == 'l' && argv[i][5] == 'e') {
       if (argv[i][6] == '=')
-	cmdLineStyle = strdup(&(argv[i][7]));
+        cmdLineStyle = strdup(&(argv[i][7]));
       else if (i < argc - 1)
-	cmdLineStyle = strdup(argv[i + 1]);
+        cmdLineStyle = strdup(argv[i + 1]);
     }
     
     if (!strcmp("-modv", argv[i]) || !strcmp("-view", argv[i]))
@@ -254,18 +255,26 @@ int main( int argc, char *argv[])
   // Set up the application icon for windows to use
   App->iconPixmap = new QPixmap(QPixmap::fromImage(QImage(b3dicon)));
 
+  // Load in all the imod plugins that we can use (moved up so file chooser available)
+  imodPlugInit();
+
   /* if no input files, open startup window */
   i = strlen(argv[0]);
   if (argv[0][i-1] == 'v')
     doImodv = 1;
   if (argc < 2 || (doStartup && doImodv)) {
+    useChooserPlug = true;
     startup = new StartupForm(NULL, true, Qt::Window);
     startup->setWindowIcon(*(App->iconPixmap));
-    if (doImodv) 
+    if (doImodv) {
+      mrc_init_li(&li, NULL);
+      ivwInit(&vi, false);
+      vi.li = &li;
       startup->setValues(&vi, argv, firstfile, argc, doImodv, plistfname, 
                          anglefname, xyzwinopen, sliceropen, zapOpen,
                          modelViewOpen, fillCache, ImodTrans, 0, frames,
                          nframex, nframey, overx, overy, overEntered);
+    }
     if (startup->exec() == QDialog::Rejected) {
       imod_usage(argv[0]);
       exit(1);
@@ -277,11 +286,14 @@ int main( int argc, char *argv[])
       imodPrintStderr("%s ", argv[i]);
       imodPrintStderr("\n"); */
     delete startup;
+    doStartup = 0;
   }
 
   /* Run the program as imodv? */
   i = strlen(argv[0]);
   if (doImodv || argv[0][i-1] == 'v'){
+    if (!useChooserPlug)
+      App->chooserPlugin = 0;
     imodv_main(argc, argv);
     exit(0);
   }
@@ -527,6 +539,7 @@ int main( int argc, char *argv[])
     /* First time through when doing startup, open startup and give it 
        options */
     if (!argScan && doStartup) {
+      useChooserPlug = true;
       startup = new StartupForm(NULL, true, Qt::Window);
       startup->setWindowIcon(*(App->iconPixmap));
       startup->setValues(&vi, argv, firstfile, argc, doImodv, plistfname,
@@ -544,15 +557,18 @@ int main( int argc, char *argv[])
           imodPrintStderr("%s ", argv[i]);
         imodPrintStderr("\n"); 
       }
+
+      // Run 3dmodv if they asked for it!
+      if (argv[0][strlen(argv[0]) - 1] == 'v') {
+        imodv_main(argc, argv);
+        exit(0);
+      }
       delete startup;
     }
   }
   
   /* Initialize the display system - defer color ramps until image type is known */
   imod_display_init(App, argv);
-
-  /* Load in all the imod plugins that we can use.*/
-  imodPlugInit();
 
   /* Add check function for raw and QImage formats after plugins so plugins
      can add them first.  But if any raw options were entered, put raw check 
@@ -645,9 +661,9 @@ int main( int argc, char *argv[])
     file or IFD.  First get filename if none */
     if (!firstfile) {
       imodVersion(NULL);
-      imodCopyright();    
-      qname = QFileDialog::getOpenFileName
-        (NULL, "3dmod: Select Image file to load:");
+      imodCopyright();
+      useChooserPlug = true;
+      qname = utilOpenFileName(NULL, "3dmod: Select Image file to load:", 0, NULL);
       if (qname.isEmpty()) {
         imodError(NULL, "3DMOD: file not selected\n");
         exit(3);
@@ -782,6 +798,10 @@ int main( int argc, char *argv[])
   // Read tilt angles if any
   if (anglefname)
     ivwReadAngleFile(&vi, anglefname);
+
+  // Disallow use of file chooser plugin if no chooser was used in startup
+  if (!useChooserPlug)
+    App->chooserPlugin = 0;
 
   /*********************/
   /* Open Main Window. */

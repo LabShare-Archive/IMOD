@@ -20,13 +20,13 @@
 #include "form_info.h"
 #include <qmenubar.h>
 #include <qmenu.h>
+#include <qdir.h>
 #include <qaction.h>
 #include <qsignalmapper.h>
 #include <qlayout.h>
 #include <qtextedit.h>
 #include <qframe.h>
 #include <qtimer.h>
-#include <qfiledialog.h>
 #include <qstringlist.h>
 //Added by qt3to4:
 #include <QTimerEvent>
@@ -494,8 +494,7 @@ void InfoWindow::extract()
     wprint("\aExtracting volume visible in Zap window with rubberband on but not "
            "drawn.\n");
 
-  mTrimvolOutput = QFileDialog::getSaveFileName
-    (this, "MRC File to extract to:");
+  mTrimvolOutput = imodPlugGetSaveName(this, "MRC File to extract to:");
   if (mTrimvolOutput.isEmpty())
     return;
   QString commandString = zap->printInfo(false);
