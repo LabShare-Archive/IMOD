@@ -14,15 +14,16 @@
 
 #include <qvariant.h>
 #include <stdlib.h>
-#include <qfiledialog.h>
 #include <string.h>
 #include <qregexp.h>
 #include <qstring.h>
 #include <qstringlist.h>
+#include <qdir.h>
 #include <qimage.h>
 #include <qpixmap.h>
 
 #include "imod.h"
+#include "imodplug.h"
 #include "dia_qtutils.h"
 
 /*
@@ -258,7 +259,7 @@ void StartupForm::imageSelectClicked()
 #endif
 
   enableButtons(false);
-  mImageFileList = QFileDialog::getOpenFileNames
+  mImageFileList = imodPlugGetOpenNames
     (this,  mModvMode ? "Select model file(s) to load" :
      "Select image file(s) to load", QString(),
      mModvMode ? "Model files (*.*mod)" : 
@@ -296,7 +297,7 @@ void StartupForm::modelSelectClicked()
 {
   const char *filter[] = {"Model files (*.*mod *.fid)"};
   enableButtons(false);
-  mModelFile = diaOpenFileName(this, "Select model file to load", 1, filter);
+  mModelFile = utilOpenFileName(this, "Select model file to load", 1, filter);
   enableButtons(true);
   modelFileEdit->setText(mModelFile);
 }
@@ -305,7 +306,7 @@ void StartupForm::pieceSelectClicked()
 {
   const char *filter[] = {"Piece list files (*.pl)"};
   enableButtons(false);
-  mPieceFile = diaOpenFileName(this, "Select piece list file to load", 1, filter);
+  mPieceFile = utilOpenFileName(this, "Select piece list file to load", 1, filter);
   enableButtons(true);
   pieceFileEdit->setText(mPieceFile);
 }
@@ -314,7 +315,7 @@ void StartupForm::angleSelectClicked()
 {
   const char *filter[] = {"Tilt angle files (*tlt)"};
   enableButtons(false);
-  mAngleFile = diaOpenFileName(this, "Select angle file to load", 1, filter);
+  mAngleFile = utilOpenFileName(this, "Select angle file to load", 1, filter);
   enableButtons(true);
   angleFileEdit->setText(mAngleFile);
 }

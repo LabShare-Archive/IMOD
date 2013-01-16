@@ -15,6 +15,7 @@
 #include <stdarg.h>
 #include <qcolor.h>
 #include <qicon.h>
+#include <qdir.h>
 #include <qaction.h>
 #include <qtoolbutton.h>
 #include <qpushbutton.h>
@@ -28,6 +29,7 @@
 #include <QMouseEvent>
 #include "imod.h"
 #include "imodv.h"
+#include "imodplug.h"
 #include "utilities.h"
 #include "b3dgfx.h"
 #include "preferences.h"
@@ -740,6 +742,24 @@ void utilWprintMeasure(QString &baseMess, Imod *imod, float measure, bool area)
     wprint("%s, %g %s%s\n", LATIN1(baseMess), measure, imodUnits(imod), area ? "^2" : "");
   else
     wprint("%s\n", LATIN1(baseMess));
+}
+
+/*
+ * A replacement for diaOpenFileName that can go to a chooser plugin.
+ * Documented in imodview.h
+ */
+QString utilOpenFileName(QWidget *parent, const char *caption, int numFilters,
+                         const char *filters[])
+{
+  QString qname = QString(Dia_title) + QString(": ") + QString(caption);
+  QString filter;
+  for (int i = 0; i < numFilters; i++)
+    filter += QString(filters[i]) + QString(";;");
+  filter += QString("All Files (*)");
+
+  // Qt 4.4 on Mac required explicit directory entry or it went to last dir
+  qname = imodPlugGetOpenName(parent, qname, QDir::currentPath(), filter);
+  return qname;
 }
 
 /***********************************************************************

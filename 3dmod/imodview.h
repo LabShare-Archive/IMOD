@@ -364,4 +364,22 @@ int DLL_EX_IM prefSaveGenericSettings(char *key, int numVals, double *values);
  */
 int DLL_EX_IM prefGetGenericSettings(char *key, double *values, int maxVals);
 
+/*
+ * File chooser call
+ */
+/*!
+ * Gets the name of a single existing file with a file chooser that will show
+ * [caption] in its title bar.  A set of [numFilters] filters can be given in
+ * [filters]; the first will be the default filter.  Returns an empty string
+ * if the user cancels.  Uses the file chooser plugin if one is defined.
+ */
+QString DLL_EX_IM utilOpenFileName(QWidget *parent, const char *caption, 
+                                   int numFilters, const char *filters[]);
+
+/*!
+ * Gets the name of a file in which to save with a file chooser that will show
+ * [caption] in its title bar.  Uses the file chooser plugin if one is defined.
+ */
+QString DLL_EX_IM imodPlugGetSaveName(QWidget *parent, const QString &caption);
+
 #endif
