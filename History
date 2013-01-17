@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/16/13: IMOD_4-6-18
 1/16/13: Added the creation of an empty .xf file to the Serial Sections
 interface.(Bug# 1679)
 
@@ -72,7 +73,9 @@ fiducial, patch tracking, or fiducialless alignment given a text file of
 "directives" to set parameters.
 
 12/18/12: Added the SetFEIPixelSize copytomocoms parameter to Setup Tomogram.
-(Bug# 1661).
+The standard pixel spacing will be set automatically in files from FEI
+software unless the option to do this is unselected in eTomo 
+settings.(Bug# 1661).
 
 12/17/12: Added right click menu to Plax graphing window to allowing printing
 the graph or saving to a PNG file; also, in Genhstplt, left-clicking pops up
