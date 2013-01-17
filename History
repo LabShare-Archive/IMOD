@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/17/13: Added selectClassID to eTomo - PEET.(Bug# 1673)
+
 1/16/13: IMOD_4-6-18
 1/16/13: Added the creation of an empty .xf file to the Serial Sections
 interface.(Bug# 1679)
