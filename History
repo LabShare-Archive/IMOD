@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/16/13: Added the creation of an empty .xf file to the Serial Sections
+interface.(Bug# 1679)
+
+1/16/13: Removed the SetFEIPixelSize copytomocoms parameter checkbox from
+Setup Dialog(Bug# 1661).
+
 1/15/12: Defined a file chooser plugin for 3dmod.
 
 1/15/12: Fixed behavior when startup window is used when started as 3dmod 
