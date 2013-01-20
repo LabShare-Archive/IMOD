@@ -95,6 +95,7 @@ EXPORTS
 	IMODBACKUPFILE
 	POLYNOMIALFIT
 	PipNumberOfArgs
+	zoomFiltValue
 	fValue
 	ilistTruncate
 	incompBeta
@@ -115,6 +116,7 @@ EXPORTS
 	SPARSEPROD
 	ADOCGETFLOAT
 	LSQR
+	selectzoomfilterXY
 	AdocInsertSection
 	parWrtFindRegion
 	SCALEDGAUSSIANKERNEL
@@ -172,6 +174,7 @@ EXPORTS
 	cmapConvertRamp
 	SCANHISTOGRAM
 	ADOCSETTHREEFLOATS
+	ZOOMFILTVALUE
 	WRITEBYTESSIGNED
 	zoomWithFilter
 	adjustPieceOverlap
@@ -247,6 +250,7 @@ EXPORTS
 	gaussjDet
 	multRegress
 	errFunc
+	selectZoomFilterXY
 	PIPREADSTDINIFSET
 	PARWRTPROPERTIES
 	imodProgName
