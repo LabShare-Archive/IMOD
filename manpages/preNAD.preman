@@ -1,0 +1,46 @@
+.na
+.nh
+.TH preNAD 1 4.6.18 BL3DEMC
+.SH NAME
+preNAD \- 2D anisotropic diffusion filter for tilt projections
+.SH SYNOPSIS
+preNAD [options]
+.SH DESCRIPTION
+preNAD is an anisotropic diffusion pre-reconstruction filtering program that
+aims to improve image quality for electron microscopy tilt projection
+images. The aim of the preNAD program is to improve the image quality of
+reconstructed volumes by improving the quality of each tilt projection.
+.P
+Specifically, a family of Non-Linear Anisotropic Diffusion (NAD) filters
+parametrized by the tilt angle is implemented.  The stopping criterion for
+iteration in the preNAD filter is based on the Masked Variance
+Difference. However, in addition to options to control the algorithm itself,
+this version provides the automatic selection of the Masked Variance
+Difference using the -MinIterations and -MaxIterations options.
+.P
+For a more detailed description of the algorithm used in this code, see 
+Mauro Maiorca, Eric Hanssen, Edmund Kazmierczak, Bohumil Maco, Misha
+Kudryashev, Richard Hall, Harry Quiney and Leann Tilley, "Improving the
+quality of electron tomography image volumes using pre-reconstruction
+filtering", Journal of Structural Biology, volume 180, issue 1, pages 132-142,
+year 2012.
+.P
+.SS Options
+preNAD uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -).  Options can be abbreviated to unique letters; the currently
+valid abbreviations for short names are shown in parentheses.
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+.SH AUTHOR
+.nf
+Mauro Maiorca
+.fi
+.SH SEE ALSO
+nad_eed_3d(1)
+.SH BUGS
+Email bug reports to mast@colorado.edu.
+

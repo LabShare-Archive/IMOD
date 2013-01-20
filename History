@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/19/13: Mauro Maiorca contributed preNAD for NAD-type filtering of tilt
+series prior to reconstruction.
+
 1/17/13: Added selectClassID to eTomo - PEET.(Bug# 1673)
 
 1/16/13: IMOD_4-6-18
