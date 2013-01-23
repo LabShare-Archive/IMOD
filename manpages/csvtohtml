@@ -18,9 +18,17 @@ import csv, sys
 sys.path.append('../pysrc')
 from imodpy import *
 
+insertTag = 'INSERT CSV FILE'
+
 if len(sys.argv) < 3:
-   prnstr('Usage: csvtohtml input_file output_file')
+   prnstr('Usage: csvtohtml csv_file output_file [insert_into_file]')
+   prnstr('       insert_into_file must have all HTML starting and ending codes')
+   prnstr('       and a line with just ' + insertTag + ' on it')
    sys.exit(1)
+
+insertLines = []
+if len(sys.argv) > 3:
+   insertLines = readTextFile(sys.argv[3])
 
 csvfile = open(sys.argv[1], 'r')
 reader = csv.reader(csvfile)
@@ -28,8 +36,24 @@ needTitle = True
 needHeader = True
 needTableHead = True
 lastBlank = False
-outlines = ['<HTML>',
-            '<HEAD>']
+outlines = []
+
+if insertLines:
+   for insertInd in range(len(insertLines)):
+      if insertTag in insertLines[insertInd].strip():
+         break
+      outlines.append(insertLines[insertInd])
+   else:   # ELSE ON FOR
+      prnstr('ERROR: Could not find a line with ' + insertTag + ' in ' + sys.argv[3])
+      sys.exit(1)
+
+   needTitle = False
+   insertInd += 1
+   
+else:
+   outlines = ['<HTML>',
+               '<HEAD>']
+
 inrows = []
 maxlen = 0
 for row in reader:
@@ -44,14 +68,15 @@ for row in inrows:
          continue
       outlines += ['<TITLE>' + row[0] + '</TITLE>',
                    '</HEAD>',
-                   '<BODY>']
+                   '<BODY>',
+                   '<A NAME = "TOP">']
       needTitle = False
       continue
 
    elif needHeader:
       if lastNonEmpty < 0:
          continue
-      outlines += ['<A NAME = "TOP"><H2 ALIGN=center>' + row[0] + '</H2></A>',
+      outlines += ['<H2 ALIGN=center>' + row[0] + '</H2>',
                    '<TABLE BORDER COLS=2>',
                    '<THEAD>']
       needHeader = False
@@ -83,9 +108,13 @@ for row in inrows:
       needTableHead = False
 
 outlines += ['</TBODY>',
-             '</TABLE>'
-             '</BODY>',
-             '</HTML>']
+             '</TABLE>']
+
+if insertLines:
+   outlines += insertLines[insertInd:]
+else:
+   outlines += ['</BODY>',
+                '</HTML>']
 
 writeTextFile(sys.argv[2], outlines)
 sys.exit(0)

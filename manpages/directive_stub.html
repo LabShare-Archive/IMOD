@@ -1,0 +1,29 @@
+<HTML>
+<HEAD>
+<TITLE>Batch/Template Directives</TITLE>
+</HEAD>
+<BODY><A NAME = "TOP">
+INSERT CSV FILE
+<P>
+Notes:
+<OL>
+<LI> Directives marked with <B>Y</B> in the <B>Batch</B> column can be included in a
+  batch directive file and will be acted on by Batchruntomo.
+<LI> Directives marked with <B>Y</B> in the <B>Tmplt</B> column can be
+  included in a template file, but whether they have an effect when run by
+  Batchruntomo is determined by the entry in the <B>Batch</B> column, and
+  whether they have an effect when running in eTomo is determined by the entry
+  in the <B>eTomo</B> column.
+<LI> The entry in the <B>eTomo</B> column has these meanings:
+<UL>
+<LI> <B>SD</B>: Saved by default into a template file by eTomo, and will have
+  an effect when running in eTomo.
+<LI> <B>SO</B>: Optionally saved into a template file by eTomo, and will have
+  an effect when running in eTomo.
+<LI> <B>Blank</B>: Not saved into a template file by eTomo, and will have
+  an effect when running in eTomo.
+<LI> <B>NE</B>: Will not (yet) have any effect if running in eTomo.
+</UL> 
+</OL>
+</BODY>
+</HTML>
