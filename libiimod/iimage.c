@@ -222,14 +222,18 @@ int  iiReopen(ImodImageFile *inFile)
   if (!inFile->fp)
     return 2;
 
-  if (inFile->state == IISTATE_NOTINIT){
-    inFile->format = IIFILE_UNKNOWN;
-    for (i = 0; i < ilistSize(checkList); i++) {
-      checkFunc = (IIFileCheckFunction *)ilistItem(checkList, i);
-      if (!(*checkFunc)(inFile)) {
-        inFile->state = IISTATE_READY;
-        return 0;
-      }
+  if (inFile->state != IISTATE_NOTINIT) {
+    inFile->state = IISTATE_READY;
+    return 0;
+  }
+
+  /* If the file is not initted yet, treat it as unknown and deal with from scratch */
+  inFile->format = IIFILE_UNKNOWN;
+  for (i = 0; i < ilistSize(checkList); i++) {
+    checkFunc = (IIFileCheckFunction *)ilistItem(checkList, i);
+    if (!(*checkFunc)(inFile)) {
+      inFile->state = IISTATE_READY;
+      return 0;
     }
   }
   return -1;
