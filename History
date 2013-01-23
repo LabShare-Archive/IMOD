@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/22/13: Switched Addtostack to dynamic array allocation.
+
 1/19/13: Mauro Maiorca contributed preNAD for NAD-type filtering of tilt
 series prior to reconstruction.
 
