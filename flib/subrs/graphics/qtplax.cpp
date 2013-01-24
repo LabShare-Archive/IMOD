@@ -162,8 +162,10 @@ PlaxWindow::PlaxWindow(QWidget *parent, Qt::WFlags fl) :
 // Ignore close events
 void PlaxWindow::closeEvent ( QCloseEvent * e )
 {
-  if (sExitOnClose)
+  if (sExitOnClose) {
+    sAppThread->terminate();
     sCloseWaiter->wakeAll();
+  }
   e->ignore();
 }
 
@@ -519,6 +521,8 @@ void plax_vect(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2)
 void plax_vectw(int *linewidth, int *cindex, 
                 int *ix1, int *iy1, int *ix2, int *iy2)
 {
+  if (sNoGraph)
+    return;
   sPlaxWidget->lock();
   addSixArgs(PCALL_VECTW, linewidth, cindex, ix1, iy1, ix2, iy2);
   sPlaxWidget->unlock();
@@ -539,6 +543,8 @@ void plax_circo(int *cindex, int *radius, int *ix, int *iy)
 /* closed filled polygon */
 void plax_poly(int *cindex, int *size, b3dInt16 *vec)
 {
+  if (sNoGraph)
+    return;
   sPlaxWidget->lock();
   if (!addTwoArgs(PCALL_POLY, cindex, size))
     addBytesToList((char *)vec, 4 * *size);
@@ -547,6 +553,8 @@ void plax_poly(int *cindex, int *size, b3dInt16 *vec)
 
 void plax_polyo(int *cindex, int *size, b3dInt16 *vec)
 {
+  if (sNoGraph)
+    return;
   sPlaxWidget->lock();
   if (!addTwoArgs(PCALL_POLYO, cindex, size))
       addBytesToList((char *)vec, 4 * *size);
@@ -561,6 +569,8 @@ void plax_sctext(int *thickness,
                  char *string, int strsize
                  )
 {
+  if (sNoGraph)
+    return;
   sPlaxWidget->lock();
   if (!addSixArgs(PCALL_SCTEXT, thickness, iysize, cindex, ix, iy, 
                   &strsize))
@@ -570,6 +580,8 @@ void plax_sctext(int *thickness,
 
 void plax_next_text_align(int *type)
 {
+  if (sNoGraph)
+    return;
   if (sListSize + 4 > sListMax)
     if (allocate_list_chunk())
       return;
@@ -631,6 +643,8 @@ static int addTwoArgs(int code, int *i1, int *i2)
 
 static int addFourArgs(int code, int *i1, int *i2, int *i3, int *i4)
 {
+  if (sNoGraph)
+    return 0;
   if (sListSize + 5 > sListMax)
     if (allocate_list_chunk())
       return 1;
@@ -646,6 +660,8 @@ static int addFourArgs(int code, int *i1, int *i2, int *i3, int *i4)
 
 static int addFiveArgs(int code, int *i1, int *i2, int *i3, int *i4, int *i5)
 {
+  if (sNoGraph)
+    return 0;
   if (sListSize + 6 > sListMax)
     if (allocate_list_chunk())
       return 1;
