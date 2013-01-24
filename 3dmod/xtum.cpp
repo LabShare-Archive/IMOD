@@ -36,6 +36,7 @@
 #include "sslice.h"
 #include "xtum.h"
 #include "control.h"
+#include "pyramidcache.h"
 
 #include "imod_input.h"
 #include "b3dgfx.h"
@@ -644,8 +645,14 @@ void TumblerWindow::fillSlice(TumblerStruct *xtum)
 
   /* Set up image pointer tables */
   vmnullvalue = (App->cvi->white + App->cvi->black) / 2;
-  if (ivwSetupFastAccess(xtum->vi, &imdata, vmnullvalue, &i, xtum->vi->curTime))
-    return;
+  if (xtum->vi->pyrCache) {
+    if (ivwSetupFastTileAccess(xtum->vi, xtum->vi->pyrCache->getBaseIndex(), vmnullvalue,
+                               i))
+      return;
+  } else {
+    if (ivwSetupFastAccess(xtum->vi, &imdata, vmnullvalue, &i, xtum->vi->curTime))
+      return;
+  }
 
   fillASlice(xtum);
 

@@ -80,6 +80,7 @@ HEADERS	+= autox.h \
 	surfpieces.h \
 	mappingtable.h \
         vertexbuffer.h \
+        pyramidcache.h \
 	form_object_edit.h \
 	formv_control.h \
 	formv_movie.h \
@@ -171,6 +172,7 @@ SOURCES	+= autox.cpp \
 	scalebar.cpp \
 	mappingtable.cpp \
         vertexbuffer.cpp \
+        pyramidcache.cpp \
 	form_object_edit.cpp \
 	formv_control.cpp \
 	formv_movie.cpp \

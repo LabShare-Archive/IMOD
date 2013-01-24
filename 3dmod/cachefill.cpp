@@ -27,6 +27,7 @@
 #include "cachefill.h"
 #include "imod.h"
 #include "info_cb.h"
+#include "pyramidcache.h"
 #include "display.h"
 #include "control.h"
 #include "preferences.h"
@@ -126,6 +127,10 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
 
   if (vi->fullCacheFlipped)
     return 0;
+  if (vi->pyrCache) {
+    vi->pyrCache->fillCacheForArea(cz);
+    return 0;
+  }
 
   zstart = (int *)malloc((ntimes + 1) * sizeof(int));
   zend = (int *)malloc((ntimes + 1) * sizeof(int));

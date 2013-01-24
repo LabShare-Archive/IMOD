@@ -65,15 +65,19 @@
 #define GRAB_WIDTH 3
 #define XYZ_TOGGLE_RESOL 0
 #define XYZ_TOGGLE_LOCKED 1
+#define XYZ_TOGGLE_ZSCALE 2
 #define MAX_SLIDER_WIDTH 100
 #define MIN_SLIDER_WIDTH 20
 #define NOTNEW -999999999
 
 static const char *fileList[MAX_XYZ_TOGGLES][2] =
   {{":/images/lowres.png", ":/images/highres.png"},
-   {":/images/unlock.png", ":/images/lock.png"}};
+   {":/images/unlock.png", ":/images/lock.png"},
+   {":/images/zscale.png", ":/images/zscaleOn.png"}};
 static const char *toggleTips[] = {
-  "Toggle between regular and high-resolution (interpolated) image"};
+  "Toggle between regular and high-resolution (interpolated) image",
+  "Keep display at set location and time regardless of global location",
+  "Apply model Z scaling to display"};
 
 static QIcon *icons[MAX_XYZ_TOGGLES];
 static QIcon *cenIcon = NULL;
@@ -100,9 +104,11 @@ int xxyz_open(ImodView *vi)
   XyzWindow *xyz;
   xyz = new XyzWindow(vi, App->rgba, App->doublebuffer, App->qtEnableDepth, 
                       imodDialogManager.parent(IMOD_IMAGE), "xyz window");
-  if (!xyz || (!xyz->mFdataxz) || (!xyz->mFdatayz)) {
+  if (!xyz || (!vi->pyrCache && (!xyz->mFdataxz || !xyz->mFdatayz))) {
     wprint("Error:\n\tXYZ window can't open due to low memory\n");
-    delete xyz;
+    if (xyz)
+      xyz->close();
+      delete xyz;
     return(-1);
   }
   return(0);
@@ -195,7 +201,7 @@ XyzWindow *getTopXYZ()
 
 // Implementation of the window class
 XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer, 
-		     bool enableDepth, QWidget * parent,
+                     bool enableDepth, QWidget * parent,
                      const char * name, Qt::WFlags f) 
   : QMainWindow(parent, f)
 {
@@ -204,19 +210,28 @@ XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer,
   double newzoom;
   int needWinx, needWiny, maxWinx, maxWiny, xleft, ytop, toolHeight;
   int newHeight, newWidth;
+  float zscaled = vi->zsize;;
   int pixSize = ivwGetPixelBytes(vi->rawImageStore);
 
   mXydata = mXzdata = mYzdata = NULL;
   for (ytop = 0; ytop < NUM_AXIS; ytop++)
     mDisplayedAxisLocation[ytop] = -100;
 
-  /* DNM 1/19/02: need separate fdata for each side panel */
-  mFdataxz  = (unsigned char *)malloc(vi->xsize * vi->zsize * pixSize);
-  mFdatayz  = (unsigned char *)malloc(vi->ysize * vi->zsize * pixSize);
-  if ((!mFdataxz) || (!mFdatayz)) {
-    B3DFREE(mFdataxz);
-    B3DFREE(mFdatayz);
-    return;
+  // For tile cache, side panel arrays will be maintained as needed on the fly
+  if (vi->pyrCache) {
+    mFdataxz = mFdatayz = NULL;
+    mFdataXZsize = mFdataYZsize = 0;
+
+  } else {
+
+    // Otherwise get separate fdata for each side panel
+    mFdataxz = (unsigned char *)malloc(vi->xsize * vi->zsize * pixSize);
+    mFdatayz = (unsigned char *)malloc(vi->ysize * vi->zsize * pixSize);
+    if ((!mFdataxz) || (!mFdatayz)) {
+      B3DFREE(mFdataxz);
+      B3DFREE(mFdatayz);
+      return;
+    }
   }
 
   mVi   = vi;
@@ -227,17 +242,21 @@ XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer,
   mXtrans2 = 0;
   mYtrans2 = 0;
   mHq = ImodPrefs->startInHQ() ? 1 : 0;
+  mApplyZscale = 1;  // NEEDS A PREFERENCE
   mProject = 0;
   mMousemode = IMOD_MMOVIE;
   mToolZoom = -1.0f;
   mToolMaxX = vi->xsize;
   mToolMaxY = vi->ysize;
   mToolMaxZ = vi->zsize;
-  mXzFraction = ((float)vi->zsize) / (vi->xsize + vi->zsize);
-  mYzFraction = ((float)vi->zsize) / (vi->ysize + vi->zsize);
+  if (mApplyZscale)
+    zscaled *= vi->imod->zscale;
+  mXzFraction = (zscaled) / (vi->xsize + zscaled);
+  mYzFraction = (zscaled) / (vi->ysize + zscaled);
   mLock = 0;
   mTimeLock = 0;
   mTimeDrawn = -1;
+  mLastTileCacheInd = -1;
   
   mCtrlPressed = false;
   setAttribute(Qt::WA_DeleteOnClose);
@@ -277,6 +296,8 @@ XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer,
   }
   mToggleStates[XYZ_TOGGLE_RESOL] = mHq;
   diaSetChecked(mToggleButs[XYZ_TOGGLE_RESOL], mHq != 0);
+  mToggleStates[XYZ_TOGGLE_ZSCALE] = mApplyZscale;
+  diaSetChecked(mToggleButs[XYZ_TOGGLE_ZSCALE], mApplyZscale != 0);
 
   // Make simple pushbutton for centering
   utilTBToolButton(this, mToolBar, &button, "Center windows on current image"
@@ -330,15 +351,15 @@ XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer,
   
   // Determine needed window size, zoom that makes it mostly fit on the screen
   diaMaximumWindowSize(maxWinx, maxWiny);
-  needWinx = vi->xsize + vi->zsize + ALL_BORDER;
-  needWiny = vi->ysize + vi->zsize + ALL_BORDER;
+  needWinx = vi->xsize + (int)zscaled + ALL_BORDER;
+  needWiny = vi->ysize + (int)zscaled + ALL_BORDER;
   while (needWinx >  1.05 * maxWinx || needWiny > 1.05 * maxWiny) {
     newzoom = b3dStepPixelZoom(mZoom, -1);
     if (fabs(newzoom - mZoom) < 0.0001)
       break;
     mZoom = newzoom;
-    needWinx = (int)((vi->xsize + vi->zsize) * mZoom + ALL_BORDER);
-    needWiny = (int)((vi->ysize + vi->zsize) * mZoom + ALL_BORDER);
+    needWinx = (int)((vi->xsize + zscaled) * mZoom + ALL_BORDER);
+    needWiny = (int)((vi->ysize + zscaled) * mZoom + ALL_BORDER);
   }
      
   // Allow input to get the size hints right for toolbars, compute and limit
@@ -483,22 +504,21 @@ void XyzWindow::GetCIImages()
  */
 int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
 {
-  int nx, ny, nz, cx, cy, cz;
+  int cx, cy, cz;
   /* DNM 1/23/02: turn this from float to int to keep calling expressions
      as ints */
-  float scale;
+  float scale, zscale;
   
   y = mWiny - y;
-
-  nx = (int)(mVi->xsize * mZoom);
-  ny = (int)(mVi->ysize * mZoom);
-  nz = (int)(mVi->zsize * mZoom);
+  
   getLocation(cx, cy, cz);
   *mx = cx;
   *my = cy;
   *mz = cz;
 
-  scale = 1.0/mZoom;
+  scale = 1.0 / mZoom;
+  zscale = scale / (mApplyZscale ? mVi->imod->zscale : 1.);
+
   /*imodPrintStderr("mXorigin1 %d, mXorigin2 %d, mYorigin1 %d, mYorigin2 %d\n",
                   mXorigin1, mXorigin2, mYorigin1, mYorigin2);
   imodPrintStderr("mWinXdim1 %d, mWinXdim2 %d, mWinYdim1 %d, mWinYdim2 %d\n",
@@ -522,7 +542,7 @@ int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
                    mYorigin2 + mWinYdim2, x, y)) {
     //imodPrintStderr("found top image: x %d, y %d\n",x, y);
     *mx = (x - mXwoffset1) * scale;
-    *mz = (int)((y - mYwoffset2) * scale);
+    *mz = (int)((y - mYwoffset2) * zscale);
     //ivwBindMouse(mVi);
     return(Y_SLICE_BOX);
   }
@@ -532,7 +552,7 @@ int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
                    mYorigin1 + mWinYdim1, x, y)) {
     //imodPrintStderr("found right image: x %d, y %d\n",x, y);
     *my = (y - mYwoffset1) * scale;
-    *mz = (int)((x - mXwoffset2) * scale);
+    *mz = (int)((x - mXwoffset2) * zscale);
     return(X_SLICE_BOX);
   }
 
@@ -685,7 +705,7 @@ void XyzWindow::B2Press(int x, int y)
   // TODO: Time match
   if (ivwTimeMismatch(mVi, mTimeLock, obj, cont)) {
     wprint("\aContour time does not match current time.\n"
-	   "Set contour time to 0 to model across times.\n");
+           "Set contour time to 0 to model across times.\n");
     return;
   }
 
@@ -1152,9 +1172,11 @@ void XyzWindow::DrawImage()
   int nx = mVi->xsize;
   int ny = mVi->ysize;
   int nz = mVi->zsize;
-  unsigned char **id;
+  int nzFdataYZ = nz;
+  int nzFdataXZ = nz;
+  unsigned char **zImage;
   unsigned char *fdata;
-  int cyi;
+  int cyi, cacheInd = -1;
   int cx, cy, cz, cxz, zinv;
   int imdataxsize;
   unsigned char **imdata;
@@ -1163,7 +1185,16 @@ void XyzWindow::DrawImage()
   int wx1, wx2, wy1, wy2;
   int xoffset1, xoffset2, yoffset1, yoffset2;
   int width1, height1, width2, height2, cacheSum, xslice, yslice;
-  bool flipped;
+  int tileScale, tileZscale, status, zStartYZ, zEndYZ, zStartXZ, zEndXZ;
+  int pyrXstart, pyrYstart, curXscaled, curYscaled;
+  float pyrXoffset = 0., pyrYoffset = 0., zOffsetYZ = 0., zOffsetXZ = 0., tmpx, tmpy;
+  std::vector<FastSegment> segments;
+  std::vector<int> startInds;
+  bool flipped, needNewXZ, needNewYZ;
+  float zscale = mApplyZscale ? mVi->imod->zscale : 1.;
+  double zoomZ = mZoom * zscale;
+  double xyZoom = mZoom;
+  int pixSize = ivwGetPixelBytes(mVi->rawImageStore);
 
   if (!mExposed)
     return;     /* DNM: avoid crashes if Zap is movieing*/
@@ -1187,18 +1218,21 @@ void XyzWindow::DrawImage()
   }
   mTimeDrawn = time;
 
-  id = ivwGetZSectionTime(mVi, cz, time);
-  if (ivwSetupFastAccess(mVi, &imdata, 0, &cacheSum, time))
-    return;
+  if (!mVi->pyrCache) {
+    zImage = ivwGetZSectionTime(mVi, cz, time);
+    if (ivwSetupFastAccess(mVi, &imdata, 0, &cacheSum, time))
+      return;
 
-  /* Just take the X size, do not allow for possibility of cached data 
-     having different X sizes */
-  imdataxsize = mVi->xsize;
-  usim = (b3dUInt16 **)imdata;
-
-  if (mVi->vmSize) {
-    mLx = mLy = -1;
+    /* Just take the X size, do not allow for possibility of cached data 
+       having different X sizes */
+    imdataxsize = mVi->xsize;
+    usim = (b3dUInt16 **)imdata;
   }
+
+  // HUH?  THIS GIVES UP COMPLETELY ON TRACKING THE CACHE SUM
+  /* if (mVi->vmSize) {
+    mLx = mLy = -1;
+    }*/
           
   utilClearWindow(App->background);
 
@@ -1211,37 +1245,133 @@ void XyzWindow::DrawImage()
      de-zoomed borders, and convert a data offset into a negative window
      offset for use in drawing model */
   b3dSetImageOffset(mWinXdim1, nx, mZoom, width1, mXtrans1, wx1, xoffset1, 0);
-  b3dSetImageOffset(mWinXdim2, nz, mZoom, width2, mXtrans2, wx2, xoffset2, 0);
+  b3dSetImageOffset(mWinXdim2, nz, zoomZ, width2, mXtrans2, wx2, xoffset2, 0);
   b3dSetImageOffset(mWinYdim1, ny, mZoom, height1, mYtrans1, wy1, yoffset1, 0);
-  b3dSetImageOffset(mWinYdim2, nz, mZoom, height2, mYtrans2, wy2, yoffset2, 0);
-  
+  b3dSetImageOffset(mWinYdim2, nz, zoomZ, height2, mYtrans2, wy2, yoffset2, 0);
+
+  if (mVi->pyrCache) {
+
+    // Get the Z subarea image: those sizes and offsets should be the same but...
+    zImage = mVi->pyrCache->getSectionArea(cz, xoffset1, yoffset1, width1, height1, mZoom,
+                                           false, nx, ny, pyrXoffset, pyrYoffset,
+                                           tileScale, status);
+    if (!zImage || status < 0)
+      return;
+
+    // Flush image if offset/size changed
+    if (mLastXoffset1 != xoffset1 || mLastYoffset1 != yoffset1 || width1 != mLastWidth1 ||
+        height1 != mLastHeight1)
+      b3dFlushImage(mXydata);
+
+    // get a cache sum and determine if new YZ or XZ images are needed
+    cacheInd = mVi->pyrCache->getBufCacheInd();
+    cacheSum = mVi->pyrCache->loadedCacheSum(cacheInd);
+    needNewYZ = cx != mLx || cacheInd != mLastTileCacheInd || mLastXoffset2 != xoffset2 ||
+      mLastYoffset1 != yoffset1 || 
+      width2 != mLastWidth2 || height1 != mLastHeight1 || cacheSum != mLastCacheSum;
+    needNewXZ = cy != mLy || cacheInd != mLastTileCacheInd || mLastXoffset1 != xoffset1 ||
+      mLastYoffset2 != yoffset2 || 
+      width1 != mLastWidth1 || height2 != mLastHeight2 || cacheSum != mLastCacheSum;
+
+    // Get loaded parameters in Z for this cache and Z ranges on top and side
+    mVi->pyrCache->scaledRangeInZ(cacheInd, xoffset2, xoffset2 + width2 - 1, zStartYZ,
+                                  zEndYZ, tileZscale, zOffsetYZ);
+    mVi->pyrCache->scaledRangeInZ(cacheInd, yoffset2, yoffset2 + height2 - 1, zStartXZ,
+                                  zEndXZ, tileZscale, zOffsetXZ);
+
+    // Get the X and Y starts and the current x, y in loaded cache cooordinates
+    mVi->pyrCache->scaledAreaSize(cacheInd, xoffset1, yoffset1, width1, height1, 
+                                  pyrXstart, pyrYstart, x, y, tmpx, tmpy, true);
+    mVi->pyrCache->scaledAreaSize(cacheInd, cx, cy, 1, 1, curXscaled, curYscaled, x, y, 
+                                  tmpx, tmpy, false);
+
+    // Keep track of this draw in the Last variables
+    mLastXoffset1 = xoffset1;
+    mLastYoffset1 = yoffset1;
+    mLastWidth1 = width1;
+    mLastHeight1 = height1;
+    mLastXoffset2 = xoffset2;
+    mLastYoffset2 = yoffset2;
+    mLastWidth2 = width2;
+    mLastHeight2 = height2;
+    mLastCacheSum = cacheSum;
+    mLastTileCacheInd = cacheInd;
+
+    // Adjust most parameters for the drawing calls
+    width1 = nx;
+    height1 = ny;
+    width2 = zEndYZ + 1 - zStartYZ;
+    height2 = zEndXZ + 1 - zStartXZ;
+    nzFdataYZ = width2;
+    nzFdataXZ = height2;
+    xyZoom *= tileScale;
+    zoomZ *= tileZscale;
+
+    // If a plane needs to be filled, flush it here to be sure and make sure it is
+    // big enough
+    if (needNewXZ) {
+      b3dFlushImage(mXzdata);
+      if (mFdataXZsize < height2 * width1) {
+        B3DFREE(mFdataxz);
+        mFdataxz = (unsigned char *)malloc(height2 * width1 * pixSize);
+        if (!mFdataxz) {
+          mFdataXZsize = 0;
+          return;
+        }
+        mFdataXZsize = height2 * width1;
+      }
+    }
+    if (needNewYZ) {
+      b3dFlushImage(mYzdata);
+      if (mFdataYZsize < height1 * width2) {
+        B3DFREE(mFdatayz);
+        mFdatayz = (unsigned char *)malloc(height1 * width2 * pixSize);
+        if (!mFdatayz) {
+          mFdataYZsize = 0;
+          return;
+        }
+        mFdataYZsize = height1 * width2;
+      }
+    }
+  }
+
+  // Set all the parameters for drawing position and offsets for getting between window
+  // and image coordinates
   wx1 += mXorigin1;
   wx2 += mXorigin2;
   wy1 += mYorigin1;
   wy2 += mYorigin2;
   
-  if (xoffset1)
-    mXwoffset1 = -B3DNINT(xoffset1 * mZoom + 0.5) + mXorigin1;
+  if (xoffset1 + pyrXoffset)
+    mXwoffset1 = -B3DNINT((xoffset1 + pyrXoffset) * mZoom + 0.5) + mXorigin1;
   else
     mXwoffset1 = wx1;
-  if (xoffset2)
-    mXwoffset2 = -B3DNINT(xoffset2 * mZoom + 0.5) + mXorigin2;
+  if (xoffset2 + zOffsetYZ)
+    mXwoffset2 = -B3DNINT((xoffset2 + zOffsetYZ) * zoomZ + 0.5) + mXorigin2;
   else
     mXwoffset2 = wx2;
-  if (yoffset1)
-    mYwoffset1 = -B3DNINT(yoffset1 * mZoom + 0.5) + mYorigin1;
+  if (yoffset1 + pyrYoffset)
+    mYwoffset1 = -B3DNINT((yoffset1 + pyrYoffset) * mZoom + 0.5) + mYorigin1;
   else
     mYwoffset1 = wy1;
-  if (yoffset2)
-    mYwoffset2 = -B3DNINT(yoffset2 * mZoom + 0.5) + mYorigin2;
+  if (yoffset2 + zOffsetXZ)
+    mYwoffset2 = -B3DNINT((yoffset2 + zOffsetXZ) * zoomZ + 0.5) + mYorigin2;
   else
     mYwoffset2 = wy2;
   
+  // Then zero out the starting offsets for drawing tile images
+  if (cacheInd >= 0) {
+    xoffset1 = 0;
+    yoffset1 = 0;
+    xoffset2 = 0;
+    yoffset2 = 0;
+  }
+
   //draw XY view
   if (width1 > 0 && height1 > 0) {
     mLz = cz;
-    b3dDrawGreyScalePixelsHQ(id, nx,ny, xoffset1, yoffset1, wx1, wy1, width1, height1,
-                             mXydata, mVi->rampbase, mZoom, mZoom, mHq, cz, App->rgba);
+    b3dDrawGreyScalePixelsHQ(zImage, nx,ny, xoffset1, yoffset1, wx1, wy1, width1, height1,
+                             mXydata, mVi->rampbase, xyZoom, xyZoom, mHq, cz, App->rgba);
   }
 
   // Load data for YZ view
@@ -1251,7 +1381,15 @@ void XyzWindow::DrawImage()
     xslice = cx;
     fdata  = mFdatayz;
     usdata = (b3dUInt16 *)fdata;
-    if (cx != mLx || cacheSum != mLastCacheSum) {
+    if (cacheInd >= 0 && needNewYZ) {
+      if (!mVi->pyrCache->fastPlaneAccess(cacheInd, curXscaled, b3dX, segments,
+                                          startInds)) {
+        imodTrace('t', "curx %d segments %d  inds %d", curXscaled, segments.size(),
+                        startInds.size());
+        fillArrayFromTiles(fdata, segments, startInds, mVi->ushortStore, true, 
+                           pyrYstart, pyrYstart + height1, zStartYZ, zEndYZ + 1);
+      }
+    } else if (cacheInd < 0 && (cx != mLx || cacheSum != mLastCacheSum)) {
       xslice = -1 - cx;
       mLx = cx;
       if (flipped && !mVi->fakeImage) {
@@ -1316,10 +1454,10 @@ void XyzWindow::DrawImage()
     }
     
     //draw yz view
-    b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(mVi, mFdatayz, nz, ny, 
+    b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(mVi, mFdatayz, nzFdataYZ, ny,
                                                  mVi->rawImageStore), 
-                             nz, ny, xoffset2, yoffset1, wx2, wy1, width2, height1,
-                             mYzdata, mVi->rampbase, mZoom, mZoom, mHq, xslice, 
+                             nzFdataYZ, ny, xoffset2, yoffset1, wx2, wy1, width2, height1,
+                             mYzdata, mVi->rampbase, zoomZ, xyZoom, mHq, xslice, 
                              App->rgba);
   }
 
@@ -1328,7 +1466,15 @@ void XyzWindow::DrawImage()
     yslice = cy;
     fdata  = mFdataxz;
     usdata = (b3dUInt16 *)fdata;
-    if (cy != mLy || cacheSum != mLastCacheSum) {
+    if (cacheInd >= 0 && needNewXZ) {
+      if (!mVi->pyrCache->fastPlaneAccess(cacheInd, curYscaled, b3dY, segments,
+                                          startInds)) {
+        imodTrace('t', "cury %d segments %d  inds %d", curYscaled, segments.size(),
+                        startInds.size());
+        fillArrayFromTiles(fdata, segments, startInds, mVi->ushortStore, false, 
+                           pyrXstart, pyrXstart + width1, zStartXZ, zEndXZ + 1);
+      }
+    } else if (cacheInd < 0 && (cy != mLy || cacheSum != mLastCacheSum)) {
       yslice = -1 - cy;
       mLy = cy;
       for (i = 0, z = 0; z < nz; z++) {
@@ -1374,14 +1520,123 @@ void XyzWindow::DrawImage()
     }
 
     //draw xz view    
-    b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(mVi, mFdataxz, nx, nz,
+    b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(mVi, mFdataxz, nx, nzFdataXZ,
                                                  mVi->rawImageStore),
-                             nx, nz, xoffset1, yoffset2,
+                             nx, nzFdataXZ, xoffset1, yoffset2,
                              wx1, wy2, width1, height2, mXzdata,
-                             mVi->rampbase, mZoom, mZoom, 
+                             mVi->rampbase, xyZoom, zoomZ, 
                              mHq, yslice, App->rgba);
   }
   mLastCacheSum = cacheSum;
+}
+
+void XyzWindow::fillArrayFromTiles(unsigned char *fdataIn,
+                                   std::vector<FastSegment> &segments, 
+                                   std::vector<int> &startInds, int ushort, bool doingYZ,
+                                   int istart, int iend, int jstart, int jend)
+{
+  int j, i, iseg, segEnd, nextToFill, segStart, npix, fstride = 1;
+  FastSegment *segp;
+  unsigned char *imdata;
+  unsigned short *usimdata; 
+  unsigned char *fdata = fdataIn;
+  unsigned short *usfdata = (unsigned short *)fdata;
+  int pixSize = ushort ? 2 : 1;
+
+  if (doingYZ) {
+    fstride = jend - jstart;
+    memset(fdata, 0, pixSize * fstride * (iend - istart));
+  }
+
+  for (j = jstart; j < jend; j++) {
+    if (doingYZ) {
+      fdata = fdataIn + pixSize * (j - jstart);
+      usfdata = (unsigned short *)fdata;
+    }
+    nextToFill = istart;
+      
+    for (iseg = startInds[j]; iseg < startInds[j + 1]; iseg++) {
+      segp = &(segments[iseg]);
+
+      // If segment starts past the end, done with segments
+      if (segp->XorY >= iend)
+        break;
+
+      // If segment ends before the start, skip it
+      if (segp->XorY + segp->length <= istart)
+        continue;
+
+      // If segment starts past next place to fill, need to fill with 0's
+      if (segp->XorY > nextToFill) {
+        npix = segp->XorY - nextToFill;
+        if (ushort) {
+          if (!doingYZ)
+            memset(usfdata, 0, 2 * npix);
+          usfdata += npix * fstride;
+        } else {
+          if (!doingYZ)
+            memset(fdata, 0, npix);
+          fdata += npix * fstride;
+        }
+      }
+
+      // Fill with segment data
+      segEnd = B3DMIN(segp->XorY + segp->length, iend);
+      segStart = B3DMAX(segp->XorY, istart);
+      imdata = segp->line + segp->stride * (segStart - segp->XorY);
+      npix = segEnd - segStart;
+      if (ushort) {
+        usimdata = (unsigned short *)imdata;
+        if (segp->stride == 1) {
+          memcpy(usfdata, usimdata, 2 * npix);
+          usfdata += npix;
+        } else {
+          for (i = segStart; i < segEnd; i++) {
+            *usfdata = *usimdata;
+            usfdata += fstride;
+            usimdata += segp->stride;
+          }
+        }
+      } else {
+        if (segp->stride == 1) {
+          memcpy(fdata, imdata, npix);
+          fdata += npix;
+        } else {
+          for (i = segStart; i < segEnd; i++) {
+            *fdata = *imdata;
+            fdata += fstride;
+            imdata += segp->stride;
+          }
+        }
+      }
+      nextToFill = segEnd;
+    }
+
+    // Fill past end
+    npix = iend - nextToFill;
+    if (npix > 0) {
+      if (ushort) {
+        if (!doingYZ)
+          memset(usfdata, 0, 2 * npix);
+        usfdata += npix * fstride;
+      } else {
+        if (!doingYZ)
+          memset(fdata, 0, npix);
+        fdata += npix * fstride;
+      }
+    }
+  }
+}
+
+/*
+ * Return the last area drawn in the XY view
+ */
+void XyzWindow::getSubsetLimits(int &ixStart, int &iyStart, int &nxUse, int &nyUse)
+{
+  ixStart = mLastXoffset1;
+  iyStart = mLastYoffset1;
+  nxUse = mLastWidth1;
+  nyUse = mLastHeight1;
 }
 
 /*
@@ -1390,7 +1645,7 @@ void XyzWindow::DrawImage()
 void XyzWindow::DrawCurrentLines()
 {
   int cx, cy, cz, cenx, ceny, xlim, ylim, cenxlim, cenylim;
-  float z = mZoom;
+  float zoomZ = mZoom * (mApplyZscale ? mVi->imod->zscale : 1);
   int bx = mXwoffset1;
   int by = mYwoffset1;
   int nz = mVi->zsize;
@@ -1414,10 +1669,10 @@ void XyzWindow::DrawCurrentLines()
   b3dColorIndex(App->foreground);
 
   /* Draw Z location crossed lines and box around X/Y plane */
-  cenx = (int)(bx2 + z * (cz+.5));
-  ceny = (int)(by2 + z * (cz+.5));
-  xlim = (int)(bx2 + z * nz);
-  ylim = (int)(by2 + z * nz);
+  cenx = (int)(bx2 + zoomZ * (cz+.5));
+  ceny = (int)(by2 + zoomZ * (cz+.5));
+  xlim = (int)(bx2 + zoomZ * nz);
+  ylim = (int)(by2 + zoomZ * nz);
   cenxlim = B3DMIN(B3DMAX(cenx, mXorigin2 - 1), mXorigin2 + mWinXdim2 + 1);
   cenylim = B3DMIN(B3DMAX(ceny, mYorigin2), mYorigin2 + mWinYdim2);
 
@@ -1447,7 +1702,7 @@ void XyzWindow::DrawCurrentLines()
 
   /* draw x location line and box around X/Z plane */
   b3dColorIndex(App->bgnpoint);
-  cenx = (int)(bx + z * (cx+.5));
+  cenx = (int)(bx + mZoom * (cx+.5));
   cenxlim = B3DMIN(B3DMAX(cenx, mXorigin1 - 1), mXorigin1 + 
                    mWinXdim1);
 
@@ -1464,7 +1719,7 @@ void XyzWindow::DrawCurrentLines()
 
   /* draw y location line. */
   b3dColorIndex(App->endpoint);
-  ceny = (int)(by + z * (cy+.5));
+  ceny = (int)(by + mZoom * (cy+.5));
   cenylim = B3DMIN(B3DMAX(ceny, mYorigin1 - 1), mYorigin1 + mWinYdim1);
   b3dDrawLine(ylineX, mYorigin2 + mWinYdim2, ylineX, cenylim);
   
@@ -1548,13 +1803,13 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
          contour and project is set; draw symbol if visible and one is set */
       for (pt = 0; pt < cont->psize; pt++) {
         thisPt = &(cont->pts[pt]);
-	thisVis = (int)floor(thisPt->z + 0.5) == currentZ;
+        thisVis = (int)floor(thisPt->z + 0.5) == currentZ;
         if (pt && ((lastVis && thisVis) || (currentCont && mProject)) &&
             !ptProps.gap)
-          b3dDrawLine((int)(z * thisPt->x + bx),
-                      (int)(z * thisPt->y + by),
-                      (int)(z * lastPt->x + bx),
-                      (int)(z * lastPt->y + by));
+          b3dDrawLine((int)(mZoom * thisPt->x + bx),
+                      (int)(mZoom * thisPt->y + by),
+                      (int)(mZoom * lastPt->x + bx),
+                      (int)(mZoom * lastPt->y + by));
         ptProps.gap = 0;
         if (nextChange == pt)
           nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
@@ -1562,8 +1817,8 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
                                            &changeFlags, handleFlags, 0);
         if (thisVis && ptProps.symtype != IOBJ_SYM_NONE &&
             !(ptProps.gap && ptProps.valskip))
-          utilDrawSymbol((int)(z * thisPt->x + bx), 
-                         (int)(z * thisPt->y + by),
+          utilDrawSymbol((int)(mZoom * thisPt->x + bx), 
+                         (int)(mZoom * thisPt->y + by),
                          ptProps.symtype, ptProps.symsize, 
                          ptProps.symflags);
         
@@ -1575,10 +1830,10 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
       if (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN) && !currentCont
           && lastVis && ((int)floor(cont->pts->z + 0.5) == currentZ) && 
           !ptProps.gap)
-        b3dDrawLine((int)(z * cont->pts->x + bx),
-                    (int)(z * cont->pts->y + by),
-                    (int)(z * lastPt->x + bx),
-                    (int)(z * lastPt->y + by));
+        b3dDrawLine((int)(mZoom * cont->pts->x + bx),
+                    (int)(mZoom * cont->pts->y + by),
+                    (int)(mZoom * lastPt->x + bx),
+                    (int)(mZoom * lastPt->y + by));
 
     } else if (lastVis) {
 
@@ -1587,17 +1842,17 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
          separate loop */
       b3dBeginLine();
       for (pt = 0; pt < cont->psize; pt++)
-        b3dVertex2i((int)(z * cont->pts[pt].x + bx),  
-                    (int)(z * cont->pts[pt].y + by));
+        b3dVertex2i((int)(mZoom * cont->pts[pt].x + bx),  
+                    (int)(mZoom * cont->pts[pt].y + by));
       if (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN) && !currentCont)
-        b3dVertex2i((int)(bx + z * cont->pts->x), 
-                    (int)(by + z * cont->pts->y));
+        b3dVertex2i((int)(bx + mZoom * cont->pts->x), 
+                    (int)(by + mZoom * cont->pts->y));
       b3dEndLine();
             
       if (ptProps.symtype != IOBJ_SYM_NONE)
         for (pt = 0; pt < cont->psize; pt++)
-          utilDrawSymbol((int)(z * cont->pts[pt].x + bx), 
-                        (int)(z * cont->pts[pt].y + by),
+          utilDrawSymbol((int)(mZoom * cont->pts[pt].x + bx), 
+                        (int)(mZoom * cont->pts[pt].y + by),
                          ptProps.symtype, ptProps.symsize,
                          ptProps.symflags);
     }
@@ -1648,7 +1903,12 @@ void XyzWindow::DrawSymProj(Iobj *obj, Icont *cont, int co,
   float *point;
   float *nexpt;
   int changeFlags;
-  float z = mZoom;
+  float xzoom, yzoom;
+  float scales[3] = {1., 1., 1.};
+  if (mApplyZscale)
+    scales[2] = mVi->imod->zscale;
+  xzoom = scales[indx] * mZoom;
+  yzoom = scales[indy] * mZoom;
 
   if (ilistSize(cont->store))
     nextChange = ifgHandleContChange(obj, co, contProps, ptProps, 
@@ -1666,8 +1926,8 @@ void XyzWindow::DrawSymProj(Iobj *obj, Icont *cont, int co,
     /* Symbol if in plane */
     if (thisVis && ptProps->symtype != IOBJ_SYM_NONE && 
         !(ptProps->gap && ptProps->valskip))
-      utilDrawSymbol((int)(z * point[indx] + bx), 
-                     (int)(z * point[indy] + by),
+      utilDrawSymbol((int)(xzoom * point[indx] + bx), 
+                     (int)(yzoom * point[indy] + by),
                      ptProps->symtype, ptProps->symsize, 
                      ptProps->symflags);
 
@@ -1678,10 +1938,10 @@ void XyzWindow::DrawSymProj(Iobj *obj, Icont *cont, int co,
          (currentCont && mProject)) && !ptProps->gap && 
         (next || (!currentCont &&
                   (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN)))))
-      b3dDrawLine((int)(z * point[indx] + bx),
-                  (int)(z * point[indy] + by),
-                  (int)(z * nexpt[indx] + bx),
-                  (int)(z * nexpt[indy] + by));
+      b3dDrawLine((int)(xzoom * point[indx] + bx),
+                  (int)(yzoom * point[indy] + by),
+                  (int)(xzoom * nexpt[indx] + bx),
+                  (int)(yzoom * nexpt[indy] + by));
     ptProps->gap = 0;
   }
 }
@@ -1702,8 +1962,13 @@ void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co,
   float *point;
   int changeFlags, radius;
   int currentZ = zmouse;
-  float z = mZoom;
   float drawsize, delz;
+  float xzoom, yzoom;
+  float scales[3] = {1., 1., 1.};
+  if (mApplyZscale)
+    scales[2] = mVi->imod->zscale;
+  xzoom = scales[indx] * mZoom;
+  yzoom = scales[indy] * mZoom;
 
   /* scattered contour - symbols in all three planes */
   if (ilistSize(cont->store))
@@ -1722,8 +1987,8 @@ void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co,
           !(ptProps->gap && ptProps->valskip)) {
         testz = indz == 2 ? B3DNINT(point[indz]) : (int)point[indz];
         if (testz == currentZ)
-          utilDrawSymbol((int)(z * point[indx] + bx), 
-                         (int)(z * point[indy] + by),
+          utilDrawSymbol((int)(xzoom * point[indx] + bx), 
+                         (int)(yzoom * point[indy] + by),
                          ptProps->symtype, ptProps->symsize, 
                          ptProps->symflags);
         
@@ -1750,11 +2015,11 @@ void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co,
 
           /* If there's a size, draw a circle and a plus for a
              circle that's big enough */
-          b3dDrawCircle((int)(bx + z * point[indx]),
-                        (int)(by + z * point[indy]), (int)(z * drawsize));
+          b3dDrawCircle((int)(bx + xzoom * point[indx]),
+                        (int)(by + yzoom * point[indy]), (int)(mZoom * drawsize));
           if (drawsize > 3)
-            b3dDrawPlus((int)(bx + z * point[indx]),
-                        (int)(by + z * point[indy]), 3);
+            b3dDrawPlus((int)(bx + xzoom * point[indx]),
+                        (int)(by + yzoom * point[indy]), 3);
         } else if (drawsize > 1 && !(obj->flags & IMOD_OBJFLAG_PNT_ON_SEC)) {
 
           /* for off-section, compute size of circle and
@@ -1765,9 +2030,9 @@ void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co,
           
           if (delz < drawsize - 0.01) {
             radius = (int)(sqrt((double)(drawsize * drawsize - delz * delz))
-                           * z);
-            b3dDrawCircle((int)(bx + z * point[indx]),
-                          (int)(by + z * point[indy]), radius);
+                           * mZoom);
+            b3dDrawCircle((int)(bx + xzoom * point[indx]),
+                          (int)(by + yzoom * point[indy]), radius);
           }
         }
       }
@@ -1783,8 +2048,8 @@ void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co,
     for (pt = 0; pt < 2; pt ++) {
       testz = indz == 2 ? B3DNINT(point[indz]) : (int)point[indz];
       if (testz == currentZ)
-        b3dDrawCross((int)(bx + z * point[indx]),
-                     (int)(by + z * point[indy]), obj->symsize/2);
+        b3dDrawCross((int)(bx + xzoom * point[indx]),
+                     (int)(by + yzoom * point[indy]), obj->symsize/2);
       
       b3dColorIndex(App->endpoint);
       point = (float*)(&cont->pts[cont->psize-1]);
@@ -1832,12 +2097,12 @@ void XyzWindow::DrawCurrentPoint()
   Ipoint *point;
   int psize;
   int cx, cy, cz, pt;
-  float z = mZoom;
   int bx = mXwoffset1;
   int by = mYwoffset1;
   int bx2 = mXwoffset2;
   int by2 = mYwoffset2;
   int imPtSize, modPtSize, backupSize;
+  float zoomZ = mZoom * (mApplyZscale ? mVi->imod->zscale : 1);
 
   getLocation(cx, cy, cz);
   
@@ -1861,22 +2126,19 @@ void XyzWindow::DrawCurrentPoint()
 
     for (pt = 0; pt < 2; pt ++) {
       if (B3DNINT(point->z) == cz) {
-        b3dSubareaViewport(mXorigin1, mYorigin1, mWinXdim1, 
-                           mWinYdim1);
-        b3dDrawCircle((int)(z * point->x+bx),
-                      (int)(z * point->y+by), modPtSize);
+        b3dSubareaViewport(mXorigin1, mYorigin1, mWinXdim1, mWinYdim1);
+        b3dDrawCircle((int)(mZoom * point->x+bx),
+                      (int)(mZoom * point->y+by), modPtSize);
       }
       if ((int)point->y == cy) {
-        b3dSubareaViewport(mXorigin1, mYorigin2, mWinXdim1,
-                           mWinYdim2);
-        b3dDrawCircle((int)(z * point->x+bx),
-                      (int)(z * (point->z + 0.5) + by2), modPtSize);
+        b3dSubareaViewport(mXorigin1, mYorigin2, mWinXdim1, mWinYdim2);
+        b3dDrawCircle((int)(mZoom * point->x+bx),
+                      (int)(zoomZ * (point->z + 0.5) + by2), modPtSize);
       }
       if ((int)point->x == cx) {
-        b3dSubareaViewport(mXorigin2, mYorigin1, mWinXdim2,
-                           mWinYdim1);
-        b3dDrawCircle((int)(z * (point->z + 0.5) + bx2),
-                      (int)(z * point->y+by), modPtSize);
+        b3dSubareaViewport(mXorigin2, mYorigin1, mWinXdim2, mWinYdim1);
+        b3dDrawCircle((int)(zoomZ * (point->z + 0.5) + bx2),
+                      (int)(mZoom * point->y+by), modPtSize);
       }
       b3dColorIndex(App->endpoint);
       point = &(cont->pts[cont->psize-1]);
@@ -1895,20 +2157,20 @@ void XyzWindow::DrawCurrentPoint()
       b3dColorIndex(App->shadow);
     }
     b3dSubareaViewport(mXorigin1, mYorigin1, mWinXdim1, mWinYdim1);
-    b3dDrawCircle((int)(z * pnt->x+bx), (int)(z * pnt->y+by), psize);
+    b3dDrawCircle((int)(mZoom * pnt->x + bx), (int)(mZoom * pnt->y + by), psize);
     b3dColorIndex(App->curpoint);
     b3dSubareaViewport(mXorigin1, mYorigin2, mWinXdim1, mWinYdim2);
-    b3dDrawPlus((int)(z*pnt->x+bx), (int)(z* (cz + 0.5) + by2), psize);
+    b3dDrawPlus((int)(mZoom * pnt->x + bx), (int)(zoomZ * (cz + 0.5) + by2), psize);
     b3dSubareaViewport(mXorigin2, mYorigin1, mWinXdim2, mWinYdim1);
-    b3dDrawPlus((int)(z * (cz + 0.5) + bx2), (int)(by+z*pnt->y), psize);
+    b3dDrawPlus((int)(zoomZ * (cz + 0.5) + bx2), (int)(by + mZoom * pnt->y), psize);
   } else {
     b3dColorIndex(App->curpoint);
     b3dSubareaViewport(mXorigin1, mYorigin1, mWinXdim1, mWinYdim1);
-    b3dDrawPlus((int)(z*(cx+.5)+bx), (int)(z*(cy+.5)+by), imPtSize);
+    b3dDrawPlus((int)(mZoom * (cx + .5) + bx), (int)(mZoom * (cy + .5) + by), imPtSize);
     b3dSubareaViewport(mXorigin1, mYorigin2, mWinXdim1, mWinYdim2);
-    b3dDrawPlus((int)(z*(cx+.5)+bx), (int)(z*(cz+.5)+by2), imPtSize);
+    b3dDrawPlus((int)(mZoom * (cx + .5) + bx), (int)(zoomZ * (cz + .5) + by2), imPtSize);
     b3dSubareaViewport(mXorigin2, mYorigin1, mWinXdim2, mWinYdim1);
-    b3dDrawPlus((int)(bx2+z*(cz+.5)), (int)(by+z*(cy+.5)), imPtSize);
+    b3dDrawPlus((int)(bx2 + zoomZ * (cz + .5)), (int)(by + mZoom * (cy + .5)), imPtSize);
   }
   b3dResizeViewportXY(mWinx, mWiny);
 }
@@ -2021,6 +2283,10 @@ void XyzWindow::stateToggled(int index, int state)
       ivwGetLocation(mVi, &mXlock, &mYlock, &mZlock);
       ivwGetTime(mVi, &mTimeLock);
     }
+    break;
+  case XYZ_TOGGLE_ZSCALE:
+    mApplyZscale = state;
+    Draw();
     break;
   }
 }
@@ -2370,11 +2636,11 @@ void XyzGL::mousePressEvent(QMouseEvent * event )
     mWin->mWhichbox = mWin->Getxyz(event->x(), event->y(), &mx, &my, &mz);
 
   } else if (event->button() == ImodPrefs->actualButton(2) &&
-	     !button1 && !button3) {
+             !button1 && !button3) {
     mWin->B2Press(event->x(), event->y());
 
   } else if (event->button() == ImodPrefs->actualButton(3) &&
-	     !button1 && !button2) {
+             !button1 && !button2) {
     mWin->B3Press(event->x(), event->y());
   }
 

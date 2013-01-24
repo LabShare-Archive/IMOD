@@ -162,6 +162,7 @@ class DLL_EX_IM DialogManager
   int windowCount(int dlgType);
   void windowList(QObjectList *objList, int dlgClass, int dlgType);
   QObject *getTopWindow(int dlgType);
+  QObject *getTopWindow(int dlgType, int dlgType2, int &typeFound);
 
  private:
   Ilist *mDialogList;

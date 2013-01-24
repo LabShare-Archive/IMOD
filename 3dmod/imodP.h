@@ -32,7 +32,7 @@ typedef struct ilist_struct Ilist;
 /* DNM 12/22/02: eliminated multiple view structures */
 typedef struct imod_application
 {
-     struct ViewInfo *cvi; /* current view                    */     
+  struct ViewInfo *cvi;  // current view     
 
   QGLColormap *qColormap;
   int          depth;
@@ -57,7 +57,7 @@ typedef struct imod_application
   int ghost;
   
   short wzoom;
-  int closing;      // Flag that widows are being closed on exit
+  int closing;      // Flag that windows are being closed on exit
   int exiting;      // Flag that application exit has been called
   int listening;    // Flag that it was started with -L or -W
   int glInitialized;  // Flag that OpenGL version was gotten, and extensions for windows
@@ -72,6 +72,7 @@ typedef struct xbldrcoloramp Cramp;
 class ImodWorkproc;
 class ImodAssistant;
 class ImodClipboard;
+class PyramidCache;
 
 typedef struct
 {
@@ -93,49 +94,51 @@ struct imod_showslice_struct
   int yz1, yz2;     
 };
 
-
 /* 
  * The view that imod used to store all image and model data.
  */
 typedef struct ViewInfo
 {
-  unsigned char **idata;  /* 8 bit 3-D grey scale data. */
+  unsigned char **idata;  // 8 bit 3-D grey scale data. 
 
-  int   xsize, ysize, zsize;      /* Size of idata */
-  size_t xysize;                   /* section size. */
-  int  fullXsize, fullYsize, fullZsize;  /* Full size of image file(s) */
-  float  xmouse, ymouse, zmouse;   /* Current point in idata. */
-  int   xUnbinSize, yUnbinSize, zUnbinSize;  /* Original size of data */
+  int   xsize, ysize, zsize;      // Size of idata 
+  size_t xysize;                   // section size. 
+  int  fullXsize, fullYsize, fullZsize;  // Full size of image file(s) 
+  float  xmouse, ymouse, zmouse;   // Current point in idata. 
+  int   xUnbinSize, yUnbinSize, zUnbinSize;  // Original size of data 
 
-  int   numTimes, curTime; /* number of time frames, current time.       */
+  int   numTimes, curTime; // number of time frames, current time.       
 
-  struct LoadInfo *li; 
+  IloadInfo *li; 
   ImodImageFile   *image;
   ImodImageFile   *imageList;
   ImodImageFile   *hdr;
 
-  int      modelViewVi;       /* This is a viewinfo from model view */
-  int      vmSize;            /* virtual memory z-section size. */
-  ivwSlice *vmCache;          /* the cache of z-section data.   */
-  int      vmCount;           /* Use counter for cache */
-  int      *cacheIndex;       /* Cross-index from sections to cache entries */
-  int      vmTdim;            /* Time dimension of cross-index */
-  int      vmTbase;           /* Base T value for lookups - 0 or 1 */
-  int      fullCacheFlipped;  /* Flag that cache was full upon flipping */
-  int      keepCacheFull;     /* Cache was not specified by user, fill it */
-  int      loadingImage;      /* Flag that data is being loaded */
-  int      doingInitialLoad;  /* and that the load is the initial one */
-  int      xybin;             /* Binning in X and Y dimensions */
-  int      zbin;              /* Binning in Z */
+  int      modelViewVi;       // Flag that this is a viewinfo from model view 
+  int      vmSize;            // virtual memory z-section size. 
+  ivwSlice *vmCache;          // the cache of z-section data.   
+  int      vmCount;           // Use counter for cache 
+  int      *cacheIndex;       // Cross-index from sections to cache entries 
+  int      vmTdim;            // Time dimension of cross-index 
+  int      vmTbase;           // Base T value for lookups - 0 or 1 
+  int      fullCacheFlipped;  // Flag that cache was full upon flipping 
+  int      keepCacheFull;     // Cache was not specified by user, fill it 
+  int      stripOrTileCache;  // Flag to organize cache as tiles or at least strips
+  int      loadingImage;      // Flag that data is being loaded 
+  int      doingInitialLoad;  // and that the load is the initial one 
+  int      xybin;             // Binning in X and Y dimensions 
+  int      zbin;              // Binning in Z 
+  int      imagePyramid;      // Number of files in an image pyramid
+  PyramidCache *pyrCache;     // Class for handling pyramid and tile cacheed data
 
-  /* Image data scaleing for gray scale images. */
+  /* Image data scaling for gray scale images. */
   int    rampbase;
   int    rampsize;
-  int    black;               /* True values used for scaling (0-255 OR 0-65535*/
+  int    black;               // True values used for scaling (0-255 OR 0-65535
   int    white;
-  int    rangeLow;            /* If ints loaded, low and high range sliders (0-65535) */
+  int    rangeLow;            // If ints loaded, low and high range sliders (0-65535) 
   int    rangeHigh;
-  int    whiteInRange;        /* The black/white slider values if ints loaded, 0-255 */
+  int    whiteInRange;        // The black/white slider values if ints loaded, 0-255 
   int    blackInRange;
 
   /* motion control */
@@ -143,7 +146,7 @@ typedef struct ViewInfo
   int xmovie, ymovie, zmovie, tmovie;
   unsigned int movieInterval;  
   int movieRunning;
-  ImodWorkproc *timers;       /* Class with QTimers */
+  ImodWorkproc *timers;       // Class with QTimers 
 
   /* XYZ slice points. */
   struct imod_showslice_struct slice;
@@ -154,9 +157,9 @@ typedef struct ViewInfo
 
   /* THE MODEL and extra objects and the selection list */
   Imod  *imod;
-  Iobj  *extraObj;        /* The general extra object array */
-  int   numExtraObj;      /* Number of extra objects allocated */
-  int   *extraObjInUse;   /* Flags for whether objects are in use */
+  Iobj  *extraObj;        // The general extra object array 
+  int   numExtraObj;      // Number of extra objects allocated 
+  int   *extraObjInUse;   // Flags for whether objects are in use 
   Ilist *selectionList;
 
   /* Tilt angles number and array */
@@ -172,44 +175,44 @@ typedef struct ViewInfo
   /* 12/7/02: zap not needed; 12/10/02 xyz not needed either */
   Autox  *ax;
   ImodControlList *ctrlist;
-  UndoRedo *undo;             /* Undo -redo class */
+  UndoRedo *undo;             // Undo -redo class 
 
   /* Some Flags. */
-  int    dim;             /* bits 0..4, x, y, z, t */
-  int    obj_moveto;      /* default object to move contour to. */
+  int    dim;             // bits 0..4, x, y, z, t 
+  int    obj_moveto;      // default object to move contour to. 
   int    ghostmode;
-  int    ghostlast;       /* last value of mode, when toggled by g */
-  int    ghostdist;       /* Maximum distance for ghosts */
-  int    insertmode;      /* insert points before/after current point. */
+  int    ghostlast;       // last value of mode, when toggled by g 
+  int    ghostdist;       // Maximum distance for ghosts 
+  int    insertmode;      // insert points before/after current point. 
   int    fastdraw;    
   int    drawcursor;
   int    ifd;
-  int    overlaySec;      /* Section to show in overlay color */
-  int    overlayRamp;     /* Color ramp when first started overlay mode */
-  int    whichGreen;      /* Whether main section (0) or other (1) is green */
-  int    reverseOverlay;  /* Toggle reverse contrast when going in or out */
-  int    drawStipple;     /* Flag to draw contours with stipple if flag set */
-  int    trackMouseForPlugs; /* Number of plugins that want mouse tracking */
+  int    overlaySec;      // Section to show in overlay color 
+  int    overlayRamp;     // Color ramp when first started overlay mode 
+  int    whichGreen;      // Whether main section (0) or other (1) is green 
+  int    reverseOverlay;  // Toggle reverse contrast when going in or out 
+  int    drawStipple;     // Flag to draw contours with stipple if flag set 
+  int    trackMouseForPlugs; // Number of plugins that want mouse tracking 
      
-  int      flippable;     /* Flag that images can be y-z flipped */
-  short    fakeImage;     /* No real image data. */
-  short    rawImageStore; /* the MRC_MODE in which the raw image is stored. 
-                           * if not 0, data will be cached.
-                           * 0  = unsigned bytes.
-                           * 6  = unsigned shorts.
-                           * 16 = color rgb unsigned byte triplets.
-                           */
-  int     ushortStore;    /* Convenience flags for these modes */
-  int     rgbStore;
-  int     colormapImage;  /* Flag that byte images with colormaps are loaded */
-  int     grayRGBs;       /* Flag to load MRC RGBs as gray scale */
-  int     multiFileZ;     /* Flag that multiple single-image files are sections
-                             in Z (if > 0) or to be treated as times (< 0) */
-  int     reloadable;     /* Model file exists and can be reloaded */
-  int     noReadableImage; /* Flag that image file is not readable (stdin) */
-  int     equalScaling;    /* Flag to set smin/smax equal to biggest range needed */
+  int      flippable;     // Flag that images can be y-z flipped 
+  short    fakeImage;     // No real image data. 
+  short    rawImageStore; // the MRC_MODE in which the raw image is stored. 
+                          // if not 0, data will be cached.
+                          // 0  = unsigned bytes.
+                          // 6  = unsigned shorts.
+                          // 16 = color rgb unsigned byte triplets.
 
-  FILE   *fp;                /* current image file pointer.    */
+  int     ushortStore;    // Convenience flags for these modes 
+  int     rgbStore;
+  int     colormapImage;  // Flag that byte images with colormaps are loaded 
+  int     grayRGBs;       // Flag to load MRC RGBs as gray scale 
+  int     multiFileZ;     // Flag that multiple single-image files are sections
+                          // in Z (if > 0) or to be treated as times (< 0)
+  int     reloadable;     // Model file exists and can be reloaded 
+  int     noReadableImage; // Flag that image file is not readable (stdin) 
+  int     equalScaling;    // Flag to set smin/smax equal to biggest range needed 
+
+  FILE   *fp;                // current image file pointer.    
 
 }ImodView;
 
@@ -237,6 +240,15 @@ extern int (*ivwFastGetValue)(int x, int y, int z);
 #define IMOD_SELSIZE 15   /* Distance for selecting model points with mouse. */
 
 #define LATIN1(a) ((const char *)a.toLatin1())
+
+// Some favorite macros from SerialEM (note no ; on the member ones, and lower case)
+#define setMember(a,b) void set##b(a inVal) {m##b = inVal;}
+#define getMember(a,b) a get##b() {return m##b;}
+#define setSetMember(a,b) setMember(a,b);       \
+  setMember(a,b)
+#define CLEAR_RESIZE(a,b,c) { a.clear(); \
+  a.swap(std::vector<b>(a)); \
+  a.resize(c); }
 
 #define RADIANS_PER_DEGREE 0.017453293
 #define MOVIE_DEFAULT 52965

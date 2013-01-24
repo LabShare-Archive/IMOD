@@ -24,6 +24,7 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include "b3dgfx.h"
+#include "pyramidcache.h"
 #include "imodel.h"
 
 /* Forward declarations to minimize includes */
@@ -42,7 +43,7 @@ class QSlider;
 class MultiSlider;
 class QPushButton;
 
-#define MAX_XYZ_TOGGLES  2
+#define MAX_XYZ_TOGGLES  3
 #define NUM_AXIS 3
 
 class XyzWindow : public QMainWindow
@@ -120,6 +121,7 @@ class XyzWindow : public QMainWindow
   void getLocation(int &cx, int &cy, int &cz);
   void setLocation(int newx, int newy, int newz);
   void finishNewModelPoint(int mx, int my, int mz);
+  void getSubsetLimits(int &ixStart, int &iyStart, int &nxUse, int &nyUse);
     
   public slots:
     void toggleClicked(int index);
@@ -144,7 +146,19 @@ class XyzWindow : public QMainWindow
   int mXtrans1, mYtrans1;   /* translation (pan) in image coords */
   int mXtrans2, mYtrans2; 
   int mHq;                 /* High resolution flag */
-  int mProject;            /* Flag to mProject current contour into planes */
+  int mProject;            /* Flag to project current contour into planes */
+  int mApplyZscale;
+  size_t mFdataXZsize;
+  size_t mFdataYZsize;
+  int mLastXoffset1;
+  int mLastYoffset1;
+  int mLastWidth1;
+  int mLastHeight1;
+  int mLastXoffset2;
+  int mLastYoffset2;
+  int mLastWidth2;
+  int mLastHeight2;
+  int mLastTileCacheInd;
   int mDrawCurrentOnly;
   float mXzFraction, mYzFraction;
   int mLock;
@@ -166,6 +180,10 @@ class XyzWindow : public QMainWindow
   void keyRelease(QKeyEvent *event);
   void enteredAxisLocation(int which, int value);
   void allocateDim(int winsize, float zFraction, int &dim1, int &dim2);
+  void fillArrayFromTiles(unsigned char *fdata,
+                          std::vector<FastSegment> &segments, 
+                          std::vector<int> &startInds, int ushort, bool doingYZ,
+                          int istart, int iend, int jstart, int jend);
   void setFontDependentWidths();
 };
 

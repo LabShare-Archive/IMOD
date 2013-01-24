@@ -158,7 +158,11 @@ class ZapFuncs
 
  private:
   int    mXborder,   mYborder;   /* border around image window. */
-  int    mXstart,    mYstart;
+  int    mXstart,    mYstart;    // Original starting positions in image drawn in window
+  int    mXposStart, mYposStart; // Starting positions adjusted for pyramid offset
+  int    mXlastStart, mYlastStart; // So tile cache draw can keep track of changes
+  int    mXlastSize, mYlastSize;   // in the region drawn
+  int    mLastStatus;            // And to keep track if this is a redraw with more data
   int    mXdrawsize, mYdrawsize;
   int    mLmx,       mLmy;
 

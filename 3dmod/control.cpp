@@ -32,6 +32,8 @@
 #include "imodv.h"
 #include "control.h"
 #include "xxyz.h"
+#include "xzap.h"
+#include "zap_classes.h"
 #include "sslice.h"
 #include "slicer_classes.h"
 #include "workprocs.h"
@@ -135,7 +137,7 @@ static int removeControl(ImodView *iv, int inCtrlId, int callClose)
       ilistRemove(iv->ctrlist->list, element);
       ctrlPtr = (ImodControl *)ilistFirst(iv->ctrlist->list);
       if (ctrlPtr)
-	iv->ctrlist->top = ctrlPtr->id;
+        iv->ctrlist->top = ctrlPtr->id;
       return(0);
     }
     element++;
@@ -237,10 +239,10 @@ void ivwControlListDraw(ImodView *iv, int reason)
     if (ctrlPtr->id == iv->ctrlist->active){
       iv->ctrlist->active = 0;
       (*ctrlPtr->draw_cb)(iv, ctrlPtr->userData,
-			  reason | IMOD_DRAW_TOP | IMOD_DRAW_ACTIVE);
+                          reason | IMOD_DRAW_TOP | IMOD_DRAW_ACTIVE);
     }else{
       (*ctrlPtr->draw_cb)(iv, ctrlPtr->userData, 
-			  reason | IMOD_DRAW_TOP);
+                          reason | IMOD_DRAW_TOP);
     }
   }
 
@@ -248,8 +250,8 @@ void ivwControlListDraw(ImodView *iv, int reason)
   iv->timers->mControlTimer->start(1);
 
   /*     while(NULL != (ctrlPtr = ilistNext(iv->ctrlist->list))){
-	 (*ctrlPtr->draw_cb)(iv, ctrlPtr->userData, reason);
-	 }
+         (*ctrlPtr->draw_cb)(iv, ctrlPtr->userData, reason);
+         }
   */
   return;
 }
@@ -285,7 +287,7 @@ void ivwControlKey(/*ImodView *iv, */int released, QKeyEvent *e)
       imodPrintStderr("checking %d\n", ctrlPtr->id);
     if (ctrlPtr->key_cb) {
       if (imodDebug('c'))
-	imodPrintStderr("sending to %d\n", ctrlPtr->id);
+        imodPrintStderr("sending to %d\n", ctrlPtr->id);
       (*ctrlPtr->key_cb)(iv, ctrlPtr->userData, released, e);
       return;
     }
@@ -312,8 +314,7 @@ void DialogManager::add(QWidget *widget, int dlgClass, int dlgType)
   if (!mDialogList) {
     mDialogList = ilistNew(sizeof(ImodvDialog), 4);
     if (!mDialogList) {
-      imodError(NULL, "3DMOD WARNING: Failure to get memory for dialog list\n"
-	      );
+      imodError(NULL, "3DMOD WARNING: Failure to get memory for dialog list\n");
       return;
     }
   }
@@ -503,33 +504,53 @@ void DialogManager::windowList(QObjectList *objList, int dlgClass, int dlgType)
   }
 }
 
-// Find the window of a given type closest to top of control list
+// Find the window of a given type closest to top of control list, where dlgType
+// must be one of ZAP_WINDOW_TYPE, XYZ_WINDOW_TYPE, or SLICER_WINDOW_TYPE
 QObject *DialogManager::getTopWindow(int dlgType)
+{
+  int found;
+  return getTopWindow(dlgType, dlgType, found);
+}
+
+// Find the first window of either of two types closest to top of control list,
+// where the two types must be Zap, Slicer, or Xyz.
+QObject *DialogManager::getTopWindow(int dlgType, int dlgType2, int &typeFound)
 {
   QObjectList objList;
   XyzWindow *xyz;
   SlicerFuncs *ss;
+  ZapFuncs *zap;
   ImodControl *ctrlPtr;
   int i, j, topOne, curSave;
-  bool match;
+  bool match = false;
 
-  imodDialogManager.windowList(&objList, -1, dlgType);
+  imodDialogManager.windowList(&objList, -1, dlgType == dlgType2 ? dlgType : -1);
   if (!objList.count())
     return NULL;
 
   // Look through the current control list, find first slicer with matching ID
   // Here we MUST save and restore current item to avoid screwing up draws
   topOne = -1;
+  typeFound = -1;
   curSave = App->cvi->ctrlist->list->current;
   for (j = 0; topOne < 0 && j < ilistSize(App->cvi->ctrlist->list); j++) {
     ctrlPtr = (ImodControl *)ilistItem(App->cvi->ctrlist->list, j);
     for (i = 0; i < objList.count(); i++) {
-      if (dlgType == XYZ_WINDOW_TYPE) {
+      if (dlgType == ZAP_WINDOW_TYPE || dlgType2 == ZAP_WINDOW_TYPE) {
+        zap = ((ZapWindow *)objList.at(i))->mZap;
+        match = ctrlPtr->id == zap->mCtrl;
+        if (match)
+          typeFound = ZAP_WINDOW_TYPE;
+      } else if (dlgType == XYZ_WINDOW_TYPE || dlgType2 == XYZ_WINDOW_TYPE) {
         xyz = ((XyzWindow *)objList.at(i));
         match = ctrlPtr->id == xyz->mCtrl;
-      } else if (dlgType == SLICER_WINDOW_TYPE) {
+        if (match)
+          typeFound = XYZ_WINDOW_TYPE;
+      } else if (dlgType == SLICER_WINDOW_TYPE || dlgType2 == SLICER_WINDOW_TYPE) {
         ss = ((SlicerWindow *)objList.at(i))->mFuncs;
         match = ctrlPtr->id == ss->mCtrl;
+        if (match)
+          typeFound = SLICER_WINDOW_TYPE;
       }
       if (match) {
         topOne = i;
