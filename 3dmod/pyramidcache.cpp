@@ -152,7 +152,7 @@ PyramidCache::PyramidCache(ViewInfo *vi, QStringList &plFileNames, int frames,
       pyramidError(14);
 
     // But for Z, the offset should be purely to account for binning
-    if (fabs(maxZsize / cache->zScale - cache->fullZsize) > 2.5)
+    if (fabs((double)maxZsize / cache->zScale - cache->fullZsize) > 2.5)
       pyramidError(15);
   }
   mPyrInd = -1;
@@ -1266,11 +1266,11 @@ void PyramidCache::scaledAreaSize(int scale, int fullStart, int sizeIn, int full
   if (scale == 1)
     return;
   if (inside) {
-    start = (int)ceil((fullStart - offset) / scale);
-    end = (int)floor((fullStart + sizeIn - offset) / scale);
+    start = (int)ceil(((double)fullStart - offset) / scale);
+    end = (int)floor(((double)fullStart + sizeIn - offset) / scale);
   } else {
-    start = (int)floor((fullStart - offset) / scale);
-    end = (int)ceil((fullStart + sizeIn - offset) / scale);
+    start = (int)floor(((double)fullStart - offset) / scale);
+    end = (int)ceil(((double)fullStart + sizeIn - offset) / scale);
   }
   start = B3DMAX(0, start);
   B3DCLAMP(end, start + 1, fullSize);
