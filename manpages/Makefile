@@ -11,7 +11,7 @@ HERE = .
 
 install : mantohtml autodoc2man
 	./convert $(HERE)
-	./csvtohtml ../com/directives.csv ../html/directives.html directive_stub.html
+	./csvtohtml ../com/directives.csv ../html/directives.html directives.stub
 	\mv *.1 $(INSTDIR)/man/cat1
 	\mv *.html ../html/man
 #	echo 'User-agent: *' > $(INSTDIR)/html/man/robots.txt
