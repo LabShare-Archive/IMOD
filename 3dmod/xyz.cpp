@@ -210,7 +210,7 @@ XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer,
   double newzoom;
   int needWinx, needWiny, maxWinx, maxWiny, xleft, ytop, toolHeight;
   int newHeight, newWidth;
-  float zscaled = vi->zsize;;
+  float zscaled = vi->zsize;
   int pixSize = ivwGetPixelBytes(vi->rawImageStore);
 
   mXydata = mXzdata = mYzdata = NULL;
@@ -242,7 +242,7 @@ XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer,
   mXtrans2 = 0;
   mYtrans2 = 0;
   mHq = ImodPrefs->startInHQ() ? 1 : 0;
-  mApplyZscale = 1;  // NEEDS A PREFERENCE
+  mApplyZscale = ImodPrefs->getXyzApplyZscale();
   mProject = 0;
   mMousemode = IMOD_MMOVIE;
   mToolZoom = -1.0f;
@@ -347,7 +347,7 @@ XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer,
   mLx = mLy = mLz = mLastCacheSum = -1;
 
   mCtrl = ivwNewControl(vi, xyzDraw_cb, xyzClose_cb, xyzKey_cb, (void *)this);
-  imodDialogManager.add((QWidget *)this, IMOD_IMAGE, XYZ_WINDOW_TYPE);
+  imodDialogManager.add((QWidget *)this, IMOD_IMAGE, XYZ_WINDOW_TYPE, mCtrl);
   
   // Determine needed window size, zoom that makes it mostly fit on the screen
   diaMaximumWindowSize(maxWinx, maxWiny);
@@ -356,6 +356,10 @@ XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer,
   while (needWinx >  1.05 * maxWinx || needWiny > 1.05 * maxWiny) {
     newzoom = b3dStepPixelZoom(mZoom, -1);
     if (fabs(newzoom - mZoom) < 0.0001)
+      break;
+    if (vi->pyrCache && vi->pyrCache->zoomRequiresBigLoad
+        (newzoom, (int)((1. - mYzFraction) * maxWinx),
+         (int)((1. - mXzFraction) * maxWiny)))
       break;
     mZoom = newzoom;
     needWinx = (int)((vi->xsize + zscaled) * mZoom + ALL_BORDER);
@@ -414,6 +418,7 @@ void XyzWindow::closeEvent (QCloseEvent * e )
   b3dFreeCIImage(mXydata);
   b3dFreeCIImage(mXzdata);
   b3dFreeCIImage(mYzdata);
+  ImodPrefs->setXyzApplyZscale(mApplyZscale);
 
   mGLw->mClosing = true;
   e->accept();
@@ -1530,6 +1535,11 @@ void XyzWindow::DrawImage()
   mLastCacheSum = cacheSum;
 }
 
+/*
+ * Fill one of the XZ or YZ arrays from the list of segments in tiles.
+ * This started out very similar to what is in mv_image, including variable names,
+ * but then it got messy because of the striding requirements, etc.
+ */
 void XyzWindow::fillArrayFromTiles(unsigned char *fdataIn,
                                    std::vector<FastSegment> &segments, 
                                    std::vector<int> &startInds, int ushort, bool doingYZ,

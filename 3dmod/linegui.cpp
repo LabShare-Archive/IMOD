@@ -456,7 +456,11 @@ void LineTrack::track(int client)
            "  Contour must have at least 2 points.\n");
     return;
   }
-  image = ivwGetCurrentZSection(plug->view);
+  ivwGetLocation(plug->view, &curx, &cury, &curz);
+  if (ivwDataInTileOrStripCache(plug->view))
+    image = ivwGetTileCachedSection(plug->view, curz);
+  else
+    image = ivwGetCurrentZSection(plug->view);
   if (!image){
     wprint("\aLine Track Error:\n"
            "  No current image data.\n");
@@ -479,7 +483,6 @@ void LineTrack::track(int client)
   }
 
   // Fill the data array if the section or flipping has changed
-  ivwGetLocation(plug->view, &curx, &cury, &curz);
   flipped = imodGetFlipped(theModel);
   
   if (curz != plug->idataSec || flipped != plug->idataFlipped) {
@@ -711,7 +714,8 @@ void LineTrack::closeEvent ( QCloseEvent * e )
   ImodPrefs->saveGenericSettings("LineTracker", MAX_SETTINGS, values);
 
   imodDialogManager.remove((QWidget *)plug->window);
-
+  if (ivwDataInTileOrStripCache(plug->view))
+    ivwFreeTileCachedSection(plug->view);
   plug->view = NULL;
   plug->window = NULL;
   if (plug->undoCont)

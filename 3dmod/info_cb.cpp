@@ -655,7 +655,7 @@ int imod_info_bwfloat(ImodView *vi, int section, int time)
         if (cacheInd >= 0) {
           err1 = vi->pyrCache->loadedMeanSD(cacheInd, sLastSection, sample,
                                             jxStart, jyStart, mxUse, myUse, 
-                                            sSecData[iref].mean, sSecData[iref].sd,
+                                            &sSecData[iref].mean, &sSecData[iref].sd,
                                             cacheSum, -1);
           if (!err1)
             sSecData[iref].cacheSum = cacheSum;
@@ -695,7 +695,7 @@ int imod_info_bwfloat(ImodView *vi, int section, int time)
       if (cacheInd >= 0) {
         err1 = vi->pyrCache->loadedMeanSD(cacheInd, section, sample,
                                           jxStart, jyStart, mxUse, myUse, 
-                                          sSecData[isec].mean, sSecData[isec].sd,
+                                          &sSecData[isec].mean, &sSecData[isec].sd,
                                           cacheSum, 
                                           needMean ? -1 : sSecData[isec].cacheSum);
 
@@ -990,12 +990,16 @@ int imodInfoCurrentMeanSD(float &mean, float &sd, float &scaleLo, float &scaleHi
   ViewInfo *vi = App->cvi;
   float pctLo = 0.1f, pctHi = 0.1f;  // Take fixed limits for now
   int izsec = B3DNINT(vi->zmouse);
+  float *scaleLoPtr = NULL;
 
   // Get the limits to compute within, get images, get the mean & sd
   getSampleLimits(vi, ixStart, iyStart, nxUse, nyUse, sample, izsec, vi->curTime);
   if (vi->pyrCache) {
+    if (vi->ushortStore)
+      scaleLoPtr = &scaleLo;
     if (vi->pyrCache->loadedMeanSD(vi->pyrCache->getBufCacheInd(), izsec, sample, ixStart,
-                                   iyStart, nxUse, nyUse, mean, sd, cacheSum, -1))
+                                   iyStart, nxUse, nyUse, &mean, &sd, cacheSum, -1,
+                                   pctLo, pctHi, scaleLoPtr, &scaleHi))
       return 1;
   } else {
     image = ivwGetZSectionTime(vi, izsec, vi->curTime);
@@ -1007,8 +1011,9 @@ int imodInfoCurrentMeanSD(float &mean, float &sd, float &scaleLo, float &scaleHi
   scaleLo = mean - 3. * sd;
   scaleHi = mean * 3. * sd;
   if (vi->ushortStore) {
-    percentileStretch(image, SLICE_MODE_USHORT, vi->xsize, vi->ysize, sample,
-                      ixStart, iyStart, nxUse, nyUse, pctLo, pctHi, &scaleLo, &scaleHi);
+    if (!vi->pyrCache)
+      percentileStretch(image, SLICE_MODE_USHORT, vi->xsize, vi->ysize, sample,
+                        ixStart, iyStart, nxUse, nyUse, pctLo, pctHi, &scaleLo, &scaleHi);
     scaleLo = B3DMAX(0., scaleLo);
     scaleHi = B3DMIN(65535., scaleHi);
     if ((int)scaleLo >= (int)scaleHi - 1) {

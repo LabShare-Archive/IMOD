@@ -598,7 +598,7 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
   
   mCtrl = ivwNewControl(vi, zapDraw_cb, zapClose_cb, zapKey_cb, (void *)this);
   imodDialogManager.add((QWidget *)mQtWindow, IMOD_IMAGE, 
-                        wintype ? MULTIZ_WINDOW_TYPE : ZAP_WINDOW_TYPE);
+                        wintype ? MULTIZ_WINDOW_TYPE : ZAP_WINDOW_TYPE, mCtrl);
 
   if (!wintype) {
     diaMaximumWindowSize(maxWinx, maxWiny);
@@ -629,10 +629,12 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
       for (i = 0; i < 2; i++) {
         mZoom = 1.;
         while ((mZoom * vi->xsize > 1.1 * maxWinx || 
-                mZoom * vi->ysize > 1.1 * maxWiny - toolHeight) &&
-               (!vi->pyrCache || mZoom > 0.5)) {
+                mZoom * vi->ysize > 1.1 * maxWiny - toolHeight)) {
           newZoom = b3dStepPixelZoom(mZoom, -1);
           if (fabs(newZoom - mZoom) < 0.0001)
+            break;
+          if (mVi->pyrCache && mVi->pyrCache->zoomRequiresBigLoad(newZoom, maxWinx,
+                                                                  maxWiny - toolHeight))
             break;
           mZoom = (float)newZoom;
         }
@@ -719,11 +721,14 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
         mZoom = (2. * needWinx) / vi->xsize;
       
       while ((mZoom * vi->xsize > 1.1 * needWinx || 
-              mZoom * vi->ysize > 1.1 * needWiny) && (!vi->pyrCache || mZoom > 0.5)) {
+              mZoom * vi->ysize > 1.1 * needWiny)) {
         newZoom = b3dStepPixelZoom(mZoom, -1);
         // This test goes into infinite loop in Windows - Intel, 6/22/04
         // if (newZoom == mZoom)
         if (fabs(newZoom - mZoom) < 0.0001)
+          break;
+        if (mVi->pyrCache && mVi->pyrCache->zoomRequiresBigLoad(newZoom, needWinx,
+                                                                needWiny))
           break;
         mZoom = (float)newZoom;
       }
@@ -4217,7 +4222,7 @@ void ZapFuncs::drawGraphics()
   int xDrawsize, yDrawsize, xStart, yStart, tileScale = 1, status, imXsize, imYsize;
   float xOffset, yOffset;
   bool asyncLoad = !mVi->zmovie && imodDialogManager.windowCount(ZAP_WINDOW_TYPE) == 1 &&
-    !mvImageDrawingZplanes() && !mNumXpanels;
+    !mvImageDrawingZplanes() && !mNumXpanels && !mVi->loadingImage;
 
   zoom = mZoom;
   imXsize = vi->xsize;
@@ -4272,7 +4277,7 @@ void ZapFuncs::drawGraphics()
     mYlastSize = mYdrawsize;
     mLastStatus = status;
     if (status > 0)
-      mGfx->scheduleRedraw(100);
+      mGfx->scheduleRedraw(300);   // 100 was way too often with debug version
   } else {
     xStart = mXstart;
     xDrawsize = mXdrawsize;

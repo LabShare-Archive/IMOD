@@ -189,7 +189,7 @@ c
         if(abs(ndmax).lt.limshift)then
           y1=psum(ndmax-1)
           y3=psum(ndmax+1)
-          denom=2.*(y1+y3-2.*y2)
+          denom=2.*(y1+y3-2.*pmax)
           if(abs(denom).gt.-1.e6)cx=(y1-y3)/denom
           if(abs(cx).gt.0.5)cx=sign(0.5,cx)
         endif

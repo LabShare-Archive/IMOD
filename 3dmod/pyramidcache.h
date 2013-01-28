@@ -43,6 +43,7 @@ typedef struct
   float xOffset, yOffset, zOffset;
   // Starting and ending file coordinates that get loaded from this volume
   int minXload, maxXload, minYload, maxYload, minZload, maxZload;
+  int loadXsize, loadYsize, loadZsize;  // Size of data volume being loaded in X, Y, Z
   int tileXdelta, tileYdelta;           // Spacing between tiles: size - overlap          
   // Offset from start of first tile in file to start of load; used to get back and
   // forth between tiles and loaded coordinates
@@ -111,9 +112,14 @@ class PyramidCache
                       int &scale, float &offset);
   int loadedCacheSum(int cacheInd);
   int loadedMeanSD(int cacheInd, int section, float sample, int ixStart, int iyStart, 
-                   int nxUse, int nyUse, float &mean, float &SD,
-                   int &cacheSum, int oldCacheSum);
+                   int nxUse, int nyUse, float *mean, float *SD,
+                   int &cacheSum, int oldCacheSum, float pctLo = 0., float pctHi = 0.,
+                   float *scaleLo = NULL, float *scaleHi = NULL);
   void fillCacheForArea(int section);
+  int getBaseFileCoords(int x, int y, int z, int &fileX, int &fileY, int &fileZ);
+  bool zoomRequiresBigLoad(double zoom, int winXsize, int winYsize);
+  unsigned char **getFullSection(int z);
+  void freeFullSection();
 
  private:
   int setupTileCache(ImodImageFile *image, IloadInfo *li, TileCache *cache);
@@ -131,6 +137,8 @@ class PyramidCache
                       int &loadMin, int &loadMax);
   void findLoadLimits(int cacheInd, int xtile, int ytile, bool toLoadedCoords,
                       int &loadXmin, int &loadXmax, int &loadYmin, int &loadYmax);
+  int adjustLoadLimitsForMont(TileCache *cache, int nx, int ny, int &llx,
+                              int &urx, int &lly, int &ury, int &zval);
   int freeForNeededPixels(int cacheInd, int zval, int otherZ, double numPixels,
                           int numLoops);
   void scaledAreaSize(int scale, int fullStart, int sizeIn, int fullSize, int offset,
@@ -142,6 +150,9 @@ class PyramidCache
                        int xsize, int ysize);
   bool findInterpolatedZvals(TileCache *cache, int section, int needLoadZ[3], 
                              int otherZ[3], float &zfrac);
+  bool copyOrQueueTile(int cacheInd, LoadTileRequest &request, int xtile, 
+                       int ytile, int zsec, int bufInd, int bufXstart,
+                       int bufXsize, int bufYstart, int bufYsize);
 
   ImodView *mVi;
   int mBaseIndex;                   // Index of "base" cache, one at highest scale
@@ -166,6 +177,9 @@ class PyramidCache
   int mLastRequestSize;       // Size of remaining request last time getSectionArea called
   float mZoomUpLimit;         // Limits for zoom up and zoom down in getSectionArea
   float mZoomDownLimit;
+  unsigned char *mFullSecBuf;    // Buffer for loading a full base section
+  unsigned char **mFullSecPtrs;  // Line pointers for the full base section
+  int mFullSecZ;                 // Z value loaded
 };
 
 #endif

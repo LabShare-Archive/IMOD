@@ -18,6 +18,12 @@
 #include "xzap.h"
 #include "zap_classes.h"
 
+#define FULL_SEC_BUF 3
+
+//////////////////////////////////////////////////////////////////////////////
+// CACHE INITIALIZATION
+//////////////////////////////////////////////////////////////////////////////
+
 /*
  * The constructor: sets up the caches for either a pyramid or a basic tile cache,
  * determines the biggest file, and  checks as many things as possible about the files
@@ -45,6 +51,8 @@ PyramidCache::PyramidCache(ViewInfo *vi, QStringList &plFileNames, int frames,
     mBufLoadZ[ind] = -1;
   }
   mBufTotSize = 0;
+  mFullSecBuf = NULL;
+  mFullSecPtrs = NULL;
 
   if (vi->imagePyramid && anyImageFail)
     pyramidError(0);
@@ -396,6 +404,9 @@ void PyramidCache::initializeCaches()
                   cache->yOffset, cache->minYload, cache->maxYload);
     setLoadLimits(cache->zScale, cache->fullZsize, mVi->li->zmin, mVi->li->zmax,
                   cache->zOffset, cache->minZload, cache->maxZload);
+    cache->loadXsize = cache->maxXload + 1 - cache->minXload;
+    cache->loadYsize = cache->maxYload + 1 - cache->minYload;
+    cache->loadZsize = cache->maxZload + 1 - cache->minZload;
 
     // Set up the tiling in X and Y
     setTileGeometry(cache->fullXsize, cache->minXload, cache->maxXload, cache->xOverlap, 
@@ -415,8 +426,7 @@ void PyramidCache::initializeCaches()
             cache->minYload, cache->maxYload, cache->minZload, cache->maxZload);
 
     // Allocate the index
-    tileTot = cache->numXtiles * cache->numYtiles * 
-      (cache->maxZload + 1 - cache->minZload);
+    tileTot = cache->numXtiles * cache->numYtiles * cache->loadZsize;
     cache->tileIndex = B3DMALLOC(int, tileTot);
     if (!cache->tileIndex)
       pyramidError(20);
@@ -434,6 +444,10 @@ void PyramidCache::initializeCaches()
     }
   }
 }
+
+//////////////////////////////////////////////////////////////////////////////////
+// TILE LOADING, COPYING, AND MANAGEMENT
+//////////////////////////////////////////////////////////////////////////////////
 
 /*
  * Frees oldest tile if necessary to make space for the given number of pixels.
@@ -548,34 +562,177 @@ void PyramidCache::freeTile(CacheSlice *tile, int freeInd, bool haveUserIter)
 }
 
 /*
- * Gets a single value at the given load coordinates from the base cache
+ * Loads all the tiles on the request queue.  If asyncLoad is 0, it does it
+ * without interruption, if it is 1, then it calls to have events processed after
+ * each tile; if it is -1, it loads one tile and returns
  */
-int PyramidCache::getValueFromBaseCache(int x, int y, int z)
+int PyramidCache::loadRequestedTiles(int asyncLoad)
 {
-  TileCache *cache = &mTileCaches[mBaseIndex];
-  int xtile, ytile, xInTile, yInTile, tileInd, index;
-  Islice *slice;
+  LoadTileRequest request;
+  TileCache *cache;
+  ImodImageFile *image;
+  int zval, tileInd, retval = 0;
 
-  // Can half the overlap be incorporated into first offset?
-  xtile = (x + cache->firstXoffset - cache->xOverlap / 2) / cache->tileXdelta;
-  B3DCLAMP(xtile, 0, cache->numXtiles - 1);
-  ytile = (y + cache->firstYoffset - cache->yOverlap / 2) / cache->tileYdelta;
-  B3DCLAMP(ytile, 0, cache->numYtiles - 1);
-  tileInd = cache->tileIndex[xtile + (ytile + z * cache->numYtiles) * cache->numXtiles];
-  if (tileInd < 0)
+  while (!mRequests.empty()) {
+    request = mRequests.front();
+    mRequests.pop_front();
+    cache = &mTileCaches[request.cacheInd];
+    if (mNumCaches > 1)
+      image = &mVi->imageList[request.cacheInd];
+    else
+      image = mVi->image;
+    
+    // Find the limits for loading this tile in coordinates of the full image file
+    findLoadLimits(request.cacheInd, request.xTileInd, request.yTileInd, false,
+                   image->llx, image->urx, image->lly, image->ury);
+
+    // Section numbers are loaded values and so add load Z to get to file Z
+    zval = request.section + cache->minZload;
+    if (adjustLoadLimitsForMont(cache, image->nx, image->ny, image->llx, image->urx,
+                                image->lly, image->ury, zval))
+      continue;
+
+    // Make a new cache item to hold data
+    tileInd = makeNewCacheItem(request.cacheInd, request.xTileInd, request.yTileInd, 
+                               request.section, -1,  image->urx + 1 - image->llx, 
+                               image->ury + 1 - image->lly);
+    if (tileInd < 0) 
+      return 1;
+
+    // Read the data in
+    if (ivwReadBinnedSection(mVi, image, (char *)mTiles[tileInd].slice->data.b, zval))
+      retval = 1;
+
+    if (!retval) {
+      request.indInCache = tileInd;
+      copyTileIntoBuffer(request, false);
+    }
+    if (asyncLoad < 0)
+      return retval;
+    if (asyncLoad > 0)
+      imod_info_input();
+  }
+  return retval;
+}
+
+int PyramidCache::adjustLoadLimitsForMont(TileCache *cache, int nx, int ny, int &llx,
+                                          int &urx, int &lly, int &ury, int &zval)
+{
+  int i, xstart, ystart;
+  if (!cache->plistSize)
     return 0;
-  xInTile = xtile ? 
-    ((x + cache->firstXoffset - cache->xOverlap / 2) - xtile * cache->tileXdelta) : x;
-  yInTile = ytile ? 
-    ((y + cache->firstYoffset - cache->yOverlap / 2) - ytile * cache->tileYdelta) : y;
-  slice = mTiles[tileInd].slice;
-  index = yInTile * slice->xsize + xInTile;
 
-  /* DNM: calling routine is responsible for limit checks */
-  if (mVi->ushortStore)
-    return slice->data.us[index];
-  return slice->data.b[index];
-}  
+  // For montage, find the piece Z that contains these and modify the min/maxes
+  for (i = 0; i < cache->plistSize; i++) {
+    if (cache->pcoords[3 * i + 2] == zval) {
+      xstart = cache->pcoords[3 * i];
+      ystart = cache->pcoords[3 * i + 1];
+      if (llx >= xstart && urx < xstart + nx / mVi->xybin && 
+          lly >= ystart && ury < ystart + ny / mVi->xybin) {
+        zval = i;
+        llx -= xstart;
+        urx -= xstart;
+        lly -= ystart;
+        ury -= ystart;
+        return 0;
+      }
+    }
+  }
+  return 1;
+}
+
+/*
+ * Given a tile number in X and Y and a section, for a given cache, it will either copy
+ * the tile into the given buffer index if it is loaded, or add it to the request queue
+ * if it is not.  bufXstart, bufXsize are the starting loaded cache coordinates and size
+ * in X of the buffer being copied to, similarly for Y.  Returns true if request queued.
+ */
+bool PyramidCache::copyOrQueueTile(int cacheInd, LoadTileRequest &request, int xtile, 
+                                   int ytile, int zsec, int bufInd, int bufXstart,
+                                   int bufXsize, int bufYstart, int bufYsize)
+{
+  int tileXmin, tileXmax, tileYmin, tileYmax;
+  int useXmin, useXmax, useYmin, useYmax;
+  TileCache *cache = &mTileCaches[cacheInd];
+  request.indInCache = cache->tileIndex[xtile + (ytile + zsec * cache->numYtiles) * 
+                                        cache->numXtiles];
+  request.xTileInd = xtile;
+  request.yTileInd = ytile;
+  request.cacheInd = cacheInd;
+  request.bufInd = bufInd;
+  request.section = zsec;
+
+  // Get coordinates of tile in cache loaded coordinate space and intersect
+  // with the buffer limits
+  findLoadLimits(cacheInd, xtile, ytile, true, tileXmin, tileXmax, tileYmin, tileYmax);
+  useXmin = B3DMAX(tileXmin, bufXstart);
+  useXmax = B3DMIN(tileXmax, bufXstart + bufXsize - 1);
+  useYmin = B3DMAX(tileYmin, bufYstart);
+  useYmax = B3DMIN(tileYmax, bufYstart + bufYsize - 1);
+
+  // Put limits in request structure
+  request.fromXstart = useXmin - tileXmin;
+  request.toXstart = useXmin - bufXstart;
+  request.numXcopy = useXmax + 1 - useXmin;
+  request.fromYstart = useYmin - tileYmin;
+  request.toYstart = useYmin - bufYstart;
+  request.numYcopy = useYmax + 1 - useYmin;
+  if (request.indInCache < 0) {
+    imodTrace('T', "Queuing %d %d from start %d %d copy %d %d to %d %d",
+              xtile, ytile, request.fromXstart, request.fromYstart, 
+              request.numXcopy, request.numYcopy, request.toXstart,
+              request.toYstart);
+            
+    // If tile is not loaded, add request to queue
+    mRequests.push_back(request);
+  } else {
+
+    // If tile is loaded, send request to copy routine
+    copyTileIntoBuffer(request, true);
+  }
+  return request.indInCache < 0;
+}
+
+/*
+ * Copies the tile described in the request into the proper buffer and optionally 
+ * updates use count
+ */
+void PyramidCache::copyTileIntoBuffer(LoadTileRequest &request, bool manageUseCount)
+{
+  CacheSlice *tile = &mTiles[request.indInCache];
+  int fromSkip = tile->slice->xsize - request.numXcopy;
+  int toSkip = mBufXsize - request.numXcopy;
+  unsigned char *buf;
+
+  // Do the copy
+  if (request.numXcopy > 0 && request.numYcopy > 0) {
+    if (request.bufInd == FULL_SEC_BUF) {
+      buf = mFullSecBuf;
+      toSkip = mVi->xsize - request.numXcopy;
+    } else {
+      buf = mSliceBufs[request.bufInd];
+    }
+    imodTrace('T', "copying %d %d from start %d %d copy %d %d to %d %d",
+              request.xTileInd, request.yTileInd, request.fromXstart, request.fromYstart, 
+              request.numXcopy, request.numYcopy, request.toXstart, request.toYstart);
+    memreccpy(buf, tile->slice->data.b, 
+              request.numXcopy, request.numYcopy, ivwGetPixelBytes(mVi->rawImageStore),
+              toSkip, request.toXstart, request.toYstart,
+              fromSkip, request.fromXstart, request.fromYstart);
+  }
+
+  // Update the use count unless it was brand new tile
+  if (manageUseCount) {
+    mUseMap.erase(tile->usedAtCount);
+    tile->usedAtCount = mUseCount;
+    mUseMap[mUseCount] = request.indInCache;
+    mUseCount += 1.;
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// EXTERNAL CALLS FOR LOADING DESIRED AREAS
+//////////////////////////////////////////////////////////////////////////////
 
 /*
  * Make sure that the tile in the base cache containing this point is loaded
@@ -657,81 +814,112 @@ int PyramidCache::loadTilesContainingArea(int cacheInd, int baseXstart, int base
 }
 
 /*
- * Loads all the tiles on the request queue.  If asyncLoad is 0, it does it
- * without interruption, if it is 1, then it calls to have events processed after
- * each tile; if it is -1, it loads one tile and returns
+ * Fill a cache for a displayed area around the given section
  */
-int PyramidCache::loadRequestedTiles(int asyncLoad)
+void PyramidCache::fillCacheForArea(int section)
 {
-  LoadTileRequest request;
+  int foundType;
+  XyzWindow *xyz;
   TileCache *cache;
-  ImodImageFile *image;
-  bool found;
-  int zval, i, tileInd, xstart, ystart, retval = 0;
+  double zoom, numPix = 0.;
+  float xoffset, yoffset;
+  int xstart, ystart, xsize, ysize, ind, baseXstart, baseYstart, nxUse, nyUse;
+  int tileXmin, tileXmax, tileYmin, tileYmax, xtile, ytile, cacheInd, needed;
+  int numSlices, middleZ, scale, dir, delz, iz;
+  int startXtile, startYtile, xtmp, ytmp, endXtile, endYtile, zstart, zend;
 
-  while (!mRequests.empty()) {
-    request = mRequests.front();
-    mRequests.pop_front();
-    cache = &mTileCaches[request.cacheInd];
-    if (mNumCaches > 1)
-      image = &mVi->imageList[request.cacheInd];
-    else
-      image = mVi->image;
-    
-    // Find the limits for loading this tile in coordinates of the full image file
-    findLoadLimits(request.cacheInd, request.xTileInd, request.yTileInd, false,
-                   image->llx, image->urx, image->lly, image->ury);
-
-    // Section numbers are loaded values and so add load Z to get to file Z
-    zval = request.section + cache->minZload;
-    if (cache->plistSize) {
-
-      // For montage, find the piece Z that contains these and modify the min/maxes
-      found = false;
-      for (i = 0; i < cache->plistSize; i++) {
-        if (cache->pcoords[3 * i + 2] == zval) {
-          xstart = cache->pcoords[3 * i];
-          ystart = cache->pcoords[3 * i + 1];
-          if (image->llx >= xstart && image->urx < xstart + image->nx / mVi->xybin && 
-              image->lly >= ystart && image->ury < ystart + image->ny / mVi->xybin) {
-            zval = i;
-            image->llx -= xstart;
-            image->urx -= xstart;
-            image->lly -= ystart;
-            image->ury -= ystart;
-            found = true;
-            break;
-          }
-        }
-      }
-      if (!found) {
-        retval = 1;
-        continue;
-      }
-    }
-
-    // Make a new cache item to hold data
-    tileInd = makeNewCacheItem(request.cacheInd, request.xTileInd, request.yTileInd, 
-                               request.section, -1,  image->urx + 1 - image->llx, 
-                               image->ury + 1 - image->lly);
-    if (tileInd < 0) 
-      return 1;
-
-    // Read the data in
-    if (ivwReadBinnedSection(mVi, image, (char *)mTiles[tileInd].slice->data.b, zval))
-      retval = 1;
-
-    if (!retval) {
-      request.indInCache = tileInd;
-      copyTileIntoBuffer(request, false);
-    }
-    if (asyncLoad < 0)
-      return retval;
-    if (asyncLoad > 0)
-      imod_info_input();
+  // Get the area used and the zoom from the top zap or xyz window
+  QObject *topWin = imodDialogManager.getTopWindow(XYZ_WINDOW_TYPE, ZAP_WINDOW_TYPE, 
+                                                   foundType);
+  if (foundType < 0) {
+    wprint("\aFill Cache can be used only when there is a Zap or XYZ window open\n");
+    return;
   }
-  return retval;
+  if (foundType == ZAP_WINDOW_TYPE) {
+    imodTrace('t', "Top is Zap");
+    if (zapSubsetLimits(mVi, baseXstart, baseYstart, nxUse, nyUse)) {
+      wprint("\aCannot get subarea limits from top Zap window\n");
+      return;
+    }
+    zoom = ((ZapWindow *)topWin)->mZap->mZoom;
+  } else {
+    imodTrace('t', "Top is XYZ");
+    xyz = (XyzWindow *)topWin;
+    xyz->getSubsetLimits(baseXstart, baseYstart, nxUse, nyUse);
+    zoom = xyz->mZoom;
+  }
+
+  // Find the cache being used there
+  cacheInd = pickBestCache(zoom, mZoomUpLimit, mZoomDownLimit, scale);
+  cache = &mTileCaches[cacheInd];
+
+  // Find range of tiles needed to cover the area and total pixels in them
+  scaledAreaSize(cacheInd, baseXstart, baseYstart, nxUse, nyUse, xstart, ystart, xsize,
+                 ysize, xoffset, yoffset, false);
+  scaledRangeInZ(cacheInd, section, section, middleZ, xtmp, scale, xoffset);
+  getTileAndPositionInTile(cacheInd, xstart, ystart, startXtile, startYtile, xtmp, ytmp);
+  getTileAndPositionInTile(cacheInd, xstart + xsize - 1, ystart + ysize - 1, endXtile,
+                           endYtile, xtmp, ytmp);
+  for (ytile = startYtile; ytile <= endYtile; ytile++) {
+    for (xtile = startXtile; xtile <= endXtile; xtile++) {
+      findLoadLimits(cacheInd, xtile, ytile, true, tileXmin, tileXmax, tileYmin,
+                     tileYmax);
+      numPix += (tileXmax + 1 - tileXmin) * (tileYmax + 1 - tileYmin);
+    }
+  }
+
+  // Determine number of slices that can be loaded and range of Z
+  numSlices = (int)((0.9 * mVMpixels - 3. * mBufTotSize) / numPix);
+  if (numSlices < 3) {
+    wprint("\aThe cache is not big enough to load more than 2 sections of this size\n");
+    return;
+  }
+  zstart = B3DMAX(0, middleZ - numSlices / 2);
+  zend = B3DMIN(cache->maxZload - cache->minZload, zstart + numSlices - 1);
+  imodMovieXYZT(mVi, 0, 0, 0, 0);
+
+  // Loop through slices and tiles and update their use counts if they are loaded
+  needed = 0;
+  for (iz = zstart; iz <= zend; iz++) {
+    for (ytile = startYtile; ytile <= endYtile; ytile++) {
+      for (xtile = startXtile; xtile <= endXtile; xtile++) {
+        ind = cache->tileIndex[xtile + (ytile + iz * cache->numYtiles) *
+                               cache->numXtiles];
+        if (ind >= 0) {
+          mUseMap.erase(mTiles[ind].usedAtCount);
+          mTiles[ind].usedAtCount = mUseCount;
+          mUseMap[mUseCount] = ind;
+          mUseCount += 1.;
+        } else
+          needed++;
+      }
+    }
+  }
+
+  wprint("Loading tiles for sections %d to %d...", scale * zstart + 1, scale * zend + 1);
+
+  if (needed) {
+    mRequests.clear();
+    
+    // Load from the middle out
+    for (delz = 0; delz <= numSlices; delz++) {
+      for (dir = -1; dir <= 1; dir += 2) {
+        iz = middleZ + dir * delz;
+        if (iz < zstart || iz > zend)
+          continue;
+        loadTilesContainingArea(cacheInd, baseXstart, baseYstart, nxUse, nyUse, iz);
+        imod_info_input();
+      }
+    }
+  }
+
+  wprint("DONE!\n");
+  
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// ROUTINES FOR ACCESSING PLANES OF IMAGE DATA
+//////////////////////////////////////////////////////////////////////////////
 
 /*
  * Return the subarea of a section needed for display from a chosen cache.
@@ -751,8 +939,8 @@ unsigned char **PyramidCache::getSectionArea(int section, int fullXstart, int fu
 {
   int ind, which, pixSize, xstart, ystart, numBuf, zind, indStart, indEnd;
   int fillVal,xtile, ytile, bufInd, startXtile, startYtile, XinTile, YinTile;
-  int endXtile, endYtile, tileXmin, tileXmax, tileYmin, tileYmax;
-  int useXmin, useXmax, useYmin, useYmax, skip, ix, iy, i, j, fac1, fac2;
+  int endXtile, endYtile;
+  int skip, ix, iy, i, j, fac1, fac2;
   size_t sizeNeeded;
   float zfrac;
   bool inBufferXY, zScaled, needInterp, bufferOK, loadOK, oneUsable, usableZ, tooSmall;
@@ -807,7 +995,8 @@ unsigned char **PyramidCache::getSectionArea(int section, int fullXstart, int fu
   }
 
   // Everything is fine if the requested section matches
-  bufferOK = inBufferXY && (section == mBufSection);
+  // But not if there are pending requests and this load is supposed to be synchronous
+  bufferOK = inBufferXY && (section == mBufSection) && (asyncLoad || !mRequests.size());
   loadOK = bufferOK;
   oneUsable = inBufferXY && needInterp && (needInBuf[0] >= 0 || needInBuf[1] >= 0);
   newTilesLoaded = mRequests.size() < mLastRequestSize;
@@ -853,10 +1042,8 @@ unsigned char **PyramidCache::getSectionArea(int section, int fullXstart, int fu
   if (!(loadOK || oneUsable)) {
 
     // Determine the area desired for the slice buffer and whether it is too big or small
-    optimalBufferSize(xstart, xsizeOut, cache->maxXload + 1 - cache->minXload, mBufXstart,
-                      mBufXsize);
-    optimalBufferSize(ystart, ysizeOut, cache->maxYload + 1 - cache->minYload, mBufYstart,
-                      mBufYsize);
+    optimalBufferSize(xstart, xsizeOut, cache->loadXsize, mBufXstart, mBufXsize);
+    optimalBufferSize(ystart, ysizeOut, cache->loadYsize, mBufYstart, mBufYsize);
     tooSmall = mBufXsize * mBufYsize > mBufTotSize;
     shrink = !tooSmall && (mBufTotSize - mBufXsize * mBufYsize > 
                            shrinkTileCrit * cache->xTileSize * cache->yTileSize && 
@@ -894,7 +1081,7 @@ unsigned char **PyramidCache::getSectionArea(int section, int fullXstart, int fu
       for (ind = 0; ind < numBuf; ind++) {
         mSliceBufs[ind] = (unsigned char *)malloc(pixSize * sizeNeeded);
         if (mSliceBufs[ind])
-          mTotalPixels += mBufTotSize;
+          mTotalPixels += sizeNeeded;
         else
           return NULL;
       }
@@ -956,38 +1143,10 @@ unsigned char **PyramidCache::getSectionArea(int section, int fullXstart, int fu
       xtile = xTileLoad[ind];
       ytile = yTileLoad[ind];
       for (bufInd = indStart; bufInd <= indEnd; bufInd++) {
-        request.indInCache = cache->tileIndex
-          [xtile + (ytile + needLoadZ[bufInd] * cache->numYtiles) * cache->numXtiles];
-        request.xTileInd = xtile;
-        request.yTileInd = ytile;
-        request.cacheInd = mBufCacheInd;
-        request.bufInd = bufInd;
-        request.section = needLoadZ[bufInd];
-
-        // Get coordinates of tile in cache loaded coordinate space and intersect
-        // with the buffer limits
-        findLoadLimits(mBufCacheInd, xtile, ytile, true, tileXmin, tileXmax, tileYmin, 
-                       tileYmax);
-        useXmin = B3DMAX(tileXmin, mBufXstart);
-        useXmax = B3DMIN(tileXmax, mBufXstart + mBufXsize - 1);
-        useYmin = B3DMAX(tileYmin, mBufYstart);
-        useYmax = B3DMIN(tileYmax, mBufYstart + mBufYsize - 1);
-
-        // Put limits in request structure
-        request.fromXstart = useXmin - tileXmin;
-        request.toXstart = useXmin - mBufXstart;
-        request.numXcopy = useXmax + 1 - useXmin;
-        request.fromYstart = useYmin - tileYmin;
-        request.toYstart = useYmin - mBufYstart;
-        request.numYcopy = useYmax + 1 - useYmin;
-        if (request.indInCache < 0) {
-          imodTrace('T', "Queuing %d %d from start %d %d copy %d %d to %d %d",
-                    xtile, ytile, request.fromXstart, request.fromYstart, 
-                    request.numXcopy, request.numYcopy, request.toXstart,
-                    request.toYstart);
+        if (copyOrQueueTile(mBufCacheInd, request, xtile, ytile, needLoadZ[bufInd],
+                            bufInd, mBufXstart, mBufXsize, mBufYstart, mBufYsize)) {
             
-          // If tile is not loaded, add request to queue and fill the area
-          mRequests.push_back(request);
+          // If tile is not loaded, fill the area
           bbuf = mSliceBufs[bufInd] + pixSize * 
             (request.toXstart + request.toYstart * mBufXsize);
           usbuf = (unsigned short *)bbuf;
@@ -1003,10 +1162,6 @@ unsigned char **PyramidCache::getSectionArea(int section, int fullXstart, int fu
               bbuf += skip;
             }
           }
-        } else {
-
-          // If tile is loaded, send request to copy routine
-          copyTileIntoBuffer(request, true);
         }
       }
     }
@@ -1055,6 +1210,439 @@ unsigned char **PyramidCache::getSectionArea(int section, int fullXstart, int fu
 }
 
 /*
+ * Gets a complete Z section for the base file, storing it in a buffer allocated just
+ * for this purpose and return separately allocated line pointers
+ */
+unsigned char **PyramidCache::getFullSection(int z)
+{
+  int xtile, ytile;
+  int pixSize = mVi->ushortStore ? 2 : 1;
+  size_t sizeNeeded = (size_t)mVi->xsize * mVi->ysize;
+  TileCache *cache = &mTileCaches[mBaseIndex];
+  LoadTileRequest request;
+
+  // If buffer is not allocated, try to allocate it under the total cache allowance
+  if (!mFullSecBuf) {
+    if (freeForNeededPixels(mBaseIndex, z, B3DNINT(mVi->zmouse), (double)sizeNeeded + 
+                            cache->xTileSize * cache->yTileSize, 1)) {
+      wprint("\aCache is not big enough to allow full section to be stored\n");
+      return NULL;
+    }
+    mFullSecBuf = (unsigned char *)malloc(sizeNeeded * pixSize);
+    if (!mFullSecBuf)
+      return NULL;
+    mTotalPixels += sizeNeeded;
+    mFullSecPtrs = makeLinePointers(mFullSecBuf, mVi->xsize, mVi->ysize, pixSize);
+    if (!mFullSecPtrs) {
+      freeFullSection();
+      return NULL;
+    }
+
+    // If buffer is already loaded for this section, pointers are all set
+  } else if (z == mFullSecZ)
+    return mFullSecPtrs;
+
+  // Otherwise copy or queue each tile
+  mRequests.clear();
+  for (ytile = 0; ytile < cache->numYtiles; ytile++) {
+    for (xtile = 0; xtile < cache->numXtiles; xtile++) {
+      copyOrQueueTile(mBaseIndex, request, xtile, ytile, z, FULL_SEC_BUF, 0, mVi->xsize,
+                      0, mVi->ysize);
+    }
+  }
+
+  // Load synchronously
+  if (mRequests.size())
+    loadRequestedTiles(0);
+
+  mFullSecZ = z;
+  return mFullSecPtrs;
+}
+
+/*
+ * Frees the full section data and returns space to the cache allowance
+ */
+void PyramidCache::freeFullSection()
+{
+  if (mFullSecBuf)
+    mTotalPixels -= (double)mVi->xsize * mVi->ysize;
+  B3DFREE(mFullSecBuf);
+  B3DFREE(mFullSecPtrs);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// ROUTINES FOR FAST ACCESS TO PIXELS OR LINES OF PIXELS
+//////////////////////////////////////////////////////////////////////////////
+
+/*
+ * Return parameters needed to set up use of ivwFastGetValue with tile caches
+ */
+void PyramidCache::setupFastAccess(int cacheInd, unsigned char **imdata, int *vmdataxsize,
+                                   int &cacheSum, int &tileXdelta, int &tileYdelta,
+                                   int &firstXoffset, int &firstYoffset)
+{
+  TileCache *cache = &mTileCaches[cacheInd];
+  int ind, index;
+  cacheSum = 0;
+  for (ind = 0; ind < cache->numXtiles * cache->numYtiles * cache->loadZsize; ind++) {
+    index = cache->tileIndex[ind];
+    if (index < 0) {
+      imdata[ind] = NULL;
+    } else {
+      imdata[ind] = mTiles[index].slice->data.b;
+      vmdataxsize[ind] = mTiles[index].slice->xsize;
+      cacheSum += index;
+    }
+  }
+  tileXdelta = cache->tileXdelta;
+  tileYdelta = cache->tileYdelta;
+  firstXoffset = cache->firstXoffset - cache->xOverlap / 2;
+  firstYoffset = cache->firstYoffset - cache->yOverlap / 2;
+}
+
+int PyramidCache::loadedCacheSum(int cacheInd)
+{
+  TileCache *cache = &mTileCaches[cacheInd];
+  int ind, index, cacheSum;
+  for (ind = 0; ind < cache->numXtiles * cache->numYtiles * cache->loadZsize; ind++) {
+    index = cache->tileIndex[ind];
+    if (index >= 0)
+      cacheSum += index;
+  }
+  return cacheSum;
+}
+
+/*
+ * Analyze tiles loaded in the given cache and provide a list of segments that provide
+ * data for filling in the given plane on the given axis.  StartInds is returned
+ * with the starting index of segments at each Y line in the plane.
+ */
+int PyramidCache::fastPlaneAccess(int cacheInd, int plane, int axis,
+                                  std::vector<FastSegment> &segments,
+                                  std::vector<int> &startInds)
+{
+  TileCache *cache = &mTileCaches[cacheInd];
+  int nz = cache->loadZsize;
+  FastSegment seg;
+  std::vector<FastSegment> rowSegs;
+  int pixSize = ivwGetPixelBytes(mVi->rawImageStore);
+  int xtile, ytile, xInTile, yInTile, tileXmin, tileXmax, tileYmin, tileYmax;
+  int iseg, numSeg, iz, ind, iy;
+  if (cacheInd < 0 || cacheInd >= mNumCaches)
+    return 1;
+  
+  segments.clear();
+  switch (axis) {
+  case b3dX:
+    startInds.resize(nz);
+
+    // For an X plane, first find the X tile and position in it that corresponds to plane
+    getTileAndPositionInTile(cacheInd, plane, 0, xtile, ytile, xInTile, yInTile);
+    for (iz = 0; iz < nz; iz++) {
+      startInds[iz] = segments.size();
+
+      // Loop on all the Y tiles in that column
+      for (ytile = 0; ytile < cache->numYtiles; ytile++) {
+        ind = cache->tileIndex[xtile + (ytile + iz * cache->numYtiles) * 
+                               cache->numXtiles];
+        if (ind >= 0) {
+
+          // Get limits of this tile in Y in loaded coordinates and specify the segment
+          // from the limits, indenting to the proper X position and striding by x size
+          findLoadLimits(cache->yTileSize, cache->yOverlap, ytile, cache->numYtiles,
+                         cache->startYtile, cache->fileYtileOffset, cache->minYload,
+                         cache->maxYload, true, tileYmin, tileYmax);
+          seg.XorY = tileYmin;
+          seg.YorZ = iz;
+          seg.length = tileYmax + 1 - tileYmin;
+          seg.stride = mTiles[ind].slice->xsize;
+          seg.line = mTiles[ind].slice->data.b + pixSize * xInTile;
+          segments.push_back(seg);
+        }
+      }
+    }
+    startInds[nz] = segments.size();
+    break;
+
+  case b3dY:
+    startInds.resize(nz);
+
+    // For a Y plane, find the y tile and position in it that correspond to plane
+    getTileAndPositionInTile(cacheInd, 0, plane, xtile, ytile, xInTile, yInTile);
+    for (iz = 0; iz < nz; iz++) {
+      startInds[iz] = segments.size();
+
+      // Loop on the X tiles in that row
+      for (xtile = 0; xtile < cache->numXtiles; xtile++) {
+        ind = cache->tileIndex[xtile + (ytile + iz * cache->numYtiles) * 
+                               cache->numXtiles];
+        if (ind >= 0) {
+
+          // Get limits of tile in X in loaded coordinates and specify a segment at
+          // the correct Y line with a stride of 1
+          findLoadLimits(cache->xTileSize, cache->xOverlap, xtile, cache->numXtiles,
+                         cache->startXtile, 0, cache->minXload,
+                         cache->maxXload, true, tileXmin, tileXmax);
+          seg.XorY = tileXmin;
+          seg.YorZ = iz;
+          seg.length = mTiles[ind].slice->xsize;
+          seg.stride = 1;
+          seg.line = mTiles[ind].slice->data.b + pixSize * yInTile * seg.length;
+          segments.push_back(seg);
+        }
+      }
+    }
+    startInds[nz] = segments.size();
+    break;
+
+  case b3dZ:
+    startInds.resize(cache->maxYload + 2 - cache->minYload);
+    rowSegs.resize(cache->numXtiles);
+
+    // For a Z plane, loop on the y tiles and find loaded Y limits for a row of tiles
+    for (ytile = 0; ytile < cache->numYtiles; ytile++) {
+      findLoadLimits(cache->yTileSize, cache->yOverlap, ytile, cache->numYtiles,
+                     cache->startYtile, cache->fileYtileOffset, cache->minYload,
+                     cache->maxYload, true, tileYmin, tileYmax);
+
+      // For a row of tiles, compile a list of segments at the bottom of the tiles
+      numSeg = 0;
+      for (xtile = 0; xtile < cache->numXtiles; xtile++) {
+        ind = cache->tileIndex[xtile + (ytile + plane * cache->numYtiles) * 
+                               cache->numXtiles];
+        if (ind >= 0) {
+          findLoadLimits(cache->xTileSize, cache->xOverlap, xtile, cache->numXtiles,
+                         cache->startXtile, 0, cache->minXload,
+                         cache->maxXload, true, tileXmin, tileXmax);
+          rowSegs[numSeg].XorY = tileXmin;
+          rowSegs[numSeg].YorZ = tileYmin;
+          rowSegs[numSeg].length = mTiles[ind].slice->xsize;
+          rowSegs[numSeg].stride = 1;
+          rowSegs[numSeg++].line = mTiles[ind].slice->data.b;
+        }
+      }
+
+      // Replicate those segments for the extent in Y, increasing Y and pointer each time
+      for (iy = 0; iy < tileYmax + 1 - tileYmin; iy++) {
+        startInds[iy + tileYmin] = segments.size();
+        for (iseg = 0; iseg < numSeg; iseg++) {
+          segments.push_back(rowSegs[iseg]);
+          rowSegs[iseg].YorZ++;
+          rowSegs[iseg].line += pixSize * rowSegs[iseg].length;
+        }
+      }
+    }
+    startInds[tileYmax] = segments.size();
+    break;
+
+  default:
+    return 1;
+  }
+  return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// GETTING STATISTICS BY SAMPLING ALL TILES
+//////////////////////////////////////////////////////////////////////////////
+
+/*
+ * Computes the mean and SD of an area by sampling, given whatever tiles are loaded for 
+ * a given cache.  Returns a cache sum that can be used to check if tiles have changed;
+ * if cacheSum equals oldCacheSum, it will return without computing the mean/SD again.
+ * When Z interpolation is used, it used a tile only if it is loaded at both Z values.
+ * If the optional arguments pctLo, pctHi, scaleLo and scaleHi are supplied, then it
+ * also computes the scale values for a percentile stretch with the given percentages,
+ * using the median of values from the different tiles.
+ */
+int PyramidCache::loadedMeanSD(int cacheInd, int section, float sample, int ixStart,
+                               int iyStart, int nxUse, int nyUse, float *mean, float *SD,
+                               int &cacheSum, int oldCacheSum, float pctLo, float pctHi,
+                               float *scaleLo, float *scaleHi)
+{
+  TileCache *cache = &mTileCaches[cacheInd];
+  int sampleType = mVi->ushortStore ? 2 : 0;
+  double numPix = 0., xsum = 0., xsqsum = 0.;
+  float tmpMean, tmpSD, xoffset, yoffset, loTemp, hiTemp;
+  int xstart, ystart, xsize, ysize, loop, nxtmp, index[3];
+  int tileXmin, tileXmax, tileYmin, tileYmax, xtile, ytile, xend, yend, otherZ[3];
+  int useXmin, useXmax, nxTileUse, useYmin, useYmax, nyTileUse, indz, neededZ[3];
+  int startXtile, startYtile, xtmp, ytmp, endXtile, endYtile, indZstart, indZend;
+  int nsum = 0, numTiles = 0;
+  bool needInterp;
+  float zweights[3] = {1., 1., 1.}, zfrac;
+  Islice *slice;
+  unsigned char **lines;
+  std::vector<float> loScales, hiScales;
+
+  // Find area that is needed for analysis
+  scaledAreaSize(cacheInd, ixStart, iyStart, nxUse, nyUse, xstart, ystart, xsize, ysize,
+                 xoffset, yoffset, false);
+  xend = xstart + xsize - 1;
+  yend = ystart + ysize - 1;
+  needInterp = findInterpolatedZvals(cache, section, neededZ, otherZ, zfrac);
+  if (needInterp) {
+    zweights[1] = 1. - zfrac;
+    zweights[2] = zfrac;
+  }
+  indZstart = needInterp ? 1 : 0;
+  indZend = needInterp ? 3 : 1;
+
+  // Get tiles needed for lower left and upper right
+  getTileAndPositionInTile(cacheInd, xstart, ystart, startXtile, startYtile, xtmp, ytmp);
+  getTileAndPositionInTile(cacheInd, xstart + xsize - 1, ystart + ysize - 1, endXtile,
+                           endYtile, xtmp, ytmp);
+
+  cacheSum = 0;
+  for (loop = 0; loop < 2; loop++) {
+
+    // second time through, revise the sample fraction upwards for number of pixels 
+    // First, give up if nothing loaded; and just return if cache sum matches
+    if (loop) {
+      if (!numPix)
+        return 1;
+      if (cacheSum == oldCacheSum) {
+        imodTrace('t', "Cache sum matches for %d tile%s", numTiles,
+                  needInterp ? " pairs" : "s");
+        return 0;
+      }
+      sample *= ((double)nxUse * nyUse) / B3DMAX(1, numPix);
+      sample = B3DMIN(sample, 1.);
+      imodTrace('t', "Cache sum for sec %d is %d, old %d", section, cacheSum,oldCacheSum);
+    }
+
+    // Loop on tiles in region
+    for (ytile = startYtile; ytile <= endYtile; ytile++) {
+      for (xtile = startXtile; xtile <= endXtile; xtile++) {
+        
+        // Find intersection with needed area
+        findLoadLimits(cacheInd, xtile, ytile, true, tileXmin, tileXmax, tileYmin, 
+                       tileYmax);
+        useXmin = B3DMAX(tileXmin, xstart);
+        useXmax = B3DMIN(tileXmax, xend);
+        useYmin = B3DMAX(tileYmin, ystart);
+        useYmax = B3DMIN(tileYmax, yend);
+        nxTileUse = useXmax + 1 - useXmin;
+        nyTileUse = useYmax + 1 - useYmin;
+        
+        for (indz = indZstart; indz < indZend; indz++)
+          index[indz] = cache->tileIndex[xtile + (ytile + neededZ[indz] * 
+                                                  cache->numYtiles) * cache->numXtiles];
+        if ((!needInterp && index[0] >= 0) || (needInterp && index[1] >= 0 && 
+                                               index[2] >= 0)) {
+          if (loop) {
+            for (indz = indZstart; indz < indZend; indz++) {
+              slice = mTiles[index[indz]].slice;
+
+              // Make line pointers here; cannot reuse vi line pointers since floating is
+              // called by zap after image is gotten and before it is drawn
+              lines = makeLinePointers(slice->data.b, slice->xsize, 
+                                       slice->ysize, mVi->ushortStore ? 2 : 1);
+              if (lines != NULL && 
+                  !sampleMeanSD(lines, sampleType, slice->xsize, slice->ysize, 
+                                sample, useXmin - tileXmin, useYmin - tileYmin,
+                                nxTileUse, nyTileUse, &tmpMean, &tmpSD)) {
+                
+                // Accumulate sums and sums of squares, but weight the numbers by the
+                // Z weighting
+                nxtmp = B3DNINT(sample * nxTileUse * nyTileUse * zweights[indz]);
+                xsum += tmpMean * nxtmp;
+                nsum += nxtmp;
+                xsqsum += tmpSD * tmpSD * (nxtmp - 1.) + nxtmp * tmpMean * tmpMean;
+              }
+
+              // If the percentile stretch is wanted too, then get it and add to arrays
+              if (lines != NULL && scaleLo != NULL && scaleHi != NULL) {
+                percentileStretch(lines,
+                                  mVi->ushortStore ? SLICE_MODE_USHORT : SLICE_MODE_BYTE,
+                                  slice->xsize, slice->ysize, sample,
+                                  useXmin - tileXmin, useYmin - tileYmin,
+                                  nxTileUse, nyTileUse, pctLo, pctHi, &loTemp, &hiTemp);
+                loScales.push_back(loTemp);
+                hiScales.push_back(hiTemp);
+              }
+              B3DFREE(lines);
+            }
+          } else {
+            numPix += (double)nxTileUse * nyTileUse;
+            numTiles++;
+            for (indz = indZstart; indz < indZend; indz++)
+              cacheSum += index[indz] + xtile + ytile + 1;
+          }
+        }
+      }
+    }
+  }
+  if (nsum < 30)
+    return 1;
+  sumsToAvgSD((float)xsum, (float)xsqsum, nsum, mean, SD);
+  imodTrace('t', "Mean %.2f SD %.2f from %d tile%s cachesum %d", *mean, *SD, numTiles,
+            needInterp ? " pairs" : "s", cacheSum);
+
+  // For percentile stretch, take the median value
+  if (scaleLo != NULL && scaleHi != NULL) {
+    rsSortFloats(loScales.data(), loScales.size());
+    rsMedianOfSorted(loScales.data(), loScales.size(), scaleLo);
+    rsSortFloats(hiScales.data(), hiScales.size());
+    rsMedianOfSorted(hiScales.data(), hiScales.size(), scaleHi);
+  }
+  return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// ROUTINES FOR COMPUTING COORDINATES, GETTING VALUES, GENERAL SUPPORT OF CACHE USE
+//////////////////////////////////////////////////////////////////////////////
+
+/*
+ * Gets a single value at the given load coordinates from the base cache
+ */
+int PyramidCache::getValueFromBaseCache(int x, int y, int z)
+{
+  TileCache *cache = &mTileCaches[mBaseIndex];
+  int xtile, ytile, xInTile, yInTile, tileInd, index;
+  Islice *slice;
+
+  // Can half the overlap be incorporated into first offset?
+  xtile = (x + cache->firstXoffset - cache->xOverlap / 2) / cache->tileXdelta;
+  B3DCLAMP(xtile, 0, cache->numXtiles - 1);
+  ytile = (y + cache->firstYoffset - cache->yOverlap / 2) / cache->tileYdelta;
+  B3DCLAMP(ytile, 0, cache->numYtiles - 1);
+  tileInd = cache->tileIndex[xtile + (ytile + z * cache->numYtiles) * cache->numXtiles];
+  if (tileInd < 0)
+    return 0;
+  xInTile = xtile ? 
+    ((x + cache->firstXoffset - cache->xOverlap / 2) - xtile * cache->tileXdelta) : x;
+  yInTile = ytile ? 
+    ((y + cache->firstYoffset - cache->yOverlap / 2) - ytile * cache->tileYdelta) : y;
+  slice = mTiles[tileInd].slice;
+  index = yInTile * slice->xsize + xInTile;
+
+  /* DNM: calling routine is responsible for limit checks */
+  if (mVi->ushortStore)
+    return slice->data.us[index];
+  return slice->data.b[index];
+}  
+
+/*
+ * Get the coordinates in the base file of the given loaded point
+ */
+int PyramidCache::getBaseFileCoords(int x, int y, int z, int &fileX, int &fileY, 
+                                     int &fileZ)
+{
+  TileCache *cache = &mTileCaches[mBaseIndex];
+  int xtile, ytile, xInTile, yInTile, tileXmin, tileXmax, tileYmin, tileYmax;
+  getTileAndPositionInTile(mBaseIndex, x, y, xtile, ytile, xInTile, yInTile);
+  findLoadLimits(mBaseIndex, xtile, ytile, false, tileXmin, tileXmax, tileYmin,
+                 tileYmax);
+  fileZ = z;
+  if (adjustLoadLimitsForMont(cache, mVi->image->nx, mVi->image->ny, tileXmin, tileXmax,
+                              tileYmin, tileYmax, fileZ))
+    return 1;
+  fileX = tileXmin + xInTile;
+  fileY = tileYmin + yInTile;
+  return 0;
+}
+
+/*
  * Find the best cache to use given a zoom.  zoomUpLimit is an absolute limit for
  * how much a non-base cache will be zoomed up.  zoomDownLimit is a lower limit for
  * how much a higher resolution cache will be zoomed down if there is a lower-resolution
@@ -1092,36 +1680,6 @@ int PyramidCache::pickBestCache(double zoom, float zoomUpLimit, float zoomDownLi
 }
 
 /*
- * Copies the tile described in the request into the proper buffer and optionally 
- * updates use count
- */
-void PyramidCache::copyTileIntoBuffer(LoadTileRequest &request, bool manageUseCount)
-{
-  CacheSlice *tile = &mTiles[request.indInCache];
-  int fromSkip = tile->slice->xsize - request.numXcopy;
-  int toSkip = mBufXsize - request.numXcopy;
-
-  // Do the copy
-  if (request.numXcopy > 0 && request.numYcopy > 0) {
-    imodTrace('T', "copying %d %d from start %d %d copy %d %d to %d %d",
-              request.xTileInd, request.yTileInd, request.fromXstart, request.fromYstart, 
-              request.numXcopy, request.numYcopy, request.toXstart, request.toYstart);
-    memreccpy(mSliceBufs[request.bufInd], tile->slice->data.b, 
-              request.numXcopy, request.numYcopy, ivwGetPixelBytes(mVi->rawImageStore),
-              toSkip, request.toXstart, request.toYstart,
-              fromSkip, request.fromXstart, request.fromYstart);
-  }
-
-  // Update the use count unless it was brand new tile
-  if (manageUseCount) {
-    mUseMap.erase(tile->usedAtCount);
-    tile->usedAtCount = mUseCount;
-    mUseMap[mUseCount] = request.indInCache;
-    mUseCount += 1.;
-  }
-}
-
-/*
  * Given X and Y, loaded coordinates in the given cache, this computes the X and Y loaded
  * tile number and position with that tile
  */
@@ -1139,11 +1697,6 @@ void PyramidCache::getTileAndPositionInTile(int cacheInd, int x, int y, int &xti
     ((y + cache->firstYoffset - cache->yOverlap / 2) - ytile * cache->tileYdelta) : y;
 }
 
-//////////////////////////////////////////////////////////////////////////////////
-// Routines that do computations for one axis, given the parameters  for that axis
-// Plus some routines that take a cache index and call the respective one-axis routine for
-// both axes
-//
 /*
  * Determines the min and max loading coordinates for one file, in file coordinates of
  * that file, given the scale and size of that file and the limits for loading the
@@ -1305,17 +1858,16 @@ void PyramidCache::scaledRangeInZ(int cacheInd, int baseZstart, int baseZend, in
                                   int &zend, int &scale, float &offset)
 {
   TileCache *cache = &mTileCaches[cacheInd];
-  int nz = cache->maxZload + 1 - cache->minZload;
   double zreal;
   scale = cache->zScale;
   zreal = (baseZstart + 0.5 + mVi->li->zmin) / scale - 0.5 - cache->zOffset -
     cache->minZload;
-  B3DCLAMP(zreal, 0, nz - 1);
+  B3DCLAMP(zreal, 0, cache->loadZsize - 1);
   zstart = B3DNINT(zreal);
   offset = baseZstart - scale * zreal;
   zreal = (baseZend + 0.5 + mVi->li->zmin) / scale - 0.5 - cache->zOffset -
     cache->minZload;
-  B3DCLAMP(zreal, 0, nz - 1);
+  B3DCLAMP(zreal, 0, cache->loadZsize - 1);
   zend = B3DNINT(zreal);
 }
 
@@ -1378,6 +1930,43 @@ void PyramidCache::optimalBufferSize(int start, int sizeOut, int loadSize,
 }
 
 /*
+ * Tests whether a given zoom displayed at the given window size will require loading
+ * more than 50 MB (mbLoadLim) from file.
+ */
+bool PyramidCache::zoomRequiresBigLoad(double zoom, int winXsize, int winYsize)
+{
+  int cacheInd, scale, sizeXout, xstart, bufXstart, startXtile, endXtile;
+  int sizeYout, ystart, bufYstart, startYtile, endYtile, xtmp, ytmp;
+  double winZoom, numPix;
+  size_t bufXsize, bufYsize;
+  TileCache *cache;
+  ImodImageFile *image;
+  int mbLoadLim = 50;
+  cacheInd = pickBestCache(zoom, mZoomUpLimit, mZoomDownLimit, scale);
+  cache = &mTileCaches[cacheInd];
+  winZoom = zoom * scale;
+  sizeXout = B3DMIN((int)(winXsize / winZoom), cache->loadXsize);
+  xstart = (cache->loadXsize - sizeXout) / 2;
+  optimalBufferSize(xstart, sizeXout, cache->loadXsize, bufXstart, bufXsize);
+  sizeYout = B3DMIN((int)(winYsize / winZoom), cache->loadYsize);
+  ystart = (cache->loadYsize - sizeYout) / 2;
+  optimalBufferSize(ystart, sizeYout, cache->loadYsize, bufYstart, bufYsize);
+  getTileAndPositionInTile(cacheInd, bufXstart, bufYstart, startXtile, startYtile,
+                           xtmp, ytmp);
+  getTileAndPositionInTile(cacheInd, bufXstart + bufXsize - 1, bufYstart + bufYsize - 1,
+                           endXtile, endYtile, xtmp, ytmp);
+  numPix = ((double)cache->xTileSize * cache->yTileSize) * (endXtile + 1 - startXtile) * 
+    (endYtile + 1 - startYtile);
+  imodTrace('t', "zoom %f  xtile %d %d  ytile %d %d  numpix %f", zoom, startXtile,
+            endXtile, startYtile, endYtile, numPix);
+  if (mNumCaches > 1)
+    image = &mVi->imageList[cacheInd];
+  else
+    image = mVi->image;
+  return numPix > 1024. * 1024 * mbLoadLim / ivwGetPixelBytes(image->mode);
+}
+
+/*
  * Return the number of tiles in X and Y and planes in Z for the given cache
  */
 int PyramidCache::getCacheTileNumbers(int cacheInd, int &numXtiles, int &numYtiles,
@@ -1388,391 +1977,7 @@ int PyramidCache::getCacheTileNumbers(int cacheInd, int &numXtiles, int &numYtil
   TileCache *cache = &mTileCaches[cacheInd];
   numXtiles = cache->numXtiles;
   numYtiles = cache->numYtiles;
-  nz = cache->maxZload + 1 - cache->minZload;
+  nz = cache->loadZsize;
   return 0;
 }
 
-/*
- * Return parameters needed to set up use of ivwFastGetValue with tile caches
- */
-void PyramidCache::setupFastAccess(int cacheInd, unsigned char **imdata, int *vmdataxsize,
-                                   int &cacheSum, int &tileXdelta, int &tileYdelta,
-                                   int &firstXoffset, int &firstYoffset)
-{
-  TileCache *cache = &mTileCaches[cacheInd];
-  int ind, index;
-  cacheSum = 0;
-  for (ind = 0; ind < cache->numXtiles * cache->numYtiles * 
-         (cache->maxZload + 1 - cache->minZload); ind++) {
-    index = cache->tileIndex[ind];
-    if (index < 0) {
-      imdata[ind] = NULL;
-    } else {
-      imdata[ind] = mTiles[index].slice->data.b;
-      vmdataxsize[ind] = mTiles[index].slice->xsize;
-      cacheSum += index;
-    }
-  }
-  tileXdelta = cache->tileXdelta;
-  tileYdelta = cache->tileYdelta;
-  firstXoffset = cache->firstXoffset - cache->xOverlap / 2;
-  firstYoffset = cache->firstYoffset - cache->yOverlap / 2;
-}
-
-int PyramidCache::loadedCacheSum(int cacheInd)
-{
-  TileCache *cache = &mTileCaches[cacheInd];
-  int ind, index, cacheSum;
-  for (ind = 0; ind < cache->numXtiles * cache->numYtiles * 
-         (cache->maxZload + 1 - cache->minZload); ind++) {
-    index = cache->tileIndex[ind];
-    if (index >= 0)
-      cacheSum += index;
-  }
-  return cacheSum;
-}
-
-/*
- * Analyze tiles loaded in the given cache and provide a list of segments that provide
- * data for filling in the given plane on the given axis.  StartInds is returned
- * with the starting index of segments at each Y line in the plane.
- */
-int PyramidCache::fastPlaneAccess(int cacheInd, int plane, int axis,
-                                  std::vector<FastSegment> &segments,
-                                  std::vector<int> &startInds)
-{
-  TileCache *cache = &mTileCaches[cacheInd];
-  int nz = cache->maxZload + 1 - cache->minZload;
-  FastSegment seg;
-  std::vector<FastSegment> rowSegs;
-  int pixSize = ivwGetPixelBytes(mVi->rawImageStore);
-  int xtile, ytile, xInTile, yInTile, tileXmin, tileXmax, tileYmin, tileYmax;
-  int iseg, numSeg, iz, ind, iy;
-  if (cacheInd < 0 || cacheInd >= mNumCaches)
-    return 1;
-  
-  segments.clear();
-  switch (axis) {
-  case b3dX:
-    startInds.resize(nz);
-
-    // For an X plane, first find the X tile and position in it that corresponds to plane
-    getTileAndPositionInTile(cacheInd, plane, 0, xtile, ytile, xInTile, yInTile);
-    for (iz = 0; iz < nz; iz++) {
-      startInds[iz] = segments.size();
-
-      // Loop on all the Y tiles in that column
-      for (ytile = 0; ytile < cache->numYtiles; ytile++) {
-        ind = cache->tileIndex[xtile + (ytile + iz * cache->numYtiles) * 
-                               cache->numXtiles];
-        if (ind >= 0) {
-
-          // Get limits of this tile in Y in loaded coordinates and specify the segment
-          // from the limits, indenting to the proper X position and striding by x size
-          findLoadLimits(cache->yTileSize, cache->yOverlap, ytile, cache->numYtiles,
-                         cache->startYtile, cache->fileYtileOffset, cache->minYload,
-                         cache->maxYload, true, tileYmin, tileYmax);
-          seg.XorY = tileYmin;
-          seg.YorZ = iz;
-          seg.length = tileYmax + 1 - tileYmin;
-          seg.stride = mTiles[ind].slice->xsize;
-          seg.line = mTiles[ind].slice->data.b + pixSize * xInTile;
-          segments.push_back(seg);
-        }
-      }
-    }
-    startInds[nz] = segments.size();
-    break;
-
-  case b3dY:
-    startInds.resize(nz);
-
-    // For a Y plane, find the y tile and position in it that correspond to plane
-    getTileAndPositionInTile(cacheInd, 0, plane, xtile, ytile, xInTile, yInTile);
-    for (iz = 0; iz < nz; iz++) {
-      startInds[iz] = segments.size();
-
-      // Loop on the X tiles in that row
-      for (xtile = 0; xtile < cache->numXtiles; xtile++) {
-        ind = cache->tileIndex[xtile + (ytile + iz * cache->numYtiles) * 
-                               cache->numXtiles];
-        if (ind >= 0) {
-
-          // Get limits of tile in X in loaded coordinates and specify a segment at
-          // the correct Y line with a stride of 1
-          findLoadLimits(cache->xTileSize, cache->xOverlap, xtile, cache->numXtiles,
-                         cache->startXtile, 0, cache->minXload,
-                         cache->maxXload, true, tileXmin, tileXmax);
-          seg.XorY = tileXmin;
-          seg.YorZ = iz;
-          seg.length = mTiles[ind].slice->xsize;
-          seg.stride = 1;
-          seg.line = mTiles[ind].slice->data.b + pixSize * yInTile * seg.length;
-          segments.push_back(seg);
-        }
-      }
-    }
-    startInds[nz] = segments.size();
-    break;
-
-  case b3dZ:
-    startInds.resize(cache->maxYload + 2 - cache->minYload);
-    rowSegs.resize(cache->numXtiles);
-
-    // For a Z plane, loop on the y tiles and find loaded Y limits for a row of tiles
-    for (ytile = 0; ytile < cache->numYtiles; ytile++) {
-      findLoadLimits(cache->yTileSize, cache->yOverlap, ytile, cache->numYtiles,
-                     cache->startYtile, cache->fileYtileOffset, cache->minYload,
-                     cache->maxYload, true, tileYmin, tileYmax);
-
-      // For a row of tiles, compile a list of segments at the bottom of the tiles
-      numSeg = 0;
-      for (xtile = 0; xtile < cache->numXtiles; xtile++) {
-        ind = cache->tileIndex[xtile + (ytile + plane * cache->numYtiles) * 
-                               cache->numXtiles];
-        if (ind >= 0) {
-          findLoadLimits(cache->xTileSize, cache->xOverlap, xtile, cache->numXtiles,
-                         cache->startXtile, 0, cache->minXload,
-                         cache->maxXload, true, tileXmin, tileXmax);
-          rowSegs[numSeg].XorY = tileXmin;
-          rowSegs[numSeg].YorZ = tileYmin;
-          rowSegs[numSeg].length = mTiles[ind].slice->xsize;
-          rowSegs[numSeg].stride = 1;
-          rowSegs[numSeg++].line = mTiles[ind].slice->data.b;
-        }
-      }
-
-      // Replicate those segments for the extent in Y, increasing Y and pointer each time
-      for (iy = 0; iy < tileYmax + 1 - tileYmin; iy++) {
-        startInds[iy + tileYmin] = segments.size();
-        for (iseg = 0; iseg < numSeg; iseg++) {
-          segments.push_back(rowSegs[iseg]);
-          rowSegs[iseg].YorZ++;
-          rowSegs[iseg].line += pixSize * rowSegs[iseg].length;
-        }
-      }
-    }
-    startInds[tileYmax] = segments.size();
-    break;
-
-  default:
-    return 1;
-  }
-  return 0;
-}
-
-/*
- * Computes the mean and SD of an area by sampling, given whatever tiles are loaded for 
- * a given cache.  Returns a cache sum that can be used to check if tiles have changed;
- * if cacheSum equals oldCacheSum, it will return without computing the mean/SD again.
- * When Z interpolation is used, it used a tile only if it is loaded at both Z values.
- */
-int PyramidCache::loadedMeanSD(int cacheInd, int section, float sample, int ixStart,
-                               int iyStart, int nxUse, int nyUse, float &mean, float &SD,
-                               int &cacheSum, int oldCacheSum)
-{
-  TileCache *cache = &mTileCaches[cacheInd];
-  int sampleType = mVi->ushortStore ? 2 : 0;
-  double numPix = 0., xsum = 0., xsqsum = 0.;
-  float tmpMean, tmpSD, xoffset, yoffset;
-  int xstart, ystart, xsize, ysize, loop, nxtmp, index[3];
-  int tileXmin, tileXmax, tileYmin, tileYmax, xtile, ytile, xend, yend, otherZ[3];
-  int useXmin, useXmax, nxTileUse, useYmin, useYmax, nyTileUse, indz, neededZ[3];
-  int startXtile, startYtile, xtmp, ytmp, endXtile, endYtile, indZstart, indZend;
-  int nsum = 0, numTiles = 0;
-  bool needInterp;
-  float zweights[3] = {1., 1., 1.}, zfrac;
-  Islice *slice;
-  unsigned char **lines;
-
-  // Find area that is needed for analysis
-  scaledAreaSize(cacheInd, ixStart, iyStart, nxUse, nyUse, xstart, ystart, xsize, ysize,
-                 xoffset, yoffset, false);
-  xend = xstart + xsize - 1;
-  yend = ystart + ysize - 1;
-  needInterp = findInterpolatedZvals(cache, section, neededZ, otherZ, zfrac);
-  if (needInterp) {
-    zweights[1] = 1. - zfrac;
-    zweights[2] = zfrac;
-  }
-  indZstart = needInterp ? 1 : 0;
-  indZend = needInterp ? 3 : 1;
-
-  // Get tiles needed for lower left and upper right
-  getTileAndPositionInTile(cacheInd, xstart, ystart, startXtile, startYtile, xtmp, ytmp);
-  getTileAndPositionInTile(cacheInd, xstart + xsize - 1, ystart + ysize - 1, endXtile,
-                           endYtile, xtmp, ytmp);
-
-  cacheSum = 0;
-  for (loop = 0; loop < 2; loop++) {
-
-    // second time through, revise the sample fraction upwards for number of pixels 
-    // First, give up if nothing loaded; and just return if cache sum matches
-    if (loop) {
-      if (!numPix)
-        return 1;
-      if (cacheSum == oldCacheSum) {
-        imodTrace('t', "Cache sum matches for %d tile%s", numTiles,
-                  needInterp ? " pairs" : "s");
-        return 0;
-      }
-      sample *= ((double)nxUse * nyUse) / B3DMAX(1, numPix);
-      sample = B3DMIN(sample, 1.);
-      imodTrace('t', "Cache sum for sec %d is %d, old %d", section, cacheSum,oldCacheSum);
-    }
-
-
-    // Loop on tiles in region
-    for (ytile = startYtile; ytile <= endYtile; ytile++) {
-      for (xtile = startXtile; xtile <= endXtile; xtile++) {
-        
-        // Find intersection with needed area
-        findLoadLimits(cacheInd, xtile, ytile, true, tileXmin, tileXmax, tileYmin, 
-                       tileYmax);
-        useXmin = B3DMAX(tileXmin, xstart);
-        useXmax = B3DMIN(tileXmax, xend);
-        useYmin = B3DMAX(tileYmin, ystart);
-        useYmax = B3DMIN(tileYmax, yend);
-        nxTileUse = useXmax + 1 - useXmin;
-        nyTileUse = useYmax + 1 - useYmin;
-        
-        for (indz = indZstart; indz < indZend; indz++)
-          index[indz] = cache->tileIndex[xtile + (ytile + neededZ[indz] * 
-                                                  cache->numYtiles) * cache->numXtiles];
-        if ((!needInterp && index[0] >= 0) || (needInterp && index[1] >= 0 && 
-                                               index[2] >= 0)) {
-          if (loop) {
-            for (indz = indZstart; indz < indZend; indz++) {
-              slice = mTiles[index[indz]].slice;
-
-              // Make line pointers here; cannot reuse vi line pointers since floating is
-              // called by zap after image is gotten and before it is drawn
-              lines = makeLinePointers(slice->data.b, slice->xsize, 
-                                       slice->ysize, mVi->ushortStore ? 2 : 1);
-              if (lines != NULL && 
-                  !sampleMeanSD(lines, sampleType, slice->xsize, slice->ysize, 
-                                sample, useXmin - tileXmin, useYmin - tileYmin,
-                                nxTileUse, nyTileUse, &tmpMean, &tmpSD)) {
-                
-                // Accumulate sums and sums of squares, but weight the numbers by the
-                // Z weighting
-                nxtmp = B3DNINT(sample * nxTileUse * nyTileUse * zweights[indz]);
-                xsum += tmpMean * nxtmp;
-                nsum += nxtmp;
-                xsqsum += tmpSD * tmpSD * (nxtmp - 1.) + nxtmp * tmpMean * tmpMean;
-              }
-              B3DFREE(lines);
-            }
-          } else {
-            numPix += (double)nxTileUse * nyTileUse;
-            numTiles++;
-            for (indz = indZstart; indz < indZend; indz++)
-              cacheSum += index[indz] + xtile + ytile + 1;
-          }
-        }
-      }
-    }
-  }
-  if (nsum < 30)
-    return 1;
-  sumsToAvgSD((float)xsum, (float)xsqsum, nsum, &mean, &SD);
-  imodTrace('t', "Mean %.2f SD %.2f from %d tile%s cachesum %d", mean, SD, numTiles,
-            needInterp ? " pairs" : "s", cacheSum);
-  return 0;
-}
-
-void PyramidCache::fillCacheForArea(int section)
-{
-  int foundType;
-  XyzWindow *xyz;
-  TileCache *cache;
-  double zoom, numPix = 0.;
-  float xoffset, yoffset;
-  int xstart, ystart, xsize, ysize, ind, baseXstart, baseYstart, nxUse, nyUse;
-  int tileXmin, tileXmax, tileYmin, tileYmax, xtile, ytile, cacheInd, needed;
-  int numSlices, middleZ, scale, dir, delz, iz;
-  int startXtile, startYtile, xtmp, ytmp, endXtile, endYtile, zstart, zend;
-
-  // Get the area used and the zoom from the top zap or xyz window
-  QObject *topWin = imodDialogManager.getTopWindow(XYZ_WINDOW_TYPE, ZAP_WINDOW_TYPE, 
-                                                   foundType);
-  if (foundType < 0) {
-    wprint("\aFill Cache can be used only when there is a Zap or XYZ window open\n");
-    return;
-  }
-  if (foundType == ZAP_WINDOW_TYPE) {
-    if (zapSubsetLimits(mVi, baseXstart, baseYstart, nxUse, nyUse)) {
-      wprint("\aCannot get subarea limits from top Zap window\n");
-      return;
-    }
-    zoom = ((ZapWindow *)topWin)->mZap->mZoom;
-  } else {
-    xyz = (XyzWindow *)topWin;
-    xyz->getSubsetLimits(baseXstart, baseYstart, nxUse, nyUse);
-    zoom = xyz->mZoom;
-  }
-
-  // Find the cache being used there
-  cacheInd = pickBestCache(zoom, mZoomUpLimit, mZoomDownLimit, scale);
-  cache = &mTileCaches[cacheInd];
-
-  // Find range of tiles needed to cover the area and total pixels in them
-  scaledAreaSize(cacheInd, baseXstart, baseYstart, nxUse, nyUse, xstart, ystart, xsize,
-                 ysize, xoffset, yoffset, false);
-  scaledRangeInZ(cacheInd, section, section, middleZ, xtmp, scale, xoffset);
-  getTileAndPositionInTile(cacheInd, xstart, ystart, startXtile, startYtile, xtmp, ytmp);
-  getTileAndPositionInTile(cacheInd, xstart + xsize - 1, ystart + ysize - 1, endXtile,
-                           endYtile, xtmp, ytmp);
-  for (ytile = startYtile; ytile <= endYtile; ytile++) {
-    for (xtile = startXtile; xtile <= endXtile; xtile++) {
-      findLoadLimits(cacheInd, xtile, ytile, true, tileXmin, tileXmax, tileYmin,
-                     tileYmax);
-      numPix += (tileXmax + 1 - tileXmin) * (tileYmax + 1 - tileYmin);
-    }
-  }
-
-  // Determine number of slices that can be loaded and range of Z
-  numSlices = (int)((0.9 * mVMpixels - 3. * mBufTotSize) / numPix);
-  if (numSlices < 3) {
-    wprint("\aThe cache is not big enough to load more than 2 sections of this size\n");
-    return;
-  }
-  zstart = B3DMAX(0, middleZ - numSlices / 2);
-  zend = B3DMIN(cache->maxZload - cache->minZload, zstart + numSlices - 1);
-
-  // Loop through slices and tiles and update their use counts if they are loaded
-  needed = 0;
-  for (iz = zstart; iz <= zend; iz++) {
-    for (ytile = startYtile; ytile <= endYtile; ytile++) {
-      for (xtile = startXtile; xtile <= endXtile; xtile++) {
-        ind = cache->tileIndex[xtile + (ytile + iz * cache->numYtiles) *
-                               cache->numXtiles];
-        if (ind >= 0) {
-          mUseMap.erase(mTiles[ind].usedAtCount);
-          mTiles[ind].usedAtCount = mUseCount;
-          mUseMap[mUseCount] = ind;
-          mUseCount += 1.;
-        } else
-          needed++;
-      }
-    }
-  }
-
-  if (needed) {
-    mRequests.clear();
-    
-    // Load from the middle out
-    for (delz = 0; delz <= numSlices; delz++) {
-      for (dir = -1; dir <= 1; dir += 2) {
-        iz = middleZ + dir * delz;
-        if (iz < zstart || iz > zend)
-          continue;
-        loadTilesContainingArea(cacheInd, xstart, ystart, xsize, ysize, iz);
-        imod_info_input();
-      }
-    }
-  }
-
-  wprint("DONE!\n");
-  
-}

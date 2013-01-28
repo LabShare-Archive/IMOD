@@ -128,7 +128,10 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
   if (vi->fullCacheFlipped)
     return 0;
   if (vi->pyrCache) {
+    vi->loadingImage = 1;
     vi->pyrCache->fillCacheForArea(cz);
+    vi->loadingImage = 0;
+    imodDraw(vi, IMOD_DRAW_IMAGE);
     return 0;
   }
 

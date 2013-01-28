@@ -157,9 +157,9 @@ int xtumOpen(struct ViewInfo *vi)
     xtum->dialog->mGLw->setColormap(*(App->qColormap));
 
   xtum->dialog->setWindowTitle(imodCaption("3dmod Tumbler"));
-  xtum->ctrl = ivwNewControl(vi, xtumDraw_cb, xtumClose_cb, xtumKey_cb,
-                               (void *)xtum);
-  imodDialogManager.add((QWidget *)xtum->dialog, IMOD_IMAGE);
+  xtum->ctrl = ivwNewControl(vi, xtumDraw_cb, xtumClose_cb, xtumKey_cb, (void *)xtum);
+  imodDialogManager.add((QWidget *)xtum->dialog, IMOD_IMAGE, TUMBLER_WINDOW_TYPE, 
+                        xtum->ctrl);
   adjustGeometryAndShow((QWidget *)xtum->dialog, IMOD_IMAGE, false);
      
   return(0);

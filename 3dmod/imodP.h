@@ -244,7 +244,7 @@ extern int (*ivwFastGetValue)(int x, int y, int z);
 // Some favorite macros from SerialEM (note no ; on the member ones, and lower case)
 #define setMember(a,b) void set##b(a inVal) {m##b = inVal;}
 #define getMember(a,b) a get##b() {return m##b;}
-#define setSetMember(a,b) setMember(a,b);       \
+#define getSetMember(a,b) getMember(a,b);       \
   setMember(a,b)
 #define CLEAR_RESIZE(a,b,c) { a.clear(); \
   a.swap(std::vector<b>(a)); \
@@ -252,6 +252,7 @@ extern int (*ivwFastGetValue)(int x, int y, int z);
 
 #define RADIANS_PER_DEGREE 0.017453293
 #define MOVIE_DEFAULT 52965
+#define HUGE_CACHE 2000000000
 
 #define IMOD_GHOST_NEXTSEC (1)
 #define IMOD_GHOST_PREVSEC (2)

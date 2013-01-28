@@ -93,8 +93,8 @@ void imod_usage(char *name)
   qstr += "   -z min,max  Load in sub image.\n";
   qstr += "   -s min,max  Scale input to range [min,max] (0,0 for all files the same).\n";
   qstr += "   -I #  Load data as 16-bit integers (# = 1) or as bytes (# = 0).\n";
-  qstr += "   -C #  Set # of sections or Mbytes to cache (#M or #m for"
-    " Mbytes).\n";
+  qstr += "   -C #  Set # of sections or Mbytes to cache (#M or #m for Mbytes).\n";
+  qstr += "   -CT # Set # of sections or Mbytes for cache of tiles or strips.\n";
   qstr += "   -F    Fill cache right after starting program.\n";
   qstr += "   -Y    Rotate volume around X to model planes normal to Y axis.\n";
   qstr += "   -B #  Bin images by # in X, Y, and Z.\n";
@@ -107,6 +107,7 @@ void imod_usage(char *name)
   qstr += "   -o nx,ny  Set X and X overlaps for montage display.\n";
   qstr += "   -f    Load as frames even if image file has piece "
     "coordinates.\n";
+  qstr += "   -py   Image files are a pyramid of same data at different resolutions.\n";
   qstr += "   -r nx,ny,nz  Dimensions for raw image files.\n";
   qstr += "   -ri   Raw file is inverted in Y.\n";
   qstr += "   -t #  Mode for raw files: -1/0=byte, 1/6=int, 2=float, "
@@ -158,7 +159,6 @@ int main( int argc, char *argv[])
   int overx = 0;
   int overy = 0;
   int doStartup = 0;
-  int hugeCache = 2000000000;
   QString qname;
   QStringList plFileNames;
   int doFork = 1;
@@ -174,7 +174,7 @@ int main( int argc, char *argv[])
   bool useChooserPlug = false;
   int argScan;
   QRect infoGeom;
-  StartupForm *startup;
+  StartupForm *startup = NULL;
 
   /* Initialize data. */
   App = &app;
@@ -274,8 +274,8 @@ int main( int argc, char *argv[])
       mrc_init_li(&li, NULL);
       ivwInit(&vi, false);
       vi.li = &li;
-      startup->setValues(&vi, argv, firstfile, argc, doImodv, plistfname, 
-                         anglefname, xyzwinopen, sliceropen, zapOpen,
+      startup->setValues(&vi, argv, firstfile, argc, doImodv, plFileNames, 
+                         anglefname, useMdoc, xyzwinopen, sliceropen, zapOpen,
                          modelViewOpen, fillCache, ImodTrans, 0, frames,
                          nframex, nframey, overx, overy, overEntered);
     }
@@ -289,7 +289,6 @@ int main( int argc, char *argv[])
     /*for (i = 0; i < argc; i++)
       imodPrintStderr("%s ", argv[i]);
       imodPrintStderr("\n"); */
-    delete startup;
     doStartup = 0;
   }
 
@@ -362,7 +361,7 @@ int main( int argc, char *argv[])
           if (argv[i][pathlen - 1] == 'M' || argv[i][pathlen - 1] == 'm')
             vi.vmSize = -vi.vmSize;
           else if (!vi.vmSize)
-            vi.vmSize = hugeCache;
+            vi.vmSize = HUGE_CACHE;
           vi.keepCacheFull = 0;
           break;
         
@@ -556,8 +555,8 @@ int main( int argc, char *argv[])
       useChooserPlug = true;
       startup = new StartupForm(NULL, true, Qt::Window);
       startup->setWindowIcon(*(App->iconPixmap));
-      startup->setValues(&vi, argv, firstfile, argc, doImodv, plistfname,
-                         anglefname, xyzwinopen, sliceropen, zapOpen,
+      startup->setValues(&vi, argv, firstfile, argc, doImodv, plFileNames,
+                         anglefname, useMdoc, xyzwinopen, sliceropen, zapOpen,
                          modelViewOpen, fillCache, ImodTrans, vi.li->mirrorFFT,
                          frames, nframex, nframey, overx, overy, overEntered);
       if (startup->exec() == QDialog::Rejected) {
@@ -577,10 +576,18 @@ int main( int argc, char *argv[])
         imodv_main(argc, argv);
         exit(0);
       }
-      delete startup;
     }
   }
   
+  /* If the user did not limit cache and specified Fill cache, then restore
+     the flag to keep cache full */
+  if (fillCache && vi.vmSize == HUGE_CACHE)
+    vi.keepCacheFull = 1;
+  
+  // If cache is being filled, then cancel strip/tile option
+  if (vi.keepCacheFull)
+    vi.stripOrTileCache = 0;
+
   /* Initialize the display system - defer color ramps until image type is known */
   imod_display_init(App, argv);
 
@@ -795,7 +802,7 @@ int main( int argc, char *argv[])
     if (vi.ifd && plFileNames.size() > 0 && plistfname == NULL) {
       if (ivwLoadIFDpieceList(LATIN1(plFileNames[0]), vi.li, vi.hdr->nx, vi.hdr->ny,
                               vi.hdr->nz)) {
-        imodError(NULL, "3dmod: Error loading piece list file list in image list file");
+        imodError(NULL, "3dmod: Error loading piece list file listed in image list file");
         exit (12);
       }
       
@@ -896,17 +903,11 @@ int main( int argc, char *argv[])
     ClipHandler = new ImodClipboard(useStdin, true);
   App->listening = (print_wid ? 1 : 0) + (useStdin ? 2 : 0);
 
+  // Safe to delete startup now, we have all the arguments it was storing
+  delete startup;
+
   /********************************************/
   /* Load in image data, set up image buffer. */
-
-  /* If the user did not limit cache and specified Fill cache, then restore
-     the flag to keep cache full */
-  if (fillCache && vi.vmSize == hugeCache)
-    vi.keepCacheFull = 1;
-  
-  // If cache is being filled, then cancel strip/tile option
-  if (vi.keepCacheFull)
-    vi.stripOrTileCache = 0;
 
   /* Finish setting up and loading images */
   errno = 0;

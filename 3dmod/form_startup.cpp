@@ -99,9 +99,11 @@ void StartupForm::init()
   manageForModView();
   
   mFilesChanged = false;
+  mPiecesChanged = false;
   mArgv = NULL;
   mArgc = 0;
   mJoinedWithSpace = false;
+  mPieceJoinedwSpace = false;
   adjustSize();
 }
 
@@ -117,6 +119,7 @@ void StartupForm::manageForModView()
   angleFileLabel->setEnabled(!mModvMode);
   angleFileEdit->setEnabled(!mModvMode);
   angleSelectButton->setEnabled(!mModvMode);
+  useMdocBox->setEnabled(!mModvMode);
   subsetsBox->setEnabled(!mModvMode);
   xMinLabel->setEnabled(!mModvMode);
   xFromEdit->setEnabled(!mModvMode);
@@ -149,6 +152,8 @@ void StartupForm::manageForModView()
   cacheSizeEdit->setEnabled(!mModvMode);
   cacheSectionsButton->setEnabled(!mModvMode);
   megabyteButton->setEnabled(!mModvMode);
+  tileCacheBox->setEnabled(!mModvMode);
+  imagePyramidBox->setEnabled(!mModvMode);
   flipCheckBox->setEnabled(!mModvMode);
   loadUshortBox->setEnabled(!mModvMode);
   fillCacheBox->setEnabled(!mModvMode);
@@ -227,7 +232,8 @@ void StartupForm::modelChanged( const QString & model )
 
 void StartupForm::pfileChanged( const QString & pfile )
 {
-  mPieceFile = pfile;
+  mPiecesChanged = true;
+  mPieceFiles = pfile;
 }
 
 void StartupForm::angleFileChanged( const QString &afile )
@@ -268,7 +274,7 @@ void StartupForm::imageSelectClicked()
   enableButtons(true);
   
   // Join the list with ; and see if there are any spaces.  If not rejoin with spaces
-  // Remove the current directory to shorten string; the text box is limited to 32767 chars
+  // Remove current directory to shorten string; the text box is limited to 32767 chars
   mImageFiles = mImageFileList.join(";");
   mJoinedWithSpace = false;
   mImageFiles.remove(curDir);
@@ -287,9 +293,7 @@ void StartupForm::imageSelectClicked()
     dia_err("WARNING: The file list will be truncated in the Image file(s) edit box.\n"
             "All files should load OK if you do not try to edit the list.");
 
-  imageFilesEdit->blockSignals(true);
-  imageFilesEdit->setText(mImageFiles);
-  imageFilesEdit->blockSignals(false);
+  diaSetEditText(imageFilesEdit, mImageFiles);
   mFilesChanged = false;
 }
 
@@ -299,16 +303,18 @@ void StartupForm::modelSelectClicked()
   enableButtons(false);
   mModelFile = utilOpenFileName(this, "Select model file to load", 1, filter);
   enableButtons(true);
-  modelFileEdit->setText(mModelFile);
+  diaSetEditText(modelFileEdit, mModelFile);
 }
 
 void StartupForm::pieceSelectClicked()
 {
-  const char *filter[] = {"Piece list files (*.pl)"};
   enableButtons(false);
-  mPieceFile = utilOpenFileName(this, "Select piece list file to load", 1, filter);
+  mPieceFileList = imodPlugGetOpenNames(this, "Select piece list file(s) to load",
+                                        QString(),
+                                        "Piece list files (*.pl *.mdoc);;All files (*)");
   enableButtons(true);
-  pieceFileEdit->setText(mPieceFile);
+  loadFileList(mPieceFileList, mPieceFiles, pieceFileEdit, mPieceJoinedwSpace);
+  mPiecesChanged = false;
 }
 
 void StartupForm::angleSelectClicked()
@@ -317,7 +323,7 @@ void StartupForm::angleSelectClicked()
   enableButtons(false);
   mAngleFile = utilOpenFileName(this, "Select angle file to load", 1, filter);
   enableButtons(true);
-  angleFileEdit->setText(mAngleFile);
+  diaSetEditText(angleFileEdit, mAngleFile);
 }
 
 // A workaround to problem in Windows of file dialogs not being modal
@@ -352,7 +358,7 @@ void StartupForm::addArg( const char *arg )
 char ** StartupForm::getArguments( int & argc )
 {
   char numstr[32];
-  int fromVal, toVal, xybin, zbin;
+  int fromVal, toVal, xybin, zbin, ind;
   if (mModvMode) {
     
     // Model mode: add v for it, then size options
@@ -397,6 +403,10 @@ char ** StartupForm::getArguments( int & argc )
     addArg("-M");
   addArg("-I");
   addArg(loadUshortBox->isChecked() ? "1" : "0");
+  if (useMdocBox->isChecked())
+    addArg("-pm");
+  if (imagePyramidBox->isChecked())
+    addArg("-py");
   
   // Binning
   xybin = binXYSpinBox->value();
@@ -418,13 +428,14 @@ char ** StartupForm::getArguments( int & argc )
   }
   
   // Cache
-  if (!cacheSizeEdit->text().isEmpty()) {
+  if (!cacheSizeEdit->text().isEmpty() || tileCacheBox->isChecked()) {
     int cacheSize = cacheSizeEdit->text().toInt();
-    if (cacheSize > 0) {
+    if (tileCacheBox->isChecked())
+      addArg("-CT");
+    else
       addArg("-C");
-      sprintf(numstr, "%d%s", cacheSize, mCacheOption ? "M" : "");
-      addArg(numstr);
-    }
+    sprintf(numstr, "%d%s", cacheSize, mCacheOption ? "M" : "");
+    addArg(numstr);
   }
   
   // Subsets
@@ -461,10 +472,16 @@ char ** StartupForm::getArguments( int & argc )
     addArg(numstr);
   }
   
-  // Piece list file
-  if (!pieceFileEdit->text().isEmpty()) {
+  // Piece list files
+  if (mPiecesChanged) {
+    if (mPieceFiles.indexOf(';') < 0 && mPieceJoinedwSpace)
+      mPieceFileList = mPieceFiles.split(" ", QString::SkipEmptyParts);
+    else
+      mPieceFileList = mPieceFiles.split(";", QString::SkipEmptyParts);
+  }
+  for (ind = 0; ind < mPieceFileList.count(); ind++) {
     addArg("-p");
-    addArg(LATIN1(pieceFileEdit->text()));
+    addArg(LATIN1(mPieceFileList[ind]));
   }
   
   // Angle file
@@ -528,39 +545,35 @@ void StartupForm::addImageFiles()
 }
 
 
-void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc, 
-                             int doImodv, char *plistfname, char *anglefname, int xyzwinopen,
-                             int sliceropen, 
-                             int zapOpen, int modelViewOpen, int fillCache, int ImodTrans, 
-                             int mirror, int frames, int nframex, int nframey, 
-                             int overx, int overy, int overEntered )
+void StartupForm::setValues(ImodView *vi, char **argv, int firstfile, int argc, 
+                            int doImodv, QStringList &plFileNames, char *anglefname,
+                            int useMdoc, int xyzwinopen, int sliceropen, int zapOpen,
+                            int modelViewOpen, int fillCache, int ImodTrans, int mirror,
+                            int frames, int nframex, int nframey, int overx, int overy,
+                            int overEntered)
 {
+  int vms;
+
   // Imodv mode
   diaSetGroup(startAsGroup, doImodv);
   mModvMode = doImodv != 0;
   
   // Files. Join with ; then if there are no spaces, convert to space join
   if (firstfile && firstfile < argc) {
-    mImageFiles = "";
     for (int i = firstfile; i < argc; i++)
-      mImageFiles += QString(argv[i]) + ";";
-    mImageFileList = mImageFiles.split(";", QString::SkipEmptyParts);
-    if (mImageFiles.indexOf(' ') < 0) {
-      mImageFiles.replace(';', " ");
-      mJoinedWithSpace = true;
-    }
+      mImageFileList << QString(argv[i]);
+    loadFileList(mImageFileList, mImageFiles, imageFilesEdit, mJoinedWithSpace);
     if (mImageFiles.length() > 32760)
       dia_err("WARNING: The file list will be truncated in the Image file(s) edit box.\n"
               "All files should load OK if you do not try to edit the list.");
-
-    imageFilesEdit->blockSignals(true);
-    imageFilesEdit->setText(mImageFiles);
-    imageFilesEdit->blockSignals(false);
   }
-  if (plistfname)
-    pieceFileEdit->setText(QString(plistfname));
+  if (plFileNames.count()) {
+    mPieceFileList = plFileNames;
+    loadFileList(mPieceFileList, mPieceFiles, pieceFileEdit, mPieceJoinedwSpace);
+  }
   if (anglefname)
     angleFileEdit->setText(QString(anglefname));
+  useMdocBox->setChecked(useMdoc > 0);
   
   // X, Y, Z subset
   if (vi->li->xmin != -1 || vi->li->xmax != -1) {
@@ -602,12 +615,17 @@ void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc
   
   // Caching
   diaSetGroup(cacheGroup, vi->vmSize < 0 ? 1 : 0);
+  vms = vi->vmSize;
+  if (vms == HUGE_CACHE)
+    vms = 0;
   if (vi->vmSize) {
-    mStr.sprintf("%d", vi->vmSize > 0 ? vi->vmSize : -vi->vmSize);
+    mStr.sprintf("%d", vms > 0 ? vms : -vms);
     cacheSizeEdit->setText(mStr);
   }
   
   // Miscellaneous flags
+  tileCacheBox->setChecked(vi->stripOrTileCache > 0);
+  imagePyramidBox->setChecked(vi->imagePyramid > 0);
   flipCheckBox->setChecked(vi->li->axis == 2);
   fillCacheBox->setChecked(fillCache > 0);
   showRGBGrayBox->setChecked(vi->grayRGBs > 0);
@@ -629,6 +647,16 @@ void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc
     yOverlapSpinBox->setValue(overy);
   }
   manageForModView();    
+}
+void StartupForm::loadFileList(QStringList &fileList, QString &files,
+                               QLineEdit *fileEdit, bool &joinedWithSpace)
+{
+  files = fileList.join(";");
+  if (files.indexOf(' ') < 0) {
+    files.replace(';', " ");
+    joinedWithSpace = true;
+  }
+  diaSetEditText(fileEdit, files);
 }
 
 void StartupForm::helpClicked()

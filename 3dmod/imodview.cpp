@@ -150,9 +150,13 @@ unsigned char **ivwGetCurrentSection(ImodView *vi)
   return(ivwGetZSection(vi, cz));
 }
 
+/* Get the current Z section; with tile cache, this call will allocate a full section 
+   array and load tiles to fill it */
 unsigned char **ivwGetCurrentZSection(ImodView *vi)
 {
   int cz = (int)(vi->zmouse + 0.5f);
+  if (vi->pyrCache)
+    return (vi->pyrCache->getFullSection(cz));
   return(ivwGetZSection(vi, cz));
 }
 
@@ -1259,14 +1263,14 @@ void ivwSetRGBChannel(int value)
 }
 
 /*
- * To set up the tables and set the appropriate functon when doing tile caches
+ * To set up the tables and set the appropriate function when doing tile caches
  */
 int ivwSetupFastTileAccess(ImodView *vi, int cacheInd, int inNullvalue, int &cacheSum)
 {
   int nz;
   if (vi->pyrCache->getCacheTileNumbers(cacheInd, numXfastTiles, numYfastTiles, nz))
     return 1;
-  if (setupFastArrays(nz * numXfastTiles * numYfastTiles * nz, 1))
+  if (setupFastArrays(numXfastTiles * numYfastTiles * nz, 1))
     return 1;
   vi->pyrCache->setupFastAccess(cacheInd, imdata, vmdataxsize, cacheSum, fastTileXdelta,
                                 fastTileYdelta, fastTileXoffset, fastTileYoffset);
@@ -1859,6 +1863,13 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
   fp = vi->image->fp;
   mrcheader = (MrcHeader *)vi->image->header;
 
+  // For a tile cache, translate the coordinates and read it
+  if (vi->pyrCache) {
+    if (!vi->pyrCache->getBaseFileCoords(cx, cy, cz, fx, fy, fz))
+    return(ivwReadBinnedPoint(vi, fp, mrcheader, fx, fy, fz));
+      return 0.f;
+  }
+
   if (vi->li) {
 
     /* get to index values in file from screen index values */
@@ -2274,6 +2285,7 @@ int ivwLoadIMODifd(ImodView *vi, QStringList &plFileNames, bool &anyHavePieceLis
   int xsize = 0, ysize = 0, zsize;
   float smin = 0., smax = 0.;
   int version = 0;
+  int needVersion = 1;
   char *imgdir = NULL;
   QDir *curdir = new QDir();
   QString qname;
@@ -2294,6 +2306,11 @@ int ivwLoadIMODifd(ImodView *vi, QStringList &plFileNames, bool &anyHavePieceLis
         line[i] = 0x00;
         break;
       }
+
+    if (line[0] == '#') {
+      needVersion = 2;
+      continue;
+    }
 
     if (!strncmp("VERSION", line, 7)) {
       version = atoi(&line[8]);
@@ -2318,11 +2335,13 @@ int ivwLoadIMODifd(ImodView *vi, QStringList &plFileNames, bool &anyHavePieceLis
     // Define a scale for images that follow; can be defined again
     if (!strncmp("SCALE", line, 4)) {
       sscanf(line, "SCALE %f%*c%f\n", &smin, &smax);
+      needVersion = 2;
       continue;
     }
 
     if (!strncmp("PYRAMID", line, 7)) {
       vi->imagePyramid = 1;
+      needVersion = 2;
       continue;
     }
 
@@ -2365,6 +2384,7 @@ int ivwLoadIMODifd(ImodView *vi, QStringList &plFileNames, bool &anyHavePieceLis
         sscanf(line, "ORIGIN %f%*c%f%*c%f\n", &image->xtrans, &image->ytrans, 
                &image->ztrans);
       }
+      needVersion = 2;
       continue;
     }
 
@@ -2449,6 +2469,7 @@ int ivwLoadIMODifd(ImodView *vi, QStringList &plFileNames, bool &anyHavePieceLis
       if (imgdir)
         qname = QString(imgdir) + "/" + qname;
       plFileNames << QDir::convertSeparators(curdir->cleanPath(qname));
+      needVersion = 2;
       continue;
     }
 
@@ -2461,6 +2482,11 @@ int ivwLoadIMODifd(ImodView *vi, QStringList &plFileNames, bool &anyHavePieceLis
 
   /* save this in iv although it is an Ilist so ImageFile */
   vi->imageList = (ImodImageFile *)ilist;
+  if (version < needVersion) {
+    imodError(NULL, "3DMOD Error: "
+              "The image list file must specify version %d or higher\n", needVersion);
+    exit(3);
+  }
 
   if (imgdir)
     free(imgdir);
@@ -3119,6 +3145,24 @@ void ivwGetImageSize(ImodView *inImodView, int *outX, int *outY, int *outZ)
 int ivwGetImageStoreMode(ImodView *vi)
 {
   return vi->rawImageStore;
+}
+
+bool ivwDataInTileOrStripCache(ImodView *inImodView)
+{
+  return inImodView->pyrCache != NULL;
+}
+
+unsigned char **ivwGetTileCachedSection(ImodView *inImodView, int section)
+{
+  if (inImodView->pyrCache)
+    return inImodView->pyrCache->getFullSection(section);
+  return NULL;
+}
+
+void ivwFreeTileCachedSection(ImodView *inImodView)
+{
+  if (inImodView->pyrCache)
+    inImodView->pyrCache->freeFullSection();
 }
 
 int ivwGetMovieModelMode(ImodView *vw)
