@@ -258,7 +258,7 @@ image.
 [Field = AntialiasFilter]
 short = antialias
 type = I
-usage = Type of antialiasing filter to use when shrinking images (default 3)
+usage = Type of antialiasing filter to use when shrinking images (default 5)
 tooltip = 
 manpage = Type of antialiasing filter to use when reducing images with the
 -shrink option.  The available types of filters are:
