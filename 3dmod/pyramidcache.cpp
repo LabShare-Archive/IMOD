@@ -10,6 +10,7 @@
  * $Id$
  */
 
+#include <algorithm>
 #include "pyramidcache.h"
 #include "info_cb.h"
 #include "workprocs.h"
@@ -1580,10 +1581,18 @@ int PyramidCache::loadedMeanSD(int cacheInd, int section, float sample, int ixSt
 
   // For percentile stretch, take the median value
   if (scaleLo != NULL && scaleHi != NULL) {
-    rsSortFloats(loScales.data(), loScales.size());
-    rsMedianOfSorted(loScales.data(), loScales.size(), scaleLo);
-    rsSortFloats(hiScales.data(), hiScales.size());
-    rsMedianOfSorted(hiScales.data(), hiScales.size(), scaleHi);
+    std::sort(loScales.begin(), loScales.end());
+    nsum = loScales.size();
+    if (nsum % 2)
+      *scaleLo = loScales[nsum / 2];
+    else
+      *scaleLo = loScales[nsum / 2] + loScales[nsum / 2 - 1];
+    std::sort(hiScales.begin(), hiScales.end());
+    nsum = hiScales.size();
+    if (nsum % 2)
+      *scaleHi = hiScales[nsum / 2];
+    else
+      *scaleHi = hiScales[nsum / 2] + hiScales[nsum / 2 - 1];
   }
   return 0;
 }
