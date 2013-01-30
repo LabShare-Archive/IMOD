@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/30/13: Fixed the processing of the directive file parameter.(Bug# 1681)
+
 1/22/13: Switched Addtostack to dynamic array allocation.
 
 1/19/13: Mauro Maiorca contributed preNAD for NAD-type filtering of tilt
