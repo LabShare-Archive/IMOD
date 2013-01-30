@@ -40,6 +40,7 @@
 #include "hottoolbar.h"
 #include "slicer_classes.h"
 #include "sslice.h"
+#include "pyramidcache.h"
 #include "xcramp.h"
 #include "b3dgfx.h"
 #include "xcorr.h"
@@ -781,9 +782,14 @@ void SlicerFuncs::fillImageArray(int panning, int meanOnly, int rgbChannel)
 
   /* Set up image pointer tables */
   vmnullvalue = (App->cvi->white + App->cvi->black) / 2;
-  if (ivwSetupFastAccess(mVi, &imdata, vmnullvalue, &i, 
-                         mTimeLock ? mTimeLock : mVi->curTime))
+  if (mVi->pyrCache) {
+    if (ivwSetupFastTileAccess(mVi, mVi->pyrCache->getBaseIndex(), vmnullvalue, i))
+      return;
+  } else {
+    if (ivwSetupFastAccess(mVi, &imdata, vmnullvalue, &i, 
+                           mTimeLock ? mTimeLock : mVi->curTime))
     return;
+  }
 
   ivwSetRGBChannel(rgbChannel);
   noDataVal = vmnullvalue;

@@ -120,9 +120,9 @@ c
 c       come out with a best integral position and angle 
 c       interpolate angle if both sides exist
       cy=0.
+      y2=pmax
       if(.not.(needprod(ndxmax,indmap(kmax-1,nkern)).or.
      &    needprod(ndxmax,indmap(kmax-1,nkern))))then
-        y2=pmax
         y1=aprod(ndxmax,indmap(kmax-1,nkern))
         y3=aprod(ndxmax,indmap(kmax+1,nkern))
         denom=2.*(y1+y3-2.*y2)

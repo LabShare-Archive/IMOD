@@ -5,11 +5,12 @@
  *   Colorado.  See implementation file for full copyright notice.
  *
  *  $Id$
- *  No more Log
  */                                                                           
 
 #ifndef IMODVIEWP_H
 #define IMODVIEWP_H
+
+class QStringList;
 
 int ivwReopen(ImodImageFile *inFile);
 unsigned char **ivwGetCurrentSection(ImodView *iv);
@@ -18,6 +19,7 @@ unsigned char **ivwMakeLinePointers(ImodView *iv, unsigned char *data,
 int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
                        int inNullvalue, int *cacheSum, int time = -1);
 void ivwSetRGBChannel(int value);
+int ivwSetupFastTileAccess(ImodView *vi, int cacheInd, int inNullvalue, int &cacheSum);
 int ivwInitCache(ImodView *vi);
 
 /* Determines size of data unit */
@@ -35,11 +37,13 @@ int imod_setxyzmouse(void);
 int imod_redraw(ImodView *vw);
 
 int  imodImageFileDesc(FILE *fin);
-int  ivwLoadIMODifd(ImodView *vi);
+int  ivwLoadIMODifd(ImodView *vi, QStringList &plFileNames, bool &anyHavePieceList,
+                    bool &anyImageFail);
+int ivwLoadIFDpieceList(const char *plName, IloadInfo *li, int nx, int ny, int nz);
 int  ivwLoadImage(ImodView *iv);
 void ivwFlushCache(ImodView *vi, int time);
-void ivwMultipleFiles(ImodView *iv, char *argv[], int firstfile, 
-		      int lastimage);
+void ivwMultipleFiles(ImodView *iv, char *argv[], int firstfile, int lastimage, 
+                      bool &anyHavePieceList);
 
 void ivwTransModel(ImodView *iv);
 void ivwSetModelTrans(ImodView *iv);
@@ -48,6 +52,7 @@ void ivwCheckWildFlag(Imod *imod);
 void ivwScaleDepth8(ImodView *iv, ivwSlice *tempSlicePtr);
 void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
 int ivwReadBinnedSection(ImodView *vi, char *buf, int section);
+int ivwReadBinnedSection(ImodView *vi, ImodImageFile *image, char *buf, int section);
 void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin, 
                       unsigned char *brray);
 void ivwGetFileStartPos(ImodImageFile *image);

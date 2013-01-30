@@ -30,6 +30,7 @@
 #include "hottoolbar.h"
 
 #include "imod.h"
+#include "mv_image.h"
 #include "display.h"
 #include "b3dgfx.h"
 #include "xcramp.h"
@@ -48,6 +49,7 @@
 #include "cont_edit.h"
 #include "model_edit.h"
 #include "workprocs.h"
+#include "pyramidcache.h"
 #include "dia_qtutils.h"
 #include "preferences.h"
 #include "undoredo.h"
@@ -596,7 +598,7 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
   
   mCtrl = ivwNewControl(vi, zapDraw_cb, zapClose_cb, zapKey_cb, (void *)this);
   imodDialogManager.add((QWidget *)mQtWindow, IMOD_IMAGE, 
-                        wintype ? MULTIZ_WINDOW_TYPE : ZAP_WINDOW_TYPE);
+                        wintype ? MULTIZ_WINDOW_TYPE : ZAP_WINDOW_TYPE, mCtrl);
 
   if (!wintype) {
     diaMaximumWindowSize(maxWinx, maxWiny);
@@ -626,10 +628,13 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
 
       for (i = 0; i < 2; i++) {
         mZoom = 1.;
-        while (mZoom * vi->xsize > 1.1 * maxWinx || 
-               mZoom * vi->ysize > 1.1 * maxWiny - toolHeight) {
+        while ((mZoom * vi->xsize > 1.1 * maxWinx || 
+                mZoom * vi->ysize > 1.1 * maxWiny - toolHeight)) {
           newZoom = b3dStepPixelZoom(mZoom, -1);
           if (fabs(newZoom - mZoom) < 0.0001)
+            break;
+          if (mVi->pyrCache && mVi->pyrCache->zoomRequiresBigLoad(newZoom, maxWinx,
+                                                                  maxWiny - toolHeight))
             break;
           mZoom = (float)newZoom;
         }
@@ -721,6 +726,9 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
         // This test goes into infinite loop in Windows - Intel, 6/22/04
         // if (newZoom == mZoom)
         if (fabs(newZoom - mZoom) < 0.0001)
+          break;
+        if (mVi->pyrCache && mVi->pyrCache->zoomRequiresBigLoad(newZoom, needWinx,
+                                                                needWiny))
           break;
         mZoom = (float)newZoom;
       }
@@ -1731,7 +1739,7 @@ void ZapFuncs::keyRelease(QKeyEvent *event)
   mQtWindow->releaseKeyboard();
   mGfx->releaseMouse();
 
-  // Note that unless the user truns off autorepeat on the key, there is a
+  // Note that unless the user turns off autorepeat on the key, there is a
   // series of key press - release events and it does full draws
   if (mDrawCurrentOnly) {
     setDrawCurrentOnly(0);
@@ -3542,15 +3550,13 @@ void ZapFuncs::markXformCenter(float ix, float iy)
 /* return x pos in window for given image x cord. */
 int ZapFuncs::xpos(float x)
 {
-  return( (int)(((x - mXstart) * mXzoom) 
-                + mXborder));
+  return( (int)(((x - mXposStart) * mXzoom) + mXborder));
 }
 
 /* return y pos in window for given image y cord. */
 int ZapFuncs::ypos(float y)
 {
-  return((int)(((y - mYstart) * mZoom)
-               + mYborder));
+  return((int)(((y - mYposStart) * mZoom) + mYborder));
 }
 
 /* returns image coords in x,y, z, given mouse coords mx, my */
@@ -3578,8 +3584,8 @@ void ZapFuncs::getixy(int mx, int my, float &x, float &y, int &z)
         z = -1;
     }
   }
-  x = ((float)(mx - mXborder) / mXzoom) + (float)mXstart;
-  y = ((float)(my - mYborder) / mZoom) + (float)mYstart;
+  x = ((float)(mx - mXborder) / mXzoom) + (float)mXposStart;
+  y = ((float)(my - mYborder) / mZoom) + (float)mYposStart;
 }
 
 // Determine which panel a point is in for one direction and get the position
@@ -4212,7 +4218,16 @@ void ZapFuncs::drawGraphics()
   unsigned char *overImage;
   int overlay = 0;
   int otherSec = mSection + vi->overlaySec;
+  double zoom;
+  int xDrawsize, yDrawsize, xStart, yStart, tileScale = 1, status, imXsize, imYsize;
+  float xOffset, yOffset;
+  bool asyncLoad = !mVi->zmovie && imodDialogManager.windowCount(ZAP_WINDOW_TYPE) == 1 &&
+    !mvImageDrawingZplanes() && !mNumXpanels && !mVi->loadingImage;
 
+  zoom = mZoom;
+  imXsize = vi->xsize;
+  imYsize = vi->ysize;
+  
   // DNM: this is not needed, 1/12/08
   //  ivwGetLocation(vi, &x, &y, &z);
 
@@ -4227,6 +4242,8 @@ void ZapFuncs::drawGraphics()
   b3dSetImageOffset(mNumXpanels ? mPanelYsize : mWiny, vi->ysize,
                     mZoom, mYdrawsize, mYtrans, 
                     mYborder, mYstart, 1);
+  mXposStart = mXstart;
+  mYposStart = mYstart;
 
   /* Get the time to display and flush if time is different. */
   if (mTimeLock)
@@ -4236,8 +4253,41 @@ void ZapFuncs::drawGraphics()
   if (time != mTime)
     flushImage();
 
+  // For tile cache, go ahead and get the section area even if doing panels
+  // in order to get all the drawing parameters modified once
+  if (vi->pyrCache) {
+    mGfx->cancelRedraw();
+    imageData = vi->pyrCache->getSectionArea(mSection, mXstart, mYstart, mXdrawsize,
+                                             mYdrawsize, mZoom, asyncLoad, xDrawsize, 
+                                             yDrawsize, xOffset, yOffset, tileScale,
+                                             status);
+    xStart = 0;
+    yStart = 0;
+    zoom = mZoom * tileScale;
+    imXsize = xDrawsize;
+    imYsize = yDrawsize;
+    mXposStart += xOffset;
+    mYposStart += yOffset;
+    if (mXlastStart != mXstart || mXlastSize != mXdrawsize || 
+        mYlastStart != mYstart || mYlastSize != mYdrawsize || mLastStatus > 0)
+      flushImage();
+    mXlastStart = mXstart;
+    mXlastSize = mXdrawsize; 
+    mYlastStart = mYstart; 
+    mYlastSize = mYdrawsize;
+    mLastStatus = status;
+    if (status > 0)
+      mGfx->scheduleRedraw(300);   // 100 was way too often with debug version
+  } else {
+    xStart = mXstart;
+    xDrawsize = mXdrawsize;
+    yStart = mYstart;
+    yDrawsize = mYdrawsize;
+  }
+  
   if (!mNumXpanels) {
-    imageData = ivwGetZSectionTime(vi, mSection, time);
+    if (!vi->pyrCache)
+      imageData = ivwGetZSectionTime(vi, mSection, time);
 
     // If flag set, record the subarea size, clear flag, and do call float to
     // set the color map if necessary.  If the black/white changes, flush image
@@ -4256,13 +4306,13 @@ void ZapFuncs::drawGraphics()
     }
     
     b3dDrawBoxout(mXborder, mYborder, 
-                  mXborder + (int)(mXdrawsize * mZoom),
-                  mYborder + (int)(mYdrawsize * mZoom));
+                  mXborder + (int)(xDrawsize * zoom),
+                  mYborder + (int)(yDrawsize * zoom));
     
     // If overlay section is set and legal, get an image buffer and fill it
     // with the color overlay
     if (vi->overlaySec && App->rgba && !vi->rgbStore && otherSec >= 0 &&
-        otherSec < vi->zsize) {
+        otherSec < vi->zsize && !vi->pyrCache) {
       overImage = (unsigned char *)malloc(3 * vi->xsize * vi->ysize);
       if (!overImage) {
         wprint("\aFailed to get memory for overlay image.\n");
@@ -4292,13 +4342,13 @@ void ZapFuncs::drawGraphics()
     mOverlay = overlay;
 
     b3dDrawGreyScalePixelsHQ(imageData,
-                             vi->xsize, vi->ysize,
-                             mXstart, mYstart,
+                             imXsize, imYsize,
+                             xStart, yStart,
                              mXborder, mYborder,
-                             mXdrawsize, mYdrawsize,
+                             xDrawsize, yDrawsize,
                              mImage,
                              vi->rampbase, 
-                             (double)mZoom, (double)mZoom,
+                             zoom, zoom,
                              mHqgfx, mSection, rgba);
   } else {
 
@@ -4311,18 +4361,25 @@ void ZapFuncs::drawGraphics()
         iz = mSection + mPanelZstep * bl;
         if (iz < 0 || iz >= vi->zsize)
           continue;
-        imageData = ivwGetZSectionTime(vi, iz, time);
+        if (vi->pyrCache) {
+          imageData = vi->pyrCache->getSectionArea(iz, mXstart, mYstart, mXdrawsize,
+                                                   mYdrawsize, mZoom, asyncLoad,
+                                                   xDrawsize, yDrawsize, xOffset, yOffset,
+                                                   tileScale, status);
+        } else {
+          imageData = ivwGetZSectionTime(vi, iz, time);
+        }
         bl =  mXborder + mPanelXborder + ix * 
           (mPanelXsize + mPanelGutter);
         wh =  mYborder + mPanelYborder + iy * 
           (mPanelYsize + mPanelGutter);
         b3dDrawGreyScalePixelsHQ(imageData,
-                                 vi->xsize, vi->ysize,
-                                 mXstart, mYstart, bl, wh,
-                                 mXdrawsize, mYdrawsize,
+                                 imXsize, imYsize,
+                                 xStart, yStart, bl, wh,
+                                 xDrawsize, yDrawsize,
                                  mImages[ind],
                                  vi->rampbase, 
-                                 mZoom, mZoom,
+                                 zoom, zoom,
                                  mHqgfx, iz, rgba);
       }
     }
@@ -4330,7 +4387,7 @@ void ZapFuncs::drawGraphics()
 
   /* DNM 9/15/03: Get the X zoom, which might be slightly different */
   // Then get the subarea limits again with more correct zoom value
-  mXzoom = b3dGetCurXZoom();
+  mXzoom = b3dGetCurXZoom() / tileScale;
   mTime = time;
   if (mRecordSubarea) {
     setAreaLimits();

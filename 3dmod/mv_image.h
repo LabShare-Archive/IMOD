@@ -27,6 +27,7 @@ void mvImageSetThickTrans(int slices, int trans);
 int mvImageGetThickness(void);
 int mvImageGetTransparency(void);
 int mvImageGetFlags(void);
+bool mvImageDrawingZplanes(void);
 void mvImageCleanup();
 void mvImageGetMovieState(MovieSegment &segment);
 void mvImageSetMovieEndState(int startEnd, MovieSegment &segment);

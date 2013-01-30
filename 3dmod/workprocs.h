@@ -21,6 +21,7 @@ class ImodWorkproc : public QObject
  public:
   ImodWorkproc(ImodView *vw);
   ~ImodWorkproc() {};
+  void startTileLoading();
 
   QTimer *mAutoSaveTimer;
   QTimer *mMovieTimer;
@@ -30,6 +31,7 @@ class ImodWorkproc : public QObject
     void autoSaveTimeout();
     void movieTimeout();
     void controlTimeout();
+    void loadTileTimeout();
   
  private:
     void movieTimer();

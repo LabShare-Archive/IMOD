@@ -19,6 +19,7 @@
 #include "autox.h"
 #include "iproc.h"
 #include "info_cb.h"
+#include "pyramidcache.h"
 #include "control.h"
 #include "undoredo.h"
 
@@ -103,6 +104,8 @@ void autoxClosing()
 
   B3DFREE(ax->xlist);
   B3DFREE(ax->ylist);
+  if (ax->vw->pyrCache)
+    ax->vw->pyrCache->freeFullSection();
 
   imodDraw(ax->vw, IMOD_DRAW_IMAGE);
   B3DFREE(ax->data);
@@ -146,6 +149,8 @@ void autoxBuild()
   /* Refresh the line pointers */
   if (vw->ushortStore)
     autoImage = ivwMakeLinePointers(vw, vw->ax->byteSlice, vw->xsize, vw->ysize, 0);
+  else if (vw->pyrCache)
+    autoImage = vw->pyrCache->getFullSection(vw->ax->cz);
   else
     autoImage = ivwGetZSection(vw, vw->ax->cz);
 
@@ -508,7 +513,10 @@ static int autox_flood(Autox *ax)
   unsigned char neighflag;
   int test;
      
-  autoImage = ivwGetCurrentSection(ax->vw);
+  if (ax->vw->pyrCache)
+    autoImage = ax->vw->pyrCache->getFullSection(B3DNINT(ax->vw->zmouse));
+  else
+    autoImage = ivwGetCurrentSection(ax->vw);
   if (autoImage && ax->vw->ushortStore) {
     if (ivwCopyImageToByteBuffer(ax->vw, autoImage, ax->byteSlice))
       return 0;

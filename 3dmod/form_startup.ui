@@ -7,17 +7,17 @@
     <x>0</x>
     <y>0</y>
     <width>839</width>
-    <height>509</height>
+    <height>552</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>3dmod Startup</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_4">
+  <layout class="QVBoxLayout" name="verticalLayout_6">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <layout class="QVBoxLayout">
+      <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <layout class="QHBoxLayout">
          <property name="spacing">
@@ -155,7 +155,7 @@
          <item row="2" column="0">
           <widget class="QLabel" name="pieceFileLabel">
            <property name="text">
-            <string>Piece file:</string>
+            <string>Piece file(s):</string>
            </property>
            <property name="wordWrap">
             <bool>false</bool>
@@ -196,6 +196,13 @@
           <widget class="QLineEdit" name="angleFileEdit"/>
          </item>
         </layout>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="useMdocBox">
+         <property name="text">
+          <string>Piece file is a metadata autodoc (.mdoc) file</string>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="Line" name="Line1">
@@ -604,6 +611,19 @@
          </item>
         </layout>
        </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>18</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
       </layout>
      </item>
      <item>
@@ -661,9 +681,23 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="tileCacheBox">
+         <property name="text">
+          <string>Cache images as tiles or strips</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="fillCacheBox">
          <property name="text">
           <string>Fill cache upon startup</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="imagePyramidBox">
+         <property name="text">
+          <string>Image files form a pyramid at multiple resolutions</string>
          </property>
         </widget>
        </item>
@@ -1006,16 +1040,6 @@
       </layout>
      </item>
     </layout>
-   </item>
-   <item>
-    <widget class="Line" name="line2">
-     <property name="frameShape">
-      <enum>QFrame::VLine</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Sunken</enum>
-     </property>
-    </widget>
    </item>
    <item>
     <widget class="Line" name="line3">

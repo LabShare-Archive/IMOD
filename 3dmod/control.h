@@ -41,7 +41,7 @@ extern DLL_EX_IM DialogManager imodDialogManager;
 
 /* Types of windows for finding geometries and finding top windows */
 enum {ZAP_WINDOW_TYPE, MULTIZ_WINDOW_TYPE, SLICER_WINDOW_TYPE, XYZ_WINDOW_TYPE,
-      GRAPH_WINDOW_TYPE, UNKNOWN_TYPE};
+      GRAPH_WINDOW_TYPE, TUMBLER_WINDOW_TYPE, UNKNOWN_TYPE};
 /* END_CODE */
 
 /*!
@@ -143,9 +143,9 @@ class DLL_EX_IM DialogManager
 
   /*! Adds [widget] to the list for this {DialogManager}.  The class of dialog
    * or window is given in [dlgClass] and the specific type, if any, in
-   * [dlgType].  */
+   * [dlgType] (default UNKNOWN_TYPE), and a control ID can be supplied in [ctrlId].  */
   void add(QWidget *widget, int dlgClass = IMODV_DIALOG, 
-           int dlgType = UNKNOWN_TYPE);
+           int dlgType = UNKNOWN_TYPE, int ctrlId = -1);
 
   /*! Removes [widget] from the list for this {DialogManager}. */
   void remove(QWidget *widget);
@@ -162,6 +162,7 @@ class DLL_EX_IM DialogManager
   int windowCount(int dlgType);
   void windowList(QObjectList *objList, int dlgClass, int dlgType);
   QObject *getTopWindow(int dlgType);
+  QObject *getTopWindow(int dlgType, int dlgType2, int &typeFound);
 
  private:
   Ilist *mDialogList;

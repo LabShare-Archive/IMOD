@@ -8,14 +8,10 @@
  *   Bioscience at the University of Queensland (Australia)                  *
  *****************************************************************************/
 
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    Use hg log to see log
-*/
+/*  
+ *  $Id$
+ *   Use hg log to see log
+ */
 
 //############################################################
 
@@ -6542,7 +6538,10 @@ void DrawingTools::closeEvent ( QCloseEvent * e )
 	ivwFreeExtraObject(plug.view, plug.extraObjWPts);
 	
   ivwTrackMouseForPlugs(plug.view, 0);
-  
+
+  // DNM 1/27/13: add this call to free allocated arrays when closing if necessary
+  ivwFreeTileCachedSection(plug.view);
+
 	if(plug.copiedCont != NULL)
 	{
 		imodContourDelete( plug.copiedCont );   // caused a crash on second close of plugin
@@ -9650,7 +9649,6 @@ bool edit_setLivewireImage( int z )
 	if( z < 0 )
 		z = 0;
 	plug.lwWeightZVal = z;
-	
 	unsigned char **data = ivwGetCurrentZSection( plug.view );
 	int mode = ivwGetImageStoreMode( plug.view );
 	

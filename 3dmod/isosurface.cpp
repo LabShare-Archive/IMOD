@@ -35,6 +35,7 @@
 #include "imodv.h"
 #include "imod.h"
 #include "mkmesh.h"
+#include "pyramidcache.h"
 #include "mv_gfx.h"
 #include "isosurface.h"
 #include "surfpieces.h"
@@ -679,8 +680,14 @@ float ImodvIsosurface::fillVolumeArray()
   int value;
 
   /* Set up image pointer tables */
-  if ( ivwSetupFastAccess(mVi, &imdata, vmnullvalue, &tempCacheSum) )
-    return -1;
+  if (mVi->pyrCache) {
+    if (ivwSetupFastTileAccess(mVi, mVi->pyrCache->getBaseIndex(), vmnullvalue, 
+                               tempCacheSum))
+      return -1;
+  } else {
+    if ( ivwSetupFastAccess(mVi, &imdata, vmnullvalue, &tempCacheSum) )
+      return -1;
+  }
   if (mVi->ushortStore) {
     bmap = ivwUShortInRangeToByteMap(mVi);
     if (!bmap)

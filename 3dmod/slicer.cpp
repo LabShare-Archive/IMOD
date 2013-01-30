@@ -400,7 +400,7 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
     mQtWindow->mTimeBar->setWindowTitle(imodCaption("Slicer Time Toolbar"));
 	
   mCtrl = ivwNewControl(vi, slicerDraw_cb, slicerClose_cb, slicerKey_cb, (void *)this);
-  imodDialogManager.add((QWidget *)mQtWindow, IMOD_IMAGE, SLICER_WINDOW_TYPE);
+  imodDialogManager.add((QWidget *)mQtWindow, IMOD_IMAGE, SLICER_WINDOW_TYPE, mCtrl);
 
   // Set up cursor
   if (mMousemode == IMOD_MMODEL)

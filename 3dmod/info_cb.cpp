@@ -30,6 +30,7 @@
 #include "imodplug.h"
 #include "rescale.h"
 #include "info_cb.h"
+#include "pyramidcache.h"
 #include "preferences.h"
 #include "xcramp.h"
 #include "xzap.h"
@@ -55,6 +56,7 @@ typedef struct {
   int iyStart;
   int nxUse;
   int nyUse;
+  int cacheSum;
 } MeanSDData;
 
 /* Static variables for keeping track of floating */
@@ -575,12 +577,14 @@ int imod_info_bwfloat(ImodView *vi, int section, int time)
   float sample;
   int i, newwhite, newblack, err1;
   int needsize, iref, isec;
-  int ixStart, iyStart, nxUse, nyUse, jxStart, jyStart, mxUse, myUse;
+  int ixStart, iyStart, nxUse, nyUse, jxStart, jyStart, mxUse, myUse, cacheSum;
   float sloperatio, tmp_black, tmp_white, refMean, refSD, newdiff;
   unsigned char **image;
+  bool needMean;
   int retval = 0;
   int sampleType = vi->ushortStore ? 2 : 0;
   int rangeMax = vi->ushortStore ? 65535 : 255;
+  int cacheInd = vi->pyrCache ? vi->pyrCache->getBufCacheInd() : -1;
 
   // Skip through if this is the first call; there is no reference
   if (sFloatOn && sLastSection >= 0 && !vi->fakeImage && !vi->rgbStore) {
@@ -589,9 +593,9 @@ int imod_info_bwfloat(ImodView *vi, int section, int time)
     sTdim = ivwGetMaxTime(vi) + 1;
     needsize = vi->zsize * sTdim;
     if (sTableSize == 0)
-      sSecData = (MeanSDData *)malloc(needsize * sizeof(MeanSDData));
+      sSecData = B3DMALLOC(MeanSDData, needsize);
     else if (sTableSize != needsize)
-      sSecData = (MeanSDData *)realloc(sSecData, needsize * sizeof(MeanSDData));
+      B3DREALLOC(sSecData, MeanSDData, needsize);
 
     if (!sSecData) {
       imod_info_float_clear(-1, -1);
@@ -601,7 +605,7 @@ int imod_info_bwfloat(ImodView *vi, int section, int time)
     /* Clear out any new entries */
     if (sTableSize < needsize)
       for (i = sTableSize; i < needsize; i++)
-        sSecData[i].mean = sSecData[i].sd = -1;
+        sSecData[i].mean = sSecData[i].sd = sSecData[i].cacheSum = -1;
     sTableSize = needsize;
 
     if ((sLastSection + 1) * (sLastTime + 1) > sTableSize ||
@@ -638,18 +642,29 @@ int imod_info_bwfloat(ImodView *vi, int section, int time)
       // Get new data now if there is no valid data for the reference section
       // or if the area has changed, but only if something else has changed,
       // namely section, time, or subset versus non-subset
-      if (sSecData[iref].sd < 0. || 
-          ((ixStart != sSecData[iref].ixStart ||
-            iyStart != sSecData[iref].iyStart || 
+      needMean = sSecData[iref].sd < 0. ||
+          ((ixStart != sSecData[iref].ixStart || iyStart != sSecData[iref].iyStart || 
             nxUse != sSecData[iref].nxUse || nyUse != sSecData[iref].nyUse) &&
            (section != sLastSection || time != sLastTime || 
-            sFloatSubsets != sLastSubsets))) {
-        image = ivwGetZSectionTime(vi, sLastSection, sLastTime);
+            sFloatSubsets != sLastSubsets));
+      if (needMean) {
         getSampleLimits(vi, jxStart, jyStart, mxUse, myUse, sample, sLastSection, 
                         sLastTime);
-        err1 = sampleMeanSD(image, sampleType, vi->xsize, vi->ysize, sample,
-                            jxStart, jyStart, mxUse, myUse, 
-                            &sSecData[iref].mean, &sSecData[iref].sd);
+
+        // Get data from cache tiles or from Z slice
+        if (cacheInd >= 0) {
+          err1 = vi->pyrCache->loadedMeanSD(cacheInd, sLastSection, sample,
+                                            jxStart, jyStart, mxUse, myUse, 
+                                            &sSecData[iref].mean, &sSecData[iref].sd,
+                                            cacheSum, -1);
+          if (!err1)
+            sSecData[iref].cacheSum = cacheSum;
+        } else {
+          image = ivwGetZSectionTime(vi, sLastSection, sLastTime);
+          err1 = sampleMeanSD(image, sampleType, vi->xsize, vi->ysize, sample,
+                              jxStart, jyStart, mxUse, myUse, 
+                              &sSecData[iref].mean, &sSecData[iref].sd);
+        }
         if (!err1 && sSecData[iref].sd < 0.1)
           sSecData[iref].sd = 0.1;
         
@@ -659,27 +674,52 @@ int imod_info_bwfloat(ImodView *vi, int section, int time)
             vi->rampsize;
       }
 
-      // Otherwise, take existing data as the reference - allows change
-      // for new subset within a section to be tracked
+      // Otherwise, take existing data as the reference - allows change for new subset 
+      // within a section to be tracked, and also allows change as additional tiles are
+      // loaded
       refMean = sSecData[iref].mean;
       refSD = sSecData[iref].sd;
     }
 	       
-    if (!err1 && (sSecData[isec].sd < 0. || ixStart != sSecData[isec].ixStart || 
-        iyStart != sSecData[isec].iyStart || 
-        nxUse != sSecData[isec].nxUse || nyUse != sSecData[isec].nyUse)) {
-      image = ivwGetZSectionTime(vi, section, time);
+    // Need a new mean from current section if there was not one before, or if the
+    // subarea changed; but also may need new mean if more tiles have been loaded
+    needMean = sSecData[isec].sd < 0. || ixStart != sSecData[isec].ixStart || 
+                iyStart != sSecData[isec].iyStart || 
+                nxUse != sSecData[isec].nxUse || nyUse != sSecData[isec].nyUse;
+    if (!err1 && (needMean || (cacheInd >= 0 && sSecData[isec].cacheSum > 0))) {
       getSampleLimits(vi, jxStart, jyStart, mxUse, myUse, sample, section, time);
-      err1 = sampleMeanSD(image, sampleType, vi->xsize, vi->ysize, sample,
-                          jxStart, jyStart, mxUse, myUse, 
-                          &sSecData[isec].mean, &sSecData[isec].sd);
+      
+      // Get mean from loaded tiles; if we needed one anyway, be sure to get it by setting
+      // old cache sum to -1; otherwise send it old cache sum and it can skip computing
+      // if it matches
+      if (cacheInd >= 0) {
+        err1 = vi->pyrCache->loadedMeanSD(cacheInd, section, sample,
+                                          jxStart, jyStart, mxUse, myUse, 
+                                          &sSecData[isec].mean, &sSecData[isec].sd,
+                                          cacheSum, 
+                                          needMean ? -1 : sSecData[isec].cacheSum);
+
+        // If this succeeded, save the cache sum; if there was nothing there, just return
+        // to keep the existing reference section
+        if (!err1)
+          sSecData[isec].cacheSum = cacheSum;
+        else
+          return 0;
+
+        // Or get data from Z slice
+      } else {
+        image = ivwGetZSectionTime(vi, section, time);
+        err1 = sampleMeanSD(image, sampleType, vi->xsize, vi->ysize, sample,
+                            jxStart, jyStart, mxUse, myUse, 
+                            &sSecData[isec].mean, &sSecData[isec].sd);
+      }
       if (!err1 && sSecData[isec].sd < 0.1)
         sSecData[isec].sd = 0.1;
       if (!err1 && App->depth == 8)
-	sSecData[isec].mean = (sSecData[isec].mean - vi->rampbase) * 256. /
-          vi->rampsize;
+        sSecData[isec].mean = (sSecData[isec].mean - vi->rampbase) * 256. / vi->rampsize;
     }
 	       
+    // If all that succeeded, save the analysis area for reference and section and proceed
     if (!err1) {
       sSecData[iref].ixStart = sSecData[isec].ixStart = ixStart;
       sSecData[iref].nxUse = sSecData[isec].nxUse = nxUse;
@@ -732,16 +772,18 @@ int imod_info_bwfloat(ImodView *vi, int section, int time)
         imodPrintStderr("mean = %d  sd = %.2f\n", meanmap, sdmap);
       }
 
-      /* Set the sliders and the ramp if the integer values changed*/
+      // Set the sliders and the ramp if the integer values changed
       if (newwhite != vi->white || newblack != vi->black) {
         vi->black = newblack;
         vi->white = newwhite;
         xcramp_setlevels(vi->cramp, vi->black, vi->white);
-	sDoingFloat = 1;
+        sDoingFloat = 1;
         imod_info_setbw(vi->black, vi->white);
-	sDoingFloat = 0;
+        sDoingFloat = 0;
         retval = 1;
       }
+
+      // Keep track of things for next time
       sRefBlack = tmp_black;
       sRefWhite = tmp_white;
       sLastSubsets = sFloatSubsets;
@@ -832,7 +874,7 @@ void imodInfoAutoContrast(int targetMean, int targetSD)
   ZapFuncs *zap = getTopZapWindow(false);
   nloop = 1;
 
-  if (zap)
+  if (zap && !vi->pyrCache)
     image = zap->zoomedDownImage(sFloatSubsets, nxim, nyim, ixStart, iyStart, nxUse,
                                  nyUse);
 
@@ -943,26 +985,35 @@ void imodInfoAutoContrast(int targetMean, int targetSD)
 int imodInfoCurrentMeanSD(float &mean, float &sd, float &scaleLo, float &scaleHi)
 {
   float sample;
-  int ixStart, iyStart, nxUse, nyUse;
+  int ixStart, iyStart, nxUse, nyUse, cacheSum;
   unsigned char **image;
   ViewInfo *vi = App->cvi;
   float pctLo = 0.1f, pctHi = 0.1f;  // Take fixed limits for now
+  int izsec = B3DNINT(vi->zmouse);
+  float *scaleLoPtr = NULL;
 
   // Get the limits to compute within, get images, get the mean & sd
-  getSampleLimits(vi, ixStart, iyStart, nxUse, nyUse, sample, B3DNINT(vi->zmouse),
-                  vi->curTime);
-  image = ivwGetZSectionTime(vi, B3DNINT(vi->zmouse), vi->curTime);
-  if (!image)
-    return 1;
-  if (sampleMeanSD(image, vi->ushortStore ? 2 : 0, vi->xsize, vi->ysize, sample,
-                    ixStart, iyStart, nxUse, nyUse, &mean, &sd))
-    return 1;
+  getSampleLimits(vi, ixStart, iyStart, nxUse, nyUse, sample, izsec, vi->curTime);
+  if (vi->pyrCache) {
+    if (vi->ushortStore)
+      scaleLoPtr = &scaleLo;
+    if (vi->pyrCache->loadedMeanSD(vi->pyrCache->getBufCacheInd(), izsec, sample, ixStart,
+                                   iyStart, nxUse, nyUse, &mean, &sd, cacheSum, -1,
+                                   pctLo, pctHi, scaleLoPtr, &scaleHi))
+      return 1;
+  } else {
+    image = ivwGetZSectionTime(vi, izsec, vi->curTime);
+    if (sampleMeanSD(image, vi->ushortStore ? 2 : 0, vi->xsize, vi->ysize, sample,
+                     ixStart, iyStart, nxUse, nyUse, &mean, &sd))
+      return 1;
+  }
 
   scaleLo = mean - 3. * sd;
   scaleHi = mean * 3. * sd;
   if (vi->ushortStore) {
-    percentileStretch(image, SLICE_MODE_USHORT, vi->xsize, vi->ysize, sample,
-                      ixStart, iyStart, nxUse, nyUse, pctLo, pctHi, &scaleLo, &scaleHi);
+    if (!vi->pyrCache)
+      percentileStretch(image, SLICE_MODE_USHORT, vi->xsize, vi->ysize, sample,
+                        ixStart, iyStart, nxUse, nyUse, pctLo, pctHi, &scaleLo, &scaleHi);
     scaleLo = B3DMAX(0., scaleLo);
     scaleHi = B3DMIN(65535., scaleHi);
     if ((int)scaleLo >= (int)scaleHi - 1) {
