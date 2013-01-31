@@ -126,7 +126,6 @@ public final class SetupDialogExpert {
   private final SetupReconUIHarness setupUIHarness;
 
   private File dir = null;
-  private boolean setFEIPixelSize = false;
 
   private SetupDialogExpert(final ApplicationManager manager,
       final SetupReconUIHarness setupUIHarness, final boolean calibrationAvailable) {
@@ -418,11 +417,6 @@ public final class SetupDialogExpert {
       dialog.setExcludeListEnabled(AxisID.SECOND, false);
       dialog.setViewRawStackEnabled(AxisID.SECOND, false);
     }
-    setFEIPixelSize = userConfig.isSetFEIPixelSize();
-  }
-
-  public boolean isSetFEIPixelSize() {
-    return setFEIPixelSize;
   }
 
   boolean validateTiltAngle(final AxisID axisID, final String errorTitle) {
