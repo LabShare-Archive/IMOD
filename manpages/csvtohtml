@@ -47,7 +47,6 @@ if insertLines:
       prnstr('ERROR: Could not find a line with ' + insertTag + ' in ' + sys.argv[3])
       sys.exit(1)
 
-   needTitle = False
    insertInd += 1
    
 else:
@@ -64,6 +63,9 @@ for row in inrows:
    lastNonEmpty = lastNonEmptyIndex(row)
    tdtag = 'TD'
    if needTitle:
+      if insertLines:
+         needTitle = False
+         continue;
       if lastNonEmpty < 0:
          continue
       outlines += ['<TITLE>' + row[0] + '</TITLE>',
