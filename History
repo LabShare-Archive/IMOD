@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1/30/13: Fixed the processing of the directive file parameter.(Bug# 1681)
+1/31/13: Fixed the processing of the directive file parameter.(Bug# 1681)
 
 1/28/13: XYZ window now has a toolbar button to apply the current Z scale to
 the XZ and YZ views; the setting is saved between invocations.
