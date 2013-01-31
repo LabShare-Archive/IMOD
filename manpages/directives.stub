@@ -8,7 +8,20 @@ INSERT CSV FILE
 Notes:
 <OL>
 <LI> Rules for the treatment of directives and the format of values are
-  described in the <A HREF="man/batchruntomo.html">man page</A> for Batchruntomo.
+  described in the <A HREF="man/batchruntomo.html">man page</A> for
+  Batchruntomo. Some essentials are:
+<UL>
+<LI> Directives are processed in order from scope template, system template,
+  user template, and batch directive files, and later entries override earlier
+  ones. 
+<LI> A "comparam" directive with an empty value will cause the parameter to
+be removed from the command file.
+<LI> A boolean option in a "comparam" directive is turned on if the value is
+  1, turned off if the value is 0, and removed from the command file (hence
+  off) if the value is empty.
+<LI> For any other type of boolean directive, the choice is turned on if the
+  value is 1 or empty, or turned off if the value is 0.
+</UL>
 <LI> Directives marked with <B>Y</B> in the <B>Batch</B> column can be included in a
   batch directive file and will be acted on by Batchruntomo.
 <LI> Directives marked with <B>Y</B> in the <B>Tmplt</B> column can be
