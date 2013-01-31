@@ -11,9 +11,11 @@ import etomo.storage.DirectiveFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstMetaData;
 import etomo.type.DataFileType;
 import etomo.type.DialogExitState;
 import etomo.type.MetaData;
+import etomo.type.UserConfiguration;
 import etomo.type.ViewType;
 import etomo.ui.swing.SetupDialogExpert;
 import etomo.ui.swing.UIHarness;
@@ -48,6 +50,7 @@ public final class SetupReconUIHarness {
 
   private SetupDialogExpert expert = null;
   private DirectiveFile directiveFile = null;
+  private boolean setFEIPixelSize = false;
 
   public SetupReconUIHarness(final ApplicationManager manager, final AxisID axisID) {
     this.manager = manager;
@@ -447,7 +450,7 @@ public final class SetupReconUIHarness {
             .getStack(getPropertyUserDir(), metaData, AxisID.SECOND);
         metaData.setBStackProcessed(bStack.exists());
       }
-      metaData.setSetFEIPixelSize(expert.isSetFEIPixelSize());
+      metaData.setSetFEIPixelSize(setFEIPixelSize);
       if (directiveFile != null) {
         saveDirectives(metaData);
       }
@@ -487,5 +490,12 @@ public final class SetupReconUIHarness {
     // Ignore Reconstruction extraThickness
     directiveFile.getReconstructionUseSirt(metaData);
     // Ignore Reconstruction doBackprojAlso
+  }
+
+  public void initializeFields(ConstMetaData metaData, UserConfiguration userConfig) {
+    if (expert != null) {
+      expert.initializeFields(metaData, userConfig);
+    }
+    setFEIPixelSize = userConfig.isSetFEIPixelSize();
   }
 }
