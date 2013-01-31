@@ -70,8 +70,9 @@ this step.  When checking a directive file, the directive file is first processe
 find certain required values, and an error in that step will prevent the
 checking of directives.  Template files referenced by the directive file will
 be checked as well.  With an entry of 2, the file will be checked right after
-reading, it is not required to contain the values expected in a directive
-file, and directives pointing to template files will be ignored.
+reading.  A batch directive file is required to contain only directives with a
+Y in the "Batch" column of the master directives file, and a template file
+must contain only directives with a Y in the "Tmplt" column.
 
 [Field = StartingStep]
 short = start

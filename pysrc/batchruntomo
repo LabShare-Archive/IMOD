@@ -9,6 +9,9 @@
 progname = 'batchruntomo'
 prefix = 'ERROR: ' + progname + ' - '
 
+# Index of batch directives in allDirectives array
+BatInd = 3
+
 # Variables that need to be global, probably superfluous but here as an FYI
 global datasetDir, dualAxis, setName, scanHeader, ifMontage, defocus, pixelSize
 global fidSizeNm, fidSizePix, montFrameData, lightBeads, numSurfaces, haveAaxisAFSbound
@@ -18,7 +21,7 @@ global aliBinning, aliXunbinned, aliYunbinned, patchTrack, totalDelTilt, latestM
 global suppressAbort
 
 
-# Abort eith an axis or a data set with the error strong
+# Abort either an axis or a data set with the error string
 def abortSet(errString):
    if suppressAbort:
       return
@@ -164,7 +167,7 @@ def lookupDirective(prefix, option, startDct, valType):
    else:
       keys = [prefix + '.any.' + option, prefix + '.a.' + option, prefix + '.b.' + option]
    keyCheck = [(0, 1), (0, 1), (0, 2)]
-   for dct in range(startDct, 3):
+   for dct in range(startDct, BatInd + 1):
       for keyInd in keyCheck[axisNum]:
          if keys[keyInd] in allDirectives[dct]:
             better = True
@@ -219,10 +222,12 @@ def lookupDirective(prefix, option, startDct, valType):
 # Get all the directives for making a com file after the fact
 def laterComDirectives(comfile, process, startInd):
    lines = []
-   if startInd < 1 and sysTmplText in allDirectives[2]:
-      lines.append('ChangeParametersFile ' + allDirectives[2][sysTmplText][0])
-   if startInd < 2 and userTmplText in allDirectives[2]:
-      lines.append('ChangeParametersFile ' + allDirectives[2][userTmplText][0])
+   if startInd < 1 and scopeTmplText in allDirectives[BatInd]:
+      lines.append('ChangeParametersFile ' + allDirectives[BatInd][scopeTmplText][0])
+   if startInd < 2 and sysTmplText in allDirectives[BatInd]:
+      lines.append('ChangeParametersFile ' + allDirectives[BatInd][sysTmplText][0])
+   if startInd < 3 and userTmplText in allDirectives[BatInd]:
+      lines.append('ChangeParametersFile ' + allDirectives[BatInd][userTmplText][0])
    lines.append('ChangeParametersFile ' + absDirectiveFile)
    return lines
    
@@ -579,8 +584,8 @@ def splitAndRunTilt(comfile):
 
 # Read in a validation file as a csv and store the directives in dictionaries
 def processValidationFile():
-   comPref = comPrefix[:len(comPrefix) - 1]
-   runPref = runtimePrefix[:len(runtimePrefix) - 1]
+   comPref = comPrefix[:-1]
+   runPref = runtimePrefix[:-1]
    try:
       message = 'Opening '
       csvfile = open(validateFile, 'r')
@@ -597,6 +602,8 @@ def processValidationFile():
          lsplit = line[0].split('.')
          if len(lsplit) < 2:
             continue
+         batchOK = len(line) > 3 and line[3] == 'Y'
+         templateOK = len(line) > 4 and line[4] == 'Y'
          if lsplit[0] == comPref:
             if len(lsplit) < 4:
                continue
@@ -606,29 +613,34 @@ def processValidationFile():
                baseComDict[combase + 'a'] = combase
                baseComDict[combase + 'b'] = combase
             key = lsplit[1] + '.' + lsplit[2] + '.' + lsplit[3]
-            validComDict[key.lower()] = key
+            validComDict[key.lower()] = (key, templateOK, batchOK)
 
          elif lsplit[0] == runPref:
             if len(lsplit) < 4:
                continue
             key = lsplit[1] + '.' + lsplit[3]
-            validRunDict[key.lower()] = key
+            validRunDict[key.lower()] = (key, templateOK, batchOK)
 
          else:
-            validOtherDict[line[0].lower()] = line[0]
+            validOtherDict[line[0].lower()] = (line[0], templateOK, batchOK)
 
-
+            
 # Look for every directive in the lists of valid ones from master file
 def checkAllDirectives(mainFile = 'directive'):
    errors = []
-   source = ['system template', 'user template', mainFile]
-   comPref = comPrefix[:len(comPrefix) - 1]
-   runPref = runtimePrefix[:len(runtimePrefix) - 1]
-   for ind in (0, 1, 2):
+   source = ['scope template', 'system template', 'user template', mainFile]
+   types = ['template', 'batch directive']
+   comPref = comPrefix[:-1]
+   runPref = runtimePrefix[:-1]
+   for ind in range(BatInd + 1):
+      dirType = ind / BatInd
+      if mainFile == 'template':
+         dirType = 0
       for direc in allDirectives[ind]:
          messfrom = 'irective from ' + source[ind] + ' file'
          dsplit = direc.split('.')
          badCase = False
+         OKforFile = True
          if len(dsplit) < 2 or ((dsplit[0] == comPref or dsplit[0] == runPref) \
                                    and len(dsplit) < 4):
             errors.append('D' + messfrom + ' too short: ' + direc)
@@ -645,7 +657,8 @@ def checkAllDirectives(mainFile = 'directive'):
                combase = baseComDict[comlow]
                key = dsplit[1] + '.' + dsplit[2] + '.' + dsplit[3]
                if key.lower() in validComDict:
-                  badCase = key != validComDict[key.lower()]
+                  badCase = key != validComDict[key.lower()][0]
+                  OKforFile = validComDict[key.lower()][dirType + 1]
 
                else:
 
@@ -698,19 +711,24 @@ def checkAllDirectives(mainFile = 'directive'):
             else:
                key = dsplit[1] + '.' + dsplit[3]
                if key.lower() in validRunDict:
-                  badCase = key != validRunDict[key.lower()]
+                  badCase = key != validRunDict[key.lower()][0]
+                  OKforFile = validRunDict[key.lower()][dirType + 1]
                else:
                   errors.append('Unknown d' + messfrom + ': ' + direc)
 
          # Any other directives must match entirely
          else:
             if direc.lower() in validOtherDict:
-               badCase = direc != validOtherDict[direc.lower()]
+               badCase = direc != validOtherDict[direc.lower()][0]
+               OKforFile = validOtherDict[direc.lower()][dirType + 1]
             else:
                errors.append('Unknown d' + messfrom + ': ' + direc)
             
          if badCase:
             errors.append('D' + messfrom + ' has incorrect case: ' + direc)
+         if not OKforFile:
+            errors.append('D' + messfrom + ' is not intended for use in a ' + \
+                             types[dirType] + ' file: ' + direc)
 
    return printDirectiveErrors(errors)
 
@@ -719,34 +737,45 @@ def checkAllDirectives(mainFile = 'directive'):
 def scanSetupDirectives():
    global datasetDir, dualAxis, setName, scanHeader, ifMontage, defocus, pixelSize
    global fidSizeNm, fidSizePix
+   source = ['scope template', 'system template', 'user template', 'batch directive']
 
-   scanHeader = scanHeadText in allDirectives[2]
-   ifMontage = copyPrefix + 'montage' in allDirectives[2]
-   dualAxis = copyPrefix + 'dual' in allDirectives[2]
+   batDirec = allDirectives[BatInd]
+   scanHeader = scanHeadText in batDirec
+   ifMontage = False
+   dualAxis = False
    pixelSize, fidSizeNm, fidSizePix = 0., 0., 0.
    datasetDir, setName = '', ''
    defocus = -1000000.
-   if sysTmplText in allDirectives[2] and \
-          readDirectiveOrTemplate(allDirectives[2][sysTmplText][0], 0):
+   if scopeTmplText in batDirec and \
+          readDirectiveOrTemplate(batDirec[scopeTmplText][0], 0):
       return 1
-   if userTmplText in allDirectives[2] and \
-          readDirectiveOrTemplate(allDirectives[2][userTmplText][0], 1):
+   if sysTmplText in batDirec and \
+          readDirectiveOrTemplate(batDirec[sysTmplText][0], 1):
       return 1
-   try:
-      if copyPrefix + 'name' in allDirectives[2]:
-         setName = allDirectives[2][copyPrefix + 'name'][0]
-      if dataDirText in allDirectives[2]:
-         datasetDir = allDirectives[2][dataDirText][0]
-      if copyPrefix + 'pixel' in allDirectives[2]:
-         pixelSize = float(allDirectives[2][copyPrefix + 'pixel'][0])
-      if copyPrefix + 'gold' in allDirectives[2]:
-         fidSizeNm = float(allDirectives[2][copyPrefix + 'gold'][0])
-      if copyPrefix + 'defocus' in allDirectives[2]:
-         defocus = float(allDirectives[2][copyPrefix + 'defocus'][0])
+   if userTmplText in batDirec and \
+          readDirectiveOrTemplate(batDirec[userTmplText][0], 2):
+      return 1
+   if copyPrefix + 'name' in batDirec:
+      setName = batDirec[copyPrefix + 'name'][0]
+   if dataDirText in batDirec:
+      datasetDir = batDirec[dataDirText][0]
+   for indDir in range(BatInd + 1):
+      direc = allDirectives[indDir]
+      try:
+         if copyPrefix + 'montage' in direc:
+            ifMontage = direc[copyPrefix + 'montage'][0] != '0'
+         if copyPrefix + 'dual' in direc:
+            dualAxis = direc[copyPrefix + 'dual'][0] != '0'
+         if copyPrefix + 'pixel' in direc:
+            pixelSize = float(direc[copyPrefix + 'pixel'][0])
+         if copyPrefix + 'gold' in direc:
+            fidSizeNm = float(direc[copyPrefix + 'gold'][0])
+         if copyPrefix + 'defocus' in direc:
+            defocus = float(direc[copyPrefix + 'defocus'][0])
 
-   except ValueError:
-      abortSet('Error converting value to float in directive file')
-      return 1
+      except ValueError:
+         abortSet('Error converting value to float in ' + source[indDir] + ' file')
+         return 1
 
    if (not pixelSize and not scanHeader) or not setName or not datasetDir:
       abortSet('Pixel size, set name, or dataset directory missing from directives')
@@ -862,8 +891,8 @@ def runPatchTracking():
 
       # A raw model for B has to be specific to the B axis
       key = runtimePrefix + 'PatchTracking.b.rawBoundaryModel'
-      if key in allDirectives[2]:
-         rawBound = allDirectives[2][key][0]
+      if key in allDirectives[BatInd]:
+         rawBound = allDirectives[BatInd][key][0]
    
    # transform and add to com
    if rawBound:
@@ -1002,8 +1031,8 @@ def makeSeedAndTrack(talines):
             # A raw model for B has to be specific to the B axis
             rawBound = ''
             key = runtimePrefix + 'SeedFinding.b.rawBoundaryModel'
-            if key in allDirectives[2]:
-               rawBound = allDirectives[2][key][0]
+            if key in allDirectives[BatInd]:
+               rawBound = allDirectives[BatInd][key][0]
 
             # But if there is not a raw model for B, see if there was one for A
             # that can be transferred with the transform
@@ -1053,6 +1082,7 @@ def makeSeedAndTrack(talines):
       if missing != None and missing == 0:
          break
 
+      
 # Run tiltalign in 2 or 3 stages
 def runTiltalign(taLines):
    global xtiltNeeded, fidThickness, fidIncShift, reconThickness, didLocalAlign
@@ -1648,6 +1678,7 @@ copyPrefix = 'setupset.copyarg.'
 setupPrefix = 'setupset.'
 runtimePrefix = 'runtime.'
 comPrefix = 'comparam.'
+scopeTmplText = setupPrefix + 'scopeTemplate'
 userTmplText = setupPrefix + 'userTemplate'
 sysTmplText = setupPrefix + 'systemTemplate'
 dataDirText = setupPrefix + 'datasetDirectory'
@@ -1752,8 +1783,8 @@ for dfile in dirFiles:
    if os.path.exists(checkFile):
       cleanupFiles([checkFile])
    os.chdir(startingDir)
-   allDirectives = [{}, {}, {}]
-   if readDirectiveOrTemplate(dfile, 2):
+   allDirectives = [{}, {}, {}, {}]
+   if readDirectiveOrTemplate(dfile, BatInd):
       continue
 
    prnstr(fmtstr('Beginning to process {} file {}', fileType, dfile))
@@ -1824,24 +1855,7 @@ for dfile in dirFiles:
    prnstr('Starting data set ' + setName)
 
    if startingStep <= 0:
-      # # temporarily running copytomocoms directly
-      # copyargs = []
-      # for key in allDirectives[2]:
-      #    if copyPrefix in key:
-      #       arg = key[len(copyPrefix):]
-      #       val = allDirectives[2][key][0]
-      #       copyargs.append(arg + ' ' + val)
-      # if sysTmplText in allDirectives[2]:
-      #    copyargs.append('change ' + allDirectives[2][sysTmplText][0])
-      # if userTmplText in allDirectives[2]:
-      #    copyargs.append('change ' + allDirectives[2][userTmplText][0])
-      # copyargs.append('change ' + absDirectiveFile)
-      # try:
-      #    runcmd('copytomocoms -StandardInput', copyargs, 'stdout')
-      # except ImodpyError:
-      #    reportImodError('Error running copytomocoms')
-      #    continue
-   
+   #if False:
       # Run etomo for setup and try to report errors
       failed = False
       errlog = ''
@@ -1880,6 +1894,28 @@ for dfile in dirFiles:
       if failed:
          reportImodError('etomo setup failed, cannot proceed with this data set')
          continue
+
+   # temporarily running copytomocoms directly
+   # if startingStep <= 0:
+   #    copyargs = []
+   #    for direc in allDirectives:
+   #       for key in direc:
+   #          if copyPrefix in key:
+   #             arg = key[len(copyPrefix):]
+   #             val = direc[key][0]
+   #             copyargs.append(arg + ' ' + val)
+   #    if scopeTmplText in allDirectives[BatInd]:
+   #       copyargs.append('change ' + allDirectives[BatInd][scopeTmplText][0])
+   #    if sysTmplText in allDirectives[BatInd]:
+   #       copyargs.append('change ' + allDirectives[BatInd][sysTmplText][0])
+   #    if userTmplText in allDirectives[BatInd]:
+   #       copyargs.append('change ' + allDirectives[BatInd][userTmplText][0])
+   #    copyargs.append('change ' + absDirectiveFile)
+   #    try:
+   #       runcmd('copytomocoms -StandardInput', copyargs, 'stdout')
+   #    except ImodpyError:
+   #       reportImodError('Error running copytomocoms')
+   #       continue
 
 
    fidSizePix = fidSizeNm / pixelSize
