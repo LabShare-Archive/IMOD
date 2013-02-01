@@ -834,7 +834,7 @@ c       Allocate data depending on number of pieces (limvar)
       limvar = nxpieces * nypieces
       if (.not. undistortOnly) then
         allocate(bb(2, limvar), ivarpc(limvar), iallVarpc(limvar),
-     &      ivarGroup(limvar), listCheck(limvar), fpsWork(20*limvar),
+     &      ivarGroup(limvar), listCheck(limvar), fpsWork(20*limvar + limvar / 4 + 4),
      &      dxyvar(limvar, 2), rowTmp(limvar*2), stat = ierr)
         if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS FOR FINDING SHIFTS')
 c
