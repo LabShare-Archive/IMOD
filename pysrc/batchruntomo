@@ -580,6 +580,11 @@ def splitAndRunTilt(comfile):
    return runOneProcess(comfile, numProc == 0, useGPU)
 
 
+# Test whether a step should be run
+def needStep(step):
+   return step >= startingStep and step <= endingStep
+
+
 # SINGLE-CALL FUNCTIONS FOR INITIAL STEPS
 
 # Read in a validation file as a csv and store the directives in dictionaries
@@ -957,7 +962,7 @@ def makeSeedAndTrack(talines):
    lightBeads = optionValue(btlines, 'LightBeads', BOOL_VALUE)
 
    # RAPTOR
-   if startingStep < 5 and trackingMethod == 2:
+   if needStep(4) and trackingMethod == 2:
       markers = lookupDirective(runtimePrefix + 'RAPTOR', 'numberOfMarkers', 0,
                                 INT_VALUE)
       if markers == None or isinstance(markers, str) or markers <= 0:
@@ -983,7 +988,7 @@ def makeSeedAndTrack(talines):
          return 1
 
    # Seed and track:
-   elif startingStep < 5:
+   elif needStep(4):
 
       # Transferfid for axis b
       skipAuto = False
@@ -1066,7 +1071,7 @@ def makeSeedAndTrack(talines):
                              [('candidate points, including', 4), ('Final:   total', 0)])
 
    # Run bead tracking indicated number of times
-   if startingStep >= 5:
+   if not needStep(5):
       numBTRuns = 0
    for trackInd in range(max(0, numBTRuns)):
 
@@ -1288,10 +1293,10 @@ def makeAndCTFCorrectAlignedStack():
       
 
    sedcom += sedDelAndAdd('BinByFactor', aliBinning, 'TransformFile')
-   if startingStep < 7 and modifyWriteAndRunCom(comRoot + axisCom, sedcom):
+   if needStep(6) and modifyWriteAndRunCom(comRoot + axisCom, sedcom):
       return 1
 
-   if startingStep < 8 and correctCTF:
+   if needStep(7) and correctCTF:
 
       # Note that ctfplotter won't run headless...
       autofit = lookupDirective(runtimePrefix + 'CTFplotting', 'autoFitRangeAndStep', 0,
@@ -1356,7 +1361,7 @@ def eraseGoldFilterAlignedStack():
       if not extraDiam:
          extraDiam = 0.
 
-   if eraseGold > 1 and startingStep < 9:
+   if eraseGold > 1 and needStep(8):
       binning = lookupDirective(runtimePrefix + 'GoldErasing', 'binning', 0, INT_VALUE)
       if not binning:
          binning = aliBinning
@@ -1427,7 +1432,7 @@ def eraseGoldFilterAlignedStack():
       if makeAndRunOneCom(comlines, 'tilt_3dfind_reproject' + axisCom):
          return 1
 
-   elif eraseGold and startingStep < 9:
+   elif eraseGold and needStep(8):
       if fiducialless:
          abortset('Cannot erase gold with fiducials after fiducialless processing')
       try:
@@ -1437,7 +1442,7 @@ def eraseGoldFilterAlignedStack():
          return 1
 
    # Erase the beads
-   if eraseGold and startingStep < 9:
+   if eraseGold and needStep(8):
       comlines = ['RootNameOfDataFiles ' + dataName,
                   'BeadSize ' + str(fidSizePix / aliBinning + extraDiam),
                   fmtstr('OneParameterChange {}golderaser{}.ccderaser.' + \
@@ -1450,7 +1455,7 @@ def eraseGoldFilterAlignedStack():
       
    # 2D filtering, very simple
    if lookupDirective(runtimePrefix + 'AlignedStack', 'filterStack', 0, BOOL_VALUE) and \
-          startingStep < 10:
+          needStep(9):
       if runOneProcess('mtffilter' + axisCom):
          return 1
       if useFileAsReplacement(dataName + '_filt.ali', dataName + '.ali', False, True):
@@ -1563,7 +1568,7 @@ def runOneAxis():
    
    # Xray removal
    if lookupDirective(runtimePrefix + 'Preprocessing', 'removeXrays', 0, BOOL_VALUE) and \
-          startingStep < 2:
+          needStep(1):
    
       if runOneProcess('eraser' + axisCom):
          return 1
@@ -1573,7 +1578,7 @@ def runOneAxis():
          return 1
 
    # coarse alignment
-   if startingStep < 3 and runOneProcess('xcorr' + axisCom):
+   if needStep(2) and runOneProcess('xcorr' + axisCom):
       return 1
 
    # Get the tiltalign file regardless, since it will be operated on
@@ -1597,11 +1602,11 @@ def runOneAxis():
 
       # Make prealigned stack
       (comRoot, process) = comAndProcessForAlignedStack('pre')
-      if startingStep < 4 and runOneProcess(comRoot + axisCom):
+      if needStep(3) and runOneProcess(comRoot + axisCom):
          return 1
 
       # Patch tracking
-      if startingStep < 5 and patchTrack:
+      if needStep(4) and patchTrack:
          if runPatchTracking():
             return 1
 
@@ -1611,12 +1616,12 @@ def runOneAxis():
             return 1
 
       # Tilt alignment
-      if (runTiltalign(taLines)):
+      if endingStep >= 5 and runTiltalign(taLines):
          return 1
 
       # Iterate patch tracking with angle offset now that it is known, if desired
       if lookupDirective(runtimePrefix + 'PatchTracking', 'adjustTiltAngles', 0,
-                         BOOL_VALUE) and startingStep < 5 and patchTrack:
+                         BOOL_VALUE) and needStep(4) and patchTrack:
          sedcom = sedDelAndAdd('AngleOffset', totalDelTilt, 'SizeOfPatchesXandY')
          if modifyWriteAndRunCom('xcorr_pt' + axisCom, sedcom):
             return 1
@@ -1628,7 +1633,7 @@ def runOneAxis():
       return 1
 
    # Set up the tilt com file now that output size is known and montage frame data set
-   if modifyTiltComFile():
+   if endingStep >= 8 and modifyTiltComFile():
       return 1
 
    # Optionally erase gold and filter
@@ -1636,7 +1641,7 @@ def runOneAxis():
       return 1
 
    # Make the reconstruction
-   if generateTomogram():
+   if needStep(10) and generateTomogram():
       return 1
 
    return 0
@@ -1671,7 +1676,8 @@ from pysed import *
 # Fallbacks from ../manpages/autodoc2man 3 1 batchruntomo
 options = ["directive:DirectiveFile:FNM:", "cpus:CPUMachineList:CH:",
            "single:SingleOnFirstCPU:B:", "gpus:GPUMachineList:CH:", "nice:NiceValue:I:",
-           "remote:RemoteDirectory:FN:", "check:CheckFile:FN:", "start:StartingStep:I:",
+           "remote:RemoteDirectory:FN:", "check:CheckFile:FN:",
+           "validation:ValidationType:I:", "start:StartingStep:I:", "end:EndingStep:I:",
            "exit:ExitOnError:B:"]
 
 copyPrefix = 'setupset.copyarg.'
@@ -1745,6 +1751,7 @@ if useGPU:
 niceness = PipGetInteger('NiceValue', 15)
 remoteStartDir = PipGetString('RemoteDirectory', '')
 startingStep = PipGetInteger('StartingStep', 0)
+endingStep = PipGetInteger('EndingStep', 10000000)
 exitOnError = PipGetBoolean('ExitOnError', 0)
 useFirstCPUforSingle = PipGetBoolean('SingleOnFirstCPU',0)
 validation = PipGetInteger('ValidationType', 0)
@@ -1923,6 +1930,8 @@ for dfile in dirFiles:
    
    # Loop on the axes.  axisInd is 0 or 1, axisNum is 0 for single, 1/2 for a/b
    for axisInd in range(numAxes):
+      if endingStep <= 0:
+         continue
       axisLet = ''
       if dualAxis:
          axisNum = axisInd + 1
