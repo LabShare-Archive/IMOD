@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/1/13: Added option to stop Batchruntomo processing at a chosen step.
+
+2/1/13: Fixed blendmont array allocation.
+
 1/31/13: Fixed graphics module so Onegenplot will exit when window is closed
 on all platforms.
 
