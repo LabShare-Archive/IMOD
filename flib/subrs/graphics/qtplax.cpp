@@ -159,12 +159,13 @@ PlaxWindow::PlaxWindow(QWidget *parent, Qt::WFlags fl) :
   B3DCLAMP(mNumRedraws, 1, 10);
 }
 
-// Ignore close events
+// Ignore close events unless exiting
 void PlaxWindow::closeEvent ( QCloseEvent * e )
 {
   if (sExitOnClose) {
     sAppThread->terminate();
-    sCloseWaiter->wakeAll();
+    ::exit(0);
+    //sCloseWaiter->wakeAll();
   }
   e->ignore();
 }
