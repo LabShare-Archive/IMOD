@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/31/13: Fixed graphics module so Onegenplot will exit when window is closed
+on all platforms.
+
 1/31/13: In Batchruntomo, implemented definition of scope file as just another
 template file and changed the way that boolean copytomocoms arguments are
 treated so that they can be used in templates.
