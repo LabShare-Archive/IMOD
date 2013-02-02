@@ -1505,24 +1505,7 @@ public final class LogFile {
 
     void open() throws FileNotFoundException {
       if (fileReader == null) {
-        String path = file.getAbsolutePath();
-        try {
-          fileReader = new FileReader(path);
-        }
-        catch (FileNotFoundException e) {
-          //Give Windows time to catch up.
-          if (Utilities.isWindowsOS()) {
-            try {
-              Thread.sleep(2000);
-            }
-            catch (InterruptedException e0) {
-            }
-            fileReader = new FileReader(path);
-          }
-          else {
-            throw e;
-          }
-        }
+        fileReader = new FileReader(file.getAbsolutePath());
       }
       if (bufferedReader == null) {
         bufferedReader = new BufferedReader(fileReader);
