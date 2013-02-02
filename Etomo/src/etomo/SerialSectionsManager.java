@@ -168,7 +168,6 @@ public final class SerialSectionsManager extends BaseManager {
   public void setStartupData(final SerialSectionsStartupData startupData) {
     startupDialog = null;
     setParamFile(startupData);
-    System.err.println("1682 A");
     openSerialSectionsDialog(startupData);
     if (!loadedParamFile) {
       mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.FAILED);
@@ -178,9 +177,7 @@ public final class SerialSectionsManager extends BaseManager {
       valid = false;
       return;
     }
-    System.err.println("1682 J");
     mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.DONE);
-    System.err.println("1682 K");
   }
 
   /**
@@ -230,7 +227,6 @@ public final class SerialSectionsManager extends BaseManager {
    */
   private void openSerialSectionsDialog(final SerialSectionsStartupData startupData) {
     if (!loadedParamFile && startupData == null) {
-      System.err.println("1682 B");
       UIHarness.INSTANCE
           .openMessageDialog(this,
               "Failed to load the parameter file, unable to continue.", "Failed",
@@ -239,27 +235,20 @@ public final class SerialSectionsManager extends BaseManager {
       return;
     }
     if (dialog == null) {
-      System.err.println("1682 C");
       dialog = SerialSectionsDialog.getInstance(this, AXIS_ID);
     }
-    System.err.println("1682 D");
     autoAlignmentController = new AutoAlignmentController(this, dialog);
     dialog.setAutoAlignmentController(autoAlignmentController);
     if (loadedParamFile) {
-      System.err.println("1682 E");
       autoAlignmentController.createEmptyXfFile();
     }
-    System.err.println("1682 F");
     setSerialSectionsDialogParameters();
-    System.err.println("1682 G");
     mainPanel.showProcess(dialog.getRootContainer(), AXIS_ID);
-    System.err.println("1682 H");
     String actionMessage = Utilities.prepareDialogActionMessage(
         DialogType.SERIAL_SECTIONS, AxisID.ONLY, null);
     if (actionMessage != null) {
       System.err.println(actionMessage);
     }
-    System.err.println("1682 I");
   }
 
   boolean startNextProcess(final UIComponent uiComponent, final AxisID axisID,
