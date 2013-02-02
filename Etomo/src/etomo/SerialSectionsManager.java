@@ -168,7 +168,7 @@ public final class SerialSectionsManager extends BaseManager {
   public void setStartupData(final SerialSectionsStartupData startupData) {
     startupDialog = null;
     setParamFile(startupData);
-    System.err.println("A");
+    System.err.println("1682 A");
     openSerialSectionsDialog(startupData);
     if (!loadedParamFile) {
       mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.FAILED);
@@ -178,9 +178,9 @@ public final class SerialSectionsManager extends BaseManager {
       valid = false;
       return;
     }
-    System.err.println("J");
+    System.err.println("1682 J");
     mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.DONE);
-    System.err.println("K");
+    System.err.println("1682 K");
   }
 
   /**
@@ -230,7 +230,7 @@ public final class SerialSectionsManager extends BaseManager {
    */
   private void openSerialSectionsDialog(final SerialSectionsStartupData startupData) {
     if (!loadedParamFile && startupData == null) {
-      System.err.println("B");
+      System.err.println("1682 B");
       UIHarness.INSTANCE
           .openMessageDialog(this,
               "Failed to load the parameter file, unable to continue.", "Failed",
@@ -239,27 +239,27 @@ public final class SerialSectionsManager extends BaseManager {
       return;
     }
     if (dialog == null) {
-      System.err.println("C");
+      System.err.println("1682 C");
       dialog = SerialSectionsDialog.getInstance(this, AXIS_ID);
     }
-    System.err.println("D");
+    System.err.println("1682 D");
     autoAlignmentController = new AutoAlignmentController(this, dialog);
     dialog.setAutoAlignmentController(autoAlignmentController);
     if (loadedParamFile) {
-      System.err.println("E");
+      System.err.println("1682 E");
       autoAlignmentController.createEmptyXfFile();
     }
-    System.err.println("F");
+    System.err.println("1682 F");
     setSerialSectionsDialogParameters();
-    System.err.println("G");
+    System.err.println("1682 G");
     mainPanel.showProcess(dialog.getRootContainer(), AXIS_ID);
-    System.err.println("H");
+    System.err.println("1682 H");
     String actionMessage = Utilities.prepareDialogActionMessage(
         DialogType.SERIAL_SECTIONS, AxisID.ONLY, null);
     if (actionMessage != null) {
       System.err.println(actionMessage);
     }
-    System.err.println("I");
+    System.err.println("1682 I");
   }
 
   boolean startNextProcess(final UIComponent uiComponent, final AxisID axisID,
@@ -382,6 +382,7 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   private void changeDirectory(final AxisID axisID, final ConstProcessSeries processSeries) {
+    System.err.println("1682 AA");
     File stack = getStack();
     if (stack == null) {
       if (processSeries != null) {
@@ -403,6 +404,7 @@ public final class SerialSectionsManager extends BaseManager {
    */
   private void extractpieces(final UIComponent uiComponent, final AxisID axisID,
       final ProcessSeries processSeries) {
+    System.err.println("1682 BB");
     ViewType viewType = getViewType();
     if (viewType == null) {
       if (processSeries != null) {
@@ -447,6 +449,7 @@ public final class SerialSectionsManager extends BaseManager {
    */
   private void createComscripts(final UIComponent uiComponent, final AxisID axisID,
       final ConstProcessSeries processSeries) {
+    System.err.println("1682 CC");
     SerialSectionsStartupData startupData = null;
     if (startupDialog == null || (startupData = startupDialog.getStartupData()) == null) {
       if (processSeries != null) {
@@ -505,6 +508,7 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   private void xftoxg(final ProcessSeries processSeries, final AxisID axisID) {
+    System.err.println("1682 GG");
     if (dialog == null) {
       if (processSeries != null) {
         processSeries.startFailProcess(axisID);
@@ -536,6 +540,7 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   private void align(final ProcessSeries processSeries, final AxisID axisID) {
+    System.err.println("1682 HH");
     if (dialog == null) {
       if (processSeries != null) {
         processSeries.startFailProcess(axisID);
@@ -689,6 +694,7 @@ public final class SerialSectionsManager extends BaseManager {
 
   private void copyDistortionFieldFile(final ConstProcessSeries processSeries,
       final UIComponent uiComponent, final AxisID axisID) {
+    System.err.println("1682 DD");
     File distortionField = getDistortionField();
     if (distortionField != null) {
       File stack = getStack();
@@ -718,6 +724,7 @@ public final class SerialSectionsManager extends BaseManager {
    */
   private void doneStartupDialog(final ConstProcessSeries processSeries,
       final AxisID axisID) {
+    System.err.println("1682 EE");
     startupDialog.done();
     if (processSeries != null) {
       processSeries.startNextProcess(axisID);
@@ -729,6 +736,7 @@ public final class SerialSectionsManager extends BaseManager {
    */
   private void resetStartupState(final ConstProcessSeries processSeries,
       final AxisID axisID) {
+    System.err.println("1682 FF");
     if (origUserDir != null) {
       propertyUserDir = origUserDir;
       origUserDir = null;
