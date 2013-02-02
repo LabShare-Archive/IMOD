@@ -638,7 +638,7 @@ def checkAllDirectives(mainFile = 'directive'):
    comPref = comPrefix[:-1]
    runPref = runtimePrefix[:-1]
    for ind in range(BatInd + 1):
-      dirType = ind / BatInd
+      dirType = ind // BatInd
       if mainFile == 'template':
          dirType = 0
       for direc in allDirectives[ind]:
