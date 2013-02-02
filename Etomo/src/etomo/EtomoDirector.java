@@ -931,10 +931,15 @@ public class EtomoDirector {
   }
 
   public void renameCurrentManager(String managerName) {
+    System.err.println("1682 FBANA");
     enableOpenManagerMenuItem();
+    System.err.println("1682 FBANB");
     UniqueKey oldKey = currentManagerKey.getKey();
+    System.err.println("1682 FBANC");
     currentManagerKey.setKey(managerList.rekey(currentManagerKey.getKey(), managerName));
+    System.err.println("1682 FBAND");
     UIHarness.INSTANCE.renameWindow(oldKey, currentManagerKey.getKey());
+    System.err.println("1682 FBANE");
   }
 
   public UserConfiguration getUserConfiguration() {
