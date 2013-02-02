@@ -709,6 +709,7 @@ public final class SerialSectionsManager extends BaseManager {
    */
   private void doneStartupDialog(final ConstProcessSeries processSeries,
       final AxisID axisID) {
+    System.err.println("1682 F");
     startupDialog.done();
     if (processSeries != null) {
       processSeries.startNextProcess(axisID);
@@ -720,7 +721,6 @@ public final class SerialSectionsManager extends BaseManager {
    */
   private void resetStartupState(final ConstProcessSeries processSeries,
       final AxisID axisID) {
-    System.err.println("1682 F");
     if (origUserDir != null) {
       propertyUserDir = origUserDir;
       origUserDir = null;
