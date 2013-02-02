@@ -504,7 +504,9 @@ public class EtomoDirector {
   }
 
   public void setCurrentManager(UniqueKey key) {
+    System.err.println("1682 FBANDBAJA");
     setCurrentManager(key, false);
+    System.err.println("1682 FBANDBAJB");
   }
 
   /**
@@ -526,11 +528,16 @@ public class EtomoDirector {
    * @param newWindow
    */
   public synchronized void setCurrentManager(UniqueKey key, boolean newWindow) {
+    System.err.println("1682 FBANDBAJAA");
     if (key == null) {
+      System.err.println("1682 FBANDBAJAB");
       return;
     }
+    System.err.println("1682 FBANDBAJAC");
     BaseManager newCurrentManager = (BaseManager) managerList.get(key);
+    System.err.println("1682 FBANDBAJAD");
     setCurrentManager(newCurrentManager, newCurrentManager.getManagerKey(), newWindow);
+    System.err.println("1682 FBANDBAJAE");
   }
 
   /**
@@ -846,25 +853,40 @@ public class EtomoDirector {
   }
 
   private void enableOpenManagerMenuItem() {
+    System.err.println("1682 FBANAA");
     UniqueKey key = currentManagerKey.getKey();
+    System.err.println("1682 FBANAB");
     if (key.getName().equals(MetaData.getNewFileTitle())) {
+      System.err.println("1682 FBANAC");
       UIHarness.INSTANCE.setEnabledNewTomogramMenuItem(true);
+      System.err.println("1682 FBANAD");
     }
     else if (key.getName().equals(JoinMetaData.getNewFileTitle())) {
+      System.err.println("1682 FBANAE");
       UIHarness.INSTANCE.setEnabledNewJoinMenuItem(true);
+      System.err.println("1682 FBANAF");
     }
     else if (key.getName().equals(ParallelMetaData.NEW_GENERIC_PARALLEL_PROCESS_TITLE)) {
+      System.err.println("1682 FBANAG");
       UIHarness.INSTANCE.setEnabledNewGenericParallelMenuItem(true);
+      System.err.println("1682 FBANAH");
     }
     else if (key.getName().equals(ParallelMetaData.NEW_ANISOTROPIC_DIFFUSION_TITLE)) {
+      System.err.println("1682 FBANAI");
       UIHarness.INSTANCE.setEnabledNewAnisotropicDiffusionMenuItem(true);
+      System.err.println("1682 FBANAJ");
     }
     else if (key.getName().equals(PeetMetaData.NEW_TITLE)) {
+      System.err.println("1682 FBANAK");
       UIHarness.INSTANCE.setEnabledNewPeetMenuItem(true);
+      System.err.println("1682 FBANAL");
     }
     else if (key.getName().equals(SerialSectionsMetaData.NEW_TITLE)) {
+      System.err.println("1682 FBANAM");
       UIHarness.INSTANCE.setEnabledNewSerialSectionsMenuItem(true);
+      System.err.println("1682 FBANAN");
     }
+    System.err.println("1682 FBANAO");
   }
 
   /**
