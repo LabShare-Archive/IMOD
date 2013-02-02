@@ -179,21 +179,24 @@ public class SerialSectionsStartupDialog implements ContextMenu, UIComponent {
   }
 
   private boolean validate() {
-    if (!DatasetTool.validateDatasetName(manager,this,axisID, ftfStack.getFile(),
+    if (!DatasetTool.validateDatasetName(manager, this, axisID, ftfStack.getFile(),
         DataFileType.SERIAL_SECTIONS, AxisType.SINGLE_AXIS)) {
       return false;
     }
     File stack = getStack();
     return DatasetTool.validateViewType(getViewType(), stack.getParent(),
-        stack.getName(), manager,this, axisID);
+        stack.getName(), manager, this, axisID);
   }
 
   /**
    * Called when the OK button functionality completes successfully.
    */
   public void done() {
+    System.err.println("1682 A");
     dispose();
+    System.err.println("1682 B");
     manager.setStartupData(startupData);
+    System.err.println("1682 C");
   }
 
   /**
@@ -213,7 +216,7 @@ public class SerialSectionsStartupDialog implements ContextMenu, UIComponent {
       if (!saveState()) {
         return;
       }
-      manager.completeStartup(this,axisID);
+      manager.completeStartup(this, axisID);
     }
     else if (command.equals(btnCancel.getActionCommand())) {
       resetSavedState();
