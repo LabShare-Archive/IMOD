@@ -123,6 +123,14 @@ def readTextFileReportErr(filename, message = None):
    return lines
 
 
+# Return an absolute path, converted to windows format if on Windows
+def abspath(path):
+   absp = os.path.abspath(path)
+   if 'win32' is sys.platform or 'cygwin' in sys.platform:
+      absp = getCygpath(True, absp)
+   return absp
+
+
 # Print out errors from directive file reading or validation
 def printDirectiveErrors(errors):
    if errors:
@@ -1760,7 +1768,7 @@ remoteDataDir = ''
 # Set up check file
 checkFile = PipGetString('CheckFile', '')
 if checkFile:
-   checkFile = os.path.abspath(checkFile)
+   checkFile = abspath(checkFile)
 else:
    checkFile = os.path.join(startingDir, progname + '.' + str(os.getpid()) + '.input')
 if validation <= 0:
@@ -1795,7 +1803,7 @@ for dfile in dirFiles:
       continue
 
    prnstr(fmtstr('Beginning to process {} file {}', fileType, dfile))
-   absDirectiveFile = os.path.abspath(dfile)
+   absDirectiveFile = abspath(dfile)
 
    # If validating a single template file, do not process it, just run the checks
    if validation > 1:
@@ -1816,7 +1824,7 @@ for dfile in dirFiles:
 
    # If there is a remote directory, need to shift it to the dataset dir
    if remoteStartDir:
-      absDataDir = os.path.abspath(datasetDir)
+      absDataDir = abspath(datasetDir)
       prefix = os.path.commonprefix([startingDir, absDataDir])
       remoteDataDir = ''
       if prefix and absDataDir.startswith(prefix) and startingDir.startswith(prefix):
