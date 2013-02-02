@@ -642,7 +642,9 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   }
 
   void renameWindow(UniqueKey oldKey, UniqueKey newManagerKey) {
+    System.err.println("1682 FBANDBA");
     windowSwitch.rename(oldKey, newManagerKey);
+    System.err.println("1682 FBANDBB");
   }
 
   void selectWindowMenuItem(UniqueKey currentManagerKey) {
