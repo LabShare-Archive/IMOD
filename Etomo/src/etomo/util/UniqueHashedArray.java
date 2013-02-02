@@ -85,34 +85,22 @@ public class UniqueHashedArray {
   }
 
   public synchronized UniqueKey rekey(UniqueKey oldKey, String newKeyName) {
-    System.err.println("1682 FBANC1A");
     return rekey(oldKey, new UniqueKey(newKeyName, this));
   }
 
   public synchronized UniqueKey rekey(UniqueKey oldKey, UniqueKey newKey) {
-    System.err.println("1682 FBANDBAGA");
-    System.err.println("1682 FBANDBAFA");
     int index = getIndex(oldKey);
-    System.err.println("1682 FBANDBAFB");
     Object value = map.remove(oldKey);
-    System.err.println("1682 FBANDBAFC");
     map.put(newKey, value);
-    System.err.println("1682 FBANDBAFD");
     keyArray.set(index, newKey);
-    System.err.println("1682 FBANDBAFE");
     return newKey;
   }
 
   public Object get(UniqueKey key) {
-    System.err.println("1682 FBANDBAJACA");
-    System.err.println("1682 FBANDBACA");
     if (key == null) {
-      System.err.println("1682 FBANDBACB");
       return null;
     }
-    System.err.println("1682 FBANDBACC");
     Object object = map.get(key);
-    System.err.println("1682 FBANDBACD");
     return object;
   }
 
@@ -138,21 +126,14 @@ public class UniqueHashedArray {
   }
 
   public int getIndex(UniqueKey key) {
-    System.err.println("1682 FBANDBAFA");
-    System.err.println("1682 FBANDBADA");
     if (key == null) {
-      System.err.println("1682 FBANDBADB");
       return -1;
     }
-    System.err.println("1682 FBANDBADC");
     for (int i = 0; i < keyArray.size(); i++) {
-      System.err.println("1682 FBANDBADD");
       if (key.equals(keyArray.get(i))) {
-        System.err.println("1682 FBANDBADE");
         return i;
       }
     }
-    System.err.println("1682 FBANDBADF");
     return -1;
   }
 

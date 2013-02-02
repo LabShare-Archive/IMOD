@@ -550,91 +550,56 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
 
   void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
-    System.err.println("1682 FBANDBAJADCBA");
     setEnabled(currentManager);
-    System.err.println("1682 FBANDBAJADCBB");
     if (EtomoDirector.INSTANCE.getArguments().isTest() && logFrame.isVisible()) {
-      System.err.println("1682 FBANDBAJADCBC");
       showHideLog();
     }
-    System.err.println("1682 FBANDBAJADCBD");
     this.currentManager = currentManager;
     if (currentManager == null) {
-      System.err.println("1682 FBANDBAJADCBE");
       EtomoDirector.INSTANCE.makeCurrent();
-      System.err.println("1682 FBANDBAJADCBF");
     }
     else {
-      System.err.println("1682 FBANDBAJADCBG");
       currentManager.makeCurrent();
-      System.err.println("1682 FBANDBAJADCBH");
       Utilities.managerStamp(currentManager.getPropertyUserDir(),
           currentManager.getName());
     }
     // Remove everything from rootPanel if the main panel has been set from the
     // previous manager.
-    System.err.println("1682 FBANDBAJADCBI");
     if (mainPanel != null) {
-      System.err.println("1682 FBANDBAJADCBJ");
       rootPanel.removeAll();
     }
-    System.err.println("1682 FBANDBAJADCBK");
     if (currentManager == null) {
-      System.err.println("1682 FBANDBAJADCBL");
       title = ETOMO_TITLE;
-      System.err.println("1682 FBANDBAJADCBM");
       hideAxisB();
-      System.err.println("1682 FBANDBAJADCBO");
       logFrame.setPanel(null, newWindow);
-      System.err.println("1682 FBANDBAJADCBP");
     }
     else {
-      System.err.println("1682 FBANDBAJADCBQ");
       mainPanel = currentManager.getMainPanel();
-      System.err.println("1682 FBANDBAJADCBR");
       title = currentManager.getName() + " - " + ETOMO_TITLE;
-      System.err.println("1682 FBANDBAJADCBS");
       rootPanel.add(windowSwitch.getPanel(managerKey));
-      System.err.println("1682 FBANDBAJADCBT");
       logFrame.setPanel(currentManager.getLogPanel(), newWindow);
-      System.err.println("1682 FBANDBAJADCBU");
       toFront();
-      System.err.println("1682 FBANDBAJADCBV");
       mainPanel.addMouseListener(mouseAdapter);
-      System.err.println("1682 FBANDBAJADCBW");
       mainPanel.repaint();
-      System.err.println("1682 FBANDBAJADCBX");
 
       if (subFrame != null) {
-        System.err.println("1682 FBANDBAJADCBY");
         ((SubFrame) subFrame).setMainPanel(bAxisTitle + title + " ", currentManager);
       }
-      System.err.println("1682 FBANDBAJADCBZ");
       if (newWindow) {
-        System.err.println("1682 FBANDBAJADCB1");
         showAxisA();
-        System.err.println("1682 FBANDBAJADCB1A");
       }
       else {
-        System.err.println("1682 FBANDBAJADCB1B");
         if (mainPanel.isShowingBothAxis()) {
-          System.err.println("1682 FBANDBAJADCB1C");
           showBothAxis();
-          System.err.println("1682 FBANDBAJADCB1D");
         }
         else if (mainPanel.isShowingAxisA()) {
-          System.err.println("1682 FBANDBAJADCB1E");
           showAxisA();
-          System.err.println("1682 FBANDBAJADCB1F");
         }
         else {
-          System.err.println("1682 FBANDBAJADCB1G");
           showAxisB();
-          System.err.println("1682 FBANDBAJADCB1H");
         }
       }
     }
-    System.err.println("1682 FBANDBAJADCB1I");
   }
 
   public LogFrame getLogFrame() {
@@ -646,7 +611,6 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   }
 
   void showHideLog() {
-    System.err.println("1682 FBANDBAJADCBCA");
     logFrame.showHide();
   }
 
@@ -678,9 +642,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   }
 
   void renameWindow(UniqueKey oldKey, UniqueKey newManagerKey) {
-    System.err.println("1682 FBANDBA");
     windowSwitch.rename(oldKey, newManagerKey);
-    System.err.println("1682 FBANDBB");
   }
 
   void selectWindowMenuItem(UniqueKey currentManagerKey) {

@@ -64,8 +64,6 @@ public class UniqueKey {
   }
 
   public String getName() {
-    System.err.println("1682 FBANDBAIA");
-    System.err.println("1682 FBANDBAEA");
     return name;
   }
 

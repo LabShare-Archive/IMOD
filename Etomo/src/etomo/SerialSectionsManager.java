@@ -169,21 +169,16 @@ public final class SerialSectionsManager extends BaseManager {
     System.err.println("1682 FBA");
     startupDialog = null;
     setParamFile(startupData);
-    System.err.println("1682 FBB");
     openSerialSectionsDialog(startupData);
-    System.err.println("1682 FBC");
     if (!loadedParamFile) {
       mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.FAILED);
-      System.err.println("1682 FBD");
       UIHarness.INSTANCE.openMessageDialog(this,
           "Failed to load or create parameter file, unable to continue.", "Failed",
           AxisID.ONLY);
-      System.err.println("1682 FBE");
       valid = false;
       return;
     }
     mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.DONE);
-    System.err.println("1682 FBF");
   }
 
   /**
@@ -194,46 +189,32 @@ public final class SerialSectionsManager extends BaseManager {
    * @return
    */
   public boolean setParamFile(final SerialSectionsStartupData startupData) {
-    System.err.println("1682 FBAA");
     if (loadedParamFile) {
-      System.err.println("1682 FBAB");
       return true;
     }
     if (startupData == null) {
-      System.err.println("1682 FBAC");
       return false;
     }
     String name = startupData.getRootName();
-    System.err.println("1682 FBAD");
     File paramFile = startupData.getParamFile();
-    System.err.println("1682 FBAE");
     if (!paramFile.exists()) {
-      System.err.println("1682 FBAF");
       processMgr.createNewFile(paramFile.getAbsolutePath());
-      System.err.println("1682 FBAG");
     }
     initializeUIParameters(paramFile, AXIS_ID, false);
-    System.err.println("1682 FBAH");
     if (!loadedParamFile) {
-      System.err.println("1682 FBAI");
       return false;
     }
     metaData.setStartupData(startupData);
-    System.err.println("1682 FBAJ");
     if (!metaData.isValid()) {
-      System.err.println("1682 FBAK");
       uiHarness.openMessageDialog(this,
           "Invalid data, unable to proceed.  Please exit and restart Etomo",
           "Fatal Error");
-      System.err.println("1682 FBAL");
       return false;
     }
     imodManager.setMetaData(metaData);
-    System.err.println("1682 FBAM");
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
     System.err.println("1682 FBAN");
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
-    System.err.println("1682 FBAO");
     return true;
   }
 
@@ -392,7 +373,6 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   private void changeDirectory(final AxisID axisID, final ConstProcessSeries processSeries) {
-    System.err.println("1682 A");
     File stack = getStack();
     if (stack == null) {
       if (processSeries != null) {
@@ -414,7 +394,6 @@ public final class SerialSectionsManager extends BaseManager {
    */
   private void extractpieces(final UIComponent uiComponent, final AxisID axisID,
       final ProcessSeries processSeries) {
-    System.err.println("1682 B");
     ViewType viewType = getViewType();
     if (viewType == null) {
       if (processSeries != null) {
@@ -459,7 +438,6 @@ public final class SerialSectionsManager extends BaseManager {
    */
   private void createComscripts(final UIComponent uiComponent, final AxisID axisID,
       final ConstProcessSeries processSeries) {
-    System.err.println("1682 C");
     SerialSectionsStartupData startupData = null;
     if (startupDialog == null || (startupData = startupDialog.getStartupData()) == null) {
       if (processSeries != null) {
@@ -518,7 +496,6 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   private void xftoxg(final ProcessSeries processSeries, final AxisID axisID) {
-    System.err.println("1682 G");
     if (dialog == null) {
       if (processSeries != null) {
         processSeries.startFailProcess(axisID);
@@ -550,7 +527,6 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   private void align(final ProcessSeries processSeries, final AxisID axisID) {
-    System.err.println("1682 H");
     if (dialog == null) {
       if (processSeries != null) {
         processSeries.startFailProcess(axisID);
@@ -704,7 +680,6 @@ public final class SerialSectionsManager extends BaseManager {
 
   private void copyDistortionFieldFile(final ConstProcessSeries processSeries,
       final UIComponent uiComponent, final AxisID axisID) {
-    System.err.println("1682 D");
     File distortionField = getDistortionField();
     if (distortionField != null) {
       File stack = getStack();
@@ -734,12 +709,10 @@ public final class SerialSectionsManager extends BaseManager {
    */
   private void doneStartupDialog(final ConstProcessSeries processSeries,
       final AxisID axisID) {
-    System.err.println("1682 E");
     startupDialog.done();
     if (processSeries != null) {
       processSeries.startNextProcess(axisID);
     }
-    System.err.println("1682 E1");
   }
 
   /**

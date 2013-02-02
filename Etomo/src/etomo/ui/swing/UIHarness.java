@@ -386,12 +386,9 @@ public final class UIHarness {
 
   public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
-    System.err.println("1682 FBANDBAJADCA");
     if (isHead()) {
-      System.err.println("1682 FBANDBAJADCB");
       mainFrame.setCurrentManager(currentManager, managerKey, newWindow);
     }
-    System.err.println("1682 FBANDBAJADCC");
   }
 
   public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
@@ -482,7 +479,7 @@ public final class UIHarness {
   }
 
   public void renameWindow(UniqueKey oldKey, UniqueKey newManagerKey) {
-    System.err.println("1682 FBANDA:oldkey:"+oldKey+",newManagerKey:"+newManagerKey);
+    System.err.println("1682 FBANDA");
     if (isHead()) {
       System.err.println("1682 FBANDB");
       mainFrame.renameWindow(oldKey, newManagerKey);
@@ -542,13 +539,10 @@ public final class UIHarness {
    * Initialize if necessary.
    * @return True, if mainFrame is not equal to null.
    */
-  private boolean isHead() {
-    System.err.println("1682 FBANDBAJADCAA");
-    System.err.println("1682 FBANDAA");
+  private boolean isHead() {;
     if (!initialized) {
       initialize();
     }
-    System.err.println("1682 FBANDAB");
     return mainFrame != null;
   }
 

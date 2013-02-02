@@ -273,16 +273,11 @@ abstract class EtomoFrame extends AbstractFrame {
    * @param currentManager
    */
   void setEnabled(BaseManager currentManager) {
-    System.err.println("1682 FBANDBAJADCBAA");
     menu.setEnabled(currentManager);
-    System.err.println("1682 FBANDBAJADCBAA");
     EtomoFrame otherFrame = getOtherFrame();
-    System.err.println("1682 FBANDBAJADCBAB");
     if (otherFrame != null) {
-      System.err.println("1682 FBANDBAJADCBAC");
       otherFrame.menu.setEnabled(currentManager);
     }
-    System.err.println("1682 FBANDBAJADCBAD");
   }
 
   /**

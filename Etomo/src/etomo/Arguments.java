@@ -340,7 +340,6 @@ public final class Arguments {
   }
 
   public boolean isTest() {
-    System.err.println("1682 FBANDBAJADCBBA");
     return test;
   }
 

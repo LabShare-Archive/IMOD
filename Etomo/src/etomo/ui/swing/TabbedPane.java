@@ -48,28 +48,19 @@ final class TabbedPane extends JTabbedPane {
   }
 
   public void setTitleAt(int index, String title) {
-    System.err.println("1682 FBANDBAI1A");
     super.setTitleAt(index, title);
-    System.err.println("1682 FBANDBAI1B");
     if (index == 0) {
-      System.err.println("1682 FBANDBAI1C");
       setName(title);
     }
-    System.err.println("1682 FBANDBAI1D");
   }
 
   public void setName(String text) {
-    System.err.println("1682 FBANDBAI1CA");
     String name = Utilities.convertLabelToName(text);
-    System.err.println("1682 FBANDBAI1CB");
     super
         .setName(UITestFieldType.TAB.toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
-    System.err.println("1682 FBANDBAI1CC");
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.err.println("1682 FBANDBAI1D");
       System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
-    System.err.println("1682 FBANDBAI1CE");
   }
 }
 /**

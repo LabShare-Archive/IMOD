@@ -491,11 +491,8 @@ public class EtomoDirector {
   }
 
   public final void makeCurrent() {
-    System.err.println("1682 FBANDBAJADCBEA");
     System.setProperty("user.dir", originalUserDir);
-    System.err.println("1682 FBANDBAJADCBEB");
     Utilities.managerStamp(originalUserDir, null);
-    System.err.println("1682 FBANDBAJADCBEC");
   }
 
   public final String getOriginalUserDir() {
@@ -507,9 +504,7 @@ public class EtomoDirector {
   }
 
   public void setCurrentManager(UniqueKey key) {
-    System.err.println("1682 FBANDBAJA");
     setCurrentManager(key, false);
-    System.err.println("1682 FBANDBAJB");
   }
 
   /**
@@ -531,16 +526,11 @@ public class EtomoDirector {
    * @param newWindow
    */
   public synchronized void setCurrentManager(UniqueKey key, boolean newWindow) {
-    System.err.println("1682 FBANDBAJAA");
     if (key == null) {
-      System.err.println("1682 FBANDBAJAB");
       return;
     }
-    System.err.println("1682 FBANDBAJAC");
     BaseManager newCurrentManager = (BaseManager) managerList.get(key);
-    System.err.println("1682 FBANDBAJAD");
     setCurrentManager(newCurrentManager, newCurrentManager.getManagerKey(), newWindow);
-    System.err.println("1682 FBANDBAJAE");
   }
 
   /**
@@ -551,16 +541,12 @@ public class EtomoDirector {
    */
   private void setCurrentManager(BaseManager newCurrentManager, ManagerKey managerKey,
       boolean newWindow) {
-    System.err.println("1682 FBANDBAJADA");
     if (newCurrentManager == null) {
-      System.err.println("1682 FBANDBAJADB");
       throw new NullPointerException("managerKey=" + managerKey);
     }
     currentManagerKey = managerKey;
-    System.err.println("1682 FBANDBAJADC");
     UIHarness.INSTANCE.setCurrentManager(newCurrentManager, currentManagerKey.getKey(),
         newWindow);
-    System.err.println("1682 FBANDBAJADD");
   }
 
   /**
@@ -860,40 +846,25 @@ public class EtomoDirector {
   }
 
   private void enableOpenManagerMenuItem() {
-    System.err.println("1682 FBANAA");
     UniqueKey key = currentManagerKey.getKey();
-    System.err.println("1682 FBANAB");
     if (key.getName().equals(MetaData.getNewFileTitle())) {
-      System.err.println("1682 FBANAC");
       UIHarness.INSTANCE.setEnabledNewTomogramMenuItem(true);
-      System.err.println("1682 FBANAD");
     }
     else if (key.getName().equals(JoinMetaData.getNewFileTitle())) {
-      System.err.println("1682 FBANAE");
       UIHarness.INSTANCE.setEnabledNewJoinMenuItem(true);
-      System.err.println("1682 FBANAF");
     }
     else if (key.getName().equals(ParallelMetaData.NEW_GENERIC_PARALLEL_PROCESS_TITLE)) {
-      System.err.println("1682 FBANAG");
       UIHarness.INSTANCE.setEnabledNewGenericParallelMenuItem(true);
-      System.err.println("1682 FBANAH");
     }
     else if (key.getName().equals(ParallelMetaData.NEW_ANISOTROPIC_DIFFUSION_TITLE)) {
-      System.err.println("1682 FBANAI");
       UIHarness.INSTANCE.setEnabledNewAnisotropicDiffusionMenuItem(true);
-      System.err.println("1682 FBANAJ");
     }
     else if (key.getName().equals(PeetMetaData.NEW_TITLE)) {
-      System.err.println("1682 FBANAK");
       UIHarness.INSTANCE.setEnabledNewPeetMenuItem(true);
-      System.err.println("1682 FBANAL");
     }
     else if (key.getName().equals(SerialSectionsMetaData.NEW_TITLE)) {
-      System.err.println("1682 FBANAM");
       UIHarness.INSTANCE.setEnabledNewSerialSectionsMenuItem(true);
-      System.err.println("1682 FBANAN");
     }
-    System.err.println("1682 FBANAO");
   }
 
   /**
@@ -960,11 +931,8 @@ public class EtomoDirector {
   }
 
   public void renameCurrentManager(String managerName) {
-    System.err.println("1682 FBANA");
     enableOpenManagerMenuItem();
-    System.err.println("1682 FBANB");
     UniqueKey oldKey = currentManagerKey.getKey();
-    System.err.println("1682 FBANC");
     currentManagerKey.setKey(managerList.rekey(currentManagerKey.getKey(), managerName));
     System.err.println("1682 FBAND");
     UIHarness.INSTANCE.renameWindow(oldKey, currentManagerKey.getKey());
@@ -1081,7 +1049,6 @@ public class EtomoDirector {
   }
 
   public Arguments getArguments() {
-    System.err.println("1682 FBANDBAJADCBB1A");
     return arguments;
   }
 

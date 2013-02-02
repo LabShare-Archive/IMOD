@@ -192,11 +192,9 @@ public class SerialSectionsStartupDialog implements ContextMenu, UIComponent {
    * Called when the OK button functionality completes successfully.
    */
   public void done() {
-    System.err.println("1682 FA");
     dispose();
     System.err.println("1682 FB");
     manager.setStartupData(startupData);
-    System.err.println("1682 FC");
   }
 
   /**
@@ -329,11 +327,8 @@ public class SerialSectionsStartupDialog implements ContextMenu, UIComponent {
   }
 
   private void dispose() {
-    System.err.println("1682 FAA");
     dialog.setVisible(false);
-    System.err.println("1682 FAB");
     dialog.dispose();
-    System.err.println("1682 FAC");
   }
 
   private void windowClosing() {
