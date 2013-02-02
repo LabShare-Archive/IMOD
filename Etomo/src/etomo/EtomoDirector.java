@@ -491,8 +491,11 @@ public class EtomoDirector {
   }
 
   public final void makeCurrent() {
+    System.err.println("1682 FBANDBAJADCBEA");
     System.setProperty("user.dir", originalUserDir);
+    System.err.println("1682 FBANDBAJADCBEB");
     Utilities.managerStamp(originalUserDir, null);
+    System.err.println("1682 FBANDBAJADCBEC");
   }
 
   public final String getOriginalUserDir() {
@@ -1078,6 +1081,7 @@ public class EtomoDirector {
   }
 
   public Arguments getArguments() {
+    System.err.println("1682 FBANDBAJADCBB1A");
     return arguments;
   }
 

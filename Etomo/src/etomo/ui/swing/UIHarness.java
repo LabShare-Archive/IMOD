@@ -482,7 +482,7 @@ public final class UIHarness {
   }
 
   public void renameWindow(UniqueKey oldKey, UniqueKey newManagerKey) {
-    System.err.println("1682 FBANDA");
+    System.err.println("1682 FBANDA:oldkey:"+oldKey+",newManagerKey:"+newManagerKey);
     if (isHead()) {
       System.err.println("1682 FBANDB");
       mainFrame.renameWindow(oldKey, newManagerKey);

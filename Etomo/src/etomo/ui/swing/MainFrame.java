@@ -646,6 +646,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   }
 
   void showHideLog() {
+    System.err.println("1682 FBANDBAJADCBCA");
     logFrame.showHide();
   }
 

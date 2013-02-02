@@ -174,13 +174,19 @@ final class LogFrame extends JFrame {
    * Toggles setVisible().
    */
   void showHide() {
+    System.err.println("1682 FBANDBAJADCBCAA");
     if (!isVisible()) {
+      System.err.println("1682 FBANDBAJADCBCAB");
       setVisible(true);
+      System.err.println("1682 FBANDBAJADCBCAC");
       refresh();
+      System.err.println("1682 FBANDBAJADCBCAD");
     }
     else {
+      System.err.println("1682 FBANDBAJADCBCAE");
       setVisible(false);
     }
+    System.err.println("1682 FBANDBAJADCBCAF");
   }
 
   /**
