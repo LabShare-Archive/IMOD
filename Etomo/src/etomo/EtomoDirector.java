@@ -936,7 +936,6 @@ public class EtomoDirector {
     currentManagerKey.setKey(managerList.rekey(currentManagerKey.getKey(), managerName));
     System.err.println("1682 FBAND");
     UIHarness.INSTANCE.renameWindow(oldKey, currentManagerKey.getKey());
-    System.err.println("1682 FBANE");
   }
 
   public UserConfiguration getUserConfiguration() {

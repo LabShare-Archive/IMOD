@@ -102,11 +102,16 @@ public class WindowSwitch {
    * @param newKey
    */
   void rename(UniqueKey oldKey, UniqueKey newKey) {
+    System.err.println("1682 FBANDBA");
     if (oldKey == null || newKey == null || menuList == null) {
+      System.err.println("1682 FBANDBB");
       return;
     }
+    System.err.println("1682 FBANDBC");
     JCheckBoxMenuItem menuItem = (JCheckBoxMenuItem) menuList.get(oldKey);
+    System.err.println("1682 FBANDBD");
     int index = menuList.getIndex(oldKey);
+    System.err.println("1682 FBANDBE");
     menuItem.setText(Integer.toString(index + 1) + menuItemDivider + newKey.getName());
     menuList.rekey(oldKey, newKey);
     mainPanelList.rekey(oldKey, newKey);;
