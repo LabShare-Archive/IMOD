@@ -194,31 +194,46 @@ public final class SerialSectionsManager extends BaseManager {
    * @return
    */
   public boolean setParamFile(final SerialSectionsStartupData startupData) {
+    System.err.println("1682 FBAA");
     if (loadedParamFile) {
+      System.err.println("1682 FBAB");
       return true;
     }
     if (startupData == null) {
+      System.err.println("1682 FBAC");
       return false;
     }
     String name = startupData.getRootName();
+    System.err.println("1682 FBAD");
     File paramFile = startupData.getParamFile();
+    System.err.println("1682 FBAE");
     if (!paramFile.exists()) {
+      System.err.println("1682 FBAF");
       processMgr.createNewFile(paramFile.getAbsolutePath());
+      System.err.println("1682 FBAG");
     }
     initializeUIParameters(paramFile, AXIS_ID, false);
+    System.err.println("1682 FBAH");
     if (!loadedParamFile) {
+      System.err.println("1682 FBAI");
       return false;
     }
     metaData.setStartupData(startupData);
+    System.err.println("1682 FBAJ");
     if (!metaData.isValid()) {
+      System.err.println("1682 FBAK");
       uiHarness.openMessageDialog(this,
           "Invalid data, unable to proceed.  Please exit and restart Etomo",
           "Fatal Error");
+      System.err.println("1682 FBAL");
       return false;
     }
     imodManager.setMetaData(metaData);
+    System.err.println("1682 FBAM");
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+    System.err.println("1682 FBAN");
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
+    System.err.println("1682 FBAO");
     return true;
   }
 
