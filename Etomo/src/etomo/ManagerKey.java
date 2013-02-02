@@ -55,6 +55,7 @@ final class ManagerKey {
   }
 
   public UniqueKey getKey() {
+    System.err.println("1682 FBANDBAJADCA");
     System.err.println("1682 FBANBA");
     System.err.println("1682 FBANCA");
     System.err.println("1682 FBANAAB");

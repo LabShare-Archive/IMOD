@@ -548,12 +548,16 @@ public class EtomoDirector {
    */
   private void setCurrentManager(BaseManager newCurrentManager, ManagerKey managerKey,
       boolean newWindow) {
+    System.err.println("1682 FBANDBAJADA");
     if (newCurrentManager == null) {
+      System.err.println("1682 FBANDBAJADB");
       throw new NullPointerException("managerKey=" + managerKey);
     }
     currentManagerKey = managerKey;
+    System.err.println("1682 FBANDBAJADC");
     UIHarness.INSTANCE.setCurrentManager(newCurrentManager, currentManagerKey.getKey(),
         newWindow);
+    System.err.println("1682 FBANDBAJADD");
   }
 
   /**
