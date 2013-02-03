@@ -102,24 +102,25 @@ public class WindowSwitch {
    * @param newKey
    */
   void rename(UniqueKey oldKey, UniqueKey newKey) {
-    System.err.println("1682 FBANDBA");
     if (oldKey == null || newKey == null || menuList == null) {
-      System.err.println("1682 FBANDBB");
       return;
     }
-    System.err.println("1682 FBANDBC");
     JCheckBoxMenuItem menuItem = (JCheckBoxMenuItem) menuList.get(oldKey);
-    System.err.println("1682 FBANDBD");
     int index = menuList.getIndex(oldKey);
-    System.err.println("1682 FBANDBE");
     menuItem.setText(Integer.toString(index + 1) + menuItemDivider + newKey.getName());
+    System.err.println("1682 FBANDBF");
     menuList.rekey(oldKey, newKey);
-    mainPanelList.rekey(oldKey, newKey);;
+    System.err.println("1682 FBANDBG");
+    mainPanelList.rekey(oldKey, newKey);
+    System.err.println("1682 FBANDBH");
     if (mainPanelList.size() > 1 && tabbedPane != null
         && tabbedPane.getTabCount() > index) {
+      System.err.println("1682 FBANDBI");
       tabbedPane.setTitleAt(index, newKey.getName());
     }
+    System.err.println("1682 FBANDBJ");
     EtomoDirector.INSTANCE.setCurrentManager(newKey);
+    System.err.println("1682 FBANDBK");
   }
 
   /**
