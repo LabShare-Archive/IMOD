@@ -538,7 +538,7 @@ public final class UIHarness {
    * Initialize if necessary.
    * @return True, if mainFrame is not equal to null.
    */
-  private boolean isHead() {;
+  private boolean isHead() {
     if (!initialized) {
       initialize();
     }
