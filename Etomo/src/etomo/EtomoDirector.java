@@ -546,7 +546,7 @@ public class EtomoDirector {
       throw new NullPointerException("managerKey=" + managerKey);
     }
     currentManagerKey = managerKey;
-    System.err.println("1682 FBANDBJDC");
+    //System.err.println("1682 FBANDBJDC");
     UIHarness.INSTANCE.setCurrentManager(newCurrentManager, currentManagerKey.getKey(),
         newWindow);
   }

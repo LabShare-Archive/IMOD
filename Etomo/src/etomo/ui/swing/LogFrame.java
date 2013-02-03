@@ -125,6 +125,7 @@ final class LogFrame extends JFrame {
     Container contentPane = getContentPane();
     contentPane.removeAll();
     // the old log panel needs to remember its size and location
+    System.err.println("1682 FBANDBJDCBDEA");
     if (curLogPanel != null) {
       // Save the current state in the old log panel
       curLogPanel.setFrameProperties(getProperties());
@@ -132,6 +133,7 @@ final class LogFrame extends JFrame {
     }
     // Set the new panel
     curLogPanel = logPanel;
+    System.err.println("1682 FBANDBJDCBDEB");
     if (curLogPanel != null) {
       UIHarness.INSTANCE.setEnabledLogWindowMenuItem(true);
       contentPane.add(curLogPanel.getRootPanel());
@@ -163,6 +165,7 @@ final class LogFrame extends JFrame {
       UIHarness.INSTANCE.setEnabledLogWindowMenuItem(false);
       setVisible(false);
     }
+    System.err.println("1682 FBANDBJDCBDEC");
   }
 
   private void refresh() {

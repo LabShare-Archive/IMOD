@@ -576,17 +576,13 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
 
     }
     else {
-      System.err.println("1682 FBANDBJDCBDB");
       mainPanel = currentManager.getMainPanel();
-      System.err.println("1682 FBANDBJDCBDC");
       title = currentManager.getName() + " - " + ETOMO_TITLE;
-      System.err.println("1682 FBANDBJDCBDD");
       rootPanel.add(windowSwitch.getPanel(managerKey));
       System.err.println("1682 FBANDBJDCBDE");
       logFrame.setPanel(currentManager.getLogPanel(), newWindow);
       System.err.println("1682 FBANDBJDCBDF");
       toFront();
-      System.err.println("1682 FBANDBJDCBDG");
       mainPanel.addMouseListener(mouseAdapter);
       mainPanel.repaint();
 
@@ -608,7 +604,6 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
         }
       }
     }
-    System.err.println("1682 FBANDBJDCBE");
   }
 
   public LogFrame getLogFrame() {
