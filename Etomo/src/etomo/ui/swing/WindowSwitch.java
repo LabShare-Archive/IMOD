@@ -114,7 +114,6 @@ public class WindowSwitch {
         && tabbedPane.getTabCount() > index) {
       tabbedPane.setTitleAt(index, newKey.getName());
     }
-    //System.err.println("1682 FBANDBJ");
     EtomoDirector.INSTANCE.setCurrentManager(newKey);
   }
 

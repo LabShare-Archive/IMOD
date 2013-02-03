@@ -568,7 +568,6 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     if (mainPanel != null) {
       rootPanel.removeAll();
     }
-    //System.err.println("1682 FBANDBJDCBD");
     if (currentManager == null) {
       title = ETOMO_TITLE;
       hideAxisB();
@@ -579,7 +578,6 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
       mainPanel = currentManager.getMainPanel();
       title = currentManager.getName() + " - " + ETOMO_TITLE;
       rootPanel.add(windowSwitch.getPanel(managerKey));
-      //System.err.println("1682 FBANDBJDCBDE");
       logFrame.setPanel(currentManager.getLogPanel(), newWindow);
       toFront();
       mainPanel.addMouseListener(mouseAdapter);

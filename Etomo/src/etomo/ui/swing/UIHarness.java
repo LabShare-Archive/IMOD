@@ -387,7 +387,6 @@ public final class UIHarness {
   public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
     if (isHead()) {
-      //System.err.println("1682 FBANDBJDCB");
       mainFrame.setCurrentManager(currentManager, managerKey, newWindow);
     }
   }
@@ -481,7 +480,6 @@ public final class UIHarness {
 
   public void renameWindow(UniqueKey oldKey, UniqueKey newManagerKey) {
     if (isHead()) {
-      //System.err.println("1682 FBANDB");
       mainFrame.renameWindow(oldKey, newManagerKey);
     }
   }
