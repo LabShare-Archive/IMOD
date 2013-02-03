@@ -549,7 +549,6 @@ public class EtomoDirector {
     System.err.println("1682 FBANDBJDC");
     UIHarness.INSTANCE.setCurrentManager(newCurrentManager, currentManagerKey.getKey(),
         newWindow);
-    System.err.println("1682 FBANDBJDD");
   }
 
   /**

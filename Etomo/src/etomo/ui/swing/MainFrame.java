@@ -551,10 +551,12 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
     setEnabled(currentManager);
+    System.err.println("1682 FBANDBJDCBA");
     if (EtomoDirector.INSTANCE.getArguments().isTest() && logFrame.isVisible()) {
       showHideLog();
     }
     this.currentManager = currentManager;
+    System.err.println("1682 FBANDBJDCBB");
     if (currentManager == null) {
       EtomoDirector.INSTANCE.makeCurrent();
     }
@@ -565,9 +567,11 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     }
     // Remove everything from rootPanel if the main panel has been set from the
     // previous manager.
+    System.err.println("1682 FBANDBJDCBC");
     if (mainPanel != null) {
       rootPanel.removeAll();
     }
+    System.err.println("1682 FBANDBJDCBD");
     if (currentManager == null) {
       title = ETOMO_TITLE;
       hideAxisB();
@@ -600,6 +604,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
         }
       }
     }
+    System.err.println("1682 FBANDBJDCBE");
   }
 
   public LogFrame getLogFrame() {
