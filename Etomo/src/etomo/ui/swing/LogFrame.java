@@ -132,25 +132,26 @@ final class LogFrame extends JFrame {
     }
     // Set the new panel
     curLogPanel = logPanel;
-    //System.err.println("1682 FBANDBJDCBDEB");
+    // System.err.println("1682 FBANDBJDCBDEB");
     if (curLogPanel != null) {
       UIHarness.INSTANCE.setEnabledLogWindowMenuItem(true);
       contentPane.add(curLogPanel.getRootPanel());
       setTitle(curLogPanel.getTitle());
       // get the last size and location for this log panel
       ConstLogProperties properties = curLogPanel.getFrameProperties();
-      System.err.println("1682 FBANDBJDCBDEBA");
       if (properties == null) {
         properties = EtomoDirector.INSTANCE.getUserConfiguration().getLogProperties();
       }
-      System.err.println("1682 FBANDBJDCBDEBB");
       if (properties == null) {
         properties = new LogProperties();
       }
-      System.err.println("1682 FBANDBJDCBDEBC");
       setPreferredSize(properties.getFrameSize());
-      System.err.println("1682 FBANDBJDCBDEBD");
       setLocation(properties.getFrameLocationX(), properties.getFrameLocationY());
+      try {
+        Thread.sleep(1);
+      }
+      catch (InterruptedException e) {
+      }
       System.err.println("1682 FBANDBJDCBDEBE");
       setVisible(curLogPanel.isFrameVisible());
       System.err.println("1682 FBANDBJDCBDEBF");
