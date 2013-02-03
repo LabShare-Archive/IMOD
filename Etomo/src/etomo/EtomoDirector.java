@@ -530,9 +530,8 @@ public class EtomoDirector {
       return;
     }
     BaseManager newCurrentManager = (BaseManager) managerList.get(key);
-    System.err.println("1682 FBANDBJD");
+    //System.err.println("1682 FBANDBJD");
     setCurrentManager(newCurrentManager, newCurrentManager.getManagerKey(), newWindow);
-    System.err.println("1682 FBANDBJE");
   }
 
   /**
@@ -543,9 +542,7 @@ public class EtomoDirector {
    */
   private void setCurrentManager(BaseManager newCurrentManager, ManagerKey managerKey,
       boolean newWindow) {
-    System.err.println("1682 FBANDBJDA");
     if (newCurrentManager == null) {
-      System.err.println("1682 FBANDBJDB");
       throw new NullPointerException("managerKey=" + managerKey);
     }
     currentManagerKey = managerKey;

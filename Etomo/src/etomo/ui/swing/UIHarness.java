@@ -386,9 +386,12 @@ public final class UIHarness {
 
   public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
+    System.err.println("1682 FBANDBJDCA");
     if (isHead()) {
+      System.err.println("1682 FBANDBJDCB");
       mainFrame.setCurrentManager(currentManager, managerKey, newWindow);
     }
+    System.err.println("1682 FBANDBJDCD");
   }
 
   public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
