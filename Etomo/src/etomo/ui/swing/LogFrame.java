@@ -148,7 +148,7 @@ final class LogFrame extends JFrame {
       setPreferredSize(properties.getFrameSize());
       setLocation(properties.getFrameLocationX(), properties.getFrameLocationY());
       try {
-        Thread.sleep(1);
+        Thread.sleep(10);
       }
       catch (InterruptedException e) {
       }
