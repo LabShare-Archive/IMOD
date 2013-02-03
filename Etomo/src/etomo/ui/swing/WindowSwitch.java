@@ -108,19 +108,14 @@ public class WindowSwitch {
     JCheckBoxMenuItem menuItem = (JCheckBoxMenuItem) menuList.get(oldKey);
     int index = menuList.getIndex(oldKey);
     menuItem.setText(Integer.toString(index + 1) + menuItemDivider + newKey.getName());
-    System.err.println("1682 FBANDBF");
     menuList.rekey(oldKey, newKey);
-    System.err.println("1682 FBANDBG");
     mainPanelList.rekey(oldKey, newKey);
-    System.err.println("1682 FBANDBH");
     if (mainPanelList.size() > 1 && tabbedPane != null
         && tabbedPane.getTabCount() > index) {
-      System.err.println("1682 FBANDBI");
       tabbedPane.setTitleAt(index, newKey.getName());
     }
     System.err.println("1682 FBANDBJ");
     EtomoDirector.INSTANCE.setCurrentManager(newKey);
-    System.err.println("1682 FBANDBK");
   }
 
   /**

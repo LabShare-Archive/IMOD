@@ -526,11 +526,16 @@ public class EtomoDirector {
    * @param newWindow
    */
   public synchronized void setCurrentManager(UniqueKey key, boolean newWindow) {
+    System.err.println("1682 FBANDBJA");
     if (key == null) {
+      System.err.println("1682 FBANDBJB");
       return;
     }
+    System.err.println("1682 FBANDBJC");
     BaseManager newCurrentManager = (BaseManager) managerList.get(key);
+    System.err.println("1682 FBANDBJD");
     setCurrentManager(newCurrentManager, newCurrentManager.getManagerKey(), newWindow);
+    System.err.println("1682 FBANDBJE");
   }
 
   /**
