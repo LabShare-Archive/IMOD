@@ -551,12 +551,10 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
     setEnabled(currentManager);
-    System.err.println("1682 FBANDBJDCBA");
     if (EtomoDirector.INSTANCE.getArguments().isTest() && logFrame.isVisible()) {
       showHideLog();
     }
     this.currentManager = currentManager;
-    System.err.println("1682 FBANDBJDCBB");
     if (currentManager == null) {
       EtomoDirector.INSTANCE.makeCurrent();
     }
@@ -567,24 +565,34 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     }
     // Remove everything from rootPanel if the main panel has been set from the
     // previous manager.
-    System.err.println("1682 FBANDBJDCBC");
     if (mainPanel != null) {
       rootPanel.removeAll();
     }
     System.err.println("1682 FBANDBJDCBD");
     if (currentManager == null) {
       title = ETOMO_TITLE;
+      System.err.println("1682 FBANDBJDCBDA");
       hideAxisB();
+      System.err.println("1682 FBANDBJDCBDB");
       logFrame.setPanel(null, newWindow);
+      System.err.println("1682 FBANDBJDCBDC");
     }
     else {
+      System.err.println("1682 FBANDBJDCBDD");
       mainPanel = currentManager.getMainPanel();
+      System.err.println("1682 FBANDBJDCBDE");
       title = currentManager.getName() + " - " + ETOMO_TITLE;
+      System.err.println("1682 FBANDBJDCBDF");
       rootPanel.add(windowSwitch.getPanel(managerKey));
+      System.err.println("1682 FBANDBJDCBDG");
       logFrame.setPanel(currentManager.getLogPanel(), newWindow);
+      System.err.println("1682 FBANDBJDCBDH");
       toFront();
+      System.err.println("1682 FBANDBJDCBDI");
       mainPanel.addMouseListener(mouseAdapter);
+      System.err.println("1682 FBANDBJDCBDJ");
       mainPanel.repaint();
+      System.err.println("1682 FBANDBJDCBDK");
 
       if (subFrame != null) {
         ((SubFrame) subFrame).setMainPanel(bAxisTitle + title + " ", currentManager);
