@@ -125,7 +125,6 @@ final class LogFrame extends JFrame {
     Container contentPane = getContentPane();
     contentPane.removeAll();
     // the old log panel needs to remember its size and location
-    System.err.println("1682 FBANDBJDCBDEA");
     if (curLogPanel != null) {
       // Save the current state in the old log panel
       curLogPanel.setFrameProperties(getProperties());
@@ -140,6 +139,7 @@ final class LogFrame extends JFrame {
       setTitle(curLogPanel.getTitle());
       // get the last size and location for this log panel
       ConstLogProperties properties = curLogPanel.getFrameProperties();
+      System.err.println("1682 FBANDBJDCBDEBA");
       if (properties == null) {
         properties = EtomoDirector.INSTANCE.getUserConfiguration().getLogProperties();
       }
@@ -149,9 +149,11 @@ final class LogFrame extends JFrame {
       setPreferredSize(properties.getFrameSize());
       setLocation(properties.getFrameLocationX(), properties.getFrameLocationY());
       setVisible(curLogPanel.isFrameVisible());
+      System.err.println("1682 FBANDBJDCBDEBB");
       if (isVisible()) {
         refresh();
       }
+      System.err.println("1682 FBANDBJDCBDEBC");
       if (newWindow) {
         boolean savedVisibleState = properties.isVisible();
         if (savedVisibleState != curLogPanel.isFrameVisible()) {
@@ -161,6 +163,7 @@ final class LogFrame extends JFrame {
       }
     }
     else {
+      System.err.println("1682 FBANDBJDCBDEBD");
       // This happens when exiting
       UIHarness.INSTANCE.setEnabledLogWindowMenuItem(false);
       setVisible(false);
