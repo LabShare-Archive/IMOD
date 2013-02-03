@@ -526,12 +526,9 @@ public class EtomoDirector {
    * @param newWindow
    */
   public synchronized void setCurrentManager(UniqueKey key, boolean newWindow) {
-    System.err.println("1682 FBANDBJA");
     if (key == null) {
-      System.err.println("1682 FBANDBJB");
       return;
     }
-    System.err.println("1682 FBANDBJC");
     BaseManager newCurrentManager = (BaseManager) managerList.get(key);
     System.err.println("1682 FBANDBJD");
     setCurrentManager(newCurrentManager, newCurrentManager.getManagerKey(), newWindow);
@@ -546,12 +543,16 @@ public class EtomoDirector {
    */
   private void setCurrentManager(BaseManager newCurrentManager, ManagerKey managerKey,
       boolean newWindow) {
+    System.err.println("1682 FBANDBJDA");
     if (newCurrentManager == null) {
+      System.err.println("1682 FBANDBJDB");
       throw new NullPointerException("managerKey=" + managerKey);
     }
     currentManagerKey = managerKey;
+    System.err.println("1682 FBANDBJDC");
     UIHarness.INSTANCE.setCurrentManager(newCurrentManager, currentManagerKey.getKey(),
         newWindow);
+    System.err.println("1682 FBANDBJDD");
   }
 
   /**
@@ -939,7 +940,7 @@ public class EtomoDirector {
     enableOpenManagerMenuItem();
     UniqueKey oldKey = currentManagerKey.getKey();
     currentManagerKey.setKey(managerList.rekey(currentManagerKey.getKey(), managerName));
-    System.err.println("1682 FBAND");
+    //System.err.println("1682 FBAND");
     UIHarness.INSTANCE.renameWindow(oldKey, currentManagerKey.getKey());
   }
 

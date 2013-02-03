@@ -166,7 +166,7 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   public void setStartupData(final SerialSectionsStartupData startupData) {
-    System.err.println("1682 FBA");
+    //System.err.println("1682 FBA");
     startupDialog = null;
     setParamFile(startupData);
     openSerialSectionsDialog(startupData);
@@ -213,7 +213,7 @@ public final class SerialSectionsManager extends BaseManager {
     }
     imodManager.setMetaData(metaData);
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
-    System.err.println("1682 FBAN");
+    //System.err.println("1682 FBAN");
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
     return true;
   }
@@ -709,7 +709,7 @@ public final class SerialSectionsManager extends BaseManager {
    */
   private void doneStartupDialog(final ConstProcessSeries processSeries,
       final AxisID axisID) {
-    System.err.println("1682 F");
+    //System.err.println("1682 F");
     startupDialog.done();
     if (processSeries != null) {
       processSeries.startNextProcess(axisID);

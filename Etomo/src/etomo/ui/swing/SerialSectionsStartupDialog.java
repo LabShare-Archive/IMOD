@@ -193,7 +193,7 @@ public class SerialSectionsStartupDialog implements ContextMenu, UIComponent {
    */
   public void done() {
     dispose();
-    System.err.println("1682 FB");
+    //System.err.println("1682 FB");
     manager.setStartupData(startupData);
   }
 
