@@ -132,7 +132,7 @@ final class LogFrame extends JFrame {
     }
     // Set the new panel
     curLogPanel = logPanel;
-    System.err.println("1682 FBANDBJDCBDEB");
+    //System.err.println("1682 FBANDBJDCBDEB");
     if (curLogPanel != null) {
       UIHarness.INSTANCE.setEnabledLogWindowMenuItem(true);
       contentPane.add(curLogPanel.getRootPanel());
@@ -143,17 +143,20 @@ final class LogFrame extends JFrame {
       if (properties == null) {
         properties = EtomoDirector.INSTANCE.getUserConfiguration().getLogProperties();
       }
+      System.err.println("1682 FBANDBJDCBDEBB");
       if (properties == null) {
         properties = new LogProperties();
       }
+      System.err.println("1682 FBANDBJDCBDEBC");
       setPreferredSize(properties.getFrameSize());
+      System.err.println("1682 FBANDBJDCBDEBD");
       setLocation(properties.getFrameLocationX(), properties.getFrameLocationY());
+      System.err.println("1682 FBANDBJDCBDEBE");
       setVisible(curLogPanel.isFrameVisible());
-      System.err.println("1682 FBANDBJDCBDEBB");
+      System.err.println("1682 FBANDBJDCBDEBF");
       if (isVisible()) {
         refresh();
       }
-      System.err.println("1682 FBANDBJDCBDEBC");
       if (newWindow) {
         boolean savedVisibleState = properties.isVisible();
         if (savedVisibleState != curLogPanel.isFrameVisible()) {
@@ -163,12 +166,10 @@ final class LogFrame extends JFrame {
       }
     }
     else {
-      System.err.println("1682 FBANDBJDCBDEBD");
       // This happens when exiting
       UIHarness.INSTANCE.setEnabledLogWindowMenuItem(false);
       setVisible(false);
     }
-    System.err.println("1682 FBANDBJDCBDEC");
   }
 
   private void refresh() {
