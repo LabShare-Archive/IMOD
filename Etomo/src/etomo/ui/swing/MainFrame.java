@@ -573,26 +573,18 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
       title = ETOMO_TITLE;
       System.err.println("1682 FBANDBJDCBDA");
       hideAxisB();
-      System.err.println("1682 FBANDBJDCBDB");
       logFrame.setPanel(null, newWindow);
-      System.err.println("1682 FBANDBJDCBDC");
+
     }
     else {
-      System.err.println("1682 FBANDBJDCBDD");
+      System.err.println("1682 FBANDBJDCBDB");
       mainPanel = currentManager.getMainPanel();
-      System.err.println("1682 FBANDBJDCBDE");
       title = currentManager.getName() + " - " + ETOMO_TITLE;
-      System.err.println("1682 FBANDBJDCBDF");
       rootPanel.add(windowSwitch.getPanel(managerKey));
-      System.err.println("1682 FBANDBJDCBDG");
       logFrame.setPanel(currentManager.getLogPanel(), newWindow);
-      System.err.println("1682 FBANDBJDCBDH");
       toFront();
-      System.err.println("1682 FBANDBJDCBDI");
       mainPanel.addMouseListener(mouseAdapter);
-      System.err.println("1682 FBANDBJDCBDJ");
       mainPanel.repaint();
-      System.err.println("1682 FBANDBJDCBDK");
 
       if (subFrame != null) {
         ((SubFrame) subFrame).setMainPanel(bAxisTitle + title + " ", currentManager);
