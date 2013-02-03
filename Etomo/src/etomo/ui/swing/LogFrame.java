@@ -132,7 +132,6 @@ final class LogFrame extends JFrame {
     }
     // Set the new panel
     curLogPanel = logPanel;
-    // System.err.println("1682 FBANDBJDCBDEB");
     if (curLogPanel != null) {
       UIHarness.INSTANCE.setEnabledLogWindowMenuItem(true);
       contentPane.add(curLogPanel.getRootPanel());
@@ -148,13 +147,11 @@ final class LogFrame extends JFrame {
       setPreferredSize(properties.getFrameSize());
       setLocation(properties.getFrameLocationX(), properties.getFrameLocationY());
       try {
-        Thread.sleep(10);
+        Thread.sleep(20);
       }
       catch (InterruptedException e) {
       }
-      //System.err.println("1682 FBANDBJDCBDEBE");
       setVisible(curLogPanel.isFrameVisible());
-      //System.err.println("1682 FBANDBJDCBDEBF");
       if (isVisible()) {
         refresh();
       }
