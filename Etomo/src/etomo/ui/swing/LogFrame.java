@@ -152,9 +152,9 @@ final class LogFrame extends JFrame {
       }
       catch (InterruptedException e) {
       }
-      System.err.println("1682 FBANDBJDCBDEBE");
+      //System.err.println("1682 FBANDBJDCBDEBE");
       setVisible(curLogPanel.isFrameVisible());
-      System.err.println("1682 FBANDBJDCBDEBF");
+      //System.err.println("1682 FBANDBJDCBDEBF");
       if (isVisible()) {
         refresh();
       }
