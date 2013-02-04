@@ -47,7 +47,7 @@ final class EtomoMenu {
   static final String PEET_LABEL = "Subvolume Averaging (PEET)";
   static final String FLATTEN_VOLUME_LABEL = "Flatten Volume";
   static final String GPU_TILT_TEST_LABEL = "Test GPU";
-  static final String SERIAL_SECTIONS_LABEL = "Align Serial Sections";
+  static final String SERIAL_SECTIONS_LABEL = "Align Serial Sections / Blend Montages";
 
   private static final int nMRUFileMax = 10;
   private static final String TOP_ANCHOR = Constants.TOP_ANCHOR;
