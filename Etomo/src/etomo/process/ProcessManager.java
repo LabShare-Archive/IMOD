@@ -1074,7 +1074,7 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   public void setupCtfPlotterComScript(CtfPhaseFlipParam ctfPhaseFlipParam, AxisID axisID) {
-    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, null);
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, null, null, null);
     copyTomoComs.setCTFFiles(CopyTomoComs.CtfFilesValue.CTF_PLOTTER);
     copyTomoComs.setVoltage(ctfPhaseFlipParam.getVoltage());
     copyTomoComs.setSphericalAberration(ctfPhaseFlipParam.getSphericalAberration());
@@ -1082,13 +1082,16 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   public void setupCtfCorrectionComScript(AxisID axisID) {
-    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, null);
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, null, null, null);
     copyTomoComs.setCTFFiles(CopyTomoComs.CtfFilesValue.CTF_CORRECTION);
     setupComScripts(copyTomoComs, axisID);
   }
 
-  public ProcessMessages setupComScripts(AxisID axisID, final DirectiveFile directiveFile) {
-    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, directiveFile);
+  public ProcessMessages setupComScripts(AxisID axisID,
+      final DirectiveFile systemTemplate, final DirectiveFile userTemplate,
+      final DirectiveFile batchDirectiveFile) {
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, systemTemplate,
+        userTemplate, batchDirectiveFile);
 
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       System.err.println("copytomocoms command line: " + copyTomoComs.getCommandLine());
@@ -1231,8 +1234,8 @@ public class ProcessManager extends BaseProcessManager {
   /**
    * Run clip stats
    */
-  public String clipStats(ClipParam param, AxisID axisID, final ProcessSeries processSeries)
-      throws SystemProcessException {
+  public String clipStats(ClipParam param, AxisID axisID,
+      final ProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param, axisID,
         ProcessName.CLIP, processSeries);
     return backgroundProcess.getName();
@@ -1757,9 +1760,9 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   public String sirtsetup(final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay,
-      final ProcessSeries processSeries, final SirtsetupParam param,
-      final ProcessingMethod processingMethod) throws SystemProcessException {
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final SirtsetupParam param, final ProcessingMethod processingMethod)
+      throws SystemProcessException {
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(param, null, axisID,
         processResultDisplay, processSeries, processingMethod);
@@ -1773,10 +1776,9 @@ public class ProcessManager extends BaseProcessManager {
    *          the AxisID to run tilt on.
    */
   public String tilt(final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay,
-      final ProcessSeries processSeries, final ConstTiltParam param,
-      final String processTitle, final ProcessingMethod processingMethod)
-      throws SystemProcessException {
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final ConstTiltParam param, final String processTitle,
+      final ProcessingMethod processingMethod) throws SystemProcessException {
     // Instantiate the process monitor
     TiltProcessMonitor tiltProcessMonitor = new TiltProcessMonitor(appManager, axisID,
         ProcessName.TILT);
@@ -2017,7 +2019,8 @@ public class ProcessManager extends BaseProcessManager {
    * 
    * @return String
    */
-  public String patchcorr(final ProcessSeries processSeries) throws SystemProcessException {
+  public String patchcorr(final ProcessSeries processSeries)
+      throws SystemProcessException {
     // Create the required patchcorr command
     String command = "patchcorr.com";
     // Create the process monitor
