@@ -722,7 +722,9 @@ public final class JoinManager extends BaseManager {
   }
 
   void createMainPanel() {
-    mainPanel = new MainJoinPanel(this);
+    if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+      mainPanel = new MainJoinPanel(this);
+    }
   }
 
   /**
