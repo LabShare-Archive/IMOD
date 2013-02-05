@@ -15,6 +15,7 @@ import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.storage.LogFile;
 import etomo.storage.Loggable;
 import etomo.storage.Storable;
@@ -101,6 +102,9 @@ public final class LogPanel implements Storable, LogInterface {
   }
 
   public static LogPanel getInstance(BaseManager manager) {
+    if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+      return null;
+    }
     LogPanel instance = new LogPanel(manager);
     instance.addListeners();
     return instance;
