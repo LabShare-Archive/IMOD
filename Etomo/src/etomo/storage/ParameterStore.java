@@ -201,7 +201,9 @@ public final class ParameterStore {
     if (dataFile != null) {
       synchronized (dataFile) {
         // let the storable overwrite its values
-        storable.store(properties);
+        if (storable != null) {
+          storable.store(properties);
+        }
         if (autoStore) {
           storeProperties();
         }
