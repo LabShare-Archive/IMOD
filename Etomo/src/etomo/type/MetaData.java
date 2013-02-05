@@ -791,6 +791,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + "Trimvol.NewStyleZ");
   private final EtomoBoolean2 postTrimvolScalingNewStyleZ = new EtomoBoolean2(POST_KEY
       + "Trimvol.Scaling.NewStyleZ");
+  private final FortranInputString stackCtfAutoFitRangeAndStepA = new FortranInputString(
+      2);
+  private final FortranInputString stackCtfAutoFitRangeAndStepB = new FortranInputString(
+      2);
 
   public MetaData(final ApplicationManager manager) {
     this.manager = manager;
@@ -826,6 +830,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stackEraseGoldModelUseFidB.setDisplayValue(ERASE_GOLD_MODEL_USE_FID_DEFAULT);
     genBackProjectionA.setDisplayValue(true);
     genBackProjectionB.setDisplayValue(true);
+    stackCtfAutoFitRangeAndStepA.setPropertiesKey(STACK_KEY + "." + FIRST_AXIS_KEY
+        + ".CTF.AutoFit.RangeAndStep");
+    stackCtfAutoFitRangeAndStepA.setPropertiesKey(STACK_KEY + "." + SECOND_AXIS_KEY
+        + ".CTF.AutoFit.RangeAndStep");
   }
 
   /**
@@ -1152,7 +1160,26 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
+  public void setStackCtfAutoFitRangeAndStep(final AxisID axisID, final String input)
+      throws FortranInputSyntaxException {
+    if (axisID == AxisID.SECOND) {
+      stackCtfAutoFitRangeAndStepB.validateAndSet(input);
+    }
+    else {
+      stackCtfAutoFitRangeAndStepA.validateAndSet(input);
+    }
+  }
+
   public void setPosBinning(final AxisID axisID, final int binning) {
+    if (axisID == AxisID.SECOND) {
+      posBinningB.set(binning);
+    }
+    else {
+      posBinningA.set(binning);
+    }
+  }
+  
+  public void setPosBinning(final AxisID axisID, final String binning) {
     if (axisID == AxisID.SECOND) {
       posBinningB.set(binning);
     }
@@ -1961,6 +1988,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     setFEIPixelSize.load(props, prepend);
     postTrimvolNewStyleZ.load(props, prepend);
     postTrimvolScalingNewStyleZ.load(props, prepend);
+    stackCtfAutoFitRangeAndStepA.load(props, prepend);
+    stackCtfAutoFitRangeAndStepB.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(final AxisID axisID, final boolean selected) {
@@ -2300,6 +2329,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     setFEIPixelSize.store(props, prepend);
     postTrimvolNewStyleZ.store(props, prepend);
     postTrimvolScalingNewStyleZ.store(props, prepend);
+    stackCtfAutoFitRangeAndStepA.store(props, prepend);
+    stackCtfAutoFitRangeAndStepB.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -2797,6 +2828,20 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return sizeToOutputInXandYB;
     }
     return sizeToOutputInXandYA;
+  }
+
+  public FortranInputString getStackCtfAutoFitRangeAndStep(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return stackCtfAutoFitRangeAndStepB;
+    }
+    return stackCtfAutoFitRangeAndStepA;
+  }
+
+  public boolean isStackCtfAutoFitRangeAndStepSet(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !stackCtfAutoFitRangeAndStepB.isNull();
+    }
+    return !stackCtfAutoFitRangeAndStepA.isNull();
   }
 
   public String getMagGradientFile() {
