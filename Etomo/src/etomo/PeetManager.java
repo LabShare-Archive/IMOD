@@ -874,7 +874,9 @@ public final class PeetManager extends BaseManager {
   }
 
   void createMainPanel() {
-    mainPanel = new MainPeetPanel(this);
+    if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+      mainPanel = new MainPeetPanel(this);
+    }
   }
 
   public BaseProcessManager getProcessManager() {
