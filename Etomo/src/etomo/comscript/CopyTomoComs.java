@@ -258,7 +258,9 @@ public final class CopyTomoComs {
   private final EtomoNumber ctfFiles = new EtomoNumber();
 
   private final ApplicationManager manager;
-  private final DirectiveFile directiveFile;
+  private final DirectiveFile batchDirectiveFile;
+  private final DirectiveFile systemTemplate;
+  private final DirectiveFile userTemplate;
 
   private StringBuffer commandLine = null;
   private int exitValue;
@@ -266,9 +268,12 @@ public final class CopyTomoComs {
   private boolean debug;
   private SystemProgram copytomocoms = null;
 
-  public CopyTomoComs(ApplicationManager manager, final DirectiveFile directiveFile) {
+  public CopyTomoComs(ApplicationManager manager, final DirectiveFile systemTemplate,
+      final DirectiveFile userTemplate, final DirectiveFile batchDirectiveFile) {
     this.manager = manager;
-    this.directiveFile = directiveFile;
+    this.batchDirectiveFile = batchDirectiveFile;
+    this.systemTemplate = systemTemplate;
+    this.userTemplate = userTemplate;
     metaData = manager.getConstMetaData();
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
   }
@@ -282,13 +287,19 @@ public final class CopyTomoComs {
     command.add("python");
     command.add("-u");
     command.add(ApplicationManager.getIMODBinPath() + "copytomocoms");
-    if (directiveFile == null) {
-      if (!genOptions()) {
-        return false;
-      }
+    genCommonOptions();
+    //Add directives in order: system, user, batch process directive file.
+    if (systemTemplate != null) {
+      genOptionsFromDirectiveFile(systemTemplate);
     }
-    else {
-      genOptionsFromDirectiveFile();
+    if (userTemplate != null) {
+      genOptionsFromDirectiveFile(userTemplate);
+    }
+    if (batchDirectiveFile != null) {
+      genOptionsFromDirectiveFile(batchDirectiveFile);
+    }
+    else if (!genOptions()) {
+      return false;
     }
     copytomocoms = new SystemProgram(manager, manager.getPropertyUserDir(), command,
         AxisID.ONLY);
@@ -323,7 +334,9 @@ public final class CopyTomoComs {
   /**
    * Add options from directive file.
    */
-  private void genOptionsFromDirectiveFile() {
+  private void genOptionsFromDirectiveFile(final DirectiveFile directiveFile) {
+    command.add("-change");
+    command.add(directiveFile.getFile().getAbsolutePath());
     DirectiveFile.CopyArgIterator iterator = directiveFile.getCopyArgIterator();
     if (iterator == null) {
       return;
@@ -339,17 +352,6 @@ public final class CopyTomoComs {
         }
       }
     }
-    genCommonOptions();
-    if(directiveFile.isSystemTemplateSet()) {
-      command.add("-change");
-      command.add(directiveFile.getSystemTemplate());
-    }
-    if(directiveFile.isUserTemplateSet()) {
-      command.add("-change");
-      command.add(directiveFile.getUserTemplate());
-    }
-    command.add("-change");
-    command.add(EtomoDirector.INSTANCE.getArguments().getDirective().getAbsolutePath());
   }
 
   private boolean genOptions() {
@@ -424,7 +426,6 @@ public final class CopyTomoComs {
       command.add("-CTFfiles");
       command.add(ctfFiles.toString());
     }
-    genCommonOptions();
     // Undistort images with the given .idf file
     String distortionFile = metaData.getDistortionFile();
     if (!distortionFile.equals("")) {
