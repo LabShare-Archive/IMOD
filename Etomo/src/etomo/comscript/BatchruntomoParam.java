@@ -95,6 +95,13 @@ public class BatchruntomoParam {
     }
     return batchruntomo.getStdErrorString();
   }
+  
+  public String getStdOutputString() {
+    if (batchruntomo == null) {
+      return "ERROR: Batchruntomo is null.";
+    }
+    return batchruntomo.getStdOutputString();
+  }
 
   public String[] getStdError() {
     if (batchruntomo == null) {
