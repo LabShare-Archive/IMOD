@@ -104,7 +104,9 @@ public final class FrontPageManager extends BaseManager {
   }
 
   void createMainPanel() {
-    mainPanel = new MainFrontPagePanel(this);
+    if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+      mainPanel = new MainFrontPagePanel(this);
+    }
   }
 
   private void createState() {
