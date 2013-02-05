@@ -142,7 +142,9 @@ public final class ParallelManager extends BaseManager {
   }
 
   void createMainPanel() {
-    mainPanel = new MainParallelPanel(this);
+    if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+      mainPanel = new MainParallelPanel(this);
+    }
   }
 
   private void createState() {
