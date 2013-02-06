@@ -127,6 +127,8 @@ public final class FileType {
       "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
   public static final FileType LOCAL_DIRECTIVE_FILE = FileType.getInstance(false, false,
       "directive", ".adoc");
+  public static final FileType LOCAL_SCOPE_TEMPLATE = FileType.getInstance(false, false,
+      "scopeTemplate", ".adoc");
   public static final FileType LOCAL_SYSTEM_TEMPLATE = FileType.getInstance(false, false,
       "systemTemplate", ".adoc");
   public static final FileType LOCAL_USER_TEMPLATE = FileType.getInstance(false, false,
