@@ -209,7 +209,7 @@ public final class SetupDialogExpert {
   }
 
   public File getUserTemplate() {
-    return dialog.getSystemTemplateFile();
+    return dialog.getUserTemplateFile();
   }
 
   public File getDir() {
@@ -431,6 +431,7 @@ public final class SetupDialogExpert {
       dialog.setExcludeListEnabled(AxisID.SECOND, false);
       dialog.setViewRawStackEnabled(AxisID.SECOND, false);
     }
+    dialog.setScopeTemplate(ConfigTool.getScopeTemplateFiles());
     dialog.setSystemTemplate(ConfigTool.getSystemTemplateFiles());
     dialog.setUserTemplate(ConfigTool.getUserTemplateFiles());
   }
