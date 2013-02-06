@@ -64,7 +64,12 @@ public class MakecomfileParam {
     else if (fileType != FileType.AUTOFIDSEED_COMSCRIPT) {
       return false;
     }
-    File file = FileType.LOCAL_SYSTEM_TEMPLATE.getFile(manager, axisID);
+    File file = FileType.LOCAL_SCOPE_TEMPLATE.getFile(manager, axisID);
+    if (file.exists()) {
+      command.add("-change");
+      command.add(file.getName());
+    }
+     file = FileType.LOCAL_SYSTEM_TEMPLATE.getFile(manager, axisID);
     if (file.exists()) {
       command.add("-change");
       command.add(file.getName());
