@@ -1074,7 +1074,7 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   public void setupCtfPlotterComScript(CtfPhaseFlipParam ctfPhaseFlipParam, AxisID axisID) {
-    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, null, null, null);
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, null, null, null, null);
     copyTomoComs.setCTFFiles(CopyTomoComs.CtfFilesValue.CTF_PLOTTER);
     copyTomoComs.setVoltage(ctfPhaseFlipParam.getVoltage());
     copyTomoComs.setSphericalAberration(ctfPhaseFlipParam.getSphericalAberration());
@@ -1082,16 +1082,16 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   public void setupCtfCorrectionComScript(AxisID axisID) {
-    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, null, null, null);
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, null, null, null, null);
     copyTomoComs.setCTFFiles(CopyTomoComs.CtfFilesValue.CTF_CORRECTION);
     setupComScripts(copyTomoComs, axisID);
   }
 
   public ProcessMessages setupComScripts(AxisID axisID,
-      final DirectiveFile systemTemplate, final DirectiveFile userTemplate,
-      final DirectiveFile batchDirectiveFile) {
-    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, systemTemplate,
-        userTemplate, batchDirectiveFile);
+      final DirectiveFile scopeTemplate, final DirectiveFile systemTemplate,
+      final DirectiveFile userTemplate, final DirectiveFile batchDirectiveFile) {
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, scopeTemplate,
+        systemTemplate, userTemplate, batchDirectiveFile);
 
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       System.err.println("copytomocoms command line: " + copyTomoComs.getCommandLine());
