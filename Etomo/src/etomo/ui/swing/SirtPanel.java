@@ -112,8 +112,8 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
       RESUME_FROM_LAST_ITERATION_LABEL, bgStartingIteration);
   private final RadioButton rbResumeFromIteration = new RadioButton(
       "Go back, resume from iteration:", bgStartingIteration);
-  private final ComboBox cmbResumeFromIteration = new ComboBox(
-      rbResumeFromIteration.getText());
+  private final ComboBox cmbResumeFromIteration = ComboBox
+      .getUnlabeledInstance(rbResumeFromIteration.getText());
   private final List<ResumeObserver> resumeObservers = new ArrayList();
   private CheckBox cbSkipVertSliceOutput = new CheckBox(
       "Do not make vertical slice output files used for resuming");
@@ -244,7 +244,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     pnlResumeFromIteration.setLayout(new BoxLayout(pnlResumeFromIteration,
         BoxLayout.X_AXIS));
     pnlResumeFromIteration.add(rbResumeFromIteration.getComponent());
-    pnlResumeFromIteration.add(cmbResumeFromIteration);
+    pnlResumeFromIteration.add(cmbResumeFromIteration.getComponent());
     // Buttons panel
     pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
     pnlButtons.add(btnSirt.getComponent());
