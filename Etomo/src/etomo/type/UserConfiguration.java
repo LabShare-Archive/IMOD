@@ -5,6 +5,7 @@ import etomo.ui.swing.LogProperties;
 import etomo.util.CircularBuffer;
 
 import java.awt.Point;
+import java.io.File;
 import java.util.*;
 
 /**
@@ -143,6 +144,8 @@ public final class UserConfiguration implements Storable {
   private EtomoBoolean2 gpuProcessingDefault = null;
   private EtomoBoolean2 swapYAndZ = null;
   private EtomoBoolean2 tiltAnglesRawtltFile = null;
+  private StringProperty userTemplateDirAbsPath = new StringProperty(DEFAULTS_KEY
+      + ".UserTemplateDir");
 
   public UserConfiguration() {
     MRUFileList = new CircularBuffer(nMRUFiles);
@@ -214,6 +217,7 @@ public final class UserConfiguration implements Storable {
     subLastLocationX.store(props, prepend);
     subLastLocationY.store(props, prepend);
     setFEIPixelSize.store(props, prepend);
+    userTemplateDirAbsPath.store(props, prepend);
 
     props.setProperty(group + "MainWindowWidth", String.valueOf(mainWindowWidth));
     props.setProperty(group + "MainWindowHeight", String.valueOf(mainWindowHeight));
@@ -360,6 +364,7 @@ public final class UserConfiguration implements Storable {
     subLastLocationX.load(props, prepend);
     subLastLocationY.load(props, prepend);
     setFEIPixelSize.load(props, prepend);
+    userTemplateDirAbsPath.load(props, prepend);
   }
 
   /**
@@ -672,6 +677,10 @@ public final class UserConfiguration implements Storable {
     return setFEIPixelSize.is();
   }
 
+  public String getUserTemplateDir() {
+    return userTemplateDirAbsPath.toString();
+  }
+
   public boolean getTiltAnglesRawtltFile() {
     if (tiltAnglesRawtltFile == null) {
       return false;
@@ -747,6 +756,15 @@ public final class UserConfiguration implements Storable {
 
   public void setSetFEIPixelSize(boolean input) {
     setFEIPixelSize.set(input);
+  }
+
+  public void setUserTemplateDir(final File input) {
+    if (input == null) {
+      userTemplateDirAbsPath.reset();
+    }
+    else {
+      userTemplateDirAbsPath.set(input.getAbsolutePath());
+    }
   }
 
   public void setTiltAnglesRawtltFile(boolean input) {
