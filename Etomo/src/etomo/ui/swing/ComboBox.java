@@ -1,7 +1,11 @@
 package etomo.ui.swing;
 
+import java.awt.Component;
+import java.awt.event.ActionListener;
+
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
@@ -38,32 +42,96 @@ import etomo.util.Utilities;
 * <p> </p>
 */
 
-final class ComboBox extends JComboBox {
+final class ComboBox {
   public static final String rcsid = "$Id$";
 
-  ComboBox() {
+  private final JComboBox comboBox;
+  private final JLabel label;
+  private final JPanel pnlRoot;
+
+  private ComboBox(final String name, final boolean labeled) {
+    comboBox = new JComboBox();
+    setName(name);
+    if (labeled) {
+      label = new JLabel(name);
+      pnlRoot = new JPanel();
+    }
+    else {
+      label = null;
+      pnlRoot = null;
+    }
   }
 
-  ComboBox(String label) {
-    setName(label);
+  static ComboBox getInstance(String name) {
+    return new ComboBox(name, true);
   }
 
-  ComboBox(JLabel label) {
-    setName(label.getText());
+  static ComboBox getUnlabeledInstance(final String name) {
+    return new ComboBox(name, false);
   }
 
-  static ComboBox getUnlabeledInstance(String name) {
-    ComboBox instance = new ComboBox();
-    instance.setName(name);
-    return instance;
+  static ComboBox getUnlabeledInstance(JLabel label) {
+    return new ComboBox(label.getText(), false);
   }
 
   public void setName(String text) {
     String name = Utilities.convertLabelToName(text);
-    super.setName(UITestFieldType.COMBO_BOX.toString() + AutodocTokenizer.SEPARATOR_CHAR
-        + name);
+    comboBox.setName(UITestFieldType.COMBO_BOX.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(comboBox.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
+  }
+
+  public Component getComponent() {
+    if (pnlRoot != null) {
+      return pnlRoot;
+    }
+    return comboBox;
+  }
+
+  public void addActionListener(final ActionListener listener) {
+    comboBox.addActionListener(listener);
+  }
+
+  public void addItem(final Object input) {
+    comboBox.addItem(input);
+  }
+
+  public String getActionCommand() {
+    return comboBox.getActionCommand();
+  }
+
+  public int getSelectedIndex() {
+    return comboBox.getSelectedIndex();
+  }
+
+  public Object getSelectedItem() {
+    return comboBox.getSelectedItem();
+  }
+
+  public void removeAll() {
+    comboBox.removeAll();
+  }
+
+  public void removeAllItems() {
+    comboBox.removeAllItems();
+  }
+
+  public void setEditable(final boolean editable) {
+    comboBox.setEditable(editable);
+  }
+
+  public void setEnabled(final boolean enabled) {
+    comboBox.setEnabled(enabled);
+  }
+
+  public void setSelectedIndex(final int index) {
+    comboBox.setSelectedIndex(index);
+  }
+
+  public void setToolTipText(final String tooltip) {
+    comboBox.setToolTipText(tooltip);
   }
 }
