@@ -870,6 +870,11 @@ public class Utilities {
       final BaseManager manager, final AxisID axisID) throws IOException {
     copyFile(source.getFile(manager, axisID), destination.getFile(manager, axisID));
   }
+  
+  public static void copyFile(final File source, final FileType destination,
+      final BaseManager manager, final AxisID axisID) throws IOException {
+    copyFile(source, destination.getFile(manager, axisID));
+  }
 
   /**
    * Copy a file using the fastest method available.
