@@ -26,31 +26,20 @@ import etomo.type.UserConfiguration;
 */
 public final class ConfigTool {
   public static final String rcsid = "$Id:$";
-  private static final String SYSTEM_TEMPLATE_DIR = "templates";
 
   /**
-   * Returns a map of the system template files.  Files in ImodCalib override files in
-   * IMOD_DIR.
+   * Returns a sorted list of the scope template files.
    * @return
    */
-  public static File[] getSystemTemplateFiles() {
-    File[] fileArray = new File(BaseManager.getIMODBinPath(), SYSTEM_TEMPLATE_DIR)
-        .listFiles(new AutodocFilter());
+  public static File[] getScopeTemplateFiles() {
+    SortedMap<String, File> map = new TreeMap<String, File>();
+    File[] fileArray = new File(EtomoDirector.INSTANCE.getIMODCalibDirectory(),
+        "ScopeTemplate").listFiles(new AutodocFilter());
     if (fileArray == null) {
       return null;
     }
-    SortedMap<String, File> map = new TreeMap<String, File>();
     for (int i = 0; i < fileArray.length; i++) {
       map.put(fileArray[i].getName(), fileArray[i]);
-    }
-    fileArray = new File(EtomoDirector.INSTANCE.getIMODCalibDirectory(),
-        SYSTEM_TEMPLATE_DIR).listFiles(new AutodocFilter());
-    for (int i = 0; i < fileArray.length; i++) {
-      String key = fileArray[i].getName();
-      if (map.containsKey(key)) {
-        map.remove(key);
-      }
-      map.put(key, fileArray[i]);
     }
     int size = map.size();
     if (size == 0) {
@@ -63,8 +52,44 @@ public final class ConfigTool {
   }
 
   /**
-   * Returns a map of the user template files.  User template files are store either in
-   * .etomotemplates, or in a directory specificed in the Settings dialog.
+   * Returns a sorted list of the system template files.  File names in ImodCalib override
+   * files in IMOD_DIR.
+   * @return
+   */
+  public static File[] getSystemTemplateFiles() {
+    File[] fileArray = new File(BaseManager.getIMODBinPath(), "template")
+        .listFiles(new AutodocFilter());
+    if (fileArray == null) {
+      return null;
+    }
+    SortedMap<String, File> map = new TreeMap<String, File>();
+    for (int i = 0; i < fileArray.length; i++) {
+      map.put(fileArray[i].getName(), fileArray[i]);
+    }
+    fileArray = new File(EtomoDirector.INSTANCE.getIMODCalibDirectory(), "SystemTemplate")
+        .listFiles(new AutodocFilter());
+    if (fileArray != null) {
+      for (int i = 0; i < fileArray.length; i++) {
+        String key = fileArray[i].getName();
+        if (map.containsKey(key)) {
+          map.remove(key);
+        }
+        map.put(key, fileArray[i]);
+      }
+    }
+    int size = map.size();
+    if (size == 0) {
+      return null;
+    }
+    if (size == 1) {
+      return new File[] { map.get(map.firstKey()) };
+    }
+    return map.values().toArray(new File[size]);
+  }
+
+  /**
+   * Returns a sorted list of the user template files.  User template files are stored
+   * either in .etomotemplate, or in a directory specified in the Settings dialog.
    * @return
    */
   public static File[] getUserTemplateFiles() {
@@ -79,7 +104,7 @@ public final class ConfigTool {
       if (homeDirectory == null) {
         return null;
       }
-      dir = new File(homeDirectory, ".etomotemplates");
+      dir = new File(homeDirectory, ".etomotemplate");
     }
     File[] fileArray = dir.listFiles(new AutodocFilter());
     if (fileArray == null) {
