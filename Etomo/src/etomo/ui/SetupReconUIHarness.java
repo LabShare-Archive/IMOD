@@ -622,4 +622,11 @@ public final class SetupReconUIHarness {
           directiveFile.getPositioningBinByFactor(AxisID.FIRST));
     }
   }
+
+  public void initializeFields(ConstMetaData metaData, UserConfiguration userConfig) {
+    if (expert != null) {
+      expert.initializeFields(metaData, userConfig);
+    }
+    setFEIPixelSize = userConfig.isSetFEIPixelSize();
+  }
 }
