@@ -484,7 +484,7 @@ public final class ApplicationManager extends BaseManager implements
       }
       // This is really the method to use the existing com scripts
       if (exitState == DialogExitState.EXECUTE) {
-        if (batchDirectiveFile!= null) {
+        if (batchDirectiveFile != null) {
           if (!EtomoDirector.INSTANCE.getArguments().isFromBRT()) {
             // Etomo is responsible for validating the directive file.
             BatchruntomoParam param = new BatchruntomoParam(this);
@@ -493,7 +493,12 @@ public final class ApplicationManager extends BaseManager implements
             }
           }
         }
-        File templateFile = setupReconUIHarness.getSystemTemplate();
+        File templateFile = setupReconUIHarness.getScopeTemplate();
+        DirectiveFile scopeTemplate = null;
+        if (templateFile != null) {
+          scopeTemplate = DirectiveFile.getInstance(this, AxisID.ONLY, templateFile);
+        }
+        templateFile = setupReconUIHarness.getSystemTemplate();
         DirectiveFile systemTemplate = null;
         if (templateFile != null) {
           systemTemplate = DirectiveFile.getInstance(this, AxisID.ONLY, templateFile);
@@ -503,7 +508,7 @@ public final class ApplicationManager extends BaseManager implements
         if (templateFile != null) {
           userTemplate = DirectiveFile.getInstance(this, AxisID.ONLY, templateFile);
         }
-        ProcessMessages messages = processMgr.setupComScripts(AxisID.ONLY,
+        ProcessMessages messages = processMgr.setupComScripts(AxisID.ONLY, scopeTemplate,
             systemTemplate, userTemplate, batchDirectiveFile);
         if (messages == null) {
           return false;
@@ -555,8 +560,13 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   private void copyDirectiveFiles() {
-    File file = setupReconUIHarness.getSystemTemplate();
+    File file = null;
     try {
+      file = setupReconUIHarness.getScopeTemplate();
+      if (file != null) {
+        Utilities.copyFile(file, FileType.LOCAL_SCOPE_TEMPLATE, this, AxisID.ONLY);
+      }
+      file = setupReconUIHarness.getSystemTemplate();
       if (file != null) {
         Utilities.copyFile(file, FileType.LOCAL_SYSTEM_TEMPLATE, this, AxisID.ONLY);
       }
@@ -568,8 +578,9 @@ public final class ApplicationManager extends BaseManager implements
       Utilities.copyFile(file, FileType.LOCAL_DIRECTIVE_FILE, this, AxisID.ONLY);
     }
     catch (IOException e) {
-      uiHarness.openMessageDialog(this, "Unable to copy " + file.getAbsolutePath()
-          + " to dataset.", "Unable to Copy File");
+      uiHarness.openMessageDialog(this,
+          "Unable to copy " + (file != null ? file.getAbsolutePath() : "file")
+              + " to dataset.", "Unable to Copy File");
     }
   }
 
