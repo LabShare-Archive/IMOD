@@ -31,6 +31,7 @@ import javax.swing.filechooser.FileFilter;
 import etomo.ApplicationManager;
 import etomo.logic.DatasetTool;
 import etomo.storage.MagGradientFileFilter;
+import etomo.storage.DirectiveFile;
 import etomo.storage.StackFileFilter;
 import etomo.storage.DistortionFileFilter;
 import etomo.type.AxisID;
@@ -126,9 +127,16 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final JPanel pnlAdjustedFocusB = new JPanel();
   private final CheckBox cbAdjustedFocusB = new CheckBox(
       "Focus was adjusted between montage frames");
+  private final ComboBox cmbScopeTemplate = ComboBox.getInstance("Scope Template");
+  private final ComboBox cmbSystemTemplate = ComboBox.getInstance("System Template");
+  private final ComboBox cmbUserTemplate = ComboBox.getInstance("User Template");
 
   private final SetupDialogExpert expert;
   private final boolean calibrationAvailable;
+
+  private File[] scopeTemplateFileList = null;
+  private File[] systemTemplateFileList = null;
+  private File[] userTemplateFileList = null;
 
   // Construct the setup dialog
   private SetupDialog(final SetupDialogExpert expert, final ApplicationManager manager,
@@ -226,6 +234,127 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     else if (btnViewRawStackB == button) {
       expert.viewRawStack(AxisID.SECOND, run3dmodMenuOptions);
     }
+  }
+
+  void setScopeTemplate(final File[] templateFileList) {
+    cmbScopeTemplate.removeAll();
+    scopeTemplateFileList = templateFileList;
+    if (scopeTemplateFileList != null) {
+      for (int i = 0; i < scopeTemplateFileList.length; i++) {
+        cmbScopeTemplate.addItem(scopeTemplateFileList[i].getName());
+      }
+    }
+  }
+
+  void setSystemTemplate(final File[] templateFileList) {
+    cmbSystemTemplate.removeAll();
+    systemTemplateFileList = templateFileList;
+    if (systemTemplateFileList != null) {
+      for (int i = 0; i < systemTemplateFileList.length; i++) {
+        cmbSystemTemplate.addItem(systemTemplateFileList[i].getName());
+      }
+    }
+  }
+
+  void setUserTemplate(final File[] templateFileList) {
+    cmbUserTemplate.removeAll();
+    userTemplateFileList = templateFileList;
+    if (userTemplateFileList != null) {
+      for (int i = 0; i < userTemplateFileList.length; i++) {
+        cmbUserTemplate.addItem(userTemplateFileList[i].getName());
+      }
+    }
+  }
+
+  public File getScopeTemplateFile() {
+    int i = cmbScopeTemplate.getSelectedIndex();
+    if (i != -1) {
+      return scopeTemplateFileList[i];
+    }
+    return null;
+  }
+
+  public File getSystemTemplateFile() {
+    int i = cmbSystemTemplate.getSelectedIndex();
+    if (i != -1) {
+      return systemTemplateFileList[i];
+    }
+    return null;
+  }
+
+  public File getUserTemplateFile() {
+    int i = cmbUserTemplate.getSelectedIndex();
+    if (i != -1) {
+      return userTemplateFileList[i];
+    }
+    return null;
+  }
+
+  void updateTemplateValues() {
+    int i = cmbScopeTemplate.getSelectedIndex();
+    DirectiveFile template = null;
+    if (i != -1) {
+      template = DirectiveFile.getInstance(applicationManager, axisID,
+          scopeTemplateFileList[i]);
+    }
+    if (template != null) {
+      updateTemplateValues(template);
+    }
+    i = cmbSystemTemplate.getSelectedIndex();
+    template = null;
+    if (i != -1) {
+      template = DirectiveFile.getInstance(applicationManager, axisID,
+          systemTemplateFileList[i]);
+    }
+    if (template != null) {
+      updateTemplateValues(template);
+    }
+    i = cmbUserTemplate.getSelectedIndex();
+    template = null;
+    if (i != -1) {
+      template = DirectiveFile.getInstance(applicationManager, axisID,
+          userTemplateFileList[i]);
+    }
+    if (template != null) {
+      updateTemplateValues(template);
+    }
+  }
+
+  private void updateTemplateValues(final DirectiveFile template) {
+    if (template.isDual()) {
+      rbDualAxis.setSelected(true);
+    }
+    else {
+      rbSingleAxis.setSelected(true);
+
+    }
+    if (template.isSingleAxisSelected()) {
+      rbSingleView.setSelected(true);
+    }
+    else {
+      rbMontage.setSelected(true);
+    }
+    if (template.containsPixel()) {
+      ltfPixelSize.setText(template.getPixelSize(false));
+    }
+    if (template.containsGold()) {
+      ltfFiducialDiameter.setText(template.getFiducialDiameter(false));
+    }
+    if (template.containsRotation()) {
+      ltfImageRotation.setText(template.getImageRotation(AxisID.FIRST, false));
+    }
+    expert.updateTiltAnglePanelTemplateValues(template);
+    if (template.containsDistort()) {
+      ftfDistortionFile.setText(template.getDistortionFile());
+    }
+    if (template.containsBinning()) {
+      spnBinning.setValue(template.getIntBinning());
+    }
+    if (template.containsGradient()) {
+      ftfMagGradientFile.setText(template.getMagGradientFile());
+    }
+    cbAdjustedFocusA.setSelected(template.isAdjustedFocusSelected(AxisID.FIRST));
+    cbAdjustedFocusB.setSelected(template.isAdjustedFocusSelected(AxisID.SECOND));
   }
 
   private void viewRawStackA() {
@@ -520,6 +649,12 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     return actionCommand.equals(btnScanHeader.getActionCommand());
   }
 
+  boolean equalsTemplateActionCommand(final String actionCommand) {
+    return actionCommand.equals(cmbScopeTemplate.getActionCommand())
+        || actionCommand.equals(cmbSystemTemplate.getActionCommand())
+        || actionCommand.equals(cmbUserTemplate.getActionCommand());
+  }
+
   public void expand(GlobalExpandButton button) {
     updateAdvanced(button.isExpanded());
     UIHarness.INSTANCE.pack(axisID, applicationManager);
@@ -627,6 +762,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     rbSingleView.addActionListener(listener);
     rbMontage.addActionListener(listener);
     btnScanHeader.addActionListener(listener);
+    cmbScopeTemplate.addActionListener(listener);
+    cmbSystemTemplate.addActionListener(listener);
+    cmbUserTemplate.addActionListener(listener);
   }
 
   private void createDatasetPanel() {
@@ -645,6 +783,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   private void createDataTypePanel() {
+    // local panels
+    JPanel pnlTemplate = new JPanel();
     // init
     ftfDistortionFile.setTextPreferredWidth(505);
     ftfMagGradientFile.setTextPreferredWidth(505);
@@ -748,10 +888,16 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlDataParameters.add(pnlDataset);
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlDataParameters.add(pnlTemplate);
     pnlDataParameters.add(pnlDataType);
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlDataParameters.add(pnlImageParams);
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
+    // template
+    pnlTemplate.setLayout(new BoxLayout(pnlTemplate, BoxLayout.Y_AXIS));
+    pnlTemplate.add(cmbScopeTemplate.getComponent());
+    pnlTemplate.add(cmbSystemTemplate.getComponent());
+    pnlTemplate.add(cmbUserTemplate.getComponent());
   }
 
   private void createPerAxisInfoPanel() {
