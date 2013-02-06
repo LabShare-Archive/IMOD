@@ -95,7 +95,7 @@ Edgepatches with entries for -root, -xyadd (the number of frames in X and Y),
 or -noz (to indicate there are no Z values in the names).
 The other option to specify at this time is -model (a default patch region
 model that is used if no specific model is found for a piece.)  When you run
-the program will all of these options, it will search for the piece volumes
+the program with all of these options, it will search for the piece volumes
 as well as patch region models under the names implied by your options.  Thus,
 if individual volumes need region models to constrain the area used for patch
 correlations, you should make them before running the program.

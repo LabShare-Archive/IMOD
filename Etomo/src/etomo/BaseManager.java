@@ -682,7 +682,14 @@ public abstract class BaseManager {
 
   void endThreads() {
     imodManager.stopRequestHandler();
-    getMainPanel().endThreads();
+    ProcessingMethodMediator mediator = getProcessingMethodMediator(AxisID.FIRST);
+    if (mediator != null) {
+      mediator.msgExiting();
+    }
+    mediator = getProcessingMethodMediator(AxisID.SECOND);
+    if (mediator != null) {
+      mediator.msgExiting();
+    }
     if (parameterStore != null) {
       parameterStore.setAutoStore(false);
     }

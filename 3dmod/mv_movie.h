@@ -19,10 +19,6 @@
 
 typedef struct __imodv_struct ImodvApp;
 
-#define CLEAR_RESIZE(a,b,c) { a.clear(); \
-  a.swap(std::vector<b>(a)); \
-  a.resize(c); }
-
 typedef struct {
   Ipoint rotation;
   Ipoint translate;

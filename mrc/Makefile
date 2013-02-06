@@ -11,7 +11,7 @@ E = $(BINEXT)
 
 
 PROGS     = mrc2tif$(E) raw2mrc$(E) tif2mrc$(E) mrcbyte$(E) mrcx$(E) \
- mrctaper$(E) dm3props$(E) nad_eed_3d$(E) ctfphaseflip$(E)
+ mrctaper$(E) dm3props$(E) nad_eed_3d$(E) ctfphaseflip$(E) preNAD$(E)
 
 IILIBS    =  $(LIIMOD) $(LCFSHR) $(TIFFLIBS)
 

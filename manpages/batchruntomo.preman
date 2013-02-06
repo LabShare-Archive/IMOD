@@ -35,17 +35,18 @@ browser).
 .br
 These directives will be processed generically by eTomo and sent to
 Copytomocoms(1) as command line arguments.  The short option name must be
-given in full.  The rule for boolean options is that the value must be blank
-if the option is true, and the directive must not be present if the option is
-false.
+given in full.  The rule for boolean options is that the option is turned on
+if the value is 1 or empty, and it is turned off
+if the value is 0.  If the directive is not present then the option is off,
+unless it has been turned on by an entry in a template file (see below).
 .P
 Other "setupset" directives are interpreted exclusively by Batchruntomo or
 etomo and have the form
 .br
    setupset.<parameter or option>=value
 .br
-Here, a boolean option may have a value; it is interpreted as true if the
-value is blank or 1, and false if the value is 0.
+Again, a boolean option is interpreted as true if the
+value is 1 or empty, and false if the value is 0.
 .P
 "comparam" directives are interpreted generically when a command file is
 created either by Copytomocoms(1) or by Makecomfile(1).  They have the form
@@ -61,7 +62,9 @@ of which one occurs later in the processing sequence.  The long option name
 must be given in full.  Options to Tilt(1) must match the case shown in the
 Tilt(1) man page, even though Tilt(1) accepts case-insensitive options.  If
 the value for any kind of option is blank, it is interpreted to mean that the 
-option should be removed from the command file if present.
+option should be removed from the command file if present.  This makes the
+treatment of boolean options for "comparam" directives different from that for
+all other types of directives.
 A boolean option can be set to true with a value of 1, or to false either with
 a blank value (removing it from the command file) or with a value of 0 (adding
 it to or leaving it in the command file with a value of 0).
@@ -69,7 +72,8 @@ it to or leaving it in the command file with a value of 0).
 Because "comparam" directives are treated generically, they are not restricted
 to the ones listed in the table of directives.  Any valid option can be used,
 although some would be meaningless in the context of automation and some would
-conflict with the management provided by Copytomocoms(1) and Makecomfile(1).
+conflict with the management provided by Copytomocoms(1) or be overridden by
+Makecomfile(1).
 .P
 "runtime" directives have the form
 .br
@@ -103,25 +107,25 @@ parameters in other command files will have no effect because those files will
 not be produced.  Directives with prefix "runtime" are simply ignored if they
 are not relevant to the chosen processing sequence.
 
-.SS Template and Microscope Files
-Directives exist to define a microscope file, a system template file,
-and a user template file.  The current plan is for the microscope file to have
+.SS Template Files
+Directives exist to define a microscope template file, a system template file,
+and a user template file.  The idea is for the microscope file to have
 parameters specific to a microscope or microscope/camera combination, and to
-have the template files contain a subset of directives just like those
-described defining options that would not be dataset-specific.  Template
-files can be used now, but there is not yet support for microscope files in
-eTomo.  There is a
-heirarchy among these directives: ones in the user template file override ones
-in the system template file, while ones in the batch directive file override
-ones in both template files.
-Batchruntomo simply passes the microscope file on to eTomo in order for it to
-set options to Copytomocoms.  It reads the template files and uses their
+have the other template files contain other parameters that would not be
+dataset-specific.  Each file consists of a subset of directives just like
+those described for defining options for the batch processing.  There is a
+heirarchy among these directives.  They are always processed in the order
+scope template, system template, user template, and batch directive file, and
+entries later in this sequence override ones that appeared earlier.
+Batchruntomo reads the template files and uses their
 contents along with those of the directive file to determine the values for
-parameters.  eTomo passes all three files on to Copytomocoms(1) to use in this
-way, and Batchruntomo passes them to Makecomfile(1) to use similarly when
+parameters.  It also passes all four files to eTomo for it to use when setting
+arguments for calling Copytomocoms(1), and 
+eTomo passes all four files on to Copytomocoms(1) to use for setting parameters.
+Batchruntomo passes them to Makecomfile(1) to use similarly when
 making optional command files.
 .P
-The program checks all directives after it reads them, including the ones from the
+The program checks all directives after it reads them, including the ones from a
 template file, against the master list in "directives.csv".  All "setupset"
 and "runtime" directives must match ones in this file.  It is
 possible to enter "comparam" directives not listed in this file, provided that

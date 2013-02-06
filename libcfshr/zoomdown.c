@@ -57,12 +57,16 @@
 
 #ifdef F77FUNCAP
 #define selectzoomfilter SELECTZOOMFILTER
+#define selectzoomfilterxy SELECTZOOMFILTERXY
 #define zoomwithfilter ZOOMWITHFILTER
 #define zoomfiltinterp ZOOMFILTINTERP
+#define zoomfiltvalue ZOOMFILTVALUE
 #else
 #define selectzoomfilter selectzoomfilter_
+#define selectzoomfilterxy selectzoomfilterxy_
 #define zoomwithfilter zoomwithfilter_
 #define zoomfiltinterp zoomfiltinterp_
+#define zoomfiltvalue zoomfiltvalue_
 #endif
 
 typedef double (*fn_proc)(double x);
@@ -88,8 +92,8 @@ typedef struct { /* SAMPLED FILTER WEIGHT TABLE */
 #define FINALSHIFT  (2*WEIGHTBITS-CHANBITS) /* shift after x&y filter passes */
 #define WEIGHTONE  (1<<WEIGHTBITS)	/* filter weight of one */
 
-static void interpLimits(int na, int nb, float cen, float trans, float *aOff, int *bSize,
-                         int *bOff);
+static void interpLimits(int na, int nb, float cen, float trans, double scale, 
+                         float *aOff, int *bSize, int *bOff);
 static void scanline_accum(unsigned char *lineb, int dtype, int aXsize, 
                            b3dInt32 *accumBuf, b3dInt16 sweight, float dweight);
 static void scanline_filter(b3dInt32 *lineb, int dtype, int aXsize, 
@@ -97,7 +101,8 @@ static void scanline_filter(b3dInt32 *lineb, int dtype, int aXsize,
 static void scanline_remap(unsigned char *filtBuf, int dtype, int bXsize, 
                            unsigned char *obufb, b3dUInt32 *cindex, 
                            unsigned char *bindex);
-static void make_weighttab(int b, double cen, int len, int dtype, Weighttab *wtab);
+static void make_weighttab(int b, double cen, int len, double scale, double support, 
+                           int dtype, Weighttab *wtab);
 static void mitchell_init(double b, double c);
 static double filt_binning(double x);
 static double filt_mitchell(double x);
@@ -121,14 +126,14 @@ static Filt filters[NUM_FILT] = {
 static int zoom_debug = 0;	/* debug level: 0=none, 2=filters */
 
 /* ZOOM-SPECIFIC FILTER PARAMETERS */
-static double support;           /* filter scale (spacing between centers in a space) */
-static double scale;             /* scaled filter support radius */
-static int width;                /* filter width: max number of nonzero samples */
-static float valueScaling = 1.0; /* Scaling factor for image values */
+static double sXsupport, sYsupport;  /* scaled filter support radius */
+static double sXscale, sYscale;    /* filter scale (spacing between centers in a space) */
+static int sXwidth, sYwidth;       /* filter width: max number of nonzero samples */
+static float sValueScaling = 1.0;  /* Scaling factor for image values */
 
 /* The selected filter function */
-static fn_proc filt_func = NULL;
-static double mitchP0, mitchP2, mitchP3, mitchQ0, mitchQ1, mitchQ2, mitchQ3;
+static fn_proc sFilt_func = NULL;
+static double sMitchP0, sMitchP2, sMitchP3, sMitchQ0, sMitchQ1, sMitchQ2, sMitchQ3;
 
 /*!
  * Selects which filter to use in image reduction with [type] and sets the scaling factor
@@ -140,16 +145,16 @@ static double mitchP0, mitchP2, mitchP3, mitchQ0, mitchQ1, mitchQ2, mitchQ3;
  */
 int selectZoomFilter(int type, double zoom, int *outWidth)
 {
-  filt_func = NULL;
+  sFilt_func = NULL;
   if (type < 0 || type >= NUM_FILT)
     return 1;
   if (zoom >= 1. || zoom <= 0.)
     return 2;
-  filt_func = filters[type].func;
-  scale = 1. / zoom;
-  support = filters[type].supp * scale;
-  width = (int)ceil(2. * support);
-  *outWidth = width;
+  sFilt_func = filters[type].func;
+  sXscale = sYscale = 1. / zoom;
+  sXsupport = sYsupport = filters[type].supp * sXscale;
+  sXwidth = sYwidth = (int)ceil(2. * sXsupport);
+  *outWidth = sXwidth;
   if (type == 3)
     mitchell_init(1./3., 1./3.);
   return 0;
@@ -164,12 +169,39 @@ int selectzoomfilter(int *type, float *zoom, int *outWidth)
 }
 
 /*!
+ * Like @selectZoomFilter but it allows separate zooms in X and Y given by [xzoom] and
+ * [yzoom], with respective filter widths returned in [outWidthX] and [outWidthY].
+ */
+int selectZoomFilterXY(int type, double xzoom, double yzoom, int *outWidthX, 
+                       int *outWidthY)
+{
+  int err = selectZoomFilter(type, xzoom, outWidthX);
+  if (err)
+    return err;
+  sYscale = 1. / yzoom;
+  sYsupport = filters[type].supp * sYscale;
+  sYwidth = (int)ceil(2. * sYsupport);
+  *outWidthY = sYwidth;
+  return 0;
+}
+
+/*!
+ * Fortran wrapper for @selectZoomFilterXY
+ */
+int selectzoomfilterXY(int *type, float *xzoom, float *yzoom, int *outWidthX,
+                       int *outWidthY)
+{
+  return selectZoomFilterXY(*type, (double)(*xzoom), (double)(*yzoom), outWidthX, 
+                          outWidthY);
+}
+
+/*!
  * Sets a factor for scaling the output values from image reduction of data types other
  *  than bytes and RGB.
  */
 void setZoomValueScaling(float factor)
 {
-  valueScaling = factor;
+  sValueScaling = factor;
 }
 
 /*!
@@ -215,7 +247,7 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
   float fweight = 0.;
   b3dInt16 sweight = 0;
 
-  if (!filt_func)
+  if (!sFilt_func)
     return 1;
 
   psizeAccum = 4;
@@ -249,11 +281,11 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
     return 2;
   }
 
-  if (aXoff < 0. || aYoff < 0. || (int)(aXoff + bXsize * scale) > aXsize ||
-      (int)(aYoff + bYsize * scale) > aYsize) {
+  if (aXoff < 0. || aYoff < 0. || (int)(aXoff + bXsize * sXscale) > aXsize ||
+      (int)(aYoff + bYsize * sYscale) > aYsize) {
     /* printf("axo %f bxs %d sc %f xe %f axs %d   ayo %f bys %d ye %f ays %d\n", aXoff,
-           bXsize, scale, aXoff + bXsize * scale, aXsize, aYoff, bYsize,
-           aYoff + bYsize * scale, aYsize); */
+           bXsize, sXscale, aXoff + bXsize * sXscale, aXsize, aYoff, bYsize,
+           aYoff + bYsize * sYscale, aYsize); */
     return 4;
   }
 
@@ -262,7 +294,7 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
 
   /* Allocate accumulation, filter output, and weight buffers */
   xweights = B3DMALLOC(Weighttab, bXsize);
-  xweightSbuf = (b3dInt16 *)malloc(bXsize * width * psizeWgt);
+  xweightSbuf = (b3dInt16 *)malloc(bXsize * sXwidth * psizeWgt);
   if (!xweightSbuf || !xweights) {
     B3DFREE(xweights);
     B3DFREE(xweightSbuf);
@@ -272,7 +304,7 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
   for (i = 0; i < numThreads; i++) {
     filtBuf[i] = NULL;
     accumBuf[i] = (b3dInt32 *)malloc(aXsize * psizeAccum);
-    yweight[i].weight.s = (b3dInt16 *)malloc(width * psizeWgt);
+    yweight[i].weight.s = (b3dInt16 *)malloc(sYwidth * psizeWgt);
     if (mapping)
       filtBuf[i] = (unsigned char *)malloc(bXsize * psizeFilt);
     if (!accumBuf[i] || !yweight[i].weight.s || (mapping && !filtBuf[i])) {
@@ -292,24 +324,26 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
    */
   xwfp = xweightFbuf;
   xwp = xweightSbuf;
-  for (bx = 0; bx < bXsize; bx++, xwp += width, xwfp += width) {
+  for (bx = 0; bx < bXsize; bx++, xwp += sXwidth, xwfp += sXwidth) {
     if (psizeWgt == 4)
       xweights[bx].weight.f = xwfp;
     else
       xweights[bx].weight.s = xwp;
-    make_weighttab(bx, aXoff + (bx + 0.5) * scale, aXsize, dtype, &xweights[bx]);
+    make_weighttab(bx, aXoff + (bx + 0.5) * sXscale, aXsize, sXscale, sXsupport, dtype,
+                   &xweights[bx]);
   }
 
 #pragma omp parallel for num_threads(numThreads)                    \
-  shared(bYsize, aYoff, scale, aYsize, dtype, yweight, psizeAccum, accumBuf, \
+  shared(bYsize, aYoff, sYscale, aYsize, dtype, yweight, psizeAccum, accumBuf, \
          aXsize, slines, outData, psizeFilt, bXsize, mapping, filtBuf, xweights, \
-         cindex, bindex, valueScaling)                                               \
+         cindex, bindex, sValueScaling, sYsupport)                     \
   private(by, thr, i, ayf, sweight, fweight, lineb, obufb)
   for (by = 0; by < bYsize; by++) {
     thr = b3dOMPthreadNum();
     
     /* prepare a weighttab for dest y position by */
-    make_weighttab(by, aYoff + (by + 0.5) * scale, aYsize, dtype, &yweight[thr]);
+    make_weighttab(by, aYoff + (by + 0.5) * sYscale, aYsize, sYscale, sYsupport, dtype,
+                   &yweight[thr]);
     
     /* Zero the scanline accum buffer */
     for (i = 0; i < aXsize * psizeAccum / 4; i++)
@@ -320,7 +354,7 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
       if (psizeWgt == 2)
         sweight = yweight[thr].weight.s[ayf-yweight[thr].i0];
       else
-        fweight = yweight[thr].weight.f[ayf-yweight[thr].i0] * valueScaling;
+        fweight = yweight[thr].weight.f[ayf-yweight[thr].i0] * sValueScaling;
       
       lineb = (unsigned char *)slines[ayf];
       /* add weighted tbuf into accum (these do yfilt) */
@@ -393,8 +427,8 @@ int zoomFiltInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb
   unsigned char **linePtrs = makeLinePointers(array, nxa, nya, 4);
   if (!linePtrs)
     return 5;
-  interpLimits(nxa, nxb, xc, xt, &aXoff, &bXsize, &bXoff);
-  interpLimits(nya, nyb, yc, yt, &aYoff, &bYsize, &bYoff);
+  interpLimits(nxa, nxb, xc, xt, sXscale, &aXoff, &bXsize, &bXoff);
+  interpLimits(nya, nyb, yc, yt, sYscale, &aYoff, &bYsize, &bYoff);
   /* printf("%f %d %d  %f %d %d\n", aXoff, bXsize, bXoff, aYoff, bYsize, bYoff); */
   if (bXsize > 0 && bYsize > 0) {
     i = zoomWithFilter(linePtrs, nxa, nya, aXoff, aYoff, bXsize, bYsize, nxb, bXoff,
@@ -431,11 +465,35 @@ int zoomfiltinterp(float *array, float *bray, int *nxa, int *nya, int *nxb,
   return zoomFiltInterp(array, bray, *nxa, *nya, *nxb, *nyb, *xc, *yc, *xt, *yt, *dmean);
 }
 
+/*!
+ * Returns the normalized value of the filter selected by @selectZoomFilter at the 
+ * distance [radius] from the center of the filter.  Returns 0 if no filter was selected.
+ */
+double zoomFiltValue(float radius)
+{
+  double den = 0.;
+  int i, lim;
+  if (!sFilt_func)
+    return 0.;
+  lim = (sXwidth + 1) / 2;
+  for (i = -lim; i <= lim; i++)
+    den += sFilt_func(i / sXscale);
+  return sFilt_func(radius / sXscale) / den;
+}
+
+/*!
+ * Fortran wrapper for @zoomFiltValue
+ */
+double zoomfiltvalue(float *radius)
+{
+  return zoomFiltValue(*radius);
+}
+
 /*
  * Compute the limits of usable data in one dimension for calling from the interp function
  */
-static void interpLimits(int na, int nb, float cen, float trans, float *aOff, int *bSize,
-                         int *bOff)
+static void interpLimits(int na, int nb, float cen, float trans, double scale, 
+                         float *aOff, int *bSize, int *bOff)
 {
   float bcStart, bcEnd;
   int bdStart, bdEnd;
@@ -628,7 +686,8 @@ static void scanline_remap(unsigned char *filtBuf, int dtype, int bXsize,
  * WEIGHTONE, store as shorts, and trim leading and trailing zeros for.
  * b is the dest coordinate (for diagnostics).
  */
-static void make_weighttab(int b, double cen, int len, int dtype, Weighttab *wtab)
+static void make_weighttab(int b, double cen, int len, double scale, double support, 
+                           int dtype, Weighttab *wtab)
 {
   int i0, i1, i, sum, t, stillzero, lastnonzero;
   short *wp;
@@ -653,7 +712,7 @@ static void make_weighttab(int b, double cen, int len, int dtype, Weighttab *wta
 
   /* find scale factor sc to normalize the filter */
   for (den = 0, i = i0; i < i1; i++)
-	den += filt_func((i + .5 - cen) / scale);
+	den += sFilt_func((i + .5 - cen) / scale);
 
   /* set sc so that sum of sc*func() is approximately WEIGHTONE */
   if (shortWgts)
@@ -669,7 +728,7 @@ static void make_weighttab(int b, double cen, int len, int dtype, Weighttab *wta
   for (sum = 0, wp = wtab->weight.s, i=i0; i<i1; i++) {
 
 	/* evaluate the filter function: */
-	tr = sc * filt_func((i + .5 - cen) / scale);
+	tr = sc * sFilt_func((i + .5 - cen) / scale);
     rsum += tr;
 
 	/* if (tr<MINSHORT || tr>MAXSHORT) {
@@ -743,13 +802,13 @@ static double filt_binning(double x)
 
 static void mitchell_init(double b, double c)
 {
-  mitchP0 = (  6. -  2.*b        ) / 6.;
-  mitchP2 = (-18. + 12.*b +  6.*c) / 6.;
-  mitchP3 = ( 12. -  9.*b -  6.*c) / 6.;
-  mitchQ0 = (	     8.*b + 24.*c) / 6.;
-  mitchQ1 = (	  - 12.*b - 48.*c) / 6.;
-  mitchQ2 = (	     6.*b + 30.*c) / 6.;
-  mitchQ3 = (     -     b -  6.*c) / 6.;
+  sMitchP0 = (  6. -  2.*b        ) / 6.;
+  sMitchP2 = (-18. + 12.*b +  6.*c) / 6.;
+  sMitchP3 = ( 12. -  9.*b -  6.*c) / 6.;
+  sMitchQ0 = (	     8.*b + 24.*c) / 6.;
+  sMitchQ1 = (	  - 12.*b - 48.*c) / 6.;
+  sMitchQ2 = (	     6.*b + 30.*c) / 6.;
+  sMitchQ3 = (     -     b -  6.*c) / 6.;
 }
 
 static double filt_mitchell(double x)
@@ -761,13 +820,13 @@ static double filt_mitchell(double x)
   if (x < -2.) 
     return 0.;
   if (x < -1.)
-    return mitchQ0-x*(mitchQ1-x*(mitchQ2-x*mitchQ3));
+    return sMitchQ0-x*(sMitchQ1-x*(sMitchQ2-x*sMitchQ3));
   if ( x < 0.) 
-    return mitchP0+x*x*(mitchP2-x*mitchP3);
+    return sMitchP0+x*x*(sMitchP2-x*sMitchP3);
   if (x < 1.) 
-    return mitchP0+x*x*(mitchP2+x*mitchP3);
+    return sMitchP0+x*x*(sMitchP2+x*sMitchP3);
   if (x < 2.) 
-    return mitchQ0+x*(mitchQ1+x*(mitchQ2+x*mitchQ3));
+    return sMitchQ0+x*(sMitchQ1+x*(sMitchQ2+x*sMitchQ3));
   return 0.;
 }
 

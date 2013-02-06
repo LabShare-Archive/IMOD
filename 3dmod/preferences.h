@@ -18,6 +18,7 @@
 //Added by qt3to4:
 #include <QTimerEvent>
 #include <QCloseEvent>
+#include "imod.h"
 
 class AppearanceForm;
 class BehaviorForm;
@@ -207,6 +208,7 @@ class ImodPreferences : public QObject
   void set2ndSnapFormat();
   void restoreSnapFormat();
   QStringList snapFormatList();
+  getSetMember(bool, XyzApplyZscale);
 
   public slots:
     void donePressed();
@@ -233,6 +235,7 @@ class ImodPreferences : public QObject
   int mMultiZnumX, mMultiZnumY;
   int mMultiZstep;
   int mMultiZdrawCen, mMultiZdrawOthers;
+  bool mXyzApplyZscale;
   bool mClassicWarned;
   QString mSavedSnapFormat;
   Ilist *mGenericList;

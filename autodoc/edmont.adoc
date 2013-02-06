@@ -80,7 +80,7 @@ need to pick coordinates that are far enough away from the edges of a piece
 to exclude overlapping pieces that you do not want.
 
 [Field = YMinAndMax]
-short = Yminmax
+short = yminmax
 type = IP
 usage = Minimum and maximum Y coordinates to include in output
 tooltip = 

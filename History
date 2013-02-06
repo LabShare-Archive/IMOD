@@ -1,5 +1,40 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/1/13: Added option to stop Batchruntomo processing at a chosen step.
+
+2/1/13: Fixed blendmont array allocation.
+
+1/31/13: Fixed graphics module so Onegenplot will exit when window is closed
+on all platforms.
+
+1/31/13: In Batchruntomo, implemented definition of scope file as just another
+template file and changed the way that boolean copytomocoms arguments are
+treated so that they can be used in templates.
+
+1/31/13: Fixed the processing of the directive file parameter.(Bug# 1681)
+
+1/28/13: XYZ window now has a toolbar button to apply the current Z scale to
+the XZ and YZ views; the setting is saved between invocations.
+
+1/22/13: Switched Addtostack to dynamic array allocation.
+
+1/19/13: Mauro Maiorca contributed preNAD for NAD-type filtering of tilt
+series prior to reconstruction.
+
+1/17/13: Added selectClassID to eTomo - PEET.(Bug# 1673)
+
+1/16/13: IMOD_4-6-18
+1/16/13: Added the creation of an empty .xf file to the Serial Sections
+interface.(Bug# 1679)
+
+1/16/13: Removed the SetFEIPixelSize copytomocoms parameter checkbox from
+Setup Dialog(Bug# 1661).
+
+1/15/12: Defined a file chooser plugin for 3dmod.
+
+1/15/12: Fixed behavior when startup window is used when started as 3dmod 
+and model view is selected, so that it actually runs 3dmodv.
+
 1/14/12: Made Mrc2tif able to save TIFF files organized in tiles.
 
 1/13/13: Fixed an unhandled exception when montaged stack with an extension
@@ -61,7 +96,9 @@ fiducial, patch tracking, or fiducialless alignment given a text file of
 "directives" to set parameters.
 
 12/18/12: Added the SetFEIPixelSize copytomocoms parameter to Setup Tomogram.
-(Bug# 1661).
+The standard pixel spacing will be set automatically in files from FEI
+software unless the option to do this is unselected in eTomo 
+settings.(Bug# 1661).
 
 12/17/12: Added right click menu to Plax graphing window to allowing printing
 the graph or saving to a PNG file; also, in Genhstplt, left-clicking pops up

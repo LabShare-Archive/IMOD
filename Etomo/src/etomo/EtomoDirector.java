@@ -65,7 +65,7 @@ import etomo.util.Utilities;
 
 public class EtomoDirector {
   public static final String rcsid = "$Id$";
-  
+
   public static final String USER_CONFIG_FILE_EXT = ".etomo";
 
   private static final int TO_BYTES = 1024;
@@ -290,7 +290,7 @@ public class EtomoDirector {
       ManagerKey saveKey = null;
       ManagerKey managerKey = null;
       for (int i = 0; i < paramFileNameListSize; i++) {
-        paramFileName =  paramFileNameList.get(i);
+        paramFileName = paramFileNameList.get(i);
         managerKey = null;
         if (paramFileName.endsWith(DataFileType.RECON.extension)) {
           managerKey = openTomogram(paramFileName, false, AxisID.ONLY);
@@ -952,6 +952,9 @@ public class EtomoDirector {
    * Set the user preferences
    */
   private void setUserPreferences() {
+    if (arguments.isHeadless()) {
+      return;
+    }
     ToolTipManager.sharedInstance().setInitialDelay(userConfig.getToolTipsInitialDelay());
     ToolTipManager.sharedInstance().setDismissDelay(userConfig.getToolTipsDismissDelay());
     setUIFont(userConfig.getFontFamily(), userConfig.getFontSize());

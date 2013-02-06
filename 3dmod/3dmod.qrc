@@ -30,5 +30,7 @@
 <file>images/showslice.png</file>
 <file>images/lasso.png</file>
 <file>images/lassoOn.png</file>
+<file>images/zscale.png</file>
+<file>images/zscaleOn.png</file>
 </qresource>
 </RCC>

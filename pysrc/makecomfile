@@ -101,9 +101,11 @@ if typeTable[comType][needBin]:
    if binning <= 0:
       exitError('Binning of images must be entered')
 
-# Get the change list
+# Get the change list.  Base changes are ones set up here with defaukt entries,
+# final changes are ones specified by arguments, which override any other changes
 sedcom = []
 baseChanges = []
+finalChanges = []
 changeList = processChangeOptions('ChangeParametersFile', 'OneParameterChange',
                                   'comparam')
 
@@ -128,13 +130,13 @@ if typeName == 'xcorr_pt':
    yborder = int(0.05 * ny + 0.5)
    sedcom = [fmtstr('/^OutputFile/s/{0}.prexf/{0}.fid/', rootname),
              fmtstr('/^InputFile/s/{0}.st/{0}.preali/', rootname),
-             '/^OutputFile/a/PrealignmentTransformFile	' + rootname + '.prexg/',
-             '/^OutputFile/a/ImagesAreBinned	' + str(binning) + '/']
+             '/^OutputFile/a/PrealignmentTransformFile	' + rootname + '.prexg/']
 
    prefix = [baseout + axislet, 'tiltxcorr']
    baseChanges = [prefix + ['BordersInXandY', fmtstr('{},{}', xborder, yborder)],
                   prefix + ['OverlapOfPatchesXandY', '0.33,0.33'],
                   prefix + ['IterateCorrelations', '1']]
+   finalChanges = [prefix + ['ImagesAreBinned', str(binning)]]
 
 # AUTOFIDSEED
 elif typeName == 'autofidseed':
@@ -158,9 +160,9 @@ elif typeName == 'newst_3dfind' or typeName == 'blend_3dfind':
       prefix = [baseout + axislet, 'newstack']
    else:   
       prefix = [baseout + axislet, 'blendmont']
-   baseChanges = [prefix + ['BinByFactor', str(binning)]]
+   finalChanges = [prefix + ['BinByFactor', str(binning)]]
    if typeName == 'blend_3dfind':
-      baseChanges.append(prefix + ['OldEdgeFunctions', '1'])
+      baseChanges = [prefix + ['OldEdgeFunctions', '1']]
 
 # TILT_3DFIND
 elif typeName == 'tilt_3dfind':
@@ -173,25 +175,26 @@ elif typeName == 'tilt_3dfind':
    if use3d:
       sedcom.append('/^InputProjections/s/[ 	].*/	' + rootname + '_3dfind.ali/')
    prefix = [baseout + axislet, 'tilt']
-   baseChanges = [prefix + ['IMAGEBINNED', str(binning)],
+   finalChanges = [prefix + ['IMAGEBINNED', str(binning)],
                   prefix + ['THICKNESS', str(thickness)]]
    if yshift:
-      baseChanges.append(prefix + ['SHIFT', fmtstr('0. {:.2f}', yshift)])
+      finalChanges.append(prefix + ['SHIFT', fmtstr('0. {:.2f}', yshift)])
 
 # FINDBEADS3D
 elif typeName == 'findbeads3d':
    beadSize = PipGetFloat('BeadSize', 0.)
    if beadSize <= 0:
       exitError('BeadSize must be entered')
+   prefix = [baseout + axislet, 'findbeads3d']
    comlines = ['# Command file for running findbeads3d created by makeonecom',
                '$findbeads3d -StandardInput',
                'InputFile	' + rootname + '_3dfind.rec',
                'OutputFile	' + rootname + '_3dfind.mod',
                'MinRelativeStrength	0.05',
                'MinSpacing	0.9',
-               'StorageThreshold	0',
-               'BinningOfVolume	' + str(binning),
-               'BeadSize	' + fmtstr('{:.2f}', beadSize)]
+               'StorageThreshold	0']
+   finalChanges = [prefix + ['BinningOfVolume', str(binning)],
+                   prefix + ['BeadSize', fmtstr('{:.2f}', beadSize)]]
 
 # GOLDERASER
 elif typeName == 'golderaser':
@@ -206,8 +209,9 @@ elif typeName == 'golderaser':
                'MergePatches	1',
                'ExcludeAdjacent	1',
                'CircleObjects	/',
-               'PolynomialOrder	0',
-               'BetterRadius	' + fmtstr('{:.2f}', beadSize / 2.)]
+               'PolynomialOrder	0']
+   prefix = [baseout + axislet, 'ccderaser']
+   finalChanges = [prefix + ['BetterRadius', fmtstr('{:.2f}', beadSize / 2.)]]
 
 # TILT_3DFIND_REPROJECT
 elif typeName == 'tilt_3dfind_reproject':
@@ -227,8 +231,9 @@ if sedcom:
    sedlines = pysed(sedcom, comlines, None)
 else:
    sedlines = comlines
-if baseChanges or changeList:
-   sedlines = modifyForChangeList(sedlines, baseout, axislet, baseChanges + changeList)
+if baseChanges or finalChanges or changeList:
+   sedlines = modifyForChangeList(sedlines, baseout, axislet,
+                                  baseChanges + changeList + finalChanges)
 makeBackupFile(outfile)
 writeTextFile(outfile, sedlines)
 sys.exit(0)

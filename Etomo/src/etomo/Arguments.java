@@ -575,7 +575,7 @@ public final class Arguments {
         else if (args[i].equals(DIRECTIVE_TAG)) {
           directive = true;
           reconAutomation = true;
-          // headless = true;
+          headless = true;
           create = true;
           exit = true;
           if (i < args.length - 1) {
@@ -639,8 +639,8 @@ public final class Arguments {
         }
         DataFileFilter fileFilter = new DataFileFilter();
         if (!fileFilter.accept(file)) {
-          errorMessageList.add("File parameter, " + file.getAbsolutePath() + ", is not a "
-              + fileFilter.getDescription() + ".");
+          errorMessageList.add("File parameter, " + file.getAbsolutePath()
+              + ", is not a " + fileFilter.getDescription() + ".");
         }
       }
     }
@@ -651,7 +651,7 @@ public final class Arguments {
       else {
         if (!fDirective.getName().endsWith(AutodocFactory.EXTENSION)) {
           errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
-              + fDirective.getAbsolutePath() + ", does not exist.");
+              + fDirective.getAbsolutePath() + ", has the wrong extension.");
         }
         if (!fDirective.exists()) {
           errorMessageList.add(DIRECTIVE_TAG + " parameter value, "

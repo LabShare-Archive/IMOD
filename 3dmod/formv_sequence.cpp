@@ -10,7 +10,6 @@
  * $Id$
  */
 
-#include <qfiledialog.h>
 #include "formv_sequence.h"
 #include "preferences.h"
 #include "imod.h"
@@ -385,7 +384,7 @@ int MovieSequenceForm::saveSequence()
     return -1;
   }
 
-  key = QFileDialog::getSaveFileName(this, "Select file to save movie sequence into:");
+  key = imodPlugGetSaveName(this, "Select file to save movie sequence into:");
   if (key.isEmpty()) {
     AdocDone();
     return 1;
@@ -420,7 +419,7 @@ void MovieSequenceForm::loadClicked()
       return;
   }
 
-  key = diaOpenFileName(this, "Select movie sequence file to load", 0, NULL);
+  key = utilOpenFileName(this, "Select movie sequence file to load", 0, NULL);
   if (key.isEmpty())
     return;
   if (AdocRead(LATIN1(key)) < 0) {

@@ -53,8 +53,8 @@ subroutine realGraphicsMain()
   endif
   if (ifNoTerm .ne. 0) ifTerm = 0
   !
-  call scrnOpen(ifTerm)
   call reverseGraphContrast(ifReverse)
+  call scrnOpen(ifTerm)
   !
   write(*,'(1x,a,/,a,$)') '1 if there are types in first column, 0 if there are '// &
       'no types,', &

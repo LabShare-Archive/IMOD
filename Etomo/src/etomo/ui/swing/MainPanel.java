@@ -473,17 +473,6 @@ public abstract class MainPanel extends EtomoPanel {
     axisPanel.setStaticProgressBar(label);
   }
 
-  public void endThreads() {
-    AxisProcessPanel axisPanel = mapBaseAxis(AxisID.FIRST);
-    if (axisPanel != null) {
-      axisPanel.endThreads();
-    }
-    axisPanel = mapBaseAxis(AxisID.SECOND);
-    if (axisPanel != null) {
-      axisPanel.endThreads();
-    }
-  }
-
   public ParallelPanel getParallelPanel(AxisID axisID) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     if (axisPanel == null) {

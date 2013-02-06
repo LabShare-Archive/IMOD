@@ -1,0 +1,45 @@
+<HTML>
+<HEAD>
+<TITLE>Batch/Template Directives</TITLE>
+</HEAD>
+<BODY><A NAME = "TOP">
+INSERT CSV FILE
+<P>
+Notes:
+<OL>
+<LI> Rules for the treatment of directives and the format of values are
+  described in the <A HREF="man/batchruntomo.html">man page</A> for
+  Batchruntomo. Some essentials are:
+<UL>
+<LI> Directives are processed in order from scope template, system template,
+  user template, and batch directive files, and later entries override earlier
+  ones. 
+<LI> A "comparam" directive with an empty value will cause the parameter to
+be removed from the command file.
+<LI> A boolean option in a "comparam" directive is turned on if the value is
+  1, turned off if the value is 0, and removed from the command file (hence
+  off) if the value is empty.
+<LI> For any other type of boolean directive, the choice is turned on if the
+  value is 1 or empty, or turned off if the value is 0.
+</UL>
+<LI> Directives marked with <B>Y</B> in the <B>Batch</B> column can be included in a
+  batch directive file and will be acted on by Batchruntomo.
+<LI> Directives marked with <B>Y</B> in the <B>Tmplt</B> column can be
+  included in a template file.  The entry in the <B>Batch</B> column
+  determines whether such directives have an effect when the relevant step is run by
+  Batchruntomo.   The entry in the <B>eTomo</B> column determines
+  whether they have an effect when running the relevant step for the first
+  time in eTomo.
+<LI> The entry in the <B>eTomo</B> column has these meanings:
+<UL>
+<LI> <B>SD</B>: Saved by default into a template file by eTomo, and will have
+  an effect when running in eTomo.
+<LI> <B>SO</B>: Optionally saved into a template file by eTomo, and will have
+  an effect when running in eTomo.
+<LI> <B>Blank</B>: Not saved into a template file by eTomo, and will have
+  an effect when running in eTomo.
+<LI> <B>NE</B>: Will not (yet) have any effect if running in eTomo.
+</UL> 
+</OL>
+</BODY>
+</HTML>

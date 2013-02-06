@@ -1,12 +1,8 @@
-//Added by qt3to4:
-#include <QKeyEvent>
-#include <QEvent>
-#include <QMouseEvent>
 /*   imodplug.h  -  public declarations for imodplug.cpp
  *
- *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
+ *   Copyright (C) 1995-2013 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
- *   Colorado.  See implementation file for full copyright notice.
+ *   Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
  */                                                                           
@@ -128,5 +124,34 @@ int PLUG_EXPORT imodPlugEvent(ImodView *vw, QEvent *event, float imx,
  */
 int PLUG_EXPORT imodPlugExecuteMessage(ImodView *vw, QStringList *strings,
                                          int *arg);
+
+/*!
+ * Function to get a filename for a file to open.  This and the following file chooser 
+ * functions are called if defined by plugins with the 
+ * IMOD_PLUG_CHOOSER bit set.  When 3dmod calls for a file choosing operation,
+ * the appropriate call is made to the first file chooser plugin that defines that
+ * function.  If none exists, then the corresponding QFileDialog static chooser 
+ * function is called.  File chooser plugins will be accessed only if
+ * the program is started in a way that brings up either the startup window or a 
+ * file chooser for an image file. ^
+ * imodPlugOpenFileName should behave like QFileDialog::getOpenFileName when called with
+ * these four arguments.
+ */
+QString PLUG_EXPORT imodPlugOpenFileName(QWidget *parent, const QString &caption,
+                                         const QString &dir, const QString &filter);
+
+/*!
+ * Function to get multiple multiple filenames to open.  It should behave like
+ * QFileDialog::getOpenFileName when called with these four arguments. 
+ */
+QStringList PLUG_EXPORT imodPlugOpenFileNames(QWidget *parent, const QString &caption,
+                                              const QString &dir, const QString &filter);
+
+/*!
+ * Function to get a filename for saving a file.  It should behave like
+ * QFileDialog::getSaveFileName when called with these two arguments. 
+ */
+QString PLUG_EXPORT imodPlugSaveFileName(QWidget *parent, const QString &caption);
+
 }
 #endif

@@ -57,7 +57,12 @@ subroutine scaleCommon(xmin, xmax, goodRange, numRange, dx, xlo, indRange)
     dx = goodRange(indRange) * 10.**(logExp - 1)
     xlo = dx * ifix(xmin / dx)
     if (xlo > xmin) xlo = xlo - dx
-    if (xlo == xloLast .and. dx == dxLast .or. xlo + 10. * dx >= xmax) return
+    if (xlo == xloLast .and. dx == dxLast .or. xlo + 10. * dx >= xmax) then
+      do while (xlo >= dx .and. xlo + 9. * dx > xmax)
+        xlo = xlo -dx
+      enddo
+      return
+    endif
     xloLast = xlo
     dxLast = dx
   enddo

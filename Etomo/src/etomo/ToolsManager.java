@@ -187,7 +187,7 @@ public final class ToolsManager extends BaseManager {
 
   public void gpuTiltTest(final AxisID axisID) {
     GpuTiltTestParam param = updateGpuTiltTest(axisID, true);
-    if (param==null) {
+    if (param == null) {
       return;
     }
     String threadName;
@@ -447,7 +447,9 @@ public final class ToolsManager extends BaseManager {
   }
 
   void createMainPanel() {
-    mainPanel = new MainToolsPanel(this);
+    if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+      mainPanel = new MainToolsPanel(this);
+    }
   }
 
   private void createState() {

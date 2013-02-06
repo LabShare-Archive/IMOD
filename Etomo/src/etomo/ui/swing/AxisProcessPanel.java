@@ -449,11 +449,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
     parallelStatusPanel.setVisible(true);
     UIHarness.INSTANCE.pack(axisID, manager);
   }
-
-  void endThreads() {
-    manager.getProcessingMethodMediator(axisID).msgExiting();
-  }
-
+  
   private final void stopParallelPanel() {
     parallelShowing = false;
     parallelPanel.getLoadDisplay().stopLoad();

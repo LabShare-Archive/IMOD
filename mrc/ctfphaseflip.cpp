@@ -263,7 +263,7 @@ int main(int argc, char *argv[])
   for (k = 0; k < nz; k++)
     printf("defocus[%d] = %f microns\n", k , defocus[k]);
 
-  WL = 12.3 / sqrt(volt * 1000.0 + volt * volt); //wavelength;
+  WL = 12.41 / sqrt(volt * (volt + 1022.0)); //wavelength;
   C1 = MY_PI * WL;
   C2 = -C1 * cs * 1000000.0 * WL * WL / 2.0;
 

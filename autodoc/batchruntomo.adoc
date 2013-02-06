@@ -70,19 +70,28 @@ this step.  When checking a directive file, the directive file is first processe
 find certain required values, and an error in that step will prevent the
 checking of directives.  Template files referenced by the directive file will
 be checked as well.  With an entry of 2, the file will be checked right after
-reading, it is not required to contain the values expected in a directive
-file, and directives pointing to template files will be ignored.
+reading.  A batch directive file is required to contain only directives with a
+Y in the "Batch" column of the master directives file, and a template file
+must contain only directives with a Y in the "Tmplt" column.
 
 [Field = StartingStep]
 short = start
 type = I
-usage = Step to start with for first set
+usage = Step to start at for first set, or 100 plus step for second axis
 tooltip = 
 manpage = "Step to start with for first set: 0 = setup, 1 = preprocessing, 2 =
 xcorr, 3 = prealigned stack, 4 = patch tracking or seeding or RAPTOR, 5 =
 beadtrack, 6 = aligned stack, 7 = CTF correction, 8 = erase gold, 9 = filter,
 10 = reconstruction.  Add 100 to start with this step in the second axis of a
 dual-axis data set."
+
+[Field = EndingStep]
+short = end
+type = I
+usage = Step to end with
+tooltip = 
+manpage = Step to end with in each set and axis.  Steps are numbered as
+described for -start.
 
 [Field = ExitOnError]
 short = exit

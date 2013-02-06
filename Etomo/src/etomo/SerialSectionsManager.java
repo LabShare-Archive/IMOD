@@ -239,6 +239,9 @@ public final class SerialSectionsManager extends BaseManager {
     }
     autoAlignmentController = new AutoAlignmentController(this, dialog);
     dialog.setAutoAlignmentController(autoAlignmentController);
+    if (loadedParamFile) {
+      autoAlignmentController.createEmptyXfFile();
+    }
     setSerialSectionsDialogParameters();
     mainPanel.showProcess(dialog.getRootContainer(), AXIS_ID);
     String actionMessage = Utilities.prepareDialogActionMessage(
@@ -945,7 +948,9 @@ public final class SerialSectionsManager extends BaseManager {
   }
 
   void createMainPanel() {
-    mainPanel = new MainSerialSectionsPanel(this);
+    if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+      mainPanel = new MainSerialSectionsPanel(this);
+    }
   }
 
   public BaseMetaData getBaseMetaData() {

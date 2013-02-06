@@ -572,6 +572,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
       title = ETOMO_TITLE;
       hideAxisB();
       logFrame.setPanel(null, newWindow);
+
     }
     else {
       mainPanel = currentManager.getMainPanel();

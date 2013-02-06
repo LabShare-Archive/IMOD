@@ -582,8 +582,22 @@ void ZapGL::paintGL()
 // When the timer fires after the first draw, do first real draw
 void ZapGL::timerEvent(QTimerEvent * e )
 {
-  killTimer(mTimerID);
+  cancelRedraw();
   updateGL();
+}
+
+// Set up to redraw after an interval
+void ZapGL::scheduleRedraw(int interval)
+{
+  mTimerID = startTimer(interval);
+}
+
+// Cancel an existing redraw timer
+void ZapGL::cancelRedraw()
+{
+  if (mTimerID)
+    killTimer(mTimerID);
+  mTimerID = 0;
 }
 
 void ZapGL::resizeGL( int wdth, int hght )

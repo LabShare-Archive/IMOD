@@ -17,7 +17,6 @@
 #include <string.h>
 #include <errno.h>
 #include <locale.h>
-#include <qfiledialog.h>
 #include <qapplication.h>
 #include <qdir.h>
 #include <qdatetime.h>
@@ -51,6 +50,7 @@
 #include "form_startup.h"
 #include "imod_assistant.h"
 #include "iirawimage.h"
+#include "pyramidcache.h"
 #include "b3dicon.xpm"
 
 extern "C" int iiQImageCheck(ImodImageFile *inFile);
@@ -93,8 +93,8 @@ void imod_usage(char *name)
   qstr += "   -z min,max  Load in sub image.\n";
   qstr += "   -s min,max  Scale input to range [min,max] (0,0 for all files the same).\n";
   qstr += "   -I #  Load data as 16-bit integers (# = 1) or as bytes (# = 0).\n";
-  qstr += "   -C #  Set # of sections or Mbytes to cache (#M or #m for"
-    " Mbytes).\n";
+  qstr += "   -C #  Set # of sections or Mbytes to cache (#M or #m for Mbytes).\n";
+  qstr += "   -CT # Set # of sections or Mbytes for cache of tiles or strips.\n";
   qstr += "   -F    Fill cache right after starting program.\n";
   qstr += "   -Y    Rotate volume around X to model planes normal to Y axis.\n";
   qstr += "   -B #  Bin images by # in X, Y, and Z.\n";
@@ -107,6 +107,7 @@ void imod_usage(char *name)
   qstr += "   -o nx,ny  Set X and X overlaps for montage display.\n";
   qstr += "   -f    Load as frames even if image file has piece "
     "coordinates.\n";
+  qstr += "   -py   Image files are a pyramid of same data at different resolutions.\n";
   qstr += "   -r nx,ny,nz  Dimensions for raw image files.\n";
   qstr += "   -ri   Raw file is inverted in Y.\n";
   qstr += "   -t #  Mode for raw files: -1/0=byte, 1/6=int, 2=float, "
@@ -158,8 +159,8 @@ int main( int argc, char *argv[])
   int overx = 0;
   int overy = 0;
   int doStartup = 0;
-  int hugeCache = 2000000000;
   QString qname;
+  QStringList plFileNames;
   int doFork = 1;
   char *cmdLineStyle = NULL;
   int doImodv = 0;
@@ -168,9 +169,12 @@ int main( int argc, char *argv[])
   int useMdoc = 0;
   bool useStdin = false;
   bool dataFromStdin = false;
+  bool anyHavePieceList = false;
+  bool anyImageFail = false;
+  bool useChooserPlug = false;
   int argScan;
   QRect infoGeom;
-  StartupForm *startup;
+  StartupForm *startup = NULL;
 
   /* Initialize data. */
   App = &app;
@@ -181,6 +185,7 @@ int main( int argc, char *argv[])
   App->base = Rampbase;
   App->convertSnap = 0;
   App->glInitialized = 0;
+  App->chooserPlugin = 0;
 
   /* Set up fixed indexes */
   App->background   = IMOD_BACKGROUND;
@@ -218,9 +223,9 @@ int main( int argc, char *argv[])
     if (argv[i][0] == '-' && argv[i][1] == 's' && argv[i][2] == 't'
         && argv[i][3] == 'y' && argv[i][4] == 'l' && argv[i][5] == 'e') {
       if (argv[i][6] == '=')
-	cmdLineStyle = strdup(&(argv[i][7]));
+        cmdLineStyle = strdup(&(argv[i][7]));
       else if (i < argc - 1)
-	cmdLineStyle = strdup(argv[i + 1]);
+        cmdLineStyle = strdup(argv[i + 1]);
     }
     
     if (!strcmp("-modv", argv[i]) || !strcmp("-view", argv[i]))
@@ -254,18 +259,26 @@ int main( int argc, char *argv[])
   // Set up the application icon for windows to use
   App->iconPixmap = new QPixmap(QPixmap::fromImage(QImage(b3dicon)));
 
+  // Load in all the imod plugins that we can use (moved up so file chooser available)
+  imodPlugInit();
+
   /* if no input files, open startup window */
   i = strlen(argv[0]);
   if (argv[0][i-1] == 'v')
     doImodv = 1;
   if (argc < 2 || (doStartup && doImodv)) {
+    useChooserPlug = true;
     startup = new StartupForm(NULL, true, Qt::Window);
     startup->setWindowIcon(*(App->iconPixmap));
-    if (doImodv) 
-      startup->setValues(&vi, argv, firstfile, argc, doImodv, plistfname, 
-                         anglefname, xyzwinopen, sliceropen, zapOpen,
+    if (doImodv) {
+      mrc_init_li(&li, NULL);
+      ivwInit(&vi, false);
+      vi.li = &li;
+      startup->setValues(&vi, argv, firstfile, argc, doImodv, plFileNames, 
+                         anglefname, useMdoc, xyzwinopen, sliceropen, zapOpen,
                          modelViewOpen, fillCache, ImodTrans, 0, frames,
                          nframex, nframey, overx, overy, overEntered);
+    }
     if (startup->exec() == QDialog::Rejected) {
       imod_usage(argv[0]);
       exit(1);
@@ -276,15 +289,19 @@ int main( int argc, char *argv[])
     /*for (i = 0; i < argc; i++)
       imodPrintStderr("%s ", argv[i]);
       imodPrintStderr("\n"); */
-    delete startup;
+    doStartup = 0;
   }
 
   /* Run the program as imodv? */
   i = strlen(argv[0]);
   if (doImodv || argv[0][i-1] == 'v'){
+    if (!useChooserPlug)
+      App->chooserPlugin = 0;
     imodv_main(argc, argv);
     exit(0);
   }
+
+  QDir *curdir = new QDir();
 
   /* 3/14/11: eliminated old code for out how many imods this user is running. */
 
@@ -335,13 +352,16 @@ int main( int argc, char *argv[])
           break;
         
         case 'C':
+          if (argv[i][2] == 'T')
+            vi.stripOrTileCache = 1;
+
           /* value ending in m or M is megabytes, store as minus */
           pathlen = strlen(argv[++i]);
           sscanf(argv[i], "%d%*c", &vi.vmSize);
           if (argv[i][pathlen - 1] == 'M' || argv[i][pathlen - 1] == 'm')
             vi.vmSize = -vi.vmSize;
           else if (!vi.vmSize)
-            vi.vmSize = hugeCache;
+            vi.vmSize = HUGE_CACHE;
           vi.keepCacheFull = 0;
           break;
         
@@ -425,7 +445,12 @@ int main( int argc, char *argv[])
             useMdoc = 1;
             break;
           }
+          if (argv[i][2] == 'y') {
+            vi.imagePyramid = 1;
+            break;
+          }
           plistfname = argv[++i];
+          plFileNames << QDir::convertSeparators(curdir->cleanPath(QString(plistfname)));
           break;
         
         case 'a':
@@ -527,10 +552,11 @@ int main( int argc, char *argv[])
     /* First time through when doing startup, open startup and give it 
        options */
     if (!argScan && doStartup) {
+      useChooserPlug = true;
       startup = new StartupForm(NULL, true, Qt::Window);
       startup->setWindowIcon(*(App->iconPixmap));
-      startup->setValues(&vi, argv, firstfile, argc, doImodv, plistfname,
-                         anglefname, xyzwinopen, sliceropen, zapOpen,
+      startup->setValues(&vi, argv, firstfile, argc, doImodv, plFileNames,
+                         anglefname, useMdoc, xyzwinopen, sliceropen, zapOpen,
                          modelViewOpen, fillCache, ImodTrans, vi.li->mirrorFFT,
                          frames, nframex, nframey, overx, overy, overEntered);
       if (startup->exec() == QDialog::Rejected) {
@@ -544,15 +570,26 @@ int main( int argc, char *argv[])
           imodPrintStderr("%s ", argv[i]);
         imodPrintStderr("\n"); 
       }
-      delete startup;
+
+      // Run 3dmodv if they asked for it!
+      if (argv[0][strlen(argv[0]) - 1] == 'v') {
+        imodv_main(argc, argv);
+        exit(0);
+      }
     }
   }
   
+  /* If the user did not limit cache and specified Fill cache, then restore
+     the flag to keep cache full */
+  if (fillCache && vi.vmSize == HUGE_CACHE)
+    vi.keepCacheFull = 1;
+  
+  // If cache is being filled, then cancel strip/tile option
+  if (vi.keepCacheFull)
+    vi.stripOrTileCache = 0;
+
   /* Initialize the display system - defer color ramps until image type is known */
   imod_display_init(App, argv);
-
-  /* Load in all the imod plugins that we can use.*/
-  imodPlugInit();
 
   /* Add check function for raw and QImage formats after plugins so plugins
      can add them first.  But if any raw options were entered, put raw check 
@@ -566,45 +603,51 @@ int main( int argc, char *argv[])
     iiAddCheckFunction(iiRawCheck);
   tiffFilterWarnings();
 
-  QDir *curdir = new QDir();
-
   /* Try to open the last file if there is one */
   if (firstfile) {
-    mfin = fopen(LATIN1(QDir::convertSeparators(QString(argv[argc - 1]))),
-                 "rb");
-    if (mfin == NULL) {
-      
-      /* Fail to open, and it is the only filename, then exit */
-      if (firstfile == argc - 1) {
-        imodError(NULL, "Couldn't open input file %s.\n", argv[argc - 1]);
-        exit(10);
-      }
-      
-      /* But if there are other files, set up to open new model with that name*/
-      imodPrintStderr("Model file (%s) not found: opening "
-        "new model by that name.\n", argv[argc - 1]);
+    qname = QDir::convertSeparators(QString(argv[argc - 1]));
 
-      lastimage = argc - 2;
-      newModelCreated = true;
+    // first check if it is directory, if so say it is last image
+    QFileInfo info(qname);
+    if (info.isDir()) {
+      lastimage = argc - 1;
     } else {
-      
-    /*
-    * Try loading file as a model.  Turn it on if successful
-      */
-      Model = LoadModel(mfin);
-      if (Model) {
-        if (Imod_debug)
-          imodPrintStderr("Loaded model %s\n", argv[argc -1]);
-        lastimage = argc - 2;
-        Model->drawmode = 1;
+      mfin = fopen(LATIN1(qname), "rb");
+      if (mfin == NULL) {
 
-        // Set this now in case image load is interrupted
-        Model->csum = imodChecksum(Model);
+        /* Fail to open, and it is the only filename, then exit */
+        if (firstfile == argc - 1) {
+          imodError(NULL, "Couldn't open input file %s.\n", argv[argc - 1]);
+          exit(10);
+        }
+        
+        /* But if there are other files, set up to open new model with that name*/
+        imodPrintStderr("Model file (%s) not found: opening "
+                        "new model by that name.\n", argv[argc - 1]);
+        
+        lastimage = argc - 2;
+        newModelCreated = true;
+        
       } else {
-        /* If fail, last file is an image */
-        lastimage = argc - 1;
+        
+        /*
+         * Try loading file as a model.  Turn it on if successful
+         */
+        Model = LoadModel(mfin);
+        if (Model) {
+          if (Imod_debug)
+            imodPrintStderr("Loaded model %s\n", argv[argc -1]);
+          lastimage = argc - 2;
+          Model->drawmode = 1;
+          
+          // Set this now in case image load is interrupted
+          Model->csum = imodChecksum(Model);
+        } else {
+          /* If fail, last file is an image */
+          lastimage = argc - 1;
+        }
+        fclose(mfin);
       }
-      fclose(mfin);
     }
   }
   
@@ -613,24 +656,22 @@ int main( int argc, char *argv[])
     // Data from stdin: check for contradictory options
     if (li.xmin != -1 || li.xmax != -1 || li.ymin != -1 || li.ymax != -1 ||
         li.zmin != -1 || li.zmax != -1) {
-      imodError(NULL, "You cannot set subareas when reading data from stdin"
-                "\n");
+      imodError(NULL, "You cannot set subareas when reading data from stdin\n");
       exit(3);
     }
-    if (plistfname || useStdin || rawSet || vi.vmSize) {
-      imodError(NULL, "You cannot use -C, -L, -p, or raw options when "
+    if (plistfname || useStdin || rawSet || vi.vmSize || vi.imagePyramid) {
+      imodError(NULL, "You cannot use -C, -L, -p, -py, or raw options when "
                 "reading data from stdin\n");
       exit(3);
     }
     if (firstfile && lastimage >= firstfile) {
-      imodError(NULL, "You cannot enter any image files when "
-                "reading data from stdin\n");
+      imodError(NULL, "You cannot enter any image files when reading data from stdin\n");
       exit(3);
     }
 
     Imod_imagefile = strdup("");
     vi.noReadableImage = 1;
-    ivwMultipleFiles(&vi, &Imod_imagefile, 0, 0);
+    ivwMultipleFiles(&vi, &Imod_imagefile, 0, 0, anyHavePieceList);
 
   } else if (lastimage < firstfile && Model) {
 
@@ -645,9 +686,9 @@ int main( int argc, char *argv[])
     file or IFD.  First get filename if none */
     if (!firstfile) {
       imodVersion(NULL);
-      imodCopyright();    
-      qname = QFileDialog::getOpenFileName
-        (NULL, "3dmod: Select Image file to load:");
+      imodCopyright();
+      useChooserPlug = true;
+      qname = utilOpenFileName(NULL, "3dmod: Select Image file to load:", 0, NULL);
       if (qname.isEmpty()) {
         imodError(NULL, "3DMOD: file not selected\n");
         exit(3);
@@ -656,19 +697,46 @@ int main( int argc, char *argv[])
       
     } else {
       /* Or, just set the image file name */
-      Imod_imagefile = strdup
-        (LATIN1(curdir->cleanPath(QString(argv[firstfile]))));
+      Imod_imagefile = strdup(LATIN1(curdir->cleanPath(QString(argv[firstfile]))));
     }
     
     if (Imod_debug){
       imodPrintStderr("Loading %s\n", Imod_imagefile);
     }
    
-    vi.fp = fin = fopen
-      (LATIN1(QDir::convertSeparators(QString(Imod_imagefile))), "r");
-    if (fin == NULL){
-      imodError(NULL, "Couldn't open input file %s.\n", Imod_imagefile);
-      exit(10);
+    qname = QDir::convertSeparators(QString(Imod_imagefile));
+
+    // Check if it is directory (again)
+    QFileInfo info(qname);
+    if (info.isDir()) {
+      
+      // Get a QDir there and look for files ending in "list" (could add more)
+      QDir argDir(qname);
+      QStringList filters;
+      filters << "*list";
+      QStringList dirList = argDir.entryList(filters);
+      if (dirList.isEmpty()) {
+        imodError(NULL, "3dmod: %s is a directory but it does not contain a file "
+                  "ending in \"list\"", Imod_imagefile);
+        exit(10);
+      }
+      if (dirList.size() > 1) {
+        imodError(NULL, "3dmod: the directory %s contains more than one file "
+                  "ending in \"list\"", Imod_imagefile);
+        exit(10);
+      }
+
+      // There is one file, now compose name and try to open it
+      free(Imod_imagefile);
+      qname += QDir::separator() + dirList[0];
+      Imod_imagefile = strdup(LATIN1(qname));
+    }
+
+    // Now open the argument or the file found in the directory
+    vi.fp = fin = fopen(LATIN1(qname), "r");
+    if (fin == NULL) {
+        imodError(NULL, "Couldn't open input file %s.\n", Imod_imagefile);
+        exit(10);
     }
     
     /* A single image file name can be either
@@ -683,13 +751,12 @@ int main( int argc, char *argv[])
     if (vi.ifd) {
 
       /* The file is an image list */
-      if (vi.ifd > 1) {
+      if (vi.ifd > 2) {
         imodError(NULL, "3dmod: Image list file version too high.\n");
         exit (11);
       }
 
-      /* take directory path to IFD file as new current directory for reading
-         images */
+      /* take directory path to IFD file as new current directory for reading images */
       Imod_cwdpath = QDir::currentPath();
 
       Imod_IFDpath = QString(Imod_imagefile);
@@ -704,32 +771,46 @@ int main( int argc, char *argv[])
       }
 
       /* Load list of images and reset current directory */
-      ivwLoadIMODifd(&vi);
+      ivwLoadIMODifd(&vi, plFileNames, anyHavePieceList, anyImageFail);
       if (!Imod_IFDpath.isEmpty())
         QDir::setCurrent(Imod_cwdpath);
 
     } else {
 
       /* It is a single image file - build list with this image */
-      ivwMultipleFiles(&vi, &Imod_imagefile, 0, 0);
+      ivwMultipleFiles(&vi, &Imod_imagefile, 0, 0, anyHavePieceList);
     }
   } else {
 
     /* Multiple image files - build list of images */
-    ivwMultipleFiles(&vi, argv, firstfile, lastimage);
+    ivwMultipleFiles(&vi, argv, firstfile, lastimage, anyHavePieceList);
   }
-             
-  /* If one file, use its smin, smax to set li's smin,smax - may not be
-     needed but used to happen */
-  /*if (!vi.fakeImage && vi.nt <= 1) {
-    li.smin = vi.image->smin;
-    li.smax = vi.image->smax;
-    }*/
+   
+  // A pyramid is implied if there is any montage and more than one file
+  if (vi.numTimes > 1 && ((anyHavePieceList && !frames) || plFileNames.size() > 0) && 
+                           !vi.imagePyramid)
+    vi.imagePyramid = -1;
+
+  // If pyramid or tile cache, start the class
+  if (vi.imagePyramid || vi.stripOrTileCache)
+    vi.pyrCache = new PyramidCache(&vi, plFileNames, frames, anyImageFail);
 
   /* Now look for piece coordinates - moved up from below 1/2/04 */
   if (!vi.fakeImage && vi.numTimes <= 1 && !vi.li->plist && !dataFromStdin) {
-    /* Check for piece list file and read it */
-    iiPlistLoad(plistfname, vi.li, vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
+
+    // If there was a piece list entered with an IFD and not here, go load it
+    if (vi.ifd && plFileNames.size() > 0 && plistfname == NULL) {
+      if (ivwLoadIFDpieceList(LATIN1(plFileNames[0]), vi.li, vi.hdr->nx, vi.hdr->ny,
+                              vi.hdr->nz)) {
+        imodError(NULL, "3dmod: Error loading piece list file listed in image list file");
+        exit (12);
+      }
+      
+    } else {
+
+      /* Otherwise check for piece list file and read it */
+      iiPlistLoad(plistfname, vi.li, vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
+    }
 
     /* Or use the -P specification */
     if (!vi.li->plist && nframex > 0 && nframey > 0)
@@ -766,10 +847,23 @@ int main( int argc, char *argv[])
 
     /* DNM 1/2/04: move adjusting of loading coordinates to fix_li call,
        and move that call into list processing */
-    /* Only need to say it is not flippable unless cache full */
-    if (vi.li->plist) 
-      vi.flippable = 0;
   }
+
+  /* A montage is not flippable unless cache full */
+  if (vi.li->plist || vi.stripOrTileCache) 
+    vi.flippable = 0;
+  if (vi.li->axis == 2 && vi.stripOrTileCache) {
+    imodError(NULL, "3dmod: You cannot use a tile/strip cache with flipping of Y and Z");
+    exit(12);
+  }
+  if (vi.numTimes > 1 && !vi.imagePyramid && vi.stripOrTileCache) {
+    imodError(NULL, "3dmod: You cannot use a tile/strip cache with multiple image files");
+    exit(12);
+  }
+
+  // Set up a tile cache now
+  if (vi.stripOrTileCache && !vi.imagePyramid)
+    vi.pyrCache->setupStripOrTileCache();
 
   /* set the model filename, or set to get a new model with empty name */
   if (Model || newModelCreated) {
@@ -782,6 +876,10 @@ int main( int argc, char *argv[])
   // Read tilt angles if any
   if (anglefname)
     ivwReadAngleFile(&vi, anglefname);
+
+  // Disallow use of file chooser plugin if no chooser was used in startup
+  if (!useChooserPlug)
+    App->chooserPlugin = 0;
 
   /*********************/
   /* Open Main Window. */
@@ -805,13 +903,11 @@ int main( int argc, char *argv[])
     ClipHandler = new ImodClipboard(useStdin, true);
   App->listening = (print_wid ? 1 : 0) + (useStdin ? 2 : 0);
 
+  // Safe to delete startup now, we have all the arguments it was storing
+  delete startup;
+
   /********************************************/
   /* Load in image data, set up image buffer. */
-
-  /* If the user did not limit cache and specified Fill cache, then restore
-     the flag to keep cache full */
-  if (fillCache && vi.vmSize == hugeCache)
-    vi.keepCacheFull = 1;
 
   /* Finish setting up and loading images */
   errno = 0;

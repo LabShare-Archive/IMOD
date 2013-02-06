@@ -13,9 +13,11 @@ import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstMetaData;
 import etomo.type.DataFileType;
 import etomo.type.DialogExitState;
 import etomo.type.MetaData;
+import etomo.type.UserConfiguration;
 import etomo.type.ViewType;
 import etomo.ui.swing.FiducialModelDialog;
 import etomo.ui.swing.SetupDialogExpert;
@@ -51,6 +53,7 @@ public final class SetupReconUIHarness {
 
   private SetupDialogExpert expert = null;
   private DirectiveFileCollection directiveFileCollection = null;
+  private boolean setFEIPixelSize = false;
 
   public SetupReconUIHarness(final ApplicationManager manager, final AxisID axisID) {
     this.manager = manager;
@@ -496,7 +499,7 @@ public final class SetupReconUIHarness {
             .getStack(getPropertyUserDir(), metaData, AxisID.SECOND);
         metaData.setBStackProcessed(bStack.exists());
       }
-      metaData.setSetFEIPixelSize(expert.isSetFEIPixelSize());
+      metaData.setSetFEIPixelSize(setFEIPixelSize);
       saveDirectiveFile(
           DirectiveFile.getInstance(manager, axisID,
               setupInterface.getScopeTemplateFile()), metaData);
@@ -521,7 +524,6 @@ public final class SetupReconUIHarness {
       return;
     }
     AxisType axisType = getAxisType();
-
     if (directiveFile.containsRaptorUseAlignedStack(AxisID.FIRST)) {
       metaData.setTrackRaptorUseRawStack(directiveFile
           .isRaptorUseAlignedStack(AxisID.FIRST));
@@ -531,28 +533,6 @@ public final class SetupReconUIHarness {
     }
     saveDirectiveFile(directiveFile, metaData, AxisID.FIRST);
     saveDirectiveFile(directiveFile, metaData, AxisID.SECOND);
-  }
-
-  /**
-   * Convert tracking method from the directive value to the corresponding meta data value.
-   * @param directiveValue
-   * @return value that can be saved in MetaData
-   */
-  private String convertTrackingMethod(final String directiveValue) {
-    if (directiveValue == null) {
-      return null;
-    }
-    if (directiveValue.equals("0")) {
-      return FiducialModelDialog.MethodEnumeratedType.SEED.getValue().toString();
-    }
-    if (directiveValue.equals("1")) {
-      return FiducialModelDialog.MethodEnumeratedType.PATCH_TRACKING.getValue()
-          .toString();
-    }
-    if (directiveValue.equals("2")) {
-      return FiducialModelDialog.MethodEnumeratedType.RAPTOR.getValue().toString();
-    }
-    return null;
   }
 
   private void saveDirectiveFile(final DirectiveFile directiveFile,

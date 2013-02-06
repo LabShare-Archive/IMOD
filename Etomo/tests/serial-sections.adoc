@@ -111,6 +111,7 @@ wait.process.initial-blend=done
 [function = align]
 tb.initial-blend.1=
 [[if = test-gui]]
+  assert.exists.file=%{dataset}_empty.xf
   #test values
   assert.tf.sigma-for-low-frequency-filter=0.0
   assert.tf.cutoff-for-high-frequency-filter=0.25
@@ -136,6 +137,11 @@ tb.initial-blend.1=
   assert.enabled.tf.fraction-to-ignore-on-edges=
   assert.enabled.sp.binning=
   assert.enabled.sp.midas-binning=
+  assert.enabled.bn.initial-auto-alignment=
+  assert.enabled.bn.midas=
+  assert.enabled.bn.refine-auto-alignment=
+  assert.enabled.bn.revert-auto-alignment-to-midas=
+  assert.enabled.bn.revert-to-no-transforms=
   #test field validation
   tf.sections-to-skip=abc
   bn.initial-auto-alignment=
@@ -151,6 +157,7 @@ wait.process.initial-xfalign=done
   assert.exists.file=xfalign.log
   assert.exists.file=%{dataset}.xf
 [[]]
+bn.midas=
 bn.refine-auto-alignment=
 wait.process.refine-xfalign=done
 [[if = test-gui]]

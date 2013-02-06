@@ -149,6 +149,8 @@ class ZapGL : public QGLWidget
   ~ZapGL() {};
   void setBufferSwapAuto(bool state) { setAutoBufferSwap(state); };
   bool extraCursorInWindow() {return (mMousePressed || mMouseInWindow);};
+  void scheduleRedraw(int interval);
+  void cancelRedraw();
   ZapFuncs *mZap;
  
 protected:

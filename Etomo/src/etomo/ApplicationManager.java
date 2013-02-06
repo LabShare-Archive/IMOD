@@ -409,7 +409,7 @@ public final class ApplicationManager extends BaseManager implements
       Utilities.timestamp("new", "SetupDialog", Utilities.STARTED_STATUS);
       setupDialogExpert = setupReconUIHarness.getSetupDialogExpert();
       Utilities.timestamp("new", "SetupDialog", Utilities.FINISHED_STATUS);
-      setupDialogExpert.initializeFields((ConstMetaData) metaData, userConfig);
+      setupReconUIHarness.initializeFields((ConstMetaData) metaData, userConfig);
     }
     mainPanel.openSetupPanel(setupDialogExpert);
     if (!GraphicsEnvironment.isHeadless()) {
@@ -463,7 +463,9 @@ public final class ApplicationManager extends BaseManager implements
         imodManager.setMetaData(metaData);
         // set paramFile so meta data can be saved
         paramFile = new File(propertyUserDir, metaData.getMetaDataFileName());
-        mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+        if (mainPanel != null) {
+          mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+        }
         if (userConfig.getSwapYAndZ()) {
           metaData.setPostTrimvolSwapYZ(true);
         }
@@ -595,6 +597,9 @@ public final class ApplicationManager extends BaseManager implements
    * Open the main window in processing mode MUST run reconnect for all axis
    */
   private void openProcessingPanel() {
+    if (mainPanel == null) {
+      return;
+    }
     mainPanel.showProcessingPanel(metaData.getAxisType());
     mainPanel.updateAllProcessingStates(processTrack);
     setPanel();
@@ -2862,7 +2867,9 @@ public final class ApplicationManager extends BaseManager implements
 
   public void save() throws LogFile.LockException, IOException {
     super.save();
-    mainPanel.done();
+    if (mainPanel != null) {
+      mainPanel.done();
+    }
     saveDialogs();
   }
 
@@ -7835,7 +7842,9 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   void createMainPanel() {
-    mainPanel = new MainTomogramPanel(this);
+    if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+      mainPanel = new MainTomogramPanel(this);
+    }
   }
 
   public ViewType getViewType() {

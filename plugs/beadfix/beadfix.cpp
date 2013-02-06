@@ -21,6 +21,7 @@
 #include <qpushbutton.h>
 #include <qcheckbox.h>
 #include <qtooltip.h>
+#include <qfiledialog.h>
 #include <qstringlist.h>
 //Added by qt3to4:
 #include <QKeyEvent>
@@ -96,7 +97,7 @@ const char *imodPlugInfo(int *type)
 {
   if (type)
     *type = IMOD_PLUG_MENU + IMOD_PLUG_KEYS + IMOD_PLUG_MESSAGE + 
-      IMOD_PLUG_MOUSE + IMOD_PLUG_EVENT;
+      IMOD_PLUG_MOUSE + IMOD_PLUG_EVENT + IMOD_PLUG_CHOOSER;
   return("Bead Fixer2");
 }
 
@@ -286,6 +287,28 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
   }
   return retval;
 }
+
+/* Get a filename to open */
+QString imodPlugOpenFileName(QWidget *parent, const QString &caption,
+                             const QString &dir, const QString &filter)
+{
+  imodPuts("CHOOSER PLUGIN!");
+  return QFileDialog::getOpenFileName(parent, caption, dir, filter);
+}
+
+QStringList imodPlugOpenFileNames(QWidget *parent, const QString &caption,
+                                  const QString &dir, const QString &filter)
+{
+  imodPuts("CHOOSER PLUGIN!");
+  return QFileDialog::getOpenFileNames(parent, caption, dir, filter);
+}
+
+QString imodPlugSaveFileName(QWidget *parent, const QString &caption)
+{
+  imodPuts("CHOOSER PLUGIN!");
+  return QFileDialog::getSaveFileName(parent, caption);
+}
+
 
 /* Open a tiltalign log file to find points with big residuals */
 
