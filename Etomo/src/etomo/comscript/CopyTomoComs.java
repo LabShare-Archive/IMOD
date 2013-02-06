@@ -258,9 +258,10 @@ public final class CopyTomoComs {
   private final EtomoNumber ctfFiles = new EtomoNumber();
 
   private final ApplicationManager manager;
-  private final DirectiveFile batchDirectiveFile;
+  private final DirectiveFile scopeTemplate;
   private final DirectiveFile systemTemplate;
   private final DirectiveFile userTemplate;
+  private final DirectiveFile batchDirectiveFile;
 
   private StringBuffer commandLine = null;
   private int exitValue;
@@ -268,12 +269,14 @@ public final class CopyTomoComs {
   private boolean debug;
   private SystemProgram copytomocoms = null;
 
-  public CopyTomoComs(ApplicationManager manager, final DirectiveFile systemTemplate,
-      final DirectiveFile userTemplate, final DirectiveFile batchDirectiveFile) {
+  public CopyTomoComs(ApplicationManager manager, final DirectiveFile scopeTemplate,
+      final DirectiveFile systemTemplate, final DirectiveFile userTemplate,
+      final DirectiveFile batchDirectiveFile) {
     this.manager = manager;
-    this.batchDirectiveFile = batchDirectiveFile;
+    this.scopeTemplate = scopeTemplate;
     this.systemTemplate = systemTemplate;
     this.userTemplate = userTemplate;
+    this.batchDirectiveFile = batchDirectiveFile;
     metaData = manager.getConstMetaData();
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
   }
@@ -288,7 +291,10 @@ public final class CopyTomoComs {
     command.add("-u");
     command.add(ApplicationManager.getIMODBinPath() + "copytomocoms");
     genCommonOptions();
-    //Add directives in order: system, user, batch process directive file.
+    // Add directives in order: scope, system, user, batch process directive file.
+    if (scopeTemplate != null) {
+      genOptionsFromDirectiveFile(scopeTemplate);
+    }
     if (systemTemplate != null) {
       genOptionsFromDirectiveFile(systemTemplate);
     }
