@@ -65,6 +65,8 @@ public final class SettingsDialog extends JDialog {
       FieldType.INTEGER, "PEET table size: ");
   private final CheckBox cbSetFEIPixelSize = new CheckBox(
       "Set pixel size in files from FEI");
+  private final FileTextField2 ltfUserTemplateDir = FileTextField2.getInstance(null,
+      "User templates directory: ");
 
   private final String propertyUserDir;
 
@@ -83,6 +85,8 @@ public final class SettingsDialog extends JDialog {
   }
 
   private void buildDialog() {
+    //init
+    ltfUserTemplateDir.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
     setTitle("eTomo Settings");
     SpacedPanel pnlMain = SpacedPanel.getInstance();
     pnlMain.setBoxLayout(BoxLayout.Y_AXIS);
@@ -156,6 +160,7 @@ public final class SettingsDialog extends JDialog {
     pnlTableSize.add(ltfJoinTableSize.getContainer());
     pnlTableSize.add(ltfPeetTableSize.getContainer());
     pnlMain.add(pnlTableSize);
+    pnlMain.add(ltfUserTemplateDir.getRootPanel());
     // buttons
     SpacedPanel panelButtons = SpacedPanel.getInstance();
     panelButtons.setBoxLayout(BoxLayout.X_AXIS);
@@ -216,6 +221,7 @@ public final class SettingsDialog extends JDialog {
     ltfParallelTableSize.setText(userConfig.getParallelTableSize());
     ltfJoinTableSize.setText(userConfig.getJoinTableSize());
     ltfPeetTableSize.setText(userConfig.getPeetTableSize());
+    ltfUserTemplateDir.setText(userConfig.getUserTemplateDir());
 
     // Get the current font parameters to set the UI
     // Since they may not be all the same make the assumption that the first
@@ -264,6 +270,7 @@ public final class SettingsDialog extends JDialog {
     userConfig.setParallelTableSize(ltfParallelTableSize.getText());
     userConfig.setJoinTableSize(ltfJoinTableSize.getText());
     userConfig.setPeetTableSize(ltfPeetTableSize.getText());
+    userConfig.setUserTemplateDir(ltfUserTemplateDir.getFile());
   }
 
   public boolean isAppearanceSettingChanged(final UserConfiguration userConfig) {
@@ -307,7 +314,7 @@ public final class SettingsDialog extends JDialog {
       updateDisplay();
     }
   }
-  
+
   void setTooltips() {
     cbSetFEIPixelSize.setToolTipText(TooltipFormatter.INSTANCE
         .format("During tomogram setup, transfer pixel size from extended header to "
