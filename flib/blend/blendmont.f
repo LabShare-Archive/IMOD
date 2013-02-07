@@ -253,6 +253,7 @@ c
       lmField = 1
       maxFields = 1
       useFill = .false.
+      memLim = 256
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -355,7 +356,7 @@ c
       limsect = nsect + 1
       allocate(tiltAngles(limsect), dmagPerUm(limsect), rotPerUm(limsect),
      &    listz(limsect),izwant(limsect), izAllWant(limsect), gl(2,3,limsect),
-     &    multineg(limsect), stat = ierr)
+     &    multineg(limsect), izMemList(memLim), lastUsed(memLim), stat = ierr)
       if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS PER PIECE')
       multineg(1:nsect) = multitmp(1:nsect)
 c
@@ -725,13 +726,11 @@ c         If no resizing desired, take exactly what is requested in one frame
           newypieces = 1
           newyoverlap = 2
         else
-          if (noFFTsizes)write(*,'(/,a,a)')'WARNING: BLENDMONT - NoResizeFor',
-     &        'FFT IS IGNORED WITH OUTPUT TO MORE THAN ONE FRAME'
           nxtotwant=2*((maxxwant+2-minxwant)/2)
           nytotwant=2*((maxywant+2-minywant)/2)
-          call setoverlap(nxtotwant,minxoverlap,newxframe,2,newxpieces,
+          call setoverlap(nxtotwant,minxoverlap,noFFTsizes,newxframe,2,newxpieces,
      &        newxoverlap,newxtotpix)
-          call setoverlap(nytotwant,minyoverlap,newyframe,2,newypieces,
+          call setoverlap(nytotwant,minyoverlap,noFFTsizes,newyframe,2,newypieces,
      &        newyoverlap,newytotpix)
         endif
 c         
