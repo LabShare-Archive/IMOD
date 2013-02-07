@@ -3,7 +3,7 @@
 module blendvars
   implicit none
   integer ifastSiz, maxBin, limInit, memMinimum, memPreferred
-  integer memLim, limEdgBf, memMaximum
+  integer limEdgBf, memMaximum
   integer maxPcNear, maxDistNear, maxUseEdge, maxInPc
   integer limXcorrPeaks
   !
@@ -63,11 +63,10 @@ module blendvars
   real*4 ginv(2,3)                            !inverse of g and h xforms
   real*4, allocatable :: hinv(:,:,:), htmp(:,:,:)
   !
-  parameter (memLim = 256, memMaximum = 2000000000)
+  parameter (memMaximum = 2000000000)
   parameter (memMinimum = 32000000, memPreferred = 340000000)
-  integer*4 izMemList(memLim), lastUsed(memLim)
-  integer*4, allocatable :: memIndex(:)
-  integer*4 maxLoad, juseCount, ilistz
+  integer*4, allocatable :: memIndex(:), izMemList(:), lastUsed(:)
+  integer*4 maxLoad, juseCount, ilistz, memLim
   integer(kind = 8) npixIn
   !
   parameter (limEdgBf = 20)
