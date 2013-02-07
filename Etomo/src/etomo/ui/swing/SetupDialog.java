@@ -127,16 +127,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final JPanel pnlAdjustedFocusB = new JPanel();
   private final CheckBox cbAdjustedFocusB = new CheckBox(
       "Focus was adjusted between montage frames");
-  private final ComboBox cmbScopeTemplate = ComboBox.getInstance("Scope Template");
-  private final ComboBox cmbSystemTemplate = ComboBox.getInstance("System Template");
-  private final ComboBox cmbUserTemplate = ComboBox.getInstance("User Template");
 
   private final SetupDialogExpert expert;
   private final boolean calibrationAvailable;
-
-  private File[] scopeTemplateFileList = null;
-  private File[] systemTemplateFileList = null;
-  private File[] userTemplateFileList = null;
+  private final SetupDialogActionListener listener;
+  private final TemplatePanel templatePanel;
 
   // Construct the setup dialog
   private SetupDialog(final SetupDialogExpert expert, final ApplicationManager manager,
@@ -144,6 +139,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     super(manager, axisID, dialogType);
     this.expert = expert;
     this.calibrationAvailable = calibrationAvailable;
+    listener = new SetupDialogActionListener(expert);
+    templatePanel = TemplatePanel.getInstance(manager, axisID, listener);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     ftfDataset.setFileSelectionMode(FileChooser.FILES_ONLY);
     ftfDataset.setOrigin(expert.getDatasetDir());
@@ -236,85 +233,28 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
-  void setScopeTemplate(final File[] templateFileList) {
-    cmbScopeTemplate.removeAll();
-    scopeTemplateFileList = templateFileList;
-    if (scopeTemplateFileList != null) {
-      for (int i = 0; i < scopeTemplateFileList.length; i++) {
-        cmbScopeTemplate.addItem(scopeTemplateFileList[i].getName());
-      }
-    }
-  }
-
-  void setSystemTemplate(final File[] templateFileList) {
-    cmbSystemTemplate.removeAll();
-    systemTemplateFileList = templateFileList;
-    if (systemTemplateFileList != null) {
-      for (int i = 0; i < systemTemplateFileList.length; i++) {
-        cmbSystemTemplate.addItem(systemTemplateFileList[i].getName());
-      }
-    }
-  }
-
-  void setUserTemplate(final File[] templateFileList) {
-    cmbUserTemplate.removeAll();
-    userTemplateFileList = templateFileList;
-    if (userTemplateFileList != null) {
-      for (int i = 0; i < userTemplateFileList.length; i++) {
-        cmbUserTemplate.addItem(userTemplateFileList[i].getName());
-      }
-    }
-  }
-
   public File getScopeTemplateFile() {
-    int i = cmbScopeTemplate.getSelectedIndex();
-    if (i != -1) {
-      return scopeTemplateFileList[i];
-    }
-    return null;
+    return templatePanel.getScopeTemplateFile();
   }
 
   public File getSystemTemplateFile() {
-    int i = cmbSystemTemplate.getSelectedIndex();
-    if (i != -1) {
-      return systemTemplateFileList[i];
-    }
-    return null;
+    return templatePanel.getSystemTemplateFile();
   }
 
   public File getUserTemplateFile() {
-    int i = cmbUserTemplate.getSelectedIndex();
-    if (i != -1) {
-      return userTemplateFileList[i];
-    }
-    return null;
+    return templatePanel.getUserTemplateFile();
   }
 
   void updateTemplateValues() {
-    int i = cmbScopeTemplate.getSelectedIndex();
-    DirectiveFile template = null;
-    if (i != -1) {
-      template = DirectiveFile.getInstance(applicationManager, axisID,
-          scopeTemplateFileList[i]);
-    }
+    DirectiveFile template = templatePanel.getScopeTemplate();
     if (template != null) {
       updateTemplateValues(template);
     }
-    i = cmbSystemTemplate.getSelectedIndex();
-    template = null;
-    if (i != -1) {
-      template = DirectiveFile.getInstance(applicationManager, axisID,
-          systemTemplateFileList[i]);
-    }
+    template = templatePanel.getSystemTemplate();
     if (template != null) {
       updateTemplateValues(template);
     }
-    i = cmbUserTemplate.getSelectedIndex();
-    template = null;
-    if (i != -1) {
-      template = DirectiveFile.getInstance(applicationManager, axisID,
-          userTemplateFileList[i]);
-    }
+    template = templatePanel.getUserTemplate();
     if (template != null) {
       updateTemplateValues(template);
     }
@@ -650,9 +590,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   boolean equalsTemplateActionCommand(final String actionCommand) {
-    return actionCommand.equals(cmbScopeTemplate.getActionCommand())
-        || actionCommand.equals(cmbSystemTemplate.getActionCommand())
-        || actionCommand.equals(cmbUserTemplate.getActionCommand());
+    return templatePanel.equalsActionCommand(actionCommand);
   }
 
   public void expand(GlobalExpandButton button) {
@@ -756,15 +694,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     ftfMagGradientFile.addActionListener(new MagGradientFileActionListener(this));
     btnViewRawStackA.addActionListener(new ViewRawStackAActionListener(this));
     btnViewRawStackB.addActionListener(new ViewRawStackBActionListener(this));
-    SetupDialogActionListener listener = new SetupDialogActionListener(expert);
     rbSingleAxis.addActionListener(listener);
     rbDualAxis.addActionListener(listener);
     rbSingleView.addActionListener(listener);
     rbMontage.addActionListener(listener);
     btnScanHeader.addActionListener(listener);
-    cmbScopeTemplate.addActionListener(listener);
-    cmbSystemTemplate.addActionListener(listener);
-    cmbUserTemplate.addActionListener(listener);
   }
 
   private void createDatasetPanel() {
@@ -895,9 +829,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
     // template
     pnlTemplate.setLayout(new BoxLayout(pnlTemplate, BoxLayout.Y_AXIS));
-    pnlTemplate.add(cmbScopeTemplate.getComponent());
-    pnlTemplate.add(cmbSystemTemplate.getComponent());
-    pnlTemplate.add(cmbUserTemplate.getComponent());
+    pnlTemplate.add(templatePanel.getComponent());
   }
 
   private void createPerAxisInfoPanel() {
@@ -1014,7 +946,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
-  private static final class SetupDialogActionListener implements ActionListener {
+  private static final class SetupDialogActionListener implements TemplateActionListener {
 
     private final SetupDialogExpert adaptee;
 
