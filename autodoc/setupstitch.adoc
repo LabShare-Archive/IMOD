@@ -37,7 +37,12 @@ usage = Nominal overlap between adjacent volumes in X and Y
 tooltip =
 manpage = Nominal overlap between adjacent volumes in X and Y.  This only
 needs to be a rough approximation.  This entry is required when adding a
-supermontage or the first time a manually prepared info file is read.
+supermontage or the first time a manually prepared info file is read.  To
+measure overlap, for example in X, click on a corresponding point in two
+adjacent volumes.  The overlap in X is XR + NXL - XL where
+^   XR = X position in volume on the right
+^   NXL = Size in X of volume on the left
+^   XL = X position in volume on the left
 
 [Field = UnderscoreXYZ]
 short = underscore
