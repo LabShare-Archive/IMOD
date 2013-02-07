@@ -6,7 +6,6 @@ import java.io.File;
 import etomo.ApplicationManager;
 import etomo.Arguments;
 import etomo.EtomoDirector;
-import etomo.logic.ConfigTool;
 import etomo.logic.UserEnv;
 import etomo.storage.DirectiveFile;
 import etomo.storage.EtomoFileFilter;
@@ -431,9 +430,6 @@ public final class SetupDialogExpert {
       dialog.setExcludeListEnabled(AxisID.SECOND, false);
       dialog.setViewRawStackEnabled(AxisID.SECOND, false);
     }
-    dialog.setScopeTemplate(ConfigTool.getScopeTemplateFiles());
-    dialog.setSystemTemplate(ConfigTool.getSystemTemplateFiles());
-    dialog.setUserTemplate(ConfigTool.getUserTemplateFiles());
   }
 
   boolean validateTiltAngle(final AxisID axisID, final String errorTitle) {
