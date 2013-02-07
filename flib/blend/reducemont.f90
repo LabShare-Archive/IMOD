@@ -18,125 +18,182 @@ program reducemont
   use blendvars
   implicit none
   !
-  character*80 filnam
+  character*320 filename
   integer*4 mxyzin(3), nxyzst(3) /0, 0, 0/
   real*4 cell(6) /1., 1., 1., 0., 0., 0./
-  !
-  !
-  ! 7/7/00 CER: remove the encode's; titlech is the temp space
-  !
   character*80 titlech
   !
   integer*4, allocatable :: listz(:), izWant(:)
   integer*4, allocatable :: ixPcTmp(:), iyPcTmp(:), izPcTmp(:)
   character dat * 9, tim * 8
   real*4 title(20), delta(3)
-  logical anyPixels, doFast, anyLinesOut, xinLong
-  integer*4 modePow(0:15) /8, 15, 8, 0, 0, 0, 0, 0, 0, 9, 10, 11, 12, 13, 14, 15/
+  logical anyPixels, doFast, anyLinesOut, xinLong, loadLines
+  integer*4 modePow(0:15) /8, 15, 8, 0, 0, 0, 16, 0, 0, 9, 10, 11, 12, 13, 14, 15/
   !
   integer*4 modeIn, numListZ, minZpiece, maxZpiece, numSect, nxTotPix, nyTotPix
   integer*4 maxXpiece, maxYpiece, modeOut, ifFloat, i, minXoverlap
-  integer*4 minYoverlap, numTrials, nreduce, minXwant, minYwant, maxXwant
+  integer*4 minYoverlap, nreduce, minXwant, minYwant, maxXwant
   integer*4 maxYwant, nxTotWant, nyTotWant, newXpieces, newYpieces
   integer*4 newXtotPix, newYtotPix, newXframe, newYframe, newMinXpiece
-  integer*4 newMinYpiece, ifWant
-  real*4 xOrigin, yOrigin, zOrig, dmin, dmax, outMin, outMax, dfltInMin
+  integer*4 newMinYpiece, ifWant, ierr
+  real*4 xOrigin, yOrigin, zOrigin, dmin, dmax, outMin, outMax, dfltInMin
   real*4 dfltInMax, reduce, curInMin, curInMax, pixScale, pixAdd, tsum
   integer*4 ixFrame, iyFrame, ipc, nshort, nlong, ishort, ilong, indBray
   integer*4 newUse, newPieceXll, newPieceYll, nxFast, nyFast, iyFast, ixFast
   integer*4 indYlow, indYhigh, numLinesOut, indXlow, indXhigh, inOnePiece
   integer*4 ixInll, iyInll, inPieceNum, indx, indy, iyStart, iyEnd, ioutBase
-  integer*4 ixStart, ixEnd, indBase, ix, iy, nsum, ilineOut, ifill
+  integer*4 ixStart, ixEnd, indBase, ix, iy, nsum, ilineOut, ifill, loadYlow, loadYhigh
   real*4 dminOut, dmaxOut, grandSum, sum, val, tmpsum, tmean
-  integer*4 nzWant, newXoverlap, newYoverlap, kti, izSect, iwant
-  integer*4 ixOut, iyout, ixInPiece, iyInPiece, ifRevise, mostNeeded
+  integer*4 nzWant, newXoverlap, newYoverlap, kti, izSect, iwant, lineLoadMBlimit
+  integer*4 ixOut, iyout, ixInPiece, iyInPiece, ifRevise, mostNeeded, nyUse
+  character*100000 listString
+  logical noFFTsizes
   !
-  call setExitPrefix('ERROR: REDUCEMONT -')
+  logical pipinput
+  integer*4 numOptArg, numNonOptArg
+  integer*4 PipGetInteger, PipGetTwoIntegers, PipGetBoolean, PipGetString
+  integer*4 PipGetInOutFile, PipGetLogical
+  !
+  ! fallbacks from ../../manpages/autodoc2man -3 2  reducemont
+  integer numOptions
+  parameter (numOptions = 16)
+  character*(40 * numOptions) options(1)
+  options(1) = &
+      'imin:ImageInputFile:FN:@plin:PieceListInput:FN:@imout:ImageOutputFile:FN:@'// &
+      'plout:PieceListOutput:FNM:@sections:SectionsToDo:LIM:@mode:ModeToOutput:I:@'// &
+      'float:FloatToRange:B:@bin:BinByFactor:I:@xminmax:StartingAndEndingX:IP:@'// &
+      'yminmax:StartingAndEndingY:IP:@frame:MaximumFrameSizeXandY:IP:@'// &
+      'overlap:MinimumOverlapXandY:IP:@nofft:NoResizeForFFT:B:@line:LineLoadLimit:I:@'// &
+      'param:ParameterFile:PF:@help:usage:B:'
+  
   nreduce = 1
+  ifFloat = 0
+  minXoverlap = 0
+  minYoverlap = 0
+  lineLoadMBlimit = 1000
+  loadLines = .false.
+  noFFTsizes = .false.
   !
+  ! Pip startup: set error, parse options, check help, set flag if used
+  !
+  call PipReadOrParseOptions(options, numOptions, 'reducemont', &
+      'ERROR: REDUCEMONT - ', .false., 3, 1, 1, numOptArg, numNonOptArg)
+  pipinput = numOptArg + numNonOptArg > 0
+
   ! Allocate temp arrays
-  allocate(ixPcTmp(limInit), iyPcTmp(limInit), izPcTmp(limInit), stat = i)
-  if (i .ne. 0) call exitError('ALLOCATING INITIAL ARRAYS')
-  !
-  write(*,'(1x,a,$)') 'Input image file: '
-  read(5, '(a)') filnam
-  call imopen(1, filnam, 'ro')
+  allocate(ixPcTmp(limInit), iyPcTmp(limInit), izPcTmp(limInit), stat = ierr)
+  call memoryError(ierr, 'INITIAL ARRAYS')
+  if (PipGetInOutFile('ImageInputFile', 1, ' ', filename) .ne. 0) &
+      call exitError('NO INPUT IMAGE FILE SPECIFIED')
+!
+  call imopen(1, filename, 'ro')
   call irdhdr(1, nxyzIn, mxyzin, modeIn, dmin, dmax, dmean)
   dfill = dmean
   !
-  call irtdel(1, delta)
-  call irtorg(1, xOrigin, yOrigin, zOrig)
+  ierr = PipGetBoolean('FloatToRange', ifFloat)
+  ierr = PipGetInteger('LineLoadLimit', lineLoadMBlimit)
+  ierr = PipGetLogical('NoResizeForFFT', noFFTsizes)
   !
-  write(*,'(1x,a,$)') 'Piece list file if image is a'// &
-      ' montage, otherwise Return: '
-  read(*,'(a)') filnam
-  call read_piece_list(filnam, ixPcTmp, iyPcTmp, izPcTmp, npcList)
+  call irtdel(1, delta)
+  call irtorg(1, xOrigin, yOrigin, zOrigin)
+  !
+  filename = ' '
+  ierr = PipGetString('PieceListInput', filename)
+  call read_piece_list(filename, ixPcTmp, iyPcTmp, izPcTmp, npcList)
+  !
+  ! Load image in strips and treat each line as a piece if all one image and large enough
+  nyUse = nyin
+  loadLines = npcList == 0 .and. ifFloat == 0 .and.  &
+      4. * nxin * nyin / 1024.**2 > lineLoadMBlimit
+  print *,loadLines, npcList, 4. * nxin * nyin / 1024.**2, lineLoadMBlimit
+  if (loadLines) npcList = nzin * nyin
+  !
   limNpc = npcList + 10
   if (npcList == 0) limNpc = nzin + 10
   allocate(ixPcList(limNpc), iyPcList(limNpc), izPcList(limNpc), &
-      memIndex(limNpc), stat = i)
-  if (i .ne. 0) call exitError('ALLOCATING ARRAYS PER PIECE')
+      memIndex(limNpc), stat = ierr)
+  call memoryError(ierr, 'ARRAYS PER PIECE')
   !
   ! if no pieces, set up mocklist
   if (npcList == 0) then
     do i = 1, nzin
-      ixPcTmp(i) = 0
-      iyPcTmp(i) = 0
-      izPcTmp(i) = i - 1
+      ixPcList(i) = 0
+      iyPcList(i) = 0
+      izPcList(i) = i - 1
     enddo
     npcList = nzin
+  else if (loadLines) then
+    !
+    ! or if loading strips, set up the piece list for lines
+    do izSect = 0, nzin - 1
+      do iy = 0, nyin - 1
+        i = nyin * izSect + iy + 1
+        ixPcList(i) = 0
+        iyPcList(i) = iy
+        izPcList(i) = izSect
+      enddo
+    enddo
+    nyUse = 1
+    minYpiece = 0
+    nyPieces = nyin
+    nyOverlap = 0
+    nxPieces = 1
+    minXpiece = 0
+    nXoverlap = 0
+  else
+    !
+    ! or just copy the list
+    ixPcList(1:npcList) = ixPcTmp(1:npcList)
+    iyPcList(1:npcList) = iyPcTmp(1:npcList)
+    izPcList(1:npcList) = izPcTmp(1:npcList)
   endif
-  ixPcList(1:npcList) = ixPcTmp(1:npcList)
-  iyPcList(1:npcList) = iyPcTmp(1:npcList)
-  izPcList(1:npcList) = izPcTmp(1:npcList)
   !
   call fill_listz(izPcList, npcList, izPcTmp, numListZ)
   minZpiece = izPcTmp(1)
   maxZpiece = izPcTmp(numListZ)
   numSect = maxZpiece + 1 - minZpiece
   limSect = numSect + 10
-  allocate(listz(limSect), stat = i)
-  if (i .ne. 0) call exitError('ALLOCATING ARRAYS PER SECTION')
+  allocate(listz(limSect), stat = ierr)
+  call memoryError(ierr, 'ARRAYS PER SECTION')
   listz(1:numListZ) = izPcTmp(1:numListZ)
   !
   ! now check lists and get basic properties of overlap etc
   !
-  call checkList(ixPcList, npcList, 1, nxin, minXpiece, nxPieces, &
-      nXoverlap)
-  call checkList(iyPcList, npcList, 1, nyin, minYpiece, nyPieces, &
-      nyOverlap)
+  if (.not. loadLines) then
+    call checkList(ixPcList, npcList, 1, nxin, minXpiece, nxPieces, nXoverlap)
+    call checkList(iyPcList, npcList, 1, nyUse, minYpiece, nyPieces, nyOverlap)
+  endif
   if (nxPieces <= 0 .or. nyPieces <= 0) call exitError('PIECE LIST NOT GOOD')
   !
   nxTotPix = nxPieces * (nxin - nXoverlap) + nXoverlap
-  nyTotPix = nyPieces * (nyin - nyOverlap) + nyOverlap
+  nyTotPix = nyPieces * (nyUse - nyOverlap) + nyOverlap
   maxXpiece = minXpiece + nxTotPix - 1
   maxYpiece = minYpiece + nyTotPix - 1
   write(*,115) nxTotPix, 'X', nxPieces, nxin, nXoverlap
-  write(*,115) nyTotPix, 'Y', nyPieces, nyin, nyOverlap
-115 format(i7,' total ',a1,' pixels in',i4,' pieces of', &
-      i6, ' pixels, with overlap of',i5)
+  if (loadLines) then
+    write(*,115) nyTotPix, 'Y', 1, nyin, nyOverlap
+  else
+    write(*,115) nyTotPix, 'Y', nyPieces, nyin, nyOverlap
+  endif
+115 format(i7,' total ',a1,' pixels in',i4,' pieces of',i6,' pixels, with overlap of',i5)
   !
   !
-  write(*,'(1x,a,$)') 'Output image file: '
-  read(5, '(a)') filnam
-  call imopen(2, filnam, 'new')
+  newXframe = 10 * nxTotPix
+  newYframe = 10 * nyTotPix
+  if (PipGetInOutFile('ImageOutputFile', 2, ' ', filename) .ne. 0) &
+      call exitError('NO OUTPUT IMAGE FILE SPECIFIED')
+  call imopen(2, filename, 'new')
   call itrhdr(2, 1)
   call ialnbsym(2, 0)
   !
-  write(*,'(1x,a,$)') 'Name of output piece list file: '
-  read(5, '(a)') filnam
-  call dopen(3, filnam, 'new', 'f')
-  ! open(3, file=filnam, form='formatted', status='new' &
-  ! , carriagecontrol='list', err=30)
+  if (PipGetString('PieceListOutput', filename) .ne. 0) &
+      call exitError('NO OUTPUT PIECE LIST FILE SPECIFIED')
+  call dopen(3, filename, 'new', 'f')
   !
 18 modeOut = modeIn
-  write(*,'(1x,a,i2,a,$)') 'Mode for output file [', modeOut, ']: '
-  read(5,*) modeOut
-  if (modeOut < 0 .or. modeOut > 15 .or. &
-      (modeOut >= 3 .and. modeOut <= 8)) then
-    print *,'bad mode value'
-    go to 18
-  endif
+  ierr = PipGetInteger('ModeToOutput', modeOut)
+  if (modeOut < 0 .or. modeOut > 15 .or. (modeOut >= 3 .and. modeOut .ne. 6))  &
+      call exitError('BAD VALUE FOR OUTPUT MODE')
   call ialmod(2, modeOut)
   !
   ! set up output range, and default input range and minimum.  If real
@@ -157,73 +214,57 @@ program reducemont
     dfltInMin = 0.
   endif
   !
-  write(*,'(1x,a,$)') &
-      '1 to float each section to maximum range, 0 not to: '
-  read(5,*) ifFloat
-  !
-  !
   ! get list of sections desired, set up default as all sections
-  !
-  print *,'Enter list of sections to be included in output '// &
-      'file (ranges ok)', '   or / to include all sections'
   do i = 1, numListZ
     izPcTmp(i) = listz(i)
   enddo
   nzWant = numListZ
-  call rdlist(5, izPcTmp, nzWant)
-  allocate(izWant(nzWant + 10), stat = i)
-  if (i .ne. 0) call exitError('ALLOCATING ARRAYS PER SECTION')
+  if (PipGetString('SectionsToDo', listString) .eq. 0) then
+    call parseList2(listString, izPcTmp, nzWant, limInit)
+  endif
+
+  allocate(izWant(nzWant + 10), stat = ierr)
+  call memoryError(ierr, 'ARRAYS PER SECTION')
   izWant(1:nzWant) = izPcTmp(1:nzWant)
   deallocate(ixPcTmp, iyPcTmp, izPcTmp, stat = i)
   !
-  minXoverlap = 2
-  minYoverlap = 2
-  numTrials = 0
+  ierr = PipGetInteger('BinByFactor', nreduce)
   reduce = nreduce
-32 write(*,'(1x,a,$)') 'Reduction factor: '
-  read(5,*) nreduce
-  reduce = nreduce
+  if (nreduce < 1 .or. nreduce > 64) call exitError('Binning must be between 1 and 64')
   minXwant = minXpiece
   minYwant = minYpiece
   maxXwant = minXwant + nxTotPix - 1
   maxYwant = minYwant + nyTotPix - 1
-  write(*,'(1x,a,/,a,4i6,a,$)') 'Enter Min X, Max X, Min Y, and'// &
-      ' Max Y coordinates to process into output section,' &
-      , '    or / for whole input section [=' &
-      , minXwant, maxXwant, minYwant, maxYwant, ']: '
-  read(5,*) minXwant, maxXwant, minYwant, maxYwant
+  ierr = PipGetTwoIntegers('StartingAndEndingX', minXwant, maxXwant)
+  ierr = PipGetTwoIntegers('StartingAndEndingY', minYwant, maxYwant)
+  if (minXwant > maxXwant .or. minYwant > maxYwant .or. maxXwant < 0 .or. &
+      minXwant > nxTotPix .or. maxYwant < 0 .or. minYwant > nyTotPix)  &
+      call exitError('X OR Y LIMITS TO OUTPUT ARE OUT OF RANGE')
   minXwant = int(minXwant / reduce)
   minYwant = int(minYwant / reduce)
   maxXwant = int(maxXwant / reduce)
   maxYwant = int(maxYwant / reduce)
   nxTotWant = 2 * ((maxXwant + 2 - minXwant) / 2)
   nyTotWant = 2 * ((maxYwant + 2 - minYwant) / 2)
-  write(*,'(1x,a,$)') &
-      'Maximum new X and Y frame size, minimum overlap: '
-  read(5,*) newXframe, newYframe, minXoverlap, minYoverlap
-  if (numTrials <= 1) then                       !on first 2 trials, enforce min
-    minXoverlap = max(2, minXoverlap)          !overlap of 2 so things look
-    minYoverlap = max(2, minYoverlap)          !nice in wimp.  After that, let
-  endif                                     !the user have it.
-  numTrials = numTrials + 1
+  ierr = PipGetTwoIntegers('MaximumFrameSizeXandY', newXframe, newYframe)
+  if (newXframe <= 0) newXframe = nxTotWant + 100
+  if (newYframe <= 0) newYframe = nyTotWant + 100
+  ierr = PipGetTwoIntegers('MinimumOverlapXandY', minXoverlap, minYoverlap)
+  if (minXoverlap < 0 .or. minYoverlap < 0) &
+      call exitError('NEGATIVE OVERLAP IS NOT ALLOWED')
   !
-  call setOverlap(nxTotWant, minXoverlap, newXframe, 2, newXpieces, &
+  call setOverlap(nxTotWant, minXoverlap, noFFTsizes, newXframe, 2, newXpieces, &
       newXoverlap, newXtotPix)
-  call setOverlap(nyTotWant, minYoverlap, newYframe, 2, newYpieces, &
+  call setOverlap(nyTotWant, minYoverlap, noFFTsizes, newYframe, 2, newYpieces, &
       newYoverlap, newYtotPix)
   !
   write(*,115) newXtotPix, 'X', newXpieces, newXframe, newXoverlap
   write(*,115) newYtotPix, 'Y', newYpieces, newYframe, newYoverlap
   !
-  write(*,'(1x,a,$)') &
-      '1 to revise reduction, frame size, or overlap: '
-  read(5,*) ifRevise
-  if (ifRevise .ne. 0) go to 32
-  !
   maxLineLength = newXframe + 32
   maxBsiz = (ifastSiz + maxBin) * maxLineLength
-  allocate(brray(maxBsiz), mapPiece(nxPieces, nyPieces), stat = i)
-  if (i .ne. 0) call exitError('ALLOCATING OUTPUT LINE ARRAY')
+  allocate(brray(maxBsiz), mapPiece(nxPieces, nyPieces), stat = ierr)
+  call memoryError(ierr, 'OUTPUT LINE ARRAY')
   !
   newMinXpiece = minXwant - (newXtotPix - nxTotWant) / 2
   newMinYpiece = minYwant - (newYtotPix - nyTotWant) / 2
@@ -239,34 +280,50 @@ program reducemont
   !
   ! initialize memory allocator
   !
+  memLim = 256
+  if (loadLines) memLim = max(memLim, nreduce * (newYframe + 1))
+  allocate(izMemList(memLim), lastUsed(memLim), stat = ierr)
+  call memoryError(ierr, 'ARRAYS FOR PIECE BUFFER')
+
   call clearShuffle()
-  !
-  ! Allocate memory as in blendmont - start with minimum size, then
-  ! go to preferred memory of that is needed to get 4 pieces, then drop
-  ! back to minimum pieces needed
-  npixIn = nxin * int(nyin, kind = 8)
-  mostNeeded = nxPieces * nyPieces
-  maxLoad = min(memMinimum / npixIn, memLim, mostNeeded)
-  maxLoad = max(maxLoad, min(4, mostNeeded))
-  if (maxLoad * npixIn > memPreferred) maxLoad = min(2, mostNeeded)
-  if (maxLoad * npixIn > memMaximum) call exitError( &
-      'IMAGES TOO LARGE FOR 32-BIT ARRAY INDEXES')
-  maxSiz = maxLoad * npixIn
-  allocate(array(maxSiz), stat = i)
-  if (i .ne. 0 .and. maxLoad > min(2, mostNeeded)) then
-    maxLoad = min(2, mostNeeded)
+
+  ! If loading lines, need all the lines for a row of frames
+  if (loadLines) then
+    npixIn = nxin
+    maxSiz = nxin * int((newYframe + 1) * nreduce, kind = 8)
+    maxLoad = newYframe
+    if (npixIn > memMaximum)  call exitError( &
+        'OUTPUT FRAMES TOO LARGE IN Y FOR 32-BIT ARRAY INDEXES; TRY SMALLER IN Y')
+    allocate(array(maxSiz), stat = ierr)
+    call memoryError(ierr, 'MAIN IMAGE ARRAY; TRY SMALLER OUTPUT FRAME SIZE IN Y')
+  else
+    !
+    ! Otherwise allocate memory as in blendmont - start with minimum size, then
+    ! go to preferred memory if that is needed to get 4 pieces, then drop
+    ! back to minimum pieces needed
+    npixIn = nxin * int(nyin, kind = 8)
+    mostNeeded = nxPieces * nyPieces
+    maxLoad = min(memMinimum / npixIn, memLim, mostNeeded)
+    maxLoad = max(maxLoad, min(4, mostNeeded))
+    if (maxLoad * npixIn > memPreferred) maxLoad = min(2, mostNeeded)
+    if (maxLoad * npixIn > memMaximum) call exitError( &
+        'IMAGES TOO LARGE FOR 32-BIT ARRAY INDEXES')
     maxSiz = maxLoad * npixIn
-    allocate(array(maxSiz), stat = i)
+    allocate(array(maxSiz), stat = ierr)
+    if (ierr .ne. 0 .and. maxLoad > min(2, mostNeeded)) then
+      maxLoad = min(2, mostNeeded)
+      maxSiz = maxLoad * npixIn
+      allocate(array(maxSiz), stat = ierr)
+    endif
+    call memoryError(ierr, 'MAIN IMAGE ARRAY')
   endif
-  if (i .ne. 0) call exitError('ALLOCATING MAIN IMAGE ARRAY')
 
   !
   ! loop on z: do everything within each section for maximum efficiency
   !
   do ilistz = 1, numListZ
     izSect = listz(ilistz)
-    write(*,'(a,i4)') ' working on section #', izSect
-    xinLong = nxPieces > nyPieces
+    xinLong = nxPieces > nyPieces .and. .not. loadLines
     !
     ! test if this section is wanted in output: if not, skip out
     !
@@ -274,7 +331,8 @@ program reducemont
     do iwant = 1, nzWant
       if (izWant(iwant) == izSect) ifWant = 1
     enddo
-    if (ifWant == 0) go to 92
+    if (ifWant == 0) cycle
+    write(*,'(a,i4)') ' working on section #', izSect
     !
     ! make a map of pieces in this sections
     !
@@ -286,7 +344,7 @@ program reducemont
     do ipc = 1, npcList
       if (izPcList(ipc) == izSect) then
         ixFrame = 1 + (ixPcList(ipc) - minXpiece) / (nxin - nXoverlap)
-        iyFrame = 1 + (iyPcList(ipc) - minYpiece) / (nyin - nyOverlap)
+        iyFrame = 1 + (iyPcList(ipc) - minYpiece) / (nyUse - nyOverlap)
         mapPiece(ixFrame, iyFrame) = ipc
       endif
     enddo
@@ -316,24 +374,27 @@ program reducemont
     !
     pixScale = (outMax - outMin) / max(1., curInMax - curInMin)
     pixAdd = outMin - pixScale * curInMin
-    !
-    ! look through memory list and renumber them with priorities
-    ! backwards from the first needed piece
-    !
-    newUse = juseCount - 1
-    do ilong = 1, nlong
-      do ishort = 1, nshort
-        call crossValue(xinLong, ishort, ilong, ixFrame, iyFrame)
-        if (mapPiece(ixFrame, iyFrame) > 0) then
-          do i = 1, maxLoad
-            if (izMemList(i) == mapPiece(ixFrame, iyFrame)) then
-              lastUsed(i) = newUse
-              newUse = newUse-1
-            endif
-          enddo
-        endif
+
+
+    if (.not. loadLines) then
+      !
+      ! look through memory list and renumber them with priorities
+      ! backwards from the first needed piece
+      newUse = juseCount - 1
+      do ilong = 1, nlong
+        do ishort = 1, nshort
+          call crossValue(xinLong, ishort, ilong, ixFrame, iyFrame)
+          if (mapPiece(ixFrame, iyFrame) > 0) then
+            do i = 1, maxLoad
+              if (izMemList(i) == mapPiece(ixFrame, iyFrame)) then
+                lastUsed(i) = newUse
+                newUse = newUse-1
+              endif
+            enddo
+          endif
+        enddo
       enddo
-    enddo
+    endif
     !
     ! GET THE PIXEL OUT
     ! -  loop on output frames; within each frame loop on little boxes
@@ -341,9 +402,24 @@ program reducemont
     call  crossValue(xinLong, newXpieces, newYpieces, nshort, nlong)
     !
     do ilong = 1, nlong
+      if (loadLines) then
+        !
+        ! If loading lines, figure out starting and ending lines for this row of frames
+        ! and load them into array
+        newPieceYll = newMinYpiece + (ilong - 1) * (newYframe - newYoverlap)
+        loadYlow = max(0, newPieceYll * nReduce)
+        loadYhigh = min(nyin - 1, (newPieceYll + newYframe) * nReduce - 1)
+        call imposn(1, izSect, loadYlow)
+        call irdsecl(1, array, loadYhigh + 1 - loadYlow, *99)
+        !
+        ! Fill the right part of the memIndex array with the line numbers
+        do i = loadYlow, loadYhigh
+          memIndex(izSect * nyin + i + 1) = i + 1 - loadYlow
+        enddo
+      endif
+
       do ishort = 1, nshort
         call crossValue(xinLong, ishort, ilong, ixOut, iyout)
-        write(*,'(a,2i4)') ' composing frame at', ixOut, iyout
         newPieceYll = newMinYpiece + (iyout - 1) * (newYframe - newYoverlap)
         newPieceXll = newMinXpiece + (ixOut - 1) * (newXframe - newXoverlap)
         anyPixels = .false.
@@ -368,118 +444,131 @@ program reducemont
             brray(i) = dmean
           enddo
           !
-          do ixFast = 1, nxFast
-            indXlow = newPieceXll + (ixFast - 1) * ifastSiz
-            indXhigh = min(indXlow + ifastSiz, newPieceXll + newXframe) - 1
-            !
-            ! check # of edges, and prime piece number, for each corner
-            !
-            doFast = .true.
-            do indy = indYlow, indYhigh, indYhigh - indYlow
-              do indx = indXlow, indXhigh, indXhigh - indXlow
-                call checkBox(indx, indy, nreduce, inPieceNum, ixInll, &
-                    iyInll)
-                if (indx == indXlow .and. indy == indYlow) then
-                  inOnePiece = inPieceNum
-                  ixInPiece = ixInll
-                  iyInPiece = iyInll
-                endif
-                doFast = doFast .and. inPieceNum == inOnePiece
-              enddo
-            enddo
-            !
-            ! ALL ON ONE PIECE:
-            !
-            if (doFast .and. inPieceNum > 0) then
-              call shuffler(inPieceNum, indBray)
-              do indy = indYlow, indYhigh
-                iyStart = iyInPiece + (indy - indYlow) * nreduce
-                iyEnd = iyStart + nreduce-1
-                ioutBase = nxOut * (indy - indYlow) + 1 - newPieceXll
+          ! If loading lines without binning, then just fill the array directly
+          if (loadLines .and. nReduce == 1) then
+            indXlow = max(0, newPieceXll)
+            indXhigh = min(newPieceXll + nxOut, nxin) - 1
+            do indy = indYlow, indYhigh
+              if (indy >= loadYlow .and. indy <= loadYhigh) then
                 do indx = indXlow, indXhigh
-                  if (nreduce == 1) then
-                    brray(ioutBase + indx) = &
-                        array(ixInPiece + indx - indXlow + nxin * &
-                        (iyInPiece + indy - indYlow) + indBray)
-                  else
-                    ixStart = ixInPiece + (indx - indXlow) * nreduce
-                    ixEnd = ixStart + nreduce-1
-                    sum = 0.
-                    do iy = iyStart, iyEnd
-                      indBase = nxin * iy + indBray
-                      do ix = ixStart, ixEnd
-                        sum = sum + array(indBase + ix)
-                      enddo
-                    enddo
-                    brray(ioutBase + indx) = sum / nreduce**2
+                  brray(1 + indx - newPieceXll + nxOut * (indy - indYlow)) =  &
+                      array(1 + indx + nxin * (indy - loadYlow))
+                enddo
+                anyPixels = .true.
+              endif
+            enddo
+          else
+          !
+            do ixFast = 1, nxFast
+              indXlow = newPieceXll + (ixFast - 1) * ifastSiz
+              indXhigh = min(indXlow + ifastSiz, newPieceXll + newXframe) - 1
+              !
+              ! check # of edges, and prime piece number, for each corner
+              !
+              doFast = .true.
+              do indy = indYlow, indYhigh, indYhigh - indYlow
+                do indx = indXlow, indXhigh, indXhigh - indXlow
+                  call checkBox(indx, indy, nreduce, nyUse, inPieceNum, ixInll, iyInll)
+                  if (indx == indXlow .and. indy == indYlow) then
+                    inOnePiece = inPieceNum
+                    ixInPiece = ixInll
+                    iyInPiece = iyInll
                   endif
+                  doFast = doFast .and. inPieceNum == inOnePiece
                 enddo
               enddo
-              anyPixels = .true.
-            elseif (.not.doFast) then
               !
-              ! in or near an edge: loop on each pixel
+              ! ALL ON ONE PIECE:
               !
-              do indy = indYlow, indYhigh
-                ioutBase = nxOut * (indy - indYlow) + 1 - newPieceXll
-                do indx = indXlow, indXhigh
-                  call checkBox(indx, indy, nreduce, inPieceNum, ixInPiece, &
-                      iyInPiece)
-                  if (inPieceNum > 0) then
-                    !
-                    ! if this output pixel comes all from one input piece
-                    !
-                    call shuffler(inPieceNum, indBray)
+              if (doFast .and. inPieceNum > 0) then
+                call shuffler(inPieceNum, indBray)
+                do indy = indYlow, indYhigh
+                  iyStart = iyInPiece + (indy - indYlow) * nreduce
+                  iyEnd = iyStart + nreduce-1
+                  ioutBase = nxOut * (indy - indYlow) + 1 - newPieceXll
+                  do indx = indXlow, indXhigh
                     if (nreduce == 1) then
-                      brray(ioutBase + indx) = array(ixInPiece + nxin * &
-                          iyInPiece + indBray)
+                      brray(ioutBase + indx) = &
+                          array(ixInPiece + indx - indXlow + nxin * &
+                          (iyInPiece + indy - indYlow) + indBray)
                     else
-                      iyEnd = iyInPiece + nreduce-1
-                      ixEnd = ixInPiece + nreduce-1
+                      ixStart = ixInPiece + (indx - indXlow) * nreduce
+                      ixEnd = ixStart + nreduce-1
                       sum = 0.
-                      do iy = iyInPiece, iyEnd
+                      do iy = iyStart, iyEnd
                         indBase = nxin * iy + indBray
-                        do ix = ixInPiece, ixEnd
+                        do ix = ixStart, ixEnd
                           sum = sum + array(indBase + ix)
                         enddo
                       enddo
                       brray(ioutBase + indx) = sum / nreduce**2
                     endif
-                    anyPixels = .true.
-                  elseif (inPieceNum == 0) then
-                    !
-                    ! but if it comes from more than one piece, need to
-                    ! get each pixel independently
-                    !
-                    ixStart = indx * nreduce
-                    ixEnd = ixStart + nreduce-1
-                    iyStart = indy * nreduce
-                    iyEnd = iyStart + nreduce-1
-                    nsum = 0
-                    sum = 0.
-                    do iy = iyStart, iyEnd
-                      do ix = ixStart, ixEnd
-                        call findPixel(ix, iy, inPieceNum, ixInPiece, &
-                            iyInPiece)
-                        if (inPieceNum > 0) then
-                          call shuffler(inPieceNum, indBray)
-                          sum = sum + array(ixInPiece + nxin * (iyInPiece) + &
-                              indBray)
-                          nsum = nsum + 1
-                        endif
-                      enddo
-                    enddo
-                    if (nsum > 0) then
-                      brray(ioutBase + indx) = sum / nsum
-                      anyPixels = .true.
-                    endif
-                  endif
+                  enddo
                 enddo
-              enddo
-            endif
-          enddo
+                anyPixels = .true.
+              elseif (.not.doFast .or. nyUse < 2 * nReduce) then
+                !
+                ! in or near an edge: loop on each pixel
+                !
+                do indy = indYlow, indYhigh
+                  ioutBase = nxOut * (indy - indYlow) + 1 - newPieceXll
+                  do indx = indXlow, indXhigh
+                    call checkBox(indx, indy, nreduce, nyUse, inPieceNum, ixInPiece, &
+                        iyInPiece)
+                    if (inPieceNum > 0) then
+                      !
+                      ! if this output pixel comes all from one input piece
+                      !
+                      call shuffler(inPieceNum, indBray)
+                      if (nreduce == 1) then
+                        brray(ioutBase + indx) = array(ixInPiece + nxin * &
+                            iyInPiece + indBray)
+                      else
+                        iyEnd = iyInPiece + nreduce-1
+                        ixEnd = ixInPiece + nreduce-1
+                        sum = 0.
+                        do iy = iyInPiece, iyEnd
+                          indBase = nxin * iy + indBray
+                          do ix = ixInPiece, ixEnd
+                            sum = sum + array(indBase + ix)
+                          enddo
+                        enddo
+                        brray(ioutBase + indx) = sum / nreduce**2
+                      endif
+                      anyPixels = .true.
+                    elseif (inPieceNum == 0) then
+                      !
+                      ! but if it comes from more than one piece, need to
+                      ! get each pixel independently
+                      !
+                      ixStart = indx * nreduce
+                      ixEnd = ixStart + nreduce-1
+                      iyStart = indy * nreduce
+                      iyEnd = iyStart + nreduce-1
+                      nsum = 0
+                      sum = 0.
+                      do iy = iyStart, iyEnd
+                        do ix = ixStart, ixEnd
+                          call findPixel(ix, iy, nyUse, inPieceNum, ixInPiece, iyInPiece)
+                          if (inPieceNum > 0) then
+                            call shuffler(inPieceNum, indBray)
+                            sum = sum + array(ixInPiece + nxin * (iyInPiece) + indBray)
+                            nsum = nsum + 1
+                          endif
+                        enddo
+                      enddo
+                      if (nsum > 0) then
+                        brray(ioutBase + indx) = sum / nsum
+                        anyPixels = .true.
+                      endif
+                    endif
+                  enddo
+                enddo
+              endif
+            enddo
+          endif
           !
-          ! if any pixels have been present in this frame, write line out
+          ! if any pixels have been present in this frame, write lines out
           !
           if (anyPixels) then
             tmpsum = 0.
@@ -518,7 +607,7 @@ program reducemont
         !
         if (anyPixels) then
           grandSum = grandSum + tsum
-          write(*,'(a,i5)') ' wrote new frame #', nzOut
+          !write(*,'(a,i5)') ' wrote new frame #', nzOut
           nzOut = nzOut + 1
           !
           ! 12/12/03: no longer keep header up to date in case of crashes
@@ -528,9 +617,9 @@ program reducemont
         !
       enddo
     enddo
-92 enddo
+  enddo
   !
-  tmean = grandSum / (nzOut * float(nxOut * nyOut))
+  tmean = grandSum / (float(nzOut * nxOut) * nyOut)
   call ialsiz(2, nxyzOut, nxyzst)
   call ialsam(2, nxyzOut)
   cell(1) = nxOut * nreduce * delta(1)
@@ -540,39 +629,35 @@ program reducemont
   call b3ddate(dat)
   call time(tim)
   !
-  ! 7/7/00 CER: remove the encodes
-  !
-  ! encode(80, 90, title) nreduce, dat, tim
   write(titlech, 90) nreduce, dat, tim
-90 format( 'REDUCEMONT: recut and reduced by factor of',i3, &
-      t57, a9, 2x, a8 )
+90 format( 'REDUCEMONT: recut and reduced by factor of',i3, t57, a9, 2x, a8 )
   read(titlech, '(20a4)') (title(kti), kti = 1, 20)
-  call iwrhdr(2, title, 1, dmin, dmax, dmean)
+  call iwrhdr(2, title, 1, dminOut, dmaxOut, tmean)
   close(3)
   call imclose(2)
   call exit(0)
-  call exitError('reading transforms')
+99 call exitError('READING IMAGE')
 end program reducemont
 
 
 
-subroutine checkbox(indx, indy, nreduce, inpieceno, ixinll, iyinll)
+subroutine checkbox(indx, indy, nreduce, nyUse, inpieceno, ixinll, iyinll)
   implicit none
-  integer*4 indx, indy, nreduce, inpieceno, ixinll, iyinll
+  integer*4 indx, indy, nreduce, nyUse, inpieceno, ixinll, iyinll
   integer*4 ix, iy, inpt, ixinpc, iyinpc
   !
   ix = indx * nreduce
   iy = indy * nreduce
-  call findpixel(ix, iy, inpieceno, ixinll, iyinll)
+  call findpixel(ix, iy, nyUse, inpieceno, ixinll, iyinll)
   if (nreduce == 1) return
   !
-  call findpixel(ix + nreduce-1, iy, inpt, ixinpc, iyinpc)
+  call findpixel(ix + nreduce-1, iy, nyUse, inpt, ixinpc, iyinpc)
   if (inpt .ne. inpieceno) go to 10
   !
-  call findpixel(ix + nreduce-1, iy + nreduce-1, inpt, ixinpc, iyinpc)
+  call findpixel(ix + nreduce-1, iy + nreduce-1, nyUse, inpt, ixinpc, iyinpc)
   if (inpt .ne. inpieceno) go to 10
   !
-  call findpixel(ix, iy + nreduce-1, inpt, ixinpc, iyinpc)
+  call findpixel(ix, iy + nreduce-1, nyUse, inpt, ixinpc, iyinpc)
   if (inpt == inpieceno) return
   !
 10 inpieceno = 0
@@ -581,10 +666,10 @@ end subroutine checkbox
 
 
 
-subroutine findpixel(ix, iy, inpieceno, ixInPiece, iyInPiece)
+subroutine findpixel(ix, iy, nyUse, inpieceno, ixInPiece, iyInPiece)
   use blendvars
   implicit none
-  integer*4 ix, iy, inPieceNo, ixInPiece, iyInPiece
+  integer*4 ix, iy, nyUse, inPieceNo, ixInPiece, iyInPiece
   !
   integer*4 nxDel, nyDel, ipieceX, ipieceY, idx, idy, newx, newPcX
   integer*4 newy, newPcY
@@ -594,15 +679,16 @@ subroutine findpixel(ix, iy, inpieceno, ixInPiece, iyInPiece)
   ! them to something in common
   !
   nxTotPix = nxPieces * (nxin - nXoverlap) + nXoverlap
-  nyTotPix = nyPieces * (nyin - nyOverlap) + nyOverlap
+  nyTotPix = nyPieces * (nyUse - nyOverlap) + nyOverlap
   maxXpiece = minXpiece + nxTotPix - 1
   maxYpiece = minYpiece + nyTotPix - 1
+ ! print *,ix, iy, nyUse
   !
   inPieceNo = -1
   if (ix < minXpiece .or. iy < minYpiece .or. &
       ix > maxXpiece .or. iy > maxYpiece) return
   nxDel = nxin - nXoverlap
-  nyDel = nyin - nyOverlap
+  nyDel = nyUse - nyOverlap
   !
   ! get piece # and coordinate within piece
   !
@@ -610,6 +696,7 @@ subroutine findpixel(ix, iy, inpieceno, ixInPiece, iyInPiece)
   ixInPiece = mod(ix - minXpiece, nxDel)
   ipieceY = 1 + (iy - minYpiece) / nyDel
   iyInPiece = mod(iy - minYpiece, nyDel)
+  !print *,ipieceX, ixInPiece, ipieceY, iyInPiece
   !
   ! shift into the lower piece if below the middle of overlap zone
   ! (except for 1st piece) or if past the last piece.
@@ -626,11 +713,12 @@ subroutine findpixel(ix, iy, inpieceno, ixInPiece, iyInPiece)
   ! if outside a piece in either coordinate (negative overlap) then
   ! return on blank location
   !
-  if (ixInPiece >= nxin .or. iyInPiece >= nyin) return
+  if (ixInPiece >= nxin .or. iyInPiece >= nyUse) return
   !
   ! if the piece exist, done
   !
   if (mapPiece(ipieceX, ipieceY) > 0) go to 10
+!  print *,ipieceX, ipieceY,'not mapped'
   idx = -1
   idy = -1
   !
@@ -650,7 +738,7 @@ subroutine findpixel(ix, iy, inpieceno, ixInPiece, iyInPiece)
     newy = iyInPiece + nyDel
     newPcY = ipieceY - 1
   elseif (iyInPiece >= nyDel .and. ipieceY < nyPieces) then
-    idy = nyin - 1 - nyOverlap / 2 - iyInPiece
+    idy = nyUse - 1 - nyOverlap / 2 - iyInPiece
     newy = iyInPiece - nyDel
     newPcY = ipieceY + 1
   endif
@@ -685,6 +773,7 @@ subroutine findpixel(ix, iy, inpieceno, ixInPiece, iyInPiece)
 9 ipieceY = newPcY
   iyInPiece = newy
 10 inPieceNo = mapPiece(ipieceX, ipieceY)
+!  print *,'in piece', inPieceNo
   return
 end subroutine findpixel
 
