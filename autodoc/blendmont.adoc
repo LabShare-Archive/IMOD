@@ -162,12 +162,13 @@ manpage = Minimum and maximum Y index coordinates to output.
 [Field = NoResizeForFFT]
 short = nofft
 type = B
-usage = Do not increase size of single frame output to legal size for FFT
+usage = Do not increase output frame size to legal size for FFT
 tooltip = 
 manpage = Do not increase the size of the output to be suitable for taking an
 FFT.  By default, output sizes are increased to have no higher prime factor
-than 19.  This option suppresses that increase, but only when output is to a
-single frame.
+than 19.  This option suppresses that increase.  When output is to a
+single frame, the exact size requested will be output.  Otherwise, frame sizes
+will be made even.
 
 [Field = AdjustOrigin]
 short = origin

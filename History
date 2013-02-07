@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/7/13: Changed Reducemont to PIP input and made it able to handle arbitrarily
+large input pieces or images so that large images can be broken into tiles.
+
 2/1/13: Added option to stop Batchruntomo processing at a chosen step.
 
 2/1/13: Fixed blendmont array allocation.
