@@ -105,7 +105,7 @@ program reducemont
   nyUse = nyin
   loadLines = npcList == 0 .and. ifFloat == 0 .and.  &
       4. * nxin * nyin / 1024.**2 > lineLoadMBlimit
-  print *,loadLines, npcList, 4. * nxin * nyin / 1024.**2, lineLoadMBlimit
+  ! print *,loadLines, npcList, 4. * nxin * nyin / 1024.**2, lineLoadMBlimit
   if (loadLines) npcList = nzin * nyin
   !
   limNpc = npcList + 10
