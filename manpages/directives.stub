@@ -14,13 +14,12 @@ Notes:
 <LI> Directives are processed in order from scope template, system template,
   user template, and batch directive files, and later entries override earlier
   ones. 
-<LI> A "comparam" directive with an empty value will cause the parameter to
-be removed from the command file.
-<LI> A boolean option in a "comparam" directive is turned on if the value is
-  1, turned off if the value is 0, and removed from the command file (hence
-  off) if the value is empty.
-<LI> For any other type of boolean directive, the choice is turned on if the
-  value is 1 or empty, or turned off if the value is 0.
+<LI> All boolean directives must have either a 0 or a 1 after the equals sign,
+  to turn the option off or on.
+<LI> For all other kinds of directives, it is possible to have no value after
+  the equals sign, which means that the parameter in question is not set, even
+  if it was set by an earlier directive.  In the case of a "comparam" directive, 
+  an empty value will cause the parameter to be removed from the command file.
 </UL>
 <LI> Directives marked with <B>Y</B> in the <B>Batch</B> column can be included in a
   batch directive file and will be acted on by Batchruntomo.
