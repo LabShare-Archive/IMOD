@@ -33,20 +33,14 @@ browser).
 .br
    setupset.copyarg.<copytomocoms short option name>=value
 .br
-These directives will be processed generically by eTomo and sent to
+These directives will be processed mostly generically by eTomo and sent to
 Copytomocoms(1) as command line arguments.  The short option name must be
-given in full.  The rule for boolean options is that the option is turned on
-if the value is 1 or empty, and it is turned off
-if the value is 0.  If the directive is not present then the option is off,
-unless it has been turned on by an entry in a template file (see below).
+given in full.  
 .P
 Other "setupset" directives are interpreted exclusively by Batchruntomo or
 etomo and have the form
 .br
    setupset.<parameter or option>=value
-.br
-Again, a boolean option is interpreted as true if the
-value is 1 or empty, and false if the value is 0.
 .P
 "comparam" directives are interpreted generically when a command file is
 created either by Copytomocoms(1) or by Makecomfile(1).  They have the form
@@ -60,14 +54,7 @@ set, a directive without a letter can apply to either axis, but will be
 overridden by a directive with a letter matching the specific axis, regardless
 of which one occurs later in the processing sequence.  The long option name
 must be given in full.  Options to Tilt(1) must match the case shown in the
-Tilt(1) man page, even though Tilt(1) accepts case-insensitive options.  If
-the value for any kind of option is blank, it is interpreted to mean that the 
-option should be removed from the command file if present.  This makes the
-treatment of boolean options for "comparam" directives different from that for
-all other types of directives.
-A boolean option can be set to true with a value of 1, or to false either with
-a blank value (removing it from the command file) or with a value of 0 (adding
-it to or leaving it in the command file with a value of 0).
+Tilt(1) man page, even though Tilt(1) accepts case-insensitive options. 
 .P
 Because "comparam" directives are treated generically, they are not restricted
 to the ones listed in the table of directives.  Any valid option can be used,
@@ -89,14 +76,15 @@ overridden by a directive with a letter matching the specific axis, regardless
 of which one occurs later in the processing sequence.  A boolean parameter is
 interpreted as true if its value is 1 or empty, or as false if its value is 0.
 .P
-To summarize the diverse situation with boolean directives: 
-   1) "setupset.copyarg" boolean directives must have an empty value and are
-   true if present, and false if absent.
-   2) other "setupset" and "runtime" boolean directives are true if the value
-   is empty or 1, and false if the value is 0 or the directive is absent.
-   3) "comparam" boolean directives are true if the value is 1, and
-false if the value is 0 or empty; if a directive is absent a value
-already present in the command file is retained.
+Boolean directives must have a value of either 0 or 1: 1 to
+turn the option 1 or 0 to turn it off; no other values (including blank) are allowed.
+If a boolean directive is not present then the option is off,
+unless it has been turned on by an entry in a template file (see below).
+For any other kind of directive, the value can be blank, which causes the
+option in question to be removed from consideration.  Specifically, for a
+"comparam" directive, a blank value will cause the option to be removed from
+the command file if present.  For other kinds of directives, a blank value
+removes the setting of the parameter by a previous directive in a template file.
 .P
 If a processing step is being skipped or bypassed by an alternative method of
 processing, then all the directives related to it have no effect on the
