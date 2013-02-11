@@ -679,8 +679,6 @@ def checkAllDirectives(mainFile = 'directive'):
                   badCase = key != validComDict[key.lower()][0]
                   OKforFile = validComDict[key.lower()][dirType + 1]
                   emptyBool = validComDict[key.lower()][3] and valNotBool
-                  if emptyBool:
-                     print direc, allDirectives[ind][direc]
 
                else:
 
