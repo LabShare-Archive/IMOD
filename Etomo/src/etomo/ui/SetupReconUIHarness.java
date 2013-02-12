@@ -75,8 +75,8 @@ public final class SetupReconUIHarness {
       }
       return;
     }
-    DirectiveFile batchDirectiveFile = DirectiveFile.getInstance(manager, axisID);
     directiveFileCollection = new DirectiveFileCollection(manager, axisID);
+    DirectiveFile batchDirectiveFile = DirectiveFile.getInstance(manager, axisID);
     directiveFileCollection.setBatchDirectiveFile(batchDirectiveFile);
     directiveFileCollection.setScopeTemplate(batchDirectiveFile.getScopeTemplate());
     directiveFileCollection.setSystemTemplate(batchDirectiveFile.getSystemTemplate());
@@ -107,7 +107,7 @@ public final class SetupReconUIHarness {
         return false;
       }
     }
-    if (manager.doneSetupDialog(true, directiveFileCollection.getBatchDirectiveFile())) {
+    if (manager.doneSetupDialog(true)) {
       return true;
     }
     return false;
@@ -395,19 +395,24 @@ public final class SetupReconUIHarness {
         AxisID.ONLY);
   }
 
-  public File getBatchDirectiveFile() {
+  public boolean isDirectiveDrivenAutomation() {
+    return directiveFileCollection != null;
+  }
+
+  public DirectiveFileCollection getDirectiveFileCollection() {
+    return directiveFileCollection;
+  }
+
+  public DirectiveFile getBatchDirectiveFile() {
     if (directiveFileCollection != null) {
-      DirectiveFile directiveFile = directiveFileCollection.getBatchDirectiveFile();
-      if (directiveFile != null) {
-        return directiveFile.getFile();
-      }
+      return directiveFileCollection.getBatchDirectiveFile();
     }
     return null;
   }
 
-  public File getScopeTemplate() {
+  public DirectiveFile getScopeTemplate() {
     if (directiveFileCollection != null) {
-      return directiveFileCollection.getScopeTemplateFile();
+      return directiveFileCollection.getScopeTemplate();
     }
     else if (expert != null) {
       return expert.getScopeTemplate();
@@ -415,9 +420,9 @@ public final class SetupReconUIHarness {
     return null;
   }
 
-  public File getSystemTemplate() {
+  public DirectiveFile getSystemTemplate() {
     if (directiveFileCollection != null) {
-      return directiveFileCollection.getSystemTemplateFile();
+      return directiveFileCollection.getSystemTemplate();
     }
     else if (expert != null) {
       return expert.getSystemTemplate();
@@ -425,9 +430,9 @@ public final class SetupReconUIHarness {
     return null;
   }
 
-  public File getUserTemplate() {
+  public DirectiveFile getUserTemplate() {
     if (directiveFileCollection != null) {
-      directiveFileCollection.getUserTemplateFile();
+      directiveFileCollection.getUserTemplate();
     }
     else if (expert != null) {
       return expert.getUserTemplate();
@@ -500,14 +505,9 @@ public final class SetupReconUIHarness {
         metaData.setBStackProcessed(bStack.exists());
       }
       metaData.setSetFEIPixelSize(setFEIPixelSize);
-      saveDirectiveFile(
-          DirectiveFile.getInstance(manager, axisID,
-              setupInterface.getScopeTemplateFile()), metaData);
-      saveDirectiveFile(
-          DirectiveFile.getInstance(manager, axisID,
-              setupInterface.getSystemTemplateFile()), metaData);
-      saveDirectiveFile(DirectiveFile.getInstance(manager, axisID,
-          setupInterface.getUserTemplateFile()), metaData);
+      saveDirectiveFile(setupInterface.getScopeTemplate(), metaData);
+      saveDirectiveFile(setupInterface.getSystemTemplate(), metaData);
+      saveDirectiveFile(setupInterface.getUserTemplate(), metaData);
       if (directiveFileCollection != null) {
         saveDirectiveFile(directiveFileCollection.getBatchDirectiveFile(), metaData);
       }
