@@ -67,16 +67,19 @@ public final class SettingsDialog extends JDialog {
       "Set pixel size in files from FEI");
   private final FileTextField2 ltfUserTemplateDir = FileTextField2.getInstance(null,
       "User templates directory: ");
+  private final SettingsDialogListener listener = new SettingsDialogListener(this);
 
+  private final TemplatePanel templatePanel;
   private final String propertyUserDir;
 
-  private SettingsDialog(final String propertyUserDir) {
+  private SettingsDialog(final BaseManager manager, final String propertyUserDir) {
     this.propertyUserDir = propertyUserDir;
+    templatePanel = TemplatePanel.getInstance(manager, AxisID.ONLY, listener);
   }
 
   public static SettingsDialog getInstance(final BaseManager manager,
       final String propertyUserDir) {
-    SettingsDialog instance = new SettingsDialog(propertyUserDir);
+    SettingsDialog instance = new SettingsDialog(manager, propertyUserDir);
     instance.buildDialog();
     instance.loadData(manager, propertyUserDir);
     instance.setTooltips();
@@ -85,7 +88,7 @@ public final class SettingsDialog extends JDialog {
   }
 
   private void buildDialog() {
-    //init
+    // init
     ltfUserTemplateDir.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
     setTitle("eTomo Settings");
     SpacedPanel pnlMain = SpacedPanel.getInstance();
@@ -161,6 +164,7 @@ public final class SettingsDialog extends JDialog {
     pnlTableSize.add(ltfPeetTableSize.getContainer());
     pnlMain.add(pnlTableSize);
     pnlMain.add(ltfUserTemplateDir.getRootPanel());
+    pnlMain.add(templatePanel.getComponent());
     // buttons
     SpacedPanel panelButtons = SpacedPanel.getInstance();
     panelButtons.setBoxLayout(BoxLayout.X_AXIS);
@@ -193,7 +197,6 @@ public final class SettingsDialog extends JDialog {
   }
 
   private void addListeners() {
-    SettingsDialogListener listener = new SettingsDialogListener(this);
     buttonCancel.addActionListener(listener);
     buttonApply.addActionListener(listener);
     buttonDone.addActionListener(listener);
@@ -222,6 +225,7 @@ public final class SettingsDialog extends JDialog {
     ltfJoinTableSize.setText(userConfig.getJoinTableSize());
     ltfPeetTableSize.setText(userConfig.getPeetTableSize());
     ltfUserTemplateDir.setText(userConfig.getUserTemplateDir());
+    templatePanel.setParameters(userConfig);
 
     // Get the current font parameters to set the UI
     // Since they may not be all the same make the assumption that the first
@@ -271,9 +275,13 @@ public final class SettingsDialog extends JDialog {
     userConfig.setJoinTableSize(ltfJoinTableSize.getText());
     userConfig.setPeetTableSize(ltfPeetTableSize.getText());
     userConfig.setUserTemplateDir(ltfUserTemplateDir.getFile());
+    templatePanel.getParameters(userConfig);
   }
 
   public boolean isAppearanceSettingChanged(final UserConfiguration userConfig) {
+    if (templatePanel.isAppearanceSettingChanged(userConfig)) {
+      return true;
+    }
     if (userConfig.getNativeLookAndFeel() != cbNativeLAF.isSelected()
         || userConfig.getCompactDisplay() != cbCompactDisplay.isSelected()
         || userConfig.getSingleAxis() != cbSingleAxis.isSelected()
@@ -321,7 +329,7 @@ public final class SettingsDialog extends JDialog {
             + "pixel."));
   }
 
-  private static final class SettingsDialogListener implements ActionListener {
+  private static final class SettingsDialogListener implements TemplateActionListener {
     private final SettingsDialog adaptee;
 
     private SettingsDialogListener(final SettingsDialog settingsDialog) {
