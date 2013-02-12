@@ -199,16 +199,16 @@ public final class SetupDialogExpert {
     }
   }
 
-  public File getScopeTemplate() {
-    return dialog.getScopeTemplateFile();
+  public DirectiveFile getScopeTemplate() {
+    return dialog.getScopeTemplate();
   }
 
-  public File getSystemTemplate() {
-    return dialog.getSystemTemplateFile();
+  public DirectiveFile getSystemTemplate() {
+    return dialog.getSystemTemplate();
   }
 
-  public File getUserTemplate() {
-    return dialog.getUserTemplateFile();
+  public DirectiveFile getUserTemplate() {
+    return dialog.getUserTemplate();
   }
 
   public File getDir() {
@@ -430,6 +430,7 @@ public final class SetupDialogExpert {
       dialog.setExcludeListEnabled(AxisID.SECOND, false);
       dialog.setViewRawStackEnabled(AxisID.SECOND, false);
     }
+    dialog.setParameters(userConfig);
   }
 
   boolean validateTiltAngle(final AxisID axisID, final String errorTitle) {
