@@ -232,25 +232,32 @@ package etomo.comscript;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.storage.DirectiveFile;
+import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DataSource;
 import etomo.type.EtomoNumber;
+import etomo.type.ProcessName;
 import etomo.type.TiltAngleType;
 import etomo.type.ViewType;
 import etomo.ui.swing.UIHarness;
 
-public final class CopyTomoComs {
+public final class CopyTomoComs implements CommandParam {
   public static final String rcsid = "$Id$";
+
+  private static final String SET_FEI_PIXEL_SIZE_TAG = "fei";
+  private static final String CHANGE_PARAMETERS_FILE_TAG = "change";
 
   private final List<String> command = new ArrayList<String>();
   private final EtomoNumber voltage = new EtomoNumber();
@@ -258,30 +265,31 @@ public final class CopyTomoComs {
   private final EtomoNumber ctfFiles = new EtomoNumber();
 
   private final ApplicationManager manager;
-  private final DirectiveFile scopeTemplate;
-  private final DirectiveFile systemTemplate;
-  private final DirectiveFile userTemplate;
-  private final DirectiveFile batchDirectiveFile;
 
   private StringBuffer commandLine = null;
   private int exitValue;
   private ConstMetaData metaData;
   private boolean debug;
   private SystemProgram copytomocoms = null;
+  private DirectiveFileCollection directiveFileCollection = null;
+  private boolean useKeywordValue = false;
+  private DirectiveFile scopeTemplate = null;
+  private DirectiveFile systemTemplate = null;
+  private DirectiveFile userTemplate = null;
+  private DirectiveFile batchDirectiveFile = null;
 
-  public CopyTomoComs(ApplicationManager manager, final DirectiveFile scopeTemplate,
-      final DirectiveFile systemTemplate, final DirectiveFile userTemplate,
-      final DirectiveFile batchDirectiveFile) {
+  public CopyTomoComs(ApplicationManager manager) {
     this.manager = manager;
-    this.scopeTemplate = scopeTemplate;
-    this.systemTemplate = systemTemplate;
-    this.userTemplate = userTemplate;
-    this.batchDirectiveFile = batchDirectiveFile;
     metaData = manager.getConstMetaData();
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
   }
 
   public boolean setup() {
+    if (useKeywordValue) {
+      System.err
+          .println("Warning: CopyTomoComs: setup has no effect when useKeywordValue is true");
+      return true;
+    }
     // Create a new SystemProgram object for copytomocom, set the
     // working directory and stdin array.
     // Do not use the -e flag for tcsh since David's scripts handle the failure
@@ -290,27 +298,38 @@ public final class CopyTomoComs {
     command.add("python");
     command.add("-u");
     command.add(ApplicationManager.getIMODBinPath() + "copytomocoms");
-    genCommonOptions();
-    // Add directives in order: scope, system, user, batch process directive file.
-    if (scopeTemplate != null) {
-      genOptionsFromDirectiveFile(scopeTemplate);
-    }
-    if (systemTemplate != null) {
-      genOptionsFromDirectiveFile(systemTemplate);
-    }
-    if (userTemplate != null) {
-      genOptionsFromDirectiveFile(userTemplate);
-    }
-    if (batchDirectiveFile != null) {
-      genOptionsFromDirectiveFile(batchDirectiveFile);
-    }
-    else if (!genOptions()) {
+    if (!genOptions()) {
       return false;
     }
-    copytomocoms = new SystemProgram(manager, manager.getPropertyUserDir(), command,
-        AxisID.ONLY);
-    // genStdInputSequence();
     return true;
+  }
+
+  public void setScopeTemplate(final DirectiveFile input) {
+    scopeTemplate = input;
+  }
+
+  public void setSystemTemplate(final DirectiveFile input) {
+    systemTemplate = input;
+  }
+
+  public void setUserTemplate(final DirectiveFile input) {
+    userTemplate = input;
+  }
+
+  public void setBatchDirectiveFile(final DirectiveFile input) {
+    batchDirectiveFile = input;
+  }
+
+  public void setDirectiveFileCollection(final DirectiveFileCollection input) {
+    directiveFileCollection = input;
+  }
+
+  public void setUseKeywordValue(final boolean input) {
+    useKeywordValue = input;
+  }
+
+  public boolean isUseKeywordValue() {
+    return useKeywordValue;
   }
 
   public void setVoltage(ConstEtomoNumber input) {
@@ -331,32 +350,71 @@ public final class CopyTomoComs {
    * @return
    */
   public String getCommandLine() {
-    if (copytomocoms == null) {
-      return "";
+    if (useKeywordValue) {
+      return ProcessName.COPYTOMOCOMS.getComscript(AxisID.ONLY);
     }
-    return copytomocoms.getCommandLine();
+    else {
+      if (copytomocoms == null) {
+        return "";
+      }
+      return copytomocoms.getCommandLine();
+    }
+  }
+
+  public void initializeDefaults() {
   }
 
   /**
-   * Add options from directive file.
+   * No parameters will be loaded
    */
-  private void genOptionsFromDirectiveFile(final DirectiveFile directiveFile) {
-    command.add("-change");
-    command.add(directiveFile.getFile().getAbsolutePath());
-    DirectiveFile.CopyArgIterator iterator = directiveFile.getCopyArgIterator();
-    if (iterator == null) {
+  public void parseComScriptCommand(final ComScriptCommand scriptCommand)
+      throws BadComScriptException, FortranInputSyntaxException,
+      InvalidParameterException {
+  }
+
+  /**
+   * Update the script command with the current valus of this TiltxcorrParam
+   * object
+   * @param scriptCommand the script command to be updated
+   */
+  public void updateComScriptCommand(final ComScriptCommand scriptCommand)
+      throws BadComScriptException {
+    if (!useKeywordValue) {
       return;
     }
-    while (iterator.hasNext()) {
-      iterator.next();
-      String name = iterator.getName();
-      if (name != null) {
-        command.add("-" + name);
-        String value = iterator.getValue();
-        if (value != null) {
-          command.add(value);
+    scriptCommand.useKeywordValue();
+    // Add options from the directive file collection.
+    if (directiveFileCollection != null) {
+      // Load the setupset.copyarg directives.
+      Iterator<Entry<String, String>> iterator = directiveFileCollection
+          .getCopyArgEntrySet().iterator();
+      if (iterator != null) {
+        while (iterator.hasNext()) {
+          Entry<String, String> entry = iterator.next();
+          ParamUtilities.updateScriptParameter(scriptCommand, entry.getKey(),
+              entry.getValue());
         }
       }
+    }
+    if (metaData.isSetFEIPixelSize()) {
+      ParamUtilities.updateScriptParameter(scriptCommand, SET_FEI_PIXEL_SIZE_TAG, true);
+    }
+    scriptCommand.deleteKeyAll(CHANGE_PARAMETERS_FILE_TAG);
+    if (scopeTemplate != null) {
+      ParamUtilities.updateScriptParameter(scriptCommand, CHANGE_PARAMETERS_FILE_TAG,
+          scopeTemplate.getFile().getAbsolutePath());
+    }
+    if (systemTemplate != null) {
+      ParamUtilities.updateScriptParameter(scriptCommand, CHANGE_PARAMETERS_FILE_TAG,
+          systemTemplate.getFile().getAbsolutePath());
+    }
+    if (userTemplate != null) {
+      ParamUtilities.updateScriptParameter(scriptCommand, CHANGE_PARAMETERS_FILE_TAG,
+          userTemplate.getFile().getAbsolutePath());
+    }
+    if (batchDirectiveFile != null) {
+      ParamUtilities.updateScriptParameter(scriptCommand, CHANGE_PARAMETERS_FILE_TAG,
+          batchDirectiveFile.getFile().getAbsolutePath());
     }
   }
 
@@ -484,155 +542,30 @@ public final class CopyTomoComs {
         command.add("-bfocus");
       }
     }
+    if (metaData.isSetFEIPixelSize()) {
+      command.add("-" + SET_FEI_PIXEL_SIZE_TAG);
+    }
+    if (scopeTemplate != null) {
+      command.add("-" + CHANGE_PARAMETERS_FILE_TAG);
+      command.add(scopeTemplate.getFile().getAbsolutePath());
+    }
+    if (systemTemplate != null) {
+      command.add("-" + CHANGE_PARAMETERS_FILE_TAG);
+      command.add(systemTemplate.getFile().getAbsolutePath());
+    }
+    if (userTemplate != null) {
+      command.add("-" + CHANGE_PARAMETERS_FILE_TAG);
+      command.add(userTemplate.getFile().getAbsolutePath());
+    }
+    if (batchDirectiveFile != null) {
+      command.add("-" + CHANGE_PARAMETERS_FILE_TAG);
+      command.add(batchDirectiveFile.getFile().getAbsolutePath());
+    }
     // Options removed:
     // CCDEraser and local alignment entries
     // Always yes tiltalign relies on local entries to save default values
     // even if they are not used.
     return true;
-  }
-
-  /**
-   * Add options that are created the same way, whether or not there is a directive file
-   * present.
-   */
-  private void genCommonOptions() {
-    if (metaData.isSetFEIPixelSize()) {
-      command.add("-fei");
-    }
-  }
-
-  /**
-   * @deprecated
-   * Generate the standard input sequence
-   */
-  private void genStdInputSequence() {
-    String[] tempStdInput = new String[19];
-
-    // compile the input sequence to copytomocoms
-    int lineCount = 0;
-
-    // Axis type: single or dual
-    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-      tempStdInput[lineCount++] = "1";
-    }
-    else {
-      tempStdInput[lineCount++] = "2";
-    }
-
-    // Data source: CCD or film
-    if (metaData.getDataSource() == DataSource.CCD) {
-      tempStdInput[lineCount++] = "c";
-    }
-    else {
-      tempStdInput[lineCount++] = "f";
-    }
-
-    // View type: single or montaged
-    if (metaData.getViewType() == ViewType.SINGLE_VIEW) {
-      tempStdInput[lineCount++] = "n";
-    }
-    else {
-      tempStdInput[lineCount++] = "y";
-    }
-
-    // CCDEraser and local alignment entries
-    // Always yes tiltalign relies on local entries to save default values
-    // even if they are not used.
-    tempStdInput[lineCount++] = "y";
-    tempStdInput[lineCount++] = "y";
-
-    // Dataset name
-    tempStdInput[lineCount++] = metaData.getDatasetName();
-
-    // Backup directory
-    tempStdInput[lineCount++] = metaData.getBackupDirectory();
-
-    // Pixel size
-    tempStdInput[lineCount++] = String.valueOf(metaData.getPixelSize());
-
-    // Fiducial diameter
-    tempStdInput[lineCount++] = String.valueOf(metaData.getFiducialDiameter());
-
-    // Image rotation
-    tempStdInput[lineCount++] = String.valueOf(metaData.getImageRotation(AxisID.FIRST));
-
-    // Extract the tilt angle data from the stack
-    if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.EXTRACT) {
-      tempStdInput[lineCount++] = "y";
-      tempStdInput[lineCount++] = "0";
-    }
-
-    // Specify a range, creating the rawtilt file
-    else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
-      tempStdInput[lineCount++] = "n";
-      tempStdInput[lineCount++] = "1";
-      tempStdInput[lineCount++] = String.valueOf(metaData.getTiltAngleSpecA()
-          .getRangeMin()
-          + ","
-          + String.valueOf(metaData.getTiltAngleSpecA().getRangeStep()));
-    }
-    // Use an existing rawtilt file (this assumes that one is there and has
-    // not been deleted by checkTiltAngleFiles()
-    else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.FILE) {
-      tempStdInput[lineCount++] = "0";
-    }
-
-    else {
-      // TODO Specification of all tilt alngles is not yet implemented
-      tempStdInput[lineCount++] = "n";
-      tempStdInput[lineCount++] = "-1";
-      System.err.println("Specification of all tilt alngles is not yet implemented");
-    }
-
-    // Exclude list
-    tempStdInput[lineCount++] = metaData.getExcludeProjectionsA();
-
-    // Second axis entries
-    if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
-
-      // Image rotation
-      tempStdInput[lineCount++] = String
-          .valueOf(metaData.getImageRotation(AxisID.SECOND));
-
-      // Extract the tilt angle data from the stack
-      if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.EXTRACT) {
-        tempStdInput[lineCount++] = "y";
-        tempStdInput[lineCount++] = "0";
-      }
-
-      // Specify a range, creating the rawtilt file
-      else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.RANGE) {
-        tempStdInput[lineCount++] = "n";
-        tempStdInput[lineCount++] = "1";
-        tempStdInput[lineCount++] = String.valueOf(metaData.getTiltAngleSpecB()
-            .getRangeMin()
-            + ","
-            + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
-      }
-
-      // Specify a range, creating the rawtilt file
-      else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.FILE) {
-        tempStdInput[lineCount++] = "0";
-      }
-
-      else {
-        // TODO Specification of all tilt alngles is not yet implemented
-        tempStdInput[lineCount++] = "n";
-        tempStdInput[lineCount++] = "-1";
-        System.err.println("Specification of all tilt alngles is not yet implemented");
-      }
-
-      // Exclude list
-      tempStdInput[lineCount++] = metaData.getExcludeProjectionsB();
-    }
-
-    // Copy the temporary stdInput to the real stdInput to get the number
-    // of array elements correct
-    String[] stdInput = new String[lineCount];
-    for (int i = 0; i < lineCount; i++) {
-      stdInput[i] = tempStdInput[i];
-    }
-    copytomocoms.setStdInput(stdInput);
   }
 
   /**
