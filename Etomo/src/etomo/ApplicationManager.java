@@ -33,6 +33,7 @@ import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.ConstTiltxcorrParam;
+import etomo.comscript.CopyTomoComs;
 import etomo.comscript.CtfPhaseFlipParam;
 import etomo.comscript.ExtractmagradParam;
 import etomo.comscript.ExtractpiecesParam;
@@ -426,8 +427,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Close message from the setup dialog window
    */
-  public boolean doneSetupDialog(final boolean doValidation,
-      final DirectiveFile batchDirectiveFile) {
+  public boolean doneSetupDialog(final boolean doValidation) {
     // Get the selected exit button
     DialogExitState exitState = setupReconUIHarness.getExitState();
     if (exitState != DialogExitState.CANCEL) {
@@ -484,7 +484,7 @@ public final class ApplicationManager extends BaseManager implements
       }
       // This is really the method to use the existing com scripts
       if (exitState == DialogExitState.EXECUTE) {
-        if (batchDirectiveFile != null) {
+        if (setupReconUIHarness.isDirectiveDrivenAutomation()) {
           if (!EtomoDirector.INSTANCE.getArguments().isFromBRT()) {
             // Etomo is responsible for validating the directive file.
             BatchruntomoParam param = new BatchruntomoParam(this);
@@ -493,94 +493,129 @@ public final class ApplicationManager extends BaseManager implements
             }
           }
         }
-        File templateFile = setupReconUIHarness.getScopeTemplate();
-        DirectiveFile scopeTemplate = null;
-        if (templateFile != null) {
-          scopeTemplate = DirectiveFile.getInstance(this, AxisID.ONLY, templateFile);
-        }
-        templateFile = setupReconUIHarness.getSystemTemplate();
-        DirectiveFile systemTemplate = null;
-        if (templateFile != null) {
-          systemTemplate = DirectiveFile.getInstance(this, AxisID.ONLY, templateFile);
-        }
-        templateFile = setupReconUIHarness.getUserTemplate();
-        DirectiveFile userTemplate = null;
-        if (templateFile != null) {
-          userTemplate = DirectiveFile.getInstance(this, AxisID.ONLY, templateFile);
-        }
-        ProcessMessages messages = processMgr.setupComScripts(AxisID.ONLY, scopeTemplate,
-            systemTemplate, userTemplate, batchDirectiveFile);
-        if (messages == null) {
-          return false;
-        }
-        // Send a specific INFO: message to the project log
-        if (messages.isInfo()) {
-          List<String> infoMessages = messages.getInfoList("Setting logarithm offset");
-          if (infoMessages != null && infoMessages.size() != 0) {
-            logMessage(infoMessages, "Copytomocoms", AxisID.ONLY);
+        CopyTomoComs param = updateComTomoComs();
+        if (!param.isUseKeywordValue()) {
+          ProcessMessages messages = processMgr.setupComScripts(AxisID.ONLY, param);
+          if (messages == null) {
+            return false;
           }
-          infoMessages = messages.getInfoList("Pixel spacing was set in FEI");
-          if (infoMessages != null && infoMessages.size() != 0) {
-            for (Iterator<String> i = infoMessages.iterator(); i.hasNext();) {
-              System.err.println(i.next());
+          // Send a specific INFO: message to the project log
+          if (messages.isInfo()) {
+            List<String> infoMessages = messages.getInfoList("Setting logarithm offset");
+            if (infoMessages != null && infoMessages.size() != 0) {
+              logMessage(infoMessages, "Copytomocoms", AxisID.ONLY);
+            }
+            infoMessages = messages.getInfoList("Pixel spacing was set in FEI");
+            if (infoMessages != null && infoMessages.size() != 0) {
+              for (Iterator<String> i = infoMessages.iterator(); i.hasNext();) {
+                System.err.println(i.next());
+              }
             }
           }
+          finishDoneSetupDialog();
         }
-        // Create the .rawtlt file if the angle type is range. This makes it
-        // easy to display titl angles in 3dmod.
-        if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
+        else {
+          ProcessSeries processSeries = new ProcessSeries(this, DialogType.SETUP_RECON);
+          processSeries.addProcess(Task.FINISH_DONE_SETUP);
+          String threadName;
           try {
-            AxisType axisType = metaData.getAxisType();
-            makeRawtltFile(axisType == AxisType.DUAL_AXIS ? AxisID.FIRST : AxisID.ONLY);
-            if (axisType == AxisType.DUAL_AXIS) {
-              makeRawtltFile(AxisID.SECOND);
-            }
+            threadName = processMgr.copytomocoms(AxisID.ONLY, processSeries,
+                FileType.COPYTOMOCOMS_COMSCRIPT);
           }
-          catch (IOException e) {
+          catch (SystemProcessException e) {
             e.printStackTrace();
+            String[] message = new String[2];
+            message[0] = "Can not execute " + ProcessName.COPYTOMOCOMS.toString()
+                + AxisID.ONLY.getExtension() + ".com";
+            message[1] = e.getMessage();
+            uiHarness.openMessageDialog(this, message, "Unable to execute com script",
+                AxisID.ONLY);
+            return false;
           }
-          catch (InvalidParameterException e) {
-            e.printStackTrace();
-          }
+          setThreadName(threadName, AxisID.ONLY);
+          // TODO 1677
+          mainPanel.startProgressBar("Copytomocoms", AxisID.ONLY,
+              ProcessName.COPYTOMOCOMS);
         }
       }
-      processTrack.setSetupState(ProcessState.COMPLETE);
-      metaData.setComScriptCreated(true);
-      EtomoDirector.INSTANCE.renameCurrentManager(metaData.getDatasetName());
-      closeImods(ImodManager.PREVIEW_KEY, AxisID.FIRST, "Axis A preview stack");
-      closeImods(ImodManager.PREVIEW_KEY, AxisID.SECOND, "Axis B preview stack");
     }
+    return true;
+  }
+
+  void finishDoneSetupDialog() {
+    // Create the .rawtlt file if the angle type is range. This makes it
+    // easy to display titl angles in 3dmod.
+    if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
+      try {
+        AxisType axisType = metaData.getAxisType();
+        makeRawtltFile(axisType == AxisType.DUAL_AXIS ? AxisID.FIRST : AxisID.ONLY);
+        if (axisType == AxisType.DUAL_AXIS) {
+          makeRawtltFile(AxisID.SECOND);
+        }
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+      catch (InvalidParameterException e) {
+        e.printStackTrace();
+      }
+    }
+    processTrack.setSetupState(ProcessState.COMPLETE);
+    metaData.setComScriptCreated(true);
+    EtomoDirector.INSTANCE.renameCurrentManager(metaData.getDatasetName());
+    closeImods(ImodManager.PREVIEW_KEY, AxisID.FIRST, "Axis A preview stack");
+    closeImods(ImodManager.PREVIEW_KEY, AxisID.SECOND, "Axis B preview stack");
     // Switch the main window to the procesing panel
     openProcessingPanel();
     // Free the dialog
     setupReconUIHarness.freeDialog();
     setupDialogExpert = null;
     saveStorables(AxisID.ONLY);
-    return true;
+  }
+
+  CopyTomoComs updateComTomoComs() {
+    BaseProcessManager.touch(FileType.COPYTOMOCOMS_COMSCRIPT.getFile(this, AxisID.ONLY)
+        .getAbsolutePath(), this);
+    comScriptMgr.loadCopytomocoms();
+    CopyTomoComs param = comScriptMgr.getCopytomocomsParam();
+    param.setUseKeywordValue(setupReconUIHarness.isDirectiveDrivenAutomation());
+    param.setDirectiveFileCollection(setupReconUIHarness.getDirectiveFileCollection());
+    param.setScopeTemplate(setupReconUIHarness.getScopeTemplate());
+    param.setSystemTemplate(setupReconUIHarness.getSystemTemplate());
+    param.setUserTemplate(setupReconUIHarness.getUserTemplate());
+    param.setBatchDirectiveFile(setupReconUIHarness.getBatchDirectiveFile());
+    comScriptMgr.saveCopytomocomsParam(param);
+    return param;
   }
 
   private void copyDirectiveFiles() {
-    File file = null;
+    DirectiveFile directiveFile = null;
     try {
-      file = setupReconUIHarness.getScopeTemplate();
-      if (file != null) {
-        Utilities.copyFile(file, FileType.LOCAL_SCOPE_TEMPLATE, this, AxisID.ONLY);
+      directiveFile = setupReconUIHarness.getScopeTemplate();
+      if (directiveFile != null) {
+        Utilities.copyFile(directiveFile.getFile(), FileType.LOCAL_SCOPE_TEMPLATE, this,
+            AxisID.ONLY);
       }
-      file = setupReconUIHarness.getSystemTemplate();
-      if (file != null) {
-        Utilities.copyFile(file, FileType.LOCAL_SYSTEM_TEMPLATE, this, AxisID.ONLY);
+      directiveFile = setupReconUIHarness.getSystemTemplate();
+      if (directiveFile != null) {
+        Utilities.copyFile(directiveFile.getFile(), FileType.LOCAL_SYSTEM_TEMPLATE, this,
+            AxisID.ONLY);
       }
-      file = setupReconUIHarness.getUserTemplate();
-      if (file != null) {
-        Utilities.copyFile(file, FileType.LOCAL_USER_TEMPLATE, this, AxisID.ONLY);
+      directiveFile = setupReconUIHarness.getUserTemplate();
+      if (directiveFile != null) {
+        Utilities.copyFile(directiveFile.getFile(), FileType.LOCAL_USER_TEMPLATE, this,
+            AxisID.ONLY);
       }
-      file = setupReconUIHarness.getBatchDirectiveFile();
-      Utilities.copyFile(file, FileType.LOCAL_DIRECTIVE_FILE, this, AxisID.ONLY);
+      directiveFile = setupReconUIHarness.getBatchDirectiveFile();
+      if (directiveFile != null) {
+        Utilities.copyFile(directiveFile.getFile(), FileType.LOCAL_BATCH_DIRECTIVE_FILE,
+            this, AxisID.ONLY);
+      }
     }
     catch (IOException e) {
-      uiHarness.openMessageDialog(this,
-          "Unable to copy " + (file != null ? file.getAbsolutePath() : "file")
-              + " to dataset.", "Unable to Copy File");
+      uiHarness.openMessageDialog(this, "Unable to copy "
+          + (directiveFile != null ? directiveFile.getFile().getAbsolutePath() : "file")
+          + " to dataset.", "Unable to Copy File");
     }
   }
 
@@ -7739,6 +7774,10 @@ public final class ApplicationManager extends BaseManager implements
           (CcdEraserDisplay) display);
       return true;
     }
+    if (process.equals(Task.FINISH_DONE_SETUP)) {
+      finishDoneSetupDialog();
+      return true;
+    }
     return false;
   }
 
@@ -8491,6 +8530,17 @@ public final class ApplicationManager extends BaseManager implements
       return MetaData.getNewFileTitle();
     }
     return metaData.getName();
+  }
+
+  private static final class Task implements TaskInterface {
+    private static final Task FINISH_DONE_SETUP = new Task();
+
+    private Task() {
+    }
+
+    public boolean okToDrop() {
+      return true;
+    }
   }
 }
 /**
