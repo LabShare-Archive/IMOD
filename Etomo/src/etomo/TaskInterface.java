@@ -17,5 +17,9 @@ package etomo;
 interface TaskInterface {
   public static  final String  rcsid =  "$Id:$";
   
+  /**
+   * If true, then the user will be warned if the they exit before the task is started.
+   * @return
+   */
   public boolean okToDrop();
 }
