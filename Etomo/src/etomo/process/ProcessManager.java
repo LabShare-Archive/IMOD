@@ -991,7 +991,6 @@
 package etomo.process;
 
 import etomo.storage.AutofidseedLog;
-import etomo.storage.DirectiveFile;
 import etomo.storage.FlattenWarpLog;
 import etomo.storage.LogFile;
 import etomo.storage.TrackLog;
@@ -1074,7 +1073,7 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   public void setupCtfPlotterComScript(CtfPhaseFlipParam ctfPhaseFlipParam, AxisID axisID) {
-    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, null, null, null, null);
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
     copyTomoComs.setCTFFiles(CopyTomoComs.CtfFilesValue.CTF_PLOTTER);
     copyTomoComs.setVoltage(ctfPhaseFlipParam.getVoltage());
     copyTomoComs.setSphericalAberration(ctfPhaseFlipParam.getSphericalAberration());
@@ -1082,22 +1081,17 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   public void setupCtfCorrectionComScript(AxisID axisID) {
-    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, null, null, null, null);
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
     copyTomoComs.setCTFFiles(CopyTomoComs.CtfFilesValue.CTF_CORRECTION);
     setupComScripts(copyTomoComs, axisID);
   }
 
-  public ProcessMessages setupComScripts(AxisID axisID,
-      final DirectiveFile scopeTemplate, final DirectiveFile systemTemplate,
-      final DirectiveFile userTemplate, final DirectiveFile batchDirectiveFile) {
-    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager, scopeTemplate,
-        systemTemplate, userTemplate, batchDirectiveFile);
-
+  public ProcessMessages setupComScripts(AxisID axisID, final CopyTomoComs param) {
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-      System.err.println("copytomocoms command line: " + copyTomoComs.getCommandLine());
+      System.err.println("copytomocoms command line: " + param.getCommandLine());
     }
     appManager.saveStorables(axisID);
-    return setupComScripts(copyTomoComs, axisID);
+    return setupComScripts(param, axisID);
   }
 
   /**
@@ -1282,6 +1276,17 @@ public class ProcessManager extends BaseProcessManager {
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(param, null, axisID,
         processResultDisplay, processSeries);
+    return comScriptProcess.getName();
+  }
+
+  /**
+   * Run copytomocoms.com
+   */
+  public String copytomocoms(AxisID axisID, final ProcessSeries processSeries,
+      final FileType fileType) throws SystemProcessException {
+    String command = fileType.getFileName(appManager, axisID);
+    ComScriptProcess comScriptProcess = startComScript(command, axisID, processSeries,
+        fileType);
     return comScriptProcess.getName();
   }
 
