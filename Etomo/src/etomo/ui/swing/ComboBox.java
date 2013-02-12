@@ -3,6 +3,8 @@ package etomo.ui.swing;
 import java.awt.Component;
 import java.awt.event.ActionListener;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -63,32 +65,32 @@ final class ComboBox {
   }
 
   static ComboBox getInstance(String name) {
-    return new ComboBox(name, true);
+    ComboBox instance = new ComboBox(name, true);
+    instance.createPanel();
+    return instance;
   }
 
   static ComboBox getUnlabeledInstance(final String name) {
-    return new ComboBox(name, false);
+    ComboBox instance = new ComboBox(name, false);
+    instance.createPanel();
+    return instance;
   }
 
   static ComboBox getUnlabeledInstance(JLabel label) {
-    return new ComboBox(label.getText(), false);
+    ComboBox instance = new ComboBox(label.getText(), false);
+    instance.createPanel();
+    return instance;
   }
 
-  public void setName(String text) {
-    String name = Utilities.convertLabelToName(text);
-    comboBox.setName(UITestFieldType.COMBO_BOX.toString()
-        + AutodocTokenizer.SEPARATOR_CHAR + name);
-    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(comboBox.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
-          + ' ');
-    }
-  }
-
-  public Component getComponent() {
+  private void createPanel() {
     if (pnlRoot != null) {
-      return pnlRoot;
+      pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
+      pnlRoot.add(Box.createRigidArea(FixedDim.x2_y0));
+      pnlRoot.add(label);
+      pnlRoot.add(Box.createRigidArea(FixedDim.x3_y0));
+      pnlRoot.add(comboBox);
+      pnlRoot.add(Box.createRigidArea(FixedDim.x2_y0));
     }
-    return comboBox;
   }
 
   public void addActionListener(final ActionListener listener) {
@@ -101,6 +103,13 @@ final class ComboBox {
 
   public String getActionCommand() {
     return comboBox.getActionCommand();
+  }
+
+  public Component getComponent() {
+    if (pnlRoot != null) {
+      return pnlRoot;
+    }
+    return comboBox;
   }
 
   public int getSelectedIndex() {
@@ -119,12 +128,22 @@ final class ComboBox {
     comboBox.removeAllItems();
   }
 
+  public void setEnabled(final boolean enabled) {
+    comboBox.setEnabled(enabled);
+  }
+
   public void setEditable(final boolean editable) {
     comboBox.setEditable(editable);
   }
 
-  public void setEnabled(final boolean enabled) {
-    comboBox.setEnabled(enabled);
+  public void setName(String text) {
+    String name = Utilities.convertLabelToName(text);
+    comboBox.setName(UITestFieldType.COMBO_BOX.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
+      System.out.println(comboBox.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
+    }
   }
 
   public void setSelectedIndex(final int index) {
