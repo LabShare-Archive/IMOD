@@ -3,8 +3,10 @@ package etomo.storage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
@@ -85,7 +87,7 @@ public final class DirectiveFile {
   private final File file;
 
   private ReadOnlyAttribute copyArg = null;
-  private List<Pair> copyArgExtraValues = null;
+  private Map<String, String> copyArgExtraValues = null;
   private ReadOnlyAttribute runtime = null;
   private ReadOnlyAttribute setupSet = null;
 
@@ -263,9 +265,12 @@ public final class DirectiveFile {
   private void setCopyArgValue(final String name, final String value) {
     if (copyArg.getAttribute(name) == null) {
       if (copyArgExtraValues == null) {
-        copyArgExtraValues = new ArrayList<Pair>();
+        copyArgExtraValues = new HashMap<String, String>();
       }
-      copyArgExtraValues.add(new Pair(name, value));
+      if (copyArgExtraValues.containsKey(name)) {
+        copyArgExtraValues.remove(name);
+      }
+      copyArgExtraValues.put(name, value);
     }
   }
 
@@ -330,7 +335,7 @@ public final class DirectiveFile {
    * @return
    */
   static boolean toBoolean(final String value) {
-    if (value == null || value.equals("0")) {
+    if (value.equals("0")) {
       return false;
     }
     return true;
@@ -481,8 +486,16 @@ public final class DirectiveFile {
         + SIZE_IN_X_AND_Y_NAME;
   }
 
-  public CopyArgIterator getCopyArgIterator() {
-    return new CopyArgIterator(copyArg, copyArgExtraValues);
+  Iterator<Entry<String, String>> getCopyArgExtraValuesIterator() {
+    return copyArgExtraValues.entrySet().iterator();
+  }
+
+  ReadOnlyAttributeIterator getCopyArgIterator() {
+    ReadOnlyAttributeList list = copyArg.getChildren();
+    if (list != null) {
+      return list.iterator();
+    }
+    return null;
   }
 
   public String getCTFplottingAutoFitRangeAndStep(final AxisID axisID) {
@@ -608,12 +621,12 @@ public final class DirectiveFile {
       }
     }
     else if ((attribute = getAttribute(AttributeName.COPY_ARG,
-        convertAttributeName(axisID, USE_RAW_TLT_NAME))) != null) {
-      tiltAngleSpec.setType(TiltAngleType.FILE);
-    }
-    else if ((attribute = getAttribute(AttributeName.COPY_ARG,
         convertAttributeName(axisID, EXTRACT_NAME))) != null) {
       tiltAngleSpec.setType(TiltAngleType.EXTRACT);
+    }
+    else if ((attribute = getAttribute(AttributeName.COPY_ARG,
+        convertAttributeName(axisID, USE_RAW_TLT_NAME))) != null) {
+      tiltAngleSpec.setType(TiltAngleType.FILE);
     }
     return true;
   }
@@ -659,104 +672,6 @@ public final class DirectiveFile {
 
   public void setPixelSize(final double input) {
     setCopyArgValue(PIXEL_NAME, Double.toString(input));
-  }
-
-  private static final class Pair {
-    private final String name;
-    private final String value;
-
-    private Pair(final String name, final String value) {
-      this.name = name;
-      this.value = value;
-    }
-
-    private boolean equals(final String input) {
-      if (name == null) {
-        return input == null;
-      }
-      return name.equals(input);
-    }
-  }
-
-  public static final class CopyArgIterator {
-    private final ReadOnlyAttributeIterator iterator;
-    private final List<Pair> extraValues;
-
-    private ReadOnlyAttribute curAttribute = null;
-    private int index = -1;
-
-    public CopyArgIterator(final ReadOnlyAttribute copyArg,
-        final List<Pair> copyArgExtraValues) {
-      extraValues = copyArgExtraValues;
-      if (copyArg == null) {
-        iterator = null;
-      }
-      else {
-        ReadOnlyAttributeList list = copyArg.getChildren();
-        if (list == null) {
-          iterator = null;
-        }
-        else {
-          iterator = list.iterator();
-        }
-      }
-    }
-
-    public boolean hasNext() {
-      if (iterator != null && iterator.hasNext()) {
-        return true;
-      }
-      return extraValues != null && index + 1 < extraValues.size();
-    }
-
-    /**
-     * Moves iterator to the next element.  After calling next, use getName and getValue
-     * to fetch the element that the iterator is pointing to.
-     */
-    public void next() {
-      if (!hasNext()) {
-        curAttribute = null;
-        index = extraValues != null ? extraValues.size() : -1;
-        return;
-      }
-      if (iterator != null && iterator.hasNext()) {
-        curAttribute = iterator.next();
-        return;
-      }
-      curAttribute = null;
-      if (extraValues != null) {
-        index++;
-        return;
-      }
-    }
-
-    /**
-     * Call next before calling getName and getValue.
-     * @return
-     */
-    public String getName() {
-      if (curAttribute != null) {
-        return curAttribute.getName();
-      }
-      if (index >= 0 && index < extraValues.size()) {
-        return extraValues.get(index).name;
-      }
-      return null;
-    }
-
-    /**
-     * Call next before calling getName and getValue.
-     * @return
-     */
-    public String getValue() {
-      if (curAttribute != null) {
-        return curAttribute.getValue();
-      }
-      if (index >= 0 && index < extraValues.size()) {
-        return extraValues.get(index).value;
-      }
-      return null;
-    }
   }
 
   static final class AttributeName {
