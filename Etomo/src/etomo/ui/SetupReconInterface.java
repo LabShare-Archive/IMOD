@@ -1,7 +1,6 @@
 package etomo.ui;
 
-import java.io.File;
-
+import etomo.storage.DirectiveFile;
 import etomo.type.AxisID;
 import etomo.type.TiltAngleSpec;
 
@@ -67,9 +66,9 @@ public interface SetupReconInterface {
   public boolean getTiltAngleFields(AxisID axisID, TiltAngleSpec tiltAngleSpec,
       boolean doValidation);
 
-  public File getScopeTemplateFile();
+  public DirectiveFile getScopeTemplate();
 
-  public File getSystemTemplateFile();
+  public DirectiveFile getSystemTemplate();
 
-  public File getUserTemplateFile();
+  public DirectiveFile getUserTemplate();
 }
