@@ -41,6 +41,7 @@ import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TiltAngleSpec;
+import etomo.type.UserConfiguration;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.SetupReconInterface;
@@ -198,7 +199,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   public void done() {
     if (applicationManager.doneSetupDialog(
-        expert.getExitState() == DialogExitState.EXECUTE, null)) {
+        expert.getExitState() == DialogExitState.EXECUTE)) {
       setDisplayed(false);
     }
   }
@@ -233,16 +234,16 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
-  public File getScopeTemplateFile() {
-    return templatePanel.getScopeTemplateFile();
+  public DirectiveFile getScopeTemplate() {
+    return templatePanel.getScopeTemplate();
   }
 
-  public File getSystemTemplateFile() {
-    return templatePanel.getSystemTemplateFile();
+  public DirectiveFile getSystemTemplate() {
+    return templatePanel.getSystemTemplate();
   }
 
-  public File getUserTemplateFile() {
-    return templatePanel.getUserTemplateFile();
+  public DirectiveFile getUserTemplate() {
+    return templatePanel.getUserTemplate();
   }
 
   void updateTemplateValues() {
@@ -260,7 +261,12 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
+  void setParameters(final UserConfiguration userConfig) {
+    templatePanel.setParameters(userConfig);
+  }
+
   private void updateTemplateValues(final DirectiveFile template) {
+    System.out.println("A");
     if (template.isDual()) {
       rbDualAxis.setSelected(true);
     }
