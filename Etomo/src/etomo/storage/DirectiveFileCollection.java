@@ -1,10 +1,16 @@
 package etomo.storage;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import etomo.ApplicationManager;
 import etomo.logic.DatasetTool;
 import etomo.logic.UserEnv;
+import etomo.storage.autodoc.ReadOnlyAttribute;
+import etomo.storage.autodoc.ReadOnlyAttributeIterator;
 import etomo.type.AxisID;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
@@ -27,8 +33,6 @@ import etomo.ui.SetupReconInterface;
 */
 public class DirectiveFileCollection implements SetupReconInterface {
   public static final String rcsid = "$Id:$";
-
-  private static final int BATCH_INDEX = 3;
 
   private final DirectiveFile[] directiveFileArray = new DirectiveFile[] { null, null,
       null, null };
@@ -87,11 +91,23 @@ public class DirectiveFileCollection implements SetupReconInterface {
   }
 
   public DirectiveFile getBatchDirectiveFile() {
-    return directiveFileArray[BATCH_INDEX];
+    return directiveFileArray[OverrideOrder.BATCH.index];
   }
 
   public String getBinning() {
     return getValue(DirectiveFile.AttributeName.COPY_ARG, DirectiveFile.BINNING_NAME);
+  }
+
+  /**
+   * Returns an entry set containing the names/value pairs in all of the directive files
+   * (one entry per name).  This function will not return null.  A name/value pair with a
+   * blank values cause the name/value pair to be removed from the entry set.  The
+   * name/value pair will be re-added afterwards if a pair with a non-blank value is
+   * encountered.
+   * @return
+   */
+  public CopyArgEntrySet getCopyArgEntrySet() {
+    return CopyArgEntrySet.getInstance(directiveFileArray);
   }
 
   public String getDataset() {
@@ -142,22 +158,12 @@ public class DirectiveFileCollection implements SetupReconInterface {
     return getValue(DirectiveFile.AttributeName.COPY_ARG, DirectiveFile.PIXEL_NAME);
   }
 
-  public File getScopeTemplateFile() {
-    String value = getValue(DirectiveFile.AttributeName.SETUP_SET,
-        DirectiveFile.SCOPE_TEMPLATE_NAME);
-    if (value != null) {
-      return new File(value);
-    }
-    return null;
+  public DirectiveFile getScopeTemplate() {
+    return directiveFileArray[OverrideOrder.SCOPE.index];
   }
 
-  public File getSystemTemplateFile() {
-    String value = getValue(DirectiveFile.AttributeName.SETUP_SET,
-        DirectiveFile.SYSTEM_TEMPLATE_NAME);
-    if (value != null) {
-      return new File(value);
-    }
-    return null;
+  public DirectiveFile getSystemTemplate() {
+    return directiveFileArray[OverrideOrder.SYSTEM.index];
   }
 
   public boolean getTiltAngleFields(final AxisID axisID,
@@ -177,13 +183,8 @@ public class DirectiveFileCollection implements SetupReconInterface {
     return true;
   }
 
-  public File getUserTemplateFile() {
-    String value = getValue(DirectiveFile.AttributeName.SETUP_SET,
-        DirectiveFile.USER_TEMPLATE_NAME);
-    if (value != null) {
-      return new File(value);
-    }
-    return null;
+  public DirectiveFile getUserTemplate() {
+    return directiveFileArray[OverrideOrder.USER.index];
   }
 
   public boolean isAdjustedFocusSelected(final AxisID axisID) {
@@ -223,45 +224,45 @@ public class DirectiveFileCollection implements SetupReconInterface {
   }
 
   public void setBatchDirectiveFile(final DirectiveFile directiveFile) {
-    directiveFileArray[BATCH_INDEX] = directiveFile;
+    directiveFileArray[OverrideOrder.BATCH.index] = directiveFile;
   }
 
   public void setBinning(final int input) {
-    if (directiveFileArray[BATCH_INDEX] != null) {
-      directiveFileArray[BATCH_INDEX].setBinning(input);
+    if (directiveFileArray[OverrideOrder.BATCH.index] != null) {
+      directiveFileArray[OverrideOrder.BATCH.index].setBinning(input);
     }
   }
 
   public void setImageRotation(final String input) {
-    if (directiveFileArray[BATCH_INDEX] != null) {
-      directiveFileArray[BATCH_INDEX].setImageRotation(input);
+    if (directiveFileArray[OverrideOrder.BATCH.index] != null) {
+      directiveFileArray[OverrideOrder.BATCH.index].setImageRotation(input);
     }
   }
 
   public void setPixelSize(final double input) {
-    if (directiveFileArray[BATCH_INDEX] != null) {
-      directiveFileArray[BATCH_INDEX].setPixelSize(input);
+    if (directiveFileArray[OverrideOrder.BATCH.index] != null) {
+      directiveFileArray[OverrideOrder.BATCH.index].setPixelSize(input);
     }
   }
 
   public void setScopeTemplate(final String filePath) {
     if (filePath != null) {
-      directiveFileArray[0] = DirectiveFile.getInstance(manager, axisID, new File(
-          filePath));
+      directiveFileArray[OverrideOrder.SCOPE.index] = DirectiveFile.getInstance(manager,
+          axisID, new File(filePath));
     }
   }
 
   public void setSystemTemplate(final String filePath) {
     if (filePath != null) {
-      directiveFileArray[1] = DirectiveFile.getInstance(manager, axisID, new File(
-          filePath));
+      directiveFileArray[OverrideOrder.SYSTEM.index] = DirectiveFile.getInstance(manager,
+          axisID, new File(filePath));
     }
   }
 
   public void setUserTemplate(final String filePath) {
     if (filePath != null) {
-      directiveFileArray[2] = DirectiveFile.getInstance(manager, axisID, new File(
-          filePath));
+      directiveFileArray[OverrideOrder.USER.index] = DirectiveFile.getInstance(manager,
+          axisID, new File(filePath));
     }
   }
 
@@ -272,5 +273,88 @@ public class DirectiveFileCollection implements SetupReconInterface {
         tiltAngleSpec.getType() == TiltAngleType.RANGE,
         String.valueOf(tiltAngleSpec.getRangeMin()),
         String.valueOf(tiltAngleSpec.getRangeStep()));
+  }
+
+  public static final class CopyArgEntrySet {
+    private final Map<String, String> pairMap = new HashMap<String, String>();
+
+    /**
+     * Don't call constructor directly.
+     */
+    private CopyArgEntrySet() {
+    }
+
+    /**
+     * This function should not return null.
+     * @return initialized instance
+     */
+    private static CopyArgEntrySet getInstance(final DirectiveFile[] directiveFileArray) {
+      CopyArgEntrySet instance = new CopyArgEntrySet();
+      instance.init(directiveFileArray);
+      return instance;
+    }
+
+    /**
+     * Load all of the directive file copyarg values into pairMap.  Pairs with the same
+     * name as a previously saved pair overrides the previous pair.  A pair with a blank
+     * value is not saved and causes the pair with the same name in the map to be removed.
+     * After loading all of copyarg values, load the scan header output from the directive
+     * file if scan header is in the map and is set to "1".  Only load pairs with names
+     * that are not already in the map, because the directive files all override scan
+     * header.
+     * @param directiveFileArray
+     */
+    private void init(final DirectiveFile[] directiveFileArray) {
+      for (int i = 0; i < directiveFileArray.length; i++) {
+        if (directiveFileArray[i] != null) {
+          ReadOnlyAttributeIterator iterator = directiveFileArray[i].getCopyArgIterator();
+          while (iterator.hasNext()) {
+            ReadOnlyAttribute attribute = iterator.next();
+            String name = attribute.getName();
+            String value = attribute.getValue();
+            pairMap.remove(name);
+            // A blank value means remove the previously added pair, otherwise override
+            // the previous added pair with the new value.
+            if (value != null) {
+              pairMap.put(name, value);
+            }
+          }
+        }
+      }
+      // If scan header is on, then get values from scanning the header which aren't
+      // already in the map.
+      if (directiveFileArray[OverrideOrder.BATCH.index] != null
+          && pairMap.containsKey(DirectiveFile.SCAN_HEADER_NAME)) {
+        String value = pairMap.get(DirectiveFile.SCAN_HEADER_NAME);
+        if (value != null && value.equals("1")) {
+          Iterator<Entry<String, String>> iterator = directiveFileArray[OverrideOrder.BATCH.index]
+              .getCopyArgExtraValuesIterator();
+          while (iterator.hasNext()) {
+            Entry<String, String> entry = iterator.next();
+            String name = entry.getKey();
+            if (!pairMap.containsKey(name)) {
+              pairMap.put(name, entry.getValue());
+            }
+          }
+        }
+      }
+    }
+
+    public Iterator<Entry<String, String>> iterator() {
+      return pairMap.entrySet().iterator();
+    }
+  }
+
+  private static final class OverrideOrder {
+    private static final OverrideOrder SCOPE = new OverrideOrder(0);
+    private static final OverrideOrder SYSTEM = new OverrideOrder(1);
+    private static final OverrideOrder USER = new OverrideOrder(2);
+    private static final OverrideOrder BATCH = new OverrideOrder(3);
+
+    private final int index;
+
+    private OverrideOrder(final int index) {
+      this.index = index;
+    }
   }
 }
