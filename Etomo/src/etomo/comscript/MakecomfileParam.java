@@ -79,7 +79,7 @@ public class MakecomfileParam {
       command.add("-change");
       command.add(file.getName());
     }
-    file = FileType.LOCAL_DIRECTIVE_FILE.getFile(manager, axisID);
+    file = FileType.LOCAL_BATCH_DIRECTIVE_FILE.getFile(manager, axisID);
     if (file.exists()) {
       command.add("-change");
       command.add(file.getName());
