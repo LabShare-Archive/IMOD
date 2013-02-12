@@ -125,8 +125,8 @@ public final class FileType {
   // File types with a name description
   public static final FileType FIDUCIAL_3D_MODEL = FileType.getImodInstance(true, true,
       "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
-  public static final FileType LOCAL_DIRECTIVE_FILE = FileType.getInstance(false, false,
-      "directive", ".adoc");
+  public static final FileType LOCAL_BATCH_DIRECTIVE_FILE = FileType.getInstance(false, false,
+      "batchDirective", ".adoc");
   public static final FileType LOCAL_SCOPE_TEMPLATE = FileType.getInstance(false, false,
       "scopeTemplate", ".adoc");
   public static final FileType LOCAL_SYSTEM_TEMPLATE = FileType.getInstance(false, false,
@@ -151,6 +151,8 @@ public final class FileType {
       "autofidseed", ".com");
   public static final FileType BLEND_COMSCRIPT = FileType.getInstance(false, true,
       "blend", ".com");
+  public static final FileType COPYTOMOCOMS_COMSCRIPT = FileType.getInstance(false, false,
+      "copytomocoms", ".com");
   public static final FileType GOLD_ERASER_COMSCRIPT = FileType.getInstance(false, true,
       "golderaser", ".com");
   public static final FileType PREBLEND_COMSCRIPT = FileType.getInstance(false, true,
