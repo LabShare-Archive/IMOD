@@ -74,7 +74,7 @@ public final class SettingsDialog extends JDialog {
 
   private SettingsDialog(final BaseManager manager, final String propertyUserDir) {
     this.propertyUserDir = propertyUserDir;
-    templatePanel = TemplatePanel.getInstance(manager, AxisID.ONLY, listener);
+    templatePanel = TemplatePanel.getInstance(manager, AxisID.ONLY, listener,"Default Templates");
   }
 
   public static SettingsDialog getInstance(final BaseManager manager,
