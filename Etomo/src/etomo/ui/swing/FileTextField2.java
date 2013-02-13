@@ -246,12 +246,17 @@ final class FileTextField2 implements FileTextFieldInterface {
   }
 
   boolean exists() {
-    return getFile().exists();
+    if (!isEmpty()) {
+      return getFile().exists();
+    }
+    return false;
   }
 
   public File getFile() {
-    String text = field.getText();
-    return FilePath.buildAbsoluteFile(getOriginDir(), text);
+    if (!isEmpty()) {
+      return FilePath.buildAbsoluteFile(getOriginDir(), field.getText());
+    }
+    return null;
   }
 
   /**
