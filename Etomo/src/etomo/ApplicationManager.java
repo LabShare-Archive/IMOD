@@ -493,8 +493,9 @@ public final class ApplicationManager extends BaseManager implements
             }
           }
         }
-        CopyTomoComs param = updateComTomoComs();
+        CopyTomoComs param = updateCopytomocoms();
         if (!param.isUseKeywordValue()) {
+          // Run copytomocoms on the command line
           ProcessMessages messages = processMgr.setupComScripts(AxisID.ONLY, param);
           if (messages == null) {
             return false;
@@ -515,6 +516,7 @@ public final class ApplicationManager extends BaseManager implements
           finishDoneSetupDialog();
         }
         else {
+          // Run copytomocoms in a comscript.
           ProcessSeries processSeries = new ProcessSeries(this, DialogType.SETUP_RECON);
           processSeries.addProcess(Task.FINISH_DONE_SETUP);
           String threadName;
@@ -533,9 +535,6 @@ public final class ApplicationManager extends BaseManager implements
             return false;
           }
           setThreadName(threadName, AxisID.ONLY);
-          // TODO 1677
-          mainPanel.startProgressBar("Copytomocoms", AxisID.ONLY,
-              ProcessName.COPYTOMOCOMS);
         }
       }
     }
@@ -573,18 +572,32 @@ public final class ApplicationManager extends BaseManager implements
     saveStorables(AxisID.ONLY);
   }
 
-  CopyTomoComs updateComTomoComs() {
-    BaseProcessManager.touch(FileType.COPYTOMOCOMS_COMSCRIPT.getFile(this, AxisID.ONLY)
-        .getAbsolutePath(), this);
-    comScriptMgr.loadCopytomocoms();
-    CopyTomoComs param = comScriptMgr.getCopytomocomsParam();
-    param.setUseKeywordValue(setupReconUIHarness.isDirectiveDrivenAutomation());
-    param.setDirectiveFileCollection(setupReconUIHarness.getDirectiveFileCollection());
+  /**
+   * Setup the copytomocoms command.  Create a comscript if this is directive-driven
+   * automation.
+   * @return
+   */
+  CopyTomoComs updateCopytomocoms() {
+    CopyTomoComs param = null;
+    if (!setupReconUIHarness.isDirectiveDrivenAutomation()) {
+      param = new CopyTomoComs(this);
+      param.setUseKeywordValue(false);
+    }
+    else {
+      BaseProcessManager.touch(FileType.COPYTOMOCOMS_COMSCRIPT.getFile(this, AxisID.ONLY)
+          .getAbsolutePath(), this);
+      comScriptMgr.loadCopytomocoms();
+      param = comScriptMgr.getCopytomocomsParam();
+      param.setUseKeywordValue(true);
+      param.setDirectiveFileCollection(setupReconUIHarness.getDirectiveFileCollection());
+      param.setBatchDirectiveFile(setupReconUIHarness.getBatchDirectiveFile());
+    }
     param.setScopeTemplate(setupReconUIHarness.getScopeTemplate());
     param.setSystemTemplate(setupReconUIHarness.getSystemTemplate());
     param.setUserTemplate(setupReconUIHarness.getUserTemplate());
-    param.setBatchDirectiveFile(setupReconUIHarness.getBatchDirectiveFile());
-    comScriptMgr.saveCopytomocomsParam(param);
+    if (setupReconUIHarness.isDirectiveDrivenAutomation()) {
+      comScriptMgr.saveCopytomocomsParam(param);
+    }
     return param;
   }
 
