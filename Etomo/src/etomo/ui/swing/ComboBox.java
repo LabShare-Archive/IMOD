@@ -50,8 +50,10 @@ final class ComboBox {
   private final JComboBox comboBox;
   private final JLabel label;
   private final JPanel pnlRoot;
+  final boolean addEmptyChoice;// Causes the index to be off by one
 
-  private ComboBox(final String name, final boolean labeled) {
+  private ComboBox(final String name, final boolean labeled, final boolean addEmptyChoice) {
+    this.addEmptyChoice = addEmptyChoice;
     comboBox = new JComboBox();
     setName(name);
     if (labeled) {
@@ -64,20 +66,20 @@ final class ComboBox {
     }
   }
 
-  static ComboBox getInstance(String name) {
-    ComboBox instance = new ComboBox(name, true);
+  static ComboBox getInstance(final String name, final boolean addEmptyChoice) {
+    ComboBox instance = new ComboBox(name, true, addEmptyChoice);
     instance.createPanel();
     return instance;
   }
 
   static ComboBox getUnlabeledInstance(final String name) {
-    ComboBox instance = new ComboBox(name, false);
+    ComboBox instance = new ComboBox(name, false, false);
     instance.createPanel();
     return instance;
   }
 
   static ComboBox getUnlabeledInstance(JLabel label) {
-    ComboBox instance = new ComboBox(label.getText(), false);
+    ComboBox instance = new ComboBox(label.getText(), false, false);
     instance.createPanel();
     return instance;
   }
@@ -98,6 +100,9 @@ final class ComboBox {
   }
 
   public void addItem(final Object input) {
+    if (addEmptyChoice && comboBox.getItemCount() == 0) {
+      comboBox.addItem(null);
+    }
     comboBox.addItem(input);
   }
 
@@ -112,8 +117,17 @@ final class ComboBox {
     return comboBox;
   }
 
+  /**
+   * Returns the selected index.  If addEmptyChoice is on, then the index is adjusted so
+   * that it starts from zero.  If the empty choice was selected it returns -1.
+   * @return
+   */
   public int getSelectedIndex() {
-    return comboBox.getSelectedIndex();
+    int index = comboBox.getSelectedIndex();
+    if (addEmptyChoice && index > -1) {
+      return index - 1;
+    }
+    return index;
   }
 
   public Object getSelectedItem() {
@@ -146,7 +160,15 @@ final class ComboBox {
     }
   }
 
-  public void setSelectedIndex(final int index) {
+  /**
+   * Selects an item.  If addEmptyChoice is on, it adjusts for it, so that a zero index
+   * refers to first non-empty choice.
+   * @param index
+   */
+  public void setSelectedIndex(int index) {
+    if (addEmptyChoice) {
+      index++;
+    }
     comboBox.setSelectedIndex(index);
   }
 
