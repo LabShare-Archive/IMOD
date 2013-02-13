@@ -141,7 +141,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     this.expert = expert;
     this.calibrationAvailable = calibrationAvailable;
     listener = new SetupDialogActionListener(expert);
-    templatePanel = TemplatePanel.getInstance(manager, axisID, listener);
+    templatePanel = TemplatePanel.getInstance(manager, axisID, listener,"Templates");
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     ftfDataset.setFileSelectionMode(FileChooser.FILES_ONLY);
     ftfDataset.setOrigin(expert.getDatasetDir());
@@ -723,8 +723,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   private void createDataTypePanel() {
-    // local panels
-    JPanel pnlTemplate = new JPanel();
+    JPanel pnlRow2 = new JPanel();
     // init
     ftfDistortionFile.setTextPreferredWidth(505);
     ftfMagGradientFile.setTextPreferredWidth(505);
@@ -823,19 +822,20 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlImageParams.add(Box.createHorizontalGlue());
     pnlImageParams.add(Box.createRigidArea(FixedDim.x5_y0));
 
+    pnlRow2.setLayout(new BoxLayout(pnlRow2,BoxLayout.X_AXIS));
+    pnlRow2.add(templatePanel.getComponent());
+    pnlRow2.add(Box.createRigidArea(FixedDim.x2_y0));
+    pnlRow2.add(pnlDataType);
+    
     // Create Data Parameters panel
     pnlDataParameters.setLayout(new BoxLayout(pnlDataParameters, BoxLayout.Y_AXIS));
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlDataParameters.add(pnlDataset);
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlDataParameters.add(pnlTemplate);
-    pnlDataParameters.add(pnlDataType);
+    pnlDataParameters.add(pnlRow2);
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlDataParameters.add(pnlImageParams);
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
-    // template
-    pnlTemplate.setLayout(new BoxLayout(pnlTemplate, BoxLayout.Y_AXIS));
-    pnlTemplate.add(templatePanel.getComponent());
   }
 
   private void createPerAxisInfoPanel() {
