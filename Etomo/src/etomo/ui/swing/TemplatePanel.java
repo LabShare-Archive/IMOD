@@ -33,9 +33,10 @@ final class TemplatePanel {
   public static final String rcsid = "$Id:$";
 
   private final JPanel pnlRoot = new JPanel();
-  private final ComboBox cmbScopeTemplate = ComboBox.getInstance("Scope Template:");
-  private final ComboBox cmbSystemTemplate = ComboBox.getInstance("System Template:");
-  private final ComboBox cmbUserTemplate = ComboBox.getInstance("User Template:");
+  private final ComboBox cmbScopeTemplate = ComboBox.getInstance("Scope Template:", true);
+  private final ComboBox cmbSystemTemplate = ComboBox.getInstance("System Template:",
+      true);
+  private final ComboBox cmbUserTemplate = ComboBox.getInstance("User Template:", true);
 
   private File[] scopeTemplateFileList = null;
   private File[] systemTemplateFileList = null;
@@ -53,14 +54,14 @@ final class TemplatePanel {
   }
 
   static TemplatePanel getInstance(final BaseManager manager, final AxisID axisID,
-      final TemplateActionListener listener) {
+      final TemplateActionListener listener, final String title) {
     TemplatePanel instance = new TemplatePanel(manager, axisID, listener);
-    instance.createPanel();
+    instance.createPanel(title);
     instance.addListeners();
     return instance;
   }
 
-  private void createPanel() {
+  private void createPanel(final String title) {
     // init
     scopeTemplateFileList = ConfigTool.getScopeTemplateFiles();
     if (scopeTemplateFileList != null) {
@@ -81,7 +82,12 @@ final class TemplatePanel {
       }
     }
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
-    pnlRoot.setBorder(BorderFactory.createEtchedBorder());
+    if (title != null) {
+      pnlRoot.setBorder(new EtchedBorder(title).getBorder());
+    }
+    else {
+      pnlRoot.setBorder(BorderFactory.createEtchedBorder());
+    }
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y2));
     pnlRoot.add(cmbScopeTemplate.getComponent());
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y3));
@@ -144,7 +150,7 @@ final class TemplatePanel {
     return null;
   }
 
- private File getScopeTemplateFile() {
+  private File getScopeTemplateFile() {
     return getTemplateFile(cmbScopeTemplate, scopeTemplateFileList);
   }
 
@@ -156,7 +162,7 @@ final class TemplatePanel {
     return null;
   }
 
- private File getSystemTemplateFile() {
+  private File getSystemTemplateFile() {
     return getTemplateFile(cmbSystemTemplate, systemTemplateFileList);
   }
 
@@ -168,7 +174,7 @@ final class TemplatePanel {
     return null;
   }
 
- private File getUserTemplateFile() {
+  private File getUserTemplateFile() {
     return getTemplateFile(cmbUserTemplate, userTemplateFileList);
   }
 
