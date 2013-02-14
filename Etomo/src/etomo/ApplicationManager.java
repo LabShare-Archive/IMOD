@@ -494,82 +494,55 @@ public final class ApplicationManager extends BaseManager implements
           }
         }
         CopyTomoComs param = updateCopytomocoms();
-        if (!param.isUseKeywordValue()) {
-          // Run copytomocoms on the command line
-          ProcessMessages messages = processMgr.setupComScripts(AxisID.ONLY, param);
-          if (messages == null) {
-            return false;
+        // Run copytomocoms on the command line
+        ProcessMessages messages = processMgr.setupComScripts(AxisID.ONLY, param);
+        if (messages == null) {
+          return false;
+        }
+        // Send a specific INFO: message to the project log
+        if (messages.isInfo()) {
+          List<String> infoMessages = messages.getInfoList("Setting logarithm offset");
+          if (infoMessages != null && infoMessages.size() != 0) {
+            logMessage(infoMessages, "Copytomocoms", AxisID.ONLY);
           }
-          // Send a specific INFO: message to the project log
-          if (messages.isInfo()) {
-            List<String> infoMessages = messages.getInfoList("Setting logarithm offset");
-            if (infoMessages != null && infoMessages.size() != 0) {
-              logMessage(infoMessages, "Copytomocoms", AxisID.ONLY);
+          infoMessages = messages.getInfoList("Pixel spacing was set in FEI");
+          if (infoMessages != null && infoMessages.size() != 0) {
+            for (Iterator<String> i = infoMessages.iterator(); i.hasNext();) {
+              System.err.println(i.next());
             }
-            infoMessages = messages.getInfoList("Pixel spacing was set in FEI");
-            if (infoMessages != null && infoMessages.size() != 0) {
-              for (Iterator<String> i = infoMessages.iterator(); i.hasNext();) {
-                System.err.println(i.next());
+          }
+          // Create the .rawtlt file if the angle type is range. This makes it
+          // easy to display titl angles in 3dmod.
+          if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
+            try {
+              AxisType axisType = metaData.getAxisType();
+              makeRawtltFile(axisType == AxisType.DUAL_AXIS ? AxisID.FIRST : AxisID.ONLY);
+              if (axisType == AxisType.DUAL_AXIS) {
+                makeRawtltFile(AxisID.SECOND);
               }
             }
+            catch (IOException e) {
+              e.printStackTrace();
+            }
+            catch (InvalidParameterException e) {
+              e.printStackTrace();
+            }
           }
-          finishDoneSetupDialog();
-        }
-        else {
-          // Run copytomocoms in a comscript.
-          ProcessSeries processSeries = new ProcessSeries(this, DialogType.SETUP_RECON);
-          processSeries.addProcess(Task.FINISH_DONE_SETUP);
-          String threadName;
-          try {
-            threadName = processMgr.copytomocoms(AxisID.ONLY, processSeries,
-                FileType.COPYTOMOCOMS_COMSCRIPT);
-          }
-          catch (SystemProcessException e) {
-            e.printStackTrace();
-            String[] message = new String[2];
-            message[0] = "Can not execute " + ProcessName.COPYTOMOCOMS.toString()
-                + AxisID.ONLY.getExtension() + ".com";
-            message[1] = e.getMessage();
-            uiHarness.openMessageDialog(this, message, "Unable to execute com script",
-                AxisID.ONLY);
-            return false;
-          }
-          setThreadName(threadName, AxisID.ONLY);
+          processTrack.setSetupState(ProcessState.COMPLETE);
+          metaData.setComScriptCreated(true);
+          EtomoDirector.INSTANCE.renameCurrentManager(metaData.getDatasetName());
+          closeImods(ImodManager.PREVIEW_KEY, AxisID.FIRST, "Axis A preview stack");
+          closeImods(ImodManager.PREVIEW_KEY, AxisID.SECOND, "Axis B preview stack");
+          // Switch the main window to the procesing panel
+          openProcessingPanel();
+          // Free the dialog
+          setupReconUIHarness.freeDialog();
+          setupDialogExpert = null;
+          saveStorables(AxisID.ONLY);
         }
       }
     }
     return true;
-  }
-
-  void finishDoneSetupDialog() {
-    // Create the .rawtlt file if the angle type is range. This makes it
-    // easy to display titl angles in 3dmod.
-    if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
-      try {
-        AxisType axisType = metaData.getAxisType();
-        makeRawtltFile(axisType == AxisType.DUAL_AXIS ? AxisID.FIRST : AxisID.ONLY);
-        if (axisType == AxisType.DUAL_AXIS) {
-          makeRawtltFile(AxisID.SECOND);
-        }
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-      }
-      catch (InvalidParameterException e) {
-        e.printStackTrace();
-      }
-    }
-    processTrack.setSetupState(ProcessState.COMPLETE);
-    metaData.setComScriptCreated(true);
-    EtomoDirector.INSTANCE.renameCurrentManager(metaData.getDatasetName());
-    closeImods(ImodManager.PREVIEW_KEY, AxisID.FIRST, "Axis A preview stack");
-    closeImods(ImodManager.PREVIEW_KEY, AxisID.SECOND, "Axis B preview stack");
-    // Switch the main window to the procesing panel
-    openProcessingPanel();
-    // Free the dialog
-    setupReconUIHarness.freeDialog();
-    setupDialogExpert = null;
-    saveStorables(AxisID.ONLY);
   }
 
   /**
@@ -579,25 +552,16 @@ public final class ApplicationManager extends BaseManager implements
    */
   CopyTomoComs updateCopytomocoms() {
     CopyTomoComs param = null;
-    if (!setupReconUIHarness.isDirectiveDrivenAutomation()) {
-      param = new CopyTomoComs(this);
-      param.setUseKeywordValue(false);
-    }
-    else {
-      BaseProcessManager.touch(FileType.COPYTOMOCOMS_COMSCRIPT.getFile(this, AxisID.ONLY)
-          .getAbsolutePath(), this);
-      comScriptMgr.loadCopytomocoms();
-      param = comScriptMgr.getCopytomocomsParam();
-      param.setUseKeywordValue(true);
+    boolean directiveDrivenAutomation = setupReconUIHarness.isDirectiveDrivenAutomation();
+    param = new CopyTomoComs(this);
+    param.setDirectiveDrivenAutomation(directiveDrivenAutomation);
+    if (directiveDrivenAutomation) {
       param.setDirectiveFileCollection(setupReconUIHarness.getDirectiveFileCollection());
       param.setBatchDirectiveFile(setupReconUIHarness.getBatchDirectiveFile());
     }
     param.setScopeTemplate(setupReconUIHarness.getScopeTemplate());
     param.setSystemTemplate(setupReconUIHarness.getSystemTemplate());
     param.setUserTemplate(setupReconUIHarness.getUserTemplate());
-    if (setupReconUIHarness.isDirectiveDrivenAutomation()) {
-      comScriptMgr.saveCopytomocomsParam(param);
-    }
     return param;
   }
 
@@ -7787,10 +7751,6 @@ public final class ApplicationManager extends BaseManager implements
           (CcdEraserDisplay) display);
       return true;
     }
-    if (process.equals(Task.FINISH_DONE_SETUP)) {
-      finishDoneSetupDialog();
-      return true;
-    }
     return false;
   }
 
@@ -8543,17 +8503,6 @@ public final class ApplicationManager extends BaseManager implements
       return MetaData.getNewFileTitle();
     }
     return metaData.getName();
-  }
-
-  private static final class Task implements TaskInterface {
-    private static final Task FINISH_DONE_SETUP = new Task();
-
-    private Task() {
-    }
-
-    public boolean okToDrop() {
-      return true;
-    }
   }
 }
 /**
