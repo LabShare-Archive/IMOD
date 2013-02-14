@@ -248,15 +248,13 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DataSource;
 import etomo.type.EtomoNumber;
-import etomo.type.ProcessName;
 import etomo.type.TiltAngleType;
 import etomo.type.ViewType;
 import etomo.ui.swing.UIHarness;
 
-public final class CopyTomoComs implements CommandParam {
+public final class CopyTomoComs {
   public static final String rcsid = "$Id$";
 
-  private static final String SET_FEI_PIXEL_SIZE_TAG = "fei";
   private static final String CHANGE_PARAMETERS_FILE_TAG = "change";
 
   private final List<String> command = new ArrayList<String>();
@@ -272,7 +270,7 @@ public final class CopyTomoComs implements CommandParam {
   private boolean debug;
   private SystemProgram copytomocoms = null;
   private DirectiveFileCollection directiveFileCollection = null;
-  private boolean useKeywordValue = false;
+  private boolean directiveDrivenAutomation = false;
   private DirectiveFile scopeTemplate = null;
   private DirectiveFile systemTemplate = null;
   private DirectiveFile userTemplate = null;
@@ -285,21 +283,23 @@ public final class CopyTomoComs implements CommandParam {
   }
 
   public boolean setup() {
-    if (useKeywordValue) {
-      System.err
-          .println("Warning: CopyTomoComs: setup has no effect when useKeywordValue is true");
-      return true;
-    }
-    // Create a new SystemProgram object for copytomocom, set the
-    // working directory and stdin array.
-    // Do not use the -e flag for tcsh since David's scripts handle the failure
-    // of commands and then report appropriately. The exception to this is the
-    // com scripts which require the -e flag. RJG: 2003-11-06
-    command.add("python");
-    command.add("-u");
-    command.add(ApplicationManager.getIMODBinPath() + "copytomocoms");
     if (!genOptions()) {
       return false;
+    }
+    String[] params = null;
+    int size = command.size();
+    if (size == 1) {
+      params = new String[] { command.get(0) };
+    }
+    else {
+      params = command.toArray(new String[size]);
+    }
+    String[] command = new String[] {
+        ApplicationManager.getIMODBinPath() + "copytomocoms", "-StandardInput" };
+    copytomocoms = new SystemProgram(manager, manager.getPropertyUserDir(), command,
+        AxisID.ONLY);
+    if (params != null) {
+      copytomocoms.setStdInput(params);
     }
     return true;
   }
@@ -324,12 +324,12 @@ public final class CopyTomoComs implements CommandParam {
     directiveFileCollection = input;
   }
 
-  public void setUseKeywordValue(final boolean input) {
-    useKeywordValue = input;
+  public void setDirectiveDrivenAutomation(final boolean input) {
+    directiveDrivenAutomation = input;
   }
 
-  public boolean isUseKeywordValue() {
-    return useKeywordValue;
+  public boolean isDirectiveDrivenAutomation() {
+    return directiveDrivenAutomation;
   }
 
   public void setVoltage(ConstEtomoNumber input) {
@@ -350,215 +350,170 @@ public final class CopyTomoComs implements CommandParam {
    * @return
    */
   public String getCommandLine() {
-    if (useKeywordValue) {
-      return ProcessName.COPYTOMOCOMS.getComscript(AxisID.ONLY);
+    if (copytomocoms == null) {
+      return "";
+    }
+    return copytomocoms.getCommandLine();
+  }
+
+  private boolean genOptions() {
+    if (!directiveDrivenAutomation) {
+      // Copytomocoms overrides the existing .com files. Make sure that the full
+      // functionality is only used during setup.
+      if (!manager.isNewManager() && ctfFiles.isNull()) {
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "ERROR:  Attempting to rebuild .com files when setup is already completed.",
+            "Etomo Error");
+        return false;
+      }
+      boolean montage = false;
+      boolean gradient = false;
+      // Dataset name
+      command.add("name");
+      command.add(metaData.getDatasetName());
+      // View type: single or montaged
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        command.add("montage");
+        montage = true;
+      }
+      // Backup directory
+      String backupDirectory = metaData.getBackupDirectory();
+      if (!backupDirectory.equals("")) {
+        command.add("backup");
+        command.add(metaData.getBackupDirectory());
+      }
+      // Data source: CCD or film
+      if (metaData.getDataSource() == DataSource.FILM) {
+        command.add("film");
+      }
+      // Pixel size
+      command.add("pixel");
+      command.add(String.valueOf(metaData.getPixelSize()));
+      // Fiducial diameter
+      command.add("gold");
+      command.add(String.valueOf(metaData.getFiducialDiameter()));
+      // Image rotation
+      command.add("rotation");
+      command.add(String.valueOf(metaData.getImageRotation(AxisID.FIRST)));
+      // A first tilt angle and tilt angle incriment
+      if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
+        command.add("firstinc");
+        command.add(String.valueOf(metaData.getTiltAngleSpecA().getRangeMin()) + ","
+            + String.valueOf(metaData.getTiltAngleSpecA().getRangeStep()));
+      }
+      // Use an existing rawtilt file (this assumes that one is there and has
+      // not been deleted by checkTiltAngleFiles()
+      else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.FILE) {
+        command.add("userawtlt");
+      }
+      // Extract the tilt angle data from the stack
+      else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.EXTRACT) {
+        command.add("extract");
+      }
+      // List of views to exclude from processing
+      String excludeProjections = metaData.getExcludeProjectionsA();
+      if (!excludeProjections.equals("")) {
+        command.add("skip");
+        command.add(excludeProjections);
+      }
+      if (!voltage.isNull()) {
+        command.add("voltage");
+        command.add(voltage.toString());
+      }
+      if (!sphericalAberration.isNull()) {
+        command.add("Cs");
+        command.add(sphericalAberration.toString());
+      }
+      // Only create ctf files.
+      if (!ctfFiles.isNull()) {
+        command.add("-CTFfiles");
+        command.add(ctfFiles.toString());
+      }
+      // Undistort images with the given .idf file
+      String distortionFile = metaData.getDistortionFile();
+      if (!distortionFile.equals("")) {
+        command.add("distort");
+        command.add(distortionFile);
+      }
+      // Binning of raw stacks (needed to undistort if ambiguous)
+      command.add("binning");
+      command.add(String.valueOf(metaData.getBinning()));
+      // Mag gradients correction file
+      String magGradientFile = metaData.getMagGradientFile();
+      if (!magGradientFile.equals("")) {
+        command.add("gradient");
+        command.add(magGradientFile);
+        gradient = true;
+        // It is only necessary to know if the focus was adjusted between montages
+        // if a mag gradients correction file is being used.
+        if (montage && metaData.getAdjustedFocusA().is()) {
+          command.add("focus");
+        }
+      }
+
+      // Axis type: single or dual
+      if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
+        command.add("dual");
+        // B image rotation
+        command.add("brotation");
+        command.add(String.valueOf(metaData.getImageRotation(AxisID.SECOND)));
+        // B first tilt angle and tilt angle incriment
+        if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.RANGE) {
+          command.add("bfirstinc");
+          command.add(String.valueOf(metaData.getTiltAngleSpecB().getRangeMin()) + ","
+              + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
+        }
+        // Take tilt angle from a .rawtlt file - B
+        else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.FILE) {
+          command.add("buserawtlt");
+        }
+        // Extract the tilt angle data from the stack - B
+        else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.EXTRACT) {
+          command.add("-bextract");
+        }
+        // List of views to exclude from processing - B
+        excludeProjections = metaData.getExcludeProjectionsB();
+        if (!excludeProjections.equals("")) {
+          command.add("bskip");
+          command.add(excludeProjections);
+        }
+        if (montage && gradient && metaData.getAdjustedFocusB().is()) {
+          command.add("bfocus");
+        }
+      }
     }
     else {
-      if (copytomocoms == null) {
-        return "";
-      }
-      return copytomocoms.getCommandLine();
-    }
-  }
-
-  public void initializeDefaults() {
-  }
-
-  /**
-   * No parameters will be loaded
-   */
-  public void parseComScriptCommand(final ComScriptCommand scriptCommand)
-      throws BadComScriptException, FortranInputSyntaxException,
-      InvalidParameterException {
-  }
-
-  /**
-   * Update the script command with the current valus of this TiltxcorrParam
-   * object
-   * @param scriptCommand the script command to be updated
-   */
-  public void updateComScriptCommand(final ComScriptCommand scriptCommand)
-      throws BadComScriptException {
-    if (!useKeywordValue) {
-      return;
-    }
-    scriptCommand.useKeywordValue();
-    // Add options from the directive file collection.
-    if (directiveFileCollection != null) {
-      // Load the setupset.copyarg directives.
-      Iterator<Entry<String, String>> iterator = directiveFileCollection
-          .getCopyArgEntrySet().iterator();
-      if (iterator != null) {
-        while (iterator.hasNext()) {
-          Entry<String, String> entry = iterator.next();
-          ParamUtilities.updateScriptParameter(scriptCommand, entry.getKey(),
-              entry.getValue());
+      // Add options from the directive file collection.
+      if (directiveFileCollection != null) {
+        // Load the setupset.copyarg directives.
+        Iterator<Entry<String, String>> iterator = directiveFileCollection
+            .getCopyArgEntrySet().iterator();
+        if (iterator != null) {
+          while (iterator.hasNext()) {
+            Entry<String, String> entry = iterator.next();
+            command.add(entry.getKey());
+            command.add(entry.getValue());
+          }
         }
       }
     }
     if (metaData.isSetFEIPixelSize()) {
-      ParamUtilities.updateScriptParameter(scriptCommand, SET_FEI_PIXEL_SIZE_TAG, true);
-    }
-    scriptCommand.deleteKeyAll(CHANGE_PARAMETERS_FILE_TAG);
-    if (scopeTemplate != null) {
-      ParamUtilities.updateScriptParameter(scriptCommand, CHANGE_PARAMETERS_FILE_TAG,
-          scopeTemplate.getFile().getAbsolutePath());
-    }
-    if (systemTemplate != null) {
-      ParamUtilities.updateScriptParameter(scriptCommand, CHANGE_PARAMETERS_FILE_TAG,
-          systemTemplate.getFile().getAbsolutePath());
-    }
-    if (userTemplate != null) {
-      ParamUtilities.updateScriptParameter(scriptCommand, CHANGE_PARAMETERS_FILE_TAG,
-          userTemplate.getFile().getAbsolutePath());
-    }
-    if (batchDirectiveFile != null) {
-      ParamUtilities.updateScriptParameter(scriptCommand, CHANGE_PARAMETERS_FILE_TAG,
-          batchDirectiveFile.getFile().getAbsolutePath());
-    }
-  }
-
-  private boolean genOptions() {
-    // Copytomocoms overrides the existing .com files. Make sure that the full
-    // functionality is only used during setup.
-    if (!manager.isNewManager() && ctfFiles.isNull()) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "ERROR:  Attempting to rebuild .com files when setup is already completed.",
-          "Etomo Error");
-      return false;
-    }
-    boolean montage = false;
-    boolean gradient = false;
-    // Dataset name
-    command.add("-name");
-    command.add(metaData.getDatasetName());
-    // View type: single or montaged
-    if (metaData.getViewType() == ViewType.MONTAGE) {
-      command.add("-montage");
-      montage = true;
-    }
-    // Backup directory
-    String backupDirectory = metaData.getBackupDirectory();
-    if (!backupDirectory.equals("")) {
-      command.add("-backup");
-      command.add(metaData.getBackupDirectory());
-    }
-    // Data source: CCD or film
-    if (metaData.getDataSource() == DataSource.FILM) {
-      command.add("-film");
-    }
-    // Pixel size
-    command.add("-pixel");
-    command.add(String.valueOf(metaData.getPixelSize()));
-    // Fiducial diameter
-    command.add("-gold");
-    command.add(String.valueOf(metaData.getFiducialDiameter()));
-    // Image rotation
-    command.add("-rotation");
-    command.add(String.valueOf(metaData.getImageRotation(AxisID.FIRST)));
-    // A first tilt angle and tilt angle incriment
-    if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
-      command.add("-firstinc");
-      command.add(String.valueOf(metaData.getTiltAngleSpecA().getRangeMin()) + ","
-          + String.valueOf(metaData.getTiltAngleSpecA().getRangeStep()));
-    }
-    // Use an existing rawtilt file (this assumes that one is there and has
-    // not been deleted by checkTiltAngleFiles()
-    else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.FILE) {
-      command.add("-userawtlt");
-    }
-    // Extract the tilt angle data from the stack
-    else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.EXTRACT) {
-      command.add("-extract");
-    }
-    // List of views to exclude from processing
-    String excludeProjections = metaData.getExcludeProjectionsA();
-    if (!excludeProjections.equals("")) {
-      command.add("-skip");
-      command.add(excludeProjections);
-    }
-    if (!voltage.isNull()) {
-      command.add("-voltage");
-      command.add(voltage.toString());
-    }
-    if (!sphericalAberration.isNull()) {
-      command.add("-Cs");
-      command.add(sphericalAberration.toString());
-    }
-    // Only create ctf files.
-    if (!ctfFiles.isNull()) {
-      command.add("-CTFfiles");
-      command.add(ctfFiles.toString());
-    }
-    // Undistort images with the given .idf file
-    String distortionFile = metaData.getDistortionFile();
-    if (!distortionFile.equals("")) {
-      command.add("-distort");
-      command.add(distortionFile);
-    }
-    // Binning of raw stacks (needed to undistort if ambiguous)
-    command.add("-binning");
-    command.add(String.valueOf(metaData.getBinning()));
-    // Mag gradients correction file
-    String magGradientFile = metaData.getMagGradientFile();
-    if (!magGradientFile.equals("")) {
-      command.add("-gradient");
-      command.add(magGradientFile);
-      gradient = true;
-      // It is only necessary to know if the focus was adjusted between montages
-      // if a mag gradients correction file is being used.
-      if (montage && metaData.getAdjustedFocusA().is()) {
-        command.add("-focus");
-      }
-    }
-
-    // Axis type: single or dual
-    if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
-      command.add("-dual");
-      // B image rotation
-      command.add("-brotation");
-      command.add(String.valueOf(metaData.getImageRotation(AxisID.SECOND)));
-      // B first tilt angle and tilt angle incriment
-      if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.RANGE) {
-        command.add("-bfirstinc");
-        command.add(String.valueOf(metaData.getTiltAngleSpecB().getRangeMin()) + ","
-            + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
-      }
-      // Take tilt angle from a .rawtlt file - B
-      else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.FILE) {
-        command.add("-buserawtlt");
-      }
-      // Extract the tilt angle data from the stack - B
-      else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.EXTRACT) {
-        command.add("-bextract");
-      }
-      // List of views to exclude from processing - B
-      excludeProjections = metaData.getExcludeProjectionsB();
-      if (!excludeProjections.equals("")) {
-        command.add("-bskip");
-        command.add(excludeProjections);
-      }
-      if (montage && gradient && metaData.getAdjustedFocusB().is()) {
-        command.add("-bfocus");
-      }
-    }
-    if (metaData.isSetFEIPixelSize()) {
-      command.add("-" + SET_FEI_PIXEL_SIZE_TAG);
+      command.add("fei");
     }
     if (scopeTemplate != null) {
-      command.add("-" + CHANGE_PARAMETERS_FILE_TAG);
+      command.add(CHANGE_PARAMETERS_FILE_TAG);
       command.add(scopeTemplate.getFile().getAbsolutePath());
     }
     if (systemTemplate != null) {
-      command.add("-" + CHANGE_PARAMETERS_FILE_TAG);
+      command.add(CHANGE_PARAMETERS_FILE_TAG);
       command.add(systemTemplate.getFile().getAbsolutePath());
     }
     if (userTemplate != null) {
-      command.add("-" + CHANGE_PARAMETERS_FILE_TAG);
+      command.add(CHANGE_PARAMETERS_FILE_TAG);
       command.add(userTemplate.getFile().getAbsolutePath());
     }
     if (batchDirectiveFile != null) {
-      command.add("-" + CHANGE_PARAMETERS_FILE_TAG);
+      command.add(CHANGE_PARAMETERS_FILE_TAG);
       command.add(batchDirectiveFile.getFile().getAbsolutePath());
     }
     // Options removed:
