@@ -1279,17 +1279,6 @@ public class ProcessManager extends BaseProcessManager {
     return comScriptProcess.getName();
   }
 
-  /**
-   * Run copytomocoms.com
-   */
-  public String copytomocoms(AxisID axisID, final ProcessSeries processSeries,
-      final FileType fileType) throws SystemProcessException {
-    String command = fileType.getFileName(appManager, axisID);
-    ComScriptProcess comScriptProcess = startComScript(command, axisID, processSeries,
-        fileType);
-    return comScriptProcess.getName();
-  }
-
   public String makeDistortionCorrectedStack(AxisID axisID,
       ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries)
       throws SystemProcessException {
