@@ -75,6 +75,8 @@ final class TemplatePanel {
         cmbSystemTemplate.addItem(systemTemplateFileList[i].getName());
       }
     }
+    //If the user template directory is in a different directory from the location of the
+    //default user template, the user template will not be loaded.
     userTemplateFileList = ConfigTool.getUserTemplateFiles();
     if (userTemplateFileList != null) {
       for (int i = 0; i < userTemplateFileList.length; i++) {
