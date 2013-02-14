@@ -445,7 +445,6 @@ public final class ComScriptManager extends BaseComScriptManager {
   private ComScript scriptAutofidseedB;
   private ComScript scriptGoldEraserA;
   private ComScript scriptGoldEraserB;
-  private ComScript scriptCopytomocoms;
 
   public ComScriptManager(ApplicationManager appManager) {
     super(appManager);
@@ -483,23 +482,6 @@ public final class ComScriptManager extends BaseComScriptManager {
         FileType.GOLD_ERASER_COMSCRIPT.getFileName(appManager, axisID), axisID, true,
         required, false, false);
     return scriptGoldEraserA != null;
-  }
-
-  public void loadCopytomocoms() {
-    scriptCopytomocoms = loadComScript(ProcessName.COPYTOMOCOMS.toString(), AxisID.ONLY,
-        true, true, false, false);
-  }
-
-  public CopyTomoComs getCopytomocomsParam() {
-    CopyTomoComs param = new CopyTomoComs(appManager);
-    initialize(param, scriptCopytomocoms, ProcessName.COPYTOMOCOMS.toString(), AxisID.ONLY, false,
-        false);
-    return param;
-  }
-
-  public void saveCopytomocomsParam(final CopyTomoComs param) {
-    modifyCommand(scriptCopytomocoms, param, ProcessName.COPYTOMOCOMS.toString(), AxisID.ONLY,
-        false, false);
   }
 
   /**
