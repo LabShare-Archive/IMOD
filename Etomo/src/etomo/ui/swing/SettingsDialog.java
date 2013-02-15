@@ -2,6 +2,7 @@ package etomo.ui.swing;
 
 import java.awt.GraphicsEnvironment;
 import java.awt.event.*;
+import java.io.File;
 import java.util.Vector;
 
 import javax.swing.*;
@@ -74,7 +75,8 @@ public final class SettingsDialog extends JDialog {
 
   private SettingsDialog(final BaseManager manager, final String propertyUserDir) {
     this.propertyUserDir = propertyUserDir;
-    templatePanel = TemplatePanel.getInstance(manager, AxisID.ONLY, listener,"Default Templates");
+    templatePanel = TemplatePanel.getInstance(manager, AxisID.ONLY, listener,
+        "Default Templates", this);
   }
 
   public static SettingsDialog getInstance(final BaseManager manager,
@@ -246,6 +248,21 @@ public final class SettingsDialog extends JDialog {
     listFontFamily.setSelectedIndex(fontFamilies.getIndex(currentFontFamily));
     ltfFontSize.setText(currentFontSize);
     updateDisplay();
+  }
+
+  boolean equalsUserTemplateDir(final File input) {
+    File userTemplateDir = ltfUserTemplateDir.getFile();
+    if (userTemplateDir == null && input == null) {
+      return true;
+    }
+    if (userTemplateDir == null) {
+      return false;
+    }
+    return userTemplateDir.equals(input);
+  }
+
+  File getUserTemplateDir() {
+    return ltfUserTemplateDir.getFile();
   }
 
   public void getParameters(final UserConfiguration userConfig) {
