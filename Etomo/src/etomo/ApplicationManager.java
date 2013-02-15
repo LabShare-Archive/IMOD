@@ -511,37 +511,37 @@ public final class ApplicationManager extends BaseManager implements
               System.err.println(i.next());
             }
           }
-          // Create the .rawtlt file if the angle type is range. This makes it
-          // easy to display titl angles in 3dmod.
-          if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
-            try {
-              AxisType axisType = metaData.getAxisType();
-              makeRawtltFile(axisType == AxisType.DUAL_AXIS ? AxisID.FIRST : AxisID.ONLY);
-              if (axisType == AxisType.DUAL_AXIS) {
-                makeRawtltFile(AxisID.SECOND);
-              }
-            }
-            catch (IOException e) {
-              e.printStackTrace();
-            }
-            catch (InvalidParameterException e) {
-              e.printStackTrace();
+        }
+        // Create the .rawtlt file if the angle type is range. This makes it
+        // easy to display titl angles in 3dmod.
+        if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
+          try {
+            AxisType axisType = metaData.getAxisType();
+            makeRawtltFile(axisType == AxisType.DUAL_AXIS ? AxisID.FIRST : AxisID.ONLY);
+            if (axisType == AxisType.DUAL_AXIS) {
+              makeRawtltFile(AxisID.SECOND);
             }
           }
-          processTrack.setSetupState(ProcessState.COMPLETE);
-          metaData.setComScriptCreated(true);
-          EtomoDirector.INSTANCE.renameCurrentManager(metaData.getDatasetName());
-          closeImods(ImodManager.PREVIEW_KEY, AxisID.FIRST, "Axis A preview stack");
-          closeImods(ImodManager.PREVIEW_KEY, AxisID.SECOND, "Axis B preview stack");
-          // Switch the main window to the procesing panel
-          openProcessingPanel();
-          // Free the dialog
-          setupReconUIHarness.freeDialog();
-          setupDialogExpert = null;
-          saveStorables(AxisID.ONLY);
+          catch (IOException e) {
+            e.printStackTrace();
+          }
+          catch (InvalidParameterException e) {
+            e.printStackTrace();
+          }
         }
       }
+      processTrack.setSetupState(ProcessState.COMPLETE);
+      metaData.setComScriptCreated(true);
+      EtomoDirector.INSTANCE.renameCurrentManager(metaData.getDatasetName());
+      closeImods(ImodManager.PREVIEW_KEY, AxisID.FIRST, "Axis A preview stack");
+      closeImods(ImodManager.PREVIEW_KEY, AxisID.SECOND, "Axis B preview stack");
     }
+    // Switch the main window to the procesing panel
+    openProcessingPanel();
+    // Free the dialog
+    setupReconUIHarness.freeDialog();
+    setupDialogExpert = null;
+    saveStorables(AxisID.ONLY);
     return true;
   }
 
