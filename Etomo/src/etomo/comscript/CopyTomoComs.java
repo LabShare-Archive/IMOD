@@ -369,8 +369,7 @@ public final class CopyTomoComs {
       boolean montage = false;
       boolean gradient = false;
       // Dataset name
-      command.add("name");
-      command.add(metaData.getDatasetName());
+      command.add("name " + metaData.getDatasetName());
       // View type: single or montaged
       if (metaData.getViewType() == ViewType.MONTAGE) {
         command.add("montage");
@@ -379,26 +378,22 @@ public final class CopyTomoComs {
       // Backup directory
       String backupDirectory = metaData.getBackupDirectory();
       if (!backupDirectory.equals("")) {
-        command.add("backup");
-        command.add(metaData.getBackupDirectory());
+        command.add("backup " + metaData.getBackupDirectory());
       }
       // Data source: CCD or film
       if (metaData.getDataSource() == DataSource.FILM) {
         command.add("film");
       }
       // Pixel size
-      command.add("pixel");
-      command.add(String.valueOf(metaData.getPixelSize()));
+      command.add("pixel " + String.valueOf(metaData.getPixelSize()));
       // Fiducial diameter
-      command.add("gold");
-      command.add(String.valueOf(metaData.getFiducialDiameter()));
+      command.add("gold " + String.valueOf(metaData.getFiducialDiameter()));
       // Image rotation
-      command.add("rotation");
-      command.add(String.valueOf(metaData.getImageRotation(AxisID.FIRST)));
+      command.add("rotation " + String.valueOf(metaData.getImageRotation(AxisID.FIRST)));
       // A first tilt angle and tilt angle incriment
       if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
-        command.add("firstinc");
-        command.add(String.valueOf(metaData.getTiltAngleSpecA().getRangeMin()) + ","
+        command.add("firstinc "
+            + String.valueOf(metaData.getTiltAngleSpecA().getRangeMin()) + ","
             + String.valueOf(metaData.getTiltAngleSpecA().getRangeStep()));
       }
       // Use an existing rawtilt file (this assumes that one is there and has
@@ -413,36 +408,29 @@ public final class CopyTomoComs {
       // List of views to exclude from processing
       String excludeProjections = metaData.getExcludeProjectionsA();
       if (!excludeProjections.equals("")) {
-        command.add("skip");
-        command.add(excludeProjections);
+        command.add("skip " + excludeProjections);
       }
       if (!voltage.isNull()) {
-        command.add("voltage");
-        command.add(voltage.toString());
+        command.add("voltage " + voltage.toString());
       }
       if (!sphericalAberration.isNull()) {
-        command.add("Cs");
-        command.add(sphericalAberration.toString());
+        command.add("Cs " + sphericalAberration.toString());
       }
       // Only create ctf files.
       if (!ctfFiles.isNull()) {
-        command.add("-CTFfiles");
-        command.add(ctfFiles.toString());
+        command.add("-CTFfiles " + ctfFiles.toString());
       }
       // Undistort images with the given .idf file
       String distortionFile = metaData.getDistortionFile();
       if (!distortionFile.equals("")) {
-        command.add("distort");
-        command.add(distortionFile);
+        command.add("distort " + distortionFile);
       }
       // Binning of raw stacks (needed to undistort if ambiguous)
-      command.add("binning");
-      command.add(String.valueOf(metaData.getBinning()));
+      command.add("binning " + String.valueOf(metaData.getBinning()));
       // Mag gradients correction file
       String magGradientFile = metaData.getMagGradientFile();
       if (!magGradientFile.equals("")) {
-        command.add("gradient");
-        command.add(magGradientFile);
+        command.add("gradient " + magGradientFile);
         gradient = true;
         // It is only necessary to know if the focus was adjusted between montages
         // if a mag gradients correction file is being used.
@@ -455,12 +443,12 @@ public final class CopyTomoComs {
       if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
         command.add("dual");
         // B image rotation
-        command.add("brotation");
-        command.add(String.valueOf(metaData.getImageRotation(AxisID.SECOND)));
+        command.add("brotation "
+            + String.valueOf(metaData.getImageRotation(AxisID.SECOND)));
         // B first tilt angle and tilt angle incriment
         if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.RANGE) {
-          command.add("bfirstinc");
-          command.add(String.valueOf(metaData.getTiltAngleSpecB().getRangeMin()) + ","
+          command.add("bfirstinc "
+              + String.valueOf(metaData.getTiltAngleSpecB().getRangeMin()) + ","
               + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
         }
         // Take tilt angle from a .rawtlt file - B
@@ -469,13 +457,12 @@ public final class CopyTomoComs {
         }
         // Extract the tilt angle data from the stack - B
         else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.EXTRACT) {
-          command.add("-bextract");
+          command.add("bextract");
         }
         // List of views to exclude from processing - B
         excludeProjections = metaData.getExcludeProjectionsB();
         if (!excludeProjections.equals("")) {
-          command.add("bskip");
-          command.add(excludeProjections);
+          command.add("bskip " + excludeProjections);
         }
         if (montage && gradient && metaData.getAdjustedFocusB().is()) {
           command.add("bfocus");
@@ -491,8 +478,7 @@ public final class CopyTomoComs {
         if (iterator != null) {
           while (iterator.hasNext()) {
             Entry<String, String> entry = iterator.next();
-            command.add(entry.getKey());
-            command.add(entry.getValue());
+            command.add(entry.getKey() + " " + entry.getValue());
           }
         }
       }
@@ -501,20 +487,20 @@ public final class CopyTomoComs {
       command.add("fei");
     }
     if (scopeTemplate != null) {
-      command.add(CHANGE_PARAMETERS_FILE_TAG);
-      command.add(scopeTemplate.getFile().getAbsolutePath());
+      command.add(CHANGE_PARAMETERS_FILE_TAG + " "
+          + scopeTemplate.getFile().getAbsolutePath());
     }
     if (systemTemplate != null) {
-      command.add(CHANGE_PARAMETERS_FILE_TAG);
-      command.add(systemTemplate.getFile().getAbsolutePath());
+      command.add(CHANGE_PARAMETERS_FILE_TAG + " "
+          + systemTemplate.getFile().getAbsolutePath());
     }
     if (userTemplate != null) {
-      command.add(CHANGE_PARAMETERS_FILE_TAG);
-      command.add(userTemplate.getFile().getAbsolutePath());
+      command.add(CHANGE_PARAMETERS_FILE_TAG + " "
+          + userTemplate.getFile().getAbsolutePath());
     }
     if (batchDirectiveFile != null) {
-      command.add(CHANGE_PARAMETERS_FILE_TAG);
-      command.add(batchDirectiveFile.getFile().getAbsolutePath());
+      command.add(CHANGE_PARAMETERS_FILE_TAG + " "
+          + batchDirectiveFile.getFile().getAbsolutePath());
     }
     // Options removed:
     // CCDEraser and local alignment entries
