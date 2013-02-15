@@ -63,13 +63,6 @@ public class DirectiveFileCollection implements SetupReconInterface {
     return false;
   }
 
-  /**
-   * Returns null if the attribute called name is not there.  Returns an empty string if
-   * this attribute is there and it has no value.
-   * @param parentName
-   * @param name
-   * @return
-   */
   private String getValue(final DirectiveFile.AttributeName parentName, final String name) {
     String value = null;
     for (int i = 0; i < directiveFileArray.length; i++) {
@@ -247,22 +240,39 @@ public class DirectiveFileCollection implements SetupReconInterface {
 
   public void setScopeTemplate(final String filePath) {
     if (filePath != null) {
+      File file = new File(filePath);
+      if (!file.isAbsolute()) {
+        System.err
+            .println("Error:  the scope template in the batch directive file has a "
+                + "relative path.  File path may be wrong:" + file.getAbsolutePath());
+      }
       directiveFileArray[OverrideOrder.SCOPE.index] = DirectiveFile.getInstance(manager,
-          axisID, new File(filePath));
+          axisID, file);
     }
   }
 
   public void setSystemTemplate(final String filePath) {
     if (filePath != null) {
+      File file = new File(filePath);
+      if (!file.isAbsolute()) {
+        System.err
+            .println("Error:  the system template in the batch directive file has a "
+                + "relative path.  File path may be wrong:" + file.getAbsolutePath());
+      }
       directiveFileArray[OverrideOrder.SYSTEM.index] = DirectiveFile.getInstance(manager,
-          axisID, new File(filePath));
+          axisID, file);
     }
   }
 
   public void setUserTemplate(final String filePath) {
     if (filePath != null) {
+      File file = new File(filePath);
+      if (!file.isAbsolute()) {
+        System.err.println("Error:  the user template in the batch directive file has a "
+            + "relative path.  File path may be wrong:" + file.getAbsolutePath());
+      }
       directiveFileArray[OverrideOrder.USER.index] = DirectiveFile.getInstance(manager,
-          axisID, new File(filePath));
+          axisID, file);
     }
   }
 
