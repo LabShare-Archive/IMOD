@@ -141,7 +141,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     this.expert = expert;
     this.calibrationAvailable = calibrationAvailable;
     listener = new SetupDialogActionListener(expert);
-    templatePanel = TemplatePanel.getInstance(manager, axisID, listener,"Templates");
+    templatePanel = TemplatePanel.getInstance(manager, axisID, listener, "Templates",
+        null);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     ftfDataset.setFileSelectionMode(FileChooser.FILES_ONLY);
     ftfDataset.setOrigin(expert.getDatasetDir());
@@ -198,8 +199,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   public void done() {
-    if (applicationManager.doneSetupDialog(
-        expert.getExitState() == DialogExitState.EXECUTE)) {
+    if (applicationManager
+        .doneSetupDialog(expert.getExitState() == DialogExitState.EXECUTE)) {
       setDisplayed(false);
     }
   }
@@ -266,41 +267,42 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   private void updateTemplateValues(final DirectiveFile template) {
-    System.out.println("A");
-    if (template.isDual()) {
-      rbDualAxis.setSelected(true);
+    if (template.containsDual()) {
+      rbDualAxis.setSelected(template.isDual());
     }
-    else {
-      rbSingleAxis.setSelected(true);
-
-    }
-    if (template.isSingleAxisSelected()) {
-      rbSingleView.setSelected(true);
-    }
-    else {
-      rbMontage.setSelected(true);
+    if (template.containsMontage()) {
+      rbMontage.setSelected(template.isMontage());
     }
     if (template.containsPixel()) {
-      ltfPixelSize.setText(template.getPixelSize(false));
+      ltfPixelSize.setText(template.getPixel(false));
     }
     if (template.containsGold()) {
-      ltfFiducialDiameter.setText(template.getFiducialDiameter(false));
+      ltfFiducialDiameter.setText(template.getGold(false));
     }
     if (template.containsRotation()) {
-      ltfImageRotation.setText(template.getImageRotation(AxisID.FIRST, false));
+      ltfImageRotation.setText(template.getRotation(AxisID.FIRST, false));
     }
     expert.updateTiltAnglePanelTemplateValues(template);
     if (template.containsDistort()) {
-      ftfDistortionFile.setText(template.getDistortionFile());
+      ftfDistortionFile.setText(template.getDistort());
     }
     if (template.containsBinning()) {
-      spnBinning.setValue(template.getIntBinning());
+      if (template.getBinning() == null) {
+        spnBinning.setValue(1);
+      }
+      else {
+        spnBinning.setValue(template.getIntBinning());
+      }
     }
     if (template.containsGradient()) {
-      ftfMagGradientFile.setText(template.getMagGradientFile());
+      ftfMagGradientFile.setText(template.getGradient());
     }
-    cbAdjustedFocusA.setSelected(template.isAdjustedFocusSelected(AxisID.FIRST));
-    cbAdjustedFocusB.setSelected(template.isAdjustedFocusSelected(AxisID.SECOND));
+    if (template.containsFocus(AxisID.FIRST)) {
+      cbAdjustedFocusA.setSelected(template.isFocus(AxisID.FIRST));
+    }
+    if (template.containsFocus(AxisID.SECOND)) {
+      cbAdjustedFocusB.setSelected(template.isFocus(AxisID.SECOND));
+    }
   }
 
   private void viewRawStackA() {
@@ -822,11 +824,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlImageParams.add(Box.createHorizontalGlue());
     pnlImageParams.add(Box.createRigidArea(FixedDim.x5_y0));
 
-    pnlRow2.setLayout(new BoxLayout(pnlRow2,BoxLayout.X_AXIS));
+    pnlRow2.setLayout(new BoxLayout(pnlRow2, BoxLayout.X_AXIS));
     pnlRow2.add(templatePanel.getComponent());
     pnlRow2.add(Box.createRigidArea(FixedDim.x2_y0));
     pnlRow2.add(pnlDataType);
-    
+
     // Create Data Parameters panel
     pnlDataParameters.setLayout(new BoxLayout(pnlDataParameters, BoxLayout.Y_AXIS));
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
