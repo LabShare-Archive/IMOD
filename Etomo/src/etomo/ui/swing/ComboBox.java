@@ -2,6 +2,7 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusListener;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -97,6 +98,10 @@ final class ComboBox {
 
   public void addActionListener(final ActionListener listener) {
     comboBox.addActionListener(listener);
+  }
+
+  public void addFocusListener(final FocusListener listener) {
+    comboBox.addFocusListener(listener);
   }
 
   public void addItem(final Object input) {
