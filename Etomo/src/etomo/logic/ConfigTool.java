@@ -90,11 +90,18 @@ public final class ConfigTool {
   /**
    * Returns a sorted list of the user template files.  User template files are stored
    * either in .etomotemplate, or in a directory specified in the Settings dialog.
+   * @param newUserTemplateDir overrides the user template director from User Configuration
    * @return
    */
-  public static File[] getUserTemplateFiles() {
+  public static File[] getUserTemplateFiles(final File newUserTemplateDir) {
     UserConfiguration userConfig = EtomoDirector.INSTANCE.getUserConfiguration();
-    String userTemplateDirPath = userConfig.getUserTemplateDir();
+    String userTemplateDirPath = null;
+    if (newUserTemplateDir != null) {
+      userTemplateDirPath = newUserTemplateDir.getAbsolutePath();
+    }
+    else {
+      userTemplateDirPath = userConfig.getUserTemplateDir();
+    }
     File dir = null;
     if (userTemplateDirPath != null) {
       dir = new File(userTemplateDirPath);
