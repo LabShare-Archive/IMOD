@@ -290,11 +290,7 @@ public final class DirectiveFile {
     if (attribute == null) {
       return null;
     }
-    String value = attribute.getValue();
-    if (value == null) {
-      return "";
-    }
-    return value;
+    return attribute.getValue();
   }
 
   /**
@@ -335,19 +331,23 @@ public final class DirectiveFile {
    * @return
    */
   static boolean toBoolean(final String value) {
+    if (value == null) {
+      System.err.println("Error: Null boolean value");
+      Thread.dumpStack();
+      return false;
+    }
     if (value.equals("0")) {
       return false;
     }
+    else if (value.equals("1")) {
+      return true;
+    }
+    System.err.println("Error: incorrect boolean value: " + value
+        + ".  Valid boolean values are 0 or 1.  Treating value as 1.");
+    Thread.dumpStack();
     return true;
   }
 
-  /**
-   * Returns null if the attribute called name is not there.  Returns an empty string if
-   * this attribute is there and it has no value.
-   * @param parentName
-   * @param name
-   * @return
-   */
   private String getValue(final ReadOnlyAttribute parent, final String axisName,
       final String name) {
     if (parent == null) {
@@ -361,11 +361,7 @@ public final class DirectiveFile {
     if (attribute == null) {
       return null;
     }
-    String value = attribute.getValue();
-    if (value == null) {
-      return "";
-    }
-    return value;
+    return attribute.getValue();
   }
 
   public boolean containsAlignedStackBinByFactor(final AxisID axisID) {
@@ -391,6 +387,10 @@ public final class DirectiveFile {
     return containsAttribute(AttributeName.COPY_ARG, DISTORT_NAME);
   }
 
+  public boolean containsDual() {
+    return containsAttribute(AttributeName.COPY_ARG, DUAL_NAME);
+  }
+
   public boolean containsFiducialsFiducialless(final AxisID axisID) {
     return containsAttribute(AttributeName.RUN_TIME, FIDUCIALS_NAME, axisID,
         FIDUCIALLESS_NAME);
@@ -404,6 +404,11 @@ public final class DirectiveFile {
   public boolean containsFiducialsTrackingMethod(final AxisID axisID) {
     return containsAttribute(AttributeName.RUN_TIME, FIDUCIALS_NAME, axisID,
         TRACKING_METHOD_NAME);
+  }
+
+  public boolean containsFocus(final AxisID axisID) {
+    return containsAttribute(AttributeName.COPY_ARG,
+        convertAttributeName(axisID, FOCUS_NAME));
   }
 
   public boolean containsGold() {
@@ -422,6 +427,10 @@ public final class DirectiveFile {
 
   public boolean containsGradient() {
     return containsAttribute(AttributeName.COPY_ARG, GRADIENT_NAME);
+  }
+
+  public boolean containsMontage() {
+    return containsAttribute(AttributeName.COPY_ARG, MONTAGE_NAME);
   }
 
   public boolean containsPixel() {
@@ -486,6 +495,10 @@ public final class DirectiveFile {
         + SIZE_IN_X_AND_Y_NAME;
   }
 
+  public String getBinning() {
+    return getValue(AttributeName.COPY_ARG, BINNING_NAME);
+  }
+
   Iterator<Entry<String, String>> getCopyArgExtraValuesIterator() {
     return copyArgExtraValues.entrySet().iterator();
   }
@@ -508,14 +521,14 @@ public final class DirectiveFile {
         + AUTO_FIT_RANGE_AND_STEP_NAME;
   }
 
-  public String getDistortionFile() {
+  public String getDistort() {
     return getValue(AttributeName.COPY_ARG, DISTORT_NAME);
   }
 
   /**
    * @param doValidation has no effect
    */
-  public String getFiducialDiameter(final boolean doValidation) {
+  public String getGold(final boolean doValidation) {
     return getValue(AttributeName.COPY_ARG, GOLD_NAME);
   }
 
@@ -544,7 +557,7 @@ public final class DirectiveFile {
   /**
    * @param doValidation has no effect
    */
-  public String getImageRotation(final AxisID axisID, final boolean doValidation) {
+  public String getRotation(final AxisID axisID, final boolean doValidation) {
     return getValue(AttributeName.COPY_ARG, convertAttributeName(axisID, ROTATION_NAME));
   }
 
@@ -561,11 +574,11 @@ public final class DirectiveFile {
     return 1;
   }
 
-  public String getMagGradientFile() {
+  public String getGradient() {
     return getValue(AttributeName.COPY_ARG, GRADIENT_NAME);
   }
 
-  public String getPixelSize(final boolean doValidation) {
+  public String getPixel(final boolean doValidation) {
     return getValue(AttributeName.COPY_ARG, PIXEL_NAME);
   }
 
@@ -631,7 +644,11 @@ public final class DirectiveFile {
     return true;
   }
 
-  public boolean isAdjustedFocusSelected(final AxisID axisID) {
+  public boolean isDual() {
+    return isValue(AttributeName.COPY_ARG, DUAL_NAME);
+  }
+
+  public boolean isFocus(final AxisID axisID) {
     return isValue(AttributeName.COPY_ARG, convertAttributeName(axisID, FOCUS_NAME));
   }
 
@@ -639,8 +656,8 @@ public final class DirectiveFile {
     return isValue(AttributeName.RUN_TIME, FIDUCIALS_NAME, axisID, FIDUCIALLESS_NAME);
   }
 
-  public boolean isDual() {
-    return isValue(AttributeName.COPY_ARG, DUAL_NAME);
+  public boolean isMontage() {
+    return isValue(AttributeName.COPY_ARG, MONTAGE_NAME);
   }
 
   public boolean isPositioningWholeTomogram(final AxisID axisID) {
@@ -653,10 +670,6 @@ public final class DirectiveFile {
 
   public boolean isReconstructionUseSirt(final AxisID axisID) {
     return isValue(AttributeName.RUN_TIME, RECONSTRUCTION_NAME, axisID, USE_SIRT_NAME);
-  }
-
-  public boolean isSingleAxisSelected() {
-    return !isDual();
   }
 
   public void setBinning(final int input) {
