@@ -1,6 +1,8 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.io.File;
 
 import javax.swing.BorderFactory;
@@ -38,24 +40,28 @@ final class TemplatePanel {
       true);
   private final ComboBox cmbUserTemplate = ComboBox.getInstance("User Template:", true);
 
-  private File[] scopeTemplateFileList = null;
-  private File[] systemTemplateFileList = null;
-  private File[] userTemplateFileList = null;
-
   private final TemplateActionListener listener;
   private final BaseManager manager;
   private final AxisID axisID;
+  final SettingsDialog settings;
+
+  private File[] scopeTemplateFileList = null;
+  private File[] systemTemplateFileList = null;
+  private File[] userTemplateFileList = null;
+  private File newUserTemplateDir = null;
 
   private TemplatePanel(final BaseManager manager, final AxisID axisID,
-      final TemplateActionListener listener) {
+      final TemplateActionListener listener, final SettingsDialog settings) {
     this.listener = listener;
     this.manager = manager;
     this.axisID = axisID;
+    this.settings = settings;
   }
 
   static TemplatePanel getInstance(final BaseManager manager, final AxisID axisID,
-      final TemplateActionListener listener, final String title) {
-    TemplatePanel instance = new TemplatePanel(manager, axisID, listener);
+      final TemplateActionListener listener, final String title,
+      final SettingsDialog settings) {
+    TemplatePanel instance = new TemplatePanel(manager, axisID, listener, settings);
     instance.createPanel(title);
     instance.addListeners();
     return instance;
@@ -75,14 +81,7 @@ final class TemplatePanel {
         cmbSystemTemplate.addItem(systemTemplateFileList[i].getName());
       }
     }
-    //If the user template directory is in a different directory from the location of the
-    //default user template, the user template will not be loaded.
-    userTemplateFileList = ConfigTool.getUserTemplateFiles();
-    if (userTemplateFileList != null) {
-      for (int i = 0; i < userTemplateFileList.length; i++) {
-        cmbUserTemplate.addItem(userTemplateFileList[i].getName());
-      }
-    }
+    loadUserTemplate();
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     if (title != null) {
       pnlRoot.setBorder(new EtchedBorder(title).getBorder());
@@ -103,10 +102,24 @@ final class TemplatePanel {
     cmbScopeTemplate.addActionListener(listener);
     cmbSystemTemplate.addActionListener(listener);
     cmbUserTemplate.addActionListener(listener);
+    cmbUserTemplate.addFocusListener(new TemplateFocusListener(this));
   }
 
   Component getComponent() {
     return pnlRoot;
+  }
+
+  private void loadUserTemplate() {
+    userTemplateFileList = null;
+    cmbUserTemplate.removeAllItems();
+    // If the user template directory is in a different directory from the location of the
+    // default user template, the user template will not be loaded.
+    userTemplateFileList = ConfigTool.getUserTemplateFiles(newUserTemplateDir);
+    if (userTemplateFileList != null) {
+      for (int i = 0; i < userTemplateFileList.length; i++) {
+        cmbUserTemplate.addItem(userTemplateFileList[i].getName());
+      }
+    }
   }
 
   private File getTemplateFile(final ComboBox cmbTemplate, final File[] templateFileList) {
@@ -180,6 +193,16 @@ final class TemplatePanel {
     return getTemplateFile(cmbUserTemplate, userTemplateFileList);
   }
 
+  private void focusGained() {
+    // Only listening to user template combobox
+    if (settings != null && !settings.equalsUserTemplateDir(newUserTemplateDir)) {
+      // If a new user template directory has been entered, reload the user template combo
+      // box.
+      newUserTemplateDir = settings.getUserTemplateDir();
+      loadUserTemplate();
+    }
+  }
+
   boolean isAppearanceSettingChanged(final UserConfiguration userConfig) {
     if (!userConfig.equalsScopeTemplate(getScopeTemplateFile())
         || !userConfig.equalsSystemTemplate(getSystemTemplateFile())
@@ -199,6 +222,21 @@ final class TemplatePanel {
     }
     if (userConfig.isUserTemplateSet()) {
       setTemplate(userConfig.getUserTemplate(), userTemplateFileList, cmbUserTemplate);
+    }
+  }
+
+  private static final class TemplateFocusListener implements FocusListener {
+    private final TemplatePanel template;
+
+    TemplateFocusListener(final TemplatePanel template) {
+      this.template = template;
+    }
+
+    public void focusGained(final FocusEvent e) {
+      template.focusGained();
+    }
+
+    public void focusLost(final FocusEvent e) {
     }
   }
 }
