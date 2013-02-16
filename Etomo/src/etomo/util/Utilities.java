@@ -880,6 +880,9 @@ public class Utilities {
    * Copy a file using the fastest method available.
    */
   public static void copyFile(File source, File destination) throws IOException {
+    if (source != null && source.equals(destination)) {
+      return;
+    }
     // Try using the nio method but if it fails fall back to BufferedFileReader/
     // BufferedFileWriter approach
     String actionMessage = prepareCopyActionMessage(source, destination);
