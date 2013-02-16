@@ -69,7 +69,7 @@ except ImodpyError:
    prnstr("""There is no java runtime in the current search path.  A Java runtime
 environment needs to be installed and the command search path needs
 to be defined to locate the java command.""")
-   sys.exit(0)
+   sys.exit(1)
 
 for line in verslines:
    if line.find('GNU') >= 0:
@@ -79,7 +79,7 @@ command search path"""
       if os.getenv('IMOD_JAVADIR') != None:
          errstr += " or make a link to it from " + os.environ['IMOD_JAVADIR']
       prnstr(errstr)
-      sys.exit(0)
+      sys.exit(1)
 
    if re.search(r'ersion.*1\.4', line):
       errstr = "You are trying to run a 1.4 version of Java"
@@ -94,7 +94,7 @@ put it on your command search path, or point IMOD_JAVADIR to it"""
       if os.getenv('IMOD_JAVADIR') != None:
          errstr += " or make a link to it from " + os.environ['IMOD_JAVADIR']
       prnstr(errstr)
-      sys.exit(0)
+      sys.exit(1)
 
 # In cygwin, put bin on front of path and make sure python is installed
 cygbin = ''
@@ -125,7 +125,7 @@ if cygbin and not os.path.exists(os.path.join(cygbin, 'python.exe')):
          prnstr('It does not work to have a Cygwin link from python to python2.x.exe')
    else:
       prnstr("You must have python installed in Cygwin in order to use eTomo")
-   sys.exit(0)
+   sys.exit(1)
 
 if cygbin:
    try:

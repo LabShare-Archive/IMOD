@@ -207,14 +207,16 @@ def lookupDirective(prefix, option, startDct, valType):
          return 0
       return None
 
-   # Otherwise return 1 for a boolean unless it is specifically 0, or return the
+   # Otherwise return 1 for a boolean only if it is specifically 1, or return the
    # converted value, or the string
    value = allDirectives[bestDict][keys[bestKeyInd]][0]
    if valType == BOOL_VALUE:
-      if value == '0':
-         return 0
-      return 1
+      if value == '1':
+         return 1
+      return 0
    elif valType == INT_VALUE or valType == FLOAT_VALUE:
+      if value == '':
+         return None
       try:
          if valType == INT_VALUE:
             numval = int(value)
@@ -617,6 +619,7 @@ def processValidationFile():
             continue
          batchOK = len(line) > 3 and line[3] == 'Y'
          templateOK = len(line) > 4 and line[4] == 'Y'
+         isBool = len(line) > 2 and line[2].lower() == 'bool'
          if lsplit[0] == comPref:
             if len(lsplit) < 4:
                continue
@@ -626,16 +629,16 @@ def processValidationFile():
                baseComDict[combase + 'a'] = combase
                baseComDict[combase + 'b'] = combase
             key = lsplit[1] + '.' + lsplit[2] + '.' + lsplit[3]
-            validComDict[key.lower()] = (key, templateOK, batchOK)
+            validComDict[key.lower()] = (key, templateOK, batchOK, isBool)
 
          elif lsplit[0] == runPref:
             if len(lsplit) < 4:
                continue
             key = lsplit[1] + '.' + lsplit[3]
-            validRunDict[key.lower()] = (key, templateOK, batchOK)
+            validRunDict[key.lower()] = (key, templateOK, batchOK, isBool)
 
          else:
-            validOtherDict[line[0].lower()] = (line[0], templateOK, batchOK)
+            validOtherDict[line[0].lower()] = (line[0], templateOK, batchOK, isBool)
 
             
 # Look for every directive in the lists of valid ones from master file
@@ -654,6 +657,9 @@ def checkAllDirectives(mainFile = 'directive'):
          dsplit = direc.split('.')
          badCase = False
          OKforFile = True
+         emptyBool = False
+         valNotBool = allDirectives[ind][direc][0] != '0' and \
+             allDirectives[ind][direc][0] != '1'
          if len(dsplit) < 2 or ((dsplit[0] == comPref or dsplit[0] == runPref) \
                                    and len(dsplit) < 4):
             errors.append('D' + messfrom + ' too short: ' + direc)
@@ -672,6 +678,7 @@ def checkAllDirectives(mainFile = 'directive'):
                if key.lower() in validComDict:
                   badCase = key != validComDict[key.lower()][0]
                   OKforFile = validComDict[key.lower()][dirType + 1]
+                  emptyBool = validComDict[key.lower()][3] and valNotBool
 
                else:
 
@@ -726,6 +733,7 @@ def checkAllDirectives(mainFile = 'directive'):
                if key.lower() in validRunDict:
                   badCase = key != validRunDict[key.lower()][0]
                   OKforFile = validRunDict[key.lower()][dirType + 1]
+                  emptyBool = validRunDict[key.lower()][3] and valNotBool
                else:
                   errors.append('Unknown d' + messfrom + ': ' + direc)
 
@@ -734,6 +742,7 @@ def checkAllDirectives(mainFile = 'directive'):
             if direc.lower() in validOtherDict:
                badCase = direc != validOtherDict[direc.lower()][0]
                OKforFile = validOtherDict[direc.lower()][dirType + 1]
+               emptyBool = validOtherDict[direc.lower()][3] and valNotBool
             else:
                errors.append('Unknown d' + messfrom + ': ' + direc)
             
@@ -742,6 +751,8 @@ def checkAllDirectives(mainFile = 'directive'):
          if not OKforFile:
             errors.append('D' + messfrom + ' is not intended for use in a ' + \
                              types[dirType] + ' file: ' + direc)
+         if emptyBool:
+            errors.append('D' + messfrom + ' is a boolean and must be 0 or 1: ' + direc)
 
    return printDirectiveErrors(errors)
 
