@@ -57,7 +57,7 @@ public final class ConfigTool {
    * @return
    */
   public static File[] getSystemTemplateFiles() {
-    File[] fileArray = new File(BaseManager.getIMODBinPath(), "template")
+    File[] fileArray = new File(BaseManager.getIMODBinPath(), "com")
         .listFiles(new AutodocFilter());
     if (fileArray == null) {
       return null;
