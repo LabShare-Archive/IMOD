@@ -199,9 +199,11 @@ if ETOMO_LOG_DIR and os.access(ETOMO_LOG_DIR, os.W_OK):
    timestamp = d.strftime('%b-%d-%H%M%S')
    errlog = ETOMO_LOG_DIR + '/etomo_err_' + timestamp + '.log'
 
-   # Get a sorted list by modification time (from good old stackoverflow!)
-   mtime = lambda f: os.stat(os.path.join(ETOMO_LOG_DIR, f)).st_mtime
-   loglist = list(sorted(os.listdir(ETOMO_LOG_DIR), key=mtime))
+   # Get a sorted list by modification time (now from Python 2.3 docs!)
+   loglist = os.listdir(ETOMO_LOG_DIR)
+   tmplist = [(os.stat(os.path.join(ETOMO_LOG_DIR, x)).st_mtime, x) for x in loglist]
+   tmplist.sort()
+   loglist = [x for (key, x) in tmplist]
 
    # Go through list from newest backwards, look for matches, and start removing
    # after the purge number is reached
