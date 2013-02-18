@@ -424,6 +424,25 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
+  BatchruntomoParam updateBatchruntomo() {
+    BatchruntomoParam param = new BatchruntomoParam(this);
+    param.setValidationType(setupReconUIHarness.isDirectiveDrivenAutomation());
+    if (param.needsBatchDirectiveFile()) {
+      param.addDirective(setupReconUIHarness.getBatchDirectiveFile());
+    }
+    else {
+      param.addDirective(setupReconUIHarness.getScopeTemplate());
+      param.addDirective(setupReconUIHarness.getSystemTemplate());
+      param.addDirective(setupReconUIHarness.getUserTemplate());
+    }
+    if (param.isValid()) {
+      return param;
+    }
+    // If the batchruntomo is invalid, it just means that no directive files where added
+    // to it and there is nothing to do.
+    return null;
+  }
+
   /**
    * Close message from the setup dialog window
    */
@@ -482,15 +501,13 @@ public final class ApplicationManager extends BaseManager implements
         propertyUserDir = oldUserDir;
         return false;
       }
-      // This is really the method to use the existing com scripts
       if (exitState == DialogExitState.EXECUTE) {
-        if (setupReconUIHarness.isDirectiveDrivenAutomation()) {
-          if (!EtomoDirector.INSTANCE.getArguments().isFromBRT()) {
-            // Etomo is responsible for validating the directive file.
-            BatchruntomoParam param = new BatchruntomoParam(this);
-            if (!processMgr.batchruntomo(AxisID.ONLY, param)) {
-              return false;
-            }
+        if (!setupReconUIHarness.isDirectiveDrivenAutomation()
+            || EtomoDirector.INSTANCE.getArguments().isFromBRT()) {
+          // Etomo is responsible for running the validation of the directive files.
+          BatchruntomoParam param = updateBatchruntomo();
+          if (param != null && !processMgr.batchruntomo(AxisID.ONLY, param)) {
+            return false;
           }
         }
         CopyTomoComs param = updateCopytomocoms();
