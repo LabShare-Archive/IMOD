@@ -672,6 +672,10 @@ public final class DirectiveFile {
     return isValue(AttributeName.RUN_TIME, RECONSTRUCTION_NAME, axisID, USE_SIRT_NAME);
   }
 
+  boolean isScanHeader() {
+    return isValue(AttributeName.SETUP_SET, SCAN_HEADER_NAME);
+  }
+
   public void setBinning(final int input) {
     setCopyArgValue(BINNING_NAME, Integer.toString(input));
   }
