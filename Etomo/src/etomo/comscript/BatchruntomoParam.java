@@ -1,14 +1,16 @@
 package etomo.comscript;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
+import etomo.storage.DirectiveFile;
 import etomo.type.AxisID;
+import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
 
 /**
@@ -29,7 +31,12 @@ import etomo.type.ProcessName;
 public class BatchruntomoParam {
   public static final String rcsid = "$Id:$";
 
+  private static final int VALIDATION_TYPE_BATCH_DIRECTIVE = 1;
+  private static final int VALIDATION_TYPE_TEMPLATE = 2;
+
   private final List<String> command = new ArrayList<String>();
+  private final EtomoNumber validationType = new EtomoNumber();
+  private final List<String> directiveList = new ArrayList<String>();
 
   private final BaseManager manager;
 
@@ -51,12 +58,39 @@ public class BatchruntomoParam {
     command.add("-u");
     command.add(ApplicationManager.getIMODBinPath() + ProcessName.BATCHRUNTOMO);
     command.add("-validation");
-    command.add("1");
-    command.add("-directive");
-    command.add(EtomoDirector.INSTANCE.getArguments().getDirective().getAbsolutePath());
+    command.add(validationType.toString());
+    Iterator<String> i = directiveList.iterator();
+    while (i.hasNext()) {
+      command.add("-directive");
+      command.add(i.next());
+    }
     batchruntomo = new SystemProgram(manager, manager.getPropertyUserDir(), command,
         AxisID.ONLY);
     return true;
+  }
+
+  public void addDirective(final DirectiveFile directiveFile) {
+    if (directiveFile != null) {
+      directiveList.add(directiveFile.getFile().getAbsolutePath());
+    }
+  }
+
+  public boolean isValid() {
+    return (validationType.equals(VALIDATION_TYPE_BATCH_DIRECTIVE) || validationType
+        .equals(VALIDATION_TYPE_TEMPLATE)) && !directiveList.isEmpty();
+  }
+
+  public void setValidationType(final boolean directiveDrivenAutomation) {
+    if (directiveDrivenAutomation) {
+      validationType.set(VALIDATION_TYPE_BATCH_DIRECTIVE);
+    }
+    else {
+      validationType.set(VALIDATION_TYPE_TEMPLATE);
+    }
+  }
+
+  public boolean needsBatchDirectiveFile() {
+    return validationType.equals(1);
   }
 
   /**
@@ -95,7 +129,7 @@ public class BatchruntomoParam {
     }
     return batchruntomo.getStdErrorString();
   }
-  
+
   public String getStdOutputString() {
     if (batchruntomo == null) {
       return "ERROR: Batchruntomo is null.";
