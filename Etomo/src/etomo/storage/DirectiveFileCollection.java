@@ -331,20 +331,17 @@ public class DirectiveFileCollection implements SetupReconInterface {
           }
         }
       }
-      // If scan header is on, then get values from scanning the header which aren't
-      // already in the map.
+      // If scan header (only found in the batch directive file and is not in copyarg) is
+      // true, then get values from scanning the header which aren't already in the map.
       if (directiveFileArray[OverrideOrder.BATCH.index] != null
-          && pairMap.containsKey(DirectiveFile.SCAN_HEADER_NAME)) {
-        String value = pairMap.get(DirectiveFile.SCAN_HEADER_NAME);
-        if (value != null && value.equals("1")) {
-          Iterator<Entry<String, String>> iterator = directiveFileArray[OverrideOrder.BATCH.index]
-              .getCopyArgExtraValuesIterator();
-          while (iterator.hasNext()) {
-            Entry<String, String> entry = iterator.next();
-            String name = entry.getKey();
-            if (!pairMap.containsKey(name)) {
-              pairMap.put(name, entry.getValue());
-            }
+          && directiveFileArray[OverrideOrder.BATCH.index].isScanHeader()) {
+        Iterator<Entry<String, String>> iterator = directiveFileArray[OverrideOrder.BATCH.index]
+            .getCopyArgExtraValuesIterator();
+        while (iterator.hasNext()) {
+          Entry<String, String> entry = iterator.next();
+          String name = entry.getKey();
+          if (!pairMap.containsKey(name)) {
+            pairMap.put(name, entry.getValue());
           }
         }
       }
