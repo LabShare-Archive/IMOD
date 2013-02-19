@@ -23,14 +23,16 @@ public class AutodocFilter extends javax.swing.filechooser.FileFilter implements
   public static final String rcsid = "$Id$";
 
   public boolean accept(File f) {
+    if (!f.exists()) {
+      System.err.println("Warning: " + f.getAbsolutePath() + " does not exist");
+      return false;
+    }
     if (!f.isFile()) {
+      System.err.println("Warning: " + f.getAbsolutePath() + " is not a file");
       return false;
     }
     String name = f.getName();
-    if (name.endsWith(AutodocFactory.EXTENSION)) {
-      return true;
-    }
-    return false;
+    return name.endsWith(AutodocFactory.EXTENSION);
   }
 
   public String getDescription() {
