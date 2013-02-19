@@ -1124,7 +1124,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public void setPixelSize(final String pixelSize) {
-    this.pixelSize = Double.parseDouble(pixelSize);
+    if (pixelSize != null) {
+      this.pixelSize = Double.parseDouble(pixelSize);
+    }
+    else {
+      this.pixelSize = Double.NaN;
+    }
   }
 
   public void setUseLocalAlignments(final AxisID axisID, final boolean state) {
@@ -1178,7 +1183,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       posBinningA.set(binning);
     }
   }
-  
+
   public void setPosBinning(final AxisID axisID, final String binning) {
     if (axisID == AxisID.SECOND) {
       posBinningB.set(binning);
