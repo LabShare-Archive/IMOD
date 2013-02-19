@@ -432,7 +432,7 @@ public final class SetupReconUIHarness {
 
   public DirectiveFile getUserTemplate() {
     if (directiveFileCollection != null) {
-      directiveFileCollection.getUserTemplate();
+      return directiveFileCollection.getUserTemplate();
     }
     else if (expert != null) {
       return expert.getUserTemplate();
