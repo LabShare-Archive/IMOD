@@ -326,17 +326,14 @@ public final class DirectiveFile {
   }
 
   /**
-   * Returns true unless value is null or 0.
+   * Returns true unless value is null or 0.  This function does not treate null as an
+   * error, so it is not necessary to check for the existance of a directive before
+   * calling it.
    * @param value
    * @return
    */
   static boolean toBoolean(final String value) {
-    if (value == null) {
-      System.err.println("Error: Null boolean value");
-      Thread.dumpStack();
-      return false;
-    }
-    if (value.equals("0")) {
+    if (value == null || value.equals("0")) {
       return false;
     }
     else if (value.equals("1")) {
@@ -689,6 +686,10 @@ public final class DirectiveFile {
 
   public void setPixelSize(final double input) {
     setCopyArgValue(PIXEL_NAME, Double.toString(input));
+  }
+  
+  public String toString() {
+    return getFile().getAbsolutePath();
   }
 
   static final class AttributeName {
