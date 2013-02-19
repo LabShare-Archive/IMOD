@@ -2898,7 +2898,7 @@ public final class ApplicationManager extends BaseManager implements
    * Always call BaseManager.saveParamFile after doing this.
    */
   public boolean saveParamFile() throws LogFile.LockException, IOException {
-    if (getParameterStore() == null) {
+    if (getParameterStore() == null && logPanel != null) {
       EtomoDirector.INSTANCE.getUserConfiguration().setLogProperties(
           logPanel.getCurrentFrameProperties());
     }
