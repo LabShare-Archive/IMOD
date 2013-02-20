@@ -59,16 +59,19 @@ public final class ConfigTool {
   public static File[] getSystemTemplateFiles() {
     File[] fileArray = new File(BaseManager.getIMODBinPath(), "com")
         .listFiles(new AutodocFilter());
-    if (fileArray == null) {
-      return null;
-    }
-    SortedMap<String, File> map = new TreeMap<String, File>();
-    for (int i = 0; i < fileArray.length; i++) {
-      map.put(fileArray[i].getName(), fileArray[i]);
+    SortedMap<String, File> map = null;
+    if (fileArray != null) {
+      map = new TreeMap<String, File>();
+      for (int i = 0; i < fileArray.length; i++) {
+        map.put(fileArray[i].getName(), fileArray[i]);
+      }
     }
     fileArray = new File(EtomoDirector.INSTANCE.getIMODCalibDirectory(), "SystemTemplate")
         .listFiles(new AutodocFilter());
     if (fileArray != null) {
+      if (map == null) {
+        map = new TreeMap<String, File>();
+      }
       for (int i = 0; i < fileArray.length; i++) {
         String key = fileArray[i].getName();
         if (map.containsKey(key)) {
@@ -76,6 +79,9 @@ public final class ConfigTool {
         }
         map.put(key, fileArray[i]);
       }
+    }
+    if (map == null) {
+      return null;
     }
     int size = map.size();
     if (size == 0) {
