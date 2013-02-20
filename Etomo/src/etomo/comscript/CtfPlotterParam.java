@@ -54,7 +54,7 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam, CommandParam
       EtomoNumber.Type.DOUBLE, EXPECTED_DEFOCUS_OPTION);
   private final ScriptParameter offsetToAdd = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, OFFSET_TO_ADD_OPTION);
-  FortranInputString autoFitRangeAndStep = new FortranInputString(2);
+  FortranInputString autoFitRangeAndStep = new FortranInputString("AutoFitRangeAndStep",2);
 
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
       throws BadComScriptException, InvalidParameterException,
