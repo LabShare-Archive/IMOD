@@ -28,7 +28,6 @@ public class AutodocFilter extends javax.swing.filechooser.FileFilter implements
       return false;
     }
     if (!f.isFile()) {
-      System.err.println("Warning: " + f.getAbsolutePath() + " is not a file");
       return false;
     }
     String name = f.getName();
