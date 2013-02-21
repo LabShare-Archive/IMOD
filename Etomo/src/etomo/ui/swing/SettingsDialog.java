@@ -78,6 +78,7 @@ public final class SettingsDialog extends JDialog {
     templatePanel = TemplatePanel.getInstance(manager, AxisID.ONLY, listener,
         "Default Templates", this);
     ltfUserTemplateDir.setAbsolutePath(true);
+    ltfUserTemplateDir.setUseTextAsOriginDir(true);
   }
 
   public static SettingsDialog getInstance(final BaseManager manager,
