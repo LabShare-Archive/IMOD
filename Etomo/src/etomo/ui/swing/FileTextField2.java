@@ -59,6 +59,7 @@ final class FileTextField2 implements FileTextFieldInterface {
   private int fileSelectionMode = -1;
   private FileFilter fileFilter = null;
   private boolean absolutePath = false;
+  private boolean useTextAsOriginDir = false;
   /**
    * If origin is valid, it overrides originEtomoRunDir.
    */
@@ -183,7 +184,7 @@ final class FileTextField2 implements FileTextFieldInterface {
    * Opens a file chooser and notifies the result listener list.
    */
   private void action() {
-    String filePath = getOriginDir();
+    String filePath = getFileChooserLocation();
     JFileChooser chooser = new FileChooser(new File(filePath));
     chooser.setDialogTitle(Utilities.stripLabel(label.getText()));
     if (fileSelectionMode != -1) {
@@ -236,6 +237,15 @@ final class FileTextField2 implements FileTextFieldInterface {
     }
   }
 
+  /**
+   * If useTextAsOriginDir is true, the text in the text field with be where the file
+   * chooser opens, if the text field contains a directory.
+   * @param input
+   */
+  void setUseTextAsOriginDir(final boolean input) {
+    useTextAsOriginDir = input;
+  }
+
   boolean isEmpty() {
     String text = field.getText();
     return text == null || text.matches("\\s*");
@@ -271,6 +281,16 @@ final class FileTextField2 implements FileTextFieldInterface {
       return EtomoDirector.INSTANCE.getOriginalUserDir();
     }
     return manager.getPropertyUserDir();
+  }
+  
+  private String getFileChooserLocation() {
+    if (useTextAsOriginDir) {
+      File dir = getFile();
+      if (dir != null && dir.isDirectory()) {
+        return dir.getAbsolutePath();
+      }
+    }
+    return getOriginDir();
   }
 
   /**
