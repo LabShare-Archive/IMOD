@@ -309,7 +309,11 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       manager.setupCtfPlotterComScript(axisID, ctfPhaseFlipParam);
       comScriptMgr.loadCtfPlotter(axisID, true);
     }
-    setParameters(comScriptMgr.getCtfPlotterParam(axisID));
+    CtfPlotterParam param = comScriptMgr.getCtfPlotterParam(axisID);
+    if (metaData.isStackCtfAutoFitRangeAndStepSet(axisID)) {
+      param.setAutoFitRangeAndStep(metaData.getStackCtfAutoFitRangeAndStep(axisID));
+    }
+    setParameters(param);
     dialog.setParameters(screenState);
     comScriptMgr.loadMTFFilter(axisID);
     setParameters(comScriptMgr.getMTFFilterParam(axisID));

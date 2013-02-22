@@ -33,6 +33,7 @@ import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.ConstTiltxcorrParam;
+import etomo.comscript.CopyTomoComs;
 import etomo.comscript.CtfPhaseFlipParam;
 import etomo.comscript.ExtractmagradParam;
 import etomo.comscript.ExtractpiecesParam;
@@ -423,11 +424,29 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
+  BatchruntomoParam updateBatchruntomo() {
+    BatchruntomoParam param = new BatchruntomoParam(this);
+    param.setValidationType(setupReconUIHarness.isDirectiveDrivenAutomation());
+    if (param.needsBatchDirectiveFile()) {
+      param.addDirective(setupReconUIHarness.getBatchDirectiveFile());
+    }
+    else {
+      param.addDirective(setupReconUIHarness.getScopeTemplate());
+      param.addDirective(setupReconUIHarness.getSystemTemplate());
+      param.addDirective(setupReconUIHarness.getUserTemplate());
+    }
+    if (param.isValid()) {
+      return param;
+    }
+    // If the batchruntomo is invalid, it just means that no directive files where added
+    // to it and there is nothing to do.
+    return null;
+  }
+
   /**
    * Close message from the setup dialog window
    */
-  public boolean doneSetupDialog(final boolean doValidation,
-      final DirectiveFile directiveFile) {
+  public boolean doneSetupDialog(final boolean doValidation) {
     // Get the selected exit button
     DialogExitState exitState = setupReconUIHarness.getExitState();
     if (exitState != DialogExitState.CANCEL) {
@@ -446,6 +465,7 @@ public final class ApplicationManager extends BaseManager implements
         return false;
       }
       metaData = setupReconUIHarness.getFields(doValidation);
+      copyDirectiveFiles();
       if (metaData == null) {
         return false;
       }
@@ -481,18 +501,18 @@ public final class ApplicationManager extends BaseManager implements
         propertyUserDir = oldUserDir;
         return false;
       }
-      // This is really the method to use the existing com scripts
       if (exitState == DialogExitState.EXECUTE) {
-        if (directiveFile != null) {
-          if (!EtomoDirector.INSTANCE.getArguments().isFromBRT()) {
-            // Etomo is responsible for validating the directive file.
-            BatchruntomoParam param = new BatchruntomoParam(this);
-            if (!processMgr.batchruntomo(AxisID.ONLY, param)) {
-              return false;
-            }
+        if (!setupReconUIHarness.isDirectiveDrivenAutomation()
+            || EtomoDirector.INSTANCE.getArguments().isFromBRT()) {
+          // Etomo is responsible for running the validation of the directive files.
+          BatchruntomoParam param = updateBatchruntomo();
+          if (param != null && !processMgr.batchruntomo(AxisID.ONLY, param)) {
+            return false;
           }
         }
-        ProcessMessages messages = processMgr.setupComScripts(AxisID.ONLY, directiveFile);
+        CopyTomoComs param = updateCopytomocoms();
+        // Run copytomocoms on the command line
+        ProcessMessages messages = processMgr.setupComScripts(AxisID.ONLY, param);
         if (messages == null) {
           return false;
         }
@@ -540,6 +560,57 @@ public final class ApplicationManager extends BaseManager implements
     setupDialogExpert = null;
     saveStorables(AxisID.ONLY);
     return true;
+  }
+
+  /**
+   * Setup the copytomocoms command.  Create a comscript if this is directive-driven
+   * automation.
+   * @return
+   */
+  CopyTomoComs updateCopytomocoms() {
+    CopyTomoComs param = null;
+    boolean directiveDrivenAutomation = setupReconUIHarness.isDirectiveDrivenAutomation();
+    param = new CopyTomoComs(this);
+    param.setDirectiveDrivenAutomation(directiveDrivenAutomation);
+    if (directiveDrivenAutomation) {
+      param.setDirectiveFileCollection(setupReconUIHarness.getDirectiveFileCollection());
+      param.setBatchDirectiveFile(setupReconUIHarness.getBatchDirectiveFile());
+    }
+    param.setScopeTemplate(setupReconUIHarness.getScopeTemplate());
+    param.setSystemTemplate(setupReconUIHarness.getSystemTemplate());
+    param.setUserTemplate(setupReconUIHarness.getUserTemplate());
+    return param;
+  }
+
+  private void copyDirectiveFiles() {
+    DirectiveFile directiveFile = null;
+    try {
+      directiveFile = setupReconUIHarness.getScopeTemplate();
+      if (directiveFile != null) {
+        Utilities.copyFile(directiveFile.getFile(), FileType.LOCAL_SCOPE_TEMPLATE, this,
+            AxisID.ONLY);
+      }
+      directiveFile = setupReconUIHarness.getSystemTemplate();
+      if (directiveFile != null) {
+        Utilities.copyFile(directiveFile.getFile(), FileType.LOCAL_SYSTEM_TEMPLATE, this,
+            AxisID.ONLY);
+      }
+      directiveFile = setupReconUIHarness.getUserTemplate();
+      if (directiveFile != null) {
+        Utilities.copyFile(directiveFile.getFile(), FileType.LOCAL_USER_TEMPLATE, this,
+            AxisID.ONLY);
+      }
+      directiveFile = setupReconUIHarness.getBatchDirectiveFile();
+      if (directiveFile != null) {
+        Utilities.copyFile(directiveFile.getFile(), FileType.LOCAL_BATCH_DIRECTIVE_FILE,
+            this, AxisID.ONLY);
+      }
+    }
+    catch (IOException e) {
+      uiHarness.openMessageDialog(this, "Unable to copy "
+          + (directiveFile != null ? directiveFile.getFile().getAbsolutePath() : "file")
+          + " to dataset.", "Unable to Copy File");
+    }
   }
 
   public void setupCtfCorrectionComScript(AxisID axisID) {
@@ -2189,9 +2260,9 @@ public final class ApplicationManager extends BaseManager implements
     // Autofidseed
     AutofidseedParam autofidseedParam = null;
     if (!comScriptMgr.loadAutofidseed(axisID, false)) {
-      BaseProcessManager.touch(
-          new File(propertyUserDir, FileType.AUTOFIDSEED_COMSCRIPT.getFileName(this,
-              axisID)).getAbsolutePath(), this);
+      MakecomfileParam makecomFileParam = new MakecomfileParam(this, axisID,
+          FileType.AUTOFIDSEED_COMSCRIPT);
+      makecomfile(axisID, makecomFileParam);
       comScriptMgr.loadAutofidseed(axisID, true);
       autofidseedParam = new AutofidseedParam(this, axisID);
       comScriptMgr.saveAutofidseed(autofidseedParam, axisID);
@@ -2827,7 +2898,7 @@ public final class ApplicationManager extends BaseManager implements
    * Always call BaseManager.saveParamFile after doing this.
    */
   public boolean saveParamFile() throws LogFile.LockException, IOException {
-    if (getParameterStore() == null) {
+    if (getParameterStore() == null && logPanel != null) {
       EtomoDirector.INSTANCE.getUserConfiguration().setLogProperties(
           logPanel.getCurrentFrameProperties());
     }

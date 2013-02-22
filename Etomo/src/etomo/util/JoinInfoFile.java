@@ -61,7 +61,7 @@ public class JoinInfoFile {
       Utilities.timestamp("read", joinInfoFileName, Utilities.FAILED_STATUS);
       return false;
     }
-    BufferedReader reader;
+    BufferedReader reader = null;
     try {
       reader = new BufferedReader(new FileReader(joinInfoFile));
     }

@@ -1,7 +1,14 @@
 package etomo.ui.swing;
 
+import java.awt.Component;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusListener;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
@@ -38,32 +45,139 @@ import etomo.util.Utilities;
 * <p> </p>
 */
 
-final class ComboBox extends JComboBox {
+final class ComboBox {
   public static final String rcsid = "$Id$";
 
-  ComboBox() {
+  private final JComboBox comboBox;
+  private final JLabel label;
+  private final JPanel pnlRoot;
+  final boolean addEmptyChoice;// Causes the index to be off by one
+
+  private ComboBox(final String name, final boolean labeled, final boolean addEmptyChoice) {
+    this.addEmptyChoice = addEmptyChoice;
+    comboBox = new JComboBox();
+    setName(name);
+    if (labeled) {
+      label = new JLabel(name);
+      pnlRoot = new JPanel();
+    }
+    else {
+      label = null;
+      pnlRoot = null;
+    }
   }
 
-  ComboBox(String label) {
-    setName(label);
-  }
-
-  ComboBox(JLabel label) {
-    setName(label.getText());
-  }
-
-  static ComboBox getUnlabeledInstance(String name) {
-    ComboBox instance = new ComboBox();
-    instance.setName(name);
+  static ComboBox getInstance(final String name, final boolean addEmptyChoice) {
+    ComboBox instance = new ComboBox(name, true, addEmptyChoice);
+    instance.createPanel();
     return instance;
+  }
+
+  static ComboBox getUnlabeledInstance(final String name) {
+    ComboBox instance = new ComboBox(name, false, false);
+    instance.createPanel();
+    return instance;
+  }
+
+  static ComboBox getUnlabeledInstance(JLabel label) {
+    ComboBox instance = new ComboBox(label.getText(), false, false);
+    instance.createPanel();
+    return instance;
+  }
+
+  private void createPanel() {
+    if (pnlRoot != null) {
+      pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
+      pnlRoot.add(Box.createRigidArea(FixedDim.x2_y0));
+      pnlRoot.add(label);
+      pnlRoot.add(Box.createRigidArea(FixedDim.x3_y0));
+      pnlRoot.add(comboBox);
+      pnlRoot.add(Box.createRigidArea(FixedDim.x2_y0));
+    }
+  }
+
+  public void addActionListener(final ActionListener listener) {
+    comboBox.addActionListener(listener);
+  }
+
+  public void addFocusListener(final FocusListener listener) {
+    comboBox.addFocusListener(listener);
+  }
+
+  public void addItem(final Object input) {
+    if (addEmptyChoice && comboBox.getItemCount() == 0) {
+      comboBox.addItem(null);
+    }
+    comboBox.addItem(input);
+  }
+
+  public String getActionCommand() {
+    return comboBox.getActionCommand();
+  }
+
+  public Component getComponent() {
+    if (pnlRoot != null) {
+      return pnlRoot;
+    }
+    return comboBox;
+  }
+
+  /**
+   * Returns the selected index.  If addEmptyChoice is on, then the index is adjusted so
+   * that it starts from zero.  If the empty choice was selected it returns -1.
+   * @return
+   */
+  public int getSelectedIndex() {
+    int index = comboBox.getSelectedIndex();
+    if (addEmptyChoice && index > -1) {
+      return index - 1;
+    }
+    return index;
+  }
+
+  public Object getSelectedItem() {
+    return comboBox.getSelectedItem();
+  }
+
+  public void removeAll() {
+    comboBox.removeAll();
+  }
+
+  public void removeAllItems() {
+    comboBox.removeAllItems();
+  }
+
+  public void setEnabled(final boolean enabled) {
+    comboBox.setEnabled(enabled);
+  }
+
+  public void setEditable(final boolean editable) {
+    comboBox.setEditable(editable);
   }
 
   public void setName(String text) {
     String name = Utilities.convertLabelToName(text);
-    super.setName(UITestFieldType.COMBO_BOX.toString() + AutodocTokenizer.SEPARATOR_CHAR
-        + name);
+    comboBox.setName(UITestFieldType.COMBO_BOX.toString()
+        + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(comboBox.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
+  }
+
+  /**
+   * Selects an item.  If addEmptyChoice is on, it adjusts for it, so that a zero index
+   * refers to first non-empty choice.
+   * @param index
+   */
+  public void setSelectedIndex(int index) {
+    if (addEmptyChoice) {
+      index++;
+    }
+    comboBox.setSelectedIndex(index);
+  }
+
+  public void setToolTipText(final String tooltip) {
+    comboBox.setToolTipText(tooltip);
   }
 }

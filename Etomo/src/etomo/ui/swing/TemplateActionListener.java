@@ -1,4 +1,6 @@
-package etomo;
+package etomo.ui.swing;
+
+import java.awt.event.ActionListener;
 /**
 * <p>Description: </p>
 * 
@@ -14,12 +16,6 @@ package etomo;
 * 
 * <p> $Log$ </p>
 */
-interface TaskInterface {
+interface TemplateActionListener extends ActionListener {
   public static  final String  rcsid =  "$Id:$";
-  
-  /**
-   * If true, then the user will be warned if the they exit before the task is started.
-   * @return
-   */
-  public boolean okToDrop();
 }

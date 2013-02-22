@@ -52,8 +52,9 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam, CommandParam
   private final StringParameter configFile = new StringParameter(CONFIG_FILE_OPTION);
   private final ScriptParameter expectedDefocus = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, EXPECTED_DEFOCUS_OPTION);
-  private final ScriptParameter offsetToAdd = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-      OFFSET_TO_ADD_OPTION);
+  private final ScriptParameter offsetToAdd = new ScriptParameter(
+      EtomoNumber.Type.DOUBLE, OFFSET_TO_ADD_OPTION);
+  FortranInputString autoFitRangeAndStep = new FortranInputString("AutoFitRangeAndStep",2);
 
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
       throws BadComScriptException, InvalidParameterException,
@@ -66,6 +67,7 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam, CommandParam
     configFile.parse(scriptCommand);
     expectedDefocus.parse(scriptCommand);
     offsetToAdd.parse(scriptCommand);
+    autoFitRangeAndStep.validateAndSet(scriptCommand);
   }
 
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
@@ -77,6 +79,7 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam, CommandParam
     configFile.updateComScript(scriptCommand);
     expectedDefocus.updateComScript(scriptCommand);
     offsetToAdd.updateComScript(scriptCommand);
+    autoFitRangeAndStep.updateScriptParameter(scriptCommand);
   }
 
   public void initializeDefaults() {
@@ -89,6 +92,7 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam, CommandParam
     amplitudeContrast.reset();
     expectedDefocus.reset();
     offsetToAdd.reset();
+    autoFitRangeAndStep.reset();
   }
 
   public void setVoltage(String input) {
@@ -105,6 +109,10 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam, CommandParam
 
   public void setAmplitudeContrast(String input) {
     amplitudeContrast.set(input);
+  }
+  
+  public void setAutoFitRangeAndStep(final FortranInputString input) {
+    autoFitRangeAndStep.set(input);
   }
 
   public void setConfigFile(File input) {
