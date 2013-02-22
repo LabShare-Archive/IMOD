@@ -3,7 +3,6 @@ Pip = 1
 
 [Field = InputFile]
 short = input
-long = InputFile
 type = FN
 usage = Input image file to bin down in 3D
 tooltip = 
@@ -11,7 +10,6 @@ manpage =
 
 [Field = OutputFile]
 short = output
-long = OutputFile
 type = FN
 usage = Output file for binned volume
 tooltip = 
@@ -19,7 +17,6 @@ manpage =
 
 [Field = BinningFactor]
 short = binning
-long = BinningFactor
 type = I
 usage = Overall reduction factor to bin by (default 2)
 tooltip = 
@@ -27,7 +24,6 @@ manpage =
 
 [Field = XBinningFactor]
 short = xbinning
-long = XBinningFactor
 type = I
 usage = Factor to bin by in X (default same as overall factor)
 tooltip = 
@@ -35,7 +31,6 @@ manpage =
 
 [Field = YBinningFactor]
 short = ybinning
-long = YBinningFactor
 type = I
 usage = Factor to bin by in Y (default same as overall factor)
 tooltip = 
@@ -43,23 +38,59 @@ manpage =
 
 [Field = ZBinningFactor]
 short = zbinning
-long = ZBinningFactor
 type = I
 usage = Factor to bin by in Z (default same as overall factor)
 tooltip = 
 manpage = 
 
-[Field = TestLimit]
-short = test
+[Field = AntialiasZFilter]
+short = antialias
 type = I
-usage = Total size of working array
+usage = Type of antialiasing filter to use in Z (2 to 6)
 tooltip = 
-manpage = To test the code for reading in and binning in chunks, enter
-a limit for the total size of the working array.
+manpage = The Z dimension only will be reduced with antialiased filtering
+instead of with binning if a number between 2 and 6 is entered to specify the
+filter type.  Use the "-shrink" option to Newstack(1) first to use antialiased
+reduction in X and Y.  The filters are as in Newstack(1):
+^    2: Blackman - fast but not as good at antialiasing as slower filters
+^    3: Triangle - fast but smooths more than Blackman
+^    4: Mitchell - good at antialiasing, smooths a bit
+^    5: Lanczos 2 lobes - good at antialiasing, less smoothing than Mitchel
+^    6: Lanczos 3 lobes - slower, even less smoothing but more risk of ringing
+
+[Field = SpreadSlicesInZ]
+short = spread
+type = B
+usage = Output slices in Z that sample the range in Z as much as possible
+tooltip = 
+manpage = Output slices in Z that sample, or are centered on, Z values as
+close to the starting and ending input slices as possible.  This option can be
+used only when doing antialiased reduction in Z.  By default, the first output
+slice is centered on the middle of the first set of slices corresponding to
+the binning in Z.  The bottom edge of this slice is the same as the bottom
+edge of the first input slice and the Z origin is unchanged.  With this option,
+the centering of the first slice may be moved down, and the Z origin will be
+increased to adjust for this.
+
+[Field = MemoryLimit]
+short = memory
+type = I
+usage = Maximum size of working array in megabytes (default 1000)
+tooltip = 
+manpage = Maximum size of working array in megabytes.  The size of the array
+determines whether data are read in and binned in chunks or as whole slices,
+which is more efficient.  The default is 1000; the value cannot be bigger than
+8000. 
+
+[Field = VerboseOutput]
+short = verbose
+type = B
+usage = Output debugging information
+tooltip = 
+manpage = 
 
 [Field = usage]
 short = help
-long = usage
 type = B
 usage = Print help output
 tooltip = 

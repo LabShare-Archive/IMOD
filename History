@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/21/13: Fixed bug in Vmstopy when translating cp and mv with a filename
+starting with f.
+
+2/21/13: Made binvol able to use antialiased reduction in Z instead of
+binning.
+
 2/10/13: Redefined blank values in batch/template directives to mean unset the
 parameter for other than comparams, and required all booleans to be 0 or 1.
 
