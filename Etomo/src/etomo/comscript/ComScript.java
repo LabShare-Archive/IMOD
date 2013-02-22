@@ -251,6 +251,9 @@ public class ComScript {
           if (currentScriptCommand == null) {
             String description = "Input parameter found before command in "
                 + comFile.getAbsoluteFile() + " line: " + String.valueOf(lineNumber);
+            if (in!=null) {
+              in.close();
+            }
             throw new BadComScriptException(description);
           }
 
