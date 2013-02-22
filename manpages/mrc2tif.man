@@ -67,7 +67,7 @@ the sections in the input file.
 Compress the data with the type of compression indicated.  The most useful
 compression types are LZW (value 5), Zip or Deflate (value 8), and JPEG
 (value 7).  For these types, the value can be given as a text string: "lzw",
-"zip", or "jpeg".  On Linux, see "man libtiff" for other numeric values that
+"zip", or "jpeg".  On Linux, see /usr/include/tiff.h for other numeric values that
 can be entered.  Not all of these options will be available on all operating
 systems.  Also note that JPEG compression is not available with 16-bit data.
 .TP
