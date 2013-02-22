@@ -61,7 +61,7 @@ public class JoinInfoFile {
       Utilities.timestamp("read", joinInfoFileName, Utilities.FAILED_STATUS);
       return false;
     }
-    BufferedReader reader;
+    BufferedReader reader = null;
     try {
       reader = new BufferedReader(new FileReader(joinInfoFile));
     }
@@ -81,7 +81,23 @@ public class JoinInfoFile {
     catch (IOException e) {
       e.printStackTrace();
       Utilities.timestamp("read", joinInfoFileName, Utilities.FAILED_STATUS);
+      if (reader != null) {
+        try {
+          reader.close();
+        }
+        catch (IOException e1) {
+          e1.printStackTrace();
+        }
+      }
       return false;
+    }
+    if (reader != null) {
+      try {
+        reader.close();
+      }
+      catch (IOException e1) {
+        e1.printStackTrace();
+      }
     }
     int lineArraySize = lineArray.size();
     int offset = lineArraySize - numberFileNames;
