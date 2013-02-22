@@ -4040,6 +4040,9 @@ public final class ApplicationManager extends BaseManager implements
         String message = "Unable to create " + rawtlt.getAbsolutePath();
         uiHarness.openMessageDialog(this, message, "Unable to create raw tilt file",
             axisID);
+        if (bufferedWriter != null) {
+          bufferedWriter.close();
+        }        
         throw new IOException(message);
       }
       int sections = rawStackHeader.getNSections();
@@ -4063,6 +4066,9 @@ public final class ApplicationManager extends BaseManager implements
       message[1] = except.getMessage();
       uiHarness
           .openMessageDialog(this, message, "Unable to create raw tilt file", axisID);
+      if (bufferedWriter != null) {
+        bufferedWriter.close();
+      }
       throw except;
     }
 
