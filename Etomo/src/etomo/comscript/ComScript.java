@@ -155,123 +155,121 @@ public class ComScript {
       return;
     }
     BufferedReader in = null;
-    try {
-      in = new BufferedReader(new FileReader(comFile));
+    in = new BufferedReader(new FileReader(comFile));
 
-      // Read in the lines of the command file, assigning each one to the correct
-      // list
-      boolean flgContinuation = false;
-      ComScriptCommand currentScriptCommand = null;
-      ArrayList currentCommentBlock = new ArrayList();
+    // Read in the lines of the command file, assigning each one to the correct
+    // list
+    boolean flgContinuation = false;
+    ComScriptCommand currentScriptCommand = null;
+    ArrayList currentCommentBlock = new ArrayList();
 
-      String line;
-      int lineNumber = 0;
-      while ((line = in.readLine()) != null) {
-        lineNumber++;
+    String line;
+    int lineNumber = 0;
+    while ((line = in.readLine()) != null) {
+      lineNumber++;
 
-        // If the first character is a pound place on the comment list
-        if (line.startsWith("#")) {
-          currentCommentBlock.add(line);
+      // If the first character is a pound place on the comment list
+      if (line.startsWith("#")) {
+        currentCommentBlock.add(line);
+      }
+
+      // If the first character is a $ not followed by !
+      // create a new ComScriptCommand object and insert onto scriptCommands
+      // insert the current comment block into the header comments then clear
+      // the current comment block
+      // parse the command line setting the command and command line
+      // arguments
+      else if (line.matches("^\\$[^!].*")) {
+        currentScriptCommand = new ComScriptCommand(caseInsensitive, separateWithASpace);
+        scriptCommands.add(currentScriptCommand);
+
+        if (currentCommentBlock.size() > 0) {
+          String[] commentArray = new String[currentCommentBlock.size()];
+          commentArray = (String[]) currentCommentBlock.toArray(commentArray);
+          currentScriptCommand.setHeaderComments(commentArray);
+          currentCommentBlock.clear();
         }
 
-        // If the first character is a $ not followed by !
-        // create a new ComScriptCommand object and insert onto scriptCommands
-        // insert the current comment block into the header comments then clear
-        // the current comment block
-        // parse the command line setting the command and command line
-        // arguments
-        else if (line.matches("^\\$[^!].*")) {
-          currentScriptCommand = new ComScriptCommand(caseInsensitive, separateWithASpace);
-          scriptCommands.add(currentScriptCommand);
+        // Split the line into tokens at whitespace boundaries
+        String noDollarSign = line.substring(1);
+        noDollarSign = noDollarSign.trim();
+        String[] tokens = noDollarSign.split("\\s+");
+        currentScriptCommand.setCommand(tokens[0]);
+        commandLoaded = true;
 
+        // Check to if see if this line is continued
+        int nShrink = 1;
+        if (tokens[tokens.length - 1].equals("\\")) {
+          nShrink = 2;
+          flgContinuation = true;
+        }
+
+        String[] cmdLineArgs = new String[tokens.length - nShrink];
+        for (int i = 0; i < cmdLineArgs.length; i++) {
+          cmdLineArgs[i] = tokens[i + 1];
+        }
+        currentScriptCommand.setCommandLineArgs(cmdLineArgs);
+        // Force the comment parsing from the standard input lines to off
+        // if a keyword/value pair input format is detected
+        if (currentScriptCommand.isKeywordValuePairs()) {
+          parseComments = false;
+        }
+      }
+
+      // Otherwise the line is assumed to be an input parmeter to the current
+      // command or a continuation line
+      else {
+        if (flgContinuation) {
+          // Get any comments associated with the continuation line and add
+          // them to the header comments
           if (currentCommentBlock.size() > 0) {
             String[] commentArray = new String[currentCommentBlock.size()];
             commentArray = (String[]) currentCommentBlock.toArray(commentArray);
-            currentScriptCommand.setHeaderComments(commentArray);
+            currentScriptCommand.appendHeaderComments(commentArray);
             currentCommentBlock.clear();
           }
 
-          // Split the line into tokens at whitespace boundaries
-          String noDollarSign = line.substring(1);
-          noDollarSign = noDollarSign.trim();
-          String[] tokens = noDollarSign.split("\\s+");
-          currentScriptCommand.setCommand(tokens[0]);
-          commandLoaded = true;
-
-          // Check to if see if this line is continued
-          int nShrink = 1;
+          // Split the line into tokens checking to see if the last token is
+          // another line continuation
+          String[] tokens = line.trim().split("\\s+");
+          int nShrink = 0;
           if (tokens[tokens.length - 1].equals("\\")) {
-            nShrink = 2;
+            nShrink = 1;
             flgContinuation = true;
+          }
+          else {
+            flgContinuation = false;
           }
 
           String[] cmdLineArgs = new String[tokens.length - nShrink];
           for (int i = 0; i < cmdLineArgs.length; i++) {
-            cmdLineArgs[i] = tokens[i + 1];
+            cmdLineArgs[i] = tokens[i];
           }
-          currentScriptCommand.setCommandLineArgs(cmdLineArgs);
-          // Force the comment parsing from the standard input lines to off
-          // if a keyword/value pair input format is detected
-          if (currentScriptCommand.isKeywordValuePairs()) {
-            parseComments = false;
-          }
+          currentScriptCommand.appendCommandLineArgs(cmdLineArgs);
+
         }
-
-        // Otherwise the line is assumed to be an input parmeter to the current
-        // command or a continuation line
         else {
-          if (flgContinuation) {
-            // Get any comments associated with the continuation line and add
-            // them to the header comments
-            if (currentCommentBlock.size() > 0) {
-              String[] commentArray = new String[currentCommentBlock.size()];
-              commentArray = (String[]) currentCommentBlock.toArray(commentArray);
-              currentScriptCommand.appendHeaderComments(commentArray);
-              currentCommentBlock.clear();
-            }
-
-            // Split the line into tokens checking to see if the last token is
-            // another line continuation
-            String[] tokens = line.trim().split("\\s+");
-            int nShrink = 0;
-            if (tokens[tokens.length - 1].equals("\\")) {
-              nShrink = 1;
-              flgContinuation = true;
-            }
-            else {
-              flgContinuation = false;
-            }
-
-            String[] cmdLineArgs = new String[tokens.length - nShrink];
-            for (int i = 0; i < cmdLineArgs.length; i++) {
-              cmdLineArgs[i] = tokens[i];
-            }
-            currentScriptCommand.appendCommandLineArgs(cmdLineArgs);
-
-          }
-          else {
-            if (currentScriptCommand == null) {
-              String description = "Input parameter found before command in "
-                  + comFile.getAbsoluteFile() + " line: " + String.valueOf(lineNumber);
-            if (in!=null) {
+          if (currentScriptCommand == null) {
+            String description = "Input parameter found before command in "
+                + comFile.getAbsoluteFile() + " line: " + String.valueOf(lineNumber);
+            if (in != null) {
               in.close();
             }
-              throw new BadComScriptException(description);
-            }
-
-            ComScriptInputArg inputArg = new ComScriptInputArg();
-
-            if (currentCommentBlock.size() > 0) {
-              String[] commentArray = new String[currentCommentBlock.size()];
-              commentArray = (String[]) currentCommentBlock.toArray(commentArray);
-              inputArg.setComments(commentArray);
-              currentCommentBlock.clear();
-            }
-
-            inputArg.setArgument(line, parseComments);
-
-            currentScriptCommand.appendInputArgument(inputArg);
+            throw new BadComScriptException(description);
           }
+
+          ComScriptInputArg inputArg = new ComScriptInputArg();
+
+          if (currentCommentBlock.size() > 0) {
+            String[] commentArray = new String[currentCommentBlock.size()];
+            commentArray = (String[]) currentCommentBlock.toArray(commentArray);
+            inputArg.setComments(commentArray);
+            currentCommentBlock.clear();
+          }
+
+          inputArg.setArgument(line, parseComments);
+
+          currentScriptCommand.appendInputArgument(inputArg);
         }
       }
     }
