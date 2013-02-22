@@ -328,11 +328,11 @@ echoMatch = re.compile('^\$( *)echo *([^ ].*)')
 setenvMatch = re.compile('^\$( *)setenv +(\S*) *')
 continueMatch = re.compile(r'\\ *$')
 existMatch = re.compile('^\$( *)if *\( *!? *-e +([^) ]+) *\) *(.*)')
-rmMatch = re.compile(r'\\?rm -?f? ?')
+rmMatch = re.compile(r'\\?rm (-f )?')
 removeMatch = re.compile('^\$( *)b3dremove +([^-])')
 vmsMatch = re.compile('.*vmstocsh +(\w+.log) *< *(\w+.com).*')
 backupMatch = re.compile(r'^\$( *)if *\( *-e +([^) ]+) *\) *\\?mv +([^ ]*) +([^ ~]*)~ *')
-copyMatch = re.compile(r'\\?cp -?f? ?')
+copyMatch = re.compile(r'\\?cp (-f )?')
 mkdirMatch = re.compile('^\$( *)mkdir *')
 
 # If there are indented command lines and no python statements, remove the spaces
