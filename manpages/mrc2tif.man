@@ -101,7 +101,8 @@ If
 is entered alone, the initial scaling will be from the minimum in the input
 file to 0, and from the maximum in the file to 255.  If you have integer data
 and you want to convert it to bytes
-.TP -T <xsize,ysize> or <size>
+.TP
+.B -T <xsize,ysize> or <size>
 Organize output data in tiles instead of strips, which can allow faster access
 to subareas of very large images.  Enter one number for the tile size in both
 dimensions, or two numbers to specify a different size in X and Y.  The TIFF
