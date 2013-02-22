@@ -41,6 +41,9 @@ avgstack$(E): avgstack.$(O)
 binvol$(E): binvol.$(O)
 	$(FC) -o binvol binvol.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
+binvol.$(O): binvol.f90
+	$(FC) $(FFLAGS) $(OPENMPF) -c binvol.f90
+
 calc$(E): calc.$(O)
 	$(FC) -o calc calc.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
