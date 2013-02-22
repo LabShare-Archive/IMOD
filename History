@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/21/13: Fixed bug in Vmstopy when translating cp and mv with a filename
+starting with f.
+
 2/21/13: Made binvol able to use antialiased reduction in Z instead of
 binning.
 
