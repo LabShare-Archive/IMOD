@@ -515,9 +515,14 @@ public final class ConstEtomoNumberTest extends TestCase {
     String line;
     while ((line = logFileReader.readLine()) != null) {
       if (line.trim().equals(name + "=" + smallInteger)) {
+        logFileReader.close();
         return;
       }
     }
+    if (logFileReader!=null) {
+      logFileReader.close();
+    }
+    logFileReader.close();
     fail("write parameter to file test failed");
     test.internalTest();
   }

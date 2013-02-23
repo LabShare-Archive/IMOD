@@ -61,7 +61,7 @@ public class JoinInfoFile {
       Utilities.timestamp("read", joinInfoFileName, Utilities.FAILED_STATUS);
       return false;
     }
-    BufferedReader reader;
+    BufferedReader reader = null;
     try {
       reader = new BufferedReader(new FileReader(joinInfoFile));
     }
@@ -77,10 +77,17 @@ public class JoinInfoFile {
       while ((line = reader.readLine()) != null) {
         lineArray.add(line);
       }
+      reader.close();
     }
     catch (IOException e) {
       e.printStackTrace();
       Utilities.timestamp("read", joinInfoFileName, Utilities.FAILED_STATUS);
+      try {
+        reader.close();
+      }
+      catch (IOException e1) {
+        e1.printStackTrace();
+      }
       return false;
     }
     int lineArraySize = lineArray.size();

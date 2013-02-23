@@ -232,13 +232,16 @@ package etomo.comscript;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.storage.DirectiveFile;
+import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
@@ -252,48 +255,81 @@ import etomo.ui.swing.UIHarness;
 public final class CopyTomoComs {
   public static final String rcsid = "$Id$";
 
+  private static final String CHANGE_PARAMETERS_FILE_TAG = "change";
+
   private final List<String> command = new ArrayList<String>();
   private final EtomoNumber voltage = new EtomoNumber();
   private final EtomoNumber sphericalAberration = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private final EtomoNumber ctfFiles = new EtomoNumber();
 
   private final ApplicationManager manager;
-  private final DirectiveFile directiveFile;
 
   private StringBuffer commandLine = null;
   private int exitValue;
   private ConstMetaData metaData;
   private boolean debug;
   private SystemProgram copytomocoms = null;
+  private DirectiveFileCollection directiveFileCollection = null;
+  private boolean directiveDrivenAutomation = false;
+  private DirectiveFile scopeTemplate = null;
+  private DirectiveFile systemTemplate = null;
+  private DirectiveFile userTemplate = null;
+  private DirectiveFile batchDirectiveFile = null;
 
-  public CopyTomoComs(ApplicationManager manager, final DirectiveFile directiveFile) {
+  public CopyTomoComs(ApplicationManager manager) {
     this.manager = manager;
-    this.directiveFile = directiveFile;
     metaData = manager.getConstMetaData();
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
   }
 
   public boolean setup() {
-    // Create a new SystemProgram object for copytomocom, set the
-    // working directory and stdin array.
-    // Do not use the -e flag for tcsh since David's scripts handle the failure
-    // of commands and then report appropriately. The exception to this is the
-    // com scripts which require the -e flag. RJG: 2003-11-06
-    command.add("python");
-    command.add("-u");
-    command.add(ApplicationManager.getIMODBinPath() + "copytomocoms");
-    if (directiveFile == null) {
-      if (!genOptions()) {
-        return false;
-      }
+    if (!genOptions()) {
+      return false;
+    }
+    String[] params = null;
+    int size = command.size();
+    if (size == 1) {
+      params = new String[] { command.get(0) };
     }
     else {
-      genOptionsFromDirectiveFile();
+      params = command.toArray(new String[size]);
     }
+    String[] command = new String[] {
+        ApplicationManager.getIMODBinPath() + "copytomocoms", "-StandardInput" };
     copytomocoms = new SystemProgram(manager, manager.getPropertyUserDir(), command,
         AxisID.ONLY);
-    // genStdInputSequence();
+    if (params != null) {
+      copytomocoms.setStdInput(params);
+    }
     return true;
+  }
+
+  public void setScopeTemplate(final DirectiveFile input) {
+    scopeTemplate = input;
+  }
+
+  public void setSystemTemplate(final DirectiveFile input) {
+    systemTemplate = input;
+  }
+
+  public void setUserTemplate(final DirectiveFile input) {
+    userTemplate = input;
+  }
+
+  public void setBatchDirectiveFile(final DirectiveFile input) {
+    batchDirectiveFile = input;
+  }
+
+  public void setDirectiveFileCollection(final DirectiveFileCollection input) {
+    directiveFileCollection = input;
+  }
+
+  public void setDirectiveDrivenAutomation(final boolean input) {
+    directiveDrivenAutomation = input;
+  }
+
+  public boolean isDirectiveDrivenAutomation() {
+    return directiveDrivenAutomation;
   }
 
   public void setVoltage(ConstEtomoNumber input) {
@@ -320,312 +356,157 @@ public final class CopyTomoComs {
     return copytomocoms.getCommandLine();
   }
 
-  /**
-   * Add options from directive file.
-   */
-  private void genOptionsFromDirectiveFile() {
-    DirectiveFile.CopyArgIterator iterator = directiveFile.getCopyArgIterator();
-    if (iterator == null) {
-      return;
-    }
-    while (iterator.hasNext()) {
-      iterator.next();
-      String name = iterator.getName();
-      if (name != null) {
-        command.add("-" + name);
-        String value = iterator.getValue();
-        if (value != null) {
-          command.add(value);
+  private boolean genOptions() {
+    if (!directiveDrivenAutomation) {
+      // Copytomocoms overrides the existing .com files. Make sure that the full
+      // functionality is only used during setup.
+      if (!manager.isNewManager() && ctfFiles.isNull()) {
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "ERROR:  Attempting to rebuild .com files when setup is already completed.",
+            "Etomo Error");
+        return false;
+      }
+      boolean montage = false;
+      boolean gradient = false;
+      // Dataset name
+      command.add("name " + metaData.getDatasetName());
+      // View type: single or montaged
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        command.add("montage");
+        montage = true;
+      }
+      // Backup directory
+      String backupDirectory = metaData.getBackupDirectory();
+      if (!backupDirectory.equals("")) {
+        command.add("backup " + metaData.getBackupDirectory());
+      }
+      // Data source: CCD or film
+      if (metaData.getDataSource() == DataSource.FILM) {
+        command.add("film");
+      }
+      // Pixel size
+      command.add("pixel " + String.valueOf(metaData.getPixelSize()));
+      // Fiducial diameter
+      command.add("gold " + String.valueOf(metaData.getFiducialDiameter()));
+      // Image rotation
+      command.add("rotation " + String.valueOf(metaData.getImageRotation(AxisID.FIRST)));
+      // A first tilt angle and tilt angle incriment
+      if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
+        command.add("firstinc "
+            + String.valueOf(metaData.getTiltAngleSpecA().getRangeMin()) + ","
+            + String.valueOf(metaData.getTiltAngleSpecA().getRangeStep()));
+      }
+      // Use an existing rawtilt file (this assumes that one is there and has
+      // not been deleted by checkTiltAngleFiles()
+      else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.FILE) {
+        command.add("userawtlt");
+      }
+      // Extract the tilt angle data from the stack
+      else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.EXTRACT) {
+        command.add("extract");
+      }
+      // List of views to exclude from processing
+      String excludeProjections = metaData.getExcludeProjectionsA();
+      if (!excludeProjections.equals("")) {
+        command.add("skip " + excludeProjections);
+      }
+      if (!voltage.isNull()) {
+        command.add("voltage " + voltage.toString());
+      }
+      if (!sphericalAberration.isNull()) {
+        command.add("Cs " + sphericalAberration.toString());
+      }
+      // Only create ctf files.
+      if (!ctfFiles.isNull()) {
+        command.add("-CTFfiles " + ctfFiles.toString());
+      }
+      // Undistort images with the given .idf file
+      String distortionFile = metaData.getDistortionFile();
+      if (!distortionFile.equals("")) {
+        command.add("distort " + distortionFile);
+      }
+      // Binning of raw stacks (needed to undistort if ambiguous)
+      command.add("binning " + String.valueOf(metaData.getBinning()));
+      // Mag gradients correction file
+      String magGradientFile = metaData.getMagGradientFile();
+      if (!magGradientFile.equals("")) {
+        command.add("gradient " + magGradientFile);
+        gradient = true;
+        // It is only necessary to know if the focus was adjusted between montages
+        // if a mag gradients correction file is being used.
+        if (montage && metaData.getAdjustedFocusA().is()) {
+          command.add("focus");
+        }
+      }
+
+      // Axis type: single or dual
+      if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
+        command.add("dual");
+        // B image rotation
+        command.add("brotation "
+            + String.valueOf(metaData.getImageRotation(AxisID.SECOND)));
+        // B first tilt angle and tilt angle incriment
+        if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.RANGE) {
+          command.add("bfirstinc "
+              + String.valueOf(metaData.getTiltAngleSpecB().getRangeMin()) + ","
+              + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
+        }
+        // Take tilt angle from a .rawtlt file - B
+        else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.FILE) {
+          command.add("buserawtlt");
+        }
+        // Extract the tilt angle data from the stack - B
+        else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.EXTRACT) {
+          command.add("bextract");
+        }
+        // List of views to exclude from processing - B
+        excludeProjections = metaData.getExcludeProjectionsB();
+        if (!excludeProjections.equals("")) {
+          command.add("bskip " + excludeProjections);
+        }
+        if (montage && gradient && metaData.getAdjustedFocusB().is()) {
+          command.add("bfocus");
         }
       }
     }
-    genCommonOptions();
-    if(directiveFile.isSystemTemplateSet()) {
-      command.add("-change");
-      command.add(directiveFile.getSystemTemplate());
-    }
-    if(directiveFile.isUserTemplateSet()) {
-      command.add("-change");
-      command.add(directiveFile.getUserTemplate());
-    }
-    command.add("-change");
-    command.add(EtomoDirector.INSTANCE.getArguments().getDirective().getAbsolutePath());
-  }
-
-  private boolean genOptions() {
-    // Copytomocoms overrides the existing .com files. Make sure that the full
-    // functionality is only used during setup.
-    if (!manager.isNewManager() && ctfFiles.isNull()) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "ERROR:  Attempting to rebuild .com files when setup is already completed.",
-          "Etomo Error");
-      return false;
-    }
-    boolean montage = false;
-    boolean gradient = false;
-    // Dataset name
-    command.add("-name");
-    command.add(metaData.getDatasetName());
-    // View type: single or montaged
-    if (metaData.getViewType() == ViewType.MONTAGE) {
-      command.add("-montage");
-      montage = true;
-    }
-    // Backup directory
-    String backupDirectory = metaData.getBackupDirectory();
-    if (!backupDirectory.equals("")) {
-      command.add("-backup");
-      command.add(metaData.getBackupDirectory());
-    }
-    // Data source: CCD or film
-    if (metaData.getDataSource() == DataSource.FILM) {
-      command.add("-film");
-    }
-    // Pixel size
-    command.add("-pixel");
-    command.add(String.valueOf(metaData.getPixelSize()));
-    // Fiducial diameter
-    command.add("-gold");
-    command.add(String.valueOf(metaData.getFiducialDiameter()));
-    // Image rotation
-    command.add("-rotation");
-    command.add(String.valueOf(metaData.getImageRotation(AxisID.FIRST)));
-    // A first tilt angle and tilt angle incriment
-    if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
-      command.add("-firstinc");
-      command.add(String.valueOf(metaData.getTiltAngleSpecA().getRangeMin()) + ","
-          + String.valueOf(metaData.getTiltAngleSpecA().getRangeStep()));
-    }
-    // Use an existing rawtilt file (this assumes that one is there and has
-    // not been deleted by checkTiltAngleFiles()
-    else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.FILE) {
-      command.add("-userawtlt");
-    }
-    // Extract the tilt angle data from the stack
-    else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.EXTRACT) {
-      command.add("-extract");
-    }
-    // List of views to exclude from processing
-    String excludeProjections = metaData.getExcludeProjectionsA();
-    if (!excludeProjections.equals("")) {
-      command.add("-skip");
-      command.add(excludeProjections);
-    }
-    if (!voltage.isNull()) {
-      command.add("-voltage");
-      command.add(voltage.toString());
-    }
-    if (!sphericalAberration.isNull()) {
-      command.add("-Cs");
-      command.add(sphericalAberration.toString());
-    }
-    // Only create ctf files.
-    if (!ctfFiles.isNull()) {
-      command.add("-CTFfiles");
-      command.add(ctfFiles.toString());
-    }
-    genCommonOptions();
-    // Undistort images with the given .idf file
-    String distortionFile = metaData.getDistortionFile();
-    if (!distortionFile.equals("")) {
-      command.add("-distort");
-      command.add(distortionFile);
-    }
-    // Binning of raw stacks (needed to undistort if ambiguous)
-    command.add("-binning");
-    command.add(String.valueOf(metaData.getBinning()));
-    // Mag gradients correction file
-    String magGradientFile = metaData.getMagGradientFile();
-    if (!magGradientFile.equals("")) {
-      command.add("-gradient");
-      command.add(magGradientFile);
-      gradient = true;
-      // It is only necessary to know if the focus was adjusted between montages
-      // if a mag gradients correction file is being used.
-      if (montage && metaData.getAdjustedFocusA().is()) {
-        command.add("-focus");
+    else {
+      // Add options from the directive file collection.
+      if (directiveFileCollection != null) {
+        // Load the setupset.copyarg directives.
+        Iterator<Entry<String, String>> iterator = directiveFileCollection
+            .getCopyArgEntrySet().iterator();
+        if (iterator != null) {
+          while (iterator.hasNext()) {
+            Entry<String, String> entry = iterator.next();
+            command.add(entry.getKey() + " " + entry.getValue());
+          }
+        }
       }
     }
-
-    // Axis type: single or dual
-    if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
-      command.add("-dual");
-      // B image rotation
-      command.add("-brotation");
-      command.add(String.valueOf(metaData.getImageRotation(AxisID.SECOND)));
-      // B first tilt angle and tilt angle incriment
-      if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.RANGE) {
-        command.add("-bfirstinc");
-        command.add(String.valueOf(metaData.getTiltAngleSpecB().getRangeMin()) + ","
-            + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
-      }
-      // Take tilt angle from a .rawtlt file - B
-      else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.FILE) {
-        command.add("-buserawtlt");
-      }
-      // Extract the tilt angle data from the stack - B
-      else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.EXTRACT) {
-        command.add("-bextract");
-      }
-      // List of views to exclude from processing - B
-      excludeProjections = metaData.getExcludeProjectionsB();
-      if (!excludeProjections.equals("")) {
-        command.add("-bskip");
-        command.add(excludeProjections);
-      }
-      if (montage && gradient && metaData.getAdjustedFocusB().is()) {
-        command.add("-bfocus");
-      }
+    if (metaData.isSetFEIPixelSize()) {
+      command.add("fei");
+    }
+    if (scopeTemplate != null) {
+      command.add(CHANGE_PARAMETERS_FILE_TAG + " "
+          + scopeTemplate.getFile().getAbsolutePath());
+    }
+    if (systemTemplate != null) {
+      command.add(CHANGE_PARAMETERS_FILE_TAG + " "
+          + systemTemplate.getFile().getAbsolutePath());
+    }
+    if (userTemplate != null) {
+      command.add(CHANGE_PARAMETERS_FILE_TAG + " "
+          + userTemplate.getFile().getAbsolutePath());
+    }
+    if (batchDirectiveFile != null) {
+      command.add(CHANGE_PARAMETERS_FILE_TAG + " "
+          + batchDirectiveFile.getFile().getAbsolutePath());
     }
     // Options removed:
     // CCDEraser and local alignment entries
     // Always yes tiltalign relies on local entries to save default values
     // even if they are not used.
     return true;
-  }
-
-  /**
-   * Add options that are created the same way, whether or not there is a directive file
-   * present.
-   */
-  private void genCommonOptions() {
-    if (metaData.isSetFEIPixelSize()) {
-      command.add("-fei");
-    }
-  }
-
-  /**
-   * @deprecated
-   * Generate the standard input sequence
-   */
-  private void genStdInputSequence() {
-    String[] tempStdInput = new String[19];
-
-    // compile the input sequence to copytomocoms
-    int lineCount = 0;
-
-    // Axis type: single or dual
-    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-      tempStdInput[lineCount++] = "1";
-    }
-    else {
-      tempStdInput[lineCount++] = "2";
-    }
-
-    // Data source: CCD or film
-    if (metaData.getDataSource() == DataSource.CCD) {
-      tempStdInput[lineCount++] = "c";
-    }
-    else {
-      tempStdInput[lineCount++] = "f";
-    }
-
-    // View type: single or montaged
-    if (metaData.getViewType() == ViewType.SINGLE_VIEW) {
-      tempStdInput[lineCount++] = "n";
-    }
-    else {
-      tempStdInput[lineCount++] = "y";
-    }
-
-    // CCDEraser and local alignment entries
-    // Always yes tiltalign relies on local entries to save default values
-    // even if they are not used.
-    tempStdInput[lineCount++] = "y";
-    tempStdInput[lineCount++] = "y";
-
-    // Dataset name
-    tempStdInput[lineCount++] = metaData.getDatasetName();
-
-    // Backup directory
-    tempStdInput[lineCount++] = metaData.getBackupDirectory();
-
-    // Pixel size
-    tempStdInput[lineCount++] = String.valueOf(metaData.getPixelSize());
-
-    // Fiducial diameter
-    tempStdInput[lineCount++] = String.valueOf(metaData.getFiducialDiameter());
-
-    // Image rotation
-    tempStdInput[lineCount++] = String.valueOf(metaData.getImageRotation(AxisID.FIRST));
-
-    // Extract the tilt angle data from the stack
-    if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.EXTRACT) {
-      tempStdInput[lineCount++] = "y";
-      tempStdInput[lineCount++] = "0";
-    }
-
-    // Specify a range, creating the rawtilt file
-    else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
-      tempStdInput[lineCount++] = "n";
-      tempStdInput[lineCount++] = "1";
-      tempStdInput[lineCount++] = String.valueOf(metaData.getTiltAngleSpecA()
-          .getRangeMin()
-          + ","
-          + String.valueOf(metaData.getTiltAngleSpecA().getRangeStep()));
-    }
-    // Use an existing rawtilt file (this assumes that one is there and has
-    // not been deleted by checkTiltAngleFiles()
-    else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.FILE) {
-      tempStdInput[lineCount++] = "0";
-    }
-
-    else {
-      // TODO Specification of all tilt alngles is not yet implemented
-      tempStdInput[lineCount++] = "n";
-      tempStdInput[lineCount++] = "-1";
-      System.err.println("Specification of all tilt alngles is not yet implemented");
-    }
-
-    // Exclude list
-    tempStdInput[lineCount++] = metaData.getExcludeProjectionsA();
-
-    // Second axis entries
-    if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
-
-      // Image rotation
-      tempStdInput[lineCount++] = String
-          .valueOf(metaData.getImageRotation(AxisID.SECOND));
-
-      // Extract the tilt angle data from the stack
-      if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.EXTRACT) {
-        tempStdInput[lineCount++] = "y";
-        tempStdInput[lineCount++] = "0";
-      }
-
-      // Specify a range, creating the rawtilt file
-      else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.RANGE) {
-        tempStdInput[lineCount++] = "n";
-        tempStdInput[lineCount++] = "1";
-        tempStdInput[lineCount++] = String.valueOf(metaData.getTiltAngleSpecB()
-            .getRangeMin()
-            + ","
-            + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
-      }
-
-      // Specify a range, creating the rawtilt file
-      else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.FILE) {
-        tempStdInput[lineCount++] = "0";
-      }
-
-      else {
-        // TODO Specification of all tilt alngles is not yet implemented
-        tempStdInput[lineCount++] = "n";
-        tempStdInput[lineCount++] = "-1";
-        System.err.println("Specification of all tilt alngles is not yet implemented");
-      }
-
-      // Exclude list
-      tempStdInput[lineCount++] = metaData.getExcludeProjectionsB();
-    }
-
-    // Copy the temporary stdInput to the real stdInput to get the number
-    // of array elements correct
-    String[] stdInput = new String[lineCount];
-    for (int i = 0; i < lineCount; i++) {
-      stdInput[i] = tempStdInput[i];
-    }
-    copytomocoms.setStdInput(stdInput);
   }
 
   /**

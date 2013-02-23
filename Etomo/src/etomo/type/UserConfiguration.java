@@ -5,6 +5,7 @@ import etomo.ui.swing.LogProperties;
 import etomo.util.CircularBuffer;
 
 import java.awt.Point;
+import java.io.File;
 import java.util.*;
 
 /**
@@ -143,6 +144,14 @@ public final class UserConfiguration implements Storable {
   private EtomoBoolean2 gpuProcessingDefault = null;
   private EtomoBoolean2 swapYAndZ = null;
   private EtomoBoolean2 tiltAnglesRawtltFile = null;
+  private StringProperty userTemplateDirAbsPath = new StringProperty(DEFAULTS_KEY
+      + ".UserTemplateDir", true);
+  private StringProperty scopeTemplateAbsPath = new StringProperty(DEFAULTS_KEY
+      + ".ScopeTemplate", true);
+  private StringProperty systemTemplateAbsPath = new StringProperty(DEFAULTS_KEY
+      + ".SystemTemplate", true);
+  private StringProperty userTemplateAbsPath = new StringProperty(DEFAULTS_KEY
+      + ".UserTemplate", true);
 
   public UserConfiguration() {
     MRUFileList = new CircularBuffer(nMRUFiles);
@@ -214,6 +223,10 @@ public final class UserConfiguration implements Storable {
     subLastLocationX.store(props, prepend);
     subLastLocationY.store(props, prepend);
     setFEIPixelSize.store(props, prepend);
+    userTemplateDirAbsPath.store(props, prepend);
+    scopeTemplateAbsPath.store(props, prepend);
+    systemTemplateAbsPath.store(props, prepend);
+    userTemplateAbsPath.store(props, prepend);
 
     props.setProperty(group + "MainWindowWidth", String.valueOf(mainWindowWidth));
     props.setProperty(group + "MainWindowHeight", String.valueOf(mainWindowHeight));
@@ -360,6 +373,10 @@ public final class UserConfiguration implements Storable {
     subLastLocationX.load(props, prepend);
     subLastLocationY.load(props, prepend);
     setFEIPixelSize.load(props, prepend);
+    userTemplateDirAbsPath.load(props, prepend);
+    scopeTemplateAbsPath.load(props, prepend);
+    systemTemplateAbsPath.load(props, prepend);
+    userTemplateAbsPath.load(props, prepend);
   }
 
   /**
@@ -672,6 +689,58 @@ public final class UserConfiguration implements Storable {
     return setFEIPixelSize.is();
   }
 
+  public String getUserTemplateDir() {
+    return userTemplateDirAbsPath.toString();
+  }
+
+  public String getScopeTemplate() {
+    return scopeTemplateAbsPath.toString();
+  }
+
+  public boolean equalsScopeTemplate(final File input) {
+    String absPath = null;
+    if (input != null) {
+      absPath = input.getAbsolutePath();
+    }
+    return !scopeTemplateAbsPath.equals(absPath);
+  }
+
+  public boolean equalsSystemTemplate(final File input) {
+    String absPath = null;
+    if (input != null) {
+      absPath = input.getAbsolutePath();
+    }
+    return !systemTemplateAbsPath.equals(absPath);
+  }
+
+  public boolean equalsUserTemplate(final File input) {
+    String absPath = null;
+    if (input != null) {
+      absPath = input.getAbsolutePath();
+    }
+    return !userTemplateAbsPath.equals(absPath);
+  }
+
+  public boolean isScopeTemplateSet() {
+    return !scopeTemplateAbsPath.isEmpty();
+  }
+
+  public boolean isSystemTemplateSet() {
+    return !systemTemplateAbsPath.isEmpty();
+  }
+
+  public boolean isUserTemplateSet() {
+    return !userTemplateAbsPath.isEmpty();
+  }
+
+  public String getSystemTemplate() {
+    return systemTemplateAbsPath.toString();
+  }
+
+  public String getUserTemplate() {
+    return userTemplateAbsPath.toString();
+  }
+
   public boolean getTiltAnglesRawtltFile() {
     if (tiltAnglesRawtltFile == null) {
       return false;
@@ -747,6 +816,42 @@ public final class UserConfiguration implements Storable {
 
   public void setSetFEIPixelSize(boolean input) {
     setFEIPixelSize.set(input);
+  }
+
+  public void setUserTemplateDir(final File input) {
+    if (input != null) {
+      userTemplateDirAbsPath.set(input.getAbsolutePath());
+    }
+    else {
+      userTemplateDirAbsPath.reset();
+    }
+  }
+
+  public void setUserTemplate(final File input) {
+    if (input != null) {
+      userTemplateAbsPath.set(input.getAbsolutePath());
+    }
+    else {
+      userTemplateAbsPath.reset();
+    }
+  }
+
+  public void setSystemTemplate(final File input) {
+    if (input != null) {
+      systemTemplateAbsPath.set(input.getAbsolutePath());
+    }
+    else {
+      systemTemplateAbsPath.reset();
+    }
+  }
+
+  public void setScopeTemplate(final File input) {
+    if (input != null) {
+      scopeTemplateAbsPath.set(input.getAbsolutePath());
+    }
+    else {
+      scopeTemplateAbsPath.reset();
+    }
   }
 
   public void setTiltAnglesRawtltFile(boolean input) {

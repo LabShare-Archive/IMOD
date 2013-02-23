@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 
 import etomo.BaseManager;
 import etomo.logic.DatasetTool;
+import etomo.storage.DirectiveFile;
 import etomo.type.AxisID;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
@@ -104,6 +105,10 @@ final class TiltAnglePanelExpert {
   boolean validate(final String errorTitle) {
     return DatasetTool.validateTiltAngle(manager, AxisID.ONLY, errorTitle, axisID,
         panel.isSpecifySelected(), panel.getMin(), panel.getStep());
+  }
+
+  void updateTemplateValues(final DirectiveFile template) {
+    panel.updateTemplateValues(template, axisID);
   }
 
   /**
