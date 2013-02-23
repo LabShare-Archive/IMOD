@@ -1,0 +1,92 @@
+.na
+.nh
+.TH makepyramid 1 4.6.18 BL3DEMC
+.SH NAME
+makepyramid \- Create an image pyramid for rapid viewing in 3dmod
+.SH SYNOPSIS
+makepyramid [options] input_file
+
+.SH DESCRIPTION
+Makepyramid will make an "image pyramid", a set of files representing the same
+volume at a series of resolutions.  Images are also converted to a tiled
+format so that subareas of large images can be read in quickly.  When 3dmod(1)
+is run with the pyramid, any part of the volume, at any scale, can be viewed
+relatively rapidly without have to load the entire volume at full resolution
+into memory.  An image list file is created so that the pyramid can be opened
+by just starting 3dmod(1) with this filename; also, all files can be placed
+into a subdirectory and 3dmod(1) can be started with just the directory name.
+Output volumes can be either MRC or TIFF files; compression is available with
+the latter.
+.P
+The reduction factors applied to the original image are constrained to be
+integers, but by
+default, the reduction is not done with simple binning here.  Images are first
+reduced in X and Y by Newstack(1) using antialias filtering, which is
+important when images are noisy or reductions are large.  They are then
+reduced in Z by Binvol(1), also with antialias filtering.
+.P
+There are default values for the reductions.  The default
+reduction will produce reduced data whose sum is no more than 0.15 as big as
+the original volume.  Here are some considerations if you want to set your own
+values.
+A common practice is to make a pyramid with reductions that are successive
+powers of 2, at least in X and Y.  This is essentially the default and 
+would correspond to an entry of 2,4,8,... to the 
+.B -reductions
+option.  If you have a giant area, you may find that larger steps are
+sufficient in X and Y, e.g., 2,5,10,...  The reduction in Z does not have to
+match that in X and Y.  Since
+3dmod(1) still displays every original Z value when zoomed down and
+interpolates between the ones in the file being accessed at that zoom, the
+default reduction in Z is just 2,3,4...  If you do set your own reductions, you may
+still want to reduce less in Z than in X and Y, e.g., "-zreductions 2,3,5".
+.P
+For the most rapid viewing of the whole area at low zoom, the last volume
+should be smaller than 4 megapixels (2K x 2K for a square area), preferably
+around 2 megapixels (1400 x 1400).  The default reduction accomplishes this as
+well.
+.P
+Images are converted to a tiled form, either a montaged MRC file or a TIFF file
+with storage in tiles, so that subareas can be loaded rapidly from the file.
+When a file is not organized in tiles and a subarea in X is read from the
+file, the system will typically need to read the whole line to access the
+subarea.  Thus there is substantial benefit in converting the full-resolution
+input file to tiles, especially if the size in X is much bigger than 4K,
+although the
+.B
+-use
+option allows you to skip this conversion.  If storage space is a concern and
+you do not anticipate needing to access the
+input file in its unmontaged form, it should be safe to delete it provided
+that you created a montaged MRC file from it.  It can be
+recreated from the montage with a command like
+   reducemont -nofft -plin rootname-1xy-1z.pl -plout dummy.pl \
+      rootname-1xy-1z.mrc full-size-file.mrc
+
+.SS Options
+Makepyramid uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
+or one per line in a command file (without the -).  Options can be abbreviated
+to unique letters; the currently valid abbreviations for short names are shown
+in parentheses.
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH FILES
+Image and piece list files are named as "rootname-#xy-#z...", where the
+first "#" is the reduction in X and Y and the second "#" is the reduction in Z.
+The extension is ".mrc" for MRC files, ".tif" for TIFF files, and ".pl" for piece
+list files.  The image list file is named as rootname.imlist.
+An existing copy of the output image and piece list files will be made into a
+backup file by adding the extension ~.  An existing copy of the image list
+file will be replaced.
+
+.SH AUTHOR
+David Mastronarde
+.SH BUGS
+Email bug reports to mast@colorado.edu
+.SH SEE ALSO
+3dmod(1), newstack(1), binvol(1), mrc2tif(1), reducemont(1)
+.SH HISTORY
