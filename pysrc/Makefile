@@ -10,7 +10,7 @@ splittilt imodcpuload gpumonitor splitcombine copytomocoms squeezevol tomosnapsh
 trimvol makejoincom finishjoin chunksetup collectmmm sampletilt matchorwarp alignlog \
 gputilttest b3dremove b3dcopy b3dcatfiles findsirtdiffs dm2mrc archiveorig runraptor \
 splitcorrection transferfid xfalign startprocess imodhelp submfg etomo colornewst \
-autofidseed onegenplot setupstitch makecomfile batchruntomo
+autofidseed onegenplot setupstitch makecomfile batchruntomo makepyramid
 
 MODULES = imodpy.py pysed.py supermont.py pip.py comchanger.py
 
