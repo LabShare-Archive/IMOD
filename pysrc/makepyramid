@@ -49,9 +49,9 @@ antiLimit = 6
 xTileSize = 1024
 yTileSize = 1024
 binMemory = 2000
-minMegapixel = 1.
-minMegapixel = 4.
-optimalMegapixel = 2.
+minPixel = 1. * (1024**2)
+maxPixel = 4. * (1024**2)
+optimalPixel = 2. * (1024**2)
 
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 2, 1, 0)
 
@@ -72,10 +72,10 @@ except ImodpyError:
 # Get reduction that is closest to 2 MPix and above 1 MPix
 red = 1
 minDiff = 1.e9
-while nx * ny / (red + 1)^2 > 1.e6 * minMegapixel:
+while (nx // (red + 1)) * (ny // (red + 1)) > minPixel:
    red += 1
-   redSize = nx * ny // red^2
-   diff = math.fabs(redSize - 1.e6 * optimalMegapixel)
+   redSize = (nx // red) * (ny // red)
+   diff = math.fabs(redSize - optimalPixel)
    if diff < minDiff:
       minDiff = diff
       lastRed = red
@@ -88,7 +88,7 @@ defStr = 'Using default reductions in X/Y of'
 if minDiff < 1.e9:
    red = 2
    while True:
-      if red * 1.3 < lastRed or (red < lastRed and nx * ny / red^2 > 1.e6 * maxMegapixel):
+      if red * 1.3 < lastRed or (red < lastRed and (nx // red) * (ny // red) > maxPixel):
          defReductions.append(red)
          defStr += ' ' + str(red)
          red *= 2
