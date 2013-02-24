@@ -314,6 +314,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       param.setAutoFitRangeAndStep(metaData.getStackCtfAutoFitRangeAndStep(axisID));
     }
     setParameters(param);
+    comScriptMgr.saveCtfPlotter(param, axisID);
     dialog.setParameters(screenState);
     comScriptMgr.loadMTFFilter(axisID);
     setParameters(comScriptMgr.getMTFFilterParam(axisID));
