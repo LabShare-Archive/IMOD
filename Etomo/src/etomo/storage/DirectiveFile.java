@@ -626,7 +626,7 @@ public final class DirectiveFile {
       if (arrayValue != null && arrayValue.length > 0) {
         tiltAngleSpec.setRangeMin(arrayValue[0]);
       }
-      if (arrayValue.length > 1) {
+      if (arrayValue != null && arrayValue.length > 1) {
         tiltAngleSpec.setRangeStep(arrayValue[1]);
       }
     }
