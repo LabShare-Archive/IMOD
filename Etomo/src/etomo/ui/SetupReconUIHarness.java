@@ -592,18 +592,14 @@ public final class SetupReconUIHarness {
                 + e.getMessage(), "Invalid Directive");
       }
     }
-    if (directiveFile.containsGoldErasingBinning(AxisID.FIRST)) {
+    if (directiveFile.containsGoldErasingBinning(axisID)) {
       metaData.setStack3dFindBinning(axisID,
-          directiveFile.getGoldErasingBinning(AxisID.FIRST));
-    }
-    if (directiveFile.containsGoldErasingThickness(AxisID.FIRST)) {
-      metaData.setStack3dFindThickness(axisID,
-          directiveFile.getGoldErasingThickness(AxisID.FIRST));
+          directiveFile.getGoldErasingBinning(axisID));
     }
     // GoldErasingThickness overrides the .com file
-    if (directiveFile.containsGoldErasingThickness(AxisID.FIRST)) {
+    if (directiveFile.containsGoldErasingThickness(axisID)) {
       metaData.setStack3dFindThickness(axisID,
-          directiveFile.getGoldErasingThickness(AxisID.FIRST));
+          directiveFile.getGoldErasingThickness(axisID));
     }
     if (directiveFile.containsPositioningWholeTomogram(axisID)) {
       metaData.setWholeTomogramSample(axisID,
@@ -611,15 +607,15 @@ public final class SetupReconUIHarness {
     }
     if (directiveFile.containsReconstructionUseSirt(axisID)) {
       metaData
-          .setGenBackProjection(axisID, directiveFile.isReconstructionUseSirt(axisID));
+          .setGenBackProjection(axisID, !directiveFile.isReconstructionUseSirt(axisID));
     }
-    if (directiveFile.containsPositioningThickness(AxisID.FIRST)) {
+    if (directiveFile.containsPositioningThickness(axisID)) {
       metaData.setSampleThickness(axisID,
-          directiveFile.getPositioningThickness(AxisID.FIRST));
+          directiveFile.getPositioningThickness(axisID));
     }
-    if (directiveFile.containsPositioningBinByFactor(AxisID.FIRST)) {
+    if (directiveFile.containsPositioningBinByFactor(axisID)) {
       metaData.setPosBinning(axisID,
-          directiveFile.getPositioningBinByFactor(AxisID.FIRST));
+          directiveFile.getPositioningBinByFactor(axisID));
     }
   }
 
