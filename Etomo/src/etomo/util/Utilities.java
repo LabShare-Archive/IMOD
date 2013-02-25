@@ -870,11 +870,19 @@ public class Utilities {
       final BaseManager manager, final AxisID axisID) throws IOException {
     copyFile(source.getFile(manager, axisID), destination.getFile(manager, axisID));
   }
+  
+  public static void copyFile(final File source, final FileType destination,
+      final BaseManager manager, final AxisID axisID) throws IOException {
+    copyFile(source, destination.getFile(manager, axisID));
+  }
 
   /**
    * Copy a file using the fastest method available.
    */
   public static void copyFile(File source, File destination) throws IOException {
+    if (source != null && source.equals(destination)) {
+      return;
+    }
     // Try using the nio method but if it fails fall back to BufferedFileReader/
     // BufferedFileWriter approach
     String actionMessage = prepareCopyActionMessage(source, destination);

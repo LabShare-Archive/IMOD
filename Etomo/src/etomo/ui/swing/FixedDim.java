@@ -67,6 +67,7 @@ public class FixedDim {
   public static final String rcsid = "$Id$";
 
   public final static Dimension x0_y0 = new Dimension(0, 0);
+  public final static Dimension x2_y0 = new Dimension(2, 0);
   public final static Dimension x3_y0 = new Dimension(3, 0);
   public final static Dimension x5_y0 = new Dimension(5, 0);
   public final static Dimension x10_y0 = new Dimension(10, 0);

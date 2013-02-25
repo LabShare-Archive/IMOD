@@ -9,6 +9,10 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
+import etomo.storage.DirectiveFile;
+import etomo.type.AxisID;
+import etomo.type.TiltAngleSpec;
+import etomo.type.TiltAngleType;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.swing.TooltipFormatter;
@@ -128,6 +132,19 @@ final class TiltAnglePanel {
     rbExtract.addActionListener(tiltAlignRadioButtonListener);
     rbFile.addActionListener(tiltAlignRadioButtonListener);
     rbSpecify.addActionListener(tiltAlignRadioButtonListener);
+  }
+
+  void updateTemplateValues(final DirectiveFile template, final AxisID axisID) {
+    if (template.containsTiltAngleSpec(axisID)) {
+      TiltAngleSpec tiltAngleSpec = new TiltAngleSpec();
+      template.getTiltAngleFields(axisID, tiltAngleSpec, false);
+      if (tiltAngleSpec.getType() == TiltAngleType.EXTRACT) {
+        rbExtract.setSelected(true);
+      }
+      else if (tiltAngleSpec.getType() == TiltAngleType.FILE) {
+        rbFile.setSelected(true);
+      }
+    }
   }
 
   Component getComponent() {

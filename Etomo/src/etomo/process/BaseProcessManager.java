@@ -663,10 +663,9 @@ public abstract class BaseProcessManager {
    */
   public final String processchunks(final AxisID axisID, final ProcesschunksParam param,
       final ParallelProgressDisplay parallelProgressDisplay,
-      final ProcessResultDisplay processResultDisplay,
-      final ProcessSeries processSeries, final boolean popupChunkWarnings,
-      final ProcessingMethod processingMethod, final boolean multiLineMessages)
-      throws SystemProcessException {
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final boolean popupChunkWarnings, final ProcessingMethod processingMethod,
+      final boolean multiLineMessages) throws SystemProcessException {
     // Instantiate the process monitor
     ProcesschunksProcessMonitor monitor;
     if (param.equalsRootName(ProcessName.VOLCOMBINE, axisID)) {
@@ -826,12 +825,18 @@ public abstract class BaseProcessManager {
    */
   final ComScriptProcess startComScript(final String command,
       final ProcessMonitor processMonitor, final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay,
-      final ProcessSeries processSeries, final boolean resumable)
-      throws SystemProcessException {
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final boolean resumable) throws SystemProcessException {
     return startComScript(new ComScriptProcess(manager, command, this, axisID, null,
         processMonitor, processResultDisplay, processSeries, resumable), command,
         processMonitor, axisID);
+  }
+
+  final ComScriptProcess startComScript(final String command, final AxisID axisID,
+      final ProcessSeries processSeries, final FileType fileType)
+      throws SystemProcessException {
+    return startComScript(new ComScriptProcess(manager, command, this, axisID, null,
+        null, null, processSeries, false, fileType), command, null, axisID);
   }
 
   /**
@@ -908,9 +913,8 @@ public abstract class BaseProcessManager {
    */
   final ComScriptProcess startComScript(final CommandDetails commandDetails,
       final ProcessMonitor processMonitor, final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay,
-      final ProcessSeries processSeries, final ProcessingMethod processingMethod)
-      throws SystemProcessException {
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final ProcessingMethod processingMethod) throws SystemProcessException {
     return startComScript(new ComScriptProcess(manager, commandDetails, this, axisID,
         null, processMonitor, processResultDisplay, processSeries, processingMethod),
         commandDetails.getCommandLine(), processMonitor, axisID);
@@ -918,8 +922,8 @@ public abstract class BaseProcessManager {
 
   final ComScriptProcess startComScript(final Command command,
       final ProcessMonitor processMonitor, final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay,
-      final ProcessSeries processSeries) throws SystemProcessException {
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries)
+      throws SystemProcessException {
     return startComScript(new ComScriptProcess(manager, command, this, axisID, null,
         processMonitor, processResultDisplay, processSeries, null),
         command.getCommandLine(), processMonitor, axisID);
@@ -927,9 +931,8 @@ public abstract class BaseProcessManager {
 
   final ComScriptProcess startComScript(final Command command,
       final ProcessMonitor processMonitor, final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay,
-      final ProcessSeries processSeries, final ProcessingMethod processingMethod)
-      throws SystemProcessException {
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final ProcessingMethod processingMethod) throws SystemProcessException {
     return startComScript(new ComScriptProcess(manager, command, this, axisID, null,
         processMonitor, processResultDisplay, processSeries, processingMethod),
         command.getCommandLine(), processMonitor, axisID);
@@ -937,8 +940,8 @@ public abstract class BaseProcessManager {
 
   final ComScriptProcess startComScript(final CommandDetails CommandDetails,
       final ProcessMonitor processMonitor, final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay,
-      final ProcessSeries processSeries) throws SystemProcessException {
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries)
+      throws SystemProcessException {
     return startComScript(new ComScriptProcess(manager, CommandDetails, this, axisID,
         null, processMonitor, processResultDisplay, processSeries, null),
         CommandDetails.getCommandLine(), processMonitor, axisID);
@@ -1671,9 +1674,8 @@ public abstract class BaseProcessManager {
 
   final BackgroundProcess startBackgroundProcess(final String[] commandArray,
       final AxisID axisID, final boolean forceNextProcess,
-      final ProcessResultDisplay processResultDisplay,
-      final ProcessSeries processSeries, final ProcessName processName)
-      throws SystemProcessException {
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final ProcessName processName) throws SystemProcessException {
     BackgroundProcess backgroundProcess = new BackgroundProcess(manager, commandArray,
         this, axisID, forceNextProcess, processResultDisplay, processSeries, processName);
     return startBackgroundProcess(backgroundProcess, commandArray.toString(), axisID,

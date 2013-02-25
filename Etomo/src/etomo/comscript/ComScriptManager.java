@@ -464,7 +464,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       scriptEraserA = loadComScript("eraser", axisID, true, false, false);
     }
   }
-  
+
   /**
    * @param axisID
    * @param required
@@ -506,7 +506,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     initialize(ccdEraserParam, eraser, "ccderaser", axisID, false, false);
     return ccdEraserParam;
   }
-  
+
   /**
    * Get the CCD eraser parameters from the specified eraser script object
    * @param axisID the AxisID to read.
@@ -550,7 +550,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     // update the ccderaser parameters
     modifyCommand(scriptEraser, ccdEraserParam, "ccderaser", axisID, false, false);
   }
-  
+
   /**
    * Save the specified gold eraser com script updating the ccderaser parmaeters
    * @param axisID the AxisID to load.

@@ -254,6 +254,7 @@ public final class ProcessName {
   public static final ProcessName AUTOFIDSEED = new ProcessName("autofidseed");
   public static final ProcessName BATCHRUNTOMO = new ProcessName("batchruntomo");
   public static final ProcessName MAKECOMFILE = new ProcessName("makecomfile");
+  public static final ProcessName COPYTOMOCOMS = new ProcessName("copytomocoms");
 
   /**
    * Returns a string representation of the object.
@@ -562,6 +563,9 @@ public final class ProcessName {
     }
     if (name.compareToIgnoreCase(MAKECOMFILE.name) == 0) {
       return MAKECOMFILE;
+    }
+    if (name.compareToIgnoreCase(COPYTOMOCOMS.name) == 0) {
+      return COPYTOMOCOMS;
     }
     return null;
   }

@@ -82,7 +82,7 @@ public final class TomogramTool {
    */
   private static long getTomogramSize(final BaseManager manager, final AxisID axisID) {
     long size = 0;
-    FileInputStream stream;
+    FileInputStream stream = null;
     try {
       stream = new FileInputStream(DatasetFiles.getTomogram(manager, axisID));
       FileChannel fileChannel = stream.getChannel();
@@ -91,6 +91,14 @@ public final class TomogramTool {
     catch (FileNotFoundException e) {
     }
     catch (IOException e) {
+    }
+    if (stream != null) {
+      try {
+        stream.close();
+      }
+      catch (IOException e1) {
+        e1.printStackTrace();
+      }
     }
     return size;
   }

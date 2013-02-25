@@ -504,8 +504,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public ComScriptProcess(final BaseManager manager, final String comScript,
       final BaseProcessManager processManager, final AxisID axisID,
       final String watchedFileName, final ProcessMonitor processMonitor,
-      final ProcessResultDisplay processResultDisplay,
-      final ProcessSeries processSeries, final boolean resumable) {
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final boolean resumable) {
     this.manager = manager;
     this.comScriptName = comScript;
     this.processManager = processManager;
@@ -522,6 +522,29 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     }
     this.processSeries = processSeries;
     initialize(null);
+  }
+
+  public ComScriptProcess(final BaseManager manager, final String comScript,
+      final BaseProcessManager processManager, final AxisID axisID,
+      final String watchedFileName, final ProcessMonitor processMonitor,
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final boolean resumable, final FileType fileType) {
+    this.manager = manager;
+    this.comScriptName = comScript;
+    this.processManager = processManager;
+    cshProcessID = new StringBuffer("");
+    this.axisID = axisID;
+    this.watchedFileName = watchedFileName;
+    this.processMonitor = processMonitor;
+    this.processResultDisplay = processResultDisplay;
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
+    processData.setDisplayKey(processResultDisplay);
+    if (processSeries != null) {
+      processData.setDialogType(processSeries.getDialogType());
+      processData.setLastProcess(processSeries, resumable);
+    }
+    this.processSeries = processSeries;
+    initialize(fileType);
   }
 
   public ComScriptProcess(BaseManager manager, String comScript, Command command,
@@ -1152,6 +1175,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     while ((line = fileReader.readLine()) != null) {
       lines.add(line);
     }
+    if (fileReader!=null) {
+      fileReader.close();
+    }
+    fileReader.close();
     return (String[]) lines.toArray(new String[lines.size()]);
   }
 

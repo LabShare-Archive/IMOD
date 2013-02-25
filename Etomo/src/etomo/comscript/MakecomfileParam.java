@@ -1,5 +1,6 @@
 package etomo.comscript;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,8 +61,28 @@ public class MakecomfileParam {
       command.add("-bead");
       command.add(beadSize.toString());
     }
-    else {
+    else if (fileType != FileType.AUTOFIDSEED_COMSCRIPT) {
       return false;
+    }
+    File file = FileType.LOCAL_SCOPE_TEMPLATE.getFile(manager, axisID);
+    if (file.exists()) {
+      command.add("-change");
+      command.add(file.getName());
+    }
+     file = FileType.LOCAL_SYSTEM_TEMPLATE.getFile(manager, axisID);
+    if (file.exists()) {
+      command.add("-change");
+      command.add(file.getName());
+    }
+    file = FileType.LOCAL_USER_TEMPLATE.getFile(manager, axisID);
+    if (file.exists()) {
+      command.add("-change");
+      command.add(file.getName());
+    }
+    file = FileType.LOCAL_BATCH_DIRECTIVE_FILE.getFile(manager, axisID);
+    if (file.exists()) {
+      command.add("-change");
+      command.add(file.getName());
     }
     command.add(fileType.getFileName(manager, axisID));
     makecomfile = new SystemProgram(manager, manager.getPropertyUserDir(), command,
