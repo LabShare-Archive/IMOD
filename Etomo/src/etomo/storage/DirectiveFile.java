@@ -612,16 +612,14 @@ public final class DirectiveFile {
     if (tiltAngleSpec == null) {
       return true;
     }
-    ReadOnlyAttribute attribute = null;
-    if ((attribute = getAttribute(AttributeName.COPY_ARG,
-        convertAttributeName(axisID, FIRST_INC_NAME))) != null) {
+    if (containsAttribute(AttributeName.COPY_ARG,
+        convertAttributeName(axisID, FIRST_INC_NAME))) {
       tiltAngleSpec.setType(TiltAngleType.RANGE);
+      String value = getValue(AttributeName.COPY_ARG,
+          convertAttributeName(axisID, FIRST_INC_NAME));
       String[] arrayValue = null;
-      if (attribute != null) {
-        String value = attribute.getValue();
-        if (value != null) {
-          arrayValue = value.trim().split(FieldType.CollectionType.ARRAY.getSplitter());
-        }
+      if (value != null) {
+        arrayValue = value.trim().split(FieldType.CollectionType.ARRAY.getSplitter());
       }
       if (arrayValue != null && arrayValue.length > 0) {
         tiltAngleSpec.setRangeMin(arrayValue[0]);
@@ -630,12 +628,12 @@ public final class DirectiveFile {
         tiltAngleSpec.setRangeStep(arrayValue[1]);
       }
     }
-    else if ((attribute = getAttribute(AttributeName.COPY_ARG,
-        convertAttributeName(axisID, EXTRACT_NAME))) != null) {
+    else if (toBoolean(getValue(AttributeName.COPY_ARG,
+        convertAttributeName(axisID, EXTRACT_NAME)))) {
       tiltAngleSpec.setType(TiltAngleType.EXTRACT);
     }
-    else if ((attribute = getAttribute(AttributeName.COPY_ARG,
-        convertAttributeName(axisID, USE_RAW_TLT_NAME))) != null) {
+    else if (toBoolean(getValue(AttributeName.COPY_ARG,
+        convertAttributeName(axisID, USE_RAW_TLT_NAME)))) {
       tiltAngleSpec.setType(TiltAngleType.FILE);
     }
     return true;
@@ -687,7 +685,7 @@ public final class DirectiveFile {
   public void setPixelSize(final double input) {
     setCopyArgValue(PIXEL_NAME, Double.toString(input));
   }
-  
+
   public String toString() {
     return getFile().getAbsolutePath();
   }
