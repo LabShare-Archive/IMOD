@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/27/13: Fixed array allocation problem in Pickbestseed.
+
 2/27/13: Fixed problem of 3dmod quitting during initial load due to messages 
 to Bead Fixer.
 
@@ -7,6 +9,8 @@ to Bead Fixer.
 different resolutions) and has a new kind of cache that allows rapid access to
 subareas at any zoom when a pyramid is loaded; ordinary (non-tiled) files can
 also be cached as strips for somewhat faster access.
+
+2/26/13: Fixed suppression of "unknown field" messages in Tif2mrc.
 
 2/23/13: Added script Makepyramid for making an image pyramid.
 
