@@ -153,6 +153,7 @@ EXPORTS
 	RSMADMEDIANOUTLIERS
 	normalizeColumns
 	makeLinePointers
+	rsSortInts
 	NORMALIZECOLUMNS
 	cubinterp
 	PipSetLinkedOption
@@ -167,6 +168,7 @@ EXPORTS
 	SAMPLEMEANSD
 	AdocGetNumberOfKeys
 	amatToRotmagstr
+	rssortints
 	lsqr
 	AdocGetFloat
 	NUMOMPTHREADS
