@@ -46,6 +46,7 @@
 #include "display.h"
 #include "mv_objed.h"
 #include "control.h"
+#include "cachefill.h"
 
 
 enum {IIS_X_COORD = 0, IIS_Y_COORD, IIS_Z_COORD, IIS_X_SIZE, IIS_Y_SIZE, IIS_Z_SIZE};
@@ -109,8 +110,9 @@ void imodvIsosurfaceEditDialog(ImodvApp *a, int state)
   }
 
   iisData.a = a;
-  iisData.dia = new ImodvIsosurface
-    (a->vi, imodvDialogManager.parent(IMODV_DIALOG), "isosurface view");
+  iisData.dia = new ImodvIsosurface(a->vi, a->vi->pyrCache != NULL,
+                                    imodvDialogManager.parent(IMODV_DIALOG),
+                                    "isosurface view");
   imodvDialogManager.add((QWidget *)iisData.dia, IMODV_DIALOG);
   adjustGeometryAndShow((QWidget *)iisData.dia, IMODV_DIALOG);
   if (!iisData.dia->mVolume) {
@@ -120,7 +122,7 @@ void imodvIsosurfaceEditDialog(ImodvApp *a, int state)
 }
 
 // The external call to update the dialog and isosurface
-bool imodvIsosurfaceUpdate(void)
+bool imodvIsosurfaceUpdate(int drawFlags)
 {
   Iobj *obj;
   Icont *cont;
@@ -133,7 +135,7 @@ bool imodvIsosurfaceUpdate(void)
 
   if (dia && dia->mVolume) { 
     dia->updateCoords(iisData.flags & IIS_LINK_XYZ);
-    if (isBoxChanged(dia->mBoxOrigin, dia->mBoxEnds)) {
+    if ((drawFlags & IMOD_DRAW_IMAGE) || isBoxChanged(dia->mBoxOrigin, dia->mBoxEnds)) {
       dia->setBoundingBox();
       if (iisData.flags & IIS_CENTER_VOLUME)
         dia->setViewCenter();
@@ -187,6 +189,19 @@ bool imodvIsosurfaceUpdate(void)
   } else
     return false;
 }
+
+// External call to get limits being displayed in X and Y
+bool imodvIsosurfaceBoxLimits(int &ixStart, int &iyStart, int &nxUse, int &nyUse)
+{
+  ImodvIsosurface *dia = iisData.dia;
+  if (!dia || !dia->mVolume)
+    return false;
+  ixStart = dia->mBoxOrigin[0];
+  iyStart = dia->mBoxOrigin[1];
+  nxUse = dia->mBoxEnds[0] + 1 - ixStart;
+  nyUse = dia->mBoxEnds[1] + 1 - iyStart;
+  return true;
+} 
 
 // Compute starting and ending draw coordinates from center coordinate, desired
 // size and maximum size, shifting center if necessary
@@ -275,14 +290,16 @@ static void findDimLimits(int which, int &xdim, int &ydim, int &zdim, int *sizes
 
 // THE ImodvIsosurface CLASS IMPLEMENTATION
 
-static const char *buttonLabels[] = {"Save to Object", "Done", "Help"};
+static const char *buttonLabels[] = {"Save to Object", "Done", "Help", " Fill "};
 static const char *buttonTips[] = {"Save isosurfaces and bounding box as Imod objects",
-                                   "Close dialog box", "Open help window"};
+                                   "Close dialog box", "Open help window", 
+                                   "Fill cache for current displayed area"};
 static const char *sliderLabels[] = {"X", "Y", "Z", "X size", "Y size", "Z size"};
 static const char *histLabels[] = {"Threshold", "Outer limit"};
 
-ImodvIsosurface::ImodvIsosurface(ImodView *vi, QWidget *parent, const char *name)
-  : DialogFrame(parent, 3, 1, buttonLabels, buttonTips, false, 
+ImodvIsosurface::ImodvIsosurface(ImodView *vi, bool fillBut, QWidget *parent, 
+                                 const char *name)
+  : DialogFrame(parent, fillBut ? 4 : 3, 1, buttonLabels, buttonTips, false, 
       ImodPrefs->getRoundedStyle(), "3dmodv Isosurface View", "", name)
 {
   mCtrlPressed = false;
@@ -1705,7 +1722,7 @@ void ImodvIsosurface::linkXYZToggled(bool state)
 {
   setOrClearFlags(&iisData.flags, IIS_LINK_XYZ, state ? 1 : 0);
   if(state) {
-    imodvIsosurfaceUpdate();
+    imodvIsosurfaceUpdate(0);
     imodDraw(mVi, IMOD_DRAW_MOD);
   }
 }
@@ -2136,6 +2153,8 @@ void ImodvIsosurface::buttonPressed(int which)
 {
   if (which == 2)
     imodShowHelpPage("modvIsosurface.html#TOP");
+  else if (which == 3)
+    imodCacheFill(mVi, 0);
   else if (which == 1)
     close();
   else if (which == 0) {

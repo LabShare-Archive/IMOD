@@ -18,7 +18,8 @@ extern void smooth_vertex_positions(float *varray, Index nv,
 
 /* Image Control functions. */
 void imodvIsosurfaceEditDialog(ImodvApp *a, int state);
-bool imodvIsosurfaceUpdate(void);
+bool imodvIsosurfaceUpdate(int drawFlags);
+bool imodvIsosurfaceBoxLimits(int &ixStart, int &iyStart, int &nxUse, int &nyUse);
 
 #include "imodel.h"
 #include "dialog_frame.h"
@@ -59,7 +60,8 @@ class ImodvIsosurface : public DialogFrame
   Q_OBJECT
 
  public:
-  ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const char *name = NULL) ;
+  ImodvIsosurface(struct ViewInfo *vi, bool fillBut, QWidget *parent,
+                  const char *name = NULL) ;
   ~ImodvIsosurface();
   void updateCoords(bool setLocal);
   void setBoundingBox();

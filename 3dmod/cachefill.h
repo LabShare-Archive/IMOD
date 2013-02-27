@@ -26,7 +26,7 @@ class QGroupBox;
 int icfGetAutofill(void);
 unsigned char *icfDoAutofill(ImodView *vw, int cz);
 void imodCacheFillDialog(ImodView *vw);
-int imodCacheFill(ImodView *vw);
+int imodCacheFill(ImodView *vw, int source = 0);
 
 class ImodCacheFill : public DialogFrame
 {

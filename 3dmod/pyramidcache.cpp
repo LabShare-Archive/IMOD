@@ -15,9 +15,14 @@
 #include "info_cb.h"
 #include "workprocs.h"
 #include "control.h"
+#include "display.h"
 #include "xxyz.h"
 #include "xzap.h"
 #include "zap_classes.h"
+#include "slicer_classes.h"
+#include "sslice.h"
+#include "isosurface.h"
+#include "mv_image.h"
 
 #define FULL_SEC_BUF 3
 
@@ -51,6 +56,7 @@ PyramidCache::PyramidCache(ViewInfo *vi, QStringList &plFileNames, int frames,
     mSliceBufs[ind] = NULL;
     mBufLoadZ[ind] = -1;
   }
+  mBufCacheInd = -1;
   mBufTotSize = 0;
   mFullSecBuf = NULL;
   mFullSecPtrs = NULL;
@@ -815,12 +821,15 @@ int PyramidCache::loadTilesContainingArea(int cacheInd, int baseXstart, int base
 }
 
 /*
- * Fill a cache for a displayed area around the given section
+ * Fill a cache for a displayed area around the given section.  The source should be
+ * 0 for a general fill with default priorities, -1 for a fill for image in model view,
+ * or 1 for a fill for an image window
  */
-void PyramidCache::fillCacheForArea(int section)
+void PyramidCache::fillCacheForArea(int section, int source)
 {
   int foundType;
   XyzWindow *xyz;
+  SlicerFuncs *ss;
   TileCache *cache;
   double zoom, numPix = 0.;
   float xoffset, yoffset;
@@ -828,31 +837,57 @@ void PyramidCache::fillCacheForArea(int section)
   int tileXmin, tileXmax, tileYmin, tileYmax, xtile, ytile, cacheInd, needed;
   int numSlices, middleZ, scale, dir, delz, iz;
   int startXtile, startYtile, xtmp, ytmp, endXtile, endYtile, zstart, zend;
+  float zoomUpLimit = mZoomUpLimit;
+  float zoomDownLimit = mZoomDownLimit;
 
-  // Get the area used and the zoom from the top zap or xyz window
-  QObject *topWin = imodDialogManager.getTopWindow(XYZ_WINDOW_TYPE, ZAP_WINDOW_TYPE, 
+  // Look at a sequence of image uses, starting with isosurface, then model view image
+  // then the image display windows
+  if (!source && imodvIsosurfaceBoxLimits(baseXstart, baseYstart, nxUse, nyUse)) {
+    zoom = 1.;
+    imodTrace('t', "Using isosurface limits");
+  } else if (source <= 0 && mvImageSubsetLimits(zoom, zoomUpLimit, zoomDownLimit, 
+                                                baseXstart, baseYstart, nxUse, nyUse)) {
+    imodTrace('t', "Using mvImage limits");
+  } else {
+    
+    // Go for the top slicer or xyz window, or failing that, get a Zap
+    QObject *topWin = imodDialogManager.getTopWindow(XYZ_WINDOW_TYPE, SLICER_WINDOW_TYPE, 
                                                    foundType);
-  if (foundType < 0) {
-    wprint("\aFill Cache can be used only when there is a Zap or XYZ window open\n");
-    return;
-  }
-  if (foundType == ZAP_WINDOW_TYPE) {
-    imodTrace('t', "Top is Zap");
-    if (zapSubsetLimits(mVi, baseXstart, baseYstart, nxUse, nyUse)) {
-      wprint("\aCannot get subarea limits from top Zap window\n");
+    if (foundType < 0)
+      topWin = imodDialogManager.getTopWindow(ZAP_WINDOW_TYPE, ZAP_WINDOW_TYPE,
+                                              foundType);
+    if (foundType < 0) {
+      wprint("\aFill Cache can be used only when isosurface or image is displayed in "
+             "Model View or there is a Slicer, XYZ, or Zap window open\n");
       return;
     }
-    zoom = ((ZapWindow *)topWin)->mZap->mZoom;
-  } else {
-    imodTrace('t', "Top is XYZ");
-    xyz = (XyzWindow *)topWin;
-    xyz->getSubsetLimits(baseXstart, baseYstart, nxUse, nyUse);
-    zoom = xyz->mZoom;
+
+    // Get the area and zoom as appropriate for the window type
+    if (foundType == ZAP_WINDOW_TYPE) {
+      imodTrace('t', "Top is Zap");
+      if (zapSubsetLimits(mVi, baseXstart, baseYstart, nxUse, nyUse)) {
+        wprint("\aCannot get subarea limits from top Zap window\n");
+        return;
+      }
+      zoom = ((ZapWindow *)topWin)->mZap->mZoom;
+    } else if (foundType == XYZ_WINDOW_TYPE) {
+      imodTrace('t', "Top is XYZ");
+      xyz = (XyzWindow *)topWin;
+      xyz->getSubsetLimits(baseXstart, baseYstart, nxUse, nyUse);
+      zoom = xyz->mZoom;
+    } else {
+      imodTrace('t', "Top is Slicer");
+      ss = ((SlicerWindow *)topWin)->mFuncs;
+      ss->getSubsetLimits(baseXstart, baseYstart, nxUse, nyUse);
+      zoom = 1.;
+    }
   }
 
   // Find the cache being used there
-  cacheInd = pickBestCache(zoom, mZoomUpLimit, mZoomDownLimit, scale);
+  cacheInd = pickBestCache(zoom, zoomUpLimit, zoomDownLimit, scale);
   cache = &mTileCaches[cacheInd];
+  imodTrace('t', "Cache fill zoom %f  limits %d %d %d %d  index %d", zoom, baseXstart, 
+            baseYstart, nxUse, nyUse, cacheInd);
 
   // Find range of tiles needed to cover the area and total pixels in them
   scaledAreaSize(cacheInd, baseXstart, baseYstart, nxUse, nyUse, xstart, ystart, xsize,
@@ -915,7 +950,6 @@ void PyramidCache::fillCacheForArea(int section)
   }
 
   wprint("DONE!\n");
-  
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1335,7 +1369,7 @@ int PyramidCache::fastPlaneAccess(int cacheInd, int plane, int axis,
   segments.clear();
   switch (axis) {
   case b3dX:
-    startInds.resize(nz);
+    startInds.resize(nz + 1);
 
     // For an X plane, first find the X tile and position in it that corresponds to plane
     getTileAndPositionInTile(cacheInd, plane, 0, xtile, ytile, xInTile, yInTile);
@@ -1366,7 +1400,7 @@ int PyramidCache::fastPlaneAccess(int cacheInd, int plane, int axis,
     break;
 
   case b3dY:
-    startInds.resize(nz);
+    startInds.resize(nz + 1);
 
     // For a Y plane, find the y tile and position in it that correspond to plane
     getTileAndPositionInTile(cacheInd, 0, plane, xtile, ytile, xInTile, yInTile);
@@ -1460,7 +1494,7 @@ int PyramidCache::loadedMeanSD(int cacheInd, int section, float sample, int ixSt
                                int &cacheSum, int oldCacheSum, float pctLo, float pctHi,
                                float *scaleLo, float *scaleHi)
 {
-  TileCache *cache = &mTileCaches[cacheInd];
+  TileCache *cache;
   int sampleType = mVi->ushortStore ? 2 : 0;
   double numPix = 0., xsum = 0., xsqsum = 0.;
   float tmpMean, tmpSD, xoffset, yoffset, loTemp, hiTemp;
@@ -1476,6 +1510,11 @@ int PyramidCache::loadedMeanSD(int cacheInd, int section, float sample, int ixSt
   std::vector<float> loScales, hiScales;
 
   // Find area that is needed for analysis
+  if (cacheInd >= mNumCaches)
+    return 1;
+  if (cacheInd < 0)
+    cacheInd = mBaseIndex;
+  cache = &mTileCaches[cacheInd];
   scaledAreaSize(cacheInd, ixStart, iyStart, nxUse, nyUse, xstart, ystart, xsize, ysize,
                  xoffset, yoffset, false);
   xend = xstart + xsize - 1;
