@@ -363,7 +363,10 @@ bool ImodClipboard::executeMessage()
       arg += requiredArgs[sMessageAction];
       if (arg < numArgs - 1 && sMessageAction == MESSAGE_MODEL_MODE)
         arg++;
-      if (sMessageAction == MESSAGE_QUIT)
+
+      // Stop processing after a plugin message because the length is unknown
+      // and stop after seeing a quit
+      if (sMessageAction == MESSAGE_PLUGIN_EXECUTE || sMessageAction == MESSAGE_QUIT) 
         arg = numArgs;
       continue;
     }
