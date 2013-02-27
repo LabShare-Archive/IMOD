@@ -32,24 +32,46 @@
 int checkPieceList(int *pclist, int stride, int npclist, int redfac, int nframe,
                    int *minpiece, int *npieces, int *noverlap)
 {
-  int i,j,mindiff,ipc,jpc,naddback,novertot,idiff,maxpiece;
+  int i, j, mindiff, ipc, jpc, naddback, novertot, idiff, maxpiece;
+  int *coords = NULL;
   mindiff = 100000;
   *minpiece = 100000;
   maxpiece = -100000;
   /* get min and max of piece coordinates and minimum non-zero difference */
-  for (i = 0; i < npclist; i++) {
-    ipc = redfac * pclist[i * stride];
-    *minpiece = B3DMIN(*minpiece, ipc);
-    maxpiece = B3DMAX(maxpiece, ipc);
-    for (j = 0; j < npclist; j++) {
-      jpc = redfac * pclist[j * stride];
-      idiff = ipc - jpc;
-      if (idiff < 0)
-        idiff = -idiff;
+  if (npclist > 1) 
+    coords = B3DMALLOC(int, npclist);
+  if (coords) {
+
+    /* New way: sort the coordinates and then find minimum diff in one pass */
+    for (i = 0; i < npclist; i++)
+      coords[i] = pclist[i * stride];
+    rsSortInts(coords, npclist);
+    *minpiece = redfac * coords[0];
+    maxpiece = redfac * coords[npclist - 1];
+    for (i = 1; i < npclist; i++) {
+      idiff = coords[i] - coords[i - 1];
       if (idiff)
-        mindiff = B3DMIN(mindiff, idiff);
+        mindiff = B3DMIN(mindiff, redfac * idiff);
     }
-  }  
+        
+  } else {
+
+    /* The old way: pairwise comparisons */
+    for (i = 0; i < npclist; i++) {
+      ipc = redfac * pclist[i * stride];
+      *minpiece = B3DMIN(*minpiece, ipc);
+      maxpiece = B3DMAX(maxpiece, ipc);
+      for (j = 0; j < npclist; j++) {
+        jpc = redfac * pclist[j * stride];
+        idiff = ipc - jpc;
+        if (idiff < 0)
+          idiff = -idiff;
+        if (idiff)
+          mindiff = B3DMIN(mindiff, idiff);
+      }
+    }  
+  }
+
   /* now check and make sure all differences are multiples of minimum
      but if there were no non-zero differences, return 1 piece, 0 overlap */
   if (mindiff == 100000) {
