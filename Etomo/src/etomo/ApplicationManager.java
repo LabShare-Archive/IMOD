@@ -83,6 +83,7 @@ import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.storage.CpuAdoc;
 import etomo.storage.DirectiveFile;
+import etomo.storage.DirectiveFileCollection;
 import etomo.storage.LogFile;
 import etomo.storage.LoggableCollection;
 import etomo.storage.Storable;
@@ -424,17 +425,14 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
-  BatchruntomoParam updateBatchruntomo() {
+  BatchruntomoParam updateBatchruntomo(final boolean directiveDrivenAutomation,
+      final DirectiveFile directiveFile) {
+    if (directiveFile == null) {
+      return null;
+    }
     BatchruntomoParam param = new BatchruntomoParam(this);
-    param.setValidationType(setupReconUIHarness.isDirectiveDrivenAutomation());
-    if (param.needsBatchDirectiveFile()) {
-      param.addDirective(setupReconUIHarness.getBatchDirectiveFile());
-    }
-    else {
-      param.addDirective(setupReconUIHarness.getScopeTemplate());
-      param.addDirective(setupReconUIHarness.getSystemTemplate());
-      param.addDirective(setupReconUIHarness.getUserTemplate());
-    }
+    param.setValidationType(directiveDrivenAutomation);
+    param.setDirective(directiveFile);
     if (param.isValid()) {
       return param;
     }
@@ -502,10 +500,29 @@ public final class ApplicationManager extends BaseManager implements
         return false;
       }
       if (exitState == DialogExitState.EXECUTE) {
-        if (!setupReconUIHarness.isDirectiveDrivenAutomation()
-            || EtomoDirector.INSTANCE.getArguments().isFromBRT()) {
+        if (setupReconUIHarness.isDirectiveDrivenAutomation()
+            && !EtomoDirector.INSTANCE.getArguments().isFromBRT()) {
           // Etomo is responsible for running the validation of the directive files.
-          BatchruntomoParam param = updateBatchruntomo();
+          BatchruntomoParam param = updateBatchruntomo(true, setupReconUIHarness
+              .getDirectiveFileCollection().getBatchDirectiveFile());
+          if (param != null && !processMgr.batchruntomo(AxisID.ONLY, param)) {
+            return false;
+          }
+        }
+        else if (!setupReconUIHarness.isDirectiveDrivenAutomation()) {
+          // Run validation for each template
+          BatchruntomoParam param = updateBatchruntomo(false, setupReconUIHarness
+              .getDirectiveFileCollection().getScopeTemplate());
+          if (param != null && !processMgr.batchruntomo(AxisID.ONLY, param)) {
+            return false;
+          }
+          param = updateBatchruntomo(false, setupReconUIHarness
+              .getDirectiveFileCollection().getSystemTemplate());
+          if (param != null && !processMgr.batchruntomo(AxisID.ONLY, param)) {
+            return false;
+          }
+          param = updateBatchruntomo(false, setupReconUIHarness
+              .getDirectiveFileCollection().getUserTemplate());
           if (param != null && !processMgr.batchruntomo(AxisID.ONLY, param)) {
             return false;
           }
@@ -572,35 +589,31 @@ public final class ApplicationManager extends BaseManager implements
     boolean directiveDrivenAutomation = setupReconUIHarness.isDirectiveDrivenAutomation();
     param = new CopyTomoComs(this);
     param.setDirectiveDrivenAutomation(directiveDrivenAutomation);
-    if (directiveDrivenAutomation) {
-      param.setDirectiveFileCollection(setupReconUIHarness.getDirectiveFileCollection());
-      param.setBatchDirectiveFile(setupReconUIHarness.getBatchDirectiveFile());
-    }
-    param.setScopeTemplate(setupReconUIHarness.getScopeTemplate());
-    param.setSystemTemplate(setupReconUIHarness.getSystemTemplate());
-    param.setUserTemplate(setupReconUIHarness.getUserTemplate());
+    param.setDirectiveFileCollection(setupReconUIHarness.getDirectiveFileCollection());
     return param;
   }
 
   private void copyDirectiveFiles() {
+    DirectiveFileCollection directiveFileCollection = setupReconUIHarness
+        .getDirectiveFileCollection();
     DirectiveFile directiveFile = null;
     try {
-      directiveFile = setupReconUIHarness.getScopeTemplate();
+      directiveFile = directiveFileCollection.getScopeTemplate();
       if (directiveFile != null) {
         Utilities.copyFile(directiveFile.getFile(), FileType.LOCAL_SCOPE_TEMPLATE, this,
             AxisID.ONLY);
       }
-      directiveFile = setupReconUIHarness.getSystemTemplate();
+      directiveFile = directiveFileCollection.getSystemTemplate();
       if (directiveFile != null) {
         Utilities.copyFile(directiveFile.getFile(), FileType.LOCAL_SYSTEM_TEMPLATE, this,
             AxisID.ONLY);
       }
-      directiveFile = setupReconUIHarness.getUserTemplate();
+      directiveFile = directiveFileCollection.getUserTemplate();
       if (directiveFile != null) {
         Utilities.copyFile(directiveFile.getFile(), FileType.LOCAL_USER_TEMPLATE, this,
             AxisID.ONLY);
       }
-      directiveFile = setupReconUIHarness.getBatchDirectiveFile();
+      directiveFile = directiveFileCollection.getBatchDirectiveFile();
       if (directiveFile != null) {
         Utilities.copyFile(directiveFile.getFile(), FileType.LOCAL_BATCH_DIRECTIVE_FILE,
             this, AxisID.ONLY);
