@@ -6,12 +6,14 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.logic.DatasetTool;
 import etomo.logic.UserEnv;
+import etomo.storage.DirectiveFile.AttributeName;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAttributeIterator;
 import etomo.type.AxisID;
+import etomo.type.EtomoNumber;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
 import etomo.ui.SetupReconInterface;
@@ -37,10 +39,10 @@ public class DirectiveFileCollection implements SetupReconInterface {
   private final DirectiveFile[] directiveFileArray = new DirectiveFile[] { null, null,
       null, null };
 
-  private final ApplicationManager manager;
+  private final BaseManager manager;
   private final AxisID axisID;
 
-  public DirectiveFileCollection(final ApplicationManager manager, final AxisID axisID) {
+  public DirectiveFileCollection(final BaseManager manager, final AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
   }
@@ -74,9 +76,49 @@ public class DirectiveFileCollection implements SetupReconInterface {
     return value;
   }
 
+  public boolean containsBinning() {
+    return containsAttribute(AttributeName.COPY_ARG, DirectiveFile.BINNING_NAME);
+  }
+
   public boolean containsDatasetDirectory() {
     return containsAttribute(DirectiveFile.AttributeName.SETUP_SET,
         DirectiveFile.DATASET_DIRECTORY_NAME);
+  }
+
+  public boolean containsDistort() {
+    return containsAttribute(AttributeName.COPY_ARG, DirectiveFile.DISTORT_NAME);
+  }
+
+  public boolean containsFocus(final AxisID axisID) {
+    return containsAttribute(AttributeName.COPY_ARG,
+        DirectiveFile.convertAttributeName(axisID, DirectiveFile.FOCUS_NAME));
+  }
+
+  public boolean containsGold() {
+    return containsAttribute(DirectiveFile.AttributeName.COPY_ARG,
+        DirectiveFile.GOLD_NAME);
+  }
+
+  public boolean containsGradient() {
+    return containsAttribute(AttributeName.COPY_ARG, DirectiveFile.GRADIENT_NAME);
+  }
+
+  public boolean containsPixel() {
+    return containsAttribute(DirectiveFile.AttributeName.COPY_ARG,
+        DirectiveFile.PIXEL_NAME);
+  }
+
+  public boolean containsRotation() {
+    return containsAttribute(AttributeName.COPY_ARG, DirectiveFile.ROTATION_NAME);
+  }
+
+  public boolean containsTiltAngleSpec(final AxisID axisID) {
+    return containsAttribute(AttributeName.COPY_ARG,
+        DirectiveFile.convertAttributeName(axisID, DirectiveFile.FIRST_INC_NAME))
+        || containsAttribute(AttributeName.COPY_ARG,
+            DirectiveFile.convertAttributeName(axisID, DirectiveFile.USE_RAW_TLT_NAME))
+        || containsAttribute(AttributeName.COPY_ARG,
+            DirectiveFile.convertAttributeName(axisID, DirectiveFile.EXTRACT_NAME));
   }
 
   public String getBackupDirectory() {
@@ -112,6 +154,10 @@ public class DirectiveFileCollection implements SetupReconInterface {
         DirectiveFile.DATASET_DIRECTORY_NAME);
   }
 
+  public DirectiveFileCollection getDirectiveFileCollection() {
+    return this;
+  }
+
   public String getDistortionFile() {
     return getValue(DirectiveFile.AttributeName.COPY_ARG, DirectiveFile.DISTORT_NAME);
   }
@@ -139,6 +185,20 @@ public class DirectiveFileCollection implements SetupReconInterface {
         DirectiveFile.convertAttributeName(axisID, DirectiveFile.ROTATION_NAME));
   }
 
+  /**
+   * Returns binning or defaultRetValue if binning is invalid or missing.
+   * @param defaultRetValue
+   * @return
+   */
+  public int getIntBinning(final int defaultRetValue) {
+    EtomoNumber binning = new EtomoNumber();
+    binning.set(getBinning());
+    if (binning.isValid() && !binning.isNull()) {
+      return binning.getInt();
+    }
+    return defaultRetValue;
+  }
+
   public String getMagGradientFile() {
     return getValue(DirectiveFile.AttributeName.COPY_ARG, DirectiveFile.GRADIENT_NAME);
   }
@@ -163,13 +223,7 @@ public class DirectiveFileCollection implements SetupReconInterface {
       final TiltAngleSpec tiltAngleSpec, final boolean doValidation) {
     tiltAngleSpec.reset();
     for (int i = 0; i < directiveFileArray.length; i++) {
-      if (directiveFileArray[i] != null
-          && (directiveFileArray[i].containsAttribute(
-              DirectiveFile.AttributeName.COPY_ARG, DirectiveFile.FIRST_INC_NAME)
-              || directiveFileArray[i].containsAttribute(
-                  DirectiveFile.AttributeName.COPY_ARG, DirectiveFile.USE_RAW_TLT_NAME) || directiveFileArray[i]
-              .containsAttribute(DirectiveFile.AttributeName.COPY_ARG,
-                  DirectiveFile.EXTRACT_NAME))) {
+      if (directiveFileArray[i] != null && containsTiltAngleSpec(axisID)) {
         directiveFileArray[i].getTiltAngleFields(axisID, tiltAngleSpec, doValidation);
       }
     }
@@ -194,6 +248,11 @@ public class DirectiveFileCollection implements SetupReconInterface {
     return isDual();
   }
 
+  public boolean isMontage() {
+    return DirectiveFile.toBoolean(getValue(DirectiveFile.AttributeName.COPY_ARG,
+        DirectiveFile.MONTAGE_NAME));
+  }
+
   public boolean isGpuProcessingSelected(final String propertyUserDir) {
     return UserEnv.isGpuProcessing(manager, axisID, propertyUserDir);
   }
@@ -216,8 +275,25 @@ public class DirectiveFileCollection implements SetupReconInterface {
         DirectiveFile.MONTAGE_NAME));
   }
 
-  public void setBatchDirectiveFile(final DirectiveFile directiveFile) {
-    directiveFileArray[OverrideOrder.BATCH.index] = directiveFile;
+  public void setBatchDirectiveFile(final DirectiveFile baseDirectiveFile) {
+    directiveFileArray[OverrideOrder.BATCH.index] = baseDirectiveFile;
+    if (baseDirectiveFile != null) {
+      String filePath = baseDirectiveFile.getScopeTemplate();
+      if (filePath != null) {
+        directiveFileArray[OverrideOrder.SCOPE.index] = DirectiveFile.getInstance(
+            manager, axisID, new File(filePath));
+      }
+      filePath = baseDirectiveFile.getSystemTemplate();
+      if (filePath != null) {
+        directiveFileArray[OverrideOrder.SYSTEM.index] = DirectiveFile.getInstance(
+            manager, axisID, new File(filePath));
+      }
+      filePath = baseDirectiveFile.getUserTemplate();
+      if (filePath != null) {
+        directiveFileArray[OverrideOrder.USER.index] = DirectiveFile.getInstance(manager,
+            axisID, new File(filePath));
+      }
+    }
   }
 
   public void setBinning(final int input) {
@@ -238,9 +314,11 @@ public class DirectiveFileCollection implements SetupReconInterface {
     }
   }
 
-  public void setScopeTemplate(final String filePath) {
-    if (filePath != null) {
-      File file = new File(filePath);
+  public void setScopeTemplate(final File file) {
+    if (file == null) {
+      directiveFileArray[OverrideOrder.SCOPE.index] = null;
+    }
+    else {
       if (!file.isAbsolute()) {
         System.err
             .println("Error:  the scope template in the batch directive file has a "
@@ -251,9 +329,11 @@ public class DirectiveFileCollection implements SetupReconInterface {
     }
   }
 
-  public void setSystemTemplate(final String filePath) {
-    if (filePath != null) {
-      File file = new File(filePath);
+  public void setSystemTemplate(final File file) {
+    if (file == null) {
+      directiveFileArray[OverrideOrder.SYSTEM.index] = null;
+    }
+    else {
       if (!file.isAbsolute()) {
         System.err
             .println("Error:  the system template in the batch directive file has a "
@@ -264,9 +344,11 @@ public class DirectiveFileCollection implements SetupReconInterface {
     }
   }
 
-  public void setUserTemplate(final String filePath) {
-    if (filePath != null) {
-      File file = new File(filePath);
+  public void setUserTemplate(final File file) {
+    if (file == null) {
+      directiveFileArray[OverrideOrder.USER.index] = null;
+    }
+    else {
       if (!file.isAbsolute()) {
         System.err.println("Error:  the user template in the batch directive file has a "
             + "relative path.  File path may be wrong:" + file.getAbsolutePath());
