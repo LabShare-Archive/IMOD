@@ -69,7 +69,7 @@ public class BatchruntomoParam {
     return true;
   }
 
-  public void addDirective(final DirectiveFile directiveFile) {
+  public void setDirective(final DirectiveFile directiveFile) {
     if (directiveFile != null) {
       directiveList.add(directiveFile.getFile().getAbsolutePath());
     }
@@ -87,10 +87,6 @@ public class BatchruntomoParam {
     else {
       validationType.set(VALIDATION_TYPE_TEMPLATE);
     }
-  }
-
-  public boolean needsBatchDirectiveFile() {
-    return validationType.equals(1);
   }
 
   /**
