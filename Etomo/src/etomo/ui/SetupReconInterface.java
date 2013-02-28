@@ -1,6 +1,6 @@
 package etomo.ui;
 
-import etomo.storage.DirectiveFile;
+import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
 import etomo.type.TiltAngleSpec;
 
@@ -66,9 +66,5 @@ public interface SetupReconInterface {
   public boolean getTiltAngleFields(AxisID axisID, TiltAngleSpec tiltAngleSpec,
       boolean doValidation);
 
-  public DirectiveFile getScopeTemplate();
-
-  public DirectiveFile getSystemTemplate();
-
-  public DirectiveFile getUserTemplate();
+  public DirectiveFileCollection getDirectiveFileCollection();
 }
