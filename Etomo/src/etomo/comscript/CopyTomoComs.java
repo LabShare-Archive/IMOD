@@ -293,7 +293,7 @@ public final class CopyTomoComs {
     else {
       params = command.toArray(new String[size]);
     }
-    String[] command = new String[] {
+    String[] command = new String[] { "python", "-u",
         ApplicationManager.getIMODBinPath() + "copytomocoms", "-StandardInput" };
     copytomocoms = new SystemProgram(manager, manager.getPropertyUserDir(), command,
         AxisID.ONLY);
