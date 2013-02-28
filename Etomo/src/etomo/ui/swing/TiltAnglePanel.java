@@ -9,7 +9,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
-import etomo.storage.DirectiveFile;
+import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
@@ -134,10 +134,10 @@ final class TiltAnglePanel {
     rbSpecify.addActionListener(tiltAlignRadioButtonListener);
   }
 
-  void updateTemplateValues(final DirectiveFile template, final AxisID axisID) {
-    if (template.containsTiltAngleSpec(axisID)) {
+  void updateTemplateValues(final DirectiveFileCollection directiveFileCollection, final AxisID axisID) {
+    if (directiveFileCollection.containsTiltAngleSpec(axisID)) {
       TiltAngleSpec tiltAngleSpec = new TiltAngleSpec();
-      template.getTiltAngleFields(axisID, tiltAngleSpec, false);
+      directiveFileCollection.getTiltAngleFields(axisID, tiltAngleSpec, false);
       if (tiltAngleSpec.getType() == TiltAngleType.EXTRACT) {
         rbExtract.setSelected(true);
       }
