@@ -78,9 +78,6 @@ public final class SetupReconUIHarness {
     directiveFileCollection = new DirectiveFileCollection(manager, axisID);
     DirectiveFile batchDirectiveFile = DirectiveFile.getInstance(manager, axisID);
     directiveFileCollection.setBatchDirectiveFile(batchDirectiveFile);
-    directiveFileCollection.setScopeTemplate(batchDirectiveFile.getScopeTemplate());
-    directiveFileCollection.setSystemTemplate(batchDirectiveFile.getSystemTemplate());
-    directiveFileCollection.setUserTemplate(batchDirectiveFile.getUserTemplate());
     if (!doDirectiveAutomation()) {
       UIHarness.INSTANCE.exit(axisID, 1);
     }
@@ -400,44 +397,10 @@ public final class SetupReconUIHarness {
   }
 
   public DirectiveFileCollection getDirectiveFileCollection() {
-    return directiveFileCollection;
-  }
-
-  public DirectiveFile getBatchDirectiveFile() {
     if (directiveFileCollection != null) {
-      return directiveFileCollection.getBatchDirectiveFile();
+      return directiveFileCollection;
     }
-    return null;
-  }
-
-  public DirectiveFile getScopeTemplate() {
-    if (directiveFileCollection != null) {
-      return directiveFileCollection.getScopeTemplate();
-    }
-    else if (expert != null) {
-      return expert.getScopeTemplate();
-    }
-    return null;
-  }
-
-  public DirectiveFile getSystemTemplate() {
-    if (directiveFileCollection != null) {
-      return directiveFileCollection.getSystemTemplate();
-    }
-    else if (expert != null) {
-      return expert.getSystemTemplate();
-    }
-    return null;
-  }
-
-  public DirectiveFile getUserTemplate() {
-    if (directiveFileCollection != null) {
-      return directiveFileCollection.getUserTemplate();
-    }
-    else if (expert != null) {
-      return expert.getUserTemplate();
-    }
-    return null;
+    return expert.getDirectiveFileCollection();
   }
 
   public MetaData getFields(final boolean doValidation) {
@@ -505,9 +468,11 @@ public final class SetupReconUIHarness {
         metaData.setBStackProcessed(bStack.exists());
       }
       metaData.setSetFEIPixelSize(setFEIPixelSize);
-      saveDirectiveFile(setupInterface.getScopeTemplate(), metaData);
-      saveDirectiveFile(setupInterface.getSystemTemplate(), metaData);
-      saveDirectiveFile(setupInterface.getUserTemplate(), metaData);
+      DirectiveFileCollection directiveFileCollection = setupInterface
+          .getDirectiveFileCollection();
+      saveDirectiveFile(directiveFileCollection.getScopeTemplate(), metaData);
+      saveDirectiveFile(directiveFileCollection.getSystemTemplate(), metaData);
+      saveDirectiveFile(directiveFileCollection.getUserTemplate(), metaData);
       if (directiveFileCollection != null) {
         saveDirectiveFile(directiveFileCollection.getBatchDirectiveFile(), metaData);
       }
@@ -593,8 +558,7 @@ public final class SetupReconUIHarness {
       }
     }
     if (directiveFile.containsGoldErasingBinning(axisID)) {
-      metaData.setStack3dFindBinning(axisID,
-          directiveFile.getGoldErasingBinning(axisID));
+      metaData.setStack3dFindBinning(axisID, directiveFile.getGoldErasingBinning(axisID));
     }
     // GoldErasingThickness overrides the .com file
     if (directiveFile.containsGoldErasingThickness(axisID)) {
@@ -606,16 +570,14 @@ public final class SetupReconUIHarness {
           directiveFile.isPositioningWholeTomogram(axisID));
     }
     if (directiveFile.containsReconstructionUseSirt(axisID)) {
-      metaData
-          .setGenBackProjection(axisID, !directiveFile.isReconstructionUseSirt(axisID));
+      metaData.setGenBackProjection(axisID,
+          !directiveFile.isReconstructionUseSirt(axisID));
     }
     if (directiveFile.containsPositioningThickness(axisID)) {
-      metaData.setSampleThickness(axisID,
-          directiveFile.getPositioningThickness(axisID));
+      metaData.setSampleThickness(axisID, directiveFile.getPositioningThickness(axisID));
     }
     if (directiveFile.containsPositioningBinByFactor(axisID)) {
-      metaData.setPosBinning(axisID,
-          directiveFile.getPositioningBinByFactor(axisID));
+      metaData.setPosBinning(axisID, directiveFile.getPositioningBinByFactor(axisID));
     }
   }
 
