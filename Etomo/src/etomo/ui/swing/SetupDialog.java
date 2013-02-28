@@ -30,8 +30,8 @@ import javax.swing.filechooser.FileFilter;
 
 import etomo.ApplicationManager;
 import etomo.logic.DatasetTool;
+import etomo.storage.DirectiveFileCollection;
 import etomo.storage.MagGradientFileFilter;
-import etomo.storage.DirectiveFile;
 import etomo.storage.StackFileFilter;
 import etomo.storage.DistortionFileFilter;
 import etomo.type.AxisID;
@@ -58,6 +58,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   static final String MONTAGE_LABEL = "Montage";
   static final String SINGLE_FRAME_LABEL = "Single frame";
   private final String BACKUP_DIRECTORY_LABEL = "Backup directory: ";
+  private final int BINNING_DEFAULT = 1;
 
   private final JPanel pnlDataParameters = new JPanel();
   // Dataset GUI objects
@@ -105,7 +106,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final FileTextField ftfDistortionFile = new FileTextField(
       "Image distortion field file: ");
   private final LabeledSpinner spnBinning = new LabeledSpinner("Binning: ",
-      new SpinnerNumberModel(1, 1, 50, 1), 1);
+      new SpinnerNumberModel(BINNING_DEFAULT, 1, 50, 1), BINNING_DEFAULT);
 
   private final JPanel pnlMagGradientInfo = new JPanel();
   private final FileTextField ftfMagGradientFile = new FileTextField(
@@ -133,6 +134,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final boolean calibrationAvailable;
   private final SetupDialogActionListener listener;
   private final TemplatePanel templatePanel;
+
+  private DirectiveFileCollection directiveFileCollection = null;
 
   // Construct the setup dialog
   private SetupDialog(final SetupDialogExpert expert, final ApplicationManager manager,
@@ -235,73 +238,46 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
-  public DirectiveFile getScopeTemplate() {
-    return templatePanel.getScopeTemplate();
-  }
-
-  public DirectiveFile getSystemTemplate() {
-    return templatePanel.getSystemTemplate();
-  }
-
-  public DirectiveFile getUserTemplate() {
-    return templatePanel.getUserTemplate();
-  }
-
-  void updateTemplateValues() {
-    DirectiveFile template = templatePanel.getScopeTemplate();
-    if (template != null) {
-      updateTemplateValues(template);
-    }
-    template = templatePanel.getSystemTemplate();
-    if (template != null) {
-      updateTemplateValues(template);
-    }
-    template = templatePanel.getUserTemplate();
-    if (template != null) {
-      updateTemplateValues(template);
-    }
+  public DirectiveFileCollection getDirectiveFileCollection() {
+    return templatePanel.getDirectiveFileCollection();
   }
 
   void setParameters(final UserConfiguration userConfig) {
     templatePanel.setParameters(userConfig);
   }
 
-  private void updateTemplateValues(final DirectiveFile template) {
-    if (template.containsDual()) {
-      rbDualAxis.setSelected(template.isDual());
+   void updateTemplateValues() {
+    DirectiveFileCollection directiveFileCollection = templatePanel
+        .getDirectiveFileCollection();
+    rbDualAxis.setSelected(directiveFileCollection.isDual());
+    rbMontage.setSelected(directiveFileCollection.isMontage());
+    if (directiveFileCollection.containsPixel()) {
+      ltfPixelSize.setText(directiveFileCollection.getPixelSize(false));
     }
-    if (template.containsMontage()) {
-      rbMontage.setSelected(template.isMontage());
+    if (directiveFileCollection.containsGold()) {
+      ltfFiducialDiameter.setText(directiveFileCollection.getFiducialDiameter(false));
     }
-    if (template.containsPixel()) {
-      ltfPixelSize.setText(template.getPixel(false));
+    if (directiveFileCollection.containsRotation()) {
+      ltfImageRotation.setText(directiveFileCollection.getImageRotation(AxisID.FIRST,
+          false));
     }
-    if (template.containsGold()) {
-      ltfFiducialDiameter.setText(template.getGold(false));
+    expert.updateTiltAnglePanelTemplateValues(directiveFileCollection);
+    if (directiveFileCollection.containsDistort()) {
+      ftfDistortionFile.setText(directiveFileCollection.getDistortionFile());
     }
-    if (template.containsRotation()) {
-      ltfImageRotation.setText(template.getRotation(AxisID.FIRST, false));
+    if (directiveFileCollection.containsBinning()) {
+      spnBinning.setValue(directiveFileCollection.getIntBinning(BINNING_DEFAULT));
     }
-    expert.updateTiltAnglePanelTemplateValues(template);
-    if (template.containsDistort()) {
-      ftfDistortionFile.setText(template.getDistort());
+    if (directiveFileCollection.containsGradient()) {
+      ftfMagGradientFile.setText(directiveFileCollection.getMagGradientFile());
     }
-    if (template.containsBinning()) {
-      if (template.getBinning() == null) {
-        spnBinning.setValue(1);
-      }
-      else {
-        spnBinning.setValue(template.getIntBinning());
-      }
+    if (directiveFileCollection.containsFocus(AxisID.FIRST)) {
+      cbAdjustedFocusA.setSelected(directiveFileCollection
+          .isAdjustedFocusSelected(AxisID.FIRST));
     }
-    if (template.containsGradient()) {
-      ftfMagGradientFile.setText(template.getGradient());
-    }
-    if (template.containsFocus(AxisID.FIRST)) {
-      cbAdjustedFocusA.setSelected(template.isFocus(AxisID.FIRST));
-    }
-    if (template.containsFocus(AxisID.SECOND)) {
-      cbAdjustedFocusB.setSelected(template.isFocus(AxisID.SECOND));
+    if (directiveFileCollection.containsFocus(AxisID.SECOND)) {
+      cbAdjustedFocusB.setSelected(directiveFileCollection
+          .isAdjustedFocusSelected(AxisID.SECOND));
     }
   }
 
