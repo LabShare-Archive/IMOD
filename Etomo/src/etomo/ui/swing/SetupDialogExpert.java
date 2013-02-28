@@ -7,7 +7,7 @@ import etomo.ApplicationManager;
 import etomo.Arguments;
 import etomo.EtomoDirector;
 import etomo.logic.UserEnv;
-import etomo.storage.DirectiveFile;
+import etomo.storage.DirectiveFileCollection;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
@@ -199,16 +199,8 @@ public final class SetupDialogExpert {
     }
   }
 
-  public DirectiveFile getScopeTemplate() {
-    return dialog.getScopeTemplate();
-  }
-
-  public DirectiveFile getSystemTemplate() {
-    return dialog.getSystemTemplate();
-  }
-
-  public DirectiveFile getUserTemplate() {
-    return dialog.getUserTemplate();
+  public DirectiveFileCollection getDirectiveFileCollection() {
+    return dialog.getDirectiveFileCollection();
   }
 
   public File getDir() {
@@ -537,9 +529,9 @@ public final class SetupDialogExpert {
     }
   }
 
-  void updateTiltAnglePanelTemplateValues(final DirectiveFile template) {
-    tiltAnglePanelExpertA.updateTemplateValues(template);
-    tiltAnglePanelExpertB.updateTemplateValues(template);
+  void updateTiltAnglePanelTemplateValues(final DirectiveFileCollection directiveFileCollection) {
+    tiltAnglePanelExpertA.updateTemplateValues(directiveFileCollection);
+    tiltAnglePanelExpertB.updateTemplateValues(directiveFileCollection);
   }
 
   void viewRawStack(AxisID axisID, final Run3dmodMenuOptions menuOptions) {
