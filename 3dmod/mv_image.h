@@ -32,6 +32,8 @@ void mvImageCleanup();
 void mvImageGetMovieState(MovieSegment &segment);
 void mvImageSetMovieEndState(int startEnd, MovieSegment &segment);
 int mvImageSetMovieDrawState(MovieSegment &segment);
+bool mvImageSubsetLimits(double &zoom, float &zoomUpLimit, float &zoomDownLimit, 
+                         int &ixStart, int &iyStart, int &nxUse, int &nyUse);
 
 #include "dialog_frame.h"
 class MultiSlider;
@@ -42,7 +44,7 @@ class ImodvImage : public DialogFrame
   Q_OBJECT
 
  public:
-  ImodvImage(QWidget *parent, const char *name = NULL) ;
+  ImodvImage(QWidget *parent, bool fillBut, const char *name = NULL) ;
   ~ImodvImage() {};
   void viewToggled(bool state, int flag);
   void updateCoords();

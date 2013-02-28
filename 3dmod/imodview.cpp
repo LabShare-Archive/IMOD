@@ -2297,8 +2297,8 @@ int ivwLoadIMODifd(ImodView *vi, QStringList &plFileNames, bool &anyHavePieceLis
 
   while((imodFgetline(vi->fp, line, IFDLINE_SIZE) > 0)) {
 
-    wprint("%s\n\r",line);
-    imod_info_input();
+    //wprint("%s\n\r",line);
+    //imod_info_input();
 
     /* clear the return from the line. */
     for (i = 0; line[i]; i++)
@@ -2437,8 +2437,7 @@ int ivwLoadIMODifd(ImodView *vi, QStringList &plFileNames, bool &anyHavePieceLis
       if (image->hasPieceCoords)
         anyHavePieceList = true;
 
-      /* DNM: Make filename with directory stripped be the default 
-         descriptor */
+      /* DNM: Make filename with directory stripped be the default descriptor */
       pathlen = strlen(filename);
       while (( pathlen > 0) && (filename[pathlen-1] != '/'))
         pathlen--;
@@ -2452,8 +2451,7 @@ int ivwLoadIMODifd(ImodView *vi, QStringList &plFileNames, bool &anyHavePieceLis
         zsize = image->nz;
       }
 
-      /* DNM: set time and increment time counter here, not with
-         the TIME label */
+      /* DNM: set time and increment time counter here, not with the TIME label */
       image->time = vi->numTimes;
       vi->numTimes++;
 

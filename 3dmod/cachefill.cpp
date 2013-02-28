@@ -45,7 +45,7 @@ static struct{
 static void set_z_limits(ImodView *vi, int *zstart, int *zend, int nfill,
                          int cz, int ovbefore, int ovafter);
 static void report_cache(ImodView *vi, char *string);
-static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter);
+static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter, int source);
 static void clean_fill(int *zstart, int *zend, int *zstall, int *zndall,
                        int *loadtbl, unsigned char *buf);
 static int walk_in_z(ImodView *vi, int cz, int steps);
@@ -110,7 +110,7 @@ static void report_cache(ImodView *vi, char *string)
   }
 }
 
-static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
+static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter, int source)
 {
   int filltable[3] = {1, 2, 4};
   int ntimes = vi->numTimes ? vi->numTimes : 1;
@@ -128,10 +128,12 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
   if (vi->fullCacheFlipped)
     return 0;
   if (vi->pyrCache) {
+    if (vi->loadingImage)
+      return 1;
     vi->loadingImage = 1;
-    vi->pyrCache->fillCacheForArea(cz);
+    vi->pyrCache->fillCacheForArea(cz, source);
     vi->loadingImage = 0;
-    imodDraw(vi, IMOD_DRAW_IMAGE);
+    imodDraw(vi, IMOD_DRAW_IMAGE | IMOD_DRAW_MOD);
     return 0;
   }
 
@@ -463,10 +465,10 @@ int icfGetAutofill(void)
   return imodCacheFillData.autofill;
 }
 
-int imodCacheFill(ImodView *vi)
+int imodCacheFill(ImodView *vi, int source)
 {
   if (!vi->loadingImage)
-    return (fill_cache(vi, (int)vi->zmouse, 1, 1));
+    return (fill_cache(vi, (int)vi->zmouse, 1, 1, source));
   return -1;
 }
 
@@ -496,7 +498,7 @@ unsigned char *icfDoAutofill(ImodView *vi, int cz)
   if (!ifafter && ifbefore)
     ovafter = ovtable[imodCacheFillData.overlap];
 
-  if (fill_cache(vi, cz, ovbefore, ovafter))
+  if (fill_cache(vi, cz, ovbefore, ovafter, 0))
     return NULL;
 
   sl = vi->cacheIndex[cz * vi->vmTdim + vi->curTime - vi->vmTbase];
@@ -620,8 +622,7 @@ void ImodCacheFill::buttonPressed(int which)
   switch(which) {
   case 0:
     if (!imodCacheFillData.vi->loadingImage)
-      fill_cache(imodCacheFillData.vi, (int)imodCacheFillData.vi->zmouse, 1,
-                 1);
+      fill_cache(imodCacheFillData.vi, (int)imodCacheFillData.vi->zmouse, 1, 1, 0);
     break;
   case 1:
     close();

@@ -131,6 +131,7 @@ class XyzWindow : public QMainWindow
     void zoomDown();
     void newZoom();
     void centerClicked();
+    void fillCachePressed();
     void sliderChanged(int which, int value, bool dragging);
     void help();
 

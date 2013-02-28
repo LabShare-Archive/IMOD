@@ -143,6 +143,7 @@ extern "C" {
                  int useAbs);
 
   /* robuststat.c */
+  void rsSortInts(int *x, int n);
   void rsSortFloats(float *x, int n);
   void rsSortIndexedFloats(float *x, int *index, int n);
   void rsMedianOfSorted(float *x, int n, float *median);

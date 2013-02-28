@@ -1,9 +1,23 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/27/13: Fixed array allocation problem in Pickbestseed.
+
+2/27/13: Fixed problem of 3dmod quitting during initial load due to messages 
+to Bead Fixer.
+
+2/26/13: 3dmod can take an image pyramid (multiple copies of same volume at
+different resolutions) and has a new kind of cache that allows rapid access to
+subareas at any zoom when a pyramid is loaded; ordinary (non-tiled) files can
+also be cached as strips for somewhat faster access.
+
+2/26/13: Fixed suppression of "unknown field" messages in Tif2mrc.
+
+2/23/13: Added script Makepyramid for making an image pyramid.
+
 2/21/13: Fixed bug in Vmstopy when translating cp and mv with a filename
 starting with f.
 
-2/21/13: Made binvol able to use antialiased reduction in Z instead of
+2/21/13: Made Binvol able to use antialiased reduction in Z instead of
 binning.
 
 2/10/13: Redefined blank values in batch/template directives to mean unset the

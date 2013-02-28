@@ -34,6 +34,33 @@
 #define rsmadmedianoutliers rsmadmedianoutliers_
 #endif
 
+static int intCompar(const void *val1, const void *val2)
+{
+  int *v1 = (int *)val1;
+  int *v2 = (int *)val2;
+  if (*v1 < *v2)
+    return -1;
+  else if (*v1 > *v2)
+    return 1;
+  return 0;
+}
+
+/*!
+ * Uses {qsort} to sort the [n] ints in the array [x].
+ */
+void rsSortInts(int *x, int n)
+{
+  qsort(x, n, sizeof(int), intCompar);
+}
+
+/*!
+ * Fortran wrapper for @rsSortInts
+ */
+void rssortints(int *x, int *n)
+{
+  rsSortInts(x, *n);
+}
+
 static int floatCompar(const void *val1, const void *val2)
 {
   float *v1 = (float *)val1;

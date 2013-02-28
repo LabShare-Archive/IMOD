@@ -115,7 +115,7 @@ class PyramidCache
                    int nxUse, int nyUse, float *mean, float *SD,
                    int &cacheSum, int oldCacheSum, float pctLo = 0., float pctHi = 0.,
                    float *scaleLo = NULL, float *scaleHi = NULL);
-  void fillCacheForArea(int section);
+  void fillCacheForArea(int section, int source);
   int getBaseFileCoords(int x, int y, int z, int &fileX, int &fileY, int &fileZ);
   bool zoomRequiresBigLoad(double zoom, int winXsize, int winYsize);
   unsigned char **getFullSection(int z);
