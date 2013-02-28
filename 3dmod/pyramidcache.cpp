@@ -815,6 +815,8 @@ int PyramidCache::loadTilesContainingArea(int cacheInd, int baseXstart, int base
     }
   }
   // If we are starting a queue, run it synchronously, return -1 if error
+  if (loadQueue)
+    imodTrace('t', "loadTilesContainingArea loading %d tiles", mRequests.size());
   if (loadQueue && loadRequestedTiles(0))
     return -1;
   return retval;
@@ -1005,7 +1007,7 @@ unsigned char **PyramidCache::getSectionArea(int section, int fullXstart, int fu
   inBufferXY = which == mBufCacheInd && mBufTotSize &&
     xstart >= mBufXstart && xstart + xsizeOut <= mBufXstart + mBufXsize &&
     ystart >= mBufYstart && ystart + ysizeOut <= mBufYstart + mBufYsize;
-  imodTrace('t', "out start %d %d size %d %d  off %.1f %.1f buf start %d %d  size %d %d",
+  imodTrace('T', "out start %d %d size %d %d  off %.1f %.1f buf start %d %d  size %d %d",
     xstart, ystart, xsizeOut, ysizeOut, xoffset, yoffset, mBufXstart, mBufYstart,
     mBufXsize, mBufYsize);
   needInterp = false;
@@ -1541,7 +1543,7 @@ int PyramidCache::loadedMeanSD(int cacheInd, int section, float sample, int ixSt
       if (!numPix)
         return 1;
       if (cacheSum == oldCacheSum) {
-        imodTrace('t', "Cache sum matches for %d tile%s", numTiles,
+        imodTrace('T', "Cache sum matches for %d tile%s", numTiles,
                   needInterp ? " pairs" : "s");
         return 0;
       }
