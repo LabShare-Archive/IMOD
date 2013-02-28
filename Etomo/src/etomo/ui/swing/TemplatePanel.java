@@ -12,7 +12,7 @@ import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.logic.ConfigTool;
-import etomo.storage.DirectiveFile;
+import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
 import etomo.type.UserConfiguration;
 
@@ -44,6 +44,7 @@ final class TemplatePanel {
   private final BaseManager manager;
   private final AxisID axisID;
   final SettingsDialog settings;
+  private final DirectiveFileCollection directiveFileCollection;
 
   private File[] scopeTemplateFileList = null;
   private File[] systemTemplateFileList = null;
@@ -56,6 +57,7 @@ final class TemplatePanel {
     this.manager = manager;
     this.axisID = axisID;
     this.settings = settings;
+    directiveFileCollection = new DirectiveFileCollection(manager, axisID);
   }
 
   static TemplatePanel getInstance(final BaseManager manager, final AxisID axisID,
@@ -157,36 +159,23 @@ final class TemplatePanel {
     userConfig.setUserTemplate(getUserTemplateFile());
   }
 
-  DirectiveFile getScopeTemplate() {
-    File templateFile = getScopeTemplateFile();
-    if (templateFile != null) {
-      return DirectiveFile.getInstance(manager, axisID, templateFile);
-    }
-    return null;
+  /**
+   * Refresh the directive file collection and return it.
+   * @return
+   */
+  DirectiveFileCollection getDirectiveFileCollection() {
+    directiveFileCollection.setScopeTemplate(getScopeTemplateFile());
+    directiveFileCollection.setSystemTemplate(getSystemTemplateFile());
+    directiveFileCollection.setUserTemplate(getUserTemplateFile());
+    return directiveFileCollection;
   }
 
   private File getScopeTemplateFile() {
     return getTemplateFile(cmbScopeTemplate, scopeTemplateFileList);
   }
 
-  DirectiveFile getSystemTemplate() {
-    File templateFile = getSystemTemplateFile();
-    if (templateFile != null) {
-      return DirectiveFile.getInstance(manager, axisID, templateFile);
-    }
-    return null;
-  }
-
   private File getSystemTemplateFile() {
     return getTemplateFile(cmbSystemTemplate, systemTemplateFileList);
-  }
-
-  DirectiveFile getUserTemplate() {
-    File templateFile = getUserTemplateFile();
-    if (templateFile != null) {
-      return DirectiveFile.getInstance(manager, axisID, templateFile);
-    }
-    return null;
   }
 
   private File getUserTemplateFile() {
