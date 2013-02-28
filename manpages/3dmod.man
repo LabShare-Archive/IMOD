@@ -146,9 +146,9 @@ files, the limit is reduced to what is needed to load all files fully.
 The tile/strip cache is allocated dynamically, with
 memory requested from the system only when needed, unlike the slice-based
 cache, where all memory is allocated on program startup.  The different
-behaviors of the program when the tile/strip cache or an image pyramid are
-described below, after the main windows and other operations have been
-introduced.
+behaviors of the program when using the tile/strip cache or an image pyramid
+are described below, after the main windows and other operations have been
+ introduced.
 .SS Windows
 Two windows will open upon startup: the Information Window 
 and an image window.
@@ -170,7 +170,7 @@ to pan the image around inside a resizable window.
 Most manual model editing is done within the ZaP Window.
 
 Additional windows that may be
-opened via menu selection are the Slicer, XYZ, Tumbler, 
+opened via menu selection are the Slicer, XYZ, Multi-Z, Tumbler, 
 Graph, Pixel View, Locator, and Model View windows.
    The Slicer Window allows one to view slices through the 3-D 
 image data.  If the image cache is turned on, only images in
@@ -178,6 +178,8 @@ the cache will be displayed in views that contain data from
 multiple Z sections.
    The XYZ Image Window displays slices of the 3-D image in
 planes perpendicular to the X,Y and Z axis.
+   The Multi-Z Windows is a variant of the ZaP window that displays an array
+of images at the same location and different Z values.
    The Tumbler Window allows one to view a small projected view
 of the area around the current point.
    The Graph Window graphs intensity along a given
@@ -189,7 +191,7 @@ a box that allows you to see and change the subarea shown in the ZaP window.
    The Model View Window views the model in a 3D rendering
 while it is being built.
 
-Multiple ZaP, Slicer, XYZ, Graph, and Tumbler windows can be opened, whereas
+Multiple ZaP, Slicer, XYZ, Multi-Z, Graph, and Tumbler windows can be opened, whereas
 there is only one Pixel View, Model View, and Locator window.
 These windows are described below.  However, see the on-line help
 available from each window (as well as from most dialog boxes) for a
@@ -1322,7 +1324,8 @@ occur without having to load new tiles.  Tile loading occurs asynchronously:
 the ZaP window will first show whatever part of the image is currently
 available, then its display will be updated as new tiles are loaded.
 .P
-As with the slice-based cache, windows that access data in 3D will generally
+As with the slice-based cache, windows that access data in 3D not located on
+the current Z slice will generally
 show black (0 values) for parts of the volume that are not currently loaded.
 When the tile/strip cache is used, each of these windows (except the Tumbler)
 has a button to fill the cache for the subarea displayed in the window.  The
@@ -1345,8 +1348,9 @@ important to be aware of which operations will load a whole slice or a
 significant fraction of one.  The Locator always displays the full image area, and
 the image display in Model View does so when opened; this is quick if there is
 an image pyramid and potentially quite slow otherwise.  The Graph window loads
-full-resolution data for the region potentially included in the graph, which
-would initially be the whole width in X when the window is opened.
+full-resolution data for the region potentially included in the graph.
+This region would usually be the whole width in X when the window is opened, but
+it can be restricted in advance by drawing the rubber band around the current point.
 Autocontouring by thresholding (Edit-Contour-Auto), the Line Tracker, and the
 livewire tool in Drawing Tools plugin all require full loading of the current
 slice at full resolution.  Loading a large subarea of interest with the
@@ -1355,6 +1359,11 @@ and
 .B -iy
 options may be needed to use
 these tools effectively.
+.P
+Some things will not work when using the tile/strip cache: image rotate/flip,
+image reload, image process, the cache filler dialog, and histograms in the
+graph window.  Autocontrasting and floating may behave a little differently,
+especially for zoomed-down views of noisy data.
 
 .SH AUTOSAVE AND BACKUP FILES
 The program will back up the current model to the file 
