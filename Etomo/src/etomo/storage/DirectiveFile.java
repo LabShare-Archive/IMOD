@@ -16,7 +16,6 @@ import etomo.storage.autodoc.ReadOnlyAttributeIterator;
 import etomo.storage.autodoc.ReadOnlyAttributeList;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
-import etomo.type.EtomoNumber;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
 import etomo.ui.FieldType;
@@ -46,40 +45,42 @@ public final class DirectiveFile {
   private static final String AUTO_FIT_RANGE_AND_STEP_NAME = "autoFitRangeAndStep";
   private static final String B_AXIS_NAME = "b";
   private static final String BIN_BY_FACTOR_NAME = "binByFactor";
-  static final String BINNING_NAME = "binning";
+  public static final String BINNING_NAME = "binning";
+  public static final String CS_NAME = "Cs";
   private static final String CTF_PLOTTING_NAME = "CTFplotting";
   static final String DATASET_DIRECTORY_NAME = "datasetDirectory";
-  static final String DISTORT_NAME = "distort";
-  static final String DUAL_NAME = "dual";
-  static final String EXTRACT_NAME = "extract";
+  public static final String DISTORT_NAME = "distort";
+  public static final String DUAL_NAME = "dual";
+  public static final String EXTRACT_NAME = "extract";
   private static final String FIDUCIALLESS_NAME = "fiducialless";
   private static final String FIDUCIALS_NAME = "Fiducials";
-  static final String FIRST_INC_NAME = "firstinc";
-  static final String FOCUS_NAME = "focus";
+  public static final String FIRST_INC_NAME = "firstinc";
+  public static final String FOCUS_NAME = "focus";
   private static final String GOLD_ERASING_NAME = "GoldErasing";
-  static final String GOLD_NAME = "gold";
-  static final String GRADIENT_NAME = "gradient";
-  static final String MONTAGE_NAME = "montage";
-  static final String NAME_NAME = "name";
+  public static final String GOLD_NAME = "gold";
+  public static final String GRADIENT_NAME = "gradient";
+  public static final String MONTAGE_NAME = "montage";
+  public static final String NAME_NAME = "name";
   private static final String NUMBER_OF_MARKERS_NAME = "numberOfMarkers";
-  static final String PIXEL_NAME = "pixel";
+  public static final String PIXEL_NAME = "pixel";
   private static final String POSITIONING_NAME = "Positioning";
   private static final String RAPTOR_NAME = "RAPTOR";
   private static final String RECONSTRUCTION_NAME = "Reconstruction";
-  static final String ROTATION_NAME = "rotation";
+  public static final String ROTATION_NAME = "rotation";
   private static final String RUNTIME_NAME = "runtime";
   static final String SCAN_HEADER_NAME = "scanHeader";
   static final String SCOPE_TEMPLATE_NAME = "scopeTemplate";
   private static final String SEEDING_METHOD_NAME = "seedingMethod";
   private static final String SIZE_IN_X_AND_Y_NAME = "sizeInXandY";
-  static final String SKIP_NAME = "skip";
+  public static final String SKIP_NAME = "skip";
   static final String SYSTEM_TEMPLATE_NAME = "systemTemplate";
   private static final String THICKNESS_NAME = "thickness";
   private static final String TRACKING_METHOD_NAME = "trackingMethod";
   private static final String USE_ALIGNED_STACK_NAME = "useAlignedStack";
-  static final String USE_RAW_TLT_NAME = "userawtlt";
+  public static final String USE_RAW_TLT_NAME = "userawtlt";
   private static final String USE_SIRT_NAME = "useSirt";
   static final String USER_TEMPLATE_NAME = "userTemplate";
+  public static final String VOLTAGE_NAME = "voltage";
   private static final String WHOLE_TOMOGRAM_NAME = "wholeTomogram";
 
   private final AxisID axisID;
@@ -197,7 +198,7 @@ public final class DirectiveFile {
    * @param name - the base name
    * @return Correct name for the axis ID.
    */
-  static String convertAttributeName(final AxisID axisID, final String baseName) {
+  public static String convertAttributeName(final AxisID axisID, final String baseName) {
     return (axisID == AxisID.SECOND ? B_AXIS_NAME : "") + baseName;
   }
 
@@ -371,17 +372,9 @@ public final class DirectiveFile {
         SIZE_IN_X_AND_Y_NAME);
   }
 
-  public boolean containsBinning() {
-    return containsAttribute(AttributeName.COPY_ARG, BINNING_NAME);
-  }
-
   public boolean containsCTFplottingAutoFitRangeAndStep(final AxisID axisID) {
     return containsAttribute(AttributeName.RUN_TIME, CTF_PLOTTING_NAME, axisID,
         AUTO_FIT_RANGE_AND_STEP_NAME);
-  }
-
-  public boolean containsDistort() {
-    return containsAttribute(AttributeName.COPY_ARG, DISTORT_NAME);
   }
 
   public boolean containsDual() {
@@ -403,14 +396,7 @@ public final class DirectiveFile {
         TRACKING_METHOD_NAME);
   }
 
-  public boolean containsFocus(final AxisID axisID) {
-    return containsAttribute(AttributeName.COPY_ARG,
-        convertAttributeName(axisID, FOCUS_NAME));
-  }
 
-  public boolean containsGold() {
-    return containsAttribute(AttributeName.COPY_ARG, GOLD_NAME);
-  }
 
   public boolean containsGoldErasingBinning(final AxisID axisID) {
     return containsAttribute(AttributeName.RUN_TIME, GOLD_ERASING_NAME, axisID,
@@ -422,16 +408,8 @@ public final class DirectiveFile {
         THICKNESS_NAME);
   }
 
-  public boolean containsGradient() {
-    return containsAttribute(AttributeName.COPY_ARG, GRADIENT_NAME);
-  }
-
   public boolean containsMontage() {
     return containsAttribute(AttributeName.COPY_ARG, MONTAGE_NAME);
-  }
-
-  public boolean containsPixel() {
-    return containsAttribute(AttributeName.COPY_ARG, PIXEL_NAME);
   }
 
   public boolean containsPositioningBinByFactor(final AxisID axisID) {
@@ -464,18 +442,7 @@ public final class DirectiveFile {
         USE_SIRT_NAME);
   }
 
-  public boolean containsRotation() {
-    return containsAttribute(AttributeName.COPY_ARG, ROTATION_NAME);
-  }
 
-  public boolean containsTiltAngleSpec(final AxisID axisID) {
-    return containsAttribute(AttributeName.COPY_ARG,
-        convertAttributeName(axisID, FIRST_INC_NAME))
-        || containsAttribute(AttributeName.COPY_ARG,
-            convertAttributeName(axisID, USE_RAW_TLT_NAME))
-        || containsAttribute(AttributeName.COPY_ARG,
-            convertAttributeName(axisID, EXTRACT_NAME));
-  }
 
   public String getAlignedStackBinByFactor(final AxisID axisID) {
     return getValue(AttributeName.RUN_TIME, ALIGNED_STACK_NAME, axisID,
@@ -490,10 +457,6 @@ public final class DirectiveFile {
   public String getAlignedStackSizeInXandYDescr() {
     return AttributeName.RUN_TIME + "." + ALIGNED_STACK_NAME + "..."
         + SIZE_IN_X_AND_Y_NAME;
-  }
-
-  public String getBinning() {
-    return getValue(AttributeName.COPY_ARG, BINNING_NAME);
   }
 
   Iterator<Entry<String, String>> getCopyArgExtraValuesIterator() {
@@ -518,17 +481,6 @@ public final class DirectiveFile {
         + AUTO_FIT_RANGE_AND_STEP_NAME;
   }
 
-  public String getDistort() {
-    return getValue(AttributeName.COPY_ARG, DISTORT_NAME);
-  }
-
-  /**
-   * @param doValidation has no effect
-   */
-  public String getGold(final boolean doValidation) {
-    return getValue(AttributeName.COPY_ARG, GOLD_NAME);
-  }
-
   public FiducialsSeedingMethod getFiducialsSeedingMethod(final AxisID axisID) {
     return FiducialsSeedingMethod.getInstance(getValue(AttributeName.RUN_TIME,
         FIDUCIALS_NAME, axisID, SEEDING_METHOD_NAME));
@@ -549,34 +501,6 @@ public final class DirectiveFile {
 
   public String getGoldErasingThickness(final AxisID axisID) {
     return getValue(AttributeName.RUN_TIME, GOLD_ERASING_NAME, axisID, THICKNESS_NAME);
-  }
-
-  /**
-   * @param doValidation has no effect
-   */
-  public String getRotation(final AxisID axisID, final boolean doValidation) {
-    return getValue(AttributeName.COPY_ARG, convertAttributeName(axisID, ROTATION_NAME));
-  }
-
-  public int getIntBinning() {
-    EtomoNumber binning = new EtomoNumber();
-    binning.set(getValue(AttributeName.COPY_ARG, BINNING_NAME));
-    if (binning.isValid()) {
-      return binning.getInt();
-    }
-    UIHarness.INSTANCE.openMessageDialog(
-        manager,
-        "Invalid binning in " + file.getAbsolutePath() + ".  "
-            + binning.getInvalidReason(), "Invalid Binning");
-    return 1;
-  }
-
-  public String getGradient() {
-    return getValue(AttributeName.COPY_ARG, GRADIENT_NAME);
-  }
-
-  public String getPixel(final boolean doValidation) {
-    return getValue(AttributeName.COPY_ARG, PIXEL_NAME);
   }
 
   public String getPositioningBinByFactor(final AxisID axisID) {
@@ -643,16 +567,8 @@ public final class DirectiveFile {
     return isValue(AttributeName.COPY_ARG, DUAL_NAME);
   }
 
-  public boolean isFocus(final AxisID axisID) {
-    return isValue(AttributeName.COPY_ARG, convertAttributeName(axisID, FOCUS_NAME));
-  }
-
   public boolean isFiducialsFiducialless(final AxisID axisID) {
     return isValue(AttributeName.RUN_TIME, FIDUCIALS_NAME, axisID, FIDUCIALLESS_NAME);
-  }
-
-  public boolean isMontage() {
-    return isValue(AttributeName.COPY_ARG, MONTAGE_NAME);
   }
 
   public boolean isPositioningWholeTomogram(final AxisID axisID) {
