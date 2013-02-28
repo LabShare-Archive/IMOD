@@ -507,7 +507,7 @@ open.dialog.rejoin.tb.setup.4 =
 [interface = Serial-Sections]
 [[open = interface]]
   pnl.main-frame=
-  bn.align-serial-sections=
+  bn.align-serial-sections-/-blend-montages=
 [[]]
 
 [interface = PEET]
