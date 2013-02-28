@@ -488,7 +488,6 @@ void PickSeeds::main(int argc, char *argv[])
     candid.meanDeviation = 0.;
     topSum = mTracks[co].topBot == 2 ? 1 : 0;
     botSum = mTracks[co].topBot == 1 ? 1 : 0;
-    mDomains[ind].numCandidates++;
     ncum = 1;
     bestResForPos = 1.e30;
     if (B3DNINT(mTracks[co].midPos.z) == izMiddle) {
@@ -567,6 +566,7 @@ void PickSeeds::main(int argc, char *argv[])
 
       // Or add the candidate for real
       mCandidates.push_back(candid);
+      mDomains[ind].numCandidates++;
     }
   }
 
@@ -584,6 +584,7 @@ void PickSeeds::main(int argc, char *argv[])
     ncum += mDomains[i].numCandidates;
     mDomains[i].numCandidates = 0;
   }
+
   for (i = 0; i < mNumCandidates; i++) {
     ind = (&mCandidates[i])->domain;
     if (ind >= 0)

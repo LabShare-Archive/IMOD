@@ -427,8 +427,8 @@ static void warningHandler(const char *module, const char *fmt, va_list ap)
   va_end(ap);
 
   /* It didn't work to call the old handler with some errors, so print it
-     ourselves to stderr */
-  if (!strstr(buffer, "unknown field with tag")) {
+     ourselves to stderr.  It was "unknown" in libtiff 3 and "Unknown" in 4 */
+  if (!strstr(buffer, "nknown field with tag")) {
     if (module)
       fprintf(stderr, "%s: Warning, %s\n", module, buffer);
     else

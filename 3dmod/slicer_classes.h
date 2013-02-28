@@ -82,6 +82,7 @@ class SlicerWindow : public QMainWindow
   void modelThicknessChanged(double depth);
   void showslicePressed();
   void contourPressed();
+  void fillCachePressed();
   void setTimeLabel(int time, QString label);
   void zScaleSelected(int item);
   void toolKeyPress(QKeyEvent *e) {keyPressEvent(e);};

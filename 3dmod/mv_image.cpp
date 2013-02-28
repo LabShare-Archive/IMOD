@@ -34,6 +34,7 @@
 #include "pyramidcache.h"
 #include "display.h"
 #include "control.h"
+#include "cachefill.h"
 #include "preferences.h"
 #include "xcramp.h"
 
@@ -81,6 +82,8 @@ static int sXdrawSize = -1;
 static int sYdrawSize = -1;
 static int sZdrawSize = -1;
 static int sLastYsize = -1;
+static float sPyrZoomUpLimit = 1.05;
+static float sPyrZoomDownLimit = 0.5;
 ImodvImage *sDia = NULL;
 ImodvApp  *sA = NULL;
 int    sFlags = 0;
@@ -104,7 +107,8 @@ void mvImageEditDialog(ImodvApp *a, int state)
     return;
   }
 
-  sDia = new ImodvImage(imodvDialogManager.parent(IMODV_DIALOG), "image view");
+  sDia = new ImodvImage(imodvDialogManager.parent(IMODV_DIALOG), a->vi->pyrCache != NULL,
+                        "image view");
   sA = a;
 
   makeColorMap();
@@ -146,6 +150,24 @@ bool mvImageDrawingZplanes(void)
   return (!ImodvClosed && Imodv->texMap && (sFlags & IMODV_DRAW_CZ));
 }
 
+// Return the limits of what is being drawn in X and Y
+bool mvImageSubsetLimits(double &zoom, float &zoomUpLimit, float &zoomDownLimit, 
+                         int &ixStart, int &iyStart, int &nxUse, int &nyUse)
+{
+  int ixCur, iyCur, izCur, xend, yend;
+  ImodvApp *a = Imodv;
+  if (ImodvClosed || !a->texMap || !sFlags || sXdrawSize <= 0)
+    return false;
+  zoomUpLimit = sPyrZoomUpLimit;
+  zoomDownLimit = sPyrZoomDownLimit;
+  zoom = 0.5 * B3DMIN(a->winx, a->winy) / a->imod->view->rad;
+  ivwGetLocation(a->vi, &ixCur, &iyCur, &izCur);
+  setCoordLimits(ixCur, a->vi->xsize, sXdrawSize, ixStart, xend);
+  setCoordLimits(iyCur, a->vi->ysize, sYdrawSize, iyStart, yend);
+  nxUse = xend + 1 - ixStart;
+  nyUse = yend + 1 - iyStart;
+  return true;
+}
 
 // Set the number of slices and the transparency from movie controller - 
 // do not update the image
@@ -446,7 +468,8 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
 
   if (a->vi->pyrCache != NULL) {
     zoom = 0.5 * B3DMIN(a->winx, a->winy) / a->imod->view->rad;
-    cacheInd =  a->vi->pyrCache->pickBestCache(zoom, 1.05, 0.5, pyrXYscale);
+    cacheInd =  a->vi->pyrCache->pickBestCache(zoom, sPyrZoomUpLimit, sPyrZoomDownLimit,
+                                               pyrXYscale);
     imodTrace('t', "zoom = %.3f, cache %d, scale %d", zoom, cacheInd, pyrXYscale);
   }
   ivwGetLocation(a->vi, &ixCur, &iyCur, &izCur);
@@ -1013,14 +1036,15 @@ void mvImageCleanup()
 
 // THE ImodvImage CLASS IMPLEMENTATION
 
-static const char *buttonLabels[] = {"Done", "Help"};
-static const char *buttonTips[] = {"Close dialog box", "Open help window"};
+static const char *buttonLabels[] = {"Done", "Help", "Fill"};
+static const char *buttonTips[] = {"Close dialog box", "Open help window", 
+                                   "Fill cache for current display zoom and position"};
 static const char *sliderLabels[] = {"X", "Y", "Z", "X size", "Y size", "Z size",
                                "# of slices", "Transparency", 
                                "Black Level", "White Level"};
 
-ImodvImage::ImodvImage(QWidget *parent, const char *name)
-  : DialogFrame(parent, 2, 1, buttonLabels, buttonTips, true, 
+ImodvImage::ImodvImage(QWidget *parent, bool fillBut, const char *name)
+  : DialogFrame(parent, fillBut ? 3 : 2, 1, buttonLabels, buttonTips, true, 
                 ImodPrefs->getRoundedStyle(), "3dmodv Image View", "", name)
 {
   mCtrlPressed = false;
@@ -1217,8 +1241,10 @@ void ImodvImage::falseToggled(bool state)
 // Action buttons
 void ImodvImage::buttonPressed(int which)
 {
-  if (which)
+  if (which == 1)
     imodShowHelpPage("modvImage.html#TOP");
+  else if (which == 2)
+    imodCacheFill(Imodv->vi, -1);
   else
     close();
 }

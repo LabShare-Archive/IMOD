@@ -40,6 +40,7 @@ class SlicerFuncs {
   void stepTime(int dir);
   void enteredZoom(float newZoom);
   void showSlice();
+  void fillCache();
   void stateToggled(int index, int state);
   void angleChanged(int axis, int value, int dragging);
   void Zscale(int item);
@@ -66,6 +67,7 @@ class SlicerFuncs {
   void draw();
   int synchronizeSlicers(bool draw = false);
   void changeCenterIfLinked();
+  void getSubsetLimits(int &ixStart, int &iyStart, int &nxUse, int &nyUse);
 
  private:
   void cubeDraw();

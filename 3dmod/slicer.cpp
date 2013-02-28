@@ -47,7 +47,8 @@
 #include "mv_input.h"
 #include "imodv.h"
 #include "scalebar.h"
-
+#include "cachefill.h"
+#include "pyramidcache.h"
 
 /* internal functions. */
 static void slicerKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
@@ -703,6 +704,15 @@ void SlicerFuncs::showSlice()
   mDrawModView = 0;
 }
 
+/* 
+ * Fill the cache around the current location
+ */
+void SlicerFuncs::fillCache()
+{
+  ivwControlPriority(mVi, mCtrl);
+  imodCacheFill(mVi, 1);
+}
+
 /*
  * Toolbar Toggle buttons
  */
@@ -911,6 +921,20 @@ int SlicerFuncs::synchronizeSlicers(bool draw)
   }
   return num;
 }
+
+// Return approximate limits of what could be displayed in the current window based on
+// the zoom, center and window size
+void SlicerFuncs::getSubsetLimits(int &ixStart, int &iyStart, int &nxUse, int &nyUse)
+{
+  int xend, yend;
+  ixStart = (int)B3DMAX(0, mCx - 0.7 * mWinx / mZoom);
+  xend = (int)B3DMIN(mVi->xsize, mCx + 0.7 * mWinx / mZoom);
+  nxUse = xend - ixStart;
+  iyStart = (int)B3DMAX(0, mCy - 0.7 * mWiny / mZoom);
+  yend = (int)B3DMIN(mVi->ysize, mCy + 0.7 * mWiny / mZoom);
+  nyUse = yend - iyStart;
+}
+
 
 // Tell the slicer angle dialog to set current angles into current row, or
 // into new row if necessary or if flag is set
@@ -2643,6 +2667,7 @@ void SlicerFuncs::updateImage()
 void SlicerFuncs::paint()
 {
   int i, ival, sliceScaleThresh = 4;
+  int ixStart, iyStart, nxUse, nyUse;
   int mousing = mousePanning + mouseRotating +
     (ImodPrefs->speedupSlider() ? sliderDragging : 0);
   if (!mImage)
@@ -2668,7 +2693,14 @@ void SlicerFuncs::paint()
 
   if (mImageFilled <= 0) {
 
-    // If filling array, first assess mean and SD for scaling multiple slices
+    // If filling array, first get this section loaded into a tile cache
+    if (mVi->pyrCache) {
+      getSubsetLimits(ixStart, iyStart, nxUse, nyUse);
+      mVi->pyrCache->loadTilesContainingArea(mVi->pyrCache->getBaseIndex(), ixStart,
+                                             iyStart, nxUse, nyUse, B3DNINT(mCz));
+    }
+
+    // Then assess mean and SD for scaling multiple slices
     // to single slice, then fill array for real and update angles
     if (!mousing && !mVi->colormapImage && mNslice > sliceScaleThresh && !mVi->rgbStore)
       fillImageArray(0, 1, 0);
