@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/1/13: Added support for templates to eTomo.(Bug# 1677)
+
 2/27/13: Fixed array allocation problem in Pickbestseed.
 
 2/27/13: Fixed problem of 3dmod quitting during initial load due to messages 
