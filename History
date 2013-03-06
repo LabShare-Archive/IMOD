@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/6/13: Fixed a typo in auto seed model.(Bug# 1687)
+
 3/4/13: IMOD_4-6-19
 3/3/13: Fixed a problem with recording Exclude Projections in the .edf file.
 (Bug# 1686)
