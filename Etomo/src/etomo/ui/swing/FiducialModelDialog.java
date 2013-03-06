@@ -427,7 +427,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   private final LabeledTextField ltfMinSpacing = new LabeledTextField(
       FieldType.FLOATING_POINT, "Minimum spacing: ");
   private final LabeledTextField ltfPeakStorageFraction = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Fraction of peak to store: ");
+      FieldType.FLOATING_POINT, "Fraction of peaks to store: ");
 
   private final ButtonGroup bgTarget = new ButtonGroup();
   private final RadioTextField rtfTargetNumberOfBeads = RadioTextField.getInstance(
