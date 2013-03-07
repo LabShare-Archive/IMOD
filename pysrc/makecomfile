@@ -8,7 +8,7 @@
 
 progname = 'makecomfile'
 prefix = 'ERROR: ' + progname + ' - '
-
+origComDir = 'origcoms'
 
 #### MAIN PROGRAM  ####
 #
@@ -236,4 +236,8 @@ if baseChanges or finalChanges or changeList:
                                   baseChanges + changeList + finalChanges)
 makeBackupFile(outfile)
 writeTextFile(outfile, sedlines)
+if os.path.exists(origComDir) and os.path.isdir(origComDir) and \
+       os.access(origComDir, os.W_OK):
+   writeTextFile(os.path.join(origComDir, outfile), sedlines)
+   
 sys.exit(0)
