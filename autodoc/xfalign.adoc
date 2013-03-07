@@ -69,9 +69,10 @@ be applied after binning and filtering if any.
 [Field = ParametersToSearch]
 short = params
 type = I
-usage = 0 for formal params, or # of semi-natural params
+usage = 0 for formal params, # of semi-natural params, or -1 to skip search
 tooltip =
-manpage = In Xfsimplex, search for the given number of semi-natural parameters.
+manpage = In Xfsimplex, search for the given number of semi-natural parameters
+or skip the search entirely.
 Enter 2 to search only for translations, 3 to search for rotations in
 addition, 4 to search for magnifications as well, or 6 to search for the
 full transformation as represented by semi-natural parameters (rotation,
@@ -80,7 +81,9 @@ X and Y axis rotation.)
 The default is 0, in which case Xfsimplex searches
 for the transformation by varying the formal parameters of the 2 by 2
 transformation matrix.  The one advantage of using 6 instead of 0 is that the
-search can be limited, and the amount of stretch is limited by default.
+search can be limited, and the amount of stretch is limited by default.  Enter
+-1 to skip the search and perform only initial cross-correlation alignment
+(the -prexcorr option must also be entered in this case).
 
 [Field = LimitsOnSearch]
 short = limits
