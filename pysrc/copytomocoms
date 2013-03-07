@@ -29,6 +29,14 @@ backuplist = []
 backupline = '$if (-e ' + backupname + ') ' + backupname
 dstext = ""
 setlet = ""
+origComDir = 'origcoms'
+
+# Write a com file with the given lines, and write it to the origcoms directory if that
+# is still defined
+def writeComFile(dstfile, sedlines):
+   writeTextFile(dstfile, sedlines)
+   if origComDir:
+      writeTextFile(os.path.join(origComDir, dstfile), sedlines)
 
 
 # This function does the boilerplate of defining source and destination files,
@@ -43,7 +51,7 @@ def editAndWrite(srcRoot, dstRoot, sedcom, doChanges = True):
    sedlines.append(backupline)
    if doChanges and len(changeList) > 0:
       sedlines = modifyForChangeList(sedlines, srcRoot, setlet, changeList)
-   writeTextFile(dstfile, sedlines)
+   writeComFile(dstfile, sedlines)
 
 
 # Function to run goodframe
@@ -265,6 +273,22 @@ if distort:
    # Then set the parameters
    distort = newDistort
    subdistort = "DistortionField"
+
+# Make the origcoms directory if needed
+if os.path.exists(origComDir):
+   if not os.path.isdir(origComDir):
+      warning('Cannot make directory for original com files; a regular file named ' +
+              origComDir + ' already exists')
+      origComDir = ''
+   if not os.access(origComDir, os.W_OK):
+      warning('Cannot write to the directory for original com files, ' + origComDir)
+      origComDir = ''
+else:
+   try:
+      os.mkdir(origComDir)
+   except OSError:
+      warning('Error making directory for original com files')
+      origComDir = ''
 
 
 # SKIP ALLOWING STACKS IN BACKUP DIRECTORY AND MAKING LINKS TO THEM
@@ -659,7 +683,7 @@ for iaxis in range(naxis):
    dstlines.append(backupline)
    if changeList:
       dstlines = modifyForChangeList(dstlines, 'xcorr', setlet, changeList)
-   writeTextFile(dstfile, dstlines)
+   writeComFile(dstfile, dstlines)
 
 
    # Set up lines for adding distortion corrections
@@ -768,7 +792,7 @@ for iaxis in range(naxis):
                    backupline])
    if changeList:
       sedlines = modifyForChangeList(sedlines, 'align', setlet, changeList)
-   writeTextFile(dstfile, sedlines)
+   writeComFile(dstfile, sedlines)
    backuplist.extend([dstfile, setname + "local.xf", setname + "fid.xyz",
                       setname + ".xf", setname + ".tlt", setname + ".resid",
                       setname + ".resmod", setname + ".3dmod"])
@@ -877,7 +901,7 @@ for iaxis in range(naxis):
    dstlines.append(backupline)
    if changeList:
       dstlines = modifyForChangeList(dstlines, 'sample', setlet, changeList)
-   writeTextFile(dstfile, dstlines)
+   writeComFile(dstfile, dstlines)
 
    # SKIP FINDSEC until it is useful!
 
