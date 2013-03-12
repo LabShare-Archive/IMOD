@@ -78,6 +78,15 @@ inaccurate at high tilt.  Sharper correlations can be obtained by adding this
 angle offset, which is the same as the offset needed in Tiltalign(1) or
 Tilt(1) to make the specimen flat in the reconstruction.
 
+[Field = ReverseOrder]
+short = reverse
+type = B
+usage = Reverse order of processing when all views have same tilt angle
+tooltip = 
+manpage = Reverse order of processing when all views have same tilt angle.
+Specifically, this will cause the program to start with the last view at
+minimum tilt instead of the first one.
+
 [Field = FilterRadius1]
 short = radius1
 type = F
@@ -190,15 +199,32 @@ but with this option only the given object will be used.
 [Field = BinningToApply]
 short = binning
 type = I
-usage = Binning to apply to the trimmed, padded images
+usage = Binning or other reduction to apply to the trimmed, padded images
 tooltip = 
-manpage = Binning to apply to the trimmed, padded images.  By default, a
-binning will be selected that makes the maximum dimension of the trimmed,
-padded image be no more than 1180 pixels, up to a binning of 4.  Binning will
-increased above 4 only to the extent needed to make the image fit in the 
-arrays.  This default behavior might result in more binning
-than desired, and the binning might change when the amount of trimming
-is changed.  This option allows direct control of the binning instead.
+manpage = Binning or other reduction to apply to the trimmed, padded images.
+Ordinary binning is used unless the -antialias option is given.
+By default, a reduction will be selected that makes the maximum dimension of the
+trimmed, padded image be no more than 1180 pixels, up to a reduction of 4.
+Reduction will be increased above 4 only to the extent needed to make the image
+fit in the arrays.  This default behavior might result in more reduction
+than desired, and the reduction might change when the amount of trimming
+is changed.  This option allows direct control of the reduction instead.
+
+[Field = AntialiasFilter]
+short = antialias
+type = I
+usage = Type of antialiasing filter to reduce images with instead of binning
+tooltip =
+manpage = Type of antialiasing filter to use for image reduction instead of
+binning.  Antialiasing becomes important when the images contain a strong
+noise component at the high frequencies being eliminated by the image
+reduction.  Ordinary binning reduces aliasing, but not as much as these filters
+do.  As in Newstack(1), the available types here are:
+^    2: Blackman - fast but not as good at antialiasing as slower filters
+^    3: Triangle - fast but smooths more than Blackman
+^    4: Mitchell - good at antialiasing, smooths a bit
+^    5: Lanczos 2 lobes - good at antialiasing, less smoothing than Mitchel
+^    6: Lanczos 3 lobes - slower, even less smoothing but more risk of ringing
 
 [Field = LeaveTiltAxisShifted]
 short = leaveaxis
