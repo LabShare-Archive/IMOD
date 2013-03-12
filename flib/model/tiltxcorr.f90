@@ -21,19 +21,20 @@
 !
 program tiltxcorr
   implicit none
-  integer IDIM, IDIM2, lenTemp, LIMPATCH, LIMBOUND
-  parameter (IDIM = 4300, IDIM2 = IDIM * IDIM, lenTemp = 1000000)
+  integer IDIM, IDIM2, LIMPATCH, LIMBOUND
+  parameter (IDIM = 4300, IDIM2 = IDIM * IDIM)
   parameter (LIMPATCH = 100000, LIMBOUND = 1000)
   include 'smallmodel.inc90'
   integer*4 nx, ny, nz
   !
   integer*4 nxyz(3), mxyz(3), nxyzs(3)
-  real*4 title(20), tmpArray(lenTemp), delta(3), origin(3)
+  real*4 title(20), delta(3), origin(3)
   real*4 ctfp(8193), sumArray(IDIM2), crray(IDIM2)
   real*4 array(IDIM2), brray(IDIM2)
+  real*4, allocatable :: tmpArray(:)
   !
   equivalence (nx, nxyz(1)), (ny, nxyz(2)), (nz, nxyz(3))
-  common /bigarr/ array, sumArray, brray, crray, tmpArray
+  common /bigarr/ array, sumArray, brray, crray
   !
   character*320 inFile, plFile, imFileOut, xfFileOut
   character*1000 listString
@@ -43,6 +44,7 @@ program tiltxcorr
   character*80 titlech
   character*70 titleStr
   character*10 filterText/' '/
+  character*15 binRedText/' Binning is'/
 
   real*4, allocatable :: f(:,:,:), tilt(:), dxPreali(:), dyPreali(:)
   integer*4, allocatable :: ixPcList(:), iyPcList(:), izPcList(:)
@@ -75,15 +77,15 @@ program tiltxcorr
   real*4 xpeakCum, ypeakCum, xpeakTmp, ypeakTmp, xpeakFrac, ypeakFrac, yOverlap
   real*4 peakFracTol, xFromCen, yFromCen, cenx, ceny, baseTilt, xOverlap, yval
   integer*4 numPatches, numXpatch, numYpatch, ind, ixBoxStart, iyBoxStart
-  integer*4 ixBoxForAdj, iyBoxForAdj, ipatch, numPoints, numBound, iobj
-  integer*4 ipnt, ipt, numInside, iobjSeed, imodObj, imodCont, ix, iy
+  integer*4 ixBoxForAdj, iyBoxForAdj, ipatch, numPoints, numBound, iobj, lenTemp
+  integer*4 ipnt, ipt, numInside, iobjSeed, imodObj, imodCont, ix, iy, iAntiFiltType
   integer*4 limitShiftX, limitShiftY, numSkip, lastNotSkipped, lenConts, nFillTaper
   real*4 critInside, cosRatio, peakVal, peakLast, xpeakLast, yPeakLast
   real*4 boundXmin, boundXmax, boundYmin, boundYmax, fracXover, fracYover
   real*4 fracOverMax, critNonBlank, fillTaperFrac
   real*8 wallMask, wallTime, wallStart, wallInterp, wallfft
 
-  logical*4 tracking, verbose, breaking, taperCur, taperRef
+  logical*4 tracking, verbose, breaking, taperCur, taperRef, reverseOrder
   integer*4 niceFrame, newImod, putImodMaxes, putModelName, numberInList, taperAtFill
   logical inside
   real*4 cosd, sind
@@ -94,30 +96,29 @@ program tiltxcorr
   integer*4 PipGetString, PipGetFloat, PipGetTwoIntegers, PipGetTwoFloats
   integer*4 PipGetInOutFile, ifPip
   !
-  ! fallbacks from ../../manpages/autodoc2man -2 2  tiltxcorr
+  ! fallbacks from ../../manpages/autodoc2man -3 2  tiltxcorr
   !
   integer numOptions
-  parameter (numOptions = 43)
+  parameter (numOptions = 45)
   character*(40 * numOptions) options(1)
   options(1) = &
       'input:InputFile:FN:@piece:PieceListFile:FN:@output:OutputFile:FN:@'// &
-      'rotation:RotationAngle:F:@first:FirstTiltAngle:F:@'// &
-      'increment:TiltIncrement:F:@tiltfile:TiltFile:FN:@angles:TiltAngles:FAM:@'// &
-      'offset:AngleOffset:F:@radius1:FilterRadius1:F:@radius2:FilterRadius2:F:@'// &
+      'rotation:RotationAngle:F:@first:FirstTiltAngle:F:@increment:TiltIncrement:F:@'// &
+      'tiltfile:TiltFile:FN:@angles:TiltAngles:FAM:@offset:AngleOffset:F:@'// &
+      'reverse:ReverseOrder:B:@radius1:FilterRadius1:F:@radius2:FilterRadius2:F:@'// &
       'sigma1:FilterSigma1:F:@sigma2:FilterSigma2:F:@exclude:ExcludeCentralPeak:B:@'// &
       'shift:ShiftLimitsXandY:IP:@border:BordersInXandY:IP:@xminmax:XMinAndMax:IP:@'// &
-      'yminmax:YMinAndMax:IP:@boundary:BoundaryModel:FN:@'// &
-      'objbound:BoundaryObject:I:@binning:BinningToApply:I:@'// &
-      'leaveaxis:LeaveTiltAxisShifted:B:@pad:PadsInXandY:IP:@'// &
-      'taper:TapersInXandY:IP:@views:StartingEndingViews:IP:@skip:SkipViews:LI:@'// &
-      'break:BreakAtViews:LI:@cumulative:CumulativeCorrelation:B:@'// &
-      'absstretch:AbsoluteCosineStretch:B:@nostretch:NoCosineStretch:B:@'// &
-      'iterate:IterateCorrelations:I:@size:SizeOfPatchesXandY:IP:@'// &
-      'number:NumberOfPatchesXandY:IP:@overlap:OverlapOfPatchesXandY:IP:@'// &
-      'seed:SeedModel:FN:@objseed:SeedObject:I:@length:LengthAndOverlap:IP:@'// &
-      'prexf:PrealignmentTransformFile:FN:@imagebinned:ImagesAreBinned:I:@'// &
-      'test:TestOutput:FN:@verbose:VerboseOutput:B:@param:ParameterFile:PF:@'// &
-      'help:usage:B:'
+      'yminmax:YMinAndMax:IP:@boundary:BoundaryModel:FN:@objbound:BoundaryObject:I:@'// &
+      'binning:BinningToApply:I:@antialias:AntialiasFilter:I:@'// &
+      'leaveaxis:LeaveTiltAxisShifted:B:@pad:PadsInXandY:IP:@taper:TapersInXandY:IP:@'// &
+      'views:StartingEndingViews:IP:@skip:SkipViews:LI:@break:BreakAtViews:LI:@'// &
+      'cumulative:CumulativeCorrelation:B:@absstretch:AbsoluteCosineStretch:B:@'// &
+      'nostretch:NoCosineStretch:B:@iterate:IterateCorrelations:I:@'// &
+      'size:SizeOfPatchesXandY:IP:@number:NumberOfPatchesXandY:IP:@'// &
+      'overlap:OverlapOfPatchesXandY:IP:@seed:SeedModel:FN:@objseed:SeedObject:I:@'// &
+      'length:LengthAndOverlap:IP:@prexf:PrealignmentTransformFile:FN:@'// &
+      'imagebinned:ImagesAreBinned:I:@test:TestOutput:FN:@verbose:VerboseOutput:B:@'// &
+      'param:ParameterFile:PF:@help:usage:B:'
   !
   ! set defaults here where not dependent on image size
   !
@@ -164,6 +165,9 @@ program tiltxcorr
   critNonBlank = 0.7
   fillTaperFrac = 0.1
   maxTrackGap = 5
+  lenTemp = 1000000
+  iAntiFiltType = 0
+  reverseOrder = .false.
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   !
@@ -270,7 +274,17 @@ program tiltxcorr
       if (nbinning <= 0 .or. nbinning > maxBinning) call exitError &
           ('THE ENTERED VALUE FOR BINNING IS OUT OF RANGE')
     endif
+    ierr = PipGetInteger('AntialiasFilter', iAntiFiltType)
+    if (nbinning == 1 .or. iAntiFiltType == 1) iAntiFiltType = 0
+    if (iAntiFiltType > 0) then
+      lenTemp = 10000000
+      binRedText = ' Reduction is'
+    endif
+    lenTemp = min(lenTemp, nx * ny)
+    allocate(tmpArray(lenTemp), stat = ierr)
+    call memoryError(ierr, "TEMPORARY ARRAY FOR READING DATA")
 
+    ierr = PipGetLogical('ReverseOrder', reverseOrder)
     ierr = PipGetBoolean('CumulativeCorrelation', ifCumulate)
     ierr = PipGetBoolean('NoCosineStretch', ifNoStretch)
     ierr = PipGetBoolean('AbsoluteCosineStretch', ifAbsStretch)
@@ -565,7 +579,8 @@ program tiltxcorr
           'REGION INSIDE BOUNDARY IS TOO SMALL')
       allocate(xtfsBound(numPoints), ytfsBound(numPoints), stat = ierr)
       call memoryError(ierr, 'TFS BOUNDARY ARRAYS')
-      write(*,'(a,2i7,a,2i7)') 'The area loaded will be X:', ixStart, ixEnd, ' Y:', iyStart, iyEnd
+      write(*,'(a,2i7,a,2i7)') 'The area loaded will be X:', ixStart, ixEnd, ' Y:', &
+          iyStart, iyEnd
     endif
   endif
   !
@@ -625,8 +640,8 @@ program tiltxcorr
   if ((nxPad + 2) * nyPad > IDIM2) call exitError( &
       'PADDED IMAGE TOO BIG, TRY LESS PADDING')
 
-  write(*,'(/,a,i3,a,i5,a,i5)') ' Binning is', nbinning, &
-      ';  padded, binned size is', nxPad, ' by', nyPad
+  write(*,'(/,a,i3,a,i5,a,i5)') binRedText, nbinning, &
+      ';  padded, reduced size is', nxPad, ' by', nyPad
   !
   ! Now that padded size exists, get the filter ctf
   !
@@ -718,7 +733,7 @@ program tiltxcorr
   !
   ! set up for first or only loop
   !
-  ! print *,mintilt, izst, iznd
+  ! print *,mintilt, izstart, izend
   if (minTilt >= izEnd) then
     ivStart = izEnd - 1
     ivEnd = izStart
@@ -915,13 +930,8 @@ program tiltxcorr
           !
           ! get "current" into array, stretch into brray, pad it
           !
-          call irdBinned(1, izCur, array, nxUseBin, nyUseBin, ixCenStart + ixBoxCur, &
-              iyCenStart + iyBoxCur, nbinning, nxUseBin, nyUseBin, tmpArray, lenTemp, &
-              ierr)
-          if (ierr .ne. 0) goto 99
-          if (taperCur) then
-            if (taperAtFill(array, nxUseBin, nyUseBin, nFillTaper, 1) .ne. 0) go to 97
-          endif
+          call readBinnedOrReduced(1, izCur, array, ixCenStart + ixBoxCur, &
+              iyCenStart + iyBoxCur, taperCur)
           !
           ! 7/11/03: We have to feed the interpolation the right mean or
           ! it will create a bad edge mean for padding
@@ -944,13 +954,9 @@ program tiltxcorr
           !
           ! get "last" into array, just pad it there
           !
-          call irdBinned(1, izLast, array, nxUseBin, nyUseBin, ixCenStart + ixBoxRef, &
-              iyCenStart + iyBoxRef, nbinning, nxUseBin, nyUseBin, tmpArray, lenTemp, &
-              ierr)
-          if (ierr .ne. 0) goto 99
-          if (taperRef) then
-            if (taperAtFill(array, nxUseBin, nyUseBin, nFillTaper, 1) .ne. 0) go to 97
-          endif
+          call readBinnedOrReduced(1, izLast, array, ixCenStart + ixBoxRef, &
+              iyCenStart + iyBoxRef, taperRef)
+          
           if (ifCumulate .ne. 0) then
             if (iter == 1) then
               !
@@ -1348,8 +1354,6 @@ program tiltxcorr
   write(6, 500)
 500 format(' PROGRAM EXECUTED TO END.')
   call exit(0)
-99 call exitError('END OF IMAGE WHILE READING')
-97 call exitError('GETTING MEMORY FOR TAPERING FROM FILL AREA IN PATCH')
 96 call exitError('ERROR WRITING TRANSFORMS TO FILE')
 
 CONTAINS
@@ -1418,6 +1422,7 @@ CONTAINS
     integer*4 nxMOB, nyMOB
     real*4 arrayMOB(nxMOB, nyMOB)
     logical outside
+    integer*4 taperAtFill
     !
     !$OMP PARALLEL do &
     !$OMP& SHARED(nxMOB, nyMOB, numBound, xtfsBmin, xtfsBmax, ytfsBmin, ytfsBmax) &
@@ -1460,7 +1465,8 @@ CONTAINS
     tiltAtMin = 10000.
     do iv = izStart, izEnd
       if ((breaking .or. numberInList(iv, listSkip, numSkip, 0) == 0) .and. &
-          abs(tilt(iv)) < abs(tiltAtMin)) then
+          (abs(tilt(iv)) < abs(tiltAtMin) .or.  &
+          (reverseOrder .and. abs(tilt(iv)) <= abs(tiltAtMin)))) then
         minTilt = iv
         tiltAtMin = tilt(iv)
       endif
@@ -1494,6 +1500,38 @@ CONTAINS
     return
   end subroutine markUsablePatches
 
+
+  ! readBinnedOrReduced reads an area with the given starting coordinates by binning or
+  ! reduction and tapers it if requested
+  !
+  subroutine readBinnedOrReduced(imUnit, izRead, arrRead, ixStartRead, iyStartRead, &
+      taperRead)
+    integer*4 imUnit, izRead, ixStartRead, iyStartRead
+    real*4 arrRead(*)
+    logical*4 taperRead
+    integer*4 taperAtFill
+
+    if (iAntiFiltType > 0) then
+      call irdReduced(imUnit, izRead, arrRead, nxUseBin, float(ixStartRead), &
+          float(iyStartRead), float(nbinning), nxUseBin, nyUseBin, iAntiFiltType - 1, &
+          tmpArray, lenTemp, ierr)
+      if (ierr == 1) call exitError('ANTIALIAS FILTER TYPE OUT OF RANGE')
+      if (ierr > 0) then
+        write(listString, '(a,i2,a)') 'CALLING irdReduced TO READ IMAGE (ERROR CODE', &
+            ierr, ')'
+        call exitError(listString)
+      endif
+    else
+      call irdBinned(imUnit, izRead, arrRead, nxUseBin, nyUseBin, ixStartRead, &
+              iyStartRead, nbinning, nxUseBin, nyUseBin, tmpArray, lenTemp, ierr)
+    endif
+    if (ierr .ne. 0) call exitError('READING IMAGE FILE')
+    if (taperRead) then
+      if (taperAtFill(arrRead, nxUseBin, nyUseBin, nFillTaper, 1) .ne. 0)  &
+          call exitError ('GETTING MEMORY FOR TAPERING FROM FILL AREA IN PATCH')
+    endif
+    return
+  end subroutine readBinnedOrReduced
 end program tiltxcorr
 
 
