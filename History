@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/13/13: Tiltxcorr can do its image reduction with antialiasing instead of
+simple binning and it has an option to start from the last image at minimum
+tilt instead of the first, which reverses the order for untilted images.
+
 3/12/13: Newstack has an option -fromone to allow section and line numbers to
 be numbered from 1 instead of 0, and an option -exclude to specify sections to
 exclude; Colornewst accepts -fromone but not -exclude.
