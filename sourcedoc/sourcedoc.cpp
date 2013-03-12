@@ -83,10 +83,10 @@ int main(int argc, char *argv[])
       switch (argv[ind][1]){
       case 'f':
         fort77 = true;
-        docStart = "^[Cc][ \t]*!";
+        docStart = "^[Cc!][ \t]*!";
         docEnd = docStart;
-        docContinue = "[cC]";
-        nonDocComment = "^[Cc]";
+        docContinue = "[cC!]";
+        nonDocComment = "^[Cc!]";
         break;
 
       case 'D':
