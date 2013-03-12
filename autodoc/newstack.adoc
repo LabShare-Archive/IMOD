@@ -1,6 +1,11 @@
 Version = 1.0
 Pip = 1
 
+[SectionHeader = IOOptions]
+usage = INPUT AND OUTPUT FILE OPTIONS 
+manpage = INPUT AND OUTPUT FILE OPTIONS
+^  These options are involved in specifying input and output files.
+
 [Field = InputFile]
 short = input
 type = FNM
@@ -67,17 +72,45 @@ With this option, files will be named like "rootnnn.ext" instead of
 "root.nnn", where "root" is the root name entered as the output file name,
 and "ext" is the extension entered with this option.
 
+[SectionHeader = SecOptions]
+usage = SECTION SELECTION OPTIONS 
+manpage = SECTION SELECTION OPTIONS
+^  These options are used to specify which sections are read and written
+
 [Field = SectionsToRead]
 short = secs
 type = LIM
 usage = List of sections to read from input file, numbered from 0.  
 The default is all sections.  Ranges are allowed.
 tooltip = 
-manpage = List of sections to read from an input file, numbered from 0.
+manpage = List of sections to read from an input file, numbered from 0 unless
+-fromone is entered.
 Ranges may be entered (e.g., 1-3,5,8), and / may be used to specify all
 sections in the file.  If multiple lists are entered, each
 one will be applied to the respective input file.  If no list is entered for
 a file, all sections will be read.
+
+[Field = NumberedFromOne]
+short = fromone
+type = B
+usage = Section and line numbers are entered numbered from 1, not 0
+tooltip = 
+manpage = With this option section numbers entered with the -secs, -replace,
+and -exclude options, line numbers entered with -uselines, and field numbers
+entered with -fields are numbered from 1 instead of 0.
+
+[Field = ExcludeSections]
+short = exclude
+type = LI
+usage = List of sections to exclude from input file, numbered from 0
+tooltip = 
+manpage = List of sections to exclude from the input file(s).  Exclusion is
+applied to the entire section list after it has been composed from other
+section-specifying options.  Any number in the section list contained in this
+exclusion list is removed from the section list, no matter how many times that
+number appears.  Thus, one exclude entry can be used to exclude the same set
+of section numbers from multiple input files. The list can consist of ranges;
+sections are numbered from 0 unless -fromone is entered.
 
 [Field = SkipSectionIncrement]
 short = skip
@@ -104,11 +137,12 @@ type = LI
 usage = List of sections to replace in existing output file, numbered from 0
 tooltip = 
 manpage = List of section numbers at which to write images into an existing 
-output file.  There must be only a single output file, its size in X and Y
-must be appropriate, and the given sections must already exist in the file.
-The minimum and maximum density in the file header will be modified by the min
-and max of the sections being written, so they can become more extreme but not
-less extreme.  The mean density will not be changed.
+output file, numbered from 0 unless -fromone is entered.  There must be only a
+single output file, its size in X and Y must be appropriate, and the given
+sections must already exist in the file.  The minimum and maximum density in
+the file header will be modified by the min and max of the sections being
+written, so they can become more extreme but not less extreme.  The mean
+density will not be changed.
 
 [Field = BlankOutput]
 short = blank
@@ -121,45 +155,10 @@ are filled with the mean value of the input file or with a fill value if one
 is entered with the -fill option; this value is then scaled in the same way
 that actual data are.
 
-[Field = SizeToOutputInXandY]
-short = size
-type = IP
-usage = Size of output image in X and Y; default is size of first input 
-file.
-tooltip = 
-manpage = The dimensions of the output image in X and Y.
-The default size is the same as that of the first input file.
-
-[Field = ModeToOutput]
-short = mode
-type = I
-usage = Storage mode of output file; 0 for byte, 1 or 6 for integer, 2 for real
-tooltip = 
-manpage = The storage mode of the output file; 0 for byte, 1 for 16-bit 
-signed integer, 6 for 16-bit unsigned integer, or 2 for 32-bit floating point.
-The default is the mode of the first input file.
-
-[Field = BytesSignedInOutput]
-short = bytes
-type = I
-usage = Output bytes as signed (1) or unsigned (0) regardless of other settings
-tooltip = 
-manpage = This entry controls how bytes are stored in the output file and
-overrides both the default for this version of IMOD and the setting of the
-environment variable WRITE_MODE0_SIGNED.  Enter 0 for unsigned numbers
-or 1 for signed numbers.  Unsigned output is needed to work with versions of IMOD
-before IMOD 4.2.23; signed output may be needed for compatibility with
-external software that has followed recent documentation of the MRC format.
-Regardless of the representation in the file, bytes are read into IMOD programs as
-unsigned with a range of 0 to 255.
-
-[Field = StripExtraHeader]
-short = strip
-type = B
-usage = Do not transfer extra header information from input to output
-tooltip = 
-manpage = Do not transfer extra header information in input file(s) to output
-file(s).  The default is to transfer this information whenever possible.
+[SectionHeader = XFormOptions]
+usage = OPTIONS FOR OPERATING ON IMAGES
+manpage = OPTIONS FOR OPERATING ON IMAGES
+^  These options specify geometrical operations performed on the images.
 
 [Field = OffsetsInXandY]
 short = offset
@@ -195,9 +194,10 @@ type = LIM
 usage = List of line numbers of transforms to apply, numbered from 0.
 tooltip = 
 manpage = A list of the line numbers of lines of transforms to use in the
-transform file (numbered from 0).  Ranges are allowed.  The default is for the
-line numbers to match the input section numbers.  To have a single
-transform applied to all of the sections, just enter a single number.
+transform file (numbered from 0 unless -fromone is entered).  Ranges are
+allowed.  The default is for the line numbers to match the input section
+numbers.  To have a single transform applied to all of the sections, just
+enter a single number.
 
 [Field = OneTransformPerFile]
 short = onexform
@@ -249,11 +249,13 @@ manpage = Scale all images down in size by the given factor, a value
 greater than 1, using antialias filtering.  This option should be used for
 large image reductions, because using ordinary interpolation 
 will give aliasing artifacts that appear primarily as noise.
-Even binning will give some aliasing.  Shrinking can be applied after
-binning but cannot be combined with rotation, general transformation, or
-distortion correction.  If no output size is specified, the size of the input
-image will be scaled appropriately so that the output will contain the entire
-image.
+Even binning will give some aliasing.  Shrinking can be applied either after
+binning or in place of binning.  With no binning, it can be followed by
+rotation, general transformation, or distortion correction, although only an
+integer shrinkage factor can be used with warping transformations.  With
+binning, it cannot be used with these other operations.  If no output size is
+specified, the size of the input image will be scaled appropriately so that
+the output will contain the entire image.
 
 [Field = AntialiasFilter]
 short = antialias
@@ -281,6 +283,48 @@ is applied before all other image transformations.  If no output size is
 specified, the size of the input image will be scaled appropriately so that
 the output will contain the entire image.
 
+[Field = DistortionField]
+short = distort
+type = FN
+usage = Image distortion field file to use for undistorting images
+tooltip = 
+manpage = Image distortion field file to use for undistorting images.  The 
+undistortion is applied before any transformations.
+
+[Field = ImagesAreBinned]
+short = imagebinned
+type = I
+usage = The current binning of the images
+tooltip = 
+manpage = The current binning of the images, so that the distortion field can
+be applied correctly.  This entry is required unless
+the program can determine the binning unambiguously from the image size.
+
+[Field = UseFields]
+short = fields
+type = LIM
+usage = List of distortion fields to apply, numbered from 0
+tooltip = 
+manpage = A list of the distortion fields to apply for each section (numbered
+from 0 unless -fromone is entered).  Ranges are allowed.  The default is for
+the field numbers to match the input section numbers, unless there is only one
+field in the file.  To have a single field applied to all of the sections,
+just enter a single number.  This option was added when the only way to warp
+images was with distortion field files but it is not needed with current
+warping files.
+
+[Field = GradientFile]
+short  = gradient
+type = FN
+usage = File with magnification gradients to be applied for each image
+tooltip = 
+manpage = File with magnification gradients to be applied for each image.
+This should be a file listing the tilt angle, the percent magnification change
+per micron of Z height, and the degrees of rotation per micron of Z height
+for each image, such as is produced by Extractmaggrad.  The mag gradient
+correction is applied before a distortion field correction and before any
+transformations.
+
 [Field = AdjustOrigin]
 short = origin
 type = B
@@ -292,8 +336,8 @@ built on the input stack should be correctly located when loaded onto the
 output stack in 3dmod(1).  Model points will be correctly located in Z
 provided that a contiguous set of sections is output.  They will be correct
 in X and Y provided that the only operations on the data are a change in size
-of the output, binning with -bin, scaling with -expand, and shifting with
--offset.
+of the output, binning with -bin, scaling with -expand, or -shrink, and
+shifting with -offset.
 
 [Field = LinearInterpolation]
 short = linear
@@ -318,6 +362,51 @@ value instead of interpolating between surrounding values, so it can be used
 when pixels have discrete or meaningful values that need to be preserved.
 This option and -linear are mutually exclusive.   Images are transformed when
 the -xform, -expand, -rotate, -distort, or -gradient option is entered.
+
+[SectionHeader = OutputOptions]
+usage = OUTPUT CONTROL OPTIONS 
+manpage = OUTPUT CONTROL OPTIONS 
+^  These options control the size, form, or density scaling of the output.
+
+[Field = SizeToOutputInXandY]
+short = size
+type = IP
+usage = Size of output image in X and Y; default is size of first input 
+file.
+tooltip = 
+manpage = The dimensions of the output image in X and Y.
+The default size is the same as that of the first input file.
+
+[Field = ModeToOutput]
+short = mode
+type = I
+usage = Storage mode of output file; 0 for byte, 1 or 6 for integer, 2 for real
+tooltip = 
+manpage = The storage mode of the output file; 0 for byte, 1 for 16-bit 
+signed integer, 6 for 16-bit unsigned integer, or 2 for 32-bit floating point.
+The default is the mode of the first input file.
+
+[Field = BytesSignedInOutput]
+short = bytes
+type = I
+usage = Output bytes as signed (1) or unsigned (0) regardless of other settings
+tooltip = 
+manpage = This entry controls how bytes are stored in the output file and
+overrides both the default for this version of IMOD and the setting of the
+environment variable WRITE_MODE0_SIGNED.  Enter 0 for unsigned numbers
+or 1 for signed numbers.  Unsigned output is needed to work with versions of IMOD
+before IMOD 4.2.23; signed output may be needed for compatibility with
+external software that has followed recent documentation of the MRC format.
+Regardless of the representation in the file, bytes are read into IMOD programs as
+unsigned with a range of 0 to 255.
+
+[Field = StripExtraHeader]
+short = strip
+type = B
+usage = Do not transfer extra header information from input to output
+tooltip = 
+manpage = Do not transfer extra header information in input file(s) to output
+file(s).  The default is to transfer this information whenever possible.
 
 [Field = FloatDensities]
 short = float
@@ -400,46 +489,10 @@ pixels and no more than 127.  The
 program will exit with an error if there is not enough memory to hold the
 entire output image.
 
-[Field = DistortionField]
-short = distort
-type = FN
-usage = Image distortion field file to use for undistorting images
-tooltip = 
-manpage = Image distortion field file to use for undistorting images.  The 
-undistortion is applied before any transformations.
-
-[Field = ImagesAreBinned]
-short = imagebinned
-type = I
-usage = The current binning of the images
-tooltip = 
-manpage = The current binning of the images, so that the distortion field can
-be applied correctly.  This entry is required unless
-the program can determine the binning unambiguously from the image size.
-
-[Field = UseFields]
-short = fields
-type = LIM
-usage = List of distortion fields to apply, numbered from 0.
-tooltip = 
-manpage = A list of the distortion fields to apply for each section (numbered
-from 0).  Ranges are allowed.  The default is for the field numbers to match
-the input section numbers, unless there is only one field in the file.  To
-have a single field applied to all of the sections, just enter a single
-number.  This option was added when the only way to warp images was with
-distortion field files but it is not needed with current warping files.
-
-[Field = GradientFile]
-short  = gradient
-type = FN
-usage = File with magnification gradients to be applied for each image
-tooltip = 
-manpage = File with magnification gradients to be applied for each image.
-This should be a file listing the tilt angle, the percent magnification change
-per micron of Z height, and the degrees of rotation per micron of Z height
-for each image, such as is produced by Extractmaggrad.  The mag gradient
-correction is applied before a distortion field correction and before any
-transformations.
+[SectionHeader = OtherOptions]
+usage = OTHER OPTIONS 
+manpage = OTHER OPTIONS
+^  These include options for testing and memory control, and generic PIP options
 
 [Field = MemoryLimit]
 short = memory
