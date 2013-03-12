@@ -16,9 +16,8 @@ program newstack
   implicit none
   integer MAXTEMP, LIMSEC, maxChunks, LIMGRADSEC
   parameter (LIMSEC = 1000000, maxChunks = 250, LIMGRADSEC = 10000)
-  parameter (MAXTEMP = 1000000)
+  parameter (MAXTEMP = 5000000)
   integer*4 nx, ny, nz
-
   real*4, allocatable :: array(:)
   !
   integer*4 nxyz(3), mxyz(3), nxyzst(3), nxyz2(3), mxyz2(3), maxExtraIn, maxExtraOut
@@ -37,7 +36,7 @@ program newstack
   character*20 floatText/' '/, xfText/' '/, trunctText/' '/
   real*4 frot(2,3), fexp(2,3), fprod(2,3)
   integer*4 inList(LIMSEC)
-  integer*4, allocatable :: nlist(:), listInd(:), numSecOut(:), lineTmp(:)
+  integer*4, allocatable :: nlist(:), listInd(:), numSecOut(:), lineTmp(:), isecExclude(:)
   real*4 optimalMax(16)
   integer*4 lineOutSt(maxChunks+1), numLinesOut(maxChunks)
   integer*4 lineInSt(maxChunks+1), numLinesIn(maxChunks)
@@ -62,6 +61,7 @@ program newstack
   real*4 tiltAngles(LIMGRADSEC), dmagPerMicron(LIMGRADSEC), rotPerMicron(LIMGRADSEC)
   !
   logical rescale, blankOutput, adjustOrigin, hasWarp, fillTmp, fillNeeded, stripExtra
+  logical readShrunk, numberedFromOne
   character dat * 9, timeStr * 8, tempExt * 9
   logical nbytes_and_flags
   character*80 titlech
@@ -74,7 +74,7 @@ program newstack
   integer*4 iOutFile, numTruncLow, numTruncHigh, ifHeaderOut, ifTempOpen, nByteSymIn
   integer*4 nByteExtraIn, iFlagExtraIn, mode, nByteExtraOut, nByteSymOut, indExtraOut
   real*4 dmin, dmax, dmean, dmin2, dmax2, dmean2, optimalIn, optimalOut, bottomIn
-  real*4 bottomOut, xcenIn, ycenIn, dx, dy, fieldMaxX, ystart
+  real*4 bottomOut, xcenIn, ycenIn, dx, dy, fieldMaxX, ystart, readReduction
   integer*4 linesLeft, numChunks, nextLine, iChunk, ifOutChunk, iscan, iyTest, iVerbose
   integer*4 iyBase, iy1, iy2, lnu, maxin, numScaleFacs, maxFieldX, needYfirst, needYlast
   real*4 dmeanSec, tmpMin, tmpMax, val, tsum2, scaleFactor
@@ -84,15 +84,16 @@ program newstack
   integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet, maxNxGrid, maxNyGrid
   integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
   integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
-  integer*4 ixOffset, iyOffset, lenTemp, ierr3, applyFirst, numTaper
+  integer*4 lenTemp, ierr3, applyFirst, numTaper, numberOffset, numExclude
   integer*4 ifOnePerFile, ifUseFill, listIncrement, indOut, ifMeanSdEntered
-  integer*4 ixOriginOff, iyOriginOff, numReplace, isecReplace, modeOld
+  integer*4 numReplace, isecReplace, modeOld, loadYoffset, loadBaseInd, listAlloc
   integer*4 indFilter, linesShrink, numAllSec, maxNumXF, nxMax, nyMax, ifControl
+  real*4 rxOffset, ryOffset
   real*4 fieldMaxY, rotateAngle, expandFactor, fillVal, shrinkFactor
   real*8 dsum, dsumSq, tsum, tsumSq, wallStart, wallTime, loadTime, saveTime
   real*8 rotTime
   real*4 cosd, sind
-  integer*4 taperAtFill, selectZoomFilter, zoomFiltInterp
+  integer*4 taperAtFill, selectZoomFilter, zoomFiltInterp, numberInList
   integer*4 readCheckWarpFile
   integer*4 getLinearTransform, findMaxGridSize, getSizeAdjustedGrid
   character*320 concat
@@ -106,27 +107,29 @@ program newstack
   ! fallbacks from ../../manpages/autodoc2man -3 2  newstack
   !
   integer numOptions
-  parameter (numOptions = 44)
+  parameter (numOptions = 46)
   character*(40 * numOptions) options(1)
   options(1) = &
       'input:InputFile:FNM:@output:OutputFile:FNM:@fileinlist:FileOfInputs:FN:@'// &
       'fileoutlist:FileOfOutputs:FN:@split:SplitStartingNumber:I:@'// &
       'append:AppendExtension:CH:@secs:SectionsToRead:LIM:@'// &
+      'fromone:NumberedFromOne:B:@exclude:ExcludeSections:LI:@'// &
       'skip:SkipSectionIncrement:I:@numout:NumberToOutput:IAM:@'// &
-      'replace:ReplaceSections:LI:@blank:BlankOutput:B:@size:SizeToOutputInXandY:IP:@'// &
-      'mode:ModeToOutput:I:@bytes:BytesSignedInOutput:I:@strip:StripExtraHeader:B:@'// &
-      'offset:OffsetsInXandY:FAM:@applyfirst:ApplyOffsetsFirst:B:@'// &
-      'xform:TransformFile:FN:@uselines:UseTransformLines:LIM:@'// &
-      'onexform:OneTransformPerFile:B:@rotate:RotateByAngle:F:@'// &
-      'expand:ExpandByFactor:F:@shrink:ShrinkByFactor:F:@'// &
-      'antialias:AntialiasFilter:I:@bin:BinByFactor:I:@origin:AdjustOrigin:B:@'// &
+      'replace:ReplaceSections:LI:@blank:BlankOutput:B:@offset:OffsetsInXandY:FAM:@'// &
+      'applyfirst:ApplyOffsetsFirst:B:@xform:TransformFile:FN:@'// &
+      'uselines:UseTransformLines:LIM:@onexform:OneTransformPerFile:B:@'// &
+      'rotate:RotateByAngle:F:@expand:ExpandByFactor:F:@shrink:ShrinkByFactor:F:@'// &
+      'antialias:AntialiasFilter:I:@bin:BinByFactor:I:@distort:DistortionField:FN:@'// &
+      'imagebinned:ImagesAreBinned:I:@fields:UseFields:LIM:@'// &
+      'gradient:GradientFile:FN:@origin:AdjustOrigin:B:@'// &
       'linear:LinearInterpolation:B:@nearest:NearestNeighbor:B:@'// &
+      'size:SizeToOutputInXandY:IP:@mode:ModeToOutput:I:@'// &
+      'bytes:BytesSignedInOutput:I:@strip:StripExtraHeader:B:@'// &
       'float:FloatDensities:I:@meansd:MeanAndStandardDeviation:FP:@'// &
       'contrast:ContrastBlackWhite:IP:@scale:ScaleMinAndMax:FP:@'// &
       'multadd:MultiplyAndAdd:FPM:@fill:FillValue:F:@taper:TaperAtFill:IP:@'// &
-      'distort:DistortionField:FN:@imagebinned:ImagesAreBinned:I:@'// &
-      'fields:UseFields:LIM:@gradient:GradientFile:FN:@memory:MemoryLimit:I:@'// &
-      'test:TestLimits:IP:@verbose:VerboseOutput:I:@param:ParameterFile:PF:@help:usage:B:'
+      'memory:MemoryLimit:I:@test:TestLimits:IP:@verbose:VerboseOutput:I:@'// &
+      'param:ParameterFile:PF:@help:usage:B:'
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   !
@@ -183,6 +186,11 @@ program newstack
   ifWarping = 0
   ifControl = 0
   lmGrid = 200
+  readReduction = 1.
+  readShrunk = .false.
+  numberedFromOne = .false.
+  numberOffset = 0
+  numExclude = 0
   !
   ! Preliminary allocation of array
   allocate(array(limToAlloc), stat = ierr)
@@ -193,7 +201,7 @@ program newstack
   call ialprt(.false.)
   inUnit = 5
   !
-  ! get number of input files
+  ! get number of input files and other preliminary items
   !
   if (pipinput) then
     ierr = PipGetInteger('VerboseOutput', iVerbose)
@@ -207,7 +215,19 @@ program newstack
     ierr = PipGetInteger('SkipSectionIncrement', listIncrement)
     ierr = PipGetLogical('BlankOutput', blankOutput)
     ierr = PipGetLogical('StripExtraHeader', stripExtra)
+    ierr = PipGetLogical('NumberedFromOne', numberedFromOne)
+    if (numberedFromOne) numberOffset = 1
     if (PipGetInteger('BytesSignedInOutput', i) == 0) call overrideWriteBytes(i)
+    i = 1
+    if (PipGetString('ExcludeSections', listString) .eq. 0) then
+      call parseList2(listString, inList, numExclude, LIMSEC)
+      i = numExclude
+    endif
+    allocate(isecExclude(i), stat=ierr)
+    call memoryError(ierr, 'ARRAY FOR EXCLUDED SECTIONS')
+    if (numExclude > 0) then
+      isecExclude(1:numExclude) = inList(1:numExclude) - numberOffset
+    endif
   else
     write(*,'(1x,a,$)') '# of input files (or -1 to read list'// &
         ' of input files from file): '
@@ -257,10 +277,10 @@ program newstack
     !
     ! open file to make sure it exists and get default section list
     !
-    CALL imopen(1, inFile(i), 'RO')
-    CALL irdhdr(1, nxyz, mxyz, mode, dmin2, dmax2, dmean2)
-    if (mode == 16) call exitError('CANNOT WORK WITH COLOR DATA'// &
-        ' (MODE 16); SEE MAN PAGE FOR ALTERNATIVES')
+    call imopen(1, inFile(i), 'RO')
+    call irdhdr(1, nxyz, mxyz, mode, dmin2, dmax2, dmean2)
+    if (mode == 16) call exitError('CANNOT WORK DIRECTLY WITH COLOR DATA'// &
+        ' (MODE 16); USE COLORNEWST INSTEAD')
     call imclose(1)
     if (i == 1) then
       nxFirst = nx
@@ -280,27 +300,28 @@ program newstack
     if (.not.pipinput .or. inUnit == 7) then
       if (inUnit .ne. 7) print *,'Enter list of sections to read from' &
           //' file (/ for all, 1st sec is 0; ranges OK)'
-      call rdlist(inUnit, inList(listTotal + 1), nlist(i))
+      call rdlist2(inUnit, inList(listTotal + 1), nlist(i), LIMSEC - listTotal)
     elseif (i <= numSecLists) then
       ierr = PipGetString('SectionsToRead', listString)
-      call parseList(listString, inList(listTotal + 1), nlist(i))
+      call parseList2(listString, inList(listTotal + 1), nlist(i), LIMSEC - listTotal)
     endif
     !
-    ! check list legality
+    ! check list legality and whether excluded; copy over if not excluded
     !
-    if (listTotal + nlist(i) > LIMSEC) call exitError('TOO MANY SECTIONS FOR ARRAYS')
     listInd(i) = listTotal + 1
     indOut = listInd(i)
     do isec = listTotal + 1, listTotal + nlist(i), max(1, listIncrement)
+      inList(isec) = inList(isec) - numberOffset
       if (.not.blankOutput .and. &
           (inList(isec) < 0 .or. inList(isec) >= nz)) then
-        write(*,'(/,a,i7,a,a)') 'ERROR: NEWSTACK -', inList(isec), &
-            ' IS AN ILLEGAL SECTION NUMBER FOR ', &
-            trim(inFile(i))
+        write(*,'(/,a,i7,a,a)') 'ERROR: NEWSTACK -', inList(isec) + numberOffset, &
+            ' IS AN ILLEGAL SECTION NUMBER FOR ', trim(inFile(i))
         call exit(1)
       endif
-      inList(indOut) = inList(isec)
-      indOut = indOut + 1
+      if (numberInList(inList(isec), isecExclude, numExclude, 0) .eq. 0) then
+        inList(indOut) = inList(isec)
+        indOut = indOut + 1
+      endif
     enddo
     nlist(i) = indOut - listInd(i)
     listTotal = listTotal + nlist(i)
@@ -309,8 +330,9 @@ program newstack
 101 format(a)
   !
   maxNumXF = max(maxNumXF, numAllSec)
-  allocate(lineUse(listTotal), listReplace(listTotal), idfUse(listTotal),  &
-      xcen(listTotal), ycen(listTotal), secMean(listTotal), f(2, 3, maxNumXF), &
+  listAlloc = listTotal + 10
+  allocate(lineUse(listAlloc), listReplace(listAlloc), idfUse(listAlloc),  &
+      xcen(listAlloc), ycen(listAlloc), secMean(listAlloc), f(2, 3, maxNumXF), &
       stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR INPUT FILES')
   !
@@ -559,7 +581,7 @@ program newstack
 
     call getItemsToUse(nXforms, listTotal, inList, 'UseTransformLines', &
         listString, pipinput, 'TRANSFORM LINE', ifOnePerFile, numInFiles, &
-        lineUse, nLineUse, listTotal)
+        lineUse, nLineUse, numberOffset, listAlloc)
 
     if (ifOnePerFile > 0) then
       if (nLineUse < numInFiles) call exitError( &
@@ -685,6 +707,8 @@ program newstack
     ierr = PipGetString('GradientFile', magGradFile)
     ierr = PipGetLogical('AdjustOrigin', adjustOrigin)
     ierr = PipGetTwoIntegers('TaperAtFill', numTaper, insideTaper)
+    !
+    ! Memory limits
     limEntered = 1 - PipGetTwoIntegers('TestLimits', ierr, lenTemp)
     if (limEntered > 0) limToAlloc = ierr
     if (PipGetInteger('MemoryLimit', ierr) == 0) then
@@ -697,38 +721,57 @@ program newstack
       idimInOut = limToAlloc - lenTemp
       call reallocateArray()
     endif
+    !
     if (ifWarping .ne. 0 .and. (idfFile .ne. ' ' .or. magGradFile .ne. ' ')) call &
         exitError('YOU CANNOT USE DISTORTION CORRECTIONS WITH WARPING TRANSFORMS')
     !
     if (ifWarping .ne. 0 .and. (rotateAngle .ne. 0 .or. expandFactor .ne. 0.)) call &
         exitError('YOU CANNOT USE -expand or -rotate WITH WARPING TRANSFORMS')
     if (iBinning <= 0) call exitError('BINNING FACTOR MUST BE A POSITIVE NUMBER')
+    readReduction = iBinning
     !
     ! Shrinkage
     if (PipGetFloat('ShrinkByFactor', shrinkFactor) == 0) then
-      if (ifXform .ne. 0 .or. rotateAngle .ne. 0. .or. expandFactor .ne. 0. .or. &
-          idfFile .ne. ' ' .or. magGradFile .ne. ' ') call exitError('YOU CANNOT'// &
-          ' USE -shrink WITH -xform, -rotate, -expand, -distort, or -gradient')
+      !
+      ! Do shrinkage on input unless there is binning specified, since this will be
+      ! more memory-efficient by default and it will produce a correct origin by default
+      ! with no size change
+      readShrunk = iBinning == 1
+      if (iBinning > 1 .and. (ifXform .ne. 0 .or. rotateAngle .ne. 0. .or. &
+          expandFactor .ne. 0. .or.  idfFile .ne. ' ' .or. magGradFile .ne. ' ' .or. &
+          ifWarping .ne. 0)) call exitError('YOU CANNOT USE BOTH -shrink '// &
+          'AND -bin WITH -xform, -rotate, -expand, -distort, or -gradient')
       if (shrinkFactor <= 1.) call exitError('FACTOR FOR -shrink MUST BE GREATER THAN 1')
+      if (ifWarping .ne. 0 .and. abs(nint(shrinkFactor) - shrinkFactor) > 1.e-4) call  &
+          exitError('YOU CANNOT USE -shrink WITH WARPING UNLESS THE FACTOR IS AN INTEGER')
       ierr = PipGetInteger('AntialiasFilter', indFilter)
       indFilter = max(0, indFilter - 1)
-      expandFactor = 1. / shrinkFactor
       ierr = 1
       i = indFilter
       do while (ierr == 1)
-        ierr = selectZoomFilter(indFilter, expandFactor, linesShrink)
+        ierr = selectZoomFilter(indFilter, 1. / shrinkFactor, linesShrink)
         if (ierr == 1) indFilter = indFilter - 1
         if (ierr > 1) call exitError( 'SELECTING ANTIALIASING FILTER')
       enddo
       if (indFilter < i) print *,'Using the last antialiasing filter, #', indFilter + 1
-      linesShrink = linesShrink / 2 + 2
+      if (readShrunk) then
+        readReduction = shrinkFactor
+        linesShrink = 0
+      else
+        !
+        ! Post-read shrinkage: provide extra buffer of what needs reading in for a chunk
+        ! and set an expansion factor
+        linesShrink = linesShrink / 2 + 2
+        expandFactor = 1. / shrinkFactor
+      endif
+      if (iVerbose > 0) print *,'Shrinking; readShrunk ', readShrunk
     endif
     !
     ! Section replacement
     if (PipGetString('ReplaceSections', listString) == 0) then
-      call parseList(listString, listReplace, numReplace)
+      call parseList2(listString, listReplace, numReplace, listTotal)
       if (numReplace > 0) then
-        print *,'replacing', (listReplace(i), i = 1, numReplace)
+        ! print *,'replacing', (listReplace(i), i = 1, numReplace)
         if (numOutFiles > 1) call exitError( &
             'THERE MUST BE ONLY ONE OUTPUT FILE TO USE -replace')
         call ialprt(.true.)
@@ -736,6 +779,7 @@ program newstack
         call irdhdr(2, nxyz2, mxyz2, modeOld, dmin, dmax, dmean)
         call ialprt(.false.)
         do i = 1, numReplace
+          listReplace(i) = listReplace(i) - numberOffset
           if (listReplace(i) < 0 .or. listReplace(i) >= nxyz2(3)) &
               call exitError('REPLACEMENT SECTION NUMBER OUT OF RANGE')
         enddo
@@ -763,8 +807,8 @@ program newstack
       !
       ! Set up default field numbers to use then process use list if any
       !
-      call getItemsToUse(numFields, listTotal, inList, 'UseFields', &
-          listString, pipinput, 'FIELD', 0, 0, idfUse, numIdfUse, listTotal)
+      call getItemsToUse(numFields, listTotal, inList, 'UseFields', listString, &
+          pipinput, 'FIELD', 0, 0, idfUse, numIdfUse, numberOffset, listAlloc)
       if (numIdfUse == 1) then
         do i = 2, listTotal
           idfUse(i) = idfUse(1)
@@ -783,7 +827,7 @@ program newstack
       xfText = ', undistorted'
       call readMagGradients(magGradFile, LIMGRADSEC, pixelMagGrad, axisRot, &
           tiltAngles, dmagPerMicron, rotPerMicron, numMagGrad)
-      pixelMagGrad = pixelMagGrad * iBinning
+      pixelMagGrad = pixelMagGrad * readReduction
     endif
   endif
   call PipDone()
@@ -829,15 +873,15 @@ program newstack
   !
   ! adjust xcen, ycen and transforms if binning and allocate temp space
   !
-  if (iBinning > 1) then
+  if (readReduction > 1.) then
     do i = 1, listTotal
-      xcen(i) = xcen(i) / iBinning
-      ycen(i) = ycen(i) / iBinning
+      xcen(i) = xcen(i) / readReduction
+      ycen(i) = ycen(i) / readReduction
     enddo
     if (ifXform .ne. 0) then
       do i = 1, nXforms
-        f(1, 3, i) = f(1, 3, i) / iBinning
-        f(2, 3, i) = f(2, 3, i) / iBinning
+        f(1, 3, i) = f(1, 3, i) / readReduction
+        f(2, 3, i) = f(2, 3, i) / readReduction
       enddo
     endif
     idimInOut = limToAlloc - lenTemp
@@ -877,13 +921,13 @@ program newstack
       !
     if (ifMean .ne. 0 .and. ifMeanSdEntered == 0) then
       do iFile = 1, numInFiles
-        CALL imopen(1, inFile(iFile), 'RO')
-        CALL irdhdr(1, nxyz, mxyz, mode, dmin2, dmax2, dmean2)
+        call imopen(1, inFile(iFile), 'RO')
+        call irdhdr(1, nxyz, mxyz, mode, dmin2, dmax2, dmean2)
         !
         ! get the binned size to read
         !
-        call getBinnedSize(nx, iBinning, nxBin, ixOffset)
-        call getBinnedSize(ny, iBinning, nyBin, iyOffset)
+        call getReducedSize(nx, readReduction, readShrunk, nxBin, rxOffset)
+        call getReducedSize(ny, readReduction, readShrunk, nyBin, ryOffset)
         !
         nyNeeded = nyBin
         call reallocateIfNeeded()
@@ -893,9 +937,9 @@ program newstack
           if (iSecRead >= 0 .and. iSecRead < nz) then
             !
             if (iVerbose > 0) print *,'scanning for mean/sd', iSecRead
-            call scanSection(array, idimInOut, nxBin, nyBin, 0, iBinning, ixOffset, &
-                iyOffset, iSecRead, ifFloat, dmin2, dmax2, dmean2, sdSec, &
-                loadYstart, loadYend, array(idimInOut + 1), lenTemp)
+            call scanSection(array, idimInOut, nxBin, nyBin, 0, readReduction, rxOffset, &
+                ryOffset, iSecRead, ifFloat, dmin2, dmax2, dmean2, sdSec, loadYstart, &
+                loadYend, indFilter, readShrunk, array(idimInOut + 1), lenTemp)
             secMean(ilist + listInd(iFile) - 1) = dmean2
             !
             if (ifFloat == 2) then
@@ -952,17 +996,17 @@ program newstack
   ifHeaderOut = 0
   ifTempOpen = 0
   do iFile = 1, numInFiles
-    CALL imopen(1, inFile(iFile), 'RO')
-    CALL irdhdr(1, nxyz, mxyz, mode, dminIn, dmaxIn, dmeanIn)
+    call imopen(1, inFile(iFile), 'RO')
+    call irdhdr(1, nxyz, mxyz, mode, dminIn, dmaxIn, dmeanIn)
     call irtsiz(1, nxyz, mxyz, nxyzst)
     call irtcel(1, cell)
     !
     ! get the binned size to read
     !
-    call getBinnedSize(nx, iBinning, nxBin, ixOffset)
-    call getBinnedSize(ny, iBinning, nyBin, iyOffset)
+    call getReducedSize(nx, readReduction, readShrunk, nxBin, rxOffset)
+    call getReducedSize(ny, readReduction, readShrunk, nyBin, ryOffset)
     if (iVerbose > 0) &
-        print *,'Size and offsets X:', nxBin, ixOffset, ', Y:', nyBin, iyOffset
+        print *,'Size and offsets X:', nxBin, rxOffset, ', Y:', nyBin, ryOffset
     !
     ! get extra header information if any
     !
@@ -1022,18 +1066,18 @@ program newstack
             xnBig = nxMax / warpScale
             ynbig = nyMax / warpScale
           else
-            xnBig = iBinning * nxOut / warpScale
-            ynbig = iBinning * nyOut / warpScale
+            xnBig = readReduction * nxOut / warpScale
+            ynbig = readReduction * nyOut / warpScale
             if (applyFirst == 0) then
               do i = 1, listTotal
                 dx = 1.e20
                 dy = 1.e20
                 xnBig = -dx
                 xnBig = -dx
-                xnBig = max(xnBig, (nxOut + xcen(i)) * iBinning / warpScale)
-                dx = min(dx, xcen(i) * iBinning / warpScale)
-                ynbig = max(ynbig, (nyOut + ycen(i)) * iBinning / warpScale)
-                dy = min(dy, ycen(i) * iBinning / warpScale)
+                xnBig = max(xnBig, (nxOut + xcen(i)) * readReduction / warpScale)
+                dx = min(dx, xcen(i) * readReduction / warpScale)
+                ynbig = max(ynbig, (nyOut + ycen(i)) * readReduction / warpScale)
+                dy = min(dy, ycen(i) * readReduction / warpScale)
               enddo
             endif
           endif
@@ -1069,7 +1113,7 @@ program newstack
         ! Create output file, transfer header from currently open file,
         ! fix it
         !
-        CALL imopen(2, outFile(iOutFile), 'NEW')
+        call imopen(2, outFile(iOutFile), 'NEW')
         call itrhdr(2, 1)
         call ialmod(2, newMode)
         !
@@ -1096,38 +1140,21 @@ program newstack
         ! keep delta the same by scaling cell size from change in mxyz
         !
         do i = 1, 3
-          cell2(i) = mxyz2(i) * (cell(i) / mxyz(i)) * iBinning / &
-              expandFactor
+          cell2(i) = mxyz2(i) * (cell(i) / mxyz(i)) * readReduction / expandFactor
           cell2(i + 3) = 90.
         enddo
         cell2(3) = mxyz2(3) * (cell(3) / mxyz(3))
-        CALL ialcel(2, cell2)
+        call ialcel(2, cell2)
         !
-        ! shift origin by the fraction pixel offset when binning -
+        ! shift origin by the fraction pixel offset when binning or reducing with read
         ! a positive change is needed to indicate origin inside image
-        !
+        ! When reduction was added, removed a convoluted subpixel adjustment to this
+        ! that was wrong as basis for adjusting origin for size changes
         call irtdel(1, delta)
         call irtorg(1, xOrigin, yOrigin, zOrigin)
-        if (iBinning > 1) then
-          ixOriginOff = -ixOffset
-          iyOriginOff = -iyOffset
-          if ((nxOut .ne. nxBin .or. nyOut .ne. nyBin) .and. ifXform == 0) then
-            !
-            ! if output size is being set from the input and binning, the
-            ! origin offset is all set, but otherwise we need to adjust
-            ! for the difference between unbinned pixels to left of image
-            ! in output versus pixels to left in an input image that is
-            ! bigger by the binning factor.  But this only works if
-            ! there is no transformation
-            !
-            ixOriginOff = iBinning * (nxOut / 2 - nxBin / 2) - ixOffset - &
-                (nxOut * iBinning - nx) / 2
-            iyOriginOff = iBinning * (nyOut / 2 - nyBin / 2) - iyOffset - &
-                (nyOut * iBinning - ny) / 2
-          endif
-          ! print *,ixOffset, ixOriginOff
-          xOrigin = xOrigin + delta(1) * ixOriginOff
-          yOrigin = yOrigin + delta(2) * iyOriginOff
+        if (readReduction > 1) then
+          xOrigin = xOrigin - delta(1) * rxOffset
+          yOrigin = yOrigin - delta(2) * ryOffset
         endif
         !
         ! Adjust origin if requested: it is different depending on whether
@@ -1135,26 +1162,24 @@ program newstack
         ! after.  delta can be modified, it will be reread
         if (adjustOrigin) then
           zOrigin = zOrigin - iSecRead * delta(3)
-          delta(1) = delta(1) * iBinning / expandFactor
-          delta(2) = delta(2) * iBinning / expandFactor
+          delta(1) = delta(1) * readReduction / expandFactor
+          delta(2) = delta(2) * readReduction / expandFactor
           if (ifXform == 0) then
-            xOrigin = xOrigin - (nxBin / 2 + nint(xcen(isec)) - nxOut / 2) * &
-                delta(1)
-            yOrigin = yOrigin - (nyBin / 2 + nint(ycen(isec)) - nyOut / 2) * &
-                delta(2)
+            xOrigin = xOrigin - (nxBin / 2 + nint(xcen(isec)) - nxOut / 2) * delta(1)
+            yOrigin = yOrigin - (nyBin / 2 + nint(ycen(isec)) - nyOut / 2) * delta(2)
           elseif (applyFirst .ne. 0) then
-            xOrigin = xOrigin - (expandFactor * (nxBin / 2. + xcen(isec))  - &
-                nxOut / 2.) * delta(1)
-            yOrigin = yOrigin - (expandFactor * (nyBin / 2. + ycen(isec)) - &
-                nyOut / 2.) * delta(2)
+            xOrigin = xOrigin - (expandFactor * (nxBin / 2. + xcen(isec))  - nxOut / 2.) &
+                * delta(1)
+            yOrigin = yOrigin - (expandFactor * (nyBin / 2. + ycen(isec)) - nyOut / 2.)  &
+                * delta(2)
           else
-            xOrigin = xOrigin - (expandFactor * nxBin / 2. + xcen(isec) - &
-                nxOut / 2.) * delta(1)
-            yOrigin = yOrigin - (expandFactor * nyBin / 2. + ycen(isec) - &
-                nyOut / 2.) * delta(2)
+            xOrigin = xOrigin - (expandFactor * nxBin / 2. + xcen(isec) - nxOut / 2.) *  &
+                delta(1)
+            yOrigin = yOrigin - (expandFactor * nyBin / 2. + ycen(isec) - nyOut / 2.) *  &
+                delta(2)
           endif
         endif
-        if (adjustOrigin .or. iBinning > 1) &
+        if (adjustOrigin .or. readReduction > 1) &
             call ialorg(2, xOrigin, yOrigin, zOrigin)
         !
         if (trunctText == ' ') then
@@ -1284,20 +1309,21 @@ program newstack
       else if (ifWarping .ne. 0) then
         iy = lnu
         hasWarp = nControl(iy) > 2
-        xnBig = iBinning * nxOut / warpScale
-        ynbig = iBinning * nyOut / warpScale
+        xnBig = readReduction * nxOut / warpScale
+        ynbig = readReduction * nyOut / warpScale
         !
         ! for warping with center offset applied after, it will subtract the
         ! offset from the grid start and add it to the grid displacements
         if (applyFirst == 0) then
-          dx = iBinning * xcen(isec) / warpScale
-          dy = iBinning * ycen(isec) / warpScale
+          dx = readReduction * xcen(isec) / warpScale
+          dy = readReduction * ycen(isec) / warpScale
         endif
       endif
       if (hasWarp) then
-        if (getSizeAdjustedGrid(iy, xnBig, ynbig, dx, dy, 1, warpScale, iBinning, &
-            nxGrid, nyGrid, xGridStart, yGridStart, xGridIntrv, yGridIntrv, fieldDx, &
-            fieldDy, lmGrid, lmGrid, listString) .ne. 0) call exitError(listString)
+        if (getSizeAdjustedGrid(iy, xnBig, ynbig, dx, dy, 1, warpScale,  &
+            nint(readReduction), nxGrid, nyGrid, xGridStart, yGridStart, xGridIntrv, &
+            yGridIntrv, fieldDx, fieldDy, lmGrid, lmGrid, listString) .ne. 0) &
+            call exitError(listString)
         !
         !print *,nxGrid, nyGrid, xGridIntrv, yGridIntrv, xGridStart, xGridStart +(nxGrid &
         ! - 1) * xGridIntrv, yGridStart, yGridStart + (nyGrid - 1)*yGridIntrv
@@ -1481,9 +1507,9 @@ program newstack
         if (iVerbose > 0) print *,'scanning for mean for fill', iSecRead, nyNeeded, &
             needYfirst
         wallStart = wallTime()
-        call scanSection(array, idimInOut, nxBin, nyNeeded, needYfirst, iBinning, &
-            ixOffset, iyOffset, iSecRead, 0, dmin2, dmax2, dmeanSec, sdSec, loadYstart, &
-            loadYend, array(idimInOut + 1), lenTemp)
+        call scanSection(array, idimInOut, nxBin, nyNeeded, needYfirst, readReduction, &
+            rxOffset, ryOffset, iSecRead, 0, dmin2, dmax2, dmeanSec, sdSec, loadYstart, &
+            loadYend, indFilter, readShrunk, array(idimInOut + 1), lenTemp)
         loadYend = min(loadYend, loadYstart + maxin - 1)
         loadTime = loadTime + wallTime() - wallStart
       endif
@@ -1502,6 +1528,8 @@ program newstack
         !
         wallStart = wallTime()
         if (needYstart < loadYstart .or. needYend > loadYend) then
+          loadYoffset = needYstart
+          loadBaseInd = 0
           if (loadYstart <= needYstart .and. loadYend >= needYstart) then
             !
             ! move data down if it will fill a bottom region
@@ -1513,12 +1541,8 @@ program newstack
               array(i8) = array(i8 + moveOffset)
             enddo
             numLinesLoad = needYend - loadYend
-            ! call imposn(1, iSecRead, loadYend+1)
-            ! call irdsecl(1, array(numMove+1), numLinesLoad,*99)
-            call irdBinned(1, iSecRead, array(numMove + 1), nxBin, &
-                numLinesLoad, ixOffset, iyOffset + iBinning * (loadYend + 1), &
-                iBinning, nxBin, numLinesLoad, array(idimInOut + 1), lenTemp, ierr)
-            if (ierr .ne. 0) go to 99
+            loadYoffset = loadYend + 1
+            loadBaseInd = numMove
           elseif (needYstart <= loadYstart .and. needYend >= loadYstart) then
             !
             ! move data up if it will fill top
@@ -1530,13 +1554,6 @@ program newstack
               array(i8 + moveOffset) = array(i8)
             enddo
             numLinesLoad = loadYstart - needYstart
-            ! call imposn(1, iSecRead, needYstart)
-            ! call irdsecl(1, array, numLinesLoad,*99)
-            call irdBinned(1, iSecRead, array, nxBin, numLinesLoad, ixOffset, &
-                iyOffset + iBinning * (needYstart), iBinning, nxBin, numLinesLoad, &
-                array(idimInOut + 1), lenTemp, ierr)
-            if (ierr .ne. 0) go to 99
-
           else
             !
             ! otherwise just get whole needed region
@@ -1544,13 +1561,11 @@ program newstack
             numLinesLoad = needYend + 1 - needYstart
             if (iVerbose > 0) print *,'loading whole region', needYstart, needYend, &
                 numLinesLoad
-            ! call imposn(1, iSecRead, needYstart)
-            ! call irdsecl(1, array, numLinesLoad,*99)
-            call irdBinned(1, iSecRead, array, nxBin, numLinesLoad, ixOffset, &
-                iyOffset + iBinning * (needYstart), iBinning, nxBin, numLinesLoad, &
-                array(idimInOut + 1), lenTemp, ierr)
-            if (ierr .ne. 0) go to 99
           endif
+          call readBinnedOrReduced(1, iSecRead, array(1 + loadBaseInd), nxBin, &
+              numLinesLoad, rxOffset, ryOffset + readReduction * loadYoffset, &
+              readReduction, nxBin, numLinesLoad, indFilter, readShrunk, &
+              array(idimInOut + 1), lenTemp)
           loadYstart = needYstart
           loadYend = needYend
         endif
@@ -1608,7 +1623,7 @@ program newstack
           iy1 = iyBase + lineOutSt(iChunk) - loadYstart
           iy2 = iy1 + numYchunk - 1
           !
-          CALL irepak2(array(iChunkBase), array, nxBin, numYload, ix1, ix2, iy1, &
+          call irepak2(array(iChunkBase), array, nxBin, numYload, ix1, ix2, iy1, &
               iy2, dmeanSec)
           if (iVerbose > 0) print *,'did repack'
         endif
@@ -1768,7 +1783,7 @@ program newstack
             extraOut(indExtraOut) = 0
           enddo
         endif
-      else
+      else if (isecReplace < listTotal) then
         isecReplace = isecReplace + 1
         isecOut = listReplace(isecReplace) + 1
       endif
@@ -1778,8 +1793,8 @@ program newstack
       if (numReplace == 0 .and. isecOut > numSecOut(iOutFile)) then
         if (nByteSymOut > 0) call ialsym(2, nByteSymOut, extraOut)
         dmean = dmean / numSecOut(iOutFile)
-        CALL iwrhdr(2, title, 1, dmin, dmax, dmean)
-        CALL imclose(2)
+        call iwrhdr(2, title, 1, dmin, dmax, dmean)
+        call imclose(2)
         isecOut = 1
         iOutFile = iOutFile + 1
       endif
@@ -1788,8 +1803,8 @@ program newstack
     call imclose(1)
   enddo
   if (numReplace > 0) then
-    CALL iwrhdr(2, title, -1, dmin, dmax, dmean)
-    CALL imclose(2)
+    call iwrhdr(2, title, -1, dmin, dmax, dmean)
+    call imclose(2)
   endif
   !
   if (ifTempOpen .ne. 0) call imclose(3)
@@ -1810,6 +1825,8 @@ CONTAINS
     real*4 defLimit/3.75e9/
     if (limEntered == 0) then
       needTemp = 1
+      if (readShrunk) needTemp = max(nx * (nint(readReduction) + 20),  &
+          int(min(int(MAXTEMP, kind=8), int(nx, kind=8) * ny)))
       if (iBinning > 1) needTemp = nx * iBinning
       needDim = int(nxBin, kind = 8) * nyNeeded
       if (nxOut > 0 .and. nyOut > 0) &
@@ -1826,7 +1843,7 @@ CONTAINS
   end subroutine reallocateIfNeeded
 
   subroutine reallocateArray()
-    if (iVerbose > 0) print *, 'reallocating array to', limToAlloc / (1024 * 256), &
+    if (iVerbose > 0) print *, 'reallocating array to', limToAlloc / (1024 * 256.), &
         ' MB'
     deallocate(array)
     allocate(array(limToAlloc), stat = ierr)
@@ -2043,38 +2060,39 @@ CONTAINS
 end program newstack
 
 
-! getItemsToUse gets the list of transform line numbers or distortion
-! fields to apply, given the number available in NXFORMS, the list of
-! LISTTOTAL section numbers in INLIST, the PIP option in OPTION, the
-! PIPINPUT flag if doing pip input, and a scratch string in LISTSTRING.
-! ERROR should have a base error string, IFONEPERFILE > 0 to do one
-! transform per file, and NUMINFILES should have number of files. The list
+! getItemsToUse gets the list of transform line numbers or distortion fields to apply,
+! given the number available in NXFORMS, the list of LISTTOTAL section numbers in
+! INLIST, the PIP option in OPTION, the PIPINPUT flag if doing pip input, and a scratch
+! string in LISTSTRING. ERROR should have a base error string, IFONEPERFILE > 0 to do
+! one transform per file, and NUMINFILES should have number of files. NUMBEROFFSET
+! should be 0 or 1 depending on whether items are nunbered from 1.  The list
 ! of items is returned in LINEUSE, and the number in the list in NLINEUSE
 !
-subroutine getItemsToUse(nXforms, listTotal, inList, option, listString, &
-    pipinput, error, ifOnePerFile, numInFiles, lineUse, nLineUse, LIMSEC)
+subroutine getItemsToUse(nXforms, listTotal, inList, option, listString, pipinput, &
+    error, ifOnePerFile, numInFiles, lineUse, nLineUse, numberOffset, LIMSEC)
   implicit none
-  integer*4 nXforms, listTotal, inList(*), numXfLines, lineUse(*), nLineUse
+  integer*4 nXforms, listTotal, inList(*), numXfLines, lineUse(*), nLineUse, numberOffset
   integer*4 ifOnePerFile, numInFiles
   integer*4 LIMSEC, numLinesTemp, ierr, i, PipGetString
   character*(*) error, option, listString
   character*80 errString
   logical*4 pipinput
   !
+  ! Set up default list, add one back if numbered from one
   write(errString, '(a,a,a)') 'TOO MANY ', error, ' NUMBERS FOR ARRAYS'
   if (nXforms == 1) then
     !
     ! for one transform, set up single line for now
     !
     nLineUse = 1
-    lineUse(1) = 0
+    lineUse(1) = numberOffset
   elseif (ifOnePerFile > 0) then
     !
     ! for one transform per file, default is 0 to nfile - 1
     !
     nLineUse = numInFiles
     do i = 1, numInFiles
-      lineUse(i) = i - 1
+      lineUse(i) = i + numberOffset - 1
     enddo
   else
     !
@@ -2082,7 +2100,7 @@ subroutine getItemsToUse(nXforms, listTotal, inList, option, listString, &
     !
     nLineUse = listTotal
     do i = 1, listTotal
-      lineUse(i) = inList(i)
+      lineUse(i) = inList(i) + numberOffset
     enddo
   endif
   !
@@ -2094,25 +2112,23 @@ subroutine getItemsToUse(nXforms, listTotal, inList, option, listString, &
       nLineUse = 0
       do i = 1, numXfLines
         ierr = PipGetString(option, listString)
-        call parseList(listString, lineUse(nLineUse + 1), numLinesTemp)
+        call parseList2(listString, lineUse(nLineUse + 1), numLinesTemp, &
+            LIMSEC - nLineUse)
         nLineUse = nLineUse + numLinesTemp
-        if (nLineUse > LIMSEC) call exitError(trim(errString))
       enddo
     endif
   else
     !
-    print *,'Enter list of lines to use in file, or a single ', &
-        'line number to apply that'
-    print *,' transform to all sections', &
-        ' (1st line is 0; ranges OK; / for section list)'
-    call rdlist(5, lineUse, nLineUse)
-    if (nLineUse > LIMSEC) call exitError(trim(errString))
+    print *,'Enter list of lines to use in file, or a single line number to apply that'
+    print *,' transform to all sections (1st line is 0; ranges OK; / for section list)'
+    call rdlist2(5, lineUse, nLineUse, LIMSEC)
   endif
 
   do i = 1, nLineUse
+    lineUse(i) = lineUse(i) - numberOffset
     if (lineUse(i) < 0 .or. lineUse(i) >= nXforms) then
       write(errString, '(a, a,i5)') error, ' NUMBER OUT OF BOUNDS:', &
-          lineUse(i)
+          lineUse(i) + numberOffset
       call exitError(trim(errString))
     endif
   enddo
@@ -2163,14 +2179,17 @@ end subroutine irepak2
 ! and LOADYEND are the starting and ending lines (numbered from 0) that are left
 ! in ARRAY.
 !
-subroutine scanSection(array, idimInOut, nx, nyNeeded, needYfirst, iBinning, ixOffset, &
-    iyOffset, iSecRead, ifFloat, dmin2, dmax2, dmean2, sdSec, loadYstart, loadYend, &
-    temp, lenTemp)
+subroutine scanSection(array, idimInOut, nx, nyNeeded, needYfirst, reduction, rxOffset, &
+    ryOffset, iSecRead, ifFloat, dmin2, dmax2, dmean2, sdSec, loadYstart, loadYend, &
+    indFilter, readShrunk, temp, lenTemp)
   implicit none
   integer(kind = 8) idimInOut
-  integer*4 nx, iSecRead, ifFloat, loadYstart, loadYend, iBinning, lenTemp, needYfirst
+  integer*4 nx, iSecRead, ifFloat, loadYstart, loadYend, lenTemp, needYfirst
+  integer*4 indFilter
   real*4 array(idimInOut), temp(lenTemp), dmin2, dmax2, dmean2, sdSec
-  integer*4 maxLines, numLoads, iline, iload, numLines, ixOffset, iyOffset, ierr, nyNeeded
+  real*4 reduction, rxOffset, ryOffset
+  logical readShrunk
+  integer*4 maxLines, numLoads, iline, iload, numLines, ierr, nyNeeded
   real*4 tmin2, tmax2, tmean2, avgSec
   real*8 dsum, dsumSq, tsum, tsumSq
   !
@@ -2187,11 +2206,8 @@ subroutine scanSection(array, idimInOut, nx, nyNeeded, needYfirst, iBinning, ixO
   do iload = 1, numLoads
     numLines = nyNeeded / numLoads
     if (iload <= mod(nyNeeded, numLoads)) numLines = numLines + 1
-    ! call imposn(1, iSecRead, iline)
-    call irdBinned(1, iSecRead, array, nx, numLines, ixOffset, iyOffset + &
-        iBinning * iline, iBinning, nx, numLines, temp, lenTemp, ierr)
-    if (ierr .ne. 0) call exitError('READING FILE')
-    ! call irdsecl(1, array, numLines,*99)
+    call readBinnedOrReduced(1, iSecRead, array, nx, numLines, rxOffset, ryOffset + &
+        reduction * iline, reduction, nx, numLines, indFilter, readShrunk, temp, lenTemp)
     !
     ! accumulate sums for mean and sd if float 2, otherwise
     ! just the mean
@@ -2255,3 +2271,48 @@ subroutine backXform(nxb, nyb, amat, xfcen, yfcen, xtrans, ytrans, ix, iy, xp, y
   yp = a21 * dxo + a22 * dyo + ycenOut
   return
 end subroutine backXform
+
+
+! getReducedSize returns the input size and offset in one dimension when there is binning
+! or shrinkage reduction
+!
+subroutine getReducedSize(nx, reduction, doShrink, nxBin, xOffset)
+  implicit none
+  integer*4 nx, nxBin, ixOffset
+  real*4 reduction, xOffset
+  logical doShrink
+  if (doShrink) then
+    nxBin = nx / reduction
+    xOffset = (nx - nxBin * reduction) / 2.
+  else
+    call getBinnedSize(nx, nint(reduction), nxBin, ixOffset)
+    xOffset = ixOffset
+  endif
+  return
+end subroutine getReducedSize
+
+
+! readBinnedOrReduced will read an area from the file with either binning or reduction
+!
+subroutine readBinnedOrReduced(imUnit, iz, array, nxDim, nyDim, xUBstart, yUBstart,  &
+    redFac, nxRed, nyRed, ifiltType, doShrink, temp, lenTemp)
+  implicit none 
+  integer*4 imUnit, iz, nxDim, nyDim, nxRed, nyRed, ifiltType, lenTemp, ierr
+  real*4 array(*), xUBstart, yUBstart, temp(*), redFac
+  logical doShrink
+  character*100 listString
+
+  if (doShrink) then
+    call irdReduced(imUnit, iz, array, nxDim, xUBstart, yUBstart, redFac, nxRed, &
+        nyRed, ifiltType, temp, lenTemp, ierr)
+    if (ierr > 0) then
+      write(listString, '(a,i2,a)') 'CALLING irdReduced TO READ IMAGE (ERROR CODE', &
+          ierr, ')'
+      call exitError(listString)
+    endif
+  else
+    call irdBinned(imUnit, iz, array, nxDim, nyDim, nint(xUBstart), nint(yUBstart), &
+        nint(redFac), nxRed, nyRed, temp, lenTemp, ierr)
+  endif
+  if (ierr .ne. 0) call exitError('READING IMAGE FILE')
+end subroutine readBinnedOrReduced
