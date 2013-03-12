@@ -60,7 +60,7 @@ subroutine irdReduced(imUnit, iz, array, nxDim, xUBstart, yUBstart, redFac, nxRe
   maxChunkLines = zoomFac * (maxLineLoad - 2 * ihalfWidth)
   ierr = 3
   if (maxChunkLines < 10) return
-  print *,lenTemp, maxLineLoad, maxChunkLines, nyRed/maxChunkLines
+  ! print *,lenTemp, maxLineLoad, maxChunkLines, nyRed/maxChunkLines
   !
   ! Loop on chunks
   iyStart = 0
