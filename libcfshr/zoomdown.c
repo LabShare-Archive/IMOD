@@ -31,8 +31,8 @@
  * not npixels*filterwidth*filterheight as with direct 2-D convolution.
  *
  * An important fine point on terminology: there are two kinds of pixel coords:
- *	DISCRETE COORDINATES take on integer values at pixel centers
- *	CONTINUOUS COORDINATES take on integer values halfway between pixels
+ *  DISCRETE COORDINATES take on integer values at pixel centers
+ *  CONTINUOUS COORDINATES take on integer values halfway between pixels
  * For example, an image with discrete coordinate range [0..511] has a
  * continuous coordinate range of [0..512].  The pixel with
  * discrete coords (x,y) has its center at continuous coords (x+.5,y+.5)
@@ -42,8 +42,8 @@
  *
  * conversion:
  * if c = continuous coord and d = discrete coord, then
- *	c = d+.5
- *	d = floor(c)
+ *  c = d+.5
+ *  d = floor(c)
  *
  * Notation: prefix 'a' denotes source coords, 'b' denotes destination coords
  *
@@ -88,9 +88,9 @@ typedef struct { /* SAMPLED FILTER WEIGHT TABLE */
 #define PI 3.14159265358979323846264338
 
 #define CHANBITS   8
-#define WEIGHTBITS  14			/* # bits in filter coefficients */
+#define WEIGHTBITS  14          /* # bits in filter coefficients */
 #define FINALSHIFT  (2*WEIGHTBITS-CHANBITS) /* shift after x&y filter passes */
-#define WEIGHTONE  (1<<WEIGHTBITS)	/* filter weight of one */
+#define WEIGHTONE  (1<<WEIGHTBITS)  /* filter weight of one */
 
 static void interpLimits(int na, int nb, float cen, float trans, double scale, 
                          float *aOff, int *bSize, int *bOff);
@@ -123,7 +123,7 @@ static Filt filters[NUM_FILT] = {
   {filt_lanczos3, 3.}
 };
 
-static int zoom_debug = 0;	/* debug level: 0=none, 2=filters */
+static int zoom_debug = 0;  /* debug level: 0=none, 2=filters */
 
 /* ZOOM-SPECIFIC FILTER PARAMETERS */
 static double sXsupport, sYsupport;  /* scaled filter support radius */
@@ -209,8 +209,9 @@ void setZoomValueScaling(float factor)
  * @@selectZoomFilter@. ^
  * [slines] - array of line pointers for the input image ^
  * [aXsize], [aYsize] - size of input image ^
- * [aXoff], [aYoff] - coordinate in the input image at which the lower left pixel of the 
- * output starts ^
+ * [aXoff], [aYoff] - coordinate in the input image at which the lower left edge of the 
+ * lower left pixel of the output starts, where input coordinates are zero at the lower
+ * left edge of the first input pixel ^
  * [bXsize], [bYsize] - size of output image to be created, potentially from a subset of 
  * the input in X or Y and into a subset of the output array ^
  * [bXdim] - X dimension of the full output image array ^
@@ -234,9 +235,9 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
                    float aYoff, int bXsize, int bYsize, int bXdim, int bXoff, int dtype,
                    void *outData, b3dUInt32 *cindex, unsigned char *bindex)
 {
-  Weighttab *xweights;	/* sampled filter at each dst x pos; for xfilt*/
-  b3dInt16 *xweightSbuf, *xwp;	/* big block of memory addressed by xweights */
-  Weighttab yweight[MAX_THREADS];		/* a single sampled filter for current y pos */
+  Weighttab *xweights;  /* sampled filter at each dst x pos; for xfilt*/
+  b3dInt16 *xweightSbuf, *xwp;  /* big block of memory addressed by xweights */
+  Weighttab yweight[MAX_THREADS];       /* a single sampled filter for current y pos */
   b3dFloat *xweightFbuf, *xwfp;
   b3dInt32 *accumBuf[MAX_THREADS];
   unsigned char *filtBuf[MAX_THREADS];
@@ -702,8 +703,8 @@ static void make_weighttab(int b, double cen, int len, double scale, double supp
   if (i1 > len) 
     i1 = len;
   /*if (i0 >= i1) {
-	fprintf(stderr, "make_weighttab: null filter at %d\n", b);
-	exit(1);
+    fprintf(stderr, "make_weighttab: null filter at %d\n", b);
+    exit(1);
     }*/
 
   /* the range of source samples to buffer: */
@@ -712,7 +713,7 @@ static void make_weighttab(int b, double cen, int len, double scale, double supp
 
   /* find scale factor sc to normalize the filter */
   for (den = 0, i = i0; i < i1; i++)
-	den += sFilt_func((i + .5 - cen) / scale);
+    den += sFilt_func((i + .5 - cen) / scale);
 
   /* set sc so that sum of sc*func() is approximately WEIGHTONE */
   if (shortWgts)
@@ -727,33 +728,33 @@ static void make_weighttab(int b, double cen, int len, double scale, double supp
   rsum = 0.;
   for (sum = 0, wp = wtab->weight.s, i=i0; i<i1; i++) {
 
-	/* evaluate the filter function: */
-	tr = sc * sFilt_func((i + .5 - cen) / scale);
+    /* evaluate the filter function: */
+    tr = sc * sFilt_func((i + .5 - cen) / scale);
     rsum += tr;
 
-	/* if (tr<MINSHORT || tr>MAXSHORT) {
+    /* if (tr<MINSHORT || tr>MAXSHORT) {
       fprintf(stderr, "tr=%g at %d\n", tr, b);
       exit(1);
       } */
     if (shortWgts) {
       t = (int) floor(tr+.5);
       if (stillzero && t==0) 
-        i0++;	/* find first nonzero */
+        i0++;   /* find first nonzero */
       else {
         stillzero = 0;
-        *wp++ = t;			/* add weight to table */
+        *wp++ = t;          /* add weight to table */
         sum += t;
         if (t != 0)
-          lastnonzero = i;	/* find last nonzero */
+          lastnonzero = i;  /* find last nonzero */
       }
     } else
       wtab->weight.f[i-i0] = tr;
   }
 
   if ((shortWgts && sum == 0) || rsum == 0.) {
-	/* fprintf(stderr, "sum=0 at %d\n", b); */
-	wtab->i0 = (wtab->i0+wtab->i1) >> 1;
-	wtab->i1 = wtab->i0+1;
+    /* fprintf(stderr, "sum=0 at %d\n", b); */
+    wtab->i0 = (wtab->i0+wtab->i1) >> 1;
+    wtab->i1 = wtab->i0+1;
     if (shortWgts)
       wtab->weight.s[0] = WEIGHTONE;
     else
@@ -763,7 +764,7 @@ static void make_weighttab(int b, double cen, int len, double scale, double supp
     /* set wtab->i0 and ->i1 to the nonzero support of the filter */
     wtab->i0 = i0;
     wtab->i1 = i1 = lastnonzero+1;
-	if (sum != WEIGHTONE) {
+    if (sum != WEIGHTONE) {
       /*
        * Fudge the center slightly to make sum=WEIGHTONE exactly.
        * Is this the best way to normalize a discretely sampled
@@ -777,18 +778,18 @@ static void make_weighttab(int b, double cen, int len, double scale, double supp
       t = WEIGHTONE - sum;
       if (zoom_debug>1) 
         fprintf(stderr,"[%d]+=%d ", i, t);
-      wtab->weight.s[i-i0] += t;	/* fudge center sample */
-	}
+      wtab->weight.s[i-i0] += t;    /* fudge center sample */
+    }
   }
   if (zoom_debug>1) {
-	fprintf(stderr,"\t");
+    fprintf(stderr,"\t");
     if (shortWgts) 
       for (wp = wtab->weight.s, i=i0; i<i1; i++, wp++)
         fprintf(stderr,"%5d ", *wp);
     else
       for (i = i0; i < i1; i++)
         fprintf(stderr,"%.4f ", wtab->weight.f[i-i0]);
-	fprintf(stderr,"\n");
+    fprintf(stderr,"\n");
   }
 }
 
@@ -805,9 +806,9 @@ static void mitchell_init(double b, double c)
   sMitchP0 = (  6. -  2.*b        ) / 6.;
   sMitchP2 = (-18. + 12.*b +  6.*c) / 6.;
   sMitchP3 = ( 12. -  9.*b -  6.*c) / 6.;
-  sMitchQ0 = (	     8.*b + 24.*c) / 6.;
-  sMitchQ1 = (	  - 12.*b - 48.*c) / 6.;
-  sMitchQ2 = (	     6.*b + 30.*c) / 6.;
+  sMitchQ0 = (       8.*b + 24.*c) / 6.;
+  sMitchQ1 = (    - 12.*b - 48.*c) / 6.;
+  sMitchQ2 = (       6.*b + 30.*c) / 6.;
   sMitchQ3 = (     -     b -  6.*c) / 6.;
 }
 
@@ -830,7 +831,7 @@ static double filt_mitchell(double x)
   return 0.;
 }
 
-static double filt_blackman(double x)	/* Blackman window */
+static double filt_blackman(double x)   /* Blackman window */
 {
   return .42+.50*cos(PI*x)+.08*cos(2.*PI*x);
 }
