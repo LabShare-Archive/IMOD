@@ -126,8 +126,8 @@ tooltip =
 manpage = 1 to take the logarithm or 2 to take the square root of Y values,
 and the base to add before that operation.
 
-[Field = ColorOfGroup]
-short = color
+[Field = HueOfGroup]
+short = hue
 type = CHM
 usage = Group number and color name or red, green, blue (0-255)
 tooltip =
@@ -143,7 +143,7 @@ short = stock
 type = B
 usage = List standard colors available by name
 tooltip =
-manpage = List standard colors available by name in the -color option.  These
+manpage = List standard colors available by name in the -hue option.  These
 are a subset of standard HTML color names and values.
 
 [Field = XaxisLabel]
