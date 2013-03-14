@@ -8,6 +8,7 @@
 
 progname = 'onegenplot'
 prefix = 'ERROR: ' + progname + ' - '
+NUM_KEY_LIMIT = 10    # LIM_KEYS in flib/subrs/graphics/plotvars.f90
 
 #### MAIN PROGRAM  ####
 #
@@ -63,7 +64,9 @@ options = ["input:InputDataFile:FN:", "iftypes:IfTypesInFirstColumn:B:",
            "columns:ColumnsToPlot:IA:", "types:TypesToPlot:IA:",
            "symbols:SymbolsForTypes:IA:", "connect:ConnectWithLines:B:",
            "ordinal:OrdinalsForXvalues:B:", "xlog:XLogOrRootAndBase:FP:",
-           "ylog:YLogOrRootAndBase:FP:", "axis:XaxisLabel:CH:", "keys:KeyLabels:CHM:"]
+           "ylog:YLogOrRootAndBase:FP:", "hue:HueOfGroup:CHM:",
+           "stock:StockColorList:B:", "axis:XaxisLabel:CH:", "keys:KeyLabels:CHM:",
+           "message:MessageBoxLine:CHM:", "tooltip:ToolTipLine:CHM:"]
 
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 0, 0)
 
@@ -96,10 +99,10 @@ for ind in range(numKeys):
    oneKey = PipGetString('KeyLabels', '')
    keys.append(oneKey)
 
-numColors = PipNumberOfEntries('ColorOfGroup')
+numColors = PipNumberOfEntries('HueOfGroup')
 colors = []
 for ind in range(numColors):
-   colorStr = PipGetString('ColorOfGroup', '')
+   colorStr = PipGetString('HueOfGroup', '')
    csplit = colorStr.split(',')
    if len(csplit) != 2 and len(csplit) != 4:
       exitError('The color entry ' + colorStr + ' does not have 2 or 4 components')
@@ -254,8 +257,10 @@ if not axisLabel:
 numCurves = 1
 if ifTypes:
    numCurves = len(typeList)
-
-for ind in range(numKeys, numCurves):
+if numCurves > NUM_KEY_LIMIT:
+   prnstr(fmtstr('You will only see keys for {} curves', NUM_KEY_LIMIT))
+   
+for ind in range(numKeys, min(numCurves, NUM_KEY_LIMIT)):
    if ifTypes:
       keys.append(defKeyBase + str(typeList[ind]))
    else:
