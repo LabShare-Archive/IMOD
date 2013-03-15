@@ -46,7 +46,7 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   Islice *slice;
   double min, alpha;
   float hival, loval;
-  int truncLo = 0, truncHi = 0;
+  int truncLo = 0, truncHi = 0, truncToMean = 0;
 
   z = set_options(opt, hin, hout);
   if (z < 0)
@@ -78,6 +78,8 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
       truncLo = 1;
     if (opt->high != IP_DEFAULT)
       truncHi = 1;
+    if (opt->sano)
+      truncToMean = 1;
     if (!truncLo && !truncHi) {
       fprintf(stderr, "clip truncate: You must enter a low or a high limit\n");
       return -1;
@@ -116,7 +118,8 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     }
 
     /* 2D: Scale based on min/max/mean of individual slice */
-    if (opt->dim == 2 && opt->process != IP_RESIZE) {
+    if ((opt->dim == 2 && opt->process != IP_RESIZE) || 
+        (opt->process == IP_TRUNCATE && truncToMean)) {
       sliceMMM(slice);
       if (opt->process == IP_BRIGHTNESS)
         min = (double)slice->min;
@@ -131,10 +134,10 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
         for (i = 0; i < opt->ix; i++) {
           sliceGetVal(slice, i, j, val);
           for (l = 0; l < slice->csize; l++) {
-            if (truncLo)
-              val[l] = B3DMAX(opt->low, val[l]);
-            if (truncHi)
-              val[l] = B3DMIN(opt->high, val[l]);
+            if (truncLo && val[l] < opt->low)
+              val[l] = truncToMean ? min : opt->low;
+            if (truncHi && val[l] > opt->high)
+              val[l] = truncToMean ? min : opt->high;
           }
           slicePutVal(slice, i, j, val);
         }
