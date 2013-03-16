@@ -99,7 +99,7 @@ files.&nbsp; To make this manual concrete, we will assume
 a base name of "myRun". 
 </p>
 
-<H4><A NAME="Directory"></A>2.2. Directory</H4>
+<H4><A NAME="Directory Field"></A>2.2. Directory</H4>
 
 <p>(Read only). Displays the directory containing the PEET project.</p>
 
@@ -323,12 +323,13 @@ adequate reference size automatically).</p>
 particles will be aligned and combined using a binary tree structure, and the resulting
 average used as the initial reference.</p>
 
-<H4><A NAME="Reference Section"></A>2.6. Volume Size</H4>
+<H4><A NAME="Volume Size"></A>2.6. Volume Size</H4>
 
 <p>Specifies the size in voxels of the subvolumes to be aligned and averaged.&nbsp;
-Cubical volumes are prefered when possible, although they are not required.*nbsp;
-The size specified should be that of the volume of interest plus at least twice
-the maximum Search Distance (described under the Run Tab below) in each direction.</p>
+Cubical volumes are prefered when possible, although they are not required.&nbsp;
+NOTE: as of PEET 1.9.0 it is no longer necessary (nor desirable) 
+that volume size be padded by twice the maximum Search Distance. Volume
+size should now be set only slightly larger than the volume of interest.
 
 <H4><A NAME="Missing Wedge Compensation Section"></A>2.7. Missing Wedge Compensation Section</H4>
 
