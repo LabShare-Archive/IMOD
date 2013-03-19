@@ -41,6 +41,7 @@ import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
+import etomo.type.DirectiveFileType;
 import etomo.type.FileType;
 import etomo.type.InterfaceType;
 import etomo.type.ProcessEndState;
@@ -200,6 +201,10 @@ public abstract class BaseManager {
   }
 
   public boolean canChangeParamFileName() {
+    return false;
+  }
+
+  public boolean canSaveDirectives() {
     return false;
   }
 
@@ -436,6 +441,9 @@ public abstract class BaseManager {
         System.err.println(i.next());
       }
     }
+  }
+  
+  public void saveDirectiveFile(final AxisID axisID, final DirectiveFileType type) {
   }
 
   public void saveLog() {
@@ -2049,7 +2057,14 @@ public abstract class BaseManager {
   }
 
   public final void tomosnapshot(AxisID axisID) {
-    getProcessManager().tomosnapshot(axisID);
+    BaseProcessManager processManager = getProcessManager();
+    if (processManager != null) {
+      processManager.tomosnapshot(axisID);
+    }
+    else {
+      uiHarness.openMessageDialog(this, "No processes can be run in this interface.",
+          "Unable to run tomosnapshot", axisID);
+    }
   }
 
   public static final class Task implements TaskInterface {
