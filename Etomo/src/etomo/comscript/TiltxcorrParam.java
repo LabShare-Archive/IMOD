@@ -158,6 +158,8 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   public static final String FILTER_RADIUS_2_DEFAULT = "0.25";
   public static final String FILTER_SIGMA_2_DEFAULT = "0.05";
   public static final String SKIP_VIEWS_KEY = "SkipViews";
+  public static final String FILTER_RADIUS_2_KEY = "FilterRadius2";
+  public static final String FILTER_SIGMA_2_KEY = "FilterSigma2";
 
   // PIP and sequential input
   private String inputFile;
@@ -190,11 +192,11 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   // was filterParams
   private double filterRadius1;
   private ScriptParameter filterRadius2 = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-      "FilterRadius2");
+      FILTER_RADIUS_2_KEY);
   private ScriptParameter filterSigma1 = new ScriptParameter(EtomoNumber.Type.DOUBLE,
       "FilterSigma1");
   private ScriptParameter filterSigma2 = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-      "FilterSigma2");
+      FILTER_SIGMA_2_KEY);
   private final ScriptParameter angleOffset = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, "AngleOffset");
 
