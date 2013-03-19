@@ -250,6 +250,7 @@ import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DataSource;
+import etomo.type.DirectiveFileType;
 import etomo.type.EtomoNumber;
 import etomo.type.TiltAngleType;
 import etomo.type.ViewType;
@@ -514,22 +515,22 @@ public final class CopyTomoComs {
       command.add("fei");
     }
     if (directiveFileCollection != null) {
-      DirectiveFile directiveFile = directiveFileCollection.getScopeTemplate();
+      DirectiveFile directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.SCOPE);
       if (directiveFile != null) {
         command.add(CHANGE_PARAMETERS_FILE_TAG + " "
             + directiveFile.getFile().getAbsolutePath());
       }
-      directiveFile = directiveFileCollection.getSystemTemplate();
+      directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.SYSTEM);
       if (directiveFile != null) {
         command.add(CHANGE_PARAMETERS_FILE_TAG + " "
             + directiveFile.getFile().getAbsolutePath());
       }
-      directiveFile = directiveFileCollection.getUserTemplate();
+      directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.USER);
       if (directiveFile != null) {
         command.add(CHANGE_PARAMETERS_FILE_TAG + " "
             + directiveFile.getFile().getAbsolutePath());
       }
-      directiveFile = directiveFileCollection.getBatchDirectiveFile();
+      directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.BATCH);
       if (directiveFile != null) {
         command.add(CHANGE_PARAMETERS_FILE_TAG + " "
             + directiveFile.getFile().getAbsolutePath());
