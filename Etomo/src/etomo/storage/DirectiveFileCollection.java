@@ -13,6 +13,7 @@ import etomo.storage.DirectiveFile.AttributeName;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAttributeIterator;
 import etomo.type.AxisID;
+import etomo.type.DirectiveFileType;
 import etomo.type.EtomoNumber;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
@@ -125,10 +126,6 @@ public class DirectiveFileCollection implements SetupReconInterface {
     return null;
   }
 
-  public DirectiveFile getBatchDirectiveFile() {
-    return directiveFileArray[OverrideOrder.BATCH.index];
-  }
-
   public String getBinning() {
     return getValue(DirectiveFile.AttributeName.COPY_ARG, DirectiveFile.BINNING_NAME);
   }
@@ -152,6 +149,10 @@ public class DirectiveFileCollection implements SetupReconInterface {
   public String getDatasetDirectory() {
     return getValue(DirectiveFile.AttributeName.SETUP_SET,
         DirectiveFile.DATASET_DIRECTORY_NAME);
+  }
+
+  public DirectiveFile getDirectiveFile(final DirectiveFileType type) {
+    return directiveFileArray[type.index];
   }
 
   public DirectiveFileCollection getDirectiveFileCollection() {
@@ -211,14 +212,6 @@ public class DirectiveFileCollection implements SetupReconInterface {
     return getValue(DirectiveFile.AttributeName.COPY_ARG, DirectiveFile.PIXEL_NAME);
   }
 
-  public DirectiveFile getScopeTemplate() {
-    return directiveFileArray[OverrideOrder.SCOPE.index];
-  }
-
-  public DirectiveFile getSystemTemplate() {
-    return directiveFileArray[OverrideOrder.SYSTEM.index];
-  }
-
   public boolean getTiltAngleFields(final AxisID axisID,
       final TiltAngleSpec tiltAngleSpec, final boolean doValidation) {
     tiltAngleSpec.reset();
@@ -228,10 +221,6 @@ public class DirectiveFileCollection implements SetupReconInterface {
       }
     }
     return true;
-  }
-
-  public DirectiveFile getUserTemplate() {
-    return directiveFileArray[OverrideOrder.USER.index];
   }
 
   public boolean isAdjustedFocusSelected(final AxisID axisID) {
@@ -276,85 +265,48 @@ public class DirectiveFileCollection implements SetupReconInterface {
   }
 
   public void setBatchDirectiveFile(final DirectiveFile baseDirectiveFile) {
-    directiveFileArray[OverrideOrder.BATCH.index] = baseDirectiveFile;
+    directiveFileArray[DirectiveFileType.BATCH.index] = baseDirectiveFile;
     if (baseDirectiveFile != null) {
-      String filePath = baseDirectiveFile.getScopeTemplate();
-      if (filePath != null) {
-        directiveFileArray[OverrideOrder.SCOPE.index] = DirectiveFile.getInstance(
-            manager, axisID, new File(filePath));
-      }
-      filePath = baseDirectiveFile.getSystemTemplate();
-      if (filePath != null) {
-        directiveFileArray[OverrideOrder.SYSTEM.index] = DirectiveFile.getInstance(
-            manager, axisID, new File(filePath));
-      }
-      filePath = baseDirectiveFile.getUserTemplate();
-      if (filePath != null) {
-        directiveFileArray[OverrideOrder.USER.index] = DirectiveFile.getInstance(manager,
-            axisID, new File(filePath));
-      }
+      setDirectiveFile(baseDirectiveFile.getScopeTemplate(), DirectiveFileType.SCOPE);
+      setDirectiveFile(baseDirectiveFile.getSystemTemplate(), DirectiveFileType.SYSTEM);
+      setDirectiveFile(baseDirectiveFile.getUserTemplate(), DirectiveFileType.USER);
     }
   }
 
   public void setBinning(final int input) {
-    if (directiveFileArray[OverrideOrder.BATCH.index] != null) {
-      directiveFileArray[OverrideOrder.BATCH.index].setBinning(input);
+    if (directiveFileArray[DirectiveFileType.BATCH.index] != null) {
+      directiveFileArray[DirectiveFileType.BATCH.index].setBinning(input);
     }
   }
 
   public void setImageRotation(final String input) {
-    if (directiveFileArray[OverrideOrder.BATCH.index] != null) {
-      directiveFileArray[OverrideOrder.BATCH.index].setImageRotation(input);
+    if (directiveFileArray[DirectiveFileType.BATCH.index] != null) {
+      directiveFileArray[DirectiveFileType.BATCH.index].setImageRotation(input);
     }
   }
 
   public void setPixelSize(final double input) {
-    if (directiveFileArray[OverrideOrder.BATCH.index] != null) {
-      directiveFileArray[OverrideOrder.BATCH.index].setPixelSize(input);
+    if (directiveFileArray[DirectiveFileType.BATCH.index] != null) {
+      directiveFileArray[DirectiveFileType.BATCH.index].setPixelSize(input);
     }
   }
 
-  public void setScopeTemplate(final File file) {
-    if (file == null) {
-      directiveFileArray[OverrideOrder.SCOPE.index] = null;
+  public void setDirectiveFile(final String absPath, final DirectiveFileType type) {
+    if (absPath == null) {
+      directiveFileArray[type.index] = null;
     }
     else {
-      if (!file.isAbsolute()) {
-        System.err
-            .println("Error:  the scope template in the batch directive file has a "
-                + "relative path.  File path may be wrong:" + file.getAbsolutePath());
-      }
-      directiveFileArray[OverrideOrder.SCOPE.index] = DirectiveFile.getInstance(manager,
-          axisID, file);
+      directiveFileArray[type.index] = DirectiveFile.getInstance(manager, axisID,
+          new File(absPath));
     }
   }
 
-  public void setSystemTemplate(final File file) {
+  public void setDirectiveFile(final File file, final DirectiveFileType type) {
     if (file == null) {
-      directiveFileArray[OverrideOrder.SYSTEM.index] = null;
+      directiveFileArray[type.index] = null;
     }
     else {
-      if (!file.isAbsolute()) {
-        System.err
-            .println("Error:  the system template in the batch directive file has a "
-                + "relative path.  File path may be wrong:" + file.getAbsolutePath());
-      }
-      directiveFileArray[OverrideOrder.SYSTEM.index] = DirectiveFile.getInstance(manager,
-          axisID, file);
-    }
-  }
-
-  public void setUserTemplate(final File file) {
-    if (file == null) {
-      directiveFileArray[OverrideOrder.USER.index] = null;
-    }
-    else {
-      if (!file.isAbsolute()) {
-        System.err.println("Error:  the user template in the batch directive file has a "
-            + "relative path.  File path may be wrong:" + file.getAbsolutePath());
-      }
-      directiveFileArray[OverrideOrder.USER.index] = DirectiveFile.getInstance(manager,
-          axisID, file);
+      directiveFileArray[type.index] = DirectiveFile.getInstance(manager, axisID, file);
     }
   }
 
@@ -415,9 +367,9 @@ public class DirectiveFileCollection implements SetupReconInterface {
       }
       // If scan header (only found in the batch directive file and is not in copyarg) is
       // true, then get values from scanning the header which aren't already in the map.
-      if (directiveFileArray[OverrideOrder.BATCH.index] != null
-          && directiveFileArray[OverrideOrder.BATCH.index].isScanHeader()) {
-        Iterator<Entry<String, String>> iterator = directiveFileArray[OverrideOrder.BATCH.index]
+      if (directiveFileArray[DirectiveFileType.BATCH.index] != null
+          && directiveFileArray[DirectiveFileType.BATCH.index].isScanHeader()) {
+        Iterator<Entry<String, String>> iterator = directiveFileArray[DirectiveFileType.BATCH.index]
             .getCopyArgExtraValuesIterator();
         while (iterator.hasNext()) {
           Entry<String, String> entry = iterator.next();
@@ -431,19 +383,6 @@ public class DirectiveFileCollection implements SetupReconInterface {
 
     public Iterator<Entry<String, String>> iterator() {
       return pairMap.entrySet().iterator();
-    }
-  }
-
-  private static final class OverrideOrder {
-    private static final OverrideOrder SCOPE = new OverrideOrder(0);
-    private static final OverrideOrder SYSTEM = new OverrideOrder(1);
-    private static final OverrideOrder USER = new OverrideOrder(2);
-    private static final OverrideOrder BATCH = new OverrideOrder(3);
-
-    private final int index;
-
-    private OverrideOrder(final int index) {
-      this.index = index;
     }
   }
 }
