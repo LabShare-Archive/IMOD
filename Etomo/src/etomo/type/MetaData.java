@@ -12,7 +12,7 @@ import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
-import etomo.ui.swing.FiducialModelDialog;
+import etomo.logic.TrackingMethod;
 import etomo.util.Utilities;
 
 /**
@@ -432,8 +432,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   private String datasetName = "";
   private String backupDirectory = "";
-  private String distortionFile = "";
-  private String magGradientFile = "";
+  private String distortionFile = null;
+  private String magGradientFile = null;
 
   private DataSource dataSource = DataSource.CCD;
   private ViewType viewType = ViewType.SINGLE_VIEW;
@@ -455,10 +455,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   // Axis specific data
   private TiltAngleSpec tiltAngleSpecA = new TiltAngleSpec();
-  private String excludeProjectionsA = "";
+  private String excludeProjectionsA = null;
 
   private TiltAngleSpec tiltAngleSpecB = new TiltAngleSpec();
-  private String excludeProjectionsB = "";
+  private String excludeProjectionsB = null;
   private EtomoBoolean2 useZFactorsA = new EtomoBoolean2("UseZFactorsA");
   private EtomoBoolean2 useZFactorsB = new EtomoBoolean2("UseZFactorsB");
   private EtomoBoolean2 adjustedFocusA = new EtomoBoolean2("AdjustedFocusA");
@@ -795,6 +795,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       2);
   private final FortranInputString stackCtfAutoFitRangeAndStepB = new FortranInputString(
       2);
+  private final StringProperty origScopeTemplate = new StringProperty(
+      "Orig.ScopeTemplate");
+  private final StringProperty origSystemTemplate = new StringProperty(
+      "Orig.SystemTemplate");
+  private final StringProperty origUserTemplate = new StringProperty("Orig.UserTemplate");
 
   public MetaData(final ApplicationManager manager) {
     this.manager = manager;
@@ -971,12 +976,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public void setDistortionFile(final String distortionFile) {
-    if (distortionFile == null) {
-      this.distortionFile = "";
-    }
-    else {
-      this.distortionFile = distortionFile;
-    }
+    this.distortionFile = distortionFile;
   }
 
   public void setEraseBeadsInitialized(final boolean input) {
@@ -1094,12 +1094,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public void setMagGradientFile(final String magGradientFile) {
-    if (magGradientFile == null) {
-      this.magGradientFile = "";
-    }
-    else {
-      this.magGradientFile = magGradientFile;
-    }
+    this.magGradientFile = magGradientFile;
   }
 
   public void setAdjustedFocusA(final boolean adjustedFocus) {
@@ -1124,7 +1119,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public void setPixelSize(final String pixelSize) {
-    if (pixelSize != null) {
+    if (pixelSize != null && !pixelSize.matches("\\s*")) {
       this.pixelSize = Double.parseDouble(pixelSize);
     }
     else {
@@ -1162,6 +1157,33 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
     else {
       sizeToOutputInXandYA.validateAndSet(size);
+    }
+  }
+
+  public void setOrigScopeTemplate(final File input) {
+    if (input == null) {
+      origScopeTemplate.reset();
+    }
+    else {
+      origScopeTemplate.set(input.getAbsolutePath());
+    }
+  }
+
+  public void setOrigSystemTemplate(final File input) {
+    if (input == null) {
+      origSystemTemplate.reset();
+    }
+    else {
+      origSystemTemplate.set(input.getAbsolutePath());
+    }
+  }
+
+  public void setOrigUserTemplate(final File input) {
+    if (input == null) {
+      origUserTemplate.reset();
+    }
+    else {
+      origUserTemplate.set(input.getAbsolutePath());
     }
   }
 
@@ -1360,11 +1382,13 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     this.fiducialDiameter = fiducialDiameter;
   }
 
-  public void setFiducialDiameter(String fiducialDiameter) {
-    if (fiducialDiameter == null) {
-      fiducialDiameter = "";
+  public void setFiducialDiameter(final String fiducialDiameter) {
+    if (fiducialDiameter == null || fiducialDiameter.matches("\\s*")) {
+      this.fiducialDiameter = Double.NaN;
     }
-    this.fiducialDiameter = Double.parseDouble(fiducialDiameter);
+    else {
+      this.fiducialDiameter = Double.parseDouble(fiducialDiameter);
+    }
   }
 
   public void setImageRotation(final String rotation, final AxisID axisID) {
@@ -1386,6 +1410,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public void setExcludeProjections(final String list, final AxisID axisID) {
     if (list == null) {
+      if (axisID == AxisID.SECOND) {
+        excludeProjectionsB = null;
+      }
+      else {
+        excludeProjectionsA = null;
+      }
       return;
     }
     // Strip whitespace.
@@ -1399,16 +1429,22 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
         excludeProjectionsB = buffer.toString();
       }
       else {
-        excludeProjectionsB = buffer.toString();
+        excludeProjectionsA = buffer.toString();
       }
     }
+    else if (axisID == AxisID.SECOND) {
+      excludeProjectionsB = list.trim();
+    }
     else {
-      if (axisID == AxisID.SECOND) {
-        excludeProjectionsB = list.trim();
+      excludeProjectionsA = list.trim();
+    }
+    if (axisID == AxisID.SECOND) {
+      if (excludeProjectionsB.matches("\\s*")) {
+        excludeProjectionsB = null;
       }
-      else {
-        excludeProjectionsA = list.trim();
-      }
+    }
+    else if (excludeProjectionsA.matches("\\s*")) {
+      excludeProjectionsA = null;
     }
   }
 
@@ -1550,8 +1586,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     super.load(props, prepend);
     // reset
     revisionNumber.reset();
-    distortionFile = "";
-    magGradientFile = "";
+    distortionFile = null;
+    magGradientFile = null;
     binning.reset();
     useLocalAlignmentsA = true;
     useLocalAlignmentsB = true;
@@ -1736,7 +1772,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     if (revisionNumber.le(EtomoVersion.getDefaultInstance("1.10"))) {
       trackUseRaptorA.load(props, prepend);
       if (trackUseRaptorA.is()) {
-        trackMethodA.set(FiducialModelDialog.MethodEnumeratedType.RAPTOR.toString());
+        trackMethodA.set(TrackingMethod.RAPTOR.toString());
       }
     }
     else {
@@ -1815,14 +1851,24 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
     dataSource = DataSource.fromString(props.getProperty(group + "DataSource", "CCD"));
     viewType = ViewType.fromString(props.getProperty(group + "ViewType", "Single View"));
-    pixelSize = Double.parseDouble(props.getProperty(group + "PixelSize", "0.0"));
-
+    String property = props.getProperty(group + "PixelSize");
+    if (property == null || property.matches("\\s*")) {
+      pixelSize = Double.NaN;
+    }
+    else {
+      pixelSize = Double.parseDouble(property);
+    }
     useLocalAlignmentsA = Boolean.valueOf(
         props.getProperty(group + "UseLocalAlignmentsA", "true")).booleanValue();
     useLocalAlignmentsB = Boolean.valueOf(
         props.getProperty(group + "UseLocalAlignmentsB", "true")).booleanValue();
-    fiducialDiameter = Double.parseDouble(props.getProperty(group + "FiducialDiameter",
-        "0.0"));
+    property = props.getProperty(group + "FiducialDiameter");
+    if (property == null || property.matches("\\s*")) {
+      fiducialDiameter = Double.NaN;
+    }
+    else {
+      fiducialDiameter = Double.parseDouble(property);
+    }
 
     // Read in the old single image rotation or the newer separate image
     // rotation for each axis
@@ -1835,14 +1881,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     if (imageRotationB.isNull()) {
       imageRotationB.set(strOldRotation);
     }
-    excludeProjectionsA = props.getProperty(group + "AxisA.ExcludeProjections", "");
+    excludeProjectionsA = props.getProperty(group + "AxisA.ExcludeProjections", null);
     tiltAngleSpecA.load(props, group + "AxisA");
 
-    excludeProjectionsB = props.getProperty(group + "AxisB.ExcludeProjections", "");
+    excludeProjectionsB = props.getProperty(group + "AxisB.ExcludeProjections", null);
     tiltAngleSpecB.load(props, group + "AxisB");
     combineParams.load(props, group);
-    distortionFile = props.getProperty(group + "DistortionFile", distortionFile);
-    magGradientFile = props.getProperty(group + "MagGradientFile", magGradientFile);
+    distortionFile = props.getProperty(group + "DistortionFile");
+    magGradientFile = props.getProperty(group + "MagGradientFile");
     binning.load(props, prepend);
 
     fiducialessAlignmentA = Boolean.valueOf(
@@ -1995,6 +2041,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     postTrimvolScalingNewStyleZ.load(props, prepend);
     stackCtfAutoFitRangeAndStepA.load(props, prepend);
     stackCtfAutoFitRangeAndStepB.load(props, prepend);
+    origScopeTemplate.load(props, prepend);
+    origSystemTemplate.load(props, prepend);
+    origUserTemplate.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(final AxisID axisID, final boolean selected) {
@@ -2158,12 +2207,22 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     props.setProperty(group + "ImageRotationA", String.valueOf(imageRotationA));
     props.setProperty(group + "ImageRotationB", String.valueOf(imageRotationB));
     tiltAngleSpecA.store(props, group + "AxisA");
-    props.setProperty(group + "AxisA.ExcludeProjections",
-        String.valueOf(excludeProjectionsA));
+    if (excludeProjectionsA == null) {
+      props.remove(group + "AxisA.ExcludeProjections");
+    }
+    else {
+      props.setProperty(group + "AxisA.ExcludeProjections",
+          String.valueOf(excludeProjectionsA));
+    }
 
     tiltAngleSpecB.store(props, group + "AxisB");
-    props.setProperty(group + "AxisB.ExcludeProjections",
-        String.valueOf(excludeProjectionsB));
+    if (excludeProjectionsB == null) {
+      props.remove(group + "AxisB.ExcludeProjections");
+    }
+    else {
+      props.setProperty(group + "AxisB.ExcludeProjections",
+          String.valueOf(excludeProjectionsB));
+    }
 
     combineParams.store(props, group);
     props.setProperty(group + "DistortionFile", distortionFile);
@@ -2336,6 +2395,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     postTrimvolScalingNewStyleZ.store(props, prepend);
     stackCtfAutoFitRangeAndStepA.store(props, prepend);
     stackCtfAutoFitRangeAndStepB.store(props, prepend);
+    origScopeTemplate.store(props, prepend);
+    origSystemTemplate.store(props, prepend);
+    origUserTemplate.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -2825,6 +2887,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public String getDistortionFile() {
+    if (distortionFile == null) {
+      return "";
+    }
     return distortionFile;
   }
 
@@ -2833,6 +2898,18 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return sizeToOutputInXandYB;
     }
     return sizeToOutputInXandYA;
+  }
+
+  public String getOrigScopeTemplate() {
+    return origScopeTemplate.toString();
+  }
+
+  public String getOrigSystemTemplate() {
+    return origSystemTemplate.toString();
+  }
+
+  public String getOrigUserTemplate() {
+    return origUserTemplate.toString();
   }
 
   public FortranInputString getStackCtfAutoFitRangeAndStep(final AxisID axisID) {
@@ -2850,6 +2927,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public String getMagGradientFile() {
+    if (magGradientFile == null || magGradientFile.matches("\\s*")) {
+      return "";
+    }
     return magGradientFile;
   }
 
@@ -2870,6 +2950,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public double getPixelSize() {
+    if (pixelSize == Double.NaN) {
+      return 0.0;
+    }
     return pixelSize;
   }
 
@@ -2963,6 +3046,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public double getFiducialDiameter() {
+    if (fiducialDiameter == Double.NaN) {
+      return 0;
+    }
     return fiducialDiameter;
   }
 
@@ -3004,10 +3090,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public String getExcludeProjectionsA() {
+    if (excludeProjectionsA == null) {
+      return "";
+    }
     return excludeProjectionsA;
   }
 
   public String getExcludeProjectionsB() {
+    if (excludeProjectionsB == null) {
+      return "";
+    }
     return excludeProjectionsB;
   }
 
@@ -3058,7 +3150,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public boolean isDistortionCorrection() {
-    return !distortionFile.equals("") || !magGradientFile.equals("");
+    return (distortionFile != null && !distortionFile.matches("\\s*"))
+        || (magGradientFile != null && !magGradientFile.matches("\\s*"));
   }
 
   public boolean isEraseBeadsInitialized() {
@@ -3203,13 +3296,13 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
 
     // Is the pixel size greater than zero
-    if (fromScreen && pixelSize <= 0.0) {
+    if (fromScreen && pixelSize != Double.NaN && pixelSize <= 0.0) {
       invalidReason = "Pixel size is not greater than zero.";
       return false;
     }
 
     // Is the fiducial diameter greater than zero
-    if (fromScreen && fiducialDiameter <= 0.0) {
+    if (fromScreen && (fiducialDiameter == Double.NaN || fiducialDiameter <= 0.0)) {
       invalidReason = "Fiducial diameter is not greater than zero.";
       return false;
     }
@@ -3408,9 +3501,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return false;
     if (!backupDirectory.equals(cmd.backupDirectory))
       return false;
-    if (!distortionFile.equals(cmd.distortionFile))
+    if ((distortionFile == null && distortionFile != cmd.distortionFile)
+        || (distortionFile != null && !distortionFile.equals(cmd.distortionFile)))
       return false;
-    if (!magGradientFile.equals(cmd.magGradientFile))
+    if ((magGradientFile == null && magGradientFile != cmd.magGradientFile)
+        || (magGradientFile != null && !magGradientFile.equals(cmd.magGradientFile)))
       return false;
     if (!dataSource.equals(cmd.dataSource))
       return false;
@@ -3440,12 +3535,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     // TODO tilt angle spec needs to be more complete
     if (!(tiltAngleSpecA.getType() == cmd.getTiltAngleSpecA().getType()))
       return false;
-    if (!excludeProjectionsA.equals(cmd.getExcludeProjectionsA()))
+    if ((excludeProjectionsA == null && excludeProjectionsA != cmd.excludeProjectionsA)
+        || (excludeProjectionsA != null && !excludeProjectionsA.equals(cmd
+            .getExcludeProjectionsA())))
       return false;
 
     if (!(tiltAngleSpecB.getType() == cmd.getTiltAngleSpecB().getType()))
       return false;
-    if (!excludeProjectionsB.equals(cmd.getExcludeProjectionsB()))
+    if ((excludeProjectionsB == null && excludeProjectionsB != cmd.excludeProjectionsB)
+        || (excludeProjectionsB != null && !excludeProjectionsB.equals(cmd
+            .getExcludeProjectionsB())))
       return false;
     if (!(comScriptsCreated == cmd.getComScriptCreated()))
       return false;
