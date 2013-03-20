@@ -157,6 +157,7 @@ final class ExpandButton extends MultiLineButton {
 
   private boolean expanded;
   private JPanel jpanelContainer = null;
+  private int headerId = -1;
 
   static ExpandButton getInstance(final Expandable expandable, ExpandButton.Type type) {
     if (type == null) {
@@ -206,7 +207,7 @@ final class ExpandButton extends MultiLineButton {
     this.globalExpandButton = globalExpandButton;
     this.type = type;
     this.expanded = expanded;
-    //Registor with the global expand button, if it exists.
+    // Registor with the global expand button, if it exists.
     if (globalExpandButton != null) {
       globalExpandButton.register(this);
     }
@@ -277,6 +278,10 @@ final class ExpandButton extends MultiLineButton {
     setExpanded(state);
   }
 
+  int getHeaderId() {
+    return headerId;
+  }
+
   String getState() {
     return type.getState(expanded);
   }
@@ -321,13 +326,17 @@ final class ExpandButton extends MultiLineButton {
     return equals((Object) that);
   }
 
+  void setHeaderId(final int input) {
+    headerId = input;
+  }
+
   /**
    * set button setting to expanded and force a call to expand(), even if the
    * value of the button isn't changed.  To allows the screen to be initialized.
    * @param expanded
    */
   void setExpanded(final boolean expanded) {
-    //prevent buttonAction from ignoring an unchanged button value
+    // prevent buttonAction from ignoring an unchanged button value
     if (this.expanded == expanded) {
       this.expanded = !expanded;
     }
@@ -350,7 +359,7 @@ final class ExpandButton extends MultiLineButton {
     if (expandable2 != null) {
       expandable2.expand(this);
     }
-    //Tell global expand button about this action.
+    // Tell global expand button about this action.
     if (globalExpandButton != null) {
       globalExpandButton.msgExpandButtonAction(this, expanded);
     }
@@ -383,7 +392,7 @@ final class ExpandButton extends MultiLineButton {
     static final Type OPEN = new Type("open", OPEN_EXPANDED_SYMBOL, "Close panel.",
         "closed", "+", "Open panel.");
 
-    //Backwards compatibility issue:  expandedState is a key in the .edf file.
+    // Backwards compatibility issue: expandedState is a key in the .edf file.
     private final String expandedState;
 
     private final String expandedSymbol;
