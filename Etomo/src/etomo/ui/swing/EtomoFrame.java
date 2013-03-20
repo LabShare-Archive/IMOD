@@ -16,6 +16,7 @@ import etomo.storage.DataFileFilter;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.DirectiveFileType;
 
 /**
  * <p>Description: </p>
@@ -153,7 +154,21 @@ abstract class EtomoFrame extends AbstractFrame {
       UIHarness.INSTANCE.exit(axisID, 0);
     }
     else if (menu.equalsTomosnapshot(event)) {
-      currentManager.tomosnapshot(axisID);
+      if (currentManager != null) {
+        currentManager.tomosnapshot(axisID);
+      }
+    }
+    else if (menu.equalsSaveScope(event)) {
+      currentManager.saveDirectiveFile(getAxisID(), DirectiveFileType.SCOPE);
+    }
+    else if (menu.equalsSaveScope(event)) {
+      currentManager.saveDirectiveFile(getAxisID(), DirectiveFileType.SYSTEM);
+    }
+    else if (menu.equalsSaveScope(event)) {
+      currentManager.saveDirectiveFile(getAxisID(), DirectiveFileType.USER);
+    }
+    else if (menu.equalsExportBatch(event)) {
+      currentManager.saveDirectiveFile(getAxisID(), DirectiveFileType.BATCH);
     }
   }
 
