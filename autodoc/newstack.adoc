@@ -249,13 +249,15 @@ manpage = Scale all images down in size by the given factor, a value
 greater than 1, using antialias filtering.  This option should be used for
 large image reductions, because using ordinary interpolation 
 will give aliasing artifacts that appear primarily as noise.
-Even binning will give some aliasing.  Shrinking can be applied either after
-binning or in place of binning.  With no binning, it can be followed by
-rotation, general transformation, or distortion correction, although only an
-integer shrinkage factor can be used with warping transformations.  With
-binning, it cannot be used with these other operations.  If no output size is
-specified, the size of the input image will be scaled appropriately so that
-the output will contain the entire image.
+Even binning will give some aliasing, especially for images rich in
+information above the highest frequency that will be retained in the reduced
+image.  Shrinking can be applied either after binning or in place of binning.
+With no binning, it can be followed by rotation, general transformation, or
+distortion correction, although only an integer shrinkage factor can be used
+with warping transformations.  With binning, it cannot be used with these
+other operations.  If no output size is specified, the size of the input image
+will be scaled appropriately so that the output will contain the entire
+image.
 
 [Field = AntialiasFilter]
 short = antialias
@@ -263,25 +265,32 @@ type = I
 usage = Type of antialiasing filter to use when shrinking images (default 5)
 tooltip = 
 manpage = Type of antialiasing filter to use when reducing images with the
--shrink option.  The available types of filters are:
+-shrink option.  In addition, if this option is entered along with -bin and
+without -shrink, it will cause image reduction to be done with antialias
+filtering instead of by simple binning.  The available types of filters are:
 ^    1: Box - equivalent to binning
 ^    2: Blackman - fast but not as good at antialiasing as slower filters
 ^    3: Triangle - fast but smooths more than Blackman
 ^    4: Mitchell - good at antialiasing, smooths a bit
 ^    5: Lanczos 2 lobes - good at antialiasing, less smoothing than Mitchel
 ^    6: Lanczos 3 lobes - slower, even less smoothing but more risk of ringing
-^The default is 5 for the Lanczos 2, which many people consider the best
-compromise among the various factors.
+^The default is currently 5 for the Lanczos 2, which many people consider the best
+compromise among the various factors.  However, that statement may apply more
+to images of natural scenes than EM images, so the default may change to 6
+after further evaluation.  Enter a negative number to select the default,
+whatever it is set to.
 
 [Field = BinByFactor]
 short = bin
 type = I
 usage = Use binning to reduce images in size by the given factor
 tooltip = 
-manpage = Use binning to reduce images in size by the given factor.  Binning
-is applied before all other image transformations.  If no output size is
-specified, the size of the input image will be scaled appropriately so that
-the output will contain the entire image.
+manpage = Use ordinary binning to reduce images in size by the given factor,
+or use antialias filtering to reduce images by this factor if the -antialias
+option is entered and -shrink is not.  Binning is applied before all other
+image transformations.  If no output size is specified, the size of the input
+image will be scaled appropriately so that the output will contain the entire
+image.
 
 [Field = DistortionField]
 short = distort

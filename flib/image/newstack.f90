@@ -88,6 +88,7 @@ program newstack
   integer*4 ifOnePerFile, ifUseFill, listIncrement, indOut, ifMeanSdEntered
   integer*4 numReplace, isecReplace, modeOld, loadYoffset, loadBaseInd, listAlloc
   integer*4 indFilter, linesShrink, numAllSec, maxNumXF, nxMax, nyMax, ifControl
+  integer*4 indFiltTemp, ifFiltSet, ifShrink
   real*4 rxOffset, ryOffset
   real*4 fieldMaxY, rotateAngle, expandFactor, fillVal, shrinkFactor
   real*8 dsum, dsumSq, tsum, tsumSq, wallStart, wallTime, loadTime, saveTime
@@ -179,6 +180,7 @@ program newstack
   maxExtraIn = 0
   maxExtraOut = 0
   indFilter = 5
+  shrinkFactor = 1.
   linesShrink = 0
   iseriesBase = -1
   seriesExt = ' '
@@ -730,8 +732,21 @@ program newstack
     if (iBinning <= 0) call exitError('BINNING FACTOR MUST BE A POSITIVE NUMBER')
     readReduction = iBinning
     !
-    ! Shrinkage
-    if (PipGetFloat('ShrinkByFactor', shrinkFactor) == 0) then
+    ! Get filter entry and if there is binning and no separate shrink entry, convert
+    ! the binning to a shrinkage.  Also allow a negative filter entry to set the default
+    indFiltTemp = indFilter
+    ifFiltSet = 1 - PipGetInteger('AntialiasFilter', indFiltTemp)
+    if (indFiltTemp < 0) indFiltTemp = indFilter
+    ifShrink = 1 - PipGetFloat('ShrinkByFactor', shrinkFactor)
+    if (ifFiltSet > 0 .and. ifShrink == 0 .and. iBinning > 1 .and. indFiltTemp > 0) then
+      shrinkFactor = iBinning
+      iBinning = 1
+      print *,'Doing antialias-filtered image reduction instead of ordinary binning'
+    endif
+    indFilter = max(0, indFiltTemp - 1)
+    !
+    ! Handle shrinkage
+    if (ifShrink > 0 .or. shrinkFactor > 1.) then
       !
       ! Do shrinkage on input unless there is binning specified, since this will be
       ! more memory-efficient by default and it will produce a correct origin by default
@@ -744,8 +759,6 @@ program newstack
       if (shrinkFactor <= 1.) call exitError('FACTOR FOR -shrink MUST BE GREATER THAN 1')
       if (ifWarping .ne. 0 .and. abs(nint(shrinkFactor) - shrinkFactor) > 1.e-4) call  &
           exitError('YOU CANNOT USE -shrink WITH WARPING UNLESS THE FACTOR IS AN INTEGER')
-      ierr = PipGetInteger('AntialiasFilter', indFilter)
-      indFilter = max(0, indFilter - 1)
       ierr = 1
       i = indFilter
       do while (ierr == 1)
