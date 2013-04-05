@@ -709,7 +709,8 @@ limit with
 -l
 and the upper limit with
 .B
--h.  If the 
+-h.
+If the 
 .B -s
 option is given, values beyond the limit will be replaced by the image mean.
 Standard input and output options can be used.
