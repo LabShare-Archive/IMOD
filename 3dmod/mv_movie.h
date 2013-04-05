@@ -59,7 +59,7 @@ void mvMovieFullAxis();
 void mvMovieUpdate();
 void mvMovieHelp();
 void mvMovieQuit();
-int mvMovieMake();
+int mvMovieMake(bool fromSequence);
 void mvMovieStop();
 void mvMovieHelp();
 void mvMovieClosing();

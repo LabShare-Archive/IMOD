@@ -52,7 +52,7 @@ std::vector<MovieSegment> sSegments;
 
 /* Local functions */
 static void makeMontage(int frames, int overlap);
-static int makeMovie(int frames);
+static int makeMovie(int frames, bool fromSequence);
 static void setstep(int index, int frame, int loLim, int hiLim, float *start,
                     float *step);
 static void xinput(void);
@@ -166,7 +166,7 @@ void mvMovieStop()
   sAbort = 1;
 }
 
-int mvMovieMake()
+int mvMovieMake(bool fromSequence)
 {
   sDia->getButtonStates(sLongway, sReverse, sMontage,
                         sFile_format, sSaved, sTrialFPS);
@@ -177,7 +177,7 @@ int mvMovieMake()
     if (sMontage)
       makeMontage(sMontFrames, sOverlap);
     else
-      return makeMovie(sFrames);
+      return makeMovie(sFrames, fromSequence);
   }
   return 0;
 }
@@ -444,11 +444,11 @@ void mvMovieUpdate()
     sDia->setNonTifLabel();
 }
 
-static int makeMovie(int frames)
+static int makeMovie(int frames, bool fromSequence)
 {
   ImodvApp *a = sApp;
   Iview *vw;
-  
+  static int lastMakeNothing = 0;
   int frame, pl, nsteps, interval;
   float astart, astep;
   float bstart, bstep;
@@ -555,8 +555,13 @@ static int makeMovie(int frames)
       frame = 1;
 
   if (fabs((double)delangle) < 1.e-3 && !frame && !zstep && !xtstep && !ytstep &&
-      !ztstep && !xImStep && !yImStep && !zImStep && !thickStep && !transpStep)
-    return 0;
+      !ztstep && !xImStep && !yImStep && !zImStep && !thickStep && !transpStep && 
+      !fromSequence && lastMakeNothing < 2) {
+    lastMakeNothing = dia_ask_forever("The display will not change.\nAre you sure you"
+                                      " want to make a movie with duplicate pictures?");
+    if (!lastMakeNothing)
+      return 0;
+  }
 
   sAbort = 0;
   interval = B3DNINT(1000. / sTrialFPS);

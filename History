@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/5/13: Made it possible to do a model view movie with no change in display.
+
+5/4/13: Made copytomocoms put out a command file for extracting data from a B
+axis added later.
+
 3/22/13: IMOD_4-6-20
 3/13/13: Tiltxcorr can do its image reduction with antialiasing instead of
 simple binning and it has an option to start from the last image at minimum
