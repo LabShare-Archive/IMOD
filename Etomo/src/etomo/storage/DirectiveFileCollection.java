@@ -400,6 +400,9 @@ public class DirectiveFileCollection implements SetupReconInterface {
       for (int i = 0; i < directiveFileArray.length; i++) {
         if (directiveFileArray[i] != null) {
           ReadOnlyAttributeIterator iterator = directiveFileArray[i].getCopyArgIterator();
+          if (iterator == null) {
+            continue;
+          }
           while (iterator.hasNext()) {
             ReadOnlyAttribute attribute = iterator.next();
             String name = attribute.getName();
