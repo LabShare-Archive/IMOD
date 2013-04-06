@@ -396,8 +396,6 @@ public final class DirectiveFile {
         TRACKING_METHOD_NAME);
   }
 
-
-
   public boolean containsGoldErasingBinning(final AxisID axisID) {
     return containsAttribute(AttributeName.RUN_TIME, GOLD_ERASING_NAME, axisID,
         BINNING_NAME);
@@ -442,8 +440,6 @@ public final class DirectiveFile {
         USE_SIRT_NAME);
   }
 
-
-
   public String getAlignedStackBinByFactor(final AxisID axisID) {
     return getValue(AttributeName.RUN_TIME, ALIGNED_STACK_NAME, axisID,
         BIN_BY_FACTOR_NAME);
@@ -464,6 +460,9 @@ public final class DirectiveFile {
   }
 
   ReadOnlyAttributeIterator getCopyArgIterator() {
+    if (copyArg == null) {
+      return null;
+    }
     ReadOnlyAttributeList list = copyArg.getChildren();
     if (list != null) {
       return list.iterator();
