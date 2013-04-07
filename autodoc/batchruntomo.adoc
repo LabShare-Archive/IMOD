@@ -4,10 +4,56 @@ Pip = 1
 [Field = DirectiveFile]
 short = directive
 type = FNM
-usage = Input file with directives for automating one data set
+usage = Input file with directives for automating one or more data sets
 tooltip = 
-manpage = Input file with directives for automating one data set.  All
-non-option arguments will be taken as such input files.
+manpage = Input file with directives for automating one or more data sets.
+The filename must end in .adoc.  All non-option arguments will be taken as
+such input files.  
+
+[Field = RootName]
+short = root
+type = FNM
+usage = Root name of data set (omit a or b for dual-axis set)
+tooltip = 
+manpage = A data set name can be provided with this option to override the
+name contained in the directive file, thus allowing directive files to be
+reused without editing.  If this
+option is used, the number of directive files must be either one or the same
+as the number of root names.  The current location of the tilt series must be indicated
+with the -current option if only one directive file is entered with multiple
+root names.
+
+[Field = CurrentLocation]
+short = current
+type = FNM
+usage = Directory where tilt series currently resides
+tooltip = 
+manpage = Directory where tilt series is currently located.  This entry
+overrides the dataset directory contained in the directive file.  It can be
+used in two different ways.  If the -deliver option is entered, this option
+can be entered only once, and it must be the directory where all tilt series
+will be moved from.  If the -deliver option is not entered, then this option
+specifies the directory where the data set will be processed and must be
+entered once for each data set.
+
+[Field = DeliverToDirectory]
+short = deliver
+type = FN
+usage = Make a subdirectory of this directory for each data set
+tooltip = 
+manpage = Make a subdirectory of the specified directory for each data set,
+named with the root name of the data set, and move the tilt series into the
+subdirectory.  An associated metadata file named as the tilt series filename
+plus ".mdoc" will also be moved.  The -current option must be entered once.
+
+[Field = ProcessOneAxis]
+short = one
+type = I
+usage = 1 to do only A axis, 2 to do only B axis of dual axis data set
+tooltip = 
+manpage = Enter 1 to do setup and process A axis, or 2 to skip setup and
+process only B axis.  This entry applies to all dual-axis data sets being
+run.
 
 [Field = CPUMachineList]
 short = cpus
