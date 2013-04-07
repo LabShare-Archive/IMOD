@@ -7,6 +7,8 @@ INSERT CSV FILE
 <P>
 Notes:
 <OL>
+<LI> Template directives must specify absolute paths.
+<LI> Template and batch directive filenames must end in the extension ".adoc".
 <LI> Rules for the treatment of directives and the format of values are
   described in the <A HREF="man/batchruntomo.html">man page</A> for
   Batchruntomo. Some essentials are:
