@@ -18,7 +18,7 @@ global fidSizeNm, fidSizePix, montFrameData, lightBeads, numSurfaces, haveAaxisA
 global rawXsize, rawYsize, zsize, fiducialless, contourPieces, coarseBinning
 global xtiltNeeded, fidThickness, fidIncShift, reconThickness, didLocalAlign, madeZfactors
 global aliBinning, aliXunbinned, aliYunbinned, patchTrack, totalDelTilt, latestMessages
-global suppressAbort
+global suppressAbort, absDirectiveFile
 
 
 # Abort either an axis or a data set with the error string
@@ -131,6 +131,35 @@ def abspath(path):
    return absp
 
 
+# Move a stack to the dataset directory
+def deliverStack(ext):
+   source = os.path.join(currentDirs[0], setName + ext)
+   dest = os.path.join(datasetDir, setName + ext)
+   if not os.path.exists(source):
+      abortSet('Stack file ' + setName + ext + ' does not exist in ' + currentDirs[0])
+      return 1
+   if os.path.exists(dest):
+      abortSet('Stack file ' + setName + ext + ' already exists in ' + datasetDir)
+      return 1
+   try:
+      os.rename(source, dest)
+   except OSError:
+      abortSet('Error moving stack file ' + setName + ext + ' from ' + currentDirs[0] +\
+               ' to ' + datasetDir)
+      return 1
+   source += '.mdoc'
+   dest += '.mdoc'
+   if os.path.exists(source) and not os.path.exists(dest):
+      try:
+         os.rename(source, dest)
+      except OSError:
+         abortSet('Error moving metadata file ' + setName + ext + '.mdoc from ' + \
+                     currentDirs[0] + ' to ' + datasetDir)
+         return 1
+
+   return 0
+   
+
 # Print out errors from directive file reading or validation
 def printDirectiveErrors(errors):
    if errors:
@@ -145,10 +174,70 @@ def printDirectiveErrors(errors):
 # Read a directive or template file and convert to a dictionary, skipping comment
 # lines and lines without an =
 def readDirectiveOrTemplate(filename, index):
+   global absDirectiveFile
    directLines = readTextFile(filename, 'directive/template file', True)
    if isinstance(directLines, str):
       abortSet('Error ' + directLines)
       return 1
+   if index == BatInd and (numRootOpts or numCurrent):
+
+      # Find existing lines for rootname and directory if any
+      rootLineInd = -1
+      dataDirLineInd = -1
+      rootname = ''
+      for ind in range(len(directLines)):
+         line = directLines[ind].lstrip()
+         lsplit = line.split('=')
+         if len(lsplit) < 2:
+            continue
+         if lsplit[0].strip() == copyPrefix + 'name':
+            rootLineInd = ind
+            rootname = lsplit[1].strip()
+         if lsplit[0].strip() == dataDirText:
+            dataDirLineInd = ind
+            datadir = lsplit[1].strip()
+
+      # Get true root name and fix or add line
+      if numRootOpts:
+         rootname = rootByOption[dfileInd]
+         rootDirect = copyPrefix + 'name = ' + rootname
+         if rootLineInd >= 0:
+            directLines[rootLineInd] = rootDirect
+         else:
+            directLines.append(rootDirect)
+
+      # Take care of the data directory now
+      if numCurrent and rootname:
+         if not deliverDir:
+            datadir = abspath(currentDirs[dfileInd])
+
+         # If delivery, now we can make the directory
+         # But we can't deliver file(s) until we know about dual/single
+         else:
+            datadir = abspath(os.path.join(deliverDir, rootname))
+            if not (os.path.exists(datadir) and os.path.isdir(datadir)):
+               if os.path.exists(datadir):
+                  abortSet(datadir + ' already exists and is not a directory')
+                  return 1
+               try:
+                  os.mkdir(datadir)
+               except OSError:
+                  abortSet('Error making directory for dataset, ' + datadir)
+                  return 1
+
+               prnstr('Created dataset directory ' + datadir)
+
+         dataDirect = dataDirText + ' = ' + datadir
+         if dataDirLineInd >= 0:
+            directLines[dataDirLineInd] = dataDirect
+         else:
+            directLines.append(dataDirect)
+
+      if rootname:
+         absDirectiveFile = os.path.join(datadir, localBatchCopy)
+         if writeTextFileReportErr(absDirectiveFile, directLines):
+            return 1
+      
    validErr = []
    for ind in range(len(directLines)):
       line = directLines[ind].lstrip()
@@ -1708,6 +1797,8 @@ userTmplText = setupPrefix + 'userTemplate'
 sysTmplText = setupPrefix + 'systemTemplate'
 dataDirText = setupPrefix + 'datasetDirectory'
 scanHeadText = setupPrefix + 'scanHeader'
+setupBname = 'laterbsetup.com'
+localBatchCopy = 'batchDirective.adoc'
 montFrameData = 10 * [0]
 suppressAbort = False
 
@@ -1731,6 +1822,33 @@ for ind in range(numSets):
    if not os.path.exists(dfile):
       exitError('Directive file ' + dfile + ' does not exist')
    dirFiles.append(dfile)
+
+# Get current directory and delivery directory
+currentDirs = []
+numCurrent = PipNumberOfEntries('CurrentLocation')
+for ind in range(numCurrent):
+   currentDirs.append(PipGetString('CurrentLocation', ''))
+deliverDir = PipGetString('DeliverToDirectory', '')
+if deliverDir and numCurrent != 1:
+   exitError('The -current option must be entered once if -deliver is entered')
+
+# Get the root names if any
+numRootOpts = PipNumberOfEntries('RootName')
+rootByOption = []
+for ind in range(numRootOpts):
+   rootByOption.append(PipGetString('RootName', ''))
+
+# Check validity of these entries and boost the directive file list
+if numRootOpts and numSets > 1 and numSets != numRootOpts:
+   exitError('If you enter root names, you must enter either one directive file or' + \
+             ' one per root name')
+if numRootOpts:
+   for ind in range(numSets, numRootOpts):
+      dirFiles.append(dirFiles[0])
+   numSets = numRootOpts
+
+if not deliverDir and (numRootOpts or numCurrent) and numCurrent != numSets:
+   exitError('The -current option must be entered for each data set')
 
 # Get other options and current directory
 startingDir = os.getcwd()
@@ -1769,6 +1887,7 @@ if useGPU:
 
 niceness = PipGetInteger('NiceValue', 15)
 remoteStartDir = PipGetString('RemoteDirectory', '')
+doOneAxis = PipGetInteger('ProcessOneAxis', 0)
 startingStep = PipGetInteger('StartingStep', 0)
 endingStep = PipGetInteger('EndingStep', 10000000)
 exitOnError = PipGetBoolean('ExitOnError', 0)
@@ -1802,7 +1921,8 @@ if validation >= 0:
       fileType = 'template'
 
 # Start looping on the data sets
-for dfile in dirFiles:
+for dfileInd in range(numSets):
+   dfile = dirFiles[dfileInd]
    axisNum = 0
 
    # Remove check file in case it was used to tell processchunks to quit by us
@@ -1810,11 +1930,11 @@ for dfile in dirFiles:
       cleanupFiles([checkFile])
    os.chdir(startingDir)
    allDirectives = [{}, {}, {}, {}]
+   absDirectiveFile = abspath(dfile)
    if readDirectiveOrTemplate(dfile, BatInd):
       continue
 
    prnstr(fmtstr('Beginning to process {} file {}', fileType, dfile))
-   absDirectiveFile = abspath(dfile)
 
    # If validating a single template file, do not process it, just run the checks
    if validation > 1:
@@ -1831,6 +1951,15 @@ for dfile in dirFiles:
          continue
       if validation > 0:
          prnstr('Directives all seem OK in that file')
+         continue
+
+   # Deliver stacks to dataset directory
+   if deliverDir:
+      if dualAxis and doOneAxis < 2 and deliverStack('a.st'):
+         continue
+      if dualAxis and doOneAxis != 1 and deliverStack('b.st'):
+         continue
+      if not dualAxis and deliverStack('.st'):
          continue
 
    # If there is a remote directory, need to shift it to the dataset dir
@@ -1865,7 +1994,7 @@ for dfile in dirFiles:
    if not os.path.exists(stack):
       abortSet('Stack file does not exist: ' + stack)
       continue
-   if dualAxis and not os.path.exists(setName + 'b.st'):
+   if dualAxis and doOneAxis != 1 and not os.path.exists(setName + 'b.st'):
       abortSet('Stack file does not exist: ' + setName + 'b.st')
       continue
 
@@ -1880,7 +2009,7 @@ for dfile in dirFiles:
 
    prnstr('Starting data set ' + setName)
 
-   if startingStep <= 0:
+   if startingStep <= 0 and not (dualAxis and doOneAxis > 1):
    #if False:
       # Run etomo for setup and try to report errors
       failed = False
@@ -1949,7 +2078,8 @@ for dfile in dirFiles:
    
    # Loop on the axes.  axisInd is 0 or 1, axisNum is 0 for single, 1/2 for a/b
    for axisInd in range(numAxes):
-      if endingStep <= 0:
+      if endingStep <= 0 or (dualAxis and ((axisInd and doOneAxis == 1) or 
+                                           (not axisInd and doOneAxis > 1))):
          continue
       axisLet = ''
       if dualAxis:
@@ -1959,6 +2089,11 @@ for dfile in dirFiles:
             axisLet = 'b'
          prnstr('Starting axis ' + axisLet.upper())
 
+      if axisInd and doOneAxis > 1 and os.path.exists(setupBname):
+         if runOneProcess(setupBname):
+            startingStep = 0
+            continue
+            
       dataName = setName + axisLet
       axisCom = axisLet + '.com'
       if startingStep > 100:
