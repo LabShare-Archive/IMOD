@@ -294,18 +294,21 @@ public final class UIHarness {
 
   public void pack(AxisID axisID, BaseManager manager) {
     if (isHead()) {
-      manager.pack();
-      AbstractFrame abstractFrame = getFrame(manager);
-      abstractFrame.repaint(axisID);
-      abstractFrame.pack(axisID);
-      Component focusComponent = manager.getFocusComponent();
-      // System.out.println("focusComponent=" + focusComponent);
-      if (focusComponent != null) {
-        focusComponent.requestFocus();
+      //TEMP
+      for (int i = 0; i < 5; i++) {
+        manager.pack();
+        AbstractFrame abstractFrame = getFrame(manager);
+        abstractFrame.repaint(axisID);
+        abstractFrame.pack(axisID);
+        Component focusComponent = manager.getFocusComponent();
+        // System.out.println("focusComponent=" + focusComponent);
+        if (focusComponent != null) {
+          focusComponent.requestFocus();
+        }
+        // else {
+        // new Exception().printStackTrace();
+        // }
       }
-      // else {
-      // new Exception().printStackTrace();
-      // }
     }
   }
 
@@ -527,7 +530,7 @@ public final class UIHarness {
     }
     // Check to see if etomo an exit, save data, and then exit.
     if (EtomoDirector.INSTANCE.exitProgram(axisID)) {
-      System.err.println("exitValue:"+exitValue);
+      System.err.println("exitValue:" + exitValue);
       System.exit(exitValue);
     }
   }
