@@ -1,12 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/5/13: Fixed a null pointer exception, which happened while running
+4/7/13: Added options to Batchruntomo to specify the data set name and
+directory so that a batch directive file is reusable without editing it, an
+option to deliver data from central location to separate directories, and
+ability to process only one axis.
+
+4/5/13: Fixed a null pointer exception, which happened while running
 copytomocoms from eTomo - when a directive file that did not contain any
 setupset.copyarg directives was included.(Bug# 1693)
 
-5/5/13: Made it possible to do a model view movie with no change in display.
+4/5/13: Made it possible to do a model view movie with no change in display.
 
-5/4/13: Made copytomocoms put out a command file for extracting data from a B
+4/4/13: Made copytomocoms put out a command file for extracting data from a B
 axis added later.
 
 3/22/13: IMOD_4-6-20
