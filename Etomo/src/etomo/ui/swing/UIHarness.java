@@ -250,17 +250,19 @@ public final class UIHarness {
   }
 
   public void pack(BaseManager manager) {
-    if (isHead()) {
-      if (manager != null) {
-        manager.pack();
-      }
-      AbstractFrame abstractFrame = getFrame(manager);
-      abstractFrame.repaint();
-      abstractFrame.pack();
-      if (manager != null) {
-        Component focusComponent = manager.getFocusComponent();
-        if (focusComponent != null) {
-          focusComponent.requestFocus();
+    if (isHead()) { // TEMP
+      for (int i = 0; i < 5; i++) {
+        if (manager != null) {
+          manager.pack();
+        }
+        AbstractFrame abstractFrame = getFrame(manager);
+        abstractFrame.repaint();
+        abstractFrame.pack();
+        if (manager != null) {
+          Component focusComponent = manager.getFocusComponent();
+          if (focusComponent != null) {
+            focusComponent.requestFocus();
+          }
         }
       }
     }
@@ -279,14 +281,17 @@ public final class UIHarness {
 
   public void pack(boolean force, BaseManager manager) {
     if (isHead()) {
-      manager.pack();
-      AbstractFrame abstractFrame = getFrame(manager);
-      abstractFrame.repaint();
-      abstractFrame.pack(force);
-      if (manager != null) {
-        Component focusComponent = manager.getFocusComponent();
-        if (focusComponent != null) {
-          focusComponent.requestFocus();
+      // TEMP
+      for (int i = 0; i < 5; i++) {
+        manager.pack();
+        AbstractFrame abstractFrame = getFrame(manager);
+        abstractFrame.repaint();
+        abstractFrame.pack(force);
+        if (manager != null) {
+          Component focusComponent = manager.getFocusComponent();
+          if (focusComponent != null) {
+            focusComponent.requestFocus();
+          }
         }
       }
     }
@@ -294,7 +299,7 @@ public final class UIHarness {
 
   public void pack(AxisID axisID, BaseManager manager) {
     if (isHead()) {
-      //TEMP
+      // TEMP
       for (int i = 0; i < 5; i++) {
         manager.pack();
         AbstractFrame abstractFrame = getFrame(manager);
@@ -313,19 +318,21 @@ public final class UIHarness {
   }
 
   public void pack(AxisID axisID, boolean force, BaseManager manager) {
-    if (isHead()) {
-      manager.pack();
-      AbstractFrame abstractFrame = getFrame(manager);
-      abstractFrame.repaint(axisID);
-      abstractFrame.pack(axisID, force);
-      Component focusComponent = manager.getFocusComponent();
-      // System.out.println("focusComponent=" + focusComponent);
-      if (focusComponent != null) {
-        focusComponent.requestFocus();
+    if (isHead()) { // TEMP
+      for (int i = 0; i < 5; i++) {
+        manager.pack();
+        AbstractFrame abstractFrame = getFrame(manager);
+        abstractFrame.repaint(axisID);
+        abstractFrame.pack(axisID, force);
+        Component focusComponent = manager.getFocusComponent();
+        // System.out.println("focusComponent=" + focusComponent);
+        if (focusComponent != null) {
+          focusComponent.requestFocus();
+        }
+        // else {
+        // new Exception().printStackTrace();
+        // }
       }
-      // else {
-      // new Exception().printStackTrace();
-      // }
     }
   }
 
@@ -489,7 +496,10 @@ public final class UIHarness {
 
   public void repaintWindow(BaseManager manager) {
     if (isHead()) {
-      getFrame(manager).repaintWindow();
+      // TEMP
+      for (int i = 0; i < 5; i++) {
+        getFrame(manager).repaintWindow();
+      }
     }
   }
 
