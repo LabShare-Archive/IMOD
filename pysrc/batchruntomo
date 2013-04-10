@@ -380,7 +380,7 @@ def checkForQuit():
       
 # Runs a com file or com chunks using processchunks
 def runOneProcess(comfile, single = True, usingGPU = False):
-   if not os.path.exists(comfile):
+   if (single or 'sirt' not in comfile) and not os.path.exists(comfile):
       abortSet('Command file ' + comfile + ' does not exist')
       return 1
    sleepTime = 0.2
@@ -880,14 +880,18 @@ def scanSetupDirectives():
          if copyPrefix + 'dual' in direc:
             dualAxis = direc[copyPrefix + 'dual'][0] != '0'
          if copyPrefix + 'pixel' in direc:
-            pixelSize = float(direc[copyPrefix + 'pixel'][0])
+            ftext = direc[copyPrefix + 'pixel'][0]
+            pixelSize = float(ftext)
          if copyPrefix + 'gold' in direc:
-            fidSizeNm = float(direc[copyPrefix + 'gold'][0])
+            ftext = direc[copyPrefix + 'gold'][0]
+            fidSizeNm = float(ftext)
          if copyPrefix + 'defocus' in direc:
-            defocus = float(direc[copyPrefix + 'defocus'][0])
+            ftext = direc[copyPrefix + 'defocus'][0]
+            defocus = float(ftext)
 
       except ValueError:
-         abortSet('Error converting value to float in ' + source[indDir] + ' file')
+         abortSet('Error converting the string "' + ftext + '" to float in ' +
+                  source[indDir] + ' file')
          return 1
 
    if (not pixelSize and not scanHeader) or not setName or not datasetDir:
@@ -1612,7 +1616,7 @@ def modifyTiltComFile():
              sedModify('THICKNESS', thickness)] + \
              sedDelAndAdd('UseGPU', gpuVal, 'XTILTFILE')
    if not axisNum:
-      sdcom.append(sedModify('OutputFile', setName + '_full.rec'))
+      sedcom.append(sedModify('OutputFile', setName + '_full.rec'))
    if useGPU:
       sedcom += sedDelAndAdd('ActionIfGPUFails', '1,2', 'XTILTFILE');
    else:
@@ -1900,7 +1904,8 @@ checkFile = PipGetString('CheckFile', '')
 if checkFile:
    checkFile = abspath(checkFile)
 else:
-   checkFile = os.path.join(startingDir, progname + '.' + str(os.getpid()) + '.input')
+   checkFile = abspath(os.path.join(startingDir, progname + '.' +
+                                    str(os.getpid()) + '.input'))
 if validation <= 0:
    prnstr('To quit all processing, place a Q in the file: ' + checkFile)
 
