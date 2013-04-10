@@ -361,6 +361,15 @@ public class SystemProgram implements Runnable {
     processMessages = ProcessMessages.getInstance();
     commandArray = cmdArray;
   }
+  
+  public SystemProgram(final BaseManager manager, final String propertyUserDir,
+      final String[] cmdArray, final AxisID axisID,final boolean multilineWarning, final boolean multilineInfo) {
+    this.manager = manager;
+    this.propertyUserDir = propertyUserDir;
+    this.axisID = axisID;
+    processMessages = ProcessMessages.getMultiLineInstance( multilineWarning,   multilineInfo);
+    commandArray = cmdArray;
+  }
 
   /**
    * Specify the standard input to the program
