@@ -426,6 +426,7 @@ def runOneProcess(comfile, single = True, usingGPU = False):
    readOK = False
    finished = 0
    checkTime = 0.
+   where = None
    try:
       while True:
          try:
@@ -435,6 +436,7 @@ def runOneProcess(comfile, single = True, usingGPU = False):
                out = open(outfile, 'r')
                opened = True
             else:
+               where = out.tell()
                lines = out.readlines()
                readOK = True
                if lines:
@@ -453,6 +455,7 @@ def runOneProcess(comfile, single = True, usingGPU = False):
                      elif 'retain' in l and 'existing' in l:
                         finished = -2
                         break
+
          except IOError:
             readOK = False
             pass
@@ -483,6 +486,14 @@ def runOneProcess(comfile, single = True, usingGPU = False):
          
          elapsed += sleepTime
          time.sleep(sleepTime)
+
+         # Seek to the last location before trying again.  This is a trick from
+         # stackoverflow.com and is needed on Mac
+         try:
+            if where != None:
+               out.seek(where)
+         except IOError:
+            pass
 
    except KeyboardInterrupt:
       writeTextFile(checkFile, ['Q'], True)
