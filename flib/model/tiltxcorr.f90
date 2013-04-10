@@ -80,6 +80,7 @@ program tiltxcorr
   integer*4 ixBoxForAdj, iyBoxForAdj, ipatch, numPoints, numBound, iobj, lenTemp
   integer*4 ipnt, ipt, numInside, iobjSeed, imodObj, imodCont, ix, iy, iAntiFiltType
   integer*4 limitShiftX, limitShiftY, numSkip, lastNotSkipped, lenConts, nFillTaper
+  integer*4 limitXlo, limitXhi, limitYlo, limitYhi
   real*4 critInside, cosRatio, peakVal, peakLast, xpeakLast, yPeakLast
   real*4 boundXmin, boundXmax, boundYmin, boundYmax, fracXover, fracYover
   real*4 fracOverMax, critNonBlank, fillTaperFrac
@@ -663,7 +664,7 @@ program tiltxcorr
   limitShiftX = (limitShiftX  + nbinning / 2) / nbinning
   limitShiftY = (limitShiftY  + nbinning / 2) / nbinning
   if (limitShiftX <= 0 .or. limitShiftY <= 0) call exitError( &
-      'SHIFT LIMITS MUST BE POSITIVE')
+      'SHIFT LIMITS MUST BE POSITIVE AND AT LEAST 1 PIXEL WHEN DIVIDED BY BINNING')
   !
   ! Get view range in old sequential input (needed earlier when pip)
   if (.not. pipinput) then
@@ -957,7 +958,15 @@ program tiltxcorr
           call readBinnedOrReduced(1, izLast, array, ixCenStart + ixBoxRef, &
               iyCenStart + iyBoxRef, taperRef)
           
+          limitXlo = -limitShiftX
+          limitXhi = limitShiftX
+          limitYlo = -limitShiftY
+          limitYhi = limitShiftY
           if (ifCumulate .ne. 0) then
+            limitXlo = xpeak - limitShiftX
+            limitXhi = xpeak + limitShiftX
+            limitYlo = ypeak - limitShiftY
+            limitYhi = ypeak + limitShiftY
             if (iter == 1) then
               !
               ! if accumulating, transform image by last shift, add it to
@@ -1037,7 +1046,7 @@ program tiltxcorr
           !
           streak = 0.25 * (stretch - 1.0) * nxUse
           call peakFind(array, nxPad + 2, nyPad, xpeakTmp, ypeakTmp, peakVal, &
-              radExclude, rotAngle, streak, limitShiftX, limitShiftY)
+              radExclude, rotAngle, streak, limitXlo, limitXhi, limitYlo, limitYhi)
           xpeakCum = xpeakTmp + xpeakFrac
           xpeakFrac = xpeakCum - nint(xpeakCum)
           ypeakCum = ypeakTmp + ypeakFrac
@@ -1045,6 +1054,12 @@ program tiltxcorr
           if (verbose) write(*,'(i3,2f8.2,g15.6,4f8.2)') iter, xpeakCum, ypeakCum, &
               peakVal, xpeakTmp - nint(xpeakTmp), ypeakTmp - nint(ypeakTmp), &
               xpeakFrac, ypeakFrac
+
+          ! If accumulating and the correlation failed, assign it the last shift
+          if (peakVal < -1.e29 .and. ifCumulate .ne. 0) then
+            xpeakCum = xpeak
+            ypeakCum = ypeak
+          endif
           !
           ! Skip out and restore last peak if the peak strength is less
           if (iter > 1 .and. peakVal < peakLast) then
@@ -1541,12 +1556,12 @@ end program tiltxcorr
 ! a much better estimate of peak location.
 !
 subroutine peakFind(array, nxPlus, nyCorr, xpeak, ypeak, peak, radExclude, &
-    rotAngle, streak, limitShiftX, limitShiftY)
+    rotAngle, streak, limitXlo, limitXhi, limitYlo, limitYhi)
   implicit none
-  integer*4 nxPlus, nyCorr
+  integer*4 nxPlus, nyCorr, limitXlo, limitXhi, limitYlo, limitYhi
   real*4 xpeak, ypeak, radExclude, rotAngle, streak
   real*4 array(nxPlus,nyCorr)
-  integer*4 nxCorr, ix, iy, idx, idy, lower, ixPeak, iyPeak, limitShiftX, limitShiftY
+  integer*4 nxCorr, ix, iy, idx, idy, lower, ixPeak, iyPeak
   real*4 peak, xrot, yrot, cx, y1, y2, y3, cy, cosTheta, sinTheta
   real*4 cosd, sind
   integer*4 indmap
@@ -1571,7 +1586,8 @@ subroutine peakFind(array, nxPlus, nyCorr, xpeak, ypeak, peak, radExclude, &
         idy = iy - 1
         if (idx > nxCorr / 2) idx = idx - nxCorr
         if (idy > nyCorr / 2) idy = idy - nyCorr
-        if (abs(idx) <= limitShiftX .and. abs(idy) <= limitShiftY) then
+        if (idx >= limitXlo .and. idx <= limitXhi .and. idy >= limitYlo .and.  &
+            idy <= limitYhi) then
           !
           ! Then check if it outside the exclusion region
           xrot = idx * cosTheta - idy * sinTheta
