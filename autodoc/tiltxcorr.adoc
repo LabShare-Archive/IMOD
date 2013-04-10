@@ -143,10 +143,13 @@ tooltip = Limit on distance in X and Y to search for correlation peak, in
 pixels.  Images or patch centers will not shift by more than this amount
 between views.
 manpage = Limit on distance in X and Y to search for correlation peak, in
-pixels.  This option can be used to prevent a spurious correlation peak outside
-these limits from giving a bad alignment.  If the program does not find an
-actual peak, i.e. a pixel higher than all its neighbors, within these limits,
-then it will give a zero shift.
+pixels before binning is applied internally.  This option can be used to
+prevent a spurious correlation peak outside these limits from giving a bad
+alignment.  If the program does not find an actual peak, i.e. a pixel higher
+than all its neighbors, within these limits, then it will give a zero shift.
+If cumulative correlations are being used, the program will seek a peak within
+this distance of the peak for the previous view and assign that view's shift
+instead of zero if no peak is found.
 
 [Field = BordersInXandY]
 short = border
