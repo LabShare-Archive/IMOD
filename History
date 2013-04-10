@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/9/13: Handled multi-line INFO and WARNING messages in copytomocoms.
+(Bug# 1694)
+
 4/9/13: Made shift limits to Tiltxcorr apply to shift from one view to next
 when using cumulative correlation.
 
