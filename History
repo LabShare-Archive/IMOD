@@ -1,5 +1,45 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/9/13: Made shift limits to Tiltxcorr apply to shift from one view to next
+when using cumulative correlation.
+
+4/9/13: Fixed a few bugs in Batchruntomo for single axis and for running in
+Windows.
+
+4/7/13: Added options to Batchruntomo to specify the data set name and
+directory so that a batch directive file is reusable without editing it, an
+option to deliver data from central location to separate directories, and
+ability to process only one axis.
+
+4/5/13: Fixed a null pointer exception, which happened while running
+copytomocoms from eTomo - when a directive file that did not contain any
+setupset.copyarg directives was included.(Bug# 1693)
+
+4/5/13: Made it possible to do a model view movie with no change in display.
+
+4/4/13: Made copytomocoms put out a command file for extracting data from a B
+axis added later.
+
+3/22/13: IMOD_4-6-20
+3/13/13: Tiltxcorr can do its image reduction with antialiasing instead of
+simple binning and it has an option to start from the last image at minimum
+tilt instead of the first, which reverses the order for untilted images.
+
+3/12/13: Newstack has an option -fromone to allow section and line numbers to
+be numbered from 1 instead of 0, and an option -exclude to specify sections to
+exclude; Colornewst accepts -fromone but not -exclude.
+
+3/12/13: Newstack can read input with antialias reduction instead of binning,
+so -shrink can be combined with essentially all image transformations.
+
+3/7/13: Xfalign can now do cross-correlation only with -params -1.
+
+3/4/13: IMOD_4-6-19
+3/3/13: Fixed a problem with recording Exclude Projections in the .edf file.
+(Bug# 1686)
+
+3/1/13: Added support for templates to eTomo.(Bug# 1677)
+
 2/27/13: Fixed array allocation problem in Pickbestseed.
 
 2/27/13: Fixed problem of 3dmod quitting during initial load due to messages 

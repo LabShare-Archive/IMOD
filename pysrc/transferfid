@@ -227,6 +227,8 @@ if not imageb or zerob < 0:
       exitError(fmtstr('Cannot find the {} image file name in {}', BB, trackb))
 
 # Get the view at minimum tilt if needed for one reason or another
+zeroAview = zeroa
+zeroBview = zerob
 if zeroa < 0 or lowestXfFile:
    zeroAview = getMinimumAngle(setname, src, AA, tracklines)
 if zerob < 0 or lowestXfFile:

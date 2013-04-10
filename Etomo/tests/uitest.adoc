@@ -60,6 +60,9 @@ copy.file.a = %{dataset}a.st
 copy.file.b = %{dataset}b.st
 set.param = --autoclose3dmod
 set.param = --ignoreloc
+#set.param = --debug
+#set.param = --timestamp
+#set.param = --actions
 #set.param = %{dataset}.edf
 set.var.dual=
 set.var.test-gui=
@@ -507,7 +510,7 @@ open.dialog.rejoin.tb.setup.4 =
 [interface = Serial-Sections]
 [[open = interface]]
   pnl.main-frame=
-  bn.align-serial-sections=
+  bn.align-serial-sections-/-blend-montages=
 [[]]
 
 [interface = PEET]

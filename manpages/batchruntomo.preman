@@ -12,7 +12,10 @@ a tomogram, following a set of instructions called "directives" provided in a
 text file.  These directives indicate either parameter settings or which
 pathway to follow at various points in the processing sequence.  The program
 will perform operations in a fixed order determined by these choices; the
-order of the directives does not affect this order.
+order of the directives does not affect this order.  The program can work on
+more than one data set and can also move the tilt series from their current 
+location into a separate directory for each data set, which is created if
+necessary.
 
 .SS Directives
 Directives consist of key-value pairs separated by equals signs,
@@ -73,8 +76,7 @@ or "any".  For a single axis data set, directives with "any" or "a" are
 treated as equivalent and ones with "b" are ignored.  For a dual axis data
 set, a directive with "any" can apply to either axis, but will be
 overridden by a directive with a letter matching the specific axis, regardless
-of which one occurs later in the processing sequence.  A boolean parameter is
-interpreted as true if its value is 1 or empty, or as false if its value is 0.
+of which one occurs later in the processing sequence.
 .P
 Boolean directives must have a value of either 0 or 1: 1 to
 turn the option 1 or 0 to turn it off; no other values (including blank) are allowed.

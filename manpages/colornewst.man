@@ -18,6 +18,7 @@ Newstack(1) can be included, but not
 .B -skip,
 .B -blank,
 .B -onexform,
+.B -exclude,
 .B -input,
 or
 .B -output.

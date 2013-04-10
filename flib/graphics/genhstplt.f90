@@ -441,7 +441,7 @@ subroutine realGraphicsMain()
   read(5, '(a)') xaxisLabel
   write(*,'(1x,a,$)') 'Number of key strings for next graph: '
   read(5,*) numKeys
-  numKeys = max(0, min(8, numKeys))
+  numKeys = max(0, min(LIM_KEYS, numKeys))
   if (numKeys == 0) go to 50
   write(*,'(a,i2,a)') 'Enter the', numKeys, ' strings one per line:'
   do i = 1, numKeys

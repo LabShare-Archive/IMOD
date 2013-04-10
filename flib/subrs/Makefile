@@ -44,7 +44,7 @@ $(LIBSMLMOD): model/*.f $(INCDIR)/smallmodel.inc
 	$(RANLIB) $(LIBSMLMOD)
 	$(CP) libsmlmod.$(LIBEXT) $(LIBDIR)
 
-$(LIBMRCIM): imsubs/*.f imsubs/*.c imsubs2/*.f 
+$(LIBMRCIM): imsubs/*.f imsubs/*.f90 imsubs/*.c imsubs2/*.f 
 	(cd imsubs ; $(MAKE) all)
 	(cd imsubs2 ; $(MAKE) all)
 	$(RM) $(LIBMRCIM)

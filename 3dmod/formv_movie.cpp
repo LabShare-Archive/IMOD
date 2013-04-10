@@ -211,7 +211,7 @@ void imodvMovieForm::closePressed()
 
 void imodvMovieForm::makePressed()
 {
-  mvMovieMake();
+  mvMovieMake(false);
 }
 
 void imodvMovieForm::stopPressed()

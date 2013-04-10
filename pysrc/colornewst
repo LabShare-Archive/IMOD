@@ -126,6 +126,8 @@ verbose = None
 seclist = None
 uselist = None
 badopt = None
+onebase = 0
+clipone = ''
 
 if not os.path.exists(infile):
    exitError('Input file ' + infile + ' (next to last argument) does not exist')
@@ -169,7 +171,8 @@ while argind < numargs - 2:
              matchesOption(arg, 'numout', 'NumberToOutput') or \
              matchesOption(arg, 'skip', 'SkipSectionIncrement') or \
              matchesOption(arg, 'blank', 'BlankOutput') or \
-             matchesOption(arg, 'onexform', 'OneTransformPerFile'):
+             matchesOption(arg, 'onexform', 'OneTransformPerFile') or \
+             matchesOption(arg, 'exclude', 'ExcludeSections'):
          badopt = arg
 
       elif matchesOption(arg, 'secs', 'SectionsToRead'):
@@ -181,10 +184,15 @@ while argind < numargs - 2:
 
       elif matchesOption(arg, 'uselines', 'UseTransformLines'):
          if uselist:
-            exitError('You cannot enter more than one list or transforms to use')
+            exitError('You cannot enter more than one list of transforms to use')
          argind += 1
          uselist = parselist(sys.argv[argind])
          graycom += '"' + sys.argv[argind] + '" '
+         
+      elif matchesOption(arg, 'fromone', 'NumberedFromOne'):
+         onebase = 1
+         newstcom += '"' + arg + '" '
+         clipone = '-1'
          
       else:            
          newstcom += '"' + arg + '" '
@@ -231,10 +239,9 @@ try:
       exitError('You cannot use option ' + badopt + \
                    ' to process color data with this program')
 
-   # Make up the section list and use lines list (someday newstack may take #'d from 1)
+   # Make up the section list and use lines list
    # Need to use a list comprehension to get a real list out, otherwise the
    # slicing below fails for python 3.1
-   onebase = 0
    if not seclist:
       seclist = [i for i in range(onebase, nz + onebase)]
    if not uselist:
@@ -257,7 +264,7 @@ try:
       endind = min(startind + maxSections, numSec)
 
       # Split
-      runcmd(fmtstr('clip splitrgb -2d -iz {} "{}" "{}"',
+      runcmd(fmtstr('clip splitrgb -2d {} -iz {} "{}" "{}"', clipone,
                     rangeListEntry(seclist[startind:endind]), infile, tmproot))
 
       # Process each channel and remove input

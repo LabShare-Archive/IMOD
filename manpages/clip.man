@@ -710,6 +710,9 @@ limit with
 and the upper limit with
 .B
 -h.
+If the 
+.B -s
+option is given, values beyond the limit will be replaced by the image mean.
 Standard input and output options can be used.
 .TP
 .B unwrap

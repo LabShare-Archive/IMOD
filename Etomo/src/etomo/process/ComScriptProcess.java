@@ -798,6 +798,11 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     if (command == null) {
       return;
     }
+    if (debug) {
+      System.err.println("Closing stale files:command.getOutputImageFileType():"
+          + command.getOutputImageFileType() + ",command.getOutputImageFileType2():"
+          + command.getOutputImageFileType2());
+    }
     manager.closeStaleFile(command.getOutputImageFileType(), axisID);
     manager.closeStaleFile(command.getOutputImageFileType2(), axisID);
   }
@@ -1175,7 +1180,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     while ((line = fileReader.readLine()) != null) {
       lines.add(line);
     }
-    if (fileReader!=null) {
+    if (fileReader != null) {
       fileReader.close();
     }
     fileReader.close();

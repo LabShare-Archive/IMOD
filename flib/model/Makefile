@@ -161,8 +161,8 @@ findbeads3d$(E): findbeads3d.$(O)
 tiltxcorr$(E): tiltxcorr.$(O)
 	$(FC) -o tiltxcorr tiltxcorr.$(O) $(LDFLG) $(SMALLLIBS)
 
-tiltxcorr.$(O): tiltxcorr.f
-	$(FC) $(FFLAGS) $(OPENMPF) -c tiltxcorr.f
+tiltxcorr.$(O): tiltxcorr.f90
+	$(FC) $(FFLAGS) $(OPENMPF) -c tiltxcorr.f90
 
 tomoblobs$(E): tomoblobs.$(O)
 	$(FC) -o tomoblobs tomoblobs.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)

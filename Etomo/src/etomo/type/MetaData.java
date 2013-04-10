@@ -1399,7 +1399,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
         excludeProjectionsB = buffer.toString();
       }
       else {
-        excludeProjectionsB = buffer.toString();
+        excludeProjectionsA = buffer.toString();
       }
     }
     else {

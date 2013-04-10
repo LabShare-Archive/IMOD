@@ -881,6 +881,7 @@ public class Utilities {
    */
   public static void copyFile(File source, File destination) throws IOException {
     if (source != null && source.equals(destination)) {
+      System.err.println("Warning:Can't copy a file to itself:source:"+source+",destination:"+destination);
       return;
     }
     // Try using the nio method but if it fails fall back to BufferedFileReader/

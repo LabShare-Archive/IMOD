@@ -29,6 +29,16 @@ backuplist = []
 backupline = '$if (-e ' + backupname + ') ' + backupname
 dstext = ""
 setlet = ""
+origComDir = 'origcoms'
+laterBname = 'laterbsetup.com'
+laterBlines = []
+
+# Write a com file with the given lines, and write it to the origcoms directory if that
+# is still defined
+def writeComFile(dstfile, sedlines):
+   writeTextFile(dstfile, sedlines)
+   if origComDir:
+      writeTextFile(os.path.join(origComDir, dstfile), sedlines)
 
 
 # This function does the boilerplate of defining source and destination files,
@@ -43,7 +53,7 @@ def editAndWrite(srcRoot, dstRoot, sedcom, doChanges = True):
    sedlines.append(backupline)
    if doChanges and len(changeList) > 0:
       sedlines = modifyForChangeList(sedlines, srcRoot, setlet, changeList)
-   writeTextFile(dstfile, sedlines)
+   writeComFile(dstfile, sedlines)
 
 
 # Function to run goodframe
@@ -266,6 +276,22 @@ if distort:
    distort = newDistort
    subdistort = "DistortionField"
 
+# Make the origcoms directory if needed
+if os.path.exists(origComDir):
+   if not os.path.isdir(origComDir):
+      warning('Cannot make directory for original com files; a regular file named ' +
+              origComDir + ' already exists')
+      origComDir = ''
+   if not os.access(origComDir, os.W_OK):
+      warning('Cannot write to the directory for original com files, ' + origComDir)
+      origComDir = ''
+else:
+   try:
+      os.mkdir(origComDir)
+   except OSError:
+      warning('Error making directory for original com files')
+      origComDir = ''
+
 
 # SKIP ALLOWING STACKS IN BACKUP DIRECTORY AND MAKING LINKS TO THEM
 
@@ -439,6 +465,7 @@ for iaxis in range(naxis):
          else:
             printInfo(fmtstr("{0} does not exist yet.\n  When it does, you will have to"+\
                    " run:\n  extracttilts {0} {1}", stackname, tiltspec))
+            laterBlines.append('$extracttilts ' + stackname + ' ' + tiltspec)
       elif userawtlt:
          warning(tiltspec + " does not exist yet.  You need to create this file before"+\
                  " running commands.")
@@ -457,24 +484,26 @@ for iaxis in range(naxis):
          else:
             printInfo(fmtstr("{0} does not exist yet.\n  When it does, you will have to"+\
                    " run:\n  extractpieces {0} {1}", stackname, piecename))
+            laterBlines.append('$extractpieces ' + stackname + ' ' + piecename)
 
    # Set up mag gradient file
    if gradient:
       gradspec = setname + '.maggrad'
       gradok = 1
       if not os.path.exists(gradspec):
+
+      # Use standard input in case of spaces in gradient table
+         input = ['InputImageFile ' + stackname,
+                  'OutputFile ' + gradspec,
+                  'GradientTable ' + gradient,
+                  fmtstr('RotationAngle {}', axisangle)]
+         if pixelx == 1.:
+            input.append(fmtstr("PixelSize {}", pixsize)) 
+                      
          if stackExists:
             prnstr("Extracting mag gradients from the image file...")
             try:
 
-               # Use standard input in case of spaces in gradient table
-               input = ['InputImageFile ' + stackname,
-                        'OutputFile ' + gradspec,
-                        'GradientTable ' + gradient,
-                        fmtstr('RotationAngle {}', axisangle)]
-               if pixelx == 1.:
-                  input.append(fmtstr("PixelSize {}", pixsize)) 
-                      
                extractlines = runcmd('extractmagrad -StandardInput', input)
 
             except ImodpyError:
@@ -489,6 +518,8 @@ for iaxis in range(naxis):
             printInfo(fmtstr("{0} does not exist yet.\n  When it does, you will have to"+\
                              " run:\n  extractmagrad {0} -rot {1} -grad {2} {0} {3}",
                              stackname, axisangle, gradient, gradspec))
+            laterBlines.append('$extractmagrad -StandardInput')
+            laterBlines += input
 
       if gradok:
          subgradient = "GradientFile"
@@ -659,7 +690,7 @@ for iaxis in range(naxis):
    dstlines.append(backupline)
    if changeList:
       dstlines = modifyForChangeList(dstlines, 'xcorr', setlet, changeList)
-   writeTextFile(dstfile, dstlines)
+   writeComFile(dstfile, dstlines)
 
 
    # Set up lines for adding distortion corrections
@@ -768,7 +799,7 @@ for iaxis in range(naxis):
                    backupline])
    if changeList:
       sedlines = modifyForChangeList(sedlines, 'align', setlet, changeList)
-   writeTextFile(dstfile, sedlines)
+   writeComFile(dstfile, sedlines)
    backuplist.extend([dstfile, setname + "local.xf", setname + "fid.xyz",
                       setname + ".xf", setname + ".tlt", setname + ".resid",
                       setname + ".resmod", setname + ".3dmod"])
@@ -877,7 +908,7 @@ for iaxis in range(naxis):
    dstlines.append(backupline)
    if changeList:
       dstlines = modifyForChangeList(dstlines, 'sample', setlet, changeList)
-   writeTextFile(dstfile, dstlines)
+   writeComFile(dstfile, dstlines)
 
    # SKIP FINDSEC until it is useful!
 
@@ -949,5 +980,9 @@ if backup:
          exitError("Setting permissions of " + backupname)
 
 # Skip all the verbiage at the end
+if laterBlines:
+   printInfo('After the B stack is present, you can do all needed extractions with\n' +\
+             '   the command:\n   subm ' + laterBname)
+   writeTextFile(laterBname, laterBlines)
 prnstr("All command files successfully created")
 sys.exit(0)

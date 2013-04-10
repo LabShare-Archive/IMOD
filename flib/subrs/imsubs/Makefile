@@ -10,7 +10,7 @@ O        = $(OBJEXT)
 OBJS = blockio.$(O) altskip.$(O) icllim.$(O) imopen.$(O) imposn.$(O) \
  imunit.$(O) irdhdr.$(O) irdlin.$(O) irdpas.$(O) irepak.$(O) isetdn.$(O) \
  iwrlin.$(O) iwrpas.$(O) convert_vms.$(O) nbytes_and_flags.$(O) \
- irdbinned.$(O)
+ irdbinned.$(O) irdreduced.$(O)
 MODULES = imsubs.$(O)
 
 all: $(OBJS) $(MODULES)
