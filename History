@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/9/13: Made shift limits to Tiltxcorr apply to shift from one view to next
+when using cumulative correlation.
+
+4/9/13: Fixed a few bugs in Batchruntomo for single axis and for running in
+Windows.
+
 4/7/13: Added options to Batchruntomo to specify the data set name and
 directory so that a batch directive file is reusable without editing it, an
 option to deliver data from central location to separate directories, and
