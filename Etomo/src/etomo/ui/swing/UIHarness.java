@@ -527,7 +527,7 @@ public final class UIHarness {
     }
     // Check to see if etomo an exit, save data, and then exit.
     if (EtomoDirector.INSTANCE.exitProgram(axisID)) {
-      System.err.println("exitValue:"+exitValue);
+      System.err.println("exitValue:" + exitValue);
       System.exit(exitValue);
     }
   }
