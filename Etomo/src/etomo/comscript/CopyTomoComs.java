@@ -296,7 +296,7 @@ public final class CopyTomoComs {
     String[] command = new String[] {
         ApplicationManager.getIMODBinPath() + "copytomocoms", "-StandardInput" };
     copytomocoms = new SystemProgram(manager, manager.getPropertyUserDir(), command,
-        AxisID.ONLY);
+        AxisID.ONLY, true, true);
     if (params != null) {
       copytomocoms.setStdInput(params);
     }
