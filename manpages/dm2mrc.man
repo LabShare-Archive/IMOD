@@ -28,8 +28,9 @@ stacks of identically sized images will be handled; all of the images from each
 file will be included in the output file.
 .P
 The program will use the pixel size in the input files to set the pixel
-spacing in the header of the output file, if one can be determined.  It uses
-the value from the first input file having a pixel size.
+spacing in the header of the output file, if one can be determined.  If there
+is a separate Z pixel size, this will be used to set the Z pixel spacing
+also.  It uses the value from the first input file having a pixel size.
 .SH OPTIONS
 .TP
 .B -s
