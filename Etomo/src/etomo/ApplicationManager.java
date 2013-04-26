@@ -143,7 +143,6 @@ import etomo.ui.swing.CcdEraserDisplay;
 import etomo.ui.swing.CleanUpDialog;
 import etomo.ui.swing.CoarseAlignDialog;
 import etomo.ui.swing.Deferred3dmodButton;
-import etomo.ui.swing.DirectiveEditor;
 import etomo.ui.swing.FiducialModelDialog;
 import etomo.ui.swing.FiducialessParams;
 import etomo.ui.swing.FinalAlignedStackDialog;
@@ -2995,146 +2994,111 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final DirectiveFileType directiveFileType,
-      final boolean value) {
+      final StringBuffer errmsg, final boolean value) {
     Directive directive = map.get(key);
     if (directive != null) {
-      if (directive.isValid(directiveFileType)) {
-        directive.setValue(value);
-      }
+      directive.setValue(value);
     }
     else {
-      errmsg.append("Missing directive: " + key + ".");
+      errmsg.append("Missing directive: " + key + ".  ");
     }
   }
 
   private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final DirectiveFileType directiveFileType,
-      final AxisID axisID, final boolean value) {
+      final StringBuffer errmsg, final AxisID axisID, final boolean value) {
     Directive directive = map.get(key);
     if (directive != null) {
-      if (directive.isValid(directiveFileType)) {
-        directive.setValue(axisID, value);
-      }
+      directive.setValue(axisID, value);
     }
     else {
-      errmsg.append("Missing directive: " + key + ".");
+      errmsg.append("Missing directive: " + key + ".  ");
     }
   }
 
   private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final DirectiveFileType directiveFileType,
-      final ConstEtomoNumber value) {
+      final StringBuffer errmsg, final ConstEtomoNumber value) {
     Directive directive = map.get(key);
     if (directive != null) {
-      if (directive.isValid(directiveFileType)) {
-        directive.setValue(value);
-      }
+      directive.setValue(value);
     }
     else {
-      errmsg.append("Missing directive: " + key + ".");
+      errmsg.append("Missing directive: " + key + ".  ");
     }
   }
 
   private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final DirectiveFileType directiveFileType,
-      final AxisID axisID, final ConstEtomoNumber value) {
+      final StringBuffer errmsg, final AxisID axisID, final ConstEtomoNumber value) {
     Directive directive = map.get(key);
     if (directive != null) {
-      if (directive.isValid(directiveFileType)) {
-        directive.setValue(axisID, value);
-      }
+      directive.setValue(axisID, value);
     }
     else {
-      errmsg.append("Missing directive: " + key + ".");
+      errmsg.append("Missing directive: " + key + ".  ");
     }
   }
 
   private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final DirectiveFileType directiveFileType,
-      final ConstStringParameter value) {
+      final StringBuffer errmsg, final ConstStringParameter value) {
     Directive directive = map.get(key);
     if (directive != null) {
-      if (directive.isValid(directiveFileType)) {
-        directive.setValue(value);
-      }
+      directive.setValue(value);
     }
     else {
-      errmsg.append("Missing directive: " + key + ".");
+      errmsg.append("Missing directive: " + key + ".  ");
     }
   }
 
   private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final DirectiveFileType directiveFileType,
-      final double value) {
+      final StringBuffer errmsg, final double value) {
     Directive directive = map.get(key);
     if (directive != null) {
-      if (directive.isValid(directiveFileType)) {
-        directive.setValue(value);
-      }
+      directive.setValue(value);
     }
     else {
-      errmsg.append("Missing directive: " + key + ".");
+      errmsg.append("Missing directive: " + key + ".  ");
     }
   }
 
   private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final DirectiveFileType directiveFileType,
-      final double[] value) {
+      final StringBuffer errmsg, final double[] value) {
     Directive directive = map.get(key);
     if (directive != null) {
-      if (directive.isValid(directiveFileType)) {
-        directive.setValue(value);
-      }
+      directive.setValue(value);
     }
     else {
-      errmsg.append("Missing directive: " + key + ".");
+      errmsg.append("Missing directive: " + key + ".  ");
     }
   }
 
   private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final DirectiveFileType directiveFileType,
-      final int value, final int defaultValue) {
+      final StringBuffer errmsg, final int value, final int defaultValue) {
     Directive directive = map.get(key);
     if (directive != null) {
-      if (directive.isValid(directiveFileType)) {
-        directive.setValue(value);
-        directive.setDefaultValue(defaultValue);
-      }
+      directive.setValue(value);
+      directive.setDefaultValue(defaultValue);
     }
     else {
-      errmsg.append("Missing directive: " + key + ".");
+      errmsg.append("Missing directive: " + key + ".  ");
     }
   }
 
   private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final DirectiveFileType directiveFileType,
-      final String value) {
+      final StringBuffer errmsg, final String value) {
     Directive directive = map.get(key);
     if (directive != null) {
-      if (directive.isValid(directiveFileType)) {
-        directive.setValue(value);
-      }
+      directive.setValue(value);
     }
     else {
-      errmsg.append("Missing directive: " + key + ".");
+      errmsg.append("Missing directive: " + key + ".  ");
     }
-  }
-
-  public void saveDirectiveFile(final AxisID axisID, final DirectiveFileType type) {
-    DirectiveEditor editor = new DirectiveEditorBuilder(this, axisID, type).build();
   }
 
   /**
-   * Save the dataset file and the open dialogs in the dataset.  Update the setup and
-   * runtime parameters in the directive maps.
-   * @param paramMap
-   * @param directiveFileType
-   * @param errmsg
+   * Save the param file and the open dialogs and return a timestamp.  If returning null,
+   * popup a dialog containing errmsg before leaving.
    */
-  public void updateDirectiveMaps(final DirectiveMap setupMap,
-      final DirectiveMap paramMap, final DirectiveFileType directiveFileType,
-      final StringBuffer errmsg) {
+  public String saveAll(final StringBuffer errmsg) {
+    String timestamp = Utilities.getDateTimeStamp();
     try {
       saveParamFile();
     }
@@ -3149,6 +3113,18 @@ public final class ApplicationManager extends BaseManager implements
           + e.getMessage());
     }
     saveDialogs();
+    return timestamp;
+  }
+
+  /**
+   * Save the dataset file and the open dialogs in the dataset.  Update the setup and
+   * runtime parameters in the directive maps.
+   * @param directiveMap
+   * @param directiveFileType
+   * @param errmsg
+   */
+  public void updateDirectiveMap(final DirectiveMap directiveMap,
+      final StringBuffer errmsg) {
     // Save directive data from the current dataset.
     boolean dualAxis = metaData.getAxisType() == AxisType.DUAL_AXIS;
     AxisID firstAxisID;
@@ -3163,140 +3139,140 @@ public final class ApplicationManager extends BaseManager implements
     // setupset.copyarg directvies
     String prepend = DirectiveType.SETUP_SET.toString() + AutodocTokenizer.SEPARATOR_CHAR
         + DirectiveFile.COPY_ARG_NAME + AutodocTokenizer.SEPARATOR_CHAR;
-    updateDirective(setupMap, prepend + DirectiveFile.DUAL_NAME, errmsg,
-        directiveFileType, metaData.getAxisType() == AxisType.DUAL_AXIS);
-    updateDirective(setupMap, prepend + DirectiveFile.MONTAGE_NAME, errmsg,
-        directiveFileType, metaData.getViewType() == ViewType.MONTAGE);
-    updateDirective(setupMap, prepend + DirectiveFile.PIXEL_NAME, errmsg,
-        directiveFileType, metaData.getPixelSize());
-    updateDirective(setupMap, prepend + DirectiveFile.GOLD_NAME, errmsg,
-        directiveFileType, metaData.getFiducialDiameter());
+    updateDirective(directiveMap, prepend + DirectiveFile.DUAL_NAME, errmsg,
+        metaData.getAxisType() == AxisType.DUAL_AXIS);
+    updateDirective(directiveMap, prepend + DirectiveFile.MONTAGE_NAME, errmsg,
+        metaData.getViewType() == ViewType.MONTAGE);
+    updateDirective(directiveMap, prepend + DirectiveFile.PIXEL_NAME, errmsg,
+        metaData.getPixelSize());
+    updateDirective(directiveMap, prepend + DirectiveFile.GOLD_NAME, errmsg,
+        metaData.getFiducialDiameter());
     updateDirective(
-        setupMap,
+        directiveMap,
         prepend
             + DirectiveFile.convertAttributeName(curAxisID, DirectiveFile.ROTATION_NAME),
-        errmsg, directiveFileType, metaData.getImageRotation(curAxisID));
+        errmsg, metaData.getImageRotation(curAxisID));
     if (dualAxis) {
       curAxisID = AxisID.SECOND;
       updateDirective(
-          setupMap,
+          directiveMap,
           prepend
               + DirectiveFile
                   .convertAttributeName(curAxisID, DirectiveFile.ROTATION_NAME), errmsg,
-          directiveFileType, metaData.getImageRotation(curAxisID));
+          metaData.getImageRotation(curAxisID));
     }
     curAxisID = firstAxisID;
     TiltAngleSpec tiltAngleSpec = metaData.getTiltAngleSpecA();
     if (tiltAngleSpec.getType() == TiltAngleType.RANGE) {
       updateDirective(
-          setupMap,
+          directiveMap,
           prepend
               + DirectiveFile.convertAttributeName(curAxisID,
-                  DirectiveFile.FIRST_INC_NAME), errmsg, directiveFileType, new double[] {
-              tiltAngleSpec.getRangeMin(), tiltAngleSpec.getRangeStep() });
+                  DirectiveFile.FIRST_INC_NAME), errmsg,
+          new double[] { tiltAngleSpec.getRangeMin(), tiltAngleSpec.getRangeStep() });
     }
     else if (tiltAngleSpec.getType() == TiltAngleType.FILE) {
       updateDirective(
-          setupMap,
+          directiveMap,
           prepend
               + DirectiveFile.convertAttributeName(curAxisID,
-                  DirectiveFile.USE_RAW_TLT_NAME), errmsg, directiveFileType, true);
+                  DirectiveFile.USE_RAW_TLT_NAME), errmsg, true);
     }
     else if (tiltAngleSpec.getType() == TiltAngleType.EXTRACT) {
       updateDirective(
-          setupMap,
+          directiveMap,
           prepend
               + DirectiveFile.convertAttributeName(curAxisID, DirectiveFile.EXTRACT_NAME),
-          errmsg, directiveFileType, true);
+          errmsg, true);
     }
     if (dualAxis) {
       curAxisID = AxisID.SECOND;
       tiltAngleSpec = metaData.getTiltAngleSpecB();
       if (tiltAngleSpec.getType() == TiltAngleType.RANGE) {
         updateDirective(
-            setupMap,
+            directiveMap,
             prepend
                 + DirectiveFile.convertAttributeName(curAxisID,
-                    DirectiveFile.FIRST_INC_NAME), errmsg, directiveFileType,
+                    DirectiveFile.FIRST_INC_NAME), errmsg,
             new double[] { tiltAngleSpec.getRangeMin(), tiltAngleSpec.getRangeStep() });
       }
       else if (tiltAngleSpec.getType() == TiltAngleType.FILE) {
         updateDirective(
-            setupMap,
+            directiveMap,
             prepend
                 + DirectiveFile.convertAttributeName(curAxisID,
-                    DirectiveFile.USE_RAW_TLT_NAME), errmsg, directiveFileType, true);
+                    DirectiveFile.USE_RAW_TLT_NAME), errmsg, true);
       }
       else if (tiltAngleSpec.getType() == TiltAngleType.EXTRACT) {
         updateDirective(
-            setupMap,
+            directiveMap,
             prepend
                 + DirectiveFile.convertAttributeName(curAxisID,
-                    DirectiveFile.EXTRACT_NAME), errmsg, directiveFileType, true);
+                    DirectiveFile.EXTRACT_NAME), errmsg, true);
       }
     }
     curAxisID = firstAxisID;
-    updateDirective(setupMap,
+    updateDirective(directiveMap,
         prepend + DirectiveFile.convertAttributeName(curAxisID, DirectiveFile.SKIP_NAME),
-        errmsg, directiveFileType, metaData.getExcludeProjectionsA());
+        errmsg, metaData.getExcludeProjectionsA());
     if (dualAxis) {
       curAxisID = AxisID.SECOND;
       updateDirective(
-          setupMap,
+          directiveMap,
           prepend
               + DirectiveFile.convertAttributeName(curAxisID, DirectiveFile.SKIP_NAME),
-          errmsg, directiveFileType, metaData.getExcludeProjectionsA());
+          errmsg, metaData.getExcludeProjectionsA());
     }
     curAxisID = firstAxisID;
-    updateDirective(setupMap, prepend + DirectiveFile.DISTORT_NAME, errmsg,
-        directiveFileType, metaData.getDistortionFile());
-    updateDirective(setupMap, prepend + DirectiveFile.BINNING_NAME, errmsg,
-        directiveFileType, metaData.getBinning(), 1);
-    updateDirective(setupMap, prepend + DirectiveFile.GRADIENT_NAME, errmsg,
-        directiveFileType, metaData.getMagGradientFile());
+    updateDirective(directiveMap, prepend + DirectiveFile.DISTORT_NAME, errmsg,
+        metaData.getDistortionFile());
+    updateDirective(directiveMap, prepend + DirectiveFile.BINNING_NAME, errmsg,
+        metaData.getBinning(), 1);
+    updateDirective(directiveMap, prepend + DirectiveFile.GRADIENT_NAME, errmsg,
+        metaData.getMagGradientFile());
     updateDirective(
-        setupMap,
+        directiveMap,
         prepend + DirectiveFile.convertAttributeName(curAxisID, DirectiveFile.FOCUS_NAME),
-        errmsg, directiveFileType, metaData.getAdjustedFocusA().is());
+        errmsg, metaData.getAdjustedFocusA().is());
     if (dualAxis) {
       curAxisID = AxisID.SECOND;
       updateDirective(
-          setupMap,
+          directiveMap,
           prepend
               + DirectiveFile.convertAttributeName(curAxisID, DirectiveFile.FOCUS_NAME),
-          errmsg, directiveFileType, metaData.getAdjustedFocusB().is());
+          errmsg, metaData.getAdjustedFocusB().is());
     }
     curAxisID = firstAxisID;
     CtfPlotterParam ctfPlotterParam = null;
     if (comScriptMgr.loadCtfPlotter(firstAxisID, false)) {
       ctfPlotterParam = comScriptMgr.getCtfPlotterParam(firstAxisID);
       if (ctfPlotterParam != null) {
-        updateDirective(setupMap, prepend + DirectiveFile.DEFOCUS_NAME, errmsg,
-            directiveFileType, ctfPlotterParam.getExpectedDefocus());
+        updateDirective(directiveMap, prepend + DirectiveFile.DEFOCUS_NAME, errmsg,
+            ctfPlotterParam.getExpectedDefocus());
       }
     }
     if (comScriptMgr.loadCtfCorrection(firstAxisID, false)) {
       CtfPhaseFlipParam ctfPhaseFlipParam = comScriptMgr
           .getCtfPhaseFlipParam(firstAxisID);
       if (ctfPhaseFlipParam != null) {
-        updateDirective(setupMap, prepend + DirectiveFile.VOLTAGE_NAME, errmsg,
-            directiveFileType, ctfPhaseFlipParam.getVoltage());
-        updateDirective(setupMap, prepend + DirectiveFile.CS_NAME, errmsg,
-            directiveFileType, ctfPhaseFlipParam.getSphericalAberration());
+        updateDirective(directiveMap, prepend + DirectiveFile.VOLTAGE_NAME, errmsg,
+            ctfPhaseFlipParam.getVoltage());
+        updateDirective(directiveMap, prepend + DirectiveFile.CS_NAME, errmsg,
+            ctfPhaseFlipParam.getSphericalAberration());
       }
     }
     if (ctfPlotterParam != null) {
-      updateDirective(setupMap, prepend + DirectiveFile.CTF_NOISE_NAME, errmsg,
-          directiveFileType, ctfPlotterParam.getConfigFile());
+      updateDirective(directiveMap, prepend + DirectiveFile.CTF_NOISE_NAME, errmsg,
+          ctfPlotterParam.getConfigFile());
     }
     // setupset directives
     prepend = DirectiveType.SETUP_SET.toString() + AutodocTokenizer.SEPARATOR_CHAR;
-    updateDirective(setupMap, prepend + DirectiveFile.SCOPE_TEMPLATE_NAME, errmsg,
-        directiveFileType, metaData.getOrigScopeTemplate());
-    updateDirective(setupMap, prepend + DirectiveFile.SYSTEM_TEMPLATE_NAME, errmsg,
-        directiveFileType, metaData.getOrigSystemTemplate());
-    updateDirective(setupMap, prepend + DirectiveFile.USER_TEMPLATE_NAME, errmsg,
-        directiveFileType, metaData.getOrigUserTemplate());
+    updateDirective(directiveMap, prepend + DirectiveFile.SCOPE_TEMPLATE_NAME, errmsg,
+        metaData.getOrigScopeTemplate());
+    updateDirective(directiveMap, prepend + DirectiveFile.SYSTEM_TEMPLATE_NAME, errmsg,
+        metaData.getOrigSystemTemplate());
+    updateDirective(directiveMap, prepend + DirectiveFile.USER_TEMPLATE_NAME, errmsg,
+        metaData.getOrigUserTemplate());
 
     // param map
     prepend = DirectiveType.RUNTIME.toString() + AutodocTokenizer.SEPARATOR_CHAR;
@@ -3305,36 +3281,34 @@ public final class ApplicationManager extends BaseManager implements
     // Preprocessing
     module = "Preprocessing" + AutodocTokenizer.SEPARATOR_CHAR
         + DirectiveFile.ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
-    updateDirective(paramMap, prepend + module + DirectiveFile.REMOVE_XRAYS, errmsg,
-        directiveFileType, curAxisID, FileType.ERASER_LOG.getFile(this, curAxisID)
-            .exists());
+    updateDirective(directiveMap, prepend + module + DirectiveFile.REMOVE_XRAYS, errmsg,
+        curAxisID, FileType.ERASER_LOG.getFile(this, curAxisID).exists());
     if (dualAxis) {
       curAxisID = AxisID.SECOND;
-      updateDirective(paramMap, prepend + module + DirectiveFile.REMOVE_XRAYS, errmsg,
-          directiveFileType, curAxisID, FileType.ERASER_LOG.getFile(this, curAxisID)
-              .exists());
+      updateDirective(directiveMap, prepend + module + DirectiveFile.REMOVE_XRAYS, errmsg,
+          curAxisID, FileType.ERASER_LOG.getFile(this, curAxisID).exists());
     }
     curAxisID = firstAxisID;
     module = DirectiveFile.FIDUCIALS_NAME + AutodocTokenizer.SEPARATOR_CHAR
         + DirectiveFile.ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     // Coarse alignment
-    updateDirective(paramMap, prepend + module + DirectiveFile.FIDUCIALLESS_NAME, errmsg,
-        directiveFileType, curAxisID, metaData.isFiducialess(curAxisID));
+    updateDirective(directiveMap, prepend + module + DirectiveFile.FIDUCIALLESS_NAME, errmsg,
+        curAxisID, metaData.isFiducialess(curAxisID));
     if (dualAxis) {
       curAxisID = AxisID.SECOND;
-      updateDirective(paramMap, prepend + module + DirectiveFile.REMOVE_XRAYS, errmsg,
-          directiveFileType, curAxisID, metaData.isFiducialess(curAxisID));
+      updateDirective(directiveMap, prepend + module + DirectiveFile.FIDUCIALLESS_NAME,
+          errmsg, curAxisID, metaData.isFiducialess(curAxisID));
     }
     curAxisID = firstAxisID;
     // Tracking choices
-    updateDirective(paramMap, prepend + module + DirectiveFile.TRACKING_METHOD_NAME,
-        errmsg, directiveFileType, curAxisID,
+    updateDirective(directiveMap, prepend + module + DirectiveFile.TRACKING_METHOD_NAME,
+        errmsg, curAxisID,
         TrackingMethod.toDirectiveValue(metaData.getTrackMethod(curAxisID)));
     // TODO finish runtime directives
     if (dualAxis) {
       curAxisID = AxisID.SECOND;
-      updateDirective(paramMap, prepend + module + DirectiveFile.TRACKING_METHOD_NAME,
-          errmsg, directiveFileType, curAxisID,
+      updateDirective(directiveMap, prepend + module + DirectiveFile.TRACKING_METHOD_NAME,
+          errmsg, curAxisID,
           TrackingMethod.toDirectiveValue(metaData.getTrackMethod(curAxisID)));
     }
     curAxisID = firstAxisID;
