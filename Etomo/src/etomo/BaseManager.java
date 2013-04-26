@@ -27,6 +27,7 @@ import etomo.process.SystemProcessException;
 import etomo.process.SystemProcessInterface;
 import etomo.process.ProcessData;
 import etomo.storage.ChunkComscriptFileFilter;
+import etomo.storage.DirectiveMap;
 import etomo.storage.LogFile;
 import etomo.storage.Loggable;
 import etomo.storage.ParameterStore;
@@ -41,7 +42,6 @@ import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
-import etomo.type.DirectiveFileType;
 import etomo.type.FileType;
 import etomo.type.InterfaceType;
 import etomo.type.ProcessEndState;
@@ -246,6 +246,10 @@ public abstract class BaseManager {
     return null;
   }
 
+  public String getStatus() {
+    return getMainPanel().getStatus();
+  }
+
   public boolean updateMetaData(final DialogType dialogType, final AxisID axisID,
       final boolean doValidation) {
     return false;
@@ -428,6 +432,10 @@ public abstract class BaseManager {
     }
   }
 
+  public void updateDirectiveMap(final DirectiveMap directiveMap,
+      final StringBuffer errmsg) {
+  }
+
   public void logMessage(List<String> message, String title, AxisID axisID) {
     LogInterface logInterface = getLogInterface();
     if (logInterface != null) {
@@ -441,9 +449,6 @@ public abstract class BaseManager {
         System.err.println(i.next());
       }
     }
-  }
-  
-  public void saveDirectiveFile(final AxisID axisID, final DirectiveFileType type) {
   }
 
   public void saveLog() {
@@ -1610,6 +1615,15 @@ public abstract class BaseManager {
     }
   }
 
+  /**
+   * Save param file and open dialogs
+   * @param errmsg - should not be null
+   * @return timestamp or null if this functionality is not implemented
+   */
+  public String saveAll(final StringBuffer errmsg) {
+    return null;
+  }
+
   public void doAutomation() {
     if (EtomoDirector.INSTANCE.getArguments().isExit()) {
       uiHarness.exit(AxisID.ONLY, 0);
@@ -1694,7 +1708,10 @@ public abstract class BaseManager {
       getProcessManager().unblockAxis(axisID);
       throw new RuntimeException(t);
     }
-    getProcessManager().unblockAxis(axisID);
+    BaseProcessManager processManager = getProcessManager();
+    if (processManager != null) {
+      processManager.unblockAxis(axisID);
+    }
     return false;
   }
 
