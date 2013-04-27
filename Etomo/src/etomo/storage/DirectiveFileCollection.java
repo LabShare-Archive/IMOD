@@ -152,7 +152,7 @@ public class DirectiveFileCollection implements SetupReconInterface {
   }
 
   public DirectiveFile getDirectiveFile(final DirectiveFileType type) {
-    return directiveFileArray[type.index];
+    return directiveFileArray[type.getIndex()];
   }
 
   public DirectiveFileCollection getDirectiveFileCollection() {
@@ -265,7 +265,7 @@ public class DirectiveFileCollection implements SetupReconInterface {
   }
 
   public void setBatchDirectiveFile(final DirectiveFile baseDirectiveFile) {
-    directiveFileArray[DirectiveFileType.BATCH.index] = baseDirectiveFile;
+    directiveFileArray[DirectiveFileType.BATCH.getIndex()] = baseDirectiveFile;
     if (baseDirectiveFile != null) {
       setDirectiveFile(baseDirectiveFile.getScopeTemplate(), DirectiveFileType.SCOPE);
       setDirectiveFile(baseDirectiveFile.getSystemTemplate(), DirectiveFileType.SYSTEM);
@@ -274,39 +274,40 @@ public class DirectiveFileCollection implements SetupReconInterface {
   }
 
   public void setBinning(final int input) {
-    if (directiveFileArray[DirectiveFileType.BATCH.index] != null) {
-      directiveFileArray[DirectiveFileType.BATCH.index].setBinning(input);
+    if (directiveFileArray[DirectiveFileType.BATCH.getIndex()] != null) {
+      directiveFileArray[DirectiveFileType.BATCH.getIndex()].setBinning(input);
     }
   }
 
   public void setImageRotation(final String input) {
-    if (directiveFileArray[DirectiveFileType.BATCH.index] != null) {
-      directiveFileArray[DirectiveFileType.BATCH.index].setImageRotation(input);
+    if (directiveFileArray[DirectiveFileType.BATCH.getIndex()] != null) {
+      directiveFileArray[DirectiveFileType.BATCH.getIndex()].setImageRotation(input);
     }
   }
 
   public void setPixelSize(final double input) {
-    if (directiveFileArray[DirectiveFileType.BATCH.index] != null) {
-      directiveFileArray[DirectiveFileType.BATCH.index].setPixelSize(input);
+    if (directiveFileArray[DirectiveFileType.BATCH.getIndex()] != null) {
+      directiveFileArray[DirectiveFileType.BATCH.getIndex()].setPixelSize(input);
     }
   }
 
   public void setDirectiveFile(final String absPath, final DirectiveFileType type) {
     if (absPath == null) {
-      directiveFileArray[type.index] = null;
+      directiveFileArray[type.getIndex()] = null;
     }
     else {
-      directiveFileArray[type.index] = DirectiveFile.getInstance(manager, axisID,
+      directiveFileArray[type.getIndex()] = DirectiveFile.getInstance(manager, axisID,
           new File(absPath));
     }
   }
 
   public void setDirectiveFile(final File file, final DirectiveFileType type) {
     if (file == null) {
-      directiveFileArray[type.index] = null;
+      directiveFileArray[type.getIndex()] = null;
     }
     else {
-      directiveFileArray[type.index] = DirectiveFile.getInstance(manager, axisID, file);
+      directiveFileArray[type.getIndex()] = DirectiveFile.getInstance(manager, axisID,
+          file);
     }
   }
 
@@ -367,10 +368,10 @@ public class DirectiveFileCollection implements SetupReconInterface {
       }
       // If scan header (only found in the batch directive file and is not in copyarg) is
       // true, then get values from scanning the header which aren't already in the map.
-      if (directiveFileArray[DirectiveFileType.BATCH.index] != null
-          && directiveFileArray[DirectiveFileType.BATCH.index].isScanHeader()) {
-        Iterator<Entry<String, String>> iterator = directiveFileArray[DirectiveFileType.BATCH.index]
-            .getCopyArgExtraValuesIterator();
+      if (directiveFileArray[DirectiveFileType.BATCH.getIndex()] != null
+          && directiveFileArray[DirectiveFileType.BATCH.getIndex()].isScanHeader()) {
+        Iterator<Entry<String, String>> iterator = directiveFileArray[DirectiveFileType.BATCH
+            .getIndex()].getCopyArgExtraValuesIterator();
         while (iterator.hasNext()) {
           Entry<String, String> entry = iterator.next();
           String name = entry.getKey();
