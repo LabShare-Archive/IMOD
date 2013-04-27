@@ -22,37 +22,44 @@ import junit.framework.TestCase;
 public class DirectiveMapTest extends TestCase {
   public static final String rcsid = "$Id:$";
 
-  private static final String COM_PARAM_A = "comparam.a";
-  private static final String COM_PARAM_B = "comparam.b";
-  private static final String COM_PARAM_C = "comparam.c";
-  private static final String COM_PARAM_D = "comparam.d";
-  private static final String SETUP_SET_A = "setupset.a";
-  private static final String SETUP_SET_B = "setupset.b";
+  private static final String COM_PARAM_A = "comparam.eraser.ccderaser.DiffCriterion";
+  private static final String COM_PARAM_B = "comparam.eraser.ccderaser.MaximumRadius";
+  private static final String COM_PARAM_C = "comparam.eraser.ccderaser.ModelFile";
+  private static final String COM_PARAM_D = "comparam.eraser.ccderaser.PeakCriterion";
+  private static final String SETUP_SET_A = "setupset.copyarg.dual";
+  private static final String SETUP_SET_B = "setupset.copyarg.name";
 
-  private final DirectiveMap map = new DirectiveMap(true);
+  private final DirectiveMap map = new DirectiveMap();
 
   public DirectiveMapTest(String name) {
     super(name);
   }
 
   public void testSortedMap() {
-    Directive directive = new Directive(COM_PARAM_C);
-    map.put(directive.getName(), directive);
+    DirectiveName directiveName = new DirectiveName();
+    directiveName.setKey(COM_PARAM_C);
+    Directive directive = new Directive(directiveName);
+    map.put(directive.getKey(), directive);
 
     DirectiveMap.Iterator iterator = map.keySet(DirectiveType.COM_PARAM).iterator();
     assertTrue("1 comparam directive was added to map", iterator.hasNext());
     assertEquals("hasNext doesn't increment", COM_PARAM_C, iterator.next());
 
-    directive = new Directive(COM_PARAM_B);
-    map.put(directive.getName(), directive);
-    directive = new Directive(SETUP_SET_B);
-    map.put(directive.getName(), directive);
-    directive = new Directive(COM_PARAM_D);
-    map.put(directive.getName(), directive);
-    directive = new Directive(COM_PARAM_A);
-    map.put(directive.getName(), directive);
-    directive = new Directive(SETUP_SET_A);
-    map.put(directive.getName(), directive);
+    directiveName.setKey(COM_PARAM_B);
+    directive = new Directive(directiveName);
+    map.put(directive.getKey(), directive);
+    directiveName.setKey(SETUP_SET_B);
+    directive = new Directive(directiveName);
+    map.put(directive.getKey(), directive);
+    directiveName.setKey(COM_PARAM_D);
+    directive = new Directive(directiveName);
+    map.put(directive.getKey(), directive);
+    directiveName.setKey(COM_PARAM_A);
+    directive = new Directive(directiveName);
+    map.put(directive.getKey(), directive);
+    directiveName.setKey(SETUP_SET_A);
+    directive = new Directive(directiveName);
+    map.put(directive.getKey(), directive);
 
     iterator = map.keySet(DirectiveType.COM_PARAM).iterator();
     for (int i = 0; i < 10; i++) {
