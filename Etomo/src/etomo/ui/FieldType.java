@@ -1,5 +1,7 @@
 package etomo.ui;
 
+import etomo.storage.DirectiveValueType;
+
 /**
 * <p>Description: An enumerator class which decribes text field types.  Used for
 * validation.  Types correspond to the types in PIP.</p>
@@ -61,6 +63,31 @@ public final class FieldType {
     this.validationType = validationType;
     this.collectionType = collectionType;
     this.requiredSize = requiredSize;
+  }
+
+ public static FieldType getInstance(final DirectiveValueType valueType) {
+    if (valueType == DirectiveValueType.BOOLEAN) {
+      return null;
+    }
+    if (valueType == DirectiveValueType.FLOATING_POINT) {
+      return FLOATING_POINT;
+    }
+    if (valueType == DirectiveValueType.FLOATING_POINT_PAIR) {
+      return FLOATING_POINT_PAIR;
+    }
+    if (valueType == DirectiveValueType.INTEGER) {
+      return INTEGER;
+    }
+    if (valueType == DirectiveValueType.INTEGER_PAIR) {
+      return INTEGER_PAIR;
+    }
+    if (valueType == DirectiveValueType.LIST) {
+      return INTEGER_LIST;
+    }
+    if (valueType == DirectiveValueType.STRING) {
+      return STRING;
+    }
+    return null;
   }
 
   public String toString() {
