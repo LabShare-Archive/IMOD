@@ -1045,6 +1045,13 @@ public final class LogFile {
   /**
    * @return true if the open variabled is locked.
    */
+  synchronized boolean isOpen() {
+    return lock.isLocked();
+  }
+
+  /**
+   * @return true if the open variabled is locked.
+   */
   synchronized boolean isOpen(LockType lockType, Id id) {
     return lock.isLocked(lockType, id);
   }
@@ -1236,6 +1243,10 @@ public final class LogFile {
         locked = false;
       }
       return;
+    }
+
+    private boolean isLocked() {
+      return locked;
     }
 
     private boolean isLocked(final LockType lockType, final Id id) {
