@@ -1,6 +1,7 @@
 package etomo.storage;
 
 import etomo.comscript.FortranInputString;
+import etomo.comscript.FortranInputSyntaxException;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstStringParameter;
@@ -29,202 +30,547 @@ public class Directive {
   public static final String rcsid = "$Id:$";
 
   private final DirectiveName directiveName = new DirectiveName();
-
-  private final String description;
   private final boolean batch;
+  private final String description;
+  private final DirectiveDescrEtomoColumn etomoColumn;
   private final boolean template;
-  private final DirectivesDescriptionFile.EtomoColumn etomoColumn;
+  private final DirectiveValues values;
   private final DirectiveValueType valueType;
+  private AxisLevelData axisLevelDataAny = null;
+  private AxisLevelData axisLevelDataA = null;
+  private AxisLevelData axisLevelDataB = null;
 
-  private boolean matchingTemplate = false;
-  private String value = null;
-  private String valueA = null;
-  private String valueB = null;
-  private String defaultValue = null;
-  private String defaultValueA = null;
-  private String defaultValueB = null;
-
-  public Directive(final DirectivesDescriptionFile.DirectiveDescription descr) {
-    directiveName.set(descr);
+  public Directive(final DirectiveDescr descr) {
+    directiveName.setKey(descr);
+    valueType = descr.getValueType();
+    values = new DirectiveValues(valueType);
     description = descr.getDescription();
     batch = descr.isBatch();
     template = descr.isTemplate();
     etomoColumn = descr.getEtomoColumn();
-    valueType = descr.getValueType();
   }
 
-  public Directive(final String name) {
-    directiveName.set(name);
-    description = null;
-    batch = false;
-    template = false;
-    etomoColumn = null;
-    // The default directive value type is a string
+  /**
+   * @param directiveName - constructor does a deep copy of this parameter
+   */
+  public Directive(final DirectiveName directiveName) {
+    this.directiveName.deepCopy(directiveName);
     valueType = DirectiveValueType.STRING;
+    values = new DirectiveValues(valueType);
+    description = null;
+    // No description of this directive, so allow it to exist in any type of directive
+    // file.
+    batch = true;
+    template = true;
+    etomoColumn = null;
   }
 
   public boolean equals(final DirectiveType input) {
     return directiveName.equals(input);
   }
 
-  public String getName() {
-    return directiveName.get();
+  public DirectiveDescrEtomoColumn getEtomoColumn() {
+    return etomoColumn;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public String getKey() {
+    return directiveName.getKey();
+  }
+
+  public String getName(final AxisID axisID) {
+    return directiveName.getName(axisID);
+  }
+
+  public String getTitle() {
+    return directiveName.getTitle();
   }
 
   public DirectiveType getType() {
     return directiveName.getType();
   }
-  
+
+  public DirectiveValues getValues() {
+    return values;
+  }
+
+  public DirectiveValueType getValueType() {
+    return valueType;
+  }
+
+  public boolean isBatch() {
+    return batch;
+  }
+
+  public boolean isValid() {
+    return directiveName.isValid();
+  }
+
+  /**
+   * Returns true if inDirectiveFile is true for the index and the axis (or for any axes).
+   * @param index
+   * @param axisID
+   * @return
+   */
+  public boolean isInDirectiveFile(final int index, final AxisID axisID) {
+    if (index < 0 || index >= DirectiveFileType.NUM) {
+      return false;
+    }
+    boolean retval = false;
+    if (axisID == AxisID.FIRST && axisLevelDataA != null) {
+      retval = axisLevelDataA.inDirectiveFile[index];
+    }
+    else if (axisID == AxisID.SECOND && axisLevelDataB != null) {
+      retval = axisLevelDataB.inDirectiveFile[index];
+    }
+    if (!retval && axisLevelDataAny != null) {
+      retval = axisLevelDataAny.inDirectiveFile[index];
+    }
+    return retval;
+  }
+
+  public boolean isTemplate() {
+    return template;
+  }
+
   public void setDefaultValue(final AxisID axisID, final boolean input) {
-    if (axisID == null) {
-      defaultValue = processValue(input);
-    }
-    else if (axisID == AxisID.SECOND) {
-      defaultValueB = processValue(input);
-    }
-    else {
-      defaultValueA = processValue(input);
-    }
+    values.setDefaultValue(axisID, input);
   }
 
   public void setDefaultValue(final AxisID axisID, final String input) {
-    if (axisID == null) {
-      defaultValue = input;
-    }
-    else if (axisID == AxisID.SECOND) {
-      defaultValueB = input;
-    }
-    else {
-      defaultValueA = input;
-    }
+    values.setDefaultValue(axisID, input);
   }
 
   public void setDefaultValue(final int input) {
-    if (input == EtomoNumber.INTEGER_NULL_VALUE) {
-      defaultValue = null;
+    values.setDefaultValue(input);
+  }
+
+  public void setInDirectiveFile(final DirectiveFileType type, final AxisID axisID,
+      final boolean input) {
+    if (type == null) {
+      return;
     }
-    else {
-      defaultValue = String.valueOf(input);
+    int index = type.getIndex();
+    if (axisID == null) {
+      if (axisLevelDataAny == null) {
+        axisLevelDataAny = new AxisLevelData();
+      }
+      axisLevelDataAny.inDirectiveFile[index] = input;
+    }
+    else if (axisID == AxisID.FIRST) {
+      if (axisLevelDataA == null) {
+        axisLevelDataA = new AxisLevelData();
+      }
+      axisLevelDataA.inDirectiveFile[index] = input;
+    }
+    else if (axisID == AxisID.SECOND) {
+      if (axisLevelDataB == null) {
+        axisLevelDataB = new AxisLevelData();
+      }
+      axisLevelDataB.inDirectiveFile[index] = input;
     }
   }
 
   public void setValue(final AxisID axisID, final boolean input) {
-    if (axisID == null) {
-      value = processValue(input);
-    }
-    else if (axisID == AxisID.SECOND) {
-      valueB = processValue(input);
-    }
-    else {
-      valueA = processValue(input);
-    }
+    values.setValue(axisID, input);
   }
 
   public void setValue(final AxisID axisID, final ConstEtomoNumber input) {
-    if (axisID == null) {
-      value = input.toString();
-    }
-    else if (axisID == AxisID.SECOND) {
-      valueB = input.toString();
-    }
-    else {
-      valueA = input.toString();
-    }
+    values.setValue(axisID, input);
   }
 
   public void setValue(final AxisID axisID, final String input) {
-    if (axisID == null) {
-      value = input;
-    }
-    else if (axisID == AxisID.SECOND) {
-      valueB = input;
-    }
-    else {
-      valueA = input;
-    }
+    values.setValue(axisID, input);
   }
 
   public void setValue(final boolean input) {
-    value = processValue(input);
+    values.setValue(input);
   }
 
   public void setValue(final ConstEtomoNumber input) {
-    if (input == null) {
-      value = null;
-    }
-    else {
-      value = input.toString();
-    }
+    values.setValue(input);
   }
 
   public void setValue(final ConstStringParameter input) {
-    if (input == null) {
-      value = null;
-    }
-    else {
-      value = input.toString();
-    }
+    values.setValue(input);
   }
 
   public void setValue(final double input) {
-    if (input == EtomoNumber.DOUBLE_NULL_VALUE) {
-      value = null;
-    }
-    else {
-      value = String.valueOf(input);
-    }
+    values.setValue(input);
   }
 
   public void setValue(final double[] input) {
-    if (input == null) {
-      value = null;
-    }
-    else {
-      FortranInputString inputString = new FortranInputString(input.length);
-      for (int i = 0; i < input.length; i++) {
-        inputString.set(i, input[i]);
-      }
-      value = inputString.toString();
-    }
+    values.setValue(input);
   }
 
   public void setValue(final int input) {
-    if (input == EtomoNumber.INTEGER_NULL_VALUE) {
-      value = null;
-    }
-    else {
-      value = String.valueOf(input);
-    }
+    values.setValue(input);
   }
 
   public void setValue(final String input) {
-    value = input;
+    values.setValue(input);
   }
 
-  private String processValue(final boolean input) {
-    if (input) {
-      return "1";
+  public String toString() {
+    StringBuffer buffer = new StringBuffer();
+    buffer.append("[directiveName:" + directiveName + ",batch:" + batch + ",description:"
+        + description + ",etomoColumn:" + etomoColumn + ",template:" + template
+        + ",valueType:" + valueType + ",values:" + values + "]");
+    return buffer.toString();
+  }
+
+  private static final class AxisLevelData {
+    private boolean[] inDirectiveFile = new boolean[DirectiveFileType.NUM];
+
+    private AxisLevelData() {
+      for (int i = 0; i < inDirectiveFile.length; i++) {
+        inDirectiveFile[i] = false;
+      }
     }
-    return "0";
   }
 
-  public boolean isValid(DirectiveFileType directiveFileType) {
-    if (directiveFileType == null || matchingTemplate || (batch && template)) {
+  public static abstract class Value {
+    abstract void set(boolean input);
+
+    abstract void set(ConstEtomoNumber input);
+
+    abstract void set(ConstStringParameter input);
+
+    abstract void set(double input);
+
+    abstract void set(double[] input);
+
+    abstract void set(int input);
+
+    abstract void set(String input);
+
+    public abstract boolean toBoolean();
+  }
+
+  static final class ValueFactory {
+    static Value getValue(final DirectiveValueType valueType) {
+      if (valueType == DirectiveValueType.BOOLEAN) {
+        return new BooleanValue();
+      }
+      else if (valueType == DirectiveValueType.FLOATING_POINT
+          || valueType == DirectiveValueType.INTEGER) {
+        return new NumericValue(valueType);
+      }
+      else if (valueType == DirectiveValueType.FLOATING_POINT_PAIR
+          || valueType == DirectiveValueType.INTEGER_PAIR) {
+        return new NumericPairValue(valueType);
+      }
+      return new StringValue();
+    }
+  }
+
+  static final class BooleanValue extends Value {
+    private boolean value = false;
+
+    private BooleanValue() {
+    }
+
+    boolean equals(final BooleanValue input) {
+      if (input == null) {
+        // the default is false
+        return !value;
+      }
+      return value == input.value;
+    }
+
+    public void set(final boolean input) {
+      value = input;
+    }
+
+    public void set(final ConstEtomoNumber input) {
+      if (input == null) {
+        value = false;
+      }
+      else {
+        value = input.is();
+      }
+    }
+
+    public void set(final ConstStringParameter input) {
+      if (input == null) {
+        value = false;
+      }
+      else {
+        set(input.toString());
+      }
+    }
+
+    public void set(double input) {
+      if (input == 1) {
+        value = true;
+      }
+      else if (input == 0 || input == EtomoNumber.DOUBLE_NULL_VALUE) {
+        value = false;
+      }
+    }
+
+    public void set(double[] input) {
+      if (input == null || input.length == 0) {
+        value = false;
+      }
+      else {
+        set(input[0]);
+      }
+    }
+
+    public void set(int input) {
+      if (input == 1) {
+        value = true;
+      }
+      else if (input == 0 || input == EtomoNumber.INTEGER_NULL_VALUE) {
+        value = false;
+      }
+    }
+
+    public void set(String input) {
+      if (input == null) {
+        value = false;
+      }
+      else {
+        input = input.trim();
+        if (input.equals("1")) {
+          value = true;
+        }
+        else if (input.equals("0") || input.equals("")) {
+          value = false;
+        }
+      }
+    }
+
+    public boolean toBoolean() {
+      return value;
+    }
+
+    public String toString() {
+      return String.valueOf(value);
+    }
+  }
+
+  static final class NumericValue extends Value {
+    private final EtomoNumber value;
+
+    private NumericValue(final DirectiveValueType valueType) {
+      if (valueType == DirectiveValueType.FLOATING_POINT) {
+        value = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+      }
+      else {
+        value = new EtomoNumber();
+      }
+    }
+
+    boolean equals(final NumericValue input) {
+      if (input == null) {
+        return value.isNull();
+      }
+      return value.equals(input.value);
+    }
+
+    public void set(final boolean input) {
+      value.set(input);
+    }
+
+    public void set(final ConstEtomoNumber input) {
+      value.set(input);
+    }
+
+    public void set(final ConstStringParameter input) {
+      if (input == null) {
+        value.reset();
+      }
+      else {
+        value.set(input.toString());
+      }
+    }
+
+    public void set(double input) {
+      value.set(input);
+    }
+
+    public void set(double[] input) {
+      if (input == null || input.length == 0) {
+        value.reset();
+      }
+      else {
+        value.set(input[0]);
+      }
+    }
+
+    public void set(int input) {
+      value.set(input);
+    }
+
+    public void set(final String input) {
+      value.set(input);
+    }
+
+    public boolean toBoolean() {
+      return value.is();
+    }
+
+    public String toString() {
+      return value.toString();
+    }
+  }
+
+  static final class NumericPairValue extends Value {
+    private final FortranInputString value = new FortranInputString(2);
+
+    private NumericPairValue(final DirectiveValueType valueType) {
+      if (valueType != DirectiveValueType.FLOATING_POINT_PAIR) {
+        value.setIntegerType(true);
+      }
+    }
+
+    boolean equals(final NumericPairValue input) {
+      if (input == null) {
+        return value.isNull();
+      }
+      return value.equals(input.value);
+    }
+
+    public void set(final boolean input) {
+      value.set(0, input ? 1 : 0);
+    }
+
+    public void set(final ConstEtomoNumber input) {
+      value.set(0, input);
+    }
+
+    public void set(final ConstStringParameter input) {
+      if (input == null) {
+        value.setDefault();
+      }
+      else {
+        try {
+          value.validateAndSet(input.toString());
+        }
+        catch (FortranInputSyntaxException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    public void set(double input) {
+      value.set(0, input);
+    }
+
+    public void set(double[] input) {
+      value.setDefault();
+      if (input != null) {
+        for (int i = 0; i < input.length; i++) {
+          value.set(i, input[i]);
+        }
+      }
+    }
+
+    public void set(int input) {
+      value.set(0, input);
+    }
+
+    public void set(final String input) {
+      try {
+        value.validateAndSet(input);
+      }
+      catch (FortranInputSyntaxException e) {
+        e.printStackTrace();
+      }
+    }
+
+    public boolean toBoolean() {
+      if (value.isNull(0)) {
+        return false;
+      }
+      int element = value.getInt(0);
+      if (element == 0) {
+        return false;
+      }
       return true;
     }
-    if (!batch && !template) {
-      return false;
+
+    public String toString() {
+      return value.toString();
     }
-    if (batch && directiveFileType != DirectiveFileType.BATCH) {
-      return false;
-    }
-    if (template && directiveFileType == DirectiveFileType.BATCH) {
-      return false;
-    }
-    return true;
   }
 
-  public void setMatchingTemplate(final boolean input) {
-    matchingTemplate = input;
+  static final class StringValue extends Value {
+    private String value = null;
+
+    private StringValue() {
+    }
+
+    boolean equals(final StringValue input) {
+      if (input == null) {
+        return value == null || value.matches("\\s*");
+      }
+      return value.trim().equals(input.value.trim());
+    }
+
+    public void set(final boolean input) {
+      value = input ? "1" : "0";
+    }
+
+    public void set(final ConstEtomoNumber input) {
+      if (input == null) {
+        value = null;
+      }
+      else {
+        value = input.toString();
+      }
+    }
+
+    public void set(final ConstStringParameter input) {
+      if (input == null) {
+        value = null;
+      }
+      else {
+        value = input.toString();
+      }
+    }
+
+    public void set(double input) {
+      value = String.valueOf(input);
+    }
+
+    public void set(double[] input) {
+      if (input == null) {
+        value = null;
+      }
+      else {
+        StringBuffer buffer = new StringBuffer();
+        for (int i = 0; i < input.length; i++) {
+          buffer.append((i > 0 ? "," : "") + String.valueOf(input[i]));
+        }
+        if (buffer.length() > 0) {
+          value = buffer.toString();
+        }
+      }
+    }
+
+    public void set(int input) {
+      value = String.valueOf(input);
+    }
+
+    public void set(final String input) {
+      value = input;
+    }
+
+    public String toString() {
+      return value;
+    }
+
+    public boolean toBoolean() {
+      if (value != null && value.equals("1")) {
+        return true;
+      }
+      return false;
+    }
   }
 }
