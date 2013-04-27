@@ -31,12 +31,10 @@ public class ComFileTest extends TestCase {
   private static final String FIRST_PROGRAM_NAME = "tiltalign";
   private static final String SECOND_PROGRAM_NAME = "xfproduct";
 
-  private BaseManager manager;
-
   public void testComFile() {
     String unitTestDataFileName = TestUtilites.INSTANCE.getUnitTestData()
         .getAbsolutePath();
-    manager = (BaseManager) EtomoDirector.INSTANCE.getCurrentManagerForTest();
+    BaseManager  manager = (BaseManager) EtomoDirector.INSTANCE.getCurrentManagerForTest();
     manager.setPropertyUserDir(unitTestDataFileName);
 
     ComFile comFile = new ComFile(manager, AXIS_ID);
