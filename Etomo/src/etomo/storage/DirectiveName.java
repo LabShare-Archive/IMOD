@@ -4,7 +4,12 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 
 /**
-* <p>Description: </p>
+* <p>Description: Handles the left side of a directive set.
+* Directive set:
+* - 1 directive with no axisID information or
+* - 3 directives: A, B, and both axes.
+* This class can return a key, which is identical to the directive name for both axes.  It
+* can also return a directive name for a specific axisID.</p>
 * 
 * <p>Copyright: Copyright 2013</p>
 *
@@ -25,120 +30,207 @@ public final class DirectiveName {
   private static final int COM_FILE_NAME_INDEX = 1;
   private static final int PROGRAM_INDEX = 2;
   private static final int PARAMETER_NAME_INDEX = 3;
+  private static final int RUNTIME_AXIS_INDEX = 2;
 
-  private String[] array = null;
-  private boolean initialized = false;
-  private String name = null;
+  private String[] key = null;
   private DirectiveType type = null;
+
+  public String toString() {
+    StringBuffer buffer = new StringBuffer();
+    buffer.append("[key:");
+    if (key != null) {
+      for (int i = 0; i < key.length; i++) {
+        buffer.append(key[i] + " ");
+      }
+    }
+    return ",type:" + type + "]";
+  }
 
   public DirectiveName() {
   }
 
-  static boolean equals(final String name, final DirectiveType input) {
-    if (name == null || input == null) {
+  static boolean equals(final String key, final DirectiveType input) {
+    if (key == null || input == null) {
       return false;
     }
-    return name.startsWith(input.toString() + AutodocTokenizer.SEPARATOR_CHAR);
-  }
-
-  static String removeAxisID(final String name) {
-    if (mayContainAxisID(name)) {
-      String[] array = name.split("\\" + AutodocTokenizer.SEPARATOR_CHAR);
-      if (array != null && array.length > 0) {
-        return removeAxisID(name, array, DirectiveType.getInstance(array[0]));
-      }
-    }
-    return name;
+    return key.startsWith(input.toString() + AutodocTokenizer.SEPARATOR_CHAR);
   }
 
   boolean equals(final DirectiveType input) {
-    if (initialized) {
-      return type == input;
+    if (isNull()) {
+      return false;
     }
-    return equals(name, input);
+    return type == input;
   }
 
-  public DirectiveType getType() {
+  /**
+   * @return the name with no axis ID
+   */
+  public String getKey() {
     if (isNull()) {
       return null;
     }
-    init();
-    return type;
+    StringBuffer buffer = new StringBuffer();
+    for (int i = 0; i < key.length; i++) {
+      buffer.append((i > 0 ? "." : "") + key[i]);
+    }
+    return buffer.toString();
   }
 
   public String getComFileName() {
     if (isNull()) {
       return null;
     }
-    init();
     // Only comparam directives have a comfile name. Missing comfile name.
-    if (type != DirectiveType.COM_PARAM || array == null
-        || array.length <= COM_FILE_NAME_INDEX) {
+    if (type != DirectiveType.COM_PARAM || key.length <= COM_FILE_NAME_INDEX) {
       return null;
     }
-    return array[COM_FILE_NAME_INDEX];
-  }
-
-  public String getProgramName() {
-    if (isNull()) {
-      return null;
-    }
-    init();
-    // Only comparam directives have a program name. Missing program name.
-    if (type != DirectiveType.COM_PARAM || array == null || array.length <= PROGRAM_INDEX) {
-      return null;
-    }
-    return array[PROGRAM_INDEX];
+    return key[COM_FILE_NAME_INDEX];
   }
 
   public String getParameterName() {
     if (isNull()) {
       return null;
     }
-    init();
-    // Only comparam directives have a parameter name. Missing parameter name.
-    if (type != DirectiveType.COM_PARAM || array == null
-        || array.length <= PARAMETER_NAME_INDEX) {
+    if (type == DirectiveType.SETUP_SET) {
+      if (key.length < 2) {
+        return null;
+      }
+      boolean copyarg = key[1].equals(DirectiveFile.COPY_ARG_NAME);
+      if (copyarg) {
+        if (key.length > 2) {
+          return key[2];
+        }
+      }
+      else {
+        return key[1];
+      }
+    }
+    else if ((type == DirectiveType.COM_PARAM || type == DirectiveType.RUNTIME)
+        && key.length >= PARAMETER_NAME_INDEX) {
+      return key[PARAMETER_NAME_INDEX];
+    }
+    return null;
+  }
+
+  public String getProgramName() {
+    if (isNull()) {
       return null;
     }
-    return array[PARAMETER_NAME_INDEX];
+    // Only comparam directives have a program name. Missing program name.
+    if (type != DirectiveType.COM_PARAM || key.length <= PROGRAM_INDEX) {
+      return null;
+    }
+    return key[PROGRAM_INDEX];
   }
 
-  public String get() {
-    return name;
+  public String getTitle() {
+    if (isNull()) {
+      return null;
+    }
+    if (type == DirectiveType.COM_PARAM) {
+      return getComFileName() + "." + getParameterName();
+    }
+    else {
+      return getParameterName();
+    }
   }
 
-  void set(DirectivesDescriptionFile.DirectiveDescription descr) {
+  public DirectiveType getType() {
+    return type;
+  }
+
+  public boolean isValid() {
+    if (isNull()) {
+      return false;
+    }
+    return type != null && key.length > 1;
+  }
+
+  /**
+   * Copies the data rather then pointers to mutable objects in the parameter.
+   * @param directiveName
+   */
+  void deepCopy(final DirectiveName directiveName) {
+    if (directiveName.key == null) {
+      key = null;
+    }
+    else {
+      key = new String[directiveName.key.length];
+      for (int i = 0; i < key.length; i++) {
+        key[i] = directiveName.key[i];
+      }
+    }
+    type = directiveName.type;
+  }
+
+  void setKey(DirectiveDescr descr) {
     // The a and b axes are not included for comparam and runtime directives in the
-    // directive.csv file, so not need to remove them.
-    name = descr.getName();
-    initialized = false;
-    array = null;
-    type = null;
+    // directive.csv file, so no need to remove them.
+    splitKey(descr.getName());
   }
 
-  public void set(String input) {
-    name = input;
-    initialized = false;
-    array = null;
+  private void splitKey(String input) {
+    key = null;
     type = null;
-    removeAxisID();
-  }
-
-  private void init() {
-    if (!initialized) {
-      initialized = true;
-      if (name != null) {
-        array = name.split("\\" + AutodocTokenizer.SEPARATOR_CHAR);
-        if (array != null && array.length > TYPE_INDEX) {
-          type = DirectiveType.getInstance(array[TYPE_INDEX]);
-        }
+    if (input != null && !input.matches("\\s*")) {
+      key = input.split("\\" + AutodocTokenizer.SEPARATOR_CHAR);
+      if (key != null && key.length > TYPE_INDEX) {
+        type = DirectiveType.getInstance(key[TYPE_INDEX]);
       }
     }
   }
 
+  /**
+   * Strips axis information and saves a key containing the "any" form of the directive
+   * name.  For a directive with no axis information or an "any" directive name, the key
+   * is the same as the input string, and null is returned.
+   * @param input
+   * @return the axisID that was removed from the name (or null for "any").
+   */
+  public AxisID setKey(String input) {
+    splitKey(input);
+    if (type != DirectiveType.COM_PARAM && type != DirectiveType.RUNTIME) {
+      return null;
+    }
+    // Remove axisID from the name to create a key. Standardize the key to the Any form of
+    // the directive name, and return the axisID that was found.
+    AxisID axisID = null;
+    for (int i = 0; i < key.length; i++) {
+      if (type == DirectiveType.COM_PARAM
+          && i == COM_FILE_NAME_INDEX
+          && key[i] != null
+          && (key[i].endsWith(AxisID.FIRST.getExtension()) || key[i]
+              .endsWith(AxisID.SECOND.getExtension()))) {
+        if (key[i].endsWith(AxisID.FIRST.getExtension())) {
+          axisID = AxisID.FIRST;
+        }
+        else {
+          axisID = AxisID.SECOND;
+        }
+        // Strip off the a or b
+        key[i] = key[i].substring(0, key[i].length() - 1);
+      }
+      else if (type == DirectiveType.RUNTIME
+          && i == RUNTIME_AXIS_INDEX
+          && key[i] != null
+          && (key[i].equals(AxisID.FIRST.getExtension()) || key[i].equals(AxisID.SECOND
+              .getExtension()))) {
+        if (key[i].equals(AxisID.FIRST.getExtension())) {
+          axisID = AxisID.FIRST;
+        }
+        else {
+          axisID = AxisID.SECOND;
+        }
+        // Replace with "any".
+        key[i] = DirectiveFile.ANY_AXIS_NAME;
+      }
+    }
+    return axisID;
+  }
+
   private boolean isNull() {
-    return name == null || name.matches("\\s*");
+    return key == null || key.length == 0;
   }
 
   private static boolean mayContainAxisID(final String name) {
@@ -150,69 +242,36 @@ public final class DirectiveName {
             .indexOf(AxisID.SECOND.getExtension() + AutodocTokenizer.SEPARATOR_CHAR) != -1);
   }
 
-  private void removeAxisID() {
-    if (mayContainAxisID(name)) {
-      init();
-      name = removeAxisID(name, array, type);
-      // array contains the old version of the name
-      initialized = false;
-      array = null;
-    }
-  }
-
   /**
-  * Convert name into a directive name for both axes.
-  * @param name - must not be empty, should contain "a." or "b."
-  * @param array - must be from name.split
-  * @param type - the type found in array[0]
-  * @return
-  */
-  private static String removeAxisID(final String name, final String[] array,
-      final DirectiveType type) {
-    if (type == null || array == null) {
-      return name;
+   * Returns the directive name for the axisID specified.
+   * @param axisID
+   * @return
+   */
+  public String getName(final AxisID axisID) {
+    if (key == null) {
+      return null;
     }
-    int index;
-    if (type == DirectiveType.COM_PARAM) {
-      index = COM_FILE_NAME_INDEX;
-      if (array.length > index
-          && array[index] != null
-          && (array[index].endsWith(AxisID.FIRST.getExtension()) || array[index]
-              .endsWith(AxisID.SECOND.getExtension()))) {
-        // Remove the a or b at the end of the com file name
-        StringBuffer buffer = new StringBuffer();
-        for (int i = 0; i < array.length; i++) {
-          if (i == index) {
-            buffer.append(AutodocTokenizer.SEPARATOR_CHAR
-                + array[index].substring(0, array[index].length() - 1));
-          }
-          else {
-            buffer.append((i == 0 ? "" : AutodocTokenizer.SEPARATOR_CHAR) + array[i]);
-          }
-        }
-        return buffer.toString();
-      }
+    // Set ext to the correct form of the axisID
+    String ext = "";
+    if (axisID == AxisID.FIRST || axisID == AxisID.SECOND) {
+      ext = axisID.getExtension();
     }
     else if (type == DirectiveType.RUNTIME) {
-      index = 2;
-      if (array.length > index
-          && array[index] != null
-          && (array[index].equals(AxisID.FIRST.getExtension()) || array[index]
-              .equals(AxisID.SECOND.getExtension()))) {
-        // Replace .a. or .b. with .any.
-        StringBuffer buffer = new StringBuffer();
-        for (int i = 0; i < array.length; i++) {
-          if (i == index) {
-
-            buffer.append(AutodocTokenizer.SEPARATOR_CHAR + DirectiveFile.ANY_AXIS_NAME);
-          }
-          else {
-            buffer.append((i == 0 ? "" : AutodocTokenizer.SEPARATOR_CHAR) + array[i]);
-          }
-        }
-        return buffer.toString();
+      ext = DirectiveFile.ANY_AXIS_NAME;
+    }
+    // Create a string version of the directive name with the correct axisID string
+    StringBuffer buffer = new StringBuffer();
+    for (int i = 0; i < key.length; i++) {
+      if (type == DirectiveType.COM_PARAM && i == COM_FILE_NAME_INDEX) {
+        buffer.append((i > 0 ? AutodocTokenizer.SEPARATOR_CHAR : "") + key[i] + ext);
+      }
+      else if (type == DirectiveType.RUNTIME && i == RUNTIME_AXIS_INDEX) {
+        buffer.append((i > 0 ? AutodocTokenizer.SEPARATOR_CHAR : "") + ext);
+      }
+      else {
+        buffer.append((i > 0 ? AutodocTokenizer.SEPARATOR_CHAR : "") + key[i]);
       }
     }
-    return name;
+    return buffer.toString();
   }
 }
