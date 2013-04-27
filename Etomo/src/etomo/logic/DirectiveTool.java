@@ -63,11 +63,6 @@ public final class DirectiveTool {
     // Check the display settings in order of precedence.
     boolean include = false;
     boolean exclude = false;
-    // Check the include SD checkbox.
-    if (displaySettings.isIncludeSD()
-        && directive.getEtomoColumn() == DirectiveDescrEtomoColumn.SD) {
-      include = true;
-    }
     // if the directive is in a current directive file then the include/exclude settings
     // can affect it.
     int matchingIndex = -1;
@@ -140,12 +135,6 @@ public final class DirectiveTool {
       return directive.isInDirectiveFile(index, axisID)
           && (!curIncludeState && displaySettings.isInclude(index))
           || (curIncludeState && displaySettings.isExclude(index));
-    }
-    // Has the include SD checkbox changed and is this directive affected?
-    else if (displaySettings.isIncludeSDChanged()
-        && directive.getEtomoColumn() == DirectiveDescrEtomoColumn.SD) {
-      // Does the change mean the curIncludeState is wrong now?
-      return curIncludeState != displaySettings.isIncludeSD();
     }
     return false;
   }
