@@ -1,6 +1,5 @@
 package etomo.storage;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
@@ -23,37 +22,39 @@ import java.util.TreeMap;
 public final class DirectiveMap {
   public static final String rcsid = "$Id:$";
 
-  private final Map<String, Directive> map;
+  private final Map<String, Directive> map = new TreeMap<String, Directive>();
 
-  public DirectiveMap() {
-    map = new HashMap<String, Directive>();
+  public String toString() {
+    return map.toString();
   }
 
-  public DirectiveMap(final boolean sorted) {
-    map = new TreeMap<String, Directive>();
+  public DirectiveMap() {
   }
 
   public void put(final String key, final Directive value) {
     map.put(key, value);
   }
 
+  public void clear() {
+    map.clear();
+  }
+
   public Directive get(final String key) {
-    Directive directive = map.get(key);
-    if (directive == null) {
-      directive = map.get(DirectiveName.removeAxisID(key));
+    if (key == null) {
+      return null;
     }
-    return directive;
+    return map.get(key);
   }
 
-  public Set keySet(final DirectiveType type) {
-    return new Set(map.keySet(), type);
+  public KeySet keySet(final DirectiveType type) {
+    return new KeySet(map.keySet(), type);
   }
 
-  public static final class Set {
+  public static final class KeySet {
     private final java.util.Set keySet;
     private final DirectiveType type;
 
-    private Set(final java.util.Set<String> keySet, final DirectiveType type) {
+    private KeySet(final java.util.Set<String> keySet, final DirectiveType type) {
       this.keySet = keySet;
       this.type = type;
     }
