@@ -22,30 +22,94 @@ import etomo.BaseManager;
 public final class DirectiveFileType {
   public static final String rcsid = "$Id:$";
 
-  public static DirectiveFileType SCOPE = new DirectiveFileType(0);
-  public static DirectiveFileType SYSTEM = new DirectiveFileType(1);
-  public static DirectiveFileType USER = new DirectiveFileType(2);
-  public static DirectiveFileType BATCH = new DirectiveFileType(3);
+  public static DirectiveFileType SCOPE = new DirectiveFileType(0, "Scope",
+      "Scope template", FileType.LOCAL_SCOPE_TEMPLATE);
+  public static DirectiveFileType SYSTEM = new DirectiveFileType(1, "System",
+      "System template", FileType.LOCAL_SYSTEM_TEMPLATE);
+  public static DirectiveFileType USER = new DirectiveFileType(2, "User",
+      "User template", FileType.LOCAL_USER_TEMPLATE);
+  public static DirectiveFileType BATCH = new DirectiveFileType(3, "Batch",
+      "Batch directive file", FileType.LOCAL_BATCH_DIRECTIVE_FILE);
 
-  public final int index;
+  public static int NUM = 4;
 
-  private DirectiveFileType(final int index) {
+  private final int index;
+  private final String string;
+  private final String label;
+  private final FileType fileType;
+
+  private DirectiveFileType(final int index, final String string, final String label,
+      final FileType fileType) {
     this.index = index;
+    this.string = string;
+    this.label = label;
+    this.fileType = fileType;
+  }
+
+  public static DirectiveFileType getInstance(final String label) {
+    if (label == null) {
+      return null;
+    }
+    if (label.equals(SCOPE.label)) {
+      return SCOPE;
+    }
+    if (label.equals(SYSTEM.label)) {
+      return SYSTEM;
+    }
+    if (label.equals(USER.label)) {
+      return USER;
+    }
+    if (label.equals(BATCH.label)) {
+      return BATCH;
+    }
+    return null;
   }
 
   public File getLocalFile(final BaseManager manager, final AxisID axisID) {
-    if (this == SCOPE) {
-      return FileType.LOCAL_SCOPE_TEMPLATE.getFile(manager, axisID);
+    return fileType.getFile(manager, axisID);
+  }
+
+  public String toString() {
+    return string;
+  }
+
+  public String getLabel() {
+    return label;
+  }
+
+  public static String toString(final int index) {
+    if (index == SCOPE.index) {
+      return SCOPE.string;
     }
-    if (this == SYSTEM) {
-      return FileType.LOCAL_SYSTEM_TEMPLATE.getFile(manager, axisID);
+    if (index == SYSTEM.index) {
+      return SYSTEM.string;
     }
-    if (this == USER) {
-      return FileType.LOCAL_USER_TEMPLATE.getFile(manager, axisID);
+    if (index == USER.index) {
+      return USER.string;
     }
-    if (this == BATCH) {
-      return FileType.LOCAL_BATCH_DIRECTIVE_FILE.getFile(manager, axisID);
+    if (index == BATCH.index) {
+      return BATCH.string;
     }
     return null;
+  }
+  
+  public static String getLabel(final int index) {
+    if (index == SCOPE.index) {
+      return SCOPE.label;
+    }
+    if (index == SYSTEM.index) {
+      return SYSTEM.label;
+    }
+    if (index == USER.index) {
+      return USER.label;
+    }
+    if (index == BATCH.index) {
+      return BATCH.label;
+    }
+    return null;
+  }
+
+  public int getIndex() {
+    return index;
   }
 }
