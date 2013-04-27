@@ -48,6 +48,7 @@ public class StorageTests {
     suite.addTestSuite(DirectiveMapTest.class);
     suite.addTestSuite(DirectiveNameTest.class);
     suite.addTestSuite(ComFileTest.class);
+    suite.addTestSuite(DirectiveDescrFileTest.class);
     // suite.addTest(new LogFileTest("testIds"));
     // $JUnit-END$
     return suite;
