@@ -182,17 +182,6 @@ final class PanelHeader implements Expandable {
     cellTitle.setText(text);
   }
 
-  /**
-   * Store a value in each button.  Value may be used to identify or retrieve the correct
-   * header.
-   * @param input
-   */
-  void setHeaderId(final int input) {
-    btnOpenClose.setHeaderId(input);
-    btnAdvancedBasic.setHeaderId(input);
-    btnMoreLess.setHeaderId(input);
-  }
-
   Container getContainer() {
     return rootPanel;
   }
@@ -225,6 +214,10 @@ final class PanelHeader implements Expandable {
 
   String getTitle() {
     return title;
+  }
+  
+  ExpandButton getOpenCloseButton() {
+    return btnOpenClose;
   }
 
   boolean isAdvanced() {
