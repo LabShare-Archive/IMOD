@@ -45,7 +45,7 @@ public final class ManagerFrame extends AbstractFrame {
 
   public static final String NAME = "manager-frame";
 
-  private final EtomoMenu menu = new EtomoMenu(true);
+  private final EtomoMenu menu = new EtomoMenu();
 
   private final BaseManager manager;
   private final JPanel rootPanel;
@@ -66,7 +66,7 @@ public final class ManagerFrame extends AbstractFrame {
     if (manager == null) {
       throw new NullPointerException("manager is null");
     }
-    //set name
+    // set name
     String name = Utilities.convertLabelToName(NAME);
     rootPanel.setName(UITestFieldType.PANEL.toString() + AutodocTokenizer.SEPARATOR_CHAR
         + name);
@@ -84,7 +84,7 @@ public final class ManagerFrame extends AbstractFrame {
     rootPanel.repaint();
     setVisible(true);
   }
-  
+
   public FrameType getFrameType() {
     return null;
   }
@@ -106,7 +106,7 @@ public final class ManagerFrame extends AbstractFrame {
    * @param event
    */
   public void menuViewAction(ActionEvent event) {
-    //Run fitWindow on both frames.
+    // Run fitWindow on both frames.
     if (menu.equalsFitWindow(event)) {
       UIHarness.INSTANCE.pack(true, manager);
     }
