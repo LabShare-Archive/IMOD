@@ -56,7 +56,7 @@ abstract class EtomoFrame extends AbstractFrame {
   abstract void register();
 
   void initialize() {
-    menu = new EtomoMenu(singleFrame);
+    menu = new EtomoMenu();
     ImageIcon iconEtomo = new ImageIcon(ClassLoader.getSystemResource("images/etomo.png"));
     setIconImage(iconEtomo.getImage());
     createMenus();
@@ -158,17 +158,16 @@ abstract class EtomoFrame extends AbstractFrame {
         currentManager.tomosnapshot(axisID);
       }
     }
-    else if (menu.equalsSaveScope(event)) {
-      currentManager.saveDirectiveFile(getAxisID(), DirectiveFileType.SCOPE);
-    }
-    else if (menu.equalsSaveScope(event)) {
-      currentManager.saveDirectiveFile(getAxisID(), DirectiveFileType.SYSTEM);
-    }
-    else if (menu.equalsSaveScope(event)) {
-      currentManager.saveDirectiveFile(getAxisID(), DirectiveFileType.USER);
-    }
-    else if (menu.equalsExportBatch(event)) {
-      currentManager.saveDirectiveFile(getAxisID(), DirectiveFileType.BATCH);
+    else if (menu.equalsDirectiveFileEditor(event)) {
+      DirectiveFileType type = menu.getDirectiveFileType(event);
+      if (type != null) {
+        StringBuffer errmsg = new StringBuffer();
+        String timestamp = currentManager.saveAll(errmsg);
+        if (timestamp != null) {
+          EtomoDirector.INSTANCE.openDirectiveEditor(type, currentManager, timestamp,
+              errmsg);
+        }
+      }
     }
   }
 
