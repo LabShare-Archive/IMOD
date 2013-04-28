@@ -300,6 +300,19 @@ final class LabeledTextField implements UIComponent {
           + ' ');
     }
   }
+  
+  /**
+   * Saves the current text as the checkpoint.
+   */
+  void checkpoint() {
+    checkpointValue = getText();
+    if (numericType != null) {
+      if (nCheckpointValue == null) {
+        nCheckpointValue = new EtomoNumber(numericType);
+      }
+      nCheckpointValue.set(checkpointValue);
+    }
+  }
 
   /**
    * Saves value as the checkpoint.
