@@ -19,6 +19,7 @@ import etomo.EtomoDirector;
 import etomo.process.ImodqtassistProcess;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.DirectiveFileType;
 import etomo.type.ToolType;
 import etomo.util.EnvironmentVariable;
 import etomo.util.Utilities;
@@ -121,10 +122,7 @@ final class EtomoMenu {
   private final boolean peetAvailable = EnvironmentVariable.INSTANCE.exists(null,
       EtomoDirector.INSTANCE.getOriginalUserDir(), "PARTICLE_DIR", AxisID.ONLY);
 
-  private final boolean singleFrame;
-
-  EtomoMenu(boolean singleFrame) {
-    this.singleFrame = singleFrame;
+  EtomoMenu() {
   }
 
   private void initMenus(AbstractFrame abstractFrame, boolean forManagerFrame) {
@@ -192,6 +190,10 @@ final class EtomoMenu {
       menuClose.addActionListener(fileActionListener);
       menuExit.addActionListener(fileActionListener);
       menuTomosnapshot.addActionListener(fileActionListener);
+      menuExportBatch.addActionListener(fileActionListener);
+      menuSaveScope.addActionListener(fileActionListener);
+      menuSaveSystem.addActionListener(fileActionListener);
+      menuSaveUser.addActionListener(fileActionListener);
 
       menuLogWindow.addActionListener(viewActionListener);
       menuAxisA.addActionListener(viewActionListener);
@@ -391,10 +393,10 @@ final class EtomoMenu {
 
   public void menuToolsAction(AxisID axisID, ActionEvent event) {
     if (equalsFlattenVolume(event)) {
-      EtomoDirector.INSTANCE.openTools(axisID, ToolType.FLATTEN_VOLUME);
+      EtomoDirector.INSTANCE.openTools(ToolType.FLATTEN_VOLUME);
     }
     else if (equalsGpuTiltTest(event)) {
-      EtomoDirector.INSTANCE.openTools(axisID, ToolType.GPU_TILT_TEST);
+      EtomoDirector.INSTANCE.openTools(ToolType.GPU_TILT_TEST);
     }
   }
 
@@ -624,20 +626,25 @@ final class EtomoMenu {
     return equals(menuHelpAbout, event);
   }
 
-  boolean equalsExportBatch(final ActionEvent event) {
-    return equals(menuExportBatch, event);
+  boolean equalsDirectiveFileEditor(final ActionEvent event) {
+    return equals(menuSaveScope, event) || equals(menuSaveSystem, event)
+        || equals(menuSaveUser, event) || equals(menuExportBatch, event);
   }
 
-  boolean equalsSaveScope(final ActionEvent event) {
-    return equals(menuSaveScope, event);
-  }
-
-  boolean equalsSaveSystem(final ActionEvent event) {
-    return equals(menuSaveSystem, event);
-  }
-
-  boolean equalsSaveUser(final ActionEvent event) {
-    return equals(menuSaveUser, event);
+  DirectiveFileType getDirectiveFileType(final ActionEvent event) {
+    if (equals(menuSaveScope, event)) {
+      return DirectiveFileType.SCOPE;
+    }
+    if (equals(menuSaveSystem, event)) {
+      return DirectiveFileType.SYSTEM;
+    }
+    if (equals(menuSaveUser, event)) {
+      return DirectiveFileType.USER;
+    }
+    if (equals(menuExportBatch, event)) {
+      return DirectiveFileType.BATCH;
+    }
+    return null;
   }
 
   private boolean equals(final JMenuItem menuItem, final ActionEvent event) {
