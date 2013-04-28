@@ -157,7 +157,6 @@ final class ExpandButton extends MultiLineButton {
 
   private boolean expanded;
   private JPanel jpanelContainer = null;
-  private int headerId = -1;
 
   static ExpandButton getInstance(final Expandable expandable, ExpandButton.Type type) {
     if (type == null) {
@@ -278,10 +277,6 @@ final class ExpandButton extends MultiLineButton {
     setExpanded(state);
   }
 
-  int getHeaderId() {
-    return headerId;
-  }
-
   String getState() {
     return type.getState(expanded);
   }
@@ -325,11 +320,7 @@ final class ExpandButton extends MultiLineButton {
   boolean equals(final ExpandButton that) {
     return equals((Object) that);
   }
-
-  void setHeaderId(final int input) {
-    headerId = input;
-  }
-
+  
   /**
    * set button setting to expanded and force a call to expand(), even if the
    * value of the button isn't changed.  To allows the screen to be initialized.
