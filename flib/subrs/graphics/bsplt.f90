@@ -452,7 +452,7 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
       ryAdj = ry - connectAdjust
       if (doConnect) then
         call psSetup(ifPlotConnect, c1, c2, c3, 0)
-        cutDist = 1.1 * symWidth
+        cutDist = symConnectGap * symWidth
         fracCut = 0.
         distTot = sqrt((rxAdj - rxLast)**2 + (ryAdj - ryLast)**2)
         if (isymbTemp .ne. 0 .and. distTot > 1.e-4) fracCut = cutDist / distTot
