@@ -205,6 +205,7 @@ subroutine realGraphicsMain()
         '  -2 to enter X axis label and keys for symbols',/, &
         '  -3 to reverse display contrast',/, &
         '  -4 to enter colors for groups in screen display and postscript plots',/, &
+        '  -5 to set gap size when connecting symbols',/, &
         '  -8 to wait until window closes then exit')
   endif
 50 write(*,104)
@@ -244,6 +245,11 @@ subroutine realGraphicsMain()
     go to 50
   endif
   if (iopt == -4) go to 1158
+  if (iopt == -5) then
+    write(*,'(1x,a,$)') 'Size of connecting line gap as fraction of symbol width: '
+    read(5,*) symConnectGap
+    go to 50
+  endif
   if (iopt == 209) iopt = 7
   if (iopt <= 0 .or. iopt > 17) go to 50
   go to(30, 60, 70, 20, 5, 90, 90, 99, 110, 70, 70, 130, 1130, 1140, 1150, 1160, 60) iopt
