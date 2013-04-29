@@ -4,4 +4,5 @@ module plotvars
   character*80 keys(LIM_KEYS), xaxisLabel/' '/
   integer*4 igenPltType/0/, ifNoTerm/0/, ifConnect/0/, numKeys/0/, numColors/0/
   integer*4 icolors(4, LIM_COLORS)
+  real*4 symConnectGap/1.1/
 end module plotvars
