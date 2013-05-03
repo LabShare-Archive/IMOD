@@ -66,7 +66,8 @@ public final class DirectiveEditorBuilder {
    * @param errmsg - may be null
    * @return errmsg
    */
-  public StringBuffer build(final AxisType sourceAxisType, StringBuffer errmsg) {
+  public StringBuffer build(final DirectiveFileType type, final AxisType sourceAxisType,
+      StringBuffer errmsg) {
     // reset
     directiveMap.clear();
     sectionArray.clear();
@@ -88,34 +89,51 @@ public final class DirectiveEditorBuilder {
       descrIterator.hasNext();
       DirectiveDescrSection section = null;
       int dCount = 0;
+      boolean matchesType = false;
       while (descrIterator.hasNext()) {
         descrIterator.next();
         // Get the section - directives following this section are associated with it.
         if (descrIterator.isSection()) {
-          if (section != null && dCount == 0) {
-            sectionArray.remove(section);
+          if (section != null) {
+            // Record whether any of the directives in the section match the directive
+            // file type. Directives that don't match the type cannot be edited in this
+            // editor.
+            section.setContainsEditableDirectives(matchesType);
+            if (dCount == 0) {
+              sectionArray.remove(section);
+            }
           }
           section = new DirectiveDescrSection(descrIterator.getSectionHeader());
+          matchesType = false;
           dCount = 0;
           sectionArray.add(section);
         }
         else if (descrIterator.isDirective()) {
           // Get the directive
           directive = new Directive(descrIterator.getDirectiveDescription());
+          // Only save valid directives.
           if (directive.isValid()) {
+            // Check to see if this directive matches the type
+            if (!matchesType
+                && (type != DirectiveFileType.BATCH && (directive.isTemplate() || !directive
+                    .isBatch()))
+                || (type == DirectiveFileType.BATCH && (!directive.isTemplate() || directive
+                    .isBatch()))) {
+              matchesType = true;
+            }
             dCount++;
             // Store the directive in the map
             directiveMap.put(directive.getKey(), directive);
-            // Store the directive under current section
-            if (section == null) {
-              // This shouldn't happen because all directives in directives.csv are listed
-              // under a header.
-              if (otherSection == null) {
-                otherSection = new DirectiveDescrSection(SECTION_OTHER_HEADER);
-              }
-              section = otherSection;
+            // Store the directive under current section - directives are always stored
+            // under sections, so section should not be null.
+            if (section != null) {
+              section.add(directive);
             }
-            section.add(directive);
+            else {
+              System.err.println("Error: directive " + directive.getTitle()
+                  + ", not inside a section in the directives.csv file.  It cannot be "
+                  + "edited.");
+            }
           }
         }
       }
@@ -220,8 +238,11 @@ public final class DirectiveEditorBuilder {
               if (directive == null) {
                 // Handle undefined directives.
                 directive = new Directive(directiveName);
+                // If otherSection hasn't been created, create it and add it to
+                // sectionArray.
                 if (otherSection == null) {
                   otherSection = new DirectiveDescrSection(SECTION_OTHER_HEADER);
+                  sectionArray.add(otherSection);
                 }
                 otherSection.add(directive.getKey());
                 directiveMap.put(directive.getKey(), directive);
@@ -311,10 +332,6 @@ public final class DirectiveEditorBuilder {
         }
       }
     }
-  }
-
-  public DirectiveDescrSection getOtherSection() {
-    return otherSection;
   }
 
   public List<DirectiveDescrSection> getSectionArray() {
