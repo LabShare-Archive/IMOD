@@ -1,5 +1,6 @@
 package etomo.storage;
 
+import etomo.EtomoDirector;
 import etomo.storage.Directive.BooleanValue;
 import etomo.storage.Directive.NumericPairValue;
 import etomo.storage.Directive.NumericValue;
@@ -9,6 +10,7 @@ import etomo.storage.Directive.ValueFactory;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstStringParameter;
+import etomo.type.EtomoNumber;
 
 /**
 * <p>Description: </p>
@@ -34,7 +36,7 @@ public final class DirectiveValues {
   private Value value = null;
   private Value valueA = null;
   private Value valueB = null;
-  private boolean debug = false;
+  private int debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
   DirectiveValues(final DirectiveValueType valueType) {
     this.valueType = valueType;
@@ -158,6 +160,10 @@ public final class DirectiveValues {
    * @return
    */
   private boolean equals(Value value1, Value value2) {
+    if (debug >= 2) {
+      System.err.println("equals:value1:" + value1 + ",value2:" + value2);
+      value1.setDebug(debug);
+    }
     if (value1 == null && value2 == null) {
       return true;
     }
@@ -189,16 +195,19 @@ public final class DirectiveValues {
    * @return
    */
   private boolean isChanged(Value value, Value defaultValue) {
-    if (debug) {
-      System.out.println("value:" + value + ",defaultValue:" + defaultValue);
+    if (debug >= 2) {
+      System.err.println("isChanged:value:" + value + ",defaultValue:" + defaultValue);
     }
     if (value == null) {
       return false;
     }
+    if (debug >= 2) {
+      value.setDebug(2);
+    }
     return !equals(value, defaultValue);
   }
 
-  public void setDebug(final boolean input) {
+  public void setDebug(final int input) {
     debug = input;
   }
 
@@ -216,95 +225,185 @@ public final class DirectiveValues {
   }
 
   void setDefaultValue(final AxisID axisID, final String input) {
-    createDefaultValue(axisID);
-    if (axisID == null) {
-      defaultValue.set(input);
-    }
-    else if (axisID == AxisID.SECOND) {
-      defaultValueB.set(input);
+    if (input == null || input.matches("\\ss*")) {
+      if (axisID == null) {
+        defaultValue = null;
+      }
+      else if (axisID == AxisID.SECOND) {
+        defaultValueB = null;
+      }
+      else {
+        defaultValueA = null;
+      }
     }
     else {
-      defaultValueA.set(input);
+      createDefaultValue(axisID);
+      if (axisID == null) {
+        defaultValue.set(input);
+      }
+      else if (axisID == AxisID.SECOND) {
+        defaultValueB.set(input);
+      }
+      else {
+        defaultValueA.set(input);
+      }
     }
   }
 
   void setDefaultValue(final int input) {
-    createDefaultValue(null);
-    defaultValue.set(input);
+    if (input == EtomoNumber.INTEGER_NULL_VALUE) {
+      defaultValue = null;
+    }
+    else {
+      createDefaultValue(null);
+      defaultValue.set(input);
+    }
   }
 
   void setValue(final AxisID axisID, final boolean input) {
-    createValue(axisID);
-    if (axisID == null) {
-      value.set(input);
-    }
-    else if (axisID == AxisID.SECOND) {
-      valueB.set(input);
+    if (!input) {
+      if (axisID == null) {
+        value = null;
+      }
+      else if (axisID == AxisID.SECOND) {
+        valueB = null;
+      }
+      else {
+        valueA = null;
+      }
     }
     else {
-      valueA.set(input);
+      createValue(axisID);
+      if (axisID == null) {
+        value.set(input);
+      }
+      else if (axisID == AxisID.SECOND) {
+        valueB.set(input);
+      }
+      else {
+        valueA.set(input);
+      }
     }
   }
 
   void setValue(final AxisID axisID, final ConstEtomoNumber input) {
-    createValue(axisID);
-    if (axisID == null) {
-      value.set(input);
-    }
-    else if (axisID == AxisID.SECOND) {
-      valueB.set(input);
+    if (input == null || input.isNull()) {
+      if (axisID == null) {
+        value = null;
+      }
+      else if (axisID == AxisID.SECOND) {
+        valueB = null;
+      }
+      else {
+        valueA = null;
+      }
     }
     else {
-      valueA.set(input);
+      createValue(axisID);
+      if (axisID == null) {
+        value.set(input);
+      }
+      else if (axisID == AxisID.SECOND) {
+        valueB.set(input);
+      }
+      else {
+        valueA.set(input);
+      }
     }
   }
 
   void setValue(final AxisID axisID, final String input) {
-    createValue(axisID);
-    if (axisID == null) {
-      value.set(input);
-    }
-    else if (axisID == AxisID.SECOND) {
-      valueB.set(input);
+    if (input == null || input.matches("\\s*")) {
+      if (axisID == null) {
+        value = null;
+      }
+      else if (axisID == AxisID.SECOND) {
+        valueB = null;
+      }
+      else {
+        valueA = null;
+      }
     }
     else {
-      valueA.set(input);
+      createValue(axisID);
+      if (axisID == null) {
+        value.set(input);
+      }
+      else if (axisID == AxisID.SECOND) {
+        valueB.set(input);
+      }
+      else {
+        valueA.set(input);
+      }
     }
   }
 
   void setValue(final boolean input) {
-    createValue(null);
-    value.set(input);
+    if (!input) {
+      value = null;
+    }
+    else {
+      createValue(null);
+      value.set(input);
+    }
   }
 
   void setValue(final ConstEtomoNumber input) {
-    createValue(null);
-    value.set(input);
+    if (input == null || input.isNull()) {
+      value = null;
+    }
+    else {
+      createValue(null);
+      value.set(input);
+    }
   }
 
   void setValue(final ConstStringParameter input) {
-    createValue(null);
-    value.set(input);
+    if (input == null || input.isEmpty()) {
+      value = null;
+    }
+    else {
+      createValue(null);
+      value.set(input);
+    }
   }
 
   void setValue(final double input) {
-    createValue(null);
-    value.set(input);
+    if (input == EtomoNumber.DOUBLE_NULL_VALUE) {
+      value = null;
+    }
+    else {
+      createValue(null);
+      value.set(input);
+    }
   }
 
   void setValue(final double[] input) {
-    createValue(null);
-    value.set(input);
+    if (input == null) {
+      value = null;
+    }
+    else {
+      createValue(null);
+      value.set(input);
+    }
   }
 
   void setValue(final int input) {
+    if (input == EtomoNumber.INTEGER_NULL_VALUE) {
+      value = null;
+    }
     createValue(null);
     value.set(input);
   }
 
   void setValue(final String input) {
-    createValue(null);
-    value.set(input);
+    if (input == null || input.matches("\\s*")) {
+      value = null;
+    }
+    else {
+      createValue(null);
+      value.set(input);
+    }
   }
 
   private void createDefaultValue(final AxisID axisID) {
