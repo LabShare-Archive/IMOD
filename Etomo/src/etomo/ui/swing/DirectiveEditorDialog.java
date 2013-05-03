@@ -14,6 +14,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
 import javax.swing.ToolTipManager;
 
 import etomo.BaseManager;
@@ -50,10 +52,9 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
   private final CheckBox cbShowHidden = new CheckBox("Show hidden");
   private final CheckBox cbShowUnchanged = new CheckBox("Show unchanged");
   private final JPanel pnlConfigBody = new JPanel();
-  private final JPanel pnlIncludeSettings = new JPanel();
   private final JPanel pnlRoot = new JPanel();
   private final JPanel pnlSourceBody = new JPanel();
-  private final List<DirectiveSectionPanel> directiveSectionArray = new ArrayList<DirectiveSectionPanel>();
+  private final List<DirectiveSectionPanel> sectionArray = new ArrayList<DirectiveSectionPanel>();
 
   private final BaseManager manager;
   private final PanelHeader phConfig;
@@ -61,12 +62,10 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
   private final DirectiveTool tool;
   private final boolean[] fileTypeExists;
 
-  private int changedIndex = -1;
-
   private DirectiveEditorDialog(final BaseManager manager, final DirectiveFileType type,
       final DirectiveEditorBuilder builder) {
     this.manager = manager;
-    phConfig = PanelHeader.getMoreLessInstance("Configure Editor", this,
+    phConfig = PanelHeader.getInstance("Configure Editor", this,
         DialogType.DIRECTIVE_EDITOR);
     phSource = PanelHeader.getInstance("Source", this, DialogType.DIRECTIVE_EDITOR);
     fileTypeExists = builder.getFileTypeExists();
@@ -93,12 +92,16 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
       final DirectiveEditorBuilder builder, final AxisType sourceAxisType,
       final String sourceStatus, final String saveTimestamp, StringBuffer errmsg) {
     // construct
+    int nColumns = 3;
     JScrollPane scrollPane = new JScrollPane(pnlRoot);
     JPanel pnlConfig = new JPanel();
     JPanel pnlShow = new JPanel();
     JPanel pnlSource = new JPanel();
     JPanel pnlIncludeCheckboxes = new JPanel();
     JPanel pnlShowGlue = new JPanel();
+    JPanel pnlIncludeSettings = new JPanel();
+    JPanel pnlSections = new JPanel();
+    JPanel pnlSectionColumns[] = new JPanel[nColumns];
     LabeledTextField ltfSource = new LabeledTextField(FieldType.STRING, "Dataset: ");
     LabeledTextField ltfTimestamp = new LabeledTextField(FieldType.STRING, "Saved: ");
     for (int i = 0; i < DirectiveFileType.NUM; i++) {
@@ -114,17 +117,32 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
       else if (type != null && i == type.getIndex()) {
         cbInclude[i].setSelected(true);
       }
+      else {
+        cbExclude[i].setSelected(true);
+      }
     }
     // init
     ltfSource.setEditable(false);
     ltfSource.setText(sourceStatus);
     ltfTimestamp.setEditable(false);
     ltfTimestamp.setText(saveTimestamp);
+    // Fill sectionArray
+    Iterator<DirectiveDescrSection> descrIterator = builder.getSectionArray().iterator();
+    final DirectiveMap directiveMap = builder.getDirectiveMap();
+    while (descrIterator.hasNext()) {
+      DirectiveDescrSection descrSection = descrIterator.next();
+      if (descrSection.isContainsEditableDirectives()) {
+        DirectiveSectionPanel section = DirectiveSectionPanel.getInstance(manager,
+            descrSection, directiveMap, sourceAxisType, tool, this);
+        sectionArray.add(section);
+      }
+    }
     // root panel
     ToolTipManager.sharedInstance().registerComponent(pnlRoot);
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.add(pnlSource);
     pnlRoot.add(pnlConfig);
+    pnlRoot.add(pnlSections);
     // source panel
     pnlSource.setLayout(new BoxLayout(pnlSource, BoxLayout.Y_AXIS));
     pnlSource.setBorder(BorderFactory.createEtchedBorder());
@@ -151,7 +169,7 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     pnlIncludeSettings.setBorder(new EtchedBorder("Include Directives").getBorder());
     pnlIncludeSettings.add(pnlIncludeCheckboxes);
     // include checkboxes panel
-    pnlIncludeCheckboxes.setLayout(new GridLayout(5, 3, 0, 0));
+    pnlIncludeCheckboxes.setLayout(new GridLayout(0, 3));
     pnlIncludeCheckboxes.add(new JLabel("Include"));
     pnlIncludeCheckboxes.add(new JLabel("Exclude"));
     pnlIncludeCheckboxes.add(new JLabel("File"));
@@ -169,23 +187,56 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     pnlShow.setBorder(new EtchedBorder("Show Directives").getBorder());
     pnlShow.add(cbShowUnchanged);
     pnlShow.add(cbShowHidden);
-    // section panels
-    Iterator<DirectiveDescrSection> iterator = builder.getSectionArray().iterator();
-    DirectiveDescrSection descrSection;
-    final DirectiveMap directiveMap = builder.getDirectiveMap();
-    while (iterator.hasNext()) {
-      descrSection = iterator.next();
-      DirectiveSectionPanel section = DirectiveSectionPanel.getInstance(manager,
-          descrSection, directiveMap, sourceAxisType, tool);
-      pnlRoot.add(section.getComponent());
-      directiveSectionArray.add(section);
-    }
-    descrSection = builder.getOtherSection();
-    if (descrSection != null) {
-      DirectiveSectionPanel section = DirectiveSectionPanel.getInstance(manager,
-          descrSection, directiveMap, sourceAxisType, tool);
-      pnlRoot.add(section.getComponent());
-      directiveSectionArray.add(section);
+    // sections
+    pnlSections.setLayout(new BoxLayout(pnlSections, BoxLayout.X_AXIS));
+    // columns
+    int nSections = sectionArray.size();
+    int nRows = nSections / nColumns;
+    int remainder = nSections % nColumns;
+    Iterator<DirectiveSectionPanel> iterator = sectionArray.iterator();
+    List<DirectiveSectionPanel> columnSectionArray = new ArrayList<DirectiveSectionPanel>();
+    for (int i = 0; i < nColumns; i++) {
+      //Build the columns.
+      pnlSectionColumns[i] = new JPanel();
+      pnlSectionColumns[i]
+          .setLayout(new BoxLayout(pnlSectionColumns[i], BoxLayout.Y_AXIS));
+      pnlSections.add(pnlSectionColumns[i]);
+      if (i < nColumns - 1) {
+        pnlSections.add(Box.createRigidArea(FixedDim.x5_y0));
+        pnlSections.add(new JSeparator(SwingConstants.VERTICAL));
+        pnlSections.add(Box.createRigidArea(FixedDim.x5_y0));
+      }
+      //Add the checkboxes and tempoarily store the sections in this column.
+      columnSectionArray.clear();
+      int extraRow = remainder-- > 0 ? 1 : 0;
+      for (int j = 0; j < nRows + extraRow; j++) {
+        DirectiveSectionPanel sectionPanel = null;
+        if (iterator.hasNext()) {
+          sectionPanel = iterator.next();
+        }
+        if (sectionPanel == null) {
+          break;
+        }
+        columnSectionArray.add(sectionPanel);
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+        panel.add(sectionPanel.getShowCheckBox());
+        panel.add(Box.createHorizontalGlue());
+        pnlSectionColumns[i].add(panel);
+      }
+      //Put padding between the chckboxes and the section panels.
+      if (extraRow == 0) {
+        pnlSectionColumns[i].add(Box.createRigidArea(FixedDim.x0_y20));
+      }
+      else {
+        pnlSectionColumns[i].add(Box.createRigidArea(FixedDim.x0_y5));
+      }
+      //Add the section panels.
+      Iterator<DirectiveSectionPanel> columnIterator = columnSectionArray.iterator();
+      while (columnIterator.hasNext()) {
+        pnlSectionColumns[i].add(columnIterator.next().getComponent());
+      }
+      pnlSectionColumns[i].add(Box.createVerticalGlue());
     }
     if (errmsg != null && errmsg.length() > 0) {
       UIHarness.INSTANCE.openMessageDialog(manager, errmsg.toString(),
@@ -207,10 +258,6 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
 
   public Container getContainer() {
     return pnlRoot;
-  }
-
-  public int getChangedIndex() {
-    return changedIndex;
   }
 
   public boolean isInclude(final int index) {
@@ -235,55 +282,47 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     return cbShowHidden.isSelected();
   }
 
-  /**
-   * Updates whether a directives are being shown or whether their include checkboxes are
-   * checked.  If null is passed, function will update include checkboxes.
-   * @param actionCommand
-   */
-  private void action(final String actionCommand) {
-    // Update directive display settings.
-    if (actionCommand != null) {
-      changedIndex = -1;
-    }
-    // update sections displays
-    Iterator<DirectiveSectionPanel> iterator = directiveSectionArray.iterator();
+  private void action() {
+    updateDisplay(false);
+  }
+
+  private void updateDisplay(final boolean showSection) {
+    Iterator<DirectiveSectionPanel> iterator = sectionArray.iterator();
     while (iterator.hasNext()) {
-      // Update include if action was called from include/excludeAction (which means that
-      // the action command parameter is null).
-      iterator.next().updateDisplay(actionCommand == null);
+      iterator.next().updateDisplay();
     }
+    UIHarness.INSTANCE.pack(manager);
+  }
+
+  void showSection() {
+    updateDisplay(true);
   }
 
   private void includeAction(final String actionCommand) {
     DirectiveFileType directiveFileType = DirectiveFileType.getInstance(actionCommand);
     if (directiveFileType != null) {
       int index = directiveFileType.getIndex();
-      changedIndex = index;
       if (cbInclude[index].isSelected() || cbExclude[index].isSelected()) {
         cbExclude[index].setSelected(false);
       }
     }
-    action(null);
+    updateDisplay(false);
   }
 
   private void excludeAction(final String actionCommand) {
     DirectiveFileType directiveFileType = DirectiveFileType.getInstance(actionCommand);
     if (directiveFileType != null) {
       int index = directiveFileType.getIndex();
-      changedIndex = index;
       if (cbExclude[index].isSelected() || cbInclude[index].isSelected()) {
         cbInclude[index].setSelected(false);
       }
     }
-    action(null);
+    updateDisplay(false);
   }
 
   public void expand(final ExpandButton button) {
     if (phConfig.equalsOpenClose(button)) {
       pnlConfigBody.setVisible(button.isExpanded());
-    }
-    else if (phConfig.equalsMoreLess(button)) {
-      pnlIncludeSettings.setVisible(button.isExpanded());
     }
     if (phSource.equalsOpenClose(button)) {
       pnlSourceBody.setVisible(button.isExpanded());
@@ -302,7 +341,7 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     }
 
     public void actionPerformed(final ActionEvent event) {
-      dialog.action(event.getActionCommand());
+      dialog.action();
     }
   }
 
