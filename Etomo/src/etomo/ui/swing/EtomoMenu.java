@@ -19,6 +19,7 @@ import etomo.EtomoDirector;
 import etomo.process.ImodqtassistProcess;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.DirectiveFileType;
 import etomo.type.ToolType;
 import etomo.util.EnvironmentVariable;
 import etomo.util.Utilities;
@@ -64,6 +65,9 @@ final class EtomoMenu {
   private final JMenuItem menuTomosnapshot = new MenuItem("Run Tomosnapshot",
       KeyEvent.VK_T);
   private final JMenuItem[] menuMRUList = new MenuItem[nMRUFileMax];
+  private final JMenuItem menuExportBatch = new MenuItem("Export Batch Directive File",
+      KeyEvent.VK_B);
+  private final JMenu menuTemplate = new Menu("Templates");
 
   private final JMenu menuNew = new Menu("New");
   private final JMenuItem menuNewTomogram = new MenuItem(RECON_LABEL, KeyEvent.VK_T);
@@ -75,6 +79,12 @@ final class EtomoMenu {
       KeyEvent.VK_D);
   private final JMenuItem menuNewGenericParallel = new MenuItem(GENERIC_LABEL,
       KeyEvent.VK_G);
+
+  private final JMenuItem menuSaveScope = new MenuItem("Save Scope Template",
+      KeyEvent.VK_C);
+  private final JMenuItem menuSaveSystem = new MenuItem("Save System Template",
+      KeyEvent.VK_Y);
+  private final JMenuItem menuSaveUser = new MenuItem("Save User Template", KeyEvent.VK_U);
 
   private final JMenu menuTools = new Menu("Tools");
   private final JMenuItem menuFlattenVolume = new MenuItem(FLATTEN_VOLUME_LABEL,
@@ -112,10 +122,7 @@ final class EtomoMenu {
   private final boolean peetAvailable = EnvironmentVariable.INSTANCE.exists(null,
       EtomoDirector.INSTANCE.getOriginalUserDir(), "PARTICLE_DIR", AxisID.ONLY);
 
-  private final boolean singleFrame;
-
-  EtomoMenu(boolean singleFrame) {
-    this.singleFrame = singleFrame;
+  EtomoMenu() {
   }
 
   private void initMenus(AbstractFrame abstractFrame, boolean forManagerFrame) {
@@ -158,6 +165,7 @@ final class EtomoMenu {
     if (!forManagerFrame) {
       // Mnemonics for the main menu bar
       menuFile.setMnemonic(KeyEvent.VK_F);
+      menuTemplate.setMnemonic(KeyEvent.VK_M);
       // Accelerators
       menuAxisA.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
           ActionEvent.CTRL_MASK));
@@ -182,6 +190,10 @@ final class EtomoMenu {
       menuClose.addActionListener(fileActionListener);
       menuExit.addActionListener(fileActionListener);
       menuTomosnapshot.addActionListener(fileActionListener);
+      menuExportBatch.addActionListener(fileActionListener);
+      menuSaveScope.addActionListener(fileActionListener);
+      menuSaveSystem.addActionListener(fileActionListener);
+      menuSaveUser.addActionListener(fileActionListener);
 
       menuLogWindow.addActionListener(viewActionListener);
       menuAxisA.addActionListener(viewActionListener);
@@ -206,6 +218,9 @@ final class EtomoMenu {
     menuFile.add(menuSaveAs);
     menuFile.addSeparator();
     menuFile.add(menuTomosnapshot);
+    menuFile.add(menuExportBatch);
+    menuFile.addSeparator();
+    menuFile.add(menuTemplate);
     menuFile.addSeparator();
     menuFile.add(menuExit);
 
@@ -216,6 +231,10 @@ final class EtomoMenu {
     menuNew.add(menuSerialSections);
     menuNew.add(menuNewAnisotropicDiffusion);
     menuNew.add(menuNewGenericParallel);
+
+    menuTemplate.add(menuSaveScope);
+    menuTemplate.add(menuSaveSystem);
+    menuTemplate.add(menuSaveUser);
 
     // Initialize all of the MRU file menu items
     FileMRUListActionListener fileMRUListActionListener = new FileMRUListActionListener(
@@ -309,6 +328,11 @@ final class EtomoMenu {
       menuAxisA.setEnabled(false);
       menuAxisB.setEnabled(false);
       menuAxisBoth.setEnabled(false);
+      menuExportBatch.setEnabled(false);
+      menuTemplate.setEnabled(false);
+      menuSaveScope.setEnabled(false);
+      menuSaveSystem.setEnabled(false);
+      menuSaveUser.setEnabled(false);
     }
     else {
       menuSave.setEnabled(currentManager.isSetupDone());
@@ -318,6 +342,11 @@ final class EtomoMenu {
       menuAxisA.setEnabled(dualAxis);
       menuAxisB.setEnabled(dualAxis);
       menuAxisBoth.setEnabled(dualAxis);
+      menuExportBatch.setEnabled(currentManager.canSaveDirectives());
+      menuTemplate.setEnabled(currentManager.canSaveDirectives());
+      menuSaveScope.setEnabled(currentManager.canSaveDirectives());
+      menuSaveSystem.setEnabled(currentManager.canSaveDirectives());
+      menuSaveUser.setEnabled(currentManager.canSaveDirectives());
     }
   }
 
@@ -364,10 +393,10 @@ final class EtomoMenu {
 
   public void menuToolsAction(AxisID axisID, ActionEvent event) {
     if (equalsFlattenVolume(event)) {
-      EtomoDirector.INSTANCE.openTools(axisID, ToolType.FLATTEN_VOLUME);
+      EtomoDirector.INSTANCE.openTools(ToolType.FLATTEN_VOLUME);
     }
     else if (equalsGpuTiltTest(event)) {
-      EtomoDirector.INSTANCE.openTools(axisID, ToolType.GPU_TILT_TEST);
+      EtomoDirector.INSTANCE.openTools(ToolType.GPU_TILT_TEST);
     }
   }
 
@@ -595,6 +624,27 @@ final class EtomoMenu {
 
   boolean equalsHelpAbout(final ActionEvent event) {
     return equals(menuHelpAbout, event);
+  }
+
+  boolean equalsDirectiveFileEditor(final ActionEvent event) {
+    return equals(menuSaveScope, event) || equals(menuSaveSystem, event)
+        || equals(menuSaveUser, event) || equals(menuExportBatch, event);
+  }
+
+  DirectiveFileType getDirectiveFileType(final ActionEvent event) {
+    if (equals(menuSaveScope, event)) {
+      return DirectiveFileType.SCOPE;
+    }
+    if (equals(menuSaveSystem, event)) {
+      return DirectiveFileType.SYSTEM;
+    }
+    if (equals(menuSaveUser, event)) {
+      return DirectiveFileType.USER;
+    }
+    if (equals(menuExportBatch, event)) {
+      return DirectiveFileType.BATCH;
+    }
+    return null;
   }
 
   private boolean equals(final JMenuItem menuItem, final ActionEvent event) {

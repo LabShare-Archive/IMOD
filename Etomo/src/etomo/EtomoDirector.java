@@ -30,6 +30,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.DataFileType;
 import etomo.type.DialogType;
+import etomo.type.DirectiveFileType;
 import etomo.type.EtomoNumber;
 import etomo.type.ImodVersion;
 import etomo.type.JoinMetaData;
@@ -593,12 +594,24 @@ public class EtomoDirector {
 
   /**
    * Build, save, and display a ToolsManager instance.
+   * @param dialogType may not be null
+   */
+  public void openTools(ToolType toolType) {
+    ToolsManager manager = new ToolsManager(toolType);
+    UIHarness.INSTANCE.addFrame(manager);
+    manager.initialize();
+    Utilities.managerStamp(manager.getPropertyUserDir(), manager.getName());
+  }
+
+  /**
+   * Build, save, and display a ToolsManager instance.
    * @param axisID
    * @param dialogType may not be null
    */
-  public void openTools(AxisID axisID, ToolType toolType) {
-    ToolsManager manager;
-    manager = new ToolsManager(toolType);
+  public void openDirectiveEditor(final DirectiveFileType directiveFileType,
+      final BaseManager dataSource, final String timestamp, final StringBuffer errmsg) {
+    DirectiveEditorManager manager = new DirectiveEditorManager(directiveFileType,
+        dataSource, timestamp, errmsg);
     UIHarness.INSTANCE.addFrame(manager);
     manager.initialize();
     Utilities.managerStamp(manager.getPropertyUserDir(), manager.getName());

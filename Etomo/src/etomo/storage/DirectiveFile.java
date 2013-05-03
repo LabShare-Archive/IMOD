@@ -39,21 +39,25 @@ import etomo.ui.swing.UIHarness;
 public final class DirectiveFile {
   public static final String rcsid = "$Id:$";
 
-  private static final String A_AXIS_NAME = "a";
+  static final String A_AXIS_NAME = "a";
   private static final String ALIGNED_STACK_NAME = "AlignedStack";
-  private static final String ANY_AXIS_NAME = "any";
+ public static final String ANY_AXIS_NAME = "any";
   private static final String AUTO_FIT_RANGE_AND_STEP_NAME = "autoFitRangeAndStep";
-  private static final String B_AXIS_NAME = "b";
+  static final String B_AXIS_NAME = "b";
   private static final String BIN_BY_FACTOR_NAME = "binByFactor";
   public static final String BINNING_NAME = "binning";
+  public static final String COPY_ARG_NAME = "copyarg";
   public static final String CS_NAME = "Cs";
+  public static final String CTF_NOISE_NAME = "ctfnoise";
   private static final String CTF_PLOTTING_NAME = "CTFplotting";
   static final String DATASET_DIRECTORY_NAME = "datasetDirectory";
+  public static final String DEFOCUS_NAME = "defocus";
   public static final String DISTORT_NAME = "distort";
   public static final String DUAL_NAME = "dual";
   public static final String EXTRACT_NAME = "extract";
-  private static final String FIDUCIALLESS_NAME = "fiducialless";
-  private static final String FIDUCIALS_NAME = "Fiducials";
+  static final String FALSE_VALUE = "0";
+  public static final String FIDUCIALLESS_NAME = "fiducialless";
+  public static final String FIDUCIALS_NAME = "Fiducials";
   public static final String FIRST_INC_NAME = "firstinc";
   public static final String FOCUS_NAME = "focus";
   private static final String GOLD_ERASING_NAME = "GoldErasing";
@@ -66,20 +70,23 @@ public final class DirectiveFile {
   private static final String POSITIONING_NAME = "Positioning";
   private static final String RAPTOR_NAME = "RAPTOR";
   private static final String RECONSTRUCTION_NAME = "Reconstruction";
+  public static final String REMOVE_XRAYS = "removeXrays";
   public static final String ROTATION_NAME = "rotation";
-  private static final String RUNTIME_NAME = "runtime";
+  static final String RUNTIME_NAME = "runtime";
   static final String SCAN_HEADER_NAME = "scanHeader";
-  static final String SCOPE_TEMPLATE_NAME = "scopeTemplate";
+  public static final String SCOPE_TEMPLATE_NAME = "scopeTemplate";
   private static final String SEEDING_METHOD_NAME = "seedingMethod";
+  static final String SETUP_SET_NAME = "setupset";
   private static final String SIZE_IN_X_AND_Y_NAME = "sizeInXandY";
   public static final String SKIP_NAME = "skip";
-  static final String SYSTEM_TEMPLATE_NAME = "systemTemplate";
+  public static final String SYSTEM_TEMPLATE_NAME = "systemTemplate";
   private static final String THICKNESS_NAME = "thickness";
-  private static final String TRACKING_METHOD_NAME = "trackingMethod";
+  public static final String TRACKING_METHOD_NAME = "trackingMethod";
+  static final String TRUE_VALUE = "1";
   private static final String USE_ALIGNED_STACK_NAME = "useAlignedStack";
   public static final String USE_RAW_TLT_NAME = "userawtlt";
   private static final String USE_SIRT_NAME = "useSirt";
-  static final String USER_TEMPLATE_NAME = "userTemplate";
+  public static final String USER_TEMPLATE_NAME = "userTemplate";
   public static final String VOLTAGE_NAME = "voltage";
   private static final String WHOLE_TOMOGRAM_NAME = "wholeTomogram";
 
@@ -131,9 +138,9 @@ public final class DirectiveFile {
     try {
       ReadOnlyAutodoc autodoc = (ReadOnlyAutodoc) AutodocFactory.getInstance(manager,
           file, axisID);
-      setupSet = autodoc.getAttribute("setupset");
+      setupSet = autodoc.getAttribute(SETUP_SET_NAME);
       if (setupSet != null) {
-        copyArg = setupSet.getAttribute("copyarg");
+        copyArg = setupSet.getAttribute(COPY_ARG_NAME);
       }
       runtime = autodoc.getAttribute(RUNTIME_NAME);
     }
@@ -326,26 +333,6 @@ public final class DirectiveFile {
     return value;
   }
 
-  /**
-   * Returns true unless value is null or 0.  This function does not treate null as an
-   * error, so it is not necessary to check for the existance of a directive before
-   * calling it.
-   * @param value
-   * @return
-   */
-  static boolean toBoolean(final String value) {
-    if (value == null || value.equals("0")) {
-      return false;
-    }
-    else if (value.equals("1")) {
-      return true;
-    }
-    System.err.println("Error: incorrect boolean value: " + value
-        + ".  Valid boolean values are 0 or 1.  Treating value as 1.");
-    Thread.dumpStack();
-    return true;
-  }
-
   private String getValue(final ReadOnlyAttribute parent, final String axisName,
       final String name) {
     if (parent == null) {
@@ -360,6 +347,26 @@ public final class DirectiveFile {
       return null;
     }
     return attribute.getValue();
+  }
+
+  /**
+   * Returns true unless value is null or 0.  This function does not treate null as an
+   * error, so it is not necessary to check for the existance of a directive before
+   * calling it.
+   * @param value
+   * @return
+   */
+  static boolean toBoolean(final String value) {
+    if (value == null || value.equals(FALSE_VALUE)) {
+      return false;
+    }
+    else if (value.equals(TRUE_VALUE)) {
+      return true;
+    }
+    System.err.println("Error: incorrect boolean value: " + value
+        + ".  Valid boolean values are 0 or 1.  Treating value as 1.");
+    Thread.dumpStack();
+    return true;
   }
 
   public boolean containsAlignedStackBinByFactor(final AxisID axisID) {
@@ -485,9 +492,8 @@ public final class DirectiveFile {
         FIDUCIALS_NAME, axisID, SEEDING_METHOD_NAME));
   }
 
-  public FiducialsTrackingMethod getFiducialsTrackingMethod(final AxisID axisID) {
-    return FiducialsTrackingMethod.getInstance(getValue(AttributeName.RUN_TIME,
-        FIDUCIALS_NAME, axisID, TRACKING_METHOD_NAME));
+  public String getFiducialsTrackingMethod(final AxisID axisID) {
+    return getValue(AttributeName.RUN_TIME, FIDUCIALS_NAME, axisID, TRACKING_METHOD_NAME);
   }
 
   public File getFile() {
@@ -647,35 +653,4 @@ public final class DirectiveFile {
       return null;
     }
   }
-
-  public static final class FiducialsTrackingMethod {
-    public static final FiducialsTrackingMethod SEED_AND_TRACK = new FiducialsTrackingMethod(
-        "0");
-    public static final FiducialsTrackingMethod PATCH_TRACK = new FiducialsTrackingMethod(
-        "1");
-    public static final FiducialsTrackingMethod RAPTOR = new FiducialsTrackingMethod("2");
-
-    private final String value;
-
-    private FiducialsTrackingMethod(final String value) {
-      this.value = value;
-    }
-
-    private static FiducialsTrackingMethod getInstance(final String value) {
-      if (value == null) {
-        return null;
-      }
-      if (value.equals(SEED_AND_TRACK.value)) {
-        return SEED_AND_TRACK;
-      }
-      if (value.equals(PATCH_TRACK.value)) {
-        return PATCH_TRACK;
-      }
-      if (value.equals(RAPTOR.value)) {
-        return RAPTOR;
-      }
-      return null;
-    }
-  }
-
 }

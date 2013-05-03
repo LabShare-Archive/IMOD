@@ -8,6 +8,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
+import etomo.type.StringParameter;
 import etomo.type.ViewType;
 import etomo.ui.swing.UIHarness;
 
@@ -113,6 +114,11 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
 
   private final ScriptParameter betterRadius = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, "BetterRadius");
+  private final StringParameter lineObjects = new StringParameter(LINE_OBJECTS_KEY);
+  private final StringParameter boundaryObjects = new StringParameter(
+      BOUNDARY_OBJECTS_KEY);
+  private final StringParameter allSectionObjects = new StringParameter(
+      ALL_SECTION_OBJECTS_KEY);
 
   private String[] commandArray = null;
   private boolean debug = true;
@@ -197,6 +203,9 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
       if (!outerRadius.equals("")) {
         convertOuterRadius();
       }
+      lineObjects.parse(scriptCommand);
+      boundaryObjects.parse(scriptCommand);
+      allSectionObjects.parse(scriptCommand);
     }
     else {
       inputFile = inputArgs[0].getArgument();
@@ -530,6 +539,18 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
    */
   public void setScanCriterion(String string) {
     scanCriterion = string;
+  }
+
+  public String getLineObjects() {
+    return lineObjects.toString();
+  }
+
+  public String getBoundaryObjects() {
+    return boundaryObjects.toString();
+  }
+
+  public String getAllSectionObjects() {
+    return allSectionObjects.toString();
   }
 
   public void setBetterRadius(double input) {

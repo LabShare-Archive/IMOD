@@ -121,7 +121,7 @@ import etomo.type.ConstEtomoNumber;
 public class FortranInputString {
   public static final String rcsid = "$Id$";
 
-   static final char DEFAULT_DIVIDER = ',';
+  static final char DEFAULT_DIVIDER = ',';
 
   private int nParams;
   private boolean[] isInteger;
@@ -320,7 +320,7 @@ public class FortranInputString {
     }
     catch (NumberFormatException dividerException) {
       try {
-        //Didn't work, try an alternative divider
+        // Didn't work, try an alternative divider
         char origDivider = divider;
         if (divider == DEFAULT_DIVIDER) {
           validateAndSet(newValues, ' ');
@@ -329,14 +329,16 @@ public class FortranInputString {
           validateAndSet(newValues, DEFAULT_DIVIDER);
         }
         else {
-          //Unfamiliar divider, throw a FortranInputSyntaxException so the problem will be
-          //handled with a pop up.
+          // Unfamiliar divider, throw a FortranInputSyntaxException so the problem will
+          // be
+          // handled with a pop up.
           throw new FortranInputSyntaxException(dividerException.getMessage());
         }
       }
       catch (NumberFormatException e) {
-        //Error happened with the alternative divider, throw a FortranInputSyntaxException
-        //so the problem will be handled with a pop up.
+        // Error happened with the alternative divider, throw a
+        // FortranInputSyntaxException
+        // so the problem will be handled with a pop up.
         throw new FortranInputSyntaxException(e.getMessage());
       }
     }
@@ -351,7 +353,7 @@ public class FortranInputString {
     if (newValues == null) {
       newValues = "";
     }
-    //  Handle a simple default string
+    // Handle a simple default string
     if (newValues.equals("/")) {
       for (int i = 0; i < value.length; i++) {
         value[i] = new Double(Double.NaN);
@@ -363,8 +365,8 @@ public class FortranInputString {
     for (int i = 0; i < value.length; i++) {
       tempValue[i] = new Double(Double.NaN);
     }
-    int idxValue = 0;//current index of tempValue
-    int idxStart = 0;//current index of newValues
+    int idxValue = 0;// current index of tempValue
+    int idxStart = 0;// current index of newValues
     while (idxStart < newValues.length()) {
       int idxDelim = newValues.indexOf(dividerParam, idxStart);
       if (idxDelim != -1) {
@@ -381,7 +383,7 @@ public class FortranInputString {
         idxValue++;
         idxStart = idxDelim + 1;
       }
-      //  This should be the last value
+      // This should be the last value
       else {
         String currentToken = newValues.substring(idxStart);
         if (currentToken.endsWith("/")) {
@@ -637,12 +639,70 @@ public class FortranInputString {
     }
     return value[index].isInfinite();
   }
+  
+  /**
+   * Compares this.value to input.value.  The two arrays can be different sizes; the
+   * smaller array is equal if the larger contains nulls for the outsized portion of the
+   * array.
+   * @param input
+   * @return
+   */
+  public boolean equals(final FortranInputString input) {
+    if (input == null) {
+      return isNull();
+    }
+    int max = Math.max(nParams, input.nParams);
+    for (int i = 0; i < max; i++) {
+      if (!equals(i, input)) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   /**
-   * Checks for both NaN and infinity.
+   * Compares this.value[index] to input.value[index].  Handles an out-of-range index by
+   * comparing to null.  Null and isNull() are considered equal.
+   * @param index
+   * @param input
+   * @return
+   */
+  public boolean equals(final int index, final FortranInputString input) {
+    Double thisElement = index < nParams ? value[index] : null;
+    Double inputElement = index < input.nParams ? input.value[index] : null;
+    // handle out of range and null values
+    if ((thisElement == null || isNull(index))
+        && (inputElement == null || input.isNull(index))) {
+      return true;
+    }
+    if (thisElement == null || isNull(index) || inputElement == null
+        || input.isNull(index)) {
+      return false;
+    }
+    // compare
+    if (isInteger[index] && input.isInteger[index]) {
+      return thisElement.intValue() == inputElement.intValue();
+    }
+    if (isInteger[index] && !input.isInteger[index]) {
+      return thisElement.intValue() == inputElement.doubleValue();
+    }
+    if (!isInteger[index] && input.isInteger[index]) {
+      return thisElement.doubleValue() == inputElement.intValue();
+    }
+    if (!isInteger[index] && !input.isInteger[index]) {
+      return thisElement.doubleValue() == inputElement.doubleValue();
+    }
+    return false;
+  }
+
+  /**
+   * Checks for both NaN and infinity.  Returns true for range indices.
    * @return true if the element is null or contains infinity or NaN
    */
   public boolean isNull(int index) {
+    if (index >= nParams) {
+      return true;
+    }
     if (value[index] == null) {
       return true;
     }

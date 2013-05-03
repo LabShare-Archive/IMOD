@@ -149,6 +149,16 @@ final class CheckBox extends JCheckBox {
       System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
+  
+  /**
+   * Constructs savedValue (if it doesn't exist).  Saves the current setting.
+   */
+  void checkpoint() {
+    if (checkpointValue == null) {
+      checkpointValue = new EtomoBoolean2();
+    }
+    checkpointValue.set(isSelected());
+  }
 
   /**
    * Constructs savedValue (if it doesn't exist).  Saves the value parameter.
