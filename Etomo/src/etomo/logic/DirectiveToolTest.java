@@ -33,51 +33,41 @@ public class DirectiveToolTest extends TestCase {
     assertFalse("Null directive does not cause error",
         tool.isDirectiveIncluded(null, null));
 
-    settings.setIncludeSD(true);
+    settings.setInclude(DirectiveFileType.SCOPE.getIndex(), true);
     TestDescr descr = new TestDescr();
-    descr.setEtomoColumn(DirectiveDescrEtomoColumn.SD);
     descr.setTemplate(true);
     Directive directive = new Directive(descr);
+    directive.setInDirectiveFile(DirectiveFileType.SCOPE, null, true);
     assertTrue("can return true when a template editor encounters a template directive",
         tool.isDirectiveIncluded(directive, null));
 
     descr = new TestDescr();
-    descr.setEtomoColumn(DirectiveDescrEtomoColumn.SD);
     descr.setBatch(true);
     directive = new Directive(descr);
+    directive.setInDirectiveFile(DirectiveFileType.SCOPE, null, true);
     assertFalse("returns false when a template editor encounters a batch directive",
         tool.isDirectiveIncluded(directive, null));
 
+    settings = new TestSettings();
+    settings.setInclude(DirectiveFileType.BATCH.getIndex(), true);
     tool = new DirectiveTool(DirectiveFileType.BATCH, false, settings);
     descr = new TestDescr();
-    descr.setEtomoColumn(DirectiveDescrEtomoColumn.SD);
     descr.setBatch(true);
     directive = new Directive(descr);
+    directive.setInDirectiveFile(DirectiveFileType.BATCH, null, true);
     assertTrue("can return true when a batch editor encounters a template directive",
         tool.isDirectiveIncluded(directive, null));
 
     descr = new TestDescr();
-    descr.setEtomoColumn(DirectiveDescrEtomoColumn.SD);
     descr.setTemplate(true);
     directive = new Directive(descr);
+    directive.setInDirectiveFile(DirectiveFileType.BATCH, null, true);
     assertFalse("returns false when a batch editor encounters a template directive",
         tool.isDirectiveIncluded(directive, null));
-
     tool = new DirectiveTool(DirectiveFileType.SCOPE, false, settings);
     descr = new TestDescr();
     directive = new Directive(descr);
     assertFalse("include SD is on, but directive doesn't have SD in etomo column",
-        tool.isDirectiveIncluded(directive, null));
-
-    settings.setIncludeSD(false);
-    descr = new TestDescr();
-    descr.setEtomoColumn(DirectiveDescrEtomoColumn.SD);
-    directive = new Directive(descr);
-    assertFalse("directive has SD in etomo column, but include SD is off",
-        tool.isDirectiveIncluded(directive, null));
-
-    settings.setIncludeSD(true);
-    assertTrue("directive has SD in etomo column and include SD is on",
         tool.isDirectiveIncluded(directive, null));
 
     tool = new DirectiveTool(null, false, settings);
@@ -120,100 +110,6 @@ public class DirectiveToolTest extends TestCase {
     assertTrue(
         "for the user editor, modified directives with SD are included when there is no matching file",
         tool.isDirectiveIncluded(directive, null));
-  }
-
-  public void testIsToogleDirectiveIncluded() {
-    TestSettings settings = new TestSettings();
-    DirectiveTool tool = new DirectiveTool(DirectiveFileType.SCOPE, false, settings);
-    assertFalse("Null directive does not cause error",
-        tool.isToggleDirectiveIncluded(null, null, true));
-
-    settings.setIncludeSDChanged(true);
-    TestDescr descr = new TestDescr();
-    descr.setEtomoColumn(DirectiveDescrEtomoColumn.SD);
-    descr.setTemplate(true);
-    Directive directive = new Directive(descr);
-    assertTrue("can return true when a template editor encounters a template directive",
-        tool.isToggleDirectiveIncluded(directive, null, true));
-
-    descr = new TestDescr();
-    descr.setEtomoColumn(DirectiveDescrEtomoColumn.SD);
-    descr.setBatch(true);
-    directive = new Directive(descr);
-    assertFalse("returns false when a template editor encounters a batch directive",
-        tool.isToggleDirectiveIncluded(directive, null, true));
-
-    tool = new DirectiveTool(DirectiveFileType.BATCH, false, settings);
-    descr = new TestDescr();
-    descr.setEtomoColumn(DirectiveDescrEtomoColumn.SD);
-    descr.setBatch(true);
-    directive = new Directive(descr);
-    assertTrue("can return true when a batch editor encounters a batch directive",
-        tool.isToggleDirectiveIncluded(directive, null, true));
-
-    tool = new DirectiveTool(DirectiveFileType.BATCH, false, settings);
-    descr = new TestDescr();
-    descr.setEtomoColumn(DirectiveDescrEtomoColumn.SD);
-    descr.setTemplate(true);
-    directive = new Directive(descr);
-    assertFalse("returns false when a batch editor encounters a template directive",
-        tool.isToggleDirectiveIncluded(directive, null, true));
-
-    settings.setIncludeSDChanged(false);
-    tool = new DirectiveTool(DirectiveFileType.SCOPE, false, settings);
-    descr = new TestDescr();
-    directive = new Directive(descr);
-    assertFalse("no reason to toggle",
-        tool.isToggleDirectiveIncluded(directive, null, true));
-    assertFalse("no reason to toggle",
-        tool.isToggleDirectiveIncluded(directive, null, false));
-
-    settings.setChangedIndex(DirectiveFileType.SYSTEM.getIndex());
-    assertFalse("not in directive file",
-        tool.isToggleDirectiveIncluded(directive, null, true));
-    assertFalse("not in directive file",
-        tool.isToggleDirectiveIncluded(directive, null, false));
-
-    directive.setInDirectiveFile(DirectiveFileType.SYSTEM, null, true);
-    assertFalse("exclude not set", tool.isToggleDirectiveIncluded(directive, null, true));
-    assertFalse("include not set", tool.isToggleDirectiveIncluded(directive, null, false));
-
-    settings.setInclude(DirectiveFileType.SYSTEM.getIndex(), true);
-    assertFalse("no need to toggle",
-        tool.isToggleDirectiveIncluded(directive, null, true));
-    assertTrue("include is set - toggle to true",
-        tool.isToggleDirectiveIncluded(directive, null, false));
-
-    settings.setInclude(DirectiveFileType.SYSTEM.getIndex(), false);
-    settings.setExclude(DirectiveFileType.SYSTEM.getIndex(), true);
-    assertTrue("exclude is set - toggle to false",
-        tool.isToggleDirectiveIncluded(directive, null, true));
-    assertFalse("no need to toggle",
-        tool.isToggleDirectiveIncluded(directive, null, false));
-
-    settings = new TestSettings();
-    tool = new DirectiveTool(DirectiveFileType.SYSTEM, false, settings);
-    descr = new TestDescr();
-    directive = new Directive(descr);
-    settings.setIncludeSDChanged(true);
-    assertFalse("SD in not in directive etomo column",
-        tool.isToggleDirectiveIncluded(directive, null, true));
-    assertFalse("SD in not in directive etomo column",
-        tool.isToggleDirectiveIncluded(directive, null, false));
-
-    descr = new TestDescr();
-    descr.setEtomoColumn(DirectiveDescrEtomoColumn.SD);
-    directive = new Directive(descr);
-    assertTrue("include SD is false and curIncludeState is true - toggle",
-        tool.isToggleDirectiveIncluded(directive, null, true));
-    assertFalse("include SD and curIncludeState are both false - no need to toggle",
-        tool.isToggleDirectiveIncluded(directive, null, false));
-
-    settings.setIncludeSD(true);
-    assertFalse("include SD and curIncludeState are both true - no need to toggle",
-        tool.isToggleDirectiveIncluded(directive, null, true));
-    assertTrue("include SD is true and curIncludeState is false - toggle",
-        tool.isToggleDirectiveIncluded(directive, null, false));
   }
 
   public void testIsDirectiveVisible() {
@@ -332,7 +228,6 @@ public class DirectiveToolTest extends TestCase {
     private int changedIndex = -1;
     private boolean showUnchanged = false;
     private boolean showHidden = false;
-    private boolean includeSDChanged = false;
 
     private TestSettings() {
       for (int i = 0; i < include.length; i++) {
@@ -378,14 +273,6 @@ public class DirectiveToolTest extends TestCase {
 
     public boolean isShowHidden() {
       return showHidden;
-    }
-
-    public void setIncludeSDChanged(final boolean input) {
-      includeSDChanged = input;
-    }
-
-    public boolean isIncludeSDChanged() {
-      return includeSDChanged;
     }
 
     public void setChangedIndex(final int input) {
