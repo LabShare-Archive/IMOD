@@ -21,10 +21,12 @@ import java.util.List;
 */
 public final class DirectiveDescrSection {
   public static final String rcsid = "$Id:$";
-  
+
   private final List<String> nameArray = new ArrayList<String>();
 
   private final String header;
+
+  private boolean containsEditableDirectives = true;
 
   public DirectiveDescrSection(final String header) {
     this.header = header;
@@ -45,6 +47,14 @@ public final class DirectiveDescrSection {
 
   public int size() {
     return nameArray.size();
+  }
+
+  public void setContainsEditableDirectives(final boolean input) {
+    containsEditableDirectives = input;
+  }
+
+  public boolean isContainsEditableDirectives() {
+    return containsEditableDirectives;
   }
 
   public String toString() {
