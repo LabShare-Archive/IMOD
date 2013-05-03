@@ -1,5 +1,6 @@
 package etomo.logic;
 
+import etomo.EtomoDirector;
 import etomo.storage.Directive;
 import etomo.storage.DirectiveDescrEtomoColumn;
 import etomo.type.AxisID;
@@ -28,7 +29,7 @@ public final class DirectiveTool {
   private final boolean fileTypeExists;
   private final DirectiveDisplaySettings displaySettings;
 
-  private boolean debug = false;
+  private int debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
   public DirectiveTool(final DirectiveFileType type, final boolean fileTypeExists,
       final DirectiveDisplaySettings displaySettings) {
@@ -37,7 +38,7 @@ public final class DirectiveTool {
     this.fileTypeExists = fileTypeExists;
   }
 
-  void setDebug(final boolean input) {
+  public void setDebug(final int input) {
     debug = input;
   }
 
@@ -79,6 +80,7 @@ public final class DirectiveTool {
           exclude = false;
         }
         else if (displaySettings.isExclude(i)) {
+
           include = false;
           exclude = true;
         }
@@ -110,36 +112,6 @@ public final class DirectiveTool {
   }
 
   /**
-   * Not for initialization.  This function should be called each time a display setting
-   * is changed.  It will return true if the directive's include checkbox state should be
-   * switched.  If the change is that an include or exclude directive file checkbox has
-   * been turned off, this function will return false.
-   * @param directive
-   * @param axisID
-   * @param curIncludeState - selection state of the directive's include checkbox
-   * @return true if state of the directive should be toggled
-   */
-  public boolean isToggleDirectiveIncluded(final Directive directive,
-      final AxisID axisID, final boolean curIncludeState) {
-    if (directive == null) {
-      return false;
-    }
-    if (!isMatchesType(directive)) {
-      return false;
-    }
-    int index = displaySettings.getChangedIndex();
-    // Has one of the directive file include/exclude checkboxes has changed?
-    if (index != -1) {
-      // Is this directive affected by this change? Does the change mean the
-      // curIncludeState is wrong now?
-      return directive.isInDirectiveFile(index, axisID)
-          && (!curIncludeState && displaySettings.isInclude(index))
-          || (curIncludeState && displaySettings.isExclude(index));
-    }
-    return false;
-  }
-
-  /**
    * Used whenever necessary to show or hide directives.  Call this after
    * isDirectiveIncluded or isToggleDirectiveIncluded is called.  This function will keep
    * everything where include is checked visible.  It will also keep anything that the
@@ -153,6 +125,10 @@ public final class DirectiveTool {
       final boolean includedInGui, final boolean changedInGui) {
     // Included and changed directives should always be visible
     if (includedInGui || changedInGui) {
+      if (debug >= 2) {
+        System.err.println("isDirectiveVisible:includedInGui:" + includedInGui
+            + ",changedInGui:" + changedInGui);
+      }
       return true;
     }
     // Hide batch-only directives in a template editor. Hide template-only directives in a
@@ -162,6 +138,13 @@ public final class DirectiveTool {
     }
     // Hide unchanged and hidden directives, unless the display settings say otherwise.
     DirectiveDescrEtomoColumn etomoColumn = directive.getEtomoColumn();
+    if (debug >= 2) {
+      System.err.println("isDirectiveVisible:isShowUnchanged:"
+          + displaySettings.isShowUnchanged() + ",isChanged:"
+          + directive.getValues().isChanged() + ",isShowHidden:"
+          + displaySettings.isShowHidden() + ",etomoColumn:" + etomoColumn);
+      directive.getValues().setDebug(debug);
+    }
     return (displaySettings.isShowUnchanged() || directive.getValues().isChanged())
         && (displaySettings.isShowHidden() || (etomoColumn != null && etomoColumn != DirectiveDescrEtomoColumn.NE));
   }
