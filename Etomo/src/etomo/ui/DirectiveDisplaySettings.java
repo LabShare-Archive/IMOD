@@ -25,6 +25,4 @@ public interface DirectiveDisplaySettings {
   public boolean isShowUnchanged();
 
   public boolean isShowHidden();
-
-  public int getChangedIndex();
 }
