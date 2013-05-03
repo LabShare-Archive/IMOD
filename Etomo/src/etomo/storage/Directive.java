@@ -1,5 +1,6 @@
 package etomo.storage;
 
+import etomo.EtomoDirector;
 import etomo.comscript.FortranInputString;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.type.AxisID;
@@ -233,6 +234,8 @@ public class Directive {
   }
 
   public static abstract class Value {
+    int debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
+
     abstract void set(boolean input);
 
     abstract void set(ConstEtomoNumber input);
@@ -248,6 +251,10 @@ public class Directive {
     abstract void set(String input);
 
     public abstract boolean toBoolean();
+
+    void setDebug(final int input) {
+      debug = input;
+    }
   }
 
   static final class ValueFactory {
@@ -274,6 +281,9 @@ public class Directive {
     }
 
     boolean equals(final BooleanValue input) {
+      if (debug >= 2) {
+        System.err.println("equals:value:" + value + ",input:" + input);
+      }
       if (input == null) {
         // the default is false
         return !value;
@@ -507,7 +517,7 @@ public class Directive {
     }
 
     boolean equals(final StringValue input) {
-      if (input == null) {
+      if (input == null || input.value == null || input.value.matches("\\s*")) {
         return value == null || value.matches("\\s*");
       }
       return value.trim().equals(input.value.trim());
@@ -518,7 +528,7 @@ public class Directive {
     }
 
     public void set(final ConstEtomoNumber input) {
-      if (input == null) {
+      if (input == null || input.isNull()) {
         value = null;
       }
       else {
@@ -527,7 +537,7 @@ public class Directive {
     }
 
     public void set(final ConstStringParameter input) {
-      if (input == null) {
+      if (input == null || input.isEmpty()) {
         value = null;
       }
       else {
@@ -536,7 +546,12 @@ public class Directive {
     }
 
     public void set(double input) {
-      value = String.valueOf(input);
+      if (input == EtomoNumber.DOUBLE_NULL_VALUE) {
+        value = null;
+      }
+      else {
+        value = String.valueOf(input);
+      }
     }
 
     public void set(double[] input) {
@@ -546,7 +561,9 @@ public class Directive {
       else {
         StringBuffer buffer = new StringBuffer();
         for (int i = 0; i < input.length; i++) {
-          buffer.append((i > 0 ? "," : "") + String.valueOf(input[i]));
+          buffer.append((i > 0 ? "," : "")
+              + (input[i] == EtomoNumber.INTEGER_NULL_VALUE ? " " : String
+                  .valueOf(input[i])));
         }
         if (buffer.length() > 0) {
           value = buffer.toString();
@@ -555,7 +572,12 @@ public class Directive {
     }
 
     public void set(int input) {
-      value = String.valueOf(input);
+      if (input == EtomoNumber.INTEGER_NULL_VALUE) {
+        value = null;
+      }
+      else {
+        value = String.valueOf(input);
+      }
     }
 
     public void set(final String input) {
