@@ -102,7 +102,7 @@ public final class DirectiveEditorManager extends BaseManager {
   public void openDirectiveEditorDialog() {
     if (dialog == null) {
       DirectiveEditorBuilder builder = new DirectiveEditorBuilder(this);
-      dialogErrmsg = builder.build(sourceManager.getBaseMetaData().getAxisType(),
+      dialogErrmsg = builder.build(type,sourceManager.getBaseMetaData().getAxisType(),
           dialogErrmsg);
       dialog = DirectiveEditorDialog.getInstance(this, type, builder, sourceManager
           .getBaseMetaData().getAxisType(), sourceManager.getStatus(), timestamp,
