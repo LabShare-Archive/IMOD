@@ -77,9 +77,23 @@ manpage =  Defocus tolerance in nanometers that limits the width of the strips.
 An image region
 with defocus difference less than this tolerance 
 is considered to have constant defocus and can be corrected as one strip. The
-strip width is either the width of this region or 256 pixels, whichever is
-smaller; but strips will also be constrained to be at least 128 pixels wide.
-Each strip is corrected based on the defocus at the center of the strip. 
+strip width is either the width of this region or the maxmimum strip width
+(256 pixels by default), whichever is smaller; but strips will also be
+constrained to be at least 128 pixels wide.  Each strip is corrected based on
+the defocus at the center of the strip. 
+
+[Field = MaximumStripWidth]
+short = maxWidth
+type = I
+usage = Maximum width of strips in pixels (default 256)
+tooltip =
+manpage = Maximum width of strips in pixels.  At lower tilts, the strip width will be
+constrained by this limit even though the defocus tolerance would allow a
+wider strip.  This speeds up the computation and may give somewhat more
+accurate correction since the range of defocus in a strip is less, but
+gives artifactually low amplitudes in the Fourier transform right at the zeros
+of the CTF.  Setting the width higher (e.g., half the image size) can
+virtually eliminate this effect at lower tilts. 
 
 [Field = InterpolationWidth]
 short = iWidth
