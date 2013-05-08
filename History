@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/7/13: Added option to Ctfphaseflip to set maximum strip width, for reducing
+artifacts at zeros in FFT at low tilts.
+
 4/10/13: Fixed Batchruntomo's reading of processchunks log hanging on Mac.
 
 4/9/13: Handled multi-line INFO and WARNING messages in copytomocoms.
