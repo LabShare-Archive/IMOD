@@ -3,6 +3,8 @@ package etomo.logic;
 import etomo.EtomoDirector;
 import etomo.storage.Directive;
 import etomo.storage.DirectiveDescrEtomoColumn;
+import etomo.storage.DirectiveType;
+import etomo.storage.DirectiveValues;
 import etomo.type.AxisID;
 import etomo.type.DirectiveFileType;
 import etomo.ui.DirectiveDisplaySettings;
@@ -42,24 +44,27 @@ public final class DirectiveTool {
     debug = input;
   }
 
+  public void resetDebug() {
+    debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
+  }
+
   /**
-   * For initialization.  Returns true if the directive's include checkbox should be
-   * checked.  Include and exclude checkboxes are checked in order of precedence, and only
-   * have an effect on directives with have a relationship to them.  So for the include SD
-   * checkbox to have an effect, the directive must have an "SD" in its Etomo column (see
-   * directives.csv).  For the other include checkboxes, and the exclude checkboxes, to
-   * have an effect, the directive must be in a saved directive file of the same type in
-   * the dataset directory.
+   * Returns true if the include checkbox value needs to be changed.  Always returns false
+   * for "Any" directives (param or runtime directives with an axisID that is null),
+   * because their setting comes from the A and B directives.
    * @param directive
    * @param axisID
+   * @param includeChecked
    * @return
    */
-  public boolean isDirectiveIncluded(final Directive directive, final AxisID axisID) {
-    if (directive == null) {
+  public boolean isToggleDirectiveIncluded(final Directive directive,
+      final AxisID axisID, final boolean includeChecked) {
+    // Any directives are set indirectly
+    if (axisID == null && directive.getType() != DirectiveType.SETUP_SET) {
       return false;
     }
-    if (!isMatchesType(directive)) {
-      return false;
+    if (directive == null || !isMatchesType(directive)) {
+      return includeChecked != false;
     }
     // Check the display settings in order of precedence.
     boolean include = false;
@@ -72,22 +77,27 @@ public final class DirectiveTool {
     }
     // Check all but the settings for the file type that matches the type of the editor.
     for (int i = 0; i < DirectiveFileType.NUM; i++) {
-      // Override the lower precedence settings.
-      if (i != matchingIndex && directive.isInDirectiveFile(i, axisID)) {
+      // Override the lower precedence settings. If the directive, or the any axis version
+      // of the directive is in the file, then it may have an effect.
+      if (i != matchingIndex
+          && (directive.isInDirectiveFile(i, axisID) || (axisID != null && directive
+              .isInDirectiveFile(i, null)))) {
         // Include and exclude cannot be set at the same time (but they can both be off).
         if (displaySettings.isInclude(i)) {
+          if (debug > 1) {
+          }
           include = true;
           exclude = false;
         }
         else if (displaySettings.isExclude(i)) {
-
           include = false;
           exclude = true;
         }
       }
     }
     // the directive file matching the type of the editor has the highest precedence.
-    if (directive.isInDirectiveFile(matchingIndex, axisID)) {
+    if (directive.isInDirectiveFile(matchingIndex, axisID)
+        || (axisID != null && directive.isInDirectiveFile(matchingIndex, null))) {
       if (displaySettings.isInclude(matchingIndex)) {
         include = true;
         exclude = false;
@@ -98,17 +108,24 @@ public final class DirectiveTool {
       }
     }
     if (include) {
-      return true;
+      return includeChecked != true;
     }
-    // If none of the display settings are in effect and the file of the same type as the
-    // editor is not in the dataset directory, return true for directives that match this
-    // fall-back.
-    if (!exclude && !fileTypeExists) {
-      return type == DirectiveFileType.USER
+    if (exclude) {
+
+      return includeChecked != false;
+    }
+    if (!fileTypeExists) {
+      // Any directives are set indirectly
+      if (axisID == null && directive.getType() != DirectiveType.SETUP_SET) {
+
+        return includeChecked != false;
+      }
+      DirectiveValues values = directive.getValues();
+      return includeChecked != (type == DirectiveFileType.USER
           && directive.getEtomoColumn() == DirectiveDescrEtomoColumn.SD
-          && isMatchesType(directive) && directive.getValues().isChanged(axisID);
+          && isMatchesType(directive) && (values.isChanged(axisID)));
     }
-    return false;
+    return includeChecked != false;
   }
 
   /**
@@ -123,12 +140,11 @@ public final class DirectiveTool {
    */
   public boolean isDirectiveVisible(final Directive directive,
       final boolean includedInGui, final boolean changedInGui) {
+    if (displaySettings.isShowOnlyIncluded()) {
+      return includedInGui;
+    }
     // Included and changed directives should always be visible
     if (includedInGui || changedInGui) {
-      if (debug >= 2) {
-        System.err.println("isDirectiveVisible:includedInGui:" + includedInGui
-            + ",changedInGui:" + changedInGui);
-      }
       return true;
     }
     // Hide batch-only directives in a template editor. Hide template-only directives in a
@@ -138,15 +154,12 @@ public final class DirectiveTool {
     }
     // Hide unchanged and hidden directives, unless the display settings say otherwise.
     DirectiveDescrEtomoColumn etomoColumn = directive.getEtomoColumn();
-    if (debug >= 2) {
-      System.err.println("isDirectiveVisible:isShowUnchanged:"
-          + displaySettings.isShowUnchanged() + ",isChanged:"
-          + directive.getValues().isChanged() + ",isShowHidden:"
-          + displaySettings.isShowHidden() + ",etomoColumn:" + etomoColumn);
-      directive.getValues().setDebug(debug);
-    }
-    return (displaySettings.isShowUnchanged() || directive.getValues().isChanged())
+    directive.setDebug(debug);
+    boolean retval = (displaySettings.isShowUnchanged() || directive.getValues()
+        .isChanged())
         && (displaySettings.isShowHidden() || (etomoColumn != null && etomoColumn != DirectiveDescrEtomoColumn.NE));
+    directive.resetDebug();
+    return retval;
   }
 
   /**
