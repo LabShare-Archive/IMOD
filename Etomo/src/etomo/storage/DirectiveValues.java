@@ -65,6 +65,19 @@ public final class DirectiveValues {
     return null;
   }
 
+  public Value getDefaultValue(final AxisID axisID) {
+    if (axisID == null) {
+      return defaultValue;
+    }
+    else if (axisID == AxisID.SECOND) {
+      return defaultValueB;
+    }
+    else if (axisID == AxisID.FIRST) {
+      return defaultValueA;
+    }
+    return null;
+  }
+
   public boolean isSet(final AxisID axisID) {
     if (axisID == null) {
       return value != null;
@@ -87,28 +100,46 @@ public final class DirectiveValues {
   public boolean isChanged() {
     if (value != null) {
       if (isChanged(value, defaultValue)) {
+        if (debug > 1) {
+          System.out.println("A:value:" + value + ",defaultValue:" + defaultValue);
+        }
         return true;
       }
     }
     if (valueA != null) {
       if (defaultValueA != null) {
         if (isChanged(valueA, defaultValueA)) {
+          if (debug > 1) {
+            System.out.println("B");
+          }
           return true;
         }
       }
       else if (isChanged(valueA, defaultValue)) {
+        if (debug > 1) {
+          System.out.println("C");
+        }
         return true;
       }
     }
     if (valueB != null) {
       if (defaultValueB != null) {
         if (isChanged(valueB, defaultValueB)) {
+          if (debug > 1) {
+            System.out.println("D");
+          }
           return true;
         }
       }
       else if (isChanged(valueB, defaultValue)) {
+        if (debug > 1) {
+          System.out.println("E");
+        }
         return true;
       }
+    }
+    if (debug > 1) {
+      System.out.println("F");
     }
     return false;
   }
@@ -155,11 +186,12 @@ public final class DirectiveValues {
   }
 
   /**
+   * Assumes that the two values have the same type.
    * @param value
    * @param defaultValue
    * @return
    */
-  private boolean equals(Value value1, Value value2) {
+  public boolean equals(Value value1, Value value2) {
     if (debug >= 2) {
       System.err.println("equals:value1:" + value1 + ",value2:" + value2);
       value1.setDebug(debug);
@@ -167,8 +199,10 @@ public final class DirectiveValues {
     if (value1 == null && value2 == null) {
       return true;
     }
-    if (value1 == null || value2 == null) {
-      return false;
+    if (value1 == null) {
+      // Value2 is not null - swap them to do the comparison.
+      value1 = value2;
+      value2 = null;
     }
     if (valueType == DirectiveValueType.BOOLEAN) {
       return ((BooleanValue) value1).equals((BooleanValue) value2);
@@ -209,6 +243,10 @@ public final class DirectiveValues {
 
   public void setDebug(final int input) {
     debug = input;
+  }
+
+  public void resetDebug() {
+    debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
   }
 
   void setDefaultValue(final AxisID axisID, final boolean input) {
@@ -261,28 +299,15 @@ public final class DirectiveValues {
   }
 
   void setValue(final AxisID axisID, final boolean input) {
-    if (!input) {
-      if (axisID == null) {
-        value = null;
-      }
-      else if (axisID == AxisID.SECOND) {
-        valueB = null;
-      }
-      else {
-        valueA = null;
-      }
+    createValue(axisID);
+    if (axisID == null) {
+      value.set(input);
+    }
+    else if (axisID == AxisID.SECOND) {
+      valueB.set(input);
     }
     else {
-      createValue(axisID);
-      if (axisID == null) {
-        value.set(input);
-      }
-      else if (axisID == AxisID.SECOND) {
-        valueB.set(input);
-      }
-      else {
-        valueA.set(input);
-      }
+      valueA.set(input);
     }
   }
 
@@ -339,13 +364,8 @@ public final class DirectiveValues {
   }
 
   void setValue(final boolean input) {
-    if (!input) {
-      value = null;
-    }
-    else {
-      createValue(null);
-      value.set(input);
-    }
+    createValue(null);
+    value.set(input);
   }
 
   void setValue(final ConstEtomoNumber input) {
