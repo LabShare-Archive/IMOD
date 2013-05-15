@@ -31,7 +31,7 @@ public class DirectiveToolTest extends TestCase {
     TestSettings settings = new TestSettings();
     DirectiveTool tool = new DirectiveTool(DirectiveFileType.SCOPE, false, settings);
     assertFalse("Null directive does not cause error",
-        tool.isDirectiveIncluded(null, null));
+        tool.isToggleDirectiveIncluded(null, null, false));
 
     settings.setInclude(DirectiveFileType.SCOPE.getIndex(), true);
     TestDescr descr = new TestDescr();
@@ -39,14 +39,14 @@ public class DirectiveToolTest extends TestCase {
     Directive directive = new Directive(descr);
     directive.setInDirectiveFile(DirectiveFileType.SCOPE, null, true);
     assertTrue("can return true when a template editor encounters a template directive",
-        tool.isDirectiveIncluded(directive, null));
+        tool.isToggleDirectiveIncluded(directive, null, false));
 
     descr = new TestDescr();
     descr.setBatch(true);
     directive = new Directive(descr);
     directive.setInDirectiveFile(DirectiveFileType.SCOPE, null, true);
     assertFalse("returns false when a template editor encounters a batch directive",
-        tool.isDirectiveIncluded(directive, null));
+        tool.isToggleDirectiveIncluded(directive, null, false));
 
     settings = new TestSettings();
     settings.setInclude(DirectiveFileType.BATCH.getIndex(), true);
@@ -56,49 +56,51 @@ public class DirectiveToolTest extends TestCase {
     directive = new Directive(descr);
     directive.setInDirectiveFile(DirectiveFileType.BATCH, null, true);
     assertTrue("can return true when a batch editor encounters a template directive",
-        tool.isDirectiveIncluded(directive, null));
+        tool.isToggleDirectiveIncluded(directive, null, false));
 
     descr = new TestDescr();
     descr.setTemplate(true);
     directive = new Directive(descr);
     directive.setInDirectiveFile(DirectiveFileType.BATCH, null, true);
     assertFalse("returns false when a batch editor encounters a template directive",
-        tool.isDirectiveIncluded(directive, null));
+        tool.isToggleDirectiveIncluded(directive, null, false));
     tool = new DirectiveTool(DirectiveFileType.SCOPE, false, settings);
     descr = new TestDescr();
     directive = new Directive(descr);
     assertFalse("include SD is on, but directive doesn't have SD in etomo column",
-        tool.isDirectiveIncluded(directive, null));
+        tool.isToggleDirectiveIncluded(directive, null, false));
 
     tool = new DirectiveTool(null, false, settings);
     descr = new TestDescr();
     directive = new Directive(descr);
     assertFalse("missing type doesn't cause an error",
-        tool.isDirectiveIncluded(directive, null));
+        tool.isToggleDirectiveIncluded(directive, null, false));
 
     tool = new DirectiveTool(DirectiveFileType.SYSTEM, true, settings);
     directive.setInDirectiveFile(DirectiveFileType.SCOPE, null, true);
     assertFalse("In file but include isn't set",
-        tool.isDirectiveIncluded(directive, null));
+        tool.isToggleDirectiveIncluded(directive, null, false));
 
     settings.setInclude(DirectiveFileType.SCOPE.getIndex(), true);
-    assertTrue("In file and include is set", tool.isDirectiveIncluded(directive, null));
+    assertTrue("In file and include is set",
+        tool.isToggleDirectiveIncluded(directive, null, false));
     assertTrue("an any directive means that A and B are both in the file",
-        tool.isDirectiveIncluded(directive, AxisID.FIRST));
+        tool.isToggleDirectiveIncluded(directive, AxisID.FIRST, false));
     assertTrue("an any directive means that A and B are both in the file",
-        tool.isDirectiveIncluded(directive, AxisID.SECOND));
+        tool.isToggleDirectiveIncluded(directive, AxisID.SECOND, false));
 
     settings.setExclude(DirectiveFileType.USER.getIndex(), true);
     assertTrue("directive isn't in the user file, so exclude has no effect",
-        tool.isDirectiveIncluded(directive, null));
+        tool.isToggleDirectiveIncluded(directive, null, false));
 
     directive.setInDirectiveFile(DirectiveFileType.USER, null, true);
-    assertFalse("user overrides scope", tool.isDirectiveIncluded(directive, null));
+    assertFalse("user overrides scope",
+        tool.isToggleDirectiveIncluded(directive, null, false));
 
     settings.setInclude(DirectiveFileType.SYSTEM.getIndex(), true);
     directive.setInDirectiveFile(DirectiveFileType.SYSTEM, null, true);
     assertTrue("the file type of the editor overrides all other file types",
-        tool.isDirectiveIncluded(directive, null));
+        tool.isToggleDirectiveIncluded(directive, null, false));
 
     settings = new TestSettings();
     tool = new DirectiveTool(DirectiveFileType.USER, false, settings);
@@ -109,7 +111,7 @@ public class DirectiveToolTest extends TestCase {
     directive.setValue(10);
     assertTrue(
         "for the user editor, modified directives with SD are included when there is no matching file",
-        tool.isDirectiveIncluded(directive, null));
+        tool.isToggleDirectiveIncluded(directive, null, false));
   }
 
   public void testIsDirectiveVisible() {
@@ -273,6 +275,10 @@ public class DirectiveToolTest extends TestCase {
 
     public boolean isShowHidden() {
       return showHidden;
+    }
+
+    public boolean isShowOnlyIncluded() {
+      return false;
     }
 
     public void setChangedIndex(final int input) {
