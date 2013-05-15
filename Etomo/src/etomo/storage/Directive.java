@@ -37,6 +37,7 @@ public class Directive {
   private final boolean template;
   private final DirectiveValues values;
   private final DirectiveValueType valueType;
+
   private AxisLevelData axisLevelDataAny = null;
   private AxisLevelData axisLevelDataA = null;
   private AxisLevelData axisLevelDataB = null;
@@ -64,6 +65,14 @@ public class Directive {
     batch = true;
     template = true;
     etomoColumn = null;
+  }
+
+  public void setDebug(final int input) {
+    values.setDebug(input);
+  }
+
+  public void resetDebug() {
+    values.resetDebug();
   }
 
   public boolean equals(final DirectiveType input) {
@@ -108,6 +117,16 @@ public class Directive {
 
   public boolean isValid() {
     return directiveName.isValid();
+  }
+
+  public AxisLevelData getAxisLevelData(final AxisID axisID) {
+    if (axisID == AxisID.FIRST) {
+      return axisLevelDataA;
+    }
+    if (axisID == AxisID.SECOND) {
+      return axisLevelDataB;
+    }
+    return axisLevelDataAny;
   }
 
   /**
@@ -231,6 +250,20 @@ public class Directive {
         inDirectiveFile[i] = false;
       }
     }
+
+    public String toString() {
+      StringBuffer buffer = new StringBuffer();
+      for (int i = 0; i < inDirectiveFile.length; i++) {
+        if (inDirectiveFile[i]) {
+          buffer.append((buffer.length() > 0 ? ", " : "") + "in "
+              + DirectiveFileType.getInstance(i) + " directive file");
+        }
+      }
+      if (buffer.length() > 0) {
+        return buffer.toString();
+      }
+      return null;
+    }
   }
 
   public static abstract class Value {
@@ -251,6 +284,8 @@ public class Directive {
     abstract void set(String input);
 
     public abstract boolean toBoolean();
+
+    public abstract boolean isEmpty();
 
     void setDebug(final int input) {
       debug = input;
@@ -278,6 +313,10 @@ public class Directive {
     private boolean value = false;
 
     private BooleanValue() {
+    }
+
+    public boolean isEmpty() {
+      return false;
     }
 
     boolean equals(final BooleanValue input) {
@@ -376,6 +415,10 @@ public class Directive {
       }
     }
 
+    public boolean isEmpty() {
+      return value == null || value.isNull();
+    }
+
     boolean equals(final NumericValue input) {
       if (input == null) {
         return value.isNull();
@@ -437,6 +480,10 @@ public class Directive {
       if (valueType != DirectiveValueType.FLOATING_POINT_PAIR) {
         value.setIntegerType(true);
       }
+    }
+
+    public boolean isEmpty() {
+      return value == null || value.isNull();
     }
 
     boolean equals(final NumericPairValue input) {
@@ -514,6 +561,10 @@ public class Directive {
     private String value = null;
 
     private StringValue() {
+    }
+
+    public boolean isEmpty() {
+      return value == null || value.matches("\\s*");
     }
 
     boolean equals(final StringValue input) {
