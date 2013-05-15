@@ -598,7 +598,7 @@ public class EtomoDirector {
    */
   public void openTools(ToolType toolType) {
     ToolsManager manager = new ToolsManager(toolType);
-    UIHarness.INSTANCE.addFrame(manager);
+    UIHarness.INSTANCE.addFrame(manager, false);
     manager.initialize();
     Utilities.managerStamp(manager.getPropertyUserDir(), manager.getName());
   }
@@ -612,7 +612,7 @@ public class EtomoDirector {
       final BaseManager dataSource, final String timestamp, final StringBuffer errmsg) {
     DirectiveEditorManager manager = new DirectiveEditorManager(directiveFileType,
         dataSource, timestamp, errmsg);
-    UIHarness.INSTANCE.addFrame(manager);
+    UIHarness.INSTANCE.addFrame(manager, true);
     manager.initialize();
     Utilities.managerStamp(manager.getPropertyUserDir(), manager.getName());
   }
