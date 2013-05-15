@@ -22,14 +22,14 @@ public final class DirectiveValueType {
 
   public static final DirectiveValueType BOOLEAN = new DirectiveValueType("Bool", 3);
   public static final DirectiveValueType FLOATING_POINT = new DirectiveValueType("Float",
-      5);
+      3);
   public static final DirectiveValueType FLOATING_POINT_PAIR = new DirectiveValueType(
-      "2 Float", 10);
-  public static final DirectiveValueType INTEGER = new DirectiveValueType("Int", 5);
+      "2 Float", 6);
+  public static final DirectiveValueType INTEGER = new DirectiveValueType("Int", 3);
   public static final DirectiveValueType INTEGER_PAIR = new DirectiveValueType("2 Int",
-      10);
-  public static final DirectiveValueType LIST = new DirectiveValueType("List", 15);
-  public static final DirectiveValueType STRING = new DirectiveValueType("String", 15);
+      6);
+  public static final DirectiveValueType LIST = new DirectiveValueType("List", 9);
+  public static final DirectiveValueType STRING = new DirectiveValueType("String", 9);
 
   private final String tag;
   private final int columns;
