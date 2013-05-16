@@ -149,7 +149,7 @@ final class CheckBox extends JCheckBox {
       System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
-  
+
   /**
    * Constructs savedValue (if it doesn't exist).  Saves the current setting.
    */
@@ -183,7 +183,16 @@ final class CheckBox extends JCheckBox {
    * @return
    */
   boolean isDifferentFromCheckpoint() {
-    if (!isEnabled() || !isVisible()) {
+    return isDifferentFromCheckpoint(false);
+  }
+
+  /**
+   * 
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return
+   */
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !isVisible())) {
       return false;
     }
     return checkpointValue == null || !checkpointValue.equals(isSelected());
