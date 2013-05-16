@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
@@ -47,30 +48,26 @@ final class DirectiveSectionPanel {
   private final DirectiveTool tool;
   private final DirectiveDescrSection descrSection;
   private final DirectiveMap directiveMap;
-  private final DirectiveEditorDialog container;
-
-  private int currentSize = 0;
 
   private DirectiveSectionPanel(BaseManager manager, final AxisType sourceAxisType,
       final DirectiveTool tool, final DirectiveDescrSection descrSection,
-      final DirectiveMap directiveMap, final DirectiveEditorDialog container) {
+      final DirectiveMap directiveMap) {
     this.manager = manager;
     this.sourceAxisType = sourceAxisType;
     this.tool = tool;
     this.descrSection = descrSection;
     this.directiveMap = directiveMap;
-    this.container = container;
     cbShow = new CheckBox(descrSection.toString());
   }
 
   static DirectiveSectionPanel getInstance(final BaseManager manager,
       final DirectiveDescrSection descrSection, final DirectiveMap directiveMap,
-      final AxisType sourceAxisType, final DirectiveTool tool,
-      final DirectiveEditorDialog container) {
+      final AxisType sourceAxisType, final DirectiveTool tool) {
     DirectiveSectionPanel instance = new DirectiveSectionPanel(manager, sourceAxisType,
-        tool, descrSection, directiveMap, container);
+        tool, descrSection, directiveMap);
     instance.createPanel();
     instance.addListeners();
+    instance.setTooltips();
     return instance;
   }
 
@@ -82,6 +79,11 @@ final class DirectiveSectionPanel {
     // body panel
     pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
     pnlBody.add(Box.createRigidArea(FixedDim.x0_y3));
+    JPanel pnl = new JPanel();
+    pnl.setLayout(new BoxLayout(pnl, BoxLayout.X_AXIS));
+    pnl.add(new JLabel("Include:"));
+    pnl.add(Box.createHorizontalGlue());
+    pnlBody.add(pnl);
     pnlBody.add(pnlDirectives);
     // directives panel
     pnlDirectives.setLayout(new BoxLayout(pnlDirectives, BoxLayout.Y_AXIS));
@@ -93,31 +95,33 @@ final class DirectiveSectionPanel {
       }
       // directive set panels
       DirectiveSetInterface directiveSet = DirectiveSetFactory.createDirectiveSet(
-          manager, directive, sourceAxisType, tool);
+          manager, directive, tool, sourceAxisType);
       directiveSetArray.add(directiveSet);
       pnlDirectives.add(directiveSet.getComponent());
     }
-    updateDisplay();
+    msgControlChanged(false, true, true);
   }
 
-  void updateDisplay() {
-    currentSize = 0;
+  void msgControlChanged(final boolean includeChange, final boolean showChange,
+      final boolean expandChange) {
     Iterator<DirectiveSetInterface> iterator = directiveSetArray.iterator();
     boolean visibleDirectives = false;
+    boolean include = false;
     while (iterator.hasNext()) {
       DirectiveSetInterface directiveSet = iterator.next();
-      directiveSet.updateDisplay();
-      if (directiveSet.isVisible()) {
+      if (directiveSet.msgControlChanged(includeChange, expandChange)
+          && !visibleDirectives) {
         visibleDirectives = true;
-        currentSize++;
+      }
+      if (showChange && !include && directiveSet.isIncluded()) {
+        include = true;
       }
     }
+    if (include) {
+      cbShow.setSelected(true);
+    }
     cbShow.setEnabled(visibleDirectives);
-    pnlRoot.setVisible(cbShow.isEnabled() && cbShow.isSelected());
-  }
-
-  int getCurrentSize() {
-    return currentSize;
+    pnlRoot.setVisible(cbShow.isSelected() && cbShow.isEnabled());
   }
 
   Component getComponent() {
@@ -128,16 +132,17 @@ final class DirectiveSectionPanel {
     return cbShow;
   }
 
-  boolean isShow() {
-    return cbShow.isSelected();
-  }
-
   void addListeners() {
     cbShow.addActionListener(new DirectiveSectionListener(this));
   }
 
   private void action() {
-    container.showSection();
+    pnlRoot.setVisible(cbShow.isEnabled() && cbShow.isSelected());
+    UIHarness.INSTANCE.pack(manager);
+  }
+
+  private void setTooltips() {
+    cbShow.setToolTipText("Show directives.");
   }
 
   private static final class DirectiveSectionListener implements ActionListener {
