@@ -25,4 +25,6 @@ public interface DirectiveDisplaySettings {
   public boolean isShowUnchanged();
 
   public boolean isShowHidden();
+
+  public boolean isShowOnlyIncluded();
 }
