@@ -28,10 +28,10 @@ final class DirectiveSetFactory {
   }
 
   static DirectiveSetInterface createDirectiveSet(final BaseManager manager,
-      final Directive directive, final AxisType axisType, final DirectiveTool tool) {
+      final Directive directive, final DirectiveTool tool, final AxisType sourceAxisType) {
     if (directive.getType() == DirectiveType.SETUP_SET) {
-      return DirectivePanel.getSoloInstance(directive, tool);
+      return DirectivePanel.getSoloInstance(directive, tool, sourceAxisType);
     }
-    return DirectiveSetPanel.getInstance(manager, directive, axisType, tool);
+    return DirectiveSetPanel.getInstance(manager, directive, tool, sourceAxisType);
   }
 }
