@@ -56,10 +56,10 @@ abstract class EtomoFrame extends AbstractFrame {
   abstract void register();
 
   void initialize() {
-    menu = new EtomoMenu();
+    menu =  EtomoMenu.getInstance(this);
     ImageIcon iconEtomo = new ImageIcon(ClassLoader.getSystemResource("images/etomo.png"));
     setIconImage(iconEtomo.getImage());
-    createMenus();
+    getMenus();
   }
 
   /**
@@ -484,10 +484,9 @@ abstract class EtomoFrame extends AbstractFrame {
   }
 
   /**
-   * Create the Etomo menus
+   * Get the Etomo menus
    */
-  private void createMenus() {
-    menu.createMenus(this);
+  private void getMenus() {
     menuBar = menu.getMenuBar();
     setJMenuBar(menuBar);
   }
