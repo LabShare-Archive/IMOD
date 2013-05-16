@@ -21,7 +21,8 @@ short = angles
 type = FN
 usage = Tilt angles file
 tooltip = 
-manpage = File with tilt angles. one per line. This file has usually a .tlt extension.
+manpage = File with tilt angles, one per line. This file has usually a .tlt
+extension.
 
 [Field = MaskedVarianceDifference]
 short = MVD
@@ -33,6 +34,7 @@ image-dependent parameter which defines a stopping condition for preNAD. The
 user-defined MVD is optional. However, generic users are suggested to ignore
 this parameter and use MinIterations/MaxIterations for an automatic estimation
 of the MVD.
+
 
 [Field = sigma]
 short = s
@@ -56,5 +58,14 @@ type = I
 usage = Maximum Number of Iterations
 tooltip = 
 manpage =  Maximum Number of Iterations allowed for each tilt projection.
+
+
+[Field = ViewsToProcess]
+short = views
+type = LI
+usage = List of views to process from input file, numbered from 1.
+tooltip =  
+manpage = List of views to process from input file, numbered from 1. List
+should be in the form 1,3-6,9,19.
 
 

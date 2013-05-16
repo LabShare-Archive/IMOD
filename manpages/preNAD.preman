@@ -22,8 +22,8 @@ For a more detailed description of the algorithm used in this code, see
 Mauro Maiorca, Eric Hanssen, Edmund Kazmierczak, Bohumil Maco, Misha
 Kudryashev, Richard Hall, Harry Quiney and Leann Tilley, "Improving the
 quality of electron tomography image volumes using pre-reconstruction
-filtering", Journal of Structural Biology, volume 180, issue 1, pages 132-142,
-year 2012.
+filtering", Journal of Structural Biology, (2012) 180: 132-142.
+Please reference this article if you use the filter.
 .P
 .SS Options
 preNAD uses the PIP package for input (see the manual page
