@@ -300,7 +300,7 @@ final class LabeledTextField implements UIComponent {
           + ' ');
     }
   }
-  
+
   /**
    * Saves the current text as the checkpoint.
    */
@@ -379,7 +379,16 @@ final class LabeledTextField implements UIComponent {
    * @return
    */
   boolean isDifferentFromCheckpoint() {
-    if (!textField.isEnabled() || !textField.isVisible()) {
+    return isDifferentFromCheckpoint(false);
+  }
+
+  /**
+   * 
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return
+   */
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !isVisible())) {
       return false;
     }
     if (checkpointValue == null) {
@@ -446,7 +455,7 @@ final class LabeledTextField implements UIComponent {
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
       text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel()
-          + (locationDescr == null ? "" : " in " + locationDescr),false);
+          + (locationDescr == null ? "" : " in " + locationDescr), false);
     }
     return text;
   }
