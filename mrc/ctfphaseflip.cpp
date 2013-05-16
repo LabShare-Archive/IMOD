@@ -36,15 +36,15 @@ int main(int argc, char *argv[])
   int numOptArgs, numNonOptArgs;
 
   // Fallbacks from   ../manpages/autodoc2man 2 1 ctfphaseflip
-  int numOptions = 17;
+  int numOptions = 18;
   const char *options[] = {
     "input:InputStack:FN:", "output:OutputFileName:FN:", "angleFn:AngleFile:FN:",
     "invert:InvertTiltAngles:B:", "defFn:DefocusFile:FN:", "xform:TransformFile:FN:",
-    "defTol:DefocusTol:I:", "iWidth:InterpolationWidth:I:", "pixelSize:PixelSize:F:",
-    "volt:Voltage:I:", "cs:SphericalAberration:F:", "ampContrast:AmplitudeContrast:F:",
+    "defTol:DefocusTol:I:", "maxWidth:MaximumStripWidth:I:",
+    "iWidth:InterpolationWidth:I:", "pixelSize:PixelSize:F:", "volt:Voltage:I:",
+    "cs:SphericalAberration:F:", "ampContrast:AmplitudeContrast:F:",
     "views:StartingEndingViews:IP:", "totalViews:TotalViews:IP:",
-    "boundary:BoundaryInfoFile:FN:", "aAngle:AxisAngle:F:", "param:Parameter:PF:"
-  };
+    "boundary:BoundaryInfoFile:FN:", "aAngle:AxisAngle:F:", "param:Parameter:PF:"};
 
   char *stackFn, *angleFn, *outFn, *defFn, *xformFn = NULL;
   char *boundFn = NULL;
@@ -53,6 +53,7 @@ int main(int argc, char *argv[])
   int startingView, endingView, startingTotal, endingTotal;
   bool isSingleRun = false;
   int invertAngles = 0;
+  int maxStripWidth = 256;
   double angleSign;
   float minAngle, maxAngle;
   float *tiltAngles = NULL;
@@ -92,6 +93,7 @@ int main(int argc, char *argv[])
     exitError("OutputFileName is not specified");
   PipGetString("BoundaryInfoFile", &boundFn);
   PipGetString("TransformFile", &xformFn);
+  PipGetInteger("MaximumStripWidth", &maxStripWidth);
   PipGetBoolean("InvertTiltAngles", &invertAngles);
   angleSign = invertAngles ? -1. : 1.;
 
@@ -322,7 +324,7 @@ int main(int argc, char *argv[])
       stripPixelNum = nx;
 
     stripPixelNum = niceFrame(stripPixelNum, 2 , 19);
-    B3DCLAMP(stripPixelNum, 128, 256);
+    B3DCLAMP(stripPixelNum, 128, maxStripWidth);
 
     interPixelNum = iWidth;
 
