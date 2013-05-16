@@ -45,18 +45,19 @@ public final class ManagerFrame extends AbstractFrame {
 
   public static final String NAME = "manager-frame";
 
-  private final EtomoMenu menu = new EtomoMenu();
+  private final EtomoMenu menu;
 
   private final BaseManager manager;
   private final JPanel rootPanel;
 
-  private ManagerFrame(BaseManager manager) {
+  private ManagerFrame(final BaseManager manager, final boolean savable) {
     this.manager = manager;
     rootPanel = (JPanel) getContentPane();
+    menu = EtomoMenu.getInstance(this, savable);
   }
 
-  static ManagerFrame getInstance(BaseManager manager) {
-    ManagerFrame instance = new ManagerFrame(manager);
+  static ManagerFrame getInstance(final BaseManager manager, final boolean savable) {
+    ManagerFrame instance = new ManagerFrame(manager, savable);
     instance.initialize();
     instance.addListeners();
     return instance;
@@ -77,7 +78,6 @@ public final class ManagerFrame extends AbstractFrame {
     }
     ImageIcon iconEtomo = new ImageIcon(ClassLoader.getSystemResource("images/etomo.png"));
     setIconImage(iconEtomo.getImage());
-    menu.createMenus(this);
     setJMenuBar(menu.getMenuBar());
     setTitle(manager.getName());
     rootPanel.add(manager.getMainPanel());
