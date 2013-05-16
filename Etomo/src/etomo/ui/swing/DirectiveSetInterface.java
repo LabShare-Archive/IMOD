@@ -20,11 +20,13 @@ import java.awt.Component;
 interface DirectiveSetInterface {
   public static final String rcsid = "$Id:$";
 
-  boolean isVisible();
-
   Component getComponent();
 
-  boolean isInclude();
+  boolean isIncluded();
 
-  void updateDisplay();
+  /**
+   * @return true if instance is visible when this function is complete.
+   */
+  boolean msgControlChanged(boolean includeChange,  
+      boolean expandChange);
 }
