@@ -1,8 +1,6 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -43,7 +41,6 @@ class DirectiveSetPanel implements Expandable, DirectiveSetInterface {
 
   private final DirectiveTool tool;
   private final Directive directive;
-  private final AxisType sourceAxisType;
   private final DirectivePanel pnlDirective;
   private final DirectivePanel pnlDirectiveA;
   private final DirectivePanel pnlDirectiveB;
@@ -54,24 +51,30 @@ class DirectiveSetPanel implements Expandable, DirectiveSetInterface {
   private DirectiveSetPanel(final BaseManager manager, final Directive directive,
       final AxisType sourceAxisType, final DirectiveTool tool) {
     this.manager = manager;
-    this.sourceAxisType = sourceAxisType;
     this.directive = directive;
     this.tool = tool;
-    pnlDirective = DirectivePanel.getSetInstance(directive, null, tool);
-    pnlDirectiveA = DirectivePanel.getSetInstance(directive, AxisID.FIRST, tool);
-    pnlDirectiveB = DirectivePanel.getSetInstance(directive, AxisID.SECOND, tool);
+    pnlDirectiveA = DirectivePanel.getSetInstance(directive, AxisID.FIRST, tool,
+        sourceAxisType);
+    pnlDirectiveB = DirectivePanel.getSetInstance(directive, AxisID.SECOND, tool,
+        sourceAxisType);
+    pnlDirective = DirectivePanel.getAnyInstance(directive, null, tool, pnlDirectiveA,
+        pnlDirectiveB, sourceAxisType);
   }
 
   static DirectiveSetPanel getInstance(final BaseManager manager,
-      final Directive directive, final AxisType sourceAxisType, final DirectiveTool tool) {
+      final Directive directive, final DirectiveTool tool, final AxisType sourceAxisType) {
     DirectiveSetPanel instance = new DirectiveSetPanel(manager, directive,
         sourceAxisType, tool);
     instance.createPanel(directive, sourceAxisType);
-    instance.addListeners();
     return instance;
   }
 
   private void createPanel(final Directive directive, final AxisType sourceAxisType) {
+    // init
+    // Call the Any directive's init function and it will take care of initialization for
+    // all three directives.
+    pnlDirective.init();
+    expandButton.setExpanded(!pnlDirective.isEnabled());
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
     pnlRoot.add(expandButton.getComponent());
@@ -86,91 +89,46 @@ class DirectiveSetPanel implements Expandable, DirectiveSetInterface {
     pnlAandB.add(pnlDirectiveA.getComponent());
     pnlAandB.add(pnlDirectiveB.getComponent());
     pnlAandB.add(Box.createRigidArea(FixedDim.x0_y3));
-    pnlDirective.setSiblings(pnlDirectiveA, pnlDirectiveB);
-    if (sourceAxisType != AxisType.DUAL_AXIS) {
-      updateDisplay(false, null);
-    }
-    else {
-      updateDisplay(false, AxisID.FIRST);
-    }
   }
 
   public Component getComponent() {
     return pnlRoot;
   }
 
-  private void addListeners() {
-    pnlDirective.addActionListener(new DirectiveSetListener(this, null));
-    pnlDirectiveA.addActionListener(new DirectiveSetListener(this, AxisID.FIRST));
-    pnlDirectiveB.addActionListener(new DirectiveSetListener(this, AxisID.SECOND));
-  }
-
-  /**
-   * Call updateDisplay for the Any directive panel (which takes care of updateDisplay for
-   * the A and B directive panels.  Toggles root panel visibility if necessary.
-   * @param action - true if cause by the user changing include or value - triggered listeners in this class
-   * @param changedAxisID
-   */
-  private void updateDisplay(final boolean action, final AxisID changedAxisID) {
-    // handle expand button
-    boolean expanded = expandButton.isExpanded();
-    pnlDirective.setVisible(!expanded);
-    pnlAandB.setVisible(expanded);
-    // tell directives to update display
-    pnlDirective.updateDisplay(action, changedAxisID);
+  public boolean msgControlChanged(final boolean includeChange,
+      final boolean expandChange) {
+    pnlDirective.msgControlChanged(includeChange, expandChange);
     // decide whether this panel is visible
-    boolean visible = pnlRoot.isVisible();
-    if (visible != tool.isDirectiveVisible(
+    boolean visible = tool.isDirectiveVisible(
         directive,
-        pnlDirective.isInclude() || pnlDirectiveA.isInclude()
-            || pnlDirectiveB.isInclude(),
+        pnlDirective.isIncluded() || pnlDirectiveA.isIncluded()
+            || pnlDirectiveB.isIncluded(),
         pnlDirective.isDifferentFromCheckpoint()
             || pnlDirectiveA.isDifferentFromCheckpoint()
-            || pnlDirectiveB.isDifferentFromCheckpoint())) {
-      pnlRoot.setVisible(!visible);
+            || pnlDirectiveB.isDifferentFromCheckpoint());
+    pnlRoot.setVisible(visible);
+    if (expandChange) {
+      boolean expand = !pnlDirective.isEnabled();
+      if (expand != expandButton.isExpanded()) {
+        expandButton.setExpanded(expand);
+      }
     }
-  }
-
-  /**
-   * Calls updateDisplay with the assumption that the cause isn't the user changing a
-   * directive.  Changes will move from A and B to Any.
-   */
-  public void updateDisplay() {
-    updateDisplay(false, AxisID.FIRST);
+    return visible;
   }
 
   public void expand(final ExpandButton button) {
-    updateDisplay(true, AxisID.FIRST);
+    boolean expand = button.isExpanded();
+    pnlDirective.expand(expand);
+    pnlDirective.setVisible(!expand);
+    pnlAandB.setVisible(expand);
     UIHarness.INSTANCE.pack(manager);
   }
 
   public void expand(final GlobalExpandButton button) {
   }
 
-  public boolean isInclude() {
-    return pnlDirective.isInclude() || pnlDirectiveA.isInclude()
-        || pnlDirectiveB.isInclude();
-  }
-
-  public boolean isVisible() {
-    return pnlRoot.isVisible();
-  }
-
-  private void action(final AxisID axisID) {
-    updateDisplay(true, axisID);
-  }
-
-  private static final class DirectiveSetListener implements ActionListener {
-    private final DirectiveSetPanel panel;
-    private final AxisID axisID;
-
-    private DirectiveSetListener(final DirectiveSetPanel panel, final AxisID axisID) {
-      this.panel = panel;
-      this.axisID = axisID;
-    }
-
-    public void actionPerformed(final ActionEvent event) {
-      panel.action(axisID);
-    }
+  public boolean isIncluded() {
+    return pnlDirective.isIncluded() || pnlDirectiveA.isIncluded()
+        || pnlDirectiveB.isIncluded();
   }
 }
