@@ -65,6 +65,22 @@ public final class DirectiveFileType {
     return null;
   }
 
+  public static DirectiveFileType getInstance(final int input) {
+    if (input == SCOPE.index) {
+      return SCOPE;
+    }
+    if (input == SYSTEM.index) {
+      return SYSTEM;
+    }
+    if (input == USER.index) {
+      return USER;
+    }
+    if (input == BATCH.index) {
+      return BATCH;
+    }
+    return null;
+  }
+
   public File getLocalFile(final BaseManager manager, final AxisID axisID) {
     return fileType.getFile(manager, axisID);
   }
@@ -92,7 +108,7 @@ public final class DirectiveFileType {
     }
     return null;
   }
-  
+
   public static String getLabel(final int index) {
     if (index == SCOPE.index) {
       return SCOPE.label;
