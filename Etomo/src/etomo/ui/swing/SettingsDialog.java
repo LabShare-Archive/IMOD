@@ -9,6 +9,7 @@ import javax.swing.*;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.logic.ConfigTool;
 import etomo.storage.Network;
 import etomo.type.AxisID;
 import etomo.type.UserConfiguration;
@@ -94,10 +95,10 @@ public final class SettingsDialog extends JDialog {
   private void buildDialog() {
     // init
     ltfUserTemplateDir.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
+    ltfUserTemplateDir.setFile(ConfigTool.getDefaultUserTemplateDir());
     setTitle("eTomo Settings");
     SpacedPanel pnlMain = SpacedPanel.getInstance();
     pnlMain.setBoxLayout(BoxLayout.Y_AXIS);
-    // pnlMain.setComponentAlignmentX(Box.LEFT_ALIGNMENT);
     ((JPanel) getContentPane()).add(pnlMain.getContainer());
     // Layout the font panel
     SpacedPanel panelFontSelect = SpacedPanel.getInstance();
@@ -228,7 +229,10 @@ public final class SettingsDialog extends JDialog {
     ltfParallelTableSize.setText(userConfig.getParallelTableSize());
     ltfJoinTableSize.setText(userConfig.getJoinTableSize());
     ltfPeetTableSize.setText(userConfig.getPeetTableSize());
-    ltfUserTemplateDir.setText(userConfig.getUserTemplateDir());
+    String dir = userConfig.getUserTemplateDir();
+    if (dir != null && !dir.matches("\\s*")) {
+      ltfUserTemplateDir.setText(userConfig.getUserTemplateDir());
+    }
     templatePanel.setParameters(userConfig);
 
     // Get the current font parameters to set the UI

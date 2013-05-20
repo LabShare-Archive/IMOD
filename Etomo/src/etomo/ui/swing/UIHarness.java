@@ -459,9 +459,9 @@ public final class UIHarness {
     }
   }
 
-  public void addFrame(BaseManager manager) {
+  public void addFrame(final BaseManager manager, final boolean savable) {
     if (isHead()) {
-      ManagerFrame managerFrame = ManagerFrame.getInstance(manager);
+      ManagerFrame managerFrame = ManagerFrame.getInstance(manager, savable);
       managerFrameTable.put(manager, managerFrame);
     }
   }

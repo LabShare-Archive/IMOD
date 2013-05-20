@@ -16,6 +16,7 @@ import etomo.storage.DataFileFilter;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.DirectiveFileType;
 
 /**
  * <p>Description: </p>
@@ -55,10 +56,10 @@ abstract class EtomoFrame extends AbstractFrame {
   abstract void register();
 
   void initialize() {
-    menu = new EtomoMenu(singleFrame);
+    menu =  EtomoMenu.getInstance(this);
     ImageIcon iconEtomo = new ImageIcon(ClassLoader.getSystemResource("images/etomo.png"));
     setIconImage(iconEtomo.getImage());
-    createMenus();
+    getMenus();
   }
 
   /**
@@ -153,7 +154,20 @@ abstract class EtomoFrame extends AbstractFrame {
       UIHarness.INSTANCE.exit(axisID, 0);
     }
     else if (menu.equalsTomosnapshot(event)) {
-      currentManager.tomosnapshot(axisID);
+      if (currentManager != null) {
+        currentManager.tomosnapshot(axisID);
+      }
+    }
+    else if (menu.equalsDirectiveFileEditor(event)) {
+      DirectiveFileType type = menu.getDirectiveFileType(event);
+      if (type != null) {
+        StringBuffer errmsg = new StringBuffer();
+        String timestamp = currentManager.saveAll(errmsg);
+        if (timestamp != null) {
+          EtomoDirector.INSTANCE.openDirectiveEditor(type, currentManager, timestamp,
+              errmsg);
+        }
+      }
     }
   }
 
@@ -470,10 +484,9 @@ abstract class EtomoFrame extends AbstractFrame {
   }
 
   /**
-   * Create the Etomo menus
+   * Get the Etomo menus
    */
-  private void createMenus() {
-    menu.createMenus(this);
+  private void getMenus() {
     menuBar = menu.getMenuBar();
     setJMenuBar(menuBar);
   }

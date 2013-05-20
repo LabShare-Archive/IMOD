@@ -94,6 +94,19 @@ public final class ConfigTool {
   }
 
   /**
+   * Returns the user's .etomotemplate directive, or null if the user's home dirctive is
+   * not known.
+   * @return
+   */
+  public static File getDefaultUserTemplateDir() {
+    String homeDirectory = System.getProperty("user.home");
+    if (homeDirectory == null) {
+      return null;
+    }
+    return new File(homeDirectory, ".etomotemplate");
+  }
+
+  /**
    * Returns a sorted list of the user template files.  User template files are stored
    * either in .etomotemplate, or in a directory specified in the Settings dialog.
    * @param newUserTemplateDir overrides the user template director from User Configuration
@@ -117,7 +130,7 @@ public final class ConfigTool {
       if (homeDirectory == null) {
         return null;
       }
-      dir = new File(homeDirectory, ".etomotemplate");
+      dir = getDefaultUserTemplateDir();
     }
     File[] fileArray = dir.listFiles(new AutodocFilter());
     if (fileArray == null) {

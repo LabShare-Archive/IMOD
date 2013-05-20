@@ -19,6 +19,7 @@ import etomo.EtomoDirector;
 import etomo.process.ImodqtassistProcess;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.DirectiveFileType;
 import etomo.type.ToolType;
 import etomo.util.EnvironmentVariable;
 import etomo.util.Utilities;
@@ -58,12 +59,15 @@ final class EtomoMenu {
   private final JMenuItem menuOpen = new MenuItem("Open...", KeyEvent.VK_O);
   private final JMenuItem menuRecentProjects = new Menu("Recent Projects");
   private final JMenuItem menuSave = new MenuItem("Save", KeyEvent.VK_S);
-  private final JMenuItem menuSaveAs = new MenuItem("Save As", KeyEvent.VK_A);
+  private final JMenuItem menuSaveAs = new MenuItem("Save As...", KeyEvent.VK_A);
   private final JMenuItem menuClose = new MenuItem("Close", KeyEvent.VK_C);
   private final JMenuItem menuExit = new MenuItem("Exit", KeyEvent.VK_X);
   private final JMenuItem menuTomosnapshot = new MenuItem("Run Tomosnapshot",
       KeyEvent.VK_T);
   private final JMenuItem[] menuMRUList = new MenuItem[nMRUFileMax];
+  private final JMenuItem menuExportBatch = new MenuItem("Export Batch Directive File",
+      KeyEvent.VK_B);
+  private final JMenu menuTemplate = new Menu("Templates");
 
   private final JMenu menuNew = new Menu("New");
   private final JMenuItem menuNewTomogram = new MenuItem(RECON_LABEL, KeyEvent.VK_T);
@@ -75,6 +79,12 @@ final class EtomoMenu {
       KeyEvent.VK_D);
   private final JMenuItem menuNewGenericParallel = new MenuItem(GENERIC_LABEL,
       KeyEvent.VK_G);
+
+  private final JMenuItem menuSaveScope = new MenuItem("Save Scope Template",
+      KeyEvent.VK_C);
+  private final JMenuItem menuSaveSystem = new MenuItem("Save System Template",
+      KeyEvent.VK_Y);
+  private final JMenuItem menuSaveUser = new MenuItem("Save User Template", KeyEvent.VK_U);
 
   private final JMenu menuTools = new Menu("Tools");
   private final JMenuItem menuFlattenVolume = new MenuItem(FLATTEN_VOLUME_LABEL,
@@ -112,39 +122,145 @@ final class EtomoMenu {
   private final boolean peetAvailable = EnvironmentVariable.INSTANCE.exists(null,
       EtomoDirector.INSTANCE.getOriginalUserDir(), "PARTICLE_DIR", AxisID.ONLY);
 
-  private final boolean singleFrame;
-
-  EtomoMenu(boolean singleFrame) {
-    this.singleFrame = singleFrame;
+  private EtomoMenu() {
   }
 
-  private void initMenus(AbstractFrame abstractFrame, boolean forManagerFrame) {
+  static EtomoMenu getInstance(final AbstractFrame frame) {
+    EtomoMenu instance = new EtomoMenu();
+    boolean dataset = true;
+    boolean savable = true;
+    instance.createPanel(frame, dataset, savable);
+    instance.addListeners(frame, dataset, savable);
+    return instance;
+  }
+
+  static EtomoMenu getInstance(final ManagerFrame frame, final boolean savable) {
+    EtomoMenu instance = new EtomoMenu();
+    boolean dataset = false;
+    instance.createPanel(frame, dataset, savable);
+    instance.addListeners(frame, dataset, savable);
+    return instance;
+  }
+
+  private void createPanel(final AbstractFrame frame, final boolean dataset,
+      final boolean savable) {
+    // init
     // Mnemonics for the main menu bar
     menuTools.setMnemonic(KeyEvent.VK_T);
     menuView.setMnemonic(KeyEvent.VK_V);
     menuOptions.setMnemonic(KeyEvent.VK_O);
     menuHelp.setMnemonic(KeyEvent.VK_H);
-    // Mnomonics for the file menu
-    menuNew.setMnemonic(KeyEvent.VK_N);
-
+    if (dataset || savable) {
+      // Mnomonics for the file menu
+      menuNew.setMnemonic(KeyEvent.VK_N);
+    }
     // Accelerators
     menuSettings.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
         ActionEvent.CTRL_MASK));
     menuFitWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
         ActionEvent.CTRL_MASK));
+    if (dataset || savable) {
+      // Mnemonics for the main menu bar
+      menuFile.setMnemonic(KeyEvent.VK_F);
+      if (dataset) {
+        menuTemplate.setMnemonic(KeyEvent.VK_M);
+        // Accelerators
+        menuAxisA.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
+            ActionEvent.CTRL_MASK));
+        menuAxisB.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B,
+            ActionEvent.CTRL_MASK));
+        menuAxisBoth.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2,
+            ActionEvent.CTRL_MASK));
+        menuLogWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L,
+            ActionEvent.CTRL_MASK));
+      }
+    }
+    // Options menu
+    menuOptions.add(menuSettings);
 
+    if (dataset || savable) {
+      // Construct menu bar
+      menuBar.add(menuFile);
+
+      if (dataset) {
+        // Options menu
+        menuOptions.add(menu3dmodStartupWindow);
+        menuOptions.add(menu3dmodBinBy2);
+        // New menu
+        menuNew.add(menuNewTomogram);
+        menuNew.add(menuNewJoin);
+        menuNew.add(menuNewPeet);
+        menuNew.add(menuSerialSections);
+        menuNew.add(menuNewAnisotropicDiffusion);
+        menuNew.add(menuNewGenericParallel);
+        // template menu
+        menuTemplate.add(menuSaveScope);
+        menuTemplate.add(menuSaveSystem);
+        menuTemplate.add(menuSaveUser);
+        // View menu
+        menuView.add(menuLogWindow);
+        menuView.add(menuAxisA);
+        menuView.add(menuAxisB);
+        menuView.add(menuAxisBoth);
+      }
+      if (dataset) {
+        // File menu
+        menuFile.add(menuNew);
+        menuFile.add(menuOpen);
+        menuFile.add(menuRecentProjects);
+        menuFile.addSeparator();
+        menuFile.add(menuRecentProjects);
+        menuFile.addSeparator();
+      }
+      menuFile.add(menuClose);
+      menuFile.add(menuSave);
+      menuFile.add(menuSaveAs);
+      if (dataset) {
+        menuFile.addSeparator();
+        menuFile.add(menuTomosnapshot);
+        menuFile.add(menuExportBatch);
+        menuFile.addSeparator();
+        menuFile.add(menuTemplate);
+        menuFile.addSeparator();
+        menuFile.add(menuExit);
+      }
+    }
+    // Construct menu bar
+    menuBar.add(menuTools);
+    menuBar.add(menuView);
+    menuBar.add(menuOptions);
+    menuBar.add(menuHelp);
+    // View menu
+    menuView.add(menuFitWindow);
+    // Tool menu
+    menuTools.add(menuFlattenVolume);
+    menuTools.add(menuGpuTiltTest);
+    // Help menu
+    menuHelp.add(menuTomoGuide);
+    menuHelp.add(menuImodGuide);
+    menuHelp.add(menu3dmodGuide);
+    menuHelp.add(menuEtomoGuide);
+    menuHelp.add(menuJoinGuide);
+    if (peetAvailable) {
+      menuHelp.add(menuPeetGuide);
+    }
+    menuHelp.add(menuHelpAbout);
+  }
+
+  private void addListeners(final AbstractFrame frame, final boolean dataset,
+      final boolean savable) {
     // Bind the menu items to their listeners
-    ToolsActionListener toolsActionListener = new ToolsActionListener(abstractFrame);
+    ToolsActionListener toolsActionListener = new ToolsActionListener(frame);
     menuFlattenVolume.addActionListener(toolsActionListener);
     menuGpuTiltTest.addActionListener(toolsActionListener);
 
-    ViewActionListener viewActionListener = new ViewActionListener(abstractFrame);
+    ViewActionListener viewActionListener = new ViewActionListener(frame);
     menuFitWindow.addActionListener(viewActionListener);
 
-    OptionsActionListener optionsActionListener = new OptionsActionListener(abstractFrame);
+    OptionsActionListener optionsActionListener = new OptionsActionListener(frame);
     menuSettings.addActionListener(optionsActionListener);
 
-    HelpActionListener helpActionListener = new HelpActionListener(abstractFrame);
+    HelpActionListener helpActionListener = new HelpActionListener(frame);
     menuTomoGuide.addActionListener(helpActionListener);
     menuImodGuide.addActionListener(helpActionListener);
     menu3dmodGuide.addActionListener(helpActionListener);
@@ -155,142 +271,45 @@ final class EtomoMenu {
     }
     menuHelpAbout.addActionListener(helpActionListener);
 
-    if (!forManagerFrame) {
-      // Mnemonics for the main menu bar
-      menuFile.setMnemonic(KeyEvent.VK_F);
-      // Accelerators
-      menuAxisA.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
-          ActionEvent.CTRL_MASK));
-      menuAxisB.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B,
-          ActionEvent.CTRL_MASK));
-      menuAxisBoth.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2,
-          ActionEvent.CTRL_MASK));
-      menuLogWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L,
-          ActionEvent.CTRL_MASK));
-
+    if (dataset || savable) {
       // Bind the menu items to their listeners
-      FileActionListener fileActionListener = new FileActionListener(abstractFrame);
-      menuNewTomogram.addActionListener(fileActionListener);
-      menuNewJoin.addActionListener(fileActionListener);
-      menuNewGenericParallel.addActionListener(fileActionListener);
-      menuNewAnisotropicDiffusion.addActionListener(fileActionListener);
-      menuNewPeet.addActionListener(fileActionListener);
-      menuSerialSections.addActionListener(fileActionListener);
-      menuOpen.addActionListener(fileActionListener);
+      FileActionListener fileActionListener = new FileActionListener(frame);
       menuSave.addActionListener(fileActionListener);
       menuSaveAs.addActionListener(fileActionListener);
       menuClose.addActionListener(fileActionListener);
-      menuExit.addActionListener(fileActionListener);
-      menuTomosnapshot.addActionListener(fileActionListener);
+      if (dataset) {
+        menuNewTomogram.addActionListener(fileActionListener);
+        menuNewJoin.addActionListener(fileActionListener);
+        menuNewGenericParallel.addActionListener(fileActionListener);
+        menuNewAnisotropicDiffusion.addActionListener(fileActionListener);
+        menuNewPeet.addActionListener(fileActionListener);
+        menuSerialSections.addActionListener(fileActionListener);
+        menuOpen.addActionListener(fileActionListener);
+        menuExit.addActionListener(fileActionListener);
+        menuTomosnapshot.addActionListener(fileActionListener);
+        menuExportBatch.addActionListener(fileActionListener);
+        menuSaveScope.addActionListener(fileActionListener);
+        menuSaveSystem.addActionListener(fileActionListener);
+        menuSaveUser.addActionListener(fileActionListener);
 
-      menuLogWindow.addActionListener(viewActionListener);
-      menuAxisA.addActionListener(viewActionListener);
-      menuAxisB.addActionListener(viewActionListener);
-      menuAxisBoth.addActionListener(viewActionListener);
+        menuLogWindow.addActionListener(viewActionListener);
+        menuAxisA.addActionListener(viewActionListener);
+        menuAxisB.addActionListener(viewActionListener);
+        menuAxisBoth.addActionListener(viewActionListener);
 
-      menu3dmodStartupWindow.addActionListener(optionsActionListener);
-      menu3dmodBinBy2.addActionListener(optionsActionListener);
+        menu3dmodStartupWindow.addActionListener(optionsActionListener);
+        menu3dmodBinBy2.addActionListener(optionsActionListener);
+        // Initialize all of the MRU file menu items
+        FileMRUListActionListener fileMRUListActionListener = new FileMRUListActionListener(
+            frame);
+        for (int i = 0; i < nMRUFileMax; i++) {
+          menuMRUList[i] = new MenuItem();
+          menuMRUList[i].addActionListener(fileMRUListActionListener);
+          menuMRUList[i].setVisible(false);
+          menuRecentProjects.add(menuMRUList[i]);
+        }
+      }
     }
-  }
-
-  void createMenus(final EtomoFrame frame) {
-    initMenus(frame, false);
-
-    // File menu
-    menuFile.add(menuNew);
-    menuFile.add(menuOpen);
-    menuFile.add(menuRecentProjects);
-    menuFile.addSeparator();
-    menuFile.add(menuClose);
-    menuFile.add(menuSave);
-    menuFile.add(menuSaveAs);
-    menuFile.addSeparator();
-    menuFile.add(menuTomosnapshot);
-    menuFile.addSeparator();
-    menuFile.add(menuExit);
-
-    // New menu
-    menuNew.add(menuNewTomogram);
-    menuNew.add(menuNewJoin);
-    menuNew.add(menuNewPeet);
-    menuNew.add(menuSerialSections);
-    menuNew.add(menuNewAnisotropicDiffusion);
-    menuNew.add(menuNewGenericParallel);
-
-    // Initialize all of the MRU file menu items
-    FileMRUListActionListener fileMRUListActionListener = new FileMRUListActionListener(
-        frame);
-    for (int i = 0; i < nMRUFileMax; i++) {
-      menuMRUList[i] = new MenuItem();
-      menuMRUList[i].addActionListener(fileMRUListActionListener);
-      menuMRUList[i].setVisible(false);
-      menuRecentProjects.add(menuMRUList[i]);
-    }
-
-    // Tool menu
-    menuTools.add(menuFlattenVolume);
-    menuTools.add(menuGpuTiltTest);
-
-    // View menu
-    menuView.add(menuLogWindow);
-    menuView.add(menuAxisA);
-    menuView.add(menuAxisB);
-    menuView.add(menuAxisBoth);
-    menuView.add(menuFitWindow);
-
-    // Options menu
-    menuOptions.add(menuSettings);
-    menuOptions.add(menu3dmodStartupWindow);
-    menuOptions.add(menu3dmodBinBy2);
-
-    // Help menu
-    menuHelp.add(menuTomoGuide);
-    menuHelp.add(menuImodGuide);
-    menuHelp.add(menu3dmodGuide);
-    menuHelp.add(menuEtomoGuide);
-    menuHelp.add(menuJoinGuide);
-    if (peetAvailable) {
-      menuHelp.add(menuPeetGuide);
-    }
-    menuHelp.add(menuHelpAbout);
-
-    // Construct menu bar
-    menuBar.add(menuFile);
-    menuBar.add(menuTools);
-    menuBar.add(menuView);
-    menuBar.add(menuOptions);
-    menuBar.add(menuHelp);
-  }
-
-  void createMenus(final ManagerFrame frame) {
-    initMenus(frame, true);
-
-    // Tool menu
-    menuTools.add(menuFlattenVolume);
-    menuTools.add(menuGpuTiltTest);
-
-    // View menu
-    menuView.add(menuFitWindow);
-
-    // Options menu
-    menuOptions.add(menuSettings);
-
-    // Help menu
-    menuHelp.add(menuTomoGuide);
-    menuHelp.add(menuImodGuide);
-    menuHelp.add(menu3dmodGuide);
-    menuHelp.add(menuEtomoGuide);
-    menuHelp.add(menuJoinGuide);
-    if (peetAvailable) {
-      menuHelp.add(menuPeetGuide);
-    }
-    menuHelp.add(menuHelpAbout);
-
-    // Construct menu bar
-    menuBar.add(menuTools);
-    menuBar.add(menuView);
-    menuBar.add(menuOptions);
-    menuBar.add(menuHelp);
   }
 
   JMenuBar getMenuBar() {
@@ -309,6 +328,11 @@ final class EtomoMenu {
       menuAxisA.setEnabled(false);
       menuAxisB.setEnabled(false);
       menuAxisBoth.setEnabled(false);
+      menuExportBatch.setEnabled(false);
+      menuTemplate.setEnabled(false);
+      menuSaveScope.setEnabled(false);
+      menuSaveSystem.setEnabled(false);
+      menuSaveUser.setEnabled(false);
     }
     else {
       menuSave.setEnabled(currentManager.isSetupDone());
@@ -318,6 +342,11 @@ final class EtomoMenu {
       menuAxisA.setEnabled(dualAxis);
       menuAxisB.setEnabled(dualAxis);
       menuAxisBoth.setEnabled(dualAxis);
+      menuExportBatch.setEnabled(currentManager.canSaveDirectives());
+      menuTemplate.setEnabled(currentManager.canSaveDirectives());
+      menuSaveScope.setEnabled(currentManager.canSaveDirectives());
+      menuSaveSystem.setEnabled(currentManager.canSaveDirectives());
+      menuSaveUser.setEnabled(currentManager.canSaveDirectives());
     }
   }
 
@@ -364,10 +393,10 @@ final class EtomoMenu {
 
   public void menuToolsAction(AxisID axisID, ActionEvent event) {
     if (equalsFlattenVolume(event)) {
-      EtomoDirector.INSTANCE.openTools(axisID, ToolType.FLATTEN_VOLUME);
+      EtomoDirector.INSTANCE.openTools(ToolType.FLATTEN_VOLUME);
     }
     else if (equalsGpuTiltTest(event)) {
-      EtomoDirector.INSTANCE.openTools(axisID, ToolType.GPU_TILT_TEST);
+      EtomoDirector.INSTANCE.openTools(ToolType.GPU_TILT_TEST);
     }
   }
 
@@ -597,6 +626,27 @@ final class EtomoMenu {
     return equals(menuHelpAbout, event);
   }
 
+  boolean equalsDirectiveFileEditor(final ActionEvent event) {
+    return equals(menuSaveScope, event) || equals(menuSaveSystem, event)
+        || equals(menuSaveUser, event) || equals(menuExportBatch, event);
+  }
+
+  DirectiveFileType getDirectiveFileType(final ActionEvent event) {
+    if (equals(menuSaveScope, event)) {
+      return DirectiveFileType.SCOPE;
+    }
+    if (equals(menuSaveSystem, event)) {
+      return DirectiveFileType.SYSTEM;
+    }
+    if (equals(menuSaveUser, event)) {
+      return DirectiveFileType.USER;
+    }
+    if (equals(menuExportBatch, event)) {
+      return DirectiveFileType.BATCH;
+    }
+    return null;
+  }
+
   private boolean equals(final JMenuItem menuItem, final ActionEvent event) {
     return menuItem.getActionCommand().equals(event.getActionCommand());
   }
@@ -629,9 +679,9 @@ final class EtomoMenu {
 
   // MRU file list action listener
   private static final class FileMRUListActionListener implements ActionListener {
-    private EtomoFrame adaptee;
+    private AbstractFrame adaptee;
 
-    private FileMRUListActionListener(final EtomoFrame adaptee) {
+    private FileMRUListActionListener(final AbstractFrame adaptee) {
       this.adaptee = adaptee;
     }
 

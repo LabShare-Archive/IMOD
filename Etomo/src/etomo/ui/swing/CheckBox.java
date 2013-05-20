@@ -151,6 +151,16 @@ final class CheckBox extends JCheckBox {
   }
 
   /**
+   * Constructs savedValue (if it doesn't exist).  Saves the current setting.
+   */
+  void checkpoint() {
+    if (checkpointValue == null) {
+      checkpointValue = new EtomoBoolean2();
+    }
+    checkpointValue.set(isSelected());
+  }
+
+  /**
    * Constructs savedValue (if it doesn't exist).  Saves the value parameter.
    */
   void checkpoint(final boolean value) {
@@ -173,7 +183,16 @@ final class CheckBox extends JCheckBox {
    * @return
    */
   boolean isDifferentFromCheckpoint() {
-    if (!isEnabled() || !isVisible()) {
+    return isDifferentFromCheckpoint(false);
+  }
+
+  /**
+   * 
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return
+   */
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !isVisible())) {
       return false;
     }
     return checkpointValue == null || !checkpointValue.equals(isSelected());

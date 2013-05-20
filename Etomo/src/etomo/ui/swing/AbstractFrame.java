@@ -141,6 +141,9 @@ abstract class AbstractFrame extends JFrame implements UIComponent {
     }
   }
 
+  void menuFileMRUListAction(ActionEvent event) {
+  }
+
   /**
    * Open a message dialog
    * @param message
@@ -154,6 +157,7 @@ abstract class AbstractFrame extends JFrame implements UIComponent {
       final String message, final String title, final AxisID axisID) {
     openMessageDialog(manager, uiComponent, axisID, message, title);
   }
+
   void displayMessage(final BaseManager manager, final UIComponent uiComponent,
       final String[] message, final String title, final AxisID axisID) {
     openMessageDialog(manager, uiComponent, axisID, message, title);
@@ -226,7 +230,7 @@ abstract class AbstractFrame extends JFrame implements UIComponent {
     showOptionPane(manager, uiComponent, axisID, wrap(manager, message), title,
         JOptionPane.ERROR_MESSAGE);
   }
-  
+
   void openMessageDialog(final BaseManager manager, final UIComponent uiComponent,
       final AxisID axisID, final String[] message, final String title) {
     showOptionPane(manager, uiComponent, axisID, wrap(manager, message), title,

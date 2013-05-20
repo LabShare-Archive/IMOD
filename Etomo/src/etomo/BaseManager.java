@@ -27,6 +27,7 @@ import etomo.process.SystemProcessException;
 import etomo.process.SystemProcessInterface;
 import etomo.process.ProcessData;
 import etomo.storage.ChunkComscriptFileFilter;
+import etomo.storage.DirectiveMap;
 import etomo.storage.LogFile;
 import etomo.storage.Loggable;
 import etomo.storage.ParameterStore;
@@ -203,6 +204,10 @@ public abstract class BaseManager {
     return false;
   }
 
+  public boolean canSaveDirectives() {
+    return false;
+  }
+
   void createComScriptManager() {
   }
 
@@ -239,6 +244,10 @@ public abstract class BaseManager {
 
   AutoAlignmentMetaData getAutoAlignmentMetaData() {
     return null;
+  }
+
+  public String getStatus() {
+    return getMainPanel().getStatus();
   }
 
   public boolean updateMetaData(final DialogType dialogType, final AxisID axisID,
@@ -421,6 +430,10 @@ public abstract class BaseManager {
     }
     catch (IOException e) {
     }
+  }
+
+  public void updateDirectiveMap(final DirectiveMap directiveMap,
+      final StringBuffer errmsg) {
   }
 
   public void logMessage(List<String> message, String title, AxisID axisID) {
@@ -1605,6 +1618,15 @@ public abstract class BaseManager {
     }
   }
 
+  /**
+   * Save param file and open dialogs
+   * @param errmsg - should not be null
+   * @return timestamp or null if this functionality is not implemented
+   */
+  public String saveAll(final StringBuffer errmsg) {
+    return null;
+  }
+
   public void doAutomation() {
     if (EtomoDirector.INSTANCE.getArguments().isExit()) {
       uiHarness.exit(AxisID.ONLY, 0);
@@ -1689,7 +1711,10 @@ public abstract class BaseManager {
       getProcessManager().unblockAxis(axisID);
       throw new RuntimeException(t);
     }
-    getProcessManager().unblockAxis(axisID);
+    BaseProcessManager processManager = getProcessManager();
+    if (processManager != null) {
+      processManager.unblockAxis(axisID);
+    }
     return false;
   }
 
@@ -2052,7 +2077,14 @@ public abstract class BaseManager {
   }
 
   public final void tomosnapshot(AxisID axisID) {
-    getProcessManager().tomosnapshot(axisID);
+    BaseProcessManager processManager = getProcessManager();
+    if (processManager != null) {
+      processManager.tomosnapshot(axisID);
+    }
+    else {
+      uiHarness.openMessageDialog(this, "No processes can be run in this interface.",
+          "Unable to run tomosnapshot", axisID);
+    }
   }
 
   public static final class Task implements TaskInterface {
