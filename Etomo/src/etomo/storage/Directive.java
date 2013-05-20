@@ -91,6 +91,10 @@ public class Directive {
     return directiveName.getKey();
   }
 
+  public String getKeyDescription() {
+    return directiveName.getKeyDescription();
+  }
+
   public String getName(final AxisID axisID) {
     return directiveName.getName(axisID);
   }
