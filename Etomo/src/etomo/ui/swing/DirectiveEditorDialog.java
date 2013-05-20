@@ -57,6 +57,9 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
   private final JPanel pnlRoot = new JPanel();
   private final JPanel pnlSourceBody = new JPanel();
   private final List<DirectiveSectionPanel> sectionArray = new ArrayList<DirectiveSectionPanel>();
+  private final MultiLineButton btnCloseAll = new MultiLineButton("Close All");
+  private final MultiLineButton btnSave = new MultiLineButton("Save");
+  private final MultiLineButton btnCancel = new MultiLineButton("Cancel");
 
   private final BaseManager manager;
   private final PanelHeader phControl;
@@ -98,16 +101,20 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     int nColumns = 3;
     JScrollPane scrollPane = new JScrollPane(pnlRoot);
     JPanel pnlControl = new JPanel();
-    JPanel pnlShow = new JPanel();
+    JPanel pnlShowCheckboxes = new JPanel();
     JPanel pnlSource = new JPanel();
     JPanel pnlIncludeCheckboxes = new JPanel();
-    JPanel pnlShowGlue = new JPanel();
+    JPanel pnlShow = new JPanel();
     JPanel pnlIncludeSettings = new JPanel();
     JPanel pnlSections = new JPanel();
     JPanel pnlSectionColumns[] = new JPanel[nColumns];
     JPanel pnlButtons = new JPanel();
     LabeledTextField ltfSource = new LabeledTextField(FieldType.STRING, "Dataset: ");
     LabeledTextField ltfTimestamp = new LabeledTextField(FieldType.STRING, "Saved: ");
+    int index = -1;
+    if (type != null) {
+      index = type.getIndex();
+    }
     for (int i = 0; i < DirectiveFileType.NUM; i++) {
       cbInclude[i] = new CheckBox();
       cbInclude[i].setActionCommand(DirectiveFileType.getLabel(i));
@@ -118,11 +125,16 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
         cbInclude[i].setEnabled(false);
         cbExclude[i].setEnabled(false);
       }
-      else if (type != null && i == type.getIndex()) {
+      else if (i == index) {
+        // The matching file type should be included
         cbInclude[i].setSelected(true);
       }
       else {
-        cbExclude[i].setSelected(true);
+        // Lower priority file types should be excluded. This class is indexed in order of
+        // priority.
+        if (i < index) {
+          cbExclude[i].setSelected(true);
+        }
       }
     }
     // init
@@ -130,6 +142,9 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     ltfSource.setText(sourceStatus);
     ltfTimestamp.setEditable(false);
     ltfTimestamp.setText(saveTimestamp);
+    btnCloseAll.setSize();
+    btnSave.setSize();
+    btnCancel.setSize();
     // Fill sectionArray
     Iterator<DirectiveDescrSection> descrIterator = builder.getSectionArray().iterator();
     final DirectiveMap directiveMap = builder.getDirectiveMap();
@@ -166,11 +181,10 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     pnlControlBody.add(Box.createHorizontalGlue());
     pnlControlBody.add(pnlIncludeSettings);
     pnlControlBody.add(Box.createHorizontalGlue());
-    pnlControlBody.add(pnlShowGlue);
+    pnlControlBody.add(pnlShow);
     pnlControlBody.add(Box.createHorizontalGlue());
     pnlControlBody.add(pnlButtons);
-    // Buttons panel
-    pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.Y_AXIS));
+    pnlControlBody.add(Box.createHorizontalGlue());
     // include panel
     pnlIncludeSettings.setLayout(new BoxLayout(pnlIncludeSettings, BoxLayout.Y_AXIS));
     pnlIncludeSettings.setBorder(new EtchedBorder("Include Based on Directives in Files")
@@ -187,16 +201,27 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
       pnlIncludeCheckboxes.add(new JLabel(DirectiveFileType.toString(i)));
     }
     // show glue panel
-    pnlShowGlue.setLayout(new BoxLayout(pnlShowGlue, BoxLayout.Y_AXIS));
-    pnlShowGlue.add(pnlShow);
-    pnlShowGlue.add(Box.createVerticalGlue());
-    // show panel
     pnlShow.setLayout(new BoxLayout(pnlShow, BoxLayout.Y_AXIS));
-    pnlShow.setBorder(new EtchedBorder("Show Directives").getBorder());
-    pnlShow.add(cbShowUnchanged);
-    pnlShow.add(cbShowHidden);
-    pnlShow.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlShow.add(cbShowOnlyIncluded);
+    pnlShow.add(pnlShowCheckboxes);
+    pnlShow.add(Box.createRigidArea(FixedDim.x0_y2));
+    pnlShow.add(btnCloseAll.getComponent());
+    pnlShow.add(Box.createRigidArea(FixedDim.x0_y2));
+    pnlShow.add(Box.createVerticalGlue());
+    // show panel
+    pnlShowCheckboxes.setLayout(new BoxLayout(pnlShowCheckboxes, BoxLayout.Y_AXIS));
+    pnlShowCheckboxes.setBorder(new EtchedBorder("Show Directives").getBorder());
+    pnlShowCheckboxes.add(cbShowUnchanged);
+    pnlShowCheckboxes.add(cbShowHidden);
+    pnlShowCheckboxes.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlShowCheckboxes.add(cbShowOnlyIncluded);
+    pnlShowCheckboxes.add(Box.createRigidArea(FixedDim.x0_y2));
+    // Buttons panel
+    pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.Y_AXIS));
+    pnlButtons.add(Box.createVerticalGlue());
+    pnlButtons.add(btnSave.getComponent());
+    pnlButtons.add(Box.createVerticalGlue());
+    pnlButtons.add(btnCancel.getComponent());
+    pnlButtons.add(Box.createVerticalGlue());
     // sections
     pnlSections.setLayout(new BoxLayout(pnlSections, BoxLayout.X_AXIS));
     // columns
@@ -259,6 +284,7 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     cbShowUnchanged.addActionListener(listener);
     cbShowHidden.addActionListener(listener);
     cbShowOnlyIncluded.addActionListener(listener);
+    btnCloseAll.addActionListener(listener);
     IncludeListener includeListener = new IncludeListener(this);
     ExcludeListener excludeListener = new ExcludeListener(this);
     for (int i = 0; i < DirectiveFileType.NUM; i++) {
@@ -305,16 +331,35 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
   }
 
   private void action(final String actionCommand) {
-    if (cbShowOnlyIncluded.getActionCommand().equals(actionCommand)) {
-      boolean enable = !cbShowOnlyIncluded.isSelected();
-      cbShowUnchanged.setEnabled(enable);
-      cbShowHidden.setEnabled(enable);
+    if (btnCloseAll.getActionCommand().equals(actionCommand)) {
+      Iterator<DirectiveSectionPanel> iterator = sectionArray.iterator();
+      while (iterator.hasNext()) {
+        iterator.next().close();
+      }
+      UIHarness.INSTANCE.pack(manager);
     }
-    msgControlChanged(false);
+    else {
+      if (cbShowOnlyIncluded.getActionCommand().equals(actionCommand)) {
+        boolean enable = !cbShowOnlyIncluded.isSelected();
+        cbShowUnchanged.setEnabled(enable);
+        cbShowHidden.setEnabled(enable);
+      }
+      msgControlChanged(false);
+    }
   }
 
   public boolean isShowOnlyIncluded() {
     return cbShowOnlyIncluded.isSelected();
+  }
+
+  public boolean isDifferentFromCheckpoint(final boolean checkInclude) {
+    Iterator<DirectiveSectionPanel> iterator = sectionArray.iterator();
+    while (iterator.hasNext()) {
+      if (iterator.next().isDifferentFromCheckpoint(checkInclude)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void msgControlChanged(final boolean includeChange) {
