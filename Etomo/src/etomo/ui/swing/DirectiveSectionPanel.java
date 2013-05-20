@@ -124,6 +124,22 @@ final class DirectiveSectionPanel {
     pnlRoot.setVisible(cbShow.isSelected() && cbShow.isEnabled());
   }
 
+  boolean isDifferentFromCheckpoint(final boolean checkInclude) {
+    Iterator<DirectiveSetInterface> iterator = directiveSetArray.iterator();
+    while (iterator.hasNext()) {
+      DirectiveSetInterface directiveSet = iterator.next();
+      if (iterator.next().isDifferentFromCheckpoint(checkInclude)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void close() {
+    cbShow.setSelected(false);
+    pnlRoot.setVisible(false);
+  }
+
   Component getComponent() {
     return pnlRoot;
   }
