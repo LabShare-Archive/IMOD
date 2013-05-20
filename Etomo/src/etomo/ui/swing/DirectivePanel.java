@@ -244,7 +244,7 @@ final class DirectivePanel implements DirectiveSetInterface {
         setIncluded();
       }
       boolean visible = tool.isDirectiveVisible(directive, cbInclude.isSelected(),
-          isDifferentFromCheckpoint());
+          isDifferentFromCheckpoint(false));
       pnlRoot.setVisible(visible);
       return visible;
     }
@@ -292,6 +292,10 @@ final class DirectivePanel implements DirectiveSetInterface {
   }
 
   private void checkpoint() {
+    // Checkpoint include to use when closing.
+    cbInclude.checkpoint();
+    // Checkpoint value to use when closing and to for deciding whether the directive
+    // should be visible.
     if (cbValue != null) {
       cbValue.checkpoint();
     }
@@ -347,7 +351,10 @@ final class DirectivePanel implements DirectiveSetInterface {
     return true;
   }
 
-  boolean isDifferentFromCheckpoint() {
+  public boolean isDifferentFromCheckpoint(final boolean checkInclude) {
+    if (checkInclude && cbInclude.isDifferentFromCheckpoint(true)) {
+      return true;
+    }
     if (cbValue != null) {
       return cbValue.isDifferentFromCheckpoint(true);
     }
