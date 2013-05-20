@@ -302,7 +302,7 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     }
     cbShowUnchanged.setToolTipText("Show directives whose values have not changed.");
     cbShowHidden
-        .setToolTipText("Show directives that are usually not included in a directive filed.");
+        .setToolTipText("Show directives that are usually not included in a directive file.");
   }
 
   public Container getContainer() {
