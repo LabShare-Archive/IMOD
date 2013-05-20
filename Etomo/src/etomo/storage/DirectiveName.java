@@ -77,6 +77,15 @@ public final class DirectiveName {
     return buffer.toString();
   }
 
+  public String getKeyDescription() {
+    String key = getKey();
+    if (type == DirectiveType.RUNTIME) {
+      return key.replace(AutodocTokenizer.SEPARATOR_CHAR + DirectiveFile.ANY_AXIS_NAME,
+          "");
+    }
+    return key;
+  }
+
   public String getComFileName() {
     if (isNull()) {
       return null;
