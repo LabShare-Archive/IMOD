@@ -95,17 +95,12 @@ class DirectiveSetPanel implements Expandable, DirectiveSetInterface {
     return pnlRoot;
   }
 
-  public boolean msgControlChanged(final boolean includeChange,
-      final boolean expandChange) {
+  public boolean msgControlChanged(final boolean includeChange, final boolean expandChange) {
     pnlDirective.msgControlChanged(includeChange, expandChange);
     // decide whether this panel is visible
-    boolean visible = tool.isDirectiveVisible(
-        directive,
-        pnlDirective.isIncluded() || pnlDirectiveA.isIncluded()
-            || pnlDirectiveB.isIncluded(),
-        pnlDirective.isDifferentFromCheckpoint()
-            || pnlDirectiveA.isDifferentFromCheckpoint()
-            || pnlDirectiveB.isDifferentFromCheckpoint());
+    boolean visible = tool.isDirectiveVisible(directive, pnlDirective.isIncluded()
+        || pnlDirectiveA.isIncluded() || pnlDirectiveB.isIncluded(),
+        isDifferentFromCheckpoint(false));
     pnlRoot.setVisible(visible);
     if (expandChange) {
       boolean expand = !pnlDirective.isEnabled();
@@ -114,6 +109,12 @@ class DirectiveSetPanel implements Expandable, DirectiveSetInterface {
       }
     }
     return visible;
+  }
+
+  public boolean isDifferentFromCheckpoint(final boolean checkInclude) {
+    return pnlDirective.isDifferentFromCheckpoint(checkInclude)
+        || pnlDirectiveA.isDifferentFromCheckpoint(checkInclude)
+        || pnlDirectiveB.isDifferentFromCheckpoint(checkInclude);
   }
 
   public void expand(final ExpandButton button) {
