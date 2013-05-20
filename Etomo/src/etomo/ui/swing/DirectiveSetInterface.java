@@ -27,6 +27,7 @@ interface DirectiveSetInterface {
   /**
    * @return true if instance is visible when this function is complete.
    */
-  boolean msgControlChanged(boolean includeChange,  
-      boolean expandChange);
+  boolean msgControlChanged(boolean includeChange, boolean expandChange);
+
+  boolean isDifferentFromCheckpoint(boolean checkInclude);
 }
