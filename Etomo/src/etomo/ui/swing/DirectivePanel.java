@@ -478,7 +478,7 @@ final class DirectivePanel implements DirectiveSetInterface {
           + ", eTomo:" + directive.getEtomoColumn() + ", AxisLevelData:"
           + directive.getAxisLevelData(axisID);
     }
-    String tooltip = directive.getKey() + ":  " + directive.getDescription() + "."
+    String tooltip = directive.getKeyDescription() + ":  " + directive.getDescription() + "."
         + (valueString != null ? "  Dataset value:" + valueString : "")
         + (defaultValueString != null ? "  Orginal value:" + defaultValueString : "")
         + debugString;
