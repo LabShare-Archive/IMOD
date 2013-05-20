@@ -77,14 +77,17 @@ copyrighted by AT&T and covered by the license in hull.txt.
 Routines for solving 3x3 eigenvectors are copyrighted by Joachim Kopp and
 covered by the LGPL license.
 
-Mauro Maiorca, at the University of Melbourne, Australia, contributed the
-preNAD program.  It uses recursive line filter routines from Gregoire
-Malandain, covered by version 3 of the GPL (see GPL-3.0.txt).
+Mauro Maiorca, at the Biochemistry & Molecular Biology Department, Bio21
+Institute, University of Melbourne, Australia, contributed the preNAD program.
+His work was supported by funding from the Australian Research Council and the
+National Health and Medical Research Council.  preNAD uses recursive line
+filter routines from Gregoire Malandain, covered by version 3 of the GPL (see
+GPL-3.0.txt).  
 
 IMOD uses TIFF libraries which are Copyright (c) 1988-1997 Sam Leffler
 and Copyright (c) 1991-1997 Silicon Graphics, Inc. (see TIFF.txt).
 
-This work is supported by NIH/NCRR grant RR00592 to Andreas Hoenger and
+This work is supported by NIH/NIGMS grant 8P41-GM103431 to Andreas Hoenger and
 NIBIB grant EB005027 to David Mastronarde for the Boulder Laboratory for
 3-Dimensional Electron Microscopy of Cells.
 University of Colorado, Dept. of MCD Biology, 347 UCB, Boulder, CO 80309
