@@ -139,7 +139,8 @@ static int addWarpFile()
 /*!
  * Initialize for a new warp file based on image dimensions [nx], [ny] at the given
  * [binning], with the pixel size in Angstroms in [pixelSize] and [flags] containing the
- * sum of 1 for inverse warping and 2 for control points.
+ * sum of 1 for inverse warping and 2 for control points.  Returns the index of the new
+ * file, or -1 for a memory error.
  */
 int newWarpFile(int nx, int ny, int binning, float pixelSize, int flags)
 {
