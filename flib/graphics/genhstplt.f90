@@ -80,7 +80,6 @@ subroutine realGraphicsMain()
     read(1, '(a)') name
     call frefor2(name, avgX, itype, nfields, MAX_AVERAGES)
     numCol = 0
-    ! print *,nfields,(avgX(i),itype(i),i=1,nfields)
     do i = 1, nfields
       if (itype(i) > 0) numCol = i
     enddo
@@ -205,7 +204,8 @@ subroutine realGraphicsMain()
         '  -2 to enter X axis label and keys for symbols',/, &
         '  -3 to reverse display contrast',/, &
         '  -4 to enter colors for groups in screen display and postscript plots',/, &
-        '  -5 to set gap size when connecting symbols',/, &
+        '  -5 to set indexes of text strings for each color in postscript plots ',/, &
+        '  -6 to set gap size when connecting symbols',/, &
         '  -8 to wait until window closes then exit')
   endif
 50 write(*,104)
@@ -245,7 +245,8 @@ subroutine realGraphicsMain()
     go to 50
   endif
   if (iopt == -4) go to 1158
-  if (iopt == -5) then
+  if (iopt == -5) go to 1159
+  if (iopt == -6) then
     write(*,'(1x,a,$)') 'Size of connecting line gap as fraction of symbol width: '
     read(5,*) symConnectGap
     go to 50
@@ -460,6 +461,16 @@ subroutine realGraphicsMain()
   if (numColors == 0) go to 50
   print *,'For each group, enter group #, red, green, blue values (0-255)'
   read(5,*) ((icolors(j, i), j = 1, 4), i = 1, numColors)
+  do i = 1, numColors
+    icolors(5:6, i) = -1
+    if (icolors(1, i) > 0 .and. icolors(1, i) <= numGroups) &
+        icolors(5, i) = iSymbol(icolors(1, i))
+  enddo
+  go to 50
+1159 if (numColors == 0) go to 50
+  write(*,'(1x,a,/,a,$)')'For each defined color, enter index of text string to ' // &
+      'apply it to,', '   or 0 for none:'
+  read(5,*) (icolors(6, i), i = 1, numColors)
   go to 50
   !
 1160 ifLogX = 0
