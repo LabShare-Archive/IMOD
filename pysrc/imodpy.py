@@ -35,6 +35,9 @@ This module provides the following functions:
   completeAndCheckComFile(comfile) - returns complete com file name and root
   cleanChunkFiles(rootname[, logOnly]) - cleans up log and com files from chunks
   cleanupFiles(files) - Removes a list of files with multiple trials if it fails
+  getCygpath(windows, path) - Returns path, or windows path if windows is not None
+  imodIsAbsPath(path) - Tests whether the path is an absolute path (works in Cygwin)
+  imodAbsPath(path) - Returns absolute path, converted to windows format if on Windows
   imodNice(niceInc) - Sets niceness of process, even on Windows
   imodTempDir() - returns a temporary directory: IMOD_TEMPDIR, /usr/tmp, or /tmp
   setLibPath() - Set path variables for executing Qt programs
@@ -781,6 +784,24 @@ def getCygpath(windows, path):
    return path
 
 
+# Tests whether the path is an absolute path
+def imodIsAbsPath(path):
+   if 'cygwin' in sys.platform:
+      try:
+         path = runcmd('cygpath "' + path + '"')
+      except Exception:
+         pass
+   return os.path.isabs(path)
+
+
+# Return an absolute path, converted to windows format if on Windows
+def imodAbsPath(path):
+   absp = os.path.abspath(path)
+   if 'win32' in sys.platform or 'cygwin' in sys.platform:
+      absp = getCygpath(True, absp)
+   return absp
+      
+      
 # Function to increment nice value of current process; for Windows Python it uses psutil
 # and sets to below normal priority between 4 and 15, idle priority above 15
 def imodNice(niceInc):
