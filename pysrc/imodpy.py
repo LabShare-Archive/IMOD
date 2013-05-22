@@ -788,7 +788,9 @@ def getCygpath(windows, path):
 def imodIsAbsPath(path):
    if 'cygwin' in sys.platform:
       try:
-         path = runcmd('cygpath "' + path + '"')
+         pathlines = runcmd('cygpath "' + path + '"')
+         if len(pathlines):
+            path = pathlines[0]
       except Exception:
          pass
    return os.path.isabs(path)
