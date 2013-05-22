@@ -298,7 +298,7 @@ if useFirst:
 
    if movedFirst:
       imlistLines += ['IMAGE ' + inbase]
-   elif intoSubdir and not os.path.isabs(infile):
+   elif intoSubdir and not imodIsAbsPath(infile):
       imlistLines += ['IMAGE ' + os.path.normpath('../' + infile)]
    else:
       imlistLines += ['IMAGE ' + infile]
