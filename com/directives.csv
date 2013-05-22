@@ -29,9 +29,9 @@ setupset.copyarg.Cs,Spherical aberration,Float,Y,Y,SD,
 setupset.copyarg.ctfnoise,Configuration file listing noise files for ctfplotter,String,Y,Y,SD,
 ,,,,,,
 Other setup parameters,,,,,,
-setupset.scopeTemplate,Name of scope template file to use,String,Y,,,
-setupset.systemTemplate,Name of system template file,String,Y,,,
-setupset.userTemplate,Name of user template file,String,Y,,,
+setupset.scopeTemplate,Name of scope template file to use,String,Y,,,See notes at end
+setupset.systemTemplate,Name of system template file,String,Y,,,See notes at end
+setupset.userTemplate,Name of user template file,String,Y,,,See notes at end
 setupset.scanHeader,Whether to scan image file header,Bool,Y,,,
 setupset.datasetDirectory,Full path to directory,String,Y,,,
 ,,,,,,
