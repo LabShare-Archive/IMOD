@@ -18,6 +18,9 @@ This module provides the following functions:
   getmrc(file, doAll)  - run the 'header' command on <file>.
                          returns a 'tuple' of x,y,z,mode,px,py,pz,
                          plus ox,oy,oz,min,max,mean if doAll is True
+   getmrcpixel(file)   - run the 'header' command on <file>
+                         returns just a single pixel size, using extended header value
+                         if any
   makeBackupFile(file)   - renames file to file~, deleting old file~
   exitFromImodError(pn, errout) - prints the error strings in errout and
                                   prepends 'ERROR: pn - ' to the last one
@@ -25,7 +28,7 @@ This module provides the following functions:
   readTextFile(filename[ , descrip] [, returnOnErr]) - reads in text file, strips
                                        line endings, returns a list of strings
   writeTextFile(filename, strings [, returnOnErr]) - writes set of strings to a text file
-  optionValue(linelist, option, type, ignorecase = False, numVal = 0) -
+  optionValue(linelist, option, type, ignorecase = False, numVal = 0, otherSep = None) -
                                            finds option value in list of lines
   convertToInteger(valstr, description) - Convert string to int with error 
                                            message if it fails
@@ -396,6 +399,44 @@ def getmrcsize(file):
    (ix,iy,iz,mode,px,py,pz) = getmrc(file)
    return(ix,iy,iz)
 
+# Get one pixel size from an MRC file, based on FEI/Agard value if present
+def getmrcpixel(file):
+   """getmrcpixel(file)    - run the 'header' command on <file>
+   Returns just a single pixel size, based on value in extended header if appropriate"""
+
+   global errStrings
+   input = ["InputFile " + file]
+   hdrout = runcmd("header -StandardInput", input)
+   pixel = -1.
+   for line in hdrout:
+      try:
+         if 'Pixel spacing' in line:
+            dotInd = line.find('.. ') + 2
+            if dotInd < 3:
+               errStrings = ["header " + file + ": cannot find pixel sizes"]
+               raise ImodpyError(errStrings)
+            lsplit = line[dotInd:].strip().split()
+            if len(lsplit) < 3:
+               errStrings = ["header " + file + ": pixel sizes not interpretable"]
+               raise ImodpyError(errStrings)
+            pixel = float(lsplit[0])
+
+         if 'size in nanometers =' in line:
+            ind = line.find('=') + 1
+            lsplit = line[ind:].strip().split()
+            if len(lsplit):
+               pixel = 10. * float(lsplit[0])
+
+      except ValueError:
+         errStrings = ["header " + file + ": error converting pixel size to float"]
+         raise ImodpyError(errStrings)
+
+   if pixel < 0:
+      errStrings = ["header " + file + ": cannot find pixel size"]
+      raise ImodpyError(errStrings)
+
+   return pixel
+
 
 # Make a backup file
 def makeBackupFile(filename):
@@ -573,11 +614,13 @@ def writeTextFile(filename, strings, returnOnErr = False):
 
 
 # Function to find an option value from a list of strings
-def optionValue(linelist, option, type, ignorecase = False, numVal = 0):
-   """optionValue(linelist, option, type[, nocase] [, numVal]) - get option value
-   in strings
+def optionValue(linelist, option, type, ignorecase = False, numVal = 0, otherSep = None):
+   """optionValue(linelist, option, type[, nocase] [, numVal] [,otherSep]) - get option
+   value in strings
    Given a list of strings in <linelist>, searches for one(s) that contain the
-   text in <option> and that are not commented out.  The search is
+   text in <option> and that are not commented out.  A white space separator between the
+   option and the value is assumed unless another separator is supplied in optional
+   argument <otherSep>. The search is
    case-insensitive if optional argument <nocase> is supplied and is not False
    or None.  The return value depends on the value of <type>:
    0 = STRING_VALUE: a string with white space stripped and a comment removed from the end
@@ -590,14 +633,17 @@ def optionValue(linelist, option, type, ignorecase = False, numVal = 0):
    It returns None if the option is not found or if its value is empty, has fewer than
    numVal values, or contains inappropriate characters; in the latter case it issues a
    WARNING:.
-   If the option occurs more than once, the latest value applies unless there is a an
+   If the option occurs more than once, the latest value applies unless there is an
    error return from the first occurrence.
    """
    flags = 0
    if ignorecase:
       flags = re.IGNORECASE
+   sep = r'\s'
+   if otherSep:
+      sep = r'\s*' + otherSep
    optre = re.compile(r'^\s*' + option, flags)
-   subre = re.compile('.*' + option + r'[^\s]*([^#]*).*', flags)
+   subre = re.compile('.*' + option + r'[^\s]*' + sep + r'([^#]*).*', flags)
    comre = re.compile(r'\s*#\s*' + option, flags)
    retval = None
    for line in linelist:
