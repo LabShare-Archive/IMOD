@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/21/13: Batchruntomo will now accept .mrc stack files and rename them to .st,
+will take template entries with no path and find files in default locations,
+and gets the pixel size correctly from FEI files.
+
 5/7/13: Added option to Ctfphaseflip to set maximum strip width, for reducing
 artifacts at zeros in FFT at low tilts.
 
