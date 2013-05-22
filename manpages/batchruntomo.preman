@@ -15,7 +15,8 @@ will perform operations in a fixed order determined by these choices; the
 order of the directives does not affect this order.  The program can work on
 more than one data set and can also move the tilt series from their current 
 location into a separate directory for each data set, which is created if
-necessary.
+necessary.  It accepts tilts series with the extension ".mrc" and changes the
+extension to ".st" so that other programs will work correctly.
 
 .SS Directives
 Directives consist of key-value pairs separated by equals signs,
@@ -211,6 +212,20 @@ INSERT OPTION TEXT HERE
 .B -StandardInput
 Read parameter entries from standard input
 
+.SH FILES
+Batch and template files must have the extension ".adoc".  The tilt series file
+must have an extension ".st" or ".mrc".  When eTomo is run to set up the data
+set, it copies the batch directive file to the dataset directory with the name 
+"batchDirective.adoc".  If there are any template files, they are copied to
+the dataset with the the names "scopeTemplate.adoc", "systemTemplate.adoc",
+and "userTemplate.adoc".  However, if any feature is used that requires
+modification of the batch directive file, namely use of the 
+.B -root
+or
+.B -current
+option or template files listed without paths, Batchruntomo writes the
+modified file to the dataset directory as "batchDirective.adoc" and runs eTomo
+with this file.
 .SH AUTHOR
 David Mastronarde
 .SH BUGS
