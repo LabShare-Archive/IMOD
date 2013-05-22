@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/22/13: Fixed 3dmod recognition of DigitalMicrograph files to work with file
+from tilt series.
+
 5/21/13: Batchruntomo will now accept .mrc stack files and rename them to .st,
 will take template entries with no path and find files in default locations,
 and gets the pixel size correctly from FEI files.
