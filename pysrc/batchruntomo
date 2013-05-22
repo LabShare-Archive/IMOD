@@ -123,14 +123,6 @@ def readTextFileReportErr(filename, message = None):
    return lines
 
 
-# Return an absolute path, converted to windows format if on Windows
-def abspath(path):
-   absp = os.path.abspath(path)
-   if 'win32' is sys.platform or 'cygwin' in sys.platform:
-      absp = getCygpath(True, absp)
-   return absp
-
-
 # Check existence of stack, rename if necessary
 def checkRenameStack(stack):
    if not os.path.exists(stack + 'st'):
@@ -207,7 +199,7 @@ def printDirectiveErrors(errors):
 # path and 1, or None and -2 if it cannot be found
 def absTemplatePath(template, index):
    global userTemplateDir
-   if os.path.isabs(template):
+   if imodIsAbsPath(template):
       return (template, 0)
    if os.path.dirname(template):
       return (None, -1)
@@ -298,12 +290,12 @@ def readDirectiveOrTemplate(filename, index):
       # Take care of the data directory now
       if numCurrent and rootname:
          if not deliverDir:
-            datadir = abspath(currentDirs[dfileInd])
+            datadir = imodAbsPath(currentDirs[dfileInd])
 
          # If delivery, now we can make the directory
          # But we can't deliver file(s) until we know about dual/single
          else:
-            datadir = abspath(os.path.join(deliverDir, rootname))
+            datadir = imodAbsPath(os.path.join(deliverDir, rootname))
             if not (os.path.exists(datadir) and os.path.isdir(datadir)):
                if os.path.exists(datadir):
                   abortSet(datadir + ' already exists and is not a directory')
@@ -2028,9 +2020,9 @@ remoteDataDir = ''
 # Set up check file
 checkFile = PipGetString('CheckFile', '')
 if checkFile:
-   checkFile = abspath(checkFile)
+   checkFile = imodAbsPath(checkFile)
 else:
-   checkFile = abspath(os.path.join(startingDir, progname + '.' +
+   checkFile = imodAbsPath(os.path.join(startingDir, progname + '.' +
                                     str(os.getpid()) + '.input'))
 if validation <= 0:
    prnstr('To quit all processing, place a Q in the file: ' + checkFile)
@@ -2061,7 +2053,7 @@ for dfileInd in range(numSets):
       cleanupFiles([checkFile])
    os.chdir(startingDir)
    allDirectives = [{}, {}, {}, {}]
-   absDirectiveFile = abspath(dfile)
+   absDirectiveFile = imodAbsPath(dfile)
    if readDirectiveOrTemplate(dfile, BatInd):
       continue
 
@@ -2095,7 +2087,7 @@ for dfileInd in range(numSets):
 
    # If there is a remote directory, need to shift it to the dataset dir
    if remoteStartDir:
-      absDataDir = abspath(datasetDir)
+      absDataDir = imodAbsPath(datasetDir)
       prefix = os.path.commonprefix([startingDir, absDataDir])
       remoteDataDir = ''
       if prefix and absDataDir.startswith(prefix) and startingDir.startswith(prefix):
