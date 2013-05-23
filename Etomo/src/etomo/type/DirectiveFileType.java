@@ -23,13 +23,13 @@ public final class DirectiveFileType {
   public static final String rcsid = "$Id:$";
 
   public static DirectiveFileType SCOPE = new DirectiveFileType(0, "Scope",
-      "Scope template", FileType.LOCAL_SCOPE_TEMPLATE);
+      "Scope Template", FileType.LOCAL_SCOPE_TEMPLATE);
   public static DirectiveFileType SYSTEM = new DirectiveFileType(1, "System",
-      "System template", FileType.LOCAL_SYSTEM_TEMPLATE);
+      "System Template", FileType.LOCAL_SYSTEM_TEMPLATE);
   public static DirectiveFileType USER = new DirectiveFileType(2, "User",
-      "User template", FileType.LOCAL_USER_TEMPLATE);
+      "User Template", FileType.LOCAL_USER_TEMPLATE);
   public static DirectiveFileType BATCH = new DirectiveFileType(3, "Batch",
-      "Batch directive file", FileType.LOCAL_BATCH_DIRECTIVE_FILE);
+      "Batch Directive File", FileType.LOCAL_BATCH_DIRECTIVE_FILE);
 
   public static int NUM = 4;
 
