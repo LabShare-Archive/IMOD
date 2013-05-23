@@ -109,21 +109,9 @@ public final class UserConfiguration implements Storable {
   private static final String SWAP_Y_AND_Z_KEY = DEFAULTS_KEY + ".SwapYAndZ";
   private static final String TILT_ANGLES_RAWTLT_FILE_KEY = DEFAULTS_KEY
       + ".TiltAnglesRawtltFile";
-
-  private EtomoVersion revisionNumber = EtomoVersion.getInstance("RevisionNumber",
+  
+  private final EtomoVersion revisionNumber = EtomoVersion.getInstance("RevisionNumber",
       CURRENT_REVISION_NUMBER);
-  private boolean nativeLookAndFeel = false;
-  private boolean advancedDialogs = false;
-  private boolean compactDisplay = false;
-  private int toolTipsInitialDelay = 2000;
-  private int toolTipsDismissDelay = 20000;
-  private int nMRUFiles = 10;
-  private CircularBuffer MRUFileList;
-  private String fontFamily = "Dialog";
-  private int fontSize = 12;
-  private int mainWindowWidth = 800;
-  private int mainWindowHeight = 600;
-  private boolean autoFit = false;
   private final EtomoBoolean2 gpuProcessing = new EtomoBoolean2("GpuProcessing");
   private final EtomoNumber cpus = new EtomoNumber("Cpus");
   private final EtomoNumber parallelTableSize = new EtomoNumber("ParallelTableSize");
@@ -136,7 +124,27 @@ public final class UserConfiguration implements Storable {
   private final EtomoNumber subLastLocationY = new EtomoNumber("Sub.LastLocationY");
   private final EtomoBoolean2 setFEIPixelSize = new EtomoBoolean2(DEFAULTS_KEY
       + ".SetFEIPixelSize");
+  private final StringProperty userTemplateDirAbsPath = new StringProperty(DEFAULTS_KEY
+      + ".UserTemplateDir", true);
+  private final StringProperty scopeTemplateAbsPath = new StringProperty(DEFAULTS_KEY
+      + ".ScopeTemplate", true);
+  private final StringProperty systemTemplateAbsPath = new StringProperty(DEFAULTS_KEY
+      + ".SystemTemplate", true);
+  private final StringProperty userTemplateAbsPath = new StringProperty(DEFAULTS_KEY
+      + ".UserTemplate", true);
 
+  private boolean nativeLookAndFeel = false;
+  private boolean advancedDialogs = false;
+  private boolean compactDisplay = false;
+  private int toolTipsInitialDelay = 2000;
+  private int toolTipsDismissDelay = 20000;
+  private int nMRUFiles = 10;
+  private CircularBuffer MRUFileList;
+  private String fontFamily = "Dialog";
+  private int fontSize = 12;
+  private int mainWindowWidth = 800;
+  private int mainWindowHeight = 600;
+  private boolean autoFit = false;
   private EtomoBoolean2 montage = null;
   private EtomoBoolean2 parallelProcessing = null;
   private EtomoBoolean2 singleAxis = null;
@@ -144,14 +152,7 @@ public final class UserConfiguration implements Storable {
   private EtomoBoolean2 gpuProcessingDefault = null;
   private EtomoBoolean2 swapYAndZ = null;
   private EtomoBoolean2 tiltAnglesRawtltFile = null;
-  private StringProperty userTemplateDirAbsPath = new StringProperty(DEFAULTS_KEY
-      + ".UserTemplateDir", true);
-  private StringProperty scopeTemplateAbsPath = new StringProperty(DEFAULTS_KEY
-      + ".ScopeTemplate", true);
-  private StringProperty systemTemplateAbsPath = new StringProperty(DEFAULTS_KEY
-      + ".SystemTemplate", true);
-  private StringProperty userTemplateAbsPath = new StringProperty(DEFAULTS_KEY
-      + ".UserTemplate", true);
+
 
   public UserConfiguration() {
     MRUFileList = new CircularBuffer(nMRUFiles);
@@ -687,6 +688,10 @@ public final class UserConfiguration implements Storable {
 
   public boolean isSetFEIPixelSize() {
     return setFEIPixelSize.is();
+  }
+
+  public boolean isUserTemplateDirSet() {
+    return !userTemplateDirAbsPath.isEmpty();
   }
 
   public String getUserTemplateDir() {
