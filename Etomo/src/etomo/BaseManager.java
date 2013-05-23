@@ -642,6 +642,18 @@ public abstract class BaseManager {
     return true;
   }
 
+  public boolean saveToFile() {
+    return false;
+  }
+
+  public boolean saveAsToFile() {
+    return false;
+  }
+  
+  public boolean closeFrame() {
+    return false;
+  }
+
   /**
    * A message asking the ApplicationManager to save the parameter information
    * to a file.
@@ -1163,10 +1175,6 @@ public abstract class BaseManager {
     catch (Throwable e) {
       e.printStackTrace();
     }
-  }
-  
-  public boolean canClose() {
-    return true;
   }
 
   /**
