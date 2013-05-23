@@ -1,8 +1,11 @@
 package etomo.storage;
 
+import java.io.IOException;
+
 import etomo.EtomoDirector;
 import etomo.comscript.FortranInputString;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstStringParameter;
@@ -41,6 +44,9 @@ public class Directive {
   private AxisLevelData axisLevelDataAny = null;
   private AxisLevelData axisLevelDataA = null;
   private AxisLevelData axisLevelDataB = null;
+  private boolean include = false;
+  private boolean includeA = false;
+  private boolean includeB = false;
 
   public Directive(final DirectiveDescr descr) {
     directiveName.setKey(descr);
@@ -65,6 +71,18 @@ public class Directive {
     batch = true;
     template = true;
     etomoColumn = null;
+  }
+
+  void write(final AxisID axisID, final LogFile logFile, LogFile.WriterId id)
+      throws LogFile.LockException, IOException {
+    Value value = values.getValue(axisID);
+    String valueString = "";
+    if (value != null) {
+      valueString = value.toString();
+    }
+    logFile.write(directiveName.getName(axisID) + AutodocTokenizer.DEFAULT_DELIMITER
+        + valueString, id);
+    logFile.newLine(id);
   }
 
   public void setDebug(final int input) {
@@ -119,6 +137,19 @@ public class Directive {
     return batch;
   }
 
+  public boolean isInclude(final AxisID axisID) {
+    if (axisID == null) {
+      return include;
+    }
+    if (axisID == AxisID.FIRST) {
+      return includeA;
+    }
+    if (axisID == AxisID.SECOND) {
+      return includeB;
+    }
+    return false;
+  }
+
   public boolean isValid() {
     return directiveName.isValid();
   }
@@ -170,6 +201,18 @@ public class Directive {
 
   public void setDefaultValue(final int input) {
     values.setDefaultValue(input);
+  }
+
+  public void setInclude(final AxisID axisID, final boolean input) {
+    if (axisID == null) {
+      include = input;
+    }
+    else if (axisID == AxisID.FIRST) {
+      includeA = input;
+    }
+    else if (axisID == AxisID.SECOND) {
+      includeB = input;
+    }
   }
 
   public void setInDirectiveFile(final DirectiveFileType type, final AxisID axisID,
@@ -289,11 +332,14 @@ public class Directive {
 
     public abstract boolean toBoolean();
 
+    public abstract String toString();
+
     public abstract boolean isEmpty();
 
     void setDebug(final int input) {
       debug = input;
     }
+
   }
 
   static final class ValueFactory {
@@ -403,7 +449,10 @@ public class Directive {
     }
 
     public String toString() {
-      return String.valueOf(value);
+      if (value) {
+        return "1";
+      }
+      return "0";
     }
   }
 
@@ -557,6 +606,9 @@ public class Directive {
     }
 
     public String toString() {
+      if (value.isNull()) {
+        return "";
+      }
       return value.toString();
     }
   }
@@ -640,7 +692,7 @@ public class Directive {
     }
 
     public String toString() {
-      return value;
+      return value == null ? "" : value;
     }
 
     public boolean toBoolean() {
