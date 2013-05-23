@@ -4,13 +4,17 @@ import java.awt.Container;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -21,6 +25,8 @@ import javax.swing.ToolTipManager;
 import etomo.BaseManager;
 import etomo.logic.DirectiveEditorBuilder;
 import etomo.logic.DirectiveTool;
+import etomo.storage.AutodocFilter;
+import etomo.storage.Directive;
 import etomo.storage.DirectiveDescrSection;
 import etomo.storage.DirectiveMap;
 import etomo.type.AxisID;
@@ -60,16 +66,24 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
   private final MultiLineButton btnCloseAll = new MultiLineButton("Close All");
   private final MultiLineButton btnSave = new MultiLineButton("Save");
   private final MultiLineButton btnCancel = new MultiLineButton("Cancel");
+  private final LabeledTextField ltfSource = new LabeledTextField(FieldType.STRING,
+      "Dataset: ");
+  private final LabeledTextField ltfFileTimestamp = new LabeledTextField(
+      FieldType.STRING, "File saved: ");
 
   private final BaseManager manager;
   private final PanelHeader phControl;
   private final PanelHeader phSource;
   private final DirectiveTool tool;
   private final boolean[] fileTypeExists;
+  private final DirectiveEditorBuilder builder;
+
+  private JFileChooser fileChooser = null;
 
   private DirectiveEditorDialog(final BaseManager manager, final DirectiveFileType type,
       final DirectiveEditorBuilder builder) {
     this.manager = manager;
+    this.builder = builder;
     phControl = PanelHeader.getInstance("Control Panel", this,
         DialogType.DIRECTIVE_EDITOR);
     phSource = PanelHeader.getInstance("Source", this, DialogType.DIRECTIVE_EDITOR);
@@ -87,17 +101,17 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
       final AxisType sourceAxisType, final String sourceStatus,
       final String saveTimestamp, final StringBuffer errmsg) {
     DirectiveEditorDialog instance = new DirectiveEditorDialog(manager, type, builder);
-    instance.createPanel(type, builder, sourceAxisType, sourceStatus, saveTimestamp,
-        errmsg);
+    instance.createPanel(type, sourceAxisType, sourceStatus, saveTimestamp, errmsg);
     instance.setTooltips();
     instance.addListeners();
     return instance;
   }
 
-  private void createPanel(final DirectiveFileType type,
-      final DirectiveEditorBuilder builder, final AxisType sourceAxisType,
+  private void createPanel(final DirectiveFileType type, final AxisType sourceAxisType,
       final String sourceStatus, final String saveTimestamp, StringBuffer errmsg) {
     // construct
+    LabeledTextField ltfDatasetTimestamp = new LabeledTextField(FieldType.STRING,
+        "Dataset saved: ");
     int nColumns = 3;
     JScrollPane scrollPane = new JScrollPane(pnlRoot);
     JPanel pnlControl = new JPanel();
@@ -109,8 +123,6 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     JPanel pnlSections = new JPanel();
     JPanel pnlSectionColumns[] = new JPanel[nColumns];
     JPanel pnlButtons = new JPanel();
-    LabeledTextField ltfSource = new LabeledTextField(FieldType.STRING, "Dataset: ");
-    LabeledTextField ltfTimestamp = new LabeledTextField(FieldType.STRING, "Saved: ");
     int index = -1;
     if (type != null) {
       index = type.getIndex();
@@ -140,8 +152,9 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     // init
     ltfSource.setEditable(false);
     ltfSource.setText(sourceStatus);
-    ltfTimestamp.setEditable(false);
-    ltfTimestamp.setText(saveTimestamp);
+    ltfDatasetTimestamp.setEditable(false);
+    ltfDatasetTimestamp.setText(saveTimestamp);
+    ltfFileTimestamp.setEditable(false);
     btnCloseAll.setSize();
     btnSave.setSize();
     btnCancel.setSize();
@@ -170,7 +183,8 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     // source body panel
     pnlSourceBody.setLayout(new BoxLayout(pnlSourceBody, BoxLayout.Y_AXIS));
     pnlSourceBody.add(ltfSource.getComponent());
-    pnlSourceBody.add(ltfTimestamp.getComponent());
+    pnlSourceBody.add(ltfDatasetTimestamp.getComponent());
+    pnlSourceBody.add(ltfFileTimestamp.getComponent());
     // control panel
     pnlControl.setLayout(new BoxLayout(pnlControl, BoxLayout.Y_AXIS));
     pnlControl.setBorder(BorderFactory.createEtchedBorder());
@@ -285,6 +299,8 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     cbShowHidden.addActionListener(listener);
     cbShowOnlyIncluded.addActionListener(listener);
     btnCloseAll.addActionListener(listener);
+    btnCancel.addActionListener(listener);
+    btnSave.addActionListener(listener);
     IncludeListener includeListener = new IncludeListener(this);
     ExcludeListener excludeListener = new ExcludeListener(this);
     for (int i = 0; i < DirectiveFileType.NUM; i++) {
@@ -316,6 +332,51 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     return false;
   }
 
+  public String getSaveFileAbsPath() {
+    if (fileChooser == null) {
+      fileChooser = new FileChooser(builder.getDefaultSaveLocation());
+      fileChooser.setDialogTitle("Save As");
+      fileChooser.setFileFilter(new AutodocFilter());
+      fileChooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    }
+    if (fileChooser.showOpenDialog(pnlRoot) == JFileChooser.APPROVE_OPTION) {
+      File file = fileChooser.getSelectedFile();
+      if (file != null) {
+        return file.getAbsolutePath();
+      }
+    }
+    return null;
+  }
+
+  public List<String> getComments() {
+    List<String> comments = new ArrayList<String>();
+    comments.add(ltfSource.getText());
+    return comments;
+  }
+
+  public void setFileTimestamp(final Date date) {
+    ltfFileTimestamp.setText(date.toString());
+  }
+
+  public List<Directive> getIncludeDirectiveList() {
+    List<Directive> directiveList = new ArrayList<Directive>();
+    Iterator<DirectiveSectionPanel> iterator = sectionArray.iterator();
+    while (iterator.hasNext()) {
+      Collection<Directive> directives = iterator.next().getIncludeDirectiveList();
+      if (directives != null) {
+        directiveList.addAll(directives);
+      }
+    }
+    return directiveList;
+  }
+
+  public void checkpoint() {
+    Iterator<DirectiveSectionPanel> iterator = sectionArray.iterator();
+    while (iterator.hasNext()) {
+      iterator.next().checkpoint();
+    }
+  }
+
   public boolean isExclude(final int index) {
     if (index >= 0 && index < DirectiveFileType.NUM) {
       return cbExclude[index].isSelected();
@@ -331,6 +392,10 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
     return cbShowHidden.isSelected();
   }
 
+  public List<DirectiveSectionPanel> getSectionList() {
+    return sectionArray;
+  }
+
   private void action(final String actionCommand) {
     if (btnCloseAll.getActionCommand().equals(actionCommand)) {
       Iterator<DirectiveSectionPanel> iterator = sectionArray.iterator();
@@ -338,6 +403,12 @@ public final class DirectiveEditorDialog implements Expandable, DirectiveDisplay
         iterator.next().close();
       }
       UIHarness.INSTANCE.pack(manager);
+    }
+    else if (btnCancel.getActionCommand().equals(actionCommand)) {
+      UIHarness.INSTANCE.cancel(manager);
+    }
+    else if (btnSave.getActionCommand().equals(actionCommand)) {
+      UIHarness.INSTANCE.save(manager, AxisID.ONLY);
     }
     else {
       if (cbShowOnlyIncluded.getActionCommand().equals(actionCommand)) {
