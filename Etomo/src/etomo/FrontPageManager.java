@@ -137,9 +137,10 @@ public final class FrontPageManager extends BaseManager {
   public void pause(final AxisID axisID) {
   }
 
-  public void save() throws LogFile.LockException, IOException {
+  public boolean save() throws LogFile.LockException, IOException {
     super.save();
     mainPanel.done();
+    return true;
   }
 
   public boolean exitProgram(final AxisID axisID) {
