@@ -51,7 +51,10 @@ public final class DirectiveEditorMetaData extends BaseMetaData {
 
   public String getName() {
     if (rootName == null) {
-      return type.toString();
+      if (type == null) {
+        return "Directive File Editor";
+      }
+      return type.getLabel() + " Editor";
     }
     return rootName;
   }
