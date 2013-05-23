@@ -353,11 +353,18 @@ public final class DirectiveEditorBuilder {
   }
 
   public File getDefaultSaveLocation() {
+    File dir = null;
     if (type == DirectiveFileType.USER) {
       UserConfiguration userConfig = EtomoDirector.INSTANCE.getUserConfiguration();
       if (userConfig.isUserTemplateDirSet()) {
-        return new File(userConfig.getUserTemplateDir());
+        dir = new File(userConfig.getUserTemplateDir());
       }
+      else {
+        dir = ConfigTool.getDefaultUserTemplateDir();
+      }
+    }
+    if (dir != null) {
+      return dir;
     }
     return new File(manager.getPropertyUserDir());
   }
