@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.storage.ComFile;
 import etomo.storage.Directive;
 import etomo.storage.DirectiveDescrFile;
@@ -23,6 +24,7 @@ import etomo.storage.autodoc.StatementLocation;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.DirectiveFileType;
+import etomo.type.UserConfiguration;
 
 /**
 * <p>Description: </p>
@@ -50,12 +52,14 @@ public final class DirectiveEditorBuilder {
   private boolean[] fileTypeExists = new boolean[DirectiveFileType.NUM];
 
   private final BaseManager manager;
+  private final DirectiveFileType type;
 
   private boolean debug = false;
   private DirectiveDescrSection otherSection = null;
 
-  public DirectiveEditorBuilder(final BaseManager manager) {
+  public DirectiveEditorBuilder(final BaseManager manager, final DirectiveFileType type) {
     this.manager = manager;
+    this.type = type;
   }
 
   /**
@@ -66,8 +70,7 @@ public final class DirectiveEditorBuilder {
    * @param errmsg - may be null
    * @return errmsg
    */
-  public StringBuffer build(final DirectiveFileType type, final AxisType sourceAxisType,
-      StringBuffer errmsg) {
+  public StringBuffer build(final AxisType sourceAxisType, StringBuffer errmsg) {
     // reset
     directiveMap.clear();
     sectionArray.clear();
@@ -238,16 +241,23 @@ public final class DirectiveEditorBuilder {
               if (directive == null) {
                 // Handle undefined directives.
                 directive = new Directive(directiveName);
-                // If otherSection hasn't been created, create it and add it to
-                // sectionArray.
-                if (otherSection == null) {
-                  otherSection = new DirectiveDescrSection(SECTION_OTHER_HEADER);
-                  sectionArray.add(otherSection);
+                if (!directive.isValid()) {
+                  directive = null;
                 }
-                otherSection.add(directive.getKey());
-                directiveMap.put(directive.getKey(), directive);
+                else {
+                  // If otherSection hasn't been created, create it and add it to
+                  // sectionArray.
+                  if (otherSection == null) {
+                    otherSection = new DirectiveDescrSection(SECTION_OTHER_HEADER);
+                    sectionArray.add(otherSection);
+                  }
+                  otherSection.add(directive.getKey());
+                  directiveMap.put(directive.getKey(), directive);
+                }
               }
-              directive.setInDirectiveFile(type, axisID, true);
+              if (directive != null) {
+                directive.setInDirectiveFile(type, axisID, true);
+              }
             }
           }
           return true;
@@ -340,6 +350,16 @@ public final class DirectiveEditorBuilder {
 
   public boolean[] getFileTypeExists() {
     return fileTypeExists;
+  }
+
+  public File getDefaultSaveLocation() {
+    if (type == DirectiveFileType.USER) {
+      UserConfiguration userConfig = EtomoDirector.INSTANCE.getUserConfiguration();
+      if (userConfig.isUserTemplateDirSet()) {
+        return new File(userConfig.getUserTemplateDir());
+      }
+    }
+    return new File(manager.getPropertyUserDir());
   }
 
   public DirectiveMap getDirectiveMap() {
