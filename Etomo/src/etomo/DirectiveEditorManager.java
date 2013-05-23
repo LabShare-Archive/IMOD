@@ -1,13 +1,16 @@
 package etomo;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.Date;
+import java.util.List;
 
 import etomo.logic.DirectiveEditorBuilder;
 import etomo.process.BaseProcessManager;
+import etomo.storage.Directive;
 import etomo.storage.DirectiveMap;
-import etomo.storage.LogFile;
+import etomo.storage.DirectiveWriter;
 import etomo.storage.Storable;
+import etomo.storage.autodoc.AutodocFactory;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
@@ -15,6 +18,7 @@ import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.DirectiveEditorMetaData;
 import etomo.type.DirectiveFileType;
+import etomo.type.EtomoBoolean2;
 import etomo.type.InterfaceType;
 import etomo.type.ParallelState;
 import etomo.ui.swing.DirectiveEditorDialog;
@@ -55,6 +59,7 @@ public final class DirectiveEditorManager extends BaseManager {
 
   private DirectiveEditorDialog dialog = null;
   private StringBuffer dialogErrmsg = null;
+  private File saveFile = null;
 
   public DirectiveEditorManager(final DirectiveFileType type,
       final BaseManager sourceManager, final String timestamp, final StringBuffer errmsg) {
@@ -87,11 +92,15 @@ public final class DirectiveEditorManager extends BaseManager {
    * @param file
    */
   public void setName(File inputFile) {
-    //TODO not being called
+    // TODO not being called
     propertyUserDir = inputFile.getParent();
     metaData.setRootName(inputFile);
     mainPanel.setStatusBarText(propertyUserDir, STATUS_BAR_SIZE);
-    uiHarness.setTitle(this, type.getLabel() + " - " + getName());
+    String label = "Directive File";
+    if (type != null) {
+      label = type.getLabel();
+    }
+    uiHarness.setTitle(this, label + " - " + getName());
   }
 
   public void updateDirectiveMap(final DirectiveMap directiveMap,
@@ -101,8 +110,8 @@ public final class DirectiveEditorManager extends BaseManager {
 
   public void openDirectiveEditorDialog() {
     if (dialog == null) {
-      DirectiveEditorBuilder builder = new DirectiveEditorBuilder(this);
-      dialogErrmsg = builder.build(type,sourceManager.getBaseMetaData().getAxisType(),
+      DirectiveEditorBuilder builder = new DirectiveEditorBuilder(this, type);
+      dialogErrmsg = builder.build(sourceManager.getBaseMetaData().getAxisType(),
           dialogErrmsg);
       dialog = DirectiveEditorDialog.getInstance(this, type, builder, sourceManager
           .getBaseMetaData().getAxisType(), sourceManager.getStatus(), timestamp,
@@ -161,9 +170,96 @@ public final class DirectiveEditorManager extends BaseManager {
     return null;
   }
 
-  public void save() throws LogFile.LockException, IOException {
-    super.save();
-    mainPanel.done();
+  public boolean closeFrame() {
+    if (dialog.isDifferentFromCheckpoint(true)) {
+      EtomoBoolean2 response = uiHarness.openYesNoCancelDialog(this, metaData.getName()
+          + " has been modified.  Do you want to save you changes?", AXIS_ID);
+      if (response == null) {
+        return false;
+      }
+      if (response.is()) {
+        if (!saveToFile()) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  public boolean saveToFile() {
+    if (saveFile == null) {
+      return saveAsToFile();
+    }
+    if (writeFile()) {
+      dialog.checkpoint();
+      return true;
+    }
+    return false;
+  }
+
+  public boolean saveAsToFile() {
+    String absPath = dialog.getSaveFileAbsPath();
+    if (absPath == null) {
+      return false;
+    }
+    if (absPath.endsWith(AutodocFactory.EXTENSION)) {
+      saveFile = new File(absPath);
+    }
+    else {
+      saveFile = new File(absPath + AutodocFactory.EXTENSION);
+    }
+    if (saveFile.exists()) {
+      if (!uiHarness.openYesNoDialog(this, "The file " + saveFile.getAbsolutePath()
+          + " already exists.  Overwrite it?", AxisID.ONLY)) {
+        return false;
+      }
+      if (!saveFile.isFile()) {
+        uiHarness.openMessageDialog(this,
+            "Cannot to write to " + saveFile.getAbsolutePath()
+                + " because it is not a file.", "Unable to Write to File");
+        return false;
+      }
+      if (!saveFile.canWrite()) {
+        uiHarness.openMessageDialog(this,
+            "Unable to write to " + saveFile.getAbsolutePath() + ":  permission denied.",
+            "Unable to Write to File");
+        return false;
+      }
+    }
+    else {
+      File parent = saveFile.getParentFile();
+      if (!parent.exists()) {
+        if (uiHarness.openYesNoDialog(this, "Directory, " + parent.getAbsolutePath()
+            + ", does not exist.  Create this directory?", AxisID.ONLY)) {
+          if (!parent.mkdirs()) {
+            uiHarness.openMessageDialog(this,
+                "Unable to create " + parent.getAbsolutePath() + ".",
+                "Unable to Create Directory");
+          }
+        }
+        else {
+          return false;
+        }
+      }
+    }
+    if (writeFile()) {
+      dialog.checkpoint();
+      setName(saveFile);
+      return true;
+    }
+    return false;
+  }
+
+  private boolean writeFile() {
+    DirectiveWriter writer = new DirectiveWriter(this, saveFile);
+    if (!writer.open()) {
+      return false;
+    }
+    List<Directive> directiveList = dialog.getIncludeDirectiveList();
+    writer.write(dialog.getComments(), dialog.getIncludeDirectiveList());
+    writer.close();
+    dialog.setFileTimestamp(new Date(saveFile.lastModified()));
+    return true;
   }
 
   public boolean exitProgram(final AxisID axisID) {
