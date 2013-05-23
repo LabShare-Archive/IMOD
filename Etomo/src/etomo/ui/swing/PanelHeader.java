@@ -215,6 +215,10 @@ final class PanelHeader implements Expandable {
   String getTitle() {
     return title;
   }
+  
+  ExpandButton getOpenCloseButton() {
+    return btnOpenClose;
+  }
 
   boolean isAdvanced() {
     if (btnAdvancedBasic == null) {

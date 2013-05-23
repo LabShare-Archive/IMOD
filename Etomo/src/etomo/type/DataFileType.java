@@ -22,6 +22,8 @@ public final class DataFileType {
   public static final DataFileType PEET = new DataFileType(".epe", false, null);
   public static final DataFileType SERIAL_SECTIONS = new DataFileType(".ess", false, null);
   public static final DataFileType TOOLS = new DataFileType(null, false, null);
+  public static final DataFileType DIRECTIVE_EDITOR = new DataFileType(".adoc", false,
+      null);
 
   public final String extension;
   public final boolean hasAxisType;

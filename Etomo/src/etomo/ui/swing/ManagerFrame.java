@@ -45,18 +45,19 @@ public final class ManagerFrame extends AbstractFrame {
 
   public static final String NAME = "manager-frame";
 
-  private final EtomoMenu menu = new EtomoMenu(true);
+  private final EtomoMenu menu;
 
   private final BaseManager manager;
   private final JPanel rootPanel;
 
-  private ManagerFrame(BaseManager manager) {
+  private ManagerFrame(final BaseManager manager, final boolean savable) {
     this.manager = manager;
     rootPanel = (JPanel) getContentPane();
+    menu = EtomoMenu.getInstance(this, savable);
   }
 
-  static ManagerFrame getInstance(BaseManager manager) {
-    ManagerFrame instance = new ManagerFrame(manager);
+  static ManagerFrame getInstance(final BaseManager manager, final boolean savable) {
+    ManagerFrame instance = new ManagerFrame(manager, savable);
     instance.initialize();
     instance.addListeners();
     return instance;
@@ -66,7 +67,7 @@ public final class ManagerFrame extends AbstractFrame {
     if (manager == null) {
       throw new NullPointerException("manager is null");
     }
-    //set name
+    // set name
     String name = Utilities.convertLabelToName(NAME);
     rootPanel.setName(UITestFieldType.PANEL.toString() + AutodocTokenizer.SEPARATOR_CHAR
         + name);
@@ -77,14 +78,13 @@ public final class ManagerFrame extends AbstractFrame {
     }
     ImageIcon iconEtomo = new ImageIcon(ClassLoader.getSystemResource("images/etomo.png"));
     setIconImage(iconEtomo.getImage());
-    menu.createMenus(this);
     setJMenuBar(menu.getMenuBar());
     setTitle(manager.getName());
     rootPanel.add(manager.getMainPanel());
     rootPanel.repaint();
     setVisible(true);
   }
-  
+
   public FrameType getFrameType() {
     return null;
   }
@@ -106,7 +106,7 @@ public final class ManagerFrame extends AbstractFrame {
    * @param event
    */
   public void menuViewAction(ActionEvent event) {
-    //Run fitWindow on both frames.
+    // Run fitWindow on both frames.
     if (menu.equalsFitWindow(event)) {
       UIHarness.INSTANCE.pack(true, manager);
     }
