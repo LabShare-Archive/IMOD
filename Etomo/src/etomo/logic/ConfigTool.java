@@ -26,6 +26,8 @@ import etomo.type.UserConfiguration;
 */
 public final class ConfigTool {
   public static final String rcsid = "$Id:$";
+  
+  private static final String DEFAULT_SYSTEM_TEMPLATE_DIR = "SystemTemplate";
 
   /**
    * Returns a sorted list of the scope template files.
@@ -57,7 +59,7 @@ public final class ConfigTool {
    * @return
    */
   public static File[] getSystemTemplateFiles() {
-    File[] fileArray = new File(BaseManager.getIMODBinPath(), "com")
+    File[] fileArray = new File(BaseManager.getIMODBinPath(), DEFAULT_SYSTEM_TEMPLATE_DIR)
         .listFiles(new AutodocFilter());
     SortedMap<String, File> map = null;
     if (fileArray != null) {
@@ -66,7 +68,7 @@ public final class ConfigTool {
         map.put(fileArray[i].getName(), fileArray[i]);
       }
     }
-    fileArray = new File(EtomoDirector.INSTANCE.getIMODCalibDirectory(), "SystemTemplate")
+    fileArray = new File(EtomoDirector.INSTANCE.getIMODCalibDirectory(), DEFAULT_SYSTEM_TEMPLATE_DIR)
         .listFiles(new AutodocFilter());
     if (fileArray != null) {
       if (map == null) {
