@@ -9,6 +9,7 @@ import javax.swing.*;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.logic.ConfigTool;
 import etomo.storage.Network;
 import etomo.type.AxisID;
 import etomo.type.UserConfiguration;
@@ -66,7 +67,7 @@ public final class SettingsDialog extends JDialog {
       FieldType.INTEGER, "PEET table size: ");
   private final CheckBox cbSetFEIPixelSize = new CheckBox(
       "Set pixel size in files from FEI");
-  private final FileTextField2 ltfUserTemplateDir = FileTextField2.getInstance(null,
+  private final FileTextField2 ftfUserTemplateDir = FileTextField2.getInstance(null,
       "User templates directory: ");
   private final SettingsDialogListener listener = new SettingsDialogListener(this);
 
@@ -77,8 +78,7 @@ public final class SettingsDialog extends JDialog {
     this.propertyUserDir = propertyUserDir;
     templatePanel = TemplatePanel.getInstance(manager, AxisID.ONLY, listener,
         "Default Templates", this);
-    ltfUserTemplateDir.setAbsolutePath(true);
-    ltfUserTemplateDir.setUseTextAsOriginDir(true);
+
   }
 
   public static SettingsDialog getInstance(final BaseManager manager,
@@ -93,11 +93,14 @@ public final class SettingsDialog extends JDialog {
 
   private void buildDialog() {
     // init
-    ltfUserTemplateDir.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
+    ftfUserTemplateDir.setAbsolutePath(true);
+    ftfUserTemplateDir.setUseTextAsOriginDir(true);
+    ftfUserTemplateDir.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
+    ftfUserTemplateDir.setFile(ConfigTool.getDefaultUserTemplateDir());
+    ftfUserTemplateDir.setTurnOffFileHiding(true);
     setTitle("eTomo Settings");
     SpacedPanel pnlMain = SpacedPanel.getInstance();
     pnlMain.setBoxLayout(BoxLayout.Y_AXIS);
-    // pnlMain.setComponentAlignmentX(Box.LEFT_ALIGNMENT);
     ((JPanel) getContentPane()).add(pnlMain.getContainer());
     // Layout the font panel
     SpacedPanel panelFontSelect = SpacedPanel.getInstance();
@@ -167,7 +170,7 @@ public final class SettingsDialog extends JDialog {
     pnlTableSize.add(ltfJoinTableSize.getContainer());
     pnlTableSize.add(ltfPeetTableSize.getContainer());
     pnlMain.add(pnlTableSize);
-    pnlMain.add(ltfUserTemplateDir.getRootPanel());
+    pnlMain.add(ftfUserTemplateDir.getRootPanel());
     pnlMain.add(templatePanel.getComponent());
     // buttons
     SpacedPanel panelButtons = SpacedPanel.getInstance();
@@ -228,7 +231,10 @@ public final class SettingsDialog extends JDialog {
     ltfParallelTableSize.setText(userConfig.getParallelTableSize());
     ltfJoinTableSize.setText(userConfig.getJoinTableSize());
     ltfPeetTableSize.setText(userConfig.getPeetTableSize());
-    ltfUserTemplateDir.setText(userConfig.getUserTemplateDir());
+    String dir = userConfig.getUserTemplateDir();
+    if (dir != null && !dir.matches("\\s*")) {
+      ftfUserTemplateDir.setText(userConfig.getUserTemplateDir());
+    }
     templatePanel.setParameters(userConfig);
 
     // Get the current font parameters to set the UI
@@ -253,7 +259,7 @@ public final class SettingsDialog extends JDialog {
   }
 
   boolean equalsUserTemplateDir(final File input) {
-    File userTemplateDir = ltfUserTemplateDir.getFile();
+    File userTemplateDir = ftfUserTemplateDir.getFile();
     if (userTemplateDir == null && input == null) {
       return true;
     }
@@ -264,7 +270,7 @@ public final class SettingsDialog extends JDialog {
   }
 
   File getUserTemplateDir() {
-    return ltfUserTemplateDir.getFile();
+    return ftfUserTemplateDir.getFile();
   }
 
   public void getParameters(final UserConfiguration userConfig) {
@@ -293,7 +299,7 @@ public final class SettingsDialog extends JDialog {
     userConfig.setParallelTableSize(ltfParallelTableSize.getText());
     userConfig.setJoinTableSize(ltfJoinTableSize.getText());
     userConfig.setPeetTableSize(ltfPeetTableSize.getText());
-    userConfig.setUserTemplateDir(ltfUserTemplateDir.getFile());
+    userConfig.setUserTemplateDir(ftfUserTemplateDir.getFile());
     templatePanel.getParameters(userConfig);
   }
 

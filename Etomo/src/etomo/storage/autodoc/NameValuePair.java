@@ -46,6 +46,15 @@ final class NameValuePair extends Statement {
     return name.size();
   }
 
+  public String getLeftSide() {
+    StringBuffer buffer = new StringBuffer();
+    int size = sizeLeftSide();
+    for (int i = 0; i < size; i++) {
+      buffer.append((i > 0 ? AutodocTokenizer.SEPARATOR_CHAR : "") + getLeftSide(i));
+    }
+    return buffer.toString();
+  }
+
   public String getLeftSide(int index) {
     if (index < 0 || index >= name.size()) {
       return null;

@@ -65,6 +65,10 @@ public final class Subsection extends Statement {
     return subsection.getString();
   }
 
+  public String getLeftSide() {
+    return subsection.getTypeToken().getValues();
+  }
+
   public String getLeftSide(int index) {
     if (index > 0) {
       return null;

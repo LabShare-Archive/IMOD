@@ -10,6 +10,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.type.AxisID;
+import etomo.type.EtomoBoolean2;
 import etomo.util.UniqueKey;
 
 /**
@@ -180,13 +181,28 @@ public final class UIHarness {
     }
   }
 
-  public synchronized int openYesNoCancelDialog(BaseManager manager, String[] message,
-      AxisID axisID) {
+  public synchronized EtomoBoolean2 openYesNoCancelDialog(BaseManager manager,
+      String message, AxisID axisID) {
+    EtomoBoolean2 retval = null;
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
-      return getFrame(manager).displayYesNoCancelMessage(manager, message, axisID);
+      int dialogRetValue = getFrame(manager).displayYesNoCancelMessage(manager, message,
+          axisID);
+      if (dialogRetValue == JOptionPane.CANCEL_OPTION) {
+        return null;
+      }
+      retval = new EtomoBoolean2();
+      if (dialogRetValue == JOptionPane.YES_OPTION) {
+        retval.set(true);
+      }
+      else if (dialogRetValue == JOptionPane.YES_OPTION) {
+        retval.set(false);
+      }
+      return retval;
     }
     log(message, axisID);
-    return JOptionPane.YES_OPTION;
+    retval = new EtomoBoolean2();
+    retval.set(true);
+    return retval;
   }
 
   public synchronized boolean openYesNoDialog(BaseManager manager, String message,
@@ -262,6 +278,24 @@ public final class UIHarness {
         if (focusComponent != null) {
           focusComponent.requestFocus();
         }
+      }
+    }
+  }
+
+  public void cancel(final BaseManager manager) {
+    if (isHead()) {
+      AbstractFrame frame = getFrame(manager);
+      if (frame != null) {
+        frame.cancel();
+      }
+    }
+  }
+
+  public void save(final BaseManager manager, final AxisID axisID) {
+    if (isHead()) {
+      AbstractFrame frame = getFrame(manager);
+      if (frame != null) {
+        frame.save(axisID);
       }
     }
   }
@@ -459,9 +493,9 @@ public final class UIHarness {
     }
   }
 
-  public void addFrame(BaseManager manager) {
+  public void addFrame(final BaseManager manager, final boolean savable) {
     if (isHead()) {
-      ManagerFrame managerFrame = ManagerFrame.getInstance(manager);
+      ManagerFrame managerFrame = ManagerFrame.getInstance(manager, savable);
       managerFrameTable.put(manager, managerFrame);
     }
   }

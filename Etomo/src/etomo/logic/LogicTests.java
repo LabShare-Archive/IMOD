@@ -36,6 +36,7 @@ public class LogicTests {
     suite.addTestSuite(TextFieldStateTest.class);
     suite.addTestSuite(DatasetToolTest.class);
     suite.addTestSuite(FieldValidatorTest.class);
+    suite.addTestSuite(DirectiveToolTest.class);
     // $JUnit-END$
     return suite;
   }

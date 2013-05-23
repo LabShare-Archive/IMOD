@@ -386,6 +386,10 @@ public final class Arguments {
   public String getDataset() {
     return sDataset;
   }
+  
+  public int getDebugLevel() {
+    return debugLevel;
+  }
 
   public File getDir() {
     return fDir;
