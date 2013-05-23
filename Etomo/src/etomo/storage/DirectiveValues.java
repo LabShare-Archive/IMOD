@@ -42,16 +42,6 @@ public final class DirectiveValues {
     this.valueType = valueType;
   }
 
-  public Value getValue() {
-    if (value != null) {
-      return value;
-    }
-    if (equals(valueA, valueB)) {
-      return valueA;
-    }
-    return null;
-  }
-
   public Value getValue(final AxisID axisID) {
     if (axisID == null) {
       return value;
