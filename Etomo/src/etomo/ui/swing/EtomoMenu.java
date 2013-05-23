@@ -61,6 +61,7 @@ final class EtomoMenu {
   private final JMenuItem menuSave = new MenuItem("Save", KeyEvent.VK_S);
   private final JMenuItem menuSaveAs = new MenuItem("Save As...", KeyEvent.VK_A);
   private final JMenuItem menuClose = new MenuItem("Close", KeyEvent.VK_C);
+  private final JMenuItem menuCancel = new MenuItem("Cancel");
   private final JMenuItem menuExit = new MenuItem("Exit", KeyEvent.VK_X);
   private final JMenuItem menuTomosnapshot = new MenuItem("Run Tomosnapshot",
       KeyEvent.VK_T);
@@ -122,11 +123,14 @@ final class EtomoMenu {
   private final boolean peetAvailable = EnvironmentVariable.INSTANCE.exists(null,
       EtomoDirector.INSTANCE.getOriginalUserDir(), "PARTICLE_DIR", AxisID.ONLY);
 
-  private EtomoMenu() {
+  private final AbstractFrame frame;
+
+  private EtomoMenu(final AbstractFrame frame) {
+    this.frame = frame;
   }
 
   static EtomoMenu getInstance(final AbstractFrame frame) {
-    EtomoMenu instance = new EtomoMenu();
+    EtomoMenu instance = new EtomoMenu(frame);
     boolean dataset = true;
     boolean savable = true;
     instance.createPanel(frame, dataset, savable);
@@ -135,7 +139,7 @@ final class EtomoMenu {
   }
 
   static EtomoMenu getInstance(final ManagerFrame frame, final boolean savable) {
-    EtomoMenu instance = new EtomoMenu();
+    EtomoMenu instance = new EtomoMenu(frame);
     boolean dataset = false;
     instance.createPanel(frame, dataset, savable);
     instance.addListeners(frame, dataset, savable);
@@ -215,7 +219,12 @@ final class EtomoMenu {
       menuFile.add(menuClose);
       menuFile.add(menuSave);
       menuFile.add(menuSaveAs);
-      if (dataset) {
+      if (!dataset) {
+        // cancel is for menus which are savable, but have no dataset
+        menuFile.addSeparator();
+        menuFile.add(menuCancel);
+      }
+      else {
         menuFile.addSeparator();
         menuFile.add(menuTomosnapshot);
         menuFile.add(menuExportBatch);
@@ -277,6 +286,7 @@ final class EtomoMenu {
       menuSave.addActionListener(fileActionListener);
       menuSaveAs.addActionListener(fileActionListener);
       menuClose.addActionListener(fileActionListener);
+      menuCancel.addActionListener(fileActionListener);
       if (dataset) {
         menuNewTomogram.addActionListener(fileActionListener);
         menuNewJoin.addActionListener(fileActionListener);
@@ -398,6 +408,26 @@ final class EtomoMenu {
     else if (equalsGpuTiltTest(event)) {
       EtomoDirector.INSTANCE.openTools(ToolType.GPU_TILT_TEST);
     }
+  }
+
+  public boolean menuFileAction(ActionEvent event) {
+    AxisID axisID = frame.getAxisID();
+    if (equals(menuSave, event)) {
+      frame.save(axisID);
+    }
+    else if (equals(menuSaveAs, event)) {
+      frame.saveAs();
+    }
+    else if (equals(menuClose, event)) {
+      frame.close();
+    }
+    else if (menuCancel.getActionCommand().equals(event.getActionCommand())) {
+      frame.cancel();
+    }
+    else {
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -536,18 +566,6 @@ final class EtomoMenu {
 
   boolean isMenuSaveEnabled() {
     return menuSave.isEnabled();
-  }
-
-  boolean equalsSave(final ActionEvent event) {
-    return equals(menuSave, event);
-  }
-
-  boolean equalsSaveAs(final ActionEvent event) {
-    return equals(menuSaveAs, event);
-  }
-
-  boolean equalsClose(final ActionEvent event) {
-    return equals(menuClose, event);
   }
 
   boolean equalsExit(final ActionEvent event) {
