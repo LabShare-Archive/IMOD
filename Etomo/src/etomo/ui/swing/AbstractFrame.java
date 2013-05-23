@@ -67,6 +67,14 @@ abstract class AbstractFrame extends JFrame implements UIComponent {
 
   abstract FrameType getFrameType();
 
+  abstract void cancel();
+
+  abstract void save(AxisID axisID);
+
+  abstract void saveAs();
+
+  abstract void close();
+
   public Component getComponent() {
     return this;
   }
@@ -85,6 +93,10 @@ abstract class AbstractFrame extends JFrame implements UIComponent {
 
   final void setVerbose(boolean verbose) {
     this.verbose = verbose;
+  }
+
+  AxisID getAxisID() {
+    return AxisID.ONLY;
   }
 
   void msgLogChanged(LogPanel logPanel) {
@@ -176,7 +188,7 @@ abstract class AbstractFrame extends JFrame implements UIComponent {
     openInfoMessageDialog(manager, axisID, message, title);
   }
 
-  int displayYesNoCancelMessage(BaseManager manager, String[] message, AxisID axisID) {
+  int displayYesNoCancelMessage(BaseManager manager, String message, AxisID axisID) {
     return openYesNoCancelDialog(manager, axisID, message);
   }
 
@@ -313,7 +325,7 @@ abstract class AbstractFrame extends JFrame implements UIComponent {
    * @param message
    * @return int state of the users select
    */
-  int openYesNoCancelDialog(BaseManager manager, AxisID axisID, String[] message) {
+  int openYesNoCancelDialog(BaseManager manager, AxisID axisID, String message) {
     return showOptionConfirmPane(manager, axisID, wrap(manager, message), ETOMO_QUESTION,
         JOptionPane.YES_NO_CANCEL_OPTION, new String[] { YES, NO, CANCEL });
   }
