@@ -49,9 +49,11 @@ public final class ManagerFrame extends AbstractFrame {
 
   private final BaseManager manager;
   private final JPanel rootPanel;
+  private final boolean savable;
 
   private ManagerFrame(final BaseManager manager, final boolean savable) {
     this.manager = manager;
+    this.savable = savable;
     rootPanel = (JPanel) getContentPane();
     menu = EtomoMenu.getInstance(this, savable);
   }
@@ -64,6 +66,7 @@ public final class ManagerFrame extends AbstractFrame {
   }
 
   private void initialize() {
+    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     if (manager == null) {
       throw new NullPointerException("manager is null");
     }
@@ -98,6 +101,39 @@ public final class ManagerFrame extends AbstractFrame {
   }
 
   public void menuFileAction(ActionEvent event) {
+    menu.menuFileAction(event);
+  }
+
+  void save(AxisID axisID) {
+    if (savable) {
+      manager.saveToFile();
+    }
+  }
+
+  void saveAs() {
+    if (savable) {
+      manager.saveAsToFile();
+    }
+  }
+
+  void cancel() {
+    setVisible(false);
+    dispose();
+  }
+
+  void close() {
+    if (manager.closeFrame()) {
+      setVisible(false);
+      dispose();
+    }
+  }
+
+  protected void processWindowEvent(WindowEvent event) {
+    super.processWindowEvent(event);
+    if (event.getID() == WindowEvent.WINDOW_CLOSING
+        && !EtomoDirector.INSTANCE.getArguments().isTest()) {
+      close();
+    }
   }
 
   /**
