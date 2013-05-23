@@ -2926,12 +2926,13 @@ public final class ApplicationManager extends BaseManager implements
     return super.saveParamFile();
   }
 
-  public void save() throws LogFile.LockException, IOException {
+  public boolean save() throws LogFile.LockException, IOException {
     super.save();
     if (mainPanel != null) {
       mainPanel.done();
     }
     saveDialogs();
+    return true;
   }
 
   /**
