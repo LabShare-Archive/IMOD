@@ -150,6 +150,21 @@ final class DirectivePanel implements DirectiveSetInterface {
     cbInclude.addActionListener(new DirectiveListener(this));
   }
 
+  public Directive getState() {
+    setStateInDirective();
+    return directive;
+  }
+
+  void setStateInDirective() {
+    directive.setInclude(axisID, isInclude());
+    if (cbValue != null) {
+      directive.setValue(axisID, cbValue.isSelected());
+    }
+    else {
+      directive.setValue(axisID, ltfValue.getText());
+    }
+  }
+
   /**
    * This class should call this function for solo directives.
    * DirectiveSet should only call this function for the Any directive.  The Any instance
@@ -163,7 +178,7 @@ final class DirectivePanel implements DirectiveSetInterface {
     // panel visibility.
     if (solo) {
       setIncluded();
-      setValue(directive);
+      initValue(directive);
       tool.setDebug(debug);
       if (!tool.isDirectiveVisible(directive, cbInclude.isSelected(), false)) {
         pnlRoot.setVisible(false);
@@ -188,7 +203,7 @@ final class DirectivePanel implements DirectiveSetInterface {
     }
     else if (sourceAxisType != AxisType.SINGLE_AXIS || axisID == AxisID.FIRST) {
       setIncluded();
-      setValue(directive);
+      initValue(directive);
     }
     checkpoint();
   }
@@ -291,7 +306,7 @@ final class DirectivePanel implements DirectiveSetInterface {
     }
   }
 
-  private void checkpoint() {
+  public void checkpoint() {
     // Checkpoint include to use when closing.
     cbInclude.checkpoint();
     // Checkpoint value to use when closing and to for deciding whether the directive
@@ -351,6 +366,22 @@ final class DirectivePanel implements DirectiveSetInterface {
     return true;
   }
 
+  private void initValue(final Directive directive) {
+    DirectiveValues values = directive.getValues();
+    Directive.Value value = values.getValue(axisID);
+    if (value == null && axisID != null) {
+      value = values.getValue(null);
+    }
+    if (value != null) {
+      if (cbValue != null) {
+        cbValue.setSelected(value.toBoolean());
+      }
+      else {
+        ltfValue.setText(value.toString());
+      }
+    }
+  }
+
   public boolean isDifferentFromCheckpoint(final boolean checkInclude) {
     if (checkInclude && cbInclude.isDifferentFromCheckpoint(true)) {
       return true;
@@ -371,7 +402,7 @@ final class DirectivePanel implements DirectiveSetInterface {
   /**
   * @return true if directive will be included in a file (checkbox selected and enabled).
   */
-  public boolean isIncluded() {
+  public boolean isInclude() {
     return cbInclude.isSelected() && cbInclude.isEnabled();
   }
 
@@ -406,22 +437,6 @@ final class DirectivePanel implements DirectiveSetInterface {
     }
     tool.resetDebug();
     enableValue();
-  }
-
-  private void setValue(final Directive directive) {
-    DirectiveValues values = directive.getValues();
-    Directive.Value value = values.getValue(axisID);
-    if (value == null && axisID != null) {
-      value = values.getValue(null);
-    }
-    if (value != null) {
-      if (cbValue != null) {
-        cbValue.setSelected(value.toBoolean());
-      }
-      else {
-        ltfValue.setText(value.toString());
-      }
-    }
   }
 
   void setVisible(final boolean input) {
@@ -478,8 +493,8 @@ final class DirectivePanel implements DirectiveSetInterface {
           + ", eTomo:" + directive.getEtomoColumn() + ", AxisLevelData:"
           + directive.getAxisLevelData(axisID);
     }
-    String tooltip = directive.getKeyDescription() + ":  " + directive.getDescription() + "."
-        + (valueString != null ? "  Dataset value:" + valueString : "")
+    String tooltip = directive.getKeyDescription() + ":  " + directive.getDescription()
+        + "." + (valueString != null ? "  Dataset value:" + valueString : "")
         + (defaultValueString != null ? "  Orginal value:" + defaultValueString : "")
         + debugString;
     cbInclude.setToolTipText(tooltip);
