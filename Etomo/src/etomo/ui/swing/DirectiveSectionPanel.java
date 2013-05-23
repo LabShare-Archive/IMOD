@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -34,7 +35,7 @@ import etomo.type.AxisType;
 * 
 * <p> $Log$ </p>
 */
-final class DirectiveSectionPanel {
+public final class DirectiveSectionPanel {
   public static final String rcsid = "$Id:$";
 
   private final JPanel pnlRoot = new JPanel();
@@ -113,7 +114,7 @@ final class DirectiveSectionPanel {
           && !visibleDirectives) {
         visibleDirectives = true;
       }
-      if (showChange && !include && directiveSet.isIncluded()) {
+      if (showChange && !include && directiveSet.isInclude()) {
         include = true;
       }
     }
@@ -127,7 +128,6 @@ final class DirectiveSectionPanel {
   boolean isDifferentFromCheckpoint(final boolean checkInclude) {
     Iterator<DirectiveSetInterface> iterator = directiveSetArray.iterator();
     while (iterator.hasNext()) {
-      DirectiveSetInterface directiveSet = iterator.next();
       if (iterator.next().isDifferentFromCheckpoint(checkInclude)) {
         return true;
       }
@@ -150,6 +150,25 @@ final class DirectiveSectionPanel {
 
   void addListeners() {
     cbShow.addActionListener(new DirectiveSectionListener(this));
+  }
+
+  public Collection<Directive> getIncludeDirectiveList() {
+    Collection<Directive> directiveList = new ArrayList<Directive>();
+    Iterator<DirectiveSetInterface> iterator = directiveSetArray.iterator();
+    while (iterator.hasNext()) {
+      DirectiveSetInterface directiveSet = iterator.next();
+      if (directiveSet.isInclude()) {
+        directiveList.add(directiveSet.getState());
+      }
+    }
+    return directiveList;
+  }
+
+  public void checkpoint() {
+    Iterator<DirectiveSetInterface> iterator = directiveSetArray.iterator();
+    while (iterator.hasNext()) {
+      iterator.next().checkpoint();
+    }
   }
 
   private void action() {
