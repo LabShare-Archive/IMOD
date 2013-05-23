@@ -2,6 +2,8 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 
+import etomo.storage.Directive;
+
 /**
 * <p>Description: </p>
 * 
@@ -22,7 +24,7 @@ interface DirectiveSetInterface {
 
   Component getComponent();
 
-  boolean isIncluded();
+  boolean isInclude();
 
   /**
    * @return true if instance is visible when this function is complete.
@@ -30,4 +32,12 @@ interface DirectiveSetInterface {
   boolean msgControlChanged(boolean includeChange, boolean expandChange);
 
   boolean isDifferentFromCheckpoint(boolean checkInclude);
+
+  /**
+   * Return a directive containing the current state of the directive set
+   * @return
+   */
+  Directive getState();
+
+  void checkpoint();
 }
