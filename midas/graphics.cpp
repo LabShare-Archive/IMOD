@@ -5,7 +5,6 @@
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdlib.h>
@@ -111,6 +110,13 @@ void MidasGL::paintGL()
         ycen = zoom * yControl[i] / VW->warpScale + VW->yoffset;
         glColor3f(1.0f, (VW->editWarps && i == VW->curControl) ? 1.f : 0.f, 0.0f);
         drawStar(xcen, ycen, censize);
+        if (VW->drawVectors) {
+          glBegin(GL_LINES);
+          glVertex2f(xcen, ycen);
+          glVertex2f(xcen - zoom * xVector[i] / VW->warpScale, 
+                     ycen - zoom * yVector[i] / VW->warpScale);
+          glEnd();
+        }
         if (i == VW->curControl) {
           boxXcen = xcen;
           boxYcen = ycen;
@@ -826,38 +832,3 @@ void MidasGL::drawStar(float xcen, float ycen, float censize)
   glVertex2f(xcen - 0.866 * censize, ycen + 0.5 * censize);
   glEnd();
 }
-
-/*
-
-$Log$
-Revision 3.13  2011/06/10 04:26:53  mast
-Changes for warping
-
-Revision 3.12  2010/06/29 22:37:45  mast
-Draw correlation box; call new function for getting previous image
-
-Revision 3.11  2009/01/15 16:30:19  mast
-Qt 4 port
-
-Revision 3.10  2008/10/13 04:35:09  mast
-Switched to 3 lines of mouse labels
-
-Revision 3.9  2006/07/08 15:41:38  mast
-Added const to char* in mouse label method
-
-Revision 3.8  2006/07/08 15:32:13  mast
-Changes to implement second fixed point for stretching
-
-Revision 3.7  2006/05/13 22:52:52  mast
-Changes to allow overlay colors to be specified
-
-Revision 3.6  2004/08/04 22:35:13  mast
-Changed unsigned long to b3dUInt32 for 64-bit use
-
-Revision 3.5  2003/12/17 21:43:04  mast
-Provide control-key dependent mouse action hints
-
-Revision 3.4  2003/11/01 16:43:10  mast
-changed to put out virtually all error messages to a window
-
-*/
