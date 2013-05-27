@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdlib.h>
@@ -171,16 +170,14 @@ void MidasSlots::update_sections()
  
   if (VW->numChunks) {
     diaSetSpinBox(VW->chunkSpin, VW->curChunk + 1);
-    VW->curSpin->blockSignals(true);
-    VW->refSpin->blockSignals(true);
-    VW->curSpin->setRange(VW->chunk[VW->curChunk].start + 1,
-                          VW->chunk[VW->curChunk + 1].start);
-    VW->refSpin->setRange(VW->chunk[VW->curChunk - 1].start + 1,
-                          VW->chunk[VW->curChunk].start);
+    diaSetSpinMMVal(VW->curSpin, VW->chunk[VW->curChunk].start + 1, 
+                    VW->chunk[VW->curChunk].maxCurSec + 1, VW->cz + 1);
+    diaSetSpinMMVal(VW->refSpin, VW->chunk[VW->curChunk - 1].minRefSec + 1, 
+                    VW->chunk[VW->curChunk].start, VW->refz + 1);
+    return;
   }
 
-  diaSetSpinBox(VW->curSpin, (VW->xtype == XTYPE_MONT ? VW->montcz : VW->cz)
-                + 1);
+  diaSetSpinBox(VW->curSpin, (VW->xtype == XTYPE_MONT ? VW->montcz : VW->cz) + 1);
   if (VW->xtype == XTYPE_MONT) {
     diaSetSpinBox(VW->edgeSpin, VW->curedge);
     edgeno_to_lower_piece(VW->curedge, VW->xory, pcx, pcy);
@@ -206,8 +203,14 @@ void MidasSlots::updateWarpEdit()
     state = true;
     VW->curControl = B3DMAX(0, B3DMIN(nControl - 1, VW->curControl));
   }
-  if (VW->warpingOK)
+  if (VW->warpingOK) {
     VW->warpToggle->setEnabled(nControl < 4);
+    VW->wSelectLabel->setEnabled(nControl >= 4);
+    VW->wSelectBiggest->setEnabled(nControl >= 4);
+    VW->wSelectMore->setEnabled(nControl >= 4);
+    VW->wSelectLess->setEnabled(nControl >= 4);
+    VW->wDrawVectors->setEnabled(nControl >= 4);
+  }
   if ((state ? 1 : 0) != (VW->editWarps ? 1 : 0)) {
     diaSetChecked(VW->warpToggle, state);
     slotEditWarp(state);
@@ -829,8 +832,8 @@ void MidasSlots::try_section_change(int ds, int dsref)
       (VW->xtype != XTYPE_XREF && newref >= VW->zsize) ||
       (VW->xtype == XTYPE_XREF && newref >= VW->refzsize) ||
       (VW->numChunks && (newcur < VW->chunk[VW->curChunk].start ||
-                         newcur >= VW->chunk[VW->curChunk + 1].start ||
-                         newref < VW->chunk[VW->curChunk - 1].start ||
+                         newcur > VW->chunk[VW->curChunk].maxCurSec ||
+                         newref < VW->chunk[VW->curChunk - 1].minRefSec ||
                          newref >= VW->chunk[VW->curChunk].start))) {
     update_sections();
     return;
@@ -1128,6 +1131,61 @@ void MidasSlots::stepLowerXorY(int xory, int direction)
     pcy += direction;
   if (pcx >= 1 && pcx <= VW->nxpieces && pcy >= 1 && pcy <= VW->nypieces)
     try_lower_piece(pcx, pcy, xory, direction);
+}
+
+// Step through warp points in order of vector size
+void MidasSlots::slotSelectWarpPointBySize(int direction)
+{
+  float *lengths;
+  int *indices;
+  int i, nControl, nexti;
+  float *xControl, *yControl, *xVector, *yVector;
+  if (!VW->editWarps || VW->curControl < 0)
+    return;
+  i = VW->numChunks ? VW->curChunk : VW->cz;
+  if (getNumWarpPoints(i, &nControl) || nControl < 2)
+    return;
+  
+  if (getWarpPointArrays(i, &xControl, &yControl, &xVector, &yVector)) {
+    midas_error("Error getting control points", "", 0);
+    return;
+  }
+  indices = B3DMALLOC(int, nControl);
+  lengths = B3DMALLOC(float, nControl);
+  if (!indices || !lengths) {
+    midas_error("Memory error", "", 0);
+    B3DFREE(indices);
+    B3DFREE(lengths);
+    return;
+  }
+  
+  for (i = 0; i < nControl; i++) {
+    indices[i] = i;
+    lengths[i] = (float)sqrt((double)xVector[i] * xVector[i] + yVector[i] * yVector[i]);
+  }
+  rsSortIndexedFloats(lengths, indices, nControl);
+  if (!direction) {
+      VW->midasGL->newCurrentControl(indices[nControl - 1], true);
+  } else {
+    for (i = 0; i < nControl; i++) {
+      if (indices[i] == VW->curControl) {
+
+        nexti = i + (direction > 0 ? 1 : -1);
+        B3DCLAMP(nexti, 0, nControl - 1);
+        VW->midasGL->newCurrentControl(indices[nexti], false);
+        break;
+      }
+    }
+  }
+  VW->midasSlots->update_parameters();
+  B3DFREE(indices);
+  B3DFREE(lengths);
+}
+
+void MidasSlots::slotDrawVectors(bool state)
+{
+  VW->drawVectors = state;
+  VW->midasGL->draw();
 }
 
 // Change the X or Y selection
@@ -1684,6 +1742,8 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
   int keysym = event->key();
   int keypad = event->modifiers() & Qt::KeypadModifier;
   int shifted = event->modifiers() & Qt::ShiftModifier;
+  float *xControl, *yControl, *xVector, *yVector;
+  int cz;
 
   convertNumLock(keysym, keypad);
 
@@ -1886,6 +1946,17 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
   case Qt::Key_Y:
     if (VW->xtype == XTYPE_MONT && VW->nypieces > 1)
       stepLowerXorY(1, shifted ? 1 : -1);
+    break;
+
+  case Qt::Key_Z:
+    if (shifted && VW->editWarps && VW->curControl >= 0) {
+      cz = VW->numChunks ? VW->curChunk : VW->cz;
+      if (getWarpPointArrays(cz, &xControl, &yControl, &xVector, &yVector)) {
+        midas_error("Error getting control points", "", 0);
+        return;
+      }
+      translate(xVector[VW->curControl], yVector[VW->curControl]);
+    }
     break;
 
   case Qt::Key_Control:
@@ -2208,98 +2279,3 @@ int MidasSlots::showHelpPage(const char *page)
   else
     return 1;
 }
-
-/*
-$Log$
-Revision 3.25  2011/06/30 21:34:47  mast
-Disallow model transformation when warping too (reference mode)
-
-Revision 3.24  2011/06/10 04:25:28  mast
-Changes for warping and keeping ref/current together with ref file
-
-Revision 3.23  2010/12/28 18:23:10  mast
-Added robust fitting and checkbox to exclude edges
-
-Revision 3.22  2010/06/29 22:36:01  mast
-New slots for various controls such as X and Y frame boxes, functions to
-move between edges in X and/or Y; changes for binning, skipped edges,
-cross-correlation, and variable number of error buttons
-
-Revision 3.21  2009/01/15 17:03:23  mast
-Get rid of floatspinbox include
-
-Revision 3.20  2009/01/15 16:30:19  mast
-Qt 4 port
-
-Revision 3.19  2008/11/18 22:45:05  mast
-Added Delete key for Mac, used new amatToRotmagstr
-
-Revision 3.18  2008/10/13 04:36:23  mast
-Added cosine stretching
-
-Revision 3.17  2007/11/27 23:31:38  sueh
-bug# 1038 Switching to html files for help.
-
-Revision 3.16  2007/10/03 21:36:10  mast
-Added ImodAssistant help object
-
-Revision 3.15  2006/07/08 15:32:13  mast
-Changes to implement second fixed point for stretching
-
-Revision 3.14  2006/06/26 15:48:19  mast
-Added autocontrast function
-
-Revision 3.13  2006/05/20 16:07:56  mast
-Changes to allow mirroring around X axis
-
-Revision 3.12  2005/11/08 02:36:58  mast
-Fixed X and Y labels on error buttons
-
-Revision 3.11  2005/03/10 21:04:15  mast
-Added -q option for use from etomo
-
-Revision 3.10  2004/09/23 14:29:13  mast
-Fixed bug from block mode that crashed reference mode
-
-Revision 3.9  2004/09/13 18:43:49  mast
-Made it skip across missing edges with spin button presses
-
-Revision 3.8  2004/07/12 18:41:36  mast
-Changes for chunk alignment, for switching to spin boxes, and for making
-the sliders continuously active.
-
-Revision 3.7  2004/02/27 21:37:46  mast
-Fixed treatment of x/ycenter when transforming and rotating, etc.
-
-Revision 3.6  2004/01/27 21:16:26  mast
-Made it flush data and retransform when box size changes
-
-Revision 3.5  2003/12/17 21:44:19  mast
-Changes to implement global rotations
-
-Revision 3.4  2003/10/24 03:55:35  mast
-unknown change (untabified?)
-
-Revision 3.3  2003/09/25 21:09:36  mast
-Switched to sections numbered from 1 not 0
-
-Revision 3.2  2003/04/17 20:56:55  mast
-Changes for Mac key problems
-
-Revision 3.1  2003/02/10 20:49:57  mast
-Merge Qt source
-
-Revision 1.1.2.2  2003/01/26 23:20:33  mast
-using new library
-
-Revision 1.1.2.1  2002/12/05 03:13:02  mast
-New Qt version
-
-Revision 3.2  2002/11/05 23:27:00  mast
-Changed copyright notice to use lab name and years
-
-Revision 3.1  2002/08/19 04:48:31  mast
-In montage-fixing mode, made it suppress updates during mouse moves
-when there are many pieces
-
-*/
