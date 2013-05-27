@@ -11,7 +11,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 class MidasWindow;
@@ -146,10 +145,12 @@ struct Midas_cache
 
 struct Midas_chunk
 {
-  int size;    /* Number in chunk */
-  int start;   /* Starting Z of chunk */
-  int curSec;  /* Section to view when chunk is current */
-  int refSec;  /* Section to view when chunk is previous */
+  int size;       /* Number in chunk */
+  int start;      /* Starting Z of chunk */
+  int curSec;     /* Section to view when chunk is current */
+  int refSec;     /* Section to view when chunk is previous */
+  int maxCurSec;  /* Maximum section to see when chunk is current */
+  int minRefSec;  /* Minimum section to see when chunk is previous */
 };
 
 typedef struct Midas_view
@@ -306,6 +307,7 @@ typedef struct Midas_view
   QCheckBox *warpToggle;
   bool     editWarps;     /* Flag for editing warp points */
   bool     warpingOK;     /* Flag that warping is allowed */
+  bool     drawVectors;   /* Flag to draw vectors */
   int      curControl;   /* Current control point */
   int      curWarpFile;  /* Index of current warping file */
   int      warpNz;       /* nz of warp file */
@@ -356,6 +358,11 @@ typedef struct Midas_view
   QLabel   *wLeaverr;
   QPushButton *wApplyLeave;
   QCheckBox *wSkipErr;
+  QLabel   *wSelectLabel;
+  QPushButton *wSelectBiggest;
+  ArrowButton *wSelectLess;
+  ArrowButton *wSelectMore;
+  QCheckBox *wDrawVectors;
   float    paramstate[5];  /* Current displayed values of parameters */
   float    backup_mat[9];  /* backup values for current section */
   float    backup_edgedx, backup_edgedy;
@@ -446,72 +453,3 @@ void find_local_errors(MidasView *vw, int leaveout, int ntoperr,
 void crossCorrelate(MidasView *vw);
 
 #endif  // MIDAS_H
-
-/*
-
-$Log$
-Revision 3.19  2010/12/28 18:23:10  mast
-Added robust fitting and checkbox to exclude edges
-
-Revision 3.18  2010/06/29 22:29:26  mast
-changes for numerous improvements
-
-Revision 3.17  2010/06/06 21:14:12  mast
-Remove some declarations (like gaussj, amat_to_rotmagstr)
-
-Revision 3.16  2009/01/15 16:30:19  mast
-Qt 4 port
-
-Revision 3.15  2008/10/13 04:36:23  mast
-Added cosine stretching
-
-Revision 3.14  2007/10/03 21:36:10  mast
-Added ImodAssistant help object
-
-Revision 3.13  2006/07/08 15:32:13  mast
-Changes to implement second fixed point for stretching
-
-Revision 3.12  2006/05/20 16:07:56  mast
-Changes to allow mirroring around X axis
-
-Revision 3.11  2006/05/13 22:52:52  mast
-Changes to allow overlay colors to be specified
-
-Revision 3.10  2005/03/10 21:04:14  mast
-Added -q option for use from etomo
-
-Revision 3.9  2004/11/05 18:53:22  mast
-Include local files with quotes, not brackets
-
-Revision 3.8  2004/10/25 18:51:52  mast
-Added optoin to output to different file from input file
-
-Revision 3.7  2004/08/04 22:35:13  mast
-Changed unsigned long to b3dUInt32 for 64-bit use
-
-Revision 3.6  2004/07/12 18:42:31  mast
-Changes for chunk alignment and for switching to spin boxes
-
-Revision 3.5  2003/12/17 21:43:59  mast
-Changes to implement global rotations
-
-Revision 3.4  2003/05/26 01:03:08  mast
-Added label for mouse action
-
-Revision 3.3  2003/02/10 20:49:57  mast
-Merge Qt source
-
-Revision 3.2.2.2  2003/01/26 23:20:33  mast
-using new library
-
-Revision 3.2.2.1  2002/12/05 03:13:47  mast
-New Qt version
-
-Revision 3.2  2002/08/19 04:44:54  mast
-Added a flag that mouse is moving, to prevent repeated error updates in
-montage-fixing mode when there are many pieces.
-
-Revision 3.1  2002/07/18 20:21:12  rickg
-Changed include of GLwMDrawA to rely upon -I compiler option
-
-*/
