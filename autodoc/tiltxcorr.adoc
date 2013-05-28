@@ -434,6 +434,29 @@ manpage = The current binning of the images relative to the unaligned stack.
 This entry is needed to scale the transforms supplied with the -prexf option
 if the binning is not 1.
 
+[Field = UnalignedSizeXandY]
+short = unali
+type = IP
+usage = Size of unaligned stack in X and Y
+tooltip =
+manpage = The full size of the unaligned stack that was transformed to create
+the images being aligned with patch tracking.  This entry is needed if 
+an output size was specified when creating the stack being aligned and if
+transforms are supplied with the -prexf option.
+
+[Field = FindWarpTransforms]
+short = warp
+type = B
+usage = Use patch correlations to find and save warping transformations
+tooltip = 
+manpage = Use patch correlations to find and save warping transformations
+between successive images.  The output file will be a file with warp
+transforms, not a model.  Tilt angles cannot be entered with this option, nor can
+the -reverse option.  As with patch tracking generally, you can skip views but
+not break the alignment at views.  Limits in X and Y and a boundary model can
+be used to constrain patch locations, but there must be at least 3 patches in
+the area defined by all the boundary contours.
+
 [Field = TestOutput]
 short = test
 type = FN
