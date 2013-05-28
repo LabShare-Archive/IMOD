@@ -501,6 +501,7 @@ int getWarpFileSize(int *nx, int *ny, int *nz, int *ifControl)
 /*!
  * Sets the linear transform for section [iz] in the current warp file to [xform]; [rows]
  * specifies the number of rows (2 or 3) in the [xform] array.
+ * When calling from Fortran, omit [rows]; it is assumed to be 2.
  */
 int setLinearTransform(int iz, float *xform, int rows) 
 {
@@ -675,6 +676,7 @@ int removeWarpPoint(int iz, int index)
 /*!
  * Returns the linear transform for section [iz] of the current warp file into [xform],
  * which has [rows] rows (2 or 3).  Returns 1 for [iz] out of range or no warp file.
+ * When calling from Fortran, omit [rows]; it is assumed to be 2.
  */
 int getLinearTransform(int iz, float *xform, int rows)
 {
