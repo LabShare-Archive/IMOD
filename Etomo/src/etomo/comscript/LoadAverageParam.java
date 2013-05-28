@@ -25,7 +25,7 @@ import etomo.util.Utilities;
 public class LoadAverageParam implements IntermittentCommand {
   public static final String rcsid = "$Id$";
 
-  private static Hashtable instances = new Hashtable();//one instance per computer
+  private static Hashtable instances = new Hashtable();// one instance per computer
 
   private final String computer;
   private final BaseManager manager;
@@ -89,17 +89,18 @@ public class LoadAverageParam implements IntermittentCommand {
 
   private final void buildLocalStartCommand() {
     ArrayList command = new ArrayList();
-    //If the user is a bash user, a bad .cshrc might cause local load average to
-    //fail without causing any other symptoms.  So its safer to use the bash
-    //shell for a bash user.
-    String bashShell = "bash";
-    String shell = EnvironmentVariable.INSTANCE.getValue(manager, manager
-        .getPropertyUserDir(), "SHELL", AxisID.ONLY);
-    if (shell != null && shell.equals(bashShell)) {
-      command.add(bashShell);
+    // If the user is a bash user, a bad .cshrc might cause local load average to
+    // fail without causing any other symptoms. So its safer to use the bash
+    // shell for a bash user.
+    // Use bash as the default. Use tcsh only when it is set in $SHELL.
+    String tcshShell = "tcsh";
+    String shell = EnvironmentVariable.INSTANCE.getValue(manager,
+        manager.getPropertyUserDir(), "SHELL", AxisID.ONLY);
+    if (shell != null && shell.indexOf(tcshShell) != -1) {
+      command.add(tcshShell);
     }
     else {
-      command.add("tcsh");
+      command.add("bash");
     }
     int commandSize = command.size();
     localStartCommandArray = new String[commandSize];
