@@ -150,9 +150,12 @@ def runTests():
                   lastline = sublines[len(sublines) - 1]
                   lastsplit = lastline.split()
                   numDone[which] += 1
-                  tmin = float(lastsplit[1])
-                  tmax = float(lastsplit[2])
-                  tmax = max(tmax, -tmin)
+                  try:
+                     tmin = float(lastsplit[1])
+                     tmax = float(lastsplit[2])
+                     tmax = max(tmax, -tmin)
+                  except Exception:
+                     tmax = 1.e8
                   if tmax != 0.:
                      prnstr(fmtstr('{} run # {} differed from last run by up to {}',
                                       typenames[which], numDone[which], tmax))
