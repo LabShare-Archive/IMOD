@@ -292,6 +292,7 @@ for itomo in range(ntomo):
       (chunksize, botrange, ifinvert) = getAdjustedZRange(
          botlist[itomo], itomo, nz, newnz, rotangle, ifflip, bigrot, 'bottom')
       avglist.append(chunksize)
+      chunklist += ',' + str(chunksize)
 
    # Get slice numbers to extract at top
    toprange = None
@@ -300,6 +301,9 @@ for itomo in range(ntomo):
                                                          rotangle, ifflip, bigrot, 'top')
       avglist.append(chunkadd)
       chunksize += chunkadd
+      if itomo:
+         chunklist += ','
+      chunklist += str(chunkadd)
 
    # Add all parameters to lists
    reclist[itomo] = recsource
@@ -309,10 +313,8 @@ for itomo in range(ntomo):
    sizelist.append(rotsize)
    anglelist.append(rotangle)
    if itomo:
-      chunklist += ','
       invertlist += ' '
    invertlist += str(ifinvert)
-   chunklist += str(chunksize)
 
 # Work out whether squeezing is needed, set up transforms
 
@@ -442,10 +444,10 @@ Run it to create the files """ +joinroot+ """.sample and """ +joinroot+ """.samp
 For optional automatic alignment of the top/bottom averages, try:
    xfalign -tomo -pre """ +joinroot+ """.sampavg """ +joinroot+ """.xf
 Then run:
-   midas -c """ +chunklist + """ """ + joinroot+ """.sample """ +joinroot+ """.xf
+   midas -cs """ +chunklist + """ """ + joinroot+ """.sample """ +joinroot+ """.xf
 to run midas in chunk alignment mode and create or edit the transform file
 For optional automatic refinement of transforms, then try:
-   xfalign -tomo -ini """ +joinroot+ """.xf """ +joinroot+ """.sampavg """ +joinroot+ """.xf
+   xfalign -tomo -ini """+joinroot+""".xf """ +joinroot+ """.sampavg """ +joinroot+ """.xf
 (after which you should check results with the midas command again).
 Finally run finishjoin to create the joined tomogram""")
 
