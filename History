@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/27/13: Midas: Added input option to specify sample sizes instead of chunks
+sizes so that selected sections can be constrained better; added controls for
+see warping vectors and selecting warp points based on size of their shifts;
+improved cross-correlation around warp point to reduce need for iterating.
+
+5/27/13: Made Xf2rotmagstr able to read warping files.
+
 5/22/13: Fixed 3dmod recognition of DigitalMicrograph files to work with file
 from tilt series.
 
