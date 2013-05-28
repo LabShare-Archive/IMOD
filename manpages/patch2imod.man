@@ -118,6 +118,6 @@ name.
 David Mastronarde
 .SH SEE ALSO
 imod2patch(1), patchcrawl3d(1), patchcorr3d(1), 3dmod(1), 3dmodv(1),
-findwarp(1), refinematch(1), tiltalign(1)
+findwarp(1), refinematch(1), tiltalign(1), tiltxcorr(1), midas(1)
 .SH BUGS
 Email bug reports to mast@colorado.edu.
