@@ -21,9 +21,9 @@
 !
 program tiltxcorr
   implicit none
-  integer IDIM, IDIM2, LIMPATCH, LIMBOUND
+  integer IDIM, IDIM2, LIMBOUND
   parameter (IDIM = 4300, IDIM2 = IDIM * IDIM)
-  parameter (LIMPATCH = 100000, LIMBOUND = 1000)
+  parameter (LIMBOUND = 1000)
   include 'smallmodel.inc90'
   integer*4 nx, ny, nz
   !
@@ -49,10 +49,11 @@ program tiltxcorr
   real*4, allocatable :: f(:,:,:), tilt(:), dxPreali(:), dyPreali(:)
   integer*4, allocatable :: ixPcList(:), iyPcList(:), izPcList(:)
   integer*4, allocatable :: listz(:), listSkip(:)
-  real*4 patchCenX(LIMPATCH), patchCenY(LIMPATCH)
+  real*4, allocatable :: patchCenX(:), patchCenY(:), patchCenXall(:), patchCenYall(:)
+  real*4, allocatable :: xControl(:), yControl(:), xVector(:), yVector(:)
   real*4, allocatable :: xmodel(:,:), ymodel(:,:), xbound(:), ybound(:)
   real*4, allocatable :: xtfsBound(:), ytfsBound(:)
-  integer*4, allocatable :: iobjFlags(:)
+  integer*4, allocatable :: iobjFlags(:), ifBoundOnView(:)
   integer*4 iobjBound(LIMBOUND), indBound(LIMBOUND)
   integer*4 numInBound(LIMBOUND)
   real*4 xtfsBmin(LIMBOUND), xtfsBmax(LIMBOUND), ytfsBmin(LIMBOUND)
@@ -69,38 +70,41 @@ program tiltxcorr
   integer*4 nbinning, maxBinSize, nxUseBin, nyUseBin, ifCumulate, ifNoStretch, maxTrackGap
   integer*4 ixStart, ixEnd, iyStart, iyEnd, ivCur, maxBinning, iz, ivSkip
   integer*4 ixBoxCur, iyBoxCur, ixBoxRef, iyBoxRef, lenContour, minContOverlap
-  integer*4 ixCenStart, ixCenEnd, iyCenStart, iyCenEnd, iter, numIter
+  integer*4 ixCenStart, ixCenEnd, iyCenStart, iyCenEnd, iter, numIter, ivBound
   integer*4 lapTotal, lapRemainder, j, ivBase, lapBase, numCont, nxPatch, nyPatch
   real*4 xBoxOfs, yBoxOffset, cosPhi, sinPhi, x0, y0, xshift, yshift
   real*4 useMin, useMax, useMean, cumXshift, cumYshift, cumXrot, xAdjust
   real*4 angleOffset, cumXcenter, cumYcenter, xModOffset, yModOffset
   real*4 xpeakCum, ypeakCum, xpeakTmp, ypeakTmp, xpeakFrac, ypeakFrac, yOverlap
   real*4 peakFracTol, xFromCen, yFromCen, cenx, ceny, baseTilt, xOverlap, yval
-  integer*4 numPatches, numXpatch, numYpatch, ind, ixBoxStart, iyBoxStart
+  integer*4 numPatches, numXpatch, numYpatch, ind, ixBoxStart, iyBoxStart, numPatchesAll
   integer*4 ixBoxForAdj, iyBoxForAdj, ipatch, numPoints, numBound, iobj, lenTemp
   integer*4 ipnt, ipt, numInside, iobjSeed, imodObj, imodCont, ix, iy, iAntiFiltType
   integer*4 limitShiftX, limitShiftY, numSkip, lastNotSkipped, lenConts, nFillTaper
-  integer*4 limitXlo, limitXhi, limitYlo, limitYhi
+  integer*4 limitXlo, limitXhi, limitYlo, limitYhi, numControl, numBoundAll
+  integer*4 nxUnali, nyUnali
   real*4 critInside, cosRatio, peakVal, peakLast, xpeakLast, yPeakLast
   real*4 boundXmin, boundXmax, boundYmin, boundYmax, fracXover, fracYover
   real*4 fracOverMax, critNonBlank, fillTaperFrac
   real*8 wallMask, wallTime, wallStart, wallInterp, wallfft
 
-  logical*4 tracking, verbose, breaking, taperCur, taperRef, reverseOrder
+  logical*4 tracking, verbose, breaking, taperCur, taperRef, reverseOrder, findWarp
+  logical*4 refViewOut
   integer*4 niceFrame, newImod, putImodMaxes, putModelName, numberInList, taperAtFill
+  integer*4 newWarpFile, setWarpPoints, writeWarpFile, setLinearTransform
   logical inside
   real*4 cosd, sind
 
   logical pipinput
   integer*4 numOptArg, numNonOptArg
-  integer*4 PipGetInteger, PipGetBoolean, PipGetLogical
+  integer*4 PipGetInteger, PipGetBoolean, PipGetLogical, PipNumberOfEntries
   integer*4 PipGetString, PipGetFloat, PipGetTwoIntegers, PipGetTwoFloats
   integer*4 PipGetInOutFile, ifPip
   !
   ! fallbacks from ../../manpages/autodoc2man -3 2  tiltxcorr
   !
   integer numOptions
-  parameter (numOptions = 45)
+  parameter (numOptions = 47)
   character*(40 * numOptions) options(1)
   options(1) = &
       'input:InputFile:FN:@piece:PieceListFile:FN:@output:OutputFile:FN:@'// &
@@ -118,7 +122,8 @@ program tiltxcorr
       'size:SizeOfPatchesXandY:IP:@number:NumberOfPatchesXandY:IP:@'// &
       'overlap:OverlapOfPatchesXandY:IP:@seed:SeedModel:FN:@objseed:SeedObject:I:@'// &
       'length:LengthAndOverlap:IP:@prexf:PrealignmentTransformFile:FN:@'// &
-      'imagebinned:ImagesAreBinned:I:@test:TestOutput:FN:@verbose:VerboseOutput:B:@'// &
+      'imagebinned:ImagesAreBinned:I:@unali:UnalignedSizeXandY:IP:@'// &
+      'warp:FindWarpTransforms:B:@test:TestOutput:FN:@verbose:VerboseOutput:B:@'// &
       'param:ParameterFile:PF:@help:usage:B:'
   !
   ! set defaults here where not dependent on image size
@@ -169,6 +174,7 @@ program tiltxcorr
   lenTemp = 1000000
   iAntiFiltType = 0
   reverseOrder = .false.
+  findWarp = .false.
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   !
@@ -193,6 +199,7 @@ program tiltxcorr
     plFile = ' '
     ierr = PipGetString('PieceListFile', plFile)
     ierr = PipGetLogical('VerboseOutput', verbose)
+    ierr = PipGetLogical('FindWarpTransforms', findWarp)
   else
     write(*,'(1x,a,$)') 'Piece list file if there is one,'// &
         ' otherwise Return: '
@@ -233,11 +240,21 @@ program tiltxcorr
   if (PipGetInOutFile('OutputFile', 2, 'Output file for transforms', &
       xfFileOut) .ne. 0) call exitError('NO OUTPUT FILE SPECIFIED')
   !
-  call get_tilt_angles(numViews, 3, tilt, nz, ifPip)
-  if (numViews .ne. nz) then
-    write(*,'(/,a,i5,a,i5,a)') 'ERROR: TILTXCORR - There must be a tilt angle for' &
-        //' each image: nz =', nz, ', but there are', numViews, ' tilt angles'
-    call exit(1)
+  if (findWarp) then
+    ierr = PipNumberOfEntries('TiltAngles', nz)
+    if (nz > 0 .or. PipGetFloat('FirstTiltAngle', xpeak) == 0 .or.  &
+        PipGetFloat('TiltIncrement', xpeak) == 0 .or.  &
+        PipGetString('TiltFile', listString) == 0) call exitError( &
+        'YOU CANNOT ENTER TILT ANGLES WHEN FINDING WARP TRANSFORMS')
+    nz = numviews
+    tilt(1:nz) = 0.
+  else
+    call get_tilt_angles(numViews, 3, tilt, nz, ifPip)
+    if (numViews .ne. nz) then
+      write(*,'(/,a,i5,a,i5,a)') 'ERROR: TILTXCORR - There must be a tilt angle for' &
+          //' each image: nz =', nz, ', but there are', numViews, ' tilt angles'
+      call exit(1)
+    endif
   endif
   !
   ! DNM 4/28/02: figure out binning now, and fix this to send setctf
@@ -298,8 +315,7 @@ program tiltxcorr
     ! Get skip or breaking list
     ierr = PipGetString('SkipViews', listString)
     iz = PipGetString('BreakAtViews', listString)
-    if (iz + ierr == 0) call exitError( &
-        'YOU CANNOT BOTH SKIP VIEWS AND BREAK AT VIEWS')
+    if (iz + ierr == 0) call exitError('YOU CANNOT BOTH SKIP VIEWS AND BREAK AT VIEWS')
     if (ierr + iz == 1) then
       call parselist2(listString, listSkip, numSkip, nz)
       breaking = iz == 0
@@ -369,16 +385,18 @@ program tiltxcorr
           'NO QUALIFYING BOUNDARY CONTOURS FOUND IN MODEL')
       !
       ! Allocate point array and copy points to arrays
-      allocate(xbound(numPoints), ybound(numPoints), stat = ierr)
+      allocate(xbound(numPoints), ybound(numPoints), ifBoundOnView(numViews), stat = ierr)
       call memoryError(ierr, 'ARRAYS FOR BOUNDARY CONTOURS')
       boundXmin = 1.e10
       boundXmax = -1.e10
       boundYmin = 1.e10
       boundYmax = -1.e10
+      ifBoundOnView = 0           ! Vector
       do ix = 1, numBound
         iobj = iobjBound(ix)
         ipnt = abs(object(1 + ibase_obj(iobj)))
         iv = nint(p_coord(3, ipnt)) + 1
+        ifBoundOnView(iv) = 1
         do ipt = 1, npt_in_obj(iobj)
           ipnt = abs(object(ipt + ibase_obj(iobj)))
           call adjustCoord(tilt(iv), 0., p_coord(1, ipnt) - nx / 2., &
@@ -393,6 +411,7 @@ program tiltxcorr
       enddo
       deallocate(iobjFlags)
     endif
+    numBoundAll = numBound
     !
     ! Get the view range and the minimum tilt view - needed for evaluating patches
     ierr = PipGetTwoIntegers('StartingEndingViews', izStart, izEnd)
@@ -405,6 +424,8 @@ program tiltxcorr
           'YOU CANNOT USE CUMULATIVE CORRELATION WITH PATCH TRACKING')
       if (breaking) call exitError('YOU CANNOT BREAK AT VIEWS WITH PATCH TRACKING')
       tracking = .true.
+      if (findWarp .and. reverseOrder) call exitError( &
+          'YOU CANNOT FIND WARP TRANSFORMS IN REVERSE ORDER')
       if (nxPatch > nxUse .or. nyPatch > nyUse) &
           call exitError('PATCHES DO NOT FIT WITHIN TRIMMED AREA OF IMAGE')
       ierr = PipGetTwoIntegers('NumberOfPatchesXandY', numXpatch, numYpatch)
@@ -428,8 +449,15 @@ program tiltxcorr
           numXpatch = max(1, nint((nxUse - xOverlap) / (nxPatch - xOverlap)))
           numYpatch = max(1, nint((nyUse - yOverlap) / (nyPatch - yOverlap)))
         endif
-        numPatches = numXpatch * numYpatch
-        if (numPatches > LIMPATCH) call exitError('TOO MANY PATCHES FOR ARRAYS')
+        numPatchesAll = numXpatch * numYpatch
+        ix = numPatchesAll + 10
+        allocate(patchCenX(ix), patchCenY(ix), patchCenXall(ix), patchCenYall(ix), &
+            stat = ierr)
+        call memoryError(ierr, 'ARRAYS FOR PATCH CENTERS')
+        if (findWarp) then
+          allocate(xControl(ix), yControl(ix), xVector(ix), yVector(ix), stat = ierr)
+          call memoryError(ierr, 'ARRAYS FOR WARP POINTS')
+        endif
         xOverlap = (numXpatch * nxPatch - nxUse) / max(1., numXpatch - 1.)
         yOverlap = (numYpatch * nyPatch - nyUse) / max(1., numYpatch - 1.)
         do j = 1, numYpatch
@@ -437,10 +465,10 @@ program tiltxcorr
           if (numYpatch == 1) yval = (iyEnd + 1 + iyStart) / 2.
           do i = 1, numXpatch
             ind = i + (j - 1) * numXpatch
-            patchCenX(ind) = ixStart + (i - 1) * (nxPatch - xOverlap) + &
+            patchCenXall(ind) = ixStart + (i - 1) * (nxPatch - xOverlap) + &
                 0.5 * nxPatch
-            if (numXpatch == 1) patchCenX(ind) = (ixEnd + 1 + ixStart) / 2.
-            patchCenY(ind) = yval
+            if (numXpatch == 1) patchCenXall(ind) = (ixEnd + 1 + ixStart) / 2.
+            patchCenYall(ind) = yval
           enddo
         enddo
       else
@@ -448,76 +476,61 @@ program tiltxcorr
         ! Or get a seed model to specify patches
         ierr = PipGetInteger('SeedObject', iobjSeed)
         call getModelAndFlags('OPENING SEED MODEL FILE')
-        numPatches = 0
-        do iobj = 1, max_mod_obj
-          call objToCont(iobj, obj_color, imodObj, imodCont)
-          !
-          ! Use specified object, or any object with scattered points
-          if ((iobjSeed > 0 .and. imodObj == iobjSeed) .or. &
-              (iobjSeed == 0 .and. iobjFlags(imodObj) == 2)) then
-            do ipt = 1, npt_in_obj(iobj)
-              ipnt = abs(object(ipt + ibase_obj(iobj)))
-              iv = nint(p_coord(3, ipnt)) + 1
-              !
-              ! Get point down to zero degrees and make sure patch fits
-              if (iv >= 1 .and. iv <= numViews) then
-                call adjustCoord(tilt(iv), 0., p_coord(1, ipnt) - nx / 2., &
-                    p_coord(2, ipnt) - ny / 2., x0, y0)
-                x0 = x0 + nx / 2.
-                y0 = y0 + ny / 2.
-                if (nint(x0) - nxPatch / 2 >= ixStart .and. &
-                    nint(x0) + nxPatch / 2 <= ixEnd .and. &
-                    nint(y0) - nyPatch / 2 >= iyStart .and. &
-                    nint(y0) + nyPatch / 2 <= iyEnd) then
+        
+        ! Loop twice, first time to get count and allocate, second time to save
+        do iloop = 1, 2
+          numPatchesAll = 0
+          do iobj = 1, max_mod_obj
+            call objToCont(iobj, obj_color, imodObj, imodCont)
+            !
+            ! Use specified object, or any object with scattered points
+            if ((iobjSeed > 0 .and. imodObj == iobjSeed) .or. &
+                (iobjSeed == 0 .and. iobjFlags(imodObj) == 2)) then
+              do ipt = 1, npt_in_obj(iobj)
+                ipnt = abs(object(ipt + ibase_obj(iobj)))
+                iv = nint(p_coord(3, ipnt)) + 1
+                !
+                ! Get point down to zero degrees and make sure patch fits
+                if (iv >= 1 .and. iv <= numViews) then
+                  call adjustCoord(tilt(iv), 0., p_coord(1, ipnt) - nx / 2., &
+                      p_coord(2, ipnt) - ny / 2., x0, y0)
+                  x0 = x0 + nx / 2.
+                  y0 = y0 + ny / 2.
+                  if (nint(x0) - nxPatch / 2 >= ixStart .and. &
+                      nint(x0) + nxPatch / 2 <= ixEnd .and. &
+                      nint(y0) - nyPatch / 2 >= iyStart .and. &
+                      nint(y0) + nyPatch / 2 <= iyEnd) then
 
-                  numPatches = numPatches + 1
-                  if (numPatches > LIMPATCH) call exitError( &
-                      'TOO MANY POINTS IN SEED MODEL FOR ARRAYS')
-                  patchCenX(numPatches) = x0
-                  patchCenY(numPatches) = y0
+                    numPatchesAll = numPatchesAll + 1
+                    if (iloop > 1) then
+                      patchCenXall(numPatchesAll) = x0
+                      patchCenYall(numPatchesAll) = y0
+                    endif
+                  endif
                 endif
-              endif
-            enddo
+              enddo
+            endif
+          enddo
+          if (numPatchesAll == 0) call exitError('NO QUALIFYING POINTS FOUND' &
+              //' IN SEED MODEL; SPECIFY OBJECT OR MAKE IT SCATTERED POINTS')
+          if (iloop == 1) then
+            ix = numPatchesAll + 10
+            allocate(patchCenXall(ix), patchCenYall(ix), patchCenX(ix), patchCenY(ix), &
+                stat = ierr)
+            call memoryError(ierr, 'ARRAYS FOR PATCH CENTERS')
           endif
         enddo
-        if (numPatches == 0) call exitError('NO QUALIFYING POINTS FOUND' &
-            //' IN SEED MODEL; SPECIFY OBJECT OR MAKE IT SCATTERED POINTS')
+
         deallocate(iobjFlags)
       endif
       !
-      ! Now eliminate patches outside boundary model
-      if (numBound > 0) then
-        !
-        ! Evaluate each patch for fraction inside boundary
-        ind = 0
-        do ipatch = 1, numPatches
-          numInside = 0
-          do ix = 1, 32
-            x0 = patchCenX(ipatch) + nxPatch * (ix - 16.5) / 32.
-            do iy = 1, 32
-              y0 = patchCenY(ipatch) + nyPatch * (iy - 16.5) / 32.
-              do iv = 1, numBound
-                if (inside(xbound(indBound(iv) + 1), ybound(indBound(iv) + 1), &
-                    numInBound(iv), x0, y0)) then
-                  numInside = numInside + 1
-                  exit
-                endif
-              enddo
-            enddo
-          enddo
-          ! print *, patchCenX(ipatch), patchCenY(ipatch), numInside / 1024.
-          !
-          ! If enough points are inside, keep the patch
-          if (numInside / 1024. >= critInside) then
-            ind = ind + 1
-            patchCenX(ind) = patchCenX(ipatch)
-            patchCenY(ind) = patchCenY(ipatch)
-          endif
-        enddo
-        numPatches = ind
-        if (ind == 0) call exitError( &
-            'NO PATCHES ARE SUFFICIENTLY INSIDE THE BOUNDARY CONTOUR(S)')
-      endif
+      ! Now eliminate patches outside boundary model or just copy centers
+      ! This is redone on every view for warping if there is more than one contour
+      call makePatchListInsideBoundary()
+      if (findWarp .and. numPatches < 3) call exitError( 'THERE ARE TOO FEW PATCHES '// &
+            'INSIDE THE BOUNDARY CONTOUR(S) TO DEFINE CONTROL POINTS')
+      if (numPatches == 0) call exitError( &
+          'NO PATCHES ARE SUFFICIENTLY INSIDE THE BOUNDARY CONTOUR(S)')
       !
       ! Get prealign transforms, then eliminate patches that have too much blank area
       ! on starting view
@@ -534,39 +547,58 @@ program tiltxcorr
         dxPreali(1:nz) = f(1, 3, 1:nz) / imagesBinned
         dyPreali(1:nz) = f(2, 3, 1:nz) / imagesBinned
         !
-        ! Scan around the minimum tilt for the view with the most patches left
-        numBest = 0
-        do iv = minTilt - 2, minTilt + 2
-          if (iv >= izStart .and. iv <= izEnd .and. &
-              (breaking .or. numberInList(iv, listSkip, numSkip, 0) == 0)) then
-            call markUsablePatches(iv, ind)
-            if (verbose) print *,'Usable patches for view: ', iv, ind
-            if (ind > numBest .or. (ind == numBest .and. &
-                abs(iv - minTilt) < abs(indBest - minTilt))) then
-              numBest = ind
-              indBest = iv
+        ! Get unaligned size if it differs, adjust for binning
+        if (PipGetTwoIntegers('UnalignedSizeXandY', nxUnali, nyUnali) == 0) then
+          nxUnali = nxUnali / imagesBinned
+          nyUnali = nyUnali / imagesBinned
+        else
+          nxUnali = nx
+          nyUnali = ny
+        endif
+        if (.not. findWarp) then
+          !
+          ! Scan around the minimum tilt for the view with the most patches left
+          numBest = 0
+          do iv = minTilt - 2, minTilt + 2
+            if (iv >= izStart .and. iv <= izEnd .and. &
+                (breaking .or. numberInList(iv, listSkip, numSkip, 0) == 0)) then
+              call markUsablePatches(iv, ind)
+              if (verbose) print *,'Usable patches for view: ', iv, ind
+              if (ind > numBest .or. (ind == numBest .and. &
+                  abs(iv - minTilt) < abs(indBest - minTilt))) then
+                numBest = ind
+                indBest = iv
+              endif
             endif
-          endif
-        enddo
-        !
-        ! Mark them for real and copy the usable ones down
-        minTilt = indBest
-        call markUsablePatches(minTilt, ind)
-        ind = 0
-        do ipatch = 1, numPatches
-          if (tmpArray(ipatch) > 0) then
-            ind = ind + 1
-            patchCenX(ind) = patchCenX(ipatch)
-            patchCenY(ind) = patchCenY(ipatch)
-          endif
-        enddo
-        numPatches = ind
-        if (ind == 0) call exitError( &
-            'NO PATCHES HAVE SUFFICIENT IMAGE DATA NEAR THE MINIMUM TILT VIEW')
+          enddo
+          !
+          ! Mark them for real and copy the usable ones down
+          minTilt = indBest
+          call markUsablePatches(minTilt, ind)
+          ind = 0
+          do ipatch = 1, numPatches
+            if (tmpArray(ipatch) > 0) then
+              ind = ind + 1
+              patchCenX(ind) = patchCenX(ipatch)
+              patchCenY(ind) = patchCenY(ipatch)
+            endif
+          enddo
+          numPatches = ind
+          if (ind == 0) call exitError( &
+              'NO PATCHES HAVE SUFFICIENT IMAGE DATA NEAR THE MINIMUM TILT VIEW')
+        endif
       endif
 
       nxUse = nxPatch
       nyUse = nyPatch
+      
+      ! Start the warping file
+      if (findWarp) then
+        call irtdel(1, delta)
+        ierr = newWarpFile(nx, ny, 1, delta(1), 3)
+        if (ierr < 0) call exitError('FAILURE TO ALLOCATE NEW WARP STRUCTURE IN LIBRARY')
+      endif
+
     elseif (numBound > 0) then
       !
       ! For ordinary correlation with boundary model, adjust ixst etc
@@ -589,7 +621,10 @@ program tiltxcorr
   if (tracking) then
     print *,numPatches, ' patches will be tracked'
   else
+    if (findWarp) call exitError('YOU MUST SPECIFY A PATCH SIZE TO FIND WARP TRANSFORMS')
     numPatches = 1
+    allocate(patchCenX(10), patchCenY(10), stat=ierr)
+    call memoryError(ierr, 'TINY ARRAY FOR PATCH CENTERS')
     patchCenX(1) = (ixEnd + 1 + ixStart) / 2.
     patchCenY(1) = (iyEnd + 1 + iyStart) / 2.
   endif
@@ -803,8 +838,45 @@ program tiltxcorr
       endif
       if (verbose) print *,'idir, stretch, ivRef, ivCur', idir, stretch, ivRef, ivCur
       !
+      ! If doing warp and there is more than one boundary contour, get contour(s) from
+      ! nearest Z to this and get new set of patch centers
+      if (findWarp .and. numBoundAll > 1) then
+        !
+        ! Find nearest view with boundaries
+        ind = numViews + 10
+        do iv = 1, numViews
+          if (ifBoundOnView(iv) > 0 .and. abs(ivRef - iv) < ind) then
+            ind = abs(ivRef - iv)
+            ivBound = iv
+          endif
+        enddo
+        !
+        ! Redo the indices and repack the points into boundary arrays
+        numBound = 0
+        numPoints = 0
+        do ix = 1, numBoundAll
+          iobj = iobjBound(ix)
+          ipnt = abs(object(1 + ibase_obj(iobj)))
+          if (nint(p_coord(3, ipnt)) + 1 .eq. ivBound) then
+            numBound = numBound + 1
+            indBound(numBound) = numPoints
+            numInBound(numBound) = npt_in_obj(iobj)
+            do ipt = 1, npt_in_obj(iobj)
+              ipnt = abs(object(ipt + ibase_obj(iobj)))
+              numPoints = numPoints + 1
+              xbound(numPoints) = p_coord(1, ipnt)
+              ybound(numPoints) = p_coord(2, ipnt)
+            enddo
+          endif
+        enddo
+        !
+        ! Get the patch centers based on the boundaries
+        call makePatchListInsideBoundary()
+      endif
+      !
       ! Loop on the patches
       ivRefBase  = ivRef
+      numControl = 0
       do ipatch = 1, numPatches
         ivRef = ivRefBase
         !
@@ -824,9 +896,13 @@ program tiltxcorr
         ! If tracking, initialize model position on first time or get  reference
         ! box from model point
         if (tracking) then
-          if (iloop == 1 .and. iview == ivStart) then
+          if ((iloop == 1 .and. iview == ivStart) .or. findWarp) then
             xmodel(ipatch, ivRef) = ixBoxRef + ixCenStart + nxUse / 2.
             ymodel(ipatch, ivRef) = iyBoxRef + iyCenStart + nyUse / 2.
+            if (findWarp) then
+              xmodel(ipatch, ivCur) = xmodel(ipatch, ivRef)
+              ymodel(ipatch, ivCur) = ymodel(ipatch, ivRef)
+            endif
           else
             !
             ! Back up reference to last point that was tracked unless it is too
@@ -883,21 +959,30 @@ program tiltxcorr
         taperRef = .false.
         taperCur = .false.
         if (ifReadXfs .ne. 0) then
-          ix = min(nx - 2, nx + nint(dxPreali(ivRef)) - 2, ixCenStart + ixBoxRef +  &
-              nxPatch) - max(2, nint(dxPreali(ivRef)) + 2, ixCenStart + ixBoxRef)
-          iy = min(ny - 2, ny + nint(dyPreali(ivRef)) - 2, iyCenStart + iyBoxRef +  &
-              nyPatch) - max(2, nint(dyPreali(ivRef)) + 2, iyCenStart + iyBoxRef)
+          call usablePatchExtent(nx, nxUnali, nxPatch, dxPreali(ivRef),  &
+              ixCenStart + ixBoxRef, ix)
+          call usablePatchExtent(ny, nyUnali, nyPatch, dyPreali(ivRef),  &
+              iyCenStart + iyBoxRef, iy)
           taperRef = ix < nxPatch .or. iy < nyPatch
-          ix = min(nx - 2, nx + nint(dxPreali(ivCur)) - 2, ixCenStart + ixBoxCur +  &
-              nxPatch) - max(2, nint(dxPreali(ivCur)) + 2, ixCenStart + ixBoxCur)
-          iy = min(ny - 2, ny + nint(dyPreali(ivCur)) - 2, iyCenStart + iyBoxCur +  &
-              nyPatch) - max(2, nint(dyPreali(ivCur)) + 2, iyCenStart + iyBoxCur)
+          refViewOut = ix < 0 .or. iy < 0 .or. ix * iy < critNonBlank * nxPatch * nyPatch
+          call usablePatchExtent(nx, nxUnali, nxPatch, dxPreali(ivCur),  &
+              ixCenStart + ixBoxCur, ix)
+          call usablePatchExtent(ny, nyUnali, nyPatch, dyPreali(ivCur),  &
+              iyCenStart + iyBoxCur, iy)
           taperCur = ix < nxPatch .or. iy < nyPatch
-          if (ix < 0 .or. iy < 0 .or. &
-              ix * iy < critNonBlank * nxPatch * nyPatch) then
+          if (ix < 0 .or. iy < 0 .or. ix * iy < critNonBlank * nxPatch * nyPatch) then
             if (verbose) print *,'Skipping tracking of patch', ipatch
+            if (findWarp) xmodel(ipatch, ivRef) = -1.e10
             cycle
           endif
+
+          ! If finding warp, skip if no reference view
+          if (findWarp .and. refViewOut) then
+            if (verbose) print *,'Skipping tracking of patch; no reference', ipatch
+            xmodel(ipatch, ivRef) = -1.e10
+            cycle
+          endif
+
           if (verbose .and. taperRef) print *,'Tapering reference patch #', ipatch
           if (verbose .and. taperCur) print *,'Tapering current patch #', ipatch
 
@@ -1109,20 +1194,28 @@ program tiltxcorr
         xshift = idir * nbinning * unstretchDx + ixBoxForAdj - ixBoxCur
         yshift = idir * nbinning * unstretchDy + iyBoxForAdj - iyBoxCur
         if (tracking) then
-          !
-          ! compensate the shift that is to be accumulated for the
-          ! difference between the center of the box and the model point
-          ! on reference view
-          cumXcenter = xmodel(ipatch, ivRef)
-          cumYcenter = ymodel(ipatch, ivRef)
-          xModOffset = cumXcenter - (ixBoxRef + ixCenStart + nxUse / 2.)
-          yModOffset = cumYcenter - (iyBoxRef + iyCenStart + nyUse / 2.)
-          cumXrot = xModOffset * cosPhi + yModOffset * sinPhi
-          xAdjust = cumXrot *  (1. - cosRatio)
-          !
-          ! Subtract adjusted shift to get new model point position
-          xmodel(ipatch, iview) = cumXcenter - (xshift + xAdjust * cosPhi)
-          ymodel(ipatch, iview) = cumYcenter - (yshift + xAdjust * sinPhi)
+          if (findWarp) then
+            numControl = numControl + 1
+            xControl(numControl) = xmodel(ipatch, ivCur)
+            yControl(numControl) = ymodel(ipatch, ivCur)
+            xVector(numControl) = -nbinning * xpeak
+            yVector(numControl) = -nbinning * ypeak
+          else
+            !
+            ! compensate the shift that is to be accumulated for the
+            ! difference between the center of the box and the model point
+            ! on reference view
+            cumXcenter = xmodel(ipatch, ivRef)
+            cumYcenter = ymodel(ipatch, ivRef)
+            xModOffset = cumXcenter - (ixBoxRef + ixCenStart + nxUse / 2.)
+            yModOffset = cumYcenter - (iyBoxRef + iyCenStart + nyUse / 2.)
+            cumXrot = xModOffset * cosPhi + yModOffset * sinPhi
+            xAdjust = cumXrot *  (1. - cosRatio)
+            !
+            ! Subtract adjusted shift to get new model point position
+            xmodel(ipatch, iview) = cumXcenter - (xshift + xAdjust * cosPhi)
+            ymodel(ipatch, iview) = cumYcenter - (yshift + xAdjust * sinPhi)
+          endif
         endif
         !
         ! if not leaving axis at center of box, compute amount that
@@ -1195,6 +1288,21 @@ program tiltxcorr
           dmeanSum = dmeanSum + dmean3
         endif
       enddo
+      if (findWarp) then
+        if (verbose) print *,'View',ivCur,numControl,' warp points'
+        ierr = 0
+        if (numControl > 2) then
+          ierr = setWarpPoints(ivCur, numControl, xControl, yControl, xVector, yVector)
+        else if (numControl > 0) then
+          call xfunit(fs)
+          do i = 1, numControl
+            fs(1, 3) = fs(1, 3) - xVector(i) / numControl
+            fs(2, 3) = fs(2, 3) - yVector(i) / numControl
+          enddo
+          ierr = setLinearTransform(ivCur, fs, 2)
+        endif
+        if (ierr .ne. 0) call exitError('SETTING WARP POINTS FOR THE CURRENT VIEW')
+      endif
       if (tracking) write(*,111) 'View', iview, ' processed'
     enddo
     !
@@ -1290,6 +1398,13 @@ program tiltxcorr
       enddo
     endif
     close(1)
+  else if (findWarp) then
+    !
+    ! Warp output
+    ierr = writeWarpFile(xfFileOut, 0)
+    if (ierr < 0) call exitError('WRITING WARP FILE')
+    if (ierr > 0) write(*, '(/,a,/)') &
+        'WARNING: TILTXCORR - FAILED TO MAKE BACKUP OF EXISTING OUTPUT WARPING FILE'
   else
     !
     ! Write Model of tracked points
@@ -1436,7 +1551,7 @@ CONTAINS
     implicit none
     integer*4 nxMOB, nyMOB
     real*4 arrayMOB(nxMOB, nyMOB)
-    logical outside
+    logical outside, inside
     integer*4 taperAtFill
     !
     !$OMP PARALLEL do &
@@ -1501,10 +1616,12 @@ CONTAINS
       cenx = patchCenX(ipatch) - nx / 2.
       ceny = patchCenY(ipatch) - ny / 2.
       call adjustCoord(0., tilt(indTilt), cenx, ceny, x0, y0)
-      ix = min(nx - 1., nx + dxPreali(indTilt), x0 + nx / 2. + nxPatch / 2.) - &
-          max(0., dxPreali(indTilt), x0 + nx / 2. - nxPatch / 2.)
-      iy = min(ny - 1., ny + dyPreali(indTilt), y0 + ny / 2. + nyPatch / 2.) - &
-          max(0., dyPreali(indTilt), y0 + ny / 2. - nyPatch / 2.)
+      ix = min(nx - 1., (nx + nxUnali) / 2. + dxPreali(indTilt),  &
+          x0 + nx / 2. + nxPatch / 2.) - &
+          max(0., (nx - nxUnali) / 2. + dxPreali(indTilt), x0 + nx / 2. - nxPatch / 2.)
+      iy = min(ny - 1., (ny + nyUnali) / 2. + dyPreali(indTilt), &
+          y0 + ny / 2. + nyPatch / 2.) - &
+          max(0., (ny - nyUnali) / 2. + dyPreali(indTilt), y0 + ny / 2. - nyPatch / 2.)
       tmpArray(ipatch) = -1.
       if (ix > 0 .and. iy > 0 .and. &
           ix * iy > critNonBlank * nxPatch * nyPatch) then
@@ -1514,6 +1631,44 @@ CONTAINS
     enddo
     return
   end subroutine markUsablePatches
+
+
+  ! makePatchListInsideBoundary copies the whole patch list from "all" to working arrays
+  ! if there are no boundary contours, or just the ones inside the boundary contours
+  !
+  subroutine makePatchListInsideBoundary()
+    logical inside
+    numPatches = 0
+    do ipatch = 1, numPatchesAll
+      
+      numInside = 0
+      if (numBound > 0) then
+        
+        do ix = 1, 32
+          x0 = patchCenXall(ipatch) + nxPatch * (ix - 16.5) / 32.
+          do iy = 1, 32
+            y0 = patchCenYall(ipatch) + nyPatch * (iy - 16.5) / 32.
+            do iv = 1, numBound
+              if (inside(xbound(indBound(iv) + 1), ybound(indBound(iv) + 1), &
+                  numInBound(iv), x0, y0)) then
+                numInside = numInside + 1
+                exit
+              endif
+            enddo
+          enddo
+        enddo
+        ! print *, patchCenXall(ipatch), patchCenYall(ipatch), numInside / 1024.
+      endif
+      !
+      ! If there is no boundary or enough points are inside, keep the patch
+      if (numBound == 0 .or. numInside / 1024. >= critInside) then
+        numPatches = numPatches + 1
+        patchCenX(numPatches) = patchCenXall(ipatch)
+        patchCenY(numPatches) = patchCenYall(ipatch)
+      endif
+    enddo
+    return
+  end subroutine makePatchListInsideBoundary
 
 
   ! readBinnedOrReduced reads an area with the given starting coordinates by binning or
@@ -1664,3 +1819,16 @@ subroutine packCorr(crray, array, nxPadPlus, nyPad)
   enddo
   return
 end subroutine packCorr
+
+
+! Determine the extent of usable area in a patch in one dimension, note this is 
+! 1 or 2 pixels more stringent than in markUsablePatches
+!
+subroutine usablePatchExtent(nx, nxUnali, nxPatch, dx, ixStart, nxUsable)
+  implicit none
+  integer*4 nx, nxUnali, nxPatch, ixStart, nxUsable
+  real*4 dx
+  nxUsable = min(nx - 2, nint((nx + nxUnali) / 2. + dx) - 2, ixStart + nxPatch) - &
+      max(2, nint((nx - nxUnali) / 2. + dx) + 2, ixStart)
+  return
+end subroutine usablePatchExtent
