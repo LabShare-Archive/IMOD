@@ -159,7 +159,7 @@ findbeads3d$(E): findbeads3d.$(O)
 	$(FC) -o findbeads3d findbeads3d.$(O) $(LDFLG) $(WLIBS)
 
 tiltxcorr$(E): tiltxcorr.$(O)
-	$(FC) -o tiltxcorr tiltxcorr.$(O) $(LDFLG) $(SMALLLIBS)
+	$(FC) -o tiltxcorr tiltxcorr.$(O) $(LDFLG) $(LIWARP) $(SMALLLIBS)
 
 tiltxcorr.$(O): tiltxcorr.f90
 	$(FC) $(FFLAGS) $(OPENMPF) -c tiltxcorr.f90
