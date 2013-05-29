@@ -204,13 +204,23 @@ public final class MidasParam implements Command {
       if (sectionTableRowData != null) {
         int sectionDataSize = sectionTableRowData.size();
         StringBuffer chunkSize = new StringBuffer();
-        options.add("-c");
+        options.add("-cs");
+        int nSlices;
         for (int i = 0; i < sectionDataSize; i++) {
           ConstSectionTableRowData data = (SectionTableRowData) sectionTableRowData
               .get(i);
-          chunkSize.append(data.getChunkSize(sectionDataSize).toString());
-          if (i < sectionDataSize - 1) {
-            chunkSize.append(",");
+          // Order: section 1 - top, section 2 - bottom, section 2 - top, section 3 -
+          // bottom.
+          nSlices = data.getSampleBottomNumberSlices(sectionDataSize);
+          if (nSlices != -1) {
+            chunkSize.append(nSlices);
+            if (i < sectionDataSize - 1) {
+              chunkSize.append(",");
+            }
+          }
+          nSlices = data.getSampleTopNumberSlices(sectionDataSize);
+          if (nSlices != -1) {
+            chunkSize.append(nSlices + ",");
           }
         }
         options.add(chunkSize.toString());
@@ -242,7 +252,7 @@ public final class MidasParam implements Command {
   }
 
   public void setSectionTableRowData(final ArrayList input) {
-     sectionTableRowData = input;
+    sectionTableRowData = input;
   }
 
   public void setInputFileName(final String input) {
