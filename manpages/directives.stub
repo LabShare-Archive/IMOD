@@ -7,6 +7,11 @@ INSERT CSV FILE
 <P>
 Notes:
 <OL>
+<LI> The type entries indicate the kind of data expected to be in the field:
+  one or two integers (separated by a comma), one or two floating point
+  numbers, a boolean value of 0 or 1, or a text string.  Text string entries
+  marked as "File" will be shown with a file chooser button in the template
+  editor in eTomo.
 <LI> Template directives must either specify absolute paths or have just a
   filename with no path.  In the latter case, the files are sought in their
   default locations:
@@ -56,7 +61,7 @@ Notes:
   an effect when running in eTomo.
 <LI> <B>NE</B>: Will not (yet) have any effect if running in eTomo, and either
   not saved by eTomo or not visible by default in a directive editor.
-<LI> <B>NE</B>: Will not (yet) have any effect if running in eTomo, but optionally
+<LI> <B>NES</B>: Will not (yet) have any effect if running in eTomo, but optionally
   saved into a directive file by eTomo.
 </UL> 
 </OL>
