@@ -528,16 +528,10 @@ public abstract class ConstSectionTableRowData implements Storable {
     return inverted;
   }
 
-  public int getSampleBottomNumberSlices() {
-    int sampleBottomEnd = this.sampleBottomEnd.getInt();
-    int sampleBottomStart = this.sampleBottomStart.getInt();
-    if (sampleBottomEnd >= sampleBottomStart) {
-      return sampleBottomEnd - sampleBottomStart + 1;
+  public int getSampleTopNumberSlices(final int tableSize) {
+    if (rowNumber.equals(tableSize) || tableSize < 2) {
+      return -1;
     }
-    return 0;
-  }
-
-  public int getSampleTopNumberSlices() {
     int sampleTopEnd = this.sampleTopEnd.getInt();
     int sampleTopStart = this.sampleTopStart.getInt();
     if (sampleTopEnd >= sampleTopStart) {
@@ -546,18 +540,16 @@ public abstract class ConstSectionTableRowData implements Storable {
     return 0;
   }
 
-  public ConstEtomoNumber getChunkSize(int tableSize) {
-    if (tableSize <= 1) {
-      return (new EtomoNumber()).set(0);
+  public int getSampleBottomNumberSlices(final int tableSize) {
+    if (rowNumber.equals(1) || tableSize < 2) {
+      return -1;
     }
-    if (rowNumber.equals(1)) {
-      return (new EtomoNumber()).set(getSampleTopNumberSlices());
+    int sampleBottomEnd = this.sampleBottomEnd.getInt();
+    int sampleBottomStart = this.sampleBottomStart.getInt();
+    if (sampleBottomEnd >= sampleBottomStart) {
+      return sampleBottomEnd - sampleBottomStart + 1;
     }
-    if (rowNumber.equals(tableSize)) {
-      return (new EtomoNumber()).set(getSampleBottomNumberSlices());
-    }
-    return (new EtomoNumber()).set(getSampleBottomNumberSlices()
-        + getSampleTopNumberSlices());
+    return 0;
   }
 
   public ConstEtomoNumber getSetupFinalStart() {
