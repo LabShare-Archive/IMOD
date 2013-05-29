@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/28/13: In eTomo - Join, using the -cs Midas parameter instead of the -c
+parameter.(Bug# 1704)
+
 5/28/13: Changed the local load average process to use the bash shell unless
 the user's shell is tcsh.(Bug# 1703)
 
