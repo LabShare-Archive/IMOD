@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/29/13: IMOD-4-6-21
+5/29/13: Ctfplotter: added version number to defocus file so the old bug of
+view numbers off by 1 will not be detected in error, allowed double-clicking a
+row to set the angles to that row, and added checkbox fo fitting to each view.
+
 5/28/13: In eTomo - Join, using the -cs Midas parameter instead of the -c
 parameter.(Bug# 1704)
 
