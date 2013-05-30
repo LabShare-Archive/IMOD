@@ -3,7 +3,6 @@ package etomo.logic;
 import etomo.storage.Directive;
 import etomo.storage.DirectiveDescr;
 import etomo.storage.DirectiveDescrEtomoColumn;
-import etomo.storage.DirectiveType;
 import etomo.storage.DirectiveValueType;
 import etomo.type.AxisID;
 import etomo.type.DirectiveFileType;
