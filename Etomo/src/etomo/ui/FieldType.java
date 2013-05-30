@@ -22,6 +22,7 @@ public final class FieldType {
   public static final String rcsid = "$Id:$";
 
   public static final FieldType STRING = new FieldType(ValidationType.STRING);
+  public static final FieldType FILE = new FieldType(ValidationType.STRING);
   public static final FieldType INTEGER = new FieldType(ValidationType.INTEGER);
   public static final FieldType FLOATING_POINT = new FieldType(
       ValidationType.FLOATING_POINT);
@@ -65,7 +66,7 @@ public final class FieldType {
     this.requiredSize = requiredSize;
   }
 
- public static FieldType getInstance(final DirectiveValueType valueType) {
+  public static FieldType getInstance(final DirectiveValueType valueType) {
     if (valueType == DirectiveValueType.BOOLEAN) {
       return null;
     }
@@ -86,6 +87,12 @@ public final class FieldType {
     }
     if (valueType == DirectiveValueType.STRING) {
       return STRING;
+    }
+    if (valueType == DirectiveValueType.UNKNOWN) {
+      return STRING;
+    }
+    if (valueType == DirectiveValueType.FILE) {
+      return FILE;
     }
     return null;
   }
