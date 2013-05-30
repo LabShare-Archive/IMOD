@@ -27,11 +27,10 @@ public class AutodocFilter extends javax.swing.filechooser.FileFilter implements
       System.err.println("Warning: " + f.getAbsolutePath() + " does not exist");
       return false;
     }
-    if (!f.isFile()) {
-      return false;
+    if (f.isFile()) {
+      return f.getName().endsWith(AutodocFactory.EXTENSION);
     }
-    String name = f.getName();
-    return name.endsWith(AutodocFactory.EXTENSION);
+    return true;
   }
 
   public String getDescription() {

@@ -811,10 +811,11 @@ public final class SerialSectionsManager extends BaseManager {
     }
   }
 
-  public void save() throws LogFile.LockException, IOException {
+  public boolean save() throws LogFile.LockException, IOException {
     super.save();
     mainPanel.done();
     saveSerialSectionsDialog(false);
+    return true;
   }
 
   private boolean saveSerialSectionsDialog(final boolean forRun) {

@@ -60,6 +60,8 @@ final class FileTextField2 implements FileTextFieldInterface {
   private FileFilter fileFilter = null;
   private boolean absolutePath = false;
   private boolean useTextAsOriginDir = false;
+  private boolean turnOffFileHiding = false;
+  private String checkpointValue = null;
   /**
    * If origin is valid, it overrides originEtomoRunDir.
    */
@@ -193,6 +195,7 @@ final class FileTextField2 implements FileTextFieldInterface {
     if (fileFilter != null) {
       chooser.setFileFilter(fileFilter);
     }
+    chooser.setFileHidingEnabled(!turnOffFileHiding);
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     int returnVal = chooser.showOpenDialog(panel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -269,6 +272,40 @@ final class FileTextField2 implements FileTextFieldInterface {
     return null;
   }
 
+  public boolean equals(final FileTextField2 input) {
+    if (input == null) {
+      return false;
+    }
+    File file = getFile();
+    File inputFile = input.getFile();
+    if (file == null) {
+      return inputFile == null;
+    }
+    return file.equals(inputFile);
+  }
+
+  /**
+   * Saves the current text as the checkpoint.
+   */
+  void checkpoint() {
+    checkpointValue = getText();
+  }
+
+  /**
+   * 
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return
+   */
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !panel.isVisible())) {
+      return false;
+    }
+    if (checkpointValue == null) {
+      return true;
+    }
+    return !checkpointValue.equals(getText());
+  }
+
   /**
    * Gets the origin directory.
    * @return
@@ -282,7 +319,7 @@ final class FileTextField2 implements FileTextFieldInterface {
     }
     return manager.getPropertyUserDir();
   }
-  
+
   private String getFileChooserLocation() {
     if (useTextAsOriginDir) {
       File dir = getFile();
@@ -321,6 +358,10 @@ final class FileTextField2 implements FileTextFieldInterface {
       return;
     }
     fileSelectionMode = input;
+  }
+
+  void setTurnOffFileHiding(final boolean input) {
+    turnOffFileHiding = input;
   }
 
   void setFileFilter(final FileFilter input) {

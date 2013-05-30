@@ -1487,10 +1487,11 @@ public final class JoinManager extends BaseManager {
     }
   }
 
-  public void save() throws LogFile.LockException, IOException {
+  public boolean save() throws LogFile.LockException, IOException {
     super.save();
     doneJoinDialog();
     mainPanel.done();
+    return true;
   }
 
   public String getName() {
