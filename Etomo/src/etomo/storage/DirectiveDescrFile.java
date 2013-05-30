@@ -184,7 +184,7 @@ public final class DirectiveDescrFile {
       if (curLineArray != null && curLineArray.length > VALUE_TYPE_COLUMN_INDEX) {
         return DirectiveValueType.getInstance(curLineArray[VALUE_TYPE_COLUMN_INDEX]);
       }
-      return null;
+      return DirectiveValueType.UNKNOWN;
     }
 
     /**
