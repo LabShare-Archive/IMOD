@@ -14,6 +14,7 @@ class QPushButton;
 class QGroupBox;
 class QRadioButton;
 class QTableWidget;
+class QCheckBox;
 class MyApp;
 
 class AngleDialog :public QDialog
@@ -58,6 +59,8 @@ private slots:
     void stepUpClicked();
     void stepDownClicked();
     void autofitClicked();
+    void rowDoubleClicked(int row, int column);
+    void fitSingleToggled(bool state);
 
 protected:
     void closeEvent( QCloseEvent * e );
@@ -89,6 +92,7 @@ protected:
     QLabel *mRangeStepLabel;
     QLabel *mAutoFromLabel;
     QLabel *mAutoToLabel;
+    QCheckBox *mFitSingleBox;
     QPushButton *mStepUpButton;
     QPushButton *mStepDownButton;
     QPushButton *mAutofitButton;
