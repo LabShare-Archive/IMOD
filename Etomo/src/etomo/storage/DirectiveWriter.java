@@ -7,6 +7,7 @@ import java.util.List;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.DirectiveFileType;
 import etomo.ui.swing.UIHarness;
 
 /**
@@ -50,6 +51,9 @@ public final class DirectiveWriter {
     }
     try {
       logFile = LogFile.getInstance(saveFile);
+      if (logFile.exists()) {
+        logFile.backup();
+      }
       id = logFile.openWriter();
     }
     catch (LogFile.LockException e) {
@@ -75,18 +79,23 @@ public final class DirectiveWriter {
    * A and B forms will not be written.  Writing is halted if an exception is detected.
    * @param comments - (optional) written first
    * @param directiveList - (optional) written second
+   * @param droppedDirectives - a list of directives that could not be edited (written as comments last).
    */
-  public void write(final List<String> comments, final List<Directive> directiveList) {
+  public void write(final DirectiveFileType type, final List<String> comments,
+      final List<Directive> directiveList, final List<String> droppedDirectives) {
     if (logFile == null || id == null) {
       return;
     }
     try {
+      logFile.write("# " + type.getLabel(), id);
+      logFile.newLine(id);
       if (comments != null) {
         Iterator<String> iterator = comments.iterator();
         while (iterator.hasNext()) {
           logFile.write("# " + iterator.next(), id);
           logFile.newLine(id);
         }
+        logFile.newLine(id);
       }
       if (directiveList != null) {
         Iterator<Directive> iterator = directiveList.iterator();
@@ -104,6 +113,16 @@ public final class DirectiveWriter {
 
             }
           }
+        }
+      }
+      if (droppedDirectives != null) {
+        logFile.newLine(id);
+        logFile.write("# Directives that could not be included:", id);
+        logFile.newLine(id);
+        Iterator<String> iterator = droppedDirectives.iterator();
+        while (iterator.hasNext()) {
+          logFile.write("# " + iterator.next(), id);
+          logFile.newLine(id);
         }
       }
     }
