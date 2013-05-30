@@ -1,5 +1,7 @@
 package etomo.logic;
 
+import java.io.File;
+
 import etomo.EtomoDirector;
 import etomo.type.EtomoNumber;
 import etomo.ui.FieldType;
@@ -164,11 +166,13 @@ public final class FieldValidator {
     if (fieldType == null || fieldType == FieldType.STRING) {
       return fieldText1.trim().equals(fieldText2.trim());
     }
+    if (fieldType == FieldType.FILE) {
+      return new File(fieldText1).equals(new File(fieldText2));
+    }
     if (fieldType == FieldType.INTEGER_LIST) {
       // Lists are too complicated to parse (they contain things like "1 - 3"). Remove all
       // spaces and compare as strings.
-      return fieldText1.replaceAll("\\s+", "")
-          .equals(fieldText2.replaceAll("\\s+", ""));
+      return fieldText1.replaceAll("\\s+", "").equals(fieldText2.replaceAll("\\s+", ""));
     }
     // Handle arrays
     FieldType numberFieldType = null;
@@ -188,7 +192,7 @@ public final class FieldValidator {
     ElementListIterator iterator1 = elementList1.iterator();
     ElementListIterator iterator2 = elementList2.iterator();
     while (iterator1.hasNext()) {
-      //Call this function with the field type for either float or integer.
+      // Call this function with the field type for either float or integer.
       if (!equals(numberFieldType, iterator1.next(), iterator2.next())) {
         return false;
       }
