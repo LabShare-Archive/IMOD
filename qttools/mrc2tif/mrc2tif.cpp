@@ -1,5 +1,5 @@
 /*
- *  mrc2tif.c -- Convert mrc files to TIFF files.
+ *  mrc2tif.cpp -- Convert mrc files to TIFF and other files.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -14,10 +14,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <qimage.h>
+#include <qfile.h>
+#include <qapplication.h>
+#include <qstringlist.h>
 #include "mrcfiles.h"
 #include "b3dtiff.h"
 #include "b3dutil.h"
 #include "parse_params.h"
+
 static FILE *openEitherWay(ImodImageFile *iifile, char *iname, char *progname,
                            int oldcode);
 
@@ -27,13 +32,19 @@ int main(int argc, char *argv[])
   MrcHeader hdata;
   FILE *fpTiff = NULL;
   Islice slice;
+  char *plugdir;
+  QStringList strList;
   int xsize, ysize, zsize, psize, filenum, outPsize, numChunks, chunk;
   int lines, linesDone, version, linesPerChunk = 0, doChunks = 0;
-  size_t xysize, allocSize;
+  size_t xysize, allocSize, lineBytes;
   int i, j, slmode, z, iarg = 1, stack = 0, resolution = 0, initialNum = -1;
   int oldcode = 0, convert = 0, usePixel = 0;
   int compression = 1, black = 0, white = 255, zmin = -1, zmax = -1;
   int quality = -1;
+  int makeJPG = 0;
+  int makePNG = 0;
+  int typeInd;
+  bool makeQimage;
   b3dUInt32 ifdOffset = 0, dataOffset = 0;
   float chunkCriterion = 100.;
   float savecrit, dmin, dmax, smin =0., smax = 0.;
@@ -44,11 +55,13 @@ int main(int argc, char *argv[])
   IloadInfo li;
   ImodImageFile *iifile = iiNew();
   char *iname;
-  unsigned char *buf;
+  unsigned char *buf, *qbuf, *qtmp;
   char *progname = imodProgName(argv[0]);
 #define NUM_LEGAL 12
   int legalComp[NUM_LEGAL] = {1, 2, 3, 4, 5, 7, 8, 32771, 32773, 32946, 32845,
                               32845};
+  const char *extensions[3] = {"tif", "jpg", "png"};
+  const char *typeNames[3] = {"TIFF", "JPEG", "PNG"};
 
   sprintf(prefix, "\nERROR: %s - ", progname);
   setExitPrefix(prefix);
@@ -87,6 +100,14 @@ int main(int argc, char *argv[])
 
       case 'P':
         usePixel = 1;
+        break;
+
+      case 'p':
+        makePNG = 1;
+        break;
+
+      case 'j':
+        makeJPG = 1;
         break;
 
       case 'S':
@@ -138,8 +159,19 @@ int main(int argc, char *argv[])
     exitError("Resolution setting is not available with old writing code");
   if (oldcode && xTileSize)
     exitError("Tiling not available with old writing code");
+  if (oldcode && (makeJPG || makePNG))
+    exitError("JPEG and PNG output not available with old writing code");
   if (resolution > 0 && usePixel)
     exitError("You cannot enter both -r and -P");
+  makeQimage = makeJPG || makePNG;
+  typeInd = makeJPG + 2 * makePNG;
+  if (makeQimage && (stack || doChunks || compression != 1 || 
+                               xTileSize))
+    exitError("You cannot enter -s, -c, or -T with JPEG and PNG output");
+  if (makePNG && makeJPG)
+    exitError("You cannot enter both -j and -p");
+  if ((compression == 8 || makePNG) && (quality < -1 || quality == 0 || quality > 9))
+    exitError("Quality for ZIP compression or PNG output must be between 1 and 9");
 
   if (argc - iarg != 2){
     printf("%s version %s \n", progname, VERSION_NAME);
@@ -171,6 +203,29 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
+  // Do some initial things for Qimage output
+  if (makeQimage) {
+
+    // Put plugin dir on the library path so image plugins can be found
+    plugdir = getenv("IMOD_PLUGIN_DIR");
+    if (plugdir)
+      strList << plugdir;
+    plugdir = getenv("IMOD_DIR");
+    if (plugdir)
+      strList << QString(plugdir) + QString("/lib/imodplug");
+    for (i = 0; i < strList.count(); i++)
+      if (QFile::exists(strList[i] + "/imageformats"))
+        break;
+    if (strList.count() && i < strList.count())
+      QApplication::setLibraryPaths(strList);
+
+    // Convert the quality for QImage use by inverting and multiplying by 10 
+    // Verified that the ZIP default of 6 is equivalent to Qt default of 30
+    if (makePNG && quality >= 0)
+        quality = 10 * (9 - quality);
+  }
+    
+  // Get input file and header
   if (NULL == (fin = fopen(argv[iarg], "rb")))
     exitError("Couldn't open %s", argv[iarg]);
 
@@ -182,6 +237,7 @@ int main(int argc, char *argv[])
     resolution = 2.54e8 / xscale;
   }
 
+  // Adjust Z limits and file numbering
   if (zmin == -1 && zmax == -1) {
     zmin = 0;
     zmax = hdata.nz - 1;
@@ -193,6 +249,7 @@ int main(int argc, char *argv[])
   else
     filenum = initialNum;
 
+  // Set up output file structure based on mode
   iifile->format = IIFORMAT_LUMINANCE;
   iifile->file = IIFILE_TIFF;
   iifile->type = IITYPE_UBYTE;
@@ -223,6 +280,10 @@ int main(int argc, char *argv[])
     exitError("Data mode %d not supported.", hdata.mode);
     break;
   }
+
+  // Must convert to bytes if it is not color for PNG/JPEG output
+  if (makeQimage && hdata.mode != MRC_MODE_BYTE && hdata.mode != MRC_MODE_RGB)
+    convert = 1;
   xsize = hdata.nx;
   ysize = hdata.ny;
   zsize = hdata.nz;
@@ -247,23 +308,42 @@ int main(int argc, char *argv[])
       outPsize = 1;
     }
   }
-  version = tiffVersion(&j);
-  /* printf("Version %d.%d\n", version,j); */
-  if (version < 4) {
-    savecrit =  4.292e9;
-    if (!version || oldcode)
-      savecrit =  2.146e9;
-    if ((double)xysize * outPsize >  savecrit)
-      exitError("The image is too large in X/Y to save with TIFF version"
-                " %d.%d", version, j);
-    if (stack && (zmax + 1 - zmin) * xysize * (double)outPsize >  savecrit)
-      exitError("The volume is too large to save in a stack with TIFF version"
-                " %d.%d", version, j);
-  }
 
-  if (version > 0 && !oldcode && 
-      ((double)xsize * ysize) * psize > chunkCriterion * 1024. * 1024.)
-    doChunks = 1;
+  if (!makeQimage) {
+
+    // Check version and size and set up chunks for TIFF
+    version = tiffVersion(&j);
+    /* printf("Version %d.%d\n", version,j); */
+    if (version < 4) {
+      savecrit =  4.292e9;
+      if (!version || oldcode)
+        savecrit =  2.146e9;
+      if ((double)xysize * outPsize >  savecrit)
+        exitError("The image is too large in X/Y to save with TIFF version"
+                  " %d.%d", version, j);
+      if (stack && (zmax + 1 - zmin) * xysize * (double)outPsize >  savecrit)
+        exitError("The volume is too large to save in a stack with TIFF version"
+                  " %d.%d", version, j);
+    }
+    if (version > 0 && !oldcode && 
+        ((double)xsize * ysize) * psize > chunkCriterion * 1024. * 1024.)
+      doChunks = 1;
+
+  } else {
+
+    // Check size for JPEG
+    if (makeJPG && (xsize > 65535 || ysize > 65535))
+      exitError("The input image is too large in X or Y for JPEG output");
+
+    // Round lines up to 32-bit boundary and get the number of bytes per output line
+    // and fix allocated size if necessary, get line buffer
+    lineBytes = 4 * ((xsize * outPsize + 3) / 4);
+    if (allocSize < lineBytes * ysize)
+      allocSize = lineBytes * ysize;
+    qtmp = (unsigned char *)malloc(lineBytes);
+    if (!qtmp)
+      exitError("Failed to allocate memory for line buffer");
+  }
 
   iname = (char *)malloc(strlen(argv[iarg]) + 20);
   if (!iname)
@@ -276,7 +356,7 @@ int main(int argc, char *argv[])
     fpTiff = openEitherWay(iifile, iname, progname, oldcode);
   }    
 
-  printf("Writing TIFF images. ");
+  printf("Writing %s images. ", typeNames[typeInd]);
   for (z = zmin; z <= zmax; z++){
     int tiferr;
     printf(".");
@@ -284,14 +364,16 @@ int main(int argc, char *argv[])
 
     /* Get filename and open new file for non-stack */
     if (!stack) {
-      sprintf(iname, "%s.%3.3d.tif", argv[iarg], filenum++);
+      sprintf(iname, "%s.%3.3d.%s", argv[iarg], filenum++, extensions[typeInd]);
       if (zsize == 1)
         sprintf(iname, "%s", argv[iarg]);
-      if (z > zmin)
-        free(iifile->filename);
-      fpTiff = openEitherWay(iifile, iname, progname, oldcode);
-      ifdOffset = 0;
-      dataOffset = 0;
+      if (!makeQimage) {
+        if (z > zmin)
+          free(iifile->filename);
+        fpTiff = openEitherWay(iifile, iname, progname, oldcode);
+        ifdOffset = 0;
+        dataOffset = 0;
+      }
     }
 
     /* Prepare to get min/max for a slice if not doing in chunks or converting to bytes */
@@ -320,7 +402,7 @@ int main(int argc, char *argv[])
 
       /* Allocate memory first time or every time */
       if ((!chunk && z == zmin) || (convert && slmode > 0))
-        buf = (unsigned char *)malloc(allocSize);
+        qbuf = buf = (unsigned char *)malloc(allocSize);
       if (!buf)
         exitError("Failed to allocate memory for slice");
 
@@ -356,18 +438,57 @@ int main(int argc, char *argv[])
         }
         if (slmode > 0 && sliceNewMode(&slice, SLICE_MODE_BYTE))
           exitError("Converting slice %d to bytes", z);
-        buf = slice.data.b;
+        qbuf = buf = slice.data.b;
+        if (!buf)
+          exitError("Failed to allocate memory for slice");
+        if (makeQimage && lineBytes != xsize) {
+          qbuf = (unsigned char *)malloc(lineBytes * ysize);
+          if (!qbuf)
+            exitError("Failed to allocate memory for unpacking image");
+        }
       }
     
       /* Get min/max for int/float images, those are the only ones the write
          routine will put out min/max for */
-      if (!stack && slmode > 0 && !convert && !doChunks) {
+      if (!stack && slmode > 0 && !convert && !doChunks && !makeQimage) {
         sliceMMM(&slice);
         iifile->amin = B3DMIN(iifile->amin, slice.min);
         iifile->amax = B3DMAX(iifile->amax, slice.max);
       }
 
-      if (fpTiff)
+      if (makeQimage) {
+
+        // For Qimage, Spread out the image to give the aligned lines needed
+        if (lineBytes != xsize * outPsize) {
+          for (j = ysize - 1; j >= 0; j--)
+            for (i = xsize * outPsize - 1; i >= 0; i--)
+              qbuf[i + lineBytes * j] = buf[i + j * (size_t)xsize * outPsize];
+        }
+
+        // Invert the image
+        for (j = 0; j < ysize / 2; j++) {
+          memcpy(qtmp, &qbuf[lineBytes * j], lineBytes);
+          memcpy(&qbuf[lineBytes * j], &qbuf[lineBytes * (ysize - 1 - j)], lineBytes);
+          memcpy(&qbuf[lineBytes * (ysize - 1 - j)], qtmp, lineBytes);
+        }
+
+        // Create the QImage, set resolution if it exists, set color table for 8-bit
+        QImage *qim = new QImage(qbuf, xsize, ysize, (int)lineBytes, outPsize > 1 ? 
+                                 QImage::Format_RGB888 : QImage::Format_Indexed8);
+        if (resolution) {
+          qim->setDotsPerMeterX(resolution / 0.0254);
+          qim->setDotsPerMeterY(resolution / 0.0254);
+        }
+        if (outPsize == 1)
+          for (i = 0; i < 256; i++)
+            qim->setColor(i, qRgb(i, i, i));
+        tiferr = qim->save(iname, typeNames[typeInd], quality) ? 0 : 1;
+        delete qim;
+        if (qbuf != buf)
+          free(qbuf);
+
+        // Back to regular TIFF saving
+      } else if (fpTiff)
         tiferr = tiff_write_image(fpTiff, xsize, ysize, hdata.mode, buf, 
                                   &ifdOffset, &dataOffset, dmin, dmax);
       else if (!doChunks)
@@ -375,16 +496,18 @@ int main(int argc, char *argv[])
                                   quality);
       else
         tiferr = tiffWriteStrip(iifile, chunk, buf);
-      if (tiferr){
+      if (tiferr) {
         exitError("Error (%d) writing section %d to %s", tiferr, z, iname);
       }
       if (convert && slmode > 0)
         free(slice.data.b);
     }
+
+    // Finish up the file
     if (doChunks)
       tiffWriteFinish(iifile);
     
-    if (!stack) {
+    if (!stack && !makeQimage) {
       if (fpTiff) {
         fclose(fpTiff);
         fpTiff = NULL;
@@ -394,6 +517,8 @@ int main(int argc, char *argv[])
   }
 
   printf("\r\n");
+
+  // Finish up the stack
   if (stack) {
     if (fpTiff)
       fclose(fpTiff);
