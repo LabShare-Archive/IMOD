@@ -254,7 +254,7 @@ for ind in range(numColors):
    else:  # ELSE ON FOR
       colors.append(newColor)
 for col in colors:
-   comlines.append('ColorOfGroup ' + col)
+   comlines.append('HueOfGroup ' + col)
 
 # Run onegenplot
 try:
