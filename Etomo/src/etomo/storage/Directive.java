@@ -1,5 +1,6 @@
 package etomo.storage;
 
+import java.io.File;
 import java.io.IOException;
 
 import etomo.EtomoDirector;
@@ -59,11 +60,12 @@ public class Directive {
   }
 
   /**
+   * Constructor for undefined directives.
    * @param directiveName - constructor does a deep copy of this parameter
    */
   public Directive(final DirectiveName directiveName) {
     this.directiveName.deepCopy(directiveName);
-    valueType = DirectiveValueType.STRING;
+    valueType = DirectiveValueType.UNKNOWN;
     values = new DirectiveValues(valueType);
     description = null;
     // No description of this directive, so allow it to exist in any type of directive
@@ -148,6 +150,10 @@ public class Directive {
       return includeB;
     }
     return false;
+  }
+  
+  public boolean isCopyArg() {
+    return directiveName.isCopyArg();
   }
 
   public boolean isValid() {
@@ -238,6 +244,15 @@ public class Directive {
         axisLevelDataB = new AxisLevelData();
       }
       axisLevelDataB.inDirectiveFile[index] = input;
+    }
+  }
+
+  public void setValue(final AxisID axisID, final File input) {
+    if (input != null) {
+      values.setValue(axisID, input.getAbsolutePath());
+    }
+    else {
+      values.setValue(axisID, "");
     }
   }
 

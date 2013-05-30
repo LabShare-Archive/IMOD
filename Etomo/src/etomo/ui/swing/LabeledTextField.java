@@ -3,6 +3,7 @@ package etomo.ui.swing;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
+import java.io.File;
 
 import javax.swing.*;
 import javax.swing.event.DocumentListener;
@@ -263,6 +264,9 @@ final class LabeledTextField implements UIComponent {
       maxSize.setSize(maxSize.getWidth(), 2 * textField.getFont().getSize());
     }
     textField.setMaximumSize(maxSize);
+    if (fieldType == FieldType.FILE) {
+      textField.setHorizontalAlignment(JTextField.RIGHT);
+    }
   }
 
   LabeledTextField(final FieldType fieldType, final String tfLabel) {
@@ -470,6 +474,10 @@ final class LabeledTextField implements UIComponent {
   boolean isEmpty() {
     String text = textField.getText();
     return text == null || text.matches("\\s*");
+  }
+
+  void setText(final File file) {
+    textField.setText(file.getAbsolutePath());
   }
 
   void setText(ConstEtomoNumber text) {

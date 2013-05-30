@@ -1,7 +1,5 @@
 package etomo.storage;
 
-import etomo.ui.FieldType;
-
 /**
 * <p>Description: </p>
 * 
@@ -30,7 +28,9 @@ public final class DirectiveValueType {
       6);
   public static final DirectiveValueType LIST = new DirectiveValueType("List", 9);
   public static final DirectiveValueType STRING = new DirectiveValueType("String", 9);
-
+  public static final DirectiveValueType UNKNOWN = new DirectiveValueType("Unknown", 15);
+  public static final DirectiveValueType FILE = new DirectiveValueType("File", 15);
+  
   private final String tag;
   private final int columns;
 
@@ -41,7 +41,7 @@ public final class DirectiveValueType {
 
   static DirectiveValueType getInstance(final String input) {
     if (input == null) {
-      return null;
+      return UNKNOWN;
     }
     if (input.equals(BOOLEAN.tag)) {
       return BOOLEAN;
@@ -64,36 +64,14 @@ public final class DirectiveValueType {
     if (input.equals(STRING.tag)) {
       return STRING;
     }
-    return null;
+    if (input.equals(FILE.tag)) {
+      return FILE;
+    }
+    return UNKNOWN;
   }
 
   public int getColumns() {
     return columns;
-  }
-
-  public FieldType toFieldType() {
-    if (this == BOOLEAN) {
-      return null;
-    }
-    if (this == FLOATING_POINT) {
-      return FieldType.FLOATING_POINT;
-    }
-    if (this == FLOATING_POINT_PAIR) {
-      return FieldType.FLOATING_POINT_PAIR;
-    }
-    if (this == INTEGER) {
-      return FieldType.INTEGER;
-    }
-    if (this == INTEGER_PAIR) {
-      return FieldType.INTEGER_PAIR;
-    }
-    if (this == LIST) {
-      return FieldType.INTEGER_LIST;
-    }
-    if (this == STRING) {
-      return FieldType.STRING;
-    }
-    return null;
   }
 
   public String toString() {

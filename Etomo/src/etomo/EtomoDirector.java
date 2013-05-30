@@ -1218,7 +1218,7 @@ public class EtomoDirector {
    * Return the users home directory environment variable HOME or an empty
    * string if it doesn't exist.
    */
-  private String getHomeDirectory() {
+  public String getHomeDirectory() {
     return homeDirectory;
   }
 

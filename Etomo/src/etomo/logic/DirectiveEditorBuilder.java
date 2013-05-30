@@ -50,6 +50,7 @@ public final class DirectiveEditorBuilder {
   private final DirectiveMap directiveMap = new DirectiveMap();
   private final List<DirectiveDescrSection> sectionArray = new ArrayList<DirectiveDescrSection>();
   private boolean[] fileTypeExists = new boolean[DirectiveFileType.NUM];
+  private final List<String> droppedDirectives = new ArrayList<String>();
 
   private final BaseManager manager;
   private final DirectiveFileType type;
@@ -236,15 +237,15 @@ public final class DirectiveEditorBuilder {
           DirectiveName directiveName = new DirectiveName();
           while ((statement = statementList.nextStatement(location)) != null) {
             if (statement.getType() == Statement.Type.NAME_VALUE_PAIR) {
-              AxisID axisID = directiveName.setKey(statement.getLeftSide());
+              String leftSide = statement.getLeftSide();
+              AxisID axisID = directiveName.setKey(leftSide);
               directive = directiveMap.get(directiveName.getKey());
               if (directive == null) {
                 // Handle undefined directives.
                 directive = new Directive(directiveName);
-                if (!directive.isValid()) {
-                  directive = null;
-                }
-                else {
+                // Only comparam directives are used generically by batchruntomo, so
+                // undefined ones may be useful.
+                if (directive.isValid() && directive.getType() == DirectiveType.COM_PARAM) {
                   // If otherSection hasn't been created, create it and add it to
                   // sectionArray.
                   if (otherSection == null) {
@@ -253,6 +254,11 @@ public final class DirectiveEditorBuilder {
                   }
                   otherSection.add(directive.getKey());
                   directiveMap.put(directive.getKey(), directive);
+                }
+                else {
+                  directive = null;
+                  // Save directives that don't go into the editor.
+                  droppedDirectives.add(leftSide);
                 }
               }
               if (directive != null) {
@@ -350,6 +356,10 @@ public final class DirectiveEditorBuilder {
 
   public boolean[] getFileTypeExists() {
     return fileTypeExists;
+  }
+  
+  public List<String>getDroppedDirectives(){
+    return droppedDirectives;
   }
 
   public File getDefaultSaveLocation() {

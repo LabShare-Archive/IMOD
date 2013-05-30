@@ -53,12 +53,12 @@ class DirectiveSetPanel implements Expandable, DirectiveSetInterface {
     this.manager = manager;
     this.directive = directive;
     this.tool = tool;
-    pnlDirectiveA = DirectivePanel.getSetInstance(directive, AxisID.FIRST, tool,
+    pnlDirectiveA = DirectivePanel.getSetInstance(manager, directive, AxisID.FIRST, tool,
         sourceAxisType);
-    pnlDirectiveB = DirectivePanel.getSetInstance(directive, AxisID.SECOND, tool,
-        sourceAxisType);
-    pnlDirective = DirectivePanel.getAnyInstance(directive, null, tool, pnlDirectiveA,
-        pnlDirectiveB, sourceAxisType);
+    pnlDirectiveB = DirectivePanel.getSetInstance(manager, directive, AxisID.SECOND,
+        tool, sourceAxisType);
+    pnlDirective = DirectivePanel.getAnyInstance(manager, directive, null, tool,
+        pnlDirectiveA, pnlDirectiveB, sourceAxisType);
   }
 
   static DirectiveSetPanel getInstance(final BaseManager manager,

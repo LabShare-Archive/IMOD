@@ -3,11 +3,15 @@ package etomo.ui.swing;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.logic.DirectiveTool;
 import etomo.logic.FieldValidator;
@@ -42,6 +46,7 @@ final class DirectivePanel implements DirectiveSetInterface {
 
   private final CheckBox cbValue;
   private final LabeledTextField ltfValue;
+  private final SimpleButton sbFileValue;
   private final DirectiveTool tool;
   private final Directive directive;
   private final AxisID axisID;
@@ -53,10 +58,12 @@ final class DirectivePanel implements DirectiveSetInterface {
   private final DirectivePanel siblingB;
 
   private int debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
+  private File lastFileChooserLocation = null;
 
-  private DirectivePanel(final Directive directive, final AxisID axisID,
-      final DirectiveTool tool, final boolean solo, final AxisType sourceAxisType,
-      final DirectivePanel siblingA, final DirectivePanel siblingB) {
+  private DirectivePanel(final BaseManager manager, final Directive directive,
+      final AxisID axisID, final DirectiveTool tool, final boolean solo,
+      final AxisType sourceAxisType, final DirectivePanel siblingA,
+      final DirectivePanel siblingB) {
     this.directive = directive;
     this.axisID = axisID;
     this.tool = tool;
@@ -83,21 +90,28 @@ final class DirectivePanel implements DirectiveSetInterface {
     actionCommand = "include" + axisTitle;
     cbInclude.setActionCommand(actionCommand);
     DirectiveValueType valueType = directive.getValueType();
-    boolean bool = valueType == DirectiveValueType.BOOLEAN;
     FieldType fieldType = FieldType.getInstance(valueType);
-    if (bool) {
+    if (valueType == DirectiveValueType.BOOLEAN) {
       cbValue = new CheckBox(title);
       ltfValue = null;
+      sbFileValue = null;
     }
     else {
       ltfValue = new LabeledTextField(fieldType, title + ":  ");
       cbValue = null;
+      if (valueType == DirectiveValueType.FILE) {
+        sbFileValue = new SimpleButton(new ImageIcon(
+            ClassLoader.getSystemResource("images/openFile.gif")));
+      }
+      else {
+        sbFileValue = null;
+      }
     }
   }
 
-  static DirectivePanel getSoloInstance(final Directive directive,
-      final DirectiveTool tool, final AxisType sourceAxisType) {
-    DirectivePanel instance = new DirectivePanel(directive, null, tool, true,
+  static DirectivePanel getSoloInstance(final BaseManager manager,
+      final Directive directive, final DirectiveTool tool, final AxisType sourceAxisType) {
+    DirectivePanel instance = new DirectivePanel(manager, directive, null, tool, true,
         sourceAxisType, null, null);
     instance.createPanel(directive);
     instance.setTooltips();
@@ -105,9 +119,10 @@ final class DirectivePanel implements DirectiveSetInterface {
     return instance;
   }
 
-  static DirectivePanel getSetInstance(final Directive directive, final AxisID axisID,
-      final DirectiveTool tool, final AxisType sourceAxisType) {
-    DirectivePanel instance = new DirectivePanel(directive, axisID, tool, false,
+  static DirectivePanel getSetInstance(final BaseManager manager,
+      final Directive directive, final AxisID axisID, final DirectiveTool tool,
+      final AxisType sourceAxisType) {
+    DirectivePanel instance = new DirectivePanel(manager, directive, axisID, tool, false,
         sourceAxisType, null, null);
     instance.createPanel(directive);
     instance.setTooltips();
@@ -115,10 +130,11 @@ final class DirectivePanel implements DirectiveSetInterface {
     return instance;
   }
 
-  static DirectivePanel getAnyInstance(final Directive directive, final AxisID axisID,
-      final DirectiveTool tool, final DirectivePanel siblingA,
-      final DirectivePanel siblingB, final AxisType sourceAxisType) {
-    DirectivePanel instance = new DirectivePanel(directive, axisID, tool, false,
+  static DirectivePanel getAnyInstance(final BaseManager manager,
+      final Directive directive, final AxisID axisID, final DirectiveTool tool,
+      final DirectivePanel siblingA, final DirectivePanel siblingB,
+      final AxisType sourceAxisType) {
+    DirectivePanel instance = new DirectivePanel(manager, directive, axisID, tool, false,
         sourceAxisType, siblingA, siblingB);
     instance.createPanel(directive);
     instance.setTooltips();
@@ -127,6 +143,11 @@ final class DirectivePanel implements DirectiveSetInterface {
   }
 
   private void createPanel(final Directive directive) {
+    // init
+    if (sbFileValue != null) {
+      sbFileValue.setPreferredSize(FixedDim.folderButton);
+      sbFileValue.setMaximumSize(FixedDim.folderButton);
+    }
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
     pnlRoot.add(cbInclude);
@@ -135,6 +156,9 @@ final class DirectivePanel implements DirectiveSetInterface {
     }
     else {
       pnlRoot.add(ltfValue.getComponent());
+      if (sbFileValue != null) {
+        pnlRoot.add(sbFileValue);
+      }
     }
     pnlRoot.add(Box.createHorizontalGlue());
     if (solo) {
@@ -148,6 +172,9 @@ final class DirectivePanel implements DirectiveSetInterface {
 
   private void addListeners() {
     cbInclude.addActionListener(new DirectiveListener(this));
+    if (sbFileValue != null) {
+      sbFileValue.addActionListener(new DirectiveFileValueListener(this));
+    }
   }
 
   public Directive getState() {
@@ -219,6 +246,33 @@ final class DirectivePanel implements DirectiveSetInterface {
       siblingB.cbInclude.setSelected(false);
     }
     enableValue();
+  }
+
+  private void fileValueAction() {
+    JFileChooser chooser = UIHarness.INSTANCE.getFileChooser();
+    if (chooser == null) {
+      return;
+    }
+    if (!ltfValue.isEmpty()) {
+      chooser.setCurrentDirectory(new File(ltfValue.getText()));
+    }
+    else if (lastFileChooserLocation != null) {
+      chooser.setCurrentDirectory(lastFileChooserLocation);
+    }
+    else if (directive.isCopyArg()) {
+      chooser.setCurrentDirectory(EtomoDirector.INSTANCE.getIMODCalibDirectory());
+    }
+    else {
+      String home = EtomoDirector.INSTANCE.getHomeDirectory();
+      if (home != null) {
+        chooser.setCurrentDirectory(new File(home));
+      }
+    }
+    chooser.setDialogTitle("Open " + directive.getTitle());
+    if (chooser.showOpenDialog(pnlRoot) == JFileChooser.APPROVE_OPTION) {
+      ltfValue.setText(chooser.getSelectedFile());
+    }
+    lastFileChooserLocation = chooser.getCurrentDirectory();
   }
 
   /**
@@ -326,6 +380,9 @@ final class DirectivePanel implements DirectiveSetInterface {
     }
     else {
       ltfValue.setEnabled(enable);
+      if (sbFileValue != null) {
+        sbFileValue.setEnabled(enable);
+      }
     }
   }
 
@@ -336,17 +393,7 @@ final class DirectivePanel implements DirectiveSetInterface {
     if (cbInclude.isSelected() != input.cbInclude.isSelected()) {
       return false;
     }
-    if (cbValue != null) {
-      if (cbValue.isSelected() != input.cbValue.isSelected()) {
-        return false;
-      }
-    }
-    else {
-      if (!FieldValidator.equals(fieldType, ltfValue.getText(), input.ltfValue.getText())) {
-        return false;
-      }
-    }
-    return true;
+    return equalsValue(input);
   }
 
   private boolean equalsValue(final DirectivePanel input) {
@@ -358,10 +405,9 @@ final class DirectivePanel implements DirectiveSetInterface {
         return false;
       }
     }
-    else {
-      if (!FieldValidator.equals(fieldType, ltfValue.getText(), input.ltfValue.getText())) {
-        return false;
-      }
+    else if (!FieldValidator.equals(fieldType, ltfValue.getText(),
+        input.ltfValue.getText())) {
+      return false;
     }
     return true;
   }
@@ -503,6 +549,9 @@ final class DirectivePanel implements DirectiveSetInterface {
     }
     else {
       ltfValue.setToolTipText(tooltip);
+      if (sbFileValue != null) {
+        sbFileValue.setToolTipText(TooltipFormatter.INSTANCE.format(tooltip));
+      }
     }
   }
 
@@ -515,6 +564,18 @@ final class DirectivePanel implements DirectiveSetInterface {
 
     public void actionPerformed(final ActionEvent event) {
       panel.action();
+    }
+  }
+
+  private static final class DirectiveFileValueListener implements ActionListener {
+    private final DirectivePanel panel;
+
+    private DirectiveFileValueListener(final DirectivePanel panel) {
+      this.panel = panel;
+    }
+
+    public void actionPerformed(final ActionEvent event) {
+      panel.fileValueAction();
     }
   }
 }

@@ -256,7 +256,8 @@ public final class DirectiveEditorManager extends BaseManager {
       return false;
     }
     List<Directive> directiveList = dialog.getIncludeDirectiveList();
-    writer.write(dialog.getComments(), dialog.getIncludeDirectiveList());
+    writer.write(type, dialog.getComments(), dialog.getIncludeDirectiveList(),
+        dialog.getDroppedDirectives());
     writer.close();
     dialog.setFileTimestamp(new Date(saveFile.lastModified()));
     return true;
