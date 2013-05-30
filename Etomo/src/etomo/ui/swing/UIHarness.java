@@ -3,7 +3,10 @@ package etomo.ui.swing;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.io.File;
 import java.util.Hashtable;
+
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 import etomo.BaseManager;
@@ -44,6 +47,7 @@ public final class UIHarness {
   private boolean headless = false;
   private MainFrame mainFrame = null;
   private boolean verbose = false;
+  private JFileChooser fileChooser = null;
 
   private UIHarness() {
   }
@@ -416,6 +420,33 @@ public final class UIHarness {
       return getFrame(manager).getLocation();
     }
     return new Point(0, 0);
+  }
+
+  /**
+   * Returns the existing file chooser.  Everything in the file chooser is reset except
+   * current directory.
+   * @return a file chooser if the application has a GUI, otherwise null
+   */
+  public JFileChooser getFileChooser() {
+    if (isHead()) {
+      if (fileChooser == null) {
+        fileChooser = new FileChooser(null);
+        fileChooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+      }
+      else {
+        //restore to defaults
+        fileChooser.resetChoosableFileFilters();
+        fileChooser.setDialogTitle(FileChooser.DEFAULT_TITLE);
+        fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
+        fileChooser.setFileFilter(null);
+        fileChooser.setFileHidingEnabled(true);
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setMultiSelectionEnabled(false);
+        fileChooser.setSelectedFile(new File(""));
+      }
+      return fileChooser;
+    }
+    return null;
   }
 
   public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
