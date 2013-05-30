@@ -116,7 +116,7 @@ public final class DirectiveName {
       }
     }
     else if ((type == DirectiveType.COM_PARAM || type == DirectiveType.RUNTIME)
-        && key.length >= PARAMETER_NAME_INDEX) {
+        && key.length > PARAMETER_NAME_INDEX) {
       return key[PARAMETER_NAME_INDEX];
     }
     return null;
@@ -147,6 +147,10 @@ public final class DirectiveName {
 
   public DirectiveType getType() {
     return type;
+  }
+
+  boolean isCopyArg() {
+    return type == DirectiveType.SETUP_SET && key.length > 1 && key[1].equals("copyarg");
   }
 
   public boolean isValid() {
