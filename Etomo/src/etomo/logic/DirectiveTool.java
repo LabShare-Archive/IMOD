@@ -153,11 +153,14 @@ public final class DirectiveTool {
       return false;
     }
     // Hide unchanged and hidden directives, unless the display settings say otherwise.
+    //Batch directives and undefined directives are never considered hidden.
     DirectiveDescrEtomoColumn etomoColumn = directive.getEtomoColumn();
     directive.setDebug(debug);
     boolean retval = (displaySettings.isShowUnchanged() || directive.getValues()
         .isChanged())
-        && (displaySettings.isShowHidden() || (etomoColumn != null && etomoColumn != DirectiveDescrEtomoColumn.NE));
+        && (displaySettings.isShowHidden()
+            || (etomoColumn != null && etomoColumn != DirectiveDescrEtomoColumn.NE)
+            || type == DirectiveFileType.BATCH || directive.getDescription() == null);
     directive.resetDebug();
     return retval;
   }
