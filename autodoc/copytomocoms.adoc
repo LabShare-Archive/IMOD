@@ -40,11 +40,11 @@ manpage = Pixel size of images in nanometers.  This entry is required.
 
 [Field = GoldBeadSize]
 short = gold
-type = 
+type = F
 usage = Size of gold beads in nanometers (required)
 tooltip = 
-manpage = Size of gold beads in nanometers.  This entry is required.  Enter an
-arbitrary number like 1 if you are not going to track fiducials.
+manpage = Size of gold beads in nanometers.  This entry is required.  Enter 0
+if you are not going to track fiducials.
 
 [Field = RotationAngle]
 short = rotation
