@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
   char *boundFn = NULL;
   int volt, iWidth, defocusTol, ii, ierr;
   float pixelSize, cs, ampContrast, stripDefocus;
-  int startingView, endingView, startingTotal, endingTotal;
+  int startingView, endingView, startingTotal, endingTotal, defVersion;
   bool isSingleRun = false;
   int invertAngles = 0;
   int maxStripWidth = 256;
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
   FILE *fpStack;
   if ((fpStack = fopen(stackFn, "rb")) == 0)
     exitError("could not open input file %s", stackFn);
-  defocusList = readDefocusFile(defFn);
+  defocusList = readDefocusFile(defFn, defVersion);
   if (!ilistSize(defocusList))
     exitError("The defocus file %s is non-existent or empty - did you save in ctfplotter?"
               , defFn);
@@ -216,8 +216,8 @@ int main(int argc, char *argv[])
     tiltAngles = readTiltAngles(angleFn, nz, angleSign, minAngle, maxAngle);
 
   // Check the defocus list if there is more than one value
-  if (ilistSize(defocusList) > 1 &&
-      checkAndFixDefocusList(defocusList, tiltAngles, nz))
+  if (ilistSize(defocusList) > 1 && 
+      checkAndFixDefocusList(defocusList, tiltAngles, nz, defVersion))
     printf("WARNING: ctfphaseflip - View numbers in defocus file are not all "
            "consistent with the angular ranges\n");
 
