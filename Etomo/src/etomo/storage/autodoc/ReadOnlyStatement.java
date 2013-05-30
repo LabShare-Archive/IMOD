@@ -1,4 +1,5 @@
 package etomo.storage.autodoc;
+
 /**
 * <p>Description: </p>
 * 
@@ -26,19 +27,20 @@ package etomo.storage.autodoc;
 * <p> </p>
 */
 public interface ReadOnlyStatement {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   /**
    * Get the Type of the instance.  This is a substitute for instanceof.
    * @return
    */
   public Statement.Type getType();
-  
+
   /**
    * Get something equivalent to the original statement.  Not guaranteed to be
    * exactly the same.
    */
   public String getString();
+
   /**
    * NameValuePair:  returns the number of attributes that make up the name
    * Subsection:  returns 1 (refers to Section.type)
@@ -46,7 +48,16 @@ public interface ReadOnlyStatement {
    * @return
    */
   public int sizeLeftSide();
-  
+
+  /**
+   * NameValuePair:  returns the entire left side of the statement (the name of the name/value pair)
+   * Subsection:  returns Section.type
+   * Everything else return null
+   * @param index
+   * @return
+   */
+  public String getLeftSide();
+
   /**
    * NameValuePair:  returns name.get(index).getName()
    * Subsection:  if index is 0, return Section.type, otherwise returns null
@@ -55,7 +66,7 @@ public interface ReadOnlyStatement {
    * @return
    */
   public String getLeftSide(int index);
-  
+
   /**
    * NameValuePair:  returns value or null if out of bounds
    * Subsection:  returns Section.name
@@ -64,7 +75,7 @@ public interface ReadOnlyStatement {
    * @return
    */
   public String getRightSide();
-  
+
   /**
    * If this is a subsection, get the subsection as a ReadOnlySection
    * @return

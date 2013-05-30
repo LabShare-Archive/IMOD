@@ -125,8 +125,8 @@ public final class FileType {
   // File types with a name description
   public static final FileType FIDUCIAL_3D_MODEL = FileType.getImodInstance(true, true,
       "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
-  public static final FileType LOCAL_BATCH_DIRECTIVE_FILE = FileType.getInstance(false, false,
-      "batchDirective", ".adoc");
+  public static final FileType LOCAL_BATCH_DIRECTIVE_FILE = FileType.getInstance(false,
+      false, "batchDirective", ".adoc");
   public static final FileType LOCAL_SCOPE_TEMPLATE = FileType.getInstance(false, false,
       "scopeTemplate", ".adoc");
   public static final FileType LOCAL_SYSTEM_TEMPLATE = FileType.getInstance(false, false,
@@ -151,8 +151,8 @@ public final class FileType {
       "autofidseed", ".com");
   public static final FileType BLEND_COMSCRIPT = FileType.getInstance(false, true,
       "blend", ".com");
-  public static final FileType COPYTOMOCOMS_COMSCRIPT = FileType.getInstance(false, false,
-      "copytomocoms", ".com");
+  public static final FileType COPYTOMOCOMS_COMSCRIPT = FileType.getInstance(false,
+      false, "copytomocoms", ".com");
   public static final FileType GOLD_ERASER_COMSCRIPT = FileType.getInstance(false, true,
       "golderaser", ".com");
   public static final FileType PREBLEND_COMSCRIPT = FileType.getInstance(false, true,
@@ -183,6 +183,8 @@ public final class FileType {
       true, "xcorr", ".com");
   public static final FileType PATCH_TRACKING_COMSCRIPT = FileType.getInstance(false,
       true, "xcorr_pt", ".com");
+  public static final FileType DIRECTIVES_DESCR = FileType.getIMODDirInstance(false,
+      false, "directives", ".csv", "com");
   public static final FileType DISTORTION_CORRECTED_STACK = FileType.getInstance(true,
       true, "", ".dcst");
   public static final FileType AUTOFIDSEED_DIR = FileType.getInstance(false, true,
@@ -203,6 +205,8 @@ public final class FileType {
       "_modeled", ".join", ImodManager.MODELED_JOIN_KEY);
   public static final FileType TRIAL_JOIN = FileType.getImodInstance(true, false,
       "_trial", ".join", ImodManager.TRIAL_JOIN_KEY);
+  public static final FileType ERASER_LOG = FileType.getInstance(false, true, "eraser",
+      ".log");
   public static final FileType TILT_ALIGN_LOG = FileType.getInstance(false, true,
       "align", ".log");
   public static final FileType GPU_TEST_LOG = FileType.getInstance(false, false,

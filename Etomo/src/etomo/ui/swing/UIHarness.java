@@ -3,13 +3,17 @@ package etomo.ui.swing;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.io.File;
 import java.util.Hashtable;
+
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.type.AxisID;
+import etomo.type.EtomoBoolean2;
 import etomo.util.UniqueKey;
 
 /**
@@ -43,6 +47,7 @@ public final class UIHarness {
   private boolean headless = false;
   private MainFrame mainFrame = null;
   private boolean verbose = false;
+  private JFileChooser fileChooser = null;
 
   private UIHarness() {
   }
@@ -180,13 +185,28 @@ public final class UIHarness {
     }
   }
 
-  public synchronized int openYesNoCancelDialog(BaseManager manager, String[] message,
-      AxisID axisID) {
+  public synchronized EtomoBoolean2 openYesNoCancelDialog(BaseManager manager,
+      String message, AxisID axisID) {
+    EtomoBoolean2 retval = null;
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
-      return getFrame(manager).displayYesNoCancelMessage(manager, message, axisID);
+      int dialogRetValue = getFrame(manager).displayYesNoCancelMessage(manager, message,
+          axisID);
+      if (dialogRetValue == JOptionPane.CANCEL_OPTION) {
+        return null;
+      }
+      retval = new EtomoBoolean2();
+      if (dialogRetValue == JOptionPane.YES_OPTION) {
+        retval.set(true);
+      }
+      else if (dialogRetValue == JOptionPane.YES_OPTION) {
+        retval.set(false);
+      }
+      return retval;
     }
     log(message, axisID);
-    return JOptionPane.YES_OPTION;
+    retval = new EtomoBoolean2();
+    retval.set(true);
+    return retval;
   }
 
   public synchronized boolean openYesNoDialog(BaseManager manager, String message,
@@ -262,6 +282,24 @@ public final class UIHarness {
         if (focusComponent != null) {
           focusComponent.requestFocus();
         }
+      }
+    }
+  }
+
+  public void cancel(final BaseManager manager) {
+    if (isHead()) {
+      AbstractFrame frame = getFrame(manager);
+      if (frame != null) {
+        frame.cancel();
+      }
+    }
+  }
+
+  public void save(final BaseManager manager, final AxisID axisID) {
+    if (isHead()) {
+      AbstractFrame frame = getFrame(manager);
+      if (frame != null) {
+        frame.save(axisID);
       }
     }
   }
@@ -384,6 +422,33 @@ public final class UIHarness {
     return new Point(0, 0);
   }
 
+  /**
+   * Returns the existing file chooser.  Everything in the file chooser is reset except
+   * current directory.
+   * @return a file chooser if the application has a GUI, otherwise null
+   */
+  public JFileChooser getFileChooser() {
+    if (isHead()) {
+      if (fileChooser == null) {
+        fileChooser = new FileChooser(null);
+        fileChooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+      }
+      else {
+        //restore to defaults
+        fileChooser.resetChoosableFileFilters();
+        fileChooser.setDialogTitle(FileChooser.DEFAULT_TITLE);
+        fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
+        fileChooser.setFileFilter(null);
+        fileChooser.setFileHidingEnabled(true);
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setMultiSelectionEnabled(false);
+        fileChooser.setSelectedFile(new File(""));
+      }
+      return fileChooser;
+    }
+    return null;
+  }
+
   public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
     if (isHead()) {
@@ -459,9 +524,9 @@ public final class UIHarness {
     }
   }
 
-  public void addFrame(BaseManager manager) {
+  public void addFrame(final BaseManager manager, final boolean savable) {
     if (isHead()) {
-      ManagerFrame managerFrame = ManagerFrame.getInstance(manager);
+      ManagerFrame managerFrame = ManagerFrame.getInstance(manager, savable);
       managerFrameTable.put(manager, managerFrame);
     }
   }

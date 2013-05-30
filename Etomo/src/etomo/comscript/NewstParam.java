@@ -217,6 +217,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   public static final String OFFSETS_IN_X_AND_Y_KEY = "OffsetsInXandY";
   public static final String BIN_BY_FACTOR_KEY = "BinByFactor";
   public static final String FILL_VALUE_KEY = "FillValue";
+  public static final String MODE_TO_OUTPUT_KEY="ModeToOutput";
   // data mode
   public static final String DATA_MODE_OPTION = "-mo";
   public static final int DATA_MODE_DEFAULT = Integer.MIN_VALUE;
@@ -237,7 +238,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private final List<String> numberToOutput = new Vector<String>();
   private final FortranInputString sizeToOutputInXandY = new FortranInputString(
       "SizeToOutputInXandY", 2);
-  private final ScriptParameter modeToOutput = new ScriptParameter("ModeToOutput");
+  private final ScriptParameter modeToOutput = new ScriptParameter(MODE_TO_OUTPUT_KEY);
   private final FortranInputString userSizeToOutputInXandY = new FortranInputString(2);
   private final FortranInputString offsetsInXandY = new FortranInputString(
       OFFSETS_IN_X_AND_Y_KEY, 2);

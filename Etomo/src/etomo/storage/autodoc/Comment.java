@@ -70,6 +70,10 @@ final class Comment extends Statement {
     return 0;
   }
 
+  public String getLeftSide() {
+    return null;
+  }
+
   public String getLeftSide(int index) {
     return null;
   }

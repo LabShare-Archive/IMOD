@@ -33,21 +33,24 @@ import etomo.JUnitTests;
 */
 
 public class StorageTests {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   private static final String TEST_DIR = "etomo/storage";
   static final File TEST_ROOT_DIR = new File(JUnitTests.TEST_ROOT_DIR, TEST_DIR);
-  
+
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests:  " + TEST_DIR);
-    //$JUnit-BEGIN$
+    // $JUnit-BEGIN$
     suite.addTestSuite(LogFileTest.class);
     suite.addTestSuite(ParameterStoreTest.class);
     suite.addTestSuite(JoinInfoFileTest.class);
     suite.addTestSuite(TomogramFileFilterTest.class);
-    
-    //suite.addTest(new LogFileTest("testIds"));
-    //$JUnit-END$
+    suite.addTestSuite(DirectiveMapTest.class);
+    suite.addTestSuite(DirectiveNameTest.class);
+    suite.addTestSuite(ComFileTest.class);
+    suite.addTestSuite(DirectiveDescrFileTest.class);
+    // suite.addTest(new LogFileTest("testIds"));
+    // $JUnit-END$
     return suite;
   }
 }
