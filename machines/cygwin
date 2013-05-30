@@ -359,7 +359,7 @@ EOF
 
 cat <<EOF >! $mrc2tif_qconf
 CONFIG += CONSOLE
-LIBS += libiimod.lib llibcfshr.lib libtiff.lib
+LIBS += libiimod.lib libcfshr.lib libtiff.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:"../../buildlib"
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"../../buildlib"
 EOF
