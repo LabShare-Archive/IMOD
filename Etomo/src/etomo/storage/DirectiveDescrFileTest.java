@@ -8,6 +8,7 @@ import etomo.type.AxisID;
 import etomo.type.FileType;
 import etomo.util.TestUtilites;
 import junit.framework.TestCase;
+
 /**
 * <p>Description: </p>
 * 
@@ -24,8 +25,8 @@ import junit.framework.TestCase;
 * <p> $Log$ </p>
 */
 public class DirectiveDescrFileTest extends TestCase {
-  public static  final String  rcsid =  "$Id:$";
-  
+  public static final String rcsid = "$Id:$";
+
   public void testIterator() {
     BaseManager manager = (BaseManager) EtomoDirector.INSTANCE.getCurrentManagerForTest();
     DirectiveDescrFile descrFile = DirectiveDescrFile.INSTANCE;
@@ -40,7 +41,7 @@ public class DirectiveDescrFileTest extends TestCase {
     assertFalse("file title", iterator.isDirective());
     assertEquals("file title", "Batch/Template Directives", iterator.getName());
     assertNull("file title", iterator.getDescription());
-    assertNull("file title", iterator.getValueType());
+    assertEquals("file title", iterator.getValueType(), DirectiveValueType.UNKNOWN);
     assertFalse("file title", iterator.isBatch());
     assertFalse("file title", iterator.isTemplate());
     assertNull("file title", iterator.getEtomoColumn());
@@ -52,7 +53,7 @@ public class DirectiveDescrFileTest extends TestCase {
     assertEquals("title", "Directives for Batch Processing and Template Files",
         iterator.getName());
     assertNull("title", iterator.getDescription());
-    assertNull("title", iterator.getValueType());
+    assertEquals("title", iterator.getValueType(), DirectiveValueType.UNKNOWN);
     assertFalse("title", iterator.isBatch());
     assertFalse("title", iterator.isTemplate());
     assertNull("title", iterator.getEtomoColumn());
@@ -63,7 +64,7 @@ public class DirectiveDescrFileTest extends TestCase {
     assertTrue("column header", iterator.isDirective());
     assertEquals("column header", "Directive", iterator.getName());
     assertEquals("column header", "Definition", iterator.getDescription());
-    assertNull("column header", iterator.getValueType());
+    assertEquals("column header", iterator.getValueType(), DirectiveValueType.UNKNOWN);
     assertFalse("column header", iterator.isBatch());
     assertFalse("column header", iterator.isTemplate());
     assertNull("column header", iterator.getEtomoColumn());
@@ -74,7 +75,7 @@ public class DirectiveDescrFileTest extends TestCase {
     assertFalse("blank", iterator.isDirective());
     assertNull("blank", iterator.getName());
     assertNull("blank", iterator.getDescription());
-    assertNull("blank", iterator.getValueType());
+    assertEquals("blank", iterator.getValueType(), DirectiveValueType.UNKNOWN);
     assertFalse("blank", iterator.isBatch());
     assertFalse("blank", iterator.isTemplate());
     assertNull("blank", iterator.getEtomoColumn());
@@ -86,7 +87,8 @@ public class DirectiveDescrFileTest extends TestCase {
     assertEquals("header - Arguments to copytomocoms", "Arguments to copytomocoms",
         iterator.getName());
     assertNull("header - Arguments to copytomocoms", iterator.getDescription());
-    assertNull("header - Arguments to copytomocoms", iterator.getValueType());
+    assertEquals("header - Arguments to copytomocoms", iterator.getValueType(),
+        DirectiveValueType.UNKNOWN);
     assertFalse("header - Arguments to copytomocoms", iterator.isBatch());
     assertFalse("header - Arguments to copytomocoms", iterator.isTemplate());
     assertNull("header - Arguments to copytomocoms", iterator.getEtomoColumn());
@@ -111,8 +113,7 @@ public class DirectiveDescrFileTest extends TestCase {
     assertTrue("dual", iterator.getValueType() == DirectiveValueType.BOOLEAN);
     assertTrue("dual", iterator.isBatch());
     assertTrue("dual", iterator.isTemplate());
-    assertTrue("dual",
-        iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.SO);
+    assertTrue("dual", iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.SO);
 
     assertTrue("montage", iterator.hasNext());
     iterator.next();
@@ -123,8 +124,7 @@ public class DirectiveDescrFileTest extends TestCase {
     assertTrue("montage", iterator.getValueType() == DirectiveValueType.BOOLEAN);
     assertTrue("montage", iterator.isBatch());
     assertTrue("montage", iterator.isTemplate());
-    assertTrue("montage",
-        iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
+    assertTrue("montage", iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
 
     assertTrue("pixel", iterator.hasNext());
     iterator.next();
@@ -217,8 +217,7 @@ public class DirectiveDescrFileTest extends TestCase {
     assertTrue("Cs", iterator.getValueType() == DirectiveValueType.FLOATING_POINT);
     assertTrue("Cs", iterator.isBatch());
     assertTrue("Cs", iterator.isTemplate());
-    assertTrue("Cs",
-        iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
+    assertTrue("Cs", iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
 
     // ctfnoise
     iterator.next();
@@ -263,8 +262,7 @@ public class DirectiveDescrFileTest extends TestCase {
     assertTrue("removeXrays", iterator.getValueType() == DirectiveValueType.BOOLEAN);
     assertTrue("removeXrays", iterator.isBatch());
     assertFalse("removeXrays", iterator.isTemplate());
-    assertTrue("removeXrays",
-        iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.NE);
+    assertTrue("removeXrays", iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.NE);
 
     assertTrue("PeakCriterion", iterator.hasNext());
     iterator.next();
@@ -277,8 +275,7 @@ public class DirectiveDescrFileTest extends TestCase {
         iterator.getValueType() == DirectiveValueType.FLOATING_POINT);
     assertTrue("PeakCriterion", iterator.isBatch());
     assertTrue("PeakCriterion", iterator.isTemplate());
-    assertTrue("PeakCriterion",
-        iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
+    assertTrue("PeakCriterion", iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.SD);
 
     // DiffCriterion
     iterator.next();
@@ -379,7 +376,7 @@ public class DirectiveDescrFileTest extends TestCase {
     iterator.next();
     // header - Auto seed finding
     iterator.next();
-    
+
     assertTrue("TwoSurfaces", iterator.hasNext());
     iterator.next();
     assertFalse("TwoSurfaces", iterator.isSection());
@@ -390,8 +387,7 @@ public class DirectiveDescrFileTest extends TestCase {
     assertTrue("TwoSurfaces", iterator.getValueType() == DirectiveValueType.BOOLEAN);
     assertTrue("TwoSurfaces", iterator.isBatch());
     assertTrue("TwoSurfaces", iterator.isTemplate());
-    assertTrue("TwoSurfaces",
-        iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.NES);
+    assertTrue("TwoSurfaces", iterator.getEtomoColumn() == DirectiveDescrEtomoColumn.NES);
 
     DirectiveDescrFile.INSTANCE.releaseIterator(iterator);
   }
