@@ -94,6 +94,8 @@ class MyApp : public QObject
     SliceCache *getCache2() {return mCache2;};
     void showHideWidget(QWidget *widget, bool state);
     void showWarning(const char *title, const char *message);
+    void setFitSingleViews(bool state) {mFitSingleViews = state;};
+    bool getFitSingleViews() {return mFitSingleViews;};
     
     MyApp(int volt, double pSize, 
           double ampRatio, float cs, char *defFn, int dim, int hyper, 
@@ -186,6 +188,9 @@ class MyApp : public QObject
     double *mAllNoisePS;
     double *mNoisePS;
     double mDefocusOffset; // defocus offset between 1st and 2nd tilt series
+    int mDefVersionIn;      // Version number if any in read-in file
+    int mDefVersionOut;     // Version number to write in output file
+    bool mFitSingleViews;   // Flag to fit single views
 };
 
 #endif

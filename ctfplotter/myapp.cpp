@@ -95,7 +95,10 @@ MyApp::MyApp(int volt, double pSize,
   }
 
   // read in existing defocus data
-  mSaved = readDefocusFile(mFnDefocus);
+  mDefVersionIn = 0;
+  mSaved = readDefocusFile(mFnDefocus, mDefVersionIn);
+  mDefVersionOut = 2;
+  mFitSingleViews = false;
 }
 
 MyApp::~MyApp()
@@ -334,8 +337,8 @@ void MyApp::setSlice(const char *stackFile, char *angleFile,
 
     // Now that we finally know z size, we can check the starting and ending
     // slices and fix them if they are off by 1 or otherwise inconsistent
-    if (ilistSize(mSaved) &&
-        checkAndFixDefocusList(mSaved, mTiltAngles, mNzz)) {
+    if (ilistSize(mSaved) && 
+        checkAndFixDefocusList(mSaved, mTiltAngles, mNzz, mDefVersionIn)) {
       const char title[] = "WARNING: Inconsistent view numbers";
       const char message[] = "The view numbers in the existing defocus file were not"
         " all\nconsistent with the angular ranges.  You should find the defocus\n"
@@ -916,6 +919,8 @@ int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
     return 1;
 
   // Determine how many ranges to do
+  if (mFitSingleViews)
+    rangeStep = 0;
   if (rangeStep > 0) {
     numSteps = B3DNINT((maxAngle - minAngle - rangeSize) / rangeStep + 1.);
     trueStep = rangeStep;
@@ -1098,9 +1103,14 @@ void MyApp::writeDefocusFile()
 
   for (i = 0; i < ilistSize(mSaved); i++) {
     item = (SavedDefocus *)ilistItem(mSaved, i);
-    fprintf(fp, "%d\t%d\t%5.2f\t%5.2f\t%6.0f\n", item->startingSlice + 1,
+    fprintf(fp, "%d\t%d\t%5.2f\t%5.2f\t%6.0f", item->startingSlice + 1,
             item->endingSlice + 1, item->lAngle, item->hAngle,
             item->defocus * 1000);
+    if (i)
+      fprintf(fp, "\n");
+    else
+      fprintf(fp, "   %d\n", mDefVersionOut);
+      
   }
   fclose(fp);
   mSaveModified = false;
