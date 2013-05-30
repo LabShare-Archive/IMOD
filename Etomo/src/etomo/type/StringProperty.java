@@ -43,14 +43,24 @@ public final class StringProperty implements ConstStringProperty {
   public static final String rcsid = "$Id$";
 
   private final String key;
+  private final boolean returnNullWhenEmpty;
 
   private String string = null;
 
   public StringProperty(final String key) {
     this.key = key;
+    this.returnNullWhenEmpty = false;
+  }
+
+  public StringProperty(final String key, final boolean returnNullWhenEmpty) {
+    this.key = key;
+    this.returnNullWhenEmpty = returnNullWhenEmpty;
   }
 
   public String toString() {
+    if (returnNullWhenEmpty && isEmpty()) {
+      return null;
+    }
     if (string == null) {
       return "";
     }

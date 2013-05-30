@@ -8,6 +8,7 @@ c
 c       $Id$
 c       
       subroutine psMiscItems(xscal,xlo,xad,xran,yscal,ylo,yad,yran)
+      use plotvars
       character*160 line
       character*320 pwrstr
       character*1 letter
@@ -31,6 +32,12 @@ c
         jsize=pwxupi*size
         write(*,*)'Enter text string'
         read(5,'(a)')line
+        call lookupColorIndex(6, itext, icl)
+        if (icl > 0) then
+          call psSetColor(icolors(2, icl), icolors(3, icl), icolors(4, icl))
+        else
+          call psSetColor(0, 0, 0)
+        endif
         call psWriteText(xpos,ypos,trim(line),jsize,jor,just)
 10    continue
 c       
@@ -66,6 +73,12 @@ c
      &      //' and thickness,',
      &      '    and box size (0 for none) and thickness: '
         read(5,*)itype,size,isymthk,boxsiz,iboxthk
+        call lookupColorIndex(5, itype, icl)
+        if (icl > 0) then
+          call psSetColor(icolors(2, icl), icolors(3, icl), icolors(4, icl))
+        else
+          call psSetColor(0, 0, 0)
+        endif
         if(itype.ne.0)then
           call psSymSize(size)
           call psSetup(isymthk,c1,upi,c3,0)
@@ -82,6 +95,7 @@ c
         endif
 30    continue
 c       
+      call psSetColor(0, 0, 0)
       do 50 iline=1,nlines
         write(*,'(a,i2)')' Enter parameters for line # ',iline
         write(*,'(1x,a,$)')'0 for user units, 1 for absolute'//

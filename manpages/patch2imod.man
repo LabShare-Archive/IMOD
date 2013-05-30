@@ -42,7 +42,7 @@ The scaling is stored as the pixel size in the model header.  Do not change
 this value, or imod2patch will not be able to convert the displacements back
 correctly.
 .P
-The program will also convert a list of 2-D residuals produced by tiltalign(1).
+The program will also convert a list of 2-D residuals produced by Tiltalign(1).
 In this case, the model is not marked as flipped, so that it can be displayed
 on top of the original image file.
 .SS Options
@@ -53,7 +53,8 @@ Change the vector length scaling to the given value; the default is 10.
 .B -f
 Do not flip Y and Z coordinates in the model.  Use this option to display the
 model on a tomogram that has been flipped or rotated from its original
-orientation.
+orientation.  The option is not needed with a Tiltalign(1) residual file or
+with a warping transformation file.
 .TP
 .B -c <size>
 Include four clipping planes in the model to enclose a square area of the
@@ -67,7 +68,7 @@ Give this name to the model object.  The name is useful for indicating what
 kind of values are stored with the vectors.
 .TP
 .B -d
-Set the flag to display stored values in false color 3dmod.  This option has
+Set the flag to display stored values in false color in 3dmod.  This option has
 the same effect as turning on the "Show stored values" button in the Values
 panel of the Edit-Objects dialog of the Model View window.
 .TP
@@ -76,15 +77,32 @@ Ignore zero values when computing the mean and SD of values.  The program
 computes the actual maximum value and the mean and SD, and then stores a
 maximum value that is limited to 10 SDs above the mean.  This stored value
 determines the maximum that is shown in the model view object edit window of
-3dmod.  This option is needed when there a very large numbers of zero values.
+3dmod.  This option is needed when there are a very large numbers of zero values.
 .TP
 .B -l
 Read all lines in the file as lines with vectors.  By default, the program
 reads the first line to determine the number of lines, then reads that
 number of lines as vectors. 
+.TP
+.B -w
+Read the input file as a warping transformation file like those produced by Midas(1)
+and Tiltxcorr(1).  Both control point and warping grid files can be
+converted.  The negative of the warping vector values will be displayed
+because those values are inverse transform values.
+.TP
+.B -t
+Assign a time to each contour, equal to its Z value plus 1.  This option may
+be useful when examining vector models from a warping transformation file or
+from the edge function output of Blendmont(1), because it would allow one to
+examine vectors for one section or edge function at a time in the Model View
+window instead of in the Zap window.  One can step through times with the 1
+and 2 hot keys, but there may be no good way to select a specific time out of
+many.
 .SH FILES
 Unless the 
 .B -l
+option or the 
+.B -w
 option is given, the first line of the file must have the number of vectors in
 the file.  If this line contains "residuals", then each succeeding line
 should have five values: X, Y, Z, delta X and delta Y.  X and Y may be
@@ -100,6 +118,6 @@ name.
 David Mastronarde
 .SH SEE ALSO
 imod2patch(1), patchcrawl3d(1), patchcorr3d(1), 3dmod(1), 3dmodv(1),
-findwarp(1), refinematch(1), tiltalign(1)
+findwarp(1), refinematch(1), tiltalign(1), tiltxcorr(1), midas(1)
 .SH BUGS
 Email bug reports to mast@colorado.edu.

@@ -70,7 +70,7 @@ axisLabels = ['View number', 'View number', 'View number', 'View number']
 # Fallbacks from ../manpages/autodoc2man 3 1 plottomodata
 options = ["input:InputFile:FN:", "type:TypeOfDataToPlot:IA:",
            "connect:ConnectWithLines:I:", "symbols:SymbolsForGroups:IA:",
-           "color:ColorOfGroup:CHM:"]
+           "hue:HueOfGroup:CHM:"]
 
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 1, 0)
 
@@ -98,7 +98,7 @@ connect = max(0, min(1, connect))
 if PipGetErrNo():
    connect = typeTable[dataType][4]
 symbolsIn = PipGetIntegerArray('SymbolsForGroups', 0)
-numColors = PipNumberOfEntries('ColorOfGroup')
+numColors = PipNumberOfEntries('HueOfGroup')
 ifTypes = False
 
 # Handle generic option setup into onegenplot
@@ -244,7 +244,7 @@ if len(symbols) > 1:
 else:
    colors = []
 for ind in range(numColors):
-   newColor = PipGetString('ColorOfGroup', '')
+   newColor = PipGetString('HueOfGroup', '')
    ncsplit = newColor.split(',')
    for ind in range(len(colors)):
       dcsplit = colors[ind].split(',')
@@ -254,7 +254,7 @@ for ind in range(numColors):
    else:  # ELSE ON FOR
       colors.append(newColor)
 for col in colors:
-   comlines.append('ColorOfGroup ' + col)
+   comlines.append('HueOfGroup ' + col)
 
 # Run onegenplot
 try:

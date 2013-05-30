@@ -89,7 +89,7 @@ imodexplode$(E) : imodexplode.$(O)
 	$(CC) -o imodexplode imodexplode.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 patch2imod$(E) : patch2imod.$(O) 
-	$(CC) -o patch2imod patch2imod.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+	$(CC) -o patch2imod patch2imod.$(O) $(LDFLAGS) $(LIWARP) $(MODLIBS) $(CLIBS)
 
 imod2patch$(E) : imod2patch.$(O) 
 	$(CC) -o imod2patch imod2patch.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)

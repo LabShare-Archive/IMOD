@@ -72,7 +72,7 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
       igroup = igroupNum(i)
       if (igroup .ne. igrpLast .and. numColors > 0) then
         icolorUse = 241
-        call lookupColorIndex(igroup, icl)
+        call lookupColorIndex(1, igroup, icl)
         if (icl > 0) icolorUse = 100 + icl
         call scrnChangeColor(icolorUse)
       endif
@@ -105,7 +105,7 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
     ! Output symbols and keys on right
     do i = 1, min(numKeys, numGroups)
       icolorUse = 241
-      call lookupColorIndex(i, icl)
+      call lookupColorIndex(1, i, icl)
       if (icl > 0) icolorUse = 100 + icl
       call scrnChangeColor(icolorUse)
       ix = (xlow + 10. * dx) * xscale + xadd + 30
@@ -311,7 +311,7 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
     sxy = 0.
     nn = 0
     if (doPlot .and. numColors > 0) then
-      call lookupColorIndex(igroup, icl)
+      call lookupColorIndex(1, igroup, icl)
       if (icl > 0) then
         call psSetColor(icolors(2, icl), icolors(3, icl), icolors(4, icl))
       else
@@ -438,7 +438,7 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
       doConnect = (ifPlotConnect > 0) .and. (i > 1) .and.  &
           (.not.byGroup .or. igroupNum(i) == igrpLast)
       if (numColors > 0 .and. igroupNum(i) .ne. igrpLast) then
-        call lookupColorIndex(igroupNum(i), icl)
+        call lookupColorIndex(1, igroupNum(i), icl)
         if (icl > 0) then
           call psSetColor(icolors(2, icl), icolors(3, icl), icolors(4, icl))
         else
@@ -452,7 +452,7 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
       ryAdj = ry - connectAdjust
       if (doConnect) then
         call psSetup(ifPlotConnect, c1, c2, c3, 0)
-        cutDist = 1.1 * symWidth
+        cutDist = symConnectGap * symWidth
         fracCut = 0.
         distTot = sqrt((rxAdj - rxLast)**2 + (ryAdj - ryLast)**2)
         if (isymbTemp .ne. 0 .and. distTot > 1.e-4) fracCut = cutDist / distTot
@@ -504,17 +504,6 @@ subroutine bsplt(namex, xx, yy, igroupNum, numPoints, isymbol, numGroups, irecx,
   endif
   return
 end subroutine bsplt
-
-subroutine lookupColorIndex(igroup, index)
-  use plotvars
-  implicit none
-  integer*4 igroup, index
-  do index = 1, numColors
-    if (igroup == icolors(1, index)) return
-  enddo
-  index = -1
-  return
-end subroutine lookupColorIndex
 
 subroutine gnplt(xx, yy, igroupNum, numPoints, isymbol, numGroups, ifLogX, ifLogY)
   use plotvars

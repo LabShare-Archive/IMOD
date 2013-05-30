@@ -1,9 +1,103 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/30/13: Fixed Tomodataplots to send right color option to Onegenplot.
+
+5/29/13: IMOD-4-6-21
+5/29/13: Ctfplotter: added version number to defocus file so the old bug of
+view numbers off by 1 will not be detected in error, allowed double-clicking a
+row to set the angles to that row, and added checkbox fo fitting to each view.
+
+5/28/13: In eTomo - Join, using the -cs Midas parameter instead of the -c
+parameter.(Bug# 1704)
+
+5/28/13: Changed the local load average process to use the bash shell unless
+the user's shell is tcsh.(Bug# 1703)
+
+5/27/13: Tiltxcorr can now produce a file of warping transformations with a
+variant of patch tracking.
+
+5/27/13: Made Patch2imod able to produce a model from warping transforms.
+
+5/27/13: Midas: Added input option to specify sample sizes instead of chunks
+sizes so that selected sections can be constrained better; added controls for
+see warping vectors and selecting warp points based on size of their shifts;
+improved cross-correlation around warp point to reduce need for iterating.
+
+5/27/13: Made Xf2rotmagstr able to read warping files.
+
+5/22/13: Fixed 3dmod recognition of DigitalMicrograph files to work with file
+from tilt series.
+
+5/21/13: Batchruntomo will now accept .mrc stack files and rename them to .st,
+will take template entries with no path and find files in default locations,
+and gets the pixel size correctly from FEI files.
+
+5/7/13: Added option to Ctfphaseflip to set maximum strip width, for reducing
+artifacts at zeros in FFT at low tilts.
+
+4/10/13: Fixed Batchruntomo's reading of processchunks log hanging on Mac.
+
+4/9/13: Handled multi-line INFO and WARNING messages in copytomocoms.
+(Bug# 1694)
+
+4/9/13: Made shift limits to Tiltxcorr apply to shift from one view to next
+when using cumulative correlation.
+
+4/9/13: Fixed a few bugs in Batchruntomo for single axis and for running in
+Windows.
+
+4/7/13: Added options to Batchruntomo to specify the data set name and
+directory so that a batch directive file is reusable without editing it, an
+option to deliver data from central location to separate directories, and
+ability to process only one axis.
+
+4/5/13: Fixed a null pointer exception, which happened while running
+copytomocoms from eTomo - when a directive file that did not contain any
+setupset.copyarg directives was included.(Bug# 1693)
+
+4/5/13: Made it possible to do a model view movie with no change in display.
+
+4/4/13: Made copytomocoms put out a command file for extracting data from a B
+axis added later.
+
+3/22/13: IMOD_4-6-20
+3/13/13: Tiltxcorr can do its image reduction with antialiasing instead of
+simple binning and it has an option to start from the last image at minimum
+tilt instead of the first, which reverses the order for untilted images.
+
+3/12/13: Newstack has an option -fromone to allow section and line numbers to
+be numbered from 1 instead of 0, and an option -exclude to specify sections to
+exclude; Colornewst accepts -fromone but not -exclude.
+
+3/12/13: Newstack can read input with antialias reduction instead of binning,
+so -shrink can be combined with essentially all image transformations.
+
+3/7/13: Xfalign can now do cross-correlation only with -params -1.
+
+3/4/13: IMOD_4-6-19
+3/3/13: Fixed a problem with recording Exclude Projections in the .edf file.
+(Bug# 1686)
+
+3/1/13: Added support for templates to eTomo.(Bug# 1677)
+
+2/27/13: Fixed array allocation problem in Pickbestseed.
+
+2/27/13: Fixed problem of 3dmod quitting during initial load due to messages 
+to Bead Fixer.
+
+2/26/13: 3dmod can take an image pyramid (multiple copies of same volume at
+different resolutions) and has a new kind of cache that allows rapid access to
+subareas at any zoom when a pyramid is loaded; ordinary (non-tiled) files can
+also be cached as strips for somewhat faster access.
+
+2/26/13: Fixed suppression of "unknown field" messages in Tif2mrc.
+
+2/23/13: Added script Makepyramid for making an image pyramid.
+
 2/21/13: Fixed bug in Vmstopy when translating cp and mv with a filename
 starting with f.
 
-2/21/13: Made binvol able to use antialiased reduction in Z instead of
+2/21/13: Made Binvol able to use antialiased reduction in Z instead of
 binning.
 
 2/10/13: Redefined blank values in batch/template directives to mean unset the

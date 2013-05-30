@@ -83,8 +83,7 @@ gray-scale file will be named "rootname_gray.ext".  Transforms can be applied
 to a color file by running Colornewst(1).
 
 .SS Options
-Options may be abbreviated to one to three letters, the minimum needed to
-unambiguously specify the particular option.  The
+The
 .B -prexcorr
 option cannot be used with either the
 .B -ref

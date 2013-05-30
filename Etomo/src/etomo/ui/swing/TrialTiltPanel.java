@@ -64,7 +64,7 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
   private final EtomoPanel pnlRoot = new EtomoPanel();
   private final SpacedPanel pnlBody = SpacedPanel.getInstance();
   private final JLabel lblTrialTomogramName = new JLabel("Trial tomogram filename: ");
-  private final ComboBox cmboTrialTomogramName = new ComboBox(lblTrialTomogramName);
+  private final ComboBox cmboTrialTomogramName =  ComboBox.getUnlabeledInstance(lblTrialTomogramName);
   private final MultiLineButton btnTrial = new MultiLineButton("Generate Trial Tomogram");
   private final Run3dmodButton btn3dmodTrial = Run3dmodButton.get3dmodInstance(
       "View Trial in 3dmod", this);
@@ -128,7 +128,7 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
     // North panel
     northPanel.setBoxLayout(BoxLayout.X_AXIS);
     northPanel.add(lblTrialTomogramName);
-    northPanel.add(cmboTrialTomogramName);
+    northPanel.add(cmboTrialTomogramName.getComponent());
     // Button panel
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     buttonPanel.add(btnTrial);

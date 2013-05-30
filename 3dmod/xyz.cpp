@@ -55,6 +55,7 @@
 #include "dia_qtutils.h"
 #include "multislider.h"
 #include "scalebar.h"
+#include "cachefill.h"
 
 #define BM_WIDTH 16
 #define BM_HEIGHT 16
@@ -81,6 +82,7 @@ static const char *toggleTips[] = {
 
 static QIcon *icons[MAX_XYZ_TOGGLES];
 static QIcon *cenIcon = NULL;
+static QIcon *fillIcon = NULL;
 
 static const char *sliderLabels[] = {"X", "Y", "Z"};
 enum {X_COORD = 0, Y_COORD, Z_COORD};
@@ -269,6 +271,11 @@ XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer,
     utilFileListsToIcons(fileList, icons, MAX_XYZ_TOGGLES);
   }
 
+  if (mVi->pyrCache && !fillIcon) {
+    fillIcon = new QIcon();
+    fillIcon->addFile(":/images/fillCache.png", QSize(BM_WIDTH, BM_HEIGHT));
+  }
+
   // Get the toolbar, add zoom arrows
   mToolBar = new HotToolBar(this);
   addToolBar(mToolBar);
@@ -304,6 +311,12 @@ XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer,
                    " or model point (hot key k)");
   button->setIcon(*cenIcon);
   connect(button, SIGNAL(clicked()), this, SLOT(centerClicked()));
+
+  if (mVi->pyrCache) {
+    utilTBToolButton(this, mToolBar, &button, "Fill cache for currently displayed area");
+    button->setIcon(*fillIcon);
+    connect(button, SIGNAL(clicked()), this, SLOT(fillCachePressed()));
+  }
 
   // Make a frame, put a layout in it, and then put multisliders in the layout
   QFrame *sliderFrame = new QFrame();
@@ -2325,6 +2338,12 @@ void XyzWindow::centerClicked()
   mXtrans2 = mVi->zsize / 2. - curz;
   mYtrans2 = mXtrans2;
   Draw();
+}
+
+void XyzWindow::fillCachePressed()
+{
+  ivwControlPriority(mVi, mCtrl);
+  imodCacheFill(mVi, 1);
 }
 
 void XyzWindow::keyReleaseEvent (QKeyEvent * e )

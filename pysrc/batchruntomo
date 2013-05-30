@@ -18,7 +18,7 @@ global fidSizeNm, fidSizePix, montFrameData, lightBeads, numSurfaces, haveAaxisA
 global rawXsize, rawYsize, zsize, fiducialless, contourPieces, coarseBinning
 global xtiltNeeded, fidThickness, fidIncShift, reconThickness, didLocalAlign, madeZfactors
 global aliBinning, aliXunbinned, aliYunbinned, patchTrack, totalDelTilt, latestMessages
-global suppressAbort
+global suppressAbort, absDirectiveFile, userTemplateDir
 
 
 # Abort either an axis or a data set with the error string
@@ -123,13 +123,64 @@ def readTextFileReportErr(filename, message = None):
    return lines
 
 
-# Return an absolute path, converted to windows format if on Windows
-def abspath(path):
-   absp = os.path.abspath(path)
-   if 'win32' is sys.platform or 'cygwin' in sys.platform:
-      absp = getCygpath(True, absp)
-   return absp
+# Check existence of stack, rename if necessary
+def checkRenameStack(stack):
+   if not os.path.exists(stack + 'st'):
+      if not os.path.exists(stack + altExtension):
+         abortSet('Stack file does not exist with either name: ' + stack + 'st  or  ' +\
+                     stack + altExtension)
+         return 1
+      try:
+         os.rename(stack + altExtension, stack + 'st')
+         prnstr('Renamed stack from ' + stack + altExtension + ' to ' + stack + 'st')
+      except OSError:
+         abortSet('Error renaming stack from ' + stack + altExtension + ' to ' + stack +\
+                     'st')
+         return 1
 
+
+# Move a stack to the dataset directory
+def deliverStack(axis):
+   stackRoot = setName + axis
+   sourceRoot = os.path.join(currentDirs[0], stackRoot + '.')
+   source = sourceRoot + 'st'
+   dest = os.path.join(datasetDir, stackRoot + '.st')
+
+   # Look for either extension and change it during the move
+   renaming = False
+   if not os.path.exists(source):
+      source = sourceRoot + altExtension
+      if not os.path.exists(source):
+         abortSet('Stack file ' + stackRoot + ' does not exist in ' + \
+                     currentDirs[0] + ' with either extension .st or .' + altExtension)
+         return 1
+      renaming = True
+
+   if os.path.exists(dest):
+      abortSet('Stack file ' + stackRoot + '.st already exists in ' + datasetDir)
+      return 1
+   try:
+      os.rename(source, dest)
+      if renaming:
+         prnstr('Renamed stack from ' + stackRoot + '.st' + ' to ' + stackRoot +\
+                   '.' + altExtension)
+   except OSError:
+      abortSet('Error moving/renaming stack file from ' + source + ' to ' + dest)
+      return 1
+
+   # Move .mdoc files also
+   source += '.mdoc'
+   dest += '.mdoc'
+   if os.path.exists(source) and not os.path.exists(dest):
+      try:
+         os.rename(source, dest)
+      except OSError:
+         abortSet('Error moving metadata file ' + setName + ext + '.mdoc from ' + \
+                     currentDirs[0] + ' to ' + datasetDir)
+         return 1
+
+   return 0
+   
 
 # Print out errors from directive file reading or validation
 def printDirectiveErrors(errors):
@@ -142,13 +193,153 @@ def printDirectiveErrors(errors):
    return len(errors)
    
 
+# Return an absolute path to a template file of given type; if the path is already
+# absolute, it returns that and 0; otherwise if it is not just a filename, it returns
+# None and -1; otherwise it looks for it in the proper places and returns the
+# path and 1, or None and -2 if it cannot be found
+def absTemplatePath(template, index):
+   global userTemplateDir
+   if imodIsAbsPath(template):
+      return (template, 0)
+   if os.path.dirname(template):
+      return (None, -1)
+
+   # For scope template, just look up in the ImodCalib
+   errval = (None, -2)
+   if index == 0:
+      if 'IMOD_CALIB_DIR' not in os.environ:
+         return errval
+      fullPath = os.path.join(os.environ['IMOD_CALIB_DIR'], 'ScopeTemplate', template)
+      if os.path.exists(fullPath):
+         return (fullPath, 1)
+      return errval
+
+   # For system template, look it up in ImodCalib then in IMOD
+   if index == 1:
+      for rootdir in ('IMOD_CALIB_DIR', 'IMOD_DIR'):
+         if rootdir in os.environ:
+            fullPath = os.path.join(os.environ[rootdir], 'SystemTemplate',
+                                    template)
+            if os.path.exists(fullPath):
+               return (fullPath, 1)
+      return errval
+
+   # For user template, we need to know the directory from .etomo if not the default
+   if not userTemplateDir:
+      if 'HOME' not in os.environ:
+         return errval
+      dirpath = os.path.join(os.environ['HOME'], '.etomotemplate')
+      if os.path.exists(dirpath):
+         userTemplateDir = dirpath
+      dotEtomo = os.path.join(os.environ['HOME'], '.etomo')
+      if os.path.exists(dotEtomo):
+         etomoLines = readTextFile(dotEtomo, None, True)
+         if not isinstance(etomoLines, str) and len(etomoLines) > 0:
+            defsTempl = optionValue(etomoLines, 'Defaults.UserTemplateDir', STRING_VALUE,
+                                    otherSep = '=')
+            if defsTempl:
+               userTemplateDir = defsTempl
+
+   # Now given the directory, look up the user template file
+   if not userTemplateDir or not os.path.exists(userTemplateDir):
+      return errval
+   fullPath = os.path.join(userTemplateDir, template)
+   if os.path.exists(fullPath):
+      return (fullPath, 1)
+   return errval
+
+
 # Read a directive or template file and convert to a dictionary, skipping comment
 # lines and lines without an =
 def readDirectiveOrTemplate(filename, index):
+   global absDirectiveFile
    directLines = readTextFile(filename, 'directive/template file', True)
    if isinstance(directLines, str):
       abortSet('Error ' + directLines)
       return 1
+
+   # For the batch file, find existing lines of various things
+   if index == BatInd:
+      rewriteBatch = False
+      nodi = (-1, '')
+      lineNumDict = {rootNameText : nodi, dataDirText : nodi, scopeTmplText : nodi,
+                  sysTmplText : nodi, userTmplText : nodi}
+      for ind in range(len(directLines)):
+         line = directLines[ind].lstrip()
+         lsplit = line.split('=')
+         if len(lsplit) < 2:
+            continue
+         lineDirec = lsplit[0].strip()
+         if lineDirec in lineNumDict:
+            lineNumDict[lineDirec] = (ind, lsplit[1].strip())
+         
+
+      rootname = lineNumDict[rootNameText][1]
+      datadir = lineNumDict[dataDirText][1]
+      
+      # Get true root name and fix or add line
+      if numRootOpts:
+         rootname = rootByOption[dfileInd]
+         rootDirect = copyPrefix + 'name = ' + rootname
+         rewriteBatch = True
+         if lineNumDict[rootNameText][0] >= 0:
+            directLines[lineNumDict[rootNameText][0]] = rootDirect
+         else:
+            directLines.append(rootDirect)
+
+      # Take care of the data directory now
+      if numCurrent and rootname:
+         if not deliverDir:
+            datadir = imodAbsPath(currentDirs[dfileInd])
+
+         # If delivery, now we can make the directory
+         # But we can't deliver file(s) until we know about dual/single
+         else:
+            datadir = imodAbsPath(os.path.join(deliverDir, rootname))
+            if not (os.path.exists(datadir) and os.path.isdir(datadir)):
+               if os.path.exists(datadir):
+                  abortSet(datadir + ' already exists and is not a directory')
+                  return 1
+               try:
+                  os.mkdir(datadir)
+               except OSError:
+                  abortSet('Error making directory for dataset, ' + datadir)
+                  return 1
+
+               prnstr('Created dataset directory ' + datadir)
+
+         dataDirect = dataDirText + ' = ' + datadir
+         rewriteBatch = True
+         if lineNumDict[dataDirText][0] >= 0:
+            directLines[lineNumDict[dataDirText][0]] = dataDirect
+         else:
+            directLines.append(dataDirect)
+
+      # Now check and resolve pathless templates
+      for (tmplText, ind) in ((scopeTmplText, 0), (sysTmplText, 1), (userTmplText, 2)):
+         tmplName = lineNumDict[tmplText][1]
+         if tmplName:
+            (absTmplName, err) = absTemplatePath(tmplName, ind)
+            if err == -1:
+               abortSet('Directive for ' + direcFileErrorNames[ind] + ' name must be ' +\
+                           'either an absolute path or just a filename, it is ' +tmplName)
+               return 1
+            if err < 0: 
+               abortSet(direcFileErrorNames[ind] + ' file ' + tmplName + \
+                           ' not found in expected location')
+               return 1
+            if err > 0:
+               rewriteBatch = True
+               directLines[lineNumDict[tmplText][0]] = tmplText + ' = ' +\
+                              absTmplName
+
+      # Rewrite the batch file with all these corrections in the data directory
+      if rewriteBatch:
+         absDirectiveFile = os.path.join(datadir, localBatchCopy)
+         if writeTextFileReportErr(absDirectiveFile, directLines):
+            return 1
+
+   # Back to general processing of all kinds of files
    validErr = []
    for ind in range(len(directLines)):
       line = directLines[ind].lstrip()
@@ -291,7 +482,7 @@ def checkForQuit():
       
 # Runs a com file or com chunks using processchunks
 def runOneProcess(comfile, single = True, usingGPU = False):
-   if not os.path.exists(comfile):
+   if (single or 'sirt' not in comfile) and not os.path.exists(comfile):
       abortSet('Command file ' + comfile + ' does not exist')
       return 1
    sleepTime = 0.2
@@ -337,6 +528,7 @@ def runOneProcess(comfile, single = True, usingGPU = False):
    readOK = False
    finished = 0
    checkTime = 0.
+   where = None
    try:
       while True:
          try:
@@ -346,6 +538,7 @@ def runOneProcess(comfile, single = True, usingGPU = False):
                out = open(outfile, 'r')
                opened = True
             else:
+               where = out.tell()
                lines = out.readlines()
                readOK = True
                if lines:
@@ -364,6 +557,7 @@ def runOneProcess(comfile, single = True, usingGPU = False):
                      elif 'retain' in l and 'existing' in l:
                         finished = -2
                         break
+
          except IOError:
             readOK = False
             pass
@@ -394,6 +588,14 @@ def runOneProcess(comfile, single = True, usingGPU = False):
          
          elapsed += sleepTime
          time.sleep(sleepTime)
+
+         # Seek to the last location before trying again.  This is a trick from
+         # stackoverflow.com and is needed on Mac
+         try:
+            if where != None:
+               out.seek(where)
+         except IOError:
+            pass
 
    except KeyboardInterrupt:
       writeTextFile(checkFile, ['Q'], True)
@@ -644,7 +846,7 @@ def processValidationFile():
 # Look for every directive in the lists of valid ones from master file
 def checkAllDirectives(mainFile = 'directive'):
    errors = []
-   source = ['scope template', 'system template', 'user template', mainFile]
+   source = direcFileErrorNames[0:3] + [mainFile]
    types = ['template', 'batch directive']
    comPref = comPrefix[:-1]
    runPref = runtimePrefix[:-1]
@@ -761,7 +963,7 @@ def checkAllDirectives(mainFile = 'directive'):
 def scanSetupDirectives():
    global datasetDir, dualAxis, setName, scanHeader, ifMontage, defocus, pixelSize
    global fidSizeNm, fidSizePix
-   source = ['scope template', 'system template', 'user template', 'batch directive']
+   source = direcFileErrorNames
 
    batDirec = allDirectives[BatInd]
    scanHeader = scanHeadText in batDirec
@@ -791,14 +993,18 @@ def scanSetupDirectives():
          if copyPrefix + 'dual' in direc:
             dualAxis = direc[copyPrefix + 'dual'][0] != '0'
          if copyPrefix + 'pixel' in direc:
-            pixelSize = float(direc[copyPrefix + 'pixel'][0])
+            ftext = direc[copyPrefix + 'pixel'][0]
+            pixelSize = float(ftext)
          if copyPrefix + 'gold' in direc:
-            fidSizeNm = float(direc[copyPrefix + 'gold'][0])
+            ftext = direc[copyPrefix + 'gold'][0]
+            fidSizeNm = float(ftext)
          if copyPrefix + 'defocus' in direc:
-            defocus = float(direc[copyPrefix + 'defocus'][0])
+            ftext = direc[copyPrefix + 'defocus'][0]
+            defocus = float(ftext)
 
       except ValueError:
-         abortSet('Error converting value to float in ' + source[indDir] + ' file')
+         abortSet('Error converting the string "' + ftext + '" to float in ' +
+                  source[indDir] + ' file')
          return 1
 
    if (not pixelSize and not scanHeader) or not setName or not datasetDir:
@@ -1523,7 +1729,7 @@ def modifyTiltComFile():
              sedModify('THICKNESS', thickness)] + \
              sedDelAndAdd('UseGPU', gpuVal, 'XTILTFILE')
    if not axisNum:
-      sdcom.append(sedModify('OutputFile', setName + '_full.rec'))
+      sedcom.append(sedModify('OutputFile', setName + '_full.rec'))
    if useGPU:
       sedcom += sedDelAndAdd('ActionIfGPUFails', '1,2', 'XTILTFILE');
    else:
@@ -1707,9 +1913,16 @@ scopeTmplText = setupPrefix + 'scopeTemplate'
 userTmplText = setupPrefix + 'userTemplate'
 sysTmplText = setupPrefix + 'systemTemplate'
 dataDirText = setupPrefix + 'datasetDirectory'
+rootNameText = copyPrefix + 'name'
 scanHeadText = setupPrefix + 'scanHeader'
+setupBname = 'laterbsetup.com'
+localBatchCopy = 'batchDirective.adoc'
 montFrameData = 10 * [0]
 suppressAbort = False
+altExtension = 'mrc'
+userTemplateDir = ''
+direcFileErrorNames = ['scope template', 'system template', 'user template',
+                       'batch directive']
 
 # List of coms where the runner is handling messages, and the standard tags for messages
 handlingMessages = ['autofidseed', 'transferfid', 'track', 'align']
@@ -1731,6 +1944,33 @@ for ind in range(numSets):
    if not os.path.exists(dfile):
       exitError('Directive file ' + dfile + ' does not exist')
    dirFiles.append(dfile)
+
+# Get current directory and delivery directory
+currentDirs = []
+numCurrent = PipNumberOfEntries('CurrentLocation')
+for ind in range(numCurrent):
+   currentDirs.append(PipGetString('CurrentLocation', ''))
+deliverDir = PipGetString('DeliverToDirectory', '')
+if deliverDir and numCurrent != 1:
+   exitError('The -current option must be entered once if -deliver is entered')
+
+# Get the root names if any
+numRootOpts = PipNumberOfEntries('RootName')
+rootByOption = []
+for ind in range(numRootOpts):
+   rootByOption.append(PipGetString('RootName', ''))
+
+# Check validity of these entries and boost the directive file list
+if numRootOpts and numSets > 1 and numSets != numRootOpts:
+   exitError('If you enter root names, you must enter either one directive file or' + \
+             ' one per root name')
+if numRootOpts:
+   for ind in range(numSets, numRootOpts):
+      dirFiles.append(dirFiles[0])
+   numSets = numRootOpts
+
+if not deliverDir and (numRootOpts or numCurrent) and numCurrent != numSets:
+   exitError('The -current option must be entered for each data set')
 
 # Get other options and current directory
 startingDir = os.getcwd()
@@ -1769,6 +2009,7 @@ if useGPU:
 
 niceness = PipGetInteger('NiceValue', 15)
 remoteStartDir = PipGetString('RemoteDirectory', '')
+doOneAxis = PipGetInteger('ProcessOneAxis', 0)
 startingStep = PipGetInteger('StartingStep', 0)
 endingStep = PipGetInteger('EndingStep', 10000000)
 exitOnError = PipGetBoolean('ExitOnError', 0)
@@ -1779,9 +2020,10 @@ remoteDataDir = ''
 # Set up check file
 checkFile = PipGetString('CheckFile', '')
 if checkFile:
-   checkFile = abspath(checkFile)
+   checkFile = imodAbsPath(checkFile)
 else:
-   checkFile = os.path.join(startingDir, progname + '.' + str(os.getpid()) + '.input')
+   checkFile = imodAbsPath(os.path.join(startingDir, progname + '.' +
+                                    str(os.getpid()) + '.input'))
 if validation <= 0:
    prnstr('To quit all processing, place a Q in the file: ' + checkFile)
 
@@ -1802,7 +2044,8 @@ if validation >= 0:
       fileType = 'template'
 
 # Start looping on the data sets
-for dfile in dirFiles:
+for dfileInd in range(numSets):
+   dfile = dirFiles[dfileInd]
    axisNum = 0
 
    # Remove check file in case it was used to tell processchunks to quit by us
@@ -1810,11 +2053,11 @@ for dfile in dirFiles:
       cleanupFiles([checkFile])
    os.chdir(startingDir)
    allDirectives = [{}, {}, {}, {}]
+   absDirectiveFile = imodAbsPath(dfile)
    if readDirectiveOrTemplate(dfile, BatInd):
       continue
 
    prnstr(fmtstr('Beginning to process {} file {}', fileType, dfile))
-   absDirectiveFile = abspath(dfile)
 
    # If validating a single template file, do not process it, just run the checks
    if validation > 1:
@@ -1833,9 +2076,18 @@ for dfile in dirFiles:
          prnstr('Directives all seem OK in that file')
          continue
 
+   # Deliver stacks to dataset directory
+   if deliverDir:
+      if dualAxis and doOneAxis < 2 and deliverStack('a'):
+         continue
+      if dualAxis and doOneAxis != 1 and deliverStack('b'):
+         continue
+      if not dualAxis and deliverStack(''):
+         continue
+
    # If there is a remote directory, need to shift it to the dataset dir
    if remoteStartDir:
-      absDataDir = abspath(datasetDir)
+      absDataDir = imodAbsPath(datasetDir)
       prefix = os.path.commonprefix([startingDir, absDataDir])
       remoteDataDir = ''
       if prefix and absDataDir.startswith(prefix) and startingDir.startswith(prefix):
@@ -1857,22 +2109,21 @@ for dfile in dirFiles:
       continue
 
    # Check existence of file(s)
-   stack = setName + '.st'
+   stack = setName + '.'
    numAxes = 1
    if dualAxis:
       numAxes = 2
-      stack = setName + 'a.st'
-   if not os.path.exists(stack):
-      abortSet('Stack file does not exist: ' + stack)
+      stack = setName + 'a.'
+   if checkRenameStack(stack):
       continue
-   if dualAxis and not os.path.exists(setName + 'b.st'):
-      abortSet('Stack file does not exist: ' + setName + 'b.st')
+   if dualAxis and doOneAxis != 1 and checkRenameStack(setName + 'b.'):
       continue
+   stack += 'st'
 
    # Get pixel size if scanHeader set
    if scanHeader and not pixelSize:
       try:
-         (nx, ny, nz, mode, px, py, pz) = getmrc(stack)
+         px = getmrcpixel(stack)
          pixelSize = px / 10.
       except ImodpyError:
          reportImodError('Error getting pixel size from ' + stack)
@@ -1880,7 +2131,7 @@ for dfile in dirFiles:
 
    prnstr('Starting data set ' + setName)
 
-   if startingStep <= 0:
+   if startingStep <= 0 and not (dualAxis and doOneAxis > 1):
    #if False:
       # Run etomo for setup and try to report errors
       failed = False
@@ -1949,7 +2200,8 @@ for dfile in dirFiles:
    
    # Loop on the axes.  axisInd is 0 or 1, axisNum is 0 for single, 1/2 for a/b
    for axisInd in range(numAxes):
-      if endingStep <= 0:
+      if endingStep <= 0 or (dualAxis and ((axisInd and doOneAxis == 1) or 
+                                           (not axisInd and doOneAxis > 1))):
          continue
       axisLet = ''
       if dualAxis:
@@ -1959,6 +2211,11 @@ for dfile in dirFiles:
             axisLet = 'b'
          prnstr('Starting axis ' + axisLet.upper())
 
+      if axisInd and doOneAxis > 1 and os.path.exists(setupBname):
+         if runOneProcess(setupBname):
+            startingStep = 0
+            continue
+            
       dataName = setName + axisLet
       axisCom = axisLet + '.com'
       if startingStep > 100:

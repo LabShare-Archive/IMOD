@@ -41,7 +41,7 @@ makegradtable$(E): makegradtable.$(O)
 	$(FC) -o makegradtable makegradtable.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
 
 xf2rotmagstr$(E): xf2rotmagstr.$(O)
-	$(FC) -o xf2rotmagstr xf2rotmagstr.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
+	$(FC) -o xf2rotmagstr xf2rotmagstr.$(O) $(LDFLG) $(LIWARP) $(IMLIBS) $(FORTCLIBS)
 
 install: $(PROGS)
 	$(STRIP) $(PROGS)

@@ -138,7 +138,7 @@ final class ReferencePanel {
     pnlMultiparticle.setLayout(new BoxLayout(pnlMultiparticle, BoxLayout.X_AXIS));
     pnlMultiparticle.add(rbMultiparticle.getComponent());
     pnlMultiparticle.add(Box.createRigidArea(FixedDim.x3_y0));
-    pnlMultiparticle.add(cmbMultiparticle);
+    pnlMultiparticle.add(cmbMultiparticle.getComponent());
     pnlMultiparticle.add(Box.createRigidArea(FixedDim.x3_y0));
     pnlMultiparticle.add(lMultiparticle);
   }

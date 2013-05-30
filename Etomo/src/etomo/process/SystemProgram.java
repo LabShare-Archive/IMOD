@@ -340,7 +340,7 @@ public class SystemProgram implements Runnable {
     processMessages = ProcessMessages.getMultiLineInstance();
     commandArray = new String[command.size()];
     for (int i = 0; i < command.size(); i++) {
-      commandArray[i] =  command.get(i);
+      commandArray[i] = command.get(i);
       // System.out.print(commandArray[i]+" ");
     }
     // System.out.println();
@@ -359,6 +359,15 @@ public class SystemProgram implements Runnable {
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
     processMessages = ProcessMessages.getInstance();
+    commandArray = cmdArray;
+  }
+  
+  public SystemProgram(final BaseManager manager, final String propertyUserDir,
+      final String[] cmdArray, final AxisID axisID,final boolean multilineWarning, final boolean multilineInfo) {
+    this.manager = manager;
+    this.propertyUserDir = propertyUserDir;
+    this.axisID = axisID;
+    processMessages = ProcessMessages.getMultiLineInstance( multilineWarning,   multilineInfo);
     commandArray = cmdArray;
   }
 
@@ -746,6 +755,18 @@ public class SystemProgram implements Runnable {
       stdErrorString = stdErrorArray[i] + "\n";
     }
     return stdErrorString;
+  }
+
+  public String getStdOutputString() {
+    String[] array = getStdOutput();
+    if (array == null) {
+      return null;
+    }
+    String string = null;
+    for (int i = 0; i < array.length; i++) {
+      string = array[i] + "\n";
+    }
+    return string;
   }
 
   public int getExitValue() {

@@ -73,6 +73,7 @@ static const char *fileList[MAX_SLICER_TOGGLES][2] =
 static QIcon *icons[MAX_SLICER_TOGGLES];
 static QIcon *showIcon;
 static QIcon *contIcon;
+static QIcon *fillIcon;
 static int firstTime = 1;
 static const char *toggleTips[] = {
     "Toggle between regular and high-resolution (interpolated) image",
@@ -84,10 +85,9 @@ static const char *toggleTips[] = {
 
 static const char *sliderLabels[] = {"X rotation", "Y rotation", "Z rotation"};
 
-SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], 
-                           QString timeLabel,
-			   bool rgba, bool doubleBuffer, bool enableDepth,
-			   QWidget * parent, Qt::WFlags f) 
+SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLabel,
+                           bool rgba, bool doubleBuffer, bool enableDepth,
+                           QWidget * parent, Qt::WFlags f) 
   : QMainWindow(parent, f)
 {
   int j;
@@ -137,6 +137,10 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[],
     showIcon->addFile(QString(":/images/showslice.png"), QSize(BM_WIDTH, BM_HEIGHT));
     contIcon = new QIcon();
     contIcon->addFile(QString(":/images/contour.png"), QSize(BM_WIDTH, BM_HEIGHT));
+    if (funcs->mVi->pyrCache) {
+      fillIcon = new QIcon();
+      fillIcon->addFile(QString(":/images/fillCache.png"), QSize(BM_WIDTH, BM_HEIGHT));
+    }
   }
  
   utilTBToolButton(this, mToolBar, &button, "Show slice cutting lines in"
@@ -148,6 +152,12 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[],
                    " plane of current contour (hot key W)");
   button->setIcon(*contIcon);
   connect(button, SIGNAL(clicked()), this, SLOT(contourPressed()));
+
+  if (funcs->mVi->pyrCache) {
+    utilTBToolButton(this, mToolBar, &button, "Fill cache for currently displayed area");
+    button->setIcon(*fillIcon);
+    connect(button, SIGNAL(clicked()), this, SLOT(fillCachePressed()));
+  }
 
   // The Z scale combo box
   mZscaleCombo = new QComboBox(this);
@@ -437,6 +447,11 @@ void SlicerWindow::contourPressed()
 {
   if (!mFuncs->anglesFromContour())
     mFuncs->checkMovieLimits();
+}
+
+void SlicerWindow::fillCachePressed()
+{
+  mFuncs->fillCache();
 }
 
 void SlicerWindow::zScaleSelected(int item)

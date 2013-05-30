@@ -1177,7 +1177,7 @@ void InfoWindow::imageSlot(int item)
 
   case IMAGE_MENU_GRAPH: /* graph */
     /* DMN 2/25/01: do not open with fake image */
-    if (!App->cvi->fakeImage || !App->cvi->rgbStore)
+    if (!App->cvi->fakeImage && !App->cvi->rgbStore)
       xgraphOpen(App->cvi);
     break;
 
@@ -1191,8 +1191,7 @@ void InfoWindow::imageSlot(int item)
     break;
 
   case IMAGE_MENU_LOCATOR: /* locator */
-    if (!App->cvi->rgbStore)
-      locatorOpen(App->cvi);
+    locatorOpen(App->cvi);
     break;
 
   case IMAGE_MENU_MODV: /* model view */

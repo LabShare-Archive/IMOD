@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Xfalign - 
+# Xfalign - align serial images
 #
 # Author: David Mastronarde
 #
@@ -104,11 +104,13 @@ if ifbreak:
 ifpair = PipGetBoolean('PairedImages', 0)
 fracmatt = PipGetFloat('EdgeToIgnore', 0.05)
 nparam = PipGetInteger('ParametersToSearch', 0)
-if nparam and (nparam < 0 or (nparam + 3) // 5 != 1):
-   exitError('Number of parameters to search must be 0 or 2-6')
+if nparam and (nparam < -1 or (nparam > 0 and (nparam + 3) // 5 != 1)):
+   exitError('Number of parameters to search must be -1, 0, or 2-6')
 ifbilinear = PipGetBoolean('BilinearInterpolation', 0)
 reffile = PipGetString('ReferenceFile', '')
 prexcorr = PipGetBoolean('PreCrossCorrelation', 0)
+if nparam == -1 and not prexcorr:
+   exitError('-param entry can be -1 only when doing initial corss-correlation')
 xcfin = PipGetFloatArray('XcorrFilter', 4)
 if xcfin:
    xcfilter = xcfin
@@ -243,6 +245,10 @@ if prexcorr:
       except:
          exitError('Getting shifts from ' + prexffile)
    sys.stdout.flush()
+
+   if nparam < 0:
+      writeTextFile(xflistfile, prexflist)
+      sys.exit(0)
 
 # Loop on all the sections in file
 try:

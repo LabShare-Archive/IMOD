@@ -16,22 +16,27 @@ The user can load new model files using a menu
 selection once 3dmod is running.  The model must be in the IMOD model format. 
 If the model file does not already
 exist, 3dmod will create a new model under that name.  The image files
-may also be omitted, in which case 3dmod will draw the model on top of
-blank images.  A file containing a list of image files can be used in
-place of the image file names on the command line.  If multiple
+may also be omitted when opening an existing model, in which case 3dmod will
+draw the model on top of blank images.  A text file containing a list of image
+files can be used in
+place of the image file names on the command line.  The name of a
+directory containing a single image list file (with a name ending in "list")
+can also be entered in place of the image file names.  Ordinarily, if multiple
 files of different sizes
 are loaded, then the size of the display in each dimension will be
 set to the maximum size of the various files, with smaller images centered in
-the display.
-If 3dmod is invoked
+the display.  However, it is possible to enter a set of files that form an
+"image pyramid", i.e., copies of the same volume at different resolutions, in
+which case 3dmod will behave essentially as if only the highest-resolution
+volume was being displayed.  If 3dmod is invoked
 with options but no filenames, then a dialog window will open to allow
 selection of an image file.  If 3dmod is invoked with no options or
 filenames, or with the 
 .B -O
 option, then a startup dialog will open to allow options to
-be set.
-.P
- Images can be in the MRC
+be set and files to be chosen.
+.SS File Formats, Image Types, and Related Restrictions
+Images can be in the MRC
 image format; in the TIFF format, if the appropriate TIFF library is
 available; in any of the formats supported by the Qt image-reading
 function, which include JPEG, PNG, PPM, and BMP; or in a raw format where
@@ -39,7 +44,7 @@ data are packed sequentially as in MRC files.  Some kinds of raw-type files
 will be recognized automatically and treated like MRC files.  These
 include Hegerl's EM format, Winkler's FFF format, PIF files produced by Bsoft,
 and DigitalMicrograph
-version 3 files.  MRC files of almost any
+version 3 and 4 files.  MRC files of almost any
 mode can be read in: byte, 16-bit integer,
 real, complex real, complex integer, or color (RGB).  TIFF files may be byte,
 16-bit integer, 32-bit integer, real, or color, where the color can be either
@@ -67,10 +72,20 @@ When multiple files are read
 in, they usually do not need to be the same mode or even the same format.
 The exceptions are that
 if any file is an RGB file, all files must be, and if any file has a colormap,
-all files must.  Images are loaded
+all files must.
+Several other restrictions on image files exist.
+The file-reading modes in the Pixel View
+window, high-resolution mode in the Graph window, and the f and F hot keys
+for finding pixel values will all give zeros for a non-MRC type file.
+If RGB files are
+loaded, the Tumbler and Graph windows cannot be opened.  Multiple montages
+cannot be opened unless they are part of an image pyramid.
+.SS The Full-slice Image Cache
+Images are loaded as whole Z slices
 into an image cache under certain circumstances: whenever more than one
-file is specified, when montaged data are loaded, when files other than
-MRC-like are loaded, when data are loaded as integers instead of bytes with the
+file is specified (except as an image pyramid), when montaged data are loaded,
+when files other than MRC-like are loaded, when data are loaded as integers
+instead of bytes with the
 .B -I 
 option, or when you enter the
 .B -C
@@ -82,16 +97,59 @@ only when needed.  This has various implications that are mentioned below.
 Starting a movie through the images will eventually load as much data as
 will fit into the cache.  In addition, there is a dialog box to fill the
 cache in various ways, available through the Edit-Image-Cache Filler menu
-entry.  Several other restrictions on image files exist.
-If any files other than MRC-type (MRC or raw) are loaded and the cache is used,
+entry.  
+If any files other than MRC-type (MRC or raw) are loaded,
 the image volume cannot be flipped (rotated around the X axis with Y and Z
 sizes swapped) unless it is fully
-loaded into the cache.  The Pixel View
-window, high-resolution mode in the Graph window, and the f and F hot keys
-for finding pixel values will all give zeros for a non-MRC type file.
-If RGB files are
-loaded, only the Zap and Model View windows can be opened.
-
+loaded into the cache. 
+.SS The Tile/Strip Image Cache and Image Pyramids
+An image pyramid can be used to get rapid access to subareas of a large image
+volume, at any zoom, without having to load the entire volume into memory.  To
+provide such access, 3dmod sets up a different kind of cache that is organized
+in either image strips or in tiles.  If the image file is itself tiled (a montaged MRC
+file or a
+tiled TIFF file), then the cache contains tiles loaded from the file;
+otherwise the cache is organized as strips across the whole width of the image
+and with a height that will make each strip about
+1 megapixels in size.  The advantage of having the cache organized as tiles is
+that when you want to display a subarea, the program can load just the tiles
+tha intersect the subarea, and each tile can be read quickly because it is
+stored contiguously on the disk.  If the file is not tiled, there is still
+some advantage in having a strip-based cache for a large file, because only a
+subset of a slice has to be loaded instead of the whole slice.  Thus, any large-area
+file can be opened and viewed more quickly by opening it with the 
+.B -CT 0
+option.  However, if you zoom down to see the whole image, the program will
+still have to load the entire slice for each section that you step to.  The
+only way to speed that up is to make an image pyramid, so that a
+lower-resolution file can be accessed quickly when you are zoomed down.  An
+image pyramid can be created easily with Makepyramid(1).
+.P
+There are two ways to indicate that a set of images comprise a pyramid: by
+entering the option
+.B -py
+and by using an image list file with a "PYRAMID" line.  If the files include
+more than one montage, these entries are not needed, because multiple montages
+are allowed only for a pyramid.  The image
+files, and any associated piece list files for montages, can also be listed
+either at the
+command line or in an image list file.  Makepyramid(1) provides a complete
+image list file for displaying the pyramid that it creates.  When opening an
+image pyramid, it is not necessary to enter the 
+.B -CT
+option unless you need to limit the size of the cache.  When this option (or the
+.B -C
+option) is not entered, the default limit on the cache size is 20000 MB (20
+GB); this limit can be changed by setting an environment variable
+TILECACHE_LIMIT_MB to a different value in megabytes.  For a given set of
+files, the limit is reduced to what is needed to load all files fully.  
+The tile/strip cache is allocated dynamically, with
+memory requested from the system only when needed, unlike the slice-based
+cache, where all memory is allocated on program startup.  The different
+behaviors of the program when using the tile/strip cache or an image pyramid
+are described below, after the main windows and other operations have been
+ introduced.
+.SS Windows
 Two windows will open upon startup: the Information Window 
 and an image window.
 The Information Window is the main control window; it has
@@ -112,7 +170,7 @@ to pan the image around inside a resizable window.
 Most manual model editing is done within the ZaP Window.
 
 Additional windows that may be
-opened via menu selection are the Slicer, XYZ, Tumbler, 
+opened via menu selection are the Slicer, XYZ, Multi-Z, Tumbler, 
 Graph, Pixel View, Locator, and Model View windows.
    The Slicer Window allows one to view slices through the 3-D 
 image data.  If the image cache is turned on, only images in
@@ -120,6 +178,8 @@ the cache will be displayed in views that contain data from
 multiple Z sections.
    The XYZ Image Window displays slices of the 3-D image in
 planes perpendicular to the X,Y and Z axis.
+   The Multi-Z Windows is a variant of the ZaP window that displays an array
+of images at the same location and different Z values.
    The Tumbler Window allows one to view a small projected view
 of the area around the current point.
    The Graph Window graphs intensity along a given
@@ -131,7 +191,7 @@ a box that allows you to see and change the subarea shown in the ZaP window.
    The Model View Window views the model in a 3D rendering
 while it is being built.
 
-Multiple ZaP, Slicer, XYZ, Graph, and Tumbler windows can be opened, whereas
+Multiple ZaP, Slicer, XYZ, Multi-Z, Graph, and Tumbler windows can be opened, whereas
 there is only one Pixel View, Model View, and Locator window.
 These windows are described below.  However, see the on-line help
 available from each window (as well as from most dialog boxes) for a
@@ -1253,6 +1313,58 @@ having contours in the particular object.  There are also options to control
 whether the ghost contours are lighter or darker in color, and to show ghosts
 from all objects rather than just from the current object.
 
+.SH PROGRAM OPERATION WITH AN IMAGE PYRAMID OR TILE/STRIP CACHE
+There will be noticeable differences in program behavior when using an image
+pyramid or the tile/strip cache, unless data have been loaded fully into the
+cache.  The best performance will be seen when using the ZaP window.  To
+display its image, the ZaP window requests that tiles be loaded, if necessary,
+from a file at the best resolution for the current zoom, and covering an area
+about twice as large as the area being displayed.  Thus, most panning can
+occur without having to load new tiles.  Tile loading occurs asynchronously:
+the ZaP window will first show whatever part of the image is currently
+available, then its display will be updated as new tiles are loaded.
+.P
+As with the slice-based cache, windows that access data in 3D not located on
+the current Z slice will generally
+show black (0 values) for parts of the volume that are not currently loaded.
+When the tile/strip cache is used, each of these windows (except the Tumbler)
+has a button to fill the cache for the subarea displayed in the window.  The
+cache will be filled for the whole
+extent in Z, or for as much as fits.  Note that the Slicer, the Isosurface, and the
+Tumbler displays all access only full-resolution data.  Thus, the button in
+the XYZ window toolbar and the "Fill" button at the bottom of the Model View
+Edit Image dialog will load data that depends on the zoom of the respective display.
+while the button in the Slicer toolbar and the "Fill" button at the bottom of
+the Isosurface dialog will load full-resolution data.  The Edit-Image-Fill
+cache command can also be used to fill the cache.
+It picks which resolution to load, and the subarea, by considering first the
+Isosurface display, if any, then the image display in Model View, if any, then the
+display in the top Slicer, XYZ, or ZaP window.  Even with an image pyramid,
+filling the cache may take some time for a thick volume.  The operation is
+done asynchronously and other things can be done before it is finished.
+.P
+If you have very large images where it can take seconds to load a slice, it is
+important to be aware of which operations will load a whole slice or a
+significant fraction of one.  The Locator always displays the full image area, and
+the image display in Model View does so when opened; this is quick if there is
+an image pyramid and potentially quite slow otherwise.  The Graph window loads
+full-resolution data for the region potentially included in the graph.
+This region would usually be the whole width in X when the window is opened, but
+it can be restricted in advance by drawing the rubber band around the current point.
+Autocontouring by thresholding (Edit-Contour-Auto), the Line Tracker, and the
+livewire tool in Drawing Tools plugin all require full loading of the current
+slice at full resolution.  Loading a large subarea of interest with the
+.B -ix
+and
+.B -iy
+options may be needed to use
+these tools effectively.
+.P
+Some things will not work when using the tile/strip cache: image rotate/flip,
+image reload, image process, the cache filler dialog, and histograms in the
+graph window.  Autocontrasting and floating may behave a little differently,
+especially for zoomed-down views of noisy data.
+
 .SH AUTOSAVE AND BACKUP FILES
 The program will back up the current model to the file 
 model_file_name#autosave# every few minutes.  If no model file has been
@@ -1284,7 +1396,8 @@ environment variables will be ignored.
 An image list file can be entered instead of an image file on the 3dmod
 command line.  This ASCII file can specify a series
 of image files that represent different times, so that one can step through
-time as well as X, Y, and Z.  An image list file can also be used to
+time as well as X, Y, and Z.  A series of image files can form an image
+pyramid instead. An image list file can also be used to
 specify both an image file and a piece list with a single file.  In either
 case, the cache is turned on.
 Lines beginning with # are treated as comments and ignored.
@@ -1293,7 +1406,7 @@ The format of the file is:
 
 .nf
 IMOD image list               [must be the first line of the file]
-VERSION 0   or   VERSION 1    [must appear somewhere in file]
+VERSION 1   or   VERSION 2    [must appear somewhere in file]
 .fi
 
 To specify a series of files at different times, include a series of
@@ -1322,12 +1435,45 @@ x  y  z                       [piece coordinates, one line per section]
  . . .
 .fi
 
-To load files that are located in another directory, include the following
+To load files that are located in another directory without including the path
+on the IMAGE line, include the following
 before the IMAGE lines for the respective files.  This entry can occur more
 than once.
 .nf
 IMGDIR path_to_image_directory
 .fi
+
+The following entries are allowed only in version 2 files, readable in IMOD
+6.16.19 or higher.  
+
+To indicate that multiple files form an image pyramid, include a line:
+.nf
+PYRAMID
+.fi
+The image files for a pyramid can be entered in any order.
+
+To specify a file with coordinates of pieces to associate with the last
+enetered image file, include a line:
+.nf
+PIECEFILE piece_list_file
+.fi
+
+To specify X, Y, and Z origin values for the last entered image file, include
+a line:
+.nf
+ORIGIN X_origin Y_origin Z_origin
+.fi
+This entry provides a way to retain the origin values for a TIFF value that
+was converted from an MRC file; it will override the origin values for an MRC
+file.
+
+To specify lower and upper intensity scaling limits (equivalent to the 
+.B -s
+option) for image files that occur after this point, include a line
+.nf
+SCALE lower_limit upper_limit
+.fi
+This entry can occur more than once.
 
 .SH PLUGIN ENVIRONMENT
 3dmod will load special plugin libraries that are in the
@@ -1340,7 +1486,8 @@ as well as the directories /usr/local/IMOD/plugins
 and /usr/freeware/lib/imodplugs/ are searched for plugins if they
 exist.  Plugins work in all supported operating systems.  
 To write your own plugins, see the IMOD library documentation and 
-use the old version of the Bead Fixer plugin as an example.  The best place to
+use the old version of the Bead Fixer plugin as an example; also see Andrew
+Noske's plugins.  The best place to
 place custom plugins would be /usr/local/ImodCalib/plugins.
 
 .SH AUTHORS

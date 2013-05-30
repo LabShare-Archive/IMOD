@@ -24,12 +24,12 @@
 #define max(a,b) ((a) > (b) ? (a) : (b))
 
 typedef struct bndBox3D {
-  int xMin;
-  int xMax;
-  int yMin;
-  int yMax;
-  int zMin;
-  int zMax;
+  float xMin;
+  float xMax;
+  float yMin;
+  float yMax;
+  float zMin;
+  float zMax;
 } bndBox3D;
 
 typedef Ipoint corners3D[8];
@@ -40,7 +40,7 @@ bndBox3D *boundingBoxOfTransformedCorners(
 
 bndBox3D *intersect(bndBox3D *bb1, bndBox3D *bb2, bndBox3D *bbOut);
 
-int isInside(Ipoint *point, bndBox3D *box);
+int isInside(Ipoint *point, bndBox3D *box, float tol);
 
 Ipoint *getCenter(bndBox3D *bbox, Ipoint *center);
 
@@ -71,7 +71,7 @@ int main( int argc, char *argv[])
   int iSlice, numOptArgs, numNonOptArgs, inMode, intoMode;
   int *contourList = NULL, numContours = 0;
   int nClones = 0, maxClones = 100, iClone, ix, iy;
-  float alpha, xMin, xMax, yMin, yMax, zMin, zMax;
+  float alpha, x, y, xMin, xMax, yMin, yMax, zMin, zMax;
   Imat **xform = NULL;
   bndBox3D inBBox, intoBBox, *outBBox = NULL;
   MrcHeader inHeader, intoHeader, outHeader;
@@ -260,18 +260,23 @@ int main( int argc, char *argv[])
       if (iSlice >= outBBox[iClone].zMin && iSlice <= outBBox[iClone].zMax) {
         Ival oldVal = {0, 0, 0}, newVal = {0, 0, 0};
         /* Process all the points in the clone's bounding box */
-        for (ix = outBBox[iClone].xMin; ix <= outBBox[iClone].xMax; ix++) {
-          for (iy = outBBox[iClone].yMin; iy <= outBBox[iClone].yMax; iy++) {
+        for (x = outBBox[iClone].xMin; x <= outBBox[iClone].xMax; x++) {
+          for (y = outBBox[iClone].yMin; y <= outBBox[iClone].yMax; y++) {
             Ipoint inPt, outPt;
-            outPt.x = ix;
-            outPt.y = iy;
-            outPt.z = iSlice;
+            outPt.x = x;
+            outPt.y = y;
+            outPt.z = (float)iSlice;
             /* Tranform output/into coords back to the input */
             imodMatTransform3D(xform[iClone], &outPt, &inPt);
 
-            /* If in range, combine current value with interpolated input */
-            if (isInside(&inPt, &inBBox)) {
+            /* If in range, combine current value with interpolated input. */
+            /* Tolerance of a little more than 1 is used for the in range  */
+            /* test to ensure that both previous and next points in each   */
+            /* dimension are within input vol for trilinear interpolation. */
+            if (isInside(&inPt, &inBBox, 1.0001)) {
               float inVal;
+              ix = (int)x;
+              iy = (int)y;
               if (sliceGetVal(slice, ix, iy, oldVal))
                 exitError("Error retrieving value from slice");
               inVal = trilinearInterpolation(
@@ -365,11 +370,11 @@ bndBox3D *intersect(bndBox3D *bb1, bndBox3D *bb2, bndBox3D *bbOut)
 
 /**********************************************************************/
 
-int isInside(Ipoint *point, bndBox3D *box)
+int isInside(Ipoint *point, bndBox3D *box, float tol)
 {
-  return (point->x >= box->xMin && point->x <= box->xMax &&
-          point->y >= box->yMin && point->y <= box->yMax &&
-          point->z >= box->zMin && point->z <= box->zMax);
+  return (point->x >= box->xMin + tol && point->x <= box->xMax - tol &&
+          point->y >= box->yMin + tol && point->y <= box->yMax - tol &&
+          point->z >= box->zMin + tol && point->z <= box->zMax - tol);
 }
 
 /**********************************************************************/
@@ -387,10 +392,11 @@ Ipoint *getCenter(bndBox3D *bbox, Ipoint *center)
 
 bndBox3D *getBoundingBoxOfVolume(MrcHeader *hdr, bndBox3D *bbox)
 {
-  bbox->xMin = bbox->yMin = bbox->zMin = 0;
-  bbox->xMax = hdr-> nx - 1;
-  bbox->yMax = hdr-> ny - 1;
-  bbox->zMax = hdr-> nz - 1;
+  bbox->xMin = bbox->yMin = 0;
+  bbox->zMin = -0.5;
+  bbox->xMax = hdr->nx;
+  bbox->yMax = hdr->ny;
+  bbox->zMax = hdr->nz - 0.5;
 
   return bbox;
 }
@@ -399,20 +405,20 @@ bndBox3D *getBoundingBoxOfVolume(MrcHeader *hdr, bndBox3D *bbox)
 
 Ipoint *getCornersOfVolume(MrcHeader *hdr, corners3D corners)
 {
-  const int nx1 = hdr->nx - 1;
-  const int ny1 = hdr->ny - 1;
-  const int nz1 = hdr->nz - 1;
+  const float x1 = hdr->nx;
+  const float y1 = hdr->ny;
+  const float z1 = hdr->nz - 0.5;
 
 
   /* Construct 8 points at the corners of the given volume */
-  corners[0].x = 0;   corners[0].y = 0;   corners[0].z = 0;
-  corners[1].x = 0;   corners[1].y = 0;   corners[1].z = nz1;
-  corners[2].x = 0;   corners[2].y = ny1; corners[2].z = 0;
-  corners[3].x = 0;   corners[3].y = ny1; corners[3].z = nz1;
-  corners[4].x = nx1; corners[4].y = 0;   corners[4].z = 0;
-  corners[5].x = nx1; corners[5].y = 0;   corners[5].z = nz1;
-  corners[6].x = nx1; corners[6].y = ny1; corners[6].z = 0;
-  corners[7].x = nx1; corners[7].y = ny1; corners[7].z = nz1;
+  corners[0].x = 0;  corners[0].y = 0;  corners[0].z = -0.5;
+  corners[1].x = 0;  corners[1].y = 0;  corners[1].z = z1;
+  corners[2].x = 0;  corners[2].y = y1; corners[2].z = -0.5;
+  corners[3].x = 0;  corners[3].y = y1; corners[3].z = z1;
+  corners[4].x = x1; corners[4].y = 0;  corners[4].z = -0.5;
+  corners[5].x = x1; corners[5].y = 0;  corners[5].z = z1;
+  corners[6].x = x1; corners[6].y = y1; corners[6].z = -0.5;
+  corners[7].x = x1; corners[7].y = y1; corners[7].z = z1;
 
   return (Ipoint *)corners;
 }
@@ -491,12 +497,14 @@ float trilinearInterpolation(float **inVol, MrcHeader *inHeader,
 
   const int ix = (int)x;
   const int iy = (int)y;
-  int iz = (int)z;
+  const int iz = (int)z;
+  int iiz = (int)(z + 0.5); /* For indexing into the inVol */
+
   /* dx, dy, and dz will each be >= 0 and strictly less than 1 */
   const float dx = x - ix;
   const float dy = y - iy;
   const float dz = z - iz;
-  
+
   /* Set up terms for up to tri-linear interpolation */
   const float d11 = (1.0 - dx) * (1.0 - dy);
   const float d12 = (1.0 - dx) * dy;
@@ -504,23 +512,22 @@ float trilinearInterpolation(float **inVol, MrcHeader *inHeader,
   const float d22 = dx * dy;
 
   const int ibase = ix + iy * inHeader->nx;
-  newVal = d11 * inVol[iz][ibase];   /* d11 is always non-zero */
-  /* If statements avoid possible out-of-bounds array access*/
+  newVal = d11 * inVol[iiz][ibase];  /* d11 is always non-zero */
   if (d12 != 0)
-    newVal += d12 * inVol[iz][ibase + inHeader->nx];
+    newVal += d12 * inVol[iiz][ibase + inHeader->nx];
   if (d21 != 0)
-    newVal += d21 * inVol[iz][ibase + 1];
+    newVal += d21 * inVol[iiz][ibase + 1];
   if (d22 != 0)
-    newVal += d22 * inVol[iz++][ibase + inHeader->nx + 1];
+    newVal += d22 * inVol[iiz++][ibase + inHeader->nx + 1];
   newVal *= (1.0 - dz);              /* 1 - dz is always non-zero */
   if (dz != 0) {
-    temp = d11 * inVol[iz][ibase];   /* d11 is always non-zero */
+    temp = d11 * inVol[iiz][ibase];  /* d11 is always non-zero */
     if (d12 != 0)
-      temp += d12 * inVol[iz][ibase + inHeader->nx];
+      temp += d12 * inVol[iiz][ibase + inHeader->nx];
     if (d21 != 0)
-      temp += d21 * inVol[iz][ibase + 1];
+      temp += d21 * inVol[iiz][ibase + 1];
     if (d22 != 0)
-      temp += d22 * inVol[iz][ibase + inHeader->nx + 1];
+      temp += d22 * inVol[iiz][ibase + inHeader->nx + 1];
     newVal += dz * temp;
   }
 

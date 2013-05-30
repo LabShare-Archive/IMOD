@@ -399,28 +399,43 @@ static int checkPif(FILE *fp, char *filename, RawImageInfo *info)
   return 0;  
 }
 
+/* DocumentObjectList so far seen to end before 208 */
+#define DOC_CHECK_BUF 832
 /*
  * Check for the DigitalMicrograph format
  */
 static int checkDM3(FILE *fp, char *filename, RawImageInfo *info)
 {
-  unsigned char bvals[12];
-  int err, dmtype, dmf;
-  int applicOff[2] = {21, 29};
+  unsigned char bvals[DOC_CHECK_BUF];
+  int err, dmtype, dmf, i;
+  unsigned char bsave;
+  char *testString = "DocumentObjectList";
+  int testLen = strlen(testString);
 
+  /* Check for 3 or 4 in the fourth byte */
   rewind(fp);
   if (fread(bvals, 1, 4, fp) != 4)
     return IIERR_IO_ERROR;
   if (bvals[3] != 3 && bvals[3] != 4)
     return IIERR_NOT_FORMAT;
   dmf = (int)bvals[3];
-  if (fseek(fp, applicOff[bvals[3] - 3], SEEK_SET))
-    return IIERR_IO_ERROR;
-  if (fread(bvals, 1, 11, fp) != 11) 
+  if (fread(bvals, 1, DOC_CHECK_BUF, fp) != DOC_CHECK_BUF) 
     return IIERR_IO_ERROR;
 
-  bvals[11] = 0x00;
-  if (strcmp((char *)bvals, "Application"))
+  /* Look for the test string */
+  err = 1;
+  for (i = 0; i < DOC_CHECK_BUF - testLen - 4; i++) {
+    if (bvals[i] == testString[0]) {
+      bsave = bvals[i + testLen];
+      bvals[i + testLen] = 0x00;
+      if (!strcmp((char *)(&bvals[i]), testString)) {
+        err = 0;
+        break;
+      }
+      bvals[i + testLen] = bsave;
+    }
+  }
+  if (err)
     return IIERR_NOT_FORMAT;
 
   if ((err = analyzeDM3(fp, filename, dmf, info, &dmtype)))
@@ -457,11 +472,12 @@ static int checkDM3(FILE *fp, char *filename, RawImageInfo *info)
 #define BUFSIZE 1000000
 #define MAX_TYPES 12
 /*!
- * Analyzes a file known to be a DigitalMicrograph version 3; the file pointer
- * is in [fp] and the filename in [filename].  Returns size, type, and other
- * information in [info]; specifically the {nx}, {ny}, {nz}, {swapBytes},
- * {headerSize}, and {type} members.  Returns IOERR_IO_ERROR for errors reading
- * the file or IOERR_NO_SUPPORT for other errors in analyzing the file.
+ * Analyzes a file known to be a DigitalMicrograph version 3 or 4, as indicated in
+ * [dmformat]; the file pointer is in [fp] and the filename in [filename].  Returns size,
+ * type, and other information in [info]; specifically the {nx}, {ny}, {nz}, {swapBytes},
+ * {headerSize}, and {type} members.  Returns the DM data type number in [dmtype].
+ * Returns IOERR_IO_ERROR for errors reading the file or IOERR_NO_SUPPORT for other 
+ * errors in analyzing the file.
  */
 int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *dmtype)
 {

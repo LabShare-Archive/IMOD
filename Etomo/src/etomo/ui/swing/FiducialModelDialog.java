@@ -15,6 +15,7 @@ import etomo.logic.ClusteredPointsAllowed;
 import etomo.process.ImodManager;
 import etomo.storage.AutofidseedInitFileFilter;
 import etomo.storage.AutofidseedSelectionAndSorting;
+import etomo.storage.DirectiveFile;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -426,7 +427,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   private final LabeledTextField ltfMinSpacing = new LabeledTextField(
       FieldType.FLOATING_POINT, "Minimum spacing: ");
   private final LabeledTextField ltfPeakStorageFraction = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Fraction of peak to store: ");
+      FieldType.FLOATING_POINT, "Fraction of peaks to store: ");
 
   private final ButtonGroup bgTarget = new ButtonGroup();
   private final RadioTextField rtfTargetNumberOfBeads = RadioTextField.getInstance(
@@ -908,7 +909,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
       rbSeedModelManual.setSelected(true);
       updateMethod();
     }
-    else if (transferfidEnabled){
+    else if (transferfidEnabled) {
       rbSeedModelTransfer.setEnabled(true);
     }
     cbsClusteredPointsAllowedElongated
@@ -1361,6 +1362,23 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
         return PATCH_TRACKING;
       }
       if (RAPTOR.value.equals(value)) {
+        return RAPTOR;
+      }
+      return null;
+    }
+
+    public static MethodEnumeratedType getInstance(
+        final DirectiveFile.FiducialsTrackingMethod trackingMethod) {
+      if (trackingMethod == null) {
+        return null;
+      }
+      if (trackingMethod == DirectiveFile.FiducialsTrackingMethod.SEED_AND_TRACK) {
+        return SEED;
+      }
+      if (trackingMethod == DirectiveFile.FiducialsTrackingMethod.PATCH_TRACK) {
+        return PATCH_TRACKING;
+      }
+      if (trackingMethod == DirectiveFile.FiducialsTrackingMethod.RAPTOR) {
         return RAPTOR;
       }
       return null;

@@ -1,0 +1,323 @@
+#!/usr/bin/env python
+# makepyramid - Make an image pyramid
+#
+# Author: David Mastronarde
+#
+# $Id$
+#
+
+progname = 'makepyramid'
+prefix = 'ERROR: ' + progname + ' - '
+
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal, math
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except Exception:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+
+# Fallbacks from ../manpages/autodoc2man 3 1 makepyramid
+options = ["input:InputFile:FN:", "rootname:RootOutputName:CH:",
+           "reductions:ReductionsInSize:IA:", "zreductions:ReductionsInZ:IA:",
+           "subdir:FilesIntoSubdirectory:B:", "tiff:TiffOutputFiles:B:",
+           "compress:TiffCompressionType:CH:", "quality:CompressionQuality:I:",
+           "use:UseInputFileAsIs:B:", "xyanti:AntialiasTypeInXandY:I:",
+           "zanti:AntialiasTypeInZ:I:", "tile:TileSizeInXandY:IP:"]
+
+xyAntiType = 6
+zAntiType = 6
+antiLimit = 6
+xTileSize = 1024
+yTileSize = 1024
+binMemory = 2000
+minPixel = 1. * (1024**2)
+maxPixel = 4. * (1024**2)
+optimalPixel = 2. * (1024**2)
+
+(opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 2, 1, 0)
+
+# Get input file and root name
+infile = PipGetInOutFile('InputFile', 0)
+if not infile:
+   exitError('Input file name must be entered')
+
+(rootname, ext) = os.path.splitext(os.path.basename(infile))
+rootname = PipGetString('RootOutputName', rootname)
+
+# Set up default reductions
+try:
+   (nx, ny, nz) = getmrcsize(infile)
+except ImodpyError:
+   exitFromImodError(progname)
+
+# Get reduction that is closest to 2 MPix and above 1 MPix
+red = 1
+minDiff = 1.e9
+while (nx // (red + 1)) * (ny // (red + 1)) > minPixel:
+   red += 1
+   redSize = (nx // red) * (ny // red)
+   diff = math.fabs(redSize - optimalPixel)
+   if diff < minDiff:
+      minDiff = diff
+      lastRed = red
+
+# Set up default reductions as steps of 2, take a step if it is either far enough from
+# the last one or still above the last one and giving too large a size
+# Otherwise substitute the last one and stop
+defReductions = []
+defStr = 'Using default reductions in X/Y of'
+if minDiff < 1.e9:
+   red = 2
+   while True:
+      if red * 1.3 < lastRed or (red < lastRed and (nx // red) * (ny // red) > maxPixel):
+         defReductions.append(red)
+         defStr += ' ' + str(red)
+         red *= 2
+      else:
+         defReductions.append(lastRed)
+         defStr += ' ' + str(lastRed)
+         break
+   
+# Get the reduction factor input or use defaults
+reductions = PipGetIntegerArray('ReductionsInSize', 0)
+if not reductions:
+   if defReductions:
+      reductions = defReductions
+      prnstr(defStr)
+   else:
+      exitError('List of reduction factors must be entered; image too small for ' + \
+                   'default reductions')
+reductions.insert(0, 1)
+
+# Get the Z reductions or use default
+zfactors = PipGetIntegerArray('ReductionsInZ', 0)
+if not zfactors:
+   zfactors = []
+   defStr = 'Using default reductions in Z of '
+   for red in range(1, len(reductions)):
+      limRed = min(red + 1, nz)
+      zfactors.append(limRed)
+      defStr += ' ' + str(limRed)
+   prnstr(defStr)
+      
+zfactors.insert(0, 1)
+if len(zfactors) != len(reductions):
+   exitError('You must enter the same number of reductions in Z as in X and Y')
+
+intoSubdir = PipGetBoolean('FilesIntoSubdirectory', 0)
+useFirst = PipGetBoolean('UseInputFileAsIs', 0)
+
+# Tiff-related options
+tiffOutput = PipGetBoolean('TiffOutputFiles', 0)
+compress = PipGetString('TiffCompressionType', '')
+if compress and not tiffOutput:
+   exitError('You can use compression only with TIFF output files')
+if compress and not (compress == 'jpeg' or compress == 'zip' or compress == 'lzw' or \
+                        compress.isdigit()):
+   exitError('Compression entry must be jpeg, zip, lzw, or an integer defined in libtiff')
+quality = PipGetInteger('CompressionQuality', 0)
+ifQuality = 1 - PipGetErrNo()
+if ifQuality and not compress:
+   exitError('You should enter quality only when using compression')
+
+# Antialiasing types and tile size; convert type 1 to 0
+xyAntiType = PipGetInteger('AntialiasTypeInXandY', xyAntiType)
+if xyAntiType < 0 or xyAntiType > antiLimit:
+   exitError('Filter type for -xyanti is out of range')
+zAntiType = PipGetInteger('AntialiasTypeInZ', zAntiType)
+if zAntiType < 0 or zAntiType > antiLimit:
+   exitError('Filter type for -zanti is out of range')
+if xyAntiType == 1:
+   xyAntiType = 0
+if zAntiType == 1:
+   zAntiType = 0
+
+(xTileSize, yTileSize) = PipGetTwoIntegers('TileSizeInXandY', xTileSize, yTileSize)
+
+# Create subdirectory if needed
+if intoSubdir:
+   subdirName = rootname + '-pyr'
+   if os.path.exists(subdirName):
+      if not os.path.isdir(subdirName):
+         exitError('Cannot put files in a subdirectory: ' + subdirName + \
+                      ' exists and is not a directory')
+   else: 
+      try:
+         os.mkdir(subdirName)
+      except Exception:
+         exitError('Creating directory ' + subdirName)
+
+binSrcTmp = progname + '.' + str(os.getpid()) + '.tmp1'
+binDestTmp = progname + '.' + str(os.getpid()) + '.tmp2'
+imlistLines = ['IMOD image list',
+               'VERSION 2',
+               'PYRAMID']
+               
+
+# Loop on the reductions
+for indRed in range(len(reductions)):
+   xyReduce = reductions[indRed]
+   zReduce = zfactors[indRed]
+   try:
+
+      # Do reduction for all but the first file
+      binDest = infile
+      if indRed:
+         binSrc = infile
+         xybin = xyReduce
+
+         # If there is antialias XY reduction use newstack
+         if xyAntiType:
+            binSrc = binSrcTmp
+            xybin = 1
+            comlines = ['InputFile ' + infile,
+                        'OutputFile ' + binSrc,
+                        'ShrinkByFactor ' + str(xyReduce),
+                        'AntialiasFilter ' + str(xyAntiType)]
+            prnstr('Running newstack to shrink by ' + str(xyReduce) + ' in X/Y',
+                   flush=True)
+            runcmd('newstack -StandardInput', comlines)
+            
+         # Run binvol and remove the temporary source for that if there is something to do
+         binDest = binDestTmp
+         if xybin * zReduce > 1:
+            comlines = ['InputFile ' + binSrc,
+                        'OutputFile ' + binDest,
+                        'XBinningFactor ' + str(xybin),
+                        'YBinningFactor ' + str(xybin),
+                        'ZBinningFactor ' + str(zReduce),
+                        'MemoryLimit ' + str(binMemory)]
+            if zAntiType:
+               comlines += ['AntialiasZFilter ' + str(zAntiType),
+                            'SpreadSlicesInZ']
+            prnstr(fmtstr('Running binvol to reduce by {} in X/Y and {} in Z',
+                          xybin, zReduce), flush=True)
+            runcmd('binvol -StandardInput', comlines)
+            if xyAntiType:
+               cleanupFiles([binSrcTmp])
+
+         # Or just set the output filename to the input
+         else:
+            binDest = binSrcTmp
+            
+
+      # Tile file unless it is first file and using it as is
+      if indRed or not useFirst:
+         outroot = fmtstr('{}-{}xy-{}z.', rootname, xyReduce, zReduce)
+         outpath = outroot
+         if intoSubdir:
+            outpath = os.path.join(subdirName, outroot)
+         if tiffOutput:
+
+            # TIFF: get origin, do the conversion
+            (nx, ny, nz, mode, px, py, pz, xorigin, yorigin, zorigin, dmin, dmax, dmean) \
+                = getmrc(binDest, True)
+            imlistLines += ['IMAGE ' + outroot + 'tif',
+                            fmtstr('ORIGIN {} {} {}', xorigin, yorigin, zorigin)]
+            compopt = ''
+            if compress:
+               compopt = '-c ' + compress
+            if ifQuality:
+               compopt += ' -q ' + str(quality)
+            tiffcom = fmtstr('mrc2tif -s -P {} -T {},{} """{}""" """{}"""', compopt,
+                             xTileSize, yTileSize, binDest, outpath + 'tif')
+            prnstr('Running mrc2tif to produce ' + outpath + 'tif', flush=True)
+            runcmd(tiffcom)
+            if indRed:
+               cleanupFiles([binDest])
+
+         else:
+
+            # MRC: run reducemont if first file or file big enough
+            (nx, ny, nz) = getmrcsize(binDest)
+            if indRed == 0 or nx * ny > 2.25 * xTileSize * yTileSize:
+               imlistLines += ['IMAGE ' + outroot + 'mrc',
+                               'PIECEFILE ' + outroot + 'pl']
+               comlines = ['ImageInputFile ' + binDest,
+                           'ImageOutputFile ' + outpath + 'mrc',
+                           'PieceListOutput ' + outpath + 'pl',
+                           fmtstr('MaximumFrameSizeXandY {} {}', xTileSize, yTileSize),
+                           'NoResizeForFFT']
+               prnstr('Running reducemont to produce ' + outpath + 'mrc & pl', flush=True)
+               runcmd('reducemont -StandardInput', comlines)
+               if indRed:
+                  cleanupFiles([binDest])
+
+            else:
+
+               # Otherwise just rename the file
+               try:
+                  os.rename(binDest, outpath + 'mrc')
+               except OSError:
+                  exitError('Renaming binvol output ' + binDest + ' to ' + outpath +'mrc')
+               imlistLines += ['IMAGE ' + outroot + 'mrc']
+
+   except ImodpyError:
+      exitFromImodError(progname)
+
+
+# Now rename the first file into the directory if needed, add its name to list
+if useFirst:
+   movedFirst = False
+   inbase = os.path.basename(infile)
+   if intoSubdir:
+      destName = os.path.join(subdirName, inbase)
+      if os.path.exists(destName):
+         prnstr('WARNING: The subdirectory already has a file named the same as the ')
+         prnstr('  input file, so the input file was not moved to the subdirectory')
+      else:
+         try:
+            os.rename(infile, destName)
+            movedFirst = True
+         except OSError:
+            prnstr('WARNING: An error occurred moving the input file into the ' + \
+                      'subdirectory')
+
+      if not movedFirst:
+         prnstr('  You will need to move or copy the input file to the subdirectory' + \
+                   ' yourself')
+
+   if movedFirst:
+      imlistLines += ['IMAGE ' + inbase]
+   elif intoSubdir and not imodIsAbsPath(infile):
+      imlistLines += ['IMAGE ' + os.path.normpath('../' + infile)]
+   else:
+      imlistLines += ['IMAGE ' + infile]
+      
+# Created all the files, write the image list file
+imlistFile = rootname + '.imlist'
+if intoSubdir:
+   imlistFile = os.path.join(subdirName, imlistFile)
+writeTextFile(imlistFile, imlistLines)
+
+prnstr('Created image list file ' + imlistFile)
+if useFirst and intoSubdir and not movedFirst:
+   prnstr('WARNING: The input file is listed in its original location.  You will need to')
+   prnstr('  edit the image list file if you move or copy it to the subdirectory')
+
+if intoSubdir:
+   prnstr('You can open the files with "3dmod ' + subdirName + '" or "3dmod ' + \
+             imlistFile + '"')
+else:
+   prnstr('You can open the files with "3dmod ' + imlistFile + '"')
+   
+sys.exit(0)

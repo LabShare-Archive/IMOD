@@ -21,11 +21,15 @@ and current sections will be changed in tandem.  (This control is not present
 when aligning chunks.)
 <DT><B>Current Chunk</B>
 <DD>When aligning chunks of sections, there is another spin box for selecting
-the current chunk.  Alignment is always between successive chunks.  The current
-section is constrained to stay within the current chunk and the reference
-section is constrained to stay within the previous chunk.  When a pair of chunks
-is first selected, the lowest section of the current chunk and the highest
-section of the previous chunk will be displayed.
+the current chunk.  Alignment is always between successive chunks.  If the
+  chunks are specified with the number of slices in each chunk (the <B>-c</B>
+  option), the current section is constrained to stay within the current chunk
+  and the reference section is constrained to stay within the previous chunk.
+  If the chunks are specified by the number of slices in each sample from a chunk
+  (the <B>-cs</B> option), the selected section is constrained to stay within
+  its respective sample.  When a pair of chunks is first selected, the lowest
+  section of the current chunk and the highest section of the previous chunk
+  will be displayed.
 </DL>
 <A NAME = "Contrast"><H3>Contrast Controls</H3>
 <DL>
@@ -142,6 +146,15 @@ related controls are used.  The box is drawn in yellow when the size or shift
 limit is adjusted; it is drawn in green after a correlation that succeeds in
 giving a peak and in red when the correlation fails to yield a peak within the
 shift limit.
+<P>
+Below the cross-correlation controls are some buttons that become active when
+there are more than 3 warping points, and that may be useful when reading in a
+warping transformation computed by cross-correlation.  The <B>Biggest</B>
+button will
+select the warping point that has the largest shift.  The down and up arrows
+will move from the currently selected warping point to the one with the next
+lower or next higher shift.  Turn on the <B>Draw warp vectors</B> checkbox to
+see a line representing the amount of shift at each warp point.
 <P>
 If the program was started with "-a" to specify a <B>Global rotation</B> angle,
 this angle is displayed and can be adjusted with the spin box below the

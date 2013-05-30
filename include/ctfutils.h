@@ -20,7 +20,7 @@ typedef struct defocus_struct {
 float *readTiltAngles(const char *angleFile, int mNzz, float mAngleSign,
                       float &mMinAngle, float &mMaxAngle);
 void addItemToDefocusList(Ilist *mSaved, SavedDefocus toSave);
-Ilist *readDefocusFile(const char *mFnDefocus);
-int checkAndFixDefocusList(Ilist *list, float *angles, int nz);
+Ilist *readDefocusFile(const char *mFnDefocus, int &defVersion);
+int checkAndFixDefocusList(Ilist *list, float *angles, int nz, int defVersion);
 
 #endif

@@ -212,8 +212,9 @@ DDEESSCCRRIIPPTTIIOONN
   axis, and the ordinal values will be moved into the "previous" column to
   serve as the X axis.
 
-  There are several additional options used by Onegenplot(1); option -4 is
-  also generally useful if making postscript plots:
+  There are several additional options to control plotting, most of them used
+  by Onegenplot(1); options -4 and -5 are also generally useful if making
+  postscript plots:
 
      -2 Enter X axis label and symbol key strings to appear to right of graph.
          Follow with the X axis label or blank for none, then with the number
@@ -228,6 +229,12 @@ DDEESSCCRRIIPPTTIIOONN
          (numbered from 1), and red, green, and blue components ranging from 0
          to 255.  A color will be ignored if the graph has fewer groups than
          the color's group number.
+     -5 Enter the index of a text string to apply a color to for each color
+         entered with -4; the colors will be used for the text strings that
+         can be added to a postscript plot.
+     -6 Enter a new value for the gap in connecting lines round symbols in
+         postscript plots, or 0 for no gaps.  The value is multiplied by the
+         symbol size to obtain the actual gap; the default is 1.1.
      -8 Wait until graph window is closed then exit
 
 HHIISSTTOORRYY

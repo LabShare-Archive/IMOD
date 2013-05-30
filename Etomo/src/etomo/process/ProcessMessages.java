@@ -60,7 +60,9 @@ public final class ProcessMessages {
   private boolean success = false;
   // multi line error, warning, and info strings; terminated by an empty line
   // may be turned off temporarily
-  private boolean multiLineMessages = false;
+  private boolean multiLineAllMessages = false;
+  private boolean multiLineWarning = false;
+  private boolean multiLineInfo = false;
 
   public void dumpState() {
     System.err.print("[chunks:" + chunks + ",processOutputString:" + processOutputString
@@ -92,32 +94,40 @@ public final class ProcessMessages {
       System.err.println(chunkErrorList.toString());
     }
     System.err.print(",successTag1:" + successTag1 + ",successTag2:" + successTag2
-        + ",\nsuccess:" + success + ",multiLineMessages:" + multiLineMessages + "]");
+        + ",\nsuccess:" + success + ",multiLineMessages:" + multiLineAllMessages + "]");
   }
 
   static ProcessMessages getInstance() {
-    return new ProcessMessages(false, false, null, null);
+    return new ProcessMessages(false, false, null, null, false, false);
   }
 
   static ProcessMessages getInstance(final String successTag) {
-    return new ProcessMessages(false, false, successTag, null);
+    return new ProcessMessages(false, false, successTag, null, false, false);
   }
 
   static ProcessMessages getInstance(final String successTag1, String successTag2) {
-    return new ProcessMessages(false, false, successTag1, successTag2);
+    return new ProcessMessages(false, false, successTag1, successTag2, false, false);
   }
 
   static ProcessMessages getMultiLineInstance() {
-    return new ProcessMessages(true, false, null, null);
+    return new ProcessMessages(true, false, null, null, false, false);
   }
 
   static ProcessMessages getInstanceForParallelProcessing(final boolean multiLineMessages) {
-    return new ProcessMessages(multiLineMessages, true, null, null);
+    return new ProcessMessages(multiLineMessages, true, null, null, false, false);
+  }
+
+  static ProcessMessages getMultiLineInstance(final boolean multiLineWarning,
+      final boolean multiLineInfo) {
+    return new ProcessMessages(false, false, null, null, multiLineWarning, multiLineInfo);
   }
 
   private ProcessMessages(final boolean multiLineMessages, final boolean chunks,
-      final String successTag1, final String successTag2) {
-    this.multiLineMessages = multiLineMessages;
+      final String successTag1, final String successTag2, final boolean multiLineWarning,
+      final boolean multiLineInfo) {
+    this.multiLineAllMessages = multiLineMessages;
+    this.multiLineWarning = multiLineWarning;
+    this.multiLineInfo = multiLineInfo;
     this.chunks = chunks;
     this.successTag1 = successTag1;
     this.successTag2 = successTag2;
@@ -189,14 +199,20 @@ public final class ProcessMessages {
   synchronized void addProcessOutput(final String processOutput) {
     // Open the file as a stream
     processOutputString = processOutput;
-    boolean oldMultiLineMessages = multiLineMessages;
-    multiLineMessages = false;
+    boolean oldMultiLineMessages = multiLineAllMessages;
+    multiLineAllMessages = false;
+    boolean oldMultiLineWarning = multiLineWarning;
+    multiLineWarning = false;
+    boolean oldMultiLineInfo = multiLineInfo;
+    multiLineInfo = false;
     nextLine();
     // processOutput may be broken up into multiple lines
     if (line != null) {
       parse();
     }
-    multiLineMessages = oldMultiLineMessages;
+    multiLineAllMessages = oldMultiLineMessages;
+    multiLineWarning = oldMultiLineWarning;
+    multiLineInfo = oldMultiLineInfo;
   }
 
   synchronized void add(final ProcessMessages processMessages) {
@@ -333,10 +349,6 @@ public final class ProcessMessages {
     return errorList != null && errorList.size() > 0;
   }
 
-  boolean isMultiLineMessages() {
-    return multiLineMessages;
-  }
-
   public boolean isInfo() {
     return infoList != null && infoList.size() > 0;
   }
@@ -381,7 +393,7 @@ public final class ProcessMessages {
       return;
     }
     if (chunks) {
-      if (multiLineMessages) {
+      if (multiLineAllMessages) {
         if (parseMultiLineChunkError()) {
           return;
         }
@@ -392,7 +404,7 @@ public final class ProcessMessages {
         }
       }
     }
-    if (multiLineMessages) {
+    if (multiLineAllMessages) {
       if (parseMultiLineMessage()) {
         return;
       }
@@ -559,7 +571,13 @@ public final class ProcessMessages {
     }
     int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
     int warningIndex = line.indexOf(WARNING_TAG);
+    if (warningIndex != -1 && multiLineWarning) {
+      return parseMultiLineMessage();
+    }
     int infoIndex = line.indexOf(INFO_TAG);
+    if (infoIndex != -1 && multiLineInfo) {
+      return parseMultiLineMessage();
+    }
     // error is true if ERROR: found, but not CHUNK ERROR:
     boolean error = errorIndex != -1 && errorTagIndex != -1
         && !(chunks && chunkErrorIndex != -1);

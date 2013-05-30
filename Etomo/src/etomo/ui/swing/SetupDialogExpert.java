@@ -7,6 +7,7 @@ import etomo.ApplicationManager;
 import etomo.Arguments;
 import etomo.EtomoDirector;
 import etomo.logic.UserEnv;
+import etomo.storage.DirectiveFileCollection;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
@@ -196,6 +197,10 @@ public final class SetupDialogExpert {
     if (arguments.isCreate()) {
       dialog.buttonExecuteAction();
     }
+  }
+
+  public DirectiveFileCollection getDirectiveFileCollection() {
+    return dialog.getDirectiveFileCollection();
   }
 
   public File getDir() {
@@ -417,6 +422,7 @@ public final class SetupDialogExpert {
       dialog.setExcludeListEnabled(AxisID.SECOND, false);
       dialog.setViewRawStackEnabled(AxisID.SECOND, false);
     }
+    dialog.setParameters(userConfig);
   }
 
   boolean validateTiltAngle(final AxisID axisID, final String errorTitle) {
@@ -518,6 +524,14 @@ public final class SetupDialogExpert {
     else if (dialog.equalsScanHeaderActionCommand(actionCommand)) {
       setupUIHarness.scanHeaderAction(dialog);
     }
+    else if (dialog.equalsTemplateActionCommand(actionCommand)) {
+      dialog.updateTemplateValues();
+    }
+  }
+
+  void updateTiltAnglePanelTemplateValues(final DirectiveFileCollection directiveFileCollection) {
+    tiltAnglePanelExpertA.updateTemplateValues(directiveFileCollection);
+    tiltAnglePanelExpertB.updateTemplateValues(directiveFileCollection);
   }
 
   void viewRawStack(AxisID axisID, final Run3dmodMenuOptions menuOptions) {

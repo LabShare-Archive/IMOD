@@ -267,12 +267,14 @@ dist : ALWAYS
 	if [ -e $(ARCDIR) ] ; then /bin/rm -rf $(ARCDIR)/ ; fi
 	mkdir $(ARCDIR)
 	mkdir $(ARCDIR)/licenses
+	mkdir $(ARCDIR)/SystemTemplate
 	./setup -inst $(ARCDIR) $(LAST_OPTIONS)
 	(cd dist ; \find . -type f -name "*~" -exec rm "{}" \;)
 	($(MAKE) install)
 	-\cp buildlib/*.so $(ARCDIR)/lib/
 	\cp dist/COPYRIGHT dist/start.html dist/installIMOD $(ARCDIR)/
 	\cp  dist/[a-zA-Z]*.txt dist/CPOL.html $(ARCDIR)/licenses/
+	-\cp dist/[a-zA-Z]*.adoc $(ARCDIR)/SystemTemplate
 	-\find $(ARCDIR) -depth -name CVS -exec /bin/rm -rf {} \;
 	./installqtlib
 	@echo "Compressing..."

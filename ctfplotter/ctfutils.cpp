@@ -62,17 +62,19 @@ float *readTiltAngles(const char *angleFile, int nzz, float angleSign,
  * The return value is the Ilist, which may be empty if the file does not
  * exist.
  */
-Ilist *readDefocusFile(const char *fnDefocus)
+Ilist *readDefocusFile(const char *fnDefocus, int &defVersion)
 {
   FILE *fp;
   SavedDefocus saved;
   char line[MAX_LINE];
-  int nchar;
+  int nchar, versTmp;
   float langtmp, hangtmp, defoctmp;
   Ilist *lstSaved = ilistNew(sizeof(SavedDefocus), 10);
   if (!lstSaved)
     exitError("Allocating list for angles and defocuses");
   fp = fopen(fnDefocus, "r");
+  defVersion = 0;
+  versTmp = 0;
   if (fp) {
     while (1) {
       nchar = fgetline(fp, line, MAX_LINE);
@@ -81,8 +83,10 @@ Ilist *readDefocusFile(const char *fnDefocus)
       if (nchar == -1)
         exitError("Error reading defocus file %s", fnDefocus);
       if (nchar) {
-        sscanf(line, "%d %d %f %f %f", &saved.startingSlice, &saved.endingSlice
-               , &langtmp, &hangtmp, &defoctmp);
+        sscanf(line, "%d %d %f %f %f %d", &saved.startingSlice, &saved.endingSlice
+               , &langtmp, &hangtmp, &defoctmp, &versTmp);
+        if (!ilistSize(lstSaved))
+          defVersion = versTmp;
         saved.lAngle = langtmp;
         saved.hAngle = hangtmp;
         saved.defocus = defoctmp / 1000.;
@@ -131,10 +135,10 @@ void addItemToDefocusList(Ilist *lstSaved, SavedDefocus toSave)
  * if there are no tilt angles).  If it detects that the views are low by one,
  * it will adjust them.  If there are other inconsistencies, it returns 1.
  */
-int checkAndFixDefocusList(Ilist *list, float *angles, int nz)
+int checkAndFixDefocusList(Ilist *list, float *angles, int nz, int defVersion)
 {
   SavedDefocus *item;
-  int allEqual = 1, allOffByOne = 1;
+  int allEqual = 1, allOffByOne = 1, numEmpty = 0;
   int minStart = 10000, maxEnd = -100;
   int i, k, start, end, startAmbig, endAmbig;
   float tol = 0.02f;
@@ -149,7 +153,7 @@ int checkAndFixDefocusList(Ilist *list, float *angles, int nz)
       end = 0;
       /*printf("item %d  start %d end %d low %f high %f  has to start %d "
              "end %d\n", k, item->startingSlice, item->endingSlice,
-             item->lAngle, item->hAngle, start, end); */
+             item->lAngle, item->hAngle, start, end);*/
     } else {
       start = -1;
       end = -1;
@@ -172,7 +176,7 @@ int checkAndFixDefocusList(Ilist *list, float *angles, int nz)
             else
               endAmbig = 1;
             /*printf("Angle %d, %f ambiguous to low angle %f, start %d end %d\n"
-               ,i, angles[i], item->lAngle, startAmbig, endAmbig); */
+               ,i, angles[i], item->lAngle, startAmbig, endAmbig);*/
           }
           if (fabs((double)(item->hAngle - angles[i])) < 1.01 * tol) {
             if (angles[0] <= angles[nz - 1])
@@ -186,12 +190,12 @@ int checkAndFixDefocusList(Ilist *list, float *angles, int nz)
       }
       /*printf("item %d  start %d end %d low %f high %f  implied start %d "
              "end %d\n", k, item->startingSlice, item->endingSlice,
-             item->lAngle, item->hAngle, start, end); */
+             item->lAngle, item->hAngle, start, end);*/
 
-      // If can't find, skip this one and clear both flags
+      // If can't find, skip this one, count how many times this happens
+      // This used to guarantee it thought they were off by 1!  
       if (start < 0 || end < 0) {
-        allEqual = 0;
-        allOffByOne = 0;
+        numEmpty++;
         continue;
       }
     }
@@ -208,8 +212,8 @@ int checkAndFixDefocusList(Ilist *list, float *angles, int nz)
   if (allEqual && allOffByOne && minStart == -1 && maxEnd < nz - 1)
     allEqual = 0;
 
-  // Adjust them all if all off by one as far as we can tell
-  if (!allEqual || allOffByOne) {
+  // Adjust them all if all off by one as far as we can tell, for old data
+  if ((!allEqual || allOffByOne) && defVersion < 2) {
     printf("View numbers in defocus file appear to be low by 1;\n"
            "  adding 1 to correct for old Ctfplotter bug\n");
     for (k = 0; k < ilistSize(list); k++) {
@@ -218,7 +222,7 @@ int checkAndFixDefocusList(Ilist *list, float *angles, int nz)
       item->endingSlice++;
     }
   }
-  if ((!allEqual && allOffByOne) || (allEqual && !allOffByOne))
+  if ((!allEqual && allOffByOne && defVersion < 2) || (allEqual && !allOffByOne))
     return 0;
   return 1;
 }

@@ -45,8 +45,8 @@ tooltip =
 manpage = One or more symbols to use for the different types or columns being
 displayed.  See onegenplot(1) for a list of symbol types.
 
-[Field = ColorOfGroup]
-short = color
+[Field = HueOfGroup]
+short = hue
 type = CHM
 usage = Group number, and color name or red, green, blue (0-255)
 tooltip =

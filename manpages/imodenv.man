@@ -176,6 +176,16 @@ whether tif2mrc(1) automatically puts a pixel size from the TIFF input into the
 output file, and whether 3dmod(1) thinks that a read-in TIFF file has a pixel
 size other than 1.  The default value is 1.0 microns.
 .TP
+.B TILECACHE_LIMIT_MB
+The variable sets the default limit on the size of the tile/strip cache in 3dmod(1)
+when an image pyramid is displayed and the cache size is not specified with
+the
+.B -C
+or
+.B -CT
+option.  The value should be an integer specifying the size in megabytes.  The
+default in 3dmod is 20000.
+.TP
 .B WRITE_MODE0_SIGNED
 Set this variable to 1 to have all MRC files in mode 0 written as signed
 bytes.  In some future IMOD version, this may be the default behavior, and
