@@ -3,6 +3,7 @@ package etomo.logic;
 import etomo.storage.Directive;
 import etomo.storage.DirectiveDescr;
 import etomo.storage.DirectiveDescrEtomoColumn;
+import etomo.storage.DirectiveType;
 import etomo.storage.DirectiveValueType;
 import etomo.type.AxisID;
 import etomo.type.DirectiveFileType;
@@ -34,14 +35,14 @@ public class DirectiveToolTest extends TestCase {
         tool.isToggleDirectiveIncluded(null, null, false));
 
     settings.setInclude(DirectiveFileType.SCOPE.getIndex(), true);
-    TestDescr descr = new TestDescr();
+    TestDescr descr = new TestDescr("setupset.copyarg.dual");
     descr.setTemplate(true);
     Directive directive = new Directive(descr);
     directive.setInDirectiveFile(DirectiveFileType.SCOPE, null, true);
     assertTrue("can return true when a template editor encounters a template directive",
         tool.isToggleDirectiveIncluded(directive, null, false));
 
-    descr = new TestDescr();
+    descr = new TestDescr("setupset.copyarg.dual");
     descr.setBatch(true);
     directive = new Directive(descr);
     directive.setInDirectiveFile(DirectiveFileType.SCOPE, null, true);
@@ -51,27 +52,27 @@ public class DirectiveToolTest extends TestCase {
     settings = new TestSettings();
     settings.setInclude(DirectiveFileType.BATCH.getIndex(), true);
     tool = new DirectiveTool(DirectiveFileType.BATCH, false, settings);
-    descr = new TestDescr();
+    descr = new TestDescr("setupset.copyarg.dual");
     descr.setBatch(true);
     directive = new Directive(descr);
     directive.setInDirectiveFile(DirectiveFileType.BATCH, null, true);
     assertTrue("can return true when a batch editor encounters a template directive",
         tool.isToggleDirectiveIncluded(directive, null, false));
 
-    descr = new TestDescr();
+    descr = new TestDescr("setupset.copyarg.dual");
     descr.setTemplate(true);
     directive = new Directive(descr);
     directive.setInDirectiveFile(DirectiveFileType.BATCH, null, true);
     assertFalse("returns false when a batch editor encounters a template directive",
         tool.isToggleDirectiveIncluded(directive, null, false));
     tool = new DirectiveTool(DirectiveFileType.SCOPE, false, settings);
-    descr = new TestDescr();
+    descr = new TestDescr("setupset.copyarg.dual");
     directive = new Directive(descr);
     assertFalse("include SD is on, but directive doesn't have SD in etomo column",
         tool.isToggleDirectiveIncluded(directive, null, false));
 
     tool = new DirectiveTool(null, false, settings);
-    descr = new TestDescr();
+    descr = new TestDescr("setupset.copyarg.dual");
     directive = new Directive(descr);
     assertFalse("missing type doesn't cause an error",
         tool.isToggleDirectiveIncluded(directive, null, false));
@@ -104,7 +105,7 @@ public class DirectiveToolTest extends TestCase {
 
     settings = new TestSettings();
     tool = new DirectiveTool(DirectiveFileType.USER, false, settings);
-    descr = new TestDescr();
+    descr = new TestDescr("setupset.copyarg.dual");
     descr.setEtomoColumn(DirectiveDescrEtomoColumn.SD);
     descr.setTemplate(true);
     directive = new Directive(descr);
@@ -124,14 +125,14 @@ public class DirectiveToolTest extends TestCase {
 
     settings.setShowUnchanged(true);
     settings.setShowHidden(true);
-    TestDescr descr = new TestDescr();
+    TestDescr descr = new TestDescr("runtime.Preprocessing.any.removeXrays");
     descr.setBatch(true);
     Directive directive = new Directive(descr);
     assertFalse("returns false when a template editor encounters a batch directive",
         tool.isDirectiveVisible(directive, false, false));
 
     tool = new DirectiveTool(DirectiveFileType.BATCH, false, settings);
-    descr = new TestDescr();
+    descr = new TestDescr("runtime.Preprocessing.any.removeXrays");
     descr.setTemplate(true);
     directive = new Directive(descr);
     assertFalse("returns false when a batch editor encounters a template directive",
@@ -139,7 +140,7 @@ public class DirectiveToolTest extends TestCase {
 
     settings = new TestSettings();
     tool = new DirectiveTool(DirectiveFileType.SYSTEM, false, settings);
-    descr = new TestDescr();
+    descr = new TestDescr("runtime.Preprocessing.any.removeXrays");
     descr.setEtomoColumn(DirectiveDescrEtomoColumn.SO);
     directive = new Directive(descr);
     directive.setValue(10);
@@ -147,14 +148,14 @@ public class DirectiveToolTest extends TestCase {
         tool.isDirectiveVisible(directive, false, false));
 
     settings.setShowUnchanged(true);
-    descr = new TestDescr();
+    descr = new TestDescr("runtime.Preprocessing.any.removeXrays");
     descr.setEtomoColumn(DirectiveDescrEtomoColumn.SO);
     directive = new Directive(descr);
     assertTrue("not changed, but show unchanged is not (and not hidden) - visible",
         tool.isDirectiveVisible(directive, false, false));
 
     settings.setShowHidden(true);
-    descr = new TestDescr();
+    descr = new TestDescr("runtime.Preprocessing.any.removeXrays");
     directive = new Directive(descr);
     directive.setValue(10);
     assertTrue("changed and hidden, but show hidden is on - visible",
@@ -162,14 +163,14 @@ public class DirectiveToolTest extends TestCase {
 
     settings.setShowUnchanged(true);
     settings.setShowHidden(true);
-    descr = new TestDescr();
+    descr = new TestDescr("runtime.Preprocessing.any.removeXrays");
     directive = new Directive(descr);
     assertTrue("unchanged and hidden, but show changed and show hidden are on - visible",
         tool.isDirectiveVisible(directive, false, false));
 
     settings.setShowUnchanged(false);
     settings.setShowHidden(false);
-    descr = new TestDescr();
+    descr = new TestDescr("runtime.Preprocessing.any.removeXrays");
     descr.setEtomoColumn(DirectiveDescrEtomoColumn.NE);
     directive = new Directive(descr);
     assertFalse(
@@ -178,15 +179,18 @@ public class DirectiveToolTest extends TestCase {
   }
 
   private static final class TestDescr implements DirectiveDescr {
+    private final String name;
+
     private DirectiveDescrEtomoColumn etomoColumn = null;
     private boolean template = false;
     private boolean batch = false;
 
-    private TestDescr() {
+    private TestDescr(final String name) {
+      this.name = name;
     }
 
     public String getName() {
-      return null;
+      return name;
     }
 
     public String getDescription() {
@@ -194,7 +198,7 @@ public class DirectiveToolTest extends TestCase {
     }
 
     public DirectiveValueType getValueType() {
-      return null;
+      return DirectiveValueType.UNKNOWN;
     }
 
     public void setBatch(final boolean input) {
