@@ -346,22 +346,22 @@ EOF
 
 cat <<EOF >! $qtassist_qconf
 LIBS += libcfshr.lib
-QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib"
-QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib"
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"../../buildlib"
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"../../buildlib"
 EOF
 
 cat <<EOF >! $prochunk_qconf
 CONFIG += CONSOLE
 LIBS += libcfshr.lib
-QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib"
-QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib"
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"../../buildlib"
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"../../buildlib"
 EOF
 
 cat <<EOF >! $mrc2tif_qconf
 CONFIG += CONSOLE
 LIBS += libiimod.lib llibcfshr.lib libtiff.lib
-QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib"
-QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib"
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"../../buildlib"
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"../../buildlib"
 EOF
 
 if ($no_qt3 == false) then
