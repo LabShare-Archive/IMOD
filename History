@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/30/13: Fixed Tomodataplots to send right color option to Onegenplot.
+
 5/29/13: IMOD-4-6-21
 5/29/13: Ctfplotter: added version number to defocus file so the old bug of
 view numbers off by 1 will not be detected in error, allowed double-clicking a
