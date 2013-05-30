@@ -8,6 +8,7 @@ import etomo.Arguments;
 import etomo.EtomoDirector;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.logic.DatasetTool;
+import etomo.logic.TrackingMethod;
 import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
@@ -16,10 +17,10 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DataFileType;
 import etomo.type.DialogExitState;
+import etomo.type.DirectiveFileType;
 import etomo.type.MetaData;
 import etomo.type.UserConfiguration;
 import etomo.type.ViewType;
-import etomo.ui.swing.FiducialModelDialog;
 import etomo.ui.swing.SetupDialogExpert;
 import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
@@ -470,11 +471,25 @@ public final class SetupReconUIHarness {
       metaData.setSetFEIPixelSize(setFEIPixelSize);
       DirectiveFileCollection directiveFileCollection = setupInterface
           .getDirectiveFileCollection();
-      saveDirectiveFile(directiveFileCollection.getScopeTemplate(), metaData);
-      saveDirectiveFile(directiveFileCollection.getSystemTemplate(), metaData);
-      saveDirectiveFile(directiveFileCollection.getUserTemplate(), metaData);
+      DirectiveFile directiveFile = directiveFileCollection
+          .getDirectiveFile(DirectiveFileType.SCOPE);
+      if (directiveFile != null) {
+        metaData.setOrigScopeTemplate(directiveFile.getFile());
+        saveDirectiveFile(directiveFile, metaData);
+      }
+      directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.SYSTEM);
+      if (directiveFile != null) {
+        metaData.setOrigSystemTemplate(directiveFile.getFile());
+        saveDirectiveFile(directiveFile, metaData);
+      }
+      directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.USER);
+      if (directiveFile != null) {
+        metaData.setOrigUserTemplate(directiveFile.getFile());
+        saveDirectiveFile(directiveFile, metaData);
+      }
       if (directiveFileCollection != null) {
-        saveDirectiveFile(directiveFileCollection.getBatchDirectiveFile(), metaData);
+        saveDirectiveFile(
+            directiveFileCollection.getDirectiveFile(DirectiveFileType.BATCH), metaData);
       }
       return metaData;
     }
@@ -523,10 +538,8 @@ public final class SetupReconUIHarness {
       }
     }
     if (directiveFile.containsFiducialsTrackingMethod(axisID)) {
-      FiducialModelDialog.MethodEnumeratedType method = FiducialModelDialog.MethodEnumeratedType
-          .getInstance(directiveFile.getFiducialsTrackingMethod(axisID));
-      String value = method != null ? method.getValue().toString() : null;
-      metaData.setTrackMethod(axisID, value);
+      metaData.setTrackMethod(axisID, TrackingMethod.toMetaDataValue(directiveFile
+          .getFiducialsTrackingMethod(axisID)));
     }
     if (directiveFile.containsAlignedStackSizeInXandY(axisID)) {
       try {

@@ -351,8 +351,19 @@ public abstract class MainPanel extends EtomoPanel {
     // axisPanel.setLayout(new BoxLayout(axisPanel, BoxLayout.X_AXIS));
   }
 
-  String getStatusBarText() {
+  public String getStatusBarText() {
     return statusBar.getText();
+  }
+
+  public String getStatus() {
+    String status = statusBar.getText();
+    if (status.equals(STATUS_BAR_EMPTY_TITLE)) {
+      return "";
+    }
+    if (status.startsWith(STATUS_BAR_BASE_TITLE)) {
+      return status.substring(STATUS_BAR_BASE_TITLE.length());
+    }
+    return status;
   }
 
   public void repaint() {

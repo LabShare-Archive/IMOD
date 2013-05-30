@@ -45,28 +45,32 @@ public final class ManagerFrame extends AbstractFrame {
 
   public static final String NAME = "manager-frame";
 
-  private final EtomoMenu menu = new EtomoMenu(true);
+  private final EtomoMenu menu;
 
   private final BaseManager manager;
   private final JPanel rootPanel;
+  private final boolean savable;
 
-  private ManagerFrame(BaseManager manager) {
+  private ManagerFrame(final BaseManager manager, final boolean savable) {
     this.manager = manager;
+    this.savable = savable;
     rootPanel = (JPanel) getContentPane();
+    menu = EtomoMenu.getInstance(this, savable);
   }
 
-  static ManagerFrame getInstance(BaseManager manager) {
-    ManagerFrame instance = new ManagerFrame(manager);
+  static ManagerFrame getInstance(final BaseManager manager, final boolean savable) {
+    ManagerFrame instance = new ManagerFrame(manager, savable);
     instance.initialize();
     instance.addListeners();
     return instance;
   }
 
   private void initialize() {
+    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     if (manager == null) {
       throw new NullPointerException("manager is null");
     }
-    //set name
+    // set name
     String name = Utilities.convertLabelToName(NAME);
     rootPanel.setName(UITestFieldType.PANEL.toString() + AutodocTokenizer.SEPARATOR_CHAR
         + name);
@@ -77,14 +81,13 @@ public final class ManagerFrame extends AbstractFrame {
     }
     ImageIcon iconEtomo = new ImageIcon(ClassLoader.getSystemResource("images/etomo.png"));
     setIconImage(iconEtomo.getImage());
-    menu.createMenus(this);
     setJMenuBar(menu.getMenuBar());
     setTitle(manager.getName());
     rootPanel.add(manager.getMainPanel());
     rootPanel.repaint();
     setVisible(true);
   }
-  
+
   public FrameType getFrameType() {
     return null;
   }
@@ -98,6 +101,39 @@ public final class ManagerFrame extends AbstractFrame {
   }
 
   public void menuFileAction(ActionEvent event) {
+    menu.menuFileAction(event);
+  }
+
+  void save(AxisID axisID) {
+    if (savable) {
+      manager.saveToFile();
+    }
+  }
+
+  void saveAs() {
+    if (savable) {
+      manager.saveAsToFile();
+    }
+  }
+
+  void cancel() {
+    setVisible(false);
+    dispose();
+  }
+
+  void close() {
+    if (manager.closeFrame()) {
+      setVisible(false);
+      dispose();
+    }
+  }
+
+  protected void processWindowEvent(WindowEvent event) {
+    super.processWindowEvent(event);
+    if (event.getID() == WindowEvent.WINDOW_CLOSING
+        && !EtomoDirector.INSTANCE.getArguments().isTest()) {
+      close();
+    }
   }
 
   /**
@@ -106,7 +142,7 @@ public final class ManagerFrame extends AbstractFrame {
    * @param event
    */
   public void menuViewAction(ActionEvent event) {
-    //Run fitWindow on both frames.
+    // Run fitWindow on both frames.
     if (menu.equalsFitWindow(event)) {
       UIHarness.INSTANCE.pack(true, manager);
     }

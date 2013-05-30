@@ -60,6 +60,7 @@ final class FileTextField2 implements FileTextFieldInterface {
   private FileFilter fileFilter = null;
   private boolean absolutePath = false;
   private boolean useTextAsOriginDir = false;
+  private boolean turnOffFileHiding = false;
   /**
    * If origin is valid, it overrides originEtomoRunDir.
    */
@@ -193,6 +194,7 @@ final class FileTextField2 implements FileTextFieldInterface {
     if (fileFilter != null) {
       chooser.setFileFilter(fileFilter);
     }
+    chooser.setFileHidingEnabled(!turnOffFileHiding);
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     int returnVal = chooser.showOpenDialog(panel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -282,7 +284,7 @@ final class FileTextField2 implements FileTextFieldInterface {
     }
     return manager.getPropertyUserDir();
   }
-  
+
   private String getFileChooserLocation() {
     if (useTextAsOriginDir) {
       File dir = getFile();
@@ -321,6 +323,10 @@ final class FileTextField2 implements FileTextFieldInterface {
       return;
     }
     fileSelectionMode = input;
+  }
+
+  void setTurnOffFileHiding(final boolean input) {
+    turnOffFileHiding = input;
   }
 
   void setFileFilter(final FileFilter input) {

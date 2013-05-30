@@ -12,10 +12,10 @@ import javax.swing.event.ChangeListener;
 
 import etomo.ApplicationManager;
 import etomo.logic.ClusteredPointsAllowed;
+import etomo.logic.TrackingMethod;
 import etomo.process.ImodManager;
 import etomo.storage.AutofidseedInitFileFilter;
 import etomo.storage.AutofidseedSelectionAndSorting;
-import etomo.storage.DirectiveFile;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -390,13 +390,13 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
       this);
   private final ButtonGroup bgMethod = new ButtonGroup();
   private final RadioButton rbMethodSeed = new RadioButton("Make seed and track",
-      MethodEnumeratedType.SEED, bgMethod);
+      TrackingMethod.SEED, bgMethod);
   private final RadioButton rbMethodPatchTracking = new RadioButton(
-      "Use patch tracking to make fiducial model", MethodEnumeratedType.PATCH_TRACKING,
+      "Use patch tracking to make fiducial model", TrackingMethod.PATCH_TRACKING,
       bgMethod);
   private final RadioButton rbMethodRaptor = new RadioButton("Run RAPTOR and fix",
-      MethodEnumeratedType.RAPTOR, bgMethod);
-  private final JPanel[] pnlMethodArray = new JPanel[MethodEnumeratedType.NUM];
+      TrackingMethod.RAPTOR, bgMethod);
+  private final JPanel[] pnlMethodArray = new JPanel[TrackingMethod.NUM];
   private TabbedPane tpSeedAndTrack = new TabbedPane();
   private final JPanel[] pnlSeedAndTrackArray = new JPanel[SeedAndTrackTab.NUM_TABS];
   private final JPanel[] pnlSeedAndTrackBodyArray = new JPanel[SeedAndTrackTab.NUM_TABS];
@@ -558,14 +558,14 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
       pnlMethod.add(rbMethodRaptor.getComponent());
     }
     // panels to switch when the radio buttons change
-    for (int i = 0; i < MethodEnumeratedType.NUM; i++) {
+    for (int i = 0; i < TrackingMethod.NUM; i++) {
       pnlMethodArray[i] = new JPanel();
     }
-    int i = MethodEnumeratedType.SEED.value.getInt();
+    int i = TrackingMethod.SEED.getValue().getInt();
     pnlMethodArray[i].add(tpSeedAndTrack);
-    i = MethodEnumeratedType.PATCH_TRACKING.value.getInt();
+    i = TrackingMethod.PATCH_TRACKING.getValue().getInt();
     pnlMethodArray[i].add(tiltxcorrPanel.getPanel());
-    i = MethodEnumeratedType.RAPTOR.value.getInt();
+    i = TrackingMethod.RAPTOR.getValue().getInt();
     pnlMethodArray[i].add(tpRunRaptor);
     // Seed and track
     // panels to switch when the tab changes
@@ -723,10 +723,10 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
         .getEnumeratedType().getValue().getInt();
     pnlMain.add(pnlMethodArray[curMethodIndex]);
     // Refresh the tabs if necessary
-    if (curMethodIndex == MethodEnumeratedType.SEED.value.getInt()) {
+    if (curMethodIndex == TrackingMethod.SEED.getValue().getInt()) {
       changeSeedAndTrackTab();
     }
-    else if (curMethodIndex == MethodEnumeratedType.RAPTOR.value.getInt()) {
+    else if (curMethodIndex == TrackingMethod.RAPTOR.getValue().getInt()) {
       changeRunRaptorTab();
     }
     else {
@@ -979,15 +979,15 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   }
 
   public void setParameters(final ConstMetaData metaData) {
-    MethodEnumeratedType method = MethodEnumeratedType.getInstance(metaData
+    TrackingMethod method = TrackingMethod.getInstance(metaData
         .getTrackMethod(axisID));
-    if (method == MethodEnumeratedType.SEED) {
+    if (method == TrackingMethod.SEED) {
       rbMethodSeed.setSelected(true);
     }
-    else if (method == MethodEnumeratedType.PATCH_TRACKING) {
+    else if (method == TrackingMethod.PATCH_TRACKING) {
       rbMethodPatchTracking.setSelected(true);
     }
-    else if (axisID != AxisID.SECOND && method == MethodEnumeratedType.RAPTOR) {
+    else if (axisID != AxisID.SECOND && method == TrackingMethod.RAPTOR) {
       rbMethodRaptor.setSelected(true);
     }
     if (raptorPanel != null) {
@@ -1329,7 +1329,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
       dialog.changeRunRaptorTab();
     }
   }
-
+/*
   public static final class MethodEnumeratedType implements EnumeratedType {
     public static final MethodEnumeratedType SEED = new MethodEnumeratedType(true, 0,
         "Seed");
@@ -1396,7 +1396,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
       return string;
     }
   }
-
+*/
   public static final class SeedModelEnumeratedType implements EnumeratedType {
     private static final SeedModelEnumeratedType MANUAL = new SeedModelEnumeratedType(
         true, 0, "Manual");

@@ -122,6 +122,10 @@ public final class ToolsManager extends BaseManager {
       uiHarness.toFront(this);
     }
   }
+  
+  public boolean closeFrame() {
+    return true;
+  }
 
   /**
    * Checks for .edf, .ejf, or .epe files with the same dataset name (left side)
@@ -475,9 +479,10 @@ public final class ToolsManager extends BaseManager {
     return processMgr;
   }
 
-  public void save() throws LogFile.LockException, IOException {
+  public boolean save() throws LogFile.LockException, IOException {
     super.save();
     mainPanel.done();
+    return true;
   }
 
   public boolean exitProgram(final AxisID axisID) {
