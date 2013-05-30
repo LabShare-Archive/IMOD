@@ -59,11 +59,14 @@ public final class DirectiveTool {
    */
   public boolean isToggleDirectiveIncluded(final Directive directive,
       final AxisID axisID, final boolean includeChecked) {
-    // Any directives are set indirectly
+    if (directive == null ) {
+      return includeChecked != false;
+    }
+    // "Any" directives are set indirectly
     if (axisID == null && directive.getType() != DirectiveType.SETUP_SET) {
       return false;
     }
-    if (directive == null || !isMatchesType(directive)) {
+    if (!isMatchesType(directive)) {
       return includeChecked != false;
     }
     // Check the display settings in order of precedence.
@@ -111,13 +114,11 @@ public final class DirectiveTool {
       return includeChecked != true;
     }
     if (exclude) {
-
       return includeChecked != false;
     }
     if (!fileTypeExists) {
       // Any directives are set indirectly
       if (axisID == null && directive.getType() != DirectiveType.SETUP_SET) {
-
         return includeChecked != false;
       }
       DirectiveValues values = directive.getValues();
@@ -153,7 +154,7 @@ public final class DirectiveTool {
       return false;
     }
     // Hide unchanged and hidden directives, unless the display settings say otherwise.
-    //Batch directives and undefined directives are never considered hidden.
+    // Batch directives and undefined directives are never considered hidden.
     DirectiveDescrEtomoColumn etomoColumn = directive.getEtomoColumn();
     directive.setDebug(debug);
     boolean retval = (displaySettings.isShowUnchanged() || directive.getValues()
