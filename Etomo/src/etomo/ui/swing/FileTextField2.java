@@ -61,6 +61,7 @@ final class FileTextField2 implements FileTextFieldInterface {
   private boolean absolutePath = false;
   private boolean useTextAsOriginDir = false;
   private boolean turnOffFileHiding = false;
+  private String checkpointValue = null;
   /**
    * If origin is valid, it overrides originEtomoRunDir.
    */
@@ -269,6 +270,40 @@ final class FileTextField2 implements FileTextFieldInterface {
       return FilePath.buildAbsoluteFile(getOriginDir(), field.getText());
     }
     return null;
+  }
+
+  public boolean equals(final FileTextField2 input) {
+    if (input == null) {
+      return false;
+    }
+    File file = getFile();
+    File inputFile = input.getFile();
+    if (file == null) {
+      return inputFile == null;
+    }
+    return file.equals(inputFile);
+  }
+
+  /**
+   * Saves the current text as the checkpoint.
+   */
+  void checkpoint() {
+    checkpointValue = getText();
+  }
+
+  /**
+   * 
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return
+   */
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !panel.isVisible())) {
+      return false;
+    }
+    if (checkpointValue == null) {
+      return true;
+    }
+    return !checkpointValue.equals(getText());
   }
 
   /**
