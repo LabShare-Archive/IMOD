@@ -16,7 +16,7 @@
                 <section title="Guide to CTF Plotter" ref="./ctfHelp/ctfguide.html#TOP"></section>
                 <section title="Aligning Serial Sections" ref="./serialalign.html#TOP"></section>
                 <section title="Program Listing" ref="./program_listing.html#TOP"></section>
-                <section title="PEET Manual" ref="./PEETmanual.html#TOP"></section>
+                <section title="PEET Guide" ref="./PEETmanual.html#TOP"></section>
                 <section title="Batch/Template Directives" ref="./directives.html#TOP"></section>
                 <section title="Binary Model Format" ref="./binspec.html#TOP"></section>
                 <section title="Ascii Model Format" ref="./asciispec.html#TOP"></section>
