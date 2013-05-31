@@ -67,6 +67,7 @@ public class BatchruntomoParam {
     }
     batchruntomo = new SystemProgram(manager, manager.getPropertyUserDir(), command,
         AxisID.ONLY);
+    batchruntomo.setMessagePrependTag("Beginning to process template file");
     batchruntomo.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
     return true;
   }
