@@ -18,11 +18,11 @@ program xftoxg
   integer*4 igroup(LIMSEC), nControl(LIMSEC)
   character*320 inFile, outFile, errString
   real*4, allocatable :: dxGrid(:,:), dyGrid(:,:), dxCum(:,:,:), dyCum(:,:,:)
-  real*4, allocatable :: dxProd(:,:), dyProd(:,:)
+  real*4, allocatable :: dxProd(:,:), dyProd(:,:), gWarp(:,:,:)
   !
   integer*4 nhybrid, ifShift, iorder, nlist, kl, i, ilist, klLow, klHigh, nx, ny
-  integer*4 j, ipow, numFit, ierr, numGroups, numInFirst, iorderUse, ibin
-  integer*4 irefSec, indWarpFile, nxGrid, nyGrid, nxGrTmp, nyGrTmp, iflags
+  integer*4 j, ipow, numFit, ierr, numGroups, numInFirst, iorderUse, ibin, indFitCenter
+  integer*4 irefSec, indWarpInput, indWarpOutput, nxGrid, nyGrid, nxGrTmp, nyGrTmp, iflags
   real*4 xStart, yStart, xInterval, yInterval, xStrTmp, yStrTmp, xIntTmp, yIntTmp
   logical*4 warping, control
   real*4 deltaAngle, angDiff, bint, angleRange, pixelSize, xcen, ycen, xEnd, yEnd
@@ -30,7 +30,7 @@ program xftoxg
   integer*4 getGridParameters, getWarpGrid, setWarpGrid, setGridSizeToMake
   integer*4 setLinearTransform, writeWarpFile, multiplyWarpings, newWarpFile
   integer*4 clearWarpFile, separateLinearTransform, expandAndExtrapGrid
-  integer*4 gridSizeFromSpacing
+  integer*4 gridSizeFromSpacing, setCurrentWarpFile
   !
   logical pipInput
   integer*4 numOptArg, numNonOptArg
@@ -87,13 +87,13 @@ program xftoxg
 
     ierr = PipGetFloat('RangeOfAnglesInAverage', angleRange)
   else
-
+    
     print *,'Enter 0 to align all sections to a single' &
         //' average central alignment;'
     print *,'   or 1 to align to an average alignment that shifts based'
     print *,'         on a polynomial fit to the whole stack;'
     print *, '   or N to align each section to an average '// &
-        'alignment based'
+          'alignment based'
     write(*,'(1x,a,/,a,$)') &
         '         on a polynomial fit to the nearest N sections,', &
         '   or -1 or -N for a hybrid of central and shifting '// &
@@ -130,10 +130,10 @@ program xftoxg
   endif
   !
   ! Determine if there is warping
-  indWarpFile = readCheckWarpFile(inFile, 0, 1, nx, ny, nlist, ibin, &
+  indWarpInput = readCheckWarpFile(inFile, 0, 1, nx, ny, nlist, ibin, &
       pixelSize, iflags, errString)
-  if (indWarpFile < -1) call exitError(errString)
-  warping = indWarpFile >= 0
+  if (indWarpInput < -1) call exitError(errString)
+  warping = indWarpInput >= 0
   if (.not. warping) then
     !
     ! Regular: open files, read the whole list of f's
@@ -226,48 +226,20 @@ program xftoxg
     endif
     !
     ! Allocate arrays
-    allocate(dxGrid(nxGrid, nyGrid), dyGrid(nxGrid, nyGrid), dxCum(nxGrid, nyGrid, nlist), &
-        dyCum(nxGrid, nyGrid, nlist), dxProd(nxGrid, nyGrid), dyProd(nxGrid, nyGrid), &
+    allocate(dxGrid(nxGrid, nyGrid), dyGrid(nxGrid, nyGrid),  &
+        dxCum(nxGrid, nyGrid, nlist), dyCum(nxGrid, nyGrid, nlist),  &
+        dxProd(nxGrid, nyGrid), dyProd(nxGrid, nyGrid), gWarp(2, 3, nlist), &
         stat = ierr)
     call memoryError(ierr, 'ARRAYS FOR WARPING GRIDS')
     !
-    ! Form cumulative product to align to the first section: initialize to unit
-    call xfunit(g(1, 1, 1), 1.)
-    dxCum = 0.                              !ARRAY OPERATIONS
-    dyCum = 0.
-    do kl = 2, nlist
-      if (nControl(kl) > 3) then
-        if (getWarpGrid(kl, nxGrTmp, nyGrTmp, xStrTmp, yStrTmp, xIntTmp, yIntTmp, &
-            dxGrid, dyGrid, nxGrid) .ne. 0) call exitError('GETTING WARP GRID')
-        ! print *,'raw grid', nxGrTmp, nyGrTmp
-        ! write(*,'(f7.2,9f8.2)') ((dxGrid(i, j), dyGrid(i, j), i=1, nxGrid), j=1, nyGrid)
-        if (.not.control) then
-          if (expandAndExtrapGrid(dxGrid, dyGrid, nxGrid, nyGrid, nxGrTmp, nyGrTmp, &
-              xStrTmp, yStrTmp, xIntTmp, yIntTmp, xStart, yStart, xEnd, yEnd, 0, nx, &
-              0, ny) &
-              .ne. 0) call exitError('EXPANDING A WARP GRID')
-        endif
-      else
-        nxGrTmp = nxGrid
-        nyGrTmp = nyGrid
-        dxGrid = 0.
-        dyGrid = 0.
-      endif
-      if (multiplyWarpings(dxGrid, dyGrid, nxGrid, nxGrTmp, nyGrTmp, xStrTmp, &
-          yStrTmp, xIntTmp, yIntTmp, f(1, 1, kl), xcen, ycen, &
-          dxCum(1, 1, kl - 1), dyCum(1, 1, kl - 1), nxGrid, nxGrid, nyGrid, &
-          xStart, yStart, xInterval, yInterval, g(1, 1, kl - 1), &
-          dxCum(1, 1, kl), dyCum(1, 1, kl), g(1, 1, kl), 0) .ne. 0) &
-          call exitError ('MULTIPLYING TWO WARPINGS TOGETHER FOR CUMULATIVE WARPING')
-      ! call xfwrite(6, g(1, 1, kl))
-      ! print *,'cumulative', nxGrid, nyGrid
-      ! write(*,'(f7.2,9f8.2)') ((dxCum(i, j, kl), dyCum(i, j, kl), i=1, nxGrid), j=1, nyGrid)
-    enddo
+    ! Get the cumulative transforms over the whole list, put cumulative linear in g
+    call cumulativeWarp(1, nlist, g)
     !
     ! Find the mean grid and take its inverse, leave in dxGrid, dyGrid
     dxProd = 0.
     dyProd = 0.
     do kl = 1, nlist
+      call xfCopy(g(1, 1, kl), gWarp(1, 1, kl))
       do j = 1, nyGrid
         do i = 1, nxGrid
           dxProd(i, j) = dxProd(i, j) + dxCum(i, j, kl) / nlist
@@ -281,15 +253,17 @@ program xftoxg
         xInterval, yInterval, g(1, 1, 1), xcen, ycen, dxGrid, dyGrid, prod)
     !
     ! Start a new warp file
-    ierr = clearWarpFile(indWarpFile)
+    if (ifShift < 2) ierr = clearWarpFile(indWarpInput)
     iflags = 1
-    indWarpFile = newWarpFile(nx, ny, ibin, pixelSize, iflags)
-    if (indWarpFile < 0) call exitError('OPENING A NEW WARPING FILE')
-  else
+    indWarpOutput = newWarpFile(nx, ny, ibin, pixelSize, iflags)
+    if (indWarpOutput < 0) call exitError('OPENING A NEW WARPING FILE')
+  endif
+
+  if (.not. warping .or. ifShift < 2) then
     !
     ! Regular transforms: compute g's to align all sections to the first
-    ! It seems wrong to copy f(1) instead of starting with a unit...
-    call xfCopy(f(1, 1, 1), g(1, 1, 1))
+    ! Do this for warping with local fits instead of trusting the g computed above
+    call xfUnit(g(1, 1, 1), 1.)
     do i = 2, nlist
       call xfMult(f(1, 1, i), g(1, 1, i - 1), g(1, 1, i))
       ! call xfwrite(6, g(1, 1, i))
@@ -301,7 +275,8 @@ program xftoxg
   !
   deltaAngle = 0.
   do kl = 1, nlist
-    call amat_to_rotmag(g(1, 1, kl), nat(1, 1, kl), nat(1, 2, kl) , nat(2, 1, kl), nat(2, 2, kl))
+    call amat_to_rotmag(g(1, 1, kl), nat(1, 1, kl), nat(1, 2, kl) , nat(2, 1, kl), &
+        nat(2, 2, kl))
     nat(1, 3, kl) = g(1, 3, kl)
     nat(2, 3, kl) = g(2, 3, kl)
     !
@@ -330,8 +305,7 @@ program xftoxg
     if (igroup(kl) == 1) &
         call xflincom(natAvg, 1., nat(1, 1, kl), 1. / numInFirst, natAvg)
   enddo
-  call rotmag_to_amat(natAvg(1, 1), natAvg(1, 2) &
-      , natAvg(2, 1), natAvg(2, 2), gAvg)
+  call rotmag_to_amat(natAvg(1, 1), natAvg(1, 2), natAvg(2, 1), natAvg(2, 2), gAvg)
   gAvg(1, 3) = natAvg(1, 3)
   gAvg(2, 3) = natAvg(2, 3)
   call xfInvert(gAvg, ginv)
@@ -354,23 +328,23 @@ program xftoxg
       else
         klLow = max(1, ilist - ifShift / 2)         !>1: take N sections centered
         klHigh = min(nlist, klLow + ifShift - 1)      !on this one, or offset
-        klLow = max(1, min(klLow, klHigh + 1 - ifShift)) ! DNM 1 / 24 / 04 fixed ishift
+        klLow = max(1, min(klLow, klHigh + 1 - ifShift))
       endif
       if (ifShift > 1 .or. (ifShift == 1 .and. ilist == 1)) then
         !
         ! do line fit to each component of the natural parameters
         ! first time only if doing all sections, or each time for N
         !
-        call groupRotations(nat, klLow, klHigh, angleRange, igroup, &
-            numGroups, numInFirst)
+        call groupRotations(nat, klLow, klHigh, angleRange, igroup, numGroups, numInFirst)
         iorderUse = max(1, min(iorder, numInFirst - 2))
+        indFitCenter = (klHigh + klLow) / 2
         do i = 1, 2
           do j = 1, 3
             numFit = 0
             do kl = klLow, klHigh
               if (igroup(kl) == 1) then
                 numFit = numFit + 1
-                x(numFit) = kl
+                x(numFit) = kl - indFitCenter
                 y(numFit) = nat(i, j, kl)
               endif
             enddo
@@ -398,8 +372,8 @@ program xftoxg
       !
       call xfCopy(intcp, natProd)
       do ipow = 1, iorderUse
-        call xflincom(natProd, 1., slope(1, 1, ipow), float(ilist)**ipow &
-            , natProd)
+        call xflincom(natProd, 1., slope(1, 1, ipow), float(ilist - indFitCenter)**ipow, &
+            natProd)
       enddo
       !
       ! for hybrid method, restore global average for translations,
@@ -429,12 +403,32 @@ program xftoxg
     if (warping) then
       !
       ! If there are warpings, multiply cumulative warp by inverse warp based on
-      ! this transform and the inverse average warp
-      if (multiplyWarpings(dxCum(1, 1, ilist), dyCum(1, 1, ilist), nxGrid, nxGrid, nyGrid, &
-          xStart, yStart, xInterval, yInterval, g(1, 1, ilist), xcen, ycen, dxGrid, &
+      ! this transform and the inverse average warp in the global case
+
+      if (ifShift > 0) then
+
+        ! For local fits, get a cumulative warp over the fit range
+        if (ifShift > 1) then
+          if (setCurrentWarpFile(indWarpInput) .ne. 0)  &
+              call exitError('SWITCHING BACK TO INPUT WARP FILE')
+          call cumulativeWarp(klLow, klHigh, gWarp)
+        endif
+
+        ! For all fits, now fit to the cumulative warps, put the fitted values in dxProd,
+        ! and invert that, assuming the current linear forward transform there
+        call fitWarpComponent(dxCum, dxProd)
+        call fitWarpComponent(dyCum, dyProd)
+        call invertWarpGrid(dxProd, dyProd, nxGrid, nxGrid, nyGrid, xStart, yStart, &
+            xInterval, yInterval, prod, xcen, ycen, dxGrid, dyGrid, ginv)
+      endif
+
+      if (multiplyWarpings(dxCum(1,1, ilist), dyCum(1,1, ilist), nxGrid, nxGrid, nyGrid, &
+          xStart, yStart, xInterval, yInterval, gWarp(1, 1, ilist), xcen, ycen, dxGrid, &
           dyGrid, nxGrid, nxGrid, nyGrid, xStart, yStart, xInterval, yInterval, &
           ginv, dxProd, dyProd, prod, 0) .ne. 0) &
           call exitError ('MULTIPLYING TWO WARPINGS TOGETHER FOR FINAL WARPING')
+      if (setCurrentWarpFile(indWarpOutput) .ne. 0)  &
+          call exitError('SWITCHING TO OUTPUT WARP FILE')
       if (setLinearTransform(ilist, prod) .ne. 0 .or. &
           setWarpGrid(ilist, nxGrid, nyGrid, xStart, yStart, &
           xInterval, yInterval, dxProd, dyProd, nxGrid) .ne. 0) &
@@ -452,12 +446,80 @@ program xftoxg
   endif
   call exit(0)
 97 call exitError('WRITING FILE')
-end program xftoxg
+
+CONTAINS
+
+  ! Form cumulative product of warping transforms to align to the first section in a range
+  !
+  subroutine cumulativeWarp(klStart, klEnd, gcw)
+    integer*4 klStart, klEnd
+    real*4 gcw(2, 3, nlist)
+    integer*4 getWarpGrid, expandAndExtrapGrid, multiplyWarpings
+
+    ! initialize first one to unit transform
+    call xfunit(gcw(1, 1, klStart), 1.)
+    dxCum(1:nxGrid, 1:nyGrid, klStart) = 0.                              !ARRAY OPERATIONS
+    dyCum(1:nxGrid, 1:nyGrid, klStart) = 0.
+    do kl = klStart + 1, klEnd
+      if (nControl(kl) > 3) then
+        if (getWarpGrid(kl, nxGrTmp, nyGrTmp, xStrTmp, yStrTmp, xIntTmp, yIntTmp, &
+            dxGrid, dyGrid, nxGrid) .ne. 0) call exitError('GETTING WARP GRID')
+        ! print *,'raw grid', nxGrTmp, nyGrTmp
+        ! write(*,'(f7.2,9f8.2)') ((dxGrid(i, j), dyGrid(i, j), i=1, nxGrid), j=1, nyGrid)
+        if (.not.control) then
+          if (expandAndExtrapGrid(dxGrid, dyGrid, nxGrid, nyGrid, nxGrTmp, nyGrTmp, &
+              xStrTmp, yStrTmp, xIntTmp, yIntTmp, xStart, yStart, xEnd, yEnd, 0, nx, &
+              0, ny) .ne. 0) call exitError('EXPANDING A WARP GRID')
+        endif
+      else
+        nxGrTmp = nxGrid
+        nyGrTmp = nyGrid
+        dxGrid = 0.
+        dyGrid = 0.
+      endif
+      if (multiplyWarpings(dxGrid, dyGrid, nxGrid, nxGrTmp, nyGrTmp, xStrTmp, &
+          yStrTmp, xIntTmp, yIntTmp, f(1, 1, kl), xcen, ycen, &
+          dxCum(1, 1, kl - 1), dyCum(1, 1, kl - 1), nxGrid, nxGrid, nyGrid, &
+          xStart, yStart, xInterval, yInterval, g(1, 1, kl - 1), &
+          dxCum(1, 1, kl), dyCum(1, 1, kl), g(1, 1, kl), 0) .ne. 0) &
+          call exitError ('MULTIPLYING TWO WARPINGS TOGETHER FOR CUMULATIVE WARPING')
+      ! call xfwrite(6, g(1, 1, kl))
+      ! print *,'cumulative', nxGrid, nyGrid
+      ! write(*,'(f7.2,9f8.2)') ((dxCum(i, j, kl), dyCum(i, j, kl), i=1, nxGrid), j=1, nyGrid)
+    enddo
+    return
+  end subroutine cumulativeWarp
+
+
+  ! Do the polynomial fit to the x or y component of set of cumulative warping transforms
+  ! and place the fitted position at "ilist" in the dxyProd array
+  ! 
+  subroutine fitWarpComponent(dxyCum, dxyProd)
+    real*4 dxyCum(nxGrid, nyGrid, nlist), dxyProd(nxGrid, nyGrid)
+    do i = 1, nxGrid
+      do j = 1, nyGrid
+        numFit = 0
+        do kl = klLow, klHigh
+          numFit = numFit + 1
+          x(numFit) = kl - indFitCenter
+          y(numFit) = dxyCum(i, j, kl)
+        enddo
+        call polyfit(x, y, numFit, iorder, slopeTmp, bint)
+        do ipow = 1, iorder
+          bint = bint + slopeTmp(ipow) * (ilist - indFitCenter)**ipow
+        enddo
+        dxyProd(i, j) = bint
+      enddo
+    enddo
+    return 
+  end subroutine fitWarpComponent
+
+end program
 
 !
 ! groupRotations finds groups of sections whose rotation angles are
 ! all within the range given by RANGE.  The angles are assumed to be
-! the first element of the trasnforms in F.  Only sections from KSTART
+! the first element of the transforms in F.  Only sections from KSTART
 ! to KEND are considered.  IGROUP is returned with a group number for
 ! each section; numGroups with the number of groups, and numInFirst
 ! with the number of sections in the first (i.e., largest) group.

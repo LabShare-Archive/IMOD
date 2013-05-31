@@ -89,6 +89,10 @@
 #define DIFF 2
 #define SA   3
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct Tiff_header {
      short byteorder;
      short version;
@@ -156,4 +160,7 @@ int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
 void tiff_write_entry(short tag, short type,
 		      b3dInt32 length, b3dUInt32 offset, FILE *fout);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* !__TIFF_H__ */

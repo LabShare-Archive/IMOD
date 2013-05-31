@@ -2,17 +2,18 @@
 .nh
 .TH mrc2tif 1 2.00 BL3DEMC
 .SH NAME
-mrc2tif \- Create one or more TIFF image files from an MRC image file.
+mrc2tif \- Create TIFF, JPEG, or PNG files from an MRC image file.
 .SH SYNOPSIS
 mrc2tif [-s] <mrc file> <tiff file root name>
 .SH DESCRIPTION
 mrc2tif usually creates a series of TIFF files with the prefix <tiff root name>
 and with the suffix .nnn.tif, where nnn is the z number.  Byte, signed and
 unsigned 16-bit integer, float, 
-and RGB color files (modes 0, 1, 6, 2, 16) can be converted.  The data will be
-written in the same mode as in the input file by default, but there are
-options that allow the integer and float modes to be scaled to bytes; the same
-options allow scaling of byte and RGB values.  If the input
+and RGB color files (modes 0, 1, 6, 2, 16) can be converted.  There are
+options to create JPEG or PNG files instead of TIFF.  The data will be
+written to a TIFF file in the same mode as in the input file by default, but
+there are options that allow the integer and float modes to be scaled to
+bytes; the same options allow scaling of byte and RGB values.  If the input
 file has only one section, then the output file will simply be the 
 <tiff root name> with no suffix added.  
 .P
@@ -44,40 +45,56 @@ the dynamic range for that subset of the image data, and enter the contrast
 settings withs the 
 .B -C
 option.
+.P Output to JPEG or PNG files is selected by entering the
+.B -j
+or the
+.B -p
+option.  There are some restrictions in these cases.  An output stack cannot
+be created, only a series of single-image files.  The type of compression
+cannot be specified, but the quality or degree of compression can.  Tiling
+cannot be specified.  Only byte and RGB output is available.  Integer and
+floating point files are converted to byte based either on the minimum and maximum
+densities in the input file or on the values entered with 
+.B -S
+or
+.B -C.
+In addition to the fact that JPEG images cannot be bigger than 65535 pixels in
+X or Y, problems may be encountered with images much bigger than 1 gigapixel.
 .P
-If the program is run with version 4 of the TIFF library, it will write files
-bigger than 4 GB in the BigTIFF format, and continue to write smaller files
-in classical TIFF format.  Running with version 3 of the TIFF library, it will
-write valid files up to 4 GB, although the library cannot read such files if
-they are bigger than 2 GB.  In Linux, it is not necessary to have the program
-built against the version 4 library; the standard distributed program will run
-with this library, provided that libtiff.so.3 is a link to the
-version 4 library and is located in a directory on the LD_LIBRARY_PATH.  For
-example, if the directory with the version 4 library is on LD_LIBRARY_PATH,
-you can make a link in that directory with:
-.br
-   ln -s libtiff.so.5 libtiff.so.3
+Since IMOD is distributed with version 4 of the TIFF library, this program
+will write files bigger than 4 GB in the BigTIFF format, and continue to write
+smaller files in classical TIFF format.  
 .SS Options
 .TP
 .B -s
 Create a single output file, a TIFF stack with all of
 the sections in the input file.
 .TP
+.B -j
+Produce JPEG files instead of TIFF files.  See above for the restrictions with
+this kind of output.
+.TP
+.B -j
+Produce PNG files instead of TIFF files.  See above for the restrictions.
+.TP
 .B -c <value>
-Compress the data with the type of compression indicated.  The most useful
-compression types are LZW (value 5), Zip or Deflate (value 8), and JPEG
-(value 7).  For these types, the value can be given as a text string: "lzw",
-"zip", or "jpeg".  On Linux, see /usr/include/tiff.h for other numeric values that
-can be entered.  Not all of these options will be available on all operating
-systems.  Also note that JPEG compression is not available with 16-bit data.
+Compress the data in TIFF files with the type of compression indicated.  The
+most useful compression types are LZW (value 5), Zip or Deflate (value 8), and
+JPEG (value 7).  For these types, the value can be given as a text string:
+"lzw", "zip", or "jpeg".  On Linux, see /usr/include/tiff.h for other numeric
+values that can be entered.  Not all of these options will be available on all
+operating systems.  Also note that JPEG compression is not available with
+16-bit data.
 .TP
 .B -q <value>
-Set the quality for JPEG or ZIP compression.  For JPEG the quality ranges from
+Set the quality for JPEG or ZIP compression (ZIP compression is used in PNG
+output).  For JPEG, the quality ranges from
 0 to 100 with a default of 75; higher numbers preserve more information but
-with less compression.  For ZIP, which is a lossless compression, the quality
+with less compression.  For ZIP/PNG, which is a lossless compression, the quality
 factor ranges from 1 to 9 with a default of 6 and specifies a tradeoff between
-speed and amount of compression, with higher numbers giving somewhat more
-compression for more computational time.
+speed and amount of compression.  Higher numbers giving somewhat more
+compression for more computational time.  Lower numbers give somewhat less
+compression with potentially much less computational time.
 .TP
 .B -S <min,min>
 Specify an initial intensity scaling that will scale "min" to 0 and "max" to
@@ -100,7 +117,9 @@ If
 .B -C
 is entered alone, the initial scaling will be from the minimum in the input
 file to 0, and from the maximum in the file to 255.  If you have integer data
-and you want to convert it to bytes
+and you want to convert it to bytes, you will generally want to apply some
+scaling with black/white values to preserve the dynamic range of the data of
+interest.
 .TP
 .B -T <xsize,ysize> or <size>
 Organize output data in tiles instead of strips, which can allow faster access

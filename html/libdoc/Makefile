@@ -1,6 +1,6 @@
 include ../../configure
 
-SDEXE = ../../sourcedoc/$(SOURCEDOC_EXE)
+SDEXE = ../../qttools/sourcedoc/$(SOURCEDOC_EXE)
 LHD = ../libhelp
 INCD = ../../include
 IMD = ../../libimod

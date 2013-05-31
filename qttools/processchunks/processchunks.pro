@@ -3,7 +3,7 @@ HEADERS += processchunks.h machinehandler.h processhandler.h comfilejobs.h
 TEMPLATE = app
 CONFIG += qt
 CONFIG += console
-INCLUDEPATH += . ../include
+INCLUDEPATH += . ../../include
 
 include (qconfigure)
 
