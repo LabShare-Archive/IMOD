@@ -1180,6 +1180,9 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     while ((line = fileReader.readLine()) != null) {
       lines.add(line);
     }
+    if (fileReader!=null) {
+      fileReader.close();
+    }
     if (fileReader != null) {
       fileReader.close();
     }

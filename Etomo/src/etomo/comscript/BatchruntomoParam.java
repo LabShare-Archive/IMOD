@@ -6,6 +6,7 @@ import java.util.List;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.storage.DirectiveFile;
@@ -66,6 +67,7 @@ public class BatchruntomoParam {
     }
     batchruntomo = new SystemProgram(manager, manager.getPropertyUserDir(), command,
         AxisID.ONLY);
+    batchruntomo.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
     return true;
   }
 

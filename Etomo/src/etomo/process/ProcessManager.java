@@ -1138,20 +1138,22 @@ public class ProcessManager extends BaseProcessManager {
     ProcessMessages messages = param.getProcessMessages();
     boolean err = messages.isError();
     if (err) {
-      StringBuffer errorMessage = new StringBuffer("Error running Batchruntomo");
+      StringBuffer errorMessage = new StringBuffer(
+          "The template validation has failed because of invalid directive(s)."
+              + "\nBatchruntomo error message:");
       for (int i = 0; i < messages.errorListSize(); i++) {
         errorMessage.append("\n" + messages.getError(i));
       }
       UIHarness.INSTANCE.openMessageDialog(appManager, errorMessage.toString(),
-          "Batchruntomo Error", axisID);
+          "Template Validation Error", axisID);
     }
     for (int i = 0; i < messages.warningListSize(); i++) {
       UIHarness.INSTANCE.openMessageDialog(appManager, messages.getWarning(i),
-          "Batchruntomo Warning", axisID);
+          "Template Validation Warning", axisID);
     }
     if (exitValue != 0) {
       UIHarness.INSTANCE.openMessageDialog(appManager, param.getStdErrorString(),
-          "Batchruntomo Error", axisID);
+          "Template Validation Error", axisID);
       return false;
     }
     return !err;
@@ -1166,7 +1168,7 @@ public class ProcessManager extends BaseProcessManager {
     ProcessMessages messages = param.getProcessMessages();
     boolean err = messages.isError();
     if (err) {
-      StringBuffer errorMessage = new StringBuffer("Error running Batchruntomo");
+      StringBuffer errorMessage = new StringBuffer("Error running Makecomfile");
       for (int i = 0; i < messages.errorListSize(); i++) {
         errorMessage.append("\n" + messages.getError(i));
       }

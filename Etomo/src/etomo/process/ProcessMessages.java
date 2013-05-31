@@ -726,7 +726,7 @@ public final class ProcessMessages {
         return true;
       }
       else {// add current line to the message
-        messageBuffer.append(" " + line);
+        messageBuffer.append("\n" + line);
         moreLines = nextLine();
         count++;
       }
@@ -788,7 +788,7 @@ public final class ProcessMessages {
         return true;
       }
       else {// add current line to the message
-        messageBuffer.append(" " + line);
+        messageBuffer.append("\n" + line);
         moreLines = nextLine();
         count++;
       }
