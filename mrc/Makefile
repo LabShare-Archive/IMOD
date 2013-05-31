@@ -10,7 +10,7 @@ O = $(OBJEXT)
 E = $(BINEXT)
 
 
-PROGS     = mrc2tif$(E) raw2mrc$(E) tif2mrc$(E) mrcbyte$(E) mrcx$(E) \
+PROGS     = raw2mrc$(E) tif2mrc$(E) mrcbyte$(E) mrcx$(E) \
  mrctaper$(E) dm3props$(E) nad_eed_3d$(E) ctfphaseflip$(E) preNAD$(E)
 
 IILIBS    =  $(LIIMOD) $(LCFSHR) $(TIFFLIBS)
@@ -26,9 +26,6 @@ raw2mrc$(E) : raw2mrc.$(O)
 
 tif2mrc$(E) : tif2mrc.$(O) tiff.$(O) 
 	$(CC) -o tif2mrc tif2mrc.$(O) tiff.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
-
-mrc2tif$(E) : mrc2tif.$(O) tiff.$(O)
-	$(CC) -o  mrc2tif  mrc2tif.$(O) tiff.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
 
 mrcx$(E) : mrcx.$(O)
 	$(CC) -o mrcx mrcx.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
