@@ -374,7 +374,7 @@ set qtarget = ($send_target $assist_target $ctf_target $prochunk_target $mrc2tif
 # Set DYLD_LIBRARY_PATH with qtlib before running program
 #
 @ i = 0   # Loop on imodsendevent imodqtassist ctfplotter processchunks mrc2tif
-while ($i < 4)
+while ($i < 5)
     @ i++
 cat <<EOF >! $qdir[$i]/$qrun[$i]
 #!/bin/sh
