@@ -63,6 +63,8 @@ public final class ProcessMessages {
   private boolean multiLineAllMessages = false;
   private boolean multiLineWarning = false;
   private boolean multiLineInfo = false;
+  private String messagePrependTag = null;
+  private String messagePrepend = null;
 
   public void dumpState() {
     System.err.print("[chunks:" + chunks + ",processOutputString:" + processOutputString
@@ -131,6 +133,22 @@ public final class ProcessMessages {
     this.chunks = chunks;
     this.successTag1 = successTag1;
     this.successTag2 = successTag2;
+  }
+
+  /**
+   * While messagePrependTag is set, the most recent line containing the tag will be
+   * saved to messagePrepend and added to the beginning of the next error/warning message.
+   * MessagePrepend will be deleted after it is used.  If no error or warning message
+   * appears, messagePrepend will not be used and the tag will have no effect.  All other
+   * types of message tags take precedence over this tag.  Passing null to this function
+   * will cause both messagePrependTag and messagePrepend to be set to null.
+   * @param tag
+   */
+  void setMessagePrependTag(final String tag) {
+    messagePrependTag = tag;
+    if (messagePrependTag == null) {
+      messagePrepend = null;
+    }
   }
 
   /**
@@ -418,9 +436,20 @@ public final class ProcessMessages {
     if (parseSuccessLine()) {
       return;
     }
+    parseMessagePrepend();
     // parse functions go to the next line only when they find something
     // if all parse functions failed, call nextLine()
     nextLine();
+  }
+
+  /**
+   * Sets messagePrepend.  Never called nextLine.
+   */
+  private void parseMessagePrepend() {
+    if (line != null && messagePrependTag != null
+        && line.indexOf(messagePrependTag) != -1) {
+      messagePrepend = line;
+    }
   }
 
   /**
@@ -487,12 +516,16 @@ public final class ProcessMessages {
       return false;
     }
     // create message starting at pip warning tag.
-    StringBuffer pipWarning = null;
+    StringBuffer pipWarning = new StringBuffer();
+    if (messagePrepend != null) {
+      pipWarning.append(messagePrepend + "\n");
+      messagePrepend = null;
+    }
     if (pipWarningIndex > 0) {
-      pipWarning = new StringBuffer(line.substring(pipWarningIndex));
+      pipWarning.append(line.substring(pipWarningIndex));
     }
     else {
-      pipWarning = new StringBuffer(line);
+      pipWarning.append(line);
     }
     // check for a one line pip warning.
     int pipWarningEndTagIndex = line.indexOf(PIP_WARNING_END_TAG);
@@ -587,14 +620,21 @@ public final class ProcessMessages {
       return false;
     }
     // message found - add to list
+    StringBuffer buffer = new StringBuffer();
+    if (messagePrepend != null) {
+      buffer.append(messagePrepend + "\n");
+      messagePrepend = null;
+    }
+    buffer.append(line);
     if (error) {
-      addElement(getErrorList(), line, errorIndex, ERROR_TAGS[errorTagIndex].length());
+      addElement(getErrorList(), buffer.toString(), errorIndex,
+          ERROR_TAGS[errorTagIndex].length());
     }
     else if (warning) {
-      addElement(getWarningList(), line, warningIndex, WARNING_TAG.length());
+      addElement(getWarningList(), buffer.toString(), warningIndex, WARNING_TAG.length());
     }
     else if (info) {
-      addElement(getInfoList(), line, infoIndex, INFO_TAG.length());
+      addElement(getInfoList(), buffer.toString(), infoIndex, INFO_TAG.length());
     }
     nextLine();
     return true;
@@ -628,6 +668,10 @@ public final class ProcessMessages {
       }
       else {
         StringBuffer buffer = new StringBuffer();
+        if (messagePrepend != null) {
+          buffer.append(messagePrepend + "\n");
+          messagePrepend = null;
+        }
         buffer.append(line.substring(0, errorIndex) + "\n");
         while (errorIndex != -1) {
           int nextErrorIndex = line.indexOf(ERROR_TAG, errorIndex + ERROR_TAG.length());
@@ -700,12 +744,16 @@ public final class ProcessMessages {
       messageIndex = infoIndex;
     }
     // create the message starting from the message tag
-    StringBuffer messageBuffer = null;
+    StringBuffer messageBuffer = new StringBuffer();
+    if (messagePrepend != null) {
+      messageBuffer.append(messagePrepend + "\n");
+      messagePrepend = null;
+    }
     if (messageIndex > 0) {
-      messageBuffer = new StringBuffer(line.substring(messageIndex));
+      messageBuffer.append(line.substring(messageIndex));
     }
     else {
-      messageBuffer = new StringBuffer(line);
+      messageBuffer.append(line);
     }
     boolean moreLines = nextLine();
     int count = 0;
@@ -726,7 +774,7 @@ public final class ProcessMessages {
         return true;
       }
       else {// add current line to the message
-        messageBuffer.append(" " + line);
+        messageBuffer.append("\n" + line);
         moreLines = nextLine();
         count++;
       }
@@ -768,12 +816,16 @@ public final class ProcessMessages {
       messageIndex = chunkErrorIndex;
     }
     // create the message starting from the message tag
-    StringBuffer messageBuffer = null;
+    StringBuffer messageBuffer = new StringBuffer();
+    if (messagePrepend != null) {
+      messageBuffer.append(messagePrepend + "\n");
+      messagePrepend = null;
+    }
     if (messageIndex > 0) {
-      messageBuffer = new StringBuffer(line.substring(messageIndex));
+      messageBuffer.append(line.substring(messageIndex));
     }
     else {
-      messageBuffer = new StringBuffer(line);
+      messageBuffer.append(line);
     }
     boolean moreLines = nextLine();
     int count = 0;
@@ -788,7 +840,7 @@ public final class ProcessMessages {
         return true;
       }
       else {// add current line to the message
-        messageBuffer.append(" " + line);
+        messageBuffer.append("\n" + line);
         moreLines = nextLine();
         count++;
       }

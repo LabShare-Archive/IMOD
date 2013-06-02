@@ -804,7 +804,10 @@ public class SystemProgram implements Runnable {
   public void setDebug(final boolean state) {
     debug = state;
   }
-
+  
+ public void setMessagePrependTag( final String tag) {
+   processMessages.setMessagePrependTag(tag);
+ }
   /**
    * Return true if this thread has ever been started
    * @return
