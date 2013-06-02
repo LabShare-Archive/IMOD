@@ -14,6 +14,7 @@ import etomo.BaseManager;
 import etomo.logic.ConfigTool;
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
+import etomo.type.DirectiveFileType;
 import etomo.type.UserConfiguration;
 
 /**
@@ -164,9 +165,12 @@ final class TemplatePanel {
    * @return
    */
   DirectiveFileCollection getDirectiveFileCollection() {
-    directiveFileCollection.setScopeTemplate(getScopeTemplateFile());
-    directiveFileCollection.setSystemTemplate(getSystemTemplateFile());
-    directiveFileCollection.setUserTemplate(getUserTemplateFile());
+    directiveFileCollection.setDirectiveFile(getScopeTemplateFile(),
+        DirectiveFileType.SCOPE);
+    directiveFileCollection.setDirectiveFile(getSystemTemplateFile(),
+        DirectiveFileType.SYSTEM);
+    directiveFileCollection.setDirectiveFile(getUserTemplateFile(),
+        DirectiveFileType.USER);
     return directiveFileCollection;
   }
 

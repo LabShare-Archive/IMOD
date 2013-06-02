@@ -1,4 +1,5 @@
 package etomo.type;
+
 /**
 * <p>Description: </p>
 * 
@@ -15,9 +16,13 @@ package etomo.type;
 * <p> $Log$ </p>
 */
 public interface ConstStringParameter {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   public boolean equals(String input);
 
   public boolean endsWith(String input);
+
+  public boolean isEmpty();
+
+  public String toString();
 }

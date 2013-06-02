@@ -36,9 +36,11 @@ import etomo.util.Utilities;
 public final class FileChooser extends JFileChooser {
   public static final String rcsid = "$Id$";
 
+  static final String DEFAULT_TITLE = "Open";
+
   public FileChooser(File currentDirectory) {
     super(currentDirectory);
-    setName("Open");
+    setName(DEFAULT_TITLE);
   }
 
   public void setDialogTitle(String dialogTitle) {

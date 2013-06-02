@@ -70,6 +70,7 @@ public class ConstCCDEraserParam {
   public static final String POLYNOMIAL_ORDER_KEY = "PolynomialOrder";
   public static final String TRIAL_MODE_KEY = "TrialMode";
   public static final String BOUNDARY_OBJECTS_KEY = "BoundaryObjects";
+  public static final String MODEL_FILE_KEY = "ModelFile";
 
   protected String inputFile = "";
   protected String outputFile = "";
@@ -99,8 +100,8 @@ public class ConstCCDEraserParam {
   protected String polynomialOrder = "";
   protected boolean includeAdjacentPoints = true;
 
-  //out of date parameter
-  String outerRadius = ""; //replaced by annulusWidth
+  // out of date parameter
+  String outerRadius = ""; // replaced by annulusWidth
 
   public boolean isValid() {
     boolean valid = true;

@@ -541,6 +541,12 @@ class MultiLineButton implements ProcessResultDisplay {
   final void setSize() {
     setSize(false);
   }
+  
+  final void setSingleLineSize() {
+    Dimension size = UIParameters.INSTANCE.getButtonSingleLineDimension();
+    button.setPreferredSize(size);
+    button.setMaximumSize(size);
+  }
 
   final void setSize(boolean setMinimum) {
     Dimension size = UIParameters.INSTANCE.getButtonDimension();

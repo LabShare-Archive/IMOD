@@ -701,10 +701,11 @@ public final class PeetManager extends BaseManager {
     }
   }
 
-  public void save() throws LogFile.LockException, IOException {
+  public boolean save() throws LogFile.LockException, IOException {
     super.save();
     mainPanel.done();
     savePeetDialog(false, false);
+    return true;
   }
 
   public int getParallelProcessingDefaultNice() {

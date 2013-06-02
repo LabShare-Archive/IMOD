@@ -192,10 +192,10 @@ public final class FrontPageDialog {
       EtomoDirector.INSTANCE.openSerialSections(true, axisID);
     }
     else if (actionCommand.equals(btnFlattenVolume.getActionCommand())) {
-      EtomoDirector.INSTANCE.openTools(axisID, ToolType.FLATTEN_VOLUME);
+      EtomoDirector.INSTANCE.openTools(ToolType.FLATTEN_VOLUME);
     }
     else if (actionCommand.equals(btnGpuTiltTest.getActionCommand())) {
-      EtomoDirector.INSTANCE.openTools(axisID, ToolType.GPU_TILT_TEST);
+      EtomoDirector.INSTANCE.openTools(ToolType.GPU_TILT_TEST);
     }
   }
 

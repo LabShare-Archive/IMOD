@@ -1,6 +1,9 @@
 package etomo.logic;
 
+import java.io.File;
+
 import etomo.EtomoDirector;
+import etomo.type.EtomoNumber;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.swing.UIComponent;
@@ -66,38 +69,16 @@ public final class FieldValidator {
         return text;
       }
       // Validate arrays and lists.
-      String[] elementList = text.split(fieldType.getSplitter());
+      ElementList elementList = new ElementList(fieldType, text);
       if (fieldType.hasRequiredSize()) {
-        // Count elements
-        int nElements = 0;
-        // The commas at the end of the collection count as elements. Splitting will
-        // eliminate these commas, so they have to be counted.
-        if (text.endsWith(",")) {
-          // Remove all whitespace
-          text = text.replaceAll("\\s+", "");
-          // Count ending commas. The last comma doesn't count because an extra comma is
-          // necessary to add an element onto the end.
-          for (int i = text.length() - 2; i >= 0; i--) {
-            if (text.charAt(i) == ',') {
-              nElements++;
-            }
-            else {
-              break;
-            }
-          }
-        }
-        if (elementList != null) {
-          nElements += elementList.length;
-        }
         // Validate the number of elements
-        if (nElements != fieldType.requiredSize) {
+        if (!elementList.equalsNElements(fieldType.requiredSize)) {
           // Wrong number of elements
           UIHarness.INSTANCE.openMessageDialog(component, "The value in " + descr
               + " should have " + fieldType.requiredSize + " elements.", TITLE);
           FieldValidationFailedException fe = new FieldValidationFailedException(descr
-              + ":wrong number of elements:" + "fieldText:" + fieldText
-              + ",elementList.length:" + elementList.length + ",requiredSize:"
-              + fieldType.requiredSize);
+              + ":wrong number of elements:" + "fieldText:" + fieldText + ",nElements:"
+              + elementList.getNElements() + ",requiredSize:" + fieldType.requiredSize);
           if (EtomoDirector.INSTANCE.getArguments().isDebug()
               || EtomoDirector.INSTANCE.getArguments().isTest()) {
             fe.printStackTrace();
@@ -106,10 +87,9 @@ public final class FieldValidator {
         }
       }
       // Validate integers or floating point numbers in the array or list.
-      if (elementList != null) {
-        for (int i = 0; i < elementList.length; i++) {
-          validateText(elementList[i], fieldType.validationType, component, descr);
-        }
+      ElementListIterator iterator = elementList.iterator();
+      while (iterator.hasNext()) {
+        validateText(iterator.next(), fieldType.validationType, component, descr);
       }
     }
     else {
@@ -158,6 +138,154 @@ public final class FieldValidator {
         fe.printStackTrace();
       }
       throw fe;
+    }
+  }
+
+  public static boolean equals(final FieldType fieldType, String fieldText1,
+      String fieldText2) {
+    if (fieldText1 == null || fieldText2 == null) {
+      if (fieldText1 == null && fieldText2 == null) {
+        return true;
+      }
+      return false;
+    }
+    if (fieldType == FieldType.INTEGER) {
+      EtomoNumber number1 = new EtomoNumber();
+      EtomoNumber number2 = new EtomoNumber();
+      number1.set(fieldText1);
+      number2.set(fieldText2);
+      return number1.equals(number2);
+    }
+    if (fieldType == FieldType.FLOATING_POINT) {
+      EtomoNumber number1 = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+      EtomoNumber number2 = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+      number1.set(fieldText1);
+      number2.set(fieldText2);
+      return number1.equals(number2);
+    }
+    if (fieldType == null || fieldType == FieldType.STRING) {
+      return fieldText1.trim().equals(fieldText2.trim());
+    }
+    if (fieldType == FieldType.FILE) {
+      return new File(fieldText1).equals(new File(fieldText2));
+    }
+    if (fieldType == FieldType.INTEGER_LIST) {
+      // Lists are too complicated to parse (they contain things like "1 - 3"). Remove all
+      // spaces and compare as strings.
+      return fieldText1.replaceAll("\\s+", "").equals(fieldText2.replaceAll("\\s+", ""));
+    }
+    // Handle arrays
+    FieldType numberFieldType = null;
+    if (fieldType == FieldType.INTEGER_ARRAY || fieldType == FieldType.INTEGER_PAIR
+        || fieldType == FieldType.INTEGER_TRIPLE) {
+      numberFieldType = FieldType.INTEGER;
+    }
+    if (fieldType == FieldType.FLOATING_POINT_ARRAY
+        || fieldType == FieldType.FLOATING_POINT_PAIR) {
+      numberFieldType = FieldType.FLOATING_POINT;
+    }
+    ElementList elementList1 = new ElementList(fieldType, fieldText1);
+    ElementList elementList2 = new ElementList(fieldType, fieldText2);
+    if (elementList1.getNElements() != elementList2.getNElements()) {
+      return false;
+    }
+    ElementListIterator iterator1 = elementList1.iterator();
+    ElementListIterator iterator2 = elementList2.iterator();
+    while (iterator1.hasNext()) {
+      // Call this function with the field type for either float or integer.
+      if (!equals(numberFieldType, iterator1.next(), iterator2.next())) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static final class ElementList {
+    private final FieldType fieldType;
+    private final String fieldText;
+
+    private String[] list = null;
+    private int nElements = -1;
+
+    private ElementList(final FieldType fieldType, final String fieldText) {
+      this.fieldType = fieldType;
+      this.fieldText = fieldText;
+    }
+
+    private boolean equalsNElements(final int input) {
+      return getNElements() == input;
+    }
+
+    private ElementListIterator iterator() {
+      if (list == null) {
+        split();
+      }
+      return new ElementListIterator(list);
+    }
+
+    private int getNElements() {
+      if (list == null) {
+        split();
+      }
+      if (nElements == -1) {
+        countElements();
+      }
+      return nElements;
+    }
+
+    private void split() {
+      list = fieldText.split(fieldType.getSplitter());
+    }
+
+    private void countElements() {
+      nElements = 0;
+      if (fieldText == null) {
+        return;
+      }
+      String text = fieldText;
+      // The commas at the end of the collection count as elements. Splitting will
+      // eliminate these commas, so they have to be counted.
+      if (text.endsWith(",")) {
+        // Remove all whitespace
+        text = text.replaceAll("\\s+", "");
+        // Count ending commas. The last comma doesn't count because an extra comma is
+        // necessary to add an element onto the end.
+        for (int i = text.length() - 2; i >= 0; i--) {
+          if (text.charAt(i) == ',') {
+            nElements++;
+          }
+          else {
+            break;
+          }
+        }
+      }
+      if (list != null) {
+        nElements += list.length;
+      }
+    }
+  }
+
+  private static final class ElementListIterator {
+    private final String[] list;
+
+    private int index = 0;
+
+    private ElementListIterator(final String[] list) {
+      this.list = list;
+    }
+
+    private boolean hasNext() {
+      if (list == null || index < 0 || index >= list.length) {
+        return false;
+      }
+      return true;
+    }
+
+    private String next() {
+      if (list == null || index < 0 || index >= list.length) {
+        return null;
+      }
+      return list[index++];
     }
   }
 }

@@ -3,6 +3,7 @@ package etomo.ui.swing;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
+import java.io.File;
 
 import javax.swing.*;
 import javax.swing.event.DocumentListener;
@@ -263,6 +264,9 @@ final class LabeledTextField implements UIComponent {
       maxSize.setSize(maxSize.getWidth(), 2 * textField.getFont().getSize());
     }
     textField.setMaximumSize(maxSize);
+    if (fieldType == FieldType.FILE) {
+      textField.setHorizontalAlignment(JTextField.RIGHT);
+    }
   }
 
   LabeledTextField(final FieldType fieldType, final String tfLabel) {
@@ -298,6 +302,19 @@ final class LabeledTextField implements UIComponent {
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(textField.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
           + ' ');
+    }
+  }
+
+  /**
+   * Saves the current text as the checkpoint.
+   */
+  void checkpoint() {
+    checkpointValue = getText();
+    if (numericType != null) {
+      if (nCheckpointValue == null) {
+        nCheckpointValue = new EtomoNumber(numericType);
+      }
+      nCheckpointValue.set(checkpointValue);
     }
   }
 
@@ -366,7 +383,16 @@ final class LabeledTextField implements UIComponent {
    * @return
    */
   boolean isDifferentFromCheckpoint() {
-    if (!textField.isEnabled() || !textField.isVisible()) {
+    return isDifferentFromCheckpoint(false);
+  }
+
+  /**
+   * 
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return
+   */
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !isVisible())) {
       return false;
     }
     if (checkpointValue == null) {
@@ -433,7 +459,7 @@ final class LabeledTextField implements UIComponent {
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
       text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel()
-          + (locationDescr == null ? "" : " in " + locationDescr),false);
+          + (locationDescr == null ? "" : " in " + locationDescr), false);
     }
     return text;
   }
@@ -448,6 +474,10 @@ final class LabeledTextField implements UIComponent {
   boolean isEmpty() {
     String text = textField.getText();
     return text == null || text.matches("\\s*");
+  }
+
+  void setText(final File file) {
+    textField.setText(file.getAbsolutePath());
   }
 
   void setText(ConstEtomoNumber text) {

@@ -16,6 +16,7 @@ import etomo.storage.DataFileFilter;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.DirectiveFileType;
 
 /**
  * <p>Description: </p>
@@ -55,10 +56,10 @@ abstract class EtomoFrame extends AbstractFrame {
   abstract void register();
 
   void initialize() {
-    menu = new EtomoMenu(singleFrame);
+    menu = EtomoMenu.getInstance(this);
     ImageIcon iconEtomo = new ImageIcon(ClassLoader.getSystemResource("images/etomo.png"));
     setIconImage(iconEtomo.getImage());
-    createMenus();
+    getMenus();
   }
 
   /**
@@ -113,48 +114,61 @@ abstract class EtomoFrame extends AbstractFrame {
    * @param event
    */
   public void menuFileAction(ActionEvent event) {
-    AxisID axisID = getAxisID();
-    if (menu.equalsNewTomogram(event)) {
-      EtomoDirector.INSTANCE.openTomogram(true, axisID);
-    }
-    else if (menu.equalsNewJoin(event)) {
-      EtomoDirector.INSTANCE.openJoin(true, axisID);
-    }
-    else if (menu.equalsNewGenericParallel(event)) {
-      EtomoDirector.INSTANCE.openGenericParallel(true, axisID);
-    }
-    else if (menu.equalsNewAnisotropicDiffusion(event)) {
-      EtomoDirector.INSTANCE.openAnisotropicDiffusion(true, axisID);
-    }
-    else if (menu.equalsNewPeet(event)) {
-      if (PeetManager.isInterfaceAvailable()) {
-        EtomoDirector.INSTANCE.openPeet(true, axisID);
+    if (!menu.menuFileAction(event)) {
+      AxisID axisID = getAxisID();
+      if (menu.equalsNewTomogram(event)) {
+        EtomoDirector.INSTANCE.openTomogram(true, axisID);
+      }
+      else if (menu.equalsNewJoin(event)) {
+        EtomoDirector.INSTANCE.openJoin(true, axisID);
+      }
+      else if (menu.equalsNewGenericParallel(event)) {
+        EtomoDirector.INSTANCE.openGenericParallel(true, axisID);
+      }
+      else if (menu.equalsNewAnisotropicDiffusion(event)) {
+        EtomoDirector.INSTANCE.openAnisotropicDiffusion(true, axisID);
+      }
+      else if (menu.equalsNewPeet(event)) {
+        if (PeetManager.isInterfaceAvailable()) {
+          EtomoDirector.INSTANCE.openPeet(true, axisID);
+        }
+      }
+      else if (menu.equalsNewSerialSections(event)) {
+        EtomoDirector.INSTANCE.openSerialSections(true, axisID);
+      }
+      else if (menu.equalsOpen(event)) {
+        File dataFile = openDataFileDialog();
+        if (dataFile != null) {
+          EtomoDirector.INSTANCE.openManager(dataFile, true, axisID);
+        }
+      }
+      else if (menu.equalsExit(event)) {
+        UIHarness.INSTANCE.exit(axisID, 0);
+      }
+      else if (menu.equalsTomosnapshot(event)) {
+        if (currentManager != null) {
+          currentManager.tomosnapshot(axisID);
+        }
+      }
+      else if (menu.equalsDirectiveFileEditor(event)) {
+        DirectiveFileType type = menu.getDirectiveFileType(event);
+        if (type != null) {
+          StringBuffer errmsg = new StringBuffer();
+          String timestamp = currentManager.saveAll(errmsg);
+          if (timestamp != null) {
+            EtomoDirector.INSTANCE.openDirectiveEditor(type, currentManager, timestamp,
+                errmsg);
+          }
+        }
       }
     }
-    else if (menu.equalsNewSerialSections(event)) {
-      EtomoDirector.INSTANCE.openSerialSections(true, axisID);
-    }
-    else if (menu.equalsOpen(event)) {
-      File dataFile = openDataFileDialog();
-      if (dataFile != null) {
-        EtomoDirector.INSTANCE.openManager(dataFile, true, axisID);
-      }
-    }
-    else if (menu.equalsSave(event)) {
-      save(axisID);
-    }
-    else if (menu.equalsSaveAs(event)) {
-      saveAs(axisID);
-    }
-    else if (menu.equalsClose(event)) {
-      EtomoDirector.INSTANCE.closeCurrentManager(axisID, false);
-    }
-    else if (menu.equalsExit(event)) {
-      UIHarness.INSTANCE.exit(axisID, 0);
-    }
-    else if (menu.equalsTomosnapshot(event)) {
-      currentManager.tomosnapshot(axisID);
-    }
+  }
+  
+  void close() {
+    EtomoDirector.INSTANCE.closeCurrentManager(getAxisID(), false);
+  }
+
+  void cancel() {
   }
 
   void save(AxisID axisID) {
@@ -185,7 +199,7 @@ abstract class EtomoFrame extends AbstractFrame {
     }
   }
 
-  private void saveAs(AxisID axisID) {
+  void saveAs() {
     try {
       if (getParamFilename()) {
         currentManager.saveParamFile();
@@ -194,11 +208,11 @@ abstract class EtomoFrame extends AbstractFrame {
     catch (LogFile.LockException e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(currentManager, "Unable to save parameters.\n"
-          + e.getMessage(), "Etomo Error", axisID);
+          + e.getMessage(), "Etomo Error", getAxisID());
     }
     catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog(currentManager, "Unable to save parameters.\n"
-          + e.getMessage(), "Etomo Error", axisID);
+          + e.getMessage(), "Etomo Error", getAxisID());
     }
   }
 
@@ -395,7 +409,7 @@ abstract class EtomoFrame extends AbstractFrame {
     getFrame(axisID).openWarningMessageDialog(manager, axisID, processMessages, title);
   }
 
-  int displayYesNoCancelMessage(BaseManager manager, String[] message, AxisID axisID) {
+  int displayYesNoCancelMessage(BaseManager manager, String message, AxisID axisID) {
     return getFrame(axisID).openYesNoCancelDialog(manager, axisID, message);
   }
 
@@ -470,10 +484,9 @@ abstract class EtomoFrame extends AbstractFrame {
   }
 
   /**
-   * Create the Etomo menus
+   * Get the Etomo menus
    */
-  private void createMenus() {
-    menu.createMenus(this);
+  private void getMenus() {
     menuBar = menu.getMenuBar();
     setJMenuBar(menuBar);
   }
