@@ -17,12 +17,14 @@ $(LHD)/mod_fwrap.html $(LHD)/b3dutil.html $(LHD)/autodoc.html \
 $(LHD)/mrcfiles.html $(LHD)/iimage.html $(LHD)/plist.html \
 $(LHD)/mrcslice.html $(LHD)/sliceproc.html $(LHD)/libmesh.html \
 $(LHD)/libifft.html $(LHD)/libdiaqt.html $(LHD)/libcfshr.html \
-$(LHD)/cfutils.html $(LHD)/3dmodplug.html $(LHD)/libwarp.html
+$(LHD)/cfutils.html $(LHD)/3dmodplug.html $(LHD)/libwarp.html \
+$(LHD)/minimization.html $(LHD)/simplestat.html $(LHD)/filtxcorr.html \
+$(LHD)/interpbin.html $(LHD)/robuststat.html $(LHD)/taperpad.html
 
-CFUTILS = $(CFD)/parselist.c $(CFD)/circlefit.c $(CFD)/filtxcorr.c \
-$(CFD)/amoeba.c $(CFD)/samplemeansd.c $(CFD)/colormap.c $(CFD)/taperpad.c \
-$(CFD)/reduce_by_binning.c $(CFD)/cubinterp.c $(CFD)/insidecontour.c \
-$(CFD)/scaledsobel.c
+
+CFUTILS = $(CFD)/parselist.c $(CFD)/samplemeansd.c $(CFD)/colormap.c \
+ $(CFD)/insidecontour.c $(CFD)/convexbound.c $(CFD)/surfacesort.c $(CFD)/pctstretch.c \
+ $(CFD)/piecefuncs.c $(CFD)/find_piece_shifts.c $(CFD)/parallelwrite.c $(CFD)/colormap.c
 
 # Make doc files and place them in help directory
 
@@ -76,6 +78,26 @@ $(LHD)/mod_fwrap.html: mod_fwrap.html $(IMD)/imodel_fwrap.c
 
 $(LHD)/b3dutil.html: b3dutil.html $(CFD)/b3dutil.c 
 	$(SDEXE) -d $(CFD) b3dutil.html $(LHD)/b3dutil.html
+
+$(LHD)/interpbin.html: interpbin.html $(CFD)/cubinterp.c $(CFD)/zoomdown.c \
+	$(CFD)/reduce_by_binning.c $(CFD)/linearxforms.c $(CFD)/amat_to_rotmagstr.c
+	$(SDEXE) -d $(CFD) interpbin.html $(LHD)/interpbin.html
+
+$(LHD)/robuststat.html: robuststat.html $(CFD)/robuststat.c $(CFD)/percentile.c
+	$(SDEXE) -d $(CFD) robuststat.html $(LHD)/robuststat.html
+
+$(LHD)/simplestat.html: simplestat.html $(CFD)/simplestat.c $(CFD)/statfuncs.c
+	$(SDEXE) -d $(CFD) simplestat.html $(LHD)/simplestat.html
+
+$(LHD)/minimization.html: minimization.html $(CFD)/regression.c $(CFD)/gaussj.c \
+	$(CFD)/sparselsqr.c $(CFD)/amoeba.c $(CFD)/circlefit.c
+	$(SDEXE) -d $(CFD) minimization.html $(LHD)/minimization.html
+
+$(LHD)/filtxcorr.html: filtxcorr.html $(CFD)/filtxcorr.c $(CFD)/scaledsobel.c 
+	$(SDEXE) -d $(CFD) filtxcorr.html $(LHD)/filtxcorr.html
+
+$(LHD)/taperpad.html: taperpad.html $(CFD)/taperpad.c $(CFD)/taperatfill.c
+	$(SDEXE) -d $(CFD) taperpad.html $(LHD)/taperpad.html
 
 $(LHD)/cfutils.html: cfutils.html $(CFUTILS)
 	$(SDEXE) -d $(CFD) cfutils.html $(LHD)/cfutils.html
