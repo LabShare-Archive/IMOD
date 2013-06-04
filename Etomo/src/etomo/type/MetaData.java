@@ -2185,6 +2185,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return "Setup";
   }
 
+  private void setProperty(final Properties props, final String group, final String key,
+      final String value) {
+    if (value == null) {
+      props.remove(group + key);
+    }
+    else {
+      props.setProperty(group + key, value);
+    }
+  }
+
   /**
    *  Insert the objects attributes into the properties object.
    */
@@ -2192,27 +2202,27 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     super.store(props, prepend);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
-    props.setProperty(group + "RevisionNumber", latestRevisionNumber);
-    props.setProperty(group + "ComScriptsCreated", String.valueOf(comScriptsCreated));
-    props.setProperty(group + "DatasetName", datasetName);
-    props.setProperty(group + "BackupDirectory", backupDirectory);
+    setProperty(props, group, "RevisionNumber", latestRevisionNumber);
+    setProperty(props, group, "ComScriptsCreated", String.valueOf(comScriptsCreated));
+    setProperty(props, group,"DatasetName", datasetName);
+    setProperty(props, group, "BackupDirectory", backupDirectory);
 
-    props.setProperty(group + "DataSource", dataSource.toString());
-    props.setProperty(group + "AxisType", axisType.toString());
-    props.setProperty(group + "ViewType", viewType.toString());
+    setProperty(props, group, "DataSource", dataSource.toString());
+    setProperty(props, group, "AxisType", axisType.toString());
+    setProperty(props, group, "ViewType", viewType.toString());
 
-    props.setProperty(group + "PixelSize", String.valueOf(pixelSize));
-    props.setProperty(group + "UseLocalAlignmentsA", String.valueOf(useLocalAlignmentsA));
-    props.setProperty(group + "UseLocalAlignmentsB", String.valueOf(useLocalAlignmentsB));
-    props.setProperty(group + "FiducialDiameter", String.valueOf(fiducialDiameter));
-    props.setProperty(group + "ImageRotationA", String.valueOf(imageRotationA));
-    props.setProperty(group + "ImageRotationB", String.valueOf(imageRotationB));
+    setProperty(props, group, "PixelSize", String.valueOf(pixelSize));
+    setProperty(props, group, "UseLocalAlignmentsA", String.valueOf(useLocalAlignmentsA));
+    setProperty(props, group, "UseLocalAlignmentsB", String.valueOf(useLocalAlignmentsB));
+    setProperty(props, group, "FiducialDiameter", String.valueOf(fiducialDiameter));
+    setProperty(props, group, "ImageRotationA", String.valueOf(imageRotationA));
+    setProperty(props, group, "ImageRotationB", String.valueOf(imageRotationB));
     tiltAngleSpecA.store(props, group + "AxisA");
     if (excludeProjectionsA == null) {
       props.remove(group + "AxisA.ExcludeProjections");
     }
     else {
-      props.setProperty(group + "AxisA.ExcludeProjections",
+      setProperty(props, group, "AxisA.ExcludeProjections",
           String.valueOf(excludeProjectionsA));
     }
 
@@ -2221,21 +2231,21 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       props.remove(group + "AxisB.ExcludeProjections");
     }
     else {
-      props.setProperty(group + "AxisB.ExcludeProjections",
+      setProperty(props, group, "AxisB.ExcludeProjections",
           String.valueOf(excludeProjectionsB));
     }
 
     combineParams.store(props, group);
-    props.setProperty(group + "DistortionFile", distortionFile);
-    props.setProperty(group + "MagGradientFile", magGradientFile);
+    setProperty(props, group, "DistortionFile", distortionFile);
+    setProperty(props, group, "MagGradientFile", magGradientFile);
     binning.store(props, prepend);
-    props.setProperty(group + "FiducialessAlignmentA",
+    setProperty(props, group, "FiducialessAlignmentA",
         String.valueOf(fiducialessAlignmentA));
-    props.setProperty(group + "FiducialessAlignmentB",
+    setProperty(props, group, "FiducialessAlignmentB",
         String.valueOf(fiducialessAlignmentB));
-    props.setProperty(group + "WholeTomogramSampleA",
+    setProperty(props, group, "WholeTomogramSampleA",
         String.valueOf(wholeTomogramSampleA));
-    props.setProperty(group + "WholeTomogramSampleB",
+    setProperty(props, group, "WholeTomogramSampleB",
         String.valueOf(wholeTomogramSampleB));
     squeezevolParam.store(props, prepend);
     useZFactorsA.store(props, prepend);
@@ -2269,10 +2279,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     sampleThicknessB.store(props, prepend);
     fiducialessA.store(props, prepend);
     fiducialessB.store(props, prepend);
-    props.setProperty(
-        group + "tiltalign." + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY,
+    setProperty(props, group, "tiltalign." + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY,
         targetPatchSizeXandY);
-    props.setProperty(group + "tiltalign."
+    setProperty(props, group, "tiltalign."
         + TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY, numberOfLocalPatchesXandY);
     noBeamTiltSelectedA.store(props, prepend);
     fixedBeamTiltSelectedA.store(props, prepend);
