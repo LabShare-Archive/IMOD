@@ -26,7 +26,6 @@ import etomo.util.Utilities;
  * @author $Author$
  *
  * @version $Revision$
- * @version $Revision$
  *
  * <p> $Log$
  * <p> Revision 3.74  2011/06/21 18:05:30  sueh
@@ -2204,7 +2203,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     String group = prepend + ".";
     setProperty(props, group, "RevisionNumber", latestRevisionNumber);
     setProperty(props, group, "ComScriptsCreated", String.valueOf(comScriptsCreated));
-    setProperty(props, group,"DatasetName", datasetName);
+    setProperty(props, group, "DatasetName", datasetName);
     setProperty(props, group, "BackupDirectory", backupDirectory);
 
     setProperty(props, group, "DataSource", dataSource.toString());
@@ -2279,8 +2278,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     sampleThicknessB.store(props, prepend);
     fiducialessA.store(props, prepend);
     fiducialessB.store(props, prepend);
-    setProperty(props, group, "tiltalign." + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY,
-        targetPatchSizeXandY);
+    setProperty(props, group,
+        "tiltalign." + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY, targetPatchSizeXandY);
     setProperty(props, group, "tiltalign."
         + TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY, numberOfLocalPatchesXandY);
     noBeamTiltSelectedA.store(props, prepend);
