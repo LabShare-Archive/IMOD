@@ -259,7 +259,7 @@ program xftoxg
     if (indWarpOutput < 0) call exitError('OPENING A NEW WARPING FILE')
   endif
 
-  if (.not. warping .or. ifShift < 2) then
+  if (.not. warping .or. ifShift > 1) then
     !
     ! Regular transforms: compute g's to align all sections to the first
     ! Do this for warping with local fits instead of trusting the g computed above
