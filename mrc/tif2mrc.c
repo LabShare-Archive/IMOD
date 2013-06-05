@@ -56,13 +56,14 @@ int main( int argc, char *argv[])
   int useNTSC = 0;
   int anyTifPixel = 0;
   int pixelEntered = 0;
-  int xsize, ysize;
-  int mrcxsize = 0, mrcysize = 0, mrcsizeset;
+  int invertStack = 0;
+  int xsize, ysize, iread, inSection;
+  int mrcxsize = 0, mrcysize = 0;
   float userFill, fillVal, mean, tmean, tiltAngle, pixelSize = 1., yPixelSize = 1.;
   float chunkCriterion = 100.;
   b3dInt16 *sptr;
   b3dInt16 *bgshort;
-  int bgBits, bgxsize, bgysize, xoffset, yoffset, y, ydo;
+  int bgBits, bgxsize, bgysize, xoffset, yoffset, y, ydo, firstFileInd;
   int doChunks, chunk, numChunks, linesPerChunk, nlines, linesDone;
   unsigned char *fillPtr;
   unsigned char byteFill[3];
@@ -86,22 +87,17 @@ int main( int argc, char *argv[])
   label[0] = 0x00;
 
   if (argc < 3){
-    printf("Tif2mrc Version %s %s %s\n" , VERSION_NAME,
-            __DATE__, __TIME__);
+    printf("Tif2mrc Version %s %s %s\n" , VERSION_NAME, __DATE__, __TIME__);
     imodCopyright();
     printf("Usage: %s [options] <tiff files...> <mrcfile>\n" , progname);
     printf("Options:\n");
     printf("\t-g      Convert 24-bit RGB to 8-bit grayscale\n");
-    printf("\t-G      Convert 24-bit RGB to 8-bit grayscale with NTSC"
-            " scaling\n");
-    printf("\t-u      Convert unsigned 16-bit values by "
-            "subtracting 32768\n");
-    printf("\t-d      Convert unsigned 16-bit values by "
-            "dividing by 2\n");
-    printf("\t-k      Keep unsigned 16-bit values; store in unsigned "
-            "integer mode\n");
-    printf("\t-s      Store as signed integers (mode 1) even if data "
-            "are unsigned\n");
+    printf("\t-G      Convert 24-bit RGB to 8-bit grayscale with NTSC scaling\n");
+    printf("\t-u      Convert unsigned 16-bit values by subtracting 32768\n");
+    printf("\t-d      Convert unsigned 16-bit values by dividing by 2\n");
+    printf("\t-k      Keep unsigned 16-bit values; store in unsigned integer mode\n");
+    printf("\t-s      Store as signed integers (mode 1) even if data are unsigned\n");
+    printf("\t-i      Invert order of sections in output stack\n");
     printf("\t-p  #   Set pixel spacing in MRC header to given #\n");
     printf("\t-P      Set pixel spacing in MRC header from resolution in TIFF file\n");
     printf("\t-T file Output tilt angles from TVIPS input files to given file\n");
@@ -109,8 +105,7 @@ int main( int argc, char *argv[])
     printf("\t-o x,y  Set output file size in X and Y\n");
     printf("\t-F  #   Set value to fill areas with no image data to given #\n");
     printf("\t-b file Background subtract image in given file\n");
-    printf("\t-t #    Set criterion in megabytes for reading files in "
-           "chunks\n");
+    printf("\t-t #    Set criterion in megabytes for reading files in chunks\n");
     printf("\t-m      Turn off file-to-memory mapping in libtiff\n");
 
     exit(3);
@@ -148,6 +143,10 @@ int main( int argc, char *argv[])
         forceSigned = 1;
         break;
  
+      case 'i': /* Invert output stack */
+        invertStack = 1;
+        break;
+
       case 'p': /* Insert pixel size in header */
         pixelSize = atof(argv[++iarg]);
         if (pixelSize <= 0.)
@@ -277,15 +276,15 @@ int main( int argc, char *argv[])
              tiffPages, xsize, ysize);
 
       for (section = 0; section < tiffPages; section++) {
+        inSection = invertStack ? tiffPages - 1 - section : section;
           
-        tifdata = (unsigned char *)tiff_read_section
-          (tiffp, &tiff, section);
+        tifdata = (unsigned char *)tiff_read_section(tiffp, &tiff, inSection);
 
         if (!tifdata)
-          exitError("Failed to get image data for section %d", section);
+          exitError("Failed to get image data for section %d", inSection);
 
         if (tiff.PhotometricInterpretation == 3)
-          expandIndexToRGB(&tifdata, tiff.iifile, section);
+          expandIndexToRGB(&tifdata, tiff.iifile, inSection);
 
         /* convert RGB to gray scale */
         if (tiff.PhotometricInterpretation / 2 == 1 && makegray)
@@ -294,9 +293,7 @@ int main( int argc, char *argv[])
         /* Convert long ints to floats */
         convertLongToFloat(tifdata, tiff.iifile);
 
-         
-        mean += minmaxmean(tifdata, mode, unsign, divide, xsize, 
-                           ysize, &min, &max);
+        mean += minmaxmean(tifdata, mode, unsign, divide, xsize, ysize, &min, &max);
 
         mrc_big_seek( mrcfp, 1024, section * xsize, ysize * pixSize, SEEK_SET);
      
@@ -394,15 +391,15 @@ int main( int argc, char *argv[])
   mrc_head_new(&hdata, xsize, ysize, argc - iarg - 1, mode);
   mrc_head_write(mrcfp, &hdata);
 
-  mrcsizeset = iarg;
-
   /* Loop through all the tiff files adding them to the MRC stack. */
+  firstFileInd = iarg;
   for (; iarg < argc - 1 ; iarg++){
+    iread = invertStack ? firstFileInd + argc - 2 - iarg : iarg;
        
     /* Open the TIFF file. */
-    if (tiff_open_file(argv[iarg], openmode, &tiff, anyTifPixel))
-      exitError("Couldn't open %s.", argv[iarg]);
-    printf("Opening %s for input\n", argv[iarg]);
+    if (tiff_open_file(argv[iread], openmode, &tiff, anyTifPixel))
+      exitError("Couldn't open %s.", argv[iread]);
+    printf("Opening %s for input\n", argv[iread]);
     fflush(stdout);
     tiffp = tiff.fp;
     k = manageTVIPSdata(tiff.iifile, label, &tiltAngle);
@@ -442,14 +439,14 @@ int main( int argc, char *argv[])
       /* Read in tiff file */
       tifdata = (unsigned char *)tiff_read_file(tiffp, &tiff);
       if (!tifdata)
-        exitError("Reading %s.", argv[iarg]);
+        exitError("Reading %s.", argv[iread]);
 
       xsize = tiff.directory[WIDTHINDEX].value;
       ysize = tiff.directory[LENGTHINDEX].value;
       if (!nlines)
         nlines = ysize;
 
-      if (!chunk && mrcsizeset == iarg){
+      if (!chunk && firstFileInd == iarg){
         if (!mrcxsize || !mrcysize) {
           mrcxsize = xsize;
           mrcysize = ysize;
@@ -526,7 +523,7 @@ int main( int argc, char *argv[])
         b3dFwrite(tifdata , pixSize * xsize, nlines, mrcfp);
 
       } else {
-        printf("WARNING: tif2mrc - File %s not same size.\n", argv[iarg]);
+        printf("WARNING: tif2mrc - File %s not same size.\n", argv[iread]);
         
         /* Unequal sizes: set the fill value and pointer */
         fillVal = fillEntered ? userFill : tmean;

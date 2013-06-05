@@ -65,7 +65,13 @@ stored as 0 to 32767.  If values in the input files are all less than 32768,
 then use the
 .B -s
 option to avoid subtracting 32767.
-
+.TP
+.B -i
+Invert the order of images in the output stack.  Input files will be processed
+in inverted order, and slices inside of stack files will also be read in
+inverted order.  This option will preserve handedness if the images being
+stacked are serial images as a block face was cut
+and are in the same orientation as views looking down on the block.
 .SH AUTHOR
 David Mastronarde
 .SH SEE ALSO

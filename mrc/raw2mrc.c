@@ -63,6 +63,7 @@ void usage(void)
   printf("\t-oz #   Offset between each pair of sections, "
           "default 0\n");
   printf("\t-f      Flip image around X axis\n");
+  printf("\t-i      Stack images in inverted order in Z\n");
   printf("\t-d      Divide unsigned shorts by 2 instead of subtracting 32767\n");
   printf("\t-u      Save unsigned shorts in unsigned file mode (6) \n");
   printf("\t-c      Convert long or ulong input to 16-bit"
@@ -75,7 +76,7 @@ void usage(void)
 int main( int argc, char *argv[] )
 {
   struct MRCheader hdata;
-  int    i, j, k;
+  int    i, j, k, zread, jread, iarg;
   unsigned int xysize;
   FILE   *fin;
   FILE   *fout;
@@ -91,10 +92,10 @@ int main( int argc, char *argv[] )
   int    keepUshort = 0;  /* Flag to keep unsigned shorts */
   int    hsize = 0;  /* amount of data to skip */
   int    convert = 0; /* Flag to convert long to short */
-  int    csize = 1;
+  int    invertStack = 0;
+  int    invertFiles = 0;
   int    zoffset = 0;
   int    pixsize = 1;
-  int datasize;
   float  pixel;
   double pixSpacing = 0., zPixel = 0.;
   float  mean = 0.0f, tmean = 0.0f, max = -5e29f, min= 5e29f;
@@ -119,30 +120,30 @@ int main( int argc, char *argv[] )
   }
      
 
-  for (i = 1; i < argc ; i++){
-    if (argv[i][0] == '-' && strlen(argv[i]) <= 3){
-      switch (argv[i][1]){
+  for (iarg = 1; iarg < argc ; iarg++){
+    if (argv[iarg][0] == '-' && strlen(argv[iarg]) <= 3){
+      switch (argv[iarg][1]){
 
       case 't': /* input file type */
-        intype = setintype(argv[++i], &pixsize, &outtype);
+        intype = setintype(argv[++iarg], &pixsize, &outtype);
         /* printf("pixsize = %d\n", pixsize); */
         break;
             
       case 'o':
-        if (argv[i][2] == 'z'){
-          zoffset = atoi(argv[++i]);
+        if (argv[iarg][2] == 'z'){
+          zoffset = atoi(argv[++iarg]);
         }else{
-          hsize = atoi(argv[++i]);
+          hsize = atoi(argv[++iarg]);
         }
         break;
       case 'x':
-        x = atoi(argv[++i]);
+        x = atoi(argv[++iarg]);
         break;
       case 'y':
-        y = atoi(argv[++i]);
+        y = atoi(argv[++iarg]);
         break;
       case 'z':
-        z = atoi(argv[++i]);
+        z = atoi(argv[++iarg]);
         break;
 
       case 's':
@@ -150,6 +151,15 @@ int main( int argc, char *argv[] )
         break;
       case 'f':
         flip = 1;
+        break;
+      case 'i':
+        if (argv[iarg][2] == 'z') {
+          invertStack = 1;
+        } else if (argv[iarg][2] == 0x00) {
+          invertFiles = 1;
+          invertStack = 1;
+        } else
+          exitError("Unrecognized option %s", argv[iarg]);
         break;
       case 'd':
         divide = 1;
@@ -161,17 +171,18 @@ int main( int argc, char *argv[] )
         convert = 1;
         break;
       case 'p':
-        if (argv[i][2] == 'z'){
-          zPixel = atof(argv[++i]);
-        } else {
-          pixSpacing = atof(argv[++i]);
-        }
+        if (argv[iarg][2] == 'z') {
+          zPixel = atof(argv[++iarg]);
+        } else if (argv[iarg][2] == 0x00) {
+          pixSpacing = atof(argv[++iarg]);
+        } else
+          exitError("Unrecognized option %s", argv[iarg]);
         break;
       }
     }else break;
   }
      
-  if ( (argc - 1) < (i + 1)){
+  if ( (argc - 1) < (iarg + 1)){
     printf("ERROR: %s - insufficient arguments\n", progname);
     usage();
     exit(3);
@@ -204,7 +215,7 @@ int main( int argc, char *argv[] )
       printf("WARNING: %s - option -u ignored with specified input type\n", progname);
   }
 
-  nfiles = argc - (i + 1);
+  nfiles = argc - (iarg + 1);
   nsecs = z *nfiles;
 
   /* printf("nfiles = %d, argc = %d\n",nfiles, argc); */
@@ -218,8 +229,7 @@ int main( int argc, char *argv[] )
   for (j = 0; j < 1024; j++)
     b3dFwrite(&start , 1, 1, fout);
 
-  datasize = x * y * z;
-  xysize = x * y * csize;
+  xysize = x * y;
 
   indata = (void *)malloc(pixsize * xysize);
   if (!indata)
@@ -233,22 +243,20 @@ int main( int argc, char *argv[] )
     mrc_set_scale(&hdata, pixSpacing, pixSpacing, zPixel);
   }
 
-  for (j = i ; j < argc-1 ; j++) {
-    fin = fopen(argv[j], "rb");
+  for (j = iarg ; j < argc-1 ; j++) {
+    jread = invertFiles ? iarg + argc - 2 - j : j;
+    printf("%d %d %s\n", j, jread, argv[jread]);
+    fin = fopen(argv[jread], "rb");
     if (!fin)
-      exitError("Opening %s for input", argv[j]);
-
-    if (b3dFseek(fin, hsize, SEEK_CUR)) 
-      exitError("Seeking to data in file  %s", argv[j]);
+      exitError("Opening %s for input", argv[jread]);
 
     for (k = 0; k < z; k++) {
       tmean = 0.0f;
-      if (k > 0) {
-        if (b3dFseek(fin, zoffset, SEEK_CUR)) 
-          exitError("Seeking to data at section %d in file  %s", k, argv[j]);
-      }
+      zread = invertStack ? z - 1 - k : k;
+      if (mrc_big_seek(fin, hsize + zread * zoffset, pixsize * x, y * zread, SEEK_SET))
+        exitError("Seeking to data at section %d in file  %s", zread, argv[jread]);
       if (b3dFread(indata, pixsize, xysize, fin) != xysize) 
-        exitError("Reading data from file  %s", argv[j]);
+        exitError("Reading data from file  %s", argv[jread]);
       if (compression){
         rawdecompress(indata, pixsize, xysize, compression);
       }

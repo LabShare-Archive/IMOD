@@ -48,6 +48,13 @@ the default offset is 0.
 .B -f
 Flip the images around the X axis.
 .TP
+.B -i
+Produce an inverted output stack by both inverting the order in which files
+are processed and inverting the order of reading Z slices from each file.
+.TP
+.B -iz
+Invert the order of reading Z slices from each individual file.
+.TP
 .B -d
 Divide unsigned 16-bit values or any 32-bit values by 2.  The default 
 for unsigned short values is to subtract 32767, which
