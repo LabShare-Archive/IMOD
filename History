@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/5/13: Handling null values during tomogram reconstruction setup that are
+caused by running eTomo through batchruntomo.(Bug# 1708)
+
 6/4/13: Added options for inverted the Z order of the output to dm2mrc,
 raw2mrc, and tif2mrc.
 
