@@ -11,6 +11,7 @@ import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
+import etomo.ui.swing.UIExpertUtilities;
 
 /**
 * <p>Description: </p>
@@ -52,16 +53,26 @@ public class MakecomfileParam {
     command.add("python");
     command.add("-u");
     command.add(ApplicationManager.getIMODBinPath() + ProcessName.MAKECOMFILE);
-    if (fileType == FileType.GOLD_ERASER_COMSCRIPT) {
+    if (fileType == FileType.GOLD_ERASER_COMSCRIPT
+        || fileType == FileType.PATCH_TRACKING_COMSCRIPT) {
       command.add("-root");
       command.add(manager.getName() + axisID.getExtension());
-      if (beadSize.isNull()) {
-        return false;
+      if (fileType == FileType.PATCH_TRACKING_COMSCRIPT) {
+        command.add("-input");
+        command.add(FileType.CROSS_CORRELATION_COMSCRIPT.getFileName(manager, axisID));
+        command.add("-binning");
+        command.add(String.valueOf(UIExpertUtilities.INSTANCE.getStackBinning(manager, axisID, ".preali")));
       }
-      command.add("-bead");
-      command.add(beadSize.toString());
+      else if (fileType == FileType.GOLD_ERASER_COMSCRIPT) {
+        if (beadSize.isNull()) {
+          return false;
+        }
+        command.add("-bead");
+        command.add(beadSize.toString());
+      }
     }
-    else if (fileType != FileType.AUTOFIDSEED_COMSCRIPT) {
+    else if (fileType != FileType.AUTOFIDSEED_COMSCRIPT
+        && fileType != FileType.SIRTSETUP_COMSCRIPT) {
       return false;
     }
     File file = FileType.LOCAL_SCOPE_TEMPLATE.getFile(manager, axisID);
@@ -69,7 +80,7 @@ public class MakecomfileParam {
       command.add("-change");
       command.add(file.getName());
     }
-     file = FileType.LOCAL_SYSTEM_TEMPLATE.getFile(manager, axisID);
+    file = FileType.LOCAL_SYSTEM_TEMPLATE.getFile(manager, axisID);
     if (file.exists()) {
       command.add("-change");
       command.add(file.getName());
