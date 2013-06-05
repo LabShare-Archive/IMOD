@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/4/13: Added options for inverted the Z order of the output to dm2mrc,
+raw2mrc, and tif2mrc.
+
+6/2/13: In eTomo fixed the batchruntomo error message.(Bug# 1702)
+
+6/2/13: Added an editor for directives derived from the dataset.(Bug# 1685)
+
 5/30/13: Fixed Tomodataplots to send right color option to Onegenplot.
 
 5/29/13: IMOD-4-6-21

@@ -56,16 +56,8 @@ lacks a tag indicating that it is unsigned but the numbers do range above
 .B -k
 option.  
 .P
-If the program is run with version 4 of the TIFF library, it will read TIFF
+Since IMOD is distributed with version 4 of the TIFF library, the program will read TIFF
 files bigger than 2 GB, including ones in the BigTIFF format.
-In Linux, it is not necessary to have the program
-built against the version 4 library; the standard distributed program will run
-with this library, provided that libtiff.so.3 is a link to the
-version 4 library and is located in a directory on the LD_LIBRARY_PATH.  For
-example, if the directory with the version 4 library is on LD_LIBRARY_PATH,
-you can make a link in that directory with:
-.br
-   ln -s libtiff.so.5 libtiff.so.3
 
 .SS Options
 .TP
@@ -108,6 +100,13 @@ chosen incorrectly.
 .B -k
 With this option, the program will treat numbers as unsigned and output data
 into a file of mode 6 even if there is no tag indicating the data are unsigned.
+.TP
+.B -i
+Invert the order of sections in the output stack.  Either the multiple files
+or the pages of a a multi-page stack will be processed in inverted order to
+produce the output.  This option will preserve preserve handedness if the images being
+stacked are serial images obtained while cutting into a block face 
+and are in the same orientation as views looking down on the block.
 .TP
 .B -f
 If only one input file is given and it is a multi-page TIFF file, the program
