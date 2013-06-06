@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/5/13: Added value for maximum distance between contour points for the
+surface output of imodinfo.
+
 6/5/13: Handling null values during tomogram reconstruction setup that are
 caused by running eTomo through batchruntomo.(Bug# 1708)
 
