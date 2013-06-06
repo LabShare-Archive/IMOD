@@ -582,15 +582,18 @@ static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
                              Ipoint max, int useclip)
 {
   Iobj *obj;
-  Icont *cont;
+  Icont *cont, *cont2;
   Icont *scan;
   Ipoint pmin, pmax;
-  int ob, co, pt, i, coz, skipz;
+  Ipoint *pts, *pts2;
+  int ob, co, pt, i, coz, skipz, pt2, co2;
   float tvol, volFac;
+  float delx, dely, delz, dist, distmax;
   double *sa = NULL;
   double *vol = NULL;
   double *mvol = NULL;
   int *nofc = NULL;
+  float *extent = NULL;
   unsigned int maxsurf;
   Iplane plane[2 * IMOD_CLIPSIZE];
   int nPlanes = 0;
@@ -611,34 +614,56 @@ static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
         maxsurf = cont->surf;
     }
     obj->surfsize = maxsurf;
-    sa = (double *)malloc((obj->surfsize + 1) * sizeof(double));
-    if (!sa)
-      return;
-    vol = (double *)malloc((obj->surfsize + 1) * sizeof(double));
-    if (!vol){
-      free(sa);
-      return;
-    }
-    mvol = (double *)malloc((obj->surfsize + 1) * sizeof(double));
-    if (!mvol){
-      free(sa);
-      free(vol);
-      return;
-    }
-    nofc = (int *)malloc((obj->surfsize + 1) * sizeof(int));
-    if (!nofc){
-      free(vol);
-      free(mvol);
-      free(sa);
+    sa = B3DMALLOC(double, obj->surfsize + 1);
+    vol = B3DMALLOC(double, obj->surfsize + 1);
+    mvol = B3DMALLOC(double, obj->surfsize + 1);
+    nofc = B3DMALLOC(int, obj->surfsize + 1);
+    extent = B3DMALLOC(float, obj->surfsize + 1);
+    if (!sa || !vol || !mvol || !nofc || !extent) {
+      B3DFREE(vol);
+      B3DFREE(mvol);
+      B3DFREE(sa);
+      B3DFREE(nofc);
+      B3DFREE(extent);
       return;
     }
 
-    for(i = 0; i <= obj->surfsize; i++){
+    /* Compute maximum extent since Garry Morgan requested it! */
+    for (i = 0; i <= obj->surfsize; i++){
       sa[i] = vol[i] = mvol[i] = 0.0;
       nofc[i] = 0;
+      distmax = 0.;
+      extent[i] = 0.;
+      for (co = 0; co < obj->contsize; co++) {
+        cont = &(obj->cont[co]);
+        if (!cont->psize || cont->surf != i)
+          continue;
+        pts = cont->pts;
+        for (co2 = co; co2 < obj->contsize; co2++) {
+          cont2 = &(obj->cont[co2]);
+          if (!cont2->psize || cont2->surf != i)
+            continue;
+          pts2 = cont2->pts;
+          for (pt = 0; pt < cont->psize; pt++) {
+            for (pt2 = 0; pt2 < cont2->psize; pt2++) {
+              delx = pts[pt].x - pts2[pt2].x;
+              dely = pts[pt].y - pts2[pt2].y;
+              delz = (pts[pt].z - pts2[pt2].z) * imod->zscale;
+              if (fabs(delx) + fabs(dely) + fabs(delz) < extent[i])
+                continue;
+              dist = delx * delx + dely * dely + delz * delz;
+              if (dist > distmax) {
+                distmax = dist;
+                extent[i] = sqrt((double)dist);
+              }
+            }
+          }
+        }
+      }
+      extent[i] *= imod->pixsize;
     }
       
-    for(co = 0; co < obj->contsize; co++){
+    for (co = 0; co < obj->contsize; co++){
       cont = &(obj->cont[co]);
       if (!cont->psize)
         continue;
@@ -689,6 +714,7 @@ static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
         free(vol);
         free(mvol);
         free(sa);
+        free(extent);
         return;
       }
       for(i = 0; i <= obj->surfsize; i++)
@@ -753,23 +779,24 @@ static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
         }
       }               
       fprintf(fout, "#Surface : Contours,  Cyl. Volume,  "
-              "Mesh Volume,  Cyl. Surface,  Mesh Surface\n");
+              "Mesh Volume,  Mesh Surface,  Max Extent\n");
       for(i = 0; i <= obj->surfsize; i++)
         fprintf(fout, "%7d   %8d   %12.6g  %12.6g  %12.6g  %12.6g\n"
-                , i, nofc[i], vol[i], mvol[i], sa[i], msa[i]);
+                , i, nofc[i], vol[i], mvol[i], msa[i], extent[i]);
       free(msa);
     } else {
           
-      fprintf(fout, "#Surface : Contours,  Cyl. Volume,  Cyl. Surface\n");
+      fprintf(fout, "#Surface : Contours,  Cyl. Volume,  Cyl. Surface,  Max. Extent\n");
       for(i = 0; i <= obj->surfsize; i++)
-        fprintf(fout, "%7d   %8d   %12.6g  %12.6g\n", 
-                i, nofc[i], vol[i], sa[i]);
+        fprintf(fout, "%7d   %8d   %12.6g  %12.6g  %12.6g\n", 
+                i, nofc[i], vol[i], sa[i], extent[i]);
     }
 
     free(sa);
     free(vol);
     free(mvol);
     free(nofc);
+    free(extent);
   }
   return;
 }
