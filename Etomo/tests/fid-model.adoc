@@ -496,7 +496,7 @@ wait.process.cross-correlating-stack=done
 [[if = test-gui]]
 	#test values
 	assert.rb.fractional-overlap-of-patches=on
-	assert.tf.fractional-overlap-of-patches=.33,.33
+	assert.tf.fractional-overlap-of-patches=0.33,0.33
 	assert.rb.number-of-patches=off
 	assert.tf.number-of-patches=
 	#enabled/disabled

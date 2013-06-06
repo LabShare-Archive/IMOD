@@ -2262,9 +2262,9 @@ public final class ApplicationManager extends BaseManager implements
     // load. it.
     TiltxcorrParam tiltXcorrPtParam = null;
     if (!comScriptMgr.loadXcorrPt(axisID, false)) {
-      BaseProcessManager.touch(new File(propertyUserDir,
-          FileType.PATCH_TRACKING_COMSCRIPT.getFileName(this, axisID)).getAbsolutePath(),
-          this);
+      MakecomfileParam makecomfileParam = new MakecomfileParam(this, axisID,
+          FileType.PATCH_TRACKING_COMSCRIPT);
+      makecomfile(axisID, makecomfileParam);
       comScriptMgr.loadXcorrPt(axisID, true);
       // Sync from xcorr.com to xcorr_pt.com
       comScriptMgr.loadXcorr(axisID);
@@ -3286,15 +3286,15 @@ public final class ApplicationManager extends BaseManager implements
         curAxisID, FileType.ERASER_LOG.getFile(this, curAxisID).exists());
     if (dualAxis) {
       curAxisID = AxisID.SECOND;
-      updateDirective(directiveMap, prepend + module + DirectiveFile.REMOVE_XRAYS, errmsg,
-          curAxisID, FileType.ERASER_LOG.getFile(this, curAxisID).exists());
+      updateDirective(directiveMap, prepend + module + DirectiveFile.REMOVE_XRAYS,
+          errmsg, curAxisID, FileType.ERASER_LOG.getFile(this, curAxisID).exists());
     }
     curAxisID = firstAxisID;
     module = DirectiveFile.FIDUCIALS_NAME + AutodocTokenizer.SEPARATOR_CHAR
         + DirectiveFile.ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     // Coarse alignment
-    updateDirective(directiveMap, prepend + module + DirectiveFile.FIDUCIALLESS_NAME, errmsg,
-        curAxisID, metaData.isFiducialess(curAxisID));
+    updateDirective(directiveMap, prepend + module + DirectiveFile.FIDUCIALLESS_NAME,
+        errmsg, curAxisID, metaData.isFiducialess(curAxisID));
     if (dualAxis) {
       curAxisID = AxisID.SECOND;
       updateDirective(directiveMap, prepend + module + DirectiveFile.FIDUCIALLESS_NAME,
@@ -3308,8 +3308,8 @@ public final class ApplicationManager extends BaseManager implements
     // TODO finish runtime directives
     if (dualAxis) {
       curAxisID = AxisID.SECOND;
-      updateDirective(directiveMap, prepend + module + DirectiveFile.TRACKING_METHOD_NAME,
-          errmsg, curAxisID,
+      updateDirective(directiveMap,
+          prepend + module + DirectiveFile.TRACKING_METHOD_NAME, errmsg, curAxisID,
           TrackingMethod.toDirectiveValue(metaData.getTrackMethod(curAxisID)));
     }
     curAxisID = firstAxisID;
@@ -8538,7 +8538,9 @@ public final class ApplicationManager extends BaseManager implements
       if (!required) {
         return null;
       }
-      BaseProcessManager.touch(sirtSetupComFile.getAbsolutePath(), this);
+      MakecomfileParam makecomFileParam = new MakecomfileParam(this, axisID,
+          FileType.SIRTSETUP_COMSCRIPT);
+      makecomfile(axisID, makecomFileParam);
       comScriptMgr.loadSirtsetup(axisID);
     }
     param = comScriptMgr.getSirtsetupParam(axisID);
