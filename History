@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/6/13: Switched to makecomfile for the creation of patching tracking and
+sirtsetup com files in eTomo.(Bug# 1705)
+
 6/5/13: Added value for maximum distance between contour points for the
 surface output of imodinfo.
 
