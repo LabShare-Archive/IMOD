@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/7/13: Fixed 3dmod icon missing from dock on Mac, adopted a higher-resolution version from Mike Strauss.
+
 6/6/13: Switched to makecomfile for the creation of patching tracking and
 sirtsetup com files in eTomo.(Bug# 1705)
 
