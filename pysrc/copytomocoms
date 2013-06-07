@@ -371,15 +371,15 @@ for iaxis in range(naxis):
                exitFromImodError(progname)
             lastind = max(0, len(alterOut) - 1);
             if 'header' in alterOut[lastind]:
-               warnout = 'Pixel spacing of FEI file was not set.  Output from ' +\
-                   'alterheader:\n'
+               warnout = 'Pixel spacing of FEI file ' + stackname + \
+                   ' was not set.  Output from alterheader:\n'
                if 'not being' in alterOut[lastind]:
                   warnout += alterOut[max(0, lastind - 1)].rstrip() + '\n'
                warnout += alterOut[lastind].rstrip()
                warning(warnout)
             else:
-               printInfo('Pixel spacing was set in FEI file from value in extended ' +\
-                            'header')
+               printInfo('Pixel spacing was set in FEI file ' + stackname + \
+                            ' from value in extended header')
                
       try:
 
@@ -404,7 +404,7 @@ for iaxis in range(naxis):
       except ImodpyError:
          pass
       if xsize <= 0:
-         exitError('extracting image size from stack header')
+         exitError('Extracting image size from header of stack ' + stackname)
 
    elif iaxis:
       infol = fmtstr("{} does not exist yet, assuming size {} x {}\n", stackname,
