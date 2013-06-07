@@ -295,14 +295,16 @@ else:
    inlist += [str(symbols[0])]
 
 # columns
-inlist += [str(columnList[0]),
-           fmtstr('{},{}', int(xlog), xbase),
+if numCol > 1:
+   inlist.append(str(columnList[0]))
+inlist += [fmtstr('{},{}', int(xlog), xbase),
            '0']
 if ordinals:
    inlist += ['16']
-inlist += ['1',
-           str(columnList[1 - ordinals]),
-           fmtstr('{},{}', int(ylog), ybase),
+inlist.append('1')
+if numCol > 1:
+   inlist.append(str(columnList[1 - ordinals]))
+inlist += [fmtstr('{},{}', int(ylog), ybase),
            '0',
            '-2',
            axisLabel,
