@@ -44,7 +44,8 @@ correctly.
 .P
 The program will also convert a list of 2-D residuals produced by Tiltalign(1).
 In this case, the model is not marked as flipped, so that it can be displayed
-on top of the original image file.
+on top of the original image file.  A file or warping transformations can also
+be converted to vectors, and again the model isnot marked as flipped.
 .SS Options
 .TP
 .B -s <value>
