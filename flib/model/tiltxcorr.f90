@@ -38,7 +38,7 @@ program tiltxcorr
   !
   character*320 inFile, plFile, imFileOut, xfFileOut
   character*1000 listString
-  real*4 fs(2,3), fsInv(2,3), fUnit(2,3)
+  real*4 fs(2,3), fsInv(2,3), fUnit(2,3), prexfInv(2,3)
   character*9 dat
   character*8 tim
   character*80 titlech
@@ -46,7 +46,7 @@ program tiltxcorr
   character*10 filterText/' '/
   character*15 binRedText/' Binning is'/
 
-  real*4, allocatable :: f(:,:,:), tilt(:), dxPreali(:), dyPreali(:)
+  real*4, allocatable :: f(:,:,:), tilt(:), dxPreali(:), dyPreali(:), fPreali(:,:,:)
   integer*4, allocatable :: ixPcList(:), iyPcList(:), izPcList(:)
   integer*4, allocatable :: listz(:), listSkip(:)
   real*4, allocatable :: patchCenX(:), patchCenY(:), patchCenXall(:), patchCenYall(:)
@@ -82,16 +82,17 @@ program tiltxcorr
   integer*4 ipnt, ipt, numInside, iobjSeed, imodObj, imodCont, ix, iy, iAntiFiltType
   integer*4 limitShiftX, limitShiftY, numSkip, lastNotSkipped, lenConts, nFillTaper
   integer*4 limitXlo, limitXhi, limitYlo, limitYhi, numControl, numBoundAll
-  integer*4 nxUnali, nyUnali
+  integer*4 nxUnali, nyUnali, numAllViews, ivPairOffset
   real*4 critInside, cosRatio, peakVal, peakLast, xpeakLast, yPeakLast
   real*4 boundXmin, boundXmax, boundYmin, boundYmax, fracXover, fracYover
   real*4 fracOverMax, critNonBlank, fillTaperFrac
   real*8 wallMask, wallTime, wallStart, wallInterp, wallfft
 
   logical*4 tracking, verbose, breaking, taperCur, taperRef, reverseOrder, findWarp
-  logical*4 refViewOut
+  logical*4 refViewOut, rawAlignedPair, addToWarps, curViewOut
   integer*4 niceFrame, newImod, putImodMaxes, putModelName, numberInList, taperAtFill
-  integer*4 newWarpFile, setWarpPoints, writeWarpFile, setLinearTransform
+  integer*4 newWarpFile, setWarpPoints, writeWarpFile, setLinearTransform, readWarpFile
+  integer*4 separateLinearTransform
   logical inside
   real*4 cosd, sind
 
@@ -175,6 +176,8 @@ program tiltxcorr
   iAntiFiltType = 0
   reverseOrder = .false.
   findWarp = .false.
+  rawAlignedPair = .false.
+  ivPairOffset = 0
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   !
@@ -240,14 +243,29 @@ program tiltxcorr
   if (PipGetInOutFile('OutputFile', 2, 'Output file for transforms', &
       xfFileOut) .ne. 0) call exitError('NO OUTPUT FILE SPECIFIED')
   !
+  numAllViews = numViews
   if (findWarp) then
+    !
+    ! Make sure warping has no tilt angles
     ierr = PipNumberOfEntries('TiltAngles', nz)
     if (nz > 0 .or. PipGetFloat('FirstTiltAngle', xpeak) == 0 .or.  &
         PipGetFloat('TiltIncrement', xpeak) == 0 .or.  &
         PipGetString('TiltFile', listString) == 0) call exitError( &
         'YOU CANNOT ENTER TILT ANGLES WHEN FINDING WARP TRANSFORMS')
-    nz = numviews
+    nz = numViews
     tilt(1:nz) = 0.
+    !
+    ! See if doing an aligned pair.  Make gray area criterion less because only the
+    ! current image will lose area
+    rawAlignedPair = PipGetTwoIntegers('RawAndAlignedPair', iv, numAllViews) == 0
+    if (rawAlignedPair) then
+      if (numAllViews < 2 .or. iv < 2 .or. iv > numAllViews) call exitError( &
+          'IN RawAndAlignedPair ENTRY, TOTAL'// &
+          ' VIEWS IS LESS THAN 2 OR VIEW NUMBER IS OUT OF RANGE')
+      ivPairOffset = iv - 2
+      ierr = PipGetLogical('AppendToWarpFile', addToWarps)
+      critNonBlank = 0.5
+    endif
   else
     call get_tilt_angles(numViews, 3, tilt, nz, ifPip)
     if (numViews .ne. nz) then
@@ -370,7 +388,7 @@ program tiltxcorr
             npt_in_obj(iobj) > 2) then
           ipnt = abs(object(1 + ibase_obj(iobj)))
           iv = nint(p_coord(3, ipnt)) + 1
-          if (iv >= 1 .and. iv <= numViews) then
+          if (iv >= 1 .and. iv <= numAllViews) then
             numBound = numBound + 1
             if (numBound > LIMBOUND) call exitError( &
                 'TOO MANY BOUNDARY CONTOURS FOR ARRAYS')
@@ -385,7 +403,8 @@ program tiltxcorr
           'NO QUALIFYING BOUNDARY CONTOURS FOUND IN MODEL')
       !
       ! Allocate point array and copy points to arrays
-      allocate(xbound(numPoints), ybound(numPoints), ifBoundOnView(numViews), stat = ierr)
+      allocate(xbound(numPoints), ybound(numPoints), ifBoundOnView(numAllViews),  &
+          stat = ierr)
       call memoryError(ierr, 'ARRAYS FOR BOUNDARY CONTOURS')
       boundXmin = 1.e10
       boundXmax = -1.e10
@@ -422,7 +441,8 @@ program tiltxcorr
         then
       if (ifCumulate .ne. 0) call exitError( &
           'YOU CANNOT USE CUMULATIVE CORRELATION WITH PATCH TRACKING')
-      if (breaking) call exitError('YOU CANNOT BREAK AT VIEWS WITH PATCH TRACKING')
+      if (breaking .and. .not. findWarp)  &
+          call exitError('YOU CANNOT BREAK AT VIEWS WITH PATCH TRACKING')
       tracking = .true.
       if (findWarp .and. reverseOrder) call exitError( &
           'YOU CANNOT FIND WARP TRANSFORMS IN REVERSE ORDER')
@@ -535,22 +555,29 @@ program tiltxcorr
       ! Get prealign transforms, then eliminate patches that have too much blank area
       ! on starting view
       ifReadXfs = 1 - PipGetString('PrealignmentTransformFile', plFile)
+      if (rawAlignedPair .and. ifReadXfs == 0) call exitError( &
+          'PREALIGNMENT F TRANSFORMS MMUST BE ENTERED TO DO RAW-ALIGNED PAIR')
       if (ifReadXfs .ne. 0) then
         ierr = PipGetInteger('ImagesAreBinned', imagesBinned)
-        allocate(dxPreali(nz), dyPreali(nz), stat = ierr)
+        if (rawAlignedPair .and. imagesBinned > 1) call exitError( &
+            'YOU CANNOT DO A RAW AND ALIGNED PAIR WITH BINNED INPUT')
+        allocate(fPreali(2, 3, numAllViews), dxPreali(numAllViews),  &
+            dyPreali(numAllViews), stat = ierr)
         call memoryError(ierr, 'ARRAYS FOR PREALIGN TRANSFORMS')
         call dopen(3, plFile, 'ro', 'f')
-        call xfrdall2(3, f, iv, nz, ierr)
+        call xfrdall2(3, fPreali, iv, numAllViews, ierr)
         if (ierr == 2) call exitError('READING TRANSFORM FILE')
-        if (iv .ne. nz) call exitError( &
+        if (iv .ne. numAllViews) call exitError( &
             'NOT ENOUGH TRANSFORMS IN PREALIGN TRANSFORM FILE')
-        dxPreali(1:nz) = f(1, 3, 1:nz) / imagesBinned
-        dyPreali(1:nz) = f(2, 3, 1:nz) / imagesBinned
+        dxPreali(1:numAllViews) = fPreali(1, 3, 1:numAllViews) / imagesBinned
+        dyPreali(1:numAllViews) = fPreali(2, 3, 1:numAllViews) / imagesBinned
         !
         ! Get unaligned size if it differs, adjust for binning
         if (PipGetTwoIntegers('UnalignedSizeXandY', nxUnali, nyUnali) == 0) then
           nxUnali = nxUnali / imagesBinned
           nyUnali = nyUnali / imagesBinned
+          if (rawAlignedPair) call exitError( &
+              'INPUT FILE WITH RAW AND ALIGNED PAIR MUST BE SAME SIZE AS UNALIGNED STACK')
         else
           nxUnali = nx
           nyUnali = ny
@@ -595,8 +622,19 @@ program tiltxcorr
       ! Start the warping file
       if (findWarp) then
         call irtdel(1, delta)
-        ierr = newWarpFile(nx, ny, 1, delta(1), 3)
-        if (ierr < 0) call exitError('FAILURE TO ALLOCATE NEW WARP STRUCTURE IN LIBRARY')
+        if (addToWarps) then
+          ierr = readWarpFile(xfFileOut, ix, iy, iz, ind, xpeakTmp, ipatch, iv)
+          if (ierr < 0) call exitError('READING OUTPUT FILE AS EXISTING WARP FILE')
+          if (ix .ne. nx .or. iy .ne. ny .or.  &
+              abs(xpeakTmp - delta(1)) > 1.e-4 * delta(1)) call exitError( &
+              'EXISTING WARP FILE DOES NOT MATCH IN X OR Y IMAGE SIZE OR PIXEL SIZE')
+          if (ind .ne. 1 .or. iv .ne. 3) call exitError( &
+              'BINNING ENTRY OR FLAGS IN EXISTING WARP FILE ARE INVALID')
+        else
+          ierr = newWarpFile(nx, ny, 1, delta(1), 3)
+          if (ierr < 0) call exitError(' &
+              &FAILURE TO ALLOCATE NEW WARP STRUCTURE IN LIBRARY')
+        endif
       endif
 
     elseif (numBound > 0) then
@@ -838,20 +876,23 @@ program tiltxcorr
       endif
       if (verbose) print *,'idir, stretch, ivRef, ivCur', idir, stretch, ivRef, ivCur
       !
-      ! If doing warp and there is more than one boundary contour, get contour(s) from
-      ! nearest Z to this and get new set of patch centers
-      if (findWarp .and. numBoundAll > 1) then
+      ! If doing warp and there is more than one boundary contour or the contour needs
+      ! to be transformed, get contour(s) from nearest Z to this and get new set of
+      ! patch centers
+      if (findWarp .and. (numBoundAll > 1 .or. (numBoundAll > 0 .and. rawAlignedPair))) &
+          then
         !
         ! Find nearest view with boundaries
-        ind = numViews + 10
-        do iv = 1, numViews
-          if (ifBoundOnView(iv) > 0 .and. abs(ivRef - iv) < ind) then
-            ind = abs(ivRef - iv)
+        ind = numAllViews + 10
+        do iv = 1, numAllViews
+          if (ifBoundOnView(iv) > 0 .and. abs(ivCur + ivPairOffset - iv) < ind) then
+            ind = abs(ivCur + ivPairOffset - iv)
             ivBound = iv
           endif
         enddo
         !
-        ! Redo the indices and repack the points into boundary arrays
+        ! Redo the indices and repack the points into boundary arrays, transforming them
+        ! if needed
         numBound = 0
         numPoints = 0
         do ix = 1, numBoundAll
@@ -866,6 +907,9 @@ program tiltxcorr
               numPoints = numPoints + 1
               xbound(numPoints) = p_coord(1, ipnt)
               ybound(numPoints) = p_coord(2, ipnt)
+              if (rawAlignedPair) call xfapply(fPreali(1, 1, ivCur + ivPairOffset),  &
+                  nx / 2., ny / 2., p_coord(1, ipnt), p_coord(2, ipnt), &
+                  xbound(numPoints), ybound(numPoints))
             enddo
           endif
         enddo
@@ -873,6 +917,9 @@ program tiltxcorr
         ! Get the patch centers based on the boundaries
         call makePatchListInsideBoundary()
       endif
+      !
+      ! Get inverse of prexf transform when doing pairs, for evaluating taper
+      if (rawAlignedPair) call xfinvert(fPreali(1, 1, ivCur + ivPairOffset), prexfInv)
       !
       ! Loop on the patches
       ivRefBase  = ivRef
@@ -959,18 +1006,28 @@ program tiltxcorr
         taperRef = .false.
         taperCur = .false.
         if (ifReadXfs .ne. 0) then
-          call usablePatchExtent(nx, nxUnali, nxPatch, dxPreali(ivRef),  &
-              ixCenStart + ixBoxRef, ix)
-          call usablePatchExtent(ny, nyUnali, nyPatch, dyPreali(ivRef),  &
-              iyCenStart + iyBoxRef, iy)
-          taperRef = ix < nxPatch .or. iy < nyPatch
-          refViewOut = ix < 0 .or. iy < 0 .or. ix * iy < critNonBlank * nxPatch * nyPatch
-          call usablePatchExtent(nx, nxUnali, nxPatch, dxPreali(ivCur),  &
-              ixCenStart + ixBoxCur, ix)
-          call usablePatchExtent(ny, nyUnali, nyPatch, dyPreali(ivCur),  &
-              iyCenStart + iyBoxCur, iy)
-          taperCur = ix < nxPatch .or. iy < nyPatch
-          if (ix < 0 .or. iy < 0 .or. ix * iy < critNonBlank * nxPatch * nyPatch) then
+          if (rawAlignedPair) then
+            taperRef = .false.
+            refViewOut = .false.
+            call evaluatePairPatch(nx, ny, nxPatch, nyPatch, ixCenStart + ixBoxCur, &
+                iyCenStart + iyBoxCur, prexfInv, critNonBlank, taperCur, curViewOut)
+          else
+            call usablePatchExtent(nx, nxUnali, nxPatch, dxPreali(ivRef),  &
+                ixCenStart + ixBoxRef, ix)
+            call usablePatchExtent(ny, nyUnali, nyPatch, dyPreali(ivRef),  &
+                iyCenStart + iyBoxRef, iy)
+            taperRef = ix < nxPatch .or. iy < nyPatch
+            refViewOut = ix < 0 .or. iy < 0 .or.  &
+                ix * iy < critNonBlank * nxPatch *  nyPatch
+            call usablePatchExtent(nx, nxUnali, nxPatch, dxPreali(ivCur),  &
+                ixCenStart + ixBoxCur, ix)
+            call usablePatchExtent(ny, nyUnali, nyPatch, dyPreali(ivCur),  &
+                iyCenStart + iyBoxCur, iy)
+            taperCur = ix < nxPatch .or. iy < nyPatch
+            curViewOut = ix < 0 .or. iy < 0 .or. &
+                ix * iy < critNonBlank * nxPatch * nyPatch
+          endif
+          if (curViewOut) then
             if (verbose) print *,'Skipping tracking of patch', ipatch
             if (findWarp) xmodel(ipatch, ivRef) = -1.e10
             cycle
@@ -1291,17 +1348,25 @@ program tiltxcorr
       if (findWarp) then
         if (verbose) print *,'View',ivCur,numControl,' warp points'
         ierr = 0
+        iv = ivCur + ivPairOffset
         if (numControl > 2) then
-          ierr = setWarpPoints(ivCur, numControl, xControl, yControl, xVector, yVector)
+          ierr = setWarpPoints(iv, numControl, xControl, yControl, xVector, yVector)
+          if (ierr .ne. 0) call exitError('SETTING WARP POINTS FOR THE CURRENT VIEW')
+          if (rawAlignedPair) ierr = setLinearTransform(iv, fPreali(1, 1, iv), 2)
+          if (ierr .ne. 0) call exitError('SETTING LINEAR TRANSFORM IN WARP FILE')
+          ierr = separateLinearTransform(iv)
+          if (ierr .ne. 0) call exitError( &
+              'SEPARATING LINEAR COMPONENT FROM WARP TRANSFORM')
         else if (numControl > 0) then
           call xfunit(fs)
+          if (rawAlignedPair) call xfcopy(fPreali(1, 1, iv), fs)
           do i = 1, numControl
             fs(1, 3) = fs(1, 3) - xVector(i) / numControl
             fs(2, 3) = fs(2, 3) - yVector(i) / numControl
           enddo
-          ierr = setLinearTransform(ivCur, fs, 2)
+          ierr = setLinearTransform(iv, fs, 2)
+          if (ierr .ne. 0) call exitError('SETTING LINEAR TRANSFORM IN WARP FILE')
         endif
-        if (ierr .ne. 0) call exitError('SETTING WARP POINTS FOR THE CURRENT VIEW')
       endif
       if (tracking) write(*,111) 'View', iview, ' processed'
     enddo
@@ -1832,3 +1897,49 @@ subroutine usablePatchExtent(nx, nxUnali, nxPatch, dx, ixStart, nxUsable)
       max(2, nint((nx - nxUnali) / 2. + dx) + 2, ixStart)
   return
 end subroutine usablePatchExtent
+
+
+! Determine if a patch is sufficiently in area with image when there is a general
+! transformation aplied to the image
+!
+subroutine evaluatePairPatch(nx, ny, nxPatch, nyPatch, ixStart, iyStart, prexfInv, &
+    critNonBlank, taperCur, curViewOut)
+  implicit none
+  integer*4 nx, ny, nxPatch, nyPatch, ixStart, iyStart, numInside, ix, iy, numTest
+  real*4 prexfInv(2, 3), critNonBlank
+  real*4 xtmp, ytmp, area, xLoLf, xLoRt, xUpLf, xUpRt, yLoLf, yLoRt, yUpLf, yUpRt
+  logical*4 taperCur, curViewOut
+  !
+  ! back-transform the 4 corners of the patch
+  numTest = 10
+  xtmp = ixStart
+  ytmp = iyStart
+  call xfapply(prexfInv, nx / 2., ny / 2., xtmp, ytmp, xLoLf, yLoLf)
+  call xfapply(prexfInv, nx / 2., ny / 2., xtmp + nxPatch, ytmp, xLoRt, yLoRt)
+  call xfapply(prexfInv, nx / 2., ny / 2., xtmp, ytmp + nyPatch, xUpLf, yUpLf)
+  call xfapply(prexfInv, nx / 2., ny / 2., xtmp + nxPatch, ytmp + nyPatch, xUpRt, yUpRt)
+
+  ! If they are all in, there is no tapering.  If all out, the patch is out
+  taperCur = xLoLf < 1. .or. xUpLf < 1. .or. xLoRt > nx - 1. .or. xUpRt > nx - 1. .or.  &
+      yLoLf < 1. .or. yUpLf < 1. .or. yLoRt > ny - 1. .or. yUpRt > ny - 1. 
+  curViewOut = .false.
+  if (.not. taperCur) return
+  curViewOut = max(xLoRt, xUpRt) <= 0 .or. min(xLoLf, xUpLf) >= nx .or. &
+      max(yLoRt, yUpRt) <= 0 .or. min(yLoLf, yUpLf) >= ny
+  if (curViewOut) return
+
+  ! Get intersection with the raw image area and compute the area from the vertices
+  xLoLf = max(1., xLoLf)
+  xUpLf = max(1., xUpLf)
+  yLoLf = max(1., yLoLf)
+  yLoRt = max(1., yLoRt)
+  xLoRt = min(nx - 1., xLoRt)
+  xUpRt = min(nx - 1., xUpRt)
+  yUpLf = min(ny - 1., yUpLf)
+  yUpRt = min(ny - 1., yUpRt)
+  area = ((xLoLf * yLoRt - yLoLf * xLoRt) + (xLoRt * yUpRt - yLoRt * xUpRt) + &
+      (xUpRt * yUpLf - yUpRt * xUpLf) + (xUpLf * yLoLf - yUpLf * xLoLf)) / 2.
+  curViewOut = area < critNonBlank * nxPatch * nyPatch
+  return
+end subroutine evaluatePairPatch
+
