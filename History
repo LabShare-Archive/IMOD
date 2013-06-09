@@ -1,6 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-6/7/13: Fixed 3dmod icon missing from dock on Mac, adopted a higher-resolution version from Mike Strauss.
+6/9/13: Added options to find warping transforms to Xfalign and changed
+Tiltxcorr to take pairs of raw and aligned sections so that it can find
+warping when only F transforms exist.
+
+6/9/13: In Xfalign, implemented local fitting for warping transforms to avoid
+bad buildup of cumulative warps over many sections, made the reference section
+option work with warping, and added an ability to do robust fitting to
+transform components to keep the alignment from being thrown off by isolated
+aberrant images.
+
+6/7/13: Fixed 3dmod icon missing from dock on Mac, adopted a higher-resolution
+version from Mike Strauss.
 
 6/6/13: Switched to makecomfile for the creation of patching tracking and
 sirtsetup com files in eTomo.(Bug# 1705)
