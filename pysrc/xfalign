@@ -11,7 +11,7 @@ tmpxf = ''
 
 # Cleanup files
 def cleanup():
-   cleanupFiles([tmpxf, tmpxf + '~'])
+   cleanupFiles([tmpxf, tmpxf + '~', tmpRawAli, tmpRawAli + '~'])
 
 # Make a gray scale file from color file if necessary and return the name to use
 def makeGrayFile(filename):
@@ -29,6 +29,46 @@ def makeGrayFile(filename):
    except ImodpyError:
       exitFromImodError()
    return newname
+
+
+# Make or start a command list for running tiltxcorr
+def makeTiltxcorrCom(outputFile, warping):
+   tiltcom = ['OutputFile ' + outputFile,
+              'FilterSigma1 ' + str(xcfilter[0]),
+              'FilterSigma2 ' + str(xcfilter[1]),
+              'FilterRadius1 ' + str(xcfilter[2]),
+              'FilterRadius2 ' + str(xcfilter[3])]
+   if warping > 1:
+      tiltcom.append('InputFile ' + tmpRawAli)
+   else:
+      tiltcom.append('InputFile ' + infile)
+   if warping:
+      tiltcom += [fmtstr('SizeOfPatchesXandY {},{}', warpPatchX, warpPatchY),
+                  'FindWarp 1']
+      if boundModel:
+         tiltcom.append('BoundaryModel ' + boundModel)
+      if warpLimitsX or warpLimitsY:
+         tiltcom.append(fmtstr('ShiftLimitsXandY {},{}', warpLimitsX, warpLimitsY))
+   else:
+      tiltcom += ['RotationAngle 0', 'FirstTiltAngle 0.', 'TiltIncrement 0.']
+      
+   if ifsize:
+      tiltcom += [fmtstr('XMinAndMax {},{}', xmin, xmax),
+                  fmtstr('YMinAndMax {},{}', ymin, ymax)]
+
+   # Add the skip or break list, adding 1 to get from sections to views
+   if (skipList or breakList) and warping < 2:
+      if skipList:
+         nlist = skipList
+         opt = 'SkipViews'
+      else:
+         nlist = breakList
+         opt = 'BreakAtViews'
+      for num in nlist:
+         opt += ' ' + str(num + 1)
+      tiltcom.append(opt)
+
+   return tiltcom
 
 
 # load System Libraries
@@ -58,6 +98,7 @@ from pip import *
 tmpdir = imodTempDir()
 xcfilter = [0.01,0.05,0,0.25]
 tmpxf = tmpdir + '/' + progname + '.xf.' + str(os.getpid())
+tmpRawAli = tmpdir + '/' + progname + '.st.' + str(os.getpid())
 breakList = []
 skipList = []
 limits = [0, 0, 0, 0, .1, 4]
@@ -71,10 +112,11 @@ options = [":InputImageFile:FN:", ":OutputTransformFile:FN:", "size:SizeToAnalyz
            "ccc:CorrelationCoefficient:B:", "local:LocalPatchSize:I:",
            "reference:ReferenceFile:FN:", "prexcorr:PreCrossCorrelation:B:",
            "xcfilter:XcorrFilter:FA:", "initial:InitialTransforms:FN:",
-           "skip:SkipSections:LI:", "break:BreakAtSections:LI:",
-           "bpair:PairedImages:B:", "tomo:TomogramAverages:B:",
-           "diff:DifferenceOutput:B:"]
-
+           "warp:WarpPatchSizeXandY:IP:", "boundary:BoundaryModel:FN:",
+           "shift:ShiftLimitsForWarp:IP:", "skip:SkipSections:LI:",
+           "break:BreakAtSections:LI:", "bpair:PairedImages:B:",
+           "tomo:TomogramAverages:B:", "diff:DifferenceOutput:B:",
+           "one:SectionsNumberedFromOne:B:"]
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 2, 1, 1)
 passOnKeyInterrupt(True)
 
@@ -109,8 +151,14 @@ if nparam and (nparam < -1 or (nparam > 0 and (nparam + 3) // 5 != 1)):
 ifbilinear = PipGetBoolean('BilinearInterpolation', 0)
 reffile = PipGetString('ReferenceFile', '')
 prexcorr = PipGetBoolean('PreCrossCorrelation', 0)
-if nparam == -1 and not prexcorr:
-   exitError('-param entry can be -1 only when doing initial corss-correlation')
+(warpPatchX, warpPatchY) = PipGetTwoIntegers('WarpPatchSizeXandY', 0, 0)
+boundModel = PipGetString('BoundaryModel', '')
+(warpLimitsX, warpLimitsY) = PipGetTwoIntegers('ShiftLimitsForWarp', 0, 0)
+if (warpPatchX and warpPatchY <= 0) or (warpPatchY and warpPatchX <= 0):
+   exitError('Patch sizes must be positive in both X and Y')
+if nparam == -1 and not prexcorr and not warpPatchX:
+   exitError('-param entry can be -1 only when doing initial cross-correlation or ' + \
+                'warping')
 xcfin = PipGetFloatArray('XcorrFilter', 4)
 if xcfin:
    xcfilter = xcfin
@@ -135,6 +183,8 @@ if skipList and breakList:
    exitError('You cannot use both a break list and skip list')
 if breakList and reffile:
    exitError('It is meaningless to use a break list with alignment to a reference')
+if warpPatchX and reffile:
+   exitError('You cannot do warping alignment to a reference')
 if not os.path.exists(infile):
    exitError('Input image file ' + infile + ' does not exist')
 if prexffile and not os.path.exists(prexffile):
@@ -192,35 +242,34 @@ if mode == 16:
    infile = makeGrayFile(infile)
 if reffile and refmode == 16:
    reffile = makeGrayFile(reffile)
-   
+
+# Warp patch tracking can be run on the whole stack if there is no prealignment, no
+# initial transforms, and no search 
+if warpPatchX and nparam == -1 and not prexcorr and not prexffile:
+   tiltcom = makeTiltxcorrCom(xflistfile, 1)
+   prnstr('RUNNING TILTXCORR WITH PATCH TRACKING TO FIND ALL WARPING ALIGNMENTS...')
+   sys.stdout.flush()
+
+   try:
+      runcmd('tiltxcorr -StandardInput', tiltcom)
+   except ImodpyError:
+      exitFromImodError(progname)
+
+   prnstr('DONE')
+   sys.exit(0)
+
+# If doing warps afterwards, adjust the output filename for the preliminaries
+(preroot, ext) = os.path.splitext(xflistfile)
+if warpPatchX:
+   warpOutFile = xflistfile
+   xflistfile = preroot + '.linxf'
+
 # Set up initial cross-correlation
 if prexcorr:
-   (preroot, ext) = os.path.splitext(xflistfile)
    prexffile = preroot + '.xcxf'
+   tiltcom = makeTiltxcorrCom(prexffile, 0)
    prnstr('RUNNING TILTXCORR FOR INITIAL CROSS-CORRELATION ALIGNMENTS...')
    sys.stdout.flush()
-   tiltcom = ['InputFile ' + infile,
-              'OutputFile ' + prexffile,
-              'RotationAngle 0', 'FirstTiltAngle 0.', 'TiltIncrement 0.',
-              'FilterSigma1 ' + str(xcfilter[0]),
-              'FilterSigma2 ' + str(xcfilter[1]),
-              'FilterRadius1 ' + str(xcfilter[2]),
-              'FilterRadius2 ' + str(xcfilter[3])]
-   if ifsize:
-      tiltcom += [fmtstr('XMinAndMax {},{}', xmin, xmax),
-                  fmtstr('YMinAndMax {},{}', ymin, ymax)]
-
-   # Add the skip or break list, adding 1 to get from sections to views
-   if skipList or breakList:
-      if skipList:
-         nlist = skipList
-         opt = 'SkipViews'
-      else:
-         nlist = breakList
-         opt = 'BreakAtViews'
-      for num in nlist:
-         opt += ' ' + str(num + 1)
-      tiltcom.append(opt)
       
    try:
       runcmd('tiltxcorr -StandardInput', tiltcom)
@@ -248,14 +297,19 @@ if prexcorr:
 
    if nparam < 0:
       writeTextFile(xflistfile, prexflist)
-      sys.exit(0)
+      if not warpPatchX:
+         sys.exit(0)
 
 # Loop on all the sections in file
 try:
    nextRef = -1
    xfoutList = []
-   prnstr('TRANSFORMS FOUND BY XFSIMPLEX:')
+   if nparam >= 0:
+      prnstr('TRANSFORMS FOUND BY XFSIMPLEX:')
    for sec in range(numsec):
+      if nparam < 0:
+         continue
+      
       fileref = infile
       refsec = nextRef
       if reffile:
@@ -344,7 +398,94 @@ except KeyboardInterrupt:
    cleanup()
    sys.exit(1)
 
-makeBackupFile(xflistfile)
-writeTextFile(xflistfile, xfoutList)
+if nparam >= 0:
+   makeBackupFile(xflistfile)
+   writeTextFile(xflistfile, xfoutList)
+   cleanup()
+   
+if not warpPatchX:
+   sys.exit(0)
+
+try:
+   nextRef = -1
+   anyDone = False
+
+   # Set file for prealign transforms if any and get them in
+   xfForWarp = prexffile
+   if prexcorr or nparam >= 0:
+      xfForWarp = xflistfile
+
+   prnstr('RUNNING TILTXCORR TO FIND WARPING ALIGNMENTS ONE SECTION AT A TIME...')
+   sys.stdout.flush()
+
+   # Loop on sections as above
+   for sec in range(numsec):
+      refsec = nextRef
+      doskip = 0
+      dobreak = 0
+      if (ifskip and sec in skipList) or (ifbreak and sec in breakList):
+         doskip = ifskip
+         dobreak = ifbreak
+         if ifbreak:
+            nextRef = sec
+      else:
+         nextRef = sec
+         
+      if doskip or dobreak or refsec < 0:
+
+         # If skipping or breaking and file has been started, append unit 
+         # transform and a leading 0 for no control points.  Both break and skip require
+         # a unit transform here regardless of what is in the initial file
+         if anyDone:
+            try:
+               action = 'Opening'
+               warpfile = open(warpOutFile, 'a')
+               action = 'Appending to'
+               warpfile.write('0\n   1.0000000   0.0000000   0.0000000   1.0000000    ' +\
+                   '   0.000       0.000\n')
+               warpfile.close()
+                         
+            except IOError:
+               exitError(action + ' warp transform file: ' + str(sys.exc_info()[1]))
+
+      else:
+
+         # Newstack the pair of sections
+         newstcom = ['InputFile ' + infile,
+                     'OutputFile ' + tmpRawAli,
+                     fmtstr('SectionsToRead {},{}', refsec, sec)]
+         if xfForWarp:
+            newstcom += ['TransformFile ' + xfForWarp,
+                         'UseTransformLines 0,' + str(sec)]
+         try:
+            runcmd('newstack -StandardInput', newstcom)
+         except ImodpyError:
+            cleanup()
+            exitFromImodError(progname)
+
+         # Make the tiltxcorr command
+         tiltcom = makeTiltxcorrCom(warpOutFile, 2)
+         tiltcom.append(fmtstr('RawAndAlignedPair {},{}', sec + 1, numsec))
+         if xfForWarp:
+            tiltcom.append('PrealignmentTransformFile ' + xfForWarp)
+         if anyDone:
+            tiltcom.append('AppendToWarpFile')
+
+         try:
+            runcmd('tiltxcorr -StandardInput', tiltcom)
+         except ImodpyError:
+            cleanup()
+            exitFromImodError(progname)
+
+         anyDone = True
+         prnstr('.', end = '')
+         sys.stdout.flush()
+
+   prnstr('\nDONE')
+            
+except KeyboardInterrupt:
+   cleanup()
+   sys.exit(1)
+
 cleanup()
 sys.exit(0)
