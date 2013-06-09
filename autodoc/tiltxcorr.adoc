@@ -295,7 +295,8 @@ the previous one and a unit transform is written for the listed view.
 However, the following view will be aligned to the
 listed view, and nothing will be aligned to the previous view.  This
 breaks the chain of alignment through the series of views.  This option
-cannot be used with patch tracking.
+cannot be used with tilt series patch tracking, but can be used when finding
+warping.
 
 [Field = CumulativeCorrelation]
 short = cumulative
@@ -452,10 +453,35 @@ tooltip =
 manpage = Use patch correlations to find and save warping transformations
 between successive images.  The output file will be a file with warp
 transforms, not a model.  Tilt angles cannot be entered with this option, nor can
-the -reverse option.  As with patch tracking generally, you can skip views but
-not break the alignment at views.  Limits in X and Y and a boundary model can
-be used to constrain patch locations, but there must be at least 3 patches in
-the area defined by all the boundary contours.
+the -reverse option.  Unlike with tilt series patch tracking, you can break
+the alignment at views as well as skip views.  Limits in X and Y and a
+boundary model can be used to constrain patch locations, but there must be at
+least 3 patches in the area defined by all the boundary contours.
+
+[Field = RawAndAlignedPair]
+short = pair
+type = IP
+usage = View # being aligned and total # of views for finding warp between aligned
+and raw image
+tooltip =
+manpage = After transforms relating each section to the previous have been
+obtained, this option can be used to find a warping alignment between a pair
+of sections, where the first is an unaligned image and the second is a section
+transformed into linear alignment with it.  The option specifies the view
+number (numbered from 1, as usual) of the second view of the pair and the
+total number of sections.  If this option is entered, the file of
+section-to-section transforms must be entered with the -prexf option.  The
+input images must not be binned or resized from the ones on which those
+transforms are based.  This option is used by Xfalign(1).
+
+[Field = AppendToWarpFile]
+short = append
+type = B
+usage = Add warp transform from pair to an existing output file
+tooltip = 
+manpage = When doing a raw and aligned pair, this option can be used to add
+the warp transform from the pair to an existing file.  The output file must be
+a valid warp transform file.
 
 [Field = TestOutput]
 short = test

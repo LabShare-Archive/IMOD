@@ -58,6 +58,54 @@ manpage = Compute the global average center position, and the center position
 for local fits, using the largest group of sections whose rotation angles fall
 within the given range.
 
+[Field = RobustFit]
+short = robust
+type = B
+usage = Use robust weighting when fitting to find center position
+tooltip = 
+manpage = Use robust weighting when fitting to find the center position.  The
+fits will be done iteratively, with a weight assigned to each point in the fit
+and the weight adjusted after each iteration based on the fitting error of
+that point.  Weights are adjusted together in a fit to the four
+rotation/magnification parameters, and independently adjusted in a separate
+fit to the X and Y shift values.
+
+[Field = KFactorScaling]
+short = kfactor
+type = I
+usage = Amount to scale the K factor that controls how many points are down-weighted
+tooltip = 
+manpage = Amount to scale the K factor that controls how many points are
+down-weighted in the robust fitting.  The default scaling of 1 gives a K
+factor of 4.685, the factor commonly used for the Tukey bisquare weighting.  A
+smaller factor will down-weight and eliminate more points.
+
+[Field = MaximumIterations]
+short = max
+type = I
+usage = Maximum iterations in robust fitting (default 200, negative for trace)
+tooltip = 
+manpage = The maximum number of iterations in the robust fitting.  The default
+is 200.  A negative number can be entered to obtain output about the changes
+in weights after each iteration.
+
+[Field = IterationParams]
+short = iteration
+type = FT
+usage = Max fraction with zero weights, max change in weight without
+and with oscillations
+tooltip = 
+manpage = This option sets three values that control the robust fitting: (1)
+The maximum fraction of points that are allowed to have zero weight.  The
+actual limit for a particular fit is the nearest integer of this value times
+the number of points being fit.  The
+default is 0.2.  (2) The maximum change in weights allowed before considering
+that a fit has converged, if the fit is not oscillating between two states.  
+The default is 0.02.  (3) The maximum change in weights allowed for terminating
+the fit if it is oscillating between two states; the change in weights in
+one state must also be less than the maximum described in (2).  The default is
+0.04.
+
 [Field = usage]
 short = help
 long = usage
