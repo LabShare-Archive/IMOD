@@ -12,8 +12,8 @@ program xftoxg
   implicit none
   integer LIMSEC
   parameter (LIMSEC = 100000)
-  real*4 f(2,3,LIMSEC), g(2,3,LIMSEC), nat(2,3,LIMSEC) , gAvg(2,3)
-  real*4 natAvg(2,3), ginv(2,3), prod(2,3), slope(2,3,10), intcp(2,3), natProd(2,3)
+  real*4 f(2,3,LIMSEC), g(2,3,LIMSEC), nat(2,3,LIMSEC) , gAvg(2,3), gcen(2,3)
+  real*4 natAvg(2,3), gcenInv(2,3), prod(2,3), slope(2,3,10), intcp(2,3), natProd(2,3)
   real*4 x(LIMSEC), y(LIMSEC), slopeTmp(10)
   integer*4 igroup(LIMSEC), nControl(LIMSEC)
   character*320 inFile, outFile, errString
@@ -24,8 +24,12 @@ program xftoxg
   integer*4 j, ipow, numFit, ierr, numGroups, numInFirst, iorderUse, ibin, indFitCenter
   integer*4 irefSec, indWarpInput, indWarpOutput, nxGrid, nyGrid, nxGrTmp, nyGrTmp, iflags
   real*4 xStart, yStart, xInterval, yInterval, xStrTmp, yStrTmp, xIntTmp, yIntTmp
-  logical*4 warping, control
+  logical*4 warping, control, robustLinear
   real*4 deltaAngle, angDiff, bint, angleRange, pixelSize, xcen, ycen, xEnd, yEnd
+  integer*4 numCols, numRows, maxRobIter
+  real*4, allocatable :: rMat(:,:), rSDs(:), rWork(:), rMeans(:), bSolve(:,:), cSolve(:)
+  real*4 scaleKfactor, robChangeMax, robOscillMax, fracZeroWgt
+  integer*4 robustRegress, multRegress
   integer*4 readCheckWarpFile, getNumWarpPoints, getLinearTransform
   integer*4 getGridParameters, getWarpGrid, setWarpGrid, setGridSizeToMake
   integer*4 setLinearTransform, writeWarpFile, multiplyWarpings, newWarpFile
@@ -34,7 +38,7 @@ program xftoxg
   !
   logical pipInput
   integer*4 numOptArg, numNonOptArg
-  integer*4 PipGetInteger, PipGetFloat
+  integer*4 PipGetInteger, PipGetFloat, PipGetLogical, PipGetThreeFloats
   integer*4 PipGetInOutFile
   !
   ! fallbacks from ../../manpages/autodoc2man -2 2  xftoxg
@@ -54,6 +58,12 @@ program xftoxg
   iorder = 1
   irefSec = 0
   angleRange = 999.
+  robustLinear = .false.
+  maxRobIter = 200
+  scaleKfactor = 1.
+  robChangeMax = 0.02
+  robOscillMax = 0.04
+  fracZeroWgt = 0.2
   !
   ! initialize
   !
@@ -86,6 +96,11 @@ program xftoxg
     endif
 
     ierr = PipGetFloat('RangeOfAnglesInAverage', angleRange)
+    ierr = PipGetLogical('RobustFit', robustLinear)
+    ierr = PipGetFloat('KFactorScaling', scaleKfactor)
+    ierr = PipGetInteger('MaximumIterations', maxRobIter)
+    ierr = PipGetThreeFloats('IterationParams', fracZeroWgt, robChangeMax, robOscillMax)
+
   else
     
     print *,'Enter 0 to align all sections to a single' &
@@ -152,6 +167,16 @@ program xftoxg
     write(*,'(/,a)') 'WARNING: XFTOXG - COMPUTING A GLOBAL ALIGNMENT SINCE THERE '// &
         'ARE FEWER THAN 3 TRANSFORMS'
     ifShift = 0
+  endif
+  !
+  ! Set up for linear robust fits
+  if (ifShift > 0) then
+    numCols = iorder + 4
+    numRows = nlist
+    if  (ifShift > 1) numRows = ifShift
+    allocate(rMat(numRows, numCols + 2), bSolve(iorder, 4), cSolve(4),  &
+        rMeans(numCols), rSDs(numCols), rWork(numCols**2 + 2 * numRows), stat = ierr)
+    call memoryError(ierr, 'ARRAYS FOR ROBUST REGRESSION')
   endif
   if (warping) then
     !
@@ -251,6 +276,12 @@ program xftoxg
 
     call invertWarpGrid(dxProd, dyProd, nxGrid, nxGrid, nyGrid, xStart, yStart, &
         xInterval, yInterval, g(1, 1, 1), xcen, ycen, dxGrid, dyGrid, prod)
+
+    ! Or take the inverse at the reference section
+    if (irefSec > 0) call invertWarpGrid(dxCum(1, 1, irefSec), dyCum(1, 1, irefSec), &
+        nxGrid, nxGrid, nyGrid, xStart, yStart, &
+        xInterval, yInterval, g(1, 1, irefSec), xcen, ycen, dxGrid, dyGrid, prod)
+    
     !
     ! Start a new warp file
     if (ifShift < 2) ierr = clearWarpFile(indWarpInput)
@@ -289,7 +320,6 @@ program xftoxg
       if (abs(angDiff) > 180.) deltaAngle = deltaAngle + sign(360., angDiff)
     endif
     nat(1, 1, kl) = nat(1, 1, kl) + deltaAngle
-    ! call xfwrite(6, nat(1, 1, kl),*97)
   enddo
   !
   ! average natural g's, convert back to xform, take inverse of average;
@@ -308,11 +338,11 @@ program xftoxg
   call rotmag_to_amat(natAvg(1, 1), natAvg(1, 2), natAvg(2, 1), natAvg(2, 2), gAvg)
   gAvg(1, 3) = natAvg(1, 3)
   gAvg(2, 3) = natAvg(2, 3)
-  call xfInvert(gAvg, ginv)
+  call xfInvert(gAvg, gcenInv)
   !
   ! If doing reference section, just invert its transform
   !
-  if (irefSec > 0) call xfInvert(g(1, 1, irefSec), ginv)
+  if (irefSec > 0) call xfInvert(g(1, 1, irefSec), gcenInv)
   !
   ! DNM 1/24/04: fixed bug in hybrid 3 or 4:
   ! do not convert natav to be the inverse!
@@ -336,28 +366,48 @@ program xftoxg
         ! first time only if doing all sections, or each time for N
         !
         call groupRotations(nat, klLow, klHigh, angleRange, igroup, numGroups, numInFirst)
+        if (numInFirst < 2) call exitError('Only 1 point in fit; '// &
+            'increase NumberToFit or RangeOfAngles')
         iorderUse = max(1, min(iorder, numInFirst - 2))
         indFitCenter = (klHigh + klLow) / 2
-        do i = 1, 2
-          do j = 1, 3
-            numFit = 0
-            do kl = klLow, klHigh
-              if (igroup(kl) == 1) then
-                numFit = numFit + 1
-                x(numFit) = kl - indFitCenter
-                y(numFit) = nat(i, j, kl)
-              endif
+        ierr = 1
+        if (robustLinear .and. numInFirst > 3) then
+
+          ! Do the robust fitting if called for and there are enough points
+          if (maxRobIter < 0) print *,'Robust fitting for rot/mag of section',ilist
+          call robustFitToNat(1, 2, ierr)
+          if (ierr == 0) then
+            if (maxRobIter < 0) print *,'Robust fitting for shifts of section',ilist
+            call robustFitToNat(3, 3, ierr)
+            if (ierr .ne. 0) write(*,101)'shifts',ilist
+          else
+            write(*,101)'rot/mag',ilist
+          endif
+101       format('Robust fitting to ',a,' failed for section',i5, &
+              ', falling back to regular fit')
+        endif
+
+        ! Otherwise, or if robust failed, do regular linear fit
+        if (ierr .ne. 0) then 
+          do i = 1, 2
+            do j = 1, 3
+              numFit = 0
+              do kl = klLow, klHigh
+                if (igroup(kl) == 1) then
+                  numFit = numFit + 1
+                  x(numFit) = kl - indFitCenter
+                  y(numFit) = nat(i, j, kl)
+                endif
+              enddo
+              !
+              call polyfit(x, y, numFit, iorderUse, slopeTmp, bint)
+              do ipow = 1, iorderUse
+                slope(i, j, ipow) = slopeTmp(ipow)
+              enddo
+              intcp(i, j) = bint
             enddo
-            !
-            if (numFit < 2) call exitError('Only 1 point in fit; '// &
-                'increase NumberToFit or RangeOfAngles')
-            call polyfit(x, y, numFit, iorderUse, slopeTmp, bint)
-            do ipow = 1, iorderUse
-              slope(i, j, ipow) = slopeTmp(ipow)
-            enddo
-            intcp(i, j) = bint
           enddo
-        enddo
+        endif
       endif
       if (ifShift == 1 .and. ilist == 1) then
         print *,'constants and coefficients of fit to', numFit , ' natural parameters'
@@ -388,10 +438,10 @@ program xftoxg
       endif
       !
       call rotmag_to_amat(natProd(1, 1), natProd(1, 2) &
-          , natProd(2, 1), natProd(2, 2), prod)
-      prod(1, 3) = natProd(1, 3)
-      prod(2, 3) = natProd(2, 3)
-      call xfInvert(prod, ginv)
+          , natProd(2, 1), natProd(2, 2), gcen)
+      gcen(1, 3) = natProd(1, 3)
+      gcen(2, 3) = natProd(2, 3)
+      call xfInvert(gcen, gcenInv)
     endif
     !
     ! multiply this g by the inverse of the grand average or the locally
@@ -419,22 +469,35 @@ program xftoxg
         call fitWarpComponent(dxCum, dxProd)
         call fitWarpComponent(dyCum, dyProd)
         call invertWarpGrid(dxProd, dyProd, nxGrid, nxGrid, nyGrid, xStart, yStart, &
-            xInterval, yInterval, prod, xcen, ycen, dxGrid, dyGrid, ginv)
+            xInterval, yInterval, gcen, xcen, ycen, dxGrid, dyGrid, gcenInv)
       endif
-
-      if (multiplyWarpings(dxCum(1,1, ilist), dyCum(1,1, ilist), nxGrid, nxGrid, nyGrid, &
-          xStart, yStart, xInterval, yInterval, gWarp(1, 1, ilist), xcen, ycen, dxGrid, &
-          dyGrid, nxGrid, nxGrid, nyGrid, xStart, yStart, xInterval, yInterval, &
-          ginv, dxProd, dyProd, prod, 0) .ne. 0) &
-          call exitError ('MULTIPLYING TWO WARPINGS TOGETHER FOR FINAL WARPING')
+      if (irefSec > 0) then
+        !
+        ! For a reference section, set to unit transform and warping (did verify that
+        ! product warp was <= 0.001)
+        call xfunit(prod, 1.)
+        dxProd(1:nxGrid, 1:nyGrid) = 0.
+        dyProd(1:nxGrid, 1:nyGrid) = 0.
+      else
+        !
+        ! Otherwise multiply the local cumulative warp plus the true global G times
+        ! the fitted local warp plus the true fitted center.  Not perfect but very close.
+        ! The alternative would be to do the fit with the local cumulative gWarp's
+        if (multiplyWarpings(dxCum(1,1, ilist), dyCum(1,1, ilist), nxGrid, nxGrid, &
+            nyGrid, xStart, yStart, xInterval, yInterval, g(1, 1, ilist), xcen, ycen, &
+            dxGrid, dyGrid, nxGrid, nxGrid, nyGrid, xStart, yStart, xInterval, &
+            yInterval, gcenInv, dxProd, dyProd, prod, 0) .ne. 0) &
+            call exitError ('MULTIPLYING TWO WARPINGS TOGETHER FOR FINAL WARPING')
+      endif
       if (setCurrentWarpFile(indWarpOutput) .ne. 0)  &
           call exitError('SWITCHING TO OUTPUT WARP FILE')
       if (setLinearTransform(ilist, prod) .ne. 0 .or. &
           setWarpGrid(ilist, nxGrid, nyGrid, xStart, yStart, &
           xInterval, yInterval, dxProd, dyProd, nxGrid) .ne. 0) &
           call exitError('STORING FINAL WARPING')
+
     else
-      call xfMult(g(1, 1, ilist), ginv, prod)
+      call xfMult(g(1, 1, ilist), gcenInv, prod)
       call xfwrite(2, prod,*97)
     endif
   enddo
@@ -480,8 +543,8 @@ CONTAINS
       if (multiplyWarpings(dxGrid, dyGrid, nxGrid, nxGrTmp, nyGrTmp, xStrTmp, &
           yStrTmp, xIntTmp, yIntTmp, f(1, 1, kl), xcen, ycen, &
           dxCum(1, 1, kl - 1), dyCum(1, 1, kl - 1), nxGrid, nxGrid, nyGrid, &
-          xStart, yStart, xInterval, yInterval, g(1, 1, kl - 1), &
-          dxCum(1, 1, kl), dyCum(1, 1, kl), g(1, 1, kl), 0) .ne. 0) &
+          xStart, yStart, xInterval, yInterval, gcw(1, 1, kl - 1), &
+          dxCum(1, 1, kl), dyCum(1, 1, kl), gcw(1, 1, kl), 0) .ne. 0) &
           call exitError ('MULTIPLYING TWO WARPINGS TOGETHER FOR CUMULATIVE WARPING')
       ! call xfwrite(6, g(1, 1, kl))
       ! print *,'cumulative', nxGrid, nyGrid
@@ -513,6 +576,61 @@ CONTAINS
     enddo
     return 
   end subroutine fitWarpComponent
+
+  
+  ! Do a robust fit to either the geometric parameters or the shifts over current range
+  !
+  subroutine robustFitToNat(jstart, jend, iret)
+    integer*4 jstart, jend, iret
+    real*4 fitScale(2, 3) /1., 100., 1., 100., 1., 1./
+    real*4 fitAdd(2, 3) /0., -1., 0., 0., 0., 0./
+    integer*4 indCol, numBcol, numIter, maxZeroWgt
+    integer*4 robustRegress
+    iret = 0
+
+    ! Load the data matrix, scaling mag and dmag
+    numFit = 0
+    do kl = klLow, klHigh
+      if (igroup(kl) == 1) then
+        numFit = numFit + 1
+        indCol = 1
+        do ipow = 1, iorderUse
+          rMat(numFit, indCol) = float(kl - indFitCenter)**ipow
+          indCol = indCol + 1
+        enddo
+        do i = 1, 2
+          do j = jstart, jend
+            rMat(numFit, indCol) = (nat(i, j, kl) + fitAdd(i, j)) * fitScale(i, j)
+            indCol = indCol + 1
+          enddo
+        enddo
+        rmat(numFit, indCol) = 1.
+      endif
+    enddo
+
+    ! Do the regression
+    maxZeroWgt = max(1, nint(fracZeroWgt * numFit))
+    numBcol = 2 * (jend + 1 - jstart)
+    iret = robustRegress(rMat, numRows, 0, iorderUse, numFit, numBcol, bSolve, iorder, &
+        cSolve, rMeans, rSDs, rWork, scaleKfactor * 4.685, numIter, maxRobIter, &
+        maxZeroWgt, robChangeMax, robOscillMax)
+    if (iret .ne. 0) return
+    
+    ! unpack the result
+    indCol = 1
+    do i = 1, 2
+      do j = jstart, jend
+        do ipow = 1, iorderUse
+          slope(i, j, ipow) = bSolve(ipow, indCol) / fitScale(i, j)
+        enddo
+        intcp(i, j) = cSolve(indCol) / fitScale(i, j) - fitAdd(i, j)
+        indCol = indCol + 1
+      enddo
+    enddo
+    
+    return
+  end subroutine robustFitToNat
+
 
 end program
 
