@@ -245,7 +245,12 @@ extern "C" {
                   float *work);
   int robustRegress(float *x, int xsize, int colFast, int m, int ndata, int nbcol,
                     float *b, int bsize, float *c, float *xm, float *sd, float *work,
-                    float kfactor, int *numIter, int maxIter, float maxChange);
+                    float kfactor, int *numIter, int maxIter, int maxZeroWgt,
+                    float maxChange, float maxOscill);
+  int weightedPolyFit(float *x, float *y, float *weight, int ndata, int order,
+                      float *slopes, float *intcpt, float *work);
+  int polynomialFit(float *x, float *y, int ndata, int order, float *slopes, 
+                    float *intcpt, float *work);    
 
 #ifdef __cplusplus
 }
