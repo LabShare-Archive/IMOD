@@ -131,6 +131,7 @@ EXPORTS
 	PARWRTFINDREGION
 	MEANZERO
 	rsTrimmedMeanOfSorted
+	WEIGHTEDPOLYFIT
 	parWrtProperties
 	PipParseEntries
 	AdocGetIntegerArray
@@ -407,6 +408,7 @@ EXPORTS
 	b3dError
 	SUMS_TO_AVGSD8
 	circleThrough3Pts
+	weightedPolyFit
 	PIPGETFLOAT
 	PipGetThreeIntegers
 	XCorrFilterPart
