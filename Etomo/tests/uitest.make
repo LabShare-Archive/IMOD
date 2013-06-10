@@ -1,8 +1,5 @@
 all: gpu-test-gui single-test-gui peet-test-gui join-test-gui serial-sections-test-gui nad-test-gui generic flatten-volume-test-gui single-montage-test-gui serial-sections-montage-test-gui dual-test-gui dual-montage-test-gui single-patch-tracking-test-gui dual-montage-patch-tracking single-fidless single-simple-align
-back: gpu-test-gui single-simple-align single-fidless dual-montage-patch-tracking
-single-patch-tracking-test-gui dual-montage-test-gui dual-test-gui
-serial-sections-montage-test-gui single-montage-test-gui flatten-volume-test-gui generic
-nad-test-gui serial-sections-test-gui join-test-gui peet-test-gui single-test-gui
+back: gpu-test-gui single-simple-align single-fidless dual-montage-patch-tracking single-patch-tracking-test-gui dual-montage-test-gui dual-test-gui serial-sections-montage-test-gui single-montage-test-gui flatten-volume-test-gui generic nad-test-gui serial-sections-test-gui join-test-gui peet-test-gui single-test-gui
 all-pt: single-patch-tracking-test-gui single-patch-tracking dual-montage-patch-tracking
 all-peet: peet peet-test-gui
 build: single dual single-montage dual-montage join nad peet generic flatten-volume
