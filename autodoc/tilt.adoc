@@ -61,7 +61,8 @@ manpage = The action to take when the GPU cannot be used after being
 requested: 0 to no action, 1 to issue a warning prefixed with MESSAGE:, and 2
 to exit with an error.  Enter 2 numbers: the first for the action when the GPU
 is requested by the UseGPU option; the second for the action when the GPU is
-requested only by the environment variable IMOD_USE_GPU.
+requested only by the environment variable IMOD_USE_GPU, or by the variable
+IMOD_USE_GPU2.
 
 [Field = AdjustOrigin]
 type = B
