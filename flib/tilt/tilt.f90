@@ -2584,6 +2584,10 @@ SUBROUTINE INPUT()
   ! Read environment variable first, then override by entry
   if (imodGetEnv('IMOD_USE_GPU', card) == 0) read(card,*) nGPU
   ifGpuByEnviron = PipGetInteger('UseGPU', nGPU)
+  if (imodGetEnv('IMOD_USE_GPU2', card) == 0) then
+    read(card,*) nGPU
+    ifGpuByEnviron = .true.
+  endif
   useGPU = nGPU >= 0
   ierr = PipGetTwoIntegers('ActionIfGPUFails', iactGpuFailOption, &
       iactGpuFailEnviron)
