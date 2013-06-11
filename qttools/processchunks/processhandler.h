@@ -35,7 +35,7 @@ public:
   ProcessHandler();
   ~ProcessHandler();
 
-  void setup(Processchunks &processchunks);
+  void setup(Processchunks &processchunks, int gpuNum);
   bool logFileExists(const bool newlyCreatedFile);
   bool isChunkDone();
   void setFlag(const int flag);
@@ -85,6 +85,10 @@ public:
     return mComFileJobIndex;
   }
   ;
+  inline int getGpuNumber() {
+    return mGpuNumber;
+  }
+  ;
   inline bool isJobValid() {
     return mValidJob;
   }
@@ -131,6 +135,7 @@ private:
   QProcess *mProcess;
   QTime mStartTime;
   MachineHandler *mMachine;
+  int mGpuNumber;
 
   //Kill process variables
   QProcess *mKillProcess;

@@ -27,36 +27,22 @@
 //Using a shorter sleep time then the processchunks script and not adjusting
 //the sleep depending on the number of machines.
 static const int sleepMillisec = 1000;
-static const int maxLocalByNum = 32;
+static const int maxLocalByNum = 64;
 //converting old timeout counter to milliseconds
 static const int runProcessTimeout = 30 * 2 * 1000;
-static const int numOptions = 14;
 static const int checkFileReconnectReset = 10;
 
 static char *commandName = "processchunks";
 using namespace std;
-/* Fallbacks from    ../manpages/autodoc2man 2 0 processchunks
+/* Fallbacks from    ../../manpages/autodoc2man 2 0 processchunks
  * cd manpages
  make autodoc2man
+ * Add static const to numOptions and static to options
  */
-static const char
-    *options[] =
-        {
-            ":help:B:Print usage message",
-            ":r:B:Resume, retaining existing finished files (the default is to remove all log files and redo everything)",
-            ":s:B:Run a single command file named root_name or root_name.com",
-            ":g:B:Go process, without asking for confirmation after probing machines",
-            ":n:I:Set the \"nice\" value to the given number (default 18, range 0-19).  No effect when running on a queue.",
-            ":w:FN:Full path to working directory on remote machines",
-            ":d:I:Drop a machine after given number of failures in a row (default 5)",
-            ":e:I:Quit after the given # of processing errors for a chunk (default 5)",
-            ":c:FN:Check file \"name\" for commands P, Q, and D (default processchunks.input)",
-            ":q:I:Run on cluster queue with given maximum # of jobs at once",
-            ":Q:CH:Machine name to use for the queue (default queue)",
-            //":m:I:Milliseconds to pause before killing each process (default 50)",
-            ":P:B:Output process ID",
-            ":v:B:Verbose.",
-            ":V:CH:?|?,2|class[,function[,...]][,2]|2  Verbose instructions:  case insensitive, matches from the end of the class or function name." };
+static const int numOptions = 15;
+static const char *options[] = {
+  ":r:B:", ":s:B:", ":G:B:", ":g:B:", ":n:I:", ":w:FN:", ":d:I:", ":e:I:", ":c:FN:",
+  ":q:I:", ":Q:CH:", ":P:B:", ":v:B:", ":V:CH:", ":help:B:"};
 static char *queueNameDefault = "queue";
 Processchunks *processchunksInstance;
 
@@ -78,6 +64,7 @@ Processchunks::Processchunks(int &argc, char **argv) :
   //initialize member variables
   mOutStream = new QTextStream(stdout);
   mRemoteDir = NULL;
+  mGpuMode = 0;
   mNice = 18;
   mMillisecSleep = 50;
   mDropCrit = 5;
@@ -150,6 +137,7 @@ void Processchunks::loadParams(int &argc, char **argv) {
   PipReadOrParseOptions(argc, argv, options, numOptions, commandName, 2, 2, 0,
       &numOptArgs, &numNonOptArgs, processchunksUsageHeader);
   PipGetBoolean("r", &mRetain);
+  PipGetBoolean("G", &mGpuMode);
   PipGetBoolean("s", &mSingleFile);
   PipGetBoolean("g", &mJustGo);
   PipGetInteger("n", &mNice);
@@ -232,19 +220,19 @@ void Processchunks::loadParams(int &argc, char **argv) {
 //Setup mSshOpts, mCpuArray, mProcessArray, mHostRoot, mRemoteDir.  Probe
 //machines.
 void Processchunks::setup() {
+  std::vector<int> numCpusList, gpuList;
   setupSshOpts();
   //Get current directory if the -w option was not used
   if (mRemoteDir == NULL) {
     mRemoteDir = new QString(mCurrentDir.absolutePath().toLatin1().data());
   }
   QStringList machineNameList;
-  int *numCpusList = initMachineList(machineNameList);
+  initMachineList(machineNameList, numCpusList, gpuList);
   setupHostRoot();
   setupComFileJobs();
   probeMachines(machineNameList);
-  setupMachineList(machineNameList, numCpusList);
+  setupMachineList(machineNameList, numCpusList, gpuList);
   machineNameList.clear();
-  delete[] numCpusList;
 }
 
 //Setup mFlags.  Find first not-done log file.  Delete log files and
@@ -255,7 +243,7 @@ int Processchunks::startLoop() {
   mNumDone = 0;
   mFirstUndoneIndex = -1;
   ProcessHandler process;
-  process.setup(*this);
+  process.setup(*this, -1);
   for (i = 0; i < mSizeJobArray; i++) {
     process.setJob(i);
     if (process.logFileExists(false)) {
@@ -726,101 +714,155 @@ void Processchunks::setupSshOpts() {
   }
 }
 
-//Setup mMachineList with the queue name or the values in mCpuList.
-int *Processchunks::initMachineList(QStringList &machineNameList) {
-  int i, j;
+//Setup mMachineList with the values in mCpuList (nothing to do for queue)
+void Processchunks::initMachineList(QStringList &machineNameList, 
+                                    std::vector<int> &numCpusList, 
+                                    std::vector<int> &gpuList) {
+  int i, j, numCores;
+  bool ok;
+  int numCpus = 0;
+
   //Not implementing $IMOD_ALL_MACHINES since no one seems to have used it.
-  if (!mQueue) {
-    //Setup up machine names from mCpuList
-    const QStringList cpuArray = mCpuList.split(",", QString::SkipEmptyParts);
-    /*The number of chunk (.com file) processes that this program can run at
-     one time equals the size of the cpuArray.  The CPU limit is necessary
-     because of the OS's application-level 1024 process pipe limit (this
-     program uses a pipe limit of 1012 for safety).  There are 4 pipes per
-     chunk process because stdout is going to a file (if it wasn't, there would
-     be 6 per process). Keeping the number chunk process pipes under the pipe
-     limit leaves room for running vmstocsh and killing processes.*/
+  if (mQueue) 
+    return;
+
+  if (!mGpuMode && mCpuList.contains(":"))
+    exitError("The machine list cannot contain : unless -G is entered");
+  if (mGpuMode && mCpuList.contains("#"))
+    exitError("The machine list cannot contain # if -G is entered");
+  
+  //Setup up machine names from mCpuList
+  const QStringList cpuArray = mCpuList.split(",", QString::SkipEmptyParts);
+  /*The number of chunk (.com file) processes that this program can run at
+    one time is added up below.  The CPU limit is necessary
+    because of the OS's application-level 1024 process pipe limit (this
+    program uses a pipe limit of 1012 for safety).  There are 4 pipes per
+    chunk process because stdout is going to a file (if it wasn't, there would
+    be 6 per process). Keeping the number chunk process pipes under the pipe
+    limit leaves room for running vmstocsh and killing processes.*/
 #ifndef _WIN32
-    const int numCpusLimit = 240;
+  const int numCpusLimit = 240;
 #else
-    //Handling this message: QWinEventNotifier: Cannot have more than 62 enabled at one time
-    //The message appears around the time the 63rd chunk is run, so there is one
-    //QWinEventNotifier per process.
-    const int numCpusLimit = 56;
+  //Handling this message: QWinEventNotifier: Cannot have more than 62 enabled at one time
+  //The message appears around the time the 63rd chunk is run, so there is one
+  //QWinEventNotifier per process.
+  const int numCpusLimit = 56;
 #endif
-    int numCpus = cpuArray.size();
-    if (numCpus > numCpusLimit) {
-      *mOutStream << "WARNING:the number of CPUs exceeds limit (" << numCpusLimit
-          << ").  CPU list will be truncated." << endl;
-      numCpus = numCpusLimit;
+
+  /*Now handling mixed up names (as in bear,shrek,bear) without extra probes
+    and MachineHandler instances.  Identical machine names are always
+    consolidated into one MachineHandler instance and the MachineHandler
+    instance order is based on where a machine name first appeared in the
+    list.*/
+  //Consolidate list of machines and add up CPUs, allowing for multiple entries with
+  // '#' and for multiple GPU specifications with ':'
+  QString machineName;
+  for (i = 0; i < cpuArray.size(); i++) {
+    const QString cpuMachine = cpuArray.at(i);
+    const QStringList machineSplit = cpuMachine.split(mGpuMode ? ":" : "#");
+    machineName = machineSplit[0];
+    if (machineSplit.size() == 1) {
+      numCores = 1;
+        
+      // If no complex entry, add a 0 to the list for a GPU
+      if (mGpuMode)
+        gpuList.push_back(0);
     }
-    //set max kills allowed to run at the same time, leaving room for misc processes
-#ifndef _WIN32
-    //1024 pipe limit
-    mMaxKills = (1012 - (4 * numCpus)) / 6;
-#else
-    //62 whatsit limit
-    mMaxKills = 60 - numCpus;
-#endif
-    /*Now handling mixed up names (as in bear,shrek,bear) without extra probes
-     and MachineHandler instances.  Identical machine names are always
-     consolidated into one MachineHandler instance and the MachineHandler
-     instance order is based on where a machine name first appeared in the
-     list.*/
-    //Consolidate list of machines and add up CPUs.
-    int *numCpusList = new int[numCpus];
-    QString machineName;
-    for (i = 0; i < numCpus; i++) {
-      const QString cpuMachine = cpuArray.at(i);
-      if (!machineNameList.contains(cpuMachine)) {
-        machineNameList.append(cpuMachine);
-        numCpusList[machineNameList.size() - 1] = 1;
+    else {
+      if (mGpuMode) {
+          
+        // In GPU mode, each component is a positive GPU number
+        numCores = 0;
+        for (j = 1; j < machineSplit.size(); j++) {
+          int gpuNum = machineSplit[j].toInt(&ok);
+          if (!ok || gpuNum < 1)
+            exitError("Incorrect entry for GPU number in: %s",
+                      cpuMachine.toLatin1().data());
+          numCores++;
+          gpuList.push_back(gpuNum);
+        }            
       }
       else {
-        //Increment the number of CPUs in an existing machine.
-        machineName = machineNameList.last();
-        if (machineName == cpuMachine) {
-          numCpusList[machineNameList.size() - 1]++;
-        }
-        else {
-          //Machine names are mixed up (as in bear,bebop,bear).  Find the
-          //correct machine name.
-          for (j = 0; j < machineNameList.size(); j++) {
-            machineName = machineNameList[j];
-            if (machineName == cpuMachine) {
-              numCpusList[j]++;
-              break;
-            }
-          }
+
+        // For regular machines, insist on one * and convert the number as numCores
+        if (machineSplit.size() > 2)
+          exitError("Multiple # signs in machine specification: %s", 
+                    cpuMachine.toLatin1().data());
+        numCores = machineSplit[1].toInt(&ok);
+        if (!ok || numCores < 1)
+          exitError("Incorrect entry for number of cores in: %s",
+                    cpuMachine.toLatin1().data());
+        if (numCores > maxLocalByNum)
+          exitError("You cannot specify more than %d cores on a machine with "
+                    "machine#number", maxLocalByNum);
+      }
+    } 
+      
+    // Now test if there are too many CPUs
+    if (numCpus + numCores > numCpusLimit) {
+      *mOutStream << "WARNING:the number of CPUs exceeds limit (" << numCpusLimit
+                  << ").  CPU list will be truncated." << endl;
+      numCores = numCpusLimit - numCpus;
+      if (!numCores)
+        break;
+    }
+    numCpus += numCores;
+
+    // Add a machine if the name has not occurred before
+    if (!machineNameList.contains(machineName)) {
+      machineNameList.append(machineName);
+      numCpusList.push_back(numCores);
+    }
+    else {
+      //Increment the number of CPUs in an existing machine, unless GPU mode
+      if (mGpuMode)
+        exitError("You can enter each machine only once with the -G option");
+
+      //Machine names could be mixed up (as in bear,bebop,bear).  Find the
+      //correct machine name.
+      for (j = 0; j < machineNameList.size(); j++) {
+        if (machineName == machineNameList[j]) {
+          numCpusList[j] += numCores;
+          break;
         }
       }
     }
-    if (machineNameList.size() < 1) {
-      exitError("No machines specified");
-    }
-    //OLD:Translate a single number into a list of localhost entries
-    //Set the single number as the number of CPUs in the one instance of MachineHandler.
-    if (machineNameList.size() == 1) {
-      bool ok;
-      const long localByNum = machineNameList[0].toLong(&ok);
-      if (ok) {
-        if (localByNum > maxLocalByNum) {
-          exitError("You cannot run more than %d chunks on localhost by "
-            "entering a number", maxLocalByNum);
-        }
-        machineNameList[0] = "localhost";
-        numCpusList[0] = localByNum;
+  }
+  if (machineNameList.size() < 1) {
+    exitError("No machines specified");
+  }
+  //OLD:Translate a single number into a list of localhost entries
+  //Set the single number as the number of CPUs in the one instance of MachineHandler.
+  if (machineNameList.size() == 1) {
+    const int localByNum = machineNameList[0].toInt(&ok);
+    if (ok) {
+      if (localByNum > maxLocalByNum) {
+        exitError("You cannot run more than %d chunks on localhost by "
+                  "entering a number", maxLocalByNum);
       }
+      if (mGpuMode)
+        exitError("You cannot enter a number for the machine list with the -G option");
+      if (localByNum < 1)
+        exitError("A number entered for the machine list must be positive");
+      machineNameList[0] = "localhost";
+      numCpusList.push_back(localByNum);
+      numCpus = localByNum;
     }
-    return numCpusList;
   }
-  else {
-    return NULL;
-  }
+  //set max kills allowed to run at the same time, leaving room for misc processes
+#ifndef _WIN32
+  //1024 pipe limit
+  mMaxKills = (1012 - (4 * numCpus)) / 6;
+#else
+  //62 whatsit limit
+  mMaxKills = 60 - numCpus;
+#endif
 }
 
 //Setup mMachineList with the queue name or the values in mCpuList.
-void Processchunks::setupMachineList(QStringList &machineNameList, int *numCpusList) {
+void Processchunks::setupMachineList(QStringList &machineNameList,
+                                     const std::vector<int> &numCpusList,
+                                     const std::vector<int> &gpuList) {
   int i;
   //Not implementing $IMOD_ALL_MACHINES since no one seems to have used it.
   if (mQueue) {
@@ -831,7 +873,7 @@ void Processchunks::setupMachineList(QStringList &machineNameList, int *numCpusL
     //OLD: For a queue, make a CPU list that is all the same name
     //For a queue, create a single MachineHandler instance.
     mMachineList = new MachineHandler[mMachineListSize];
-    mMachineList[0].setup(*this, mQueueName, mQueue);
+    mMachineList[0].setup(*this, mQueueName, mQueue, gpuList, 0);
     //Parse mCpuList into mQueueComand and mQueueParamList
     if (mCpuList.isEmpty()) {
       exitError("Queue command doesn't exist.");
@@ -853,15 +895,18 @@ void Processchunks::setupMachineList(QStringList &machineNameList, int *numCpusL
     mNumCpus = 0;
     mMachineList = new MachineHandler[mMachineListSize];
     int newIndex = 0;
+    int baseIndex = 0;
     for (i = 0; i < machineNameList.size(); i++) {
       if (!machineNameList[i].isEmpty()) {
-        mMachineList[newIndex].setup(*this, machineNameList[i], numCpusList[i]);
+        mMachineList[newIndex].setup(*this, machineNameList[i], numCpusList[i], gpuList,
+                                     baseIndex);
         mNumCpus += numCpusList[i];
         if (isVerbose(mDecoratedClassName, __func__)) {
           *mOutStream << newIndex << ":" << mMachineList[newIndex].getName() << endl;
         }
         newIndex++;
       }
+      baseIndex += numCpusList[i];
     }
     if (isVerbose(mDecoratedClassName, __func__)) {
       *mOutStream << endl;
@@ -1609,6 +1654,9 @@ void Processchunks::makeCshFile(ProcessHandler *process) {
   paramList.append("-c");
   if (!mQueue) {
     paramList << "-n" << QString("%1").arg(mNice);
+  }
+  if (process->getGpuNumber() >= 0) {
+    paramList << "-e" << QString("IMOD_USE_GPU2=%1").arg(process->getGpuNumber());
   }
   paramList.append(comFileName);
   paramList.append(process->getLogFileName());

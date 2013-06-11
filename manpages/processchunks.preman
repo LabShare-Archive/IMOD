@@ -53,8 +53,15 @@ option and provide the machine name and the name of the command file.
 .SS Running Processchunks
 The machine list provided on the command line should be a list of machine
 names or IP addresses, separated by commas and with no embedded spaces.
-Machines with multiple processors should be entered as many times as the
-number of processors that you want to use.  The local machine on which you are
+Machines with multiple processors can be entered as many times as the
+number of processors that you want to use, or a machine name can be entered
+with a "#" and the number of processors to use.  For example,
+"tubule#4,eclipse#6" would use 4 processors on tubule and 6 on eclipse.  (See
+the 
+.B -G
+option for the different syntax and restrictions when using a GPU and running
+on machines where you want to select specific GPUs.)
+The local machine on which you are
 running Processchunks can be identified by its hostname or as "localhost"; in
 either case the command will be run directly on the machine.  If this is the
 only machine, then it can be identified by a single number specifying the

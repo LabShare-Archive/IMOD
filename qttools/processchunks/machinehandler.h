@@ -28,7 +28,8 @@ public:
   MachineHandler();
   ~MachineHandler();
 
-  void setup(Processchunks &processchunks, const QString &machineName, const int numCpus);
+  void setup(Processchunks &processchunks, const QString &machineName, const int numCpus,
+             const std::vector<int> &gpuList, const int baseIndex);
   inline long nameToLong(bool *ok) {
     return mName.toLong(ok);
   }

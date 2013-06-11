@@ -47,6 +47,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <typeinfo>
+#include <vector>
 //All processchunks application header files should be included here.
 #include "comfilejobs.h"
 #include "processhandler.h"
@@ -80,6 +81,10 @@ public:
 
   inline bool isQueue() {
     return mQueue;
+  }
+  ;
+  inline bool getGpuMode() {
+    return mGpuMode;
   }
   ;
   inline const QString &getQueueCommand() {
@@ -178,8 +183,11 @@ private:
   int runGenericProcess(QByteArray &output, QProcess &process, const QString &command,
       const QStringList &params, const int numLinesToPrint);
   void setupSshOpts();
-  int * initMachineList(QStringList &machineNameList);
-  void setupMachineList(QStringList &machineNameList, int *numCpusList);
+  void initMachineList(QStringList &machineNameList, std::vector<int> &numCpusList, 
+                       std::vector<int> &gpuList);
+  void setupMachineList(QStringList &machineNameList, 
+                        const std::vector<int> &numCpusList,
+                        const std::vector<int> &gpuList);
   void setupHostRoot();
   void setupComFileJobs();
   void probeMachines(QStringList &machineNameList);
@@ -215,7 +223,7 @@ private:
 
   //parameters
   int mRetain, mJustGo, mNice, mMillisecSleep, mDropCrit, mQueue, mSingleFile,
-      mMaxChunkErr, mVerbose;
+    mMaxChunkErr, mVerbose, mGpuMode;
   bool mSkipProbe;
   char *mQueueName, *mRootName;
   QFile *mCheckFile;

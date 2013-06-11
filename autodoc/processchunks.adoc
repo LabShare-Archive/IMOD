@@ -22,6 +22,21 @@ machine in machine list).  The command file is not required to be numbered.
 The rootname given on the command line can be either the full name or the name
 excluding ".com".
 
+[Field = G]
+type = B
+usage = Distribute jobs to multiple or specific GPUs on each machine
+tooltip = 
+manpage = Distribute jobs to multiple or specific GPUs on each machine.  With
+this option, each machine name can be followed by a colon and one or more
+specific GPU device numbers separated by colons.  Devices are numbered from 1
+and the numbers must be positive.  The program will run each job with the
+environment variable IMOD_USE_GPU2 set to the given GPU number, or set to 0 for a
+machine where no GPU numbers were entered (0 requests the best available
+GPU on that machine.)  No machine name can be entered more than once, and the "#"
+syntax cannot be used to specify multiple CPUs.  For example,
+"tubule:2:1,eclipse:2,druid" would use two GPUs on tubule, a specific one one
+eclipse, and the best or only one on druid.
+
 [Field = g]
 type = B
 usage = Go process, without asking for confirmation after probing machines
@@ -104,12 +119,14 @@ manpage =
 
 [Field = V]
 type = CH
-usage = ?|?,2|class,[function,[...]][,2]|2  Debugging output from specific function.
+usage = ?|?,2|class[,function[,...]][,2]|2  Debugging output from specific function.
 tooltip = 
 manpage = This option enables debugging output from a specific class or
 function.  It has no effect if "-v" is not entered too.  The entry has the
-form "?|?,2|class,[function,[...]][,2]|2" where 2 means more verbose and ? lists
-the functions that have information to print.
+form "?|?,2|class[,function[,...]][,2]|2" where 2 means more verbose and ? or
+function[,...] lists the functions that have information to print.  The
+matching to class and function names is case-insensitive and to the end of the
+name, rather than to the whole name.
 
 [Field = help]
 type = B

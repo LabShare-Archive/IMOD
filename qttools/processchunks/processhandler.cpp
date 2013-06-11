@@ -18,6 +18,7 @@ ProcessHandler::ProcessHandler() {
   mQidFile = NULL;
   mProcesschunks = NULL;
   mComFileJobIndex = -1;
+  mGpuNumber = -1;
   mMachine = NULL;
   mProcess = NULL;
   mOutStream = NULL;
@@ -81,11 +82,12 @@ void ProcessHandler::initProcess() {
 
 //Set mFlag to -1 for sync com files.
 //Return true for non-sync files.
-void ProcessHandler::setup(Processchunks &processchunks) {
+void ProcessHandler::setup(Processchunks &processchunks, int gpuNum) {
   mProcesschunks = &processchunks;
   mOutStream = mProcesschunks->getOutStreamPtr();
   mEscapedRemoteDirPath = mProcesschunks->getRemoteDir();
   mEscapedRemoteDirPath.replace(QRegExp(" "), "\\ ");
+  mGpuNumber = gpuNum;
   if (processchunks.isQueue()) {
     //Queue command
     //finishes after putting things into the queue

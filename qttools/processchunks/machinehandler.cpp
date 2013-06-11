@@ -42,14 +42,16 @@ MachineHandler::~MachineHandler() {
 //Sets the arrays based on mNumCpus
 //Call this once when mNumCpus will no long change
 void MachineHandler::setup(Processchunks &processchunks, const QString &machineName,
-    const int numCpus) {
+                           const int numCpus, const std::vector<int> &gpuList,
+                           const int baseIndex) {
   int i;
+  bool gpuMode = processchunks.getGpuMode();
   mName = machineName;
   mNumCpus = numCpus;
   mProcesschunks = &processchunks;
   mProcessHandlerArray = new ProcessHandler[mNumCpus];
   for (i = 0; i < mNumCpus; i++) {
-    mProcessHandlerArray[i].setup(processchunks);
+    mProcessHandlerArray[i].setup(processchunks, gpuMode ? gpuList[baseIndex + i] : -1);
   }
 }
 
