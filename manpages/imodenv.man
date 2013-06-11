@@ -107,11 +107,14 @@ Path for temporary directory used by scripts.  On Windows, this should be in
 Cygwin format, not in Windows format.
 .TP
 .B IMOD_USE_GPU
-This variable will tell the Tilt program (and eventually perhaps other
+.TP
+.B IMOD_USE_GPU2
+These variables will tell the Tilt program (and eventually perhaps other
 programs) to use the GPU on a CUDA-capable NVIDIA graphics card.  Set the
 variable to 0 to use the best available GPU, or to a positive number to
 specify the GPU to use.  If there is only one GPU, 0 and 1 have the same
-effect.  This setting is overridden by the UseGPU entry to Tilt, if any.
+effect.  The setting with IMOD_USE_GPU is overridden by the UseGPU entry to
+Tilt, if any, while a setting with IMOD_USE_GPU2 overrides the UseGPU entry.
 .TP
 .B PIP_PRINT_ENTRIES
 Set this variable to 1 to enable printing of all options entered into a program
