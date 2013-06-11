@@ -6,10 +6,10 @@ Arguments to copytomocoms,,,,,,
 setupset.copyarg.name,Root name of data set,String,Y,,,
 setupset.copyarg.dual,Dual-axis data set,Bool,Y,Y,SO,
 setupset.copyarg.montage,Data are montaged,Bool,Y,Y,SD,
-setupset.copyarg.pixel,Pixel size of images in nanometers,Float,Y,Y,,
+setupset.copyarg.pixel,Pixel size of images in nanometers,Float,Y,Y,,Overrides value from scanHeader
 setupset.copyarg.gold,Size of gold beads in nanometers,Float,Y,Y,SD,
-setupset.copyarg.rotation,Angle from the vertical to the tilt axis in raw images,Float,Y,Y,,
-setupset.copyarg.brotation,Angle from the vertical to the tilt axis for B axis,Float,Y,,,
+setupset.copyarg.rotation,Angle from the vertical to the tilt axis in raw images,Float,Y,Y,,Overrides value from scanHeader
+setupset.copyarg.brotation,Angle from the vertical to the tilt axis for B axis,Float,Y,,,Overrides value from scanHeader
 setupset.copyarg.firstinc,First tilt angle and tilt angle increment,2 Float,Y,,,
 setupset.copyarg.bfirstinc,First tilt angle and tilt angle increment for B axis,2 Float,Y,,,
 setupset.copyarg.userawtlt,Take tilt angle from a .rawtlt file for A or only axis,Bool,Y,Y,SO,
@@ -62,7 +62,7 @@ comparam.track.beadtrack.LightBeads,Whether beads are light,Bool,Y,Y,SO,
 comparam.track.beadtrack.LocalAreaTracking,Whether to do local,Bool,Y,Y,SD,
 comparam.track.beadtrack.LocalAreaTargetSize,Size of local areas,2 Int,Y,Y,SD,
 comparam.track.beadtrack.SobelFilterCentering,Whether to use Sobel filter,Bool,Y,Y,SD,
-comparam.track.beadtrack.KernelSigmaForSobel,Sigma for Sobel filter,Float,Y,Y,SD,
+comparam.track.beadtrack.KernelSigmaForSobel,Sigma for Sobel filter,Float,Y,Y,SD,Needs to be 1.5 for cryo data
 comparam.track.beadtrack.RoundsOfTracking,Number of rounds of tracking in run,Int,Y,Y,SD,
 runtime.BeadTracking.any.numberOfRuns,Number of times to run beadtrack (fiducial as seed),Int,Y,,NE,
 ,,,,,,
