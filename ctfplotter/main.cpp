@@ -296,11 +296,13 @@ int main(int argc, char *argv[])
     // When processing focal pairs, instead of (e.g) myData.st the two
     // stacks will be myData_1.st (at nominal defocus) and myData_2.st
     std::string stackFn1(stackFn), stackFn2(stackFn);
-    size_t pos = stackFn1.find_last_of('.');
-    if (pos == std::string::npos)   // . not found: no file type suffix
-      pos = stackFn1.length();      // just append to end of filename
-    stackFn1.insert(pos, "_1");
-    stackFn2.insert(pos, "_2");
+    size_t underpos = stackFn1.find_last_of('_');
+    size_t dotpos = stackFn1.find_last_of('.');
+    if (underpos == std::string::npos || 
+        stackFn1[underpos + 1] != '1' ||
+        dotpos != underpos + 2) 
+      exitError("Input base name must end in _1, and suffix may not contain '_'.");
+    stackFn2.replace(underpos, 2, "_2");
     app.setSlice(stackFn1.c_str(), angleFn, SLICE_CACHE_PRIMARY);
     app.setSlice(stackFn2.c_str(), angleFn, SLICE_CACHE_SECONDARY);
   }
