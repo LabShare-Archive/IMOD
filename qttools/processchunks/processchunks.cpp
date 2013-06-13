@@ -876,7 +876,7 @@ void Processchunks::initMachineList(QStringList &machineNameList,
       if (localByNum < 1)
         exitError("A number entered for the machine list must be positive");
       machineNameList[0] = "localhost";
-      numCpusList.push_back(localByNum);
+      numCpusList[0] = localByNum;
       numCpus = localByNum;
     }
   }
