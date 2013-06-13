@@ -23,6 +23,7 @@ class MachineHandler;
 #include <QProcess>
 #include <QTextStream>
 #include <QTime>
+#include <QDateTime>
 #include <QFile>
 
 #define CHUNK_PROCESS_PIPES 4
@@ -49,6 +50,7 @@ public:
   const QByteArray readAllLogFile();
   bool isLogFileEmpty();
   bool isStartProcessTimedOut(const int timeoutMillisec);
+  bool isLogFileOlderThan(const int timeoutSec);
   void getErrorMessageFromLog(QString &errorMess);
   void incrementNumChunkErr();
   bool isComProcessDone();
@@ -89,6 +91,10 @@ public:
     return mGpuNumber;
   }
   ;
+  inline int getElapsedTime() {
+    return mElapsedTime < 0 ? mStartTime.elapsed() : mElapsedTime;
+  }
+  ;
   inline bool isJobValid() {
     return mValidJob;
   }
@@ -101,7 +107,7 @@ public:
   ;
   void resetKill();
   void setJobNotDone();
-  void startKill();
+  void startKill(bool killOne);
   void killQProcesses();
 
 public slots:
@@ -134,13 +140,15 @@ private:
   Processchunks *mProcesschunks;
   QProcess *mProcess;
   QTime mStartTime;
+  int mElapsedTime;
+  QDateTime mLogLastModified;
   MachineHandler *mMachine;
   int mGpuNumber;
 
   //Kill process variables
   QProcess *mKillProcess;
   int mKillCounter, mPidWaitCounter;
-  bool mKill, mLocalKill, mKillStarted, mIgnoreKill;
+  bool mKill, mLocalKill, mKillStarted, mIgnoreKill, mKillingOne;
 
   //Signal variables
   bool mErrorSignalReceived, mFinishedSignalReceived, mKillFinishedSignalReceived;

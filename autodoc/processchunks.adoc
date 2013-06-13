@@ -76,6 +76,39 @@ manpage = Quit if a chunk gives a processing error (as opposed to failing to
 start) this number of times.  All running jobs will be killed.  The
 default limit is 5.
 
+[Field = C]
+type = FT
+usage = Criterion for chunk too slow within one machine, factors for between
+machines and for sync
+tooltip = 
+manpage = This option enters three factors that control the program's decision
+to kill a chunk that appears to have hung up.  They are: 1) A criterion for
+how much longer a chunk can take than the slowest chunk so far on the same
+machine.  The default is 4; this criterion needs to reflect the intrinsic
+variability among chunks and extent to which machine performance could vary
+during a run.  A value of 0 completely disables chunk timing tests.
+2) A multiplier to that criterion when comparing a
+chunk time with the slowest time so far on any machine.  The default is 3, so the
+default overall criterion is 12; this factor needs to reflect the intrinsic
+spread in machine capabilities.  3) A multiplier for both of these criteria
+when considering sync chunks.  The default is 0, for no testing for sync
+chunks; the factor could be 1 if sync chunks are comparable or faster than
+non-sync chunks.
+
+[Field = T]
+type = IP
+usage = Timeouts for log file activity for non-sync and sync chunks (seconds)
+tooltip = 
+manpage = Timeouts for log file activity for non-sync and sync chunks, in
+seconds.  The default is 300,0.  A value of 0 disables this test.  A non-sync
+chunk is killed if it is too slow by the timing tests controlled with the "-C"
+option, AND if it log is older than the first number entered here.  The same
+dual test is applied for a sync chunk if the log activity test is enabled with
+the second number here and the timing test is enabled with a non-zero factor
+in the third number of the "-C" entry.  However, if the log activity test is
+enabled and the timing test is not enabled, non-sync chunks will be killed
+solely on the basis of the log becoming too old.
+
 [Field = c]
 type = FN
 usage = Check the given file for commands P, Q, and D (default 

@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/13/13: Made processchunks watch for jobs taking way too long and kill them.
+
 6/11/13: Made processchunks able to send jobs to specific GPUs.
 
 6/9/13: Added options to find warping transforms to Xfalign and changed
@@ -15,7 +17,7 @@ aberrant images.
 6/7/13: Fixed 3dmod icon missing from dock on Mac, adopted a higher-resolution
 version from Mike Strauss.
 
-6/6/13: Switched to makecomfile for the creation of patching tracking and
+6/6/13: Switched to makecomfile for the creation of patch tracking and
 sirtsetup com files in eTomo.(Bug# 1705)
 
 6/5/13: Added value for maximum distance between contour points for the

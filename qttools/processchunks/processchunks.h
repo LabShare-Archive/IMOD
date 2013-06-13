@@ -199,9 +199,9 @@ private:
       handleLogFileError(QString &errorMess, MachineHandler &machine,
           ProcessHandler *process);
   void handleComProcessNotDone(bool &dropout, QString &dropMess, MachineHandler &machine,
-      ProcessHandler *process);
+                               ProcessHandler *process, bool &needKill);
   void handleDropOut(bool &noChunks, QString &dropMess, MachineHandler &machine,
-      ProcessHandler *process, QString &errorMess);
+                     ProcessHandler *process, QString &errorMess, bool needKill);
   bool checkChunk(int &runFlag, bool &noChunks, int &undone, bool &foundChunks,
       bool &chunkOk, MachineHandler &machine, const int jobIndex, const int chunkErrTot);
   void runProcess(MachineHandler &machine, ProcessHandler *process, const int jobIndex);
@@ -212,7 +212,9 @@ private:
   void killProcesses(QStringList *dropList = NULL);
   void startTimers();
   bool handleError(const QString *errorMess, MachineHandler &machine,
-      ProcessHandler *process);
+                   ProcessHandler *process, bool hungJob);
+  bool processTooSlow(const int elapsed, const int slowestTime, const int slowTimeCount,
+                      float slowCrit);
   bool isVerbose(const QString &verboseClass, const QString verboseFunction,
       const int verbosity, const bool print);
 
@@ -238,8 +240,10 @@ private:
 
   //loop
   int mNumDone, mLastNumDone, mHoldCrit, mTimerId, mFirstUndoneIndex, mNextSyncIndex,
-      mSyncing, mCheckFileReconnect;
+    mSyncing, mCheckFileReconnect, mSlowestTime, mSlowTimeCount;
   bool mPausing, mAnyDone;
+  float mSlowOverallCrit, mSlowMachineCrit, mSlowSyncFactor;
+  int mSlowLogTimeout, mSlowSyncLogTimeout;
   char mAns;
   QStringList mSaveCheckFileLines;
 

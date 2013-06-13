@@ -39,10 +39,10 @@ using namespace std;
  make autodoc2man
  * Add static const to numOptions and static to options
  */
-static const int numOptions = 15;
+static const int numOptions = 17;
 static const char *options[] = {
-  ":r:B:", ":s:B:", ":G:B:", ":g:B:", ":n:I:", ":w:FN:", ":d:I:", ":e:I:", ":c:FN:",
-  ":q:I:", ":Q:CH:", ":P:B:", ":v:B:", ":V:CH:", ":help:B:"};
+  ":r:B:", ":s:B:", ":G:B:", ":g:B:", ":n:I:", ":w:FN:", ":d:I:", ":e:I:", ":C:FT:",
+  ":T:IP:", ":c:FN:", ":q:I:", ":Q:CH:", ":P:B:", ":v:B:", ":V:CH:", ":help:B:"};
 static char *queueNameDefault = "queue";
 Processchunks *processchunksInstance;
 
@@ -50,8 +50,8 @@ int main(int argc, char **argv) {
   Processchunks pc(argc, argv);
   setlocale(LC_NUMERIC, "C");
   processchunksInstance = &pc;
-  pc.printOsInformation();
   pc.loadParams(argc, argv);
+  pc.printOsInformation();
   pc.setup();
   if (!pc.askGo()) {
     return 0;
@@ -75,6 +75,11 @@ Processchunks::Processchunks(int &argc, char **argv) :
   mSkipProbe = false;
   mQueue = 0;
   mSingleFile = 0;
+  mSlowMachineCrit = 4.;   // This is a true criterion
+  mSlowOverallCrit = 3.;   // This is a factor here, it will be multiplied by machine crit
+  mSlowSyncFactor = 0.;
+  mSlowLogTimeout = 300;
+  mSlowSyncLogTimeout = 0;
   mSshOpts.append("-o PreferredAuthentications=publickey");
   mSshOpts.append("-o StrictHostKeyChecking=no");
   mRootName = NULL;
@@ -83,6 +88,8 @@ Processchunks::Processchunks(int &argc, char **argv) :
   mCopyLogIndex = -1;
   mAns = ' ';
   mTimerId = 0;
+  mSlowestTime = -1;
+  mSlowTimeCount = 0;
   mKill = false;
   mKillCounter = 0;
   mLsProcess = new QProcess(this);
@@ -121,12 +128,12 @@ void Processchunks::printOsInformation() {
 //Print usage statement
 //Not implementing $IMOD_ALL_MACHINES since no one seems to have used it.
 void processchunksUsageHeader(const char *pname) {
+  imodUsageHeader(pname);
   printf("\nUsage: %s [Options] machine_list root_name\nWill process multiple command "
     "files on multiple processors or machines\nmachine_list is a list of "
-    "available machines, separated by commas.\nList machines names multiple "
-    "times to gain access to multiple CPUs on a machine.\nRoot_name is "
+    "available machines, separated by commas.\nList machine names multiple "
+    "times or followed by #n to use multiple CPUs on a machine.\nRoot_name is "
     "the base name of the command files, omitting -nnn.com\n\n", pname);
-  imodUsageHeader(pname);
 }
 
 //Loads parameters, does error checking, returns zero if parameters are correct.
@@ -149,6 +156,9 @@ void Processchunks::loadParams(int &argc, char **argv) {
   }
   PipGetInteger("d", &mDropCrit);
   PipGetInteger("e", &mMaxChunkErr);
+  PipGetThreeFloats("C", &mSlowMachineCrit, &mSlowOverallCrit, &mSlowSyncFactor);
+  mSlowOverallCrit *= mSlowMachineCrit;
+  PipGetTwoIntegers("T", &mSlowLogTimeout, &mSlowSyncLogTimeout);
   char *checkFile = NULL;
   PipGetString("c", &checkFile);
   if (checkFile != NULL) {
@@ -289,6 +299,9 @@ int Processchunks::startLoop() {
   //Error messages from inside the event loop must using QApplication functionality
   PipDone();
   startTimers();
+
+  // 6/11/3: Tried SetConsoleCtrlHandler in Windows for catching Ctrl-C.  It worked
+  // fine in a DOS window but not in a mintty, so we are stuck with the current situation
   signal(SIGINT, SIG_IGN);
 #ifndef _WIN32
   signal(SIGHUP, SIG_IGN);
@@ -339,6 +352,7 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
   int chunkErrTot = 0;
   int numCpus = 0;
   bool noChunks = false;
+  bool needKill = false;
   for (i = 0; i < mMachineListSize; i++) {
     // Change from script: neither chunkErrTot nor failTot is incremented for each cpu,
     // only per machine
@@ -409,7 +423,7 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
               //to standard out, it can't run the first real command in the
               //file.
               if (process->isPidInStderr()) {
-                if (!handleError(NULL, mMachineList[i], process)) {
+                if (!handleError(NULL, mMachineList[i], process, false)) {
                   return;
                 }
               }
@@ -417,13 +431,30 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
           }
         }
         else {
-          handleComProcessNotDone(dropout, dropMess, mMachineList[i], process);
+          handleComProcessNotDone(dropout, dropMess, mMachineList[i], process, needKill);
         }
+
         //if failed, remove the assignment, mark chunk as to be done,
         //skip this machine on this round
         if (dropout) {
-          handleDropOut(noChunks, dropMess, mMachineList[i], process, errorMess);
+          handleDropOut(noChunks, dropMess, mMachineList[i], process, errorMess, 
+                        needKill);
         }
+        
+        // For a kill, set flag and slow down timer as in killProcesses, but first let
+        // a chunk error kill and exit occur
+        if (needKill) {
+          if (!handleError(NULL, mMachineList[i], process, true))
+            return;
+          killTimer(mTimerId);
+          mKill = true;
+          mAns = 'P';
+          mMachineList[i].startKill(process->getPid());
+          killSignal();
+          mTimerId = startTimer(1000);
+          return;
+        }
+
         //OLD:Clean up .ssh and .pid if no longer assigned
         //For queue only:  clean up .job and .qid if no longer assigned
         if (!process->isJobValid() && mQueue) {
@@ -617,7 +648,7 @@ void Processchunks::killProcesses(QStringList *dropList) {
   //machine on the drop list.
   for (i = 0; i < mMachineListSize; i++) {
     bool activeMachine = !mMachineList[i].isDropped();
-    mMachineList[i].startKill();
+    mMachineList[i].startKill("");
     if (activeMachine && mMachineList[i].isDropped()) {
       mNumMachinesDropped++;
     }
@@ -1265,13 +1296,35 @@ bool Processchunks::exitIfDropped(const int minFail, const int failTot,
 //Return true if all chunks are done
 bool Processchunks::handleChunkDone(MachineHandler &machine, ProcessHandler *process,
     const int jobIndex) {
-  int i;
+  int i, time;
   //If it is DONE, then set flag to done and deassign
   //Exonerate the machine from chunk errors if this chunk
   //gave a previous chunk error
   process->setFlag(CHUNK_DONE);
   process->invalidateJob();
   machine.setFailureCount(0);
+
+  // For a non-sync chunk, keep track of the longest time for the machine and overall
+  if (!mSyncing) {
+    time = process->getElapsedTime();
+    machine.setSlowestTime(time);
+    if (mSlowestTime < 0 || time > mSlowestTime)
+      mSlowestTime = time;
+    mSlowTimeCount++;
+    if (isVerbose(mDecoratedClassName, __func__)) {
+      *mOutStream << mDecoratedClassName << ":" << __func__ << ":slowest time, machine "
+                  << machine.getSlowestTime() << " - " << machine.getSlowTimeCount() 
+                  << "  overall " << mSlowestTime << " - " << mSlowTimeCount << endl;
+    }
+  } 
+  // But if we were syncing, reset the longest time data
+  else {
+    mSlowestTime = -1;
+    mSlowTimeCount = 0;
+    for (i = 0; i < mMachineListSize; i++)
+      mMachineList[i].setSlowestTime(-1);
+  }
+    
   mSyncing = 0;
   if (process->getNumChunkErr() != 0) {
     machine.setChunkErred(false);
@@ -1330,40 +1383,48 @@ bool Processchunks::handleChunkDone(MachineHandler &machine, ProcessHandler *pro
 bool Processchunks::handleLogFileError(QString &errorMess, MachineHandler &machine,
     ProcessHandler *process) {
   process->getErrorMessageFromLog(errorMess);
-  return handleError(&errorMess, machine, process);
+  return handleError(&errorMess, machine, process, false);
 }
 
 //Print an error message.
 //If the chunk has errored too many times, set mAns to E and kill jobs
 //Return false the chunk has errored too many times
 bool Processchunks::handleError(const QString *errorMess, MachineHandler &machine,
-    ProcessHandler *process) {
+                                ProcessHandler *process, bool hungJob) {
   int numErr;
   process->incrementNumChunkErr();
   numErr = process->getNumChunkErr();
   machine.setChunkErred(true);
   //Give up if the chunk errored too many  times: and
-  //for a sync chunk that is twice or once if one machine
-  if (numErr >= mMaxChunkErr || (mSyncing && (mMachineListSize == 1 || numErr >= 2))) {
+  //for a sync chunk that is twice or once if one machine, or up to 3 times for hung job
+  if (numErr >= mMaxChunkErr || 
+      (mSyncing && ((!hungJob && (mMachineListSize == 1 || numErr >= 2)) ||
+                    (hungJob && numErr >= B3DMIN(mMachineListSize + 1, 3))))) {
     process->printTooManyErrorsMessage(numErr);
     if (errorMess != NULL && !errorMess->isEmpty()) {
       *mOutStream << *errorMess << endl;
     }
     mAns = 'E';
-    process->invalidateJob();
+    
+    // A hung job needs to stay valid to get killed in this process, since it is not
+    // a single process kill
+    if (!hungJob)
+      process->invalidateJob();
     killProcesses();
     return false;
   }
   return true;
 }
-
+ 
 //Handle timeouts and missing qid files for queues
 //Handle com never started and process ended - drop
 //Handle ssh error - drop
 //Handle com not started yet
 //Handle log doen't exist and timeout - drop
-void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
-    MachineHandler &machine, ProcessHandler *process) {
+void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess, 
+                                            MachineHandler &machine,
+                                            ProcessHandler *process, bool &needKill) {
+  needKill = false;
   if (mQueue && !process->qidFileExists()) {
     //For a queue, the qid file should be there
     dropout = true;
@@ -1391,14 +1452,50 @@ void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
         dropout = true;
       }
     }
+    if (!dropout && !process->isPidEmpty()) {
+
+      // Test the elapsed time relative to other chunks, and then the log file time
+      // to see if job looks hung
+      int elapsed = process->getElapsedTime();
+      float factor = mSyncing ? mSlowSyncFactor : 1.;
+      bool tooSlow = 
+        processTooSlow(elapsed, mSlowestTime, mSlowTimeCount, mSlowOverallCrit * factor)
+        || processTooSlow(elapsed, machine.getSlowestTime(), machine.getSlowTimeCount(), 
+                          mSlowMachineCrit * factor);
+
+      // Only test for a log file time if it will be conclusive
+      if (mSyncing)
+        needKill = ((mSlowSyncFactor > 0. && tooSlow) || !mSlowSyncFactor) && 
+          process->isLogFileOlderThan(mSlowSyncLogTimeout);
+      else
+        needKill = tooSlow && process->isLogFileOlderThan(mSlowLogTimeout);
+      dropout = needKill;
+    }
   }
 }
 
-//remove the assignment, mark chunk as to be done,
-//skip this machine on this round
+// Evaluate whether an elapsed time is too long based on the criterion, current slowest 
+// time and number of times that is based on.  Ignore if the count is not at least 2 or
+// if there is no criterion; make the criterion even bigger for small count
+bool Processchunks::processTooSlow(const int elapsed, const int slowestTime, 
+                                   const int slowTimeCount, float slowCrit) {
+  float maxDerate = 4.;
+  if (slowTimeCount < 2 || slowCrit <= 0)
+    return false;
+  if (slowTimeCount < maxDerate)
+    slowCrit *= maxDerate / slowTimeCount;
+  return elapsed > slowestTime * slowCrit;
+}
+ 
+//remove the assignment, mark chunk as to be done, issue messages including machine drops
 void Processchunks::handleDropOut(bool &noChunks, QString &dropMess,
-    MachineHandler &machine, ProcessHandler *process, QString &errorMess) {
-  if (!machine.isDropped()) {
+                                  MachineHandler &machine, ProcessHandler *process, 
+                                  QString &errorMess, bool needKill) {
+  if (needKill) {
+    *mOutStream << "Killing " << process->getComFileName() << " on " <<
+            machine.getName() << ", it appears to be hung up" << endl;
+  } 
+  else if (!machine.isDropped()) {
     *mOutStream << process->getComFileName() << " failed on " << machine.getName()
         << " - need to restart" << endl;
     if (!errorMess.isEmpty()) {
@@ -1409,7 +1506,10 @@ void Processchunks::handleDropOut(bool &noChunks, QString &dropMess,
   if (mSyncing) {
     mSyncing = 1;
   }
-  process->invalidateJob();
+
+  // Keep a hung job valid until it is killed
+  if (!needKill)
+    process->invalidateJob();
   noChunks = false;
   machine.incrementFailureCount();
   if (!machine.isDropped() && machine.getFailureCount() >= mDropCrit) {
@@ -1594,50 +1694,7 @@ void Processchunks::handleFileSystemBug() {
   mLsProcess->waitForFinished(10000);
 }
 /* CSH -> PY
-//Return if csh file is made
-void Processchunks::makeCshFile(ProcessHandler *process) {
-  QString cshFileName = process->getCshFile();
-  if (cshFileName.isEmpty()) {
-    *mOutStream << "Warning: no .csh file name available " << endl;
-    return;
-  }
-  QFile cshFile(cshFileName);
-  mCurrentDir.remove(cshFile.fileName());
-  QTextStream writeStream(&cshFile);
-  if (!cshFile.open(QIODevice::WriteOnly)) {
-    *mOutStream << "Warning: unable to open and create " << cshFileName << endl;
-    return;
-  }
-  if (!mQueue) {
-    writeStream << "nice +" << mNice << endl;
-  }
-  //convert and add CHUNK DONE to all files
-  QString comFileName = process->getComFileName();
-  mVmstocsh->setStandardInputFile(comFileName);
-  //This does not work:
-  //mVmstocsh->setStandardOutputFile(mCshFile->fileName(), QIODevice::Append);
-  QString command("vmstocsh");
-  QStringList paramList;
-  paramList.append(process->getLogFileName());
-  mVmstocsh->start(command, paramList);
-  if (!mVmstocsh->waitForFinished()) {
-    if (mVmstocsh->exitStatus() == QProcess::CrashExit) {
-      *mOutStream << "Warning: vmstocsh conversion of " << comFileName
-          << " failed with exit code " << mVmstocsh->exitCode() << " "
-          << mVmstocsh->readAllStandardError().data() << endl;
-    }
-    else {
-      *mOutStream << "Warning: vmstocsh conversion of " << comFileName
-          << " timed out after 30 seconds: " << mVmstocsh->readAllStandardError().data()
-          << endl;
-    }
-  }
-  writeStream << mVmstocsh->readAllStandardOutput().data() << "echo CHUNK DONE >> "
-      << process->getLogFileName() << endl;
-
-  cshFile.close();
-}
-*/
+   Deleted old makeCshFile 6/13/13, see earlier versions */
 
 void Processchunks::makeCshFile(ProcessHandler *process) {
   QString cshFileName = process->getCshFile();
