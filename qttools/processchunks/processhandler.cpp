@@ -44,6 +44,8 @@ void ProcessHandler::resetFields() {
   mProcessError = -1;
   mFinishedSignalReceived = false;
   mStartTime.start();
+  mElapsedTime = -1;
+  mLogLastModified = QDateTime::currentDateTime();
   mStartingProcess = false;
   mKillFinishedSignalReceived = false;
   mKill = false;
@@ -290,6 +292,20 @@ bool ProcessHandler::isLogFileEmpty() {
     return true;
   }
   return mLogFile->size() == 0;
+}
+
+// Test whether the log file is older than the given timeout value
+// Refreshs the stored last modified time only if it is older than the timeout
+bool ProcessHandler::isLogFileOlderThan(const int timeoutSec) {
+  if (timeoutSec <= 0)
+    return false;
+  if (mLogLastModified.secsTo(QDateTime::currentDateTime()) < timeoutSec)
+   return false;
+  QFileInfo fileInfo(*mLogFile);
+  if (!fileInfo.exists())
+    return false;
+  mLogLastModified = fileInfo.lastModified();
+  return mLogLastModified.secsTo(QDateTime::currentDateTime()) >= timeoutSec;
 }
 
 void ProcessHandler::readAllStandardError() {
@@ -727,9 +743,12 @@ void ProcessHandler::runProcess(MachineHandler &machine) {
   delete paramList;
 }
 
-void ProcessHandler::startKill() {
+// Save flage when initiating kill.  Single kill job should still be valid, but don't
+// ignore it regardless
+void ProcessHandler::startKill(bool killOne) {
   mKill = true;
-  mIgnoreKill = !isJobValid();
+  mIgnoreKill = !killOne && !isJobValid();
+  mKillingOne = killOne;
 }
 
 /*
@@ -777,10 +796,12 @@ void ProcessHandler::killSignal() {
           }
           setJobNotDone();
           //Kill a local job.  Killing non-local jobs is not handled handled by
-          //ProcessHandlers.
+          //ProcessHandlers.  As long as we are dropping a machine, it is safe to go
+          // go on after running the kill, but for single kill, the finish signal must
+          // actually come in before the process gets reused.
           killLocalProcessAndDescendents(mPid);
           mKillFinishedSignalReceived = true;
-          mFinishedSignalReceived = true;
+          mFinishedSignalReceived = !mKillingOne;
         }
         else {
           //Unable to get the PID.
@@ -790,6 +811,9 @@ void ProcessHandler::killSignal() {
           mProcess->kill();
           mFinishedSignalReceived = true;
         }
+
+        // Invalidate job here, this is needed for single-kill process
+        mValidJob = false;
       }
       else {
         mPidWaitCounter++;
@@ -804,6 +828,11 @@ void ProcessHandler::killSignal() {
         mKillProcess->kill();
         mProcesschunks->decrementKills();
       }
+      
+      // For single kill, still need to kill this process; the finish signal should come
+      // through from that before processing loop is resumed
+      if (mKillingOne)
+        mProcess->kill();
       mKillFinishedSignalReceived = true;
       mFinishedSignalReceived = true;
     }
@@ -857,6 +886,10 @@ void ProcessHandler::handleFinished(const int exitCode,
   mStartingProcess = false;
   mExitCode = exitCode;
   mExitStatus = exitStatus;
+
+  // record the actual elapsed time when the process ends
+  if (mElapsedTime < 0)
+    mElapsedTime = mStartTime.elapsed();
   //The queue request just submits the chunk to the queue, or submits a request
   //to kill the chunk to the queue.  Don't use it to figure out the state of the
   //chunk.
@@ -1030,9 +1063,11 @@ void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
   } while (foundNewChildPid);
   mLocalKill = true;
   //Kill everything in the process ID list.
+  // All OS's accept the abbreviation or SIG.... form but tcsh kill accepts only abbrev
   QProcess kill;
   QString killCommand("kill");
-  pidList.prepend("-9");
+  pidList.prepend("KILL");
+  pidList.prepend("-s");
   kill.execute(killCommand, pidList);
 }
 
@@ -1041,7 +1076,8 @@ void ProcessHandler::stopProcess(const QString &pid) {
   QProcess ps;
   QString command("kill");
   QStringList paramList;
-  paramList.append("-19");
+  paramList.append("-s");
+  paramList.append("STOP");
   paramList.append(pid);
   ps.execute(command, paramList);
 }
