@@ -40,6 +40,7 @@ import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.UIComponent;
 import etomo.util.Utilities;
 
 /**
@@ -429,7 +430,7 @@ import etomo.util.Utilities;
 public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     Run3dmodButtonContainer, FileContainer, ReferenceParent,
     MissingWedgeCompensationParent, IterationParent, MaskingParent, YAxisTypeParent,
-    SphericalSamplingForThetaAndPsiParent, ProcessInterface {
+    SphericalSamplingForThetaAndPsiParent, ProcessInterface, UIComponent, SwingComponent {
   public static final String rcsid = "$Id$";
 
   public static final String FN_OUTPUT_LABEL = "Root name for output";
@@ -437,6 +438,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   public static final String RUN_LABEL = "Run";
   public static final String AVERAGE_ALL_LABEL = "Remake Averages";
   static final String SETUP_LOCATION_DESCR = "the Setup tab";
+  private static final String ALIGNED_BASE_NAME = "aligned";
 
   private static final DialogType DIALOG_TYPE = DialogType.PEET;
   private static final String LST_THRESHOLD_START_TITLE = "Start";
@@ -446,14 +448,15 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private static final String LST_THRESHOLDS_LABEL = "Number of Particles to Average";
   private static final String SETUP_TAB_LABEL = "Setup";
   private static final String RUN_TAB_LABEL = "Run";
+  private static final String ALIGNED_BASE_NAME_LABEL = "Save individual aligned particles";
+
   private final EtomoPanel rootPanel = new EtomoPanel();
   private final LabeledTextField ltfDirectory = new LabeledTextField(FieldType.STRING,
       DIRECTORY_LABEL + ": ");
   private final LabeledTextField ltfFnOutput = new LabeledTextField(FieldType.STRING,
       FN_OUTPUT_LABEL + ": ");
   private final SpacedPanel pnlSetupBody = SpacedPanel.getInstance();
-  private final CheckBox cbAlignedBaseName = new CheckBox(
-      "Save individual aligned particles");
+  private final CheckBox cbAlignedBaseName = new CheckBox(ALIGNED_BASE_NAME_LABEL);
   private final CheckBox cbFlgStrictSearchLimits = new CheckBox(
       "Strict search limit checking");
   private final LabeledTextField ltfLowCutoff = new LabeledTextField(
@@ -478,15 +481,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       MatlabParam.PARTICLE_PER_CPU_DEFAULT, 28);
   private final IterationTable iterationTable;
   private final ButtonGroup bgInitMotl = new ButtonGroup();
-  private final RadioButton rbInitMotlZero = new RadioButton("Set all angles to 0",
+  private final RadioButton rbInitMotlZero = new RadioButton(
       MatlabParam.InitMotlCode.ZERO, bgInitMotl);
   private final RadioButton rbInitAlignParticleYAxes = new RadioButton(
-      "Align particle Y axes", MatlabParam.InitMotlCode.X_AND_Z_AXIS, bgInitMotl);
+      MatlabParam.InitMotlCode.X_AND_Z_AXIS, bgInitMotl);
   private final RadioButton rbInitMotlRandomRotations = new RadioButton(
-      "Uniform random rotations", MatlabParam.InitMotlCode.RANDOM_ROTATIONS, bgInitMotl);
+      MatlabParam.InitMotlCode.RANDOM_ROTATIONS, bgInitMotl);
   private final RadioButton rbInitMotlRandomAxialRotations = new RadioButton(
-      "Random axial (Y) rotations", MatlabParam.InitMotlCode.RANDOM_AXIAL_ROTATIONS,
-      bgInitMotl);
+      MatlabParam.InitMotlCode.RANDOM_AXIAL_ROTATIONS, bgInitMotl);
   private final RadioButton rbInitMotlFiles = new RadioButton("User supplied csv files",
       bgInitMotl);
   private final LabeledSpinner lsDebugLevel = new LabeledSpinner("Debug level: ",
@@ -597,7 +599,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     btnRun.setEnabled(paramFileSet);
   }
 
-  public Container getContainer() {
+  public SwingComponent getUIComponent() {
+    return this;
+  }
+
+  public Container getComponent() {
     return rootPanel;
   }
 
@@ -779,7 +785,18 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     else if (initMotlCode == MatlabParam.InitMotlCode.RANDOM_AXIAL_ROTATIONS) {
       rbInitMotlRandomAxialRotations.setSelected(true);
     }
-    cbAlignedBaseName.setSelected(!matlabParam.isAlignedBaseNameEmpty());
+    if (!matlabParam.isAlignedBaseNameEmpty()) {
+      cbAlignedBaseName.setSelected(true);
+      String alignedBaseName = matlabParam.getAlignedBaseName();
+      if (!alignedBaseName.equals(ALIGNED_BASE_NAME)) {
+        UIHarness.INSTANCE.openProblemValueMessageDialog(this,"Invalid",
+            MatlabParam.ALIGNED_BASE_NAME_KEY, null, ALIGNED_BASE_NAME_LABEL,
+            alignedBaseName, ALIGNED_BASE_NAME,null);
+      }
+    }
+    else {
+      cbAlignedBaseName.setSelected(false);
+    }
     cbFlgStrictSearchLimits.setSelected(matlabParam.isFlgStrictSearchLimits());
     ltfLowCutoff.setText(matlabParam.getLowCutoffCutoff());
     ltfLowCutoffSigma.setText(matlabParam.getLowCutoffSigma());
@@ -819,7 +836,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       matlabParam.setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl
           .getSelection()).getEnumeratedType());
       if (cbAlignedBaseName.isSelected()) {
-        matlabParam.setAlignedBaseName("aligned");
+        matlabParam.setAlignedBaseName(ALIGNED_BASE_NAME);
       }
       else {
         matlabParam.resetAlignedBaseName();
@@ -901,10 +918,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     catch (LogFile.LockException e) {
       e.printStackTrace();
     }
-    pnlInitMotl.setToolTipText(EtomoAutodoc
-        .getTooltip(autodoc, MatlabParam.INIT_MOTL_KEY));
+    pnlInitMotl.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        MatlabParam.InitMotlCode.KEY));
     ReadOnlySection section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-        MatlabParam.INIT_MOTL_KEY);
+        MatlabParam.InitMotlCode.KEY);
     rbInitMotlZero.setToolTipText(section);
     rbInitAlignParticleYAxes.setToolTipText(section);
     rbInitMotlRandomRotations.setToolTipText(section);
@@ -1020,7 +1037,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlInitMotlAndYAxisType.add(pnlInitMotlX);
     // init motl x
     pnlInitMotlX.setLayout(new BoxLayout(pnlInitMotlX, BoxLayout.X_AXIS));
-    pnlInitMotlX.setBorder(new EtchedBorder("Initial Motive List").getBorder());
+    pnlInitMotlX.setBorder(new EtchedBorder(MatlabParam.InitMotlCode.LABEL).getBorder());
     pnlInitMotlX.add(pnlInitMotl);
     pnlInitMotlX.add(Box.createRigidArea(FixedDim.x167_y0));
     // init MOTL
