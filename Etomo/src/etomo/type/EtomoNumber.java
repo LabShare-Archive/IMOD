@@ -309,7 +309,7 @@ public class EtomoNumber extends ConstEtomoNumber {
     if (isDebug()) {
       System.out.println("value=" + value);
     }
-    resetInvalidReason();
+    resetState();
     if (value == null || value.matches("\\s*")) {
       currentValue = newNumber();
     }
@@ -325,7 +325,7 @@ public class EtomoNumber extends ConstEtomoNumber {
           for (int i = 0; i < stringArray.length; i++) {
             if (value.compareToIgnoreCase(stringArray[i]) == 0) {
               currentValue = newNumber(i);
-              resetInvalidReason();
+              resetState();
             }
           }
         }
@@ -343,7 +343,7 @@ public class EtomoNumber extends ConstEtomoNumber {
   }
 
   public EtomoNumber set(Number value) {
-    resetInvalidReason();
+    resetState();
     currentValue = applyCeilingValue(applyFloorValue(value));
     setInvalidReason();
     return this;
@@ -425,7 +425,7 @@ public class EtomoNumber extends ConstEtomoNumber {
    * @return
    */
   public EtomoNumber reset() {
-    resetInvalidReason();
+    resetState();
     currentValue = applyCeilingValue(applyFloorValue(newNumber()));
     setInvalidReason();
     return this;
