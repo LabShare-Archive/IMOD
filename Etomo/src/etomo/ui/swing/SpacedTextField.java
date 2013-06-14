@@ -17,6 +17,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.UITestFieldType;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.UIComponent;
 import etomo.util.Utilities;
 
 /**
@@ -32,7 +33,7 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class SpacedTextField implements UIComponent {
+final class SpacedTextField implements UIComponent, SwingComponent {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField = new JTextField();
@@ -81,6 +82,10 @@ final class SpacedTextField implements UIComponent {
       return yAxisPanel;
     }
     return fieldPanel;
+  }
+
+  public SwingComponent getUIComponent() {
+    return this;
   }
 
   public Component getComponent() {
