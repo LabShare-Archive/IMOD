@@ -13,6 +13,7 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.UITestFieldType;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.UIComponent;
 import etomo.util.Utilities;
 
 /**
@@ -28,7 +29,7 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class TextField implements UIComponent {
+final class TextField implements UIComponent ,SwingComponent{
   public static final String rcsid = "$Id$";
 
   private final JTextField textField = new JTextField();
@@ -59,6 +60,10 @@ final class TextField implements UIComponent {
 
   void setToolTipText(String text) {
     textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
+  
+  public SwingComponent getUIComponent() {
+    return this;
   }
 
   public Component getComponent() {
