@@ -27,6 +27,7 @@ import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.UITestFieldType;
 import etomo.type.ViewType;
+import etomo.ui.UIComponent;
 import etomo.util.SharedConstants;
 import etomo.util.Utilities;
 
@@ -45,7 +46,8 @@ import etomo.util.Utilities;
 * 
 * <p> $Log$ </p>
 */
-public class SerialSectionsStartupDialog implements ContextMenu, UIComponent {
+public class SerialSectionsStartupDialog implements ContextMenu, UIComponent,
+    SwingComponent {
   public static final String rcsid = "$Id:$";
 
   private static final String NAME = "Starting Serial Sections";
@@ -224,6 +226,10 @@ public class SerialSectionsStartupDialog implements ContextMenu, UIComponent {
 
   public SerialSectionsStartupData getStartupData() {
     return startupData;
+  }
+
+  public SwingComponent getUIComponent() {
+    return this;
   }
 
   public Component getComponent() {
