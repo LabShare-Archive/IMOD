@@ -17,6 +17,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.UIComponent;
 import etomo.util.Utilities;
 
 /**
@@ -209,7 +210,7 @@ import etomo.util.Utilities;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-final class LabeledTextField implements UIComponent {
+final class LabeledTextField implements UIComponent, SwingComponent {
   public static final String rcsid = "$Id$";
 
   private final JPanel panel = new JPanel();
@@ -432,6 +433,10 @@ final class LabeledTextField implements UIComponent {
     else {
       textField.setBackground(Colors.BACKGROUND);
     }
+  }
+
+  public SwingComponent getUIComponent() {
+    return this;
   }
 
   public Component getComponent() {
