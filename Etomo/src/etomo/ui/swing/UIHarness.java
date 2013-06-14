@@ -13,7 +13,9 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
+import etomo.ui.UIComponent;
 import etomo.util.UniqueKey;
 
 /**
@@ -79,6 +81,16 @@ public final class UIHarness {
     }
   }
 
+  private Component getComponent(final UIComponent uiComponent) {
+    if (uiComponent != null) {
+      SwingComponent swingComponent = uiComponent.getUIComponent();
+      if (swingComponent != null) {
+        return swingComponent.getComponent();
+      }
+    }
+    return null;
+  }
+
   /**
    * Open a message dialog
    * @param message
@@ -88,7 +100,8 @@ public final class UIHarness {
       final UIComponent uiComponent, final String message, final String title,
       final AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
-      getFrame(manager).displayMessage(manager, uiComponent, message, title, axisID);
+      getFrame(manager).displayMessage(manager, getComponent(uiComponent), message,
+          title, axisID);
     }
     else {
       log(message, title, axisID);
@@ -98,7 +111,43 @@ public final class UIHarness {
   public synchronized void openMessageDialog(final UIComponent uiComponent,
       final String message, final String title) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
-      getFrame(null).displayMessage(null, uiComponent, message, title, null);
+      getFrame(null)
+          .displayMessage(null, getComponent(uiComponent), message, title, null);
+    }
+    else {
+      log(message, title, null);
+    }
+  }
+
+  public void openProblemValueMessageDialog(final UIComponent uiComponent,
+      final String problem, final String paramName, final String paramDescr,
+      final String fieldLabel, final String problemValue, final String replacementValue,
+      final String replacementValueDescr) {
+    openWarningMessageDialog(uiComponent, problem + " '" + paramName + "' parameter "
+        + (paramDescr != null ? paramDescr : "") + " value '" + problemValue + "'.  The "
+        + problem.toLowerCase() + " value will be replaced with "
+        + (replacementValueDescr != null ? "'" + replacementValueDescr + "': " : "")
+        + " '" + replacementValue + "'.  See the '" + fieldLabel + "' field.", problem
+        + " Value");
+  }
+
+  public void openProblemValueMessageDialog(final UIComponent uiComponent,
+      final String problem, final String paramName, final String fieldLabel,
+      final String problemValue, final ConstEtomoNumber replacementValue,
+      final String replacementValueDescr) {
+    openWarningMessageDialog(uiComponent, problem + " '" + paramName
+        + "' parameter value '" + problemValue + "'.  The " + problem.toLowerCase()
+        + " value will be replaced with "
+        + (replacementValueDescr != null ? "'" + replacementValueDescr + "': " : "")
+        + " '" + replacementValue + "'.  See the '" + fieldLabel + "' field.", problem
+        + " Value");
+  }
+
+  private synchronized void openWarningMessageDialog(final UIComponent uiComponent,
+      final String message, final String title) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
+      getFrame(null).displayWarningMessage(null, getComponent(uiComponent), message,
+          title, null);
     }
     else {
       log(message, title, null);
@@ -108,7 +157,8 @@ public final class UIHarness {
   public synchronized void openMessageDialog(final UIComponent uiComponent,
       final String[] message, final String title) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
-      getFrame(null).displayMessage(null, uiComponent, message, title, null);
+      getFrame(null)
+          .displayMessage(null, getComponent(uiComponent), message, title, null);
     }
     else {
       log(message, title, null);
@@ -434,7 +484,7 @@ public final class UIHarness {
         fileChooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
       }
       else {
-        //restore to defaults
+        // restore to defaults
         fileChooser.resetChoosableFileFilters();
         fileChooser.setDialogTitle(FileChooser.DEFAULT_TITLE);
         fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
