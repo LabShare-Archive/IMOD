@@ -18,6 +18,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.UIComponent;
 import etomo.util.Utilities;
 
 /**
@@ -63,7 +64,7 @@ import etomo.util.Utilities;
  * <p> bug# 1311 A checkbox which enables/disables a text field.
  * <p> </p>
  */
-final class CheckTextField implements UIComponent {
+final class CheckTextField implements UIComponent, SwingComponent {
   public static final String rcsid = "$Id$";
 
   private final JPanel pnlRoot = new JPanel();
@@ -231,6 +232,10 @@ final class CheckTextField implements UIComponent {
     return checkBox.isSelected();
   }
 
+  public SwingComponent getUIComponent() {
+    return this;
+  }
+
   public Component getComponent() {
     return pnlRoot;
   }
@@ -238,7 +243,7 @@ final class CheckTextField implements UIComponent {
   String getText(final boolean doValidation) throws FieldValidationFailedException {
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
-      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel(),false);
+      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel(), false);
     }
     return text;
   }
