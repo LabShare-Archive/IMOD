@@ -46,6 +46,7 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SlicerAngles;
+import etomo.ui.UIComponent;
 import etomo.ui.swing.Deferred3dmodButton;
 import etomo.ui.swing.JoinDialog;
 import etomo.ui.swing.LogInterface;
@@ -53,7 +54,6 @@ import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainJoinPanel;
 import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.ProcessDisplay;
-import etomo.ui.swing.UIComponent;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
