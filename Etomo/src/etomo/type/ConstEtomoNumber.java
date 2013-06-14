@@ -372,6 +372,7 @@ public abstract class ConstEtomoNumber implements Storable {
   // internal validation result
   StringBuffer invalidReason = null;
   private boolean debug = false;
+  private boolean valueAltered = false;
 
   /**
    * Construct a ConstEtomoNumber with type = INTEGER_TYPE
@@ -519,6 +520,7 @@ public abstract class ConstEtomoNumber implements Storable {
   Number applyCeilingValue(Number value) {
     if (value != null && !isNull(ceilingValue) && !isNull(value)
         && gt(value, ceilingValue)) {
+      valueAltered = true;
       return newNumber(ceilingValue);
     }
     return value;
@@ -532,6 +534,7 @@ public abstract class ConstEtomoNumber implements Storable {
    */
   Number applyFloorValue(Number value) {
     if (value != null && !isNull(floorValue) && !isNull(value) && lt(value, floorValue)) {
+      valueAltered = true;
       return newNumber(floorValue);
     }
     return value;
@@ -543,6 +546,17 @@ public abstract class ConstEtomoNumber implements Storable {
    */
   public boolean isValid() {
     return invalidReason == null;
+  }
+
+  /**
+   * Returns true if the value that was set by another class has been altered internally
+   * by this class (or EtomoNumber).  This functionality currently ignores alteration
+   * because of an unparsable value.  When the ceiling and floor functionality cause the
+   * externally set value to change, this function will return true.
+   * @return true if the value that was set has been altered internally
+   */
+  public boolean isValueAltered() {
+    return valueAltered;
   }
 
   /**
@@ -863,7 +877,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public ConstEtomoNumber setNullIsValid(boolean nullIsValid) {
-    resetInvalidReason();
+    resetState();
     this.nullIsValid = nullIsValid;
     setInvalidReason();
     return this;
@@ -876,7 +890,7 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   public ConstEtomoNumber setValidValues(int[] validValues) {
-    resetInvalidReason();
+    resetState();
     if (validValues == null || validValues.length == 0) {
       this.validValues = null;
     }
@@ -901,7 +915,7 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   public ConstEtomoNumber setValidFloor(int validFloor) {
-    resetInvalidReason();
+    resetState();
     this.validFloor = newNumber(validFloor);
     setInvalidReason();
     return this;
@@ -1284,8 +1298,9 @@ public abstract class ConstEtomoNumber implements Storable {
     return buffer.toString();
   }
 
-  void resetInvalidReason() {
+  void resetState() {
     invalidReason = null;
+    valueAltered = false;
   }
 
   void addInvalidReason(String message) {
