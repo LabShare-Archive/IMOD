@@ -12,7 +12,7 @@ import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.ViewType;
-import etomo.ui.swing.UIComponent;
+import etomo.ui.UIComponent;
 import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
 
