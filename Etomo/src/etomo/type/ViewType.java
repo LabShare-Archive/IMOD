@@ -67,6 +67,10 @@ public class ViewType implements EnumeratedType {
     return this == DEFAULT;
   }
 
+  public String getLabel() {
+    return null;
+  }
+
   /**
    * Takes a string representation of an ViewType type and returns the correct
    * static object.  The string is case insensitive.  Null is returned if the
