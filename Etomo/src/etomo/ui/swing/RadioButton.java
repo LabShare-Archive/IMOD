@@ -72,6 +72,35 @@ final class RadioButton implements RadioButtonInterface {
     }
   }
 
+  RadioButton(final EnumeratedType enumeratedType, ButtonGroup group) {
+    String text = enumeratedType.getLabel();
+    radioButton = new JRadioButton(text);
+    radioButton.setModel(new RadioButtonModel(this));
+    setName(text);
+    this.enumeratedType = enumeratedType;
+    if (group != null) {
+      group.add(radioButton);
+    }
+    if (enumeratedType != null && enumeratedType.isDefault()) {
+      radioButton.setSelected(true);
+    }
+  }
+
+  RadioButton(final EnumeratedType enumeratedType, ButtonGroup group,
+      final String addToLabel) {
+    String text = enumeratedType.getLabel() + (addToLabel != null ? addToLabel : "");
+    radioButton = new JRadioButton(text);
+    radioButton.setModel(new RadioButtonModel(this));
+    setName(text);
+    this.enumeratedType = enumeratedType;
+    if (group != null) {
+      group.add(radioButton);
+    }
+    if (enumeratedType != null && enumeratedType.isDefault()) {
+      radioButton.setSelected(true);
+    }
+  }
+
   public String toString() {
     return radioButton.getText() + ": " + (radioButton.isSelected() ? "On" : "Off");
   }
