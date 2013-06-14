@@ -11,7 +11,7 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.DataFileType;
 import etomo.type.ViewType;
-import etomo.ui.swing.UIComponent;
+import etomo.ui.UIComponent;
 import etomo.ui.swing.UIHarness;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
