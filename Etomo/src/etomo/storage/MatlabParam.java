@@ -2,6 +2,7 @@ package etomo.storage;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -28,6 +29,7 @@ import etomo.type.ParsedElement;
 import etomo.type.ParsedList;
 import etomo.type.ParsedNumber;
 import etomo.type.ParsedQuotedString;
+import etomo.ui.UIComponent;
 import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 
@@ -314,7 +316,6 @@ public final class MatlabParam {
   public static final int REFERENCE_FLG_FAIR_REFERENCE_PARTICLES_DEFAULT = 10;
   public static final String FN_VOLUME_KEY = "fnVolume";
   public static final String FN_MOD_PARTICLE_KEY = "fnModParticle";
-  public static final String INIT_MOTL_KEY = "initMOTL";
   public static final String TILT_RANGE_KEY = "tiltRange";
   /**
    * @deprecated
@@ -326,8 +327,11 @@ public final class MatlabParam {
   public static final int Z_INDEX = 2;
   public static final String FN_OUTPUT_KEY = "fnOutput";
   public static final String D_PHI_KEY = "dPhi";
+  public static final String D_PHI_LABEL = "Phi";
   public static final String D_THETA_KEY = "dTheta";
+  public static final String D_THETA_LABEL = "Theta";
   public static final String D_PSI_KEY = "dPsi";
+  public static final String D_PSI_LABEL = "Psi";
   public static final String SEARCH_RADIUS_KEY = "searchRadius";
   public static final String LOW_CUTOFF_KEY = "lowCutoff";
   public static final String LOW_CUTOFF_DEFAULT = "0";
@@ -354,7 +358,6 @@ public final class MatlabParam {
   public static final int PARTICLE_PER_CPU_MIN = 1;
   public static final int PARTICLE_PER_CPU_MAX = 50;
   public static final int PARTICLE_PER_CPU_DEFAULT = 5;
-  public static final String YAXIS_TYPE_KEY = "yaxisType";
   /**
    * @deprecated replaced by yaxisObject and yaxisContour.
    */
@@ -363,7 +366,6 @@ public final class MatlabParam {
   public static final String YAXIS_CONTOUR_NUM_KEY = "yaxisContourNum";
   public static final String FLG_WEDGE_WEIGHT_KEY = "flgWedgeWeight";
   public static final boolean FLG_WEDGE_WEIGHT_DEFAULT = false;
-  public static final String SAMPLE_SPHERE_KEY = "sampleSphere";
   public static final String SAMPLE_INTERVAL_KEY = "sampleInterval";
   public static final String MASK_TYPE_KEY = "maskType";
   public static final String MASK_MODEL_PTS_KEY = "maskModelPts";
@@ -418,7 +420,7 @@ public final class MatlabParam {
   private final ParsedNumber flgWedgeWeight = ParsedNumber
       .getMatlabInstance(FLG_WEDGE_WEIGHT_KEY);
   private final ParsedQuotedString sampleSphere = ParsedQuotedString
-      .getInstance(SAMPLE_SPHERE_KEY);
+      .getInstance(SampleSphere.KEY);
   private final ParsedNumber sampleInterval = ParsedNumber.getMatlabInstance(
       EtomoNumber.Type.DOUBLE, SAMPLE_INTERVAL_KEY);
   private final ParsedQuotedString maskType = ParsedQuotedString
@@ -485,7 +487,8 @@ public final class MatlabParam {
   /**
    * Reads data from the .prm autodoc.
    */
-  public synchronized boolean read(BaseManager manager, final List<String> errorList) {
+  public synchronized boolean read(BaseManager manager, final List<String> errorList,
+      final UIComponent component) {
     clear();
     // if newFile is on, either there is no file, or the user doesn't want to read it
     if (newFile) {
@@ -499,7 +502,7 @@ public final class MatlabParam {
             "Unable to read " + file.getAbsolutePath() + ".", "File Error");
         return false;
       }
-      parseData(autodoc, errorList);
+      parseData(autodoc, errorList, component);
       if (errorList != null && !errorList.isEmpty()) {
         return false;
       }
@@ -774,6 +777,10 @@ public final class MatlabParam {
     this.alignedBaseName.setRawString(alignedBaseName);
   }
 
+  public String getAlignedBaseName() {
+    return alignedBaseName.getRawString();
+  }
+
   public void resetAlignedBaseName() {
     this.alignedBaseName.clear();
   }
@@ -843,8 +850,8 @@ public final class MatlabParam {
     return yaxisContourNum.getRawString();
   }
 
-  public SampleSphere getSampleSphere() {
-    return SampleSphere.getInstance(sampleSphere.getRawString());
+  public SampleSphere getSampleSphere(final UIComponent component) {
+    return SampleSphere.getInstance(sampleSphere.getRawString(), component);
   }
 
   public String getMaskType() {
@@ -1162,9 +1169,10 @@ public final class MatlabParam {
    * Called by read().  Parses data from the the file.
    * @param autodoc
    */
-  private void parseData(final ReadOnlyAutodoc autodoc, final List<String> errorList) {
-    parseVolumeData(autodoc, errorList);
-    parseIterationData(autodoc, errorList);
+  private void parseData(final ReadOnlyAutodoc autodoc, final List<String> errorList,
+      final UIComponent component) {
+    parseVolumeData(autodoc, errorList, component);
+    parseIterationData(autodoc, errorList, component);
     String error = null;
     // reference
     ReadOnlyAttribute attribute = autodoc.getAttribute(REFERENCE_KEY);
@@ -1206,7 +1214,7 @@ public final class MatlabParam {
     debugLevel.parse(autodoc.getAttribute(DEBUG_LEVEL_KEY));
     addError(debugLevel, errorList);
     // YaxisType
-    yAxisType = YAxisType.getInstance(autodoc.getAttribute(YAXIS_TYPE_KEY));
+    yAxisType = YAxisType.getInstance(autodoc.getAttribute(YAxisType.KEY), component);
     // YaxisObjectNum
     yaxisObjectNum.parse(autodoc.getAttribute(YAXIS_OBJECT_NUM_KEY));
     addError(yaxisObjectNum, errorList);
@@ -1217,7 +1225,7 @@ public final class MatlabParam {
     flgWedgeWeight.parse(autodoc.getAttribute(FLG_WEDGE_WEIGHT_KEY));
     addError(flgWedgeWeight, errorList);
     // sampleSphere
-    sampleSphere.parse(autodoc.getAttribute(SAMPLE_SPHERE_KEY));
+    sampleSphere.parse(autodoc.getAttribute(SampleSphere.KEY));
     addError(sampleSphere, errorList);
     // sampleInterval
     sampleInterval.parse(autodoc.getAttribute(SAMPLE_INTERVAL_KEY));
@@ -1271,7 +1279,8 @@ public final class MatlabParam {
    * Parses data from the the file.
    * @param autodoc
    */
-  private void parseVolumeData(final ReadOnlyAutodoc autodoc, final List<String> errorList) {
+  private void parseVolumeData(final ReadOnlyAutodoc autodoc,
+      final List<String> errorList, final UIComponent component) {
     volumeList.clear();
     int size = 0;
     String error = null;
@@ -1293,16 +1302,16 @@ public final class MatlabParam {
     size = Math.max(size, fnModParticle.size());
     // initMOTL
     ParsedList initMotlFile = null;
-    ReadOnlyAttribute attribute = autodoc.getAttribute(INIT_MOTL_KEY);
+    ReadOnlyAttribute attribute = autodoc.getAttribute(InitMotlCode.KEY);
     if (ParsedList.isList(attribute)) {
       initMotlCode = null;
-      initMotlFile = ParsedList.getStringInstance(INIT_MOTL_KEY);
+      initMotlFile = ParsedList.getStringInstance(InitMotlCode.KEY);
       initMotlFile.parse(attribute);
       addError(initMotlFile, errorList);
       size = Math.max(size, initMotlFile.size());
     }
     else {
-      initMotlCode = InitMotlCode.getInstance(attribute);
+      initMotlCode = InitMotlCode.getInstance(attribute, component);
     }
     // tiltRange
     ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
@@ -1335,7 +1344,7 @@ public final class MatlabParam {
    * @param autodoc
    */
   private void parseIterationData(final ReadOnlyAutodoc autodoc,
-      final List<String> errorList) {
+      final List<String> errorList, final UIComponent component) {
     iterationList.clear();
     int size = 0;
     // dPhi
@@ -1390,9 +1399,9 @@ public final class MatlabParam {
     // add elements to iterationList
     for (int i = 0; i < size; i++) {
       Iteration iteration = new Iteration();
-      iteration.setDPhi(dPhi.getElement(i));
-      iteration.setDTheta(dTheta.getElement(i));
-      iteration.setDPsi(dPsi.getElement(i));
+      iteration.setDPhi(dPhi.getElement(i), component);
+      iteration.setDTheta(dTheta.getElement(i), component);
+      iteration.setDPsi(dPsi.getElement(i), component);
       iteration.setSearchRadius(searchRadius.getElement(i));
       iteration.setLowCutoff(lowCutoff.getElement(i));
       iteration.setHiCutoff(hiCutoff.getElement(i));
@@ -1433,7 +1442,7 @@ public final class MatlabParam {
       valueMap.put(EDGE_SHIFT_KEY, edgeShift.getParsableString());
     }
     if (initMotlCode != null) {
-      valueMap.put(INIT_MOTL_KEY, initMotlCode.toString());
+      valueMap.put(InitMotlCode.KEY, initMotlCode.toString());
     }
     valueMap.put(ALIGNED_BASE_NAME_KEY, alignedBaseName.getParsableString());
     valueMap.put(DEBUG_LEVEL_KEY, debugLevel.getParsableString());
@@ -1441,11 +1450,11 @@ public final class MatlabParam {
     valueMap.put(REF_FLAG_ALL_TOM_KEY, refFlagAllTom.getParsableString());
     valueMap.put(LST_FLAG_ALL_TOM_KEY, lstFlagAllTom.getParsableString());
     valueMap.put(PARTICLE_PER_CPU_KEY, particlePerCpu.getParsableString());
-    valueMap.put(YAXIS_TYPE_KEY, yAxisType.toString());
+    valueMap.put(YAxisType.KEY, yAxisType.toString());
     valueMap.put(YAXIS_OBJECT_NUM_KEY, yaxisObjectNum.getParsableString());
     valueMap.put(YAXIS_CONTOUR_NUM_KEY, yaxisContourNum.getParsableString());
     valueMap.put(FLG_WEDGE_WEIGHT_KEY, flgWedgeWeight.getParsableString());
-    valueMap.put(SAMPLE_SPHERE_KEY, sampleSphere.getParsableString());
+    valueMap.put(SampleSphere.KEY, sampleSphere.getParsableString());
     valueMap.put(SAMPLE_INTERVAL_KEY, sampleInterval.getParsableString());
     valueMap.put(MASK_TYPE_KEY, maskType.getParsableString());
     valueMap.put(MASK_MODEL_PTS_KEY, maskModelPts.getParsableString());
@@ -1475,7 +1484,7 @@ public final class MatlabParam {
     ParsedList fnModParticle = ParsedList.getStringInstance(FN_MOD_PARTICLE_KEY);
     ParsedList initMotlFile = null;
     if (initMotlCode == null) {
-      initMotlFile = ParsedList.getStringInstance(INIT_MOTL_KEY);
+      initMotlFile = ParsedList.getStringInstance(InitMotlCode.KEY);
     }
     ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
         TILT_RANGE_KEY);
@@ -1492,7 +1501,7 @@ public final class MatlabParam {
     valueMap.put(FN_VOLUME_KEY, fnVolume.getParsableString());
     valueMap.put(FN_MOD_PARTICLE_KEY, fnModParticle.getParsableString());
     if (initMotlCode == null) {
-      valueMap.put(INIT_MOTL_KEY, initMotlFile.getParsableString());
+      valueMap.put(InitMotlCode.KEY, initMotlFile.getParsableString());
     }
     if (tiltRangeEmpty) {
       tiltRange.clear();
@@ -1605,8 +1614,8 @@ public final class MatlabParam {
         (String) valueMap.get(LST_FLAG_ALL_TOM_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, PARTICLE_PER_CPU_KEY,
         (String) valueMap.get(PARTICLE_PER_CPU_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, YAXIS_TYPE_KEY,
-        (String) valueMap.get(YAXIS_TYPE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, YAxisType.KEY,
+        (String) valueMap.get(YAxisType.KEY), commentMap);
     removeNameValuePair(autodoc, YAXIS_CONTOUR_KEY);
     setNameValuePairValue(manager, autodoc, YAXIS_OBJECT_NUM_KEY,
         (String) valueMap.get(YAXIS_OBJECT_NUM_KEY), commentMap);
@@ -1614,8 +1623,8 @@ public final class MatlabParam {
         (String) valueMap.get(YAXIS_CONTOUR_NUM_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, FLG_WEDGE_WEIGHT_KEY,
         (String) valueMap.get(FLG_WEDGE_WEIGHT_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, SAMPLE_SPHERE_KEY,
-        (String) valueMap.get(SAMPLE_SPHERE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, SampleSphere.KEY,
+        (String) valueMap.get(SampleSphere.KEY), commentMap);
     setNameValuePairValue(manager, autodoc, SAMPLE_INTERVAL_KEY,
         (String) valueMap.get(SAMPLE_INTERVAL_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, MASK_TYPE_KEY,
@@ -1660,8 +1669,8 @@ public final class MatlabParam {
         (String) valueMap.get(FN_VOLUME_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, FN_MOD_PARTICLE_KEY,
         (String) valueMap.get(FN_MOD_PARTICLE_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, INIT_MOTL_KEY,
-        (String) valueMap.get(INIT_MOTL_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, InitMotlCode.KEY,
+        (String) valueMap.get(InitMotlCode.KEY), commentMap);
     setNameValuePairValue(manager, autodoc, TILT_RANGE_KEY,
         (String) valueMap.get(TILT_RANGE_KEY), commentMap);
   }
@@ -1790,19 +1799,28 @@ public final class MatlabParam {
   }
 
   public static final class InitMotlCode implements EnumeratedType {
-    public static final InitMotlCode ZERO = new InitMotlCode(0);
+    public static final InitMotlCode ZERO = new InitMotlCode(0, "Set all angles to 0");
     /**
      * @deprecated convert 1 to 2
      */
-    public static final InitMotlCode Z_AXIS = new InitMotlCode(1);
-    public static final InitMotlCode X_AND_Z_AXIS = new InitMotlCode(2);
-    public static final InitMotlCode RANDOM_ROTATIONS = new InitMotlCode(3);
-    public static final InitMotlCode RANDOM_AXIAL_ROTATIONS = new InitMotlCode(4);
+    public static final InitMotlCode Z_AXIS = new InitMotlCode(1, null);
+    public static final InitMotlCode X_AND_Z_AXIS = new InitMotlCode(2,
+        "Align particle Y axes");
+    public static final InitMotlCode RANDOM_ROTATIONS = new InitMotlCode(3,
+        "Uniform random rotations");
+    public static final InitMotlCode RANDOM_AXIAL_ROTATIONS = new InitMotlCode(4,
+        "Random axial (Y) rotations");
     public static final InitMotlCode DEFAULT = ZERO;
+
+    public static final String LABEL = "Initial Motive List";
+    public static final String KEY = "initMOTL";
 
     private final EtomoNumber value = new EtomoNumber();
 
-    private InitMotlCode(final int value) {
+    private final String label;
+
+    private InitMotlCode(final int value, final String label) {
+      this.label = label;
       this.value.set(value);
     }
 
@@ -1817,7 +1835,8 @@ public final class MatlabParam {
       return false;
     }
 
-    private static InitMotlCode getInstance(final ReadOnlyAttribute attribute) {
+    private static InitMotlCode getInstance(final ReadOnlyAttribute attribute,
+        final UIComponent component) {
       if (attribute == null) {
         return DEFAULT;
       }
@@ -1840,7 +1859,13 @@ public final class MatlabParam {
       if (RANDOM_AXIAL_ROTATIONS.value.equals(value)) {
         return RANDOM_AXIAL_ROTATIONS;
       }
+      UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", KEY, LABEL,
+          value, DEFAULT.value, DEFAULT.label);
       return DEFAULT;
+    }
+
+    public String getLabel() {
+      return label;
     }
 
     public ConstEtomoNumber getValue() {
@@ -1856,16 +1881,21 @@ public final class MatlabParam {
     private static final String VOLUME_VALUE = "DUMMY_VOLUME_VALUE";
     private static final String SPHERE_VALUE = "sphere";
     private static final String CYLINDER_VALUE = "cylinder";
-    public static final MaskType NONE = new MaskType(NONE_VALUE);
-    public static final MaskType VOLUME = new MaskType(VOLUME_VALUE);
-    public static final MaskType SPHERE = new MaskType(SPHERE_VALUE);
-    public static final MaskType CYLINDER = new MaskType(CYLINDER_VALUE);
+    public static final MaskType NONE = new MaskType(NONE_VALUE, "None");
+    public static final MaskType VOLUME = new MaskType(VOLUME_VALUE,
+        "User supplied binary file:");
+    public static final MaskType SPHERE = new MaskType(SPHERE_VALUE, "Sphere");
+    public static final MaskType CYLINDER = new MaskType(CYLINDER_VALUE, "Cylinder");
     private static final MaskType DEFAULT = NONE;
 
-    private final String value;
+    public static final String LABEL = "Masking";
 
-    private MaskType(final String value) {
+    private final String value;
+    private final String label;
+
+    private MaskType(final String value, final String label) {
       this.value = value;
+      this.label = label;
     }
 
     public String toString() {
@@ -1881,6 +1911,10 @@ public final class MatlabParam {
         return true;
       }
       return false;
+    }
+
+    public String getLabel() {
+      return label;
     }
 
     /**
@@ -1908,22 +1942,26 @@ public final class MatlabParam {
       }
       return VOLUME;
     }
-
   }
 
   public static final class SampleSphere implements EnumeratedType {
     private static final String NONE_VALUE = "none";
     private static final String FULL_VALUE = "full";
     private static final String HALF_VALUE = "half";
-    public static final SampleSphere NONE = new SampleSphere(NONE_VALUE);
-    public static final SampleSphere FULL = new SampleSphere(FULL_VALUE);
-    public static final SampleSphere HALF = new SampleSphere(HALF_VALUE);
+    public static final SampleSphere NONE = new SampleSphere(NONE_VALUE, "None");
+    public static final SampleSphere FULL = new SampleSphere(FULL_VALUE, "Full sphere");
+    public static final SampleSphere HALF = new SampleSphere(HALF_VALUE, "Half sphere");
     private static final SampleSphere DEFAULT = NONE;
 
-    private final String value;
+    public static final String LABEL = "Spherical Sampling for Theta and Psi";
+    private static final String KEY = "sampleSphere";
 
-    private SampleSphere(final String value) {
+    private final String value;
+    private final String label;
+
+    private SampleSphere(final String value, final String label) {
       this.value = value;
+      this.label = label;
     }
 
     public String toString() {
@@ -1934,6 +1972,10 @@ public final class MatlabParam {
       return null;
     }
 
+    public String getLabel() {
+      return label;
+    }
+
     public boolean isDefault() {
       if (this == DEFAULT) {
         return true;
@@ -1941,7 +1983,8 @@ public final class MatlabParam {
       return false;
     }
 
-    private static SampleSphere getInstance(final String value) {
+    private static SampleSphere getInstance(final String value,
+        final UIComponent component) {
       if (value == null) {
         return DEFAULT;
       }
@@ -1954,6 +1997,8 @@ public final class MatlabParam {
       if (HALF_VALUE.equals(value)) {
         return HALF;
       }
+      UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", KEY, null,
+          LABEL, value, DEFAULT.value, null);
       return DEFAULT;
     }
   }
@@ -1963,19 +2008,30 @@ public final class MatlabParam {
     private static final EtomoNumber PARTICLE_MODEL_VALUE = new EtomoNumber().set(1);
     private static final EtomoNumber CONTOUR_VALUE = new EtomoNumber().set(2);
 
-    public static final YAxisType Y_AXIS = new YAxisType(Y_AXIS_VALUE);
-    public static final YAxisType PARTICLE_MODEL = new YAxisType(PARTICLE_MODEL_VALUE);
-    public static final YAxisType CONTOUR = new YAxisType(CONTOUR_VALUE);
+    public static final YAxisType Y_AXIS = new YAxisType(Y_AXIS_VALUE, "Tomogram Y axis");
+    public static final YAxisType PARTICLE_MODEL = new YAxisType(PARTICLE_MODEL_VALUE,
+        "Particle model points");
+    public static final YAxisType CONTOUR = new YAxisType(CONTOUR_VALUE,
+        "End points of contour");
     public static final YAxisType DEFAULT = Y_AXIS;
 
-    private final ConstEtomoNumber value;
+    public static final String LABEL = "Particle Y Axis";
+    public static final String KEY = "yaxisType";
 
-    private YAxisType(final ConstEtomoNumber value) {
+    private final ConstEtomoNumber value;
+    private final String label;
+
+    private YAxisType(final ConstEtomoNumber value, final String label) {
       this.value = value;
+      this.label = label;
     }
 
     public boolean isDefault() {
       return this == DEFAULT;
+    }
+
+    public String getLabel() {
+      return label;
     }
 
     public String toString() {
@@ -1986,7 +2042,8 @@ public final class MatlabParam {
       return null;
     }
 
-    private static YAxisType getInstance(final ReadOnlyAttribute attribute) {
+    private static YAxisType getInstance(final ReadOnlyAttribute attribute,
+        final UIComponent component) {
       if (attribute == null) {
         return DEFAULT;
       }
@@ -2003,6 +2060,8 @@ public final class MatlabParam {
       if (CONTOUR_VALUE.equals(value)) {
         return CONTOUR;
       }
+      UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", KEY, LABEL,
+          value, DEFAULT.value, DEFAULT.label);
       return DEFAULT;
     }
   }
@@ -2022,7 +2081,7 @@ public final class MatlabParam {
     private final ParsedQuotedString fnModParticle = ParsedQuotedString
         .getInstance(FN_MOD_PARTICLE_KEY);
     private final ParsedQuotedString initMotl = ParsedQuotedString
-        .getInstance(INIT_MOTL_KEY);
+        .getInstance(InitMotlCode.KEY);
 
     private final BaseManager manager;
     private final AxisID axisID;
@@ -2176,8 +2235,33 @@ public final class MatlabParam {
       return descriptor.getRawStringEnd();
     }
 
-    private void set(final ParsedElement input) {
+    private void set(final ParsedElement input, final String key, final String label,
+        final UIComponent component) {
       descriptor.set(input);
+      if (descriptor.validate() == null) {
+        checkStart(descriptor.getStart(), descriptor.getEnd(), key, label, component);
+      }
+    }
+
+    /**
+     * Popup a warning if start*-1 != end
+     * @param start
+     * @param end
+     * @param component
+     */
+    private void checkStart(final ParsedElement start, final ParsedElement end,
+        final String key, final String label, final UIComponent component) {
+      if (start == null || start.isEmpty() || end == null || end.isEmpty()) {
+        // ignore validation errors
+        return;
+      }
+      BigDecimal bdStart = new BigDecimal(start.getRawString());
+      BigDecimal bdEnd = new BigDecimal(end.getRawString());
+      if (bdStart.multiply(new BigDecimal(-1)).compareTo(bdEnd) != 0) {
+        UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Incorrect", key,
+            "start", label, bdStart.toString(), bdEnd.multiply(new BigDecimal(-1))
+                .toString(), "end x -1");
+      }
     }
 
     private ParsedElement getParsedElement() {
@@ -2322,16 +2406,16 @@ public final class MatlabParam {
       return duplicateAngularTolerance.getRawString();
     }
 
-    private void setDPhi(final ParsedElement input) {
-      dPhi.set(input);
+    private void setDPhi(final ParsedElement input, final UIComponent component) {
+      dPhi.set(input, D_PHI_KEY, D_PHI_LABEL, component);
     }
 
-    private void setDTheta(final ParsedElement input) {
-      dTheta.set(input);
+    private void setDTheta(final ParsedElement input, final UIComponent component) {
+      dTheta.set(input, D_THETA_KEY, D_THETA_LABEL, component);
     }
 
-    private void setDPsi(final ParsedElement input) {
-      dPsi.set(input);
+    private void setDPsi(final ParsedElement input, final UIComponent component) {
+      dPsi.set(input, D_PSI_KEY, D_PSI_LABEL, component);
     }
 
     private ParsedElement getDPhi() {
