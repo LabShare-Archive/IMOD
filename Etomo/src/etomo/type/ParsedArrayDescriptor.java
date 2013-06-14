@@ -261,6 +261,25 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
     super.setRawString(index, string);
   }
 
+  public ParsedElement getStart() {
+    int size = descriptor.size();
+    if (size > 0) {
+      return descriptor.get(START_INDEX);
+    }
+    return null;
+  }
+
+  public ParsedElement getEnd() {
+    int size = descriptor.size();
+    if (size == NO_INCREMENT_SIZE) {
+      return descriptor.get(INCREMENT_INDEX);
+    }
+    if (size == MAX_SIZE) {
+      return descriptor.get(END_INDEX);
+    }
+    return null;
+  }
+
   public String validate() {
     for (int i = 0; i < descriptor.size(); i++) {
       ParsedElement element = descriptor.get(i);
@@ -272,12 +291,19 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
         return errorMessage;
       }
     }
-    if (descriptor.size() < NO_INCREMENT_SIZE || descriptor.size() > MAX_SIZE) {
+    int size = descriptor.size();
+    if (size < NO_INCREMENT_SIZE || size > MAX_SIZE) {
       return "Array descriptors can contain either " + NO_INCREMENT_SIZE + " or "
           + MAX_SIZE + " elements.";
     }
     ParsedElement start = descriptor.get(START_INDEX);
-    ParsedElement end = descriptor.get(END_INDEX);
+    ParsedElement end;
+    if (size > NO_INCREMENT_SIZE) {
+      end = descriptor.get(END_INDEX);
+    }
+    else {
+      end = descriptor.get(INCREMENT_INDEX);
+    }
     if (start == null || start.isEmpty() || end == null || end.isEmpty()) {
       return "Array descriptors must contain at least a start and an end.";
     }
