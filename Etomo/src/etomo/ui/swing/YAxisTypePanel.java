@@ -53,17 +53,16 @@ import etomo.type.Run3dmodMenuOptions;
 final class YAxisTypePanel {
   public static final String rcsid = "$Id$";
 
-  private static final String Y_AXIS_TYPE_LABEL = "Particle Y Axis";
   private static final String Y_AXIS_CONTOUR_LABEL = "End points of contour";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final ButtonGroup bgYAxisType = new ButtonGroup();
-  private final RadioButton rbYAxisTypeYAxis = new RadioButton("Tomogram Y axis",
+  private final RadioButton rbYAxisTypeYAxis = new RadioButton(
       MatlabParam.YAxisType.Y_AXIS, bgYAxisType);
   private final RadioButton rbYAxisTypeParticleModel = new RadioButton(
-      "Particle model points", MatlabParam.YAxisType.PARTICLE_MODEL, bgYAxisType);
-  private final RadioButton rbYAxisTypeContour = new RadioButton(Y_AXIS_CONTOUR_LABEL
-      + ":  ", MatlabParam.YAxisType.CONTOUR, bgYAxisType);
+      MatlabParam.YAxisType.PARTICLE_MODEL, bgYAxisType);
+  private final RadioButton rbYAxisTypeContour = new RadioButton(
+      MatlabParam.YAxisType.CONTOUR, bgYAxisType, ":  ");
 
   private final YAxisTypeParent parent;
   private final BaseManager manager;
@@ -92,9 +91,9 @@ final class YAxisTypePanel {
   private void createPanel() {
     // local panels
     JPanel pnlYAxisContour = new JPanel();
-    SpacedPanel pnlYaxisType =  SpacedPanel.getInstance();
+    SpacedPanel pnlYaxisType = SpacedPanel.getInstance();
     pnlRoot.setBoxLayout(BoxLayout.X_AXIS);
-    pnlRoot.setBorder(new EtchedBorder(Y_AXIS_TYPE_LABEL).getBorder());
+    pnlRoot.setBorder(new EtchedBorder(MatlabParam.YAxisType.LABEL).getBorder());
     pnlRoot.add(pnlYaxisType);
     pnlRoot.add(Box.createRigidArea(FixedDim.x197_y0));
     // YaxisType
@@ -177,13 +176,10 @@ final class YAxisTypePanel {
       e.printStackTrace();
     }
     ReadOnlySection section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-        MatlabParam.YAXIS_TYPE_KEY);
-    rbYAxisTypeYAxis
-        .setToolTipText(section);
-    rbYAxisTypeParticleModel
-        .setToolTipText(section);
-    rbYAxisTypeContour
-        .setToolTipText(section);
+        MatlabParam.YAxisType.KEY);
+    rbYAxisTypeYAxis.setToolTipText(section);
+    rbYAxisTypeParticleModel.setToolTipText(section);
+    rbYAxisTypeContour.setToolTipText(section);
   }
 
   private static final class YAxisTypeActionListener implements ActionListener {
