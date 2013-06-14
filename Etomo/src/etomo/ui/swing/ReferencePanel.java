@@ -21,9 +21,11 @@ import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.EtomoAutodoc;
+import etomo.type.EtomoNumber;
 import etomo.type.PeetMetaData;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.UIComponent;
 import etomo.util.FilePath;
 
 /**
@@ -59,24 +61,25 @@ import etomo.util.FilePath;
  * <p> bug# 1282 Reference panel factored out of PeetDialog.
  * <p> </p>
  */
-final class ReferencePanel {
+final class ReferencePanel implements UIComponent, SwingComponent {
   public static final String rcsid = "$Id$";
 
   private static final String TITLE = "Reference";
   private static final String REFERENCE_FILE_LABEL = "User supplied file: ";
-  private static final String MULTIPARTICLE_LABEL = "Multiparticle reference with";
+  private static final String MULTIPARTICLE_LABEL = "Multiparticle reference";
+  private static final String MULTIPARTICLE_BUTTON_LABEL = MULTIPARTICLE_LABEL + " with";
 
   private final EtomoPanel pnlRoot = new EtomoPanel();
   private final ButtonGroup bgReference = new ButtonGroup();
   private final RadioTextField rtfParticle = RadioTextField.getInstance(
-      FieldType.INTEGER, "Particle ", bgReference,PeetDialog.SETUP_LOCATION_DESCR);
+      FieldType.INTEGER, "Particle ", bgReference, PeetDialog.SETUP_LOCATION_DESCR);
   private final Spinner sVolume = Spinner.getLabeledInstance("In Volume: ");
   private final RadioButton rbFile = new RadioButton(REFERENCE_FILE_LABEL, bgReference);
   private final FileTextField2 ftfFile;
-  private final RadioButton rbMultiparticle = new RadioButton(MULTIPARTICLE_LABEL,
+  private final RadioButton rbMultiparticle = new RadioButton(MULTIPARTICLE_BUTTON_LABEL,
       bgReference);
   private final ComboBox cmbMultiparticle = ComboBox
-      .getUnlabeledInstance(MULTIPARTICLE_LABEL);
+      .getUnlabeledInstance(MULTIPARTICLE_BUTTON_LABEL);
   private final JLabel lMultiparticle = new JLabel("particles");
 
   private final ReferenceParent parent;
@@ -143,7 +146,11 @@ final class ReferencePanel {
     pnlMultiparticle.add(lMultiparticle);
   }
 
-  Component getComponent() {
+  public SwingComponent getUIComponent() {
+    return this;
+  }
+
+  public Component getComponent() {
     return pnlRoot;
   }
 
@@ -215,8 +222,14 @@ final class ReferencePanel {
     }
     else if (matlabParam.isFlgFairReference()) {
       rbMultiparticle.setSelected(true);
-      cmbMultiparticle.setSelectedIndex(MultiparticleReference
-          .convertLevelToIndex(matlabParam.getReferenceLevel()));
+      String level = matlabParam.getReferenceLevel();
+      EtomoNumber index = new EtomoNumber();
+      if (!MultiparticleReference.convertLevelToIndex(level, index)) {
+        UIHarness.INSTANCE.openProblemValueMessageDialog(this, "Incorrect",
+            MatlabParam.REFERENCE_KEY, "level", MULTIPARTICLE_LABEL, level,
+            MultiparticleReference.convertIndexToLevel(index.getInt()), null);
+      }
+      cmbMultiparticle.setSelectedIndex(index.getInt());
     }
     else {
       rtfParticle.setSelected(true);
