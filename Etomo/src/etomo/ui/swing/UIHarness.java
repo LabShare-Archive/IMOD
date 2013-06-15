@@ -13,7 +13,6 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.type.AxisID;
-import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
 import etomo.ui.UIComponent;
 import etomo.util.UniqueKey;
@@ -123,24 +122,19 @@ public final class UIHarness {
       final String problem, final String paramName, final String paramDescr,
       final String fieldLabel, final String problemValue, final String replacementValue,
       final String replacementValueDescr) {
-    openWarningMessageDialog(uiComponent, problem + " '" + paramName + "' parameter "
-        + (paramDescr != null ? paramDescr : "") + " value '" + problemValue + "'.  The "
-        + problem.toLowerCase() + " value will be replaced with "
-        + (replacementValueDescr != null ? "'" + replacementValueDescr + "': " : "")
-        + " '" + replacementValue + "'.  See the '" + fieldLabel + "' field.", problem
-        + " Value");
-  }
-
-  public void openProblemValueMessageDialog(final UIComponent uiComponent,
-      final String problem, final String paramName, final String fieldLabel,
-      final String problemValue, final ConstEtomoNumber replacementValue,
-      final String replacementValueDescr) {
-    openWarningMessageDialog(uiComponent, problem + " '" + paramName
-        + "' parameter value '" + problemValue + "'.  The " + problem.toLowerCase()
-        + " value will be replaced with "
-        + (replacementValueDescr != null ? "'" + replacementValueDescr + "': " : "")
-        + " '" + replacementValue + "'.  See the '" + fieldLabel + "' field.", problem
-        + " Value");
+    openWarningMessageDialog(uiComponent, problem
+        + " '"
+        + paramName
+        + "' parameter "
+        + (paramDescr != null ? paramDescr : "")
+        + " value '"
+        + problemValue
+        + "'."
+        + (replacementValue != null ? "  The " + problem.toLowerCase()
+            + " value will be replaced with "
+            + (replacementValueDescr != null ? "'" + replacementValueDescr + "': " : "")
+            + " '" + replacementValue + "'." : "") + "  See the '" + fieldLabel
+        + "' field.", problem + " Value");
   }
 
   private synchronized void openWarningMessageDialog(final UIComponent uiComponent,
