@@ -9,7 +9,6 @@ import java.io.IOException;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-import javax.swing.SpinnerNumberModel;
 
 import etomo.AutoAlignmentController;
 import etomo.BaseManager;
@@ -62,8 +61,8 @@ public final class AutoAlignmentPanel {
       "Revert Auto Alignment to Midas");
   private final MultiLineButton btnRevertToEmpty = new MultiLineButton(
       "Revert to No Transforms");
-  private final LabeledSpinner spReduceByBinning = new LabeledSpinner("Binning: ",
-      new SpinnerNumberModel(2, 1, 50, 1), 1);
+  private final LabeledSpinner spReduceByBinning = LabeledSpinner.getDefaultedInstance(
+      "Binning: ", 2, 1, 50, 1, 1);
   private final LabeledTextField ltfSkipSectionsFrom1 = new LabeledTextField(
       FieldType.INTEGER_LIST, "Sections to skip: ");
   private final CheckBox cbPreCrossCorrelation = new CheckBox(
