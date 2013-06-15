@@ -9,7 +9,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SpinnerNumberModel;
 
 /**
  * <p>Description: </p>
@@ -60,8 +59,7 @@ final class BinnedXY3dmodButton {
   private JPanel panel = null;
 
   BinnedXY3dmodButton(String label, Run3dmodButtonContainer container) {
-    spBinningXY = new LabeledSpinner("Open binned by ", new SpinnerNumberModel(1, 1, 50,
-        1), 1);
+    spBinningXY = LabeledSpinner.getInstance("Open binned by ", 1, 1, 50, 1);
     this.label = new JLabel(" in X and Y");
     button = Run3dmodButton.get3dmodInstance(label, container);
   }

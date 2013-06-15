@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JPanel;
-import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
 import etomo.ProcessSeries;
@@ -61,9 +60,8 @@ abstract class NewstackOrBlendmont3dFindPanel implements Run3dmodButtonContainer
   private final JPanel pnlRoot = new JPanel();
   private final ActionListener actionListener = new NewstackOrBlendmont3dFindPanelActionListener(
       this);
-  private final LabeledSpinner spinBinning = new LabeledSpinner(
-      NewstackAndBlendmontParamPanel.BINNING_LABEL + ": ", new SpinnerNumberModel(1, 1,
-          8, 1), 1);
+  private final LabeledSpinner spinBinning = LabeledSpinner.getInstance(
+      NewstackAndBlendmontParamPanel.BINNING_LABEL + ": ", 1, 1, 8, 1);
   private final Run3dmodButton btn3dmodFull = Run3dmodButton.get3dmodInstance(
       "View Full Aligned Stack", this);
 
