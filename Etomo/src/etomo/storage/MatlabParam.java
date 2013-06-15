@@ -381,6 +381,7 @@ public final class MatlabParam {
   public static final String DUPLICATE_ANGULAR_TOLERANCE_KEY = "duplicateAngularTolerance";
   public static final String FLG_ALIGN_AVERAGES_KEY = "flgAlignAverages";
   public static final String FLG_FAIR_REFERENCE_KEY = "flgFairReference";
+  public static final String FLG_FAIR_REFERENCE_LABEL = "Multiparticle reference";
   public static final String FLG_ABS_VALUE_KEY = "flgAbsValue";
   public static final boolean FLG_ABS_VALUE_DEFAULT = true;
   public static final String FLG_STRICT_SEARCH_LIMITS_KEY = "flgStrictSearchLimits";
@@ -1147,13 +1148,21 @@ public final class MatlabParam {
     return lstThresholds.getRawStringsExceptFirstArrayDescriptor();
   }
 
-  private void addError(final ParsedElement element, final List<String> errorList) {
+  /**
+   * @param element
+   * @param errorList
+   * @return true if error found
+   */
+  private boolean addError(final ParsedElement element, final List<String> errorList) {
+    boolean retval = false;
     if (errorList != null) {
       String error = element.validate();
       if (error != null) {
         errorList.add(error);
+        retval = true;
       }
     }
+    return retval;
   }
 
   private void addError(final ParsedList list, final List<String> errorList) {
@@ -1253,7 +1262,10 @@ public final class MatlabParam {
     addError(flgAlignAverages, errorList);
     // flgFairReference
     flgFairReference.parse(autodoc.getAttribute(FLG_FAIR_REFERENCE_KEY));
-    addError(flgFairReference, errorList);
+    if (!addError(flgFairReference, errorList)) {
+      checkValue(flgFairReference, new int[] { 0, 1 }, component, FLG_FAIR_REFERENCE_KEY,
+          FLG_FAIR_REFERENCE_LABEL);
+    }
     // flgAbsValue
     flgAbsValue.parse(autodoc.getAttribute(FLG_ABS_VALUE_KEY));
     addError(flgAbsValue, errorList);
@@ -1263,6 +1275,22 @@ public final class MatlabParam {
     // selectClassID
     selectClassID.parse(autodoc.getAttribute(SELECT_CLASS_ID_KEY));
     addError(selectClassID, errorList);
+  }
+
+  void checkValue(final ParsedNumber number, final int[] expectedValues,
+      final UIComponent component, final String paramName, final String fieldLabel) {
+    if (expectedValues != null) {
+      boolean ok = false;
+      for (int i = 0; i < expectedValues.length; i++) {
+        if (number.equals(expectedValues[i])) {
+          ok = true;
+        }
+      }
+      if (!ok) {
+        UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", paramName,
+            null, fieldLabel, number.getRawString(), null, null);
+      }
+    }
   }
 
   public boolean validate(final boolean forRun) {
@@ -1859,8 +1887,8 @@ public final class MatlabParam {
       if (RANDOM_AXIAL_ROTATIONS.value.equals(value)) {
         return RANDOM_AXIAL_ROTATIONS;
       }
-      UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", KEY, LABEL,
-          value, DEFAULT.value, DEFAULT.label);
+      UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", KEY, null,
+          LABEL, value, DEFAULT.value.toString(), DEFAULT.label);
       return DEFAULT;
     }
 
@@ -2060,8 +2088,8 @@ public final class MatlabParam {
       if (CONTOUR_VALUE.equals(value)) {
         return CONTOUR;
       }
-      UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", KEY, LABEL,
-          value, DEFAULT.value, DEFAULT.label);
+      UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", KEY, null,
+          LABEL, value, DEFAULT.value.toString(), DEFAULT.label);
       return DEFAULT;
     }
   }
