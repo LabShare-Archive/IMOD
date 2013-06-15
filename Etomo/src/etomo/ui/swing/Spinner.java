@@ -101,14 +101,19 @@ final class Spinner {
   private final JSpinner spinner;
   private final Number defaultValue;
   private final boolean labeled;
+  private final int minimum;
 
   private SpinnerNumberModel model = null;
   private JPanel panel = null;
   private JLabel label = null;
 
+  private int maximum;
+
   private Spinner(final String text, final boolean labeled, final int value,
       final int minimum, final int maximum, int step) {
     this.labeled = labeled;
+    this.minimum = minimum;
+    this.maximum = maximum;
     model = new SpinnerNumberModel(value, minimum, maximum, step);
     spinner = new JSpinner(model);
     this.defaultValue = new Integer(value);
@@ -230,7 +235,24 @@ final class Spinner {
   }
 
   void setMax(final int max) {
+    maximum = max;
     model.setMaximum(new Integer(max));
+  }
+
+  /**
+   * @param value
+   * @return true if value empty or >= min and <= max (if max set)
+   */
+  boolean isInRange(final ParsedElement value) {
+    if (value == null || value.isEmpty()) {
+      return true;
+    }
+    Number rawNumber = value.getRawNumber();
+    if (rawNumber != null) {
+      int num = rawNumber.intValue();
+      return num >= minimum && (maximum <= minimum || num <= maximum);
+    }
+    return true;
   }
 
   void setValue(final ParsedElement value) {
@@ -255,6 +277,12 @@ final class Spinner {
     else {
       spinner.setValue(new Integer(value));
     }
+  }
+
+  void setValue(final String value) {
+    EtomoNumber nValue = new EtomoNumber();
+    nValue.set(value);
+    setValue(nValue);
   }
 
   void setValue(final ConstEtomoNumber value) {
