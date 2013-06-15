@@ -22,6 +22,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoNumber;
+import etomo.type.ParsedElement;
 import etomo.type.PeetMetaData;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
@@ -66,14 +67,14 @@ final class ReferencePanel implements UIComponent, SwingComponent {
 
   private static final String TITLE = "Reference";
   private static final String REFERENCE_FILE_LABEL = "User supplied file: ";
-  private static final String MULTIPARTICLE_LABEL = "Multiparticle reference";
-  private static final String MULTIPARTICLE_BUTTON_LABEL = MULTIPARTICLE_LABEL + " with";
+  private static final String MULTIPARTICLE_BUTTON_LABEL = MatlabParam.FLG_FAIR_REFERENCE_LABEL + " with";
+  private static final String VOLUME_LABEL = "In Volume";
 
   private final EtomoPanel pnlRoot = new EtomoPanel();
   private final ButtonGroup bgReference = new ButtonGroup();
   private final RadioTextField rtfParticle = RadioTextField.getInstance(
       FieldType.INTEGER, "Particle ", bgReference, PeetDialog.SETUP_LOCATION_DESCR);
-  private final Spinner sVolume = Spinner.getLabeledInstance("In Volume: ");
+  private final Spinner sVolume = Spinner.getLabeledInstance(VOLUME_LABEL + ": ");
   private final RadioButton rbFile = new RadioButton(REFERENCE_FILE_LABEL, bgReference);
   private final FileTextField2 ftfFile;
   private final RadioButton rbMultiparticle = new RadioButton(MULTIPARTICLE_BUTTON_LABEL,
@@ -226,14 +227,24 @@ final class ReferencePanel implements UIComponent, SwingComponent {
       EtomoNumber index = new EtomoNumber();
       if (!MultiparticleReference.convertLevelToIndex(level, index)) {
         UIHarness.INSTANCE.openProblemValueMessageDialog(this, "Incorrect",
-            MatlabParam.REFERENCE_KEY, "level", MULTIPARTICLE_LABEL, level,
+            MatlabParam.REFERENCE_KEY, "level", MatlabParam.FLG_FAIR_REFERENCE_LABEL, level,
             MultiparticleReference.convertIndexToLevel(index.getInt()), null);
       }
       cmbMultiparticle.setSelectedIndex(index.getInt());
     }
     else {
       rtfParticle.setSelected(true);
-      sVolume.setValue(matlabParam.getReferenceVolume());
+      ParsedElement element = matlabParam.getReferenceVolume();
+      if (sVolume.isInRange(element)) {
+        sVolume.setValue(element);
+      }
+      else {
+        String replacementValue = "1";
+        UIHarness.INSTANCE.openProblemValueMessageDialog(this, "Unknown",
+            MatlabParam.REFERENCE_KEY, null, VOLUME_LABEL, element.getRawString(),
+            replacementValue, null);
+        sVolume.setValue(replacementValue);
+      }
       rtfParticle.setText(matlabParam.getReferenceParticle());
     }
   }
