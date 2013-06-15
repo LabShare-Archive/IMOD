@@ -17,7 +17,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -475,10 +474,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final CheckBox cbLstFlagAllTom = new CheckBox("For average volumes");
   private final SpacedPanel pnlRunBody = SpacedPanel.getInstance(true);
   private final MultiLineButton btnRun = new MultiLineButton(RUN_LABEL);
-  private final LabeledSpinner lsParticlePerCPU = new LabeledSpinner(
-      "Particles per CPU: ", new SpinnerNumberModel(MatlabParam.PARTICLE_PER_CPU_DEFAULT,
-          MatlabParam.PARTICLE_PER_CPU_MIN, MatlabParam.PARTICLE_PER_CPU_MAX, 1),
-      MatlabParam.PARTICLE_PER_CPU_DEFAULT, 28);
+  private final LabeledSpinner lsParticlePerCPU = LabeledSpinner.getInstance(
+      "Particles per CPU: ", MatlabParam.PARTICLE_PER_CPU_DEFAULT,
+      MatlabParam.PARTICLE_PER_CPU_MIN, MatlabParam.PARTICLE_PER_CPU_MAX, 1, 28);
   private final IterationTable iterationTable;
   private final ButtonGroup bgInitMotl = new ButtonGroup();
   private final RadioButton rbInitMotlZero = new RadioButton(
@@ -491,10 +489,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       MatlabParam.InitMotlCode.RANDOM_AXIAL_ROTATIONS, bgInitMotl);
   private final RadioButton rbInitMotlFiles = new RadioButton("User supplied csv files",
       bgInitMotl);
-  private final LabeledSpinner lsDebugLevel = new LabeledSpinner("Debug level: ",
-      new SpinnerNumberModel(MatlabParam.DEBUG_LEVEL_DEFAULT,
-          MatlabParam.DEBUG_LEVEL_MIN, MatlabParam.DEBUG_LEVEL_MAX, 1),
-      MatlabParam.DEBUG_LEVEL_DEFAULT, 59);
+  private final LabeledSpinner lsDebugLevel = LabeledSpinner.getInstance("Debug level: ",
+      MatlabParam.DEBUG_LEVEL_DEFAULT, MatlabParam.DEBUG_LEVEL_MIN,
+      MatlabParam.DEBUG_LEVEL_MAX, 1, 59);
   private final Run3dmodButton btnAvgVol = Run3dmodButton.get3dmodInstance(
       "Open averages in 3dmod", this);
   private final EtomoPanel pnlInitMotl = new EtomoPanel();
@@ -767,7 +764,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
    */
   public void setParameters(final MatlabParam matlabParam, File importDir) {
     iterationTable.setParameters(matlabParam);
-    referencePanel.setParameters(matlabParam);
     missingWedgeCompensationPanel.setParameters(matlabParam);
     MatlabParam.InitMotlCode initMotlCode = matlabParam.getInitMotlCode();
     if (initMotlCode == null) {
@@ -789,9 +785,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       cbAlignedBaseName.setSelected(true);
       String alignedBaseName = matlabParam.getAlignedBaseName();
       if (!alignedBaseName.equals(ALIGNED_BASE_NAME)) {
-        UIHarness.INSTANCE.openProblemValueMessageDialog(this,"Invalid",
+        UIHarness.INSTANCE.openProblemValueMessageDialog(this, "Invalid",
             MatlabParam.ALIGNED_BASE_NAME_KEY, null, ALIGNED_BASE_NAME_LABEL,
-            alignedBaseName, ALIGNED_BASE_NAME,null);
+            alignedBaseName, ALIGNED_BASE_NAME, null);
       }
     }
     else {
@@ -816,6 +812,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     cbflgAlignAverages.setSelected(matlabParam.isFlgAlignAverages());
     cbFlgAbsValue.setSelected(matlabParam.isFlgAbsValue());
     ltfSelectClassID.setText(matlabParam.getSelectClassID());
+    updateDisplay();
+    referencePanel.setParameters(matlabParam);
     updateDisplay();
   }
 
