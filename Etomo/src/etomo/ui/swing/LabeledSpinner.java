@@ -152,18 +152,21 @@ final class LabeledSpinner {
   private final JPanel panel = new JPanel();
   private final JLabel label = new JLabel();
   private final JSpinner spinner = new JSpinner();
+  private final Integer defaultValue;
 
   private SpinnerNumberModel model;
-
-  private final Integer defaultValue;
+  private int minimum;
+  private int maximum;
 
   /**
    * @param spinner
    */
-  LabeledSpinner(final String spinLabel, final SpinnerNumberModel model,
-      final int defaultValue, final int hgap) {
-    this.model = model;
+  private LabeledSpinner(final String spinLabel, int value, int minimum, int maximum,
+      int stepSize, final int defaultValue, final int hgap) {
     this.defaultValue = new Integer(defaultValue);
+    this.minimum = minimum;
+    this.maximum = maximum;
+    model = new SpinnerNumberModel(value, minimum, maximum, stepSize);
     // set name
     String name = Utilities.convertLabelToName(spinLabel);
     spinner.setName(UITestFieldType.SPINNER.toString() + AutodocTokenizer.SEPARATOR_CHAR
@@ -194,17 +197,31 @@ final class LabeledSpinner {
     spinner.setMaximumSize(maxSize);
   }
 
-  LabeledSpinner(final String spinLabel, final SpinnerNumberModel model,
-      final int defaultValue) {
-    this(spinLabel, model, defaultValue, 0);
+  static LabeledSpinner getDefaultedInstance(final String spinLabel, final int value,
+      final int minimum, final int maximum, final int stepSize, final int defaultValue) {
+    return new LabeledSpinner(spinLabel, value, minimum, maximum, stepSize, defaultValue,
+        0);
+  }
+
+  static LabeledSpinner getInstance(final String spinLabel, final int value,
+      final int minimum, final int maximum, final int stepSize) {
+    return new LabeledSpinner(spinLabel, value, minimum, maximum, stepSize, value, 0);
+  }
+
+  static LabeledSpinner getInstance(final String spinLabel, final int value,
+      final int minimum, final int maximum, final int stepSize, final int hgap) {
+    return new LabeledSpinner(spinLabel, value, minimum, maximum, stepSize, value, hgap);
   }
 
   void setMax(final int max) {
+    maximum = max;
     model.setMaximum(new Integer(max));
   }
 
-  void setModel(final SpinnerNumberModel model) {
-    this.model = model;
+  void setModel(final int value, final int minimum, final int maximum, final int stepSize) {
+    this.minimum = minimum;
+    this.maximum = maximum;
+    model = new SpinnerNumberModel(value, minimum, maximum, stepSize);
     spinner.setModel(model);
   }
 
@@ -218,6 +235,17 @@ final class LabeledSpinner {
 
   Number getValue() {
     return (Number) spinner.getValue();
+  }
+
+  /**
+   * @param number
+   * @return true if value empty or >= min and <= max (if max set)
+   */
+  boolean isInRange(final ConstEtomoNumber number) {
+    if (number == null || number.isNull()) {
+      return true;
+    }
+    return number.ge(minimum) && (maximum <= minimum || number.le(maximum));
   }
 
   void setValue(final ConstEtomoNumber value) {
