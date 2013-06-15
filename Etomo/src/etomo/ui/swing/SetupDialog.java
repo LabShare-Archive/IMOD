@@ -25,7 +25,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.filechooser.FileFilter;
 
 import etomo.ApplicationManager;
@@ -105,8 +104,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final JPanel pnlDistortionInfo = new JPanel();
   private final FileTextField ftfDistortionFile = new FileTextField(
       "Image distortion field file: ");
-  private final LabeledSpinner spnBinning = new LabeledSpinner("Binning: ",
-      new SpinnerNumberModel(BINNING_DEFAULT, 1, 50, 1), BINNING_DEFAULT);
+  private final LabeledSpinner spnBinning = LabeledSpinner.getInstance("Binning: ",
+      BINNING_DEFAULT, 1, 50, 1);
 
   private final JPanel pnlMagGradientInfo = new JPanel();
   private final FileTextField ftfMagGradientFile = new FileTextField(
@@ -246,7 +245,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     templatePanel.setParameters(userConfig);
   }
 
-   void updateTemplateValues() {
+  void updateTemplateValues() {
     DirectiveFileCollection directiveFileCollection = templatePanel
         .getDirectiveFileCollection();
     rbDualAxis.setSelected(directiveFileCollection.isDual());

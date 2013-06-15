@@ -13,7 +13,6 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.WindowConstants;
 
 import etomo.EtomoDirector;
@@ -61,8 +60,8 @@ public class SerialSectionsStartupDialog implements ContextMenu, UIComponent,
       ViewType.SINGLE_VIEW, bgViewType);
   private final RadioButton rbViewTypeMontage = new RadioButton("Montage",
       ViewType.MONTAGE, bgViewType);
-  private final LabeledSpinner spImagesAreBinned = new LabeledSpinner("Binning: ",
-      new SpinnerNumberModel(1, 1, 50, 1), 1);
+  private final LabeledSpinner spImagesAreBinned = LabeledSpinner.getInstance(
+      "Binning: ", 1, 1, 50, 1);
   private final DialogType dialogType = DialogType.SERIAL_SECTIONS_STARTUP;
 
   private final FileTextField2 ftfStack;
