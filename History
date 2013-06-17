@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/17/13: Standardized the  Mac ps command to be the same as the Linux one.
+(Bug# 1714)
+
 6/11/13: Made processchunks able to send jobs to specific GPUs.
 
 6/9/13: Added options to find warping transforms to Xfalign and changed
