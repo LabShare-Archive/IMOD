@@ -1,0 +1,99 @@
+#!/usr/bin/env python
+# b3dwinps - Get a ps output on Windows either from cygwin or from psutil
+#
+# Author: David Mastronarde
+#
+# $Id$
+#
+
+progname = 'b3dwinps'
+prefix = 'ERROR: ' + progname + ' - '
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys
+
+#
+# Setup minimal runtime environment
+if os.getenv('IMOD_DIR') != None:
+   sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import exitError, setExitPrefix
+setExitPrefix(prefix)
+
+cygwin = 'cygwin' in sys.platform
+windows = 'win32' in sys.platform
+onePid = None
+
+if not cygwin and not windows:
+   exitError('This program produces process status output only on Windows')
+
+if len(sys.argv) > 1:
+   if sys.argv[1] != '-p' or len(sys.argv) != 3:
+      exitError('Incorrect entry; use "b3dwinps -p pid" for output from one PID')
+   try:
+      onePid = int(sys.argv[2])
+   except ValueError:
+      exitError('Converting ' + sys.argv[2] + ' to an integer')
+
+# CYGWIN: simple ps to standard out
+if cygwin:
+   try:
+      command = 'ps'
+      if onePid:
+         command += ' -p ' + str(onePid)
+      runcmd(command, None, 'stdout')
+   except ImodpyError:
+      exitFromImodError(progname)
+   sys.exit(0)
+
+
+# WINDOWS: import psustil and get the process list
+import datetime
+try:
+   import psutil
+except ImportError:
+   exitError('The psutil module must be installed for process status from Windows ' +\
+             'Python')
+
+procList = []
+try:
+   if onePid:
+      procList.append(psutil.Process(onePid))
+   else:
+      procList = psutil.process_iter();
+except Exception:
+   exitError('Getting process list from psutil: ' +  str(sys.exc_info()[1]))
+   
+# Output it just like Cygwin
+prnstr('      PID    PPID    PGID     WINPID   TTY     UID    STIME COMMAND')
+for proc in procList:
+   if proc.pid:
+      try:
+         pid = proc.pid
+         ppid = proc.ppid
+         exen = proc.exe
+         uid = os.path.basename(proc.username)
+         if len(uid) > 7:
+            uid = uid[0:7]
+         if len(uid) < 7:
+            uid = uid.rjust(7)
+         stime = datetime.datetime.fromtimestamp(proc.create_time).strftime("%H:%M:%S") 
+         prnstr(fmtstr(' {:8d} {:7d}      -1 {:10d}  ?    {} {} {}', pid, ppid, pid, 
+                       uid, stime, exen))
+      except psutil.AccessDenied:
+         pass
+      except psutil.NoSuchProcess:
+         pass
+      except Exception:
+         pass
+      
+sys.exit(0)
+
