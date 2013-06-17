@@ -110,12 +110,16 @@ void MachineHandler::startKill(const QString onePid) {
  queue, it passes the kill signal to the process.
  */
 void MachineHandler::killSignal() {
-  int i;
+  int i, remote;
   QStringList pidList;
+  QString command = "imodkillgroup";
+#ifdef _WIN32
+  command += ".cmd";
+#endif
   if (mIgnoreKill || mKillFinishedSignalReceived) {
     return;
   }
-  if (useImodkillgroup()) {
+  if (useImodkillgroup(remote)) {
     if (!mKillStarted) {
       if (mKillingOne)
         mPidsAvailable = true;
@@ -149,28 +153,28 @@ void MachineHandler::killSignal() {
               pidFound = true;
               mProcessHandlerArray[i].setJobNotDone();
               pidList << mProcessHandlerArray[i].getPid();
-
               // Invalidate the job now, this is needed for a hung job/single kill
               mProcessHandlerArray[i].invalidateJob();
             }
           }
-
-          // Then make OS-dependent commands
-#ifndef _WIN32
-          QString command = "ssh";
-          QString param = "\"imodkillgroup";
-          for (i = 0; i < pidList.size(); i++) {
-            param.append(" ");
-            param.append(pidList[i]);
+          // Then make command depending on whether remote or not
+          if (remote > 0) {
+            QString param = "\"" + command;
+            command = "ssh";
+            for (i = 0; i < pidList.size(); i++) {
+              param.append(" ");
+              param.append(pidList[i]);
+            }
+            param.append("\"");
+            paramList << "-x" << mProcesschunks->getSshOpts() << mName << "bash"
+                      << "--login" << "-c" << param;
+          } else {
+            // Add -t if remote < 0
+            if (remote < 0)
+              paramList << "-t";
+            for (i = 0; i < pidList.size(); i++)
+              paramList << pidList[i];
           }
-          param.append("\"");
-          paramList << "-x" << mProcesschunks->getSshOpts() << mName << "bash"
-                    << "--login" << "-c" << param;
-#else
-          QString command = "imodkillgroup.cmd";
-          for (i = 0; i < pidList.size(); i++)
-            paramList << pidList[i];
-#endif
           if (pidFound) {
             mProcesschunks->incrementKills();
             mKillProcess->start(command, paramList);
@@ -238,7 +242,7 @@ bool MachineHandler::isKillFinished() {
   if (mIgnoreKill) {
     return true;
   }
-  if (useImodkillgroup()) {
+  if (useImodkillgroup(i)) {
     bool processesFinished = true;
     for (i = 0; i < mNumCpus; i++) {
       if ((!mKillingOne || mProcessHandlerArray[i].getPid() == mOnePidToKill)
@@ -265,18 +269,24 @@ bool MachineHandler::isKillFinished() {
   }
 }
 
-bool MachineHandler::useImodkillgroup() {
+// Returns whether to use imodkillgroup to kill jobs, and also returns remote > 0 if
+// the machine is remote, remote < 0 if imodkillgroup needs to kill a tree from top PID
+// 6/16/13: With current cygwin where stop/kill is broken for tilt at least, do not use
+// the tree killing.  Moreover, there is no need to do so because each job is in a 
+// different group from processchunks, unlike on Unix
+bool MachineHandler::useImodkillgroup(int &remote) {
+  remote = (mName != mProcesschunks->getHostRoot() && mName != "localhost" &&
+            !mProcesschunks->isQueue()) ? 1 : 0;
 #ifndef _WIN32
-  return mName != mProcesschunks->getHostRoot() && mName != "localhost"
-      && !mProcesschunks->isQueue();
-#else
-  return !mProcesschunks->isQueue();
+  if (!remote)
+    remote = -1;
 #endif
+  return !mProcesschunks->isQueue();
 }
 
 void MachineHandler::resetKill() {
   int i;
-  if (!mKillWarning && !mIgnoreKill && useImodkillgroup() && !mPidsAvailable) {
+  if (!mKillWarning && !mIgnoreKill && useImodkillgroup(i) && !mPidsAvailable) {
     mProcesschunks->getOutStream() << "No processes are running on " << mName << endl;
   }
   mIgnoreKill = true;
