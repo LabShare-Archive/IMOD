@@ -5,7 +5,7 @@ include ../configure
 
 SCRIPTS = matchshifts onepatchcorr patchcorr3d patchcrawl3d recombine selfalign\
  setupcoms setuplong splitmrc  imodpsview settmpdir matchrotpairs\
- prochunks.csh imodkillgroup runpyscript queuechunk $(GENERATED_SCRIPTS)
+ prochunks.csh runpyscript queuechunk $(GENERATED_SCRIPTS)
 
 all:
 
