@@ -791,7 +791,7 @@ void Processchunks::initMachineList(QStringList &machineNameList,
   for (i = 0; i < cpuArray.size(); i++) {
     const QString cpuMachine = cpuArray.at(i);
     const QStringList machineSplit = cpuMachine.split(mGpuMode ? ":" : "#");
-    machineName = machineSplit[0];
+    machineName = machineSplit[0].toLower();
     if (machineSplit.size() == 1) {
       numCores = 1;
         
@@ -954,10 +954,10 @@ void Processchunks::setupHostRoot() {
     const QString temp(hostname.readAllStandardOutput());
     const int i = temp.indexOf(".");
     if (i != -1) {
-      mHostRoot = temp.mid(0, i);
+      mHostRoot = temp.mid(0, i).toLower();
     }
     else {
-      mHostRoot = temp;
+      mHostRoot = temp.toLower();
     }
     if (isVerbose(mDecoratedClassName, __func__)) {
       *mOutStream << "mHostRoot:" << mHostRoot << endl;
