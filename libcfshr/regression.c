@@ -451,7 +451,7 @@ int robustRegress(float *x, int xsize, int colFast, int m, int ndata, int nbcol,
   int prevCol = wgtcol + 1;
   int colStride = colFast ? 1 : xsize;
   int rowStride = colFast ? xsize : 1;
-  int splitLastTime = 0;
+  int splitLastTime = 0, keepCriterion = 0;
   float diff, diffsum, diffmax, median, MADN, dev, weight, ressum, colres;
   float prev, prevmax, criterion;
   if (maxIter < 0) {
@@ -467,7 +467,6 @@ int robustRegress(float *x, int xsize, int colFast, int m, int ndata, int nbcol,
     XRC(j, wgtcol) = XRC(j, prevCol) = 1.;
 
   /* Iterate */
-  criterion = kfactor * MADN;
   for (iter = 0; iter < maxIter; iter++) {
 
     /* Get regression solution */
@@ -500,6 +499,8 @@ int robustRegress(float *x, int xsize, int colFast, int m, int ndata, int nbcol,
     /* Get the median and MADN */
     rsMedian(work, ndata, &work[ndata], &median);
     rsMADN(work, ndata, median, &work[ndata], &MADN);
+    if (!keepCriterion)
+      criterion = kfactor * MADN;
     /* printf("Median %g   MADN %g\n", median, MADN); */
 
     /* Get the new weights and evaluate change from last time */
@@ -534,6 +535,7 @@ int robustRegress(float *x, int xsize, int colFast, int m, int ndata, int nbcol,
       if (report)
         printf("%d with zero weight, revising criterion from %g to %g\n", numOut,
                diff, criterion);
+      keepCriterion = 1;
     }
 
     numOut = 0;
