@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+# b3dtouch - Utility to do the equivalent of the Unix-type touch command
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+import os, sys
+if len(sys.argv) < 2:
+   sys.stdout.write("""Usage: b3dtouch filename
+    Updates the modification time of an existing file or creates a new one
+    if it does not exist.\n""")
+   sys.exit(0)
+
+fname = sys.argv[1]
+try:
+   if os.path.exists(fname):
+      mess = 'Updating time of existing file '
+      os.utime(fname, None)
+   else:
+      mess = 'Creating a new empty file '
+      open(fname, 'a').close()
+
+except Exception:
+   sys.stdout.write('Error: b3dtouch - ' + mess + fname + ' : ' +
+                    str(sys.exc_info()[1]) + '\n')
+   sys.exit(1)
+   
