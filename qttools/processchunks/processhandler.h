@@ -142,6 +142,9 @@ private:
   QTime mStartTime;
   int mElapsedTime;
   QDateTime mLogLastModified;
+  QDateTime mLastSizeCheckTime;
+  QDateTime mSizeChangedTime;
+  int mLastLogSize;
   MachineHandler *mMachine;
   int mGpuNumber;
 

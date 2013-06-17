@@ -46,6 +46,8 @@ void ProcessHandler::resetFields() {
   mStartTime.start();
   mElapsedTime = -1;
   mLogLastModified = QDateTime::currentDateTime();
+  mLastSizeCheckTime = mSizeChangedTime = mLogLastModified;
+  mLastLogSize = 0;
   mStartingProcess = false;
   mKillFinishedSignalReceived = false;
   mKill = false;
@@ -257,14 +259,10 @@ bool ProcessHandler::getPid(QTextStream &stream, const bool save) {
   int index = output.lastIndexOf("PID:");
   if (index != -1) {
     int endIndex;
-#ifdef _WIN32
-    endIndex = output.indexOf("\r\n", index);
-#else
     endIndex = output.indexOf('\n', index);
-#endif
     if (endIndex != -1) {
       if (save) {
-        mPid = output.mid(index + 4, endIndex - (index + 4));
+        mPid = output.mid(index + 4, endIndex - (index + 4)).trimmed();
       }
       return true;
     }
@@ -294,18 +292,33 @@ bool ProcessHandler::isLogFileEmpty() {
   return mLogFile->size() == 0;
 }
 
-// Test whether the log file is older than the given timeout value
-// Refreshs the stored last modified time only if it is older than the timeout
+// Test whether the log file is older than the given timeout valu
+// Refreshs the stored last modified time and size only if it is older than the timeout 
+// or if it hasn't been checked for 1/5 of the timeout interval
 bool ProcessHandler::isLogFileOlderThan(const int timeoutSec) {
   if (timeoutSec <= 0)
     return false;
-  if (mLogLastModified.secsTo(QDateTime::currentDateTime()) < timeoutSec)
-   return false;
+  QDateTime now = QDateTime::currentDateTime();
+  bool modifiedOK = mLogLastModified.secsTo(now) < timeoutSec;
+  if (modifiedOK && mLastSizeCheckTime.secsTo(now) < timeoutSec / 5)
+    return false;
   QFileInfo fileInfo(*mLogFile);
   if (!fileInfo.exists())
     return false;
+  int newSize = fileInfo.size();
+  mLastSizeCheckTime = now;
+  if (newSize > mLastLogSize) {
+    mLastLogSize = newSize;
+    mSizeChangedTime = now;
+  }
   mLogLastModified = fileInfo.lastModified();
-  return mLogLastModified.secsTo(QDateTime::currentDateTime()) >= timeoutSec;
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    *mOutStream << mDecoratedClassName << ":" << __func__ << ": new mod " << 
+      mLogLastModified.secsTo(now) << "  size time " << mSizeChangedTime.secsTo(now) <<
+      endl;
+  }
+  return mLogLastModified.secsTo(now) >= timeoutSec &&
+    mSizeChangedTime.secsTo(now) >= timeoutSec;
 }
 
 void ProcessHandler::readAllStandardError() {
@@ -782,6 +795,7 @@ void ProcessHandler::killSignal() {
     }
     else {
       //This must be a local job
+      // 6/13/13: THIS SHOULD NO LONGER HAPPEN
       if (!isPidEmpty() || mPidWaitCounter > 15) {
         //PIDs are available
         mKillStarted = true;//This starts the 15-count timeout
@@ -1011,7 +1025,17 @@ void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
         if (pidIndex != -1 && ppidIndex != -1) {
           foundNewChildPid = false;
           do {
+#ifdef _WIN32
+            // Cygwin ps lines start with S and other qualifiers, so don't trim, find
+            // first space and start there
+            QString line = stream.readLine();
+            i = line.indexOf(" ");
+            if (i > 0)
+              line = line.mid(i).trimmed();
+#else
             QString line = stream.readLine().trimmed();
+
+#endif
             QStringList columns = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
             if (columns.size() < pidIndex || columns.size() < ppidIndex) {
               break;
