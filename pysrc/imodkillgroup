@@ -78,7 +78,7 @@ def killGroup(groupid):
 #### MAIN PROGRAM  ####
 #
 # load System Libraries
-import os, sys, signal
+import os, sys, signal, time
 
 #
 # Setup runtime environment
