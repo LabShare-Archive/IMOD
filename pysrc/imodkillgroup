@@ -38,13 +38,14 @@ def processStatus(pid = None):
    # Now get a command with desired columns, or basic cygwin one
    command = 'ps -aeo pid,ppid,comm'
    if cygwin:
-      command = 'ps -al'
+      command = 'ps'
    if pid:
       command += ' -p ' + str(pid)
    try:
       pslines = runcmd(command)
    except ImodpyError:
-      exitFromImodError(progname)
+      errs = getErrStrings()
+      return errs[0]
 
    # Split up the lines and fetch the fields; skip leading S,I in cygwin
    for line in pslines[1:]:
@@ -100,6 +101,7 @@ else:
 from imodpy import *
 from pip import exitError, setExitPrefix
 setExitPrefix(prefix)
+#setRetryLimit(10, 3.)
 
 cygwin = 'cygwin' in sys.platform
 windows = 'win32' in sys.platform
@@ -107,6 +109,7 @@ killTree = False
 pidList = {}
 verbose = False
 maxTrials = 5
+getStatus = False
 
 # Get/check arguments
 try:
@@ -115,6 +118,8 @@ try:
          killTree = True
       elif arg == '-v':
          verbose = True
+      elif arg == '-s':
+         getStatus = True
       else:
          pidList[int(arg)] = None
 
@@ -122,12 +127,18 @@ except ValueError:
    exitError('Unrecognized option or non-integer entry: ' + arg)
 
 if not pidList:
-   prnstr("""Usage: imodkillgroup [-t] PID [PID ...]'
-       Kills whole process group given PID of any member, or just kills process
-       tree below each PID if -t option is given.  Takes multiple PIDs from
-       different groups""")
+   prnstr("""Usage: imodkillgroup [-t | -v | -s] PID [PID ...]'
+    Kills whole process group given PID of any member, or just kills process
+    tree below each PID if -t option is given.  Takes multiple PIDs from
+    different groups.  Options:
+      -t  Tree kill, implied with Windows Python; unreliable with Cygwin Python
+      -s  Use initial and follow-up ps to verifying children are gone (Cygwin)
+      -v  Verbose output""")
    sys.exit(0)
 
+if getStatus and not cygwin:
+   exitError('The -s option works only in Cygwin Python')
+   
 if windows:
    try:
       import psutil
@@ -135,64 +146,131 @@ if windows:
       exitError('The psutil module must be installed to kill processes from Windows ' +\
                 'Python')
 
-
+# PROCESS GROUP KILLING
 exitVal = 0
 if not killTree and not windows:
+
+   # Set up variables and get all the group IDs first
+   numPids = len(pidList)
+   psFailed = False
+   numDone = 0
+   if not getStatus:
+      maxTrials = 2
+   groupIds = {}
+   pidDone = {}
+   groupStats = {}
+   messList = {}
    for pidKill in pidList:
-      
-      # Get the group ID
+      pidDone[pidKill] = 0
+      groupStats[pidKill] = {}
+      messList[pidKill] = []
       try:
-         groupid = os.getpgid(pidKill)
+         groupIds[pidKill] = os.getpgid(pidKill)
          if verbose:
-            prnstr('Group id: ' + str(groupid))
+            prnstr('Group id: ' + str(groupIds[pidKill]))
       except OSError:
          prnstr('Error getting group ID for PID ' + str(pidKill) + ': ' + \
                 str(sys.exc_info()[1]))
          exitVal += 1
+         pidDone[pidKill] = 1
+         numDone += 1
          continue
 
-      # For Unix-type systems, the group kill should be fine
-      if not cygwin:
-         mess = killGroup(groupid)
-         if mess:
-            prnstr(mess)
-            exitVal += 1
+   if exitVal == numPids:
+      exitError('No group ID(s) could be found')
 
-      # For cygwin, it might fail, so get a ps listing first, build list of the group
-      # processes, then repeatedly kill the group and check if it is all gone
+   # For cygwin getting status, do an initial ps and get lists of all PID's 
+   if cygwin and getStatus:
+      psdict = processStatus()
+      if isinstance(psdict, str):
+         psFailed = True
+         maxTrials = 2
+         prnstr('Error getting initial ps: ' + psdict + \
+                '  just going to do two group kills without checking processes')
       else:
-         psdict = processStatus()
-         groupStats = {}
-         for pid in psdict:
-            if psdict[pid][2] == groupid:
-               groupStats[pid] = psdict[pid]
+         for pidKill in pidList:
+            if not pidDone[pidKill]:
+               for pid in psdict:
+                  if psdict[pid][2] == groupIds[pidKill]:
+                     groupStats[pidKill][pid] = psdict[pid]
+      
+   # Loop on multiple trials for cygwin
+   for trial in range(maxTrials):
+      if verbose:
+         prnstr('Trial ' + str(trial + 1) + ' for killing groups')
+      for pidKill in pidList:
+         if not pidDone[pidKill]:
+            mess = killGroup(groupIds[pidKill])
 
-         messList = []
-         for trial in range(maxTrials):
-            mess = killGroup(groupid)
-            messList.append(mess)
-            if mess and verbose:
-               prnstr(mess)
-               
-            time.sleep(0.05)
-            psdict = processStatus()
+            # If doing blind pair of kills because ps failed, or second trial when
+            # not getting status, cancel message if it is just no such process
+            if mess and (psFailed or not getStatus) and trial and \
+                   'No such process' in mess:
+               mess = None
+            messList[pidKill].append(mess)
+            if mess:
+               if not cygwin:
+                  exitVal += 1
+               if not cygwin or verbose:
+                  prnstr(mess)
+
+            # If there is no message (anymore), mark as done if not getting status or
+            # if on second trial
+            elif not getStatus or trial:
+               pidDone[pidKill] = 1
+               numDone += 1
+
+      # Break out always for Unix, or on first trial when not getting status and all OK
+      # Otherwise it will finish the loop so error processing/reporting occurs
+      if not cygwin or (numDone == numPids and trial == 0):
+         break
+      if psFailed or not getStatus:
+         continue
+
+      # For status, get new ps and count up the processes left or just rerun if that fails
+      time.sleep(0.05)
+      psdict = processStatus()
+      if isinstance(psdict, str):
+         prnstr('Error getting follow-up ps on trial ' + str(trial) + ': ' + psdict)
+         numAllLeft = -1
+      else:
+         numAllLeft = 0
+         for pidKill in pidList:
             numLeft = 0
-            for pid in groupStats:
-               if pid in psdict and psdict[pid][2] == groupid and \
-                  psdict[pid][0] == groupStats[pid][0] and \
-                  psdict[pid][1] == groupStats[pid][1]:
-                  numLeft += 1
-            if not numLeft:
-               break
-            prnstr(fmtstr('{} processes left in group after trial {}', numLeft, trial))
-         else:    # ELSE ON FOR
-            prnstr('Kill of group failed, messages on trials:')
-            for ind in range(messList):
-               if messList[ind]:
-                  prnstr(str(ind) + ':  ' + messList[ind])
+            if not pidDone[pidKill]:
+               for pid in groupStats[pidKill]:
+                  if pid in psdict and psdict[pid][2] == groupIds[pidKill] and \
+                         psdict[pid][0] == groupStats[pidKill][pid][0] and \
+                         psdict[pid][1] == groupStats[pidKill][pid][1]:
+                     numLeft += 1
+               if not numLeft:
+                  pidDone[pidKill] = 1
+                  if verbose:
+                     prnstr('Children all gone for group ID ' + str(groupIds[pidKill]))
+            numAllLeft += numLeft
+
+      if not numAllLeft:
+         break
+      if numAllLeft > 0:
+         prnstr(fmtstr('{} processes left after trial {}', numAllLeft, trial))
+   else:    # ELSE ON FOR
+      for pid in pidList:
+         if not pidDone[pid]:
             exitVal += 1
+      if exitVal:
+         if psFailed or not getStatus:
+            prnstr('Kill may have failed, messages on trials:')
+         else:
+            prnstr('Kill of group failed, messages on trials:')
+         for pid in pidList:
+            for ind in range(len(messList[pid])):
+               if messList[pid][ind]:
+                  prnstr(fmtstr('{:5d} - {}: {}', pid, ind + 1, messList[pid][ind]))
+      elif verbose and (psFailed or not getStatus):
+         prnstr('All processes not present on second group kill')
 
    sys.exit(exitVal)
+
 
 # For TREE KILL, Start an array of PID's for each level
 pidTree = [pidList]
@@ -201,6 +279,8 @@ for level in range(100):
    # Need a ps to get going for cygwin maybe windows too
    if not level and (cygwin or windows):
       psdict = processStatus()
+      if isinstance(psdict, str):
+         exitError(prefix + psdict)
 
    # Stop processes for PID's at the current level
    # In windows/cygwin only stop python and tcsh processes, due to a cygwin bug
@@ -210,12 +290,11 @@ for level in range(100):
       if cygwin or windows:
          stopProc = False
 
-         # In cygwin, it seemed to help to stop only the controlling scripts, hence this
-         # test.  But bad things still happen even with stopping them, so there is no
-         # stop for cygwin here.  Selective stop occurs in Windows out of superstition.
+         # In cygwin, it seemed to help to stop only the controlling scripts, but not
+         # bad things happened even stopping them.  So just do stop in Windows, 
+         # for all processes
          if pid in psdict:
-            stopProc = 'python' in psdict[pid][1] or 'tcsh' in psdict[pid][1]
-
+            stopProc = windows
             # For windows, save the process object now if it is found in this process list
             if windows:
                if verbose:
@@ -231,7 +310,7 @@ for level in range(100):
          try:
             if windows:
                psdict[pid][2].suspend()
-            elif not cygwin:
+            else:
                os.kill(pid, signal.SIGSTOP)
          except Exception:
             prnstr('Error occurred trying to stop ' + str(pid) + ': ' + \
@@ -239,6 +318,8 @@ for level in range(100):
       
    # Get a ps and first find out if each PID is still there
    psdict = processStatus()
+   if isinstance(psdict, str):
+      exitError(prefix + psdict)
    pidTree.append({})
    for pid in pidTree[level]:
       if not pid in psdict:
