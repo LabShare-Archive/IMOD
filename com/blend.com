@@ -19,4 +19,5 @@ OldEdgeFunctions	0
 StartingAndEndingX	/
 StartingAndEndingY	/
 AdjustOrigin    1
+BinByFactor	1
 $mrctaper g5a.ali

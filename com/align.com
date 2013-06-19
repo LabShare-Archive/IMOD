@@ -45,6 +45,7 @@ XStretchOption	0
 SkewOption	0
 XStretchDefaultGrouping	7
 SkewDefaultGrouping	11
+BeamTiltOption	0
 # 
 # Criterion # of S.D's above mean residual to report (- for local mean)
 #
