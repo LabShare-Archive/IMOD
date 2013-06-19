@@ -1,0 +1,77 @@
+.na
+.nh
+.TH subm/submfg 1 4.6.22 BL3DEMC
+.SH NAME
+subm/submfg -\ Run an IMOD command file in the background or foreground
+.SH SYNOPSIS
+submfg [options] command_file [command_file ...]
+.SH DESCRIPTION
+subm runs the operations in one or more IMOD command files in the background.
+When multiple files are given, they are run in sequence.
+The script that runs the command files is actually named submfg, and if
+invoked with this name, the operations will run in the foreground.  The IMOD
+startup scripts on all systems define an alias "subm" that will run submfg in
+the background.  There is also a separate script, "subm", that simply starts submfg
+as a background process.  "subm" will thus work even from an
+IMOD-capable Command Prompt window in
+Windows, and on systems where the alias is not available (e.g., some Ubuntu
+systems).
+.P
+A command file is converted to a Python script and run with Vmstopy(1); see
+that man page for a description of the allowed format.
+The full command file name can be given, or the extension can be omitted if it
+is ".com" or ".pcm".  A log file is automatically made for each command file;
+by default the name is the root of the command file name with the
+extension ".log", and an existing copy of that file becomes a backup with "~"
+added to the name.  This behavior can be modified (see 
+.B -l
+option).  When each command file is started, the process ID will
+be printed to terminal.  When a command file completes, there is a completion
+message, which can be modified by setting the environment variable
+SUBM_MESSAGE.  If a command file exits with an error, vmstopy extracts 
+an error message from the log if possible, or prints the last few lines of the
+log if not.
+.P
+There are two options for terminating submfg and the job started by it.  If
+submfg was started with the alias, the best way is to bring it to the
+foreground by entering "fg" and interrupt it by typing "Ctrl-C".  This method will
+clean up the temporary file used to run the script.  The second way, and the
+only way if invoking with script instead of the alias, is to use
+    imodkillgroup  PID
+.br
+where PID is the process ID printed when each job starts.  This method will
+leave behind the temporary file.
+.SS Options
+.TP
+.B -c
+Continue with the next command file even if one command file fails; the
+default is to stop after a failure.
+.TP
+.B -t
+Print the elapsed real and CPU time when each command file finishes.
+.TP
+.B -s
+Convert the command files to C-shell scripts with Vmstocsh(1) and run with
+csh.  See that man page for the allowed format.
+.TP
+.B -n #
+.TP
+Run the jobs with a "niceness" increment set to the given number.
+.B -l #
+Set the type of numbered or time-stamped log file names to use.  The options
+are:
+      1 - 4 for sequential numbers with 1 to 4 digits
+     -1 for date-time stamps like Mar-01-195046.4
+     -2 for date-time stamps like 20120301-195121.9
+     -3 for date-time stamps like 2012-03-01T19:51:51.9
+.br
+There is also an environment variable, SUBM_LOG_TYPE, that can be set to one
+of these values to define the default log type.  In that case, "-l 0" can be
+used to override this default and get a plain log.
+.SH AUTHOR
+David Mastronarde,  mast@colorado.edu
+.SH SEE ALSO
+processchunks(1)
+.SH FILES
+The program makes a temporary file named submtemp.PID where PID is the process
+ID.  This file will be left behind if the process is killed.

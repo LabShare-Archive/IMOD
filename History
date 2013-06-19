@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/18/13: Made a subm script to start submfg in the background in cases where
+the subm alias is not available; added a man page for subm.
+
+6/17/13: Made a new Imodkillgroup that can kill a process tree as well as a
+process group, and that works on Windows without Cygwin.  Changed
+Processchunks to use this for all non-queue kills, thus fixing killing on
+Windows.  Also added b3dwinps and b3dtouch for eTomo to use instead of Cygwin
+calls.
+
 6/13/13: Made processchunks watch for jobs taking way too long and kill them.
 
 6/11/13: Made processchunks able to send jobs to specific GPUs.
@@ -38,7 +47,7 @@ raw2mrc, and tif2mrc.
 5/29/13: IMOD-4-6-21
 5/29/13: Ctfplotter: added version number to defocus file so the old bug of
 view numbers off by 1 will not be detected in error, allowed double-clicking a
-row to set the angles to that row, and added checkbox fo fitting to each view.
+row to set the angles to that row, and added checkbox for fitting to each view.
 
 5/28/13: In eTomo - Join, using the -cs Midas parameter instead of the -c
 parameter.(Bug# 1704)
