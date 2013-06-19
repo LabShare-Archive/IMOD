@@ -104,10 +104,10 @@ void MachineHandler::startKill(const QString onePid) {
 }
 
 /*
- Handles the kill signal.  If this is a remote machine, it checks for its
+ Handles the kill signal.  If this is not a queue, it checks for its
  process PIDs and runs imodkillgroup.  If imodkillgroup has already been run,
- the machine handler waits for it to finish.  If this is the local machine or a
- queue, it passes the kill signal to the process.
+ the machine handler waits for it to finish.  If this a queue, it passes the kill 
+ signal to the process.
  */
 void MachineHandler::killSignal() {
   int i, remote;
@@ -119,7 +119,8 @@ void MachineHandler::killSignal() {
   if (mIgnoreKill || mKillFinishedSignalReceived) {
     return;
   }
-  if (useImodkillgroup(remote)) {
+  if (!mProcesschunks->isQueue()) {
+    remote = remoteOrLocalKillType();
     if (!mKillStarted) {
       if (mKillingOne)
         mPidsAvailable = true;
@@ -207,8 +208,9 @@ void MachineHandler::killSignal() {
     }
   }
   else {
-    //Local machine (not Windows) or queue - pass kill signal to process handlers
+    // Queue - pass kill signal to process handlers
     // This is the call that really makes it happen
+    // The test is now irrelevant...
     for (i = 0; i < mNumCpus; i++) {
       if (!mKillingOne || mProcessHandlerArray[i].getPid() == mOnePidToKill)
         mProcessHandlerArray[i].killSignal();
@@ -242,7 +244,7 @@ bool MachineHandler::isKillFinished() {
   if (mIgnoreKill) {
     return true;
   }
-  if (useImodkillgroup(i)) {
+  if (!mProcesschunks->isQueue()) {
     bool processesFinished = true;
     for (i = 0; i < mNumCpus; i++) {
       if ((!mKillingOne || mProcessHandlerArray[i].getPid() == mOnePidToKill)
@@ -269,24 +271,24 @@ bool MachineHandler::isKillFinished() {
   }
 }
 
-// Returns whether to use imodkillgroup to kill jobs, and also returns remote > 0 if
-// the machine is remote, remote < 0 if imodkillgroup needs to kill a tree from top PID
+// Returns 1 if the machine is remote, 0 for local machine that can/must kill without
+// -t flag to imodkillgroup, or -1 if imodkillgroup needs to kill a tree from top PID
 // 6/16/13: With current cygwin where stop/kill is broken for tilt at least, do not use
 // the tree killing.  Moreover, there is no need to do so because each job is in a 
 // different group from processchunks, unlike on Unix
-bool MachineHandler::useImodkillgroup(int &remote) {
-  remote = (mName != mProcesschunks->getHostRoot() && mName != "localhost" &&
-            !mProcesschunks->isQueue()) ? 1 : 0;
+int MachineHandler::remoteOrLocalKillType() {
+  int remote = (mName != mProcesschunks->getHostRoot() && mName != "localhost" &&
+                !mProcesschunks->isQueue()) ? 1 : 0;
 #ifndef _WIN32
   if (!remote)
     remote = -1;
 #endif
-  return !mProcesschunks->isQueue();
+  return remote;
 }
 
 void MachineHandler::resetKill() {
   int i;
-  if (!mKillWarning && !mIgnoreKill && useImodkillgroup(i) && !mPidsAvailable) {
+  if (!mKillWarning && !mIgnoreKill && !mProcesschunks->isQueue() && !mPidsAvailable) {
     mProcesschunks->getOutStream() << "No processes are running on " << mName << endl;
   }
   mIgnoreKill = true;

@@ -101,7 +101,7 @@ public slots:
 private:
   void init();
   void setup();
-  bool useImodkillgroup(int &remote);
+  int remoteOrLocalKillType();
 
   ProcessHandler *mProcessHandlerArray;
   QString mName, mDecoratedClassName;
