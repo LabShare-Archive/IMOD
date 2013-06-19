@@ -3,6 +3,9 @@ IMOD History
 6/18/13: Made a subm script to start submfg in the background in cases where
 the subm alias is not available; added a man page for subm.
 
+6/17/13: Standardized the  Mac ps command to be the same as the Linux one.
+(Bug# 1714)
+
 6/17/13: Made a new Imodkillgroup that can kill a process tree as well as a
 process group, and that works on Windows without Cygwin.  Changed
 Processchunks to use this for all non-queue kills, thus fixing killing on

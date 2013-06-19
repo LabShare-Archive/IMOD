@@ -36,7 +36,6 @@ public final class PsParam {
   private static final String USER_ID_HEADER = "UID";
 
   private final String startTimeHeader;
-  private final String startTimeCommand;
 
   private final List<String> command = new ArrayList<String>();
   private final ArrayList valuesArray = new ArrayList();
@@ -77,7 +76,6 @@ public final class PsParam {
   public PsParam(BaseManager manager, AxisID axisID, String pid, OSType osType,
       String hostName, boolean willRunOnWorkerThread) {
     startTimeHeader = osType == OSType.WINDOWS ? "STIME" : "STARTED";
-    startTimeCommand = osType == OSType.MAC ? "start" : "lstart";
     if (hostName != null
         && !hostName.matches("\\*")
         && !hostName.equals(Network.getLocalHostName(manager, axisID,
@@ -116,8 +114,8 @@ public final class PsParam {
     }
     if (osType != OSType.WINDOWS) {
       command.add("-o");
+      command.add("pid,pgid,lstart");
     }
-    command.add("pid,pgid," + startTimeCommand);
   }
 
   public Row getRow() {
