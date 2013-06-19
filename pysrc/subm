@@ -32,7 +32,7 @@ from imodpy import *
 from pip import exitError, setExitPrefix
 setExitPrefix(prefix)
 args = ['submfg']
-if 'windows' in sys.platform:
+if 'win32' in sys.platform:
    args = ['submfg.cmd']
 
 if len(sys.argv) > 1:
