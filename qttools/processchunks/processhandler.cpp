@@ -33,7 +33,6 @@ ProcessHandler::ProcessHandler() {
   mValidJob = false;
   mKillStarted = false;
   mKillCounter = 0;
-  mPidWaitCounter = 0;
   mIgnoreKill = true;
   resetFields();
 }
@@ -55,7 +54,6 @@ void ProcessHandler::resetFields() {
   mPausing = 0;
   mStderr.clear();
   mPid.clear();
-  mLocalKill = false;
 }
 
 ProcessHandler::~ProcessHandler() {
@@ -765,88 +763,40 @@ void ProcessHandler::startKill(bool killOne) {
 }
 
 /*
- Handles the kill signal when imodkillgroup isn't used.  If the is a queue and
+ Handles the kill signal when imodkillgroup isn't used.  If this a queue and
  the kill request has already been sent, this process waits for it to finish.
+ Currently imodkillgroup is used for everything but queues
  */
 void ProcessHandler::killSignal() {
-  if (mIgnoreKill || (mKillFinishedSignalReceived && mFinishedSignalReceived)) {
+  if (mIgnoreKill || (mKillFinishedSignalReceived && mFinishedSignalReceived) ||
+      !mProcesschunks->isQueue()) {
     return;
   }
-  //For remote machines imodkillgroup can be used to kill all the processes
   if (!mKillStarted) {
-    if (mProcesschunks->isQueue()) {
-      mKillStarted = true;//This starts the 15-count timeout
-      setJobNotDone();
-      mProcesschunks->incrementKills();
-      //Kill the process
-      char ans = mProcesschunks->getAns();
-      QString action(ans);
-      if (ans != 'P') {
-        action = "K";
-        //Don't know if this waits until the kill is does
-        //$queuecom -w "$curdir" -a $action $comlist[$ind]:r
-        //The second to last parameter is the action letter
-        mParamList.replace(mParamList.size() - 2, action);
-        mKillProcess->start(mCommand, mParamList);
-        mKillProcess->waitForFinished(1000);
-        //Put mParamList back to its regular form
-        mParamList.replace(mParamList.size() - 2, "R");
-      }
-    }
-    else {
-      //This must be a local job
-      // 6/13/13: THIS SHOULD NO LONGER HAPPEN
-      if (!isPidEmpty() || mPidWaitCounter > 15) {
-        //PIDs are available
-        mKillStarted = true;//This starts the 15-count timeout
-        if (!isPidEmpty()) {
-          *mOutStream << "Killing "
-              << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex);
-          if (mMachine == NULL) {
-            *mOutStream << endl;
-          }
-          else {
-            *mOutStream << " on " << mMachine->getName() << endl;
-          }
-          setJobNotDone();
-          //Kill a local job.  Killing non-local jobs is not handled handled by
-          //ProcessHandlers.  As long as we are dropping a machine, it is safe to go
-          // go on after running the kill, but for single kill, the finish signal must
-          // actually come in before the process gets reused.
-          killLocalProcessAndDescendents(mPid);
-          mKillFinishedSignalReceived = true;
-          mFinishedSignalReceived = !mKillingOne;
-        }
-        else {
-          //Unable to get the PID.
-          *mOutStream << "Unable to kill a processes on "
-              << mMachine->getName() << endl;
-          mKillFinishedSignalReceived = true;
-          mProcess->kill();
-          mFinishedSignalReceived = true;
-        }
-
-        // Invalidate job here, this is needed for single-kill process
-        mValidJob = false;
-      }
-      else {
-        mPidWaitCounter++;
-      }
+    mKillStarted = true;//This starts the 15-count timeout
+    setJobNotDone();
+    mProcesschunks->incrementKills();
+    //Kill the process
+    char ans = mProcesschunks->getAns();
+    QString action(ans);
+    if (ans != 'P') {
+      action = "K";
+      //Don't know if this waits until the kill is does
+      //$queuecom -w "$curdir" -a $action $comlist[$ind]:r
+      //The second to last parameter is the action letter
+      mParamList.replace(mParamList.size() - 2, action);
+      mKillProcess->start(mCommand, mParamList);
+      mKillProcess->waitForFinished(1000);
+      //Put mParamList back to its regular form
+      mParamList.replace(mParamList.size() - 2, "R");
     }
   }
   else {
     //Waiting for kill to finish
     mKillCounter++;
     if (mKillCounter > 15 && (!mKillFinishedSignalReceived || !mFinishedSignalReceived)) {
-      if (mProcesschunks->isQueue()) {
-        mKillProcess->kill();
-        mProcesschunks->decrementKills();
-      }
-      
-      // For single kill, still need to kill this process; the finish signal should come
-      // through from that before processing loop is resumed
-      if (mKillingOne)
-        mProcess->kill();
+      mKillProcess->kill();
+      mProcesschunks->decrementKills();
       mKillFinishedSignalReceived = true;
       mFinishedSignalReceived = true;
     }
@@ -857,7 +807,6 @@ void ProcessHandler::resetKill() {
   mKillFinishedSignalReceived = false;
   mKillStarted = false;
   mKillCounter = 0;
-  mPidWaitCounter = 0;
   mKill = false;
   mIgnoreKill = true;
 }
@@ -950,8 +899,8 @@ void ProcessHandler::handleKillFinished(const int exitCode,
 }
 
 void ProcessHandler::handleError(const QProcess::ProcessError processError) {
-  if (mLocalKill) {
-    //KillLocalProcessAndDescendents was used - causes a return code of 1
+  if (mKill) {
+    // local tree killing was used - causes a return code of 1
     return;
   }
   if (mComFileJobIndex == -1) {
@@ -967,141 +916,4 @@ void ProcessHandler::handleError(const QProcess::ProcessError processError) {
       << mProcess->exitStatus() << ",state:" << mProcess->state() << endl;
 }
 
-//Stop and then kill the process with process ID pid and all of its descendents.
-//Waits for kill commands to complete.
-//Can't use imodkillgroup on the local host because we don't want to kill
-//processchunks, and its part of the group.
-void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
-  if (mComFileJobIndex == -1) {
-    *mOutStream << "ERROR: Job index not set" << endl;
-    return;
-  }
-  //immediately stop the process
-  stopProcess(pid);
-  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << mDecoratedClassName << ":" << __func__
-        << ":stopping " << pid << endl;
-  }
-  int i;
-  QStringList pidList;
-  pidList.append(pid.trimmed());
-  int pidIndex = -1;
-  int ppidIndex = -1;
-  QProcess ps;
-  QString command("ps");
-  QStringList paramList;
-  paramList.append("axl");
-  //Run ps and stop descendent processes until there is nothing left to stop.
-  bool foundNewChildPid = false;
-  do {
-    //Run ps axl
-    ps.start(command, paramList);
-    ps.waitForFinished(5000);
-    if (!ps.exitCode()) {
-      QTextStream stream(ps.readAllStandardOutput().trimmed());
-      if (!stream.atEnd()) {
-        //Find the pid and ppid columns if they haven't already been found.
-        QString header;
-        if (pidIndex == -1 || ppidIndex == -1) {
-          header = stream.readLine().trimmed();
-          if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-            *mOutStream << mDecoratedClassName << ":" << __func__
-                << ":ps column header:" << endl << header << endl;
-          }
-          QStringList headerList = header.split(QRegExp("\\s+"), QString::SkipEmptyParts);
-          for (i = 0; i < headerList.size(); i++) {
-            if (headerList.at(i) == "PID") {
-              pidIndex = i;
-            }
-            else if (headerList.at(i) == "PPID") {
-              ppidIndex = i;
-            }
-            if (pidIndex != -1 && ppidIndex != -1) {
-              break;
-            }
-          }
-        }
-        //collect child pids
-        if (pidIndex != -1 && ppidIndex != -1) {
-          foundNewChildPid = false;
-          do {
-#ifdef _WIN32
-            // Cygwin ps lines start with S and other qualifiers, so don't trim, find
-            // first space and start there
-            QString line = stream.readLine();
-            i = line.indexOf(" ");
-            if (i > 0)
-              line = line.mid(i).trimmed();
-#else
-            QString line = stream.readLine().trimmed();
-
-#endif
-            QStringList columns = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
-            if (columns.size() < pidIndex || columns.size() < ppidIndex) {
-              break;
-            }
-            //Look for child processes of parent processes that have already been
-            //found.  Stop them and add them to the process ID list.  If
-            //the process ids are in order, all the descendent pids should be
-            //found during the first pass.
-            if (pidList.contains(columns.at(ppidIndex))) {
-              QString childPid = columns.at(pidIndex);
-              if (!pidList.contains(childPid)) {
-                stopProcess(childPid);
-                foundNewChildPid = true;
-                pidList.append(childPid);
-                if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-                  *mOutStream << mDecoratedClassName << ":"
-                      << __func__ << ":stopping:" << endl << line << endl;
-                }
-              }
-            }
-          } while (!stream.atEnd());
-        }
-        else {
-          *mOutStream
-              << "Warning: May not have been able to kill all processes descendent from "
-              << mCommand << " " << mProcesschunks->getComFileJobs()->getCshFileName(
-              mComFileJobIndex)
-              << " on local machine.  Ps PID and PPID columns where not found in "
-              << header << "(" << command << " " << paramList.join(" ") << ")." << endl;
-          return;
-        }
-      }
-      else {
-        *mOutStream
-            << "Warning: May not have been able to kill all processes descendent from "
-            << mCommand << " " << mProcesschunks->getComFileJobs()->getCshFileName(
-            mComFileJobIndex) << " on local machine.  Ps command return nothing" << "("
-            << command << " " << paramList.join(" ") << ")." << endl;
-      }
-    }
-    else {
-      *mOutStream
-          << "Warning: May not have been able to kill all processes descendent from "
-          << mCommand << " " << mProcesschunks->getComFileJobs()->getCshFileName(
-          mComFileJobIndex) << " on local machine.  Ps command failed" << "(" << command
-          << " " << paramList.join(" ") << ")." << endl;
-      return;
-    }
-  } while (foundNewChildPid);
-  mLocalKill = true;
-  //Kill everything in the process ID list.
-  // All OS's accept the abbreviation or SIG.... form but tcsh kill accepts only abbrev
-  QProcess kill;
-  QString killCommand("kill");
-  pidList.prepend("KILL");
-  pidList.prepend("-s");
-  kill.execute(killCommand, pidList);
-}
-
-//Stop a single process.  Waits for process to complete.
-void ProcessHandler::stopProcess(const QString &pid) {
-  QProcess ps;
-  QString command("kill");
-  QStringList paramList;
-  paramList.append("-s");
-  paramList.append("STOP");
-  paramList.append(pid);
-  ps.execute(command, paramList);
-}
+// 6/17/13: Removed killLocalProcessAndDescendents and StopProcess

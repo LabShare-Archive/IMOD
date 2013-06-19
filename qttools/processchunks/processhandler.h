@@ -122,8 +122,6 @@ private:
   bool getSshError(QString &dropMess, QTextStream &stream);
   void resetSignalValues();
   void readAllStandardError();
-  void killLocalProcessAndDescendents(QString &pid);
-  void stopProcess(const QString &pid);
   void resetFields();
 
   QFile *mLogFile, *mJobFile, *mQidFile;
@@ -150,8 +148,8 @@ private:
 
   //Kill process variables
   QProcess *mKillProcess;
-  int mKillCounter, mPidWaitCounter;
-  bool mKill, mLocalKill, mKillStarted, mIgnoreKill, mKillingOne;
+  int mKillCounter;
+  bool mKill, mKillStarted, mIgnoreKill, mKillingOne;
 
   //Signal variables
   bool mErrorSignalReceived, mFinishedSignalReceived, mKillFinishedSignalReceived;
