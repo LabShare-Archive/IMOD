@@ -106,6 +106,7 @@ final class Spinner {
   private SpinnerNumberModel model = null;
   private JPanel panel = null;
   private JLabel label = null;
+  private boolean debug = false;
 
   private int maximum;
 
@@ -239,20 +240,8 @@ final class Spinner {
     model.setMaximum(new Integer(max));
   }
 
-  /**
-   * @param value
-   * @return true if value empty or >= min and <= max (if max set)
-   */
-  boolean isInRange(final ParsedElement value) {
-    if (value == null || value.isEmpty()) {
-      return true;
-    }
-    Number rawNumber = value.getRawNumber();
-    if (rawNumber != null) {
-      int num = rawNumber.intValue();
-      return num >= minimum && (maximum <= minimum || num <= maximum);
-    }
-    return true;
+  void setDebug(final boolean input) {
+    debug = input;
   }
 
   void setValue(final ParsedElement value) {
