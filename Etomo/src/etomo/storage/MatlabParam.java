@@ -29,6 +29,7 @@ import etomo.type.ParsedElement;
 import etomo.type.ParsedList;
 import etomo.type.ParsedNumber;
 import etomo.type.ParsedQuotedString;
+import etomo.ui.FieldLabels;
 import etomo.ui.UIComponent;
 import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
@@ -327,11 +328,8 @@ public final class MatlabParam {
   public static final int Z_INDEX = 2;
   public static final String FN_OUTPUT_KEY = "fnOutput";
   public static final String D_PHI_KEY = "dPhi";
-  public static final String D_PHI_LABEL = "Phi";
   public static final String D_THETA_KEY = "dTheta";
-  public static final String D_THETA_LABEL = "Theta";
   public static final String D_PSI_KEY = "dPsi";
-  public static final String D_PSI_LABEL = "Psi";
   public static final String SEARCH_RADIUS_KEY = "searchRadius";
   public static final String LOW_CUTOFF_KEY = "lowCutoff";
   public static final String LOW_CUTOFF_DEFAULT = "0";
@@ -372,8 +370,8 @@ public final class MatlabParam {
   public static final String INSIDE_MASK_RADIUS_KEY = "insideMaskRadius";
   public static final String OUTSIDE_MASK_RADIUS_KEY = "outsideMaskRadius";
   public static final String N_WEIGHT_GROUP_KEY = "nWeightGroup";
-  public static final int N_WEIGHT_GROUP_OFF = 0;
   public static final int N_WEIGHT_GROUP_DEFAULT = 8;
+  public static final int N_WEIGHT_GROUP_OFF = 0;
   public static final int N_WEIGHT_GROUP_MIN = 0;
   public static final int N_WEIGHT_GROUP_MAX = 32;
   public static final String FLG_REMOVE_DUPLICATES_KEY = "flgRemoveDuplicates";
@@ -381,7 +379,6 @@ public final class MatlabParam {
   public static final String DUPLICATE_ANGULAR_TOLERANCE_KEY = "duplicateAngularTolerance";
   public static final String FLG_ALIGN_AVERAGES_KEY = "flgAlignAverages";
   public static final String FLG_FAIR_REFERENCE_KEY = "flgFairReference";
-  public static final String FLG_FAIR_REFERENCE_LABEL = "Multiparticle reference";
   public static final String FLG_ABS_VALUE_KEY = "flgAbsValue";
   public static final boolean FLG_ABS_VALUE_DEFAULT = true;
   public static final String FLG_STRICT_SEARCH_LIMITS_KEY = "flgStrictSearchLimits";
@@ -467,12 +464,10 @@ public final class MatlabParam {
     this.file = file;
     this.newFile = newFile;
     nWeightGroup.setDefault(N_WEIGHT_GROUP_DEFAULT);
-    nWeightGroup.setFloor(N_WEIGHT_GROUP_MIN);
     flgFairReference.setDefault(false);
     flgAbsValue.setDefault(FLG_ABS_VALUE_DEFAULT);
     flgStrictSearchLimits.setDefault(FLG_STRICT_SEARCH_LIMITS_DEFAULT);
     edgeShift.setDefault(EDGE_SHIFT_DEFAULT);
-    edgeShift.setFloor(EDGE_SHIFT_MIN);
   }
 
   /**
@@ -1206,22 +1201,37 @@ public final class MatlabParam {
     addError(fnOutput, errorList);
     // refFlagAllTom
     refFlagAllTom.parse(autodoc.getAttribute(REF_FLAG_ALL_TOM_KEY));
-    addError(refFlagAllTom, errorList);
+    if (!addError(refFlagAllTom, errorList)) {
+      checkValue(refFlagAllTom, new int[] { 0, 1 }, component, REF_FLAG_ALL_TOM_KEY,
+          null, 1);
+    }
     // edgeShift
     edgeShift.parse(autodoc.getAttribute(EDGE_SHIFT_KEY));
-    addError(edgeShift, errorList);
+    if (!addError(edgeShift, errorList)) {
+      checkValue(edgeShift, EDGE_SHIFT_MIN, EDGE_SHIFT_MAX, 1, component, EDGE_SHIFT_KEY,
+          FieldLabels.EDGE_SHIFT_LABEL, String.valueOf(EDGE_SHIFT_DEFAULT));
+    }
     // lstThresholds
     lstThresholds.parse(autodoc.getAttribute(LST_THRESHOLDS_KEY));
     addError(lstThresholds, errorList);
     // lstFlagAllTom
     lstFlagAllTom.parse(autodoc.getAttribute(LST_FLAG_ALL_TOM_KEY));
     addError(lstFlagAllTom, errorList);
+    if (!addError(lstFlagAllTom, errorList)) {
+      checkValue(lstFlagAllTom, new int[] { 0, 1 }, component, LST_FLAG_ALL_TOM_KEY,
+          null, 1);
+    }
     // alignedBaseName
     alignedBaseName.parse(autodoc.getAttribute(ALIGNED_BASE_NAME_KEY));
     addError(alignedBaseName, errorList);
     // debugLevel
     debugLevel.parse(autodoc.getAttribute(DEBUG_LEVEL_KEY));
     addError(debugLevel, errorList);
+    if (!addError(debugLevel, errorList)) {
+      checkValue(debugLevel, DEBUG_LEVEL_MIN, DEBUG_LEVEL_MAX, 1, component,
+          DEBUG_LEVEL_KEY, FieldLabels.DEBUG_LEVEL_LABEL,
+          String.valueOf(DEBUG_LEVEL_DEFAULT));
+    }
     // YaxisType
     yAxisType = YAxisType.getInstance(autodoc.getAttribute(YAxisType.KEY), component);
     // YaxisObjectNum
@@ -1232,7 +1242,10 @@ public final class MatlabParam {
     addError(yaxisContourNum, errorList);
     // flgWedgeWeight
     flgWedgeWeight.parse(autodoc.getAttribute(FLG_WEDGE_WEIGHT_KEY));
-    addError(flgWedgeWeight, errorList);
+    if (!addError(flgWedgeWeight, errorList)) {
+      checkValue(flgWedgeWeight, new int[] { 0, 1 }, component, FLG_WEDGE_WEIGHT_KEY,
+          null, 1);
+    }
     // sampleSphere
     sampleSphere.parse(autodoc.getAttribute(SampleSphere.KEY));
     addError(sampleSphere, errorList);
@@ -1253,32 +1266,55 @@ public final class MatlabParam {
     addError(outsideMaskRadius, errorList);
     // nWeightGroup
     nWeightGroup.parse(autodoc.getAttribute(N_WEIGHT_GROUP_KEY));
-    addError(nWeightGroup, errorList);
+    if (!addError(nWeightGroup, errorList)) {
+      checkValue(nWeightGroup, N_WEIGHT_GROUP_MIN, N_WEIGHT_GROUP_MAX, 1, component,
+          N_WEIGHT_GROUP_KEY, FieldLabels.N_WEIGHT_GROUP_LABEL,
+          String.valueOf(N_WEIGHT_GROUP_DEFAULT));
+    }
     // flgRemoveDuplicates
     flgRemoveDuplicates.parse(autodoc.getAttribute(FLG_REMOVE_DUPLICATES_KEY));
     addError(flgRemoveDuplicates, errorList);
+    if (!addError(flgRemoveDuplicates, errorList)) {
+      checkValue(flgRemoveDuplicates, new int[] { 0, 1 }, component, FLG_REMOVE_DUPLICATES_KEY,
+          FieldLabels.FLG_REMOVE_DUPLICATES_LABEL, 1);
+    }
     // flgAlignAverages
     flgAlignAverages.parse(autodoc.getAttribute(FLG_ALIGN_AVERAGES_KEY));
     addError(flgAlignAverages, errorList);
+    if (!addError(flgAlignAverages, errorList)) {
+      checkValue(flgAlignAverages, new int[] { 0, 1 }, component, FLG_ALIGN_AVERAGES_KEY,
+          FieldLabels.FLG_ALIGN_AVERAGES_LABEL, 1);
+    }
     // flgFairReference
     flgFairReference.parse(autodoc.getAttribute(FLG_FAIR_REFERENCE_KEY));
     if (!addError(flgFairReference, errorList)) {
       checkValue(flgFairReference, new int[] { 0, 1 }, component, FLG_FAIR_REFERENCE_KEY,
-          FLG_FAIR_REFERENCE_LABEL);
+          FieldLabels.FLG_FAIR_REFERENCE_LABEL, -1);
     }
     // flgAbsValue
     flgAbsValue.parse(autodoc.getAttribute(FLG_ABS_VALUE_KEY));
-    addError(flgAbsValue, errorList);
+    if (!addError(flgAbsValue, errorList)) {
+      checkValue(flgAbsValue, new int[] { 0, 1 }, component, FLG_ABS_VALUE_KEY,
+          FieldLabels.FLG_ABS_VALUE_LABEL, 1);
+    }
     // flgStrictSearchLimits
     flgStrictSearchLimits.parse(autodoc.getAttribute(FLG_STRICT_SEARCH_LIMITS_KEY));
     addError(flgStrictSearchLimits, errorList);
+    if (!addError(flgStrictSearchLimits, errorList)) {
+      checkValue(flgStrictSearchLimits, new int[] { 0, 1 }, component, FLG_STRICT_SEARCH_LIMITS_KEY,
+          FieldLabels.FLG_STRICT_SEARCH_LIMITS_LABEL, 1);
+    }
     // selectClassID
     selectClassID.parse(autodoc.getAttribute(SELECT_CLASS_ID_KEY));
     addError(selectClassID, errorList);
   }
 
   void checkValue(final ParsedNumber number, final int[] expectedValues,
-      final UIComponent component, final String paramName, final String fieldLabel) {
+      final UIComponent component, final String paramName, final String fieldLabel,
+      final int replacementValueIndex) {
+    if (number == null || expectedValues == null) {
+      return;
+    }
     if (expectedValues != null) {
       boolean ok = false;
       for (int i = 0; i < expectedValues.length; i++) {
@@ -1287,10 +1323,67 @@ public final class MatlabParam {
         }
       }
       if (!ok) {
-        UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", paramName,
-            null, fieldLabel, number.getRawString(), null, null);
+        UIHarness.INSTANCE
+            .openProblemValueMessageDialog(
+                component,
+                "Unknown",
+                paramName,
+                null,
+                fieldLabel,
+                number.getRawString(),
+                replacementValueIndex != -1
+                    && replacementValueIndex < expectedValues.length ? String
+                    .valueOf(expectedValues[replacementValueIndex]) : null, null);
       }
     }
+  }
+
+  /**
+   * Checks for an out of range value. If it is, pops up a warning and changes number to
+   * to replacement value (if replacement value is not null).
+   * @param number
+   * @param min
+   * @param max
+   * @param step
+   * @param component
+   * @param paramName
+   * @param fieldLabel
+   * @param replacementValue
+   */
+  void checkValue(final ParsedNumber number, final int min, final int max,
+      final int step, final UIComponent component, final String paramName,
+      final String fieldLabel, final String replacementValue) {
+    if (number == null) {
+      return;
+    }
+    Number nNumber = number.getRawNumber();
+    if (nNumber == null) {
+      return;
+    }
+    int num = nNumber.intValue();
+    boolean ok = false;
+    if (step == 1) {
+      if (num >= min && num <= max) {
+        ok = true;
+      }
+    }
+    else {
+      for (int i = min; i <= max; i += step) {
+        if (num == i) {
+          ok = true;
+          break;
+        }
+      }
+    }
+    if (!ok) {
+      UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Out of range",
+          paramName, null, fieldLabel, number.getRawString(), replacementValue, null);
+      if (replacementValue != null) {
+        number.setRawString(replacementValue);
+      }
+      return;
+    }
+    return;
   }
 
   public boolean validate(final boolean forRun) {
@@ -1833,14 +1926,13 @@ public final class MatlabParam {
      */
     public static final InitMotlCode Z_AXIS = new InitMotlCode(1, null);
     public static final InitMotlCode X_AND_Z_AXIS = new InitMotlCode(2,
-        "Align particle Y axes");
+        FieldLabels.INIT_MOTL_X_AND_Z_AXIS_LABEL);
     public static final InitMotlCode RANDOM_ROTATIONS = new InitMotlCode(3,
-        "Uniform random rotations");
+        FieldLabels.INIT_MOTL_RANDOM_ROTATIONS);
     public static final InitMotlCode RANDOM_AXIAL_ROTATIONS = new InitMotlCode(4,
-        "Random axial (Y) rotations");
+        FieldLabels.INIT_MOTL_RANDOM_AXIAL_ROTATIONS);
     public static final InitMotlCode DEFAULT = ZERO;
 
-    public static final String LABEL = "Initial Motive List";
     public static final String KEY = "initMOTL";
 
     private final EtomoNumber value = new EtomoNumber();
@@ -1888,7 +1980,7 @@ public final class MatlabParam {
         return RANDOM_AXIAL_ROTATIONS;
       }
       UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", KEY, null,
-          LABEL, value, DEFAULT.value.toString(), DEFAULT.label);
+          FieldLabels.INIT_MOTL_LABEL, value, DEFAULT.value.toString(), DEFAULT.label);
       return DEFAULT;
     }
 
@@ -1905,25 +1997,16 @@ public final class MatlabParam {
   }
 
   public static final class MaskType implements EnumeratedType {
-    private static final String NONE_VALUE = "none";
-    private static final String VOLUME_VALUE = "DUMMY_VOLUME_VALUE";
-    private static final String SPHERE_VALUE = "sphere";
-    private static final String CYLINDER_VALUE = "cylinder";
-    public static final MaskType NONE = new MaskType(NONE_VALUE, "None");
-    public static final MaskType VOLUME = new MaskType(VOLUME_VALUE,
-        "User supplied binary file:");
-    public static final MaskType SPHERE = new MaskType(SPHERE_VALUE, "Sphere");
-    public static final MaskType CYLINDER = new MaskType(CYLINDER_VALUE, "Cylinder");
+    public static final MaskType NONE = new MaskType("none");
+    public static final MaskType VOLUME = new MaskType("DUMMY_VOLUME_VALUE");
+    public static final MaskType SPHERE = new MaskType("sphere");
+    public static final MaskType CYLINDER = new MaskType("cylinder");
     private static final MaskType DEFAULT = NONE;
 
-    public static final String LABEL = "Masking";
-
     private final String value;
-    private final String label;
 
-    private MaskType(final String value, final String label) {
+    private MaskType(final String value) {
       this.value = value;
-      this.label = label;
     }
 
     public String toString() {
@@ -1942,7 +2025,7 @@ public final class MatlabParam {
     }
 
     public String getLabel() {
-      return label;
+      return null;
     }
 
     /**
@@ -1956,16 +2039,16 @@ public final class MatlabParam {
       if (value == null || value.matches("\\s*")) {
         return DEFAULT;
       }
-      if (NONE_VALUE.equals(value)) {
+      if (NONE.value.equals(value)) {
         return NONE;
       }
-      if (VOLUME_VALUE.equals(value)) {
+      if (VOLUME.value.equals(value)) {
         return VOLUME;
       }
-      if (SPHERE_VALUE.equals(value)) {
+      if (SPHERE.value.equals(value)) {
         return SPHERE;
       }
-      if (CYLINDER_VALUE.equals(value)) {
+      if (CYLINDER.value.equals(value)) {
         return CYLINDER;
       }
       return VOLUME;
@@ -1973,23 +2056,17 @@ public final class MatlabParam {
   }
 
   public static final class SampleSphere implements EnumeratedType {
-    private static final String NONE_VALUE = "none";
-    private static final String FULL_VALUE = "full";
-    private static final String HALF_VALUE = "half";
-    public static final SampleSphere NONE = new SampleSphere(NONE_VALUE, "None");
-    public static final SampleSphere FULL = new SampleSphere(FULL_VALUE, "Full sphere");
-    public static final SampleSphere HALF = new SampleSphere(HALF_VALUE, "Half sphere");
+    public static final SampleSphere NONE = new SampleSphere("none");
+    public static final SampleSphere FULL = new SampleSphere("full");
+    public static final SampleSphere HALF = new SampleSphere("half");
     private static final SampleSphere DEFAULT = NONE;
 
-    public static final String LABEL = "Spherical Sampling for Theta and Psi";
     private static final String KEY = "sampleSphere";
 
     private final String value;
-    private final String label;
 
-    private SampleSphere(final String value, final String label) {
+    private SampleSphere(final String value) {
       this.value = value;
-      this.label = label;
     }
 
     public String toString() {
@@ -2001,7 +2078,7 @@ public final class MatlabParam {
     }
 
     public String getLabel() {
-      return label;
+      return null;
     }
 
     public boolean isDefault() {
@@ -2016,34 +2093,30 @@ public final class MatlabParam {
       if (value == null) {
         return DEFAULT;
       }
-      if (NONE_VALUE.equals(value)) {
+      if (NONE.value.equals(value)) {
         return NONE;
       }
-      if (FULL_VALUE.equals(value)) {
+      if (FULL.value.equals(value)) {
         return FULL;
       }
-      if (HALF_VALUE.equals(value)) {
+      if (HALF.value.equals(value)) {
         return HALF;
       }
       UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", KEY, null,
-          LABEL, value, DEFAULT.value, null);
+          FieldLabels.SAMPLE_SPHERE_LABEL, value, DEFAULT.value, null);
       return DEFAULT;
     }
   }
 
   public static final class YAxisType implements EnumeratedType {
-    private static final EtomoNumber Y_AXIS_VALUE = new EtomoNumber().set(0);
-    private static final EtomoNumber PARTICLE_MODEL_VALUE = new EtomoNumber().set(1);
-    private static final EtomoNumber CONTOUR_VALUE = new EtomoNumber().set(2);
-
-    public static final YAxisType Y_AXIS = new YAxisType(Y_AXIS_VALUE, "Tomogram Y axis");
-    public static final YAxisType PARTICLE_MODEL = new YAxisType(PARTICLE_MODEL_VALUE,
-        "Particle model points");
-    public static final YAxisType CONTOUR = new YAxisType(CONTOUR_VALUE,
-        "End points of contour");
+    public static final YAxisType Y_AXIS = new YAxisType(new EtomoNumber().set(0),
+        FieldLabels.YAXIS_TYPE_Y_AXIS_LABEL);
+    public static final YAxisType PARTICLE_MODEL = new YAxisType(
+        new EtomoNumber().set(1), FieldLabels.YAXIS_TYPE_PARTICLE_MODEL_LABEL);
+    public static final YAxisType CONTOUR = new YAxisType(new EtomoNumber().set(2),
+        FieldLabels.YAXIS_TYPE_CONTOUR_LABEL);
     public static final YAxisType DEFAULT = Y_AXIS;
 
-    public static final String LABEL = "Particle Y Axis";
     public static final String KEY = "yaxisType";
 
     private final ConstEtomoNumber value;
@@ -2079,17 +2152,17 @@ public final class MatlabParam {
       if (value == null) {
         return DEFAULT;
       }
-      if (Y_AXIS_VALUE.equals(value)) {
+      if (Y_AXIS.value.equals(value)) {
         return Y_AXIS;
       }
-      if (PARTICLE_MODEL_VALUE.equals(value)) {
+      if (PARTICLE_MODEL.value.equals(value)) {
         return PARTICLE_MODEL;
       }
-      if (CONTOUR_VALUE.equals(value)) {
+      if (CONTOUR.value.equals(value)) {
         return CONTOUR;
       }
       UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", KEY, null,
-          LABEL, value, DEFAULT.value.toString(), DEFAULT.label);
+          FieldLabels.YAXIS_TYPE_LABEL, value, DEFAULT.value.toString(), DEFAULT.label);
       return DEFAULT;
     }
   }
@@ -2288,7 +2361,7 @@ public final class MatlabParam {
       if (bdStart.multiply(new BigDecimal(-1)).compareTo(bdEnd) != 0) {
         UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Incorrect", key,
             "start", label, bdStart.toString(), bdEnd.multiply(new BigDecimal(-1))
-                .toString(), "end x -1");
+                .toString(), "-end");
       }
     }
 
@@ -2435,15 +2508,15 @@ public final class MatlabParam {
     }
 
     private void setDPhi(final ParsedElement input, final UIComponent component) {
-      dPhi.set(input, D_PHI_KEY, D_PHI_LABEL, component);
+      dPhi.set(input, D_PHI_KEY, FieldLabels.D_PHI_LABEL, component);
     }
 
     private void setDTheta(final ParsedElement input, final UIComponent component) {
-      dTheta.set(input, D_THETA_KEY, D_THETA_LABEL, component);
+      dTheta.set(input, D_THETA_KEY, FieldLabels.D_THETA_LABEL, component);
     }
 
     private void setDPsi(final ParsedElement input, final UIComponent component) {
-      dPsi.set(input, D_PSI_KEY, D_PSI_LABEL, component);
+      dPsi.set(input, D_PSI_KEY, FieldLabels.D_PSI_LABEL, component);
     }
 
     private ParsedElement getDPhi() {
