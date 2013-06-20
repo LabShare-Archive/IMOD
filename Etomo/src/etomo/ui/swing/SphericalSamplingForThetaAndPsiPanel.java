@@ -10,6 +10,7 @@ import javax.swing.ButtonGroup;
 
 import etomo.BaseManager;
 import etomo.storage.MatlabParam;
+import etomo.ui.FieldLabels;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.UIComponent;
@@ -48,11 +49,11 @@ final class SphericalSamplingForThetaAndPsiPanel implements UIComponent, SwingCo
 
   private final EtomoPanel pnlRoot = new EtomoPanel();
   private final ButtonGroup bgSampleSphere = new ButtonGroup();
-  private final RadioButton rbSampleSphereNone = new RadioButton(
+  private final RadioButton rbSampleSphereNone = new RadioButton("None",
       MatlabParam.SampleSphere.NONE, bgSampleSphere);
-  private final RadioButton rbSampleSphereFull = new RadioButton(
+  private final RadioButton rbSampleSphereFull = new RadioButton("Full sphere",
       MatlabParam.SampleSphere.FULL, bgSampleSphere);
-  private final RadioButton rbSampleSphereHalf = new RadioButton(
+  private final RadioButton rbSampleSphereHalf = new RadioButton("Half sphere",
       MatlabParam.SampleSphere.HALF, bgSampleSphere);
   private final LabeledTextField ltfSampleInterval = new LabeledTextField(
       FieldType.FLOATING_POINT, SAMPLE_INTERVAL_LABEL + " (degrees) : ");
@@ -89,7 +90,7 @@ final class SphericalSamplingForThetaAndPsiPanel implements UIComponent, SwingCo
     ltfSampleInterval.setPreferredWidth(60);
     // root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
-    pnlRoot.setBorder(new EtchedBorder(MatlabParam.SampleSphere.LABEL).getBorder());
+    pnlRoot.setBorder(new EtchedBorder(FieldLabels.SAMPLE_SPHERE_LABEL).getBorder());
     pnlRoot.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlRoot.add(rbSampleSphereNone.getComponent());
     pnlRoot.add(Box.createRigidArea(FixedDim.x10_y0));
@@ -177,7 +178,7 @@ final class SphericalSamplingForThetaAndPsiPanel implements UIComponent, SwingCo
     if ((rbSampleSphereFull.isSelected() || rbSampleSphereHalf.isSelected())
         && ltfSampleInterval.isEnabled() && ltfSampleInterval.isEmpty()) {
       UIHarness.INSTANCE.openMessageDialog(manager, "In "
-          + MatlabParam.SampleSphere.LABEL + ", " + SAMPLE_INTERVAL_LABEL
+          + FieldLabels.SAMPLE_SPHERE_LABEL + ", " + SAMPLE_INTERVAL_LABEL
           + " is required when either " + MatlabParam.SampleSphere.FULL.getLabel()
           + " or " + MatlabParam.SampleSphere.HALF.getLabel() + " is selected.",
           "Entry Error");
