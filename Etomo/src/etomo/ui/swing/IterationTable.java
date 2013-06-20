@@ -24,6 +24,7 @@ import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
+import etomo.ui.FieldLabels;
 
 /**
  * <p>Description: </p>
@@ -166,9 +167,9 @@ final class IterationTable implements Highlightable {
   private final HeaderCell header3IterationNumber = new HeaderCell();
   private final HeaderCell header1DPhiDThetaDPsi = new HeaderCell(
       D_PHI_D_THETA_D_PSI_HEADER1);
-  private final HeaderCell header2DPhi = new HeaderCell(MatlabParam.D_PHI_LABEL);
-  private final HeaderCell header2DTheta = new HeaderCell(MatlabParam.D_THETA_LABEL);
-  private final HeaderCell header2DPsi = new HeaderCell(MatlabParam.D_PSI_LABEL);
+  private final HeaderCell header2DPhi = new HeaderCell(FieldLabels.D_PHI_LABEL);
+  private final HeaderCell header2DTheta = new HeaderCell(FieldLabels.D_THETA_LABEL);
+  private final HeaderCell header2DPsi = new HeaderCell(FieldLabels.D_PSI_LABEL);
   private final HeaderCell header3DPhiMax = new HeaderCell(MAX_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPhiIncrement = new HeaderCell(INCR_HEADER3,
@@ -208,7 +209,7 @@ final class IterationTable implements Highlightable {
   private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete");
   private final MultiLineButton btnCopyRow = new MultiLineButton("Dup");
   private final CheckBox cbFlgRemoveDuplicates = new CheckBox(
-      "Remove duplicate particles after each iteration");
+      FieldLabels.FLG_REMOVE_DUPLICATES_LABEL);
   private final JPanel pnlTableAndCheckbox = new JPanel();
   private final JPanel pnlFlgRemoveDuplicates = new JPanel();
 
