@@ -133,8 +133,9 @@ public final class UIHarness {
         + (replacementValue != null ? "  The " + problem.toLowerCase()
             + " value will be replaced with "
             + (replacementValueDescr != null ? "'" + replacementValueDescr + "': " : "")
-            + " '" + replacementValue + "'." : "") + "  See the '" + fieldLabel
-        + "' field.", problem + " Value");
+            + " '" + replacementValue + "'." : "")
+        + (fieldLabel != null ? "  See the '" + fieldLabel + "' field." : ""), problem
+        + " Value");
   }
 
   private synchronized void openWarningMessageDialog(final UIComponent uiComponent,
