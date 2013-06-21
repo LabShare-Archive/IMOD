@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
@@ -107,72 +108,88 @@ public class EtomoDirector {
   }
 
   public static void main(String[] args) {
-    try {
-      EtomoDirector.INSTANCE.arguments.parse(args);
-      if (!EtomoDirector.INSTANCE.arguments.isHelp()) {
-        // Print out java properties
-        Enumeration enumeration = System.getProperties().propertyNames();
-        while (enumeration.hasMoreElements()) {
-          Object key = enumeration.nextElement();
-          System.err.println(key + ":  " + System.getProperty((String) key));
+    SwingUtilities.invokeLater(new Setup(args));
+  }
+
+  private static final class Setup implements Runnable {
+    private final String[] args;
+
+    private Setup(final String[] args) {
+      this.args = args;
+    }
+
+    public void run() {
+      try {
+        EtomoDirector.INSTANCE.arguments.parse(args);
+        if (!EtomoDirector.INSTANCE.arguments.isHelp()) {
+          // Print out java properties
+          Enumeration enumeration = System.getProperties().propertyNames();
+          while (enumeration.hasMoreElements()) {
+            Object key = enumeration.nextElement();
+            System.err.println(key + ":  " + System.getProperty((String) key));
+          }
         }
-      }
-      if (EtomoDirector.INSTANCE.arguments.isDebug()) {
-        // print more environment info
-        System.err.println();
-        Map env = System.getenv();
-        Set keys = env.keySet();
-        Iterator iterator = keys.iterator();
-        while (iterator.hasNext()) {
-          Object key = iterator.next();
-          System.err.println(key + ":  " + env.get(key));
-        }
-        if (EtomoDirector.INSTANCE.arguments.isDebugLevel(2)) {
+        if (EtomoDirector.INSTANCE.arguments.isDebug()) {
+          // print more environment info
           System.err.println();
-          System.err.println("Java lib:");
-          File libDir = new File(new File(System.getProperty("java.home")), "lib");
-          String[] libDirList = libDir.list();
-          if (libDirList != null) {
-            for (int i = 0; i < libDirList.length; i++) {
-              System.err.println(libDirList[i]);
+          Map env = System.getenv();
+          Set keys = env.keySet();
+          Iterator iterator = keys.iterator();
+          while (iterator.hasNext()) {
+            Object key = iterator.next();
+            System.err.println(key + ":  " + env.get(key));
+          }
+          if (EtomoDirector.INSTANCE.arguments.isDebugLevel(2)) {
+            System.err.println();
+            System.err.println("Java lib:");
+            File libDir = new File(new File(System.getProperty("java.home")), "lib");
+            String[] libDirList = libDir.list();
+            if (libDirList != null) {
+              for (int i = 0; i < libDirList.length; i++) {
+                System.err.println(libDirList[i]);
+              }
             }
           }
         }
+        if (!EtomoDirector.INSTANCE.arguments.isHelp()) {
+          Utilities.dateTimeStamp();
+          Utilities.setStartTime();
+        }
+        INSTANCE.initialize();
+        // automation must be done last in main, otherwise initialization may not
+        // complete normally.
+        EtomoDirector.INSTANCE.doAutomation();
       }
-      if (!EtomoDirector.INSTANCE.arguments.isHelp()) {
-        Utilities.dateTimeStamp();
-        Utilities.setStartTime();
+      catch (OutOfMemoryError e) {
+        e.printStackTrace();
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
+            "WARNING:  Ran out of memory."
+                + "\nPlease close open log file windows or exit Etomo.", "Out of Memory");
+        if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+          UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+        }
+        throw e;
       }
-      INSTANCE.initialize();
-      // automation must be done last in main, otherwise initialization may not
-      // complete normally.
-      EtomoDirector.INSTANCE.doAutomation();
+      catch (Exception e) {
+        e.printStackTrace();
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage(),
+            "Exception");
+        if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+          UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+        }
+      }
+      catch (Error e) {
+        e.printStackTrace();
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage(), "Error");
+        if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+          UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+        }
+      }
     }
-    catch (OutOfMemoryError e) {
-      e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
-          "WARNING:  Ran out of memory."
-              + "\nPlease close open log file windows or exit Etomo.", "Out of Memory");
-      if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
-        UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
-      }
-      throw e;
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage(),
-          "Exception");
-      if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
-        UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
-      }
-    }
-    catch (Error e) {
-      e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage(), "Error");
-      if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
-        UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
-      }
-    }
+  }
+
+  private void setAdvanced(boolean state) {
+    isAdvanced = state;
   }
 
   public void doAutomation() {
@@ -1220,10 +1237,6 @@ public class EtomoDirector {
    */
   public String getHomeDirectory() {
     return homeDirectory;
-  }
-
-  private void setAdvanced(boolean state) {
-    isAdvanced = state;
   }
 
   private final class UtilityThread implements Runnable {

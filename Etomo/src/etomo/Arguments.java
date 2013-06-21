@@ -138,7 +138,8 @@ public final class Arguments {
       + "\n\t\tautomation options (below) will be ignored.  However " + CPUS_TAG + " and"
       + "\n\t\t" + GPUS_TAG + " work with both types of automation.  Implied options:"
       + "\n\t\t" + FG_TAG + ", " + HEADLESS_TAG + ", " + CREATE_TAG + ", and " + EXIT_TAG
-      + ".  The directive file must end in \".adoc\" and conform to autodoc syntax."
+      + ".  The directive file must"
+      + "\n\t\tend in \".adoc\" and conform to autodoc syntax."
 
       + "\n\nCommand-Line-Based Automation Options:"
 
@@ -204,8 +205,8 @@ public final class Arguments {
       + "\n\t\tSend extra information to standard error.  The " + DEBUG_TAG + " option"
       + "\n\t\tincludes the following options:  " + MEMORY_TAG + " and " + TIMESTAMP_TAG
       + ".\n\t\tLevel can be 0 (debug is off), 1 (default), 2 (more"
-      + "\n\t\tinformation), or 3 (output that may degrade eTomo's"
-      + "\n\t\tperformance)."
+      + "\n\t\tinformation), 3 (output that may degrade eTomo's performance),"
+      + "\n\t\tor 4 (as for 3 plus the log will be very large)."
 
       + "\n\n  " + IGNORE_SETTINGS_TAG
       + "\n\t\tPrevents the .etomo from loading from and saving to the .etomo"
@@ -386,7 +387,7 @@ public final class Arguments {
   public String getDataset() {
     return sDataset;
   }
-  
+
   public int getDebugLevel() {
     return debugLevel;
   }

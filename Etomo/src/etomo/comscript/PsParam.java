@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.storage.Network;
 import etomo.type.AxisID;
 import etomo.type.OSType;
@@ -65,7 +66,7 @@ public final class PsParam {
   private boolean userIdColumn = false;
   private boolean startTimeColumn = true;
 
-  private int debug = 0;
+  private int debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
   /**
    * Builds the ps commmand.  Uses the pid to limit the output to one process.
@@ -183,6 +184,9 @@ public final class PsParam {
       return;
     }
     for (int i = 1; i < output.length; i++) {
+      if (debug >= 4) {
+        System.err.println(output[i]);
+      }
       if (output[i] != null)
         if (output[i] != null && output[i].length() >= startTimeEndIndex) {
           valuesArray.add(new Values(output[i]));
@@ -211,14 +215,14 @@ public final class PsParam {
    * @param startTime
    */
   public boolean findRow(String pid, String groupPid, Time startTime) {
-    if (debug > 1) {
+    if (debug >= 4) {
       System.err.println("Looking for a ps row with pid=" + pid + ",groupPid=" + groupPid
           + ",startTime=" + startTime);
     }
     for (int i = 0; i < valuesArray.size(); i++) {
       Values values = (Values) valuesArray.get(i);
       if (values.getPid().equals(pid) && values.getGroupPid().equals(groupPid)) {
-        if (debug > 1) {
+        if (debug >= 4) {
           System.err.println("Checking the startTime of a ps row with pid=" + pid
               + ",groupPid=" + groupPid + ",startTime=" + startTime);
         }
@@ -334,10 +338,18 @@ public final class PsParam {
     }
 
     public String getGroupPid() {
+      if (debug >= 2) {
+        System.err.println("psParam.getGroupPid(" + index + "):"
+            + psParam.getGroupPid(index));
+      }
       return psParam.getGroupPid(index);
     }
 
     public Time getStartTime() {
+      if (debug >= 2) {
+        System.err.println("psParam.getStartTime(" + index + "):"
+            + psParam.getStartTime(index));
+      }
       return psParam.getStartTime(index);
     }
   }
