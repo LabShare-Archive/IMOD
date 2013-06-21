@@ -183,6 +183,9 @@ public final class PsParam {
       return;
     }
     for (int i = 1; i < output.length; i++) {
+      if (debug==3) {
+        System.err.println("output[i]");
+      }
       if (output[i] != null)
         if (output[i] != null && output[i].length() >= startTimeEndIndex) {
           valuesArray.add(new Values(output[i]));
@@ -334,10 +337,18 @@ public final class PsParam {
     }
 
     public String getGroupPid() {
+      if (debug == 3) {
+        System.err.println("psParam.getGroupPid(" + index + "):"
+            + psParam.getGroupPid(index));
+      }
       return psParam.getGroupPid(index);
     }
 
     public Time getStartTime() {
+      if (debug == 3) {
+        System.err.println("psParam.getStartTime(" + index + "):"
+            + psParam.getStartTime(index));
+      }
       return psParam.getStartTime(index);
     }
   }
