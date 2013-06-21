@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.comscript.PsParam;
 import etomo.storage.Network;
 import etomo.storage.Storable;
@@ -85,6 +86,7 @@ public final class ProcessData implements Storable {
   // reconnectable process.
   private ProcessingMethod processingMethod = null;
   private DialogType dialogType = null;
+  private int debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
   public void dumpState() {
     System.err.println("[processDataPrepend:" + processDataPrepend + ",pid:" + pid
@@ -247,6 +249,9 @@ public final class ProcessData implements Storable {
    * @return
    */
   private PsParam runPs(String pid) {
+    if (debug >= 4) {
+      System.err.println("ProcessData.runPs");
+    }
     PsParam param = new PsParam(manager, axisID, pid, osType, hostName.toString(), false);
     SystemProgram ps = new SystemProgram(manager, manager.getPropertyUserDir(),
         param.getCommandArray(), axisID);
