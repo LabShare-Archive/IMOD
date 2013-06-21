@@ -338,7 +338,7 @@ public final class PsParam {
     }
 
     public String getGroupPid() {
-      if (debug >= 4) {
+      if (debug >= 2) {
         System.err.println("psParam.getGroupPid(" + index + "):"
             + psParam.getGroupPid(index));
       }
@@ -346,7 +346,7 @@ public final class PsParam {
     }
 
     public Time getStartTime() {
-      if (debug >= 4) {
+      if (debug >= 2) {
         System.err.println("psParam.getStartTime(" + index + "):"
             + psParam.getStartTime(index));
       }
